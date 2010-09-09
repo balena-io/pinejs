@@ -1,0 +1,3 @@
+#!/usr/bin/env node
+
+require('/Users/veged/Documents/ometa-js/lib/ometajs/2js').main();

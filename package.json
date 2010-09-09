@@ -1,0 +1,19 @@
+{ "name" : "ometa-js"
+, "description" : "A object-oriented language for pattern matching"
+, "version" : "2.0.1"
+, "homepage" : "http://tinlizzie.org/ometa-js/"
+, "author" : "Alessandro Warth <alexwarth@gmail.com> (http://awarth.blogspot.com/)"
+, "contributors" :
+  [ "Sergey Berezhnoy <veged@mail.ru> (http://github.com/veged)" ]
+, "repository" :
+  { "type" : "git"
+  , "url" : "http://github.com/veged/ometa-js.git"
+  }
+, "bugs" :
+  { "web" : "http://github.com/isaacs/npm/issues" }
+, "directories" : { "doc" : "./doc", "lib" : "./lib" }
+, "bin" : { "npm" : "./bin/ometajs2js" }
+, "engines" : { "node" : ">=0.2" }
+, "licenses" :
+  [ { "type" : "AS IS" } ]
+}

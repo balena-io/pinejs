@@ -1,0 +1,13 @@
+ometa L {
+  number   = digit+,
+  addExpr  = addExpr '+' mulExpr
+           | addExpr '-' mulExpr
+           | mulExpr,
+  mulExpr  = mulExpr '*' primExpr
+           | mulExpr '/' primExpr
+           | primExpr,
+  primExpr = '(' expr ')'
+           | number,
+  expr     = addExpr
+}
+
