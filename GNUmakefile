@@ -6,6 +6,10 @@ install:
 	echo $@
 
 src: $(patsubst %.ometajs,%.ometajs.js,$(wildcard src/*.ometajs))
+tests: $(wildcard tests/*.ometajs.js)
+
+tests/%.ometajs: FORCE
+	touch $@
 
 %.ometajs.js: %.ometajs
 	bin/ometajs2js -i $< -o $@
@@ -23,4 +27,4 @@ lib/ometajs.js: src
 	cat $</bs-ometa-js-compiler.ometajs.js >> $@
 	cat $</ometajs.js >> $@
 
-.PHONY: all install
+.PHONY: all install FORCE
