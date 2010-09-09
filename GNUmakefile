@@ -12,7 +12,7 @@ tests/%.ometajs: FORCE
 	touch $@
 
 %.ometajs.js: %.ometajs
-	bin/ometajs2js -i $< -o $@
+	ometajs2js -i $< -o $@
 
 lib: lib/ometajs.js
 
