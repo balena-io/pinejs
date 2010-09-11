@@ -105,7 +105,7 @@ ometa BSOMetaTranslator {
   Grammar    :name :sName
              {this.name = name}
              {this.sName = sName}
-             trans*:rules                  -> [name, '=objectThatDelegatesTo(', sName, ',{', rules.join(','), '})'].join(''),
+             trans*:rules                  -> ['var ', name, "=exports.", name, '=objectThatDelegatesTo(', sName, ',{', rules.join(','), '})'].join(''),
   intPart  = [:mode transFn:part]          -> (mode.toProgramString()  + "," + part),
   jtCase   = [:x trans:e]                  -> [x.toProgramString(), e],
   locals   = [string+:vs]                  -> ['var ', vs.join(','), ';']                                          .join('')
