@@ -12,7 +12,7 @@
 , "bugs" :
   { "web" : "http://github.com/veged/ometa-js/issues" }
 , "directories" : { "doc" : "./doc", "lib" : "./lib" }
-, "bin" : { "ometajs2js" : "./bin/ometajs2js.js" }
+, "bin" : { "ometajs2js" : "./bin/ometajs2js" }
 , "engines" : { "node" : ">=0.2" }
 , "licenses" :
   [ { "type" : "AS IS" } ]
