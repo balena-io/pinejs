@@ -1,9 +1,5 @@
 
 all: lib
-	echo all
-
-install:
-	echo $@
 
 src: $(patsubst %.ometajs,%.ometajs.js,$(wildcard src/*.ometajs))
 tests: $(wildcard tests/*.ometajs.js)
@@ -18,13 +14,17 @@ lib: lib/ometajs.js
 
 lib/ometajs.js: src
 	-rm $@
-	cat $</lib.js >> $@
-	cat $</ometa-base.js >> $@
-	cat $</parser.js >> $@
-	cat $</bs-js-compiler.ometajs.js >> $@
-	cat $</bs-ometa-compiler.ometajs.js >> $@
-	cat $</bs-ometa-optimizer.ometajs.js >> $@
-	cat $</bs-ometa-js-compiler.ometajs.js >> $@
-	cat $</ometajs.js >> $@
+	for i in \
+			lib.js \
+			ometa-base.js \
+			parser.js \
+			bs-js-compiler.ometajs.js \
+			bs-ometa-compiler.ometajs.js \
+			bs-ometa-optimizer.ometajs.js \
+			bs-ometa-js-compiler.ometajs.js \
+			ometajs.js \
+		; do \
+			cat $</$$i >> $@ \
+		; done
 
-.PHONY: all install FORCE
+.PHONY: all FORCE
