@@ -11,3 +11,4 @@ ometa L {
   expr     = addExpr
 }
 
+for (var i, l = 100; i++; i < l) console.log(i);

@@ -102,13 +102,14 @@ ometa BSJSParser <: Parser {
   binding      = "name":n ( "=" expr
                           | empty -> [#get, 'undefined'] ):v                         -> [#var, n, v],
   block        = "{" srcElems:ss "}"                                                 -> ss,
+  vars         = "var" listOf(#binding, ','):bs                                      -> [#begin].concat(bs),
   stmt         = block
-               | "var" listOf(#binding, ','):bs sc                                   -> [#begin].concat(bs)
+               | vars:bs sc                                                          -> bs
                | "if" "(" expr:c ")" stmt:t ( "else" stmt
                                             | empty -> [#get, 'undefined'] ):f       -> [#if, c, t, f]
                | "while" "(" expr:c ")" stmt:s                                       -> [#while,   c, s]
                | "do" stmt:s "while" "(" expr:c ")" sc                               -> [#doWhile, s, c]
-               | "for" "(" ( "var" binding
+               | "for" "(" ( vars
                            | expr
                            | empty -> [#get, 'undefined'] ):i
                        ";" ( expr
