@@ -23,7 +23,7 @@
   OTHER DEALINGS IN THE SOFTWARE.
 */
 
-Parser = objectThatDelegatesTo(OMeta, {
+var Parser = exports.Parser = objectThatDelegatesTo(OMeta, {
   listOf: function() {
     var rule  = this._apply("anything"),
         delim = this._apply("anything")

@@ -128,7 +128,7 @@ Failer.prototype.used = false
 
 // the OMeta "class" and basic functionality
 
-OMeta = {
+var OMeta = exports.OMeta = {
   _apply: function(rule) {
     var memoRec = this.input.memo[rule]
     if (memoRec == undefined) {
