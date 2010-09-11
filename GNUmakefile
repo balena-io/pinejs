@@ -3,6 +3,7 @@ all: lib
 
 src: $(patsubst %.ometajs,%.ometajs.js,$(wildcard src/*.ometajs))
 tests: $(wildcard tests/*.ometajs.js)
+	cat $@/bla.ometajs | ometajs2js > $@/bla.ometajs.stdout
 
 tests/%.ometajs: FORCE
 	touch $@
