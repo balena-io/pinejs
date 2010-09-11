@@ -1,4 +1,4 @@
-{ "name" : "ometa-js"
+{ "name" : "ometajs"
 , "description" : "A object-oriented language for pattern matching"
 , "version" : "2.0.1"
 , "homepage" : "http://tinlizzie.org/ometa-js/"
@@ -12,7 +12,7 @@
 , "bugs" :
   { "web" : "http://github.com/veged/ometa-js/issues" }
 , "directories" : { "doc" : "./doc", "lib" : "./lib" }
-, "bin" : { "ometajs2js" : "./bin/ometajs2js" }
+, "bin" : { "ometajs2js" : "./bin/ometajs2js.js" }
 , "engines" : { "node" : ">=0.2" }
 , "licenses" :
   [ { "type" : "AS IS" } ]
