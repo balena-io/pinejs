@@ -18,7 +18,7 @@ ometa BSOMetaParser <: Parser {
   application    = "^"          name:rule args:as                      -> [#App, "super",        "'" + rule + "'"].concat(as)
                  | name:grm "." name:rule args:as                      -> [#App, "foreign", grm, "'" + rule + "'"].concat(as)
                  |              name:rule args:as                      -> [#App, rule].concat(as),
-  hostExpr       = BSSemActionParser.expr:r                               BSJSTranslator.trans(r),
+  hostExpr       = BSSemActionParser.asgnExpr:r                           BSJSTranslator.trans(r),
   curlyHostExpr  = BSSemActionParser.curlySemAction:r                     BSJSTranslator.trans(r),
   primHostExpr   = BSSemActionParser.semAction:r                          BSJSTranslator.trans(r),
   atomicHostExpr = curlyHostExpr | primHostExpr,
