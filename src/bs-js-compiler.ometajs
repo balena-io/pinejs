@@ -105,9 +105,9 @@ ometa BSJSParser <: Parser {
   sc           = spacesNoNl ('\n' | &'}' | end)
                | ";",
   binding      = "name":n ( "=" asgnExpr
-                          | empty -> [#get, 'undefined'] ):v                         -> [#var, n, v],
+                          | empty -> [#get, 'undefined'] ):v                         -> [n, v],
   block        = "{" srcElems:ss "}"                                                 -> ss,
-  vars         = "var" listOf(#binding, ','):bs                                      -> [#begin].concat(bs),
+  vars         = "var" listOf(#binding, ','):bs                                      -> [#var].concat(bs),
   stmt         = block
                | vars:bs sc                                                          -> bs
                | "if" "(" expr:c ")" stmt:t ( "else" stmt
@@ -122,7 +122,7 @@ ometa BSJSParser <: Parser {
                        ";" ( expr
                            | empty -> [#get, 'undefined'] ):u
                        ")" stmt:s                                                    -> [#for, i, c, u, s]
-               | "for" "(" ( "var" "name":n -> [#var, n, [#get, 'undefined']]
+               | "for" "(" ( "var" "name":n -> [#var, [n, [#get, 'undefined']]]
                            | expr                                             ):v
                       "in" asgnExpr:e
                        ")" stmt:s                                                    -> [#forIn, v, e, s]
@@ -141,7 +141,7 @@ ometa BSJSParser <: Parser {
                | "with" "(" expr:x ")" stmt:s                                        -> [#with, x, s]
                | expr:e sc                                                           -> e
                | ";"                                                                 -> [#get, "undefined"],
-  srcElem      = "function" "name":n funcRest:f                                      -> [#var, n, f]
+  srcElem      = "function" "name":n funcRest:f                                      -> [#var, [n, f]]
                | stmt,
   srcElems     = srcElem*:ss                                                         -> [#begin].concat(ss),
 
@@ -206,7 +206,7 @@ ometa BSJSTranslator {
   call     trans:fn trans*:args                         -> (fn + '(' + args.join(',') + ')'),
   send     :msg trans:recv trans*:args                  -> (recv + '.' + msg + '(' + args.join(',') + ')'),
   new      :cls trans*:args                             -> ('new ' + cls + '(' + args.join(',') + ')'),
-  var      :name trans:val                              -> ('var ' + name + '=' + val),
+  var      ([:n trans:v] -> (n + ' = ' + v))+:vs        -> ('var ' + vs.join(',')),
   throw    trans:x                                      -> ('throw ' + x),
   try      curlyTrans:x :name curlyTrans:c curlyTrans:f -> ('try ' + x + 'catch(' + name + ')' + c + 'finally' + f),
   json     trans*:props                                 -> ('({' + props.join(',') + '})'),
