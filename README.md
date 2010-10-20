@@ -33,6 +33,6 @@ Used to compile the file in Ometa/JS to CommonJS module that exports objects gra
 ### Examples
 
 Some projects are using this:
-*   [ShmakoWiki](http://github.com/veged/shmakowiki/)
-*   [OmetaHighlighter](http://github.com/veged/ometa-highlighter)
-*   [XJST](http://github.com/veged/xjst)
+  * [ShmakoWiki](http://github.com/veged/shmakowiki/)
+  * [OmetaHighlighter](http://github.com/veged/ometa-highlighter)
+  * [XJST](http://github.com/veged/xjst)
