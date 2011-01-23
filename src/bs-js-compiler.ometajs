@@ -122,7 +122,7 @@ ometa BSJSParser <: Parser {
                        ";" ( expr
                            | empty -> [#get, 'undefined'] ):u
                        ")" stmt:s                                                    -> [#for, i, c, u, s]
-               | "for" "(" ( "var" "name":n -> [#var, [n, [#get, 'undefined']]]
+               | "for" "(" ( "var" binding:b -> [#var, b]
                            | expr                                             ):v
                       "in" asgnExpr:e
                        ")" stmt:s                                                    -> [#forIn, v, e, s]
