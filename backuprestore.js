@@ -67,3 +67,52 @@ function restoreDB(){
 		);
 	});
 }
+
+function exportDB(){
+	db.transaction(function (tx) {
+		tx.executeSql("SELECT name,sql FROM sqlite_master WHERE type='table' AND name NOT LIKE '\\_\\_%' ESCAPE '\\' AND name NOT LIKE '%_buk';", [],
+			function(tx, result) {
+        var sql = '';
+				for(var i=0;i<result.rows.length;i++) {
+					tbn = result.rows.item(i).name;
+          sql += "DROP TABLE IF EXISTS \"" + tbn + "\";\n";
+          sql += result.rows.item(i).sql+'\n';
+          (function(tbn) {
+            db.transaction(function (tx) {
+              tx.executeSql('SELECT * FROM "'+tbn+'";', [],
+                function(tx, result) {
+                  var sql ='';
+                  for(var i=0;i<result.rows.length;i++) {
+                    var currRow = result.rows.item(i), first = true;
+                    sql+='INSERT INTO "'+tbn+'" (';
+                    for(var propName in currRow) {
+                      if(!first) {
+                        sql+=',';
+                      }
+                      first = false;
+                      sql+='"'+propName+'"';
+                    }
+                    sql+=') values ('
+                    first = true;
+                    for(var propName in currRow) {
+                      if(!first) {
+                        sql+=',';
+                      }
+                      first = false;
+                      sql+="'"+currRow[propName]+"'";
+                    }
+                    sql+=');\n';
+                  }
+                  console.log(sql);
+                },
+                function(tx, error){console.log(error);}
+              );
+            });
+          })(tbn);
+				}
+        console.log(sql);
+			}, 
+			function(tx, error){console.log(error);}
+		);
+	});
+}
