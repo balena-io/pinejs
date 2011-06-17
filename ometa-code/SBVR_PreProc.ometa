@@ -1,0 +1,85 @@
+/*
+Copyright 2011 University of Surrey
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
+
+ometa SBVR_NullOpt {
+  setHelped = !(self._didSomething = true),
+  helped    = ?self._didSomething,
+
+  optimize  = trans:x  helped    -> x,
+
+  $ :x       = token(x):a                              -> [a] 
+             |                                         -> [],
+
+  trans      [:t apply(t):a]                           -> a,
+  token :x   [:t ?{t==x} apply(x):a]                   -> a,
+
+  letters    = letter+:l space*                        -> l.join(''),
+
+  num        number:n ?{!isNaN(n)}                     -> [`num, parseInt(n)],
+
+  model      ("nTerm"|"nFcTp"|"rule")*:xs              -> [`model].concat(xs),
+
+  fcTp       {a=[]}("term":t "verb":v {a=a.concat([t,v])})* $('term'):e -> [`fcTp].concat(a).concat(e),
+
+  verb       :v                                        -> [`verb, v],
+  term       :t                                        -> [`term, t],
+  rule       ("obl"|"nec"|"pos"|"prm"):x "text":t      -> [`rule, x, t],
+
+  text	     :a	                                       -> [`text, a],
+  
+  obl        trans*:xs                                 -> [`obl].concat(xs),
+  nec        trans*:xs                                 -> [`nec].concat(xs),
+  pos        trans*:xs                                 -> [`pos].concat(xs),
+  prm        trans*:xs                                 -> [`prm].concat(xs),
+
+  neg        trans:xs                                  -> [`neg].concat([xs]),
+
+  quant      = "univQ" | "existQ" | "exactQ" | "atMostQ" | "atLeastQ" | "numRngQ" ,
+  univQ                              "var":v trans*:xs -> [`univQ, v].concat(xs),
+  existQ                             "var":v trans*:xs -> [`existQ, v].concat(xs),
+  exactQ     "card":i                "var":v trans*:xs -> [`exactQ, i, v].concat(xs),
+  atMostQ                "maxCard":a "var":v trans*:xs -> [`atMostQ, a, v].concat(xs),
+  atLeastQ   "minCard":i             "var":v trans*:xs -> [`atLeastQ, i, v].concat(xs),
+  numRngQ    "minCard":i "maxCard":a "var":v trans*:xs -> [`numRngQ, i, a, v].concat(xs),
+
+  minCard    "num":n                                   -> [`minCard, n],
+  maxCard    "num":n                                   -> [`maxCard, n],
+
+  var        "num":n "term":t ("aFrm"|quant):w         -> [`var, n, t, w],
+  var        "num":n "term":t                          -> [`var, n, t],
+
+  bind       "term":t number:n                         -> [`bind, t, n], 
+  aFrm       "fcTp":f "bind"*:b                        -> [`aFrm, f].concat(b)
+}
+
+SBVR_NullOpt.initialize = function() { this._didSomething = false }
+
+ometa FNN_Elim <: SBVR_NullOpt {
+  univQ                    "var":v trans*:xs setHelped -> [`neg, [`existQ, v, [`neg].concat(xs)]],
+
+  atLeastQ "minCard":i ?{i[1][1]==1} "var":v trans*:xs setHelped -> [`existQ, v].concat(xs),
+  atLeastQ "minCard":i               "var":v trans*:xs           -> [`atLeastQ, i, v].concat(xs),
+
+  atMostQ      "maxCard":a "var":v trans*:xs setHelped -> {a[1][1]++;[`neg, [`atLeastQ, [`minCard, a[1]], v].concat(xs)]},
+
+  neg [`neg trans:xs]                        setHelped -> xs,
+  neg trans:xs                                         -> [`neg].concat([xs])
+}
+
+ometa SBVR_PreProc {
+  optimizeTree    = [`model optimizeRule*:rs]        -> [`model].concat(rs),
+  optimizeRule    = :r (FNN_Elim.optimize(r):r)*     -> r
+}

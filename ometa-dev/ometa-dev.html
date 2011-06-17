@@ -1,0 +1,100 @@
+﻿<!--
+Copyright 2011 University of Surrey
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+
+﻿<html>
+	<head>
+		<script src="../ometa/lib.js"></script>
+		<script src="../ometa/ometa-base.js"></script>
+		<script src="../ometa/parser.js"></script>
+		<script src="../ometa/bs-js-compiler.js"></script>
+		<script src="../ometa/bs-ometa-compiler.js"></script>
+		<script src="../ometa/bs-ometa-optimizer.js"></script>
+		<script src="../ometa/bs-ometa-js-compiler.js"></script>
+		<script src="../ometa/ometa-script-tag.js"></script>
+		
+		<script src="js/beautify.js"></script>
+		<script src="js/CodeMirror-2.0/lib/codemirror.js"></script> 
+		<script src="js/CodeMirror-2.0/mode/javascript/javascript.js"></script> 
+		<script src="../js/libs/jquery-1.6.js"></script>
+		<script src="../js/mylibs/jquery-ui-1.8.11.js"></script>
+		
+		<link type="text/css" href="../css/ui-lightness/jquery-ui.css" rel="stylesheet" />	
+		<link rel="stylesheet" href="js/CodeMirror-2.0/lib/codemirror.css">
+		<link rel="stylesheet" href="js/CodeMirror-2.0/mode/javascript/javascript.css">
+		
+		<script>
+			function translateCode(s) {
+	  			var translationError = function(m, i) { 
+	  					alert("Translation error - please tell Alex about this!"); throw fail 
+	  				};
+	  			var parsingError = function(m, i) { throw objectThatDelegatesTo(fail, {errorPos: i}) }
+		  		var tree = BSOMetaJSParser.matchAll(s, "topLevel", undefined, parsingError)
+	  			return BSOMetaJSTranslator.match(tree, "trans", undefined, translationError);
+			}
+		
+			function compile(code){
+				cmRaw.setValue(translateCode(code));				
+				cmFormatted.setValue( js_beautify(cmRaw.getValue()) );
+				alert('Compilation complete!');
+			}
+		</script> 
+	</head>
+	<body>
+		<script>
+			$(function() {
+				$("#tabs").tabs({
+				   show: function(event, ui) { cmFormatted.refresh(); cmRaw.refresh();}
+				});
+			});
+		</script>	
+	
+		<div id="tabs">
+			<ul>
+				<li><a href='#ometacode'   >OMeta                  </a></li>
+				<li><a href='#jsraw'       >JavaScript (raw)       </a></li>
+				<li><a href='#jsformatted' >JavaScript (formatted) </a></li>
+			</ul>
+			<div id="ometacode">
+				<form id="editor">
+					<!-- windows wants 189 cols for the textareas -->
+					<textarea id="ometacodeArea" rows="15" cols="136" spellcheck="false"></textarea>
+					<div align="right">
+						<input type="button" value="Compile"  onClick="compile($('#ometacodeArea').val());return false">
+					</div>
+				</form>
+			</div>
+			<div id="jsraw"><textarea id="jsrawArea" rows="15" cols="136" spellcheck="false"></textarea></div>
+			<div id="jsformatted">
+				<textarea id="jsformattedArea" name="jsformattedArea" rows="15" cols="136" spellcheck="false"></textarea>
+			</div>
+		</div>
+	
+		<script> 
+			cmRaw = CodeMirror.fromTextArea(document.getElementById("jsrawArea"), {
+				lineNumbers: true,
+				matchBrackets: true,
+				readOnly: true
+			});
+			cmFormatted = CodeMirror.fromTextArea(document.getElementById("jsformattedArea"), {
+				lineNumbers: true,
+				matchBrackets: true,
+				readOnly: true
+			});
+			
+			//window.editor.setValue("345345324532453245");
+		</script>
+    </body>
+</html>

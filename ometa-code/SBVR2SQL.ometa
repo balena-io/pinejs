@@ -1,0 +1,144 @@
+/*
+Copyright 2011 University of Surrey
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
+
+//Transformation from SBVR Logical Formulation to SQL
+
+ometa SBVR2SQL {
+  $ :x       = token(x):a                              -> [a] 
+             |                                         -> [],
+
+  trans      [:t apply(t):a]                           -> a,
+  
+  /**
+    If we match a token we run the function matching the token name.
+  */
+  token :x   [:t ?{t==x} apply(x):a]                   -> a,
+
+  letters    = (letter|'_')+:l space*                  -> l.join(''),
+  
+  /**
+    num = {
+      0: "num",
+      1: number
+    }
+  */
+  num        number:n ?{!isNaN(n)}                     -> [`num, n],
+  text	     :a	                                       -> a,
+
+  ftsc       [("term":t -> [`ForeignKey, t[1]+'_id', t[2], [t[1],`id,`name]])*:tt] -> tt,
+  ftfl       [("term":t -> ('"'+t[1]+'_id" INTEGER'))*:tt] -> tt,
+  ftfk       [("term":t -> ('FOREIGN KEY ("'+t[1]+'_id") REFERENCES "'+t[1]+'"("id")'))*:tt] -> tt,
+  model      ("term":t  -> [`term, t[1], t[2], t[3], 
+  ('CREATE TABLE IF NOT EXISTS "'+t[1]+'" ("id" INTEGER PRIMARY KEY,"name" TEXT)'), 'DROP TABLE "'+t[1]+'";']
+             |"fcTp":f ftfl(f[3]):l ftfk(f[3]):k ftsc(f[3]):s
+          -> [`fcTp, f[1], f[2], s, ('CREATE TABLE IF NOT EXISTS "'+f[1]+
+		     '" ("id" INTEGER PRIMARY KEY, '+l.join(', ')+', '+k.join(', ')+')'), 'DROP TABLE "'+f[1]+'";', f[4]]
+             |"rule"
+             )*:xs                                     -> [`model].concat(xs),
+
+  fcTp       {a=[]} &(   ( "term":c "verb":d -> ( a = a.concat([[c[0],c[2]],[d[0],d[2]]]) ) )* 
+                         ( "term":b          -> ( a = a.concat([[b[0], b[2]]])            ) )?)
+             &(("term":t "verb" ->t)*:s $('term'):e) {s=s.concat(e)}
+             ("term":t "verb":v->[t,v])*:r ("term":t->[('-'+t[1]),(' '+t[1])]|empty->['','']):e
+                                          -> [`fcTp, this._fLst(r).concat(e[0]), this._fLstt(r).concat(e[1]), s, a],
+
+  verb       [letters+:l]                              -> [`verb, l.join('_'), l.join(' ')],
+  
+  /**
+    term = {
+      0: "term",
+      1: tableName (replace ' ' with '_' for termName),
+      2: termName,
+      3: {
+          [field],
+          [...]
+        },
+      4: createTableSQL
+    }
+  **/
+  term  [letters+:l] [letters+:m]? [anything*]? -> [`term, l.join('_'), l.join(' '), [[`Text, `name, `Name, []]] ],
+  rule       ("obl"|"nec"|"pos"|"prm"):xs "text":t     -> [`rule, [], t, [], xs, []],
+
+  obl        expr:xs                                   -> ('SELECT ' + xs[0] + xs[1] + ' AS "result"'),
+  nec        expr:xs                                   -> ('SELECT ' + xs[0] + xs[1] + ' AS "result"'),
+  pos        expr:xs                                   -> ('SELECT ' + xs[0] + xs[1] + ' AS "result"'),
+  prm        expr:xs                                   -> ('SELECT ' + xs[0] + xs[1] + ' AS "result"'),
+
+  
+  /**
+    expr = {
+      0: WHERE clause
+      1: After WHERE clause (ie GROUP BY/HAVING)
+      2: JOIN clause
+    }
+  
+  */
+  //TODO: atMostQ isn't implemented, we convert to a neg atLeastQ
+  expr       = "aFrm" | "existQ" | "exactQ" | /*"atMostQ" |*/ "atLeastQ" | "numRngQ" | "neg",
+
+  aFrm       "fcTp":f "bind"*:b
+  -> ['EXISTS(SELECT * FROM "' + f[1] + '" AS "f" WHERE ' + b.join(' AND '),
+      ')'],
+      
+  existQ     "var":v expr:xs
+  -> ['',
+      xs[1]+v[3][1],
+      'JOIN '+v[2][1]+'" AS "var'+v[1][1]+'" ON '+v[3][0]+xs[0]],
+
+  exactQ     "card":i    "var":v expr:xs
+  -> ['EXISTS(SELECT count(*) AS "card" FROM "'+v[2][1]+'" AS "var'+v[1][1]+xs[2]+'" WHERE '+v[3][0]+xs[0], 
+     xs[1]+v[3][1]+' GROUP BY NULL HAVING "card"='+i[1][1]+')'],
+
+  atLeastQ   "minCard":i "var":v expr:xs
+  -> ['EXISTS(SELECT count(*) AS "card" FROM "'+v[2][1]+'" AS "var'+v[1][1]+xs[2]+'" WHERE '+v[3][0]+xs[0], 
+     xs[1]+v[3][1]+' GROUP BY NULL HAVING "card">='+i[1][1]+')'],
+
+  numRngQ    "minCard":i "maxCard":a "var":v
+  -> ['EXISTS(SELECT count(*) AS "card" FROM "'+v[2][1]+'" AS "var'+v[1][1]+xs[2]+'" WHERE '+v[3][0]+xs[0], 
+     xs[1]+v[3][1]+' GROUP BY NULL HAVING "card">='+i[1][1]+' AND "card"<='+a[1][1]+')'],
+  
+
+  /**
+    negExistQ
+  */
+  neg   [:s ?{s=='existQ'} "var":v expr:xs]
+  -> ['NOT EXISTS(SELECT * FROM "'+v[2][1]+'" AS "var'+v[1][1]+'" WHERE '+v[3][0]+xs[0],
+      xs[1]+v[3][1]+')'],
+      
+  neg        expr:xs
+  -> ['NOT ' + xs[0],
+      xs[1]],
+
+  minCard    "num":n                                   -> [`minCard, n],
+  maxCard    "num":n                                   -> [`maxCard, n],
+
+  /**
+    var = {
+      0: "var",
+      1: num,
+      2: term,
+      3: expr | {'',''}
+    }
+  */
+  var        "num":n "term":t expr:w {w[0]+=' AND '}   -> [`var, n, t, w],
+  var        "num":n "term":t                          -> [`var, n, t,['','']],
+
+  bind       "term":t number:n                         -> ('"var' + n + '"."id" = "f"."' + t[1] + '_id"')
+}
+
+SBVR2SQL._cLst = function(v) { for(var i=1;i<v.length;i++){v[0] = v[0].concat(v[i])}; return v[0] }
+SBVR2SQL._fLst = function(v) {v = this._cLst(v); var r = []; for(var i=0;i<v.length;i++){r = r.concat(v[i][1])}; return r.join('-')}
+SBVR2SQL._fLstt = function(v) {v = this._cLst(v); var r = []; for(var i=0;i<v.length;i++){r = r.concat(v[i][2])}; return r.join(' ')}

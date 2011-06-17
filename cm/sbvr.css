@@ -1,0 +1,49 @@
+.CodeMirror {
+	font-family:monospace; /* It is required to use a monospace font for CodeMirror to work nicely. */
+	font-size: 120%;
+	background: white;
+	border: 1px solid #ADABB3;
+}
+
+span.cm-sbvr-termDecl{color: #A22;}
+span.cm-sbvr-factDecl{color: #A70;}
+span.cm-sbvr-ruleDecl{color: #299;}
+
+/* Noun */
+span.cm-sbvr-term {
+	color: #108070;
+	text-decoration: underline;
+}
+span.cm-sbvr-fact {
+}
+span.cm-sbvr-rule {
+}
+
+span.cm-sbvr-factTerm {
+	color: #108070;
+	text-decoration: underline;
+}
+span.cm-sbvr-factVerb {
+	color: blue;
+	font-style: italic;
+}
+
+span.cm-sbvr-ruleTerm {
+	color: #108070;
+	text-decoration: underline;
+}
+span.cm-sbvr-ruleModifier {
+	color: orange;
+}
+span.cm-sbvr-ruleQuantifier {
+	color: orange;
+	font-weight: bolder;
+}
+span.cm-sbvr-ruleQuantity {
+	color: orange;
+	font-weight: bolder;
+}
+span.cm-sbvr-ruleVerb {
+	color: blue;
+	font-style: italic;
+}

@@ -1,0 +1,406 @@
+<html>
+  <head>
+	<!--script src="prototype.js"></script-->
+    <script src="lib.js"></script>
+    <script src="ometa-base.js"></script>
+    <script src="parser.js"></script>
+    <script src="bs-js-compiler.js"></script>
+    <script src="bs-ometa-compiler.js"></script>
+    <script src="bs-ometa-optimizer.js"></script>
+    <script src="bs-ometa-js-compiler.js"></script>
+    <script src="ometa-script-tag.js"></script>
+	<script src="json2.js"></script>
+	<script type="text/x-ometa-js">
+
+//A parser for Semantics of Business Vocabulary and Rules (SBVR), an OMG standard. 
+//Converts from Structured English (SBVR-SE) to Logical Formulation (SBVR-LF)
+//Specification: http://www.omg.org/spec/SBVR/1.0/
+
+ometa SBVRParser {
+    isTerm       :x = ?SBVRParser._isTerm(x),
+    isVerb       :x = ?SBVRParser._isVerb(x),
+    isKwrd       :x = ?SBVRParser._isKwrd(x),
+    isFctp       :x = ?SBVRParser._isFctp(x),
+
+    isKwrdSt  :p :q = &(spaces seq(q) word:w) {q!=''?q+' '+w:w}:w {p+' '+w}:n (isKwrd(n) -> true | isKwrdSt(p, w) -> true),
+    isTermSt  :p :q = &(spaces seq(q) word:w) {q!=''?q+' '+w:w}:w {p+' '+w}:n (isTerm(n) -> true | isTermSt(p, w) -> true),
+    isVerbSt  :p :q = &(spaces seq(q) word:w) {q!=''?q+' '+w:w}:w {p+' '+w}:n (isVerb(n) -> true | isVerbSt(p, w) -> true),
+
+    findVar      :x = {this.ruleVars[x[1]]},
+    bind         :x = findVar(x):y                                         -> [`bind, x, y],
+
+    spaces          = seq(' ')*,
+    letters         = letter+:l                                            -> l.join(''),
+    num             = spaces digit+:n                                      -> [`num, parseInt(n.join(''))],
+    word            = spaces letters:w ~isVerb(w) ~isTerm(w) ~isKwrd(w)    -> w,
+    nrText          = (word:w ~isKwrdSt(w,'')~isTermSt(w,'')~isVerbSt(w,'')->w)+:w  -> w.join(' '),
+
+    kwrd         :x = spaces letters:w {x!=''?x+' '+w:w}:w (isKwrd(w) -> w | kwrd(w):a -> a),
+    token        :x = kwrd(''):t ?(t==x)                                   -> [`kwrd, t],
+
+    termR        :x = spaces letters:w {x!=''?x+' '+w:w}:w (isTerm(w) -> w | termR(w):a -> a),
+    term            = termR(''):t {this._termForm(t)}:t                    -> [`term, t],
+
+    mkVerb       :x = {this.verbs[x] = true}                               -> [`verb, x],
+    verbR        :x = spaces letters:w {x!=''?x+' '+w:w}:w (isVerb(w) -> w | verbR(w):a -> a),
+    verb            = verbR(''):v {this._verbForm(v)}:v                    -> [`verb, v],
+
+    quant           = "each"                                       &term   -> [`univQ]
+                    | ("a"|"an"|"some")                            &term   -> [`existQ]
+                    | "at" "most"   ("one"->[`num, 1]|num):n       &term   -> [`atMostQ, [`maxCard, n]]
+                    | "at" "least"  ("one"->[`num, 1]|num):n       &term   -> [`atLeastQ, [`minCard, n]]
+                    | "more" "than" ("one"->[`num, 2]|num:n {++n[1]}->n):n &term   
+                                                                           -> [`atLeastQ, [`minCard, n]]
+                    | "exactly"     ("one"->[`num, 1]|num):n       &term   -> [`exactQ, [`card, n]]
+                    | "at" "least"  ("one"->[`num, 1]|num):n "and" "at" "most" ("one"->[`num, 1]|num):m &term
+                                                                           -> [`numRngQ, [`minCard, n], [`maxCard, m]],
+
+    adVar        :x ={this.ruleVars[x[1]] = this.ruleVarsCount++}
+                    ("that" "the" terbRi([[]], x):q                        -> [`var, [`num, this.ruleVars[x[1]]], x, q]
+                    |"that" qTerbRi([[]], x):q                             -> [`var, [`num, this.ruleVars[x[1]]], x, q]
+                    |                                                      -> [`var, [`num, this.ruleVars[x[1]]], x]),
+
+    atfo   :c       = isFctp(c[0]) {c[0] = [`fcTp].concat(c[0])}           -> {d = [`aFrm]; d.concat(c)},
+
+    terbRi  :c :i   = term:t verb:v bind(t):b {c[0]=c[0].concat([t,v]);c.concat([b])}:c (qTerbRi(c,i)),
+
+    qTerbRi :c :i   =(quant:q term:t adVar(t):a verb:v bind(t):b
+                          {q=q.concat([a]);c[0]=c[0].concat([t,v]);c.concat([b])}:c 
+                          (qTerbRi(c,i)):r                                 -> q.concat([r])
+                    | verb:v bind(i):b {c[0]=c[0].concat([i,v]);c.concat([b])}:c (atfo(c)|qTerm(c)|qTerbR(c))
+                    | bind(i):b {c[0]=c[0].concat([i]);c.concat([b])}:c atfo(c)   ), 
+
+    qTerm  :c       = quant:q term:t  adVar(t):a bind(t):b {q=q.concat([a]);c[0]=c[0].concat([t]);c.concat([b])}:c 
+                              atfo(c):r                                    -> q.concat([r]),
+
+    qTerbR :c       = quant:q term:t adVar(t):a verb:v bind(t):b {q=q.concat([a]);c[0]=c[0].concat([t,v]);c.concat([b])}:c
+                              (atfo(c)|qTerm(c)|qTerbR(c)):r               -> q.concat([r]),
+
+    modRule         = spaces (``It is obligatory that'' qTerbR([[]]):q     -> [`obl, q]
+                             | ``It is necessary that'' qTerbR([[]]):q     -> [`nec, q]
+                             | ``It is prohibited that'' qTerbR([[]]):q    -> [`obl, ['neg', q]]
+                             | ``It is impossible that'' qTerbR([[]]):q    -> [`nec, ['neg', q]]
+                             | ``It is not possible that'' qTerbR([[]]):q  -> [`nec, ['neg', q]]
+                             | ``It is possible that'' qTerbR([[]]):q      -> [`pos, q]
+                             | ``It is permissible that'' qTerbR([[]]):q   -> [`prm, q]),
+
+    newRule         = ``R:'' &((~'\n' char)*):a {this.ruleVarsCount=1} modRule:r  -> [`rule, r, [`text, a.join('')]],
+
+    terb            = term:t (verb|nrText:f mkVerb(f)):v                   -> [t, v],
+    fcTp            = ``F:'' {t=[]} (terb:b {t.concat(b)}:t)+ (term:e {t.concat([e])}:t)? {this.fctps[t] = true}   
+                                                                           -> [`fcTp].concat(t),
+
+    newTerm         = ``T:'' nrText:t {this.terms[t] = true;}              -> [`term, t],
+
+    line            = newTerm | fcTp | newRule,
+    linef           = line:l ('\n'|seq('\n\r')|end)                        -> l 
+                    | '\n'                                                 -> '',
+    expr            = linef*:l                                             -> [`model].concat(l)
+}
+
+SBVRParser.kwrds  = {}
+SBVRParser.terms = {} 
+SBVRParser.verbs = {}
+SBVRParser.fctps = {}
+SBVRParser.ruleVars = {}
+SBVRParser.ruleVarsCount = 0
+
+kwrds = ["a", "an", "each", "at", "most", "least", "exactly", "that", "the", "one", "more", "than", "and"]
+for (var idx = 0; idx < kwrds.length; idx++){SBVRParser.kwrds[kwrds[idx]] = true}
+
+SBVRParser._isKwrd = function(k) { return this.kwrds.hasOwnProperty(k) }
+
+SBVRParser._isTerm = function(k) {
+    if(this.terms.hasOwnProperty(k)){ return true } 
+    else if(k.slice(-1)=='s' && this.terms.hasOwnProperty(k.slice(0,-1))){return true} 
+    else return false
+}
+
+SBVRParser._termForm = function(k) { 
+    if(k.slice(-1)=='s' && this.terms.hasOwnProperty(k.slice(0,-1))){ return k.slice(0,-1) } else return k
+}
+
+SBVRParser._isVerb = function(k) { if(this.verbs.hasOwnProperty(k)) {return true} }
+
+SBVRParser._isVerb = function(k) {
+    if(this.verbs.hasOwnProperty(k))                                               { return true }
+    else if( k.slice(0,3)=='are' && this.verbs.hasOwnProperty('is' + k.slice(3)) ) { return true }
+    else if(k=='have' && this.verbs.hasOwnProperty('has'))                         { return true }
+    else return false
+}
+
+SBVRParser._verbForm = function(k) { 
+    if(k.slice(0,3)=='are' && this.verbs.hasOwnProperty('is' + k.slice(3))){ return 'is' + k.slice(3) } 
+    else if(k=='have' && this.verbs.hasOwnProperty('has'))                 { return 'has'}
+    else return k
+}
+
+SBVRParser._isFctp = function(k) { return this.fctps.hasOwnProperty(k) }
+
+ometa SBVR_NullOpt {
+  setHelped = !(self._didSomething = true),
+  helped    = ?self._didSomething,
+
+  optimize  = trans:x  helped    -> x,
+
+  $ :x       = token(x):a                              -> [a] 
+             |                                         -> [],
+
+  trans      [:t apply(t):a]                           -> a,
+  token :x   [:t ?{t==x} apply(x):a]                   -> a,
+
+  letters    = letter+:l space*                        -> l.join(''),
+
+  num        number:n ?{!isNaN(n)}                     -> [`num, parseInt(n)],
+
+  model      ("nTerm"|"nFcTp"|"rule")*:xs              -> [`model].concat(xs),
+
+  fcTp       {a=[]}("term":t "verb":v {a=a.concat([t,v])})* $('term'):e -> [`fcTp].concat(a).concat(e),
+
+  verb       :v                                        -> [`verb, v],
+  term       :t                                        -> [`term, t],
+  rule       ("obl"|"nec"|"pos"|"prm"):x "text":t      -> [`rule, x, t],
+
+  text	     :a	                                       -> [`text, a],
+  
+  obl        trans*:xs                                 -> [`obl].concat(xs),
+  nec        trans*:xs                                 -> [`nec].concat(xs),
+  pos        trans*:xs                                 -> [`pos].concat(xs),
+  prm        trans*:xs                                 -> [`prm].concat(xs),
+
+  neg        trans:xs                                  -> [`neg].concat([xs]),
+
+  quant      = "univQ" | "existQ" | "exactQ" | "atMostQ" | "atLeastQ" | "numRngQ" ,
+  univQ                              "var":v trans*:xs -> [`univQ, v].concat(xs),
+  existQ                             "var":v trans*:xs -> [`existQ, v].concat(xs),
+  exactQ     "card":i                "var":v trans*:xs -> [`exactQ, i, v].concat(xs),
+  atMostQ                "maxCard":a "var":v trans*:xs -> [`atMostQ, a, v].concat(xs),
+  atLeastQ   "minCard":i             "var":v trans*:xs -> [`atLeastQ, i, v].concat(xs),
+  numRngQ    "minCard":i "maxCard":a "var":v trans*:xs -> [`numRngQ, i, a, v].concat(xs),
+
+  minCard    "num":n                                   -> [`minCard, n],
+  maxCard    "num":n                                   -> [`maxCard, n],
+
+  var        "num":n "term":t ("aFrm"|quant):w         -> [`var, n, t, w],
+  var        "num":n "term":t                          -> [`var, n, t],
+
+  bind       "term":t number:n                         -> [`bind, t, n], 
+  aFrm       "fcTp":f "bind"*:b                        -> [`aFrm, f].concat(b)
+}
+
+SBVR_NullOpt.initialize = function() { this._didSomething = false }
+
+ometa FNN_Elim <: SBVR_NullOpt {
+  univQ                    "var":v trans*:xs setHelped -> [`neg, [`existQ, v, [`neg].concat(xs)]],
+
+  atLeastQ "minCard":i {alert(i[1][1]==1)} ?{i[1][1]==1} "var":v trans*:xs setHelped -> [`existQ, v].concat(xs),
+  atLeastQ "minCard":i                                   "var":v trans*:xs           -> [`atLeastQ, i, v].concat(xs),
+
+  atMostQ      "maxCard":a "var":v trans*:xs setHelped -> {a[1][1]++;[`neg, [`atLeastQ, [`minCard, a[1]], v].concat(xs)]},
+
+  neg [`neg trans:xs]                        setHelped -> xs,
+  neg trans:xs                                         -> [`neg].concat([xs])
+}
+
+ometa SBVR_PreProc {
+  optimizeTree    = [`model optimizeRule*:rs]        -> [`model].concat(rs),
+  optimizeRule    = :r (FNN_Elim.optimize(r):r)*     -> r
+}
+
+//Converts a tree to a nested list.
+
+ometa Prettify {
+//  elem = [{this.d++} (string|elem|number)*:e {s=this.s(this.d--)}] -> ('['+e.join(',\n'+s+'  ')+'\n'+s+']')
+  elem = [{this.d++} (string|elem|number)*:e {s=this.s(this.d--)}] -> ('['+e.join(',\n'+s)+']')
+}
+
+Prettify.d = 1
+Prettify.s = function(d){a=' ';for(var i=0;i<d;i++){a+='  '};return a}
+
+
+//Transformation from SBVR Logical Formulation to ISO Common Logic
+
+ometa SBVR2SQL {
+  $ :x       = token(x):a                              -> [a] 
+             |                                         -> [],
+
+  trans      [:t apply(t):a]                           -> a,
+  token :x   [:t ?{t==x} apply(x):a]                   -> a,
+
+  letters    = (letter|'_')+:l space*                  -> l.join(''),
+  num        number:n ?{!isNaN(n)}                     -> [`num, n],
+  text		 :a		                              	   -> a,
+
+  ftfl       [("term":t -> ('"'+t[1]+'_id" INTEGER'))*:tt] -> tt,
+  ftfk       [("term":t -> ('FOREIGN KEY ("'+t[1]+'_id") REFERENCES "'+t[1]+'"("id")'))*:tt] -> tt,
+  model      ("term":t           -> [`term, ('CREATE TABLE IF NOT EXISTS "'+t[1]+'" ("id" INTEGER PRIMARY KEY,"name" TEXT)'), t[2]]
+             |"fcTp":f ftfl(f[2]):l ftfk(f[2]):k
+                                 -> [`fcTp, ('CREATE TABLE IF NOT EXISTS "'+f[1]+'" ("id" INTEGER PRIMARY KEY, '+l.join(', ')+', '+k.join(', ')+')')]
+             |"rule"
+             )*:xs                                     -> [`model].concat(xs),
+
+  fcTp       &(("term":t "verb" ->t)*:s $('term'):e) {s=s.concat(e)}
+             ("term":t "verb":v->[t,v])*:r ("term":t->('-'+t[1])|empty->''):e
+                                                       -> [`fcTp, this._fLst(r).concat(e), s],
+
+  verb       [letters+:l]                              -> [`verb, l.join('_')],
+  term       [letters+:l] [letters+:m]?                -> [`term, l.join('_'), l.join(' ')],
+  rule       ("obl"|"nec"|"pos"|"prm"):xs "text":t     -> [`rule, xs, t],
+
+  obl        expr:xs                                   -> ('SELECT ' + xs[0] + xs[1] + ' AS "result"'),
+  nec        expr:xs                                   -> ('SELECT ' + xs[0] + xs[1] + ' AS "result"'),
+  pos        expr:xs                                   -> ('SELECT ' + xs[0] + xs[1] + ' AS "result"'),
+  prm        expr:xs                                   -> ('SELECT ' + xs[0] + xs[1] + ' AS "result"'),
+
+  neg        expr:xs                                   -> ['NOT ' + xs[0], xs[1]],
+
+  expr       = "aFrm" | "existQ" | "exactQ" | "atMostQ" | "atLeastQ" | "numRngQ" | "neg",
+
+  existQ     "var":v expr:xs                         {v[3]==undefined?['','']:[v[3][0]+' AND ',v[3][1]]}:g 
+  -> ['EXISTS(SELECT * FROM "'+v[2][1]+'" AS "var'+v[1][1]+'" WHERE '+g[0]+xs[0],xs[1]+g[1]+')'],
+
+  exactQ     "card":i    "var":v expr:xs             {v[3]==undefined?['','']:[v[3][0]+' AND ',v[3][1]]}:g 
+  -> ['EXISTS(SELECT count(*) AS "card" FROM "'+v[2][1]+'" AS "var'+v[1][1]+'" WHERE '+g[0]+xs[0], xs[1]+g[1]+' GROUP BY NULL HAVING "card"='+i[1][1]+')'],
+
+  atLeastQ   "minCard":i "var":v expr:xs             {v[3]==undefined?['','']:[v[3][0]+' AND ',v[3][1]]}:g 
+  -> ['EXISTS(SELECT count(*) AS "card" FROM "'+v[2][1]+'" AS "var'+v[1][1]+'" WHERE '+g[0]+xs[0], xs[1]+g[1]+' GROUP BY NULL HAVING "card">='+i[1][1]+')'],
+
+  numRngQ    "minCard":i "maxCard":a "var":v expr:xs {v[3]==undefined?['','']:[v[3][0]+' AND ',v[3][1]]}:g 
+  -> ['EXISTS(SELECT count(*) AS "card" FROM "'+v[2][1]+'" AS "var'+v[1][1]+'" WHERE '+g[0]+xs[0], xs[1]+g[1]+' GROUP BY NULL HAVING "card">='+i[1][1]+' AND "card"<='+a[1][1]+')'],
+
+  minCard    "num":n                                   -> [`minCard, n],
+  maxCard    "num":n                                   -> [`maxCard, n],
+
+  var        "num":n "term":t expr:w                   -> [`var, n, t, w],
+  var        "num":n "term":t                          -> [`var, n, t],
+
+  bind       "term":t number:n                         -> ('"var' + n + '"."id" = "f"."' + t[1] + '_id"'), 
+  aFrm       "fcTp":f "bind"*:b                        -> ['EXISTS(SELECT * FROM "' + f[1] + '" AS "f" WHERE ' + b.join(' AND '), ')']
+}
+
+SBVR2SQL._cLst = function(v) { for(var i=1;i<v.length;i++){v[0] = v[0].concat(v[i])}; return v[0] }
+SBVR2SQL._fLst = function(v) {v = this._cLst(v); var r = []; for(var i=0;i<v.length;i++){r = r.concat(v[i][1])}; return r.join('-')}
+
+model1 = 
+'T: pilot
+T: plane
+F: pilot can fly plane
+F: pilot is experienced
+R: It is obligatory that each pilot can fly at least 5 planes
+R: It is obligatory that each pilot can fly each plane
+R: It is obligatory that each pilot that is experienced can fly each plane'
+
+model2 = 
+'T: student
+F: student is school president
+R: It is obligatory that a student is school president
+T: module
+F: student is registered for module
+R: It is obligatory that each student is registered for at most 5 modules
+T: study programme
+F: student is enrolled in study programme
+F: module is available for study programme
+R: It is obligatory that each student that is registered for a module is enrolled in a study programme that the module is available for
+T: lecturer
+F: student is under probation
+R: It is obligatory that each student is registered for at most 5 modules
+R: It is obligatory that each student that is under probation is registered for at most 3 modules
+R: It is obligatory that at most 10 students are under probation
+F: lecturer grades student for study programme with grade
+R: It is prohibited that a student that is under probation is enrolled in more than 2 study programmes
+R: It is obligatory that each student is registered for each module'
+
+model3 = 
+'T: student
+T: module
+T: study programme
+F: student is registered for module
+F: student is enrolled in study programme
+F: module is available for study programme
+R: It is obligatory that each student is registered for at most 5 modules
+R: It is obligatory that each student that is registered for a module is enrolled in a study programme that the module is available for
+F: student is under probation
+R: It is obligatory that each student that is under probation is registered for at most 3 modules'
+
+//SBVRParser.memoizeParameterizedRules()
+    </script>
+	<script src="jquery-1.4.2.js"></script>
+	<link type="text/css" href="css/ui-lightness/jquery-ui-1.8.4.custom.css" rel="stylesheet" />	
+	<script type="text/javascript" src="js/jquery-ui-1.8.4.custom.min.js"></script> 
+  </head>
+  <body>
+
+	<script type='text/javascript'>
+		function transformClient(model){
+			//$("#seArea").attr('disabled',true);
+			SBVRParser.terms = {} 
+			SBVRParser.verbs = {}
+			SBVRParser.fctps = {}
+			SBVRParser.ruleVars = {}
+			SBVRParser.ruleVarsCount = 0
+			
+			tree = SBVRParser.matchAll(model, 'expr');
+			$("#lfArea").val(Prettify.match(tree, 'elem'));
+			tree = SBVR_PreProc.match(tree, "optimizeTree");
+			$("#prepArea").val(Prettify.match(tree, 'elem'));
+			sqlmod = SBVR2SQL.match(tree,'trans');
+			$("#sqlArea").val(Prettify.match(sqlmod, 'elem'));
+		}
+		
+		function resetClient(){
+			//$("#seArea").attr('disabled', false);
+			$("#seArea").val("");
+			$("#lfArea").val("");
+			$("#prepArea").val("");
+			$("#sqlArea").val("");
+			
+			/*db.transaction(function (tx) {
+				tx.executeSql("SELECT name FROM sqlite_master WHERE type='table';", [],
+					function(tx, result){
+						for(var i=0;i<result.rows.length;i++){
+							if(result.rows.item(i)['name']!="__WebKitDatabaseInfoTable__"){
+								tx.executeSql("DROP TABLE \"" + result.rows.item(i)['name'] + "\";");
+							}
+						}
+					}, 
+					null
+				);
+			}*/
+		}
+		
+		function loadmod(model){
+			if(!$("#seArea").attr('disabled')){
+				$("#seArea").val(model);
+			}
+		}
+		
+		function vURIGo(urif){
+			location.hash="!" + urif;
+		}
+		
+		$(function() {
+			$("#tabs").tabs();	
+		});
+	</script>
+	
+	<div id="tabs">
+		<ul>
+			<li><a href='#seTab'>Structured English</a></li>
+			<li><a href='#lfTab'>Logical Formulation</a></li>
+			<li><a href='#prepTab'>Preprocessed LF</a></li>
+			<li><a href='#sqlTab'>SQL</a></li>
+		</ul>
+		<div id="seTab"><textarea id="seArea" rows="15" cols="189"></textarea></div>
+		<div id="lfTab"><textarea id="lfArea" rows="15" cols="189"></textarea></div>
+		<div id="prepTab"><textarea id="prepArea" rows="15" cols="189"></textarea></div>
+		<div id="sqlTab"><textarea id="sqlArea" rows="15" cols="189"></textarea></div>
+	</div>
+	<div align="right">
+		<input type="button" value="Load Example 1"  onClick="loadmod(model1);return false">
+		<input type="button" value="Load Example 2"  onClick="loadmod(model2);return false">
+		<input type="button" value="Load Example 3"  onClick="loadmod(model3);return false">
+		<input type="button" value="Reset All"       onClick="resetClient();return false">
+		<input type="button" value="Execute Model"   onClick="transformClient($('#seArea').val());return false">
+	</div>
+  </body>
+</html>

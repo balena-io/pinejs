@@ -1,0 +1,78 @@
+Canvas TODO:
+	Open Source Release
+		Apply Apache 2.0
+
+	Milestone 1: (Black Swan)
+		++ validateDB reorg
+		
+		Update Running Model (Rules only)
+			Revise model leads to model tab (and current request URI is somehow stored in model tab URI?)
+			Then, when model is updated, success msgbox gives link back to request.
+			
+			Action Items:
+				Update button should send new model to server.
+				Server should compare models to see if change is allowed. (eeeasy)
+				If no, revert model (and explain)
+				If yes, apply new model (and declare success)
+				'Revise Model' button should redirect to the model screen
+					with cached request
+				Update success should direct to return to pending request
+				Pending request should be noted in UI with [continue] link.
+				
+		
+		Renaming:
+			SBVRwithSails -> Mondat
+			standalone.html -> index.html
+			'my first db' -> 'mondat' //or something app-specific?
+			
+		BackURIs
+		
+		Add-Transactions
+			Requires proper querying?!
+
+		Parser:
+			bug: can't parse rules that end with a space. Should accept spaces or fullstop at the end of a rule.
+				(esp. bad since autocomplete adds a space)
+	
+		Client:
+			keep client_onAir_ in memmory, not localStorage to avoid interference between sessions.
+	
+		Server:
+			Move localStorage to a database table. 
+				Can't rely on localStorage in the server. Also, first step towards multi-project.
+			check: do locks still lock resources? (probably not according to gc bug)
+		
+		Protocol:
+			JSON.stringify all responses (esp. the models)
+			Send custom failure headers also (not just success)
+			Have default headers (200 OK / 404 Not Found?)
+			
+		Bugs:
+			Cmod bug - fixes with reload, odd little thing.
+				Replicate
+		
+	Milestone 2: SBVR Editor
+		Component division (editor - platform)
+		File loading & Saving
+		Chrome App
+		
+	Milestone 3: (IAH)
+		Server-side. (Node.js?)
+		Logical operators (and/or)
+		Attributes
+		Datatypes
+		User Access
+		Optimized schema
+
+Done:
+	Client:
+		bug: When loading the page on the data editor, and returning to the model, the editor doesn't highlight.
+		UI:
+			bug: delete panel has no button
+	Server:
+		bug: fix garbage collection for transactions.
+		bug: Transaction barf. Why?
+		->> Code org: Break out DB validation into its own function..
+			-->>> must make execute() into an async-friendly function, which may allow halving it also.
+				--->>>> standardize arguments of success/failureCallback, and create proxies for client call.
+

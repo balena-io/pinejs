@@ -1,0 +1,55 @@
+/*
+Copyright 2011 University of Surrey
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
+
+ometa ClientURIUnparser{
+      word = [(letter|``-''|``_'')+:l]                                        -> l.join(''),
+      nmbr = number,
+
+     trans = [:t apply(t):a] -> a,
+       uri   trans:t         -> ('#!/' + t),
+
+      name = [word:w nmbr:n] -> (w + '.' + n),
+      name = [word:w word:o] -> (w + '.' + o),
+      name = [word:w]        -> (w),
+       
+       col = name:n mod:m trans:t trans+:r {t=[t].concat(r)} -> (n + m + '/(' + t.join(',') + ')'),
+       col = name:n mod:m trans:t                          -> (n + m + '/' + t),
+       col = name:n mod:m                                  -> (n + m),
+
+       ins = name:n mod:m trans:t trans+:r {t=[t].concat(r)} -> (n + m + '/(' + t.join(',') + ')'),
+       ins = name:n mod:m trans:t                          -> (n + m + '/' + t),
+       ins = name:n mod:m                                  -> (n + m),
+
+       mod = ['mod' actn+:a] -> a.join('')
+           | ['mod']         -> '',
+
+      actn = (add|filt|del|edit),
+       add = ['add']          -> '*add',
+       del = ['del']          -> '*del',
+      edit = ['edit']         -> '*edit',
+
+      filt = ['filt' eqi:o]   -> '',
+      filt = ['filt' op*:o]   -> ('*filt:' + o),
+
+        op = eq|ne|lk,
+
+       eqi = ['eq' ([]|word) 'id'   nmbr]        -> '',
+       eqi = ['eq' ([]|word) 'name' word]        -> '',        
+        eq = ['eq' ([]|word) word   (word|nmbr)],
+
+        ne = ['ne' ([]|word) word   (word|nmbr)],
+        lk = ['lk' ([]|word) word   (word|nmbr)]
+}

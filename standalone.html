@@ -1,0 +1,491 @@
+<!--
+Copyright 2011 University of Surrey
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+
+<!-- TODO: rename standalone.html to index.html (and integrate boilerplate)-->
+
+<html>
+	<head>
+		<script src="ometa/lib.js"></script>
+		<script src="ometa/ometa-base.js"></script>
+		<script src="ometa/parser.js"></script>
+		<script src="ometa/bs-js-compiler.js"></script>
+		<script src="ometa/bs-ometa-compiler.js"></script>
+		<script src="ometa/bs-ometa-optimizer.js"></script>
+		<script src="ometa/bs-ometa-js-compiler.js"></script>
+		
+		<script src="js/mylibs/json2.js"></script>
+	
+		<script src='ometa-code/SBVRParser.js'></script>
+		<script src='ometa-code/SBVR_PreProc.js'></script>
+		<!--script type="text/x-ometa-js">
+</script-->
+		<!--script src='ometa-code/SBVR2SQL.js'></script-->
+		<script type="text/x-ometa-js">//Transformation from SBVR Logical Formulation to SQL
+
+ometa SBVR2SQL {
+  $ :x       = token(x):a                              -> [a] 
+             |                                         -> [],
+
+  trans      [:t apply(t):a]                           -> a,
+  
+  /**
+    If we match a token we run the function matching the token name.
+  */
+  token :x   [:t ?{t==x} apply(x):a]                   -> a,
+
+  letters    = (letter|'_')+:l space*                  -> l.join(''),
+  
+  /**
+    num = {
+      0: "num",
+      1: number
+    }
+  */
+  num        number:n ?{!isNaN(n)}                     -> [`num, n],
+  text	     :a	                                       -> a,
+
+  ftsc       [("term":t -> [`ForeignKey, t[1]+'_id', t[2], [t[1],`id,`name]])*:tt] -> tt,
+  ftfl       [("term":t -> ('"'+t[1]+'_id" INTEGER'))*:tt] -> tt,
+  ftfk       [("term":t -> ('FOREIGN KEY ("'+t[1]+'_id") REFERENCES "'+t[1]+'"("id")'))*:tt] -> tt,
+  model      ("term":t  -> [`term, t[1], t[2], t[3], 
+  ('CREATE TABLE IF NOT EXISTS "'+t[1]+'" ("id" INTEGER PRIMARY KEY,"name" TEXT)'), 'DROP TABLE "'+t[1]+'";']
+             |"fcTp":f ftfl(f[3]):l ftfk(f[3]):k ftsc(f[3]):s
+          -> [`fcTp, f[1], f[2], s, ('CREATE TABLE IF NOT EXISTS "'+f[1]+
+		     '" ("id" INTEGER PRIMARY KEY, '+l.join(', ')+', '+k.join(', ')+')'), 'DROP TABLE "'+f[1]+'";', f[4]]
+             |"rule"
+             )*:xs                                     -> [`model].concat(xs),
+
+  fcTp       {a=[]} &(   ( "term":c "verb":d -> ( a = a.concat([[c[0],c[2]],[d[0],d[2]]]) ) )* 
+                         ( "term":b          -> ( a = a.concat([[b[0], b[2]]])            ) )?)
+             &(("term":t "verb" ->t)*:s $('term'):e) {s=s.concat(e)}
+             ("term":t "verb":v->[t,v])*:r ("term":t->[('-'+t[1]),(' '+t[1])]|empty->['','']):e
+                                          -> [`fcTp, this._fLst(r).concat(e[0]), this._fLstt(r).concat(e[1]), s, a],
+
+  verb       [letters+:l]                              -> [`verb, l.join('_'), l.join(' ')],
+  
+  /**
+    term = {
+      0: "term",
+      1: tableName (replace ' ' with '_' for termName),
+      2: termName,
+      3: {
+          [field],
+          [...]
+        },
+      4: createTableSQL
+    }
+  **/
+  term  [letters+:l] [letters+:m]? [anything*]? -> [`term, l.join('_'), l.join(' '), [[`Text, `name, `Name, []]] ],
+  rule       ("obl"|"nec"|"pos"|"prm"):xs "text":t     -> [`rule, [], t, [], xs, []],
+
+  obl        expr:xs                                   -> ('SELECT ' + xs[0] + xs[1] + ' AS "result"'),
+  nec        expr:xs                                   -> ('SELECT ' + xs[0] + xs[1] + ' AS "result"'),
+  pos        expr:xs                                   -> ('SELECT ' + xs[0] + xs[1] + ' AS "result"'),
+  prm        expr:xs                                   -> ('SELECT ' + xs[0] + xs[1] + ' AS "result"'),
+
+  
+  /**
+    expr = {
+      0: WHERE clause
+      1: After WHERE clause (ie GROUP BY/HAVING)
+      2: JOIN clause
+    }
+  
+  */
+  //TODO: atMostQ isn't implemented, we convert to a neg atLeastQ
+  expr       = "aFrm" | "existQ" | "exactQ" | /*"atMostQ" |*/ "atLeastQ" | "numRngQ" | "neg",
+
+  aFrm       "fcTp":f "bind"*:b
+  -> ['EXISTS(SELECT * FROM "' + f[1] + '" AS "f" WHERE ' + b.join(' AND '),
+      ')',
+	  ''],
+      
+  existQ     "var":v expr:xs {console.log(v);console.log(xs);}
+  -> ['',
+      '',
+      ' JOIN "'+v[2][1]+'" AS "var'+v[1][1]+'" ON '+v[3][0]+xs[0]+xs[1]+v[3][1]+v[3][2]+xs[2]],
+
+  exactQ     "card":i    "var":v expr:xs
+  -> ['EXISTS(SELECT count(*) AS "card" FROM "'+v[2][1]+'" AS "var'+v[1][1]+'" '+v[3][2]+xs[2]+' WHERE '+v[3][0]+xs[0], 
+     xs[1]+v[3][1]+' GROUP BY NULL HAVING "card"='+i[1][1]+')',
+	 ''],
+
+  atLeastQ   "minCard":i "var":v expr:xs
+  -> ['EXISTS(SELECT count(*) AS "card" FROM "'+v[2][1]+'" AS "var'+v[1][1]+'" '+v[3][2]+xs[2]+' WHERE '+v[3][0]+xs[0], 
+     xs[1]+v[3][1]+' GROUP BY NULL HAVING "card">='+i[1][1]+')',
+	 ''],
+
+  numRngQ    "minCard":i "maxCard":a "var":v
+  -> ['EXISTS(SELECT count(*) AS "card" FROM "'+v[2][1]+'" AS "var'+v[1][1]+'" '+v[3][2]+xs[2]+' '+xs[2]+' WHERE '+v[3][0]+xs[0], 
+     xs[1]+v[3][1]+' GROUP BY NULL HAVING "card">='+i[1][1]+' AND "card"<='+a[1][1]+')',
+	 ''],
+  
+
+  /**
+    negExistQ
+  */
+  neg   [:s ?{s=='existQ'} "var":v expr:xs]
+  -> ['NOT EXISTS(SELECT * FROM "'+v[2][1]+'" AS "var'+v[1][1]+'"'+v[3][2]+xs[2]+' WHERE '+v[3][0]+xs[0],
+      xs[1]+v[3][1]+')',
+	  ''],
+      
+  neg        expr:xs
+  -> ['NOT ' + xs[0],
+      xs[1],
+	  ''],
+
+  minCard    "num":n                                   -> [`minCard, n],
+  maxCard    "num":n                                   -> [`maxCard, n],
+
+  /**
+    var = {
+      0: "var",
+      1: num,
+      2: term,
+      3: expr | {'',''}
+    }
+  */
+  var        "num":n "term":t expr:w {w[0]==''?'':w[0]+=' AND '}   -> [`var, n, t, w],
+  var        "num":n "term":t                          -> [`var, n, t,['','','']],
+
+  bind       "term":t number:n                         -> ('"var' + n + '"."id" = "f"."' + t[1] + '_id"')
+}
+
+SBVR2SQL._cLst = function(v) { for(var i=1;i<v.length;i++){v[0] = v[0].concat(v[i])}; return v[0] }
+SBVR2SQL._fLst = function(v) {v = this._cLst(v); var r = []; for(var i=0;i<v.length;i++){r = r.concat(v[i][1])}; return r.join('-')}
+SBVR2SQL._fLstt = function(v) {v = this._cLst(v); var r = []; for(var i=0;i<v.length;i++){r = r.concat(v[i][2])}; return r.join(' ')}
+
+</script>
+		<script src="ometa/ometa-script-tag-now.js"></script>
+		<script src='ometa-code/ClientURIParser.js'></script>
+		<script src='ometa-code/ClientURIUnparser.js'></script>
+		<script src='ometa-code/ServerURIParser.js'></script>
+		<script src='ometa-code/Prettify.js'></script>
+		
+		<script src='ometa-code/SBVRModels.js'></script>
+		
+		<script src="server.js"></script>
+		<script src="drawDataUI.js"></script>
+		<script src="runTrans.js"></script>
+		<script src="backupRestore.js"></script>
+		
+		<script src="js/libs/jquery-1.5.2.js"></script>	
+		<script src="js/mylibs/jquery-ui-1.8.11.js"></script>
+		
+		<script src="cm/lib/codemirror.js"></script>
+		<script src="cm/sbvr.js"></script>
+		<script src="cm/plsql.js"></script>
+		
+		<link rel="stylesheet" href="cm/lib/codemirror.css">
+    	<link rel="stylesheet" href="cm/sbvr.css">
+    	<link rel="stylesheet" href="cm/plsql.css">
+		
+		<link type="text/css" href="css/ui-lightness/jquery-ui.css" rel="stylesheet" />
+		<link type="text/css" href="css/style.css" rel="stylesheet" />
+		
+		<title>Mondat Canvas</title>
+
+		<script type='text/javascript'>
+			var sqlEditor;
+			function serverRequest(method, uri, headers, body, successCallback, failureCallback, caller){
+				$("#httpTable").append(
+					'<tr class="server_row"><td><strong>' + method +
+					"</strong></td><td>" + uri + "</td><td>" + (headers.length==0?'':headers) +
+					"</td><td>" + body + "</td></tr>"
+				);
+				remoteServerRequest(method, uri, headers, body, successCallback, failureCallback, caller);
+			}
+		
+			//txtmod = '';
+			function loadState(){
+				serverRequest("GET", "/onAir/", [], '', function(headers, result){
+					if(result!=undefined){
+					localStorage._client_onAir = JSON.parse(result);
+					}
+				});
+			}
+			
+			function transformClient(model){
+				$("#modelArea").attr('disabled',true);
+			
+				serverRequest("PUT",
+					"/ui/textarea-is_disabled*filt:textarea.name=model_area/",
+					{"Content-Type":"application/json"},
+					JSON.stringify({"value":true})
+				);
+			
+				serverRequest("PUT",
+					"/ui/textarea*filt:name=model_area/",
+					{"Content-Type":"application/json"},
+					JSON.stringify({"value":model})
+				);
+			
+				serverRequest("POST",
+					"/execute/",
+					{"Content-Type":"application/json"}
+				);
+			
+				//serverRequest("GET", "/model/", [], '', function(headers, result){
+				//	txtmod = result;
+				//});
+			
+				serverRequest("GET", "/lfmodel/", [], '', function(headers, result){
+					$("#lfArea").val(Prettify.match(JSON.parse(result),'elem'));
+				});
+			
+				serverRequest("GET", "/prepmodel/", [], '', function(headers, result){
+					$("#prepArea").val(Prettify.match(JSON.parse(result),'elem'));
+				});
+			
+				serverRequest("GET", "/sqlmodel/", [], '', function(headers, result){
+					sqlEditor.setValue(Prettify.match(JSON.parse(result),'elem'));
+				});
+				
+				localStorage._client_onAir=true
+				
+				$('#bum').removeAttr('disabled');
+				$('#br').removeAttr('disabled');
+				$('#bem').attr('disabled','disabled');
+			}
+			
+			function updateModel(){
+				return true;
+			}
+
+			function resetClient(){
+				//**actions should go in the callback to be executed after the DELETE.
+				$("#modelArea").attr('disabled', false);
+				editor.setValue("");
+				$("#lfArea").val("");
+				$("#prepArea").val("");
+				sqlEditor.setValue("");
+				serverRequest("DELETE",	"/", [], '', function(){
+					$('#bem').removeAttr('disabled');
+					$('#bum').attr('disabled','disabled');
+					$('#br').attr('disabled','disabled');
+				});
+				
+				localStorage._client_onAir=false
+				//txtmod = '';
+			}
+
+			function loadmod(model){
+				if(!(localStorage._client_onAir=='true')){
+					editor.setValue(model);
+					serverRequest("PUT",
+						"/ui/textarea*filt:name=model_area/",
+						{"Content-Type":"application/json"},
+						JSON.stringify({"value":model})
+					);
+				}else{
+					//TODO: Give some explanation. (SBVR-style?)
+				}
+			}
+			
+			function processHash(){
+				theHash = location.hash
+				if(theHash == ''){
+					theHash = '#!/model'
+				}
+				
+				if(theHash.slice(1,9) == '!/server'){
+					URItree = [[],[[],['server']]];
+				}else{
+					URItree = ClientURIParser.matchAll(theHash, 'expr'); //does not handle empty tree
+				}
+				
+				//console.log(URItree[1][1][0]);
+				switch(URItree[1][1][0]){
+					case "model":
+						editor.refresh();
+						$('#tabs').tabs("select",0);
+						break;
+					case "server":
+						//console.log(location.hash.slice(9));
+						uri = location.hash.slice(9);
+						serverRequest("GET", uri, "", {}, function(headers, result){
+							alert(result);
+						});
+						break;
+					case "sql":
+						$('#tabs').tabs("select",3);
+						sqlEditor.refresh(); //Force a refresh on switching to the tab, otherwise it wasn't appearing.
+						break;
+					case "data":
+						$('#tabs').tabs("select",4);
+						drawData(URItree[1]);
+						break;
+					case "http":
+						$('#tabs').tabs("select",5);
+						break;
+				}
+			}
+		
+			//break loadUI apart to loadState and SetUI (with a view to converting LoadState to a single request)?
+			function loadUI(){
+				//request schema from server and store locally.
+				serverRequest("GET", "/model/", [], '', function(headers, result){
+					//Reset SBVR parser
+					SBVRParser.terms = {};
+					SBVRParser.verbs = {};
+					SBVRParser.fctps = {};
+					SBVRParser.ruleVars = {};
+					SBVRParser.ruleVarsCount = 0;
+					
+					ctree = SBVRParser.matchAll(result, 'expr');
+					ctree = SBVR_PreProc.match(ctree, "optimizeTree");
+					cmod = SBVR2SQL.match(ctree,'trans');
+				});
+				
+				
+				sqlEditor = CodeMirror.fromTextArea(document.getElementById("sqlArea"), {mode:  "text/x-plsql"});
+/*				editor = CodeMirror.fromTextArea(document.getElementById("modelArea"), {
+					onKeyEvent: function(i, e) {
+						// Hook into ctrl-space
+						if (e.keyCode == 32 && (e.ctrlKey || e.metaKey) && !e.altKey) {
+							e.stop();
+							return startComplete();
+						}
+					}
+				});*/
+				
+				window.onhashchange = processHash;
+				serverRequest("GET", "/ui/textarea*filt:name=model_area/", [], '',
+					function(headers, result){
+						editor.setValue(JSON.parse(result).value);
+					}
+				)
+				
+				//TODO: This should be restructured to use jQuery's ajax() interface, so it can be switched
+				//between local and remote on demand (preferably with some variable setting)
+				//http://api.jquery.com/jQuery.ajax/
+				serverRequest("GET", "/ui/textarea-is_disabled*filt:textarea.name=model_area/", [], '',
+					function(headers, result){
+						$("#modelArea").attr('disabled', JSON.parse(result).value)
+					}
+				)
+				
+				//how do we fix this? - ignore. It gets updated on execute anyway. 
+				$("#modelArea").change(function(){
+					serverRequest("PUT",
+						"/ui/textarea*filt:name=model_area/",
+						{"Content-Type":"application/json"},
+						JSON.stringify({"value":editor.getValue()})
+					);
+				});
+				
+				serverRequest("GET", "/lfmodel/", [], '', function(headers, result){
+					$("#lfArea").val(Prettify.match(JSON.parse(result),'elem'));
+				});
+				
+				serverRequest("GET", "/prepmodel/", [], '', function(headers, result){
+					$("#prepArea").val(Prettify.match(JSON.parse(result),'elem'));
+				});
+				
+				serverRequest("GET", "/sqlmodel/", [], '', function(headers, result){
+					sqlEditor.setValue(Prettify.match(JSON.parse(result),'elem'));
+				});	
+				
+				//Prepare dialog
+				$(function() {
+					$( "#dialog-message" ).dialog({
+						modal: true,
+						resizable: false,
+						autoOpen: false,
+						buttons: {
+							"Revise Request": function() {
+								$( this ).dialog( "close" );
+							},
+							"Revise Model": function() {
+								$( this ).dialog( "close" );
+							},
+						}
+					});
+				});
+				
+				//Enable/disable model editor buttons
+				if(localStorage._client_onAir!=true){
+					$('#bem').attr('disabled','disabled');
+					//$('#bum').removeAttr('disabled');
+					//$('#br').removeAttr('disabled');
+				}else{
+					$('#bum').attr('disabled','disabled');
+					$('#br').attr('disabled','disabled');
+					//$('#bem').removeAttr('disabled');
+				}
+			}
+		</script>
+	</head>
+	<body>
+		<script>
+			//Initialise controls and shoot off the loadUI & processHash functions
+			$(function() {
+				$("#tabs").tabs();
+				loadState();
+				loadUI();
+				processHash();
+			});
+		</script>
+		
+		<div id="dialog-message" title="Unable to complete request"></div>
+		
+		<div id="tabs">
+			<ul>
+				<li><a href='#modelTab' onClick="location.hash='!/model/';return false">Model Editor       </a></li>
+				<li><a href='#lfTab'                                                   >Logical Formulation</a></li>
+				<li><a href='#prepTab'                                                 >Preprocessed LF    </a></li>
+				<li><a href='#sqlTab'   onClick="location.hash='!/sql/';return false"  >SQL                </a></li>
+				<li><a href='#dataTab'  onClick="location.hash='!/data/';return false" >Data Browser       </a></li>
+				<li><a href='#httpTab'  onClick="location.hash='!/http/';return false" >HTTP Log           </a></li>
+			</ul>
+			<div id="modelTab">
+				<form id="editform">
+					<!-- windows wants 189 cols for the textareas -->
+					<textarea id="modelArea" rows="15" cols="136"></textarea>
+					<div align="right">
+						<input type="button" id='blm1' value="Load Model 1"  onClick="loadmod(model1);return false">
+						<input type="button" id='blm2' value="Load Model 2"  onClick="loadmod(model2);return false">
+						<input type="button" id='blm3' value="Load Model 3"  onClick="loadmod(model3);return false">
+				        <input type="button" id='bem'  value="Execute Model" onClick= 
+				        										  "transformClient(editor.getValue());return false">
+				        <input type="button" id='bum'  value="Update Model"  onClick="return false"                >
+				        <input type="button" id='br'   value="Reset"         onClick="resetClient();return false"  >
+						<input type="button" id='bbdb' value="Backup DB"     onClick="backupDB();return false"     >
+						<input type="button" id='brdb' value="Restore DB"    onClick="restoreDB();return false"    >
+					</div>
+				</form>
+			</div>
+			<div id="lfTab"><textarea id="lfArea" rows="15" cols="136"></textarea></div>
+			<div id="prepTab"><textarea id="prepArea" rows="15" cols="136"></textarea></div>
+			<div id="sqlTab"><textarea id="sqlArea" rows="15" cols="136"></textarea></div>
+			<div id="dataTab"></div>
+			<div id="httpTab">
+				<table id='httpTable' class='textTable'>
+					<tr>
+						<td><strong>method</strong></td>
+						<td><strong>uri</strong></td>
+						<td><strong>headers</strong></td>
+						<td><strong>body</strong></td>
+					</tr>
+				</table>
+			</div>
+		</div>
+		
+		<script src="cm/inflection.js"></script>
+		<script src="cm/sbvrac.js"></script>
+		
+	</body>
+</html>
