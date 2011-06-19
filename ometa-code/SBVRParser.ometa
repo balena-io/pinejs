@@ -36,6 +36,8 @@ ometa SBVRParser {
     num             = spaces digit+:n                                      -> [`num, parseInt(n.join(''))],
     word            = spaces letters:w ~isVerb(w) ~isTerm(w) ~isKwrd(w)    -> w,
     nrText          = (word:w ~isKwrdSt(w,'')~isTermSt(w,'')~isVerbSt(w,'')->w)+:w  -> w.join(' '),
+    text	          = (spaces letters:w)+:w                                -> w.join(' '),
+    toEOL           = (anything:w ?{w!='\n'&&w!='\r'}->w)*:w               -> $.trim(w.join('')),
 
     kwrd         :x = spaces letters:w {x!=''?x+' '+w:w}:w (isKwrd(w) -> w | kwrd(w):a -> a),
     token        :x = kwrd(''):t ?(t==x)                                   -> [`kwrd, t],
@@ -92,8 +94,25 @@ ometa SBVRParser {
     fcTp            = ``F:'' {t=[]} (terb:b {t.concat(b)}:t)+ (term:e {t.concat([e])}:t)? {this.fctps[t] = true}   
                                                                            -> [`fcTp].concat(t),
 
-    newTerm         = ``T:'' nrText:t {this.terms[t] = true;}              -> [`term, t],
-
+    newTerm         = ``T:'' nrText:t {this.terms[t] = true;} attribute*:a -> [`term, t, a],
+    attribute       = ('\n'|seq('\n\r')) allowedAttrs:attrName ':' toEOL:attrVal
+                      -> [attrName.replace(' ','_'), attrVal],
+    allowedAttrs    = seq('Definition') |
+                      seq('Source') |
+                      seq('Dictionary Basis') |
+                      seq('General Concept') |
+                      seq('Concept Type') |
+                      seq('Necessity') |
+                      seq('Possibility') |
+                      seq('Reference Scheme') |
+                      seq('Note') |
+                      seq('Example') |
+                      seq('Synonym') |
+                      seq('Synonymous Form') |
+                      seq('See') |
+                      seq('Subject Field') |
+                      seq('Namespace URI'),
+    
     line            = newTerm | fcTp | newRule,
     linef           = line:l ('\n'|seq('\n\r')|end)                        -> l 
                     | '\n'                                                 -> '',
@@ -138,4 +157,3 @@ SBVRParser._verbForm = function(k) {
 }
 
 SBVRParser._isFctp = function(k) { return this.fctps.hasOwnProperty(k) }
-
