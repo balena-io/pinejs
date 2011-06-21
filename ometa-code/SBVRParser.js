@@ -962,7 +962,7 @@
                 attrName = this._apply("allowedAttrs");
                 this._applyWithArgs("exactly", ":");
                 attrVal = this._apply("toEOL");
-                return [attrName.replace(" ", "_"), attrVal]
+                return [attrName.replace(new RegExp(" ", "g"), ""), attrVal]
             }).call(this)
         },
         "allowedAttrs": function() {

@@ -96,7 +96,7 @@ ometa SBVRParser {
 
     newTerm         = ``T:'' nrText:t {this.terms[t] = true;} attribute*:a -> [`term, t, a],
     attribute       = ('\n'|seq('\n\r')) allowedAttrs:attrName ':' toEOL:attrVal
-                      -> [attrName.replace(' ','_'), attrVal],
+                      -> [attrName.replace(new RegExp(' ','g'),''), attrVal],
     allowedAttrs    = seq('Definition') |
                       seq('Source') |
                       seq('Dictionary Basis') |
