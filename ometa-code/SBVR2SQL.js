@@ -292,7 +292,7 @@
                 xs;
             return (function() {
                 xs = this._apply("expr");
-                return ((("SELECT " + xs[(0)]) + xs[(1)]) + " AS \"result\"")
+                return (("SELECT " + (xs[(3)] ? xs[(3)] : (xs[(0)] + xs[(1)]))) + " AS \"result\"")
             }).call(this)
         },
         "nec": function() {
@@ -301,7 +301,7 @@
                 xs;
             return (function() {
                 xs = this._apply("expr");
-                return ((("SELECT " + xs[(0)]) + xs[(1)]) + " AS \"result\"")
+                return (("SELECT " + (xs[(3)] ? xs[(3)] : (xs[(0)] + xs[(1)]))) + " AS \"result\"")
             }).call(this)
         },
         "pos": function() {
@@ -310,7 +310,7 @@
                 xs;
             return (function() {
                 xs = this._apply("expr");
-                return ((("SELECT " + xs[(0)]) + xs[(1)]) + " AS \"result\"")
+                return (("SELECT " + (xs[(3)] ? xs[(3)] : (xs[(0)] + xs[(1)]))) + " AS \"result\"")
             }).call(this)
         },
         "prm": function() {
@@ -319,7 +319,7 @@
                 xs;
             return (function() {
                 xs = this._apply("expr");
-                return ((("SELECT " + xs[(0)]) + xs[(1)]) + " AS \"result\"")
+                return (("SELECT " + (xs[(3)] ? xs[(3)] : (xs[(0)] + xs[(1)]))) + " AS \"result\"")
             }).call(this)
         },
         "expr": function() {
@@ -358,7 +358,7 @@
             return (function() {
                 v = this._applyWithArgs("token", "var");
                 xs = this._apply("expr");
-                return ["", "", ((((((((((" JOIN \"" + v[(2)][(1)]) + "\" AS \"var") + v[(1)][(1)]) + "\" ON ") + v[(3)][(0)]) + xs[(0)]) + xs[(1)]) + v[(3)][(1)]) + v[(3)][(2)]) + xs[(2)])]
+                return ["1=1", "", ((((((((((" JOIN \"" + v[(2)][(1)]) + "\" AS \"var") + v[(1)][(1)]) + "\" ON ") + v[(3)][(0)]) + xs[(0)]) + xs[(1)]) + v[(3)][(1)]) + v[(3)][(2)]) + xs[(2)]), ((((((((("EXISTS(SELECT * FROM \"" + v[(2)][(1)]) + "\" AS \"var") + v[(1)][(1)]) + "\" WHERE ") + v[(3)][(0)]) + xs[(0)]) + xs[(1)]) + v[(3)][(1)]) + ")")]
             }).call(this)
         },
         "exactQ": function() {
@@ -369,7 +369,7 @@
                 i = this._applyWithArgs("token", "card");
                 v = this._applyWithArgs("token", "var");
                 xs = this._apply("expr");
-                return [((((((((("EXISTS(SELECT count(*) AS \"card\" FROM \"" + v[(2)][(1)]) + "\" AS \"var") + v[(1)][(1)]) + "\" ") + v[(3)][(2)]) + xs[(2)]) + " WHERE ") + v[(3)][(0)]) + xs[(0)]), ((((xs[(1)] + v[(3)][(1)]) + " GROUP BY NULL HAVING \"card\"=") + i[(1)][(1)]) + ")"), ""]
+                return [((((((((("EXISTS(SELECT count(*) AS \"card\" FROM \"" + v[(2)][(1)]) + "\" AS \"var") + v[(1)][(1)]) + "\" ") + v[(3)][(2)]) + xs[(2)]) + " WHERE ") + v[(3)][(0)]) + xs[(0)]), ((((xs[(1)] + v[(3)][(1)]) + " GROUP BY NULL HAVING \"card\"=") + i[(1)][(1)]) + ")"), "", ""]
             }).call(this)
         },
         "atLeastQ": function() {
@@ -380,7 +380,7 @@
                 i = this._applyWithArgs("token", "minCard");
                 v = this._applyWithArgs("token", "var");
                 xs = this._apply("expr");
-                return [((((((((("EXISTS(SELECT count(*) AS \"card\" FROM \"" + v[(2)][(1)]) + "\" AS \"var") + v[(1)][(1)]) + "\" ") + v[(3)][(2)]) + xs[(2)]) + " WHERE ") + v[(3)][(0)]) + xs[(0)]), ((((xs[(1)] + v[(3)][(1)]) + " GROUP BY NULL HAVING \"card\">=") + i[(1)][(1)]) + ")"), ""]
+                return [((((((((("EXISTS(SELECT count(*) AS \"card\" FROM \"" + v[(2)][(1)]) + "\" AS \"var") + v[(1)][(1)]) + "\" ") + v[(3)][(2)]) + xs[(2)]) + " WHERE ") + v[(3)][(0)]) + xs[(0)]), ((((xs[(1)] + v[(3)][(1)]) + " GROUP BY NULL HAVING \"card\">=") + i[(1)][(1)]) + ")"), "", ""]
             }).call(this)
         },
         "numRngQ": function() {
@@ -391,7 +391,7 @@
                 i = this._applyWithArgs("token", "minCard");
                 a = this._applyWithArgs("token", "maxCard");
                 v = this._applyWithArgs("token", "var");
-                return [((((((((((("EXISTS(SELECT count(*) AS \"card\" FROM \"" + v[(2)][(1)]) + "\" AS \"var") + v[(1)][(1)]) + "\" ") + v[(3)][(2)]) + xs[(2)]) + " ") + xs[(2)]) + " WHERE ") + v[(3)][(0)]) + xs[(0)]), ((((((xs[(1)] + v[(3)][(1)]) + " GROUP BY NULL HAVING \"card\">=") + i[(1)][(1)]) + " AND \"card\"<=") + a[(1)][(1)]) + ")"), ""]
+                return [((((((((((("EXISTS(SELECT count(*) AS \"card\" FROM \"" + v[(2)][(1)]) + "\" AS \"var") + v[(1)][(1)]) + "\" ") + v[(3)][(2)]) + xs[(2)]) + " ") + xs[(2)]) + " WHERE ") + v[(3)][(0)]) + xs[(0)]), ((((((xs[(1)] + v[(3)][(1)]) + " GROUP BY NULL HAVING \"card\">=") + i[(1)][(1)]) + " AND \"card\"<=") + a[(1)][(1)]) + ")"), "", ""]
             }).call(this)
         },
         "neg": function() {
@@ -408,12 +408,12 @@
                             return xs = this._apply("expr")
                         }).call(this)
                     }));
-                    return [((((((((("NOT EXISTS(SELECT * FROM \"" + v[(2)][(1)]) + "\" AS \"var") + v[(1)][(1)]) + "\"") + v[(3)][(2)]) + xs[(2)]) + " WHERE ") + v[(3)][(0)]) + xs[(0)]), ((xs[(1)] + v[(3)][(1)]) + ")"), ""]
+                    return [((((((((("NOT EXISTS(SELECT * FROM \"" + v[(2)][(1)]) + "\" AS \"var") + v[(1)][(1)]) + "\"") + v[(3)][(2)]) + xs[(2)]) + " WHERE ") + v[(3)][(0)]) + xs[(0)]), ((xs[(1)] + v[(3)][(1)]) + ")"), "", ""]
                 }).call(this)
             }), (function() {
                 return (function() {
                     xs = this._apply("expr");
-                    return [("NOT " + xs[(0)]), xs[(1)], ""]
+                    return [("NOT " + xs[(0)]), xs[(1)], "", ""]
                 }).call(this)
             }))
         },
@@ -444,14 +444,14 @@
                     n = this._applyWithArgs("token", "num");
                     t = this._applyWithArgs("token", "term");
                     w = this._apply("expr");
-                    (w[(0)] += " AND ");
+                    ((w[(0)] == "") ? "" : (w[(0)] += " AND "));
                     return ["var", n, t, w]
                 }).call(this)
             }), (function() {
                 return (function() {
                     n = this._applyWithArgs("token", "num");
                     t = this._applyWithArgs("token", "term");
-                    return ["var", n, t, ["", ""]]
+                    return ["var", n, t, ["", "", ""]]
                 }).call(this)
             }))
         },

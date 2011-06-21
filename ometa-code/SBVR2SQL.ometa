@@ -72,10 +72,11 @@ ometa SBVR2SQL {
   term  [letters+:l] [letters+:m]? [anything*]? -> [`term, l.join('_'), l.join(' '), [[`Text, `name, `Name, []]] ],
   rule       ("obl"|"nec"|"pos"|"prm"):xs "text":t     -> [`rule, [], t, [], xs, []],
 
-  obl        expr:xs                                   -> ('SELECT ' + xs[0] + xs[1] + ' AS "result"'),
-  nec        expr:xs                                   -> ('SELECT ' + xs[0] + xs[1] + ' AS "result"'),
-  pos        expr:xs                                   -> ('SELECT ' + xs[0] + xs[1] + ' AS "result"'),
-  prm        expr:xs                                   -> ('SELECT ' + xs[0] + xs[1] + ' AS "result"'),
+  //TODO: xs[3] is hacky and needs fixing properly.
+  obl        expr:xs                                   -> ('SELECT ' + (xs[3] ? xs[3] : xs[0] + xs[1]) + ' AS "result"'),
+  nec        expr:xs                                   -> ('SELECT ' + (xs[3] ? xs[3] : xs[0] + xs[1]) + ' AS "result"'),
+  pos        expr:xs                                   -> ('SELECT ' + (xs[3] ? xs[3] : xs[0] + xs[1]) + ' AS "result"'),
+  prm        expr:xs                                   -> ('SELECT ' + (xs[3] ? xs[3] : xs[0] + xs[1]) + ' AS "result"'),
 
   
   /**
@@ -83,6 +84,7 @@ ometa SBVR2SQL {
       0: WHERE clause
       1: After WHERE clause (ie GROUP BY/HAVING)
       2: JOIN clause
+	  3: Hacky, for existQ when we are the very first level.
     }
   
   */
@@ -95,24 +97,28 @@ ometa SBVR2SQL {
 	  ''],
       
   existQ     "var":v expr:xs
-  -> ['',
+  -> ['1=1',
       '',
-      ' JOIN "'+v[2][1]+'" AS "var'+v[1][1]+'" ON '+v[3][0]+xs[0]+xs[1]+v[3][1]+v[3][2]+xs[2]],
+      ' JOIN "'+v[2][1]+'" AS "var'+v[1][1]+'" ON '+v[3][0]+xs[0]+xs[1]+v[3][1]+v[3][2]+xs[2],
+      'EXISTS(SELECT * FROM "'+v[2][1]+'" AS "var'+v[1][1]+'" WHERE '+v[3][0]+xs[0]+xs[1]+v[3][1]+')'],
 
   exactQ     "card":i    "var":v expr:xs
   -> ['EXISTS(SELECT count(*) AS "card" FROM "'+v[2][1]+'" AS "var'+v[1][1]+'" '+v[3][2]+xs[2]+' WHERE '+v[3][0]+xs[0], 
      xs[1]+v[3][1]+' GROUP BY NULL HAVING "card"='+i[1][1]+')',
-	 ''],
+	 '',
+   ''],
 
   atLeastQ   "minCard":i "var":v expr:xs
   -> ['EXISTS(SELECT count(*) AS "card" FROM "'+v[2][1]+'" AS "var'+v[1][1]+'" '+v[3][2]+xs[2]+' WHERE '+v[3][0]+xs[0], 
      xs[1]+v[3][1]+' GROUP BY NULL HAVING "card">='+i[1][1]+')',
-	 ''],
+	 '',
+   ''],
 
   numRngQ    "minCard":i "maxCard":a "var":v
   -> ['EXISTS(SELECT count(*) AS "card" FROM "'+v[2][1]+'" AS "var'+v[1][1]+'" '+v[3][2]+xs[2]+' '+xs[2]+' WHERE '+v[3][0]+xs[0], 
      xs[1]+v[3][1]+' GROUP BY NULL HAVING "card">='+i[1][1]+' AND "card"<='+a[1][1]+')',
-	 ''],
+	 '',
+   ''],
   
 
   /**
@@ -121,12 +127,14 @@ ometa SBVR2SQL {
   neg   [:s ?{s=='existQ'} "var":v expr:xs]
   -> ['NOT EXISTS(SELECT * FROM "'+v[2][1]+'" AS "var'+v[1][1]+'"'+v[3][2]+xs[2]+' WHERE '+v[3][0]+xs[0],
       xs[1]+v[3][1]+')',
-	  ''],
+	  '',
+   ''],
       
   neg        expr:xs
   -> ['NOT ' + xs[0],
       xs[1],
-	  ''],
+	  '',
+   ''],
 
   minCard    "num":n                                   -> [`minCard, n],
   maxCard    "num":n                                   -> [`maxCard, n],
@@ -139,8 +147,8 @@ ometa SBVR2SQL {
       3: expr | {'',''}
     }
   */
-  var        "num":n "term":t expr:w {w[0]+=' AND '}   -> [`var, n, t, w],
-  var        "num":n "term":t                          -> [`var, n, t,['','']],
+  var        "num":n "term":t expr:w {w[0]==''?'':w[0]+=' AND '}   -> [`var, n, t, w],
+  var        "num":n "term":t                          -> [`var, n, t,['','','']],
 
   bind       "term":t number:n                         -> ('"var' + n + '"."id" = "f"."' + t[1] + '_id"')
 }
