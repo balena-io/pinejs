@@ -61,35 +61,35 @@ function remoteServerRequest(method, uri, headers, body, successCallback, failur
 	}
 	
 	//TODO: convert this to a switch(tree[0].toLowerCase())
-	if(tree[0].toLowerCase()=='onair'){
+	if(tree[0].toLowerCase()=='onair') {
 		successCallback({'status-line': 'HTTP/1.1 200 OK'}, JSON.stringify(localStorage._server_onAir));
-	}else if(tree[0]=='model'){		
-		if(localStorage._server_onAir=='true'){
+	}else if(tree[0]=='model') {
+		if(localStorage._server_onAir=='true') {
 			successCallback({'status-line': 'HTTP/1.1 200 OK'}, localStorage._server_txtmod);
-		}else if(!failureCallback == undefined){
+		}else if(failureCallback != undefined) {
 			failureCallback({'status-line': 'HTTP/1.1 404 Not Found'});
 		}
-	}else if(tree[0]=='lfmodel'){
-		if(localStorage._server_onAir=='true'){
+	}else if(tree[0]=='lfmodel') {
+		if(localStorage._server_onAir=='true') {
 			successCallback({'status-line': 'HTTP/1.1 200 OK'}, localStorage._server_lfmod);
-		}else if(!failureCallback == undefined){
+		}else if(failureCallback != undefined) {
 			failureCallback({'status-line': 'HTTP/1.1 404 Not Found'});
 		}
 	}else if(tree[0]=='prepmodel'){
-		if(localStorage._server_onAir=='true'){
+		if(localStorage._server_onAir=='true') {
 			successCallback({'status-line': 'HTTP/1.1 200 OK'}, localStorage._server_prepmod);
-		}else if(!failureCallback == undefined){
+		}else if(failureCallback != undefined) {
 			failureCallback({'status-line': 'HTTP/1.1 404 Not Found'});
 		}
 	}else if(tree[0]=='sqlmodel'){
-		if(localStorage._server_onAir=='true'){
+		if(localStorage._server_onAir=='true') {
 			successCallback({'status-line': 'HTTP/1.1 200 OK'}, localStorage._server_sqlmod);
-		}else if(!failureCallback == undefined){
+		}else if(failureCallback != undefined) {
 			failureCallback({'status-line': 'HTTP/1.1 404 Not Found'});
 		}
-	}else if(tree[0]=='ui'){
+	}else if(tree[0]=='ui') {
 		if(tree[1][1] == 'textarea' && tree[1][3][1][1][3] == 'model_area'){
-			switch(method){
+			switch(method) {
 				case "PUT":
 					localStorage._server_modelAreaValue = JSON.parse(body).value;
 					break;
@@ -97,7 +97,7 @@ function remoteServerRequest(method, uri, headers, body, successCallback, failur
 					successCallback({'status-line': 'HTTP/1.1 200 OK'}, 
 									JSON.stringify({"value":localStorage._server_modelAreaValue}));
 			}
-		}else if(tree[1][1] == 'textarea-is_disabled' && tree[1][4][1][1][3] == 'model_area'){		
+		} else if(tree[1][1] == 'textarea-is_disabled' && tree[1][4][1][1][3] == 'model_area') {		
 			switch(method){
 				case "PUT":
 					localStorage._server_modelAreaDisabled = JSON.parse(body).value;
@@ -107,20 +107,20 @@ function remoteServerRequest(method, uri, headers, body, successCallback, failur
 									JSON.stringify({"value":localStorage._server_modelAreaDisabled}));
 			}
 		}
-	}else if(tree[0]=='execute'){
-		if(method=="POST"){
+	} else if(tree[0]=='execute') {
+		if(method=="POST") {
 			SBVRParser.terms = {} 
 			SBVRParser.verbs = {}
 			SBVRParser.fctps = {}
 			SBVRParser.ruleVars = {}
 			SBVRParser.ruleVarsCount = 0
 			
-      /*
+			/*
 			lfmod = tree = SBVRParser.matchAll(localStorage._server_modelAreaValue, 'expr');
 			prepmod = tree = SBVR_PreProc.match(tree, 'optimizeTree');
 			sqlmod = SBVR2SQL.match(tree,'trans');
 			*/
-      
+			
 			//* TODO: I want to see the extra info regardless atm
 			lfmod = tree = SBVRParser.matchAll(localStorage._server_modelAreaValue, 'expr');
 			$("#lfArea").val(Prettify.match(lfmod, 'elem'));
@@ -142,28 +142,36 @@ function remoteServerRequest(method, uri, headers, body, successCallback, failur
 			
 			localStorage._server_modelAreaDisabled = true;
 			db.transaction(function (tx) {
-				executeSasync(tx, sqlmod, caller, function(tx, trnmod, caller, 
-						successCallback, failureCallback, headers, result){
+				executeSasync(tx, sqlmod, caller, 
+					function(tx, sqlmod, caller, successCallback, failureCallback, headers, result) {
+							
+						//TODO: fix this as soon as the successCalback mess is fixed
+						executeTasync(tx, trnmod, caller, 
+							function(tx, trnmod, caller, successCallback, failureCallback, headers, result){
+	console.log('1');
+							
+								localStorage._server_onAir = true;
 						
-					//TODO: fix this as soon as the successCalback mess is fixed
-					//executeTasync(tx, trnmod, caller, successCallback, failureCallback, headers, result);
-					executeT(trnmod)
-					
-					localStorage._server_onAir = true;
-			
-					//TODO: figure this out
-					//txtmod stores the latest executed model?
-					localStorage._server_txtmod = localStorage._server_modelAreaValue; 
-			
-					localStorage._server_sqlmod = JSON.stringify(sqlmod);
-					localStorage._server_lfmod = JSON.stringify(lfmod);
-					console.log(lfmod);
-					localStorage._server_prepmod = JSON.stringify(prepmod);
-					localStorage._server_trnmod = JSON.stringify(trnmod);
-				}, function(errors){
-					localStorage._server_modelAreaDisabled = false;
-					failureCallback(errors)
-				},{'status-line': 'HTTP/1.1 200 OK'});
+								//TODO: figure this out
+								//txtmod stores the latest executed model?
+								localStorage._server_txtmod = localStorage._server_modelAreaValue; 
+						
+								localStorage._server_sqlmod = JSON.stringify(sqlmod);
+								localStorage._server_lfmod = JSON.stringify(lfmod);
+								localStorage._server_prepmod = JSON.stringify(prepmod);
+								localStorage._server_trnmod = JSON.stringify(trnmod);
+								
+								successCallback(headers, result)
+	console.log('2');
+							}, 
+						failureCallback, headers, result);
+						//executeT(trnmod)
+					}, function(errors){
+						localStorage._server_modelAreaDisabled = false;
+						console.log(errors);
+						failureCallback(errors)
+					},{'status-line': 'HTTP/1.1 200 OK'}
+				);
 			})
 		}
 	}else if(tree[0]=='update'){
@@ -178,6 +186,7 @@ function remoteServerRequest(method, uri, headers, body, successCallback, failur
 				case "GET":
 					result = {};
 					ents = [];
+					console.log(sqlmod);
 					for(var i=1;i<sqlmod.length;i++){
 						if (sqlmod[i][0] == 'term'){
 							ents.push({"id":sqlmod[i][1],"name":sqlmod[i][2]});
@@ -232,8 +241,8 @@ function remoteServerRequest(method, uri, headers, body, successCallback, failur
 							jn = [];
 							tb = ["'" + ft + "'"]
 							for(var i=1;i<tree[1][2].length;i++){
-								fl.push("'" + tree[1][2][i] + "'" + ".'id' AS '"  + tree[1][2][i] + "_id'");
-								fl.push("'" + tree[1][2][i] + "'" + ".'name' AS '"  + tree[1][2][i] + "_name'");
+								fl.push("'" + tree[1][2][i] + "'" + ".'id' AS '" + tree[1][2][i] + "_id'");
+								fl.push("'" + tree[1][2][i] + "'" + ".'name' AS '" + tree[1][2][i] + "_name'");
 								tb.push("'" + tree[1][2][i] + "'");
 								jn.push("'" + tree[1][2][i] + "'" + ".'id' = " + 
 								"'" + ft + "'" + "." + "'" + tree[1][2][i] + "_id" + "'");
@@ -335,7 +344,7 @@ function remoteServerRequest(method, uri, headers, body, successCallback, failur
 								tx.executeSql(sql + ';', [], function(tx,locks){
 									//for each lock, do cleanup
 									for(i=0;i<locks.rows.length;i++){
-										var lock_id =  locks.rows.item(0).lock_id
+										var lock_id = locks.rows.item(0).lock_id
 									
 										sql = 'DELETE FROM "conditional_representation" WHERE "lock_id"=' + lock_id
 										console.log(sql)
@@ -799,7 +808,7 @@ function executeSasync(tx, sqlmod, caller, successCallback, failureCallback, hea
 
 function executeTasync(tx, trnmod, caller, successCallback, failureCallback, headers, result){
 	//Execute transaction model. 
-	executeSasync(tx, sqlmod, caller, function(tx, trnmod, caller, successCallback, failureCallback, headers, result){
+	executeSasync(tx, trnmod, caller, function(tx, trnmod, caller, successCallback, failureCallback, headers, result){
 		//Hack: Add certain attributes to the transaction model tables. 
 		//This should eventually be done with SBVR, when we add attributes.
 		tx.executeSql("ALTER TABLE 'resource-is_under-lock' ADD COLUMN resource_type TEXT", []);
@@ -812,58 +821,6 @@ function executeTasync(tx, trnmod, caller, successCallback, failureCallback, hea
 		failureCallback(errors)
 	}, headers,
 	result);
-}
-
-function executeS(sqlmod){
-	localStorage._server_modelAreaDisabled = true;
-	k=0;m=0;l=[];
-	db.transaction(function (tx) {
-		//Create tables related to terms and fact types
-		for(var i=0;i<sqlmod.length;i++){
-			if (sqlmod[i][0] == 'fcTp' || sqlmod[i][0] == 'term'){
-				tx.executeSql(sqlmod[i][4]);
-			}
-		};
-
-		//validateDB(tx, sqlmod, caller, successCallback, failureCallback, {
-		//	'status-line':'HTTP/1.1 201 Created',
-		//	'location':'/data/' + tree[1][1] + '*filt:' + tree[1][1] + '.id=' + result.insertId
-		//});
-		
-		//Validate the [empty] model according to the rules. 
-		//This may eventually lead to entering obligatory data.
-		//For the moment it blocks such models from execution.
-		for(var i=0;i<sqlmod.length;i++){
-			if (sqlmod[i][0] == 'rule'){
-				query = sqlmod[i][4];
-				l[++m] = sqlmod[i][2];
-				tx.executeSql(query, [],
-					function(tx, result){
-						if(result.rows.item(0)['result'] == 0){
-							//TODO: alert?! this should be using a callback. (#1)
-							alert('Error: ' + l[++k])
-						};
-					}, 
-					null
-				);
-			}
-		};
-	});
-}
-
-function executeT(trnmod){
-	//Execute transaction model. 
-	executeS(trnmod)
-	
-	//Hack: Add certain attributes to the transaction model tables. 
-	//This should eventually be done with SBVR, when we add attributes.
-	db.transaction(function (tx) {
-		tx.executeSql("ALTER TABLE 'resource-is_under-lock' ADD COLUMN resource_type TEXT", []);
-		tx.executeSql("ALTER TABLE 'conditional_representation' ADD COLUMN field_name TEXT", []);
-		tx.executeSql("ALTER TABLE 'conditional_representation' ADD COLUMN field_value TEXT", []);
-		tx.executeSql("ALTER TABLE 'conditional_representation' ADD COLUMN field_type TEXT", []);
-		tx.executeSql("ALTER TABLE 'conditional_representation' ADD COLUMN lock_id TEXT", []);
-	});
 }
 
 function updateRules(sqlmod){
