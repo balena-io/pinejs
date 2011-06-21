@@ -1,17 +1,17 @@
 <!--
 Copyright 2011 University of Surrey
 
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
+	 Licensed under the Apache License, Version 2.0 (the "License");
+	 you may not use this file except in compliance with the License.
+	 You may obtain a copy of the License at
 
-       http://www.apache.org/licenses/LICENSE-2.0
+	     http://www.apache.org/licenses/LICENSE-2.0
 
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
+	 Unless required by applicable law or agreed to in writing, software
+	 distributed under the License is distributed on an "AS IS" BASIS,
+	 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+	 See the License for the specific language governing permissions and
+	 limitations under the License.
 -->
 
 <!-- TODO: rename standalone.html to index.html (and integrate boilerplate)-->
@@ -31,7 +31,7 @@ Copyright 2011 University of Surrey
 		<script src='ometa-code/SBVRParser.js'></script>
 		<script src='ometa-code/SBVR_PreProc.js'></script>
 		<!--script type="text/x-ometa-js">
-         </script>
+		</script>
 		<script src="ometa/ometa-script-tag-now.js"></script-->
 		<script src='ometa-code/SBVR2SQL.js'></script>
 		<script src='ometa-code/ClientURIParser.js'></script>
@@ -54,8 +54,8 @@ Copyright 2011 University of Surrey
 		<script src="cm/mode/plsql.js"></script>
 		
 		<link rel="stylesheet" href="cm/lib/codemirror.css">
-    <link rel="stylesheet" href="cm/sbvr.css">
-    <link rel="stylesheet" href="cm/theme/default.css">
+		<link rel="stylesheet" href="cm/sbvr.css">
+		<link rel="stylesheet" href="cm/theme/default.css">
 		
 		<link type="text/css" href="css/ui-lightness/jquery-ui.css" rel="stylesheet" />
 		<link type="text/css" href="css/style.css" rel="stylesheet" />
@@ -64,13 +64,23 @@ Copyright 2011 University of Surrey
 
 		<script type='text/javascript'>
 			var sqlEditor;
+		
+			function defaultFailureCallback(error) {
+				console.log(error);
+				exc = '<span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 50px 0;"></span>';
+					msg = error['status-line']?error['status-line']:error.join('\n');
+					$( "#dialog-message" ).html( exc + msg );
+					$( "#dialog-message" ).dialog( "open" );
+				//console.log("fale!", error);
+			}
+			
 			function serverRequest(method, uri, headers, body, successCallback, failureCallback, caller){
 				$("#httpTable").append(
 					'<tr class="server_row"><td><strong>' + method +
 					"</strong></td><td>" + uri + "</td><td>" + (headers.length==0?'':headers) +
 					"</td><td>" + body + "</td></tr>"
 				);
-				remoteServerRequest(method, uri, headers, body, successCallback, failureCallback, caller);
+				remoteServerRequest(method, uri, headers, body, successCallback, failureCallback==undefined?defaultFailureCallback:failureCallback, caller);
 			}
 		
 			//txtmod = '';
@@ -84,7 +94,7 @@ Copyright 2011 University of Surrey
 			
 			function transformClient(model){
 				$("#modelArea").attr('disabled',true);
-			
+				//TODO: Add success/failure callbacks.
 				serverRequest("PUT",
 					"/ui/textarea-is_disabled*filt:textarea.name=model_area/",
 					{"Content-Type":"application/json"},
@@ -215,7 +225,7 @@ Copyright 2011 University of Surrey
 				});
 				
 				
-				sqlEditor = CodeMirror.fromTextArea(document.getElementById("sqlArea"), {mode:  "text/x-plsql"});
+				sqlEditor = CodeMirror.fromTextArea(document.getElementById("sqlArea"), {mode: "text/x-plsql"});
 /*				editor = CodeMirror.fromTextArea(document.getElementById("modelArea"), {
 					onKeyEvent: function(i, e) {
 						// Hook into ctrl-space
@@ -323,14 +333,13 @@ Copyright 2011 University of Surrey
 						<input type="button" id='blm1' value="Load Model 1"  onClick="loadmod(model1);return false">
 						<input type="button" id='blm2' value="Load Model 2"  onClick="loadmod(model2);return false">
 						<input type="button" id='blm3' value="Load Model 3"  onClick="loadmod(model3);return false">
-				        <input type="button" id='bem'  value="Execute Model" onClick= 
-				        										  "transformClient(editor.getValue());return false">
-				        <input type="button" id='bum'  value="Update Model"  onClick="return false"                >
-				        <input type="button" id='br'   value="Reset"         onClick="resetClient();return false"  >
-						<input type="button" id='bbdb' value="Backup DB"     onClick="backupDB();return false"     >
-						<input type="button" id='brdb' value="Restore DB"    onClick="restoreDB();return false"    >
-						<input type="button" id='bedb' value="Export DB"    onClick="exportDB();return false"    >
-						<input type="button" id='bcdb' value="Clear DB"    onClick="clearDB();return false"    >
+						<input type="button" id='bem'  value="Execute Model" onClick="transformClient(editor.getValue());return false">
+						<input type="button" id='bum'  value="Update Model"  onClick="return false">
+						<input type="button" id='br'   value="Reset"         onClick="resetClient();return false">
+						<input type="button" id='bbdb' value="Backup DB"     onClick="backupDB();return false">
+						<input type="button" id='brdb' value="Restore DB"    onClick="restoreDB();return false">
+						<input type="button" id='bedb' value="Export DB"     onClick="exportDB();return false">
+						<input type="button" id='bcdb' value="Clear DB"      onClick="clearDB();return false">
 					</div>
 				</form>
 			</div>

@@ -919,13 +919,7 @@ function delInst(forma,uri,backURI){
 	serverRequest("DELETE", uri, [], '', function(headers, result, parent){
 		location.hash = '#!' + backURI;
 	}, 
-	function(error){
-		exc = '<span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 50px 0;"></span>';
-	    msg = error.join('\n');
-	    $( "#dialog-message" ).html( exc + msg );
-	    $( "#dialog-message" ).dialog( "open" );
-		//console.log("fale!", error);
-	}, this)
+	undefined, this)
 	return false;
 }
 
