@@ -1,7 +1,4 @@
 Canvas TODO:
-	Open Source Release
-		Apply Apache 2.0
-
 	Milestone 1: (Black Swan)
 		++ validateDB reorg
 		
@@ -76,3 +73,6 @@ Done:
 			-->>> must make execute() into an async-friendly function, which may allow halving it also.
 				--->>>> standardize arguments of success/failureCallback, and create proxies for client call.
 
+
+	Open Source Release
+		Apply Apache 2.0
