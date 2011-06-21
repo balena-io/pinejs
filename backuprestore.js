@@ -116,3 +116,23 @@ function exportDB(){
 		);
 	});
 }
+
+
+function clearDB(){
+	db.transaction(function (tx) {
+		tx.executeSql("SELECT name FROM sqlite_master WHERE type='table' AND name !='__WebKitDatabaseInfoTable__';", [],
+			function(tx, result){
+				for(var i=0;i<result.rows.length;i++){
+					tbn = result.rows.item(i).name;
+          tx.executeSql("DROP TABLE IF EXISTS \"" + tbn + "\";",[],
+          function(tx, result){
+            //alert("DROP TABLE IF EXISTS \"" + tbn + "_buk\";");
+          },function(tx, error){
+            alert([error.code, error.message]);
+          });
+				}
+			}, 
+			null
+		);
+	});
+}
