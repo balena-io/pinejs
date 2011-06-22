@@ -205,6 +205,9 @@ Copyright 2011 University of Surrey
 					case "http":
 						$('#tabs').tabs("select",5);
 						break;
+					case "export":
+						$('#tabs').tabs("select",6);
+						break;
 				}
 			}
 		
@@ -226,6 +229,7 @@ Copyright 2011 University of Surrey
 				
 				
 				sqlEditor = CodeMirror.fromTextArea(document.getElementById("sqlArea"), {mode: "text/x-plsql"});
+				importExportEditor = CodeMirror.fromTextArea(document.getElementById("importExportArea"), {mode: "text/x-plsql"});
 /*				editor = CodeMirror.fromTextArea(document.getElementById("modelArea"), {
 					onKeyEvent: function(i, e) {
 						// Hook into ctrl-space
@@ -318,12 +322,13 @@ Copyright 2011 University of Surrey
 		
 		<div id="tabs">
 			<ul>
-				<li><a href='#modelTab' onClick="location.hash='!/model/';return false">Model Editor       </a></li>
-				<li><a href='#lfTab'                                                   >Logical Formulation</a></li>
-				<li><a href='#prepTab'                                                 >Preprocessed LF    </a></li>
-				<li><a href='#sqlTab'   onClick="location.hash='!/sql/';return false"  >SQL                </a></li>
-				<li><a href='#dataTab'  onClick="location.hash='!/data/';return false" >Data Browser       </a></li>
-				<li><a href='#httpTab'  onClick="location.hash='!/http/';return false" >HTTP Log           </a></li>
+				<li><a href='#modelTab' 		onClick="location.hash='!/model/';return false"	>Model Editor			</a></li>
+				<li><a href='#lfTab'															>Logical Formulation	</a></li>
+				<li><a href='#prepTab'															>Preprocessed LF		</a></li>
+				<li><a href='#sqlTab'   		onClick="location.hash='!/sql/';return false"	>SQL					</a></li>
+				<li><a href='#dataTab'  		onClick="location.hash='!/data/';return false"	>Data Browser			</a></li>
+				<li><a href='#httpTab'  		onClick="location.hash='!/http/';return false"	>HTTP Log				</a></li>
+				<li><a href='#importExportTab'  onClick="location.hash='!/export/';return false">Import/Export Database	</a></li>
 			</ul>
 			<div id="modelTab">
 				<form id="editform">
@@ -338,7 +343,7 @@ Copyright 2011 University of Surrey
 						<input type="button" id='br'   value="Reset"         onClick="resetClient();return false">
 						<input type="button" id='bbdb' value="Backup DB"     onClick="backupDB();return false">
 						<input type="button" id='brdb' value="Restore DB"    onClick="restoreDB();return false">
-						<input type="button" id='bedb' value="Export DB"     onClick="exportDB();return false">
+						<input type="button" id='bedb' value="Export DB"     onClick="exportDB(importExportEditor);$('#tabs').tabs('select',6);return false">
 						<input type="button" id='bcdb' value="Clear DB"      onClick="clearDB();return false">
 					</div>
 				</form>
@@ -356,6 +361,10 @@ Copyright 2011 University of Surrey
 						<td><strong>body</strong></td>
 					</tr>
 				</table>
+			</div>
+			<div id="importExportTab">
+				<textarea id="importExportArea" rows="15" cols="136"></textarea>
+				<input type="button" id='bidb' value="Import DB" onClick="importDB(importExportEditor.getValue());return false">
 			</div>
 		</div>
 		

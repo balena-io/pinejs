@@ -68,53 +68,83 @@ function restoreDB(){
 	});
 }
 
-function exportDB(){
+/**
+	@param sqlElem The DOM element into which to put the generated sql using sqlElem.setValue(sqlElem.getValue()+sql), this will be filled asynchronously 
+**/
+function exportDB(sqlElem) {
+	sqlElem.setValue('');
 	db.transaction(function (tx) {
 		tx.executeSql("SELECT name,sql FROM sqlite_master WHERE type='table' AND name NOT LIKE '\\_\\_%' ESCAPE '\\' AND name NOT LIKE '%_buk';", [],
 			function(tx, result) {
-        var sql = '';
+				var query = '';
 				for(var i=0;i<result.rows.length;i++) {
 					tbn = result.rows.item(i).name;
-          sql += "DROP TABLE IF EXISTS \"" + tbn + "\";\n";
-          sql += result.rows.item(i).sql+'\n';
-          (function(tbn) {
-            db.transaction(function (tx) {
-              tx.executeSql('SELECT * FROM "'+tbn+'";', [],
-                function(tx, result) {
-                  var sql ='';
-                  for(var i=0;i<result.rows.length;i++) {
-                    var currRow = result.rows.item(i), first = true;
-                    sql+='INSERT INTO "'+tbn+'" (';
-                    for(var propName in currRow) {
-                      if(!first) {
-                        sql+=',';
-                      }
-                      first = false;
-                      sql+='"'+propName+'"';
-                    }
-                    sql+=') values ('
-                    first = true;
-                    for(var propName in currRow) {
-                      if(!first) {
-                        sql+=',';
-                      }
-                      first = false;
-                      sql+="'"+currRow[propName]+"'";
-                    }
-                    sql+=');\n';
-                  }
-                  console.log(sql);
-                },
-                function(tx, error){console.log(error);}
-              );
-            });
-          })(tbn);
+					query += "DROP TABLE IF EXISTS \"" + tbn + "\";\n";
+					query += result.rows.item(i).sql+';\n';
+					(function(tbn) {
+						db.transaction(function (tx) {
+							tx.executeSql('SELECT * FROM "'+tbn+'";', [],
+								function(tx, result) {
+									var query = '';
+									for(var i=0;i<result.rows.length;i++) {
+										var currRow = result.rows.item(i), first = true;
+										query+='INSERT INTO "'+tbn+'" (';
+										for(var propName in currRow) {
+											if(!first) {
+												query+=',';
+											}
+											first = false;
+											query+='"'+propName+'"';
+										}
+										query+=') values ('
+										first = true;
+										for(var propName in currRow) {
+											if(!first) {
+												query+=',';
+											}
+											first = false;
+											query+="'"+currRow[propName]+"'";
+										}
+										query+=');\n';
+									}
+									sqlElem.setValue(sqlElem.getValue()+query);
+								},
+								function(tx, error){console.log(error);}
+							);
+						});
+					})(tbn);
 				}
-        console.log(sql);
+				sqlElem.setValue(sqlElem.getValue()+query);
 			}, 
 			function(tx, error){console.log(error);}
 		);
 	});
+}
+
+/**
+	@param sql The SQL queries to import.
+**/
+function importDB(sql) {
+	var queries = sql.split(';');
+	for(var i=0;i<queries.length;i++) {
+		if($.trim(queries[i]).length > 0) {
+			(function(query) {
+					db.transaction(function (tx) {
+						tx.executeSql(query, [],
+								function(tx, result) {
+									console.log('Import Success');
+								}, 
+								function(tx, error) {
+									console.log(query);
+									console.log(error);
+								}
+							);
+						}
+					);
+				
+			})(queries[i]);
+		}
+	}
 }
 
 
@@ -124,12 +154,12 @@ function clearDB(){
 			function(tx, result){
 				for(var i=0;i<result.rows.length;i++){
 					tbn = result.rows.item(i).name;
-          tx.executeSql("DROP TABLE IF EXISTS \"" + tbn + "\";",[],
-          function(tx, result){
-            //alert("DROP TABLE IF EXISTS \"" + tbn + "_buk\";");
-          },function(tx, error){
-            alert([error.code, error.message]);
-          });
+					tx.executeSql("DROP TABLE IF EXISTS \"" + tbn + "\";",[],
+					function(tx, result){
+						//alert("DROP TABLE IF EXISTS \"" + tbn + "_buk\";");
+					},function(tx, error){
+						alert([error.code, error.message]);
+					});
 				}
 			}, 
 			null
