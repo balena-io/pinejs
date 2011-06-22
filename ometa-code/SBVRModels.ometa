@@ -54,6 +54,28 @@ R: It is obligatory that each student that is registered for a module is enrolle
 F: student is under probation
 R: It is obligatory that each student that is under probation is registered for at most 3 modules'
 
+// WIP:
+modelTest = 
+'T: student
+F: student is school president
+R: It is obligatory that a student is school president
+R: It is obligatory that exactly one student is school president
+T: module
+F: student is registered for module
+R: It is obligatory that each student is registered for at most 5 modules
+T: study programme
+F: student is enrolled in study programme
+F: module is available for study programme
+R: It is obligatory that each student that is registered for a module is enrolled in a study programme that the module is available for
+T: lecturer
+F: student is under probation
+R: It is obligatory that each student is registered for at most 5 modules
+R: It is obligatory that each student that is under probation is registered for at most 3 modules
+R: It is obligatory that at most 10 students are under probation
+F: lecturer grades student for study programme with grade
+R: It is prohibited that a student that is under probation is enrolled in more than 2 study programmes
+R: It is obligatory that each student is registered for each module'
+
 modelT = 
 'T: resource
 T: transaction
