@@ -1,4 +1,4 @@
-{   
+{
     SBVR_NullOpt = objectThatDelegatesTo(OMeta, {
         "setHelped": function() {
             var $elf = this,
@@ -316,6 +316,15 @@
                 return ["numRngQ", i, a, v].concat(xs)
             }).call(this)
         },
+        "card": function() {
+            var $elf = this,
+                _fromIdx = this.input.idx,
+                n;
+            return (function() {
+                n = this._applyWithArgs("token", "num");
+                return ["card", n]
+            }).call(this)
+        },
         "minCard": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
@@ -383,7 +392,6 @@
     (SBVR_NullOpt["initialize"] = (function() {
         (this["_didSomething"] = false)
     }));
-    
     FNN_Elim = objectThatDelegatesTo(SBVR_NullOpt, {
         "univQ": function() {
             var $elf = this,
@@ -464,7 +472,6 @@
             }))
         }
     });
-    
     SBVR_PreProc = objectThatDelegatesTo(OMeta, {
         "optimizeTree": function() {
             var $elf = this,
@@ -494,5 +501,5 @@
                 return r
             }).call(this)
         }
-    });
+    })
 }

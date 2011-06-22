@@ -417,6 +417,15 @@
                 }).call(this)
             }))
         },
+        "card": function() {
+            var $elf = this,
+                _fromIdx = this.input.idx,
+                n;
+            return (function() {
+                n = this._applyWithArgs("token", "num");
+                return ["card", n]
+            }).call(this)
+        },
         "minCard": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
