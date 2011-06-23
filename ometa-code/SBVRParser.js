@@ -1237,6 +1237,9 @@
             return this._or((function() {
                 return (function() {
                     l = this._apply("line");
+                    this._opt((function() {
+                        return this._apply("spaces")
+                    }));
                     this._or((function() {
                         return (function() {
                             switch (this._apply('anything')) {

@@ -114,7 +114,7 @@ ometa SBVRParser {
                       seq('Namespace URI'),
     
     line            = newTerm | fcTp | newRule,
-    linef           = line:l ('\n'|seq('\n\r')|end)                        -> l 
+    linef           = line:l spaces? ('\n'|seq('\n\r')|end)                        -> l 
                     | '\n'                                                 -> '',
     expr            = linef*:l                                             -> [`model].concat(l)
 }
