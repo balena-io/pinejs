@@ -141,19 +141,18 @@ Copyright 2011 University of Surrey
 
 			function resetClient(){
 				//**actions should go in the callback to be executed after the DELETE.
-				$("#modelArea").attr('disabled', false);
-				editor.setValue("");
-				$("#lfArea").val("");
-				$("#prepArea").val("");
-				sqlEditor.setValue("");
 				serverRequest("DELETE",	"/", [], '', function(){
+					$("#modelArea").attr('disabled', false);
+					editor.setValue("");
+					$("#lfArea").val("");
+					$("#prepArea").val("");
+					sqlEditor.setValue("");
 					$('#bem').removeAttr('disabled');
 					$('#bum').attr('disabled','disabled');
 					$('#br').attr('disabled','disabled');
+					localStorage._client_onAir=false
+					alert(localStorage._client_onAir);
 				});
-				
-				localStorage._client_onAir=false
-				//txtmod = '';
 			}
 
 			function loadmod(model){
