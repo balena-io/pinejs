@@ -1305,7 +1305,7 @@
     (SBVRParser["fctps"] = ({}));
     (SBVRParser["ruleVars"] = ({}));
     (SBVRParser["ruleVarsCount"] = (0));
-    (kwrds = ["a", "an", "each", "at", "most", "least", "exactly", "that", "the", "one", "more", "than", "and"]);
+    (kwrds = ["a", "an", "each", "at", "most", "least", "exactly", "that", "the", "one", "more", "than", "and", "some"]);
     for (var idx = (0);
     (idx < kwrds["length"]); idx++) {
         (SBVRParser["kwrds"][kwrds[idx]] = true)
