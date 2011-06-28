@@ -31,7 +31,7 @@ ometa SBVRParser {
     findVar      :x = {this.ruleVars[x[1]]},
     bind         :x = findVar(x):y                                         -> [`bind, x, y],
 
-    spaces          = seq(' ')*,
+    spaces          = (' '|'\t')*,
     letters         = letter+:l                                            -> l.join(''),
     num             = spaces digit+:n                                      -> [`num, parseInt(n.join(''))],
     word            = spaces letters:w ~isVerb(w) ~isTerm(w) ~isKwrd(w)    -> w,
@@ -97,24 +97,26 @@ ometa SBVRParser {
     newTerm         = ``T:'' nrText:t {this.terms[t] = true;} attribute*:a -> [`term, t, a],
     attribute       = ('\n'|seq('\n\r')) allowedAttrs:attrName ':' toEOL:attrVal
                       -> [attrName.replace(new RegExp(' ','g'),''), attrVal],
-    allowedAttrs    = seq('Definition') |
-                      seq('Source') |
-                      seq('Dictionary Basis') |
-                      seq('General Concept') |
-                      seq('Concept Type') |
-                      seq('Necessity') |
-                      seq('Possibility') |
-                      seq('Reference Scheme') |
-                      seq('Note') |
-                      seq('Example') |
-                      seq('Synonym') |
-                      seq('Synonymous Form') |
-                      seq('See') |
-                      seq('Subject Field') |
-                      seq('Namespace URI'),
+    allowedAttrs    = spaces? (
+						seq('Definition') |
+						seq('Source') |
+						seq('Dictionary Basis') |
+						seq('General Concept') |
+						seq('Concept Type') |
+						seq('Necessity') |
+						seq('Possibility') |
+						seq('Reference Scheme') |
+						seq('Note') |
+						seq('Example') |
+						seq('Synonym') |
+						seq('Synonymous Form') |
+						seq('See') |
+						seq('Subject Field') |
+						seq('Namespace URI')
+					),
     
     line            = newTerm | fcTp | newRule,
-    linef           = line:l spaces? ('\n'|seq('\n\r')|end)                        -> l 
+    linef           = line:l spaces? ('\n'|seq('\n\r')|end)                -> l 
                     | '\n'                                                 -> '',
     expr            = linef*:l                                             -> [`model].concat(l)
 }
