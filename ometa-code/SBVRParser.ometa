@@ -98,21 +98,21 @@ ometa SBVRParser {
     attribute       = ('\n'|seq('\n\r')) allowedAttrs:attrName ':' toEOL:attrVal
                       -> [attrName.replace(new RegExp(' ','g'),''), attrVal],
     allowedAttrs    = spaces? (
-						seq('Definition') |
-						seq('Source') |
-						seq('Dictionary Basis') |
-						seq('General Concept') |
 						seq('Concept Type') |
+						seq('Definition') |
+						seq('Dictionary Basis') |
+						seq('Example') |
+						seq('General Concept') |
+						seq('Namespace URI') |
 						seq('Necessity') |
+						seq('Note') |
 						seq('Possibility') |
 						seq('Reference Scheme') |
-						seq('Note') |
-						seq('Example') |
-						seq('Synonym') |
-						seq('Synonymous Form') |
 						seq('See') |
+						seq('Source') |
 						seq('Subject Field') |
-						seq('Namespace URI')
+						seq('Synonymous Form') |
+						seq('Synonym')
 					),
     
     line            = newTerm | fcTp | newRule,
