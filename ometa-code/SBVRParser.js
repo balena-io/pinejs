@@ -1313,22 +1313,10 @@
         return this["kwrds"].hasOwnProperty(k)
     }));
     (SBVRParser["_isTerm"] = (function(k) {
-        if (this["terms"].hasOwnProperty(k)) {
-            return true
-        } else {
-            if (((k.slice((-(1))) == "s") && this["terms"].hasOwnProperty(k.slice((0), (-(1)))))) {
-                return true
-            } else {
-                return false
-            }
-        }
+        return (this["terms"].hasOwnProperty(k) || this["terms"].hasOwnProperty(k.singularize()))
     }));
     (SBVRParser["_termForm"] = (function(k) {
-        if (((k.slice((-(1))) == "s") && this["terms"].hasOwnProperty(k.slice((0), (-(1)))))) {
-            return k.slice((0), (-(1)))
-        } else {
-            return k
-        }
+        return (this["terms"].hasOwnProperty(k.singularize()) ? k.singularize() : k)
     }));
     (SBVRParser["_isVerb"] = (function(k) {
         if (this["verbs"].hasOwnProperty(k)) {
