@@ -123,7 +123,7 @@ ometa SBVRParser {
     line            = newTerm | fcTp | newRule,
     linef           = line:l spaces? ('\n'|seq('\n\r')|end)                -> l 
                     | '\n'                                                 -> '',
-    expr            = linef*:l                                             -> [`model].concat(l)
+    expr            = linef*:l                                             -> [`model].concat(l).removeMatches('')
 }
 
 SBVRParser.kwrds  = {}
@@ -162,3 +162,13 @@ SBVRParser._verbForm = function(k) {
 }
 
 SBVRParser._isFctp = function(k) { return this.fctps.hasOwnProperty(k) }
+
+Array.prototype.removeMatches = function(s) {
+	for (var i = 0; i < this.length; i++) {
+		if (this[i] == s) {
+			this.splice(i, 1);
+			i--;
+		}
+	}
+	return this;
+}

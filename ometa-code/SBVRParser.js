@@ -1388,7 +1388,7 @@
                 l = this._many((function() {
                     return this._apply("linef")
                 }));
-                return ["model"].concat(l)
+                return ["model"].concat(l).removeMatches("")
             }).call(this)
         }
     });
@@ -1446,5 +1446,17 @@
     }));
     (SBVRParser["_isFctp"] = (function(k) {
         return this["fctps"].hasOwnProperty(k)
+    }));
+    (Array["prototype"]["removeMatches"] = (function(s) {
+        for (var i = (0);
+        (i < this["length"]); i++) {
+            if ((this[i] == s)) {
+                this.splice(i, (1));
+                i--
+            } else {
+                undefined
+            }
+        };
+        return this
     }))
 }
