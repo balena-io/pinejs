@@ -99,6 +99,11 @@ ometa SBVRParser {
                       -> [attrName.replace(new RegExp(' ','g'),''), attrVal],
     allowedAttrs    = spaces? (
 						seq('Concept Type') |
+						/* Custom Attributes */
+						seq('Database ID Field') |
+						seq('Database Name Field') |
+						seq('Database Table Name') |
+						/* End Custom */
 						seq('Definition') |
 						seq('Dictionary Basis') |
 						seq('Example') |

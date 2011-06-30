@@ -998,6 +998,99 @@
                     case "D":
                         return (function() {
                             switch (this._apply('anything')) {
+                            case "a":
+                                return (function() {
+                                    switch (this._apply('anything')) {
+                                    case "t":
+                                        return (function() {
+                                            switch (this._apply('anything')) {
+                                            case "a":
+                                                return (function() {
+                                                    switch (this._apply('anything')) {
+                                                    case "b":
+                                                        return (function() {
+                                                            switch (this._apply('anything')) {
+                                                            case "a":
+                                                                return (function() {
+                                                                    switch (this._apply('anything')) {
+                                                                    case "s":
+                                                                        return (function() {
+                                                                            switch (this._apply('anything')) {
+                                                                            case "e":
+                                                                                return (function() {
+                                                                                    switch (this._apply('anything')) {
+                                                                                    case " ":
+                                                                                        return (function() {
+                                                                                            switch (this._apply('anything')) {
+                                                                                            case "I":
+                                                                                                return (function() {
+                                                                                                    this._applyWithArgs("exactly", "D");
+                                                                                                    this._applyWithArgs("exactly", " ");
+                                                                                                    this._applyWithArgs("exactly", "F");
+                                                                                                    this._applyWithArgs("exactly", "i");
+                                                                                                    this._applyWithArgs("exactly", "e");
+                                                                                                    this._applyWithArgs("exactly", "l");
+                                                                                                    this._applyWithArgs("exactly", "d");
+                                                                                                    return "Database ID Field"
+                                                                                                }).call(this);
+                                                                                            case "N":
+                                                                                                return (function() {
+                                                                                                    this._applyWithArgs("exactly", "a");
+                                                                                                    this._applyWithArgs("exactly", "m");
+                                                                                                    this._applyWithArgs("exactly", "e");
+                                                                                                    this._applyWithArgs("exactly", " ");
+                                                                                                    this._applyWithArgs("exactly", "F");
+                                                                                                    this._applyWithArgs("exactly", "i");
+                                                                                                    this._applyWithArgs("exactly", "e");
+                                                                                                    this._applyWithArgs("exactly", "l");
+                                                                                                    this._applyWithArgs("exactly", "d");
+                                                                                                    return "Database Name Field"
+                                                                                                }).call(this);
+                                                                                            case "T":
+                                                                                                return (function() {
+                                                                                                    this._applyWithArgs("exactly", "a");
+                                                                                                    this._applyWithArgs("exactly", "b");
+                                                                                                    this._applyWithArgs("exactly", "l");
+                                                                                                    this._applyWithArgs("exactly", "e");
+                                                                                                    this._applyWithArgs("exactly", " ");
+                                                                                                    this._applyWithArgs("exactly", "N");
+                                                                                                    this._applyWithArgs("exactly", "a");
+                                                                                                    this._applyWithArgs("exactly", "m");
+                                                                                                    this._applyWithArgs("exactly", "e");
+                                                                                                    return "Database Table Name"
+                                                                                                }).call(this);
+                                                                                            default:
+                                                                                                throw fail
+                                                                                            }
+                                                                                        }).call(this);
+                                                                                    default:
+                                                                                        throw fail
+                                                                                    }
+                                                                                }).call(this);
+                                                                            default:
+                                                                                throw fail
+                                                                            }
+                                                                        }).call(this);
+                                                                    default:
+                                                                        throw fail
+                                                                    }
+                                                                }).call(this);
+                                                            default:
+                                                                throw fail
+                                                            }
+                                                        }).call(this);
+                                                    default:
+                                                        throw fail
+                                                    }
+                                                }).call(this);
+                                            default:
+                                                throw fail
+                                            }
+                                        }).call(this);
+                                    default:
+                                        throw fail
+                                    }
+                                }).call(this);
                             case "e":
                                 return (function() {
                                     this._applyWithArgs("exactly", "f");
