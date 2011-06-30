@@ -392,7 +392,7 @@
                 a = this._applyWithArgs("token", "maxCard");
                 v = this._applyWithArgs("token", "var");
                 xs = this._apply("expr");
-                return [((((((((((("EXISTS(SELECT count(*) AS \"card\" FROM \"" + v[(2)][(1)]) + "\" AS \"var") + v[(1)][(1)]) + "\" ") + v[(3)][(2)]) + xs[(2)]) + " ") + xs[(2)]) + " WHERE ") + v[(3)][(0)]) + xs[(0)]), ((((((xs[(1)] + v[(3)][(1)]) + " GROUP BY NULL HAVING \"card\">=") + i[(1)][(1)]) + " AND \"card\"<=") + a[(1)][(1)]) + ")"), "", ""]
+                return [((((((((("EXISTS(SELECT count(*) AS \"card\" FROM \"" + v[(2)][(1)]) + "\" AS \"var") + v[(1)][(1)]) + "\" ") + v[(3)][(2)]) + xs[(2)]) + " WHERE ") + v[(3)][(0)]) + xs[(0)]), ((((((xs[(1)] + v[(3)][(1)]) + " GROUP BY NULL HAVING \"card\">=") + i[(1)][(1)]) + " AND \"card\"<=") + a[(1)][(1)]) + ")"), "", ""]
             }).call(this)
         },
         "neg": function() {
