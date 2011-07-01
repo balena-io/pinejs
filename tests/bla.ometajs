@@ -12,3 +12,7 @@ ometa L {
 }
 
 for (var i, l = 100; i++; i < l) console.log(i);
+
+var re1 = /bla/,
+    re2 = /\//g,
+    re3 = /\/\//gi;

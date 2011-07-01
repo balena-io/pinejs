@@ -1,9 +1,8 @@
-ometa BSJSParser <: Parser {
-  fromTo :x :y = seq(x) (~seq(y) char)* seq(y),
+ometa BSJSParser {
   space        = ^space | fromTo('//', '\n') | fromTo('/*', '*/'),
   nameFirst    = letter | '$' | '_',
   nameRest     = nameFirst | digit,
-  iName        = firstAndRest(#nameFirst, #nameRest):r                               -> r.join(''),
+  iName        = <nameFirst nameRest*>,
   isKeyword :x = ?BSJSParser._isKeyword(x),
   name         = iName:n ~isKeyword(n)                                               -> [#name, n=='self' ? '$elf' : n],
   keyword      = iName:k isKeyword(k)                                                -> [k, k],
@@ -11,8 +10,7 @@ ometa BSJSParser <: Parser {
   hexLit       = hexLit:n hexDigit:d                                                 -> (n * 16 + d)
                | hexDigit,
   number       = ``0x'' hexLit:n                                                     -> [#number, n]
-               | digit+:ws ('.' digit+ | empty -> []):fs                             -> [#number, parseFloat(ws.join('') + '.' +
-                                                                                                             fs.join(''))],
+               | <digit+ ('.' digit+)?>:f                                            -> [#number, parseFloat(f)],
   escapeChar   = '\\' char:c                                                         -> unescape('\\' + c),
   str          = seq('"""')  (escapeChar | ~seq('"""') char)*:cs seq('"""')          -> [#string, cs.join('')]
                | '\'' (escapeChar | ~'\'' char)*:cs '\''                             -> [#string, cs.join('')]
@@ -96,10 +94,21 @@ ometa BSJSParser <: Parser {
                | "function" funcRest
                | "new" "name":n "(" listOf(#asgnExpr, ','):as ")"                    -> [#new, n].concat(as)
                | "[" listOf(#asgnExpr, ','):es "]"                                   -> [#arr].concat(es)
-               | json,
+               | json
+               | re,
   json         = "{" listOf(#jsonBinding, ','):bs "}"                                -> [#json].concat(bs),
   jsonBinding  = jsonPropName:n ":" asgnExpr:v                                       -> [#binding, n, v],
   jsonPropName = "name" | "number" | "string",
+  re           = spaces <'/' reBody '/' reFlag*>:x                                   -> [#regExp, x],
+  reBody       = re1stChar reChar*,
+  re1stChar    = ~('*' || '\\' || '/' || '[') reNonTerm
+               | escapeChar
+               | reClass,
+  reChar       = re1stChar | '*',
+  reNonTerm    = ~('\n' || '\r') char,
+  reClass      = '[' reClassChar* ']',
+  reClassChar  = ~('[' || ']') reChar,
+  reFlag       = nameFirst,
   formal       = spaces "name",
   funcRest     = "(" listOf(#formal, ','):fs ")" "{" srcElems:body "}"               -> [#func, fs, body],
   sc           = spacesNoNl ('\n' | &'}' | end)
@@ -178,6 +187,7 @@ ometa BSJSTranslator {
   continue                                              -> 'continue',
   number   :n                                           -> ('(' + n + ')'),
   string   :s                                           -> s.toProgramString(),
+  regExp   :x                                           -> x,
   arr      trans*:xs                                    -> ('[' + xs.join(',') + ']'),
   unop     :op trans:x                                  -> ('(' + op + ' ' + x + ')'),
   getp     trans:fd trans:x                             -> (x + '[' + fd + ']'),
