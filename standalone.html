@@ -214,11 +214,7 @@ Copyright 2011 University of Surrey
 				//request schema from server and store locally.
 				serverRequest("GET", "/model/", [], '', function(headers, result){
 					//Reset SBVR parser
-					SBVRParser.terms = {};
-					SBVRParser.verbs = {};
-					SBVRParser.fctps = {};
-					SBVRParser.ruleVars = {};
-					SBVRParser.ruleVarsCount = 0;
+					SBVRParser.reset();
 					
 					ctree = SBVRParser.matchAll(result, 'expr');
 					ctree = SBVR_PreProc.match(ctree, "optimizeTree");

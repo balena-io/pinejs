@@ -1348,18 +1348,12 @@
                         return (function() {
                             switch (this._apply('anything')) {
                             case "\n":
-                                return this._or((function() {
-                                    return "\n"
-                                }), (function() {
-                                    return (function() {
-                                        switch (this._apply('anything')) {
-                                        case "\r":
-                                            return "\n\r";
-                                        default:
-                                            throw fail
-                                        }
-                                    }).call(this)
-                                }));
+                                return "\n";
+                            case "\r":
+                                return (function() {
+                                    this._applyWithArgs("exactly", "\n");
+                                    return "\r\n"
+                                }).call(this);
                             default:
                                 throw fail
                             }
@@ -1446,6 +1440,13 @@
     }));
     (SBVRParser["_isFctp"] = (function(k) {
         return this["fctps"].hasOwnProperty(k)
+    }));
+    (SBVRParser["reset"] = (function() {
+        (SBVRParser["terms"] = ({}));
+        (SBVRParser["verbs"] = ({}));
+        (SBVRParser["fctps"] = ({}));
+        (SBVRParser["ruleVars"] = ({}));
+        (SBVRParser["ruleVarsCount"] = (0))
     }));
     (Array["prototype"]["removeMatches"] = (function(s) {
         for (var i = (0);

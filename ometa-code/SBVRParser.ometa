@@ -163,6 +163,14 @@ SBVRParser._verbForm = function(k) {
 
 SBVRParser._isFctp = function(k) { return this.fctps.hasOwnProperty(k) }
 
+SBVRParser.reset = function() {
+	SBVRParser.terms = {} 
+	SBVRParser.verbs = {}
+	SBVRParser.fctps = {}
+	SBVRParser.ruleVars = {}
+	SBVRParser.ruleVarsCount = 0
+}
+
 Array.prototype.removeMatches = function(s) {
 	for (var i = 0; i < this.length; i++) {
 		if (this[i] == s) {
