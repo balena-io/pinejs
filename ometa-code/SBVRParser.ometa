@@ -19,10 +19,10 @@ Copyright 2011 University of Surrey
 //Specification: http://www.omg.org/spec/SBVR/1.0/
 
 ometa SBVRParser {
-    isTerm       :x = ?SBVRParser._isTerm(x),
-    isVerb       :x = ?SBVRParser._isVerb(x),
+    isTerm       :x = ?this._isTerm(x),
+    isVerb       :x = ?this._isVerb(x),
     isKwrd       :x = ?SBVRParser._isKwrd(x),
-    isFctp       :x = ?SBVRParser._isFctp(x),
+    isFctp       :x = ?this._isFctp(x),
 
     isKwrdSt  :p :q = &(spaces seq(q) word:w) {q!=''?q+' '+w:w}:w {p+' '+w}:n (isKwrd(n) -> true | isKwrdSt(p, w) -> true),
     isTermSt  :p :q = &(spaces seq(q) word:w) {q!=''?q+' '+w:w}:w {p+' '+w}:n (isTerm(n) -> true | isTermSt(p, w) -> true),
@@ -121,22 +121,24 @@ ometa SBVRParser {
 					),
     
     line            = newTerm | fcTp | newRule,
-    linef           = line:l spaces? (('\r'|'\n')*|end)                    -> l 
+    linef           = line:l spaces? (('\r'|'\n')*|end)                    -> l
                     | '\n'                                                 -> '',
     expr            = linef*:l                                             -> [`model].concat(l)
 }
 
 SBVRParser.kwrds  = {}
-SBVRParser.terms = {} 
-SBVRParser.verbs = {}
-SBVRParser.fctps = {}
-SBVRParser.ruleVars = {}
-SBVRParser.ruleVarsCount = 0
-
 kwrds = ["a", "an", "each", "at", "most", "least", "exactly", "that", "the", "one", "more", "than", "and", "some"]
 for (var idx = 0; idx < kwrds.length; idx++){SBVRParser.kwrds[kwrds[idx]] = true}
 
 SBVRParser._isKwrd = function(k) { return this.kwrds.hasOwnProperty(k) }
+
+
+/**
+	Following are "instance" variables/functions rather than shared.
+*/
+SBVRParser.initialize = function() {
+	this.reset();
+}
 
 SBVRParser._isTerm = function(k) {
 	return this.terms.hasOwnProperty(k) || this.terms.hasOwnProperty(k.singularize())
@@ -164,9 +166,9 @@ SBVRParser._verbForm = function(k) {
 SBVRParser._isFctp = function(k) { return this.fctps.hasOwnProperty(k) }
 
 SBVRParser.reset = function() {
-	SBVRParser.terms = {} 
-	SBVRParser.verbs = {}
-	SBVRParser.fctps = {}
-	SBVRParser.ruleVars = {}
-	SBVRParser.ruleVarsCount = 0
+	this.terms = {} 
+	this.verbs = {}
+	this.fctps = {}
+	this.ruleVars = {}
+	this.ruleVarsCount = 0
 }

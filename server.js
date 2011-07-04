@@ -109,8 +109,6 @@ function remoteServerRequest(method, uri, headers, body, successCallback, failur
 		}
 	} else if(tree[0]=='execute') {
 		if(method=="POST") {
-			SBVRParser.reset();
-			
 			/*
 			lfmod = tree = SBVRParser.matchAll(localStorage._server_modelAreaValue, 'expr');
 			prepmod = tree = SBVR_PreProc.match(tree, 'optimizeTree');
@@ -125,8 +123,6 @@ function remoteServerRequest(method, uri, headers, body, successCallback, failur
 			sqlmod = SBVR2SQL.match(tree,'trans');
 			sqlEditor.setValue(Prettify.match(sqlmod, 'elem'));
 			/**/
-			
-			SBVRParser.reset();
 			
 			tree = SBVRParser.matchAll(modelT, 'expr');
 			tree = SBVR_PreProc.match(tree, "optimizeTree");

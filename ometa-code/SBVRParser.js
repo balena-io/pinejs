@@ -6,7 +6,7 @@
                 x;
             return (function() {
                 x = this._apply("anything");
-                return this._pred(SBVRParser._isTerm(x))
+                return this._pred(this._isTerm(x))
             }).call(this)
         },
         "isVerb": function() {
@@ -15,7 +15,7 @@
                 x;
             return (function() {
                 x = this._apply("anything");
-                return this._pred(SBVRParser._isVerb(x))
+                return this._pred(this._isVerb(x))
             }).call(this)
         },
         "isKwrd": function() {
@@ -33,7 +33,7 @@
                 x;
             return (function() {
                 x = this._apply("anything");
-                return this._pred(SBVRParser._isFctp(x))
+                return this._pred(this._isFctp(x))
             }).call(this)
         },
         "isKwrdSt": function() {
@@ -1386,17 +1386,15 @@
         }
     });
     (SBVRParser["kwrds"] = ({}));
-    (SBVRParser["terms"] = ({}));
-    (SBVRParser["verbs"] = ({}));
-    (SBVRParser["fctps"] = ({}));
-    (SBVRParser["ruleVars"] = ({}));
-    (SBVRParser["ruleVarsCount"] = (0));
     (kwrds = ["a", "an", "each", "at", "most", "least", "exactly", "that", "the", "one", "more", "than", "and", "some"]);
     for (var idx = (0);
     (idx < kwrds["length"]); idx++) {
         (SBVRParser["kwrds"][kwrds[idx]] = true)
     }(SBVRParser["_isKwrd"] = (function(k) {
         return this["kwrds"].hasOwnProperty(k)
+    }));
+    (SBVRParser["initialize"] = (function() {
+        this.reset()
     }));
     (SBVRParser["_isTerm"] = (function(k) {
         return (this["terms"].hasOwnProperty(k) || this["terms"].hasOwnProperty(k.singularize()))
@@ -1441,10 +1439,10 @@
         return this["fctps"].hasOwnProperty(k)
     }));
     (SBVRParser["reset"] = (function() {
-        (SBVRParser["terms"] = ({}));
-        (SBVRParser["verbs"] = ({}));
-        (SBVRParser["fctps"] = ({}));
-        (SBVRParser["ruleVars"] = ({}));
-        (SBVRParser["ruleVarsCount"] = (0))
+        (this["terms"] = ({}));
+        (this["verbs"] = ({}));
+        (this["fctps"] = ({}));
+        (this["ruleVars"] = ({}));
+        (this["ruleVarsCount"] = (0))
     }))
 }

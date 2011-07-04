@@ -220,10 +220,7 @@ Copyright 2011 University of Surrey
 			//break loadUI apart to loadState and SetUI (with a view to converting LoadState to a single request)?
 			function loadUI(){
 				//request schema from server and store locally.
-				serverRequest("GET", "/model/", [], '', function(headers, result){
-					//Reset SBVR parser
-					SBVRParser.reset();
-					
+				serverRequest("GET", "/model/", [], '', function(headers, result) {
 					ctree = SBVRParser.matchAll(result, 'expr');
 					ctree = SBVR_PreProc.match(ctree, "optimizeTree");
 					cmod = SBVR2SQL.match(ctree,'trans');
