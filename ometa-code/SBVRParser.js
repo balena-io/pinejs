@@ -1345,19 +1345,18 @@
                         return this._apply("spaces")
                     }));
                     this._or((function() {
-                        return (function() {
-                            switch (this._apply('anything')) {
-                            case "\n":
-                                return "\n";
-                            case "\r":
-                                return (function() {
-                                    this._applyWithArgs("exactly", "\n");
-                                    return "\r\n"
-                                }).call(this);
-                            default:
-                                throw fail
-                            }
-                        }).call(this)
+                        return this._many((function() {
+                            return (function() {
+                                switch (this._apply('anything')) {
+                                case "\r":
+                                    return "\r";
+                                case "\n":
+                                    return "\n";
+                                default:
+                                    throw fail
+                                }
+                            }).call(this)
+                        }))
                     }), (function() {
                         return this._apply("end")
                     }));
@@ -1382,7 +1381,7 @@
                 l = this._many((function() {
                     return this._apply("linef")
                 }));
-                return ["model"].concat(l).removeMatches("")
+                return ["model"].concat(l)
             }).call(this)
         }
     });
@@ -1447,17 +1446,5 @@
         (SBVRParser["fctps"] = ({}));
         (SBVRParser["ruleVars"] = ({}));
         (SBVRParser["ruleVarsCount"] = (0))
-    }));
-    (Array["prototype"]["removeMatches"] = (function(s) {
-        for (var i = (0);
-        (i < this["length"]); i++) {
-            if ((this[i] == s)) {
-                this.splice(i, (1));
-                i--
-            } else {
-                undefined
-            }
-        };
-        return this
     }))
 }

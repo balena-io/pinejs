@@ -121,9 +121,9 @@ ometa SBVRParser {
 					),
     
     line            = newTerm | fcTp | newRule,
-    linef           = line:l spaces? ('\n'|seq('\r\n')|end)                -> l 
+    linef           = line:l spaces? (('\r'|'\n')*|end)                    -> l 
                     | '\n'                                                 -> '',
-    expr            = linef*:l                                             -> [`model].concat(l).removeMatches('')
+    expr            = linef*:l                                             -> [`model].concat(l)
 }
 
 SBVRParser.kwrds  = {}
@@ -169,14 +169,4 @@ SBVRParser.reset = function() {
 	SBVRParser.fctps = {}
 	SBVRParser.ruleVars = {}
 	SBVRParser.ruleVarsCount = 0
-}
-
-Array.prototype.removeMatches = function(s) {
-	for (var i = 0; i < this.length; i++) {
-		if (this[i] == s) {
-			this.splice(i, 1);
-			i--;
-		}
-	}
-	return this;
 }
