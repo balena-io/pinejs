@@ -180,11 +180,14 @@ Copyright 2011 University of Surrey
 				}
 				
 				//console.log(URItree[1][1][0]);
-				switch(URItree[1][1][0]){
-					case "model":
-						editor.refresh();
-						$('#tabs').tabs("select",0);
-						break;
+				try {
+					switchVal = URItree[1][1][0];
+				}
+				catch($e) {
+					switchVal = '';
+				}
+				
+				switch(switchVal) {
 					case "server":
 						//console.log(location.hash.slice(9));
 						uri = location.hash.slice(9);
@@ -205,6 +208,11 @@ Copyright 2011 University of Surrey
 						break;
 					case "export":
 						$('#tabs').tabs("select",6);
+						break;
+//					case "model": //Model is the default view.
+					default:
+						editor.refresh();
+						$('#tabs').tabs("select",0);
 						break;
 				}
 			}
