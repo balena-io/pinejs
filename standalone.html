@@ -180,11 +180,14 @@ Copyright 2011 University of Surrey
 				}
 				
 				//console.log(URItree[1][1][0]);
-				switch(URItree[1][1][0]){
-					case "model":
-						editor.refresh();
-						$('#tabs').tabs("select",0);
-						break;
+				try {
+					switchVal = URItree[1][1][0];
+				}
+				catch($e) {
+					switchVal = '';
+				}
+				
+				switch(switchVal) {
 					case "server":
 						//console.log(location.hash.slice(9));
 						uri = location.hash.slice(9);
@@ -206,20 +209,18 @@ Copyright 2011 University of Surrey
 					case "export":
 						$('#tabs').tabs("select",6);
 						break;
+//					case "model": //Model is the default view.
+					default:
+						editor.refresh();
+						$('#tabs').tabs("select",0);
+						break;
 				}
 			}
 		
 			//break loadUI apart to loadState and SetUI (with a view to converting LoadState to a single request)?
 			function loadUI(){
 				//request schema from server and store locally.
-				serverRequest("GET", "/model/", [], '', function(headers, result){
-					//Reset SBVR parser
-					SBVRParser.terms = {};
-					SBVRParser.verbs = {};
-					SBVRParser.fctps = {};
-					SBVRParser.ruleVars = {};
-					SBVRParser.ruleVarsCount = 0;
-					
+				serverRequest("GET", "/model/", [], '', function(headers, result) {
 					ctree = SBVRParser.matchAll(result, 'expr');
 					ctree = SBVR_PreProc.match(ctree, "optimizeTree");
 					cmod = SBVR2SQL.match(ctree,'trans');
@@ -336,12 +337,12 @@ Copyright 2011 University of Surrey
 						<input type="button" id='blm1' value="Load Model 1"  onClick="loadmod(model1);return false">
 						<input type="button" id='blm2' value="Load Model 2"  onClick="loadmod(model2);return false">
 						<input type="button" id='blm3' value="Load Model 3"  onClick="loadmod(model3);return false">
+						<input type="button" id='blmt' value="Load Test"     onClick="loadmod(modelTest);return false">
 						<input type="button" id='bem'  value="Execute Model" onClick="transformClient(editor.getValue());return false">
 						<input type="button" id='bum'  value="Update Model"  onClick="return false">
 						<input type="button" id='br'   value="Reset"         onClick="resetClient();return false">
-						<input type="button" id='bbdb' value="Backup DB"     onClick="backupDB();return false">
-						<input type="button" id='brdb' value="Restore DB"    onClick="restoreDB();return false">
-						<input type="button" id='bedb' value="Export DB"     onClick="exportDB(importExportEditor);$('#tabs').tabs('select',6);return false">
+						<!--input type="button" id='bbdb' value="Backup DB"     onClick="backupDB();return false">
+						<input type="button" id='brdb' value="Restore DB"    onClick="restoreDB();return false"-->
 						<input type="button" id='bcdb' value="Clear DB"      onClick="clearDB();return false">
 					</div>
 				</form>
@@ -363,6 +364,7 @@ Copyright 2011 University of Surrey
 			<div id="importExportTab">
 				<textarea id="importExportArea" rows="15" cols="136"></textarea>
 				<input type="button" id='bidb' value="Import DB" onClick="importDB(importExportEditor.getValue());return false">
+						<input type="button" id='bedb' value="Export DB"     onClick="exportDB(importExportEditor);return false">
 			</div>
 		</div>
 		

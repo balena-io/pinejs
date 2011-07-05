@@ -14,7 +14,7 @@ Copyright 2011 University of Surrey
    limitations under the License.
 */
 
-model1 = 
+model1 =
 'T: pilot
 T: plane
 F: pilot can fly plane
@@ -22,7 +22,7 @@ F: pilot is experienced
 R: It is obligatory that each pilot can fly at least 1 plane
 R: It is obligatory that each pilot that is experienced can fly at least 3 planes'
 
-model2 = 
+model2 =
 'T: student
 F: student is school president
 R: It is obligatory that a student is school president
@@ -42,7 +42,7 @@ F: lecturer grades student for study programme with grade
 R: It is prohibited that a student that is under probation is enrolled in more than 2 study programmes
 R: It is obligatory that each student is registered for each module'
 
-model3 = 
+model3 =
 'T: student
 T: module
 T: study programme
@@ -54,7 +54,68 @@ R: It is obligatory that each student that is registered for a module is enrolle
 F: student is under probation
 R: It is obligatory that each student that is under probation is registered for at most 3 modules'
 
-modelT = 
+// WIP:
+modelTest =
+'T: person
+T: student
+	Definition: A definition
+	Source: A source
+	Dictionary Basis: A dictionary basis
+	General Concept: A general concept
+	Concept Type: person
+	Necessity: A necessity
+	Possibility: A possibility
+	Reference Scheme: A reference scheme
+	Note: A note
+	Example: An example
+	Synonym: A synonym
+	Synonymous Form: A synonymous form
+	See: Something to see
+	Subject Field: A subject field
+	Namespace URI: A namespace URI
+	Database Table Name: student_table
+	Database ID Field: id_field
+	Database Name Field: name_field
+T: lecturer
+	Concept Type: person
+T: module ' +
+
+/* Fact Types */'
+F: student is school president '					+ /* term verb */ '
+F: student is registered for module'				+ /* term verb term */ '
+F: student is registered for module to catchup'		+ /* term verb term verb */ '
+F: student is registered for module with lecturer'	+ /* term verb term verb term */ '
+F: person is swimming'								+ /* for inflection */
+
+/* Mod rules */'
+R: It is obligatory that	a student is school president'			+ /* It is obligatory */ '
+R: It is necessary that		a student is school president'			+ /* It is necessary */ '
+R: It is possible that		a student is school president'			+ /* It is possible */ '
+R: It is permissible that	a student is school president'			+ /* It is permissible */ '
+
+R: It is prohibited that	some students are school president'	+ /* It is prohibited */ '
+R: It is impossible that	some students are school president'	+ /* It is impossible */ '
+R: It is not possible that	some students are school president'	+ /* It is not possible */
+
+/* Quantifiers */'
+R: It is obligatory that each	student		is registered for at least one module'	+ /* each */ '
+R: It is obligatory that a 		student		is registered for at least one module'	+ /* a */ '
+R: It is obligatory that an		student		is registered for at least one module'	+ /* an */ '
+R: It is obligatory that some	students	are registered for at least one module'	+ /* some */
+
+/* Quantifiers with cardinality */'
+R: It is obligatory that at most 50		students are registered for at least one module'+ /* at most */ '
+R: It is obligatory that at least one	student is registered for at least one module'	+ /* at least */ '
+R: It is obligatory that more than 0	students are registered for at least one module'	+ /* more than */ '
+R: It is obligatory that exactly one	student is school president'					+ /* exactly */
+
+/* Quantifiers with dual cardinality */'
+R: It is obligatory that at least one and at most 50	students are registered for at least one module'	+ /* at least */
+
+/* Inflection */'
+R: It is obligatory that exactly 0 people are swimming'
+
+modelT =
 'T: resource
 T: transaction
 T: lock

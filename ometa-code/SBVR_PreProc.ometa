@@ -55,6 +55,7 @@ ometa SBVR_NullOpt {
   atLeastQ   "minCard":i             "var":v trans*:xs -> [`atLeastQ, i, v].concat(xs),
   numRngQ    "minCard":i "maxCard":a "var":v trans*:xs -> [`numRngQ, i, a, v].concat(xs),
 
+  card       "num":n                                   -> [`card, n],
   minCard    "num":n                                   -> [`minCard, n],
   maxCard    "num":n                                   -> [`maxCard, n],
 

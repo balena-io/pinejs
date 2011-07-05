@@ -386,12 +386,13 @@
         "numRngQ": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                i, a, v;
+                i, a, v, xs;
             return (function() {
                 i = this._applyWithArgs("token", "minCard");
                 a = this._applyWithArgs("token", "maxCard");
                 v = this._applyWithArgs("token", "var");
-                return [((((((((((("EXISTS(SELECT count(*) AS \"card\" FROM \"" + v[(2)][(1)]) + "\" AS \"var") + v[(1)][(1)]) + "\" ") + v[(3)][(2)]) + xs[(2)]) + " ") + xs[(2)]) + " WHERE ") + v[(3)][(0)]) + xs[(0)]), ((((((xs[(1)] + v[(3)][(1)]) + " GROUP BY NULL HAVING \"card\">=") + i[(1)][(1)]) + " AND \"card\"<=") + a[(1)][(1)]) + ")"), "", ""]
+                xs = this._apply("expr");
+                return [((((((((("EXISTS(SELECT count(*) AS \"card\" FROM \"" + v[(2)][(1)]) + "\" AS \"var") + v[(1)][(1)]) + "\" ") + v[(3)][(2)]) + xs[(2)]) + " WHERE ") + v[(3)][(0)]) + xs[(0)]), ((((((xs[(1)] + v[(3)][(1)]) + " GROUP BY NULL HAVING \"card\">=") + i[(1)][(1)]) + " AND \"card\"<=") + a[(1)][(1)]) + ")"), "", ""]
             }).call(this)
         },
         "neg": function() {
@@ -416,6 +417,15 @@
                     return [("NOT " + xs[(0)]), xs[(1)], "", ""]
                 }).call(this)
             }))
+        },
+        "card": function() {
+            var $elf = this,
+                _fromIdx = this.input.idx,
+                n;
+            return (function() {
+                n = this._applyWithArgs("token", "num");
+                return ["card", n]
+            }).call(this)
         },
         "minCard": function() {
             var $elf = this,

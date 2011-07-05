@@ -19,10 +19,10 @@ Copyright 2011 University of Surrey
 //Specification: http://www.omg.org/spec/SBVR/1.0/
 
 ometa SBVRParser {
-    isTerm       :x = ?SBVRParser._isTerm(x),
-    isVerb       :x = ?SBVRParser._isVerb(x),
+    isTerm       :x = ?this._isTerm(x),
+    isVerb       :x = ?this._isVerb(x),
     isKwrd       :x = ?SBVRParser._isKwrd(x),
-    isFctp       :x = ?SBVRParser._isFctp(x),
+    isFctp       :x = ?this._isFctp(x),
 
     isKwrdSt  :p :q = &(spaces seq(q) word:w) {q!=''?q+' '+w:w}:w {p+' '+w}:n (isKwrd(n) -> true | isKwrdSt(p, w) -> true),
     isTermSt  :p :q = &(spaces seq(q) word:w) {q!=''?q+' '+w:w}:w {p+' '+w}:n (isTerm(n) -> true | isTermSt(p, w) -> true),
@@ -31,7 +31,7 @@ ometa SBVRParser {
     findVar      :x = {this.ruleVars[x[1]]},
     bind         :x = findVar(x):y                                         -> [`bind, x, y],
 
-    spaces          = seq(' ')*,
+    spaces          = (' '|'\t')*,
     letters         = letter+:l                                            -> l.join(''),
     num             = spaces digit+:n                                      -> [`num, parseInt(n.join(''))],
     word            = spaces letters:w ~isVerb(w) ~isTerm(w) ~isKwrd(w)    -> w,
@@ -97,48 +97,55 @@ ometa SBVRParser {
     newTerm         = ``T:'' nrText:t {this.terms[t] = true;} attribute*:a -> [`term, t, a],
     attribute       = ('\n'|seq('\n\r')) allowedAttrs:attrName ':' toEOL:attrVal
                       -> [attrName.replace(new RegExp(' ','g'),''), attrVal],
-    allowedAttrs    = seq('Definition') |
-                      seq('Source') |
-                      seq('Dictionary Basis') |
-                      seq('General Concept') |
-                      seq('Concept Type') |
-                      seq('Necessity') |
-                      seq('Possibility') |
-                      seq('Reference Scheme') |
-                      seq('Note') |
-                      seq('Example') |
-                      seq('Synonym') |
-                      seq('Synonymous Form') |
-                      seq('See') |
-                      seq('Subject Field') |
-                      seq('Namespace URI'),
+    allowedAttrs    = spaces? (
+						seq('Concept Type') |
+						/* Custom Attributes */
+						seq('Database ID Field') |
+						seq('Database Name Field') |
+						seq('Database Table Name') |
+						/* End Custom */
+						seq('Definition') |
+						seq('Dictionary Basis') |
+						seq('Example') |
+						seq('General Concept') |
+						seq('Namespace URI') |
+						seq('Necessity') |
+						seq('Note') |
+						seq('Possibility') |
+						seq('Reference Scheme') |
+						seq('See') |
+						seq('Source') |
+						seq('Subject Field') |
+						seq('Synonymous Form') |
+						seq('Synonym')
+					),
     
     line            = newTerm | fcTp | newRule,
-    linef           = line:l ('\n'|seq('\n\r')|end)                        -> l 
+    linef           = line:l spaces? (('\r'|'\n')*|end)                    -> l
                     | '\n'                                                 -> '',
     expr            = linef*:l                                             -> [`model].concat(l)
 }
 
 SBVRParser.kwrds  = {}
-SBVRParser.terms = {} 
-SBVRParser.verbs = {}
-SBVRParser.fctps = {}
-SBVRParser.ruleVars = {}
-SBVRParser.ruleVarsCount = 0
-
-kwrds = ["a", "an", "each", "at", "most", "least", "exactly", "that", "the", "one", "more", "than", "and"]
+kwrds = ["a", "an", "each", "at", "most", "least", "exactly", "that", "the", "one", "more", "than", "and", "some"]
 for (var idx = 0; idx < kwrds.length; idx++){SBVRParser.kwrds[kwrds[idx]] = true}
 
 SBVRParser._isKwrd = function(k) { return this.kwrds.hasOwnProperty(k) }
 
+
+/**
+	Following are "instance" variables/functions rather than shared.
+*/
+SBVRParser.initialize = function() {
+	this.reset();
+}
+
 SBVRParser._isTerm = function(k) {
-    if(this.terms.hasOwnProperty(k)){ return true } 
-    else if(k.slice(-1)=='s' && this.terms.hasOwnProperty(k.slice(0,-1))){return true} 
-    else return false
+	return this.terms.hasOwnProperty(k) || this.terms.hasOwnProperty(k.singularize())
 }
 
 SBVRParser._termForm = function(k) { 
-    if(k.slice(-1)=='s' && this.terms.hasOwnProperty(k.slice(0,-1))){ return k.slice(0,-1) } else return k
+    return this.terms.hasOwnProperty(k.singularize()) ? k.singularize() : k
 }
 
 SBVRParser._isVerb = function(k) { if(this.verbs.hasOwnProperty(k)) {return true} }
@@ -157,3 +164,11 @@ SBVRParser._verbForm = function(k) {
 }
 
 SBVRParser._isFctp = function(k) { return this.fctps.hasOwnProperty(k) }
+
+SBVRParser.reset = function() {
+	this.terms = {} 
+	this.verbs = {}
+	this.fctps = {}
+	this.ruleVars = {}
+	this.ruleVarsCount = 0
+}
