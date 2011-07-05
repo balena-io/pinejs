@@ -602,6 +602,8 @@ function remoteServerRequest(method, uri, headers, body, successCallback, failur
 		}
 	} else if(tree[0]==''){
 		if(method=="DELETE"){
+			//TODO: This should be reorganised to be properly async.
+		
 			//for some bizarre reason sqlmod is not accessible within db.transaction.
 			if(!localStorage._server_onAir=='true'){
 				var locmod=sqlmod;
