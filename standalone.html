@@ -46,8 +46,9 @@ Copyright 2011 University of Surrey
 		<script src="runTrans.js"></script>
 		<script src="backupRestore.js"></script>
 		
-		<script src="js/libs/jquery-1.5.2.js"></script>	
+		<script src="js/libs/jquery-1.5.2.js"></script>
 		<script src="js/mylibs/jquery-ui-1.8.11.js"></script>
+		<script src="js/libs/jquery-custom-file-input.js"></script>
 		
 		<script src="cm/lib/codemirror.js"></script>
 		<script src="cm/sbvr.js"></script>
@@ -84,7 +85,7 @@ Copyright 2011 University of Surrey
 			}
 		
 			//txtmod = '';
-			function loadState(){
+			function loadState() {
 				serverRequest("GET", "/onAir/", [], '', function(headers, result){
 					if(result!=undefined){
 					localStorage._client_onAir = JSON.parse(result);
@@ -363,11 +364,27 @@ Copyright 2011 University of Surrey
 			</div>
 			<div id="importExportTab">
 				<textarea id="importExportArea" rows="15" cols="136"></textarea>
+				<script type="text/javascript">
+if(!!window.FileReader)
+{
+	document.write('<input type="button" id="bldb" value="Load File">');
+	function handleFiles(files) {
+		var reader = new FileReader();
+		reader.onloadend = function(e) {
+			importExportEditor.setValue(e.target.result);
+		}
+		reader.readAsText(files[0]);
+	}
+	
+	$('#bldb').file().choose(function(e, input) {
+		handleFiles(input[0].files);
+	});
+}
+				</script>
 				<input type="button" id='bidb' value="Import DB" onClick="importDB(importExportEditor.getValue());return false">
-						<input type="button" id='bedb' value="Export DB"     onClick="exportDB(importExportEditor);return false">
+				<input type="button" id='bedb' value="Export DB" onClick="exportDB(importExportEditor);return false">
 			</div>
 		</div>
-		
 		<script src="cm/inflection.js"></script>
 		<script src="cm/sbvrac.js"></script>
 		
