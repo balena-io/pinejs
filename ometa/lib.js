@@ -1,28 +1,3 @@
-/*
-  Copyright (c) 2007-2010 Alessandro Warth <awarth@cs.ucla.edu>
-
-  Permission is hereby granted, free of charge, to any person
-  obtaining a copy of this software and associated documentation
-  files (the "Software"), to deal in the Software without
-  restriction, including without limitation the rights to use,
-  copy, modify, merge, publish, distribute, sublicense, and/or sell
-  copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following
-  conditions:
-
-  The above copyright notice and this permission notice shall be
-  included in all copies or substantial portions of the Software.
-
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-  OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-  NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-  HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-  WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-  OTHER DEALINGS IN THE SOFTWARE.
-*/
-
 // try to use StringBuffer instead of string concatenation to improve performance
 
 function StringBuffer() {
@@ -122,27 +97,49 @@ ReadStream.prototype.next  = function() { return this.src.at(this.pos++) }
 
 // escape characters
 
+String.prototype.pad = function(s, len) {
+  var r = this
+  while (r.length < len)
+    r = s + r
+  return r
+}
+
 escapeStringFor = new Object()
-for (var c = 0; c < 256; c++)
+for (var c = 0; c < 128; c++)
   escapeStringFor[c] = String.fromCharCode(c)
-escapeStringFor["\\".charCodeAt(0)] = "\\\\"
-escapeStringFor['"'.charCodeAt(0)]  = '\\"'
 escapeStringFor["'".charCodeAt(0)]  = "\\'"
-escapeStringFor["\r".charCodeAt(0)] = "\\r"
+escapeStringFor['"'.charCodeAt(0)]  = '\\"'
+escapeStringFor["\\".charCodeAt(0)] = "\\\\"
+escapeStringFor["\b".charCodeAt(0)] = "\\b"
+escapeStringFor["\f".charCodeAt(0)] = "\\f"
 escapeStringFor["\n".charCodeAt(0)] = "\\n"
+escapeStringFor["\r".charCodeAt(0)] = "\\r"
 escapeStringFor["\t".charCodeAt(0)] = "\\t"
+escapeStringFor["\v".charCodeAt(0)] = "\\v"
 escapeChar = function(c) {
   var charCode = c.charCodeAt(0)
-  return charCode > 255 ? String.fromCharCode(charCode) : escapeStringFor[charCode]
+  if (charCode < 128)
+    return escapeStringFor[charCode]
+  else if (128 <= charCode && charCode < 256)
+    return "\\x" + charCode.toString(16).pad("0", 2)
+  else
+    return "\\u" + charCode.toString(16).pad("0", 4)
 }
 
 function unescape(s) {
   if (s.charAt(0) == '\\')
     switch (s.charAt(1)) {
+      case "'":  return "'"
+      case '"':  return '"'
       case '\\': return '\\'
-      case 'r':  return '\r'
+      case 'b':  return '\b'
+      case 'f':  return '\f'
       case 'n':  return '\n'
+      case 'r':  return '\r'
       case 't':  return '\t'
+      case 'v':  return '\v'
+      case 'x':  return String.fromCharCode(parseInt(s.substring(2, 4), 16))
+      case 'u':  return String.fromCharCode(parseInt(s.substring(2, 6), 16))
       default:   return s.charAt(1)
     }
   else
@@ -150,10 +147,10 @@ function unescape(s) {
 }
 
 String.prototype.toProgramString = function() {
-  var ws = "\"".writeStream()
+  var ws = '"'.writeStream()
   for (var idx = 0; idx < this.length; idx++)
     ws.nextPutAll(escapeChar(this.charAt(idx)))
-  ws.nextPutAll("\"")
+  ws.nextPutAll('"')
   return ws.contents()
 }
 
