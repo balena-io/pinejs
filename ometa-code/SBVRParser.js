@@ -928,17 +928,14 @@
         "newTerm": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                t, a;
+                t;
             return (function() {
                 this._applyWithArgs("exactly", "T");
                 this._applyWithArgs("exactly", ":");
                 "T:";
                 t = this._apply("nrText");
                 (this["terms"][t] = true);
-                a = this._many((function() {
-                    return this._apply("attribute")
-                }));
-                return ["term", t, a]
+                return ["term", t, []]
             }).call(this)
         },
         "attribute": function() {
@@ -946,39 +943,23 @@
                 _fromIdx = this.input.idx,
                 attrName, attrVal;
             return (function() {
-                (function() {
-                    switch (this._apply('anything')) {
-                    case "\n":
-                        return this._or((function() {
-                            return "\n"
-                        }), (function() {
-                            return (function() {
-                                switch (this._apply('anything')) {
-                                case "\r":
-                                    return "\n\r";
-                                default:
-                                    throw fail
-                                }
-                            }).call(this)
-                        }));
-                    default:
-                        throw fail
-                    }
-                }).call(this);
+                this._pred((this["lines"][(this["lines"]["length"] - (1))][(0)] == "term"));
                 attrName = this._apply("allowedAttrs");
                 this._applyWithArgs("exactly", ":");
                 attrVal = this._apply("toEOL");
-                return [attrName.replace(new RegExp(" ", "g"), ""), attrVal]
+                return (function() {
+                    var lastLine = this["lines"].pop();
+                    lastLine[(2)].push([attrName.replace(new RegExp(" ", "g"), ""), attrVal]);
+                    return lastLine
+                }).call(this)
             }).call(this)
         },
         "allowedAttrs": function() {
             var $elf = this,
-                _fromIdx = this.input.idx;
+                _fromIdx = this.input.idx,
+                a;
             return (function() {
-                this._opt((function() {
-                    return this._apply("spaces")
-                }));
-                return (function() {
+                a = (function() {
                     switch (this._apply('anything')) {
                     case "C":
                         return (function() {
@@ -1320,68 +1301,65 @@
                     default:
                         throw fail
                     }
-                }).call(this)
+                }).call(this);
+                return a
             }).call(this)
         },
         "line": function() {
             var $elf = this,
-                _fromIdx = this.input.idx;
-            return this._or((function() {
-                return this._apply("newTerm")
-            }), (function() {
-                return this._apply("fcTp")
-            }), (function() {
-                return this._apply("newRule")
-            }))
-        },
-        "linef": function() {
-            var $elf = this,
-                _fromIdx = this.input.idx,
-                l;
-            return this._or((function() {
-                return (function() {
-                    l = this._apply("line");
-                    this._opt((function() {
-                        return this._apply("spaces")
-                    }));
-                    this._or((function() {
-                        return this._many((function() {
-                            return (function() {
-                                switch (this._apply('anything')) {
-                                case "\r":
-                                    return "\r";
-                                case "\n":
-                                    return "\n";
-                                default:
-                                    throw fail
-                                }
-                            }).call(this)
-                        }))
-                    }), (function() {
-                        return this._apply("end")
-                    }));
-                    return l
-                }).call(this)
-            }), (function() {
-                return (function() {
-                    switch (this._apply('anything')) {
-                    case "\n":
-                        return "";
-                    default:
-                        throw fail
-                    }
-                }).call(this)
-            }))
-        },
-        "expr": function() {
-            var $elf = this,
                 _fromIdx = this.input.idx,
                 l;
             return (function() {
-                l = this._many((function() {
+                this._opt((function() {
+                    return this._apply("spaces")
+                }));
+                l = this._or((function() {
+                    return this._apply("newTerm")
+                }), (function() {
+                    return this._apply("fcTp")
+                }), (function() {
+                    return this._apply("newRule")
+                }), (function() {
+                    return this._apply("attribute")
+                }));
+                this._opt((function() {
+                    return this._apply("spaces")
+                }));
+                this["lines"].push(l);
+                return l
+            }).call(this)
+        },
+        "linef": function() {
+            var $elf = this,
+                _fromIdx = this.input.idx;
+            return (function() {
+                this._apply("line");
+                return this._or((function() {
+                    return this._many((function() {
+                        return (function() {
+                            switch (this._apply('anything')) {
+                            case "\r":
+                                return "\r";
+                            case "\n":
+                                return "\n";
+                            default:
+                                throw fail
+                            }
+                        }).call(this)
+                    }))
+                }), (function() {
+                    return this._apply("end")
+                }))
+            }).call(this)
+        },
+        "expr": function() {
+            var $elf = this,
+                _fromIdx = this.input.idx;
+            return (function() {
+                this._many((function() {
                     return this._apply("linef")
                 }));
-                return ["model"].concat(l)
+                return ["model"].concat(this["lines"])
             }).call(this)
         }
     });
@@ -1443,6 +1421,7 @@
         (this["verbs"] = ({}));
         (this["fctps"] = ({}));
         (this["ruleVars"] = ({}));
-        (this["ruleVarsCount"] = (0))
+        (this["ruleVarsCount"] = (0));
+        (this["lines"] = [])
     }))
 }

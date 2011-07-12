@@ -92,12 +92,13 @@ ometa SBVRParser {
 
     terb            = term:t (verb|nrText:f mkVerb(f)):v                   -> [t, v],
     fcTp            = ``F:'' {t=[]} (terb:b {t.concat(b)}:t)+ (term:e {t.concat([e])}:t)? {this.fctps[t] = true}   
-                                                                           -> [`fcTp].concat(t),
+																			-> [`fcTp].concat(t),
 
-    newTerm         = ``T:'' nrText:t {this.terms[t] = true;} attribute*:a -> [`term, t, a],
-    attribute       = ('\n'|seq('\n\r')) allowedAttrs:attrName ':' toEOL:attrVal
-                      -> [attrName.replace(new RegExp(' ','g'),''), attrVal],
-    allowedAttrs    = spaces? (
+	newTerm			= ``T:'' nrText:t {this.terms[t] = true;} -> [`term, t, []],
+	attribute		= ?{this.lines[this.lines.length-1][0] == 'term'}
+						allowedAttrs:attrName ':' toEOL:attrVal				-> {var lastLine = this.lines.pop(); lastLine[2].push([attrName.replace(new RegExp(' ','g'),''), attrVal]); lastLine},
+						
+    allowedAttrs	= (
 						seq('Concept Type') |
 						/* Custom Attributes */
 						seq('Database ID Field') |
@@ -118,12 +119,13 @@ ometa SBVRParser {
 						seq('Subject Field') |
 						seq('Synonymous Form') |
 						seq('Synonym')
-					),
+					):a														-> a,
     
-    line            = newTerm | fcTp | newRule,
-    linef           = line:l spaces? (('\r'|'\n')*|end)                    -> l
-                    | '\n'                                                 -> '',
-    expr            = linef*:l                                             -> [`model].concat(l)
+	line            = spaces? (newTerm | fcTp | newRule | attribute):l spaces?
+						{this.lines.push(l)}
+																			-> l,
+	linef			= line (('\r'|'\n')*|end),
+	expr			= linef*												-> [`model].concat(this.lines)
 }
 
 SBVRParser.kwrds  = {}
@@ -171,4 +173,5 @@ SBVRParser.reset = function() {
 	this.fctps = {}
 	this.ruleVars = {}
 	this.ruleVarsCount = 0
+	this.lines = []
 }
