@@ -69,7 +69,7 @@ Copyright 2011 University of Surrey
 			function defaultFailureCallback(error) {
 				console.log(error);
 				exc = '<span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 50px 0;"></span>';
-					msg = error['status-line']?error['status-line']:error.join('\n');
+					msg = error['status-line']?error['status-line']:error.join('<br/>');
 					$( "#dialog-message" ).html( exc + msg );
 					$( "#dialog-message" ).dialog( "open" );
 				//console.log("fale!", error);
