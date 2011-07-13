@@ -19,87 +19,88 @@ Copyright 2011 University of Surrey
 //Specification: http://www.omg.org/spec/SBVR/1.0/
 
 ometa SBVRParser {
-    isTerm       :x = ?this._isTerm(x),
-    isVerb       :x = ?this._isVerb(x),
-    isKwrd       :x = ?SBVRParser._isKwrd(x),
-    isFctp       :x = ?this._isFctp(x),
+	isTerm		:x	= ?this._isTerm(x),
+	isVerb		:x	= ?this._isVerb(x),
+	isKwrd		:x	= ?SBVRParser._isKwrd(x),
+	isFctp		:x	= ?this._isFctp(x),
 
-    isKwrdSt  :p :q = &(spaces seq(q) word:w) {q!=''?q+' '+w:w}:w {p+' '+w}:n (isKwrd(n) -> true | isKwrdSt(p, w) -> true),
-    isTermSt  :p :q = &(spaces seq(q) word:w) {q!=''?q+' '+w:w}:w {p+' '+w}:n (isTerm(n) -> true | isTermSt(p, w) -> true),
-    isVerbSt  :p :q = &(spaces seq(q) word:w) {q!=''?q+' '+w:w}:w {p+' '+w}:n (isVerb(n) -> true | isVerbSt(p, w) -> true),
+	isKwrdSt  :p :q = &(spaces seq(q) word:w) {q!=''?q+' '+w:w}:w {p+' '+w}:n (isKwrd(n) -> true | isKwrdSt(p, w) -> true),
+	isTermSt  :p :q = &(spaces seq(q) word:w) {q!=''?q+' '+w:w}:w {p+' '+w}:n (isTerm(n) -> true | isTermSt(p, w) -> true),
+	isVerbSt  :p :q = &(spaces seq(q) word:w) {q!=''?q+' '+w:w}:w {p+' '+w}:n (isVerb(n) -> true | isVerbSt(p, w) -> true),
 
-    findVar      :x = {this.ruleVars[x[1]]},
-    bind         :x = findVar(x):y                                         -> [`bind, x, y],
+	findVar		:x	= {this.ruleVars[x[1]]},
+	bind		:x	= findVar(x):y											-> [`bind, x, y],
 
-    spaces          = (' '|'\t')*,
-    letters         = letter+:l                                            -> l.join(''),
-    num             = spaces digit+:n                                      -> [`num, parseInt(n.join(''))],
-    word            = spaces letters:w ~isVerb(w) ~isTerm(w) ~isKwrd(w)    -> w,
-    nrText          = (word:w ~isKwrdSt(w,'')~isTermSt(w,'')~isVerbSt(w,'')->w)+:w  -> w.join(' '),
-    text	          = (spaces letters:w)+:w                                -> w.join(' '),
-    toEOL           = (anything:w ?{w!='\n'&&w!='\r'}->w)*:w               -> $.trim(w.join('')),
+	spaces			= (' '|'\t')*,
+	letters			= letter+:l												-> l.join(''),
+	num				= spaces digit+:n										-> [`num, parseInt(n.join(''))],
+	word			= spaces letters:w ~isVerb(w) ~isTerm(w) ~isKwrd(w)		-> w,
+	nrText			= (word:w ~isKwrdSt(w,'')~isTermSt(w,'')~isVerbSt(w,'') ->w)+:w
+																			-> w.join(' '),
+	text			= (spaces letters:w)+:w									-> w.join(' '),
+	toEOL			= (anything:w ?{w!='\n'&&w!='\r'}->w)*:w				-> $.trim(w.join('')),
 
-    kwrd         :x = spaces letters:w {x!=''?x+' '+w:w}:w (isKwrd(w) -> w | kwrd(w):a -> a),
-    token        :x = kwrd(''):t ?(t==x)                                   -> [`kwrd, t],
+	kwrd		:x	= spaces letters:w {x!=''?x+' '+w:w}:w (isKwrd(w) -> w | kwrd(w):a -> a),
+	token		:x	= kwrd(''):t ?(t==x)									-> [`kwrd, t],
 
-    termR        :x = spaces letters:w {x!=''?x+' '+w:w}:w (isTerm(w) -> w | termR(w):a -> a),
-    term            = termR(''):t {this._termForm(t)}:t                    -> [`term, t],
+	termR		:x	= spaces letters:w {x!=''?x+' '+w:w}:w (isTerm(w)		-> w | termR(w):a -> a),
+	term			= termR(''):t {this._termForm(t)}:t						-> [`term, t],
 
-    mkVerb       :x = {this.verbs[x] = true}                               -> [`verb, x],
-    verbR        :x = spaces letters:w {x!=''?x+' '+w:w}:w (isVerb(w) -> w | verbR(w):a -> a),
-    verb            = verbR(''):v {this._verbForm(v)}:v                    -> [`verb, v],
+	mkVerb		:x	= {this.verbs[x] = true}								-> [`verb, x],
+	verbR		:x	= spaces letters:w {x!=''?x+' '+w:w}:w (isVerb(w)		-> w | verbR(w):a -> a),
+	verb			= verbR(''):v {this._verbForm(v)}:v						-> [`verb, v],
 
-    quant           = "each"                                       &term   -> [`univQ]
-                    | ("a"|"an"|"some")                            &term   -> [`existQ]
-                    | "at" "most"   ("one"->[`num, 1]|num):n       &term   -> [`atMostQ, [`maxCard, n]]
-                    | "at" "least"  ("one"->[`num, 1]|num):n       &term   -> [`atLeastQ, [`minCard, n]]
-                    | "more" "than" ("one"->[`num, 2]|num:n {++n[1]}->n):n &term   
-                                                                           -> [`atLeastQ, [`minCard, n]]
-                    | "exactly"     ("one"->[`num, 1]|num):n       &term   -> [`exactQ, [`card, n]]
-                    | "at" "least"  ("one"->[`num, 1]|num):n "and" "at" "most" ("one"->[`num, 1]|num):m &term
-                                                                           -> [`numRngQ, [`minCard, n], [`maxCard, m]],
+	quant			= "each"										&term	-> [`univQ]
+					| ("a"|"an"|"some")								&term	-> [`existQ]
+					| "at" "most"	("one"->[`num, 1]|num):n		&term	-> [`atMostQ, [`maxCard, n]]
+					| "at" "least"	("one"->[`num, 1]|num):n		&term	-> [`atLeastQ, [`minCard, n]]
+					| "more" "than"	("one"->[`num, 2]|num:n {++n[1]}->n):n &term
+																			-> [`atLeastQ, [`minCard, n]]
+					| "exactly"		("one"->[`num, 1]|num):n		&term	-> [`exactQ, [`card, n]]
+					| "at" "least"	("one"->[`num, 1]|num):n "and" "at" "most" ("one"->[`num, 1]|num):m &term
+																			-> [`numRngQ, [`minCard, n], [`maxCard, m]],
 
-    adVar        :x ={this.ruleVars[x[1]] = this.ruleVarsCount++}
-                    ("that" "the" terbRi([[]], x):q                        -> [`var, [`num, this.ruleVars[x[1]]], x, q]
-                    |"that" qTerbRi([[]], x):q                             -> [`var, [`num, this.ruleVars[x[1]]], x, q]
-                    |                                                      -> [`var, [`num, this.ruleVars[x[1]]], x]),
+	adVar		:x	={this.ruleVars[x[1]] = this.ruleVarsCount++}
+					("that" "the" terbRi([[]], x):q							-> [`var, [`num, this.ruleVars[x[1]]], x, q]
+					|"that" qTerbRi([[]], x):q								-> [`var, [`num, this.ruleVars[x[1]]], x, q]
+					|														-> [`var, [`num, this.ruleVars[x[1]]], x]),
 
-    atfo   :c       = isFctp(c[0]) {c[0] = [`fcTp].concat(c[0])}           -> {d = [`aFrm]; d.concat(c)},
+	atfo		:c	= isFctp(c[0]) {c[0] = [`fcTp].concat(c[0])}			-> {d = [`aFrm]; d.concat(c)},
 
-    terbRi  :c :i   = term:t verb:v bind(t):b {c[0]=c[0].concat([t,v]);c.concat([b])}:c (qTerbRi(c,i)),
+	terbRi    :c :i = term:t verb:v bind(t):b {c[0]=c[0].concat([t,v]);c.concat([b])}:c (qTerbRi(c,i)),
 
-    qTerbRi :c :i   =(quant:q term:t adVar(t):a verb:v bind(t):b
-                          {q=q.concat([a]);c[0]=c[0].concat([t,v]);c.concat([b])}:c 
-                          (qTerbRi(c,i)):r                                 -> q.concat([r])
-                    | verb:v bind(i):b {c[0]=c[0].concat([i,v]);c.concat([b])}:c (atfo(c)|qTerm(c)|qTerbR(c))
-                    | bind(i):b {c[0]=c[0].concat([i]);c.concat([b])}:c atfo(c)   ), 
+	qTerbRi   :c :i = (quant:q term:t adVar(t):a verb:v bind(t):b
+							{q=q.concat([a]);c[0]=c[0].concat([t,v]);c.concat([b])}:c 
+							(qTerbRi(c,i)):r								-> q.concat([r])
+						| verb:v bind(i):b {c[0]=c[0].concat([i,v]);c.concat([b])}:c (atfo(c)|qTerm(c)|qTerbR(c))
+						| bind(i):b {c[0]=c[0].concat([i]);c.concat([b])}:c atfo(c)
+					), 
 
-    qTerm  :c       = quant:q term:t  adVar(t):a bind(t):b {q=q.concat([a]);c[0]=c[0].concat([t]);c.concat([b])}:c 
-                              atfo(c):r                                    -> q.concat([r]),
+	qTerm		:c	= quant:q term:t adVar(t):a bind(t):b {q=q.concat([a]);c[0]=c[0].concat([t]);c.concat([b])}:c 
+							atfo(c):r											-> q.concat([r]),
 
-    qTerbR :c       = quant:q term:t adVar(t):a verb:v bind(t):b {q=q.concat([a]);c[0]=c[0].concat([t,v]);c.concat([b])}:c
-                              (atfo(c)|qTerm(c)|qTerbR(c)):r               -> q.concat([r]),
+	qTerbR		:c	= quant:q term:t adVar(t):a verb:v bind(t):b {q=q.concat([a]);c[0]=c[0].concat([t,v]);c.concat([b])}:c
+							(atfo(c)|qTerm(c)|qTerbR(c)):r						-> q.concat([r]),
 
-	modRule			= spaces (
-							  seq('It is obligatory that'):t	qTerbR([[]]):q	-> ['obl', q, t]
-							| seq('It is necessary that'):t		qTerbR([[]]):q	-> ['nec', q, t]
-							| seq('It is prohibited that'):t	qTerbR([[]]):q	-> ['obl', ['neg', q], t]
-							| seq('It is impossible that'):t	qTerbR([[]]):q	-> ['nec', ['neg', q], t]
-							| seq('It is not possible that'):t	qTerbR([[]]):q	-> ['nec', ['neg', q], t]
-							| seq('It is possible that'):t		qTerbR([[]]):q	-> ['pos', q, t]
-							| seq('It is permissible that'):t	qTerbR([[]]):q	-> ['prm', q], t),
+	modRule			= seq('It is obligatory that'):t	qTerbR([[]]):q	-> ['obl', q, t]
+					| seq('It is necessary that'):t		qTerbR([[]]):q	-> ['nec', q, t]
+					| seq('It is prohibited that'):t	qTerbR([[]]):q	-> ['obl', ['neg', q], t]
+					| seq('It is impossible that'):t	qTerbR([[]]):q	-> ['nec', ['neg', q], t]
+					| seq('It is not possible that'):t	qTerbR([[]]):q	-> ['nec', ['neg', q], t]
+					| seq('It is possible that'):t		qTerbR([[]]):q	-> ['pos', q, t]
+					| seq('It is permissible that'):t	qTerbR([[]]):q	-> ['prm', q, t],
 
-    newRule         = ``R:'' &((~'\n' char)*):a {this.ruleVarsCount=1} modRule:r  -> [`rule, r, [`text, a.join('')]],
+	newRule			= ``R:'' &((~'\n' char)*):a {this.ruleVarsCount=1} modRule:r -> [`rule, r, [`text, a.join('')]],
 
-    terb            = term:t (verb|nrText:f mkVerb(f)):v                   -> [t, v],
-    fcTp            = ``F:'' {t=[]} (terb:b {t.concat(b)}:t)+ (term:e {t.concat([e])}:t)? {this.fctps[t] = true}   
+	terb			= term:t (verb|nrText:f mkVerb(f)):v					-> [t, v],
+	fcTp			= ``F:'' {t=[]} (terb:b {t.concat(b)}:t)+ (term:e {t.concat([e])}:t)? {this.fctps[t] = true}
 																			-> [`fcTp].concat(t),
 
 	newTerm			= ``T:'' nrText:t {this.terms[t] = true;} -> [`term, t, []],
 	attribute		= ?{this.lines[this.lines.length-1][0] == 'term'}
 						allowedAttrs:attrName ':' toEOL:attrVal				-> {var lastLine = this.lines.pop(); lastLine[2].push([attrName.replace(new RegExp(' ','g'),''), attrVal]); lastLine},
-						
-    allowedAttrs	= (
+
+	allowedAttrs	= (
 						seq('Concept Type') |
 						/* Custom Attributes */
 						seq('Database ID Field') |
@@ -121,15 +122,15 @@ ometa SBVRParser {
 						seq('Synonymous Form') |
 						seq('Synonym')
 					):a														-> a,
-    
-	line            = spaces? (newTerm | fcTp | newRule | attribute):l spaces?
+
+	line			= spaces? (newTerm | fcTp | newRule | attribute):l spaces?
 						{this.lines.push(l)}
 																			-> l,
 	linef			= line (('\r'|'\n')*|end),
 	expr			= linef*												-> [`model].concat(this.lines)
 }
 
-SBVRParser.kwrds  = {}
+SBVRParser.kwrds = {}
 kwrds = ["a", "an", "each", "at", "most", "least", "exactly", "that", "the", "one", "more", "than", "and", "some"]
 for (var idx = 0; idx < kwrds.length; idx++){SBVRParser.kwrds[kwrds[idx]] = true}
 
@@ -148,22 +149,22 @@ SBVRParser._isTerm = function(k) {
 }
 
 SBVRParser._termForm = function(k) { 
-    return this.terms.hasOwnProperty(k.singularize()) ? k.singularize() : k
+	return this.terms.hasOwnProperty(k.singularize()) ? k.singularize() : k
 }
 
 SBVRParser._isVerb = function(k) { if(this.verbs.hasOwnProperty(k)) {return true} }
 
 SBVRParser._isVerb = function(k) {
-    if(this.verbs.hasOwnProperty(k))                                               { return true }
-    else if( k.slice(0,3)=='are' && this.verbs.hasOwnProperty('is' + k.slice(3)) ) { return true }
-    else if(k=='have' && this.verbs.hasOwnProperty('has'))                         { return true }
-    else return false
+	if(this.verbs.hasOwnProperty(k))												{ return true }
+	else if( k.slice(0,3)=='are' && this.verbs.hasOwnProperty('is' + k.slice(3)) )	{ return true }
+	else if(k=='have' && this.verbs.hasOwnProperty('has'))							{ return true }
+	else return false
 }
 
 SBVRParser._verbForm = function(k) { 
-    if(k.slice(0,3)=='are' && this.verbs.hasOwnProperty('is' + k.slice(3))){ return 'is' + k.slice(3) } 
-    else if(k=='have' && this.verbs.hasOwnProperty('has'))                 { return 'has'}
-    else return k
+	if(k.slice(0,3)=='are' && this.verbs.hasOwnProperty('is' + k.slice(3)))	{ return 'is' + k.slice(3) } 
+	else if(k=='have' && this.verbs.hasOwnProperty('has'))					{ return 'has'}
+	else return k
 }
 
 SBVRParser._isFctp = function(k) { return this.fctps.hasOwnProperty(k) }
