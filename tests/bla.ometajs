@@ -17,3 +17,5 @@ var re1 = /bla/,
     re2 = /\//g,
     re3 = /\/\//gi,
     s = 'абв';
+
+for(var i in bla) {}
