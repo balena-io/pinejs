@@ -72,7 +72,10 @@ Copyright 2011 University of Surrey
 					msg = error['status-line']?error['status-line']:error.join('<br/>');
 					$( "#dialog-message" ).html( exc + msg );
 					$( "#dialog-message" ).dialog( "open" );
-				//console.log("fale!", error);
+				//console.log("fail!", error);
+			}
+		
+			function defaultSuccessCallback(header, result) {
 			}
 			
 			function serverRequest(method, uri, headers, body, successCallback, failureCallback, caller){
@@ -81,7 +84,10 @@ Copyright 2011 University of Surrey
 					"</strong></td><td>" + uri + "</td><td>" + (headers.length==0?'':headers) +
 					"</td><td>" + body + "</td></tr>"
 				);
-				remoteServerRequest(method, uri, headers, body, successCallback, failureCallback==undefined?defaultFailureCallback:failureCallback, caller);
+				remoteServerRequest(method, uri, headers, body,
+					typeof successCallback != 'function' ? defaultSuccessCallback : successCallback,
+					typeof failureCallback != 'function' ? defaultFailureCallback : failureCallback,
+					caller);
 			}
 		
 			//txtmod = '';
@@ -93,47 +99,69 @@ Copyright 2011 University of Surrey
 				});
 			}
 			
-			function transformClient(model){
+			function transformClient(model) {
 				$("#modelArea").attr('disabled',true);
 				//TODO: Add success/failure callbacks.
 				serverRequest("PUT",
 					"/ui/textarea-is_disabled*filt:textarea.name=model_area/",
 					{"Content-Type":"application/json"},
-					JSON.stringify({"value":true})
-				);
+					JSON.stringify({"value":true}),
+					function() {
+					
+						serverRequest("PUT",
+							"/ui/textarea*filt:name=model_area/",
+							{"Content-Type":"application/json"},
+							JSON.stringify({"value":model}),
+							function() {
 			
-				serverRequest("PUT",
-					"/ui/textarea*filt:name=model_area/",
-					{"Content-Type":"application/json"},
-					JSON.stringify({"value":model})
-				);
+								serverRequest("POST",
+									"/execute/",
+									{"Content-Type":"application/json"},
+									'',
+									function() {
+							
+										//serverRequest("GET", "/model/", [], '', function(headers, result){
+										//	txtmod = result;
+										//});
+									
+										serverRequest("GET",
+											"/lfmodel/",
+											{},
+											'',
+											function(headers, result) {
+												$("#lfArea").val(Prettify.match(JSON.parse(result),'elem'));
 			
-				serverRequest("POST",
-					"/execute/",
-					{"Content-Type":"application/json"}
-				);
-			
-				//serverRequest("GET", "/model/", [], '', function(headers, result){
-				//	txtmod = result;
-				//});
-			
-				serverRequest("GET", "/lfmodel/", [], '', function(headers, result){
-					$("#lfArea").val(Prettify.match(JSON.parse(result),'elem'));
-				});
-			
-				serverRequest("GET", "/prepmodel/", [], '', function(headers, result){
-					$("#prepArea").val(Prettify.match(JSON.parse(result),'elem'));
-				});
-			
-				serverRequest("GET", "/sqlmodel/", [], '', function(headers, result){
-					sqlEditor.setValue(Prettify.match(JSON.parse(result),'elem'));
-				});
+												serverRequest("GET",
+													"/prepmodel/",
+													{},
+													'',
+													function(headers, result) {
+														$("#prepArea").val(Prettify.match(JSON.parse(result),'elem'));
+														
+														serverRequest("GET",
+															"/sqlmodel/",
+															{},
+															'',
+															function(headers, result) {
+																sqlEditor.setValue(Prettify.match(JSON.parse(result),'elem'));
 				
-				localStorage._client_onAir=true
-				
-				$('#bum').removeAttr('disabled');
-				$('#br').removeAttr('disabled');
-				$('#bem').attr('disabled','disabled');
+																localStorage._client_onAir=true
+																
+																$('#bum').removeAttr('disabled');
+																$('#br').removeAttr('disabled');
+																$('#bem').attr('disabled','disabled');
+															}
+														);
+													}
+												);
+											}
+										);
+									}
+								);
+							}
+						);
+					}
+				);
 			}
 			
 			function updateModel(){
