@@ -110,20 +110,10 @@ function remoteServerRequest(method, uri, headers, body, successCallback, failur
 		}
 	} else if(tree[0]=='execute') {
 		if(method=="POST") {
-			/*
-			lfmod = tree = SBVRParser.matchAll(localStorage._server_modelAreaValue, 'expr');
-			prepmod = tree = SBVR_PreProc.match(tree, 'optimizeTree');
-			sqlmod = SBVR2SQL.match(tree,'trans');
-			*/
 			
-			//* TODO: I want to see the extra info regardless atm
-			lfmod = tree = SBVRParser.matchAll(localStorage._server_modelAreaValue, 'expr');
-			$("#lfArea").val(Prettify.match(lfmod, 'elem'));
-			prepmod = tree = SBVR_PreProc.match(tree, 'optimizeTree');
-			$("#prepArea").val(Prettify.match(prepmod, 'elem'));
-			sqlmod = SBVR2SQL.match(tree,'trans');
-			sqlEditor.setValue(Prettify.match(sqlmod, 'elem'));
-			/**/
+			lfmod = SBVRParser.matchAll(localStorage._server_modelAreaValue, 'expr');
+			prepmod = SBVR_PreProc.match(lfmod, 'optimizeTree');
+			sqlmod = SBVR2SQL.match(prepmod,'trans');
 			
 			tree = SBVRParser.matchAll(modelT, 'expr');
 			tree = SBVR_PreProc.match(tree, "optimizeTree");
