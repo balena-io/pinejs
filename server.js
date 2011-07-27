@@ -51,8 +51,7 @@ if(localStorage._server_onAir=='true'){
 //TODO: the db name needs to be changed
 var db = openDatabase('mydb', '1.0', 'my first database', 2 * 1024 * 1024);
 
-function remoteServerRequest(method, uri, headers, body, successCallback, failureCallback, caller){
-	
+function remoteServerRequest(method, uri, headers, body, successCallback, failureCallback, caller) {
 	var op = {"eq":"=", "ne":"!=", "lk":"~"}
 	var ftree = [];
 	var tree = ServerURIParser.matchAll(uri, 'uri');
@@ -92,6 +91,7 @@ function remoteServerRequest(method, uri, headers, body, successCallback, failur
 			switch(method) {
 				case "PUT":
 					localStorage._server_modelAreaValue = JSON.parse(body).value;
+					successCallback({'status-line': 'HTTP/1.1 200 OK'});
 					break;
 				case "GET":
 					successCallback({'status-line': 'HTTP/1.1 200 OK'}, 
@@ -101,6 +101,7 @@ function remoteServerRequest(method, uri, headers, body, successCallback, failur
 			switch(method){
 				case "PUT":
 					localStorage._server_modelAreaDisabled = JSON.parse(body).value;
+					successCallback({'status-line': 'HTTP/1.1 200 OK'});
 					break;
 				case "GET":
 					successCallback({'status-line': 'HTTP/1.1 200 OK'}, 
@@ -131,12 +132,11 @@ function remoteServerRequest(method, uri, headers, body, successCallback, failur
 			localStorage._server_modelAreaDisabled = true;
 			db.transaction(function (tx) {
 				executeSasync(tx, sqlmod, caller, 
-					function(tx, sqlmod, caller, successCallback, failureCallback, headers, result) {
+					function(tx, sqlmod, caller, failureCallback, headers, result) {
 							
 						//TODO: fix this as soon as the successCalback mess is fixed
 						executeTasync(tx, trnmod, caller, 
-							function(tx, trnmod, caller, successCallback, failureCallback, headers, result){
-	console.log('1');
+							function(tx, trnmod, caller, failureCallback, headers, result){
 							
 								localStorage._server_onAir = true;
 						
@@ -149,14 +149,12 @@ function remoteServerRequest(method, uri, headers, body, successCallback, failur
 								localStorage._server_prepmod = JSON.stringify(prepmod);
 								localStorage._server_trnmod = JSON.stringify(trnmod);
 								
-								successCallback(headers, result)
-	console.log('2');
+								successCallback(headers, result);
 							}, 
 						failureCallback, headers, result);
 						//executeT(trnmod)
 					}, function(errors){
 						localStorage._server_modelAreaDisabled = false;
-						console.log(errors);
 						failureCallback(errors)
 					},{'status-line': 'HTTP/1.1 200 OK'}
 				);
@@ -798,7 +796,7 @@ function executeSasync(tx, sqlmod, caller, successCallback, failureCallback, hea
 
 function executeTasync(tx, trnmod, caller, successCallback, failureCallback, headers, result){
 	//Execute transaction model. 
-	executeSasync(tx, trnmod, caller, function(tx, trnmod, caller, successCallback, failureCallback, headers, result){
+	executeSasync(tx, trnmod, caller, function(tx, trnmod, caller, failureCallback, headers, result){
 		//Hack: Add certain attributes to the transaction model tables. 
 		//This should eventually be done with SBVR, when we add attributes.
 		tx.executeSql("ALTER TABLE 'resource-is_under-lock' ADD COLUMN resource_type TEXT", []);
@@ -806,6 +804,7 @@ function executeTasync(tx, trnmod, caller, successCallback, failureCallback, hea
 		tx.executeSql("ALTER TABLE 'conditional_representation' ADD COLUMN field_value TEXT", []);
 		tx.executeSql("ALTER TABLE 'conditional_representation' ADD COLUMN field_type TEXT", []);
 		tx.executeSql("ALTER TABLE 'conditional_representation' ADD COLUMN lock_id TEXT", []);
+		successCallback(tx, trnmod, caller, failureCallback, headers, result);
 	}, function(errors){
 		localStorage._server_modelAreaDisabled = false;
 		failureCallback(errors)
