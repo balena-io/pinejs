@@ -82,21 +82,24 @@ ometa SBVRParser {
 	qTerbR		:c	= quant:q term:t adVar(t):a verb:v bind(t):b {q=q.concat([a]);c[0]=c[0].concat([t,v]);c.concat([b])}:c
 							(atfo(c)|qTerm(c)|qTerbR(c)):r						-> q.concat([r]),
 
-	modRule			= seq('It is obligatory that'):t	qTerbR([[]]):q	-> ['obl', q, t]
-					| seq('It is necessary that'):t		qTerbR([[]]):q	-> ['nec', q, t]
-					| seq('It is prohibited that'):t	qTerbR([[]]):q	-> ['obl', ['neg', q], t]
-					| seq('It is impossible that'):t	qTerbR([[]]):q	-> ['nec', ['neg', q], t]
-					| seq('It is not possible that'):t	qTerbR([[]]):q	-> ['nec', ['neg', q], t]
-					| seq('It is possible that'):t		qTerbR([[]]):q	-> ['pos', q, t]
-					| seq('It is permissible that'):t	qTerbR([[]]):q	-> ['prm', q, t],
+	modRule			= seq('It is obligatory that'):t	qTerbR([[]]):q	-> ['obl', q]//, t]
+					| seq('It is necessary that'):t		qTerbR([[]]):q	-> ['nec', q]//, t]
+					| seq('It is prohibited that'):t	qTerbR([[]]):q	-> ['obl', ['neg', q]]//, t]
+					| seq('It is impossible that'):t	qTerbR([[]]):q	-> ['nec', ['neg', q]]//, t]
+					| seq('It is not possible that'):t	qTerbR([[]]):q	-> ['nec', ['neg', q]]//, t]
+					| seq('It is possible that'):t		qTerbR([[]]):q	-> ['pos', q]//, t]
+					| seq('It is permissible that'):t	qTerbR([[]]):q	-> ['prm', q],//, t],
 
-	newRule			= ``R:'' &((~'\n' char)*):a {this.ruleVarsCount=1} modRule:r -> [`rule, r, [`text, a.join('')]],
+	ruleDecl		= seq('R:'),
+	newRule			= ruleDecl spaces? &((~'\n' char)*):a {this.ruleVarsCount=1} modRule:r
+																			-> [`rule, r, [`text, a.join('')]],
 
 	terb			= term:t (verb|nrText:f mkVerb(f)):v					-> [t, v],
-	fcTp			= ``F:'' {t=[]} (terb:b {t.concat(b)}:t)+ (term:e {t.concat([e])}:t)? {this.fctps[t] = true}
+	fcTpDecl		= seq('F:'),
+	fcTp			= fcTpDecl spaces? {t=[]} (terb:b {t.concat(b)}:t)+ (term:e {t.concat([e])}:t)? {this.fctps[t] = true}
 																			-> [`fcTp].concat(t),
-
-	newTerm			= ``T:'' nrText:t {this.terms[t] = true;} -> [`term, t, []],
+	termDecl		= seq('T:'),
+	newTerm			= termDecl spaces? term(true):t 						-> t.concat([[]]),
 	attribute		= ?{this.lines[this.lines.length-1][0] == 'term'}
 						allowedAttrs:attrName ':' toEOL:attrVal				-> {var lastLine = this.lines.pop(); lastLine[2].push([attrName.replace(new RegExp(' ','g'),''), attrVal]); lastLine},
 
@@ -155,15 +158,15 @@ SBVRParser._termForm = function(k) {
 SBVRParser._isVerb = function(k) { if(this.verbs.hasOwnProperty(k)) {return true} }
 
 SBVRParser._isVerb = function(k) {
-	if(this.verbs.hasOwnProperty(k))												{ return true }
-	else if( k.slice(0,3)=='are' && this.verbs.hasOwnProperty('is' + k.slice(3)) )	{ return true }
-	else if(k=='have' && this.verbs.hasOwnProperty('has'))							{ return true }
+	if(this.verbs.hasOwnProperty(k))                                               { return true }
+	else if( k.slice(0,3)=='are' && this.verbs.hasOwnProperty('is' + k.slice(3)) ) { return true }
+	else if(k=='have' && this.verbs.hasOwnProperty('has'))                         { return true }
 	else return false
 }
 
 SBVRParser._verbForm = function(k) { 
-	if(k.slice(0,3)=='are' && this.verbs.hasOwnProperty('is' + k.slice(3)))	{ return 'is' + k.slice(3) } 
-	else if(k=='have' && this.verbs.hasOwnProperty('has'))					{ return 'has'}
+	if(k.slice(0,3)=='are' && this.verbs.hasOwnProperty('is' + k.slice(3))){ return 'is' + k.slice(3) } 
+	else if(k=='have' && this.verbs.hasOwnProperty('has'))                 { return 'has'}
 	else return k
 }
 
