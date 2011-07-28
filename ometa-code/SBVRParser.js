@@ -39,7 +39,7 @@
         "isKwrdSt": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                p, q, w, w, n;
+                p, q, w, n;
             return (function() {
                 p = this._apply("anything");
                 q = this._apply("anything");
@@ -68,7 +68,7 @@
         "isTermSt": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                p, q, w, w, n;
+                p, q, w, n;
             return (function() {
                 p = this._apply("anything");
                 q = this._apply("anything");
@@ -97,7 +97,7 @@
         "isVerbSt": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                p, q, w, w, n;
+                p, q, w, n;
             return (function() {
                 p = this._apply("anything");
                 q = this._apply("anything");
@@ -203,7 +203,7 @@
         "nrText": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                w, w;
+                w;
             return (function() {
                 w = this._many1((function() {
                     return (function() {
@@ -226,7 +226,7 @@
         "text": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                w, w;
+                w;
             return (function() {
                 w = this._many1((function() {
                     return (function() {
@@ -240,7 +240,7 @@
         "toEOL": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                w, w;
+                w;
             return (function() {
                 w = this._many((function() {
                     return (function() {
@@ -255,7 +255,7 @@
         "kwrd": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                x, w, w, a;
+                x, w, a;
             return (function() {
                 x = this._apply("anything");
                 this._apply("spaces");
@@ -288,7 +288,7 @@
         "termR": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                x, w, w, a;
+                x, w, a;
             return (function() {
                 x = this._apply("anything");
                 this._apply("spaces");
@@ -310,7 +310,7 @@
         "term": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                t, t;
+                t;
             return (function() {
                 t = this._applyWithArgs("termR", "");
                 t = this._termForm(t);
@@ -330,7 +330,7 @@
         "verbR": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                x, w, w, a;
+                x, w, a;
             return (function() {
                 x = this._apply("anything");
                 this._apply("spaces");
@@ -352,7 +352,7 @@
         "verb": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                v, v;
+                v;
             return (function() {
                 v = this._applyWithArgs("verbR", "");
                 v = this._verbForm(v);
@@ -362,7 +362,7 @@
         "quant": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                n, n, n, n, n, n, m;
+                n, m;
             return this._or((function() {
                 return (function() {
                     this._applyWithArgs("token", "each");
@@ -489,7 +489,7 @@
         "adVar": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                x, q, q;
+                x, q;
             return (function() {
                 x = this._apply("anything");
                 (this["ruleVars"][x[(1)]] = this["ruleVarsCount"]++);
@@ -532,7 +532,7 @@
         "terbRi": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                c, i, t, v, b, c;
+                c, i, t, v, b;
             return (function() {
                 c = this._apply("anything");
                 i = this._apply("anything");
@@ -549,7 +549,7 @@
         "qTerbRi": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                c, i, q, t, a, v, b, c, r, v, b, c, b, c;
+                c, i, q, t, a, v, b, r;
             return (function() {
                 c = this._apply("anything");
                 i = this._apply("anything");
@@ -599,7 +599,7 @@
         "qTerm": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                c, q, t, a, b, c, r;
+                c, q, t, a, b, r;
             return (function() {
                 c = this._apply("anything");
                 q = this._apply("quant");
@@ -618,7 +618,7 @@
         "qTerbR": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                c, q, t, a, v, b, c, r;
+                c, q, t, a, v, b, r;
             return (function() {
                 c = this._apply("anything");
                 q = this._apply("quant");
@@ -644,7 +644,7 @@
         "modRule": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                t, q, t, q, t, q, t, q, t, q, t, q, t, q;
+                t, q;
             return this._or((function() {
                 return (function() {
                     t = (function() {
@@ -864,14 +864,21 @@
                 }).call(this)
             }))
         },
+        "ruleDecl": function() {
+            var $elf = this,
+                _fromIdx = this.input.idx;
+            return (function() {
+                this._applyWithArgs("exactly", "R");
+                this._applyWithArgs("exactly", ":");
+                return "R:"
+            }).call(this)
+        },
         "newRule": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 a, r;
             return (function() {
-                this._applyWithArgs("exactly", "R");
-                this._applyWithArgs("exactly", ":");
-                "R:";
+                this._apply("ruleDecl");
                 this._opt((function() {
                     return this._apply("spaces")
                 }));
@@ -907,14 +914,24 @@
                 return [t, v]
             }).call(this)
         },
-        "fcTp": function() {
+        "fcTpDecl": function() {
             var $elf = this,
-                _fromIdx = this.input.idx,
-                b, t, e, t;
+                _fromIdx = this.input.idx;
             return (function() {
                 this._applyWithArgs("exactly", "F");
                 this._applyWithArgs("exactly", ":");
-                "F:";
+                return "F:"
+            }).call(this)
+        },
+        "fcTp": function() {
+            var $elf = this,
+                _fromIdx = this.input.idx,
+                b, t, e;
+            return (function() {
+                this._apply("fcTpDecl");
+                this._opt((function() {
+                    return this._apply("spaces")
+                }));
                 (t = []);
                 this._many1((function() {
                     return (function() {
@@ -932,17 +949,28 @@
                 return ["fcTp"].concat(t)
             }).call(this)
         },
+        "termDecl": function() {
+            var $elf = this,
+                _fromIdx = this.input.idx;
+            return (function() {
+                this._applyWithArgs("exactly", "T");
+                this._applyWithArgs("exactly", ":");
+                return "T:"
+            }).call(this)
+        },
         "newTerm": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 t;
             return (function() {
-                this._applyWithArgs("exactly", "T");
-                this._applyWithArgs("exactly", ":");
-                "T:";
-                t = this._apply("nrText");
-                (this["terms"][t] = true);
-                return ["term", t, []]
+                this._apply("termDecl");
+                this._opt((function() {
+                    return this._apply("spaces")
+                }));
+                t = this._applyWithArgs("term", true);
+                return t.concat([
+                    []
+                ])
             }).call(this)
         },
         "attribute": function() {
@@ -1370,6 +1398,7 @@
             }).call(this)
         }
     });
+    (SBVRParser["keyTokens"] = ["termDecl", "fcTpDecl", "ruleDecl", "term"]);
     (SBVRParser["kwrds"] = ({}));
     (kwrds = ["a", "an", "each", "at", "most", "least", "exactly", "that", "the", "one", "more", "than", "and", "some"]);
     for (var idx = (0);
@@ -1429,6 +1458,7 @@
         (this["fctps"] = ({}));
         (this["ruleVars"] = ({}));
         (this["ruleVarsCount"] = (0));
-        (this["lines"] = [])
+        (this["lines"] = []);
+        (this["tokens"] = [])
     }))
 }
