@@ -674,7 +674,7 @@
                     q = this._applyWithArgs("qTerbR", [
                         []
                     ]);
-                    return ["obl", q, t]
+                    return ["obl", q]
                 }).call(this)
             }), (function() {
                 return (function() {
@@ -704,7 +704,7 @@
                     q = this._applyWithArgs("qTerbR", [
                         []
                     ]);
-                    return ["nec", q, t]
+                    return ["nec", q]
                 }).call(this)
             }), (function() {
                 return (function() {
@@ -735,7 +735,7 @@
                     q = this._applyWithArgs("qTerbR", [
                         []
                     ]);
-                    return ["obl", ["neg", q], t]
+                    return ["obl", ["neg", q]]
                 }).call(this)
             }), (function() {
                 return (function() {
@@ -766,7 +766,7 @@
                     q = this._applyWithArgs("qTerbR", [
                         []
                     ]);
-                    return ["nec", ["neg", q], t]
+                    return ["nec", ["neg", q]]
                 }).call(this)
             }), (function() {
                 return (function() {
@@ -799,7 +799,7 @@
                     q = this._applyWithArgs("qTerbR", [
                         []
                     ]);
-                    return ["nec", ["neg", q], t]
+                    return ["nec", ["neg", q]]
                 }).call(this)
             }), (function() {
                 return (function() {
@@ -828,7 +828,7 @@
                     q = this._applyWithArgs("qTerbR", [
                         []
                     ]);
-                    return ["pos", q, t]
+                    return ["pos", q]
                 }).call(this)
             }), (function() {
                 return (function() {
@@ -860,7 +860,7 @@
                     q = this._applyWithArgs("qTerbR", [
                         []
                     ]);
-                    return ["prm", q, t]
+                    return ["prm", q]
                 }).call(this)
             }))
         },
@@ -872,6 +872,9 @@
                 this._applyWithArgs("exactly", "R");
                 this._applyWithArgs("exactly", ":");
                 "R:";
+                this._opt((function() {
+                    return this._apply("spaces")
+                }));
                 a = this._lookahead((function() {
                     return this._many((function() {
                         return (function() {

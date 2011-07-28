@@ -249,12 +249,13 @@ Copyright 2011 University of Surrey
 			//break loadUI apart to loadState and SetUI (with a view to converting LoadState to a single request)?
 			function loadUI(){
 				//request schema from server and store locally.
-				serverRequest("GET", "/model/", [], '', function(headers, result) {
-					ctree = SBVRParser.matchAll(result, 'expr');
-					ctree = SBVR_PreProc.match(ctree, "optimizeTree");
-					cmod = SBVR2SQL.match(ctree,'trans');
-				});
-				
+				if(localStorage._client_onAir=='true'){
+					serverRequest("GET", "/model/", [], '', function(headers, result) {
+						ctree = SBVRParser.matchAll(result, 'expr');
+						ctree = SBVR_PreProc.match(ctree, "optimizeTree");
+						cmod = SBVR2SQL.match(ctree,'trans');
+					});
+				}
 				
 				sqlEditor = CodeMirror.fromTextArea(document.getElementById("sqlArea"), {mode: "text/x-plsql"});
 				importExportEditor = CodeMirror.fromTextArea(document.getElementById("importExportArea"), {mode: "text/x-plsql"});
@@ -293,17 +294,19 @@ Copyright 2011 University of Surrey
 					);
 				});
 				
-				serverRequest("GET", "/lfmodel/", [], '', function(headers, result){
-					$("#lfArea").val(Prettify.match(JSON.parse(result),'elem'));
-				});
+				if(localStorage._client_onAir=='true'){
+					serverRequest("GET", "/lfmodel/", [], '', function(headers, result){
+						$("#lfArea").val(Prettify.match(JSON.parse(result),'elem'));
+					});
 				
-				serverRequest("GET", "/prepmodel/", [], '', function(headers, result){
-					$("#prepArea").val(Prettify.match(JSON.parse(result),'elem'));
-				});
+					serverRequest("GET", "/prepmodel/", [], '', function(headers, result){
+						$("#prepArea").val(Prettify.match(JSON.parse(result),'elem'));
+					});
 				
-				serverRequest("GET", "/sqlmodel/", [], '', function(headers, result){
-					sqlEditor.setValue(Prettify.match(JSON.parse(result),'elem'));
-				});	
+					serverRequest("GET", "/sqlmodel/", [], '', function(headers, result){
+						sqlEditor.setValue(Prettify.match(JSON.parse(result),'elem'));
+					});	
+				}
 				
 				//Prepare dialog
 				$(function() {
@@ -323,7 +326,7 @@ Copyright 2011 University of Surrey
 				});
 				
 				//Enable/disable model editor buttons
-				if(localStorage._client_onAir!=true){
+				if(localStorage._client_onAir=='true'){
 					$('#bem').attr('disabled','disabled');
 					//$('#bum').removeAttr('disabled');
 					//$('#br').removeAttr('disabled');

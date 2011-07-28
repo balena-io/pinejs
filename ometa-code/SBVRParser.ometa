@@ -82,15 +82,15 @@ ometa SBVRParser {
 	qTerbR		:c	= quant:q term:t adVar(t):a verb:v bind(t):b {q=q.concat([a]);c[0]=c[0].concat([t,v]);c.concat([b])}:c
 							(atfo(c)|qTerm(c)|qTerbR(c)):r						-> q.concat([r]),
 
-	modRule			= seq('It is obligatory that'):t	qTerbR([[]]):q	-> ['obl', q, t]
-					| seq('It is necessary that'):t		qTerbR([[]]):q	-> ['nec', q, t]
-					| seq('It is prohibited that'):t	qTerbR([[]]):q	-> ['obl', ['neg', q], t]
-					| seq('It is impossible that'):t	qTerbR([[]]):q	-> ['nec', ['neg', q], t]
-					| seq('It is not possible that'):t	qTerbR([[]]):q	-> ['nec', ['neg', q], t]
-					| seq('It is possible that'):t		qTerbR([[]]):q	-> ['pos', q, t]
-					| seq('It is permissible that'):t	qTerbR([[]]):q	-> ['prm', q, t],
+	modRule			= seq('It is obligatory that'):t	qTerbR([[]]):q	-> ['obl', q]//, t]
+					| seq('It is necessary that'):t		qTerbR([[]]):q	-> ['nec', q]//, t]
+					| seq('It is prohibited that'):t	qTerbR([[]]):q	-> ['obl', ['neg', q]]//, t]
+					| seq('It is impossible that'):t	qTerbR([[]]):q	-> ['nec', ['neg', q]]//, t]
+					| seq('It is not possible that'):t	qTerbR([[]]):q	-> ['nec', ['neg', q]]//, t]
+					| seq('It is possible that'):t		qTerbR([[]]):q	-> ['pos', q]//, t]
+					| seq('It is permissible that'):t	qTerbR([[]]):q	-> ['prm', q],//, t],
 
-	newRule			= ``R:'' &((~'\n' char)*):a {this.ruleVarsCount=1} modRule:r -> [`rule, r, [`text, a.join('')]],
+	newRule         = ``R:'' spaces? &((~'\n' char)*):a {this.ruleVarsCount=1} modRule:r -> [`rule, r, [`text, a.join('')]],
 
 	terb			= term:t (verb|nrText:f mkVerb(f)):v					-> [t, v],
 	fcTp			= ``F:'' {t=[]} (terb:b {t.concat(b)}:t)+ (term:e {t.concat([e])}:t)? {this.fctps[t] = true}
