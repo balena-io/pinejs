@@ -75,7 +75,7 @@ ClientURIParser = objectThatDelegatesTo(OMeta, {
     "parm": function() {
         var $elf = this,
             _fromIdx = this.input.idx,
-            t, o, f, o, v;
+            t, o, f, v;
         return (function() {
             t = this._apply("part");
             f = this._or((function() {
@@ -278,7 +278,7 @@ ClientURIParser = objectThatDelegatesTo(OMeta, {
     "inst": function() {
         var $elf = this,
             _fromIdx = this.input.idx,
-            t, f, s, t, f, s, t, s;
+            t, f, s;
         return this._or((function() {
             return (function() {
                 t = this._apply("part");
@@ -315,7 +315,7 @@ ClientURIParser = objectThatDelegatesTo(OMeta, {
     "frbd": function() {
         var $elf = this,
             _fromIdx = this.input.idx,
-            f, g, r, f;
+            f, g, r;
         return (function() {
             f = this._or((function() {
                 return (function() {
@@ -389,7 +389,7 @@ ClientURIParser = objectThatDelegatesTo(OMeta, {
     "frag": function() {
         var $elf = this,
             _fromIdx = this.input.idx,
-            w, f, w, f;
+            w, f;
         return this._or((function() {
             return (function() {
                 w = this._apply("cole");
@@ -407,7 +407,7 @@ ClientURIParser = objectThatDelegatesTo(OMeta, {
     "expr": function() {
         var $elf = this,
             _fromIdx = this.input.idx,
-            f, f;
+            f;
         return this._or((function() {
             return (function() {
                 switch (this._apply('anything')) {

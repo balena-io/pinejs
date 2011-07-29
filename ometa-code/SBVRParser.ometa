@@ -33,17 +33,17 @@ ometa SBVRParser {
 
 	spaces			= (' '|'\t')*,
 	letters			= letter+:l												-> l.join(''),
-	num				= spaces digit+:n										-> [`num, parseInt(n.join(''))],
-	word			= spaces letters:w ~isVerb(w) ~isTerm(w) ~isKwrd(w)		-> w,
+	num				= spaces? digit+:n										-> [`num, parseInt(n.join(''))],
+	word			= spaces? letters:w ~isVerb(w) ~isTerm(w) ~isKwrd(w)	-> w,
 	nrText			= (word:w ~isKwrdSt(w,'')~isTermSt(w,'')~isVerbSt(w,'') ->w)+:w
 																			-> w.join(' '),
 	text			= (spaces letters:w)+:w									-> w.join(' '),
 	toEOL			= (anything:w ?{w!='\n'&&w!='\r'}->w)*:w				-> $.trim(w.join('')),
 
-	kwrd		:x	= spaces letters:w {x!=''?x+' '+w:w}:w (isKwrd(w) -> w | kwrd(w):a -> a),
+	kwrd		:x	= spaces? letters:w {x!=''?x+' '+w:w}:w (isKwrd(w) -> w | kwrd(w):a -> a),
 	token		:x	= kwrd(''):t ?(t==x)									-> [`kwrd, t],
 
-	termR		:x	= spaces letters:w {x!=''?x+' '+w:w}:w (isTerm(w)		-> w | termR(w):a -> a),
+	termR		:x	= spaces? letters:w {x!=''?x+' '+w:w}:w (isTerm(w) -> w | termR(w):a -> a),
 	term			= termR(''):t {this._termForm(t)}:t						-> [`term, t],
 
 	mkVerb		:x	= {this.verbs[x] = true}								-> [`verb, x],
@@ -92,14 +92,15 @@ ometa SBVRParser {
 
 	ruleDecl		= seq('R:'),
 	newRule			= ruleDecl spaces? &((~'\n' char)*):a {this.ruleVarsCount=1} modRule:r
+																		-> [`rule, r, [`text, a.join('')]],
 
 	terb			= term:t (verb|nrText:f mkVerb(f)):v					-> [t, v],
 	fcTpDecl		= seq('F:'),
 	fcTp			= fcTpDecl spaces? {t=[]} (terb:b {t.concat(b)}:t)+ (term:e {t.concat([e])}:t)? {this.fctps[t] = true}
 																			-> [`fcTp].concat(t),
 	termDecl		= seq('T:'),
-	newTerm			= termDecl spaces? term(true):t 						-> t.concat([[]]),
-	attribute		= ?{this.lines[this.lines.length-1][0] == 'term'}
+	newTerm			= termDecl nrText:t {this.terms[t] = true;}				-> [`term, t, []],
+	attribute		= ?{this.lines.length>0 && this.lines[this.lines.length-1][0] == 'term'}
 						allowedAttrs:attrName ':' toEOL:attrVal				-> {var lastLine = this.lines.pop(); lastLine[2].push([attrName.replace(new RegExp(' ','g'),''), attrVal]); lastLine},
 
 	allowedAttrs	= (

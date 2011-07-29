@@ -33,5 +33,5 @@
         };
         undefined;
         return a
-    }));
+    }))
 }

@@ -1,48 +1,30 @@
 {
     SBVRParser = objectThatDelegatesTo(OMeta, {
-        "isTerm": function() {
+        "isTerm": function(x) {
             var $elf = this,
-                _fromIdx = this.input.idx,
-                x;
-            return (function() {
-                x = this._apply("anything");
-                return this._pred(this._isTerm(x))
-            }).call(this)
+                _fromIdx = this.input.idx;
+            return this._pred(this._isTerm(x))
         },
-        "isVerb": function() {
+        "isVerb": function(x) {
             var $elf = this,
-                _fromIdx = this.input.idx,
-                x;
-            return (function() {
-                x = this._apply("anything");
-                return this._pred(this._isVerb(x))
-            }).call(this)
+                _fromIdx = this.input.idx;
+            return this._pred(this._isVerb(x))
         },
-        "isKwrd": function() {
+        "isKwrd": function(x) {
             var $elf = this,
-                _fromIdx = this.input.idx,
-                x;
-            return (function() {
-                x = this._apply("anything");
-                return this._pred(SBVRParser._isKwrd(x))
-            }).call(this)
+                _fromIdx = this.input.idx;
+            return this._pred(SBVRParser._isKwrd(x))
         },
-        "isFctp": function() {
+        "isFctp": function(x) {
             var $elf = this,
-                _fromIdx = this.input.idx,
-                x;
-            return (function() {
-                x = this._apply("anything");
-                return this._pred(this._isFctp(x))
-            }).call(this)
+                _fromIdx = this.input.idx;
+            return this._pred(this._isFctp(x))
         },
-        "isKwrdSt": function() {
+        "isKwrdSt": function(p, q) {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                p, q, w, n;
+                w, n;
             return (function() {
-                p = this._apply("anything");
-                q = this._apply("anything");
                 this._lookahead((function() {
                     return (function() {
                         this._apply("spaces");
@@ -65,13 +47,11 @@
                 }))
             }).call(this)
         },
-        "isTermSt": function() {
+        "isTermSt": function(p, q) {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                p, q, w, n;
+                w, n;
             return (function() {
-                p = this._apply("anything");
-                q = this._apply("anything");
                 this._lookahead((function() {
                     return (function() {
                         this._apply("spaces");
@@ -94,13 +74,11 @@
                 }))
             }).call(this)
         },
-        "isVerbSt": function() {
+        "isVerbSt": function(p, q) {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                p, q, w, n;
+                w, n;
             return (function() {
-                p = this._apply("anything");
-                q = this._apply("anything");
                 this._lookahead((function() {
                     return (function() {
                         this._apply("spaces");
@@ -123,21 +101,16 @@
                 }))
             }).call(this)
         },
-        "findVar": function() {
+        "findVar": function(x) {
             var $elf = this,
-                _fromIdx = this.input.idx,
-                x;
-            return (function() {
-                x = this._apply("anything");
-                return this["ruleVars"][x[(1)]]
-            }).call(this)
+                _fromIdx = this.input.idx;
+            return this["ruleVars"][x[(1)]]
         },
-        "bind": function() {
+        "bind": function(x) {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                x, y;
+                y;
             return (function() {
-                x = this._apply("anything");
                 y = this._applyWithArgs("findVar", x);
                 return ["bind", x, y]
             }).call(this)
@@ -174,7 +147,9 @@
                 _fromIdx = this.input.idx,
                 n;
             return (function() {
-                this._apply("spaces");
+                this._opt((function() {
+                    return this._apply("spaces")
+                }));
                 n = this._many1((function() {
                     return this._apply("digit")
                 }));
@@ -186,7 +161,9 @@
                 _fromIdx = this.input.idx,
                 w;
             return (function() {
-                this._apply("spaces");
+                this._opt((function() {
+                    return this._apply("spaces")
+                }));
                 w = this._apply("letters");
                 this._not((function() {
                     return this._applyWithArgs("isVerb", w)
@@ -252,13 +229,14 @@
                 return $.trim(w.join(""))
             }).call(this)
         },
-        "kwrd": function() {
+        "kwrd": function(x) {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                x, w, a;
+                w, a;
             return (function() {
-                x = this._apply("anything");
-                this._apply("spaces");
+                this._opt((function() {
+                    return this._apply("spaces")
+                }));
                 w = this._apply("letters");
                 w = ((x != "") ? ((x + " ") + w) : w);
                 return this._or((function() {
@@ -274,24 +252,24 @@
                 }))
             }).call(this)
         },
-        "token": function() {
+        "token": function(x) {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                x, t;
+                t;
             return (function() {
-                x = this._apply("anything");
                 t = this._applyWithArgs("kwrd", "");
                 this._pred((t == x));
                 return ["kwrd", t]
             }).call(this)
         },
-        "termR": function() {
+        "termR": function(x) {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                x, w, a;
+                w, a;
             return (function() {
-                x = this._apply("anything");
-                this._apply("spaces");
+                this._opt((function() {
+                    return this._apply("spaces")
+                }));
                 w = this._apply("letters");
                 w = ((x != "") ? ((x + " ") + w) : w);
                 return this._or((function() {
@@ -317,22 +295,19 @@
                 return ["term", t]
             }).call(this)
         },
-        "mkVerb": function() {
+        "mkVerb": function(x) {
             var $elf = this,
-                _fromIdx = this.input.idx,
-                x;
+                _fromIdx = this.input.idx;
             return (function() {
-                x = this._apply("anything");
                 (this["verbs"][x] = true);
                 return ["verb", x]
             }).call(this)
         },
-        "verbR": function() {
+        "verbR": function(x) {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                x, w, a;
+                w, a;
             return (function() {
-                x = this._apply("anything");
                 this._apply("spaces");
                 w = this._apply("letters");
                 w = ((x != "") ? ((x + " ") + w) : w);
@@ -486,12 +461,11 @@
                 }).call(this)
             }))
         },
-        "adVar": function() {
+        "adVar": function(x) {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                x, q;
+                q;
             return (function() {
-                x = this._apply("anything");
                 (this["ruleVars"][x[(1)]] = this["ruleVarsCount"]++);
                 return this._or((function() {
                     return (function() {
@@ -515,12 +489,10 @@
                 }))
             }).call(this)
         },
-        "atfo": function() {
+        "atfo": function(c) {
             var $elf = this,
-                _fromIdx = this.input.idx,
-                c;
+                _fromIdx = this.input.idx;
             return (function() {
-                c = this._apply("anything");
                 this._applyWithArgs("isFctp", c[(0)]);
                 (c[(0)] = ["fcTp"].concat(c[(0)]));
                 return (function() {
@@ -529,13 +501,11 @@
                 }).call(this)
             }).call(this)
         },
-        "terbRi": function() {
+        "terbRi": function(c, i) {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                c, i, t, v, b;
+                t, v, b, c;
             return (function() {
-                c = this._apply("anything");
-                i = this._apply("anything");
                 t = this._apply("term");
                 v = this._apply("verb");
                 b = this._applyWithArgs("bind", t);
@@ -546,62 +516,57 @@
                 return this._applyWithArgs("qTerbRi", c, i)
             }).call(this)
         },
-        "qTerbRi": function() {
+        "qTerbRi": function(c, i) {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                c, i, q, t, a, v, b, r;
-            return (function() {
-                c = this._apply("anything");
-                i = this._apply("anything");
-                return this._or((function() {
-                    return (function() {
-                        q = this._apply("quant");
-                        t = this._apply("term");
-                        a = this._applyWithArgs("adVar", t);
-                        v = this._apply("verb");
-                        b = this._applyWithArgs("bind", t);
-                        c = (function() {
-                            (q = q.concat([a]));
-                            (c[(0)] = c[(0)].concat([t, v]));
-                            return c.concat([b])
-                        }).call(this);
-                        r = this._applyWithArgs("qTerbRi", c, i);
-                        return q.concat([r])
-                    }).call(this)
-                }), (function() {
-                    return (function() {
-                        v = this._apply("verb");
-                        b = this._applyWithArgs("bind", i);
-                        c = (function() {
-                            (c[(0)] = c[(0)].concat([i, v]));
-                            return c.concat([b])
-                        }).call(this);
-                        return this._or((function() {
-                            return this._applyWithArgs("atfo", c)
-                        }), (function() {
-                            return this._applyWithArgs("qTerm", c)
-                        }), (function() {
-                            return this._applyWithArgs("qTerbR", c)
-                        }))
-                    }).call(this)
-                }), (function() {
-                    return (function() {
-                        b = this._applyWithArgs("bind", i);
-                        c = (function() {
-                            (c[(0)] = c[(0)].concat([i]));
-                            return c.concat([b])
-                        }).call(this);
+                q, t, a, v, b, c, r;
+            return this._or((function() {
+                return (function() {
+                    q = this._apply("quant");
+                    t = this._apply("term");
+                    a = this._applyWithArgs("adVar", t);
+                    v = this._apply("verb");
+                    b = this._applyWithArgs("bind", t);
+                    c = (function() {
+                        (q = q.concat([a]));
+                        (c[(0)] = c[(0)].concat([t, v]));
+                        return c.concat([b])
+                    }).call(this);
+                    r = this._applyWithArgs("qTerbRi", c, i);
+                    return q.concat([r])
+                }).call(this)
+            }), (function() {
+                return (function() {
+                    v = this._apply("verb");
+                    b = this._applyWithArgs("bind", i);
+                    c = (function() {
+                        (c[(0)] = c[(0)].concat([i, v]));
+                        return c.concat([b])
+                    }).call(this);
+                    return this._or((function() {
                         return this._applyWithArgs("atfo", c)
-                    }).call(this)
-                }))
-            }).call(this)
+                    }), (function() {
+                        return this._applyWithArgs("qTerm", c)
+                    }), (function() {
+                        return this._applyWithArgs("qTerbR", c)
+                    }))
+                }).call(this)
+            }), (function() {
+                return (function() {
+                    b = this._applyWithArgs("bind", i);
+                    c = (function() {
+                        (c[(0)] = c[(0)].concat([i]));
+                        return c.concat([b])
+                    }).call(this);
+                    return this._applyWithArgs("atfo", c)
+                }).call(this)
+            }))
         },
-        "qTerm": function() {
+        "qTerm": function(c) {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                c, q, t, a, b, r;
+                q, t, a, b, c, r;
             return (function() {
-                c = this._apply("anything");
                 q = this._apply("quant");
                 t = this._apply("term");
                 a = this._applyWithArgs("adVar", t);
@@ -615,12 +580,11 @@
                 return q.concat([r])
             }).call(this)
         },
-        "qTerbR": function() {
+        "qTerbR": function(c) {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                c, q, t, a, v, b, r;
+                q, t, a, v, b, c, r;
             return (function() {
-                c = this._apply("anything");
                 q = this._apply("quant");
                 t = this._apply("term");
                 a = this._applyWithArgs("adVar", t);
@@ -964,13 +928,9 @@
                 t;
             return (function() {
                 this._apply("termDecl");
-                this._opt((function() {
-                    return this._apply("spaces")
-                }));
-                t = this._applyWithArgs("term", true);
-                return t.concat([
-                    []
-                ])
+                t = this._apply("nrText");
+                (this["terms"][t] = true);
+                return ["term", t, []]
             }).call(this)
         },
         "attribute": function() {
@@ -978,7 +938,7 @@
                 _fromIdx = this.input.idx,
                 attrName, attrVal;
             return (function() {
-                this._pred((this["lines"][(this["lines"]["length"] - (1))][(0)] == "term"));
+                this._pred(((this["lines"]["length"] > (0)) && (this["lines"][(this["lines"]["length"] - (1))][(0)] == "term")));
                 attrName = this._apply("allowedAttrs");
                 this._applyWithArgs("exactly", ":");
                 attrVal = this._apply("toEOL");
@@ -1398,7 +1358,6 @@
             }).call(this)
         }
     });
-    (SBVRParser["keyTokens"] = ["termDecl", "fcTpDecl", "ruleDecl", "term"]);
     (SBVRParser["kwrds"] = ({}));
     (kwrds = ["a", "an", "each", "at", "most", "least", "exactly", "that", "the", "one", "more", "than", "and", "some"]);
     for (var idx = (0);
@@ -1458,7 +1417,6 @@
         (this["fctps"] = ({}));
         (this["ruleVars"] = ({}));
         (this["ruleVarsCount"] = (0));
-        (this["lines"] = []);
-        (this["tokens"] = [])
+        (this["lines"] = [])
     }))
 }

@@ -20,21 +20,18 @@
                 return x
             }).call(this)
         },
-        "$": function() {
+        "$": function(x) {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                x, a;
-            return (function() {
-                x = this._apply("anything");
-                return this._or((function() {
-                    return (function() {
-                        a = this._applyWithArgs("token", x);
-                        return [a]
-                    }).call(this)
-                }), (function() {
-                    return []
-                }))
-            }).call(this)
+                a;
+            return this._or((function() {
+                return (function() {
+                    a = this._applyWithArgs("token", x);
+                    return [a]
+                }).call(this)
+            }), (function() {
+                return []
+            }))
         },
         "trans": function() {
             var $elf = this,
@@ -346,7 +343,7 @@
         "var": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                n, t, w, n, t;
+                n, t, w;
             return this._or((function() {
                 return (function() {
                     n = this._applyWithArgs("token", "num");
@@ -409,7 +406,7 @@
         "atLeastQ": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                i, v, xs, i, v, xs;
+                i, v, xs;
             return this._or((function() {
                 return (function() {
                     i = this._applyWithArgs("token", "minCard");
@@ -452,7 +449,7 @@
         "neg": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                xs, xs;
+                xs;
             return this._or((function() {
                 return (function() {
                     this._form((function() {
@@ -492,7 +489,7 @@
         "optimizeRule": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                r, r;
+                r;
             return (function() {
                 r = this._apply("anything");
                 this._many((function() {

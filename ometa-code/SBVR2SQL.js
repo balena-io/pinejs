@@ -1,20 +1,17 @@
 {
     SBVR2SQL = objectThatDelegatesTo(OMeta, {
-        "$": function() {
+        "$": function(x) {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                x, a;
-            return (function() {
-                x = this._apply("anything");
-                return this._or((function() {
-                    return (function() {
-                        a = this._applyWithArgs("token", x);
-                        return [a]
-                    }).call(this)
-                }), (function() {
-                    return []
-                }))
-            }).call(this)
+                a;
+            return this._or((function() {
+                return (function() {
+                    a = this._applyWithArgs("token", x);
+                    return [a]
+                }).call(this)
+            }), (function() {
+                return []
+            }))
         },
         "trans": function() {
             var $elf = this,
@@ -167,7 +164,7 @@
         "fcTp": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                c, d, b, t, s, e, t, v, r, t, e;
+                c, d, b, t, s, e, v, r;
             return (function() {
                 (a = []);
                 this._lookahead((function() {
@@ -398,7 +395,7 @@
         "neg": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                s, v, xs, xs;
+                s, v, xs;
             return this._or((function() {
                 return (function() {
                     this._form((function() {
@@ -448,7 +445,7 @@
         "var": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                n, t, w, n, t;
+                n, t, w;
             return this._or((function() {
                 return (function() {
                     n = this._applyWithArgs("token", "num");
