@@ -16,14 +16,13 @@ Copyright 2011 University of Surrey
 
 ﻿<html>
 	<head>
-		<script src="../ometa/lib.js"></script>
-		<script src="../ometa/ometa-base.js"></script>
-		<script src="../ometa/parser.js"></script>
-		<script src="../ometa/bs-js-compiler.js"></script>
-		<script src="../ometa/bs-ometa-compiler.js"></script>
-		<script src="../ometa/bs-ometa-optimizer.js"></script>
-		<script src="../ometa/bs-ometa-js-compiler.js"></script>
-		<script src="../ometa/ometa-script-tag.js"></script>
+		<script src="../ometa-js/lib.js"></script>
+		<script src="../ometa-js/ometa-base.js"></script>
+		<script src="../ometa-js/parser.js"></script>
+		<script src="../ometa-js/bs-js-compiler.js"></script>
+		<script src="../ometa-js/bs-ometa-compiler.js"></script>
+		<script src="../ometa-js/bs-ometa-optimizer.js"></script>
+		<script src="../ometa-js/bs-ometa-js-compiler.js"></script>
 		
 		<script src="js/beautify.js"></script>
 		<script src="../cm/lib/codemirror.js"></script> 
@@ -40,9 +39,24 @@ Copyright 2011 University of Surrey
 	  			var translationError = function(m, i) { 
 	  					alert("Translation error - please tell Alex about this!"); throw fail 
 	  				};
-	  			var parsingError = function(m, i) { throw objectThatDelegatesTo(fail, {errorPos: i}) }
-		  		var tree = BSOMetaJSParser.matchAll(s, "topLevel", undefined, parsingError)
-	  			return BSOMetaJSTranslator.match(tree, "trans", undefined, translationError);
+//				try {
+					var parsingError = function(m, i) {
+						console.log(m);
+						var start = Math.max(0,i-20);
+						console.log('Error around: '+s.substring(start, Math.min(s.length,start+40)));
+						console.log('Error around: '+s.substring(i-2, Math.min(s.length,i+2)));
+						throw m;
+					}
+					var tree = BSOMetaJSParser.matchAll(s, "topLevel", undefined, parsingError)
+					console.log(tree);
+					return BSOMetaJSTranslator.match(tree, "trans", undefined, translationError);
+//				}
+/*			  catch(e) {
+				console.log(e);
+				var start = Math.max(0,e.errorPos-20);
+				console.log('Error around: '+s.substring(start, Math.min(s.length,start+40)));
+				throw e;
+			  }*/
 			}
 		
 			function compile(code){
