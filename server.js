@@ -121,7 +121,7 @@ function remoteServerRequest(method, uri, headers, body, successCallback, failur
 		}
 	} else if(tree[0]=='execute') {
 		if(method=="POST") {
-			executePOST(tree, successCallback, failureCallback, caller)
+			executePOST(tree, headers, body, successCallback, failureCallback, caller)
 		}
 	}else if(tree[0]=='update'){
 		if(method=="POST"){
@@ -133,7 +133,7 @@ function remoteServerRequest(method, uri, headers, body, successCallback, failur
 		if(tree[1]==undefined){
 			switch(method){
 				case "GET":
-					dataGET(tree, successCallback, failureCallback, caller)
+					dataGET(tree, headers, body, successCallback, failureCallback, caller)
 			}
 		}else if(tree[1][1]=='transaction' && method == 'GET'){
 			//what's the id?
@@ -151,27 +151,28 @@ function remoteServerRequest(method, uri, headers, body, successCallback, failur
 		}else{
 			switch(method){
 				case "GET":
-					dataplusGET(tree, successCallback, failureCallback, caller)
+					console.log('body:[' + body + ']')
+					dataplusGET(tree, headers, body, successCallback, failureCallback, caller)
 					break;
 				case "POST":
-					dataplusPOST(tree, successCallback, failureCallback, caller)
+					dataplusPOST(tree, headers, body, successCallback, failureCallback, caller)
 					break;
 				case "PUT":
-					dataplusPUT(tree, successCallback, failureCallback, caller)
+					dataplusPUT(tree, headers, body, successCallback, failureCallback, caller)
 					break;
 				case "DELETE":
-					dataplusDELETE(tree, successCallback, failureCallback, caller)
+					dataplusDELETE(tree, headers, body, successCallback, failureCallback, caller)
 					break;
 			}
 		}
 	} else if(tree[0]==''){
 		if(method=="DELETE"){
-			rootDELETE(tree, successCallback, failureCallback, caller)
+			rootDELETE(tree, headers, body, successCallback, failureCallback, caller)
 		}
 	}
 }
 
-function dataplusDELETE(tree, successCallback, failureCallback, caller){
+function dataplusDELETE(tree, headers, body, successCallback, failureCallback, caller){
 	ftree=[];
 	if(tree[1][0] == 'term'){
 		ftree = tree[1][3];
@@ -251,7 +252,7 @@ function dataplusDELETE(tree, successCallback, failureCallback, caller){
 	}
 }
 
-function dataplusPUT(tree, successCallback, failureCallback, caller){
+function dataplusPUT(tree, headers, body, successCallback, failureCallback, caller){
 	var ftree=[];
 	if(tree[1][0] == 'term'){
 		ftree = tree[1][3];
@@ -361,7 +362,7 @@ function dataplusPUT(tree, successCallback, failureCallback, caller){
 	}
 }
 
-function dataplusGET(tree, successCallback, failureCallback, caller){
+function dataplusPOST(tree, headers, body, successCallback, failureCallback, caller){
 	//console.log(body);
 	//figure out if it's a POST to transaction/execute
 	ftree=[];
@@ -484,7 +485,7 @@ function dataplusGET(tree, successCallback, failureCallback, caller){
 	}
 }
 
-function executePOST(tree, successCallback, failureCallback, caller){
+function executePOST(tree, headers, body, successCallback, failureCallback, caller){
 	lfmod = SBVRParser.matchAll(localStorage._server_modelAreaValue, 'expr');
 	prepmod = SBVR_PreProc.match(lfmod, 'optimizeTree');
 	sqlmod = SBVR2SQL.match(prepmod,'trans');
@@ -525,7 +526,7 @@ function executePOST(tree, successCallback, failureCallback, caller){
 	})
 }
 
-function rootDELETE(tree, successCallback, failureCallback, caller){
+function rootDELETE(tree, headers, body, successCallback, failureCallback, caller){
 	//TODO: This should be reorganised to be properly async.
 
 	//for some bizarre reason sqlmod is not accessible within db.transaction.
@@ -576,7 +577,7 @@ function rootDELETE(tree, successCallback, failureCallback, caller){
 	successCallback({'status-line': 'HTTP/1.1 200 OK'}, '');
 }
 
-function dataGET(tree, successCallback, failureCallback, caller){
+function dataGET(tree, headers, body, successCallback, failureCallback, caller){
 	result = {};
 	ents = [];
 	console.log(sqlmod);
@@ -599,7 +600,7 @@ function dataGET(tree, successCallback, failureCallback, caller){
 	successCallback({'status-line': 'HTTP/1.1 200 OK'}, JSON.stringify(result), caller);
 }
 
-function dataplusGET(tree, successCallback, failureCallback, caller){
+function dataplusGET(tree, headers, body, successCallback, failureCallback, caller){
 	//console.log('>GET', tree[1][1], tree);
 	ftree=[];
 	if(tree[1][0] == 'term'){
