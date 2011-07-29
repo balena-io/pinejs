@@ -764,6 +764,9 @@ function validateDB(tx, sqlmod, caller, successCallback, failureCallback, header
 			});
 		}
 	}
+	if(tot==0){
+		successCallback(tx, sqlmod, caller, failureCallback, headers, result);
+	}
 }
 
 function executeSasync(tx, sqlmod, caller, successCallback, failureCallback, headers, result){
