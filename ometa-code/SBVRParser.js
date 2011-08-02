@@ -146,15 +146,22 @@
             var $elf = this,
                 _fromIdx = this.input.idx,
                 n;
-            return (function() {
-                this._opt((function() {
-                    return this._apply("spaces")
-                }));
-                n = this._many1((function() {
-                    return this._apply("digit")
-                }));
-                return ["num", parseInt(n.join(""))]
-            }).call(this)
+            return this._or((function() {
+                return (function() {
+                    this._opt((function() {
+                        return this._apply("spaces")
+                    }));
+                    n = this._many1((function() {
+                        return this._apply("digit")
+                    }));
+                    return ["num", parseInt(n.join(""))]
+                }).call(this)
+            }), (function() {
+                return (function() {
+                    this._applyWithArgs("token", "one");
+                    return ["num", (1)]
+                }).call(this)
+            }))
         },
         "word": function() {
             var $elf = this,
@@ -351,9 +358,6 @@
             return this._or((function() {
                 return (function() {
                     this._applyWithArgs("token", "each");
-                    this._lookahead((function() {
-                        return this._apply("term")
-                    }));
                     return ["univQ"]
                 }).call(this)
             }), (function() {
@@ -365,109 +369,48 @@
                     }), (function() {
                         return this._applyWithArgs("token", "some")
                     }));
-                    this._lookahead((function() {
-                        return this._apply("term")
-                    }));
                     return ["existQ"]
                 }).call(this)
             }), (function() {
                 return (function() {
                     this._applyWithArgs("token", "at");
                     this._applyWithArgs("token", "most");
-                    n = this._or((function() {
-                        return (function() {
-                            this._applyWithArgs("token", "one");
-                            return ["num", (1)]
-                        }).call(this)
-                    }), (function() {
-                        return this._apply("num")
-                    }));
-                    this._lookahead((function() {
-                        return this._apply("term")
-                    }));
+                    n = this._apply("num");
                     return ["atMostQ", ["maxCard", n]]
                 }).call(this)
             }), (function() {
                 return (function() {
                     this._applyWithArgs("token", "at");
                     this._applyWithArgs("token", "least");
-                    n = this._or((function() {
+                    n = this._apply("num");
+                    return this._or((function() {
                         return (function() {
-                            this._applyWithArgs("token", "one");
-                            return ["num", (1)]
+                            this._applyWithArgs("token", "and");
+                            this._applyWithArgs("token", "at");
+                            this._applyWithArgs("token", "most");
+                            m = this._apply("num");
+                            return ["numRngQ", ["minCard", n], ["maxCard", m]]
                         }).call(this)
                     }), (function() {
-                        return this._apply("num")
-                    }));
-                    this._lookahead((function() {
-                        return this._apply("term")
-                    }));
-                    return ["atLeastQ", ["minCard", n]]
+                        return (function() {
+                            this._apply("empty");
+                            return ["atLeastQ", ["minCard", n]]
+                        }).call(this)
+                    }))
                 }).call(this)
             }), (function() {
                 return (function() {
                     this._applyWithArgs("token", "more");
                     this._applyWithArgs("token", "than");
-                    n = this._or((function() {
-                        return (function() {
-                            this._applyWithArgs("token", "one");
-                            return ["num", (2)]
-                        }).call(this)
-                    }), (function() {
-                        return (function() {
-                            n = this._apply("num");
-                            ++n[(1)];
-                            return n
-                        }).call(this)
-                    }));
-                    this._lookahead((function() {
-                        return this._apply("term")
-                    }));
+                    n = this._apply("num");
+                    ++n[(1)];
                     return ["atLeastQ", ["minCard", n]]
                 }).call(this)
             }), (function() {
                 return (function() {
                     this._applyWithArgs("token", "exactly");
-                    n = this._or((function() {
-                        return (function() {
-                            this._applyWithArgs("token", "one");
-                            return ["num", (1)]
-                        }).call(this)
-                    }), (function() {
-                        return this._apply("num")
-                    }));
-                    this._lookahead((function() {
-                        return this._apply("term")
-                    }));
+                    n = this._apply("num");
                     return ["exactQ", ["card", n]]
-                }).call(this)
-            }), (function() {
-                return (function() {
-                    this._applyWithArgs("token", "at");
-                    this._applyWithArgs("token", "least");
-                    n = this._or((function() {
-                        return (function() {
-                            this._applyWithArgs("token", "one");
-                            return ["num", (1)]
-                        }).call(this)
-                    }), (function() {
-                        return this._apply("num")
-                    }));
-                    this._applyWithArgs("token", "and");
-                    this._applyWithArgs("token", "at");
-                    this._applyWithArgs("token", "most");
-                    m = this._or((function() {
-                        return (function() {
-                            this._applyWithArgs("token", "one");
-                            return ["num", (1)]
-                        }).call(this)
-                    }), (function() {
-                        return this._apply("num")
-                    }));
-                    this._lookahead((function() {
-                        return this._apply("term")
-                    }));
-                    return ["numRngQ", ["minCard", n], ["maxCard", m]]
                 }).call(this)
             }))
         },

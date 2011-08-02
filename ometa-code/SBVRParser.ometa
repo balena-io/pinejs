@@ -33,7 +33,8 @@ ometa SBVRParser {
 
 	spaces			= (' '|'\t')*,
 	letters			= letter+:l												-> l.join(''),
-	num				= spaces? digit+:n										-> [`num, parseInt(n.join(''))],
+	num				= spaces? digit+:n										-> ['num', parseInt(n.join(''))]
+					| "one"													-> ['num', 1],
 	word			= spaces? letters:w ~isVerb(w) ~isTerm(w) ~isKwrd(w)	-> w,
 	nrText			= (word:w ~isKwrdSt(w,'')~isTermSt(w,'')~isVerbSt(w,'') ->w)+:w
 																			-> w.join(' '),
@@ -51,15 +52,14 @@ ometa SBVRParser {
 	verbR		:x	= spaces? letters:w {x!=''?x+' '+w:w}:w (isVerb(w)		-> w | verbR(w):a -> a),
 	verb			= verbR(''):v											-> ['verb', this._verbForm(v)],
 
-	quant			= "each"										&term	-> [`univQ]
-					| ("a"|"an"|"some")								&term	-> [`existQ]
-					| "at" "most"	("one"->[`num, 1]|num):n		&term	-> [`atMostQ, [`maxCard, n]]
-					| "at" "least"	("one"->[`num, 1]|num):n		&term	-> [`atLeastQ, [`minCard, n]]
-					| "more" "than"	("one"->[`num, 2]|num:n {++n[1]}->n):n &term
-																			-> [`atLeastQ, [`minCard, n]]
-					| "exactly"		("one"->[`num, 1]|num):n		&term	-> [`exactQ, [`card, n]]
-					| "at" "least"	("one"->[`num, 1]|num):n "and" "at" "most" ("one"->[`num, 1]|num):m &term
-																			-> [`numRngQ, [`minCard, n], [`maxCard, m]],
+	quant			= "each"												-> [`univQ]
+					| ("a"|"an"|"some")										-> [`existQ]
+					| "at" "most"	num:n									-> [`atMostQ, [`maxCard, n]]
+					| "at" "least"	num:n
+										( "and" "at" "most" num:m			-> [`numRngQ, [`minCard, n], [`maxCard, m]]
+										| empty 							-> [`atLeastQ, [`minCard, n]])
+					| "more" "than"	num:n {++n[1]} 							-> [`atLeastQ, [`minCard, n]]
+					| "exactly"		num:n									-> [`exactQ, [`card, n]],
 
 	keyword		:x	= token(x),
 	adVar		:x	= {this.ruleVars[x[1]] = this.ruleVarsCount++} {['var', ['num', this.ruleVars[x[1]]], x]}:v
