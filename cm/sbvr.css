@@ -6,44 +6,29 @@
 }
 
 span.cm-sbvr-termDecl{color: #A22;}
-span.cm-sbvr-factDecl{color: #A70;}
+span.cm-sbvr-fcTpDecl{color: #A70;}
 span.cm-sbvr-ruleDecl{color: #299;}
 
 /* Noun */
-span.cm-sbvr-term {
+span.cm-sbvr-term/*, span.cm-sbvr-factTerm, span.cm-sbvr-ruleTerm*/  {
 	color: #108070;
 	text-decoration: underline;
 }
-span.cm-sbvr-fact {
-}
-span.cm-sbvr-rule {
-}
-
-span.cm-sbvr-factTerm {
-	color: #108070;
-	text-decoration: underline;
-}
-span.cm-sbvr-factVerb {
-	color: blue;
-	font-style: italic;
-}
-
-span.cm-sbvr-ruleTerm {
-	color: #108070;
-	text-decoration: underline;
-}
-span.cm-sbvr-ruleModifier {
-	color: orange;
-}
-span.cm-sbvr-ruleQuantifier {
+span.cm-sbvr-quant/*, span.cm-sbvr-ruleQuantifier, span.cm-sbvr-ruleQuantity*/ {
 	color: orange;
 	font-weight: bolder;
 }
-span.cm-sbvr-ruleQuantity {
-	color: orange;
-	font-weight: bolder;
-}
-span.cm-sbvr-ruleVerb {
+span.cm-sbvr-verb/*, span.cm-sbvr-ruleVerb, span.cm-sbvr-factVerb*/ {
 	color: blue;
 	font-style: italic;
+}
+span.cm-sbvr-modRule/*, span.cm-sbvr-ruleModifier*/ {
+	color: orange;
+}
+span.cm-sbvr-keyword {
+	color: orange;
+}
+
+span.cm-sbvr-allowedAttrs {
+	color: grey;
 }
