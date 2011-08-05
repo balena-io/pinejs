@@ -50,13 +50,13 @@ Copyright 2011 University of Surrey
 		<script src="js/mylibs/jquery-ui-1.8.11.js"></script>
 		<script src="js/libs/jquery-custom-file-input.js"></script>
 		
-		<script src="cm/lib/codemirror.js"></script>
+		<script src="CodeMirror2/lib/codemirror.js"></script>
+		<script src="CodeMirror2/mode/plsql/plsql.js"></script>
 		<script src="cm/sbvr.js"></script>
-		<script src="cm/mode/plsql.js"></script>
 		
-		<link rel="stylesheet" href="cm/lib/codemirror.css">
+		<link rel="stylesheet" href="CodeMirror2/lib/codemirror.css">
+		<link rel="stylesheet" href="CodeMirror2/theme/default.css">
 		<link rel="stylesheet" href="cm/sbvr.css">
-		<link rel="stylesheet" href="cm/theme/default.css">
 		
 		<link type="text/css" href="css/ui-lightness/jquery-ui.css" rel="stylesheet" />
 		<link type="text/css" href="css/style.css" rel="stylesheet" />
@@ -320,7 +320,7 @@ Copyright 2011 University of Surrey
 							},
 							"Revise Model": function() {
 								$( this ).dialog( "close" );
-							},
+							}
 						}
 					});
 				});

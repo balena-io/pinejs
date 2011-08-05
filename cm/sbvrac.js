@@ -23,14 +23,14 @@ var editor;
 	}
 
 	editor = CodeMirror.fromTextArea(document.getElementById("modelArea"), {
-		mode:  "sbvr",
+		mode:  "sbvr"/*,
 		onKeyEvent: function(i, e) {
 			// Hook into ctrl-space
 			if (e.keyCode == 32 && (e.ctrlKey || e.metaKey) && !e.altKey) {
 				e.stop();
 				return startComplete();
 			}
-		}
+		}*/
 	});
 	/** End code reused from example auto-completion (http://codemirror.net/demo/complete.js) **/
 
