@@ -22,7 +22,6 @@
     indent_char (default space)      — character to indent with,
     preserve_newlines (default true) — whether existing line breaks should be preserved,
     preserve_max_newlines (default unlimited) - maximum number of line breaks to be preserved in one chunk,
-    indent_level (default 0)         — initial indentation level, you probably won't need this ever,
 
     jslint_happy (default false) — if true, then jslint-stricter mode is enforced.
 
@@ -35,7 +34,10 @@
 
     e.g
 
-    js_beautify(js_source_text, {indent_size: 1, indent_char: '\t'});
+    js_beautify(js_source_text, {
+      'indent_size': 1,
+      'indent_char': '\t'
+    });
 
 
 */
@@ -48,6 +50,7 @@ function js_beautify(js_source_text, options) {
     var whitespace, wordchar, punct, parser_pos, line_starters, digits;
     var prefix, token_type, do_block_just_closed;
     var wanted_newline, just_added_newline, n_newlines;
+    var preindent_string = '';
 
 
     // Some interpreters have unexpected results with foo = baz || bar;
@@ -69,7 +72,6 @@ function js_beautify(js_source_text, options) {
     var opt_indent_char = options.indent_char ? options.indent_char : ' ';
     var opt_preserve_newlines = typeof options.preserve_newlines === 'undefined' ? true : options.preserve_newlines;
     var opt_max_preserve_newlines = typeof options.max_preserve_newlines === 'undefined' ? false : options.max_preserve_newlines;
-    var opt_indent_level = options.indent_level ? options.indent_level : 0; // starting indentation
     var opt_jslint_happy = options.jslint_happy === 'undefined' ? false : options.jslint_happy;
     var opt_keep_array_indentation = typeof options.keep_array_indentation === 'undefined' ? false : options.keep_array_indentation;
 
@@ -82,6 +84,7 @@ function js_beautify(js_source_text, options) {
         eat_newlines = typeof eat_newlines === 'undefined' ? false : eat_newlines;
         while (output.length && (output[output.length - 1] === ' '
             || output[output.length - 1] === indent_string
+            || output[output.length - 1] === preindent_string
             || (eat_newlines && (output[output.length - 1] === '\n' || output[output.length - 1] === '\r')))) {
             output.pop();
         }
@@ -89,6 +92,14 @@ function js_beautify(js_source_text, options) {
 
     function trim(s) {
         return s.replace(/^\s\s*|\s\s*$/, '');
+    }
+
+    function force_newline()
+    {
+        var old_keep_array_indentation = opt_keep_array_indentation;
+        opt_keep_array_indentation = false;
+        print_newline()
+        opt_keep_array_indentation = old_keep_array_indentation;
     }
 
     function print_newline(ignore_repeated) {
@@ -111,15 +122,14 @@ function js_beautify(js_source_text, options) {
             just_added_newline = true;
             output.push("\n");
         }
+        if (preindent_string) {
+            output.push(preindent_string);
+        }
         for (var i = 0; i < flags.indentation_level; i += 1) {
             output.push(indent_string);
         }
         if (flags.var_line && flags.var_line_reindented) {
-            if (opt_indent_char === ' ') {
-                output.push('    '); // var_line always pushes 4 spaces, so that the variables would be one under another
-            } else {
-                output.push(indent_string); // skip space-stuffing, if indenting with a tab
-            }
+            output.push(indent_string); // skip space-stuffing, if indenting with a tab
         }
     }
 
@@ -172,7 +182,7 @@ function js_beautify(js_source_text, options) {
             in_case: false,
             eat_next_space: false,
             indentation_baseline: -1,
-            indentation_level: (flags ? flags.indentation_level + ((flags.var_line && flags.var_line_reindented) ? 1 : 0) : opt_indent_level),
+            indentation_level: (flags ? flags.indentation_level + ((flags.var_line && flags.var_line_reindented) ? 1 : 0) : 0),
             ternary_depth: 0
         };
     }
@@ -192,6 +202,14 @@ function js_beautify(js_source_text, options) {
         }
     }
 
+    function all_lines_start_with(lines, c) {
+        for (var i = 0; i < lines.length; i++) {
+            if (trim(lines[i])[0] != c) {
+                return false;
+            }
+        }
+        return true;
+    }
 
     function in_array(what, arr) {
         for (var i = 0; i < arr.length; i += 1) {
@@ -557,6 +575,10 @@ function js_beautify(js_source_text, options) {
         opt_indent_size -= 1;
     }
 
+    while (js_source_text && (js_source_text[0] === ' ' || js_source_text[0] === '\t')) {
+        preindent_string += js_source_text[0];
+        js_source_text = js_source_text.substring(1);
+    }
     input = js_source_text;
 
     last_word = ''; // last 'TK_WORD' passed
@@ -1069,7 +1091,7 @@ function js_beautify(js_source_text, options) {
 
             var lines = token_text.split(/\x0a|\x0d\x0a/);
 
-            if (/^\/\*\*/.test(token_text)) {
+            if (all_lines_start_with(lines.slice(1), '*')) {
                 // javadoc: reformat and reindent
                 print_newline();
                 output.push(lines[0]);
@@ -1108,7 +1130,7 @@ function js_beautify(js_source_text, options) {
             if (is_expression(flags.mode)) {
                 print_single_space();
             } else {
-                print_newline();
+                force_newline();
             }
             break;
 
@@ -1121,7 +1143,7 @@ function js_beautify(js_source_text, options) {
                 print_single_space();
             }
             print_token();
-            print_newline();
+            force_newline();
             break;
 
         case 'TK_UNKNOWN':
@@ -1137,7 +1159,8 @@ function js_beautify(js_source_text, options) {
         last_text = token_text;
     }
 
-    return output.join('').replace(/[\n ]+$/, '');
+    var sweet_code = preindent_string + output.join('').replace(/[\n ]+$/, '');
+    return sweet_code;
 
 }
 
