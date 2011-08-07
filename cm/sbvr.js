@@ -1,6 +1,10 @@
 CodeMirror.defineMode("sbvr", function(config) {
 
 	return {
+		copyState: function(state) {
+			return $.extend(true,{},state);
+		},
+	
 		startState: function(base) {
 			return SBVRParser.createInstance();
 		},
