@@ -112,8 +112,13 @@ R: It is obligatory that exactly one	student is school president'					+ /* exact
 /* Quantifiers with dual cardinality */'
 R: It is obligatory that at least one and at most 50	students are registered for at least one module'	+ /* at least */
 
+/* Rule with n-ary fact type */'
+R: It is obligatory that a student is registered for a module with a lecturer' +
+
 /* Inflection */'
 R: It is obligatory that exactly 0 people are swimming'
+
+
 
 modelT =
 'T: resource
