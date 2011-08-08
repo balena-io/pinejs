@@ -509,9 +509,9 @@
                     return this._or((function() {
                         return this._applyWithArgs("atfo", c)
                     }), (function() {
-                        return this._applyWithArgs("qTerm", c)
-                    }), (function() {
                         return this._applyWithArgs("qTerbR", c)
+                    }), (function() {
+                        return this._applyWithArgs("qTerm", c)
                     }))
                 }).call(this)
             }), (function() {
@@ -561,9 +561,9 @@
                 r = this._or((function() {
                     return this._applyWithArgs("atfo", c)
                 }), (function() {
-                    return this._applyWithArgs("qTerm", c)
-                }), (function() {
                     return this._applyWithArgs("qTerbR", c)
+                }), (function() {
+                    return this._applyWithArgs("qTerm", c)
                 }));
                 return q.concat([r])
             }).call(this)
