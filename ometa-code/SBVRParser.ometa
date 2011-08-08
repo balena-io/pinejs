@@ -74,7 +74,7 @@ ometa SBVRParser {
 	qTerbRi   :c :i = (quant:q term:t adVar(t):a verb:v bind(t):b
 							{q=q.concat([a]);c[0]=c[0].concat([t,v]);c.concat([b])}:c 
 							(qTerbRi(c,i)):r								-> q.concat([r])
-						| verb:v bind(i):b {c[0]=c[0].concat([i,v]);c.concat([b])}:c (atfo(c)|qTerm(c)|qTerbR(c))
+						| verb:v bind(i):b {c[0]=c[0].concat([i,v]);c.concat([b])}:c (atfo(c)|qTerbR(c)|qTerm(c))
 						| bind(i):b {c[0]=c[0].concat([i]);c.concat([b])}:c atfo(c)
 					), 
 
@@ -82,7 +82,7 @@ ometa SBVRParser {
 							atfo(c):r											-> q.concat([r]),
 
 	qTerbR		:c	= quant:q term:t adVar(t):a verb:v bind(t):b {q=q.concat([a]);c[0]=c[0].concat([t,v]);c.concat([b])}:c
-							(atfo(c)|qTerm(c)|qTerbR(c)):r						-> q.concat([r]),
+							(atfo(c)|qTerbR(c)|qTerm(c)):r						-> q.concat([r]),
 
 	modRule			= seq('It is obligatory that')						-> ['obl']
 					| seq('It is necessary that')						-> ['nec']
