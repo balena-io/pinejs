@@ -75,3 +75,16 @@ Done:
 			
 	Open Source Release
 		Apply Apache 2.0
+		
+--
+
+Transaction Notes
+
+add a locked resource? SLock on the collection then posting on the CR of the coll which produces an XLOCKED resource?
+slock collection? lock resource with ID 0
+
+how do I work with conditional representations? 'lock {that is exclusive} has conditional representation'
+'Conditional Representation' has fields 'fieldname' and 'fieldvalue' and 'lock_id'
+POST .. no new id. gets stored in conditionals with a special (negative) id to be replaced with another on commit.
+PUT .. empty all previous fields and add new fields to CR
+DELETE .. empty all previous fields and add special field to CR'__delete':true
