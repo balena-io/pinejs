@@ -1,7 +1,11 @@
 Canvas TODO:
-	Milestone 1: (Black Swan)
-		++ validateDB reorg
-		
+	Milestone 1: SBVR Editor
+		Highlighting & Autocompletion with OMeta parser
+		Component division (editor - platform)
+		File loading & Saving
+		Chrome App
+
+	Milestone 2: (Black Swan)
 		Update Running Model (Rules only)
 			Revise model leads to model tab (and current request URI is somehow stored in model tab URI?)
 			Then, when model is updated, success msgbox gives link back to request.
@@ -27,10 +31,6 @@ Canvas TODO:
 		Add-Transactions
 			Requires proper querying?!
 
-		Parser:
-			bug: can't parse rules that end with a space. Should accept spaces or fullstop at the end of a rule.
-				(esp. bad since autocomplete adds a space)
-	
 		Client:
 			keep client_onAir_ in memmory, not localStorage to avoid interference between sessions.
 	
@@ -47,11 +47,6 @@ Canvas TODO:
 		Bugs:
 			Cmod bug - fixes with reload, odd little thing.
 				Replicate
-		
-	Milestone 2: SBVR Editor
-		Component division (editor - platform)
-		File loading & Saving
-		Chrome App
 		
 	Milestone 3: (IAH)
 		Server-side. (Node.js?)
@@ -72,7 +67,11 @@ Done:
 		->> Code org: Break out DB validation into its own function..
 			-->>> must make execute() into an async-friendly function, which may allow halving it also.
 				--->>>> standardize arguments of success/failureCallback, and create proxies for client call.
-
-
+		++ validateDB reorg
+		
+	Parser:
+		bug: can't parse rules that end with a space. Should accept spaces or fullstop at the end of a rule.
+			(esp. bad since autocomplete adds a space)
+			
 	Open Source Release
 		Apply Apache 2.0
