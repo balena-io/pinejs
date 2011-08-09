@@ -60,116 +60,128 @@ function remoteServerRequest(method, uri, headers, body, successCallback, failur
 		//in case of input: do something to make xml into a json object
 	}
 	
-	//TODO: convert this to a switch(tree[0].toLowerCase())
-	if(tree[0].toLowerCase()=='onair') {
-		if(method=="GET"){
-			successCallback({'status-line': 'HTTP/1.1 200 OK'}, JSON.stringify(localStorage._server_onAir));
-		}
-	}else if(tree[0]=='model') {
-		if(method=="GET"){
-			if(localStorage._server_onAir=='true') {
-				successCallback({'status-line': 'HTTP/1.1 200 OK'}, localStorage._server_txtmod);
-			}else if(failureCallback != undefined) {
-				failureCallback({'status-line': 'HTTP/1.1 404 Not Found'});
+	var rootbranch = tree[0].toLowerCase()
+	switch(rootbranch)
+	{
+		case 'onair':
+			if(method=="GET"){
+				successCallback({'status-line': 'HTTP/1.1 200 OK'}, JSON.stringify(localStorage._server_onAir));
 			}
-		}
-	}else if(tree[0]=='lfmodel') {
-		if(method=="GET"){
-			if(localStorage._server_onAir=='true') {
-				successCallback({'status-line': 'HTTP/1.1 200 OK'}, localStorage._server_lfmod);
-			}else if(failureCallback != undefined) {
-				failureCallback({'status-line': 'HTTP/1.1 404 Not Found'});
+			break;
+		case 'model':
+			if(method=="GET"){
+				if(localStorage._server_onAir=='true') {
+					successCallback({'status-line': 'HTTP/1.1 200 OK'}, localStorage._server_txtmod);
+				}else if(failureCallback != undefined) {
+					failureCallback({'status-line': 'HTTP/1.1 404 Not Found'});
+				}
 			}
-		}
-	}else if(tree[0]=='prepmodel'){
-		if(method=="GET"){
-			if(localStorage._server_onAir=='true') {
-				successCallback({'status-line': 'HTTP/1.1 200 OK'}, localStorage._server_prepmod);
-			}else if(failureCallback != undefined) {
-				failureCallback({'status-line': 'HTTP/1.1 404 Not Found'});
+			break;
+		case 'lfmodel':
+			if(method=="GET"){
+				if(localStorage._server_onAir=='true') {
+					successCallback({'status-line': 'HTTP/1.1 200 OK'}, localStorage._server_txtmod);
+				}else if(failureCallback != undefined) {
+					failureCallback({'status-line': 'HTTP/1.1 404 Not Found'});
+				}
 			}
-		}
-	}else if(tree[0]=='sqlmodel'){
-		if(method=="GET"){
-			if(localStorage._server_onAir=='true') {
-				successCallback({'status-line': 'HTTP/1.1 200 OK'}, localStorage._server_sqlmod);
-			}else if(failureCallback != undefined) {
-				failureCallback({'status-line': 'HTTP/1.1 404 Not Found'});
+			break;
+		case 'prepmodel':
+			if(method=="GET"){
+				if(localStorage._server_onAir=='true') {
+					successCallback({'status-line': 'HTTP/1.1 200 OK'}, localStorage._server_prepmod);
+				}else if(failureCallback != undefined) {
+					failureCallback({'status-line': 'HTTP/1.1 404 Not Found'});
+				}
 			}
-		}
-	}else if(tree[0]=='ui') {
-		if(tree[1][1] == 'textarea' && tree[1][3][1][1][3] == 'model_area'){
-			switch(method) {
-				case "PUT":
-					localStorage._server_modelAreaValue = JSON.parse(body).value;
-					successCallback({'status-line': 'HTTP/1.1 200 OK'});
-					break;
-				case "GET":
-					successCallback({'status-line': 'HTTP/1.1 200 OK'}, 
-									JSON.stringify({"value":localStorage._server_modelAreaValue}));
+			break;
+		case 'sqlmodel':
+			if(method=="GET"){
+				if(localStorage._server_onAir=='true') {
+					successCallback({'status-line': 'HTTP/1.1 200 OK'}, localStorage._server_sqlmod);
+				}else if(failureCallback != undefined) {
+					failureCallback({'status-line': 'HTTP/1.1 404 Not Found'});
+				}
 			}
-		} else if(tree[1][1] == 'textarea-is_disabled' && tree[1][4][1][1][3] == 'model_area') {		
-			switch(method){
-				case "PUT":
-					localStorage._server_modelAreaDisabled = JSON.parse(body).value;
-					successCallback({'status-line': 'HTTP/1.1 200 OK'});
-					break;
-				case "GET":
-					successCallback({'status-line': 'HTTP/1.1 200 OK'}, 
-									JSON.stringify({"value":localStorage._server_modelAreaDisabled}));
+			break;
+		case 'ui':
+			if(tree[1][1] == 'textarea' && tree[1][3][1][1][3] == 'model_area'){
+				switch(method) {
+					case "PUT":
+						localStorage._server_modelAreaValue = JSON.parse(body).value;
+						successCallback({'status-line': 'HTTP/1.1 200 OK'});
+						break;
+					case "GET":
+						successCallback({'status-line': 'HTTP/1.1 200 OK'}, 
+										JSON.stringify({"value":localStorage._server_modelAreaValue}));
+				}
+			} else if(tree[1][1] == 'textarea-is_disabled' && tree[1][4][1][1][3] == 'model_area') {		
+				switch(method){
+					case "PUT":
+						localStorage._server_modelAreaDisabled = JSON.parse(body).value;
+						successCallback({'status-line': 'HTTP/1.1 200 OK'});
+						break;
+					case "GET":
+						successCallback({'status-line': 'HTTP/1.1 200 OK'}, 
+										JSON.stringify({"value":localStorage._server_modelAreaDisabled}));
+				}
 			}
-		}
-	} else if(tree[0]=='execute') {
-		if(method=="POST") {
-			executePOST(tree, headers, body, successCallback, failureCallback, caller)
-		}
-	}else if(tree[0]=='update'){
-		if(method=="POST"){
-			/*
-			update code will go here, based on executePOST
-			*/
-		}
-	}else if(tree[0]=='data'){
-		if(tree[1]==undefined){
-			switch(method){
-				case "GET":
-					dataGET(tree, headers, body, successCallback, failureCallback, caller)
+			break;
+		case 'execute':
+			if(method=="POST") {
+				executePOST(tree, headers, body, successCallback, failureCallback, caller)
 			}
-		}else if(tree[1][1]=='transaction' && method == 'GET'){
-			//what's the id?
-			o = {'id' : tree[1][3][1][1][3],
-			'tcURI'  : '/transaction',
-			'lcURI'  : '/data/lock',
-			'tlcURI' : '/data/lock-belongs_to-transaction',
-			'rcURI'  : '/data/resource',
-			'lrcURI' : '/data/resource-is_under-lock',
-			'slcURI' : '/data/lock-is_shared',
-			'xlcURI' : '/data/lock-is_exclusive',
-			'ctURI'  : '/data/transaction*filt:transaction.id=' + tree[1][3][1][1][3] + '/execute'}
+			break;
+		case 'update':
+			if(method=="POST"){
+				/*
+				update code will go here, based on executePOST
+				*/
+			}
+			break;
+		case 'data':
+			if(tree[1]==undefined){
+				switch(method){
+					case "GET":
+						dataGET(tree, headers, body, successCallback, failureCallback, caller)
+				}
+			}else if(tree[1][1]=='transaction' && method == 'GET'){
+				//what's the id?
+				o = {'id' : tree[1][3][1][1][3],
+				'tcURI'  : '/transaction',
+				'lcURI'  : '/data/lock',
+				'tlcURI' : '/data/lock-belongs_to-transaction',
+				'rcURI'  : '/data/resource',
+				'lrcURI' : '/data/resource-is_under-lock',
+				'slcURI' : '/data/lock-is_shared',
+				'xlcURI' : '/data/lock-is_exclusive',
+				'ctURI'  : '/data/transaction*filt:transaction.id=' + tree[1][3][1][1][3] + '/execute'}
 			
-			successCallback({'status-line': 'HTTP/1.1 200 OK'}, JSON.stringify(o), caller);
-		}else{
-			switch(method){
-				case "GET":
-					console.log('body:[' + body + ']')
-					dataplusGET(tree, headers, body, successCallback, failureCallback, caller)
-					break;
-				case "POST":
-					dataplusPOST(tree, headers, body, successCallback, failureCallback, caller)
-					break;
-				case "PUT":
-					dataplusPUT(tree, headers, body, successCallback, failureCallback, caller)
-					break;
-				case "DELETE":
-					dataplusDELETE(tree, headers, body, successCallback, failureCallback, caller)
-					break;
+				successCallback({'status-line': 'HTTP/1.1 200 OK'}, JSON.stringify(o), caller);
+			}else{
+				switch(method){
+					case "GET":
+						console.log('body:[' + body + ']')
+						dataplusGET(tree, headers, body, successCallback, failureCallback, caller)
+						break;
+					case "POST":
+						dataplusPOST(tree, headers, body, successCallback, failureCallback, caller)
+						break;
+					case "PUT":
+						dataplusPUT(tree, headers, body, successCallback, failureCallback, caller)
+						break;
+					case "DELETE":
+						dataplusDELETE(tree, headers, body, successCallback, failureCallback, caller)
+						break;
+				}
 			}
-		}
-	} else if(tree[0]==''){
-		if(method=="DELETE"){
-			rootDELETE(tree, headers, body, successCallback, failureCallback, caller)
-		}
-	}
+			break;
+		default:
+			if(method=="DELETE"){
+				rootDELETE(tree, headers, body, successCallback, failureCallback, caller)
+			}
+			break;
+	}	
 }
 
 function dataplusDELETE(tree, headers, body, successCallback, failureCallback, caller){
