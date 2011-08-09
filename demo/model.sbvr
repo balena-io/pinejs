@@ -1,0 +1,6 @@
+T: pilot
+T: plane
+F: pilot can fly plane
+F: pilot is experienced
+R: It is obligatory that each pilot can fly at least 1 plane
+R: It is obligatory that each pilot that is experienced can fly at least 3 planes
