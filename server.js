@@ -14,33 +14,12 @@ Copyright 2011 University of Surrey
    limitations under the License.
 */
 
-//add a locked resource? SLock on the collection then posting on the CR of the coll which produces an XLOCKED resource?
-//slock collection? lock resource with ID 0
-
-//how do I work with conditional representations? 'lock {that is exclusive} has conditional representation'
-//'Conditional Representation' has fields 'fieldname' and 'fieldvalue' and 'lock_id'
-//POST .. no new id. gets stored in conditionals with a special (negative) id to be replaced with another on commit.
-//PUT .. empty all previous fields and add new fields to CR
-//DELETE .. empty all previous fields and add special field to CR'__delete':true
-
-//TODO: add-transactions. Till then, reload data like so:
-//INSERT INTO 'pilot' VALUES (1,'Joachim')
-//INSERT INTO 'pilot' VALUES (2,'Esteban')
-//INSERT INTO 'plane' VALUES (1,'Boeing 747')
-//INSERT INTO 'plane' VALUES (2,'Spitfire')
-//INSERT INTO 'plane' VALUES (3,'Concorde')
-//INSERT INTO 'plane' VALUES (4,'Mirage 2000')
-//INSERT INTO 'pilot-can_fly-plane' VALUES (1,1,2)
-//INSERT INTO 'pilot-can_fly-plane' VALUES (2,1,3)
-//INSERT INTO 'pilot-can_fly-plane' VALUES (3,1,4)
-//INSERT INTO 'pilot-can_fly-plane' VALUES (4,2,1)
-//INSERT INTO 'pilot-is_experienced' VALUES (1,1)
-
 var op = {"eq":"=", "ne":"!=", "lk":"~"}
 
 //This is needed as the switch has no value on first execution. Maybe there's a better way?
 //be warned: localStorage stores all values as strings. 
 //Hence, booleans have to be tested against their string versions.
+//TODO: replace this with db entry. will also solve above issue.
 if(!localStorage._server_onAir=='true'){localStorage._server_onAir = false}
 
 if(localStorage._server_onAir=='true'){
