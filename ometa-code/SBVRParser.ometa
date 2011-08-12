@@ -44,22 +44,24 @@ ometa SBVRParser {
 	kwrd		:x	= spaces? letters:w {x!=''?x+' '+w:w}:w (isKwrd(w) -> w | kwrd(w):a -> a),
 	token		:x	= kwrd(''):t ?(t==x)									-> [`kwrd, t],
 
-	mkTerm			= nrText:t {this.terms[t] = true},
+	mkTerm			= nrText:t {this.possMap.term[t] = true},
 	termR		:x	= spaces? letters:w {x!=''?x+' '+w:w}:w (isTerm(w) -> w | termR(w):a -> a),
 	term			= termR(''):t											-> ['term', this._termForm(t)],
 
-	mkVerb			= nrText:x {this.verbs[x] = true},
+	mkVerb			= nrText:x {this.possMap.verb[x] = true},
 	verbR		:x	= spaces? letters:w {x!=''?x+' '+w:w}:w (isVerb(w)		-> w | verbR(w):a -> a),
 	verb			= verbR(''):v											-> ['verb', this._verbForm(v)],
 
-	quant			= "each"												-> [`univQ]
-					| ("a"|"an"|"some")										-> [`existQ]
-					| "at" "most"	num:n									-> [`atMostQ, [`maxCard, n]]
-					| "at" "least"	num:n
-										( "and" "at" "most" num:m			-> [`numRngQ, [`minCard, n], [`maxCard, m]]
+	joinQuant		= matchForAll('keyword',["and","at","most"]),
+	quant			= keyword("each")										-> [`univQ]
+					| matchForAny('keyword',["a","an","some"])										-> [`existQ]
+					| matchForAll('keyword',["at","most"])		num:n		-> [`atMostQ, [`maxCard, n]]
+					| matchForAll('keyword',["at","least"])		num:n
+										( joinQuant num:m					-> [`numRngQ, [`minCard, n], [`maxCard, m]]
 										| empty 							-> [`atLeastQ, [`minCard, n]])
-					| "more" "than"	num:n {++n[1]} 							-> [`atLeastQ, [`minCard, n]]
-					| "exactly"		num:n									-> [`exactQ, [`card, n]],
+					| matchForAll('keyword',["more","than"])	num:n {++n[1]}
+																			-> [`atLeastQ, [`minCard, n]]
+					| keyword("exactly")						num:n		-> [`exactQ, [`card, n]],
 
 	keyword		:x	= token(x),
 	adVar		:x	= {this.ruleVars[x[1]] = this.ruleVarsCount++} {['var', ['num', this.ruleVars[x[1]]], x]}:v
@@ -106,28 +108,7 @@ ometa SBVRParser {
 	attribute		= ?{this.lines.length>0 && this.lines[this.lines.length-1][0] == 'term'}
 						allowedAttrs:attrName ':' toEOL:attrVal				-> {var lastLine = this.lines.pop(); lastLine[2].push([attrName.replace(new RegExp(' ','g'),''), attrVal]); lastLine},
 
-	allowedAttrs	= (
-						seq('Concept Type') |
-						/* Custom Attributes */
-						seq('Database ID Field') |
-						seq('Database Name Field') |
-						seq('Database Table Name') |
-						/* End Custom */
-						seq('Definition') |
-						seq('Dictionary Basis') |
-						seq('Example') |
-						seq('General Concept') |
-						seq('Namespace URI') |
-						seq('Necessity') |
-						seq('Note') |
-						seq('Possibility') |
-						seq('Reference Scheme') |
-						seq('See') |
-						seq('Source') |
-						seq('Subject Field') |
-						seq('Synonymous Form') |
-						seq('Synonym')
-					):a												-> a,
+	allowedAttrs	= matchForAny('seq',this.possMap.allowedAttrs),
 
 	line			= spaces? (newTerm | fcTp | newRule | attribute):l spaces?
 						{this.lines.push(l)}							-> l,
@@ -135,7 +116,7 @@ ometa SBVRParser {
 	expr			= linef*											-> [`model].concat(this.lines)
 }
 
-SBVRParser.keyTokens = ["termDecl", "fcTpDecl", "ruleDecl", "term", "modRule", "quant", "verb", "keyword", "allowedAttrs"];
+SBVRParser.keyTokens = ["termDecl", "fcTpDecl", "ruleDecl", "term", "modRule", "verb", "keyword", "allowedAttrs", "num"];
 
 SBVRParser.kwrds = {}
 kwrds = ["a", "an", "each", "at", "most", "least", "exactly", "that", "the", "one", "more", "than", "and", "some"]
@@ -152,33 +133,106 @@ SBVRParser.initialize = function() {
 }
 
 SBVRParser._isTerm = function(k) {
-	return this.terms.hasOwnProperty(k) || this.terms.hasOwnProperty(k.singularize())
+	return this.possMap.term.hasOwnProperty(k) || this.possMap.term.hasOwnProperty(k.singularize())
 }
 
 SBVRParser._termForm = function(k) { 
-	return this.terms.hasOwnProperty(k.singularize()) ? k.singularize() : k
+	return this.possMap.term.hasOwnProperty(k.singularize()) ? k.singularize() : k
 }
 
 SBVRParser._isVerb = function(k) {
-	if(this.verbs.hasOwnProperty(k))                                               { return true }
-	else if( k.slice(0,3)=='are' && this.verbs.hasOwnProperty('is' + k.slice(3)) ) { return true }
-	else if(k=='have' && this.verbs.hasOwnProperty('has'))                         { return true }
+	if(this.possMap.verb.hasOwnProperty(k))                                               { return true }
+	else if( k.slice(0,3)=='are' && this.possMap.verb.hasOwnProperty('is' + k.slice(3)) ) { return true }
+	else if(k=='have' && this.possMap.verb.hasOwnProperty('has'))                         { return true }
 	else return false
 }
 
 SBVRParser._verbForm = function(k) { 
-	if(k.slice(0,3)=='are' && this.verbs.hasOwnProperty('is' + k.slice(3))){ return 'is' + k.slice(3) } 
-	else if(k=='have' && this.verbs.hasOwnProperty('has'))                 { return 'has'}
+	if(k.slice(0,3)=='are' && this.possMap.verb.hasOwnProperty('is' + k.slice(3))){ return 'is' + k.slice(3) } 
+	else if(k=='have' && this.possMap.verb.hasOwnProperty('has'))                 { return 'has'}
 	else return k
 }
 
 SBVRParser._isFctp = function(k) { return this.fctps.hasOwnProperty(k) }
 
 SBVRParser.reset = function() {
-	this.terms = {} 
-	this.verbs = {}
+	this.possMap = {
+		termDecl: ['T:'],
+		fcTpDecl: ['F:'],
+		ruleDecl: ['R:'],
+		term: {},
+		verb: {},
+		allowedAttrs: [
+			'Concept Type',
+			/* Custom Attributes */
+			'Database ID Field',
+			'Database Name Field',
+			'Database Table Name',
+			/* End Custom */
+			'Definition',
+			'Dictionary Basis',
+			'Example',
+			'General Concept',
+			'Namespace URI',
+			'Necessity',
+			'Note',
+			'Possibility',
+			'Reference Scheme',
+			'See',
+			'Source',
+			'Subject Field',
+			'Synonymous Form',
+			'Synonym'
+		],
+		modRule: [
+			'It is obligatory that',
+			'It is necessary that',
+			'It is prohibited that',
+			'It is impossible that',
+			'It is not possible that',
+			'It is possible that',
+			'It is permissible that'
+		],
+		quant: [
+			'each',
+			'a',
+			'an',
+			'some',
+			'at most',
+			'at least',
+//			'and at most',
+			'more than',
+			"exactly"
+		],
+		joinQuant: ['and at most'],
+		num: [
+			'1', '2', '3', '4', '5', '6', '7', '8', '9',
+			'one'
+		]
+	}
 	this.fctps = {}
 	this.ruleVars = {}
 	this.ruleVarsCount = 0
 	this.lines = []
+}
+
+
+/** **/
+SBVRParser.matchForAny = function(rule,arr) {
+	var origInput = this.input
+	for (var idx = 0; idx < arr.length; idx++)
+		try { this.input = origInput; return this._applyWithArgs.call(this, rule, arr[idx]) }
+		catch (f) {
+			if (f != fail) {
+				console.log(f.stack)
+				throw f
+			}
+		}
+	throw fail
+}
+SBVRParser.matchForAll = function(rule,arr) {
+	var ret
+	for (var idx = 0; idx < arr.length; idx++)
+		ret = this._applyWithArgs.call(this, rule, arr[idx])
+	return ret
 }

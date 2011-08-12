@@ -10,23 +10,23 @@ span.cm-sbvr-fcTpDecl{color: #A70;}
 span.cm-sbvr-ruleDecl{color: #299;}
 
 /* Noun */
-span.cm-sbvr-term/*, span.cm-sbvr-factTerm, span.cm-sbvr-ruleTerm*/  {
+span.cm-sbvr-term {
 	color: #108070;
 	text-decoration: underline;
 }
-span.cm-sbvr-quant/*, span.cm-sbvr-ruleQuantifier, span.cm-sbvr-ruleQuantity*/ {
-	color: orange;
-	font-weight: bolder;
-}
-span.cm-sbvr-verb/*, span.cm-sbvr-ruleVerb, span.cm-sbvr-factVerb*/ {
+
+span.cm-sbvr-verb {
 	color: blue;
 	font-style: italic;
 }
-span.cm-sbvr-modRule/*, span.cm-sbvr-ruleModifier*/ {
+span.cm-sbvr-modRule {
 	color: orange;
 }
 span.cm-sbvr-keyword {
 	color: orange;
+}
+span.cm-sbvr-num {
+	color: purple;
 }
 
 span.cm-sbvr-allowedAttrs {
