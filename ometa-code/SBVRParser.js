@@ -426,28 +426,23 @@
             return (function() {
                 (this["ruleVars"][x[(1)]] = this["ruleVarsCount"]++);
                 v = ["var", ["num", this["ruleVars"][x[(1)]]], x];
-                this._or((function() {
+                this._opt((function() {
                     return (function() {
+                        this._applyWithArgs("keyword", "that");
                         q = this._or((function() {
                             return (function() {
-                                this._applyWithArgs("keyword", "that");
                                 this._applyWithArgs("keyword", "the");
                                 return this._applyWithArgs("terbRi", [
                                     []
                                 ], x)
                             }).call(this)
                         }), (function() {
-                            return (function() {
-                                this._applyWithArgs("keyword", "that");
-                                return this._applyWithArgs("qTerbRi", [
-                                    []
-                                ], x)
-                            }).call(this)
+                            return this._applyWithArgs("qTerbRi", [
+                                []
+                            ], x)
                         }));
                         return v.push(q)
                     }).call(this)
-                }), (function() {
-                    return this._apply("empty")
                 }));
                 return v
             }).call(this)

@@ -27,7 +27,7 @@ ometa SBVRParser {
 	isKwrdSt  :p :q = &(spaces seq(q) word:w) {q!=''?q+' '+w:w}:w {p+' '+w}:n (isKwrd(n) -> true | isKwrdSt(p, w) -> true),
 	isTermSt  :p :q = &(spaces seq(q) word:w) {q!=''?q+' '+w:w}:w {p+' '+w}:n (isTerm(n) -> true | isTermSt(p, w) -> true),
 	isVerbSt  :p :q = &(spaces seq(q) word:w) {q!=''?q+' '+w:w}:w {p+' '+w}:n (isVerb(n) -> true | isVerbSt(p, w) -> true),
-
+	
 	findVar		:x	= {this.ruleVars[x[1]]},
 	bind		:x	= findVar(x):y											-> [`bind, x, y],
 
@@ -63,9 +63,10 @@ ometa SBVRParser {
 
 	keyword		:x	= token(x),
 	adVar		:x	= {this.ruleVars[x[1]] = this.ruleVarsCount++} {['var', ['num', this.ruleVars[x[1]]], x]}:v
-					(	( keyword("that") keyword("the") terbRi([[]], x)
-						| keyword("that") qTerbRi([[]], x) ):q	{v.push(q)}
-					| empty )												-> v,
+					( keyword("that")
+						( keyword("the") terbRi([[]], x)
+						| qTerbRi([[]], x) ):q {v.push(q)}
+					)?														-> v,
 
 	atfo		:c	= isFctp(c[0]) {c[0] = [`fcTp].concat(c[0])}			-> {d = [`aFrm]; d.concat(c)},
 
@@ -129,9 +130,9 @@ ometa SBVRParser {
 					):a	':'													-> a,
 
 	line			= spaces? (newTerm | fcTp | newRule | attribute):l spaces?
-						{this.lines.push(l)}								-> l,
+						{this.lines.push(l)}							-> l,
 	linef			= line (('\r'|'\n')*|end),
-	expr			= linef*												-> [`model].concat(this.lines)
+	expr			= linef*											-> [`model].concat(this.lines)
 }
 
 SBVRParser.keyTokens = ["termDecl", "fcTpDecl", "ruleDecl", "term", "modRule", "quant", "verb", "keyword", "allowedAttrs"];
