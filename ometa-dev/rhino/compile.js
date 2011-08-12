@@ -8,14 +8,20 @@ load("../../ometa-js/bs-ometa-js-compiler.js")
 
 load("../js/beautify.js")
 
+var console = {
+	log: function(val) {
+		print(val);
+	}
+}
+
 var translationError = function(m, i) { 
-	alert("Translation error - please tell Alex about this!"); throw fail 
+	console.log("Translation error - please tell Alex about this!"); throw fail 
 };
 var parsingError = function(m, i) {
-	print(m);
+	console.log(m);
 	var start = Math.max(0,i-20);
-	print('Error around: '+ometa.substring(start, Math.min(ometa.length,start+40)));
-	print('Error around: '+ometa.substring(i-2, Math.min(ometa.length,i+2)));
+	console.log('Error around: '+ometa.substring(start, Math.min(ometa.length,start+40)));
+	console.log('Error around: '+ometa.substring(i-2, Math.min(ometa.length,i+2)));
 	throw m;
 }
 
@@ -26,17 +32,17 @@ if(arguments[0]=='pretty') {
 }
 
 for(;i<arguments.length;i++) {
-	print('Reading: ' + arguments[i]);
+	console.log('Reading: ' + arguments[i]);
 	var ometa = readFile(arguments[i]).replace(/\r\n/g,"\n");
-	print('Parsing: ' + arguments[i]);
+	console.log('Parsing: ' + arguments[i]);
 	var tree = BSOMetaJSParser.matchAll(ometa, "topLevel", undefined, parsingError)
-	print('Compiling: ' + arguments[i]);
+	console.log('Compiling: ' + arguments[i]);
 	var js = BSOMetaJSTranslator.match(tree, "trans", undefined, translationError);
 	if(pretty===true) {
-		print('Beautifying: ' + arguments[i]);
+		console.log('Beautifying: ' + arguments[i]);
 		var js = js_beautify(js);
 	}
-	print('Writing: ' + arguments[i]);
+	console.log('Writing: ' + arguments[i]);
 	var fw = new java.io.FileWriter(arguments[i].substring(0,arguments[i].lastIndexOf('.'))+'.js',false);
 	fw.write(js);
 	fw.flush();
