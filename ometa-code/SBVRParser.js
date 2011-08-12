@@ -879,6 +879,7 @@
             return (function() {
                 this._pred(((this["lines"]["length"] > (0)) && (this["lines"][(this["lines"]["length"] - (1))][(0)] == "term")));
                 attrName = this._apply("allowedAttrs");
+                this._applyWithArgs("exactly", ":");
                 attrVal = this._apply("toEOL");
                 return (function() {
                     var lastLine = this["lines"].pop();
@@ -1235,7 +1236,6 @@
                         throw fail
                     }
                 }).call(this);
-                this._applyWithArgs("exactly", ":");
                 return a
             }).call(this)
         },

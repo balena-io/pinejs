@@ -104,7 +104,7 @@ ometa SBVRParser {
 	termDecl		= seq('T:'),
 	newTerm			= termDecl spaces? &mkTerm? term:t {t.push([])}		-> t,
 	attribute		= ?{this.lines.length>0 && this.lines[this.lines.length-1][0] == 'term'}
-						allowedAttrs:attrName toEOL:attrVal				-> {var lastLine = this.lines.pop(); lastLine[2].push([attrName.replace(new RegExp(' ','g'),''), attrVal]); lastLine},
+						allowedAttrs:attrName ':' toEOL:attrVal				-> {var lastLine = this.lines.pop(); lastLine[2].push([attrName.replace(new RegExp(' ','g'),''), attrVal]); lastLine},
 
 	allowedAttrs	= (
 						seq('Concept Type') |
@@ -127,7 +127,7 @@ ometa SBVRParser {
 						seq('Subject Field') |
 						seq('Synonymous Form') |
 						seq('Synonym')
-					):a	':'													-> a,
+					):a												-> a,
 
 	line			= spaces? (newTerm | fcTp | newRule | attribute):l spaces?
 						{this.lines.push(l)}							-> l,
