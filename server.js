@@ -59,7 +59,7 @@ function remoteServerRequest(method, uri, headers, body, successCallback, failur
 		case 'lfmodel':
 			if(method=="GET"){
 				if(localStorage._server_onAir=='true') {
-					successCallback({'status-line': 'HTTP/1.1 200 OK'}, localStorage._server_txtmod);
+					successCallback({'status-line': 'HTTP/1.1 200 OK'}, JSON.stringify(localStorage._server_txtmod));
 				}else if(failureCallback != undefined) {
 					failureCallback({'status-line': 'HTTP/1.1 404 Not Found'});
 				}
@@ -68,7 +68,7 @@ function remoteServerRequest(method, uri, headers, body, successCallback, failur
 		case 'prepmodel':
 			if(method=="GET"){
 				if(localStorage._server_onAir=='true') {
-					successCallback({'status-line': 'HTTP/1.1 200 OK'}, localStorage._server_prepmod);
+					successCallback({'status-line': 'HTTP/1.1 200 OK'}, JSON.stringify(localStorage._server_prepmod));
 				}else if(failureCallback != undefined) {
 					failureCallback({'status-line': 'HTTP/1.1 404 Not Found'});
 				}
@@ -77,7 +77,7 @@ function remoteServerRequest(method, uri, headers, body, successCallback, failur
 		case 'sqlmodel':
 			if(method=="GET"){
 				if(localStorage._server_onAir=='true') {
-					successCallback({'status-line': 'HTTP/1.1 200 OK'}, localStorage._server_sqlmod);
+					successCallback({'status-line': 'HTTP/1.1 200 OK'}, JSON.stringify(localStorage._server_sqlmod));
 				}else if(failureCallback != undefined) {
 					failureCallback({'status-line': 'HTTP/1.1 404 Not Found'});
 				}
