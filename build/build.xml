@@ -487,7 +487,7 @@
             <fileset dir="./${dir.intermediate}/">
                 <include name="${dir.js.main}/plugins.js"/>
                 <include name="${dir.js.main}/script.js"/>
-            </fileset>      
+            </fileset>
         </concat>
     </target>
     
@@ -495,11 +495,21 @@
         <mkdir dir="./${dir.intermediate}/${dir.js.mylibs}"/>
 
         <echo message="Concatenating JS libraries"/>
+		<delete file="./${dir.intermediate}/${dir.js}/mylibs-concat.js" />
+		<for list="${file.js.order}" param="file.js.order.each">
+			<sequential>
+				<echo message="Concatenating @{file.js.order.each}"/>
+				<concat destfile="./${dir.intermediate}/${dir.js}/mylibs-concat.js" append="yes">
+					<fileset dir="./${dir.intermediate}/${dir.js.mylibs}/"
+						includes="@{file.js.order.each}" />
+				</concat>
+			</sequential>
+		</for>
         <!-- overwrite=no here means not to overwrite if the target is newer than the sources -->
-        <concat destfile="./${dir.intermediate}/${dir.js}/mylibs-concat.js" overwrite="no">
+        <concat destfile="./${dir.intermediate}/${dir.js}/mylibs-concat.js" append="yes">
             <fileset dir="./${dir.intermediate}/${dir.js.mylibs}/"
                 includes="**/*.js" 
-                excludes="${file.js.bypass}"/>                
+                excludes="${file.js.order}, ${file.js.bypass}, ${file.js.ignore}"/>
                   
         </concat>
     </target>
@@ -529,8 +539,15 @@
     </target>
     
     
+    <target name="x" description="(PRIVATE) Minifies the scripts.js files created by js.scripts.concat">
+            <fileset id="myfileset" dir="${dir.source}/${dir.js.mylibs}/" includes="**/*.js" excludes="**/*.min.js, ${file.js.ignore}" />
+    <pathconvert pathsep="${line.separator}" property="sounds" refid="myfileset"/>
+	<echo>${sounds}</echo>
+	</target>
+    
+    
     <target name="-js.all.minify" depends="-mkdirs" description="(PRIVATE) Minifies the scripts.js files created by js.scripts.concat">
-        <echo message="Minifying scripts"/>
+		<echo message="Minifying scripts"/>
         <copy todir="${dir.intermediate}/">
             <fileset dir="${dir.source}/" includes="${dir.js}/**/*.min.js"  />
         </copy>
@@ -538,6 +555,7 @@
             <fileset dir="${dir.source}/" >
                 <include name="${dir.js}/**/*.js"/>
                 <exclude name="${dir.js}/**/*.min.js"/>
+                <exclude name="${dir.js.mylibs}/**/*.js"/>
             </fileset>
             <arg line="-jar"/>
             <arg path="./${dir.build.tools}/${tool.yuicompressor}"/>
@@ -546,6 +564,18 @@
             <arg line="4000"/>
             <arg line="-o"/>
             <mapper type="glob" from="*.js" to="${basedir}/${dir.intermediate}/*.js"/>
+            <targetfile/>
+        </apply>
+        <apply executable="java" parallel="false">
+            <fileset dir="${dir.source}/${dir.js.mylibs}/" includes="**/*.js" excludes="**/*.min.js, ${file.js.ignore}" />
+            <fileset dir="${dir.source}/${dir.js.mylibs}/" includes="${file.js.order}" excludes="**/*.min.js" />
+            <arg line="-jar"/>
+            <arg path="./${dir.build.tools}/${tool.yuicompressor}"/>
+            <srcfile/>
+            <arg line="--line-break"/>
+            <arg line="4000"/>
+            <arg line="-o"/>
+            <mapper type="glob" from="*.js" to="${basedir}/${dir.intermediate}/${dir.js.mylibs}/*.js"/>
             <targetfile/>
         </apply>
 
@@ -665,7 +695,8 @@
                 <for param="file">
                     <path>
                         <fileset dir="./${dir.intermediate}/${dir.js.mylibs}/"
-                            includes="${file.js.bypass}" />
+                            includes="${file.js.bypass}"
+							excludes="${file.js.ignore}" />
                     </path>
                     <sequential>
                         <basename property="filename.@{file}" file="@{file}" />
