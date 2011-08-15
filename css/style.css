@@ -208,10 +208,31 @@ td { vertical-align: top; }
 
 
 /* ==|== primary styles =====================================================
-   Author: 
+   Author: Alexandros Marinos
    ========================================================================== */
 
 
+.panel{
+	border-radius: 0px 15px 15px 15px;
+	padding:5px;
+}
+
+.icon{
+	float:right;
+}
+
+.textTable{
+	border-collapse: separate; 
+	border-spacing: 10px 0px;
+}
+
+.server_row td{
+	color:teal;
+}
+
+input[disabled] {
+	color: grey;
+}
 
 
 
