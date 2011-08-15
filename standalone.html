@@ -73,6 +73,7 @@ Copyright 2011 University of Surrey
 			function defaultSuccessCallback(header, result) {
 			}
 			
+			//should probably JSON.parse result when appropriate. Now the callbacks do it.
 			function serverRequest(method, uri, headers, body, successCallback, failureCallback, caller){
 				$("#httpTable").append(
 					'<tr class="server_row"><td><strong>' + method +
@@ -89,7 +90,7 @@ Copyright 2011 University of Surrey
 			function loadState() {
 				serverRequest("GET", "/onAir/", [], '', function(headers, result){
 					if(result!=undefined){
-					localStorage._client_onAir = JSON.parse(result);
+						localStorage._client_onAir = JSON.parse(result);
 					}
 				});
 			}
@@ -187,6 +188,7 @@ Copyright 2011 University of Surrey
 						JSON.stringify({"value":model})
 					);
 				}else{
+					//Saving the model to the server has failed.
 					//TODO: Give some explanation. (SBVR-style?)
 				}
 			}
@@ -203,7 +205,6 @@ Copyright 2011 University of Surrey
 					URItree = ClientURIParser.matchAll(theHash, 'expr'); //does not handle empty tree
 				}
 				
-				//console.log(URItree[1][1][0]);
 				try {
 					switchVal = URItree[1][1][0];
 				}
@@ -272,7 +273,7 @@ Copyright 2011 University of Surrey
 				)
 				
 				//TODO: This should be restructured to use jQuery's ajax() interface, so it can be switched
-				//between local and remote on demand (preferably with some variable setting)
+				//between local and remote as needed (preferably with some variable setting)
 				//http://api.jquery.com/jQuery.ajax/
 				serverRequest("GET", "/ui/textarea-is_disabled*filt:textarea.name=model_area/", [], '',
 					function(headers, result){
