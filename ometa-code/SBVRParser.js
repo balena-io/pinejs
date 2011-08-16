@@ -1010,6 +1010,36 @@
         (this["ruleVarsCount"] = (0));
         (this["lines"] = [])
     }));
+    (SBVRParser["equals"] = (function(compareTo) {
+        if ((this["possMap"]["verb"]["length"] != compareTo["possMap"]["verb"]["length"])) {
+            return false
+        } else {
+            undefined
+        };
+        for (var i = (this["possMap"]["verb"]["length"] - (1));
+        (i >= (0)); i--) {
+            if ((this["possMap"]["verb"][i] != compareTo["possMap"]["verb"]["length"])) {
+                return false
+            } else {
+                undefined
+            }
+        };
+        for (var x = undefined in this["possMap"]["term"]) {
+            if ((!compareTo["possMap"]["term"].hasOwnProperty(x))) {
+                return false
+            } else {
+                undefined
+            }
+        };
+        for (var x = undefined in compareTo["possMap"]["term"]) {
+            if ((!this["possMap"]["term"].hasOwnProperty(x))) {
+                return false
+            } else {
+                undefined
+            }
+        };
+        return true
+    }));
     (SBVRParser["matchForAny"] = (function(rule, arr) {
         var origInput = this["input"];
         for (var idx = (0);

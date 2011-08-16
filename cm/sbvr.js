@@ -8,21 +8,23 @@ CodeMirror.defineMode("sbvr", function(config) {
 		startState: function(base) {
 			return SBVRParser.createInstance();
 		},
+		
+		compareStates: function(origState, newState) {
+			return origState.equals(newState);
+		},
+		
+		blankLine: function(state) {
+			state._tokens = [];
+			state.__possibilities = [];
+		},
 
 		token: function(stream, state) {
 			if(stream.sol()) { //Reset most of the state because it's a new line.
 				try {
-					state._tokens = [];
-					state.__possibilities = [];
+					this.blankLine(state);
 					state.matchAll(stream.string,'line');
-					console.log(state);
 				}
-				catch(e) {
-					console.log(e);
-					console.log(state);
-//					stream.skipToEnd();
-//					return null;
-				}
+				catch(e) {}
 			}
 			if(state.nextToken != undefined && state.nextToken != null) {
 				var nextToken = state.nextToken;

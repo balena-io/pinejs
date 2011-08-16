@@ -216,6 +216,20 @@ SBVRParser.reset = function() {
 	this.lines = []
 }
 
+SBVRParser.equals = function(compareTo) {
+	if(this.possMap.verb.length != compareTo.possMap.verb.length) return false
+	for(var i = this.possMap.verb.length - 1; i >= 0; i--) {
+		if(this.possMap.verb[i] != compareTo.possMap.verb.length) return false
+	}
+	for(var x in this.possMap.term) {
+		if(!compareTo.possMap.term.hasOwnProperty(x)) return false
+	}
+	for(var x in compareTo.possMap.term) {
+		if(!this.possMap.term.hasOwnProperty(x)) return false
+	}
+	return true
+}
+
 
 /** **/
 SBVRParser.matchForAny = function(rule,arr) {
