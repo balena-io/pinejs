@@ -333,8 +333,6 @@ Copyright 2011 University of Surrey
 				}
 			}
 		</script>
-	</head>
-	<body>
 		<script>
 			//Initialise controls and shoot off the loadUI & processHash functions
 			$(function() {
@@ -342,8 +340,14 @@ Copyright 2011 University of Surrey
 				loadState();
 				loadUI();
 				processHash();
+	
+				$('#bldb').file().choose(function(e, input) {
+					handleFiles(input[0].files);
+				});
 			});
 		</script>
+	</head>
+	<body>
 		
 		<div id="dialog-message" title="Unable to complete request"></div>
 		
@@ -402,10 +406,6 @@ if(!!window.FileReader)
 		}
 		reader.readAsText(files[0]);
 	}
-	
-	$('#bldb').file().choose(function(e, input) {
-		handleFiles(input[0].files);
-	});
 }
 				</script>
 				<input type="button" id='bidb' value="Import DB" onClick="importDB(importExportEditor.getValue());return false">
