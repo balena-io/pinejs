@@ -539,18 +539,25 @@
     </target>
     
     
-    <target name="x" description="(PRIVATE) Minifies the scripts.js files created by js.scripts.concat">
-            <fileset id="myfileset" dir="${dir.source}/${dir.js.mylibs}/" includes="**/*.js" excludes="**/*.min.js, ${file.js.ignore}" />
-    <pathconvert pathsep="${line.separator}" property="sounds" refid="myfileset"/>
-	<echo>${sounds}</echo>
-	</target>
-    
-    
     <target name="-js.all.minify" depends="-mkdirs" description="(PRIVATE) Minifies the scripts.js files created by js.scripts.concat">
 		<echo message="Minifying scripts"/>
         <copy todir="${dir.intermediate}/">
             <fileset dir="${dir.source}/" includes="${dir.js}/**/*.min.js"  />
         </copy>
+		
+		<mkdir dir="${basedir}/${dir.intermediate}/${dir.js.mylibs}/external"/>
+        <apply executable="java" parallel="false" dest="${basedir}/${dir.intermediate}/${dir.js.mylibs}/external/">
+            <fileset dir="${dir.source}/" includes="${file.js.external}" />
+            <arg line="-jar"/>
+            <arg path="./${dir.build.tools}/${tool.yuicompressor}"/>
+            <srcfile/>
+            <arg line="--line-break"/>
+            <arg line="4000"/>
+            <arg line="-o"/>
+            <flattenmapper/>
+            <targetfile/>
+        </apply>
+		
         <apply executable="java" parallel="false">
             <fileset dir="${dir.source}/" >
                 <include name="${dir.js}/**/*.js"/>
