@@ -59,6 +59,7 @@ CodeMirror.defineMode("sbvr", function(config) {
 		indent: function(state, textAfter) {
 			return 0; //We don't indent SBVR
 		}
+		
 	};
 });
 

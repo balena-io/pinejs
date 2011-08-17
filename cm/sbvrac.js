@@ -1,5 +1,12 @@
-var editor;
-(function () {
+var sbvrAutoComplete = (function () {
+	return function(instance, e) {
+		// Hook into ctrl-space
+		if (e.keyCode == 32 && (e.ctrlKey || e.metaKey) && !e.altKey) {
+			e.stop();
+			return startComplete(instance);
+		}
+	}
+	
 	/** Start code reused from example auto-completion (http://codemirror.net/demo/complete.js) **/
 	// Minimal event-handling wrapper.
 	function stopEvent() {
@@ -24,17 +31,6 @@ var editor;
 		else
 			for (var i in o) f(i);
 	}
-
-	editor = CodeMirror.fromTextArea(document.getElementById("modelArea"), {
-		mode: "sbvr",
-		onKeyEvent: function(instance, e) {
-			// Hook into ctrl-space
-			if (e.keyCode == 32 && (e.ctrlKey || e.metaKey) && !e.altKey) {
-				e.stop();
-				return startComplete(instance);
-			}
-		}
-	});
 	/** End code reused from example auto-completion (http://codemirror.net/demo/complete.js) **/
 
 	function startComplete(editor) {
@@ -91,7 +87,7 @@ var editor;
 			else if (code == 27) {event.stop(); close(); editor.focus();}
 			//Backspace
 			else if (code == 8 && token.string.length == 0) {event.stop(); close(); editor.focus();}
-			else if (code != 38 && code != 40) {close(); editor.focus(); setTimeout(startComplete, 50);}
+			else if (code != 38 && code != 40) {close(); editor.focus(); setTimeout(function(){startComplete(editor)}, 50);}
 		});
 		connect(sel, "dblclick", pick);
 
@@ -146,4 +142,4 @@ var editor;
 		}
 		return found;
 	}
-})();
+})()

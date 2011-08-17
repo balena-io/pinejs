@@ -78,7 +78,7 @@ Copyright 2011 University of Surrey
 					<input type="button" id='blm2' value="Load Model 2"  onClick="loadmod(model2);return false">
 					<input type="button" id='blm3' value="Load Model 3"  onClick="loadmod(model3);return false">
 					<input type="button" id='blmt' value="Load Test"     onClick="loadmod(modelTest);return false">
-					<input type="button" id='bem'  value="Execute Model" onClick="transformClient(editor.getValue());return false">
+					<input type="button" id='bem'  value="Execute Model" onClick="transformClient(sbvrEditor.getValue());return false">
 					<input type="button" id='bum'  value="Update Model"  onClick="return false">
 					<input type="button" id='br'   value="Reset"         onClick="resetClient();return false">
 					<input type="button" id='bbdb' value="Backup DB"     onClick="backupDB();return false">
@@ -169,7 +169,7 @@ Copyright 2011 University of Surrey
 	<script defer src="cm/sbvrac.js"></script>
 	
 	<script defer type='text/javascript'>
-		var sqlEditor;
+		var sqlEditor, sbvrEditor, importExportEditor;
 	
 		function defaultFailureCallback(error) {
 			console.log(error);
@@ -278,7 +278,7 @@ Copyright 2011 University of Surrey
 			//**actions should go in the callback to be executed after the DELETE.
 			serverRequest("DELETE",	"/", [], '', function(){
 				$("#modelArea").attr('disabled', false);
-				editor.setValue("");
+				sbvrEditor.setValue("");
 				$("#lfArea").val("");
 				$("#prepArea").val("");
 				sqlEditor.setValue("");
@@ -291,7 +291,7 @@ Copyright 2011 University of Surrey
 
 		function loadmod(model){
 			if(!(localStorage._client_onAir=='true')){
-				editor.setValue(model);
+				sbvrEditor.setValue(model);
 				serverRequest("PUT",
 					"/ui/textarea*filt:name=model_area/",
 					{"Content-Type":"application/json"},
@@ -346,7 +346,7 @@ Copyright 2011 University of Surrey
 					break;
 //					case "model": //Model is the default view.
 				default:
-					editor.refresh();
+					sbvrEditor.refresh();
 					$('#tabs').tabs("select",0);
 					break;
 			}
@@ -363,22 +363,19 @@ Copyright 2011 University of Surrey
 				});
 			}
 			
+			
+
+			sbvrEditor = CodeMirror.fromTextArea(document.getElementById("modelArea"), {
+				mode: "sbvr",
+				onKeyEvent: sbvrAutoComplete
+			});
 			sqlEditor = CodeMirror.fromTextArea(document.getElementById("sqlArea"), {mode: "text/x-plsql"});
 			importExportEditor = CodeMirror.fromTextArea(document.getElementById("importExportArea"), {mode: "text/x-plsql"});
-/*				editor = CodeMirror.fromTextArea(document.getElementById("modelArea"), {
-				onKeyEvent: function(i, e) {
-					// Hook into ctrl-space
-					if (e.keyCode == 32 && (e.ctrlKey || e.metaKey) && !e.altKey) {
-						e.stop();
-						return startComplete();
-					}
-				}
-			});*/
 			
 			window.onhashchange = processHash;
 			serverRequest("GET", "/ui/textarea*filt:name=model_area/", [], '',
 				function(headers, result){
-					editor.setValue(JSON.parse(result).value);
+					sbvrEditor.setValue(JSON.parse(result).value);
 				}
 			)
 			
@@ -396,7 +393,7 @@ Copyright 2011 University of Surrey
 				serverRequest("PUT",
 					"/ui/textarea*filt:name=model_area/",
 					{"Content-Type":"application/json"},
-					JSON.stringify({"value":editor.getValue()})
+					JSON.stringify({"value":sbvrEditor.getValue()})
 				);
 			});
 			
