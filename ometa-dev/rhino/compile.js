@@ -1,10 +1,10 @@
-load("../../js/mylibs/ometa-js/lib.js")
-load("../../js/mylibs/ometa-js/ometa-base.js")
-load("../../js/mylibs/ometa-js/parser.js")
-load("../../js/mylibs/ometa-js/bs-js-compiler.js")
-load("../../js/mylibs/ometa-js/bs-ometa-compiler.js")
-load("../../js/mylibs/ometa-js/bs-ometa-optimizer.js")
-load("../../js/mylibs/ometa-js/bs-ometa-js-compiler.js")
+load("../../ometa-js/lib.js")
+load("../../ometa-js/ometa-base.js")
+load("../../ometa-js/parser.js")
+load("../../ometa-js/bs-js-compiler.js")
+load("../../ometa-js/bs-ometa-compiler.js")
+load("../../ometa-js/bs-ometa-optimizer.js")
+load("../../ometa-js/bs-ometa-js-compiler.js")
 
 load("../js/beautify.js")
 
