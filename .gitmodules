@@ -1,6 +1,6 @@
 [submodule "CodeMirror2"]
 	path = CodeMirror2
 	url = git://github.com/Page-/CodeMirror2.git
-[submodule "js/mylibs/ometa-js"]
-	path = js/mylibs/ometa-js
+[submodule "ometa-js"]
+	path = ometa-js
 	url = git://github.com/Page-/ometa-js.git
