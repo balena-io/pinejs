@@ -119,40 +119,44 @@ function remoteServerRequest(method, uri, headers, body, successCallback, failur
 			}
 			break;
 		case 'data':
-			if(tree[1]==undefined){
-				switch(method){
-					case "GET":
-						dataGET(tree, headers, body, successCallback, failureCallback, caller)
+			if(localStorage._server_onAir=='true') {
+				if(tree[1]==undefined){
+					switch(method){
+						case "GET":
+							dataGET(tree, headers, body, successCallback, failureCallback, caller)
+					}
+				}else if(tree[1][1]=='transaction' && method == 'GET'){
+					//what's the id?
+					o = {'id' : tree[1][3][1][1][3],
+					'tcURI'  : '/transaction',
+					'lcURI'  : '/data/lock',
+					'tlcURI' : '/data/lock-belongs_to-transaction',
+					'rcURI'  : '/data/resource',
+					'lrcURI' : '/data/resource-is_under-lock',
+					'slcURI' : '/data/lock-is_shared',
+					'xlcURI' : '/data/lock-is_exclusive',
+					'ctURI'  : '/data/transaction*filt:transaction.id=' + tree[1][3][1][1][3] + '/execute'}
+				
+					successCallback({'status-line': 'HTTP/1.1 200 OK'}, JSON.stringify(o), caller);
+				}else{
+					switch(method){
+						case "GET":
+							console.log('body:[' + body + ']')
+							dataplusGET(tree, headers, body, successCallback, failureCallback, caller)
+							break;
+						case "POST":
+							dataplusPOST(tree, headers, body, successCallback, failureCallback, caller)
+							break;
+						case "PUT":
+							dataplusPUT(tree, headers, body, successCallback, failureCallback, caller)
+							break;
+						case "DELETE":
+							dataplusDELETE(tree, headers, body, successCallback, failureCallback, caller)
+							break;
+					}
 				}
-			}else if(tree[1][1]=='transaction' && method == 'GET'){
-				//what's the id?
-				o = {'id' : tree[1][3][1][1][3],
-				'tcURI'  : '/transaction',
-				'lcURI'  : '/data/lock',
-				'tlcURI' : '/data/lock-belongs_to-transaction',
-				'rcURI'  : '/data/resource',
-				'lrcURI' : '/data/resource-is_under-lock',
-				'slcURI' : '/data/lock-is_shared',
-				'xlcURI' : '/data/lock-is_exclusive',
-				'ctURI'  : '/data/transaction*filt:transaction.id=' + tree[1][3][1][1][3] + '/execute'}
-			
-				successCallback({'status-line': 'HTTP/1.1 200 OK'}, JSON.stringify(o), caller);
-			}else{
-				switch(method){
-					case "GET":
-						console.log('body:[' + body + ']')
-						dataplusGET(tree, headers, body, successCallback, failureCallback, caller)
-						break;
-					case "POST":
-						dataplusPOST(tree, headers, body, successCallback, failureCallback, caller)
-						break;
-					case "PUT":
-						dataplusPUT(tree, headers, body, successCallback, failureCallback, caller)
-						break;
-					case "DELETE":
-						dataplusDELETE(tree, headers, body, successCallback, failureCallback, caller)
-						break;
-				}
+			}else if(failureCallback != undefined) {
+				failureCallback({'status-line': 'HTTP/1.1 404 Not Found'});
 			}
 			break;
 		default:
