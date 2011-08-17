@@ -104,17 +104,17 @@ Copyright 2011 University of Surrey
 		<div id="importExportTab">
 			<textarea id="importExportArea" rows="15" cols="136"></textarea>
 			<script type="text/javascript">
-if(!!window.FileReader)
-{
-	document.write('<input type="button" id="bldb" value="Load File">');
-	function handleFiles(files) {
-		var reader = new FileReader();
-		reader.onloadend = function(e) {
-			importExportEditor.setValue(e.target.result);
-		}
-		reader.readAsText(files[0]);
-	}
-}
+				if(!!window.FileReader)
+				{
+					document.write('<input type="button" id="bldb" value="Load File">');
+					function handleFiles(files) {
+						var reader = new FileReader();
+						reader.onloadend = function(e) {
+							importExportEditor.setValue(e.target.result);
+						}
+						reader.readAsText(files[0]);
+					}
+				}
 			</script>
 			<input type="button" id='bidb' value="Import DB" onClick="importDB(importExportEditor.getValue());return false">
 			<input type="button" id='bedb' value="Export DB" onClick="exportDB(importExportEditor);return false">
@@ -136,325 +136,325 @@ if(!!window.FileReader)
 	<!-- scripts concatenated and minified via ant build script-->
 	<script defer src="js/plugins.js"></script>
 	<script defer src="js/script.js"></script>
-	<script src="js/mylibs/ometa-js/lib.js"></script>
-	<script src="js/mylibs/ometa-js/ometa-base.js"></script>
+	<script defer src="js/mylibs/ometa-js/lib.js"></script>
+	<script defer src="js/mylibs/ometa-js/ometa-base.js"></script>
 		
-	<script src="js/mylibs/json2.js"></script>
-	
-	<script src='ometa-code/SBVRParser.js'></script>
-	<script src='ometa-code/SBVR_PreProc.js'></script>
-	<script src='ometa-code/SBVR2SQL.js'></script>
-	<script src='ometa-code/ClientURIParser.js'></script>
-	<script src='ometa-code/ClientURIUnparser.js'></script>
-	<script src='ometa-code/ServerURIParser.js'></script>
-	<script src='ometa-code/Prettify.js'></script>
+	<script defer src="js/mylibs/json2.js"></script>
 		
-	<script src='ometa-code/SBVRModels.js'></script>
-		
-	<script src="server.js"></script>
-	<script src="drawDataUI.js"></script>
-	<script src="runTrans.js"></script>
-	<script src="backupRestore.js"></script>
-		
-	<script src="js/libs/jquery-1.6.2.min.js"></script>
-	<script src="js/mylibs/jquery-ui-1.8.11.custom.min.js"></script>
-	<script src="js/mylibs/jquery-custom-file-input.js"></script>
-		
-	<script src="CodeMirror2/lib/codemirror.js"></script>
-	<script src="CodeMirror2/mode/plsql/plsql.js"></script>
-	<script src="cm/sbvr.js"></script>
-
-	<script src="cm/inflection.js"></script>
-	<script src="cm/sbvrac.js"></script>
+	<script defer src="js/libs/jquery-1.6.2.min.js"></script>
+	<script defer src="js/mylibs/jquery-ui-1.8.11.custom.min.js"></script>
+	<script defer src="js/mylibs/jquery-custom-file-input.js"></script>
 	<!-- end scripts-->
-		<script type='text/javascript'>
-			var sqlEditor;
-		
-			function defaultFailureCallback(error) {
-				console.log(error);
-				exc = '<span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 50px 0;"></span>';
-					msg = error['status-line']?error['status-line']:error.join('<br/>');
-					$( "#dialog-message" ).html( exc + msg );
-					$( "#dialog-message" ).dialog( "open" );
-				//console.log("fail!", error);
-			}
-		
-			function defaultSuccessCallback(header, result) {
-			}
-			
-			//should probably JSON.parse result when appropriate. Now the callbacks do it.
-			function serverRequest(method, uri, headers, body, successCallback, failureCallback, caller){
-				$("#httpTable").append(
-					'<tr class="server_row"><td><strong>' + method +
-					"</strong></td><td>" + uri + "</td><td>" + (headers.length==0?'':headers) +
-					"</td><td>" + body + "</td></tr>"
-				);
-				remoteServerRequest(method, uri, headers, body,
-					typeof successCallback != 'function' ? defaultSuccessCallback : successCallback,
-					typeof failureCallback != 'function' ? defaultFailureCallback : failureCallback,
-					caller);
-			}
-		
-			//txtmod = '';
-			function loadState() {
-				serverRequest("GET", "/onAir/", [], '', function(headers, result){
-					if(result!=undefined){
-						localStorage._client_onAir = JSON.parse(result);
-					}
-				});
-			}
-			
-			function transformClient(model) {
-				$("#modelArea").attr('disabled',true);
-				//TODO: Add success/failure callbacks.
-				serverRequest("PUT",
-					"/ui/textarea-is_disabled*filt:textarea.name=model_area/",
-					{"Content-Type":"application/json"},
-					JSON.stringify({"value":true}),
-					function() {
-					
-						serverRequest("PUT",
-							"/ui/textarea*filt:name=model_area/",
-							{"Content-Type":"application/json"},
-							JSON.stringify({"value":model}),
-							function() {
-			
-								serverRequest("POST",
-									"/execute/",
-									{"Content-Type":"application/json"},
-									'',
-									function() {
-							
-										//serverRequest("GET", "/model/", [], '', function(headers, result){
-										//	txtmod = result;
-										//});
-									
-										serverRequest("GET",
-											"/lfmodel/",
-											{},
-											'',
-											function(headers, result) {
-												$("#lfArea").val(Prettify.match(JSON.parse(result),'elem'));
-			
-												serverRequest("GET",
-													"/prepmodel/",
-													{},
-													'',
-													function(headers, result) {
-														$("#prepArea").val(Prettify.match(JSON.parse(result),'elem'));
-														
-														serverRequest("GET",
-															"/sqlmodel/",
-															{},
-															'',
-															function(headers, result) {
-																sqlEditor.setValue(Prettify.match(JSON.parse(result),'elem'));
-				
-																localStorage._client_onAir=true
-																
-																$('#bum').removeAttr('disabled');
-																$('#br').removeAttr('disabled');
-																$('#bem').attr('disabled','disabled');
-															}
-														);
-													}
-												);
-											}
-										);
-									}
-								);
-							}
-						);
-					}
-				);
-			}
-			
-			function updateModel(){
-				return true;
-			}
-
-			function resetClient(){
-				//**actions should go in the callback to be executed after the DELETE.
-				serverRequest("DELETE",	"/", [], '', function(){
-					$("#modelArea").attr('disabled', false);
-					editor.setValue("");
-					$("#lfArea").val("");
-					$("#prepArea").val("");
-					sqlEditor.setValue("");
-					$('#bem').removeAttr('disabled');
-					$('#bum').attr('disabled','disabled');
-					$('#br').attr('disabled','disabled');
-					localStorage._client_onAir=false;
-				});
-			}
-
-			function loadmod(model){
-				if(!(localStorage._client_onAir=='true')){
-					editor.setValue(model);
-					serverRequest("PUT",
-						"/ui/textarea*filt:name=model_area/",
-						{"Content-Type":"application/json"},
-						JSON.stringify({"value":model})
-					);
-				}else{
-					//Saving the model to the server has failed.
-					//TODO: Give some explanation. (SBVR-style?)
-				}
-			}
-			
-			function processHash(){
-				theHash = location.hash
-				if(theHash == ''){
-					theHash = '#!/model'
-				}
-				
-				if(theHash.slice(1,9) == '!/server'){
-					URItree = [[],[[],['server']]];
-				}else{
-					URItree = ClientURIParser.matchAll(theHash, 'expr'); //does not handle empty tree
-				}
-				
-				try {
-					switchVal = URItree[1][1][0];
-				}
-				catch($e) {
-					switchVal = '';
-				}
-				
-				switch(switchVal) {
-					case "server":
-						//console.log(location.hash.slice(9));
-						uri = location.hash.slice(9);
-						serverRequest("GET", uri, "", {}, function(headers, result){
-							alert(result);
-						});
-						break;
-					case "sql":
-						$('#tabs').tabs("select",3);
-						sqlEditor.refresh(); //Force a refresh on switching to the tab, otherwise it wasn't appearing.
-						break;
-					case "data":
-						$('#tabs').tabs("select",4);
-						drawData(URItree[1]);
-						break;
-					case "http":
-						$('#tabs').tabs("select",5);
-						break;
-					case "export":
-						$('#tabs').tabs("select",6);
-						break;
-//					case "model": //Model is the default view.
-					default:
-						editor.refresh();
-						$('#tabs').tabs("select",0);
-						break;
-				}
-			}
-		
-			//break loadUI apart to loadState and SetUI (with a view to converting LoadState to a single request)?
-			function loadUI(){
-				//request schema from server and store locally.
-				if(localStorage._client_onAir=='true'){
-					serverRequest("GET", "/model/", [], '', function(headers, result) {
-						ctree = SBVRParser.matchAll(result, 'expr');
-						ctree = SBVR_PreProc.match(ctree, "optimizeTree");
-						cmod = SBVR2SQL.match(ctree,'trans');
-					});
-				}
-				
-				sqlEditor = CodeMirror.fromTextArea(document.getElementById("sqlArea"), {mode: "text/x-plsql"});
-				importExportEditor = CodeMirror.fromTextArea(document.getElementById("importExportArea"), {mode: "text/x-plsql"});
-/*				editor = CodeMirror.fromTextArea(document.getElementById("modelArea"), {
-					onKeyEvent: function(i, e) {
-						// Hook into ctrl-space
-						if (e.keyCode == 32 && (e.ctrlKey || e.metaKey) && !e.altKey) {
-							e.stop();
-							return startComplete();
-						}
-					}
-				});*/
-				
-				window.onhashchange = processHash;
-				serverRequest("GET", "/ui/textarea*filt:name=model_area/", [], '',
-					function(headers, result){
-						editor.setValue(JSON.parse(result).value);
-					}
-				)
-				
-				//TODO: This should be restructured to use jQuery's ajax() interface, so it can be switched
-				//between local and remote as needed (preferably with some variable setting)
-				//http://api.jquery.com/jQuery.ajax/
-				serverRequest("GET", "/ui/textarea-is_disabled*filt:textarea.name=model_area/", [], '',
-					function(headers, result){
-						$("#modelArea").attr('disabled', JSON.parse(result).value)
-					}
-				)
-				
-				//how do we fix this? - ignore. It gets updated on execute anyway. 
-				$("#modelArea").change(function(){
-					serverRequest("PUT",
-						"/ui/textarea*filt:name=model_area/",
-						{"Content-Type":"application/json"},
-						JSON.stringify({"value":editor.getValue()})
-					);
-				});
-				
-				if(localStorage._client_onAir=='true'){
-					serverRequest("GET", "/lfmodel/", [], '', function(headers, result){
-						$("#lfArea").val(Prettify.match(JSON.parse(result),'elem'));
-					});
-				
-					serverRequest("GET", "/prepmodel/", [], '', function(headers, result){
-						$("#prepArea").val(Prettify.match(JSON.parse(result),'elem'));
-					});
-				
-					serverRequest("GET", "/sqlmodel/", [], '', function(headers, result){
-						sqlEditor.setValue(Prettify.match(JSON.parse(result),'elem'));
-					});	
-				}
-				
-				//Prepare dialog
-				$(function() {
-					$( "#dialog-message" ).dialog({
-						modal: true,
-						resizable: false,
-						autoOpen: false,
-						buttons: {
-							"Revise Request": function() {
-								$( this ).dialog( "close" );
-							},
-							"Revise Model": function() {
-								$( this ).dialog( "close" );
-							}
-						}
-					});
-				});
-				
-				//Enable/disable model editor buttons
-				if(localStorage._client_onAir=='true'){
-					$('#bem').attr('disabled','disabled');
-					//$('#bum').removeAttr('disabled');
-					//$('#br').removeAttr('disabled');
-				}else{
-					$('#bum').attr('disabled','disabled');
-					$('#br').attr('disabled','disabled');
-					//$('#bem').removeAttr('disabled');
-				}
-			}
-		</script>
-		<script>
-			//Initialise controls and shoot off the loadUI & processHash functions
-			$(function() {
-				$("#tabs").tabs();
-				loadState();
-				loadUI();
-				processHash();
 	
-				$('#bldb').file().choose(function(e, input) {
-					handleFiles(input[0].files);
+	<script defer src='ometa-code/SBVRParser.js'></script>
+	<script defer src='ometa-code/SBVR_PreProc.js'></script>
+	<script defer src='ometa-code/SBVR2SQL.js'></script>
+	<script defer src='ometa-code/ClientURIParser.js'></script>
+	<script defer src='ometa-code/ClientURIUnparser.js'></script>
+	<script defer src='ometa-code/ServerURIParser.js'></script>
+	<script defer src='ometa-code/Prettify.js'></script>
+		
+	<script defer src='ometa-code/SBVRModels.js'></script>
+		
+	<script defer src="server.js"></script>
+	<script defer src="drawDataUI.js"></script>
+	<script defer src="runTrans.js"></script>
+	<script defer src="backupRestore.js"></script>
+	
+	<script defer src="CodeMirror2/lib/codemirror.js"></script>
+	<script defer src="CodeMirror2/mode/plsql/plsql.js"></script>
+	<script defer src="cm/sbvr.js"></script>
+
+	<script defer src="cm/inflection.js"></script>
+	<script defer src="cm/sbvrac.js"></script>
+	
+	<script defer type='text/javascript'>
+		var sqlEditor;
+	
+		function defaultFailureCallback(error) {
+			console.log(error);
+			exc = '<span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 50px 0;"></span>';
+				msg = error['status-line']?error['status-line']:error.join('<br/>');
+				$( "#dialog-message" ).html( exc + msg );
+				$( "#dialog-message" ).dialog( "open" );
+			//console.log("fail!", error);
+		}
+	
+		function defaultSuccessCallback(header, result) {
+		}
+		
+		//should probably JSON.parse result when appropriate. Now the callbacks do it.
+		function serverRequest(method, uri, headers, body, successCallback, failureCallback, caller){
+			$("#httpTable").append(
+				'<tr class="server_row"><td><strong>' + method +
+				"</strong></td><td>" + uri + "</td><td>" + (headers.length==0?'':headers) +
+				"</td><td>" + body + "</td></tr>"
+			);
+			remoteServerRequest(method, uri, headers, body,
+				typeof successCallback != 'function' ? defaultSuccessCallback : successCallback,
+				typeof failureCallback != 'function' ? defaultFailureCallback : failureCallback,
+				caller);
+		}
+	
+		//txtmod = '';
+		function loadState() {
+			serverRequest("GET", "/onAir/", [], '', function(headers, result){
+				if(result!=undefined){
+					localStorage._client_onAir = JSON.parse(result);
+				}
+			});
+		}
+		
+		function transformClient(model) {
+			$("#modelArea").attr('disabled',true);
+			//TODO: Add success/failure callbacks.
+			serverRequest("PUT",
+				"/ui/textarea-is_disabled*filt:textarea.name=model_area/",
+				{"Content-Type":"application/json"},
+				JSON.stringify({"value":true}),
+				function() {
+				
+					serverRequest("PUT",
+						"/ui/textarea*filt:name=model_area/",
+						{"Content-Type":"application/json"},
+						JSON.stringify({"value":model}),
+						function() {
+		
+							serverRequest("POST",
+								"/execute/",
+								{"Content-Type":"application/json"},
+								'',
+								function() {
+						
+									//serverRequest("GET", "/model/", [], '', function(headers, result){
+									//	txtmod = result;
+									//});
+								
+									serverRequest("GET",
+										"/lfmodel/",
+										{},
+										'',
+										function(headers, result) {
+											$("#lfArea").val(Prettify.match(JSON.parse(result),'elem'));
+		
+											serverRequest("GET",
+												"/prepmodel/",
+												{},
+												'',
+												function(headers, result) {
+													$("#prepArea").val(Prettify.match(JSON.parse(result),'elem'));
+													
+													serverRequest("GET",
+														"/sqlmodel/",
+														{},
+														'',
+														function(headers, result) {
+															sqlEditor.setValue(Prettify.match(JSON.parse(result),'elem'));
+			
+															localStorage._client_onAir=true
+															
+															$('#bum').removeAttr('disabled');
+															$('#br').removeAttr('disabled');
+															$('#bem').attr('disabled','disabled');
+														}
+													);
+												}
+											);
+										}
+									);
+								}
+							);
+						}
+					);
+				}
+			);
+		}
+		
+		function updateModel(){
+			return true;
+		}
+
+		function resetClient(){
+			//**actions should go in the callback to be executed after the DELETE.
+			serverRequest("DELETE",	"/", [], '', function(){
+				$("#modelArea").attr('disabled', false);
+				editor.setValue("");
+				$("#lfArea").val("");
+				$("#prepArea").val("");
+				sqlEditor.setValue("");
+				$('#bem').removeAttr('disabled');
+				$('#bum').attr('disabled','disabled');
+				$('#br').attr('disabled','disabled');
+				localStorage._client_onAir=false;
+			});
+		}
+
+		function loadmod(model){
+			if(!(localStorage._client_onAir=='true')){
+				editor.setValue(model);
+				serverRequest("PUT",
+					"/ui/textarea*filt:name=model_area/",
+					{"Content-Type":"application/json"},
+					JSON.stringify({"value":model})
+				);
+			}else{
+				//Saving the model to the server has failed.
+				//TODO: Give some explanation. (SBVR-style?)
+			}
+		}
+		
+		function processHash(){
+			theHash = location.hash
+			if(theHash == ''){
+				theHash = '#!/model'
+			}
+			
+			if(theHash.slice(1,9) == '!/server'){
+				URItree = [[],[[],['server']]];
+			}else{
+				URItree = ClientURIParser.matchAll(theHash, 'expr'); //does not handle empty tree
+			}
+			
+			try {
+				switchVal = URItree[1][1][0];
+			}
+			catch($e) {
+				switchVal = '';
+			}
+			
+			switch(switchVal) {
+				case "server":
+					//console.log(location.hash.slice(9));
+					uri = location.hash.slice(9);
+					serverRequest("GET", uri, "", {}, function(headers, result){
+						alert(result);
+					});
+					break;
+				case "sql":
+					$('#tabs').tabs("select",3);
+					sqlEditor.refresh(); //Force a refresh on switching to the tab, otherwise it wasn't appearing.
+					break;
+				case "data":
+					$('#tabs').tabs("select",4);
+					drawData(URItree[1]);
+					break;
+				case "http":
+					$('#tabs').tabs("select",5);
+					break;
+				case "export":
+					$('#tabs').tabs("select",6);
+					break;
+//					case "model": //Model is the default view.
+				default:
+					editor.refresh();
+					$('#tabs').tabs("select",0);
+					break;
+			}
+		}
+	
+		//break loadUI apart to loadState and SetUI (with a view to converting LoadState to a single request)?
+		function loadUI(){
+			//request schema from server and store locally.
+			if(localStorage._client_onAir=='true'){
+				serverRequest("GET", "/model/", [], '', function(headers, result) {
+					ctree = SBVRParser.matchAll(result, 'expr');
+					ctree = SBVR_PreProc.match(ctree, "optimizeTree");
+					cmod = SBVR2SQL.match(ctree,'trans');
+				});
+			}
+			
+			sqlEditor = CodeMirror.fromTextArea(document.getElementById("sqlArea"), {mode: "text/x-plsql"});
+			importExportEditor = CodeMirror.fromTextArea(document.getElementById("importExportArea"), {mode: "text/x-plsql"});
+/*				editor = CodeMirror.fromTextArea(document.getElementById("modelArea"), {
+				onKeyEvent: function(i, e) {
+					// Hook into ctrl-space
+					if (e.keyCode == 32 && (e.ctrlKey || e.metaKey) && !e.altKey) {
+						e.stop();
+						return startComplete();
+					}
+				}
+			});*/
+			
+			window.onhashchange = processHash;
+			serverRequest("GET", "/ui/textarea*filt:name=model_area/", [], '',
+				function(headers, result){
+					editor.setValue(JSON.parse(result).value);
+				}
+			)
+			
+			//TODO: This should be restructured to use jQuery's ajax() interface, so it can be switched
+			//between local and remote as needed (preferably with some variable setting)
+			//http://api.jquery.com/jQuery.ajax/
+			serverRequest("GET", "/ui/textarea-is_disabled*filt:textarea.name=model_area/", [], '',
+				function(headers, result){
+					$("#modelArea").attr('disabled', JSON.parse(result).value)
+				}
+			)
+			
+			//how do we fix this? - ignore. It gets updated on execute anyway. 
+			$("#modelArea").change(function(){
+				serverRequest("PUT",
+					"/ui/textarea*filt:name=model_area/",
+					{"Content-Type":"application/json"},
+					JSON.stringify({"value":editor.getValue()})
+				);
+			});
+			
+			if(localStorage._client_onAir=='true'){
+				serverRequest("GET", "/lfmodel/", [], '', function(headers, result){
+					$("#lfArea").val(Prettify.match(JSON.parse(result),'elem'));
+				});
+			
+				serverRequest("GET", "/prepmodel/", [], '', function(headers, result){
+					$("#prepArea").val(Prettify.match(JSON.parse(result),'elem'));
+				});
+			
+				serverRequest("GET", "/sqlmodel/", [], '', function(headers, result){
+					sqlEditor.setValue(Prettify.match(JSON.parse(result),'elem'));
+				});	
+			}
+			
+			//Prepare dialog
+			$(function() {
+				$( "#dialog-message" ).dialog({
+					modal: true,
+					resizable: false,
+					autoOpen: false,
+					buttons: {
+						"Revise Request": function() {
+							$( this ).dialog( "close" );
+						},
+						"Revise Model": function() {
+							$( this ).dialog( "close" );
+						}
+					}
 				});
 			});
-		</script>
+			
+			//Enable/disable model editor buttons
+			if(localStorage._client_onAir=='true'){
+				$('#bem').attr('disabled','disabled');
+				//$('#bum').removeAttr('disabled');
+				//$('#br').removeAttr('disabled');
+			}else{
+				$('#bum').attr('disabled','disabled');
+				$('#br').attr('disabled','disabled');
+				//$('#bem').removeAttr('disabled');
+			}
+		}
+		
+		//Initialise controls and shoot off the loadUI & processHash functions
+		$(function() {
+			$("#tabs").tabs();
+			loadState();
+			loadUI();
+			processHash();
+
+			$('#bldb').file().choose(function(e, input) {
+				handleFiles(input[0].files);
+			});
+		});
+	</script>
 
 	
 	<!-- Change UA-XXXXX-X to be your site's ID -->
