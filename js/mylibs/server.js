@@ -22,12 +22,44 @@ var op = {"eq":"=", "ne":"!=", "lk":"~"}
 //TODO: replace this with db entry. will also solve above issue.
 if(!localStorage._server_onAir=='true'){localStorage._server_onAir = false}
 
-if(localStorage._server_onAir=='true'){
-	sqlmod = JSON.parse(localStorage._server_sqlmod);
-	lfmod = JSON.parse(localStorage._server_lfmod);
-	prepmod = JSON.parse(localStorage._server_prepmod);
-	trnmod = JSON.parse(localStorage._server_trnmod);
-}
+var serverModelCache = {
+	getSQL: function() {
+		if(localStorage._server_onAir=='true')
+			return JSON.parse(localStorage._server_sqlmod);
+		return [];
+	},
+	setSQL: function(sqlmod) {
+		localStorage._server_sqlmod = JSON.stringify(sqlmod);
+	},
+	
+	getLF: function() {
+		if(localStorage._server_onAir=='true')
+			return JSON.parse(localStorage._server_lfmod);
+		return [];
+	},
+	setLF: function(lfmod) {
+		localStorage._server_lfmod = JSON.stringify(lfmod);
+	},
+	
+	getPrepLF: function() {
+		if(localStorage._server_onAir=='true')
+			return JSON.parse(localStorage._server_prepmod);
+		return [];
+	},
+	setPrepLF: function(prepmod) {
+		localStorage._server_prepmod = JSON.stringify(prepmod);
+	},
+	
+	getTrans: function() {
+		if(localStorage._server_onAir=='true')
+			return JSON.parse(localStorage._server_trnmod);
+		return [];
+	},
+	setTrans: function(trnmod) {
+		localStorage._server_trnmod = JSON.stringify(trnmod);
+	}
+};
+
 
 //TODO: the db name needs to be changed
 var db = openDatabase('mydb', '1.0', 'my first database', 2 * 1024 * 1024);
@@ -59,7 +91,7 @@ function remoteServerRequest(method, uri, headers, body, successCallback, failur
 		case 'lfmodel':
 			if(method=="GET"){
 				if(localStorage._server_onAir=='true') {
-					successCallback({'status-line': 'HTTP/1.1 200 OK'}, JSON.stringify(localStorage._server_txtmod));
+					successCallback({'status-line': 'HTTP/1.1 200 OK'}, JSON.stringify(serverModelCache.getLF()));
 				}else if(failureCallback != undefined) {
 					failureCallback({'status-line': 'HTTP/1.1 404 Not Found'});
 				}
@@ -68,7 +100,7 @@ function remoteServerRequest(method, uri, headers, body, successCallback, failur
 		case 'prepmodel':
 			if(method=="GET"){
 				if(localStorage._server_onAir=='true') {
-					successCallback({'status-line': 'HTTP/1.1 200 OK'}, JSON.stringify(localStorage._server_prepmod));
+					successCallback({'status-line': 'HTTP/1.1 200 OK'}, JSON.stringify(serverModelCache.getPrepLF()));
 				}else if(failureCallback != undefined) {
 					failureCallback({'status-line': 'HTTP/1.1 404 Not Found'});
 				}
@@ -77,7 +109,7 @@ function remoteServerRequest(method, uri, headers, body, successCallback, failur
 		case 'sqlmodel':
 			if(method=="GET"){
 				if(localStorage._server_onAir=='true') {
-					successCallback({'status-line': 'HTTP/1.1 200 OK'}, JSON.stringify(localStorage._server_sqlmod));
+					successCallback({'status-line': 'HTTP/1.1 200 OK'}, JSON.stringify(serverModelCache.getSQL()));
 				}else if(failureCallback != undefined) {
 					failureCallback({'status-line': 'HTTP/1.1 404 Not Found'});
 				}
@@ -227,9 +259,9 @@ function dataplusDELETE(tree, headers, body, successCallback, failureCallback, c
 				tx.executeSql(sql, [], function(tx, result){
 					if(result.rows.item(0).result == 1){
 						sql = 'DELETE FROM "' + tree[1][1] + '" WHERE id=' + id + ';'; 
-					
+						
 						tx.executeSql(sql, [], function(tx,result){
-							validateDB(tx, sqlmod, caller, 
+							validateDB(tx, serverModelCache.getSQL(), caller, 
 								function(tx, sqlmod, caller, failureCallback, headers, result){
 									successCallback(headers, result, caller)
 								}, 
@@ -340,7 +372,7 @@ function dataplusPUT(tree, headers, body, successCallback, failureCallback, call
 						sql = 'UPDATE "' + tree[1][1] + '" SET ' + ps.join(',') + 
 						' WHERE id=' + id + ';'; 
 						tx.executeSql(sql, [], function(tx){
-							validateDB(tx, sqlmod, caller, 
+							validateDB(tx, serverModelCache.getSQL(), caller, 
 								function(tx, sqlmod, caller, failureCallback, headers, result){
 									successCallback(headers, result, caller)
 								}, 
@@ -464,7 +496,7 @@ function dataplusPOST(tree, headers, body, successCallback, failureCallback, cal
 		+ '") VALUES (' + vls.join(',') + ')';
 		db.transaction(function (tx) {
 			tx.executeSql(sql + ';', [], function(tx,result){
-				validateDB(tx, sqlmod, caller, 
+				validateDB(tx, serverModelCache.getSQL(), caller, 
 					function(tx, sqlmod, caller, failureCallback, headers, result){
 						successCallback(headers, result, caller)
 					}, 
@@ -481,13 +513,13 @@ function dataplusPOST(tree, headers, body, successCallback, failureCallback, cal
 }
 
 function executePOST(tree, headers, body, successCallback, failureCallback, caller){
-	lfmod = SBVRParser.matchAll(localStorage._server_modelAreaValue, 'expr');
-	prepmod = SBVR_PreProc.match(lfmod, 'optimizeTree');
-	sqlmod = SBVR2SQL.match(prepmod,'trans');
+	var lfmod = SBVRParser.matchAll(localStorage._server_modelAreaValue, 'expr');
+	var prepmod = SBVR_PreProc.match(lfmod, 'optimizeTree');
+	var sqlmod = SBVR2SQL.match(prepmod,'trans');
 	
 	tree = SBVRParser.matchAll(modelT, 'expr');
 	tree = SBVR_PreProc.match(tree, "optimizeTree");
-	trnmod = SBVR2SQL.match(tree,'trans');
+	var trnmod = SBVR2SQL.match(tree,'trans');
 	
 	localStorage._server_modelAreaDisabled = true;
 	db.transaction(function (tx) {
@@ -504,10 +536,10 @@ function executePOST(tree, headers, body, successCallback, failureCallback, call
 						//txtmod stores the latest executed model?
 						localStorage._server_txtmod = localStorage._server_modelAreaValue; 
 				
-						localStorage._server_sqlmod = JSON.stringify(sqlmod);
-						localStorage._server_lfmod = JSON.stringify(lfmod);
-						localStorage._server_prepmod = JSON.stringify(prepmod);
-						localStorage._server_trnmod = JSON.stringify(trnmod);
+						serverModelCache.setLF(lfmod);
+						serverModelCache.setPrepLF(prepmod);
+						serverModelCache.setSQL(sqlmod);
+						serverModelCache.setTrans(trnmod);
 						
 						successCallback(headers, result);
 					}, 
@@ -525,11 +557,7 @@ function rootDELETE(tree, headers, body, successCallback, failureCallback, calle
 	//TODO: This should be reorganised to be properly async.
 
 	//for some bizarre reason sqlmod is not accessible within db.transaction.
-	if(!localStorage._server_onAir=='true'){
-		var locmod=sqlmod;
-	}else{
-		var locmod=[];
-	}
+	var locmod=serverModelCache.getSQL();
 	
 	db.transaction(function (tx){
 		for(var i=1;i<locmod.length;i++){
@@ -540,11 +568,7 @@ function rootDELETE(tree, headers, body, successCallback, failureCallback, calle
 	});
 	
 	//for some bizarre reason trnmod is not accessible within db.transaction.
-	if(!localStorage._server_onAir=='true'){
-		var locmod=trnmod;
-	}else{
-		var locmod=[];
-	}
+	var locmod=serverModelCache.getTrans();
 	
 	db.transaction(function (tx){
 		for(var i=1;i<locmod.length;i++){
@@ -557,16 +581,14 @@ function rootDELETE(tree, headers, body, successCallback, failureCallback, calle
 	//TODO: these two do not belong here
 	localStorage._server_modelAreaValue = "";
 	localStorage._server_modelAreaDisabled = false;
-	trnmod=[];
-	lfmod=[];
-	trnmod=[];
-	sqlmod=[];
+	
+	serverModelCache.setPrepLF([]);
+	serverModelCache.setLF([]);
+	serverModelCache.setSQL([]);
+	serverModelCache.setTrans([]);
 	
 	localStorage._server_onAir = false
 	
-	localStorage._server_sqlmod = '';
-	localStorage._server_lfmod = '';
-	localStorage._server_prepmod = '';
 	localStorage._server_txtmod = '';
 	
 	successCallback({'status-line': 'HTTP/1.1 200 OK'}, '');
@@ -575,7 +597,7 @@ function rootDELETE(tree, headers, body, successCallback, failureCallback, calle
 function dataGET(tree, headers, body, successCallback, failureCallback, caller){
 	result = {};
 	ents = [];
-	//console.log(sqlmod);
+	var sqlmod = serverModelCache.getSQL();
 	for(var i=1;i<sqlmod.length;i++){
 		if (sqlmod[i][0] == 'term'){
 			ents.push({"id":sqlmod[i][1],"name":sqlmod[i][2]});
@@ -689,7 +711,7 @@ function endLock(tx, locks, i, trans_id, caller, successCallback, failureCallbac
 						tx.executeSql(sql + ';', [], function(tx,result){ /*console.log("t ok")*/ });
 						//console.log(sql);
 
-						validateDB(tx, sqlmod, caller, 
+						validateDB(tx, serverModelCache.getSQL(), caller, 
 							function(tx, sqlmod, caller, failureCallback, headers, result){
 								successCallback(headers, result, caller)
 							}, 
@@ -722,7 +744,7 @@ function endLock(tx, locks, i, trans_id, caller, successCallback, failureCallbac
 						tx.executeSql(sql + ';', [], function(tx,result){ console.log("t ok") });
 						//console.log(sql);
 						
-						validateDB(tx, sqlmod, caller, 
+						validateDB(tx, serverModelCache.getSQL(), caller, 
 							function(tx, sqlmod, caller, failureCallback, headers, result){
 								successCallback(headers, result, caller)
 							}, 
