@@ -1,12 +1,13 @@
-load("../../ometa-js/lib.js")
-load("../../ometa-js/ometa-base.js")
-load("../../ometa-js/parser.js")
-load("../../ometa-js/bs-js-compiler.js")
-load("../../ometa-js/bs-ometa-compiler.js")
-load("../../ometa-js/bs-ometa-optimizer.js")
-load("../../ometa-js/bs-ometa-js-compiler.js")
+var ometaPath = arguments[0];
+load(ometaPath+"/lib.js")
+load(ometaPath+"/ometa-base.js")
+load(ometaPath+"/parser.js")
+load(ometaPath+"/bs-js-compiler.js")
+load(ometaPath+"/bs-ometa-compiler.js")
+load(ometaPath+"/bs-ometa-optimizer.js")
+load(ometaPath+"/bs-ometa-js-compiler.js")
 
-load("../js/beautify.js")
+load("../ometa-dev/js/beautify.js")
 
 var console = {
 	log: function(val) {
@@ -25,8 +26,8 @@ var parsingError = function(m, i) {
 	throw m;
 }
 
-var i=0, pretty = false;
-if(arguments[0]=='pretty') {
+var i=1, pretty = false;
+if(arguments[1]=='pretty') {
 	pretty = true;
 	i++;
 }
