@@ -24,21 +24,19 @@ if(!localStorage._server_onAir=='true'){localStorage._server_onAir = false}
 
 var serverModelCache = {
 	getSE: function() {
-		if(localStorage._server_onAir=='true')
-			return JSON.parse(localStorage._server_modelAreaValue);
-		return [];
+		return localStorage._server_modelAreaValue;
 	},
 	setSE: function(txtmod) {
-		localStorage._server_modelAreaValue = JSON.stringify(txtmod);
+		localStorage._server_modelAreaValue = txtmod;
 	},
 	
 	getLastSE: function() {
 		if(localStorage._server_onAir=='true')
-			return JSON.parse(localStorage._server_txtmod);
-		return [];
+			return localStorage._server_txtmod;
+		return '';
 	},
 	setLastSE: function(txtmod) {
-		localStorage._server_txtmod = JSON.stringify(txtmod);
+		localStorage._server_txtmod = txtmod;
 	},
 	
 	getLF: function() {
@@ -532,7 +530,7 @@ function dataplusPOST(tree, headers, body, successCallback, failureCallback, cal
 
 function executePOST(tree, headers, body, successCallback, failureCallback, caller) {
 	var se = serverModelCache.getSE();
-	var lfmod = SBVRParser.matchAll(, 'expr');
+	var lfmod = SBVRParser.matchAll(se, 'expr');
 	var prepmod = SBVR_PreProc.match(lfmod, 'optimizeTree');
 	var sqlmod = SBVR2SQL.match(prepmod,'trans');
 	
