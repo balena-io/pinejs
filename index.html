@@ -57,7 +57,7 @@ Copyright 2011 University of Surrey
 
 <body>
 
-		<div id="dialog-message" title="Unable to complete request"></div>
+	<div id="dialog-message" title="Unable to complete request"></div>
 	
 	<div id="tabs">
 		<ul>
@@ -336,8 +336,15 @@ Copyright 2011 University of Surrey
 					sqlEditor.refresh(); //Force a refresh on switching to the tab, otherwise it wasn't appearing.
 					break;
 				case "data":
-					$('#tabs').tabs("select",4);
-					drawData(URItree[1]);
+					if(localStorage._client_onAir=='true'){
+						$('#tabs').tabs("select",4);
+						drawData(URItree[1]);
+					} else {
+						var exc = '<span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 50px 0;"></span>';
+						var msg = 'This tab is only accessible after a model is executed<br/>';
+						$( "#dialog-message" ).html( exc + msg );
+						$( "#dialog-message" ).dialog( "open" );
+					}
 					break;
 				case "http":
 					$('#tabs').tabs("select",5);
