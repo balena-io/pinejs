@@ -575,7 +575,7 @@ function rootDELETE(tree, headers, body, successCallback, failureCallback, calle
 function dataGET(tree, headers, body, successCallback, failureCallback, caller){
 	result = {};
 	ents = [];
-	console.log(sqlmod);
+	//console.log(sqlmod);
 	for(var i=1;i<sqlmod.length;i++){
 		if (sqlmod[i][0] == 'term'){
 			ents.push({"id":sqlmod[i][1],"name":sqlmod[i][2]});
