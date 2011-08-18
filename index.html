@@ -173,10 +173,10 @@ Copyright 2011 University of Surrey
 	
 		function defaultFailureCallback(error) {
 			console.log(error);
-			exc = '<span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 50px 0;"></span>';
-				msg = error['status-line']?error['status-line']:error.join('<br/>');
-				$( "#dialog-message" ).html( exc + msg );
-				$( "#dialog-message" ).dialog( "open" );
+			var exc = '<span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 50px 0;"></span>';
+			var msg = error['status-line']?error['status-line']:error.join('<br/>');
+			$( "#dialog-message" ).html( exc + msg );
+			$( "#dialog-message" ).dialog( "open" );
 			//console.log("fail!", error);
 		}
 	
@@ -412,7 +412,7 @@ Copyright 2011 University of Surrey
 			}
 			
 			//Prepare dialog
-			$(function() {
+			//$(function() {
 				$( "#dialog-message" ).dialog({
 					modal: true,
 					resizable: false,
@@ -426,7 +426,7 @@ Copyright 2011 University of Surrey
 						}
 					}
 				});
-			});
+			//});
 			
 			//Enable/disable model editor buttons
 			if(localStorage._client_onAir=='true'){
@@ -445,6 +445,7 @@ Copyright 2011 University of Surrey
 			$("#tabs").tabs();
 			loadState();
 			loadUI();
+			
 			processHash();
 
 			$('#bldb').file().choose(function(e, input) {
