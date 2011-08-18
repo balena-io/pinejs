@@ -555,28 +555,30 @@ function executePOST(tree, headers, body, successCallback, failureCallback, call
 
 function rootDELETE(tree, headers, body, successCallback, failureCallback, caller){
 	//TODO: This should be reorganised to be properly async.
-
-	//for some bizarre reason sqlmod is not accessible within db.transaction.
-	var locmod=serverModelCache.getSQL();
 	
-	db.transaction(function (tx){
-		for(var i=1;i<locmod.length;i++){
-			if (locmod[i][0] == 'fcTp' || locmod[i][0] == 'term'){
-				tx.executeSql(locmod[i][2]);
+	db.transaction(
+		(function(sqlmod) {
+			return function (tx){
+				for(var i=1;i<sqlmod.length;i++){
+					if (sqlmod[i][0] == 'fcTp' || sqlmod[i][0] == 'term'){
+						tx.executeSql(sqlmod[i][5]);
+					}
+				}
 			}
-		}
-	});
+		})(serverModelCache.getSQL())
+	);
 	
-	//for some bizarre reason trnmod is not accessible within db.transaction.
-	var locmod=serverModelCache.getTrans();
-	
-	db.transaction(function (tx){
-		for(var i=1;i<locmod.length;i++){
-			if (locmod[i][0] == 'fcTp' || locmod[i][0] == 'term'){
-				tx.executeSql(locmod[i][2]);
+	db.transaction(
+		(function(trnmod) {
+			return function (tx) {
+				for(var i=1;i<trnmod.length;i++) {
+					if (trnmod[i][0] == 'fcTp' || trnmod[i][0] == 'term') {
+						tx.executeSql(trnmod[i][5]);
+					}
+				}
 			}
-		}
-	});
+		})(serverModelCache.getTrans())
+	);
 	
 	//TODO: these two do not belong here
 	localStorage._server_modelAreaValue = "";
