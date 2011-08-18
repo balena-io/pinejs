@@ -170,6 +170,7 @@ Copyright 2011 University of Surrey
 	
 	<script defer type='text/javascript'>
 		var sqlEditor, sbvrEditor, importExportEditor;
+		var cmod;
 	
 		function defaultFailureCallback(error) {
 			console.log(error);
@@ -357,7 +358,7 @@ Copyright 2011 University of Surrey
 			//request schema from server and store locally.
 			if(localStorage._client_onAir=='true'){
 				serverRequest("GET", "/model/", [], '', function(headers, result) {
-					ctree = SBVRParser.matchAll(result, 'expr');
+					var ctree = SBVRParser.matchAll(result, 'expr');
 					ctree = SBVR_PreProc.match(ctree, "optimizeTree");
 					cmod = SBVR2SQL.match(ctree,'trans');
 				});
