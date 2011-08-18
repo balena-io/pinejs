@@ -23,13 +23,22 @@ var op = {"eq":"=", "ne":"!=", "lk":"~"}
 if(!localStorage._server_onAir=='true'){localStorage._server_onAir = false}
 
 var serverModelCache = {
-	getSQL: function() {
+	getSE: function() {
 		if(localStorage._server_onAir=='true')
-			return JSON.parse(localStorage._server_sqlmod);
+			return JSON.parse(localStorage._server_modelAreaValue);
 		return [];
 	},
-	setSQL: function(sqlmod) {
-		localStorage._server_sqlmod = JSON.stringify(sqlmod);
+	setSE: function(txtmod) {
+		localStorage._server_modelAreaValue = JSON.stringify(txtmod);
+	},
+	
+	getLastSE: function() {
+		if(localStorage._server_onAir=='true')
+			return JSON.parse(localStorage._server_txtmod);
+		return [];
+	},
+	setLastSE: function(txtmod) {
+		localStorage._server_txtmod = JSON.stringify(txtmod);
 	},
 	
 	getLF: function() {
@@ -48,6 +57,15 @@ var serverModelCache = {
 	},
 	setPrepLF: function(prepmod) {
 		localStorage._server_prepmod = JSON.stringify(prepmod);
+	},
+	
+	getSQL: function() {
+		if(localStorage._server_onAir=='true')
+			return JSON.parse(localStorage._server_sqlmod);
+		return [];
+	},
+	setSQL: function(sqlmod) {
+		localStorage._server_sqlmod = JSON.stringify(sqlmod);
 	},
 	
 	getTrans: function() {
@@ -82,7 +100,7 @@ function remoteServerRequest(method, uri, headers, body, successCallback, failur
 		case 'model':
 			if(method=="GET"){
 				if(localStorage._server_onAir=='true') {
-					successCallback({'status-line': 'HTTP/1.1 200 OK'}, localStorage._server_txtmod);
+					successCallback({'status-line': 'HTTP/1.1 200 OK'}, serverModelCache.getLastSE());
 				}else if(failureCallback != undefined) {
 					failureCallback({'status-line': 'HTTP/1.1 404 Not Found'});
 				}
@@ -119,12 +137,12 @@ function remoteServerRequest(method, uri, headers, body, successCallback, failur
 			if(tree[1][1] == 'textarea' && tree[1][3][1][1][3] == 'model_area'){
 				switch(method) {
 					case "PUT":
-						localStorage._server_modelAreaValue = JSON.parse(body).value;
+						serverModelCache.setSE(JSON.parse(body).value);
 						successCallback({'status-line': 'HTTP/1.1 200 OK'});
 						break;
 					case "GET":
 						successCallback({'status-line': 'HTTP/1.1 200 OK'}, 
-										JSON.stringify({"value":localStorage._server_modelAreaValue}));
+										JSON.stringify({"value":serverModelCache.getSE()}));
 				}
 			} else if(tree[1][1] == 'textarea-is_disabled' && tree[1][4][1][1][3] == 'model_area') {		
 				switch(method){
@@ -512,8 +530,9 @@ function dataplusPOST(tree, headers, body, successCallback, failureCallback, cal
 	}
 }
 
-function executePOST(tree, headers, body, successCallback, failureCallback, caller){
-	var lfmod = SBVRParser.matchAll(localStorage._server_modelAreaValue, 'expr');
+function executePOST(tree, headers, body, successCallback, failureCallback, caller) {
+	var se = serverModelCache.getSE();
+	var lfmod = SBVRParser.matchAll(, 'expr');
 	var prepmod = SBVR_PreProc.match(lfmod, 'optimizeTree');
 	var sqlmod = SBVR2SQL.match(prepmod,'trans');
 	
@@ -532,10 +551,7 @@ function executePOST(tree, headers, body, successCallback, failureCallback, call
 					
 						localStorage._server_onAir = true;
 				
-						//TODO: figure this out
-						//txtmod stores the latest executed model?
-						localStorage._server_txtmod = localStorage._server_modelAreaValue; 
-				
+						serverModelCache.setLastSE(se);
 						serverModelCache.setLF(lfmod);
 						serverModelCache.setPrepLF(prepmod);
 						serverModelCache.setSQL(sqlmod);
@@ -581,9 +597,10 @@ function rootDELETE(tree, headers, body, successCallback, failureCallback, calle
 	);
 	
 	//TODO: these two do not belong here
-	localStorage._server_modelAreaValue = "";
+	serverModelCache.setSE('');
 	localStorage._server_modelAreaDisabled = false;
 	
+	serverModelCache.setLastSE('');
 	serverModelCache.setPrepLF([]);
 	serverModelCache.setLF([]);
 	serverModelCache.setSQL([]);
@@ -591,7 +608,6 @@ function rootDELETE(tree, headers, body, successCallback, failureCallback, calle
 	
 	localStorage._server_onAir = false
 	
-	localStorage._server_txtmod = '';
 	
 	successCallback({'status-line': 'HTTP/1.1 200 OK'}, '');
 }
