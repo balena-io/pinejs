@@ -61,13 +61,13 @@ Copyright 2011 University of Surrey
 	
 	<div id="tabs">
 		<ul>
-			<li><a href='#modelTab' 		onClick="location.hash='!/model/';return false"	>Model Editor			</a></li>
-			<li><a href='#lfTab'															>Logical Formulation	</a></li>
-			<li><a href='#prepTab'															>Preprocessed LF		</a></li>
-			<li><a href='#sqlTab'   		onClick="location.hash='!/sql/';return false"	>SQL					</a></li>
-			<li><a href='#dataTab'  		onClick="location.hash='!/data/';return false"	>Data Browser			</a></li>
-			<li><a href='#httpTab'  		onClick="location.hash='!/http/';return false"	>HTTP Log				</a></li>
-			<li><a href='#importExportTab'  onClick="location.hash='!/export/';return false">Import/Export Database	</a></li>
+			<li><a href='#modelTab' 		>Model Editor			</a></li>
+			<li><a href='#lfTab'			>Logical Formulation	</a></li>
+			<li><a href='#prepTab'			>Preprocessed LF		</a></li>
+			<li><a href='#sqlTab'   		>SQL					</a></li>
+			<li><a href='#dataTab'  		>Data Browser			</a></li>
+			<li><a href='#httpTab'  		>HTTP Log				</a></li>
+			<li><a href='#importExportTab'  >Import/Export Database	</a></li>
 		</ul>
 		<div id="modelTab">
 			<form id="editform">
@@ -341,7 +341,7 @@ Copyright 2011 University of Surrey
 						drawData(URItree[1]);
 					} else {
 						var exc = '<span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 50px 0;"></span>';
-						var msg = 'This tab is only accessible after a model is executed<br/>';
+						var msg = 'The data tab is only accessible after a model is executed<br/>';
 						$( "#dialog-message" ).html( exc + msg );
 						$( "#dialog-message" ).dialog( "open" );
 					}
@@ -353,6 +353,10 @@ Copyright 2011 University of Surrey
 					$('#tabs').tabs("select",6);
 					break;
 //					case "model": //Model is the default view.
+				case "lf":
+					break;
+				case "preplf":
+					break;
 				default:
 					sbvrEditor.refresh();
 					$('#tabs').tabs("select",0);
@@ -370,8 +374,6 @@ Copyright 2011 University of Surrey
 					cmod = SBVR2SQL.match(ctree,'trans');
 				});
 			}
-			
-			
 
 			sbvrEditor = CodeMirror.fromTextArea(document.getElementById("modelArea"), {
 				mode: "sbvr",
@@ -450,7 +452,44 @@ Copyright 2011 University of Surrey
 		
 		//Initialise controls and shoot off the loadUI & processHash functions
 		$(function() {
-			$("#tabs").tabs();
+			$("#tabs").tabs({
+				select: function(event, ui) {
+					//alert(ui.index != 0 && localStorage._client_onAir!='true')
+					if((ui.index != 0) && (localStorage._client_onAir!='true')){
+						var exc = '<span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 50px 0;"></span>';
+						var msg = 'This tab is only accessible after a model is executed<br/>';
+						$( "#dialog-message" ).html( exc + msg );
+						$( "#dialog-message" ).dialog( "open" );
+						return false;
+					}else{
+						switch(ui.panel.id){
+							case "lfTab":
+								location.hash='!/lf/'
+								break;
+							case "prepTab":
+								location.hash='!/preplf/'
+								break;
+							case "sqlTab":
+								location.hash='!/sql/'
+								break;
+							case "dataTab":
+								location.hash='!/data/'
+								break;
+							case "httpTab":
+								location.hash='!/http/'
+								break;
+							case "importExportTab":
+								location.hash='!/export/'
+								break;
+							default:
+								location.hash='!/model/'
+								break;
+						}
+						return true;
+					}
+			    }
+			});
+			
 			loadState();
 			loadUI();
 			
