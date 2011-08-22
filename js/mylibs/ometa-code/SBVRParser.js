@@ -131,6 +131,26 @@
                 }).call(this)
             }))
         },
+        "lineSpaces": function() {
+            var $elf = this,
+                _fromIdx = this.input.idx;
+            return this._many((function() {
+                return (function() {
+                    switch (this._apply('anything')) {
+                    case " ":
+                        return " ";
+                    case "\t":
+                        return "\t";
+                    case "\r":
+                        return "\r";
+                    case "\n":
+                        return "\n";
+                    default:
+                        throw fail
+                    }
+                }).call(this)
+            }))
+        },
         "letters": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
@@ -269,13 +289,26 @@
                 return ["kwrd", t]
             }).call(this)
         },
-        "mkTerm": function() {
+        "addTerm": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 t;
             return (function() {
-                t = this._apply("nrText");
-                return (this["possMap"]["term"][t] = true)
+                t = this._lookahead((function() {
+                    return this._many1((function() {
+                        return (function() {
+                            this._opt((function() {
+                                return this._apply("lineSpaces")
+                            }));
+                            this._not((function() {
+                                return this._apply("lineStart")
+                            }));
+                            return this._apply("letters")
+                        }).call(this)
+                    }))
+                }));
+                (this["possMap"]["term"][t.join(" ")] = true);
+                return t = this._apply("term")
             }).call(this)
         },
         "term": function(x) {
@@ -284,7 +317,10 @@
                 l;
             return (function() {
                 this._opt((function() {
-                    return this._apply("spaces")
+                    return this._apply("lineSpaces")
+                }));
+                this._not((function() {
+                    return this._apply("lineStart")
                 }));
                 l = this._apply("letters");
                 (x = ((x == undefined) ? l : [x, l].join(" ")));
@@ -829,15 +865,7 @@
                 t;
             return (function() {
                 this._apply("startTerm");
-                this._opt((function() {
-                    return this._apply("spaces")
-                }));
-                this._opt((function() {
-                    return this._lookahead((function() {
-                        return this._apply("mkTerm")
-                    }))
-                }));
-                t = this._apply("term");
+                t = this._apply("addTerm");
                 t.push([]);
                 return t
             }).call(this)
@@ -862,6 +890,19 @@
             var $elf = this,
                 _fromIdx = this.input.idx;
             return this._applyWithArgs("matchForAny", "seq", this["possMap"]["allowedAttrs"])
+        },
+        "lineStart": function() {
+            var $elf = this,
+                _fromIdx = this.input.idx;
+            return this._or((function() {
+                return this._apply("startTerm")
+            }), (function() {
+                return this._apply("startFactType")
+            }), (function() {
+                return this._apply("startRule")
+            }), (function() {
+                return this._apply("allowedAttrs")
+            }))
         },
         "line": function() {
             var $elf = this,

@@ -64,7 +64,7 @@ var testModel = [
 		'	Database Name Field: name_field',
 		[ "term", "student", [ [ "Definition", "A definition" ], [ "Source", "A source" ], [ "DictionaryBasis", "A dictionary basis" ], [ "GeneralConcept", "A general concept" ], [ "ConceptType", "person" ], [ "Necessity", "A necessity" ], [ "Possibility", "A possibility" ], [ "ReferenceScheme", "A reference scheme" ], [ "Note", "A note" ], [ "Example", "An example" ], [ "Synonym", "A synonym" ], [ "SynonymousForm", "A synonymous form" ], [ "See", "Something to see" ], [ "SubjectField", "A subject field" ], [ "NamespaceURI", "A namespace URI" ], [ "DatabaseTableName", "student_table" ], [ "DatabaseIDField", "id_field" ], [ "DatabaseNameField", "name_field" ] ] ],
 	], [
-		'T: lecturer',
+		'T:\r\n	lecturer\r\n	Concept Type: person', // Check if multiline terms correctly end upon encountering an attribute.
 		[ "term", "lecturer", [] ],
 	], [
 		'	Concept Type: person',
@@ -184,6 +184,7 @@ test("SBVRParser",function() {
 			deepEqual(parser.matchAll(testModel[i][0],'line'), testModel[i][1], testModel[i][0]);
 		}
 		catch(e) {
+			console.log(e);
 			equal(e.toString(), testModel[i][1], testModel[i][0]);
 		}
 	}

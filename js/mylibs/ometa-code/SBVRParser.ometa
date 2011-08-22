@@ -32,6 +32,7 @@ ometa SBVRParser {
 	bind		:x	= findVar(x):y											-> [`bind, x, y],
 
 	spaces			= (' '|'\t')*,
+	lineSpaces		= (' '|'\t'|'\r'|'\n')*,
 	letters			= letter+:l												-> l.join(''),
 	num				= spaces? digit+:n										-> ['num', parseInt(n.join(''))]
 					| "one"													-> ['num', 1],
@@ -44,8 +45,11 @@ ometa SBVRParser {
 	kwrd		:x	= spaces? letters:w {x!=''?x+' '+w:w}:w (isKwrd(w) -> w | kwrd(w):a -> a),
 	token		:x	= kwrd(''):t ?(t==x)									-> [`kwrd, t],
 
-	mkTerm			= nrText:t {this.possMap.term[t] = true},
-	term		:x  = spaces? letters:l {x = x==undefined ? l : [x, l].join(' ')}
+	addTerm			= &(
+						(lineSpaces? ~lineStart letters)+
+					  ):t {this.possMap.term[t.join(' ')] = true}
+					  term:t,
+	term		:x  = lineSpaces? ~lineStart letters:l {x = x==undefined ? l : [x, l].join(' ')}
 						( term(x)
 						| isTerm(x)											-> ['term',this._termForm(x)]
 						),
@@ -109,12 +113,16 @@ ometa SBVRParser {
 	newFactType		= startFactType spaces? {t=[]} (terb:b {t.concat(b)}:t)+ (term:e {t.concat([e])}:t)? {this.fctps[t] = true}
 																		-> [`fcTp].concat(t),
 	startTerm		= seq('T:'),
-	newTerm			= startTerm spaces? &mkTerm? term:t {t.push([])}		-> t,
+	newTerm			= startTerm addTerm:t {t.push([])}					-> t,
 	attribute		= ?{this.lines.length>0 && this.lines[this.lines.length-1][0] == 'term'}
-						allowedAttrs:attrName ':' toEOL:attrVal				-> {var lastLine = this.lines.pop(); lastLine[2].push([attrName.replace(new RegExp(' ','g'),''), attrVal]); lastLine},
+						allowedAttrs:attrName ':' toEOL:attrVal			-> {var lastLine = this.lines.pop(); lastLine[2].push([attrName.replace(new RegExp(' ','g'),''), attrVal]); lastLine},
 
 	allowedAttrs	= matchForAny('seq',this.possMap.allowedAttrs),
 
+	lineStart		= startTerm
+					| startFactType
+					| startRule
+					| allowedAttrs,
 	line			= spaces? (newTerm | newFactType | newRule | attribute):l spaces?
 						{this.lines.push(l)}							-> l,
 	linef			= line (('\r'|'\n')*|end),
