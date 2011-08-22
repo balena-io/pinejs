@@ -64,10 +64,10 @@ Copyright 2011 University of Surrey
 			<li><a href='#modelTab' 		>Model Editor			</a></li>
 			<li><a href='#lfTab'			>Logical Formulation	</a></li>
 			<li><a href='#prepTab'			>Preprocessed LF		</a></li>
-			<li><a href='#sqlTab'   		>SQL					</a></li>
-			<li><a href='#dataTab'  		>Data Browser			</a></li>
-			<li><a href='#httpTab'  		>HTTP Log				</a></li>
-			<li><a href='#importExportTab'  >Import/Export Database	</a></li>
+			<li><a href='#sqlTab'			>SQL					</a></li>
+			<li><a href='#dataTab'			>Data Browser			</a></li>
+			<li><a href='#httpTab'			>HTTP Log				</a></li>
+			<li><a href='#importExportTab'	>Import/Export Database	</a></li>
 		</ul>
 		<div id="modelTab">
 			<form id="editform">
@@ -77,7 +77,6 @@ Copyright 2011 University of Surrey
 					<input type="button" id='blm1' value="Load Model 1"  onClick="loadmod(model1);return false">
 					<input type="button" id='blm2' value="Load Model 2"  onClick="loadmod(model2);return false">
 					<input type="button" id='blm3' value="Load Model 3"  onClick="loadmod(model3);return false">
-					<input type="button" id='blmt' value="Load Test"     onClick="loadmod(modelTest);return false">
 					<input type="button" id='bem'  value="Execute Model" onClick="transformClient(sbvrEditor.getValue());return false">
 					<input type="button" id='bum'  value="Update Model"  onClick="return false">
 					<input type="button" id='br'   value="Reset"         onClick="resetClient();return false">
@@ -114,13 +113,14 @@ Copyright 2011 University of Surrey
 						}
 						reader.readAsText(files[0]);
 					}
+					document.write('<input type="button" id="bsdb" value="Save File" onClick="downloadFile(\'sbvr.txt\',importExportEditor.getValue())">');
 				}
 			</script>
+			<output></output>
 			<input type="button" id='bidb' value="Import DB" onClick="importDB(importExportEditor.getValue());return false">
 			<input type="button" id='bedb' value="Export DB" onClick="exportDB(importExportEditor);return false">
 		</div>
 	</div>
-
 
 
 	<!-- JavaScript at the bottom for fast page loading -->
@@ -168,7 +168,7 @@ Copyright 2011 University of Surrey
 	<script defer src="js/mylibs/backupRestore.js"></script>
 	<!-- end scripts-->
 	
-	<script defer type='text/javascript'>
+	<script type='text/javascript'>
 		var sqlEditor, sbvrEditor, importExportEditor;
 		var cmod;
 	
@@ -487,7 +487,7 @@ Copyright 2011 University of Surrey
 						}
 						return true;
 					}
-			    }
+				}
 			});
 			
 			loadState();
@@ -499,6 +499,51 @@ Copyright 2011 University of Surrey
 				handleFiles(input[0].files);
 			});
 		});
+		
+		function downloadFile(filename, text) {
+			const MIME_TYPE = 'text/plain';
+			var output = document.querySelector('output');
+			window.URL = window.webkitURL || window.URL;
+			window.BlobBuilder = window.BlobBuilder || window.WebKitBlobBuilder ||
+								window.MozBlobBuilder;
+
+			var prevLink = output.querySelector('a');
+			if (prevLink) {
+				window.URL.revokeObjectURL(prevLink.href);
+				output.innerHTML = '';
+			}
+
+			var bb = new BlobBuilder();
+			bb.append(text);
+
+			var a = document.createElement('a');
+			a.download = filename;
+			a.href = window.URL.createObjectURL(bb.getBlob(MIME_TYPE));
+			a.textContent = 'Download ready';
+
+			a.dataset.downloadurl = [MIME_TYPE, a.download, a.href].join(':');
+			a.draggable = true; // Don't really need, but good practice.
+			a.classList.add('dragout');
+
+			output.appendChild(a);
+
+			a.onclick = function(e) {
+				if ('disabled' in this.dataset) {
+					return false;
+				}
+
+				cleanUp(this);
+			};
+		};
+		function cleanUp(a) {
+			a.textContent = 'Downloaded';
+			a.dataset.disabled = true;
+
+			// Need a small delay for the revokeObjectURL to work properly.
+			setTimeout(function() {
+				window.URL.revokeObjectURL(a.href);
+			}, 1500);
+		};
 	</script>
 
 	
