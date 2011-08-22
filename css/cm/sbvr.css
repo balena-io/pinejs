@@ -5,9 +5,9 @@
 	border: 1px solid #ADABB3;
 }
 
-span.cm-sbvr-termDecl{color: #A22;}
-span.cm-sbvr-fcTpDecl{color: #A70;}
-span.cm-sbvr-ruleDecl{color: #299;}
+span.cm-sbvr-startTerm{color: #A22;}
+span.cm-sbvr-startFactType{color: #A70;}
+span.cm-sbvr-startRule{color: #299;}
 
 /* Noun */
 span.cm-sbvr-term {

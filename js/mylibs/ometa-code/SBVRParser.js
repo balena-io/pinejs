@@ -727,7 +727,7 @@
                 }
             }).call(this)
         },
-        "ruleDecl": function() {
+        "startRule": function() {
             var $elf = this,
                 _fromIdx = this.input.idx;
             return (function() {
@@ -739,13 +739,13 @@
         "newRule": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                a, r, q;
+                ruleText, r, q;
             return (function() {
-                this._apply("ruleDecl");
+                this._apply("startRule");
                 this._opt((function() {
                     return this._apply("spaces")
                 }));
-                a = this._lookahead((function() {
+                ruleText = this._lookahead((function() {
                     return this._many((function() {
                         return (function() {
                             this._not((function() {
@@ -761,7 +761,7 @@
                     []
                 ]);
                 ((r["length"] == (2)) ? (r[(1)][(1)] = q) : (r[(1)] = q));
-                return ["rule", r, ["text", a.join("")]]
+                return ["rule", r, ["text", ruleText.join("")]]
             }).call(this)
         },
         "terb": function() {
@@ -779,7 +779,7 @@
                 return [t, v]
             }).call(this)
         },
-        "fcTpDecl": function() {
+        "startFactType": function() {
             var $elf = this,
                 _fromIdx = this.input.idx;
             return (function() {
@@ -788,12 +788,12 @@
                 return "F:"
             }).call(this)
         },
-        "fcTp": function() {
+        "newFactType": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 b, t, e;
             return (function() {
-                this._apply("fcTpDecl");
+                this._apply("startFactType");
                 this._opt((function() {
                     return this._apply("spaces")
                 }));
@@ -814,7 +814,7 @@
                 return ["fcTp"].concat(t)
             }).call(this)
         },
-        "termDecl": function() {
+        "startTerm": function() {
             var $elf = this,
                 _fromIdx = this.input.idx;
             return (function() {
@@ -828,7 +828,7 @@
                 _fromIdx = this.input.idx,
                 t;
             return (function() {
-                this._apply("termDecl");
+                this._apply("startTerm");
                 this._opt((function() {
                     return this._apply("spaces")
                 }));
@@ -874,7 +874,7 @@
                 l = this._or((function() {
                     return this._apply("newTerm")
                 }), (function() {
-                    return this._apply("fcTp")
+                    return this._apply("newFactType")
                 }), (function() {
                     return this._apply("newRule")
                 }), (function() {
@@ -921,7 +921,7 @@
             }).call(this)
         }
     });
-    (SBVRParser["keyTokens"] = ["termDecl", "fcTpDecl", "ruleDecl", "term", "modRule", "verb", "keyword", "allowedAttrs", "num"]);
+    (SBVRParser["keyTokens"] = ["startTerm", "startFactType", "startRule", "term", "modRule", "verb", "keyword", "allowedAttrs", "num"]);
     (SBVRParser["kwrds"] = ({}));
     (kwrds = ["a", "an", "each", "at", "most", "least", "exactly", "that", "the", "one", "more", "than", "and", "some"]);
     for (var idx = (0);
@@ -970,9 +970,9 @@
     }));
     (SBVRParser["reset"] = (function() {
         (this["possMap"] = ({
-            "termDecl": ["T:"],
-            "fcTpDecl": ["F:"],
-            "ruleDecl": ["R:"],
+            "startTerm": ["T:"],
+            "startFactType": ["F:"],
+            "startRule": ["R:"],
             "term": ({}),
             "verb": ({}),
             "allowedAttrs": ["Concept Type", "Database ID Field", "Database Name Field", "Database Table Name", "Definition", "Dictionary Basis", "Example", "General Concept", "Namespace URI", "Necessity", "Note", "Possibility", "Reference Scheme", "See", "Source", "Subject Field", "Synonymous Form", "Synonym"],

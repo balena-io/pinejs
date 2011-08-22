@@ -100,28 +100,28 @@ ometa SBVRParser {
 					| seq('It is possible that')						-> ['pos']
 					| seq('It is permissible that')						-> ['prm'],
 
-	ruleDecl		= seq('R:'),
-	newRule			= ruleDecl spaces? &((~'\n' char)*):a {this.ruleVarsCount=1}
+	startRule		= seq('R:'),
+	newRule			= startRule spaces? &((~'\n' char)*):ruleText {this.ruleVarsCount=1}
 						modRule:r qTerbR([[]]):q {r.length == 2 ? r[1][1] = q : r[1] = q}
-																		-> ['rule', r, [`text, a.join('')]],
+																		-> ['rule', r, ['text', ruleText.join('')]],
 	terb			= term:t &mkVerb(t)? verb:v							-> [t, v],
-	fcTpDecl		= seq('F:'),
-	fcTp			= fcTpDecl spaces? {t=[]} (terb:b {t.concat(b)}:t)+ (term:e {t.concat([e])}:t)? {this.fctps[t] = true}
+	startFactType	= seq('F:'),
+	newFactType		= startFactType spaces? {t=[]} (terb:b {t.concat(b)}:t)+ (term:e {t.concat([e])}:t)? {this.fctps[t] = true}
 																		-> [`fcTp].concat(t),
-	termDecl		= seq('T:'),
-	newTerm			= termDecl spaces? &mkTerm? term:t {t.push([])}		-> t,
+	startTerm		= seq('T:'),
+	newTerm			= startTerm spaces? &mkTerm? term:t {t.push([])}		-> t,
 	attribute		= ?{this.lines.length>0 && this.lines[this.lines.length-1][0] == 'term'}
 						allowedAttrs:attrName ':' toEOL:attrVal				-> {var lastLine = this.lines.pop(); lastLine[2].push([attrName.replace(new RegExp(' ','g'),''), attrVal]); lastLine},
 
 	allowedAttrs	= matchForAny('seq',this.possMap.allowedAttrs),
 
-	line			= spaces? (newTerm | fcTp | newRule | attribute):l spaces?
+	line			= spaces? (newTerm | newFactType | newRule | attribute):l spaces?
 						{this.lines.push(l)}							-> l,
 	linef			= line (('\r'|'\n')*|end),
 	expr			= linef*											-> [`model].concat(this.lines)
 }
 
-SBVRParser.keyTokens = ["termDecl", "fcTpDecl", "ruleDecl", "term", "modRule", "verb", "keyword", "allowedAttrs", "num"];
+SBVRParser.keyTokens = ["startTerm", "startFactType", "startRule", "term", "modRule", "verb", "keyword", "allowedAttrs", "num"];
 
 SBVRParser.kwrds = {}
 kwrds = ["a", "an", "each", "at", "most", "least", "exactly", "that", "the", "one", "more", "than", "and", "some"]
@@ -162,9 +162,9 @@ SBVRParser._isFctp = function(k) { return this.fctps.hasOwnProperty(k) }
 
 SBVRParser.reset = function() {
 	this.possMap = {
-		termDecl: ['T:'],
-		fcTpDecl: ['F:'],
-		ruleDecl: ['R:'],
+		startTerm: ['T:'],
+		startFactType: ['F:'],
+		startRule: ['R:'],
 		term: {},
 		verb: {},
 		allowedAttrs: [
