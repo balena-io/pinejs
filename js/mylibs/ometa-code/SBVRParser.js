@@ -278,77 +278,53 @@
                 return (this["possMap"]["term"][t] = true)
             }).call(this)
         },
-        "termR": function(x) {
+        "term": function(x) {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                w, a;
+                l;
             return (function() {
                 this._opt((function() {
                     return this._apply("spaces")
                 }));
-                w = this._apply("letters");
-                w = ((x != "") ? ((x + " ") + w) : w);
+                l = this._apply("letters");
+                (x = ((x == undefined) ? l : [x, l].join(" ")));
                 return this._or((function() {
-                    return (function() {
-                        this._applyWithArgs("isTerm", w);
-                        return w
-                    }).call(this)
+                    return this._applyWithArgs("term", x)
                 }), (function() {
                     return (function() {
-                        a = this._applyWithArgs("termR", w);
-                        return a
+                        this._applyWithArgs("isTerm", x);
+                        return ["term", this._termForm(x)]
                     }).call(this)
                 }))
             }).call(this)
         },
-        "term": function() {
-            var $elf = this,
-                _fromIdx = this.input.idx,
-                t;
-            return (function() {
-                t = this._applyWithArgs("termR", "");
-                return ["term", this._termForm(t)]
-            }).call(this)
-        },
-        "mkVerb": function() {
-            var $elf = this,
-                _fromIdx = this.input.idx,
-                x;
-            return (function() {
-                x = this._apply("nrText");
-                return (this["possMap"]["verb"][x] = true)
-            }).call(this)
-        },
-        "verbR": function(x) {
-            var $elf = this,
-                _fromIdx = this.input.idx,
-                w, a;
-            return (function() {
-                this._opt((function() {
-                    return this._apply("spaces")
-                }));
-                w = this._apply("letters");
-                w = ((x != "") ? ((x + " ") + w) : w);
-                return this._or((function() {
-                    return (function() {
-                        this._applyWithArgs("isVerb", w);
-                        return w
-                    }).call(this)
-                }), (function() {
-                    return (function() {
-                        a = this._applyWithArgs("verbR", w);
-                        return a
-                    }).call(this)
-                }))
-            }).call(this)
-        },
-        "verb": function() {
+        "mkVerb": function(t) {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 v;
             return (function() {
-                v = this._applyWithArgs("verbR", "");
-                return ["verb", this._verbForm(v)]
+                v = this._apply("nrText");
+                return (this["possMap"]["verb"][v] = true)
+            }).call(this)
+        },
+        "verb": function(x) {
+            var $elf = this,
+                _fromIdx = this.input.idx,
+                l;
+            return (function() {
+                this._opt((function() {
+                    return this._apply("spaces")
+                }));
+                l = this._apply("letters");
+                (x = ((x == undefined) ? l : [x, l].join(" ")));
+                return this._or((function() {
+                    return this._applyWithArgs("verb", x)
+                }), (function() {
+                    return (function() {
+                        this._applyWithArgs("isVerb", x);
+                        return ["verb", this._verbForm(x)]
+                    }).call(this)
+                }))
             }).call(this)
         },
         "joinQuant": function() {
@@ -796,7 +772,7 @@
                 t = this._apply("term");
                 this._opt((function() {
                     return this._lookahead((function() {
-                        return this._apply("mkVerb")
+                        return this._applyWithArgs("mkVerb", t)
                     }))
                 }));
                 v = this._apply("verb");

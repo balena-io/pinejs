@@ -45,13 +45,18 @@ ometa SBVRParser {
 	token		:x	= kwrd(''):t ?(t==x)									-> [`kwrd, t],
 
 	mkTerm			= nrText:t {this.possMap.term[t] = true},
-	termR		:x	= spaces? letters:w {x!=''?x+' '+w:w}:w (isTerm(w) -> w | termR(w):a -> a),
-	term			= termR(''):t											-> ['term', this._termForm(t)],
-
-	mkVerb			= nrText:x {this.possMap.verb[x] = true},
-	verbR		:x	= spaces? letters:w {x!=''?x+' '+w:w}:w (isVerb(w)		-> w | verbR(w):a -> a),
-	verb			= verbR(''):v											-> ['verb', this._verbForm(v)],
-
+	term		:x  = spaces? letters:l {x = x==undefined ? l : [x, l].join(' ')}
+						( term(x)
+						| isTerm(x)											-> ['term',this._termForm(x)]
+						),
+	
+	
+	mkVerb		:t	= nrText:v {this.possMap.verb[v] = true},
+	verb		:x  = spaces? letters:l {x = x==undefined ? l : [x, l].join(' ')}
+						( verb(x)
+						| isVerb(x)											-> ['verb',this._verbForm(x)]
+						),
+	
 	joinQuant		= matchForAll('keyword',["and","at","most"]),
 	quant			= keyword("each")										-> [`univQ]
 					| matchForAny('keyword',["a","an","some"])										-> [`existQ]
@@ -99,7 +104,7 @@ ometa SBVRParser {
 	newRule			= ruleDecl spaces? &((~'\n' char)*):a {this.ruleVarsCount=1}
 						modRule:r qTerbR([[]]):q {r.length == 2 ? r[1][1] = q : r[1] = q}
 																		-> ['rule', r, [`text, a.join('')]],
-	terb			= term:t &mkVerb? verb:v							-> [t, v],
+	terb			= term:t &mkVerb(t)? verb:v							-> [t, v],
 	fcTpDecl		= seq('F:'),
 	fcTp			= fcTpDecl spaces? {t=[]} (terb:b {t.concat(b)}:t)+ (term:e {t.concat([e])}:t)? {this.fctps[t] = true}
 																		-> [`fcTp].concat(t),
