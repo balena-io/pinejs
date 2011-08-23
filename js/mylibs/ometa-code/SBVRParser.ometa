@@ -14,28 +14,26 @@ Copyright 2011 University of Surrey
    limitations under the License.
 */
 
-//A parser for Semantics of Business Vocabulary and Rules (SBVR), an OMG standard. 
+//A parser for Semantics of Business Vocabulary and Rules (SBVR), an OMG standard.
 //Converts from Structured English (SBVR-SE) to Logical Formulation (SBVR-LF)
 //Specification: http://www.omg.org/spec/SBVR/1.0/
 
 ometa SBVRParser {
 	isTerm		:x	= ?this._isTerm(x),
 	isVerb		:x	= ?this._isVerb(x),
-	isKwrd		:x	= ?SBVRParser._isKwrd(x),
 	isFctp		:x	= ?this._isFctp(x),
 
 	findVar		:x	= {this.ruleVars[x[1]]},
 	bind		:x	= findVar(x):y											-> [`bind, x, y],
 
-	spaces			= (' '|'\t')*,
+	spaces			= (' '|'\t')+,
 	lineSpaces		= (' '|'\t'|'\r'|'\n')*,
 	letters			= letter+:l												-> l.join(''),
-	num				= spaces? digit+:n										-> ['num', parseInt(n.join(''))]
+	num				= lineSpaces? digit+:n										-> ['num', parseInt(n.join(''))]
 					| "one"													-> ['num', 1],
 	toEOL			= (~'\r'~'\n' anything)*:w								-> $.trim(w.join('')),
 
-	kwrd		:x	= spaces? letters:w {x!=''?x+' '+w:w}:w (isKwrd(w) -> w | kwrd(w):a -> a),
-	token		:x	= kwrd(''):t ?(t==x)									-> [`kwrd, t],
+	token		:x	= spaces seq(x):s &spaces								-> s,
 
 	addTerm			= &(termPart+):t {this.possMap.term[t.join(' ')] = true}
 					  term,
@@ -77,13 +75,13 @@ ometa SBVRParser {
 	terbRi    :c :i = term:t verb:v bind(t):b {c[0]=c[0].concat([t,v]);c.concat([b])}:c (qTerbRi(c,i)),
 
 	qTerbRi   :c :i = (quant:q term:t adVar(t):a verb:v bind(t):b
-							{q=q.concat([a]);c[0]=c[0].concat([t,v]);c.concat([b])}:c 
+							{q=q.concat([a]);c[0]=c[0].concat([t,v]);c.concat([b])}:c
 							(qTerbRi(c,i)):r								-> q.concat([r])
 						| verb:v bind(i):b {c[0]=c[0].concat([i,v]);c.concat([b])}:c (atfo(c)|qTerbR(c)|qTerm(c))
 						| bind(i):b {c[0]=c[0].concat([i]);c.concat([b])}:c atfo(c)
-					), 
+					),
 
-	qTerm		:c	= quant:q term:t adVar(t):a bind(t):b {q=q.concat([a]);c[0]=c[0].concat([t]);c.concat([b])}:c 
+	qTerm		:c	= quant:q term:t adVar(t):a bind(t):b {q=q.concat([a]);c[0]=c[0].concat([t]);c.concat([b])}:c
 							atfo(c):r											-> q.concat([r]),
 
 	qTerbR		:c	= quant:q term:t adVar(t):a verb:v bind(t):b {q=q.concat([a]);c[0]=c[0].concat([t,v]);c.concat([b])}:c
@@ -124,13 +122,6 @@ ometa SBVRParser {
 
 SBVRParser.keyTokens = ["startTerm", "startFactType", "startRule", "term", "modRule", "verb", "keyword", "allowedAttrs", "num"];
 
-SBVRParser.kwrds = {}
-kwrds = ["a", "an", "each", "at", "most", "least", "exactly", "that", "the", "one", "more", "than", "and", "some"]
-for (var idx = 0; idx < kwrds.length; idx++){SBVRParser.kwrds[kwrds[idx]] = true}
-
-SBVRParser._isKwrd = function(k) { return this.kwrds.hasOwnProperty(k) }
-
-
 /**
 	Following are "instance" variables/functions rather than shared.
 */
@@ -142,7 +133,7 @@ SBVRParser._isTerm = function(k) {
 	return this.possMap.term.hasOwnProperty(k) || this.possMap.term.hasOwnProperty(k.singularize())
 }
 
-SBVRParser._termForm = function(k) { 
+SBVRParser._termForm = function(k) {
 	return this.possMap.term.hasOwnProperty(k.singularize()) ? k.singularize() : k
 }
 
@@ -153,8 +144,8 @@ SBVRParser._isVerb = function(k) {
 	else return false
 }
 
-SBVRParser._verbForm = function(k) { 
-	if(k.slice(0,3)=='are' && this.possMap.verb.hasOwnProperty('is' + k.slice(3))){ return 'is' + k.slice(3) } 
+SBVRParser._verbForm = function(k) {
+	if(k.slice(0,3)=='are' && this.possMap.verb.hasOwnProperty('is' + k.slice(3))){ return 'is' + k.slice(3) }
 	else if(k=='have' && this.possMap.verb.hasOwnProperty('has'))                 { return 'has'}
 	else return k
 }

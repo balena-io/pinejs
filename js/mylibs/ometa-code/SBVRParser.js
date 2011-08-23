@@ -10,11 +10,6 @@
                 _fromIdx = this.input.idx;
             return this._pred(this._isVerb(x))
         },
-        "isKwrd": function(x) {
-            var $elf = this,
-                _fromIdx = this.input.idx;
-            return this._pred(SBVRParser._isKwrd(x))
-        },
         "isFctp": function(x) {
             var $elf = this,
                 _fromIdx = this.input.idx;
@@ -37,7 +32,7 @@
         "spaces": function() {
             var $elf = this,
                 _fromIdx = this.input.idx;
-            return this._many((function() {
+            return this._many1((function() {
                 return (function() {
                     switch (this._apply('anything')) {
                     case " ":
@@ -88,7 +83,7 @@
             return this._or((function() {
                 return (function() {
                     this._opt((function() {
-                        return this._apply("spaces")
+                        return this._apply("lineSpaces")
                     }));
                     n = this._many1((function() {
                         return this._apply("digit")
@@ -121,37 +116,17 @@
                 return $.trim(w.join(""))
             }).call(this)
         },
-        "kwrd": function(x) {
-            var $elf = this,
-                _fromIdx = this.input.idx,
-                w, a;
-            return (function() {
-                this._opt((function() {
-                    return this._apply("spaces")
-                }));
-                w = this._apply("letters");
-                w = ((x != "") ? ((x + " ") + w) : w);
-                return this._or((function() {
-                    return (function() {
-                        this._applyWithArgs("isKwrd", w);
-                        return w
-                    }).call(this)
-                }), (function() {
-                    return (function() {
-                        a = this._applyWithArgs("kwrd", w);
-                        return a
-                    }).call(this)
-                }))
-            }).call(this)
-        },
         "token": function(x) {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                t;
+                s;
             return (function() {
-                t = this._applyWithArgs("kwrd", "");
-                this._pred((t == x));
-                return ["kwrd", t]
+                this._apply("spaces");
+                s = this._applyWithArgs("seq", x);
+                this._lookahead((function() {
+                    return this._apply("spaces")
+                }));
+                return s
             }).call(this)
         },
         "addTerm": function() {
@@ -840,14 +815,6 @@
         }
     });
     (SBVRParser["keyTokens"] = ["startTerm", "startFactType", "startRule", "term", "modRule", "verb", "keyword", "allowedAttrs", "num"]);
-    (SBVRParser["kwrds"] = ({}));
-    (kwrds = ["a", "an", "each", "at", "most", "least", "exactly", "that", "the", "one", "more", "than", "and", "some"]);
-    for (var idx = (0);
-    (idx < kwrds["length"]); idx++) {
-        (SBVRParser["kwrds"][kwrds[idx]] = true)
-    }(SBVRParser["_isKwrd"] = (function(k) {
-        return this["kwrds"].hasOwnProperty(k)
-    }));
     (SBVRParser["initialize"] = (function() {
         this.reset()
     }));
