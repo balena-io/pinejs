@@ -68,21 +68,21 @@ ometa SBVRParser {
 						| qTerbRi([[]], x) ):q {v.push(q)}
 					)?														-> v,
 
-	atfo		:c	= isFctp(c[0]) {c[0] = [`fcTp].concat(c[0])}			-> {d = [`aFrm]; d.concat(c)},
+	atfo		:c	= isFctp(c[0]) {c[0] = ['fcTp'].concat(c[0])}			-> ['aFrm'].concat(c),
 
-	terbRi    :c :i = term:t verb:v bind(t):b {c[0]=c[0].concat([t,v]);c.concat([b])}:c (qTerbRi(c,i)),
+	terbRi    :c :i = term:t verb:v bind(t):b {c[0].push(t,v);c.push(b)} (qTerbRi(c,i)),
 
 	qTerbRi   :c :i = (quant:q term:t adVar(t):a verb:v bind(t):b
-							{q=q.concat([a]);c[0]=c[0].concat([t,v]);c.concat([b])}:c
+							{q.push(a);c[0].push(t,v);c.push(b)}
 							(qTerbRi(c,i)):r								-> q.concat([r])
-						| verb:v bind(i):b {c[0]=c[0].concat([i,v]);c.concat([b])}:c (atfo(c)|qTerbR(c)|qTerm(c))
-						| bind(i):b {c[0]=c[0].concat([i]);c.concat([b])}:c atfo(c)
+						| verb:v bind(i):b {c[0].push(i,v);c.push(b)} (atfo(c)|qTerbR(c)|qTerm(c))
+						| bind(i):b {c[0].push(i);c.push(b)} atfo(c)
 					),
 
-	qTerm		:c	= quant:q term:t adVar(t):a bind(t):b {q=q.concat([a]);c[0]=c[0].concat([t]);c.concat([b])}:c
+	qTerm		:c	= quant:q term:t adVar(t):a bind(t):b {q.push(a);c[0].push(t);c.push(b)}
 							atfo(c):r											-> q.concat([r]),
 
-	qTerbR		:c	= quant:q term:t adVar(t):a verb:v bind(t):b {q=q.concat([a]);c[0]=c[0].concat([t,v]);c.concat([b])}:c
+	qTerbR		:c	= quant:q term:t adVar(t):a verb:v bind(t):b {q.push(a);c[0].push(t,v);c.push(b)}
 							(atfo(c)|qTerbR(c)|qTerm(c)):r						-> q.concat([r]),
 
 	modRule			= "It" "is" 
@@ -102,7 +102,7 @@ ometa SBVRParser {
 																		-> ['rule', r, ['text', ruleText.join('')]],
 	terb			= term:t addVerb:v									-> [t, v],
 	startFactType	= "F:",
-	newFactType		= startFactType {[]}:t (terb:b {t.concat(b)}:t)+ (term:e {t.concat([e])}:t)? {this.fctps[t] = true}
+	newFactType		= startFactType {[]}:t (terb:b {t.concat(b)}:t)+ (term:e {t.push(e)})? {this.fctps[t] = true}
 																		-> [`fcTp].concat(t),
 	startTerm		= "T:",
 	newTerm			= startTerm addTerm:t {t.push([])}					-> t,
@@ -117,8 +117,7 @@ ometa SBVRParser {
 					| allowedAttrs ':',
 	line			= spaces (newTerm | newFactType | newRule | attribute):l spaces
 						{this.lines.push(l)}							-> l,
-	linef			= line (('\r'|'\n')*|end),
-	expr			= linef*											-> [`model].concat(this.lines)
+	expr			= line*											-> [`model].concat(this.lines)
 }
 
 SBVRParser.keyTokens = ["startTerm", "startFactType", "startRule", "term", "modRule", "verb", "keyword", "allowedAttrs", "num"];

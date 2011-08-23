@@ -276,23 +276,20 @@
             return (function() {
                 this._applyWithArgs("isFctp", c[(0)]);
                 (c[(0)] = ["fcTp"].concat(c[(0)]));
-                return (function() {
-                    (d = ["aFrm"]);
-                    return d.concat(c)
-                }).call(this)
+                return ["aFrm"].concat(c)
             }).call(this)
         },
         "terbRi": function(c, i) {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                t, v, b, c;
+                t, v, b;
             return (function() {
                 t = this._apply("term");
                 v = this._apply("verb");
                 b = this._applyWithArgs("bind", t);
-                c = (function() {
-                    (c[(0)] = c[(0)].concat([t, v]));
-                    return c.concat([b])
+                (function() {
+                    c[(0)].push(t, v);
+                    return c.push(b)
                 }).call(this);
                 return this._applyWithArgs("qTerbRi", c, i)
             }).call(this)
@@ -300,7 +297,7 @@
         "qTerbRi": function(c, i) {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                q, t, a, v, b, c, r;
+                q, t, a, v, b, r;
             return this._or((function() {
                 return (function() {
                     q = this._apply("quant");
@@ -308,10 +305,10 @@
                     a = this._applyWithArgs("adVar", t);
                     v = this._apply("verb");
                     b = this._applyWithArgs("bind", t);
-                    c = (function() {
-                        (q = q.concat([a]));
-                        (c[(0)] = c[(0)].concat([t, v]));
-                        return c.concat([b])
+                    (function() {
+                        q.push(a);
+                        c[(0)].push(t, v);
+                        return c.push(b)
                     }).call(this);
                     r = this._applyWithArgs("qTerbRi", c, i);
                     return q.concat([r])
@@ -320,9 +317,9 @@
                 return (function() {
                     v = this._apply("verb");
                     b = this._applyWithArgs("bind", i);
-                    c = (function() {
-                        (c[(0)] = c[(0)].concat([i, v]));
-                        return c.concat([b])
+                    (function() {
+                        c[(0)].push(i, v);
+                        return c.push(b)
                     }).call(this);
                     return this._or((function() {
                         return this._applyWithArgs("atfo", c)
@@ -335,9 +332,9 @@
             }), (function() {
                 return (function() {
                     b = this._applyWithArgs("bind", i);
-                    c = (function() {
-                        (c[(0)] = c[(0)].concat([i]));
-                        return c.concat([b])
+                    (function() {
+                        c[(0)].push(i);
+                        return c.push(b)
                     }).call(this);
                     return this._applyWithArgs("atfo", c)
                 }).call(this)
@@ -346,16 +343,16 @@
         "qTerm": function(c) {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                q, t, a, b, c, r;
+                q, t, a, b, r;
             return (function() {
                 q = this._apply("quant");
                 t = this._apply("term");
                 a = this._applyWithArgs("adVar", t);
                 b = this._applyWithArgs("bind", t);
-                c = (function() {
-                    (q = q.concat([a]));
-                    (c[(0)] = c[(0)].concat([t]));
-                    return c.concat([b])
+                (function() {
+                    q.push(a);
+                    c[(0)].push(t);
+                    return c.push(b)
                 }).call(this);
                 r = this._applyWithArgs("atfo", c);
                 return q.concat([r])
@@ -364,17 +361,17 @@
         "qTerbR": function(c) {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                q, t, a, v, b, c, r;
+                q, t, a, v, b, r;
             return (function() {
                 q = this._apply("quant");
                 t = this._apply("term");
                 a = this._applyWithArgs("adVar", t);
                 v = this._apply("verb");
                 b = this._applyWithArgs("bind", t);
-                c = (function() {
-                    (q = q.concat([a]));
-                    (c[(0)] = c[(0)].concat([t, v]));
-                    return c.concat([b])
+                (function() {
+                    q.push(a);
+                    c[(0)].push(t, v);
+                    return c.push(b)
                 }).call(this);
                 r = this._or((function() {
                     return this._applyWithArgs("atfo", c)
@@ -499,7 +496,7 @@
                 this._opt((function() {
                     return (function() {
                         e = this._apply("term");
-                        return t = t.concat([e])
+                        return t.push(e)
                     }).call(this)
                 }));
                 (this["fctps"][t] = true);
@@ -579,35 +576,12 @@
                 return l
             }).call(this)
         },
-        "linef": function() {
-            var $elf = this,
-                _fromIdx = this.input.idx;
-            return (function() {
-                this._apply("line");
-                return this._or((function() {
-                    return this._many((function() {
-                        return (function() {
-                            switch (this._apply('anything')) {
-                            case "\r":
-                                return "\r";
-                            case "\n":
-                                return "\n";
-                            default:
-                                throw fail
-                            }
-                        }).call(this)
-                    }))
-                }), (function() {
-                    return this._apply("end")
-                }))
-            }).call(this)
-        },
         "expr": function() {
             var $elf = this,
                 _fromIdx = this.input.idx;
             return (function() {
                 this._many((function() {
-                    return this._apply("linef")
+                    return this._apply("line")
                 }));
                 return ["model"].concat(this["lines"])
             }).call(this)
