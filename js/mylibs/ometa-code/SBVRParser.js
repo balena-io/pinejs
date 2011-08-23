@@ -64,18 +64,19 @@
                 _fromIdx = this.input.idx,
                 w;
             return (function() {
+                this._apply("spaces");
                 w = this._many((function() {
                     return (function() {
                         this._not((function() {
-                            return this._applyWithArgs("exactly", "\r")
-                        }));
-                        this._not((function() {
-                            return this._applyWithArgs("exactly", "\n")
+                            return (function() {
+                                this._apply("spaces");
+                                return this._apply("lineStart")
+                            }).call(this)
                         }));
                         return this._apply("anything")
                     }).call(this)
                 }));
-                return $.trim(w.join(""))
+                return w.join("")
             }).call(this)
         },
         "token": function(x) {

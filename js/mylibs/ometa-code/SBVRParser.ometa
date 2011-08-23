@@ -29,7 +29,7 @@ ometa SBVRParser {
 	letters			= letter+:l												-> l.join(''),
 	num				= spaces digit+:n										-> ['num', parseInt(n.join(''))]
 					| "one"													-> ['num', 1],
-	toEOL			= (~'\r'~'\n' anything)*:w								-> $.trim(w.join('')),
+	toEOL			= spaces (~(spaces lineStart) anything)*:w				-> w.join(''),
 
 	token		:x	= spaces seq(x):s &(space+)								-> s,
 
