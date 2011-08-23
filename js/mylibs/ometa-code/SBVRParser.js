@@ -29,24 +29,11 @@
                 return ["bind", x, y]
             }).call(this)
         },
-        "lineSpaces": function() {
+        "spaces": function() {
             var $elf = this,
                 _fromIdx = this.input.idx;
             return this._many1((function() {
-                return (function() {
-                    switch (this._apply('anything')) {
-                    case " ":
-                        return " ";
-                    case "\t":
-                        return "\t";
-                    case "\r":
-                        return "\r";
-                    case "\n":
-                        return "\n";
-                    default:
-                        throw fail
-                    }
-                }).call(this)
+                return this._apply("space")
             }))
         },
         "letters": function() {
@@ -67,7 +54,7 @@
             return this._or((function() {
                 return (function() {
                     this._opt((function() {
-                        return this._apply("lineSpaces")
+                        return this._apply("spaces")
                     }));
                     n = this._many1((function() {
                         return this._apply("digit")
@@ -105,10 +92,10 @@
                 _fromIdx = this.input.idx,
                 s;
             return (function() {
-                this._apply("lineSpaces");
+                this._apply("spaces");
                 s = this._applyWithArgs("seq", x);
                 this._lookahead((function() {
-                    return this._apply("lineSpaces")
+                    return this._apply("spaces")
                 }));
                 return s
             }).call(this)
@@ -149,7 +136,7 @@
                 _fromIdx = this.input.idx;
             return (function() {
                 this._opt((function() {
-                    return this._apply("lineSpaces")
+                    return this._apply("spaces")
                 }));
                 this._not((function() {
                     return this._apply("lineStart")
@@ -193,7 +180,7 @@
                 _fromIdx = this.input.idx;
             return (function() {
                 this._opt((function() {
-                    return this._apply("lineSpaces")
+                    return this._apply("spaces")
                 }));
                 this._not((function() {
                     return this._apply("lineStart")
@@ -620,14 +607,14 @@
             return (function() {
                 this._apply("startRule");
                 this._opt((function() {
-                    return this._apply("lineSpaces")
+                    return this._apply("spaces")
                 }));
                 ruleText = this._lookahead((function() {
                     return this._many((function() {
                         return (function() {
                             this._not((function() {
                                 return (function() {
-                                    this._apply("lineSpaces");
+                                    this._apply("spaces");
                                     return this._apply("lineStart")
                                 }).call(this)
                             }));
@@ -749,7 +736,7 @@
                 l;
             return (function() {
                 this._opt((function() {
-                    return this._apply("lineSpaces")
+                    return this._apply("spaces")
                 }));
                 l = this._or((function() {
                     return this._apply("newTerm")
@@ -761,7 +748,7 @@
                     return this._apply("attribute")
                 }));
                 this._opt((function() {
-                    return this._apply("lineSpaces")
+                    return this._apply("spaces")
                 }));
                 this["lines"].push(l);
                 return l
