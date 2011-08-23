@@ -296,34 +296,20 @@
             return (function() {
                 t = this._lookahead((function() {
                     return this._many1((function() {
-                        return (function() {
-                            this._opt((function() {
-                                return this._apply("lineSpaces")
-                            }));
-                            this._not((function() {
-                                return this._apply("lineStart")
-                            }));
-                            return this._apply("letters")
-                        }).call(this)
+                        return this._apply("termPart")
                     }))
                 }));
                 (this["possMap"]["term"][t.join(" ")] = true);
-                return t = this._apply("term")
+                return this._apply("term")
             }).call(this)
         },
         "term": function(x) {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                l;
+                t;
             return (function() {
-                this._opt((function() {
-                    return this._apply("lineSpaces")
-                }));
-                this._not((function() {
-                    return this._apply("lineStart")
-                }));
-                l = this._apply("letters");
-                (x = ((x == undefined) ? l : [x, l].join(" ")));
+                t = this._apply("termPart");
+                (x = ((x == undefined) ? t : [x, t].join(" ")));
                 return this._or((function() {
                     return this._applyWithArgs("term", x)
                 }), (function() {
@@ -334,25 +320,40 @@
                 }))
             }).call(this)
         },
-        "mkVerb": function(t) {
+        "termPart": function() {
+            var $elf = this,
+                _fromIdx = this.input.idx;
+            return (function() {
+                this._opt((function() {
+                    return this._apply("lineSpaces")
+                }));
+                this._not((function() {
+                    return this._apply("lineStart")
+                }));
+                return this._apply("letters")
+            }).call(this)
+        },
+        "addVerb": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 v;
             return (function() {
-                v = this._apply("nrText");
-                return (this["possMap"]["verb"][v] = true)
+                v = this._lookahead((function() {
+                    return this._many1((function() {
+                        return this._apply("verbPart")
+                    }))
+                }));
+                (this["possMap"]["verb"][v.join(" ")] = true);
+                return this._apply("verb")
             }).call(this)
         },
         "verb": function(x) {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                l;
+                v;
             return (function() {
-                this._opt((function() {
-                    return this._apply("spaces")
-                }));
-                l = this._apply("letters");
-                (x = ((x == undefined) ? l : [x, l].join(" ")));
+                v = this._apply("verbPart");
+                (x = ((x == undefined) ? v : [x, v].join(" ")));
                 return this._or((function() {
                     return this._applyWithArgs("verb", x)
                 }), (function() {
@@ -361,6 +362,22 @@
                         return ["verb", this._verbForm(x)]
                     }).call(this)
                 }))
+            }).call(this)
+        },
+        "verbPart": function() {
+            var $elf = this,
+                _fromIdx = this.input.idx;
+            return (function() {
+                this._opt((function() {
+                    return this._apply("lineSpaces")
+                }));
+                this._not((function() {
+                    return this._apply("lineStart")
+                }));
+                this._not((function() {
+                    return this._apply("term")
+                }));
+                return this._apply("letters")
             }).call(this)
         },
         "joinQuant": function() {
@@ -806,12 +823,7 @@
                 t, v;
             return (function() {
                 t = this._apply("term");
-                this._opt((function() {
-                    return this._lookahead((function() {
-                        return this._applyWithArgs("mkVerb", t)
-                    }))
-                }));
-                v = this._apply("verb");
+                v = this._apply("addVerb");
                 return [t, v]
             }).call(this)
         },

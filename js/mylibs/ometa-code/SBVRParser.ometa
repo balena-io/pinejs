@@ -45,21 +45,22 @@ ometa SBVRParser {
 	kwrd		:x	= spaces? letters:w {x!=''?x+' '+w:w}:w (isKwrd(w) -> w | kwrd(w):a -> a),
 	token		:x	= kwrd(''):t ?(t==x)									-> [`kwrd, t],
 
-	addTerm			= &(
-						(lineSpaces? ~lineStart letters)+
-					  ):t {this.possMap.term[t.join(' ')] = true}
-					  term:t,
-	term		:x  = lineSpaces? ~lineStart letters:l {x = x==undefined ? l : [x, l].join(' ')}
+	addTerm			= &(termPart+):t {this.possMap.term[t.join(' ')] = true}
+					  term,
+	term		:x  = termPart:t {x = x==undefined ? t : [x, t].join(' ')}
 						( term(x)
 						| isTerm(x)											-> ['term',this._termForm(x)]
 						),
+	termPart		= lineSpaces? ~lineStart letters,
 	
 	
-	mkVerb		:t	= nrText:v {this.possMap.verb[v] = true},
-	verb		:x  = spaces? letters:l {x = x==undefined ? l : [x, l].join(' ')}
+	addVerb			= &((verbPart)+):v {this.possMap.verb[v.join(' ')] = true}
+					  verb,
+	verb		:x  = verbPart:v {x = x==undefined ? v : [x, v].join(' ')}
 						( verb(x)
 						| isVerb(x)											-> ['verb',this._verbForm(x)]
 						),
+	verbPart		= lineSpaces? ~lineStart ~term letters,
 	
 	joinQuant		= matchForAll('keyword',["and","at","most"]),
 	quant			= keyword("each")										-> [`univQ]
@@ -108,7 +109,7 @@ ometa SBVRParser {
 	newRule			= startRule spaces? &((~'\n' char)*):ruleText {this.ruleVarsCount=1}
 						modRule:r qTerbR([[]]):q {r.length == 2 ? r[1][1] = q : r[1] = q}
 																		-> ['rule', r, ['text', ruleText.join('')]],
-	terb			= term:t &mkVerb(t)? verb:v							-> [t, v],
+	terb			= term:t addVerb:v							-> [t, v],
 	startFactType	= seq('F:'),
 	newFactType		= startFactType spaces? {t=[]} (terb:b {t.concat(b)}:t)+ (term:e {t.concat([e])}:t)? {this.fctps[t] = true}
 																		-> [`fcTp].concat(t),
