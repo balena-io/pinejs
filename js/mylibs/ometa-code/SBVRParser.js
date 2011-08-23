@@ -29,26 +29,10 @@
                 return ["bind", x, y]
             }).call(this)
         },
-        "spaces": function() {
-            var $elf = this,
-                _fromIdx = this.input.idx;
-            return this._many1((function() {
-                return (function() {
-                    switch (this._apply('anything')) {
-                    case " ":
-                        return " ";
-                    case "\t":
-                        return "\t";
-                    default:
-                        throw fail
-                    }
-                }).call(this)
-            }))
-        },
         "lineSpaces": function() {
             var $elf = this,
                 _fromIdx = this.input.idx;
-            return this._many((function() {
+            return this._many1((function() {
                 return (function() {
                     switch (this._apply('anything')) {
                     case " ":
@@ -121,10 +105,10 @@
                 _fromIdx = this.input.idx,
                 s;
             return (function() {
-                this._apply("spaces");
+                this._apply("lineSpaces");
                 s = this._applyWithArgs("seq", x);
                 this._lookahead((function() {
-                    return this._apply("spaces")
+                    return this._apply("lineSpaces")
                 }));
                 return s
             }).call(this)
@@ -636,13 +620,16 @@
             return (function() {
                 this._apply("startRule");
                 this._opt((function() {
-                    return this._apply("spaces")
+                    return this._apply("lineSpaces")
                 }));
                 ruleText = this._lookahead((function() {
                     return this._many((function() {
                         return (function() {
                             this._not((function() {
-                                return this._applyWithArgs("exactly", "\n")
+                                return (function() {
+                                    this._apply("lineSpaces");
+                                    return this._apply("lineStart")
+                                }).call(this)
                             }));
                             return this._apply("char")
                         }).call(this)

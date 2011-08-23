@@ -26,14 +26,13 @@ ometa SBVRParser {
 	findVar		:x	= {this.ruleVars[x[1]]},
 	bind		:x	= findVar(x):y											-> [`bind, x, y],
 
-	spaces			= (' '|'\t')+,
-	lineSpaces		= (' '|'\t'|'\r'|'\n')*,
+	lineSpaces		= (' '|'\t'|'\r'|'\n')+,
 	letters			= letter+:l												-> l.join(''),
 	num				= lineSpaces? digit+:n										-> ['num', parseInt(n.join(''))]
 					| "one"													-> ['num', 1],
 	toEOL			= (~'\r'~'\n' anything)*:w								-> $.trim(w.join('')),
 
-	token		:x	= spaces seq(x):s &spaces								-> s,
+	token		:x	= lineSpaces seq(x):s &lineSpaces						-> s,
 
 	addTerm			= &(termPart+):t {this.possMap.term[t.join(' ')] = true}
 					  term,
@@ -96,7 +95,7 @@ ometa SBVRParser {
 					| seq('It is permissible that')						-> ['prm'],
 
 	startRule		= seq('R:'),
-	newRule			= startRule spaces? &((~'\n' char)*):ruleText {this.ruleVarsCount=1}
+	newRule			= startRule lineSpaces? &((~(lineSpaces lineStart) char)*):ruleText {this.ruleVarsCount=1}
 						modRule:r qTerbR([[]]):q {r.length == 2 ? r[1][1] = q : r[1] = q}
 																		-> ['rule', r, ['text', ruleText.join('')]],
 	terb			= term:t addVerb:v									-> [t, v],
