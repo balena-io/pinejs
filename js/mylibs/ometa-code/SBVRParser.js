@@ -235,7 +235,7 @@
                 w = this._many1((function() {
                     return (function() {
                         this._apply("spaces");
-                        return w = this._apply("letters")
+                        return this._apply("letters")
                     }).call(this)
                 }));
                 return w.join(" ")
@@ -248,9 +248,13 @@
             return (function() {
                 w = this._many((function() {
                     return (function() {
-                        w = this._apply("anything");
-                        this._pred(((w != "\n") && (w != "\r")));
-                        return w
+                        this._not((function() {
+                            return this._applyWithArgs("exactly", "\r")
+                        }));
+                        this._not((function() {
+                            return this._applyWithArgs("exactly", "\n")
+                        }));
+                        return this._apply("anything")
                     }).call(this)
                 }));
                 return $.trim(w.join(""))
@@ -839,13 +843,10 @@
         "newFactType": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                b, t, e;
+                t, b, e;
             return (function() {
                 this._apply("startFactType");
-                this._opt((function() {
-                    return this._apply("spaces")
-                }));
-                (t = []);
+                t = [];
                 this._many1((function() {
                     return (function() {
                         b = this._apply("terb");
@@ -913,7 +914,10 @@
             }), (function() {
                 return this._apply("startRule")
             }), (function() {
-                return this._apply("allowedAttrs")
+                return (function() {
+                    this._apply("allowedAttrs");
+                    return this._applyWithArgs("exactly", ":")
+                }).call(this)
             }))
         },
         "line": function() {
