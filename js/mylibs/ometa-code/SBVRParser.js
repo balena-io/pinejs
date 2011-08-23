@@ -20,87 +20,6 @@
                 _fromIdx = this.input.idx;
             return this._pred(this._isFctp(x))
         },
-        "isKwrdSt": function(p, q) {
-            var $elf = this,
-                _fromIdx = this.input.idx,
-                w, n;
-            return (function() {
-                this._lookahead((function() {
-                    return (function() {
-                        this._apply("spaces");
-                        this._applyWithArgs("seq", q);
-                        return w = this._apply("word")
-                    }).call(this)
-                }));
-                w = ((q != "") ? ((q + " ") + w) : w);
-                n = ((p + " ") + w);
-                return this._or((function() {
-                    return (function() {
-                        this._applyWithArgs("isKwrd", n);
-                        return true
-                    }).call(this)
-                }), (function() {
-                    return (function() {
-                        this._applyWithArgs("isKwrdSt", p, w);
-                        return true
-                    }).call(this)
-                }))
-            }).call(this)
-        },
-        "isTermSt": function(p, q) {
-            var $elf = this,
-                _fromIdx = this.input.idx,
-                w, n;
-            return (function() {
-                this._lookahead((function() {
-                    return (function() {
-                        this._apply("spaces");
-                        this._applyWithArgs("seq", q);
-                        return w = this._apply("word")
-                    }).call(this)
-                }));
-                w = ((q != "") ? ((q + " ") + w) : w);
-                n = ((p + " ") + w);
-                return this._or((function() {
-                    return (function() {
-                        this._applyWithArgs("isTerm", n);
-                        return true
-                    }).call(this)
-                }), (function() {
-                    return (function() {
-                        this._applyWithArgs("isTermSt", p, w);
-                        return true
-                    }).call(this)
-                }))
-            }).call(this)
-        },
-        "isVerbSt": function(p, q) {
-            var $elf = this,
-                _fromIdx = this.input.idx,
-                w, n;
-            return (function() {
-                this._lookahead((function() {
-                    return (function() {
-                        this._apply("spaces");
-                        this._applyWithArgs("seq", q);
-                        return w = this._apply("word")
-                    }).call(this)
-                }));
-                w = ((q != "") ? ((q + " ") + w) : w);
-                n = ((p + " ") + w);
-                return this._or((function() {
-                    return (function() {
-                        this._applyWithArgs("isVerb", n);
-                        return true
-                    }).call(this)
-                }), (function() {
-                    return (function() {
-                        this._applyWithArgs("isVerbSt", p, w);
-                        return true
-                    }).call(this)
-                }))
-            }).call(this)
-        },
         "findVar": function(x) {
             var $elf = this,
                 _fromIdx = this.input.idx;
@@ -202,29 +121,6 @@
                     return this._applyWithArgs("isKwrd", w)
                 }));
                 return w
-            }).call(this)
-        },
-        "nrText": function() {
-            var $elf = this,
-                _fromIdx = this.input.idx,
-                w;
-            return (function() {
-                w = this._many1((function() {
-                    return (function() {
-                        w = this._apply("word");
-                        this._not((function() {
-                            return this._applyWithArgs("isKwrdSt", w, "")
-                        }));
-                        this._not((function() {
-                            return this._applyWithArgs("isTermSt", w, "")
-                        }));
-                        this._not((function() {
-                            return this._applyWithArgs("isVerbSt", w, "")
-                        }));
-                        return w
-                    }).call(this)
-                }));
-                return w.join(" ")
             }).call(this)
         },
         "text": function() {

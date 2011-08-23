@@ -24,10 +24,6 @@ ometa SBVRParser {
 	isKwrd		:x	= ?SBVRParser._isKwrd(x),
 	isFctp		:x	= ?this._isFctp(x),
 
-	isKwrdSt  :p :q = &(spaces seq(q) word:w) {q!=''?q+' '+w:w}:w {p+' '+w}:n (isKwrd(n) -> true | isKwrdSt(p, w) -> true),
-	isTermSt  :p :q = &(spaces seq(q) word:w) {q!=''?q+' '+w:w}:w {p+' '+w}:n (isTerm(n) -> true | isTermSt(p, w) -> true),
-	isVerbSt  :p :q = &(spaces seq(q) word:w) {q!=''?q+' '+w:w}:w {p+' '+w}:n (isVerb(n) -> true | isVerbSt(p, w) -> true),
-	
 	findVar		:x	= {this.ruleVars[x[1]]},
 	bind		:x	= findVar(x):y											-> [`bind, x, y],
 
@@ -37,8 +33,6 @@ ometa SBVRParser {
 	num				= spaces? digit+:n										-> ['num', parseInt(n.join(''))]
 					| "one"													-> ['num', 1],
 	word			= spaces? letters:w ~isVerb(w) ~isTerm(w) ~isKwrd(w)	-> w,
-	nrText			= (word:w ~isKwrdSt(w,'')~isTermSt(w,'')~isVerbSt(w,'') ->w)+:w
-																			-> w.join(' '),
 	text			= (spaces letters)+:w									-> w.join(' '),
 	toEOL			= (~'\r'~'\n' anything)*:w								-> $.trim(w.join('')),
 
