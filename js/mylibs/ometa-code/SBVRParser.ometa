@@ -32,8 +32,6 @@ ometa SBVRParser {
 	letters			= letter+:l												-> l.join(''),
 	num				= spaces? digit+:n										-> ['num', parseInt(n.join(''))]
 					| "one"													-> ['num', 1],
-	word			= spaces? letters:w ~isVerb(w) ~isTerm(w) ~isKwrd(w)	-> w,
-	text			= (spaces letters)+:w									-> w.join(' '),
 	toEOL			= (~'\r'~'\n' anything)*:w								-> $.trim(w.join('')),
 
 	kwrd		:x	= spaces? letters:w {x!=''?x+' '+w:w}:w (isKwrd(w) -> w | kwrd(w):a -> a),
@@ -118,7 +116,7 @@ ometa SBVRParser {
 					| startFactType
 					| startRule
 					| allowedAttrs ':',
-	line			= spaces? (newTerm | newFactType | newRule | attribute):l spaces?
+	line			= lineSpaces? (newTerm | newFactType | newRule | attribute):l lineSpaces?
 						{this.lines.push(l)}							-> l,
 	linef			= line (('\r'|'\n')*|end),
 	expr			= linef*											-> [`model].concat(this.lines)

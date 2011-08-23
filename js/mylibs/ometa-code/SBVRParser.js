@@ -102,41 +102,6 @@
                 }).call(this)
             }))
         },
-        "word": function() {
-            var $elf = this,
-                _fromIdx = this.input.idx,
-                w;
-            return (function() {
-                this._opt((function() {
-                    return this._apply("spaces")
-                }));
-                w = this._apply("letters");
-                this._not((function() {
-                    return this._applyWithArgs("isVerb", w)
-                }));
-                this._not((function() {
-                    return this._applyWithArgs("isTerm", w)
-                }));
-                this._not((function() {
-                    return this._applyWithArgs("isKwrd", w)
-                }));
-                return w
-            }).call(this)
-        },
-        "text": function() {
-            var $elf = this,
-                _fromIdx = this.input.idx,
-                w;
-            return (function() {
-                w = this._many1((function() {
-                    return (function() {
-                        this._apply("spaces");
-                        return this._apply("letters")
-                    }).call(this)
-                }));
-                return w.join(" ")
-            }).call(this)
-        },
         "toEOL": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
@@ -822,7 +787,7 @@
                 l;
             return (function() {
                 this._opt((function() {
-                    return this._apply("spaces")
+                    return this._apply("lineSpaces")
                 }));
                 l = this._or((function() {
                     return this._apply("newTerm")
@@ -834,7 +799,7 @@
                     return this._apply("attribute")
                 }));
                 this._opt((function() {
-                    return this._apply("spaces")
+                    return this._apply("lineSpaces")
                 }));
                 this["lines"].push(l);
                 return l
