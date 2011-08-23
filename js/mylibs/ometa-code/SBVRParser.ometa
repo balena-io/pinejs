@@ -26,13 +26,12 @@ ometa SBVRParser {
 	findVar		:x	= {this.ruleVars[x[1]]},
 	bind		:x	= findVar(x):y											-> [`bind, x, y],
 
-	spaces			= space+,
 	letters			= letter+:l												-> l.join(''),
-	num				= spaces? digit+:n										-> ['num', parseInt(n.join(''))]
+	num				= spaces digit+:n										-> ['num', parseInt(n.join(''))]
 					| "one"													-> ['num', 1],
 	toEOL			= (~'\r'~'\n' anything)*:w								-> $.trim(w.join('')),
 
-	token		:x	= spaces seq(x):s &spaces						-> s,
+	token		:x	= spaces seq(x):s &(space+)								-> s,
 
 	addTerm			= &(termPart+):t {this.possMap.term[t.join(' ')] = true}
 					  term,
@@ -40,7 +39,7 @@ ometa SBVRParser {
 						( term(x)
 						| isTerm(x)											-> ['term',this._termForm(x)]
 						),
-	termPart		= spaces? ~lineStart letters,
+	termPart		= spaces ~lineStart letters,
 	
 	
 	addVerb			= &((verbPart)+):v {this.possMap.verb[v.join(' ')] = true}
@@ -49,7 +48,7 @@ ometa SBVRParser {
 						( verb(x)
 						| isVerb(x)											-> ['verb',this._verbForm(x)]
 						),
-	verbPart		= spaces? ~lineStart ~term letters,
+	verbPart		= spaces ~lineStart ~term letters,
 	
 	joinQuant		= matchForAll('keyword',["and","at","most"]),
 	quant			= keyword("each")										-> [`univQ]
@@ -95,7 +94,7 @@ ometa SBVRParser {
 					| seq('It is permissible that')						-> ['prm'],
 
 	startRule		= seq('R:'),
-	newRule			= startRule spaces? &((~(spaces lineStart) char)*):ruleText {this.ruleVarsCount=1}
+	newRule			= startRule spaces &((~(spaces lineStart) char)*):ruleText {this.ruleVarsCount=1}
 						modRule:r qTerbR([[]]):q {r.length == 2 ? r[1][1] = q : r[1] = q}
 																		-> ['rule', r, ['text', ruleText.join('')]],
 	terb			= term:t addVerb:v									-> [t, v],
@@ -113,7 +112,7 @@ ometa SBVRParser {
 					| startFactType
 					| startRule
 					| allowedAttrs ':',
-	line			= spaces? (newTerm | newFactType | newRule | attribute):l spaces?
+	line			= spaces (newTerm | newFactType | newRule | attribute):l spaces
 						{this.lines.push(l)}							-> l,
 	linef			= line (('\r'|'\n')*|end),
 	expr			= linef*											-> [`model].concat(this.lines)
