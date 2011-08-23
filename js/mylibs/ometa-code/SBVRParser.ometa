@@ -85,23 +85,26 @@ ometa SBVRParser {
 	qTerbR		:c	= quant:q term:t adVar(t):a verb:v bind(t):b {q=q.concat([a]);c[0]=c[0].concat([t,v]);c.concat([b])}:c
 							(atfo(c)|qTerbR(c)|qTerm(c)):r						-> q.concat([r]),
 
-	modRule			= seq('It is obligatory that')						-> ['obl']
-					| seq('It is necessary that')						-> ['nec']
-					| seq('It is prohibited that')						-> ['obl', ['neg']]
-					| seq('It is impossible that')						-> ['nec', ['neg']]
-					| seq('It is not possible that')					-> ['nec', ['neg']]
-					| seq('It is possible that')						-> ['pos']
-					| seq('It is permissible that')						-> ['prm'],
+	modRule			= "It" "is" 
+						( "obligatory"		-> ['obl']
+						| "necessary"		-> ['nec']
+						| "prohibited"		-> ['obl', ['neg']]
+						| "impossible"		-> ['nec', ['neg']]
+						| "not" "possible"	-> ['nec', ['neg']]
+						| "possible"		-> ['pos']
+						| "permissible"		-> ['prm']
+						):r
+					  "that"											-> r,
 
-	startRule		= seq('R:'),
+	startRule		= "R:",
 	newRule			= startRule spaces &((~(spaces lineStart) char)*):ruleText {this.ruleVarsCount=1}
 						modRule:r qTerbR([[]]):q {r.length == 2 ? r[1][1] = q : r[1] = q}
 																		-> ['rule', r, ['text', ruleText.join('')]],
 	terb			= term:t addVerb:v									-> [t, v],
-	startFactType	= seq('F:'),
+	startFactType	= "F:",
 	newFactType		= startFactType {[]}:t (terb:b {t.concat(b)}:t)+ (term:e {t.concat([e])}:t)? {this.fctps[t] = true}
 																		-> [`fcTp].concat(t),
-	startTerm		= seq('T:'),
+	startTerm		= "T:",
 	newTerm			= startTerm addTerm:t {t.push([])}					-> t,
 	attribute		= ?{this.lines.length>0 && this.lines[this.lines.length-1][0] == 'term'}
 						allowedAttrs:attrName ':' toEOL:attrVal			-> {var lastLine = this.lines.pop(); lastLine[2].push([attrName.replace(new RegExp(' ','g'),''), attrVal]); lastLine},

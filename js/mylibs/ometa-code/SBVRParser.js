@@ -388,206 +388,56 @@
         },
         "modRule": function() {
             var $elf = this,
-                _fromIdx = this.input.idx;
+                _fromIdx = this.input.idx,
+                r;
             return (function() {
-                switch (this._apply('anything')) {
-                case "I":
+                this._applyWithArgs("token", "It");
+                this._applyWithArgs("token", "is");
+                r = this._or((function() {
                     return (function() {
-                        switch (this._apply('anything')) {
-                        case "t":
-                            return (function() {
-                                switch (this._apply('anything')) {
-                                case " ":
-                                    return (function() {
-                                        switch (this._apply('anything')) {
-                                        case "i":
-                                            return (function() {
-                                                switch (this._apply('anything')) {
-                                                case "s":
-                                                    return (function() {
-                                                        switch (this._apply('anything')) {
-                                                        case " ":
-                                                            return (function() {
-                                                                switch (this._apply('anything')) {
-                                                                case "o":
-                                                                    return (function() {
-                                                                        this._applyWithArgs("exactly", "b");
-                                                                        this._applyWithArgs("exactly", "l");
-                                                                        this._applyWithArgs("exactly", "i");
-                                                                        this._applyWithArgs("exactly", "g");
-                                                                        this._applyWithArgs("exactly", "a");
-                                                                        this._applyWithArgs("exactly", "t");
-                                                                        this._applyWithArgs("exactly", "o");
-                                                                        this._applyWithArgs("exactly", "r");
-                                                                        this._applyWithArgs("exactly", "y");
-                                                                        this._applyWithArgs("exactly", " ");
-                                                                        this._applyWithArgs("exactly", "t");
-                                                                        this._applyWithArgs("exactly", "h");
-                                                                        this._applyWithArgs("exactly", "a");
-                                                                        this._applyWithArgs("exactly", "t");
-                                                                        "It is obligatory that";
-                                                                        return ["obl"]
-                                                                    }).call(this);
-                                                                case "n":
-                                                                    return (function() {
-                                                                        switch (this._apply('anything')) {
-                                                                        case "e":
-                                                                            return (function() {
-                                                                                this._applyWithArgs("exactly", "c");
-                                                                                this._applyWithArgs("exactly", "e");
-                                                                                this._applyWithArgs("exactly", "s");
-                                                                                this._applyWithArgs("exactly", "s");
-                                                                                this._applyWithArgs("exactly", "a");
-                                                                                this._applyWithArgs("exactly", "r");
-                                                                                this._applyWithArgs("exactly", "y");
-                                                                                this._applyWithArgs("exactly", " ");
-                                                                                this._applyWithArgs("exactly", "t");
-                                                                                this._applyWithArgs("exactly", "h");
-                                                                                this._applyWithArgs("exactly", "a");
-                                                                                this._applyWithArgs("exactly", "t");
-                                                                                "It is necessary that";
-                                                                                return ["nec"]
-                                                                            }).call(this);
-                                                                        case "o":
-                                                                            return (function() {
-                                                                                this._applyWithArgs("exactly", "t");
-                                                                                this._applyWithArgs("exactly", " ");
-                                                                                this._applyWithArgs("exactly", "p");
-                                                                                this._applyWithArgs("exactly", "o");
-                                                                                this._applyWithArgs("exactly", "s");
-                                                                                this._applyWithArgs("exactly", "s");
-                                                                                this._applyWithArgs("exactly", "i");
-                                                                                this._applyWithArgs("exactly", "b");
-                                                                                this._applyWithArgs("exactly", "l");
-                                                                                this._applyWithArgs("exactly", "e");
-                                                                                this._applyWithArgs("exactly", " ");
-                                                                                this._applyWithArgs("exactly", "t");
-                                                                                this._applyWithArgs("exactly", "h");
-                                                                                this._applyWithArgs("exactly", "a");
-                                                                                this._applyWithArgs("exactly", "t");
-                                                                                "It is not possible that";
-                                                                                return ["nec", ["neg"]]
-                                                                            }).call(this);
-                                                                        default:
-                                                                            throw fail
-                                                                        }
-                                                                    }).call(this);
-                                                                case "p":
-                                                                    return (function() {
-                                                                        switch (this._apply('anything')) {
-                                                                        case "r":
-                                                                            return (function() {
-                                                                                this._applyWithArgs("exactly", "o");
-                                                                                this._applyWithArgs("exactly", "h");
-                                                                                this._applyWithArgs("exactly", "i");
-                                                                                this._applyWithArgs("exactly", "b");
-                                                                                this._applyWithArgs("exactly", "i");
-                                                                                this._applyWithArgs("exactly", "t");
-                                                                                this._applyWithArgs("exactly", "e");
-                                                                                this._applyWithArgs("exactly", "d");
-                                                                                this._applyWithArgs("exactly", " ");
-                                                                                this._applyWithArgs("exactly", "t");
-                                                                                this._applyWithArgs("exactly", "h");
-                                                                                this._applyWithArgs("exactly", "a");
-                                                                                this._applyWithArgs("exactly", "t");
-                                                                                "It is prohibited that";
-                                                                                return ["obl", ["neg"]]
-                                                                            }).call(this);
-                                                                        case "o":
-                                                                            return (function() {
-                                                                                this._applyWithArgs("exactly", "s");
-                                                                                this._applyWithArgs("exactly", "s");
-                                                                                this._applyWithArgs("exactly", "i");
-                                                                                this._applyWithArgs("exactly", "b");
-                                                                                this._applyWithArgs("exactly", "l");
-                                                                                this._applyWithArgs("exactly", "e");
-                                                                                this._applyWithArgs("exactly", " ");
-                                                                                this._applyWithArgs("exactly", "t");
-                                                                                this._applyWithArgs("exactly", "h");
-                                                                                this._applyWithArgs("exactly", "a");
-                                                                                this._applyWithArgs("exactly", "t");
-                                                                                "It is possible that";
-                                                                                return ["pos"]
-                                                                            }).call(this);
-                                                                        case "e":
-                                                                            return (function() {
-                                                                                this._applyWithArgs("exactly", "r");
-                                                                                this._applyWithArgs("exactly", "m");
-                                                                                this._applyWithArgs("exactly", "i");
-                                                                                this._applyWithArgs("exactly", "s");
-                                                                                this._applyWithArgs("exactly", "s");
-                                                                                this._applyWithArgs("exactly", "i");
-                                                                                this._applyWithArgs("exactly", "b");
-                                                                                this._applyWithArgs("exactly", "l");
-                                                                                this._applyWithArgs("exactly", "e");
-                                                                                this._applyWithArgs("exactly", " ");
-                                                                                this._applyWithArgs("exactly", "t");
-                                                                                this._applyWithArgs("exactly", "h");
-                                                                                this._applyWithArgs("exactly", "a");
-                                                                                this._applyWithArgs("exactly", "t");
-                                                                                "It is permissible that";
-                                                                                return ["prm"]
-                                                                            }).call(this);
-                                                                        default:
-                                                                            throw fail
-                                                                        }
-                                                                    }).call(this);
-                                                                case "i":
-                                                                    return (function() {
-                                                                        this._applyWithArgs("exactly", "m");
-                                                                        this._applyWithArgs("exactly", "p");
-                                                                        this._applyWithArgs("exactly", "o");
-                                                                        this._applyWithArgs("exactly", "s");
-                                                                        this._applyWithArgs("exactly", "s");
-                                                                        this._applyWithArgs("exactly", "i");
-                                                                        this._applyWithArgs("exactly", "b");
-                                                                        this._applyWithArgs("exactly", "l");
-                                                                        this._applyWithArgs("exactly", "e");
-                                                                        this._applyWithArgs("exactly", " ");
-                                                                        this._applyWithArgs("exactly", "t");
-                                                                        this._applyWithArgs("exactly", "h");
-                                                                        this._applyWithArgs("exactly", "a");
-                                                                        this._applyWithArgs("exactly", "t");
-                                                                        "It is impossible that";
-                                                                        return ["nec", ["neg"]]
-                                                                    }).call(this);
-                                                                default:
-                                                                    throw fail
-                                                                }
-                                                            }).call(this);
-                                                        default:
-                                                            throw fail
-                                                        }
-                                                    }).call(this);
-                                                default:
-                                                    throw fail
-                                                }
-                                            }).call(this);
-                                        default:
-                                            throw fail
-                                        }
-                                    }).call(this);
-                                default:
-                                    throw fail
-                                }
-                            }).call(this);
-                        default:
-                            throw fail
-                        }
-                    }).call(this);
-                default:
-                    throw fail
-                }
+                        this._applyWithArgs("token", "obligatory");
+                        return ["obl"]
+                    }).call(this)
+                }), (function() {
+                    return (function() {
+                        this._applyWithArgs("token", "necessary");
+                        return ["nec"]
+                    }).call(this)
+                }), (function() {
+                    return (function() {
+                        this._applyWithArgs("token", "prohibited");
+                        return ["obl", ["neg"]]
+                    }).call(this)
+                }), (function() {
+                    return (function() {
+                        this._applyWithArgs("token", "impossible");
+                        return ["nec", ["neg"]]
+                    }).call(this)
+                }), (function() {
+                    return (function() {
+                        this._applyWithArgs("token", "not");
+                        this._applyWithArgs("token", "possible");
+                        return ["nec", ["neg"]]
+                    }).call(this)
+                }), (function() {
+                    return (function() {
+                        this._applyWithArgs("token", "possible");
+                        return ["pos"]
+                    }).call(this)
+                }), (function() {
+                    return (function() {
+                        this._applyWithArgs("token", "permissible");
+                        return ["prm"]
+                    }).call(this)
+                }));
+                this._applyWithArgs("token", "that");
+                return r
             }).call(this)
         },
         "startRule": function() {
             var $elf = this,
                 _fromIdx = this.input.idx;
-            return (function() {
-                this._applyWithArgs("exactly", "R");
-                this._applyWithArgs("exactly", ":");
-                return "R:"
-            }).call(this)
+            return this._applyWithArgs("token", "R:")
         },
         "newRule": function() {
             var $elf = this,
@@ -631,11 +481,7 @@
         "startFactType": function() {
             var $elf = this,
                 _fromIdx = this.input.idx;
-            return (function() {
-                this._applyWithArgs("exactly", "F");
-                this._applyWithArgs("exactly", ":");
-                return "F:"
-            }).call(this)
+            return this._applyWithArgs("token", "F:")
         },
         "newFactType": function() {
             var $elf = this,
@@ -663,11 +509,7 @@
         "startTerm": function() {
             var $elf = this,
                 _fromIdx = this.input.idx;
-            return (function() {
-                this._applyWithArgs("exactly", "T");
-                this._applyWithArgs("exactly", ":");
-                return "T:"
-            }).call(this)
+            return this._applyWithArgs("token", "T:")
         },
         "newTerm": function() {
             var $elf = this,
