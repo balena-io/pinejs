@@ -502,16 +502,16 @@
 	<target name="-js.main.concat" depends="-js.all.minify" description="(PRIVATE) Concatenates the JS files in dir.js">
 		<echo message="Concatenating Main JS scripts..."/>
 		<!-- overwrite=no here means not to overwrite if the target is newer than the sources -->
-		<concat destfile="./${dir.intermediate}/${dir.js}/scripts-concat.js" overwrite="no">
+		<!--concat destfile="./${dir.intermediate}/${dir.js}/scripts-concat.js" overwrite="no">
 			<fileset dir="./${dir.intermediate}/">
 				<include name="${dir.js.main}/plugins.js"/>
 				<include name="${dir.js.main}/script.js"/>
 			</fileset>
-		</concat>
+		</concat-->
 	</target>
 
 	<target name="-js.mylibs.concat" depends="-js.all.minify" description="(PRIVATE) Concatenates the JS files in dir.js.mylibs">
-		<mkdir dir="./${dir.intermediate}/${dir.js.mylibs}"/>
+		<!--mkdir dir="./${dir.intermediate}/${dir.js.mylibs}"/>
 
 		<echo message="Concatenating JS libraries"/>
 		<delete file="./${dir.intermediate}/${dir.js}/mylibs-concat.js" />
@@ -523,21 +523,21 @@
 						includes="@{file.js.order.each}" />
 				</concat>
 			</sequential>
-		</for>
+		</for-->
 		<!-- overwrite=no here means not to overwrite if the target is newer than the sources -->
-		<concat destfile="./${dir.intermediate}/${dir.js}/mylibs-concat.js" append="yes">
+		<!--concat destfile="./${dir.intermediate}/${dir.js}/mylibs-concat.js" append="yes">
 			<fileset dir="./${dir.intermediate}/${dir.js.mylibs}/"
 				includes="**/*.js"
 				excludes="${file.js.order}, ${file.js.bypass}, ${file.js.ignore}"/>
 
-		</concat>
+		</concat-->
 	</target>
 
 
 	<target name="-js.scripts.concat" depends="-js.main.concat,-js.mylibs.concat" if="build.concat.scripts">
 		<echo message="Concatenating library file with main script file"/>
 		<!-- overwrite=no here means not to overwrite if the target is newer than the sources -->
-		<concat destfile="./${dir.intermediate}/${dir.js}/scripts-concat.min.js" overwrite="no">
+		<!--concat destfile="./${dir.intermediate}/${dir.js}/scripts-concat.min.js" overwrite="no">
 			<fileset dir="./${dir.intermediate}/${dir.js}/">
 				<include name="mylibs-concat.js"/>
 				<include name="scripts-concat.js"/>
@@ -554,23 +554,22 @@
 				<property name="scripts.js" value="${dir.js}/${scripts.sha}.js" />
 			</else>
 		</if>
-		<copy file="${dir.intermediate}/${dir.js}/scripts-concat.min.js" tofile="${dir.publish}/${dir.js}/${scripts.sha}.js" />
+		<copy file="${dir.intermediate}/${dir.js}/scripts-concat.min.js" tofile="${dir.publish}/${dir.js}/${scripts.sha}.js" /-->
 	</target>
-
 
 	<target name="-js.all.minify" depends="-mkdirs" description="(PRIVATE) Minifies the scripts.js files created by js.scripts.concat">
 		<echo message="Minifying scripts"/>
 		<copy todir="${dir.intermediate}/">
-			<fileset dir="${dir.source}/" includes="${dir.js}/**/*.min.js" />
+			<fileset dir="${dir.source}/" includes="${dir.js}/**/*.min.js, ${file.js.external}" />
 		</copy>
 		
-		<mkdir dir="${basedir}/${dir.intermediate}/${dir.js.mylibs}/external"/>
+		<!--mkdir dir="${basedir}/${dir.intermediate}/${dir.js.mylibs}/external"/>
 		<apply executable="java" parallel="false" dest="${basedir}/${dir.intermediate}/${dir.js.mylibs}/external/">
 			<fileset dir="${dir.source}/" includes="${file.js.external}" />
 			<arg line="-jar"/>
 			<arg path="./${dir.build.tools}/${tool.yuicompressor}"/>
 			<srcfile/>
-			<arg line="--line-break"/>
+			<arg line="--><!--line-break"/>
 			<arg line="4000"/>
 			<arg line="-o"/>
 			<flattenmapper/>
@@ -586,7 +585,7 @@
 			<arg line="-jar"/>
 			<arg path="./${dir.build.tools}/${tool.yuicompressor}"/>
 			<srcfile/>
-			<arg line="--line-break"/>
+			<arg line="--><!--line-break"/>
 			<arg line="4000"/>
 			<arg line="-o"/>
 			<mapper type="glob" from="*.js" to="${basedir}/${dir.intermediate}/*.js"/>
@@ -598,16 +597,36 @@
 			<arg line="-jar"/>
 			<arg path="./${dir.build.tools}/${tool.yuicompressor}"/>
 			<srcfile/>
-			<arg line="--line-break"/>
+			<arg line="--><!--line-break"/>
 			<arg line="4000"/>
 			<arg line="-o"/>
 			<mapper type="glob" from="*.js" to="${basedir}/${dir.intermediate}/${dir.js.mylibs}/*.js"/>
 			<targetfile/>
-		</apply>
+		</apply>-->
 
 		<!-- at this point all js files are minified with their original names -->
 
+		<apply executable="java" parallel="false" dest="${basedir}/${dir.intermediate}/${dir.js.mylibs}" addsourcefile="false">
+			<fileset dir="${dir.source}/${dir.js}" includes="main.js" />
+			<arg line="-jar"/>
+			<!--arg path="./${dir.build.tools}/${tool.yuicompressor}"/-->
+			<arg path="./${dir.build.tools}/${tool.rhino}"/>
+			<arg path="./${dir.build.tools}/${tool.rjs}"/>
+			<arg line="-o"/>
+			<arg line="${dir.build}/config/app.build.js"/>
+			<!--arg line="name=main"/>
+			<arg line="out=${dir.intermediate}/${dir.js}/scripts-concat.min.js"/>
+			<arg line="baseUrl=${dir.js}"/-->
+			<mapper type="glob" from="*.js" to="*-min.js"/>
+		</apply>
 		<copy todir="${dir.publish}/">
+			<fileset dir="${dir.intermediate}/">
+				<include name="${dir.js}/main.js"/>
+				<include name="${dir.js.libs}/**/*.js"/>
+			</fileset>
+		</copy>
+		
+		<!--copy todir="${dir.publish}/">
 			<fileset dir="${dir.intermediate}/">
 				<include name="${dir.js}/**/*.js"/>
 				<exclude name="${dir.js.mylibs}/**/*.js"/>
@@ -621,7 +640,7 @@
 		<copy todir="${dir.publish}/${dir.js.mylibs}/">
 			<fileset dir="${dir.source}/${dir.js.mylibs}/"
 			includes="${file.js.bypass}"/>
-		</copy>
+		</copy-->
 	</target>
 
 
@@ -670,11 +689,11 @@
 		</replace>
 		-->
 
-		<echo message="Update the HTML to reference our concatenated script file: ${scripts.js}"/>
+		<!--echo message="Update the HTML to reference our concatenated script file: ${scripts.js}"/-->
 		<!-- style.css replacement handled as a replacetoken above -->
-		<replaceregexp match="&lt;!-- scripts concatenated [\d\w\s\W]*?!-- end ((scripts)|(concatenated and minified scripts))--&gt;" replace="&lt;script defer src='${scripts.js}\'&gt;&lt;/script&gt;" flags="m">
+		<!--replaceregexp match="&lt;!--><!-- scripts concatenated [\d\w\s\W]*?!--><!-- end ((scripts)|(concatenated and minified scripts))--><!--&gt;" replace="&lt;script defer src='${scripts.js}\'&gt;&lt;/script&gt;" flags="m">
 			<fileset dir="${dir.intermediate}" includes="${page-files}"/>
-		</replaceregexp>
+		</replaceregexp-->
 		<!--[! use comments like this one to avoid having them get minified -->
 
 		<echo message="Updating the HTML with the new css filename: ${style.css}"/>
