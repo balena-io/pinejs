@@ -525,7 +525,7 @@
                 _fromIdx = this.input.idx,
                 attrName, attrVal;
             return (function() {
-                this._pred(((this["lines"]["length"] > (0)) && (this["lines"][(this["lines"]["length"] - (1))][(0)] == "term")));
+                this._pred((this["lines"][(this["lines"]["length"] - (1))][(0)] == "term"));
                 attrName = this._apply("allowedAttrs");
                 this._applyWithArgs("exactly", ":");
                 attrVal = this._apply("toEOL");
@@ -584,7 +584,7 @@
                 this._many((function() {
                     return this._apply("line")
                 }));
-                return ["model"].concat(this["lines"])
+                return this["lines"]
             }).call(this)
         }
     });
@@ -643,7 +643,7 @@
         (this["fctps"] = ({}));
         (this["ruleVars"] = ({}));
         (this["ruleVarsCount"] = (0));
-        (this["lines"] = [])
+        (this["lines"] = ["model"])
     }));
     (SBVRParser["equals"] = (function(compareTo) {
         if ((this["possMap"]["verb"]["length"] != compareTo["possMap"]["verb"]["length"])) {

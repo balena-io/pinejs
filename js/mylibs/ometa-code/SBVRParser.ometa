@@ -106,7 +106,7 @@ ometa SBVRParser {
 																		-> [`fcTp].concat(t),
 	startTerm		= "T:",
 	newTerm			= startTerm addTerm:t {t.push([])}					-> t,
-	attribute		= ?{this.lines.length>0 && this.lines[this.lines.length-1][0] == 'term'}
+	attribute		= ?{this.lines[this.lines.length-1][0] == 'term'}
 						allowedAttrs:attrName ':' toEOL:attrVal			-> {var lastLine = this.lines.pop(); lastLine[2].push([attrName.replace(new RegExp(' ','g'),''), attrVal]); lastLine},
 						
 	allowedAttrs	= matchForAny('seq',this.possMap.allowedAttrs),
@@ -117,7 +117,7 @@ ometa SBVRParser {
 					| allowedAttrs ':',
 	line			= spaces (newTerm | newFactType | newRule | attribute):l spaces
 						{this.lines.push(l)}							-> l,
-	expr			= line*											-> [`model].concat(this.lines)
+	expr			= line*												-> this.lines
 }
 
 SBVRParser.keyTokens = ["startTerm", "startFactType", "startRule", "term", "modRule", "verb", "keyword", "allowedAttrs", "num"];
@@ -210,7 +210,7 @@ SBVRParser.reset = function() {
 	this.fctps = {}
 	this.ruleVars = {}
 	this.ruleVarsCount = 0
-	this.lines = []
+	this.lines = ['model']
 }
 
 SBVRParser.equals = function(compareTo) {
