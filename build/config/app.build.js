@@ -1,10 +1,10 @@
 ({
-    appDir: "../../js",
+    appDir: "../../intermediate/js",
     baseUrl: ".",
-    dir: "../../intermediate/js",
+    dir: "../../publish/js",
     //Comment out the optimize line if you want
     //the code minified by UglifyJS
-//    optimize: "none",
+    optimize: "none",
 
     modules: [
         {
