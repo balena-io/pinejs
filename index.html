@@ -79,6 +79,7 @@ Copyright 2011 University of Surrey
 					<input type="button" id='blm1' value="Load Model 1"  onClick="loadmod(model1);return false">
 					<input type="button" id='blm2' value="Load Model 2"  onClick="loadmod(model2);return false">
 					<input type="button" id='blm3' value="Load Model 3"  onClick="loadmod(model3);return false">
+					<input type="button" id='bpm'  value="Parse Model"   onClick="lfEditor.setValue(Prettify.match(SBVRParser.matchAll(sbvrEditor.getValue(), 'expr'),'elem'));$('#tabs').tabs('select',1);return false">
 					<!--#IFDEF SERVER -->
 						<input type="button" id='bem'  value="Execute Model" onClick="transformClient(sbvrEditor.getValue());return false">
 						<input type="button" id='bum'  value="Update Model"  onClick="return false">

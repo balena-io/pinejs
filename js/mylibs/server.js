@@ -531,6 +531,7 @@ function dataplusPOST(tree, headers, body, successCallback, failureCallback, cal
 function executePOST(tree, headers, body, successCallback, failureCallback, caller) {
 	var se = serverModelCache.getSE();
 	var lfmod = SBVRParser.matchAll(se, 'expr');
+	console.log(lfmod);
 	var prepmod = SBVR_PreProc.match(lfmod, 'optimizeTree');
 	var sqlmod = SBVR2SQL.match(prepmod,'trans');
 	
