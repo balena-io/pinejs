@@ -63,11 +63,13 @@ Copyright 2011 University of Surrey
 		<ul>
 			<li><a href='#modelTab' 		>Model Editor			</a></li>
 			<li><a href='#lfTab'			>Logical Formulation	</a></li>
-			<li><a href='#prepTab'			>Preprocessed LF		</a></li>
-			<li><a href='#sqlTab'			>SQL					</a></li>
-			<li><a href='#dataTab'			>Data Browser			</a></li>
-			<li><a href='#httpTab'			>HTTP Log				</a></li>
-			<li><a href='#importExportTab'	>Import/Export Database	</a></li>
+			<!--#IFDEF SERVER -->
+				<li><a href='#prepTab'			>Preprocessed LF		</a></li>
+				<li><a href='#sqlTab'			>SQL					</a></li>
+				<li><a href='#dataTab'			>Data Browser			</a></li>
+				<li><a href='#httpTab'			>HTTP Log				</a></li>
+				<li><a href='#importExportTab'	>Import/Export Database	</a></li>
+			<!--#ENDIFDEF-->
 		</ul>
 		<div id="modelTab">
 			<form id="editform">
@@ -77,49 +79,53 @@ Copyright 2011 University of Surrey
 					<input type="button" id='blm1' value="Load Model 1"  onClick="loadmod(model1);return false">
 					<input type="button" id='blm2' value="Load Model 2"  onClick="loadmod(model2);return false">
 					<input type="button" id='blm3' value="Load Model 3"  onClick="loadmod(model3);return false">
-					<input type="button" id='bem'  value="Execute Model" onClick="transformClient(sbvrEditor.getValue());return false">
-					<input type="button" id='bum'  value="Update Model"  onClick="return false">
-					<input type="button" id='br'   value="Reset"         onClick="resetClient();return false">
-					<input type="button" id='bbdb' value="Backup DB"     onClick="backupDB();return false">
-					<input type="button" id='brdb' value="Restore DB"    onClick="restoreDB();return false">
-					<input type="button" id='bcdb' value="Clear DB"      onClick="clearDB();return false">
+					<!--#IFDEF SERVER -->
+						<input type="button" id='bem'  value="Execute Model" onClick="transformClient(sbvrEditor.getValue());return false">
+						<input type="button" id='bum'  value="Update Model"  onClick="return false">
+						<input type="button" id='br'   value="Reset"         onClick="resetClient();return false">
+						<input type="button" id='bbdb' value="Backup DB"     onClick="backupDB();return false">
+						<input type="button" id='brdb' value="Restore DB"    onClick="restoreDB();return false">
+						<input type="button" id='bcdb' value="Clear DB"      onClick="clearDB();return false">
+					<!--#ENDIFDEF-->
 				</div>
 			</form>
 		</div>
 		<div id="lfTab"><textarea id="lfArea" rows="15" cols="136"></textarea></div>
-		<div id="prepTab"><textarea id="prepArea" rows="15" cols="136"></textarea></div>
-		<div id="sqlTab"><textarea id="sqlArea" rows="15" cols="136"></textarea></div>
-		<div id="dataTab"></div>
-		<div id="httpTab">
-			<table id='httpTable' class='textTable'>
-				<tr>
-					<td><strong>method</strong></td>
-					<td><strong>uri</strong></td>
-					<td><strong>headers</strong></td>
-					<td><strong>body</strong></td>
-				</tr>
-			</table>
-		</div>
-		<div id="importExportTab">
-			<textarea id="importExportArea" rows="15" cols="136"></textarea>
-			<script type="text/javascript">
-				if(!!window.FileReader)
-				{
-					document.write('<input type="button" id="bldb" value="Load File">');
-					function handleFiles(files) {
-						var reader = new FileReader();
-						reader.onloadend = function(e) {
-							importExportEditor.setValue(e.target.result);
+		<!--#IFDEF SERVER -->
+			<div id="prepTab"><textarea id="prepArea" rows="15" cols="136"></textarea></div>
+			<div id="sqlTab"><textarea id="sqlArea" rows="15" cols="136"></textarea></div>
+			<div id="dataTab"></div>
+			<div id="httpTab">
+				<table id='httpTable' class='textTable'>
+					<tr>
+						<td><strong>method</strong></td>
+						<td><strong>uri</strong></td>
+						<td><strong>headers</strong></td>
+						<td><strong>body</strong></td>
+					</tr>
+				</table>
+			</div>
+			<div id="importExportTab">
+				<textarea id="importExportArea" rows="15" cols="136"></textarea>
+				<script type="text/javascript">
+					if(!!window.FileReader)
+					{
+						document.write('<input type="button" id="bldb" value="Load File">');
+						function handleFiles(files) {
+							var reader = new FileReader();
+							reader.onloadend = function(e) {
+								importExportEditor.setValue(e.target.result);
+							}
+							reader.readAsText(files[0]);
 						}
-						reader.readAsText(files[0]);
+						document.write('<input type="button" id="bsdb" value="Save File" onClick="downloadFile(\'sbvr.txt\',importExportEditor.getValue())">');
 					}
-					document.write('<input type="button" id="bsdb" value="Save File" onClick="downloadFile(\'sbvr.txt\',importExportEditor.getValue())">');
-				}
-			</script>
-			<output></output>
-			<input type="button" id='bidb' value="Import DB" onClick="importDB(importExportEditor.getValue());return false">
-			<input type="button" id='bedb' value="Export DB" onClick="exportDB(importExportEditor);return false">
-		</div>
+				</script>
+				<output></output>
+				<input type="button" id='bidb' value="Import DB" onClick="importDB(importExportEditor.getValue());return false">
+				<input type="button" id='bedb' value="Export DB" onClick="exportDB(importExportEditor);return false">
+			</div>
+		<!--#ENDIFDEF-->
 	</div>
 
 
