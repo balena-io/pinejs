@@ -37,6 +37,23 @@
 		<property file="build/products/editor.properties"/>
 		<antcall target="minify"/>
 		<antcall target="-ifdefs"/>
+		<copy todir="${dir.package}/app" includeEmptyDirs="false">
+			<fileset dir="${dir.publish}/" includes="${file.package}"/>
+		</copy>
+		<move todir="${dir.package}/app">
+			<fileset dir="${dir.package}/app" includes="*.manifest.json"/>
+			<mapper type="glob" from="*.manifest.json" to="manifest.json"/>
+		</move>
+		
+		<exec dir="${dir.package}" executable="chrome" failonerror="true">
+			<arg prefix="--pack-extension=" path="${dir.package}/app"/>
+			<arg prefix="--pack-extension-key=" path="${dir.package}/${dir.package}.pem"/>
+			<arg value="--no-message-box"/>
+		</exec>
+		<move todir="${dir.package}">
+			<fileset dir="${dir.package}" includes="app.crx"/>
+			<mapper type="glob" from="app.crx" to="${dir.package}.crx"/>
+		</move>
 	</target>
 
 	<target name="minify">
