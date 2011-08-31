@@ -3,7 +3,7 @@
 */
 
 
-var sqlEditor, sbvrEditor, importExportEditor;
+var sqlEditor, sbvrEditor, lfEditor, importExportEditor;
 var cmod;
 
 function defaultFailureCallback(error) {
@@ -204,6 +204,8 @@ function loadUI(){
 		mode: "sbvr",
 		onKeyEvent: sbvrAutoComplete
 	});
+	
+	lfEditor = CodeMirror.fromTextArea(document.getElementById("lfArea"));
 	
 	if(CodeMirror.listModes().indexOf('plsql') > -1) {
 		sqlEditor = CodeMirror.fromTextArea(document.getElementById("sqlArea"), {mode: "text/x-plsql"});
