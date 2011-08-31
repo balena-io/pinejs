@@ -51,8 +51,10 @@ CodeMirror.defineMode("sbvr", function(config) {
 					stream.skipToEnd();
 					return null;
 				}
-				stream.pos = i;
-				return null;
+				if(i>stream.pos) {
+					stream.pos = i;
+					return null;
+				}
 			}
 		},
 
