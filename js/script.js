@@ -87,7 +87,7 @@ function transformClient(model) {
 												function(headers, result) {
 													sqlEditor.setValue(Prettify.match(JSON.parse(result),'elem'));
 	
-													localStorage._client_onAir=true
+													localStorage._client_onAir='true'
 													
 													$('#bum').removeAttr('disabled');
 													$('#br').removeAttr('disabled');
