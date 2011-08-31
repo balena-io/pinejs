@@ -71,7 +71,7 @@ function transformClient(model) {
 								{},
 								'',
 								function(headers, result) {
-									$("#lfArea").val(Prettify.match(JSON.parse(result),'elem'));
+									lfEditor.setValue(Prettify.match(JSON.parse(result),'elem'));
 
 									serverRequest("GET",
 										"/prepmodel/",
@@ -115,7 +115,7 @@ function resetClient(){
 	serverRequest("DELETE",	"/", [], '', function(){
 		$("#modelArea").attr('disabled', false);
 		sbvrEditor.setValue("");
-		$("#lfArea").val("");
+		lfEditor.setValue("");
 		$("#prepArea").val("");
 		sqlEditor.setValue("");
 		$('#bem').removeAttr('disabled');
@@ -239,7 +239,7 @@ function loadUI(){
 	
 	if(localStorage._client_onAir=='true'){
 		serverRequest("GET", "/lfmodel/", [], '', function(headers, result){
-			$("#lfArea").val(Prettify.match(JSON.parse(result),'elem'));
+			lfEditor.setValue(Prettify.match(JSON.parse(result),'elem'));
 		});
 	
 		serverRequest("GET", "/prepmodel/", [], '', function(headers, result){
@@ -285,7 +285,7 @@ $(function() {
 	$("#tabs").tabs({
 		select: function(event, ui) {
 			//alert(ui.index != 0 && localStorage._client_onAir!='true')
-			if((ui.index != 0) && (localStorage._client_onAir!='true')){
+			if((ui.index > 1) && (localStorage._client_onAir!='true')){
 				var exc = '<span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 50px 0;"></span>';
 				var msg = 'This tab is only accessible after a model is executed<br/>';
 				$( "#dialog-message" ).html( exc + msg );
