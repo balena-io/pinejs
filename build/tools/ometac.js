@@ -7,7 +7,7 @@ load(ometaPath+"/bs-ometa-compiler.js")
 load(ometaPath+"/bs-ometa-optimizer.js")
 load(ometaPath+"/bs-ometa-js-compiler.js")
 
-load("../ometa-dev/js/beautify.js")
+load(ometaPath+"/../ometa-dev/js/beautify.js")
 
 var console = {
 	log: function(val) {

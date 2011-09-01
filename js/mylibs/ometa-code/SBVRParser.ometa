@@ -161,11 +161,13 @@ SBVRParser.reset = function() {
 		verb: {},
 		allowedAttrs: [
 			'Concept Type',
-			/* Custom Attributes */
-			'Database ID Field',
-			'Database Name Field',
-			'Database Table Name',
-			/* End Custom */
+			/*#IFDEF server */
+				/* Custom Attributes */
+				'Database ID Field',
+				'Database Name Field',
+				'Database Table Name',
+				/* End Custom */
+			/*#ENDIFDEF*/
 			'Definition',
 			'Dictionary Basis',
 			'Example',

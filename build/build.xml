@@ -102,6 +102,22 @@
 		</apply>
 		<echo>Ometa Compile Successful</echo>
 	</target>
+	<target name="-ometa" depends="-js.ifdefs">
+		<apply dir="${dir.intermediate}/${dir.js}" executable="java" parallel="true" failonerror="true" skipemptyfilesets="true">
+			<fileset dir="./${dir.intermediate}/${dir.js}">
+				<include name="**/*.ometa"/>
+				<include name="**/*.ojs"/>
+				<modified/>
+			</fileset>
+			<arg value="-jar"/>
+			<arg path="./${dir.build.tools}/${tool.rhino}"/>
+			<arg path="./${dir.build.tools}/${tool.ometac}"/>
+			<arg path="./${dir.build.tools}/${tool.ometajs}"/>
+			<arg value="pretty"/>
+			<srcfile/>
+		</apply>
+		<echo>Ometa Compile Successful</echo>
+	</target>
 	
 	
 	<!-- JSLint target, run separately -->
@@ -260,22 +276,22 @@
 		
 		<!--Copy base scripts to intermediate-->
 		<copy todir="${dir.intermediate}/">
-			<fileset dir="${dir.source}/" includes="${dir.js}/**/*.js, ${file.js.external}"/>
+			<fileset dir="${dir.source}/" includes="${dir.js}/**/*.js, ${dir.js}/**/*.ometa, ${dir.js}/**/*.ojs, ${file.js.external}"/>
 		</copy>
 		<copy todir="${dir.publish}/">
 			<fileset dir="${dir.source}/" includes="${file.js.external}"/>
 		</copy>
 		
 		<!-- Check for IFDEFs -->
-		<replaceregexp match="/\*.*?(?!\*/)#IFDEF.*?(?!\*/)${modules}.*?\*/(.*?)/\*.*?(?!\*/)#ENDIFDEF.*?(?!\*/)\*/" replace="\1" flags="gis">
-			<fileset dir="./${dir.intermediate}" includes="${dir.js}/**/*.js"/>
+		<replaceregexp match="/\*(?!\*/)*?#IFDEF(?!\*/)*?${modules}.*?\*/(.*?)/\*(?!\*/)*?#ENDIFDEF.*?\*/" replace="\1" flags="gis">
+			<fileset dir="./${dir.intermediate}" includes="${dir.js}/**/*.js, ${dir.js}/**/*.ometa, ${dir.js}/**/*.ojs"/>
 		</replaceregexp>
-		<replaceregexp match="/\*.*?(?!\*/)#IFDEF.*?#ENDIFDEF.*?\*/" replace="" flags="gis">
-			<fileset dir="./${dir.intermediate}" includes="${dir.js}/**/*.js"/>
+		<replaceregexp match="/\*(?!\*/)*?#IFDEF.*?#ENDIFDEF.*?\*/" replace="" flags="gis">
+			<fileset dir="./${dir.intermediate}" includes="${dir.js}/**/*.js, ${dir.js}/**/*.ometa, ${dir.js}/**/*.ojs"/>
 		</replaceregexp>
 	</target>
 
-	<target name="-js.all.minify" depends="-mkdirs, -js.ifdefs" description="(PRIVATE) Minifies the scripts.js files created by js.scripts.concat">
+	<target name="-js.all.minify" depends="-mkdirs, -js.ifdefs, -ometa" description="(PRIVATE) Minifies the scripts.js files created by js.scripts.concat">
 		<echo message="Minifying scripts"/>
 		
 		<apply executable="java" parallel="false" dest="${basedir}/${dir.publish}/${dir.js.mylibs}" addsourcefile="false">
