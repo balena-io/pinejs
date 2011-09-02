@@ -87,14 +87,12 @@
 	
 	<!-- OMeta target, run separately -->
 	<target name="ometa">
-		<apply dir="${dir.source}/${dir.js}" executable="java" parallel="true" failonerror="true" skipemptyfilesets="true">
+		<apply executable="${basedir}/${dir.build.tools}/${tool.node}" parallel="true" failonerror="true" skipemptyfilesets="true">
 			<fileset dir="./${dir.source}/${dir.js}">
 				<include name="**/*.ometa"/>
 				<include name="**/*.ojs"/>
 				<modified/>
 			</fileset>
-			<arg value="-jar"/>
-			<arg path="./${dir.build.tools}/${tool.rhino}"/>
 			<arg path="./${dir.build.tools}/${tool.ometac}"/>
 			<arg path="./${dir.build.tools}/${tool.ometajs}"/>
 			<arg value="pretty"/>
@@ -103,14 +101,12 @@
 		<echo>Ometa Compile Successful</echo>
 	</target>
 	<target name="-ometa" depends="-js.ifdefs">
-		<apply dir="${dir.intermediate}/${dir.js}" executable="java" parallel="true" failonerror="true" skipemptyfilesets="true">
+		<apply dir="${basedir}/${dir.build.tools}/${tool.node}" executable="java" parallel="true" failonerror="true" skipemptyfilesets="true">
 			<fileset dir="./${dir.intermediate}/${dir.js}">
 				<include name="**/*.ometa"/>
 				<include name="**/*.ojs"/>
 				<modified/>
 			</fileset>
-			<arg value="-jar"/>
-			<arg path="./${dir.build.tools}/${tool.rhino}"/>
 			<arg path="./${dir.build.tools}/${tool.ometac}"/>
 			<arg path="./${dir.build.tools}/${tool.ometajs}"/>
 			<arg value="pretty"/>
