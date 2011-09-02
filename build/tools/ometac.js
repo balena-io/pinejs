@@ -1,3 +1,37 @@
+if (typeof process !== 'undefined') {
+	var console = require('console');
+	
+	var fs = require('fs');
+	readFile = function(filePath) {
+		return fs.readFileSync(filePath,'utf8');
+	}
+	writeFile = function(filePath, data) {
+		return fs.writeFile(filePath,data);
+	}
+	
+	var vm = require('vm');
+	load = function (filePath) {
+			return vm.runInThisContext(readFile(filePath), __filename);
+		};
+	
+	arguments = process.argv;
+	arguments.shift();
+	arguments.shift();
+}
+else {
+	var console = {
+		log: function() {
+			print.apply(undefined, arguments);
+		}
+	}
+	writeFile = function(filePath, data) {
+		var fw = new java.io.FileWriter(filePath,false);
+		fw.write(data);
+		fw.flush();
+		fw.close();
+	}
+}
+
 var ometaPath = arguments[0];
 load(ometaPath+"/lib.js")
 load(ometaPath+"/ometa-base.js")
@@ -8,12 +42,6 @@ load(ometaPath+"/bs-ometa-optimizer.js")
 load(ometaPath+"/bs-ometa-js-compiler.js")
 
 load(ometaPath+"/../ometa-dev/js/beautify.js")
-
-var console = {
-	log: function(val) {
-		print(val);
-	}
-}
 
 var translationError = function(m, i) { 
 	console.log("Translation error - please tell Alex about this!"); throw fail 
@@ -44,8 +72,5 @@ for(;i<arguments.length;i++) {
 		var js = js_beautify(js);
 	}
 	console.log('Writing: ' + arguments[i]);
-	var fw = new java.io.FileWriter(arguments[i].substring(0,arguments[i].lastIndexOf('.'))+'.js',false);
-	fw.write(js);
-	fw.flush();
-	fw.close();
+	writeFile(arguments[i].substring(0,arguments[i].lastIndexOf('.'))+'.js', js);
 }
