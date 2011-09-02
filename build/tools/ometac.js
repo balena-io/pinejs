@@ -5,6 +5,9 @@ if (typeof process !== 'undefined') {
 	readFile = function(filePath) {
 		return fs.readFileSync(filePath,'utf8');
 	}
+	readFileAsync = function(filePath, callback) {
+		fs.readFile(filePath,'utf8',callback);
+	}
 	writeFile = function(filePath, data) {
 		return fs.writeFile(filePath,data);
 	}
@@ -23,6 +26,9 @@ else {
 		log: function() {
 			print.apply(undefined, arguments);
 		}
+	}
+	readFileAsync = function(filePath, callback) {
+		callback(undefined,readFile(filePath));
 	}
 	writeFile = function(filePath, data) {
 		var fw = new java.io.FileWriter(filePath,false);
@@ -62,15 +68,20 @@ if(arguments[1]=='pretty') {
 
 for(;i<arguments.length;i++) {
 	console.log('Reading: ' + arguments[i]);
-	var ometa = readFile(arguments[i]).replace(/\r\n/g,"\n");
-	console.log('Parsing: ' + arguments[i]);
-	var tree = BSOMetaJSParser.matchAll(ometa, "topLevel", undefined, parsingError)
-	console.log('Compiling: ' + arguments[i]);
-	var js = BSOMetaJSTranslator.match(tree, "trans", undefined, translationError);
-	if(pretty===true) {
-		console.log('Beautifying: ' + arguments[i]);
-		var js = js_beautify(js);
-	}
-	console.log('Writing: ' + arguments[i]);
-	writeFile(arguments[i].substring(0,arguments[i].lastIndexOf('.'))+'.js', js);
+	readFileAsync(arguments[i], function(filePath){
+			return function(err, data) {
+				var ometa = data.replace(/\r\n/g,"\n");
+				console.log('Parsing: ' + filePath);
+				var tree = BSOMetaJSParser.matchAll(ometa, "topLevel", undefined, parsingError)
+				console.log('Compiling: ' + filePath);
+				var js = BSOMetaJSTranslator.match(tree, "trans", undefined, translationError);
+				if(pretty===true) {
+					console.log('Beautifying: ' + filePath);
+					var js = js_beautify(js);
+				}
+				console.log('Writing: ' + filePath);
+				writeFile(filePath.substring(0,filePath.lastIndexOf('.'))+'.js', js);
+			}
+		}(arguments[i])
+	);
 }
