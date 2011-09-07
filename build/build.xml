@@ -16,7 +16,7 @@
 
 	<!-- load property files -->
 	<property file="build/config/project.properties"/>
-	<property file="build/config/default.properties"/>
+	<property file="build/config/${os.name}.properties"/>
 
 	<!-- merge the stylesheet properties -->
 	<var name="stylesheet-files" value="${file.default.stylesheets}, ${file.stylesheets}"/>
@@ -45,7 +45,7 @@
 			<mapper type="glob" from="*.manifest.json" to="manifest.json"/>
 		</move>
 		
-		<exec dir="${dir.package}" executable="chrome" failonerror="true">
+		<exec dir="${dir.package}" executable="${tool.chrome}" failonerror="true">
 			<arg prefix="--pack-extension=" path="${dir.package}/app"/>
 			<arg prefix="--pack-extension-key=" path="${dir.package}/${dir.package}.pem"/>
 			<arg value="--no-message-box"/>
@@ -793,5 +793,5 @@
 			<fileset dir="${dir.source}/${dir.images}" includes="**/*.jpg, **/*.png"/>
 		</copy>
 	</target>
-
+	
 </project>

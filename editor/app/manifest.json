@@ -1,0 +1,13 @@
+{
+	"name": "SBVR Editor",
+	"description": "SBVR Editor",
+	"version": "1",
+	"app": {
+		"launch": {
+		"local_path": "index.html"
+		}
+	},
+	"icons": {
+		"16": "favicon.ico"
+	}
+}
