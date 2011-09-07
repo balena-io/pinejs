@@ -72,15 +72,18 @@
     var ftree, o, rootbranch, tree;
     ftree = [];
     tree = ServerURIParser.matchAll(uri, "uri");
-    if (headers !== void 0 && headers["Content-Type"] === "application/xml") {
+    if ((headers != null) && headers["Content-Type"] === "application/xml") {
       null;
     }
     rootbranch = tree[0].toLowerCase();
     switch (rootbranch) {
       case "onair":
-        return successCallback({
-          "status-line": "HTTP/1.1 200 OK"
-        }, method === "GET" ? JSON.stringify(localStorage._server_onAir) : void 0);
+        if (method === "GET") {
+          return successCallback({
+            "status-line": "HTTP/1.1 200 OK"
+          }, JSON.stringify(localStorage._server_onAir));
+        }
+        break;
       case "model":
         if (method === "GET") {
           if (localStorage._server_onAir === "true") {
@@ -88,9 +91,9 @@
               "status-line": "HTTP/1.1 200 OK"
             }, serverModelCache.getLastSE());
           } else {
-            return failureCallback({
-              "status-line": failureCallback !== void 0 ? "HTTP/1.1 404 Not Found" : void 0
-            });
+            return typeof failureCallback === "function" ? failureCallback({
+              "status-line": "HTTP/1.1 404 Not Found"
+            }) : void 0;
           }
         }
         break;
@@ -101,9 +104,9 @@
               "status-line": "HTTP/1.1 200 OK"
             }, JSON.stringify(serverModelCache.getLF()));
           } else {
-            return failureCallback({
-              "status-line": failureCallback !== void 0 ? "HTTP/1.1 404 Not Found" : void 0
-            });
+            return typeof failureCallback === "function" ? failureCallback({
+              "status-line": "HTTP/1.1 404 Not Found"
+            }) : void 0;
           }
         }
         break;
@@ -114,9 +117,9 @@
               "status-line": "HTTP/1.1 200 OK"
             }, JSON.stringify(serverModelCache.getPrepLF()));
           } else {
-            return failureCallback({
-              "status-line": failureCallback !== void 0 ? "HTTP/1.1 404 Not Found" : void 0
-            });
+            return typeof failureCallback === "function" ? failureCallback({
+              "status-line": "HTTP/1.1 404 Not Found"
+            }) : void 0;
           }
         }
         break;
@@ -127,9 +130,9 @@
               "status-line": "HTTP/1.1 200 OK"
             }, JSON.stringify(serverModelCache.getSQL()));
           } else {
-            return failureCallback({
-              "status-line": failureCallback !== void 0 ? "HTTP/1.1 404 Not Found" : void 0
-            });
+            return typeof failureCallback === "function" ? failureCallback({
+              "status-line": "HTTP/1.1 404 Not Found"
+            }) : void 0;
           }
         }
         break;
@@ -210,9 +213,9 @@
             }
           }
         } else {
-          return failureCallback({
-            "status-line": failureCallback !== void 0 ? "HTTP/1.1 404 Not Found" : void 0
-          });
+          return typeof failureCallback === "function" ? failureCallback({
+            "status-line": "HTTP/1.1 404 Not Found"
+          }) : void 0;
         }
         break;
       default:

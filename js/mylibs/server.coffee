@@ -63,38 +63,43 @@ db = openDatabase("mydb", "1.0", "my first database", 2 * 1024 * 1024)
 window.remoteServerRequest = (method, uri, headers, body, successCallback, failureCallback, caller) ->
 	ftree = []
 	tree = ServerURIParser.matchAll(uri, "uri")
-	if headers != undefined and headers["Content-Type"] == "application/xml"
+	if headers? and headers["Content-Type"] == "application/xml"
 			#TODO: in case of input: do something to make xml into a json object
 			null
 	rootbranch = tree[0].toLowerCase()
 	switch rootbranch
 		when "onair"
-			successCallback "status-line": "HTTP/1.1 200 OK",
-				JSON.stringify(localStorage._server_onAir)  if method == "GET"
+			if method == "GET"
+				successCallback "status-line": "HTTP/1.1 200 OK",
+					JSON.stringify(localStorage._server_onAir)
 		when "model"
 			if method == "GET"
 				if localStorage._server_onAir == "true"
 					successCallback "status-line": "HTTP/1.1 200 OK",
 						serverModelCache.getLastSE()
-				else failureCallback "status-line": "HTTP/1.1 404 Not Found"  unless failureCallback == undefined
+				else
+					failureCallback? "status-line": "HTTP/1.1 404 Not Found"
 		when "lfmodel"
 			if method == "GET"
 				if localStorage._server_onAir == "true"
 					successCallback "status-line": "HTTP/1.1 200 OK",
 						JSON.stringify(serverModelCache.getLF())
-				else failureCallback "status-line": "HTTP/1.1 404 Not Found"  unless failureCallback == undefined
+				else
+					failureCallback? "status-line": "HTTP/1.1 404 Not Found"
 		when "prepmodel"
 			if method == "GET"
 				if localStorage._server_onAir == "true"
 					successCallback "status-line": "HTTP/1.1 200 OK",
 						JSON.stringify(serverModelCache.getPrepLF())
-				else failureCallback "status-line": "HTTP/1.1 404 Not Found"  unless failureCallback == undefined
+				else
+					failureCallback? "status-line": "HTTP/1.1 404 Not Found"
 		when "sqlmodel"
 			if method == "GET"
 				if localStorage._server_onAir == "true"
 					successCallback "status-line": "HTTP/1.1 200 OK",
 						JSON.stringify(serverModelCache.getSQL())
-				else failureCallback "status-line": "HTTP/1.1 404 Not Found"  unless failureCallback == undefined
+				else
+					failureCallback? "status-line": "HTTP/1.1 404 Not Found"
 		when "ui"
 			if tree[1][1] == "textarea" and tree[1][3][1][1][3] == "model_area"
 				switch method
@@ -113,7 +118,8 @@ window.remoteServerRequest = (method, uri, headers, body, successCallback, failu
 						successCallback "status-line": "HTTP/1.1 200 OK",
 							JSON.stringify(value: localStorage._server_modelAreaDisabled)
 		when "execute"
-			executePOST tree, headers, body, successCallback, failureCallback, caller  if method == "POST"
+			if method == "POST"
+				executePOST tree, headers, body, successCallback, failureCallback, caller
 		when "update"
 			if method == "POST"
 				#update code will go here, based on executePOST
@@ -149,9 +155,11 @@ window.remoteServerRequest = (method, uri, headers, body, successCallback, failu
 							dataplusPUT tree, headers, body, successCallback, failureCallback, caller
 						when "DELETE"
 							dataplusDELETE tree, headers, body, successCallback, failureCallback, caller
-			else failureCallback "status-line": "HTTP/1.1 404 Not Found"  unless failureCallback == undefined
+			else
+				failureCallback? "status-line": "HTTP/1.1 404 Not Found"
 		else
-			rootDELETE tree, headers, body, successCallback, failureCallback, caller  if method == "DELETE"
+			if method == "DELETE"
+				rootDELETE tree, headers, body, successCallback, failureCallback, caller
 
 
 dataplusDELETE = (tree, headers, body, successCallback, failureCallback, caller) ->
