@@ -1,5 +1,5 @@
 (function() {
-  var dataGET, dataplusDELETE, dataplusGET, dataplusPOST, dataplusPUT, db, endLock, executePOST, executeSasync, executeTasync, op, rootDELETE, serverModelCache, updateRules, validateDB;
+  var dataGET, dataplusDELETE, dataplusGET, dataplusPOST, dataplusPUT, db, endLock, executePOST, executeSasync, executeTasync, getID, hasCR, isExecute, op, rootDELETE, serverModelCache, updateRules, validateDB;
   op = {
     eq: "=",
     ne: "!=",
@@ -216,49 +216,10 @@
     }
   };
   dataplusDELETE = function(tree, headers, body, successCallback, failureCallback, caller) {
-    var ftree, hasCR, i, id;
-    ftree = [];
-    if (tree[1][0] === "term") {
-      ftree = tree[1][3];
-    } else {
-      if (tree[1][0] === "fcTp") {
-        ftree = tree[1][4];
-      }
-    }
-    id = 0;
-    if (tree[1][0] === "term") {
-      id = tree[1][2];
-    } else {
-      if (tree[1][0] === "fcTp") {
-        id = tree[1][3];
-      }
-    }
-    if (id === "") {
-      id = 0;
-    }
-    if (id === 0) {
-      i = 1;
-      while (i < ftree.length) {
-        if (ftree[i][0] === "filt") {
-          if (ftree[i][1][0] === "eq" && ftree[i][1][2] === "id") {
-            id = ftree[i][1][3];
-            break;
-          }
-        }
-        i++;
-      }
-    }
-    hasCR = false;
-    i = 1;
-    while (i < ftree.length) {
-      if (ftree[i][0] === "cr") {
-        hasCR = true;
-        break;
-      }
-      i++;
-    }
+    var id;
+    id = getID(tree);
     if (id !== 0) {
-      if (tree[1][1] === "lock" && hasCR) {
+      if (tree[1][1] === "lock" && hasCR(tree)) {
         return db.transaction(function(tx) {
           var sql;
           sql = "DELETE FROM \"conditional_representation\" WHERE \"lock_id\"=" + id;
@@ -291,48 +252,9 @@
     }
   };
   dataplusPUT = function(tree, headers, body, successCallback, failureCallback, caller) {
-    var bd, errs, ftree, hasCR, i, id, k, pair, ps;
-    ftree = [];
-    if (tree[1][0] === "term") {
-      ftree = tree[1][3];
-    } else {
-      if (tree[1][0] === "fcTp") {
-        ftree = tree[1][4];
-      }
-    }
-    id = 0;
-    if (tree[1][0] === "term") {
-      id = tree[1][2];
-    } else {
-      if (tree[1][0] === "fcTp") {
-        id = tree[1][3];
-      }
-    }
-    if (id === "") {
-      id = 0;
-    }
-    if (id === 0) {
-      i = 1;
-      while (i < ftree.length) {
-        if (ftree[i][0] === "filt") {
-          if (ftree[i][1][0] === "eq" && ftree[i][1][2] === "id") {
-            id = ftree[i][1][3];
-            break;
-          }
-        }
-        i++;
-      }
-    }
-    hasCR = false;
-    i = 1;
-    while (i < ftree.length) {
-      if (ftree[i][0] === "cr") {
-        hasCR = true;
-        break;
-      }
-      i++;
-    }
-    if (tree[1][1] === "lock" && hasCR) {
+    var bd, errs, id, k, pair, ps;
+    id = getID(tree);
+    if (tree[1][1] === "lock" && hasCR(tree)) {
       bd = JSON.parse(body);
       ps = [];
       for (pair in bd) {
@@ -391,48 +313,9 @@
     }
   };
   dataplusPOST = function(tree, headers, body, successCallback, failureCallback, caller) {
-    var bd, fds, ftree, i, id, isExecute, k, pair, sql, vls;
-    ftree = [];
-    if (tree[1][0] === "term") {
-      ftree = tree[1][3];
-    } else {
-      if (tree[1][0] === "fcTp") {
-        ftree = tree[1][4];
-      }
-    }
-    isExecute = false;
-    i = 1;
-    while (i < ftree.length) {
-      if (ftree[i][0] === "execute") {
-        isExecute = true;
-        break;
-      }
-      i++;
-    }
-    if (tree[1][1] === "transaction" && isExecute) {
-      id = 0;
-      if (tree[1][0] === "term") {
-        id = tree[1][2];
-      } else {
-        if (tree[1][0] === "fcTp") {
-          id = tree[1][3];
-        }
-      }
-      if (id === "") {
-        id = 0;
-      }
-      if (id === 0) {
-        i = 1;
-        while (i < ftree.length) {
-          if (ftree[i][0] === "filt") {
-            if (ftree[i][1][0] === "eq" && ftree[i][1][2] === "id") {
-              id = ftree[i][1][3];
-              break;
-            }
-          }
-          i++;
-        }
-      }
+    var bd, fds, id, k, pair, sql, vls;
+    if (tree[1][1] === "transaction" && isExecute(tree)) {
+      id = getID(tree);
       return db.transaction((function(tx) {
         var sql;
         sql = "SELECT * FROM \"lock-belongs_to-transaction\" WHERE \"transaction_id\"=" + id;
@@ -444,7 +327,7 @@
           var sql;
           sql = "SELECT * FROM \"lock-belongs_to-transaction\" WHERE \"transaction_id\"=" + id;
           return tx.executeSql(sql + ";", [], function(tx, locks) {
-            var lock_id;
+            var i, lock_id;
             i = 0;
             while (i < locks.rows.length) {
               lock_id = locks.rows.item(0).lock_id;
@@ -606,14 +489,7 @@
   };
   dataplusGET = function(tree, headers, body, successCallback, failureCallback, caller) {
     var ftree;
-    ftree = [];
-    if (tree[1][0] === "term") {
-      ftree = tree[1][3];
-    } else {
-      if (tree[1][0] === "fcTp") {
-        ftree = tree[1][4];
-      }
-    }
+    ftree = getFTree(tree);
     return db.transaction(function(tx) {
       var filts, fl, ft, i, j, jn, obj, sql, tb;
       sql = "";
@@ -856,5 +732,57 @@
       _results.push(i++);
     }
     return _results;
+  };
+  getFTree(function(tree) {
+    if (tree[1][0] === "term") {
+      return tree[1][3];
+    } else if (tree[1][0] === "fcTp") {
+      return tree[1][4];
+    }
+    return [];
+  });
+  getID = function(tree) {
+    var f, ftree, id, _i, _len, _ref;
+    if (tree[1][0] === "term") {
+      id = tree[1][2];
+    } else if (tree[1][0] === "fcTp") {
+      id = tree[1][3];
+    }
+    if (id === "") {
+      id = 0;
+    }
+    if (id === 0) {
+      ftree = getFTree(tree);
+      _ref = ftree.slice(1);
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        f = _ref[_i];
+        if (f[0] === "filt" && f[1][0] === "eq" && f[1][2] === "id") {
+          return f[1][3];
+        }
+      }
+    }
+    return id;
+  };
+  hasCR = function(tree) {
+    var f, _i, _len, _ref;
+    _ref = getFTree(tree);
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      f = _ref[_i];
+      if (f[0] === "cr") {
+        return true;
+      }
+    }
+    return false;
+  };
+  isExecute = function(tree) {
+    var f, _i, _len, _ref;
+    _ref = getFTree(tree);
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      f = _ref[_i];
+      if (f[0] === "execute") {
+        return true;
+      }
+    }
+    return false;
   };
 }).call(this);

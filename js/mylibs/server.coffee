@@ -151,37 +151,9 @@ window.remoteServerRequest = (method, uri, headers, body, successCallback, failu
 
 
 dataplusDELETE = (tree, headers, body, successCallback, failureCallback, caller) ->
-	ftree = []
-	if tree[1][0] == "term"
-		ftree = tree[1][3]
-	else ftree = tree[1][4]  if tree[1][0] == "fcTp"
-	id = 0
-	if tree[1][0] == "term"
-		id = tree[1][2]
-	else id = tree[1][3]  if tree[1][0] == "fcTp"
-	id = 0  if id == ""
-	#if the id is empty, search the filters for one
-	if id == 0
-		i = 1
-		
-		while i < ftree.length
-			if ftree[i][0] == "filt"
-				if ftree[i][1][0] == "eq" and ftree[i][1][2] == "id"
-					id = ftree[i][1][3]
-					break
-			i++
-			
-	#figure out if this is a CR posted to a Lock
-	hasCR = false
-	i = 1
-	
-	while i < ftree.length
-		if ftree[i][0] == "cr"
-			hasCR = true
-			break
-		i++
-	unless id == 0
-		if tree[1][1] == "lock" and hasCR
+	id = getID tree
+	if id != 0
+		if tree[1][1] == "lock" and hasCR tree
 			#CR posted to Lock
 			#insert delete entry
 			db.transaction (tx) ->
@@ -208,36 +180,8 @@ dataplusDELETE = (tree, headers, body, successCallback, failureCallback, caller)
 			
 			
 dataplusPUT = (tree, headers, body, successCallback, failureCallback, caller) ->
-	ftree = []
-	if tree[1][0] == "term"
-		ftree = tree[1][3]
-	else ftree = tree[1][4]  if tree[1][0] == "fcTp"
-	id = 0
-	if tree[1][0] == "term"
-		id = tree[1][2]
-	else id = tree[1][3]  if tree[1][0] == "fcTp"
-	id = 0  if id == ""
-	#if the id is empty, search the filters
-	if id == 0
-		i = 1
-		
-		while i < ftree.length
-			if ftree[i][0] == "filt"
-				if ftree[i][1][0] == "eq" and ftree[i][1][2] == "id"
-					id = ftree[i][1][3]
-					break
-			i++
-
-	#figure out if this is a CR posted to a Lock
-	hasCR = false
-	i = 1
-	
-	while i < ftree.length
-		if ftree[i][0] == "cr"
-			hasCR = true
-			break
-		i++
-	if tree[1][1] == "lock" and hasCR
+	id = getID tree
+	if tree[1][1] == "lock" and hasCR tree
 		#CR posted to Lock
 		bd = JSON.parse(body)
 		ps = []
@@ -265,7 +209,7 @@ dataplusPUT = (tree, headers, body, successCallback, failureCallback, caller) ->
 			sql = "SELECT NOT EXISTS(SELECT * FROM 'resource-is_under-lock' AS r " + "WHERE r.'resource_type'=='" + tree[1][1] + "' " + "AND r.'resource_id'==" + id + ") AS result;"
 			tx.executeSql sql, [], (tx, result) ->
 				if result.rows.item(0).result == 1
-					unless id == ""
+					if id != ""
 						bd = JSON.parse(body)
 						ps = []
 						for pair of bd
@@ -284,34 +228,9 @@ dataplusPUT = (tree, headers, body, successCallback, failureCallback, caller) ->
 
 dataplusPOST = (tree, headers, body, successCallback, failureCallback, caller) ->
 	#figure out if it's a POST to transaction/execute
-	ftree = []
-	if tree[1][0] == "term"
-		ftree = tree[1][3]
-	else ftree = tree[1][4]  if tree[1][0] == "fcTp"
-	isExecute = false
-	i = 1
-	
-	while i < ftree.length
-		if ftree[i][0] == "execute"
-			isExecute = true
-			break
-		i++
-	if tree[1][1] == "transaction" and isExecute
-		id = 0
-		if tree[1][0] == "term"
-			id = tree[1][2]
-		else id = tree[1][3]  if tree[1][0] == "fcTp"
-		id = 0  if id == ""
-		#if the id is empty, search the filters
-		if id == 0
-			i = 1
-			
-			while i < ftree.length
-				if ftree[i][0] == "filt"
-					if ftree[i][1][0] == "eq" and ftree[i][1][2] == "id"
-						id = ftree[i][1][3]
-						break
-				i++
+	if tree[1][1] == "transaction" and isExecute tree
+		id = getID tree
+
 		#get all locks of transaction
 		db.transaction ((tx) ->
 			sql = "SELECT * FROM \"lock-belongs_to-transaction\" WHERE \"transaction_id\"=" + id
@@ -460,10 +379,7 @@ dataGET = (tree, headers, body, successCallback, failureCallback, caller) ->
 
 
 dataplusGET = (tree, headers, body, successCallback, failureCallback, caller) ->
-	ftree = []
-	if tree[1][0] == "term"
-		ftree = tree[1][3]
-	else ftree = tree[1][4]  if tree[1][0] == "fcTp"
+	ftree = getFTree tree
 	db.transaction (tx) ->
 		sql = ""
 		if tree[1][0] == "term"
@@ -680,3 +596,37 @@ updateRules = (sqlmod) ->
 				alert "Error: " + l[++k]  if result.rows.item(0)["result"] == 0
 			), null
 		i++
+		
+getFTree (tree) ->
+	if tree[1][0] == "term"
+		return tree[1][3]
+	else if tree[1][0] == "fcTp"
+		return tree[1][4]
+	return []
+
+getID = (tree) ->
+	if tree[1][0] == "term"
+		id = tree[1][2]
+	else if tree[1][0] == "fcTp"
+		id = tree[1][3]
+	id = 0 if id == ""
+	#if the id is empty, search the filters for one
+	if id is 0
+		ftree = getFTree tree
+		for f in ftree[1..]
+			if f[0] == "filt" and f[1][0] == "eq" and f[1][2] == "id"
+					return f[1][3]
+	return id
+
+hasCR = (tree) ->
+	#figure out if this is a CR posted to a Lock
+	for f in getFTree tree
+		if f[0] == "cr"
+			return true
+	return false
+
+isExecute = (tree) ->
+	for f in getFTree tree
+		if f[0] == "execute"
+			return true
+	return false
