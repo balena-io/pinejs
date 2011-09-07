@@ -10,47 +10,51 @@ op =
 #TODO: replace this with db entry. will also solve above issue.
 
 localStorage._server_onAir = false  if not localStorage._server_onAir == "true"
-serverModelCache = 
-	getSE: ->
-		localStorage._server_modelAreaValue
-	
-	setSE: (txtmod) ->
-		localStorage._server_modelAreaValue = txtmod
-	
-	getLastSE: ->
-		return localStorage._server_txtmod  if localStorage._server_onAir == "true"
-		""
-	
-	setLastSE: (txtmod) ->
-		localStorage._server_txtmod = txtmod
-	
-	getLF: ->
-		return JSON.parse(localStorage._server_lfmod)  if localStorage._server_onAir == "true"
-		[]
-	
-	setLF: (lfmod) ->
-		localStorage._server_lfmod = JSON.stringify(lfmod)
-	
-	getPrepLF: ->
-		return JSON.parse(localStorage._server_prepmod)  if localStorage._server_onAir == "true"
-		[]
-	
-	setPrepLF: (prepmod) ->
-		localStorage._server_prepmod = JSON.stringify(prepmod)
-	
-	getSQL: ->
-		return JSON.parse(localStorage._server_sqlmod)  if localStorage._server_onAir == "true"
-		[]
-	
-	setSQL: (sqlmod) ->
-		localStorage._server_sqlmod = JSON.stringify(sqlmod)
-	
-	getTrans: ->
-		return JSON.parse(localStorage._server_trnmod)  if localStorage._server_onAir == "true"
-		[]
-	
-	setTrans: (trnmod) ->
-		localStorage._server_trnmod = JSON.stringify(trnmod)
+serverModelCache = () ->
+	se = localStorage._server_modelAreaValue
+	if localStorage._server_onAir == "true"
+		lastSE	= localStorage._server_txtmod
+		lf		= JSON.parse(localStorage._server_lfmod)
+		prepLF	= JSON.parse(localStorage._server_prepmod)
+		sql		= JSON.parse(localStorage._server_sqlmod)
+		trans	= JSON.parse(localStorage._server_trnmod);
+	else
+		lastSE	= ""
+		lf		= []
+		prepLF	= []
+		sql		= []
+		trans	= []
+		
+		
+	return {
+		getSE: -> se
+		setSE: (txtmod) ->
+			se = localStorage._server_modelAreaValue = txtmod
+		
+		getLastSE: -> lastSE
+		setLastSE: (txtmod) ->
+			lastSE = localStorage._server_txtmod = txtmod
+		
+		getLF: -> lf
+		setLF: (lfmod) ->
+			lf = lfmod
+			localStorage._server_lfmod = JSON.stringify(lf)
+		
+		getPrepLF: -> prepLF
+		setPrepLF: (prepmod) ->
+			prepLF = prepmod
+			localStorage._server_prepmod = JSON.stringify(prepLF)
+		
+		getSQL: -> sql
+		setSQL: (sqlmod) ->
+			sql = sqlmod
+			localStorage._server_sqlmod = JSON.stringify(sql)
+		
+		getTrans: -> trans
+		setTrans: (trnmod) ->
+			trans = trnmod
+			localStorage._server_trnmod = JSON.stringify(trans)
+	}
 
 #TODO: the db name needs to be changed
 db = openDatabase("mydb", "1.0", "my first database", 2 * 1024 * 1024)

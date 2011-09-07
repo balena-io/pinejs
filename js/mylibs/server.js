@@ -8,58 +8,64 @@
   if (!localStorage._server_onAir === "true") {
     localStorage._server_onAir = false;
   }
-  serverModelCache = {
-    getSE: function() {
-      return localStorage._server_modelAreaValue;
-    },
-    setSE: function(txtmod) {
-      return localStorage._server_modelAreaValue = txtmod;
-    },
-    getLastSE: function() {
-      if (localStorage._server_onAir === "true") {
-        return localStorage._server_txtmod;
-      }
-      return "";
-    },
-    setLastSE: function(txtmod) {
-      return localStorage._server_txtmod = txtmod;
-    },
-    getLF: function() {
-      if (localStorage._server_onAir === "true") {
-        return JSON.parse(localStorage._server_lfmod);
-      }
-      return [];
-    },
-    setLF: function(lfmod) {
-      return localStorage._server_lfmod = JSON.stringify(lfmod);
-    },
-    getPrepLF: function() {
-      if (localStorage._server_onAir === "true") {
-        return JSON.parse(localStorage._server_prepmod);
-      }
-      return [];
-    },
-    setPrepLF: function(prepmod) {
-      return localStorage._server_prepmod = JSON.stringify(prepmod);
-    },
-    getSQL: function() {
-      if (localStorage._server_onAir === "true") {
-        return JSON.parse(localStorage._server_sqlmod);
-      }
-      return [];
-    },
-    setSQL: function(sqlmod) {
-      return localStorage._server_sqlmod = JSON.stringify(sqlmod);
-    },
-    getTrans: function() {
-      if (localStorage._server_onAir === "true") {
-        return JSON.parse(localStorage._server_trnmod);
-      }
-      return [];
-    },
-    setTrans: function(trnmod) {
-      return localStorage._server_trnmod = JSON.stringify(trnmod);
+  serverModelCache = function() {
+    var lastSE, lf, prepLF, se, sql, trans;
+    se = localStorage._server_modelAreaValue;
+    if (localStorage._server_onAir === "true") {
+      lastSE = localStorage._server_txtmod;
+      lf = JSON.parse(localStorage._server_lfmod);
+      prepLF = JSON.parse(localStorage._server_prepmod);
+      sql = JSON.parse(localStorage._server_sqlmod);
+      trans = JSON.parse(localStorage._server_trnmod);
+    } else {
+      lastSE = "";
+      lf = [];
+      prepLF = [];
+      sql = [];
+      trans = [];
     }
+    return {
+      getSE: function() {
+        return se;
+      },
+      setSE: function(txtmod) {
+        return se = localStorage._server_modelAreaValue = txtmod;
+      },
+      getLastSE: function() {
+        return lastSE;
+      },
+      setLastSE: function(txtmod) {
+        return lastSE = localStorage._server_txtmod = txtmod;
+      },
+      getLF: function() {
+        return lf;
+      },
+      setLF: function(lfmod) {
+        lf = lfmod;
+        return localStorage._server_lfmod = JSON.stringify(lf);
+      },
+      getPrepLF: function() {
+        return prepLF;
+      },
+      setPrepLF: function(prepmod) {
+        prepLF = prepmod;
+        return localStorage._server_prepmod = JSON.stringify(prepLF);
+      },
+      getSQL: function() {
+        return sql;
+      },
+      setSQL: function(sqlmod) {
+        sql = sqlmod;
+        return localStorage._server_sqlmod = JSON.stringify(sql);
+      },
+      getTrans: function() {
+        return trans;
+      },
+      setTrans: function(trnmod) {
+        trans = trnmod;
+        return localStorage._server_trnmod = JSON.stringify(trans);
+      }
+    };
   };
   db = openDatabase("mydb", "1.0", "my first database", 2 * 1024 * 1024);
   window.remoteServerRequest = function(method, uri, headers, body, successCallback, failureCallback, caller) {
