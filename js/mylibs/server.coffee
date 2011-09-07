@@ -10,7 +10,7 @@ op =
 #TODO: replace this with db entry. will also solve above issue.
 
 localStorage._server_onAir = false  if not localStorage._server_onAir == "true"
-serverModelCache = () ->
+serverModelCache = do () ->
 	se = localStorage._server_modelAreaValue
 	if localStorage._server_onAir == "true"
 		lastSE	= localStorage._server_txtmod

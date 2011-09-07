@@ -9,7 +9,7 @@
   if (!localStorage._server_onAir === "true") {
     localStorage._server_onAir = false;
   }
-  serverModelCache = function() {
+  serverModelCache = (function() {
     var lastSE, lf, prepLF, se, sql, trans;
     se = localStorage._server_modelAreaValue;
     if (localStorage._server_onAir === "true") {
@@ -67,7 +67,7 @@
         return localStorage._server_trnmod = JSON.stringify(trans);
       }
     };
-  };
+  })();
   db = openDatabase("mydb", "1.0", "my first database", 2 * 1024 * 1024);
   window.remoteServerRequest = function(method, uri, headers, body, successCallback, failureCallback, caller) {
     var ftree, o, rootbranch, tree;
