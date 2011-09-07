@@ -196,10 +196,9 @@ dataplusPUT = (tree, headers, body, successCallback, failureCallback, caller) ->
 		#CR posted to Lock
 		bd = JSON.parse(body)
 		ps = []
-		for pair of bd
-			if bd.hasOwnProperty(pair)
-				for k of bd[pair]
-					ps.push [ id, k, typeof bd[pair][k], bd[pair][k] ]  if bd[pair].hasOwnProperty(k)
+		for own pair of bd
+			for own k of bd[pair]
+				ps.push [ id, k, typeof bd[pair][k], bd[pair][k] ]
 					
 		#sql="INSERT INTO 'conditional_representation'('lock_id','field_name','field_type','field_value')"
 		#"VALUES ('','','','')"
@@ -207,13 +206,12 @@ dataplusPUT = (tree, headers, body, successCallback, failureCallback, caller) ->
 			sql = 'DELETE FROM "conditional_representation" WHERE "lock_id"=' + id
 			tx.executeSql sql, [], (tx, result) ->
 			
-			for item of ps
-				if ps.hasOwnProperty(item)
-					sql = "INSERT INTO 'conditional_representation'('lock_id'," +
-						"'field_name','field_type','field_value')" +
-						"VALUES ('" + ps[item][0] + "','" + ps[item][1] + "','" +
-						ps[item][2] + "','" + ps[item][3] + "')"
-					tx.executeSql sql, [], (tx, result) ->
+			for own item of ps
+				sql = "INSERT INTO 'conditional_representation'('lock_id'," +
+					"'field_name','field_type','field_value')" +
+					"VALUES ('" + ps[item][0] + "','" + ps[item][1] + "','" +
+					ps[item][2] + "','" + ps[item][3] + "')"
+				tx.executeSql sql, [], (tx, result) ->
 	else
 		errs = []
 		db.transaction ((tx) ->
@@ -223,10 +221,9 @@ dataplusPUT = (tree, headers, body, successCallback, failureCallback, caller) ->
 					if id != ""
 						bd = JSON.parse(body)
 						ps = []
-						for pair of bd
-							if bd.hasOwnProperty(pair)
-								for k of bd[pair]
-									ps.push k + "=" + JSON.stringify(bd[pair][k])  if bd[pair].hasOwnProperty(k)
+						for own pair of bd
+							for own k of bd[pair]
+								ps.push k + "=" + JSON.stringify(bd[pair][k])
 						sql = 'UPDATE "' + tree[1][1] + '" SET ' + ps.join(",") + " WHERE id=" + id + ";"
 						tx.executeSql sql, [], (tx) ->
 							validateDB tx, serverModelCache.getSQL(), caller, ((tx, sqlmod, caller, failureCallback, headers, result) ->
@@ -286,12 +283,10 @@ dataplusPOST = (tree, headers, body, successCallback, failureCallback, caller) -
 		bd = JSON.parse(body)
 		fds = []
 		vls = []
-		for pair of bd
-			if bd.hasOwnProperty(pair)
-				for k of bd[pair]
-					if bd[pair].hasOwnProperty(k)
-						fds.push k
-						vls.push JSON.stringify(bd[pair][k])
+		for own pair of bd
+			for own k of bd[pair]
+				fds.push k
+				vls.push JSON.stringify(bd[pair][k])
 		sql = 'INSERT INTO "' + tree[1][1] + '"("' + fds.join('","') + '") VALUES (' + vls.join(",") + ");"
 		db.transaction (tx) ->
 			tx.executeSql sql, [], (tx, result) ->

@@ -1,5 +1,6 @@
 (function() {
   var dataGET, dataplusDELETE, dataplusGET, dataplusPOST, dataplusPUT, db, endLock, executePOST, executeSasync, executeTasync, getFTree, getID, hasCR, isExecute, op, rootDELETE, serverModelCache, updateRules, validateDB;
+  var __hasProp = Object.prototype.hasOwnProperty;
   op = {
     eq: "=",
     ne: "!=",
@@ -259,18 +260,17 @@
     }
   };
   dataplusPUT = function(tree, headers, body, successCallback, failureCallback, caller) {
-    var bd, errs, id, k, pair, ps;
+    var bd, errs, id, k, pair, ps, _ref;
     id = getID(tree);
     if (tree[1][1] === "lock" && hasCR(tree)) {
       bd = JSON.parse(body);
       ps = [];
       for (pair in bd) {
-        if (bd.hasOwnProperty(pair)) {
-          for (k in bd[pair]) {
-            if (bd[pair].hasOwnProperty(k)) {
-              ps.push([id, k, typeof bd[pair][k], bd[pair][k]]);
-            }
-          }
+        if (!__hasProp.call(bd, pair)) continue;
+        _ref = bd[pair];
+        for (k in _ref) {
+          if (!__hasProp.call(_ref, k)) continue;
+          ps.push([id, k, typeof bd[pair][k], bd[pair][k]]);
         }
       }
       return db.transaction(function(tx) {
@@ -279,7 +279,9 @@
         tx.executeSql(sql, [], function(tx, result) {});
         _results = [];
         for (item in ps) {
-          _results.push(ps.hasOwnProperty(item) ? (sql = "INSERT INTO 'conditional_representation'('lock_id'," + "'field_name','field_type','field_value')" + "VALUES ('" + ps[item][0] + "','" + ps[item][1] + "','" + ps[item][2] + "','" + ps[item][3] + "')", tx.executeSql(sql, [], function(tx, result) {})) : void 0);
+          if (!__hasProp.call(ps, item)) continue;
+          sql = "INSERT INTO 'conditional_representation'('lock_id'," + "'field_name','field_type','field_value')" + "VALUES ('" + ps[item][0] + "','" + ps[item][1] + "','" + ps[item][2] + "','" + ps[item][3] + "')";
+          _results.push(tx.executeSql(sql, [], function(tx, result) {}));
         }
         return _results;
       });
@@ -289,18 +291,17 @@
         var sql;
         sql = "SELECT NOT EXISTS(SELECT * FROM 'resource-is_under-lock' AS r WHERE r.'resource_type'=='" + tree[1][1] + "' AND r.'resource_id'==" + id + ") AS result;";
         return tx.executeSql(sql, [], function(tx, result) {
-          var k, pair;
+          var k, pair, _ref2;
           if (result.rows.item(0).result === 1) {
             if (id !== "") {
               bd = JSON.parse(body);
               ps = [];
               for (pair in bd) {
-                if (bd.hasOwnProperty(pair)) {
-                  for (k in bd[pair]) {
-                    if (bd[pair].hasOwnProperty(k)) {
-                      ps.push(k + "=" + JSON.stringify(bd[pair][k]));
-                    }
-                  }
+                if (!__hasProp.call(bd, pair)) continue;
+                _ref2 = bd[pair];
+                for (k in _ref2) {
+                  if (!__hasProp.call(_ref2, k)) continue;
+                  ps.push(k + "=" + JSON.stringify(bd[pair][k]));
                 }
               }
               sql = 'UPDATE "' + tree[1][1] + '" SET ' + ps.join(",") + " WHERE id=" + id + ";";
@@ -320,7 +321,7 @@
     }
   };
   dataplusPOST = function(tree, headers, body, successCallback, failureCallback, caller) {
-    var bd, fds, id, k, pair, sql, vls;
+    var bd, fds, id, k, pair, sql, vls, _ref;
     if (tree[1][1] === "transaction" && isExecute(tree)) {
       id = getID(tree);
       return db.transaction((function(tx) {
@@ -369,13 +370,12 @@
       fds = [];
       vls = [];
       for (pair in bd) {
-        if (bd.hasOwnProperty(pair)) {
-          for (k in bd[pair]) {
-            if (bd[pair].hasOwnProperty(k)) {
-              fds.push(k);
-              vls.push(JSON.stringify(bd[pair][k]));
-            }
-          }
+        if (!__hasProp.call(bd, pair)) continue;
+        _ref = bd[pair];
+        for (k in _ref) {
+          if (!__hasProp.call(_ref, k)) continue;
+          fds.push(k);
+          vls.push(JSON.stringify(bd[pair][k]));
         }
       }
       sql = 'INSERT INTO "' + tree[1][1] + '"("' + fds.join('","') + '") VALUES (' + vls.join(",") + ");";
