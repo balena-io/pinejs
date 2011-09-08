@@ -4,21 +4,24 @@ op =
 	ne: "!="
 	lk: "~"
 
-#This is needed as the switch has no value on first execution. Maybe there's a better way?
-#be warned: localStorage stores all values as strings. 
-#Hence, booleans have to be tested against their string versions.
-#TODO: replace this with db entry. will also solve above issue.
-
-localStorage._server_onAir = false  if not localStorage._server_onAir == "true"
 serverModelCache = do () ->
+	#This is needed as the switch has no value on first execution. Maybe there's a better way?
+	#be warned: localStorage stores all values as strings. 
+	#Hence, booleans have to be tested against their string versions.
+	#TODO: replace this with db entry. will also solve above issue.
+	serverOnAir = localStorage._server_onAir == "true"
+	localStorage._server_onAir = serverOnAir
+	
 	se = localStorage._server_modelAreaValue
-	if localStorage._server_onAir == "true"
+	if serverOnAir
+		modelAreaDisabled = localStorage._server_modelAreaDisabled == "true"
 		lastSE	= localStorage._server_txtmod
-		lf		= JSON.parse(localStorage._server_lfmod)
-		prepLF	= JSON.parse(localStorage._server_prepmod)
-		sql		= JSON.parse(localStorage._server_sqlmod)
-		trans	= JSON.parse(localStorage._server_trnmod);
+		lf		= JSON.parse localStorage._server_lfmod
+		prepLF	= JSON.parse localStorage._server_prepmod
+		sql		= JSON.parse localStorage._server_sqlmod
+		trans	= JSON.parse localStorage._server_trnmod;
 	else
+		modelAreaDisabled = false
 		lastSE	= ""
 		lf		= []
 		prepLF	= []
@@ -27,33 +30,45 @@ serverModelCache = do () ->
 		
 		
 	return {
+		isServerOnAir: -> serverOnAir
+		setServerOnAir: (bool) ->
+			serverOnAir = bool
+			localStorage._server_onAir = serverOnAir
+		
+		isModelAreaDisabled: -> modelAreaDisabled
+		setModelAreaDisabled: (bool) ->
+			modelAreaDisabled = bool
+			localStorage._server_modelAreaDisabled = modelAreaDisabled
+	
 		getSE: -> se
 		setSE: (txtmod) ->
-			se = localStorage._server_modelAreaValue = txtmod
+			se = txtmod
+			localStorage._server_modelAreaValue = se
 		
 		getLastSE: -> lastSE
 		setLastSE: (txtmod) ->
-			lastSE = localStorage._server_txtmod = txtmod
+			lastSE = txtmod
+			localStorage._server_txtmod = lastSE
 		
 		getLF: -> lf
 		setLF: (lfmod) ->
 			lf = lfmod
-			localStorage._server_lfmod = JSON.stringify(lf)
+			localStorage._server_lfmod = JSON.stringify lf
 		
 		getPrepLF: -> prepLF
 		setPrepLF: (prepmod) ->
 			prepLF = prepmod
-			localStorage._server_prepmod = JSON.stringify(prepLF)
+			localStorage._server_prepmod = JSON.stringify prepLF
 		
 		getSQL: -> sql
 		setSQL: (sqlmod) ->
 			sql = sqlmod
-			localStorage._server_sqlmod = JSON.stringify(sql)
+			localStorage._server_sqlmod = JSON.stringify sql
 		
 		getTrans: -> trans
 		setTrans: (trnmod) ->
 			trans = trnmod
-			localStorage._server_trnmod = JSON.stringify(trans)
+			localStorage._server_trnmod = JSON.stringify trans
 	}
 
 #TODO: the db name needs to be changed
@@ -71,31 +86,31 @@ window.remoteServerRequest = (method, uri, headers, body, successCallback, failu
 		when "onair"
 			if method == "GET"
 				successCallback "status-line": "HTTP/1.1 200 OK",
-					JSON.stringify(localStorage._server_onAir)
+					JSON.stringify(serverModelCache.isServerOnAir())
 		when "model"
 			if method == "GET"
-				if localStorage._server_onAir == "true"
+				if serverModelCache.isServerOnAir()
 					successCallback "status-line": "HTTP/1.1 200 OK",
 						serverModelCache.getLastSE()
 				else
 					failureCallback? "status-line": "HTTP/1.1 404 Not Found"
 		when "lfmodel"
 			if method == "GET"
-				if localStorage._server_onAir == "true"
+				if serverModelCache.isServerOnAir()
 					successCallback "status-line": "HTTP/1.1 200 OK",
 						JSON.stringify(serverModelCache.getLF())
 				else
 					failureCallback? "status-line": "HTTP/1.1 404 Not Found"
 		when "prepmodel"
 			if method == "GET"
-				if localStorage._server_onAir == "true"
+				if serverModelCache.isServerOnAir()
 					successCallback "status-line": "HTTP/1.1 200 OK",
 						JSON.stringify(serverModelCache.getPrepLF())
 				else
 					failureCallback? "status-line": "HTTP/1.1 404 Not Found"
 		when "sqlmodel"
 			if method == "GET"
-				if localStorage._server_onAir == "true"
+				if serverModelCache.isServerOnAir()
 					successCallback "status-line": "HTTP/1.1 200 OK",
 						JSON.stringify(serverModelCache.getSQL())
 				else
@@ -112,11 +127,11 @@ window.remoteServerRequest = (method, uri, headers, body, successCallback, failu
 			else if tree[1][1] == "textarea-is_disabled" and tree[1][4][1][1][3] == "model_area"
 				switch method
 					when "PUT"
-						localStorage._server_modelAreaDisabled = JSON.parse(body).value
+						serverModelCache.setModelAreaDisabled JSON.parse(body).value
 						successCallback "status-line": "HTTP/1.1 200 OK"
 					when "GET"
 						successCallback "status-line": "HTTP/1.1 200 OK",
-							JSON.stringify(value: localStorage._server_modelAreaDisabled)
+							JSON.stringify(value: serverModelCache.isModelAreaDisabled())
 		when "execute"
 			if method == "POST"
 				executePOST tree, headers, body, successCallback, failureCallback, caller
@@ -125,7 +140,7 @@ window.remoteServerRequest = (method, uri, headers, body, successCallback, failu
 				#update code will go here, based on executePOST
 				null
 		when "data"
-			if localStorage._server_onAir == "true"
+			if serverModelCache.isServerOnAir()
 				if tree[1] == undefined
 					switch method
 						when "GET"
@@ -307,12 +322,12 @@ executePOST = (tree, headers, body, successCallback, failureCallback, caller) ->
 	tree = SBVRParser.matchAll(modelT, "expr")
 	tree = SBVR_PreProc.match(tree, "optimizeTree")
 	trnmod = SBVR2SQL.match(tree, "trans")
-	localStorage._server_modelAreaDisabled = true
+	serverModelCache.setModelAreaDisabled true
 	db.transaction (tx) ->
 		executeSasync tx, sqlmod, caller, ((tx, sqlmod, caller, failureCallback, headers, result) ->
 			#TODO: fix this as soon as the successCalback mess is fixed
 			executeTasync tx, trnmod, caller, ((tx, trnmod, caller, failureCallback, headers, result) ->
-				localStorage._server_onAir = true
+				serverModelCache.setServerOnAir true
 				serverModelCache.setLastSE se
 				serverModelCache.setLF lfmod
 				serverModelCache.setPrepLF prepmod
@@ -321,7 +336,7 @@ executePOST = (tree, headers, body, successCallback, failureCallback, caller) ->
 				successCallback headers, result
 			), failureCallback, headers, result
 		), ((errors) ->
-			localStorage._server_modelAreaDisabled = false
+			serverModelCache.setModelAreaDisabled false
 			failureCallback errors
 		), "status-line": "HTTP/1.1 200 OK"
 
@@ -346,14 +361,15 @@ rootDELETE = (tree, headers, body, successCallback, failureCallback, caller) ->
 	)(serverModelCache.getTrans())
 	#TODO: these two do not belong here
 	serverModelCache.setSE ""
-	localStorage._server_modelAreaDisabled = false
+	serverModelCache.setModelAreaDisabled false
 	
 	serverModelCache.setLastSE ""
 	serverModelCache.setPrepLF []
 	serverModelCache.setLF []
 	serverModelCache.setSQL []
 	serverModelCache.setTrans []
-	localStorage._server_onAir = false
+	serverModelCache.setServerOnAir false
+
 	successCallback "status-line": "HTTP/1.1 200 OK", ""
 
 
@@ -571,7 +587,7 @@ executeTasync = (tx, trnmod, caller, successCallback, failureCallback, headers, 
 		tx.executeSql "ALTER TABLE 'conditional_representation' ADD COLUMN lock_id TEXT", []
 		successCallback tx, trnmod, caller, failureCallback, headers, result
 	), ((errors) ->
-		localStorage._server_modelAreaDisabled = false
+		serverModelCache.setModelAreaDisabled false
 		failureCallback errors
 	), headers, result
 

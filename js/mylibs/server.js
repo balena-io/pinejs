@@ -6,19 +6,20 @@
     ne: "!=",
     lk: "~"
   };
-  if (!localStorage._server_onAir === "true") {
-    localStorage._server_onAir = false;
-  }
   serverModelCache = (function() {
-    var lastSE, lf, prepLF, se, sql, trans;
+    var lastSE, lf, modelAreaDisabled, prepLF, se, serverOnAir, sql, trans;
+    serverOnAir = localStorage._server_onAir === "true";
+    localStorage._server_onAir = serverOnAir;
     se = localStorage._server_modelAreaValue;
-    if (localStorage._server_onAir === "true") {
+    if (serverOnAir) {
+      modelAreaDisabled = localStorage._server_modelAreaDisabled === "true";
       lastSE = localStorage._server_txtmod;
       lf = JSON.parse(localStorage._server_lfmod);
       prepLF = JSON.parse(localStorage._server_prepmod);
       sql = JSON.parse(localStorage._server_sqlmod);
       trans = JSON.parse(localStorage._server_trnmod);
     } else {
+      modelAreaDisabled = false;
       lastSE = "";
       lf = [];
       prepLF = [];
@@ -26,17 +27,33 @@
       trans = [];
     }
     return {
+      isServerOnAir: function() {
+        return serverOnAir;
+      },
+      setServerOnAir: function(bool) {
+        serverOnAir = bool;
+        return localStorage._server_onAir = serverOnAir;
+      },
+      isModelAreaDisabled: function() {
+        return modelAreaDisabled;
+      },
+      setModelAreaDisabled: function(bool) {
+        modelAreaDisabled = bool;
+        return localStorage._server_modelAreaDisabled = modelAreaDisabled;
+      },
       getSE: function() {
         return se;
       },
       setSE: function(txtmod) {
-        return se = localStorage._server_modelAreaValue = txtmod;
+        se = txtmod;
+        return localStorage._server_modelAreaValue = se;
       },
       getLastSE: function() {
         return lastSE;
       },
       setLastSE: function(txtmod) {
-        return lastSE = localStorage._server_txtmod = txtmod;
+        lastSE = txtmod;
+        return localStorage._server_txtmod = lastSE;
       },
       getLF: function() {
         return lf;
@@ -82,12 +99,12 @@
         if (method === "GET") {
           return successCallback({
             "status-line": "HTTP/1.1 200 OK"
-          }, JSON.stringify(localStorage._server_onAir));
+          }, JSON.stringify(serverModelCache.isServerOnAir()));
         }
         break;
       case "model":
         if (method === "GET") {
-          if (localStorage._server_onAir === "true") {
+          if (serverModelCache.isServerOnAir()) {
             return successCallback({
               "status-line": "HTTP/1.1 200 OK"
             }, serverModelCache.getLastSE());
@@ -100,7 +117,7 @@
         break;
       case "lfmodel":
         if (method === "GET") {
-          if (localStorage._server_onAir === "true") {
+          if (serverModelCache.isServerOnAir()) {
             return successCallback({
               "status-line": "HTTP/1.1 200 OK"
             }, JSON.stringify(serverModelCache.getLF()));
@@ -113,7 +130,7 @@
         break;
       case "prepmodel":
         if (method === "GET") {
-          if (localStorage._server_onAir === "true") {
+          if (serverModelCache.isServerOnAir()) {
             return successCallback({
               "status-line": "HTTP/1.1 200 OK"
             }, JSON.stringify(serverModelCache.getPrepLF()));
@@ -126,7 +143,7 @@
         break;
       case "sqlmodel":
         if (method === "GET") {
-          if (localStorage._server_onAir === "true") {
+          if (serverModelCache.isServerOnAir()) {
             return successCallback({
               "status-line": "HTTP/1.1 200 OK"
             }, JSON.stringify(serverModelCache.getSQL()));
@@ -155,7 +172,7 @@
         } else if (tree[1][1] === "textarea-is_disabled" && tree[1][4][1][1][3] === "model_area") {
           switch (method) {
             case "PUT":
-              localStorage._server_modelAreaDisabled = JSON.parse(body).value;
+              serverModelCache.setModelAreaDisabled(JSON.parse(body).value);
               return successCallback({
                 "status-line": "HTTP/1.1 200 OK"
               });
@@ -163,7 +180,7 @@
               return successCallback({
                 "status-line": "HTTP/1.1 200 OK"
               }, JSON.stringify({
-                value: localStorage._server_modelAreaDisabled
+                value: serverModelCache.isModelAreaDisabled()
               }));
           }
         }
@@ -179,7 +196,7 @@
         }
         break;
       case "data":
-        if (localStorage._server_onAir === "true") {
+        if (serverModelCache.isServerOnAir()) {
           if (tree[1] === void 0) {
             switch (method) {
               case "GET":
@@ -401,11 +418,11 @@
     tree = SBVRParser.matchAll(modelT, "expr");
     tree = SBVR_PreProc.match(tree, "optimizeTree");
     trnmod = SBVR2SQL.match(tree, "trans");
-    localStorage._server_modelAreaDisabled = true;
+    serverModelCache.setModelAreaDisabled(true);
     return db.transaction(function(tx) {
       return executeSasync(tx, sqlmod, caller, (function(tx, sqlmod, caller, failureCallback, headers, result) {
         return executeTasync(tx, trnmod, caller, (function(tx, trnmod, caller, failureCallback, headers, result) {
-          localStorage._server_onAir = true;
+          serverModelCache.setServerOnAir(true);
           serverModelCache.setLastSE(se);
           serverModelCache.setLF(lfmod);
           serverModelCache.setPrepLF(prepmod);
@@ -414,7 +431,7 @@
           return successCallback(headers, result);
         }), failureCallback, headers, result);
       }), (function(errors) {
-        localStorage._server_modelAreaDisabled = false;
+        serverModelCache.setModelAreaDisabled(false);
         return failureCallback(errors);
       }), {
         "status-line": "HTTP/1.1 200 OK"
@@ -451,13 +468,13 @@
       };
     })(serverModelCache.getTrans()));
     serverModelCache.setSE("");
-    localStorage._server_modelAreaDisabled = false;
+    serverModelCache.setModelAreaDisabled(false);
     serverModelCache.setLastSE("");
     serverModelCache.setPrepLF([]);
     serverModelCache.setLF([]);
     serverModelCache.setSQL([]);
     serverModelCache.setTrans([]);
-    localStorage._server_onAir = false;
+    serverModelCache.setServerOnAir(false);
     return successCallback({
       "status-line": "HTTP/1.1 200 OK"
     }, "");
@@ -705,7 +722,7 @@
       tx.executeSql("ALTER TABLE 'conditional_representation' ADD COLUMN lock_id TEXT", []);
       return successCallback(tx, trnmod, caller, failureCallback, headers, result);
     }), (function(errors) {
-      localStorage._server_modelAreaDisabled = false;
+      serverModelCache.setModelAreaDisabled(false);
       return failureCallback(errors);
     }), headers, result);
   };
