@@ -4,75 +4,76 @@ op =
 	ne: "!="
 	lk: "~"
 
+#TODO: the db name needs to be changed
+db = openDatabase("mydb", "1.0", "my first database", 2 * 1024 * 1024)
+
 serverModelCache = do () ->
 	#This is needed as the switch has no value on first execution. Maybe there's a better way?
 	#be warned: localStorage stores all values as strings. 
 	#Hence, booleans have to be tested against their string versions.
 	#TODO: replace this with db entry. will also solve above issue.
-	serverOnAir = localStorage._server_onAir == "true"
-	localStorage._server_onAir = serverOnAir
-	
-	se = localStorage._server_modelAreaValue
-	if serverOnAir
-		modelAreaDisabled = localStorage._server_modelAreaDisabled == "true"
-		lastSE	= localStorage._server_txtmod
-		lf		= JSON.parse localStorage._server_lfmod
-		prepLF	= JSON.parse localStorage._server_prepmod
-		sql		= JSON.parse localStorage._server_sqlmod
-		trans	= JSON.parse localStorage._server_trnmod;
-	else
-		modelAreaDisabled = false
-		lastSE	= ""
-		lf		= []
-		prepLF	= []
-		sql		= []
-		trans	= []
-		
-		
-	return {
-		isServerOnAir: -> serverOnAir
-		setServerOnAir: (bool) ->
-			serverOnAir = bool
-			localStorage._server_onAir = serverOnAir
-		
-		isModelAreaDisabled: -> modelAreaDisabled
-		setModelAreaDisabled: (bool) ->
-			modelAreaDisabled = bool
-			localStorage._server_modelAreaDisabled = modelAreaDisabled
-	
-		getSE: -> se
-		setSE: (txtmod) ->
-			se = txtmod
-			localStorage._server_modelAreaValue = se
-		
-		getLastSE: -> lastSE
-		setLastSE: (txtmod) ->
-			lastSE = txtmod
-			localStorage._server_txtmod = lastSE
-		
-		getLF: -> lf
-		setLF: (lfmod) ->
-			lf = lfmod
-			localStorage._server_lfmod = JSON.stringify lf
-		
-		getPrepLF: -> prepLF
-		setPrepLF: (prepmod) ->
-			prepLF = prepmod
-			localStorage._server_prepmod = JSON.stringify prepLF
-		
-		getSQL: -> sql
-		setSQL: (sqlmod) ->
-			sql = sqlmod
-			localStorage._server_sqlmod = JSON.stringify sql
-		
-		getTrans: -> trans
-		setTrans: (trnmod) ->
-			trans = trnmod
-			localStorage._server_trnmod = JSON.stringify trans
+	values = {
+		serverOnAir: false
+		modelAreaDisabled: false
+		se:		""
+		lastSE:	""
+		lf:		[]
+		prepLF:	[]
+		sql:		[]
+		trans:	[]
 	}
-
-#TODO: the db name needs to be changed
-db = openDatabase("mydb", "1.0", "my first database", 2 * 1024 * 1024)
+	
+	db.transaction (tx) ->
+		sql = 'CREATE TABLE IF NOT EXISTS "_server_model_cache" (' +
+			'"key"	VARCHAR PRIMARY KEY,' +
+			'"value"	VARCHAR );'
+		tx.executeSql sql, [], (tx, result) ->
+		sql = 'SELECT * FROM "_server_model_cache";'
+		tx.executeSql sql, [], (tx, result) ->
+			for i in [0...result.rows.length]
+				row = result.rows.item(i)
+				values[row.key] = JSON.parse row.value;
+	
+	setValue = (key, value) ->
+		values[key] = value
+		db.transaction (tx) ->
+			sql = 'INSERT OR REPLACE INTO "_server_model_cache" values' +
+				"('" + key + "','" + JSON.stringify(value).replace(/\\'/g,"\\\\'").replace(new RegExp("'",'g'),"\\'") + "');"
+			tx.executeSql sql, [], (tx, result) ->
+	
+	return {
+		isServerOnAir: -> values.serverOnAir
+		setServerOnAir: (bool) ->
+			setValue 'serverOnAir', bool
+		
+		isModelAreaDisabled: -> values.modelAreaDisabled
+		setModelAreaDisabled: (bool) ->
+			setValue 'modelAreaDisabled', bool
+	
+		getSE: -> values.se
+		setSE: (txtmod) ->
+			setValue 'se', txtmod
+		
+		getLastSE: -> values.lastSE
+		setLastSE: (txtmod) ->
+			setValue 'lastSE', txtmod
+		
+		getLF: -> values.lf
+		setLF: (lfmod) ->
+			setValue 'lf', lfmod
+		
+		getPrepLF: -> values.prepLF
+		setPrepLF: (prepmod) ->
+			setValue 'prepLF', prepmod
+		
+		getSQL: -> values.sql
+		setSQL: (sqlmod) ->
+			setValue 'sql', sqlmod
+		
+		getTrans: -> values.trans
+		setTrans: (trnmod) ->
+			setValue 'trans', trnmod
+	}
 
 
 window.remoteServerRequest = (method, uri, headers, body, successCallback, failureCallback, caller) ->

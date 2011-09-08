@@ -6,86 +6,93 @@
     ne: "!=",
     lk: "~"
   };
+  db = openDatabase("mydb", "1.0", "my first database", 2 * 1024 * 1024);
   serverModelCache = (function() {
-    var lastSE, lf, modelAreaDisabled, prepLF, se, serverOnAir, sql, trans;
-    serverOnAir = localStorage._server_onAir === "true";
-    localStorage._server_onAir = serverOnAir;
-    se = localStorage._server_modelAreaValue;
-    if (serverOnAir) {
-      modelAreaDisabled = localStorage._server_modelAreaDisabled === "true";
-      lastSE = localStorage._server_txtmod;
-      lf = JSON.parse(localStorage._server_lfmod);
-      prepLF = JSON.parse(localStorage._server_prepmod);
-      sql = JSON.parse(localStorage._server_sqlmod);
-      trans = JSON.parse(localStorage._server_trnmod);
-    } else {
-      modelAreaDisabled = false;
-      lastSE = "";
-      lf = [];
-      prepLF = [];
-      sql = [];
-      trans = [];
-    }
+    var setValue, values;
+    values = {
+      serverOnAir: false,
+      modelAreaDisabled: false,
+      se: "",
+      lastSE: "",
+      lf: [],
+      prepLF: [],
+      sql: [],
+      trans: []
+    };
+    db.transaction(function(tx) {
+      var sql;
+      sql = 'CREATE TABLE IF NOT EXISTS "_server_model_cache" (' + '"key"	VARCHAR PRIMARY KEY,' + '"value"	VARCHAR );';
+      tx.executeSql(sql, [], function(tx, result) {});
+      sql = 'SELECT * FROM "_server_model_cache";';
+      return tx.executeSql(sql, [], function(tx, result) {
+        var i, row, _ref, _results;
+        _results = [];
+        for (i = 0, _ref = result.rows.length; 0 <= _ref ? i < _ref : i > _ref; 0 <= _ref ? i++ : i--) {
+          row = result.rows.item(i);
+          _results.push(values[row.key] = JSON.parse(row.value));
+        }
+        return _results;
+      });
+    });
+    setValue = function(key, value) {
+      values[key] = value;
+      return db.transaction(function(tx) {
+        var sql;
+        sql = 'INSERT OR REPLACE INTO "_server_model_cache" values' + "('" + key + "','" + JSON.stringify(value).replace(/\\'/g, "\\\\'").replace(new RegExp("'", 'g'), "\\'") + "');";
+        return tx.executeSql(sql, [], function(tx, result) {});
+      });
+    };
     return {
       isServerOnAir: function() {
-        return serverOnAir;
+        return values.serverOnAir;
       },
       setServerOnAir: function(bool) {
-        serverOnAir = bool;
-        return localStorage._server_onAir = serverOnAir;
+        return setValue('serverOnAir', bool);
       },
       isModelAreaDisabled: function() {
-        return modelAreaDisabled;
+        return values.modelAreaDisabled;
       },
       setModelAreaDisabled: function(bool) {
-        modelAreaDisabled = bool;
-        return localStorage._server_modelAreaDisabled = modelAreaDisabled;
+        return setValue('modelAreaDisabled', bool);
       },
       getSE: function() {
-        return se;
+        return values.se;
       },
       setSE: function(txtmod) {
-        se = txtmod;
-        return localStorage._server_modelAreaValue = se;
+        return setValue('se', txtmod);
       },
       getLastSE: function() {
-        return lastSE;
+        return values.lastSE;
       },
       setLastSE: function(txtmod) {
-        lastSE = txtmod;
-        return localStorage._server_txtmod = lastSE;
+        return setValue('lastSE', txtmod);
       },
       getLF: function() {
-        return lf;
+        return values.lf;
       },
       setLF: function(lfmod) {
-        lf = lfmod;
-        return localStorage._server_lfmod = JSON.stringify(lf);
+        return setValue('lf', lfmod);
       },
       getPrepLF: function() {
-        return prepLF;
+        return values.prepLF;
       },
       setPrepLF: function(prepmod) {
-        prepLF = prepmod;
-        return localStorage._server_prepmod = JSON.stringify(prepLF);
+        return setValue('prepLF', prepmod);
       },
       getSQL: function() {
-        return sql;
+        return values.sql;
       },
       setSQL: function(sqlmod) {
-        sql = sqlmod;
-        return localStorage._server_sqlmod = JSON.stringify(sql);
+        return setValue('sql', sqlmod);
       },
       getTrans: function() {
-        return trans;
+        return values.trans;
       },
       setTrans: function(trnmod) {
-        trans = trnmod;
-        return localStorage._server_trnmod = JSON.stringify(trans);
+        return setValue('trans', trnmod);
       }
     };
   })();
-  db = openDatabase("mydb", "1.0", "my first database", 2 * 1024 * 1024);
   window.remoteServerRequest = function(method, uri, headers, body, successCallback, failureCallback, caller) {
     var ftree, o, rootbranch, tree;
     ftree = [];
