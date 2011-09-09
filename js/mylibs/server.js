@@ -1,12 +1,44 @@
 (function() {
-  var dataGET, dataplusDELETE, dataplusGET, dataplusPOST, dataplusPUT, db, endLock, executePOST, executeSasync, executeTasync, getFTree, getID, hasCR, isExecute, op, rootDELETE, serverModelCache, updateRules, validateDB;
+  var dataGET, dataplusDELETE, dataplusGET, dataplusPOST, dataplusPUT, db, endLock, executePOST, executeSasync, executeTasync, getFTree, getID, hasCR, isExecute, op, remoteServerRequest, rootDELETE, serverModelCache, updateRules, validateDB;
   var __hasProp = Object.prototype.hasOwnProperty;
   op = {
     eq: "=",
     ne: "!=",
     lk: "~"
   };
-  db = openDatabase("mydb", "1.0", "my first database", 2 * 1024 * 1024);
+  if ((typeof process !== "undefined" && process !== null)) {
+    db = (function() {
+      var realDB, result, sqlite3, tx;
+      sqlite3 = require('sqlite3').verbose();
+      realDB = new sqlite3.Database('/tmp/mydb.db');
+      result = function(rows) {
+        return {
+          rows: {
+            length: (rows != null ? rows.length : void 0) || 0,
+            item: function(i) {
+              return rows[i];
+            }
+          }
+        };
+      };
+      tx = {
+        executeSql: function(sql, bindings, callback) {
+          return realDB.all(sql, bindings, function(err, rows) {
+            return callback(tx, result(rows));
+          });
+        }
+      };
+      return {
+        transaction: function(callback) {
+          return realDB.serialize(function() {
+            return callback(tx);
+          });
+        }
+      };
+    })();
+  } else {
+    db = openDatabase("mydb", "1.0", "my first database", 2 * 1024 * 1024);
+  }
   serverModelCache = (function() {
     var setValue, values;
     values = {
@@ -93,7 +125,7 @@
       }
     };
   })();
-  window.remoteServerRequest = function(method, uri, headers, body, successCallback, failureCallback, caller) {
+  remoteServerRequest = function(method, uri, headers, body, successCallback, failureCallback, caller) {
     var o, rootbranch, tree;
     tree = ServerURIParser.matchAll(uri, "uri");
     if ((headers != null) && headers["Content-Type"] === "application/xml") {
@@ -783,4 +815,10 @@
     }
     return false;
   };
+  if (typeof exports !== "undefined" && exports !== null) {
+    exports.remoteServerRequest = remoteServerRequest;
+  }
+  if (typeof window !== "undefined" && window !== null) {
+    window.remoteServerRequest = remoteServerRequest;
+  }
 }).call(this);

@@ -5,7 +5,29 @@ op =
 	lk: "~"
 
 #TODO: the db name needs to be changed
-db = openDatabase("mydb", "1.0", "my first database", 2 * 1024 * 1024)
+if(process?)
+	db = do () ->
+		sqlite3 = require('sqlite3').verbose();
+		realDB = new sqlite3.Database('/tmp/mydb.db');
+		result = (rows) ->
+			return {
+				rows: {
+					length: rows?.length or 0
+					item: (i) -> rows[i]
+				}
+			}
+		tx = {
+			executeSql: (sql, bindings, callback) ->
+				realDB.all sql, bindings, (err, rows) ->
+					callback tx, result(rows)
+		}
+		return {
+			transaction: (callback) ->
+				realDB.serialize () ->
+					callback tx;
+		}
+else
+	db = openDatabase("mydb", "1.0", "my first database", 2 * 1024 * 1024)
 
 serverModelCache = do () ->
 	#This is needed as the switch has no value on first execution. Maybe there's a better way?
@@ -75,8 +97,7 @@ serverModelCache = do () ->
 			setValue 'trans', trnmod
 	}
 
-
-window.remoteServerRequest = (method, uri, headers, body, successCallback, failureCallback, caller) ->
+remoteServerRequest = (method, uri, headers, body, successCallback, failureCallback, caller) ->
 	tree = ServerURIParser.matchAll(uri, "uri")
 	if headers? and headers["Content-Type"] == "application/xml"
 			#TODO: in case of input: do something to make xml into a json object
@@ -601,3 +622,7 @@ isExecute = (tree) ->
 		if f[0] == "execute"
 			return true
 	return false
+
+
+exports.remoteServerRequest = remoteServerRequest if exports?
+window.remoteServerRequest = remoteServerRequest if window?
