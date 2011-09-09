@@ -359,10 +359,9 @@
           var sql;
           sql = 'SELECT * FROM "lock-belongs_to-transaction" WHERE "transaction_id"=' + id + ";";
           return tx.executeSql(sql, [], function(tx, locks) {
-            var i, lock_id;
-            i = 0;
-            while (i < locks.rows.length) {
-              lock_id = locks.rows.item(0).lock_id;
+            var i, lock_id, _ref;
+            for (i = 0, _ref = locks.rows.length; 0 <= _ref ? i < _ref : i > _ref; 0 <= _ref ? i++ : i--) {
+              lock_id = locks.rows.item(i).lock_id;
               sql = 'DELETE FROM "conditional_representation" WHERE "lock_id"=' + lock_id + ";";
               console.log(sql);
               tx.executeSql(sql, [], function(tx, result) {});
@@ -381,7 +380,6 @@
               sql = 'DELETE FROM "lock" WHERE "id"=' + lock_id + ";";
               console.log(sql);
               tx.executeSql(sql, [], function(tx, result) {});
-              i++;
             }
             sql = 'DELETE FROM "transaction" WHERE "id"=' + id + ";";
             console.log(sql);
@@ -560,18 +558,20 @@
       }
       if (sql !== "") {
         return tx.executeSql(sql + ";", [], function(tx, result) {
-          var ents, i, reslt;
-          reslt = {};
-          ents = [];
-          i = 0;
-          while (i < result.rows.length) {
-            ents.push(result.rows.item(i));
-            i++;
-          }
-          reslt["instances"] = ents;
+          var data, i;
+          data = {
+            instances: (function() {
+              var _ref4, _results;
+              _results = [];
+              for (i = 0, _ref4 = result.rows.length; 0 <= _ref4 ? i < _ref4 : i > _ref4; 0 <= _ref4 ? i++ : i--) {
+                _results.push(result.rows.item(i));
+              }
+              return _results;
+            })()
+          };
           return successCallback({
             "status-line": "HTTP/1.1 200 OK"
-          }, JSON.stringify(reslt), caller);
+          }, JSON.stringify(data), caller);
         });
       }
     });
@@ -583,7 +583,7 @@
     tx.executeSql(sql, [], function(tx, crs) {
       sql = 'SELECT * FROM "resource-is_under-lock" WHERE "lock_id"=' + crs.rows.item(0).lock_id + ';';
       return tx.executeSql(sql, [], function(tx, locked) {
-        var j;
+        var item, j, _ref;
         if (crs.rows.item(0).field_name === "__DELETE") {
           sql = 'DELETE FROM "' + locked.rows.item(0).resource_type;
           sql += '" WHERE "id"=' + locked.rows.item(0).resource_id;
@@ -602,18 +602,17 @@
           });
         } else {
           sql = "UPDATE \"" + locked.rows.item(0).resource_type + "\" SET ";
-          j = 0;
-          while (j < crs.rows.length) {
-            sql += '"' + crs.rows.item(j).field_name + '"=';
-            if (crs.rows.item(j).field_type === "string") {
-              sql += '"' + crs.rows.item(j).field_value + '"';
+          for (j = 0, _ref = crs.rows.length; 0 <= _ref ? j < _ref : j > _ref; 0 <= _ref ? j++ : j--) {
+            item = crs.rows.item(j);
+            sql += '"' + item.field_name + '"=';
+            if (item.field_type === "string") {
+              sql += '"' + item.field_value + '"';
             } else {
-              sql += crs.rows.item(j).field_value;
+              sql += item.field_value;
             }
             if (j < crs.rows.length - 1) {
               sql += ", ";
             }
-            j++;
           }
           sql += ' WHERE "id"=' + locked.rows.item(0).resource_id + ';';
           tx.executeSql(sql, [], function(tx, result) {

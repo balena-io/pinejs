@@ -265,9 +265,8 @@ dataplusPOST = (tree, headers, body, successCallback, failureCallback, caller) -
 				sql = 'SELECT * FROM "lock-belongs_to-transaction" WHERE "transaction_id"=' + id + ";"
 				tx.executeSql sql, [], (tx, locks) ->
 					#for each lock, do cleanup
-					i = 0
-					while i < locks.rows.length
-						lock_id = locks.rows.item(0).lock_id
+					for i in [0...locks.rows.length]
+						lock_id = locks.rows.item(i).lock_id
 						sql = 'DELETE FROM "conditional_representation" WHERE "lock_id"=' + lock_id + ";"
 						console.log sql
 						tx.executeSql sql, [], (tx, result) ->
@@ -291,7 +290,6 @@ dataplusPOST = (tree, headers, body, successCallback, failureCallback, caller) -
 						sql = 'DELETE FROM "lock" WHERE "id"=' + lock_id + ";"
 						console.log sql
 						tx.executeSql sql, [], (tx, result) ->
-						i++
 					sql = 'DELETE FROM "transaction" WHERE "id"=' + id + ";"
 					console.log sql
 					tx.executeSql sql, [], (tx, result) ->
@@ -424,17 +422,9 @@ dataplusGET = (tree, headers, body, successCallback, failureCallback, caller) ->
 			sql += filts.join(" AND ")
 		if sql != ""
 			tx.executeSql sql + ";", [], (tx, result) ->
-				reslt = {}
-				ents = []
-				i = 0
-				
-				while i < result.rows.length
-					ents.push result.rows.item(i)
-					i++
-				reslt["instances"] = ents
+				data = instances: result.rows.item(i) for i in [0...result.rows.length]
 				successCallback "status-line": "HTTP/1.1 200 OK",
-					JSON.stringify(reslt), caller
-
+					JSON.stringify(data), caller
 
 
 endLock = (tx, locks, i, trans_id, caller, successCallback, failureCallback) ->
@@ -463,16 +453,15 @@ endLock = (tx, locks, i, trans_id, caller, successCallback, failureCallback) ->
 			else
 				#commit conditional_representation
 				sql = "UPDATE \"" + locked.rows.item(0).resource_type + "\" SET "
-				j = 0
 				
-				while j < crs.rows.length
-					sql += '"' + crs.rows.item(j).field_name + '"='
-					if crs.rows.item(j).field_type == "string"
-						sql += '"' + crs.rows.item(j).field_value + '"'
+				for j in [0...crs.rows.length]
+					item = crs.rows.item(j);
+					sql += '"' + item.field_name + '"='
+					if item.field_type == "string"
+						sql += '"' + item.field_value + '"'
 					else
-						sql += crs.rows.item(j).field_value
-					sql += ", "  if j < crs.rows.length - 1
-					j++
+						sql += item.field_value
+					sql += ", " if j < crs.rows.length - 1
 				sql += ' WHERE "id"=' + locked.rows.item(0).resource_id + ';'
 				tx.executeSql sql, [], (tx, result) ->
 					if i < locks.rows.length - 1
