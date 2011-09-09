@@ -415,7 +415,6 @@
     var lfmod, prepmod, se, sqlmod, trnmod;
     se = serverModelCache.getSE();
     lfmod = SBVRParser.matchAll(se, "expr");
-    console.log(lfmod);
     prepmod = SBVR_PreProc.match(lfmod, "optimizeTree");
     sqlmod = SBVR2SQL.match(prepmod, "trans");
     tree = SBVRParser.matchAll(modelT, "expr");

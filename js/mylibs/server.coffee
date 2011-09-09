@@ -313,7 +313,6 @@ dataplusPOST = (tree, headers, body, successCallback, failureCallback, caller) -
 executePOST = (tree, headers, body, successCallback, failureCallback, caller) ->
 	se = serverModelCache.getSE()
 	lfmod = SBVRParser.matchAll(se, "expr")
-	console.log lfmod
 	prepmod = SBVR_PreProc.match(lfmod, "optimizeTree")
 	sqlmod = SBVR2SQL.match(prepmod, "trans")
 	tree = SBVRParser.matchAll(modelT, "expr")
