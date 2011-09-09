@@ -448,28 +448,24 @@
   rootDELETE = function(tree, headers, body, successCallback, failureCallback, caller) {
     db.transaction((function(sqlmod) {
       return function(tx) {
-        var i, _results;
-        i = 1;
+        var row, _i, _len, _ref, _ref2, _results;
+        _ref = sqlmod.slice(1);
         _results = [];
-        while (i < sqlmod.length) {
-          if (sqlmod[i][0] === "fcTp" || sqlmod[i][0] === "term") {
-            tx.executeSql(sqlmod[i][5]);
-          }
-          _results.push(i++);
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          row = _ref[_i];
+          _results.push((_ref2 = row[0]) === "fcTp" || _ref2 === "term" ? tx.executeSql(row[5]) : void 0);
         }
         return _results;
       };
     })(serverModelCache.getSQL()));
     db.transaction((function(trnmod) {
       return function(tx) {
-        var i, _results;
-        i = 1;
+        var row, _i, _len, _ref, _ref2, _results;
+        _ref = trnmod.slice(1);
         _results = [];
-        while (i < trnmod.length) {
-          if (trnmod[i][0] === "fcTp" || trnmod[i][0] === "term") {
-            tx.executeSql(trnmod[i][5]);
-          }
-          _results.push(i++);
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          row = _ref[_i];
+          _results.push((_ref2 = row[0]) === "fcTp" || _ref2 === "term" ? tx.executeSql(row[5]) : void 0);
         }
         return _results;
       };
@@ -487,33 +483,27 @@
     }, "");
   };
   dataGET = function(tree, headers, body, successCallback, failureCallback, caller) {
-    var ents, i, result, sqlmod;
-    result = {};
-    ents = [];
+    var result, row, sqlmod, _i, _len, _ref;
+    result = {
+      terms: [],
+      fcTps: []
+    };
     sqlmod = serverModelCache.getSQL();
-    i = 1;
-    while (i < sqlmod.length) {
-      if (sqlmod[i][0] === "term") {
-        ents.push({
-          id: sqlmod[i][1],
-          name: sqlmod[i][2]
+    _ref = sqlmod.slice(1);
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      row = _ref[_i];
+      if (row[0] === "term") {
+        result.terms.push({
+          id: row[1],
+          name: row[2]
+        });
+      } else if (row[0] === "fcTp") {
+        result.fcTps.push({
+          id: row[1],
+          name: row[2]
         });
       }
-      i++;
     }
-    result.terms = ents;
-    ents = [];
-    i = 1;
-    while (i < sqlmod.length) {
-      if (sqlmod[i][0] === "fcTp") {
-        ents.push({
-          id: sqlmod[i][1],
-          name: sqlmod[i][2]
-        });
-      }
-      i++;
-    }
-    result.fcTps = ents;
     return successCallback({
       "status-line": "HTTP/1.1 200 OK"
     }, JSON.stringify(result), caller);
@@ -522,7 +512,7 @@
     var ftree;
     ftree = getFTree(tree);
     return db.transaction(function(tx) {
-      var filts, fl, ft, i, j, jn, obj, sql, tb;
+      var filts, fl, ft, jn, obj, row, row2, sql, tb, _i, _j, _k, _len, _len2, _len3, _ref, _ref2, _ref3;
       sql = "";
       if (tree[1][0] === "term") {
         sql = "SELECT " + "*" + " FROM " + tree[1][1];
@@ -534,13 +524,13 @@
         fl = ["'" + ft + "'.id AS id"];
         jn = [];
         tb = ["'" + ft + "'"];
-        i = 1;
-        while (i < tree[1][2].length) {
-          fl.push("'" + tree[1][2][i] + "'" + ".'id' AS '" + tree[1][2][i] + "_id'");
-          fl.push("'" + tree[1][2][i] + "'" + ".'name' AS '" + tree[1][2][i] + "_name'");
-          tb.push("'" + tree[1][2][i] + "'");
-          jn.push("'" + tree[1][2][i] + "'" + ".'id' = " + "'" + ft + "'" + "." + "'" + tree[1][2][i] + "_id" + "'");
-          i++;
+        _ref = tree[1][2].slice(1);
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          row = _ref[_i];
+          fl.push("'" + row + "'" + ".'id' AS '" + row + "_id'");
+          fl.push("'" + row + "'" + ".'name' AS '" + row + "_name'");
+          tb.push("'" + row + "'");
+          jn.push("'" + row + "'" + ".'id' = " + "'" + ft + "'" + "." + "'" + row + "_id" + "'");
         }
         sql = "SELECT " + fl.join(", ") + " FROM " + tb.join(", ") + " WHERE " + jn.join(" AND ");
         if (ftree.length !== 1) {
@@ -549,28 +539,28 @@
       }
       if (ftree.length !== 1) {
         filts = [];
-        i = 1;
-        while (i < ftree.length) {
-          if (ftree[i][0] === "filt") {
-            j = 1;
-            while (j < ftree[i].length) {
+        _ref2 = ftree.slice(1);
+        for (_j = 0, _len2 = _ref2.length; _j < _len2; _j++) {
+          row = _ref2[_j];
+          if (row[0] === "filt") {
+            _ref3 = row.slice(1);
+            for (_k = 0, _len3 = _ref3.length; _k < _len3; _k++) {
+              row2 = _ref3[_k];
               obj = "";
-              if (ftree[i][j][1][0] !== void 0) {
-                obj = "'" + ftree[i][j][1] + "'" + ".";
+              if (row2[1][0] != null) {
+                obj = "'" + row2[1] + "'" + ".";
               }
-              filts.push(obj + "'" + ftree[i][j][2] + "'" + op[ftree[i][j][0]] + ftree[i][j][3]);
-              j++;
+              filts.push(obj + "'" + row2[2] + "'" + op[row2[0]] + row2[3]);
             }
-          } else if (ftree[i][0] === "sort") {
+          } else if (row[0] === "sort") {
             null;
           }
-          i++;
         }
         sql += filts.join(" AND ");
       }
       if (sql !== "") {
         return tx.executeSql(sql + ";", [], function(tx, result) {
-          var ents, reslt;
+          var ents, i, reslt;
           reslt = {};
           ents = [];
           i = 0;
@@ -670,7 +660,7 @@
     });
   };
   validateDB = function(tx, sqlmod, caller, successCallback, failureCallback, headers, result) {
-    var errors, h, k, l, m, par, query, tex, tot;
+    var errors, k, l, m, par, query, row, tex, tot, _i, _len;
     k = 0;
     m = 0;
     l = [];
@@ -678,12 +668,12 @@
     par = 1;
     tot = 0;
     tex = 0;
-    h = 0;
-    while (h < sqlmod.length) {
-      if (sqlmod[h][0] === "rule") {
-        query = sqlmod[h][4];
+    for (_i = 0, _len = sqlmod.length; _i < _len; _i++) {
+      row = sqlmod[_i];
+      if (row[0] === "rule") {
+        query = row[4];
         tot++;
-        l[tot] = sqlmod[h][2];
+        l[tot] = row[2];
         tx.executeSql(query, [], function(tx, result) {
           tex++;
           if (result.rows.item(0).result === 0) {
@@ -700,23 +690,21 @@
           }
         });
       }
-      h++;
     }
     if (tot === 0) {
       return successCallback(tx, sqlmod, caller, failureCallback, headers, result);
     }
   };
   executeSasync = function(tx, sqlmod, caller, successCallback, failureCallback, headers, result) {
-    var i, k, l, m;
+    var k, l, m, row, _i, _len, _ref;
     k = 0;
     m = 0;
     l = [];
-    i = 0;
-    while (i < sqlmod.length) {
-      if (sqlmod[i][0] === "fcTp" || sqlmod[i][0] === "term") {
-        tx.executeSql(sqlmod[i][4]);
+    for (_i = 0, _len = sqlmod.length; _i < _len; _i++) {
+      row = sqlmod[_i];
+      if ((_ref = row[0]) === "fcTp" || _ref === "term") {
+        tx.executeSql(row[4]);
       }
-      i++;
     }
     return validateDB(tx, sqlmod, caller, successCallback, failureCallback, headers, "");
   };
@@ -734,27 +722,21 @@
     }), headers, result);
   };
   updateRules = function(sqlmod) {
-    var i, query, _results;
-    i = 0;
-    while (i < sqlmod.length) {
-      if (sqlmod[i][0] === "fcTp" || sqlmod[i][0] === "term") {
-        tx.executeSql(sqlmod[i][4]);
+    var query, row, _i, _j, _len, _len2, _ref, _results;
+    for (_i = 0, _len = sqlmod.length; _i < _len; _i++) {
+      row = sqlmod[_i];
+      if ((_ref = row[0]) === "fcTp" || _ref === "term") {
+        tx.executeSql(row[4]);
       }
-      i++;
     }
-    i = 0;
     _results = [];
-    while (i < sqlmod.length) {
-      if (sqlmod[i][0] === "rule") {
-        query = sqlmod[i][4];
-        l[++m] = sqlmod[i][2];
-        tx.executeSql(query, [], (function(tx, result) {
-          if (result.rows.item(0)["result"] === 0) {
-            return alert("Error: " + l[++k]);
-          }
-        }), null);
-      }
-      _results.push(i++);
+    for (_j = 0, _len2 = sqlmod.length; _j < _len2; _j++) {
+      row = sqlmod[_j];
+      _results.push(row[0] === "rule" ? (query = row[4], l[++m] = row[2], tx.executeSql(query, [], (function(tx, result) {
+        if (result.rows.item(0)["result"] === 0) {
+          return alert("Error: " + l[++k]);
+        }
+      }), null)) : void 0);
     }
     return _results;
   };

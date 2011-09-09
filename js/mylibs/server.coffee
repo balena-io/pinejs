@@ -346,19 +346,13 @@ rootDELETE = (tree, headers, body, successCallback, failureCallback, caller) ->
 	#TODO: This should be reorganised to be properly async.
 	db.transaction ((sqlmod) ->
 		(tx) ->
-			i = 1
-			
-			while i < sqlmod.length
-				tx.executeSql sqlmod[i][5]  if sqlmod[i][0] == "fcTp" or sqlmod[i][0] == "term"
-				i++
+			for row in sqlmod[1..]
+				tx.executeSql row[5] if row[0] in ["fcTp", "term"]
 	)(serverModelCache.getSQL())
 	db.transaction ((trnmod) ->
 		(tx) ->
-			i = 1
-			
-			while i < trnmod.length
-				tx.executeSql trnmod[i][5]  if trnmod[i][0] == "fcTp" or trnmod[i][0] == "term"
-				i++
+			for row in trnmod[1..]
+				tx.executeSql row[5] if row[0] in ["fcTp", "term"]
 	)(serverModelCache.getTrans())
 	#TODO: these two do not belong here
 	serverModelCache.setSE ""
@@ -375,28 +369,21 @@ rootDELETE = (tree, headers, body, successCallback, failureCallback, caller) ->
 
 
 dataGET = (tree, headers, body, successCallback, failureCallback, caller) ->
-	result = {}
-	ents = []
+	result = 
+		terms: []
+		fcTps: []
 	sqlmod = serverModelCache.getSQL()
-	i = 1
 	
-	while i < sqlmod.length
-		if sqlmod[i][0] == "term"
-			ents.push 
-				id: sqlmod[i][1]
-				name: sqlmod[i][2]
-		i++
-	result.terms = ents
-	ents = []
-	i = 1
+	for row in sqlmod[1..]
+		if row[0] == "term"
+			result.terms.push 
+				id: row[1]
+				name: row[2]
+		else if row[0] == "fcTp"
+			result.fcTps.push 
+				id: row[1]
+				name: row[2]
 	
-	while i < sqlmod.length
-		if sqlmod[i][0] == "fcTp"
-			ents.push 
-				id: sqlmod[i][1]
-				name: sqlmod[i][2]
-		i++
-	result.fcTps = ents
 	successCallback "status-line": "HTTP/1.1 200 OK",
 		JSON.stringify(result), caller
 
@@ -413,33 +400,27 @@ dataplusGET = (tree, headers, body, successCallback, failureCallback, caller) ->
 			fl = [ "'" + ft + "'.id AS id" ]
 			jn = []
 			tb = [ "'" + ft + "'" ]
-			i = 1
 			
-			while i < tree[1][2].length
-				fl.push "'" + tree[1][2][i] + "'" + ".'id' AS '" + tree[1][2][i] + "_id'"
-				fl.push "'" + tree[1][2][i] + "'" + ".'name' AS '" + tree[1][2][i] + "_name'"
-				tb.push "'" + tree[1][2][i] + "'"
-				jn.push "'" + tree[1][2][i] + "'" + ".'id' = " + "'" + ft + "'" + "." + "'" + tree[1][2][i] + "_id" + "'"
-				i++
+			for row in tree[1][2][1..]
+				fl.push "'" + row + "'" + ".'id' AS '" + row + "_id'"
+				fl.push "'" + row + "'" + ".'name' AS '" + row + "_name'"
+				tb.push "'" + row + "'"
+				jn.push "'" + row + "'" + ".'id' = " + "'" + ft + "'" + "." + "'" + row + "_id" + "'"
+			
 			sql = "SELECT " + fl.join(", ") + " FROM " + tb.join(", ") + " WHERE " + jn.join(" AND ")
 			sql += " AND "  unless ftree.length == 1
 		if ftree.length != 1
 			filts = []
-			i = 1
 			
-			while i < ftree.length
-				if ftree[i][0] == "filt"
-					j = 1
-					
-					while j < ftree[i].length
+			for row in ftree[1..]
+				if row[0] == "filt"
+					for row2 in row[1..]
 						obj = ""
-						obj = "'" + ftree[i][j][1] + "'" + "."  unless ftree[i][j][1][0] == undefined
-						filts.push obj + "'" + ftree[i][j][2] + "'" + op[ftree[i][j][0]] + ftree[i][j][3]
-						j++
-				else if ftree[i][0] == "sort"
+						obj = "'" + row2[1] + "'" + "." if row2[1][0]?
+						filts.push obj + "'" + row2[2] + "'" + op[row2[0]] + row2[3]
+				else if row[0] == "sort"
 					#process sort
 					null
-				i++
 			sql += filts.join(" AND ")
 		if sql != ""
 			tx.executeSql sql + ";", [], (tx, result) ->
@@ -537,13 +518,12 @@ validateDB = (tx, sqlmod, caller, successCallback, failureCallback, headers, res
 	par = 1
 	tot = 0
 	tex = 0
-	h = 0
 	
-	while h < sqlmod.length
-		if sqlmod[h][0] == "rule"
-			query = sqlmod[h][4]
+	for row in sqlmod
+		if row[0] == "rule"
+			query = row[4]
 			tot++
-			l[tot] = sqlmod[h][2]
+			l[tot] = row[2]
 			tx.executeSql query, [], (tx, result) ->
 				tex++
 				errors.push l[tex]  if result.rows.item(0).result == 0
@@ -555,7 +535,6 @@ validateDB = (tx, sqlmod, caller, successCallback, failureCallback, headers, res
 						tx.executeSql "DROP TABLE '__Fo0oFoo'"
 					else
 						successCallback tx, sqlmod, caller, failureCallback, headers, result
-		h++
 	successCallback tx, sqlmod, caller, failureCallback, headers, result  if tot == 0
 
 
@@ -563,12 +542,10 @@ executeSasync = (tx, sqlmod, caller, successCallback, failureCallback, headers, 
 	k = 0
 	m = 0
 	l = []
-	i = 0
 	
 	#Create tables related to terms and fact types
-	while i < sqlmod.length
-		tx.executeSql sqlmod[i][4]  if sqlmod[i][0] == "fcTp" or sqlmod[i][0] == "term"
-		i++
+	for row in sqlmod
+		tx.executeSql row[4] if row[0] in ["fcTp", "term"]
 		
 	#Validate the [empty] model according to the rules. 
 	#This may eventually lead to entering obligatory data.
@@ -597,24 +574,19 @@ updateRules = (sqlmod) ->
 	#Create tables related to terms and fact types
 	#if not exists clause makes sure table is not double-created,
 	#tho this should be dealt with more elegantly.
-	i = 0
-	
-	while i < sqlmod.length
-		tx.executeSql sqlmod[i][4]  if sqlmod[i][0] == "fcTp" or sqlmod[i][0] == "term"
-		i++
-	i = 0
+	for row in sqlmod
+		tx.executeSql row[4] if row[0] in ["fcTp", "term"]
 	
 	#Validate the [empty] model according to the rules. 
 	#This may eventually lead to entering obligatory data.
 	#For the moment it blocks such models from execution.
-	while i < sqlmod.length
-		if sqlmod[i][0] == "rule"
-			query = sqlmod[i][4]
-			l[++m] = sqlmod[i][2]
+	for row in sqlmod
+		if row[0] == "rule"
+			query = row[4]
+			l[++m] = row[2]
 			tx.executeSql query, [], ((tx, result) ->
 				alert "Error: " + l[++k]  if result.rows.item(0)["result"] == 0
 			), null
-		i++
 		
 getFTree = (tree) ->
 	if tree[1][0] == "term"
