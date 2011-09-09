@@ -77,7 +77,6 @@ serverModelCache = do () ->
 
 
 window.remoteServerRequest = (method, uri, headers, body, successCallback, failureCallback, caller) ->
-	ftree = []
 	tree = ServerURIParser.matchAll(uri, "uri")
 	if headers? and headers["Content-Type"] == "application/xml"
 			#TODO: in case of input: do something to make xml into a json object
@@ -229,7 +228,6 @@ dataplusPUT = (tree, headers, body, successCallback, failureCallback, caller) ->
 					ps[item][2] + "','" + ps[item][3] + "')"
 				tx.executeSql sql, [], (tx, result) ->
 	else
-		errs = []
 		db.transaction ((tx) ->
 			sql = "SELECT NOT EXISTS(SELECT * FROM 'resource-is_under-lock' AS r WHERE r.'resource_type'=='" + tree[1][1] + "' AND r.'resource_id'==" + id + ") AS result;"
 			tx.executeSql sql, [], (tx, result) ->
@@ -500,8 +498,6 @@ endLock = (tx, locks, i, trans_id, caller, successCallback, failureCallback) ->
 
 
 validateDB = (tx, sqlmod, caller, successCallback, failureCallback, headers, result) ->
-	k = 0
-	m = 0
 	l = []
 	errors = []
 	par = 1
@@ -528,10 +524,6 @@ validateDB = (tx, sqlmod, caller, successCallback, failureCallback, headers, res
 
 
 executeSasync = (tx, sqlmod, caller, successCallback, failureCallback, headers, result) ->
-	k = 0
-	m = 0
-	l = []
-	
 	#Create tables related to terms and fact types
 	for row in sqlmod
 		tx.executeSql row[4] if row[0] in ["fcTp", "term"]

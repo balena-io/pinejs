@@ -94,8 +94,7 @@
     };
   })();
   window.remoteServerRequest = function(method, uri, headers, body, successCallback, failureCallback, caller) {
-    var ftree, o, rootbranch, tree;
-    ftree = [];
+    var o, rootbranch, tree;
     tree = ServerURIParser.matchAll(uri, "uri");
     if ((headers != null) && headers["Content-Type"] === "application/xml") {
       null;
@@ -284,7 +283,7 @@
     }
   };
   dataplusPUT = function(tree, headers, body, successCallback, failureCallback, caller) {
-    var bd, errs, id, k, pair, ps, _ref;
+    var bd, id, k, pair, ps, _ref;
     id = getID(tree);
     if (tree[1][1] === "lock" && hasCR(tree)) {
       bd = JSON.parse(body);
@@ -310,7 +309,6 @@
         return _results;
       });
     } else {
-      errs = [];
       return db.transaction((function(tx) {
         var sql;
         sql = "SELECT NOT EXISTS(SELECT * FROM 'resource-is_under-lock' AS r WHERE r.'resource_type'=='" + tree[1][1] + "' AND r.'resource_id'==" + id + ") AS result;";
@@ -659,9 +657,7 @@
     });
   };
   validateDB = function(tx, sqlmod, caller, successCallback, failureCallback, headers, result) {
-    var errors, k, l, m, par, query, row, tex, tot, _i, _len;
-    k = 0;
-    m = 0;
+    var errors, l, par, query, row, tex, tot, _i, _len;
     l = [];
     errors = [];
     par = 1;
@@ -695,10 +691,7 @@
     }
   };
   executeSasync = function(tx, sqlmod, caller, successCallback, failureCallback, headers, result) {
-    var k, l, m, row, _i, _len, _ref;
-    k = 0;
-    m = 0;
-    l = [];
+    var row, _i, _len, _ref;
     for (_i = 0, _len = sqlmod.length; _i < _len; _i++) {
       row = sqlmod[_i];
       if ((_ref = row[0]) === "fcTp" || _ref === "term") {
