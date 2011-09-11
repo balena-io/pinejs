@@ -1,4 +1,3 @@
-
 op = 
 	eq: "="
 	ne: "!="
@@ -31,9 +30,6 @@ else
 
 serverModelCache = do () ->
 	#This is needed as the switch has no value on first execution. Maybe there's a better way?
-	#be warned: localStorage stores all values as strings. 
-	#Hence, booleans have to be tested against their string versions.
-	#TODO: replace this with db entry. will also solve above issue.
 	values = {
 		serverOnAir: false
 		modelAreaDisabled: false
