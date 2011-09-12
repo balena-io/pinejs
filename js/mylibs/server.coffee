@@ -520,22 +520,21 @@ validateDB = (tx, sqlmod, caller, successCallback, failureCallback, headers, res
 	tot = 0
 	tex = 0
 	
-	for row in sqlmod
-		if row[0] == "rule"
-			query = row[4]
-			tot++
-			l[tot] = row[2]
-			tx.executeSql query, [], (tx, result) ->
-				tex++
-				errors.push l[tex]  if result.rows.item(0).result == 0
-				par *= result.rows.item(0).result
-				if tot == tex
-					if par == 0
-						failureCallback errors
-						#bogus sql to raise exception
-						tx.executeSql "DROP TABLE '__Fo0oFoo'"
-					else
-						successCallback tx, sqlmod, caller, failureCallback, headers, result
+	for row in sqlmod when row[0] == "rule"
+		query = row[4]
+		tot++
+		l[tot] = row[2]
+		tx.executeSql query, [], (tx, result) ->
+			tex++
+			errors.push l[tex]  if result.rows.item(0).result == 0
+			par *= result.rows.item(0).result
+			if tot == tex
+				if par == 0
+					failureCallback errors
+					#bogus sql to raise exception
+					tx.executeSql "DROP TABLE '__Fo0oFoo'"
+				else
+					successCallback tx, sqlmod, caller, failureCallback, headers, result
 	successCallback tx, sqlmod, caller, failureCallback, headers, result  if tot == 0
 
 
@@ -577,13 +576,12 @@ updateRules = (sqlmod) ->
 	#Validate the [empty] model according to the rules. 
 	#This may eventually lead to entering obligatory data.
 	#For the moment it blocks such models from execution.
-	for row in sqlmod
-		if row[0] == "rule"
-			query = row[4]
-			l[++m] = row[2]
-			tx.executeSql query, [], ((tx, result) ->
-				alert "Error: " + l[++k]  if result.rows.item(0)["result"] == 0
-			), null
+	for row in sqlmod when row[0] == "rule"
+		query = row[4]
+		l[++m] = row[2]
+		tx.executeSql query, [], ((tx, result) ->
+			alert "Error: " + l[++k]  if result.rows.item(0)["result"] == 0
+		), null
 		
 getFTree = (tree) ->
 	if tree[1][0] == "term"
@@ -601,9 +599,9 @@ getID = (tree) ->
 	#if the id is empty, search the filters for one
 	if id is 0
 		ftree = getFTree tree
-		for f in ftree[1..]
-			if f[0] == "filt" and f[1][0] == "eq" and f[1][2] == "id"
-					return f[1][3]
+		for f in ftree[1..] when f[0] == "filt" and
+							f[1][0] == "eq" and f[1][2] == "id"
+			return f[1][3]
 	return id
 
 hasCR = (tree) ->
@@ -614,8 +612,7 @@ hasCR = (tree) ->
 	return false
 
 isExecute = (tree) ->
-	for f in getFTree tree
-		if f[0] == "execute"
+	for f in getFTree tree when f[0] == "execute"
 			return true
 	return false
 

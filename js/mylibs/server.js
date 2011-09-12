@@ -755,11 +755,15 @@
     _results = [];
     for (_j = 0, _len2 = sqlmod.length; _j < _len2; _j++) {
       row = sqlmod[_j];
-      _results.push(row[0] === "rule" ? (query = row[4], l[++m] = row[2], tx.executeSql(query, [], (function(tx, result) {
-        if (result.rows.item(0)["result"] === 0) {
-          return alert("Error: " + l[++k]);
-        }
-      }), null)) : void 0);
+      if (row[0] === "rule") {
+        query = row[4];
+        l[++m] = row[2];
+        _results.push(tx.executeSql(query, [], (function(tx, result) {
+          if (result.rows.item(0)["result"] === 0) {
+            return alert("Error: " + l[++k]);
+          }
+        }), null));
+      }
     }
     return _results;
   };
