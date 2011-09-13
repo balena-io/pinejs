@@ -80,13 +80,7 @@ function runTrans(){
 				});
 			}, null, parent);
 		},
-		function(statusCode, error){
-			exc = "<span class='ui-icon ui-icon-alert' style='float:left; margin:0 7px 50px 0;'></span>";
-		    msg = error.join('\n');
-    	    $( '#dialog-message' ).html( exc + msg );
-	        $( '#dialog-message' ).dialog( "open" );
-			//console.log("fale!", error);
-		}, this)
+		defaultFailureCallback, this)
 	}
 
 	this.callback = function(op, cr_uri, o){
@@ -99,13 +93,7 @@ function runTrans(){
 						serverRequest("DELETE", this.parent.data[i][1], [], '', function(statusCode, result, parent, headers){
 							//after delete...
 						}, 
-						function(statusCode, error){
-							exc = '<span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 50px 0;"></span>';
-							msg = error.join('\n');
-							$( "#dialog-message" ).html( exc + msg );
-							$( "#dialog-message" ).dialog( "open" );
-							//console.log("fale!", error);
-						}, this)
+						defaultFailureCallback, this)
 						break;
 					case 'edit':
 						serverRequest("PUT", this.parent.data[i][1], [], JSON.stringify(this.parent.data[i][2]), 
@@ -113,13 +101,7 @@ function runTrans(){
 							//after edit...
 							//console.log("succ!", result);
 						}, 
-						function(statusCode, error){
-							exc = '<span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 50px 0;"></span>';
-							msg = error.join('\n');
-							$( "#dialog-message" ).html( exc + msg );
-							$( "#dialog-message" ).dialog( "open" );
-							//console.log("fale!", error);
-						}, this)
+						defaultFailureCallback, this)
 						break;
 				}
 			}
@@ -128,14 +110,7 @@ function runTrans(){
 				//console.log(headers);
 				location.hash = '#!/data/'
 			}, 
-			function(statusCode, error){
-				//console.log(error)
-				exc = '<span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 50px 0;"></span>';
-				msg = error.join('\n');
-				$( "#dialog-message" ).html( exc + msg );
-				$( "#dialog-message" ).dialog( "open" );
-				//console.log("fale!", error);
-			}, this);
+			defaultFailureCallback, this);
 		}
 	}
 }

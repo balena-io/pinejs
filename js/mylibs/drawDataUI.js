@@ -939,13 +939,7 @@ function editInst(forma,serverURI,backURI){
 		//console.log("succ!", result);
 		location.hash = '#!' + backURI;
 	}, 
-	function(statusCode, error){
-		exc = '<span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 50px 0;"></span>';
-	    msg = error.join('\n');
-	    $( "#dialog-message" ).html( exc + msg );
-	    $( "#dialog-message" ).dialog( "open" );
-		//console.log("fale!", error);
-	}, 
+	defaultFailureCallback, 
 	this)
 	return false;
 }
@@ -965,13 +959,7 @@ function addInst(forma,uri,backURI){
 	serverRequest("POST", uri, [], JSON.stringify(obj), function(statusCode, result, parent, headers){
 		location.hash = '#!' + backURI;
 	},
-	function(statusCode, error){
-		exc = '<span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 50px 0;"></span>';
-	    msg = error.join('\n');
-	    $( "#dialog-message" ).html( exc + msg );
-	    $( "#dialog-message" ).dialog( "open" );
-		//console.log("fale!", error);
-	}, this)
+	defaultFailureCallback, this)
 	return false;
 }
 
