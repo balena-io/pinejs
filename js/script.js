@@ -6,7 +6,10 @@
 var sqlEditor, sbvrEditor, lfEditor, importExportEditor;
 var cmod;
 
-function defaultFailureCallback(error) {
+function defaultFailureCallback(statusCode, error) {
+	if(error == undefined || error == null) {
+		error = statusCode;
+	}
 	console.log(error);
 	var exc = '<span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 50px 0;"></span>';
 	var msg = error['status-line']?error['status-line']:error.join('<br/>');
@@ -15,7 +18,7 @@ function defaultFailureCallback(error) {
 	//console.log("fail!", error);
 }
 
-function defaultSuccessCallback(header, result) {
+function defaultSuccessCallback(statusCode, result, caller, headers) {
 }
 
 //should probably JSON.parse result when appropriate. Now the callbacks do it.
@@ -34,7 +37,7 @@ function serverRequest(method, uri, headers, body, successCallback, failureCallb
 
 //txtmod = '';
 function loadState() {
-	serverRequest("GET", "/onAir/", [], '', function(headers, result){
+	serverRequest("GET", "/onAir/", [], '', function(statusCode, result){
 		if(result!=undefined){
 			localStorage._client_onAir = JSON.parse(result);
 		}
@@ -62,7 +65,7 @@ function transformClient(model) {
 						'',
 						function() {
 				
-							//serverRequest("GET", "/model/", [], '', function(headers, result){
+							//serverRequest("GET", "/model/", [], '', function(statusCode, result, parent, headers){
 							//	txtmod = result;
 							//});
 						
@@ -70,21 +73,21 @@ function transformClient(model) {
 								"/lfmodel/",
 								{},
 								'',
-								function(headers, result) {
+								function(statusCode, result) {
 									lfEditor.setValue(Prettify.match(JSON.parse(result),'elem'));
 
 									serverRequest("GET",
 										"/prepmodel/",
 										{},
 										'',
-										function(headers, result) {
+										function(statusCode, result) {
 											$("#prepArea").val(Prettify.match(JSON.parse(result),'elem'));
 											
 											serverRequest("GET",
 												"/sqlmodel/",
 												{},
 												'',
-												function(headers, result) {
+												function(statusCode, result) {
 													sqlEditor.setValue(Prettify.match(JSON.parse(result),'elem'));
 	
 													localStorage._client_onAir='true'
@@ -152,7 +155,7 @@ function processHash(){
 		case "server":
 			//console.log(location.hash.slice(9));
 			uri = location.hash.slice(9);
-			serverRequest("GET", uri, "", {}, function(headers, result){
+			serverRequest("GET", uri, "", {}, function(statusCode, result){
 				alert(result);
 			});
 			break;
@@ -193,7 +196,7 @@ function processHash(){
 function loadUI(){
 	//request schema from server and store locally.
 	if(localStorage._client_onAir=='true'){
-		serverRequest("GET", "/model/", [], '', function(headers, result) {
+		serverRequest("GET", "/model/", [], '', function(statusCode, result) {
 			var ctree = SBVRParser.matchAll(result, 'expr');
 			ctree = SBVR_PreProc.match(ctree, "optimizeTree");
 			cmod = SBVR2SQL.match(ctree,'trans');
@@ -214,7 +217,7 @@ function loadUI(){
 	
 	window.onhashchange = processHash;
 	serverRequest("GET", "/ui/textarea*filt:name=model_area/", [], '',
-		function(headers, result){
+		function(statusCode, result){
 			sbvrEditor.setValue(JSON.parse(result).value);
 		}
 	)
@@ -223,7 +226,7 @@ function loadUI(){
 	//between local and remote as needed (preferably with some variable setting)
 	//http://api.jquery.com/jQuery.ajax/
 	serverRequest("GET", "/ui/textarea-is_disabled*filt:textarea.name=model_area/", [], '',
-		function(headers, result){
+		function(statusCode, result){
 			$("#modelArea").attr('disabled', JSON.parse(result).value)
 		}
 	)
@@ -238,15 +241,15 @@ function loadUI(){
 	});
 	
 	if(localStorage._client_onAir=='true'){
-		serverRequest("GET", "/lfmodel/", [], '', function(headers, result){
+		serverRequest("GET", "/lfmodel/", [], '', function(statusCode, result){
 			lfEditor.setValue(Prettify.match(JSON.parse(result),'elem'));
 		});
 	
-		serverRequest("GET", "/prepmodel/", [], '', function(headers, result){
+		serverRequest("GET", "/prepmodel/", [], '', function(statusCode, result){
 			$("#prepArea").val(Prettify.match(JSON.parse(result),'elem'));
 		});
 	
-		serverRequest("GET", "/sqlmodel/", [], '', function(headers, result){
+		serverRequest("GET", "/sqlmodel/", [], '', function(statusCode, result){
 			sqlEditor.setValue(Prettify.match(JSON.parse(result),'elem'));
 		});	
 	}

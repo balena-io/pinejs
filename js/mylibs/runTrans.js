@@ -23,10 +23,10 @@ function runTrans(){
 		//fetch transaction collection location?(?) - [not needed as this is code on demand]
 		//create transaction resource
 		var obj = [{name:'trans'}]
-		serverRequest('POST', '/data/transaction', [], JSON.stringify(obj), function(headers, result, parent){
+		serverRequest('POST', '/data/transaction', [], JSON.stringify(obj), function(statusCode, result, parent, headers){
 			parent.transuri = headers.location;
 			//get 'trans'action resource to extract lcURI,tlcURI,rcURI,lrcURI,xlcURI,slcURI,ctURI
-			serverRequest("GET", parent.transuri, [], '', function(headers, trans, parent){
+			serverRequest("GET", parent.transuri, [], '', function(statusCode, trans, parent, headers){
 				parent.trans = JSON.parse(trans);
 				//find and lock relevant resources (l,t-l,r-l)
 				$(".action").each(function(index){
@@ -80,7 +80,7 @@ function runTrans(){
 				});
 			}, null, parent);
 		},
-		function(error){
+		function(statusCode, error){
 			exc = "<span class='ui-icon ui-icon-alert' style='float:left; margin:0 7px 50px 0;'></span>";
 		    msg = error.join('\n');
     	    $( '#dialog-message' ).html( exc + msg );
@@ -96,10 +96,10 @@ function runTrans(){
 			for(var i=0;i<this.parent.lockCount;i++){
 				switch(this.parent.data[i][0]){
 					case 'del':
-						serverRequest("DELETE", this.parent.data[i][1], [], '', function(headers, result, parent){
+						serverRequest("DELETE", this.parent.data[i][1], [], '', function(statusCode, result, parent, headers){
 							//after delete...
 						}, 
-						function(error){
+						function(statusCode, error){
 							exc = '<span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 50px 0;"></span>';
 							msg = error.join('\n');
 							$( "#dialog-message" ).html( exc + msg );
@@ -109,11 +109,11 @@ function runTrans(){
 						break;
 					case 'edit':
 						serverRequest("PUT", this.parent.data[i][1], [], JSON.stringify(this.parent.data[i][2]), 
-						function(headers, result, parent){
+						function(statusCode, result, parent, headers){
 							//after edit...
 							//console.log("succ!", result);
 						}, 
-						function(error){
+						function(statusCode, error){
 							exc = '<span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 50px 0;"></span>';
 							msg = error.join('\n');
 							$( "#dialog-message" ).html( exc + msg );
@@ -124,11 +124,11 @@ function runTrans(){
 				}
 			}
 			//execute transaction
-			serverRequest("POST", this.parent.trans.ctURI, [], '', function(headers, result, parent){
+			serverRequest("POST", this.parent.trans.ctURI, [], '', function(statusCode, result, parent, headers){
 				//console.log(headers);
 				location.hash = '#!/data/'
 			}, 
-			function(error){
+			function(statusCode, error){
 				//console.log(error)
 				exc = '<span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 50px 0;"></span>';
 				msg = error.join('\n');
@@ -151,25 +151,25 @@ function locker(){
 		this.failureCallback = failureCallback;
 		
 		serverRequest('POST', trans.lcURI, [], JSON.stringify([{'name':'lok'}]), 
-		function(headers, result, parent){
+		function(statusCode, result, parent, headers){
 			//get resulting lock to extract id and cr_uri
-			serverRequest("GET", headers.location, [], '', function(headers, lock, parent){
+			serverRequest("GET", headers.location, [], '', function(statusCode, lock, parent, headers){
 				parent.lock = JSON.parse(lock);
 				o = [{"transaction_id":parent.trans.id}, {"lock_id":parent.lock.instances[0].id}];
 				//add lock to transaction
 				serverRequest('POST', parent.trans.tlcURI, [], JSON.stringify(o), 
-				function(headers, result, parent){
+				function(statusCode, result, parent, headers){
 					//mark lock as exclusive
 					o = [{"lock_id":parent.lock.instances[0].id}];
 					//console.log(o);
 					serverRequest('POST', parent.trans.xlcURI, [], JSON.stringify(o), 
-					function(headers, result, parent){
+					function(statusCode, result, parent, headers){
 						//associate lock with resource
 						o = [{'resource_id':parseInt(parent.resource_id)},
 							{'resource_type':parent.resource_type},
 							{'lock_id':parent.lock.instances[0].id}];
 						serverRequest('POST', parent.trans.lrcURI, [], JSON.stringify(o), 
-						function(headers, result, parent){
+						function(statusCode, result, parent, headers){
 							//console.log(headers,result);
 							successCallback(parent.lock.instances[0].id, parent.caller);
 						}, failureCallback, parent);

@@ -93,7 +93,7 @@ function drawData(tree){
 		// + "<table id='fcTps'><tbody><tr><td>Fact Types:</td></tr></tbody></table>"
 	);
 	
-	serverRequest("GET", "/data/", [], '', function(headers, result){
+	serverRequest("GET", "/data/", [], '', function(statusCode, result, caller, headers){
 		//console.log(result);
 		var reslt = JSON.parse(result);
 		
@@ -286,7 +286,7 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 			///load collection data
 			//console.log(this.targ);
 			
-			serverRequest("GET", this.targ, [], '', function(headers, result, parent){
+			serverRequest("GET", this.targ, [], '', function(statusCode, result, parent, headers){
 				//console.log(result);
 			
 				var reslt = JSON.parse(result);
@@ -527,7 +527,7 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 						//this.filters = filtmerge(this.branch, this.filters);
 						this.targ = serverAPI(this.about, this.filters);
 						//console.log(this.targ, getTarg(this.ftree, this.loc, "del", 1));
-						serverRequest("GET", this.targ, [], '', function(headers, result, parent){
+						serverRequest("GET", this.targ, [], '', function(statusCode, result, parent, headers){
 							res = ''
 							var reslt = JSON.parse(result);
 							//console.log(result);
@@ -544,7 +544,7 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 					} else if(this.type == "fcTp"){
 						this.targ = serverAPI(this.about, this.filters);
 						//console.log(this.targ);
-						serverRequest("GET", this.targ, [], '', function(headers, result, parent){
+						serverRequest("GET", this.targ, [], '', function(statusCode, result, parent, headers){
 							res = '';
 							var reslt = JSON.parse(result);
 							res += "id: " + reslt.instances[0].id + "<br/>"
@@ -604,7 +604,7 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 						var trms = [];
 						var trmres = [];
 						var trmsel = {};
-						var addftcb = function(headers, result, parent){
+						var addftcb = function(statusCode, result, parent, headers){
 							//console.log(result);
 							
 							res = ''
@@ -698,7 +698,7 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 						//this.filters = filtmerge(this.branch, this.filters);
 						this.targ = serverAPI(this.about, this.filters);
 						//console.log(this.targ);
-						serverRequest("GET", this.targ, [], '', function(headers, result, parent){
+						serverRequest("GET", this.targ, [], '', function(statusCode, result, parent, headers){
 							//console.log(result);
 							var res = ''
 							var reslt = JSON.parse(result);
@@ -735,7 +735,7 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 						}, null, this);
 					}else if(this.type == "fcTp"){
 						this.targ = serverAPI(this.about, this.filters);
-						serverRequest("GET", targ, [], '', function(headers, result, parent){
+						serverRequest("GET", targ, [], '', function(statusCode, result, parent, headers){
 							//console.log(result);
 							
 							resu = JSON.parse(result);
@@ -744,7 +744,7 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 							var trms = [];
 							var trmres = [];
 							var trmsel = {};
-							var editftcb = function(headers, result, parent){
+							var editftcb = function(statusCode, result, parent, headers){
 								//console.log(result);
 								
 								res = ''
@@ -916,7 +916,7 @@ function processForm(forma){
 
 function delInst(forma,uri,backURI){
 	this.backURI=backURI;
-	serverRequest("DELETE", uri, [], '', function(headers, result, parent){
+	serverRequest("DELETE", uri, [], '', function(statusCode, result, parent, headers){
 		location.hash = '#!' + backURI;
 	}, 
 	undefined, this)
@@ -935,11 +935,11 @@ function editInst(forma,serverURI,backURI){
 		}
 	});
 	console.log(JSON.stringify(obj));
-	serverRequest("PUT", serverURI, [], JSON.stringify(obj), function(headers, result, parent){
+	serverRequest("PUT", serverURI, [], JSON.stringify(obj), function(statusCode, result, parent, headers){
 		//console.log("succ!", result);
 		location.hash = '#!' + backURI;
 	}, 
-	function(error){
+	function(statusCode, error){
 		exc = '<span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 50px 0;"></span>';
 	    msg = error.join('\n');
 	    $( "#dialog-message" ).html( exc + msg );
@@ -962,10 +962,10 @@ function addInst(forma,uri,backURI){
 		}
 	});
 	//console.log(JSON.stringify(obj));
-	serverRequest("POST", uri, [], JSON.stringify(obj), function(headers, result, parent){
+	serverRequest("POST", uri, [], JSON.stringify(obj), function(statusCode, result, parent, headers){
 		location.hash = '#!' + backURI;
 	},
-	function(error){
+	function(statusCode, error){
 		exc = '<span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 50px 0;"></span>';
 	    msg = error.join('\n');
 	    $( "#dialog-message" ).html( exc + msg );

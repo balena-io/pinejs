@@ -1,12 +1,12 @@
 (function() {
-  var dataGET, dataplusDELETE, dataplusGET, dataplusPOST, dataplusPUT, db, endLock, executePOST, executeSasync, executeTasync, getFTree, getID, hasCR, isExecute, op, remoteServerRequest, rootDELETE, serverModelCache, updateRules, validateDB;
+  var dataGET, dataplusDELETE, dataplusGET, dataplusPOST, dataplusPUT, db, endLock, executePOST, executeSasync, executeTasync, getFTree, getID, hasCR, http, isExecute, op, remoteServerRequest, rootDELETE, serverModelCache, updateRules, validateDB;
   var __hasProp = Object.prototype.hasOwnProperty;
   op = {
     eq: "=",
     ne: "!=",
     lk: "~"
   };
-  if ((typeof process !== "undefined" && process !== null)) {
+  if (typeof process !== "undefined" && process !== null) {
     db = (function() {
       var realDB, result, sqlite3, tx;
       sqlite3 = require('sqlite3').verbose();
@@ -135,60 +135,42 @@
     switch (rootbranch) {
       case "onair":
         if (method === "GET") {
-          return successCallback({
-            "status-line": "HTTP/1.1 200 OK"
-          }, JSON.stringify(serverModelCache.isServerOnAir()));
+          return successCallback(200, JSON.stringify(serverModelCache.isServerOnAir()));
         }
         break;
       case "model":
         if (method === "GET") {
           if (serverModelCache.isServerOnAir()) {
-            return successCallback({
-              "status-line": "HTTP/1.1 200 OK"
-            }, serverModelCache.getLastSE());
+            return successCallback(200, serverModelCache.getLastSE());
           } else {
-            return typeof failureCallback === "function" ? failureCallback({
-              "status-line": "HTTP/1.1 404 Not Found"
-            }) : void 0;
+            return typeof failureCallback === "function" ? failureCallback(404) : void 0;
           }
         }
         break;
       case "lfmodel":
         if (method === "GET") {
           if (serverModelCache.isServerOnAir()) {
-            return successCallback({
-              "status-line": "HTTP/1.1 200 OK"
-            }, JSON.stringify(serverModelCache.getLF()));
+            return successCallback(200, JSON.stringify(serverModelCache.getLF()));
           } else {
-            return typeof failureCallback === "function" ? failureCallback({
-              "status-line": "HTTP/1.1 404 Not Found"
-            }) : void 0;
+            return typeof failureCallback === "function" ? failureCallback(404) : void 0;
           }
         }
         break;
       case "prepmodel":
         if (method === "GET") {
           if (serverModelCache.isServerOnAir()) {
-            return successCallback({
-              "status-line": "HTTP/1.1 200 OK"
-            }, JSON.stringify(serverModelCache.getPrepLF()));
+            return successCallback(200, JSON.stringify(serverModelCache.getPrepLF()));
           } else {
-            return typeof failureCallback === "function" ? failureCallback({
-              "status-line": "HTTP/1.1 404 Not Found"
-            }) : void 0;
+            return typeof failureCallback === "function" ? failureCallback(404) : void 0;
           }
         }
         break;
       case "sqlmodel":
         if (method === "GET") {
           if (serverModelCache.isServerOnAir()) {
-            return successCallback({
-              "status-line": "HTTP/1.1 200 OK"
-            }, JSON.stringify(serverModelCache.getSQL()));
+            return successCallback(200, JSON.stringify(serverModelCache.getSQL()));
           } else {
-            return typeof failureCallback === "function" ? failureCallback({
-              "status-line": "HTTP/1.1 404 Not Found"
-            }) : void 0;
+            return typeof failureCallback === "function" ? failureCallback(404) : void 0;
           }
         }
         break;
@@ -197,13 +179,9 @@
           switch (method) {
             case "PUT":
               serverModelCache.setSE(JSON.parse(body).value);
-              return successCallback({
-                "status-line": "HTTP/1.1 200 OK"
-              });
+              return successCallback(200);
             case "GET":
-              return successCallback({
-                "status-line": "HTTP/1.1 200 OK"
-              }, JSON.stringify({
+              return successCallback(200, JSON.stringify({
                 value: serverModelCache.getSE()
               }));
           }
@@ -211,13 +189,9 @@
           switch (method) {
             case "PUT":
               serverModelCache.setModelAreaDisabled(JSON.parse(body).value);
-              return successCallback({
-                "status-line": "HTTP/1.1 200 OK"
-              });
+              return successCallback(200);
             case "GET":
-              return successCallback({
-                "status-line": "HTTP/1.1 200 OK"
-              }, JSON.stringify({
+              return successCallback(200, JSON.stringify({
                 value: serverModelCache.isModelAreaDisabled()
               }));
           }
@@ -252,9 +226,7 @@
               xlcURI: "/data/lock-is_exclusive",
               ctURI: "/data/transaction*filt:transaction.id=" + tree[1][3][1][1][3] + "/execute"
             };
-            return successCallback({
-              "status-line": "HTTP/1.1 200 OK"
-            }, JSON.stringify(o), caller);
+            return successCallback(200, JSON.stringify(o), caller);
           } else {
             switch (method) {
               case "GET":
@@ -269,9 +241,7 @@
             }
           }
         } else {
-          return typeof failureCallback === "function" ? failureCallback({
-            "status-line": "HTTP/1.1 404 Not Found"
-          }) : void 0;
+          return typeof failureCallback === "function" ? failureCallback(404) : void 0;
         }
         break;
       default:
@@ -300,14 +270,12 @@
             if (result.rows.item(0).result === 1) {
               sql = 'DELETE FROM "' + tree[1][1] + '" WHERE id=' + id + ";";
               return tx.executeSql(sql, [], function(tx, result) {
-                return validateDB(tx, serverModelCache.getSQL(), caller, (function(tx, sqlmod, caller, failureCallback, headers, result) {
-                  return successCallback(headers, result, caller);
-                }), failureCallback, {
-                  "status-line": "HTTP/1.1 200 OK"
-                }, "");
+                return validateDB(tx, serverModelCache.getSQL(), caller, (function(tx, sqlmod, caller, failureCallback, result) {
+                  return successCallback(200, result, caller);
+                }), failureCallback);
               });
             } else {
-              return failureCallback(["The resource is locked and cannot be deleted"]);
+              return failureCallback(200, ["The resource is locked and cannot be deleted"]);
             }
           });
         }), function(err) {});
@@ -360,15 +328,13 @@
               }
               sql = 'UPDATE "' + tree[1][1] + '" SET ' + ps.join(",") + " WHERE id=" + id + ";";
               return tx.executeSql(sql, [], function(tx) {
-                return validateDB(tx, serverModelCache.getSQL(), caller, (function(tx, sqlmod, caller, failureCallback, headers, result) {
-                  return successCallback(headers, result, caller);
-                }), failureCallback, {
-                  "status-line": "HTTP/1.1 200 OK"
-                }, "");
+                return validateDB(tx, serverModelCache.getSQL(), caller, (function(tx, sqlmod, caller, failureCallback, result) {
+                  return successCallback(200, result, caller);
+                }), failureCallback);
               });
             }
           } else {
-            return failureCallback(["The resource is locked and cannot be edited"]);
+            return failureCallback(200, ["The resource is locked and cannot be edited"]);
           }
         });
       }), function(err) {});
@@ -432,13 +398,12 @@
       }
       sql = 'INSERT INTO "' + tree[1][1] + '"("' + fds.join('","') + '") VALUES (' + vls.join(",") + ");";
       return db.transaction(function(tx) {
-        return tx.executeSql(sql, [], function(tx, result) {
+        return tx.executeSql(sql, [], function(tx, sqlResult) {
           return validateDB(tx, serverModelCache.getSQL(), caller, (function(tx, sqlmod, caller, failureCallback, headers, result) {
-            return successCallback(headers, result, caller);
-          }), failureCallback, {
-            "status-line": "HTTP/1.1 201 Created",
-            location: "/data/" + tree[1][1] + "*filt:" + tree[1][1] + ".id=" + result.insertId
-          }, "");
+            return successCallback(201, result, caller, {
+              location: "/data/" + tree[1][1] + "*filt:" + tree[1][1] + ".id=" + sqlResult.insertId
+            });
+          }), failureCallback);
         });
       });
     }
@@ -454,22 +419,20 @@
     trnmod = SBVR2SQL.match(tree, "trans");
     serverModelCache.setModelAreaDisabled(true);
     return db.transaction(function(tx) {
-      return executeSasync(tx, sqlmod, caller, (function(tx, sqlmod, caller, failureCallback, headers, result) {
-        return executeTasync(tx, trnmod, caller, (function(tx, trnmod, caller, failureCallback, headers, result) {
+      return executeSasync(tx, sqlmod, caller, (function(tx, sqlmod, caller, failureCallback, result) {
+        return executeTasync(tx, trnmod, caller, (function(tx, trnmod, caller, failureCallback, result) {
           serverModelCache.setServerOnAir(true);
           serverModelCache.setLastSE(se);
           serverModelCache.setLF(lfmod);
           serverModelCache.setPrepLF(prepmod);
           serverModelCache.setSQL(sqlmod);
           serverModelCache.setTrans(trnmod);
-          return successCallback(headers, result);
-        }), failureCallback, headers, result);
+          return successCallback(200, result);
+        }), failureCallback, result);
       }), (function(errors) {
         serverModelCache.setModelAreaDisabled(false);
-        return failureCallback(errors);
-      }), {
-        "status-line": "HTTP/1.1 200 OK"
-      });
+        return failureCallback(200, errors);
+      }));
     });
   };
   rootDELETE = function(tree, headers, body, successCallback, failureCallback, caller) {
@@ -505,9 +468,7 @@
     serverModelCache.setSQL([]);
     serverModelCache.setTrans([]);
     serverModelCache.setServerOnAir(false);
-    return successCallback({
-      "status-line": "HTTP/1.1 200 OK"
-    }, "");
+    return successCallback(200);
   };
   dataGET = function(tree, headers, body, successCallback, failureCallback, caller) {
     var result, row, sqlmod, _i, _len, _ref;
@@ -531,9 +492,7 @@
         });
       }
     }
-    return successCallback({
-      "status-line": "HTTP/1.1 200 OK"
-    }, JSON.stringify(result), caller);
+    return successCallback(200, JSON.stringify(result), caller);
   };
   dataplusGET = function(tree, headers, body, successCallback, failureCallback, caller) {
     var ftree;
@@ -598,9 +557,7 @@
               return _results;
             })()
           };
-          return successCallback({
-            "status-line": "HTTP/1.1 200 OK"
-          }, JSON.stringify(data), caller);
+          return successCallback(200, JSON.stringify(data), caller);
         });
       }
     });
@@ -622,11 +579,9 @@
             } else {
               sql = 'DELETE FROM "transaction" WHERE "id"=' + trans_id + ';';
               tx.executeSql(sql, [], function(tx, result) {});
-              return validateDB(tx, serverModelCache.getSQL(), caller, (function(tx, sqlmod, caller, failureCallback, headers, result) {
-                return successCallback(headers, result, caller);
-              }), failureCallback, {
-                "status-line": "HTTP/1.1 200 OK"
-              }, "");
+              return validateDB(tx, serverModelCache.getSQL(), caller, (function(tx, sqlmod, caller, failureCallback, result) {
+                return successCallback(200, result, caller);
+              }), failureCallback);
             }
           });
         } else {
@@ -652,11 +607,9 @@
               tx.executeSql(sql, [], function(tx, result) {
                 return console.log("t ok");
               });
-              return validateDB(tx, serverModelCache.getSQL(), caller, (function(tx, sqlmod, caller, failureCallback, headers, result) {
-                return successCallback(headers, result, caller);
-              }), failureCallback, {
-                "status-line": "HTTP/1.1 200 OK"
-              }, "");
+              return validateDB(tx, serverModelCache.getSQL(), caller, (function(tx, sqlmod, caller, failureCallback, result) {
+                return successCallback(200, result, caller);
+              }), failureCallback);
             }
           });
         }
@@ -682,12 +635,12 @@
     tx.executeSql(sql, [], function(tx, result) {
       return console.log("lt ok");
     });
-    sql = "DELETE FROM \"lock\" WHERE \"id\"=" + lock_id;
+    sql = 'DELETE FROM "lock" WHERE "id"=' + lock_id;
     return tx.executeSql(sql + ";", [], function(tx, result) {
       return console.log("l ok");
     });
   };
-  validateDB = function(tx, sqlmod, caller, successCallback, failureCallback, headers, result) {
+  validateDB = function(tx, sqlmod, caller, successCallback, failureCallback) {
     var errors, l, par, query, row, tex, tot, _i, _len;
     l = [];
     errors = [];
@@ -711,17 +664,17 @@
               failureCallback(errors);
               return tx.executeSql("DROP TABLE '__Fo0oFoo'");
             } else {
-              return successCallback(tx, sqlmod, caller, failureCallback, headers, result);
+              return successCallback(tx, sqlmod, caller, failureCallback, result);
             }
           }
         });
       }
     }
     if (tot === 0) {
-      return successCallback(tx, sqlmod, caller, failureCallback, headers, result);
+      return successCallback(tx, sqlmod, caller, failureCallback, "");
     }
   };
-  executeSasync = function(tx, sqlmod, caller, successCallback, failureCallback, headers, result) {
+  executeSasync = function(tx, sqlmod, caller, successCallback, failureCallback, result) {
     var row, _i, _len, _ref;
     for (_i = 0, _len = sqlmod.length; _i < _len; _i++) {
       row = sqlmod[_i];
@@ -729,20 +682,20 @@
         tx.executeSql(row[4]);
       }
     }
-    return validateDB(tx, sqlmod, caller, successCallback, failureCallback, headers, "");
+    return validateDB(tx, sqlmod, caller, successCallback, failureCallback);
   };
-  executeTasync = function(tx, trnmod, caller, successCallback, failureCallback, headers, result) {
-    return executeSasync(tx, trnmod, caller, (function(tx, trnmod, caller, failureCallback, headers, result) {
+  executeTasync = function(tx, trnmod, caller, successCallback, failureCallback, result) {
+    return executeSasync(tx, trnmod, caller, (function(tx, trnmod, caller, failureCallback, result) {
       tx.executeSql("ALTER TABLE 'resource-is_under-lock' ADD COLUMN resource_type TEXT", []);
       tx.executeSql("ALTER TABLE 'conditional_representation' ADD COLUMN field_name TEXT", []);
       tx.executeSql("ALTER TABLE 'conditional_representation' ADD COLUMN field_value TEXT", []);
       tx.executeSql("ALTER TABLE 'conditional_representation' ADD COLUMN field_type TEXT", []);
       tx.executeSql("ALTER TABLE 'conditional_representation' ADD COLUMN lock_id TEXT", []);
-      return successCallback(tx, trnmod, caller, failureCallback, headers, result);
+      return successCallback(tx, trnmod, caller, failureCallback, result);
     }), (function(errors) {
       serverModelCache.setModelAreaDisabled(false);
       return failureCallback(errors);
-    }), headers, result);
+    }), result);
   };
   updateRules = function(sqlmod) {
     var query, row, _i, _j, _len, _len2, _ref, _results;
@@ -819,10 +772,29 @@
     }
     return false;
   };
-  if (typeof exports !== "undefined" && exports !== null) {
-    exports.remoteServerRequest = remoteServerRequest;
-  }
   if (typeof window !== "undefined" && window !== null) {
     window.remoteServerRequest = remoteServerRequest;
+  }
+  if (typeof process !== "undefined" && process !== null) {
+    http = require('http');
+    http.createServer(function(request, response) {
+      var body;
+      body = '';
+      request.on('data', function(chunk) {
+        return body += chunk;
+      });
+      return request.on('end', function() {
+        return remoteServerRequest(request.method, request.url, request.headers, body, function(statusCode, result, caller, headers) {
+          if (result == null) {
+            result = "";
+          }
+          response.writeHead(statusCode, headers);
+          return response.end(result);
+        }, function(statusCode, errors, headers) {
+          response.writeHead(statusCode, headers);
+          return response.end(errors);
+        }, caller);
+      });
+    }).listen(1337, "127.0.0.1");
   }
 }).call(this);

@@ -4,7 +4,7 @@ op =
 	lk: "~"
 
 #TODO: the db name needs to be changed
-if(process?)
+if process?
 	db = do () ->
 		sqlite3 = require('sqlite3').verbose();
 		realDB = new sqlite3.Database('/tmp/mydb.db');
@@ -93,6 +93,8 @@ serverModelCache = do () ->
 			setValue 'trans', trnmod
 	}
 
+# successCallback = (statusCode, result, caller, headers)
+# failureCallback = (statusCode, errors, headers)
 remoteServerRequest = (method, uri, headers, body, successCallback, failureCallback, caller) ->
 	tree = ServerURIParser.matchAll(uri, "uri")
 	if headers? and headers["Content-Type"] == "application/xml"
@@ -102,52 +104,52 @@ remoteServerRequest = (method, uri, headers, body, successCallback, failureCallb
 	switch rootbranch
 		when "onair"
 			if method == "GET"
-				successCallback "status-line": "HTTP/1.1 200 OK",
+				successCallback 200,
 					JSON.stringify(serverModelCache.isServerOnAir())
 		when "model"
 			if method == "GET"
 				if serverModelCache.isServerOnAir()
-					successCallback "status-line": "HTTP/1.1 200 OK",
+					successCallback 200,
 						serverModelCache.getLastSE()
 				else
-					failureCallback? "status-line": "HTTP/1.1 404 Not Found"
+					failureCallback? 404
 		when "lfmodel"
 			if method == "GET"
 				if serverModelCache.isServerOnAir()
-					successCallback "status-line": "HTTP/1.1 200 OK",
+					successCallback 200,
 						JSON.stringify(serverModelCache.getLF())
 				else
-					failureCallback? "status-line": "HTTP/1.1 404 Not Found"
+					failureCallback? 404
 		when "prepmodel"
 			if method == "GET"
 				if serverModelCache.isServerOnAir()
-					successCallback "status-line": "HTTP/1.1 200 OK",
+					successCallback 200,
 						JSON.stringify(serverModelCache.getPrepLF())
 				else
-					failureCallback? "status-line": "HTTP/1.1 404 Not Found"
+					failureCallback? 404
 		when "sqlmodel"
 			if method == "GET"
 				if serverModelCache.isServerOnAir()
-					successCallback "status-line": "HTTP/1.1 200 OK",
+					successCallback 200,
 						JSON.stringify(serverModelCache.getSQL())
 				else
-					failureCallback? "status-line": "HTTP/1.1 404 Not Found"
+					failureCallback? 404
 		when "ui"
 			if tree[1][1] == "textarea" and tree[1][3][1][1][3] == "model_area"
 				switch method
 					when "PUT"
 						serverModelCache.setSE JSON.parse(body).value
-						successCallback "status-line": "HTTP/1.1 200 OK"
+						successCallback 200
 					when "GET"
-						successCallback "status-line": "HTTP/1.1 200 OK",
+						successCallback 200,
 							JSON.stringify(value: serverModelCache.getSE())
 			else if tree[1][1] == "textarea-is_disabled" and tree[1][4][1][1][3] == "model_area"
 				switch method
 					when "PUT"
 						serverModelCache.setModelAreaDisabled JSON.parse(body).value
-						successCallback "status-line": "HTTP/1.1 200 OK"
+						successCallback 200
 					when "GET"
-						successCallback "status-line": "HTTP/1.1 200 OK",
+						successCallback 200,
 							JSON.stringify(value: serverModelCache.isModelAreaDisabled())
 		when "execute"
 			if method == "POST"
@@ -174,7 +176,7 @@ remoteServerRequest = (method, uri, headers, body, successCallback, failureCallb
 						xlcURI: "/data/lock-is_exclusive"
 						ctURI: "/data/transaction*filt:transaction.id=" + tree[1][3][1][1][3] + "/execute"
 					
-					successCallback "status-line": "HTTP/1.1 200 OK",
+					successCallback 200,
 						JSON.stringify(o), caller
 				else
 					switch method
@@ -188,7 +190,7 @@ remoteServerRequest = (method, uri, headers, body, successCallback, failureCallb
 						when "DELETE"
 							dataplusDELETE tree, headers, body, successCallback, failureCallback, caller
 			else
-				failureCallback? "status-line": "HTTP/1.1 404 Not Found"
+				failureCallback? 404
 		else
 			if method == "DELETE"
 				rootDELETE tree, headers, body, successCallback, failureCallback, caller
@@ -214,11 +216,11 @@ dataplusDELETE = (tree, headers, body, successCallback, failureCallback, caller)
 					if result.rows.item(0).result == 1
 						sql = 'DELETE FROM "' + tree[1][1] + '" WHERE id=' + id + ";"
 						tx.executeSql sql, [], (tx, result) ->
-							validateDB tx, serverModelCache.getSQL(), caller, ((tx, sqlmod, caller, failureCallback, headers, result) ->
-								successCallback headers, result, caller
-							), failureCallback, "status-line": "HTTP/1.1 200 OK", ""
+							validateDB tx, serverModelCache.getSQL(), caller, ((tx, sqlmod, caller, failureCallback, result) ->
+								successCallback 200, result, caller
+							), failureCallback
 					else
-						failureCallback [ "The resource is locked and cannot be deleted" ]
+						failureCallback 200, [ "The resource is locked and cannot be deleted" ]
 			), (err) ->
 			
 			
@@ -257,11 +259,11 @@ dataplusPUT = (tree, headers, body, successCallback, failureCallback, caller) ->
 								ps.push k + "=" + JSON.stringify(bd[pair][k])
 						sql = 'UPDATE "' + tree[1][1] + '" SET ' + ps.join(",") + " WHERE id=" + id + ";"
 						tx.executeSql sql, [], (tx) ->
-							validateDB tx, serverModelCache.getSQL(), caller, ((tx, sqlmod, caller, failureCallback, headers, result) ->
-								successCallback headers, result, caller
-							), failureCallback, "status-line": "HTTP/1.1 200 OK", ""
+							validateDB tx, serverModelCache.getSQL(), caller, ((tx, sqlmod, caller, failureCallback, result) ->
+								successCallback 200, result, caller
+							), failureCallback
 				else
-					failureCallback [ "The resource is locked and cannot be edited" ]
+					failureCallback 200, [ "The resource is locked and cannot be edited" ]
 		), (err) ->
 
 
@@ -318,13 +320,11 @@ dataplusPOST = (tree, headers, body, successCallback, failureCallback, caller) -
 				vls.push JSON.stringify(bd[pair][k])
 		sql = 'INSERT INTO "' + tree[1][1] + '"("' + fds.join('","') + '") VALUES (' + vls.join(",") + ");"
 		db.transaction (tx) ->
-			tx.executeSql sql, [], (tx, result) ->
+			tx.executeSql sql, [], (tx, sqlResult) ->
 				validateDB tx, serverModelCache.getSQL(), caller, ((tx, sqlmod, caller, failureCallback, headers, result) ->
-					successCallback headers, result, caller
-				), failureCallback, 
-					"status-line": "HTTP/1.1 201 Created"
-					location: "/data/" + tree[1][1] + "*filt:" + tree[1][1] + ".id=" + result.insertId
-				, ""
+					successCallback 201, result, caller,
+						location: "/data/" + tree[1][1] + "*filt:" + tree[1][1] + ".id=" + sqlResult.insertId
+				), failureCallback
 
 
 executePOST = (tree, headers, body, successCallback, failureCallback, caller) ->
@@ -337,21 +337,21 @@ executePOST = (tree, headers, body, successCallback, failureCallback, caller) ->
 	trnmod = SBVR2SQL.match(tree, "trans")
 	serverModelCache.setModelAreaDisabled true
 	db.transaction (tx) ->
-		executeSasync tx, sqlmod, caller, ((tx, sqlmod, caller, failureCallback, headers, result) ->
+		executeSasync tx, sqlmod, caller, ((tx, sqlmod, caller, failureCallback, result) ->
 			#TODO: fix this as soon as the successCalback mess is fixed
-			executeTasync tx, trnmod, caller, ((tx, trnmod, caller, failureCallback, headers, result) ->
+			executeTasync tx, trnmod, caller, ((tx, trnmod, caller, failureCallback, result) ->
 				serverModelCache.setServerOnAir true
 				serverModelCache.setLastSE se
 				serverModelCache.setLF lfmod
 				serverModelCache.setPrepLF prepmod
 				serverModelCache.setSQL sqlmod
 				serverModelCache.setTrans trnmod
-				successCallback headers, result
-			), failureCallback, headers, result
+				successCallback 200, result
+			), failureCallback, result
 		), ((errors) ->
 			serverModelCache.setModelAreaDisabled false
-			failureCallback errors
-		), "status-line": "HTTP/1.1 200 OK"
+			failureCallback 200, errors
+		)
 
 
 rootDELETE = (tree, headers, body, successCallback, failureCallback, caller) ->
@@ -377,7 +377,7 @@ rootDELETE = (tree, headers, body, successCallback, failureCallback, caller) ->
 	serverModelCache.setTrans []
 	serverModelCache.setServerOnAir false
 
-	successCallback "status-line": "HTTP/1.1 200 OK", ""
+	successCallback 200
 
 
 dataGET = (tree, headers, body, successCallback, failureCallback, caller) ->
@@ -396,7 +396,7 @@ dataGET = (tree, headers, body, successCallback, failureCallback, caller) ->
 				id: row[1]
 				name: row[2]
 	
-	successCallback "status-line": "HTTP/1.1 200 OK",
+	successCallback 200,
 		JSON.stringify(result), caller
 
 
@@ -437,7 +437,7 @@ dataplusGET = (tree, headers, body, successCallback, failureCallback, caller) ->
 		if sql != ""
 			tx.executeSql sql + ";", [], (tx, result) ->
 				data = instances: result.rows.item(i) for i in [0...result.rows.length]
-				successCallback "status-line": "HTTP/1.1 200 OK",
+				successCallback 200,
 					JSON.stringify(data), caller
 
 
@@ -461,9 +461,9 @@ endLock = (tx, locks, i, trans_id, caller, successCallback, failureCallback) ->
 						sql = 'DELETE FROM "transaction" WHERE "id"=' + trans_id + ';'
 						tx.executeSql sql, [], (tx, result) ->
 						
-						validateDB tx, serverModelCache.getSQL(), caller, ((tx, sqlmod, caller, failureCallback, headers, result) ->
-							successCallback headers, result, caller
-						), failureCallback, "status-line": "HTTP/1.1 200 OK", ""
+						validateDB tx, serverModelCache.getSQL(), caller, ((tx, sqlmod, caller, failureCallback, result) ->
+							successCallback 200, result, caller
+						), failureCallback
 			else
 				#commit conditional_representation
 				sql = "UPDATE \"" + locked.rows.item(0).resource_type + "\" SET "
@@ -485,9 +485,9 @@ endLock = (tx, locks, i, trans_id, caller, successCallback, failureCallback) ->
 						tx.executeSql sql, [], (tx, result) ->
 							console.log "t ok"
 						
-						validateDB tx, serverModelCache.getSQL(), caller, ((tx, sqlmod, caller, failureCallback, headers, result) ->
-							successCallback headers, result, caller
-						), failureCallback, "status-line": "HTTP/1.1 200 OK", ""
+						validateDB tx, serverModelCache.getSQL(), caller, ((tx, sqlmod, caller, failureCallback, result) ->
+							successCallback 200, result, caller
+						), failureCallback
 			sql = 'DELETE FROM "conditional_representation" WHERE "lock_id"=' + crs.rows.item(0).lock_id + ';'
 			tx.executeSql sql, [], (tx, result) ->
 				console.log "cr ok"
@@ -508,12 +508,13 @@ endLock = (tx, locks, i, trans_id, caller, successCallback, failureCallback) ->
 	tx.executeSql sql, [], (tx, result) ->
 		console.log "lt ok"
 	
-	sql = "DELETE FROM \"lock\" WHERE \"id\"=" + lock_id
+	sql = 'DELETE FROM "lock" WHERE "id"=' + lock_id
 	tx.executeSql sql + ";", [], (tx, result) ->
 		console.log "l ok"
 
-
-validateDB = (tx, sqlmod, caller, successCallback, failureCallback, headers, result) ->
+# successCallback = (tx, sqlmod, caller, failureCallback, result)
+# failureCallback = (errors)
+validateDB = (tx, sqlmod, caller, successCallback, failureCallback) ->
 	l = []
 	errors = []
 	par = 1
@@ -534,11 +535,13 @@ validateDB = (tx, sqlmod, caller, successCallback, failureCallback, headers, res
 					#bogus sql to raise exception
 					tx.executeSql "DROP TABLE '__Fo0oFoo'"
 				else
-					successCallback tx, sqlmod, caller, failureCallback, headers, result
-	successCallback tx, sqlmod, caller, failureCallback, headers, result  if tot == 0
+					successCallback tx, sqlmod, caller, failureCallback, result
+	successCallback tx, sqlmod, caller, failureCallback, ""  if tot == 0
 
 
-executeSasync = (tx, sqlmod, caller, successCallback, failureCallback, headers, result) ->
+# successCallback = (tx, sqlmod, caller, failureCallback, result)
+# failureCallback = (errors)
+executeSasync = (tx, sqlmod, caller, successCallback, failureCallback, result) ->
 	#Create tables related to terms and fact types
 	for row in sqlmod
 		tx.executeSql row[4] if row[0] in ["fcTp", "term"]
@@ -546,12 +549,14 @@ executeSasync = (tx, sqlmod, caller, successCallback, failureCallback, headers, 
 	#Validate the [empty] model according to the rules. 
 	#This may eventually lead to entering obligatory data.
 	#For the moment it blocks such models from execution.
-	validateDB tx, sqlmod, caller, successCallback, failureCallback, headers, ""
+	validateDB tx, sqlmod, caller, successCallback, failureCallback
 
-
-executeTasync = (tx, trnmod, caller, successCallback, failureCallback, headers, result) ->
+	
+# successCallback = (tx, sqlmod, caller, failureCallback, result)
+# failureCallback = (errors)
+executeTasync = (tx, trnmod, caller, successCallback, failureCallback, result) ->
 	#Execute transaction model.
-	executeSasync tx, trnmod, caller, ((tx, trnmod, caller, failureCallback, headers, result) ->
+	executeSasync tx, trnmod, caller, ((tx, trnmod, caller, failureCallback, result) ->
 		#Hack: Add certain attributes to the transaction model tables. 
 		#This should eventually be done with SBVR, when we add attributes.
 		tx.executeSql "ALTER TABLE 'resource-is_under-lock' ADD COLUMN resource_type TEXT", []
@@ -559,11 +564,11 @@ executeTasync = (tx, trnmod, caller, successCallback, failureCallback, headers, 
 		tx.executeSql "ALTER TABLE 'conditional_representation' ADD COLUMN field_value TEXT", []
 		tx.executeSql "ALTER TABLE 'conditional_representation' ADD COLUMN field_type TEXT", []
 		tx.executeSql "ALTER TABLE 'conditional_representation' ADD COLUMN lock_id TEXT", []
-		successCallback tx, trnmod, caller, failureCallback, headers, result
+		successCallback tx, trnmod, caller, failureCallback, result
 	), ((errors) ->
 		serverModelCache.setModelAreaDisabled false
 		failureCallback errors
-	), headers, result
+	), result
 
 
 updateRules = (sqlmod) ->
@@ -616,6 +621,23 @@ isExecute = (tree) ->
 			return true
 	return false
 
-
-exports.remoteServerRequest = remoteServerRequest if exports?
 window.remoteServerRequest = remoteServerRequest if window?
+
+if process?
+	http = require('http');
+	http.createServer((request, response) ->
+		body = ''
+		request.on('data', (chunk) ->
+			body += chunk
+		)
+		request.on('end', () ->
+			remoteServerRequest(request.method, request.url, request.headers, body,
+				(statusCode, result = "", caller, headers) ->
+					response.writeHead(statusCode, headers)
+					response.end(result)
+				(statusCode, errors, headers) ->
+					response.writeHead(statusCode, headers)
+					response.end(errors)
+				caller)
+			)
+	).listen(1337, "127.0.0.1");
