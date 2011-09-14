@@ -621,7 +621,9 @@ isExecute = (tree) ->
 			return true
 	return false
 
-window.remoteServerRequest = remoteServerRequest if window?
+window?.remoteServerRequest = remoteServerRequest
+#Temporary fix to allow backup/restore db etc to work for the time being client-side
+window?.db = db
 
 if process?
 	http = require('http');

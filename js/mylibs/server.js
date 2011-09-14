@@ -775,6 +775,9 @@
   if (typeof window !== "undefined" && window !== null) {
     window.remoteServerRequest = remoteServerRequest;
   }
+  if (typeof window !== "undefined" && window !== null) {
+    window.db = db;
+  }
   if (typeof process !== "undefined" && process !== null) {
     http = require('http');
     http.createServer(function(request, response) {
