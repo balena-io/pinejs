@@ -18,11 +18,11 @@ function defaultFailureCallback(statusCode, error) {
 	//console.log("fail!", error);
 }
 
-function defaultSuccessCallback(statusCode, result, caller, headers) {
+function defaultSuccessCallback(statusCode, result, headers) {
 }
 
 //should probably JSON.parse result when appropriate. Now the callbacks do it.
-function serverRequest(method, uri, headers, body, successCallback, failureCallback, caller){
+function serverRequest(method, uri, headers, body, successCallback, failureCallback){
 	$("#httpTable").append(
 		'<tr class="server_row"><td><strong>' + method +
 		"</strong></td><td>" + uri + "</td><td>" + (headers.length==0?'':headers) +
@@ -31,8 +31,7 @@ function serverRequest(method, uri, headers, body, successCallback, failureCallb
 	if(typeof remoteServerRequest=='function')
 		remoteServerRequest(method, uri, headers, body,
 			typeof successCallback != 'function' ? defaultSuccessCallback : successCallback,
-			typeof failureCallback != 'function' ? defaultFailureCallback : failureCallback,
-			caller);
+			typeof failureCallback != 'function' ? defaultFailureCallback : failureCallback);
 }
 
 //txtmod = '';
@@ -65,7 +64,7 @@ function transformClient(model) {
 						'',
 						function() {
 				
-							//serverRequest("GET", "/model/", [], '', function(statusCode, result, parent, headers){
+							//serverRequest("GET", "/model/", [], '', function(statusCode, result, headers){
 							//	txtmod = result;
 							//});
 						

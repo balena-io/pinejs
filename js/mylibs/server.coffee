@@ -93,9 +93,9 @@ serverModelCache = do () ->
 			setValue 'trans', trnmod
 	}
 
-# successCallback = (statusCode, result, caller, headers)
+# successCallback = (statusCode, result, headers)
 # failureCallback = (statusCode, errors, headers)
-remoteServerRequest = (method, uri, headers, body, successCallback, failureCallback, caller) ->
+remoteServerRequest = (method, uri, headers, body, successCallback, failureCallback) ->
 	tree = ServerURIParser.matchAll(uri, "uri")
 	if headers? and headers["Content-Type"] == "application/xml"
 			#TODO: in case of input: do something to make xml into a json object
@@ -153,7 +153,7 @@ remoteServerRequest = (method, uri, headers, body, successCallback, failureCallb
 							JSON.stringify(value: serverModelCache.isModelAreaDisabled())
 		when "execute"
 			if method == "POST"
-				executePOST tree, headers, body, successCallback, failureCallback, caller
+				executePOST tree, headers, body, successCallback, failureCallback
 		when "update"
 			if method == "POST"
 				#update code will go here, based on executePOST
@@ -163,7 +163,7 @@ remoteServerRequest = (method, uri, headers, body, successCallback, failureCallb
 				if tree[1] == undefined
 					switch method
 						when "GET"
-							dataGET tree, headers, body, successCallback, failureCallback, caller
+							dataGET tree, headers, body, successCallback, failureCallback
 				else if tree[1][1] == "transaction" and method == "GET"
 					o = 
 						id: tree[1][3][1][1][3]
@@ -177,26 +177,26 @@ remoteServerRequest = (method, uri, headers, body, successCallback, failureCallb
 						ctURI: "/data/transaction*filt:transaction.id=" + tree[1][3][1][1][3] + "/execute"
 					
 					successCallback 200,
-						JSON.stringify(o), caller
+						JSON.stringify(o)
 				else
 					switch method
 						when "GET"
 							console.log "body:[" + body + "]"
-							dataplusGET tree, headers, body, successCallback, failureCallback, caller
+							dataplusGET tree, headers, body, successCallback, failureCallback
 						when "POST"
-							dataplusPOST tree, headers, body, successCallback, failureCallback, caller
+							dataplusPOST tree, headers, body, successCallback, failureCallback
 						when "PUT"
-							dataplusPUT tree, headers, body, successCallback, failureCallback, caller
+							dataplusPUT tree, headers, body, successCallback, failureCallback
 						when "DELETE"
-							dataplusDELETE tree, headers, body, successCallback, failureCallback, caller
+							dataplusDELETE tree, headers, body, successCallback, failureCallback
 			else
 				failureCallback? 404
 		else
 			if method == "DELETE"
-				rootDELETE tree, headers, body, successCallback, failureCallback, caller
+				rootDELETE tree, headers, body, successCallback, failureCallback
 
 
-dataplusDELETE = (tree, headers, body, successCallback, failureCallback, caller) ->
+dataplusDELETE = (tree, headers, body, successCallback, failureCallback) ->
 	id = getID tree
 	if id != 0
 		if tree[1][1] == "lock" and hasCR tree
@@ -216,15 +216,15 @@ dataplusDELETE = (tree, headers, body, successCallback, failureCallback, caller)
 					if result.rows.item(0).result == 1
 						sql = 'DELETE FROM "' + tree[1][1] + '" WHERE id=' + id + ";"
 						tx.executeSql sql, [], (tx, result) ->
-							validateDB tx, serverModelCache.getSQL(), caller, ((tx, sqlmod, caller, failureCallback, result) ->
-								successCallback 200, result, caller
+							validateDB tx, serverModelCache.getSQL(), ((tx, sqlmod, failureCallback, result) ->
+								successCallback 200, result
 							), failureCallback
 					else
 						failureCallback 200, [ "The resource is locked and cannot be deleted" ]
 			), (err) ->
 			
 			
-dataplusPUT = (tree, headers, body, successCallback, failureCallback, caller) ->
+dataplusPUT = (tree, headers, body, successCallback, failureCallback) ->
 	id = getID tree
 	if tree[1][1] == "lock" and hasCR tree
 		#CR posted to Lock
@@ -259,15 +259,15 @@ dataplusPUT = (tree, headers, body, successCallback, failureCallback, caller) ->
 								ps.push k + "=" + JSON.stringify(bd[pair][k])
 						sql = 'UPDATE "' + tree[1][1] + '" SET ' + ps.join(",") + " WHERE id=" + id + ";"
 						tx.executeSql sql, [], (tx) ->
-							validateDB tx, serverModelCache.getSQL(), caller, ((tx, sqlmod, caller, failureCallback, result) ->
-								successCallback 200, result, caller
+							validateDB tx, serverModelCache.getSQL(), ((tx, sqlmod, failureCallback, result) ->
+								successCallback 200, result
 							), failureCallback
 				else
 					failureCallback 200, [ "The resource is locked and cannot be edited" ]
 		), (err) ->
 
 
-dataplusPOST = (tree, headers, body, successCallback, failureCallback, caller) ->
+dataplusPOST = (tree, headers, body, successCallback, failureCallback) ->
 	#figure out if it's a POST to transaction/execute
 	if tree[1][1] == "transaction" and isExecute tree
 		id = getID tree
@@ -276,7 +276,7 @@ dataplusPOST = (tree, headers, body, successCallback, failureCallback, caller) -
 		db.transaction ((tx) ->
 			sql = 'SELECT * FROM "lock-belongs_to-transaction" WHERE "transaction_id"=' + id + ";"
 			tx.executeSql sql, [], (tx, locks) ->
-				endLock tx, locks, 0, id, caller, successCallback, failureCallback
+				endLock tx, locks, 0, id, successCallback, failureCallback
 		), (error) ->
 			db.transaction (tx) ->
 				sql = 'SELECT * FROM "lock-belongs_to-transaction" WHERE "transaction_id"=' + id + ";"
@@ -321,13 +321,13 @@ dataplusPOST = (tree, headers, body, successCallback, failureCallback, caller) -
 		sql = 'INSERT INTO "' + tree[1][1] + '"("' + fds.join('","') + '") VALUES (' + vls.join(",") + ");"
 		db.transaction (tx) ->
 			tx.executeSql sql, [], (tx, sqlResult) ->
-				validateDB tx, serverModelCache.getSQL(), caller, ((tx, sqlmod, caller, failureCallback, headers, result) ->
-					successCallback 201, result, caller,
+				validateDB tx, serverModelCache.getSQL(), ((tx, sqlmod, failureCallback, headers, result) ->
+					successCallback 201, result,
 						location: "/data/" + tree[1][1] + "*filt:" + tree[1][1] + ".id=" + sqlResult.insertId
 				), failureCallback
 
 
-executePOST = (tree, headers, body, successCallback, failureCallback, caller) ->
+executePOST = (tree, headers, body, successCallback, failureCallback) ->
 	se = serverModelCache.getSE()
 	lfmod = SBVRParser.matchAll(se, "expr")
 	prepmod = SBVR_PreProc.match(lfmod, "optimizeTree")
@@ -337,9 +337,9 @@ executePOST = (tree, headers, body, successCallback, failureCallback, caller) ->
 	trnmod = SBVR2SQL.match(tree, "trans")
 	serverModelCache.setModelAreaDisabled true
 	db.transaction (tx) ->
-		executeSasync tx, sqlmod, caller, ((tx, sqlmod, caller, failureCallback, result) ->
+		executeSasync tx, sqlmod, ((tx, sqlmod, failureCallback, result) ->
 			#TODO: fix this as soon as the successCalback mess is fixed
-			executeTasync tx, trnmod, caller, ((tx, trnmod, caller, failureCallback, result) ->
+			executeTasync tx, trnmod, ((tx, trnmod, failureCallback, result) ->
 				serverModelCache.setServerOnAir true
 				serverModelCache.setLastSE se
 				serverModelCache.setLF lfmod
@@ -354,7 +354,7 @@ executePOST = (tree, headers, body, successCallback, failureCallback, caller) ->
 		)
 
 
-rootDELETE = (tree, headers, body, successCallback, failureCallback, caller) ->
+rootDELETE = (tree, headers, body, successCallback, failureCallback) ->
 	#TODO: This should be reorganised to be properly async.
 	db.transaction ((sqlmod) ->
 		(tx) ->
@@ -380,7 +380,7 @@ rootDELETE = (tree, headers, body, successCallback, failureCallback, caller) ->
 	successCallback 200
 
 
-dataGET = (tree, headers, body, successCallback, failureCallback, caller) ->
+dataGET = (tree, headers, body, successCallback, failureCallback) ->
 	result = 
 		terms: []
 		fcTps: []
@@ -397,10 +397,10 @@ dataGET = (tree, headers, body, successCallback, failureCallback, caller) ->
 				name: row[2]
 	
 	successCallback 200,
-		JSON.stringify(result), caller
+		JSON.stringify(result)
 
 
-dataplusGET = (tree, headers, body, successCallback, failureCallback, caller) ->
+dataplusGET = (tree, headers, body, successCallback, failureCallback) ->
 	ftree = getFTree tree
 	db.transaction (tx) ->
 		sql = ""
@@ -438,10 +438,10 @@ dataplusGET = (tree, headers, body, successCallback, failureCallback, caller) ->
 			tx.executeSql sql + ";", [], (tx, result) ->
 				data = instances: result.rows.item(i) for i in [0...result.rows.length]
 				successCallback 200,
-					JSON.stringify(data), caller
+					JSON.stringify(data)
 
 
-endLock = (tx, locks, i, trans_id, caller, successCallback, failureCallback) ->
+endLock = (tx, locks, i, trans_id, successCallback, failureCallback) ->
 	#get conditional representations (if exist)
 	lock_id = locks.rows.item(i).lock_id
 	sql = 'SELECT * FROM "conditional_representation" WHERE "lock_id"=' + lock_id + ';'
@@ -455,14 +455,14 @@ endLock = (tx, locks, i, trans_id, caller, successCallback, failureCallback) ->
 				sql += '" WHERE "id"=' + locked.rows.item(0).resource_id
 				tx.executeSql sql + ";", [], (tx, result) ->
 					if i < locks.rows.length - 1
-						endLock tx, locks, i + 1, trans_id, caller, successCallback, failureCallback
+						endLock tx, locks, i + 1, trans_id, successCallback, failureCallback
 					else
 						#delete transaction
 						sql = 'DELETE FROM "transaction" WHERE "id"=' + trans_id + ';'
 						tx.executeSql sql, [], (tx, result) ->
 						
-						validateDB tx, serverModelCache.getSQL(), caller, ((tx, sqlmod, caller, failureCallback, result) ->
-							successCallback 200, result, caller
+						validateDB tx, serverModelCache.getSQL(), ((tx, sqlmod, failureCallback, result) ->
+							successCallback 200, result
 						), failureCallback
 			else
 				#commit conditional_representation
@@ -479,14 +479,14 @@ endLock = (tx, locks, i, trans_id, caller, successCallback, failureCallback) ->
 				sql += ' WHERE "id"=' + locked.rows.item(0).resource_id + ';'
 				tx.executeSql sql, [], (tx, result) ->
 					if i < locks.rows.length - 1
-						endLock tx, locks, i + 1, trans_id, caller, successCallback, failureCallback
+						endLock tx, locks, i + 1, trans_id, successCallback, failureCallback
 					else
 						sql = 'DELETE FROM "transaction" WHERE "id"=' + trans_id + ';'
 						tx.executeSql sql, [], (tx, result) ->
 							console.log "t ok"
 						
-						validateDB tx, serverModelCache.getSQL(), caller, ((tx, sqlmod, caller, failureCallback, result) ->
-							successCallback 200, result, caller
+						validateDB tx, serverModelCache.getSQL(), ((tx, sqlmod, failureCallback, result) ->
+							successCallback 200, result
 						), failureCallback
 			sql = 'DELETE FROM "conditional_representation" WHERE "lock_id"=' + crs.rows.item(0).lock_id + ';'
 			tx.executeSql sql, [], (tx, result) ->
@@ -512,9 +512,9 @@ endLock = (tx, locks, i, trans_id, caller, successCallback, failureCallback) ->
 	tx.executeSql sql + ";", [], (tx, result) ->
 		console.log "l ok"
 
-# successCallback = (tx, sqlmod, caller, failureCallback, result)
+# successCallback = (tx, sqlmod, failureCallback, result)
 # failureCallback = (errors)
-validateDB = (tx, sqlmod, caller, successCallback, failureCallback) ->
+validateDB = (tx, sqlmod, successCallback, failureCallback) ->
 	l = []
 	errors = []
 	par = 1
@@ -535,13 +535,13 @@ validateDB = (tx, sqlmod, caller, successCallback, failureCallback) ->
 					#bogus sql to raise exception
 					tx.executeSql "DROP TABLE '__Fo0oFoo'"
 				else
-					successCallback tx, sqlmod, caller, failureCallback, result
-	successCallback tx, sqlmod, caller, failureCallback, ""  if tot == 0
+					successCallback tx, sqlmod, failureCallback, result
+	successCallback tx, sqlmod, failureCallback, ""  if tot == 0
 
 
-# successCallback = (tx, sqlmod, caller, failureCallback, result)
+# successCallback = (tx, sqlmod, failureCallback, result)
 # failureCallback = (errors)
-executeSasync = (tx, sqlmod, caller, successCallback, failureCallback, result) ->
+executeSasync = (tx, sqlmod, successCallback, failureCallback, result) ->
 	#Create tables related to terms and fact types
 	for row in sqlmod
 		tx.executeSql row[4] if row[0] in ["fcTp", "term"]
@@ -549,14 +549,14 @@ executeSasync = (tx, sqlmod, caller, successCallback, failureCallback, result) -
 	#Validate the [empty] model according to the rules. 
 	#This may eventually lead to entering obligatory data.
 	#For the moment it blocks such models from execution.
-	validateDB tx, sqlmod, caller, successCallback, failureCallback
+	validateDB tx, sqlmod, successCallback, failureCallback
 
 	
-# successCallback = (tx, sqlmod, caller, failureCallback, result)
+# successCallback = (tx, sqlmod, failureCallback, result)
 # failureCallback = (errors)
-executeTasync = (tx, trnmod, caller, successCallback, failureCallback, result) ->
+executeTasync = (tx, trnmod, successCallback, failureCallback, result) ->
 	#Execute transaction model.
-	executeSasync tx, trnmod, caller, ((tx, trnmod, caller, failureCallback, result) ->
+	executeSasync tx, trnmod, ((tx, trnmod, failureCallback, result) ->
 		#Hack: Add certain attributes to the transaction model tables. 
 		#This should eventually be done with SBVR, when we add attributes.
 		tx.executeSql "ALTER TABLE 'resource-is_under-lock' ADD COLUMN resource_type TEXT", []
@@ -564,7 +564,7 @@ executeTasync = (tx, trnmod, caller, successCallback, failureCallback, result) -
 		tx.executeSql "ALTER TABLE 'conditional_representation' ADD COLUMN field_value TEXT", []
 		tx.executeSql "ALTER TABLE 'conditional_representation' ADD COLUMN field_type TEXT", []
 		tx.executeSql "ALTER TABLE 'conditional_representation' ADD COLUMN lock_id TEXT", []
-		successCallback tx, trnmod, caller, failureCallback, result
+		successCallback tx, trnmod, failureCallback, result
 	), ((errors) ->
 		serverModelCache.setModelAreaDisabled false
 		failureCallback errors
@@ -632,12 +632,12 @@ if process?
 		)
 		request.on('end', () ->
 			remoteServerRequest(request.method, request.url, request.headers, body,
-				(statusCode, result = "", caller, headers) ->
+				(statusCode, result = "", headers) ->
 					response.writeHead(statusCode, headers)
 					response.end(result)
 				(statusCode, errors, headers) ->
 					response.writeHead(statusCode, headers)
 					response.end(errors)
-				caller)
 			)
+		)
 	).listen(1337, "127.0.0.1");

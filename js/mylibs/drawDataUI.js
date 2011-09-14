@@ -93,7 +93,7 @@ function drawData(tree){
 		// + "<table id='fcTps'><tbody><tr><td>Fact Types:</td></tr></tbody></table>"
 	);
 	
-	serverRequest("GET", "/data/", [], '', function(statusCode, result, caller, headers){
+	serverRequest("GET", "/data/", [], '', function(statusCode, result, headers){
 		//console.log(result);
 		var reslt = JSON.parse(result);
 		
@@ -242,6 +242,7 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 	}
 	
 	this.subRowIn = function(){
+		var parent = this;
 		//console.log(this.branch);
 		if(this.branch[0]=='col'){
 			this.pre += "<div class='panel' style='background-color:" + this.bg +
@@ -286,7 +287,7 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 			///load collection data
 			//console.log(this.targ);
 			
-			serverRequest("GET", this.targ, [], '', function(statusCode, result, parent, headers){
+			serverRequest("GET", this.targ, [], '', function(statusCode, result, headers){
 				//console.log(result);
 			
 				var reslt = JSON.parse(result);
@@ -500,7 +501,7 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 						}
 					}
 				}
-			}, null, this);
+			});
 			
 		} else if (this.branch[0]=='ins'){
 			//console.log(branch);
@@ -527,7 +528,7 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 						//this.filters = filtmerge(this.branch, this.filters);
 						this.targ = serverAPI(this.about, this.filters);
 						//console.log(this.targ, getTarg(this.ftree, this.loc, "del", 1));
-						serverRequest("GET", this.targ, [], '', function(statusCode, result, parent, headers){
+						serverRequest("GET", this.targ, [], '', function(statusCode, result, headers){
 							res = ''
 							var reslt = JSON.parse(result);
 							//console.log(result);
@@ -540,11 +541,11 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 							}
 							//console.log(res);
 							parent.callback(1,res);
-						}, null, this);
+						});
 					} else if(this.type == "fcTp"){
 						this.targ = serverAPI(this.about, this.filters);
 						//console.log(this.targ);
-						serverRequest("GET", this.targ, [], '', function(statusCode, result, parent, headers){
+						serverRequest("GET", this.targ, [], '', function(statusCode, result, headers){
 							res = '';
 							var reslt = JSON.parse(result);
 							res += "id: " + reslt.instances[0].id + "<br/>"
@@ -557,7 +558,7 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 								}
 							}
 							parent.callback(1,res);
-						}, null, this);
+						});
 					}
 					break;
 				case "add":
@@ -604,7 +605,7 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 						var trms = [];
 						var trmres = [];
 						var trmsel = {};
-						var addftcb = function(statusCode, result, parent, headers){
+						var addftcb = function(statusCode, result, headers){
 							//console.log(result);
 							
 							res = ''
@@ -677,7 +678,7 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 						for(var j=0;j<this.schema.length;j++){
 							if(this.schema[j][0]=='term'){
 								var tar = serverAPI(this.schema[j][1], this.filters);
-								serverRequest("GET", tar, [], '', addftcb, null, this);
+								serverRequest("GET", tar, [], '', addftcb);
 							}else if(this.schema[j][0]=='verb'){
 							}
 						}
@@ -698,7 +699,7 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 						//this.filters = filtmerge(this.branch, this.filters);
 						this.targ = serverAPI(this.about, this.filters);
 						//console.log(this.targ);
-						serverRequest("GET", this.targ, [], '', function(statusCode, result, parent, headers){
+						serverRequest("GET", this.targ, [], '', function(statusCode, result, headers){
 							//console.log(result);
 							var res = ''
 							var reslt = JSON.parse(result);
@@ -732,10 +733,10 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 							res += "</div>";
 							//console.log(res);
 							parent.callback(1,res);
-						}, null, this);
+						});
 					}else if(this.type == "fcTp"){
 						this.targ = serverAPI(this.about, this.filters);
-						serverRequest("GET", targ, [], '', function(statusCode, result, parent, headers){
+						serverRequest("GET", targ, [], '', function(statusCode, result, headers){
 							//console.log(result);
 							
 							resu = JSON.parse(result);
@@ -744,7 +745,7 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 							var trms = [];
 							var trmres = [];
 							var trmsel = {};
-							var editftcb = function(statusCode, result, parent, headers){
+							var editftcb = function(statusCode, result, headers){
 								//console.log(result);
 								
 								res = ''
@@ -832,11 +833,11 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 							for(var j=0;j<parent.schema.length;j++){
 								if(parent.schema[j][0]=='term'){
 									var tar = serverAPI(parent.schema[j][1], parent.filters);
-									serverRequest("GET", tar, [], '', editftcb, null, parent);
+									serverRequest("GET", tar, [], '', editftcb);
 								}else if(parent.schema[j][0]=='verb'){
 								}
 							}
-						}, null, this);
+						});
 					}
 					break;
 				case "del":
@@ -916,10 +917,9 @@ function processForm(forma){
 
 function delInst(forma,uri,backURI){
 	this.backURI=backURI;
-	serverRequest("DELETE", uri, [], '', function(statusCode, result, parent, headers){
+	serverRequest("DELETE", uri, [], '', function(statusCode, result, headers){
 		location.hash = '#!' + backURI;
-	}, 
-	undefined, this)
+	})
 	return false;
 }
 
@@ -935,12 +935,10 @@ function editInst(forma,serverURI,backURI){
 		}
 	});
 	console.log(JSON.stringify(obj));
-	serverRequest("PUT", serverURI, [], JSON.stringify(obj), function(statusCode, result, parent, headers){
+	serverRequest("PUT", serverURI, [], JSON.stringify(obj), function(statusCode, result, headers){
 		//console.log("succ!", result);
 		location.hash = '#!' + backURI;
-	}, 
-	defaultFailureCallback, 
-	this)
+	})
 	return false;
 }
 
@@ -956,10 +954,9 @@ function addInst(forma,uri,backURI){
 		}
 	});
 	//console.log(JSON.stringify(obj));
-	serverRequest("POST", uri, [], JSON.stringify(obj), function(statusCode, result, parent, headers){
+	serverRequest("POST", uri, [], JSON.stringify(obj), function(statusCode, result, headers){
 		location.hash = '#!' + backURI;
-	},
-	defaultFailureCallback, this)
+	})
 	return false;
 }
 

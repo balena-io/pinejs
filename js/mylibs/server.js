@@ -125,7 +125,7 @@
       }
     };
   })();
-  remoteServerRequest = function(method, uri, headers, body, successCallback, failureCallback, caller) {
+  remoteServerRequest = function(method, uri, headers, body, successCallback, failureCallback) {
     var o, rootbranch, tree;
     tree = ServerURIParser.matchAll(uri, "uri");
     if ((headers != null) && headers["Content-Type"] === "application/xml") {
@@ -199,7 +199,7 @@
         break;
       case "execute":
         if (method === "POST") {
-          return executePOST(tree, headers, body, successCallback, failureCallback, caller);
+          return executePOST(tree, headers, body, successCallback, failureCallback);
         }
         break;
       case "update":
@@ -212,7 +212,7 @@
           if (tree[1] === void 0) {
             switch (method) {
               case "GET":
-                return dataGET(tree, headers, body, successCallback, failureCallback, caller);
+                return dataGET(tree, headers, body, successCallback, failureCallback);
             }
           } else if (tree[1][1] === "transaction" && method === "GET") {
             o = {
@@ -226,18 +226,18 @@
               xlcURI: "/data/lock-is_exclusive",
               ctURI: "/data/transaction*filt:transaction.id=" + tree[1][3][1][1][3] + "/execute"
             };
-            return successCallback(200, JSON.stringify(o), caller);
+            return successCallback(200, JSON.stringify(o));
           } else {
             switch (method) {
               case "GET":
                 console.log("body:[" + body + "]");
-                return dataplusGET(tree, headers, body, successCallback, failureCallback, caller);
+                return dataplusGET(tree, headers, body, successCallback, failureCallback);
               case "POST":
-                return dataplusPOST(tree, headers, body, successCallback, failureCallback, caller);
+                return dataplusPOST(tree, headers, body, successCallback, failureCallback);
               case "PUT":
-                return dataplusPUT(tree, headers, body, successCallback, failureCallback, caller);
+                return dataplusPUT(tree, headers, body, successCallback, failureCallback);
               case "DELETE":
-                return dataplusDELETE(tree, headers, body, successCallback, failureCallback, caller);
+                return dataplusDELETE(tree, headers, body, successCallback, failureCallback);
             }
           }
         } else {
@@ -246,11 +246,11 @@
         break;
       default:
         if (method === "DELETE") {
-          return rootDELETE(tree, headers, body, successCallback, failureCallback, caller);
+          return rootDELETE(tree, headers, body, successCallback, failureCallback);
         }
     }
   };
-  dataplusDELETE = function(tree, headers, body, successCallback, failureCallback, caller) {
+  dataplusDELETE = function(tree, headers, body, successCallback, failureCallback) {
     var id;
     id = getID(tree);
     if (id !== 0) {
@@ -270,8 +270,8 @@
             if (result.rows.item(0).result === 1) {
               sql = 'DELETE FROM "' + tree[1][1] + '" WHERE id=' + id + ";";
               return tx.executeSql(sql, [], function(tx, result) {
-                return validateDB(tx, serverModelCache.getSQL(), caller, (function(tx, sqlmod, caller, failureCallback, result) {
-                  return successCallback(200, result, caller);
+                return validateDB(tx, serverModelCache.getSQL(), (function(tx, sqlmod, failureCallback, result) {
+                  return successCallback(200, result);
                 }), failureCallback);
               });
             } else {
@@ -282,7 +282,7 @@
       }
     }
   };
-  dataplusPUT = function(tree, headers, body, successCallback, failureCallback, caller) {
+  dataplusPUT = function(tree, headers, body, successCallback, failureCallback) {
     var bd, id, k, pair, ps, _ref;
     id = getID(tree);
     if (tree[1][1] === "lock" && hasCR(tree)) {
@@ -328,8 +328,8 @@
               }
               sql = 'UPDATE "' + tree[1][1] + '" SET ' + ps.join(",") + " WHERE id=" + id + ";";
               return tx.executeSql(sql, [], function(tx) {
-                return validateDB(tx, serverModelCache.getSQL(), caller, (function(tx, sqlmod, caller, failureCallback, result) {
-                  return successCallback(200, result, caller);
+                return validateDB(tx, serverModelCache.getSQL(), (function(tx, sqlmod, failureCallback, result) {
+                  return successCallback(200, result);
                 }), failureCallback);
               });
             }
@@ -340,7 +340,7 @@
       }), function(err) {});
     }
   };
-  dataplusPOST = function(tree, headers, body, successCallback, failureCallback, caller) {
+  dataplusPOST = function(tree, headers, body, successCallback, failureCallback) {
     var bd, fds, id, k, pair, sql, vls, _ref;
     if (tree[1][1] === "transaction" && isExecute(tree)) {
       id = getID(tree);
@@ -348,7 +348,7 @@
         var sql;
         sql = 'SELECT * FROM "lock-belongs_to-transaction" WHERE "transaction_id"=' + id + ";";
         return tx.executeSql(sql, [], function(tx, locks) {
-          return endLock(tx, locks, 0, id, caller, successCallback, failureCallback);
+          return endLock(tx, locks, 0, id, successCallback, failureCallback);
         });
       }), function(error) {
         return db.transaction(function(tx) {
@@ -399,8 +399,8 @@
       sql = 'INSERT INTO "' + tree[1][1] + '"("' + fds.join('","') + '") VALUES (' + vls.join(",") + ");";
       return db.transaction(function(tx) {
         return tx.executeSql(sql, [], function(tx, sqlResult) {
-          return validateDB(tx, serverModelCache.getSQL(), caller, (function(tx, sqlmod, caller, failureCallback, headers, result) {
-            return successCallback(201, result, caller, {
+          return validateDB(tx, serverModelCache.getSQL(), (function(tx, sqlmod, failureCallback, headers, result) {
+            return successCallback(201, result, {
               location: "/data/" + tree[1][1] + "*filt:" + tree[1][1] + ".id=" + sqlResult.insertId
             });
           }), failureCallback);
@@ -408,7 +408,7 @@
       });
     }
   };
-  executePOST = function(tree, headers, body, successCallback, failureCallback, caller) {
+  executePOST = function(tree, headers, body, successCallback, failureCallback) {
     var lfmod, prepmod, se, sqlmod, trnmod;
     se = serverModelCache.getSE();
     lfmod = SBVRParser.matchAll(se, "expr");
@@ -419,8 +419,8 @@
     trnmod = SBVR2SQL.match(tree, "trans");
     serverModelCache.setModelAreaDisabled(true);
     return db.transaction(function(tx) {
-      return executeSasync(tx, sqlmod, caller, (function(tx, sqlmod, caller, failureCallback, result) {
-        return executeTasync(tx, trnmod, caller, (function(tx, trnmod, caller, failureCallback, result) {
+      return executeSasync(tx, sqlmod, (function(tx, sqlmod, failureCallback, result) {
+        return executeTasync(tx, trnmod, (function(tx, trnmod, failureCallback, result) {
           serverModelCache.setServerOnAir(true);
           serverModelCache.setLastSE(se);
           serverModelCache.setLF(lfmod);
@@ -435,7 +435,7 @@
       }));
     });
   };
-  rootDELETE = function(tree, headers, body, successCallback, failureCallback, caller) {
+  rootDELETE = function(tree, headers, body, successCallback, failureCallback) {
     db.transaction((function(sqlmod) {
       return function(tx) {
         var row, _i, _len, _ref, _ref2, _results;
@@ -470,7 +470,7 @@
     serverModelCache.setServerOnAir(false);
     return successCallback(200);
   };
-  dataGET = function(tree, headers, body, successCallback, failureCallback, caller) {
+  dataGET = function(tree, headers, body, successCallback, failureCallback) {
     var result, row, sqlmod, _i, _len, _ref;
     result = {
       terms: [],
@@ -492,9 +492,9 @@
         });
       }
     }
-    return successCallback(200, JSON.stringify(result), caller);
+    return successCallback(200, JSON.stringify(result));
   };
-  dataplusGET = function(tree, headers, body, successCallback, failureCallback, caller) {
+  dataplusGET = function(tree, headers, body, successCallback, failureCallback) {
     var ftree;
     ftree = getFTree(tree);
     return db.transaction(function(tx) {
@@ -557,12 +557,12 @@
               return _results;
             })()
           };
-          return successCallback(200, JSON.stringify(data), caller);
+          return successCallback(200, JSON.stringify(data));
         });
       }
     });
   };
-  endLock = function(tx, locks, i, trans_id, caller, successCallback, failureCallback) {
+  endLock = function(tx, locks, i, trans_id, successCallback, failureCallback) {
     var lock_id, sql;
     lock_id = locks.rows.item(i).lock_id;
     sql = 'SELECT * FROM "conditional_representation" WHERE "lock_id"=' + lock_id + ';';
@@ -575,12 +575,12 @@
           sql += '" WHERE "id"=' + locked.rows.item(0).resource_id;
           tx.executeSql(sql + ";", [], function(tx, result) {
             if (i < locks.rows.length - 1) {
-              return endLock(tx, locks, i + 1, trans_id, caller, successCallback, failureCallback);
+              return endLock(tx, locks, i + 1, trans_id, successCallback, failureCallback);
             } else {
               sql = 'DELETE FROM "transaction" WHERE "id"=' + trans_id + ';';
               tx.executeSql(sql, [], function(tx, result) {});
-              return validateDB(tx, serverModelCache.getSQL(), caller, (function(tx, sqlmod, caller, failureCallback, result) {
-                return successCallback(200, result, caller);
+              return validateDB(tx, serverModelCache.getSQL(), (function(tx, sqlmod, failureCallback, result) {
+                return successCallback(200, result);
               }), failureCallback);
             }
           });
@@ -601,14 +601,14 @@
           sql += ' WHERE "id"=' + locked.rows.item(0).resource_id + ';';
           tx.executeSql(sql, [], function(tx, result) {
             if (i < locks.rows.length - 1) {
-              return endLock(tx, locks, i + 1, trans_id, caller, successCallback, failureCallback);
+              return endLock(tx, locks, i + 1, trans_id, successCallback, failureCallback);
             } else {
               sql = 'DELETE FROM "transaction" WHERE "id"=' + trans_id + ';';
               tx.executeSql(sql, [], function(tx, result) {
                 return console.log("t ok");
               });
-              return validateDB(tx, serverModelCache.getSQL(), caller, (function(tx, sqlmod, caller, failureCallback, result) {
-                return successCallback(200, result, caller);
+              return validateDB(tx, serverModelCache.getSQL(), (function(tx, sqlmod, failureCallback, result) {
+                return successCallback(200, result);
               }), failureCallback);
             }
           });
@@ -640,7 +640,7 @@
       return console.log("l ok");
     });
   };
-  validateDB = function(tx, sqlmod, caller, successCallback, failureCallback) {
+  validateDB = function(tx, sqlmod, successCallback, failureCallback) {
     var errors, l, par, query, row, tex, tot, _i, _len;
     l = [];
     errors = [];
@@ -664,17 +664,17 @@
               failureCallback(errors);
               return tx.executeSql("DROP TABLE '__Fo0oFoo'");
             } else {
-              return successCallback(tx, sqlmod, caller, failureCallback, result);
+              return successCallback(tx, sqlmod, failureCallback, result);
             }
           }
         });
       }
     }
     if (tot === 0) {
-      return successCallback(tx, sqlmod, caller, failureCallback, "");
+      return successCallback(tx, sqlmod, failureCallback, "");
     }
   };
-  executeSasync = function(tx, sqlmod, caller, successCallback, failureCallback, result) {
+  executeSasync = function(tx, sqlmod, successCallback, failureCallback, result) {
     var row, _i, _len, _ref;
     for (_i = 0, _len = sqlmod.length; _i < _len; _i++) {
       row = sqlmod[_i];
@@ -682,16 +682,16 @@
         tx.executeSql(row[4]);
       }
     }
-    return validateDB(tx, sqlmod, caller, successCallback, failureCallback);
+    return validateDB(tx, sqlmod, successCallback, failureCallback);
   };
-  executeTasync = function(tx, trnmod, caller, successCallback, failureCallback, result) {
-    return executeSasync(tx, trnmod, caller, (function(tx, trnmod, caller, failureCallback, result) {
+  executeTasync = function(tx, trnmod, successCallback, failureCallback, result) {
+    return executeSasync(tx, trnmod, (function(tx, trnmod, failureCallback, result) {
       tx.executeSql("ALTER TABLE 'resource-is_under-lock' ADD COLUMN resource_type TEXT", []);
       tx.executeSql("ALTER TABLE 'conditional_representation' ADD COLUMN field_name TEXT", []);
       tx.executeSql("ALTER TABLE 'conditional_representation' ADD COLUMN field_value TEXT", []);
       tx.executeSql("ALTER TABLE 'conditional_representation' ADD COLUMN field_type TEXT", []);
       tx.executeSql("ALTER TABLE 'conditional_representation' ADD COLUMN lock_id TEXT", []);
-      return successCallback(tx, trnmod, caller, failureCallback, result);
+      return successCallback(tx, trnmod, failureCallback, result);
     }), (function(errors) {
       serverModelCache.setModelAreaDisabled(false);
       return failureCallback(errors);
@@ -784,7 +784,7 @@
         return body += chunk;
       });
       return request.on('end', function() {
-        return remoteServerRequest(request.method, request.url, request.headers, body, function(statusCode, result, caller, headers) {
+        return remoteServerRequest(request.method, request.url, request.headers, body, function(statusCode, result, headers) {
           if (result == null) {
             result = "";
           }
@@ -793,7 +793,7 @@
         }, function(statusCode, errors, headers) {
           response.writeHead(statusCode, headers);
           return response.end(errors);
-        }, caller);
+        });
       });
     }).listen(1337, "127.0.0.1");
   }
