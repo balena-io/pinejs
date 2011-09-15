@@ -528,7 +528,7 @@
                 this._pred((this["lines"][(this["lines"]["length"] - (1))][(0)] == "term"));
                 attrName = this._apply("allowedAttrs");
                 this._applyWithArgs("exactly", ":");
-                attrVal = this._apply("toEOL");
+                attrVal = this._applyWithArgs("applyFirstExisting", [("attr" + attrName), "toEOL"]);
                 return (function() {
                     var lastLine = this["lines"].pop();
                     lastLine[(2)].push([attrName.replace(new RegExp(" ", "g"), ""), attrVal]);
@@ -540,6 +540,11 @@
             var $elf = this,
                 _fromIdx = this.input.idx;
             return this._applyWithArgs("matchForAny", "seq", this["possMap"]["allowedAttrs"])
+        },
+        "attrDefinition": function() {
+            var $elf = this,
+                _fromIdx = this.input.idx;
+            return this._apply("term")
         },
         "lineStart": function() {
             var $elf = this,
@@ -702,5 +707,15 @@
             (ret = this["_applyWithArgs"].call(this, rule, arr[idx]))
         };
         return ret
+    }));
+    (SBVRParser["applyFirstExisting"] = (function(arr) {
+        for (var i = (0);
+        (i < arr["length"]); i++) {
+            if ((this[arr[i]] != undefined)) {
+                return this._apply(arr[i])
+            } else {
+                undefined
+            }
+        }
     }))
 }

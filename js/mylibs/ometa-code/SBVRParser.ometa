@@ -107,9 +107,12 @@ ometa SBVRParser {
 	startTerm		= "T:",
 	newTerm			= startTerm addTerm:t {t.push([])}					-> t,
 	attribute		= ?{this.lines[this.lines.length-1][0] == 'term'}
-						allowedAttrs:attrName ':' toEOL:attrVal			-> {var lastLine = this.lines.pop(); lastLine[2].push([attrName.replace(new RegExp(' ','g'),''), attrVal]); lastLine},
+						allowedAttrs:attrName ':'
+						applyFirstExisting(['attr'+attrName,'toEOL']):attrVal
+																		-> {var lastLine = this.lines.pop(); lastLine[2].push([attrName.replace(new RegExp(' ','g'),''), attrVal]); lastLine},
 						
 	allowedAttrs	= matchForAny('seq',this.possMap.allowedAttrs),
+	attrDefinition	= term,
 
 	lineStart		= startTerm
 					| startFactType
@@ -248,4 +251,9 @@ SBVRParser.matchForAll = function(rule,arr) {
 	for (var idx = 0; idx < arr.length; idx++)
 		ret = this._applyWithArgs.call(this, rule, arr[idx])
 	return ret
+}
+SBVRParser.applyFirstExisting = function(arr) {
+	for (var i = 0; i < arr.length; i++)
+		if(this[arr[i]] != undefined)
+			return this._apply(arr[i])
 }
