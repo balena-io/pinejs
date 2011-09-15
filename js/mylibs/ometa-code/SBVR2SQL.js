@@ -164,7 +164,7 @@
         "fcTp": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                c, d, b, t, s, e, v, r;
+                c, d, b, t, s, e, v, r, attr;
             return (function() {
                 (a = []);
                 this._lookahead((function() {
@@ -220,6 +220,12 @@
                         return ["", ""]
                     }).call(this)
                 }));
+                attr = (function() {
+                    this._many((function() {
+                        return this._apply("anything")
+                    }));
+                    return ["", ""]
+                }).call(this);
                 return ["fcTp", this._fLst(r).concat(e[(0)]), this._fLstt(r).concat(e[(1)]), s, a]
             }).call(this)
         },

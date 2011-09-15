@@ -53,6 +53,7 @@ ometa SBVR2SQL {
                          ( "term":b          -> ( a = a.concat([[b[0], b[2]]])            ) )?)
              &(("term":t "verb" ->t)*:s $('term'):e) {s=s.concat(e)}
              ("term":t "verb":v->[t,v])*:r ("term":t->[('-'+t[1]),(' '+t[1])]|empty->['','']):e
+			 (anything*->['','']):attr
                                           -> [`fcTp, this._fLst(r).concat(e[0]), this._fLstt(r).concat(e[1]), s, a],
 
   verb       [letters+:l]                              -> [`verb, l.join('_'), l.join(' ')],
