@@ -52,14 +52,16 @@ load(ometaPath+"/../ometa-dev/js/beautify.js")
 var translationError = function(m, i) { 
 	console.log("Translation error - please tell Alex about this!"); throw fail 
 };
-var parsingError = function(m, i) {
-	console.log(m);
-	var start = Math.max(0,i-20);
-	console.log('Error around: '+ometa.substring(start, Math.min(ometa.length,start+40)));
-	console.log('Error around: '+ometa.substring(i-2, Math.min(ometa.length,i+2)));
-	throw m;
+var parsingError = function(ometa) {
+	return function(m, i) {
+//		console.log(m);
+		var start = Math.max(0,i-20);
+		console.log('Error around: '+ometa.substring(start, Math.min(ometa.length,start+40)));
+		console.log('Error around: '+ometa.substring(i-2, Math.min(ometa.length,i+2)));
+		throw m;
+	}
 }
-
+	
 var i=1, pretty = false;
 if(arguments[1]=='pretty') {
 	pretty = true;
@@ -72,7 +74,7 @@ for(;i<arguments.length;i++) {
 			return function(err, data) {
 				var ometa = data.replace(/\r\n/g,"\n");
 				console.log('Parsing: ' + filePath);
-				var tree = BSOMetaJSParser.matchAll(ometa, "topLevel", undefined, parsingError)
+				var tree = BSOMetaJSParser.matchAll(ometa, "topLevel", undefined, parsingError(ometa))
 				console.log('Compiling: ' + filePath);
 				var js = BSOMetaJSTranslator.match(tree, "trans", undefined, translationError);
 				if(pretty===true) {
