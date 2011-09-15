@@ -102,14 +102,15 @@ ometa SBVRParser {
 																		-> ['rule', r, ['text', ruleText.join('')]],
 	terb			= term:t addVerb:v									-> [t, v],
 	startFactType	= "F:",
-	newFactType		= startFactType {[]}:t (terb:b {t.concat(b)}:t)+ (term:e {t.push(e)})? {this.fctps[t] = true}
+	newFactType		= startFactType {[]}:t (terb:b {t.concat(b)}:t)+ (term:e {t.push(e)})? {this.fctps[t] = true; t.push([])}
 																		-> [`fcTp].concat(t),
 	startTerm		= "T:",
 	newTerm			= startTerm addTerm:t {t.push([])}					-> t,
-	attribute		= ?{this.lines[this.lines.length-1][0] == 'term'}
+	attribute		= ?{this.lines[this.lines.length-1][0] == 'term' ||
+						this.lines[this.lines.length-1][0] == 'fcTp'}
 						allowedAttrs:attrName ':'
 						applyFirstExisting(['attr'+attrName,'toEOL']):attrVal
-																		-> {var lastLine = this.lines.pop(); lastLine[2].push([attrName.replace(new RegExp(' ','g'),''), attrVal]); lastLine},
+																		-> {var lastLine = this.lines.pop(); lastLine[lastLine.length-1].push([attrName.replace(new RegExp(' ','g'),''), attrVal]); lastLine},
 						
 	allowedAttrs	= matchForAny('seq',this.possMap.allowedAttrs),
 	attrDefinition	= term,

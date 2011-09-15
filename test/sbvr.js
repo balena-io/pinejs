@@ -108,28 +108,104 @@ var testModel = [
 	/* Fact Types */
 	[
 		'F: student is school president ',						/* term verb */
-		[ "fcTp", [ "term", "student" ], [ "verb", "is school president" ] ],
-		[ "fcTp", [ "term", "student" ], [ "verb", "is school president" ] ],
+		[ "fcTp", [ "term", "student" ], [ "verb", "is school president" ], [] ],
+		[ "fcTp", [ "term", "student" ], [ "verb", "is school president" ], [] ],
+	], [
+		'	Definition: An invalid definition',
+		'match failed',
+		'tried to apply undefined rule "m"',
+	], [
+		'	Definition: person',
+		[ "fcTp", [ "term", "student" ], [ "verb", "is school president" ], [ [ "Definition", [ "term", "person" ] ] ] ],
+		[ "fcTp", [ "term", "student" ], [ "verb", "is school president" ], [ [ "Definition", [ "term", "person" ] ] ] ],
+	], [
+		'	Source: A source',
+		[ "fcTp", [ "term", "student" ], [ "verb", "is school president" ], [ [ "Definition", [ "term", "person" ] ], [ "Source", "A source" ] ] ],
+		[ "fcTp", [ "term", "student" ], [ "verb", "is school president" ], [ [ "Definition", [ "term", "person" ] ], [ "Source", "A source" ] ] ],
+	], [
+		'	Dictionary Basis: A dictionary basis',
+		[ "fcTp", [ "term", "student" ], [ "verb", "is school president" ], [ [ "Definition", [ "term", "person" ] ], [ "Source", "A source" ], [ "DictionaryBasis", "A dictionary basis" ] ] ],
+		[ "fcTp", [ "term", "student" ], [ "verb", "is school president" ], [ [ "Definition", [ "term", "person" ] ], [ "Source", "A source" ], [ "DictionaryBasis", "A dictionary basis" ] ] ],
+	], [
+		'	General Concept: A general concept',
+		[ "fcTp", [ "term", "student" ], [ "verb", "is school president" ], [ [ "Definition", [ "term", "person" ] ], [ "Source", "A source" ], [ "DictionaryBasis", "A dictionary basis" ], [ "GeneralConcept", "A general concept" ] ] ],
+		[ "fcTp", [ "term", "student" ], [ "verb", "is school president" ], [ [ "Definition", [ "term", "person" ] ], [ "Source", "A source" ], [ "DictionaryBasis", "A dictionary basis" ], [ "GeneralConcept", "A general concept" ] ] ],
+	], [
+		'	Concept Type: person',
+		[ "fcTp", [ "term", "student" ], [ "verb", "is school president" ], [ [ "Definition", [ "term", "person" ] ], [ "Source", "A source" ], [ "DictionaryBasis", "A dictionary basis" ], [ "GeneralConcept", "A general concept" ], [ "ConceptType", "person" ] ] ],
+		[ "fcTp", [ "term", "student" ], [ "verb", "is school president" ], [ [ "Definition", [ "term", "person" ] ], [ "Source", "A source" ], [ "DictionaryBasis", "A dictionary basis" ], [ "GeneralConcept", "A general concept" ], [ "ConceptType", "person" ] ] ],
+	], [
+		'	Necessity: A necessity',
+		[ "fcTp", [ "term", "student" ], [ "verb", "is school president" ], [ [ "Definition", [ "term", "person" ] ], [ "Source", "A source" ], [ "DictionaryBasis", "A dictionary basis" ], [ "GeneralConcept", "A general concept" ], [ "ConceptType", "person" ], [ "Necessity", "A necessity" ] ] ],
+		[ "fcTp", [ "term", "student" ], [ "verb", "is school president" ], [ [ "Definition", [ "term", "person" ] ], [ "Source", "A source" ], [ "DictionaryBasis", "A dictionary basis" ], [ "GeneralConcept", "A general concept" ], [ "ConceptType", "person" ], [ "Necessity", "A necessity" ] ] ],
+	], [
+		'	Possibility: A possibility',
+		[ "fcTp", [ "term", "student" ], [ "verb", "is school president" ], [ [ "Definition", [ "term", "person" ] ], [ "Source", "A source" ], [ "DictionaryBasis", "A dictionary basis" ], [ "GeneralConcept", "A general concept" ], [ "ConceptType", "person" ], [ "Necessity", "A necessity" ], [ "Possibility", "A possibility" ] ] ],
+		[ "fcTp", [ "term", "student" ], [ "verb", "is school president" ], [ [ "Definition", [ "term", "person" ] ], [ "Source", "A source" ], [ "DictionaryBasis", "A dictionary basis" ], [ "GeneralConcept", "A general concept" ], [ "ConceptType", "person" ], [ "Necessity", "A necessity" ], [ "Possibility", "A possibility" ] ] ],
+	], [
+		'	Reference Scheme: A reference scheme',
+		[ "fcTp", [ "term", "student" ], [ "verb", "is school president" ], [ [ "Definition", [ "term", "person" ] ], [ "Source", "A source" ], [ "DictionaryBasis", "A dictionary basis" ], [ "GeneralConcept", "A general concept" ], [ "ConceptType", "person" ], [ "Necessity", "A necessity" ], [ "Possibility", "A possibility" ], [ "ReferenceScheme", "A reference scheme" ] ] ],
+		[ "fcTp", [ "term", "student" ], [ "verb", "is school president" ], [ [ "Definition", [ "term", "person" ] ], [ "Source", "A source" ], [ "DictionaryBasis", "A dictionary basis" ], [ "GeneralConcept", "A general concept" ], [ "ConceptType", "person" ], [ "Necessity", "A necessity" ], [ "Possibility", "A possibility" ], [ "ReferenceScheme", "A reference scheme" ] ] ],
+	], [
+		'	Note: A note',
+		[ "fcTp", [ "term", "student" ], [ "verb", "is school president" ], [ [ "Definition", [ "term", "person" ] ], [ "Source", "A source" ], [ "DictionaryBasis", "A dictionary basis" ], [ "GeneralConcept", "A general concept" ], [ "ConceptType", "person" ], [ "Necessity", "A necessity" ], [ "Possibility", "A possibility" ], [ "ReferenceScheme", "A reference scheme" ], [ "Note", "A note" ] ] ],
+		[ "fcTp", [ "term", "student" ], [ "verb", "is school president" ], [ [ "Definition", [ "term", "person" ] ], [ "Source", "A source" ], [ "DictionaryBasis", "A dictionary basis" ], [ "GeneralConcept", "A general concept" ], [ "ConceptType", "person" ], [ "Necessity", "A necessity" ], [ "Possibility", "A possibility" ], [ "ReferenceScheme", "A reference scheme" ], [ "Note", "A note" ] ] ],
+	], [
+		'	Example: An example',
+		[ "fcTp", [ "term", "student" ], [ "verb", "is school president" ], [ [ "Definition", [ "term", "person" ] ], [ "Source", "A source" ], [ "DictionaryBasis", "A dictionary basis" ], [ "GeneralConcept", "A general concept" ], [ "ConceptType", "person" ], [ "Necessity", "A necessity" ], [ "Possibility", "A possibility" ], [ "ReferenceScheme", "A reference scheme" ], [ "Note", "A note" ], [ "Example", "An example" ] ] ],
+		[ "fcTp", [ "term", "student" ], [ "verb", "is school president" ], [ [ "Definition", [ "term", "person" ] ], [ "Source", "A source" ], [ "DictionaryBasis", "A dictionary basis" ], [ "GeneralConcept", "A general concept" ], [ "ConceptType", "person" ], [ "Necessity", "A necessity" ], [ "Possibility", "A possibility" ], [ "ReferenceScheme", "A reference scheme" ], [ "Note", "A note" ], [ "Example", "An example" ] ] ],
+	], [
+		'	Synonym: A synonym',
+		[ "fcTp", [ "term", "student" ], [ "verb", "is school president" ], [ [ "Definition", [ "term", "person" ] ], [ "Source", "A source" ], [ "DictionaryBasis", "A dictionary basis" ], [ "GeneralConcept", "A general concept" ], [ "ConceptType", "person" ], [ "Necessity", "A necessity" ], [ "Possibility", "A possibility" ], [ "ReferenceScheme", "A reference scheme" ], [ "Note", "A note" ], [ "Example", "An example" ], [ "Synonym", "A synonym" ] ] ],
+		[ "fcTp", [ "term", "student" ], [ "verb", "is school president" ], [ [ "Definition", [ "term", "person" ] ], [ "Source", "A source" ], [ "DictionaryBasis", "A dictionary basis" ], [ "GeneralConcept", "A general concept" ], [ "ConceptType", "person" ], [ "Necessity", "A necessity" ], [ "Possibility", "A possibility" ], [ "ReferenceScheme", "A reference scheme" ], [ "Note", "A note" ], [ "Example", "An example" ], [ "Synonym", "A synonym" ] ] ],
+	], [
+		'	Synonymous Form: A synonymous form',
+		[ "fcTp", [ "term", "student" ], [ "verb", "is school president" ], [ [ "Definition", [ "term", "person" ] ], [ "Source", "A source" ], [ "DictionaryBasis", "A dictionary basis" ], [ "GeneralConcept", "A general concept" ], [ "ConceptType", "person" ], [ "Necessity", "A necessity" ], [ "Possibility", "A possibility" ], [ "ReferenceScheme", "A reference scheme" ], [ "Note", "A note" ], [ "Example", "An example" ], [ "Synonym", "A synonym" ], [ "SynonymousForm", "A synonymous form" ] ] ],
+		[ "fcTp", [ "term", "student" ], [ "verb", "is school president" ], [ [ "Definition", [ "term", "person" ] ], [ "Source", "A source" ], [ "DictionaryBasis", "A dictionary basis" ], [ "GeneralConcept", "A general concept" ], [ "ConceptType", "person" ], [ "Necessity", "A necessity" ], [ "Possibility", "A possibility" ], [ "ReferenceScheme", "A reference scheme" ], [ "Note", "A note" ], [ "Example", "An example" ], [ "Synonym", "A synonym" ], [ "SynonymousForm", "A synonymous form" ] ] ],
+	], [
+		'	See: Something to see',
+		[ "fcTp", [ "term", "student" ], [ "verb", "is school president" ], [ [ "Definition", [ "term", "person" ] ], [ "Source", "A source" ], [ "DictionaryBasis", "A dictionary basis" ], [ "GeneralConcept", "A general concept" ], [ "ConceptType", "person" ], [ "Necessity", "A necessity" ], [ "Possibility", "A possibility" ], [ "ReferenceScheme", "A reference scheme" ], [ "Note", "A note" ], [ "Example", "An example" ], [ "Synonym", "A synonym" ], [ "SynonymousForm", "A synonymous form" ], [ "See", "Something to see" ] ] ],
+		[ "fcTp", [ "term", "student" ], [ "verb", "is school president" ], [ [ "Definition", [ "term", "person" ] ], [ "Source", "A source" ], [ "DictionaryBasis", "A dictionary basis" ], [ "GeneralConcept", "A general concept" ], [ "ConceptType", "person" ], [ "Necessity", "A necessity" ], [ "Possibility", "A possibility" ], [ "ReferenceScheme", "A reference scheme" ], [ "Note", "A note" ], [ "Example", "An example" ], [ "Synonym", "A synonym" ], [ "SynonymousForm", "A synonymous form" ], [ "See", "Something to see" ] ] ],
+	], [
+		'	Subject Field: A subject field',
+		[ "fcTp", [ "term", "student" ], [ "verb", "is school president" ], [ [ "Definition", [ "term", "person" ] ], [ "Source", "A source" ], [ "DictionaryBasis", "A dictionary basis" ], [ "GeneralConcept", "A general concept" ], [ "ConceptType", "person" ], [ "Necessity", "A necessity" ], [ "Possibility", "A possibility" ], [ "ReferenceScheme", "A reference scheme" ], [ "Note", "A note" ], [ "Example", "An example" ], [ "Synonym", "A synonym" ], [ "SynonymousForm", "A synonymous form" ], [ "See", "Something to see" ], [ "SubjectField", "A subject field" ] ] ],
+		[ "fcTp", [ "term", "student" ], [ "verb", "is school president" ], [ [ "Definition", [ "term", "person" ] ], [ "Source", "A source" ], [ "DictionaryBasis", "A dictionary basis" ], [ "GeneralConcept", "A general concept" ], [ "ConceptType", "person" ], [ "Necessity", "A necessity" ], [ "Possibility", "A possibility" ], [ "ReferenceScheme", "A reference scheme" ], [ "Note", "A note" ], [ "Example", "An example" ], [ "Synonym", "A synonym" ], [ "SynonymousForm", "A synonymous form" ], [ "See", "Something to see" ], [ "SubjectField", "A subject field" ] ] ],
+	], [
+		'	Namespace URI: A namespace URI',
+		[ "fcTp", [ "term", "student" ], [ "verb", "is school president" ], [ [ "Definition", [ "term", "person" ] ], [ "Source", "A source" ], [ "DictionaryBasis", "A dictionary basis" ], [ "GeneralConcept", "A general concept" ], [ "ConceptType", "person" ], [ "Necessity", "A necessity" ], [ "Possibility", "A possibility" ], [ "ReferenceScheme", "A reference scheme" ], [ "Note", "A note" ], [ "Example", "An example" ], [ "Synonym", "A synonym" ], [ "SynonymousForm", "A synonymous form" ], [ "See", "Something to see" ], [ "SubjectField", "A subject field" ], [ "NamespaceURI", "A namespace URI" ] ] ],
+		[ "fcTp", [ "term", "student" ], [ "verb", "is school president" ], [ [ "Definition", [ "term", "person" ] ], [ "Source", "A source" ], [ "DictionaryBasis", "A dictionary basis" ], [ "GeneralConcept", "A general concept" ], [ "ConceptType", "person" ], [ "Necessity", "A necessity" ], [ "Possibility", "A possibility" ], [ "ReferenceScheme", "A reference scheme" ], [ "Note", "A note" ], [ "Example", "An example" ], [ "Synonym", "A synonym" ], [ "SynonymousForm", "A synonymous form" ], [ "See", "Something to see" ], [ "SubjectField", "A subject field" ], [ "NamespaceURI", "A namespace URI" ] ] ],
+	], [
+		'	Database Table Name: student_table',
+		[ "fcTp", [ "term", "student" ], [ "verb", "is school president" ], [ [ "Definition", [ "term", "person" ] ], [ "Source", "A source" ], [ "DictionaryBasis", "A dictionary basis" ], [ "GeneralConcept", "A general concept" ], [ "ConceptType", "person" ], [ "Necessity", "A necessity" ], [ "Possibility", "A possibility" ], [ "ReferenceScheme", "A reference scheme" ], [ "Note", "A note" ], [ "Example", "An example" ], [ "Synonym", "A synonym" ], [ "SynonymousForm", "A synonymous form" ], [ "See", "Something to see" ], [ "SubjectField", "A subject field" ], [ "NamespaceURI", "A namespace URI" ], [ "DatabaseTableName", "student_table" ] ] ],
+		[ "fcTp", [ "term", "student" ], [ "verb", "is school president" ], [ [ "Definition", [ "term", "person" ] ], [ "Source", "A source" ], [ "DictionaryBasis", "A dictionary basis" ], [ "GeneralConcept", "A general concept" ], [ "ConceptType", "person" ], [ "Necessity", "A necessity" ], [ "Possibility", "A possibility" ], [ "ReferenceScheme", "A reference scheme" ], [ "Note", "A note" ], [ "Example", "An example" ], [ "Synonym", "A synonym" ], [ "SynonymousForm", "A synonymous form" ], [ "See", "Something to see" ], [ "SubjectField", "A subject field" ], [ "NamespaceURI", "A namespace URI" ], [ "DatabaseTableName", "student_table" ] ] ],
+	], [
+		'	Database ID Field: id_field',
+		[ "fcTp", [ "term", "student" ], [ "verb", "is school president" ], [ [ "Definition", [ "term", "person" ] ], [ "Source", "A source" ], [ "DictionaryBasis", "A dictionary basis" ], [ "GeneralConcept", "A general concept" ], [ "ConceptType", "person" ], [ "Necessity", "A necessity" ], [ "Possibility", "A possibility" ], [ "ReferenceScheme", "A reference scheme" ], [ "Note", "A note" ], [ "Example", "An example" ], [ "Synonym", "A synonym" ], [ "SynonymousForm", "A synonymous form" ], [ "See", "Something to see" ], [ "SubjectField", "A subject field" ], [ "NamespaceURI", "A namespace URI" ], [ "DatabaseTableName", "student_table" ], [ "DatabaseIDField", "id_field" ] ] ],
+		[ "fcTp", [ "term", "student" ], [ "verb", "is school president" ], [ [ "Definition", [ "term", "person" ] ], [ "Source", "A source" ], [ "DictionaryBasis", "A dictionary basis" ], [ "GeneralConcept", "A general concept" ], [ "ConceptType", "person" ], [ "Necessity", "A necessity" ], [ "Possibility", "A possibility" ], [ "ReferenceScheme", "A reference scheme" ], [ "Note", "A note" ], [ "Example", "An example" ], [ "Synonym", "A synonym" ], [ "SynonymousForm", "A synonymous form" ], [ "See", "Something to see" ], [ "SubjectField", "A subject field" ], [ "NamespaceURI", "A namespace URI" ], [ "DatabaseTableName", "student_table" ], [ "DatabaseIDField", "id_field" ] ] ],
+	], [
+		'	Database Name Field: name_field',
+		[ "fcTp", [ "term", "student" ], [ "verb", "is school president" ], [ [ "Definition", [ "term", "person" ] ], [ "Source", "A source" ], [ "DictionaryBasis", "A dictionary basis" ], [ "GeneralConcept", "A general concept" ], [ "ConceptType", "person" ], [ "Necessity", "A necessity" ], [ "Possibility", "A possibility" ], [ "ReferenceScheme", "A reference scheme" ], [ "Note", "A note" ], [ "Example", "An example" ], [ "Synonym", "A synonym" ], [ "SynonymousForm", "A synonymous form" ], [ "See", "Something to see" ], [ "SubjectField", "A subject field" ], [ "NamespaceURI", "A namespace URI" ], [ "DatabaseTableName", "student_table" ], [ "DatabaseIDField", "id_field" ], [ "DatabaseNameField", "name_field" ] ] ],
+		[ "fcTp", [ "term", "student" ], [ "verb", "is school president" ], [ [ "Definition", [ "term", "person" ] ], [ "Source", "A source" ], [ "DictionaryBasis", "A dictionary basis" ], [ "GeneralConcept", "A general concept" ], [ "ConceptType", "person" ], [ "Necessity", "A necessity" ], [ "Possibility", "A possibility" ], [ "ReferenceScheme", "A reference scheme" ], [ "Note", "A note" ], [ "Example", "An example" ], [ "Synonym", "A synonym" ], [ "SynonymousForm", "A synonymous form" ], [ "See", "Something to see" ], [ "SubjectField", "A subject field" ], [ "NamespaceURI", "A namespace URI" ], [ "DatabaseTableName", "student_table" ], [ "DatabaseIDField", "id_field" ], [ "DatabaseNameField", "name_field" ] ] ],
 	], [
 		'F: student is registered for module',					/* term verb term */ 
-		[ "fcTp", [ "term", "student" ], [ "verb", "is registered for" ], [ "term", "module" ] ],
-		[ "fcTp", [ "term", "student" ], [ "verb", "is registered for" ], [ "term", "module" ] ],
+		[ "fcTp", [ "term", "student" ], [ "verb", "is registered for" ], [ "term", "module" ], [] ],
+		[ "fcTp", [ "term", "student" ], [ "verb", "is registered for" ], [ "term", "module" ], [] ],
 	], [
 		'F: student is registered for module to catchup',		/* term verb term verb */ 
-		[ "fcTp", [ "term", "student" ], [ "verb", "is registered for" ], [ "term", "module" ], [ "verb", "to catchup" ] ],
-		[ "fcTp", [ "term", "student" ], [ "verb", "is registered for" ], [ "term", "module" ], [ "verb", "to catchup" ] ],
+		[ "fcTp", [ "term", "student" ], [ "verb", "is registered for" ], [ "term", "module" ], [ "verb", "to catchup" ], [] ],
+		[ "fcTp", [ "term", "student" ], [ "verb", "is registered for" ], [ "term", "module" ], [ "verb", "to catchup" ], [] ],
 	], [
 		'F: student is registered for module with lecturer',	/* term verb term verb term */ 
-		[ "fcTp", [ "term", "student" ], [ "verb", "is registered for" ], [ "term", "module" ], [ "verb", "with" ], [ "term", "lecturer" ] ],
-		[ "fcTp", [ "term", "student" ], [ "verb", "is registered for" ], [ "term", "module" ], [ "verb", "with" ], [ "term", "lecturer" ] ],
+		[ "fcTp", [ "term", "student" ], [ "verb", "is registered for" ], [ "term", "module" ], [ "verb", "with" ], [ "term", "lecturer" ], [] ],
+		[ "fcTp", [ "term", "student" ], [ "verb", "is registered for" ], [ "term", "module" ], [ "verb", "with" ], [ "term", "lecturer" ], [] ],
 	], [
 		'F: person is swimming',								/* for inflection */
-		[ "fcTp", [ "term", "person" ], [ "verb", "is swimming" ] ],
-		[ "fcTp", [ "term", "person" ], [ "verb", "is swimming" ] ],
+		[ "fcTp", [ "term", "person" ], [ "verb", "is swimming" ], [] ],
+		[ "fcTp", [ "term", "person" ], [ "verb", "is swimming" ], [] ],
 	], [
 		'F: lecturer is\n teacher\r of module \r\nR: An ignored rule',
-		[ "fcTp", [ "term", "lecturer" ], [ "verb", "is teacher of" ], [ "term", "module" ] ],
-		[ "fcTp", [ "term", "lecturer" ], [ "verb", "is teacher of" ], [ "term", "module" ] ],
+		[ "fcTp", [ "term", "lecturer" ], [ "verb", "is teacher of" ], [ "term", "module" ], [] ],
+		[ "fcTp", [ "term", "lecturer" ], [ "verb", "is teacher of" ], [ "term", "module" ], [] ],
 	],
 
 	/* Mod rules */

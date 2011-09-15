@@ -500,7 +500,10 @@
                         return t.push(e)
                     }).call(this)
                 }));
-                (this["fctps"][t] = true);
+                (function() {
+                    (this["fctps"][t] = true);
+                    return t.push([])
+                }).call(this);
                 return ["fcTp"].concat(t)
             }).call(this)
         },
@@ -525,13 +528,13 @@
                 _fromIdx = this.input.idx,
                 attrName, attrVal;
             return (function() {
-                this._pred((this["lines"][(this["lines"]["length"] - (1))][(0)] == "term"));
+                this._pred(((this["lines"][(this["lines"]["length"] - (1))][(0)] == "term") || (this["lines"][(this["lines"]["length"] - (1))][(0)] == "fcTp")));
                 attrName = this._apply("allowedAttrs");
                 this._applyWithArgs("exactly", ":");
                 attrVal = this._applyWithArgs("applyFirstExisting", [("attr" + attrName), "toEOL"]);
                 return (function() {
                     var lastLine = this["lines"].pop();
-                    lastLine[(2)].push([attrName.replace(new RegExp(" ", "g"), ""), attrVal]);
+                    lastLine[(lastLine["length"] - (1))].push([attrName.replace(new RegExp(" ", "g"), ""), attrVal]);
                     return lastLine
                 }).call(this)
             }).call(this)
