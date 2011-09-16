@@ -113,7 +113,7 @@ ometa SBVRParser {
 																		-> {var lastLine = this.lines.pop(); lastLine[lastLine.length-1].push([attrName.replace(new RegExp(' ','g'),''), attrVal]); lastLine},
 						
 	allowedAttrs	= matchForAny('seq',this.possMap.allowedAttrs),
-	attrDefinition	= term,
+	attrDefinition	= qTerbR([[]]),
 
 	lineStart		= startTerm
 					| startFactType
@@ -257,4 +257,10 @@ SBVRParser.applyFirstExisting = function(arr) {
 	for (var i = 0; i < arr.length; i++)
 		if(this[arr[i]] != undefined)
 			return this._apply(arr[i])
+}
+/* This is a bit of a hack for case insensitivity, a better solution needs to be implemented in future. */
+SBVRParser.exactly = function(wanted) {
+	if (wanted.toLowerCase() === this._apply("anything").toLowerCase())
+		return wanted
+	throw fail
 }

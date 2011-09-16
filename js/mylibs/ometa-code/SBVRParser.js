@@ -547,7 +547,9 @@
         "attrDefinition": function() {
             var $elf = this,
                 _fromIdx = this.input.idx;
-            return this._apply("term")
+            return this._applyWithArgs("qTerbR", [
+                []
+            ])
         },
         "lineStart": function() {
             var $elf = this,
@@ -720,5 +722,13 @@
                 undefined
             }
         }
+    }));
+    (SBVRParser["exactly"] = (function(wanted) {
+        if ((wanted.toLowerCase() === this._apply("anything").toLowerCase())) {
+            return wanted
+        } else {
+            undefined
+        };
+        throw fail
     }))
 }
