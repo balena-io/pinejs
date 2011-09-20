@@ -8,7 +8,7 @@ var cmod;
 
 function defaultFailureCallback(statusCode, error) {
 	if(error == undefined || error == null) {
-		error = statusCode;
+		error = [statusCode];
 	}
 	console.log(error);
 	var exc = '<span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 50px 0;"></span>';
