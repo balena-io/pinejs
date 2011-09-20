@@ -133,8 +133,13 @@
       }
     };
   })();
-  remoteServerRequest = function(method, uri, headers, body, successCallback, failureCallback) {
-    var o, rootbranch, tree;
+  remoteServerRequest = function(method, uri, headers, body, origSuccessCallback, failureCallback) {
+    var o, rootbranch, success, successCallback, tree;
+    success = false;
+    successCallback = function(statusCode, result, headers) {
+      success = true;
+      return origSuccessCallback(statusCode, result, headers);
+    };
     tree = ServerURIParser.matchAll(uri, "uri");
     if ((headers != null) && headers["Content-Type"] === "application/xml") {
       null;
@@ -150,10 +155,6 @@
         if (method === "GET") {
           if (serverModelCache.isServerOnAir()) {
             successCallback(200, serverModelCache.getLastSE());
-          } else {
-            if (typeof failureCallback === "function") {
-              failureCallback(404);
-            }
           }
         }
         break;
@@ -161,10 +162,6 @@
         if (method === "GET") {
           if (serverModelCache.isServerOnAir()) {
             successCallback(200, JSON.stringify(serverModelCache.getLF()));
-          } else {
-            if (typeof failureCallback === "function") {
-              failureCallback(404);
-            }
           }
         }
         break;
@@ -172,10 +169,6 @@
         if (method === "GET") {
           if (serverModelCache.isServerOnAir()) {
             successCallback(200, JSON.stringify(serverModelCache.getPrepLF()));
-          } else {
-            if (typeof failureCallback === "function") {
-              failureCallback(404);
-            }
           }
         }
         break;
@@ -183,10 +176,6 @@
         if (method === "GET") {
           if (serverModelCache.isServerOnAir()) {
             successCallback(200, JSON.stringify(serverModelCache.getSQL()));
-          } else {
-            if (typeof failureCallback === "function") {
-              failureCallback(404);
-            }
           }
         }
         break;
@@ -261,10 +250,6 @@
                 dataplusDELETE(tree, headers, body, successCallback, failureCallback);
             }
           }
-        } else {
-          if (typeof failureCallback === "function") {
-            failureCallback(404);
-          }
         }
         break;
       default:
@@ -272,7 +257,9 @@
           rootDELETE(tree, headers, body, successCallback, failureCallback);
         }
     }
-    return typeof failureCallback === "function" ? failureCallback(404) : void 0;
+    if (!success) {
+      return typeof failureCallback === "function" ? failureCallback(404) : void 0;
+    }
   };
   dataplusDELETE = function(tree, headers, body, successCallback, failureCallback) {
     var id;
@@ -813,7 +800,7 @@
         return console.log('Chunk', chunk);
       });
       return request.on('end', function() {
-        console.log('End', body);
+        console.log('End', request.method, request.url, request.headers, body);
         return remoteServerRequest(request.method, request.url, request.headers, body, function(statusCode, result, headers) {
           if (result == null) {
             result = "";

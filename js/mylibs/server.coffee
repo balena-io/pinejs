@@ -111,7 +111,11 @@ serverModelCache = do () ->
 
 # successCallback = (statusCode, result, headers)
 # failureCallback = (statusCode, errors, headers)
-remoteServerRequest = (method, uri, headers, body, successCallback, failureCallback) ->
+remoteServerRequest = (method, uri, headers, body, origSuccessCallback, failureCallback) ->
+	success = false
+	successCallback = (statusCode, result, headers) ->
+		success = true
+		origSuccessCallback(statusCode, result, headers)
 	tree = ServerURIParser.matchAll(uri, "uri")
 	if headers? and headers["Content-Type"] == "application/xml"
 			#TODO: in case of input: do something to make xml into a json object
@@ -127,29 +131,21 @@ remoteServerRequest = (method, uri, headers, body, successCallback, failureCallb
 				if serverModelCache.isServerOnAir()
 					successCallback 200,
 						serverModelCache.getLastSE()
-				else
-					failureCallback? 404
 		when "lfmodel"
 			if method == "GET"
 				if serverModelCache.isServerOnAir()
 					successCallback 200,
 						JSON.stringify(serverModelCache.getLF())
-				else
-					failureCallback? 404
 		when "prepmodel"
 			if method == "GET"
 				if serverModelCache.isServerOnAir()
 					successCallback 200,
 						JSON.stringify(serverModelCache.getPrepLF())
-				else
-					failureCallback? 404
 		when "sqlmodel"
 			if method == "GET"
 				if serverModelCache.isServerOnAir()
 					successCallback 200,
 						JSON.stringify(serverModelCache.getSQL())
-				else
-					failureCallback? 404
 		when "ui"
 			if tree[1][1] == "textarea" and tree[1][3][1][1][3] == "model_area"
 				switch method
@@ -205,12 +201,11 @@ remoteServerRequest = (method, uri, headers, body, successCallback, failureCallb
 							dataplusPUT tree, headers, body, successCallback, failureCallback
 						when "DELETE"
 							dataplusDELETE tree, headers, body, successCallback, failureCallback
-			else
-				failureCallback? 404
 		else
 			if method == "DELETE"
 				rootDELETE tree, headers, body, successCallback, failureCallback
-	failureCallback? 404
+	
+	failureCallback? 404 if !success
 
 dataplusDELETE = (tree, headers, body, successCallback, failureCallback) ->
 	id = getID tree
@@ -651,7 +646,7 @@ if process?
 			console.log('Chunk', chunk)
 		)
 		request.on('end', () ->
-			console.log('End', body)
+			console.log('End', request.method, request.url, request.headers, body)
 			remoteServerRequest(request.method, request.url, request.headers, body,
 				(statusCode, result = "", headers) ->
 					console.log('Success', result)
