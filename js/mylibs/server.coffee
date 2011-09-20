@@ -38,6 +38,7 @@ requirejs(["mylibs/inflection",
 		"../ometa-js/lib",
 		"../ometa-js/ometa-base"]);
 requirejs([
+	"mylibs/ometa-code/SBVRModels",
 	"mylibs/ometa-code/SBVRParser",
 	"mylibs/ometa-code/SBVR_PreProc",
 	"mylibs/ometa-code/SBVR2SQL",

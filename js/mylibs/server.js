@@ -46,7 +46,7 @@
     db = openDatabase("mydb", "1.0", "my first database", 2 * 1024 * 1024);
   }
   requirejs(["mylibs/inflection", "../ometa-js/lib", "../ometa-js/ometa-base"]);
-  requirejs(["mylibs/ometa-code/SBVRParser", "mylibs/ometa-code/SBVR_PreProc", "mylibs/ometa-code/SBVR2SQL", "mylibs/ometa-code/ServerURIParser"]);
+  requirejs(["mylibs/ometa-code/SBVRModels", "mylibs/ometa-code/SBVRParser", "mylibs/ometa-code/SBVR_PreProc", "mylibs/ometa-code/SBVR2SQL", "mylibs/ometa-code/ServerURIParser"]);
   serverModelCache = (function() {
     var setValue, values;
     values = {
