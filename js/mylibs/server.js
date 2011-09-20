@@ -27,9 +27,16 @@
         };
       };
       tx = {
-        executeSql: function(sql, bindings, callback) {
-          return realDB.all(sql, bindings, function(err, rows) {
-            return callback(tx, result(rows));
+        executeSql: function(sql, bindings, callback, errorCallback) {
+          return realDB.all(sql, bindings != null ? bindings : [], function(err, rows) {
+            if (err != null) {
+              if (typeof errorCallback === "function") {
+                errorCallback(err);
+              }
+              return console.log(err);
+            } else {
+              return typeof callback === "function" ? callback(tx, result(rows)) : void 0;
+            }
           });
         }
       };
@@ -800,7 +807,7 @@
         return console.log('Chunk', chunk);
       });
       return request.on('end', function() {
-        console.log('End', request.method, request.url, request.headers, body);
+        console.log('End', request.method, request.url, body);
         return remoteServerRequest(request.method, request.url, request.headers, body, function(statusCode, result, headers) {
           if (result == null) {
             result = "";

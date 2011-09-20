@@ -21,9 +21,13 @@ if process?
 				}
 			}
 		tx = {
-			executeSql: (sql, bindings, callback) ->
-				realDB.all sql, bindings, (err, rows) ->
-					callback tx, result(rows)
+			executeSql: (sql, bindings, callback, errorCallback) ->
+				realDB.all sql, bindings ? [], (err, rows) ->
+					if err?
+						errorCallback? err
+						console.log(err)
+					else
+						callback? tx, result(rows)
 		}
 		return {
 			transaction: (callback) ->
@@ -648,7 +652,7 @@ if process?
 			console.log('Chunk', chunk)
 		)
 		request.on('end', () ->
-			console.log('End', request.method, request.url, request.headers, body)
+			console.log('End', request.method, request.url, body)
 			remoteServerRequest(request.method, request.url, request.headers, body,
 				(statusCode, result = "", headers) ->
 					console.log('Success', result)
