@@ -140,12 +140,16 @@
       }
     };
   })();
-  remoteServerRequest = function(method, uri, headers, body, origSuccessCallback, failureCallback) {
-    var o, rootbranch, success, successCallback, tree;
-    success = false;
+  remoteServerRequest = function(method, uri, headers, body, origSuccessCallback, origFailureCallback) {
+    var callbackRun, failureCallback, o, rootbranch, successCallback, tree;
+    callbackRun = false;
     successCallback = function(statusCode, result, headers) {
-      success = true;
-      return origSuccessCallback(statusCode, result, headers);
+      callbackRun = true;
+      return typeof origSuccessCallback === "function" ? origSuccessCallback(statusCode, result, headers) : void 0;
+    };
+    failureCallback = function(statusCode, errors, headers) {
+      callbackRun = true;
+      return typeof origFailureCallback === "function" ? origFailureCallback(statusCode, errors, headers) : void 0;
     };
     tree = ServerURIParser.matchAll(uri, "uri");
     if ((headers != null) && headers["Content-Type"] === "application/xml") {
@@ -264,8 +268,8 @@
           rootDELETE(tree, headers, body, successCallback, failureCallback);
         }
     }
-    if (!success) {
-      return typeof failureCallback === "function" ? failureCallback(404) : void 0;
+    if (!callbackRun) {
+      return failureCallback(404);
     }
   };
   dataplusDELETE = function(tree, headers, body, successCallback, failureCallback) {

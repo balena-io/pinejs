@@ -117,11 +117,15 @@ serverModelCache = do () ->
 
 # successCallback = (statusCode, result, headers)
 # failureCallback = (statusCode, errors, headers)
-remoteServerRequest = (method, uri, headers, body, origSuccessCallback, failureCallback) ->
-	success = false
+remoteServerRequest = (method, uri, headers, body, origSuccessCallback, origFailureCallback) ->
+	callbackRun = false
 	successCallback = (statusCode, result, headers) ->
-		success = true
-		origSuccessCallback(statusCode, result, headers)
+		callbackRun = true
+		origSuccessCallback?(statusCode, result, headers)
+	failureCallback = (statusCode, errors, headers) ->
+		callbackRun = true
+		origFailureCallback?(statusCode, errors, headers)
+	
 	tree = ServerURIParser.matchAll(uri, "uri")
 	if headers? and headers["Content-Type"] == "application/xml"
 			#TODO: in case of input: do something to make xml into a json object
@@ -211,7 +215,7 @@ remoteServerRequest = (method, uri, headers, body, origSuccessCallback, failureC
 			if method == "DELETE"
 				rootDELETE tree, headers, body, successCallback, failureCallback
 	
-	failureCallback? 404 if !success
+	failureCallback 404 if !callbackRun
 
 dataplusDELETE = (tree, headers, body, successCallback, failureCallback) ->
 	id = getID tree
