@@ -135,7 +135,8 @@ Copyright 2011 University of Surrey
 	<script src="js/libs/require-0.26.0.min.js"></script>
 
 	<script>
-		require({
+		var requirejs = require;
+		requirejs({
 			baseUrl: 'js',
 			paths: {
 				jquery: 'libs/jquery-1.6.2.min'

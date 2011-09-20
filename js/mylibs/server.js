@@ -1,5 +1,5 @@
 (function() {
-  var dataGET, dataplusDELETE, dataplusGET, dataplusPOST, dataplusPUT, db, endLock, executePOST, executeSasync, executeTasync, getFTree, getID, hasCR, http, isExecute, op, remoteServerRequest, rootDELETE, serverModelCache, updateRules, validateDB;
+  var dataGET, dataplusDELETE, dataplusGET, dataplusPOST, dataplusPUT, db, endLock, executePOST, executeSasync, executeTasync, getFTree, getID, hasCR, http, isExecute, op, remoteServerRequest, requirejs, rootDELETE, serverModelCache, updateRules, validateDB;
   var __hasProp = Object.prototype.hasOwnProperty;
   op = {
     eq: "=",
@@ -7,6 +7,11 @@
     lk: "~"
   };
   if (typeof process !== "undefined" && process !== null) {
+    requirejs = require('requirejs');
+    requirejs.config({
+      nodeRequire: require,
+      baseUrl: '/home/page/sws/js'
+    });
     db = (function() {
       var realDB, result, sqlite3, tx;
       sqlite3 = require('sqlite3').verbose();
@@ -37,8 +42,11 @@
       };
     })();
   } else {
+    requirejs = window.requirejs;
     db = openDatabase("mydb", "1.0", "my first database", 2 * 1024 * 1024);
   }
+  requirejs(["../ometa-js/lib", "../ometa-js/ometa-base"]);
+  requirejs(["mylibs/ometa-code/SBVRParser", "mylibs/ometa-code/SBVR_PreProc", "mylibs/ometa-code/SBVR2SQL", "mylibs/ometa-code/ServerURIParser"]);
   serverModelCache = (function() {
     var setValue, values;
     values = {
@@ -135,42 +143,50 @@
     switch (rootbranch) {
       case "onair":
         if (method === "GET") {
-          return successCallback(200, JSON.stringify(serverModelCache.isServerOnAir()));
+          successCallback(200, JSON.stringify(serverModelCache.isServerOnAir()));
         }
         break;
       case "model":
         if (method === "GET") {
           if (serverModelCache.isServerOnAir()) {
-            return successCallback(200, serverModelCache.getLastSE());
+            successCallback(200, serverModelCache.getLastSE());
           } else {
-            return typeof failureCallback === "function" ? failureCallback(404) : void 0;
+            if (typeof failureCallback === "function") {
+              failureCallback(404);
+            }
           }
         }
         break;
       case "lfmodel":
         if (method === "GET") {
           if (serverModelCache.isServerOnAir()) {
-            return successCallback(200, JSON.stringify(serverModelCache.getLF()));
+            successCallback(200, JSON.stringify(serverModelCache.getLF()));
           } else {
-            return typeof failureCallback === "function" ? failureCallback(404) : void 0;
+            if (typeof failureCallback === "function") {
+              failureCallback(404);
+            }
           }
         }
         break;
       case "prepmodel":
         if (method === "GET") {
           if (serverModelCache.isServerOnAir()) {
-            return successCallback(200, JSON.stringify(serverModelCache.getPrepLF()));
+            successCallback(200, JSON.stringify(serverModelCache.getPrepLF()));
           } else {
-            return typeof failureCallback === "function" ? failureCallback(404) : void 0;
+            if (typeof failureCallback === "function") {
+              failureCallback(404);
+            }
           }
         }
         break;
       case "sqlmodel":
         if (method === "GET") {
           if (serverModelCache.isServerOnAir()) {
-            return successCallback(200, JSON.stringify(serverModelCache.getSQL()));
+            successCallback(200, JSON.stringify(serverModelCache.getSQL()));
           } else {
-            return typeof failureCallback === "function" ? failureCallback(404) : void 0;
+            if (typeof failureCallback === "function") {
+              failureCallback(404);
+            }
           }
         }
         break;
@@ -179,9 +195,10 @@
           switch (method) {
             case "PUT":
               serverModelCache.setSE(JSON.parse(body).value);
-              return successCallback(200);
+              successCallback(200);
+              break;
             case "GET":
-              return successCallback(200, JSON.stringify({
+              successCallback(200, JSON.stringify({
                 value: serverModelCache.getSE()
               }));
           }
@@ -189,9 +206,10 @@
           switch (method) {
             case "PUT":
               serverModelCache.setModelAreaDisabled(JSON.parse(body).value);
-              return successCallback(200);
+              successCallback(200);
+              break;
             case "GET":
-              return successCallback(200, JSON.stringify({
+              successCallback(200, JSON.stringify({
                 value: serverModelCache.isModelAreaDisabled()
               }));
           }
@@ -199,12 +217,12 @@
         break;
       case "execute":
         if (method === "POST") {
-          return executePOST(tree, headers, body, successCallback, failureCallback);
+          executePOST(tree, headers, body, successCallback, failureCallback);
         }
         break;
       case "update":
         if (method === "POST") {
-          return null;
+          null;
         }
         break;
       case "data":
@@ -212,7 +230,7 @@
           if (tree[1] === void 0) {
             switch (method) {
               case "GET":
-                return dataGET(tree, headers, body, successCallback, failureCallback);
+                dataGET(tree, headers, body, successCallback, failureCallback);
             }
           } else if (tree[1][1] === "transaction" && method === "GET") {
             o = {
@@ -226,29 +244,35 @@
               xlcURI: "/data/lock-is_exclusive",
               ctURI: "/data/transaction*filt:transaction.id=" + tree[1][3][1][1][3] + "/execute"
             };
-            return successCallback(200, JSON.stringify(o));
+            successCallback(200, JSON.stringify(o));
           } else {
             switch (method) {
               case "GET":
                 console.log("body:[" + body + "]");
-                return dataplusGET(tree, headers, body, successCallback, failureCallback);
+                dataplusGET(tree, headers, body, successCallback, failureCallback);
+                break;
               case "POST":
-                return dataplusPOST(tree, headers, body, successCallback, failureCallback);
+                dataplusPOST(tree, headers, body, successCallback, failureCallback);
+                break;
               case "PUT":
-                return dataplusPUT(tree, headers, body, successCallback, failureCallback);
+                dataplusPUT(tree, headers, body, successCallback, failureCallback);
+                break;
               case "DELETE":
-                return dataplusDELETE(tree, headers, body, successCallback, failureCallback);
+                dataplusDELETE(tree, headers, body, successCallback, failureCallback);
             }
           }
         } else {
-          return typeof failureCallback === "function" ? failureCallback(404) : void 0;
+          if (typeof failureCallback === "function") {
+            failureCallback(404);
+          }
         }
         break;
       default:
         if (method === "DELETE") {
-          return rootDELETE(tree, headers, body, successCallback, failureCallback);
+          rootDELETE(tree, headers, body, successCallback, failureCallback);
         }
     }
+    return typeof failureCallback === "function" ? failureCallback(404) : void 0;
   };
   dataplusDELETE = function(tree, headers, body, successCallback, failureCallback) {
     var id;
@@ -782,22 +806,29 @@
     http = require('http');
     http.createServer(function(request, response) {
       var body;
+      console.log("Request received");
       body = '';
       request.on('data', function(chunk) {
-        return body += chunk;
+        body += chunk;
+        return console.log('Chunk', chunk);
       });
       return request.on('end', function() {
+        console.log('End', body);
         return remoteServerRequest(request.method, request.url, request.headers, body, function(statusCode, result, headers) {
           if (result == null) {
             result = "";
           }
+          console.log('Success', result);
           response.writeHead(statusCode, headers);
           return response.end(result);
         }, function(statusCode, errors, headers) {
+          console.log('Error', errors);
           response.writeHead(statusCode, headers);
           return response.end(errors);
         });
       });
-    }).listen(1337, "127.0.0.1");
+    }).listen(1337, function() {
+      return console.log('Server started');
+    });
   }
 }).call(this);

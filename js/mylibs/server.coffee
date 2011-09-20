@@ -5,6 +5,11 @@ op =
 
 #TODO: the db name needs to be changed
 if process?
+	requirejs = require('requirejs');
+	requirejs.config(
+		nodeRequire: require
+		baseUrl: '/home/page/sws/js'
+	)
 	db = do () ->
 		sqlite3 = require('sqlite3').verbose();
 		realDB = new sqlite3.Database('/tmp/mydb.db');
@@ -26,7 +31,18 @@ if process?
 					callback tx;
 		}
 else
+	requirejs = window.requirejs
 	db = openDatabase("mydb", "1.0", "my first database", 2 * 1024 * 1024)
+
+requirejs(["../ometa-js/lib",
+		"../ometa-js/ometa-base"]);
+requirejs([
+	"mylibs/ometa-code/SBVRParser",
+	"mylibs/ometa-code/SBVR_PreProc",
+	"mylibs/ometa-code/SBVR2SQL",
+	"mylibs/ometa-code/ServerURIParser"]
+);
+
 
 serverModelCache = do () ->
 	#This is needed as the switch has no value on first execution. Maybe there's a better way?
@@ -40,7 +56,7 @@ serverModelCache = do () ->
 		sql:		[]
 		trans:	[]
 	}
-	
+
 	db.transaction (tx) ->
 		sql = 'CREATE TABLE IF NOT EXISTS "_server_model_cache" (' +
 			'"key"	VARCHAR PRIMARY KEY,' +
@@ -51,43 +67,43 @@ serverModelCache = do () ->
 			for i in [0...result.rows.length]
 				row = result.rows.item(i)
 				values[row.key] = JSON.parse row.value;
-	
+
 	setValue = (key, value) ->
 		values[key] = value
 		db.transaction (tx) ->
 			sql = 'INSERT OR REPLACE INTO "_server_model_cache" values' +
 				"('" + key + "','" + JSON.stringify(value).replace(/\\'/g,"\\\\'").replace(new RegExp("'",'g'),"\\'") + "');"
 			tx.executeSql sql, [], (tx, result) ->
-	
+
 	return {
 		isServerOnAir: -> values.serverOnAir
 		setServerOnAir: (bool) ->
 			setValue 'serverOnAir', bool
-		
+
 		isModelAreaDisabled: -> values.modelAreaDisabled
 		setModelAreaDisabled: (bool) ->
 			setValue 'modelAreaDisabled', bool
-	
+
 		getSE: -> values.se
 		setSE: (txtmod) ->
 			setValue 'se', txtmod
-		
+
 		getLastSE: -> values.lastSE
 		setLastSE: (txtmod) ->
 			setValue 'lastSE', txtmod
-		
+
 		getLF: -> values.lf
 		setLF: (lfmod) ->
 			setValue 'lf', lfmod
-		
+
 		getPrepLF: -> values.prepLF
 		setPrepLF: (prepmod) ->
 			setValue 'prepLF', prepmod
-		
+
 		getSQL: -> values.sql
 		setSQL: (sqlmod) ->
 			setValue 'sql', sqlmod
-		
+
 		getTrans: -> values.trans
 		setTrans: (trnmod) ->
 			setValue 'trans', trnmod
@@ -175,7 +191,7 @@ remoteServerRequest = (method, uri, headers, body, successCallback, failureCallb
 						slcURI: "/data/lock-is_shared"
 						xlcURI: "/data/lock-is_exclusive"
 						ctURI: "/data/transaction*filt:transaction.id=" + tree[1][3][1][1][3] + "/execute"
-					
+
 					successCallback 200,
 						JSON.stringify(o)
 				else
@@ -194,7 +210,7 @@ remoteServerRequest = (method, uri, headers, body, successCallback, failureCallb
 		else
 			if method == "DELETE"
 				rootDELETE tree, headers, body, successCallback, failureCallback
-
+	failureCallback? 404
 
 dataplusDELETE = (tree, headers, body, successCallback, failureCallback) ->
 	id = getID tree
@@ -205,7 +221,7 @@ dataplusDELETE = (tree, headers, body, successCallback, failureCallback) ->
 			db.transaction (tx) ->
 				sql = 'DELETE FROM "conditional_representation" WHERE "lock_id"=' + id
 				tx.executeSql sql, [], (tx, result) ->
-				
+
 				sql = "INSERT INTO 'conditional_representation'('lock_id','field_name','field_type','field_value')" +
 					 "VALUES ('" + id + "','__DELETE','','')"
 				tx.executeSql sql, [], (tx, result) ->
@@ -222,8 +238,8 @@ dataplusDELETE = (tree, headers, body, successCallback, failureCallback) ->
 					else
 						failureCallback 200, [ "The resource is locked and cannot be deleted" ]
 			), (err) ->
-			
-			
+
+
 dataplusPUT = (tree, headers, body, successCallback, failureCallback) ->
 	id = getID tree
 	if tree[1][1] == "lock" and hasCR tree
@@ -233,13 +249,13 @@ dataplusPUT = (tree, headers, body, successCallback, failureCallback) ->
 		for own pair of bd
 			for own k of bd[pair]
 				ps.push [ id, k, typeof bd[pair][k], bd[pair][k] ]
-					
+
 		#sql="INSERT INTO 'conditional_representation'('lock_id','field_name','field_type','field_value')"
 		#"VALUES ('','','','')"
 		db.transaction (tx) ->
 			sql = 'DELETE FROM "conditional_representation" WHERE "lock_id"=' + id
 			tx.executeSql sql, [], (tx, result) ->
-			
+
 			for own item of ps
 				sql = "INSERT INTO 'conditional_representation'('lock_id'," +
 					"'field_name','field_type','field_value')" +
@@ -287,23 +303,23 @@ dataplusPOST = (tree, headers, body, successCallback, failureCallback) ->
 						sql = 'DELETE FROM "conditional_representation" WHERE "lock_id"=' + lock_id + ";"
 						console.log sql
 						tx.executeSql sql, [], (tx, result) ->
-						
+
 						sql = 'DELETE FROM "lock-is_exclusive" WHERE "lock_id"=' + lock_id + ";"
 						console.log sql
 						tx.executeSql sql, [], (tx, result) ->
-						
+
 						sql = 'DELETE FROM "lock-is_shared" WHERE "lock_id"=' + lock_id + ";"
 						console.log sql
 						tx.executeSql sql, [], (tx, result) ->
-						
+
 						sql = 'DELETE FROM "resource-is_under-lock" WHERE "lock_id"=' + lock_id + ";"
 						console.log sql
 						tx.executeSql sql, [], (tx, result) ->
-						
+
 						sql = 'DELETE FROM "lock-belongs_to-transaction" WHERE "lock_id"=' + lock_id + ";"
 						console.log sql
 						tx.executeSql sql, [], (tx, result) ->
-						
+
 						sql = 'DELETE FROM "lock" WHERE "id"=' + lock_id + ";"
 						console.log sql
 						tx.executeSql sql, [], (tx, result) ->
@@ -369,7 +385,7 @@ rootDELETE = (tree, headers, body, successCallback, failureCallback) ->
 	#TODO: these two do not belong here
 	serverModelCache.setSE ""
 	serverModelCache.setModelAreaDisabled false
-	
+
 	serverModelCache.setLastSE ""
 	serverModelCache.setPrepLF []
 	serverModelCache.setLF []
@@ -385,7 +401,7 @@ dataGET = (tree, headers, body, successCallback, failureCallback) ->
 		terms: []
 		fcTps: []
 	sqlmod = serverModelCache.getSQL()
-	
+
 	for row in sqlmod[1..]
 		if row[0] == "term"
 			result.terms.push 
@@ -395,7 +411,7 @@ dataGET = (tree, headers, body, successCallback, failureCallback) ->
 			result.fcTps.push 
 				id: row[1]
 				name: row[2]
-	
+
 	successCallback 200,
 		JSON.stringify(result)
 
@@ -412,18 +428,18 @@ dataplusGET = (tree, headers, body, successCallback, failureCallback) ->
 			fl = [ "'" + ft + "'.id AS id" ]
 			jn = []
 			tb = [ "'" + ft + "'" ]
-			
+
 			for row in tree[1][2][1..]
 				fl.push "'" + row + "'" + ".'id' AS '" + row + "_id'"
 				fl.push "'" + row + "'" + ".'name' AS '" + row + "_name'"
 				tb.push "'" + row + "'"
 				jn.push "'" + row + "'" + ".'id' = " + "'" + ft + "'" + "." + "'" + row + "_id" + "'"
-			
+
 			sql = "SELECT " + fl.join(", ") + " FROM " + tb.join(", ") + " WHERE " + jn.join(" AND ")
 			sql += " AND "  unless ftree.length == 1
 		if ftree.length != 1
 			filts = []
-			
+
 			for row in ftree[1..]
 				if row[0] == "filt"
 					for row2 in row[1..]
@@ -460,14 +476,14 @@ endLock = (tx, locks, i, trans_id, successCallback, failureCallback) ->
 						#delete transaction
 						sql = 'DELETE FROM "transaction" WHERE "id"=' + trans_id + ';'
 						tx.executeSql sql, [], (tx, result) ->
-						
+
 						validateDB tx, serverModelCache.getSQL(), ((tx, sqlmod, failureCallback, result) ->
 							successCallback 200, result
 						), failureCallback
 			else
 				#commit conditional_representation
 				sql = "UPDATE \"" + locked.rows.item(0).resource_type + "\" SET "
-				
+
 				for j in [0...crs.rows.length]
 					item = crs.rows.item(j);
 					sql += '"' + item.field_name + '"='
@@ -484,30 +500,30 @@ endLock = (tx, locks, i, trans_id, successCallback, failureCallback) ->
 						sql = 'DELETE FROM "transaction" WHERE "id"=' + trans_id + ';'
 						tx.executeSql sql, [], (tx, result) ->
 							console.log "t ok"
-						
+
 						validateDB tx, serverModelCache.getSQL(), ((tx, sqlmod, failureCallback, result) ->
 							successCallback 200, result
 						), failureCallback
 			sql = 'DELETE FROM "conditional_representation" WHERE "lock_id"=' + crs.rows.item(0).lock_id + ';'
 			tx.executeSql sql, [], (tx, result) ->
 				console.log "cr ok"
-			
+
 			sql = 'DELETE FROM "resource-is_under-lock" WHERE "lock_id"=' + crs.rows.item(0).lock_id + ';'
 			tx.executeSql sql, [], (tx, result) ->
 				console.log "rl ok"
-	
+
 	sql = 'DELETE FROM "lock-is_shared" WHERE "lock_id"=' + lock_id + ';'
 	tx.executeSql sql, [], (tx, result) ->
 		console.log "ls ok"
-	
+
 	sql = 'DELETE FROM "lock-is_exclusive" WHERE "lock_id"=' + lock_id + ';'
 	tx.executeSql sql, [], (tx, result) ->
 		console.log "le ok"
-	
+
 	sql = 'DELETE FROM "lock-belongs_to-transaction" WHERE "lock_id"=' + lock_id + ';'
 	tx.executeSql sql, [], (tx, result) ->
 		console.log "lt ok"
-	
+
 	sql = 'DELETE FROM "lock" WHERE "id"=' + lock_id
 	tx.executeSql sql + ";", [], (tx, result) ->
 		console.log "l ok"
@@ -520,7 +536,7 @@ validateDB = (tx, sqlmod, successCallback, failureCallback) ->
 	par = 1
 	tot = 0
 	tex = 0
-	
+
 	for row in sqlmod when row[0] == "rule"
 		query = row[4]
 		tot++
@@ -545,13 +561,13 @@ executeSasync = (tx, sqlmod, successCallback, failureCallback, result) ->
 	#Create tables related to terms and fact types
 	for row in sqlmod
 		tx.executeSql row[4] if row[0] in ["fcTp", "term"]
-		
+
 	#Validate the [empty] model according to the rules. 
 	#This may eventually lead to entering obligatory data.
 	#For the moment it blocks such models from execution.
 	validateDB tx, sqlmod, successCallback, failureCallback
 
-	
+
 # successCallback = (tx, sqlmod, failureCallback, result)
 # failureCallback = (errors)
 executeTasync = (tx, trnmod, successCallback, failureCallback, result) ->
@@ -577,7 +593,7 @@ updateRules = (sqlmod) ->
 	#tho this should be dealt with more elegantly.
 	for row in sqlmod
 		tx.executeSql row[4] if row[0] in ["fcTp", "term"]
-	
+
 	#Validate the [empty] model according to the rules. 
 	#This may eventually lead to entering obligatory data.
 	#For the moment it blocks such models from execution.
@@ -587,7 +603,7 @@ updateRules = (sqlmod) ->
 		tx.executeSql query, [], ((tx, result) ->
 			alert "Error: " + l[++k]  if result.rows.item(0)["result"] == 0
 		), null
-		
+
 getFTree = (tree) ->
 	if tree[1][0] == "term"
 		return tree[1][3]
@@ -626,20 +642,27 @@ window?.remoteServerRequest = remoteServerRequest
 window?.db = db
 
 if process?
-	http = require('http');
+	http = require('http')
 	http.createServer((request, response) ->
+		console.log("Request received")
 		body = ''
 		request.on('data', (chunk) ->
 			body += chunk
+			console.log('Chunk', chunk)
 		)
 		request.on('end', () ->
+			console.log('End', body)
 			remoteServerRequest(request.method, request.url, request.headers, body,
 				(statusCode, result = "", headers) ->
+					console.log('Success', result)
 					response.writeHead(statusCode, headers)
 					response.end(result)
 				(statusCode, errors, headers) ->
+					console.log('Error', errors)
 					response.writeHead(statusCode, headers)
 					response.end(errors)
 			)
 		)
-	).listen(1337, "127.0.0.1");
+	).listen(1337, () ->
+		console.log('Server started')
+	)
