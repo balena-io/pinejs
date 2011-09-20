@@ -87,7 +87,7 @@ THE SOFTWARE.
   We use the window (if available) to enable dynamic loading of this script
   Window won't necessarily exist for non-browsers.
 */
-if (window && !window.InflectionJS)
+if (typeof window !== "undefined" && !window.InflectionJS)
 {
     window.InflectionJS = null;
 }
