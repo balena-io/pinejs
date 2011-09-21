@@ -1,5 +1,5 @@
 (function() {
-  var dataGET, dataplusDELETE, dataplusGET, dataplusPOST, dataplusPUT, db, endLock, executePOST, executeSasync, executeTasync, getFTree, getID, hasCR, http, isExecute, op, remoteServerRequest, requirejs, rootDELETE, serverModelCache, updateRules, validateDB;
+  var dataGET, dataplusDELETE, dataplusGET, dataplusPOST, dataplusPUT, db, endLock, executePOST, executeSasync, executeTasync, getFTree, getID, hasCR, http, importDB, isExecute, op, remoteServerRequest, requirejs, rootDELETE, serverModelCache, updateRules, validateDB;
   var __hasProp = Object.prototype.hasOwnProperty;
   op = {
     eq: "=",
@@ -33,7 +33,7 @@
               if (typeof errorCallback === "function") {
                 errorCallback(err);
               }
-              return console.log(err);
+              return console.log(sql, err);
             } else {
               return typeof callback === "function" ? callback(tx, result(rows)) : void 0;
             }
@@ -794,12 +794,6 @@
     }
     return false;
   };
-  if (typeof window !== "undefined" && window !== null) {
-    window.remoteServerRequest = remoteServerRequest;
-  }
-  if (typeof window !== "undefined" && window !== null) {
-    window.db = db;
-  }
   if (typeof process !== "undefined" && process !== null) {
     http = require('http');
     http.createServer(function(request, response) {
@@ -820,7 +814,7 @@
           response.writeHead(statusCode, headers);
           return response.end(result);
         }, function(statusCode, errors, headers) {
-          console.log('Error', errors);
+          console.log('Error', errors, new Error().stack);
           response.writeHead(statusCode, headers);
           return response.end(errors);
         });
@@ -828,5 +822,35 @@
     }).listen(1337, function() {
       return console.log('Server started');
     });
+  }
+  importDB = function(sql) {
+    var queries, query, _i, _len, _results;
+    queries = sql.split(";");
+    _results = [];
+    for (_i = 0, _len = queries.length; _i < _len; _i++) {
+      query = queries[_i];
+      if ($.trim(query).length > 0) {
+        _results.push((function(query) {
+          return db.transaction(function(tx) {
+            return tx.executeSql(query, [], (function(tx, result) {
+              return console.log("Import Success");
+            }), function(tx, error) {
+              console.log(query);
+              return console.log(error);
+            });
+          });
+        })(query));
+      }
+    }
+    return _results;
+  };
+  if (typeof window !== "undefined" && window !== null) {
+    window.remoteServerRequest = remoteServerRequest;
+  }
+  if (typeof window !== "undefined" && window !== null) {
+    window.db = db;
+  }
+  if (typeof window !== "undefined" && window !== null) {
+    window.importDB = importDB;
   }
 }).call(this);

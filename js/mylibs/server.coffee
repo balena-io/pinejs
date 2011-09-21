@@ -25,7 +25,7 @@ if process?
 				realDB.all sql, bindings ? [], (err, rows) ->
 					if err?
 						errorCallback? err
-						console.log(err)
+						console.log(sql, err)
 					else
 						callback? tx, result(rows)
 		}
@@ -642,10 +642,6 @@ isExecute = (tree) ->
 			return true
 	return false
 
-window?.remoteServerRequest = remoteServerRequest
-#Temporary fix to allow backup/restore db etc to work for the time being client-side
-window?.db = db
-
 if process?
 	http = require('http')
 	http.createServer((request, response) ->
@@ -663,7 +659,7 @@ if process?
 					response.writeHead(statusCode, headers)
 					response.end(result)
 				(statusCode, errors, headers) ->
-					console.log('Error', errors)
+					console.log('Error', errors, new Error().stack)
 					response.writeHead(statusCode, headers)
 					response.end(errors)
 			)
@@ -671,3 +667,23 @@ if process?
 	).listen(1337, () ->
 		console.log('Server started')
 	)
+
+
+# @param sql The SQL queries to import.
+importDB = (sql) ->
+	queries = sql.split(";")
+  
+	for query in queries when $.trim(query).length > 0
+		do (query) ->
+			db.transaction (tx) ->
+				tx.executeSql query, [], ((tx, result) ->
+					console.log "Import Success"
+				), (tx, error) ->
+					console.log query
+					console.log error
+
+
+window?.remoteServerRequest = remoteServerRequest
+#Temporary fix to allow backup/restore db etc to work for the time being client-side
+window?.db = db
+window?.importDB = importDB

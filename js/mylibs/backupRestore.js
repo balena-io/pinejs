@@ -121,33 +121,6 @@ function exportDB(sqlElem) {
 	});
 }
 
-/**
-	@param sql The SQL queries to import.
-**/
-function importDB(sql) {
-	var queries = sql.split(';');
-	for(var i=0;i<queries.length;i++) {
-		if($.trim(queries[i]).length > 0) {
-			(function(query) {
-					db.transaction(function (tx) {
-						tx.executeSql(query, [],
-								function(tx, result) {
-									console.log('Import Success');
-								}, 
-								function(tx, error) {
-									console.log(query);
-									console.log(error);
-								}
-							);
-						}
-					);
-				
-			})(queries[i]);
-		}
-	}
-}
-
-
 function clearDB(){
 	db.transaction(function (tx) {
 		tx.executeSql("SELECT name FROM sqlite_master WHERE type='table' AND name !='__WebKitDatabaseInfoTable__';", [],
