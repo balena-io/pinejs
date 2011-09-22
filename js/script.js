@@ -32,6 +32,15 @@ function serverRequest(method, uri, headers, body, successCallback, failureCallb
 		remoteServerRequest(method, uri, headers, body,
 			typeof successCallback != 'function' ? defaultSuccessCallback : successCallback,
 			typeof failureCallback != 'function' ? defaultFailureCallback : failureCallback);
+	else
+		$.ajax('/node'+uri, {
+			headers: headers,
+			data: body,
+			success: function(data, textStatus, jqXHR) {
+				successCallback(jqXHR.status, data, jqXHR.getAllResponseHeaders());
+			},
+			type: method
+		})
 }
 
 //txtmod = '';
