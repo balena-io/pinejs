@@ -95,7 +95,7 @@ function drawData(tree){
 	
 	serverRequest("GET", "/data/", [], '', function(statusCode, result, headers){
 		//console.log(result);
-		var reslt = JSON.parse(result);
+		var reslt = result;
 		
 		objcb = {
 			callback: function(n, prod){
@@ -290,7 +290,7 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 			serverRequest("GET", this.targ, [], '', function(statusCode, result, headers){
 				//console.log(result);
 			
-				var reslt = JSON.parse(result);
+				var reslt = result;
 				resl = ''
 				
 				parent.rows = reslt.instances.length;
@@ -530,7 +530,7 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 						//console.log(this.targ, getTarg(this.ftree, this.loc, "del", 1));
 						serverRequest("GET", this.targ, [], '', function(statusCode, result, headers){
 							res = ''
-							var reslt = JSON.parse(result);
+							var reslt = result;
 							//console.log(result);
 							for(item in reslt.instances[0]){
 								if(item != '__clone'){
@@ -547,7 +547,7 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 						//console.log(this.targ);
 						serverRequest("GET", this.targ, [], '', function(statusCode, result, headers){
 							res = '';
-							var reslt = JSON.parse(result);
+							var reslt = result;
 							res += "id: " + reslt.instances[0].id + "<br/>"
 							//loop around terms
 							for(var j=0;j<parent.schema.length;j++){
@@ -609,7 +609,7 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 							//console.log(result);
 							
 							res = ''
-							var reslt = JSON.parse(result);
+							var reslt = result;
 							
 							trmres.push(reslt.instances);
 							
@@ -702,7 +702,7 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 						serverRequest("GET", this.targ, [], '', function(statusCode, result, headers){
 							//console.log(result);
 							var res = ''
-							var reslt = JSON.parse(result);
+							var reslt = result;
 							var id = reslt.instances[0].id
 							var res = "<div align='left'>";
 							res += "<form class = 'action' >";
@@ -739,7 +739,7 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 						serverRequest("GET", targ, [], '', function(statusCode, result, headers){
 							//console.log(result);
 							
-							resu = JSON.parse(result);
+							resu = result;
 							
 							//initialize vars
 							var trms = [];
@@ -749,7 +749,7 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 								//console.log(result);
 								
 								res = ''
-								var reslt = JSON.parse(result);
+								var reslt = result;
 								
 								trmres.push(reslt.instances);
 								

@@ -28,7 +28,7 @@ function runTrans(){
 			parent.transuri = headers.location;
 			//get 'trans'action resource to extract lcURI,tlcURI,rcURI,lrcURI,xlcURI,slcURI,ctURI
 			serverRequest("GET", parent.transuri, [], '', function(statusCode, trans, headers){
-				parent.trans = JSON.parse(trans);
+				parent.trans = trans;
 				//find and lock relevant resources (l,t-l,r-l)
 				$(".action").each(function(index){
 					switch($(this).children("#__actype").val()){
@@ -126,7 +126,7 @@ function locker(){
 		function(statusCode, result, headers){
 			//get resulting lock to extract id and cr_uri
 			serverRequest("GET", headers.location, [], '', function(statusCode, lock, headers){
-				parent.lock = JSON.parse(lock);
+				parent.lock = lock;
 				o = [{"transaction_id":parent.trans.id}, {"lock_id":parent.lock.instances[0].id}];
 				//add lock to transaction
 				serverRequest('POST', parent.trans.tlcURI, [], JSON.stringify(o), 
