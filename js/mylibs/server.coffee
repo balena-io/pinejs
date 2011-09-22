@@ -673,9 +673,9 @@ if process?
 importDB = (sql) ->
 	queries = sql.split(";")
   
-	for query in queries when $.trim(query).length > 0
-		do (query) ->
-			db.transaction (tx) ->
+	db.transaction (tx) ->
+		for query in queries when query.trim().length > 0
+			do (query) ->
 				tx.executeSql query, [], ((tx, result) ->
 					console.log "Import Success"
 				), (tx, error) ->
@@ -687,3 +687,16 @@ window?.remoteServerRequest = remoteServerRequest
 #Temporary fix to allow backup/restore db etc to work for the time being client-side
 window?.db = db
 window?.importDB = importDB
+
+# fs = require('fs');
+# lazy = require("lazy");
+# imported = 0
+# new lazy(fs.createReadStream(process.argv[2])).lines.forEach((query) ->
+	# query = query.toString().trim();
+	# if query.length > 0
+		# realDB.run query, (error) ->
+			# if error
+				# console.log error, imported++
+			# else
+				# console.log "Import Success", imported++
+# )

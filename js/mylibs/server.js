@@ -824,25 +824,26 @@
     });
   }
   importDB = function(sql) {
-    var queries, query, _i, _len, _results;
+    var queries;
     queries = sql.split(";");
-    _results = [];
-    for (_i = 0, _len = queries.length; _i < _len; _i++) {
-      query = queries[_i];
-      if ($.trim(query).length > 0) {
-        _results.push((function(query) {
-          return db.transaction(function(tx) {
+    return db.transaction(function(tx) {
+      var query, _i, _len, _results;
+      _results = [];
+      for (_i = 0, _len = queries.length; _i < _len; _i++) {
+        query = queries[_i];
+        if (query.trim().length > 0) {
+          _results.push((function(query) {
             return tx.executeSql(query, [], (function(tx, result) {
               return console.log("Import Success");
             }), function(tx, error) {
               console.log(query);
               return console.log(error);
             });
-          });
-        })(query));
+          })(query));
+        }
       }
-    }
-    return _results;
+      return _results;
+    });
   };
   if (typeof window !== "undefined" && window !== null) {
     window.remoteServerRequest = remoteServerRequest;
