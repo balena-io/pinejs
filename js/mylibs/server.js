@@ -156,7 +156,7 @@
     switch (rootbranch) {
       case "onair":
         if (method === "GET") {
-          return successCallback(200, JSON.stringify(serverModelCache.isServerOnAir()));
+          return successCallback(200, serverModelCache.isServerOnAir());
         } else {
           return failureCallback(404);
         }
@@ -170,21 +170,21 @@
         break;
       case "lfmodel":
         if (method === "GET" && serverModelCache.isServerOnAir()) {
-          return successCallback(200, JSON.stringify(serverModelCache.getLF()));
+          return successCallback(200, serverModelCache.getLF());
         } else {
           return failureCallback(404);
         }
         break;
       case "prepmodel":
         if (method === "GET" && serverModelCache.isServerOnAir()) {
-          return successCallback(200, JSON.stringify(serverModelCache.getPrepLF()));
+          return successCallback(200, serverModelCache.getPrepLF());
         } else {
           return failureCallback(404);
         }
         break;
       case "sqlmodel":
         if (method === "GET" && serverModelCache.isServerOnAir()) {
-          return successCallback(200, JSON.stringify(serverModelCache.getSQL()));
+          return successCallback(200, serverModelCache.getSQL());
         } else {
           return failureCallback(404);
         }
@@ -196,9 +196,9 @@
               serverModelCache.setSE(JSON.parse(body).value);
               return successCallback(200);
             case "GET":
-              return successCallback(200, JSON.stringify({
+              return successCallback(200, {
                 value: serverModelCache.getSE()
-              }));
+              });
             default:
               return failureCallback(404);
           }
@@ -208,9 +208,9 @@
               serverModelCache.setModelAreaDisabled(JSON.parse(body).value);
               return successCallback(200);
             case "GET":
-              return successCallback(200, JSON.stringify({
+              return successCallback(200, {
                 value: serverModelCache.isModelAreaDisabled()
-              }));
+              });
             default:
               return failureCallback(404);
           }
@@ -253,7 +253,7 @@
               xlcURI: "/data/lock-is_exclusive",
               ctURI: "/data/transaction*filt:transaction.id=" + tree[1][3][1][1][3] + "/execute"
             };
-            return successCallback(200, JSON.stringify(o));
+            return successCallback(200, o);
           } else {
             switch (method) {
               case "GET":
@@ -521,7 +521,7 @@
         });
       }
     }
-    return successCallback(200, JSON.stringify(result));
+    return successCallback(200, result);
   };
   dataplusGET = function(tree, headers, body, successCallback, failureCallback) {
     var ftree;
@@ -586,7 +586,7 @@
               return _results;
             })()
           };
-          return successCallback(200, JSON.stringify(data));
+          return successCallback(200, data);
         });
       }
     });
@@ -819,11 +819,11 @@
           }
           console.log('Success', result);
           response.writeHead(statusCode, headers);
-          return response.end(result);
+          return response.end(JSON.stringify(result));
         }, function(statusCode, errors, headers) {
           console.log('Error', errors, new Error().stack);
           response.writeHead(statusCode, headers);
-          return response.end(errors);
+          return response.end(JSON.stringify(errors));
         });
       });
     }).listen(1337, function() {

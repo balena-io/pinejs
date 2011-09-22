@@ -40,7 +40,7 @@ function serverRequest(method, uri, headers, body, successCallback, failureCallb
 				failureCallback(jqXHR.status);
 			},
 			success: function(data, textStatus, jqXHR) {
-				successCallback(jqXHR.status, data, jqXHR.getAllResponseHeaders());
+				successCallback(jqXHR.status, JSON.parse(data), jqXHR.getAllResponseHeaders());
 			},
 			type: method
 		})
@@ -50,7 +50,7 @@ function serverRequest(method, uri, headers, body, successCallback, failureCallb
 function loadState() {
 	serverRequest("GET", "/onAir/", [], '', function(statusCode, result){
 		if(result!=undefined){
-			localStorage._client_onAir = JSON.parse(result);
+			localStorage._client_onAir = result;
 		}
 	});
 }
@@ -85,21 +85,21 @@ function transformClient(model) {
 								{},
 								'',
 								function(statusCode, result) {
-									lfEditor.setValue(Prettify.match(JSON.parse(result),'elem'));
+									lfEditor.setValue(Prettify.match(result,'elem'));
 
 									serverRequest("GET",
 										"/prepmodel/",
 										{},
 										'',
 										function(statusCode, result) {
-											$("#prepArea").val(Prettify.match(JSON.parse(result),'elem'));
+											$("#prepArea").val(Prettify.match(result,'elem'));
 											
 											serverRequest("GET",
 												"/sqlmodel/",
 												{},
 												'',
 												function(statusCode, result) {
-													sqlEditor.setValue(Prettify.match(JSON.parse(result),'elem'));
+													sqlEditor.setValue(Prettify.match(result,'elem'));
 	
 													localStorage._client_onAir='true'
 													
@@ -229,7 +229,7 @@ function loadUI(){
 	window.onhashchange = processHash;
 	serverRequest("GET", "/ui/textarea*filt:name=model_area/", [], '',
 		function(statusCode, result){
-			sbvrEditor.setValue(JSON.parse(result).value);
+			sbvrEditor.setValue(result.value);
 		}
 	)
 	
@@ -238,7 +238,7 @@ function loadUI(){
 	//http://api.jquery.com/jQuery.ajax/
 	serverRequest("GET", "/ui/textarea-is_disabled*filt:textarea.name=model_area/", [], '',
 		function(statusCode, result){
-			$("#modelArea").attr('disabled', JSON.parse(result).value)
+			$("#modelArea").attr('disabled', result.value)
 		}
 	)
 	
@@ -253,15 +253,15 @@ function loadUI(){
 	
 	if(localStorage._client_onAir=='true'){
 		serverRequest("GET", "/lfmodel/", [], '', function(statusCode, result){
-			lfEditor.setValue(Prettify.match(JSON.parse(result),'elem'));
+			lfEditor.setValue(Prettify.match(result,'elem'));
 		});
 	
 		serverRequest("GET", "/prepmodel/", [], '', function(statusCode, result){
-			$("#prepArea").val(Prettify.match(JSON.parse(result),'elem'));
+			$("#prepArea").val(Prettify.match(result,'elem'));
 		});
 	
 		serverRequest("GET", "/sqlmodel/", [], '', function(statusCode, result){
-			sqlEditor.setValue(Prettify.match(JSON.parse(result),'elem'));
+			sqlEditor.setValue(Prettify.match(result,'elem'));
 		});	
 	}
 	

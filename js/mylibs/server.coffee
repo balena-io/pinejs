@@ -131,7 +131,7 @@ remoteServerRequest = (method, uri, headers, body, successCallback, failureCallb
 	switch rootbranch
 		when "onair"
 			if method == "GET"
-				successCallback 200, JSON.stringify(serverModelCache.isServerOnAir())
+				successCallback 200, serverModelCache.isServerOnAir()
 			else
 				failureCallback 404
 		when "model"
@@ -141,17 +141,17 @@ remoteServerRequest = (method, uri, headers, body, successCallback, failureCallb
 				failureCallback 404
 		when "lfmodel"
 			if method == "GET" and serverModelCache.isServerOnAir()
-				successCallback 200, JSON.stringify(serverModelCache.getLF())
+				successCallback 200, serverModelCache.getLF()
 			else
 				failureCallback 404
 		when "prepmodel"
 			if method == "GET" and serverModelCache.isServerOnAir()
-				successCallback 200, JSON.stringify(serverModelCache.getPrepLF())
+				successCallback 200, serverModelCache.getPrepLF()
 			else
 				failureCallback 404
 		when "sqlmodel"
 			if method == "GET" and serverModelCache.isServerOnAir()
-				successCallback 200, JSON.stringify(serverModelCache.getSQL())
+				successCallback 200, serverModelCache.getSQL()
 			else
 				failureCallback 404
 		when "ui"
@@ -161,8 +161,7 @@ remoteServerRequest = (method, uri, headers, body, successCallback, failureCallb
 						serverModelCache.setSE JSON.parse(body).value
 						successCallback 200
 					when "GET"
-						successCallback 200,
-							JSON.stringify(value: serverModelCache.getSE())
+						successCallback 200, value: serverModelCache.getSE()
 					else
 						failureCallback 404
 			else if tree[1][1] == "textarea-is_disabled" and tree[1][4][1][1][3] == "model_area"
@@ -171,8 +170,7 @@ remoteServerRequest = (method, uri, headers, body, successCallback, failureCallb
 						serverModelCache.setModelAreaDisabled JSON.parse(body).value
 						successCallback 200
 					when "GET"
-						successCallback 200,
-							JSON.stringify(value: serverModelCache.isModelAreaDisabled())
+						successCallback 200, value: serverModelCache.isModelAreaDisabled()
 					else
 						failureCallback 404
 			else
@@ -208,7 +206,7 @@ remoteServerRequest = (method, uri, headers, body, successCallback, failureCallb
 						xlcURI: "/data/lock-is_exclusive"
 						ctURI: "/data/transaction*filt:transaction.id=" + tree[1][3][1][1][3] + "/execute"
 
-					successCallback 200, JSON.stringify(o)
+					successCallback 200, o
 				else
 					switch method
 						when "GET"
@@ -428,8 +426,7 @@ dataGET = (tree, headers, body, successCallback, failureCallback) ->
 				id: row[1]
 				name: row[2]
 
-	successCallback 200,
-		JSON.stringify(result)
+	successCallback 200, result
 
 
 dataplusGET = (tree, headers, body, successCallback, failureCallback) ->
@@ -469,8 +466,7 @@ dataplusGET = (tree, headers, body, successCallback, failureCallback) ->
 		if sql != ""
 			tx.executeSql sql + ";", [], (tx, result) ->
 				data = instances: result.rows.item(i) for i in [0...result.rows.length]
-				successCallback 200,
-					JSON.stringify(data)
+				successCallback 200, data
 
 
 endLock = (tx, locks, i, trans_id, successCallback, failureCallback) ->
@@ -668,11 +664,11 @@ if process?
 				(statusCode, result = "", headers) ->
 					console.log('Success', result)
 					response.writeHead(statusCode, headers)
-					response.end(result)
+					response.end(JSON.stringify(result))
 				(statusCode, errors, headers) ->
 					console.log('Error', errors, new Error().stack)
 					response.writeHead(statusCode, headers)
-					response.end(errors)
+					response.end(JSON.stringify(errors))
 			)
 		)
 	).listen(1337, () ->
