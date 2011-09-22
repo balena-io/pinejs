@@ -140,17 +140,14 @@
       }
     };
   })();
-  remoteServerRequest = function(method, uri, headers, body, origSuccessCallback, origFailureCallback) {
-    var callbackRun, failureCallback, o, rootbranch, successCallback, tree;
-    callbackRun = false;
-    successCallback = function(statusCode, result, headers) {
-      callbackRun = true;
-      return typeof origSuccessCallback === "function" ? origSuccessCallback(statusCode, result, headers) : void 0;
-    };
-    failureCallback = function(statusCode, errors, headers) {
-      callbackRun = true;
-      return typeof origFailureCallback === "function" ? origFailureCallback(statusCode, errors, headers) : void 0;
-    };
+  remoteServerRequest = function(method, uri, headers, body, successCallback, failureCallback) {
+    var o, rootbranch, tree;
+    if (typeof successCallback !== "function") {
+      successCallback = function() {};
+    }
+    if (typeof failureCallback !== "function") {
+      failureCallback = function() {};
+    }
     tree = ServerURIParser.matchAll(uri, "uri");
     if ((headers != null) && headers["Content-Type"] === "application/xml") {
       null;
@@ -159,35 +156,37 @@
     switch (rootbranch) {
       case "onair":
         if (method === "GET") {
-          successCallback(200, JSON.stringify(serverModelCache.isServerOnAir()));
+          return successCallback(200, JSON.stringify(serverModelCache.isServerOnAir()));
+        } else {
+          return failureCallback(404);
         }
         break;
       case "model":
-        if (method === "GET") {
-          if (serverModelCache.isServerOnAir()) {
-            successCallback(200, serverModelCache.getLastSE());
-          }
+        if (method === "GET" && serverModelCache.isServerOnAir()) {
+          return successCallback(200, serverModelCache.getLastSE());
+        } else {
+          return failureCallback(404);
         }
         break;
       case "lfmodel":
-        if (method === "GET") {
-          if (serverModelCache.isServerOnAir()) {
-            successCallback(200, JSON.stringify(serverModelCache.getLF()));
-          }
+        if (method === "GET" && serverModelCache.isServerOnAir()) {
+          return successCallback(200, JSON.stringify(serverModelCache.getLF()));
+        } else {
+          return failureCallback(404);
         }
         break;
       case "prepmodel":
-        if (method === "GET") {
-          if (serverModelCache.isServerOnAir()) {
-            successCallback(200, JSON.stringify(serverModelCache.getPrepLF()));
-          }
+        if (method === "GET" && serverModelCache.isServerOnAir()) {
+          return successCallback(200, JSON.stringify(serverModelCache.getPrepLF()));
+        } else {
+          return failureCallback(404);
         }
         break;
       case "sqlmodel":
-        if (method === "GET") {
-          if (serverModelCache.isServerOnAir()) {
-            successCallback(200, JSON.stringify(serverModelCache.getSQL()));
-          }
+        if (method === "GET" && serverModelCache.isServerOnAir()) {
+          return successCallback(200, JSON.stringify(serverModelCache.getSQL()));
+        } else {
+          return failureCallback(404);
         }
         break;
       case "ui":
@@ -195,34 +194,42 @@
           switch (method) {
             case "PUT":
               serverModelCache.setSE(JSON.parse(body).value);
-              successCallback(200);
-              break;
+              return successCallback(200);
             case "GET":
-              successCallback(200, JSON.stringify({
+              return successCallback(200, JSON.stringify({
                 value: serverModelCache.getSE()
               }));
+            default:
+              return failureCallback(404);
           }
         } else if (tree[1][1] === "textarea-is_disabled" && tree[1][4][1][1][3] === "model_area") {
           switch (method) {
             case "PUT":
               serverModelCache.setModelAreaDisabled(JSON.parse(body).value);
-              successCallback(200);
-              break;
+              return successCallback(200);
             case "GET":
-              successCallback(200, JSON.stringify({
+              return successCallback(200, JSON.stringify({
                 value: serverModelCache.isModelAreaDisabled()
               }));
+            default:
+              return failureCallback(404);
           }
+        } else {
+          return failureCallback(404);
         }
         break;
       case "execute":
         if (method === "POST") {
-          executePOST(tree, headers, body, successCallback, failureCallback);
+          return executePOST(tree, headers, body, successCallback, failureCallback);
+        } else {
+          return failureCallback(404);
         }
         break;
       case "update":
         if (method === "POST") {
-          null;
+          return failureCallback(404);
+        } else {
+          return failureCallback(404);
         }
         break;
       case "data":
@@ -230,7 +237,9 @@
           if (tree[1] === void 0) {
             switch (method) {
               case "GET":
-                dataGET(tree, headers, body, successCallback, failureCallback);
+                return dataGET(tree, headers, body, successCallback, failureCallback);
+              default:
+                return failureCallback(404);
             }
           } else if (tree[1][1] === "transaction" && method === "GET") {
             o = {
@@ -244,32 +253,30 @@
               xlcURI: "/data/lock-is_exclusive",
               ctURI: "/data/transaction*filt:transaction.id=" + tree[1][3][1][1][3] + "/execute"
             };
-            successCallback(200, JSON.stringify(o));
+            return successCallback(200, JSON.stringify(o));
           } else {
             switch (method) {
               case "GET":
                 console.log("body:[" + body + "]");
-                dataplusGET(tree, headers, body, successCallback, failureCallback);
-                break;
+                return dataplusGET(tree, headers, body, successCallback, failureCallback);
               case "POST":
-                dataplusPOST(tree, headers, body, successCallback, failureCallback);
-                break;
+                return dataplusPOST(tree, headers, body, successCallback, failureCallback);
               case "PUT":
-                dataplusPUT(tree, headers, body, successCallback, failureCallback);
-                break;
+                return dataplusPUT(tree, headers, body, successCallback, failureCallback);
               case "DELETE":
-                dataplusDELETE(tree, headers, body, successCallback, failureCallback);
+                return dataplusDELETE(tree, headers, body, successCallback, failureCallback);
+              default:
+                return failureCallback(404);
             }
           }
         }
         break;
       default:
         if (method === "DELETE") {
-          rootDELETE(tree, headers, body, successCallback, failureCallback);
+          return rootDELETE(tree, headers, body, successCallback, failureCallback);
+        } else {
+          return failureCallback(404);
         }
-    }
-    if (!callbackRun) {
-      return failureCallback(404);
     }
   };
   dataplusDELETE = function(tree, headers, body, successCallback, failureCallback) {

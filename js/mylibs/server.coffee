@@ -117,15 +117,12 @@ serverModelCache = do () ->
 
 # successCallback = (statusCode, result, headers)
 # failureCallback = (statusCode, errors, headers)
-remoteServerRequest = (method, uri, headers, body, origSuccessCallback, origFailureCallback) ->
-	callbackRun = false
-	successCallback = (statusCode, result, headers) ->
-		callbackRun = true
-		origSuccessCallback?(statusCode, result, headers)
-	failureCallback = (statusCode, errors, headers) ->
-		callbackRun = true
-		origFailureCallback?(statusCode, errors, headers)
-	
+remoteServerRequest = (method, uri, headers, body, successCallback, failureCallback) ->
+	if typeof successCallback != "function"
+		successCallback = ->
+	if typeof failureCallback != "function"
+		failureCallback = ->
+
 	tree = ServerURIParser.matchAll(uri, "uri")
 	if headers? and headers["Content-Type"] == "application/xml"
 			#TODO: in case of input: do something to make xml into a json object
@@ -134,28 +131,29 @@ remoteServerRequest = (method, uri, headers, body, origSuccessCallback, origFail
 	switch rootbranch
 		when "onair"
 			if method == "GET"
-				successCallback 200,
-					JSON.stringify(serverModelCache.isServerOnAir())
+				successCallback 200, JSON.stringify(serverModelCache.isServerOnAir())
+			else
+				failureCallback 404
 		when "model"
-			if method == "GET"
-				if serverModelCache.isServerOnAir()
-					successCallback 200,
-						serverModelCache.getLastSE()
+			if method == "GET" and serverModelCache.isServerOnAir()
+				successCallback 200, serverModelCache.getLastSE()
+			else
+				failureCallback 404
 		when "lfmodel"
-			if method == "GET"
-				if serverModelCache.isServerOnAir()
-					successCallback 200,
-						JSON.stringify(serverModelCache.getLF())
+			if method == "GET" and serverModelCache.isServerOnAir()
+				successCallback 200, JSON.stringify(serverModelCache.getLF())
+			else
+				failureCallback 404
 		when "prepmodel"
-			if method == "GET"
-				if serverModelCache.isServerOnAir()
-					successCallback 200,
-						JSON.stringify(serverModelCache.getPrepLF())
+			if method == "GET" and serverModelCache.isServerOnAir()
+				successCallback 200, JSON.stringify(serverModelCache.getPrepLF())
+			else
+				failureCallback 404
 		when "sqlmodel"
-			if method == "GET"
-				if serverModelCache.isServerOnAir()
-					successCallback 200,
-						JSON.stringify(serverModelCache.getSQL())
+			if method == "GET" and serverModelCache.isServerOnAir()
+				successCallback 200, JSON.stringify(serverModelCache.getSQL())
+			else
+				failureCallback 404
 		when "ui"
 			if tree[1][1] == "textarea" and tree[1][3][1][1][3] == "model_area"
 				switch method
@@ -165,6 +163,8 @@ remoteServerRequest = (method, uri, headers, body, origSuccessCallback, origFail
 					when "GET"
 						successCallback 200,
 							JSON.stringify(value: serverModelCache.getSE())
+					else
+						failureCallback 404
 			else if tree[1][1] == "textarea-is_disabled" and tree[1][4][1][1][3] == "model_area"
 				switch method
 					when "PUT"
@@ -173,19 +173,29 @@ remoteServerRequest = (method, uri, headers, body, origSuccessCallback, origFail
 					when "GET"
 						successCallback 200,
 							JSON.stringify(value: serverModelCache.isModelAreaDisabled())
+					else
+						failureCallback 404
+			else
+				failureCallback 404
 		when "execute"
 			if method == "POST"
 				executePOST tree, headers, body, successCallback, failureCallback
+			else
+				failureCallback 404
 		when "update"
 			if method == "POST"
 				#update code will go here, based on executePOST
-				null
+				failureCallback 404
+			else
+				failureCallback 404
 		when "data"
 			if serverModelCache.isServerOnAir()
 				if tree[1] == undefined
 					switch method
 						when "GET"
 							dataGET tree, headers, body, successCallback, failureCallback
+						else
+							failureCallback 404
 				else if tree[1][1] == "transaction" and method == "GET"
 					o = 
 						id: tree[1][3][1][1][3]
@@ -198,8 +208,7 @@ remoteServerRequest = (method, uri, headers, body, origSuccessCallback, origFail
 						xlcURI: "/data/lock-is_exclusive"
 						ctURI: "/data/transaction*filt:transaction.id=" + tree[1][3][1][1][3] + "/execute"
 
-					successCallback 200,
-						JSON.stringify(o)
+					successCallback 200, JSON.stringify(o)
 				else
 					switch method
 						when "GET"
@@ -211,11 +220,13 @@ remoteServerRequest = (method, uri, headers, body, origSuccessCallback, origFail
 							dataplusPUT tree, headers, body, successCallback, failureCallback
 						when "DELETE"
 							dataplusDELETE tree, headers, body, successCallback, failureCallback
+						else
+							failureCallback 404
 		else
 			if method == "DELETE"
 				rootDELETE tree, headers, body, successCallback, failureCallback
-	
-	failureCallback 404 if !callbackRun
+			else
+				failureCallback 404
 
 dataplusDELETE = (tree, headers, body, successCallback, failureCallback) ->
 	id = getID tree
