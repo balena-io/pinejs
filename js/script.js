@@ -299,7 +299,7 @@ $(function() {
 	$("#tabs").tabs({
 		select: function(event, ui) {
 			//alert(ui.index != 0 && localStorage._client_onAir!='true')
-			if((ui.index > 1) && (localStorage._client_onAir!='true')){
+			if((ui.panel.id != 'modelTab' && ui.panel.id != 'httpTab') && (localStorage._client_onAir!='true')){
 				var exc = '<span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 50px 0;"></span>';
 				var msg = 'This tab is only accessible after a model is executed<br/>';
 				$( "#dialog-message" ).html( exc + msg );
