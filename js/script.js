@@ -23,19 +23,22 @@ function defaultSuccessCallback(statusCode, result, headers) {
 
 //should probably JSON.parse result when appropriate. Now the callbacks do it.
 function serverRequest(method, uri, headers, body, successCallback, failureCallback){
+	successCallback = typeof successCallback != 'function' ? defaultSuccessCallback : successCallback,
+	failureCallback = typeof failureCallback != 'function' ? defaultFailureCallback : failureCallback
 	$("#httpTable").append(
 		'<tr class="server_row"><td><strong>' + method +
 		"</strong></td><td>" + uri + "</td><td>" + (headers.length==0?'':headers) +
 		"</td><td>" + body + "</td></tr>"
 	);
 	if(typeof remoteServerRequest=='function')
-		remoteServerRequest(method, uri, headers, body,
-			typeof successCallback != 'function' ? defaultSuccessCallback : successCallback,
-			typeof failureCallback != 'function' ? defaultFailureCallback : failureCallback);
+		remoteServerRequest(method, uri, headers, body, successCallback, failureCallback);
 	else
 		$.ajax('/node'+uri, {
 			headers: headers,
 			data: body,
+			error: function(jqXHR, textStatus, errorThrown) {
+				failureCallback(jqXHR.status);
+			},
 			success: function(data, textStatus, jqXHR) {
 				successCallback(jqXHR.status, data, jqXHR.getAllResponseHeaders());
 			},
