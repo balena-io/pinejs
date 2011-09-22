@@ -94,9 +94,6 @@ function drawData(tree){
 	);
 	
 	serverRequest("GET", "/data/", [], '', function(statusCode, result, headers){
-		//console.log(result);
-		var reslt = result;
-		
 		objcb = {
 			callback: function(n, prod){
 				//console.log(n,prod);
@@ -110,7 +107,7 @@ function drawData(tree){
 			}
 		}
 		
-		objcb.totsub = reslt.terms.length;
+		objcb.totsub = result.terms.length;
 		objcb.totend = 0;
 		objcb.data = [];
 		
@@ -126,22 +123,22 @@ function drawData(tree){
 				}
 			}
 		}
-		ftcb.totsub = reslt.fcTps.length;
+		ftcb.totsub = result.fcTps.length;
 		ftcb.totend = 0;
 		ftcb.data = [];*/
 		
-		for(var i=0;i<reslt.terms.length;i++){
+		for(var i=0;i<result.terms.length;i++){
 			launch = -1;
 			for(var j=3;j<tree.length;j++){
-				if(tree[j][1][0] == reslt.terms[i].id){ launch = j; }
+				if(tree[j][1][0] == result.terms[i].id){ launch = j; }
 			}
 			
-			pre = "<tr id='tr--data--" + reslt.terms[i].id + "'><td>"; 
+			pre = "<tr id='tr--data--" + result.terms[i].id + "'><td>"; 
 			if(launch == -1){
-				pre += reslt.terms[i].name;
+				pre += result.terms[i].name;
 			} else {
 				pre += "<div style='display:inline; background-color:#FFFFFF; " +  
-				"'>" + reslt.terms[i].name + "</div>";
+				"'>" + result.terms[i].name + "</div>";
 			}
 			post = "</td></tr>"
 			
@@ -156,7 +153,7 @@ function drawData(tree){
 				uid = new uidraw(i, objcb, pre, post, rootURI, [], [], filters, [launch-2], true, tree); 
 				uid.subRowIn();
 			}else{
-				newb = ['col', [reslt.terms[i].id], ['mod']];
+				newb = ['col', [result.terms[i].id], ['mod']];
 				npos = getTarg(tree, [], 'add', newb);
 
 				pre += " <a href='" + rootURI + "#!/" + npos + "' " + 
@@ -166,13 +163,13 @@ function drawData(tree){
 			}
 		}
 		
-		/*for(var i=0;i<reslt.fcTps.length;i++){
-			pre = "<tr id='tr--tr--data--" + reslt.terms[i].id + "'><td>" + reslt.fcTps[i].name;
+		/*for(var i=0;i<result.fcTps.length;i++){
+			pre = "<tr id='tr--tr--data--" + result.terms[i].id + "'><td>" + result.fcTps[i].name;
 			post = "</td></tr>"
 			
 			launch = -1;
 			for(var j=3;j<tree.length;j++){
-				if(tree[j][1][0] == reslt.fcTps[i].id){ launch = j; }
+				if(tree[j][1][0] == result.fcTps[i].id){ launch = j; }
 			}
 			//console.log(launch);
 			
@@ -188,7 +185,7 @@ function drawData(tree){
 				rootURI, [], [], filters, [launch-2], true, tree); 
 				uid.subRowIn();
 			}else{
-				newb = ['col', [reslt.fcTps[i].id], ['mod']];
+				newb = ['col', [result.fcTps[i].id], ['mod']];
 				npos = getTarg(tree, [], 'add', newb);
 
 				pre += " <a href='" + rootURI + "#!/" + npos + "' " + 
@@ -288,12 +285,9 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 			//console.log(this.targ);
 			
 			serverRequest("GET", this.targ, [], '', function(statusCode, result, headers){
-				//console.log(result);
-			
-				var reslt = result;
 				resl = ''
 				
-				parent.rows = reslt.instances.length;
+				parent.rows = result.instances.length;
 				parent.items = parent.rows + 2 + parent.adds + 1 + parent.cols;
 				
 				//get link which adds an 'add inst' dialog.
@@ -305,16 +299,14 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 				"[(+)add new]</a></td></tr>"]);
 				
 				//render each child and call back
-				for(var i=0;i<reslt.instances.length;i++){
+				for(var i=0;i<result.instances.length;i++){
 					launch = -1;
 					actn = 'view'
 					for(var j=3;j<parent.branch.length;j++){
-						//console.log(parent.branch[j], reslt.instances[i].name, reslt.instances[i].id);
-					
 						if(parent.branch[j][0] == 'ins' &&
 						parent.branch[j][1][0] == parent.about && 
-						(parent.branch[j][1][1] == reslt.instances[i].id || 
-						parent.branch[j][1][1] == reslt.instances[i].name)
+						(parent.branch[j][1][1] == result.instances[i].id || 
+						parent.branch[j][1][1] == result.instances[i].name)
 						&& parent.branch[j][1][1] != undefined){
 							launch = j;
 							
@@ -327,21 +319,21 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 					}
 					//console.log(launch,actn);
 					
-					posl = parent.targ + '/' + parent.about + "." + reslt.instances[i].id;
+					posl = parent.targ + '/' + parent.about + "." + result.instances[i].id;
 					
-					prel = "<tr id='tr--" + pid + "--" + reslt.instances[i].id + "'><td>";
+					prel = "<tr id='tr--" + pid + "--" + result.instances[i].id + "'><td>";
 					
 					if(launch != -1){
 						prel+="<div style='display:inline;background-color:" + parent.unbg + "'>"
 					}
 					
 					if(parent.type == "term"){
-						prel += reslt.instances[i].name;
+						prel += result.instances[i].name;
 					}else if(parent.type == "fcTp"){
-						//console.log(reslt.instances[i], parent.schema);
+						//console.log(result.instances[i], parent.schema);
 						for (var j=0;j<parent.schema.length;j++){
 							if(parent.schema[j][0]=='term'){
-								prel += reslt.instances[i][parent.schema[j][1] + '_name'] + ' ';
+								prel += result.instances[i][parent.schema[j][1] + '_name'] + ' ';
 							}else if(parent.schema[j][0]=='verb'){
 								prel += '<em>' + parent.schema[j][1] + '</em> ';
 							}
@@ -357,7 +349,7 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 						"'> <a href='" + rootURI + "#!/" + npos + "' " + "onClick='location.hash=\"#!/" + 
 						npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a></div>";
 					} else if(launch == -1){
-						newb = ['ins', [parent.about, reslt.instances[i].id], ['mod']];
+						newb = ['ins', [parent.about, result.instances[i].id], ['mod']];
 						npos = getTarg(parent.ftree, parent.loc, 'add', newb);
 						
 						prel += " <a href='" + rootURI + "#!/" + npos + "' " + 
@@ -371,7 +363,7 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 						"'> <a href='" + rootURI + "#!/" + npos + "' " + 
 						"onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a></div>";
 					} else if(launch == -1){
-						newb = ['ins', [parent.about, reslt.instances[i].id], ['mod', ['edit']]];
+						newb = ['ins', [parent.about, result.instances[i].id], ['mod', ['edit']]];
 						npos = getTarg(parent.ftree, parent.loc, 'add', newb);
 						
 						prel +=	" <a href='" + rootURI + "#!/" + npos + "' " + 
@@ -384,7 +376,7 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 						"'> <a href='" + rootURI + "#!/" + npos + "' " + 
 						"onClick='location.hash=\"#!/" + npos + "\";return false'>[unmark]</a></div>";
 					} else if(launch == -1){
-						newb = ['ins', [parent.about, reslt.instances[i].id], ['mod', ['del']]];
+						newb = ['ins', [parent.about, result.instances[i].id], ['mod', ['del']]];
 						npos = getTarg(parent.ftree, parent.loc, 'add', newb);
 
 						prel +=	" <a href='" + rootURI + "#!/" + npos + "' " + 
@@ -443,14 +435,13 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 							if(cmod[i][6][j][1] == parent.about){
 								launch = -1;
 								for(var j=3;j<parent.branch.length;j++){
-									//console.log(reslt,i,j);
 									if(parent.branch[j][1][0] == cmod[i][1]){ launch = j-2; break; }
 								}
 								
 								//console.log(cmod[i][2]);
 								parent.colsout++;
 								//console.log('aaa' + parent.colsout)
-								res = '';
+								var res = '';
 								
 								pre = "<tr id='tr--data--" + cmod[i][1] + "'><td>"; 
 								
@@ -529,30 +520,25 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 						this.targ = serverAPI(this.about, this.filters);
 						//console.log(this.targ, getTarg(this.ftree, this.loc, "del", 1));
 						serverRequest("GET", this.targ, [], '', function(statusCode, result, headers){
-							res = ''
-							var reslt = result;
-							//console.log(result);
-							for(item in reslt.instances[0]){
+							var res = ''
+							for(item in result.instances[0]){
 								if(item != '__clone'){
-									//alert([item,typeof(item),reslt.instances[0][item]])
-									res += item + ": " + reslt.instances[0][item] + "<br/>"
+									res += item + ": " + result.instances[0][item] + "<br/>"
 									//could it have a child? yes, of course! a fact type for instance.
 								}
 							}
-							//console.log(res);
 							parent.callback(1,res);
 						});
 					} else if(this.type == "fcTp"){
 						this.targ = serverAPI(this.about, this.filters);
 						//console.log(this.targ);
 						serverRequest("GET", this.targ, [], '', function(statusCode, result, headers){
-							res = '';
-							var reslt = result;
-							res += "id: " + reslt.instances[0].id + "<br/>"
+							var res = '';
+							res += "id: " + result.instances[0].id + "<br/>"
 							//loop around terms
 							for(var j=0;j<parent.schema.length;j++){
 								if(parent.schema[j][0]=='term'){
-									res += reslt.instances[0][parent.schema[j][1] + "_name"] + ' ';
+									res += result.instances[0][parent.schema[j][1] + "_name"] + ' ';
 								}else if(parent.schema[j][0]=='verb'){
 									res += parent.schema[j][1] + ' ';
 								}
@@ -606,18 +592,14 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 						var trmres = [];
 						var trmsel = {};
 						var addftcb = function(statusCode, result, headers){
-							//console.log(result);
+							var res = ''
 							
-							res = ''
-							var reslt = result;
-							
-							trmres.push(reslt.instances);
+							trmres.push(result.instances);
 							
 							//construct dropdowns & form
 							if(trms.length == trmres.length){
 								//console.log(trmres);
 								//loop through terms/results
-								var res = '';
 
 								for(var j=0;j<trms.length;j++){
 									res = "<select id='" + trms[j] + "_id'>"
@@ -661,9 +643,9 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 							
 							//shoot off children
 							
-							//for(item in reslt.instances[0]){
-								//alert([item,typeof(item),reslt.instances[0][item]])
-							//	res += item + ": " + reslt.instances[0][item] + "<br/>"
+							//for(item in result.instances[0]){
+								//alert([item,typeof(item),result.instances[0][item]])
+							//	res += item + ": " + result.instances[0][item] + "<br/>"
 								//could it have a child? yes, of course! a fact type for instance.
 							//}
 						}
@@ -702,8 +684,7 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 						serverRequest("GET", this.targ, [], '', function(statusCode, result, headers){
 							//console.log(result);
 							var res = ''
-							var reslt = result;
-							var id = reslt.instances[0].id
+							var id = result.instances[0].id
 							var res = "<div align='left'>";
 							res += "<form class = 'action' >";
 							res += "<input type='hidden' id='__actype' value='editterm'>";
@@ -717,7 +698,7 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 								switch(schm[j][0]){
 									case 'Text':
 										res += schm[j][2] + ": <input type='text' id='" + 
-										schm[j][1] + "' value = '" + reslt.instances[0][schm[j][1]] + 
+										schm[j][1] + "' value = '" + result.instances[0][schm[j][1]] + 
 										"' /><br />";
 										break;
 									case 'ForeignKey':
@@ -737,27 +718,21 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 					}else if(this.type == "fcTp"){
 						this.targ = serverAPI(this.about, this.filters);
 						serverRequest("GET", targ, [], '', function(statusCode, result, headers){
-							//console.log(result);
-							
-							resu = result;
+							var resu = result;
 							
 							//initialize vars
 							var trms = [];
 							var trmres = [];
 							var trmsel = {};
 							var editftcb = function(statusCode, result, headers){
-								//console.log(result);
+								var res = ''
 								
-								res = ''
-								var reslt = result;
-								
-								trmres.push(reslt.instances);
+								trmres.push(result.instances);
 								
 								//construct dropdowns & form
 								if(trms.length == trmres.length){
 									//console.log(trmres);
 									//loop through terms/results
-									var res = '';
 									var respo = '';
 									var respr = "<div align='left'>";
 									respr += "<form class = 'action' >";
@@ -815,9 +790,9 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 								
 								//shoot off children
 								
-								//for(item in reslt.instances[0]){
-									//alert([item,typeof(item),reslt.instances[0][item]])
-								//	res += item + ": " + reslt.instances[0][item] + "<br/>"
+								//for(item in result.instances[0]){
+									//alert([item,typeof(item),result.instances[0][item]])
+								//	res += item + ": " + result.instances[0][item] + "<br/>"
 									//could it have a child? yes, of course! a fact type for instance.
 								//}
 							}
