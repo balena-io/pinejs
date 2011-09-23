@@ -650,6 +650,7 @@ isExecute = (tree) ->
 	return false
 
 if process?
+	fs = require('fs');
 	http = require('http')
 	http.createServer((request, response) ->
 		console.log("Request received")
@@ -660,16 +661,25 @@ if process?
 		)
 		request.on('end', () ->
 			console.log('End', request.method, request.url, body)
-			remoteServerRequest(request.method, request.url, request.headers, body,
-				(statusCode, result = "", headers) ->
-					console.log('Success', result)
-					response.writeHead(statusCode, headers)
-					response.end(JSON.stringify(result))
-				(statusCode, errors, headers) ->
-					console.log('Error', errors, new Error().stack)
-					response.writeHead(statusCode, headers)
-					response.end(JSON.stringify(errors))
-			)
+			nodePath = '/node/'
+			if nodePath == request.url[0...nodePath.length]
+				console.log('Node')
+				remoteServerRequest(request.method, request.url, request.headers, body,
+					(statusCode, result = "", headers) ->
+						console.log('Success', result)
+						response.writeHead(statusCode, headers)
+						response.end(JSON.stringify(result))
+					(statusCode, errors, headers) ->
+						console.log('Error', errors, new Error().stack)
+						response.writeHead(statusCode, headers)
+						response.end(JSON.stringify(errors))
+				)
+			else
+				console.log('Static')
+				fs.readFile('./'+request.url, (err,data) ->
+					response.end(data)
+				)
+				
 		)
 	).listen(1337, () ->
 		console.log('Server started')
@@ -695,7 +705,6 @@ window?.remoteServerRequest = remoteServerRequest
 window?.db = db
 window?.importDB = importDB
 
-# fs = require('fs');
 # lazy = require("lazy");
 # imported = 0
 # new lazy(fs.createReadStream(process.argv[2])).lines.forEach((query) ->
