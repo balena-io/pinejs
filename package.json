@@ -1,0 +1,9 @@
+{
+	"name": "RuleMotion",
+	"version": "0.0.1",
+	"dependencies": {
+		"sqlite3": "2.x",
+		"requirejs": "0.x",
+		"lazy": "1.x"
+	}
+}
