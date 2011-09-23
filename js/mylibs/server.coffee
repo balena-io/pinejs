@@ -8,7 +8,7 @@ if process?
 	requirejs = require('requirejs');
 	requirejs.config(
 		nodeRequire: require
-		baseUrl: '/home/page/sws/js'
+		baseUrl: 'js'
 	)
 	db = do () ->
 		sqlite3 = require('sqlite3').verbose();

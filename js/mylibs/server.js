@@ -10,7 +10,7 @@
     requirejs = require('requirejs');
     requirejs.config({
       nodeRequire: require,
-      baseUrl: '/home/page/sws/js'
+      baseUrl: 'js'
     });
     db = (function() {
       var realDB, result, sqlite3, tx;
