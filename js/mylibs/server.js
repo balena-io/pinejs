@@ -1,5 +1,5 @@
 (function() {
-  var dataGET, dataplusDELETE, dataplusGET, dataplusPOST, dataplusPUT, db, endLock, executePOST, executeSasync, executeTasync, fs, getFTree, getID, hasCR, http, importDB, isExecute, op, remoteServerRequest, requirejs, rootDELETE, serverModelCache, updateRules, validateDB;
+  var dataGET, dataplusDELETE, dataplusGET, dataplusPOST, dataplusPUT, db, endLock, executePOST, executeSasync, executeTasync, getFTree, getID, hasCR, http, importDB, isExecute, op, remoteServerRequest, requirejs, rootDELETE, serverModelCache, staticServer, updateRules, validateDB;
   var __hasProp = Object.prototype.hasOwnProperty;
   op = {
     eq: "=",
@@ -802,7 +802,7 @@
     return false;
   };
   if (typeof process !== "undefined" && process !== null) {
-    fs = require('fs');
+    staticServer = new (require('node-static').Server)('./');
     http = require('http');
     http.createServer(function(request, response) {
       var body;
@@ -815,10 +815,10 @@
       return request.on('end', function() {
         var nodePath;
         console.log('End', request.method, request.url, body);
-        nodePath = '/node/';
+        nodePath = '/node';
         if (nodePath === request.url.slice(0, nodePath.length)) {
           console.log('Node');
-          return remoteServerRequest(request.method, request.url, request.headers, body, function(statusCode, result, headers) {
+          return remoteServerRequest(request.method, request.url.slice(nodePath.length), request.headers, body, function(statusCode, result, headers) {
             if (result == null) {
               result = "";
             }
@@ -832,9 +832,7 @@
           });
         } else {
           console.log('Static');
-          return fs.readFile('./' + request.url, function(err, data) {
-            return response.end(data);
-          });
+          return staticServer.serve(request, response);
         }
       });
     }).listen(53322, function() {

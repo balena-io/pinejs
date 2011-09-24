@@ -650,7 +650,7 @@ isExecute = (tree) ->
 	return false
 
 if process?
-	fs = require('fs');
+	staticServer = new(require('node-static').Server)('./');
 	http = require('http')
 	http.createServer((request, response) ->
 		console.log("Request received")
@@ -661,10 +661,10 @@ if process?
 		)
 		request.on('end', () ->
 			console.log('End', request.method, request.url, body)
-			nodePath = '/node/'
+			nodePath = '/node'
 			if nodePath == request.url[0...nodePath.length]
 				console.log('Node')
-				remoteServerRequest(request.method, request.url, request.headers, body,
+				remoteServerRequest(request.method, request.url[nodePath.length..], request.headers, body,
 					(statusCode, result = "", headers) ->
 						console.log('Success', result)
 						response.writeHead(statusCode, headers)
@@ -676,9 +676,7 @@ if process?
 				)
 			else
 				console.log('Static')
-				fs.readFile('./'+request.url, (err,data) ->
-					response.end(data)
-				)
+				staticServer.serve(request, response)
 				
 		)
 	).listen(53322, () ->
@@ -705,6 +703,7 @@ window?.remoteServerRequest = remoteServerRequest
 window?.db = db
 window?.importDB = importDB
 
+# fs = require('fs')
 # lazy = require("lazy");
 # imported = 0
 # new lazy(fs.createReadStream(process.argv[2])).lines.forEach((query) ->
