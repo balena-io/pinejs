@@ -679,7 +679,7 @@ if process?
 				staticServer.serve(request, response)
 				
 		)
-	).listen(53322, () ->
+	).listen(process.env.PORT or 1337, () ->
 		console.log('Server started')
 	)
 

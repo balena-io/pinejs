@@ -835,7 +835,7 @@
           return staticServer.serve(request, response);
         }
       });
-    }).listen(53322, function() {
+    }).listen(process.env.PORT || 1337, function() {
       return console.log('Server started');
     });
   }
