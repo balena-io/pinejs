@@ -23,6 +23,7 @@ function defaultSuccessCallback(statusCode, result, headers) {
 
 //should probably JSON.parse result when appropriate. Now the callbacks do it.
 function serverRequest(method, uri, headers, body, successCallback, failureCallback){
+	/*#IFDEF server*/
 	successCallback = typeof successCallback != 'function' ? defaultSuccessCallback : successCallback,
 	failureCallback = typeof failureCallback != 'function' ? defaultFailureCallback : failureCallback
 	$("#httpTable").append(
@@ -44,6 +45,7 @@ function serverRequest(method, uri, headers, body, successCallback, failureCallb
 			},
 			type: method
 		})
+	/*#ENDIFDEF*/
 }
 
 //txtmod = '';
