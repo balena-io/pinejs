@@ -5,6 +5,6 @@
 		"sqlite3": "2.x",
 		"requirejs": "0.x",
 		"lazy": "1.x",
-		"https://github.com/cloudhead/node-static/tarball/master": "x"
+		"node-static": "https://github.com/cloudhead/node-static/tarball/master"
 	}
 }
