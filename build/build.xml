@@ -94,7 +94,6 @@
 				<modified/>
 			</fileset>
 			<arg path="./${dir.build.tools}/${tool.ometac}"/>
-			<arg path="./${dir.build.tools}/${tool.ometajs}"/>
 			<arg value="pretty"/>
 			<srcfile/>
 		</apply>
@@ -108,7 +107,6 @@
 				<modified/>
 			</fileset>
 			<arg path="./${dir.build.tools}/${tool.ometac}"/>
-			<arg path="./${dir.build.tools}/${tool.ometajs}"/>
 			<arg value="pretty"/>
 			<srcfile/>
 		</apply>
