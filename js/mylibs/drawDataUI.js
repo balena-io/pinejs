@@ -40,7 +40,6 @@ function getTarg(tree, loc, actn, newb){
 	
 	//create ''pointer''
 	var ptree = jQuery.extend(true, [], tree);
-	var pnt = 'ntree';
 	var parr = ptree
 	
 	for(var i=0;i<loc.length;i++){
