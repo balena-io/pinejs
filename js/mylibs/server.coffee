@@ -273,7 +273,7 @@ dataplusDELETE = (tree, headers, body, successCallback, failureCallback) ->
 								successCallback 200, result
 							), failureCallback
 					else
-						failureCallback 200, [ "The resource is locked and cannot be deleted" ]
+						failureCallback 404, [ "The resource is locked and cannot be deleted" ]
 			), (err) ->
 
 
@@ -317,7 +317,7 @@ dataplusPUT = (tree, headers, body, successCallback, failureCallback) ->
 								successCallback 200, result
 							), failureCallback
 				else
-					failureCallback 200, [ "The resource is locked and cannot be edited" ]
+					failureCallback 404, [ "The resource is locked and cannot be edited" ]
 		), (err) ->
 
 
@@ -406,7 +406,7 @@ executePOST = (tree, headers, body, successCallback, failureCallback) ->
 			), failureCallback, result
 		), ((errors) ->
 			serverModelCache.setModelAreaDisabled false
-			failureCallback 200, errors
+			failureCallback 404, errors
 		)
 
 
@@ -584,7 +584,7 @@ validateDB = (tx, sqlmod, successCallback, failureCallback) ->
 			par *= result.rows.item(0).result
 			if tot == tex
 				if par == 0
-					failureCallback errors
+					failureCallback 404, errors
 					tx.rollback()
 				else
 					tx.end()
@@ -620,7 +620,7 @@ executeTasync = (tx, trnmod, successCallback, failureCallback, result) ->
 		successCallback tx, trnmod, failureCallback, result
 	), ((errors) ->
 		serverModelCache.setModelAreaDisabled false
-		failureCallback errors
+		failureCallback 404, errors
 	), result
 
 

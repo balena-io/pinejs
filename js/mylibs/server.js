@@ -345,7 +345,7 @@
                 }), failureCallback);
               });
             } else {
-              return failureCallback(200, ["The resource is locked and cannot be deleted"]);
+              return failureCallback(404, ["The resource is locked and cannot be deleted"]);
             }
           });
         }), function(err) {});
@@ -405,7 +405,7 @@
               });
             }
           } else {
-            return failureCallback(200, ["The resource is locked and cannot be edited"]);
+            return failureCallback(404, ["The resource is locked and cannot be edited"]);
           }
         });
       }), function(err) {});
@@ -505,7 +505,7 @@
         }), failureCallback, result);
       }), (function(errors) {
         serverModelCache.setModelAreaDisabled(false);
-        return failureCallback(200, errors);
+        return failureCallback(404, errors);
       }));
     });
   };
@@ -737,7 +737,7 @@
           par *= result.rows.item(0).result;
           if (tot === tex) {
             if (par === 0) {
-              failureCallback(errors);
+              failureCallback(404, errors);
               return tx.rollback();
             } else {
               tx.end();
@@ -771,7 +771,7 @@
       return successCallback(tx, trnmod, failureCallback, result);
     }), (function(errors) {
       serverModelCache.setModelAreaDisabled(false);
-      return failureCallback(errors);
+      return failureCallback(404, errors);
     }), result);
   };
   updateRules = function(sqlmod) {
