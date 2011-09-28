@@ -43,7 +43,13 @@
       return {
         transaction: function(callback) {
           return realDB.serialize(function() {
-            return callback(tx);
+            var startTrans;
+            startTrans = function() {
+              return tx.executeSql('BEGIN TRANSACTION;', [], function() {
+                return callback(tx);
+              });
+            };
+            return tx.executeSql('END;', [], startTrans, startTrans);
           });
         }
       };
@@ -691,8 +697,10 @@
           if (tot === tex) {
             if (par === 0) {
               failureCallback(errors);
+              tx.executeSql('ROLLBACK;');
               return tx.executeSql("DROP TABLE '__Fo0oFoo'");
             } else {
+              tx.executeSql('END;');
               return successCallback(tx, sqlmod, failureCallback, result);
             }
           }

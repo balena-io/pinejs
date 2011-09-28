@@ -32,7 +32,11 @@ if process?
 		return {
 			transaction: (callback) ->
 				realDB.serialize () ->
-					callback tx;
+					startTrans = () ->
+						tx.executeSql('BEGIN TRANSACTION;', [], ->
+							callback(tx)
+						)
+					tx.executeSql('END;', [], startTrans, startTrans)
 		}
 else
 	requirejs = window.requirejs
@@ -561,8 +565,10 @@ validateDB = (tx, sqlmod, successCallback, failureCallback) ->
 				if par == 0
 					failureCallback errors
 					#bogus sql to raise exception
-					tx.executeSql "DROP TABLE '__Fo0oFoo'"
+					tx.executeSql('ROLLBACK;')
+					tx.executeSql("DROP TABLE '__Fo0oFoo'")
 				else
+					tx.executeSql('END;')
 					successCallback tx, sqlmod, failureCallback, result
 	successCallback tx, sqlmod, failureCallback, ""  if tot == 0
 
