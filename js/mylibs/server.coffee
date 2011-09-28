@@ -44,6 +44,16 @@ else
 		tx = (_tx) ->
 			return {
 				executeSql: (sql, bindings, callback, errorCallback) ->
+					thisTX = this
+					#Wrap the callbacks passed in with our own if necessary to pass in the wrapped tx.
+					if callback?
+						callback = do(callback) ->
+							(_tx, _results) ->
+								callback(thisTX, _results)
+					if errorCallback?
+						errorCallback = do(errorCallback) ->
+							(_tx, _err) ->
+								errorCallback(thisTX, _err)
 					_tx.executeSql(sql, bindings, callback, errorCallback)
 				begin: ->
 				end: ->

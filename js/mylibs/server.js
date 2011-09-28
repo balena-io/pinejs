@@ -65,6 +65,22 @@
       tx = function(_tx) {
         return {
           executeSql: function(sql, bindings, callback, errorCallback) {
+            var thisTX;
+            thisTX = this;
+            if (callback != null) {
+              callback = (function(callback) {
+                return function(_tx, _results) {
+                  return callback(thisTX, _results);
+                };
+              })(callback);
+            }
+            if (errorCallback != null) {
+              errorCallback = (function(errorCallback) {
+                return function(_tx, _err) {
+                  return errorCallback(thisTX, _err);
+                };
+              })(errorCallback);
+            }
             return _tx.executeSql(sql, bindings, callback, errorCallback);
           },
           begin: function() {},
