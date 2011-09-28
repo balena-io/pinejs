@@ -38,18 +38,21 @@
               return typeof callback === "function" ? callback(tx, result(rows)) : void 0;
             }
           });
+        },
+        begin: function() {
+          return tx.executeSql('BEGIN;');
+        },
+        end: function() {
+          return tx.executeSql('END;');
+        },
+        rollback: function() {
+          return tx.executeSql('ROLLBACK;');
         }
       };
       return {
         transaction: function(callback) {
           return _db.serialize(function() {
-            var startTrans;
-            startTrans = function() {
-              return tx.executeSql('BEGIN TRANSACTION;', [], function() {
-                return callback(tx);
-              });
-            };
-            return tx.executeSql('END;', [], startTrans, startTrans);
+            return callback(tx);
           });
         }
       };
@@ -63,6 +66,11 @@
         return {
           executeSql: function(sql, bindings, callback, errorCallback) {
             return _tx.executeSql(sql, bindings, callback, errorCallback);
+          },
+          begin: function() {},
+          end: function() {},
+          rollback: function() {
+            return tx.executeSql("DROP TABLE '__Fo0oFoo'");
           }
         };
       };
@@ -312,9 +320,11 @@
           sql = "SELECT NOT EXISTS(SELECT * FROM 'resource-is_under-lock' AS r " + "WHERE r.'resource_type'=='" + tree[1][1] + "' " + "AND r.'resource_id'==" + id + ") AS result;";
           return tx.executeSql(sql, [], function(tx, result) {
             if (result.rows.item(0).result === 1) {
+              tx.begin();
               sql = 'DELETE FROM "' + tree[1][1] + '" WHERE id=' + id + ";";
               return tx.executeSql(sql, [], function(tx, result) {
                 return validateDB(tx, serverModelCache.getSQL(), (function(tx, sqlmod, failureCallback, result) {
+                  tx.end();
                   return successCallback(200, result);
                 }), failureCallback);
               });
@@ -369,9 +379,11 @@
                   ps.push(k + "=" + JSON.stringify(bd[pair][k]));
                 }
               }
+              tx.begin();
               sql = 'UPDATE "' + tree[1][1] + '" SET ' + ps.join(",") + " WHERE id=" + id + ";";
               return tx.executeSql(sql, [], function(tx) {
                 return validateDB(tx, serverModelCache.getSQL(), (function(tx, sqlmod, failureCallback, result) {
+                  tx.end();
                   return successCallback(200, result);
                 }), failureCallback);
               });
@@ -441,6 +453,7 @@
       }
       return db.transaction(function(tx) {
         var sql;
+        tx.begin();
         sql = 'INSERT INTO "' + tree[1][1] + '"("' + fds.join('","') + '") VALUES (' + vls.join(",") + ");";
         return tx.executeSql(sql, [], function(tx, sqlResult) {
           return validateDB(tx, serverModelCache.getSQL(), (function(tx, sqlmod, failureCallback, headers, result) {
@@ -463,6 +476,7 @@
     trnmod = SBVR2SQL.match(tree, "trans");
     serverModelCache.setModelAreaDisabled(true);
     return db.transaction(function(tx) {
+      tx.begin();
       return executeSasync(tx, sqlmod, (function(tx, sqlmod, failureCallback, result) {
         return executeTasync(tx, trnmod, (function(tx, trnmod, failureCallback, result) {
           serverModelCache.setServerOnAir(true);
@@ -708,12 +722,9 @@
           if (tot === tex) {
             if (par === 0) {
               failureCallback(errors);
-              tx.executeSql('ROLLBACK;');
-              return tx.executeSql("DROP TABLE '__Fo0oFoo'");
+              return tx.rollback();
             } else {
-              if (typeof process !== "undefined" && process !== null) {
-                tx.executeSql('END;');
-              }
+              tx.end();
               return successCallback(tx, sqlmod, failureCallback, result);
             }
           }

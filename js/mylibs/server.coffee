@@ -28,15 +28,14 @@ if process?
 						console.log(sql, err)
 					else
 						callback? tx, result(rows)
+			begin: -> tx.executeSql('BEGIN;')
+			end: -> tx.executeSql('END;')
+			rollback: -> tx.executeSql('ROLLBACK;')
 		}
 		return {
 			transaction: (callback) ->
 				_db.serialize () ->
-					startTrans = () ->
-						tx.executeSql('BEGIN TRANSACTION;', [], ->
-							callback(tx)
-						)
-					tx.executeSql('END;', [], startTrans, startTrans)
+					callback(tx)
 		}
 else
 	requirejs = window.requirejs
@@ -46,6 +45,9 @@ else
 			return {
 				executeSql: (sql, bindings, callback, errorCallback) ->
 					_tx.executeSql(sql, bindings, callback, errorCallback)
+				begin: ->
+				end: ->
+				rollback: -> tx.executeSql("DROP TABLE '__Fo0oFoo'")
 			}
 		return {
 			transaction: (callback) ->
@@ -253,9 +255,11 @@ dataplusDELETE = (tree, headers, body, successCallback, failureCallback) ->
 				sql = "SELECT NOT EXISTS(SELECT * FROM 'resource-is_under-lock' AS r " + "WHERE r.'resource_type'=='" + tree[1][1] + "' " + "AND r.'resource_id'==" + id + ") AS result;"
 				tx.executeSql sql, [], (tx, result) ->
 					if result.rows.item(0).result == 1
+						tx.begin()
 						sql = 'DELETE FROM "' + tree[1][1] + '" WHERE id=' + id + ";"
 						tx.executeSql sql, [], (tx, result) ->
 							validateDB tx, serverModelCache.getSQL(), ((tx, sqlmod, failureCallback, result) ->
+								tx.end()
 								successCallback 200, result
 							), failureCallback
 					else
@@ -295,9 +299,11 @@ dataplusPUT = (tree, headers, body, successCallback, failureCallback) ->
 						for own pair of bd
 							for own k of bd[pair]
 								ps.push k + "=" + JSON.stringify(bd[pair][k])
+						tx.begin()
 						sql = 'UPDATE "' + tree[1][1] + '" SET ' + ps.join(",") + " WHERE id=" + id + ";"
 						tx.executeSql sql, [], (tx) ->
 							validateDB tx, serverModelCache.getSQL(), ((tx, sqlmod, failureCallback, result) ->
+								tx.end()
 								successCallback 200, result
 							), failureCallback
 				else
@@ -357,6 +363,7 @@ dataplusPOST = (tree, headers, body, successCallback, failureCallback) ->
 				fds.push k
 				vls.push JSON.stringify(bd[pair][k])
 		db.transaction (tx) ->
+			tx.begin()
 			sql = 'INSERT INTO "' + tree[1][1] + '"("' + fds.join('","') + '") VALUES (' + vls.join(",") + ");"
 			tx.executeSql sql, [], (tx, sqlResult) ->
 				validateDB tx, serverModelCache.getSQL(), ((tx, sqlmod, failureCallback, headers, result) ->
@@ -375,6 +382,7 @@ executePOST = (tree, headers, body, successCallback, failureCallback) ->
 	trnmod = SBVR2SQL.match(tree, "trans")
 	serverModelCache.setModelAreaDisabled true
 	db.transaction (tx) ->
+		tx.begin()
 		executeSasync tx, sqlmod, ((tx, sqlmod, failureCallback, result) ->
 			#TODO: fix this as soon as the successCallback mess is fixed
 			executeTasync tx, trnmod, ((tx, trnmod, failureCallback, result) ->
@@ -567,12 +575,9 @@ validateDB = (tx, sqlmod, successCallback, failureCallback) ->
 			if tot == tex
 				if par == 0
 					failureCallback errors
-					#bogus sql to raise exception
-					tx.executeSql('ROLLBACK;')
-					tx.executeSql("DROP TABLE '__Fo0oFoo'")
+					tx.rollback()
 				else
-					if process?
-						tx.executeSql('END;')
+					tx.end()
 					successCallback tx, sqlmod, failureCallback, result
 	successCallback tx, sqlmod, failureCallback, ""  if tot == 0
 
