@@ -12,7 +12,7 @@ if process?
 	)
 	db = do () ->
 		sqlite3 = require('sqlite3').verbose();
-		realDB = new sqlite3.Database('/tmp/mydb.db');
+		_db = new sqlite3.Database('/tmp/mydb.db');
 		result = (rows) ->
 			return {
 				rows: {
@@ -22,7 +22,7 @@ if process?
 			}
 		tx = {
 			executeSql: (sql, bindings, callback, errorCallback) ->
-				realDB.all sql, bindings ? [], (err, rows) ->
+				_db.all sql, bindings ? [], (err, rows) ->
 					if err?
 						errorCallback? err
 						console.log(sql, err)
@@ -31,7 +31,7 @@ if process?
 		}
 		return {
 			transaction: (callback) ->
-				realDB.serialize () ->
+				_db.serialize () ->
 					startTrans = () ->
 						tx.executeSql('BEGIN TRANSACTION;', [], ->
 							callback(tx)
@@ -40,8 +40,19 @@ if process?
 		}
 else
 	requirejs = window.requirejs
-	db = openDatabase("mydb", "1.0", "my first database", 2 * 1024 * 1024)
-
+	db = do () ->
+		_db = openDatabase("mydb", "1.0", "my first database", 2 * 1024 * 1024)
+		tx = (_tx) ->
+			return {
+				executeSql: (sql, bindings, callback, errorCallback) ->
+					_tx.executeSql(sql, bindings, callback, errorCallback)
+			}
+		return {
+			transaction: (callback) ->
+				_db.transaction( (_tx) ->
+					callback(tx(_tx))
+				)
+		}
 requirejs(["mylibs/inflection",
 		"../ometa-js/lib",
 		"../ometa-js/ometa-base"]);
@@ -708,7 +719,7 @@ window?.importDB = importDB
 # new lazy(fs.createReadStream(process.argv[2])).lines.forEach((query) ->
 	# query = query.toString().trim();
 	# if query.length > 0
-		# realDB.run query, (error) ->
+		# _db.run query, (error) ->
 			# if error
 				# console.log error, imported++
 			# else

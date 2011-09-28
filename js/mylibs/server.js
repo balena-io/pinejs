@@ -13,9 +13,9 @@
       baseUrl: 'js'
     });
     db = (function() {
-      var realDB, result, sqlite3, tx;
+      var result, sqlite3, tx, _db;
       sqlite3 = require('sqlite3').verbose();
-      realDB = new sqlite3.Database('/tmp/mydb.db');
+      _db = new sqlite3.Database('/tmp/mydb.db');
       result = function(rows) {
         return {
           rows: {
@@ -28,7 +28,7 @@
       };
       tx = {
         executeSql: function(sql, bindings, callback, errorCallback) {
-          return realDB.all(sql, bindings != null ? bindings : [], function(err, rows) {
+          return _db.all(sql, bindings != null ? bindings : [], function(err, rows) {
             if (err != null) {
               if (typeof errorCallback === "function") {
                 errorCallback(err);
@@ -42,7 +42,7 @@
       };
       return {
         transaction: function(callback) {
-          return realDB.serialize(function() {
+          return _db.serialize(function() {
             var startTrans;
             startTrans = function() {
               return tx.executeSql('BEGIN TRANSACTION;', [], function() {
@@ -56,7 +56,24 @@
     })();
   } else {
     requirejs = window.requirejs;
-    db = openDatabase("mydb", "1.0", "my first database", 2 * 1024 * 1024);
+    db = (function() {
+      var tx, _db;
+      _db = openDatabase("mydb", "1.0", "my first database", 2 * 1024 * 1024);
+      tx = function(_tx) {
+        return {
+          executeSql: function(sql, bindings, callback, errorCallback) {
+            return _tx.executeSql(sql, bindings, callback, errorCallback);
+          }
+        };
+      };
+      return {
+        transaction: function(callback) {
+          return _db.transaction(function(_tx) {
+            return callback(tx(_tx));
+          });
+        }
+      };
+    })();
   }
   requirejs(["mylibs/inflection", "../ometa-js/lib", "../ometa-js/ometa-base"]);
   requirejs(["mylibs/ometa-code/SBVRModels", "mylibs/ometa-code/SBVRParser", "mylibs/ometa-code/SBVR_PreProc", "mylibs/ometa-code/SBVR2SQL", "mylibs/ometa-code/ServerURIParser"]);
