@@ -73,11 +73,8 @@
       trans: []
     };
     db.transaction(function(tx) {
-      var sql;
-      sql = 'CREATE TABLE IF NOT EXISTS "_server_model_cache" (' + '"key"	VARCHAR PRIMARY KEY,' + '"value"	VARCHAR );';
-      tx.executeSql(sql, [], function(tx, result) {});
-      sql = 'SELECT * FROM "_server_model_cache";';
-      return tx.executeSql(sql, [], function(tx, result) {
+      tx.executeSql('CREATE TABLE IF NOT EXISTS "_server_model_cache" (' + '"key"	VARCHAR PRIMARY KEY,' + '"value"	VARCHAR );');
+      return tx.executeSql('SELECT * FROM "_server_model_cache";', [], function(tx, result) {
         var i, row, _ref, _results;
         _results = [];
         for (i = 0, _ref = result.rows.length; 0 <= _ref ? i < _ref : i > _ref; 0 <= _ref ? i++ : i--) {
@@ -90,9 +87,7 @@
     setValue = function(key, value) {
       values[key] = value;
       return db.transaction(function(tx) {
-        var sql;
-        sql = 'INSERT OR REPLACE INTO "_server_model_cache" values' + "('" + key + "','" + JSON.stringify(value).replace(/\\'/g, "\\\\'").replace(new RegExp("'", 'g'), "\\'") + "');";
-        return tx.executeSql(sql, [], function(tx, result) {});
+        return tx.executeSql('INSERT OR REPLACE INTO "_server_model_cache" values' + "('" + key + "','" + JSON.stringify(value).replace(/\\'/g, "\\\\'").replace(new RegExp("'", 'g'), "\\'") + "');");
       });
     };
     return {
@@ -291,11 +286,8 @@
     if (id !== 0) {
       if (tree[1][1] === "lock" && hasCR(tree)) {
         return db.transaction(function(tx) {
-          var sql;
-          sql = 'DELETE FROM "conditional_representation" WHERE "lock_id"=' + id;
-          tx.executeSql(sql, [], function(tx, result) {});
-          sql = "INSERT INTO 'conditional_representation'('lock_id','field_name','field_type','field_value')" + "VALUES ('" + id + "','__DELETE','','')";
-          return tx.executeSql(sql, [], function(tx, result) {});
+          tx.executeSql('DELETE FROM "conditional_representation" WHERE "lock_id"=' + id);
+          return tx.executeSql("INSERT INTO 'conditional_representation'('lock_id','field_name','field_type','field_value')" + "VALUES ('" + id + "','__DELETE','','')");
         });
       } else {
         return db.transaction((function(tx) {
@@ -333,8 +325,7 @@
       }
       return db.transaction(function(tx) {
         var item, sql, _results;
-        sql = 'DELETE FROM "conditional_representation" WHERE "lock_id"=' + id;
-        tx.executeSql(sql, [], function(tx, result) {});
+        tx.executeSql('DELETE FROM "conditional_representation" WHERE "lock_id"=' + id);
         _results = [];
         for (item in ps) {
           if (!__hasProp.call(ps, item)) continue;
@@ -376,7 +367,7 @@
     }
   };
   dataplusPOST = function(tree, headers, body, successCallback, failureCallback) {
-    var bd, fds, id, k, pair, sql, vls, _ref;
+    var bd, fds, id, k, pair, vls, _ref;
     if (tree[1][1] === "transaction" && isExecute(tree)) {
       id = getID(tree);
       return db.transaction((function(tx) {
@@ -431,8 +422,9 @@
           vls.push(JSON.stringify(bd[pair][k]));
         }
       }
-      sql = 'INSERT INTO "' + tree[1][1] + '"("' + fds.join('","') + '") VALUES (' + vls.join(",") + ");";
       return db.transaction(function(tx) {
+        var sql;
+        sql = 'INSERT INTO "' + tree[1][1] + '"("' + fds.join('","') + '") VALUES (' + vls.join(",") + ");";
         return tx.executeSql(sql, [], function(tx, sqlResult) {
           return validateDB(tx, serverModelCache.getSQL(), (function(tx, sqlmod, failureCallback, headers, result) {
             return successCallback(201, result, {
@@ -478,7 +470,9 @@
         _results = [];
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           row = _ref[_i];
-          _results.push((_ref2 = row[0]) === "fcTp" || _ref2 === "term" ? tx.executeSql(row[5]) : void 0);
+          if ((_ref2 = row[0]) === "fcTp" || _ref2 === "term") {
+            _results.push(tx.executeSql(row[5]));
+          }
         }
         return _results;
       };
@@ -490,7 +484,9 @@
         _results = [];
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           row = _ref[_i];
-          _results.push((_ref2 = row[0]) === "fcTp" || _ref2 === "term" ? tx.executeSql(row[5]) : void 0);
+          if ((_ref2 = row[0]) === "fcTp" || _ref2 === "term") {
+            _results.push(tx.executeSql(row[5]));
+          }
         }
         return _results;
       };
@@ -530,56 +526,55 @@
     return successCallback(200, result);
   };
   dataplusGET = function(tree, headers, body, successCallback, failureCallback) {
-    var ftree;
+    var filts, fl, ft, ftree, jn, obj, row, row2, sql, tb, _i, _j, _k, _len, _len2, _len3, _ref, _ref2, _ref3;
     ftree = getFTree(tree);
-    return db.transaction(function(tx) {
-      var filts, fl, ft, jn, obj, row, row2, sql, tb, _i, _j, _k, _len, _len2, _len3, _ref, _ref2, _ref3;
-      sql = "";
-      if (tree[1][0] === "term") {
-        sql = "SELECT " + "*" + " FROM " + tree[1][1];
-        if (ftree.length !== 1) {
-          sql += " WHERE ";
-        }
-      } else if (tree[1][0] === "fcTp") {
-        ft = tree[1][1];
-        fl = ["'" + ft + "'.id AS id"];
-        jn = [];
-        tb = ["'" + ft + "'"];
-        _ref = tree[1][2].slice(1);
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          row = _ref[_i];
-          fl.push("'" + row + "'" + ".'id' AS '" + row + "_id'");
-          fl.push("'" + row + "'" + ".'name' AS '" + row + "_name'");
-          tb.push("'" + row + "'");
-          jn.push("'" + row + "'" + ".'id' = " + "'" + ft + "'" + "." + "'" + row + "_id" + "'");
-        }
-        sql = "SELECT " + fl.join(", ") + " FROM " + tb.join(", ") + " WHERE " + jn.join(" AND ");
-        if (ftree.length !== 1) {
-          sql += " AND ";
-        }
-      }
+    sql = "";
+    if (tree[1][0] === "term") {
+      sql = "SELECT " + "*" + " FROM " + tree[1][1];
       if (ftree.length !== 1) {
-        filts = [];
-        _ref2 = ftree.slice(1);
-        for (_j = 0, _len2 = _ref2.length; _j < _len2; _j++) {
-          row = _ref2[_j];
-          if (row[0] === "filt") {
-            _ref3 = row.slice(1);
-            for (_k = 0, _len3 = _ref3.length; _k < _len3; _k++) {
-              row2 = _ref3[_k];
-              obj = "";
-              if (row2[1][0] != null) {
-                obj = "'" + row2[1] + "'" + ".";
-              }
-              filts.push(obj + "'" + row2[2] + "'" + op[row2[0]] + row2[3]);
-            }
-          } else if (row[0] === "sort") {
-            null;
-          }
-        }
-        sql += filts.join(" AND ");
+        sql += " WHERE ";
       }
-      if (sql !== "") {
+    } else if (tree[1][0] === "fcTp") {
+      ft = tree[1][1];
+      fl = ["'" + ft + "'.id AS id"];
+      jn = [];
+      tb = ["'" + ft + "'"];
+      _ref = tree[1][2].slice(1);
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        row = _ref[_i];
+        fl.push("'" + row + "'" + ".'id' AS '" + row + "_id'");
+        fl.push("'" + row + "'" + ".'name' AS '" + row + "_name'");
+        tb.push("'" + row + "'");
+        jn.push("'" + row + "'" + ".'id' = " + "'" + ft + "'" + "." + "'" + row + "_id" + "'");
+      }
+      sql = "SELECT " + fl.join(", ") + " FROM " + tb.join(", ") + " WHERE " + jn.join(" AND ");
+      if (ftree.length !== 1) {
+        sql += " AND ";
+      }
+    }
+    if (ftree.length !== 1) {
+      filts = [];
+      _ref2 = ftree.slice(1);
+      for (_j = 0, _len2 = _ref2.length; _j < _len2; _j++) {
+        row = _ref2[_j];
+        if (row[0] === "filt") {
+          _ref3 = row.slice(1);
+          for (_k = 0, _len3 = _ref3.length; _k < _len3; _k++) {
+            row2 = _ref3[_k];
+            obj = "";
+            if (row2[1][0] != null) {
+              obj = "'" + row2[1] + "'" + ".";
+            }
+            filts.push(obj + "'" + row2[2] + "'" + op[row2[0]] + row2[3]);
+          }
+        } else if (row[0] === "sort") {
+          null;
+        }
+      }
+      sql += filts.join(" AND ");
+    }
+    if (sql !== "") {
+      return db.transaction(function(tx) {
         return tx.executeSql(sql + ";", [], function(tx, result) {
           var data, i;
           data = {
@@ -594,8 +589,8 @@
           };
           return successCallback(200, data);
         });
-      }
-    });
+      });
+    }
   };
   endLock = function(tx, locks, i, trans_id, successCallback, failureCallback) {
     var lock_id, sql;
@@ -612,8 +607,7 @@
             if (i < locks.rows.length - 1) {
               return endLock(tx, locks, i + 1, trans_id, successCallback, failureCallback);
             } else {
-              sql = 'DELETE FROM "transaction" WHERE "id"=' + trans_id + ';';
-              tx.executeSql(sql, [], function(tx, result) {});
+              tx.executeSql('DELETE FROM "transaction" WHERE "id"=' + trans_id + ';');
               return validateDB(tx, serverModelCache.getSQL(), (function(tx, sqlmod, failureCallback, result) {
                 return successCallback(200, result);
               }), failureCallback);

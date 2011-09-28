@@ -68,12 +68,10 @@ serverModelCache = do () ->
 	}
 
 	db.transaction (tx) ->
-		sql = 'CREATE TABLE IF NOT EXISTS "_server_model_cache" (' +
-			'"key"	VARCHAR PRIMARY KEY,' +
-			'"value"	VARCHAR );'
-		tx.executeSql sql, [], (tx, result) ->
-		sql = 'SELECT * FROM "_server_model_cache";'
-		tx.executeSql sql, [], (tx, result) ->
+		tx.executeSql 'CREATE TABLE IF NOT EXISTS "_server_model_cache" (' +
+					'"key"	VARCHAR PRIMARY KEY,' +
+					'"value"	VARCHAR );'
+		tx.executeSql 'SELECT * FROM "_server_model_cache";', [], (tx, result) ->
 			for i in [0...result.rows.length]
 				row = result.rows.item(i)
 				values[row.key] = JSON.parse row.value;
@@ -81,9 +79,8 @@ serverModelCache = do () ->
 	setValue = (key, value) ->
 		values[key] = value
 		db.transaction (tx) ->
-			sql = 'INSERT OR REPLACE INTO "_server_model_cache" values' +
-				"('" + key + "','" + JSON.stringify(value).replace(/\\'/g,"\\\\'").replace(new RegExp("'",'g'),"\\'") + "');"
-			tx.executeSql sql, [], (tx, result) ->
+			tx.executeSql 'INSERT OR REPLACE INTO "_server_model_cache" values' +
+						"('" + key + "','" + JSON.stringify(value).replace(/\\'/g,"\\\\'").replace(new RegExp("'",'g'),"\\'") + "');"
 
 	return {
 		isServerOnAir: -> values.serverOnAir
@@ -237,12 +234,9 @@ dataplusDELETE = (tree, headers, body, successCallback, failureCallback) ->
 			#CR posted to Lock
 			#insert delete entry
 			db.transaction (tx) ->
-				sql = 'DELETE FROM "conditional_representation" WHERE "lock_id"=' + id
-				tx.executeSql sql, [], (tx, result) ->
-
-				sql = "INSERT INTO 'conditional_representation'('lock_id','field_name','field_type','field_value')" +
-					 "VALUES ('" + id + "','__DELETE','','')"
-				tx.executeSql sql, [], (tx, result) ->
+				tx.executeSql 'DELETE FROM "conditional_representation" WHERE "lock_id"=' + id
+				tx.executeSql "INSERT INTO 'conditional_representation'('lock_id','field_name','field_type','field_value')" +
+							"VALUES ('" + id + "','__DELETE','','')"
 		else
 			db.transaction ((tx) ->
 				sql = "SELECT NOT EXISTS(SELECT * FROM 'resource-is_under-lock' AS r " + "WHERE r.'resource_type'=='" + tree[1][1] + "' " + "AND r.'resource_id'==" + id + ") AS result;"
@@ -271,8 +265,7 @@ dataplusPUT = (tree, headers, body, successCallback, failureCallback) ->
 		#sql="INSERT INTO 'conditional_representation'('lock_id','field_name','field_type','field_value')"
 		#"VALUES ('','','','')"
 		db.transaction (tx) ->
-			sql = 'DELETE FROM "conditional_representation" WHERE "lock_id"=' + id
-			tx.executeSql sql, [], (tx, result) ->
+			tx.executeSql 'DELETE FROM "conditional_representation" WHERE "lock_id"=' + id
 
 			for own item of ps
 				sql = "INSERT INTO 'conditional_representation'('lock_id'," +
@@ -352,8 +345,8 @@ dataplusPOST = (tree, headers, body, successCallback, failureCallback) ->
 			for own k of bd[pair]
 				fds.push k
 				vls.push JSON.stringify(bd[pair][k])
-		sql = 'INSERT INTO "' + tree[1][1] + '"("' + fds.join('","') + '") VALUES (' + vls.join(",") + ");"
 		db.transaction (tx) ->
+			sql = 'INSERT INTO "' + tree[1][1] + '"("' + fds.join('","') + '") VALUES (' + vls.join(",") + ");"
 			tx.executeSql sql, [], (tx, sqlResult) ->
 				validateDB tx, serverModelCache.getSQL(), ((tx, sqlmod, failureCallback, headers, result) ->
 					successCallback 201, result,
@@ -372,7 +365,7 @@ executePOST = (tree, headers, body, successCallback, failureCallback) ->
 	serverModelCache.setModelAreaDisabled true
 	db.transaction (tx) ->
 		executeSasync tx, sqlmod, ((tx, sqlmod, failureCallback, result) ->
-			#TODO: fix this as soon as the successCalback mess is fixed
+			#TODO: fix this as soon as the successCallback mess is fixed
 			executeTasync tx, trnmod, ((tx, trnmod, failureCallback, result) ->
 				serverModelCache.setServerOnAir true
 				serverModelCache.setLastSE se
@@ -392,13 +385,13 @@ rootDELETE = (tree, headers, body, successCallback, failureCallback) ->
 	#TODO: This should be reorganised to be properly async.
 	db.transaction ((sqlmod) ->
 		(tx) ->
-			for row in sqlmod[1..]
-				tx.executeSql row[5] if row[0] in ["fcTp", "term"]
+			for row in sqlmod[1..] when row[0] in ["fcTp", "term"]
+				tx.executeSql row[5]
 	)(serverModelCache.getSQL())
 	db.transaction ((trnmod) ->
 		(tx) ->
-			for row in trnmod[1..]
-				tx.executeSql row[5] if row[0] in ["fcTp", "term"]
+			for row in trnmod[1..] when row[0] in ["fcTp", "term"]
+				tx.executeSql row[5]
 	)(serverModelCache.getTrans())
 	#TODO: these two do not belong here
 	serverModelCache.setSE ""
@@ -435,39 +428,39 @@ dataGET = (tree, headers, body, successCallback, failureCallback) ->
 
 dataplusGET = (tree, headers, body, successCallback, failureCallback) ->
 	ftree = getFTree tree
-	db.transaction (tx) ->
-		sql = ""
-		if tree[1][0] == "term"
-			sql = "SELECT " + "*" + " FROM " + tree[1][1]
-			sql += " WHERE " unless ftree.length == 1
-		else if tree[1][0] == "fcTp"
-			ft = tree[1][1]
-			fl = [ "'" + ft + "'.id AS id" ]
-			jn = []
-			tb = [ "'" + ft + "'" ]
+	sql = ""
+	if tree[1][0] == "term"
+		sql = "SELECT " + "*" + " FROM " + tree[1][1]
+		sql += " WHERE " unless ftree.length == 1
+	else if tree[1][0] == "fcTp"
+		ft = tree[1][1]
+		fl = [ "'" + ft + "'.id AS id" ]
+		jn = []
+		tb = [ "'" + ft + "'" ]
 
-			for row in tree[1][2][1..]
-				fl.push "'" + row + "'" + ".'id' AS '" + row + "_id'"
-				fl.push "'" + row + "'" + ".'name' AS '" + row + "_name'"
-				tb.push "'" + row + "'"
-				jn.push "'" + row + "'" + ".'id' = " + "'" + ft + "'" + "." + "'" + row + "_id" + "'"
+		for row in tree[1][2][1..]
+			fl.push "'" + row + "'" + ".'id' AS '" + row + "_id'"
+			fl.push "'" + row + "'" + ".'name' AS '" + row + "_name'"
+			tb.push "'" + row + "'"
+			jn.push "'" + row + "'" + ".'id' = " + "'" + ft + "'" + "." + "'" + row + "_id" + "'"
 
-			sql = "SELECT " + fl.join(", ") + " FROM " + tb.join(", ") + " WHERE " + jn.join(" AND ")
-			sql += " AND "  unless ftree.length == 1
-		if ftree.length != 1
-			filts = []
+		sql = "SELECT " + fl.join(", ") + " FROM " + tb.join(", ") + " WHERE " + jn.join(" AND ")
+		sql += " AND "  unless ftree.length == 1
+	if ftree.length != 1
+		filts = []
 
-			for row in ftree[1..]
-				if row[0] == "filt"
-					for row2 in row[1..]
-						obj = ""
-						obj = "'" + row2[1] + "'" + "." if row2[1][0]?
-						filts.push obj + "'" + row2[2] + "'" + op[row2[0]] + row2[3]
-				else if row[0] == "sort"
-					#process sort
-					null
-			sql += filts.join(" AND ")
-		if sql != ""
+		for row in ftree[1..]
+			if row[0] == "filt"
+				for row2 in row[1..]
+					obj = ""
+					obj = "'" + row2[1] + "'" + "." if row2[1][0]?
+					filts.push obj + "'" + row2[2] + "'" + op[row2[0]] + row2[3]
+			else if row[0] == "sort"
+				#process sort
+				null
+		sql += filts.join(" AND ")
+	if sql != ""
+		db.transaction (tx) ->
 			tx.executeSql sql + ";", [], (tx, result) ->
 				data = instances: result.rows.item(i) for i in [0...result.rows.length]
 				successCallback 200, data
@@ -490,8 +483,7 @@ endLock = (tx, locks, i, trans_id, successCallback, failureCallback) ->
 						endLock tx, locks, i + 1, trans_id, successCallback, failureCallback
 					else
 						#delete transaction
-						sql = 'DELETE FROM "transaction" WHERE "id"=' + trans_id + ';'
-						tx.executeSql sql, [], (tx, result) ->
+						tx.executeSql 'DELETE FROM "transaction" WHERE "id"=' + trans_id + ';'
 
 						validateDB tx, serverModelCache.getSQL(), ((tx, sqlmod, failureCallback, result) ->
 							successCallback 200, result
