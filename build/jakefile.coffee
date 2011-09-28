@@ -1,7 +1,9 @@
+process.chdir('..')
+
 namespace('ometa', ->
 	outFileList = []
 	fileList = new jake.FileList()
-	fileList.include('../js/mylibs/**.ometa','../js/mylibs/**.ojs')
+	fileList.include('js/mylibs/**.ometa','js/mylibs/**.ojs')
 	for inFile in fileList.toArray()
 		outFile = inFile.replace(/\.(ojs|ometa)$/,'.js')
 		outFileList.push(jake.currentNamespace.name + ':' + outFile)
@@ -10,5 +12,6 @@ namespace('ometa', ->
 		file(taskObj, do (inFile, outFile) -> ->
 			require('./tools/ometac.js').compileOmeta(inFile, outFile, true)
 		)
+	desc('Build all OMeta files')
 	task('all': outFileList, ->)
 )
