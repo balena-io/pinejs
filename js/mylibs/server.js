@@ -700,7 +700,9 @@
               tx.executeSql('ROLLBACK;');
               return tx.executeSql("DROP TABLE '__Fo0oFoo'");
             } else {
-              tx.executeSql('END;');
+              if (typeof process !== "undefined" && process !== null) {
+                tx.executeSql('END;');
+              }
               return successCallback(tx, sqlmod, failureCallback, result);
             }
           }

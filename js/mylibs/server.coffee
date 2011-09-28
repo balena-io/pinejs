@@ -568,7 +568,8 @@ validateDB = (tx, sqlmod, successCallback, failureCallback) ->
 					tx.executeSql('ROLLBACK;')
 					tx.executeSql("DROP TABLE '__Fo0oFoo'")
 				else
-					tx.executeSql('END;')
+					if process?
+						tx.executeSql('END;')
 					successCallback tx, sqlmod, failureCallback, result
 	successCallback tx, sqlmod, failureCallback, ""  if tot == 0
 
