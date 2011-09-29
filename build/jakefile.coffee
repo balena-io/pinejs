@@ -10,6 +10,14 @@ alterFile = (inFile, outFile, alterFunc) ->
 	data = alterFunc(data)
 	fs.writeFileSync(outFile, data)
 
+getCurrentNamespace = () ->
+	fullNamespace = ''
+	currNamespace = jake.currentNamespace
+	while currNamespace.parentNamespace?
+		fullNamespace = currNamespace.name + ':' + fullNamespace
+		currNamespace = currNamespace.parentNamespace
+	return fullNamespace
+
 namespace('dir', ->
 	folderList = []
 	addDirTasks = (dirName='') ->
@@ -78,12 +86,12 @@ namespace('ometa', ->
 	fileList.include('js/mylibs/**.ometa','js/mylibs/**.ojs')
 	for inFile in fileList.toArray()
 		outFile = inFile.replace(/\.(ojs|ometa)$/,'.js')
-		outFileList.push(jake.currentNamespace.name + ':' + outFile)
+		outFileList.push(getCurrentNamespace() + outFile)
 		taskObj = {}
 		taskObj[outFile] = inFile
 		file(taskObj, do (inFile, outFile) -> ->
 			require('./tools/ometac.js').compileOmeta(inFile, outFile, true)
 		)
 	desc('Build all OMeta files')
-	task('all': outFileList, ->)
+	task('all': outFileList)
 )
