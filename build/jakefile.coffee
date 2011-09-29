@@ -3,12 +3,22 @@ process.env.buildDir ?= 'bin'
 process.env.modules ?= ''
 
 fs = require('fs')
+path = require('path')
 
 # alterFunc takes data, returns altered data
 alterFile = (inFile, outFile, alterFunc) ->
 	data = fs.readFileSync(inFile, 'utf8')
-	data = alterFunc(data)
+	data = alterFunc.call(this,data)
 	fs.writeFileSync(outFile, data)
+
+#alterFileTask(taskName, [taskDependencies], inFile, outFile, alterFunc)
+alterFileTask = (outFile, inFile, alterFunc, taskDependencies = []) ->
+	taskDependencies.push(inFile,'dir:'+path.dirname(outFile))
+	taskObj = {}
+	taskObj[outFile] = taskDependencies
+	file(taskObj, ->
+		alterFile.call(this, inFile, outFile, alterFunc)
+	)
 
 getCurrentNamespace = () ->
 	fullNamespace = ''
@@ -44,39 +54,52 @@ namespace('dir', ->
 
 namespace('ifdefs', () ->
 	desc('Check for IFDEFs')
-	task('all', ['ifdefs:js', 'ifdefs:ometa', 'ifdefs:html'])
+	task('all', ['ifdefs:js:all', 'ifdefs:ometa:all', 'ifdefs:html:all'])
 
-	task('js': 'dir:all', () ->
-		console.log('Checking for Javascript IFDEFs')
+	namespace('js', () ->
+		outFileList = []
 		fileList = new jake.FileList()
 		fileList.include('js/**.js')
 		for inFile in fileList.toArray()
-			alterFile(inFile, process.env.buildDir + '/' + inFile, (data) -> 
+			outFile = process.env.buildDir + '/' + inFile
+			outFileList.push(getCurrentNamespace() + outFile)
+			alterFileTask(outFile, inFile, (data) -> 
+				console.log('Processing Javascript IFDEFs for: '+ this.name)
 				data = data.replace(new RegExp('/\\*(?!\\*/)*?#IFDEF(?!\\*/)*?' + process.env.modules + '[\\s\\S]*?\\*/([\\s\\S]*?)/\\*(?!\\*/)*?#ENDIFDEF[\\s\\S]*?\\*/','g'), '$1')
 				return data.replace(new RegExp('/\\*(?!\\*/)*?#IFDEF[\\s\\S]*?#ENDIFDEF[\\s\\S]*?\\*/','g'), '')
 			)
+		task('all': outFileList)
 	)
-	task('ometa': 'dir:all', () ->
-		console.log('Checking for OMeta IFDEFs')
+
+	namespace('ometa', () ->
+		outFileList = []
 		fileList = new jake.FileList()
 		fileList.include('js/**.ometa','js/**.ojs')
 		for inFile in fileList.toArray()
-			alterFile(inFile, process.env.buildDir + '/' + inFile, (data) -> 
+			outFile = process.env.buildDir + '/' + inFile
+			outFileList.push(getCurrentNamespace() + outFile)
+			alterFileTask(outFile, inFile, (data) -> 
+				console.log('Processing OMeta IFDEFs for: '+ this.name)
 				data = data.replace(new RegExp('\\*(?!\\*/)*?#IFDEF(?!\\*/)*?' + process.env.modules + '[\\s\\S]*?\\*/([\\s\\S]*?)/\\*(?!\\*/)*?#ENDIFDEF[\\s\\S]*?\\*','g'), '$1')
 				return data.replace(new RegExp('\\*(?!\\*/)*?#IFDEF[\\s\\S]*?#ENDIFDEF[\\s\\S]*?\\*','g'), '')
 			)
+		task('all': outFileList)
 	)
 
-	task('html': 'dir:all', () ->
-		console.log('Checking for HTML IFDEFs')
+	namespace('html', () ->
+		outFileList = []
 		fileList = new jake.FileList()
 		fileList.include('**.html')
 		fileList.exclude('bin/**.html')
 		for inFile in fileList.toArray()
-			alterFile(inFile, process.env.buildDir + '/' + inFile, (data) -> 
+			outFile = process.env.buildDir + '/' + inFile
+			outFileList.push(getCurrentNamespace() + outFile)
+			alterFileTask(outFile, inFile, (data) -> 
+				console.log('Processing HTML IFDEFs for: '+ this.name)
 				data = data.replace(new RegExp('<!--[^>]*?#IFDEF[^>]*?' + process.env.modules + '[\\s\\S]*?-->([\\s\\S]*?)<!--[^>]*?#ENDIFDEF[^>]*?-->','g'), '$1')
 				return data.replace(new RegExp('<!--#IFDEF[\\s\\S]*?ENDIFDEF[\\s\\S]*?-->','g'), '')
 			)
+		task('all': outFileList)
 	)
 )
 
