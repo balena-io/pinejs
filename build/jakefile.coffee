@@ -49,11 +49,12 @@ namespace('dir', ->
 				directory(taskObj)
 				addDirTasks(folderPath)
 	addDirTasks()
+	desc('Create all output directories.')
 	task(all: folderList)
-)	
+)
 
 namespace('ifdefs', () ->
-	desc('Check for IFDEFs')
+	desc('Process all IFDEFs.')
 	task('all', ['ifdefs:js:all', 'ifdefs:ometa:all', 'ifdefs:html:all'])
 
 	namespace('js', () ->
@@ -68,6 +69,7 @@ namespace('ifdefs', () ->
 				data = data.replace(new RegExp('/\\*(?!\\*/)*?#IFDEF(?!\\*/)*?' + process.env.modules + '[\\s\\S]*?\\*/([\\s\\S]*?)/\\*(?!\\*/)*?#ENDIFDEF[\\s\\S]*?\\*/','g'), '$1')
 				return data.replace(new RegExp('/\\*(?!\\*/)*?#IFDEF[\\s\\S]*?#ENDIFDEF[\\s\\S]*?\\*/','g'), '')
 			)
+		desc('Process IFDEFs for all Javascript files')
 		task('all': outFileList)
 	)
 
@@ -83,6 +85,7 @@ namespace('ifdefs', () ->
 				data = data.replace(new RegExp('\\*(?!\\*/)*?#IFDEF(?!\\*/)*?' + process.env.modules + '[\\s\\S]*?\\*/([\\s\\S]*?)/\\*(?!\\*/)*?#ENDIFDEF[\\s\\S]*?\\*','g'), '$1')
 				return data.replace(new RegExp('\\*(?!\\*/)*?#IFDEF[\\s\\S]*?#ENDIFDEF[\\s\\S]*?\\*','g'), '')
 			)
+		desc('Process IFDEFs for all OMeta files')
 		task('all': outFileList)
 	)
 
@@ -99,6 +102,7 @@ namespace('ifdefs', () ->
 				data = data.replace(new RegExp('<!--[^>]*?#IFDEF[^>]*?' + process.env.modules + '[\\s\\S]*?-->([\\s\\S]*?)<!--[^>]*?#ENDIFDEF[^>]*?-->','g'), '$1')
 				return data.replace(new RegExp('<!--#IFDEF[\\s\\S]*?ENDIFDEF[\\s\\S]*?-->','g'), '')
 			)
+		desc('Process IFDEFs for all HTML files')
 		task('all': outFileList)
 	)
 )
