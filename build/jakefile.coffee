@@ -13,7 +13,8 @@ alterFile = (inFile, outFile, alterFunc) ->
 
 #alterFileTask(taskName, [taskDependencies], inFile, outFile, alterFunc)
 alterFileTask = (outFile, inFile, alterFunc, taskDependencies = []) ->
-	taskDependencies.push(inFile,'dir:'+path.dirname(outFile))
+	taskDependencies.push(inFile)
+	taskDependencies.push('dir:'+path.dirname(outFile)) if outFile.indexOf(process.env.buildDir) is 0
 	taskObj = {}
 	taskObj[outFile] = taskDependencies
 	file(taskObj, ->
@@ -114,10 +115,9 @@ namespace('ometa', ->
 	for inFile in fileList.toArray()
 		outFile = inFile.replace(/\.(ojs|ometa)$/,'.js')
 		outFileList.push(getCurrentNamespace() + outFile)
-		taskObj = {}
-		taskObj[outFile] = inFile
-		file(taskObj, do (inFile, outFile) -> ->
-			require('./tools/ometac.js').compileOmeta(inFile, outFile, true)
+		alterFileTask(outFile, inFile, (data) -> 
+			console.log('Compiling OMeta for: '+ this.name)
+			return require('./tools/ometac.js').compileOmeta(data, true, this.name)
 		)
 	desc('Build all OMeta files')
 	task('all': outFileList)

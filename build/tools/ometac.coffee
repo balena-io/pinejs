@@ -23,7 +23,17 @@ parsingError = (ometa) ->
 		console.log "Error around: " + ometa.substring(i - 2, Math.min(ometa.length, i + 2))
 		throw m
 
-compileOmeta = (ometaFilePath, jsFilePath, pretty) ->
+compileOmeta = (ometa, pretty, desc = 'OMeta') ->
+	console.log("Parsing: " + desc)
+	tree = BSOMetaJSParser.matchAll(ometa, "topLevel", undefined, parsingError(ometa))
+	console.log("Compiling: " + desc)
+	js = BSOMetaJSTranslator.match(tree, "trans", undefined, translationError)
+	if pretty == true
+		console.log("Beautifying: " + desc)
+		js = js_beautify(js)
+	return js
+
+compileOmetaFile = (ometaFilePath, jsFilePath, pretty) ->
 	console.log("Reading: " + ometaFilePath)
 	fs.readFile ometaFilePath, "utf8", do (ometaFilePath) ->
 		(err, data) ->
@@ -31,13 +41,7 @@ compileOmeta = (ometaFilePath, jsFilePath, pretty) ->
 				console.log(err)
 			else
 				ometa = data.replace(/\r\n/g, "\n")
-				console.log("Parsing: " + ometaFilePath)
-				tree = BSOMetaJSParser.matchAll(ometa, "topLevel", undefined, parsingError(ometa))
-				console.log("Compiling: " + ometaFilePath)
-				js = BSOMetaJSTranslator.match(tree, "trans", undefined, translationError)
-				if pretty == true
-					console.log("Beautifying: " + ometaFilePath)
-					js = js_beautify(js)
+				compileOmeta(ometa, pretty, ometaFilePath)
 				console.log("Writing: " + ometaFilePath)
 				fs.writeFile(jsFilePath, js)
 
@@ -48,7 +52,8 @@ if(process.argv[1] == __filename)
 	if((pretty = arguments[0] == "pretty") == true)
 		arguments.shift()
 	for filePath in arguments
-		compileOmeta(filePath, filePath.substring(0, filePath.lastIndexOf(".")) + ".js", pretty)
+		compileOmetaFile(filePath, filePath.substring(0, filePath.lastIndexOf(".")) + ".js", pretty)
 
 
+exports?.compileOmetaFile = compileOmetaFile
 exports?.compileOmeta = compileOmeta

@@ -1,5 +1,5 @@
 (function() {
-  var compileOmeta, console, filePath, fs, load, ometaPath, parsingError, pretty, translationError, vm, _i, _len;
+  var compileOmeta, compileOmetaFile, console, filePath, fs, load, ometaPath, parsingError, pretty, translationError, vm, _i, _len;
   console = require("console");
   fs = require("fs");
   vm = require("vm");
@@ -27,23 +27,31 @@
       throw m;
     };
   };
-  compileOmeta = function(ometaFilePath, jsFilePath, pretty) {
+  compileOmeta = function(ometa, pretty, desc) {
+    var js, tree;
+    if (desc == null) {
+      desc = 'OMeta';
+    }
+    console.log("Parsing: " + desc);
+    tree = BSOMetaJSParser.matchAll(ometa, "topLevel", void 0, parsingError(ometa));
+    console.log("Compiling: " + desc);
+    js = BSOMetaJSTranslator.match(tree, "trans", void 0, translationError);
+    if (pretty === true) {
+      console.log("Beautifying: " + desc);
+      js = js_beautify(js);
+    }
+    return js;
+  };
+  compileOmetaFile = function(ometaFilePath, jsFilePath, pretty) {
     console.log("Reading: " + ometaFilePath);
     return fs.readFile(ometaFilePath, "utf8", (function(ometaFilePath) {
       return function(err, data) {
-        var js, ometa, tree;
+        var ometa;
         if (err) {
           return console.log(err);
         } else {
           ometa = data.replace(/\r\n/g, "\n");
-          console.log("Parsing: " + ometaFilePath);
-          tree = BSOMetaJSParser.matchAll(ometa, "topLevel", void 0, parsingError(ometa));
-          console.log("Compiling: " + ometaFilePath);
-          js = BSOMetaJSTranslator.match(tree, "trans", void 0, translationError);
-          if (pretty === true) {
-            console.log("Beautifying: " + ometaFilePath);
-            js = js_beautify(js);
-          }
+          compileOmeta(ometa, pretty, ometaFilePath);
           console.log("Writing: " + ometaFilePath);
           return fs.writeFile(jsFilePath, js);
         }
@@ -58,8 +66,11 @@
     }
     for (_i = 0, _len = arguments.length; _i < _len; _i++) {
       filePath = arguments[_i];
-      compileOmeta(filePath, filePath.substring(0, filePath.lastIndexOf(".")) + ".js", pretty);
+      compileOmetaFile(filePath, filePath.substring(0, filePath.lastIndexOf(".")) + ".js", pretty);
     }
+  }
+  if (typeof exports !== "undefined" && exports !== null) {
+    exports.compileOmetaFile = compileOmetaFile;
   }
   if (typeof exports !== "undefined" && exports !== null) {
     exports.compileOmeta = compileOmeta;
