@@ -5,20 +5,24 @@ process.env.modules ?= ''
 fs = require('fs')
 path = require('path')
 
-# alterFunc takes data, returns altered data
-alterFile = (inFile, outFile, alterFunc) ->
-	data = fs.readFileSync(inFile, 'utf8')
-	data = alterFunc.call(this,data)
-	fs.writeFileSync(outFile, data)
-
 #alterFileTask(taskName, [taskDependencies], inFile, outFile, alterFunc)
+# alterFunc takes data, returns altered data
 alterFileTask = (outFile, inFile, alterFunc, taskDependencies = []) ->
 	taskDependencies.push(inFile)
 	taskDependencies.push('dir:'+path.dirname(outFile)) if outFile.indexOf(process.env.buildDir) is 0
 	taskObj = {}
 	taskObj[outFile] = taskDependencies
-	file(taskObj, ->
-		alterFile.call(this, inFile, outFile, alterFunc)
+	file(taskObj
+		-> 
+			task = this
+			fs.readFile(inFile, 'utf8', (err, data) ->
+				fail('Error reading file "' + inFile + '": ' + err) if err?
+				data = alterFunc.call(task, data)
+				fs.writeFile(outFile, data, null, ->
+					complete()
+				)
+			)
+		true
 	)
 
 getCurrentNamespace = () ->
