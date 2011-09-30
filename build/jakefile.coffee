@@ -2,6 +2,8 @@ process.chdir('..')
 process.env.buildDir ?= 'bin'
 process.env.modules ?= ''
 
+excludeDirs = [process.env.buildDir,'.git','node_modules']
+
 fs = require('fs')
 path = require('path')
 
@@ -34,26 +36,26 @@ getCurrentNamespace = () ->
 	return fullNamespace
 
 namespace('dir', ->
-	folderList = []
-	addDirTasks = (dirName='') ->
-		directory(process.env.buildDir)
-		for folderName in fs.readdirSync(dirName or '.') when folderName not in [process.env.buildDir,'.git','node_modules']
-			if dirName
-				folderPath = dirName+'/'+folderName
-			else
-				folderPath = folderName
-			fStats = fs.statSync(folderPath)
-			if fStats.isDirectory()
-				newFolderPath = process.env.buildDir+'/'+folderPath
-				folderList.push('dir:'+newFolderPath)
-				taskObj = {}
-				if dirName
-					taskObj[newFolderPath] = ['dir:'+process.env.buildDir+'/'+dirName]
-				else
-					taskObj[newFolderPath] = ['dir:'+process.env.buildDir]
-				directory(taskObj)
-				addDirTasks(folderPath)
-	addDirTasks()
+	directory(process.env.buildDir)
+	folderList = new jake.FileList()
+	folderList.clearExclude() #Clear the default exclude of folders
+	folderList.include('**')
+	folderList.exclude(excludeDirs)
+	folderList.exclude( (name) -> #Exclude non-directories
+		try
+			stats = fs.statSync(name)
+			return !stats.isDirectory()
+		catch e
+			console.log(e)
+			return true
+	)
+	for folderPath in folderList.toArray()
+		newFolderPath = process.env.buildDir+'/'+folderPath
+		folderList.push('dir:'+newFolderPath)
+		taskObj = {}
+		taskObj[newFolderPath] = ['dir:'+path.dirname(newFolderPath)]
+		directory(taskObj)
+	
 	desc('Create all output directories.')
 	task(all: folderList)
 )
@@ -65,7 +67,8 @@ namespace('ifdefs', () ->
 	namespace('js', () ->
 		outFileList = []
 		fileList = new jake.FileList()
-		fileList.include('js/**.js')
+		fileList.include('**.js')
+		fileList.exclude(excludeDirs)
 		for inFile in fileList.toArray()
 			outFile = process.env.buildDir + '/' + inFile
 			outFileList.push(getCurrentNamespace() + outFile)
@@ -98,7 +101,7 @@ namespace('ifdefs', () ->
 		outFileList = []
 		fileList = new jake.FileList()
 		fileList.include('**.html')
-		fileList.exclude('bin/**.html')
+		fileList.exclude(excludeDirs)
 		for inFile in fileList.toArray()
 			outFile = process.env.buildDir + '/' + inFile
 			outFileList.push(getCurrentNamespace() + outFile)
