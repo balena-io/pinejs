@@ -180,6 +180,7 @@ OMeta = {
     var ruleFnArity = ruleFn.length
     for (var idx = arguments.length - 1; idx >= ruleFnArity + 1; idx--) // prepend "extra" arguments in reverse order
       this._prependInput(arguments[idx])
+    this._storePossibility(rule)
     var origIdx = this.input.idx
     var ans = ruleFnArity == 0 ?
              ruleFn.call(this) :
@@ -192,6 +193,7 @@ OMeta = {
     var ruleFnArity = ruleFn.length
     for (var idx = arguments.length - 1; idx > ruleFnArity + 2; idx--) // prepend "extra" arguments in reverse order
       recv._prependInput(arguments[idx])
+    this._storePossibility(rule)
     var origIdx = recv.input.idx
     var ans = ruleFnArity == 0 ?
              ruleFn.call(recv) :
@@ -221,9 +223,12 @@ OMeta = {
       var ruleFnArity = this[rule].length
       for (var idx = arguments.length - 1; idx >= ruleFnArity + 1; idx--) // prepend "extra" arguments in reverse order
         this._prependInput(arguments[idx])
-      return ruleFnArity == 0 ?
+      this._storePossibility(rule)
+      var origIdx = this.input.idx
+      var ans = ruleFnArity == 0 ?
                this._apply(rule) :
                this[rule].apply(this, Array.prototype.slice.call(arguments, 1, ruleFnArity + 1))
+      this._addToken(origIdx, this.input.idx, rule)
     }
   },
 

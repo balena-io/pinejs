@@ -1,10 +1,18 @@
 process.chdir('..')
-process.env.outputDir ?= 'out'
-process.env.intermediateDir ?= process.env.outputDir + '/intermediate'
-process.env.finalDir ?= process.env.outputDir + '/publish'
+process.env.outputDir ?= 'out/'
+process.env.intermediateDir ?= process.env.outputDir + 'intermediate/'
+process.env.finalDir ?= process.env.outputDir + 'publish/'
 process.env.modules ?= ''
 
-excludeDirs = [process.env.buildDir,process.env.outputDir,'.git','node_modules']
+requirejsConf =
+	appDir: process.env.intermediateDir + 'js',
+	baseUrl: ".",
+	dir: process.env.finalDir,
+	#optimize: "none",
+	name: "main"
+	out: process.env.finalDir + 'js/main.js'
+
+excludeDirs = [process.env.outputDir,'.git','node_modules']
 
 fs = require('fs')
 path = require('path')
@@ -13,7 +21,7 @@ path = require('path')
 # alterFunc takes data, returns altered data
 alterFileTask = (outFile, inFile, alterFunc, taskDependencies = []) ->
 	taskDependencies.push(inFile)
-	taskDependencies.push('dir:'+path.dirname(outFile)) if outFile.indexOf(process.env.outputDir) is 0
+	taskDependencies.push('dir:'+path.dirname(outFile) + '/') if outFile.indexOf(process.env.outputDir) is 0
 	taskObj = {}
 	taskObj[outFile] = taskDependencies
 	file(taskObj
@@ -52,14 +60,15 @@ namespace('dir', ->
 	)
 	dirList = [process.env.intermediateDir, process.env.finalDir]
 	for folderPath in folderList.toArray()
-		dirList.push(process.env.intermediateDir, process.env.finalPath)
+		dirList.push(path.join(process.env.intermediateDir, folderPath), path.join(process.env.finalDir, folderPath))
 	
 	currNamespace = getCurrentNamespace()
 	directory(process.env.outputDir)
 	taskList = [currNamespace+process.env.outputDir]
 	for dirTask in dirList
 		taskObj = {}
-		taskObj[dirTask] = [currNamespace + path.dirname(dirTask)]
+		taskObj[dirTask] = [currNamespace + path.dirname(dirTask) + '/']
+		desc('x')
 		directory(taskObj)
 		taskList.push(currNamespace + dirTask)
 	
@@ -77,7 +86,7 @@ namespace('ifdefs', () ->
 		fileList.include('**.js')
 		fileList.exclude(excludeDirs)
 		for inFile in fileList.toArray()
-			outFile = process.env.intermediateDir + '/' + inFile
+			outFile = process.env.intermediateDir + inFile
 			taskList.push(getCurrentNamespace() + outFile)
 			alterFileTask(outFile, inFile, (data) -> 
 				console.log('Processing Javascript IFDEFs for: '+ this.name)
@@ -93,7 +102,7 @@ namespace('ifdefs', () ->
 		fileList = new jake.FileList()
 		fileList.include('js/**.ometa','js/**.ojs')
 		for inFile in fileList.toArray()
-			outFile = process.env.intermediateDir + '/' + inFile
+			outFile = process.env.intermediateDir + inFile
 			taskList.push(getCurrentNamespace() + outFile)
 			alterFileTask(outFile, inFile, (data) -> 
 				console.log('Processing OMeta IFDEFs for: '+ this.name)
@@ -110,7 +119,7 @@ namespace('ifdefs', () ->
 		fileList.include('**.html')
 		fileList.exclude(excludeDirs)
 		for inFile in fileList.toArray()
-			outFile = process.env.intermediateDir + '/' + inFile
+			outFile = process.env.intermediateDir + inFile
 			taskList.push(getCurrentNamespace() + outFile)
 			alterFileTask(outFile, inFile, (data) -> 
 				console.log('Processing HTML IFDEFs for: '+ this.name)
@@ -135,4 +144,17 @@ namespace('ometa', ->
 		)
 	desc('Build all OMeta files')
 	task('all': taskList)
+)
+
+desc('Concatenate and minify Javascript')
+fileList = new jake.FileList()
+fileList.include('js/**.js')
+task('js': ['ifdefs:all'].concat(fileList.toArray()),
+	->
+	console.log('Concatenating and minifying Javascript')
+		require('requirejs').optimize(requirejsConf, (buildResponse) ->
+			console.log(buildResponse)
+			complete()
+		)
+	true
 )
