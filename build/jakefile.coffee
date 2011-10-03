@@ -14,6 +14,8 @@ requirejsConf =
     ]
 
 excludeDirs = [process.env.outputDir,'.git','node_modules']
+copyToIntermediate = ['index.html', 'favicon.ico', 'css/**/*.css', 'CodeMirror2/lib/codemirror.css', 'CodeMirror2/theme/default.css']
+copyToFinal = ['index.html', 'favicon.ico', 'js/libs/*', 'CodeMirror2/lib/codemirror.css', 'CodeMirror2/theme/default.css']
 
 fs = require('fs')
 path = require('path')
@@ -169,3 +171,42 @@ task('js': ['ifdefs:all'].concat(fileList.toArray()),
 		)
 	true
 )
+
+namespace('copy', ->
+
+	namespace('intermediate', ->
+		taskList = []
+		fileList = new jake.FileList()
+		fileList.include(copyToIntermediate)
+		for inFile in fileList.toArray()
+			outFile = path.join(process.env.intermediateDir, inFile)
+			taskList.push(getCurrentNamespace() + outFile)
+			alterFileTask(outFile, inFile, (data) -> 
+				console.log('Copying to intermediate: ' + this.name)
+				return data
+			)
+		desc('Copy files to intermediate')
+		task('all': taskList)
+	)
+
+	namespace('final', ->
+		taskList = []
+		fileList = new jake.FileList()
+		fileList.include(copyToFinal)
+		for copyFile in fileList.toArray()
+			inFile = path.join(process.env.intermediateDir, copyFile)
+			outFile = path.join(process.env.finalDir, copyFile)
+			taskList.push(getCurrentNamespace() + outFile)
+			alterFileTask(outFile, inFile, (data) -> 
+				console.log('Copying to final: ' + this.name)
+				return data
+			)
+		desc('Copy files to final')
+		task('all': taskList)
+	)
+	desc('Copy all output files')
+	task('all': ['copy:intermediate:all', 'copy:final:all'])
+)
+
+desc('Do it all')
+task('all': ['js','copy:final:all'])
