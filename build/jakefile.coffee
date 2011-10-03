@@ -143,24 +143,34 @@ namespace('ifdefs', () ->
 )
 
 namespace('ometa', ->
-	taskList = []
-	fileList = new jake.FileList()
-	fileList.include('js/mylibs/**.ometa','js/mylibs/**.ojs')
-	for inFile in fileList.toArray()
-		outFile = inFile.replace(/\.(ojs|ometa)$/,'.js')
-		taskList.push(getCurrentNamespace() + outFile)
-		alterFileTask(outFile, inFile, (data) -> 
-			console.log('Compiling OMeta for: '+ this.name)
-			return require('./tools/ometac.js').compileOmeta(data, true, this.name)
-		)
+	addOmetaFiles = (prepend) ->
+		taskList = []
+		fileList = new jake.FileList()
+		fileList.include(prepend+'**.ometa',prepend+'**.ojs')
+		for inFile in fileList.toArray()
+			outFile = inFile.replace(/\.(ojs|ometa)$/,'.js')
+			taskList.push(getCurrentNamespace() + outFile)
+			alterFileTask(outFile, inFile, (data) -> 
+					console.log('Compiling OMeta for: '+ this.name)
+					return require('./tools/ometac.js').compileOmeta(data, true, this.name)
+			)
+		desc('Build all ' + prepend + ' OMeta files')
+		task('all': taskList)
+
+	namespace('dev', ->
+		addOmetaFiles('js/mylibs')
+	)
+	namespace('intermediate', ->
+		addOmetaFiles(process.env.intermediateDir + 'js/mylibs', ['ifdefs:ometa:all', 'copy:intermediate:all'])
+	)
 	desc('Build all OMeta files')
-	task('all': taskList)
+	task('all': ['ometa:dev:all', 'ometa:intermediate:all'])
 )
 
 desc('Concatenate and minify Javascript')
 fileList = new jake.FileList()
 fileList.include('js/**.js')
-task('js': ['ifdefs:all'].concat(fileList.toArray()),
+task('js': ['ifdefs:all','ometa:intermediate:all'].concat(fileList.toArray()),
 	->
 		console.log('Concatenating and minifying Javascript')
 		fs.writeFileSync('temp.build.js', JSON.stringify(requirejsConf))
