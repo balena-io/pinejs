@@ -474,7 +474,7 @@ dataplusGET = (tree, headers, body, successCallback, failureCallback) ->
 			jn.push "'" + row + "'" + ".'id' = " + "'" + ft + "'" + "." + "'" + row + "_id" + "'"
 
 		sql = "SELECT " + fl.join(", ") + " FROM " + tb.join(", ") + " WHERE " + jn.join(" AND ")
-		sql += " AND "  unless ftree.length == 1
+		sql += " AND " unless ftree.length == 1
 	if ftree.length != 1
 		filts = []
 
@@ -580,7 +580,7 @@ validateDB = (tx, sqlmod, successCallback, failureCallback) ->
 		l[tot] = row[2]
 		tx.executeSql query, [], (tx, result) ->
 			tex++
-			errors.push l[tex]  if result.rows.item(0).result == 0
+			errors.push l[tex] if result.rows.item(0).result == 0
 			par *= result.rows.item(0).result
 			if tot == tex
 				if par == 0
@@ -589,7 +589,7 @@ validateDB = (tx, sqlmod, successCallback, failureCallback) ->
 				else
 					tx.end()
 					successCallback tx, sqlmod, failureCallback, result
-	successCallback tx, sqlmod, failureCallback, ""  if tot == 0
+	successCallback tx, sqlmod, failureCallback, "" if tot == 0
 
 
 # successCallback = (tx, sqlmod, failureCallback, result)
@@ -638,7 +638,7 @@ updateRules = (sqlmod) ->
 		query = row[4]
 		l[++m] = row[2]
 		tx.executeSql query, [], ((tx, result) ->
-			alert "Error: " + l[++k]  if result.rows.item(0)["result"] == 0
+			alert "Error: " + l[++k] if result.rows.item(0)["result"] == 0
 		), null
 
 getFTree = (tree) ->
@@ -712,7 +712,6 @@ if process?
 # @param sql The SQL queries to import.
 importDB = (sql) ->
 	queries = sql.split(";")
-  
 	db.transaction (tx) ->
 		for query in queries when query.trim().length > 0
 			do (query) ->
@@ -723,10 +722,77 @@ importDB = (sql) ->
 					console.log error
 
 
+exportDB = (sqlElem) ->
+	sqlElem.setValue ""
+	db.transaction (tx) ->
+		tx.executeSql "SELECT name,sql FROM sqlite_master WHERE type='table' AND name NOT LIKE '\\_\\_%' ESCAPE '\\' AND name NOT LIKE '%_buk';", [], ((tx, result) ->
+			query = ""
+			for i in [0...result.rows.length]
+				tbn = result.rows.item(i).name
+				query += 'DROP TABLE IF EXISTS "' + tbn + '";\n'
+				query += result.rows.item(i).sql + ";\n"
+				do (tbn) ->
+					db.transaction (tx) ->
+						tx.executeSql 'SELECT * FROM "' + tbn + '";', [], ((tx, result) ->
+							insQuery = ""
+							for i in [0...result.rows.length]
+								currRow = result.rows.item(i)
+								notFirst = false
+								insQuery += 'INSERT INTO "' + tbn + '" ('
+								valQuery = ''
+								for own propName of currRow
+									if notFirst
+										insQuery += ","
+										valQuery += ","
+									else
+										notFirst = true
+									insQuery += '"' + propName + '"'
+									valQuery += "'" + currRow[propName] + "'"
+								insQuery += ") values (" + valQuery + ");\n"
+							sqlElem.setValue(sqlElem.getValue() + insQuery)
+						)
+			sqlElem.setValue(sqlElem.getValue() + query)
+		)
+
+
+backupDB = ->
+	db.transaction (tx) ->
+		tx.executeSql("SELECT name FROM sqlite_master WHERE type='table';", [], (tx, result) ->
+			for i in [0...result.rows.length]
+				tbn = result.rows.item(i).name
+				if tbn != '__WebKitDatabaseInfoTable__' and tbn.slice(-4) != "_buk"
+					tx.executeSql 'DROP TABLE IF EXISTS "' + tbn + '_buk";'
+					tx.executeSql 'ALTER TABLE "' + tbn + '" RENAME TO "' + tbn + '_buk";'
+		)
+
+
+restoreDB = ->
+	db.transaction (tx) ->
+		tx.executeSql("SELECT name FROM sqlite_master WHERE type='table';", [], (tx, result) ->
+			for i in [0...result.rows.length]
+				tbn = result.rows.item(i).name
+				if tbn.slice(-4) == "_buk"
+					tx.executeSql 'DROP TABLE IF EXISTS "' + tbn[0...-4] + '";'
+					tx.executeSql 'ALTER TABLE "' + tbn + '" RENAME TO "' + tbn[0...-4] + '";'
+		)
+
+
+clearDB = ->
+	db.transaction (tx) ->
+		tx.executeSql "SELECT name FROM sqlite_master WHERE type='table' AND name !='__WebKitDatabaseInfoTable__';", [], ((tx, result) ->
+			for i in [0...result.rows.length]
+				tbn = result.rows.item(i).name
+				tx.executeSql('DROP TABLE IF EXISTS "' + tbn + '";')
+		)
+
 window?.remoteServerRequest = remoteServerRequest
 #Temporary fix to allow backup/restore db etc to work for the time being client-side
 window?.db = db
 window?.importDB = importDB
+window?.exportDB = exportDB
+window?.backupDB = backupDB
+window?.restoreDB = restoreDB
+window?.clearDB = clearDB
 
 # fs = require('fs')
 # lazy = require("lazy");

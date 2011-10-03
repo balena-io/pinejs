@@ -1,5 +1,5 @@
 (function() {
-  var dataGET, dataplusDELETE, dataplusGET, dataplusPOST, dataplusPUT, db, endLock, executePOST, executeSasync, executeTasync, getFTree, getID, hasCR, http, importDB, isExecute, op, remoteServerRequest, requirejs, rootDELETE, serverModelCache, staticServer, updateRules, validateDB;
+  var backupDB, clearDB, dataGET, dataplusDELETE, dataplusGET, dataplusPOST, dataplusPUT, db, endLock, executePOST, executeSasync, executeTasync, exportDB, getFTree, getID, hasCR, http, importDB, isExecute, op, remoteServerRequest, requirejs, restoreDB, rootDELETE, serverModelCache, staticServer, updateRules, validateDB;
   var __hasProp = Object.prototype.hasOwnProperty;
   op = {
     eq: "=",
@@ -909,6 +909,88 @@
       return _results;
     });
   };
+  exportDB = function(sqlElem) {
+    sqlElem.setValue("");
+    return db.transaction(function(tx) {
+      return tx.executeSql("SELECT name,sql FROM sqlite_master WHERE type='table' AND name NOT LIKE '\\_\\_%' ESCAPE '\\' AND name NOT LIKE '%_buk';", [], (function(tx, result) {
+        var i, query, tbn, _fn, _ref;
+        query = "";
+        _fn = function(tbn) {
+          return db.transaction(function(tx) {
+            return tx.executeSql('SELECT * FROM "' + tbn + '";', [], (function(tx, result) {
+              var currRow, i, insQuery, notFirst, propName, valQuery, _ref2;
+              insQuery = "";
+              for (i = 0, _ref2 = result.rows.length; 0 <= _ref2 ? i < _ref2 : i > _ref2; 0 <= _ref2 ? i++ : i--) {
+                currRow = result.rows.item(i);
+                notFirst = false;
+                insQuery += 'INSERT INTO "' + tbn + '" (';
+                valQuery = '';
+                for (propName in currRow) {
+                  if (!__hasProp.call(currRow, propName)) continue;
+                  if (notFirst) {
+                    insQuery += ",";
+                    valQuery += ",";
+                  } else {
+                    notFirst = true;
+                  }
+                  insQuery += '"' + propName + '"';
+                  valQuery += "'" + currRow[propName] + "'";
+                }
+                insQuery += ") values (" + valQuery + ");\n";
+              }
+              return sqlElem.setValue(sqlElem.getValue() + insQuery);
+            }));
+          });
+        };
+        for (i = 0, _ref = result.rows.length; 0 <= _ref ? i < _ref : i > _ref; 0 <= _ref ? i++ : i--) {
+          tbn = result.rows.item(i).name;
+          query += 'DROP TABLE IF EXISTS "' + tbn + '";\n';
+          query += result.rows.item(i).sql + ";\n";
+          _fn(tbn);
+        }
+        return sqlElem.setValue(sqlElem.getValue() + query);
+      }));
+    });
+  };
+  backupDB = function() {
+    return db.transaction(function(tx) {
+      return tx.executeSql("SELECT name FROM sqlite_master WHERE type='table';", [], function(tx, result) {
+        var i, tbn, _ref, _results;
+        _results = [];
+        for (i = 0, _ref = result.rows.length; 0 <= _ref ? i < _ref : i > _ref; 0 <= _ref ? i++ : i--) {
+          tbn = result.rows.item(i).name;
+          _results.push(tbn !== '__WebKitDatabaseInfoTable__' && tbn.slice(-4) !== "_buk" ? (tx.executeSql('DROP TABLE IF EXISTS "' + tbn + '_buk";'), tx.executeSql('ALTER TABLE "' + tbn + '" RENAME TO "' + tbn + '_buk";')) : void 0);
+        }
+        return _results;
+      });
+    });
+  };
+  restoreDB = function() {
+    return db.transaction(function(tx) {
+      return tx.executeSql("SELECT name FROM sqlite_master WHERE type='table';", [], function(tx, result) {
+        var i, tbn, _ref, _results;
+        _results = [];
+        for (i = 0, _ref = result.rows.length; 0 <= _ref ? i < _ref : i > _ref; 0 <= _ref ? i++ : i--) {
+          tbn = result.rows.item(i).name;
+          _results.push(tbn.slice(-4) === "_buk" ? (tx.executeSql('DROP TABLE IF EXISTS "' + tbn.slice(0, -4) + '";'), tx.executeSql('ALTER TABLE "' + tbn + '" RENAME TO "' + tbn.slice(0, -4) + '";')) : void 0);
+        }
+        return _results;
+      });
+    });
+  };
+  clearDB = function() {
+    return db.transaction(function(tx) {
+      return tx.executeSql("SELECT name FROM sqlite_master WHERE type='table' AND name !='__WebKitDatabaseInfoTable__';", [], (function(tx, result) {
+        var i, tbn, _ref, _results;
+        _results = [];
+        for (i = 0, _ref = result.rows.length; 0 <= _ref ? i < _ref : i > _ref; 0 <= _ref ? i++ : i--) {
+          tbn = result.rows.item(i).name;
+          _results.push(tx.executeSql('DROP TABLE IF EXISTS "' + tbn + '";'));
+        }
+        return _results;
+      }));
+    });
+  };
   if (typeof window !== "undefined" && window !== null) {
     window.remoteServerRequest = remoteServerRequest;
   }
@@ -917,5 +999,17 @@
   }
   if (typeof window !== "undefined" && window !== null) {
     window.importDB = importDB;
+  }
+  if (typeof window !== "undefined" && window !== null) {
+    window.exportDB = exportDB;
+  }
+  if (typeof window !== "undefined" && window !== null) {
+    window.backupDB = backupDB;
+  }
+  if (typeof window !== "undefined" && window !== null) {
+    window.restoreDB = restoreDB;
+  }
+  if (typeof window !== "undefined" && window !== null) {
+    window.clearDB = clearDB;
   }
 }).call(this);

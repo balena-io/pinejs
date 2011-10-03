@@ -25,7 +25,6 @@ require(["../ometa-js/lib",
 				"mylibs/ometa-code/SBVR2SQL",
 				"mylibs/ometa-code/ServerURIParser",
 				"mylibs/server",
-				"mylibs/runTrans",
-				"mylibs/backupRestore"]);
+				"mylibs/runTrans"]);
 	/*#ENDIFDEF*/
 });
