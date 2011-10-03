@@ -143,16 +143,18 @@ namespace('ifdefs', () ->
 )
 
 namespace('ometa', ->
-	addOmetaFiles = (prepend) ->
+	addOmetaFiles = (prepend, taskDependencies = []) ->
 		taskList = []
 		fileList = new jake.FileList()
 		fileList.include(prepend+'**.ometa',prepend+'**.ojs')
 		for inFile in fileList.toArray()
 			outFile = inFile.replace(/\.(ojs|ometa)$/,'.js')
 			taskList.push(getCurrentNamespace() + outFile)
-			alterFileTask(outFile, inFile, (data) -> 
+			alterFileTask(outFile, inFile,
+				(data) -> 
 					console.log('Compiling OMeta for: '+ this.name)
 					return require('./tools/ometac.js').compileOmeta(data, true, this.name)
+				taskDependencies
 			)
 		desc('Build all ' + prepend + ' OMeta files')
 		task('all': taskList)
@@ -200,7 +202,7 @@ namespace('copy', ->
 	)
 
 	namespace('final', ->
-		taskList = []
+		taskList = ['copy:intermediate:all']
 		fileList = new jake.FileList()
 		fileList.include(copyToFinal)
 		for copyFile in fileList.toArray()
@@ -216,6 +218,22 @@ namespace('copy', ->
 	)
 	desc('Copy all output files')
 	task('all': ['copy:intermediate:all', 'copy:final:all'])
+)
+
+alterFileTask(process.env.finalDir + 'manifest.json', 'editor/manifest.json', (data) -> 
+	console.log('Copying to final: ' + this.name)
+	return data
+)
+desc('Package the editor')
+task('editor': ['js','copy:final:all',process.env.finalDir + 'manifest.json'], ->
+	command = 'google-chrome --pack-extension=' + path.resolve(process.env.finalDir) + ' --pack-extension-key=' + path.resolve('editor/editor.pem') + ' --no-message-box'
+	console.log(command)
+	require('child_process').exec(command, (error, stdout, stderr) ->
+		if error isnt null
+			console.log error.message
+		else
+			console.log "Packaged editor."
+	)
 )
 
 desc('Do it all')
