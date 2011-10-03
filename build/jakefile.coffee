@@ -5,19 +5,20 @@ process.env.finalDir ?= process.env.outputDir + 'publish/'
 process.env.modules ?= ''
 
 requirejsConf =
-	appDir: process.env.intermediateDir + 'js',
-	baseUrl: ".",
+	appDir: process.env.intermediateDir,
+	baseUrl: "js",
 	dir: process.env.finalDir,
 	#optimize: "none",
-	name: "main"
-	out: process.env.finalDir + 'js/main.js'
+	module: [
+		name: "main"
+    ]
 
 excludeDirs = [process.env.outputDir,'.git','node_modules']
 
 fs = require('fs')
 path = require('path')
 
-#alterFileTask(taskName, [taskDependencies], inFile, outFile, alterFunc)
+# alterFileTask(taskName, [taskDependencies], inFile, outFile, alterFunc)
 # alterFunc takes data, returns altered data
 alterFileTask = (outFile, inFile, alterFunc, taskDependencies = []) ->
 	taskDependencies.push(inFile)
@@ -27,15 +28,24 @@ alterFileTask = (outFile, inFile, alterFunc, taskDependencies = []) ->
 	file(taskObj
 		-> 
 			task = this
-			fs.readFile(inFile, 'utf8', (err, data) ->
-				fail('Error reading file "' + inFile + '": ' + err) if err?
-				data = alterFunc.call(task, data)
-				fs.writeFile(outFile, data, null, ->
-					complete()
-				)
-			)
-		true
+			data = fs.readFileSync(inFile, 'utf8')
+			fail('Error reading file "' + inFile + '": ' + err) if err?
+			data = alterFunc.call(task, data)
+			fs.writeFile(outFile, data)
 	)
+# Async version, requires fixing tasks not being run after async prereqs in order to work.
+#	file(taskObj
+#		-> 
+#			task = this
+#			fs.readFile(inFile, 'utf8', (err, data) ->
+#				fail('Error reading file "' + inFile + '": ' + err) if err?
+#				data = alterFunc.call(task, data)
+#				fs.writeFile(outFile, data, null, ->
+#					complete()
+#				)
+#			)
+#		true
+#	)
 
 getCurrentNamespace = () ->
 	fullNamespace = ''
@@ -68,7 +78,6 @@ namespace('dir', ->
 	for dirTask in dirList
 		taskObj = {}
 		taskObj[dirTask] = [currNamespace + path.dirname(dirTask) + '/']
-		desc('x')
 		directory(taskObj)
 		taskList.push(currNamespace + dirTask)
 	
@@ -151,9 +160,11 @@ fileList = new jake.FileList()
 fileList.include('js/**.js')
 task('js': ['ifdefs:all'].concat(fileList.toArray()),
 	->
-	console.log('Concatenating and minifying Javascript')
-		require('requirejs').optimize(requirejsConf, (buildResponse) ->
+		console.log('Concatenating and minifying Javascript')
+		fs.writeFileSync('temp.build.js', JSON.stringify(requirejsConf))
+		require('requirejs').optimize(buildFile: 'temp.build.js', (buildResponse) ->
 			console.log(buildResponse)
+			fs.unlink('temp.build.js')
 			complete()
 		)
 	true
