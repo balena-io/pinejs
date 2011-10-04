@@ -148,9 +148,14 @@ function drawData(tree){
 				"<a href='" + rootURI + "#!/" + npos + "' " + 
 				"onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a></div>";
 				
-				//console.log(3);
-				uid = new uidraw(i, objcb, pre, post, rootURI, [], [], filters, [launch-2], true, tree); 
-				uid.subRowIn();
+				// request schema from server and store locally.
+				serverRequest("GET", "/model/", [], "", function(statusCode, result) {
+					model = SBVRParser.matchAll(result, "expr");
+					model = SBVR_PreProc.match(model, "optimizeTree");
+					model = SBVR2SQL.match(model, "trans");
+					uid = new uidraw(i, objcb, pre, post, rootURI, [], [], filters, [launch-2], true, tree, model); 
+					uid.subRowIn();
+				})
 			}else{
 				newb = ['col', [result.terms[i].id], ['mod']];
 				npos = getTarg(tree, [], 'add', newb);
@@ -196,7 +201,7 @@ function drawData(tree){
 	});
 }
 
-function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree){
+function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, cmod){
 	//console.log(loc);
 	this.idx = idx;
 	this.objcb = objcb; //issue here
