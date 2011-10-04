@@ -153,7 +153,7 @@ function drawData(tree){
 					model = SBVRParser.matchAll(result, "expr");
 					model = SBVR_PreProc.match(model, "optimizeTree");
 					model = SBVR2SQL.match(model, "trans");
-					uid = new uidraw(i, objcb, pre, post, rootURI, [], [], filters, [launch-2], true, tree, model); 
+					uid = new uidraw(i, objcb, pre, post, rootURI, [], [], filters, [launch-2], true, tree, model);
 					uid.subRowIn();
 				})
 			}else{
@@ -185,8 +185,7 @@ function drawData(tree){
 				"onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a></div>";
 				
 				//console.log(4);
-				uid = new uidraw(i, ftcb, pre, post, 
-				rootURI, [], [], filters, [launch-2], true, tree); 
+				uid = new uidraw(i, ftcb, pre, post, rootURI, [], [], filters, [launch-2], true, tree); 
 				uid.subRowIn();
 			}else{
 				newb = ['col', [result.fcTps[i].id], ['mod']];
@@ -391,8 +390,7 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 					
 					if(launch != -1){
 						locn = parent.loc.concat([launch-2]);
-						uid = new uidraw(i, parent, prel, postl, rootURI, 
-						[], [], parent.filters, locn, !parent.even, parent.ftree); 
+						uid = new uidraw(i, parent, prel, postl, rootURI, [], [], parent.filters, locn, !parent.even, parent.ftree, cmod); 
 						uid.subRowIn();
 					}else{
 						parent.callback(i,prel+postl);
@@ -417,9 +415,7 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 						}
 						if(isadd){
 							locn = parent.loc.concat([j-2]);
-							uid = new uidraw(parent.rows + 1 + ++parent.addsout, parent, "<tr><td>",
-							"</td></tr>", rootURI, [], [], 
-							parent.filters, locn, !parent.even, parent.ftree);
+							uid = new uidraw(parent.rows + 1 + ++parent.addsout, parent, "<tr><td>", "</td></tr>", rootURI, [], [], parent.filters, locn, !parent.even, parent.ftree, cmod);
 							uid.subRowIn();
 						}
 					}
@@ -474,9 +470,7 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 									}
 									
 									//console.log(pre, post);
-									uid = new uidraw(parent.rows + 1 + parent.adds + 1 + parent.colsout, 
-									subcolcb, pre, post, rootURI, [], [],
-									parent.filters, loc.concat([launch]), !parent.even, parent.ftree);
+									uid = new uidraw(parent.rows + 1 + parent.adds + 1 + parent.colsout, subcolcb, pre, post, rootURI, [], [], parent.filters, loc.concat([launch]), !parent.even, parent.ftree, cmod);
 									uid.subRowIn();
 								}else{
 									newb = ['col', [cmod[i][1]], ['mod']];
