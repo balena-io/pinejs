@@ -9,7 +9,7 @@ requirejsConf =
 	baseUrl: "js",
 	dir: process.env.finalDir,
 	#optimize: "none",
-	module: [
+	modules: [
 		name: "main"
     ]
 
@@ -33,6 +33,7 @@ alterFileTask = (outFile, inFile, alterFunc, taskDependencies = []) ->
 			data = fs.readFileSync(inFile, 'utf8')
 			fail('Error reading file "' + inFile + '": ' + err) if err?
 			data = alterFunc.call(task, data)
+			console.log('Writing to: ', outFile)
 			fs.writeFile(outFile, data)
 	)
 # Async version, requires fixing tasks not being run after async prereqs in order to work.
