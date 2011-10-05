@@ -415,7 +415,7 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 					
 					if(launch != -1){
 						var locn = parent.loc.concat([launch-2]);
-						var uid = new uidraw(i, parent, prel, postl, rootURI, [], [], parent.filters, locn, !parent.even, parent.ftree); 
+						var uid = new uidraw(i, parent, prel, postl, rootURI, [], [], parent.filters, locn, !parent.even, parent.ftree, cmod); 
 						uid.subRowIn();
 					}else{
 						parent.callback(i,prel+postl);
