@@ -25,9 +25,7 @@ path = require('path')
 alterFileTask = (outFile, inFile, alterFunc, taskDependencies = []) ->
 	taskDependencies.push(inFile)
 	taskDependencies.push('dir:'+path.dirname(outFile) + '/') if outFile.indexOf(process.env.outputDir) is 0
-	taskObj = {}
-	taskObj[outFile] = taskDependencies
-	file(taskObj
+	file(outFile, taskDependencies,
 		-> 
 			task = this
 			data = fs.readFileSync(inFile, 'utf8')
@@ -36,7 +34,7 @@ alterFileTask = (outFile, inFile, alterFunc, taskDependencies = []) ->
 			fs.writeFile(outFile, data)
 	)
 # Async version, requires fixing tasks not being run after async prereqs in order to work.
-#	file(taskObj
+#	file(outFile, taskDependencies,
 #		-> 
 #			task = this
 #			fs.readFile(inFile, 'utf8', (err, data) ->
@@ -78,13 +76,11 @@ namespace('dir', ->
 	directory(process.env.outputDir)
 	taskList = [currNamespace+process.env.outputDir]
 	for dirTask in dirList
-		taskObj = {}
-		taskObj[dirTask] = [currNamespace + path.dirname(dirTask) + '/']
-		directory(taskObj)
+		directory(dirTask, [currNamespace + path.dirname(dirTask) + '/'])
 		taskList.push(currNamespace + dirTask)
 	
 	desc('Create all output directories.')
-	task(all: taskList)
+	task('all', taskList)
 )
 
 namespace('ifdefs', () ->
@@ -105,7 +101,7 @@ namespace('ifdefs', () ->
 				return data.replace(new RegExp('/\\*(?!\\*/)*?#IFDEF[\\s\\S]*?#ENDIFDEF[\\s\\S]*?\\*/','g'), '')
 			)
 		desc('Process IFDEFs for all Javascript files')
-		task('all': taskList)
+		task('all', taskList)
 	)
 
 	namespace('ometa', () ->
@@ -121,7 +117,7 @@ namespace('ifdefs', () ->
 				return data.replace(new RegExp('/\\*(?!\\*/)*?#IFDEF[\\s\\S]*?#ENDIFDEF[\\s\\S]*?\\*/','g'), '')
 			)
 		desc('Process IFDEFs for all OMeta files')
-		task('all': taskList)
+		task('all', taskList)
 	)
 
 	namespace('html', () ->
@@ -138,7 +134,7 @@ namespace('ifdefs', () ->
 				return data.replace(new RegExp('<!--#IFDEF[\\s\\S]*?ENDIFDEF[\\s\\S]*?-->','g'), '')
 			)
 		desc('Process IFDEFs for all HTML files')
-		task('all': taskList)
+		task('all', taskList)
 	)
 )
 
@@ -157,7 +153,7 @@ namespace('ometa', ->
 				taskDependencies
 			)
 		desc('Build all ' + prepend + ' OMeta files')
-		task('all': taskList)
+		task('all', taskList)
 
 	namespace('dev', ->
 		addOmetaFiles('js/mylibs')
@@ -166,13 +162,40 @@ namespace('ometa', ->
 		addOmetaFiles(process.env.intermediateDir + 'js/mylibs', ['ifdefs:ometa:all', 'copy:intermediate:all'])
 	)
 	desc('Build all OMeta files')
-	task('all': ['ometa:dev:all', 'ometa:intermediate:all'])
+	task('all', ['ometa:dev:all', 'ometa:intermediate:all'])
+)
+
+namespace('coffee', ->
+	addCoffeeFiles = (prepend, taskDependencies = []) ->
+		taskList = []
+		fileList = new jake.FileList()
+		fileList.include(prepend+'**.coffee')
+		for inFile in fileList.toArray()
+			outFile = inFile.replace(/\.coffee$/,'.js')
+			taskList.push(getCurrentNamespace() + outFile)
+			alterFileTask(outFile, inFile,
+				(data) ->
+					console.log('Compiling CoffeeScript for: '+ this.name)
+					return require('coffee-script').compile(data)
+				taskDependencies
+			)
+		desc('Build all ' + prepend + ' OMeta files')
+		task('all', taskList)
+
+	namespace('dev', ->
+		addCoffeeFiles('js')
+	)
+#	namespace('intermediate', ->
+#		addCoffeeFiles(process.env.intermediateDir + 'js', ['ifdefs:coffee:all', 'copy:intermediate:all'])
+#	)
+	desc('Build all Coffee files')
+	task('all', ['coffee:dev:all']) #, 'coffee:intermediate:all'])
 )
 
 desc('Concatenate and minify Javascript')
 fileList = new jake.FileList()
 fileList.include('js/**.js')
-task('js': ['ifdefs:all','ometa:intermediate:all'].concat(fileList.toArray()),
+task('js', ['ifdefs:all', 'ometa:intermediate:all'].concat(fileList.toArray()),
 	->
 		console.log('Concatenating and minifying Javascript')
 		fs.writeFileSync('temp.build.js', JSON.stringify(requirejsConf))
@@ -198,7 +221,7 @@ namespace('copy', ->
 				return data
 			)
 		desc('Copy files to intermediate')
-		task('all': taskList)
+		task('all', taskList)
 	)
 
 	namespace('final', ->
@@ -214,10 +237,10 @@ namespace('copy', ->
 				return data
 			)
 		desc('Copy files to final')
-		task('all': taskList)
+		task('all', taskList)
 	)
 	desc('Copy all output files')
-	task('all': ['copy:intermediate:all', 'copy:final:all'])
+	task('all', ['copy:intermediate:all', 'copy:final:all'])
 )
 
 alterFileTask(process.env.finalDir + 'manifest.json', 'editor/manifest.json', (data) -> 
@@ -225,7 +248,7 @@ alterFileTask(process.env.finalDir + 'manifest.json', 'editor/manifest.json', (d
 	return data
 )
 desc('Package the editor')
-task('editor': ['js','copy:final:all',process.env.finalDir + 'manifest.json'], ->
+task('editor', ['js', 'copy:final:all', process.env.finalDir + 'manifest.json'], ->
 	command = 'google-chrome --pack-extension=' + path.resolve(process.env.finalDir) + ' --pack-extension-key=' + path.resolve('editor/editor.pem') + ' --no-message-box'
 	console.log(command)
 	require('child_process').exec(command, (error, stdout, stderr) ->
@@ -237,4 +260,4 @@ task('editor': ['js','copy:final:all',process.env.finalDir + 'manifest.json'], -
 )
 
 desc('Do it all')
-task('all': ['js','copy:final:all'])
+task('all', ['js','copy:final:all'])
