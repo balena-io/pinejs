@@ -17,6 +17,8 @@ excludeDirs = [process.env.outputDir,'.git','node_modules']
 copyToIntermediate = ['index.html', 'favicon.ico', 'css/**/*.css', 'CodeMirror2/lib/codemirror.css', 'CodeMirror2/theme/default.css']
 copyToFinal = ['index.html', 'favicon.ico', 'js/libs/*', 'CodeMirror2/lib/codemirror.css', 'CodeMirror2/theme/default.css']
 
+storedTaskDependencies = {}
+
 fs = require('fs')
 path = require('path')
 
@@ -79,132 +81,9 @@ namespace('dir', ->
 		directory(dirTask, [currNamespace + path.dirname(dirTask) + '/'])
 		taskList.push(currNamespace + dirTask)
 	
+	storedTaskDependencies[getCurrentNamespace()+'all'] = taskList
 	desc('Create all output directories.')
 	task('all', taskList)
-)
-
-namespace('ifdefs', () ->
-	desc('Process all IFDEFs.')
-	task('all', ['ifdefs:js:all', 'ifdefs:ometa:all', 'ifdefs:html:all'])
-
-	namespace('js', () ->
-		taskList = []
-		fileList = new jake.FileList()
-		fileList.include('**.js')
-		fileList.exclude(excludeDirs)
-		for inFile in fileList.toArray()
-			outFile = process.env.intermediateDir + inFile
-			taskList.push(getCurrentNamespace() + outFile)
-			alterFileTask(outFile, inFile, (data) -> 
-				console.log('Processing Javascript IFDEFs for: '+ this.name)
-				data = data.replace(new RegExp('/\\*(?!\\*/)*?#IFDEF(?!\\*/)*?' + process.env.modules + '[\\s\\S]*?\\*/([\\s\\S]*?)/\\*(?!\\*/)*?#ENDIFDEF[\\s\\S]*?\\*/','g'), '$1')
-				return data.replace(new RegExp('/\\*(?!\\*/)*?#IFDEF[\\s\\S]*?#ENDIFDEF[\\s\\S]*?\\*/','g'), '')
-			)
-		desc('Process IFDEFs for all Javascript files')
-		task('all', taskList)
-	)
-
-	namespace('ometa', () ->
-		taskList = []
-		fileList = new jake.FileList()
-		fileList.include('js/**.ometa','js/**.ojs')
-		for inFile in fileList.toArray()
-			outFile = process.env.intermediateDir + inFile
-			taskList.push(getCurrentNamespace() + outFile)
-			alterFileTask(outFile, inFile, (data) -> 
-				console.log('Processing OMeta IFDEFs for: '+ this.name)
-				data = data.replace(new RegExp('/\\*(?!\\*/)*?#IFDEF(?!\\*/)*?' + process.env.modules + '[\\s\\S]*?\\*/([\\s\\S]*?)/\\*(?!\\*/)*?#ENDIFDEF[\\s\\S]*?\\*/','g'), '$1')
-				return data.replace(new RegExp('/\\*(?!\\*/)*?#IFDEF[\\s\\S]*?#ENDIFDEF[\\s\\S]*?\\*/','g'), '')
-			)
-		desc('Process IFDEFs for all OMeta files')
-		task('all', taskList)
-	)
-
-	namespace('html', () ->
-		taskList = []
-		fileList = new jake.FileList()
-		fileList.include('**.html')
-		fileList.exclude(excludeDirs)
-		for inFile in fileList.toArray()
-			outFile = process.env.intermediateDir + inFile
-			taskList.push(getCurrentNamespace() + outFile)
-			alterFileTask(outFile, inFile, (data) -> 
-				console.log('Processing HTML IFDEFs for: '+ this.name)
-				data = data.replace(new RegExp('<!--[^>]*?#IFDEF[^>]*?' + process.env.modules + '[\\s\\S]*?-->([\\s\\S]*?)<!--[^>]*?#ENDIFDEF[^>]*?-->','g'), '$1')
-				return data.replace(new RegExp('<!--#IFDEF[\\s\\S]*?ENDIFDEF[\\s\\S]*?-->','g'), '')
-			)
-		desc('Process IFDEFs for all HTML files')
-		task('all', taskList)
-	)
-)
-
-namespace('ometa', ->
-	addOmetaFiles = (prepend, taskDependencies = []) ->
-		taskList = []
-		fileList = new jake.FileList()
-		fileList.include(prepend+'**.ometa',prepend+'**.ojs')
-		for inFile in fileList.toArray()
-			outFile = inFile.replace(/\.(ojs|ometa)$/,'.js')
-			taskList.push(getCurrentNamespace() + outFile)
-			alterFileTask(outFile, inFile,
-				(data) -> 
-					console.log('Compiling OMeta for: '+ this.name)
-					return require('./tools/ometac.js').compileOmeta(data, true, this.name)
-				taskDependencies
-			)
-		desc('Build all ' + prepend + ' OMeta files')
-		task('all', taskList)
-
-	namespace('dev', ->
-		addOmetaFiles('js/mylibs')
-	)
-	namespace('intermediate', ->
-		addOmetaFiles(process.env.intermediateDir + 'js/mylibs', ['ifdefs:ometa:all', 'copy:intermediate:all'])
-	)
-	desc('Build all OMeta files')
-	task('all', ['ometa:dev:all', 'ometa:intermediate:all'])
-)
-
-namespace('coffee', ->
-	addCoffeeFiles = (prepend, taskDependencies = []) ->
-		taskList = []
-		fileList = new jake.FileList()
-		fileList.include(prepend+'**.coffee')
-		for inFile in fileList.toArray()
-			outFile = inFile.replace(/\.coffee$/,'.js')
-			taskList.push(getCurrentNamespace() + outFile)
-			alterFileTask(outFile, inFile,
-				(data) ->
-					console.log('Compiling CoffeeScript for: '+ this.name)
-					return require('coffee-script').compile(data)
-				taskDependencies
-			)
-		desc('Build all ' + prepend + ' OMeta files')
-		task('all', taskList)
-
-	namespace('dev', ->
-		addCoffeeFiles('js')
-	)
-#	namespace('intermediate', ->
-#		addCoffeeFiles(process.env.intermediateDir + 'js', ['ifdefs:coffee:all', 'copy:intermediate:all'])
-#	)
-	desc('Build all Coffee files')
-	task('all', ['coffee:dev:all']) #, 'coffee:intermediate:all'])
-)
-
-desc('Concatenate and minify Javascript')
-fileList = new jake.FileList()
-fileList.include('js/**.js')
-task('js', ['ifdefs:all', 'ometa:intermediate:all'].concat(fileList.toArray()),
-	->
-		console.log('Concatenating and minifying Javascript')
-		fs.writeFileSync('temp.build.js', JSON.stringify(requirejsConf))
-		require('requirejs').optimize(buildFile: 'temp.build.js', (buildResponse) ->
-			console.log(buildResponse)
-			fs.unlink('temp.build.js')
-			complete()
-		)
-	true
 )
 
 namespace('copy', ->
@@ -220,6 +99,7 @@ namespace('copy', ->
 				console.log('Copying to intermediate: ' + this.name)
 				return data
 			)
+		storedTaskDependencies[getCurrentNamespace()+'all'] = taskList
 		desc('Copy files to intermediate')
 		task('all', taskList)
 	)
@@ -236,11 +116,160 @@ namespace('copy', ->
 				console.log('Copying to final: ' + this.name)
 				return data
 			)
+		storedTaskDependencies[getCurrentNamespace()+'all'] = taskList
 		desc('Copy files to final')
 		task('all', taskList)
 	)
 	desc('Copy all output files')
 	task('all', ['copy:intermediate:all', 'copy:final:all'])
+)
+
+namespace('ifdefs', () ->
+	namespace('js', () ->
+		taskList = []
+		fileList = new jake.FileList()
+		fileList.include('**.js')
+		fileList.exclude(excludeDirs)
+		for inFile in fileList.toArray()
+			outFile = process.env.intermediateDir + inFile
+			taskList.push(getCurrentNamespace() + outFile)
+			alterFileTask(outFile, inFile, (data) -> 
+				console.log('Processing Javascript IFDEFs for: '+ this.name)
+				data = data.replace(new RegExp('/\\*(?!\\*/)*?#IFDEF(?!\\*/)*?' + process.env.modules + '[\\s\\S]*?\\*/([\\s\\S]*?)/\\*(?!\\*/)*?#ENDIFDEF[\\s\\S]*?\\*/','g'), '$1')
+				return data.replace(new RegExp('/\\*(?!\\*/)*?#IFDEF[\\s\\S]*?#ENDIFDEF[\\s\\S]*?\\*/','g'), '')
+			)
+		storedTaskDependencies[getCurrentNamespace()+'all'] = taskList
+		desc('Process IFDEFs for all Javascript files')
+		task('all', taskList)
+	)
+
+	namespace('ometa', () ->
+		taskList = []
+		fileList = new jake.FileList()
+		fileList.include('js/**.ometa','js/**.ojs')
+		for inFile in fileList.toArray()
+			outFile = process.env.intermediateDir + inFile
+			taskList.push(getCurrentNamespace() + outFile)
+			alterFileTask(outFile, inFile, (data) -> 
+				console.log('Processing OMeta IFDEFs for: '+ this.name)
+				data = data.replace(new RegExp('/\\*(?!\\*/)*?#IFDEF(?!\\*/)*?' + process.env.modules + '[\\s\\S]*?\\*/([\\s\\S]*?)/\\*(?!\\*/)*?#ENDIFDEF[\\s\\S]*?\\*/','g'), '$1')
+				return data.replace(new RegExp('/\\*(?!\\*/)*?#IFDEF[\\s\\S]*?#ENDIFDEF[\\s\\S]*?\\*/','g'), '')
+			)
+		storedTaskDependencies[getCurrentNamespace()+'all'] = taskList
+		desc('Process IFDEFs for all OMeta files')
+		task('all', taskList)
+	)
+
+	namespace('coffee', () ->
+		taskList = []
+		fileList = new jake.FileList()
+		fileList.include('js/**.coffee')
+		for inFile in fileList.toArray()
+			outFile = process.env.intermediateDir + inFile
+			taskList.push(getCurrentNamespace() + outFile)
+			alterFileTask(outFile, inFile, (data) -> 
+				console.log('Processing Coffee IFDEFs for: '+ this.name)
+				data = data.replace(new RegExp('#IFDEF.*?' + process.env.modules + '.*([\\s\\S]*?)#ENDIFDEF.*','g'), '$1')
+				return data.replace(new RegExp('#IFDEF[\\s\\S]*?#ENDIFDEF.*','g'), '')
+			)
+		storedTaskDependencies[getCurrentNamespace()+'all'] = taskList
+		desc('Process IFDEFs for all Coffee files')
+		task('all', taskList)
+	)
+
+	namespace('html', () ->
+		taskList = []
+		fileList = new jake.FileList()
+		fileList.include('**.html')
+		fileList.exclude(excludeDirs)
+		for inFile in fileList.toArray()
+			outFile = process.env.intermediateDir + inFile
+			taskList.push(getCurrentNamespace() + outFile)
+			alterFileTask(outFile, inFile, (data) -> 
+				console.log('Processing HTML IFDEFs for: '+ this.name)
+				data = data.replace(new RegExp('<!--[^>]*?#IFDEF[^>]*?' + process.env.modules + '[\\s\\S]*?-->([\\s\\S]*?)<!--[^>]*?#ENDIFDEF[^>]*?-->','g'), '$1')
+				return data.replace(new RegExp('<!--#IFDEF[\\s\\S]*?ENDIFDEF[\\s\\S]*?-->','g'), '')
+			)
+		storedTaskDependencies[getCurrentNamespace()+'all'] = taskList
+		desc('Process IFDEFs for all HTML files')
+		task('all', taskList)
+	)
+	
+	taskList = storedTaskDependencies['ifdefs:js:all'].concat(storedTaskDependencies['ifdefs:ometa:all']).concat(storedTaskDependencies['ifdefs:coffee:all']).concat(storedTaskDependencies['ifdefs:html:all'])
+	storedTaskDependencies[getCurrentNamespace()+'all'] = taskList
+	desc('Process all IFDEFs.')
+	task('all', taskList)
+)
+
+namespace('ometa', ->
+	addOmetaFiles = (prepend, taskDependencies = []) ->
+		taskList = []
+		fileList = new jake.FileList()
+		fileList.include(prepend+'**.ometa',prepend+'**.ojs')
+		for inFile in fileList.toArray()
+			outFile = inFile.replace(/\.(ojs|ometa)$/,'.js')
+			taskList.push(getCurrentNamespace() + outFile)
+			alterFileTask(outFile, inFile,
+				(data) -> 
+					console.log('Compiling OMeta for: '+ this.name)
+					return require('./tools/ometac.js').compileOmeta(data, true, this.name)
+				taskDependencies
+			)
+		storedTaskDependencies[getCurrentNamespace()+'all'] = taskList
+		desc('Build all ' + prepend + ' OMeta files')
+		task('all', taskList)
+
+	namespace('dev', ->
+		addOmetaFiles('js/mylibs')
+	)
+	namespace('intermediate', ->
+		addOmetaFiles(process.env.intermediateDir + 'js/mylibs', storedTaskDependencies['ifdefs:ometa:all'].concat(storedTaskDependencies['copy:intermediate:all']))
+	)
+	desc('Build all OMeta files')
+	task('all', storedTaskDependencies['ometa:dev:all'].concat(storedTaskDependencies['ometa:intermediate:all']))
+)
+
+namespace('coffee', ->
+	addCoffeeFiles = (prepend, taskDependencies = []) ->
+		taskList = []
+		fileList = new jake.FileList()
+		fileList.include(prepend+'**.coffee')
+		for inFile in fileList.toArray()
+			outFile = inFile.replace(/\.coffee$/,'.js')
+			taskList.push(getCurrentNamespace() + outFile)
+			alterFileTask(outFile, inFile,
+				(data) ->
+					console.log('Compiling CoffeeScript for: '+ this.name)
+					return require('coffee-script').compile(data)
+				taskDependencies
+			)
+		storedTaskDependencies[getCurrentNamespace()+'all'] = taskList
+		desc('Build all ' + prepend + ' OMeta files')
+		task('all', taskList)
+
+	namespace('dev', ->
+		addCoffeeFiles('js')
+	)
+	namespace('intermediate', ->
+		addCoffeeFiles(process.env.intermediateDir + 'js', storedTaskDependencies['ifdefs:coffee:all'].concat(storedTaskDependencies['copy:intermediate:all']))
+	)
+	desc('Build all Coffee files')
+	task('all', storedTaskDependencies['coffee:dev:all'].concat(storedTaskDependencies['coffee:intermediate:all']))
+)
+
+desc('Concatenate and minify Javascript')
+fileList = new jake.FileList()
+fileList.include('js/**.js')
+task('js', storedTaskDependencies['ifdefs:all'].concat(storedTaskDependencies['ometa:intermediate:all']).concat(storedTaskDependencies['coffee:intermediate:all']).concat(fileList.toArray()),
+	->
+		console.log('Concatenating and minifying Javascript')
+		fs.writeFileSync('temp.build.js', JSON.stringify(requirejsConf))
+		require('requirejs').optimize(buildFile: 'temp.build.js', (buildResponse) ->
+			console.log('require.js: ', buildResponse)
+			fs.unlink('temp.build.js')
+			complete()
+		)
+	true
 )
 
 alterFileTask(process.env.finalDir + 'manifest.json', 'editor/manifest.json', (data) -> 
