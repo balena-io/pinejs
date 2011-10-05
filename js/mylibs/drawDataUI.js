@@ -1,17 +1,18 @@
+"use strict"
 /*
 Copyright 2011 University of Surrey
 
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
+	Licensed under the Apache License, Version 2.0 (the "License");
+	you may not use this file except in compliance with the License.
+	You may obtain a copy of the License at
 
-       http://www.apache.org/licenses/LICENSE-2.0
+		 http://www.apache.org/licenses/LICENSE-2.0
 
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
+	Unless required by applicable law or agreed to in writing, software
+	distributed under the License is distributed on an "AS IS" BASIS,
+	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+	See the License for the specific language governing permissions and
+	limitations under the License.
 */
 
 function getBranch(branch, loc){
@@ -23,7 +24,7 @@ function getBranch(branch, loc){
 }
 
 function getPid(branch, loc){
-	pid = branch[1][0];
+	var pid = branch[1][0];
 	for(var i=0;i<loc.length;i++){
 		branch = branch[loc[i]+2];
 		if(branch[0]=='col'){
@@ -65,8 +66,12 @@ function getTarg(tree, loc, actn, newb){
 function serverAPI(about, filters){
 	//does not work right for fact types
 
-	var op = {"eq":"=", "ne":"!=", "lk":"~"};
-	flts = '';
+	var op = {
+		"eq":"=", 
+		"ne":"!=", 
+		"lk":"~"
+	};
+	var flts = '';
 	
 	//render filters
 	for(var i=1;i<filters.length;i++){
@@ -75,14 +80,14 @@ function serverAPI(about, filters){
 		}
 	}
 	
-	if(flts!=''){flts = '*filt:' + flts;}
+	if(flts!=''){
+		flts = '*filt:' + flts;
+	}
 	return '/data/' + about + flts;
 }
 
 function drawData(tree){
 	var rootURI = location.pathname;
-	var pos = '/data';
-	var pid = 'data';
 	var filters = ["filters"];
 
 	$("#dataTab").html(
@@ -93,12 +98,14 @@ function drawData(tree){
 	);
 	
 	serverRequest("GET", "/data/", [], '', function(statusCode, result, headers){
-		objcb = {
+		var objcb = {
 			callback: function(n, prod){
 				//console.log(n,prod);
 				this.data.push([n,prod]);
 				if(++this.totend==this.totsub){
-					this.data.sort(function(a,b){ return a[0] - b[0]; });
+					this.data.sort(function(a,b){
+						return a[0] - b[0];
+					});
 					for(var i=0;i<this.data.length;i++){
 						$("#terms").append(this.data[i][1]);
 					}
@@ -127,19 +134,21 @@ function drawData(tree){
 		ftcb.data = [];*/
 		
 		for(var i=0;i<result.terms.length;i++){
-			launch = -1;
+			var launch = -1;
 			for(var j=3;j<tree.length;j++){
-				if(tree[j][1][0] == result.terms[i].id){ launch = j; }
+				if(tree[j][1][0] == result.terms[i].id){
+					launch = j;
+				}
 			}
 			
-			pre = "<tr id='tr--data--" + result.terms[i].id + "'><td>"; 
+			var pre = "<tr id='tr--data--" + result.terms[i].id + "'><td>"; 
 			if(launch == -1){
 				pre += result.terms[i].name;
 			} else {
 				pre += "<div style='display:inline; background-color:#FFFFFF; " +  
 				"'>" + result.terms[i].name + "</div>";
 			}
-			post = "</td></tr>"
+			var post = "</td></tr>"
 			
 			if(launch != -1){
 				npos = getTarg(tree, [], 'del', launch-2);
@@ -148,17 +157,19 @@ function drawData(tree){
 				"<a href='" + rootURI + "#!/" + npos + "' " + 
 				"onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a></div>";
 				
+				var model;
+				var uid
 				// request schema from server and store locally.
 				serverRequest("GET", "/model/", [], "", function(statusCode, result) {
 					model = SBVRParser.matchAll(result, "expr");
 					model = SBVR_PreProc.match(model, "optimizeTree");
 					model = SBVR2SQL.match(model, "trans");
-					uid = new uidraw(i, objcb, pre, post, rootURI, [], [], filters, [launch-2], true, tree, model);
+					uid = new uidraw(i, objcb, pre, post, rootURI, [], [], filters, [launch-2], true, tree, model); 
 					uid.subRowIn();
 				})
 			}else{
-				newb = ['col', [result.terms[i].id], ['mod']];
-				npos = getTarg(tree, [], 'add', newb);
+				var newb = ['col', [result.terms[i].id], ['mod']];
+				var npos = getTarg(tree, [], 'add', newb);
 
 				pre += " <a href='" + rootURI + "#!/" + npos + "' " + 
 				"onClick='location.hash=\"#!/" + npos + "\";return false'><span title='See all' class='ui-icon ui-icon-search'></span></a>";
@@ -229,7 +240,13 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 	this.targ = '';
 	this.type = 'term';
 	this.schema = [];
-	if(even){this.bg = '#FFFFFF';this.unbg = '#EEEEEE'} else {this.bg = '#EEEEEE';this.unbg = '#FFFFFF'}
+	if(even){
+		this.bg = '#FFFFFF';
+		this.unbg = '#EEEEEE'
+	} else {
+		this.bg = '#EEEEEE';
+		this.unbg = '#FFFFFF'
+	}
 	
 	//is the thing we're talking about a term or a fact type?
 	for(var j=1;j<cmod.length;j++){
@@ -288,14 +305,14 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 			//console.log(this.targ);
 			
 			serverRequest("GET", this.targ, [], '', function(statusCode, result, headers){
-				resl = ''
+				var resl = '';
 				
 				parent.rows = result.instances.length;
 				parent.items = parent.rows + 2 + parent.adds + 1 + parent.cols;
 				
 				//get link which adds an 'add inst' dialog.
-				newb = ['ins', [parent.about], ['mod', ['add']]];
-				npos = getTarg(parent.ftree, parent.loc, 'add', newb);
+				var newb = ['ins', [parent.about], ['mod', ['add']]];
+				var npos = getTarg(parent.ftree, parent.loc, 'add', newb);
 				
 				parent.data.push([parent.rows + 1,"<tr><td><a href = '" + rootURI + "#!/" + 
 				npos + "' onClick='location.hash=\"#!/" + npos + "\";return false;'>" + 
@@ -303,8 +320,8 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 				
 				//render each child and call back
 				for(var i=0;i<result.instances.length;i++){
-					launch = -1;
-					actn = 'view'
+					var launch = -1;
+					var actn = 'view'
 					for(var j=3;j<parent.branch.length;j++){
 						if(parent.branch[j][0] == 'ins' &&
 						parent.branch[j][1][0] == parent.about && 
@@ -315,16 +332,22 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 							
 							//find action.
 							for(var k=1;k<parent.branch[j][2].length;k++){
-								if(parent.branch[j][2][k][0]=='edit'){ actn = 'edit'; break; }
-								if(parent.branch[j][2][k][0]=='del'){ actn = 'del'; break; }
+								if(parent.branch[j][2][k][0]=='edit'){
+									actn = 'edit';
+									break;
+								}
+								if(parent.branch[j][2][k][0]=='del'){
+									actn = 'del';
+									break;
+								}
 							}
 						}
 					}
 					//console.log(launch,actn);
 					
-					posl = parent.targ + '/' + parent.about + "." + result.instances[i].id;
+					var posl = parent.targ + '/' + parent.about + "." + result.instances[i].id;
 					
-					prel = "<tr id='tr--" + pid + "--" + result.instances[i].id + "'><td>";
+					var prel = "<tr id='tr--" + pid + "--" + result.instances[i].id + "'><td>";
 					
 					if(launch != -1){
 						prel+="<div style='display:inline;background-color:" + parent.unbg + "'>"
@@ -343,7 +366,9 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 						}
 					}
 					
-					if(launch != -1){prel+="</div>"}
+					if(launch != -1){
+						prel+="</div>"
+					}
 					
 					if(launch != -1 && actn == 'view'){
 						npos = getTarg(parent.ftree, parent.loc, 'del', launch-2);
@@ -386,11 +411,11 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 						"onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Delete' class='ui-icon ui-icon-trash'></span></a>";
 					}
 					
-					postl = "</td></tr>";
+					var postl = "</td></tr>";
 					
 					if(launch != -1){
-						locn = parent.loc.concat([launch-2]);
-						uid = new uidraw(i, parent, prel, postl, rootURI, [], [], parent.filters, locn, !parent.even, parent.ftree, cmod); 
+						var locn = parent.loc.concat([launch-2]);
+						var uid = new uidraw(i, parent, prel, postl, rootURI, [], [], parent.filters, locn, !parent.even, parent.ftree); 
 						uid.subRowIn();
 					}else{
 						parent.callback(i,prel+postl);
@@ -435,7 +460,10 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 							if(cmod[i][6][j][1] == parent.about){
 								launch = -1;
 								for(var j=3;j<parent.branch.length;j++){
-									if(parent.branch[j][1][0] == cmod[i][1]){ launch = j-2; break; }
+									if(parent.branch[j][1][0] == cmod[i][1]){
+										launch = j-2;
+										break;
+									}
 								}
 								
 								//console.log(cmod[i][2]);
@@ -449,7 +477,7 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 									pre += cmod[i][2];
 								} else {
 									pre += "<div style='display:inline;background-color:" + parent.unbg + 
-						            "'>" + cmod[i][2] + "</div>";
+										"'>" + cmod[i][2] + "</div>";
 								}
 								
 								post = "</td></tr>";
@@ -458,11 +486,11 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 									npos = getTarg(parent.ftree, parent.loc, 'del', launch);
 									
 									pre += "<div style='display:inline;background-color:" + parent.unbg + 
-						            "'>" + " <a href='" + rootURI + "#!/" + npos + "' " + 
+										"'>" + " <a href='" + rootURI + "#!/" + npos + "' " + 
 									"onClick='location.hash=\"#!/" + npos + 
 									"\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a>" + "</div>";
 									
-									subcolcb = {
+									var subcolcb = {
 										callback: function(n, prod){
 											//console.log('a', n);
 											parent.callback(n, prod);
@@ -497,16 +525,22 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 			this.items = 1;
 			this.pre += "<div class='panel' style='background-color:" + this.bg +	";'>"
 			this.post += "</div>"
-			targ = serverAPI(this.about, this.filters);
+			var targ = serverAPI(this.about, this.filters);
 			posl = targ;
 			this.id = this.branch[1][1];
 			actn = 'view'
 			
 			//find first action.
 			for(var i=1;i<this.branch[2].length;i++){
-				if      (this.branch[2][i][0]=='add' ){ actn = 'add';  break; 
-				}else if(this.branch[2][i][0]=='edit'){ actn = 'edit'; break; 
-				}else if(this.branch[2][i][0]=='del' ){ actn = 'del';  break; 
+				if		(this.branch[2][i][0]=='add' ){
+					actn = 'add';
+					break; 
+				}else if(this.branch[2][i][0]=='edit'){
+					actn = 'edit';
+					break; 
+				}else if(this.branch[2][i][0]=='del' ){
+					actn = 'del';
+					break; 
 				}
 			}
 			
@@ -937,14 +971,16 @@ function addInst(forma,uri,backURI){
 function filtmerge(branch, fltrs){
 	//filters = fltrs.__clone();
 	var filters = jQuery.extend(true, [], fltrs);
-	rootURI = '/data/' + branch[1][0];
+	var rootURI = '/data/' + branch[1][0];
 	
 	//filter -> API uri processing
 	
 	//append uri filters
 	for(var i=1;i<branch[2].length;i++){
 		if(branch[2][i][0] == 'filt'){
-			if(branch[2][i][1][1][0] == undefined){ branch[2][i][1][1] = branch[1][0]; }
+			if(branch[2][i][1][1][0] == undefined){
+				branch[2][i][1][1] = branch[1][0];
+			}
 			//flts = flts + branch[2][i][1][2] + op[branch[2][i][1][0]] + branch[2][i][1][3] + ';';
 			filters.push(branch[2][i][1]);
 		}
