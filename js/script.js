@@ -137,6 +137,12 @@
     }), 1500);
   };
   window.serverRequest = function(method, uri, headers, body, successCallback, failureCallback) {
+    if (headers == null) {
+      headers = {};
+    }
+    if (body == null) {
+      body = null;
+    }
     successCallback = (typeof successCallback !== "function" ? defaultSuccessCallback : successCallback);
     failureCallback = (typeof failureCallback !== "function" ? defaultFailureCallback : failureCallback);
     $("#httpTable").append("<tr class=\"server_row\"><td><strong>" + method + "</strong></td><td>" + uri + "</td><td>" + (headers.length === 0 ? "" : headers) + "</td><td>" + body + "</td></tr>");

@@ -117,7 +117,7 @@ cleanUp = (a) ->
 	), 1500
 
 
-window.serverRequest = (method, uri, headers, body, successCallback, failureCallback) ->
+window.serverRequest = (method, uri, headers = {}, body = null, successCallback, failureCallback) ->
 	successCallback = (if typeof successCallback != "function" then defaultSuccessCallback else successCallback)
 	failureCallback = (if typeof failureCallback != "function" then defaultFailureCallback else failureCallback)
 	
