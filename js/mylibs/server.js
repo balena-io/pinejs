@@ -232,27 +232,34 @@
         }
         break;
       case "ui":
-        if (tree[1][1] === "textarea" && tree[1][3][1][1][3] === "model_area") {
-          switch (method) {
-            case "PUT":
-              serverModelCache.setSE(JSON.parse(body).value);
-              return successCallback(200);
-            case "GET":
-              return successCallback(200, {
-                value: serverModelCache.getSE()
-              });
-            default:
-              return failureCallback(404);
-          }
-        } else if (tree[1][1] === "textarea-is_disabled" && tree[1][4][1][1][3] === "model_area") {
-          switch (method) {
-            case "PUT":
-              serverModelCache.setModelAreaDisabled(JSON.parse(body).value);
-              return successCallback(200);
-            case "GET":
-              return successCallback(200, {
-                value: serverModelCache.isModelAreaDisabled()
-              });
+        if (tree[1][3][1][1][3] === "model_area") {
+          switch (tree[1][1]) {
+            case "textarea":
+              switch (method) {
+                case "PUT":
+                  serverModelCache.setSE(JSON.parse(body).value);
+                  return successCallback(200);
+                case "GET":
+                  return successCallback(200, {
+                    value: serverModelCache.getSE()
+                  });
+                default:
+                  return failureCallback(404);
+              }
+              break;
+            case "textarea-is_disabled":
+              switch (method) {
+                case "PUT":
+                  serverModelCache.setModelAreaDisabled(JSON.parse(body).value);
+                  return successCallback(200);
+                case "GET":
+                  return successCallback(200, {
+                    value: serverModelCache.isModelAreaDisabled()
+                  });
+                default:
+                  return failureCallback(404);
+              }
+              break;
             default:
               return failureCallback(404);
           }
