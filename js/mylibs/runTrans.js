@@ -1,6 +1,6 @@
 (function() {
-  var locker, runTrans;
-  runTrans = function() {
+  var locker;
+  window.runTrans = function() {
     var obj, parent, transuri;
     parent = this;
     transuri = "";
@@ -17,11 +17,9 @@
         return serverRequest("GET", parent.transuri, [], '', function(statusCode, trans, headers) {
           parent.trans = trans;
           $(".action").each(function(index) {
-            switch ($(this).children("#__actype").val()) {
-              case "editterm":
-              case "editfctp":
-              case "del":
-                return parent.lockCount++;
+            var _ref;
+            if ((_ref = $(this).children("#__actype").val()) === "editterm" || _ref === "editfctp" || _ref === "del") {
+              return parent.lockCount++;
             }
           });
           return $(".action").each(function(index) {
@@ -36,10 +34,17 @@
               case "editfctp":
               case "editterm":
                 return lockr.lockResource(this.resource_type, this.resource_id, this.trans, function(lock_id) {
-                  var cr_uri, inputs, o, ob;
+                  var cr_uri, inputs, o;
                   cr_uri = "/data/lock*filt:lock.id=" + lock_id + "/cr";
                   inputs = $(":input:not(:submit)", parent);
-                  o = $.map(inputs, function(n, i) {}, n.id.slice(0, 2) !== "__" ? (ob = {}, ob[n.id] = $(n).val(), ob) : void 0);
+                  o = $.map(inputs, function(n, i) {
+                    var ob;
+                    if (n.id.slice(0, 2) !== "__") {
+                      ob = {};
+                      ob[n.id] = $(n).val();
+                      return ob;
+                    }
+                  });
                   return parent.callback("edit", cr_uri, o);
                 });
               case "del":
@@ -50,23 +55,25 @@
                 });
               case "addterm":
               case "addfctp":
-                return null;
+                break;
             }
           });
         });
       });
     }
     return this.callback = function(op, cr_uri, o) {
-      var i, _ref;
+      var dataElement, _i, _len, _ref;
       this.parent.data.push([op, cr_uri, o]);
       if (this.parent.data.length === this.parent.lockCount) {
-        for (i = 0, _ref = this.parent.lockCount; 0 <= _ref ? i < _ref : i > _ref; 0 <= _ref ? i++ : i--) {
-          switch (this.parent.data[i][0]) {
+        _ref = this.parent.data;
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          dataElement = _ref[_i];
+          switch (dataElement[0]) {
             case "del":
-              serverRequest("DELETE", this.parent.data[i][1], [], "", function(statusCode, result, headers) {});
+              serverRequest("DELETE", dataElement[1]);
               break;
             case "edit":
-              serverRequest("PUT", this.parent.data[i][1], [], JSON.stringify(this.parent.data[i][2]));
+              serverRequest("PUT", dataElement[1], [], JSON.stringify(dataElement[2]));
           }
         }
         return serverRequest("POST", this.parent.trans.ctURI, [], "", function(statusCode, result, headers) {
@@ -76,9 +83,7 @@
     };
   };
   locker = function() {
-	console.log('x',this)
-     this.lockResource = function(resource_type, resource_id, trans, successCallback, failureCallback) {
-	console.log('y',this)
+    this.lockResource = function(resource_type, resource_id, trans, successCallback, failureCallback) {
       var parent;
       parent = this;
       this.resource_type = resource_type;
@@ -122,6 +127,9 @@
         }), failureCallback);
       }), failureCallback);
     };
+    return this;
   };
-  window.locker = locker;
+  if (typeof window !== "undefined" && window !== null) {
+    window.runTrans = runTrans;
+  }
 }).call(this);
