@@ -299,7 +299,6 @@
           } else {
             switch (method) {
               case "GET":
-                console.log("body:[" + body + "]");
                 return dataplusGET(tree, headers, body, successCallback, failureCallback);
               case "POST":
                 return dataplusPOST(tree, headers, body, successCallback, failureCallback);
@@ -430,26 +429,19 @@
             for (i = 0, _ref = locks.rows.length; 0 <= _ref ? i < _ref : i > _ref; 0 <= _ref ? i++ : i--) {
               lock_id = locks.rows.item(i).lock_id;
               sql = 'DELETE FROM "conditional_representation" WHERE "lock_id"=' + lock_id + ";";
-              console.log(sql);
               tx.executeSql(sql, [], function(tx, result) {});
               sql = 'DELETE FROM "lock-is_exclusive" WHERE "lock_id"=' + lock_id + ";";
-              console.log(sql);
               tx.executeSql(sql, [], function(tx, result) {});
               sql = 'DELETE FROM "lock-is_shared" WHERE "lock_id"=' + lock_id + ";";
-              console.log(sql);
               tx.executeSql(sql, [], function(tx, result) {});
               sql = 'DELETE FROM "resource-is_under-lock" WHERE "lock_id"=' + lock_id + ";";
-              console.log(sql);
               tx.executeSql(sql, [], function(tx, result) {});
               sql = 'DELETE FROM "lock-belongs_to-transaction" WHERE "lock_id"=' + lock_id + ";";
-              console.log(sql);
               tx.executeSql(sql, [], function(tx, result) {});
               sql = 'DELETE FROM "lock" WHERE "id"=' + lock_id + ";";
-              console.log(sql);
               tx.executeSql(sql, [], function(tx, result) {});
             }
             sql = 'DELETE FROM "transaction" WHERE "id"=' + id + ";";
-            console.log(sql);
             return tx.executeSql(sql, [], function(tx, result) {});
           });
         });
@@ -680,9 +672,7 @@
               return endLock(tx, locks, i + 1, trans_id, successCallback, failureCallback);
             } else {
               sql = 'DELETE FROM "transaction" WHERE "id"=' + trans_id + ';';
-              tx.executeSql(sql, [], function(tx, result) {
-                return console.log("t ok");
-              });
+              tx.executeSql(sql);
               return validateDB(tx, serverModelCache.getSQL(), (function(tx, sqlmod, failureCallback, result) {
                 return successCallback(200, result);
               }), failureCallback);
@@ -690,31 +680,19 @@
           });
         }
         sql = 'DELETE FROM "conditional_representation" WHERE "lock_id"=' + crs.rows.item(0).lock_id + ';';
-        tx.executeSql(sql, [], function(tx, result) {
-          return console.log("cr ok");
-        });
+        tx.executeSql(sql);
         sql = 'DELETE FROM "resource-is_under-lock" WHERE "lock_id"=' + crs.rows.item(0).lock_id + ';';
-        return tx.executeSql(sql, [], function(tx, result) {
-          return console.log("rl ok");
-        });
+        return tx.executeSql(sql);
       });
     });
     sql = 'DELETE FROM "lock-is_shared" WHERE "lock_id"=' + lock_id + ';';
-    tx.executeSql(sql, [], function(tx, result) {
-      return console.log("ls ok");
-    });
+    tx.executeSql(sql);
     sql = 'DELETE FROM "lock-is_exclusive" WHERE "lock_id"=' + lock_id + ';';
-    tx.executeSql(sql, [], function(tx, result) {
-      return console.log("le ok");
-    });
+    tx.executeSql(sql);
     sql = 'DELETE FROM "lock-belongs_to-transaction" WHERE "lock_id"=' + lock_id + ';';
-    tx.executeSql(sql, [], function(tx, result) {
-      return console.log("lt ok");
-    });
-    sql = 'DELETE FROM "lock" WHERE "id"=' + lock_id;
-    return tx.executeSql(sql + ";", [], function(tx, result) {
-      return console.log("l ok");
-    });
+    tx.executeSql(sql);
+    sql = 'DELETE FROM "lock" WHERE "id"=' + lock_id + ';';
+    return tx.executeSql(sql);
   };
   validateDB = function(tx, sqlmod, successCallback, failureCallback) {
     var errors, l, par, query, row, tex, tot, _i, _len;
@@ -857,8 +835,7 @@
       console.log("Request received");
       body = '';
       request.on('data', function(chunk) {
-        body += chunk;
-        return console.log('Chunk', chunk);
+        return body += chunk;
       });
       return request.on('end', function() {
         var nodePath;

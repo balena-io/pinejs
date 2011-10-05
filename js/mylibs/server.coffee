@@ -234,7 +234,7 @@ remoteServerRequest = (method, uri, headers, body, successCallback, failureCallb
 				else
 					switch method
 						when "GET"
-							console.log "body:[" + body + "]"
+							#console.log "body:[" + body + "]"
 							dataplusGET tree, headers, body, successCallback, failureCallback
 						when "POST"
 							dataplusPOST tree, headers, body, successCallback, failureCallback
@@ -339,30 +339,23 @@ dataplusPOST = (tree, headers, body, successCallback, failureCallback) ->
 					for i in [0...locks.rows.length]
 						lock_id = locks.rows.item(i).lock_id
 						sql = 'DELETE FROM "conditional_representation" WHERE "lock_id"=' + lock_id + ";"
-						console.log sql
 						tx.executeSql sql, [], (tx, result) ->
 
 						sql = 'DELETE FROM "lock-is_exclusive" WHERE "lock_id"=' + lock_id + ";"
-						console.log sql
 						tx.executeSql sql, [], (tx, result) ->
 
 						sql = 'DELETE FROM "lock-is_shared" WHERE "lock_id"=' + lock_id + ";"
-						console.log sql
 						tx.executeSql sql, [], (tx, result) ->
 
 						sql = 'DELETE FROM "resource-is_under-lock" WHERE "lock_id"=' + lock_id + ";"
-						console.log sql
 						tx.executeSql sql, [], (tx, result) ->
 
 						sql = 'DELETE FROM "lock-belongs_to-transaction" WHERE "lock_id"=' + lock_id + ";"
-						console.log sql
 						tx.executeSql sql, [], (tx, result) ->
 
 						sql = 'DELETE FROM "lock" WHERE "id"=' + lock_id + ";"
-						console.log sql
 						tx.executeSql sql, [], (tx, result) ->
 					sql = 'DELETE FROM "transaction" WHERE "id"=' + id + ";"
-					console.log sql
 					tx.executeSql sql, [], (tx, result) ->
 	else
 		bd = JSON.parse(body)
@@ -535,35 +528,28 @@ endLock = (tx, locks, i, trans_id, successCallback, failureCallback) ->
 						endLock tx, locks, i + 1, trans_id, successCallback, failureCallback
 					else
 						sql = 'DELETE FROM "transaction" WHERE "id"=' + trans_id + ';'
-						tx.executeSql sql, [], (tx, result) ->
-							console.log "t ok"
+						tx.executeSql sql
 
 						validateDB tx, serverModelCache.getSQL(), ((tx, sqlmod, failureCallback, result) ->
 							successCallback 200, result
 						), failureCallback
 			sql = 'DELETE FROM "conditional_representation" WHERE "lock_id"=' + crs.rows.item(0).lock_id + ';'
-			tx.executeSql sql, [], (tx, result) ->
-				console.log "cr ok"
+			tx.executeSql sql
 
 			sql = 'DELETE FROM "resource-is_under-lock" WHERE "lock_id"=' + crs.rows.item(0).lock_id + ';'
-			tx.executeSql sql, [], (tx, result) ->
-				console.log "rl ok"
+			tx.executeSql sql
 
 	sql = 'DELETE FROM "lock-is_shared" WHERE "lock_id"=' + lock_id + ';'
-	tx.executeSql sql, [], (tx, result) ->
-		console.log "ls ok"
+	tx.executeSql sql
 
 	sql = 'DELETE FROM "lock-is_exclusive" WHERE "lock_id"=' + lock_id + ';'
-	tx.executeSql sql, [], (tx, result) ->
-		console.log "le ok"
+	tx.executeSql sql
 
 	sql = 'DELETE FROM "lock-belongs_to-transaction" WHERE "lock_id"=' + lock_id + ';'
-	tx.executeSql sql, [], (tx, result) ->
-		console.log "lt ok"
+	tx.executeSql sql
 
-	sql = 'DELETE FROM "lock" WHERE "id"=' + lock_id
-	tx.executeSql sql + ";", [], (tx, result) ->
-		console.log "l ok"
+	sql = 'DELETE FROM "lock" WHERE "id"=' + lock_id + ';'
+	tx.executeSql sql
 
 # successCallback = (tx, sqlmod, failureCallback, result)
 # failureCallback = (errors)
@@ -682,7 +668,7 @@ if process?
 		body = ''
 		request.on('data', (chunk) ->
 			body += chunk
-			console.log('Chunk', chunk)
+			#console.log('Chunk', chunk)
 		)
 		request.on('end', () ->
 			console.log('End', request.method, request.url, body)
