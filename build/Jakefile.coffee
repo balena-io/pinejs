@@ -157,7 +157,7 @@ namespace('ifdefs', () ->
 	namespace('ometa', () ->
 		taskList = []
 		fileList = new jake.FileList()
-		fileList.include('js/**.ometa','js/**.ojs')
+		fileList.include('js/**.ometa')#,'js/**.ojs')
 		for inFile in fileList.toArray()
 			outFile = process.env.intermediateDir + inFile
 			taskList.push(getCurrentNamespace() + outFile)
@@ -217,7 +217,7 @@ namespace('ometa', ->
 	addOmetaFiles = (prepend, taskDependencies = []) ->
 		taskList = []
 		fileList = new jake.FileList()
-		fileList.include(prepend+'**.ometa',prepend+'**.ojs')
+		fileList.include(prepend+'**.ometa')#,prepend+'**.ojs')
 		for inFile in fileList.toArray()
 			outFile = inFile.replace(/\.(ojs|ometa)$/,'.js')
 			taskList.push(getCurrentNamespace() + outFile)
