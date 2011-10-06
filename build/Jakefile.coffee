@@ -13,9 +13,9 @@ requirejsConf =
 		name: "main"
     ]
 
-excludeDirs = [process.env.outputDir,'.git','node_modules']
+excludeDirs = [process.env.outputDir, '.git', 'node_modules', 'build']
 copyToIntermediate = ['index.html', 'favicon.ico', 'css/**/*.css', 'CodeMirror2/lib/codemirror.css', 'CodeMirror2/theme/default.css', 'package.json']
-copyToFinal = ['index.html', 'favicon.ico', 'js/libs/*', 'CodeMirror2/lib/codemirror.css', 'CodeMirror2/theme/default.css', 'package.json']
+copyToFinal = ['index.html', 'favicon.ico', 'js/libs/*', 'css/**/*.css', 'CodeMirror2/lib/codemirror.css', 'CodeMirror2/theme/default.css', 'package.json']
 
 storedTaskDependencies = {}
 
@@ -174,7 +174,8 @@ namespace('ifdefs', () ->
 	namespace('coffee', () ->
 		taskList = []
 		fileList = new jake.FileList()
-		fileList.include('js/**.coffee')
+		fileList.include('**.coffee')
+		fileList.exclude(excludeDirs)
 		for inFile in fileList.toArray()
 			outFile = process.env.intermediateDir + inFile
 			taskList.push(getCurrentNamespace() + outFile)
@@ -245,6 +246,7 @@ namespace('coffee', ->
 		taskList = []
 		fileList = new jake.FileList()
 		fileList.include(prepend+'**.coffee')
+		fileList.exclude(excludeDirs)
 		for inFile in fileList.toArray()
 			outFile = inFile.replace(/\.coffee$/,'.js')
 			taskList.push(getCurrentNamespace() + outFile)
@@ -259,7 +261,7 @@ namespace('coffee', ->
 		task('all', taskList)
 
 	namespace('dev', ->
-		addCoffeeFiles('js')
+		addCoffeeFiles('')
 	)
 	namespace('intermediate', ->
 		addCoffeeFiles(process.env.intermediateDir + 'js', storedTaskDependencies['ifdefs:coffee:all'].concat(storedTaskDependencies['copy:intermediate:all']))
@@ -283,14 +285,30 @@ task('js', storedTaskDependencies['ifdefs:all'].concat(storedTaskDependencies['o
 	true
 )
 
+namespace('editor', ->
+
 	alterFileTask(process.env.finalDir + 'manifest.json', 'editor/manifest.json', (data) -> 
 		console.log('Copying to final: ' + this.name)
 		return data
 	)
 
-namespace('editor', ->
+	alterFileTask(process.env.finalDir + 'Procfile', 'editor/Procfile'
+		(data) -> 
+			console.log('Copying to final: ' + this.name)
+			return data
+	)
+
+	alterFileTask(process.env.finalDir + 'server.js', 'editor/server.js'
+		(data) -> 
+			console.log('Copying to final: ' + this.name)
+			return data
+		['coffee:dev:editor/server.js']
+	)
+	
+	namespaceFinalDir = getCurrentNamespace() + process.env.finalDir
+	
 	desc('Package the editor')
-	task('package', ['js', 'copy:final:all', process.env.finalDir + 'manifest.json']
+	task('package', ['js', 'copy:final:all', namespaceFinalDir + 'manifest.json']
 		->
 			runCommand('google-chrome --pack-extension=' + path.resolve(process.env.finalDir) + ' --pack-extension-key=' + path.resolve('editor/editor.pem') + ' --no-message-box', ->
 				console.log "Packaged editor."
@@ -300,7 +318,7 @@ namespace('editor', ->
 	)
 	
 	desc('Deploy the editor')
-	task('deploy', ['js', 'copy:final:all', process.env.finalDir + 'manifest.json'], ->
+	task('deploy', ['js', 'copy:final:all', namespaceFinalDir + 'manifest.json', namespaceFinalDir + 'Procfile', namespaceFinalDir + 'server.js'], ->
 		cwd = process.cwd()
 		process.chdir(process.env.finalDir)
 		runCommand 'git init', ->
