@@ -1,4 +1,3 @@
-lfEditor = null
 sqlEditor = null
 clientOnAir = false
 
@@ -31,6 +30,7 @@ processHash = ->
 	catch $e
 		switchVal = ""
 	switch switchVal
+		#IFDEF server
 		when "server"
 			uri = location.hash.slice(9)
 			serverRequest "GET", uri, "", {}, (statusCode, result) ->
@@ -52,10 +52,11 @@ processHash = ->
 		when "export"
 			importExportEditor.refresh()
 			$("#tabs").tabs("select", 6)
-		when "lf"
-			lfEditor.refresh()
 		when "preplf"
 			break
+		#ENDIFDEF
+		when "lf"
+			lfEditor.refresh()
 		else
 			sbvrEditor.refresh()
 			$("#tabs").tabs("select", 0)
@@ -67,7 +68,7 @@ loadUI = ->
 		mode: "sbvr"
 		onKeyEvent: sbvrAutoComplete
 	)
-	lfEditor = CodeMirror.fromTextArea(document.getElementById("lfArea"))
+	window.lfEditor = CodeMirror.fromTextArea(document.getElementById("lfArea"))
 	if CodeMirror.listModes().indexOf("plsql") > -1
 		sqlEditor = CodeMirror.fromTextArea(document.getElementById("sqlArea"), mode: "text/x-plsql")
 		window.importExportEditor = CodeMirror.fromTextArea(document.getElementById("importExportArea"), mode: "text/x-plsql")
@@ -118,6 +119,7 @@ cleanUp = (a) ->
 
 
 window.serverRequest = (method, uri, headers = {}, body = null, successCallback, failureCallback) ->
+	#IFDEF server
 	successCallback = (if typeof successCallback != "function" then defaultSuccessCallback else successCallback)
 	failureCallback = (if typeof failureCallback != "function" then defaultFailureCallback else failureCallback)
 	
@@ -135,6 +137,7 @@ window.serverRequest = (method, uri, headers = {}, body = null, successCallback,
 				successCallback jqXHR.status, JSON.parse(data), jqXHR.getAllResponseHeaders()
 			
 			type: method
+	#ENDIFDEF
 
 
 window.transformClient = (model) ->
@@ -198,6 +201,7 @@ window.downloadFile = (filename, text) ->
 # Initialise controls and shoot off the loadUI & processHash functions
 $( ->
 	$("#tabs").tabs select: (event, ui) ->
+		#IFDEF server
 		if ui.panel.id not in ["modelTab", "httpTab"] and clientOnAir == false
 			exc = "<span class=\"ui-icon ui-icon-alert\" style=\"float:left; margin:0 7px 50px 0;\"></span>"
 			msg = "This tab is only accessible after a model is executed<br/>"
@@ -205,9 +209,9 @@ $( ->
 			$("#dialog-message").dialog "open"
 			false
 		else
+		#ENDIFDEF
 			switch ui.panel.id
-				when "lfTab"
-					location.hash = "!/lf/"
+				#IFDEF server
 				when "prepTab"
 					location.hash = "!/preplf/"
 				when "sqlTab"
@@ -218,6 +222,9 @@ $( ->
 					location.hash = "!/http/"
 				when "importExportTab"
 					location.hash = "!/export/"
+				#ENDIFDEF
+				when "lfTab"
+					location.hash = "!/lf/"
 				else
 					location.hash = "!/model/"
 			true
