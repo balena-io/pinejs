@@ -14,8 +14,8 @@ requirejsConf =
     ]
 
 excludeDirs = [process.env.outputDir, '.git', 'node_modules', 'build']
-copyToIntermediate = ['index.html', 'favicon.ico', 'css/**/*.css', 'CodeMirror2/lib/codemirror.css', 'CodeMirror2/theme/default.css', 'package.json']
-copyToFinal = ['index.html', 'favicon.ico', 'js/libs/*', 'css/**/*.css', 'CodeMirror2/lib/codemirror.css', 'CodeMirror2/theme/default.css', 'package.json']
+copyToIntermediate = ['index.html', 'favicon.ico', 'css/**/*.*', 'CodeMirror2/lib/codemirror.css', 'CodeMirror2/theme/default.css', 'package.json']
+copyToFinal = ['index.html', 'favicon.ico', 'js/libs/*', 'css/**/*.*', 'CodeMirror2/lib/codemirror.css', 'CodeMirror2/theme/default.css', 'package.json']
 
 storedTaskDependencies = {}
 
