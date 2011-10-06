@@ -28,7 +28,7 @@ var CodeMirror = (function() {
           '<div style="position: relative">' + // Moved around its parent to cover visible view
             '<div class="CodeMirror-gutter"><div class="CodeMirror-gutter-text"></div></div>' +
             // Provides positioning relative to (visible) text origin
-            '<div class="CodeMirror-lines"><div style="position: relative">' +
+            '<div class="CodeMirror-lines"><div style="position: relative" draggable="true">' +
               '<pre class="CodeMirror-cursor">&#160;</pre>' + // Absolutely positioned blinky cursor
               '<div></div>' + // This DIV contains the actual code
             '</div></div></div></div></div>';
@@ -60,7 +60,7 @@ var CodeMirror = (function() {
     // whether the user is holding shift. reducedSelection is a hack
     // to get around the fact that we can't create inverted
     // selections. See below.
-    var shiftSelecting, reducedSelection, lastDoubleClick;
+    var shiftSelecting, reducedSelection, lastClick, lastDoubleClick, draggingText;
     // Variables used by startOperation/endOperation to track what
     // happened during the operation.
     var updateInput, changes, textChanged, selectionChanged, leaveInputAlone, gutterDirty;
@@ -80,11 +80,12 @@ var CodeMirror = (function() {
 
     // Register our event handlers.
     connect(scroller, "mousedown", operation(onMouseDown));
+    connect(scroller, "dblclick", operation(onDoubleClick));
+    connect(lineSpace, "dragstart", onDragStart);
     // Gecko browsers fire contextmenu *after* opening the menu, at
     // which point we can't mess with it anymore. Context menu is
     // handled in onMouseDown for Gecko.
     if (!gecko) connect(scroller, "contextmenu", onContextMenu);
-    connect(code, "dblclick", operation(onDblClick));
     connect(scroller, "scroll", function() {
       updateDisplay([]);
       if (options.fixedGutter) gutter.style.left = scroller.scrollLeft + "px";
@@ -103,8 +104,8 @@ var CodeMirror = (function() {
     connect(scroller, "paste", function(){focusInput(); fastPoll();});
     connect(input, "paste", function(){fastPoll();});
     connect(input, "cut", function(){fastPoll();});
-    
-    // IE throws unspecified error in certain cases, when 
+
+    // IE throws unspecified error in certain cases, when
     // trying to access activeElement before onload
     var hasFocus; try { hasFocus = (targetDocument.activeElement == input); } catch(e) { }
     if (hasFocus) setTimeout(onFocus, 20);
@@ -238,7 +239,7 @@ var CodeMirror = (function() {
       // Check whether this is a click in a widget
       for (var n = e_target(e); n != wrapper; n = n.parentNode)
         if (n.parentNode == code && n != mover) return;
-      var ld = lastDoubleClick; lastDoubleClick = null;
+
       // First, see if this is a click in the gutter
       for (var n = e_target(e); n != wrapper; n = n.parentNode)
         if (n.parentNode == gutterText) {
@@ -248,7 +249,7 @@ var CodeMirror = (function() {
         }
 
       var start = posFromMouse(e);
-      
+
       switch (e_button(e)) {
       case 3:
         if (gecko && !mac) onContextMenu(e);
@@ -263,18 +264,36 @@ var CodeMirror = (function() {
       if (!start) {if (e_target(e) == scroller) e_preventDefault(e); return;}
 
       if (!focused) onFocus();
-      e_preventDefault(e);
-      if (ld && +new Date - ld < 400) return selectLine(start.line);
 
-      setCursor(start.line, start.ch, true);
+      var now = +new Date;
+      if (lastDoubleClick > now - 400) {
+        e_preventDefault(e);
+        return selectLine(start.line);
+      } else if (lastClick > now - 400) {
+        lastDoubleClick = now;
+        e_preventDefault(e);
+        return selectWordAt(start);
+      } else { lastClick = now; }
+
       var last = start, going;
-      // And then we have to see if it's a drag event, in which case
-      // the dragged-over text must be selected.
-      function end() {
-        focusInput();
-        updateInput = true;
-        move(); up();
+      if (dragAndDrop && !posEq(sel.from, sel.to) &&
+          !posLess(start, sel.from) && !posLess(sel.to, start)) {
+        // Let the drag handler handle this.
+        var up = connect(targetDocument, "mouseup", operation(function(e2) {
+          draggingText = false;
+          up();
+          if (Math.abs(e.clientX - e2.clientX) + Math.abs(e.clientY - e2.clientY) < 10) {
+            e_preventDefault(e2);
+            setCursor(start.line, start.ch, true);
+            focusInput();
+          }
+        }), true);
+        draggingText = true;
+        return;
       }
+      e_preventDefault(e);
+      setCursor(start.line, start.ch, true);
+
       function extend(e) {
         var cur = posFromMouse(e, true);
         if (cur && !posEq(cur, last)) {
@@ -298,15 +317,17 @@ var CodeMirror = (function() {
         var cur = posFromMouse(e);
         if (cur) setSelectionUser(start, cur);
         e_preventDefault(e);
-        end();
+        focusInput();
+        updateInput = true;
+        move(); up();
       }), true);
     }
-    function onDblClick(e) {
-      var pos = posFromMouse(e);
-      if (!pos) return;
-      selectWordAt(pos);
-      e_preventDefault(e);
+    function onDoubleClick(e) {
+      var start = posFromMouse(e);
+      if (!start) return;
       lastDoubleClick = +new Date;
+      e_preventDefault(e);
+      selectWordAt(start);
     }
     function onDrop(e) {
       e.preventDefault();
@@ -317,7 +338,11 @@ var CodeMirror = (function() {
           var reader = new FileReader;
           reader.onload = function() {
             text[i] = reader.result;
-            if (++read == n) replaceRange(text.join(""), clipPos(pos), clipPos(pos));
+            if (++read == n) {
+	      pos = clipPos(pos);
+	      var end = replaceRange(text.join(""), pos, pos);
+	      setSelectionUser(pos, end);
+	    }
           };
           reader.readAsText(file);
         }
@@ -327,10 +352,23 @@ var CodeMirror = (function() {
       else {
         try {
           var text = e.dataTransfer.getData("Text");
-          if (text) replaceRange(text, pos, pos);
+          if (text) {
+	    var end = replaceRange(text, pos, pos);
+	    var curFrom = sel.from, curTo = sel.to;
+	    setSelectionUser(pos, end);
+            if (draggingText) replaceRange("", curFrom, curTo);
+	    focusInput();
+	  }
         }
         catch(e){}
       }
+    }
+    function onDragStart(e) {
+      var txt = getSelection();
+      // This will reset escapeElement
+      htmlEscape(txt);
+      e.dataTransfer.setDragImage(escapeElement, 0, 0);
+      e.dataTransfer.setData("Text", txt);
     }
     function onKeyDown(e) {
       if (!focused) onFocus();
@@ -745,7 +783,7 @@ var CodeMirror = (function() {
             intact2.push(range);
           else {
             if (change.from > range.from)
-              intact2.push({from: range.from, to: change.from, domStart: range.domStart})
+              intact2.push({from: range.from, to: change.from, domStart: range.domStart});
             if (change.to < range.to)
               intact2.push({from: change.to + diff, to: range.to + diff,
                             domStart: range.domStart + (change.to - range.from)});
@@ -904,7 +942,8 @@ var CodeMirror = (function() {
     function updateCursor() {
       var head = sel.inverted ? sel.from : sel.to, lh = lineHeight();
       var x = charX(head.line, head.ch);
-      inputDiv.style.top = (head.line * lh - scroller.scrollTop) + "px";
+      var top = head.line * lh - scroller.scrollTop;
+      inputDiv.style.top = Math.max(Math.min(top, scroller.offsetHeight), 0) + "px";
       inputDiv.style.left = (x - scroller.scrollLeft) + "px";
       if (posEq(sel.from, sel.to)) {
         cursor.style.top = (head.line - showingFrom) * lh + "px";
@@ -1244,7 +1283,7 @@ var CodeMirror = (function() {
         prepareInput();
         slowPoll();
       }
-      
+
       if (gecko) {
         e_stop(e);
         var mouseup = connect(window, "mouseup", function() {
@@ -1616,7 +1655,7 @@ var CodeMirror = (function() {
   CodeMirror.listMIMEs = function() {
     var list = [];
     for (var m in mimeModes)
-      if (mimeModes.propertyIsEnumerable(m)) list.push(m);
+      if (mimeModes.propertyIsEnumerable(m)) list.push({mime: m, mode: mimeModes[m]});
     return list;
   };
 
@@ -1853,10 +1892,10 @@ var CodeMirror = (function() {
         span(" ", sfrom != null && sto == null ? "CodeMirror-selected" : null);
       else if (!marked && sfrom == null)
         for (var i = 0, ch = 0; ch < len; i+=2) {
-          var str = st[i], l = str.length;
+          var str = st[i], style = st[i+1], l = str.length;
           if (ch + l > len) str = str.slice(0, len - ch);
           ch += l;
-          span(str, "cm-" + st[i+1]);
+          span(str, style && "cm-" + style);
         }
       else {
         var pos = 0, i = 0, text = "", style, sg = 0;
@@ -1997,6 +2036,15 @@ var CodeMirror = (function() {
   var badInnerHTML = (function() {
     var pre = document.createElement("pre");
     pre.innerHTML = " "; return !pre.innerHTML;
+  })();
+
+  // Detect drag-and-drop
+  var dragAndDrop = (function() {
+    // IE8 has ondragstart and ondrop properties, but doesn't seem to
+    // actually support ondragstart the way it's supposed to work.
+    if (/MSIE [1-8]\b/.test(navigator.userAgent)) return false;
+    var div = document.createElement('div');
+    return "ondragstart" in div && "ondrop" in div;
   })();
 
   var gecko = /gecko\/\d{7}/i.test(navigator.userAgent);
@@ -2174,5 +2222,4 @@ var CodeMirror = (function() {
   CodeMirror.defineMIME("text/plain", "null");
 
   return CodeMirror;
-})()
-;
+})();
