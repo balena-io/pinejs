@@ -180,9 +180,9 @@ namespace('ifdefs', () ->
 			outFile = process.env.intermediateDir + inFile
 			taskList.push(getCurrentNamespace() + outFile)
 			alterFileTask(outFile, inFile, (data) -> 
-				console.log('Processing Coffee IFDEFs for: '+ this.name)
-				data = data.replace(new RegExp('#IFDEF.*?' + process.env.modules + '.*([\\s\\S]*?)#ENDIFDEF.*','g'), '$1')
-				return data.replace(new RegExp('#IFDEF[\\s\\S]*?#ENDIFDEF.*','g'), '')
+					console.log('Processing Coffee IFDEFs for: '+ this.name)
+					data = data.replace(new RegExp('#IFDEF.*?' + process.env.modules + '.*([\\s\\S]*?)#ENDIFDEF.*','g'), '$1')
+					return data.replace(new RegExp('#IFDEF[\\s\\S]*?#ENDIFDEF.*','g'), '')
 			)
 		storedTaskDependencies[getCurrentNamespace()+'all'] = taskList
 		desc('Process IFDEFs for all Coffee files')
@@ -245,9 +245,10 @@ namespace('coffee', ->
 	addCoffeeFiles = (prepend, taskDependencies = []) ->
 		taskList = []
 		fileList = new jake.FileList()
-		fileList.include(prepend+'**.coffee')
+		fileList.include('**/*.coffee')
 		fileList.exclude(excludeDirs)
-		for inFile in fileList.toArray()
+		for filePath in fileList.toArray()
+			inFile = prepend + filePath
 			outFile = inFile.replace(/\.coffee$/,'.js')
 			taskList.push(getCurrentNamespace() + outFile)
 			alterFileTask(outFile, inFile,
@@ -264,7 +265,7 @@ namespace('coffee', ->
 		addCoffeeFiles('')
 	)
 	namespace('intermediate', ->
-		addCoffeeFiles(process.env.intermediateDir + 'js', storedTaskDependencies['ifdefs:coffee:all'].concat(storedTaskDependencies['copy:intermediate:all']))
+		addCoffeeFiles(process.env.intermediateDir, storedTaskDependencies['ifdefs:coffee:all'].concat(storedTaskDependencies['copy:intermediate:all']))
 	)
 	desc('Build all Coffee files')
 	task('all', storedTaskDependencies['coffee:dev:all'].concat(storedTaskDependencies['coffee:intermediate:all']))
