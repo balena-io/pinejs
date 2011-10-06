@@ -179,29 +179,25 @@ remoteServerRequest = (method, uri, headers, body, successCallback, failureCallb
 			else
 				failureCallback 404
 		when "ui"
-			if tree[1][3][1][1][3] == "model_area"
-				switch tree[1][1]
-					when "textarea"
-						switch method
-							when "PUT"
-								serverModelCache.setSE JSON.parse(body).value
-								successCallback 200
-							when "GET"
-								successCallback 200, value: serverModelCache.getSE()
-							else
-								failureCallback 404
-					when "textarea-is_disabled"
-						switch method
-							when "PUT"
-								serverModelCache.setModelAreaDisabled JSON.parse(body).value
-								successCallback 200
-							when "GET"
-								successCallback 200, value: serverModelCache.isModelAreaDisabled()
-							else
-								failureCallback 404
+			if tree[1][1] == "textarea" and tree[1][3][1][1][3] == "model_area"
+				switch method
+					when "PUT"
+						serverModelCache.setSE JSON.parse(body).value
+						successCallback 200
+					when "GET"
+						successCallback 200, value: serverModelCache.getSE()
 					else
 						failureCallback 404
-			else 
+			else if tree[1][1] == "textarea-is_disabled" and tree[1][4][1][1][3] == "model_area"
+				switch method
+					when "PUT"
+						serverModelCache.setModelAreaDisabled JSON.parse(body).value
+						successCallback 200
+					when "GET"
+						successCallback 200, value: serverModelCache.isModelAreaDisabled()
+					else
+						failureCallback 404
+			else
 				failureCallback 404
 		when "execute"
 			if method == "POST"
