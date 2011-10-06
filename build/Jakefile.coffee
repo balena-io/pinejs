@@ -14,8 +14,8 @@ requirejsConf =
     ]
 
 excludeDirs = [process.env.outputDir,'.git','node_modules']
-copyToIntermediate = ['index.html', 'favicon.ico', 'css/**/*.css', 'CodeMirror2/lib/codemirror.css', 'CodeMirror2/theme/default.css']
-copyToFinal = ['index.html', 'favicon.ico', 'js/libs/*', 'CodeMirror2/lib/codemirror.css', 'CodeMirror2/theme/default.css']
+copyToIntermediate = ['index.html', 'favicon.ico', 'css/**/*.css', 'CodeMirror2/lib/codemirror.css', 'CodeMirror2/theme/default.css', 'package.json']
+copyToFinal = ['index.html', 'favicon.ico', 'js/libs/*', 'CodeMirror2/lib/codemirror.css', 'CodeMirror2/theme/default.css', 'package.json']
 
 storedTaskDependencies = {}
 
@@ -49,6 +49,16 @@ alterFileTask = (outFile, inFile, alterFunc, taskDependencies = []) ->
 #			)
 #		true
 #	)
+
+runCommand = (command, callback) ->
+	console.log(command)
+	require('child_process').exec(command, (error, stdout, stderr) ->
+		if error isnt null
+			console.log error.message
+		else
+			console.log 'Command Finished', stdout
+		callback()
+	)
 
 getCurrentNamespace = () ->
 	fullNamespace = ''
@@ -277,15 +287,29 @@ alterFileTask(process.env.finalDir + 'manifest.json', 'editor/manifest.json', (d
 	console.log('Copying to final: ' + this.name)
 	return data
 )
-desc('Package the editor')
-task('editor', ['js', 'copy:final:all', process.env.finalDir + 'manifest.json'], ->
-	command = 'google-chrome --pack-extension=' + path.resolve(process.env.finalDir) + ' --pack-extension-key=' + path.resolve('editor/editor.pem') + ' --no-message-box'
-	console.log(command)
-	require('child_process').exec(command, (error, stdout, stderr) ->
-		if error isnt null
-			console.log error.message
-		else
-			console.log "Packaged editor."
+
+namespace('editor', ->
+	desc('Package the editor')
+	task('package', ['js', 'copy:final:all', process.env.finalDir + 'manifest.json']
+		->
+			runCommand('google-chrome --pack-extension=' + path.resolve(process.env.finalDir) + ' --pack-extension-key=' + path.resolve('editor/editor.pem') + ' --no-message-box', ->
+				console.log "Packaged editor."
+				complete()
+			)
+		true
+	)
+	
+	desc('Deploy the editor')
+	task('deploy', ['js', 'copy:final:all', process.env.finalDir + 'manifest.json'], ->
+		cwd = process.cwd()
+		process.chdir(process.env.finalDir)
+		runCommand 'git init', ->
+			runCommand 'git add .', ->
+				runCommand 'git commit -m "init"', ->
+					runCommand 'git remote add heroku git@heroku.com:rulemotion-editor.git', ->
+						runCommand 'git push heroku master -f', ->
+							process.chdir(cwd)
+							complete()
 	)
 )
 
