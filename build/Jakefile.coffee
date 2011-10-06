@@ -34,7 +34,7 @@ alterFileTask = (outFile, inFile, alterFunc, taskDependencies = []) ->
 			fail('Error reading file "' + inFile + '": ' + err) if err?
 			data = alterFunc.call(task, data)
 			console.log('Writing to: ', outFile)
-			fs.writeFile(outFile, data)
+			fs.writeFileSync(outFile, data)
 	)
 # Async version, requires fixing tasks not being run after async prereqs in order to work.
 #	file(outFile, taskDependencies,
@@ -283,10 +283,10 @@ task('js', storedTaskDependencies['ifdefs:all'].concat(storedTaskDependencies['o
 	true
 )
 
-alterFileTask(process.env.finalDir + 'manifest.json', 'editor/manifest.json', (data) -> 
-	console.log('Copying to final: ' + this.name)
-	return data
-)
+	alterFileTask(process.env.finalDir + 'manifest.json', 'editor/manifest.json', (data) -> 
+		console.log('Copying to final: ' + this.name)
+		return data
+	)
 
 namespace('editor', ->
 	desc('Package the editor')
