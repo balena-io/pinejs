@@ -334,3 +334,8 @@ namespace('editor', ->
 
 desc('Do it all')
 task('all', ['js','copy:final:all'])
+
+desc('Delete output directories')
+task('clean', ['dir:'+process.env.outputDir], ->
+	require('wrench').rmdirSyncRecursive(process.env.outputDir)
+)
