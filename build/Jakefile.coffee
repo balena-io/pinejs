@@ -313,6 +313,10 @@ namespace('editor', ->
 		->
 			runCommand('google-chrome --pack-extension=' + path.resolve(process.env.finalDir) + ' --pack-extension-key=' + path.resolve('editor/editor.pem') + ' --no-message-box', ->
 				console.log "Packaged editor."
+				inFile = path.dirname(process.env.finalDir) + '/' + path.basename(process.env.finalDir) + '.crx'
+				outFile = 'editor/editor.crx'
+				console.log('Moving from', inFile, ' to ', outFile)
+				fs.writeFileSync(outFile, fs.readFileSync(inFile, 'utf8'))
 				complete()
 			)
 		true
