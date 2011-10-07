@@ -594,6 +594,7 @@
                 this._many((function() {
                     return this._apply("line")
                 }));
+                this._apply("end");
                 return this["lines"]
             }).call(this)
         }

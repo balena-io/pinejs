@@ -121,7 +121,7 @@ ometa SBVRParser {
 					| allowedAttrs ':',
 	line			= spaces (newTerm | newFactType | newRule | attribute):l spaces
 						{this.lines.push(l)}							-> l,
-	expr			= line*												-> this.lines
+	expr			= line* end											-> this.lines
 }
 
 SBVRParser.keyTokens = ["startTerm", "startFactType", "startRule", "term", "modRule", "verb", "keyword", "allowedAttrs", "num"];
