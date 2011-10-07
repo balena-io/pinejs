@@ -2,11 +2,17 @@ sqlEditor = null
 clientOnAir = false
 
 defaultFailureCallback = (statusCode, error) ->
-	error = [ statusCode ] if error == undefined or not error?
-	console.log error
-	exc = "<span class=\"ui-icon ui-icon-alert\" style=\"float:left; margin:0 7px 50px 0;\"></span>"
-	msg = (if error["status-line"] then error["status-line"] else error.join("<br/>"))
-	$("#dialog-message").html exc + msg
+	if error?
+		console.log error
+		if error.constructor.name == 'Array'
+			if error["status-line"]
+				error = error["status-line"]
+			else
+				error = error.join("<br/>")
+	else
+		error = [ statusCode ]
+	exc = '<span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 50px 0;"></span>'
+	$("#dialog-message").html exc + error
 	$("#dialog-message").dialog "open"
 
 

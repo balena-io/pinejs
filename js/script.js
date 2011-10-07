@@ -3,14 +3,21 @@
   sqlEditor = null;
   clientOnAir = false;
   defaultFailureCallback = function(statusCode, error) {
-    var exc, msg;
-    if (error === void 0 || !(error != null)) {
+    var exc;
+    if (error != null) {
+      console.log(error);
+      if (error.constructor.name === 'Array') {
+        if (error["status-line"]) {
+          error = error["status-line"];
+        } else {
+          error = error.join("<br/>");
+        }
+      }
+    } else {
       error = [statusCode];
     }
-    console.log(error);
-    exc = "<span class=\"ui-icon ui-icon-alert\" style=\"float:left; margin:0 7px 50px 0;\"></span>";
-    msg = (error["status-line"] ? error["status-line"] : error.join("<br/>"));
-    $("#dialog-message").html(exc + msg);
+    exc = '<span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 50px 0;"></span>';
+    $("#dialog-message").html(exc + error);
     return $("#dialog-message").dialog("open");
   };
   defaultSuccessCallback = function(statusCode, result, headers) {};
