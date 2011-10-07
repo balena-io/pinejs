@@ -1,6 +1,6 @@
 require(["../ometa-js/lib",
 		"../ometa-js/ometa-base"], function() {
-	require(["mylibs/json2",
+	require(["libs/json2",
 			"mylibs/drawDataUI",
 			"mylibs/ometa-code/ClientURIParser",
 			"mylibs/ometa-code/ClientURIUnparser"]);
@@ -19,7 +19,7 @@ require(["../ometa-js/lib",
 	});
 	
 	/*#IFDEF SERVER */
-		require(["mylibs/json2",
+		require(["libs/json2",
 				"mylibs/ometa-code/SBVRParser",
 				"mylibs/ometa-code/SBVR_PreProc",
 				"mylibs/ometa-code/SBVR2SQL",
