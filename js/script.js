@@ -1,6 +1,5 @@
 (function() {
-  var cleanUp, clientOnAir, defaultFailureCallback, defaultSuccessCallback, lfEditor, loadState, loadUI, processHash, sqlEditor;
-  lfEditor = null;
+  var cleanUp, clientOnAir, defaultFailureCallback, defaultSuccessCallback, loadState, loadUI, processHash, sqlEditor;
   sqlEditor = null;
   clientOnAir = false;
   defaultFailureCallback = function(statusCode, error) {
@@ -61,10 +60,10 @@
       case "export":
         importExportEditor.refresh();
         return $("#tabs").tabs("select", 6);
-      case "lf":
-        return lfEditor.refresh();
       case "preplf":
         break;
+      case "lf":
+        return lfEditor.refresh();
       default:
         sbvrEditor.refresh();
         return $("#tabs").tabs("select", 0);
@@ -75,7 +74,7 @@
       mode: "sbvr",
       onKeyEvent: sbvrAutoComplete
     });
-    lfEditor = CodeMirror.fromTextArea(document.getElementById("lfArea"));
+    window.lfEditor = CodeMirror.fromTextArea(document.getElementById("lfArea"));
     if (CodeMirror.listModes().indexOf("plsql") > -1) {
       sqlEditor = CodeMirror.fromTextArea(document.getElementById("sqlArea"), {
         mode: "text/x-plsql"
@@ -250,9 +249,6 @@
           return false;
         } else {
           switch (ui.panel.id) {
-            case "lfTab":
-              location.hash = "!/lf/";
-              break;
             case "prepTab":
               location.hash = "!/preplf/";
               break;
@@ -267,6 +263,9 @@
               break;
             case "importExportTab":
               location.hash = "!/export/";
+              break;
+            case "lfTab":
+              location.hash = "!/lf/";
               break;
             default:
               location.hash = "!/model/";
