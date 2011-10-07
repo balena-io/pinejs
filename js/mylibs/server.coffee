@@ -65,7 +65,7 @@ else
 					callback(tx(_tx))
 				)
 		}
-requirejs(["mylibs/inflection",
+requirejs(["libs/inflection",
 		"../ometa-js/lib",
 		"../ometa-js/ometa-base"]);
 requirejs([

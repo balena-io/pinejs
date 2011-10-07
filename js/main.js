@@ -4,7 +4,7 @@ require(["../ometa-js/lib",
 			"mylibs/drawDataUI",
 			"mylibs/ometa-code/ClientURIParser",
 			"mylibs/ometa-code/ClientURIUnparser"]);
-	require(["mylibs/inflection",
+	require(["libs/inflection",
 			"mylibs/ometa-code/SBVRParser",
 			"mylibs/ometa-code/Prettify"], function() {
 		require(["../CodeMirror2/lib/codemirror"], function() {
