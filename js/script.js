@@ -14,7 +14,7 @@
         }
       }
     } else {
-      error = [statusCode];
+      error = statusCode;
     }
     exc = '<span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 50px 0;"></span>';
     $("#dialog-message").html(exc + error);
