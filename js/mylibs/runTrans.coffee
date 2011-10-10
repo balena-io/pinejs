@@ -1,4 +1,4 @@
-window.runTrans = ->
+runTrans = ->
 	parent = this
 	transuri = ""
 
