@@ -306,6 +306,7 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 			//console.log(this.targ);
 			
 			serverRequest("GET", this.targ, [], '', function(statusCode, result, headers){
+				var posl;
 				var resl = '';
 				
 				parent.rows = result.instances.length;
@@ -346,7 +347,7 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 					}
 					//console.log(launch,actn);
 					
-					var posl = parent.targ + '/' + parent.about + "." + result.instances[i].id;
+					posl = parent.targ + '/' + parent.about + "." + result.instances[i].id;
 					
 					var prel = "<tr id='tr--" + pid + "--" + result.instances[i].id + "'><td>";
 					
