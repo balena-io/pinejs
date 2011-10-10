@@ -1,5 +1,5 @@
 (function() {
-  var backupDB, clearDB, dataGET, dataplusDELETE, dataplusGET, dataplusPOST, dataplusPUT, db, endLock, executePOST, executeSasync, executeTasync, exportDB, getFTree, getID, hasCR, http, importDB, isExecute, op, remoteServerRequest, requirejs, restoreDB, rootDELETE, serverModelCache, staticServer, updateRules, validateDB;
+  var backupDB, clearDB, dataGET, dataplusDELETE, dataplusGET, dataplusPOST, dataplusPUT, db, endLock, executeSasync, executeTasync, exportDB, getFTree, getID, handlers, hasCR, http, importDB, isExecute, op, remoteServerRequest, requirejs, restoreDB, rootDELETE, serverModelCache, staticServer, updateRules, validateDB;
   var __hasProp = Object.prototype.hasOwnProperty;
   op = {
     eq: "=",
@@ -182,8 +182,130 @@
       }
     };
   })();
+  handlers = {
+    onair: {
+      GET: function(successCallback, failureCallback) {
+        return successCallback(200, serverModelCache.isServerOnAir());
+      }
+    },
+    model: {
+      GET: [
+        function() {
+          return serverModelCache.isServerOnAir();
+        }, function(successCallback, failureCallback) {
+          return successCallback(200, serverModelCache.getLastSE());
+        }
+      ]
+    },
+    lfmodel: {
+      GET: [
+        function() {
+          return serverModelCache.isServerOnAir();
+        }, function(successCallback, failureCallback) {
+          return successCallback(200, serverModelCache.getLF());
+        }
+      ]
+    },
+    prepmodel: {
+      GET: [
+        function() {
+          return serverModelCache.isServerOnAir();
+        }, function(successCallback, failureCallback) {
+          return successCallback(200, serverModelCache.getPrepLF());
+        }
+      ]
+    },
+    sqlmodel: {
+      GET: [
+        function() {
+          return serverModelCache.isServerOnAir();
+        }, function(successCallback, failureCallback) {
+          return successCallback(200, serverModelCache.getSQL());
+        }
+      ]
+    },
+    update: {
+      POST: function(successCallback, failureCallback) {
+        return failureCallback(404);
+      }
+    },
+    ui: {
+      GET: [
+        [
+          function(tree) {
+            return tree[1][1] === "textarea" && tree[1][3][1][1][3] === "model_area";
+          }, function(successCallback, failureCallback) {
+            return successCallback(200, {
+              value: serverModelCache.getSE()
+            });
+          }
+        ], [
+          function(tree) {
+            return tree[1][1] === "textarea-is_disabled" && tree[1][4][1][1][3] === "model_area";
+          }, function(successCallback, failureCallback) {
+            return successCallback(200, {
+              value: serverModelCache.isModelAreaDisabled()
+            });
+          }
+        ]
+      ],
+      PUT: [
+        [
+          function(tree) {
+            return tree[1][1] === "textarea" && tree[1][3][1][1][3] === "model_area";
+          }, function(successCallback, failureCallback, body) {
+            serverModelCache.setSE(JSON.parse(body).value);
+            return successCallback(200);
+          }
+        ], [
+          function(tree) {
+            return tree[1][1] === "textarea-is_disabled" && tree[1][4][1][1][3] === "model_area";
+          }, function(successCallback, failureCallback, body) {
+            serverModelCache.setModelAreaDisabled(JSON.parse(body).value);
+            return successCallback(200);
+          }
+        ]
+      ]
+    },
+    execute: {
+      POST: function(successCallback, failureCallback) {
+        var lfmod, prepmod, se, sqlmod, tree, trnmod;
+        se = serverModelCache.getSE();
+        try {
+          lfmod = SBVRParser.matchAll(se, "expr");
+        } catch (e) {
+          console.log('Error parsing model', e);
+          failureCallback(404, 'Error parsing model');
+          return null;
+        }
+        prepmod = SBVR_PreProc.match(lfmod, "optimizeTree");
+        sqlmod = SBVR2SQL.match(prepmod, "trans");
+        tree = SBVRParser.matchAll(modelT, "expr");
+        tree = SBVR_PreProc.match(tree, "optimizeTree");
+        trnmod = SBVR2SQL.match(tree, "trans");
+        serverModelCache.setModelAreaDisabled(true);
+        return db.transaction(function(tx) {
+          tx.begin();
+          return executeSasync(tx, sqlmod, (function(tx, sqlmod, failureCallback, result) {
+            return executeTasync(tx, trnmod, (function(tx, trnmod, failureCallback, result) {
+              serverModelCache.setServerOnAir(true);
+              serverModelCache.setLastSE(se);
+              serverModelCache.setLF(lfmod);
+              serverModelCache.setPrepLF(prepmod);
+              serverModelCache.setSQL(sqlmod);
+              serverModelCache.setTrans(trnmod);
+              return successCallback(200, result);
+            }), failureCallback, result);
+          }), (function(errors) {
+            serverModelCache.setModelAreaDisabled(false);
+            return failureCallback(404, errors);
+          }));
+        });
+      }
+    }
+  };
   remoteServerRequest = function(method, uri, headers, body, successCallback, failureCallback) {
-    var o, rootbranch, tree;
+    var execFilterHandle, execHandle, filterHandle, o, rootbranch, tree, _i, _len, _ref;
     if (typeof successCallback !== "function") {
       successCallback = function() {};
     }
@@ -194,86 +316,44 @@
     if ((headers != null) && headers["Content-Type"] === "application/xml") {
       null;
     }
+    execHandle = function(handle) {
+      return handle(successCallback, failureCallback, body);
+    };
+    execFilterHandle = function(filterHandle) {
+      if (filterHandle[0](tree)) {
+        execHandle(filterHandle[1]);
+        return true;
+      }
+      return false;
+    };
     rootbranch = tree[0].toLowerCase();
+    if (handlers[rootbranch] != null) {
+      if (handlers[rootbranch][method] != null) {
+        if (typeof handlers[rootbranch][method] === 'function') {
+          execHandle(handlers[rootbranch][method]);
+        } else {
+          if (handlers[rootbranch][method].constructor.name === 'Array') {
+            if (handlers[rootbranch][method][0].constructor.name === 'Array') {
+              _ref = handlers[rootbranch][method];
+              for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+                filterHandle = _ref[_i];
+                if (execFilterHandle(filterHandle)) {
+                  return;
+                }
+              }
+            } else if (!execFilterHandle(handlers[rootbranch][method])) {
+              failureCallback(404);
+            }
+          } else {
+            throw new Exception('Incorrect handler setup: ', rootbranch, method);
+          }
+        }
+      } else {
+        failureCallback(404);
+      }
+      return;
+    }
     switch (rootbranch) {
-      case "onair":
-        if (method === "GET") {
-          return successCallback(200, serverModelCache.isServerOnAir());
-        } else {
-          return failureCallback(404);
-        }
-        break;
-      case "model":
-        if (method === "GET" && serverModelCache.isServerOnAir()) {
-          return successCallback(200, serverModelCache.getLastSE());
-        } else {
-          return failureCallback(404);
-        }
-        break;
-      case "lfmodel":
-        if (method === "GET" && serverModelCache.isServerOnAir()) {
-          return successCallback(200, serverModelCache.getLF());
-        } else {
-          return failureCallback(404);
-        }
-        break;
-      case "prepmodel":
-        if (method === "GET" && serverModelCache.isServerOnAir()) {
-          return successCallback(200, serverModelCache.getPrepLF());
-        } else {
-          return failureCallback(404);
-        }
-        break;
-      case "sqlmodel":
-        if (method === "GET" && serverModelCache.isServerOnAir()) {
-          return successCallback(200, serverModelCache.getSQL());
-        } else {
-          return failureCallback(404);
-        }
-        break;
-      case "ui":
-        if (tree[1][1] === "textarea" && tree[1][3][1][1][3] === "model_area") {
-          switch (method) {
-            case "PUT":
-              serverModelCache.setSE(JSON.parse(body).value);
-              return successCallback(200);
-            case "GET":
-              return successCallback(200, {
-                value: serverModelCache.getSE()
-              });
-            default:
-              return failureCallback(404);
-          }
-        } else if (tree[1][1] === "textarea-is_disabled" && tree[1][4][1][1][3] === "model_area") {
-          switch (method) {
-            case "PUT":
-              serverModelCache.setModelAreaDisabled(JSON.parse(body).value);
-              return successCallback(200);
-            case "GET":
-              return successCallback(200, {
-                value: serverModelCache.isModelAreaDisabled()
-              });
-            default:
-              return failureCallback(404);
-          }
-        } else {
-          return failureCallback(404);
-        }
-        break;
-      case "execute":
-        if (method === "POST") {
-          return executePOST(tree, headers, body, successCallback, failureCallback);
-        } else {
-          return failureCallback(404);
-        }
-        break;
-      case "update":
-        if (method === "POST") {
-          return failureCallback(404);
-        } else {
-          return failureCallback(404);
-        }
-        break;
       case "data":
         if (serverModelCache.isServerOnAir()) {
           if (tree[1] === void 0) {
@@ -472,40 +552,6 @@
         });
       });
     }
-  };
-  executePOST = function(tree, headers, body, successCallback, failureCallback) {
-    var lfmod, prepmod, se, sqlmod, trnmod;
-    se = serverModelCache.getSE();
-    try {
-      lfmod = SBVRParser.matchAll(se, "expr");
-    } catch (e) {
-      console.log('Error parsing model', e);
-      failureCallback(404, 'Error parsing model');
-      return null;
-    }
-    prepmod = SBVR_PreProc.match(lfmod, "optimizeTree");
-    sqlmod = SBVR2SQL.match(prepmod, "trans");
-    tree = SBVRParser.matchAll(modelT, "expr");
-    tree = SBVR_PreProc.match(tree, "optimizeTree");
-    trnmod = SBVR2SQL.match(tree, "trans");
-    serverModelCache.setModelAreaDisabled(true);
-    return db.transaction(function(tx) {
-      tx.begin();
-      return executeSasync(tx, sqlmod, (function(tx, sqlmod, failureCallback, result) {
-        return executeTasync(tx, trnmod, (function(tx, trnmod, failureCallback, result) {
-          serverModelCache.setServerOnAir(true);
-          serverModelCache.setLastSE(se);
-          serverModelCache.setLF(lfmod);
-          serverModelCache.setPrepLF(prepmod);
-          serverModelCache.setSQL(sqlmod);
-          serverModelCache.setTrans(trnmod);
-          return successCallback(200, result);
-        }), failureCallback, result);
-      }), (function(errors) {
-        serverModelCache.setModelAreaDisabled(false);
-        return failureCallback(404, errors);
-      }));
-    });
   };
   rootDELETE = function(tree, headers, body, successCallback, failureCallback) {
     db.transaction((function(sqlmod) {

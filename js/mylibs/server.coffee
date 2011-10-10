@@ -139,6 +139,98 @@ serverModelCache = do () ->
 			setValue 'trans', trnmod
 	}
 
+handlers =
+	onair:
+		GET: (successCallback, failureCallback) ->
+			successCallback 200, serverModelCache.isServerOnAir()
+	model:
+		GET: [
+			-> serverModelCache.isServerOnAir()
+			(successCallback, failureCallback) ->
+				successCallback 200, serverModelCache.getLastSE()
+		]
+	lfmodel:
+		GET: [
+			-> serverModelCache.isServerOnAir()
+			(successCallback, failureCallback) ->
+				successCallback 200, serverModelCache.getLF()
+		]
+	prepmodel:
+		GET: [
+			-> serverModelCache.isServerOnAir()
+			(successCallback, failureCallback) ->
+				successCallback 200, serverModelCache.getPrepLF()
+		]
+	sqlmodel:
+		GET: [
+			-> serverModelCache.isServerOnAir()
+			(successCallback, failureCallback) ->
+				successCallback 200, serverModelCache.getSQL()
+		]
+	update:
+		POST: (successCallback, failureCallback) ->
+			#update code will go here, based on executePOST
+			failureCallback 404
+	ui:
+		GET: [
+			[
+				(tree) -> tree[1][1] == "textarea" and tree[1][3][1][1][3] == "model_area"
+				(successCallback, failureCallback) ->
+					successCallback 200, value: serverModelCache.getSE()
+			]
+			[
+				(tree) -> tree[1][1] == "textarea-is_disabled" and tree[1][4][1][1][3] == "model_area"
+				(successCallback, failureCallback) ->
+					successCallback 200, value: serverModelCache.isModelAreaDisabled()
+			]
+		]
+		PUT: [
+			[
+				(tree) -> tree[1][1] == "textarea" and tree[1][3][1][1][3] == "model_area"
+				(successCallback, failureCallback, body) ->
+					serverModelCache.setSE( JSON.parse(body).value )
+					successCallback 200
+			]
+			[
+				(tree) -> tree[1][1] == "textarea-is_disabled" and tree[1][4][1][1][3] == "model_area"
+				(successCallback, failureCallback, body) ->
+					serverModelCache.setModelAreaDisabled( JSON.parse(body).value )
+					successCallback 200
+			]
+		]
+	execute:
+		POST: (successCallback, failureCallback) ->
+			se = serverModelCache.getSE()
+			try
+				lfmod = SBVRParser.matchAll(se, "expr")
+			catch e
+				console.log 'Error parsing model', e
+				failureCallback 404, 'Error parsing model'
+				return null
+			prepmod = SBVR_PreProc.match(lfmod, "optimizeTree")
+			sqlmod = SBVR2SQL.match(prepmod, "trans")
+			tree = SBVRParser.matchAll(modelT, "expr")
+			tree = SBVR_PreProc.match(tree, "optimizeTree")
+			trnmod = SBVR2SQL.match(tree, "trans")
+			serverModelCache.setModelAreaDisabled true
+			db.transaction (tx) ->
+				tx.begin()
+				executeSasync tx, sqlmod, ((tx, sqlmod, failureCallback, result) ->
+					#TODO: fix this as soon as the successCallback mess is fixed
+					executeTasync tx, trnmod, ((tx, trnmod, failureCallback, result) ->
+						serverModelCache.setServerOnAir true
+						serverModelCache.setLastSE se
+						serverModelCache.setLF lfmod
+						serverModelCache.setPrepLF prepmod
+						serverModelCache.setSQL sqlmod
+						serverModelCache.setTrans trnmod
+						successCallback 200, result
+					), failureCallback, result
+				), ((errors) ->
+					serverModelCache.setModelAreaDisabled false
+					failureCallback 404, errors
+				)
+
 # successCallback = (statusCode, result, headers)
 # failureCallback = (statusCode, errors, headers)
 remoteServerRequest = (method, uri, headers, body, successCallback, failureCallback) ->
@@ -151,65 +243,32 @@ remoteServerRequest = (method, uri, headers, body, successCallback, failureCallb
 	if headers? and headers["Content-Type"] == "application/xml"
 			#TODO: in case of input: do something to make xml into a json object
 			null
+	execHandle = (handle) ->
+		handle(successCallback, failureCallback, body)
+	execFilterHandle = (filterHandle) ->
+		if filterHandle[0](tree)
+			execHandle(filterHandle[1])
+			return true
+		return false
+	
 	rootbranch = tree[0].toLowerCase()
+	if handlers[rootbranch]?
+		if handlers[rootbranch][method]?
+			if typeof handlers[rootbranch][method] == 'function'
+				execHandle(handlers[rootbranch][method])
+			else
+				if handlers[rootbranch][method].constructor.name == 'Array'
+					if handlers[rootbranch][method][0].constructor.name == 'Array'
+						for filterHandle in handlers[rootbranch][method]
+							return if execFilterHandle(filterHandle)
+					else if !execFilterHandle(handlers[rootbranch][method])
+						failureCallback 404
+				else
+					throw new Exception('Incorrect handler setup: ', rootbranch, method)
+		else
+			failureCallback 404
+		return
 	switch rootbranch
-		when "onair"
-			if method == "GET"
-				successCallback 200, serverModelCache.isServerOnAir()
-			else
-				failureCallback 404
-		when "model"
-			if method == "GET" and serverModelCache.isServerOnAir()
-				successCallback 200, serverModelCache.getLastSE()
-			else
-				failureCallback 404
-		when "lfmodel"
-			if method == "GET" and serverModelCache.isServerOnAir()
-				successCallback 200, serverModelCache.getLF()
-			else
-				failureCallback 404
-		when "prepmodel"
-			if method == "GET" and serverModelCache.isServerOnAir()
-				successCallback 200, serverModelCache.getPrepLF()
-			else
-				failureCallback 404
-		when "sqlmodel"
-			if method == "GET" and serverModelCache.isServerOnAir()
-				successCallback 200, serverModelCache.getSQL()
-			else
-				failureCallback 404
-		when "ui"
-			if tree[1][1] == "textarea" and tree[1][3][1][1][3] == "model_area"
-				switch method
-					when "PUT"
-						serverModelCache.setSE JSON.parse(body).value
-						successCallback 200
-					when "GET"
-						successCallback 200, value: serverModelCache.getSE()
-					else
-						failureCallback 404
-			else if tree[1][1] == "textarea-is_disabled" and tree[1][4][1][1][3] == "model_area"
-				switch method
-					when "PUT"
-						serverModelCache.setModelAreaDisabled JSON.parse(body).value
-						successCallback 200
-					when "GET"
-						successCallback 200, value: serverModelCache.isModelAreaDisabled()
-					else
-						failureCallback 404
-			else
-				failureCallback 404
-		when "execute"
-			if method == "POST"
-				executePOST tree, headers, body, successCallback, failureCallback
-			else
-				failureCallback 404
-		when "update"
-			if method == "POST"
-				#update code will go here, based on executePOST
-				failureCallback 404
-			else
-				failureCallback 404
 		when "data"
 			if serverModelCache.isServerOnAir()
 				if tree[1] == undefined
@@ -373,39 +432,6 @@ dataplusPOST = (tree, headers, body, successCallback, failureCallback) ->
 					successCallback 201, result,
 						location: "/data/" + tree[1][1] + "*filt:" + tree[1][1] + ".id=" + sqlResult.insertId
 				), failureCallback
-
-
-executePOST = (tree, headers, body, successCallback, failureCallback) ->
-	se = serverModelCache.getSE()
-	try
-		lfmod = SBVRParser.matchAll(se, "expr")
-	catch e
-		console.log 'Error parsing model', e
-		failureCallback 404, 'Error parsing model'
-		return null
-	prepmod = SBVR_PreProc.match(lfmod, "optimizeTree")
-	sqlmod = SBVR2SQL.match(prepmod, "trans")
-	tree = SBVRParser.matchAll(modelT, "expr")
-	tree = SBVR_PreProc.match(tree, "optimizeTree")
-	trnmod = SBVR2SQL.match(tree, "trans")
-	serverModelCache.setModelAreaDisabled true
-	db.transaction (tx) ->
-		tx.begin()
-		executeSasync tx, sqlmod, ((tx, sqlmod, failureCallback, result) ->
-			#TODO: fix this as soon as the successCallback mess is fixed
-			executeTasync tx, trnmod, ((tx, trnmod, failureCallback, result) ->
-				serverModelCache.setServerOnAir true
-				serverModelCache.setLastSE se
-				serverModelCache.setLF lfmod
-				serverModelCache.setPrepLF prepmod
-				serverModelCache.setSQL sqlmod
-				serverModelCache.setTrans trnmod
-				successCallback 200, result
-			), failureCallback, result
-		), ((errors) ->
-			serverModelCache.setModelAreaDisabled false
-			failureCallback 404, errors
-		)
 
 
 rootDELETE = (tree, headers, body, successCallback, failureCallback) ->
