@@ -41,6 +41,7 @@ function getTarg(tree, loc, actn, newb){
 	
 	//create ''pointer''
 	var ptree = jQuery.extend(true, [], tree);
+	//We take a reference to ptree so we can dig into it whilst still having ptree as a reference to the top level.
 	var parr = ptree
 	
 	for(var i=0;i<loc.length;i++){
