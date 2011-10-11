@@ -96,10 +96,10 @@ function drawData(tree){
 		"<div align='left'><br/><input type='button' value='Apply All Changes' " +
 		" onClick='runTrans();return false;'></div>"
 		// + "<table id='fcTps'><tbody><tr><td>Fact Types:</td></tr></tbody></table>"
-		);
+	);
 
 	serverRequest("GET", "/data/", [], '', function(statusCode, result, headers){
-	var objcb = {
+		var objcb = {
 			totsub : result.terms.length,
 			totend : 0,
 			data : [],
@@ -130,7 +130,7 @@ function drawData(tree){
 				pre += result.terms[i].name;
 			} else {
 				pre += "<div style='display:inline; background-color:#FFFFFF; " +
-				"'>" + result.terms[i].name + "</div>";
+					"'>" + result.terms[i].name + "</div>";
 			}
 			var post = "</td></tr>"
 
@@ -138,8 +138,8 @@ function drawData(tree){
 				npos = getTarg(tree, [], 'del', launch-2);
 
 				pre += "<div style='display:inline;background-color:#FFFFFF" + "'> " +
-				"<a href='" + rootURI + "#!/" + npos + "' " +
-				"onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a></div>";
+					"<a href='" + rootURI + "#!/" + npos + "' " +
+					"onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a></div>";
 
 				var model;
 				var uid
@@ -328,41 +328,41 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 						npos = getTarg(parent.ftree, parent.loc, 'del', launch-2);
 
 						prel += "<div style='display:inline;background-color:" + parent.unbg +
-						"'> <a href='" + rootURI + "#!/" + npos + "' " + "onClick='location.hash=\"#!/" +
+							"'> <a href='" + rootURI + "#!/" + npos + "' " + "onClick='location.hash=\"#!/" +
 						npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a></div>";
 					} else if(launch == -1){
 						newb = ['ins', [parent.about, result.instances[i].id], ['mod']];
 						npos = getTarg(parent.ftree, parent.loc, 'add', newb);
 
 						prel += " <a href='" + rootURI + "#!/" + npos + "' " +
-						"onClick='location.hash=\"#!/" + npos + "\";return false'><span title='View' class='ui-icon ui-icon-search'></span></a>";
+							"onClick='location.hash=\"#!/" + npos + "\";return false'><span title='View' class='ui-icon ui-icon-search'></span></a>";
 					}
 
 					if(launch != -1 && actn == 'edit'){
 						npos = getTarg(parent.ftree, parent.loc, 'del', launch-2);
 
 						prel += "<div style='display:inline;background-color:" + parent.unbg +
-						"'> <a href='" + rootURI + "#!/" + npos + "' " +
-						"onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a></div>";
+							"'> <a href='" + rootURI + "#!/" + npos + "' " +
+							"onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a></div>";
 					} else if(launch == -1){
 						newb = ['ins', [parent.about, result.instances[i].id], ['mod', ['edit']]];
 						npos = getTarg(parent.ftree, parent.loc, 'add', newb);
 
 						prel +=	" <a href='" + rootURI + "#!/" + npos + "' " +
-						"onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Edit' class='ui-icon ui-icon-pencil'></span></a>";
+							"onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Edit' class='ui-icon ui-icon-pencil'></span></a>";
 					}
 
 					if(launch != -1 && actn == 'del'){
 						npos = getTarg(parent.ftree, parent.loc, 'del', launch-2);
 						prel += "<div style='display:inline;background-color:" + parent.unbg +
-						"'> <a href='" + rootURI + "#!/" + npos + "' " +
+							"'> <a href='" + rootURI + "#!/" + npos + "' " +
 						"onClick='location.hash=\"#!/" + npos + "\";return false'>[unmark]</a></div>";
 					} else if(launch == -1){
 						newb = ['ins', [parent.about, result.instances[i].id], ['mod', ['del']]];
 						npos = getTarg(parent.ftree, parent.loc, 'add', newb);
 
 						prel +=	" <a href='" + rootURI + "#!/" + npos + "' " +
-						"onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Delete' class='ui-icon ui-icon-trash'></span></a>";
+							"onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Delete' class='ui-icon ui-icon-trash'></span></a>";
 					}
 
 					var postl = "</td></tr>";
@@ -431,7 +431,7 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 									pre += cmod[i][2];
 								} else {
 									pre += "<div style='display:inline;background-color:" + parent.unbg +
-									"'>" + cmod[i][2] + "</div>";
+										"'>" + cmod[i][2] + "</div>";
 								}
 
 								post = "</td></tr>";
@@ -440,9 +440,9 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 									npos = getTarg(parent.ftree, parent.loc, 'del', launch);
 
 									pre += "<div style='display:inline;background-color:" + parent.unbg +
-									"'>" + " <a href='" + rootURI + "#!/" + npos + "' " +
-									"onClick='location.hash=\"#!/" + npos +
-									"\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a>" + "</div>";
+										"'>" + " <a href='" + rootURI + "#!/" + npos + "' " +
+										"onClick='location.hash=\"#!/" + npos +
+										"\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a>" + "</div>";
 
 									var subcolcb = {
 										callback: function(n, prod){
@@ -460,8 +460,8 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 									npos = getTarg(parent.ftree, parent.loc, 'add', newb);
 
 									pre += " <a href='" + parent.rootURI + "#!/" + npos + "' " +
-									"onClick='location.hash=\"#!/" + npos +
-									"\";return false'><span title='See all' class='ui-icon ui-icon-search'></span></a>";
+										"onClick='location.hash=\"#!/" + npos +
+										"\";return false'><span title='See all' class='ui-icon ui-icon-search'></span></a>";
 
 									res += (pre + post);
 									//console.log('b', parent.rows + 1 + parent.adds + parent.colsout);
@@ -604,7 +604,7 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 								res += "<form class = 'action' >";
 								res += "<input type='hidden' id='__actype' value='addfctp'>";
 								res += "<input type='hidden' id='__serverURI' value='" +
-								serverAPI(parent.about,[]) + "'>";
+									serverAPI(parent.about,[]) + "'>";
 								res += "<input type='hidden' id='__backURI' value='" + posl + "'>";
 								//console.log('addfctp backURI='+posl);
 								res += "<input type='hidden' id='__type' value='" + parent.about + "'>";
@@ -649,7 +649,7 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 								var tar = serverAPI(this.schema[j][1], this.filters);
 								serverRequest("GET", tar, [], '', addftcb);
 							}else if(this.schema[j][0]=='verb'){
-						}
+							}
 						}
 					}
 					break;
@@ -676,7 +676,7 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 							res += "<form class = 'action' >";
 							res += "<input type='hidden' id='__actype' value='editterm'>";
 							res += "<input type='hidden' id='__serverURI' value='" +
-							serverAPI(parent.about,[]) + "." + id + "'>";
+								serverAPI(parent.about,[]) + "." + id + "'>";
 							res += "<input type='hidden' id='__backURI' value='" + serverAPI(parent.about,[]) + "'>";
 							res += "<input type='hidden' id='__id' value='" + id + "'>";
 							res += "<input type='hidden' id='__type' value='" + parent.about + "'>";
@@ -695,7 +695,7 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 							}
 							res += "<div align = 'right'>"
 							res += "<input type='submit' value='Submit This' " +
-							"onClick='processForm(this.parentNode.parentNode);return false;'>";
+								"onClick='processForm(this.parentNode.parentNode);return false;'>";
 							res += "</div>";
 							res += "</form>";
 							res += "</div>";
@@ -725,9 +725,9 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 									respr += "<form class = 'action' >";
 									respr += "<input type='hidden' id='__actype' value='editfctp'>";
 									respr += "<input type='hidden' id='__serverURI' value='" +
-									serverAPI(parent.about,[]) + "." + resu.instances[0].id + "'>";
+										serverAPI(parent.about,[]) + "." + resu.instances[0].id + "'>";
 									respr += "<input type='hidden' id='__backURI' value='" +
-									serverAPI(parent.about,[]) + "'>";
+										serverAPI(parent.about,[]) + "'>";
 									console.log('editfctp backURI='+serverAPI(parent.about,[]));
 									respr += "<input type='hidden' id='__id' value='" + resu.instances[0].id + "'>";
 									respr += "<input type='hidden' id='__type' value='" + parent.about + "'>";
@@ -797,7 +797,7 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 									var tar = serverAPI(parent.schema[j][1], parent.filters);
 									serverRequest("GET", tar, [], '', editftcb);
 								}else if(parent.schema[j][0]=='verb'){
-							}
+								}
 							}
 						});
 					}
@@ -813,13 +813,13 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 					res += "<form class = 'action' >";
 					res += "<input type='hidden' id='__actype' value='del'>";
 					res += "<input type='hidden' id='__serverURI' value='" +
-					serverAPI(this.about,[]) + "." + this.id + "'>";
+						serverAPI(this.about,[]) + "." + this.id + "'>";
 					res += "<input type='hidden' id='__id' value='" + this.id + "'>";
 					res += "<input type='hidden' id='__type' value='" + this.about + "'>";
 					res += "<input type='hidden' id='__backURI' value='" + serverAPI(this.about,[]) + "'>";
 					//console.log('del backURI='+serverAPI(this.about,[])+' this.about='+this.about, this.ftree);
 					res += "<input type='submit' value='Confirm' " +
-					"onClick='processForm(this.parentNode.parentNode);return false;'>";
+						"onClick='processForm(this.parentNode.parentNode);return false;'>";
 					res += "</form>";
 
 					res += "</div>";
