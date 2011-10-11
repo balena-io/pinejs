@@ -38,16 +38,16 @@ function getPid(branch, loc){
 
 function getTarg(tree, loc, actn, newb){
 	//console.log(tree, loc, actn, newb);
-	
+
 	//create ''pointer''
 	var ptree = jQuery.extend(true, [], tree);
 	//We take a reference to ptree so we can dig into it whilst still having ptree as a reference to the top level.
 	var parr = ptree
-	
+
 	for(var i=0;i<loc.length;i++){
 		parr = parr[loc[i]+2];
 	}
-	
+
 	switch(actn){
 		case 'add':
 			parr.push(newb);
@@ -68,19 +68,19 @@ function serverAPI(about, filters){
 	//does not work right for fact types
 
 	var op = {
-		"eq":"=", 
-		"ne":"!=", 
+		"eq":"=",
+		"ne":"!=",
 		"lk":"~"
 	};
 	var flts = '';
-	
+
 	//render filters
 	for(var i=1;i<filters.length;i++){
 		if(about == filters[i][1]){
 			flts = flts + filters[i][1] + '.' + filters[i][2] + op[filters[i][0]] + filters[i][3] + ';';
 		}
 	}
-	
+
 	if(flts!=''){
 		flts = '*filt:' + flts;
 	}
@@ -93,15 +93,17 @@ function drawData(tree){
 
 	$("#dataTab").html(
 		"<table id='terms'><tbody><tr><td></td></tr></tbody></table>" + //this tbl must be removed
-		"<div align='left'><br/><input type='button' value='Apply All Changes' " + 
+		"<div align='left'><br/><input type='button' value='Apply All Changes' " +
 		" onClick='runTrans();return false;'></div>"
 		// + "<table id='fcTps'><tbody><tr><td>Fact Types:</td></tr></tbody></table>"
-	);
-	
+		);
+
 	serverRequest("GET", "/data/", [], '', function(statusCode, result, headers){
-		var objcb = {
+	var objcb = {
+			totsub : result.terms.length,
+			totend : 0,
+			data : [],
 			callback: function(n, prod){
-				//console.log(n,prod);
 				this.data.push([n,prod]);
 				if(++this.totend==this.totsub){
 					this.data.sort(function(a,b){
@@ -113,27 +115,8 @@ function drawData(tree){
 				}
 			}
 		}
-		
-		objcb.totsub = result.terms.length;
-		objcb.totend = 0;
-		objcb.data = [];
-		
-		/*ftcb = {
-			callback: function(n, prod){
-				//console.log(n,prod);
-				this.data.push([n,prod]);
-				if(++this.totend==this.totsub){
-					this.data.sort(function(a,b){ return a[0] - b[0]; });
-					for(var i=0;i<this.data.length;i++){
-						$("#fcTps").append(this.data[i][1]);
-					}
-				}
-			}
-		}
-		ftcb.totsub = result.fcTps.length;
-		ftcb.totend = 0;
-		ftcb.data = [];*/
-		
+
+		// if any terms have been selected
 		for(var i=0;i<result.terms.length;i++){
 			var launch = -1;
 			for(var j=3;j<tree.length;j++){
@@ -141,23 +124,23 @@ function drawData(tree){
 					launch = j;
 				}
 			}
-			
-			var pre = "<tr id='tr--data--" + result.terms[i].id + "'><td>"; 
+
+			var pre = "<tr id='tr--data--" + result.terms[i].id + "'><td>";
 			if(launch == -1){
 				pre += result.terms[i].name;
 			} else {
-				pre += "<div style='display:inline; background-color:#FFFFFF; " +  
+				pre += "<div style='display:inline; background-color:#FFFFFF; " +
 				"'>" + result.terms[i].name + "</div>";
 			}
 			var post = "</td></tr>"
-			
+
 			if(launch != -1){
 				npos = getTarg(tree, [], 'del', launch-2);
-				
+
 				pre += "<div style='display:inline;background-color:#FFFFFF" + "'> " +
-				"<a href='" + rootURI + "#!/" + npos + "' " + 
+				"<a href='" + rootURI + "#!/" + npos + "' " +
 				"onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a></div>";
-				
+
 				var model;
 				var uid
 				// request schema from server and store locally.
@@ -165,50 +148,19 @@ function drawData(tree){
 					model = SBVRParser.matchAll(result, "expr");
 					model = SBVR_PreProc.match(model, "optimizeTree");
 					model = SBVR2SQL.match(model, "trans");
-					uid = new uidraw(i, objcb, pre, post, rootURI, [], [], filters, [launch-2], true, tree, model); 
+					uid = new uidraw(i, objcb, pre, post, rootURI, [], [], filters, [launch-2], true, tree, model);
 					uid.subRowIn();
 				})
 			}else{
 				var newb = ['col', [result.terms[i].id], ['mod']];
 				var npos = getTarg(tree, [], 'add', newb);
 
-				pre += " <a href='" + rootURI + "#!/" + npos + "' " + 
+				pre += " <a href='" + rootURI + "#!/" + npos + "' " +
 				"onClick='location.hash=\"#!/" + npos + "\";return false'><span title='See all' class='ui-icon ui-icon-search'></span></a>";
-				
+
 				objcb.callback(i,pre+post);
 			}
 		}
-		
-		/*for(var i=0;i<result.fcTps.length;i++){
-			pre = "<tr id='tr--tr--data--" + result.terms[i].id + "'><td>" + result.fcTps[i].name;
-			post = "</td></tr>"
-			
-			launch = -1;
-			for(var j=3;j<tree.length;j++){
-				if(tree[j][1][0] == result.fcTps[i].id){ launch = j; }
-			}
-			//console.log(launch);
-			
-			if(launch != -1){
-				npos = getTarg(tree, [], 'del', launch-2);
-				
-				pre += "<div style='display:inline;background-color:#FFFFFF'>" + 
-				" <a href='" + rootURI + "#!/" + npos + "' " + 
-				"onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a></div>";
-				
-				//console.log(4);
-				uid = new uidraw(i, ftcb, pre, post, rootURI, [], [], filters, [launch-2], true, tree); 
-				uid.subRowIn();
-			}else{
-				newb = ['col', [result.fcTps[i].id], ['mod']];
-				npos = getTarg(tree, [], 'add', newb);
-
-				pre += " <a href='" + rootURI + "#!/" + npos + "' " + 
-				"onClick='location.hash=\"#!/" + npos + "\";return false'><span title='See all' class='ui-icon ui-icon-search'></span></a>";
-				
-				ftcb.callback(i,pre+post);
-			}
-		}*/
 	});
 }
 
@@ -248,7 +200,7 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 		this.bg = '#EEEEEE';
 		this.unbg = '#FFFFFF'
 	}
-	
+
 	//is the thing we're talking about a term or a fact type?
 	for(var j=1;j<cmod.length;j++){
 		if(cmod[j][1]==this.about){
@@ -258,7 +210,7 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 			}
 		}
 	}
-	
+
 	this.subRowIn = function(){
 		var parent = this;
 		//console.log(this.branch);
@@ -269,13 +221,13 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 			//this.filters = filtmerge(this.branch, ['filters']); //this.filters);
 			//this.targ = getTarg(ftree,loc,"del",1);
 			this.targ = serverAPI(this.about, this.filters);
-			
+
 			//are there children with 'add' modifiers? huh?
 			for(var j=3;j<this.branch.length;j++){ //iterate children
 				//console.log(this.branch[j]);
 				if(this.branch[j][0] == 'ins' &&
-				this.branch[j][1][0] == this.about &&
-				this.branch[j][1][1] == undefined){ //iterate modifiers
+					this.branch[j][1][0] == this.about &&
+					this.branch[j][1][1] == undefined){ //iterate modifiers
 					for(var k=1;k<this.branch[j][2].length;k++){
 						if(this.branch[j][2][k][0] == 'add'){
 							this.adds++;
@@ -283,7 +235,7 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 					}
 				}
 			}
-			
+
 			//are there any subcollections?
 			for(i=1;i<cmod.length;i++){
 				if(cmod[i][0] == 'fcTp'){
@@ -294,44 +246,44 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 					}
 				}
 			}
-			
+
 			//are there expanded collection children? huh?
 			//for(var j=3;j<this.branch.length;j++){ //iterate children
 			//	if(this.branch[j][0] == 'col'){ //iterate collections
 			//		this.cols++;
 			//	}
 			//}
-			
+
 			///load collection data
 			//console.log(this.targ);
-			
+
 			serverRequest("GET", this.targ, [], '', function(statusCode, result, headers){
 				var posl;
 				var resl = '';
-				
+
 				parent.rows = result.instances.length;
 				parent.items = parent.rows + 2 + parent.adds + 1 + parent.cols;
-				
+
 				//get link which adds an 'add inst' dialog.
 				var newb = ['ins', [parent.about], ['mod', ['add']]];
 				var npos = getTarg(parent.ftree, parent.loc, 'add', newb);
-				
-				parent.data.push([parent.rows + 1,"<tr><td><a href = '" + rootURI + "#!/" + 
-				npos + "' onClick='location.hash=\"#!/" + npos + "\";return false;'>" + 
-				"[(+)add new]</a></td></tr>"]);
-				
+
+				parent.data.push([parent.rows + 1,"<tr><td><a href = '" + rootURI + "#!/" +
+					npos + "' onClick='location.hash=\"#!/" + npos + "\";return false;'>" +
+					"[(+)add new]</a></td></tr>"]);
+
 				//render each child and call back
 				for(var i=0;i<result.instances.length;i++){
 					var launch = -1;
 					var actn = 'view'
 					for(var j=3;j<parent.branch.length;j++){
 						if(parent.branch[j][0] == 'ins' &&
-						parent.branch[j][1][0] == parent.about && 
-						(parent.branch[j][1][1] == result.instances[i].id || 
-						parent.branch[j][1][1] == result.instances[i].name)
-						&& parent.branch[j][1][1] != undefined){
+							parent.branch[j][1][0] == parent.about &&
+							(parent.branch[j][1][1] == result.instances[i].id ||
+								parent.branch[j][1][1] == result.instances[i].name)
+							&& parent.branch[j][1][1] != undefined){
 							launch = j;
-							
+
 							//find action.
 							for(var k=1;k<parent.branch[j][2].length;k++){
 								if(parent.branch[j][2][k][0]=='edit'){
@@ -350,11 +302,11 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 					posl = parent.targ + '/' + parent.about + "." + result.instances[i].id;
 					
 					var prel = "<tr id='tr--" + pid + "--" + result.instances[i].id + "'><td>";
-					
+
 					if(launch != -1){
 						prel+="<div style='display:inline;background-color:" + parent.unbg + "'>"
 					}
-					
+
 					if(parent.type == "term"){
 						prel += result.instances[i].name;
 					}else if(parent.type == "fcTp"){
@@ -367,73 +319,73 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 							}
 						}
 					}
-					
+
 					if(launch != -1){
 						prel+="</div>"
 					}
-					
+
 					if(launch != -1 && actn == 'view'){
 						npos = getTarg(parent.ftree, parent.loc, 'del', launch-2);
-						
-						prel += "<div style='display:inline;background-color:" + parent.unbg + 
-						"'> <a href='" + rootURI + "#!/" + npos + "' " + "onClick='location.hash=\"#!/" + 
+
+						prel += "<div style='display:inline;background-color:" + parent.unbg +
+						"'> <a href='" + rootURI + "#!/" + npos + "' " + "onClick='location.hash=\"#!/" +
 						npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a></div>";
 					} else if(launch == -1){
 						newb = ['ins', [parent.about, result.instances[i].id], ['mod']];
 						npos = getTarg(parent.ftree, parent.loc, 'add', newb);
-						
-						prel += " <a href='" + rootURI + "#!/" + npos + "' " + 
+
+						prel += " <a href='" + rootURI + "#!/" + npos + "' " +
 						"onClick='location.hash=\"#!/" + npos + "\";return false'><span title='View' class='ui-icon ui-icon-search'></span></a>";
 					}
-					
+
 					if(launch != -1 && actn == 'edit'){
 						npos = getTarg(parent.ftree, parent.loc, 'del', launch-2);
-						
-						prel += "<div style='display:inline;background-color:" + parent.unbg + 
-						"'> <a href='" + rootURI + "#!/" + npos + "' " + 
+
+						prel += "<div style='display:inline;background-color:" + parent.unbg +
+						"'> <a href='" + rootURI + "#!/" + npos + "' " +
 						"onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a></div>";
 					} else if(launch == -1){
 						newb = ['ins', [parent.about, result.instances[i].id], ['mod', ['edit']]];
 						npos = getTarg(parent.ftree, parent.loc, 'add', newb);
-						
-						prel +=	" <a href='" + rootURI + "#!/" + npos + "' " + 
+
+						prel +=	" <a href='" + rootURI + "#!/" + npos + "' " +
 						"onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Edit' class='ui-icon ui-icon-pencil'></span></a>";
 					}
-					
+
 					if(launch != -1 && actn == 'del'){
 						npos = getTarg(parent.ftree, parent.loc, 'del', launch-2);
-						prel += "<div style='display:inline;background-color:" + parent.unbg + 
-						"'> <a href='" + rootURI + "#!/" + npos + "' " + 
+						prel += "<div style='display:inline;background-color:" + parent.unbg +
+						"'> <a href='" + rootURI + "#!/" + npos + "' " +
 						"onClick='location.hash=\"#!/" + npos + "\";return false'>[unmark]</a></div>";
 					} else if(launch == -1){
 						newb = ['ins', [parent.about, result.instances[i].id], ['mod', ['del']]];
 						npos = getTarg(parent.ftree, parent.loc, 'add', newb);
 
-						prel +=	" <a href='" + rootURI + "#!/" + npos + "' " + 
+						prel +=	" <a href='" + rootURI + "#!/" + npos + "' " +
 						"onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Delete' class='ui-icon ui-icon-trash'></span></a>";
 					}
-					
+
 					var postl = "</td></tr>";
-					
+
 					if(launch != -1){
 						var locn = parent.loc.concat([launch-2]);
-						var uid = new uidraw(i, parent, prel, postl, rootURI, [], [], parent.filters, locn, !parent.even, parent.ftree, cmod); 
+						var uid = new uidraw(i, parent, prel, postl, rootURI, [], [], parent.filters, locn, !parent.even, parent.ftree, cmod);
 						uid.subRowIn();
 					}else{
 						parent.callback(i,prel+postl);
 					}
 				}
-				
-				parent.callback(parent.rows,"<tr><td>" + 
-				"<hr style='border:0px; width:90%; background-color: #999; height:1px;'>" +
-				"</td></tr>");
-				
+
+				parent.callback(parent.rows,"<tr><td>" +
+					"<hr style='border:0px; width:90%; background-color: #999; height:1px;'>" +
+					"</td></tr>");
+
 				//launch more uids to render the adds
 				posl = parent.targ + '/' + parent.about
 				for(var j=3;j<parent.branch.length;j++){ //iterate children
 					if(parent.branch[j][0] == 'ins' &&
-					parent.branch[j][1][0] == parent.about && 
-					parent.branch[j][1][1] == undefined){
+						parent.branch[j][1][0] == parent.about &&
+						parent.branch[j][1][1] == undefined){
 						var isadd = false;
 						for(var k=1;k<parent.branch[j][2].length;k++){ //iterate modifiers
 							if(parent.branch[j][2][k][0] == 'add'){
@@ -447,12 +399,12 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 						}
 					}
 				}
-				
+
 				parent.callback(parent.rows + 1 + parent.adds + 1,
-				"<tr><td>" + 
-				"<hr style='border:0px; width:90%; background-color: #999; height:1px;'>" +
-				"</td></tr>");
-				
+					"<tr><td>" +
+					"<hr style='border:0px; width:90%; background-color: #999; height:1px;'>" +
+					"</td></tr>");
+
 				//launch a final callback to add the subcollections.
 				for(i=1;i<cmod.length;i++){
 					if(cmod[i][0] == 'fcTp'){
@@ -467,38 +419,38 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 										break;
 									}
 								}
-								
+
 								//console.log(cmod[i][2]);
 								parent.colsout++;
 								//console.log('aaa' + parent.colsout)
 								var res = '';
-								
-								pre = "<tr id='tr--data--" + cmod[i][1] + "'><td>"; 
-								
+
+								pre = "<tr id='tr--data--" + cmod[i][1] + "'><td>";
+
 								if(launch == -1){
 									pre += cmod[i][2];
 								} else {
-									pre += "<div style='display:inline;background-color:" + parent.unbg + 
-										"'>" + cmod[i][2] + "</div>";
+									pre += "<div style='display:inline;background-color:" + parent.unbg +
+									"'>" + cmod[i][2] + "</div>";
 								}
-								
+
 								post = "</td></tr>";
-								
+
 								if(launch != -1){
 									npos = getTarg(parent.ftree, parent.loc, 'del', launch);
-									
-									pre += "<div style='display:inline;background-color:" + parent.unbg + 
-										"'>" + " <a href='" + rootURI + "#!/" + npos + "' " + 
-									"onClick='location.hash=\"#!/" + npos + 
+
+									pre += "<div style='display:inline;background-color:" + parent.unbg +
+									"'>" + " <a href='" + rootURI + "#!/" + npos + "' " +
+									"onClick='location.hash=\"#!/" + npos +
 									"\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a>" + "</div>";
-									
+
 									var subcolcb = {
 										callback: function(n, prod){
 											//console.log('a', n);
 											parent.callback(n, prod);
 										}
 									}
-									
+
 									//console.log(pre, post);
 									uid = new uidraw(parent.rows + 1 + parent.adds + 1 + parent.colsout, subcolcb, pre, post, rootURI, [], [], parent.filters, loc.concat([launch]), !parent.even, parent.ftree, cmod);
 									uid.subRowIn();
@@ -507,21 +459,21 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 									//console.log(parent.ftree, parent.loc);
 									npos = getTarg(parent.ftree, parent.loc, 'add', newb);
 
-									pre += " <a href='" + parent.rootURI + "#!/" + npos + "' " + 
-									"onClick='location.hash=\"#!/" + npos + 
+									pre += " <a href='" + parent.rootURI + "#!/" + npos + "' " +
+									"onClick='location.hash=\"#!/" + npos +
 									"\";return false'><span title='See all' class='ui-icon ui-icon-search'></span></a>";
-						
+
 									res += (pre + post);
 									//console.log('b', parent.rows + 1 + parent.adds + parent.colsout);
-									parent.callback(parent.rows + 1 + parent.adds + 1 + 
-									parent.colsout, res);
+									parent.callback(parent.rows + 1 + parent.adds + 1 +
+										parent.colsout, res);
 								}
 							}
 						}
 					}
 				}
 			});
-			
+
 		} else if (this.branch[0]=='ins'){
 			//console.log(branch);
 			this.items = 1;
@@ -530,22 +482,22 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 			var targ = serverAPI(this.about, this.filters);
 			posl = targ;
 			this.id = this.branch[1][1];
-			actn = 'view'
-			
+			var actn = 'view'
+
 			//find first action.
 			for(var i=1;i<this.branch[2].length;i++){
-				if		(this.branch[2][i][0]=='add' ){
+				if	(this.branch[2][i][0]=='add' ){
 					actn = 'add';
-					break; 
+					break;
 				}else if(this.branch[2][i][0]=='edit'){
 					actn = 'edit';
-					break; 
+					break;
 				}else if(this.branch[2][i][0]=='del' ){
 					actn = 'del';
-					break; 
+					break;
 				}
 			}
-			
+
 			switch(actn){
 				case "view":
 					if(this.type == "term"){
@@ -554,11 +506,12 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 						this.targ = serverAPI(this.about, this.filters);
 						//console.log(this.targ, getTarg(this.ftree, this.loc, "del", 1));
 						serverRequest("GET", this.targ, [], '', function(statusCode, result, headers){
-							var res = ''
+							var res = '';
+							var item;
 							for(item in result.instances[0]){
 								if(item != '__clone'){
 									res += item + ": " + result.instances[0][item] + "<br/>"
-									//could it have a child? yes, of course! a fact type for instance.
+								//could it have a child? yes, of course! a fact type for instance.
 								}
 							}
 							parent.callback(1,res);
@@ -590,7 +543,7 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 								schm = cmod[j][3];
 							}
 						}
-						
+
 						//print form.
 						var res = "<div align='right'>";
 						res += "<form class = 'action' >";
@@ -602,7 +555,7 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 						for(var j=0;j<schm.length;j++){
 							switch(schm[j][0]){
 								case 'Text':
-									res += schm[j][2] + ": <input type='text' id='" + 
+									res += schm[j][2] + ": <input type='text' id='" +
 									schm[j][1] + "' /><br />";
 									//console.log(schm[j]);
 									break;
@@ -618,7 +571,7 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 
 						//res += "<input type='submit' value='Cancel'" +
 						//" onClick='return false;'></div>";
-						
+
 						this.callback(1,res);
 					}else if(this.type == "fcTp"){
 						//initialize vars
@@ -627,9 +580,9 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 						var trmsel = {};
 						var addftcb = function(statusCode, result, headers){
 							var res = ''
-							
+
 							trmres.push(result.instances);
-							
+
 							//construct dropdowns & form
 							if(trms.length == trmres.length){
 								//console.log(trmres);
@@ -640,18 +593,18 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 									//Loop through options
 									for(var k=0;k<trmres[j].length;k++){
 										//console.log(trmres[j][k]);
-										res += "<option value='" + trmres[j][k].id + "'>" + 
+										res += "<option value='" + trmres[j][k].id + "'>" +
 										trmres[j][k].name + "</option>";
 									}
 									res += "</select>"
 									trmsel[trms[j]] = res;
 								}
-								
+
 								res = '';
 								res += "<form class = 'action' >";
 								res += "<input type='hidden' id='__actype' value='addfctp'>";
-								res += "<input type='hidden' id='__serverURI' value='" + 
-											serverAPI(parent.about,[]) + "'>";
+								res += "<input type='hidden' id='__serverURI' value='" +
+								serverAPI(parent.about,[]) + "'>";
 								res += "<input type='hidden' id='__backURI' value='" + posl + "'>";
 								//console.log('addfctp backURI='+posl);
 								res += "<input type='hidden' id='__type' value='" + parent.about + "'>";
@@ -662,9 +615,9 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 									}else if(parent.schema[j][0]=='verb'){
 										res += parent.schema[j][1] + ' ';
 									}
-								}										
+								}
 								//console.log(res);
-								
+
 								//add submit button etc.
 								res += "<div align='right'>";
 								res += "<input type='submit' value='Submit This'" +
@@ -674,29 +627,29 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 
 								parent.callback(1,res);
 							}
-							
-							//shoot off children
-							
-							//for(item in result.instances[0]){
-								//alert([item,typeof(item),result.instances[0][item]])
-							//	res += item + ": " + result.instances[0][item] + "<br/>"
-								//could it have a child? yes, of course! a fact type for instance.
-							//}
+
+						//shoot off children
+
+						//for(item in result.instances[0]){
+						//alert([item,typeof(item),result.instances[0][item]])
+						//	res += item + ": " + result.instances[0][item] + "<br/>"
+						//could it have a child? yes, of course! a fact type for instance.
+						//}
 						}
-						
+
 						for(var j=0;j<this.schema.length;j++){
 							if(this.schema[j][0]=='term'){
 								trms.push(this.schema[j][1]);
 							}
 						}
-						
+
 						//loop around terms
 						for(var j=0;j<this.schema.length;j++){
 							if(this.schema[j][0]=='term'){
 								var tar = serverAPI(this.schema[j][1], this.filters);
 								serverRequest("GET", tar, [], '', addftcb);
 							}else if(this.schema[j][0]=='verb'){
-							}
+						}
 						}
 					}
 					break;
@@ -709,7 +662,7 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 								schm = cmod[j][3];
 							}
 						}
-						
+
 						//get data
 						//this.filters = filters;
 						//this.filters = filtmerge(this.branch, this.filters);
@@ -722,8 +675,8 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 							var res = "<div align='left'>";
 							res += "<form class = 'action' >";
 							res += "<input type='hidden' id='__actype' value='editterm'>";
-							res += "<input type='hidden' id='__serverURI' value='" + 
-										serverAPI(parent.about,[]) + "." + id + "'>";
+							res += "<input type='hidden' id='__serverURI' value='" +
+							serverAPI(parent.about,[]) + "." + id + "'>";
 							res += "<input type='hidden' id='__backURI' value='" + serverAPI(parent.about,[]) + "'>";
 							res += "<input type='hidden' id='__id' value='" + id + "'>";
 							res += "<input type='hidden' id='__type' value='" + parent.about + "'>";
@@ -731,8 +684,8 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 							for(var j=0;j<schm.length;j++){
 								switch(schm[j][0]){
 									case 'Text':
-										res += schm[j][2] + ": <input type='text' id='" + 
-										schm[j][1] + "' value = '" + result.instances[0][schm[j][1]] + 
+										res += schm[j][2] + ": <input type='text' id='" +
+										schm[j][1] + "' value = '" + result.instances[0][schm[j][1]] +
 										"' /><br />";
 										break;
 									case 'ForeignKey':
@@ -741,8 +694,8 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 								}
 							}
 							res += "<div align = 'right'>"
-							res += "<input type='submit' value='Submit This' " + 
-										"onClick='processForm(this.parentNode.parentNode);return false;'>";
+							res += "<input type='submit' value='Submit This' " +
+							"onClick='processForm(this.parentNode.parentNode);return false;'>";
 							res += "</div>";
 							res += "</form>";
 							res += "</div>";
@@ -753,16 +706,16 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 						this.targ = serverAPI(this.about, this.filters);
 						serverRequest("GET", targ, [], '', function(statusCode, result, headers){
 							var resu = result;
-							
+
 							//initialize vars
 							var trms = [];
 							var trmres = [];
 							var trmsel = {};
 							var editftcb = function(statusCode, result, headers){
 								var res = ''
-								
+
 								trmres.push(result.instances);
-								
+
 								//construct dropdowns & form
 								if(trms.length == trmres.length){
 									//console.log(trmres);
@@ -771,14 +724,14 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 									var respr = "<div align='left'>";
 									respr += "<form class = 'action' >";
 									respr += "<input type='hidden' id='__actype' value='editfctp'>";
-									respr += "<input type='hidden' id='__serverURI' value='" + 
-												serverAPI(parent.about,[]) + "." + resu.instances[0].id + "'>";
-									respr += "<input type='hidden' id='__backURI' value='" + 
-												serverAPI(parent.about,[]) + "'>";
+									respr += "<input type='hidden' id='__serverURI' value='" +
+									serverAPI(parent.about,[]) + "." + resu.instances[0].id + "'>";
+									respr += "<input type='hidden' id='__backURI' value='" +
+									serverAPI(parent.about,[]) + "'>";
 									console.log('editfctp backURI='+serverAPI(parent.about,[]));
 									respr += "<input type='hidden' id='__id' value='" + resu.instances[0].id + "'>";
 									respr += "<input type='hidden' id='__type' value='" + parent.about + "'>";
-									
+
 									for(var j=0;j<trms.length;j++){
 										res = "<select id='" + trms[j] + "_id'>"
 										//Loop through options
@@ -794,12 +747,12 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 										res += "</select>"
 										trmsel[trms[j]] = res;
 									}
-									
+
 									//console.log(JSON.stringify(trmsel));
-									
+
 									//merge dropdowns with verbs to create 'form'
 									res = '';
-									
+
 									for(var j=0;j<parent.schema.length;j++){
 										//console.log(parent.schema[j]);
 										if(parent.schema[j][0]=='term'){
@@ -807,9 +760,9 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 										}else if(parent.schema[j][0]=='verb'){
 											res += parent.schema[j][1] + ' ';
 										}
-									}										
+									}
 									//console.log(res);
-									
+
 									//add submit button etc.
 									respo += "<div align = 'right'>"
 
@@ -818,49 +771,49 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 									respo += "</div>";
 									respo += "</form>";
 									respo += "</div>"
-									
+
 									parent.callback(1, respr + res + respo);
 								}
-								
-								//shoot off children
-								
-								//for(item in result.instances[0]){
-									//alert([item,typeof(item),result.instances[0][item]])
-								//	res += item + ": " + result.instances[0][item] + "<br/>"
-									//could it have a child? yes, of course! a fact type for instance.
-								//}
+
+							//shoot off children
+
+							//for(item in result.instances[0]){
+							//alert([item,typeof(item),result.instances[0][item]])
+							//	res += item + ": " + result.instances[0][item] + "<br/>"
+							//could it have a child? yes, of course! a fact type for instance.
+							//}
 							}
-							
+
 							for(var j=0;j<parent.schema.length;j++){
 								if(parent.schema[j][0]=='term'){
 									trms.push(parent.schema[j][1]);
 								}
 							}
 							//console.log(trms);
-					
+
 							//loop around terms
 							for(var j=0;j<parent.schema.length;j++){
 								if(parent.schema[j][0]=='term'){
 									var tar = serverAPI(parent.schema[j][1], parent.filters);
 									serverRequest("GET", tar, [], '', editftcb);
 								}else if(parent.schema[j][0]=='verb'){
-								}
+							}
 							}
 						});
 					}
 					break;
 				case "del":
 					//console.log(getTarg(this.ftree, this.loc, "del", 1), this.ftree, this.loc);
-					
+
 					var res = "<div align='left'>";
 					res += "marked for deletion";
 					res += "<div align = 'right'>";
-					
+
 					//make this a function
 					res += "<form class = 'action' >";
 					res += "<input type='hidden' id='__actype' value='del'>";
-					res += "<input type='hidden' id='__serverURI' value='" + 
-								serverAPI(this.about,[]) + "." + this.id + "'>";
+					res += "<input type='hidden' id='__serverURI' value='" +
+					serverAPI(this.about,[]) + "." + this.id + "'>";
 					res += "<input type='hidden' id='__id' value='" + this.id + "'>";
 					res += "<input type='hidden' id='__type' value='" + this.about + "'>";
 					res += "<input type='hidden' id='__backURI' value='" + serverAPI(this.about,[]) + "'>";
@@ -868,7 +821,7 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 					res += "<input type='submit' value='Confirm' " +
 					"onClick='processForm(this.parentNode.parentNode);return false;'>";
 					res += "</form>";
-					
+
 					res += "</div>";
 					res += "</div>";
 					this.callback(1,res);
@@ -876,7 +829,7 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 			}
 		}
 	}
-	
+
 	this.callback = function(n, prod){
 		this.data.push([n,prod]);
 		//console.log(n,prod);
@@ -885,9 +838,9 @@ function uidraw(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ft
 			this.data.sort(function(a,b){
 				return a[0] - b[0];
 			});
-			
+
 			//console.log(this.data);
-			
+
 			this.html = this.pre;
 			for(var i=0;i<this.data.length;i++){
 				this.html += this.data[i][1];
@@ -905,10 +858,10 @@ function processForm(forma){
 	var id = $("#__id", forma).val();
 	var type = $("#__type", forma).val();
 	var backURI = $("#__backURI", forma).val();
-	
-	//id and type (and half of actype) are not yet used. 
+
+	//id and type (and half of actype) are not yet used.
 	//Should they be used instead of serverURI?
-	
+
 	switch(action){
 		case 'editterm':
 		case 'editfctp':
@@ -917,7 +870,7 @@ function processForm(forma){
 		case 'addterm':
 		case 'addfctp':
 			addInst(forma,serverURI,backURI);
-			break;	
+			break;
 		case 'del':
 			delInst(forma,serverURI,backURI);
 			break;
@@ -974,9 +927,9 @@ function filtmerge(branch, fltrs){
 	//filters = fltrs.__clone();
 	var filters = jQuery.extend(true, [], fltrs);
 	var rootURI = '/data/' + branch[1][0];
-	
+
 	//filter -> API uri processing
-	
+
 	//append uri filters
 	for(var i=1;i<branch[2].length;i++){
 		if(branch[2][i][0] == 'filt'){
