@@ -1,4 +1,4 @@
-"use strict"
+"use strict";
 /*
 Copyright 2011 University of Surrey
 
