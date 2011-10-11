@@ -18,7 +18,7 @@
         "findVar": function(x) {
             var $elf = this,
                 _fromIdx = this.input.idx;
-            return this["ruleVars"][x[(1)]]
+            return this["state"]["ruleVars"][x[(1)]]
         },
         "bind": function(x) {
             var $elf = this,
@@ -248,8 +248,8 @@
                 _fromIdx = this.input.idx,
                 v, q;
             return (function() {
-                (this["ruleVars"][x[(1)]] = this["ruleVarsCount"]++);
-                v = ["var", ["num", this["ruleVars"][x[(1)]]], x];
+                (this["state"]["ruleVars"][x[(1)]] = this["state"]["ruleVarsCount"]++);
+                v = ["var", ["num", this["state"]["ruleVars"][x[(1)]]], x];
                 this._opt((function() {
                     return (function() {
                         this._applyWithArgs("keyword", "that");
@@ -457,7 +457,7 @@
                         }).call(this)
                     }))
                 }));
-                (this["ruleVarsCount"] = (1));
+                (this["state"]["ruleVarsCount"] = (0));
                 r = this._apply("modRule");
                 q = this._applyWithArgs("qTerbR", [
                     []
@@ -652,8 +652,9 @@
             "num": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "one"]
         }));
         (this["fctps"] = ({}));
-        (this["ruleVars"] = ({}));
-        (this["ruleVarsCount"] = (0));
+        (this["state"] = ({}));
+        (this["state"]["ruleVars"] = ({}));
+        (this["state"]["ruleVarsCount"] = (0));
         (this["lines"] = ["model"])
     }));
     (SBVRParser["equals"] = (function(compareTo) {

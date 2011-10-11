@@ -23,7 +23,7 @@ ometa SBVRParser {
 	isVerb		:x	= ?this._isVerb(x),
 	isFctp		:x	= ?this._isFctp(x),
 
-	findVar		:x	= {this.ruleVars[x[1]]},
+	findVar		:x	= {this.state.ruleVars[x[1]]},
 	bind		:x	= findVar(x):y											-> [`bind, x, y],
 
 	letters			= letter+:l												-> l.join(''),
@@ -62,7 +62,7 @@ ometa SBVRParser {
 					| keyword("exactly")						num:n		-> [`exactQ, [`card, n]],
 
 	keyword		:x	= token(x),
-	adVar		:x	= {this.ruleVars[x[1]] = this.ruleVarsCount++} {['var', ['num', this.ruleVars[x[1]]], x]}:v
+	adVar		:x	= {this.state.ruleVars[x[1]] = this.state.ruleVarsCount++} {['var', ['num', this.state.ruleVars[x[1]]], x]}:v
 					( keyword("that")
 						( keyword("the") terbRi([[]], x)
 						| qTerbRi([[]], x) ):q {v.push(q)}
@@ -97,7 +97,7 @@ ometa SBVRParser {
 					  "that"											-> r,
 
 	startRule		= "R:",
-	newRule			= startRule spaces &((~(spaces lineStart) char)*):ruleText {this.ruleVarsCount=1}
+	newRule			= startRule spaces &((~(spaces lineStart) char)*):ruleText {this.state.ruleVarsCount=0}
 						modRule:r qTerbR([[]]):q {r.length == 2 ? r[1][1] = q : r[1] = q}
 																		-> ['rule', r, ['text', ruleText.join('')]],
 	terb			= term:t addVerb:v									-> [t, v],
@@ -214,8 +214,9 @@ SBVRParser.reset = function() {
 		]
 	}
 	this.fctps = {}
-	this.ruleVars = {}
-	this.ruleVarsCount = 0
+	this.state = {}
+	this.state.ruleVars = {}
+	this.state.ruleVarsCount = 0
 	this.lines = ['model']
 }
 
