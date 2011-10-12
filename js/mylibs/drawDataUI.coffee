@@ -624,3 +624,6 @@ filtmerge = (branch, fltrs) ->
 			filters.push branch[2][i][1]
 		i++
 	filters
+
+
+window.drawData = drawData

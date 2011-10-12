@@ -738,4 +738,5 @@
     }
     return filters;
   };
+  window.drawData = drawData;
 }).call(this);
