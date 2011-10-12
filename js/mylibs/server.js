@@ -13,9 +13,9 @@
       baseUrl: 'js'
     });
     db = (function() {
-      var result, sqlite3, tx, _db;
-      sqlite3 = require('sqlite3').verbose();
-      _db = new sqlite3.Database('/tmp/mydb.db');
+      var Client, result, tx, _db;
+      Client = new require('pg').Client;
+      _db = new Client("postgres://postgres:.@localhost:5432/postgres");
       result = function(rows) {
         return {
           rows: {
@@ -28,14 +28,14 @@
       };
       tx = {
         executeSql: function(sql, bindings, callback, errorCallback) {
-          return _db.all(sql, bindings != null ? bindings : [], function(err, rows) {
+          return _db.query(sql, function(err, res) {
             if (err != null) {
               if (typeof errorCallback === "function") {
                 errorCallback(err);
               }
               return console.log(sql, err);
             } else {
-              return typeof callback === "function" ? callback(tx, result(rows)) : void 0;
+              return typeof callback === "function" ? callback(tx, result(res.rows)) : void 0;
             }
           });
         },
@@ -51,9 +51,7 @@
       };
       return {
         transaction: function(callback) {
-          return _db.serialize(function() {
-            return callback(tx);
-          });
+          return callback(tx);
         }
       };
     })();

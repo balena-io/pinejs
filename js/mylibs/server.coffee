@@ -11,8 +11,8 @@ if process?
 		baseUrl: 'js'
 	)
 	db = do () ->
-		sqlite3 = require('sqlite3').verbose();
-		_db = new sqlite3.Database('/tmp/mydb.db');
+		Client = new require('pg').Client
+		_db = new Client("postgres://postgres:.@localhost:5432/postgres")
 		result = (rows) ->
 			return {
 				rows: {
@@ -22,21 +22,48 @@ if process?
 			}
 		tx = {
 			executeSql: (sql, bindings, callback, errorCallback) ->
-				_db.all sql, bindings ? [], (err, rows) ->
+				_db.query sql, (err, res) ->
 					if err?
 						errorCallback? err
 						console.log(sql, err)
 					else
-						callback? tx, result(rows)
+						callback? tx, result(res.rows)
 			begin: -> tx.executeSql('BEGIN;')
 			end: -> tx.executeSql('END;')
 			rollback: -> tx.executeSql('ROLLBACK;')
 		}
 		return {
 			transaction: (callback) ->
-				_db.serialize () ->
-					callback(tx)
+				callback(tx)
 		}
+		
+	# db = do () ->
+		# sqlite3 = require('sqlite3').verbose();
+		# _db = new sqlite3.Database('/tmp/mydb.db');
+		# result = (rows) ->
+			# return {
+				# rows: {
+					# length: rows?.length or 0
+					# item: (i) -> rows[i]
+				# }
+			# }
+		# tx = {
+			# executeSql: (sql, bindings, callback, errorCallback) ->
+				# _db.all sql, bindings ? [], (err, rows) ->
+					# if err?
+						# errorCallback? err
+						# console.log(sql, err)
+					# else
+						# callback? tx, result(rows)
+			# begin: -> tx.executeSql('BEGIN;')
+			# end: -> tx.executeSql('END;')
+			# rollback: -> tx.executeSql('ROLLBACK;')
+		# }
+		# return {
+			# transaction: (callback) ->
+				# _db.serialize () ->
+					# callback(tx)
+		# }
 else
 	requirejs = window.requirejs
 	db = do () ->
