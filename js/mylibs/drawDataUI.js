@@ -659,7 +659,7 @@
         }
       }
     };
-    return this.callback = function(n, prod) {
+    this.callback = function(n, prod) {
       var i;
       this.data.push([n, prod]);
       if (this.data.length === this.items) {
@@ -676,6 +676,7 @@
         return this.objcb.callback(this.idx, this.html);
       }
     };
+    return this;
   };
   processForm = function(forma) {
     var action, backURI, id, serverURI, type;

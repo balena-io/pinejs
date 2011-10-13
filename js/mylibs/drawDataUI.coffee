@@ -570,7 +570,7 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 				i++
 			@html += @post
 			@objcb.callback @idx, @html
-
+	return this
 
 processForm = (forma) ->
 	action = $("#__actype", forma).val()
