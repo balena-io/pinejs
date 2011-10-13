@@ -128,8 +128,8 @@
       values[key] = value;
       return db.transaction(function(tx) {
         value = JSON.stringify(value).replace(/\\'/g, "\\\\'").replace(new RegExp("'", 'g'), "\\'");
-        tx.executeSql('INSERT "_server_model_cache" values' + "('" + key + "','" + value + "');");
-        return tx.executeSql('UPDATE "_server_model_cache" SET key = \'' + key + "', value='" + value + "';");
+        tx.executeSql('INSERT INTO "_server_model_cache" values' + "('" + key + "','" + value + "');");
+        return tx.executeSql('UPDATE "_server_model_cache" SET value=\'' + value + "' WHERE key = '" + key + "';");
       });
     };
     return {
