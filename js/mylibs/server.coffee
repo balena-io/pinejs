@@ -3,7 +3,6 @@ op =
 	ne: "!="
 	lk: "~"
 
-#TODO: the db name needs to be changed
 if process?
 	requirejs = require('requirejs');
 	requirejs.config(
@@ -12,7 +11,7 @@ if process?
 	)
 	db = do () ->
 		Client = new require('pg').Client
-		_db = new Client("postgres://postgres:.@localhost:5432/postgres")
+		_db = new Client(process.env.DATABASE_URL || "postgres://postgres:.@localhost:5432/postgres")
 		_db.connect()
 		result = (rows) ->
 			return {
@@ -40,7 +39,7 @@ if process?
 		
 	# db = do () ->
 		# sqlite3 = require('sqlite3').verbose();
-		# _db = new sqlite3.Database('/tmp/mydb.db');
+		# _db = new sqlite3.Database('/tmp/rulemotion.db');
 		# result = (rows) ->
 			# return {
 				# rows: {
@@ -68,7 +67,7 @@ if process?
 else
 	requirejs = window.requirejs
 	db = do () ->
-		_db = openDatabase("mydb", "1.0", "my first database", 2 * 1024 * 1024)
+		_db = openDatabase("rulemotion", "1.0", "rulemotion", 2 * 1024 * 1024)
 		tx = (_tx) ->
 			return {
 				executeSql: (sql, bindings, callback, errorCallback) ->

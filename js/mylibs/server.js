@@ -15,7 +15,7 @@
     db = (function() {
       var Client, result, tx, _db;
       Client = new require('pg').Client;
-      _db = new Client("postgres://postgres:.@localhost:5432/postgres");
+      _db = new Client(process.env.DATABASE_URL || "postgres://postgres:.@localhost:5432/postgres");
       _db.connect();
       result = function(rows) {
         return {
@@ -60,7 +60,7 @@
     requirejs = window.requirejs;
     db = (function() {
       var tx, _db;
-      _db = openDatabase("mydb", "1.0", "my first database", 2 * 1024 * 1024);
+      _db = openDatabase("rulemotion", "1.0", "rulemotion", 2 * 1024 * 1024);
       tx = function(_tx) {
         return {
           executeSql: function(sql, bindings, callback, errorCallback) {
