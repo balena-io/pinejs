@@ -74,13 +74,12 @@
                 };
               })(callback);
             }
-            if (errorCallback != null) {
             errorCallback = (function(errorCallback) {
               return function(_tx, _err) {
-                  return errorCallback(thisTX, _err);
+                console.log(_err);
+                return typeof errorCallback === "function" ? errorCallback(thisTX, _err) : void 0;
               };
             })(errorCallback);
-            }
             return _tx.executeSql(sql, bindings, callback, errorCallback);
           },
           begin: function() {},
