@@ -9,16 +9,16 @@ require(["../ometa-js/lib",
 			"mylibs/ometa-code/Prettify"], function() {
 		require(["../CodeMirror2/lib/codemirror"], function() {
 			require(["mylibs/cm/sbvr","mylibs/cm/sbvrac"]);
-			/*#IFDEF SERVER */
+			/*#IFDEF server */
 			require(["../CodeMirror2/mode/plsql/plsql"], function() {/*#ENDIFDEF*/
 				require(["script"]);
-			/*#IFDEF SERVER */
+			/*#IFDEF server */
 			})/*#ENDIFDEF*/
 		});
 		require(["mylibs/ometa-code/SBVRModels"])
 	});
 	
-	/*#IFDEF SERVER */
+	/*#IFDEF devserver */
 		require(["libs/json2",
 				"mylibs/server",
 				"mylibs/runTrans"]);

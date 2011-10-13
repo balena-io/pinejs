@@ -56,7 +56,7 @@ Copyright 2011 University of Surrey
 		<ul>
 			<li><a href='#modelTab' 		>Model Editor			</a></li>
 			<li><a href='#lfTab'			>Logical Formulation	</a></li>
-			<!--#IFDEF SERVER -->
+			<!--#IFDEF server -->
 				<li><a href='#prepTab'			>Preprocessed LF		</a></li>
 				<li><a href='#sqlTab'			>SQL					</a></li>
 				<li><a href='#dataTab'			>Data Browser			</a></li>
@@ -73,7 +73,7 @@ Copyright 2011 University of Surrey
 					<input type="button" id='blm2' value="Load Model 2"  onClick="loadmod(model2);return false">
 					<input type="button" id='blm3' value="Load Model 3"  onClick="loadmod(model3);return false">
 					<input type="button" id='bpm'  value="Parse Model"   onClick="lfEditor.setValue(Prettify.match(SBVRParser.matchAll(sbvrEditor.getValue(), 'expr'),'elem'));$('#tabs').tabs('select',1);return false">
-					<!--#IFDEF SERVER -->
+					<!--#IFDEF server -->
 						<input type="button" id='bem'  value="Execute Model" onClick="transformClient(sbvrEditor.getValue());return false">
 						<input type="button" id='bum'  value="Update Model"  onClick="return false">
 						<input type="button" id='br'   value="Reset"         onClick="resetClient();return false">
@@ -85,7 +85,7 @@ Copyright 2011 University of Surrey
 			</form>
 		</div>
 		<div id="lfTab"><textarea id="lfArea" rows="15" cols="136"></textarea></div>
-		<!--#IFDEF SERVER -->
+		<!--#IFDEF server -->
 			<div id="prepTab"><textarea id="prepArea" rows="15" cols="136"></textarea></div>
 			<div id="sqlTab"><textarea id="sqlArea" rows="15" cols="136"></textarea></div>
 			<div id="dataTab"></div>
