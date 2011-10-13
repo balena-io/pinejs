@@ -755,4 +755,5 @@
     return filters;
   };
   window.drawData = drawData;
+  window.processForm = processForm;
 }).call(this);

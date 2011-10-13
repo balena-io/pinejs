@@ -640,3 +640,4 @@ filtmerge = (branch, fltrs) ->
 
 
 window.drawData = drawData
+window.processForm = processForm
