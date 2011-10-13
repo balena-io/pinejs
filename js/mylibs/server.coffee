@@ -22,6 +22,7 @@ if process?
 			}
 		tx = {
 			executeSql: (sql, bindings, callback, errorCallback) ->
+				sql = sql.replace(/GROUP BY NULL/g, '') #HACK: Remove GROUP BY NULL for Postgres as it does not need/accept it.
 				_db.query sql, (err, res) ->
 					if err?
 						errorCallback? err
@@ -78,8 +79,8 @@ else
 							(_tx, _results) ->
 								callback(thisTX, _results)
 					if errorCallback?
-						errorCallback = do(errorCallback) ->
-							(_tx, _err) ->
+					errorCallback = do(errorCallback) ->
+						(_tx, _err) ->
 								errorCallback(thisTX, _err)
 					_tx.executeSql(sql, bindings, callback, errorCallback)
 				begin: ->

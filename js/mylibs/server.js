@@ -29,6 +29,7 @@
       };
       tx = {
         executeSql: function(sql, bindings, callback, errorCallback) {
+          sql = sql.replace(/GROUP BY NULL/g, '');
           return _db.query(sql, function(err, res) {
             if (err != null) {
               if (typeof errorCallback === "function") {
@@ -74,11 +75,11 @@
               })(callback);
             }
             if (errorCallback != null) {
-              errorCallback = (function(errorCallback) {
-                return function(_tx, _err) {
+            errorCallback = (function(errorCallback) {
+              return function(_tx, _err) {
                   return errorCallback(thisTX, _err);
-                };
-              })(errorCallback);
+              };
+            })(errorCallback);
             }
             return _tx.executeSql(sql, bindings, callback, errorCallback);
           },
