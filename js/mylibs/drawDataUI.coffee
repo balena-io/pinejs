@@ -6,6 +6,19 @@ getBranch = (branch, loc) ->
 		i++
 	branch
 
+getPid = (branch, loc) ->
+	pid = branch[1][0]
+	i = 0
+	
+	while i < loc.length
+		branch = branch[loc[i] + 2]
+		if branch[0] == "col"
+			pid += "--" + branch[1][0]
+		else
+			pid += "--" + branch[1][1]
+		i++
+	pid
+
 getTarg = (tree, loc, actn, newb) ->
 	ptree = jQuery.extend(true, [], tree)
 	#We take a reference to ptree so we can dig into it whilst still having ptree as a reference to the top level.

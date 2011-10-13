@@ -1,5 +1,5 @@
 (function() {
-  var addInst, delInst, drawData, editInst, filtmerge, getBranch, getTarg, processForm, serverAPI, uidraw;
+  var addInst, delInst, drawData, editInst, filtmerge, getBranch, getPid, getTarg, processForm, serverAPI, uidraw;
   getBranch = function(branch, loc) {
     var i;
     i = 0;
@@ -8,6 +8,21 @@
       i++;
     }
     return branch;
+  };
+  getPid = function(branch, loc) {
+    var i, pid;
+    pid = branch[1][0];
+    i = 0;
+    while (i < loc.length) {
+      branch = branch[loc[i] + 2];
+      if (branch[0] === "col") {
+        pid += "--" + branch[1][0];
+      } else {
+        pid += "--" + branch[1][1];
+      }
+      i++;
+    }
+    return pid;
   };
   getTarg = function(tree, loc, actn, newb) {
     var i, parr, ptree;
