@@ -14,8 +14,8 @@ requirejsConf =
     ]
 
 excludeDirs = [process.env.outputDir, '.git', 'node_modules', 'build']
-copyToIntermediate = ['index.html', 'favicon.ico', 'css/**/*.*', 'CodeMirror2/lib/codemirror.css', 'CodeMirror2/theme/default.css', 'package.json']
-copyToFinal = ['index.html', 'favicon.ico', 'js/libs/*', 'css/**/*.*', 'CodeMirror2/lib/codemirror.css', 'CodeMirror2/theme/default.css', 'package.json']
+copyToIntermediate = ['index.html', 'favicon.ico', 'css/**/*.*', 'CodeMirror2/lib/codemirror.css', 'CodeMirror2/theme/default.css']
+copyToFinal = ['index.html', 'favicon.ico', 'js/libs/*', 'css/**/*.*', 'CodeMirror2/lib/codemirror.css', 'CodeMirror2/theme/default.css']
 
 storedTaskDependencies = {}
 
@@ -288,22 +288,28 @@ task('js', storedTaskDependencies['ifdefs:all'].concat(storedTaskDependencies['o
 
 namespace('editor', ->
 
-	alterFileTask(process.env.finalDir + 'manifest.json', 'editor/manifest.json', (data) -> 
+	alterFileTask(process.env.finalDir + 'manifest.json', 'projects/editor/manifest.json', (data) -> 
 		console.log('Copying to final: ' + this.name)
 		return data
 	)
 
-	alterFileTask(process.env.finalDir + 'Procfile', 'editor/Procfile'
+	alterFileTask(process.env.finalDir + 'Procfile', 'projects/editor/Procfile'
 		(data) -> 
 			console.log('Copying to final: ' + this.name)
 			return data
 	)
 
-	alterFileTask(process.env.finalDir + 'server.js', 'editor/server.js'
+	alterFileTask(process.env.finalDir + 'package.json', 'projects/editor/package.json'
 		(data) -> 
 			console.log('Copying to final: ' + this.name)
 			return data
-		['coffee:dev:editor/server.js']
+	)
+
+	alterFileTask(process.env.finalDir + 'server.js', 'projects/editor/server.js'
+		(data) -> 
+			console.log('Copying to final: ' + this.name)
+			return data
+		['coffee:dev:projects/editor/server.js']
 	)
 	
 	namespaceFinalDir = getCurrentNamespace() + process.env.finalDir
@@ -311,10 +317,10 @@ namespace('editor', ->
 	desc('Package the editor')
 	task('package', ['js', 'copy:final:all', namespaceFinalDir + 'manifest.json']
 		->
-			runCommand('google-chrome --pack-extension=' + path.resolve(process.env.finalDir) + ' --pack-extension-key=' + path.resolve('editor/editor.pem') + ' --no-message-box', ->
+			runCommand('google-chrome --pack-extension=' + path.resolve(process.env.finalDir) + ' --pack-extension-key=' + path.resolve('projects/editor/editor.pem') + ' --no-message-box', ->
 				console.log "Packaged editor."
 				inFile = path.dirname(process.env.finalDir) + '/' + path.basename(process.env.finalDir) + '.crx'
-				outFile = 'editor/editor.crx'
+				outFile = 'projects/editor/editor.crx'
 				console.log('Moving from', inFile, ' to ', outFile)
 				fs.writeFileSync(outFile, fs.readFileSync(inFile, 'utf8'))
 				complete()
@@ -323,13 +329,43 @@ namespace('editor', ->
 	)
 	
 	desc('Deploy the editor')
-	task('deploy', ['js', 'copy:final:all', namespaceFinalDir + 'manifest.json', namespaceFinalDir + 'Procfile', namespaceFinalDir + 'server.js'], ->
+	task('deploy', ['js', 'copy:final:all', namespaceFinalDir + 'manifest.json', namespaceFinalDir + 'Procfile', namespaceFinalDir + 'package.json', namespaceFinalDir + 'server.js'], ->
 		cwd = process.cwd()
 		process.chdir(process.env.finalDir)
 		runCommand 'git init', ->
 			runCommand 'git add .', ->
 				runCommand 'git commit -m "init"', ->
 					runCommand 'git remote add heroku git@heroku.com:rulemotion-editor.git', ->
+						runCommand 'git push heroku master -f', ->
+							process.chdir(cwd)
+							complete()
+	)
+)
+
+namespace('server', ->
+
+	alterFileTask(process.env.finalDir + 'Procfile', 'projects/server/Procfile'
+		(data) -> 
+			console.log('Copying to final: ' + this.name)
+			return data
+	)
+
+	alterFileTask(process.env.finalDir + 'package.json', 'projects/server/package.json'
+		(data) -> 
+			console.log('Copying to final: ' + this.name)
+			return data
+	)
+	
+	namespaceFinalDir = getCurrentNamespace() + process.env.finalDir
+	
+	desc('Deploy the server')
+	task('deploy', ['js', 'copy:final:all', namespaceFinalDir + 'Procfile', namespaceFinalDir + 'package.json'], ->
+		cwd = process.cwd()
+		process.chdir(process.env.finalDir)
+		runCommand 'git init', ->
+			runCommand 'git add .', ->
+				runCommand 'git commit -m "init"', ->
+					runCommand 'git remote add heroku git@heroku.com:rulemotion-server.git', ->
 						runCommand 'git push heroku master -f', ->
 							process.chdir(cwd)
 							complete()
