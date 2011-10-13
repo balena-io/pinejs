@@ -18,7 +18,7 @@ require(["../ometa-js/lib",
 		require(["mylibs/ometa-code/SBVRModels"])
 	});
 	
-	/*#IFDEF devserver */
+	/*#IFDEF websql */
 		require(["libs/json2",
 				"mylibs/server",
 				"mylibs/runTrans"]);
