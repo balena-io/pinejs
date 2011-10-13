@@ -105,19 +105,19 @@ ometa SBVR2SQL {
 
   exactQ     "card":i    "var":v expr:xs
   -> ['EXISTS(SELECT count(*) AS "card" FROM "'+v[2][1]+'" AS "var'+v[1][1]+'" '+v[3][2]+xs[2]+' WHERE '+v[3][0]+xs[0], 
-     xs[1]+v[3][1]+' GROUP BY NULL HAVING "card"='+i[1][1]+')',
+     xs[1]+v[3][1]+' GROUP BY NULL HAVING count(*)='+i[1][1]+')',
 	 '',
    ''],
 
   atLeastQ   "minCard":i "var":v expr:xs
   -> ['EXISTS(SELECT count(*) AS "card" FROM "'+v[2][1]+'" AS "var'+v[1][1]+'" '+v[3][2]+xs[2]+' WHERE '+v[3][0]+xs[0], 
-     xs[1]+v[3][1]+' GROUP BY NULL HAVING "card">='+i[1][1]+')',
+     xs[1]+v[3][1]+' GROUP BY NULL HAVING count(*)>='+i[1][1]+')',
 	 '',
    ''],
 
   numRngQ    "minCard":i "maxCard":a "var":v expr:xs
   -> ['EXISTS(SELECT count(*) AS "card" FROM "'+v[2][1]+'" AS "var'+v[1][1]+'" '+v[3][2]+xs[2]+' WHERE '+v[3][0]+xs[0], 
-     xs[1]+v[3][1]+' GROUP BY NULL HAVING "card">='+i[1][1]+' AND "card"<='+a[1][1]+')',
+     xs[1]+v[3][1]+' GROUP BY NULL HAVING count(*)>='+i[1][1]+' AND "card"<='+a[1][1]+')',
 	 '',
    ''],
   
