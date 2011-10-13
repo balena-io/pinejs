@@ -31,9 +31,18 @@ alterFileTask = (outFile, inFile, alterFunc, taskDependencies = []) ->
 		-> 
 			task = this
 			data = fs.readFileSync(inFile, 'utf8')
-			fail('Error reading file "' + inFile + '": ' + err) if err?
 			data = alterFunc.call(task, data)
 			console.log('Writing to: ', outFile)
+			fs.writeFileSync(outFile, data)
+	)
+
+copyFileTask = (outFile, inFile, taskDependencies = []) ->
+	taskDependencies.push(inFile)
+	taskDependencies.push('dir:'+path.dirname(outFile) + '/') if outFile.indexOf(process.env.outputDir) is 0
+	file(outFile, taskDependencies,
+		-> 
+			data = fs.readFileSync(inFile)
+			console.log('Copying to: ', outFile)
 			fs.writeFileSync(outFile, data)
 	)
 # Async version, requires fixing tasks not being run after async prereqs in order to work.
@@ -106,10 +115,7 @@ namespace('copy', ->
 		for inFile in fileList.toArray()
 			outFile = path.join(process.env.intermediateDir, inFile)
 			taskList.push(getCurrentNamespace() + outFile)
-			alterFileTask(outFile, inFile, (data) -> 
-				console.log('Copying to intermediate: ' + this.name)
-				return data
-			)
+			copyFileTask(outFile, inFile)
 		storedTaskDependencies[getCurrentNamespace()+'all'] = taskList
 		desc('Copy files to intermediate')
 		task('all', taskList)
@@ -123,10 +129,7 @@ namespace('copy', ->
 			inFile = path.join(process.env.intermediateDir, copyFile)
 			outFile = path.join(process.env.finalDir, copyFile)
 			taskList.push(getCurrentNamespace() + outFile)
-			alterFileTask(outFile, inFile, (data) -> 
-				console.log('Copying to final: ' + this.name)
-				return data
-			)
+			copyFileTask(outFile, inFile)
 		storedTaskDependencies[getCurrentNamespace()+'all'] = taskList
 		desc('Copy files to final')
 		task('all', taskList)
