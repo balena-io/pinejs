@@ -42,9 +42,9 @@ ometa SBVR2SQL {
   ftfl       [("term":t -> ('"'+t[1]+'_id" INTEGER'))*:tt] -> tt,
   ftfk       [("term":t -> ('FOREIGN KEY ("'+t[1]+'_id") REFERENCES "'+t[1]+'"("id")'))*:tt] -> tt,
   model      ("term":t  -> [`term, t[1], t[2], t[3], 
-  ('CREATE TABLE IF NOT EXISTS "'+t[1]+'" ("id" INTEGER PRIMARY KEY,"name" TEXT)'), 'DROP TABLE "'+t[1]+'";']
+  ('CREATE TABLE ' + /*Postgres does not support: IF NOT EXISTS*/ '  "'+t[1]+'" ("id" INTEGER PRIMARY KEY,"name" TEXT)'), 'DROP TABLE "'+t[1]+'";']
              |"fcTp":f ftfl(f[3]):l ftfk(f[3]):k ftsc(f[3]):s
-          -> [`fcTp, f[1], f[2], s, ('CREATE TABLE IF NOT EXISTS "'+f[1]+
+          -> [`fcTp, f[1], f[2], s, ('CREATE TABLE ' + /*Postgres does not support: IF NOT EXISTS*/ ' "'+f[1]+
 		     '" ("id" INTEGER PRIMARY KEY, '+l.join(', ')+', '+k.join(', ')+')'), 'DROP TABLE "'+f[1]+'";', f[4]]
              |"rule"
              )*:xs                                     -> [`model].concat(xs),

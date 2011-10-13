@@ -16,6 +16,7 @@
       var Client, result, tx, _db;
       Client = new require('pg').Client;
       _db = new Client("postgres://postgres:.@localhost:5432/postgres");
+      _db.connect();
       result = function(rows) {
         return {
           rows: {
@@ -112,7 +113,7 @@
       trans: []
     };
     db.transaction(function(tx) {
-      tx.executeSql('CREATE TABLE IF NOT EXISTS "_server_model_cache" (' + '"key"	VARCHAR PRIMARY KEY,' + '"value"	VARCHAR );');
+      tx.executeSql('CREATE TABLE ' + '"_server_model_cache" (' + '"key"	VARCHAR PRIMARY KEY,' + '"value"	VARCHAR );');
       return tx.executeSql('SELECT * FROM "_server_model_cache";', [], function(tx, result) {
         var i, row, _ref, _results;
         _results = [];

@@ -13,6 +13,7 @@ if process?
 	db = do () ->
 		Client = new require('pg').Client
 		_db = new Client("postgres://postgres:.@localhost:5432/postgres")
+		_db.connect()
 		result = (rows) ->
 			return {
 				rows: {
@@ -118,7 +119,8 @@ serverModelCache = do () ->
 	}
 
 	db.transaction (tx) ->
-		tx.executeSql 'CREATE TABLE IF NOT EXISTS "_server_model_cache" (' +
+		tx.executeSql 'CREATE TABLE '+#Postgres does not support: IF NOT EXISTS
+						'"_server_model_cache" (' +
 					'"key"	VARCHAR PRIMARY KEY,' +
 					'"value"	VARCHAR );'
 		tx.executeSql 'SELECT * FROM "_server_model_cache";', [], (tx, result) ->
