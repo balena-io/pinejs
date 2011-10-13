@@ -130,8 +130,10 @@ serverModelCache = do () ->
 	setValue = (key, value) ->
 		values[key] = value
 		db.transaction (tx) ->
-			tx.executeSql 'INSERT OR REPLACE INTO "_server_model_cache" values' +
-						"('" + key + "','" + JSON.stringify(value).replace(/\\'/g,"\\\\'").replace(new RegExp("'",'g'),"\\'") + "');"
+			value = JSON.stringify(value).replace(/\\'/g,"\\\\'").replace(new RegExp("'",'g'),"\\'")
+			tx.executeSql 'INSERT "_server_model_cache" values' +
+						"('" + key + "','" + value + "');"
+			tx.executeSql 'UPDATE "_server_model_cache" SET key = \'' + key + "', value='" + value + "';"
 
 	return {
 		isServerOnAir: -> values.serverOnAir
