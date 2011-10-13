@@ -1,6 +1,6 @@
 (function() {
-  var locker;
-  window.runTrans = function() {
+  var locker, runTrans;
+  runTrans = function() {
     var obj, parent, transuri;
     parent = this;
     transuri = "";
