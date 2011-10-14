@@ -149,7 +149,6 @@ namespace('ifdefs', () ->
 			taskList.push(getCurrentNamespace() + outFile)
 			alterFileTask(outFile, inFile, (data) -> 
 				console.log('Processing Javascript IFDEFs for: '+ this.name)
-				console.log('/\\*(?!\\*/)*?#IFDEF[\\s\\S]*(?!\\*/)' + process.env.modules + '[\\s\\S]*?\\*/([\\s\\S]*?)/\\*(?!\\*/)*?#ENDIFDEF[\\s\\S]*?\\*/')
 				data = data.replace(new RegExp('/\\*(?!\\*/)*?#IFDEF[\\s\\S]*?(?!\\*/)' + process.env.modules + '[\\s\\S]*?\\*/([\\s\\S]*?)/\\*(?!\\*/)*?#ENDIFDEF[\\s\\S]*?\\*/','g'), '$1')
 				return data.replace(new RegExp('/\\*(?!\\*/)*?#IFDEF[\\s\\S]*?#ENDIFDEF[\\s\\S]*?\\*/','g'), '')
 			)
