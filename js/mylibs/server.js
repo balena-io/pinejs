@@ -142,8 +142,13 @@
       values[key] = value;
       return db.transaction(function(tx) {
         value = JSON.stringify(value).replace(/\\'/g, "\\\\'").replace(new RegExp("'", 'g'), "\\'");
-        tx.executeSql('INSERT INTO "_server_model_cache" values' + "('" + key + "','" + value + "');");
-        return tx.executeSql('UPDATE "_server_model_cache" SET value=\'' + value + "' WHERE key = '" + key + "';");
+        return tx.executeSql('SELECT 1 as count FROM "_server_model_cache" WHERE key = ?;', [key], function(tx, result) {
+          if (result.rows.length === 0) {
+            return tx.executeSql('INSERT INTO "_server_model_cache" values (?, ?);', [key, value]);
+          } else {
+            return tx.executeSql('UPDATE "_server_model_cache" SET value = ? WHERE key = ?;', [key, value]);
+          }
+        });
       });
     };
     return {
@@ -422,17 +427,14 @@
       if (tree[1][1] === "lock" && hasCR(tree)) {
         return db.transaction(function(tx) {
           tx.executeSql('DELETE FROM "conditional_representation" WHERE "lock_id"=' + id);
-          return tx.executeSql("INSERT INTO 'conditional_representation'('lock_id','field_name','field_type','field_value')" + "VALUES ('" + id + "','__DELETE','','')");
+          return tx.executeSql('INSERT INTO "conditional_representation" ("lock_id","field_name","field_type","field_value")' + "VALUES (?,'__DELETE','','')", [id]);
         });
       } else {
         return db.transaction((function(tx) {
-          var sql;
-          sql = "SELECT NOT EXISTS(SELECT * FROM 'resource-is_under-lock' AS r " + "WHERE r.'resource_type'=='" + tree[1][1] + "' " + "AND r.'resource_id'==" + id + ") AS result;";
-          return tx.executeSql(sql, [], function(tx, result) {
+          return tx.executeSql('SELECT NOT EXISTS(SELECT * FROM "resource-is_under-lock" AS r WHERE r."resource_type" = ? AND r."resource_id"=?) AS result;', [tree[1][1], id], function(tx, result) {
             if (result.rows.item(0).result === 1) {
               tx.begin();
-              sql = 'DELETE FROM "' + tree[1][1] + '" WHERE id=' + id + ";";
-              return tx.executeSql(sql, [], function(tx, result) {
+              return tx.executeSql('DELETE FROM "' + tree[1][1] + '" WHERE id = ? ;', [id], function(tx, result) {
                 return validateDB(tx, serverModelCache.getSQL(), (function(tx, sqlmod, failureCallback, result) {
                   tx.end();
                   return successCallback(200, result);
@@ -473,9 +475,7 @@
       });
     } else {
       return db.transaction((function(tx) {
-        var sql;
-        sql = "SELECT NOT EXISTS(SELECT * FROM 'resource-is_under-lock' AS r WHERE r.'resource_type'=='" + tree[1][1] + "' AND r.'resource_id'==" + id + ") AS result;";
-        return tx.executeSql(sql, [], function(tx, result) {
+        return tx.executeSql('SELECT NOT EXISTS(SELECT * FROM "resource-is_under-lock" AS r WHERE r."resource_type" = ? AND r."resource_id" = ?) AS result;', [tree[1][1], id], function(tx, result) {
           var k, pair, _ref2;
           if (result.rows.item(0).result === 1) {
             if (id !== "") {
@@ -490,8 +490,7 @@
                 }
               }
               tx.begin();
-              sql = 'UPDATE "' + tree[1][1] + '" SET ' + ps.join(",") + " WHERE id=" + id + ";";
-              return tx.executeSql(sql, [], function(tx) {
+              return tx.executeSql('UPDATE "' + tree[1][1] + '" SET ' + ps.join(",") + " WHERE id = ?;", [id], function(tx) {
                 return validateDB(tx, serverModelCache.getSQL(), (function(tx, sqlmod, failureCallback, result) {
                   tx.end();
                   return successCallback(200, result);
@@ -703,24 +702,21 @@
     lock_id = locks.rows.item(i).lock_id;
     sql = 'SELECT * FROM "conditional_representation" WHERE "lock_id"=' + lock_id + ';';
     tx.executeSql(sql, [], function(tx, crs) {
-      sql = 'SELECT * FROM "resource-is_under-lock" WHERE "lock_id"=' + crs.rows.item(0).lock_id + ';';
-      return tx.executeSql(sql, [], function(tx, locked) {
+      return tx.executeSql('SELECT * FROM "resource-is_under-lock" WHERE "lock_id" = ?;', [crs.rows.item(0).lock_id], function(tx, locked) {
         var item, j, _ref;
         if (crs.rows.item(0).field_name === "__DELETE") {
-          sql = 'DELETE FROM "' + locked.rows.item(0).resource_type;
-          sql += '" WHERE "id"=' + locked.rows.item(0).resource_id;
-          tx.executeSql(sql + ";", [], function(tx, result) {
+          tx.executeSql('DELETE FROM "' + locked.rows.item(0).resource_type + '" WHERE "id" = ?;', [locked.rows.item(0).resource_id], function(tx, result) {
             if (i < locks.rows.length - 1) {
               return endLock(tx, locks, i + 1, trans_id, successCallback, failureCallback);
             } else {
-              tx.executeSql('DELETE FROM "transaction" WHERE "id"=' + trans_id + ';');
+              tx.executeSql('DELETE FROM "transaction" WHERE "id" = ?;', [trans_id]);
               return validateDB(tx, serverModelCache.getSQL(), (function(tx, sqlmod, failureCallback, result) {
                 return successCallback(200, result);
               }), failureCallback);
             }
           });
         } else {
-          sql = "UPDATE \"" + locked.rows.item(0).resource_type + "\" SET ";
+          sql = 'UPDATE "' + locked.rows.item(0).resource_type + '" SET ';
           for (j = 0, _ref = crs.rows.length; 0 <= _ref ? j < _ref : j > _ref; 0 <= _ref ? j++ : j--) {
             item = crs.rows.item(j);
             sql += '"' + item.field_name + '"=';
@@ -808,11 +804,11 @@
   };
   executeTasync = function(tx, trnmod, successCallback, failureCallback, result) {
     return executeSasync(tx, trnmod, (function(tx, trnmod, failureCallback, result) {
-      tx.executeSql("ALTER TABLE 'resource-is_under-lock' ADD COLUMN resource_type TEXT", []);
-      tx.executeSql("ALTER TABLE 'conditional_representation' ADD COLUMN field_name TEXT", []);
-      tx.executeSql("ALTER TABLE 'conditional_representation' ADD COLUMN field_value TEXT", []);
-      tx.executeSql("ALTER TABLE 'conditional_representation' ADD COLUMN field_type TEXT", []);
-      tx.executeSql("ALTER TABLE 'conditional_representation' ADD COLUMN lock_id TEXT", []);
+      tx.executeSql('ALTER TABLE "resource-is_under-lock" ADD COLUMN resource_type TEXT', []);
+      tx.executeSql('ALTER TABLE "conditional_representation" ADD COLUMN field_name TEXT', []);
+      tx.executeSql('ALTER TABLE "conditional_representation" ADD COLUMN field_value TEXT', []);
+      tx.executeSql('ALTER TABLE "conditional_representation" ADD COLUMN field_type TEXT', []);
+      tx.executeSql('ALTER TABLE "conditional_representation" ADD COLUMN lock_id TEXT', []);
       return successCallback(tx, trnmod, failureCallback, result);
     }), (function(errors) {
       serverModelCache.setModelAreaDisabled(false);

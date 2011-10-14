@@ -135,9 +135,12 @@ serverModelCache = do () ->
 		values[key] = value
 		db.transaction (tx) ->
 			value = JSON.stringify(value).replace(/\\'/g,"\\\\'").replace(new RegExp("'",'g'),"\\'")
-			tx.executeSql 'INSERT INTO "_server_model_cache" values' +
-						"('" + key + "','" + value + "');"
-			tx.executeSql 'UPDATE "_server_model_cache" SET value=\'' + value + "' WHERE key = '" + key + "';"
+			tx.executeSql('SELECT 1 as count FROM "_server_model_cache" WHERE key = ?;', [key], (tx, result) ->
+				if result.rows.length==0
+					tx.executeSql 'INSERT INTO "_server_model_cache" values (?, ?);', [key, value]
+				else
+					tx.executeSql 'UPDATE "_server_model_cache" SET value = ? WHERE key = ?;', [key, value]
+			)
 
 	return {
 		isServerOnAir: -> values.serverOnAir
@@ -351,16 +354,14 @@ dataplusDELETE = (tree, headers, body, successCallback, failureCallback) ->
 			#insert delete entry
 			db.transaction (tx) ->
 				tx.executeSql 'DELETE FROM "conditional_representation" WHERE "lock_id"=' + id
-				tx.executeSql "INSERT INTO 'conditional_representation'('lock_id','field_name','field_type','field_value')" +
-							"VALUES ('" + id + "','__DELETE','','')"
+				tx.executeSql 'INSERT INTO "conditional_representation" ("lock_id","field_name","field_type","field_value")' +
+							"VALUES (?,'__DELETE','','')", [id]
 		else
 			db.transaction ((tx) ->
-				sql = "SELECT NOT EXISTS(SELECT * FROM 'resource-is_under-lock' AS r " + "WHERE r.'resource_type'=='" + tree[1][1] + "' " + "AND r.'resource_id'==" + id + ") AS result;"
-				tx.executeSql sql, [], (tx, result) ->
+				tx.executeSql 'SELECT NOT EXISTS(SELECT * FROM "resource-is_under-lock" AS r WHERE r."resource_type" = ? AND r."resource_id"=?) AS result;', [tree[1][1], id], (tx, result) ->
 					if result.rows.item(0).result == 1
 						tx.begin()
-						sql = 'DELETE FROM "' + tree[1][1] + '" WHERE id=' + id + ";"
-						tx.executeSql sql, [], (tx, result) ->
+						tx.executeSql 'DELETE FROM "' + tree[1][1] + '" WHERE id = ? ;', [id], (tx, result) ->
 							validateDB tx, serverModelCache.getSQL(), ((tx, sqlmod, failureCallback, result) ->
 								tx.end()
 								successCallback 200, result
@@ -393,8 +394,7 @@ dataplusPUT = (tree, headers, body, successCallback, failureCallback) ->
 				tx.executeSql sql, [], (tx, result) ->
 	else
 		db.transaction ((tx) ->
-			sql = "SELECT NOT EXISTS(SELECT * FROM 'resource-is_under-lock' AS r WHERE r.'resource_type'=='" + tree[1][1] + "' AND r.'resource_id'==" + id + ") AS result;"
-			tx.executeSql sql, [], (tx, result) ->
+			tx.executeSql 'SELECT NOT EXISTS(SELECT * FROM "resource-is_under-lock" AS r WHERE r."resource_type" = ? AND r."resource_id" = ?) AS result;', [tree[1][1], id], (tx, result) ->
 				if result.rows.item(0).result == 1
 					if id != ""
 						bd = JSON.parse(body)
@@ -403,8 +403,7 @@ dataplusPUT = (tree, headers, body, successCallback, failureCallback) ->
 							for own k of bd[pair]
 								ps.push k + "=" + JSON.stringify(bd[pair][k])
 						tx.begin()
-						sql = 'UPDATE "' + tree[1][1] + '" SET ' + ps.join(",") + " WHERE id=" + id + ";"
-						tx.executeSql sql, [], (tx) ->
+						tx.executeSql 'UPDATE "' + tree[1][1] + '" SET ' + ps.join(",") + " WHERE id = ?;", [id], (tx) ->
 							validateDB tx, serverModelCache.getSQL(), ((tx, sqlmod, failureCallback, result) ->
 								tx.end()
 								successCallback 200, result
@@ -559,25 +558,22 @@ endLock = (tx, locks, i, trans_id, successCallback, failureCallback) ->
 	sql = 'SELECT * FROM "conditional_representation" WHERE "lock_id"=' + lock_id + ';'
 	tx.executeSql sql, [], (tx, crs) ->
 		#find which resource is under this lock
-		sql = 'SELECT * FROM "resource-is_under-lock" WHERE "lock_id"=' + crs.rows.item(0).lock_id + ';'
-		tx.executeSql sql, [], (tx, locked) ->
+		tx.executeSql 'SELECT * FROM "resource-is_under-lock" WHERE "lock_id" = ?;', [crs.rows.item(0).lock_id], (tx, locked) ->
 			if crs.rows.item(0).field_name == "__DELETE"
 				#delete said resource
-				sql = 'DELETE FROM "' + locked.rows.item(0).resource_type
-				sql += '" WHERE "id"=' + locked.rows.item(0).resource_id
-				tx.executeSql sql + ";", [], (tx, result) ->
+				tx.executeSql 'DELETE FROM "' + locked.rows.item(0).resource_type + '" WHERE "id" = ?;', [locked.rows.item(0).resource_id], (tx, result) ->
 					if i < locks.rows.length - 1
 						endLock tx, locks, i + 1, trans_id, successCallback, failureCallback
 					else
 						#delete transaction
-						tx.executeSql 'DELETE FROM "transaction" WHERE "id"=' + trans_id + ';'
+						tx.executeSql 'DELETE FROM "transaction" WHERE "id" = ?;', [trans_id]
 
 						validateDB tx, serverModelCache.getSQL(), ((tx, sqlmod, failureCallback, result) ->
 							successCallback 200, result
 						), failureCallback
 			else
 				#commit conditional_representation
-				sql = "UPDATE \"" + locked.rows.item(0).resource_type + "\" SET "
+				sql = 'UPDATE "' + locked.rows.item(0).resource_type + '" SET '
 
 				for j in [0...crs.rows.length]
 					item = crs.rows.item(j);
@@ -663,11 +659,11 @@ executeTasync = (tx, trnmod, successCallback, failureCallback, result) ->
 	executeSasync tx, trnmod, ((tx, trnmod, failureCallback, result) ->
 		#Hack: Add certain attributes to the transaction model tables. 
 		#This should eventually be done with SBVR, when we add attributes.
-		tx.executeSql "ALTER TABLE 'resource-is_under-lock' ADD COLUMN resource_type TEXT", []
-		tx.executeSql "ALTER TABLE 'conditional_representation' ADD COLUMN field_name TEXT", []
-		tx.executeSql "ALTER TABLE 'conditional_representation' ADD COLUMN field_value TEXT", []
-		tx.executeSql "ALTER TABLE 'conditional_representation' ADD COLUMN field_type TEXT", []
-		tx.executeSql "ALTER TABLE 'conditional_representation' ADD COLUMN lock_id TEXT", []
+		tx.executeSql 'ALTER TABLE "resource-is_under-lock" ADD COLUMN resource_type TEXT', []
+		tx.executeSql 'ALTER TABLE "conditional_representation" ADD COLUMN field_name TEXT', []
+		tx.executeSql 'ALTER TABLE "conditional_representation" ADD COLUMN field_value TEXT', []
+		tx.executeSql 'ALTER TABLE "conditional_representation" ADD COLUMN field_type TEXT', []
+		tx.executeSql 'ALTER TABLE "conditional_representation" ADD COLUMN lock_id TEXT', []
 		successCallback tx, trnmod, failureCallback, result
 	), ((errors) ->
 		serverModelCache.setModelAreaDisabled false
