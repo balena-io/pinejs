@@ -10,6 +10,7 @@ if process?
 		baseUrl: 'js'
 	)
 	db = do () ->
+		requirejs(["mylibs/ometa-code/SQLBinds"])
 		Client = new require('pg').Client
 		_db = new Client(process.env.DATABASE_URL || "postgres://postgres:.@localhost:5432/postgres")
 		_db.connect()
@@ -21,9 +22,11 @@ if process?
 				}
 			}
 		tx = {
-			executeSql: (sql, bindings, callback, errorCallback) ->
+			executeSql: (sql, bindings = [], callback, errorCallback) ->
 				sql = sql.replace(/GROUP BY NULL/g, '') #HACK: Remove GROUP BY NULL for Postgres as it does not need/accept it.
-				_db.query sql, (err, res) ->
+				bindNo = 1
+				sql = SQLBinds.matchAll(sql, "parse", [-> '$'+bindNo++])
+				_db.query {text: sql, values: bindings}, (err, res) ->
 					if err?
 						errorCallback? err
 						console.log(sql, err)
@@ -102,7 +105,7 @@ requirejs([
 	"mylibs/ometa-code/SBVR_PreProc",
 	"mylibs/ometa-code/SBVR2SQL",
 	"mylibs/ometa-code/ServerURIParser"]
-);
+)
 
 
 serverModelCache = do () ->

@@ -1,0 +1,18 @@
+ometa SQLBinds {
+	skipToEnd :quote
+		= (
+			~({found==quote})
+			(
+				~({prev==quote||prev=='\\'}) seq(quote):found
+				| anything:prev
+			)
+		)*:text
+		-> text.join(''),
+    parse :nextBind
+		= (
+			('\''|'"'):quote skipToEnd(quote):text -> [quote, text].join('')
+			| '?' -> nextBind()
+			| anything
+		)*:sql
+		-> sql.join('')
+}

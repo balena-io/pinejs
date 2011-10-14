@@ -14,6 +14,7 @@
     });
     db = (function() {
       var Client, result, tx, _db;
+      requirejs(["mylibs/ometa-code/SQLBinds"]);
       Client = new require('pg').Client;
       _db = new Client(process.env.DATABASE_URL || "postgres://postgres:.@localhost:5432/postgres");
       _db.connect();
@@ -29,8 +30,21 @@
       };
       tx = {
         executeSql: function(sql, bindings, callback, errorCallback) {
+          var bindNo;
+          if (bindings == null) {
+            bindings = [];
+          }
           sql = sql.replace(/GROUP BY NULL/g, '');
-          return _db.query(sql, function(err, res) {
+          bindNo = 1;
+          sql = SQLBinds.matchAll(sql, "parse", [
+            function() {
+              return '$' + bindNo++;
+            }
+          ]);
+          return _db.query({
+            text: sql,
+            values: bindings
+          }, function(err, res) {
             if (err != null) {
               if (typeof errorCallback === "function") {
                 errorCallback(err);
