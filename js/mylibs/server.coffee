@@ -10,7 +10,6 @@ if process?
 		baseUrl: 'js'
 	)
 	db = do () ->
-		requirejs(["mylibs/ometa-code/SQLBinds"])
 		Client = new require('pg').Client
 		_db = new Client(process.env.DATABASE_URL || "postgres://postgres:.@localhost:5432/postgres")
 		_db.connect()
@@ -106,6 +105,8 @@ requirejs([
 	"mylibs/ometa-code/SBVR2SQL",
 	"mylibs/ometa-code/ServerURIParser"]
 )
+if process?
+	requirejs(["mylibs/ometa-code/SQLBinds"])
 
 
 serverModelCache = do () ->

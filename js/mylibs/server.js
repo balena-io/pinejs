@@ -14,7 +14,6 @@
     });
     db = (function() {
       var Client, result, tx, _db;
-      requirejs(["mylibs/ometa-code/SQLBinds"]);
       Client = new require('pg').Client;
       _db = new Client(process.env.DATABASE_URL || "postgres://postgres:.@localhost:5432/postgres");
       _db.connect();
@@ -114,6 +113,9 @@
   }
   requirejs(["libs/inflection", "../ometa-js/lib", "../ometa-js/ometa-base"]);
   requirejs(["mylibs/ometa-code/SBVRModels", "mylibs/ometa-code/SBVRParser", "mylibs/ometa-code/SBVR_PreProc", "mylibs/ometa-code/SBVR2SQL", "mylibs/ometa-code/ServerURIParser"]);
+  if (typeof process !== "undefined" && process !== null) {
+    requirejs(["mylibs/ometa-code/SQLBinds"]);
+  }
   serverModelCache = (function() {
     var setValue, values;
     values = {
