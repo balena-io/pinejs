@@ -85,7 +85,7 @@
           begin: function() {},
           end: function() {},
           rollback: function() {
-            return tx.executeSql("DROP TABLE '__Fo0oFoo'");
+            return _tx.executeSql("DROP TABLE '__Fo0oFoo'");
           }
         };
       };

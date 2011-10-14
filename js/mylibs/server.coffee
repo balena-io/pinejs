@@ -85,7 +85,7 @@ else
 					_tx.executeSql(sql, bindings, callback, errorCallback)
 				begin: ->
 				end: ->
-				rollback: -> tx.executeSql("DROP TABLE '__Fo0oFoo'")
+				rollback: -> _tx.executeSql("DROP TABLE '__Fo0oFoo'")
 			}
 		return {
 			transaction: (callback) ->
