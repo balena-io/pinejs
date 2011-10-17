@@ -268,6 +268,15 @@ handlers =
 					serverModelCache.setModelAreaDisabled false
 					failureCallback 404, errors
 				)
+	cleardb:
+		POST: (successCallback, failureCallback) ->
+			db.transaction (tx) ->
+				tx.executeSql "SELECT name FROM sqlite_master WHERE type='table' AND name !='__WebKitDatabaseInfoTable__';", [], ((tx, result) ->
+					for i in [0...result.rows.length]
+						tbn = result.rows.item(i).name
+						tx.executeSql('DROP TABLE IF EXISTS "' + tbn + '";')
+					successCallback(200)
+				)
 
 # successCallback = (statusCode, result, headers)
 # failureCallback = (statusCode, errors, headers)
@@ -824,15 +833,6 @@ restoreDB = ->
 					tx.executeSql 'ALTER TABLE "' + tbn + '" RENAME TO "' + tbn[0...-4] + '";'
 		)
 
-
-clearDB = ->
-	db.transaction (tx) ->
-		tx.executeSql "SELECT name FROM sqlite_master WHERE type='table' AND name !='__WebKitDatabaseInfoTable__';", [], ((tx, result) ->
-			for i in [0...result.rows.length]
-				tbn = result.rows.item(i).name
-				tx.executeSql('DROP TABLE IF EXISTS "' + tbn + '";')
-		)
-
 window?.remoteServerRequest = remoteServerRequest
 #Temporary fix to allow backup/restore db etc to work for the time being client-side
 window?.db = db
@@ -840,7 +840,6 @@ window?.importDB = importDB
 window?.exportDB = exportDB
 window?.backupDB = backupDB
 window?.restoreDB = restoreDB
-window?.clearDB = clearDB
 
 # fs = require('fs')
 # lazy = require("lazy");

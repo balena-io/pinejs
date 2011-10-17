@@ -1,5 +1,5 @@
 (function() {
-  var backupDB, clearDB, dataGET, dataplusDELETE, dataplusGET, dataplusPOST, dataplusPUT, db, endLock, executeSasync, executeTasync, exportDB, getFTree, getID, handlers, hasCR, http, importDB, isExecute, op, remoteServerRequest, requirejs, restoreDB, rootDELETE, serverModelCache, staticServer, updateRules, validateDB;
+  var backupDB, dataGET, dataplusDELETE, dataplusGET, dataplusPOST, dataplusPUT, db, endLock, executeSasync, executeTasync, exportDB, getFTree, getID, handlers, hasCR, http, importDB, isExecute, op, remoteServerRequest, requirejs, restoreDB, rootDELETE, serverModelCache, staticServer, updateRules, validateDB;
   var __hasProp = Object.prototype.hasOwnProperty;
   op = {
     eq: "=",
@@ -321,6 +321,20 @@
           }), (function(errors) {
             serverModelCache.setModelAreaDisabled(false);
             return failureCallback(404, errors);
+          }));
+        });
+      }
+    },
+    cleardb: {
+      POST: function(successCallback, failureCallback) {
+        return db.transaction(function(tx) {
+          return tx.executeSql("SELECT name FROM sqlite_master WHERE type='table' AND name !='__WebKitDatabaseInfoTable__';", [], (function(tx, result) {
+            var i, tbn, _ref;
+            for (i = 0, _ref = result.rows.length; 0 <= _ref ? i < _ref : i > _ref; 0 <= _ref ? i++ : i--) {
+              tbn = result.rows.item(i).name;
+              tx.executeSql('DROP TABLE IF EXISTS "' + tbn + '";');
+            }
+            return successCallback(200);
           }));
         });
       }
@@ -1020,19 +1034,6 @@
       });
     });
   };
-  clearDB = function() {
-    return db.transaction(function(tx) {
-      return tx.executeSql("SELECT name FROM sqlite_master WHERE type='table' AND name !='__WebKitDatabaseInfoTable__';", [], (function(tx, result) {
-        var i, tbn, _ref, _results;
-        _results = [];
-        for (i = 0, _ref = result.rows.length; 0 <= _ref ? i < _ref : i > _ref; 0 <= _ref ? i++ : i--) {
-          tbn = result.rows.item(i).name;
-          _results.push(tx.executeSql('DROP TABLE IF EXISTS "' + tbn + '";'));
-        }
-        return _results;
-      }));
-    });
-  };
   if (typeof window !== "undefined" && window !== null) {
     window.remoteServerRequest = remoteServerRequest;
   }
@@ -1050,8 +1051,5 @@
   }
   if (typeof window !== "undefined" && window !== null) {
     window.restoreDB = restoreDB;
-  }
-  if (typeof window !== "undefined" && window !== null) {
-    window.clearDB = clearDB;
   }
 }).call(this);
