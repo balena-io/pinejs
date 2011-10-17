@@ -269,7 +269,7 @@ handlers =
 					failureCallback 404, errors
 				)
 	cleardb:
-		POST: (successCallback, failureCallback) ->
+		DELETE: (successCallback, failureCallback) ->
 			db.transaction (tx) ->
 				tx.executeSql "SELECT name FROM sqlite_master WHERE type='table' AND name !='__WebKitDatabaseInfoTable__';", [], ((tx, result) ->
 					for i in [0...result.rows.length]

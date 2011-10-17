@@ -326,7 +326,7 @@
       }
     },
     cleardb: {
-      POST: function(successCallback, failureCallback) {
+      DELETE: function(successCallback, failureCallback) {
         return db.transaction(function(tx) {
           return tx.executeSql("SELECT name FROM sqlite_master WHERE type='table' AND name !='__WebKitDatabaseInfoTable__';", [], (function(tx, result) {
             var i, tbn, _ref;
