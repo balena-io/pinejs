@@ -47,7 +47,7 @@
           }, function(err, res) {
             if (err != null) {
               if (typeof errorCallback === "function") {
-                errorCallback(err);
+                errorCallback(thisTX, err);
               }
               return console.log(sql, err);
             } else {

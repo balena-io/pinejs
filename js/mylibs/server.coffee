@@ -28,7 +28,7 @@ if process?
 				sql = SQLBinds.matchAll(sql, "parse", [-> '$'+bindNo++])
 				_db.query {text: sql, values: bindings}, (err, res) ->
 					if err?
-						errorCallback? err
+						errorCallback? thisTX, err
 						console.log(sql, err)
 					else
 						callback? thisTX, result(res.rows)
@@ -57,7 +57,7 @@ if process?
 				# thisTX = this
 				# _db.all sql, bindings ? [], (err, rows) ->
 					# if err?
-						# errorCallback? err
+						# errorCallback? thisTX, err
 						# console.log(sql, err)
 					# else
 						# callback? thisTX, result(rows)
