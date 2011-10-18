@@ -6,7 +6,7 @@ getBranch = (branch, loc) ->
 getPid = (branch, loc) ->
 	pid = branch[1][0]
 	for childIndex in loc
-		branch = branch[childIndex +2]
+		branch = branch[childIndex + 2]
 		if branch[0] is "col"
 			pid += "--" + branch[1][0]
 		else
@@ -17,9 +17,8 @@ getTarg = (tree, loc, actn, newb) ->
 	ptree = jQuery.extend(true, [], tree)
 	#We take a reference to ptree so we can dig into it whilst still having ptree as a reference to the top level.
 	parr = ptree
-	i = 0
 
-	for childIndex in parr
+	for childIndex in loc
 		parr = parr[childIndex + 2]
 
 	switch actn
@@ -37,13 +36,12 @@ serverAPI = (about, filters) ->
 		lk: "~"
 
 	flts = ""
-	i = 1
 
 	#render filters
-	while i < filters.length
-		flts = flts + filters[i][1] + "." + filters[i][2] + op[filters[i][0]] + filters[i][3] + ";"	if about == filters[i][1]
-		i++
-	flts = "*filt:" + flts	unless flts == ""
+	for index in filters
+		flts = flts + index[1] + "." + index[2] + op[index[0]] + index[3] + ";"	if about is index[1]
+
+	flts = "*filt:" + flts	unless flts is ""
 	"/data/" + about + flts
 
 drawData = (tree) ->

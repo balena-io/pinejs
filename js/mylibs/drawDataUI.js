@@ -13,7 +13,7 @@
     pid = branch[1][0];
     for (_i = 0, _len = loc.length; _i < _len; _i++) {
       childIndex = loc[_i];
-      branch = branch[childIndex(+2)];
+      branch = branch[childIndex + 2];
       if (branch[0] === "col") {
         pid += "--" + branch[1][0];
       } else {
@@ -23,12 +23,11 @@
     return pid;
   };
   getTarg = function(tree, loc, actn, newb) {
-    var childIndex, i, parr, ptree, _i, _len;
+    var childIndex, parr, ptree, _i, _len;
     ptree = jQuery.extend(true, [], tree);
     parr = ptree;
-    i = 0;
-    for (_i = 0, _len = parr.length; _i < _len; _i++) {
-      childIndex = parr[_i];
+    for (_i = 0, _len = loc.length; _i < _len; _i++) {
+      childIndex = loc[_i];
       parr = parr[childIndex + 2];
     }
     switch (actn) {
@@ -41,19 +40,18 @@
     return ClientURIUnparser.match(ptree, "trans");
   };
   serverAPI = function(about, filters) {
-    var flts, i, op;
+    var flts, index, op, _i, _len;
     op = {
       eq: "=",
       ne: "!=",
       lk: "~"
     };
     flts = "";
-    i = 1;
-    while (i < filters.length) {
-      if (about === filters[i][1]) {
-        flts = flts + filters[i][1] + "." + filters[i][2] + op[filters[i][0]] + filters[i][3] + ";";
+    for (_i = 0, _len = filters.length; _i < _len; _i++) {
+      index = filters[_i];
+      if (about === index[1]) {
+        flts = flts + index[1] + "." + index[2] + op[index[0]] + index[3] + ";";
       }
-      i++;
     }
     if (flts !== "") {
       flts = "*filt:" + flts;
