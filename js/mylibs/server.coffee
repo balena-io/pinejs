@@ -86,7 +86,7 @@ else
 								callback(thisTX, _results)
 					errorCallback = do(errorCallback) ->
 						(_tx, _err) ->
-							console.log(_err)
+							console.log(sql, _err)
 							errorCallback?(thisTX, _err)
 					_tx.executeSql(sql, bindings, callback, errorCallback)
 				begin: ->

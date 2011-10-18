@@ -93,7 +93,7 @@
             }
             errorCallback = (function(errorCallback) {
               return function(_tx, _err) {
-                console.log(_err);
+                console.log(sql, _err);
                 return typeof errorCallback === "function" ? errorCallback(thisTX, _err) : void 0;
               };
             })(errorCallback);
