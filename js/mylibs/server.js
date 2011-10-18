@@ -66,6 +66,12 @@
         },
         tableList: function(callback, errorCallback) {
           return this.executeSql("SELECT tablename as name FROM pg_tables WHERE tablename NOT LIKE 'pg_%';", [], callback, errorCallback);
+        },
+        dropTable: function(tableName, ifExists, callback, errorCallback) {
+          if (ifExists == null) {
+            ifExists = true;
+          }
+          return this.executeSql('DROP TABLE ' + (ifExists === true ? 'IF EXISTS ' : '') + '"' + tableName + '" CASCADE;', [], callback, errorCallback);
         }
       };
       return {
@@ -106,6 +112,12 @@
           },
           tableList: function(callback, errorCallback) {
             return this.executeSql("SELECT name FROM sqlite_master WHERE type='table' AND name !='__WebKitDatabaseInfoTable__';", [], callback, errorCallback);
+          },
+          dropTable: function(tableName, ifExists, callback, errorCallback) {
+            if (ifExists == null) {
+              ifExists = true;
+            }
+            return this.executeSql('DROP TABLE ' + (ifExists === true ? 'IF EXISTS ' : '') + '"' + tableName + '";', [], callback, errorCallback);
           }
         };
       };
@@ -336,10 +348,9 @@
       DELETE: function(successCallback, failureCallback) {
         return db.transaction(function(tx) {
           return tx.tableList(function(tx, result) {
-            var i, tbn, _ref;
+            var i, _ref;
             for (i = 0, _ref = result.rows.length; 0 <= _ref ? i < _ref : i > _ref; 0 <= _ref ? i++ : i--) {
-              tbn = result.rows.item(i).name;
-              tx.executeSql('DROP TABLE IF EXISTS "' + tbn + '";');
+              tx.dropTable(result.rows.item(i).name);
             }
             return successCallback(200);
           });
@@ -1022,7 +1033,7 @@
         _results = [];
         for (i = 0, _ref = result.rows.length; 0 <= _ref ? i < _ref : i > _ref; 0 <= _ref ? i++ : i--) {
           tbn = result.rows.item(i).name;
-          _results.push(tbn !== '__WebKitDatabaseInfoTable__' && tbn.slice(-4) !== "_buk" ? (tx.executeSql('DROP TABLE IF EXISTS "' + tbn + '_buk";'), tx.executeSql('ALTER TABLE "' + tbn + '" RENAME TO "' + tbn + '_buk";')) : void 0);
+          _results.push(tbn !== '__WebKitDatabaseInfoTable__' && tbn.slice(-4) !== "_buk" ? (tx.dropTable(tbn + '_buk', true), tx.executeSql('ALTER TABLE "' + tbn + '" RENAME TO "' + tbn + '_buk";')) : void 0);
         }
         return _results;
       });
@@ -1035,7 +1046,7 @@
         _results = [];
         for (i = 0, _ref = result.rows.length; 0 <= _ref ? i < _ref : i > _ref; 0 <= _ref ? i++ : i--) {
           tbn = result.rows.item(i).name;
-          _results.push(tbn.slice(-4) === "_buk" ? (tx.executeSql('DROP TABLE IF EXISTS "' + tbn.slice(0, -4) + '";'), tx.executeSql('ALTER TABLE "' + tbn + '" RENAME TO "' + tbn.slice(0, -4) + '";')) : void 0);
+          _results.push(tbn.slice(-4) === "_buk" ? (tx.dropTable(tbn.slice(0, -4), true), tx.executeSql('ALTER TABLE "' + tbn + '" RENAME TO "' + tbn.slice(0, -4) + '";')) : void 0);
         }
         return _results;
       });

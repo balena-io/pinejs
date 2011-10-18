@@ -36,6 +36,7 @@ if process?
 			end: -> this.executeSql('END;')
 			rollback: -> this.executeSql('ROLLBACK;')
 			tableList: (callback, errorCallback) -> this.executeSql("SELECT tablename as name FROM pg_tables WHERE tablename NOT LIKE 'pg_%';", [], callback, errorCallback)
+			dropTable: (tableName, ifExists = true, callback, errorCallback) -> this.executeSql('DROP TABLE ' + (if ifExists == true then 'IF EXISTS ' else '') + '"' + tableName + '" CASCADE;', [], callback, errorCallback)
 		}
 		return {
 			transaction: (callback) ->
@@ -65,6 +66,7 @@ if process?
 			# end: -> this.executeSql('END;')
 			# rollback: -> this.executeSql('ROLLBACK;')
 			# tableList: (callback, errorCallback) -> this.executeSql("SELECT name FROM sqlite_master WHERE type='table';", [], callback, errorCallback)
+			# dropTable: (tableName, ifExists = true, callback, errorCallback) -> this.executeSql('DROP TABLE ' + (if ifExists == true then 'IF EXISTS ' else '') + '"' + tableName + '";', [], callback, errorCallback)
 		# }
 		# return {
 			# transaction: (callback) ->
@@ -93,6 +95,7 @@ else
 				end: ->
 				rollback: -> this.executeSql("DROP TABLE '__Fo0oFoo'")
 				tableList: (callback, errorCallback) -> this.executeSql("SELECT name FROM sqlite_master WHERE type='table' AND name !='__WebKitDatabaseInfoTable__';", [], callback, errorCallback)
+				dropTable: (tableName, ifExists = true, callback, errorCallback) -> this.executeSql('DROP TABLE ' + (if ifExists == true then 'IF EXISTS ' else '') + '"' + tableName + '";', [], callback, errorCallback)
 			}
 		return {
 			transaction: (callback) ->
@@ -278,8 +281,7 @@ handlers =
 			db.transaction (tx) ->
 				tx.tableList( (tx, result) ->
 					for i in [0...result.rows.length]
-						tbn = result.rows.item(i).name
-						tx.executeSql('DROP TABLE IF EXISTS "' + tbn + '";')
+						tx.dropTable(result.rows.item(i).name)
 					successCallback(200)
 				)
 
@@ -823,7 +825,7 @@ backupDB = ->
 			for i in [0...result.rows.length]
 				tbn = result.rows.item(i).name
 				if tbn != '__WebKitDatabaseInfoTable__' and tbn.slice(-4) != "_buk"
-					tx.executeSql 'DROP TABLE IF EXISTS "' + tbn + '_buk";'
+					tx.dropTable(tbn + '_buk', true)
 					tx.executeSql 'ALTER TABLE "' + tbn + '" RENAME TO "' + tbn + '_buk";'
 		)
 
@@ -834,7 +836,7 @@ restoreDB = ->
 			for i in [0...result.rows.length]
 				tbn = result.rows.item(i).name
 				if tbn.slice(-4) == "_buk"
-					tx.executeSql 'DROP TABLE IF EXISTS "' + tbn[0...-4] + '";'
+					tx.dropTable(tbn[0...-4], true)
 					tx.executeSql 'ALTER TABLE "' + tbn + '" RENAME TO "' + tbn[0...-4] + '";'
 		)
 
