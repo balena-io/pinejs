@@ -34,6 +34,7 @@ if process?
 			begin: -> tx.executeSql('BEGIN;')
 			end: -> tx.executeSql('END;')
 			rollback: -> tx.executeSql('ROLLBACK;')
+			tableList: (callback, errorCallback) -> tx.executeSql("SELECT tablename FROM pg_tables WHERE tablename NOT LIKE 'pg_%';", [], callback, errorCallback)
 		}
 		return {
 			transaction: (callback) ->
@@ -61,6 +62,7 @@ if process?
 			# begin: -> tx.executeSql('BEGIN;')
 			# end: -> tx.executeSql('END;')
 			# rollback: -> tx.executeSql('ROLLBACK;')
+			# tableList: (callback, errorCallback) -> tx.executeSql("SELECT name FROM sqlite_master WHERE type='table';", callback, errorCallback)
 		# }
 		# return {
 			# transaction: (callback) ->
@@ -88,6 +90,7 @@ else
 				begin: ->
 				end: ->
 				rollback: -> _tx.executeSql("DROP TABLE '__Fo0oFoo'")
+				tableList: (callback, errorCallback) -> tx.executeSql("SELECT name FROM sqlite_master WHERE type='table' AND name !='__WebKitDatabaseInfoTable__';", callback, errorCallback)
 			}
 		return {
 			transaction: (callback) ->
@@ -271,7 +274,7 @@ handlers =
 	cleardb:
 		DELETE: (successCallback, failureCallback) ->
 			db.transaction (tx) ->
-				tx.executeSql "SELECT name FROM sqlite_master WHERE type='table' AND name !='__WebKitDatabaseInfoTable__';", [], ((tx, result) ->
+				tx.tableList( (tx, result) ->
 					for i in [0...result.rows.length]
 						tbn = result.rows.item(i).name
 						tx.executeSql('DROP TABLE IF EXISTS "' + tbn + '";')

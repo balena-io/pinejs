@@ -62,6 +62,9 @@
         },
         rollback: function() {
           return tx.executeSql('ROLLBACK;');
+        },
+        tableList: function(callback, errorCallback) {
+          return tx.executeSql("SELECT tablename FROM pg_tables WHERE tablename NOT LIKE 'pg_%';", [], callback, errorCallback);
         }
       };
       return {
@@ -99,6 +102,9 @@
           end: function() {},
           rollback: function() {
             return _tx.executeSql("DROP TABLE '__Fo0oFoo'");
+          },
+          tableList: function(callback, errorCallback) {
+            return tx.executeSql("SELECT name FROM sqlite_master WHERE type='table' AND name !='__WebKitDatabaseInfoTable__';", callback, errorCallback);
           }
         };
       };
@@ -328,14 +334,14 @@
     cleardb: {
       DELETE: function(successCallback, failureCallback) {
         return db.transaction(function(tx) {
-          return tx.executeSql("SELECT name FROM sqlite_master WHERE type='table' AND name !='__WebKitDatabaseInfoTable__';", [], (function(tx, result) {
+          return tx.tableList(function(tx, result) {
             var i, tbn, _ref;
             for (i = 0, _ref = result.rows.length; 0 <= _ref ? i < _ref : i > _ref; 0 <= _ref ? i++ : i--) {
               tbn = result.rows.item(i).name;
               tx.executeSql('DROP TABLE IF EXISTS "' + tbn + '";');
             }
             return successCallback(200);
-          }));
+          });
         });
       }
     }
