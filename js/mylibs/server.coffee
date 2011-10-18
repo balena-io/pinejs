@@ -22,6 +22,7 @@ if process?
 			}
 		tx = {
 			executeSql: (sql, bindings = [], callback, errorCallback) ->
+				thisTX = this
 				sql = sql.replace(/GROUP BY NULL/g, '') #HACK: Remove GROUP BY NULL for Postgres as it does not need/accept it.
 				bindNo = 1
 				sql = SQLBinds.matchAll(sql, "parse", [-> '$'+bindNo++])
@@ -30,11 +31,11 @@ if process?
 						errorCallback? err
 						console.log(sql, err)
 					else
-						callback? tx, result(res.rows)
-			begin: -> tx.executeSql('BEGIN;')
-			end: -> tx.executeSql('END;')
-			rollback: -> tx.executeSql('ROLLBACK;')
-			tableList: (callback, errorCallback) -> tx.executeSql("SELECT tablename FROM pg_tables WHERE tablename NOT LIKE 'pg_%';", [], callback, errorCallback)
+						callback? thisTX, result(res.rows)
+			begin: -> this.executeSql('BEGIN;')
+			end: -> this.executeSql('END;')
+			rollback: -> this.executeSql('ROLLBACK;')
+			tableList: (callback, errorCallback) -> this.executeSql("SELECT tablename as name FROM pg_tables WHERE tablename NOT LIKE 'pg_%';", [], callback, errorCallback)
 		}
 		return {
 			transaction: (callback) ->
@@ -53,16 +54,17 @@ if process?
 			# }
 		# tx = {
 			# executeSql: (sql, bindings, callback, errorCallback) ->
+				# thisTX = this
 				# _db.all sql, bindings ? [], (err, rows) ->
 					# if err?
 						# errorCallback? err
 						# console.log(sql, err)
 					# else
-						# callback? tx, result(rows)
-			# begin: -> tx.executeSql('BEGIN;')
-			# end: -> tx.executeSql('END;')
-			# rollback: -> tx.executeSql('ROLLBACK;')
-			# tableList: (callback, errorCallback) -> tx.executeSql("SELECT name FROM sqlite_master WHERE type='table';", callback, errorCallback)
+						# callback? thisTX, result(rows)
+			# begin: -> this.executeSql('BEGIN;')
+			# end: -> this.executeSql('END;')
+			# rollback: -> this.executeSql('ROLLBACK;')
+			# tableList: (callback, errorCallback) -> this.executeSql("SELECT name FROM sqlite_master WHERE type='table';", [], callback, errorCallback)
 		# }
 		# return {
 			# transaction: (callback) ->
@@ -89,8 +91,8 @@ else
 					_tx.executeSql(sql, bindings, callback, errorCallback)
 				begin: ->
 				end: ->
-				rollback: -> _tx.executeSql("DROP TABLE '__Fo0oFoo'")
-				tableList: (callback, errorCallback) -> tx.executeSql("SELECT name FROM sqlite_master WHERE type='table' AND name !='__WebKitDatabaseInfoTable__';", callback, errorCallback)
+				rollback: -> this.executeSql("DROP TABLE '__Fo0oFoo'")
+				tableList: (callback, errorCallback) -> this.executeSql("SELECT name FROM sqlite_master WHERE type='table' AND name !='__WebKitDatabaseInfoTable__';", [], callback, errorCallback)
 			}
 		return {
 			transaction: (callback) ->

@@ -29,10 +29,11 @@
       };
       tx = {
         executeSql: function(sql, bindings, callback, errorCallback) {
-          var bindNo;
+          var bindNo, thisTX;
           if (bindings == null) {
             bindings = [];
           }
+          thisTX = this;
           sql = sql.replace(/GROUP BY NULL/g, '');
           bindNo = 1;
           sql = SQLBinds.matchAll(sql, "parse", [
@@ -50,21 +51,21 @@
               }
               return console.log(sql, err);
             } else {
-              return typeof callback === "function" ? callback(tx, result(res.rows)) : void 0;
+              return typeof callback === "function" ? callback(thisTX, result(res.rows)) : void 0;
             }
           });
         },
         begin: function() {
-          return tx.executeSql('BEGIN;');
+          return this.executeSql('BEGIN;');
         },
         end: function() {
-          return tx.executeSql('END;');
+          return this.executeSql('END;');
         },
         rollback: function() {
-          return tx.executeSql('ROLLBACK;');
+          return this.executeSql('ROLLBACK;');
         },
         tableList: function(callback, errorCallback) {
-          return tx.executeSql("SELECT tablename FROM pg_tables WHERE tablename NOT LIKE 'pg_%';", [], callback, errorCallback);
+          return this.executeSql("SELECT tablename as name FROM pg_tables WHERE tablename NOT LIKE 'pg_%';", [], callback, errorCallback);
         }
       };
       return {
@@ -101,10 +102,10 @@
           begin: function() {},
           end: function() {},
           rollback: function() {
-            return _tx.executeSql("DROP TABLE '__Fo0oFoo'");
+            return this.executeSql("DROP TABLE '__Fo0oFoo'");
           },
           tableList: function(callback, errorCallback) {
-            return tx.executeSql("SELECT name FROM sqlite_master WHERE type='table' AND name !='__WebKitDatabaseInfoTable__';", callback, errorCallback);
+            return this.executeSql("SELECT name FROM sqlite_master WHERE type='table' AND name !='__WebKitDatabaseInfoTable__';", [], callback, errorCallback);
           }
         };
       };
