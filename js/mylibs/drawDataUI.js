@@ -40,17 +40,18 @@
     return ClientURIUnparser.match(ptree, "trans");
   };
   serverAPI = function(about, filters) {
-    var flts, index, op, _i, _len;
+    var filter, flts, op, _i, _len, _ref;
     op = {
       eq: "=",
       ne: "!=",
       lk: "~"
     };
     flts = "";
-    for (_i = 0, _len = filters.length; _i < _len; _i++) {
-      index = filters[_i];
-      if (about === index[1]) {
-        flts = flts + index[1] + "." + index[2] + op[index[0]] + index[3] + ";";
+    _ref = filters.slice(1);
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      filter = _ref[_i];
+      if (about === filter[1]) {
+        flts = flts + filter[1] + "." + filter[2] + op[filter[0]] + filter[3] + ";";
       }
     }
     if (flts !== "") {

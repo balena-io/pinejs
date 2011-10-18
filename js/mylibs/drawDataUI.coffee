@@ -38,8 +38,8 @@ serverAPI = (about, filters) ->
 	flts = ""
 
 	#render filters
-	for index in filters
-		flts = flts + index[1] + "." + index[2] + op[index[0]] + index[3] + ";"	if about is index[1]
+	for filter in filters[1..] when about is filter[1]
+		flts = flts + filter[1] + "." + filter[2] + op[filter[0]] + filter[3] + ";"
 
 	flts = "*filt:" + flts	unless flts is ""
 	"/data/" + about + flts
