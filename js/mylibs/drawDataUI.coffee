@@ -65,44 +65,41 @@ drawData = (tree) ->
 						$("#terms").append @data[i][1]
 						i++
 
-		i = 0
 		#if any terms have been selected
-		while i < result.terms.length
+		for i in [0...result.terms.length]
+			term = result.terms[i]
 			launch = -1
-			j = 3
 
-			while j < tree.length
-				launch = j	if tree[j][1][0] == result.terms[i].id
-				j++
-			pre = "<tr id='tr--data--" + result.terms[i].id + "'><td>"
-			if launch == -1
-				pre += result.terms[i].name
-			else
-				pre += "<div style='display:inline; background-color:#FFFFFF; " + "'>" + result.terms[i].name + "</div>"
+			for j in [3...tree.length] when tree[j][1][0] == term.id
+				launch = j
+				break
+			pre = "<tr id='tr--data--" + term.id + "'><td>"
 			post = "</td></tr>"
-			unless launch == -1
+			if launch != -1
 				npos = getTarg(tree, [], "del", launch - 2)
+				pre += "<div style='display:inline; background-color:#FFFFFF; " + "'>" + term.name + "</div>"
 				pre += "<div style='display:inline;background-color:#FFFFFF" + "'> " + "<a href='" + rootURI + "#!/" + npos + "' " + "onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a></div>"
 
 				#request schema from server and store locally.
-				serverRequest "GET", "/model/", [], "", (statusCode, result) ->
-					#TODO: This should not be available client-side, this is here just to make it work for now.
-					requirejs([
-						"mylibs/ometa-code/SBVRParser",
-						"mylibs/ometa-code/SBVR_PreProc",
-						"mylibs/ometa-code/SBVR2SQL"]
-					)
-					model = SBVRParser.matchAll(result, "expr")
-					model = SBVR_PreProc.match(model, "optimizeTree")
-					model = SBVR2SQL.match(model, "trans")
-					uid = new uidraw(i, objcb, pre, post, rootURI, [], [], filters, [ launch - 2 ], true, tree, model)
-					uid.subRowIn()
+				do (i, objcb, pre, post, launch) ->
+					serverRequest "GET", "/model/", [], "", (statusCode, result) ->
+						#TODO: This should not be available client-side, this is here just to make it work for now.
+						requirejs([
+							"mylibs/ometa-code/SBVRParser",
+							"mylibs/ometa-code/SBVR_PreProc",
+							"mylibs/ometa-code/SBVR2SQL"]
+						)
+						model = SBVRParser.matchAll(result, "expr")
+						model = SBVR_PreProc.match(model, "optimizeTree")
+						model = SBVR2SQL.match(model, "trans")
+						uid = new uidraw(i, objcb, pre, post, rootURI, [], [], filters, [ launch - 2 ], true, tree, model)
+						uid.subRowIn()
 			else
-				newb = [ "col", [ result.terms[i].id ], [ "mod" ] ]
+				newb = [ "col", [ term.id ], [ "mod" ] ]
 				npos = getTarg(tree, [], "add", newb)
+				pre += term.name
 				pre += " <a href='" + rootURI + "#!/" + npos + "' " + "onClick='location.hash=\"#!/" + npos + "\";return false'><span title='See all' class='ui-icon ui-icon-search'></span></a>"
 				objcb.callback i, pre + post
-			i++
 
 
 uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, cmod) ->

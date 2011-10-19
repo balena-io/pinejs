@@ -65,7 +65,7 @@
     filters = ["filters"];
     $("#dataTab").html("<table id='terms'><tbody><tr><td></td></tr></tbody></table>" + "<div align='left'><br/><input type='button' value='Apply All Changes' " + " onClick='runTrans();return false;'></div>");
     return serverRequest("GET", "/data/", [], "", function(statusCode, result, headers) {
-      var i, j, launch, newb, npos, objcb, post, pre, _results;
+      var i, j, launch, newb, npos, objcb, post, pre, term, _ref, _ref2, _results;
       objcb = {
         totsub: result.terms.length,
         totend: 0,
@@ -87,28 +87,20 @@
           }
         }
       };
-      i = 0;
       _results = [];
-      while (i < result.terms.length) {
+      for (i = 0, _ref = result.terms.length; 0 <= _ref ? i < _ref : i > _ref; 0 <= _ref ? i++ : i--) {
+        term = result.terms[i];
         launch = -1;
-        j = 3;
-        while (j < tree.length) {
-          if (tree[j][1][0] === result.terms[i].id) {
+        for (j = 3, _ref2 = tree.length; 3 <= _ref2 ? j < _ref2 : j > _ref2; 3 <= _ref2 ? j++ : j--) {
+          if (tree[j][1][0] === term.id) {
             launch = j;
+            break;
           }
-          j++;
         }
-        pre = "<tr id='tr--data--" + result.terms[i].id + "'><td>";
-        if (launch === -1) {
-          pre += result.terms[i].name;
-        } else {
-          pre += "<div style='display:inline; background-color:#FFFFFF; " + "'>" + result.terms[i].name + "</div>";
-        }
+        pre = "<tr id='tr--data--" + term.id + "'><td>";
         post = "</td></tr>";
-        if (launch !== -1) {
-          npos = getTarg(tree, [], "del", launch - 2);
-          pre += "<div style='display:inline;background-color:#FFFFFF" + "'> " + "<a href='" + rootURI + "#!/" + npos + "' " + "onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a></div>";
-          serverRequest("GET", "/model/", [], "", function(statusCode, result) {
+        _results.push(launch !== -1 ? (npos = getTarg(tree, [], "del", launch - 2), pre += "<div style='display:inline; background-color:#FFFFFF; " + "'>" + term.name + "</div>", pre += "<div style='display:inline;background-color:#FFFFFF" + "'> " + "<a href='" + rootURI + "#!/" + npos + "' " + "onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a></div>", (function(i, objcb, pre, post, launch) {
+          return serverRequest("GET", "/model/", [], "", function(statusCode, result) {
             var model, uid;
             requirejs(["mylibs/ometa-code/SBVRParser", "mylibs/ometa-code/SBVR_PreProc", "mylibs/ometa-code/SBVR2SQL"]);
             model = SBVRParser.matchAll(result, "expr");
@@ -117,13 +109,7 @@
             uid = new uidraw(i, objcb, pre, post, rootURI, [], [], filters, [launch - 2], true, tree, model);
             return uid.subRowIn();
           });
-        } else {
-          newb = ["col", [result.terms[i].id], ["mod"]];
-          npos = getTarg(tree, [], "add", newb);
-          pre += " <a href='" + rootURI + "#!/" + npos + "' " + "onClick='location.hash=\"#!/" + npos + "\";return false'><span title='See all' class='ui-icon ui-icon-search'></span></a>";
-          objcb.callback(i, pre + post);
-        }
-        _results.push(i++);
+        })(i, objcb, pre, post, launch)) : (newb = ["col", [term.id], ["mod"]], npos = getTarg(tree, [], "add", newb), pre += term.name, pre += " <a href='" + rootURI + "#!/" + npos + "' " + "onClick='location.hash=\"#!/" + npos + "\";return false'><span title='See all' class='ui-icon ui-icon-search'></span></a>", objcb.callback(i, pre + post)));
       }
       return _results;
     });
