@@ -110,6 +110,7 @@
           pre += "<div style='display:inline;background-color:#FFFFFF" + "'> " + "<a href='" + rootURI + "#!/" + npos + "' " + "onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a></div>";
           serverRequest("GET", "/model/", [], "", function(statusCode, result) {
             var model, uid;
+            requirejs(["mylibs/ometa-code/SBVRParser", "mylibs/ometa-code/SBVR_PreProc", "mylibs/ometa-code/SBVR2SQL"]);
             model = SBVRParser.matchAll(result, "expr");
             model = SBVR_PreProc.match(model, "optimizeTree");
             model = SBVR2SQL.match(model, "trans");

@@ -86,6 +86,12 @@ drawData = (tree) ->
 
 				#request schema from server and store locally.
 				serverRequest "GET", "/model/", [], "", (statusCode, result) ->
+					#TODO: This should not be available client-side, this is here just to make it work for now.
+					requirejs([
+						"mylibs/ometa-code/SBVRParser",
+						"mylibs/ometa-code/SBVR_PreProc",
+						"mylibs/ometa-code/SBVR2SQL"]
+					)
 					model = SBVRParser.matchAll(result, "expr")
 					model = SBVR_PreProc.match(model, "optimizeTree")
 					model = SBVR2SQL.match(model, "trans")
