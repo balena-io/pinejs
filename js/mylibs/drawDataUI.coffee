@@ -329,12 +329,11 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 				when "add"
 					if @type == "term"
 						#get schema
-						schm = ""
-						j = 1
+						schema = []
 
-						while j < cmod.length
-							schm = cmod[j][3]	if cmod[j][1] == @about
-							j++
+						for mod in cmod[1..] when mod[1] == @about
+							schema = mod[3]	
+
 						#print form.
 						res = "<div align='right'>"
 						res += "<form class = 'action' >"
@@ -343,15 +342,13 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 						res += "<input type='hidden' id='__backURI' value='" + targ + "'>"
 						console.log "addterm backURI=" + targ
 						res += "<input type='hidden' id='__type' value='" + @about + "'>"
-						j = 0
 
-						while j < schm.length
-							switch schm[j][0]
+						for currSchema in schema
+							switch currSchema[0]
 								when "Text"
-									res += schm[j][2] + ": <input type='text' id='" + schm[j][1] + "' /><br />"
+									res += currSchema[2] + ": <input type='text' id='" + currSchema[1] + "' /><br />"
 								when "ForeignKey"
-									alert schm[j]
-							j++
+									alert currSchema
 						res += "<input type='submit' value='Submit This'" + " onClick='processForm(" + "this.parentNode" + ");return false;'>"
 						res += "</form>"
 						res += "</div>"
@@ -366,31 +363,25 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 							trmres.push result.instances
 							#construct dropdowns & form
 							if trms.length == trmres.length
-								j = 0
-
-								while j < trms.length
+								for j in [0...trms.length]
 									res = "<select id='" + trms[j] + "_id'>"
-									k = 0
 									#Loop through options
-									while k < trmres[j].length
-										res += "<option value='" + trmres[j][k].id + "'>" + trmres[j][k].name + "</option>"
-										k++
+									for currTermRes in trmres[j]
+										res += "<option value='" + currTermRes.id + "'>" + currTermRes.name + "</option>"
 									res += "</select>"
 									trmsel[trms[j]] = res
-									j++
 								res = ""
 								res += "<form class = 'action' >"
 								res += "<input type='hidden' id='__actype' value='addfctp'>"
 								res += "<input type='hidden' id='__serverURI' value='" + serverAPI(parent.about, []) + "'>"
 								res += "<input type='hidden' id='__backURI' value='" + posl + "'>"
 								res += "<input type='hidden' id='__type' value='" + parent.about + "'>"
-								j = 0
 
-								while j < parent.schema.length
-									if parent.schema[j][0] == "term"
-										res += trmsel[parent.schema[j][1]] + " "
-									else res += parent.schema[j][1] + " "	if parent.schema[j][0] == "verb"
-									j++
+								for schema in parent.schema
+									if schema[0] == "term"
+										res += trmsel[schema[1]] + " "
+									else if schema[0] == "verb"
+										res += parent.schema[j][1] + " "
 								#add submit button etc.
 								res += "<div align='right'>"
 								res += "<input type='submit' value='Submit This'" + " onClick='processForm(this.parentNode.parentNode);return false;'>"
@@ -398,21 +389,17 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 								res += "</form>"
 								parent.callback 1, res
 
-						j = 0
-
 						#TODO: Does this need to be in a separate loop? It might, but can we verify?
-						while j < @schema.length
-							trms.push @schema[j][1]	if @schema[j][0] == "term"
-							j++
-						j = 0
+						for schema in @schema when schema[0] == "term"
+							trms.push schema[1]
+
 						#loop around terms
-						while j < @schema.length
-							if @schema[j][0] == "term"
-								tar = serverAPI(@schema[j][1], @filters)
+						for schema in @schema
+							if schema[0] == "term"
+								tar = serverAPI(schema[1], @filters)
 								serverRequest "GET", tar, [], "", addftcb
-							else if @schema[j][0] == "verb"
+							else if schema[0] == "verb"
 								null
-							j++
 				when "edit"
 					if @type == "term"
 						schm = ""

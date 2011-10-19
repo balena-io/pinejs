@@ -177,7 +177,7 @@
       j++;
     }
     this.subRowIn = function() {
-      var actn, addftcb, branchType, col, currBranch, currBranchType, instance, mod, parent, posl, res, schm, tar, targ, trmres, trms, trmsel, _i, _j, _k, _l, _len, _len2, _len3, _len4, _len5, _m, _ref, _ref2, _ref3, _ref4, _ref5, _ref6, _results;
+      var actn, addftcb, branchType, col, currBranch, currBranchType, currSchema, instance, mod, parent, posl, res, schema, schm, tar, targ, trmres, trms, trmsel, _i, _j, _k, _l, _len, _len2, _len3, _len4, _len5, _len6, _len7, _len8, _len9, _m, _n, _o, _p, _q, _ref, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7, _ref8, _ref9, _results;
       parent = this;
       if (this.branch[0] === "col") {
         this.pre += "<div class='panel' style='background-color:" + this.bg + ";'>" + "<table id='tbl--" + pid + "'><tbody>";
@@ -399,13 +399,13 @@
             break;
           case "add":
             if (this.type === "term") {
-              schm = "";
-              j = 1;
-              while (j < cmod.length) {
-                if (cmod[j][1] === this.about) {
-                  schm = cmod[j][3];
+              schema = [];
+              _ref7 = cmod.slice(1);
+              for (_n = 0, _len6 = _ref7.length; _n < _len6; _n++) {
+                mod = _ref7[_n];
+                if (mod[1] === this.about) {
+                  schema = mod[3];
                 }
-                j++;
               }
               res = "<div align='right'>";
               res += "<form class = 'action' >";
@@ -414,16 +414,15 @@
               res += "<input type='hidden' id='__backURI' value='" + targ + "'>";
               console.log("addterm backURI=" + targ);
               res += "<input type='hidden' id='__type' value='" + this.about + "'>";
-              j = 0;
-              while (j < schm.length) {
-                switch (schm[j][0]) {
+              for (_o = 0, _len7 = schema.length; _o < _len7; _o++) {
+                currSchema = schema[_o];
+                switch (currSchema[0]) {
                   case "Text":
-                    res += schm[j][2] + ": <input type='text' id='" + schm[j][1] + "' /><br />";
+                    res += currSchema[2] + ": <input type='text' id='" + currSchema[1] + "' /><br />";
                     break;
                   case "ForeignKey":
-                    alert(schm[j]);
+                    alert(currSchema);
                 }
-                j++;
               }
               res += "<input type='submit' value='Submit This'" + " onClick='processForm(" + "this.parentNode" + ");return false;'>";
               res += "</form>";
@@ -434,21 +433,19 @@
               trmres = [];
               trmsel = {};
               addftcb = function(statusCode, result, headers) {
-                var k;
+                var currTermRes, j, schema, _len8, _len9, _p, _q, _ref10, _ref8, _ref9;
                 res = "";
                 trmres.push(result.instances);
                 if (trms.length === trmres.length) {
-                  j = 0;
-                  while (j < trms.length) {
+                  for (j = 0, _ref8 = trms.length; 0 <= _ref8 ? j < _ref8 : j > _ref8; 0 <= _ref8 ? j++ : j--) {
                     res = "<select id='" + trms[j] + "_id'>";
-                    k = 0;
-                    while (k < trmres[j].length) {
-                      res += "<option value='" + trmres[j][k].id + "'>" + trmres[j][k].name + "</option>";
-                      k++;
+                    _ref9 = trmres[j];
+                    for (_p = 0, _len8 = _ref9.length; _p < _len8; _p++) {
+                      currTermRes = _ref9[_p];
+                      res += "<option value='" + currTermRes.id + "'>" + currTermRes.name + "</option>";
                     }
                     res += "</select>";
                     trmsel[trms[j]] = res;
-                    j++;
                   }
                   res = "";
                   res += "<form class = 'action' >";
@@ -456,16 +453,14 @@
                   res += "<input type='hidden' id='__serverURI' value='" + serverAPI(parent.about, []) + "'>";
                   res += "<input type='hidden' id='__backURI' value='" + posl + "'>";
                   res += "<input type='hidden' id='__type' value='" + parent.about + "'>";
-                  j = 0;
-                  while (j < parent.schema.length) {
-                    if (parent.schema[j][0] === "term") {
-                      res += trmsel[parent.schema[j][1]] + " ";
-                    } else {
-                      if (parent.schema[j][0] === "verb") {
-                        res += parent.schema[j][1] + " ";
-                      }
+                  _ref10 = parent.schema;
+                  for (_q = 0, _len9 = _ref10.length; _q < _len9; _q++) {
+                    schema = _ref10[_q];
+                    if (schema[0] === "term") {
+                      res += trmsel[schema[1]] + " ";
+                    } else if (schema[0] === "verb") {
+                      res += parent.schema[j][1] + " ";
                     }
-                    j++;
                   }
                   res += "<div align='right'>";
                   res += "<input type='submit' value='Submit This'" + " onClick='processForm(this.parentNode.parentNode);return false;'>";
@@ -474,23 +469,18 @@
                   return parent.callback(1, res);
                 }
               };
-              j = 0;
-              while (j < this.schema.length) {
-                if (this.schema[j][0] === "term") {
-                  trms.push(this.schema[j][1]);
+              _ref8 = this.schema;
+              for (_p = 0, _len8 = _ref8.length; _p < _len8; _p++) {
+                schema = _ref8[_p];
+                if (schema[0] === "term") {
+                  trms.push(schema[1]);
                 }
-                j++;
               }
-              j = 0;
+              _ref9 = this.schema;
               _results = [];
-              while (j < this.schema.length) {
-                if (this.schema[j][0] === "term") {
-                  tar = serverAPI(this.schema[j][1], this.filters);
-                  serverRequest("GET", tar, [], "", addftcb);
-                } else if (this.schema[j][0] === "verb") {
-                  null;
-                }
-                _results.push(j++);
+              for (_q = 0, _len9 = _ref9.length; _q < _len9; _q++) {
+                schema = _ref9[_q];
+                _results.push(schema[0] === "term" ? (tar = serverAPI(schema[1], this.filters), serverRequest("GET", tar, [], "", addftcb)) : schema[0] === "verb" ? null : void 0);
               }
               return _results;
             }
