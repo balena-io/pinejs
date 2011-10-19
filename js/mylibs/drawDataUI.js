@@ -177,32 +177,33 @@
       j++;
     }
     this.subRowIn = function() {
-      var actn, addftcb, col, i, k, mod, parent, posl, res, schm, tar, targ, trmres, trms, trmsel, _i, _j, _len, _len2, _ref, _ref2, _results;
+      var actn, addftcb, col, currBranch, currBranchType, i, mod, parent, posl, res, schm, tar, targ, trmres, trms, trmsel, _i, _j, _k, _l, _len, _len2, _len3, _len4, _ref, _ref2, _ref3, _ref4, _results;
       parent = this;
       if (this.branch[0] === "col") {
         this.pre += "<div class='panel' style='background-color:" + this.bg + ";'>" + "<table id='tbl--" + pid + "'><tbody>";
         this.post += "</tbody></table></div>";
         this.targ = serverAPI(this.about, this.filters);
         j = 3;
-        while (j < this.branch.length) {
-          if (this.branch[j][0] === "ins" && this.branch[j][1][0] === this.about && this.branch[j][1][1] === void 0) {
-            k = 1;
-            while (k < this.branch[j][2].length) {
-              if (this.branch[j][2][k][0] === "add") {
+        _ref = this.branch;
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          currBranch = _ref[_i];
+          if (currBranch[0] === "ins" && currBranch[1][0] === this.about && currBranch[1][1] === void 0) {
+            _ref2 = currBranch[2].slice(1);
+            for (_j = 0, _len2 = _ref2.length; _j < _len2; _j++) {
+              currBranchType = _ref2[_j];
+              if (currBranchType[0] === "add") {
                 this.adds++;
               }
-              k++;
             }
           }
-          j++;
         }
-        _ref = cmod.slice(1);
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          mod = _ref[_i];
+        _ref3 = cmod.slice(1);
+        for (_k = 0, _len3 = _ref3.length; _k < _len3; _k++) {
+          mod = _ref3[_k];
           if (mod[0] === "fcTp") {
-            _ref2 = mod[6];
-            for (_j = 0, _len2 = _ref2.length; _j < _len2; _j++) {
-              col = _ref2[_j];
+            _ref4 = mod[6];
+            for (_l = 0, _len4 = _ref4.length; _l < _len4; _l++) {
+              col = _ref4[_l];
               if (col[1] === this.about) {
                 this.cols++;
               }
@@ -210,25 +211,25 @@
           }
         }
         return serverRequest("GET", this.targ, [], "", function(statusCode, result, headers) {
-          var actn, currBranch, currBranchType, i, instance, isadd, j, launch, locn, newb, npos, posl, postl, prel, res, resl, schema, subcolcb, uid, _k, _l, _len3, _len4, _ref3, _ref4, _ref5, _ref6, _ref7, _results;
+          var actn, currBranchType, i, instance, j, launch, locn, mod, newb, npos, posl, postl, prel, res, resl, schema, subcolcb, uid, _len5, _len6, _len7, _len8, _m, _n, _o, _p, _ref10, _ref11, _ref12, _ref5, _ref6, _ref7, _ref8, _ref9, _results;
           resl = "";
           parent.rows = result.instances.length;
           parent.items = parent.rows + 2 + parent.adds + 1 + parent.cols;
           newb = ["ins", [parent.about], ["mod", ["add"]]];
           npos = getTarg(parent.ftree, parent.loc, "add", newb);
           parent.data.push([parent.rows + 1, "<tr><td><a href = '" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false;'>" + "[(+)add new]</a></td></tr>"]);
-          for (i = 0, _ref3 = result.instances.length; 0 <= _ref3 ? i < _ref3 : i > _ref3; 0 <= _ref3 ? i++ : i--) {
+          for (i = 0, _ref5 = result.instances.length; 0 <= _ref5 ? i < _ref5 : i > _ref5; 0 <= _ref5 ? i++ : i--) {
             instance = result.instances[i];
             launch = -1;
             actn = "view";
-            for (j = 3, _ref4 = parent.branch.length; 3 <= _ref4 ? j < _ref4 : j > _ref4; 3 <= _ref4 ? j++ : j--) {
+            for (j = 3, _ref6 = parent.branch.length; 3 <= _ref6 ? j < _ref6 : j > _ref6; 3 <= _ref6 ? j++ : j--) {
               currBranch = parent.branch[j];
               if (currBranch[0] === "ins" && currBranch[1][0] === parent.about && currBranch[1][1] !== void 0 && (currBranch[1][1] === instance.id || currBranch[1][1] === instance.name)) {
                 launch = j;
-                _ref5 = currBranch[2].slice(1);
-                for (_k = 0, _len3 = _ref5.length; _k < _len3; _k++) {
-                  currBranchType = _ref5[_k];
-                  if ((_ref6 = currBranchType[0]) === "edit" || _ref6 === "del") {
+                _ref7 = currBranch[2].slice(1);
+                for (_m = 0, _len5 = _ref7.length; _m < _len5; _m++) {
+                  currBranchType = _ref7[_m];
+                  if ((_ref8 = currBranchType[0]) === "edit" || _ref8 === "del") {
                     actn = currBranchType[0];
                     break;
                   }
@@ -243,9 +244,9 @@
             if (parent.type === "term") {
               prel += instance.name;
             } else if (parent.type === "fcTp") {
-              _ref7 = parent.schema;
-              for (_l = 0, _len4 = _ref7.length; _l < _len4; _l++) {
-                schema = _ref7[_l];
+              _ref9 = parent.schema;
+              for (_n = 0, _len6 = _ref9.length; _n < _len6; _n++) {
+                schema = _ref9[_n];
                 if (schema[0] === "term") {
                   prel += instance[schema[1] + "_name"] + " ";
                 } else if (schema[0] === "verb") {
@@ -291,73 +292,58 @@
           }
           parent.callback(parent.rows, "<tr><td>" + "<hr style='border:0px; width:90%; background-color: #999; height:1px;'>" + "</td></tr>");
           posl = parent.targ + "/" + parent.about;
-          j = 3;
-          while (j < parent.branch.length) {
-            if (parent.branch[j][0] === "ins" && parent.branch[j][1][0] === parent.about && parent.branch[j][1][1] === void 0) {
-              isadd = false;
-              k = 1;
-              while (k < parent.branch[j][2].length) {
-                if (parent.branch[j][2][k][0] === "add") {
-                  isadd = true;
+          for (j = 3, _ref10 = parent.branch.length; 3 <= _ref10 ? j < _ref10 : j > _ref10; 3 <= _ref10 ? j++ : j--) {
+            currBranch = parent.branch[j];
+            if (currBranch[0] === "ins" && currBranch[1][0] === parent.about && currBranch[1][1] === void 0) {
+              _ref11 = currBranch[2];
+              for (_o = 0, _len7 = _ref11.length; _o < _len7; _o++) {
+                currBranchType = _ref11[_o];
+                if (currBranchType[0] === "add") {
+                  locn = parent.loc.concat([j - 2]);
+                  uid = new uidraw(parent.rows + 1 + ++parent.addsout, parent, "<tr><td>", "</td></tr>", rootURI, [], [], parent.filters, locn, !parent.even, parent.ftree, cmod);
+                  uid.subRowIn();
+                  break;
                 }
-                k++;
-              }
-              if (isadd) {
-                locn = parent.loc.concat([j - 2]);
-                uid = new uidraw(parent.rows + 1 + ++parent.addsout, parent, "<tr><td>", "</td></tr>", rootURI, [], [], parent.filters, locn, !parent.even, parent.ftree, cmod);
-                uid.subRowIn();
               }
             }
-            j++;
           }
           parent.callback(parent.rows + 1 + parent.adds + 1, "<tr><td>" + "<hr style='border:0px; width:90%; background-color: #999; height:1px;'>" + "</td></tr>");
-          i = 1;
+          _ref12 = cmod.slice(1);
           _results = [];
-          while (i < cmod.length) {
-            if (cmod[i][0] === "fcTp") {
-              j = 0;
-              while (j < cmod[i][6].length) {
-                if (cmod[i][6][j][1] === parent.about) {
-                  launch = -1;
-                  j = 3;
-                  while (j < parent.branch.length) {
-                    if (parent.branch[j][1][0] === cmod[i][1]) {
-                      launch = j - 2;
-                      break;
+          for (_p = 0, _len8 = _ref12.length; _p < _len8; _p++) {
+            mod = _ref12[_p];
+            if (mod[0] === "fcTp") {
+              _results.push((function() {
+                var _ref13, _ref14, _results2;
+                _results2 = [];
+                for (j = 0, _ref13 = mod[6].length; 0 <= _ref13 ? j < _ref13 : j > _ref13; 0 <= _ref13 ? j++ : j--) {
+                  if (mod[6][j][1] === parent.about) {
+                    launch = -1;
+                    for (j = 3, _ref14 = parent.branch.length; 3 <= _ref14 ? j < _ref14 : j > _ref14; 3 <= _ref14 ? j++ : j--) {
+                      if (parent.branch[j][1][0] === mod[1]) {
+                        launch = j - 2;
+                        break;
+                      }
                     }
-                    j++;
-                  }
-                  parent.colsout++;
-                  res = "";
-                  pre = "<tr id='tr--data--" + cmod[i][1] + "'><td>";
-                  if (launch === -1) {
-                    pre += cmod[i][2];
-                  } else {
-                    pre += "<div style='display:inline;background-color:" + parent.unbg + "'>" + cmod[i][2] + "</div>";
-                  }
-                  post = "</td></tr>";
-                  if (launch !== -1) {
-                    npos = getTarg(parent.ftree, parent.loc, "del", launch);
-                    pre += "<div style='display:inline;background-color:" + parent.unbg + "'>" + " <a href='" + rootURI + "#!/" + npos + "' " + "onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a>" + "</div>";
-                    subcolcb = {
+                    parent.colsout++;
+                    res = "";
+                    pre = "<tr id='tr--data--" + mod[1] + "'><td>";
+                    if (launch === -1) {
+                      pre += mod[2];
+                    } else {
+                      pre += "<div style='display:inline;background-color:" + parent.unbg + "'>" + mod[2] + "</div>";
+                    }
+                    post = "</td></tr>";
+                    _results2.push(launch !== -1 ? (npos = getTarg(parent.ftree, parent.loc, "del", launch), pre += "<div style='display:inline;background-color:" + parent.unbg + "'>" + " <a href='" + rootURI + "#!/" + npos + "' " + "onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a>" + "</div>", subcolcb = {
                       callback: function(n, prod) {
                         return parent.callback(n, prod);
                       }
-                    };
-                    uid = new uidraw(parent.rows + 1 + parent.adds + 1 + parent.colsout, subcolcb, pre, post, rootURI, [], [], parent.filters, loc.concat([launch]), !parent.even, parent.ftree, cmod);
-                    uid.subRowIn();
-                  } else {
-                    newb = ["col", [cmod[i][1]], ["mod"]];
-                    npos = getTarg(parent.ftree, parent.loc, "add", newb);
-                    pre += " <a href='" + parent.rootURI + "#!/" + npos + "' " + "onClick='location.hash=\"#!/" + npos + "\";return false'><span title='See all' class='ui-icon ui-icon-search'></span></a>";
-                    res += pre + post;
-                    parent.callback(parent.rows + 1 + parent.adds + 1 + parent.colsout, res);
+                    }, uid = new uidraw(parent.rows + 1 + parent.adds + 1 + parent.colsout, subcolcb, pre, post, rootURI, [], [], parent.filters, loc.concat([launch]), !parent.even, parent.ftree, cmod), uid.subRowIn()) : (newb = ["col", [mod[1]], ["mod"]], npos = getTarg(parent.ftree, parent.loc, "add", newb), pre += " <a href='" + parent.rootURI + "#!/" + npos + "' " + "onClick='location.hash=\"#!/" + npos + "\";return false'><span title='See all' class='ui-icon ui-icon-search'></span></a>", res += pre + post, parent.callback(parent.rows + 1 + parent.adds + 1 + parent.colsout, res)));
                   }
                 }
-                j++;
-              }
+                return _results2;
+              })());
             }
-            _results.push(i++);
           }
           return _results;
         });
@@ -455,6 +441,7 @@
               trmres = [];
               trmsel = {};
               addftcb = function(statusCode, result, headers) {
+                var k;
                 res = "";
                 trmres.push(result.instances);
                 if (trms.length === trmres.length) {
@@ -565,7 +552,7 @@
                 trmres = [];
                 trmsel = {};
                 editftcb = function(statusCode, result, headers) {
-                  var respo, respr;
+                  var k, respo, respr;
                   res = "";
                   trmres.push(result.instances);
                   if (trms.length === trmres.length) {

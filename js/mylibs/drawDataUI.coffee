@@ -169,14 +169,10 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 			@targ = serverAPI(@about, @filters)
 			j = 3
 			#are there children with 'add' modifiers? huh?
-			while j < @branch.length
-				if @branch[j][0] == "ins" and @branch[j][1][0] == @about and @branch[j][1][1] == undefined
-					k = 1
+			for currBranch in @branch when currBranch[0] == "ins" and currBranch[1][0] == @about and currBranch[1][1] == undefined
+				for currBranchType in currBranch[2][1..] when currBranchType[0] == "add"
+					@adds++
 
-					while k < @branch[j][2].length
-						@adds++	if @branch[j][2][k][0] == "add"
-						k++
-				j++
 			#are there any subcollections?
 			for mod in cmod[1..] when mod[0] == "fcTp"
 				for col in mod[6] when col[1] == @about
@@ -250,61 +246,49 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 				parent.callback parent.rows, "<tr><td>" + "<hr style='border:0px; width:90%; background-color: #999; height:1px;'>" + "</td></tr>"
 				#launch more uids to render the adds
 				posl = parent.targ + "/" + parent.about
-				j = 3
 
-				while j < parent.branch.length
-					if parent.branch[j][0] == "ins" and parent.branch[j][1][0] == parent.about and parent.branch[j][1][1] == undefined
-						isadd = false
-						k = 1
-
-						while k < parent.branch[j][2].length
-							isadd = true	if parent.branch[j][2][k][0] == "add"
-							k++
-						if isadd
+				for j in [3...parent.branch.length]
+					currBranch = parent.branch[j]
+					if currBranch[0] == "ins" and currBranch[1][0] == parent.about and currBranch[1][1] == undefined
+						for currBranchType in currBranch[2] when currBranchType[0] == "add"
 							locn = parent.loc.concat([ j - 2 ])
 							uid = new uidraw(parent.rows + 1 + ++parent.addsout, parent, "<tr><td>", "</td></tr>", rootURI, [], [], parent.filters, locn, not parent.even, parent.ftree, cmod)
 							uid.subRowIn()
-					j++
+							break
+
 				parent.callback parent.rows + 1 + parent.adds + 1, "<tr><td>" + "<hr style='border:0px; width:90%; background-color: #999; height:1px;'>" + "</td></tr>"
-				i = 1
+
 				#launch a final callback to add the subcollections.
-				while i < cmod.length
-					if cmod[i][0] == "fcTp"
-						j = 0
-						while j < cmod[i][6].length
-							if cmod[i][6][j][1] == parent.about
-								launch = -1
-								j = 3
+				for mod in cmod[1..] when mod[0] == "fcTp"
+					for j in [0...mod[6].length] when mod[6][j][1] == parent.about
+						launch = -1
 
-								while j < parent.branch.length
-									if parent.branch[j][1][0] == cmod[i][1]
-										launch = j - 2
-										break
-									j++
-								parent.colsout++
-								res = ""
-								pre = "<tr id='tr--data--" + cmod[i][1] + "'><td>"
-								if launch == -1
-									pre += cmod[i][2]
-								else
-									pre += "<div style='display:inline;background-color:" + parent.unbg + "'>" + cmod[i][2] + "</div>"
-								post = "</td></tr>"
-								unless launch == -1
-									npos = getTarg(parent.ftree, parent.loc, "del", launch)
-									pre += "<div style='display:inline;background-color:" + parent.unbg + "'>" + " <a href='" + rootURI + "#!/" + npos + "' " + "onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a>" + "</div>"
-									subcolcb = callback: (n, prod) ->
-										parent.callback n, prod
+						for j in [3...parent.branch.length] when parent.branch[j][1][0] == mod[1]
+							launch = j - 2
+							break
 
-									uid = new uidraw(parent.rows + 1 + parent.adds + 1 + parent.colsout, subcolcb, pre, post, rootURI, [], [], parent.filters, loc.concat([ launch ]), not parent.even, parent.ftree, cmod)
-									uid.subRowIn()
-								else
-									newb = [ "col", [ cmod[i][1] ], [ "mod" ] ]
-									npos = getTarg(parent.ftree, parent.loc, "add", newb)
-									pre += " <a href='" + parent.rootURI + "#!/" + npos + "' " + "onClick='location.hash=\"#!/" + npos + "\";return false'><span title='See all' class='ui-icon ui-icon-search'></span></a>"
-									res += (pre + post)
-									parent.callback parent.rows + 1 + parent.adds + 1 + parent.colsout, res
-							j++
-					i++
+						parent.colsout++
+						res = ""
+						pre = "<tr id='tr--data--" + mod[1] + "'><td>"
+						if launch == -1
+							pre += mod[2]
+						else
+							pre += "<div style='display:inline;background-color:" + parent.unbg + "'>" + mod[2] + "</div>"
+						post = "</td></tr>"
+						if launch != -1
+							npos = getTarg(parent.ftree, parent.loc, "del", launch)
+							pre += "<div style='display:inline;background-color:" + parent.unbg + "'>" + " <a href='" + rootURI + "#!/" + npos + "' " + "onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a>" + "</div>"
+							subcolcb = callback: (n, prod) ->
+								parent.callback n, prod
+
+							uid = new uidraw(parent.rows + 1 + parent.adds + 1 + parent.colsout, subcolcb, pre, post, rootURI, [], [], parent.filters, loc.concat([ launch ]), not parent.even, parent.ftree, cmod)
+							uid.subRowIn()
+						else
+							newb = [ "col", [ mod[1] ], [ "mod" ] ]
+							npos = getTarg(parent.ftree, parent.loc, "add", newb)
+							pre += " <a href='" + parent.rootURI + "#!/" + npos + "' " + "onClick='location.hash=\"#!/" + npos + "\";return false'><span title='See all' class='ui-icon ui-icon-search'></span></a>"
+							res += (pre + post)
+							parent.callback parent.rows + 1 + parent.adds + 1 + parent.colsout, res
 		else if @branch[0] == "ins"
 			@items = 1
 			@pre += "<div class='panel' style='background-color:" + @bg + ";'>"
