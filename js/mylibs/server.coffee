@@ -105,7 +105,7 @@ else
 		}
 requirejs(["libs/inflection",
 		"../ometa-js/lib",
-		"../ometa-js/ometa-base"]);
+		"../ometa-js/ometa-base"])
 requirejs([
 	"mylibs/ometa-code/SBVRModels",
 	"mylibs/ometa-code/SBVRParser",
@@ -370,15 +370,15 @@ dataplusDELETE = (tree, headers, body, successCallback, failureCallback) ->
 			#CR posted to Lock
 			#insert delete entry
 			db.transaction (tx) ->
-				tx.executeSql 'DELETE FROM "conditional_representation" WHERE "lock_id"=' + id
+				tx.executeSql 'DELETE FROM "conditional_representation" WHERE "lock_id" = ?;', [id]
 				tx.executeSql 'INSERT INTO "conditional_representation" ("lock_id","field_name","field_type","field_value")' +
 							"VALUES (?,'__DELETE','','')", [id]
 		else
 			db.transaction ((tx) ->
-				tx.executeSql 'SELECT NOT EXISTS(SELECT * FROM "resource-is_under-lock" AS r WHERE r."resource_type" = ? AND r."resource_id"=?) AS result;', [tree[1][1], id], (tx, result) ->
+				tx.executeSql 'SELECT NOT EXISTS(SELECT * FROM "resource-is_under-lock" AS r WHERE r."resource_type" = ? AND r."resource_id" = ?) AS result;', [tree[1][1], id], (tx, result) ->
 					if result.rows.item(0).result == 1
 						tx.begin()
-						tx.executeSql 'DELETE FROM "' + tree[1][1] + '" WHERE id = ? ;', [id], (tx, result) ->
+						tx.executeSql 'DELETE FROM "' + tree[1][1] + '" WHERE id = ?;', [id], (tx, result) ->
 							validateDB tx, serverModelCache.getSQL(), ((tx, sqlmod, failureCallback, result) ->
 								tx.end()
 								successCallback 200, result
@@ -401,14 +401,14 @@ dataplusPUT = (tree, headers, body, successCallback, failureCallback) ->
 		#sql="INSERT INTO 'conditional_representation'('lock_id','field_name','field_type','field_value')"
 		#"VALUES ('','','','')"
 		db.transaction (tx) ->
-			tx.executeSql 'DELETE FROM "conditional_representation" WHERE "lock_id"=' + id
+			tx.executeSql 'DELETE FROM "conditional_representation" WHERE "lock_id" = ?;', [id]
 
 			for own item of ps
 				sql = "INSERT INTO 'conditional_representation'('lock_id'," +
 					"'field_name','field_type','field_value')" +
-					"VALUES ('" + ps[item][0] + "','" + ps[item][1] + "','" +
-					ps[item][2] + "','" + ps[item][3] + "')"
-				tx.executeSql sql, [], (tx, result) ->
+					"VALUES (?, ?, ?, ?)"
+				#TODO: Can we pass just ps[item] ?
+				tx.executeSql sql, [ps[item][0], ps[item][1], ps[item][2], ps[item][3]], (tx, result) ->
 	else
 		db.transaction ((tx) ->
 			tx.executeSql 'SELECT NOT EXISTS(SELECT * FROM "resource-is_under-lock" AS r WHERE r."resource_type" = ? AND r."resource_id" = ?) AS result;', [tree[1][1], id], (tx, result) ->
@@ -437,35 +437,21 @@ dataplusPOST = (tree, headers, body, successCallback, failureCallback) ->
 
 		#get all locks of transaction
 		db.transaction ((tx) ->
-			sql = 'SELECT * FROM "lock-belongs_to-transaction" WHERE "transaction_id"=' + id + ";"
-			tx.executeSql sql, [], (tx, locks) ->
+			tx.executeSql 'SELECT * FROM "lock-belongs_to-transaction" WHERE "transaction_id" = ?;', [id], (tx, locks) ->
 				endLock tx, locks, 0, id, successCallback, failureCallback
 		), (error) ->
 			db.transaction (tx) ->
-				sql = 'SELECT * FROM "lock-belongs_to-transaction" WHERE "transaction_id"=' + id + ";"
-				tx.executeSql sql, [], (tx, locks) ->
+				tx.executeSql 'SELECT * FROM "lock-belongs_to-transaction" WHERE "transaction_id" = ?;', [id], (tx, locks) ->
 					#for each lock, do cleanup
 					for i in [0...locks.rows.length]
 						lock_id = locks.rows.item(i).lock_id
-						sql = 'DELETE FROM "conditional_representation" WHERE "lock_id"=' + lock_id + ";"
-						tx.executeSql sql, [], (tx, result) ->
-
-						sql = 'DELETE FROM "lock-is_exclusive" WHERE "lock_id"=' + lock_id + ";"
-						tx.executeSql sql, [], (tx, result) ->
-
-						sql = 'DELETE FROM "lock-is_shared" WHERE "lock_id"=' + lock_id + ";"
-						tx.executeSql sql, [], (tx, result) ->
-
-						sql = 'DELETE FROM "resource-is_under-lock" WHERE "lock_id"=' + lock_id + ";"
-						tx.executeSql sql, [], (tx, result) ->
-
-						sql = 'DELETE FROM "lock-belongs_to-transaction" WHERE "lock_id"=' + lock_id + ";"
-						tx.executeSql sql, [], (tx, result) ->
-
-						sql = 'DELETE FROM "lock" WHERE "id"=' + lock_id + ";"
-						tx.executeSql sql, [], (tx, result) ->
-					sql = 'DELETE FROM "transaction" WHERE "id"=' + id + ";"
-					tx.executeSql sql, [], (tx, result) ->
+						tx.executeSql 'DELETE FROM "conditional_representation" WHERE "lock_id" = ?;', [lock_id]
+						tx.executeSql 'DELETE FROM "lock-is_exclusive" WHERE "lock_id" = ?;', [lock_id]
+						tx.executeSql 'DELETE FROM "lock-is_shared" WHERE "lock_id" = ?;', [lock_id]
+						tx.executeSql 'DELETE FROM "resource-is_under-lock" WHERE "lock_id" = ?;', [lock_id]
+						tx.executeSql 'DELETE FROM "lock-belongs_to-transaction" WHERE "lock_id" = ?;', [lock_id]
+						tx.executeSql 'DELETE FROM "lock" WHERE "id" = ?;', [lock_id]
+					tx.executeSql 'DELETE FROM "transaction" WHERE "id" = ?;', [lock_id]
 	else
 		bd = JSON.parse(body)
 		fds = []
@@ -572,8 +558,7 @@ dataplusGET = (tree, headers, body, successCallback, failureCallback) ->
 endLock = (tx, locks, i, trans_id, successCallback, failureCallback) ->
 	#get conditional representations (if exist)
 	lock_id = locks.rows.item(i).lock_id
-	sql = 'SELECT * FROM "conditional_representation" WHERE "lock_id"=' + lock_id + ';'
-	tx.executeSql sql, [], (tx, crs) ->
+	tx.executeSql 'SELECT * FROM "conditional_representation" WHERE "lock_id" = ?;', [lock_id], (tx, crs) ->
 		#find which resource is under this lock
 		tx.executeSql 'SELECT * FROM "resource-is_under-lock" WHERE "lock_id" = ?;', [crs.rows.item(0).lock_id], (tx, locked) ->
 			if crs.rows.item(0).field_name == "__DELETE"
@@ -605,29 +590,18 @@ endLock = (tx, locks, i, trans_id, successCallback, failureCallback) ->
 					if i < locks.rows.length - 1
 						endLock tx, locks, i + 1, trans_id, successCallback, failureCallback
 					else
-						sql = 'DELETE FROM "transaction" WHERE "id"=' + trans_id + ';'
-						tx.executeSql sql
+						tx.executeSql 'DELETE FROM "transaction" WHERE "id" = ?;', [trans_id]
 
 						validateDB tx, serverModelCache.getSQL(), ((tx, sqlmod, failureCallback, result) ->
 							successCallback 200, result
 						), failureCallback
-			sql = 'DELETE FROM "conditional_representation" WHERE "lock_id"=' + crs.rows.item(0).lock_id + ';'
-			tx.executeSql sql
+			tx.executeSql 'DELETE FROM "conditional_representation" WHERE "lock_id" = ?;', [crs.rows.item(0).lock_id]
+			tx.executeSql 'DELETE FROM "resource-is_under-lock" WHERE "lock_id" = ?;', [crs.rows.item(0).lock_id]
 
-			sql = 'DELETE FROM "resource-is_under-lock" WHERE "lock_id"=' + crs.rows.item(0).lock_id + ';'
-			tx.executeSql sql
-
-	sql = 'DELETE FROM "lock-is_shared" WHERE "lock_id"=' + lock_id + ';'
-	tx.executeSql sql
-
-	sql = 'DELETE FROM "lock-is_exclusive" WHERE "lock_id"=' + lock_id + ';'
-	tx.executeSql sql
-
-	sql = 'DELETE FROM "lock-belongs_to-transaction" WHERE "lock_id"=' + lock_id + ';'
-	tx.executeSql sql
-
-	sql = 'DELETE FROM "lock" WHERE "id"=' + lock_id + ';'
-	tx.executeSql sql
+	tx.executeSql 'DELETE FROM "lock-is_shared" WHERE "lock_id" = ?;', [lock_id]
+	tx.executeSql 'DELETE FROM "lock-is_exclusive" WHERE "lock_id" = ?;', [lock_id]
+	tx.executeSql 'DELETE FROM "lock-belongs_to-transaction" WHERE "lock_id" = ?;', [lock_id]
+	tx.executeSql 'DELETE FROM "lock" WHERE "id" = ?;', [lock_id]
 
 # successCallback = (tx, sqlmod, failureCallback, result)
 # failureCallback = (errors)
@@ -676,11 +650,11 @@ executeTasync = (tx, trnmod, successCallback, failureCallback, result) ->
 	executeSasync tx, trnmod, ((tx, trnmod, failureCallback, result) ->
 		#Hack: Add certain attributes to the transaction model tables. 
 		#This should eventually be done with SBVR, when we add attributes.
-		tx.executeSql 'ALTER TABLE "resource-is_under-lock" ADD COLUMN resource_type TEXT', []
-		tx.executeSql 'ALTER TABLE "conditional_representation" ADD COLUMN field_name TEXT', []
-		tx.executeSql 'ALTER TABLE "conditional_representation" ADD COLUMN field_value TEXT', []
-		tx.executeSql 'ALTER TABLE "conditional_representation" ADD COLUMN field_type TEXT', []
-		tx.executeSql 'ALTER TABLE "conditional_representation" ADD COLUMN lock_id TEXT', []
+		tx.executeSql 'ALTER TABLE "resource-is_under-lock" ADD COLUMN resource_type TEXT'
+		tx.executeSql 'ALTER TABLE "conditional_representation" ADD COLUMN field_name TEXT'
+		tx.executeSql 'ALTER TABLE "conditional_representation" ADD COLUMN field_value TEXT'
+		tx.executeSql 'ALTER TABLE "conditional_representation" ADD COLUMN field_type TEXT'
+		tx.executeSql 'ALTER TABLE "conditional_representation" ADD COLUMN lock_id TEXT'
 		successCallback tx, trnmod, failureCallback, result
 	), ((errors) ->
 		serverModelCache.setModelAreaDisabled false
