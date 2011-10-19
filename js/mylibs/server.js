@@ -793,8 +793,8 @@
           par *= result.rows.item(0).result;
           if (tot === tex) {
             if (par === 0) {
-              failureCallback(404, errors);
-              return tx.rollback();
+              tx.rollback();
+              return failureCallback(404, errors);
             } else {
               tx.end();
               return successCallback(tx, sqlmod, failureCallback, result);

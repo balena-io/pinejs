@@ -622,8 +622,8 @@ validateDB = (tx, sqlmod, successCallback, failureCallback) ->
 			par *= result.rows.item(0).result
 			if tot == tex
 				if par == 0
-					failureCallback 404, errors
 					tx.rollback()
+					failureCallback 404, errors
 				else
 					tx.end()
 					successCallback tx, sqlmod, failureCallback, result
