@@ -402,12 +402,11 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 								null
 				when "edit"
 					if @type == "term"
-						schm = ""
-						j = 1
+						schema = []
 
-						while j < cmod.length
-							schm = cmod[j][3]	if cmod[j][1] == @about
-							j++
+						for mod in cmod[1..] when mod[1] == @about
+							schema = mod[3]
+
 						@targ = serverAPI(@about, @filters)
 						serverRequest "GET", @targ, [], "", (statusCode, result, headers) ->
 							res = ""
@@ -420,15 +419,13 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 							res += "<input type='hidden' id='__id' value='" + id + "'>"
 							res += "<input type='hidden' id='__type' value='" + parent.about + "'>"
 							res += "id: " + id + "<br/>"
-							j = 0
 
-							while j < schm.length
-								switch schm[j][0]
+							for currSchema in schema
+								switch currSchema[0]
 									when "Text"
-										res += schm[j][2] + ": <input type='text' id='" + schm[j][1] + "' value = '" + result.instances[0][schm[j][1]] + "' /><br />"
+										res += schema[j][2] + ": <input type='text' id='" + currSchema[1] + "' value = '" + result.instances[0][currSchema[1]] + "' /><br />"
 									when "ForeignKey"
-										console.log schm[j]
-								j++
+										console.log currSchema
 							res += "<div align = 'right'>"
 							res += "<input type='submit' value='Submit This' " + "onClick='processForm(this.parentNode.parentNode);return false;'>"
 							res += "</div>"
@@ -456,31 +453,25 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 									console.log "editfctp backURI=" + serverAPI(parent.about, [])
 									respr += "<input type='hidden' id='__id' value='" + resu.instances[0].id + "'>"
 									respr += "<input type='hidden' id='__type' value='" + parent.about + "'>"
-									j = 0
 
-									while j < trms.length
+									for j in [0...trms.length]
 										res = "<select id='" + trms[j] + "_id'>"
-										k = 0
 										#Loop through options
-										while k < trmres[j].length
-											res += "<option value='" + trmres[j][k].id + "'"
+										for currTermRes in trmres[j]
+											res += "<option value='" + currTermRes.id + "'"
 											#if current value, print selected
-											res += " selected" if resu.instances[0][trms[j] + "_id"] == trmres[j][k].id
-											res += ">" + trmres[j][k].name + "</option>"
-											k++
+											res += " selected" if resu.instances[0][trms[j] + "_id"] == currTermRes.id
+											res += ">" + currTermRes[k].name + "</option>"
 										res += "</select>"
 										trmsel[trms[j]] = res
-										j++
 									#merge dropdowns with verbs to create 'form'
 									res = ""
 
-									j = 0
-									while j < parent.schema.length
-										if parent.schema[j][0] == "term"
-											res += trmsel[parent.schema[j][1]] + " "
-										else if parent.schema[j][0] == "verb"
+									for schema in parent.schema
+										if schema[0] == "term"
+											res += trmsel[schema[1]] + " "
+										else if schema[0] == "verb"
 											res += parent.schema[j][1] + " "
-										j++
 									#add submit button etc.
 									respo += "<div align = 'right'>"
 									respo += "<input type='submit' value='Submit This' " + "onClick='processForm(this.parentNode.parentNode);return false;'>"
@@ -489,22 +480,17 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 									respo += "</div>"
 									parent.callback 1, respr + res + respo
 
-							j = 0
-
 							#TODO: Again, need this be a separate loop?
-							while j < parent.schema.length
-								trms.push parent.schema[j][1]	if parent.schema[j][0] == "term"
-								j++
-							j = 0
+							for schema in parent.schema when schema[0] == "term"
+								trms.push schema[j][1]
 
 							#loop around terms
-							while j < parent.schema.length
-								if parent.schema[j][0] == "term"
-									tar = serverAPI(parent.schema[j][1], parent.filters)
+							for schema in parent.schema
+								if schema[0] == "term"
+									tar = serverAPI(schema[1], parent.filters)
 									serverRequest "GET", tar, [], "", editftcb
-								else	 if parent.schema[j][0] == "verb"
+								else	 if schema[0] == "verb"
 									null
-								j++
 				when "del"
 					#make this a function
 					res = "<div align='left'>"

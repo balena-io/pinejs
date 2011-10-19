@@ -177,7 +177,7 @@
       j++;
     }
     this.subRowIn = function() {
-      var actn, addftcb, branchType, col, currBranch, currBranchType, currSchema, instance, mod, parent, posl, res, schema, schm, tar, targ, trmres, trms, trmsel, _i, _j, _k, _l, _len, _len2, _len3, _len4, _len5, _len6, _len7, _len8, _len9, _m, _n, _o, _p, _q, _ref, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7, _ref8, _ref9, _results;
+      var actn, addftcb, branchType, col, currBranch, currBranchType, currSchema, instance, mod, parent, posl, res, schema, tar, targ, trmres, trms, trmsel, _i, _j, _k, _l, _len, _len10, _len2, _len3, _len4, _len5, _len6, _len7, _len8, _len9, _m, _n, _o, _p, _q, _r, _ref, _ref10, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7, _ref8, _ref9, _results;
       parent = this;
       if (this.branch[0] === "col") {
         this.pre += "<div class='panel' style='background-color:" + this.bg + ";'>" + "<table id='tbl--" + pid + "'><tbody>";
@@ -487,17 +487,17 @@
             break;
           case "edit":
             if (this.type === "term") {
-              schm = "";
-              j = 1;
-              while (j < cmod.length) {
-                if (cmod[j][1] === this.about) {
-                  schm = cmod[j][3];
+              schema = [];
+              _ref10 = cmod.slice(1);
+              for (_r = 0, _len10 = _ref10.length; _r < _len10; _r++) {
+                mod = _ref10[_r];
+                if (mod[1] === this.about) {
+                  schema = mod[3];
                 }
-                j++;
               }
               this.targ = serverAPI(this.about, this.filters);
               return serverRequest("GET", this.targ, [], "", function(statusCode, result, headers) {
-                var id;
+                var currSchema, id, _len11, _s;
                 res = "";
                 id = result.instances[0].id;
                 res = "<div align='left'>";
@@ -508,16 +508,15 @@
                 res += "<input type='hidden' id='__id' value='" + id + "'>";
                 res += "<input type='hidden' id='__type' value='" + parent.about + "'>";
                 res += "id: " + id + "<br/>";
-                j = 0;
-                while (j < schm.length) {
-                  switch (schm[j][0]) {
+                for (_s = 0, _len11 = schema.length; _s < _len11; _s++) {
+                  currSchema = schema[_s];
+                  switch (currSchema[0]) {
                     case "Text":
-                      res += schm[j][2] + ": <input type='text' id='" + schm[j][1] + "' value = '" + result.instances[0][schm[j][1]] + "' /><br />";
+                      res += schema[j][2] + ": <input type='text' id='" + currSchema[1] + "' value = '" + result.instances[0][currSchema[1]] + "' /><br />";
                       break;
                     case "ForeignKey":
-                      console.log(schm[j]);
+                      console.log(currSchema);
                   }
-                  j++;
                 }
                 res += "<div align = 'right'>";
                 res += "<input type='submit' value='Submit This' " + "onClick='processForm(this.parentNode.parentNode);return false;'>";
@@ -529,13 +528,13 @@
             } else if (this.type === "fcTp") {
               this.targ = serverAPI(this.about, this.filters);
               return serverRequest("GET", targ, [], "", function(statusCode, result, headers) {
-                var editftcb, resu, _results2;
+                var editftcb, resu, schema, _len11, _len12, _ref11, _ref12, _results2, _s, _t;
                 resu = result;
                 trms = [];
                 trmres = [];
                 trmsel = {};
                 editftcb = function(statusCode, result, headers) {
-                  var k, respo, respr;
+                  var currTermRes, j, respo, respr, schema, _len11, _len12, _ref11, _ref12, _ref13, _s, _t;
                   res = "";
                   trmres.push(result.instances);
                   if (trms.length === trmres.length) {
@@ -548,31 +547,29 @@
                     console.log("editfctp backURI=" + serverAPI(parent.about, []));
                     respr += "<input type='hidden' id='__id' value='" + resu.instances[0].id + "'>";
                     respr += "<input type='hidden' id='__type' value='" + parent.about + "'>";
-                    j = 0;
-                    while (j < trms.length) {
+                    for (j = 0, _ref11 = trms.length; 0 <= _ref11 ? j < _ref11 : j > _ref11; 0 <= _ref11 ? j++ : j--) {
                       res = "<select id='" + trms[j] + "_id'>";
-                      k = 0;
-                      while (k < trmres[j].length) {
-                        res += "<option value='" + trmres[j][k].id + "'";
-                        if (resu.instances[0][trms[j] + "_id"] === trmres[j][k].id) {
+                      _ref12 = trmres[j];
+                      for (_s = 0, _len11 = _ref12.length; _s < _len11; _s++) {
+                        currTermRes = _ref12[_s];
+                        res += "<option value='" + currTermRes.id + "'";
+                        if (resu.instances[0][trms[j] + "_id"] === currTermRes.id) {
                           res += " selected";
                         }
-                        res += ">" + trmres[j][k].name + "</option>";
-                        k++;
+                        res += ">" + currTermRes[k].name + "</option>";
                       }
                       res += "</select>";
                       trmsel[trms[j]] = res;
-                      j++;
                     }
                     res = "";
-                    j = 0;
-                    while (j < parent.schema.length) {
-                      if (parent.schema[j][0] === "term") {
-                        res += trmsel[parent.schema[j][1]] + " ";
-                      } else if (parent.schema[j][0] === "verb") {
+                    _ref13 = parent.schema;
+                    for (_t = 0, _len12 = _ref13.length; _t < _len12; _t++) {
+                      schema = _ref13[_t];
+                      if (schema[0] === "term") {
+                        res += trmsel[schema[1]] + " ";
+                      } else if (schema[0] === "verb") {
                         res += parent.schema[j][1] + " ";
                       }
-                      j++;
                     }
                     respo += "<div align = 'right'>";
                     respo += "<input type='submit' value='Submit This' " + "onClick='processForm(this.parentNode.parentNode);return false;'>";
@@ -582,23 +579,18 @@
                     return parent.callback(1, respr + res + respo);
                   }
                 };
-                j = 0;
-                while (j < parent.schema.length) {
-                  if (parent.schema[j][0] === "term") {
-                    trms.push(parent.schema[j][1]);
+                _ref11 = parent.schema;
+                for (_s = 0, _len11 = _ref11.length; _s < _len11; _s++) {
+                  schema = _ref11[_s];
+                  if (schema[0] === "term") {
+                    trms.push(schema[j][1]);
                   }
-                  j++;
                 }
-                j = 0;
+                _ref12 = parent.schema;
                 _results2 = [];
-                while (j < parent.schema.length) {
-                  if (parent.schema[j][0] === "term") {
-                    tar = serverAPI(parent.schema[j][1], parent.filters);
-                    serverRequest("GET", tar, [], "", editftcb);
-                  } else if (parent.schema[j][0] === "verb") {
-                    null;
-                  }
-                  _results2.push(j++);
+                for (_t = 0, _len12 = _ref12.length; _t < _len12; _t++) {
+                  schema = _ref12[_t];
+                  _results2.push(schema[0] === "term" ? (tar = serverAPI(schema[1], parent.filters), serverRequest("GET", tar, [], "", editftcb)) : schema[0] === "verb" ? null : void 0);
                 }
                 return _results2;
               });
