@@ -297,41 +297,34 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 			posl = targ
 			@id = @branch[1][1]
 			actn = "view"
-			i = 1
+
 			#find first action.
-			while i < @branch[2].length
-				if @branch[2][i][0] == "add"
-					actn = "add"
-					break
-				else if @branch[2][i][0] == "edit"
-					actn = "edit"
-					break
-				else if @branch[2][i][0] == "del"
-					actn = "del"
-					break
-				i++
+			for branchType in @branch[2][1..] when branchType[0] in ["add", "edit", "del"]
+				actn = branchType[0]
+				break
+
 			switch actn
 				when "view"
+					instance = result.instances[0]
 					if @type == "term"
 						@targ = serverAPI(@about, @filters)
 						serverRequest "GET", @targ, [], "", (statusCode, result, headers) ->
 							res = ""
 
-							for item of result.instances[0]
-								res += item + ": " + result.instances[0][item] + "<br/>"	unless item == "__clone"
+							for item of instance when item != "__clone"
+								res += item + ": " + instance[item] + "<br/>"
 							parent.callback 1, res
 					else if @type == "fcTp"
 						@targ = serverAPI(@about, @filters)
 						serverRequest "GET", @targ, [], "", (statusCode, result, headers) ->
 							res = ""
-							res += "id: " + result.instances[0].id + "<br/>"
-							j = 0
+							res += "id: " + instance.id + "<br/>"
 							#loop around terms
-							while j < parent.schema.length
-								if parent.schema[j][0] == "term"
-									res += result.instances[0][parent.schema[j][1] + "_name"] + " "
-								else res += parent.schema[j][1] + " "	if parent.schema[j][0] == "verb"
-								j++
+							for schema in parent.schema
+								if schema[0] == "term"
+									res += instance[schema[1] + "_name"] + " "
+								else if schema[0] == "verb"
+									res += schema[1] + " "
 							parent.callback 1, res
 				when "add"
 					if @type == "term"

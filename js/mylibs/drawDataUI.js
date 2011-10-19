@@ -177,7 +177,7 @@
       j++;
     }
     this.subRowIn = function() {
-      var actn, addftcb, col, currBranch, currBranchType, i, mod, parent, posl, res, schm, tar, targ, trmres, trms, trmsel, _i, _j, _k, _l, _len, _len2, _len3, _len4, _ref, _ref2, _ref3, _ref4, _results;
+      var actn, addftcb, branchType, col, currBranch, currBranchType, instance, mod, parent, posl, res, schm, tar, targ, trmres, trms, trmsel, _i, _j, _k, _l, _len, _len2, _len3, _len4, _len5, _m, _ref, _ref2, _ref3, _ref4, _ref5, _ref6, _results;
       parent = this;
       if (this.branch[0] === "col") {
         this.pre += "<div class='panel' style='background-color:" + this.bg + ";'>" + "<table id='tbl--" + pid + "'><tbody>";
@@ -355,30 +355,25 @@
         posl = targ;
         this.id = this.branch[1][1];
         actn = "view";
-        i = 1;
-        while (i < this.branch[2].length) {
-          if (this.branch[2][i][0] === "add") {
-            actn = "add";
-            break;
-          } else if (this.branch[2][i][0] === "edit") {
-            actn = "edit";
-            break;
-          } else if (this.branch[2][i][0] === "del") {
-            actn = "del";
+        _ref5 = this.branch[2].slice(1);
+        for (_m = 0, _len5 = _ref5.length; _m < _len5; _m++) {
+          branchType = _ref5[_m];
+          if ((_ref6 = branchType[0]) === "add" || _ref6 === "edit" || _ref6 === "del") {
+            actn = branchType[0];
             break;
           }
-          i++;
         }
         switch (actn) {
           case "view":
+            instance = result.instances[0];
             if (this.type === "term") {
               this.targ = serverAPI(this.about, this.filters);
               return serverRequest("GET", this.targ, [], "", function(statusCode, result, headers) {
                 var item, res;
                 res = "";
-                for (item in result.instances[0]) {
+                for (item in instance) {
                   if (item !== "__clone") {
-                    res += item + ": " + result.instances[0][item] + "<br/>";
+                    res += item + ": " + instance[item] + "<br/>";
                   }
                 }
                 return parent.callback(1, res);
@@ -386,19 +381,17 @@
             } else if (this.type === "fcTp") {
               this.targ = serverAPI(this.about, this.filters);
               return serverRequest("GET", this.targ, [], "", function(statusCode, result, headers) {
-                var res;
+                var res, schema, _len6, _n, _ref7;
                 res = "";
-                res += "id: " + result.instances[0].id + "<br/>";
-                j = 0;
-                while (j < parent.schema.length) {
-                  if (parent.schema[j][0] === "term") {
-                    res += result.instances[0][parent.schema[j][1] + "_name"] + " ";
-                  } else {
-                    if (parent.schema[j][0] === "verb") {
-                      res += parent.schema[j][1] + " ";
-                    }
+                res += "id: " + instance.id + "<br/>";
+                _ref7 = parent.schema;
+                for (_n = 0, _len6 = _ref7.length; _n < _len6; _n++) {
+                  schema = _ref7[_n];
+                  if (schema[0] === "term") {
+                    res += instance[schema[1] + "_name"] + " ";
+                  } else if (schema[0] === "verb") {
+                    res += schema[1] + " ";
                   }
-                  j++;
                 }
                 return parent.callback(1, res);
               });
