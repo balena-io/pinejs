@@ -634,8 +634,8 @@ validateDB = (tx, sqlmod, successCallback, failureCallback) ->
 # failureCallback = (errors)
 executeSasync = (tx, sqlmod, successCallback, failureCallback, result) ->
 	#Create tables related to terms and fact types
-	for row in sqlmod
-		tx.executeSql row[4] if row[0] in ["fcTp", "term"]
+	for row in sqlmod when row[0] in ["fcTp", "term"]
+		tx.executeSql row[4]
 
 	#Validate the [empty] model according to the rules. 
 	#This may eventually lead to entering obligatory data.
@@ -666,8 +666,8 @@ updateRules = (sqlmod) ->
 	#Create tables related to terms and fact types
 	#if not exists clause makes sure table is not double-created,
 	#tho this should be dealt with more elegantly.
-	for row in sqlmod
-		tx.executeSql row[4] if row[0] in ["fcTp", "term"]
+	for row in sqlmod when row[0] in ["fcTp", "term"]
+		tx.executeSql row[4]
 
 	#Validate the [empty] model according to the rules. 
 	#This may eventually lead to entering obligatory data.
@@ -675,9 +675,9 @@ updateRules = (sqlmod) ->
 	for row in sqlmod when row[0] == "rule"
 		query = row[4]
 		l[++m] = row[2]
-		tx.executeSql query, [], ((tx, result) ->
+		tx.executeSql query, [], (tx, result) ->
 			alert "Error: " + l[++k] if result.rows.item(0)["result"] == 0
-		), null
+		
 
 getFTree = (tree) ->
 	if tree[1][0] == "term"
@@ -702,14 +702,13 @@ getID = (tree) ->
 
 hasCR = (tree) ->
 	#figure out if this is a CR posted to a Lock
-	for f in getFTree tree
-		if f[0] == "cr"
-			return true
+	for f in getFTree(tree) when f[0] == "cr"
+		return true
 	return false
 
 isExecute = (tree) ->
-	for f in getFTree tree when f[0] == "execute"
-			return true
+	for f in getFTree(tree) when f[0] == "execute"
+		return true
 	return false
 
 if process?

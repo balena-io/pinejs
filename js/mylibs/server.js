@@ -844,11 +844,11 @@
       if (row[0] === "rule") {
         query = row[4];
         l[++m] = row[2];
-        _results.push(tx.executeSql(query, [], (function(tx, result) {
+        _results.push(tx.executeSql(query, [], function(tx, result) {
           if (result.rows.item(0)["result"] === 0) {
             return alert("Error: " + l[++k]);
           }
-        }), null));
+        }));
       }
     }
     return _results;
