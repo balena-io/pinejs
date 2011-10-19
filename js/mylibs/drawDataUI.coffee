@@ -177,15 +177,11 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 						@adds++	if @branch[j][2][k][0] == "add"
 						k++
 				j++
-			i = 1
 			#are there any subcollections?
-			while i < cmod.length
-				if cmod[i][0] == "fcTp"
-					j = 0
-					while j < cmod[i][6].length
-						@cols++	if cmod[i][6][j][1] == @about
-						j++
-				i++
+			for mod in cmod[1..] when mod[0] == "fcTp"
+				for col in mod[6] when col[1] == @about
+					@cols++
+
 			serverRequest "GET", @targ, [], "", (statusCode, result, headers) ->
 				resl = ""
 				parent.rows = result.instances.length
@@ -194,70 +190,63 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 				newb = [ "ins", [ parent.about ], [ "mod", [ "add" ] ] ]
 				npos = getTarg(parent.ftree, parent.loc, "add", newb)
 				parent.data.push [ parent.rows + 1, "<tr><td><a href = '" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false;'>" + "[(+)add new]</a></td></tr>" ]
-				i = 0
+
 				#render each child and call back
-				while i < result.instances.length
+				for i in [0...result.instances.length]
+					instance = result.instances[i]
 					launch = -1
 					actn = "view"
-					j = 3
 
-					while j < parent.branch.length
-						if parent.branch[j][0] == "ins" and parent.branch[j][1][0] == parent.about and (parent.branch[j][1][1] == result.instances[i].id or parent.branch[j][1][1] == result.instances[i].name) and parent.branch[j][1][1] != undefined
+					for j in [3...parent.branch.length]
+						currBranch = parent.branch[j]
+						if currBranch[0] == "ins" and currBranch[1][0] == parent.about and currBranch[1][1] != undefined and (currBranch[1][1] == instance.id or currBranch[1][1] == instance.name)
 							launch = j
-							k = 1
 							#find action.
-							while k < parent.branch[j][2].length
-								if parent.branch[j][2][k][0] == "edit"
-									actn = "edit"
-									break
-								if parent.branch[j][2][k][0] == "del"
-									actn = "del"
-									break
-								k++
-						j++
-					posl = parent.targ + "/" + parent.about + "." + result.instances[i].id
-					prel = "<tr id='tr--" + pid + "--" + result.instances[i].id + "'><td>"
+							for currBranchType in currBranch[2][1..] when currBranchType[0] in ["edit","del"]
+								actn = currBranchType[0]
+								break
+					posl = parent.targ + "/" + parent.about + "." + instance.id
+					prel = "<tr id='tr--" + pid + "--" + instance.id + "'><td>"
 					prel += "<div style='display:inline;background-color:" + parent.unbg + "'>"	unless launch == -1
 					if parent.type == "term"
-						prel += result.instances[i].name
+						prel += instance.name
 					else if parent.type == "fcTp"
-						j = 0
+						for schema in parent.schema
+							if schema[0] == "term"
+								prel += instance[schema[1] + "_name"] + " "
+							else if schema[0] == "verb"
+								prel += "<em>" + schema[1] + "</em> "
 
-						while j < parent.schema.length
-							if parent.schema[j][0] == "term"
-								prel += result.instances[i][parent.schema[j][1] + "_name"] + " "
-							else prel += "<em>" + parent.schema[j][1] + "</em> "	if parent.schema[j][0] == "verb"
-							j++
-					prel += "</div>"	unless launch == -1
+					prel += "</div>" unless launch == -1
 					if launch != -1 and actn == "view"
 						npos = getTarg(parent.ftree, parent.loc, "del", launch - 2)
 						prel += "<div style='display:inline;background-color:" + parent.unbg + "'> <a href='" + rootURI + "#!/" + npos + "' " + "onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a></div>"
 					else if launch == -1
-						newb = [ "ins", [ parent.about, result.instances[i].id ], [ "mod" ] ]
+						newb = [ "ins", [ parent.about, instance.id ], [ "mod" ] ]
 						npos = getTarg(parent.ftree, parent.loc, "add", newb)
 						prel += " <a href='" + rootURI + "#!/" + npos + "' " + "onClick='location.hash=\"#!/" + npos + "\";return false'><span title='View' class='ui-icon ui-icon-search'></span></a>"
 					if launch != -1 and actn == "edit"
 						npos = getTarg(parent.ftree, parent.loc, "del", launch - 2)
 						prel += "<div style='display:inline;background-color:" + parent.unbg + "'> <a href='" + rootURI + "#!/" + npos + "' " + "onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a></div>"
 					else if launch == -1
-						newb = [ "ins", [ parent.about, result.instances[i].id ], [ "mod", [ "edit" ] ] ]
+						newb = [ "ins", [ parent.about, instance.id ], [ "mod", [ "edit" ] ] ]
 						npos = getTarg(parent.ftree, parent.loc, "add", newb)
 						prel += " <a href='" + rootURI + "#!/" + npos + "' " + "onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Edit' class='ui-icon ui-icon-pencil'></span></a>"
 					if launch != -1 and actn == "del"
 						npos = getTarg(parent.ftree, parent.loc, "del", launch - 2)
 						prel += "<div style='display:inline;background-color:" + parent.unbg + "'> <a href='" + rootURI + "#!/" + npos + "' " + "onClick='location.hash=\"#!/" + npos + "\";return false'>[unmark]</a></div>"
 					else if launch == -1
-						newb = [ "ins", [ parent.about, result.instances[i].id ], [ "mod", [ "del" ] ] ]
+						newb = [ "ins", [ parent.about, instance.id ], [ "mod", [ "del" ] ] ]
 						npos = getTarg(parent.ftree, parent.loc, "add", newb)
 						prel += " <a href='" + rootURI + "#!/" + npos + "' " + "onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Delete' class='ui-icon ui-icon-trash'></span></a>"
 					postl = "</td></tr>"
-					unless launch == -1
+					if launch != -1
 						locn = parent.loc.concat([ launch - 2 ])
 						uid = new uidraw(i, parent, prel, postl, rootURI, [], [], parent.filters, locn, not parent.even, parent.ftree, cmod)
 						uid.subRowIn()
 					else
 						parent.callback i, prel + postl
-					i++
+
 				parent.callback parent.rows, "<tr><td>" + "<hr style='border:0px; width:90%; background-color: #999; height:1px;'>" + "</td></tr>"
 				#launch more uids to render the adds
 				posl = parent.targ + "/" + parent.about

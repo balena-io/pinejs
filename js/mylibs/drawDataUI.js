@@ -177,7 +177,7 @@
       j++;
     }
     this.subRowIn = function() {
-      var actn, addftcb, i, k, parent, posl, res, schm, tar, targ, trmres, trms, trmsel, _results;
+      var actn, addftcb, col, i, k, mod, parent, posl, res, schm, tar, targ, trmres, trms, trmsel, _i, _j, _len, _len2, _ref, _ref2, _results;
       parent = this;
       if (this.branch[0] === "col") {
         this.pre += "<div class='panel' style='background-color:" + this.bg + ";'>" + "<table id='tbl--" + pid + "'><tbody>";
@@ -196,68 +196,61 @@
           }
           j++;
         }
-        i = 1;
-        while (i < cmod.length) {
-          if (cmod[i][0] === "fcTp") {
-            j = 0;
-            while (j < cmod[i][6].length) {
-              if (cmod[i][6][j][1] === this.about) {
+        _ref = cmod.slice(1);
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          mod = _ref[_i];
+          if (mod[0] === "fcTp") {
+            _ref2 = mod[6];
+            for (_j = 0, _len2 = _ref2.length; _j < _len2; _j++) {
+              col = _ref2[_j];
+              if (col[1] === this.about) {
                 this.cols++;
               }
-              j++;
             }
           }
-          i++;
         }
         return serverRequest("GET", this.targ, [], "", function(statusCode, result, headers) {
-          var actn, isadd, launch, locn, newb, npos, posl, postl, prel, res, resl, subcolcb, uid, _results;
+          var actn, currBranch, currBranchType, i, instance, isadd, j, launch, locn, newb, npos, posl, postl, prel, res, resl, schema, subcolcb, uid, _k, _l, _len3, _len4, _ref3, _ref4, _ref5, _ref6, _ref7, _results;
           resl = "";
           parent.rows = result.instances.length;
           parent.items = parent.rows + 2 + parent.adds + 1 + parent.cols;
           newb = ["ins", [parent.about], ["mod", ["add"]]];
           npos = getTarg(parent.ftree, parent.loc, "add", newb);
           parent.data.push([parent.rows + 1, "<tr><td><a href = '" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false;'>" + "[(+)add new]</a></td></tr>"]);
-          i = 0;
-          while (i < result.instances.length) {
+          for (i = 0, _ref3 = result.instances.length; 0 <= _ref3 ? i < _ref3 : i > _ref3; 0 <= _ref3 ? i++ : i--) {
+            instance = result.instances[i];
             launch = -1;
             actn = "view";
-            j = 3;
-            while (j < parent.branch.length) {
-              if (parent.branch[j][0] === "ins" && parent.branch[j][1][0] === parent.about && (parent.branch[j][1][1] === result.instances[i].id || parent.branch[j][1][1] === result.instances[i].name) && parent.branch[j][1][1] !== void 0) {
+            for (j = 3, _ref4 = parent.branch.length; 3 <= _ref4 ? j < _ref4 : j > _ref4; 3 <= _ref4 ? j++ : j--) {
+              currBranch = parent.branch[j];
+              if (currBranch[0] === "ins" && currBranch[1][0] === parent.about && currBranch[1][1] !== void 0 && (currBranch[1][1] === instance.id || currBranch[1][1] === instance.name)) {
                 launch = j;
-                k = 1;
-                while (k < parent.branch[j][2].length) {
-                  if (parent.branch[j][2][k][0] === "edit") {
-                    actn = "edit";
+                _ref5 = currBranch[2].slice(1);
+                for (_k = 0, _len3 = _ref5.length; _k < _len3; _k++) {
+                  currBranchType = _ref5[_k];
+                  if ((_ref6 = currBranchType[0]) === "edit" || _ref6 === "del") {
+                    actn = currBranchType[0];
                     break;
                   }
-                  if (parent.branch[j][2][k][0] === "del") {
-                    actn = "del";
-                    break;
-                  }
-                  k++;
                 }
               }
-              j++;
             }
-            posl = parent.targ + "/" + parent.about + "." + result.instances[i].id;
-            prel = "<tr id='tr--" + pid + "--" + result.instances[i].id + "'><td>";
+            posl = parent.targ + "/" + parent.about + "." + instance.id;
+            prel = "<tr id='tr--" + pid + "--" + instance.id + "'><td>";
             if (launch !== -1) {
               prel += "<div style='display:inline;background-color:" + parent.unbg + "'>";
             }
             if (parent.type === "term") {
-              prel += result.instances[i].name;
+              prel += instance.name;
             } else if (parent.type === "fcTp") {
-              j = 0;
-              while (j < parent.schema.length) {
-                if (parent.schema[j][0] === "term") {
-                  prel += result.instances[i][parent.schema[j][1] + "_name"] + " ";
-                } else {
-                  if (parent.schema[j][0] === "verb") {
-                    prel += "<em>" + parent.schema[j][1] + "</em> ";
-                  }
+              _ref7 = parent.schema;
+              for (_l = 0, _len4 = _ref7.length; _l < _len4; _l++) {
+                schema = _ref7[_l];
+                if (schema[0] === "term") {
+                  prel += instance[schema[1] + "_name"] + " ";
+                } else if (schema[0] === "verb") {
+                  prel += "<em>" + schema[1] + "</em> ";
                 }
-                j++;
               }
             }
             if (launch !== -1) {
@@ -267,7 +260,7 @@
               npos = getTarg(parent.ftree, parent.loc, "del", launch - 2);
               prel += "<div style='display:inline;background-color:" + parent.unbg + "'> <a href='" + rootURI + "#!/" + npos + "' " + "onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a></div>";
             } else if (launch === -1) {
-              newb = ["ins", [parent.about, result.instances[i].id], ["mod"]];
+              newb = ["ins", [parent.about, instance.id], ["mod"]];
               npos = getTarg(parent.ftree, parent.loc, "add", newb);
               prel += " <a href='" + rootURI + "#!/" + npos + "' " + "onClick='location.hash=\"#!/" + npos + "\";return false'><span title='View' class='ui-icon ui-icon-search'></span></a>";
             }
@@ -275,7 +268,7 @@
               npos = getTarg(parent.ftree, parent.loc, "del", launch - 2);
               prel += "<div style='display:inline;background-color:" + parent.unbg + "'> <a href='" + rootURI + "#!/" + npos + "' " + "onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a></div>";
             } else if (launch === -1) {
-              newb = ["ins", [parent.about, result.instances[i].id], ["mod", ["edit"]]];
+              newb = ["ins", [parent.about, instance.id], ["mod", ["edit"]]];
               npos = getTarg(parent.ftree, parent.loc, "add", newb);
               prel += " <a href='" + rootURI + "#!/" + npos + "' " + "onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Edit' class='ui-icon ui-icon-pencil'></span></a>";
             }
@@ -283,7 +276,7 @@
               npos = getTarg(parent.ftree, parent.loc, "del", launch - 2);
               prel += "<div style='display:inline;background-color:" + parent.unbg + "'> <a href='" + rootURI + "#!/" + npos + "' " + "onClick='location.hash=\"#!/" + npos + "\";return false'>[unmark]</a></div>";
             } else if (launch === -1) {
-              newb = ["ins", [parent.about, result.instances[i].id], ["mod", ["del"]]];
+              newb = ["ins", [parent.about, instance.id], ["mod", ["del"]]];
               npos = getTarg(parent.ftree, parent.loc, "add", newb);
               prel += " <a href='" + rootURI + "#!/" + npos + "' " + "onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Delete' class='ui-icon ui-icon-trash'></span></a>";
             }
@@ -295,7 +288,6 @@
             } else {
               parent.callback(i, prel + postl);
             }
-            i++;
           }
           parent.callback(parent.rows, "<tr><td>" + "<hr style='border:0px; width:90%; background-color: #999; height:1px;'>" + "</td></tr>");
           posl = parent.targ + "/" + parent.about;
