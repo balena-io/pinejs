@@ -795,23 +795,21 @@ exportDB = (sqlElem) ->
 
 backupDB = ->
 	db.transaction (tx) ->
-		tx.executeSql("SELECT name FROM sqlite_master WHERE type='table';", [], (tx, result) ->
+		tx.executeSql("SELECT name FROM sqlite_master WHERE type='table' AND name !='__WebKitDatabaseInfoTable__' AND name NOT LIKE '%_buk';", [], (tx, result) ->
 			for i in [0...result.rows.length]
 				tbn = result.rows.item(i).name
-				if tbn != '__WebKitDatabaseInfoTable__' and tbn.slice(-4) != "_buk"
-					tx.dropTable(tbn + '_buk', true)
-					tx.executeSql 'ALTER TABLE "' + tbn + '" RENAME TO "' + tbn + '_buk";'
+				tx.dropTable(tbn + '_buk', true)
+				tx.executeSql 'ALTER TABLE "' + tbn + '" RENAME TO "' + tbn + '_buk";'
 		)
 
 
 restoreDB = ->
 	db.transaction (tx) ->
-		tx.executeSql("SELECT name FROM sqlite_master WHERE type='table';", [], (tx, result) ->
+		tx.executeSql("SELECT name FROM sqlite_master WHERE type='table' AND name LIKE '%_buk';", [], (tx, result) ->
 			for i in [0...result.rows.length]
 				tbn = result.rows.item(i).name
-				if tbn.slice(-4) == "_buk"
-					tx.dropTable(tbn[0...-4], true)
-					tx.executeSql 'ALTER TABLE "' + tbn + '" RENAME TO "' + tbn[0...-4] + '";'
+				tx.dropTable(tbn[0...-4], true)
+				tx.executeSql 'ALTER TABLE "' + tbn + '" RENAME TO "' + tbn[0...-4] + '";'
 		)
 
 window?.remoteServerRequest = remoteServerRequest

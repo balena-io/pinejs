@@ -1009,12 +1009,13 @@
   };
   backupDB = function() {
     return db.transaction(function(tx) {
-      return tx.executeSql("SELECT name FROM sqlite_master WHERE type='table';", [], function(tx, result) {
+      return tx.executeSql("SELECT name FROM sqlite_master WHERE type='table' AND name !='__WebKitDatabaseInfoTable__' AND name NOT LIKE '%_buk';", [], function(tx, result) {
         var i, tbn, _ref, _results;
         _results = [];
         for (i = 0, _ref = result.rows.length; 0 <= _ref ? i < _ref : i > _ref; 0 <= _ref ? i++ : i--) {
           tbn = result.rows.item(i).name;
-          _results.push(tbn !== '__WebKitDatabaseInfoTable__' && tbn.slice(-4) !== "_buk" ? (tx.dropTable(tbn + '_buk', true), tx.executeSql('ALTER TABLE "' + tbn + '" RENAME TO "' + tbn + '_buk";')) : void 0);
+          tx.dropTable(tbn + '_buk', true);
+          _results.push(tx.executeSql('ALTER TABLE "' + tbn + '" RENAME TO "' + tbn + '_buk";'));
         }
         return _results;
       });
@@ -1022,12 +1023,13 @@
   };
   restoreDB = function() {
     return db.transaction(function(tx) {
-      return tx.executeSql("SELECT name FROM sqlite_master WHERE type='table';", [], function(tx, result) {
+      return tx.executeSql("SELECT name FROM sqlite_master WHERE type='table' AND name LIKE '%_buk';", [], function(tx, result) {
         var i, tbn, _ref, _results;
         _results = [];
         for (i = 0, _ref = result.rows.length; 0 <= _ref ? i < _ref : i > _ref; 0 <= _ref ? i++ : i--) {
           tbn = result.rows.item(i).name;
-          _results.push(tbn.slice(-4) === "_buk" ? (tx.dropTable(tbn.slice(0, -4), true), tx.executeSql('ALTER TABLE "' + tbn + '" RENAME TO "' + tbn.slice(0, -4) + '";')) : void 0);
+          tx.dropTable(tbn.slice(0, -4), true);
+          _results.push(tx.executeSql('ALTER TABLE "' + tbn + '" RENAME TO "' + tbn.slice(0, -4) + '";'));
         }
         return _results;
       });
