@@ -100,7 +100,7 @@
         }
         pre = "<tr id='tr--data--" + term.id + "'><td>";
         post = "</td></tr>";
-        _results.push(launch !== -1 ? (npos = getTarg(tree, [], "del", launch - 2), pre += "<div style='display:inline; background-color:#FFFFFF; " + "'>" + term.name + "</div>", pre += "<div style='display:inline;background-color:#FFFFFF" + "'> " + "<a href='" + rootURI + "#!/" + npos + "' " + "onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a></div>", (function(i, objcb, pre, post, launch) {
+        _results.push(launch !== -1 ? (npos = getTarg(tree, [], "del", launch - 2), pre += "<div style='display:inline; background-color:#FFFFFF; " + "'>" + term.name + "</div>", pre += "<div style='display:inline;background-color:#FFFFFF" + "'> " + "<a href='" + rootURI + "#!/" + npos + "' " + "onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a></div>", (function(i, pre, post, launch) {
           return serverRequest("GET", "/model/", [], "", function(statusCode, result) {
             var model, uid;
             model = SBVRParser.matchAll(result, "expr");
@@ -109,7 +109,7 @@
             uid = new uidraw(i, objcb, pre, post, rootURI, [], [], filters, [launch - 2], true, tree, model);
             return uid.subRowIn();
           });
-        })(i, objcb, pre, post, launch)) : (newb = ["col", [term.id], ["mod"]], npos = getTarg(tree, [], "add", newb), pre += term.name, pre += " <a href='" + rootURI + "#!/" + npos + "' " + "onClick='location.hash=\"#!/" + npos + "\";return false'><span title='See all' class='ui-icon ui-icon-search'></span></a>", objcb.callback(i, pre + post)));
+        })(i, pre, post, launch)) : (newb = ["col", [term.id], ["mod"]], npos = getTarg(tree, [], "add", newb), pre += term.name, pre += " <a href='" + rootURI + "#!/" + npos + "' " + "onClick='location.hash=\"#!/" + npos + "\";return false'><span title='See all' class='ui-icon ui-icon-search'></span></a>", objcb.callback(i, pre + post)));
       }
       return _results;
     });
@@ -149,6 +149,23 @@
       this.bg = "#EEEEEE";
       this.unbg = "#FFFFFF";
     }
+    this.callback = function(n, prod) {
+      var i;
+      this.data.push([n, prod]);
+      if (this.data.length === this.items) {
+        this.data.sort(function(a, b) {
+          return a[0] - b[0];
+        });
+        this.html = this.pre;
+        i = 0;
+        while (i < this.data.length) {
+          this.html += this.data[i][1];
+          i++;
+        }
+        this.html += this.post;
+        return this.objcb.callback(this.idx, this.html);
+      }
+    };
     j = 1;
     while (j < cmod.length) {
       if (cmod[j][1] === this.about) {
@@ -641,23 +658,6 @@
             res += "</div>";
             return this.callback(1, res);
         }
-      }
-    };
-    this.callback = function(n, prod) {
-      var i;
-      this.data.push([n, prod]);
-      if (this.data.length === this.items) {
-        this.data.sort(function(a, b) {
-          return a[0] - b[0];
-        });
-        this.html = this.pre;
-        i = 0;
-        while (i < this.data.length) {
-          this.html += this.data[i][1];
-          i++;
-        }
-        this.html += this.post;
-        return this.objcb.callback(this.idx, this.html);
       }
     };
     return this;

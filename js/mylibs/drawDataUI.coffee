@@ -88,7 +88,7 @@ drawData = (tree) ->
 				pre += "<div style='display:inline;background-color:#FFFFFF" + "'> " + "<a href='" + rootURI + "#!/" + npos + "' " + "onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a></div>"
 
 				#request schema from server and store locally.
-				do (i, objcb, pre, post, launch) ->
+				do (i, pre, post, launch) ->
 					serverRequest "GET", "/model/", [], "", (statusCode, result) ->
 						#TODO: This should not be available client-side, this is here just to make it work for now.
 						model = SBVRParser.matchAll(result, "expr")
@@ -137,14 +137,30 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 	else
 		@bg = "#EEEEEE"
 		@unbg = "#FFFFFF"
-	j = 1
 
+	@callback = (n, prod) ->
+		@data.push [ n, prod ]
+		if @data.length == @items
+			@data.sort (a, b) ->
+				a[0] - b[0]
+
+			@html = @pre
+			i = 0
+
+			while i < @data.length
+				@html += @data[i][1]
+				i++
+			@html += @post
+			@objcb.callback @idx, @html
+
+	j = 1
 	#is the thing we're talking about a term or a fact type?
 	while j < cmod.length
 		if cmod[j][1] == @about
 			@type = cmod[j][0]
 			@schema = cmod[j][6]	if @type == "fcTp"
 		j++
+
 	@subRowIn = ->
 		parent = this
 		if @branch[0] is "col"
@@ -552,21 +568,6 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 					res += "</div>"
 					res += "</div>"
 					@callback 1, res
-
-	@callback = (n, prod) ->
-		@data.push [ n, prod ]
-		if @data.length == @items
-			@data.sort (a, b) ->
-				a[0] - b[0]
-
-			@html = @pre
-			i = 0
-
-			while i < @data.length
-				@html += @data[i][1]
-				i++
-			@html += @post
-			@objcb.callback @idx, @html
 	return this
 
 processForm = (forma) ->
