@@ -305,24 +305,22 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 
 			switch actn
 				when "view"
-					instance = result.instances[0]
 					if @type == "term"
 						@targ = serverAPI(@about, @filters)
 						serverRequest "GET", @targ, [], "", (statusCode, result, headers) ->
 							res = ""
-
-							for item of instance when item != "__clone"
-								res += item + ": " + instance[item] + "<br/>"
+							for item of result.instances[0] when item != "__clone"
+								res += item + ": " + result.instances[0][item] + "<br/>"
 							parent.callback 1, res
 					else if @type == "fcTp"
 						@targ = serverAPI(@about, @filters)
 						serverRequest "GET", @targ, [], "", (statusCode, result, headers) ->
 							res = ""
-							res += "id: " + instance.id + "<br/>"
+							res += "id: " + result.instances[0].id + "<br/>"
 							#loop around terms
 							for schema in parent.schema
 								if schema[0] == "term"
-									res += instance[schema[1] + "_name"] + " "
+									res += result.instances[0][schema[1] + "_name"] + " "
 								else if schema[0] == "verb"
 									res += schema[1] + " "
 							parent.callback 1, res
@@ -356,10 +354,13 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 					else if @type == "fcTp"
 						#initialize vars
 						trms = []
-						trmres = []
-						trmsel = {}
+						for schema in @schema when schema[0] == "term"
+							trms.push schema[1]
+
 						addftcb = (statusCode, result, headers) ->
 							res = ""
+							trmres = []
+							trmsel = {}
 							trmres.push result.instances
 							#construct dropdowns & form
 							if trms.length == trmres.length
@@ -389,21 +390,15 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 								res += "</form>"
 								parent.callback 1, res
 
-						#TODO: Does this need to be in a separate loop? It might, but can we verify?
-						for schema in @schema when schema[0] == "term"
-							trms.push schema[1]
-
 						#loop around terms
 						for schema in @schema
 							if schema[0] == "term"
-								tar = serverAPI(schema[1], @filters)
-								serverRequest "GET", tar, [], "", addftcb
+								serverRequest "GET", serverAPI(schema[1], @filters), [], "", addftcb
 							else if schema[0] == "verb"
 								null
 				when "edit"
 					if @type == "term"
 						schema = []
-
 						for mod in cmod[1..] when mod[1] == @about
 							schema = mod[3]
 
@@ -423,7 +418,7 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 							for currSchema in schema
 								switch currSchema[0]
 									when "Text"
-										res += schema[j][2] + ": <input type='text' id='" + currSchema[1] + "' value = '" + result.instances[0][currSchema[1]] + "' /><br />"
+										res += currSchema[2] + ": <input type='text' id='" + currSchema[1] + "' value = '" + result.instances[0][currSchema[1]] + "' /><br />"
 									when "ForeignKey"
 										console.log currSchema
 							res += "<div align = 'right'>"
@@ -437,10 +432,13 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 						serverRequest "GET", targ, [], "", (statusCode, result, headers) ->
 							resu = result
 							trms = []
-							trmres = []
-							trmsel = {}
+							for schema in parent.schema when schema[0] == "term"
+								trms.push schema[1]
+							
 							editftcb = (statusCode, result, headers) ->
 								res = ""
+								trmres = []
+								trmsel = {}
 								trmres.push result.instances
 								#construct dropdowns & form
 								if trms.length == trmres.length
@@ -480,15 +478,10 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 									respo += "</div>"
 									parent.callback 1, respr + res + respo
 
-							#TODO: Again, need this be a separate loop?
-							for schema in parent.schema when schema[0] == "term"
-								trms.push schema[j][1]
-
 							#loop around terms
 							for schema in parent.schema
 								if schema[0] == "term"
-									tar = serverAPI(schema[1], parent.filters)
-									serverRequest "GET", tar, [], "", editftcb
+									serverRequest "GET", serverAPI(schema[1], parent.filters), [], "", editftcb
 								else	 if schema[0] == "verb"
 									null
 				when "del"
