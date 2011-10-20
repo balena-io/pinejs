@@ -165,7 +165,6 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 		if @branch[0] is "col"
 			@pre += "<div class='panel' style='background-color:" + @bg + ";'>" + "<table id='tbl--" + pid + "'><tbody>"
 			@post += "</tbody></table></div>"
-			@targ = serverAPI(@about, @filters)
 
 			#are there children with 'add' modifiers? huh?
 			for currBranch in @branch when currBranch[0] == "ins" and currBranch[1][0] == @about and currBranch[1][1] == undefined
@@ -177,6 +176,7 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 				for col in mod[6] when col[1] == @about
 					@cols++
 
+			@targ = serverAPI(@about, @filters)
 			serverRequest "GET", @targ, [], "", (statusCode, result, headers) ->
 				resl = ""
 				parent.rows = result.instances.length
@@ -358,17 +358,19 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 						for schema in @schema when schema[0] == "term"
 							trms.push schema[1]
 
+						#termResults must be declared out here as it stores up the results from all the AJAX queries so the full callback is only executed when we have all of the results.
+						termResults = []
 						addftcb = (statusCode, result, headers) ->
-							res = ""
-							trmres = []
-							trmsel = {}
-							trmres.push result.instances
+							#TODO: Fix this
+							#WARNING: This is completely unsafe, we have no guarantee the callbacks will be executed in the order we have run the AJAX quites.
+							termResults.push result.instances
 							#construct dropdowns & form
-							if trms.length == trmres.length
+							if trms.length == termResults.length
+								trmsel = {}
 								for j in [0...trms.length]
 									res = "<select id='" + trms[j] + "_id'>"
 									#Loop through options
-									for currTermRes in trmres[j]
+									for currTermRes in termResults[j]
 										res += "<option value='" + currTermRes.id + "'>" + currTermRes.name + "</option>"
 									res += "</select>"
 									trmsel[trms[j]] = res
@@ -395,8 +397,8 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 						for schema in @schema
 							if schema[0] == "term"
 								serverRequest "GET", serverAPI(schema[1], @filters), [], "", addftcb
-							else if schema[0] == "verb"
-								null
+							# else if schema[0] == "verb"
+								# null
 				when "edit"
 					if @type == "term"
 						schema = []
@@ -429,18 +431,21 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 							parent.callback 1, res
 					else if @type == "fcTp"
 						@targ = serverAPI(@about, @filters)
-						serverRequest "GET", targ, [], "", (statusCode, result, headers) ->
+						serverRequest "GET", @targ, [], "", (statusCode, result, headers) ->
 							resu = result
 							trms = []
 							for schema in parent.schema when schema[0] == "term"
 								trms.push schema[1]
 							
+							#termResults must be declared out here as it stores up the results from all the AJAX queries so the full callback is only executed when we have all of the results.
+							termResults = []
 							editftcb = (statusCode, result, headers) ->
-								trmres = []
-								trmsel = {}
-								trmres.push result.instances
+								#TODO: Fix this
+								#WARNING: This is completely unsafe, we have no guarantee the callbacks will be executed in the order we have run the AJAX quites.
+								termResults.push result.instances
 								#construct dropdowns & form
-								if trms.length == trmres.length
+								if trms.length == termResults.length
+									trmsel = {}
 									respo = ""
 									respr = "<div align='left'>"
 									respr += "<form class = 'action' >"
@@ -454,11 +459,11 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 									for j in [0...trms.length]
 										res = "<select id='" + trms[j] + "_id'>"
 										#Loop through options
-										for currTermRes in trmres[j]
+										for currTermRes in termResults[j]
 											res += "<option value='" + currTermRes.id + "'"
 											#if current value, print selected
 											res += " selected" if resu.instances[0][trms[j] + "_id"] == currTermRes.id
-											res += ">" + currTermRes[k].name + "</option>"
+											res += ">" + currTermRes.name + "</option>"
 										res += "</select>"
 										trmsel[trms[j]] = res
 
@@ -481,8 +486,8 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 							for schema in parent.schema
 								if schema[0] == "term"
 									serverRequest "GET", serverAPI(schema[1], parent.filters), [], "", editftcb
-								else	 if schema[0] == "verb"
-									null
+								# else if schema[0] == "verb"
+									# null
 				when "del"
 					#make this a function
 					res = "<div align='left'>"

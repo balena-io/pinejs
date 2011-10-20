@@ -177,12 +177,11 @@
       }
     }
     this.subRowIn = function() {
-      var actn, addftcb, branchType, col, currBranch, currBranchType, currSchema, mod, parent, posl, res, schema, targ, trms, _j, _k, _l, _len10, _len11, _len2, _len3, _len4, _len5, _len6, _len7, _len8, _len9, _m, _n, _o, _p, _q, _r, _ref10, _ref11, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7, _ref8, _ref9, _results, _s;
+      var actn, addftcb, branchType, col, currBranch, currBranchType, currSchema, mod, parent, posl, res, schema, targ, termResults, trms, _j, _k, _l, _len10, _len11, _len2, _len3, _len4, _len5, _len6, _len7, _len8, _len9, _m, _n, _o, _p, _q, _r, _ref10, _ref11, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7, _ref8, _ref9, _results, _s;
       parent = this;
       if (this.branch[0] === "col") {
         this.pre += "<div class='panel' style='background-color:" + this.bg + ";'>" + "<table id='tbl--" + pid + "'><tbody>";
         this.post += "</tbody></table></div>";
-        this.targ = serverAPI(this.about, this.filters);
         _ref2 = this.branch;
         for (_j = 0, _len2 = _ref2.length; _j < _len2; _j++) {
           currBranch = _ref2[_j];
@@ -209,6 +208,7 @@
             }
           }
         }
+        this.targ = serverAPI(this.about, this.filters);
         return serverRequest("GET", this.targ, [], "", function(statusCode, result, headers) {
           var actn, currBranchType, i, instance, j, launch, locn, mod, newb, npos, posl, postl, prel, res, resl, schema, subcolcb, uid, _len6, _len7, _len8, _len9, _n, _o, _p, _q, _ref10, _ref11, _ref12, _ref13, _ref6, _ref7, _ref8, _ref9, _results;
           resl = "";
@@ -429,16 +429,15 @@
                   trms.push(schema[1]);
                 }
               }
+              termResults = [];
               addftcb = function(statusCode, result, headers) {
-                var currTermRes, j, schema, trmres, trmsel, _len10, _len11, _r, _ref10, _ref11, _ref12, _s;
-                res = "";
-                trmres = [];
-                trmsel = {};
-                trmres.push(result.instances);
-                if (trms.length === trmres.length) {
+                var currTermRes, j, schema, trmsel, _len10, _len11, _r, _ref10, _ref11, _ref12, _s;
+                termResults.push(result.instances);
+                if (trms.length === termResults.length) {
+                  trmsel = {};
                   for (j = 0, _ref10 = trms.length; 0 <= _ref10 ? j < _ref10 : j > _ref10; 0 <= _ref10 ? j++ : j--) {
                     res = "<select id='" + trms[j] + "_id'>";
-                    _ref11 = trmres[j];
+                    _ref11 = termResults[j];
                     for (_r = 0, _len10 = _ref11.length; _r < _len10; _r++) {
                       currTermRes = _ref11[_r];
                       res += "<option value='" + currTermRes.id + "'>" + currTermRes.name + "</option>";
@@ -472,7 +471,7 @@
               _results = [];
               for (_r = 0, _len10 = _ref10.length; _r < _len10; _r++) {
                 schema = _ref10[_r];
-                _results.push(schema[0] === "term" ? serverRequest("GET", serverAPI(schema[1], this.filters), [], "", addftcb) : schema[0] === "verb" ? null : void 0);
+                _results.push(schema[0] === "term" ? serverRequest("GET", serverAPI(schema[1], this.filters), [], "", addftcb) : void 0);
               }
               return _results;
             }
@@ -518,7 +517,7 @@
               });
             } else if (this.type === "fcTp") {
               this.targ = serverAPI(this.about, this.filters);
-              return serverRequest("GET", targ, [], "", function(statusCode, result, headers) {
+              return serverRequest("GET", this.targ, [], "", function(statusCode, result, headers) {
                 var editftcb, resu, schema, _len12, _len13, _ref12, _ref13, _results2, _t, _u;
                 resu = result;
                 trms = [];
@@ -529,12 +528,12 @@
                     trms.push(schema[1]);
                   }
                 }
+                termResults = [];
                 editftcb = function(statusCode, result, headers) {
-                  var currTermRes, j, respo, respr, schema, trmres, trmsel, _len13, _len14, _ref13, _ref14, _ref15, _u, _v;
-                  trmres = [];
-                  trmsel = {};
-                  trmres.push(result.instances);
-                  if (trms.length === trmres.length) {
+                  var currTermRes, j, respo, respr, schema, trmsel, _len13, _len14, _ref13, _ref14, _ref15, _u, _v;
+                  termResults.push(result.instances);
+                  if (trms.length === termResults.length) {
+                    trmsel = {};
                     respo = "";
                     respr = "<div align='left'>";
                     respr += "<form class = 'action' >";
@@ -546,14 +545,14 @@
                     respr += "<input type='hidden' id='__type' value='" + parent.about + "'>";
                     for (j = 0, _ref13 = trms.length; 0 <= _ref13 ? j < _ref13 : j > _ref13; 0 <= _ref13 ? j++ : j--) {
                       res = "<select id='" + trms[j] + "_id'>";
-                      _ref14 = trmres[j];
+                      _ref14 = termResults[j];
                       for (_u = 0, _len13 = _ref14.length; _u < _len13; _u++) {
                         currTermRes = _ref14[_u];
                         res += "<option value='" + currTermRes.id + "'";
                         if (resu.instances[0][trms[j] + "_id"] === currTermRes.id) {
                           res += " selected";
                         }
-                        res += ">" + currTermRes[k].name + "</option>";
+                        res += ">" + currTermRes.name + "</option>";
                       }
                       res += "</select>";
                       trmsel[trms[j]] = res;
@@ -580,7 +579,7 @@
                 _results2 = [];
                 for (_u = 0, _len13 = _ref13.length; _u < _len13; _u++) {
                   schema = _ref13[_u];
-                  _results2.push(schema[0] === "term" ? serverRequest("GET", serverAPI(schema[1], parent.filters), [], "", editftcb) : schema[0] === "verb" ? null : void 0);
+                  _results2.push(schema[0] === "term" ? serverRequest("GET", serverAPI(schema[1], parent.filters), [], "", editftcb) : void 0);
                 }
                 return _results2;
               });
