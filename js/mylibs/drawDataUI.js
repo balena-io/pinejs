@@ -177,7 +177,7 @@
       }
     }
     this.subRowIn = function() {
-      var actn, branchType, col, currBranch, currBranchType, currSchema, mod, parent, posl, res, resultsReceived, schema, targ, termName, termResults, _j, _k, _l, _len10, _len11, _len2, _len3, _len4, _len5, _len6, _len7, _len8, _len9, _m, _n, _o, _p, _q, _r, _ref10, _ref11, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7, _ref8, _ref9, _results, _s;
+      var actn, branchType, col, currBranch, currBranchType, currSchema, mod, parent, posl, res, resultsReceived, schema, targ, termName, termResults, _j, _k, _l, _len10, _len2, _len3, _len4, _len5, _len6, _len7, _len8, _len9, _m, _n, _o, _p, _q, _r, _ref10, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7, _ref8, _ref9, _results;
       parent = this;
       if (this.branch[0] === "col") {
         this.pre += "<div class='panel' style='background-color:" + this.bg + ";'>" + "<table id='tbl--" + pid + "'><tbody>";
@@ -430,28 +430,18 @@
                 }
               }
               resultsReceived = 0;
+              _results = [];
               for (termName in termResults) {
-                serverRequest("GET", serverAPI(termName, parent.filters), [], "", (function(termName) {
+                _results.push(serverRequest("GET", serverAPI(termName, parent.filters), [], "", (function(termName) {
                   return function(statusCode, result, headers) {
                     termResults[termName] = result.instances;
                     resultsReceived++;
                     if (resultsReceived === termResults.length) {
-                      res = "<form class='action'>";
-                      res += "<input type='hidden' id='__actype' value='addfctp'>";
-                      res += "<input type='hidden' id='__serverURI' value='" + serverAPI(parent.about, []) + "'>";
-                      res += "<input type='hidden' id='__backURI' value='" + posl + "'>";
-                      res += "<input type='hidden' id='__type' value='" + parent.about + "'>";
-                      res += createFactTypeForm(parent.schema, termResults);
+                      res = createFactTypeForm(parent.schema, termResults, 'addfctp', serverAPI(parent.about, []), posl, parent.about);
                       return parent.callback(1, res);
                     }
                   };
-                })(termName));
-              }
-              _ref10 = this.schema;
-              _results = [];
-              for (_r = 0, _len10 = _ref10.length; _r < _len10; _r++) {
-                schema = _ref10[_r];
-                _results.push(schema[0] === "term" ? serverRequest("GET", serverAPI(schema[1], this.filters), [], "", addftcb) : void 0);
+                })(termName)));
               }
               return _results;
             }
@@ -459,16 +449,16 @@
           case "edit":
             if (this.type === "term") {
               schema = [];
-              _ref11 = cmod.slice(1);
-              for (_s = 0, _len11 = _ref11.length; _s < _len11; _s++) {
-                mod = _ref11[_s];
+              _ref10 = cmod.slice(1);
+              for (_r = 0, _len10 = _ref10.length; _r < _len10; _r++) {
+                mod = _ref10[_r];
                 if (mod[1] === this.about) {
                   schema = mod[3];
                 }
               }
               this.targ = serverAPI(this.about, this.filters);
               return serverRequest("GET", this.targ, [], "", function(statusCode, result, headers) {
-                var currSchema, id, _len12, _t;
+                var currSchema, id, _len11, _s;
                 id = result.instances[0].id;
                 res = "<div align='left'>";
                 res += "<form class = 'action' >";
@@ -478,8 +468,8 @@
                 res += "<input type='hidden' id='__id' value='" + id + "'>";
                 res += "<input type='hidden' id='__type' value='" + parent.about + "'>";
                 res += "id: " + id + "<br/>";
-                for (_t = 0, _len12 = schema.length; _t < _len12; _t++) {
-                  currSchema = schema[_t];
+                for (_s = 0, _len11 = schema.length; _s < _len11; _s++) {
+                  currSchema = schema[_s];
                   switch (currSchema[0]) {
                     case "Text":
                       res += currSchema[2] + ": <input type='text' id='" + currSchema[1] + "' value = '" + result.instances[0][currSchema[1]] + "' /><br />";
@@ -498,12 +488,12 @@
             } else if (this.type === "fcTp") {
               this.targ = serverAPI(this.about, this.filters);
               return serverRequest("GET", this.targ, [], "", function(statusCode, result, headers) {
-                var currentFactType, schema, termName, _len12, _ref12, _results2, _t;
+                var currentFactType, schema, termName, _len11, _ref11, _results2, _s;
                 currentFactType = result.instances[0];
                 termResults = {};
-                _ref12 = parent.schema;
-                for (_t = 0, _len12 = _ref12.length; _t < _len12; _t++) {
-                  schema = _ref12[_t];
+                _ref11 = parent.schema;
+                for (_s = 0, _len11 = _ref11.length; _s < _len11; _s++) {
+                  schema = _ref11[_s];
                   if (schema[0] === "term") {
                     termResults[schema[1]] = [];
                   }
@@ -513,21 +503,13 @@
                 for (termName in termResults) {
                   _results2.push(serverRequest("GET", serverAPI(termName, parent.filters), [], "", (function(termName) {
                     return function(statusCode, result, headers) {
-                      var respo, respr;
                       termResults[termName] = result.instances;
                       resultsReceived++;
                       if (resultsReceived === termResults.length) {
-                        respr = "<div align='left'>";
-                        respr += "<form class='action'>";
-                        respr += "<input type='hidden' id='__actype' value='editfctp'>";
-                        respr += "<input type='hidden' id='__serverURI' value='" + serverAPI(parent.about, []) + "." + currentFactType.id + "'>";
-                        respr += "<input type='hidden' id='__backURI' value='" + serverAPI(parent.about, []) + "'>";
-                        console.log("editfctp backURI=" + serverAPI(parent.about, []));
-                        respr += "<input type='hidden' id='__id' value='" + currentFactType.id + "'>";
-                        respr += "<input type='hidden' id='__type' value='" + parent.about + "'>";
-                        respo = createFactTypeForm(parent.schema, termResults);
-                        respo += "</div>";
-                        return parent.callback(1, respr + res + respo);
+                        res = "<div align='left'>";
+                        res += createFactTypeForm(parent.schema, termResults, 'editfctp', serverAPI(parent.about, []) + "." + currentFactType.id, posl, parent.about, currentFactType.id);
+                        res += "</div>";
+                        return parent.callback(1, res);
                       }
                     };
                   })(termName)));
@@ -544,8 +526,11 @@
     };
     return this;
   };
-  createFactTypeForm = function(schemas, termResults) {
-    var res, respo, schema, select, term, termName, termResult, termSelects, _i, _j, _len, _len2;
+  createFactTypeForm = function(schemas, termResults, action, serverURI, backURI, type, currentID) {
+    var res, schema, select, term, termName, termResult, termSelects, _i, _j, _len, _len2;
+    if (currentID == null) {
+      currentID = false;
+    }
     termSelects = {};
     for (termName in termResults) {
       termResult = termResults[termName];
@@ -561,7 +546,14 @@
       select += "</select>";
       termSelects[termName] = select;
     }
-    res = "";
+    res = "<form class='action'>";
+    res += "<input type='hidden' id='__actype' value='" + action + "'>";
+    res += "<input type='hidden' id='__serverURI' value='" + serverURI + "'>";
+    res += "<input type='hidden' id='__backURI' value='" + backURI + "'>";
+    res += "<input type='hidden' id='__type' value='" + type + "'>";
+    if (currentID !== false) {
+      res += "<input type='hidden' id='__id' value='" + currentFactType.id + "'>";
+    }
     for (_j = 0, _len2 = schemas.length; _j < _len2; _j++) {
       schema = schemas[_j];
       if (schema[0] === "term") {
@@ -570,10 +562,11 @@
         res += schema[1] + " ";
       }
     }
-    respo = "<div align='right'>";
-    respo += "<input type='submit' value='Submit This' onClick='processForm(this.parentNode.parentNode);return false;'>";
-    respo += "</div>";
-    return respo += "</form>";
+    res = "<div align='right'>";
+    res += "<input type='submit' value='Submit This' onClick='processForm(this.parentNode.parentNode);return false;'>";
+    res += "</div>";
+    res += "</form>";
+    return res;
   };
   processForm = function(forma) {
     var action, backURI, id, serverURI, type;

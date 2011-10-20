@@ -367,20 +367,8 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 
 									#If all requests have returned then construct dropdowns & form
 									if resultsReceived == termResults.length
-										res = "<form class='action'>"
-										res += "<input type='hidden' id='__actype' value='addfctp'>"
-										res += "<input type='hidden' id='__serverURI' value='" + serverAPI(parent.about, []) + "'>"
-										res += "<input type='hidden' id='__backURI' value='" + posl + "'>"
-										res += "<input type='hidden' id='__type' value='" + parent.about + "'>"
-										res += createFactTypeForm(parent.schema, termResults)
+										res = createFactTypeForm(parent.schema, termResults, 'addfctp', serverAPI(parent.about, []), posl, parent.about)
 										parent.callback 1, res
-
-						#loop around terms
-						for schema in @schema
-							if schema[0] == "term"
-								serverRequest "GET", serverAPI(schema[1], @filters), [], "", addftcb
-							# else if schema[0] == "verb"
-								# null
 				when "edit"
 					if @type == "term"
 						schema = []
@@ -429,18 +417,10 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 
 										#If all requests have returned then construct dropdowns & form
 										if resultsReceived == termResults.length
-											respr = "<div align='left'>"
-											respr += "<form class='action'>"
-											respr += "<input type='hidden' id='__actype' value='editfctp'>"
-											respr += "<input type='hidden' id='__serverURI' value='" + serverAPI(parent.about, []) + "." + currentFactType.id + "'>"
-											respr += "<input type='hidden' id='__backURI' value='" + serverAPI(parent.about, []) + "'>"
-											console.log "editfctp backURI=" + serverAPI(parent.about, [])
-											respr += "<input type='hidden' id='__id' value='" + currentFactType.id + "'>"
-											respr += "<input type='hidden' id='__type' value='" + parent.about + "'>"
-
-											respo = createFactTypeForm(parent.schema, termResults)
-											respo += "</div>"
-											parent.callback 1, respr + res + respo
+											res = "<div align='left'>"
+											res += createFactTypeForm(parent.schema, termResults, 'editfctp', serverAPI(parent.about, []) + "." + currentFactType.id, posl, parent.about, currentFactType.id)
+											res += "</div>"
+											parent.callback 1, res
 				when "del"
 					#TODO: make this a function
 					res =
@@ -460,7 +440,7 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 					@callback 1, res
 	return this
 
-createFactTypeForm = (schemas, termResults) ->
+createFactTypeForm = (schemas, termResults, action, serverURI, backURI, type, currentID = false) ->
 	termSelects = {}
 	for termName, termResult of termResults
 		select = "<select id='" + termName + "_id'>"
@@ -474,8 +454,15 @@ createFactTypeForm = (schemas, termResults) ->
 		select += "</select>"
 		termSelects[termName] = select
 
+	res = "<form class='action'>"
+	res += "<input type='hidden' id='__actype' value='" + action + "'>"
+	res += "<input type='hidden' id='__serverURI' value='" + serverURI + "'>"
+	res += "<input type='hidden' id='__backURI' value='" + backURI + "'>"
+	res += "<input type='hidden' id='__type' value='" + type + "'>"
+	if currentID != false
+		res += "<input type='hidden' id='__id' value='" + currentFactType.id + "'>"
+
 	#merge dropdowns with verbs to create 'form'
-	res = ""
 	for schema in schemas
 		if schema[0] == "term"
 			res += termSelects[schema[1]] + " "
