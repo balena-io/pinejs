@@ -165,7 +165,7 @@
         value = JSON.stringify(value).replace(/\\'/g, "\\\\'").replace(new RegExp("'", 'g'), "\\'");
         return tx.executeSql('SELECT 1 as count FROM "_server_model_cache" WHERE key = ?;', [key], function(tx, result) {
           if (result.rows.length === 0) {
-            return tx.executeSql('INSERT INTO "_server_model_cache" values (?, ?);', [key, value]);
+            return tx.executeSql('INSERT INTO "_server_model_cache" VALUES (?, ?);', [key, value]);
           } else {
             return tx.executeSql('UPDATE "_server_model_cache" SET value = ? WHERE key = ?;', [key, value]);
           }
@@ -539,7 +539,7 @@
     }
   };
   dataplusPOST = function(tree, headers, body, successCallback, failureCallback) {
-    var bd, fds, id, k, pair, vls, _ref;
+    var bd, binds, field, fields, i, id, pair, value, values;
     if (tree[1][1] === "transaction" && isExecute(tree)) {
       id = getID(tree);
       return db.transaction((function(tx) {
@@ -565,22 +565,25 @@
       });
     } else {
       bd = JSON.parse(body);
-      fds = [];
-      vls = [];
-      for (pair in bd) {
-        if (!__hasProp.call(bd, pair)) continue;
-        _ref = bd[pair];
-        for (k in _ref) {
-          if (!__hasProp.call(_ref, k)) continue;
-          fds.push(k);
-          vls.push(JSON.stringify(bd[pair][k]));
+      fields = [];
+      values = [];
+      binds = [];
+      for (i in bd) {
+        if (!__hasProp.call(bd, i)) continue;
+        pair = bd[i];
+        for (field in pair) {
+          if (!__hasProp.call(pair, field)) continue;
+          value = pair[field];
+          fields.push(field);
+          values.push(value);
+          binds.push('?');
         }
       }
       return db.transaction(function(tx) {
         var sql;
         tx.begin();
-        sql = 'INSERT INTO "' + tree[1][1] + '"("' + fds.join('","') + '") VALUES (' + vls.join(",") + ");";
-        return tx.executeSql(sql, [], function(tx, sqlResult) {
+        sql = 'INSERT INTO "' + tree[1][1] + '" ("' + fields.join('","') + '") VALUES (' + binds.join(",") + ");";
+        return tx.executeSql(sql, values, function(tx, sqlResult) {
           return validateDB(tx, serverModelCache.getSQL(), (function(tx, sqlmod, failureCallback, headers, result) {
             return successCallback(201, result, {
               location: "/data/" + tree[1][1] + "*filt:" + tree[1][1] + ".id=" + sqlResult.insertId

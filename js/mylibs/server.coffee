@@ -146,7 +146,7 @@ serverModelCache = do () ->
 			value = JSON.stringify(value).replace(/\\'/g,"\\\\'").replace(new RegExp("'",'g'),"\\'")
 			tx.executeSql('SELECT 1 as count FROM "_server_model_cache" WHERE key = ?;', [key], (tx, result) ->
 				if result.rows.length==0
-					tx.executeSql 'INSERT INTO "_server_model_cache" values (?, ?);', [key, value]
+					tx.executeSql 'INSERT INTO "_server_model_cache" VALUES (?, ?);', [key, value]
 				else
 					tx.executeSql 'UPDATE "_server_model_cache" SET value = ? WHERE key = ?;', [key, value]
 			)
@@ -454,16 +454,18 @@ dataplusPOST = (tree, headers, body, successCallback, failureCallback) ->
 					tx.executeSql 'DELETE FROM "transaction" WHERE "id" = ?;', [lock_id]
 	else
 		bd = JSON.parse(body)
-		fds = []
-		vls = []
-		for own pair of bd
-			for own k of bd[pair]
-				fds.push k
-				vls.push JSON.stringify(bd[pair][k])
+		fields = []
+		values = []
+		binds = []
+		for own i, pair of bd
+			for own field, value of pair
+				fields.push field
+				values.push value
+				binds.push '?'
 		db.transaction (tx) ->
 			tx.begin()
-			sql = 'INSERT INTO "' + tree[1][1] + '"("' + fds.join('","') + '") VALUES (' + vls.join(",") + ");"
-			tx.executeSql sql, [], (tx, sqlResult) ->
+			sql = 'INSERT INTO "' + tree[1][1] + '" ("' + fields.join('","') + '") VALUES (' + binds.join(",") + ");"
+			tx.executeSql sql, values, (tx, sqlResult) ->
 				validateDB tx, serverModelCache.getSQL(), ((tx, sqlmod, failureCallback, headers, result) ->
 					successCallback 201, result,
 						location: "/data/" + tree[1][1] + "*filt:" + tree[1][1] + ".id=" + sqlResult.insertId
