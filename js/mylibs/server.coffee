@@ -24,6 +24,7 @@ if process?
 			executeSql: (sql, bindings = [], callback, errorCallback) ->
 				thisTX = this
 				sql = sql.replace(/GROUP BY NULL/g, '') #HACK: Remove GROUP BY NULL for Postgres as it does not need/accept it.
+				sql = sql.replace(/INTEGER PRIMARY KEY AUTOINCREMENT/g, 'SERIAL PRIMARY KEY') #HACK: Postgres uses SERIAL data type rather than auto increment
 				bindNo = 1
 				sql = SQLBinds.matchAll(sql, "parse", [-> '$'+bindNo++])
 				_db.query {text: sql, values: bindings}, (err, res) ->

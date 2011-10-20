@@ -35,6 +35,7 @@
           }
           thisTX = this;
           sql = sql.replace(/GROUP BY NULL/g, '');
+          sql = sql.replace(/INTEGER PRIMARY KEY AUTOINCREMENT/g, 'SERIAL PRIMARY KEY');
           bindNo = 1;
           sql = SQLBinds.matchAll(sql, "parse", [
             function() {

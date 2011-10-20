@@ -144,7 +144,7 @@
                     return this._or((function() {
                         return (function() {
                             t = this._applyWithArgs("token", "term");
-                            return ["term", t[(1)], t[(2)], t[(3)], ((("CREATE TABLE " + "  \"") + t[(1)]) + "\" (\"id\" INTEGER PRIMARY KEY,\"name\" TEXT)"), (("DROP TABLE \"" + t[(1)]) + "\";")]
+                            return ["term", t[(1)], t[(2)], t[(3)], ((("CREATE TABLE " + "  \"") + t[(1)]) + "\" (\"id\" INTEGER PRIMARY KEY AUTOINCREMENT,\"name\" TEXT)"), (("DROP TABLE \"" + t[(1)]) + "\";")]
                         }).call(this)
                     }), (function() {
                         return (function() {
@@ -152,7 +152,7 @@
                             l = this._applyWithArgs("ftfl", f[(3)]);
                             k = this._applyWithArgs("ftfk", f[(3)]);
                             s = this._applyWithArgs("ftsc", f[(3)]);
-                            return ["fcTp", f[(1)], f[(2)], s, ((((((("CREATE TABLE " + " \"") + f[(1)]) + "\" (\"id\" INTEGER PRIMARY KEY, ") + l.join(", ")) + ", ") + k.join(", ")) + ")"), (("DROP TABLE \"" + f[(1)]) + "\";"), f[(4)]]
+                            return ["fcTp", f[(1)], f[(2)], s, ((((((("CREATE TABLE " + " \"") + f[(1)]) + "\" (\"id\" INTEGER PRIMARY KEY AUTOINCREMENT, ") + l.join(", ")) + ", ") + k.join(", ")) + ")"), (("DROP TABLE \"" + f[(1)]) + "\";"), f[(4)]]
                         }).call(this)
                     }), (function() {
                         return this._applyWithArgs("token", "rule")
