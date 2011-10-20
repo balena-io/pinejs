@@ -694,7 +694,7 @@
             row2 = _ref3[_k];
             obj = "";
             if (row2[1][0] != null) {
-              obj = '"' + row2[1] + "'.";
+              obj = '"' + row2[1] + '".';
             }
             filts.push(obj + '"' + row2[2] + '"' + op[row2[0]] + row2[3]);
           }

@@ -544,7 +544,7 @@ dataplusGET = (tree, headers, body, successCallback, failureCallback) ->
 			if row[0] == "filt"
 				for row2 in row[1..]
 					obj = ""
-					obj = '"' + row2[1] + "'." if row2[1][0]?
+					obj = '"' + row2[1] + '".' if row2[1][0]?
 					filts.push obj + '"' + row2[2] + '"' + op[row2[0]] + row2[3]
 			else if row[0] == "sort"
 				#process sort
