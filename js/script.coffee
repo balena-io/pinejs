@@ -137,7 +137,7 @@ window.serverRequest = (method, uri, headers = {}, body = null, successCallback,
 			headers: headers
 			data: body
 			error: (jqXHR, textStatus, errorThrown) ->
-				failureCallback jqXHR.status
+				failureCallback jqXHR.status, JSON.parse(jqXHR.responseText)
 			
 			success: (data, textStatus, jqXHR) ->
 				successCallback jqXHR.status, JSON.parse(data), jqXHR.getAllResponseHeaders()

@@ -159,7 +159,7 @@
         headers: headers,
         data: body,
         error: function(jqXHR, textStatus, errorThrown) {
-          return failureCallback(jqXHR.status);
+          return failureCallback(jqXHR.status, JSON.parse(jqXHR.responseText));
         },
         success: function(data, textStatus, jqXHR) {
           return successCallback(jqXHR.status, JSON.parse(data), jqXHR.getAllResponseHeaders());
