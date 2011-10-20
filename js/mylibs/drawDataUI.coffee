@@ -420,7 +420,7 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 										#If all requests have returned then construct dropdowns & form
 										if resultsReceived == resultsRequested
 											res = "<div align='left'>"
-											res += createFactTypeForm(parent.schema, termResults, 'editfctp', serverAPI(parent.about, []) + "." + currentFactType.id, posl, parent.about, currentFactType)
+											res += createFactTypeForm(parent.schema, termResults, 'editfctp', serverAPI(parent.about, []) + "." + currentFactType.id, serverAPI(parent.about, []), parent.about, currentFactType)
 											res += "</div>"
 											parent.callback 1, res
 				when "del"

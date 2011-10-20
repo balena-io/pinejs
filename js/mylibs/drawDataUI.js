@@ -509,7 +509,7 @@
                       resultsReceived++;
                       if (resultsReceived === resultsRequested) {
                         res = "<div align='left'>";
-                        res += createFactTypeForm(parent.schema, termResults, 'editfctp', serverAPI(parent.about, []) + "." + currentFactType.id, posl, parent.about, currentFactType);
+                        res += createFactTypeForm(parent.schema, termResults, 'editfctp', serverAPI(parent.about, []) + "." + currentFactType.id, serverAPI(parent.about, []), parent.about, currentFactType);
                         res += "</div>";
                         return parent.callback(1, res);
                       }
