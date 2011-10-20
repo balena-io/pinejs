@@ -335,7 +335,7 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 
 						#print form.
 						res = "<div align='right'>"
-						res += "<form class = 'action' >"
+						res += "<form class='action'>"
 						res += "<input type='hidden' id='__actype' value='addterm'>"
 						res += "<input type='hidden' id='__serverURI' value='" + serverAPI(@about, []) + "'>"
 						res += "<input type='hidden' id='__backURI' value='" + targ + "'>"
@@ -484,20 +484,21 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 											respo += "</div>"
 											parent.callback 1, respr + res + respo
 				when "del"
-					#make this a function
-					res = "<div align='left'>"
-					res += "marked for deletion"
-					res += "<div align = 'right'>"
-					res += "<form class = 'action' >"
-					res += "<input type='hidden' id='__actype' value='del'>"
-					res += "<input type='hidden' id='__serverURI' value='" + serverAPI(@about, []) + "." + @id + "'>"
-					res += "<input type='hidden' id='__id' value='" + @id + "'>"
-					res += "<input type='hidden' id='__type' value='" + @about + "'>"
-					res += "<input type='hidden' id='__backURI' value='" + serverAPI(@about, []) + "'>"
-					res += "<input type='submit' value='Confirm' " + "onClick='processForm(this.parentNode.parentNode);return false;'>"
-					res += "</form>"
-					res += "</div>"
-					res += "</div>"
+					#TODO: make this a function
+					res =
+						"<div align='left'>" +
+							"marked for deletion" +
+							"<div align='right'>" +
+								"<form class='action'>" +
+									"<input type='hidden' id='__actype' value='del'>" +
+									"<input type='hidden' id='__serverURI' value='" + serverAPI(@about, []) + "." + @id + "'>" +
+									"<input type='hidden' id='__id' value='" + @id + "'>" +
+									"<input type='hidden' id='__type' value='" + @about + "'>" +
+									"<input type='hidden' id='__backURI' value='" + serverAPI(@about, []) + "'>" +
+									"<input type='submit' value='Confirm' " + "onClick='processForm(this.parentNode.parentNode);return false;'>" +
+								"</form>" +
+							"</div>" +
+						"</div>"
 					@callback 1, res
 	return this
 

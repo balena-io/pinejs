@@ -400,7 +400,7 @@
                 }
               }
               res = "<div align='right'>";
-              res += "<form class = 'action' >";
+              res += "<form class='action'>";
               res += "<input type='hidden' id='__actype' value='addterm'>";
               res += "<input type='hidden' id='__serverURI' value='" + serverAPI(this.about, []) + "'>";
               res += "<input type='hidden' id='__backURI' value='" + targ + "'>";
@@ -585,19 +585,7 @@
             }
             break;
           case "del":
-            res = "<div align='left'>";
-            res += "marked for deletion";
-            res += "<div align = 'right'>";
-            res += "<form class = 'action' >";
-            res += "<input type='hidden' id='__actype' value='del'>";
-            res += "<input type='hidden' id='__serverURI' value='" + serverAPI(this.about, []) + "." + this.id + "'>";
-            res += "<input type='hidden' id='__id' value='" + this.id + "'>";
-            res += "<input type='hidden' id='__type' value='" + this.about + "'>";
-            res += "<input type='hidden' id='__backURI' value='" + serverAPI(this.about, []) + "'>";
-            res += "<input type='submit' value='Confirm' " + "onClick='processForm(this.parentNode.parentNode);return false;'>";
-            res += "</form>";
-            res += "</div>";
-            res += "</div>";
+            res = "<div align='left'>" + "marked for deletion" + "<div align='right'>" + "<form class='action'>" + "<input type='hidden' id='__actype' value='del'>" + "<input type='hidden' id='__serverURI' value='" + serverAPI(this.about, []) + "." + this.id + "'>" + "<input type='hidden' id='__id' value='" + this.id + "'>" + "<input type='hidden' id='__type' value='" + this.about + "'>" + "<input type='hidden' id='__backURI' value='" + serverAPI(this.about, []) + "'>" + "<input type='submit' value='Confirm' " + "onClick='processForm(this.parentNode.parentNode);return false;'>" + "</form>" + "</div>" + "</div>";
             return this.callback(1, res);
         }
       }
