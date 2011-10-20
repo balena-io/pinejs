@@ -348,50 +348,32 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 									res += currSchema[2] + ": <input type='text' id='" + currSchema[1] + "' /><br />"
 								when "ForeignKey"
 									alert currSchema
-						res += "<input type='submit' value='Submit This'" + " onClick='processForm(" + "this.parentNode" + ");return false;'>"
+						res += "<input type='submit' value='Submit This' onClick='processForm(this.parentNode);return false;'>"
 						res += "</form>"
 						res += "</div>"
 						@callback 1, res
 					else if @type == "fcTp"
-						#initialize vars
-						trms = []
-						for schema in @schema when schema[0] == "term"
-							trms.push schema[1]
+						termResults = {}
+						for schema in parent.schema when schema[0] == "term"
+							termResults[schema[1]] = []
 
-						#termResults must be declared out here as it stores up the results from all the AJAX queries so the full callback is only executed when we have all of the results.
-						termResults = []
-						addftcb = (statusCode, result, headers) ->
-							#TODO: Fix this
-							#WARNING: This is completely unsafe, we have no guarantee the callbacks will be executed in the order we have run the AJAX quites.
-							termResults.push result.instances
-							#construct dropdowns & form
-							if trms.length == termResults.length
-								trmsel = {}
-								for j in [0...trms.length]
-									res = "<select id='" + trms[j] + "_id'>"
-									#Loop through options
-									for currTermRes in termResults[j]
-										res += "<option value='" + currTermRes.id + "'>" + currTermRes.name + "</option>"
-									res += "</select>"
-									trmsel[trms[j]] = res
-								res = ""
-								res += "<form class = 'action' >"
-								res += "<input type='hidden' id='__actype' value='addfctp'>"
-								res += "<input type='hidden' id='__serverURI' value='" + serverAPI(parent.about, []) + "'>"
-								res += "<input type='hidden' id='__backURI' value='" + posl + "'>"
-								res += "<input type='hidden' id='__type' value='" + parent.about + "'>"
+						#Get results for all the terms and process them once finished
+						resultsReceived = 0
+						for termName of termResults
+							serverRequest "GET", serverAPI(termName, parent.filters), [], "", do(termName) ->
+								(statusCode, result, headers) ->
+									termResults[termName] = result.instances
+									resultsReceived++
 
-								for schema in parent.schema
-									if schema[0] == "term"
-										res += trmsel[schema[1]] + " "
-									else if schema[0] == "verb"
-										res += parent.schema[j][1] + " "
-								#add submit button etc.
-								res += "<div align='right'>"
-								res += "<input type='submit' value='Submit This'" + " onClick='processForm(this.parentNode.parentNode);return false;'>"
-								res += "</div>"
-								res += "</form>"
-								parent.callback 1, res
+									#If all requests have returned then construct dropdowns & form
+									if resultsReceived == termResults.length
+										res = "<form class='action'>"
+										res += "<input type='hidden' id='__actype' value='addfctp'>"
+										res += "<input type='hidden' id='__serverURI' value='" + serverAPI(parent.about, []) + "'>"
+										res += "<input type='hidden' id='__backURI' value='" + posl + "'>"
+										res += "<input type='hidden' id='__type' value='" + parent.about + "'>"
+										res += createFactTypeForm(parent.schema, termResults)
+										parent.callback 1, res
 
 						#loop around terms
 						for schema in @schema
@@ -448,7 +430,7 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 										#If all requests have returned then construct dropdowns & form
 										if resultsReceived == termResults.length
 											respr = "<div align='left'>"
-											respr += "<form class = 'action' >"
+											respr += "<form class='action'>"
 											respr += "<input type='hidden' id='__actype' value='editfctp'>"
 											respr += "<input type='hidden' id='__serverURI' value='" + serverAPI(parent.about, []) + "." + currentFactType.id + "'>"
 											respr += "<input type='hidden' id='__backURI' value='" + serverAPI(parent.about, []) + "'>"
@@ -456,31 +438,7 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 											respr += "<input type='hidden' id='__id' value='" + currentFactType.id + "'>"
 											respr += "<input type='hidden' id='__type' value='" + parent.about + "'>"
 
-											termSelects = {}
-											for termName, termResult of termResults
-												select = "<select id='" + termName + "_id'>"
-												#Loop through options
-												for term in termResult
-													select += "<option value='" + term.id + "'"
-													#if current value, print selected
-													if currentFactType[termName + "_id"] == term.id
-														select += " selected='selected'" 
-													select += ">" + term.name + "</option>"
-												select += "</select>"
-												termSelects[termName] = select
-
-											#merge dropdowns with verbs to create 'form'
-											res = ""
-											for schema in parent.schema
-												if schema[0] == "term"
-													res += termSelects[schema[1]] + " "
-												else if schema[0] == "verb"
-													res += schema[1] + " "
-											#add submit button etc.
-											respo = "<div align='right'>"
-											respo += "<input type='submit' value='Submit This' onClick='processForm(this.parentNode.parentNode);return false;'>"
-											respo += "</div>"
-											respo += "</form>"
+											respo = createFactTypeForm(parent.schema, termResults)
 											respo += "</div>"
 											parent.callback 1, respr + res + respo
 				when "del"
@@ -501,6 +459,34 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 						"</div>"
 					@callback 1, res
 	return this
+
+createFactTypeForm = (schemas, termResults) ->
+	termSelects = {}
+	for termName, termResult of termResults
+		select = "<select id='" + termName + "_id'>"
+		#Loop through options
+		for term in termResult
+			select += "<option value='" + term.id + "'"
+			#if current value, print selected
+			if currentFactType[termName + "_id"] == term.id
+				select += " selected='selected'" 
+			select += ">" + term.name + "</option>"
+		select += "</select>"
+		termSelects[termName] = select
+
+	#merge dropdowns with verbs to create 'form'
+	res = ""
+	for schema in schemas
+		if schema[0] == "term"
+			res += termSelects[schema[1]] + " "
+		else if schema[0] == "verb"
+			res += schema[1] + " "
+	#add submit button etc.
+	res = "<div align='right'>"
+	res += "<input type='submit' value='Submit This' onClick='processForm(this.parentNode.parentNode);return false;'>"
+	res += "</div>"
+	res += "</form>"
+	return res
 
 processForm = (forma) ->
 	action = $("#__actype", forma).val()

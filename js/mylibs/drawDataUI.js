@@ -1,5 +1,5 @@
 (function() {
-  var addInst, delInst, drawData, editInst, filtmerge, getBranch, getPid, getTarg, processForm, serverAPI, uidraw;
+  var addInst, createFactTypeForm, delInst, drawData, editInst, filtmerge, getBranch, getPid, getTarg, processForm, serverAPI, uidraw;
   requirejs(["mylibs/ometa-code/SBVRParser", "mylibs/ometa-code/SBVR_PreProc", "mylibs/ometa-code/SBVR2SQL"]);
   getBranch = function(branch, loc) {
     var childIndex, _i, _len;
@@ -177,7 +177,7 @@
       }
     }
     this.subRowIn = function() {
-      var actn, addftcb, branchType, col, currBranch, currBranchType, currSchema, mod, parent, posl, res, schema, targ, termResults, trms, _j, _k, _l, _len10, _len11, _len2, _len3, _len4, _len5, _len6, _len7, _len8, _len9, _m, _n, _o, _p, _q, _r, _ref10, _ref11, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7, _ref8, _ref9, _results, _s;
+      var actn, branchType, col, currBranch, currBranchType, currSchema, mod, parent, posl, res, resultsReceived, schema, targ, termName, termResults, _j, _k, _l, _len10, _len11, _len2, _len3, _len4, _len5, _len6, _len7, _len8, _len9, _m, _n, _o, _p, _q, _r, _ref10, _ref11, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7, _ref8, _ref9, _results, _s;
       parent = this;
       if (this.branch[0] === "col") {
         this.pre += "<div class='panel' style='background-color:" + this.bg + ";'>" + "<table id='tbl--" + pid + "'><tbody>";
@@ -416,57 +416,37 @@
                     alert(currSchema);
                 }
               }
-              res += "<input type='submit' value='Submit This'" + " onClick='processForm(" + "this.parentNode" + ");return false;'>";
+              res += "<input type='submit' value='Submit This' onClick='processForm(this.parentNode);return false;'>";
               res += "</form>";
               res += "</div>";
               return this.callback(1, res);
             } else if (this.type === "fcTp") {
-              trms = [];
-              _ref9 = this.schema;
+              termResults = {};
+              _ref9 = parent.schema;
               for (_q = 0, _len9 = _ref9.length; _q < _len9; _q++) {
                 schema = _ref9[_q];
                 if (schema[0] === "term") {
-                  trms.push(schema[1]);
+                  termResults[schema[1]] = [];
                 }
               }
-              termResults = [];
-              addftcb = function(statusCode, result, headers) {
-                var currTermRes, j, schema, trmsel, _len10, _len11, _r, _ref10, _ref11, _ref12, _s;
-                termResults.push(result.instances);
-                if (trms.length === termResults.length) {
-                  trmsel = {};
-                  for (j = 0, _ref10 = trms.length; 0 <= _ref10 ? j < _ref10 : j > _ref10; 0 <= _ref10 ? j++ : j--) {
-                    res = "<select id='" + trms[j] + "_id'>";
-                    _ref11 = termResults[j];
-                    for (_r = 0, _len10 = _ref11.length; _r < _len10; _r++) {
-                      currTermRes = _ref11[_r];
-                      res += "<option value='" + currTermRes.id + "'>" + currTermRes.name + "</option>";
+              resultsReceived = 0;
+              for (termName in termResults) {
+                serverRequest("GET", serverAPI(termName, parent.filters), [], "", (function(termName) {
+                  return function(statusCode, result, headers) {
+                    termResults[termName] = result.instances;
+                    resultsReceived++;
+                    if (resultsReceived === termResults.length) {
+                      res = "<form class='action'>";
+                      res += "<input type='hidden' id='__actype' value='addfctp'>";
+                      res += "<input type='hidden' id='__serverURI' value='" + serverAPI(parent.about, []) + "'>";
+                      res += "<input type='hidden' id='__backURI' value='" + posl + "'>";
+                      res += "<input type='hidden' id='__type' value='" + parent.about + "'>";
+                      res += createFactTypeForm(parent.schema, termResults);
+                      return parent.callback(1, res);
                     }
-                    res += "</select>";
-                    trmsel[trms[j]] = res;
-                  }
-                  res = "";
-                  res += "<form class = 'action' >";
-                  res += "<input type='hidden' id='__actype' value='addfctp'>";
-                  res += "<input type='hidden' id='__serverURI' value='" + serverAPI(parent.about, []) + "'>";
-                  res += "<input type='hidden' id='__backURI' value='" + posl + "'>";
-                  res += "<input type='hidden' id='__type' value='" + parent.about + "'>";
-                  _ref12 = parent.schema;
-                  for (_s = 0, _len11 = _ref12.length; _s < _len11; _s++) {
-                    schema = _ref12[_s];
-                    if (schema[0] === "term") {
-                      res += trmsel[schema[1]] + " ";
-                    } else if (schema[0] === "verb") {
-                      res += parent.schema[j][1] + " ";
-                    }
-                  }
-                  res += "<div align='right'>";
-                  res += "<input type='submit' value='Submit This'" + " onClick='processForm(this.parentNode.parentNode);return false;'>";
-                  res += "</div>";
-                  res += "</form>";
-                  return parent.callback(1, res);
-                }
-              };
+                  };
+                })(termName));
+              }
               _ref10 = this.schema;
               _results = [];
               for (_r = 0, _len10 = _ref10.length; _r < _len10; _r++) {
@@ -518,7 +498,7 @@
             } else if (this.type === "fcTp") {
               this.targ = serverAPI(this.about, this.filters);
               return serverRequest("GET", this.targ, [], "", function(statusCode, result, headers) {
-                var currentFactType, resultsReceived, schema, termName, _len12, _ref12, _results2, _t;
+                var currentFactType, schema, termName, _len12, _ref12, _results2, _t;
                 currentFactType = result.instances[0];
                 termResults = {};
                 _ref12 = parent.schema;
@@ -533,47 +513,19 @@
                 for (termName in termResults) {
                   _results2.push(serverRequest("GET", serverAPI(termName, parent.filters), [], "", (function(termName) {
                     return function(statusCode, result, headers) {
-                      var respo, respr, schema, select, term, termName, termResult, termSelects, _len13, _len14, _ref13, _u, _v;
+                      var respo, respr;
                       termResults[termName] = result.instances;
                       resultsReceived++;
                       if (resultsReceived === termResults.length) {
                         respr = "<div align='left'>";
-                        respr += "<form class = 'action' >";
+                        respr += "<form class='action'>";
                         respr += "<input type='hidden' id='__actype' value='editfctp'>";
                         respr += "<input type='hidden' id='__serverURI' value='" + serverAPI(parent.about, []) + "." + currentFactType.id + "'>";
                         respr += "<input type='hidden' id='__backURI' value='" + serverAPI(parent.about, []) + "'>";
                         console.log("editfctp backURI=" + serverAPI(parent.about, []));
                         respr += "<input type='hidden' id='__id' value='" + currentFactType.id + "'>";
                         respr += "<input type='hidden' id='__type' value='" + parent.about + "'>";
-                        termSelects = {};
-                        for (termName in termResults) {
-                          termResult = termResults[termName];
-                          select = "<select id='" + termName + "_id'>";
-                          for (_u = 0, _len13 = termResult.length; _u < _len13; _u++) {
-                            term = termResult[_u];
-                            select += "<option value='" + term.id + "'";
-                            if (currentFactType[termName + "_id"] === term.id) {
-                              select += " selected='selected'";
-                            }
-                            select += ">" + term.name + "</option>";
-                          }
-                          select += "</select>";
-                          termSelects[termName] = select;
-                        }
-                        res = "";
-                        _ref13 = parent.schema;
-                        for (_v = 0, _len14 = _ref13.length; _v < _len14; _v++) {
-                          schema = _ref13[_v];
-                          if (schema[0] === "term") {
-                            res += termSelects[schema[1]] + " ";
-                          } else if (schema[0] === "verb") {
-                            res += schema[1] + " ";
-                          }
-                        }
-                        respo = "<div align='right'>";
-                        respo += "<input type='submit' value='Submit This' onClick='processForm(this.parentNode.parentNode);return false;'>";
-                        respo += "</div>";
-                        respo += "</form>";
+                        respo = createFactTypeForm(parent.schema, termResults);
                         respo += "</div>";
                         return parent.callback(1, respr + res + respo);
                       }
@@ -591,6 +543,37 @@
       }
     };
     return this;
+  };
+  createFactTypeForm = function(schemas, termResults) {
+    var res, respo, schema, select, term, termName, termResult, termSelects, _i, _j, _len, _len2;
+    termSelects = {};
+    for (termName in termResults) {
+      termResult = termResults[termName];
+      select = "<select id='" + termName + "_id'>";
+      for (_i = 0, _len = termResult.length; _i < _len; _i++) {
+        term = termResult[_i];
+        select += "<option value='" + term.id + "'";
+        if (currentFactType[termName + "_id"] === term.id) {
+          select += " selected='selected'";
+        }
+        select += ">" + term.name + "</option>";
+      }
+      select += "</select>";
+      termSelects[termName] = select;
+    }
+    res = "";
+    for (_j = 0, _len2 = schemas.length; _j < _len2; _j++) {
+      schema = schemas[_j];
+      if (schema[0] === "term") {
+        res += termSelects[schema[1]] + " ";
+      } else if (schema[0] === "verb") {
+        res += schema[1] + " ";
+      }
+    }
+    respo = "<div align='right'>";
+    respo += "<input type='submit' value='Submit This' onClick='processForm(this.parentNode.parentNode);return false;'>";
+    respo += "</div>";
+    return respo += "</form>";
   };
   processForm = function(forma) {
     var action, backURI, id, serverURI, type;
