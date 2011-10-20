@@ -518,68 +518,67 @@
             } else if (this.type === "fcTp") {
               this.targ = serverAPI(this.about, this.filters);
               return serverRequest("GET", this.targ, [], "", function(statusCode, result, headers) {
-                var editftcb, resu, schema, _len12, _len13, _ref12, _ref13, _results2, _t, _u;
-                resu = result;
-                trms = [];
+                var currentFactType, resultsReceived, schema, termName, _len12, _ref12, _results2, _t;
+                currentFactType = result.instances[0];
+                termResults = {};
                 _ref12 = parent.schema;
                 for (_t = 0, _len12 = _ref12.length; _t < _len12; _t++) {
                   schema = _ref12[_t];
                   if (schema[0] === "term") {
-                    trms.push(schema[1]);
+                    termResults[schema[1]] = [];
                   }
                 }
-                termResults = [];
-                editftcb = function(statusCode, result, headers) {
-                  var currTermRes, j, respo, respr, schema, trmsel, _len13, _len14, _ref13, _ref14, _ref15, _u, _v;
-                  termResults.push(result.instances);
-                  if (trms.length === termResults.length) {
-                    trmsel = {};
-                    respo = "";
-                    respr = "<div align='left'>";
-                    respr += "<form class = 'action' >";
-                    respr += "<input type='hidden' id='__actype' value='editfctp'>";
-                    respr += "<input type='hidden' id='__serverURI' value='" + serverAPI(parent.about, []) + "." + resu.instances[0].id + "'>";
-                    respr += "<input type='hidden' id='__backURI' value='" + serverAPI(parent.about, []) + "'>";
-                    console.log("editfctp backURI=" + serverAPI(parent.about, []));
-                    respr += "<input type='hidden' id='__id' value='" + resu.instances[0].id + "'>";
-                    respr += "<input type='hidden' id='__type' value='" + parent.about + "'>";
-                    for (j = 0, _ref13 = trms.length; 0 <= _ref13 ? j < _ref13 : j > _ref13; 0 <= _ref13 ? j++ : j--) {
-                      res = "<select id='" + trms[j] + "_id'>";
-                      _ref14 = termResults[j];
-                      for (_u = 0, _len13 = _ref14.length; _u < _len13; _u++) {
-                        currTermRes = _ref14[_u];
-                        res += "<option value='" + currTermRes.id + "'";
-                        if (resu.instances[0][trms[j] + "_id"] === currTermRes.id) {
-                          res += " selected";
-                        }
-                        res += ">" + currTermRes.name + "</option>";
-                      }
-                      res += "</select>";
-                      trmsel[trms[j]] = res;
-                    }
-                    res = "";
-                    _ref15 = parent.schema;
-                    for (_v = 0, _len14 = _ref15.length; _v < _len14; _v++) {
-                      schema = _ref15[_v];
-                      if (schema[0] === "term") {
-                        res += trmsel[schema[1]] + " ";
-                      } else if (schema[0] === "verb") {
-                        res += parent.schema[j][1] + " ";
-                      }
-                    }
-                    respo += "<div align = 'right'>";
-                    respo += "<input type='submit' value='Submit This' " + "onClick='processForm(this.parentNode.parentNode);return false;'>";
-                    respo += "</div>";
-                    respo += "</form>";
-                    respo += "</div>";
-                    return parent.callback(1, respr + res + respo);
-                  }
-                };
-                _ref13 = parent.schema;
+                resultsReceived = 0;
                 _results2 = [];
-                for (_u = 0, _len13 = _ref13.length; _u < _len13; _u++) {
-                  schema = _ref13[_u];
-                  _results2.push(schema[0] === "term" ? serverRequest("GET", serverAPI(schema[1], parent.filters), [], "", editftcb) : void 0);
+                for (termName in termResults) {
+                  _results2.push(serverRequest("GET", serverAPI(termName, parent.filters), [], "", (function(termName) {
+                    return function(statusCode, result, headers) {
+                      var respo, respr, schema, select, term, termName, termResult, termSelects, _len13, _len14, _ref13, _u, _v;
+                      termResults[termName] = result.instances;
+                      resultsReceived++;
+                      if (resultsReceived === termResults.length) {
+                        respr = "<div align='left'>";
+                        respr += "<form class = 'action' >";
+                        respr += "<input type='hidden' id='__actype' value='editfctp'>";
+                        respr += "<input type='hidden' id='__serverURI' value='" + serverAPI(parent.about, []) + "." + currentFactType.id + "'>";
+                        respr += "<input type='hidden' id='__backURI' value='" + serverAPI(parent.about, []) + "'>";
+                        console.log("editfctp backURI=" + serverAPI(parent.about, []));
+                        respr += "<input type='hidden' id='__id' value='" + currentFactType.id + "'>";
+                        respr += "<input type='hidden' id='__type' value='" + parent.about + "'>";
+                        termSelects = {};
+                        for (termName in termResults) {
+                          termResult = termResults[termName];
+                          select = "<select id='" + termName + "_id'>";
+                          for (_u = 0, _len13 = termResult.length; _u < _len13; _u++) {
+                            term = termResult[_u];
+                            select += "<option value='" + term.id + "'";
+                            if (currentFactType[termName + "_id"] === term.id) {
+                              select += " selected='selected'";
+                            }
+                            select += ">" + term.name + "</option>";
+                          }
+                          select += "</select>";
+                          termSelects[termName] = select;
+                        }
+                        res = "";
+                        _ref13 = parent.schema;
+                        for (_v = 0, _len14 = _ref13.length; _v < _len14; _v++) {
+                          schema = _ref13[_v];
+                          if (schema[0] === "term") {
+                            res += termSelects[schema[1]] + " ";
+                          } else if (schema[0] === "verb") {
+                            res += schema[1] + " ";
+                          }
+                        }
+                        respo = "<div align='right'>";
+                        respo += "<input type='submit' value='Submit This' onClick='processForm(this.parentNode.parentNode);return false;'>";
+                        respo += "</div>";
+                        respo += "</form>";
+                        respo += "</div>";
+                        return parent.callback(1, respr + res + respo);
+                      }
+                    };
+                  })(termName)));
                 }
                 return _results2;
               });
