@@ -361,8 +361,10 @@ namespace('server', ->
 	
 	namespaceFinalDir = getCurrentNamespace() + process.env.finalDir
 	
+	task('build', ['js', 'copy:final:all', namespaceFinalDir + 'Procfile', namespaceFinalDir + 'package.json'])
+	
 	desc('Deploy the server')
-	task('deploy', ['js', 'copy:final:all', namespaceFinalDir + 'Procfile', namespaceFinalDir + 'package.json'], ->
+	task('deploy', ['server:build'], ->
 		cwd = process.cwd()
 		process.chdir(process.env.finalDir)
 		runCommand 'git init', ->
