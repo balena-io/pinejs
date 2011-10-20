@@ -64,7 +64,7 @@
     var filters, rootURI;
     rootURI = location.pathname;
     filters = ["filters"];
-    $("#dataTab").html("<table id='terms'><tbody><tr><td></td></tr></tbody></table>" + "<div align='left'><br/><input type='button' value='Apply All Changes' " + " onClick='runTrans();return false;'></div>");
+    $("#dataTab").html("<table id='terms'><tbody><tr><td></td></tr></tbody></table><div align='left'><br/><input type='button' value='Apply All Changes' onClick='runTrans();return false;'></div>");
     return serverRequest("GET", "/data/", [], "", function(statusCode, result, headers) {
       var i, j, launch, newb, npos, objcb, post, pre, term, _ref, _ref2, _results;
       objcb = {
@@ -100,7 +100,7 @@
         }
         pre = "<tr id='tr--data--" + term.id + "'><td>";
         post = "</td></tr>";
-        _results.push(launch !== -1 ? (npos = getTarg(tree, [], "del", launch - 2), pre += "<div style='display:inline; background-color:#FFFFFF; " + "'>" + term.name + "</div>", pre += "<div style='display:inline;background-color:#FFFFFF" + "'> " + "<a href='" + rootURI + "#!/" + npos + "' " + "onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a></div>", (function(i, pre, post, launch) {
+        _results.push(launch !== -1 ? (npos = getTarg(tree, [], "del", launch - 2), pre += "<div style='display:inline; background-color:#FFFFFF;'>" + term.name + "</div>", pre += "<div style='display:inline;background-color:#FFFFFF'><a href='" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a></div>", (function(i, pre, post, launch) {
           return serverRequest("GET", "/model/", [], "", function(statusCode, result) {
             var model, uid;
             model = SBVRParser.matchAll(result, "expr");
@@ -109,7 +109,7 @@
             uid = new uidraw(i, objcb, pre, post, rootURI, [], [], filters, [launch - 2], true, tree, model);
             return uid.subRowIn();
           });
-        })(i, pre, post, launch)) : (newb = ["col", [term.id], ["mod"]], npos = getTarg(tree, [], "add", newb), pre += term.name, pre += " <a href='" + rootURI + "#!/" + npos + "' " + "onClick='location.hash=\"#!/" + npos + "\";return false'><span title='See all' class='ui-icon ui-icon-search'></span></a>", objcb.callback(i, pre + post)));
+        })(i, pre, post, launch)) : (newb = ["col", [term.id], ["mod"]], npos = getTarg(tree, [], "add", newb), pre += term.name, pre += " <a href='" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false'><span title='See all' class='ui-icon ui-icon-search'></span></a>", objcb.callback(i, pre + post)));
       }
       return _results;
     });
@@ -180,7 +180,7 @@
       var actn, branchType, col, currBranch, currBranchType, currSchema, mod, parent, posl, res, resultsReceived, resultsRequested, schema, targ, termName, termResults, _j, _k, _l, _len10, _len2, _len3, _len4, _len5, _len6, _len7, _len8, _len9, _m, _n, _o, _p, _q, _r, _ref10, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7, _ref8, _ref9, _results;
       parent = this;
       if (this.branch[0] === "col") {
-        this.pre += "<div class='panel' style='background-color:" + this.bg + ";'>" + "<table id='tbl--" + pid + "'><tbody>";
+        this.pre += "<div class='panel' style='background-color:" + this.bg + ";'><table id='tbl--" + pid + "'><tbody>";
         this.post += "</tbody></table></div>";
         _ref2 = this.branch;
         for (_j = 0, _len2 = _ref2.length; _j < _len2; _j++) {
@@ -216,7 +216,7 @@
           parent.items = parent.rows + 2 + parent.adds + 1 + parent.cols;
           newb = ["ins", [parent.about], ["mod", ["add"]]];
           npos = getTarg(parent.ftree, parent.loc, "add", newb);
-          parent.data.push([parent.rows + 1, "<tr><td><a href = '" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false;'>" + "[(+)add new]</a></td></tr>"]);
+          parent.data.push([parent.rows + 1, "<tr><td><a href = '" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false;'>[(+)add new]</a></td></tr>"]);
           for (i = 0, _ref6 = result.instances.length; 0 <= _ref6 ? i < _ref6 : i > _ref6; 0 <= _ref6 ? i++ : i--) {
             instance = result.instances[i];
             launch = -1;
@@ -259,26 +259,26 @@
             if (launch === -1) {
               newb = ["ins", [parent.about, instance.id], ["mod"]];
               npos = getTarg(parent.ftree, parent.loc, "add", newb);
-              prel += " <a href='" + rootURI + "#!/" + npos + "' " + "onClick='location.hash=\"#!/" + npos + "\";return false'><span title='View' class='ui-icon ui-icon-search'></span></a>";
+              prel += " <a href='" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false'><span title='View' class='ui-icon ui-icon-search'></span></a>";
             } else if (actn === "view") {
               npos = getTarg(parent.ftree, parent.loc, "del", launch - 2);
-              prel += "<div style='display:inline;background-color:" + parent.unbg + "'> <a href='" + rootURI + "#!/" + npos + "' " + "onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a></div>";
+              prel += "<div style='display:inline;background-color:" + parent.unbg + "'> <a href='" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a></div>";
             }
             if (launch === -1) {
               newb = ["ins", [parent.about, instance.id], ["mod", ["edit"]]];
               npos = getTarg(parent.ftree, parent.loc, "add", newb);
-              prel += " <a href='" + rootURI + "#!/" + npos + "' " + "onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Edit' class='ui-icon ui-icon-pencil'></span></a>";
+              prel += " <a href='" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Edit' class='ui-icon ui-icon-pencil'></span></a>";
             } else if (actn === "edit") {
               npos = getTarg(parent.ftree, parent.loc, "del", launch - 2);
-              prel += "<div style='display:inline;background-color:" + parent.unbg + "'> <a href='" + rootURI + "#!/" + npos + "' " + "onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a></div>";
+              prel += "<div style='display:inline;background-color:" + parent.unbg + "'> <a href='" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a></div>";
             }
             if (launch === -1) {
               newb = ["ins", [parent.about, instance.id], ["mod", ["del"]]];
               npos = getTarg(parent.ftree, parent.loc, "add", newb);
-              prel += " <a href='" + rootURI + "#!/" + npos + "' " + "onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Delete' class='ui-icon ui-icon-trash'></span></a>";
+              prel += " <a href='" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Delete' class='ui-icon ui-icon-trash'></span></a>";
             } else if (actn === "del") {
               npos = getTarg(parent.ftree, parent.loc, "del", launch - 2);
-              prel += "<div style='display:inline;background-color:" + parent.unbg + "'> <a href='" + rootURI + "#!/" + npos + "' " + "onClick='location.hash=\"#!/" + npos + "\";return false'>[unmark]</a></div>";
+              prel += "<div style='display:inline;background-color:" + parent.unbg + "'> <a href='" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false'>[unmark]</a></div>";
             }
             postl = "</td></tr>";
             if (launch !== -1) {
@@ -289,7 +289,7 @@
               parent.callback(i, prel + postl);
             }
           }
-          parent.callback(parent.rows, "<tr><td>" + "<hr style='border:0px; width:90%; background-color: #999; height:1px;'>" + "</td></tr>");
+          parent.callback(parent.rows, "<tr><td><hr style='border:0px; width:90%; background-color: #999; height:1px;'></td></tr>");
           posl = parent.targ + "/" + parent.about;
           for (j = 3, _ref11 = parent.branch.length; 3 <= _ref11 ? j < _ref11 : j > _ref11; 3 <= _ref11 ? j++ : j--) {
             currBranch = parent.branch[j];
@@ -306,7 +306,7 @@
               }
             }
           }
-          parent.callback(parent.rows + 1 + parent.adds + 1, "<tr><td>" + "<hr style='border:0px; width:90%; background-color: #999; height:1px;'>" + "</td></tr>");
+          parent.callback(parent.rows + 1 + parent.adds + 1, "<tr><td><hr style='border:0px; width:90%; background-color: #999; height:1px;'></td></tr>");
           _ref13 = cmod.slice(1);
           _results = [];
           for (_q = 0, _len9 = _ref13.length; _q < _len9; _q++) {
@@ -328,11 +328,11 @@
                     res = "";
                     pre = "<tr id='tr--data--" + mod[1] + "'><td>";
                     post = "</td></tr>";
-                    _results2.push(launch !== -1 ? (npos = getTarg(parent.ftree, parent.loc, "del", launch), pre += "<div style='display:inline;background-color:" + parent.unbg + "'>" + mod[2] + "</div>", pre += "<div style='display:inline;background-color:" + parent.unbg + "'>" + " <a href='" + rootURI + "#!/" + npos + "' " + "onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a>" + "</div>", subcolcb = {
+                    _results2.push(launch !== -1 ? (npos = getTarg(parent.ftree, parent.loc, "del", launch), pre += "<div style='display:inline;background-color:" + parent.unbg + "'>" + mod[2] + "</div>", pre += "<div style='display:inline;background-color:" + parent.unbg + "'><a href='" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a></div>", subcolcb = {
                       callback: function(n, prod) {
                         return parent.callback(n, prod);
                       }
-                    }, uid = new uidraw(parent.rows + 1 + parent.adds + 1 + parent.colsout, subcolcb, pre, post, rootURI, [], [], parent.filters, loc.concat([launch]), !parent.even, parent.ftree, cmod), uid.subRowIn()) : (newb = ["col", [mod[1]], ["mod"]], npos = getTarg(parent.ftree, parent.loc, "add", newb), pre += mod[2], pre += " <a href='" + parent.rootURI + "#!/" + npos + "' " + "onClick='location.hash=\"#!/" + npos + "\";return false'><span title='See all' class='ui-icon ui-icon-search'></span></a>", res += pre + post, parent.callback(parent.rows + 1 + parent.adds + 1 + parent.colsout, res)));
+                    }, uid = new uidraw(parent.rows + 1 + parent.adds + 1 + parent.colsout, subcolcb, pre, post, rootURI, [], [], parent.filters, loc.concat([launch]), !parent.even, parent.ftree, cmod), uid.subRowIn()) : (newb = ["col", [mod[1]], ["mod"]], npos = getTarg(parent.ftree, parent.loc, "add", newb), pre += mod[2], pre += " <a href='" + parent.rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false'><span title='See all' class='ui-icon ui-icon-search'></span></a>", res += pre + post, parent.callback(parent.rows + 1 + parent.adds + 1 + parent.colsout, res)));
                   }
                 }
                 return _results2;
@@ -474,7 +474,7 @@
                   }
                 }
                 res += "<div align='right'>";
-                res += "<input type='submit' value='Submit This' " + "onClick='processForm(this.parentNode.parentNode);return false;'>";
+                res += "<input type='submit' value='Submit This' onClick='processForm(this.parentNode.parentNode);return false;'>";
                 res += "</div>";
                 res += "</form>";
                 res += "</div>";
@@ -515,7 +515,7 @@
             }
             break;
           case "del":
-            res = "<div align='left'>" + "marked for deletion" + "<div align='right'>" + "<form class='action'>" + createHiddenInputs('del', serverAPI(this.about, []) + "." + this.id, serverAPI(this.about, []), this.about) + "<input type='hidden' id='__id' value='" + this.id + "'>" + "<input type='submit' value='Confirm' " + "onClick='processForm(this.parentNode.parentNode);return false;'>" + "</form>" + "</div>" + "</div>";
+            res = "<div align='left'>" + "marked for deletion" + "<div align='right'>" + "<form class='action'>" + createHiddenInputs('del', serverAPI(this.about, []) + "." + this.id, serverAPI(this.about, []), this.about) + "<input type='hidden' id='__id' value='" + this.id + "'>" + "<input type='submit' value='Confirm' onClick='processForm(this.parentNode.parentNode);return false;'>" + "</form>" + "</div>" + "</div>";
             return this.callback(1, res);
         }
       }

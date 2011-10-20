@@ -54,7 +54,7 @@ serverAPI = (about, filters) ->
 drawData = (tree) ->
 	rootURI = location.pathname
 	filters = [ "filters" ]
-	$("#dataTab").html "<table id='terms'><tbody><tr><td></td></tr></tbody></table>" + "<div align='left'><br/><input type='button' value='Apply All Changes' " + " onClick='runTrans();return false;'></div>"
+	$("#dataTab").html "<table id='terms'><tbody><tr><td></td></tr></tbody></table><div align='left'><br/><input type='button' value='Apply All Changes' onClick='runTrans();return false;'></div>"
 	serverRequest "GET", "/data/", [], "", (statusCode, result, headers) ->
 		objcb =
 			totsub: result.terms.length
@@ -84,8 +84,8 @@ drawData = (tree) ->
 			post = "</td></tr>"
 			if launch != -1
 				npos = getTarg(tree, [], "del", launch - 2)
-				pre += "<div style='display:inline; background-color:#FFFFFF; " + "'>" + term.name + "</div>"
-				pre += "<div style='display:inline;background-color:#FFFFFF" + "'> " + "<a href='" + rootURI + "#!/" + npos + "' " + "onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a></div>"
+				pre += "<div style='display:inline; background-color:#FFFFFF;'>" + term.name + "</div>"
+				pre += "<div style='display:inline;background-color:#FFFFFF'><a href='" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a></div>"
 
 				#request schema from server and store locally.
 				do (i, pre, post, launch) ->
@@ -100,7 +100,7 @@ drawData = (tree) ->
 				newb = [ "col", [ term.id ], [ "mod" ] ]
 				npos = getTarg(tree, [], "add", newb)
 				pre += term.name
-				pre += " <a href='" + rootURI + "#!/" + npos + "' " + "onClick='location.hash=\"#!/" + npos + "\";return false'><span title='See all' class='ui-icon ui-icon-search'></span></a>"
+				pre += " <a href='" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false'><span title='See all' class='ui-icon ui-icon-search'></span></a>"
 				objcb.callback i, pre + post
 
 
@@ -163,7 +163,7 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 	@subRowIn = ->
 		parent = this
 		if @branch[0] is "col"
-			@pre += "<div class='panel' style='background-color:" + @bg + ";'>" + "<table id='tbl--" + pid + "'><tbody>"
+			@pre += "<div class='panel' style='background-color:" + @bg + ";'><table id='tbl--" + pid + "'><tbody>"
 			@post += "</tbody></table></div>"
 
 			#are there children with 'add' modifiers? huh?
@@ -184,7 +184,7 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 				#get link which adds an 'add inst' dialog.
 				newb = [ "ins", [ parent.about ], [ "mod", [ "add" ] ] ]
 				npos = getTarg(parent.ftree, parent.loc, "add", newb)
-				parent.data.push [ parent.rows + 1, "<tr><td><a href = '" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false;'>" + "[(+)add new]</a></td></tr>" ]
+				parent.data.push [ parent.rows + 1, "<tr><td><a href = '" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false;'>[(+)add new]</a></td></tr>" ]
 
 				#render each child and call back
 				for i in [0...result.instances.length]
@@ -218,26 +218,26 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 					if launch == -1
 						newb = [ "ins", [ parent.about, instance.id ], [ "mod" ] ]
 						npos = getTarg(parent.ftree, parent.loc, "add", newb)
-						prel += " <a href='" + rootURI + "#!/" + npos + "' " + "onClick='location.hash=\"#!/" + npos + "\";return false'><span title='View' class='ui-icon ui-icon-search'></span></a>"
+						prel += " <a href='" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false'><span title='View' class='ui-icon ui-icon-search'></span></a>"
 					else if actn == "view"
 						npos = getTarg(parent.ftree, parent.loc, "del", launch - 2)
-						prel += "<div style='display:inline;background-color:" + parent.unbg + "'> <a href='" + rootURI + "#!/" + npos + "' " + "onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a></div>"
+						prel += "<div style='display:inline;background-color:" + parent.unbg + "'> <a href='" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a></div>"
 
 					if launch == -1
 						newb = [ "ins", [ parent.about, instance.id ], [ "mod", [ "edit" ] ] ]
 						npos = getTarg(parent.ftree, parent.loc, "add", newb)
-						prel += " <a href='" + rootURI + "#!/" + npos + "' " + "onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Edit' class='ui-icon ui-icon-pencil'></span></a>"
+						prel += " <a href='" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Edit' class='ui-icon ui-icon-pencil'></span></a>"
 					else if actn == "edit"
 						npos = getTarg(parent.ftree, parent.loc, "del", launch - 2)
-						prel += "<div style='display:inline;background-color:" + parent.unbg + "'> <a href='" + rootURI + "#!/" + npos + "' " + "onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a></div>"
+						prel += "<div style='display:inline;background-color:" + parent.unbg + "'> <a href='" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a></div>"
 
 					if launch == -1
 						newb = [ "ins", [ parent.about, instance.id ], [ "mod", [ "del" ] ] ]
 						npos = getTarg(parent.ftree, parent.loc, "add", newb)
-						prel += " <a href='" + rootURI + "#!/" + npos + "' " + "onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Delete' class='ui-icon ui-icon-trash'></span></a>"
+						prel += " <a href='" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Delete' class='ui-icon ui-icon-trash'></span></a>"
 					else if actn == "del"
 						npos = getTarg(parent.ftree, parent.loc, "del", launch - 2)
-						prel += "<div style='display:inline;background-color:" + parent.unbg + "'> <a href='" + rootURI + "#!/" + npos + "' " + "onClick='location.hash=\"#!/" + npos + "\";return false'>[unmark]</a></div>"
+						prel += "<div style='display:inline;background-color:" + parent.unbg + "'> <a href='" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false'>[unmark]</a></div>"
 
 					postl = "</td></tr>"
 					if launch != -1
@@ -247,7 +247,7 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 					else
 						parent.callback i, prel + postl
 
-				parent.callback parent.rows, "<tr><td>" + "<hr style='border:0px; width:90%; background-color: #999; height:1px;'>" + "</td></tr>"
+				parent.callback parent.rows, "<tr><td><hr style='border:0px; width:90%; background-color: #999; height:1px;'></td></tr>"
 				#launch more uids to render the adds
 				posl = parent.targ + "/" + parent.about
 
@@ -260,7 +260,7 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 							uid.subRowIn()
 							break
 
-				parent.callback parent.rows + 1 + parent.adds + 1, "<tr><td>" + "<hr style='border:0px; width:90%; background-color: #999; height:1px;'>" + "</td></tr>"
+				parent.callback parent.rows + 1 + parent.adds + 1, "<tr><td><hr style='border:0px; width:90%; background-color: #999; height:1px;'></td></tr>"
 
 				#launch a final callback to add the subcollections.
 				for mod in cmod[1..] when mod[0] == "fcTp"
@@ -278,7 +278,7 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 						if launch != -1
 							npos = getTarg(parent.ftree, parent.loc, "del", launch)
 							pre += "<div style='display:inline;background-color:" + parent.unbg + "'>" + mod[2] + "</div>"
-							pre += "<div style='display:inline;background-color:" + parent.unbg + "'>" + " <a href='" + rootURI + "#!/" + npos + "' " + "onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a>" + "</div>"
+							pre += "<div style='display:inline;background-color:" + parent.unbg + "'><a href='" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a></div>"
 							subcolcb = callback: (n, prod) ->
 								parent.callback n, prod
 
@@ -288,7 +288,7 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 							newb = [ "col", [ mod[1] ], [ "mod" ] ]
 							npos = getTarg(parent.ftree, parent.loc, "add", newb)
 							pre += mod[2]
-							pre += " <a href='" + parent.rootURI + "#!/" + npos + "' " + "onClick='location.hash=\"#!/" + npos + "\";return false'><span title='See all' class='ui-icon ui-icon-search'></span></a>"
+							pre += " <a href='" + parent.rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false'><span title='See all' class='ui-icon ui-icon-search'></span></a>"
 							res += (pre + post)
 							parent.callback parent.rows + 1 + parent.adds + 1 + parent.colsout, res
 		else if @branch[0] == "ins"
@@ -389,7 +389,7 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 									when "ForeignKey"
 										console.log currSchema
 							res += "<div align='right'>"
-							res += "<input type='submit' value='Submit This' " + "onClick='processForm(this.parentNode.parentNode);return false;'>"
+							res += "<input type='submit' value='Submit This' onClick='processForm(this.parentNode.parentNode);return false;'>"
 							res += "</div>"
 							res += "</form>"
 							res += "</div>"
@@ -426,7 +426,7 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 								"<form class='action'>" +
 									createHiddenInputs('del', serverAPI(@about, []) + "." + @id, serverAPI(@about, []), @about) +
 									"<input type='hidden' id='__id' value='" + @id + "'>" +
-									"<input type='submit' value='Confirm' " + "onClick='processForm(this.parentNode.parentNode);return false;'>" +
+									"<input type='submit' value='Confirm' onClick='processForm(this.parentNode.parentNode);return false;'>" +
 								"</form>" +
 							"</div>" +
 						"</div>"
