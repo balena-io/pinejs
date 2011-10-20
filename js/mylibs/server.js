@@ -658,22 +658,22 @@
     ftree = getFTree(tree);
     sql = "";
     if (tree[1][0] === "term") {
-      sql = "SELECT " + "*" + " FROM " + tree[1][1];
+      sql = "SELECT * FROM " + tree[1][1];
       if (ftree.length !== 1) {
         sql += " WHERE ";
       }
     } else if (tree[1][0] === "fcTp") {
       ft = tree[1][1];
-      fl = ["'" + ft + "'.id AS id"];
+      fl = ['"' + ft + '".id AS id'];
       jn = [];
-      tb = ["'" + ft + "'"];
+      tb = ['"' + ft + '"'];
       _ref = tree[1][2].slice(1);
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         row = _ref[_i];
-        fl.push("'" + row + "'" + ".'id' AS '" + row + "_id'");
-        fl.push("'" + row + "'" + ".'name' AS '" + row + "_name'");
-        tb.push("'" + row + "'");
-        jn.push("'" + row + "'" + ".'id' = " + "'" + ft + "'" + "." + "'" + row + "_id" + "'");
+        fl.push('"' + row + '" .id AS "' + row + '_id"');
+        fl.push('"' + row + '".name AS "' + row + '_name"');
+        tb.push('"' + row + '"');
+        jn.push('"' + row + '".id = "' + ft + '"."' + row + '_id"');
       }
       sql = "SELECT " + fl.join(", ") + " FROM " + tb.join(", ") + " WHERE " + jn.join(" AND ");
       if (ftree.length !== 1) {
@@ -691,9 +691,9 @@
             row2 = _ref3[_k];
             obj = "";
             if (row2[1][0] != null) {
-              obj = "'" + row2[1] + "'" + ".";
+              obj = '"' + row2[1] + "'.";
             }
-            filts.push(obj + "'" + row2[2] + "'" + op[row2[0]] + row2[3]);
+            filts.push(obj + '"' + row2[2] + '"' + op[row2[0]] + row2[3]);
           }
         } else if (row[0] === "sort") {
           null;
