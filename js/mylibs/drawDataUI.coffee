@@ -153,13 +153,12 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 			@html += @post
 			@objcb.callback @idx, @html
 
-	j = 1
 	#is the thing we're talking about a term or a fact type?
-	while j < cmod.length
-		if cmod[j][1] == @about
-			@type = cmod[j][0]
-			@schema = cmod[j][6]	if @type == "fcTp"
-		j++
+	for mod in cmod[1..]
+		if mod[1] == @about
+			@type = mod[0]
+			if @type == "fcTp"
+				@schema = mod[6]
 
 	@subRowIn = ->
 		parent = this
@@ -167,7 +166,7 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 			@pre += "<div class='panel' style='background-color:" + @bg + ";'>" + "<table id='tbl--" + pid + "'><tbody>"
 			@post += "</tbody></table></div>"
 			@targ = serverAPI(@about, @filters)
-			j = 3
+
 			#are there children with 'add' modifiers? huh?
 			for currBranch in @branch when currBranch[0] == "ins" and currBranch[1][0] == @about and currBranch[1][1] == undefined
 				for currBranchType in currBranch[2][1..] when currBranchType[0] == "add"
@@ -213,28 +212,33 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 							else if schema[0] == "verb"
 								prel += "<em>" + schema[1] + "</em> "
 
-					prel += "</div>" unless launch == -1
-					if launch != -1 and actn == "view"
-						npos = getTarg(parent.ftree, parent.loc, "del", launch - 2)
-						prel += "<div style='display:inline;background-color:" + parent.unbg + "'> <a href='" + rootURI + "#!/" + npos + "' " + "onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a></div>"
-					else if launch == -1
+					if launch != -1
+						prel += "</div>"
+
+					if launch == -1
 						newb = [ "ins", [ parent.about, instance.id ], [ "mod" ] ]
 						npos = getTarg(parent.ftree, parent.loc, "add", newb)
 						prel += " <a href='" + rootURI + "#!/" + npos + "' " + "onClick='location.hash=\"#!/" + npos + "\";return false'><span title='View' class='ui-icon ui-icon-search'></span></a>"
-					if launch != -1 and actn == "edit"
+					else if actn == "view"
 						npos = getTarg(parent.ftree, parent.loc, "del", launch - 2)
 						prel += "<div style='display:inline;background-color:" + parent.unbg + "'> <a href='" + rootURI + "#!/" + npos + "' " + "onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a></div>"
-					else if launch == -1
+
+					if launch == -1
 						newb = [ "ins", [ parent.about, instance.id ], [ "mod", [ "edit" ] ] ]
 						npos = getTarg(parent.ftree, parent.loc, "add", newb)
 						prel += " <a href='" + rootURI + "#!/" + npos + "' " + "onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Edit' class='ui-icon ui-icon-pencil'></span></a>"
-					if launch != -1 and actn == "del"
+					else if actn == "edit"
 						npos = getTarg(parent.ftree, parent.loc, "del", launch - 2)
-						prel += "<div style='display:inline;background-color:" + parent.unbg + "'> <a href='" + rootURI + "#!/" + npos + "' " + "onClick='location.hash=\"#!/" + npos + "\";return false'>[unmark]</a></div>"
-					else if launch == -1
+						prel += "<div style='display:inline;background-color:" + parent.unbg + "'> <a href='" + rootURI + "#!/" + npos + "' " + "onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a></div>"
+
+					if launch == -1
 						newb = [ "ins", [ parent.about, instance.id ], [ "mod", [ "del" ] ] ]
 						npos = getTarg(parent.ftree, parent.loc, "add", newb)
 						prel += " <a href='" + rootURI + "#!/" + npos + "' " + "onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Delete' class='ui-icon ui-icon-trash'></span></a>"
+					else if actn == "del"
+						npos = getTarg(parent.ftree, parent.loc, "del", launch - 2)
+						prel += "<div style='display:inline;background-color:" + parent.unbg + "'> <a href='" + rootURI + "#!/" + npos + "' " + "onClick='location.hash=\"#!/" + npos + "\";return false'>[unmark]</a></div>"
+
 					postl = "</td></tr>"
 					if launch != -1
 						locn = parent.loc.concat([ launch - 2 ])
@@ -270,13 +274,10 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 						parent.colsout++
 						res = ""
 						pre = "<tr id='tr--data--" + mod[1] + "'><td>"
-						if launch == -1
-							pre += mod[2]
-						else
-							pre += "<div style='display:inline;background-color:" + parent.unbg + "'>" + mod[2] + "</div>"
 						post = "</td></tr>"
 						if launch != -1
 							npos = getTarg(parent.ftree, parent.loc, "del", launch)
+							pre += "<div style='display:inline;background-color:" + parent.unbg + "'>" + mod[2] + "</div>"
 							pre += "<div style='display:inline;background-color:" + parent.unbg + "'>" + " <a href='" + rootURI + "#!/" + npos + "' " + "onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a>" + "</div>"
 							subcolcb = callback: (n, prod) ->
 								parent.callback n, prod
@@ -286,6 +287,7 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 						else
 							newb = [ "col", [ mod[1] ], [ "mod" ] ]
 							npos = getTarg(parent.ftree, parent.loc, "add", newb)
+							pre += mod[2]
 							pre += " <a href='" + parent.rootURI + "#!/" + npos + "' " + "onClick='location.hash=\"#!/" + npos + "\";return false'><span title='See all' class='ui-icon ui-icon-search'></span></a>"
 							res += (pre + post)
 							parent.callback parent.rows + 1 + parent.adds + 1 + parent.colsout, res
@@ -315,8 +317,7 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 					else if @type == "fcTp"
 						@targ = serverAPI(@about, @filters)
 						serverRequest "GET", @targ, [], "", (statusCode, result, headers) ->
-							res = ""
-							res += "id: " + result.instances[0].id + "<br/>"
+							res = "id: " + result.instances[0].id + "<br/>"
 							#loop around terms
 							for schema in parent.schema
 								if schema[0] == "term"
@@ -404,7 +405,6 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 
 						@targ = serverAPI(@about, @filters)
 						serverRequest "GET", @targ, [], "", (statusCode, result, headers) ->
-							res = ""
 							id = result.instances[0].id
 							res = "<div align='left'>"
 							res += "<form class = 'action' >"
@@ -436,7 +436,6 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 								trms.push schema[1]
 							
 							editftcb = (statusCode, result, headers) ->
-								res = ""
 								trmres = []
 								trmsel = {}
 								trmres.push result.instances
@@ -462,9 +461,9 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 											res += ">" + currTermRes[k].name + "</option>"
 										res += "</select>"
 										trmsel[trms[j]] = res
+
 									#merge dropdowns with verbs to create 'form'
 									res = ""
-
 									for schema in parent.schema
 										if schema[0] == "term"
 											res += trmsel[schema[1]] + " "
