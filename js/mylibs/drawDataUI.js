@@ -1,5 +1,5 @@
 (function() {
-  var addInst, createFactTypeForm, delInst, drawData, editInst, filtmerge, getBranch, getPid, getTarg, processForm, serverAPI, uidraw;
+  var addInst, createFactTypeForm, createHiddenInputs, delInst, drawData, editInst, filtmerge, getBranch, getPid, getTarg, processForm, serverAPI, uidraw;
   requirejs(["mylibs/ometa-code/SBVRParser", "mylibs/ometa-code/SBVR_PreProc", "mylibs/ometa-code/SBVR2SQL"]);
   getBranch = function(branch, loc) {
     var childIndex, _i, _len;
@@ -401,11 +401,8 @@
               }
               res = "<div align='right'>";
               res += "<form class='action'>";
-              res += "<input type='hidden' id='__actype' value='addterm'>";
-              res += "<input type='hidden' id='__serverURI' value='" + serverAPI(this.about, []) + "'>";
-              res += "<input type='hidden' id='__backURI' value='" + targ + "'>";
+              res += createHiddenInputs('addterm', serverAPI(this.about, []), targ, this.about);
               console.log("addterm backURI=" + targ);
-              res += "<input type='hidden' id='__type' value='" + this.about + "'>";
               for (_p = 0, _len8 = schema.length; _p < _len8; _p++) {
                 currSchema = schema[_p];
                 switch (currSchema[0]) {
@@ -462,12 +459,9 @@
                 var currSchema, id, _len11, _s;
                 id = result.instances[0].id;
                 res = "<div align='left'>";
-                res += "<form class = 'action' >";
-                res += "<input type='hidden' id='__actype' value='editterm'>";
-                res += "<input type='hidden' id='__serverURI' value='" + serverAPI(parent.about, []) + "." + id + "'>";
-                res += "<input type='hidden' id='__backURI' value='" + serverAPI(parent.about, []) + "'>";
+                res += "<form class='action'>";
+                res += createHiddenInputs('editterm', serverAPI(parent.about, []), serverAPI(parent.about, []), parent.about);
                 res += "<input type='hidden' id='__id' value='" + id + "'>";
-                res += "<input type='hidden' id='__type' value='" + parent.about + "'>";
                 res += "id: " + id + "<br/>";
                 for (_s = 0, _len11 = schema.length; _s < _len11; _s++) {
                   currSchema = schema[_s];
@@ -479,7 +473,7 @@
                       console.log(currSchema);
                   }
                 }
-                res += "<div align = 'right'>";
+                res += "<div align='right'>";
                 res += "<input type='submit' value='Submit This' " + "onClick='processForm(this.parentNode.parentNode);return false;'>";
                 res += "</div>";
                 res += "</form>";
@@ -521,12 +515,20 @@
             }
             break;
           case "del":
-            res = "<div align='left'>" + "marked for deletion" + "<div align='right'>" + "<form class='action'>" + "<input type='hidden' id='__actype' value='del'>" + "<input type='hidden' id='__serverURI' value='" + serverAPI(this.about, []) + "." + this.id + "'>" + "<input type='hidden' id='__id' value='" + this.id + "'>" + "<input type='hidden' id='__type' value='" + this.about + "'>" + "<input type='hidden' id='__backURI' value='" + serverAPI(this.about, []) + "'>" + "<input type='submit' value='Confirm' " + "onClick='processForm(this.parentNode.parentNode);return false;'>" + "</form>" + "</div>" + "</div>";
+            res = "<div align='left'>" + "marked for deletion" + "<div align='right'>" + "<form class='action'>" + createHiddenInputs('del', serverAPI(this.about, []) + "." + this.id, serverAPI(this.about, []), this.about) + "<input type='hidden' id='__id' value='" + this.id + "'>" + "<input type='submit' value='Confirm' " + "onClick='processForm(this.parentNode.parentNode);return false;'>" + "</form>" + "</div>" + "</div>";
             return this.callback(1, res);
         }
       }
     };
     return this;
+  };
+  createHiddenInputs = function(action, serverURI, backURI, type) {
+    var res;
+    res = "<input type='hidden' id='__actype' value='" + action + "'>";
+    res += "<input type='hidden' id='__serverURI' value='" + serverURI + "'>";
+    res += "<input type='hidden' id='__backURI' value='" + backURI + "'>";
+    res += "<input type='hidden' id='__type' value='" + type + "'>";
+    return res;
   };
   createFactTypeForm = function(schemas, termResults, action, serverURI, backURI, type, currentFactType) {
     var res, schema, select, term, termName, termResult, termSelects, _i, _j, _len, _len2;
@@ -549,10 +551,7 @@
       termSelects[termName] = select;
     }
     res = "<form class='action'>";
-    res += "<input type='hidden' id='__actype' value='" + action + "'>";
-    res += "<input type='hidden' id='__serverURI' value='" + serverURI + "'>";
-    res += "<input type='hidden' id='__backURI' value='" + backURI + "'>";
-    res += "<input type='hidden' id='__type' value='" + type + "'>";
+    res += createHiddenInputs(action, serverURI, backURI, type);
     if (currentFactType !== false) {
       res += "<input type='hidden' id='__id' value='" + currentFactType.id + "'>";
     }

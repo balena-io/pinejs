@@ -336,11 +336,8 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 						#print form.
 						res = "<div align='right'>"
 						res += "<form class='action'>"
-						res += "<input type='hidden' id='__actype' value='addterm'>"
-						res += "<input type='hidden' id='__serverURI' value='" + serverAPI(@about, []) + "'>"
-						res += "<input type='hidden' id='__backURI' value='" + targ + "'>"
+						res += createHiddenInputs('addterm', serverAPI(@about, []), targ, @about)
 						console.log "addterm backURI=" + targ
-						res += "<input type='hidden' id='__type' value='" + @about + "'>"
 
 						for currSchema in schema
 							switch currSchema[0]
@@ -380,12 +377,9 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 						serverRequest "GET", @targ, [], "", (statusCode, result, headers) ->
 							id = result.instances[0].id
 							res = "<div align='left'>"
-							res += "<form class = 'action' >"
-							res += "<input type='hidden' id='__actype' value='editterm'>"
-							res += "<input type='hidden' id='__serverURI' value='" + serverAPI(parent.about, []) + "." + id + "'>"
-							res += "<input type='hidden' id='__backURI' value='" + serverAPI(parent.about, []) + "'>"
+							res += "<form class='action'>"
+							res += createHiddenInputs('editterm', serverAPI(parent.about, []), serverAPI(parent.about, []), parent.about)
 							res += "<input type='hidden' id='__id' value='" + id + "'>"
-							res += "<input type='hidden' id='__type' value='" + parent.about + "'>"
 							res += "id: " + id + "<br/>"
 
 							for currSchema in schema
@@ -394,7 +388,7 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 										res += currSchema[2] + ": <input type='text' id='" + currSchema[1] + "' value = '" + result.instances[0][currSchema[1]] + "' /><br />"
 									when "ForeignKey"
 										console.log currSchema
-							res += "<div align = 'right'>"
+							res += "<div align='right'>"
 							res += "<input type='submit' value='Submit This' " + "onClick='processForm(this.parentNode.parentNode);return false;'>"
 							res += "</div>"
 							res += "</form>"
@@ -430,17 +424,21 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 							"marked for deletion" +
 							"<div align='right'>" +
 								"<form class='action'>" +
-									"<input type='hidden' id='__actype' value='del'>" +
-									"<input type='hidden' id='__serverURI' value='" + serverAPI(@about, []) + "." + @id + "'>" +
+									createHiddenInputs('del', serverAPI(@about, []) + "." + @id, serverAPI(@about, []), @about) +
 									"<input type='hidden' id='__id' value='" + @id + "'>" +
-									"<input type='hidden' id='__type' value='" + @about + "'>" +
-									"<input type='hidden' id='__backURI' value='" + serverAPI(@about, []) + "'>" +
 									"<input type='submit' value='Confirm' " + "onClick='processForm(this.parentNode.parentNode);return false;'>" +
 								"</form>" +
 							"</div>" +
 						"</div>"
 					@callback 1, res
 	return this
+
+createHiddenInputs = (action, serverURI, backURI, type) ->
+	res = "<input type='hidden' id='__actype' value='" + action + "'>"
+	res += "<input type='hidden' id='__serverURI' value='" + serverURI + "'>"
+	res += "<input type='hidden' id='__backURI' value='" + backURI + "'>"
+	res += "<input type='hidden' id='__type' value='" + type + "'>"
+	return res
 
 createFactTypeForm = (schemas, termResults, action, serverURI, backURI, type, currentFactType = false) ->
 	termSelects = {}
@@ -457,10 +455,7 @@ createFactTypeForm = (schemas, termResults, action, serverURI, backURI, type, cu
 		termSelects[termName] = select
 
 	res = "<form class='action'>"
-	res += "<input type='hidden' id='__actype' value='" + action + "'>"
-	res += "<input type='hidden' id='__serverURI' value='" + serverURI + "'>"
-	res += "<input type='hidden' id='__backURI' value='" + backURI + "'>"
-	res += "<input type='hidden' id='__type' value='" + type + "'>"
+	res += createHiddenInputs(action, serverURI, backURI, type)
 	if currentFactType != false
 		res += "<input type='hidden' id='__id' value='" + currentFactType.id + "'>"
 
