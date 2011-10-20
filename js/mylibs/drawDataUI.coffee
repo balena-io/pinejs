@@ -359,6 +359,7 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 
 						#Get results for all the terms and process them once finished
 						resultsReceived = 0
+						resultsRequested = Object.keys(termResults).length
 						for termName of termResults
 							serverRequest "GET", serverAPI(termName, parent.filters), [], "", do(termName) ->
 								(statusCode, result, headers) ->
@@ -366,7 +367,7 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 									resultsReceived++
 
 									#If all requests have returned then construct dropdowns & form
-									if resultsReceived == termResults.length
+									if resultsReceived == resultsRequested
 										res = createFactTypeForm(parent.schema, termResults, 'addfctp', serverAPI(parent.about, []), posl, parent.about)
 										parent.callback 1, res
 				when "edit"
@@ -409,6 +410,7 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 
 							#Get results for all the terms and process them once finished
 							resultsReceived = 0
+							resultsRequested = Object.keys(termResults).length
 							for termName of termResults
 								serverRequest "GET", serverAPI(termName, parent.filters), [], "", do(termName) ->
 									(statusCode, result, headers) ->
@@ -416,9 +418,9 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 										resultsReceived++
 
 										#If all requests have returned then construct dropdowns & form
-										if resultsReceived == termResults.length
+										if resultsReceived == resultsRequested
 											res = "<div align='left'>"
-											res += createFactTypeForm(parent.schema, termResults, 'editfctp', serverAPI(parent.about, []) + "." + currentFactType.id, posl, parent.about, currentFactType.id)
+											res += createFactTypeForm(parent.schema, termResults, 'editfctp', serverAPI(parent.about, []) + "." + currentFactType.id, posl, parent.about, currentFactType)
 											res += "</div>"
 											parent.callback 1, res
 				when "del"
@@ -440,7 +442,7 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 					@callback 1, res
 	return this
 
-createFactTypeForm = (schemas, termResults, action, serverURI, backURI, type, currentID = false) ->
+createFactTypeForm = (schemas, termResults, action, serverURI, backURI, type, currentFactType = false) ->
 	termSelects = {}
 	for termName, termResult of termResults
 		select = "<select id='" + termName + "_id'>"
@@ -448,7 +450,7 @@ createFactTypeForm = (schemas, termResults, action, serverURI, backURI, type, cu
 		for term in termResult
 			select += "<option value='" + term.id + "'"
 			#if current value, print selected
-			if currentFactType[termName + "_id"] == term.id
+			if currentFactType != false and currentFactType[termName + "_id"] == term.id
 				select += " selected='selected'" 
 			select += ">" + term.name + "</option>"
 		select += "</select>"
@@ -459,7 +461,7 @@ createFactTypeForm = (schemas, termResults, action, serverURI, backURI, type, cu
 	res += "<input type='hidden' id='__serverURI' value='" + serverURI + "'>"
 	res += "<input type='hidden' id='__backURI' value='" + backURI + "'>"
 	res += "<input type='hidden' id='__type' value='" + type + "'>"
-	if currentID != false
+	if currentFactType != false
 		res += "<input type='hidden' id='__id' value='" + currentFactType.id + "'>"
 
 	#merge dropdowns with verbs to create 'form'
@@ -469,7 +471,7 @@ createFactTypeForm = (schemas, termResults, action, serverURI, backURI, type, cu
 		else if schema[0] == "verb"
 			res += schema[1] + " "
 	#add submit button etc.
-	res = "<div align='right'>"
+	res += "<div align='right'>"
 	res += "<input type='submit' value='Submit This' onClick='processForm(this.parentNode.parentNode);return false;'>"
 	res += "</div>"
 	res += "</form>"

@@ -177,7 +177,7 @@
       }
     }
     this.subRowIn = function() {
-      var actn, branchType, col, currBranch, currBranchType, currSchema, mod, parent, posl, res, resultsReceived, schema, targ, termName, termResults, _j, _k, _l, _len10, _len2, _len3, _len4, _len5, _len6, _len7, _len8, _len9, _m, _n, _o, _p, _q, _r, _ref10, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7, _ref8, _ref9, _results;
+      var actn, branchType, col, currBranch, currBranchType, currSchema, mod, parent, posl, res, resultsReceived, resultsRequested, schema, targ, termName, termResults, _j, _k, _l, _len10, _len2, _len3, _len4, _len5, _len6, _len7, _len8, _len9, _m, _n, _o, _p, _q, _r, _ref10, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7, _ref8, _ref9, _results;
       parent = this;
       if (this.branch[0] === "col") {
         this.pre += "<div class='panel' style='background-color:" + this.bg + ";'>" + "<table id='tbl--" + pid + "'><tbody>";
@@ -430,13 +430,14 @@
                 }
               }
               resultsReceived = 0;
+              resultsRequested = Object.keys(termResults).length;
               _results = [];
               for (termName in termResults) {
                 _results.push(serverRequest("GET", serverAPI(termName, parent.filters), [], "", (function(termName) {
                   return function(statusCode, result, headers) {
                     termResults[termName] = result.instances;
                     resultsReceived++;
-                    if (resultsReceived === termResults.length) {
+                    if (resultsReceived === resultsRequested) {
                       res = createFactTypeForm(parent.schema, termResults, 'addfctp', serverAPI(parent.about, []), posl, parent.about);
                       return parent.callback(1, res);
                     }
@@ -499,15 +500,16 @@
                   }
                 }
                 resultsReceived = 0;
+                resultsRequested = Object.keys(termResults).length;
                 _results2 = [];
                 for (termName in termResults) {
                   _results2.push(serverRequest("GET", serverAPI(termName, parent.filters), [], "", (function(termName) {
                     return function(statusCode, result, headers) {
                       termResults[termName] = result.instances;
                       resultsReceived++;
-                      if (resultsReceived === termResults.length) {
+                      if (resultsReceived === resultsRequested) {
                         res = "<div align='left'>";
-                        res += createFactTypeForm(parent.schema, termResults, 'editfctp', serverAPI(parent.about, []) + "." + currentFactType.id, posl, parent.about, currentFactType.id);
+                        res += createFactTypeForm(parent.schema, termResults, 'editfctp', serverAPI(parent.about, []) + "." + currentFactType.id, posl, parent.about, currentFactType);
                         res += "</div>";
                         return parent.callback(1, res);
                       }
@@ -526,10 +528,10 @@
     };
     return this;
   };
-  createFactTypeForm = function(schemas, termResults, action, serverURI, backURI, type, currentID) {
+  createFactTypeForm = function(schemas, termResults, action, serverURI, backURI, type, currentFactType) {
     var res, schema, select, term, termName, termResult, termSelects, _i, _j, _len, _len2;
-    if (currentID == null) {
-      currentID = false;
+    if (currentFactType == null) {
+      currentFactType = false;
     }
     termSelects = {};
     for (termName in termResults) {
@@ -538,7 +540,7 @@
       for (_i = 0, _len = termResult.length; _i < _len; _i++) {
         term = termResult[_i];
         select += "<option value='" + term.id + "'";
-        if (currentFactType[termName + "_id"] === term.id) {
+        if (currentFactType !== false && currentFactType[termName + "_id"] === term.id) {
           select += " selected='selected'";
         }
         select += ">" + term.name + "</option>";
@@ -551,7 +553,7 @@
     res += "<input type='hidden' id='__serverURI' value='" + serverURI + "'>";
     res += "<input type='hidden' id='__backURI' value='" + backURI + "'>";
     res += "<input type='hidden' id='__type' value='" + type + "'>";
-    if (currentID !== false) {
+    if (currentFactType !== false) {
       res += "<input type='hidden' id='__id' value='" + currentFactType.id + "'>";
     }
     for (_j = 0, _len2 = schemas.length; _j < _len2; _j++) {
@@ -562,7 +564,7 @@
         res += schema[1] + " ";
       }
     }
-    res = "<div align='right'>";
+    res += "<div align='right'>";
     res += "<input type='submit' value='Submit This' onClick='processForm(this.parentNode.parentNode);return false;'>";
     res += "</div>";
     res += "</form>";
