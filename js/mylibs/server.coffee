@@ -609,28 +609,27 @@ endLock = (tx, locks, i, trans_id, successCallback, failureCallback) ->
 # successCallback = (tx, sqlmod, failureCallback, result)
 # failureCallback = (errors)
 validateDB = (tx, sqlmod, successCallback, failureCallback) ->
-	l = []
 	errors = []
-	par = 1
-	tot = 0
-	tex = 0
+	totalQueries = 0
+	totalExecuted = 0
 
 	for row in sqlmod when row[0] == "rule"
-		query = row[4]
-		tot++
-		l[tot] = row[2]
-		tx.executeSql query, [], (tx, result) ->
-			tex++
-			errors.push l[tex] if result.rows.item(0).result == 0
-			par *= result.rows.item(0).result
-			if tot == tex
-				if par == 0
-					tx.rollback()
-					failureCallback 404, errors
-				else
-					tx.end()
-					successCallback tx, sqlmod, failureCallback, result
-	successCallback tx, sqlmod, failureCallback, "" if tot == 0
+		totalQueries++
+		tx.executeSql row[4], [], do(row) ->
+			(tx, result) ->
+				totalExecuted++
+				if result.rows.item(0).result in [false, 0]
+					errors.push row[2]
+				
+				if totalQueries == totalExecuted
+					if errors.length > 0
+						tx.rollback()
+						failureCallback 404, errors
+					else
+						tx.end()
+						successCallback tx, sqlmod, failureCallback, result
+	if totalQueries == 0
+		successCallback tx, sqlmod, failureCallback, ""
 
 
 # successCallback = (tx, sqlmod, failureCallback, result)
