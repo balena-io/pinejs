@@ -168,7 +168,7 @@
           if (result.rows.length === 0) {
             return tx.executeSql('INSERT INTO "_server_model_cache" VALUES (?, ?);', [key, value]);
           } else {
-            return tx.executeSql('UPDATE "_server_model_cache" SET value = ? WHERE key = ?;', [key, value]);
+            return tx.executeSql('UPDATE "_server_model_cache" SET value = ? WHERE key = ?;', [value, key]);
           }
         });
       });

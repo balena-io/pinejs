@@ -149,7 +149,7 @@ serverModelCache = do () ->
 				if result.rows.length==0
 					tx.executeSql 'INSERT INTO "_server_model_cache" VALUES (?, ?);', [key, value]
 				else
-					tx.executeSql 'UPDATE "_server_model_cache" SET value = ? WHERE key = ?;', [key, value]
+					tx.executeSql 'UPDATE "_server_model_cache" SET value = ? WHERE key = ?;', [value, key]
 			)
 
 	return {
