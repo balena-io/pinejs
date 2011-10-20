@@ -378,8 +378,7 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 							id = result.instances[0].id
 							res = "<div align='left'>"
 							res += "<form class='action'>"
-							res += createHiddenInputs('editterm', serverAPI(parent.about, []), serverAPI(parent.about, []), parent.about)
-							res += "<input type='hidden' id='__id' value='" + id + "'>"
+							res += createHiddenInputs('editterm', serverAPI(parent.about, []), serverAPI(parent.about, []), parent.about, id)
 							res += "id: " + id + "<br/>"
 
 							for currSchema in schema
@@ -424,8 +423,7 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 							"marked for deletion" +
 							"<div align='right'>" +
 								"<form class='action'>" +
-									createHiddenInputs('del', serverAPI(@about, []) + "." + @id, serverAPI(@about, []), @about) +
-									"<input type='hidden' id='__id' value='" + @id + "'>" +
+									createHiddenInputs('del', serverAPI(@about, []) + "." + @id, serverAPI(@about, []), @about, @id) +
 									"<input type='submit' value='Confirm' onClick='processForm(this.parentNode.parentNode);return false;'>" +
 								"</form>" +
 							"</div>" +
@@ -433,11 +431,13 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 					@callback 1, res
 	return this
 
-createHiddenInputs = (action, serverURI, backURI, type) ->
+createHiddenInputs = (action, serverURI, backURI, type, id = false) ->
 	res = "<input type='hidden' id='__actype' value='" + action + "'>"
 	res += "<input type='hidden' id='__serverURI' value='" + serverURI + "'>"
 	res += "<input type='hidden' id='__backURI' value='" + backURI + "'>"
 	res += "<input type='hidden' id='__type' value='" + type + "'>"
+	if id != false
+		res += "<input type='hidden' id='__id' value='" + id + "'>"
 	return res
 
 createFactTypeForm = (schemas, termResults, action, serverURI, backURI, type, currentFactType = false) ->
@@ -455,9 +455,7 @@ createFactTypeForm = (schemas, termResults, action, serverURI, backURI, type, cu
 		termSelects[termName] = select
 
 	res = "<form class='action'>"
-	res += createHiddenInputs(action, serverURI, backURI, type)
-	if currentFactType != false
-		res += "<input type='hidden' id='__id' value='" + currentFactType.id + "'>"
+	res += createHiddenInputs(action, serverURI, backURI, type, if currentFactType == false then false else currentFactType.id)
 
 	#merge dropdowns with verbs to create 'form'
 	for schema in schemas
