@@ -16,6 +16,8 @@ Copyright 2011 University of Surrey
 
 ﻿<html>
 	<head>
+		<script src="../js/libs/require-0.27.0.min.js"></script>
+		
 		<script src="../ometa-js/lib.js"></script>
 		<script src="../ometa-js/ometa-base.js"></script>
 		<script src="../ometa-js/parser.js"></script>
@@ -34,6 +36,14 @@ Copyright 2011 University of Surrey
 		<link rel="stylesheet" href="../CodeMirror2/lib/codemirror.css">
 		<link rel="stylesheet" href="../CodeMirror2/theme/default.css">
 		
+		<style>
+		.codemirror-scroll {
+			overflow: auto;
+			height: 380px;
+			position: relative;
+		}
+		</style>
+		
 		<script>
 			function translateCode(s) {
 	  			var translationError = function(m, i) { 
@@ -48,7 +58,7 @@ Copyright 2011 University of Surrey
 						throw m;
 					}
 					var tree = BSOMetaJSParser.matchAll(s, "topLevel", undefined, parsingError)
-					console.log(tree);
+					//console.log(tree);
 					return BSOMetaJSTranslator.match(tree, "trans", undefined, translationError);
 //				}
 /*			  catch(e) {
@@ -60,11 +70,24 @@ Copyright 2011 University of Surrey
 			}
 		
 			function compile(code){
-				cmRaw.setValue(translateCode(code));				
-				cmFormatted.setValue( js_beautify(cmRaw.getValue()) );
+				var jscode = translateCode(code);
+				cmRaw.setValue(jscode);				
+				cmFormatted.setValue( js_beautify(jscode) );
 				alert('Compilation complete!');
 			}
-		</script> 
+			
+			function compileAndRun(ometacode){
+				var jscode, evaloutput;
+				jscode = translateCode(ometacode + '\n'); //'\n' avoids failing on comment-terminated strings.
+				cmRaw.setValue(jscode);		
+				cmFormatted.setValue( js_beautify(jscode) );
+				evaloutput = "" + eval(jscode)
+				console.log(evaloutput)
+				outputArea.setValue(evaloutput)
+				console.log(jscode)
+				alert('Compile & Run complete!');
+			}
+		</script>
 	</head>
 	<body>
 		<script>
@@ -73,30 +96,59 @@ Copyright 2011 University of Surrey
 				   show: function(event, ui) { cmFormatted.refresh(); cmRaw.refresh();}
 				});
 			});
-		</script>	
-	
+		</script>
 		<div id="tabs">
 			<ul>
-				<li><a href='#ometacode'   >OMeta                  </a></li>
-				<li><a href='#jsraw'       >JavaScript (raw)       </a></li>
-				<li><a href='#jsformatted' >JavaScript (formatted) </a></li>
+				<li><a href='#ometacode'	>OMeta					</a></li>
+				<li><a href='#jsraw'		>JavaScript (raw)		</a></li>
+				<li><a href='#jsformatted'	>JavaScript (formatted)	</a></li>
 			</ul>
-			<div id="ometacode">
-				<form id="editor">
-					<!-- windows wants 189 cols for the textareas -->
-					<textarea id="ometacodeArea" rows="15" cols="136" spellcheck="false"></textarea>
-					<div align="right">
-						<input type="button" value="Compile"  onClick="compile($('#ometacodeArea').val());return false">
-					</div>
-				</form>
+			<div id="ometacode" style="height:400px">
+				<div align="left">
+					<input type="button" value="Compile" onClick="compile($('#ometacodeArea').val());return false">
+					<input type="button" value="Compile & Run"  onClick="compileAndRun(ometacodeArea.getValue());return false">
+					<script type="text/javascript">
+						if(!!window.FileReader)
+						{
+							document.write('<input type="button" id="bldb" value="Load File">');
+							function handleFiles(files) {
+								var reader = new FileReader();
+								reader.onloadend = function(e) {
+									importExportEditor.setValue(e.target.result);
+								}
+								reader.readAsText(files[0]);
+							}
+							document.write('<input type="button" id="bsdb" value="Save File" onClick="downloadFile(\'sbvr.txt\',importExportEditor.getValue())">');
+							return $("#bldb").file().choose(function(e, input) {
+								return handleFiles(input[0].files);
+							});
+						}
+					</script>
+				</div>
+				<!-- windows wants 189 cols for the textareas -->
+				<div style="width:70%; height:600px; display:inline; float:left">
+					<textarea id="ometacodeArea"></textarea>
+				</div>
+				<div style="width:30%; display:inline; float:left">
+					<textarea id="outputArea"></textarea>
+				</div>
 			</div>
-			<div id="jsraw"><textarea id="jsrawArea" rows="15" cols="136" spellcheck="false"></textarea></div>
+			<div id="jsraw"><textarea id="jsrawArea" rows="35" cols="136" spellcheck="false"></textarea></div>
 			<div id="jsformatted">
-				<textarea id="jsformattedArea" name="jsformattedArea" rows="15" cols="136" spellcheck="false"></textarea>
+				<textarea id="jsformattedArea" name="jsformattedArea" rows="10" cols="136" spellcheck="false"></textarea>
 			</div>
 		</div>
 	
 		<script> 
+			ometacodeArea = CodeMirror.fromTextArea(document.getElementById("ometacodeArea"), {
+				lineNumbers: true,
+				matchBrackets: true
+			});
+			outputArea = CodeMirror.fromTextArea(document.getElementById("outputArea"), {
+				lineNumbers: true,
+				matchBrackets: true,
+				readOnly: true
+			});			
 			cmRaw = CodeMirror.fromTextArea(document.getElementById("jsrawArea"), {
 				lineNumbers: true,
 				matchBrackets: true,
