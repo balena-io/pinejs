@@ -287,6 +287,20 @@ handlers =
 						tx.dropTable(result.rows.item(i).name)
 					successCallback(200)
 				)
+	importdb:
+		# @param body The SQL queries to import.
+		POST: (successCallback, failureCallback, body) ->
+			queries = body.split(";")
+			imported = 0
+			db.transaction (tx) ->
+				for query in queries when query.trim().length > 0
+					do (query) ->
+						tx.executeSql query, [], ((tx, result) ->
+							console.log "Import Success", imported++
+						), (tx, error) ->
+							console.log query
+							console.log error
+			successCallback(200)
 
 # successCallback = (statusCode, result, headers)
 # failureCallback = (statusCode, errors, headers)
@@ -726,7 +740,7 @@ if process?
 			#console.log('Chunk', chunk)
 		)
 		request.on('end', () ->
-			console.log('End', request.method, request.url, body)
+			console.log('End', request.method, request.url)#, body)
 			nodePath = '/node'
 			if nodePath == request.url[0...nodePath.length]
 				console.log('Node')
@@ -748,19 +762,6 @@ if process?
 	).listen(process.env.PORT or 1337, () ->
 		console.log('Server started')
 	)
-
-
-# @param sql The SQL queries to import.
-importDB = (sql) ->
-	queries = sql.split(";")
-	db.transaction (tx) ->
-		for query in queries when query.trim().length > 0
-			do (query) ->
-				tx.executeSql query, [], ((tx, result) ->
-					console.log "Import Success"
-				), (tx, error) ->
-					console.log query
-					console.log error
 
 
 exportDB = (sqlElem) ->
@@ -818,7 +819,6 @@ restoreDB = ->
 window?.remoteServerRequest = remoteServerRequest
 #Temporary fix to allow backup/restore db etc to work for the time being client-side
 window?.db = db
-window?.importDB = importDB
 window?.exportDB = exportDB
 window?.backupDB = backupDB
 window?.restoreDB = restoreDB

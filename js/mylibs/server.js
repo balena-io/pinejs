@@ -1,5 +1,5 @@
 (function() {
-  var backupDB, dataGET, dataplusDELETE, dataplusGET, dataplusPOST, dataplusPUT, db, endLock, executeSasync, executeTasync, exportDB, getFTree, getID, handlers, hasCR, http, importDB, isExecute, op, remoteServerRequest, requirejs, restoreDB, rootDELETE, serverModelCache, staticServer, updateRules, validateDB;
+  var backupDB, dataGET, dataplusDELETE, dataplusGET, dataplusPOST, dataplusPUT, db, endLock, executeSasync, executeTasync, exportDB, getFTree, getID, handlers, hasCR, http, isExecute, op, remoteServerRequest, requirejs, restoreDB, rootDELETE, serverModelCache, staticServer, updateRules, validateDB;
   var __hasProp = Object.prototype.hasOwnProperty;
   op = {
     eq: "=",
@@ -356,6 +356,32 @@
             return successCallback(200);
           });
         });
+      }
+    },
+    importdb: {
+      POST: function(successCallback, failureCallback, body) {
+        var imported, queries;
+        queries = body.split(";");
+        imported = 0;
+        db.transaction(function(tx) {
+          var query, _i, _len, _results;
+          _results = [];
+          for (_i = 0, _len = queries.length; _i < _len; _i++) {
+            query = queries[_i];
+            if (query.trim().length > 0) {
+              _results.push((function(query) {
+                return tx.executeSql(query, [], (function(tx, result) {
+                  return console.log("Import Success", imported++);
+                }), function(tx, error) {
+                  console.log(query);
+                  return console.log(error);
+                });
+              })(query));
+            }
+          }
+          return _results;
+        });
+        return successCallback(200);
       }
     }
   };
@@ -919,7 +945,7 @@
       });
       return request.on('end', function() {
         var nodePath;
-        console.log('End', request.method, request.url, body);
+        console.log('End', request.method, request.url);
         nodePath = '/node';
         if (nodePath === request.url.slice(0, nodePath.length)) {
           console.log('Node');
@@ -944,28 +970,6 @@
       return console.log('Server started');
     });
   }
-  importDB = function(sql) {
-    var queries;
-    queries = sql.split(";");
-    return db.transaction(function(tx) {
-      var query, _i, _len, _results;
-      _results = [];
-      for (_i = 0, _len = queries.length; _i < _len; _i++) {
-        query = queries[_i];
-        if (query.trim().length > 0) {
-          _results.push((function(query) {
-            return tx.executeSql(query, [], (function(tx, result) {
-              return console.log("Import Success");
-            }), function(tx, error) {
-              console.log(query);
-              return console.log(error);
-            });
-          })(query));
-        }
-      }
-      return _results;
-    });
-  };
   exportDB = function(sqlElem) {
     sqlElem.setValue("");
     return db.transaction(function(tx) {
@@ -1042,9 +1046,6 @@
   }
   if (typeof window !== "undefined" && window !== null) {
     window.db = db;
-  }
-  if (typeof window !== "undefined" && window !== null) {
-    window.importDB = importDB;
   }
   if (typeof window !== "undefined" && window !== null) {
     window.exportDB = exportDB;
