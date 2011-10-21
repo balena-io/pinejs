@@ -109,7 +109,7 @@
           begin: function() {},
           end: function() {},
           rollback: function() {
-            return this.executeSql("DROP TABLE '__Fo0oFoo'");
+            return _tx.executeSql("DROP TABLE '__Fo0oFoo'");
           },
           tableList: function(callback, errorCallback) {
             return this.executeSql("SELECT name FROM sqlite_master WHERE type='table' AND name !='__WebKitDatabaseInfoTable__';", [], callback, errorCallback);

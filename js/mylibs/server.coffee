@@ -94,7 +94,9 @@ else
 					_tx.executeSql(sql, bindings, callback, errorCallback)
 				begin: ->
 				end: ->
-				rollback: -> this.executeSql("DROP TABLE '__Fo0oFoo'")
+				# We need to use _tx here rather than this as it does not work when we use this
+				#TODO: Investigate why it breaks with this
+				rollback: -> _tx.executeSql("DROP TABLE '__Fo0oFoo'")
 				tableList: (callback, errorCallback) -> this.executeSql("SELECT name FROM sqlite_master WHERE type='table' AND name !='__WebKitDatabaseInfoTable__';", [], callback, errorCallback)
 				dropTable: (tableName, ifExists = true, callback, errorCallback) -> this.executeSql('DROP TABLE ' + (if ifExists == true then 'IF EXISTS ' else '') + '"' + tableName + '";', [], callback, errorCallback)
 			}
