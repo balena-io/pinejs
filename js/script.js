@@ -52,14 +52,8 @@
         $("#tabs").tabs("select", 3);
         return sqlEditor.refresh();
       case "data":
-        if (clientOnAir === true) {
-          $("#tabs").tabs("select", 4);
-          return drawData(URItree[1]);
-        } else {
-          sbvrEditor.refresh();
-          return $("#tabs").tabs("select", 0);
-        }
-        break;
+        $("#tabs").tabs("select", 4);
+        return drawData(URItree[1]);
       case "http":
         return $("#tabs").tabs("select", 5);
       case "export":
@@ -185,19 +179,7 @@
         return serverRequest("POST", "/execute/", {
           "Content-Type": "application/json"
         }, "", function() {
-          return serverRequest("GET", "/lfmodel/", {}, "", function(statusCode, result) {
-            lfEditor.setValue(Prettify.match(result, "elem"));
-            return serverRequest("GET", "/prepmodel/", {}, "", function(statusCode, result) {
-              $("#prepArea").val(Prettify.match(result, "elem"));
-              return serverRequest("GET", "/sqlmodel/", {}, "", function(statusCode, result) {
-                sqlEditor.setValue(Prettify.match(result, "elem"));
-                clientOnAir = true;
-                $("#bum").removeAttr("disabled");
-                $("#br").removeAttr("disabled");
-                return $("#bem").attr("disabled", "disabled");
-              });
-            });
-          });
+          return setClientOnAir(true);
         });
       });
     });
@@ -280,8 +262,8 @@
         }
       }
     });
-    loadState();
     loadUI();
+    loadState();
     processHash();
     return $("#bldb").file().choose(function(e, input) {
       return handleFiles(input[0].files);

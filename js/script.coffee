@@ -221,8 +221,8 @@ $( ->
 					location.hash = "!/model/"
 			true
 	
-	loadState()
 	loadUI()
+	loadState()
 	processHash()
 	$("#bldb").file().choose (e, input) ->
 		handleFiles input[0].files
