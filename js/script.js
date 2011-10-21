@@ -1,5 +1,5 @@
 (function() {
-  var cleanUp, clientOnAir, defaultFailureCallback, defaultSuccessCallback, loadState, loadUI, processHash, sqlEditor;
+  var cleanUp, clientOnAir, defaultFailureCallback, defaultSuccessCallback, loadState, loadUI, processHash, setClientOnAir, sqlEditor;
   sqlEditor = null;
   clientOnAir = false;
   defaultFailureCallback = function(statusCode, error) {
@@ -23,11 +23,11 @@
   defaultSuccessCallback = function(statusCode, result, headers) {};
   loadState = function() {
     return serverRequest("GET", "/onAir/", [], "", function(statusCode, result) {
-      return clientOnAir = result;
+      return setClientOnAir(result);
     });
   };
   processHash = function() {
-    var URItree, exc, msg, switchVal, theHash, uri;
+    var URItree, switchVal, theHash, uri;
     theHash = location.hash;
     if (theHash === "") {
       theHash = "#!/model";
@@ -56,10 +56,8 @@
           $("#tabs").tabs("select", 4);
           return drawData(URItree[1]);
         } else {
-          exc = '<span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 50px 0;"></span>';
-          msg = "The data tab is only accessible after a model is executed<br/>";
-          $("#dialog-message").html(exc + msg);
-          return $("#dialog-message").dialog("open");
+          sbvrEditor.refresh();
+          return $("#tabs").tabs("select", 0);
         }
         break;
       case "http":
@@ -74,6 +72,27 @@
       default:
         sbvrEditor.refresh();
         return $("#tabs").tabs("select", 0);
+    }
+  };
+  setClientOnAir = function(bool) {
+    clientOnAir = bool;
+    if (clientOnAir === true) {
+      serverRequest("GET", "/lfmodel/", [], "", function(statusCode, result) {
+        return lfEditor.setValue(Prettify.match(result, "elem"));
+      });
+      serverRequest("GET", "/prepmodel/", [], "", function(statusCode, result) {
+        return $("#prepArea").val(Prettify.match(result, "elem"));
+      });
+      serverRequest("GET", "/sqlmodel/", [], "", function(statusCode, result) {
+        return sqlEditor.setValue(Prettify.match(result, "elem"));
+      });
+      $("#bem").attr("disabled", "disabled");
+      $("#bum").removeAttr("disabled");
+      return $("#br").removeAttr("disabled");
+    } else {
+      $("#bem").removeAttr("disabled");
+      $("#bum").attr("disabled", "disabled");
+      return $("#br").attr("disabled", "disabled");
     }
   };
   loadUI = function() {
@@ -104,18 +123,7 @@
         value: sbvrEditor.getValue()
       }));
     });
-    if (clientOnAir === true) {
-      serverRequest("GET", "/lfmodel/", [], "", function(statusCode, result) {
-        return lfEditor.setValue(Prettify.match(result, "elem"));
-      });
-      serverRequest("GET", "/prepmodel/", [], "", function(statusCode, result) {
-        return $("#prepArea").val(Prettify.match(result, "elem"));
-      });
-      serverRequest("GET", "/sqlmodel/", [], "", function(statusCode, result) {
-        return sqlEditor.setValue(Prettify.match(result, "elem"));
-      });
-    }
-    $("#dialog-message").dialog({
+    return $("#dialog-message").dialog({
       modal: true,
       resizable: false,
       autoOpen: false,
@@ -128,12 +136,6 @@
         }
       }
     });
-    if (clientOnAir === true) {
-      return $("#bem").attr("disabled", "disabled");
-    } else {
-      $("#bum").attr("disabled", "disabled");
-      return $("#br").attr("disabled", "disabled");
-    }
   };
   cleanUp = function(a) {
     a.textContent = "Downloaded";
@@ -207,10 +209,7 @@
       lfEditor.setValue("");
       $("#prepArea").val("");
       sqlEditor.setValue("");
-      $("#bem").removeAttr("disabled");
-      $("#bum").attr("disabled", "disabled");
-      $("#br").attr("disabled", "disabled");
-      return clientOnAir = false;
+      return setClientOnAir(false);
     });
   };
   window.loadmod = function(model) {

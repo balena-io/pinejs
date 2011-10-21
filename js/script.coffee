@@ -21,7 +21,7 @@ defaultSuccessCallback = (statusCode, result, headers) ->
 
 loadState = ->
 	serverRequest "GET", "/onAir/", [], "", (statusCode, result) ->
-		clientOnAir = result
+		setClientOnAir(result)
 
 
 processHash = ->
@@ -45,14 +45,8 @@ processHash = ->
 			$("#tabs").tabs "select", 3
 			sqlEditor.refresh() # Force a refresh on switching to the tab, otherwise it wasn't appearing.
 		when "data"
-			if clientOnAir == true
-				$("#tabs").tabs("select", 4)
-				drawData(URItree[1])
-			else
-				exc = '<span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 50px 0;"></span>'
-				msg = "The data tab is only accessible after a model is executed<br/>"
-				$("#dialog-message").html(exc + msg)
-				$("#dialog-message").dialog("open")
+			$("#tabs").tabs("select", 4)
+			drawData(URItree[1])
 		when "http"
 			$("#tabs").tabs("select", 5)
 		when "export"
@@ -67,6 +61,25 @@ processHash = ->
 			sbvrEditor.refresh()
 			$("#tabs").tabs("select", 0)
 
+setClientOnAir = (bool) ->
+	clientOnAir = bool
+	if clientOnAir == true
+		serverRequest "GET", "/lfmodel/", [], "", (statusCode, result) ->
+			lfEditor.setValue Prettify.match(result, "elem")
+		
+		serverRequest "GET", "/prepmodel/", [], "", (statusCode, result) ->
+			$("#prepArea").val Prettify.match(result, "elem")
+		
+		serverRequest "GET", "/sqlmodel/", [], "", (statusCode, result) ->
+			sqlEditor.setValue Prettify.match(result, "elem")
+		
+		$("#bem").attr "disabled", "disabled"
+		$("#bum").removeAttr "disabled"
+		$("#br").removeAttr "disabled"
+	else
+		$("#bem").removeAttr "disabled"
+		$("#bum").attr "disabled", "disabled"
+		$("#br").attr "disabled", "disabled"
 
 # break loadUI apart to loadState and SetUI (with a view to converting LoadState to a single request)?
 loadUI = ->
@@ -88,15 +101,6 @@ loadUI = ->
 	$("#modelArea").change ->
 		serverRequest("PUT", "/ui/textarea*filt:name=model_area/", {"Content-Type": "application/json"}, JSON.stringify(value: sbvrEditor.getValue()))
 	
-	if clientOnAir == true
-		serverRequest "GET", "/lfmodel/", [], "", (statusCode, result) ->
-			lfEditor.setValue Prettify.match(result, "elem")
-		
-		serverRequest "GET", "/prepmodel/", [], "", (statusCode, result) ->
-			$("#prepArea").val Prettify.match(result, "elem")
-		
-		serverRequest "GET", "/sqlmodel/", [], "", (statusCode, result) ->
-			sqlEditor.setValue Prettify.match(result, "elem")
 	$("#dialog-message").dialog 
 		modal: true
 		resizable: false
@@ -107,12 +111,6 @@ loadUI = ->
 			
 			"Revise Model": ->
 				$(this).dialog "close"
-	
-	if clientOnAir == true
-		$("#bem").attr "disabled", "disabled"
-	else
-		$("#bum").attr "disabled", "disabled"
-		$("#br").attr "disabled", "disabled"
 
 
 cleanUp = (a) ->
@@ -151,16 +149,7 @@ window.transformClient = (model) ->
 	serverRequest "PUT", "/ui/textarea-is_disabled*filt:textarea.name=model_area/", {"Content-Type": "application/json"}, JSON.stringify(value: true), ->
 		serverRequest "PUT", "/ui/textarea*filt:name=model_area/", {"Content-Type": "application/json"}, JSON.stringify(value: model), ->
 			serverRequest "POST", "/execute/", {"Content-Type": "application/json"}, "", ->
-				serverRequest "GET", "/lfmodel/", {}, "", (statusCode, result) ->
-					lfEditor.setValue Prettify.match(result, "elem")
-					serverRequest "GET", "/prepmodel/", {}, "", (statusCode, result) ->
-						$("#prepArea").val Prettify.match(result, "elem")
-						serverRequest "GET", "/sqlmodel/", {}, "", (statusCode, result) ->
-							sqlEditor.setValue Prettify.match(result, "elem")
-							clientOnAir = true
-							$("#bum").removeAttr "disabled"
-							$("#br").removeAttr "disabled"
-							$("#bem").attr "disabled", "disabled"
+				setClientOnAir(true)
 
 
 window.resetClient = ->
@@ -170,10 +159,7 @@ window.resetClient = ->
 		lfEditor.setValue ""
 		$("#prepArea").val ""
 		sqlEditor.setValue ""
-		$("#bem").removeAttr "disabled"
-		$("#bum").attr "disabled", "disabled"
-		$("#br").attr "disabled", "disabled"
-		clientOnAir = false
+		setClientOnAir(false)
 
 
 window.loadmod = (model) ->
