@@ -302,6 +302,46 @@ handlers =
 							console.log error
 			successCallback(200)
 
+	exportdb:
+		GET: (successCallback, failureCallback) ->
+			db.transaction (tx) ->
+				tx.executeSql "SELECT name,sql FROM sqlite_master WHERE type='table' AND name NOT LIKE '\\_\\_%' ESCAPE '\\' AND name NOT LIKE '%_buk';", [], ((tx, result) ->
+					totalExports = result.rows.length + 1
+					exportsProcessed = 0
+					exported = ''
+					for i in [0...result.rows.length]
+						tbn = result.rows.item(i).name
+						exported += 'DROP TABLE IF EXISTS "' + tbn + '";\n'
+						exported += result.rows.item(i).sql + ";\n"
+						do (tbn) ->
+							db.transaction (tx) ->
+								tx.executeSql 'SELECT * FROM "' + tbn + '";', [], ((tx, result) ->
+									insQuery = ""
+									for i in [0...result.rows.length]
+										currRow = result.rows.item(i)
+										notFirst = false
+										insQuery += 'INSERT INTO "' + tbn + '" ('
+										valQuery = ''
+										for own propName of currRow
+											if notFirst
+												insQuery += ","
+												valQuery += ","
+											else
+												notFirst = true
+											insQuery += '"' + propName + '"'
+											valQuery += "'" + currRow[propName] + "'"
+										insQuery += ") values (" + valQuery + ");\n"
+									exported += insQuery
+									exportsProcessed++
+									if exportsProcessed == totalExports
+										successCallback(200, exported)
+								)
+					exportsProcessed++
+					if exportsProcessed == totalExports
+						successCallback(200, exported)
+				)
+
+
 # successCallback = (statusCode, result, headers)
 # failureCallback = (statusCode, errors, headers)
 remoteServerRequest = (method, uri, headers, body, successCallback, failureCallback) ->
@@ -764,37 +804,6 @@ if process?
 	)
 
 
-exportDB = (sqlElem) ->
-	sqlElem.setValue ""
-	db.transaction (tx) ->
-		tx.executeSql "SELECT name,sql FROM sqlite_master WHERE type='table' AND name NOT LIKE '\\_\\_%' ESCAPE '\\' AND name NOT LIKE '%_buk';", [], ((tx, result) ->
-			query = ""
-			for i in [0...result.rows.length]
-				tbn = result.rows.item(i).name
-				query += 'DROP TABLE IF EXISTS "' + tbn + '";\n'
-				query += result.rows.item(i).sql + ";\n"
-				do (tbn) ->
-					db.transaction (tx) ->
-						tx.executeSql 'SELECT * FROM "' + tbn + '";', [], ((tx, result) ->
-							insQuery = ""
-							for i in [0...result.rows.length]
-								currRow = result.rows.item(i)
-								notFirst = false
-								insQuery += 'INSERT INTO "' + tbn + '" ('
-								valQuery = ''
-								for own propName of currRow
-									if notFirst
-										insQuery += ","
-										valQuery += ","
-									else
-										notFirst = true
-									insQuery += '"' + propName + '"'
-									valQuery += "'" + currRow[propName] + "'"
-								insQuery += ") values (" + valQuery + ");\n"
-							sqlElem.setValue(sqlElem.getValue() + insQuery)
-						)
-			sqlElem.setValue(sqlElem.getValue() + query)
-		)
 
 
 backupDB = ->
@@ -819,7 +828,6 @@ restoreDB = ->
 window?.remoteServerRequest = remoteServerRequest
 #Temporary fix to allow backup/restore db etc to work for the time being client-side
 window?.db = db
-window?.exportDB = exportDB
 window?.backupDB = backupDB
 window?.restoreDB = restoreDB
 
