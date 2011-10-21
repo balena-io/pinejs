@@ -1,10 +1,3 @@
-#TODO: This should not be available client-side, this is here just to make it work for now.
-requirejs([
-	"mylibs/ometa-code/SBVRParser",
-	"mylibs/ometa-code/SBVR_PreProc",
-	"mylibs/ometa-code/SBVR2SQL"]
-)
-
 getBranch = (branch, loc) ->
 	for childIndex in loc
 		branch = branch[childIndex + 2]
@@ -89,12 +82,9 @@ drawData = (tree) ->
 
 				#request schema from server and store locally.
 				do (i, pre, post, launch) ->
-					serverRequest "GET", "/model/", [], "", (statusCode, result) ->
-						#TODO: This should not be available client-side, this is here just to make it work for now.
-						model = SBVRParser.matchAll(result, "expr")
-						model = SBVR_PreProc.match(model, "optimizeTree")
-						model = SBVR2SQL.match(model, "trans")
-						uid = new uidraw(i, objcb, pre, post, rootURI, [], [], filters, [ launch - 2 ], true, tree, model)
+					#TODO: We shouldn't really be requesting/using the SQL model on client side
+					serverRequest "GET", "/sqlmodel/", [], "", (statusCode, result) ->
+						uid = new uidraw(i, objcb, pre, post, rootURI, [], [], filters, [ launch - 2 ], true, tree, result)
 						uid.subRowIn()
 			else
 				newb = [ "col", [ term.id ], [ "mod" ] ]

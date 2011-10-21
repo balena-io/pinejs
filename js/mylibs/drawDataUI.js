@@ -1,6 +1,5 @@
 (function() {
   var addInst, createFactTypeForm, createHiddenInputs, delInst, drawData, editInst, filtmerge, getBranch, getPid, getTarg, processForm, serverAPI, uidraw;
-  requirejs(["mylibs/ometa-code/SBVRParser", "mylibs/ometa-code/SBVR_PreProc", "mylibs/ometa-code/SBVR2SQL"]);
   getBranch = function(branch, loc) {
     var childIndex, _i, _len;
     for (_i = 0, _len = loc.length; _i < _len; _i++) {
@@ -101,12 +100,9 @@
         pre = "<tr id='tr--data--" + term.id + "'><td>";
         post = "</td></tr>";
         _results.push(launch !== -1 ? (npos = getTarg(tree, [], "del", launch - 2), pre += "<div style='display:inline; background-color:#FFFFFF;'>" + term.name + "</div>", pre += "<div style='display:inline;background-color:#FFFFFF'><a href='" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a></div>", (function(i, pre, post, launch) {
-          return serverRequest("GET", "/model/", [], "", function(statusCode, result) {
-            var model, uid;
-            model = SBVRParser.matchAll(result, "expr");
-            model = SBVR_PreProc.match(model, "optimizeTree");
-            model = SBVR2SQL.match(model, "trans");
-            uid = new uidraw(i, objcb, pre, post, rootURI, [], [], filters, [launch - 2], true, tree, model);
+          return serverRequest("GET", "/sqlmodel/", [], "", function(statusCode, result) {
+            var uid;
+            uid = new uidraw(i, objcb, pre, post, rootURI, [], [], filters, [launch - 2], true, tree, result);
             return uid.subRowIn();
           });
         })(i, pre, post, launch)) : (newb = ["col", [term.id], ["mod"]], npos = getTarg(tree, [], "add", newb), pre += term.name, pre += " <a href='" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false'><span title='See all' class='ui-icon ui-icon-search'></span></a>", objcb.callback(i, pre + post)));
