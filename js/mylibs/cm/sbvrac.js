@@ -89,7 +89,7 @@ var sbvrAutoComplete = (function () {
 			// Escape
 			else if (code == 27) {event.stop(); close(); editor.focus();}
 			//Backspace
-			else if (code == 8 && token.string.length == 0) {event.stop(); close(); editor.focus();}
+			else if (code == 8 && token.string.length == 1) {event.stop(); close(); editor.focus();}
 			else if (code != 38 && code != 40) {close(); editor.focus(); setTimeout(function(){startComplete(editor)}, 50);}
 		});
 		connect(sel, "dblclick", pick);
