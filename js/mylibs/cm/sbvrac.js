@@ -107,10 +107,10 @@ var sbvrAutoComplete = (function () {
 			state = $.extend(true,{},editor.getTokenAt({line: cur.line, ch: 0}).state);
 		
 		
-		var found = [], start = tokenString.toLowerCase(), whitespace = "";
-		if(/^[\W]*$/.test(tokenString)) {
-			start = "";
-			whitespace = tokenString;
+		var found = [], start = tokenString.toLowerCase(), whitespace = "", whitespaceRegexp = /^[\W]+/;
+		if(whitespaceRegexp.test(start)) {
+			whitespace = whitespaceRegexp.exec(start)[0];
+			start = start.replace(whitespace, '');
 		}
 		
 		try {
