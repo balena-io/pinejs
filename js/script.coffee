@@ -121,7 +121,8 @@ cleanUp = (a) ->
 		window.URL.revokeObjectURL a.href
 	), 1500
 
-
+# successCallback = (statusCode, result, headers)
+# failureCallback = (statusCode, error)
 window.serverRequest = (method, uri, headers = {}, body = null, successCallback, failureCallback) ->
 	#IFDEF server
 	successCallback = (if typeof successCallback != "function" then defaultSuccessCallback else successCallback)
