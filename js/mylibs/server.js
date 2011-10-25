@@ -1060,7 +1060,4 @@
   if (typeof window !== "undefined" && window !== null) {
     window.remoteServerRequest = remoteServerRequest;
   }
-  if (typeof window !== "undefined" && window !== null) {
-    window.db = db;
-  }
 }).call(this);

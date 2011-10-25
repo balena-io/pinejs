@@ -824,10 +824,7 @@ if process?
 	)
 
 
-
 window?.remoteServerRequest = remoteServerRequest
-#Temporary fix to allow backup/restore db etc to work for the time being client-side
-window?.db = db
 
 # fs = require('fs')
 # lazy = require("lazy");
