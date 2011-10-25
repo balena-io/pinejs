@@ -65,8 +65,14 @@
         rollback: function() {
           return this.executeSql('ROLLBACK;');
         },
-        tableList: function(callback, errorCallback) {
-          return this.executeSql("SELECT tablename as name FROM pg_tables WHERE tablename NOT LIKE 'pg_%';", [], callback, errorCallback);
+        tableList: function(callback, errorCallback, extraWhereClause) {
+          if (extraWhereClause == null) {
+            extraWhereClause = '';
+          }
+          if (extraWhereClause !== '') {
+            extraWhereClause = ' WHERE ' + extraWhereClause;
+          }
+          return this.executeSql("SELECT * FROM (SELECT tablename as name FROM pg_tables WHERE schemaname = 'public') t" + extraWhereClause + ";", [], callback, errorCallback);
         },
         dropTable: function(tableName, ifExists, callback, errorCallback) {
           if (ifExists == null) {
@@ -111,8 +117,14 @@
           rollback: function() {
             return _tx.executeSql("DROP TABLE '__Fo0oFoo'");
           },
-          tableList: function(callback, errorCallback) {
-            return this.executeSql("SELECT name FROM sqlite_master WHERE type='table' AND name !='__WebKitDatabaseInfoTable__';", [], callback, errorCallback);
+          tableList: function(callback, errorCallback, extraWhereClause) {
+            if (extraWhereClause == null) {
+              extraWhereClause = '';
+            }
+            if (extraWhereClause !== '') {
+              extraWhereClause = ' AND ' + extraWhereClause;
+            }
+            return this.executeSql("SELECT name FROM sqlite_master WHERE type='table' AND name != '__WebKitDatabaseInfoTable__' AND name != 'sqlite_sequence'" + extraWhereClause + ";", [], callback, errorCallback);
           },
           dropTable: function(tableName, ifExists, callback, errorCallback) {
             if (ifExists == null) {
@@ -440,7 +452,7 @@
     backupdb: {
       POST: function(successCallback, failureCallback) {
         db.transaction(function(tx) {
-          return tx.executeSql("SELECT name FROM sqlite_master WHERE type='table' AND name !='__WebKitDatabaseInfoTable__' AND name != 'sqlite_sequence' AND name NOT LIKE '%_buk';", [], function(tx, result) {
+          return tx.tableList(function(tx, result) {
             var i, tbn, _ref, _results;
             _results = [];
             for (i = 0, _ref = result.rows.length; 0 <= _ref ? i < _ref : i > _ref; 0 <= _ref ? i++ : i--) {
@@ -449,7 +461,7 @@
               _results.push(tx.executeSql('ALTER TABLE "' + tbn + '" RENAME TO "' + tbn + '_buk";'));
             }
             return _results;
-          });
+          }, null, "name NOT LIKE '%_buk'");
         });
         return successCallback(200);
       }

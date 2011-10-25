@@ -36,7 +36,10 @@ if process?
 			begin: -> this.executeSql('BEGIN;')
 			end: -> this.executeSql('END;')
 			rollback: -> this.executeSql('ROLLBACK;')
-			tableList: (callback, errorCallback) -> this.executeSql("SELECT tablename as name FROM pg_tables WHERE tablename NOT LIKE 'pg_%';", [], callback, errorCallback)
+			tableList: (callback, errorCallback, extraWhereClause = '') ->
+				if extraWhereClause != ''
+					extraWhereClause = ' WHERE ' + extraWhereClause
+				this.executeSql("SELECT * FROM (SELECT tablename as name FROM pg_tables WHERE schemaname = 'public') t" + extraWhereClause + ";", [], callback, errorCallback)
 			dropTable: (tableName, ifExists = true, callback, errorCallback) -> this.executeSql('DROP TABLE ' + (if ifExists == true then 'IF EXISTS ' else '') + '"' + tableName + '" CASCADE;', [], callback, errorCallback)
 		}
 		return {
@@ -66,7 +69,10 @@ if process?
 			# begin: -> this.executeSql('BEGIN;')
 			# end: -> this.executeSql('END;')
 			# rollback: -> this.executeSql('ROLLBACK;')
-			# tableList: (callback, errorCallback) -> this.executeSql("SELECT name FROM sqlite_master WHERE type='table';", [], callback, errorCallback)
+			# tableList: (callback, errorCallback, extraWhereClause = '') ->
+				# if extraWhereClause != ''
+					# extraWhereClause = ' AND ' + extraWhereClause
+				# this.executeSql("SELECT name FROM sqlite_master WHERE type='table' AND name != 'sqlite_sequence'" + extraWhereClause + ";", [], callback, errorCallback)
 			# dropTable: (tableName, ifExists = true, callback, errorCallback) -> this.executeSql('DROP TABLE ' + (if ifExists == true then 'IF EXISTS ' else '') + '"' + tableName + '";', [], callback, errorCallback)
 		# }
 		# return {
@@ -97,7 +103,10 @@ else
 				# We need to use _tx here rather than this as it does not work when we use this
 				#TODO: Investigate why it breaks with this
 				rollback: -> _tx.executeSql("DROP TABLE '__Fo0oFoo'")
-				tableList: (callback, errorCallback) -> this.executeSql("SELECT name FROM sqlite_master WHERE type='table' AND name !='__WebKitDatabaseInfoTable__';", [], callback, errorCallback)
+				tableList: (callback, errorCallback, extraWhereClause = '') ->
+					if extraWhereClause != ''
+						extraWhereClause = ' AND ' + extraWhereClause
+					this.executeSql("SELECT name FROM sqlite_master WHERE type='table' AND name != '__WebKitDatabaseInfoTable__' AND name != 'sqlite_sequence'" + extraWhereClause + ";", [], callback, errorCallback)
 				dropTable: (tableName, ifExists = true, callback, errorCallback) -> this.executeSql('DROP TABLE ' + (if ifExists == true then 'IF EXISTS ' else '') + '"' + tableName + '";', [], callback, errorCallback)
 			}
 		return {
@@ -343,11 +352,14 @@ handlers =
 	backupdb:
 		POST: (successCallback, failureCallback) ->
 			db.transaction (tx) ->
-				tx.executeSql("SELECT name FROM sqlite_master WHERE type='table' AND name !='__WebKitDatabaseInfoTable__' AND name != 'sqlite_sequence' AND name NOT LIKE '%_buk';", [], (tx, result) ->
-					for i in [0...result.rows.length]
-						tbn = result.rows.item(i).name
-						tx.dropTable(tbn + '_buk', true)
-						tx.executeSql 'ALTER TABLE "' + tbn + '" RENAME TO "' + tbn + '_buk";'
+				tx.tableList(
+					(tx, result) ->
+						for i in [0...result.rows.length]
+							tbn = result.rows.item(i).name
+							tx.dropTable(tbn + '_buk', true)
+							tx.executeSql 'ALTER TABLE "' + tbn + '" RENAME TO "' + tbn + '_buk";'
+					null
+					"name NOT LIKE '%_buk'"
 				)
 			successCallback(200)
 	restoredb:
