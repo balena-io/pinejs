@@ -350,6 +350,16 @@ handlers =
 						tx.executeSql 'ALTER TABLE "' + tbn + '" RENAME TO "' + tbn + '_buk";'
 				)
 			successCallback(200)
+	restoredb:
+		POST: (successCallback, failureCallback) ->
+			db.transaction (tx) ->
+				tx.executeSql("SELECT name FROM sqlite_master WHERE type='table' AND name LIKE '%_buk';", [], (tx, result) ->
+					for i in [0...result.rows.length]
+						tbn = result.rows.item(i).name
+						tx.dropTable(tbn[0...-4], true)
+						tx.executeSql 'ALTER TABLE "' + tbn + '" RENAME TO "' + tbn[0...-4] + '";'
+				)
+			successCallback(200)
 
 
 # successCallback = (statusCode, result, headers)
@@ -815,21 +825,9 @@ if process?
 
 
 
-
-
-restoreDB = ->
-	db.transaction (tx) ->
-		tx.executeSql("SELECT name FROM sqlite_master WHERE type='table' AND name LIKE '%_buk';", [], (tx, result) ->
-			for i in [0...result.rows.length]
-				tbn = result.rows.item(i).name
-				tx.dropTable(tbn[0...-4], true)
-				tx.executeSql 'ALTER TABLE "' + tbn + '" RENAME TO "' + tbn[0...-4] + '";'
-		)
-
 window?.remoteServerRequest = remoteServerRequest
 #Temporary fix to allow backup/restore db etc to work for the time being client-side
 window?.db = db
-window?.restoreDB = restoreDB
 
 # fs = require('fs')
 # lazy = require("lazy");

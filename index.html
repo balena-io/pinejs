@@ -78,7 +78,7 @@ Copyright 2011 University of Surrey
 						<input type="button" id='bum'  value="Update Model"  onClick="return false">
 						<input type="button" id='br'   value="Reset"         onClick="resetClient();return false">
 						<input type="button" id='bbdb' value="Backup DB"     onClick="serverRequest('POST', '/backupdb/');return false">
-						<input type="button" id='brdb' value="Restore DB"    onClick="restoreDB();return false">
+						<input type="button" id='brdb' value="Restore DB"    onClick="serverRequest('POST', '/restoredb/');return false">
 						<input type="button" id='bcdb' value="Clear DB"      onClick="serverRequest('DELETE', '/cleardb/');return false">
 					<!--#ENDIFDEF-->
 				</div>
