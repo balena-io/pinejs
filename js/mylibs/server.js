@@ -1,5 +1,5 @@
 (function() {
-  var backupDB, dataGET, dataplusDELETE, dataplusGET, dataplusPOST, dataplusPUT, db, endLock, executeSasync, executeTasync, getFTree, getID, handlers, hasCR, http, isExecute, op, remoteServerRequest, requirejs, restoreDB, rootDELETE, serverModelCache, staticServer, updateRules, validateDB;
+  var dataGET, dataplusDELETE, dataplusGET, dataplusPOST, dataplusPUT, db, endLock, executeSasync, executeTasync, getFTree, getID, handlers, hasCR, http, isExecute, op, remoteServerRequest, requirejs, restoreDB, rootDELETE, serverModelCache, staticServer, updateRules, validateDB;
   var __hasProp = Object.prototype.hasOwnProperty;
   op = {
     eq: "=",
@@ -435,6 +435,23 @@
             }
           }));
         });
+      }
+    },
+    backupdb: {
+      POST: function(successCallback, failureCallback) {
+        db.transaction(function(tx) {
+          return tx.executeSql("SELECT name FROM sqlite_master WHERE type='table' AND name !='__WebKitDatabaseInfoTable__' AND name != 'sqlite_sequence' AND name NOT LIKE '%_buk';", [], function(tx, result) {
+            var i, tbn, _ref, _results;
+            _results = [];
+            for (i = 0, _ref = result.rows.length; 0 <= _ref ? i < _ref : i > _ref; 0 <= _ref ? i++ : i--) {
+              tbn = result.rows.item(i).name;
+              tx.dropTable(tbn + '_buk', true);
+              _results.push(tx.executeSql('ALTER TABLE "' + tbn + '" RENAME TO "' + tbn + '_buk";'));
+            }
+            return _results;
+          });
+        });
+        return successCallback(200);
       }
     }
   };
@@ -1023,20 +1040,6 @@
       return console.log('Server started');
     });
   }
-  backupDB = function() {
-    return db.transaction(function(tx) {
-      return tx.executeSql("SELECT name FROM sqlite_master WHERE type='table' AND name !='__WebKitDatabaseInfoTable__' AND name NOT LIKE '%_buk';", [], function(tx, result) {
-        var i, tbn, _ref, _results;
-        _results = [];
-        for (i = 0, _ref = result.rows.length; 0 <= _ref ? i < _ref : i > _ref; 0 <= _ref ? i++ : i--) {
-          tbn = result.rows.item(i).name;
-          tx.dropTable(tbn + '_buk', true);
-          _results.push(tx.executeSql('ALTER TABLE "' + tbn + '" RENAME TO "' + tbn + '_buk";'));
-        }
-        return _results;
-      });
-    });
-  };
   restoreDB = function() {
     return db.transaction(function(tx) {
       return tx.executeSql("SELECT name FROM sqlite_master WHERE type='table' AND name LIKE '%_buk';", [], function(tx, result) {
@@ -1056,9 +1059,6 @@
   }
   if (typeof window !== "undefined" && window !== null) {
     window.db = db;
-  }
-  if (typeof window !== "undefined" && window !== null) {
-    window.backupDB = backupDB;
   }
   if (typeof window !== "undefined" && window !== null) {
     window.restoreDB = restoreDB;

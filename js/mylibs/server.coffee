@@ -340,6 +340,16 @@ handlers =
 					if exportsProcessed == totalExports
 						successCallback(200, exported)
 				)
+	backupdb:
+		POST: (successCallback, failureCallback) ->
+			db.transaction (tx) ->
+				tx.executeSql("SELECT name FROM sqlite_master WHERE type='table' AND name !='__WebKitDatabaseInfoTable__' AND name != 'sqlite_sequence' AND name NOT LIKE '%_buk';", [], (tx, result) ->
+					for i in [0...result.rows.length]
+						tbn = result.rows.item(i).name
+						tx.dropTable(tbn + '_buk', true)
+						tx.executeSql 'ALTER TABLE "' + tbn + '" RENAME TO "' + tbn + '_buk";'
+				)
+			successCallback(200)
 
 
 # successCallback = (statusCode, result, headers)
@@ -806,15 +816,6 @@ if process?
 
 
 
-backupDB = ->
-	db.transaction (tx) ->
-		tx.executeSql("SELECT name FROM sqlite_master WHERE type='table' AND name !='__WebKitDatabaseInfoTable__' AND name NOT LIKE '%_buk';", [], (tx, result) ->
-			for i in [0...result.rows.length]
-				tbn = result.rows.item(i).name
-				tx.dropTable(tbn + '_buk', true)
-				tx.executeSql 'ALTER TABLE "' + tbn + '" RENAME TO "' + tbn + '_buk";'
-		)
-
 
 restoreDB = ->
 	db.transaction (tx) ->
@@ -828,7 +829,6 @@ restoreDB = ->
 window?.remoteServerRequest = remoteServerRequest
 #Temporary fix to allow backup/restore db etc to work for the time being client-side
 window?.db = db
-window?.backupDB = backupDB
 window?.restoreDB = restoreDB
 
 # fs = require('fs')
