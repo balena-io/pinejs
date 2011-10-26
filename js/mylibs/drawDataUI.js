@@ -456,7 +456,7 @@
                 id = result.instances[0].id;
                 res = "<div align='left'>";
                 res += "<form class='action'>";
-                res += createHiddenInputs('editterm', serverAPI(parent.about, []), serverAPI(parent.about, []), parent.about, id);
+                res += createHiddenInputs('editterm', serverAPI(parent.about, []) + "." + id, serverAPI(parent.about, []), parent.about, id);
                 res += "id: " + id + "<br/>";
                 for (_s = 0, _len11 = schema.length; _s < _len11; _s++) {
                   currSchema = schema[_s];

@@ -368,7 +368,7 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 							id = result.instances[0].id
 							res = "<div align='left'>"
 							res += "<form class='action'>"
-							res += createHiddenInputs('editterm', serverAPI(parent.about, []), serverAPI(parent.about, []), parent.about, id)
+							res += createHiddenInputs('editterm', serverAPI(parent.about, []) + "." + id, serverAPI(parent.about, []), parent.about, id)
 							res += "id: " + id + "<br/>"
 
 							for currSchema in schema
@@ -466,7 +466,7 @@ processForm = (forma) ->
 	id = $("#__id", forma).val()
 	type = $("#__type", forma).val()
 	backURI = $("#__backURI", forma).val()
-	#id and type (and half of actype) are not yet used.
+	#TODO: id and type (and half of actype) are not yet used.
 	#Should they be used instead of serverURI?
 	switch action
 		when "editterm", "editfctp"
