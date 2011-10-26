@@ -18,24 +18,33 @@
       _db = new Client(process.env.DATABASE_URL || "postgres://postgres:.@localhost:5432/postgres");
       _db.connect();
       result = function(rows) {
+        var _ref;
         return {
           rows: {
             length: (rows != null ? rows.length : void 0) || 0,
             item: function(i) {
               return rows[i];
             }
-          }
+          },
+          insertId: ((_ref = rows[0]) != null ? _ref.id : void 0) || null
         };
       };
       tx = {
-        executeSql: function(sql, bindings, callback, errorCallback) {
+        executeSql: function(sql, bindings, callback, errorCallback, addReturning) {
           var bindNo, thisTX;
           if (bindings == null) {
             bindings = [];
           }
+          if (addReturning == null) {
+            addReturning = true;
+          }
           thisTX = this;
           sql = sql.replace(/GROUP BY NULL/g, '');
           sql = sql.replace(/INTEGER PRIMARY KEY AUTOINCREMENT/g, 'SERIAL PRIMARY KEY');
+          if (addReturning && /^\s*INSERT\s+INTO/i.test(sql)) {
+            sql = sql.replace(/;?$/, ' RETURNING id;');
+            console.log(sql);
+          }
           bindNo = 1;
           sql = SQLBinds.matchAll(sql, "parse", [
             function() {
@@ -50,7 +59,7 @@
               if (typeof errorCallback === "function") {
                 errorCallback(thisTX, err);
               }
-              return console.log(sql, err);
+              return console.log(sql, bindings, err);
             } else {
               return typeof callback === "function" ? callback(thisTX, result(res.rows)) : void 0;
             }
@@ -178,7 +187,7 @@
         value = JSON.stringify(value).replace(/\\'/g, "\\\\'").replace(new RegExp("'", 'g'), "\\'");
         return tx.executeSql('SELECT 1 as count FROM "_server_model_cache" WHERE key = ?;', [key], function(tx, result) {
           if (result.rows.length === 0) {
-            return tx.executeSql('INSERT INTO "_server_model_cache" VALUES (?, ?);', [key, value]);
+            return tx.executeSql('INSERT INTO "_server_model_cache" VALUES (?, ?);', [key, value], null, null, false);
           } else {
             return tx.executeSql('UPDATE "_server_model_cache" SET value = ? WHERE key = ?;', [value, key]);
           }
@@ -504,7 +513,6 @@
     if (typeof failureCallback !== "function") {
       failureCallback = function() {};
     }
-    console.log(uri);
     tree = ServerURIParser.matchAll(uri, "uri");
     if ((headers != null) && headers["Content-Type"] === "application/xml") {
       null;
@@ -624,7 +632,6 @@
   };
   dataplusPUT = function(tree, headers, body, successCallback, failureCallback) {
     var bd, id;
-    console.log(tree);
     id = getID(tree);
     bd = JSON.parse(body);
     if (tree[1][1] === "lock" && hasCR(tree)) {
@@ -667,7 +674,6 @@
               }
               binds.push(id);
               tx.begin();
-              console.log('UPDATE "' + tree[1][1] + '" SET ' + setStatements.join(", ") + " WHERE id = ?;", binds);
               return tx.executeSql('UPDATE "' + tree[1][1] + '" SET ' + setStatements.join(", ") + " WHERE id = ?;", binds, function(tx) {
                 return validateDB(tx, serverModelCache.getSQL(), (function(tx, sqlmod, failureCallback, result) {
                   tx.end();

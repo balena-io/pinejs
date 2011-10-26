@@ -15,22 +15,25 @@ if process?
 		_db.connect()
 		result = (rows) ->
 			return {
-				rows: {
+				rows:
 					length: rows?.length or 0
 					item: (i) -> rows[i]
-				}
+				insertId: rows[0]?.id || null
 			}
 		tx = {
-			executeSql: (sql, bindings = [], callback, errorCallback) ->
+			executeSql: (sql, bindings = [], callback, errorCallback, addReturning = true) ->
 				thisTX = this
 				sql = sql.replace(/GROUP BY NULL/g, '') #HACK: Remove GROUP BY NULL for Postgres as it does not need/accept it.
 				sql = sql.replace(/INTEGER PRIMARY KEY AUTOINCREMENT/g, 'SERIAL PRIMARY KEY') #HACK: Postgres uses SERIAL data type rather than auto increment
+				if addReturning and /^\s*INSERT\s+INTO/i.test(sql)
+					sql = sql.replace(/;?$/, ' RETURNING id;')
+					console.log(sql)
 				bindNo = 1
 				sql = SQLBinds.matchAll(sql, "parse", [-> '$'+bindNo++])
 				_db.query {text: sql, values: bindings}, (err, res) ->
 					if err?
 						errorCallback? thisTX, err
-						console.log(sql, err)
+						console.log(sql, bindings, err)
 					else
 						callback? thisTX, result(res.rows)
 			begin: -> this.executeSql('BEGIN;')
@@ -158,7 +161,7 @@ serverModelCache = do () ->
 			value = JSON.stringify(value).replace(/\\'/g,"\\\\'").replace(new RegExp("'",'g'),"\\'")
 			tx.executeSql('SELECT 1 as count FROM "_server_model_cache" WHERE key = ?;', [key], (tx, result) ->
 				if result.rows.length==0
-					tx.executeSql 'INSERT INTO "_server_model_cache" VALUES (?, ?);', [key, value]
+					tx.executeSql 'INSERT INTO "_server_model_cache" VALUES (?, ?);', [key, value], null, null, false
 				else
 					tx.executeSql 'UPDATE "_server_model_cache" SET value = ? WHERE key = ?;', [value, key]
 			)
