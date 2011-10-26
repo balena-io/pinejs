@@ -39,7 +39,7 @@ if process?
 			tableList: (callback, errorCallback, extraWhereClause = '') ->
 				if extraWhereClause != ''
 					extraWhereClause = ' WHERE ' + extraWhereClause
-				this.executeSql("SELECT * FROM (SELECT tablename as name FROM pg_tables WHERE schemaname = 'public') t" + extraWhereClause + ";", [], callback, errorCallback)
+				this.executeSql("SELECT * FROM (SELECT tablename as name FROM pg_tables WHERE schemaname = 'public' AND tablename != '_server_model_cache') t" + extraWhereClause + ";", [], callback, errorCallback)
 			dropTable: (tableName, ifExists = true, callback, errorCallback) -> this.executeSql('DROP TABLE ' + (if ifExists == true then 'IF EXISTS ' else '') + '"' + tableName + '" CASCADE;', [], callback, errorCallback)
 		}
 		return {
@@ -72,7 +72,7 @@ if process?
 			# tableList: (callback, errorCallback, extraWhereClause = '') ->
 				# if extraWhereClause != ''
 					# extraWhereClause = ' AND ' + extraWhereClause
-				# this.executeSql("SELECT name FROM sqlite_master WHERE type='table' AND name != 'sqlite_sequence'" + extraWhereClause + ";", [], callback, errorCallback)
+				# this.executeSql("SELECT name, sql FROM sqlite_master WHERE type='table' AND name NOT IN ('sqlite_sequence', '_server_model_cache')" + extraWhereClause + ";", [], callback, errorCallback)
 			# dropTable: (tableName, ifExists = true, callback, errorCallback) -> this.executeSql('DROP TABLE ' + (if ifExists == true then 'IF EXISTS ' else '') + '"' + tableName + '";', [], callback, errorCallback)
 		# }
 		# return {
@@ -106,7 +106,7 @@ else
 				tableList: (callback, errorCallback, extraWhereClause = '') ->
 					if extraWhereClause != ''
 						extraWhereClause = ' AND ' + extraWhereClause
-					this.executeSql("SELECT name FROM sqlite_master WHERE type='table' AND name != '__WebKitDatabaseInfoTable__' AND name != 'sqlite_sequence'" + extraWhereClause + ";", [], callback, errorCallback)
+					this.executeSql("SELECT name, sql FROM sqlite_master WHERE type='table' AND name NOT IN ('__WebKitDatabaseInfoTable__', 'sqlite_sequence', '_server_model_cache')" + extraWhereClause + ";", [], callback, errorCallback)
 				dropTable: (tableName, ifExists = true, callback, errorCallback) -> this.executeSql('DROP TABLE ' + (if ifExists == true then 'IF EXISTS ' else '') + '"' + tableName + '";', [], callback, errorCallback)
 			}
 		return {
@@ -313,42 +313,53 @@ handlers =
 
 	exportdb:
 		GET: (successCallback, failureCallback) ->
-			db.transaction (tx) ->
-				tx.executeSql "SELECT name,sql FROM sqlite_master WHERE type='table' AND name NOT LIKE '\\_\\_%' ESCAPE '\\' AND name NOT LIKE '%_buk';", [], ((tx, result) ->
-					totalExports = result.rows.length + 1
-					exportsProcessed = 0
-					exported = ''
-					for i in [0...result.rows.length]
-						tbn = result.rows.item(i).name
-						exported += 'DROP TABLE IF EXISTS "' + tbn + '";\n'
-						exported += result.rows.item(i).sql + ";\n"
-						do (tbn) ->
-							db.transaction (tx) ->
-								tx.executeSql 'SELECT * FROM "' + tbn + '";', [], ((tx, result) ->
-									insQuery = ""
-									for i in [0...result.rows.length]
-										currRow = result.rows.item(i)
-										notFirst = false
-										insQuery += 'INSERT INTO "' + tbn + '" ('
-										valQuery = ''
-										for own propName of currRow
-											if notFirst
-												insQuery += ","
-												valQuery += ","
-											else
-												notFirst = true
-											insQuery += '"' + propName + '"'
-											valQuery += "'" + currRow[propName] + "'"
-										insQuery += ") values (" + valQuery + ");\n"
-									exported += insQuery
-									exportsProcessed++
-									if exportsProcessed == totalExports
-										successCallback(200, exported)
-								)
-					exportsProcessed++
-					if exportsProcessed == totalExports
-						successCallback(200, exported)
+			if process?
+				env = process.env
+				env['PGPASSWORD'] = '.'
+				require('child_process').exec('pg_dump --clean -U postgres -h localhost -p 5432', env: env, (error, stdout, stderr) ->
+					console.log(stdout, stderr)
+					successCallback(200, stdout)
 				)
+			else
+				db.transaction (tx) ->
+					tx.tableList(
+						(tx, result) ->
+							totalExports = result.rows.length + 1
+							exportsProcessed = 0
+							exported = ''
+							for i in [0...result.rows.length]
+								tbn = result.rows.item(i).name
+								exported += 'DROP TABLE IF EXISTS "' + tbn + '";\n'
+								exported += result.rows.item(i).sql + ";\n"
+								do (tbn) ->
+									db.transaction (tx) ->
+										tx.executeSql 'SELECT * FROM "' + tbn + '";', [], ((tx, result) ->
+											insQuery = ""
+											for i in [0...result.rows.length]
+												currRow = result.rows.item(i)
+												notFirst = false
+												insQuery += 'INSERT INTO "' + tbn + '" ('
+												valQuery = ''
+												for own propName of currRow
+													if notFirst
+														insQuery += ","
+														valQuery += ","
+													else
+														notFirst = true
+													insQuery += '"' + propName + '"'
+													valQuery += "'" + currRow[propName] + "'"
+												insQuery += ") values (" + valQuery + ");\n"
+											exported += insQuery
+											exportsProcessed++
+											if exportsProcessed == totalExports
+												successCallback(200, exported)
+										)
+							exportsProcessed++
+							if exportsProcessed == totalExports
+								successCallback(200, exported)
+						null
+						"name NOT LIKE '%_buk'"
+					)
 	backupdb:
 		POST: (successCallback, failureCallback) ->
 			db.transaction (tx) ->

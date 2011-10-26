@@ -72,7 +72,7 @@
           if (extraWhereClause !== '') {
             extraWhereClause = ' WHERE ' + extraWhereClause;
           }
-          return this.executeSql("SELECT * FROM (SELECT tablename as name FROM pg_tables WHERE schemaname = 'public') t" + extraWhereClause + ";", [], callback, errorCallback);
+          return this.executeSql("SELECT * FROM (SELECT tablename as name FROM pg_tables WHERE schemaname = 'public' AND tablename != '_server_model_cache') t" + extraWhereClause + ";", [], callback, errorCallback);
         },
         dropTable: function(tableName, ifExists, callback, errorCallback) {
           if (ifExists == null) {
@@ -124,7 +124,7 @@
             if (extraWhereClause !== '') {
               extraWhereClause = ' AND ' + extraWhereClause;
             }
-            return this.executeSql("SELECT name FROM sqlite_master WHERE type='table' AND name != '__WebKitDatabaseInfoTable__' AND name != 'sqlite_sequence'" + extraWhereClause + ";", [], callback, errorCallback);
+            return this.executeSql("SELECT name, sql FROM sqlite_master WHERE type='table' AND name NOT IN ('__WebKitDatabaseInfoTable__', 'sqlite_sequence', '_server_model_cache')" + extraWhereClause + ";", [], callback, errorCallback);
           },
           dropTable: function(tableName, ifExists, callback, errorCallback) {
             if (ifExists == null) {
@@ -398,55 +398,67 @@
     },
     exportdb: {
       GET: function(successCallback, failureCallback) {
-        return db.transaction(function(tx) {
-          return tx.executeSql("SELECT name,sql FROM sqlite_master WHERE type='table' AND name NOT LIKE '\\_\\_%' ESCAPE '\\' AND name NOT LIKE '%_buk';", [], (function(tx, result) {
-            var exported, exportsProcessed, i, tbn, totalExports, _fn, _ref;
-            totalExports = result.rows.length + 1;
-            exportsProcessed = 0;
-            exported = '';
-            _fn = function(tbn) {
-              return db.transaction(function(tx) {
-                return tx.executeSql('SELECT * FROM "' + tbn + '";', [], (function(tx, result) {
-                  var currRow, i, insQuery, notFirst, propName, valQuery, _ref2;
-                  insQuery = "";
-                  for (i = 0, _ref2 = result.rows.length; 0 <= _ref2 ? i < _ref2 : i > _ref2; 0 <= _ref2 ? i++ : i--) {
-                    currRow = result.rows.item(i);
-                    notFirst = false;
-                    insQuery += 'INSERT INTO "' + tbn + '" (';
-                    valQuery = '';
-                    for (propName in currRow) {
-                      if (!__hasProp.call(currRow, propName)) continue;
-                      if (notFirst) {
-                        insQuery += ",";
-                        valQuery += ",";
-                      } else {
-                        notFirst = true;
+        var env;
+        if (typeof process !== "undefined" && process !== null) {
+          env = process.env;
+          env['PGPASSWORD'] = '.';
+          return require('child_process').exec('pg_dump --clean -U postgres -h localhost -p 5432', {
+            env: env
+          }, function(error, stdout, stderr) {
+            console.log(stdout, stderr);
+            return successCallback(200, stdout);
+          });
+        } else {
+          return db.transaction(function(tx) {
+            return tx.tableList(function(tx, result) {
+              var exported, exportsProcessed, i, tbn, totalExports, _fn, _ref;
+              totalExports = result.rows.length + 1;
+              exportsProcessed = 0;
+              exported = '';
+              _fn = function(tbn) {
+                return db.transaction(function(tx) {
+                  return tx.executeSql('SELECT * FROM "' + tbn + '";', [], (function(tx, result) {
+                    var currRow, i, insQuery, notFirst, propName, valQuery, _ref2;
+                    insQuery = "";
+                    for (i = 0, _ref2 = result.rows.length; 0 <= _ref2 ? i < _ref2 : i > _ref2; 0 <= _ref2 ? i++ : i--) {
+                      currRow = result.rows.item(i);
+                      notFirst = false;
+                      insQuery += 'INSERT INTO "' + tbn + '" (';
+                      valQuery = '';
+                      for (propName in currRow) {
+                        if (!__hasProp.call(currRow, propName)) continue;
+                        if (notFirst) {
+                          insQuery += ",";
+                          valQuery += ",";
+                        } else {
+                          notFirst = true;
+                        }
+                        insQuery += '"' + propName + '"';
+                        valQuery += "'" + currRow[propName] + "'";
                       }
-                      insQuery += '"' + propName + '"';
-                      valQuery += "'" + currRow[propName] + "'";
+                      insQuery += ") values (" + valQuery + ");\n";
                     }
-                    insQuery += ") values (" + valQuery + ");\n";
-                  }
-                  exported += insQuery;
-                  exportsProcessed++;
-                  if (exportsProcessed === totalExports) {
-                    return successCallback(200, exported);
-                  }
-                }));
-              });
-            };
-            for (i = 0, _ref = result.rows.length; 0 <= _ref ? i < _ref : i > _ref; 0 <= _ref ? i++ : i--) {
-              tbn = result.rows.item(i).name;
-              exported += 'DROP TABLE IF EXISTS "' + tbn + '";\n';
-              exported += result.rows.item(i).sql + ";\n";
-              _fn(tbn);
-            }
-            exportsProcessed++;
-            if (exportsProcessed === totalExports) {
-              return successCallback(200, exported);
-            }
-          }));
-        });
+                    exported += insQuery;
+                    exportsProcessed++;
+                    if (exportsProcessed === totalExports) {
+                      return successCallback(200, exported);
+                    }
+                  }));
+                });
+              };
+              for (i = 0, _ref = result.rows.length; 0 <= _ref ? i < _ref : i > _ref; 0 <= _ref ? i++ : i--) {
+                tbn = result.rows.item(i).name;
+                exported += 'DROP TABLE IF EXISTS "' + tbn + '";\n';
+                exported += result.rows.item(i).sql + ";\n";
+                _fn(tbn);
+              }
+              exportsProcessed++;
+              if (exportsProcessed === totalExports) {
+                return successCallback(200, exported);
+              }
+            }, null, "name NOT LIKE '%_buk'");
+          });
+        }
       }
     },
     backupdb: {
