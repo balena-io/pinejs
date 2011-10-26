@@ -158,7 +158,14 @@
           return failureCallback(jqXHR.status, JSON.parse(jqXHR.responseText));
         },
         success: function(data, textStatus, jqXHR) {
-          return successCallback(jqXHR.status, JSON.parse(data), jqXHR.getAllResponseHeaders());
+          var match, responseHeaders, responseHeadersString, rheaders;
+          rheaders = /^(.*?):[ \t]*([^\r\n]*)\r?$/mg;
+          responseHeaders = {};
+          responseHeadersString = jqXHR.getAllResponseHeaders();
+          while (match = rheaders.exec(responseHeadersString)) {
+            responseHeaders[match[1].toLowerCase()] = match[2];
+          }
+          return successCallback(jqXHR.status, JSON.parse(data), responseHeaders);
         },
         type: method
       });

@@ -139,7 +139,12 @@ window.serverRequest = (method, uri, headers = {}, body = null, successCallback,
 				failureCallback jqXHR.status, JSON.parse(jqXHR.responseText)
 			
 			success: (data, textStatus, jqXHR) ->
-				successCallback jqXHR.status, JSON.parse(data), jqXHR.getAllResponseHeaders()
+				rheaders = /^(.*?):[ \t]*([^\r\n]*)\r?$/mg
+				responseHeaders = {}
+				responseHeadersString = jqXHR.getAllResponseHeaders()
+				while match = rheaders.exec( responseHeadersString )
+					responseHeaders[ match[1].toLowerCase() ] = match[2]
+				successCallback jqXHR.status, JSON.parse(data), responseHeaders
 			
 			type: method
 	#ENDIFDEF
