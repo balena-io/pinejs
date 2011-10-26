@@ -504,6 +504,7 @@
     if (typeof failureCallback !== "function") {
       failureCallback = function() {};
     }
+    console.log(uri);
     tree = ServerURIParser.matchAll(uri, "uri");
     if ((headers != null) && headers["Content-Type"] === "application/xml") {
       null;
@@ -622,48 +623,52 @@
     }
   };
   dataplusPUT = function(tree, headers, body, successCallback, failureCallback) {
-    var bd, id, k, pair, ps, _ref;
+    var bd, id;
+    console.log(tree);
     id = getID(tree);
+    bd = JSON.parse(body);
     if (tree[1][1] === "lock" && hasCR(tree)) {
-      bd = JSON.parse(body);
-      ps = [];
-      for (pair in bd) {
-        if (!__hasProp.call(bd, pair)) continue;
-        _ref = bd[pair];
-        for (k in _ref) {
-          if (!__hasProp.call(_ref, k)) continue;
-          ps.push([id, k, typeof bd[pair][k], bd[pair][k]]);
-        }
-      }
       return db.transaction(function(tx) {
-        var item, sql, _results;
+        var key, pair, sql, value, _i, _len, _results;
         tx.executeSql('DELETE FROM "conditional_representation" WHERE "lock_id" = ?;', [id]);
+        sql = "INSERT INTO 'conditional_representation'" + "('lock_id','field_name','field_type','field_value')" + "VALUES (?, ?, ?, ?)";
         _results = [];
-        for (item in ps) {
-          if (!__hasProp.call(ps, item)) continue;
-          sql = "INSERT INTO 'conditional_representation'('lock_id'," + "'field_name','field_type','field_value')" + "VALUES (?, ?, ?, ?)";
-          _results.push(tx.executeSql(sql, [ps[item][0], ps[item][1], ps[item][2], ps[item][3]], function(tx, result) {}));
+        for (_i = 0, _len = bd.length; _i < _len; _i++) {
+          pair = bd[_i];
+          _results.push((function() {
+            var _results2;
+            _results2 = [];
+            for (key in pair) {
+              if (!__hasProp.call(pair, key)) continue;
+              value = pair[key];
+              _results2.push(tx.executeSql(sql, [id, key, typeof value, value]));
+            }
+            return _results2;
+          })());
         }
         return _results;
       });
     } else {
       return db.transaction((function(tx) {
         return tx.executeSql('SELECT NOT EXISTS(SELECT * FROM "resource-is_under-lock" AS r WHERE r."resource_type" = ? AND r."resource_id" = ?) AS result;', [tree[1][1], id], function(tx, result) {
-          var k, pair, _ref2, _ref3;
-          if ((_ref2 = result.rows.item(0).result) === 1 || _ref2 === true) {
+          var binds, key, pair, setStatements, value, _i, _len, _ref;
+          if ((_ref = result.rows.item(0).result) === 1 || _ref === true) {
             if (id !== "") {
-              bd = JSON.parse(body);
-              ps = [];
-              for (pair in bd) {
-                if (!__hasProp.call(bd, pair)) continue;
-                _ref3 = bd[pair];
-                for (k in _ref3) {
-                  if (!__hasProp.call(_ref3, k)) continue;
-                  ps.push(k + "=" + JSON.stringify(bd[pair][k]));
+              setStatements = [];
+              binds = [];
+              for (_i = 0, _len = bd.length; _i < _len; _i++) {
+                pair = bd[_i];
+                for (key in pair) {
+                  if (!__hasProp.call(pair, key)) continue;
+                  value = pair[key];
+                  setStatements.push('"' + key + '"= ?');
+                  binds.push(value);
                 }
               }
+              binds.push(id);
               tx.begin();
-              return tx.executeSql('UPDATE "' + tree[1][1] + '" SET ' + ps.join(",") + " WHERE id = ?;", [id], function(tx) {
+              console.log('UPDATE "' + tree[1][1] + '" SET ' + setStatements.join(", ") + " WHERE id = ?;", binds);
+              return tx.executeSql('UPDATE "' + tree[1][1] + '" SET ' + setStatements.join(", ") + " WHERE id = ?;", binds, function(tx) {
                 return validateDB(tx, serverModelCache.getSQL(), (function(tx, sqlmod, failureCallback, result) {
                   tx.end();
                   return successCallback(200, result);

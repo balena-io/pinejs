@@ -492,38 +492,33 @@ dataplusDELETE = (tree, headers, body, successCallback, failureCallback) ->
 
 
 dataplusPUT = (tree, headers, body, successCallback, failureCallback) ->
-	id = getID tree
+	id = getID(tree)
+	bd = JSON.parse(body)
 	if tree[1][1] == "lock" and hasCR tree
 		#CR posted to Lock
-		bd = JSON.parse(body)
-		ps = []
-		for own pair of bd
-			for own k of bd[pair]
-				ps.push [ id, k, typeof bd[pair][k], bd[pair][k] ]
-
-		#sql="INSERT INTO 'conditional_representation'('lock_id','field_name','field_type','field_value')"
-		#"VALUES ('','','','')"
 		db.transaction (tx) ->
 			tx.executeSql 'DELETE FROM "conditional_representation" WHERE "lock_id" = ?;', [id]
 
-			for own item of ps
-				sql = "INSERT INTO 'conditional_representation'('lock_id'," +
-					"'field_name','field_type','field_value')" +
-					"VALUES (?, ?, ?, ?)"
-				#TODO: Can we pass just ps[item] ?
-				tx.executeSql sql, [ps[item][0], ps[item][1], ps[item][2], ps[item][3]], (tx, result) ->
+			sql = "INSERT INTO 'conditional_representation'" +
+				"('lock_id','field_name','field_type','field_value')" +
+				"VALUES (?, ?, ?, ?)"
+			for pair in bd
+				for own key, value of pair
+					tx.executeSql(sql, [ id, key, typeof value, value ])
 	else
 		db.transaction ((tx) ->
 			tx.executeSql 'SELECT NOT EXISTS(SELECT * FROM "resource-is_under-lock" AS r WHERE r."resource_type" = ? AND r."resource_id" = ?) AS result;', [tree[1][1], id], (tx, result) ->
 				if result.rows.item(0).result in [1, true]
 					if id != ""
-						bd = JSON.parse(body)
-						ps = []
-						for own pair of bd
-							for own k of bd[pair]
-								ps.push k + "=" + JSON.stringify(bd[pair][k])
+						setStatements = []
+						binds = []
+						for pair in bd
+							for own key, value of pair
+								setStatements.push('"' + key + '"= ?')
+								binds.push(value)
+						binds.push(id)
 						tx.begin()
-						tx.executeSql 'UPDATE "' + tree[1][1] + '" SET ' + ps.join(",") + " WHERE id = ?;", [id], (tx) ->
+						tx.executeSql 'UPDATE "' + tree[1][1] + '" SET ' + setStatements.join(", ") + " WHERE id = ?;", binds, (tx) ->
 							validateDB tx, serverModelCache.getSQL(), ((tx, sqlmod, failureCallback, result) ->
 								tx.end()
 								successCallback 200, result
