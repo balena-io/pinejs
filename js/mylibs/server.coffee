@@ -365,11 +365,14 @@ handlers =
 	restoredb:
 		POST: (successCallback, failureCallback) ->
 			db.transaction (tx) ->
-				tx.executeSql("SELECT name FROM sqlite_master WHERE type='table' AND name LIKE '%_buk';", [], (tx, result) ->
-					for i in [0...result.rows.length]
-						tbn = result.rows.item(i).name
-						tx.dropTable(tbn[0...-4], true)
-						tx.executeSql 'ALTER TABLE "' + tbn + '" RENAME TO "' + tbn[0...-4] + '";'
+				tx.tableList(
+					(tx, result) ->
+						for i in [0...result.rows.length]
+							tbn = result.rows.item(i).name
+							tx.dropTable(tbn[0...-4], true)
+							tx.executeSql 'ALTER TABLE "' + tbn + '" RENAME TO "' + tbn[0...-4] + '";'
+					null
+					"name LIKE '%_buk'"
 				)
 			successCallback(200)
 

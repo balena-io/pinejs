@@ -469,7 +469,7 @@
     restoredb: {
       POST: function(successCallback, failureCallback) {
         db.transaction(function(tx) {
-          return tx.executeSql("SELECT name FROM sqlite_master WHERE type='table' AND name LIKE '%_buk';", [], function(tx, result) {
+          return tx.tableList(function(tx, result) {
             var i, tbn, _ref, _results;
             _results = [];
             for (i = 0, _ref = result.rows.length; 0 <= _ref ? i < _ref : i > _ref; 0 <= _ref ? i++ : i--) {
@@ -478,7 +478,7 @@
               _results.push(tx.executeSql('ALTER TABLE "' + tbn + '" RENAME TO "' + tbn.slice(0, -4) + '";'));
             }
             return _results;
-          });
+          }, null, "name LIKE '%_buk'");
         });
         return successCallback(200);
       }
