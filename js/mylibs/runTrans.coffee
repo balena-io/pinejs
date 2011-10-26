@@ -59,6 +59,7 @@ runTrans = ->
 						serverRequest "PUT", dataElement[1], [], JSON.stringify(dataElement[2])
 			serverRequest "POST", @parent.trans.ctURI, [], "", (statusCode, result, headers) ->
 				location.hash = "#!/data/"
+	return this
 
 
 locker = ->

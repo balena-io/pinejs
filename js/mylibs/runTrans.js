@@ -61,7 +61,7 @@
         });
       });
     }
-    return this.callback = function(op, cr_uri, o) {
+    this.callback = function(op, cr_uri, o) {
       var dataElement, _i, _len, _ref;
       this.parent.data.push([op, cr_uri, o]);
       if (this.parent.data.length === this.parent.lockCount) {
@@ -81,6 +81,7 @@
         });
       }
     };
+    return this;
   };
   locker = function() {
     this.lockResource = function(resource_type, resource_id, trans, successCallback, failureCallback) {
