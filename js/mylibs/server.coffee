@@ -479,7 +479,7 @@ dataplusDELETE = (tree, headers, body, successCallback, failureCallback) ->
 		else
 			db.transaction ((tx) ->
 				tx.executeSql 'SELECT NOT EXISTS(SELECT * FROM "resource-is_under-lock" AS r WHERE r."resource_type" = ? AND r."resource_id" = ?) AS result;', [tree[1][1], id], (tx, result) ->
-					if result.rows.item(0).result == 1
+					if result.rows.item(0).result in [1, true]
 						tx.begin()
 						tx.executeSql 'DELETE FROM "' + tree[1][1] + '" WHERE id = ?;', [id], (tx, result) ->
 							validateDB tx, serverModelCache.getSQL(), ((tx, sqlmod, failureCallback, result) ->
@@ -515,7 +515,7 @@ dataplusPUT = (tree, headers, body, successCallback, failureCallback) ->
 	else
 		db.transaction ((tx) ->
 			tx.executeSql 'SELECT NOT EXISTS(SELECT * FROM "resource-is_under-lock" AS r WHERE r."resource_type" = ? AND r."resource_id" = ?) AS result;', [tree[1][1], id], (tx, result) ->
-				if result.rows.item(0).result == 1
+				if result.rows.item(0).result in [1, true]
 					if id != ""
 						bd = JSON.parse(body)
 						ps = []
@@ -780,7 +780,8 @@ updateRules = (sqlmod) ->
 		query = row[4]
 		l[++m] = row[2]
 		tx.executeSql query, [], (tx, result) ->
-			alert "Error: " + l[++k] if result.rows.item(0)["result"] == 0
+			if result.rows.item(0).result in [0, false]
+				alert "Error: " + l[++k]
 		
 
 getFTree = (tree) ->
@@ -832,7 +833,7 @@ if process?
 				console.log('Node')
 				remoteServerRequest(request.method, request.url[nodePath.length..], request.headers, body,
 					(statusCode, result = "", headers) ->
-						console.log('Success', result)
+						console.log('Success')#, result)
 						response.writeHead(statusCode, headers)
 						response.end(JSON.stringify(result))
 					(statusCode, errors, headers) ->

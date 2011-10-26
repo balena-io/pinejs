@@ -604,7 +604,8 @@
       } else {
         return db.transaction((function(tx) {
           return tx.executeSql('SELECT NOT EXISTS(SELECT * FROM "resource-is_under-lock" AS r WHERE r."resource_type" = ? AND r."resource_id" = ?) AS result;', [tree[1][1], id], function(tx, result) {
-            if (result.rows.item(0).result === 1) {
+            var _ref;
+            if ((_ref = result.rows.item(0).result) === 1 || _ref === true) {
               tx.begin();
               return tx.executeSql('DELETE FROM "' + tree[1][1] + '" WHERE id = ?;', [id], function(tx, result) {
                 return validateDB(tx, serverModelCache.getSQL(), (function(tx, sqlmod, failureCallback, result) {
@@ -648,16 +649,16 @@
     } else {
       return db.transaction((function(tx) {
         return tx.executeSql('SELECT NOT EXISTS(SELECT * FROM "resource-is_under-lock" AS r WHERE r."resource_type" = ? AND r."resource_id" = ?) AS result;', [tree[1][1], id], function(tx, result) {
-          var k, pair, _ref2;
-          if (result.rows.item(0).result === 1) {
+          var k, pair, _ref2, _ref3;
+          if ((_ref2 = result.rows.item(0).result) === 1 || _ref2 === true) {
             if (id !== "") {
               bd = JSON.parse(body);
               ps = [];
               for (pair in bd) {
                 if (!__hasProp.call(bd, pair)) continue;
-                _ref2 = bd[pair];
-                for (k in _ref2) {
-                  if (!__hasProp.call(_ref2, k)) continue;
+                _ref3 = bd[pair];
+                for (k in _ref3) {
+                  if (!__hasProp.call(_ref3, k)) continue;
                   ps.push(k + "=" + JSON.stringify(bd[pair][k]));
                 }
               }
@@ -984,7 +985,8 @@
         query = row[4];
         l[++m] = row[2];
         _results.push(tx.executeSql(query, [], function(tx, result) {
-          if (result.rows.item(0)["result"] === 0) {
+          var _ref2;
+          if ((_ref2 = result.rows.item(0).result) === 0 || _ref2 === false) {
             return alert("Error: " + l[++k]);
           }
         }));
@@ -1064,7 +1066,7 @@
             if (result == null) {
               result = "";
             }
-            console.log('Success', result);
+            console.log('Success');
             response.writeHead(statusCode, headers);
             return response.end(JSON.stringify(result));
           }, function(statusCode, errors, headers) {
