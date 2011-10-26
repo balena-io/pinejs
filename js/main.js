@@ -3,7 +3,8 @@ require(["../ometa-js/lib",
 	require(["libs/json2",
 			"mylibs/drawDataUI",
 			"mylibs/ometa-code/ClientURIParser",
-			"mylibs/ometa-code/ClientURIUnparser"]);
+			"mylibs/ometa-code/ClientURIUnparser",
+			"mylibs/runTrans"]);
 	require(["libs/inflection",
 			"mylibs/ometa-code/SBVRParser",
 			"mylibs/ometa-code/Prettify"], function() {
@@ -20,7 +21,6 @@ require(["../ometa-js/lib",
 	
 	/*#IFDEF websql */
 		require(["libs/json2",
-				"mylibs/server",
-				"mylibs/runTrans"]);
+				"mylibs/server"]);
 	/*#ENDIFDEF*/
 });
