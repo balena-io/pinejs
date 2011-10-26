@@ -753,6 +753,7 @@ executeTasync = (tx, trnmod, successCallback, failureCallback, result) ->
 		#Hack: Add certain attributes to the transaction model tables. 
 		#This should eventually be done with SBVR, when we add attributes.
 		tx.executeSql 'ALTER TABLE "resource-is_under-lock" ADD COLUMN resource_type TEXT'
+		tx.executeSql 'ALTER TABLE "resource-is_under-lock" DROP CONSTRAINT "resource-is_under-lock_resource_id_fkey";'
 		tx.executeSql 'ALTER TABLE "conditional_representation" ADD COLUMN field_name TEXT'
 		tx.executeSql 'ALTER TABLE "conditional_representation" ADD COLUMN field_value TEXT'
 		tx.executeSql 'ALTER TABLE "conditional_representation" ADD COLUMN field_type TEXT'

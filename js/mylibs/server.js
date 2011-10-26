@@ -971,6 +971,7 @@
   executeTasync = function(tx, trnmod, successCallback, failureCallback, result) {
     return executeSasync(tx, trnmod, (function(tx, trnmod, failureCallback, result) {
       tx.executeSql('ALTER TABLE "resource-is_under-lock" ADD COLUMN resource_type TEXT');
+      tx.executeSql('ALTER TABLE "resource-is_under-lock" DROP CONSTRAINT "resource-is_under-lock_resource_id_fkey";');
       tx.executeSql('ALTER TABLE "conditional_representation" ADD COLUMN field_name TEXT');
       tx.executeSql('ALTER TABLE "conditional_representation" ADD COLUMN field_value TEXT');
       tx.executeSql('ALTER TABLE "conditional_representation" ADD COLUMN field_type TEXT');
