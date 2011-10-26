@@ -30,13 +30,15 @@ Copyright 2011 University of Surrey
 		<script src="../CodeMirror2/lib/codemirror.js"></script>
 		<script src="../CodeMirror2/mode/javascript/javascript.js"></script> 
 		<script src="../js/libs/jquery-1.6.2.min.js"></script>
+		<script src="../js/libs/jquery.hotkeys.js"></script>
+		<script src="../js/libs/jquery-custom-file-input.js"></script>
 		<script src="../js/libs/jquery-ui-1.8.11.custom.min.js"></script>
 		
 		<link type="text/css" href="../css/ui-lightness/jquery-ui.css" rel="stylesheet" />
 		<link rel="stylesheet" href="../CodeMirror2/lib/codemirror.css">
 		<link rel="stylesheet" href="../CodeMirror2/theme/default.css">
 		
-		<style>
+		<style type="text/css">
 		.codemirror-scroll {
 			overflow: auto;
 			height: 380px;
@@ -69,9 +71,10 @@ Copyright 2011 University of Surrey
 			  }*/
 			}
 		
-			function compile(code){
-				var jscode = translateCode(code);
-				cmRaw.setValue(jscode);				
+			function compile(ometacode){
+				var jscode;
+				jscode = translateCode(ometacode + '\n'); //'\n' avoids failing on comment-terminated strings.
+				cmRaw.setValue(jscode);		
 				cmFormatted.setValue( js_beautify(jscode) );
 				alert('Compilation complete!');
 			}
@@ -91,9 +94,50 @@ Copyright 2011 University of Surrey
 	</head>
 	<body>
 		<script>
+			window.downloadFile = function(filename, text){
+				var MIME_TYPE, a, bb, output, prevLink;
+				MIME_TYPE = "text/plain";
+				output = document.querySelector("output");
+				window.URL = window.webkitURL || window.URL;
+				window.BlobBuilder = window.BlobBuilder || window.WebKitBlobBuilder || window.MozBlobBuilder;
+				prevLink = output.querySelector("a");
+				if (prevLink) {
+					window.URL.revokeObjectURL(prevLink.href);
+					output.innerHTML = "";
+				}
+				bb = new BlobBuilder();
+				bb.append(text);
+				a = document.createElement("a");
+				a.download = filename;
+				a.href = window.URL.createObjectURL(bb.getBlob(MIME_TYPE));
+				a.textContent = "Download ready";
+				a.dataset.downloadurl = [MIME_TYPE, a.download, a.href].join(":");
+				a.draggable = true;
+				a.classList.add("dragout");
+				output.appendChild(a);
+				return a.onclick = function(e) {
+					if ("disabled" in this.dataset) {
+						return false;
+					}
+					return cleanUp(this);
+				};
+			};
+		
 			$(function() {
 				$("#tabs").tabs({
 				   show: function(event, ui) { cmFormatted.refresh(); cmRaw.refresh();}
+				});
+				
+				function bindings(){
+					$(document).bind('keydown', 'ctrl+y', function(){
+						compileAndRun(ometacodeArea.getValue())
+					});
+				}
+				
+				$(document).ready(bindings);
+				
+				return $("#bldb").file().choose(function(e, input) {
+					return handleFiles(input[0].files);
 				});
 			});
 		</script>
@@ -105,8 +149,8 @@ Copyright 2011 University of Surrey
 			</ul>
 			<div id="ometacode" style="height:400px">
 				<div align="left">
-					<input type="button" value="Compile" onClick="compile($('#ometacodeArea').val());return false">
-					<input type="button" value="Compile & Run"  onClick="compileAndRun(ometacodeArea.getValue());return false">
+					<input type="button" value="Compile" title="Ctrl+.." onClick="compile(ometacodeArea.getValue());return false">
+					<input type="button" value="Compile & Run" title="Ctrl+Y"  onClick="compileAndRun(ometacodeArea.getValue());return false">
 					<script type="text/javascript">
 						if(!!window.FileReader)
 						{
@@ -114,14 +158,12 @@ Copyright 2011 University of Surrey
 							function handleFiles(files) {
 								var reader = new FileReader();
 								reader.onloadend = function(e) {
-									importExportEditor.setValue(e.target.result);
+									console.log(e);
+									ometacodeArea.setValue(e.target.result);
 								}
 								reader.readAsText(files[0]);
 							}
 							document.write('<input type="button" id="bsdb" value="Save File" onClick="downloadFile(\'sbvr.txt\',importExportEditor.getValue())">');
-							return $("#bldb").file().choose(function(e, input) {
-								return handleFiles(input[0].files);
-							});
 						}
 					</script>
 				</div>
@@ -133,26 +175,38 @@ Copyright 2011 University of Surrey
 					<textarea id="outputArea"></textarea>
 				</div>
 			</div>
-			<div id="jsraw"><textarea id="jsrawArea" rows="35" cols="136" spellcheck="false"></textarea></div>
+			<div id="jsraw"><textarea id="jsrawArea" ></textarea></div>
 			<div id="jsformatted">
-				<textarea id="jsformattedArea" name="jsformattedArea" rows="10" cols="136" spellcheck="false"></textarea>
+				<textarea id="jsformattedArea" name="jsformattedArea" ></textarea>
 			</div>
 		</div>
-	
+
 		<script> 
 			ometacodeArea = CodeMirror.fromTextArea(document.getElementById("ometacodeArea"), {
 				lineNumbers: true,
-				matchBrackets: true
+				matchBrackets: true,
+				onKeyEvent: function(editor, event){
+					event = $.event.fix(event);
+					$(document).trigger(event);
+				}
 			});
 			outputArea = CodeMirror.fromTextArea(document.getElementById("outputArea"), {
 				lineNumbers: true,
 				matchBrackets: true,
-				readOnly: true
+				readOnly: true,
+				onKeyEvent: function(editor, event){
+					event = $.event.fix(event);
+					$(document).trigger(event);
+				}
 			});			
 			cmRaw = CodeMirror.fromTextArea(document.getElementById("jsrawArea"), {
 				lineNumbers: true,
 				matchBrackets: true,
-				readOnly: true
+				readOnly: true,
+				onKeyEvent: function(editor, event){
+					event = $.event.fix(event);
+					$(document).trigger(event);
+				}
 			});
 			cmFormatted = CodeMirror.fromTextArea(document.getElementById("jsformattedArea"), {
 				lineNumbers: true,
