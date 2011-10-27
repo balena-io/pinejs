@@ -63,7 +63,7 @@
     var filters, rootURI;
     rootURI = location.pathname;
     filters = ["filters"];
-    $("#dataTab").html("<table id='terms'><tbody><tr><td></td></tr></tbody></table><div align='left'><br/><input type='button' value='Apply All Changes' onClick='runTrans();return false;'></div>");
+    $("#dataTab").html("<table id='terms'><tbody><tr><td></td></tr></tbody></table><div align='left'><br/><input type='button' value='Apply All Changes' onClick='runTrans($(\"#terms\"));return false;'></div>");
     return serverRequest("GET", "/data/", [], "", function(statusCode, result, headers) {
       var i, j, launch, newb, npos, objcb, post, pre, term, _ref, _ref2, _results;
       objcb = {

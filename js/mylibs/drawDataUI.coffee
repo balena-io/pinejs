@@ -47,7 +47,7 @@ serverAPI = (about, filters) ->
 drawData = (tree) ->
 	rootURI = location.pathname
 	filters = [ "filters" ]
-	$("#dataTab").html "<table id='terms'><tbody><tr><td></td></tr></tbody></table><div align='left'><br/><input type='button' value='Apply All Changes' onClick='runTrans();return false;'></div>"
+	$("#dataTab").html "<table id='terms'><tbody><tr><td></td></tr></tbody></table><div align='left'><br/><input type='button' value='Apply All Changes' onClick='runTrans($(\"#terms\"));return false;'></div>"
 	serverRequest "GET", "/data/", [], "", (statusCode, result, headers) ->
 		objcb =
 			totsub: result.terms.length
