@@ -85,7 +85,10 @@ ometa BSJSParser {
                             ),
   primExpr     = primExpr:p ( "[" expr:i "]"                                         -> [#getp, i, p]
                             | "." "name":m "(" listOf(#asgnExpr, ','):as ")"         -> [#send, m, p].concat(as)
+                            | "." iName:m "(" listOf(#asgnExpr, ','):as ")"
+                                  isKeyword(f)                                       -> [#send, m, p].concat(as)
                             | "." "name":f                                           -> [#getp, [#string, f], p]
+                            | "." iName:f isKeyword(f)                               -> [#getp, [#string, f], p]
                             | "(" listOf(#asgnExpr, ','):as ")"                      -> [#call, p].concat(as)
                             )
                | primExprHd,
