@@ -8,7 +8,7 @@ requirejsConf =
 	appDir: process.env.intermediateDir,
 	baseUrl: "js",
 	dir: process.env.finalDir,
-	#optimize: "none",
+	optimize: "none",
 	modules: [
 		name: "main"
     ]
@@ -331,8 +331,11 @@ namespace('editor', ->
 		true
 	)
 	
+	desc('Build the editor')
+	task('build', ['js', 'copy:final:all', namespaceFinalDir + 'manifest.json', namespaceFinalDir + 'Procfile', namespaceFinalDir + 'package.json', namespaceFinalDir + 'server.js'])
+	
 	desc('Deploy the editor')
-	task('deploy', ['js', 'copy:final:all', namespaceFinalDir + 'manifest.json', namespaceFinalDir + 'Procfile', namespaceFinalDir + 'package.json', namespaceFinalDir + 'server.js'], ->
+	task('deploy', ['editor:build'], ->
 		cwd = process.cwd()
 		process.chdir(process.env.finalDir)
 		runCommand 'git init', ->
@@ -361,6 +364,7 @@ namespace('server', ->
 	
 	namespaceFinalDir = getCurrentNamespace() + process.env.finalDir
 	
+	desc('Build the server')
 	task('build', ['js', 'copy:final:all', namespaceFinalDir + 'Procfile', namespaceFinalDir + 'package.json'])
 	
 	desc('Deploy the server')
