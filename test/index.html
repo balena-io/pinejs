@@ -4,30 +4,27 @@
 	<title>QUnit Tests</title>
 	<link rel="stylesheet" href="qunit/qunit.css" media="screen">
 
-<!-- reference your own javascript files here -->
-	
-	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script> 
-	<script src="../js/plugins.js"></script> 
-	<script src="../js/script.js"></script>
-	
-	
-	<script defer src="../js/libs/inflection.js"></script>
-	
-	<script defer src="../ometa-js/lib.js"></script>
-	<script defer src="../ometa-js/ometa-base.js"></script>
-	
-	<script defer src='../js/mylibs/ometa-code/SBVRParser.js'></script>
-	<script defer src='../js/mylibs/ometa-code/SBVR_PreProc.js'></script>
-	<script defer src='../js/mylibs/ometa-code/SBVR2SQL.js'></script>
-	<script defer src='../js/mylibs/ometa-code/ClientURIParser.js'></script>
-	<script defer src='../js/mylibs/ometa-code/ClientURIUnparser.js'></script>
-	<script defer src='../js/mylibs/ometa-code/ServerURIParser.js'></script>
-	<script defer src='../js/mylibs/ometa-code/Prettify.js'></script>
+	<!-- reference your own javascript files here -->
+	<script src="../js/libs/require-0.27.0.min.js"></script>
 
+	<script>
+		var requirejs = require;
+		requirejs({
+			baseUrl: '../js',
+			paths: {
+				jquery: 'libs/jquery-1.6.2.min'
+//				jquery: 'https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min'
+			},
+			priority: ['jquery']
+		}, ['libs/jquery-ui-1.8.11.custom.min',
+			'libs/jquery-custom-file-input',
+			'main']);
+    </script>
 
 <!-- test runner files -->
 	<script src="qunit/qunit.js"></script>
 	<script src="sbvr.js"></script>
+	<script src="server.js"></script>
 
 
 
