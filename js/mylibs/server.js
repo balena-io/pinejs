@@ -638,7 +638,7 @@
       return db.transaction(function(tx) {
         var key, pair, sql, value, _i, _len, _results;
         tx.executeSql('DELETE FROM "conditional_representation" WHERE "lock_id" = ?;', [id]);
-        sql = "INSERT INTO 'conditional_representation'" + "('lock_id','field_name','field_type','field_value')" + "VALUES (?, ?, ?, ?)";
+        sql = 'INSERT INTO "conditional_representation"' + '("lock_id","field_name","field_type","field_value")' + "VALUES (?, ?, ?, ?)";
         _results = [];
         for (_i = 0, _len = bd.length; _i < _len; _i++) {
           pair = bd[_i];
