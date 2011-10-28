@@ -182,6 +182,56 @@ ometa BSSemActionParser <: BSJSParser {
                  | primExpr:r spaces                                         -> r
 }
 
+ometa BSJSIdentity {
+  trans      = [:t apply(t):ans]     -> ans
+             | [:t] -> t,
+
+  curlyTrans = [#begin curlyTrans:r] -> [#begin, r]
+             | [#begin trans*:rs]    -> ([#begin].concat(rs))
+             | trans:r               -> r,
+
+  this                                                  -> [#this],
+  break                                                 -> [#break],
+  continue                                              -> [#continue],
+  number   :n                                           -> [#number, n],
+  string   :s                                           -> [#string, s],
+  regExp   :x                                           -> [#regExp, x],
+  arr      trans*:xs                                    -> ([#arr].concat(xs)),
+  unop     :op trans:x                                  -> [#unop, op, x],
+  get      :x                                           -> [#get, x],
+  getp     trans:fd trans:x                             -> [#getp, fd, x],
+  set      trans:lhs trans:rhs                          -> [#set, lhs, rhs],
+  mset     trans:lhs :op trans:rhs                      -> [#mset, lhs, op, rhs],
+  binop    :op trans:x trans:y                          -> [#binop, op, x, y],
+  preop    :op trans:x                                  -> [#preop, op, x],
+  postop   :op trans:x                                  -> [#postop, op, x],
+  return   trans:x                                      -> [#return, x],
+  with     trans:x curlyTrans:s                         -> [#with, x, s],
+  if       trans:cond curlyTrans:t curlyTrans:e         -> [#if, cond, t, e],
+  condExpr trans:cond trans:t trans:e                   -> [#condExpr, cond, t, e],
+  while    trans:cond curlyTrans:body                   -> [#while, cond, body],
+  doWhile  curlyTrans:body trans:cond                   -> [#doWhile, body, cond],
+  for      trans:init trans:cond trans:upd
+           curlyTrans:body                              -> [#for, init, cond, upd, body],
+  forIn    trans:x trans:arr curlyTrans:body            -> [#forIn, x, arr, body],
+  begin    trans:x end                                  -> ([#begin, x]),
+  begin    trans*:xs                                    -> ([#begin].concat(xs)),
+  func     :args curlyTrans:body                        -> [#func, args, body],
+  call     trans:fn trans*:args                         -> ([#call, fn].concat(args)),
+  send     :msg trans:recv trans*:args                  -> ([#send, msg, recv].concat(args)),
+  new      :cls trans*:args                             -> ([#new, cls].concat(args)),
+  var      varItem+:vs                                  -> ([#var].concat(vs)),
+  varItem = [:n trans:v]                                -> [n, v]
+          | [:n]                                        -> [n],
+  throw    trans:x                                      -> [#throw, x],
+  try      curlyTrans:x :name curlyTrans:c curlyTrans:f -> [#try, x, name, c, f],
+  json     trans*:props                                 -> ([#json].concat(props)),
+  binding  :name trans:val                              -> [#binding, name, val],
+  switch   trans:x trans*:cases                         -> ([#switch, x].concat(cases)),
+  case     trans:x trans:y                              -> [#case, x, y],
+  default          trans:y                              -> [#default, y]
+}
+
 ometa BSJSTranslator {
   trans      = [:t apply(t):ans]     -> ans,
   curlyTrans = [#begin curlyTrans:r] -> r
