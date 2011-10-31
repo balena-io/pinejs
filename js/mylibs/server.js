@@ -692,7 +692,7 @@
       _ref = tree[1][2].slice(1);
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         row = _ref[_i];
-        fl.push('"' + row + '" .id AS "' + row + '_id"');
+        fl.push('"' + row + '".id AS "' + row + '_id"');
         fl.push('"' + row + '".name AS "' + row + '_name"');
         tb.push('"' + row + '"');
         jn.push('"' + row + '".id = "' + ft + '"."' + row + '_id"');

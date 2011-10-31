@@ -533,7 +533,7 @@ dataplusGET = (tree, headers, body, successCallback, failureCallback) ->
 		tb = [ '"' + ft + '"' ]
 
 		for row in tree[1][2][1..]
-			fl.push '"' + row + '" .id AS "' + row + '_id"'
+			fl.push '"' + row + '".id AS "' + row + '_id"'
 			fl.push '"' + row + '".name AS "' + row + '_name"'
 			tb.push '"' + row + '"'
 			jn.push '"' + row + '".id = "' + ft + '"."' + row + '_id"'
