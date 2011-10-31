@@ -65,35 +65,39 @@
     filters = ["filters"];
     $("#dataTab").html("<table id='terms'><tbody><tr><td></td></tr></tbody></table><div align='left'><br/><input type='button' value='Apply All Changes' onClick='runTrans($(\"#terms\"));return false;'></div>");
     return serverRequest("GET", "/data/", [], "", function(statusCode, result, headers) {
-      var i, j, launch, newb, npos, objcb, post, pre, term, _ref, _ref2, _results;
+      var i, j, launch, leaf, newb, npos, objcb, post, pre, term, _len, _len2, _ref, _ref2, _results;
       objcb = {
         totsub: result.terms.length,
         totend: 0,
         data: [],
         callback: function(n, prod) {
-          var i, _results;
+          var item, _i, _len, _ref, _results;
           this.data.push([n, prod]);
           if (++this.totend === this.totsub) {
             this.data.sort(function(a, b) {
               return a[0] - b[0];
             });
-            i = 0;
+            _ref = this.data;
             _results = [];
-            while (i < this.data.length) {
-              $("#terms").append(this.data[i][1]);
-              _results.push(i++);
+            for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+              item = _ref[_i];
+              _results.push($("#terms").append(item[1]));
             }
             return _results;
           }
         }
       };
+      _ref = result.terms;
       _results = [];
-      for (i = 0, _ref = result.terms.length; 0 <= _ref ? i < _ref : i > _ref; 0 <= _ref ? i++ : i--) {
+      for (i = 0, _len = _ref.length; i < _len; i++) {
+        term = _ref[i];
         term = result.terms[i];
         launch = -1;
-        for (j = 3, _ref2 = tree.length; 3 <= _ref2 ? j < _ref2 : j > _ref2; 3 <= _ref2 ? j++ : j--) {
-          if (tree[j][1][0] === term.id) {
-            launch = j;
+        _ref2 = tree.slice(3);
+        for (j = 0, _len2 = _ref2.length; j < _len2; j++) {
+          leaf = _ref2[j];
+          if (leaf[1][0] === term.id) {
+            launch = j + 3;
             break;
           }
         }
@@ -146,17 +150,17 @@
       this.unbg = "#FFFFFF";
     }
     this.callback = function(n, prod) {
-      var i;
+      var item, _i, _len, _ref;
       this.data.push([n, prod]);
       if (this.data.length === this.items) {
         this.data.sort(function(a, b) {
           return a[0] - b[0];
         });
         this.html = this.pre;
-        i = 0;
-        while (i < this.data.length) {
-          this.html += this.data[i][1];
-          i++;
+        _ref = this.data;
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          item = _ref[_i];
+          this.html += item[1];
         }
         this.html += this.post;
         return this.objcb.callback(this.idx, this.html);
@@ -206,25 +210,27 @@
         }
         this.targ = serverAPI(this.about, this.filters);
         return serverRequest("GET", this.targ, [], "", function(statusCode, result, headers) {
-          var actn, currBranchType, i, instance, j, launch, locn, mod, newb, npos, posl, postl, prel, res, resl, schema, subcolcb, uid, _len6, _len7, _len8, _len9, _n, _o, _p, _q, _ref10, _ref11, _ref12, _ref13, _ref6, _ref7, _ref8, _ref9, _results;
+          var actn, branch, currBranch, currBranchType, i, instance, j, k, launch, locn, mod, newb, npos, posl, postl, prel, res, resl, schema, subcolcb, termVerb, uid, _len10, _len11, _len12, _len6, _len7, _len8, _len9, _n, _o, _p, _q, _ref10, _ref11, _ref12, _ref13, _ref14, _ref6, _ref7, _ref8, _ref9, _results;
           resl = "";
           parent.rows = result.instances.length;
           parent.items = parent.rows + 2 + parent.adds + 1 + parent.cols;
           newb = ["ins", [parent.about], ["mod", ["add"]]];
           npos = getTarg(parent.ftree, parent.loc, "add", newb);
           parent.data.push([parent.rows + 1, "<tr><td><a href = '" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false;'>[(+)add new]</a></td></tr>"]);
-          for (i = 0, _ref6 = result.instances.length; 0 <= _ref6 ? i < _ref6 : i > _ref6; 0 <= _ref6 ? i++ : i--) {
-            instance = result.instances[i];
+          _ref6 = result.instances;
+          for (i = 0, _len6 = _ref6.length; i < _len6; i++) {
+            instance = _ref6[i];
             launch = -1;
             actn = "view";
-            for (j = 3, _ref7 = parent.branch.length; 3 <= _ref7 ? j < _ref7 : j > _ref7; 3 <= _ref7 ? j++ : j--) {
-              currBranch = parent.branch[j];
-              if (currBranch[0] === "ins" && currBranch[1][0] === parent.about && currBranch[1][1] !== void 0 && (currBranch[1][1] === instance.id || currBranch[1][1] === instance.name)) {
+            _ref7 = parent.branch.slice(3);
+            for (j = 0, _len7 = _ref7.length; j < _len7; j++) {
+              currBranch = _ref7[j];
+              if (currBranch[0] === "ins" && currBranch[1][0] === parent.about && currBranch[1][1] !== void 0 && ((_ref8 = currBranch[1][1]) === instance.id || _ref8 === instance.name)) {
                 launch = j;
-                _ref8 = currBranch[2].slice(1);
-                for (_n = 0, _len6 = _ref8.length; _n < _len6; _n++) {
-                  currBranchType = _ref8[_n];
-                  if ((_ref9 = currBranchType[0]) === "edit" || _ref9 === "del") {
+                _ref9 = currBranch[2].slice(1);
+                for (_n = 0, _len8 = _ref9.length; _n < _len8; _n++) {
+                  currBranchType = _ref9[_n];
+                  if ((_ref10 = currBranchType[0]) === "edit" || _ref10 === "del") {
                     actn = currBranchType[0];
                     break;
                   }
@@ -239,9 +245,9 @@
             if (parent.type === "term") {
               prel += instance.name;
             } else if (parent.type === "fcTp") {
-              _ref10 = parent.schema;
-              for (_o = 0, _len7 = _ref10.length; _o < _len7; _o++) {
-                schema = _ref10[_o];
+              _ref11 = parent.schema;
+              for (_o = 0, _len9 = _ref11.length; _o < _len9; _o++) {
+                schema = _ref11[_o];
                 if (schema[0] === "term") {
                   prel += instance[schema[1] + "_name"] + " ";
                 } else if (schema[0] === "verb") {
@@ -287,12 +293,14 @@
           }
           parent.callback(parent.rows, "<tr><td><hr style='border:0px; width:90%; background-color: #999; height:1px;'></td></tr>");
           posl = parent.targ + "/" + parent.about;
-          for (j = 3, _ref11 = parent.branch.length; 3 <= _ref11 ? j < _ref11 : j > _ref11; 3 <= _ref11 ? j++ : j--) {
+          _ref12 = parent.branch.slice(3);
+          for (j = 0, _len10 = _ref12.length; j < _len10; j++) {
+            currBranch = _ref12[j];
             currBranch = parent.branch[j];
             if (currBranch[0] === "ins" && currBranch[1][0] === parent.about && currBranch[1][1] === void 0) {
-              _ref12 = currBranch[2];
-              for (_p = 0, _len8 = _ref12.length; _p < _len8; _p++) {
-                currBranchType = _ref12[_p];
+              _ref13 = currBranch[2];
+              for (_p = 0, _len11 = _ref13.length; _p < _len11; _p++) {
+                currBranchType = _ref13[_p];
                 if (currBranchType[0] === "add") {
                   locn = parent.loc.concat([j - 2]);
                   uid = new uidraw(parent.rows + 1 + ++parent.addsout, parent, "<tr><td>", "</td></tr>", rootURI, [], [], parent.filters, locn, !parent.even, parent.ftree, cmod);
@@ -303,20 +311,24 @@
             }
           }
           parent.callback(parent.rows + 1 + parent.adds + 1, "<tr><td><hr style='border:0px; width:90%; background-color: #999; height:1px;'></td></tr>");
-          _ref13 = cmod.slice(1);
+          _ref14 = cmod.slice(1);
           _results = [];
-          for (_q = 0, _len9 = _ref13.length; _q < _len9; _q++) {
-            mod = _ref13[_q];
+          for (_q = 0, _len12 = _ref14.length; _q < _len12; _q++) {
+            mod = _ref14[_q];
             if (mod[0] === "fcTp") {
               _results.push((function() {
-                var _ref14, _ref15, _results2;
+                var _len13, _len14, _r, _ref15, _ref16, _results2;
+                _ref15 = mod[6];
                 _results2 = [];
-                for (j = 0, _ref14 = mod[6].length; 0 <= _ref14 ? j < _ref14 : j > _ref14; 0 <= _ref14 ? j++ : j--) {
-                  if (mod[6][j][1] === parent.about) {
+                for (_r = 0, _len13 = _ref15.length; _r < _len13; _r++) {
+                  termVerb = _ref15[_r];
+                  if (termVerb[1] === parent.about) {
                     launch = -1;
-                    for (j = 3, _ref15 = parent.branch.length; 3 <= _ref15 ? j < _ref15 : j > _ref15; 3 <= _ref15 ? j++ : j--) {
-                      if (parent.branch[j][1][0] === mod[1]) {
-                        launch = j - 2;
+                    _ref16 = parent.branch.slice(3);
+                    for (k = 0, _len14 = _ref16.length; k < _len14; k++) {
+                      branch = _ref16[k];
+                      if (branch[1][0] === mod[1]) {
+                        launch = k + 1;
                         break;
                       }
                     }
@@ -628,19 +640,24 @@
     return false;
   };
   filtmerge = function(branch, fltrs) {
-    var filters, i, rootURI;
+    var filters, leaf, rootURI;
     filters = jQuery.extend(true, [], fltrs);
     rootURI = "/data/" + branch[1][0];
-    i = 1;
-    while (i < branch[2].length) {
-      if (branch[2][i][0] === "filt") {
-        if (branch[2][i][1][1][0] === void 0) {
-          branch[2][i][1][1] = branch[1][0];
+    filters = (function() {
+      var _i, _len, _ref, _results;
+      _ref = branch[2].slice(1);
+      _results = [];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        leaf = _ref[_i];
+        if (leaf[0] === "filt") {
+          if (leaf[1][1][0] === void 0) {
+            leaf[1][1] = branch[1][0];
+          }
         }
-        filters.push(branch[2][i][1]);
+        _results.push(leaf[1]);
       }
-      i++;
-    }
+      return _results;
+    })();
     return filters;
   };
   window.drawData = drawData;

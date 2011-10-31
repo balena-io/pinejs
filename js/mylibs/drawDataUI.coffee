@@ -59,19 +59,16 @@ drawData = (tree) ->
 					@data.sort (a, b) ->
 						a[0] - b[0]
 
-					i = 0
-
-					while i < @data.length
-						$("#terms").append @data[i][1]
-						i++
+					for item in @data
+						$("#terms").append(item[1])
 
 		#if any terms have been selected
-		for i in [0...result.terms.length]
+		for term, i in result.terms
 			term = result.terms[i]
 			launch = -1
 
-			for j in [3...tree.length] when tree[j][1][0] == term.id
-				launch = j
+			for leaf, j in tree[3..] when leaf[1][0] == term.id
+				launch = j + 3
 				break
 			pre = "<tr id='tr--data--" + term.id + "'><td>"
 			post = "</td></tr>"
@@ -135,20 +132,16 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 				a[0] - b[0]
 
 			@html = @pre
-			i = 0
-
-			while i < @data.length
-				@html += @data[i][1]
-				i++
+			for item in @data
+				@html += item[1]
 			@html += @post
 			@objcb.callback @idx, @html
 
 	#is the thing we're talking about a term or a fact type?
-	for mod in cmod[1..]
-		if mod[1] == @about
-			@type = mod[0]
-			if @type == "fcTp"
-				@schema = mod[6]
+	for mod in cmod[1..] when mod[1] == @about
+		@type = mod[0]
+		if @type == "fcTp"
+			@schema = mod[6]
 
 	@subRowIn = ->
 		parent = this
@@ -177,14 +170,12 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 				parent.data.push [ parent.rows + 1, "<tr><td><a href = '" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false;'>[(+)add new]</a></td></tr>" ]
 
 				#render each child and call back
-				for i in [0...result.instances.length]
-					instance = result.instances[i]
+				for instance, i in result.instances
 					launch = -1
 					actn = "view"
 
-					for j in [3...parent.branch.length]
-						currBranch = parent.branch[j]
-						if currBranch[0] == "ins" and currBranch[1][0] == parent.about and currBranch[1][1] != undefined and (currBranch[1][1] == instance.id or currBranch[1][1] == instance.name)
+					for currBranch, j in parent.branch[3..]
+						if currBranch[0] == "ins" and currBranch[1][0] == parent.about and currBranch[1][1] != undefined and currBranch[1][1] in [instance.id, instance.name]
 							launch = j
 							#find action.
 							for currBranchType in currBranch[2][1..] when currBranchType[0] in ["edit","del"]
@@ -241,7 +232,7 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 				#launch more uids to render the adds
 				posl = parent.targ + "/" + parent.about
 
-				for j in [3...parent.branch.length]
+				for currBranch, j in parent.branch[3..]
 					currBranch = parent.branch[j]
 					if currBranch[0] == "ins" and currBranch[1][0] == parent.about and currBranch[1][1] == undefined
 						for currBranchType in currBranch[2] when currBranchType[0] == "add"
@@ -254,11 +245,11 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 
 				#launch a final callback to add the subcollections.
 				for mod in cmod[1..] when mod[0] == "fcTp"
-					for j in [0...mod[6].length] when mod[6][j][1] == parent.about
+					for termVerb in mod[6] when termVerb[1] == parent.about
 						launch = -1
 
-						for j in [3...parent.branch.length] when parent.branch[j][1][0] == mod[1]
-							launch = j - 2
+						for branch, k in parent.branch[3...] when branch[1][0] == mod[1]
+							launch = k + 1
 							break
 
 						parent.colsout++
@@ -516,15 +507,15 @@ addInst = (forma, uri, backURI) ->
 filtmerge = (branch, fltrs) ->
 	filters = jQuery.extend(true, [], fltrs)
 	rootURI = "/data/" + branch[1][0]
-	i = 1
 	#filter -> API uri processing
 	#append uri filters
-	while i < branch[2].length
-		if branch[2][i][0] == "filt"
-			branch[2][i][1][1] = branch[1][0]	if branch[2][i][1][1][0] == undefined
-			filters.push branch[2][i][1]
-		i++
-	filters
+	filters =
+		for leaf in branch[2][1..]
+			if leaf[0] == "filt"
+				if leaf[1][1][0] == undefined
+					leaf[1][1] = branch[1][0]
+			leaf[1]
+	return filters
 
 
 window.drawData = drawData
