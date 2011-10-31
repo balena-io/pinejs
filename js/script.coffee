@@ -86,6 +86,7 @@ loadUI = ->
 	window.sbvrEditor = CodeMirror.fromTextArea(document.getElementById("modelArea"), 
 		mode: "sbvr"
 		onKeyEvent: sbvrAutoComplete
+		lineWrapping: true
 	)
 	window.lfEditor = CodeMirror.fromTextArea(document.getElementById("lfArea"))
 	if CodeMirror.listModes().indexOf("plsql") > -1
