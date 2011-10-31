@@ -62,9 +62,12 @@ ometa SBVRParser {
 					| keyword("exactly")						num:n		-> [`exactQ, [`card, n]],
 
 	keyword		:x	= token(x),
+	
+	addThat			= keyword("that"),
+	addThe			= keyword("the"),
 	addVar		:x	= {this.state.ruleVars[x[1]] = this.state.ruleVarsCount++} {['var', ['num', this.state.ruleVars[x[1]]], x]}:v
-					( keyword("that")
-						( keyword("the") terbRi([[]], x)
+					( addThat
+						( addThe terbRi([[]], x)
 						| qTerbRi([[]], x) ):q {v.push(q)}
 					)?														-> v,
 
@@ -211,7 +214,9 @@ SBVRParser.reset = function() {
 		num: [
 			'1', '2', '3', '4', '5', '6', '7', '8', '9',
 			'one'
-		]
+		],
+		addThat: ['that', 'that the'],
+		addThe: ['the']
 	}
 	this.fctps = {}
 	this.state = {}

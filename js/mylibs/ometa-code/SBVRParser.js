@@ -243,6 +243,16 @@
                 _fromIdx = this.input.idx;
             return this._applyWithArgs("token", x)
         },
+        "addThat": function() {
+            var $elf = this,
+                _fromIdx = this.input.idx;
+            return this._applyWithArgs("keyword", "that")
+        },
+        "addThe": function() {
+            var $elf = this,
+                _fromIdx = this.input.idx;
+            return this._applyWithArgs("keyword", "the")
+        },
         "addVar": function(x) {
             var $elf = this,
                 _fromIdx = this.input.idx,
@@ -252,10 +262,10 @@
                 v = ["var", ["num", this["state"]["ruleVars"][x[(1)]]], x];
                 this._opt((function() {
                     return (function() {
-                        this._applyWithArgs("keyword", "that");
+                        this._apply("addThat");
                         q = this._or((function() {
                             return (function() {
-                                this._applyWithArgs("keyword", "the");
+                                this._apply("addThe");
                                 return this._applyWithArgs("terbRi", [
                                     []
                                 ], x)
@@ -649,7 +659,9 @@
             "modRule": ["It is obligatory that", "It is necessary that", "It is prohibited that", "It is impossible that", "It is not possible that", "It is possible that", "It is permissible that"],
             "quant": ["each", "a", "an", "some", "at most", "at least", "more than", "exactly"],
             "joinQuant": ["and at most"],
-            "num": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "one"]
+            "num": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "one"],
+            "addThat": ["that", "that the"],
+            "addThe": ["the"]
         }));
         (this["fctps"] = ({}));
         (this["state"] = ({}));
