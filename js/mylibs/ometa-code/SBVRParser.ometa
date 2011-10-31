@@ -62,7 +62,7 @@ ometa SBVRParser {
 					| keyword("exactly")						num:n		-> [`exactQ, [`card, n]],
 
 	keyword		:x	= token(x),
-	adVar		:x	= {this.state.ruleVars[x[1]] = this.state.ruleVarsCount++} {['var', ['num', this.state.ruleVars[x[1]]], x]}:v
+	addVar		:x	= {this.state.ruleVars[x[1]] = this.state.ruleVarsCount++} {['var', ['num', this.state.ruleVars[x[1]]], x]}:v
 					( keyword("that")
 						( keyword("the") terbRi([[]], x)
 						| qTerbRi([[]], x) ):q {v.push(q)}
@@ -72,17 +72,17 @@ ometa SBVRParser {
 
 	terbRi    :c :i = term:t verb:v bind(t):b {c[0].push(t,v);c.push(b)} (qTerbRi(c,i)),
 
-	qTerbRi   :c :i = (quant:q term:t adVar(t):a verb:v bind(t):b
+	qTerbRi   :c :i = (quant:q term:t addVar(t):a verb:v bind(t):b
 							{q.push(a);c[0].push(t,v);c.push(b)}
 							(qTerbRi(c,i)):r								-> q.concat([r])
 						| verb:v bind(i):b {c[0].push(i,v);c.push(b)} (atfo(c)|qTerbR(c)|qTerm(c))
 						| bind(i):b {c[0].push(i);c.push(b)} atfo(c)
 					),
 
-	qTerm		:c	= quant:q term:t adVar(t):a bind(t):b {q.push(a);c[0].push(t);c.push(b)}
+	qTerm		:c	= quant:q term:t addVar(t):a bind(t):b {q.push(a);c[0].push(t);c.push(b)}
 							atfo(c):r											-> q.concat([r]),
 
-	qTerbR		:c	= quant:q term:t adVar(t):a verb:v bind(t):b {q.push(a);c[0].push(t,v);c.push(b)}
+	qTerbR		:c	= quant:q term:t addVar(t):a verb:v bind(t):b {q.push(a);c[0].push(t,v);c.push(b)}
 							(atfo(c)|qTerbR(c)|qTerm(c)):r						-> q.concat([r]),
 
 	modRule			= "It" "is" 

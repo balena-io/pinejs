@@ -243,7 +243,7 @@
                 _fromIdx = this.input.idx;
             return this._applyWithArgs("token", x)
         },
-        "adVar": function(x) {
+        "addVar": function(x) {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 v, q;
@@ -303,7 +303,7 @@
                 return (function() {
                     q = this._apply("quant");
                     t = this._apply("term");
-                    a = this._applyWithArgs("adVar", t);
+                    a = this._applyWithArgs("addVar", t);
                     v = this._apply("verb");
                     b = this._applyWithArgs("bind", t);
                     (function() {
@@ -348,7 +348,7 @@
             return (function() {
                 q = this._apply("quant");
                 t = this._apply("term");
-                a = this._applyWithArgs("adVar", t);
+                a = this._applyWithArgs("addVar", t);
                 b = this._applyWithArgs("bind", t);
                 (function() {
                     q.push(a);
@@ -366,7 +366,7 @@
             return (function() {
                 q = this._apply("quant");
                 t = this._apply("term");
-                a = this._applyWithArgs("adVar", t);
+                a = this._applyWithArgs("addVar", t);
                 v = this._apply("verb");
                 b = this._applyWithArgs("bind", t);
                 (function() {
