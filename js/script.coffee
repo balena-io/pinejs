@@ -125,7 +125,6 @@ cleanUp = (a) ->
 # successCallback = (statusCode, result, headers)
 # failureCallback = (statusCode, error)
 window.serverRequest = (method, uri, headers = {}, body = null, successCallback, failureCallback) ->
-	#IFDEF server
 	successCallback = (if typeof successCallback != "function" then defaultSuccessCallback else successCallback)
 	failureCallback = (if typeof failureCallback != "function" then defaultFailureCallback else failureCallback)
 	
@@ -148,7 +147,6 @@ window.serverRequest = (method, uri, headers = {}, body = null, successCallback,
 				successCallback jqXHR.status, JSON.parse(data), responseHeaders
 			
 			type: method
-	#ENDIFDEF
 
 
 window.transformClient = (model) ->
@@ -197,6 +195,22 @@ window.downloadFile = (filename, text) ->
 		cleanUp this
 
 
+#window.serverRequest = (method, uri, headers = {}, body = null, successCallback, failureCallback)
+
+window.saveModel = ->
+	serverRequest "POST", "/file", {"Content-Type": "text/plain"}, sbvrEditor.getValue(),
+		(statusCode, result) ->
+			alert('File Saved')
+		(statusCode, error) ->
+			alert('Error saving')
+			
+window.getModel = ->
+	serverRequest "GET", "/file", {}, "",
+		(statusCode, result) ->
+			sbvrEditor.setValue(result)
+		(statusCode, error) ->
+			alert('Error')
+
 # Initialise controls and shoot off the loadUI & processHash functions
 $( ->
 	$("#tabs").tabs select: (event, ui) ->
@@ -231,6 +245,7 @@ $( ->
 	loadUI()
 	loadState()
 	processHash()
+	getModel()
 	$("#bldb").file().choose (e, input) ->
 		handleFiles input[0].files
 )

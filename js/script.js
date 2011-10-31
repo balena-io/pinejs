@@ -233,6 +233,22 @@
       return cleanUp(this);
     };
   };
+  window.saveModel = function() {
+    return serverRequest("POST", "/file", {
+      "Content-Type": "text/plain"
+    }, sbvrEditor.getValue(), function(statusCode, result) {
+      return alert('File Saved');
+    }, function(statusCode, error) {
+      return alert('Error saving');
+    });
+  };
+  window.getModel = function() {
+    return serverRequest("GET", "/file", {}, "", function(statusCode, result) {
+      return sbvrEditor.setValue(result);
+    }, function(statusCode, error) {
+      return alert('Error');
+    });
+  };
   $(function() {
     $("#tabs").tabs({
       select: function(event, ui) {
@@ -273,6 +289,7 @@
     loadUI();
     loadState();
     processHash();
+    getModel();
     return $("#bldb").file().choose(function(e, input) {
       return handleFiles(input[0].files);
     });
