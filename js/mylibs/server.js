@@ -45,8 +45,8 @@
     setValue = function(key, value) {
       values[key] = value;
       return db.transaction(function(tx) {
-        value = JSON.stringify(value).replace(/\\'/g, "\\\\'").replace(new RegExp("'", 'g'), "\\'");
-        return tx.executeSql('SELECT 1 as count FROM "_server_model_cache" WHERE key = ?;', [key], function(tx, result) {
+        value = JSON.stringify(value);
+        return tx.executeSql('SELECT 1 "_server_model_cache" WHERE key = ?;', [key], function(tx, result) {
           if (result.rows.length === 0) {
             return tx.executeSql('INSERT INTO "_server_model_cache" VALUES (?, ?);', [key, value], null, null, false);
           } else {
@@ -746,7 +746,7 @@
     var lock_id;
     lock_id = locks.rows.item(i).lock_id;
     tx.executeSql('SELECT * FROM "conditional_representation" WHERE "lock_id" = ?;', [lock_id], function(tx, crs) {
-      return tx.executeSql('SELECT * FROM "resource-is_under-lock" WHERE "lock_id" = ?;', [crs.rows.item(0).lock_id], function(tx, locked) {
+      return tx.executeSql('SELECT * FROM "resource-is_under-lock" WHERE "lock_id" = ?;', [lock_id], function(tx, locked) {
         var item, j, sql, _ref;
         if (crs.rows.item(0).field_name === "__DELETE") {
           tx.executeSql('DELETE FROM "' + locked.rows.item(0).resource_type + '" WHERE "id" = ?;', [locked.rows.item(0).resource_id], function(tx, result) {

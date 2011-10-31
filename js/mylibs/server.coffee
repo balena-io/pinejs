@@ -51,8 +51,8 @@ serverModelCache = () ->
 	setValue = (key, value) ->
 		values[key] = value
 		db.transaction (tx) ->
-			value = JSON.stringify(value).replace(/\\'/g,"\\\\'").replace(new RegExp("'",'g'),"\\'")
-			tx.executeSql('SELECT 1 as count FROM "_server_model_cache" WHERE key = ?;', [key], (tx, result) ->
+			value = JSON.stringify(value)
+			tx.executeSql('SELECT 1 "_server_model_cache" WHERE key = ?;', [key], (tx, result) ->
 				if result.rows.length==0
 					tx.executeSql 'INSERT INTO "_server_model_cache" VALUES (?, ?);', [key, value], null, null, false
 				else
@@ -565,7 +565,7 @@ endLock = (tx, locks, i, trans_id, successCallback, failureCallback) ->
 	lock_id = locks.rows.item(i).lock_id
 	tx.executeSql 'SELECT * FROM "conditional_representation" WHERE "lock_id" = ?;', [lock_id], (tx, crs) ->
 		#find which resource is under this lock
-		tx.executeSql 'SELECT * FROM "resource-is_under-lock" WHERE "lock_id" = ?;', [crs.rows.item(0).lock_id], (tx, locked) ->
+		tx.executeSql 'SELECT * FROM "resource-is_under-lock" WHERE "lock_id" = ?;', [lock_id], (tx, locked) ->
 			if crs.rows.item(0).field_name == "__DELETE"
 				#delete said resource
 				tx.executeSql 'DELETE FROM "' + locked.rows.item(0).resource_type + '" WHERE "id" = ?;', [locked.rows.item(0).resource_id], (tx, result) ->
