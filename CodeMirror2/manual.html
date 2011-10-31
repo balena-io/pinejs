@@ -106,12 +106,6 @@
     <p>Options are not checked in any way, so setting bogus option
     values is bound to lead to odd errors.</p>
 
-    <p><em>Note:</em> CodeMirror
-    2 <a href="internals.html#summary">does not support</a>
-    line-wrapping. I would have very much liked to support it, but it
-    combines extremely poorly with the way the editor is
-    implemented.</p>
-
     <p>These are the supported options:</p>
 
     <dl>
@@ -194,6 +188,10 @@
       <dd>Configures whether the home key takes you to the first
       non-whitespace character (unless already there) or to the start
       of the line. On by default.</dd>
+
+      <dt id="option_lineWrapping"><code>lineWrapping (boolean)</code></dt>
+      <dd>Whether CodeMirror should scroll or wrap for long lines.
+      Defaults to <code>false</code> (scroll).</dd>
 
       <dt id="option_lineNumbers"><code>lineNumbers (boolean)</code></dt>
       <dd>Whether to show line numbers to the left of the editor.</dd>
@@ -431,6 +429,8 @@
       <dd>Returns an object with <code>{undo, redo}</code> properties,
       both of which hold integers, indicating the amount of stored
       undo and redo operations.</dd>
+      <dt id="clearHistory"><code>clearHistory()</code></dt>
+      <dd>Clears the editor's undo history.</dd>
 
       <dt id="indentLine"><code>indentLine(line, dir)</code></dt>
       <dd>Reset the given line's indentation to the indentation
@@ -483,8 +483,11 @@
       <dt id="markText"><code>markText(from, to, className) → function</code></dt>
       <dd>Can be used to mark a range of text with a specific CSS
       class name. <code>from</code> and <code>to</code> should
-      be <code>{line, ch}</code> objects. The method will return a
-      function that can be called to remove the marking.</dd>
+      be <code>{line, ch}</code> objects. The method will return an
+      object with two methods, <code>clear()</code>, which removes the
+      mark, and <code>find()</code>, which returns a <code>{from,
+      to}</code> (both document positions), indicating the current
+      position of the marked range.</dd>
 
       <dt id="setMarker"><code>setMarker(line, text, className) → lineHandle</code></dt>
       <dd>Add a gutter marker for the given line. Gutter markers are
@@ -510,6 +513,15 @@
       can be a number or a line handle (as returned
       by <code>setMarker</code> or this function).
       Pass <code>null</code> to clear the class for a line.</dd>
+      <dt id="hideLine"><code>hideLine(line) → lineHandle</code></dt>
+      <dd>Hide the given line (either by number or by handle). Hidden
+      lines don't show up in the editor, and their numbers are skipped
+      when <a href="#option_lineNumbers">line numbers</a> are enabled.
+      Deleting a region around them does delete them, and coping a
+      region around will include them in the copied text.</dd>
+      <dt id="showLine"><code>showLine(line) → lineHandle</code></dt>
+      <dd>The inverse of <code>hideLine</code>—re-shows a previously
+      hidden line, by number or by handle.</dd>
 
       <dt id="lineInfo"><code>lineInfo(line) → object</code></dt>
       <dd>Returns the line number, text content, and marker status of
@@ -564,6 +576,13 @@
       and <code>to</code> must be <code>{line, ch}</code>
       objects. <code>to</code> can be left off to simply insert the
       string at position <code>from</code>.</dd>
+      
+      <dt id="coordsFromIndex"><code>coordsFromIndex(index) → object</code></dt>
+      <dd>Calculates and returns a <code>{line, ch}</code> object for a
+      zero-based <code>index</code> who's value is relative to the start of the
+      editor's text. If the <code>index</code> is out of range of the text then
+      the returned object is clipped to start or end of the text
+      respectively.</dd>
     </dl>
 
     <p>The following are more low-level methods:</p>
