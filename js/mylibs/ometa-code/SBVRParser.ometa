@@ -19,9 +19,12 @@ Copyright 2011 University of Surrey
 //Specification: http://www.omg.org/spec/SBVR/1.0/
 
 ometa SBVRParser {
-	isTerm		:x	= ?this._isTerm(x),
-	isVerb		:x	= ?this._isVerb(x),
-	isFctp		:x	= ?this._isFctp(x),
+	isTerm	:term
+					= ?this._isTerm(term),
+	isVerb	:verb
+					= ?this._isVerb(verb),
+	isFctp	:factType
+					= ?this._isFctp(factType),
 
 	findVar		:x	= {this.state.ruleVars[x[1]]},
 	bind		:x	= findVar(x):y											-> [`bind, x, y],
@@ -35,18 +38,20 @@ ometa SBVRParser {
 
 	addTerm			= &(termPart+):t {this.possMap.term[t.join(' ')] = true}
 					  term,
-	term		:x  = termPart:t {x = x==undefined ? t : [x, t].join(' ')}
-						( term(x)
-						| isTerm(x)											-> ['term',this._termForm(x)]
+	term	:termSoFar
+					= termPart:t {termSoFar = termSoFar==undefined ? t : [termSoFar, t].join(' ')}
+						( findTerm(termSoFar)
+						| isTerm(termSoFar)									-> ['term',this._termForm(termSoFar)]
 						),
 	termPart		= spaces ~lineStart letters,
 	
 	
 	addVerb			= &((verbPart)+):v {this.possMap.verb[v.join(' ')] = true}
 					  verb,
-	verb		:x  = verbPart:v {x = x==undefined ? v : [x, v].join(' ')}
-						( verb(x)
-						| isVerb(x)											-> ['verb',this._verbForm(x)]
+	verb	:verbSoFar
+					= verbPart:v {verbSoFar = verbSoFar==undefined ? v : [verbSoFar, v].join(' ')}
+						( verb(verbSoFar)
+						| isVerb(verbSoFar)									-> ['verb',this._verbForm(prevTerm, verbSoFar)]
 						),
 	verbPart		= spaces ~lineStart ~term letters,
 	
@@ -65,28 +70,31 @@ ometa SBVRParser {
 	
 	addThat			= keyword("that"),
 	addThe			= keyword("the"),
-	addVar		:x	= {this.state.ruleVars[x[1]] = this.state.ruleVarsCount++} {['var', ['num', this.state.ruleVars[x[1]]], x]}:v
+	addVar	:prevTerm
+					= {this.state.ruleVars[prevTerm[1]] = this.state.ruleVarsCount++} {['var', ['num', this.state.ruleVars[x[1]]], prevTerm]}:v
 					( addThat
-						( addThe terbRi([[]], x)
-						| qTerbRi([[]], x) ):q {v.push(q)}
+						( addThe terbRi([[]], prevTerm)
+						| qTerbRi([[]], prevTerm) ):q {v.push(q)}
 					)?														-> v,
 
 	atfo		:c	= isFctp(c[0]) {c[0] = ['fcTp'].concat(c[0])}			-> ['aFrm'].concat(c),
 
-	terbRi    :c :i = term:t verb:v bind(t):b {c[0].push(t,v);c.push(b)} (qTerbRi(c,i)),
+	terbRi	:c :prevTerm
+					= term:t verb:v bind(t):b {c[0].push(t,v);c.push(b)} (qTerbRi(c,prevTerm)),
 
-	qTerbRi   :c :i = (quant:q term:t addVar(t):a verb:v bind(t):b
+	qTerbRi	:c :prevTerm
+					= (quant:q term:t addVar(t):a verb:v bind(t):b
 							{q.push(a);c[0].push(t,v);c.push(b)}
-							(qTerbRi(c,i)):r								-> q.concat([r])
-						| verb:v bind(i):b {c[0].push(i,v);c.push(b)} (atfo(c)|qTerbR(c)|qTerm(c))
-						| bind(i):b {c[0].push(i);c.push(b)} atfo(c)
+							(qTerbRi(c,prevTerm)):r							-> q.concat([r])
+						| verb:v bind(prevTerm):b {c[0].push(prevTerm,v);c.push(b)} (atfo(c)|qTerbR(c)|qTerm(c))
+						| bind(prevTerm):b {c[0].push(prevTerm);c.push(b)} atfo(c)
 					),
 
 	qTerm		:c	= quant:q term:t addVar(t):a bind(t):b {q.push(a);c[0].push(t);c.push(b)}
-							atfo(c):r											-> q.concat([r]),
+							atfo(c):r										-> q.concat([r]),
 
 	qTerbR		:c	= quant:q term:t addVar(t):a verb:v bind(t):b {q.push(a);c[0].push(t,v);c.push(b)}
-							(atfo(c)|qTerbR(c)|qTerm(c)):r						-> q.concat([r]),
+							(atfo(c)|qTerbR(c)|qTerm(c)):r					-> q.concat([r]),
 
 	modRule			= "It" "is" 
 						( "obligatory"		-> ['obl']

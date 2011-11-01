@@ -1,19 +1,19 @@
 {
     SBVRParser = objectThatDelegatesTo(OMeta, {
-        "isTerm": function(x) {
+        "isTerm": function(term) {
             var $elf = this,
                 _fromIdx = this.input.idx;
-            return this._pred(this._isTerm(x))
+            return this._pred(this._isTerm(term))
         },
-        "isVerb": function(x) {
+        "isVerb": function(verb) {
             var $elf = this,
                 _fromIdx = this.input.idx;
-            return this._pred(this._isVerb(x))
+            return this._pred(this._isVerb(verb))
         },
-        "isFctp": function(x) {
+        "isFctp": function(factType) {
             var $elf = this,
                 _fromIdx = this.input.idx;
-            return this._pred(this._isFctp(x))
+            return this._pred(this._isFctp(factType))
         },
         "findVar": function(x) {
             var $elf = this,
@@ -108,19 +108,19 @@
                 return this._apply("term")
             }).call(this)
         },
-        "term": function(x) {
+        "term": function(termSoFar) {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 t;
             return (function() {
                 t = this._apply("termPart");
-                (x = ((x == undefined) ? t : [x, t].join(" ")));
+                (termSoFar = ((termSoFar == undefined) ? t : [termSoFar, t].join(" ")));
                 return this._or((function() {
-                    return this._applyWithArgs("term", x)
+                    return this._applyWithArgs("findTerm", termSoFar)
                 }), (function() {
                     return (function() {
-                        this._applyWithArgs("isTerm", x);
-                        return ["term", this._termForm(x)]
+                        this._applyWithArgs("isTerm", termSoFar);
+                        return ["term", this._termForm(termSoFar)]
                     }).call(this)
                 }))
             }).call(this)
@@ -150,19 +150,19 @@
                 return this._apply("verb")
             }).call(this)
         },
-        "verb": function(x) {
+        "verb": function(verbSoFar) {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 v;
             return (function() {
                 v = this._apply("verbPart");
-                (x = ((x == undefined) ? v : [x, v].join(" ")));
+                (verbSoFar = ((verbSoFar == undefined) ? v : [verbSoFar, v].join(" ")));
                 return this._or((function() {
-                    return this._applyWithArgs("verb", x)
+                    return this._applyWithArgs("verb", verbSoFar)
                 }), (function() {
                     return (function() {
-                        this._applyWithArgs("isVerb", x);
-                        return ["verb", this._verbForm(x)]
+                        this._applyWithArgs("isVerb", verbSoFar);
+                        return ["verb", this._verbForm(prevTerm, verbSoFar)]
                     }).call(this)
                 }))
             }).call(this)
@@ -253,13 +253,13 @@
                 _fromIdx = this.input.idx;
             return this._applyWithArgs("keyword", "the")
         },
-        "addVar": function(x) {
+        "addVar": function(prevTerm) {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 v, q;
             return (function() {
-                (this["state"]["ruleVars"][x[(1)]] = this["state"]["ruleVarsCount"]++);
-                v = ["var", ["num", this["state"]["ruleVars"][x[(1)]]], x];
+                (this["state"]["ruleVars"][prevTerm[(1)]] = this["state"]["ruleVarsCount"]++);
+                v = ["var", ["num", this["state"]["ruleVars"][x[(1)]]], prevTerm];
                 this._opt((function() {
                     return (function() {
                         this._apply("addThat");
@@ -268,12 +268,12 @@
                                 this._apply("addThe");
                                 return this._applyWithArgs("terbRi", [
                                     []
-                                ], x)
+                                ], prevTerm)
                             }).call(this)
                         }), (function() {
                             return this._applyWithArgs("qTerbRi", [
                                 []
-                            ], x)
+                            ], prevTerm)
                         }));
                         return v.push(q)
                     }).call(this)
@@ -290,7 +290,7 @@
                 return ["aFrm"].concat(c)
             }).call(this)
         },
-        "terbRi": function(c, i) {
+        "terbRi": function(c, prevTerm) {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 t, v, b;
@@ -302,10 +302,10 @@
                     c[(0)].push(t, v);
                     return c.push(b)
                 }).call(this);
-                return this._applyWithArgs("qTerbRi", c, i)
+                return this._applyWithArgs("qTerbRi", c, prevTerm)
             }).call(this)
         },
-        "qTerbRi": function(c, i) {
+        "qTerbRi": function(c, prevTerm) {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 q, t, a, v, b, r;
@@ -321,15 +321,15 @@
                         c[(0)].push(t, v);
                         return c.push(b)
                     }).call(this);
-                    r = this._applyWithArgs("qTerbRi", c, i);
+                    r = this._applyWithArgs("qTerbRi", c, prevTerm);
                     return q.concat([r])
                 }).call(this)
             }), (function() {
                 return (function() {
                     v = this._apply("verb");
-                    b = this._applyWithArgs("bind", i);
+                    b = this._applyWithArgs("bind", prevTerm);
                     (function() {
-                        c[(0)].push(i, v);
+                        c[(0)].push(prevTerm, v);
                         return c.push(b)
                     }).call(this);
                     return this._or((function() {
@@ -342,9 +342,9 @@
                 }).call(this)
             }), (function() {
                 return (function() {
-                    b = this._applyWithArgs("bind", i);
+                    b = this._applyWithArgs("bind", prevTerm);
                     (function() {
-                        c[(0)].push(i);
+                        c[(0)].push(prevTerm);
                         return c.push(b)
                     }).call(this);
                     return this._applyWithArgs("atfo", c)
