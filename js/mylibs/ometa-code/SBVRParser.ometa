@@ -1,3 +1,5 @@
+//require(["../js/libs/inflection.js"])
+
 /*
 Copyright 2011 University of Surrey
 
@@ -278,3 +280,31 @@ SBVRParser.exactly = function(wanted) {
 		return wanted
 	throw fail
 }
+
+/* Comment out everything past this point
+
+ometa Prettify {
+//  elem = [{this.d++} (string|elem|number)*:e {s=this.s(this.d--)}] -> ('['+e.join(',\n'+s+'  ')+'\n'+s+']')
+  elem = [{this.d++} (string|elem|number)*:e {s=this.s(this.d--)}] -> ('['+e.join(',\n'+s)+']')
+}
+
+Prettify.d = 1
+Prettify.s = function(d){a=' ';for(var i=0;i<d;i++){a+='  '};return a}
+
+model1 = 'T: student
+T: module
+T: lecturer
+F: student is registered for module
+F: student is registered for module with lecturer
+R: It is obligatory that a student is registered for a module with a lecturer'
+
+model2 = 'T: student
+T: module
+T: study programme
+F: student is registered for module
+F: student is enrolled in study programme
+F: module is available for study programme
+R: It is obligatory that each student that is registered for a module is enrolled in a study programme that the module is available for'
+
+Prettify.match(SBVRParser.matchAll(model2, "expr"), "elem")
+//*/
