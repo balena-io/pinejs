@@ -5,10 +5,10 @@
                 _fromIdx = this.input.idx;
             return this._pred(this._isTerm(term))
         },
-        "isVerb": function(verb) {
+        "isVerb": function(prevTerm, verb) {
             var $elf = this,
                 _fromIdx = this.input.idx;
-            return this._pred(this._isVerb(verb))
+            return this._pred(this._isVerb(prevTerm, verb))
         },
         "isFctp": function(factType) {
             var $elf = this,
@@ -108,7 +108,12 @@
                 return this._apply("term")
             }).call(this)
         },
-        "term": function(termSoFar) {
+        "term": function() {
+            var $elf = this,
+                _fromIdx = this.input.idx;
+            return this._apply("findTerm")
+        },
+        "findTerm": function(termSoFar) {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 t;
@@ -116,7 +121,7 @@
                 t = this._apply("termPart");
                 (termSoFar = ((termSoFar == undefined) ? t : [termSoFar, t].join(" ")));
                 return this._or((function() {
-                    return this._applyWithArgs("term", termSoFar)
+                    return this._applyWithArgs("findTerm", termSoFar)
                 }), (function() {
                     return (function() {
                         this._applyWithArgs("isTerm", termSoFar);
@@ -136,7 +141,7 @@
                 return this._apply("letters")
             }).call(this)
         },
-        "addVerb": function() {
+        "addVerb": function(prevTerm) {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 v;
@@ -146,11 +151,11 @@
                         return this._apply("verbPart")
                     }))
                 }));
-                (this["possMap"]["verb"][v.join(" ")] = true);
-                return this._apply("verb")
+                this._addVerbToTerm(prevTerm, v.join(" "));
+                return this._applyWithArgs("verb", prevTerm)
             }).call(this)
         },
-        "verb": function(verbSoFar) {
+        "verb": function(prevTerm, verbSoFar) {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 v;
@@ -158,11 +163,11 @@
                 v = this._apply("verbPart");
                 (verbSoFar = ((verbSoFar == undefined) ? v : [verbSoFar, v].join(" ")));
                 return this._or((function() {
-                    return this._applyWithArgs("verb", verbSoFar)
+                    return this._applyWithArgs("verb", prevTerm, verbSoFar)
                 }), (function() {
                     return (function() {
-                        this._applyWithArgs("isVerb", verbSoFar);
-                        return ["verb", this._verbForm(verbSoFar)]
+                        this._applyWithArgs("isVerb", prevTerm, verbSoFar);
+                        return ["verb", this._verbForm(prevTerm, verbSoFar)]
                     }).call(this)
                 }))
             }).call(this)
@@ -296,7 +301,7 @@
                 t, v, b;
             return (function() {
                 t = this._apply("term");
-                v = this._apply("verb");
+                v = this._applyWithArgs("verb", t);
                 b = this._applyWithArgs("bind", t);
                 (function() {
                     c[(0)].push(t, v);
@@ -314,7 +319,7 @@
                     q = this._apply("quant");
                     t = this._apply("term");
                     a = this._applyWithArgs("addVar", t);
-                    v = this._apply("verb");
+                    v = this._applyWithArgs("verb", t);
                     b = this._applyWithArgs("bind", t);
                     (function() {
                         q.push(a);
@@ -326,7 +331,7 @@
                 }).call(this)
             }), (function() {
                 return (function() {
-                    v = this._apply("verb");
+                    v = this._applyWithArgs("verb", prevTerm);
                     b = this._applyWithArgs("bind", prevTerm);
                     (function() {
                         c[(0)].push(prevTerm, v);
@@ -377,7 +382,7 @@
                 q = this._apply("quant");
                 t = this._apply("term");
                 a = this._applyWithArgs("addVar", t);
-                v = this._apply("verb");
+                v = this._applyWithArgs("verb", t);
                 b = this._applyWithArgs("bind", t);
                 (function() {
                     q.push(a);
@@ -482,7 +487,7 @@
                 t, v;
             return (function() {
                 t = this._apply("term");
-                v = this._apply("addVerb");
+                v = this._applyWithArgs("addVerb", t);
                 return [t, v]
             }).call(this)
         },
@@ -511,6 +516,7 @@
                     }).call(this)
                 }));
                 (function() {
+                    console.log(this["possMap"]["verb"]);
                     (this["fctps"][t] = true);
                     return t.push([])
                 }).call(this);
@@ -619,31 +625,64 @@
     (SBVRParser["_termForm"] = (function(k) {
         return (this["possMap"]["term"].hasOwnProperty(k.singularize()) ? k.singularize() : k)
     }));
-    (SBVRParser["_isVerb"] = (function(k) {
-        if (this["possMap"]["verb"].hasOwnProperty(k)) {
-            return true
-        } else {
-            if (((k.slice((0), (3)) == "are") && this["possMap"]["verb"].hasOwnProperty(("is" + k.slice((3)))))) {
-                return true
-            } else {
-                if (((k == "have") && this["possMap"]["verb"].hasOwnProperty("has"))) {
+    (SBVRParser["_isVerb"] = (function(prevTerm, verb) {
+        if (((typeof prevTerm) == "undefined")) {
+            for (term in this["possMap"]["verb"]) {
+                if (this._isVerb(term, verb)) {
                     return true
                 } else {
-                    return false
+                    undefined
                 }
             }
-        }
-    }));
-    (SBVRParser["_verbForm"] = (function(k) {
-        if (((k.slice((0), (3)) == "are") && this["possMap"]["verb"].hasOwnProperty(("is" + k.slice((3)))))) {
-            return ("is" + k.slice((3)))
         } else {
-            if (((k == "have") && this["possMap"]["verb"].hasOwnProperty("has"))) {
+            if ((!this["possMap"]["verb"].hasOwnProperty(prevTerm))) {
+                return false
+            } else {
+                undefined
+            };
+            if (this["possMap"]["verb"][prevTerm].hasOwnProperty(verb)) {
+                return true
+            } else {
+                undefined
+            };
+            if (((verb.slice((0), (3)) == "are") && this["possMap"]["verb"][prevTerm].hasOwnProperty(("is" + verb.slice((3)))))) {
+                return true
+            } else {
+                undefined
+            };
+            if (((verb == "have") && this["possMap"]["verb"][prevTerm].hasOwnProperty("has"))) {
+                return true
+            } else {
+                undefined
+            }
+        };
+        return false
+    }));
+    (SBVRParser["_verbForm"] = (function(prevTerm, verb) {
+        if (this["possMap"]["verb"].hasOwnProperty(prevTerm)) {
+            if (((verb.slice((0), (3)) == "are") && this["possMap"]["verb"][prevTerm].hasOwnProperty(("is" + verb.slice((3)))))) {
+                return ("is" + verb.slice((3)))
+            } else {
+                undefined
+            };
+            if (((verb == "have") && this["possMap"]["verb"][prevTerm].hasOwnProperty("has"))) {
                 return "has"
             } else {
-                return k
-            }
-        }
+                undefined
+            };
+            return verb
+        } else {
+            undefined
+        };
+        return verb
+    }));
+    (SBVRParser["_addVerbToTerm"] = (function(term, verb) {
+        if ((!this["possMap"]["verb"].hasOwnProperty(term))) {
+            (this["possMap"]["verb"][term] = ({}))
+        } else {
+            undefined
+        };
+        (this["possMap"]["verb"][term][verb] = true)
     }));
     (SBVRParser["_isFctp"] = (function(k) {
         return this["fctps"].hasOwnProperty(k)
@@ -677,7 +716,7 @@
         };
         for (var i = (this["possMap"]["verb"]["length"] - (1));
         (i >= (0)); i--) {
-            if ((this["possMap"]["verb"][i] != compareTo["possMap"]["verb"]["length"])) {
+            if ((this["possMap"]["verb"][i]["length"] != compareTo["possMap"]["verb"][i]["length"])) {
                 return false
             } else {
                 undefined

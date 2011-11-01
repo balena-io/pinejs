@@ -132,10 +132,27 @@ var sbvrAutoComplete = (function () {
 		
 		for(var i=cur.ch;i>=0;i--) {
 			if(poss[i] != undefined) {
-				for(var j=0,jl=poss[i].length;j<jl;j++) {
-					console.log(possMap[poss[i][j]]);
+				for(rule in poss[i]) {
+					ruleMap = possMap[rule];
+					console.log(ruleMap);
 					try {
-						forEach(possMap[poss[i][j]], maybeAdd);
+						if($.isArray(ruleMap)) {
+							forEach(ruleMap, maybeAdd);
+						}
+						else {
+							for(prop in ruleMap) {
+								if(typeof ruleMap[prop] == 'object') {
+									console.log(""+poss[i][rule][0])
+									if(ruleMap.hasOwnProperty(""+poss[i][rule][0])) {
+										forEach(ruleMap[poss[i][rule][0]], maybeAdd);
+									}
+								}
+								else {
+									forEach(ruleMap, maybeAdd);
+								}
+								break;
+							}
+						}
 					} catch (e) {
 						console.log(e);
 					}

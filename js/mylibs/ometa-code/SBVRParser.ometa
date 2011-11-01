@@ -23,8 +23,8 @@ Copyright 2011 University of Surrey
 ometa SBVRParser {
 	isTerm	:term
 					= ?this._isTerm(term),
-	isVerb	:verb
-					= ?this._isVerb(verb),
+	isVerb	:prevTerm :verb
+					= ?this._isVerb(prevTerm, verb),
 	isFctp	:factType
 					= ?this._isFctp(factType),
 
@@ -40,20 +40,22 @@ ometa SBVRParser {
 
 	addTerm			= &(termPart+):t {this.possMap.term[t.join(' ')] = true}
 					  term,
-	term	:termSoFar
+	term			= findTerm,
+	findTerm	:termSoFar
 					= termPart:t {termSoFar = termSoFar==undefined ? t : [termSoFar, t].join(' ')}
-						( term(termSoFar)
+						( findTerm(termSoFar)
 						| isTerm(termSoFar)									-> ['term',this._termForm(termSoFar)]
 						),
 	termPart		= spaces ~lineStart letters,
 	
 	
-	addVerb			= &((verbPart)+):v {this.possMap.verb[v.join(' ')] = true}
-					  verb,
-	verb	:verbSoFar
+	addVerb	:prevTerm
+					= &((verbPart)+):v {this._addVerbToTerm(prevTerm,v.join(' '))}
+					  verb(prevTerm),
+	verb	:prevTerm :verbSoFar
 					= verbPart:v {verbSoFar = verbSoFar==undefined ? v : [verbSoFar, v].join(' ')}
-						( verb(verbSoFar)
-						| isVerb(verbSoFar)									-> ['verb',this._verbForm(verbSoFar)]
+						( verb(prevTerm, verbSoFar)
+						| isVerb(prevTerm, verbSoFar)									-> ['verb',this._verbForm(prevTerm, verbSoFar)]
 						),
 	verbPart		= spaces ~lineStart ~term letters,
 	
@@ -82,20 +84,20 @@ ometa SBVRParser {
 	atfo		:c	= isFctp(c[0]) {c[0] = ['fcTp'].concat(c[0])}			-> ['aFrm'].concat(c),
 
 	terbRi	:c :prevTerm
-					= term:t verb:v bind(t):b {c[0].push(t,v);c.push(b)} (qTerbRi(c,prevTerm)),
+					= term:t verb(t):v bind(t):b {c[0].push(t,v);c.push(b)} (qTerbRi(c,prevTerm)),
 
 	qTerbRi	:c :prevTerm
-					= (quant:q term:t addVar(t):a verb:v bind(t):b
+					= (quant:q term:t addVar(t):a verb(t):v bind(t):b
 							{q.push(a);c[0].push(t,v);c.push(b)}
 							(qTerbRi(c,prevTerm)):r							-> q.concat([r])
-						| verb:v bind(prevTerm):b {c[0].push(prevTerm,v);c.push(b)} (atfo(c)|qTerbR(c)|qTerm(c))
+						| verb(prevTerm):v bind(prevTerm):b {c[0].push(prevTerm,v);c.push(b)} (atfo(c)|qTerbR(c)|qTerm(c))
 						| bind(prevTerm):b {c[0].push(prevTerm);c.push(b)} atfo(c)
 					),
 
 	qTerm		:c	= quant:q term:t addVar(t):a bind(t):b {q.push(a);c[0].push(t);c.push(b)}
 							atfo(c):r										-> q.concat([r]),
 
-	qTerbR		:c	= quant:q term:t addVar(t):a verb:v bind(t):b {q.push(a);c[0].push(t,v);c.push(b)}
+	qTerbR		:c	= quant:q term:t addVar(t):a verb(t):v bind(t):b {q.push(a);c[0].push(t,v);c.push(b)}
 							(atfo(c)|qTerbR(c)|qTerm(c)):r					-> q.concat([r]),
 
 	modRule			= "It" "is" 
@@ -113,9 +115,9 @@ ometa SBVRParser {
 	newRule			= startRule spaces &((~(spaces lineStart) char)*):ruleText {this.state.ruleVarsCount=0}
 						modRule:r qTerbR([[]]):q {r.length == 2 ? r[1][1] = q : r[1] = q}
 																		-> ['rule', r, ['text', ruleText.join('')]],
-	terb			= term:t addVerb:v									-> [t, v],
+	terb			= term:t addVerb(t):v								-> [t, v],
 	startFactType	= "F:",
-	newFactType		= startFactType {[]}:t (terb:b {t.concat(b)}:t)+ (term:e {t.push(e)})? {this.fctps[t] = true; t.push([])}
+	newFactType		= startFactType {[]}:t (terb:b {t.concat(b)}:t)+ (term:e {t.push(e)})? {console.log(this.possMap.verb);this.fctps[t] = true; t.push([])}
 																		-> [`fcTp].concat(t),
 	startTerm		= "T:",
 	newTerm			= startTerm addTerm:t {t.push([])}					-> t,
@@ -154,17 +156,49 @@ SBVRParser._termForm = function(k) {
 	return this.possMap.term.hasOwnProperty(k.singularize()) ? k.singularize() : k
 }
 
-SBVRParser._isVerb = function(k) {
-	if(this.possMap.verb.hasOwnProperty(k))                                               { return true }
-	else if( k.slice(0,3)=='are' && this.possMap.verb.hasOwnProperty('is' + k.slice(3)) ) { return true }
-	else if(k=='have' && this.possMap.verb.hasOwnProperty('has'))                         { return true }
-	else return false
+SBVRParser._isVerb = function(prevTerm, verb) {
+	if(typeof prevTerm == 'undefined') {
+		for(term in this.possMap.verb) {
+			if(this._isVerb(term, verb)) {
+				return true
+			}
+		}
+	}
+	else {
+		if(!this.possMap.verb.hasOwnProperty(prevTerm)) {
+			return false
+		}
+		if(this.possMap.verb[prevTerm].hasOwnProperty(verb)) {
+			return true
+		}
+		if( verb.slice(0,3)=='are' && this.possMap.verb[prevTerm].hasOwnProperty('is' + verb.slice(3)) ) {
+			return true
+		}
+		if(verb=='have' && this.possMap.verb[prevTerm].hasOwnProperty('has')) {
+			return true
+		}
+	}
+	return false
 }
 
-SBVRParser._verbForm = function(k) {
-	if(k.slice(0,3)=='are' && this.possMap.verb.hasOwnProperty('is' + k.slice(3))){ return 'is' + k.slice(3) }
-	else if(k=='have' && this.possMap.verb.hasOwnProperty('has'))                 { return 'has'}
-	else return k
+SBVRParser._verbForm = function(prevTerm, verb) {
+	if(this.possMap.verb.hasOwnProperty(prevTerm)) {
+		if(verb.slice(0,3)=='are' && this.possMap.verb[prevTerm].hasOwnProperty('is' + verb.slice(3))) {
+			return 'is' + verb.slice(3)
+		}
+		if(verb=='have' && this.possMap.verb[prevTerm].hasOwnProperty('has')) {
+			return 'has'
+		}
+		return verb
+	}
+	return verb //TODO: This should fail really.
+}
+
+SBVRParser._addVerbToTerm = function(term, verb) {
+	if(!this.possMap.verb.hasOwnProperty(term)) {
+		this.possMap.verb[term] = {}
+	}
+	this.possMap.verb[term][verb] = true
 }
 
 SBVRParser._isFctp = function(k) { return this.fctps.hasOwnProperty(k) }
@@ -238,7 +272,8 @@ SBVRParser.reset = function() {
 SBVRParser.equals = function(compareTo) {
 	if(this.possMap.verb.length != compareTo.possMap.verb.length) return false
 	for(var i = this.possMap.verb.length - 1; i >= 0; i--) {
-		if(this.possMap.verb[i] != compareTo.possMap.verb.length) return false
+		//TODO: Make this a deeper check
+		if(this.possMap.verb[i].length != compareTo.possMap.verb[i].length) return false
 	}
 	for(var x in this.possMap.term) {
 		if(!compareTo.possMap.term.hasOwnProperty(x)) return false
