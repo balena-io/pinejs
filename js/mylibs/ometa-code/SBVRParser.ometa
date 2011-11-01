@@ -210,6 +210,7 @@ SBVRParser.reset = function() {
 		startTerm: ['Term:'],
 		startFactType: ['Fact type:'],
 		startRule: ['Rule:'],
+		addTerm: [], //This stops us suggesting any autocomplete for terms.
 		term: {},
 		verb: {},
 		allowedAttrs: [

@@ -709,6 +709,7 @@
             "startTerm": ["Term:"],
             "startFactType": ["Fact type:"],
             "startRule": ["Rule:"],
+            "addTerm": [],
             "term": ({}),
             "verb": ({}),
             "allowedAttrs": ["Concept Type", "Database ID Field", "Database Name Field", "Database Table Name", "Definition", "Dictionary Basis", "Example", "General Concept", "Namespace URI", "Necessity", "Note", "Possibility", "Reference Scheme", "See", "Source", "Subject Field", "Synonymous Form", "Synonym"],
