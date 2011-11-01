@@ -407,6 +407,21 @@ var testModel = [
 		'match failed',
 		'tried to apply undefined rule "m"',
 		'match failed'
+	],[
+		'R: It is obligatory that each student is available for a module',
+		'match failed',
+		'tried to apply undefined rule "m"',
+		'match failed'
+	],[
+		'R: It is obligatory that each student is registered for a study programme',
+		'match failed',
+		'tried to apply undefined rule "m"',
+		'match failed'
+	],[
+		'R: It is obligatory that each student is registered for a module is available for a study programme',
+		'match failed',
+		'tried to apply undefined rule "m"',
+		'match failed'
 	],
 	
 	/* New lines */
