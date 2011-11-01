@@ -85,10 +85,10 @@ ometa BSJSParser {
                             ),
   primExpr     = primExpr:p ( "[" expr:i "]"                                         -> [#getp, i, p]
                             | "." "name":m "(" listOf(#asgnExpr, ','):as ")"         -> [#send, m, p].concat(as)
-                            | "." iName:m "(" listOf(#asgnExpr, ','):as ")"
-                                  isKeyword(f)                                       -> [#send, m, p].concat(as)
+                            | "." spaces iName:m "(" listOf(#asgnExpr, ','):as ")"
+                                  isKeyword(m)                                       -> [#send, m, p].concat(as)
                             | "." "name":f                                           -> [#getp, [#string, f], p]
-                            | "." iName:f isKeyword(f)                               -> [#getp, [#string, f], p]
+                            | "." spaces iName:f isKeyword(f)                        -> [#getp, [#string, f], p]
                             | "(" listOf(#asgnExpr, ','):as ")"                      -> [#call, p].concat(as)
                             )
                | primExprHd,
@@ -104,7 +104,7 @@ ometa BSJSParser {
                | re,
   json         = "{" listOf(#jsonBinding, ','):bs "}"                                -> [#json].concat(bs),
   jsonBinding  = jsonPropName:n ":" asgnExpr:v                                       -> [#binding, n, v],
-  jsonPropName = "name" | "number" | "string",
+  jsonPropName = "name" | "number" | "string" | spaces iName:n isKeyword(n)          -> n,
   re           = spaces <'/' reBody '/' reFlag*>:x                                   -> [#regExp, x],
   reBody       = re1stChar reChar*,
   re1stChar    = ~('*' || '\\' || '/' || '[') reNonTerm
