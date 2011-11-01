@@ -248,10 +248,20 @@
                 }).call(this)
             }))
         },
-        "keyword": function(x) {
+        "keyword": function(word, noToken) {
             var $elf = this,
                 _fromIdx = this.input.idx;
-            return this._applyWithArgs("token", x)
+            return this._or((function() {
+                return (function() {
+                    this._pred((noToken == true));
+                    return this._applyWithArgs("seq", word)
+                }).call(this)
+            }), (function() {
+                return (function() {
+                    this._pred((noToken != true));
+                    return this._applyWithArgs("token", word)
+                }).call(this)
+            }))
         },
         "addThat": function() {
             var $elf = this,
@@ -588,7 +598,7 @@
         "terminator": function() {
             var $elf = this,
                 _fromIdx = this.input.idx;
-            return this._applyWithArgs("keyword", ".")
+            return this._applyWithArgs("keyword", ".", true)
         },
         "lineStart": function() {
             var $elf = this,
@@ -641,14 +651,10 @@
                 this._apply("end");
                 return this["lines"]
             }).call(this)
-        },
-        "clearSuggestions": function() {
-            var $elf = this,
-                _fromIdx = this.input.idx;
-            return this._apply("empty")
         }
     });
     (SBVRParser["keyTokens"] = ["startTerm", "startFactType", "startRule", "term", "modRule", "verb", "keyword", "allowedAttrs", "num"]);
+    (SBVRParser["clearSuggestions"] = (function() {}));
     (SBVRParser["initialize"] = (function() {
         this.reset()
     }));

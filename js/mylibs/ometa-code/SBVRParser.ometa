@@ -21,11 +21,11 @@ Copyright 2011 University of Surrey
 //Specification: http://www.omg.org/spec/SBVR/1.0/
 
 ometa SBVRParser {
-	isTerm	:term
+	isTerm		:term
 					= ?this._isTerm(term),
-	isVerb	:prevTerm :verb
+	isVerb		:prevTerm :verb
 					= ?this._isVerb(prevTerm, verb),
-	isFctp	:factType
+	isFctp		:factType
 					= ?this._isFctp(factType),
 
 	findVar		:x	= {this.state.ruleVars[x[1]]},
@@ -72,11 +72,13 @@ ometa SBVRParser {
 																			-> [`atLeastQ, [`minCard, n]]
 					| keyword("exactly")						num:n		-> [`exactQ, [`card, n]],
 
-	keyword		:x	= token(x),
+	keyword		:word :noToken
+					= ?(noToken==true) seq(word)
+					| ?(noToken!=true) token(word),
 	
 	addThat			= keyword("that"),
 	addThe			= keyword("the"),
-	addVar	:prevTerm
+	addVar		:prevTerm
 					= {this.state.ruleVars[prevTerm[1]] = this.state.ruleVarsCount++} {['var', ['num', this.state.ruleVars[prevTerm[1]]], prevTerm]}:v
 					( addThat
 						( addThe terbRi([[]], prevTerm)
@@ -132,20 +134,18 @@ ometa SBVRParser {
 	allowedAttrs	= matchForAny('seq',this.possMap.allowedAttrs),
 	attrDefinition	= qTerbR([[]]),
 
-	terminator		= keyword('.'),
+	terminator		= keyword('.',true),
 	lineStart		= startTerm
 					| startFactType
 					| startRule
 					| allowedAttrs ':',
 	line			= spaces (newTerm | newFactType | newRule | attribute):l spaces terminator? clearSuggestions spaces
 						{this.lines.push(l)}							-> l,
-	expr			= line* end											-> this.lines,
-	
-	clearSuggestions = empty
+	expr			= line* end											-> this.lines
 }
 
 SBVRParser.keyTokens = ["startTerm", "startFactType", "startRule", "term", "modRule", "verb", "keyword", "allowedAttrs", "num"];
-
+SBVRParser.clearSuggestions = function() {}
 /**
 	Following are "instance" variables/functions rather than shared.
 */
