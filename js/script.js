@@ -245,9 +245,7 @@
   window.getModel = function() {
     return serverRequest("GET", "/file", {}, "", function(statusCode, result) {
       return sbvrEditor.setValue(result);
-    }, function(statusCode, error) {
-      return alert('Error');
-    });
+    }, function(statusCode, error) {});
   };
   $(function() {
     $("#tabs").tabs({

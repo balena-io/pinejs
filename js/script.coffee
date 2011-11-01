@@ -209,7 +209,7 @@ window.getModel = ->
 		(statusCode, result) ->
 			sbvrEditor.setValue(result)
 		(statusCode, error) ->
-			alert('Error')
+			# alert('Error')
 
 # Initialise controls and shoot off the loadUI & processHash functions
 $( ->
