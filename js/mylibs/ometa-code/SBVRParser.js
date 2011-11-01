@@ -155,7 +155,12 @@
                 return this._applyWithArgs("verb", prevTerm)
             }).call(this)
         },
-        "verb": function(prevTerm, verbSoFar) {
+        "verb": function(prevTerm) {
+            var $elf = this,
+                _fromIdx = this.input.idx;
+            return this._applyWithArgs("findVerb", prevTerm)
+        },
+        "findVerb": function(prevTerm, verbSoFar) {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 v;
@@ -163,7 +168,7 @@
                 v = this._apply("verbPart");
                 (verbSoFar = ((verbSoFar == undefined) ? v : [verbSoFar, v].join(" ")));
                 return this._or((function() {
-                    return this._applyWithArgs("verb", prevTerm, verbSoFar)
+                    return this._applyWithArgs("findVerb", prevTerm, verbSoFar)
                 }), (function() {
                     return (function() {
                         this._applyWithArgs("isVerb", prevTerm, verbSoFar);

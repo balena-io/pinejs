@@ -49,12 +49,14 @@ ometa SBVRParser {
 	termPart		= spaces ~lineStart letters,
 	
 	
-	addVerb	:prevTerm
+	addVerb		:prevTerm
 					= &((verbPart)+):v {this._addVerbToTerm(prevTerm,v.join(' '))}
 					  verb(prevTerm),
-	verb	:prevTerm :verbSoFar
+	verb		:prevTerm
+					= findVerb(prevTerm),
+	findVerb	:prevTerm :verbSoFar
 					= verbPart:v {verbSoFar = verbSoFar==undefined ? v : [verbSoFar, v].join(' ')}
-						( verb(prevTerm, verbSoFar)
+						( findVerb(prevTerm, verbSoFar)
 						| isVerb(prevTerm, verbSoFar)									-> ['verb',this._verbForm(prevTerm, verbSoFar)]
 						),
 	verbPart		= spaces ~lineStart ~term letters,
