@@ -132,7 +132,7 @@ ometa SBVRParser {
 	allowedAttrs	= matchForAny('seq',this.possMap.allowedAttrs),
 	attrDefinition	= qTerbR([[]]),
 
-	terminator		= '.',
+	terminator		= keyword('.'),
 	lineStart		= startTerm
 					| startFactType
 					| startRule

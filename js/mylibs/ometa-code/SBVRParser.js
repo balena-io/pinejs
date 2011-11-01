@@ -588,7 +588,7 @@
         "terminator": function() {
             var $elf = this,
                 _fromIdx = this.input.idx;
-            return this._applyWithArgs("exactly", ".")
+            return this._applyWithArgs("keyword", ".")
         },
         "lineStart": function() {
             var $elf = this,
