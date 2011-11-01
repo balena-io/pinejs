@@ -501,7 +501,7 @@
             return this._or((function() {
                 return this._applyWithArgs("token", "F:")
             }), (function() {
-                return this._applyWithArgs("token", "Fact:")
+                return this._applyWithArgs("token", "Fact type:")
             }))
         },
         "newFactType": function() {
@@ -702,7 +702,7 @@
     (SBVRParser["reset"] = (function() {
         (this["possMap"] = ({
             "startTerm": ["Term:"],
-            "startFactType": ["Fact:"],
+            "startFactType": ["Fact type:"],
             "startRule": ["Rule:"],
             "term": ({}),
             "verb": ({}),
