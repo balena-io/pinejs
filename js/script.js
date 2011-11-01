@@ -1,10 +1,14 @@
 (function() {
-  var cleanUp, clientOnAir, defaultFailureCallback, defaultSuccessCallback, loadState, loadUI, processHash, setClientOnAir, showErrorMessage, sqlEditor;
+  var cleanUp, clientOnAir, defaultFailureCallback, defaultSuccessCallback, loadState, loadUI, processHash, setClientOnAir, showErrorMessage, showSimpleError, sqlEditor;
   sqlEditor = null;
   clientOnAir = false;
   showErrorMessage = function(errorMessage) {
     $("#dialog-message").html('<span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 50px 0;"></span>' + errorMessage);
     return $("#dialog-message").dialog("open");
+  };
+  showSimpleError = function(errorMessage) {
+    $("#dialog-simple-error").html('<span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 50px 0;"></span>' + errorMessage);
+    return $("#dialog-simple-error").dialog("open");
   };
   defaultFailureCallback = function(statusCode, error) {
     if (error != null) {
@@ -119,7 +123,7 @@
         value: sbvrEditor.getValue()
       }));
     });
-    return $("#dialog-message").dialog({
+    $("#dialog-message").dialog({
       modal: true,
       resizable: false,
       autoOpen: false,
@@ -128,6 +132,16 @@
           return $(this).dialog("close");
         },
         "Revise Model": function() {
+          return $(this).dialog("close");
+        }
+      }
+    });
+    return $("#dialog-simple-error").dialog({
+      modal: true,
+      resizable: false,
+      autoOpen: false,
+      buttons: {
+        "OK": function() {
           return $(this).dialog("close");
         }
       }
@@ -253,7 +267,7 @@
       lfEditor.setValue(Prettify.match(SBVRParser.matchAll(sbvrEditor.getValue(), 'expr'), 'elem'));
     } catch (e) {
       console.log('Error parsing model', e);
-      showErrorMessage('Error parsing model');
+      showSimpleError('Error parsing model');
       return;
     }
     return $('#tabs').tabs('select', 1);

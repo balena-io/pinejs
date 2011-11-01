@@ -4,6 +4,10 @@ clientOnAir = false
 showErrorMessage = (errorMessage) ->
 	$("#dialog-message").html '<span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 50px 0;"></span>' + errorMessage
 	$("#dialog-message").dialog "open"
+	
+showSimpleError = (errorMessage) ->
+	$("#dialog-simple-error").html '<span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 50px 0;"></span>' + errorMessage
+	$("#dialog-simple-error").dialog "open"
 
 defaultFailureCallback = (statusCode, error) ->
 	if error?
@@ -113,7 +117,14 @@ loadUI = ->
 			
 			"Revise Model": ->
 				$(this).dialog "close"
-
+				
+	$("#dialog-simple-error").dialog 
+		modal: true
+		resizable: false
+		autoOpen: false
+		buttons: 
+			"OK": ->
+				$(this).dialog "close"
 
 cleanUp = (a) ->
 	a.textContent = "Downloaded"
@@ -217,7 +228,7 @@ window.parseModel = ->
 		lfEditor.setValue(Prettify.match(SBVRParser.matchAll(sbvrEditor.getValue(), 'expr'),'elem'))
 	catch e
 		console.log 'Error parsing model', e
-		showErrorMessage('Error parsing model')
+		showSimpleError('Error parsing model')
 		return
 	$('#tabs').tabs('select',1)
 
