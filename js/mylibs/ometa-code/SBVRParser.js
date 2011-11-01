@@ -450,7 +450,11 @@
         "startRule": function() {
             var $elf = this,
                 _fromIdx = this.input.idx;
-            return this._applyWithArgs("token", "R:")
+            return this._or((function() {
+                return this._applyWithArgs("token", "R:")
+            }), (function() {
+                return this._applyWithArgs("token", "Rule:")
+            }))
         },
         "newRule": function() {
             var $elf = this,
@@ -494,7 +498,11 @@
         "startFactType": function() {
             var $elf = this,
                 _fromIdx = this.input.idx;
-            return this._applyWithArgs("token", "F:")
+            return this._or((function() {
+                return this._applyWithArgs("token", "F:")
+            }), (function() {
+                return this._applyWithArgs("token", "Fact type:")
+            }))
         },
         "newFactType": function() {
             var $elf = this,
@@ -526,7 +534,11 @@
         "startTerm": function() {
             var $elf = this,
                 _fromIdx = this.input.idx;
-            return this._applyWithArgs("token", "T:")
+            return this._or((function() {
+                return this._applyWithArgs("token", "T:")
+            }), (function() {
+                return this._applyWithArgs("token", "Term:")
+            }))
         },
         "newTerm": function() {
             var $elf = this,
@@ -689,9 +701,9 @@
     }));
     (SBVRParser["reset"] = (function() {
         (this["possMap"] = ({
-            "startTerm": ["T:"],
-            "startFactType": ["F:"],
-            "startRule": ["R:"],
+            "startTerm": ["Term:"],
+            "startFactType": ["Fact type:"],
+            "startRule": ["Rule:"],
             "term": ({}),
             "verb": ({}),
             "allowedAttrs": ["Concept Type", "Database ID Field", "Database Name Field", "Database Table Name", "Definition", "Dictionary Basis", "Example", "General Concept", "Namespace URI", "Necessity", "Note", "Possibility", "Reference Scheme", "See", "Source", "Subject Field", "Synonymous Form", "Synonym"],

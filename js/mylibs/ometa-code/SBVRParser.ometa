@@ -111,15 +111,15 @@ ometa SBVRParser {
 						):r
 					  "that"											-> r,
 
-	startRule		= "R:",
+	startRule		= "R:"|"Rule:",
 	newRule			= startRule spaces &((~(spaces lineStart) char)*):ruleText {this.state.ruleVarsCount=0}
 						modRule:r qTerbR([[]]):q {r.length == 2 ? r[1][1] = q : r[1] = q}
 																		-> ['rule', r, ['text', ruleText.join('')]],
 	terb			= term:t addVerb(t):v								-> [t, v],
-	startFactType	= "F:",
+	startFactType	= "F:"|"Fact type:",
 	newFactType		= startFactType {[]}:t (terb:b {t.concat(b)}:t)+ (term:e {t.push(e)})? {console.log(this.possMap.verb);this.fctps[t] = true; t.push([])}
 																		-> [`fcTp].concat(t),
-	startTerm		= "T:",
+	startTerm		= "T:"|"Term:",
 	newTerm			= startTerm addTerm:t {t.push([])}					-> t,
 	attribute		= ?{this.lines[this.lines.length-1][0] == 'term' ||
 						this.lines[this.lines.length-1][0] == 'fcTp'}
@@ -205,9 +205,9 @@ SBVRParser._isFctp = function(k) { return this.fctps.hasOwnProperty(k) }
 
 SBVRParser.reset = function() {
 	this.possMap = {
-		startTerm: ['T:'],
-		startFactType: ['F:'],
-		startRule: ['R:'],
+		startTerm: ['Term:'],
+		startFactType: ['Fact type:'],
+		startRule: ['Rule:'],
 		term: {},
 		verb: {},
 		allowedAttrs: [
