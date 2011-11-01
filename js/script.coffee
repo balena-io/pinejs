@@ -1,6 +1,10 @@
 sqlEditor = null
 clientOnAir = false
 
+showErrorMessage = (errorMessage) ->
+	$("#dialog-message").html '<span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 50px 0;"></span>' + errorMessage
+	$("#dialog-message").dialog "open"
+
 defaultFailureCallback = (statusCode, error) ->
 	if error?
 		console.log error
@@ -11,10 +15,7 @@ defaultFailureCallback = (statusCode, error) ->
 				error = error.join("<br/>")
 	else
 		error = statusCode
-	exc = '<span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 50px 0;"></span>'
-	$("#dialog-message").html exc + error
-	$("#dialog-message").dialog "open"
-
+	showErrorMessage(error)
 
 defaultSuccessCallback = (statusCode, result, headers) ->
 
@@ -211,15 +212,21 @@ window.getModel = ->
 		(statusCode, error) ->
 			# alert('Error')
 
+window.parseModel = ->
+	try
+		lfEditor.setValue(Prettify.match(SBVRParser.matchAll(sbvrEditor.getValue(), 'expr'),'elem'))
+	catch e
+		console.log 'Error parsing model', e
+		showErrorMessage('Error parsing model')
+		return
+	$('#tabs').tabs('select',1)
+
 # Initialise controls and shoot off the loadUI & processHash functions
 $( ->
 	$("#tabs").tabs select: (event, ui) ->
 		#IFDEF server
 		if ui.panel.id not in ["modelTab", "httpTab"] and clientOnAir == false
-			exc = "<span class=\"ui-icon ui-icon-alert\" style=\"float:left; margin:0 7px 50px 0;\"></span>"
-			msg = "This tab is only accessible after a model is executed<br/>"
-			$("#dialog-message").html exc + msg
-			$("#dialog-message").dialog "open"
+			showErrorMessage("This tab is only accessible after a model is executed<br/>")
 			false
 		else
 		#ENDIFDEF

@@ -1,9 +1,12 @@
 (function() {
-  var cleanUp, clientOnAir, defaultFailureCallback, defaultSuccessCallback, loadState, loadUI, processHash, setClientOnAir, sqlEditor;
+  var cleanUp, clientOnAir, defaultFailureCallback, defaultSuccessCallback, loadState, loadUI, processHash, setClientOnAir, showErrorMessage, sqlEditor;
   sqlEditor = null;
   clientOnAir = false;
+  showErrorMessage = function(errorMessage) {
+    $("#dialog-message").html('<span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 50px 0;"></span>' + errorMessage);
+    return $("#dialog-message").dialog("open");
+  };
   defaultFailureCallback = function(statusCode, error) {
-    var exc;
     if (error != null) {
       console.log(error);
       if (error.constructor.name === 'Array') {
@@ -16,9 +19,7 @@
     } else {
       error = statusCode;
     }
-    exc = '<span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 50px 0;"></span>';
-    $("#dialog-message").html(exc + error);
-    return $("#dialog-message").dialog("open");
+    return showErrorMessage(error);
   };
   defaultSuccessCallback = function(statusCode, result, headers) {};
   loadState = function() {
@@ -247,15 +248,22 @@
       return sbvrEditor.setValue(result);
     }, function(statusCode, error) {});
   };
+  window.parseModel = function() {
+    try {
+      lfEditor.setValue(Prettify.match(SBVRParser.matchAll(sbvrEditor.getValue(), 'expr'), 'elem'));
+    } catch (e) {
+      console.log('Error parsing model', e);
+      showErrorMessage('Error parsing model');
+      return;
+    }
+    return $('#tabs').tabs('select', 1);
+  };
   $(function() {
     $("#tabs").tabs({
       select: function(event, ui) {
-        var exc, msg, _ref;
+        var _ref;
         if (((_ref = ui.panel.id) !== "modelTab" && _ref !== "httpTab") && clientOnAir === false) {
-          exc = "<span class=\"ui-icon ui-icon-alert\" style=\"float:left; margin:0 7px 50px 0;\"></span>";
-          msg = "This tab is only accessible after a model is executed<br/>";
-          $("#dialog-message").html(exc + msg);
-          $("#dialog-message").dialog("open");
+          showErrorMessage("This tab is only accessible after a model is executed<br/>");
           return false;
         } else {
           switch (ui.panel.id) {
