@@ -42,7 +42,7 @@ ometa SBVRParser {
 					  term,
 	term	:termSoFar
 					= termPart:t {termSoFar = termSoFar==undefined ? t : [termSoFar, t].join(' ')}
-						( findTerm(termSoFar)
+						( term(termSoFar)
 						| isTerm(termSoFar)									-> ['term',this._termForm(termSoFar)]
 						),
 	termPart		= spaces ~lineStart letters,
@@ -53,13 +53,13 @@ ometa SBVRParser {
 	verb	:verbSoFar
 					= verbPart:v {verbSoFar = verbSoFar==undefined ? v : [verbSoFar, v].join(' ')}
 						( verb(verbSoFar)
-						| isVerb(verbSoFar)									-> ['verb',this._verbForm(prevTerm, verbSoFar)]
+						| isVerb(verbSoFar)									-> ['verb',this._verbForm(verbSoFar)]
 						),
 	verbPart		= spaces ~lineStart ~term letters,
 	
 	joinQuant		= matchForAll('keyword',["and","at","most"]),
 	quant			= keyword("each")										-> [`univQ]
-					| matchForAny('keyword',["a","an","some"])										-> [`existQ]
+					| matchForAny('keyword',["a","an","some"])				-> [`existQ]
 					| matchForAll('keyword',["at","most"])		num:n		-> [`atMostQ, [`maxCard, n]]
 					| matchForAll('keyword',["at","least"])		num:n
 										( joinQuant num:m					-> [`numRngQ, [`minCard, n], [`maxCard, m]]
@@ -73,7 +73,7 @@ ometa SBVRParser {
 	addThat			= keyword("that"),
 	addThe			= keyword("the"),
 	addVar	:prevTerm
-					= {this.state.ruleVars[prevTerm[1]] = this.state.ruleVarsCount++} {['var', ['num', this.state.ruleVars[x[1]]], prevTerm]}:v
+					= {this.state.ruleVars[prevTerm[1]] = this.state.ruleVarsCount++} {['var', ['num', this.state.ruleVars[prevTerm[1]]], prevTerm]}:v
 					( addThat
 						( addThe terbRi([[]], prevTerm)
 						| qTerbRi([[]], prevTerm) ):q {v.push(q)}

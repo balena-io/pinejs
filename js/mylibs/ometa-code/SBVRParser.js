@@ -116,7 +116,7 @@
                 t = this._apply("termPart");
                 (termSoFar = ((termSoFar == undefined) ? t : [termSoFar, t].join(" ")));
                 return this._or((function() {
-                    return this._applyWithArgs("findTerm", termSoFar)
+                    return this._applyWithArgs("term", termSoFar)
                 }), (function() {
                     return (function() {
                         this._applyWithArgs("isTerm", termSoFar);
@@ -162,7 +162,7 @@
                 }), (function() {
                     return (function() {
                         this._applyWithArgs("isVerb", verbSoFar);
-                        return ["verb", this._verbForm(prevTerm, verbSoFar)]
+                        return ["verb", this._verbForm(verbSoFar)]
                     }).call(this)
                 }))
             }).call(this)
@@ -259,7 +259,7 @@
                 v, q;
             return (function() {
                 (this["state"]["ruleVars"][prevTerm[(1)]] = this["state"]["ruleVarsCount"]++);
-                v = ["var", ["num", this["state"]["ruleVars"][x[(1)]]], prevTerm];
+                v = ["var", ["num", this["state"]["ruleVars"][prevTerm[(1)]]], prevTerm];
                 this._opt((function() {
                     return (function() {
                         this._apply("addThat");
