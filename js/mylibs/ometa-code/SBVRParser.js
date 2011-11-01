@@ -551,6 +551,7 @@
                 t;
             return (function() {
                 this._apply("startTerm");
+                this._apply("clearSuggestions");
                 t = this._apply("addTerm");
                 t.push([]);
                 return t
@@ -584,6 +585,11 @@
                 []
             ])
         },
+        "terminator": function() {
+            var $elf = this,
+                _fromIdx = this.input.idx;
+            return this._applyWithArgs("exactly", ".")
+        },
         "lineStart": function() {
             var $elf = this,
                 _fromIdx = this.input.idx;
@@ -616,6 +622,11 @@
                     return this._apply("attribute")
                 }));
                 this._apply("spaces");
+                this._opt((function() {
+                    return this._apply("terminator")
+                }));
+                this._apply("clearSuggestions");
+                this._apply("spaces");
                 this["lines"].push(l);
                 return l
             }).call(this)
@@ -630,6 +641,11 @@
                 this._apply("end");
                 return this["lines"]
             }).call(this)
+        },
+        "clearSuggestions": function() {
+            var $elf = this,
+                _fromIdx = this.input.idx;
+            return this._apply("empty")
         }
     });
     (SBVRParser["keyTokens"] = ["startTerm", "startFactType", "startRule", "term", "modRule", "verb", "keyword", "allowedAttrs", "num"]);
@@ -706,10 +722,10 @@
     }));
     (SBVRParser["reset"] = (function() {
         (this["possMap"] = ({
+            "clearSuggestions": [],
             "startTerm": ["Term:"],
             "startFactType": ["Fact type:"],
             "startRule": ["Rule:"],
-            "addTerm": [],
             "term": ({}),
             "verb": ({}),
             "allowedAttrs": ["Concept Type", "Database ID Field", "Database Name Field", "Database Table Name", "Definition", "Dictionary Basis", "Example", "General Concept", "Namespace URI", "Necessity", "Note", "Possibility", "Reference Scheme", "See", "Source", "Subject Field", "Synonymous Form", "Synonym"],
@@ -718,7 +734,8 @@
             "joinQuant": ["and at most"],
             "num": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "one"],
             "addThat": ["that", "that the"],
-            "addThe": ["the"]
+            "addThe": ["the"],
+            "terminator": ["."]
         }));
         (this["fctps"] = ({}));
         (this["state"] = ({}));

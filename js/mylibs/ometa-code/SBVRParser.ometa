@@ -122,7 +122,7 @@ ometa SBVRParser {
 	newFactType		= startFactType {[]}:t (terb:b {t.concat(b)}:t)+ (term:e {t.push(e)})? {console.log(this.possMap.verb);this.fctps[t] = true; t.push([])}
 																		-> [`fcTp].concat(t),
 	startTerm		= "T:"|"Term:",
-	newTerm			= startTerm addTerm:t {t.push([])}					-> t,
+	newTerm			= startTerm clearSuggestions addTerm:t {t.push([])}					-> t,
 	attribute		= ?{this.lines[this.lines.length-1][0] == 'term' ||
 						this.lines[this.lines.length-1][0] == 'fcTp'}
 						allowedAttrs:attrName ':'
@@ -132,13 +132,16 @@ ometa SBVRParser {
 	allowedAttrs	= matchForAny('seq',this.possMap.allowedAttrs),
 	attrDefinition	= qTerbR([[]]),
 
+	terminator		= '.',
 	lineStart		= startTerm
 					| startFactType
 					| startRule
 					| allowedAttrs ':',
-	line			= spaces (newTerm | newFactType | newRule | attribute):l spaces
+	line			= spaces (newTerm | newFactType | newRule | attribute):l spaces terminator? clearSuggestions spaces
 						{this.lines.push(l)}							-> l,
-	expr			= line* end											-> this.lines
+	expr			= line* end											-> this.lines,
+	
+	clearSuggestions = empty
 }
 
 SBVRParser.keyTokens = ["startTerm", "startFactType", "startRule", "term", "modRule", "verb", "keyword", "allowedAttrs", "num"];
@@ -207,10 +210,10 @@ SBVRParser._isFctp = function(k) { return this.fctps.hasOwnProperty(k) }
 
 SBVRParser.reset = function() {
 	this.possMap = {
+		clearSuggestions: [], //This stops us suggesting any autocomplete before this point.
 		startTerm: ['Term:'],
 		startFactType: ['Fact type:'],
 		startRule: ['Rule:'],
-		addTerm: [], //This stops us suggesting any autocomplete for terms.
 		term: {},
 		verb: {},
 		allowedAttrs: [
@@ -263,7 +266,8 @@ SBVRParser.reset = function() {
 			'one'
 		],
 		addThat: ['that', 'that the'],
-		addThe: ['the']
+		addThe: ['the'],
+		terminator: ['.']
 	}
 	this.fctps = {}
 	this.state = {}
