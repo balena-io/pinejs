@@ -62,7 +62,7 @@
         "toEOL": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                w;
+                s, a, w;
             return (function() {
                 this._apply("spaces");
                 w = this._many((function() {
@@ -73,7 +73,18 @@
                                 return this._apply("lineStart")
                             }).call(this)
                         }));
-                        return this._apply("anything")
+                        s = this._opt((function() {
+                            return this._apply("spaces")
+                        }));
+                        a = this._many1((function() {
+                            return (function() {
+                                this._not((function() {
+                                    return this._apply("space")
+                                }));
+                                return this._apply("anything")
+                            }).call(this)
+                        }));
+                        return s.concat(a).join("")
                     }).call(this)
                 }));
                 return w.join("")
@@ -479,17 +490,7 @@
                 this._apply("startRule");
                 this._apply("spaces");
                 ruleText = this._lookahead((function() {
-                    return this._many((function() {
-                        return (function() {
-                            this._not((function() {
-                                return (function() {
-                                    this._apply("spaces");
-                                    return this._apply("lineStart")
-                                }).call(this)
-                            }));
-                            return this._apply("char")
-                        }).call(this)
-                    }))
+                    return this._apply("toEOL")
                 }));
                 (this["state"]["ruleVarsCount"] = (0));
                 r = this._apply("modRule");
@@ -497,7 +498,7 @@
                     []
                 ]);
                 ((r["length"] == (2)) ? (r[(1)][(1)] = q) : (r[(1)] = q));
-                return ["rule", r, ["text", ruleText.join("")]]
+                return ["rule", r, ["text", ruleText]]
             }).call(this)
         },
         "terb": function() {
@@ -539,7 +540,6 @@
                     }).call(this)
                 }));
                 (function() {
-                    console.log(this["possMap"]["verb"]);
                     (this["fctps"][t] = true);
                     return t.push([])
                 }).call(this);

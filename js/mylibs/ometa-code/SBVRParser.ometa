@@ -34,7 +34,7 @@ ometa SBVRParser {
 	letters			= letter+:l												-> l.join(''),
 	num				= spaces digit+:n										-> ['num', parseInt(n.join(''))]
 					| "one"													-> ['num', 1],
-	toEOL			= spaces (~(spaces lineStart) anything)*:w				-> w.join(''),
+	toEOL			= spaces (~(spaces lineStart) spaces?:s (~space anything)+:a -> s.concat(a).join(''))*:w				-> w.join(''),
 
 	token		:x	= spaces seq(x):s &(space+)								-> s,
 
@@ -116,9 +116,9 @@ ometa SBVRParser {
 					  "that"											-> r,
 
 	startRule		= "R:"|"Rule:",
-	newRule			= startRule spaces &((~(spaces lineStart) char)*):ruleText {this.state.ruleVarsCount=0}
+	newRule			= startRule spaces &(toEOL):ruleText {this.state.ruleVarsCount=0}
 						modRule:r qTerbR([[]]):q {r.length == 2 ? r[1][1] = q : r[1] = q}
-																		-> ['rule', r, ['text', ruleText.join('')]],
+																		-> ['rule', r, ['text', ruleText]],
 	terb			= term:t addVerb(t):v								-> [t, v],
 	startFactType	= "F:"|"Fact type:",
 	newFactType		= startFactType {[]}:t (terb:b {t.concat(b)}:t)+ (term:e {t.push(e)})? {console.log(this.possMap.verb);this.fctps[t] = true; t.push([])}
