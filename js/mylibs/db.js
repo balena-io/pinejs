@@ -3,6 +3,7 @@
     if (typeof process !== "undefined" && process !== null) {
       exports.postgres = function(connectString) {
         var Client, result, tx, _db;
+        requirejs(["libs/inflection", "../ometa-js/lib", "../ometa-js/ometa-base"]);
         requirejs(["mylibs/ometa-code/SQLBinds"]);
         Client = new requirejs('pg').Client;
         _db = new Client(connectString);
