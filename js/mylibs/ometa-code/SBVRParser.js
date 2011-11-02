@@ -729,9 +729,9 @@
     (SBVRParser["reset"] = (function() {
         (this["possMap"] = ({
             "clearSuggestions": [],
-            "startTerm": ["Term:"],
+            "startTerm": ["Term:     "],
             "startFactType": ["Fact type:"],
-            "startRule": ["Rule:"],
+            "startRule": ["Rule:     "],
             "term": ({}),
             "verb": ({}),
             "allowedAttrs": ["Concept Type", "Database ID Field", "Database Name Field", "Database Table Name", "Definition", "Dictionary Basis", "Example", "General Concept", "Namespace URI", "Necessity", "Note", "Possibility", "Reference Scheme", "See", "Source", "Subject Field", "Synonymous Form", "Synonym"],

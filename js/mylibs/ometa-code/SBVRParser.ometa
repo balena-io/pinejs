@@ -211,9 +211,9 @@ SBVRParser._isFctp = function(k) { return this.fctps.hasOwnProperty(k) }
 SBVRParser.reset = function() {
 	this.possMap = {
 		clearSuggestions: [], //This stops us suggesting any autocomplete before this point.
-		startTerm: ['Term:'],
+		startTerm: ['Term:     '],
 		startFactType: ['Fact type:'],
-		startRule: ['Rule:'],
+		startRule: ['Rule:     '],
 		term: {},
 		verb: {},
 		allowedAttrs: [

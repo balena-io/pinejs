@@ -15,53 +15,53 @@ Copyright 2011 University of Surrey
 */
 
 model1 =
-'Term: pilot
-Term: plane
+'Term:      pilot
+Term:      plane
 Fact type: pilot can fly plane
 Fact type: pilot is experienced
-Rule: It is obligatory that each pilot can fly at least 1 plane
-Rule: It is obligatory that each pilot that is experienced can fly at least 3 planes'
+Rule:      It is obligatory that each pilot can fly at least 1 plane
+Rule:      It is obligatory that each pilot that is experienced can fly at least 3 planes'
 
 model2 =
-'Term: student
+'Term:      student
 Fact type: student is school president
-Rule: It is obligatory that a student is school president
-Term: module
+Rule:      It is obligatory that a student is school president
+Term:      module
 Fact type: student is registered for module
-Rule: It is obligatory that each student is registered for at most 5 modules
-Term: study programme
+Rule:      It is obligatory that each student is registered for at most 5 modules
+Term:      study programme
 Fact type: student is enrolled in study programme
 Fact type: module is available for study programme
-Rule: It is obligatory that each student that is registered for a module is enrolled in a study programme that the module is available for
-Term: lecturer
+Rule:      It is obligatory that each student that is registered for a module is enrolled in a study programme that the module is available for
+Term:      lecturer
 Fact type: student is under probation
-Rule: It is obligatory that each student is registered for at most 5 modules
-Rule: It is obligatory that each student that is under probation is registered for at most 3 modules
-Rule: It is obligatory that at most 10 students are under probation
+Rule:      It is obligatory that each student is registered for at most 5 modules
+Rule:      It is obligatory that each student that is under probation is registered for at most 3 modules
+Rule:      It is obligatory that at most 10 students are under probation
 Fact type: lecturer grades student for study programme with grade
-Rule: It is prohibited that a student that is under probation is enrolled in more than 2 study programmes
-Rule: It is obligatory that each student is registered for each module'
+Rule:      It is prohibited that a student that is under probation is enrolled in more than 2 study programmes
+Rule:      It is obligatory that each student is registered for each module'
 
 model3 =
-'Term: student
-Term: module
-Term: study programme
+'Term:      student
+Term:      module
+Term:      study programme
 Fact type: student is registered for module
 Fact type: student is enrolled in study programme
 Fact type: module is available for study programme
-Rule: It is obligatory that each student is registered for at most 5 modules
-Rule: It is obligatory that each student that is registered for a module is enrolled in a study programme that the module is available for
+Rule:      It is obligatory that each student is registered for at most 5 modules
+Rule:      It is obligatory that each student that is registered for a module is enrolled in a study programme that the module is available for
 Fact type: student is under probation
-Rule: It is obligatory that each student that is under probation is registered for at most 3 modules'
+Rule:      It is obligatory that each student that is under probation is registered for at most 3 modules'
 
 // WIP:
 modelTest =
-'Term: person
-Term: student
+'Term:      person
+Term:      student
 	Definition: A definition
 	Source: A source
 	Dictionary Basis: A dictionary basis
-	General ConcepTerm: A general concept
+	General ConcepTerm:      A general concept
 	Concept Type: person
 	Necessity: A necessity
 	Possibility: A possibility
@@ -76,9 +76,9 @@ Term: student
 	Database Table Name: student_table
 	Database ID Field: id_field
 	Database Name Field: name_field
-Term: lecturer
+Term:      lecturer
 	Concept Type: person
-Term: module ' +
+Term:      module ' +
 
 /* Fact Types */'
 Fact type: student is school president '					+ /* term verb */ '
@@ -88,45 +88,45 @@ Fact type: student is registered for module with lecturer'	+ /* term verb term v
 Fact type: person is swimming'								+ /* for inflection */
 
 /* Mod rules */'
-Rule: It is obligatory that	a student is school president'			+ /* It is obligatory */ '
-Rule: It is necessary that		a student is school president'			+ /* It is necessary */ '
-Rule: It is possible that		a student is school president'			+ /* It is possible */ '
-Rule: It is permissible that	a student is school president'			+ /* It is permissible */ '
+Rule:      It is obligatory that	a student is school president'			+ /* It is obligatory */ '
+Rule:      It is necessary that		a student is school president'			+ /* It is necessary */ '
+Rule:      It is possible that		a student is school president'			+ /* It is possible */ '
+Rule:      It is permissible that	a student is school president'			+ /* It is permissible */ '
 
-Rule: It is prohibited that	some students are school president'	+ /* It is prohibited */ '
-Rule: It is impossible that	some students are school president'	+ /* It is impossible */ '
-Rule: It is not possible that	some students are school president'	+ /* It is not possible */
+Rule:      It is prohibited that	some students are school president'	+ /* It is prohibited */ '
+Rule:      It is impossible that	some students are school president'	+ /* It is impossible */ '
+Rule:      It is not possible that	some students are school president'	+ /* It is not possible */
 
 /* Quantifiers */'
-Rule: It is obligatory that each	student		is registered for at least one module'	+ /* each */ '
-Rule: It is obligatory that a 		student		is registered for at least one module'	+ /* a */ '
-Rule: It is obligatory that an		student		is registered for at least one module'	+ /* an */ '
-Rule: It is obligatory that some	students	are registered for at least one module'	+ /* some */
+Rule:      It is obligatory that each	student		is registered for at least one module'	+ /* each */ '
+Rule:      It is obligatory that a 		student		is registered for at least one module'	+ /* a */ '
+Rule:      It is obligatory that an		student		is registered for at least one module'	+ /* an */ '
+Rule:      It is obligatory that some	students	are registered for at least one module'	+ /* some */
 
 /* Quantifiers with cardinality */'
-Rule: It is obligatory that at most 50		students are registered for at least one module'+ /* at most */ '
-Rule: It is obligatory that at least one	student is registered for at least one module'	+ /* at least */ '
-Rule: It is obligatory that more than 0	students are registered for at least one module'	+ /* more than */ '
-Rule: It is obligatory that exactly one	student is school president'					+ /* exactly */
+Rule:      It is obligatory that at most 50		students are registered for at least one module'+ /* at most */ '
+Rule:      It is obligatory that at least one	student is registered for at least one module'	+ /* at least */ '
+Rule:      It is obligatory that more than 0	students are registered for at least one module'	+ /* more than */ '
+Rule:      It is obligatory that exactly one	student is school president'					+ /* exactly */
 
 /* Quantifiers with dual cardinality */'
-Rule: It is obligatory that at least one and at most 50	students are registered for at least one module'	+ /* at least */
+Rule:      It is obligatory that at least one and at most 50	students are registered for at least one module'	+ /* at least */
 
 /* Rule with n-ary fact type */'
-Rule: It is obligatory that a student is registered for a module with a lecturer' +
+Rule:      It is obligatory that a student is registered for a module with a lecturer' +
 
 /* Inflection */'
-Rule: It is obligatory that exactly 0 people are swimming'
+Rule:      It is obligatory that exactly 0 people are swimming'
 
 
 
 modelT =
-'Term: resource
-Term: transaction
-Term: lock
-Term: conditional representation
+'Term:      resource
+Term:      transaction
+Term:      lock
+Term:      conditional representation
 Fact type: lock is exclusive
 Fact type: lock is shared
 Fact type: resource is under lock
 Fact type: lock belongs to transaction
-Rule: It is obligatory that each resource is under at most 1 lock that is exclusive'
+Rule:      It is obligatory that each resource is under at most 1 lock that is exclusive'
