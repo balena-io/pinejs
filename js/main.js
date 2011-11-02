@@ -1,10 +1,12 @@
 require(["../ometa-js/lib",
 		"../ometa-js/ometa-base"], function() {
 	require(["libs/json2",
-			"mylibs/drawDataUI",
+			/*#IFDEF server */
+				"mylibs/drawDataUI",,
+				"mylibs/runTrans"
+			/*#ENDIFDEF*/
 			"mylibs/ometa-code/ClientURIParser",
-			"mylibs/ometa-code/ClientURIUnparser",
-			"mylibs/runTrans"]);
+			"mylibs/ometa-code/ClientURIUnparser"]);
 	require(["libs/inflection",
 			"mylibs/ometa-code/SBVRParser",
 			"mylibs/ometa-code/Prettify"], function() {
