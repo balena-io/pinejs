@@ -2,8 +2,8 @@ require(["../ometa-js/lib",
 		"../ometa-js/ometa-base"], function() {
 	require(["libs/json2",
 			/*#IFDEF server */
-				"mylibs/drawDataUI",,
-				"mylibs/runTrans"
+				"mylibs/drawDataUI",
+				"mylibs/runTrans",
 			/*#ENDIFDEF*/
 			"mylibs/ometa-code/ClientURIParser",
 			"mylibs/ometa-code/ClientURIUnparser"]);
