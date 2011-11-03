@@ -3,7 +3,7 @@
 	"version": "0.0.1",
 	"dependencies": {
 		"sqlite3": "2.x",
-		"requirejs": "0.x",
+		"requirejs": "1.x",
 		"lazy": "1.x",
 		"node-static": "https://github.com/cloudhead/node-static/tarball/master",
 		"pg": "0.6.x"
