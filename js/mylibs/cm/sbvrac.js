@@ -123,7 +123,7 @@ var sbvrAutoComplete = (function () {
 		
 		/** Start code reused from example auto-completion (http://codemirror.net/demo/complete.js) **/
 		function maybeAdd(str) {
-			if (str.toLowerCase().indexOf(start) == 0) found.push(whitespace+str);
+			if (str.toLowerCase().indexOf(start) == 0 && found.indexOf(str) == -1) found.push(whitespace+str);
 		}
 		/** End code reused from example auto-completion (http://codemirror.net/demo/complete.js) **/
 
