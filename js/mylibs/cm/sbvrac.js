@@ -134,7 +134,6 @@ var sbvrAutoComplete = (function () {
 			if(poss[i] != undefined) {
 				for(rule in poss[i]) {
 					ruleMap = possMap[rule];
-					console.log(ruleMap);
 					try {
 						if($.isArray(ruleMap)) {
 							forEach(ruleMap, maybeAdd);
@@ -142,7 +141,6 @@ var sbvrAutoComplete = (function () {
 						else {
 							for(prop in ruleMap) {
 								if(typeof ruleMap[prop] == 'object') {
-									console.log(""+poss[i][rule][0])
 									if(ruleMap.hasOwnProperty(""+poss[i][rule][0])) {
 										forEach(ruleMap[poss[i][rule][0]], maybeAdd);
 									}
