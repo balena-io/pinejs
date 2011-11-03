@@ -104,6 +104,7 @@ loadUI = ->
 	serverRequest "GET", "/ui/textarea-is_disabled*filt:textarea.name=model_area/", [], "", (statusCode, result) ->
 		$("#modelArea").attr "disabled", result.value
 	
+
 	$("#modelArea").change ->
 		serverRequest("PUT", "/ui/textarea*filt:name=model_area/", {"Content-Type": "application/json"}, JSON.stringify(value: sbvrEditor.getValue()))
 	
@@ -210,18 +211,22 @@ window.downloadFile = (filename, text) ->
 #window.serverRequest = (method, uri, headers = {}, body = null, successCallback, failureCallback)
 
 window.saveModel = ->
-	serverRequest "POST", "/file", {"Content-Type": "text/plain"}, sbvrEditor.getValue(),
+	serverRequest "POST", "/", {"Content-Type": "text/plain"}, sbvrEditor.getValue(),
 		(statusCode, result) ->
-			alert('File Saved')
+			alert(result)
 		(statusCode, error) ->
 			alert('Error saving')
 			
 window.getModel = ->
-	serverRequest "GET", "/file", {}, "",
+	hIndex = window.location.href.indexOf("?")
+	if hIndex != 0 
+		key = window.location.href[hIndex+1..]
+		serverRequest "GET", "/"+key, {}, "",
 		(statusCode, result) ->
 			sbvrEditor.setValue(result)
 		(statusCode, error) ->
-			# alert('Error')
+			alert('Error')
+
 
 window.parseModel = ->
 	try
@@ -261,10 +266,10 @@ $( ->
 			true
 	)
 	$('#tabs').show()
+	getModel()
 	loadUI()
 	loadState()
 	processHash()
-	getModel()
 	$("#bldb").file().choose (e, input) ->
 		handleFiles input[0].files
 )

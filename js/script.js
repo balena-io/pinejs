@@ -249,18 +249,26 @@
     };
   };
   window.saveModel = function() {
-    return serverRequest("POST", "/file", {
+    return serverRequest("POST", "/", {
       "Content-Type": "text/plain"
     }, sbvrEditor.getValue(), function(statusCode, result) {
-      return alert('File Saved');
+      return alert(result);
     }, function(statusCode, error) {
       return alert('Error saving');
     });
   };
   window.getModel = function() {
-    return serverRequest("GET", "/file", {}, "", function(statusCode, result) {
-      return sbvrEditor.setValue(result);
-    }, function(statusCode, error) {});
+    var hIndex, key;
+    hIndex = window.location.href.indexOf("?");
+    if (hIndex !== 0) {
+      key = window.location.href.slice(hIndex + 1);
+      serverRequest("GET", "/" + key, {}, "", function(statusCode, result) {
+        return sbvrEditor.setValue(result);
+      });
+      return function(statusCode, error) {
+        return alert('Error');
+      };
+    }
   };
   window.parseModel = function() {
     try {
@@ -307,10 +315,10 @@
       }
     });
     $('#tabs').show();
+    getModel();
     loadUI();
     loadState();
     processHash();
-    getModel();
     return $("#bldb").file().choose(function(e, input) {
       return handleFiles(input[0].files);
     });
