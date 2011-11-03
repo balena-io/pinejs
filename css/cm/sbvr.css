@@ -1,13 +1,22 @@
 .CodeMirror {
 	font-family:monospace; /* It is required to use a monospace font for CodeMirror to work nicely. */
-	font-size: 120%;
+	font-size: 1.5em;
 	background: white;
 	border: 1px solid #ADABB3;
 }
 
-span.cm-sbvr-startTerm{color: #A22;}
-span.cm-sbvr-startFactType{color: #A70;}
-span.cm-sbvr-startRule{color: #299;}
+span.cm-sbvr-startTerm {
+	color: #A22;
+	background-color: #FCC;
+}
+span.cm-sbvr-startFactType {
+	color: #A70;
+	background-color: #EEA;
+}
+span.cm-sbvr-startRule {
+	color: #299;
+	background-color: #BFF;
+}
 
 /* Noun */
 span.cm-sbvr-term {
