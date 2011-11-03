@@ -234,7 +234,7 @@ window.parseModel = ->
 
 # Initialise controls and shoot off the loadUI & processHash functions
 $( ->
-	$("#tabs").tabs select: (event, ui) ->
+	$("#tabs").tabs(select: (event, ui) ->
 		#IFDEF server
 		if ui.panel.id not in ["modelTab", "httpTab"] and clientOnAir == false
 			showErrorMessage("This tab is only accessible after a model is executed<br/>")
@@ -259,7 +259,8 @@ $( ->
 				else
 					location.hash = "!/model/"
 			true
-	
+	)
+	$('#tabs').show()
 	loadUI()
 	loadState()
 	processHash()

@@ -306,6 +306,7 @@
         }
       }
     });
+    $('#tabs').show();
     loadUI();
     loadState();
     processHash();
