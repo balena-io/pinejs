@@ -157,6 +157,7 @@
                 _fromIdx = this.input.idx,
                 v;
             return (function() {
+                this._apply("clearSuggestions");
                 v = this._lookahead((function() {
                     return this._many1((function() {
                         return this._apply("verbPart")

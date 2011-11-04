@@ -50,7 +50,7 @@ ometa SBVRParser {
 	
 	
 	addVerb		:prevTerm
-					= &((verbPart)+):v {this._addVerbToTerm(prevTerm,v.join(' '))}
+					= clearSuggestions &((verbPart)+):v {this._addVerbToTerm(prevTerm,v.join(' '))}
 					  verb(prevTerm),
 	verb		:prevTerm
 					= findVerb(prevTerm),
