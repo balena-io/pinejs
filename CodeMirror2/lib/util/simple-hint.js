@@ -41,6 +41,7 @@
     var pos = editor.cursorCoords();
     complete.style.left = pos.x + "px";
     complete.style.top = pos.yBot + "px";
+    complete.style.position = "absolute";
     document.body.appendChild(complete);
     // Hack to hide the scrollbar.
     if (completions.length <= 10)
@@ -53,17 +54,19 @@
       complete.parentNode.removeChild(complete);
     }
     function pick() {
-      insert(sel.options[sel.selectedIndex].text);
+      insert(completions[sel.selectedIndex]); //Changed this line to insert the actual completion rather than the text in the select element, the select element removes leading and trailing whitespace.
       close();
       setTimeout(function(){editor.focus();}, 50);
     }
     connect(sel, "blur", close);
     connect(sel, "keydown", function(event) {
       var code = event.keyCode;
-      // Enter and space
-      if (code == 13 || code == 32) {stopEvent(event); pick();}
+      // Enter
+      if (code == 13) {stopEvent(event); pick();} //Changed to only respond on enter as there are multi word completions.
       // Escape
       else if (code == 27) {stopEvent(event); close(); editor.focus();}
+      //Backspace
+      else if (code == 8 && token.string.length == 1) {stopEvent(event); close(); editor.focus();}
       else if (code != 38 && code != 40) {
         close(); editor.focus();
         setTimeout(function(){startComplete(editor);}, 50);

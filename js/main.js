@@ -14,7 +14,7 @@ require(["../ometa-js/lib",
 	require(["libs/inflection",
 			"mylibs/ometa-code/SBVRParser",
 			"mylibs/ometa-code/Prettify"], function() {
-		require(["../CodeMirror2/lib/codemirror"], function() {
+		require(["../CodeMirror2/lib/codemirror","../CodeMirror2/lib/util/simple-hint"], function() {
 			require(["mylibs/cm/sbvr","mylibs/cm/sbvrac"]);
 			/*#IFDEF server */
 			require(["../CodeMirror2/mode/plsql/plsql"], function() {/*#ENDIFDEF*/
