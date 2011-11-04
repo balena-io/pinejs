@@ -24,15 +24,22 @@ Rule:      It is obligatory that each pilot that is experienced can fly at least
 
 model2 =
 'Term:      student
-Term:      module
+Term:      course
 Term:      study programme
-Fact type: student is registered for module
+Fact type: student is registered for course
 Fact type: student is enrolled in study programme
-Fact type: module is available for study programme
-Rule:      It is obligatory that each student is registered for at most 5 modules
-Rule:      It is obligatory that each student that is registered for a module is enrolled in a study programme that the module is available for
+Fact type: course is available for study programme 
+Rule:      It is obligatory that each student is registered for at most 5 courses
+
+Rule:      It is obligatory that each student that is registered for a course is enrolled in a study programme that the course is available for
+
 Fact type: student is under probation
-Rule:      It is obligatory that each student that is under probation is registered for at most 3 modules'
+Rule:      It is obligatory that each student that is under probation is registered for at most 3 courses
+
+Term:      lecturer
+Term:      grade
+Fact type: student is marked with grade by lecturer for course
+Rule:      It is obligatory that each student is marked with a grade by a lecturer for each course that the student is registered for'
 
 model3 =
 'Term:      student
