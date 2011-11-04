@@ -598,7 +598,10 @@
         "terminator": function() {
             var $elf = this,
                 _fromIdx = this.input.idx;
-            return this._applyWithArgs("keyword", ".", true)
+            return (function() {
+                this._apply("spaces");
+                return this._applyWithArgs("keyword", ".", true)
+            }).call(this)
         },
         "lineStart": function() {
             var $elf = this,
@@ -631,7 +634,6 @@
                 }), (function() {
                     return this._apply("attribute")
                 }));
-                this._apply("spaces");
                 this._opt((function() {
                     return this._apply("terminator")
                 }));

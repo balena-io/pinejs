@@ -121,7 +121,7 @@ ometa SBVRParser {
 																		-> ['rule', r, ['text', ruleText]],
 	terb			= term:t addVerb(t):v								-> [t, v],
 	startFactType	= "F:"|"Fact type:",
-	newFactType		= startFactType {[]}:t (terb:b {t.concat(b)}:t)+ (term:e {t.push(e)})? {console.log(this.possMap.verb);this.fctps[t] = true; t.push([])}
+	newFactType		= startFactType {[]}:t (terb:b {t.concat(b)}:t)+ (term:e {t.push(e)})? {this.fctps[t] = true; t.push([])}
 																		-> [`fcTp].concat(t),
 	startTerm		= "T:"|"Term:",
 	newTerm			= startTerm clearSuggestions addTerm:t {t.push([])}					-> t,
@@ -134,12 +134,12 @@ ometa SBVRParser {
 	allowedAttrs	= matchForAny('seq',this.possMap.allowedAttrs),
 	attrDefinition	= qTerbR([[]]),
 
-	terminator		= keyword('.',true),
+	terminator		= spaces keyword('.',true),
 	lineStart		= startTerm
 					| startFactType
 					| startRule
 					| allowedAttrs ':',
-	line			= spaces (newTerm | newFactType | newRule | attribute):l spaces terminator? clearSuggestions spaces
+	line			= spaces (newTerm | newFactType | newRule | attribute):l terminator? clearSuggestions spaces
 						{this.lines.push(l)}							-> l,
 	expr			= line* end											-> this.lines
 }
