@@ -127,18 +127,18 @@ ometa SBVRParser {
 	newTerm			= startTerm clearSuggestions addTerm:t {t.push([])}					-> t,
 	attribute		= ?{this.lines[this.lines.length-1][0] == 'term' ||
 						this.lines[this.lines.length-1][0] == 'fcTp'}
-						allowedAttrs:attrName ':'
+						allowedAttrs:attrName
 						applyFirstExisting(['attr'+attrName,'toEOL']):attrVal
 																		-> {var lastLine = this.lines.pop(); lastLine[lastLine.length-1].push([attrName.replace(new RegExp(' ','g'),''), attrVal]); lastLine},
 						
-	allowedAttrs	= matchForAny('seq',this.possMap.allowedAttrs),
+	allowedAttrs	= matchForAny('seq',this.possMap.allowedAttrs):attrName -> attrName.replace(':',''),
 	attrDefinition	= qTerbR([[]]),
 
 	terminator		= spaces keyword('.',true),
 	lineStart		= startTerm
 					| startFactType
 					| startRule
-					| allowedAttrs ':',
+					| allowedAttrs,
 	line			= spaces (newTerm | newFactType | newRule | attribute):l terminator? clearSuggestions spaces
 						{this.lines.push(l)}							-> l,
 	expr			= line* end											-> this.lines
@@ -217,28 +217,28 @@ SBVRParser.reset = function() {
 		term: {},
 		verb: {},
 		allowedAttrs: [
-			'Concept Type',
+			'Concept Type:',
 			/*#IFDEF server */
 				/* Custom Attributes */
-				'Database ID Field',
-				'Database Name Field',
-				'Database Table Name',
+				'Database ID Field:',
+				'Database Name Field:',
+				'Database Table Name:',
 				/* End Custom */
 			/*#ENDIFDEF*/
-			'Definition',
-			'Dictionary Basis',
-			'Example',
-			'General Concept',
-			'Namespace URI',
-			'Necessity',
-			'Note',
-			'Possibility',
-			'Reference Scheme',
-			'See',
-			'Source',
-			'Subject Field',
-			'Synonymous Form',
-			'Synonym'
+			'Definition:',
+			'Dictionary Basis:',
+			'Example:',
+			'General Concept:',
+			'Namespace URI:',
+			'Necessity:',
+			'Note:',
+			'Possibility:',
+			'Reference Scheme:',
+			'See:',
+			'Source:',
+			'Subject Field:',
+			'Synonymous Form:',
+			'Synonym:'
 		],
 		modRule: [
 			'It is obligatory that',

@@ -574,7 +574,6 @@
             return (function() {
                 this._pred(((this["lines"][(this["lines"]["length"] - (1))][(0)] == "term") || (this["lines"][(this["lines"]["length"] - (1))][(0)] == "fcTp")));
                 attrName = this._apply("allowedAttrs");
-                this._applyWithArgs("exactly", ":");
                 attrVal = this._applyWithArgs("applyFirstExisting", [("attr" + attrName), "toEOL"]);
                 return (function() {
                     var lastLine = this["lines"].pop();
@@ -585,8 +584,12 @@
         },
         "allowedAttrs": function() {
             var $elf = this,
-                _fromIdx = this.input.idx;
-            return this._applyWithArgs("matchForAny", "seq", this["possMap"]["allowedAttrs"])
+                _fromIdx = this.input.idx,
+                attrName;
+            return (function() {
+                attrName = this._applyWithArgs("matchForAny", "seq", this["possMap"]["allowedAttrs"]);
+                return attrName.replace(":", "")
+            }).call(this)
         },
         "attrDefinition": function() {
             var $elf = this,
@@ -613,10 +616,7 @@
             }), (function() {
                 return this._apply("startRule")
             }), (function() {
-                return (function() {
-                    this._apply("allowedAttrs");
-                    return this._applyWithArgs("exactly", ":")
-                }).call(this)
+                return this._apply("allowedAttrs")
             }))
         },
         "line": function() {
@@ -736,7 +736,7 @@
             "startRule": ["Rule:     "],
             "term": ({}),
             "verb": ({}),
-            "allowedAttrs": ["Concept Type", "Database ID Field", "Database Name Field", "Database Table Name", "Definition", "Dictionary Basis", "Example", "General Concept", "Namespace URI", "Necessity", "Note", "Possibility", "Reference Scheme", "See", "Source", "Subject Field", "Synonymous Form", "Synonym"],
+            "allowedAttrs": ["Concept Type:", "Database ID Field:", "Database Name Field:", "Database Table Name:", "Definition:", "Dictionary Basis:", "Example:", "General Concept:", "Namespace URI:", "Necessity:", "Note:", "Possibility:", "Reference Scheme:", "See:", "Source:", "Subject Field:", "Synonymous Form:", "Synonym:"],
             "modRule": ["It is obligatory that", "It is necessary that", "It is prohibited that", "It is impossible that", "It is not possible that", "It is possible that", "It is permissible that"],
             "quant": ["each", "a", "an", "some", "at most", "at least", "more than", "exactly"],
             "joinQuant": ["and at most"],
