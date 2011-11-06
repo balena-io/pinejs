@@ -8,6 +8,21 @@ showErrorMessage = (errorMessage) ->
 showSimpleError = (errorMessage) ->
 	$("#dialog-simple-error").html '<span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 50px 0;"></span>' + errorMessage
 	$("#dialog-simple-error").dialog "open"
+	
+showUrlMessage = (url) ->
+	uiIcon = "ui-icon-check"
+	qIndex = window.location.href.indexOf("?")
+	if url == "Error parsing model"
+		uiIcon = "ui-icon-alert"
+		anchor = url
+	else 
+		if qIndex == -1
+			url = window.location.href + "?" + url
+		else 
+			url = window.location.href[0...qIndex] + "?" + url
+		anchor = '<a href=\"'+ url + '\">' + url + '</a>'
+	$("#dialog-url-message").html '<span class="ui-icon ' + uiIcon + '" style="float:left; margin:0 7px 50px 0;"></span>' + anchor
+	$("#dialog-url-message").dialog "open"
 
 defaultFailureCallback = (statusCode, error) ->
 	if error?
@@ -104,7 +119,6 @@ loadUI = ->
 	serverRequest "GET", "/ui/textarea-is_disabled*filt:textarea.name=model_area/", [], "", (statusCode, result) ->
 		$("#modelArea").attr "disabled", result.value
 	
-
 	$("#modelArea").change ->
 		serverRequest("PUT", "/ui/textarea*filt:name=model_area/", {"Content-Type": "application/json"}, JSON.stringify(value: sbvrEditor.getValue()))
 	
@@ -120,6 +134,14 @@ loadUI = ->
 				$(this).dialog "close"
 				
 	$("#dialog-simple-error").dialog 
+		modal: true
+		resizable: false
+		autoOpen: false
+		buttons: 
+			"OK": ->
+				$(this).dialog "close"
+				
+	$("#dialog-url-message").dialog 
 		modal: true
 		resizable: false
 		autoOpen: false
@@ -213,19 +235,19 @@ window.downloadFile = (filename, text) ->
 window.saveModel = ->
 	serverRequest "POST", "/", {"Content-Type": "text/plain"}, sbvrEditor.getValue(),
 		(statusCode, result) ->
-			alert(result)
+			showUrlMessage(result)
 		(statusCode, error) ->
-			alert('Error saving')
+			showSimpleError('Error: ' + error)
 			
 window.getModel = ->
-	hIndex = window.location.href.indexOf("?")
-	if hIndex != 0 
-		key = window.location.href[hIndex+1..]
+	qIndex = window.location.href.indexOf("?")
+	if qIndex != -1 
+		key = window.location.href[qIndex+1..]
 		serverRequest "GET", "/"+key, {}, "",
 		(statusCode, result) ->
 			sbvrEditor.setValue(result)
 		(statusCode, error) ->
-			alert('Error')
+			showSimpleError('Error: ' + error)
 
 
 window.parseModel = ->

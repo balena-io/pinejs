@@ -40,8 +40,8 @@ requirejs(['mylibs/db'], (dbModule) ->
 		db = dbModule.postgres(process.env.DATABASE_URL || "postgres://postgres:.@localhost:5432/postgres")
 	else
 		db = dbModule.websql('rulemotion')
-	db.transaction (tx) ->
-		tx.tableList (
+	db.transaction( (tx) ->
+		tx.tableList(
 			(tx, result) ->
 				if result.rows.length == 0
 					tx.executeSql	'CREATE TABLE '+#Postgres does not support: IF NOT EXISTS
@@ -50,7 +50,9 @@ requirejs(['mylibs/db'], (dbModule) ->
 									#'"key" VARCHAR PRIMARY KEY,' +
 									'"value" VARCHAR );' 
 			null
-			"name = '_sbvr_editor_cache'")
+			"name = '_sbvr_editor_cache'"
+		)
+	)
 )
 
 #number to base 62
@@ -70,7 +72,7 @@ decodeBase = (url, base) ->
 	sum = 0
 	for alphaChar in url.split("")
 		alphaNum = alphaChar.charCodeAt(0)
-		if (48 <= alphaNum && alphaNum <= 57) #0-9
+		if (48 <= alphaNum && alphaNum <= 57) #0-9 48-57
 			alphaNum -= 48
 		else if (65 <= alphaNum && alphaNum <= 90) #A-Z 36-61
 			alphaNum -= 29
@@ -104,8 +106,11 @@ http.createServer((request, response) ->
 							response.end(JSON.stringify('Error parsing model'))
 							return null
 						value = JSON.stringify(body)
-						tx.executeSql 'INSERT INTO "_sbvr_editor_cache" ("value") VALUES (?);', [value], (tx, result) ->
-							response.end(JSON.stringify("url is: " + toBase(result.insertId,62)))
+						tx.executeSql 'INSERT INTO "_sbvr_editor_cache" ("value") VALUES (?);', [value], 
+							(tx, result) ->
+								response.end(JSON.stringify(toBase(result.insertId,62)))
+							(tx, error) ->
+								response.end(JSON.stringify(error))
 	#						tx.executeSql('SELECT 1 FROM "_sbvr_editor_cache" WHERE key = ?;', [key], (tx, result) ->
 	#							if result.rows.length==0
 	#								tx.executeSql 'INSERT INTO "_sbvr_editor_cache" VALUES (?, ?);', [key, value], null, null, false

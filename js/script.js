@@ -1,5 +1,5 @@
 (function() {
-  var cleanUp, clientOnAir, defaultFailureCallback, defaultSuccessCallback, loadState, loadUI, processHash, setClientOnAir, showErrorMessage, showSimpleError, sqlEditor;
+  var cleanUp, clientOnAir, defaultFailureCallback, defaultSuccessCallback, loadState, loadUI, processHash, setClientOnAir, showErrorMessage, showSimpleError, showUrlMessage, sqlEditor;
   sqlEditor = null;
   clientOnAir = false;
   showErrorMessage = function(errorMessage) {
@@ -9,6 +9,18 @@
   showSimpleError = function(errorMessage) {
     $("#dialog-simple-error").html('<span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 50px 0;"></span>' + errorMessage);
     return $("#dialog-simple-error").dialog("open");
+  };
+  showUrlMessage = function(url) {
+    var qIndex;
+    qIndex = window.location.href.indexOf("?");
+    if (qIndex === -1) {
+      console.log(window.location.href);
+      url = window.location.href + url;
+    } else {
+      url = window.location.herf.slice(0, qIndex) + url;
+    }
+    $("#dialog-url-message").html('<span class="ui-icon ui-icon-check" style="float:left; margin:0 7px 50px 0;"></span>' + '<a href=\"' + url + '\">' + url + '</a>');
+    return $("#dialog-url-message").dialog("open");
   };
   defaultFailureCallback = function(statusCode, error) {
     if (error != null) {
@@ -136,7 +148,17 @@
         }
       }
     });
-    return $("#dialog-simple-error").dialog({
+    $("#dialog-simple-error").dialog({
+      modal: true,
+      resizable: false,
+      autoOpen: false,
+      buttons: {
+        "OK": function() {
+          return $(this).dialog("close");
+        }
+      }
+    });
+    return $("#dialog-url-message").dialog({
       modal: true,
       resizable: false,
       autoOpen: false,
@@ -252,21 +274,23 @@
     return serverRequest("POST", "/", {
       "Content-Type": "text/plain"
     }, sbvrEditor.getValue(), function(statusCode, result) {
-      return alert(result);
+      result = '?' + result;
+      return showUrlMessage(result);
     }, function(statusCode, error) {
-      return alert('Error saving');
+      return showSimpleError('Error saving');
     });
   };
   window.getModel = function() {
-    var hIndex, key;
-    hIndex = window.location.href.indexOf("?");
-    if (hIndex !== 0) {
-      key = window.location.href.slice(hIndex + 1);
+    var key, qIndex;
+    qIndex = window.location.href.indexOf("?");
+    if (qIndex !== -1) {
+      key = window.location.href.slice(qIndex + 1);
+      console.log("key", key);
       serverRequest("GET", "/" + key, {}, "", function(statusCode, result) {
         return sbvrEditor.setValue(result);
       });
       return function(statusCode, error) {
-        return alert('Error');
+        return showSimpleError('Error');
       };
     }
   };

@@ -19,11 +19,11 @@
       db = dbModule.websql('rulemotion');
     }
     return db.transaction(function(tx) {
-      return tx.tableList((function(tx, result) {
+      return tx.tableList(function(tx, result) {
         if (result.rows.length === 0) {
           return tx.executeSql('CREATE TABLE ' + '"_sbvr_editor_cache" (' + '"id" INTEGER PRIMARY KEY AUTOINCREMENT,' + '"value" VARCHAR );');
         }
-      }, null, "name = '_sbvr_editor_cache'"));
+      }, null, "name = '_sbvr_editor_cache'");
     });
   });
   toBase = function(decimal, base) {
@@ -87,7 +87,9 @@
             }
             value = JSON.stringify(body);
             return tx.executeSql('INSERT INTO "_sbvr_editor_cache" ("value") VALUES (?);', [value], function(tx, result) {
-              return response.end(JSON.stringify("url is: " + toBase(result.insertId, 62)));
+              return response.end(JSON.stringify(toBase(result.insertId, 62)));
+            }, function(tx, error) {
+              return response.end(JSON.stringify(error));
             });
           });
         } else if (request.method === "GET") {
