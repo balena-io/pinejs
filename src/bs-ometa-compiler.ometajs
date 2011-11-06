@@ -7,9 +7,9 @@ ometa BSOMetaParser {
   eChar          = '\\' char:c                                         -> unescape('\\' +c)
                  | char,
   tsString       = '\'' (~'\'' eChar)*:xs '\''                         -> xs.join(''),
-  characters     = '`' '`' (~('\'' '\'') eChar)*:xs '\'' '\''          -> [#App, #seq,     xs.join('').toProgramString()],
-  sCharacters    = '"'     (~'"'         eChar)*:xs '"'                -> [#App, #token,   xs.join('').toProgramString()],
-  string         = (('#' | '`') tsName | tsString):xs                  -> [#App, #exactly, xs.toProgramString()],
+  characters     = '`' '`' (~('\'' '\'') eChar)*:xs '\'' '\''          -> [#App, #seq,     inspect(xs.join(''))],
+  sCharacters    = '"'     (~'"'         eChar)*:xs '"'                -> [#App, #token,   inspect(xs.join(''))],
+  string         = (('#' | '`') tsName | tsString):xs                  -> [#App, #exactly, inspect(xs)],
   number         = <'-'? digit+>:n                                     -> [#App, #exactly, n],
   keyword :xs    = token(xs) ~letterOrDigit                            -> xs,
   args           = '(' listOf(#hostExpr, ','):xs ")"                   -> xs
@@ -82,7 +82,7 @@ ometa BSOMetaTranslator {
   Act        :expr                         -> expr,
   Pred       :expr                         -> ['this._pred(', expr, ')']                                           .join(''),
   Or         transFn*:xs                   -> ['this._or(',  xs.join(','), ')']                                    .join(''),
-  XOr        transFn*:xs                       {xs.unshift((this.name + "." + this.rName).toProgramString())}
+  XOr        transFn*:xs                       { inspect(xs.unshift((this.name + "." + this.rName))) }
                                            -> ['this._xor(', xs.join(','), ')']                                    .join(''),
   And        notLast(#trans)*:xs trans:y
              {xs.push('return ' + y)}      -> ['(function(){', xs.join(';'), '}).call(this)']                      .join(''),
@@ -105,8 +105,8 @@ ometa BSOMetaTranslator {
              {this.name = name}
              {this.sName = sName}
              trans*:rules                  -> ['var ', name, "=exports.", name, '=objectThatDelegatesTo(', sName, ',{', rules.join(','), '})'].join(''),
-  intPart  = [:mode transFn:part]          -> (mode.toProgramString()  + "," + part),
-  jtCase   = [:x trans:e]                  -> [x.toProgramString(), e],
+  intPart  = [:mode transFn:part]          -> (inspect(mode)  + "," + part),
+  jtCase   = [:x trans:e]                  -> [inspect(x), e],
   locals   = [string+:vs]                  -> ['var ', vs.join(','), ';']                                          .join('')
            | []                            -> '',
   trans    = [:t apply(t):ans]             -> ans,
@@ -114,10 +114,10 @@ ometa BSOMetaTranslator {
 }
 BSOMetaTranslator.jumpTableCode = function(cases) {
   var buf = new StringBuffer()
-  buf.nextPutAll("(function(){switch(this._apply('anything')){")
+  buf.put("(function(){switch(this._apply('anything')){")
   for (var i = 0; i < cases.length; i += 1)
-    buf.nextPutAll("case " + cases[i][0] + ":return " + cases[i][1] + ";")
-  buf.nextPutAll("default: throw fail}}).call(this)")
+    buf.put("case " + cases[i][0] + ":return " + cases[i][1] + ";")
+  buf.put("default: throw fail}}).call(this)")
   return buf.contents()
 }
 

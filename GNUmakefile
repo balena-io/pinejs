@@ -1,31 +1,23 @@
+compiledname = $(addsuffix .js, $(addprefix lib/ometajs/ometa/, \
+							 $(notdir $(basename $1))))
 
-all: lib
+SUFFIX=.ometajs
 
-src: $(patsubst %.ometajs,%.ometajs.js,$(wildcard src/*.ometajs))
-tests: $(wildcard tests/*.ometajs.js)
-	cat $@/bla.ometajs | bin/ometajs2js > $@/bla.ometajs.stdout
+all: empty-parsers $(wildcard src/*.ometajs) swap-parsers
 
-tests/%.ometajs: FORCE
-	touch $@
+empty-parsers:
+	@rm -f lib/ometajs/ometa/parsers.js.tmp
+	@rm -f lib/ometajs/ometa/parsers.js.tmp.2
 
-%.ometajs.js: %.ometajs
-	bin/ometajs2js -i $< -o $@
+swap-parsers:
+	@bin/ometajs2js -i lib/ometajs/ometa/parsers.js.tmp \
+		-o lib/ometajs/ometa/parsers.js.tmp.2
+	@uglifyjs -b -ns -nm lib/ometajs/ometa/parsers.js.tmp.2 >\
+		lib/ometajs/ometa/parsers.js
+	@rm -f lib/ometajs/ometa/parsers.js.tmp
+	@rm -f lib/ometajs/ometa/parsers.js.tmp.2
 
-lib: lib/ometajs.js
+%.ometajs:
+	@cat $@ >> lib/ometajs/ometa/parsers.js.tmp
 
-lib/ometajs.js: src
-	-rm $@
-	for i in \
-			lib.js \
-			ometa-base.js \
-			parser.js \
-			bs-js-compiler.ometajs.js \
-			bs-ometa-compiler.ometajs.js \
-			bs-ometa-optimizer.ometajs.js \
-			bs-ometa-js-compiler.ometajs.js \
-			ometajs.js \
-		; do \
-			cat $</$$i >> $@ \
-		; done
-
-.PHONY: all FORCE
+.PHONY: all
