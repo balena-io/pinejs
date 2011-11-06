@@ -1,24 +1,39 @@
-{ "name" : "ometajs"
-, "description" : "A object-oriented language for pattern matching"
-, "version" : "2.0.11"
-, "homepage" : "http://tinlizzie.org/ometa-js/"
-, "author" : "Alessandro Warth <alexwarth@gmail.com> (http://awarth.blogspot.com/)"
-, "contributors" :
-  [
+{
+  "name": "ometajs",
+  "description": "A object-oriented language for pattern matching",
+  "version": "2.1.0",
+  "homepage": "http://tinlizzie.org/ometa-js/",
+  "author": "Alessandro Warth <alexwarth@gmail.com> (http://awarth.blogspot.com/)",
+  "contributors": [
     "Sergey Berezhnoy <veged@mail.ru> (http://github.com/veged)",
     "Fedor Indutny <fedor.indutny@gmail.com> (https://github.com/indutny)"
-  ]
-, "repository" :
-  { "type" : "git"
-  , "url" : "http://github.com/veged/ometa-js.git"
-  }
-, "bugs" :
-  { "web" : "http://github.com/veged/ometa-js/issues" }
-, "main" : "./lib/ometajs"
-, "directories" : { "doc" : "./doc", "lib" : "./lib" }
-, "dependencies": { "coa": "0.2.x", "uglify-js": "1.1.x" }
-, "bin" : { "ometajs2js" : "./bin/ometajs2js" }
-, "engines" : { "node" : ">=0.2.0" }
-, "licenses" :
-  [ { "type" : "AS IS" } ]
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/veged/ometa-js.git"
+  },
+  "bugs": {
+    "url": "http://github.com/veged/ometa-js/issues"
+  },
+  "main": "./lib/ometajs",
+  "directories": {
+    "doc": "./doc",
+    "lib": "./lib"
+  },
+  "dependencies": {
+    "coa": "0.2.x",
+    "uglify-js": "1.1.x"
+  },
+  "bin": {
+    "ometajs2js": "./bin/ometajs2js"
+  },
+  "engines": {
+    "node": ">=0.2.0"
+  },
+  "licenses": [
+    {
+      "type": "AS IS"
+    }
+  ],
+  "devDependencies": {}
 }
