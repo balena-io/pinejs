@@ -69,7 +69,7 @@
       else if (code == 8 && token.string.length == 1) {stopEvent(event); close(); editor.focus();}
       else if (code != 38 && code != 40) {
         close(); editor.focus();
-        setTimeout(function(){startComplete(editor);}, 50);
+        setTimeout(function(){CodeMirror.simpleHint(editor, getHints);}, 50);
       }
     });
     connect(sel, "dblclick", pick);
