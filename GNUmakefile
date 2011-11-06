@@ -10,7 +10,7 @@ empty-parsers:
 	@rm -f lib/ometajs/ometa/parsers.js.tmp.2
 
 swap-parsers:
-	@bin/ometajs2js -i lib/ometajs/ometa/parsers.js.tmp \
+	@bin/ometajs2js --root "../../ometajs" -i lib/ometajs/ometa/parsers.js.tmp \
 		-o lib/ometajs/ometa/parsers.js.tmp.2
 	@uglifyjs -b -ns -nm lib/ometajs/ometa/parsers.js.tmp.2 >\
 		lib/ometajs/ometa/parsers.js

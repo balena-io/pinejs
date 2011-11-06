@@ -16,7 +16,7 @@
   { "web" : "http://github.com/veged/ometa-js/issues" }
 , "main" : "./lib/ometajs"
 , "directories" : { "doc" : "./doc", "lib" : "./lib" }
-, "dependencies": { "coa": "0.2.x" }
+, "dependencies": { "coa": "0.2.x", "uglify-js": "1.1.x" }
 , "bin" : { "ometajs2js" : "./bin/ometajs2js" }
 , "engines" : { "node" : ">=0.2.0" }
 , "licenses" :
