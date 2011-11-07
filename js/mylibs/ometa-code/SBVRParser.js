@@ -599,6 +599,23 @@
                 []
             ])
         },
+        "startComment": function() {
+            var $elf = this,
+                _fromIdx = this.input.idx;
+            return (function() {
+                this._applyWithArgs("exactly", "-");
+                this._applyWithArgs("exactly", "-");
+                return "--"
+            }).call(this)
+        },
+        "newComment": function() {
+            var $elf = this,
+                _fromIdx = this.input.idx;
+            return (function() {
+                this._apply("startComment");
+                return this._apply("toEOL")
+            }).call(this)
+        },
         "terminator": function() {
             var $elf = this,
                 _fromIdx = this.input.idx;
@@ -618,31 +635,37 @@
                 return this._apply("startRule")
             }), (function() {
                 return this._apply("allowedAttrs")
+            }), (function() {
+                return this._apply("startComment")
             }))
         },
         "line": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 l;
-            return (function() {
-                this._apply("spaces");
-                l = this._or((function() {
-                    return this._apply("newTerm")
-                }), (function() {
-                    return this._apply("newFactType")
-                }), (function() {
-                    return this._apply("newRule")
-                }), (function() {
-                    return this._apply("attribute")
-                }));
-                this._opt((function() {
-                    return this._apply("terminator")
-                }));
-                this._apply("clearSuggestions");
-                this._apply("spaces");
-                this["lines"].push(l);
-                return l
-            }).call(this)
+            return this._or((function() {
+                return (function() {
+                    this._apply("spaces");
+                    l = this._or((function() {
+                        return this._apply("newTerm")
+                    }), (function() {
+                        return this._apply("newFactType")
+                    }), (function() {
+                        return this._apply("newRule")
+                    }), (function() {
+                        return this._apply("attribute")
+                    }));
+                    this._opt((function() {
+                        return this._apply("terminator")
+                    }));
+                    this._apply("clearSuggestions");
+                    this._apply("spaces");
+                    this["lines"].push(l);
+                    return l
+                }).call(this)
+            }), (function() {
+                return this._apply("newComment")
+            }))
         },
         "expr": function() {
             var $elf = this,
@@ -656,7 +679,7 @@
             }).call(this)
         }
     });
-    (SBVRParser["keyTokens"] = ["startTerm", "startFactType", "startRule", "term", "modRule", "verb", "keyword", "allowedAttrs", "num"]);
+    (SBVRParser["keyTokens"] = ["startTerm", "startFactType", "startRule", "newComment", "term", "modRule", "verb", "keyword", "allowedAttrs", "num"]);
     (SBVRParser["clearSuggestions"] = (function() {}));
     (SBVRParser["initialize"] = (function() {
         this.reset()

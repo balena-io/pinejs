@@ -134,17 +134,22 @@ ometa SBVRParser {
 	allowedAttrs	= matchForAny('seq',this.possMap.allowedAttrs):attrName -> attrName.replace(':',''),
 	attrDefinition	= qTerbR([[]]),
 
+	startComment	= seq('--'),
+	newComment		= startComment toEOL,
+	
 	terminator		= spaces keyword('.',true),
 	lineStart		= startTerm
 					| startFactType
 					| startRule
-					| allowedAttrs,
-	line			= spaces (newTerm | newFactType | newRule | attribute):l terminator? clearSuggestions spaces
-						{this.lines.push(l)}							-> l,
+					| allowedAttrs
+					| startComment,
+	line			= (spaces (newTerm | newFactType | newRule | attribute):l terminator? clearSuggestions spaces
+						{this.lines.push(l)}							-> l)
+					| newComment,
 	expr			= line* end											-> this.lines
 }
 
-SBVRParser.keyTokens = ["startTerm", "startFactType", "startRule", "term", "modRule", "verb", "keyword", "allowedAttrs", "num"];
+SBVRParser.keyTokens = ["startTerm", "startFactType", "startRule", "newComment", "term", "modRule", "verb", "keyword", "allowedAttrs", "num"];
 SBVRParser.clearSuggestions = function() {}
 /**
 	Following are "instance" variables/functions rather than shared.

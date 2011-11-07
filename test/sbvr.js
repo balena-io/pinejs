@@ -14,7 +14,12 @@ var testModel = [
 		[ "term", "educational institution", [] ],
 		[ "term", "educational_institution", "educational institution", [ [ "Text", "name", "Name", [] ] ], "CREATE TABLE \"educational_institution\" (\"id\" INTEGER PRIMARY KEY AUTOINCREMENT,\"name\" TEXT)", "DROP TABLE \"educational_institution\";" ] 
 	], [
-		'F: person is enrolled in educational institution',
+		'--Test comment',
+		'Test comment',
+		'tried to apply undefined rule "T"',
+		'match failed',
+	], [
+		'F: person is enrolled in educational institution --Ignored comment',
 		[ "fcTp", [ "term", "person" ], [ "verb", "is enrolled in" ], [ "term", "educational institution" ], [] ],
 		[ "fcTp", [ "term", "person" ], [ "verb", "is enrolled in" ], [ "term", "educational institution" ], [] ],
 		[ "fcTp", "person-is_enrolled_in-educational_institution", "person is enrolled in educational_institution", [ [ "ForeignKey", "person_id", "person", [ "person", "id", "name" ] ], [ "ForeignKey", "educational_institution_id", "educational_institution", [ "educational_institution", "id", "name" ] ] ], "CREATE TABLE \"person-is_enrolled_in-educational_institution\" (\"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"person_id\" INTEGER, \"educational_institution_id\" INTEGER, FOREIGN KEY (\"person_id\") REFERENCES \"person\"(\"id\"), FOREIGN KEY (\"educational_institution_id\") REFERENCES \"educational_institution\"(\"id\"))", "DROP TABLE \"person-is_enrolled_in-educational_institution\";", [ [ "term", "person" ], [ "verb", "is enrolled in" ], [ "term", "educational institution" ] ] ]
