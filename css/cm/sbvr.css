@@ -42,3 +42,7 @@ span.cm-sbvr-num {
 span.cm-sbvr-allowedAttrs {
 	color: grey;
 }
+
+span.cm-sbvr-newComment {
+	color: grey;
+}
