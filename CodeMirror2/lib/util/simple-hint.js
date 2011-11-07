@@ -26,7 +26,7 @@
 
     // Build the select widget
     var complete = document.createElement("div");
-    complete.className = "completions";
+    complete.className = "CodeMirror-completions";
     var sel = complete.appendChild(document.createElement("select"));
     // Opera doesn't move the selection when pressing up/down in a
     // multi-select, but it does properly support the size property on
@@ -41,7 +41,6 @@
     var pos = editor.cursorCoords();
     complete.style.left = pos.x + "px";
     complete.style.top = pos.yBot + "px";
-    complete.style.position = "absolute";
     document.body.appendChild(complete);
     // Hack to hide the scrollbar.
     if (completions.length <= 10)
@@ -54,7 +53,7 @@
       complete.parentNode.removeChild(complete);
     }
     function pick() {
-      insert(completions[sel.selectedIndex]); //Changed this line to insert the actual completion rather than the text in the select element, the select element removes leading and trailing whitespace.
+      insert(completions[sel.selectedIndex]);
       close();
       setTimeout(function(){editor.focus();}, 50);
     }
@@ -65,8 +64,6 @@
       if (code == 13) {stopEvent(event); pick();} //Changed to only respond on enter as there are multi word completions.
       // Escape
       else if (code == 27) {stopEvent(event); close(); editor.focus();}
-      //Backspace
-      else if (code == 8 && token.string.length == 1) {stopEvent(event); close(); editor.focus();}
       else if (code != 38 && code != 40) {
         close(); editor.focus();
         setTimeout(function(){CodeMirror.simpleHint(editor, getHints);}, 50);
