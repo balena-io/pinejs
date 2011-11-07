@@ -20,4 +20,7 @@ swap-parsers:
 %.ometajs:
 	@cat $@ >> lib/ometajs/ometa/parsers.js.tmp
 
+test:
+	nodeunit test/unit/*-test.js
+
 .PHONY: all

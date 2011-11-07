@@ -35,5 +35,8 @@
       "type": "AS IS"
     }
   ],
+  "scripts": {
+    "test": "make -B test"
+  },
   "devDependencies": {}
 }
