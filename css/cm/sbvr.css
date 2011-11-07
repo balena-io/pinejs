@@ -1,6 +1,7 @@
 .CodeMirror {
 	font-family:monospace; /* It is required to use a monospace font for CodeMirror to work nicely. */
 	font-size: 1.5em;
+	line-height: inherit;
 	background: white;
 	border: 1px solid #ADABB3;
 }
