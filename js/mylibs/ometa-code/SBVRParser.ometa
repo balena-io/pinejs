@@ -1,5 +1,5 @@
-//require(["../js/libs/inflection.js"])
-
+requirejs(["libs/underscore-1.2.1.min", "libs/inflection"], function() {
+	requirejs(["underscore"], function(_) {
 /*
 Copyright 2011 University of Surrey
 
@@ -282,17 +282,9 @@ SBVRParser.reset = function() {
 }
 
 SBVRParser.equals = function(compareTo) {
-	if(this.possMap.verb.length != compareTo.possMap.verb.length) return false
-	for(var i = this.possMap.verb.length - 1; i >= 0; i--) {
-		//TODO: Make this a deeper check
-		if(this.possMap.verb[i].length != compareTo.possMap.verb[i].length) return false
-	}
-	for(var x in this.possMap.term) {
-		if(!compareTo.possMap.term.hasOwnProperty(x)) return false
-	}
-	for(var x in compareTo.possMap.term) {
-		if(!this.possMap.term.hasOwnProperty(x)) return false
-	}
+	if(!_.isEqual(this.possMap.term, compareTo.possMap.term)) return false
+	if(!_.isEqual(this.possMap.verb, compareTo.possMap.verb)) return false
+	if(!_.isEqual(this.fctps, compareTo.fctps)) return false
 	return true
 }
 
@@ -327,6 +319,10 @@ SBVRParser.exactly = function(wanted) {
 		return wanted
 	throw fail
 }
+
+
+	});
+});
 
 /* Comment out everything past this point
 
