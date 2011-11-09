@@ -341,8 +341,8 @@ namespace('editor', ->
 		runCommand 'git init', ->
 			runCommand 'git add .', ->
 				runCommand 'git commit -m "init"', ->
-					runCommand 'git remote add heroku git@heroku.com:rulemotion-editor.git', ->
-						runCommand 'git push heroku master -f', ->
+					runCommand 'git remote add editor git@heroku.com:rulemotion-editor.git', ->
+						runCommand 'git push editor master -f', ->
 							process.chdir(cwd)
 							complete()
 	)
@@ -374,8 +374,8 @@ namespace('server', ->
 		runCommand 'git init', ->
 			runCommand 'git add .', ->
 				runCommand 'git commit -m "init"', ->
-					runCommand 'git remote add heroku git@heroku.com:rulemotion-server.git', ->
-						runCommand 'git push heroku master -f', ->
+					runCommand 'git remote add server git@heroku.com:rulemotion-server.git', ->
+						runCommand 'git push server master -f', ->
 							process.chdir(cwd)
 							complete()
 	)
