@@ -5,6 +5,19 @@ var sbvrAutoComplete = (function () {
 		else
 			for (var i in o) f(i);
 	}
+	
+	function arrayContains(arr, item) {
+		if (!Array.prototype.indexOf) {
+			var i = arr.length;
+			while (i--) {
+				if (arr[i] === item) {
+					return true;
+				}
+			}
+			return false;
+		}
+		return arr.indexOf(item) != -1;
+	}
 	CodeMirror.sbvrHint = function(editor) {
 		var cur = editor.getCursor(false),
 			token = editor.getTokenAt(cur),
@@ -18,7 +31,7 @@ var sbvrAutoComplete = (function () {
 		}
 
 		function maybeAdd(str) {
-			if (str.toLowerCase().indexOf(start) == 0 && found.indexOf(str) == -1) found.push(whitespace+str+" ");
+			if (str.toLowerCase().indexOf(start) == 0 && !arrayContains(found, str) == -1) found.push(whitespace+str+" ");
 		}
 		
 		try {
