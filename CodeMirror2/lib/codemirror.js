@@ -27,7 +27,7 @@ var CodeMirror = (function() {
           '<div style="position: relative">' + // Moved around its parent to cover visible view
             '<div class="CodeMirror-gutter"><div class="CodeMirror-gutter-text"></div></div>' +
             // Provides positioning relative to (visible) text origin
-            '<div class="CodeMirror-lines"><div style="position: relative" draggable="true">' +
+            '<div class="CodeMirror-lines"><div style="position: relative">' +
               '<div style="position: absolute; width: 100%; height: 0; overflow: hidden; visibility: hidden"></div>' +
               '<pre class="CodeMirror-cursor">&#160;</pre>' + // Absolutely positioned blinky cursor
               '<div></div>' + // This DIV contains the actual code
@@ -39,6 +39,7 @@ var CodeMirror = (function() {
         mover = code.firstChild, gutter = mover.firstChild, gutterText = gutter.firstChild,
         lineSpace = gutter.nextSibling.firstChild, measure = lineSpace.firstChild,
         cursor = measure.nextSibling, lineDiv = cursor.nextSibling;
+    if (!webkit) lineSpace.draggable = true;
     if (options.tabindex != null) input.tabindex = options.tabindex;
     if (!options.gutter && !options.lineNumbers) gutter.style.display = "none";
 
@@ -316,7 +317,9 @@ var CodeMirror = (function() {
       if (dragAndDrop && !posEq(sel.from, sel.to) &&
           !posLess(start, sel.from) && !posLess(sel.to, start)) {
         // Let the drag handler handle this.
+        if (webkit) lineSpace.draggable = true;
         var up = connect(targetDocument, "mouseup", operation(function(e2) {
+          if (webkit) lineSpace.draggable = false;
           draggingText = false;
           up();
           if (Math.abs(e.clientX - e2.clientX) + Math.abs(e.clientY - e2.clientY) < 10) {
@@ -599,12 +602,9 @@ var CodeMirror = (function() {
         if (task < from.line) newWork.push(task);
         else if (task > to.line) newWork.push(task + lendiff);
       }
-      if (newText.length < 5) {
-        highlightLines(from.line, from.line + newText.length);
-        newWork.push(from.line + newText.length);
-      } else {
-        newWork.push(from.line);
-      }
+      var hlEnd = from.line + Math.min(newText.length, 500);
+      highlightLines(from.line, hlEnd);
+      newWork.push(hlEnd);
       work = newWork;
       startWorker(100);
       // Remember that these lines changed, for updating the display
@@ -831,62 +831,49 @@ var CodeMirror = (function() {
         showingFrom = showingTo = displayOffset = 0;
         return;
       }
-      // First create a range of theoretically intact lines, and punch
-      // holes in that using the change info.
+      // Compute the new visible window
+      var visible = visibleLines();
+      // Bail out if the visible area is already rendered and nothing changed.
+      if (changes !== true && changes.length == 0 && visible.from >= showingFrom && visible.to <= showingTo) return;
+      var from = Math.max(visible.from - 100, 0), to = Math.min(doc.size, visible.to + 100);
+      if (showingFrom < from && from - showingFrom < 20) from = showingFrom;
+      if (showingTo > to && showingTo - to < 20) to = Math.min(doc.size, showingTo);
+
+      // Create a range of theoretically intact lines, and punch holes
+      // in that using the change info.
       var intact = changes === true ? [] : [{from: showingFrom, to: showingTo, domStart: 0}];
       for (var i = 0, l = changes.length || 0; i < l; ++i) {
         var change = changes[i], intact2 = [], diff = change.diff || 0;
         for (var j = 0, l2 = intact.length; j < l2; ++j) {
           var range = intact[j];
-          if (change.to <= range.from)
-            intact2.push({from: range.from + diff, to: range.to + diff, domStart: range.domStart});
-          else if (range.to <= change.from)
+          if (change.to <= range.from && change.from >= range.to)
             intact2.push(range);
           else {
-            if (change.from > range.from)
+            if (change.to > range.from)
               intact2.push({from: range.from, to: change.from, domStart: range.domStart});
-            if (change.to < range.to)
+            if (change.from < range.to)
               intact2.push({from: change.to + diff, to: range.to + diff,
                             domStart: range.domStart + (change.to - range.from)});
           }
         }
         intact = intact2;
       }
-
-      // Then, determine which lines we'd want to see, and which
-      // updates have to be made to get there.
-      var visible = visibleLines();
-      var from = Math.min(showingFrom, Math.max(visible.from - 3, 0)),
-          to = Math.min(doc.size, Math.max(showingTo, visible.to + 3)),
-          updates = [], domPos = 0, domEnd = showingTo - showingFrom, pos = from, changedLines = 0;
-
-      for (var i = 0, l = intact.length; i < l; ++i) {
+      // Clip off the parts that won't be visible
+      for (var i = 0; i < intact.length; ++i) {
         var range = intact[i];
-        if (range.to <= from) continue;
-        if (range.from >= to) break;
-        if (range.domStart > domPos || range.from > pos) {
-          updates.push({from: pos, to: range.from, domSize: range.domStart - domPos, domStart: domPos});
-          changedLines += range.from - pos;
-        }
-        pos = range.to;
-        domPos = range.domStart + (range.to - range.from);
+        if (range.from < from) {range.domStart += (from - range.from); range.from = from;}
+        if (range.to > to) range.to = to;
+        if (range.from >= range.to) intact.splice(i--, 1);
       }
-      if (domPos != domEnd || pos != to) {
-        changedLines += Math.abs(to - pos);
-        updates.push({from: pos, to: to, domSize: domEnd - domPos, domStart: domPos});
-        if (to - pos != domEnd - domPos) gutterDirty = true;
-      }
+      intact.sort(function(a, b) {return a.domStart - b.domStart;});
 
-      if (!updates.length) return;
-      var th = textHeight();
-      lineDiv.style.display = "none";
-      // If more than 30% of the screen needs update, just do a full
-      // redraw (which is quicker than patching)
-      if (changedLines > (visible.to - visible.from) * .3)
-        refreshDisplay(from = Math.max(visible.from - 10, 0), to = Math.min(visible.to + 7, doc.size));
-      // Otherwise, only update the stuff that needs updating.
-      else
-        patchDisplay(updates);
+      var intactLines = 0;
+      for (var i = 0, l = intact.length; i < l; ++i) intactLines += intact[i].to - intact[i].from;
+      if (intactLines == to - from) return;
+
+      var th = textHeight(), gutterDisplay = gutter.style.display;
+      lineDiv.style.display = gutter.style.display = "none";
+      patchDisplay(from, to, intact);
       lineDiv.style.display = "";
 
       // Position the mover div to align with the lines it's supposed
@@ -901,7 +888,7 @@ var CodeMirror = (function() {
       // Since this is all rather error prone, it is honoured with the
       // only assertion in the whole file.
       if (lineDiv.childNodes.length != showingTo - showingFrom)
-        throw new Error("BAD PATCH! " + JSON.stringify(updates) + " size=" + (showingTo - showingFrom) +
+        throw new Error("BAD PATCH! " + JSON.stringify(intact) + " size=" + (showingTo - showingFrom) +
                         " nodes=" + lineDiv.childNodes.length);
 
       if (options.lineWrapping) {
@@ -925,74 +912,46 @@ var CodeMirror = (function() {
           lineSpace.style.width = code.style.width = "";
         }
       }
+      gutter.style.display = gutterDisplay;
       if (different || gutterDirty) updateGutter();
-
       updateCursor();
     }
 
-    function refreshDisplay(from, to) {
-      var start = {line: from, ch: 0}, inSel = posLess(sel.from, start) && !posLess(sel.to, start);
-      var i = from, html = [];
+    function patchDisplay(from, to, intact) {
+      // The first pass removes the DOM nodes that aren't intact.
+      if (!intact.length) lineDiv.innerHTML = "";
+      else {
+        var domPos = 0, curNode = lineDiv.firstChild, n;
+        for (var i = 0; i < intact.length; ++i) {
+          var cur = intact[i];
+          while (cur.domStart > domPos) {curNode = killNode(curNode); domPos++;}
+          for (var j = 0, e = cur.to - cur.from; j < e; ++j) {curNode = curNode.nextSibling; domPos++;}
+        }
+        while (curNode) curNode = killNode(curNode);
+      }
+      // This pass fills in the lines that actually changed.
+      var nextIntact = intact.shift(), curNode = lineDiv.firstChild, j = from;
+      var sfrom = sel.from.line, sto = sel.to.line, inSel = sfrom < from && sto >= from;
+      var scratch = targetDocument.createElement("div"), newElt;
       doc.iter(from, to, function(line) {
         var ch1 = null, ch2 = null;
         if (inSel) {
           ch1 = 0;
-          if (sel.to.line == i) {inSel = false; ch2 = sel.to.ch;}
-        }
-        else if (sel.from.line == i) {
-          if (sel.to.line == i) {ch1 = sel.from.ch; ch2 = sel.to.ch;}
+          if (sto == j) {inSel = false; ch2 = sel.to.ch;}
+        } else if (sfrom == j) {
+          if (sto == j) {ch1 = sel.from.ch; ch2 = sel.to.ch;}
           else {inSel = true; ch1 = sel.from.ch;}
         }
-        if (line.hidden) html.push("<pre></pre>");
-        else html.push(line.getHTML(ch1, ch2, true));
-        ++i;
-      });
-      lineDiv.innerHTML = html.join("");
-    }
-    function patchDisplay(updates) {
-      // Slightly different algorithm for IE (badInnerHTML), since
-      // there .innerHTML on PRE nodes is dumb, and discards
-      // whitespace.
-      var sfrom = sel.from.line, sto = sel.to.line, off = 0,
-          scratch = badInnerHTML && targetDocument.createElement("div");
-      for (var i = 0, e = updates.length; i < e; ++i) {
-        var rec = updates[i];
-        var extra = (rec.to - rec.from) - rec.domSize;
-        var nodeAfter = lineDiv.childNodes[rec.domStart + rec.domSize + off] || null;
-        if (badInnerHTML)
-          for (var j = Math.max(-extra, rec.domSize); j > 0; --j)
-            lineDiv.removeChild(nodeAfter ? nodeAfter.previousSibling : lineDiv.lastChild);
-        else if (extra) {
-          for (var j = Math.max(0, extra); j > 0; --j)
-            lineDiv.insertBefore(targetDocument.createElement("pre"), nodeAfter);
-          for (var j = Math.max(0, -extra); j > 0; --j)
-            lineDiv.removeChild(nodeAfter ? nodeAfter.previousSibling : lineDiv.lastChild);
+        if (nextIntact && nextIntact.to == j) nextIntact = intact.shift();
+        if (!nextIntact || nextIntact.from > j) {
+          if (line.hidden) scratch.innerHTML = "<pre></pre>";
+          else scratch.innerHTML = line.getHTML(ch1, ch2, true);
+          lineDiv.insertBefore(scratch.firstChild, curNode);
+        } else {
+          curNode = curNode.nextSibling;
         }
-        var node = lineDiv.childNodes[rec.domStart + off], inSel = sfrom < rec.from && sto >= rec.from;
-        var j = rec.from;
-        doc.iter(rec.from, rec.to, function(line) {
-          var ch1 = null, ch2 = null;
-          if (inSel) {
-            ch1 = 0;
-            if (sto == j) {inSel = false; ch2 = sel.to.ch;}
-          } else if (sfrom == j) {
-            if (sto == j) {ch1 = sel.from.ch; ch2 = sel.to.ch;}
-            else {inSel = true; ch1 = sel.from.ch;}
-          }
-          if (badInnerHTML) {
-            if (line.hidden) scratch.innerHTML = "<pre></pre>";
-            else scratch.innerHTML = line.getHTML(ch1, ch2, true);
-            lineDiv.insertBefore(scratch.firstChild, nodeAfter);
-          } else {
-            if (line.hidden) node.innerHTML = "";
-            else node.innerHTML = line.getHTML(ch1, ch2, false);
-            node.className = line.className || "";
-            node = node.nextSibling;
-          }
-          ++j;
-        });
-        off += extra;
-      }
+        ++j;
+      });
     }
 
     function updateGutter() {
@@ -1391,20 +1350,29 @@ var CodeMirror = (function() {
       // Include extra text at the end to make sure the measured line is wrapped in the right way.
       if (options.lineWrapping) {
         var end = line.text.indexOf(" ", ch + 2);
-        extra = line.text.slice(ch + 1, end < 0 ? line.text.length : end);
+        extra = line.text.slice(ch + 1, end < 0 ? line.text.length : end + (ie ? 5 : 0));
       }
       measure.innerHTML = "<pre>" + line.getHTML(null, null, false, ch) +
         '<span id="CodeMirror-temp">' + (line.text.charAt(ch) || " ") + "</span>" +
         extra + "</pre>";
-      return document.getElementById("CodeMirror-temp");
+      var elt = document.getElementById("CodeMirror-temp");
+      var top = elt.offsetTop, left = elt.offsetLeft;
+      // Older IEs report zero offsets for spans directly after a wrap
+      if (ie && ch && top == 0 && left == 0) {
+        var backup = document.createElement("span");
+        backup.innerHTML = "x";
+        elt.parentNode.insertBefore(backup, elt.nextSibling);
+        top = backup.offsetTop;
+      }
+      return {top: top, left: left};
     }
     function localCoords(pos, inLineWrap) {
       var x, lh = textHeight(), y = lh * (heightAtLine(doc, pos.line) - (inLineWrap ? displayOffset : 0));
       if (pos.ch == 0) x = 0;
       else {
         var sp = measureLine(getLine(pos.line), pos.ch);
-        x = sp.offsetLeft;
-        if (options.lineWrapping) y += Math.max(0, sp.offsetTop);
+        x = sp.left;
+        if (options.lineWrapping) y += Math.max(0, sp.top);
       }
       return {x: x, y: y, yBot: y + lh};
     }
@@ -1420,10 +1388,10 @@ var CodeMirror = (function() {
       function getX(len) {
         var sp = measureLine(lineObj, len);
         if (tw) {
-          var off = Math.round(sp.offsetTop / th);
-          return Math.max(0, sp.offsetLeft + (off - innerOff) * scroller.clientWidth);
+          var off = Math.round(sp.top / th);
+          return Math.max(0, sp.left + (off - innerOff) * scroller.clientWidth);
         }
-        return sp.offsetLeft;
+        return sp.left;
       }
       var from = 0, fromX = 0, to = text.length, toX;
       // Guess a suitable upper bound for our search.
@@ -1593,7 +1561,7 @@ var CodeMirror = (function() {
         line.highlight(mode, state);
         line.stateAfter = copyState(mode, state);
       });
-      changes.push({from: start, to: n});
+      if (start < n) changes.push({from: start, to: n});
       if (n < doc.size && !getLine(n).stateAfter) work.push(n);
       return state;
     }
@@ -2511,13 +2479,6 @@ var CodeMirror = (function() {
   function Delayed() {this.id = null;}
   Delayed.prototype = {set: function(ms, f) {clearTimeout(this.id); this.id = setTimeout(f, ms);}};
 
-  // Some IE versions don't preserve whitespace when setting the
-  // innerHTML of a PRE tag.
-  var badInnerHTML = function() {
-    var pre = document.createElement("pre");
-    pre.innerHTML = " "; return !pre.innerHTML;
-  }();
-
   // Detect drag-and-drop
   var dragAndDrop = function() {
     // IE8 has ondragstart and ondrop properties, but doesn't seem to
@@ -2529,7 +2490,7 @@ var CodeMirror = (function() {
 
   var gecko = /gecko\/\d{7}/i.test(navigator.userAgent);
   var ie = /MSIE \d/.test(navigator.userAgent);
-  var safari = /Apple Computer/.test(navigator.vendor);
+  var webkit = /WebKit\//.test(navigator.userAgent);
 
   var lineSep = "\n";
   // Feature-detect whether newlines in textareas are converted to \r\n
@@ -2596,6 +2557,12 @@ var CodeMirror = (function() {
     return node.textContent || node.innerText || node.nodeValue || "";
   }
 
+  function killNode(node) {
+    var tmp = node.nextSibling;
+    node.parentNode.removeChild(node);
+    return tmp;
+  }
+
   // Operations on {line, ch} objects.
   function posEq(a, b) {return a.line == b.line && a.ch == b.ch;}
   function posLess(a, b) {return a.line < b.line || (a.line == b.line && a.ch < b.ch);}
@@ -2654,7 +2621,7 @@ var CodeMirror = (function() {
       try {return {start: te.selectionStart, end: te.selectionEnd};}
       catch(e) {return null;}
     };
-    if (safari)
+    if (webkit)
       // On Safari, selection set with setSelectionRange are in a sort
       // of limbo wrt their anchor. If you press shift-left in them,
       // the anchor is put at the end, and the selection expanded to

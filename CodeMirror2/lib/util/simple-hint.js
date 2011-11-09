@@ -61,12 +61,12 @@
     connect(sel, "keydown", function(event) {
       var code = event.keyCode;
       // Enter
-      if (code == 13) {stopEvent(event); pick();} //Changed to only respond on enter as there are multi word completions.
+      if (code == 13) {stopEvent(event); pick();}
       // Escape
       else if (code == 27) {stopEvent(event); close(); editor.focus();}
       else if (code != 38 && code != 40) {
         close(); editor.focus();
-        setTimeout(function(){CodeMirror.simpleHint(editor, getHints);}, 75);
+        setTimeout(function(){CodeMirror.simpleHint(editor, getHints);}, 50);
       }
     });
     connect(sel, "dblclick", pick);
