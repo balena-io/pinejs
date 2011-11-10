@@ -31,7 +31,7 @@ var sbvrAutoComplete = (function () {
 		}
 
 		function maybeAdd(str) {
-			if (str.toLowerCase().indexOf(start) == 0 && !arrayContains(found, str) == -1) found.push(whitespace+str+" ");
+			if (str.toLowerCase().indexOf(start) == 0 && !arrayContains(found, str)) found.push(whitespace+str+" ");
 		}
 		
 		try {
