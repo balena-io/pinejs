@@ -841,35 +841,19 @@ var CodeMirror = (function() {
 
       // Create a range of theoretically intact lines, and punch holes
       // in that using the change info.
-      var intact = changes === true ? [] : [{from: showingFrom, to: showingTo, domStart: 0}];
-      for (var i = 0, l = changes.length || 0; i < l; ++i) {
-        var change = changes[i], intact2 = [], diff = change.diff || 0;
-        for (var j = 0, l2 = intact.length; j < l2; ++j) {
-          var range = intact[j];
-          if (change.to <= range.from && change.from >= range.to)
-            intact2.push(range);
-          else {
-            if (change.to > range.from)
-              intact2.push({from: range.from, to: change.from, domStart: range.domStart});
-            if (change.from < range.to)
-              intact2.push({from: change.to + diff, to: range.to + diff,
-                            domStart: range.domStart + (change.to - range.from)});
-          }
-        }
-        intact = intact2;
-      }
+      var intact = changes === true ? [] :
+        computeIntact([{from: showingFrom, to: showingTo, domStart: 0}], changes);
       // Clip off the parts that won't be visible
+      var intactLines = 0;
       for (var i = 0; i < intact.length; ++i) {
         var range = intact[i];
         if (range.from < from) {range.domStart += (from - range.from); range.from = from;}
         if (range.to > to) range.to = to;
         if (range.from >= range.to) intact.splice(i--, 1);
+        else intactLines += range.to - range.from;
       }
-      intact.sort(function(a, b) {return a.domStart - b.domStart;});
-
-      var intactLines = 0;
-      for (var i = 0, l = intact.length; i < l; ++i) intactLines += intact[i].to - intact[i].from;
       if (intactLines == to - from) return;
+      intact.sort(function(a, b) {return a.domStart - b.domStart;});
 
       var th = textHeight(), gutterDisplay = gutter.style.display;
       lineDiv.style.display = gutter.style.display = "none";
@@ -917,10 +901,35 @@ var CodeMirror = (function() {
       updateCursor();
     }
 
+    function computeIntact(intact, changes) {
+      for (var i = 0, l = changes.length || 0; i < l; ++i) {
+        var change = changes[i], intact2 = [], diff = change.diff || 0;
+        for (var j = 0, l2 = intact.length; j < l2; ++j) {
+          var range = intact[j];
+          if (change.to <= range.from || change.from >= range.to)
+            intact2.push(range);
+          else {
+            if (change.from > range.from)
+              intact2.push({from: range.from, to: change.from, domStart: range.domStart});
+            if (change.to < range.to)
+              intact2.push({from: change.to + diff, to: range.to + diff,
+                            domStart: range.domStart + (change.to - range.from)});
+          }
+        }
+        intact = intact2;
+      }
+      return intact;
+    }
+
     function patchDisplay(from, to, intact) {
       // The first pass removes the DOM nodes that aren't intact.
       if (!intact.length) lineDiv.innerHTML = "";
       else {
+        function killNode(node) {
+          var tmp = node.nextSibling;
+          node.parentNode.removeChild(node);
+          return tmp;
+        }
         var domPos = 0, curNode = lineDiv.firstChild, n;
         for (var i = 0; i < intact.length; ++i) {
           var cur = intact[i];
@@ -2546,28 +2555,26 @@ var CodeMirror = (function() {
   }
   // Use the faster and saner getBoundingClientRect method when possible.
   if (document.documentElement.getBoundingClientRect != null) eltOffset = function(node, screen) {
-	var t, box;
     // Take the parts of bounding client rect that we are interested in so we are able to edit if need be,
-	// since the returned value cannot be changed externally (they are kept in sync as the element moves within the page)
-    try { box = node.getBoundingClientRect(); box = { top: box.top, left: box.left }; }
+    // since the returned value cannot be changed externally (they are kept in sync as the element moves within the page)
+    try { var box = node.getBoundingClientRect(); box = { top: box.top, left: box.left }; }
     catch(e) { box = {top: 0, left: 0}; }
     if (!screen) {
-		//Get the amount scrolled in a method that works more reliably
-		box.top += window.pageYOffset || (((t = document.documentElement) || (t = document.body.parentNode)) && typeof t.scrollTop == 'number' ? t : document.body).scrollTop;
-		box.left += window.pageXOffset || (((t = document.documentElement) || (t = document.body.parentNode)) && typeof t.scrollLeft == 'number' ? t : document.body).scrollLeft;
-	}
+      // Get the toplevel scroll, working around browser differences.
+      if (window.pageYOffset == null) {
+        var t = document.documentElement || document.body.parentNode;
+        if (t.scrollTop == null) t = document.body;
+        box.top += t.scrollTop; box.left += t.scrollLeft;
+      } else {
+        box.top += window.pageYOffset; box.left += window.pageXOffset;
+      }
+    }
     return box;
   };
 
   // Get a node's text content.
   function eltText(node) {
     return node.textContent || node.innerText || node.nodeValue || "";
-  }
-
-  function killNode(node) {
-    var tmp = node.nextSibling;
-    node.parentNode.removeChild(node);
-    return tmp;
   }
 
   // Operations on {line, ch} objects.
