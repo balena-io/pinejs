@@ -1,5 +1,9 @@
 (function() {
-  var addInst, createFactTypeForm, createHiddenInputs, delInst, drawData, editInst, filtmerge, getBranch, getPid, getTarg, processForm, serverAPI, uidraw;
+  var addInst, createFactTypeForm, createHiddenInputs, delInst, drawData, editInst, filtmerge, getBranch, getPid, getTarg, processForm, serverAPI, uidraw, widgets;
+  widgets = {};
+  requirejs(['mylibs/widgets/inputText'], function(inputText) {
+    return widgets.inputText = inputText;
+  });
   getBranch = function(branch, loc) {
     var childIndex, _i, _len;
     for (_i = 0, _len = loc.length; _i < _len; _i++) {
@@ -414,7 +418,7 @@
                 currSchema = schema[_p];
                 switch (currSchema[0]) {
                   case "Text":
-                    res += currSchema[2] + ": <input type='text' id='" + currSchema[1] + "' /><br />";
+                    res += currSchema[2] + ": " + widgets.inputText(currSchema[1]) + "<br />";
                     break;
                   case "ForeignKey":
                     alert(currSchema);
@@ -473,7 +477,7 @@
                   currSchema = schema[_s];
                   switch (currSchema[0]) {
                     case "Text":
-                      res += currSchema[2] + ": <input type='text' id='" + currSchema[1] + "' value = '" + result.instances[0][currSchema[1]] + "' /><br />";
+                      res += currSchema[2] + ": " + widgets.inputText(currSchema[1], result.instances[0][currSchema[1]]) + " /><br />";
                       break;
                     case "ForeignKey":
                       console.log(currSchema);

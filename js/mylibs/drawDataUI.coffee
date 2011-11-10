@@ -1,3 +1,8 @@
+widgets = {}
+requirejs(['mylibs/widgets/inputText'], (inputText) ->
+	widgets.inputText = inputText
+)
+	
 getBranch = (branch, loc) ->
 	for childIndex in loc
 		branch = branch[childIndex + 2]
@@ -322,7 +327,7 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 						for currSchema in schema
 							switch currSchema[0]
 								when "Text"
-									res += currSchema[2] + ": <input type='text' id='" + currSchema[1] + "' /><br />"
+									res += currSchema[2] + ": " + widgets.inputText(currSchema[1]) + "<br />"
 								when "ForeignKey"
 									alert currSchema
 						res += "<input type='submit' value='Submit This' onClick='processForm(this.parentNode);return false;'>"
@@ -364,7 +369,7 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 							for currSchema in schema
 								switch currSchema[0]
 									when "Text"
-										res += currSchema[2] + ": <input type='text' id='" + currSchema[1] + "' value = '" + result.instances[0][currSchema[1]] + "' /><br />"
+										res += currSchema[2] + ": " + widgets.inputText(currSchema[1], result.instances[0][currSchema[1]]) + " /><br />"
 									when "ForeignKey"
 										console.log currSchema
 							res += "<div align='right'>"
