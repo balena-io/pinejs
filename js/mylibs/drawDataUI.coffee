@@ -508,12 +508,11 @@ filtmerge = (branch, fltrs) ->
 	rootURI = "/data/" + branch[1][0]
 	#filter -> API uri processing
 	#append uri filters
-	filters =
-		for leaf in branch[2][1..]
-			if leaf[0] == "filt"
-				if leaf[1][1][0] == undefined
-					leaf[1][1] = branch[1][0]
-			leaf[1]
+	for leaf in branch[2][1..]
+		if leaf[0] == "filt"
+			if leaf[1][1][0] == undefined
+				leaf[1][1] = branch[1][0]
+			filters.push(leaf[1])
 	return filters
 
 

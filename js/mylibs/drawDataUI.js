@@ -639,24 +639,19 @@
     return false;
   };
   filtmerge = function(branch, fltrs) {
-    var filters, leaf, rootURI;
+    var filters, leaf, rootURI, _i, _len, _ref;
     filters = jQuery.extend(true, [], fltrs);
     rootURI = "/data/" + branch[1][0];
-    filters = (function() {
-      var _i, _len, _ref, _results;
-      _ref = branch[2].slice(1);
-      _results = [];
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        leaf = _ref[_i];
-        if (leaf[0] === "filt") {
-          if (leaf[1][1][0] === void 0) {
-            leaf[1][1] = branch[1][0];
-          }
+    _ref = branch[2].slice(1);
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      leaf = _ref[_i];
+      if (leaf[0] === "filt") {
+        if (leaf[1][1][0] === void 0) {
+          leaf[1][1] = branch[1][0];
         }
-        _results.push(leaf[1]);
+        filters.push(leaf[1]);
       }
-      return _results;
-    })();
+    }
     return filters;
   };
   window.drawData = drawData;
