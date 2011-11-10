@@ -176,7 +176,7 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 
 					for currBranch, j in parent.branch[3..]
 						if currBranch[0] == "ins" and currBranch[1][0] == parent.about and currBranch[1][1] != undefined and currBranch[1][1] in [instance.id, instance.name]
-							launch = j
+							launch = j + 3
 							#find action.
 							for currBranchType in currBranch[2][1..] when currBranchType[0] in ["edit","del"]
 								actn = currBranchType[0]
@@ -233,10 +233,9 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 				posl = parent.targ + "/" + parent.about
 
 				for currBranch, j in parent.branch[3..]
-					currBranch = parent.branch[j]
 					if currBranch[0] == "ins" and currBranch[1][0] == parent.about and currBranch[1][1] == undefined
 						for currBranchType in currBranch[2] when currBranchType[0] == "add"
-							locn = parent.loc.concat([ j - 2 ])
+							locn = parent.loc.concat([ j + 1 ])
 							uid = new uidraw(parent.rows + 1 + ++parent.addsout, parent, "<tr><td>", "</td></tr>", rootURI, [], [], parent.filters, locn, not parent.even, parent.ftree, cmod)
 							uid.subRowIn()
 							break

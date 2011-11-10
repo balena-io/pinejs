@@ -226,7 +226,7 @@
             for (j = 0, _len7 = _ref7.length; j < _len7; j++) {
               currBranch = _ref7[j];
               if (currBranch[0] === "ins" && currBranch[1][0] === parent.about && currBranch[1][1] !== void 0 && ((_ref8 = currBranch[1][1]) === instance.id || _ref8 === instance.name)) {
-                launch = j;
+                launch = j + 3;
                 _ref9 = currBranch[2].slice(1);
                 for (_n = 0, _len8 = _ref9.length; _n < _len8; _n++) {
                   currBranchType = _ref9[_n];
@@ -296,13 +296,12 @@
           _ref12 = parent.branch.slice(3);
           for (j = 0, _len10 = _ref12.length; j < _len10; j++) {
             currBranch = _ref12[j];
-            currBranch = parent.branch[j];
             if (currBranch[0] === "ins" && currBranch[1][0] === parent.about && currBranch[1][1] === void 0) {
               _ref13 = currBranch[2];
               for (_p = 0, _len11 = _ref13.length; _p < _len11; _p++) {
                 currBranchType = _ref13[_p];
                 if (currBranchType[0] === "add") {
-                  locn = parent.loc.concat([j - 2]);
+                  locn = parent.loc.concat([j + 1]);
                   uid = new uidraw(parent.rows + 1 + ++parent.addsout, parent, "<tr><td>", "</td></tr>", rootURI, [], [], parent.filters, locn, !parent.even, parent.ftree, cmod);
                   uid.subRowIn();
                   break;
