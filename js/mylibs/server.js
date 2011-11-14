@@ -564,24 +564,24 @@
       return db.transaction((function(tx) {
         return tx.executeSql('SELECT * FROM "lock-belongs_to-transaction" WHERE "transaction_id" = ?;', [id], function(tx, locks) {
           return endLock(tx, locks, 0, id, successCallback, failureCallback);
-        });
-      }), function(error) {
-        return db.transaction(function(tx) {
-          return tx.executeSql('SELECT * FROM "lock-belongs_to-transaction" WHERE "transaction_id" = ?;', [id], function(tx, locks) {
-            var i, lock_id, _ref;
-            for (i = 0, _ref = locks.rows.length; 0 <= _ref ? i < _ref : i > _ref; 0 <= _ref ? i++ : i--) {
-              lock_id = locks.rows.item(i).lock_id;
-              tx.executeSql('DELETE FROM "conditional_representation" WHERE "lock_id" = ?;', [lock_id]);
-              tx.executeSql('DELETE FROM "lock-is_exclusive" WHERE "lock_id" = ?;', [lock_id]);
-              tx.executeSql('DELETE FROM "lock-is_shared" WHERE "lock_id" = ?;', [lock_id]);
-              tx.executeSql('DELETE FROM "resource-is_under-lock" WHERE "lock_id" = ?;', [lock_id]);
-              tx.executeSql('DELETE FROM "lock-belongs_to-transaction" WHERE "lock_id" = ?;', [lock_id]);
-              tx.executeSql('DELETE FROM "lock" WHERE "id" = ?;', [lock_id]);
-            }
-            return tx.executeSql('DELETE FROM "transaction" WHERE "id" = ?;', [lock_id]);
+        }, function(error) {
+          return db.transaction(function(tx) {
+            return tx.executeSql('SELECT * FROM "lock-belongs_to-transaction" WHERE "transaction_id" = ?;', [id], function(tx, locks) {
+              var i, lock_id, _ref;
+              for (i = 0, _ref = locks.rows.length; 0 <= _ref ? i < _ref : i > _ref; 0 <= _ref ? i++ : i--) {
+                lock_id = locks.rows.item(i).lock_id;
+                tx.executeSql('DELETE FROM "conditional_representation" WHERE "lock_id" = ?;', [lock_id]);
+                tx.executeSql('DELETE FROM "lock-is_exclusive" WHERE "lock_id" = ?;', [lock_id]);
+                tx.executeSql('DELETE FROM "lock-is_shared" WHERE "lock_id" = ?;', [lock_id]);
+                tx.executeSql('DELETE FROM "resource-is_under-lock" WHERE "lock_id" = ?;', [lock_id]);
+                tx.executeSql('DELETE FROM "lock-belongs_to-transaction" WHERE "lock_id" = ?;', [lock_id]);
+                tx.executeSql('DELETE FROM "lock" WHERE "id" = ?;', [lock_id]);
+              }
+              return tx.executeSql('DELETE FROM "transaction" WHERE "id" = ?;', [lock_id]);
+            });
           });
         });
-      });
+      }));
     } else {
       bd = JSON.parse(body);
       fields = [];

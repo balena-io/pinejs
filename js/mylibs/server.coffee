@@ -442,19 +442,20 @@ dataplusPOST = (tree, headers, body, successCallback, failureCallback) ->
 		db.transaction ((tx) ->
 			tx.executeSql 'SELECT * FROM "lock-belongs_to-transaction" WHERE "transaction_id" = ?;', [id], (tx, locks) ->
 				endLock tx, locks, 0, id, successCallback, failureCallback
-		), (error) ->
-			db.transaction (tx) ->
-				tx.executeSql 'SELECT * FROM "lock-belongs_to-transaction" WHERE "transaction_id" = ?;', [id], (tx, locks) ->
-					#for each lock, do cleanup
-					for i in [0...locks.rows.length]
-						lock_id = locks.rows.item(i).lock_id
-						tx.executeSql 'DELETE FROM "conditional_representation" WHERE "lock_id" = ?;', [lock_id]
-						tx.executeSql 'DELETE FROM "lock-is_exclusive" WHERE "lock_id" = ?;', [lock_id]
-						tx.executeSql 'DELETE FROM "lock-is_shared" WHERE "lock_id" = ?;', [lock_id]
-						tx.executeSql 'DELETE FROM "resource-is_under-lock" WHERE "lock_id" = ?;', [lock_id]
-						tx.executeSql 'DELETE FROM "lock-belongs_to-transaction" WHERE "lock_id" = ?;', [lock_id]
-						tx.executeSql 'DELETE FROM "lock" WHERE "id" = ?;', [lock_id]
-					tx.executeSql 'DELETE FROM "transaction" WHERE "id" = ?;', [lock_id]
+			, (error) ->
+				db.transaction (tx) ->
+					tx.executeSql 'SELECT * FROM "lock-belongs_to-transaction" WHERE "transaction_id" = ?;', [id], (tx, locks) ->
+						#for each lock, do cleanup
+						for i in [0...locks.rows.length]
+							lock_id = locks.rows.item(i).lock_id
+							tx.executeSql 'DELETE FROM "conditional_representation" WHERE "lock_id" = ?;', [lock_id]
+							tx.executeSql 'DELETE FROM "lock-is_exclusive" WHERE "lock_id" = ?;', [lock_id]
+							tx.executeSql 'DELETE FROM "lock-is_shared" WHERE "lock_id" = ?;', [lock_id]
+							tx.executeSql 'DELETE FROM "resource-is_under-lock" WHERE "lock_id" = ?;', [lock_id]
+							tx.executeSql 'DELETE FROM "lock-belongs_to-transaction" WHERE "lock_id" = ?;', [lock_id]
+							tx.executeSql 'DELETE FROM "lock" WHERE "id" = ?;', [lock_id]
+						tx.executeSql 'DELETE FROM "transaction" WHERE "id" = ?;', [lock_id]
+		)
 	else
 		bd = JSON.parse(body)
 		fields = []
