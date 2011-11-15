@@ -14,25 +14,31 @@
           lockCount = 0;
           data = [];
           callback = function(op, cr_uri, o) {
-            var dataElement, _i, _len;
+            var i, nextLoopCallback;
             if (o == null) {
               o = {};
             }
             data.push([op, cr_uri, o]);
             if (data.length === lockCount) {
-              for (_i = 0, _len = data.length; _i < _len; _i++) {
-                dataElement = data[_i];
-                switch (dataElement[0]) {
-                  case "del":
-                    serverRequest("DELETE", dataElement[1]);
-                    break;
-                  case "edit":
-                    serverRequest("PUT", dataElement[1], [], JSON.stringify(dataElement[2]));
+              i = 0;
+              nextLoopCallback = function() {
+                var dataElement;
+                if (i < data.length) {
+                  dataElement = data[i];
+                  i++;
+                  switch (dataElement[0]) {
+                    case "del":
+                      return serverRequest("DELETE", dataElement[1], [], "", nextLoopCallback);
+                    case "edit":
+                      return serverRequest("PUT", dataElement[1], [], JSON.stringify(dataElement[2]), nextLoopCallback);
+                  }
+                } else {
+                  return serverRequest("POST", trans.ctURI, [], "", function(statusCode, result, headers) {
+                    return location.hash = "#!/data/";
+                  });
                 }
-              }
-              return serverRequest("POST", trans.ctURI, [], "", function(statusCode, result, headers) {
-                return location.hash = "#!/data/";
-              });
+              };
+              return nextLoopCallback();
             }
           };
           $(".action").each(function(index) {

@@ -11,14 +11,20 @@ runTrans = (rootElement) ->
 				callback = (op, cr_uri, o = {}) ->
 					data.push [ op, cr_uri, o ]
 					if data.length == lockCount
-						for dataElement in data
-							switch dataElement[0]
-								when "del"
-									serverRequest "DELETE", dataElement[1]
-								when "edit"
-									serverRequest "PUT", dataElement[1], [], JSON.stringify(dataElement[2])
-						serverRequest "POST", trans.ctURI, [], "", (statusCode, result, headers) ->
-							location.hash = "#!/data/"
+						i = 0
+						nextLoopCallback = ->
+							if i < data.length
+								dataElement = data[i]
+								i++
+								switch dataElement[0]
+									when "del"
+										serverRequest "DELETE", dataElement[1], [], "", nextLoopCallback
+									when "edit"
+										serverRequest "PUT", dataElement[1], [], JSON.stringify(dataElement[2]), nextLoopCallback
+							else
+								serverRequest "POST", trans.ctURI, [], "", (statusCode, result, headers) ->
+									location.hash = "#!/data/"
+						nextLoopCallback()
 				
 				#find and lock relevant resources (l,t-l,r-l)
 				$(".action").each((index) ->
