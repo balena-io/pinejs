@@ -660,7 +660,7 @@ executeTasync = (tx, trnmod, successCallback, failureCallback, result) ->
 		tx.executeSql 'ALTER TABLE "conditional_representation" ADD COLUMN field_name TEXT'
 		tx.executeSql 'ALTER TABLE "conditional_representation" ADD COLUMN field_value TEXT'
 		tx.executeSql 'ALTER TABLE "conditional_representation" ADD COLUMN field_type TEXT'
-		tx.executeSql 'ALTER TABLE "conditional_representation" ADD COLUMN lock_id TEXT'
+		tx.executeSql 'ALTER TABLE "conditional_representation" ADD COLUMN lock_id INTEGER'
 		successCallback tx, trnmod, failureCallback, result
 	), ((errors) ->
 		serverModelCache.setModelAreaDisabled false

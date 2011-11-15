@@ -844,7 +844,7 @@
       tx.executeSql('ALTER TABLE "conditional_representation" ADD COLUMN field_name TEXT');
       tx.executeSql('ALTER TABLE "conditional_representation" ADD COLUMN field_value TEXT');
       tx.executeSql('ALTER TABLE "conditional_representation" ADD COLUMN field_type TEXT');
-      tx.executeSql('ALTER TABLE "conditional_representation" ADD COLUMN lock_id TEXT');
+      tx.executeSql('ALTER TABLE "conditional_representation" ADD COLUMN lock_id INTEGER');
       return successCallback(tx, trnmod, failureCallback, result);
     }), (function(errors) {
       serverModelCache.setModelAreaDisabled(false);
