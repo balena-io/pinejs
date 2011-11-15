@@ -721,13 +721,17 @@ if process?
 			nodePath = '/node'
 			if nodePath == request.url[0...nodePath.length]
 				console.log('Node')
+				# Have to specify Content-Type as otherwise Firefox tries to parse as XML which causes problems.
+				# Using application/json will run a JSON.parse on the data in Firefox, not sure what it does in other browsers but you can bet it won't work in all.
 				remoteServerRequest(request.method, request.url[nodePath.length..], request.headers, body,
-					(statusCode, result = "", headers) ->
+					(statusCode, result = "", headers = {}) ->
 						console.log('Success')#, result)
+						headers['Content-Type'] = "text/plain"
 						response.writeHead(statusCode, headers)
 						response.end(JSON.stringify(result))
-					(statusCode, errors, headers) ->
+					(statusCode, errors, headers = {}) ->
 						console.log('Error', errors, new Error().stack)
+						headers['Content-Type'] = "text/plain"
 						response.writeHead(statusCode, headers)
 						response.end(JSON.stringify(errors))
 				)

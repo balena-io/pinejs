@@ -920,11 +920,19 @@
             if (result == null) {
               result = "";
             }
+            if (headers == null) {
+              headers = {};
+            }
             console.log('Success');
+            headers['Content-Type'] = "text/plain";
             response.writeHead(statusCode, headers);
             return response.end(JSON.stringify(result));
           }, function(statusCode, errors, headers) {
+            if (headers == null) {
+              headers = {};
+            }
             console.log('Error', errors, new Error().stack);
+            headers['Content-Type'] = "text/plain";
             response.writeHead(statusCode, headers);
             return response.end(JSON.stringify(errors));
           });
