@@ -11,15 +11,21 @@
     return $("#dialog-simple-error").dialog("open");
   };
   showUrlMessage = function(url) {
-    var qIndex;
+    var anchor, qIndex, uiIcon;
+    uiIcon = "ui-icon-check";
     qIndex = window.location.href.indexOf("?");
-    if (qIndex === -1) {
-      console.log(window.location.href);
-      url = window.location.href + url;
+    if (url === "Error parsing model") {
+      uiIcon = "ui-icon-alert";
+      anchor = url;
     } else {
-      url = window.location.herf.slice(0, qIndex) + url;
+      if (qIndex === -1) {
+        url = window.location.href + "?" + url;
+      } else {
+        url = window.location.href.slice(0, qIndex) + "?" + url;
+      }
+      anchor = '<a href=\"' + url + '\">' + url + '</a>';
     }
-    $("#dialog-url-message").html('<span class="ui-icon ui-icon-check" style="float:left; margin:0 7px 50px 0;"></span>' + '<a href=\"' + url + '\">' + url + '</a>');
+    $("#dialog-url-message").html('<span class="ui-icon ' + uiIcon + '" style="float:left; margin:0 7px 50px 0;"></span>' + anchor);
     return $("#dialog-url-message").dialog("open");
   };
   defaultFailureCallback = function(statusCode, error) {
@@ -274,10 +280,9 @@
     return serverRequest("POST", "/", {
       "Content-Type": "text/plain"
     }, sbvrEditor.getValue(), function(statusCode, result) {
-      result = '?' + result;
       return showUrlMessage(result);
     }, function(statusCode, error) {
-      return showSimpleError('Error saving');
+      return showSimpleError('Error: ' + error);
     });
   };
   window.getModel = function() {
@@ -285,12 +290,11 @@
     qIndex = window.location.href.indexOf("?");
     if (qIndex !== -1) {
       key = window.location.href.slice(qIndex + 1);
-      console.log("key", key);
       serverRequest("GET", "/" + key, {}, "", function(statusCode, result) {
         return sbvrEditor.setValue(result);
       });
       return function(statusCode, error) {
-        return showSimpleError('Error');
+        return showSimpleError('Error: ' + error);
       };
     }
   };
