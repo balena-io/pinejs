@@ -19,7 +19,7 @@ requirejs(["libs/underscore-1.2.1.min", "libs/inflection"], (function() {
             "findVar": function(x) {
                 var $elf = this,
                     _fromIdx = this.input.idx;
-                return this["state"]["ruleVars"][x[(1)]]
+                return this["ruleVars"][x[(1)]]
             },
             "bind": function(x) {
                 var $elf = this,
@@ -209,6 +209,20 @@ requirejs(["libs/underscore-1.2.1.min", "libs/inflection"], (function() {
                     _fromIdx = this.input.idx;
                 return this._applyWithArgs("matchForAll", "keyword", ["and", "at", "most"])
             },
+            "quantTermAddVar": function() {
+                var $elf = this,
+                    _fromIdx = this.input.idx,
+                    q, t, v;
+                return (function() {
+                    q = this._apply("quant");
+                    t = this._apply("term");
+                    v = this._applyWithArgs("addVar", t);
+                    return ({
+                        "quantVar": q.concat([v]),
+                        "term": t
+                    })
+                }).call(this)
+            },
             "quant": function() {
                 var $elf = this,
                     _fromIdx = this.input.idx,
@@ -291,8 +305,8 @@ requirejs(["libs/underscore-1.2.1.min", "libs/inflection"], (function() {
                     _fromIdx = this.input.idx,
                     v, q;
                 return (function() {
-                    (this["state"]["ruleVars"][prevTerm[(1)]] = this["state"]["ruleVarsCount"]++);
-                    v = ["var", ["num", this["state"]["ruleVars"][prevTerm[(1)]]], prevTerm];
+                    (this["ruleVars"][prevTerm[(1)]] = this["ruleVarsCount"]++);
+                    v = ["var", ["num", this["ruleVars"][prevTerm[(1)]]], prevTerm];
                     this._opt((function() {
                         return (function() {
                             this._apply("addThat");
@@ -341,21 +355,19 @@ requirejs(["libs/underscore-1.2.1.min", "libs/inflection"], (function() {
             "qTerbRi": function(c, prevTerm) {
                 var $elf = this,
                     _fromIdx = this.input.idx,
-                    q, t, a, v, b, r;
+                    qt, t, v, b, r;
                 return this._or((function() {
                     return (function() {
-                        q = this._apply("quant");
-                        t = this._apply("term");
-                        a = this._applyWithArgs("addVar", t);
-                        v = this._applyWithArgs("verb", t);
+                        qt = this._apply("quantTermAddVar");
+                        t = qt["term"];
+                        v = this._apply("verb");
                         b = this._applyWithArgs("bind", t);
                         (function() {
-                            q.push(a);
                             c[(0)].push(t, v);
                             return c.push(b)
                         }).call(this);
                         r = this._applyWithArgs("qTerbRi", c, prevTerm);
-                        return q.concat([r])
+                        return qt["quantVar"].concat([r])
                     }).call(this)
                 }), (function() {
                     return (function() {
@@ -387,33 +399,29 @@ requirejs(["libs/underscore-1.2.1.min", "libs/inflection"], (function() {
             "qTerm": function(c) {
                 var $elf = this,
                     _fromIdx = this.input.idx,
-                    q, t, a, b, r;
+                    qt, t, b, r;
                 return (function() {
-                    q = this._apply("quant");
-                    t = this._apply("term");
-                    a = this._applyWithArgs("addVar", t);
+                    qt = this._apply("quantTermAddVar");
+                    t = qt["term"];
                     b = this._applyWithArgs("bind", t);
                     (function() {
-                        q.push(a);
                         c[(0)].push(t);
                         return c.push(b)
                     }).call(this);
                     r = this._applyWithArgs("atfo", c);
-                    return q.concat([r])
+                    return qt["quantVar"].concat([r])
                 }).call(this)
             },
             "qTerbR": function(c) {
                 var $elf = this,
                     _fromIdx = this.input.idx,
-                    q, t, a, v, b, r;
+                    qt, v, b, r;
                 return (function() {
-                    q = this._apply("quant");
-                    t = this._apply("term");
-                    a = this._applyWithArgs("addVar", t);
+                    qt = this._apply("quantTermAddVar");
+                    (t = qt["term"]);
                     v = this._applyWithArgs("verb", t);
                     b = this._applyWithArgs("bind", t);
                     (function() {
-                        q.push(a);
                         c[(0)].push(t, v);
                         return c.push(b)
                     }).call(this);
@@ -424,7 +432,7 @@ requirejs(["libs/underscore-1.2.1.min", "libs/inflection"], (function() {
                     }), (function() {
                         return this._applyWithArgs("qTerm", c)
                     }));
-                    return q.concat([r])
+                    return qt["quantVar"].concat([r])
                 }).call(this)
             },
             "modRule": function() {
@@ -494,7 +502,7 @@ requirejs(["libs/underscore-1.2.1.min", "libs/inflection"], (function() {
                     ruleText = this._lookahead((function() {
                         return this._apply("toEOL")
                     }));
-                    (this["state"]["ruleVarsCount"] = (0));
+                    (this["ruleVarsCount"] = (0));
                     r = this._apply("modRule");
                     q = this._applyWithArgs("qTerbR", [
                         []
@@ -771,9 +779,8 @@ requirejs(["libs/underscore-1.2.1.min", "libs/inflection"], (function() {
                 "terminator": ["."]
             }));
             (this["fctps"] = ({}));
-            (this["state"] = ({}));
-            (this["state"]["ruleVars"] = ({}));
-            (this["state"]["ruleVarsCount"] = (0));
+            (this["ruleVars"] = ({}));
+            (this["ruleVarsCount"] = (0));
             (this["lines"] = ["model"])
         }));
         (SBVRParser["equals"] = (function(compareTo) {

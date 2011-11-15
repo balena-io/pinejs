@@ -28,7 +28,7 @@ ometa SBVRParser {
 	isFctp		:factType
 					= ?this._isFctp(factType),
 
-	findVar		:x	= {this.state.ruleVars[x[1]]},
+	findVar		:x	= {this.ruleVars[x[1]]},
 	bind		:x	= findVar(x):y											-> [`bind, x, y],
 
 	letters			= letter+:l												-> l.join(''),
@@ -62,6 +62,9 @@ ometa SBVRParser {
 	verbPart		= spaces ~lineStart ~term letters,
 	
 	joinQuant		= matchForAll('keyword',["and","at","most"]),
+	
+	quantTermAddVar	= quant:q term:t addVar(t):v							-> {quantVar: q.concat([v]), term: t},
+	//Be very careful with anywhere you use quant as any in-place modifications of the array will be remembered in memoisation.
 	quant			= keyword("each")										-> [`univQ]
 					| matchForAny('keyword',["a","an","some"])				-> [`existQ]
 					| matchForAll('keyword',["at","most"])		num:n		-> [`atMostQ, [`maxCard, n]]
@@ -79,7 +82,7 @@ ometa SBVRParser {
 	addThat			= keyword("that"),
 	addThe			= keyword("the"),
 	addVar		:prevTerm
-					= {this.state.ruleVars[prevTerm[1]] = this.state.ruleVarsCount++} {['var', ['num', this.state.ruleVars[prevTerm[1]]], prevTerm]}:v
+					= {this.ruleVars[prevTerm[1]] = this.ruleVarsCount++} {['var', ['num', this.ruleVars[prevTerm[1]]], prevTerm]}:v
 					( addThat
 						( addThe terbRi([[]], prevTerm)
 						| qTerbRi([[]], prevTerm) ):q {v.push(q)}
@@ -91,18 +94,18 @@ ometa SBVRParser {
 					= term:t verb(t):v bind(t):b {c[0].push(t,v);c.push(b)} (qTerbRi(c,prevTerm)),
 
 	qTerbRi	:c :prevTerm
-					= (quant:q term:t addVar(t):a verb(t):v bind(t):b
-							{q.push(a);c[0].push(t,v);c.push(b)}
-							(qTerbRi(c,prevTerm)):r							-> q.concat([r])
+					= (quantTermAddVar:qt {qt.term}:t verb():v bind(t):b
+							{c[0].push(t,v);c.push(b)}
+							(qTerbRi(c,prevTerm)):r							-> qt.quantVar.concat([r])
 						| verb(prevTerm):v bind(prevTerm):b {c[0].push(prevTerm,v);c.push(b)} (atfo(c)|qTerbR(c)|qTerm(c))
 						| bind(prevTerm):b {c[0].push(prevTerm);c.push(b)} atfo(c)
 					),
 
-	qTerm		:c	= quant:q term:t addVar(t):a bind(t):b {q.push(a);c[0].push(t);c.push(b)}
-							atfo(c):r										-> q.concat([r]),
+	qTerm		:c	= quantTermAddVar:qt {qt.term}:t bind(t):b {c[0].push(t);c.push(b)}
+							atfo(c):r										-> qt.quantVar.concat([r]),
 
-	qTerbR		:c	= quant:q term:t addVar(t):a verb(t):v bind(t):b {q.push(a);c[0].push(t,v);c.push(b)}
-							(atfo(c)|qTerbR(c)|qTerm(c)):r					-> q.concat([r]),
+	qTerbR		:c	= quantTermAddVar:qt {t = qt.term} verb(t):v bind(t):b {c[0].push(t,v);c.push(b)}
+							(atfo(c)|qTerbR(c)|qTerm(c)):r					-> qt.quantVar.concat([r]),
 
 	modRule			= "It" "is" 
 						( "obligatory"		-> ['obl']
@@ -116,7 +119,7 @@ ometa SBVRParser {
 					  "that"											-> r,
 
 	startRule		= "R:"|"Rule:",
-	newRule			= startRule spaces &(toEOL):ruleText {this.state.ruleVarsCount=0}
+	newRule			= startRule spaces &(toEOL):ruleText {this.ruleVarsCount=0}
 						modRule:r qTerbR([[]]):q {r.length == 2 ? r[1][1] = q : r[1] = q}
 																		-> ['rule', r, ['text', ruleText]],
 	terb			= term:t addVerb(t):v								-> [t, v],
@@ -275,9 +278,8 @@ SBVRParser.reset = function() {
 		terminator: ['.']
 	}
 	this.fctps = {}
-	this.state = {}
-	this.state.ruleVars = {}
-	this.state.ruleVarsCount = 0
+	this.ruleVars = {}
+	this.ruleVarsCount = 0
 	this.lines = ['model']
 }
 
