@@ -477,7 +477,8 @@
       if (tree[1][1] === "lock" && hasCR(tree)) {
         return db.transaction(function(tx) {
           tx.executeSql('DELETE FROM "conditional_representation" WHERE "lock_id" = ?;', [id]);
-          return tx.executeSql('INSERT INTO "conditional_representation" ("lock_id","field_name","field_type","field_value")' + "VALUES (?,'__DELETE','','')", [id]);
+          tx.executeSql('INSERT INTO "conditional_representation" ("lock_id","field_name","field_type","field_value")' + "VALUES (?,'__DELETE','','')", [id]);
+          return successCallback(200);
         });
       } else {
         return db.transaction((function(tx) {
@@ -505,24 +506,18 @@
     bd = JSON.parse(body);
     if (tree[1][1] === "lock" && hasCR(tree)) {
       return db.transaction(function(tx) {
-        var key, pair, sql, value, _i, _len, _results;
+        var key, pair, sql, value, _i, _len;
         tx.executeSql('DELETE FROM "conditional_representation" WHERE "lock_id" = ?;', [id]);
         sql = 'INSERT INTO "conditional_representation"' + '("lock_id","field_name","field_type","field_value")' + "VALUES (?, ?, ?, ?)";
-        _results = [];
         for (_i = 0, _len = bd.length; _i < _len; _i++) {
           pair = bd[_i];
-          _results.push((function() {
-            var _results2;
-            _results2 = [];
-            for (key in pair) {
-              if (!__hasProp.call(pair, key)) continue;
-              value = pair[key];
-              _results2.push(tx.executeSql(sql, [id, key, typeof value, value]));
-            }
-            return _results2;
-          })());
+          for (key in pair) {
+            if (!__hasProp.call(pair, key)) continue;
+            value = pair[key];
+            tx.executeSql(sql, [id, key, typeof value, value]);
+          }
         }
-        return _results;
+        return successCallback(200);
       });
     } else {
       return db.transaction((function(tx) {
@@ -554,7 +549,7 @@
             return failureCallback(404, ["The resource is locked and cannot be edited"]);
           }
         });
-      }), function(err) {});
+      }));
     }
   };
   dataplusPOST = function(tree, headers, body, successCallback, failureCallback) {
@@ -724,6 +719,8 @@
           return successCallback(200, data);
         });
       });
+    } else {
+      return failureCallback(404);
     }
   };
   endLock = function(tx, locks, i, trans_id, successCallback, failureCallback) {

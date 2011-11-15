@@ -369,7 +369,7 @@ remoteServerRequest = (method, uri, headers, body, successCallback, failureCallb
 			if method == "DELETE"
 				rootDELETE tree, headers, body, successCallback, failureCallback
 			else
-				failureCallback 404
+				failureCallback(404)
 
 dataplusDELETE = (tree, headers, body, successCallback, failureCallback) ->
 	id = getID tree
@@ -381,6 +381,7 @@ dataplusDELETE = (tree, headers, body, successCallback, failureCallback) ->
 				tx.executeSql 'DELETE FROM "conditional_representation" WHERE "lock_id" = ?;', [id]
 				tx.executeSql 'INSERT INTO "conditional_representation" ("lock_id","field_name","field_type","field_value")' +
 							"VALUES (?,'__DELETE','','')", [id]
+				successCallback(200)
 		else
 			db.transaction ((tx) ->
 				tx.executeSql 'SELECT NOT EXISTS(SELECT * FROM "resource-is_under-lock" AS r WHERE r."resource_type" = ? AND r."resource_id" = ?) AS result;', [tree[1][1], id], (tx, result) ->
@@ -410,6 +411,7 @@ dataplusPUT = (tree, headers, body, successCallback, failureCallback) ->
 			for pair in bd
 				for own key, value of pair
 					tx.executeSql(sql, [ id, key, typeof value, value ])
+			successCallback(200)
 	else
 		db.transaction ((tx) ->
 			tx.executeSql 'SELECT NOT EXISTS(SELECT * FROM "resource-is_under-lock" AS r WHERE r."resource_type" = ? AND r."resource_id" = ?) AS result;', [tree[1][1], id], (tx, result) ->
@@ -429,8 +431,8 @@ dataplusPUT = (tree, headers, body, successCallback, failureCallback) ->
 								successCallback 200, result
 							), failureCallback
 				else
-					failureCallback 404, [ "The resource is locked and cannot be edited" ]
-		), (err) ->
+					failureCallback(404, [ "The resource is locked and cannot be edited" ])
+		)
 
 
 dataplusPOST = (tree, headers, body, successCallback, failureCallback) ->
@@ -486,7 +488,7 @@ rootDELETE = (tree, headers, body, successCallback, failureCallback) ->
 	serverModelCache.setTrans []
 	serverModelCache.setServerOnAir false
 
-	successCallback 200
+	successCallback(200)
 
 
 dataGET = (tree, headers, body, successCallback, failureCallback) ->
@@ -505,7 +507,7 @@ dataGET = (tree, headers, body, successCallback, failureCallback) ->
 				id: row[1]
 				name: row[2]
 
-	successCallback 200, result
+	successCallback(200, result)
 
 
 dataplusGET = (tree, headers, body, successCallback, failureCallback) ->
@@ -545,7 +547,9 @@ dataplusGET = (tree, headers, body, successCallback, failureCallback) ->
 		db.transaction (tx) ->
 			tx.executeSql sql + ";", [], (tx, result) ->
 				data = instances: result.rows.item(i) for i in [0...result.rows.length]
-				successCallback 200, data
+				successCallback(200, data)
+	else
+		failureCallback(404)
 
 
 endLock = (tx, locks, i, trans_id, successCallback, failureCallback) ->
