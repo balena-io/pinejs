@@ -1,0 +1,9 @@
+Term:      patient
+Term:      disease
+Term:      treatment
+
+Fact type: patient is diagnosed with disease
+Fact type: disease responds to treatment
+Fact type: patient is prescribed with treatment
+
+Rule:      It is obligatory that each patient that is diagnosed with a disease that responds to a treatment is prescribed with a treatment that the disease responds to
