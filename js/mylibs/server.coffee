@@ -1,4 +1,4 @@
-op = 
+op =
 	eq: "="
 	ne: "!="
 	lk: "~"
@@ -312,7 +312,7 @@ remoteServerRequest = (method, uri, headers, body, successCallback, failureCallb
 			execHandle(filterHandle[1])
 			return true
 		return false
-	
+
 	rootbranch = tree[0].toLowerCase()
 	if handlers[rootbranch]?
 		if handlers[rootbranch][method]?
@@ -340,7 +340,7 @@ remoteServerRequest = (method, uri, headers, body, successCallback, failureCallb
 						else
 							failureCallback 404
 				else if tree[1][1] == "transaction" and method == "GET"
-					o = 
+					o =
 						id: tree[1][3][1][1][3]
 						tcURI: "/transaction"
 						lcURI: "/data/lock"
@@ -490,18 +490,18 @@ rootDELETE = (tree, headers, body, successCallback, failureCallback) ->
 
 
 dataGET = (tree, headers, body, successCallback, failureCallback) ->
-	result = 
+	result =
 		terms: []
 		fcTps: []
 	sqlmod = serverModelCache.getSQL()
 
 	for row in sqlmod[1..]
 		if row[0] == "term"
-			result.terms.push 
+			result.terms.push
 				id: row[1]
 				name: row[2]
 		else if row[0] == "fcTp"
-			result.fcTps.push 
+			result.fcTps.push
 				id: row[1]
 				name: row[2]
 
@@ -607,7 +607,7 @@ validateDB = (tx, sqlmod, successCallback, failureCallback) ->
 				totalExecuted++
 				if result.rows.item(0).result in [false, 0]
 					errors.push row[2]
-				
+
 				if totalQueries == totalExecuted
 					if errors.length > 0
 						tx.rollback()
@@ -626,7 +626,7 @@ executeSasync = (tx, sqlmod, successCallback, failureCallback, result) ->
 	for row in sqlmod when row[0] in ["fcTp", "term"]
 		tx.executeSql row[4]
 
-	#Validate the [empty] model according to the rules. 
+	#Validate the [empty] model according to the rules.
 	#This may eventually lead to entering obligatory data.
 	#For the moment it blocks such models from execution.
 	validateDB tx, sqlmod, successCallback, failureCallback
@@ -637,7 +637,7 @@ executeSasync = (tx, sqlmod, successCallback, failureCallback, result) ->
 executeTasync = (tx, trnmod, successCallback, failureCallback, result) ->
 	#Execute transaction model.
 	executeSasync tx, trnmod, ((tx, trnmod, failureCallback, result) ->
-		#Hack: Add certain attributes to the transaction model tables. 
+		#Hack: Add certain attributes to the transaction model tables.
 		#This should eventually be done with SBVR, when we add attributes.
 		tx.executeSql 'ALTER TABLE "resource-is_under-lock" ADD COLUMN resource_type TEXT'
 		tx.executeSql 'ALTER TABLE "resource-is_under-lock" DROP CONSTRAINT "resource-is_under-lock_resource_id_fkey";'
@@ -659,7 +659,7 @@ updateRules = (sqlmod) ->
 	for row in sqlmod when row[0] in ["fcTp", "term"]
 		tx.executeSql row[4]
 
-	#Validate the [empty] model according to the rules. 
+	#Validate the [empty] model according to the rules.
 	#This may eventually lead to entering obligatory data.
 	#For the moment it blocks such models from execution.
 	for row in sqlmod when row[0] == "rule"
@@ -668,7 +668,7 @@ updateRules = (sqlmod) ->
 		tx.executeSql query, [], (tx, result) ->
 			if result.rows.item(0).result in [0, false]
 				alert "Error: " + l[++k]
-		
+
 
 getFTree = (tree) ->
 	if tree[1][0] == "term"
@@ -730,7 +730,7 @@ if process?
 			else
 				console.log('Static')
 				staticServer.serve(request, response)
-				
+
 		)
 	).listen(process.env.PORT or 1337, () ->
 		console.log('Server started')
