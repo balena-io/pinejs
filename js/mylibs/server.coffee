@@ -549,23 +549,26 @@ dataplusGET = (tree, headers, body, successCallback, failureCallback) ->
 
 
 endLock = (tx, locks, i, trans_id, successCallback, failureCallback) ->
+	continueEndingLock = (tx, result) ->
+		if i < locks.rows.length - 1
+			endLock tx, locks, i + 1, trans_id, successCallback, failureCallback
+		else
+			tx.executeSql 'DELETE FROM "transaction" WHERE "id" = ?;', [trans_id]
+
+			validateDB(tx, serverModelCache.getSQL(), (tx, sqlmod, failureCallback, result) ->
+				successCallback 200, result
+			, failureCallback
+			)
+
+
 	#get conditional representations (if exist)
 	lock_id = locks.rows.item(i).lock_id
-	tx.executeSql 'SELECT * FROM "conditional_representation" WHERE "lock_id" = ?;', [lock_id], (tx, crs) ->
+	tx.executeSql('SELECT * FROM "conditional_representation" WHERE "lock_id" = ?;', [lock_id], (tx, crs) ->
 		#find which resource is under this lock
-		tx.executeSql 'SELECT * FROM "resource-is_under-lock" WHERE "lock_id" = ?;', [lock_id], (tx, locked) ->
+		tx.executeSql('SELECT * FROM "resource-is_under-lock" WHERE "lock_id" = ?;', [lock_id], (tx, locked) ->
 			if crs.rows.item(0).field_name == "__DELETE"
 				#delete said resource
-				tx.executeSql 'DELETE FROM "' + locked.rows.item(0).resource_type + '" WHERE "id" = ?;', [locked.rows.item(0).resource_id], (tx, result) ->
-					if i < locks.rows.length - 1
-						endLock tx, locks, i + 1, trans_id, successCallback, failureCallback
-					else
-						#delete transaction
-						tx.executeSql 'DELETE FROM "transaction" WHERE "id" = ?;', [trans_id]
-
-						validateDB tx, serverModelCache.getSQL(), ((tx, sqlmod, failureCallback, result) ->
-							successCallback 200, result
-						), failureCallback
+				tx.executeSql 'DELETE FROM "' + locked.rows.item(0).resource_type + '" WHERE "id" = ?;', [locked.rows.item(0).resource_id], continueEndingLock
 			else
 				#commit conditional_representation
 				sql = 'UPDATE "' + locked.rows.item(0).resource_type + '" SET '
@@ -579,17 +582,11 @@ endLock = (tx, locks, i, trans_id, successCallback, failureCallback) ->
 						sql += item.field_value
 					sql += ", " if j < crs.rows.length - 1
 				sql += ' WHERE "id"=' + locked.rows.item(0).resource_id + ';'
-				tx.executeSql sql, [], (tx, result) ->
-					if i < locks.rows.length - 1
-						endLock tx, locks, i + 1, trans_id, successCallback, failureCallback
-					else
-						tx.executeSql 'DELETE FROM "transaction" WHERE "id" = ?;', [trans_id]
-
-						validateDB tx, serverModelCache.getSQL(), ((tx, sqlmod, failureCallback, result) ->
-							successCallback 200, result
-						), failureCallback
-			tx.executeSql 'DELETE FROM "conditional_representation" WHERE "lock_id" = ?;', [crs.rows.item(0).lock_id]
-			tx.executeSql 'DELETE FROM "resource-is_under-lock" WHERE "lock_id" = ?;', [crs.rows.item(0).lock_id]
+				tx.executeSql sql, [], continueEndingLock
+			tx.executeSql 'DELETE FROM "conditional_representation" WHERE "lock_id" = ?;', [lock_id]
+			tx.executeSql 'DELETE FROM "resource-is_under-lock" WHERE "lock_id" = ?;', [lock_id]
+		)
+	)
 
 	tx.executeSql 'DELETE FROM "lock-is_shared" WHERE "lock_id" = ?;', [lock_id]
 	tx.executeSql 'DELETE FROM "lock-is_exclusive" WHERE "lock_id" = ?;', [lock_id]

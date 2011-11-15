@@ -727,22 +727,23 @@
     }
   };
   endLock = function(tx, locks, i, trans_id, successCallback, failureCallback) {
-    var lock_id;
+    var continueEndingLock, lock_id;
+    continueEndingLock = function(tx, result) {
+      if (i < locks.rows.length - 1) {
+        return endLock(tx, locks, i + 1, trans_id, successCallback, failureCallback);
+      } else {
+        tx.executeSql('DELETE FROM "transaction" WHERE "id" = ?;', [trans_id]);
+        return validateDB(tx, serverModelCache.getSQL(), function(tx, sqlmod, failureCallback, result) {
+          return successCallback(200, result);
+        }, failureCallback);
+      }
+    };
     lock_id = locks.rows.item(i).lock_id;
     tx.executeSql('SELECT * FROM "conditional_representation" WHERE "lock_id" = ?;', [lock_id], function(tx, crs) {
       return tx.executeSql('SELECT * FROM "resource-is_under-lock" WHERE "lock_id" = ?;', [lock_id], function(tx, locked) {
         var item, j, sql, _ref;
         if (crs.rows.item(0).field_name === "__DELETE") {
-          tx.executeSql('DELETE FROM "' + locked.rows.item(0).resource_type + '" WHERE "id" = ?;', [locked.rows.item(0).resource_id], function(tx, result) {
-            if (i < locks.rows.length - 1) {
-              return endLock(tx, locks, i + 1, trans_id, successCallback, failureCallback);
-            } else {
-              tx.executeSql('DELETE FROM "transaction" WHERE "id" = ?;', [trans_id]);
-              return validateDB(tx, serverModelCache.getSQL(), (function(tx, sqlmod, failureCallback, result) {
-                return successCallback(200, result);
-              }), failureCallback);
-            }
-          });
+          tx.executeSql('DELETE FROM "' + locked.rows.item(0).resource_type + '" WHERE "id" = ?;', [locked.rows.item(0).resource_id], continueEndingLock);
         } else {
           sql = 'UPDATE "' + locked.rows.item(0).resource_type + '" SET ';
           for (j = 0, _ref = crs.rows.length; 0 <= _ref ? j < _ref : j > _ref; 0 <= _ref ? j++ : j--) {
@@ -758,19 +759,10 @@
             }
           }
           sql += ' WHERE "id"=' + locked.rows.item(0).resource_id + ';';
-          tx.executeSql(sql, [], function(tx, result) {
-            if (i < locks.rows.length - 1) {
-              return endLock(tx, locks, i + 1, trans_id, successCallback, failureCallback);
-            } else {
-              tx.executeSql('DELETE FROM "transaction" WHERE "id" = ?;', [trans_id]);
-              return validateDB(tx, serverModelCache.getSQL(), (function(tx, sqlmod, failureCallback, result) {
-                return successCallback(200, result);
-              }), failureCallback);
-            }
-          });
+          tx.executeSql(sql, [], continueEndingLock);
         }
-        tx.executeSql('DELETE FROM "conditional_representation" WHERE "lock_id" = ?;', [crs.rows.item(0).lock_id]);
-        return tx.executeSql('DELETE FROM "resource-is_under-lock" WHERE "lock_id" = ?;', [crs.rows.item(0).lock_id]);
+        tx.executeSql('DELETE FROM "conditional_representation" WHERE "lock_id" = ?;', [lock_id]);
+        return tx.executeSql('DELETE FROM "resource-is_under-lock" WHERE "lock_id" = ?;', [lock_id]);
       });
     });
     tx.executeSql('DELETE FROM "lock-is_shared" WHERE "lock_id" = ?;', [lock_id]);
