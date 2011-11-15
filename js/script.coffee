@@ -118,7 +118,7 @@ loadUI = ->
 	
 	serverRequest "GET", "/ui/textarea-is_disabled*filt:textarea.name=model_area/", [], "", (statusCode, result) ->
 		$("#modelArea").attr "disabled", result.value
-	
+		
 	$("#modelArea").change ->
 		serverRequest("PUT", "/ui/textarea*filt:name=model_area/", {"Content-Type": "application/json"}, value: sbvrEditor.getValue())
 	
@@ -229,9 +229,45 @@ window.downloadFile = (filename, text) ->
 		return false if "disabled" of @dataset
 		cleanUp this
 
+setupDownloadify = () ->
+	Downloadify.create "downloadify",
+		filename: "editor.txt"
+		data: ->
+			sbvrEditor.getValue()
+		onError: ->
+			showSimpleError "Content Is Empty"
+		transparent: false
+		swf: "downloadify.swf"
+		downloadImage: "download.png"
+		width: 54	
+		height: 19
+		transparent: true
+		append: false
+	pos = $("#write_file").offset()
+	el = document.getElementById("downloadify").style
+	el.position = 'absolute'
+	el.zIndex = 1
+	el.left = pos.left + 'px'
+	el.top = pos.top + 'px'
+	
+#support chrome ff
+window.toReadFile = () ->
+	if !!window.File && !!window.FileList && !!window.FileReader && !/Opera/.test(navigator.userAgent)
+		document.getElementById('read_file').click()
+	else
+		showSimpleError('"Load file" is only supported by Chrome or Firefox now.')
 
-#window.serverRequest = (method, uri, headers = {}, body = null, successCallback, failureCallback)
-
+window.readFile = (files) ->
+		if files.length
+			file = files[0]
+			reader = new FileReader()
+			if /text/.test(file.type)
+				reader.onload = -> 
+					sbvrEditor.setValue this.result
+				reader.readAsText file
+			else
+				showSimpleError("Only text file is acceptable.")
+	
 window.saveModel = ->
 	serverRequest "POST", "/", {"Content-Type": "text/plain"}, sbvrEditor.getValue(),
 		(statusCode, result) ->
@@ -248,7 +284,7 @@ window.getModel = ->
 			sbvrEditor.setValue(result)
 		(statusCode, error) ->
 			showSimpleError('Error: ' + error)
-
+						
 
 window.parseModel = ->
 	try
@@ -291,6 +327,7 @@ $( ->
 	getModel()
 	loadUI()
 	loadState()
+	setupDownloadify()
 	processHash()
 	$("#bldb").file().choose (e, input) ->
 		handleFiles input[0].files

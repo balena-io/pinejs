@@ -1,4 +1,4 @@
-
+(function() {
   define(function(requirejs, exports, module) {
     if (typeof process !== "undefined" && process !== null) {
       exports.postgres = function(connectString) {
@@ -23,8 +23,12 @@
         tx = {
           executeSql: function(sql, bindings, callback, errorCallback, addReturning) {
             var bindNo, thisTX;
-            if (bindings == null) bindings = [];
-            if (addReturning == null) addReturning = true;
+            if (bindings == null) {
+              bindings = [];
+            }
+            if (addReturning == null) {
+              addReturning = true;
+            }
             thisTX = this;
             sql = sql.replace(/GROUP BY NULL/g, '');
             sql = sql.replace(/INTEGER PRIMARY KEY AUTOINCREMENT/g, 'SERIAL PRIMARY KEY');
@@ -62,14 +66,18 @@
             return this.executeSql('ROLLBACK;');
           },
           tableList: function(callback, errorCallback, extraWhereClause) {
-            if (extraWhereClause == null) extraWhereClause = '';
+            if (extraWhereClause == null) {
+              extraWhereClause = '';
+            }
             if (extraWhereClause !== '') {
               extraWhereClause = ' WHERE ' + extraWhereClause;
             }
             return this.executeSql("SELECT * FROM (SELECT tablename as name FROM pg_tables WHERE schemaname = 'public' AND tablename != '_server_model_cache') t" + extraWhereClause + ";", [], callback, errorCallback);
           },
           dropTable: function(tableName, ifExists, callback, errorCallback) {
-            if (ifExists == null) ifExists = true;
+            if (ifExists == null) {
+              ifExists = true;
+            }
             return this.executeSql('DROP TABLE ' + (ifExists === true ? 'IF EXISTS ' : '') + '"' + tableName + '" CASCADE;', [], callback, errorCallback);
           }
         };
@@ -118,14 +126,18 @@
             return this.executeSql('ROLLBACK;');
           },
           tableList: function(callback, errorCallback, extraWhereClause) {
-            if (extraWhereClause == null) extraWhereClause = '';
+            if (extraWhereClause == null) {
+              extraWhereClause = '';
+            }
             if (extraWhereClause !== '') {
               extraWhereClause = ' AND ' + extraWhereClause;
             }
             return this.executeSql("SELECT name, sql FROM sqlite_master WHERE type='table' AND name NOT IN ('sqlite_sequence', '_server_model_cache')" + extraWhereClause + ";", [], callback, errorCallback);
           },
           dropTable: function(tableName, ifExists, callback, errorCallback) {
-            if (ifExists == null) ifExists = true;
+            if (ifExists == null) {
+              ifExists = true;
+            }
             return this.executeSql('DROP TABLE ' + (ifExists === true ? 'IF EXISTS ' : '') + '"' + tableName + '";', [], callback, errorCallback);
           }
         };
@@ -167,14 +179,18 @@
               return _tx.executeSql("DROP TABLE '__Fo0oFoo'");
             },
             tableList: function(callback, errorCallback, extraWhereClause) {
-              if (extraWhereClause == null) extraWhereClause = '';
+              if (extraWhereClause == null) {
+                extraWhereClause = '';
+              }
               if (extraWhereClause !== '') {
                 extraWhereClause = ' AND ' + extraWhereClause;
               }
               return this.executeSql("SELECT name, sql FROM sqlite_master WHERE type='table' AND name NOT IN ('__WebKitDatabaseInfoTable__', 'sqlite_sequence', '_server_model_cache')" + extraWhereClause + ";", [], callback, errorCallback);
             },
             dropTable: function(tableName, ifExists, callback, errorCallback) {
-              if (ifExists == null) ifExists = true;
+              if (ifExists == null) {
+                ifExists = true;
+              }
               return this.executeSql('DROP TABLE ' + (ifExists === true ? 'IF EXISTS ' : '') + '"' + tableName + '";', [], callback, errorCallback);
             }
           };
@@ -190,3 +206,4 @@
     }
     return exports;
   });
+}).call(this);

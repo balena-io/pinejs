@@ -1,5 +1,5 @@
 (function() {
-  var cleanUp, clientOnAir, defaultFailureCallback, defaultSuccessCallback, loadState, loadUI, processHash, setClientOnAir, showErrorMessage, showSimpleError, showUrlMessage, sqlEditor;
+  var cleanUp, clientOnAir, defaultFailureCallback, defaultSuccessCallback, loadState, loadUI, processHash, setClientOnAir, setupDownloadify, showErrorMessage, showSimpleError, showUrlMessage, sqlEditor;
 
   sqlEditor = null;
 
@@ -286,6 +286,56 @@
     };
   };
 
+  setupDownloadify = function() {
+    var el, pos;
+    Downloadify.create("downloadify", {
+      filename: "editor.txt",
+      data: function() {
+        return sbvrEditor.getValue();
+      },
+      onError: function() {
+        return showSimpleError("Content Is Empty");
+      },
+      transparent: false,
+      swf: "downloadify.swf",
+      downloadImage: "download.png",
+      width: 54,
+      height: 19,
+      transparent: true,
+      append: false
+    });
+    pos = $("#write_file").offset();
+    el = document.getElementById("downloadify").style;
+    el.position = 'absolute';
+    el.zIndex = 1;
+    el.left = pos.left + 'px';
+    return el.top = pos.top + 'px';
+  };
+
+  window.toReadFile = function() {
+    if (!!window.File && !!window.FileList && !!window.FileReader && !/Opera/.test(navigator.userAgent)) {
+      return document.getElementById('read_file').click();
+    } else {
+      return showSimpleError('"Load file" is only supported by Chrome or Firefox now.');
+    }
+  };
+
+  window.readFile = function(files) {
+    var file, reader;
+    if (files.length) {
+      file = files[0];
+      reader = new FileReader();
+      if (/text/.test(file.type)) {
+        reader.onload = function() {
+          return sbvrEditor.setValue(this.result);
+        };
+        return reader.readAsText(file);
+      } else {
+        return showSimpleError("Only text file is acceptable.");
+      }
+    }
+  };
+
   window.saveModel = function() {
     return serverRequest("POST", "/", {
       "Content-Type": "text/plain"
@@ -359,6 +409,7 @@
     getModel();
     loadUI();
     loadState();
+    setupDownloadify();
     processHash();
     return $("#bldb").file().choose(function(e, input) {
       return handleFiles(input[0].files);

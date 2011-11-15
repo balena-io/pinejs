@@ -234,7 +234,12 @@ input[disabled] {
 	color: grey;
 }
 
-
+input[type="file"].hidden-input {
+	visibility: hidden;
+	width: 0;
+	height: 0;
+	position: absolute;
+}
 
 
 

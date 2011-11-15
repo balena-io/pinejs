@@ -96,7 +96,7 @@ http.createServer((request, response) ->
 			nodePath = '/node'
 			if nodePath == request.url[0...nodePath.length] #/node/a
 				#key = "file"
-				response.writeHead(200, "")
+				response.writeHead(200, "content-type": "text/plain")
 				if request.method == "POST"
 					db.transaction (tx) ->
 						try
@@ -118,7 +118,7 @@ http.createServer((request, response) ->
 	#								tx.executeSql 'UPDATE "_sbvr_editor_cache" SET value = ? WHERE key = ?;', [value, key]
 	#						)
 				else if request.method == "GET"
-					key = decodeBase(request.url[nodePath.length+1..],64)
+					key = decodeBase(request.url[nodePath.length+1..],62)
 					if key != false
 						console.log('key: ',key)
 						db.transaction (tx) ->

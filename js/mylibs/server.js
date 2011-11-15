@@ -1,15 +1,12 @@
 (function() {
   var app, db, endLock, executeSasync, executeTasync, express, getFTree, getID, hasCR, isExecute, op, parseURITree, requirejs, serverIsOnAir, serverModelCache, updateRules, validateDB;
   var __hasProp = Object.prototype.hasOwnProperty;
-
   op = {
     eq: "=",
     ne: "!=",
     lk: "~"
   };
-
   db = null;
-
   if (typeof process !== "undefined" && process !== null) {
     express = require('express');
     app = express.createServer();
@@ -65,10 +62,14 @@
         },
         process: function(method, uri, headers, body, successCallback, failureCallback) {
           var checkMethodHandlers, i, j, methodHandlers, next, req, res;
-          if (uri.slice(-1) === '/') uri = uri.slice(0, (uri.length - 1));
+          if (uri.slice(-1) === '/') {
+            uri = uri.slice(0, uri.length - 1);
+          }
           uri = uri.toLowerCase();
           console.log(uri);
-          if (!handlers[method]) failureCallback(404);
+          if (!handlers[method]) {
+            failureCallback(404);
+          }
           req = {
             body: body,
             headers: headers,
@@ -77,7 +78,9 @@
           res = {
             json: function(obj, headers, statusCode) {
               var _ref;
-              if (headers == null) headers = 200;
+              if (headers == null) {
+                headers = 200;
+              }
               if (typeof headers === 'number' && !(statusCode != null)) {
                 _ref = [headers, {}], statusCode = _ref[0], headers = _ref[1];
               }
@@ -124,11 +127,8 @@
       };
     })();
   }
-
   requirejs(["libs/inflection", "../ometa-js/lib", "../ometa-js/ometa-base"]);
-
   requirejs(["mylibs/ometa-code/SBVRModels", "mylibs/ometa-code/SBVRParser", "mylibs/ometa-code/SBVR_PreProc", "mylibs/ometa-code/SBVR2SQL", "mylibs/ometa-code/ServerURIParser"]);
-
   serverModelCache = function() {
     var setValue, values;
     values = {
@@ -217,7 +217,6 @@
       }
     };
   };
-
   requirejs(['mylibs/db'], function(dbModule) {
     if (typeof process !== "undefined" && process !== null) {
       db = dbModule.postgres(process.env.DATABASE_URL || "postgres://postgres:.@localhost:5432/postgres");
@@ -226,7 +225,6 @@
     }
     return serverModelCache = serverModelCache();
   });
-
   serverIsOnAir = function(req, res, next) {
     if (serverModelCache.isServerOnAir()) {
       return next();
@@ -234,7 +232,6 @@
       return next('route');
     }
   };
-
   parseURITree = function(req, res, next) {
     if (!(req.tree != null)) {
       try {
@@ -249,35 +246,27 @@
       return next();
     }
   };
-
   app.get('/onair', function(req, res, next) {
     return res.json(serverModelCache.isServerOnAir());
   });
-
   app.get('/model', serverIsOnAir, function(req, res, next) {
     return res.json(serverModelCache.getLastSE());
   });
-
   app.get('/lfmodel', serverIsOnAir, function(req, res, next) {
     return res.json(serverModelCache.getLF());
   });
-
   app.get('/prepmodel', serverIsOnAir, function(req, res, next) {
     return res.json(serverModelCache.getPrepLF());
   });
-
   app.get('/sqlmodel', serverIsOnAir, function(req, res, next) {
     return res.json(serverModelCache.getSQL());
   });
-
   app.get('/onair', serverIsOnAir, function(req, res, next) {
     return res.json(serverModelCache.getSQL());
   });
-
   app.post('/update', serverIsOnAir, function(req, res, next) {
     return res.send(404);
   });
-
   app.post('/execute', function(req, res, next) {
     var lfmod, prepmod, se, sqlmod, tree, trnmod;
     se = serverModelCache.getSE();
@@ -313,7 +302,6 @@
       });
     });
   });
-
   app.del('/cleardb', function(req, res, next) {
     return db.transaction(function(tx) {
       return tx.tableList(function(tx, result) {
@@ -325,7 +313,6 @@
       });
     });
   });
-
   app.put('/cleardb', function(req, res, next) {
     var imported, queries;
     queries = req.body.split(";");
@@ -350,7 +337,6 @@
     });
     return res.send(200);
   });
-
   app.get('/exportdb', function(req, res, next) {
     var env;
     if (typeof process !== "undefined" && process !== null) {
@@ -394,7 +380,9 @@
                 }
                 exported += insQuery;
                 exportsProcessed++;
-                if (exportsProcessed === totalExports) return res.json(exported);
+                if (exportsProcessed === totalExports) {
+                  return res.json(exported);
+                }
               }));
             });
           };
@@ -405,12 +393,13 @@
             _fn(tbn);
           }
           exportsProcessed++;
-          if (exportsProcessed === totalExports) return res.json(exported);
+          if (exportsProcessed === totalExports) {
+            return res.json(exported);
+          }
         }, null, "name NOT LIKE '%_buk'");
       });
     }
   });
-
   app.post('/backupdb', serverIsOnAir, function(req, res, next) {
     db.transaction(function(tx) {
       return tx.tableList(function(tx, result) {
@@ -426,7 +415,6 @@
     });
     return res.send(200);
   });
-
   app.post('/restoredb', serverIsOnAir, function(req, res, next) {
     db.transaction(function(tx) {
       return tx.tableList(function(tx, result) {
@@ -442,7 +430,6 @@
     });
     return res.send(200);
   });
-
   app.get('/ui', parseURITree, function(req, res, next) {
     if (req.tree[1][1] === "textarea" && req.tree[1][3][1][1][3] === "model_area") {
       return res.json({
@@ -456,7 +443,6 @@
       return res.send(404);
     }
   });
-
   app.put('/ui', parseURITree, function(req, res, next) {
     if (req.tree[1][1] === "textarea" && req.tree[1][3][1][1][3] === "model_area") {
       serverModelCache.setSE(req.body.value);
@@ -468,7 +454,6 @@
       return res.send(404);
     }
   });
-
   app.get('/data', serverIsOnAir, parseURITree, function(req, res, next) {
     var filts, fl, ft, ftree, jn, obj, result, row, row2, sql, sqlmod, tb, tree, _i, _j, _k, _l, _len, _len2, _len3, _len4, _ref, _ref2, _ref3, _ref4;
     tree = req.tree;
@@ -511,7 +496,9 @@
       sql = "";
       if (tree[1][0] === "term") {
         sql = "SELECT * FROM " + tree[1][1];
-        if (ftree.length !== 1) sql += " WHERE ";
+        if (ftree.length !== 1) {
+          sql += " WHERE ";
+        }
       } else if (tree[1][0] === "fcTp") {
         ft = tree[1][1];
         fl = ['"' + ft + '".id AS id'];
@@ -526,7 +513,9 @@
           jn.push('"' + row + '".id = "' + ft + '"."' + row + '_id"');
         }
         sql = "SELECT " + fl.join(", ") + " FROM " + tb.join(", ") + " WHERE " + jn.join(" AND ");
-        if (ftree.length !== 1) sql += " AND ";
+        if (ftree.length !== 1) {
+          sql += " AND ";
+        }
       }
       if (ftree.length !== 1) {
         filts = [];
@@ -538,7 +527,9 @@
             for (_l = 0, _len4 = _ref4.length; _l < _len4; _l++) {
               row2 = _ref4[_l];
               obj = "";
-              if (row2[1][0] != null) obj = '"' + row2[1] + '".';
+              if (row2[1][0] != null) {
+                obj = '"' + row2[1] + '".';
+              }
               filts.push(obj + '"' + row2[2] + '"' + op[row2[0]] + row2[3]);
             }
           } else if (row[0] === "sort") {
@@ -569,7 +560,6 @@
       }
     }
   });
-
   app.post('/data', serverIsOnAir, parseURITree, function(req, res, next) {
     var binds, field, fields, i, id, pair, tree, value, values, _ref;
     if (req.tree[1] === void 0) {
@@ -620,7 +610,6 @@
       }
     }
   });
-
   app.put('/data', serverIsOnAir, parseURITree, function(req, res, next) {
     var id, tree;
     if (req.tree[1] === void 0) {
@@ -681,7 +670,6 @@
       }
     }
   });
-
   app.del('/data', serverIsOnAir, parseURITree, function(req, res, next) {
     var id, tree;
     tree = req.tree;
@@ -719,7 +707,6 @@
       }
     }
   });
-
   app.del('/', serverIsOnAir, function(req, res, next) {
     db.transaction((function(sqlmod) {
       return function(tx) {
@@ -759,7 +746,6 @@
     serverModelCache.setServerOnAir(false);
     return res.send(200);
   });
-
   endLock = function(tx, locks, i, trans_id, successCallback, failureCallback) {
     var continueEndingLock, lock_id;
     continueEndingLock = function(tx, result) {
@@ -786,7 +772,9 @@
             } else {
               sql += item.field_value;
             }
-            if (j < crs.rows.length - 1) sql += ", ";
+            if (j < crs.rows.length - 1) {
+              sql += ", ";
+            }
           }
           sql += ' WHERE "id"=' + locked.rows.item(0).resource_id + ';';
           tx.executeSql(sql, [], continueEndingLock);
@@ -800,7 +788,6 @@
     tx.executeSql('DELETE FROM "lock-belongs_to-transaction" WHERE "lock_id" = ?;', [lock_id]);
     return tx.executeSql('DELETE FROM "lock" WHERE "id" = ?;', [lock_id]);
   };
-
   validateDB = function(tx, sqlmod, successCallback, failureCallback) {
     var errors, row, totalExecuted, totalQueries, _i, _len;
     errors = [];
@@ -808,39 +795,42 @@
     totalExecuted = 0;
     for (_i = 0, _len = sqlmod.length; _i < _len; _i++) {
       row = sqlmod[_i];
-      if (!(row[0] === "rule")) continue;
-      totalQueries++;
-      tx.executeSql(row[4], [], (function(row) {
-        return function(tx, result) {
-          var _ref;
-          totalExecuted++;
-          if ((_ref = result.rows.item(0).result) === false || _ref === 0) {
-            errors.push(row[2]);
-          }
-          if (totalQueries === totalExecuted) {
-            if (errors.length > 0) {
-              tx.rollback();
-              return failureCallback(errors);
-            } else {
-              tx.end();
-              return successCallback(tx, result);
+      if (row[0] === "rule") {
+        totalQueries++;
+        tx.executeSql(row[4], [], (function(row) {
+          return function(tx, result) {
+            var _ref;
+            totalExecuted++;
+            if ((_ref = result.rows.item(0).result) === false || _ref === 0) {
+              errors.push(row[2]);
             }
-          }
-        };
-      })(row));
+            if (totalQueries === totalExecuted) {
+              if (errors.length > 0) {
+                tx.rollback();
+                return failureCallback(errors);
+              } else {
+                tx.end();
+                return successCallback(tx, result);
+              }
+            }
+          };
+        })(row));
+      }
     }
-    if (totalQueries === 0) return successCallback(tx, "");
+    if (totalQueries === 0) {
+      return successCallback(tx, "");
+    }
   };
-
   executeSasync = function(tx, sqlmod, successCallback, failureCallback, result) {
     var row, _i, _len, _ref;
     for (_i = 0, _len = sqlmod.length; _i < _len; _i++) {
       row = sqlmod[_i];
-      if ((_ref = row[0]) === "fcTp" || _ref === "term") tx.executeSql(row[4]);
+      if ((_ref = row[0]) === "fcTp" || _ref === "term") {
+        tx.executeSql(row[4]);
+      }
     }
     return validateDB(tx, sqlmod, successCallback, failureCallback);
   };
-
   executeTasync = function(tx, trnmod, successCallback, failureCallback, result) {
     return executeSasync(tx, trnmod, function(tx, result) {
       tx.executeSql('ALTER TABLE "resource-is_under-lock" ADD COLUMN resource_type TEXT');
@@ -855,29 +845,30 @@
       return failureCallback(errors);
     }, result);
   };
-
   updateRules = function(sqlmod) {
     var query, row, _i, _j, _len, _len2, _ref, _results;
     for (_i = 0, _len = sqlmod.length; _i < _len; _i++) {
       row = sqlmod[_i];
-      if ((_ref = row[0]) === "fcTp" || _ref === "term") tx.executeSql(row[4]);
+      if ((_ref = row[0]) === "fcTp" || _ref === "term") {
+        tx.executeSql(row[4]);
+      }
     }
     _results = [];
     for (_j = 0, _len2 = sqlmod.length; _j < _len2; _j++) {
       row = sqlmod[_j];
-      if (!(row[0] === "rule")) continue;
-      query = row[4];
-      l[++m] = row[2];
-      _results.push(tx.executeSql(query, [], function(tx, result) {
-        var _ref2;
-        if ((_ref2 = result.rows.item(0).result) === 0 || _ref2 === false) {
-          return alert("Error: " + l[++k]);
-        }
-      }));
+      if (row[0] === "rule") {
+        query = row[4];
+        l[++m] = row[2];
+        _results.push(tx.executeSql(query, [], function(tx, result) {
+          var _ref2;
+          if ((_ref2 = result.rows.item(0).result) === 0 || _ref2 === false) {
+            return alert("Error: " + l[++k]);
+          }
+        }));
+      }
     }
     return _results;
   };
-
   getFTree = function(tree) {
     if (tree[1][0] === "term") {
       return tree[1][3];
@@ -886,7 +877,6 @@
     }
     return [];
   };
-
   getID = function(tree) {
     var f, ftree, id, _i, _len, _ref;
     if (tree[1][0] === "term") {
@@ -894,7 +884,9 @@
     } else if (tree[1][0] === "fcTp") {
       id = tree[1][3];
     }
-    if (id === "") id = 0;
+    if (id === "") {
+      id = 0;
+    }
     if (id === 0) {
       ftree = getFTree(tree);
       _ref = ftree.slice(1);
@@ -907,35 +899,34 @@
     }
     return id;
   };
-
   hasCR = function(tree) {
     var f, _i, _len, _ref;
     _ref = getFTree(tree);
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       f = _ref[_i];
-      if (f[0] === "cr") return true;
+      if (f[0] === "cr") {
+        return true;
+      }
     }
     return false;
   };
-
   isExecute = function(tree) {
     var f, _i, _len, _ref;
     _ref = getFTree(tree);
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       f = _ref[_i];
-      if (f[0] === "execute") return true;
+      if (f[0] === "execute") {
+        return true;
+      }
     }
     return false;
   };
-
   if (typeof process !== "undefined" && process !== null) {
     app.listen(process.env.PORT || 1337, function() {
       return console.log('Server started');
     });
   }
-
   if (typeof window !== "undefined" && window !== null) {
     window.remoteServerRequest = app.process;
   }
-
 }).call(this);

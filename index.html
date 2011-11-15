@@ -72,6 +72,10 @@ Copyright 2011 University of Surrey
 				<!-- windows wants 189 cols for the textareas -->
 				<textarea id="modelArea" rows="15" cols="136"></textarea>
 				<div align="right">
+					<input type="button" id="write_file" value="Save File">
+					<input type="file" id="read_file" class="hidden-input" onchange="readFile(this.files);return false">	
+					<input type="button" value="Load File" onClick="toReadFile();return false">
+					<input type="button" id='save_model' value="Publish"  onClick="saveModel();return false">
 					<input type="button" id='blm1' value="Load Example 1"  onClick="loadmod(model1);return false">
 					<input type="button" id='blm2' value="Load Example 2"  onClick="loadmod(model2);return false">
 					<!--#IFDEF server -->
@@ -82,6 +86,7 @@ Copyright 2011 University of Surrey
 						<input type="button" id='bpm'  value="Parse Model"   onClick="parseModel();return false">
 					<!--#ENDIFDEF-->
 					<input type="button" id='clear_editor' value="Clear Editor"  onClick="sbvrEditor.setValue('');return false">
+					<div id="downloadify"></div>
 					<!--#IFDEF server -->
 						<input type="button" id='bem'  value="Execute Model" onClick="transformClient(sbvrEditor.getValue());return false">
 						<input type="button" id='bum'  value="Update Model"  onClick="return false">
@@ -133,7 +138,8 @@ Copyright 2011 University of Surrey
 
 
 	<!-- JavaScript at the bottom for fast page loading -->
-
+	<script type="text/javascript" src="js/libs/swfobject.js"></script>
+	<script type="text/javascript" src="js/libs/downloadify.min.js"></script>
 	<script src="js/libs/require-1.0.0.min.js"></script>
 
 	<script>

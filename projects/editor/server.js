@@ -82,7 +82,9 @@
       console.log('End', request.method, request.url);
       nodePath = '/node';
       if (nodePath === request.url.slice(0, nodePath.length)) {
-        response.writeHead(200, "");
+        response.writeHead(200, {
+          "content-type": "text/plain"
+        });
         if (request.method === "POST") {
           return db.transaction(function(tx) {
             var lfmod, value;
@@ -101,7 +103,7 @@
             });
           });
         } else if (request.method === "GET") {
-          key = decodeBase(request.url.slice(nodePath.length + 1), 64);
+          key = decodeBase(request.url.slice(nodePath.length + 1), 62);
           if (key !== false) {
             console.log('key: ', key);
             return db.transaction(function(tx) {
