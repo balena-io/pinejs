@@ -77,9 +77,9 @@
                 xs;
             xs = this._many((function() {
                 return this._or((function() {
-                    return this._applyWithArgs("token", "nTerm")
+                    return this._applyWithArgs("token", "term")
                 }), (function() {
-                    return this._applyWithArgs("token", "nFcTp")
+                    return this._applyWithArgs("token", "fcTp")
                 }), (function() {
                     return this._applyWithArgs("token", "rule")
                 }))
@@ -89,7 +89,7 @@
         "fcTp": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                t, v, e;
+                t, v, e, attr;
             (a = []);
             this._many((function() {
                 t = this._applyWithArgs("token", "term");
@@ -97,7 +97,13 @@
                 return (a = a.concat([t, v]))
             }));
             e = this._applyWithArgs("$", "term");
-            return ["fcTp"].concat(a).concat(e)
+            attr = this._or((function() {
+                attr = this._apply("anything");
+                return [attr]
+            }), (function() {
+                return []
+            }));
+            return ["fcTp"].concat(a).concat(e).concat(attr)
         },
         "verb": function() {
             var $elf = this,
@@ -109,9 +115,15 @@
         "term": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                t;
+                t, attr;
             t = this._apply("anything");
-            return ["term", t]
+            attr = this._or((function() {
+                attr = this._apply("anything");
+                return [attr]
+            }), (function() {
+                return []
+            }));
+            return ["term", t].concat(attr)
         },
         "rule": function() {
             var $elf = this,

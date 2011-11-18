@@ -30,12 +30,13 @@ ometa SBVR_NullOpt {
 
   num        number:n ?{!isNaN(n)}                     -> [`num, parseInt(n)],
 
-  model      ("nTerm"|"nFcTp"|"rule")*:xs              -> [`model].concat(xs),
+  model      ("term"|"fcTp"|"rule")*:xs                -> [`model].concat(xs),
 
-  fcTp       {a=[]}("term":t "verb":v {a=a.concat([t,v])})* $('term'):e -> [`fcTp].concat(a).concat(e),
+  fcTp       {a=[]}("term":t "verb":v {a=a.concat([t,v])})* $('term'):e  (:attr->[attr]|->[]):attr
+                                                       -> [`fcTp].concat(a).concat(e).concat(attr),
 
   verb       :v                                        -> [`verb, v],
-  term       :t                                        -> [`term, t],
+  term       :t (:attr->[attr]|->[]):attr              -> [`term, t].concat(attr),
   rule       ("obl"|"nec"|"pos"|"prm"):x "text":t      -> [`rule, x, t],
 
   text	     :a	                                       -> [`text, a],
