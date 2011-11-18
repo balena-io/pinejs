@@ -51,9 +51,6 @@ CodeMirror.defineMode("markdown", function(cmCfg, modeCfg) {
       state.indentation++;
       return quote;
     }
-    if (stream.peek() === '<') {
-      return switchBlock(stream, state, htmlBlock);
-    }
     if (stream.peek() === '[') {
       return switchInline(stream, state, footnoteLink);
     }
@@ -84,22 +81,28 @@ CodeMirror.defineMode("markdown", function(cmCfg, modeCfg) {
 
 
   // Inline
+  function getType(state) {
+    return state.strong ? (state.em ? emstrong : strong)
+                        : (state.em ? em       : null);
+  }
+
+  function handleText(stream, state) {
+    if (stream.match(textRE, true)) {
+      return getType(state);
+    }
+    return undefined;        
+  }
 
   function inlineNormal(stream, state) {
-    function getType() {
-      return state.strong ? (state.em ? emstrong : strong)
-                          : (state.em ? em       : null);
-    }
-    
-    if (stream.match(textRE, true)) {
-      return getType();
-    }
+    var style = state.text(stream, state)
+    if (typeof style !== 'undefined')
+      return style;
     
     var ch = stream.next();
     
     if (ch === '\\') {
       stream.next();
-      return getType();
+      return getType(state);
     }
     if (ch === '`') {
       return switchInline(stream, state, inlineElement(code, '`'));
@@ -112,15 +115,15 @@ CodeMirror.defineMode("markdown", function(cmCfg, modeCfg) {
       return switchBlock(stream, state, htmlBlock);
     }
 
-    var t = getType();
+    var t = getType(state);
     if (ch === '*' || ch === '_') {
       if (stream.eat(ch)) {
-        return (state.strong = !state.strong) ? getType() : t;
+        return (state.strong = !state.strong) ? getType(state) : t;
       }
-      return (state.em = !state.em) ? getType() : t;
+      return (state.em = !state.em) ? getType(state) : t;
     }
     
-    return getType();
+    return getType(state);
   }
 
   function linkText(stream, state) {
@@ -159,17 +162,20 @@ CodeMirror.defineMode("markdown", function(cmCfg, modeCfg) {
     return linkhref;
   }
 
+  function inlineRE(endChar) {
+    if (!inlineRE[endChar]) {
+      // match any not-escaped-non-endChar and any escaped char
+      // then match endChar or eol
+      inlineRE[endChar] = new RegExp('^(?:[^\\\\\\' + endChar + ']|\\\\.)*(?:\\' + endChar + '|$)');
+    }
+    return inlineRE[endChar];
+  }
+
   function inlineElement(type, endChar, next) {
     next = next || inlineNormal;
     return function(stream, state) {
-      while (!stream.eol()) {
-        var ch = stream.next();
-        if (ch === '\\') stream.next();
-        if (ch === endChar) {
-          state.inline = state.f = next;
-          return type;
-        }
-      }
+      stream.match(inlineRE(endChar));
+      state.inline = state.f = next;
       return type;
     };
   }
@@ -184,6 +190,7 @@ CodeMirror.defineMode("markdown", function(cmCfg, modeCfg) {
         indentation: 0,
         
         inline: inlineNormal,
+        text: handleText,
         em: false,
         strong: false
       };
@@ -198,6 +205,7 @@ CodeMirror.defineMode("markdown", function(cmCfg, modeCfg) {
         indentation: s.indentation,
         
         inline: s.inline,
+        text: s.text,
         em: s.em,
         strong: s.strong
       };
@@ -224,7 +232,9 @@ CodeMirror.defineMode("markdown", function(cmCfg, modeCfg) {
         if (currentIndentation > 0) return null;
       }
       return state.f(stream, state);
-    }
+    },
+
+    getType: getType
   };
 
 });
