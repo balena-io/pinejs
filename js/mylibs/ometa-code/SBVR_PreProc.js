@@ -14,21 +14,17 @@
             var $elf = this,
                 _fromIdx = this.input.idx,
                 x;
-            return (function() {
-                x = this._apply("trans");
-                this._apply("helped");
-                return x
-            }).call(this)
+            x = this._apply("trans");
+            this._apply("helped");
+            return x
         },
         "$": function(x) {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 a;
             return this._or((function() {
-                return (function() {
-                    a = this._applyWithArgs("token", x);
-                    return [a]
-                }).call(this)
+                a = this._applyWithArgs("token", x);
+                return [a]
             }), (function() {
                 return []
             }))
@@ -37,187 +33,151 @@
             var $elf = this,
                 _fromIdx = this.input.idx,
                 t, a;
-            return (function() {
-                this._form((function() {
-                    return (function() {
-                        t = this._apply("anything");
-                        return a = this._applyWithArgs("apply", t)
-                    }).call(this)
-                }));
-                return a
-            }).call(this)
+            this._form((function() {
+                t = this._apply("anything");
+                return a = this._applyWithArgs("apply", t)
+            }));
+            return a
         },
         "token": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 x, t, a;
-            return (function() {
-                x = this._apply("anything");
-                this._form((function() {
-                    return (function() {
-                        t = this._apply("anything");
-                        this._pred((t == x));
-                        return a = this._applyWithArgs("apply", x)
-                    }).call(this)
-                }));
-                return a
-            }).call(this)
+            x = this._apply("anything");
+            this._form((function() {
+                t = this._apply("anything");
+                this._pred((t == x));
+                return a = this._applyWithArgs("apply", x)
+            }));
+            return a
         },
         "letters": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 l;
-            return (function() {
-                l = this._many1((function() {
-                    return this._apply("letter")
-                }));
-                this._many((function() {
-                    return this._apply("space")
-                }));
-                return l.join("")
-            }).call(this)
+            l = this._many1((function() {
+                return this._apply("letter")
+            }));
+            this._many((function() {
+                return this._apply("space")
+            }));
+            return l.join("")
         },
         "num": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 n;
-            return (function() {
-                n = this._apply("number");
-                this._pred((!isNaN(n)));
-                return ["num", parseInt(n)]
-            }).call(this)
+            n = this._apply("number");
+            this._pred((!isNaN(n)));
+            return ["num", parseInt(n)]
         },
         "model": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 xs;
-            return (function() {
-                xs = this._many((function() {
-                    return this._or((function() {
-                        return this._applyWithArgs("token", "nTerm")
-                    }), (function() {
-                        return this._applyWithArgs("token", "nFcTp")
-                    }), (function() {
-                        return this._applyWithArgs("token", "rule")
-                    }))
-                }));
-                return ["model"].concat(xs)
-            }).call(this)
+            xs = this._many((function() {
+                return this._or((function() {
+                    return this._applyWithArgs("token", "nTerm")
+                }), (function() {
+                    return this._applyWithArgs("token", "nFcTp")
+                }), (function() {
+                    return this._applyWithArgs("token", "rule")
+                }))
+            }));
+            return ["model"].concat(xs)
         },
         "fcTp": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 t, v, e;
-            return (function() {
-                (a = []);
-                this._many((function() {
-                    return (function() {
-                        t = this._applyWithArgs("token", "term");
-                        v = this._applyWithArgs("token", "verb");
-                        return (a = a.concat([t, v]))
-                    }).call(this)
-                }));
-                e = this._applyWithArgs("$", "term");
-                return ["fcTp"].concat(a).concat(e)
-            }).call(this)
+            (a = []);
+            this._many((function() {
+                t = this._applyWithArgs("token", "term");
+                v = this._applyWithArgs("token", "verb");
+                return (a = a.concat([t, v]))
+            }));
+            e = this._applyWithArgs("$", "term");
+            return ["fcTp"].concat(a).concat(e)
         },
         "verb": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 v;
-            return (function() {
-                v = this._apply("anything");
-                return ["verb", v]
-            }).call(this)
+            v = this._apply("anything");
+            return ["verb", v]
         },
         "term": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 t;
-            return (function() {
-                t = this._apply("anything");
-                return ["term", t]
-            }).call(this)
+            t = this._apply("anything");
+            return ["term", t]
         },
         "rule": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 x, t;
-            return (function() {
-                x = this._or((function() {
-                    return this._applyWithArgs("token", "obl")
-                }), (function() {
-                    return this._applyWithArgs("token", "nec")
-                }), (function() {
-                    return this._applyWithArgs("token", "pos")
-                }), (function() {
-                    return this._applyWithArgs("token", "prm")
-                }));
-                t = this._applyWithArgs("token", "text");
-                return ["rule", x, t]
-            }).call(this)
+            x = this._or((function() {
+                return this._applyWithArgs("token", "obl")
+            }), (function() {
+                return this._applyWithArgs("token", "nec")
+            }), (function() {
+                return this._applyWithArgs("token", "pos")
+            }), (function() {
+                return this._applyWithArgs("token", "prm")
+            }));
+            t = this._applyWithArgs("token", "text");
+            return ["rule", x, t]
         },
         "text": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 a;
-            return (function() {
-                a = this._apply("anything");
-                return ["text", a]
-            }).call(this)
+            a = this._apply("anything");
+            return ["text", a]
         },
         "obl": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 xs;
-            return (function() {
-                xs = this._many((function() {
-                    return this._apply("trans")
-                }));
-                return ["obl"].concat(xs)
-            }).call(this)
+            xs = this._many((function() {
+                return this._apply("trans")
+            }));
+            return ["obl"].concat(xs)
         },
         "nec": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 xs;
-            return (function() {
-                xs = this._many((function() {
-                    return this._apply("trans")
-                }));
-                return ["nec"].concat(xs)
-            }).call(this)
+            xs = this._many((function() {
+                return this._apply("trans")
+            }));
+            return ["nec"].concat(xs)
         },
         "pos": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 xs;
-            return (function() {
-                xs = this._many((function() {
-                    return this._apply("trans")
-                }));
-                return ["pos"].concat(xs)
-            }).call(this)
+            xs = this._many((function() {
+                return this._apply("trans")
+            }));
+            return ["pos"].concat(xs)
         },
         "prm": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 xs;
-            return (function() {
-                xs = this._many((function() {
-                    return this._apply("trans")
-                }));
-                return ["prm"].concat(xs)
-            }).call(this)
+            xs = this._many((function() {
+                return this._apply("trans")
+            }));
+            return ["prm"].concat(xs)
         },
         "neg": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 xs;
-            return (function() {
-                xs = this._apply("trans");
-                return ["neg"].concat([xs])
-            }).call(this)
+            xs = this._apply("trans");
+            return ["neg"].concat([xs])
         },
         "quant": function() {
             var $elf = this,
@@ -240,150 +200,124 @@
             var $elf = this,
                 _fromIdx = this.input.idx,
                 v, xs;
-            return (function() {
-                v = this._applyWithArgs("token", "var");
-                xs = this._many((function() {
-                    return this._apply("trans")
-                }));
-                return ["univQ", v].concat(xs)
-            }).call(this)
+            v = this._applyWithArgs("token", "var");
+            xs = this._many((function() {
+                return this._apply("trans")
+            }));
+            return ["univQ", v].concat(xs)
         },
         "existQ": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 v, xs;
-            return (function() {
-                v = this._applyWithArgs("token", "var");
-                xs = this._many((function() {
-                    return this._apply("trans")
-                }));
-                return ["existQ", v].concat(xs)
-            }).call(this)
+            v = this._applyWithArgs("token", "var");
+            xs = this._many((function() {
+                return this._apply("trans")
+            }));
+            return ["existQ", v].concat(xs)
         },
         "exactQ": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 i, v, xs;
-            return (function() {
-                i = this._applyWithArgs("token", "card");
-                v = this._applyWithArgs("token", "var");
-                xs = this._many((function() {
-                    return this._apply("trans")
-                }));
-                return ["exactQ", i, v].concat(xs)
-            }).call(this)
+            i = this._applyWithArgs("token", "card");
+            v = this._applyWithArgs("token", "var");
+            xs = this._many((function() {
+                return this._apply("trans")
+            }));
+            return ["exactQ", i, v].concat(xs)
         },
         "atMostQ": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 a, v, xs;
-            return (function() {
-                a = this._applyWithArgs("token", "maxCard");
-                v = this._applyWithArgs("token", "var");
-                xs = this._many((function() {
-                    return this._apply("trans")
-                }));
-                return ["atMostQ", a, v].concat(xs)
-            }).call(this)
+            a = this._applyWithArgs("token", "maxCard");
+            v = this._applyWithArgs("token", "var");
+            xs = this._many((function() {
+                return this._apply("trans")
+            }));
+            return ["atMostQ", a, v].concat(xs)
         },
         "atLeastQ": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 i, v, xs;
-            return (function() {
-                i = this._applyWithArgs("token", "minCard");
-                v = this._applyWithArgs("token", "var");
-                xs = this._many((function() {
-                    return this._apply("trans")
-                }));
-                return ["atLeastQ", i, v].concat(xs)
-            }).call(this)
+            i = this._applyWithArgs("token", "minCard");
+            v = this._applyWithArgs("token", "var");
+            xs = this._many((function() {
+                return this._apply("trans")
+            }));
+            return ["atLeastQ", i, v].concat(xs)
         },
         "numRngQ": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 i, a, v, xs;
-            return (function() {
-                i = this._applyWithArgs("token", "minCard");
-                a = this._applyWithArgs("token", "maxCard");
-                v = this._applyWithArgs("token", "var");
-                xs = this._many((function() {
-                    return this._apply("trans")
-                }));
-                return ["numRngQ", i, a, v].concat(xs)
-            }).call(this)
+            i = this._applyWithArgs("token", "minCard");
+            a = this._applyWithArgs("token", "maxCard");
+            v = this._applyWithArgs("token", "var");
+            xs = this._many((function() {
+                return this._apply("trans")
+            }));
+            return ["numRngQ", i, a, v].concat(xs)
         },
         "card": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 n;
-            return (function() {
-                n = this._applyWithArgs("token", "num");
-                return ["card", n]
-            }).call(this)
+            n = this._applyWithArgs("token", "num");
+            return ["card", n]
         },
         "minCard": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 n;
-            return (function() {
-                n = this._applyWithArgs("token", "num");
-                return ["minCard", n]
-            }).call(this)
+            n = this._applyWithArgs("token", "num");
+            return ["minCard", n]
         },
         "maxCard": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 n;
-            return (function() {
-                n = this._applyWithArgs("token", "num");
-                return ["maxCard", n]
-            }).call(this)
+            n = this._applyWithArgs("token", "num");
+            return ["maxCard", n]
         },
         "var": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 n, t, w;
             return this._or((function() {
-                return (function() {
-                    n = this._applyWithArgs("token", "num");
-                    t = this._applyWithArgs("token", "term");
-                    w = this._or((function() {
-                        return this._applyWithArgs("token", "aFrm")
-                    }), (function() {
-                        return this._apply("quant")
-                    }));
-                    return ["var", n, t, w]
-                }).call(this)
+                n = this._applyWithArgs("token", "num");
+                t = this._applyWithArgs("token", "term");
+                w = this._or((function() {
+                    return this._applyWithArgs("token", "aFrm")
+                }), (function() {
+                    return this._apply("quant")
+                }));
+                return ["var", n, t, w]
             }), (function() {
-                return (function() {
-                    n = this._applyWithArgs("token", "num");
-                    t = this._applyWithArgs("token", "term");
-                    return ["var", n, t]
-                }).call(this)
+                n = this._applyWithArgs("token", "num");
+                t = this._applyWithArgs("token", "term");
+                return ["var", n, t]
             }))
         },
         "bind": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 t, n;
-            return (function() {
-                t = this._applyWithArgs("token", "term");
-                n = this._apply("number");
-                return ["bind", t, n]
-            }).call(this)
+            t = this._applyWithArgs("token", "term");
+            n = this._apply("number");
+            return ["bind", t, n]
         },
         "aFrm": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 f, b;
-            return (function() {
-                f = this._applyWithArgs("token", "fcTp");
-                b = this._many((function() {
-                    return this._applyWithArgs("token", "bind")
-                }));
-                return ["aFrm", f].concat(b)
-            }).call(this)
+            f = this._applyWithArgs("token", "fcTp");
+            b = this._many((function() {
+                return this._applyWithArgs("token", "bind")
+            }));
+            return ["aFrm", f].concat(b)
         }
     });
     (SBVR_NullOpt["initialize"] = (function() {
@@ -394,56 +328,48 @@
             var $elf = this,
                 _fromIdx = this.input.idx,
                 v, xs;
-            return (function() {
-                v = this._applyWithArgs("token", "var");
-                xs = this._many((function() {
-                    return this._apply("trans")
-                }));
-                this._apply("setHelped");
-                return ["neg", ["existQ", v, ["neg"].concat(xs)]]
-            }).call(this)
+            v = this._applyWithArgs("token", "var");
+            xs = this._many((function() {
+                return this._apply("trans")
+            }));
+            this._apply("setHelped");
+            return ["neg", ["existQ", v, ["neg"].concat(xs)]]
         },
         "atLeastQ": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 i, v, xs;
             return this._or((function() {
-                return (function() {
-                    i = this._applyWithArgs("token", "minCard");
-                    this._pred((i[(1)][(1)] == (1)));
-                    v = this._applyWithArgs("token", "var");
-                    xs = this._many((function() {
-                        return this._apply("trans")
-                    }));
-                    this._apply("setHelped");
-                    return ["existQ", v].concat(xs)
-                }).call(this)
+                i = this._applyWithArgs("token", "minCard");
+                this._pred((i[(1)][(1)] == (1)));
+                v = this._applyWithArgs("token", "var");
+                xs = this._many((function() {
+                    return this._apply("trans")
+                }));
+                this._apply("setHelped");
+                return ["existQ", v].concat(xs)
             }), (function() {
-                return (function() {
-                    i = this._applyWithArgs("token", "minCard");
-                    v = this._applyWithArgs("token", "var");
-                    xs = this._many((function() {
-                        return this._apply("trans")
-                    }));
-                    return ["atLeastQ", i, v].concat(xs)
-                }).call(this)
+                i = this._applyWithArgs("token", "minCard");
+                v = this._applyWithArgs("token", "var");
+                xs = this._many((function() {
+                    return this._apply("trans")
+                }));
+                return ["atLeastQ", i, v].concat(xs)
             }))
         },
         "atMostQ": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 a, v, xs;
+            a = this._applyWithArgs("token", "maxCard");
+            v = this._applyWithArgs("token", "var");
+            xs = this._many((function() {
+                return this._apply("trans")
+            }));
+            this._apply("setHelped");
             return (function() {
-                a = this._applyWithArgs("token", "maxCard");
-                v = this._applyWithArgs("token", "var");
-                xs = this._many((function() {
-                    return this._apply("trans")
-                }));
-                this._apply("setHelped");
-                return (function() {
-                    a[(1)][(1)]++;
-                    return ["neg", ["atLeastQ", ["minCard", a[(1)]], v].concat(xs)]
-                }).call(this)
+                a[(1)][(1)]++;
+                return ["neg", ["atLeastQ", ["minCard", a[(1)]], v].concat(xs)]
             }).call(this)
         },
         "neg": function() {
@@ -451,21 +377,15 @@
                 _fromIdx = this.input.idx,
                 xs;
             return this._or((function() {
-                return (function() {
-                    this._form((function() {
-                        return (function() {
-                            this._applyWithArgs("exactly", "neg");
-                            return xs = this._apply("trans")
-                        }).call(this)
-                    }));
-                    this._apply("setHelped");
-                    return xs
-                }).call(this)
+                this._form((function() {
+                    this._applyWithArgs("exactly", "neg");
+                    return xs = this._apply("trans")
+                }));
+                this._apply("setHelped");
+                return xs
             }), (function() {
-                return (function() {
-                    xs = this._apply("trans");
-                    return ["neg"].concat([xs])
-                }).call(this)
+                xs = this._apply("trans");
+                return ["neg"].concat([xs])
             }))
         }
     });
@@ -474,29 +394,23 @@
             var $elf = this,
                 _fromIdx = this.input.idx,
                 rs;
-            return (function() {
-                this._form((function() {
-                    return (function() {
-                        this._applyWithArgs("exactly", "model");
-                        return rs = this._many((function() {
-                            return this._apply("optimizeRule")
-                        }))
-                    }).call(this)
-                }));
-                return ["model"].concat(rs)
-            }).call(this)
+            this._form((function() {
+                this._applyWithArgs("exactly", "model");
+                return rs = this._many((function() {
+                    return this._apply("optimizeRule")
+                }))
+            }));
+            return ["model"].concat(rs)
         },
         "optimizeRule": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 r;
-            return (function() {
-                r = this._apply("anything");
-                this._many((function() {
-                    return r = this._applyWithArgs("foreign", FNN_Elim, 'optimize', r)
-                }));
-                return r
-            }).call(this)
+            r = this._apply("anything");
+            this._many((function() {
+                return r = this._applyWithArgs("foreign", FNN_Elim, 'optimize', r)
+            }));
+            return r
         }
     })
 }

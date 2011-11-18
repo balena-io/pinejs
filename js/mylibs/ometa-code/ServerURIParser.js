@@ -3,43 +3,37 @@ ServerURIParser = objectThatDelegatesTo(OMeta, {
         var $elf = this,
             _fromIdx = this.input.idx,
             l;
-        return (function() {
-            l = this._many1((function() {
-                return this._or((function() {
-                    return this._apply("letter")
-                }), (function() {
-                    return (function() {
-                        switch (this._apply('anything')) {
-                        case "-":
-                            return "-";
-                        default:
-                            throw fail
-                        }
-                    }).call(this)
-                }))
-            }));
-            return l.join("")
-        }).call(this)
+        l = this._many1((function() {
+            return this._or((function() {
+                return this._apply("letter")
+            }), (function() {
+                return (function() {
+                    switch (this._apply('anything')) {
+                    case "-":
+                        return "-";
+                    default:
+                        throw fail
+                    }
+                }).call(this)
+            }))
+        }));
+        return l.join("")
     },
     "dgit": function() {
         var $elf = this,
             _fromIdx = this.input.idx,
             d;
-        return (function() {
-            d = OMeta._superApplyWithArgs(this, 'digit');
-            return d.digitValue()
-        }).call(this)
+        d = OMeta._superApplyWithArgs(this, 'digit');
+        return d.digitValue()
     },
     "nmbr": function() {
         var $elf = this,
             _fromIdx = this.input.idx,
             n, d;
         return this._or((function() {
-            return (function() {
-                n = this._apply("nmbr");
-                d = this._apply("dgit");
-                return ((n * (10)) + d)
-            }).call(this)
+            n = this._apply("nmbr");
+            d = this._apply("dgit");
+            return ((n * (10)) + d)
         }), (function() {
             return this._apply("dgit")
         }))
@@ -48,27 +42,25 @@ ServerURIParser = objectThatDelegatesTo(OMeta, {
         var $elf = this,
             _fromIdx = this.input.idx,
             l;
-        return (function() {
-            l = this._many1((function() {
-                return this._or((function() {
-                    return this._apply("letter")
-                }), (function() {
-                    return this._apply("digit")
-                }), (function() {
-                    return (function() {
-                        switch (this._apply('anything')) {
-                        case "-":
-                            return "-";
-                        case "_":
-                            return "_";
-                        default:
-                            throw fail
-                        }
-                    }).call(this)
-                }))
-            }));
-            return l.join("")
-        }).call(this)
+        l = this._many1((function() {
+            return this._or((function() {
+                return this._apply("letter")
+            }), (function() {
+                return this._apply("digit")
+            }), (function() {
+                return (function() {
+                    switch (this._apply('anything')) {
+                    case "-":
+                        return "-";
+                    case "_":
+                        return "_";
+                    default:
+                        throw fail
+                    }
+                }).call(this)
+            }))
+        }));
+        return l.join("")
     },
     "mdtp": function() {
         var $elf = this,
@@ -98,58 +90,54 @@ ServerURIParser = objectThatDelegatesTo(OMeta, {
         var $elf = this,
             _fromIdx = this.input.idx,
             t, f, o, v;
-        return (function() {
-            t = this._apply("part");
-            f = this._or((function() {
-                return (function() {
-                    switch (this._apply('anything')) {
-                    case ".":
-                        return (function() {
-                            ".";
-                            return this._apply("word")
-                        }).call(this);
-                    default:
-                        throw fail
-                    }
-                }).call(this)
-            }), (function() {
-                return (function() {
-                    (f = t);
-                    (t = []);
-                    return f
-                }).call(this)
-            }));
-            o = (function() {
+        t = this._apply("part");
+        f = this._or((function() {
+            return (function() {
                 switch (this._apply('anything')) {
-                case "=":
+                case ".":
                     return (function() {
-                        "=";
-                        return "eq"
-                    }).call(this);
-                case "!":
-                    return (function() {
-                        this._applyWithArgs("exactly", "=");
-                        "!=";
-                        return "ne"
-                    }).call(this);
-                case "~":
-                    return (function() {
-                        "~";
-                        return "lk"
+                        ".";
+                        return this._apply("word")
                     }).call(this);
                 default:
                     throw fail
                 }
-            }).call(this);
-            v = this._apply("part");
-            this._opt((function() {
+            }).call(this)
+        }), (function() {
+            return (function() {
+                (f = t);
+                (t = []);
+                return f
+            }).call(this)
+        }));
+        o = (function() {
+            switch (this._apply('anything')) {
+            case "=":
                 return (function() {
-                    this._applyWithArgs("exactly", ";");
-                    return ";"
-                }).call(this)
-            }));
-            return [o, t, f, v]
-        }).call(this)
+                    "=";
+                    return "eq"
+                }).call(this);
+            case "!":
+                return (function() {
+                    this._applyWithArgs("exactly", "=");
+                    "!=";
+                    return "ne"
+                }).call(this);
+            case "~":
+                return (function() {
+                    "~";
+                    return "lk"
+                }).call(this);
+            default:
+                throw fail
+            }
+        }).call(this);
+        v = this._apply("part");
+        this._opt((function() {
+            this._applyWithArgs("exactly", ";");
+            return ";"
+        }));
+        return [o, t, f, v]
     },
     "actn": function() {
         var $elf = this,
@@ -157,29 +145,27 @@ ServerURIParser = objectThatDelegatesTo(OMeta, {
             a, p;
         return this._or((function() {
             return this._many1((function() {
-                return (function() {
-                    this._applyWithArgs("exactly", "*");
-                    "*";
-                    a = this._apply("mdtp");
-                    p = this._or((function() {
-                        return (function() {
-                            switch (this._apply('anything')) {
-                            case ":":
-                                return (function() {
-                                    ":";
-                                    return this._many1((function() {
-                                        return this._apply("parm")
-                                    }))
-                                }).call(this);
-                            default:
-                                throw fail
-                            }
-                        }).call(this)
-                    }), (function() {
-                        return []
-                    }));
-                    return [a].concat(p)
-                }).call(this)
+                this._applyWithArgs("exactly", "*");
+                "*";
+                a = this._apply("mdtp");
+                p = this._or((function() {
+                    return (function() {
+                        switch (this._apply('anything')) {
+                        case ":":
+                            return (function() {
+                                ":";
+                                return this._many1((function() {
+                                    return this._apply("parm")
+                                }))
+                            }).call(this);
+                        default:
+                            throw fail
+                        }
+                    }).call(this)
+                }), (function() {
+                    return []
+                }));
+                return [a].concat(p)
             }))
         }), (function() {
             return []
@@ -214,89 +200,77 @@ ServerURIParser = objectThatDelegatesTo(OMeta, {
         var $elf = this,
             _fromIdx = this.input.idx,
             l;
-        return (function() {
-            l = this._many1((function() {
-                return this._or((function() {
-                    return this._apply("letter")
-                }), (function() {
-                    return (function() {
-                        switch (this._apply('anything')) {
-                        case "_":
-                            return "_";
-                        default:
-                            throw fail
-                        }
-                    }).call(this)
-                }))
-            }));
-            return l.join("")
-        }).call(this)
+        l = this._many1((function() {
+            return this._or((function() {
+                return this._apply("letter")
+            }), (function() {
+                return (function() {
+                    switch (this._apply('anything')) {
+                    case "_":
+                        return "_";
+                    default:
+                        throw fail
+                    }
+                }).call(this)
+            }))
+        }));
+        return l.join("")
     },
     "verb": function() {
         var $elf = this,
             _fromIdx = this.input.idx,
             l;
-        return (function() {
-            l = this._many1((function() {
-                return this._or((function() {
-                    return this._apply("letter")
-                }), (function() {
-                    return (function() {
-                        switch (this._apply('anything')) {
-                        case "_":
-                            return "_";
-                        default:
-                            throw fail
-                        }
-                    }).call(this)
-                }))
-            }));
-            return l.join("")
-        }).call(this)
+        l = this._many1((function() {
+            return this._or((function() {
+                return this._apply("letter")
+            }), (function() {
+                return (function() {
+                    switch (this._apply('anything')) {
+                    case "_":
+                        return "_";
+                    default:
+                        throw fail
+                    }
+                }).call(this)
+            }))
+        }));
+        return l.join("")
     },
     "trmf": function() {
         var $elf = this,
             _fromIdx = this.input.idx,
             t;
-        return (function() {
-            t = this._apply("term");
-            return ["term", t]
-        }).call(this)
+        t = this._apply("term");
+        return ["term", t]
     },
     "fcTp": function() {
         var $elf = this,
             _fromIdx = this.input.idx,
             t, v;
-        return (function() {
-            (function() {
-                (ts = ["terms"]);
-                return (ft = "")
-            }).call(this);
-            this._many1((function() {
-                return (function() {
-                    t = this._apply("term");
-                    this._applyWithArgs("exactly", "-");
-                    "-";
-                    v = this._apply("verb");
-                    return (function() {
-                        ts.push(t);
-                        return (ft += ((t + "-") + v))
-                    }).call(this)
-                }).call(this)
-            }));
-            this._opt((function() {
-                return (function() {
-                    this._applyWithArgs("exactly", "-");
-                    "-";
-                    t = this._apply("term");
-                    return (function() {
-                        ts.push(t);
-                        return (ft += ("-" + t))
-                    }).call(this)
-                }).call(this)
-            }));
-            return ["fcTp", ft, ts]
-        }).call(this)
+        (function() {
+            (ts = ["terms"]);
+            return (ft = "")
+        }).call(this);
+        this._many1((function() {
+            t = this._apply("term");
+            this._applyWithArgs("exactly", "-");
+            "-";
+            v = this._apply("verb");
+            return (function() {
+                ts.push(t);
+                return (ft += ((t + "-") + v))
+            }).call(this)
+        }));
+        this._opt((function() {
+            this._applyWithArgs("exactly", "-");
+            "-";
+            t = this._apply("term");
+            return (function() {
+                ts.push(t);
+                return (ft += ("-" + t))
+            }).call(this)
+        }));
+        return ["fcTp", ft, ts]
     },
     "id": function() {
         var $elf = this,
@@ -327,107 +301,83 @@ ServerURIParser = objectThatDelegatesTo(OMeta, {
             switch (this._apply('anything')) {
             case "/":
                 return this._or((function() {
-                    return (function() {
-                        "/";
-                        w = this._apply("word");
-                        this._opt((function() {
-                            return (function() {
-                                this._applyWithArgs("exactly", "/");
-                                return "/"
-                            }).call(this)
-                        }));
-                        f = this._apply("fcTp");
-                        i = this._apply("id");
-                        a = this._apply("actn");
+                    "/";
+                    w = this._apply("word");
+                    this._opt((function() {
                         this._applyWithArgs("exactly", "/");
-                        "/";
-                        c = this._apply("comm");
-                        return [w].concat([f.concat(i).concat([
-                            ["mod"].concat(a).concat([
-                                [c]
-                            ])])])
-                    }).call(this)
+                        return "/"
+                    }));
+                    f = this._apply("fcTp");
+                    i = this._apply("id");
+                    a = this._apply("actn");
+                    this._applyWithArgs("exactly", "/");
+                    "/";
+                    c = this._apply("comm");
+                    return [w].concat([f.concat(i).concat([
+                        ["mod"].concat(a).concat([
+                            [c]
+                        ])])])
                 }), (function() {
-                    return (function() {
-                        "/";
-                        w = this._apply("word");
-                        this._opt((function() {
-                            return (function() {
-                                this._applyWithArgs("exactly", "/");
-                                return "/"
-                            }).call(this)
-                        }));
-                        t = this._apply("trmf");
-                        i = this._apply("id");
-                        a = this._apply("actn");
+                    "/";
+                    w = this._apply("word");
+                    this._opt((function() {
                         this._applyWithArgs("exactly", "/");
-                        "/";
-                        c = this._apply("comm");
-                        return [w].concat([t.concat(i).concat([
-                            ["mod"].concat(a).concat([
-                                [c]
-                            ])])])
-                    }).call(this)
+                        return "/"
+                    }));
+                    t = this._apply("trmf");
+                    i = this._apply("id");
+                    a = this._apply("actn");
+                    this._applyWithArgs("exactly", "/");
+                    "/";
+                    c = this._apply("comm");
+                    return [w].concat([t.concat(i).concat([
+                        ["mod"].concat(a).concat([
+                            [c]
+                        ])])])
                 }), (function() {
-                    return (function() {
-                        "/";
-                        w = this._apply("word");
-                        this._opt((function() {
-                            return (function() {
-                                this._applyWithArgs("exactly", "/");
-                                return "/"
-                            }).call(this)
-                        }));
-                        f = this._apply("fcTp");
-                        i = this._apply("id");
-                        a = this._apply("actn");
-                        this._opt((function() {
-                            return (function() {
-                                this._applyWithArgs("exactly", "/");
-                                return "/"
-                            }).call(this)
-                        }));
-                        return [w].concat([f.concat(i).concat([
-                            ["mod"].concat(a)])])
-                    }).call(this)
+                    "/";
+                    w = this._apply("word");
+                    this._opt((function() {
+                        this._applyWithArgs("exactly", "/");
+                        return "/"
+                    }));
+                    f = this._apply("fcTp");
+                    i = this._apply("id");
+                    a = this._apply("actn");
+                    this._opt((function() {
+                        this._applyWithArgs("exactly", "/");
+                        return "/"
+                    }));
+                    return [w].concat([f.concat(i).concat([
+                        ["mod"].concat(a)])])
                 }), (function() {
-                    return (function() {
-                        "/";
-                        w = this._apply("word");
-                        this._opt((function() {
-                            return (function() {
-                                this._applyWithArgs("exactly", "/");
-                                return "/"
-                            }).call(this)
-                        }));
-                        t = this._apply("trmf");
-                        i = this._apply("id");
-                        a = this._apply("actn");
-                        this._opt((function() {
-                            return (function() {
-                                this._applyWithArgs("exactly", "/");
-                                return "/"
-                            }).call(this)
-                        }));
-                        return [w].concat([t.concat(i).concat([
-                            ["mod"].concat(a)])])
-                    }).call(this)
+                    "/";
+                    w = this._apply("word");
+                    this._opt((function() {
+                        this._applyWithArgs("exactly", "/");
+                        return "/"
+                    }));
+                    t = this._apply("trmf");
+                    i = this._apply("id");
+                    a = this._apply("actn");
+                    this._opt((function() {
+                        this._applyWithArgs("exactly", "/");
+                        return "/"
+                    }));
+                    return [w].concat([t.concat(i).concat([
+                        ["mod"].concat(a)])])
                 }), (function() {
-                    return (function() {
-                        "/";
-                        w = this._or((function() {
-                            return this._apply("word")
-                        }), (function() {
-                            return ""
-                        }));
-                        this._opt((function() {
-                            return (function() {
-                                this._applyWithArgs("exactly", "/");
-                                return "/"
-                            }).call(this)
-                        }));
-                        return [w]
-                    }).call(this)
+                    "/";
+                    w = this._or((function() {
+                        return this._apply("word")
+                    }), (function() {
+                        return ""
+                    }));
+                    this._opt((function() {
+                        this._applyWithArgs("exactly", "/");
+                        return "/"
+                    }));
+                    return [w]
                 }));
             default:
                 throw fail

@@ -25,100 +25,80 @@ requirejs(["libs/underscore-1.2.1.min", "libs/inflection"], (function() {
                 var $elf = this,
                     _fromIdx = this.input.idx,
                     y;
-                return (function() {
-                    y = this._applyWithArgs("findVar", x);
-                    return ["bind", x, y]
-                }).call(this)
+                y = this._applyWithArgs("findVar", x);
+                return ["bind", x, y]
             },
             "letters": function() {
                 var $elf = this,
                     _fromIdx = this.input.idx,
                     l;
-                return (function() {
-                    l = this._many1((function() {
-                        return this._apply("letter")
-                    }));
-                    return l.join("")
-                }).call(this)
+                l = this._many1((function() {
+                    return this._apply("letter")
+                }));
+                return l.join("")
             },
             "num": function() {
                 var $elf = this,
                     _fromIdx = this.input.idx,
                     n;
                 return this._or((function() {
-                    return (function() {
-                        this._apply("spaces");
-                        n = this._many1((function() {
-                            return this._apply("digit")
-                        }));
-                        return ["num", parseInt(n.join(""))]
-                    }).call(this)
+                    this._apply("spaces");
+                    n = this._many1((function() {
+                        return this._apply("digit")
+                    }));
+                    return ["num", parseInt(n.join(""))]
                 }), (function() {
-                    return (function() {
-                        this._applyWithArgs("token", "one");
-                        return ["num", (1)]
-                    }).call(this)
+                    this._applyWithArgs("token", "one");
+                    return ["num", (1)]
                 }))
             },
             "toEOL": function() {
                 var $elf = this,
                     _fromIdx = this.input.idx,
                     s, a, w;
-                return (function() {
-                    this._apply("spaces");
-                    w = this._many((function() {
-                        return (function() {
-                            this._not((function() {
-                                return (function() {
-                                    this._apply("spaces");
-                                    return this._apply("lineStart")
-                                }).call(this)
-                            }));
-                            s = this._opt((function() {
-                                return this._apply("spaces")
-                            }));
-                            a = this._many1((function() {
-                                return (function() {
-                                    this._not((function() {
-                                        return this._apply("space")
-                                    }));
-                                    return this._apply("anything")
-                                }).call(this)
-                            }));
-                            return s.concat(a).join("")
-                        }).call(this)
+                this._apply("spaces");
+                w = this._many((function() {
+                    this._not((function() {
+                        this._apply("spaces");
+                        return this._apply("lineStart")
                     }));
-                    return w.join("")
-                }).call(this)
+                    s = this._opt((function() {
+                        return this._apply("spaces")
+                    }));
+                    a = this._many1((function() {
+                        this._not((function() {
+                            return this._apply("space")
+                        }));
+                        return this._apply("anything")
+                    }));
+                    return s.concat(a).join("")
+                }));
+                return w.join("")
             },
             "token": function(x) {
                 var $elf = this,
                     _fromIdx = this.input.idx,
                     s;
-                return (function() {
-                    this._apply("spaces");
-                    s = this._applyWithArgs("seq", x);
-                    this._lookahead((function() {
-                        return this._many1((function() {
-                            return this._apply("space")
-                        }))
-                    }));
-                    return s
-                }).call(this)
+                this._apply("spaces");
+                s = this._applyWithArgs("seq", x);
+                this._lookahead((function() {
+                    return this._many1((function() {
+                        return this._apply("space")
+                    }))
+                }));
+                return s
             },
             "addTerm": function() {
                 var $elf = this,
                     _fromIdx = this.input.idx,
                     t;
-                return (function() {
-                    t = this._lookahead((function() {
-                        return this._many1((function() {
-                            return this._apply("termPart")
-                        }))
-                    }));
-                    (this["possMap"]["term"][t.join(" ")] = true);
-                    return this._apply("term")
-                }).call(this)
+                t = this._lookahead((function() {
+                    return this._many1((function() {
+                        return this._apply("termPart")
+                    }))
+                }));
+                (this["possMap"]["term"][t.join(" ")] = true);
+                return this._apply("term")
             },
             "term": function() {
                 var $elf = this,
@@ -129,44 +109,36 @@ requirejs(["libs/underscore-1.2.1.min", "libs/inflection"], (function() {
                 var $elf = this,
                     _fromIdx = this.input.idx,
                     t;
-                return (function() {
-                    t = this._apply("termPart");
-                    (termSoFar = ((termSoFar == undefined) ? t : [termSoFar, t].join(" ")));
-                    return this._or((function() {
-                        return this._applyWithArgs("findTerm", termSoFar)
-                    }), (function() {
-                        return (function() {
-                            this._applyWithArgs("isTerm", termSoFar);
-                            return ["term", this._termForm(termSoFar)]
-                        }).call(this)
-                    }))
-                }).call(this)
+                t = this._apply("termPart");
+                (termSoFar = ((termSoFar == undefined) ? t : [termSoFar, t].join(" ")));
+                return this._or((function() {
+                    return this._applyWithArgs("findTerm", termSoFar)
+                }), (function() {
+                    this._applyWithArgs("isTerm", termSoFar);
+                    return ["term", this._termForm(termSoFar)]
+                }))
             },
             "termPart": function() {
                 var $elf = this,
                     _fromIdx = this.input.idx;
-                return (function() {
-                    this._apply("spaces");
-                    this._not((function() {
-                        return this._apply("lineStart")
-                    }));
-                    return this._apply("letters")
-                }).call(this)
+                this._apply("spaces");
+                this._not((function() {
+                    return this._apply("lineStart")
+                }));
+                return this._apply("letters")
             },
             "addVerb": function(prevTerm) {
                 var $elf = this,
                     _fromIdx = this.input.idx,
                     v;
-                return (function() {
-                    this._apply("clearSuggestions");
-                    v = this._lookahead((function() {
-                        return this._many1((function() {
-                            return this._apply("verbPart")
-                        }))
-                    }));
-                    this._addVerbToTerm(prevTerm, v.join(" "));
-                    return this._applyWithArgs("verb", prevTerm)
-                }).call(this)
+                this._apply("clearSuggestions");
+                v = this._lookahead((function() {
+                    return this._many1((function() {
+                        return this._apply("verbPart")
+                    }))
+                }));
+                this._addVerbToTerm(prevTerm, v.join(" "));
+                return this._applyWithArgs("verb", prevTerm)
             },
             "verb": function(prevTerm) {
                 var $elf = this,
@@ -177,32 +149,26 @@ requirejs(["libs/underscore-1.2.1.min", "libs/inflection"], (function() {
                 var $elf = this,
                     _fromIdx = this.input.idx,
                     v;
-                return (function() {
-                    v = this._apply("verbPart");
-                    (verbSoFar = ((verbSoFar == undefined) ? v : [verbSoFar, v].join(" ")));
-                    return this._or((function() {
-                        return this._applyWithArgs("findVerb", prevTerm, verbSoFar)
-                    }), (function() {
-                        return (function() {
-                            this._applyWithArgs("isVerb", prevTerm, verbSoFar);
-                            return ["verb", this._verbForm(prevTerm, verbSoFar)]
-                        }).call(this)
-                    }))
-                }).call(this)
+                v = this._apply("verbPart");
+                (verbSoFar = ((verbSoFar == undefined) ? v : [verbSoFar, v].join(" ")));
+                return this._or((function() {
+                    return this._applyWithArgs("findVerb", prevTerm, verbSoFar)
+                }), (function() {
+                    this._applyWithArgs("isVerb", prevTerm, verbSoFar);
+                    return ["verb", this._verbForm(prevTerm, verbSoFar)]
+                }))
             },
             "verbPart": function() {
                 var $elf = this,
                     _fromIdx = this.input.idx;
-                return (function() {
-                    this._apply("spaces");
-                    this._not((function() {
-                        return this._apply("lineStart")
-                    }));
-                    this._not((function() {
-                        return this._apply("term")
-                    }));
-                    return this._apply("letters")
-                }).call(this)
+                this._apply("spaces");
+                this._not((function() {
+                    return this._apply("lineStart")
+                }));
+                this._not((function() {
+                    return this._apply("term")
+                }));
+                return this._apply("letters")
             },
             "joinQuant": function() {
                 var $elf = this,
@@ -213,81 +179,59 @@ requirejs(["libs/underscore-1.2.1.min", "libs/inflection"], (function() {
                 var $elf = this,
                     _fromIdx = this.input.idx,
                     q, t, v;
-                return (function() {
-                    q = this._apply("quant");
-                    t = this._apply("term");
-                    v = this._applyWithArgs("addVar", t);
-                    return ({
-                        "quantVar": q.concat([v]),
-                        "term": t
-                    })
-                }).call(this)
+                q = this._apply("quant");
+                t = this._apply("term");
+                v = this._applyWithArgs("addVar", t);
+                return ({
+                    "quantVar": q.concat([v]),
+                    "term": t
+                })
             },
             "quant": function() {
                 var $elf = this,
                     _fromIdx = this.input.idx,
                     n, m;
                 return this._or((function() {
-                    return (function() {
-                        this._applyWithArgs("keyword", "each");
-                        return ["univQ"]
-                    }).call(this)
+                    this._applyWithArgs("keyword", "each");
+                    return ["univQ"]
                 }), (function() {
-                    return (function() {
-                        this._applyWithArgs("matchForAny", "keyword", ["a", "an", "some"]);
-                        return ["existQ"]
-                    }).call(this)
+                    this._applyWithArgs("matchForAny", "keyword", ["a", "an", "some"]);
+                    return ["existQ"]
                 }), (function() {
-                    return (function() {
-                        this._applyWithArgs("matchForAll", "keyword", ["at", "most"]);
-                        n = this._apply("num");
-                        return ["atMostQ", ["maxCard", n]]
-                    }).call(this)
+                    this._applyWithArgs("matchForAll", "keyword", ["at", "most"]);
+                    n = this._apply("num");
+                    return ["atMostQ", ["maxCard", n]]
                 }), (function() {
-                    return (function() {
-                        this._applyWithArgs("matchForAll", "keyword", ["at", "least"]);
-                        n = this._apply("num");
-                        return this._or((function() {
-                            return (function() {
-                                this._apply("joinQuant");
-                                m = this._apply("num");
-                                return ["numRngQ", ["minCard", n], ["maxCard", m]]
-                            }).call(this)
-                        }), (function() {
-                            return (function() {
-                                this._apply("empty");
-                                return ["atLeastQ", ["minCard", n]]
-                            }).call(this)
-                        }))
-                    }).call(this)
-                }), (function() {
-                    return (function() {
-                        this._applyWithArgs("matchForAll", "keyword", ["more", "than"]);
-                        n = this._apply("num");
-                        ++n[(1)];
+                    this._applyWithArgs("matchForAll", "keyword", ["at", "least"]);
+                    n = this._apply("num");
+                    return this._or((function() {
+                        this._apply("joinQuant");
+                        m = this._apply("num");
+                        return ["numRngQ", ["minCard", n], ["maxCard", m]]
+                    }), (function() {
+                        this._apply("empty");
                         return ["atLeastQ", ["minCard", n]]
-                    }).call(this)
+                    }))
                 }), (function() {
-                    return (function() {
-                        this._applyWithArgs("keyword", "exactly");
-                        n = this._apply("num");
-                        return ["exactQ", ["card", n]]
-                    }).call(this)
+                    this._applyWithArgs("matchForAll", "keyword", ["more", "than"]);
+                    n = this._apply("num");
+                    ++n[(1)];
+                    return ["atLeastQ", ["minCard", n]]
+                }), (function() {
+                    this._applyWithArgs("keyword", "exactly");
+                    n = this._apply("num");
+                    return ["exactQ", ["card", n]]
                 }))
             },
             "keyword": function(word, noToken) {
                 var $elf = this,
                     _fromIdx = this.input.idx;
                 return this._or((function() {
-                    return (function() {
-                        this._pred((noToken == true));
-                        return this._applyWithArgs("seq", word)
-                    }).call(this)
+                    this._pred((noToken == true));
+                    return this._applyWithArgs("seq", word)
                 }), (function() {
-                    return (function() {
-                        this._pred((noToken != true));
-                        return this._applyWithArgs("token", word)
-                    }).call(this)
+                    this._pred((noToken != true));
+                    return this._applyWithArgs("token", word)
                 }))
             },
             "addThat": function() {
@@ -304,184 +248,148 @@ requirejs(["libs/underscore-1.2.1.min", "libs/inflection"], (function() {
                 var $elf = this,
                     _fromIdx = this.input.idx,
                     v, q;
-                return (function() {
-                    (this["ruleVars"][prevTerm[(1)]] = this["ruleVarsCount"]++);
-                    v = ["var", ["num", this["ruleVars"][prevTerm[(1)]]], prevTerm];
-                    this._opt((function() {
-                        return (function() {
-                            this._apply("addThat");
-                            q = this._or((function() {
-                                return (function() {
-                                    this._apply("addThe");
-                                    return this._applyWithArgs("terbRi", [
-                                        []
-                                    ], prevTerm)
-                                }).call(this)
-                            }), (function() {
-                                return this._applyWithArgs("qTerbRi", [
-                                    []
-                                ], prevTerm)
-                            }));
-                            return v.push(q)
-                        }).call(this)
+                (this["ruleVars"][prevTerm[(1)]] = this["ruleVarsCount"]++);
+                v = ["var", ["num", this["ruleVars"][prevTerm[(1)]]], prevTerm];
+                this._opt((function() {
+                    this._apply("addThat");
+                    q = this._or((function() {
+                        this._apply("addThe");
+                        return this._applyWithArgs("terbRi", [
+                            []
+                        ], prevTerm)
+                    }), (function() {
+                        return this._applyWithArgs("qTerbRi", [
+                            []
+                        ], prevTerm)
                     }));
-                    return v
-                }).call(this)
+                    return v.push(q)
+                }));
+                return v
             },
             "atfo": function(c) {
                 var $elf = this,
                     _fromIdx = this.input.idx;
-                return (function() {
-                    this._applyWithArgs("isFctp", c[(0)]);
-                    (c[(0)] = ["fcTp"].concat(c[(0)]));
-                    return ["aFrm"].concat(c)
-                }).call(this)
+                this._applyWithArgs("isFctp", c[(0)]);
+                (c[(0)] = ["fcTp"].concat(c[(0)]));
+                return ["aFrm"].concat(c)
             },
             "terbRi": function(c, prevTerm) {
                 var $elf = this,
                     _fromIdx = this.input.idx,
                     t, v, b;
-                return (function() {
-                    t = this._apply("term");
-                    v = this._applyWithArgs("verb", t);
-                    b = this._applyWithArgs("bind", t);
-                    (function() {
-                        c[(0)].push(t, v);
-                        return c.push(b)
-                    }).call(this);
-                    return this._applyWithArgs("qTerbRi", c, prevTerm)
-                }).call(this)
+                t = this._apply("term");
+                v = this._applyWithArgs("verb", t);
+                b = this._applyWithArgs("bind", t);
+                (function() {
+                    c[(0)].push(t, v);
+                    return c.push(b)
+                }).call(this);
+                return this._applyWithArgs("qTerbRi", c, prevTerm)
             },
             "qTerbRi": function(c, prevTerm) {
                 var $elf = this,
                     _fromIdx = this.input.idx,
                     qt, t, v, b, r;
                 return this._or((function() {
-                    return (function() {
-                        qt = this._apply("quantTermAddVar");
-                        t = qt["term"];
-                        v = this._apply("verb");
-                        b = this._applyWithArgs("bind", t);
-                        (function() {
-                            c[(0)].push(t, v);
-                            return c.push(b)
-                        }).call(this);
-                        r = this._applyWithArgs("qTerbRi", c, prevTerm);
-                        return qt["quantVar"].concat([r])
-                    }).call(this)
+                    qt = this._apply("quantTermAddVar");
+                    t = qt["term"];
+                    v = this._apply("verb");
+                    b = this._applyWithArgs("bind", t);
+                    (function() {
+                        c[(0)].push(t, v);
+                        return c.push(b)
+                    }).call(this);
+                    r = this._applyWithArgs("qTerbRi", c, prevTerm);
+                    return qt["quantVar"].concat([r])
                 }), (function() {
-                    return (function() {
-                        v = this._applyWithArgs("verb", prevTerm);
-                        b = this._applyWithArgs("bind", prevTerm);
-                        (function() {
-                            c[(0)].push(prevTerm, v);
-                            return c.push(b)
-                        }).call(this);
-                        return this._or((function() {
-                            return this._applyWithArgs("atfo", c)
-                        }), (function() {
-                            return this._applyWithArgs("qTerbR", c)
-                        }), (function() {
-                            return this._applyWithArgs("qTerm", c)
-                        }))
-                    }).call(this)
-                }), (function() {
-                    return (function() {
-                        b = this._applyWithArgs("bind", prevTerm);
-                        (function() {
-                            c[(0)].push(prevTerm);
-                            return c.push(b)
-                        }).call(this);
+                    v = this._applyWithArgs("verb", prevTerm);
+                    b = this._applyWithArgs("bind", prevTerm);
+                    (function() {
+                        c[(0)].push(prevTerm, v);
+                        return c.push(b)
+                    }).call(this);
+                    return this._or((function() {
                         return this._applyWithArgs("atfo", c)
-                    }).call(this)
+                    }), (function() {
+                        return this._applyWithArgs("qTerbR", c)
+                    }), (function() {
+                        return this._applyWithArgs("qTerm", c)
+                    }))
+                }), (function() {
+                    b = this._applyWithArgs("bind", prevTerm);
+                    (function() {
+                        c[(0)].push(prevTerm);
+                        return c.push(b)
+                    }).call(this);
+                    return this._applyWithArgs("atfo", c)
                 }))
             },
             "qTerm": function(c) {
                 var $elf = this,
                     _fromIdx = this.input.idx,
                     qt, t, b, r;
-                return (function() {
-                    qt = this._apply("quantTermAddVar");
-                    t = qt["term"];
-                    b = this._applyWithArgs("bind", t);
-                    (function() {
-                        c[(0)].push(t);
-                        return c.push(b)
-                    }).call(this);
-                    r = this._applyWithArgs("atfo", c);
-                    return qt["quantVar"].concat([r])
-                }).call(this)
+                qt = this._apply("quantTermAddVar");
+                t = qt["term"];
+                b = this._applyWithArgs("bind", t);
+                (function() {
+                    c[(0)].push(t);
+                    return c.push(b)
+                }).call(this);
+                r = this._applyWithArgs("atfo", c);
+                return qt["quantVar"].concat([r])
             },
             "qTerbR": function(c) {
                 var $elf = this,
                     _fromIdx = this.input.idx,
                     qt, v, b, r;
-                return (function() {
-                    qt = this._apply("quantTermAddVar");
-                    (t = qt["term"]);
-                    v = this._applyWithArgs("verb", t);
-                    b = this._applyWithArgs("bind", t);
-                    (function() {
-                        c[(0)].push(t, v);
-                        return c.push(b)
-                    }).call(this);
-                    r = this._or((function() {
-                        return this._applyWithArgs("atfo", c)
-                    }), (function() {
-                        return this._applyWithArgs("qTerbR", c)
-                    }), (function() {
-                        return this._applyWithArgs("qTerm", c)
-                    }));
-                    return qt["quantVar"].concat([r])
-                }).call(this)
+                qt = this._apply("quantTermAddVar");
+                (t = qt["term"]);
+                v = this._applyWithArgs("verb", t);
+                b = this._applyWithArgs("bind", t);
+                (function() {
+                    c[(0)].push(t, v);
+                    return c.push(b)
+                }).call(this);
+                r = this._or((function() {
+                    return this._applyWithArgs("atfo", c)
+                }), (function() {
+                    return this._applyWithArgs("qTerbR", c)
+                }), (function() {
+                    return this._applyWithArgs("qTerm", c)
+                }));
+                return qt["quantVar"].concat([r])
             },
             "modRule": function() {
                 var $elf = this,
                     _fromIdx = this.input.idx,
                     r;
-                return (function() {
-                    this._applyWithArgs("token", "It");
-                    this._applyWithArgs("token", "is");
-                    r = this._or((function() {
-                        return (function() {
-                            this._applyWithArgs("token", "obligatory");
-                            return ["obl"]
-                        }).call(this)
-                    }), (function() {
-                        return (function() {
-                            this._applyWithArgs("token", "necessary");
-                            return ["nec"]
-                        }).call(this)
-                    }), (function() {
-                        return (function() {
-                            this._applyWithArgs("token", "prohibited");
-                            return ["obl", ["neg"]]
-                        }).call(this)
-                    }), (function() {
-                        return (function() {
-                            this._applyWithArgs("token", "impossible");
-                            return ["nec", ["neg"]]
-                        }).call(this)
-                    }), (function() {
-                        return (function() {
-                            this._applyWithArgs("token", "not");
-                            this._applyWithArgs("token", "possible");
-                            return ["nec", ["neg"]]
-                        }).call(this)
-                    }), (function() {
-                        return (function() {
-                            this._applyWithArgs("token", "possible");
-                            return ["pos"]
-                        }).call(this)
-                    }), (function() {
-                        return (function() {
-                            this._applyWithArgs("token", "permissible");
-                            return ["prm"]
-                        }).call(this)
-                    }));
-                    this._applyWithArgs("token", "that");
-                    return r
-                }).call(this)
+                this._applyWithArgs("token", "It");
+                this._applyWithArgs("token", "is");
+                r = this._or((function() {
+                    this._applyWithArgs("token", "obligatory");
+                    return ["obl"]
+                }), (function() {
+                    this._applyWithArgs("token", "necessary");
+                    return ["nec"]
+                }), (function() {
+                    this._applyWithArgs("token", "prohibited");
+                    return ["obl", ["neg"]]
+                }), (function() {
+                    this._applyWithArgs("token", "impossible");
+                    return ["nec", ["neg"]]
+                }), (function() {
+                    this._applyWithArgs("token", "not");
+                    this._applyWithArgs("token", "possible");
+                    return ["nec", ["neg"]]
+                }), (function() {
+                    this._applyWithArgs("token", "possible");
+                    return ["pos"]
+                }), (function() {
+                    this._applyWithArgs("token", "permissible");
+                    return ["prm"]
+                }));
+                this._applyWithArgs("token", "that");
+                return r
             },
             "startRule": function() {
                 var $elf = this,
@@ -496,30 +404,26 @@ requirejs(["libs/underscore-1.2.1.min", "libs/inflection"], (function() {
                 var $elf = this,
                     _fromIdx = this.input.idx,
                     ruleText, r, q;
-                return (function() {
-                    this._apply("startRule");
-                    this._apply("spaces");
-                    ruleText = this._lookahead((function() {
-                        return this._apply("toEOL")
-                    }));
-                    (this["ruleVarsCount"] = (0));
-                    r = this._apply("modRule");
-                    q = this._applyWithArgs("qTerbR", [
-                        []
-                    ]);
-                    ((r["length"] == (2)) ? (r[(1)][(1)] = q) : (r[(1)] = q));
-                    return ["rule", r, ["text", ruleText]]
-                }).call(this)
+                this._apply("startRule");
+                this._apply("spaces");
+                ruleText = this._lookahead((function() {
+                    return this._apply("toEOL")
+                }));
+                (this["ruleVarsCount"] = (0));
+                r = this._apply("modRule");
+                q = this._applyWithArgs("qTerbR", [
+                    []
+                ]);
+                ((r["length"] == (2)) ? (r[(1)][(1)] = q) : (r[(1)] = q));
+                return ["rule", r, ["text", ruleText]]
             },
             "terb": function() {
                 var $elf = this,
                     _fromIdx = this.input.idx,
                     t, v;
-                return (function() {
-                    t = this._apply("term");
-                    v = this._applyWithArgs("addVerb", t);
-                    return [t, v]
-                }).call(this)
+                t = this._apply("term");
+                v = this._applyWithArgs("addVerb", t);
+                return [t, v]
             },
             "startFactType": function() {
                 var $elf = this,
@@ -534,27 +438,21 @@ requirejs(["libs/underscore-1.2.1.min", "libs/inflection"], (function() {
                 var $elf = this,
                     _fromIdx = this.input.idx,
                     t, b, e;
-                return (function() {
-                    this._apply("startFactType");
-                    t = [];
-                    this._many1((function() {
-                        return (function() {
-                            b = this._apply("terb");
-                            return t = t.concat(b)
-                        }).call(this)
-                    }));
-                    this._opt((function() {
-                        return (function() {
-                            e = this._apply("term");
-                            return t.push(e)
-                        }).call(this)
-                    }));
-                    (function() {
-                        (this["fctps"][t] = true);
-                        return t.push([])
-                    }).call(this);
-                    return ["fcTp"].concat(t)
-                }).call(this)
+                this._apply("startFactType");
+                t = [];
+                this._many1((function() {
+                    b = this._apply("terb");
+                    return t = t.concat(b)
+                }));
+                this._opt((function() {
+                    e = this._apply("term");
+                    return t.push(e)
+                }));
+                (function() {
+                    (this["fctps"][t] = true);
+                    return t.push([])
+                }).call(this);
+                return ["fcTp"].concat(t)
             },
             "startTerm": function() {
                 var $elf = this,
@@ -569,37 +467,31 @@ requirejs(["libs/underscore-1.2.1.min", "libs/inflection"], (function() {
                 var $elf = this,
                     _fromIdx = this.input.idx,
                     t;
-                return (function() {
-                    this._apply("startTerm");
-                    this._apply("clearSuggestions");
-                    t = this._apply("addTerm");
-                    t.push([]);
-                    return t
-                }).call(this)
+                this._apply("startTerm");
+                this._apply("clearSuggestions");
+                t = this._apply("addTerm");
+                t.push([]);
+                return t
             },
             "attribute": function() {
                 var $elf = this,
                     _fromIdx = this.input.idx,
                     attrName, attrVal;
+                this._pred(((this["lines"][(this["lines"]["length"] - (1))][(0)] == "term") || (this["lines"][(this["lines"]["length"] - (1))][(0)] == "fcTp")));
+                attrName = this._apply("allowedAttrs");
+                attrVal = this._applyWithArgs("applyFirstExisting", [("attr" + attrName), "toEOL"]);
                 return (function() {
-                    this._pred(((this["lines"][(this["lines"]["length"] - (1))][(0)] == "term") || (this["lines"][(this["lines"]["length"] - (1))][(0)] == "fcTp")));
-                    attrName = this._apply("allowedAttrs");
-                    attrVal = this._applyWithArgs("applyFirstExisting", [("attr" + attrName), "toEOL"]);
-                    return (function() {
-                        var lastLine = this["lines"].pop();
-                        lastLine[(lastLine["length"] - (1))].push([attrName.replace(new RegExp(" ", "g"), ""), attrVal]);
-                        return lastLine
-                    }).call(this)
+                    var lastLine = this["lines"].pop();
+                    lastLine[(lastLine["length"] - (1))].push([attrName.replace(new RegExp(" ", "g"), ""), attrVal]);
+                    return lastLine
                 }).call(this)
             },
             "allowedAttrs": function() {
                 var $elf = this,
                     _fromIdx = this.input.idx,
                     attrName;
-                return (function() {
-                    attrName = this._applyWithArgs("matchForAny", "seq", this["possMap"]["allowedAttrs"]);
-                    return attrName.replace(":", "")
-                }).call(this)
+                attrName = this._applyWithArgs("matchForAny", "seq", this["possMap"]["allowedAttrs"]);
+                return attrName.replace(":", "")
             },
             "attrDefinition": function() {
                 var $elf = this,
@@ -611,27 +503,21 @@ requirejs(["libs/underscore-1.2.1.min", "libs/inflection"], (function() {
             "startComment": function() {
                 var $elf = this,
                     _fromIdx = this.input.idx;
-                return (function() {
-                    this._applyWithArgs("exactly", "-");
-                    this._applyWithArgs("exactly", "-");
-                    return "--"
-                }).call(this)
+                this._applyWithArgs("exactly", "-");
+                this._applyWithArgs("exactly", "-");
+                return "--"
             },
             "newComment": function() {
                 var $elf = this,
                     _fromIdx = this.input.idx;
-                return (function() {
-                    this._apply("startComment");
-                    return this._apply("toEOL")
-                }).call(this)
+                this._apply("startComment");
+                return this._apply("toEOL")
             },
             "terminator": function() {
                 var $elf = this,
                     _fromIdx = this.input.idx;
-                return (function() {
-                    this._apply("spaces");
-                    return this._applyWithArgs("keyword", ".", true)
-                }).call(this)
+                this._apply("spaces");
+                return this._applyWithArgs("keyword", ".", true)
             },
             "lineStart": function() {
                 var $elf = this,
@@ -653,25 +539,23 @@ requirejs(["libs/underscore-1.2.1.min", "libs/inflection"], (function() {
                     _fromIdx = this.input.idx,
                     l;
                 return this._or((function() {
-                    return (function() {
-                        this._apply("spaces");
-                        l = this._or((function() {
-                            return this._apply("newTerm")
-                        }), (function() {
-                            return this._apply("newFactType")
-                        }), (function() {
-                            return this._apply("newRule")
-                        }), (function() {
-                            return this._apply("attribute")
-                        }));
-                        this._opt((function() {
-                            return this._apply("terminator")
-                        }));
-                        this._apply("clearSuggestions");
-                        this._apply("spaces");
-                        this["lines"].push(l);
-                        return l
-                    }).call(this)
+                    this._apply("spaces");
+                    l = this._or((function() {
+                        return this._apply("newTerm")
+                    }), (function() {
+                        return this._apply("newFactType")
+                    }), (function() {
+                        return this._apply("newRule")
+                    }), (function() {
+                        return this._apply("attribute")
+                    }));
+                    this._opt((function() {
+                        return this._apply("terminator")
+                    }));
+                    this._apply("clearSuggestions");
+                    this._apply("spaces");
+                    this["lines"].push(l);
+                    return l
                 }), (function() {
                     return this._apply("newComment")
                 }))
@@ -679,13 +563,11 @@ requirejs(["libs/underscore-1.2.1.min", "libs/inflection"], (function() {
             "expr": function() {
                 var $elf = this,
                     _fromIdx = this.input.idx;
-                return (function() {
-                    this._many((function() {
-                        return this._apply("line")
-                    }));
-                    this._apply("end");
-                    return this["lines"]
-                }).call(this)
+                this._many((function() {
+                    return this._apply("line")
+                }));
+                this._apply("end");
+                return this["lines"]
             }
         });
         (SBVRParser["keyTokens"] = ["startTerm", "startFactType", "startRule", "newComment", "term", "modRule", "verb", "keyword", "allowedAttrs", "num"]);

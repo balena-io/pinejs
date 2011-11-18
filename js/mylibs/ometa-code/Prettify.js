@@ -4,24 +4,20 @@
             var $elf = this,
                 _fromIdx = this.input.idx,
                 e;
-            return (function() {
-                this._form((function() {
-                    return (function() {
-                        this["d"]++;
-                        e = this._many((function() {
-                            return this._or((function() {
-                                return this._apply("string")
-                            }), (function() {
-                                return this._apply("elem")
-                            }), (function() {
-                                return this._apply("number")
-                            }))
-                        }));
-                        return (s = this.s(this["d"]--))
-                    }).call(this)
+            this._form((function() {
+                this["d"]++;
+                e = this._many((function() {
+                    return this._or((function() {
+                        return this._apply("string")
+                    }), (function() {
+                        return this._apply("elem")
+                    }), (function() {
+                        return this._apply("number")
+                    }))
                 }));
-                return (("[" + e.join((",\n" + s))) + "]")
-            }).call(this)
+                return (s = this.s(this["d"]--))
+            }));
+            return (("[" + e.join((",\n" + s))) + "]")
         }
     });
     (Prettify["d"] = (1));

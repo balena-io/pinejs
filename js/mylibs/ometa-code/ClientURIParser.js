@@ -3,45 +3,39 @@ ClientURIParser = objectThatDelegatesTo(OMeta, {
         var $elf = this,
             _fromIdx = this.input.idx,
             l;
-        return (function() {
-            l = this._many1((function() {
-                return this._or((function() {
-                    return this._apply("letter")
-                }), (function() {
-                    return (function() {
-                        switch (this._apply('anything')) {
-                        case "-":
-                            return "-";
-                        case "_":
-                            return "_";
-                        default:
-                            throw fail
-                        }
-                    }).call(this)
-                }))
-            }));
-            return l.join("")
-        }).call(this)
+        l = this._many1((function() {
+            return this._or((function() {
+                return this._apply("letter")
+            }), (function() {
+                return (function() {
+                    switch (this._apply('anything')) {
+                    case "-":
+                        return "-";
+                    case "_":
+                        return "_";
+                    default:
+                        throw fail
+                    }
+                }).call(this)
+            }))
+        }));
+        return l.join("")
     },
     "dgit": function() {
         var $elf = this,
             _fromIdx = this.input.idx,
             d;
-        return (function() {
-            d = OMeta._superApplyWithArgs(this, 'digit');
-            return d.digitValue()
-        }).call(this)
+        d = OMeta._superApplyWithArgs(this, 'digit');
+        return d.digitValue()
     },
     "nmbr": function() {
         var $elf = this,
             _fromIdx = this.input.idx,
             n, d;
         return this._or((function() {
-            return (function() {
-                n = this._apply("nmbr");
-                d = this._apply("dgit");
-                return ((n * (10)) + d)
-            }).call(this)
+            n = this._apply("nmbr");
+            d = this._apply("dgit");
+            return ((n * (10)) + d)
         }), (function() {
             return this._apply("dgit")
         }))
@@ -50,85 +44,79 @@ ClientURIParser = objectThatDelegatesTo(OMeta, {
         var $elf = this,
             _fromIdx = this.input.idx,
             l;
-        return (function() {
-            l = this._many1((function() {
-                return this._or((function() {
-                    return this._apply("letter")
-                }), (function() {
-                    return this._apply("digit")
-                }), (function() {
-                    return (function() {
-                        switch (this._apply('anything')) {
-                        case "-":
-                            return "-";
-                        case "_":
-                            return "_";
-                        default:
-                            throw fail
-                        }
-                    }).call(this)
-                }))
-            }));
-            return l.join("")
-        }).call(this)
+        l = this._many1((function() {
+            return this._or((function() {
+                return this._apply("letter")
+            }), (function() {
+                return this._apply("digit")
+            }), (function() {
+                return (function() {
+                    switch (this._apply('anything')) {
+                    case "-":
+                        return "-";
+                    case "_":
+                        return "_";
+                    default:
+                        throw fail
+                    }
+                }).call(this)
+            }))
+        }));
+        return l.join("")
     },
     "parm": function() {
         var $elf = this,
             _fromIdx = this.input.idx,
             t, o, f, v;
-        return (function() {
-            t = this._apply("part");
-            f = this._or((function() {
-                return (function() {
-                    switch (this._apply('anything')) {
-                    case ".":
-                        return (function() {
-                            ".";
-                            o = this._apply("word");
-                            return o
-                        }).call(this);
-                    default:
-                        throw fail
-                    }
-                }).call(this)
-            }), (function() {
-                return (function() {
-                    (f = t);
-                    (t = []);
-                    return f
-                }).call(this)
-            }));
-            o = (function() {
+        t = this._apply("part");
+        f = this._or((function() {
+            return (function() {
                 switch (this._apply('anything')) {
-                case "=":
+                case ".":
                     return (function() {
-                        "=";
-                        return "eq"
-                    }).call(this);
-                case "!":
-                    return (function() {
-                        this._applyWithArgs("exactly", "=");
-                        "!=";
-                        return "ne"
-                    }).call(this);
-                case "~":
-                    return (function() {
-                        "~";
-                        return "lk"
+                        ".";
+                        o = this._apply("word");
+                        return o
                     }).call(this);
                 default:
                     throw fail
                 }
-            }).call(this);
-            v = this._apply("part");
-            this._opt((function() {
+            }).call(this)
+        }), (function() {
+            return (function() {
+                (f = t);
+                (t = []);
+                return f
+            }).call(this)
+        }));
+        o = (function() {
+            switch (this._apply('anything')) {
+            case "=":
                 return (function() {
-                    this._applyWithArgs("exactly", ";");
-                    return ";"
-                }).call(this)
-            }));
-            return [o, t, f, v]
-        }).call(this)
+                    "=";
+                    return "eq"
+                }).call(this);
+            case "!":
+                return (function() {
+                    this._applyWithArgs("exactly", "=");
+                    "!=";
+                    return "ne"
+                }).call(this);
+            case "~":
+                return (function() {
+                    "~";
+                    return "lk"
+                }).call(this);
+            default:
+                throw fail
+            }
+        }).call(this);
+        v = this._apply("part");
+        this._opt((function() {
+            this._applyWithArgs("exactly", ";");
+            return ";"
+        }));
+        return [o, t, f, v]
     },
     "imod": function() {
         var $elf = this,
@@ -202,29 +190,27 @@ ClientURIParser = objectThatDelegatesTo(OMeta, {
             a, p;
         return this._or((function() {
             return this._many1((function() {
-                return (function() {
-                    this._applyWithArgs("exactly", "*");
-                    "*";
-                    a = this._apply("imod");
-                    p = this._or((function() {
-                        return (function() {
-                            switch (this._apply('anything')) {
-                            case ":":
-                                return (function() {
-                                    ":";
-                                    return this._many1((function() {
-                                        return this._apply("parm")
-                                    }))
-                                }).call(this);
-                            default:
-                                throw fail
-                            }
-                        }).call(this)
-                    }), (function() {
-                        return []
-                    }));
-                    return [a].concat(p)
-                }).call(this)
+                this._applyWithArgs("exactly", "*");
+                "*";
+                a = this._apply("imod");
+                p = this._or((function() {
+                    return (function() {
+                        switch (this._apply('anything')) {
+                        case ":":
+                            return (function() {
+                                ":";
+                                return this._many1((function() {
+                                    return this._apply("parm")
+                                }))
+                            }).call(this);
+                        default:
+                            throw fail
+                        }
+                    }).call(this)
+                }), (function() {
+                    return []
+                }));
+                return [a].concat(p)
             }))
         }), (function() {
             return []
@@ -236,29 +222,27 @@ ClientURIParser = objectThatDelegatesTo(OMeta, {
             a, p;
         return this._or((function() {
             return this._many1((function() {
-                return (function() {
-                    this._applyWithArgs("exactly", "*");
-                    "*";
-                    a = this._apply("cmod");
-                    p = this._or((function() {
-                        return (function() {
-                            switch (this._apply('anything')) {
-                            case ":":
-                                return (function() {
-                                    ":";
-                                    return this._many1((function() {
-                                        return this._apply("parm")
-                                    }))
-                                }).call(this);
-                            default:
-                                throw fail
-                            }
-                        }).call(this)
-                    }), (function() {
-                        return []
-                    }));
-                    return [a].concat(p)
-                }).call(this)
+                this._applyWithArgs("exactly", "*");
+                "*";
+                a = this._apply("cmod");
+                p = this._or((function() {
+                    return (function() {
+                        switch (this._apply('anything')) {
+                        case ":":
+                            return (function() {
+                                ":";
+                                return this._many1((function() {
+                                    return this._apply("parm")
+                                }))
+                            }).call(this);
+                        default:
+                            throw fail
+                        }
+                    }).call(this)
+                }), (function() {
+                    return []
+                }));
+                return [a].concat(p)
             }))
         }), (function() {
             return []
@@ -268,140 +252,110 @@ ClientURIParser = objectThatDelegatesTo(OMeta, {
         var $elf = this,
             _fromIdx = this.input.idx,
             t, s;
-        return (function() {
-            t = this._apply("part");
-            s = this._apply("cact");
-            return [[t]].concat([
-                ["mod"].concat(s)])
-        }).call(this)
+        t = this._apply("part");
+        s = this._apply("cact");
+        return [[t]].concat([
+            ["mod"].concat(s)])
     },
     "inst": function() {
         var $elf = this,
             _fromIdx = this.input.idx,
             t, f, s;
         return this._or((function() {
-            return (function() {
-                t = this._apply("part");
-                this._applyWithArgs("exactly", ".");
-                ".";
-                f = this._apply("word");
-                s = this._apply("iact");
-                return [[t, f]].concat([
-                    ["mod"].concat([
-                        ["filt", ["eq", [], "name", f]]
-                    ]).concat(s)])
-            }).call(this)
+            t = this._apply("part");
+            this._applyWithArgs("exactly", ".");
+            ".";
+            f = this._apply("word");
+            s = this._apply("iact");
+            return [[t, f]].concat([
+                ["mod"].concat([
+                    ["filt", ["eq", [], "name", f]]
+                ]).concat(s)])
         }), (function() {
-            return (function() {
-                t = this._apply("part");
-                this._applyWithArgs("exactly", ".");
-                ".";
-                f = this._apply("nmbr");
-                s = this._apply("iact");
-                return [[t, f]].concat([
-                    ["mod"].concat([
-                        ["filt", ["eq", [], "id", f]]
-                    ]).concat(s)])
-            }).call(this)
+            t = this._apply("part");
+            this._applyWithArgs("exactly", ".");
+            ".";
+            f = this._apply("nmbr");
+            s = this._apply("iact");
+            return [[t, f]].concat([
+                ["mod"].concat([
+                    ["filt", ["eq", [], "id", f]]
+                ]).concat(s)])
         }), (function() {
-            return (function() {
-                t = this._apply("part");
-                s = this._apply("iact");
-                return [[t]].concat([
-                    ["mod"].concat(s)])
-            }).call(this)
+            t = this._apply("part");
+            s = this._apply("iact");
+            return [[t]].concat([
+                ["mod"].concat(s)])
         }))
     },
     "frbd": function() {
         var $elf = this,
             _fromIdx = this.input.idx,
             f, g, r;
-        return (function() {
-            f = this._or((function() {
-                return (function() {
-                    this._opt((function() {
-                        return (function() {
-                            this._applyWithArgs("exactly", "/");
-                            return "/"
-                        }).call(this)
-                    }));
-                    f = this._apply("frag");
-                    return [f]
-                }).call(this)
+        f = this._or((function() {
+            this._opt((function() {
+                this._applyWithArgs("exactly", "/");
+                return "/"
+            }));
+            f = this._apply("frag");
+            return [f]
+        }), (function() {
+            this._opt((function() {
+                this._applyWithArgs("exactly", "/");
+                return "/"
+            }));
+            this._applyWithArgs("exactly", "(");
+            "(";
+            r = this._many1((function() {
+                g = this._apply("frag");
+                this._opt((function() {
+                    this._applyWithArgs("exactly", ",");
+                    return ","
+                }));
+                return g
+            }));
+            this._applyWithArgs("exactly", ")");
+            ")";
+            return r
+        }), (function() {
+            this._opt((function() {
+                this._applyWithArgs("exactly", "/");
+                return "/"
+            }));
+            return []
+        }));
+        this._lookahead((function() {
+            return this._or((function() {
+                return this._apply("end")
             }), (function() {
                 return (function() {
-                    this._opt((function() {
-                        return (function() {
-                            this._applyWithArgs("exactly", "/");
-                            return "/"
-                        }).call(this)
-                    }));
-                    this._applyWithArgs("exactly", "(");
-                    "(";
-                    r = this._many1((function() {
-                        return (function() {
-                            g = this._apply("frag");
-                            this._opt((function() {
-                                return (function() {
-                                    this._applyWithArgs("exactly", ",");
-                                    return ","
-                                }).call(this)
-                            }));
-                            return g
-                        }).call(this)
-                    }));
-                    this._applyWithArgs("exactly", ")");
-                    ")";
-                    return r
+                    switch (this._apply('anything')) {
+                    case "/":
+                        return "/";
+                    case ")":
+                        return ")";
+                    case ",":
+                        return ",";
+                    default:
+                        throw fail
+                    }
                 }).call(this)
-            }), (function() {
-                return (function() {
-                    this._opt((function() {
-                        return (function() {
-                            this._applyWithArgs("exactly", "/");
-                            return "/"
-                        }).call(this)
-                    }));
-                    return []
-                }).call(this)
-            }));
-            this._lookahead((function() {
-                return this._or((function() {
-                    return this._apply("end")
-                }), (function() {
-                    return (function() {
-                        switch (this._apply('anything')) {
-                        case "/":
-                            return "/";
-                        case ")":
-                            return ")";
-                        case ",":
-                            return ",";
-                        default:
-                            throw fail
-                        }
-                    }).call(this)
-                }))
-            }));
-            return f
-        }).call(this)
+            }))
+        }));
+        return f
     },
     "frag": function() {
         var $elf = this,
             _fromIdx = this.input.idx,
             w, f;
         return this._or((function() {
-            return (function() {
-                w = this._apply("cole");
-                f = this._apply("frbd");
-                return ["col"].concat(w.concat(f))
-            }).call(this)
+            w = this._apply("cole");
+            f = this._apply("frbd");
+            return ["col"].concat(w.concat(f))
         }), (function() {
-            return (function() {
-                w = this._apply("inst");
-                f = this._apply("frbd");
-                return ["ins"].concat(w.concat(f))
-            }).call(this)
+            w = this._apply("inst");
+            f = this._apply("frbd");
+            return ["ins"].concat(w.concat(f))
         }))
     },
     "expr": function() {
@@ -416,11 +370,9 @@ ClientURIParser = objectThatDelegatesTo(OMeta, {
                         this._applyWithArgs("exactly", "!");
                         this._applyWithArgs("exactly", "/");
                         "#!/";
-                        f = (function() {
-                            f = this._apply("frag");
-                            this._apply("end");
-                            return f
-                        }).call(this);
+                        f = this._apply("frag");
+                        this._apply("end");
+                        f = f;
                         return ["uri", f]
                     }).call(this);
                 default:
@@ -428,10 +380,8 @@ ClientURIParser = objectThatDelegatesTo(OMeta, {
                 }
             }).call(this)
         }), (function() {
-            return (function() {
-                "";
-                return []
-            }).call(this)
+            "";
+            return []
         }))
     }
 })
