@@ -141,6 +141,12 @@ Copyright 2011 University of Surrey
 				});
 			});
 		</script>
+		
+		<script language="JavaScript">
+		  window.onbeforeunload = confirmExit;
+		  function confirmExit() { return "You have attempted to leave the OMeta editor. Any unsaved changes will be lost."; }
+		</script>
+		
 		<div id="tabs">
 			<ul>
 				<li><a href='#ometacode'	>OMeta					</a></li>
@@ -215,6 +221,16 @@ Copyright 2011 University of Surrey
 			});
 			
 			//window.editor.setValue("345345324532453245");
+
+			var requirejs = require;
+			requirejs({
+				baseUrl: '../js',
+				paths: {
+					jquery: 'libs/jquery-1.6.2.min'
+	//				jquery: 'https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min'
+				},
+				priority: ['jquery']
+			});
 		</script>
     </body>
 </html>
