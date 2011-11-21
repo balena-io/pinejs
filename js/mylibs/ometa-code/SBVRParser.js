@@ -52,7 +52,7 @@ requirejs(["libs/underscore-1.2.1.min", "libs/inflection"], (function() {
                     return ["num", (1)]
                 }))
             },
-            "toEOL": function() {
+            "toSBVREOL": function() {
                 var $elf = this,
                     _fromIdx = this.input.idx,
                     s, a, w;
@@ -74,6 +74,27 @@ requirejs(["libs/underscore-1.2.1.min", "libs/inflection"], (function() {
                     return s.concat(a).join("")
                 }));
                 return w.join("")
+            },
+            "toEOL": function() {
+                var $elf = this,
+                    _fromIdx = this.input.idx,
+                    a;
+                a = this._many1((function() {
+                    this._not((function() {
+                        return (function() {
+                            switch (this._apply('anything')) {
+                            case "\r":
+                                return "\r";
+                            case "\n":
+                                return "\n";
+                            default:
+                                throw fail
+                            }
+                        }).call(this)
+                    }));
+                    return this._apply("anything")
+                }));
+                return a.join("")
             },
             "token": function(x) {
                 var $elf = this,
@@ -407,7 +428,7 @@ requirejs(["libs/underscore-1.2.1.min", "libs/inflection"], (function() {
                 this._apply("startRule");
                 this._apply("spaces");
                 ruleText = this._lookahead((function() {
-                    return this._apply("toEOL")
+                    return this._apply("toSBVREOL")
                 }));
                 (this["ruleVarsCount"] = (0));
                 r = this._apply("modRule");
@@ -479,7 +500,7 @@ requirejs(["libs/underscore-1.2.1.min", "libs/inflection"], (function() {
                     attrName, attrVal;
                 this._pred(((this["lines"][(this["lines"]["length"] - (1))][(0)] == "term") || (this["lines"][(this["lines"]["length"] - (1))][(0)] == "fcTp")));
                 attrName = this._apply("allowedAttrs");
-                attrVal = this._applyWithArgs("applyFirstExisting", [("attr" + attrName), "toEOL"]);
+                attrVal = this._applyWithArgs("applyFirstExisting", [("attr" + attrName), "toSBVREOL"]);
                 return (function() {
                     var lastLine = this["lines"].pop();
                     lastLine[(lastLine["length"] - (1))].push([attrName.replace(new RegExp(" ", "g"), ""), attrVal]);

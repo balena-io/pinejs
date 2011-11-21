@@ -34,7 +34,9 @@ ometa SBVRParser {
 	letters			= letter+:l												-> l.join(''),
 	num				= spaces digit+:n										-> ['num', parseInt(n.join(''))]
 					| "one"													-> ['num', 1],
-	toEOL			= spaces (~(spaces lineStart) spaces?:s (~space anything)+:a -> s.concat(a).join(''))*:w				-> w.join(''),
+	toSBVREOL		= spaces (~(spaces lineStart) spaces?:s (~space anything)+:a -> s.concat(a).join(''))*:w
+																			-> w.join(''),
+	toEOL			= (~('\r'|'\n') anything)+:a							-> a.join(''),
 
 	token		:x	= spaces seq(x):s &(space+)								-> s,
 
@@ -119,7 +121,7 @@ ometa SBVRParser {
 					  "that"											-> r,
 
 	startRule		= "R:"|"Rule:",
-	newRule			= startRule spaces &(toEOL):ruleText {this.ruleVarsCount=0}
+	newRule			= startRule spaces &(toSBVREOL):ruleText {this.ruleVarsCount=0}
 						modRule:r qTerbR([[]]):q {r.length == 2 ? r[1][1] = q : r[1] = q}
 																		-> ['rule', r, ['text', ruleText]],
 	terb			= term:t addVerb(t):v								-> [t, v],
@@ -131,7 +133,7 @@ ometa SBVRParser {
 	attribute		= ?{this.lines[this.lines.length-1][0] == 'term' ||
 						this.lines[this.lines.length-1][0] == 'fcTp'}
 						allowedAttrs:attrName
-						applyFirstExisting(['attr'+attrName,'toEOL']):attrVal
+						applyFirstExisting(['attr'+attrName,'toSBVREOL']):attrVal
 																		-> {var lastLine = this.lines.pop(); lastLine[lastLine.length-1].push([attrName.replace(new RegExp(' ','g'),''), attrVal]); lastLine},
 						
 	allowedAttrs	= matchForAny('seq',this.possMap.allowedAttrs):attrName -> attrName.replace(':',''),
