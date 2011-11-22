@@ -95,9 +95,9 @@ Some projects that are using this:
 ### More information
 
 To study OmetaJS or ask questions about it's core you can try to reach out
-[original repository][3] author [Alessandro Warth][4], or me.
+[original repository][3] author [Alessandro Warth][4] or me.
 
-Also documented code is available [here][5]
+Also documented code is available [here][5].
 
 #### Contributors
 
