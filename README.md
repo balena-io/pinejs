@@ -34,6 +34,7 @@ it globally.
 ``` bash
 $ cd /path/to/your/project
 $ npm install ometajs
+```
 
 ## Usage
 
