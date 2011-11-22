@@ -24,6 +24,9 @@
     "coa": "0.2.x",
     "uglify-js": "1.1.x"
   },
+  "devDependencies": {
+    "docco": "0.3.x"
+  },
   "bin": {
     "ometajs2js": "./bin/ometajs2js"
   },

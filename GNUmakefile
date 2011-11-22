@@ -23,4 +23,7 @@ swap-parsers:
 test:
 	nodeunit test/unit/*-test.js
 
-.PHONY: all
+docs:
+	docco lib/ometajs/*.js
+
+.PHONY: all docs
