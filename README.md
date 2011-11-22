@@ -19,7 +19,7 @@ grammars.
 ### Installing npm (node package manager)
 
 ``` bash
-curl http://npmjs.org/install.sh | sh
+$ curl http://npmjs.org/install.sh | sh
 ```
 
 ### Installing ometajs
@@ -33,7 +33,7 @@ it globally.
 
 ``` bash
 $ cd /path/to/your/project
-$ [sudo] npm install ometajs
+$ npm install ometajs
 
 ## Usage
 
