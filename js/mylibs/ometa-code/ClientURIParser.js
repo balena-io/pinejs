@@ -74,7 +74,6 @@ ClientURIParser = objectThatDelegatesTo(OMeta, {
                 switch (this._apply('anything')) {
                 case ".":
                     return (function() {
-                        ".";
                         o = this._apply("word");
                         return o
                     }).call(this);
@@ -92,10 +91,7 @@ ClientURIParser = objectThatDelegatesTo(OMeta, {
         o = (function() {
             switch (this._apply('anything')) {
             case "=":
-                return (function() {
-                    "=";
-                    return "eq"
-                }).call(this);
+                return "eq";
             case "!":
                 return (function() {
                     this._applyWithArgs("exactly", "=");
@@ -103,18 +99,14 @@ ClientURIParser = objectThatDelegatesTo(OMeta, {
                     return "ne"
                 }).call(this);
             case "~":
-                return (function() {
-                    "~";
-                    return "lk"
-                }).call(this);
+                return "lk";
             default:
                 throw fail
             }
         }).call(this);
         v = this._apply("part");
         this._opt((function() {
-            this._applyWithArgs("exactly", ";");
-            return ";"
+            return this._applyWithArgs("exactly", ";")
         }));
         return [o, t, f, v]
     },
@@ -191,18 +183,14 @@ ClientURIParser = objectThatDelegatesTo(OMeta, {
         return this._or((function() {
             return this._many1((function() {
                 this._applyWithArgs("exactly", "*");
-                "*";
                 a = this._apply("imod");
                 p = this._or((function() {
                     return (function() {
                         switch (this._apply('anything')) {
                         case ":":
-                            return (function() {
-                                ":";
-                                return this._many1((function() {
-                                    return this._apply("parm")
-                                }))
-                            }).call(this);
+                            return this._many1((function() {
+                                return this._apply("parm")
+                            }));
                         default:
                             throw fail
                         }
@@ -223,18 +211,14 @@ ClientURIParser = objectThatDelegatesTo(OMeta, {
         return this._or((function() {
             return this._many1((function() {
                 this._applyWithArgs("exactly", "*");
-                "*";
                 a = this._apply("cmod");
                 p = this._or((function() {
                     return (function() {
                         switch (this._apply('anything')) {
                         case ":":
-                            return (function() {
-                                ":";
-                                return this._many1((function() {
-                                    return this._apply("parm")
-                                }))
-                            }).call(this);
+                            return this._many1((function() {
+                                return this._apply("parm")
+                            }));
                         default:
                             throw fail
                         }
@@ -264,7 +248,6 @@ ClientURIParser = objectThatDelegatesTo(OMeta, {
         return this._or((function() {
             t = this._apply("part");
             this._applyWithArgs("exactly", ".");
-            ".";
             f = this._apply("word");
             s = this._apply("iact");
             return [[t, f]].concat([
@@ -274,7 +257,6 @@ ClientURIParser = objectThatDelegatesTo(OMeta, {
         }), (function() {
             t = this._apply("part");
             this._applyWithArgs("exactly", ".");
-            ".";
             f = this._apply("nmbr");
             s = this._apply("iact");
             return [[t, f]].concat([
@@ -294,33 +276,27 @@ ClientURIParser = objectThatDelegatesTo(OMeta, {
             f, g, r;
         f = this._or((function() {
             this._opt((function() {
-                this._applyWithArgs("exactly", "/");
-                return "/"
+                return this._applyWithArgs("exactly", "/")
             }));
             f = this._apply("frag");
             return [f]
         }), (function() {
             this._opt((function() {
-                this._applyWithArgs("exactly", "/");
-                return "/"
+                return this._applyWithArgs("exactly", "/")
             }));
             this._applyWithArgs("exactly", "(");
-            "(";
             r = this._many1((function() {
                 g = this._apply("frag");
                 this._opt((function() {
-                    this._applyWithArgs("exactly", ",");
-                    return ","
+                    return this._applyWithArgs("exactly", ",")
                 }));
                 return g
             }));
             this._applyWithArgs("exactly", ")");
-            ")";
             return r
         }), (function() {
             this._opt((function() {
-                this._applyWithArgs("exactly", "/");
-                return "/"
+                return this._applyWithArgs("exactly", "/")
             }));
             return []
         }));
@@ -380,7 +356,7 @@ ClientURIParser = objectThatDelegatesTo(OMeta, {
                 }
             }).call(this)
         }), (function() {
-            "";
+            this._apply("empty");
             return []
         }))
     }

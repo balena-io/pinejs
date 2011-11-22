@@ -12,39 +12,55 @@ Copyright 2011 University of Surrey
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    See the License for the specific language governing permissions and
    limitations under the License.
+
+	frag = fragment
+	frbd = fragment body
+	dgit = digit
+	nmbr = number
+	part = ???
+	parm = parameter
+	imod = ???
+	cmod = ???
+	iact = ???
+	cact = ???
+	cole = collection
+	inst = ???
+
 */
 
 ometa ClientURIParser{
-    word = (letter|``-''|``_'')+:l                                                 -> l.join(''),
+    word = (letter|'-'|'_')+:l	-> l.join(''),
 
-    dgit = ^digit:d                                                                -> d.digitValue(),
-    nmbr = nmbr:n dgit:d                                                           -> (n * 10 + d)
+    dgit = ^digit:d -> d.digitValue(),
+    nmbr = nmbr:n dgit:d -> (n * 10 + d)
            | dgit,
 
-    part = (letter|digit|``-''|``_'')+:l                                     -> l.join(''),                       
-    parm = part:t (``.'' word:o -> o| -> {f=t;t=[];f}):f
-                  (``='' ->`eq|``!=''->`ne|``~'' ->`lk):o part:v ``;''?            -> [o,t,f,v],
-    
-    imod = ``del'' | ``add'' | ``view'' | ``edit''                                 ,
-    cmod = ``del'' | ``filt'' | ``sort''                                           ,
-   
-    iact = (``*'' imod:a (``:'' parm+ | -> []):p -> [a].concat(p))+ | -> []        ,
-    cact = (``*'' cmod:a (``:'' parm+ | -> []):p -> [a].concat(p))+ | -> []        ,
-    
-    cole = part:t              cact:s  -> [[t]].concat([[`mod].concat(s)]),
-    
-    inst = part:t ``.'' word:f iact:s  -> [[t,f]].concat([[`mod].concat([[`filt, [`eq, [], `name, f]]]).concat(s)]),
-    inst = part:t ``.'' nmbr:f iact:s  -> [[t,f]].concat([[`mod].concat([[`filt, [`eq, [], `id, f]]]).concat(s)]),
-    inst = part:t              iact:s  -> [[t]].concat([[`mod].concat(s)]),
+    part = (letter|digit|'-'|'_')+:l	-> l.join(''),
+    parm = part:t ('.' word:o -> o| -> {f=t;t=[];f}):f
+                  ('=' -> 'eq'
+						|seq('!=') -> 'ne'
+						|'~' -> 'lk'):o part:v ';'? -> [o,t,f,v],
 
-    frbd = (``/''? frag:f -> [f]
-           |``/''? ``('' (frag:g ``,''? -> g)+:r ``)'' -> r
-           |``/''? -> []):f &(end|``/''|``)''|``,'') -> f,
+    imod = seq('del') | seq('add') | seq('view') | seq('edit'),
+    cmod = seq('del') | seq('filt') | seq('sort'),
 
-    frag = cole:w frbd:f                 -> [`col].concat(w.concat(f))
-         | inst:w frbd:f                 -> [`ins].concat(w.concat(f)),
-   
-    expr = ``#!/'' (frag:f end -> f):f                                            -> [`uri, f]
-		 | ``'' -> []
+    iact = ('*' imod:a (':' parm+ | -> []):p -> [a].concat(p))+ | -> [],
+    cact = ('*' cmod:a (':' parm+ | -> []):p -> [a].concat(p))+ | -> [],
+
+    cole = part:t cact:s  -> [[t]].concat([['mod'].concat(s)]),
+
+    inst = part:t '.' word:f iact:s -> [[t,f]].concat([['mod'].concat([['filt', ['eq', [], 'name', f]]]).concat(s)]),
+    inst = part:t '.' nmbr:f iact:s -> [[t,f]].concat([['mod'].concat([['filt', ['eq', [], 'id', f]]]).concat(s)]),
+    inst = part:t iact:s -> [[t]].concat([['mod'].concat(s)]),
+
+    frbd = ('/'? frag:f -> [f]
+           |'/'? '(' (frag:g ','? -> g)+:r ')' -> r
+           |'/'? -> []):f &(end | '/' | ')' | ',') -> f,
+
+    frag = cole:w frbd:f	-> ['col'].concat(w.concat(f))
+         | inst:w frbd:f	-> ['ins'].concat(w.concat(f)),
+
+    expr = seq('#!/') (frag:f end -> f):f -> ['uri', f]
+		 | empty -> []
 }
 
