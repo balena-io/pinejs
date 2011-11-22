@@ -100,11 +100,11 @@ Also documented code is available [here][5]
 
 #### Contributors
 
-[Alessandro Warth][4]
-[Takashi Yamamiya](https://github.com/propella)
-[Sergey Berezhnoy](https://github.com/veged)
-[Nikita Vasilyev](https://github.com/NV)
-[Fedor Indutny](https://github.com/indutny)
+* [Alessandro Warth][4]
+* [Takashi Yamamiya](https://github.com/propella)
+* [Sergey Berezhnoy](https://github.com/veged)
+* [Nikita Vasilyev](https://github.com/NV)
+* [Fedor Indutny](https://github.com/indutny)
 
 [0]: http://www.commonjs.org/
 [1]: http://coffeescript.org/
