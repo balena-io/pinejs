@@ -98,9 +98,9 @@ To study OmetaJS or ask questions about it's core you can try to reach out
 
 Also documented code is available [here][5]
 
-[0] http://www.commonjs.org/
-[1] http://coffeescript.org/
-[2] http://en.wikipedia.org/wiki/Abstract_syntax_tree
-[3] http://www.tinlizzie.org/ometa/
-[4] http://github.com/alexwarth
-[5] https://veged.github.com/ometa-js/
+[0]: http://www.commonjs.org/
+[1]: http://coffeescript.org/
+[2]: http://en.wikipedia.org/wiki/Abstract_syntax_tree
+[3]: http://www.tinlizzie.org/ometa/
+[4]: http://github.com/alexwarth
+[5]: https://veged.github.com/ometa-js/
