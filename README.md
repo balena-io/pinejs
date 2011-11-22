@@ -103,4 +103,4 @@ Also documented code is available [here][5]
 [2]: http://en.wikipedia.org/wiki/Abstract_syntax_tree
 [3]: http://www.tinlizzie.org/ometa/
 [4]: http://github.com/alexwarth
-[5]: https://veged.github.com/ometa-js/
+[5]: http://veged.github.com/ometa-js/
