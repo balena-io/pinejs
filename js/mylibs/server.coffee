@@ -52,7 +52,7 @@ serverModelCache = () ->
 		values[key] = value
 		db.transaction (tx) ->
 			value = JSON.stringify(value)
-			tx.executeSql('SELECT 1 "_server_model_cache" WHERE "key" = ?;', [key], (tx, result) ->
+			tx.executeSql('SELECT 1 FROM "_server_model_cache" WHERE "key" = ?;', [key], (tx, result) ->
 				if result.rows.length==0
 					tx.executeSql 'INSERT INTO "_server_model_cache" VALUES (?, ?);', [key, value], null, null, false
 				else

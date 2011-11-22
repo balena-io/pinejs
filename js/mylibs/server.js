@@ -46,7 +46,7 @@
       values[key] = value;
       return db.transaction(function(tx) {
         value = JSON.stringify(value);
-        return tx.executeSql('SELECT 1 "_server_model_cache" WHERE "key" = ?;', [key], function(tx, result) {
+        return tx.executeSql('SELECT 1 FROM "_server_model_cache" WHERE "key" = ?;', [key], function(tx, result) {
           if (result.rows.length === 0) {
             return tx.executeSql('INSERT INTO "_server_model_cache" VALUES (?, ?);', [key, value], null, null, false);
           } else {
