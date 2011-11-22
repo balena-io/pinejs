@@ -98,6 +98,14 @@ To study OmetaJS or ask questions about it's core you can try to reach out
 
 Also documented code is available [here][5]
 
+#### Contributors
+
+[Alessandro Warth][4]
+[Sergey Berezhnoy][https://github.com/veged]
+[Takashi Yamamiya][https://github.com/propella]
+[Nikita Vasilyev][https://github.com/NV]
+[Fedor Indutny][https://github.com/indutny]
+
 [0]: http://www.commonjs.org/
 [1]: http://coffeescript.org/
 [2]: http://en.wikipedia.org/wiki/Abstract_syntax_tree
