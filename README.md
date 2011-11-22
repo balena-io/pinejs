@@ -59,7 +59,7 @@ Options:
 compatible javascript file.
 
 Also you may `require('*.ometajs')` files directly without compilation.
-(OmetaJS is patching `require.extensions` as [CoffeeScript][1] does)
+(OmetaJS is patching `require.extensions` as [CoffeeScript][1] does).
 
 ### Using as CommonJS module
 
@@ -79,7 +79,7 @@ ometa Simple {
 }
 ```
 
-More information about OmetaJS syntax is available [here][5]
+[More information][5] about OmetaJS syntax.
 
 ### Use cases
 
@@ -97,7 +97,7 @@ Some projects that are using this:
 To study OmetaJS or ask questions about it's core you can try to reach out
 [original repository][3] author [Alessandro Warth][4] or me.
 
-Also documented code is available [here][5].
+Here is [documented code][5].
 
 #### Contributors
 
