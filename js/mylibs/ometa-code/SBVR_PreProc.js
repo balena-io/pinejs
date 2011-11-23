@@ -395,8 +395,7 @@
                 this._apply("setHelped");
                 return xs
             }), (function() {
-                xs = this._apply("trans");
-                return ["neg"].concat([xs])
+                return SBVR_NullOpt._superApplyWithArgs(this, 'neg')
             }))
         }
     });

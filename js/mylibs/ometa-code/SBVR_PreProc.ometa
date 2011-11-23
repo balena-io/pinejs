@@ -76,10 +76,10 @@ ometa FNN_Elim <: SBVR_NullOpt {
 												setHelped	-> ['existQ', v].concat(xs),
 	atLeastQ	"minCard":i "var":v trans*:xs				-> ['atLeastQ', i, v].concat(xs),
 
-	atMostQ	"maxCard":a "var":v trans*:xs		setHelped	-> {a[1][1]++;['neg', ['atLeastQ', ['minCard', a[1]], v].concat(xs)]},
+	atMostQ		"maxCard":a "var":v trans*:xs	setHelped	-> {a[1][1]++;['neg', ['atLeastQ', ['minCard', a[1]], v].concat(xs)]},
 
-	neg ['neg' trans:xs] 						setHelped	-> xs,
-	neg trans:xs											-> ['neg'].concat([xs])
+	neg			= ['neg' trans:xs]				setHelped	-> xs
+				| ^neg
 }
 
 ometa SBVR_PreProc {
