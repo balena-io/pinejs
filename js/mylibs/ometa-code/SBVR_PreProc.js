@@ -39,11 +39,10 @@
             }));
             return a
         },
-        "token": function() {
+        "token": function(x) {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                x, t, a;
-            x = this._apply("anything");
+                t, a;
             this._form((function() {
                 t = this._apply("anything");
                 this._pred((t == x));
