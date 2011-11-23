@@ -117,7 +117,7 @@ BSOMetaTranslator.jumpTableCode = function(cases) {
   buf.put("(function(){switch(this._apply('anything')){")
   for (var i = 0; i < cases.length; i += 1)
     buf.put("case " + cases[i][0] + ":return " + cases[i][1] + ";")
-  buf.put("default: throw fail}}).call(this)")
+  buf.put("default: throw fail()}}).call(this)")
   return buf.contents()
 }
 
