@@ -1,7 +1,7 @@
 {
   "name": "ometajs",
   "description": "A object-oriented language for pattern matching",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "homepage": "http://tinlizzie.org/ometa-js/",
   "author": "Alessandro Warth <alexwarth@gmail.com> (http://awarth.blogspot.com/)",
   "contributors": [
@@ -24,9 +24,7 @@
     "coa": "0.2.x",
     "uglify-js": "1.1.x"
   },
-  "devDependencies": {
-    "docco": "0.3.x"
-  },
+  "devDependencies": {},
   "bin": {
     "ometajs2js": "./bin/ometajs2js"
   },
@@ -40,6 +38,5 @@
   ],
   "scripts": {
     "test": "make -B test"
-  },
-  "devDependencies": {}
+  }
 }
