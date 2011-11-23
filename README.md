@@ -8,10 +8,10 @@
 
 ## Description
 
-OMetaJS is a JavaScript implementation of OMeta, an object-oriented language
+OMetaJS is a JavaScript implementation of the OMeta, an object-oriented language
 for pattern matching.
 
-This is *node.js* module for developing and using such pattern matching
+This is a *node.js* module for developing and using such pattern matching
 grammars.
 
 ## Installation
