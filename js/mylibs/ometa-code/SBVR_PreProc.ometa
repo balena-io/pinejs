@@ -36,8 +36,14 @@ ometa SBVR_NullOpt {
 															-> ['fcTp'].concat(a).concat(e).concat(attr),
 
 	verb		:v											-> ['verb', v],
-	term		:t (:attr->[attr]|->[]):attr				-> ['term', t].concat(attr),
+	term		:t attributes:attr							-> ['term', t].concat(attr),
 	rule		("obl"|"nec"|"pos"|"prm"):x "text":t		-> ['rule', x, t],
+	attributes	= end										-> []
+				| [([:attrName	( ?(this['attr'+attrName]) apply('attr'+attrName):attrVal
+								| :attrVal )] -> [attrName, attrVal]
+					)*:attrs ]								-> [attrs],
+	attrDefinition
+				= trans,
 
 	text		:a											-> ['text', a],
 	

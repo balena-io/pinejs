@@ -116,12 +116,7 @@
                 _fromIdx = this.input.idx,
                 t, attr;
             t = this._apply("anything");
-            attr = this._or((function() {
-                attr = this._apply("anything");
-                return [attr]
-            }), (function() {
-                return []
-            }));
+            attr = this._apply("attributes");
             return ["term", t].concat(attr)
         },
         "rule": function() {
@@ -139,6 +134,36 @@
             }));
             t = this._applyWithArgs("token", "text");
             return ["rule", x, t]
+        },
+        "attributes": function() {
+            var $elf = this,
+                _fromIdx = this.input.idx,
+                attrName, attrVal, attrs;
+            return this._or((function() {
+                this._apply("end");
+                return []
+            }), (function() {
+                this._form((function() {
+                    return attrs = this._many((function() {
+                        this._form((function() {
+                            attrName = this._apply("anything");
+                            return this._or((function() {
+                                this._pred(this[("attr" + attrName)]);
+                                return attrVal = this._applyWithArgs("apply", ("attr" + attrName))
+                            }), (function() {
+                                return attrVal = this._apply("anything")
+                            }))
+                        }));
+                        return [attrName, attrVal]
+                    }))
+                }));
+                return [attrs]
+            }))
+        },
+        "attrDefinition": function() {
+            var $elf = this,
+                _fromIdx = this.input.idx;
+            return this._apply("trans")
         },
         "text": function() {
             var $elf = this,
