@@ -16,12 +16,12 @@
 		], [
 			'--Test comment',
 			'Test comment',
-			'tried to apply undefined rule "T"',
+			'Test comment',
 			'match failed',
 		], [
 			'--Test comment Term: With ignored term',
 			'Test comment Term: With ignored term',
-			'tried to apply undefined rule "T"',
+			'Test comment Term: With ignored term',
 			'match failed',
 		], [
 			'F: person is enrolled in educational institution --Ignored comment',
@@ -36,7 +36,7 @@
 		], [
 			'	Definition: An invalid definition',
 			'match failed',
-			'tried to apply undefined rule "m"',
+			'match failed',
 			'match failed',
 		], [
 			'	Definition: A person is enrolled in an educational institution',
@@ -174,7 +174,7 @@
 		], [
 			'	Definition: An invalid definition',
 			'match failed',
-			'tried to apply undefined rule "m"',
+			'match failed',
 			'match failed'
 		], [
 			'	Definition: A person is enrolled in an educational institution',
@@ -422,22 +422,22 @@
 		[
 			'R: It is obligatory that exactly 0 students  are swimming',
 			'match failed',
-			'tried to apply undefined rule "m"',
+			'match failed',
 			'match failed'
 		],[
 			'R: It is obligatory that each student is available for a module',
 			'match failed',
-			'tried to apply undefined rule "m"',
+			'match failed',
 			'match failed'
 		],[
 			'R: It is obligatory that each student is registered for a study programme',
 			'match failed',
-			'tried to apply undefined rule "m"',
+			'match failed',
 			'match failed'
 		],[
 			'R: It is obligatory that each student is registered for a module is available for a study programme',
 			'match failed',
-			'tried to apply undefined rule "m"',
+			'match failed',
 			'match failed'
 		],
 		

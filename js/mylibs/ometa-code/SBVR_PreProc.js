@@ -403,18 +403,6 @@
         "optimizeTree": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                rs;
-            this._form((function() {
-                this._applyWithArgs("exactly", "model");
-                return rs = this._many((function() {
-                    return this._apply("optimizeRule")
-                }))
-            }));
-            return ["model"].concat(rs)
-        },
-        "optimizeRule": function() {
-            var $elf = this,
-                _fromIdx = this.input.idx,
                 r;
             r = this._apply("anything");
             this._many((function() {

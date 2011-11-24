@@ -24,7 +24,7 @@ ometa SBVR_NullOpt {
 				|											-> [],
 
 	trans		[:t apply(t):a]								-> a,
-	token :x	= [:t ?{t==x} apply(x):a]						-> a,
+	token :x	= [:t ?{t==x} apply(x):a]					-> a,
 
 	letters	= letter+:l space*								-> l.join(''),
 
@@ -46,9 +46,9 @@ ometa SBVR_NullOpt {
 	pos			trans*:xs									-> ['pos'].concat(xs),
 	prm			trans*:xs									-> ['prm'].concat(xs),
 
-	neg			trans:xs										-> ['neg'].concat([xs]),
+	neg			trans:xs									-> ['neg'].concat([xs]),
 
-	quant		= "univQ" | "existQ" | "exactQ" | "atMostQ" | "atLeastQ" | "numRngQ" ,
+	quant		= "univQ" | "existQ" | "exactQ" | "atMostQ" | "atLeastQ" | "numRngQ",
 	univQ								"var":v trans*:xs	-> ['univQ', v].concat(xs),
 	existQ								"var":v trans*:xs	-> ['existQ', v].concat(xs),
 	exactQ		"card":i				"var":v trans*:xs	-> ['exactQ', i, v].concat(xs),
@@ -61,7 +61,7 @@ ometa SBVR_NullOpt {
 	maxCard		"num":n										-> ['maxCard', n],
 
 	var			"num":n "term":t ("aFrm"|quant):w			-> ['var', n, t, w],
-	var			"num":n "term":t								-> ['var', n, t],
+	var			"num":n "term":t							-> ['var', n, t],
 
 	bind		"term":t number:n							-> ['bind', t, n], 
 	aFrm		"fcTp":f "bind"*:b							-> ['aFrm', f].concat(b)
@@ -83,6 +83,5 @@ ometa FNN_Elim <: SBVR_NullOpt {
 }
 
 ometa SBVR_PreProc {
-	optimizeTree	= ['model' optimizeRule*:rs]			-> ['model'].concat(rs),
-	optimizeRule	= :r (FNN_Elim.optimize(r):r)*			-> r
+	optimizeTree	= :r (FNN_Elim.optimize(r):r)*			-> r
 }
