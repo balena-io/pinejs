@@ -1,7 +1,7 @@
 {
   "name": "ometajs",
   "description": "A object-oriented language for pattern matching",
-  "version": "2.1.5",
+  "version": "2.1.6",
   "homepage": "http://tinlizzie.org/ometa-js/",
   "author": "Alessandro Warth <alexwarth@gmail.com> (http://awarth.blogspot.com/)",
   "contributors": [
