@@ -421,7 +421,7 @@
             }))
         }
     });
-    (SBVR_FNN_Elim["initialize"] = (function() {
+    (FNN_Elim["initialize"] = (function() {
         (this["_didSomething"] = false)
     }));
     SBVR_PreProc = objectThatDelegatesTo(OMeta, {

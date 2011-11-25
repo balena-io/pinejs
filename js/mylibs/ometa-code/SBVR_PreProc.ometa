@@ -86,7 +86,7 @@ ometa FNN_Elim <: SBVR_NullOpt {
 				| ^neg
 }
 
-SBVR_FNN_Elim.initialize = function() { this._didSomething = false }
+FNN_Elim.initialize = function() { this._didSomething = false }
 
 ometa SBVR_PreProc {
 	optimizeTree	= :r (FNN_Elim.optimize(r):r)*			-> r
