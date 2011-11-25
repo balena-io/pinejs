@@ -15,11 +15,6 @@ Copyright 2011 University of Surrey
 */
 
 ometa SBVR_NullOpt {
-	setHelped	= !(self._didSomething = true),
-	helped		= ?self._didSomething,
-
-	optimize	= trans:x helped							-> x,
-
 	$ :x		= token(x):a								-> [a] 
 				|											-> [],
 
@@ -76,6 +71,11 @@ ometa SBVR_NullOpt {
 SBVR_NullOpt.initialize = function() { this._didSomething = false }
 
 ometa FNN_Elim <: SBVR_NullOpt {
+	setHelped	= !(self._didSomething = true),
+	helped		= ?self._didSomething,
+
+	optimize	= trans:x helped							-> x,
+
 	univQ		"var":v trans*:xs setHelped -> ['neg', ['existQ', v, ['neg'].concat(xs)]],
 
 	atLeastQ	"minCard":i ?{i[1][1]==1} "var":v trans*:xs

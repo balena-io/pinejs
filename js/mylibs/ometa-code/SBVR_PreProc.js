@@ -1,23 +1,5 @@
 {
     SBVR_NullOpt = objectThatDelegatesTo(OMeta, {
-        "setHelped": function() {
-            var $elf = this,
-                _fromIdx = this.input.idx;
-            return ($elf["_didSomething"] = true)
-        },
-        "helped": function() {
-            var $elf = this,
-                _fromIdx = this.input.idx;
-            return this._pred($elf["_didSomething"])
-        },
-        "optimize": function() {
-            var $elf = this,
-                _fromIdx = this.input.idx,
-                x;
-            x = this._apply("trans");
-            this._apply("helped");
-            return x
-        },
         "$": function(x) {
             var $elf = this,
                 _fromIdx = this.input.idx,
@@ -360,6 +342,24 @@
         (this["_didSomething"] = false)
     }));
     FNN_Elim = objectThatDelegatesTo(SBVR_NullOpt, {
+        "setHelped": function() {
+            var $elf = this,
+                _fromIdx = this.input.idx;
+            return ($elf["_didSomething"] = true)
+        },
+        "helped": function() {
+            var $elf = this,
+                _fromIdx = this.input.idx;
+            return this._pred($elf["_didSomething"])
+        },
+        "optimize": function() {
+            var $elf = this,
+                _fromIdx = this.input.idx,
+                x;
+            x = this._apply("trans");
+            this._apply("helped");
+            return x
+        },
         "univQ": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
