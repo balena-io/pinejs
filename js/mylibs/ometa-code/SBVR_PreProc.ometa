@@ -68,8 +68,6 @@ ometa SBVR_NullOpt {
 	aFrm		"fcTp":f "bind"*:b							-> ['aFrm', f].concat(b)
 }
 
-SBVR_NullOpt.initialize = function() { this._didSomething = false }
-
 ometa FNN_Elim <: SBVR_NullOpt {
 	setHelped	= !(self._didSomething = true),
 	helped		= ?self._didSomething,
@@ -87,6 +85,8 @@ ometa FNN_Elim <: SBVR_NullOpt {
 	neg			= ['neg' trans:xs]				setHelped	-> xs
 				| ^neg
 }
+
+SBVR_FNN_Elim.initialize = function() { this._didSomething = false }
 
 ometa SBVR_PreProc {
 	optimizeTree	= :r (FNN_Elim.optimize(r):r)*			-> r

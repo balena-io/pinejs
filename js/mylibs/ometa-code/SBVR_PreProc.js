@@ -338,9 +338,6 @@
             return ["aFrm", f].concat(b)
         }
     });
-    (SBVR_NullOpt["initialize"] = (function() {
-        (this["_didSomething"] = false)
-    }));
     FNN_Elim = objectThatDelegatesTo(SBVR_NullOpt, {
         "setHelped": function() {
             var $elf = this,
@@ -424,6 +421,9 @@
             }))
         }
     });
+    (SBVR_FNN_Elim["initialize"] = (function() {
+        (this["_didSomething"] = false)
+    }));
     SBVR_PreProc = objectThatDelegatesTo(OMeta, {
         "optimizeTree": function() {
             var $elf = this,
