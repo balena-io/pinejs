@@ -70,7 +70,7 @@
         "fcTp": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                t, v, e, attr;
+                t, v, e;
             (a = []);
             this._many((function() {
                 t = this._applyWithArgs("token", "term");
@@ -78,13 +78,14 @@
                 return (a = a.concat([t, v]))
             }));
             e = this._applyWithArgs("$", "term");
-            attr = this._or((function() {
-                attr = this._apply("anything");
-                return [attr]
-            }), (function() {
-                return []
-            }));
-            return ["fcTp"].concat(a).concat(e).concat(attr)
+            return this._applyWithArgs("addAttributes", ["fcTp"].concat(a).concat(e))
+        },
+        "term": function() {
+            var $elf = this,
+                _fromIdx = this.input.idx,
+                t;
+            t = this._apply("anything");
+            return this._applyWithArgs("addAttributes", ["term", t])
         },
         "verb": function() {
             var $elf = this,
@@ -92,14 +93,6 @@
                 v;
             v = this._apply("anything");
             return ["verb", v]
-        },
-        "term": function() {
-            var $elf = this,
-                _fromIdx = this.input.idx,
-                t, attr;
-            t = this._apply("anything");
-            attr = this._apply("attributes");
-            return ["term", t].concat(attr)
         },
         "rule": function() {
             var $elf = this,
@@ -117,30 +110,37 @@
             t = this._applyWithArgs("token", "text");
             return ["rule", x, t]
         },
-        "attributes": function() {
+        "addAttributes": function(termOrVerb) {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                attrName, attrVal, attrs;
-            return this._or((function() {
-                this._apply("end");
-                return []
+                attrs, attrsFound, attrName, attrVal;
+            this._or((function() {
+                return this._apply("end")
             }), (function() {
+                attrs = [];
+                attrsFound = ({});
                 this._form((function() {
-                    return attrs = this._many((function() {
-                        this._form((function() {
-                            attrName = this._apply("anything");
-                            return this._or((function() {
-                                this._pred(this[("attr" + attrName)]);
-                                return attrVal = this._applyWithArgs("apply", ("attr" + attrName))
-                            }), (function() {
-                                return attrVal = this._apply("anything")
-                            }))
-                        }));
-                        return [attrName, attrVal]
+                    return this._or((function() {
+                        return this._apply("end")
+                    }), (function() {
+                        return attrs = this._many((function() {
+                            this._form((function() {
+                                attrName = this._apply("anything");
+                                (attrsFound[attrName] = true);
+                                return this._or((function() {
+                                    this._pred(this[("attr" + attrName)]);
+                                    return attrVal = this._applyWithArgs("apply", ("attr" + attrName))
+                                }), (function() {
+                                    return attrVal = this._apply("anything")
+                                }))
+                            }));
+                            return [attrName, attrVal]
+                        }))
                     }))
                 }));
-                return [attrs]
-            }))
+                return this._applyWithArgs("defaultAttributes", termOrVerb, attrsFound, attrs)
+            }));
+            return termOrVerb
         },
         "attrDefinition": function() {
             var $elf = this,
@@ -338,6 +338,49 @@
             return ["aFrm", f].concat(b)
         }
     });
+    (SBVR_NullOpt["defaultAttributes"] = (function(termOrVerb, attrsFound, attrs) {
+        termOrVerb.push(attrs)
+    }));
+    SBVR2SQLPrep = objectThatDelegatesTo(SBVR_NullOpt, {});
+    (SBVR2SQLPrep["defaultAttributes"] = (function(termOrVerb, attrsFound, attrs) {
+        console.log(termOrVerb);
+        if ((!attrsFound.hasOwnProperty("DatabaseIDField"))) {
+            attrs.push(["DatabaseIDField", "id"])
+        } else {
+            undefined
+        };
+        switch (termOrVerb[(0)]) {
+        case "term":
+            {
+                if ((!attrsFound.hasOwnProperty("DatabaseNameField"))) {
+                    attrs.push(["DatabaseNameField", "name"])
+                } else {
+                    undefined
+                }
+                if ((!attrsFound.hasOwnProperty("DatabaseTableName"))) {
+                    attrs.push(["DatabaseTableName", termOrVerb[(1)].replace(new RegExp(" ", "g"), "_")])
+                } else {
+                    undefined
+                }
+                break
+            };
+        case "fcTp":
+            {
+                if ((!attrsFound.hasOwnProperty("DatabaseTableName"))) {
+                    var tableName = termOrVerb[(1)][(1)].replace(new RegExp(" ", "g"), "_");
+                    for (var i = (2);
+                    (i < termOrVerb["length"]); i++) {
+                        (tableName += ("-" + termOrVerb[i][(1)].replace(new RegExp(" ", "g"), "_")))
+                    };
+                    attrs.push(["DatabaseTableName", tableName])
+                } else {
+                    undefined
+                }
+                break
+            }
+        };
+        termOrVerb.push(attrs)
+    }));
     FNN_Elim = objectThatDelegatesTo(SBVR_NullOpt, {
         "setHelped": function() {
             var $elf = this,
@@ -433,6 +476,7 @@
             this._many((function() {
                 return r = this._applyWithArgs("foreign", FNN_Elim, 'optimize', r)
             }));
+            r = this._applyWithArgs("foreign", SBVR2SQLPrep, 'trans', r);
             return r
         }
     })

@@ -27,16 +27,27 @@ ometa SBVR_NullOpt {
 
 	model		("term"|"fcTp"|"rule")*:xs					-> ['model'].concat(xs),
 
-	fcTp		{a=[]}("term":t "verb":v {a=a.concat([t,v])})* $('term'):e (:attr->[attr]|->[]):attr
-															-> ['fcTp'].concat(a).concat(e).concat(attr),
+	fcTp		{a=[]}("term":t "verb":v {a=a.concat([t,v])})* $('term'):e
+				addAttributes(['fcTp'].concat(a).concat(e)),
 
+	term		:t addAttributes(['term', t]),
 	verb		:v											-> ['verb', v],
-	term		:t attributes:attr							-> ['term', t].concat(attr),
 	rule		("obl"|"nec"|"pos"|"prm"):x "text":t		-> ['rule', x, t],
-	attributes	= end										-> []
-				| [([:attrName	( ?(this['attr'+attrName]) apply('attr'+attrName):attrVal
-								| :attrVal )] -> [attrName, attrVal]
-					)*:attrs ]								-> [attrs],
+	addAttributes :termOrVerb
+				= (end
+				| {[]}:attrs {{}}:attrsFound
+					(
+						[ end
+						|
+							(
+								[:attrName {attrsFound[attrName] = true}
+									( ?(this['attr'+attrName]) apply('attr'+attrName):attrVal
+									| :attrVal )
+								] -> [attrName, attrVal]
+							)*:attrs
+						]
+					) defaultAttributes(termOrVerb, attrsFound, attrs)
+				)											-> termOrVerb,
 	attrDefinition
 				= trans,
 
@@ -68,6 +79,35 @@ ometa SBVR_NullOpt {
 	aFrm		"fcTp":f "bind"*:b							-> ['aFrm', f].concat(b)
 }
 
+SBVR_NullOpt.defaultAttributes = function(termOrVerb, attrsFound, attrs) {
+	termOrVerb.push(attrs);
+}
+
+ometa SBVR2SQLPrep <: SBVR_NullOpt {}
+SBVR2SQLPrep.defaultAttributes = function(termOrVerb, attrsFound, attrs) {
+	console.log(termOrVerb);
+	if(!attrsFound.hasOwnProperty('DatabaseIDField'))
+		attrs.push(['DatabaseIDField', 'id']);
+	switch(termOrVerb[0]) {
+		case 'term':
+			if(!attrsFound.hasOwnProperty('DatabaseNameField'))
+				attrs.push(['DatabaseNameField', 'name']);
+			if(!attrsFound.hasOwnProperty('DatabaseTableName'))
+				attrs.push(['DatabaseTableName', termOrVerb[1].replace(new RegExp(' ','g'),'_')]);
+		break;
+		case 'fcTp':
+			if(!attrsFound.hasOwnProperty('DatabaseTableName'))
+			{
+				var tableName = termOrVerb[1][1].replace(new RegExp(' ','g'),'_');
+				for(var i=2;i<termOrVerb.length;i++)
+					tableName += '-' + termOrVerb[i][1].replace(new RegExp(' ','g'),'_');
+				attrs.push(['DatabaseTableName', tableName]);
+			}
+		break;
+	}
+	termOrVerb.push(attrs);
+}
+
 ometa FNN_Elim <: SBVR_NullOpt {
 	setHelped	= !(self._didSomething = true),
 	helped		= ?self._didSomething,
@@ -89,5 +129,6 @@ ometa FNN_Elim <: SBVR_NullOpt {
 FNN_Elim.initialize = function() { this._didSomething = false }
 
 ometa SBVR_PreProc {
-	optimizeTree	= :r (FNN_Elim.optimize(r):r)*			-> r
+	optimizeTree	= :r (FNN_Elim.optimize(r):r)* SBVR2SQLPrep.trans(r):r
+															-> r
 }
