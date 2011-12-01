@@ -343,7 +343,6 @@
     }));
     SBVR2SQLPrep = objectThatDelegatesTo(SBVR_NullOpt, {});
     (SBVR2SQLPrep["defaultAttributes"] = (function(termOrVerb, attrsFound, attrs) {
-        console.log(termOrVerb);
         if ((!attrsFound.hasOwnProperty("DatabaseIDField"))) {
             attrs.push(["DatabaseIDField", "id"])
         } else {

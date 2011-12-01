@@ -85,7 +85,6 @@ SBVR_NullOpt.defaultAttributes = function(termOrVerb, attrsFound, attrs) {
 
 ometa SBVR2SQLPrep <: SBVR_NullOpt {}
 SBVR2SQLPrep.defaultAttributes = function(termOrVerb, attrsFound, attrs) {
-	console.log(termOrVerb);
 	if(!attrsFound.hasOwnProperty('DatabaseIDField'))
 		attrs.push(['DatabaseIDField', 'id']);
 	switch(termOrVerb[0]) {
