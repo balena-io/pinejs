@@ -8,7 +8,7 @@ ometa SQLBinds {
 			)
 		)*:text
 		-> text.join(''),
-    parse :nextBind
+	parse :nextBind
 		= (
 			('\''|'"'):quote skipToEnd(quote):text -> [quote, text].join('')
 			| '?' -> nextBind()
