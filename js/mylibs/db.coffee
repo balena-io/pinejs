@@ -112,4 +112,5 @@ define((requirejs, exports, module) ->
 						callback(tx(_tx))
 					)
 			}
+	return exports
 )

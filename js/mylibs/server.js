@@ -1,5 +1,5 @@
 (function() {
-  var dataGET, dataplusDELETE, dataplusGET, dataplusPOST, dataplusPUT, db, endLock, executeSasync, executeTasync, getFTree, getID, handlers, hasCR, http, isExecute, op, remoteServerRequest, requirejs, rootDELETE, serverModelCache, staticServer, updateRules, validateDB;
+  var app, db, endLock, executeSasync, executeTasync, express, getFTree, getID, hasCR, isExecute, op, parseURITree, requirejs, serverIsOnAir, serverModelCache, updateRules, validateDB;
   var __hasProp = Object.prototype.hasOwnProperty;
 
   op = {
@@ -11,6 +11,12 @@
   db = null;
 
   if (typeof process !== "undefined" && process !== null) {
+    express = require('express');
+    app = express.createServer();
+    app.configure(function() {
+      app.use(express.bodyParser());
+      return app.use(express.static(process.cwd()));
+    });
     requirejs = require('requirejs');
     requirejs.config({
       nodeRequire: require,
@@ -18,6 +24,105 @@
     });
   } else {
     requirejs = window.requirejs;
+    app = (function() {
+      var handlers;
+      handlers = {
+        POST: [],
+        PUT: [],
+        DELETE: [],
+        GET: []
+      };
+      return {
+        post: function(match) {
+          return handlers.POST.push({
+            match: match,
+            middleware: Array.prototype.slice.call(arguments, 1)
+          });
+        },
+        get: function(match) {
+          return handlers.GET.push({
+            match: match,
+            middleware: Array.prototype.slice.call(arguments, 1)
+          });
+        },
+        put: function(match) {
+          return handlers.PUT.push({
+            match: match,
+            middleware: Array.prototype.slice.call(arguments, 1)
+          });
+        },
+        del: function(match) {
+          return handlers.DELETE.push({
+            match: match,
+            middleware: Array.prototype.slice.call(arguments, 1)
+          });
+        },
+        all: function(match) {
+          this.post.apply(this, arguments);
+          this.get.apply(this, arguments);
+          this.put.apply(this, arguments);
+          return this.del.apply(this, arguments);
+        },
+        process: function(method, uri, headers, body, successCallback, failureCallback) {
+          var checkMethodHandlers, i, j, methodHandlers, next, req, res;
+          if (uri.slice(-1) === '/') uri = uri.slice(0, (uri.length - 1));
+          uri = uri.toLowerCase();
+          console.log(uri);
+          if (!handlers[method]) failureCallback(404);
+          req = {
+            body: body,
+            headers: headers,
+            uri: uri
+          };
+          res = {
+            json: function(obj, headers, statusCode) {
+              var _ref;
+              if (headers == null) headers = 200;
+              if (typeof headers === 'number' && !(statusCode != null)) {
+                _ref = [headers, {}], statusCode = _ref[0], headers = _ref[1];
+              }
+              if (statusCode === 404) {
+                return failureCallback(statusCode, obj);
+              } else {
+                return successCallback(statusCode, obj);
+              }
+            },
+            send: function(statusCode) {
+              if (statusCode === 404) {
+                return failureCallback(statusCode);
+              } else {
+                return successCallback(statusCode);
+              }
+            }
+          };
+          next = function(route) {
+            j++;
+            if (route === 'route' || j >= methodHandlers[i].middleware.length) {
+              return checkMethodHandlers();
+            } else {
+              return methodHandlers[i].middleware[j](req, res, next);
+            }
+          };
+          methodHandlers = handlers[method];
+          i = -1;
+          j = -1;
+          checkMethodHandlers = function() {
+            i++;
+            if (i < methodHandlers.length) {
+              if (uri.slice(0, methodHandlers[i].match.length) === methodHandlers[i].match) {
+                j = -1;
+                return next();
+              } else {
+                return checkMethodHandlers();
+              }
+            } else {
+              return res.send(404);
+            }
+          };
+          return checkMethodHandlers();
+        }
+      };
+    })();
   }
 
   requirejs(["libs/inflection", "../ometa-js/lib", "../ometa-js/ometa-base"]);
@@ -122,481 +227,500 @@
     return serverModelCache = serverModelCache();
   });
 
-  handlers = {
-    onair: {
-      GET: function(successCallback, failureCallback) {
-        return successCallback(200, serverModelCache.isServerOnAir());
-      }
-    },
-    model: {
-      GET: [
-        function() {
-          return serverModelCache.isServerOnAir();
-        }, function(successCallback, failureCallback) {
-          return successCallback(200, serverModelCache.getLastSE());
-        }
-      ]
-    },
-    lfmodel: {
-      GET: [
-        function() {
-          return serverModelCache.isServerOnAir();
-        }, function(successCallback, failureCallback) {
-          return successCallback(200, serverModelCache.getLF());
-        }
-      ]
-    },
-    prepmodel: {
-      GET: [
-        function() {
-          return serverModelCache.isServerOnAir();
-        }, function(successCallback, failureCallback) {
-          return successCallback(200, serverModelCache.getPrepLF());
-        }
-      ]
-    },
-    sqlmodel: {
-      GET: [
-        function() {
-          return serverModelCache.isServerOnAir();
-        }, function(successCallback, failureCallback) {
-          return successCallback(200, serverModelCache.getSQL());
-        }
-      ]
-    },
-    update: {
-      POST: function(successCallback, failureCallback) {
-        return failureCallback(404);
-      }
-    },
-    ui: {
-      GET: [
-        [
-          function(tree) {
-            return tree[1][1] === "textarea" && tree[1][3][1][1][3] === "model_area";
-          }, function(successCallback, failureCallback) {
-            return successCallback(200, {
-              value: serverModelCache.getSE()
-            });
-          }
-        ], [
-          function(tree) {
-            return tree[1][1] === "textarea-is_disabled" && tree[1][4][1][1][3] === "model_area";
-          }, function(successCallback, failureCallback) {
-            return successCallback(200, {
-              value: serverModelCache.isModelAreaDisabled()
-            });
-          }
-        ]
-      ],
-      PUT: [
-        [
-          function(tree) {
-            return tree[1][1] === "textarea" && tree[1][3][1][1][3] === "model_area";
-          }, function(successCallback, failureCallback, body) {
-            serverModelCache.setSE(JSON.parse(body).value);
-            return successCallback(200);
-          }
-        ], [
-          function(tree) {
-            return tree[1][1] === "textarea-is_disabled" && tree[1][4][1][1][3] === "model_area";
-          }, function(successCallback, failureCallback, body) {
-            serverModelCache.setModelAreaDisabled(JSON.parse(body).value);
-            return successCallback(200);
-          }
-        ]
-      ]
-    },
-    execute: {
-      POST: function(successCallback, failureCallback) {
-        var lfmod, prepmod, se, sqlmod, tree, trnmod;
-        se = serverModelCache.getSE();
-        try {
-          lfmod = SBVRParser.matchAll(se, "expr");
-        } catch (e) {
-          console.log('Error parsing model', e);
-          failureCallback(404, 'Error parsing model');
-          return null;
-        }
-        prepmod = SBVR_PreProc.match(lfmod, "optimizeTree");
-        sqlmod = SBVR2SQL.match(prepmod, "trans");
-        tree = SBVRParser.matchAll(modelT, "expr");
-        tree = SBVR_PreProc.match(tree, "optimizeTree");
-        trnmod = SBVR2SQL.match(tree, "trans");
-        serverModelCache.setModelAreaDisabled(true);
-        return db.transaction(function(tx) {
-          tx.begin();
-          return executeSasync(tx, sqlmod, (function(tx, sqlmod, failureCallback, result) {
-            return executeTasync(tx, trnmod, (function(tx, trnmod, failureCallback, result) {
-              serverModelCache.setServerOnAir(true);
-              serverModelCache.setLastSE(se);
-              serverModelCache.setLF(lfmod);
-              serverModelCache.setPrepLF(prepmod);
-              serverModelCache.setSQL(sqlmod);
-              serverModelCache.setTrans(trnmod);
-              return successCallback(200, result);
-            }), failureCallback, result);
-          }), (function(errors) {
-            serverModelCache.setModelAreaDisabled(false);
-            return failureCallback(404, errors);
-          }));
-        });
-      }
-    },
-    cleardb: {
-      DELETE: function(successCallback, failureCallback) {
-        return db.transaction(function(tx) {
-          return tx.tableList(function(tx, result) {
-            var i, _ref;
-            for (i = 0, _ref = result.rows.length; 0 <= _ref ? i < _ref : i > _ref; 0 <= _ref ? i++ : i--) {
-              tx.dropTable(result.rows.item(i).name);
-            }
-            return successCallback(200);
-          });
-        });
-      }
-    },
-    importdb: {
-      POST: function(successCallback, failureCallback, body) {
-        var imported, queries;
-        queries = body.split(";");
-        imported = 0;
-        db.transaction(function(tx) {
-          var query, _i, _len, _results;
-          _results = [];
-          for (_i = 0, _len = queries.length; _i < _len; _i++) {
-            query = queries[_i];
-            if (query.trim().length > 0) {
-              _results.push((function(query) {
-                return tx.executeSql(query, [], (function(tx, result) {
-                  return console.log("Import Success", imported++);
-                }), function(tx, error) {
-                  console.log(query);
-                  return console.log(error);
-                });
-              })(query));
-            }
-          }
-          return _results;
-        });
-        return successCallback(200);
-      }
-    },
-    exportdb: {
-      GET: function(successCallback, failureCallback) {
-        var env;
-        if (typeof process !== "undefined" && process !== null) {
-          env = process.env;
-          env['PGPASSWORD'] = '.';
-          return require('child_process').exec('pg_dump --clean -U postgres -h localhost -p 5432', {
-            env: env
-          }, function(error, stdout, stderr) {
-            console.log(stdout, stderr);
-            return successCallback(200, stdout);
-          });
-        } else {
-          return db.transaction(function(tx) {
-            return tx.tableList(function(tx, result) {
-              var exported, exportsProcessed, i, tbn, totalExports, _fn, _ref;
-              totalExports = result.rows.length + 1;
-              exportsProcessed = 0;
-              exported = '';
-              _fn = function(tbn) {
-                return db.transaction(function(tx) {
-                  return tx.executeSql('SELECT * FROM "' + tbn + '";', [], (function(tx, result) {
-                    var currRow, i, insQuery, notFirst, propName, valQuery, _ref2;
-                    insQuery = "";
-                    for (i = 0, _ref2 = result.rows.length; 0 <= _ref2 ? i < _ref2 : i > _ref2; 0 <= _ref2 ? i++ : i--) {
-                      currRow = result.rows.item(i);
-                      notFirst = false;
-                      insQuery += 'INSERT INTO "' + tbn + '" (';
-                      valQuery = '';
-                      for (propName in currRow) {
-                        if (!__hasProp.call(currRow, propName)) continue;
-                        if (notFirst) {
-                          insQuery += ",";
-                          valQuery += ",";
-                        } else {
-                          notFirst = true;
-                        }
-                        insQuery += '"' + propName + '"';
-                        valQuery += "'" + currRow[propName] + "'";
-                      }
-                      insQuery += ") values (" + valQuery + ");\n";
-                    }
-                    exported += insQuery;
-                    exportsProcessed++;
-                    if (exportsProcessed === totalExports) {
-                      return successCallback(200, exported);
-                    }
-                  }));
-                });
-              };
-              for (i = 0, _ref = result.rows.length; 0 <= _ref ? i < _ref : i > _ref; 0 <= _ref ? i++ : i--) {
-                tbn = result.rows.item(i).name;
-                exported += 'DROP TABLE IF EXISTS "' + tbn + '";\n';
-                exported += result.rows.item(i).sql + ";\n";
-                _fn(tbn);
-              }
-              exportsProcessed++;
-              if (exportsProcessed === totalExports) {
-                return successCallback(200, exported);
-              }
-            }, null, "name NOT LIKE '%_buk'");
-          });
-        }
-      }
-    },
-    backupdb: {
-      POST: function(successCallback, failureCallback) {
-        db.transaction(function(tx) {
-          return tx.tableList(function(tx, result) {
-            var i, tbn, _ref, _results;
-            _results = [];
-            for (i = 0, _ref = result.rows.length; 0 <= _ref ? i < _ref : i > _ref; 0 <= _ref ? i++ : i--) {
-              tbn = result.rows.item(i).name;
-              tx.dropTable(tbn + '_buk', true);
-              _results.push(tx.executeSql('ALTER TABLE "' + tbn + '" RENAME TO "' + tbn + '_buk";'));
-            }
-            return _results;
-          }, null, "name NOT LIKE '%_buk'");
-        });
-        return successCallback(200);
-      }
-    },
-    restoredb: {
-      POST: function(successCallback, failureCallback) {
-        db.transaction(function(tx) {
-          return tx.tableList(function(tx, result) {
-            var i, tbn, _ref, _results;
-            _results = [];
-            for (i = 0, _ref = result.rows.length; 0 <= _ref ? i < _ref : i > _ref; 0 <= _ref ? i++ : i--) {
-              tbn = result.rows.item(i).name;
-              tx.dropTable(tbn.slice(0, -4), true);
-              _results.push(tx.executeSql('ALTER TABLE "' + tbn + '" RENAME TO "' + tbn.slice(0, -4) + '";'));
-            }
-            return _results;
-          }, null, "name LIKE '%_buk'");
-        });
-        return successCallback(200);
-      }
+  serverIsOnAir = function(req, res, next) {
+    if (serverModelCache.isServerOnAir()) {
+      return next();
+    } else {
+      return next('route');
     }
   };
 
-  remoteServerRequest = function(method, uri, headers, body, successCallback, failureCallback) {
-    var execFilterHandle, execHandle, filterHandle, o, rootbranch, tree, _i, _len, _ref;
-    if (typeof successCallback !== "function") successCallback = function() {};
-    if (typeof failureCallback !== "function") failureCallback = function() {};
-    tree = ServerURIParser.matchAll(uri, "uri");
-    if ((headers != null) && headers["Content-Type"] === "application/xml") null;
-    execHandle = function(handle) {
-      return handle(successCallback, failureCallback, body);
-    };
-    execFilterHandle = function(filterHandle) {
-      if (filterHandle[0](tree)) {
-        execHandle(filterHandle[1]);
-        return true;
+  parseURITree = function(req, res, next) {
+    if (!(req.tree != null)) {
+      try {
+        req.tree = ServerURIParser.matchAll(req.uri, "uri");
+      } catch (e) {
+        req.tree = false;
       }
-      return false;
-    };
-    rootbranch = tree[0].toLowerCase();
-    if (handlers[rootbranch] != null) {
-      if (handlers[rootbranch][method] != null) {
-        if (typeof handlers[rootbranch][method] === 'function') {
-          execHandle(handlers[rootbranch][method]);
-        } else {
-          if (handlers[rootbranch][method].constructor.name === 'Array') {
-            if (handlers[rootbranch][method][0].constructor.name === 'Array') {
-              _ref = handlers[rootbranch][method];
-              for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-                filterHandle = _ref[_i];
-                if (execFilterHandle(filterHandle)) return;
-              }
-            } else if (!execFilterHandle(handlers[rootbranch][method])) {
-              failureCallback(404);
+    }
+    if (req.tree === false) {
+      return next('route');
+    } else {
+      return next();
+    }
+  };
+
+  app.get('/onair', function(req, res, next) {
+    return res.json(serverModelCache.isServerOnAir());
+  });
+
+  app.get('/model', serverIsOnAir, function(req, res, next) {
+    return res.json(serverModelCache.getLastSE());
+  });
+
+  app.get('/lfmodel', serverIsOnAir, function(req, res, next) {
+    return res.json(serverModelCache.getLF());
+  });
+
+  app.get('/prepmodel', serverIsOnAir, function(req, res, next) {
+    return res.json(serverModelCache.getPrepLF());
+  });
+
+  app.get('/sqlmodel', serverIsOnAir, function(req, res, next) {
+    return res.json(serverModelCache.getSQL());
+  });
+
+  app.get('/onair', serverIsOnAir, function(req, res, next) {
+    return res.json(serverModelCache.getSQL());
+  });
+
+  app.post('/update', serverIsOnAir, function(req, res, next) {
+    return res.send(404);
+  });
+
+  app.post('/execute', function(req, res, next) {
+    var lfmod, prepmod, se, sqlmod, tree, trnmod;
+    se = serverModelCache.getSE();
+    try {
+      lfmod = SBVRParser.matchAll(se, "expr");
+    } catch (e) {
+      console.log('Error parsing model', e);
+      res.json('Error parsing model', 404);
+      return null;
+    }
+    prepmod = SBVR_PreProc.match(lfmod, "optimizeTree");
+    sqlmod = SBVR2SQL.match(prepmod, "trans");
+    tree = SBVRParser.matchAll(modelT, "expr");
+    tree = SBVR_PreProc.match(tree, "optimizeTree");
+    trnmod = SBVR2SQL.match(tree, "trans");
+    return db.transaction(function(tx) {
+      tx.begin();
+      return executeSasync(tx, sqlmod, function(tx, result) {
+        return executeTasync(tx, trnmod, function(tx, result) {
+          serverModelCache.setModelAreaDisabled(true);
+          serverModelCache.setServerOnAir(true);
+          serverModelCache.setLastSE(se);
+          serverModelCache.setLF(lfmod);
+          serverModelCache.setPrepLF(prepmod);
+          serverModelCache.setSQL(sqlmod);
+          serverModelCache.setTrans(trnmod);
+          return res.json(result);
+        }, function(errors) {
+          return res.json(errors, 404);
+        }, result);
+      }, function(errors) {
+        return res.json(errors, 404);
+      });
+    });
+  });
+
+  app.del('/cleardb', function(req, res, next) {
+    return db.transaction(function(tx) {
+      return tx.tableList(function(tx, result) {
+        var i, _ref;
+        for (i = 0, _ref = result.rows.length; 0 <= _ref ? i < _ref : i > _ref; 0 <= _ref ? i++ : i--) {
+          tx.dropTable(result.rows.item(i).name);
+        }
+        return res.send(200);
+      });
+    });
+  });
+
+  app.put('/cleardb', function(req, res, next) {
+    var imported, queries;
+    queries = req.body.split(";");
+    imported = 0;
+    db.transaction(function(tx) {
+      var query, _i, _len, _results;
+      _results = [];
+      for (_i = 0, _len = queries.length; _i < _len; _i++) {
+        query = queries[_i];
+        if (query.trim().length > 0) {
+          _results.push((function(query) {
+            return tx.executeSql(query, [], (function(tx, result) {
+              return console.log("Import Success", imported++);
+            }), function(tx, error) {
+              console.log(query);
+              return console.log(error);
+            });
+          })(query));
+        }
+      }
+      return _results;
+    });
+    return res.send(200);
+  });
+
+  app.get('/exportdb', function(req, res, next) {
+    var env;
+    if (typeof process !== "undefined" && process !== null) {
+      env = process.env;
+      env['PGPASSWORD'] = '.';
+      return require('child_process').exec('pg_dump --clean -U postgres -h localhost -p 5432', {
+        env: env
+      }, function(error, stdout, stderr) {
+        console.log(stdout, stderr);
+        return res.json(stdout);
+      });
+    } else {
+      return db.transaction(function(tx) {
+        return tx.tableList(function(tx, result) {
+          var exported, exportsProcessed, i, tbn, totalExports, _fn, _ref;
+          totalExports = result.rows.length + 1;
+          exportsProcessed = 0;
+          exported = '';
+          _fn = function(tbn) {
+            return db.transaction(function(tx) {
+              return tx.executeSql('SELECT * FROM "' + tbn + '";', [], (function(tx, result) {
+                var currRow, i, insQuery, notFirst, propName, valQuery, _ref2;
+                insQuery = "";
+                for (i = 0, _ref2 = result.rows.length; 0 <= _ref2 ? i < _ref2 : i > _ref2; 0 <= _ref2 ? i++ : i--) {
+                  currRow = result.rows.item(i);
+                  notFirst = false;
+                  insQuery += 'INSERT INTO "' + tbn + '" (';
+                  valQuery = '';
+                  for (propName in currRow) {
+                    if (!__hasProp.call(currRow, propName)) continue;
+                    if (notFirst) {
+                      insQuery += ",";
+                      valQuery += ",";
+                    } else {
+                      notFirst = true;
+                    }
+                    insQuery += '"' + propName + '"';
+                    valQuery += "'" + currRow[propName] + "'";
+                  }
+                  insQuery += ") values (" + valQuery + ");\n";
+                }
+                exported += insQuery;
+                exportsProcessed++;
+                if (exportsProcessed === totalExports) return res.json(exported);
+              }));
+            });
+          };
+          for (i = 0, _ref = result.rows.length; 0 <= _ref ? i < _ref : i > _ref; 0 <= _ref ? i++ : i--) {
+            tbn = result.rows.item(i).name;
+            exported += 'DROP TABLE IF EXISTS "' + tbn + '";\n';
+            exported += result.rows.item(i).sql + ";\n";
+            _fn(tbn);
+          }
+          exportsProcessed++;
+          if (exportsProcessed === totalExports) return res.json(exported);
+        }, null, "name NOT LIKE '%_buk'");
+      });
+    }
+  });
+
+  app.post('/backupdb', serverIsOnAir, function(req, res, next) {
+    db.transaction(function(tx) {
+      return tx.tableList(function(tx, result) {
+        var i, tbn, _ref, _results;
+        _results = [];
+        for (i = 0, _ref = result.rows.length; 0 <= _ref ? i < _ref : i > _ref; 0 <= _ref ? i++ : i--) {
+          tbn = result.rows.item(i).name;
+          tx.dropTable(tbn + '_buk', true);
+          _results.push(tx.executeSql('ALTER TABLE "' + tbn + '" RENAME TO "' + tbn + '_buk";'));
+        }
+        return _results;
+      }, null, "name NOT LIKE '%_buk'");
+    });
+    return res.send(200);
+  });
+
+  app.post('/restoredb', serverIsOnAir, function(req, res, next) {
+    db.transaction(function(tx) {
+      return tx.tableList(function(tx, result) {
+        var i, tbn, _ref, _results;
+        _results = [];
+        for (i = 0, _ref = result.rows.length; 0 <= _ref ? i < _ref : i > _ref; 0 <= _ref ? i++ : i--) {
+          tbn = result.rows.item(i).name;
+          tx.dropTable(tbn.slice(0, -4), true);
+          _results.push(tx.executeSql('ALTER TABLE "' + tbn + '" RENAME TO "' + tbn.slice(0, -4) + '";'));
+        }
+        return _results;
+      }, null, "name LIKE '%_buk'");
+    });
+    return res.send(200);
+  });
+
+  app.get('/ui', parseURITree, function(req, res, next) {
+    if (req.tree[1][1] === "textarea" && req.tree[1][3][1][1][3] === "model_area") {
+      return res.json({
+        value: serverModelCache.getSE()
+      });
+    } else if (req.tree[1][1] === "textarea-is_disabled" && req.tree[1][4][1][1][3] === "model_area") {
+      return res.json({
+        value: serverModelCache.isModelAreaDisabled()
+      });
+    } else {
+      return res.send(404);
+    }
+  });
+
+  app.put('/ui', parseURITree, function(req, res, next) {
+    if (req.tree[1][1] === "textarea" && req.tree[1][3][1][1][3] === "model_area") {
+      serverModelCache.setSE(req.body.value);
+      return res.send(200);
+    } else if (req.tree[1][1] === "textarea-is_disabled" && req.tree[1][4][1][1][3] === "model_area") {
+      serverModelCache.setModelAreaDisabled(req.body.value);
+      return res.send(200);
+    } else {
+      return res.send(404);
+    }
+  });
+
+  app.get('/data', serverIsOnAir, parseURITree, function(req, res, next) {
+    var filts, fl, ft, ftree, jn, obj, result, row, row2, sql, sqlmod, tb, tree, _i, _j, _k, _l, _len, _len2, _len3, _len4, _ref, _ref2, _ref3, _ref4;
+    tree = req.tree;
+    if (tree[1] === void 0) {
+      result = {
+        terms: [],
+        fcTps: []
+      };
+      sqlmod = serverModelCache.getSQL();
+      _ref = sqlmod.slice(1);
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        row = _ref[_i];
+        if (row[0] === "term") {
+          result.terms.push({
+            id: row[1],
+            name: row[2]
+          });
+        } else if (row[0] === "fcTp") {
+          result.fcTps.push({
+            id: row[1],
+            name: row[2]
+          });
+        }
+      }
+      return res.json(result);
+    } else if (tree[1][1] === "transaction") {
+      return res.json({
+        id: tree[1][3][1][1][3],
+        tcURI: "/transaction",
+        lcURI: "/data/lock",
+        tlcURI: "/data/lock-belongs_to-transaction",
+        rcURI: "/data/resource",
+        lrcURI: "/data/resource-is_under-lock",
+        slcURI: "/data/lock-is_shared",
+        xlcURI: "/data/lock-is_exclusive",
+        ctURI: "/data/transaction*filt:transaction.id=" + tree[1][3][1][1][3] + "/execute"
+      });
+    } else {
+      ftree = getFTree(tree);
+      sql = "";
+      if (tree[1][0] === "term") {
+        sql = "SELECT * FROM " + tree[1][1];
+        if (ftree.length !== 1) sql += " WHERE ";
+      } else if (tree[1][0] === "fcTp") {
+        ft = tree[1][1];
+        fl = ['"' + ft + '".id AS id'];
+        jn = [];
+        tb = ['"' + ft + '"'];
+        _ref2 = tree[1][2].slice(1);
+        for (_j = 0, _len2 = _ref2.length; _j < _len2; _j++) {
+          row = _ref2[_j];
+          fl.push('"' + row + '".id AS "' + row + '_id"');
+          fl.push('"' + row + '".name AS "' + row + '_name"');
+          tb.push('"' + row + '"');
+          jn.push('"' + row + '".id = "' + ft + '"."' + row + '_id"');
+        }
+        sql = "SELECT " + fl.join(", ") + " FROM " + tb.join(", ") + " WHERE " + jn.join(" AND ");
+        if (ftree.length !== 1) sql += " AND ";
+      }
+      if (ftree.length !== 1) {
+        filts = [];
+        _ref3 = ftree.slice(1);
+        for (_k = 0, _len3 = _ref3.length; _k < _len3; _k++) {
+          row = _ref3[_k];
+          if (row[0] === "filt") {
+            _ref4 = row.slice(1);
+            for (_l = 0, _len4 = _ref4.length; _l < _len4; _l++) {
+              row2 = _ref4[_l];
+              obj = "";
+              if (row2[1][0] != null) obj = '"' + row2[1] + '".';
+              filts.push(obj + '"' + row2[2] + '"' + op[row2[0]] + row2[3]);
             }
-          } else {
-            throw new Exception('Incorrect handler setup: ', rootbranch, method);
+          } else if (row[0] === "sort") {
+            null;
           }
         }
-      } else {
-        failureCallback(404);
+        sql += filts.join(" AND ");
       }
-      return;
-    }
-    switch (rootbranch) {
-      case "data":
-        if (serverModelCache.isServerOnAir()) {
-          if (tree[1] === void 0) {
-            switch (method) {
-              case "GET":
-                return dataGET(tree, headers, body, successCallback, failureCallback);
-              default:
-                return failureCallback(404);
-            }
-          } else if (tree[1][1] === "transaction" && method === "GET") {
-            o = {
-              id: tree[1][3][1][1][3],
-              tcURI: "/transaction",
-              lcURI: "/data/lock",
-              tlcURI: "/data/lock-belongs_to-transaction",
-              rcURI: "/data/resource",
-              lrcURI: "/data/resource-is_under-lock",
-              slcURI: "/data/lock-is_shared",
-              xlcURI: "/data/lock-is_exclusive",
-              ctURI: "/data/transaction*filt:transaction.id=" + tree[1][3][1][1][3] + "/execute"
+      if (sql !== "") {
+        return db.transaction(function(tx) {
+          return tx.executeSql(sql + ";", [], function(tx, result) {
+            var data, i;
+            data = {
+              instances: (function() {
+                var _ref5, _results;
+                _results = [];
+                for (i = 0, _ref5 = result.rows.length; 0 <= _ref5 ? i < _ref5 : i > _ref5; 0 <= _ref5 ? i++ : i--) {
+                  _results.push(result.rows.item(i));
+                }
+                return _results;
+              })()
             };
-            return successCallback(200, o);
-          } else {
-            switch (method) {
-              case "GET":
-                return dataplusGET(tree, headers, body, successCallback, failureCallback);
-              case "POST":
-                return dataplusPOST(tree, headers, body, successCallback, failureCallback);
-              case "PUT":
-                return dataplusPUT(tree, headers, body, successCallback, failureCallback);
-              case "DELETE":
-                return dataplusDELETE(tree, headers, body, successCallback, failureCallback);
-              default:
-                return failureCallback(404);
-            }
+            return res.json(data);
+          });
+        });
+      } else {
+        return res.send(404);
+      }
+    }
+  });
+
+  app.post('/data', serverIsOnAir, parseURITree, function(req, res, next) {
+    var binds, field, fields, i, id, pair, tree, value, values, _ref;
+    if (req.tree[1] === void 0) {
+      return res.send(404);
+    } else {
+      tree = req.tree;
+      if (tree[1][1] === "transaction" && isExecute(tree)) {
+        id = getID(tree);
+        return db.transaction((function(tx) {
+          return tx.executeSql('SELECT * FROM "lock-belongs_to-transaction" WHERE "transaction_id" = ?;', [id], function(tx, locks) {
+            return endLock(tx, locks, 0, id, function(tx, result) {
+              return res.json(result);
+            }, function(errors) {
+              return res.json(errors, 404);
+            });
+          });
+        }));
+      } else {
+        fields = [];
+        values = [];
+        binds = [];
+        _ref = req.body;
+        for (i in _ref) {
+          if (!__hasProp.call(_ref, i)) continue;
+          pair = _ref[i];
+          for (field in pair) {
+            if (!__hasProp.call(pair, field)) continue;
+            value = pair[field];
+            fields.push(field);
+            values.push(value);
+            binds.push('?');
           }
         }
-        break;
-      default:
-        if (method === "DELETE") {
-          return rootDELETE(tree, headers, body, successCallback, failureCallback);
-        } else {
-          return failureCallback(404);
-        }
+        return db.transaction(function(tx) {
+          var sql;
+          tx.begin();
+          sql = 'INSERT INTO "' + tree[1][1] + '" ("' + fields.join('","') + '") VALUES (' + binds.join(",") + ");";
+          return tx.executeSql(sql, values, function(tx, sqlResult) {
+            return validateDB(tx, serverModelCache.getSQL(), function(tx, result) {
+              return res.json(result, {
+                location: "/data/" + tree[1][1] + "*filt:" + tree[1][1] + ".id=" + sqlResult.insertId
+              }, 201);
+            }, function(errors) {
+              return res.json(errors, 404);
+            });
+          });
+        });
+      }
     }
-  };
+  });
 
-  dataplusDELETE = function(tree, headers, body, successCallback, failureCallback) {
-    var id;
-    id = getID(tree);
-    if (id !== 0) {
+  app.put('/data', serverIsOnAir, parseURITree, function(req, res, next) {
+    var id, tree;
+    if (req.tree[1] === void 0) {
+      return res.send(404);
+    } else {
+      tree = req.tree;
+      id = getID(tree);
       if (tree[1][1] === "lock" && hasCR(tree)) {
         return db.transaction(function(tx) {
+          var key, pair, sql, value, _i, _len, _ref;
           tx.executeSql('DELETE FROM "conditional_representation" WHERE "lock_id" = ?;', [id]);
-          tx.executeSql('INSERT INTO "conditional_representation" ("lock_id","field_name","field_type","field_value")' + "VALUES (?,'__DELETE','','')", [id]);
-          return successCallback(200);
+          sql = 'INSERT INTO "conditional_representation"' + '("lock_id","field_name","field_type","field_value")' + "VALUES (?, ?, ?, ?)";
+          _ref = req.body;
+          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+            pair = _ref[_i];
+            for (key in pair) {
+              if (!__hasProp.call(pair, key)) continue;
+              value = pair[key];
+              tx.executeSql(sql, [id, key, typeof value, value]);
+            }
+          }
+          return res.send(200);
         });
       } else {
         return db.transaction((function(tx) {
           return tx.executeSql('SELECT NOT EXISTS(SELECT * FROM "resource-is_under-lock" AS r WHERE r."resource_type" = ? AND r."resource_id" = ?) AS result;', [tree[1][1], id], function(tx, result) {
-            var _ref;
+            var binds, key, pair, setStatements, value, _i, _len, _ref, _ref2;
             if ((_ref = result.rows.item(0).result) === 1 || _ref === true) {
-              tx.begin();
-              return tx.executeSql('DELETE FROM "' + tree[1][1] + '" WHERE id = ?;', [id], function(tx, result) {
-                return validateDB(tx, serverModelCache.getSQL(), (function(tx, sqlmod, failureCallback, result) {
-                  tx.end();
-                  return successCallback(200, result);
-                }), failureCallback);
-              });
+              if (id !== "") {
+                setStatements = [];
+                binds = [];
+                _ref2 = req.body;
+                for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
+                  pair = _ref2[_i];
+                  for (key in pair) {
+                    if (!__hasProp.call(pair, key)) continue;
+                    value = pair[key];
+                    setStatements.push('"' + key + '"= ?');
+                    binds.push(value);
+                  }
+                }
+                binds.push(id);
+                tx.begin();
+                return tx.executeSql('UPDATE "' + tree[1][1] + '" SET ' + setStatements.join(", ") + " WHERE id = ?;", binds, function(tx) {
+                  return validateDB(tx, serverModelCache.getSQL(), function(tx, result) {
+                    tx.end();
+                    return res.json(result);
+                  }, function(errors) {
+                    return res.json(errors, 404);
+                  });
+                });
+              }
             } else {
-              return failureCallback(404, ["The resource is locked and cannot be deleted"]);
+              return res.json(["The resource is locked and cannot be edited"], 404);
             }
           });
         }));
       }
     }
-  };
+  });
 
-  dataplusPUT = function(tree, headers, body, successCallback, failureCallback) {
-    var bd, id;
-    id = getID(tree);
-    bd = JSON.parse(body);
-    if (tree[1][1] === "lock" && hasCR(tree)) {
-      return db.transaction(function(tx) {
-        var key, pair, sql, value, _i, _len;
-        tx.executeSql('DELETE FROM "conditional_representation" WHERE "lock_id" = ?;', [id]);
-        sql = 'INSERT INTO "conditional_representation"' + '("lock_id","field_name","field_type","field_value")' + "VALUES (?, ?, ?, ?)";
-        for (_i = 0, _len = bd.length; _i < _len; _i++) {
-          pair = bd[_i];
-          for (key in pair) {
-            if (!__hasProp.call(pair, key)) continue;
-            value = pair[key];
-            tx.executeSql(sql, [id, key, typeof value, value]);
-          }
-        }
-        return successCallback(200);
-      });
+  app.del('/data', serverIsOnAir, parseURITree, function(req, res, next) {
+    var id, tree;
+    tree = req.tree;
+    if (tree[1] === void 0) {
+      return res.send(404);
     } else {
-      return db.transaction((function(tx) {
-        return tx.executeSql('SELECT NOT EXISTS(SELECT * FROM "resource-is_under-lock" AS r WHERE r."resource_type" = ? AND r."resource_id" = ?) AS result;', [tree[1][1], id], function(tx, result) {
-          var binds, key, pair, setStatements, value, _i, _len, _ref;
-          if ((_ref = result.rows.item(0).result) === 1 || _ref === true) {
-            if (id !== "") {
-              setStatements = [];
-              binds = [];
-              for (_i = 0, _len = bd.length; _i < _len; _i++) {
-                pair = bd[_i];
-                for (key in pair) {
-                  if (!__hasProp.call(pair, key)) continue;
-                  value = pair[key];
-                  setStatements.push('"' + key + '"= ?');
-                  binds.push(value);
-                }
-              }
-              binds.push(id);
-              tx.begin();
-              return tx.executeSql('UPDATE "' + tree[1][1] + '" SET ' + setStatements.join(", ") + " WHERE id = ?;", binds, function(tx) {
-                return validateDB(tx, serverModelCache.getSQL(), (function(tx, sqlmod, failureCallback, result) {
-                  tx.end();
-                  return successCallback(200, result);
-                }), failureCallback);
-              });
-            }
-          } else {
-            return failureCallback(404, ["The resource is locked and cannot be edited"]);
-          }
-        });
-      }));
-    }
-  };
-
-  dataplusPOST = function(tree, headers, body, successCallback, failureCallback) {
-    var bd, binds, field, fields, i, id, pair, value, values;
-    if (tree[1][1] === "transaction" && isExecute(tree)) {
       id = getID(tree);
-      return db.transaction((function(tx) {
-        return tx.executeSql('SELECT * FROM "lock-belongs_to-transaction" WHERE "transaction_id" = ?;', [id], function(tx, locks) {
-          return endLock(tx, locks, 0, id, successCallback, failureCallback);
-        });
-      }));
-    } else {
-      bd = JSON.parse(body);
-      fields = [];
-      values = [];
-      binds = [];
-      for (i in bd) {
-        if (!__hasProp.call(bd, i)) continue;
-        pair = bd[i];
-        for (field in pair) {
-          if (!__hasProp.call(pair, field)) continue;
-          value = pair[field];
-          fields.push(field);
-          values.push(value);
-          binds.push('?');
+      if (id !== 0) {
+        if (tree[1][1] === "lock" && hasCR(tree)) {
+          return db.transaction(function(tx) {
+            tx.executeSql('DELETE FROM "conditional_representation" WHERE "lock_id" = ?;', [id]);
+            tx.executeSql('INSERT INTO "conditional_representation" ("lock_id","field_name","field_type","field_value")' + "VALUES (?,'__DELETE','','')", [id]);
+            return res.send(200);
+          });
+        } else {
+          return db.transaction((function(tx) {
+            return tx.executeSql('SELECT NOT EXISTS(SELECT * FROM "resource-is_under-lock" AS r WHERE r."resource_type" = ? AND r."resource_id" = ?) AS result;', [tree[1][1], id], function(tx, result) {
+              var _ref;
+              if ((_ref = result.rows.item(0).result) === 1 || _ref === true) {
+                tx.begin();
+                return tx.executeSql('DELETE FROM "' + tree[1][1] + '" WHERE id = ?;', [id], function(tx, result) {
+                  return validateDB(tx, serverModelCache.getSQL(), function(tx, result) {
+                    tx.end();
+                    return res.json(result);
+                  }, function(errors) {
+                    return res.json(errors, 404);
+                  });
+                });
+              } else {
+                return res.json(["The resource is locked and cannot be deleted"], 404);
+              }
+            });
+          }));
         }
       }
-      return db.transaction(function(tx) {
-        var sql;
-        tx.begin();
-        sql = 'INSERT INTO "' + tree[1][1] + '" ("' + fields.join('","') + '") VALUES (' + binds.join(",") + ");";
-        return tx.executeSql(sql, values, function(tx, sqlResult) {
-          return validateDB(tx, serverModelCache.getSQL(), (function(tx, sqlmod, failureCallback, headers, result) {
-            return successCallback(201, result, {
-              location: "/data/" + tree[1][1] + "*filt:" + tree[1][1] + ".id=" + sqlResult.insertId
-            });
-          }), failureCallback);
-        });
-      });
     }
-  };
+  });
 
-  rootDELETE = function(tree, headers, body, successCallback, failureCallback) {
+  app.del('/', serverIsOnAir, function(req, res, next) {
     db.transaction((function(sqlmod) {
       return function(tx) {
         var row, _i, _len, _ref, _ref2, _results;
@@ -633,97 +757,8 @@
     serverModelCache.setSQL([]);
     serverModelCache.setTrans([]);
     serverModelCache.setServerOnAir(false);
-    return successCallback(200);
-  };
-
-  dataGET = function(tree, headers, body, successCallback, failureCallback) {
-    var result, row, sqlmod, _i, _len, _ref;
-    result = {
-      terms: [],
-      fcTps: []
-    };
-    sqlmod = serverModelCache.getSQL();
-    _ref = sqlmod.slice(1);
-    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-      row = _ref[_i];
-      if (row[0] === "term") {
-        result.terms.push({
-          id: row[1],
-          name: row[2]
-        });
-      } else if (row[0] === "fcTp") {
-        result.fcTps.push({
-          id: row[1],
-          name: row[2]
-        });
-      }
-    }
-    return successCallback(200, result);
-  };
-
-  dataplusGET = function(tree, headers, body, successCallback, failureCallback) {
-    var filts, fl, ft, ftree, jn, obj, row, row2, sql, tb, _i, _j, _k, _len, _len2, _len3, _ref, _ref2, _ref3;
-    ftree = getFTree(tree);
-    sql = "";
-    if (tree[1][0] === "term") {
-      sql = "SELECT * FROM " + tree[1][1];
-      if (ftree.length !== 1) sql += " WHERE ";
-    } else if (tree[1][0] === "fcTp") {
-      ft = tree[1][1];
-      fl = ['"' + ft + '".id AS id'];
-      jn = [];
-      tb = ['"' + ft + '"'];
-      _ref = tree[1][2].slice(1);
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        row = _ref[_i];
-        fl.push('"' + row + '".id AS "' + row + '_id"');
-        fl.push('"' + row + '".name AS "' + row + '_name"');
-        tb.push('"' + row + '"');
-        jn.push('"' + row + '".id = "' + ft + '"."' + row + '_id"');
-      }
-      sql = "SELECT " + fl.join(", ") + " FROM " + tb.join(", ") + " WHERE " + jn.join(" AND ");
-      if (ftree.length !== 1) sql += " AND ";
-    }
-    if (ftree.length !== 1) {
-      filts = [];
-      _ref2 = ftree.slice(1);
-      for (_j = 0, _len2 = _ref2.length; _j < _len2; _j++) {
-        row = _ref2[_j];
-        if (row[0] === "filt") {
-          _ref3 = row.slice(1);
-          for (_k = 0, _len3 = _ref3.length; _k < _len3; _k++) {
-            row2 = _ref3[_k];
-            obj = "";
-            if (row2[1][0] != null) obj = '"' + row2[1] + '".';
-            filts.push(obj + '"' + row2[2] + '"' + op[row2[0]] + row2[3]);
-          }
-        } else if (row[0] === "sort") {
-          null;
-        }
-      }
-      sql += filts.join(" AND ");
-    }
-    if (sql !== "") {
-      return db.transaction(function(tx) {
-        return tx.executeSql(sql + ";", [], function(tx, result) {
-          var data, i;
-          data = {
-            instances: (function() {
-              var _ref4, _results;
-              _results = [];
-              for (i = 0, _ref4 = result.rows.length; 0 <= _ref4 ? i < _ref4 : i > _ref4; 0 <= _ref4 ? i++ : i--) {
-                _results.push(result.rows.item(i));
-              }
-              return _results;
-            })()
-          };
-          return successCallback(200, data);
-        });
-      });
-    } else {
-      return failureCallback(404);
-    }
-  };
+    return res.send(200);
+  });
 
   endLock = function(tx, locks, i, trans_id, successCallback, failureCallback) {
     var continueEndingLock, lock_id;
@@ -732,9 +767,7 @@
         return endLock(tx, locks, i + 1, trans_id, successCallback, failureCallback);
       } else {
         tx.executeSql('DELETE FROM "transaction" WHERE "id" = ?;', [trans_id]);
-        return validateDB(tx, serverModelCache.getSQL(), function(tx, sqlmod, failureCallback, result) {
-          return successCallback(200, result);
-        }, failureCallback);
+        return validateDB(tx, serverModelCache.getSQL(), successCallback, failureCallback);
       }
     };
     lock_id = locks.rows.item(i).lock_id;
@@ -787,18 +820,16 @@
           if (totalQueries === totalExecuted) {
             if (errors.length > 0) {
               tx.rollback();
-              return failureCallback(404, errors);
+              return failureCallback(errors);
             } else {
               tx.end();
-              return successCallback(tx, sqlmod, failureCallback, result);
+              return successCallback(tx, result);
             }
           }
         };
       })(row));
     }
-    if (totalQueries === 0) {
-      return successCallback(tx, sqlmod, failureCallback, "");
-    }
+    if (totalQueries === 0) return successCallback(tx, "");
   };
 
   executeSasync = function(tx, sqlmod, successCallback, failureCallback, result) {
@@ -811,18 +842,18 @@
   };
 
   executeTasync = function(tx, trnmod, successCallback, failureCallback, result) {
-    return executeSasync(tx, trnmod, (function(tx, trnmod, failureCallback, result) {
+    return executeSasync(tx, trnmod, function(tx, result) {
       tx.executeSql('ALTER TABLE "resource-is_under-lock" ADD COLUMN resource_type TEXT');
       tx.executeSql('ALTER TABLE "resource-is_under-lock" DROP CONSTRAINT "resource-is_under-lock_resource_id_fkey";');
       tx.executeSql('ALTER TABLE "conditional_representation" ADD COLUMN field_name TEXT');
       tx.executeSql('ALTER TABLE "conditional_representation" ADD COLUMN field_value TEXT');
       tx.executeSql('ALTER TABLE "conditional_representation" ADD COLUMN field_type TEXT');
       tx.executeSql('ALTER TABLE "conditional_representation" ADD COLUMN lock_id INTEGER');
-      return successCallback(tx, trnmod, failureCallback, result);
-    }), (function(errors) {
+      return successCallback(tx, result);
+    }, function(errors) {
       serverModelCache.setModelAreaDisabled(false);
-      return failureCallback(404, errors);
-    }), result);
+      return failureCallback(errors);
+    }, result);
   };
 
   updateRules = function(sqlmod) {
@@ -898,47 +929,13 @@
   };
 
   if (typeof process !== "undefined" && process !== null) {
-    staticServer = new (require('node-static').Server)('./');
-    http = require('http');
-    http.createServer(function(request, response) {
-      var body;
-      console.log("Request received");
-      body = '';
-      request.on('data', function(chunk) {
-        return body += chunk;
-      });
-      return request.on('end', function() {
-        var nodePath;
-        console.log('End', request.method, request.url);
-        nodePath = '/node';
-        if (nodePath === request.url.slice(0, nodePath.length)) {
-          console.log('Node');
-          return remoteServerRequest(request.method, request.url.slice(nodePath.length), request.headers, body, function(statusCode, result, headers) {
-            if (result == null) result = "";
-            if (headers == null) headers = {};
-            console.log('Success');
-            headers['Content-Type'] = "text/plain";
-            response.writeHead(statusCode, headers);
-            return response.end(JSON.stringify(result));
-          }, function(statusCode, errors, headers) {
-            if (headers == null) headers = {};
-            console.log('Error', errors, new Error().stack);
-            headers['Content-Type'] = "text/plain";
-            response.writeHead(statusCode, headers);
-            return response.end(JSON.stringify(errors));
-          });
-        } else {
-          console.log('Static');
-          return staticServer.serve(request, response);
-        }
-      });
-    }).listen(process.env.PORT || 1337, function() {
+    app.listen(process.env.PORT || 1337, function() {
       return console.log('Server started');
     });
   }
 
   if (typeof window !== "undefined" && window !== null) {
-    window.remoteServerRequest = remoteServerRequest;
+    window.remoteServerRequest = app.process;
   }
 
 }).call(this);

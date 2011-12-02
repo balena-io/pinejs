@@ -79,7 +79,7 @@
           }
         };
       };
-      return exports.sqlite = function(filepath) {
+      exports.sqlite = function(filepath) {
         var result, sqlite3, tx, _db;
         sqlite3 = requirejs('sqlite3').verbose();
         _db = new sqlite3.Database(filepath);
@@ -138,7 +138,7 @@
         };
       };
     } else {
-      return exports.websql = function(databaseName) {
+      exports.websql = function(databaseName) {
         var tx, _db;
         _db = openDatabase(databaseName, "1.0", "rulemotion", 2 * 1024 * 1024);
         tx = function(_tx) {
@@ -188,4 +188,5 @@
         };
       };
     }
+    return exports;
   });

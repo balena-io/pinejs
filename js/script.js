@@ -146,9 +146,9 @@
     $("#modelArea").change(function() {
       return serverRequest("PUT", "/ui/textarea*filt:name=model_area/", {
         "Content-Type": "application/json"
-      }, JSON.stringify({
+      }, {
         value: sbvrEditor.getValue()
-      }));
+      });
     });
     $("#dialog-message").dialog({
       modal: true,
@@ -202,9 +202,9 @@
     if (typeof remoteServerRequest === "function") {
       return remoteServerRequest(method, uri, headers, body, successCallback, failureCallback);
     } else {
-      return $.ajax("/node" + uri, {
+      return $.ajax(uri, {
         headers: headers,
-        data: body,
+        data: JSON.stringify(body),
         error: function(jqXHR, textStatus, errorThrown) {
           return failureCallback(jqXHR.status, JSON.parse(jqXHR.responseText));
         },
@@ -227,14 +227,14 @@
     $("#modelArea").attr("disabled", true);
     return serverRequest("PUT", "/ui/textarea-is_disabled*filt:textarea.name=model_area/", {
       "Content-Type": "application/json"
-    }, JSON.stringify({
+    }, {
       value: true
-    }), function() {
+    }, function() {
       return serverRequest("PUT", "/ui/textarea*filt:name=model_area/", {
         "Content-Type": "application/json"
-      }, JSON.stringify({
+      }, {
         value: model
-      }), function() {
+      }, function() {
         return serverRequest("POST", "/execute/", {
           "Content-Type": "application/json"
         }, "", function() {

@@ -120,7 +120,7 @@ loadUI = ->
 		$("#modelArea").attr "disabled", result.value
 	
 	$("#modelArea").change ->
-		serverRequest("PUT", "/ui/textarea*filt:name=model_area/", {"Content-Type": "application/json"}, JSON.stringify(value: sbvrEditor.getValue()))
+		serverRequest("PUT", "/ui/textarea*filt:name=model_area/", {"Content-Type": "application/json"}, value: sbvrEditor.getValue())
 	
 	$("#dialog-message").dialog 
 		modal: true
@@ -167,9 +167,9 @@ window.serverRequest = (method, uri, headers = {}, body = null, successCallback,
 	if typeof remoteServerRequest == "function"
 		remoteServerRequest method, uri, headers, body, successCallback, failureCallback
 	else
-		$.ajax "/node" + uri, 
+		$.ajax uri, 
 			headers: headers
-			data: body
+			data: JSON.stringify(body)
 			error: (jqXHR, textStatus, errorThrown) ->
 				failureCallback jqXHR.status, JSON.parse(jqXHR.responseText)
 			
@@ -186,8 +186,8 @@ window.serverRequest = (method, uri, headers = {}, body = null, successCallback,
 
 window.transformClient = (model) ->
 	$("#modelArea").attr "disabled", true
-	serverRequest "PUT", "/ui/textarea-is_disabled*filt:textarea.name=model_area/", {"Content-Type": "application/json"}, JSON.stringify(value: true), ->
-		serverRequest "PUT", "/ui/textarea*filt:name=model_area/", {"Content-Type": "application/json"}, JSON.stringify(value: model), ->
+	serverRequest "PUT", "/ui/textarea-is_disabled*filt:textarea.name=model_area/", {"Content-Type": "application/json"}, {value: true}, ->
+		serverRequest "PUT", "/ui/textarea*filt:name=model_area/", {"Content-Type": "application/json"}, {value: model}, ->
 			serverRequest "POST", "/execute/", {"Content-Type": "application/json"}, "", ->
 				setClientOnAir(true)
 

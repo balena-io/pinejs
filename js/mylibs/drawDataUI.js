@@ -630,8 +630,7 @@
         return o;
       }
     });
-    console.log(JSON.stringify(obj));
-    serverRequest("PUT", serverURI, [], JSON.stringify(obj), function(statusCode, result, headers) {
+    serverRequest("PUT", serverURI, [], obj, function(statusCode, result, headers) {
       return location.hash = "#!" + backURI;
     });
     return false;
@@ -649,7 +648,7 @@
         return o;
       }
     });
-    serverRequest("POST", uri, [], JSON.stringify(obj), function(statusCode, result, headers) {
+    serverRequest("POST", uri, [], obj, function(statusCode, result, headers) {
       return location.hash = "#!" + backURI;
     });
     return false;

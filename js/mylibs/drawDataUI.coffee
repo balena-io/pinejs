@@ -487,8 +487,7 @@ editInst = (forma, serverURI, backURI) ->
 			o[n.id] = $(n).val()
 			o
 	)
-	console.log JSON.stringify(obj)
-	serverRequest "PUT", serverURI, [], JSON.stringify(obj), (statusCode, result, headers) ->
+	serverRequest "PUT", serverURI, [], obj, (statusCode, result, headers) ->
 		location.hash = "#!" + backURI
 
 	false
@@ -502,7 +501,7 @@ addInst = (forma, uri, backURI) ->
 			o[n.id] = $(n).val()
 			o
 	)
-	serverRequest "POST", uri, [], JSON.stringify(obj), (statusCode, result, headers) ->
+	serverRequest "POST", uri, [], obj, (statusCode, result, headers) ->
 		location.hash = "#!" + backURI
 
 	false

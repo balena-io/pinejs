@@ -5,7 +5,7 @@
 		"sqlite3": "2.x",
 		"requirejs": "1.x",
 		"lazy": "1.x",
-		"node-static": "https://github.com/cloudhead/node-static/tarball/master",
 		"pg": "0.6.x"
+		"express": "3.x"
 	}
 }
