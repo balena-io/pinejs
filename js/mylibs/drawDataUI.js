@@ -1,9 +1,12 @@
 (function() {
   var addInst, createFactTypeForm, createHiddenInputs, delInst, drawData, editInst, filtmerge, getBranch, getPid, getTarg, processForm, serverAPI, uidraw, widgets;
+
   widgets = {};
+
   requirejs(['mylibs/widgets/inputText'], function(inputText) {
     return widgets.inputText = inputText;
   });
+
   getBranch = function(branch, loc) {
     var childIndex, _i, _len;
     for (_i = 0, _len = loc.length; _i < _len; _i++) {
@@ -12,6 +15,7 @@
     }
     return branch;
   };
+
   getPid = function(branch, loc) {
     var childIndex, pid, _i, _len;
     pid = branch[1][0];
@@ -26,6 +30,7 @@
     }
     return pid;
   };
+
   getTarg = function(tree, loc, actn, newb) {
     var childIndex, parr, ptree, _i, _len;
     ptree = jQuery.extend(true, [], tree);
@@ -43,6 +48,7 @@
     }
     return ClientURIUnparser.match(ptree, "trans");
   };
+
   serverAPI = function(about, filters) {
     var filter, flts, op, _i, _len, _ref;
     op = {
@@ -58,11 +64,10 @@
         flts = flts + filter[1] + "." + filter[2] + op[filter[0]] + filter[3] + ";";
       }
     }
-    if (flts !== "") {
-      flts = "*filt:" + flts;
-    }
+    if (flts !== "") flts = "*filt:" + flts;
     return "/data/" + about + flts;
   };
+
   drawData = function(tree) {
     var filters, rootURI;
     rootURI = location.pathname;
@@ -100,24 +105,35 @@
         _ref2 = tree.slice(3);
         for (j = 0, _len2 = _ref2.length; j < _len2; j++) {
           leaf = _ref2[j];
-          if (leaf[1][0] === term.id) {
-            launch = j + 3;
-            break;
-          }
+          if (!(leaf[1][0] === term.id)) continue;
+          launch = j + 3;
+          break;
         }
         pre = "<tr id='tr--data--" + term.id + "'><td>";
         post = "</td></tr>";
-        _results.push(launch !== -1 ? (npos = getTarg(tree, [], "del", launch - 2), pre += "<div style='display:inline; background-color:#FFFFFF;'>" + term.name + "</div>", pre += "<div style='display:inline;background-color:#FFFFFF'><a href='" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a></div>", (function(i, pre, post, launch) {
-          return serverRequest("GET", "/sqlmodel/", [], "", function(statusCode, result) {
-            var uid;
-            uid = new uidraw(i, objcb, pre, post, rootURI, [], [], filters, [launch - 2], true, tree, result);
-            return uid.subRowIn();
-          });
-        })(i, pre, post, launch)) : (newb = ["col", [term.id], ["mod"]], npos = getTarg(tree, [], "add", newb), pre += term.name, pre += " <a href='" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false'><span title='See all' class='ui-icon ui-icon-search'></span></a>", objcb.callback(i, pre + post)));
+        if (launch !== -1) {
+          npos = getTarg(tree, [], "del", launch - 2);
+          pre += "<div style='display:inline; background-color:#FFFFFF;'>" + term.name + "</div>";
+          pre += "<div style='display:inline;background-color:#FFFFFF'><a href='" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a></div>";
+          _results.push((function(i, pre, post, launch) {
+            return serverRequest("GET", "/sqlmodel/", [], "", function(statusCode, result) {
+              var uid;
+              uid = new uidraw(i, objcb, pre, post, rootURI, [], [], filters, [launch - 2], true, tree, result);
+              return uid.subRowIn();
+            });
+          })(i, pre, post, launch));
+        } else {
+          newb = ["col", [term.id], ["mod"]];
+          npos = getTarg(tree, [], "add", newb);
+          pre += term.name;
+          pre += " <a href='" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false'><span title='See all' class='ui-icon ui-icon-search'></span></a>";
+          _results.push(objcb.callback(i, pre + post));
+        }
       }
       return _results;
     });
   };
+
   uidraw = function(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, cmod) {
     var mod, _i, _len, _ref;
     this.idx = idx;
@@ -173,12 +189,9 @@
     _ref = cmod.slice(1);
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       mod = _ref[_i];
-      if (mod[1] === this.about) {
-        this.type = mod[0];
-        if (this.type === "fcTp") {
-          this.schema = mod[6];
-        }
-      }
+      if (!(mod[1] === this.about)) continue;
+      this.type = mod[0];
+      if (this.type === "fcTp") this.schema = mod[6];
     }
     this.subRowIn = function() {
       var actn, branchType, col, currBranch, currBranchType, currSchema, mod, parent, posl, res, resultsReceived, resultsRequested, schema, targ, termName, termResults, _j, _k, _l, _len10, _len2, _len3, _len4, _len5, _len6, _len7, _len8, _len9, _m, _n, _o, _p, _q, _r, _ref10, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7, _ref8, _ref9, _results;
@@ -193,9 +206,7 @@
             _ref3 = currBranch[2].slice(1);
             for (_k = 0, _len3 = _ref3.length; _k < _len3; _k++) {
               currBranchType = _ref3[_k];
-              if (currBranchType[0] === "add") {
-                this.adds++;
-              }
+              if (currBranchType[0] === "add") this.adds++;
             }
           }
         }
@@ -206,9 +217,7 @@
             _ref5 = mod[6];
             for (_m = 0, _len5 = _ref5.length; _m < _len5; _m++) {
               col = _ref5[_m];
-              if (col[1] === this.about) {
-                this.cols++;
-              }
+              if (col[1] === this.about) this.cols++;
             }
           }
         }
@@ -234,10 +243,11 @@
                 _ref9 = currBranch[2].slice(1);
                 for (_n = 0, _len8 = _ref9.length; _n < _len8; _n++) {
                   currBranchType = _ref9[_n];
-                  if ((_ref10 = currBranchType[0]) === "edit" || _ref10 === "del") {
-                    actn = currBranchType[0];
-                    break;
+                  if (!((_ref10 = currBranchType[0]) === "edit" || _ref10 === "del")) {
+                    continue;
                   }
+                  actn = currBranchType[0];
+                  break;
                 }
               }
             }
@@ -259,9 +269,7 @@
                 }
               }
             }
-            if (launch !== -1) {
-              prel += "</div>";
-            }
+            if (launch !== -1) prel += "</div>";
             if (launch === -1) {
               newb = ["ins", [parent.about, instance.id], ["mod"]];
               npos = getTarg(parent.ftree, parent.loc, "add", newb);
@@ -304,12 +312,11 @@
               _ref13 = currBranch[2];
               for (_p = 0, _len11 = _ref13.length; _p < _len11; _p++) {
                 currBranchType = _ref13[_p];
-                if (currBranchType[0] === "add") {
-                  locn = parent.loc.concat([j + 1]);
-                  uid = new uidraw(parent.rows + 1 + ++parent.addsout, parent, "<tr><td>", "</td></tr>", rootURI, [], [], parent.filters, locn, !parent.even, parent.ftree, cmod);
-                  uid.subRowIn();
-                  break;
-                }
+                if (!(currBranchType[0] === "add")) continue;
+                locn = parent.loc.concat([j + 1]);
+                uid = new uidraw(parent.rows + 1 + ++parent.addsout, parent, "<tr><td>", "</td></tr>", rootURI, [], [], parent.filters, locn, !parent.even, parent.ftree, cmod);
+                uid.subRowIn();
+                break;
               }
             }
           }
@@ -325,25 +332,37 @@
                 _results2 = [];
                 for (_r = 0, _len13 = _ref15.length; _r < _len13; _r++) {
                   termVerb = _ref15[_r];
-                  if (termVerb[1] === parent.about) {
-                    launch = -1;
-                    _ref16 = parent.branch.slice(3);
-                    for (k = 0, _len14 = _ref16.length; k < _len14; k++) {
-                      branch = _ref16[k];
-                      if (branch[1][0] === mod[1]) {
-                        launch = k + 1;
-                        break;
-                      }
-                    }
-                    parent.colsout++;
-                    res = "";
-                    pre = "<tr id='tr--data--" + mod[1] + "'><td>";
-                    post = "</td></tr>";
-                    _results2.push(launch !== -1 ? (npos = getTarg(parent.ftree, parent.loc, "del", launch), pre += "<div style='display:inline;background-color:" + parent.unbg + "'>" + mod[2] + "</div>", pre += "<div style='display:inline;background-color:" + parent.unbg + "'><a href='" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a></div>", subcolcb = {
+                  if (!(termVerb[1] === parent.about)) continue;
+                  launch = -1;
+                  _ref16 = parent.branch.slice(3);
+                  for (k = 0, _len14 = _ref16.length; k < _len14; k++) {
+                    branch = _ref16[k];
+                    if (!(branch[1][0] === mod[1])) continue;
+                    launch = k + 1;
+                    break;
+                  }
+                  parent.colsout++;
+                  res = "";
+                  pre = "<tr id='tr--data--" + mod[1] + "'><td>";
+                  post = "</td></tr>";
+                  if (launch !== -1) {
+                    npos = getTarg(parent.ftree, parent.loc, "del", launch);
+                    pre += "<div style='display:inline;background-color:" + parent.unbg + "'>" + mod[2] + "</div>";
+                    pre += "<div style='display:inline;background-color:" + parent.unbg + "'><a href='" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a></div>";
+                    subcolcb = {
                       callback: function(n, prod) {
                         return parent.callback(n, prod);
                       }
-                    }, uid = new uidraw(parent.rows + 1 + parent.adds + 1 + parent.colsout, subcolcb, pre, post, rootURI, [], [], parent.filters, loc.concat([launch]), !parent.even, parent.ftree, cmod), uid.subRowIn()) : (newb = ["col", [mod[1]], ["mod"]], npos = getTarg(parent.ftree, parent.loc, "add", newb), pre += mod[2], pre += " <a href='" + parent.rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false'><span title='See all' class='ui-icon ui-icon-search'></span></a>", res += pre + post, parent.callback(parent.rows + 1 + parent.adds + 1 + parent.colsout, res)));
+                    };
+                    uid = new uidraw(parent.rows + 1 + parent.adds + 1 + parent.colsout, subcolcb, pre, post, rootURI, [], [], parent.filters, loc.concat([launch]), !parent.even, parent.ftree, cmod);
+                    _results2.push(uid.subRowIn());
+                  } else {
+                    newb = ["col", [mod[1]], ["mod"]];
+                    npos = getTarg(parent.ftree, parent.loc, "add", newb);
+                    pre += mod[2];
+                    pre += " <a href='" + parent.rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false'><span title='See all' class='ui-icon ui-icon-search'></span></a>";
+                    res += pre + post;
+                    _results2.push(parent.callback(parent.rows + 1 + parent.adds + 1 + parent.colsout, res));
                   }
                 }
                 return _results2;
@@ -363,10 +382,11 @@
         _ref6 = this.branch[2].slice(1);
         for (_n = 0, _len6 = _ref6.length; _n < _len6; _n++) {
           branchType = _ref6[_n];
-          if ((_ref7 = branchType[0]) === "add" || _ref7 === "edit" || _ref7 === "del") {
-            actn = branchType[0];
-            break;
+          if (!((_ref7 = branchType[0]) === "add" || _ref7 === "edit" || _ref7 === "del")) {
+            continue;
           }
+          actn = branchType[0];
+          break;
         }
         switch (actn) {
           case "view":
@@ -406,9 +426,7 @@
               _ref8 = cmod.slice(1);
               for (_o = 0, _len7 = _ref8.length; _o < _len7; _o++) {
                 mod = _ref8[_o];
-                if (mod[1] === this.about) {
-                  schema = mod[3];
-                }
+                if (mod[1] === this.about) schema = mod[3];
               }
               res = "<div align='right'>";
               res += "<form class='action'>";
@@ -433,9 +451,7 @@
               _ref9 = parent.schema;
               for (_q = 0, _len9 = _ref9.length; _q < _len9; _q++) {
                 schema = _ref9[_q];
-                if (schema[0] === "term") {
-                  termResults[schema[1]] = [];
-                }
+                if (schema[0] === "term") termResults[schema[1]] = [];
               }
               resultsReceived = 0;
               resultsRequested = Object.keys(termResults).length;
@@ -461,9 +477,7 @@
               _ref10 = cmod.slice(1);
               for (_r = 0, _len10 = _ref10.length; _r < _len10; _r++) {
                 mod = _ref10[_r];
-                if (mod[1] === this.about) {
-                  schema = mod[3];
-                }
+                if (mod[1] === this.about) schema = mod[3];
               }
               this.targ = serverAPI(this.about, this.filters);
               return serverRequest("GET", this.targ, [], "", function(statusCode, result, headers) {
@@ -499,9 +513,7 @@
                 _ref11 = parent.schema;
                 for (_s = 0, _len11 = _ref11.length; _s < _len11; _s++) {
                   schema = _ref11[_s];
-                  if (schema[0] === "term") {
-                    termResults[schema[1]] = [];
-                  }
+                  if (schema[0] === "term") termResults[schema[1]] = [];
                 }
                 resultsReceived = 0;
                 resultsRequested = Object.keys(termResults).length;
@@ -532,25 +544,21 @@
     };
     return this;
   };
+
   createHiddenInputs = function(action, serverURI, backURI, type, id) {
     var res;
-    if (id == null) {
-      id = false;
-    }
+    if (id == null) id = false;
     res = "<input type='hidden' id='__actype' value='" + action + "'>";
     res += "<input type='hidden' id='__serverURI' value='" + serverURI + "'>";
     res += "<input type='hidden' id='__backURI' value='" + backURI + "'>";
     res += "<input type='hidden' id='__type' value='" + type + "'>";
-    if (id !== false) {
-      res += "<input type='hidden' id='__id' value='" + id + "'>";
-    }
+    if (id !== false) res += "<input type='hidden' id='__id' value='" + id + "'>";
     return res;
   };
+
   createFactTypeForm = function(schemas, termResults, action, serverURI, backURI, type, currentFactType) {
     var res, schema, select, term, termName, termResult, termSelects, _i, _j, _len, _len2;
-    if (currentFactType == null) {
-      currentFactType = false;
-    }
+    if (currentFactType == null) currentFactType = false;
     termSelects = {};
     for (termName in termResults) {
       termResult = termResults[termName];
@@ -582,6 +590,7 @@
     res += "</form>";
     return res;
   };
+
   processForm = function(forma) {
     var action, backURI, id, serverURI, type;
     action = $("#__actype", forma).val();
@@ -600,6 +609,7 @@
         return delInst(forma, serverURI, backURI);
     }
   };
+
   delInst = function(forma, uri, backURI) {
     this.backURI = backURI;
     serverRequest("DELETE", uri, [], "", function(statusCode, result, headers) {
@@ -607,6 +617,7 @@
     });
     return false;
   };
+
   editInst = function(forma, serverURI, backURI) {
     var inputs, obj;
     this.backURI = backURI;
@@ -625,6 +636,7 @@
     });
     return false;
   };
+
   addInst = function(forma, uri, backURI) {
     var inputs, obj;
     this.backURI = backURI;
@@ -642,6 +654,7 @@
     });
     return false;
   };
+
   filtmerge = function(branch, fltrs) {
     var filters, leaf, rootURI, _i, _len, _ref;
     filters = jQuery.extend(true, [], fltrs);
@@ -650,14 +663,15 @@
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       leaf = _ref[_i];
       if (leaf[0] === "filt") {
-        if (leaf[1][1][0] === void 0) {
-          leaf[1][1] = branch[1][0];
-        }
+        if (leaf[1][1][0] === void 0) leaf[1][1] = branch[1][0];
         filters.push(leaf[1]);
       }
     }
     return filters;
   };
+
   window.drawData = drawData;
+
   window.processForm = processForm;
+
 }).call(this);

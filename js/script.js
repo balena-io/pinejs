@@ -1,15 +1,20 @@
 (function() {
   var cleanUp, clientOnAir, defaultFailureCallback, defaultSuccessCallback, loadState, loadUI, processHash, setClientOnAir, showErrorMessage, showSimpleError, showUrlMessage, sqlEditor;
+
   sqlEditor = null;
+
   clientOnAir = false;
+
   showErrorMessage = function(errorMessage) {
     $("#dialog-message").html('<span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 50px 0;"></span>' + errorMessage);
     return $("#dialog-message").dialog("open");
   };
+
   showSimpleError = function(errorMessage) {
     $("#dialog-simple-error").html('<span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 50px 0;"></span>' + errorMessage);
     return $("#dialog-simple-error").dialog("open");
   };
+
   showUrlMessage = function(url) {
     var anchor, qIndex, uiIcon;
     uiIcon = "ui-icon-check";
@@ -28,6 +33,7 @@
     $("#dialog-url-message").html('<span class="ui-icon ' + uiIcon + '" style="float:left; margin:0 7px 50px 0;"></span>' + anchor);
     return $("#dialog-url-message").dialog("open");
   };
+
   defaultFailureCallback = function(statusCode, error) {
     if (error != null) {
       console.log(error);
@@ -43,18 +49,19 @@
     }
     return showErrorMessage(error);
   };
+
   defaultSuccessCallback = function(statusCode, result, headers) {};
+
   loadState = function() {
     return serverRequest("GET", "/onAir/", [], "", function(statusCode, result) {
       return setClientOnAir(result);
     });
   };
+
   processHash = function() {
     var URItree, switchVal, theHash, uri;
     theHash = location.hash;
-    if (theHash === "") {
-      theHash = "#!/model";
-    }
+    if (theHash === "") theHash = "#!/model";
     if (theHash.slice(1, 9) === "!/server") {
       URItree = [[], [[], ["server"]]];
     } else {
@@ -91,6 +98,7 @@
         return $("#tabs").tabs("select", 0);
     }
   };
+
   setClientOnAir = function(bool) {
     clientOnAir = bool;
     if (clientOnAir === true) {
@@ -112,6 +120,7 @@
       return $("#br").attr("disabled", "disabled");
     }
   };
+
   loadUI = function() {
     window.sbvrEditor = CodeMirror.fromTextArea(document.getElementById("modelArea"), {
       mode: "sbvr",
@@ -175,6 +184,7 @@
       }
     });
   };
+
   cleanUp = function(a) {
     a.textContent = "Downloaded";
     a.dataset.disabled = true;
@@ -182,13 +192,10 @@
       return window.URL.revokeObjectURL(a.href);
     }), 1500);
   };
+
   window.serverRequest = function(method, uri, headers, body, successCallback, failureCallback) {
-    if (headers == null) {
-      headers = {};
-    }
-    if (body == null) {
-      body = null;
-    }
+    if (headers == null) headers = {};
+    if (body == null) body = null;
     successCallback = (typeof successCallback !== "function" ? defaultSuccessCallback : successCallback);
     failureCallback = (typeof failureCallback !== "function" ? defaultFailureCallback : failureCallback);
     $("#httpTable").append("<tr class=\"server_row\"><td><strong>" + method + "</strong></td><td>" + uri + "</td><td>" + (headers.length === 0 ? "" : headers) + "</td><td>" + body + "</td></tr>");
@@ -215,6 +222,7 @@
       });
     }
   };
+
   window.transformClient = function(model) {
     $("#modelArea").attr("disabled", true);
     return serverRequest("PUT", "/ui/textarea-is_disabled*filt:textarea.name=model_area/", {
@@ -235,6 +243,7 @@
       });
     });
   };
+
   window.resetClient = function() {
     return serverRequest("DELETE", "/", [], "", function() {
       $("#modelArea").attr("disabled", false);
@@ -245,9 +254,11 @@
       return setClientOnAir(false);
     });
   };
+
   window.loadmod = function(model) {
     return sbvrEditor.setValue(model);
   };
+
   window.downloadFile = function(filename, text) {
     var MIME_TYPE, a, bb, output, prevLink;
     MIME_TYPE = "text/plain";
@@ -270,12 +281,11 @@
     a.classList.add("dragout");
     output.appendChild(a);
     return a.onclick = function(e) {
-      if ("disabled" in this.dataset) {
-        return false;
-      }
+      if ("disabled" in this.dataset) return false;
       return cleanUp(this);
     };
   };
+
   window.saveModel = function() {
     return serverRequest("POST", "/", {
       "Content-Type": "text/plain"
@@ -285,6 +295,7 @@
       return showSimpleError('Error: ' + error);
     });
   };
+
   window.getModel = function() {
     var key, qIndex;
     qIndex = window.location.href.indexOf("?");
@@ -298,6 +309,7 @@
       };
     }
   };
+
   window.parseModel = function() {
     try {
       lfEditor.setValue(Prettify.match(SBVRParser.matchAll(sbvrEditor.getValue(), 'expr'), 'elem'));
@@ -308,6 +320,7 @@
     }
     return $('#tabs').tabs('select', 1);
   };
+
   $(function() {
     $("#tabs").tabs({
       select: function(event, ui) {
@@ -351,4 +364,5 @@
       return handleFiles(input[0].files);
     });
   });
+
 }).call(this);

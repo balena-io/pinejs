@@ -1,6 +1,8 @@
 (function() {
   var db, decodeBase, http, requirejs, staticServer, toBase;
+
   db = null;
+
   if (typeof process !== "undefined" && process !== null) {
     requirejs = require('requirejs');
     requirejs.config({
@@ -10,8 +12,11 @@
   } else {
     requirejs = window.requirejs;
   }
+
   requirejs(["libs/inflection", "../ometa-js/lib", "../ometa-js/ometa-base"]);
+
   requirejs(["mylibs/ometa-code/SBVRModels", "mylibs/ometa-code/SBVRParser", "mylibs/ometa-code/SBVR_PreProc", "mylibs/ometa-code/SBVR2SQL", "mylibs/ometa-code/ServerURIParser"]);
+
   requirejs(['mylibs/db'], function(dbModule) {
     if (typeof process !== "undefined" && process !== null) {
       db = dbModule.postgres(process.env.DATABASE_URL || "postgres://postgres:.@localhost:5432/postgres");
@@ -26,19 +31,19 @@
       }, null, "name = '_sbvr_editor_cache'");
     });
   });
+
   toBase = function(decimal, base) {
     var chars, symbols;
     symbols = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
     chars = "";
-    if (base > symbols.length || base <= 1) {
-      return false;
-    }
+    if (base > symbols.length || base <= 1) return false;
     while (decimal >= 1) {
       chars = symbols[decimal - (base * Math.floor(decimal / base))] + chars;
       decimal = Math.floor(decimal / base);
     }
     return chars;
   };
+
   decodeBase = function(url, base) {
     var alphaChar, alphaNum, sum, symbols, _i, _len, _ref;
     symbols = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
@@ -61,8 +66,11 @@
     }
     return sum;
   };
+
   staticServer = new (require('node-static').Server)('./');
+
   http = require('http');
+
   http.createServer(function(request, response) {
     var body;
     body = '';
@@ -119,4 +127,5 @@
   }).listen(process.env.PORT || 1337, function() {
     return console.log('Server started');
   });
+
 }).call(this);

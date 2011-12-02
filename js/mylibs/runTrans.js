@@ -1,5 +1,6 @@
 (function() {
   var runTrans;
+
   runTrans = function(rootElement) {
     var lockResource, obj;
     if ($(".action").size() > 0) {
@@ -15,9 +16,7 @@
           data = [];
           callback = function(op, cr_uri, o) {
             var i, nextLoopCallback;
-            if (o == null) {
-              o = {};
-            }
+            if (o == null) o = {};
             data.push([op, cr_uri, o]);
             if (data.length === lockCount) {
               i = 0;
@@ -120,7 +119,7 @@
       }), failureCallback);
     };
   };
-  if (typeof window !== "undefined" && window !== null) {
-    window.runTrans = runTrans;
-  }
+
+  if (typeof window !== "undefined" && window !== null) window.runTrans = runTrans;
+
 }).call(this);
