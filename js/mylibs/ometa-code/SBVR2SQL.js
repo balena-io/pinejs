@@ -387,7 +387,6 @@
         (i < v["length"]); i++) {
             (v[(0)] = v[(0)].concat(v[i]))
         };
-        undefined;
         return v[(0)]
     }));
     (SBVR2SQL["_fLst"] = (function(v) {
@@ -397,7 +396,6 @@
         (i < v["length"]); i++) {
             (r = r.concat(v[i][(1)]))
         };
-        undefined;
         return r.join("-")
     }));
     (SBVR2SQL["_fLstt"] = (function(v) {
@@ -407,7 +405,6 @@
         (i < v["length"]); i++) {
             (r = r.concat(v[i][(2)]))
         };
-        undefined;
         return r.join(" ")
     }))
 }
