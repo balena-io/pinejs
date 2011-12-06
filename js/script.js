@@ -1,5 +1,5 @@
 (function() {
-  var cleanUp, clientOnAir, defaultFailureCallback, defaultSuccessCallback, loadState, loadUI, processHash, setClientOnAir, setupDownloadify, showErrorMessage, showSimpleError, showUrlMessage, sqlEditor;
+  var cleanUp, clientOnAir, defaultFailureCallback, defaultSuccessCallback, fileApiDetect, loadState, loadUI, locate, processHash, relocate, setClientOnAir, setupDownloadify, setupLoadfile, showErrorMessage, showSimpleError, showUrlMessage, sqlEditor;
 
   sqlEditor = null;
 
@@ -287,7 +287,6 @@
   };
 
   setupDownloadify = function() {
-    var el, pos;
     Downloadify.create("downloadify", {
       filename: "editor.txt",
       data: function() {
@@ -297,27 +296,63 @@
         return showSimpleError("Content Is Empty");
       },
       transparent: false,
-      swf: "downloadify.swf",
-      downloadImage: "download.png",
-      width: 54,
+      swf: "downloadify/downloadify.swf",
+      downloadImage: "downloadify/download.png",
+      width: 52,
       height: 19,
       transparent: true,
       append: false
     });
-    pos = $("#write_file").offset();
-    el = document.getElementById("downloadify").style;
+    return locate("#write_file", "downloadify");
+  };
+
+  setupLoadfile = function() {
+    var attributes, flashvars, params;
+    if (!fileApiDetect()) {
+      flashvars = {};
+      params = {
+        wmode: "transparent",
+        allowScriptAccess: "always"
+      };
+      attributes = {
+        id: "fileloader"
+      };
+      swfobject.embedSWF("FileLoader/FileLoader.swf", "TheFileLoader", 53, 19, "10", null, flashvars, params, attributes);
+      return locate("#load_file", "fileloader");
+    }
+  };
+
+  fileApiDetect = function() {
+    if (!!window.FileReader && ($.browser.chrome || $.browser.mozilla)) {
+      return true;
+    } else {
+      return false;
+    }
+  };
+
+  locate = function(htmlBotton, flashImage) {
+    var el, pos;
+    pos = $(htmlBotton).offset();
+    el = document.getElementById(flashImage).style;
     el.position = 'absolute';
     el.zIndex = 1;
-    el.left = pos.left + 'px';
-    return el.top = pos.top + 'px';
+    if (!$.browser.msie || flashImage !== "fileloader") {
+      el.left = pos.left + 'px';
+      return el.top = pos.top + 'px';
+    } else {
+      pos = $("#write_file").offset();
+      el.left = pos.left + 64 + 'px';
+      return el.top = pos.top + 'px';
+    }
+  };
+
+  relocate = function() {
+    locate("#write_file", "downloadify");
+    if (!fileApiDetect()) return locate("#load_file", "fileloader");
   };
 
   window.toReadFile = function() {
-    if (!!window.File && !!window.FileList && !!window.FileReader && !/Opera/.test(navigator.userAgent)) {
-      return document.getElementById('read_file').click();
-    } else {
-      return showSimpleError('"Load file" is only supported by Chrome or Firefox now.');
-    }
+    if (fileApiDetect()) return $('#read_file').click();
   };
 
   window.readFile = function(files) {
@@ -334,6 +369,17 @@
         return showSimpleError("Only text file is acceptable.");
       }
     }
+  };
+
+  window.mouseEventHandle = function(elementId, event) {
+    /*
+    	id = '#' + elementId
+    	switch event
+    		when "down" then	console.log("down")
+    		when "up" then console.log("up")
+    		when "enter" then console.log("enter")# $(id).css("background-color", "blue")
+    		else console.log("leave")# $(id).css("background-color", "white") # leave
+    */
   };
 
   window.saveModel = function() {
@@ -372,6 +418,7 @@
   };
 
   $(function() {
+    $.browser.chrome = $.browser.webkit && !!window.chrome;
     $("#tabs").tabs({
       select: function(event, ui) {
         var _ref;
@@ -410,6 +457,8 @@
     loadUI();
     loadState();
     setupDownloadify();
+    setupLoadfile();
+    $(window).bind("resize", relocate);
     processHash();
     return $("#bldb").file().choose(function(e, input) {
       return handleFiles(input[0].files);

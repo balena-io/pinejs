@@ -14,8 +14,8 @@ requirejsConf =
     ]
 
 excludeDirs = [process.env.outputDir, '.git', 'node_modules', 'build']
-copyToIntermediate = ['index.html', 'favicon.ico', 'css/**/*.*', 'CodeMirror2/lib/codemirror.css', 'CodeMirror2/lib/util/simple-hint.css', 'CodeMirror2/theme/default.css', 'CodeMirror2/mode/plsql/plsql.js', 'downloadify.swf', 'download.png']
-copyToFinal = ['index.html', 'favicon.ico', 'js/libs/*', 'css/**/*.*', 'CodeMirror2/lib/codemirror.css', 'CodeMirror2/lib/util/simple-hint.css', 'CodeMirror2/theme/default.css', 'CodeMirror2/mode/plsql/plsql.js', 'downloadify.swf', 'download.png']
+copyToIntermediate = ['index.html', 'favicon.ico', 'css/**/*.*', 'CodeMirror2/lib/codemirror.css', 'CodeMirror2/lib/util/simple-hint.css', 'CodeMirror2/theme/default.css', 'CodeMirror2/mode/plsql/plsql.js', 'downloadify/*.*', 'FileLoader/*.*']
+copyToFinal = ['index.html', 'favicon.ico', 'js/libs/*', 'css/**/*.*', 'CodeMirror2/lib/codemirror.css', 'CodeMirror2/lib/util/simple-hint.css', 'CodeMirror2/theme/default.css', 'CodeMirror2/mode/plsql/plsql.js', 'downloadify/*.*', 'FileLoader/*.*']
 
 storedTaskDependencies = {}
 

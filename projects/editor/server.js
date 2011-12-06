@@ -1,5 +1,5 @@
 (function() {
-  var db, decodeBase, http, requirejs, staticServer, toBase;
+  var db, decodeBase, handleGet, handlePost, http, requirejs, staticServer, toBase;
 
   db = null;
 
@@ -78,48 +78,20 @@
       return body += chunk;
     });
     return request.on('end', function() {
-      var key, nodePath;
+      var nodePath;
       console.log('End', request.method, request.url);
       nodePath = '/node';
       if (nodePath === request.url.slice(0, nodePath.length)) {
         response.writeHead(200, {
           "content-type": "text/plain"
         });
-        if (request.method === "POST") {
-          return db.transaction(function(tx) {
-            var lfmod, value;
-            try {
-              lfmod = SBVRParser.matchAll(body, "expr");
-            } catch (e) {
-              console.log('Error parsing model', e);
-              response.end(JSON.stringify('Error parsing model'));
-              return null;
-            }
-            value = JSON.stringify(body);
-            return tx.executeSql('INSERT INTO "_sbvr_editor_cache" ("value") VALUES (?);', [value], function(tx, result) {
-              return response.end(JSON.stringify(toBase(result.insertId, 62)));
-            }, function(tx, error) {
-              return response.end(JSON.stringify(error));
-            });
-          });
-        } else if (request.method === "GET") {
-          key = decodeBase(request.url.slice(nodePath.length + 1), 62);
-          if (key !== false) {
-            console.log('key: ', key);
-            return db.transaction(function(tx) {
-              return tx.executeSql('SELECT * FROM "_sbvr_editor_cache" WHERE id = ?;', [key], function(tx, result) {
-                if (result.rows.length === 0) {
-                  return response.end(JSON.stringify("Error"));
-                } else {
-                  return response.end(result.rows.item(0).value);
-                }
-              }, function(tx, error) {
-                return response.end(JSON.stringify(error));
-              });
-            });
-          }
-        } else {
-          return response.end();
+        switch (request.method) {
+          case "POST":
+            return handlePost(request, response, body);
+          case "GET":
+            return handleGet(request, response);
+          default:
+            return response.end();
         }
       } else {
         console.log('Static');
@@ -129,5 +101,43 @@
   }).listen(process.env.PORT || 1337, function() {
     return console.log('Server started');
   });
+
+  handlePost = function(request, response, body) {
+    return db.transaction(function(tx) {
+      var lfmod, value;
+      try {
+        lfmod = SBVRParser.matchAll(body, "expr");
+      } catch (e) {
+        console.log('Error parsing model', e);
+        response.end(JSON.stringify('Error parsing model'));
+        return null;
+      }
+      value = JSON.stringify(body);
+      return tx.executeSql('INSERT INTO "_sbvr_editor_cache" ("value") VALUES (?);', [value], function(tx, result) {
+        return response.end(JSON.stringify(toBase(result.insertId, 62)));
+      }, function(tx, error) {
+        return response.end(JSON.stringify(error));
+      });
+    });
+  };
+
+  handleGet = function(request, response) {
+    var key;
+    key = decodeBase(request.url.slice('/node'.length + 1), 62);
+    if (key !== false) {
+      console.log('key: ', key);
+      return db.transaction(function(tx) {
+        return tx.executeSql('SELECT * FROM "_sbvr_editor_cache" WHERE id = ?;', [key], function(tx, result) {
+          if (result.rows.length === 0) {
+            return response.end(JSON.stringify("Error"));
+          } else {
+            return response.end(result.rows.item(0).value);
+          }
+        }, function(tx, error) {
+          return response.end(JSON.stringify(error));
+        });
+      });
+    }
+  };
 
 }).call(this);

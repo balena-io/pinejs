@@ -237,26 +237,57 @@ setupDownloadify = () ->
 		onError: ->
 			showSimpleError "Content Is Empty"
 		transparent: false
-		swf: "downloadify.swf"
-		downloadImage: "download.png"
-		width: 54	
+		swf: "downloadify/downloadify.swf"
+		downloadImage: "downloadify/download.png"
+		width: 52	
 		height: 19
 		transparent: true
 		append: false
-	pos = $("#write_file").offset()
-	el = document.getElementById("downloadify").style
+	locate("#write_file", "downloadify")	
+
+# html 5 file api supports chrome ff; flash implements others	
+setupLoadfile = () ->
+	if !fileApiDetect()
+		flashvars = {};
+		params = {
+			wmode: "transparent",
+			allowScriptAccess: "always"
+		};
+		attributes = {
+			id: "fileloader"
+		};
+		swfobject.embedSWF("FileLoader/FileLoader.swf", "TheFileLoader", 53, 19, "10", null, flashvars, params, attributes);
+		locate("#load_file","fileloader")
+
+		
+fileApiDetect = () ->
+	if !!window.FileReader and ( $.browser.chrome or $.browser.mozilla )
+		return true
+	else 
+		return false
+	
+locate = (htmlBotton, flashImage) ->
+	pos = $(htmlBotton).offset()
+	el = document.getElementById(flashImage).style
 	el.position = 'absolute'
 	el.zIndex = 1
-	el.left = pos.left + 'px'
-	el.top = pos.top + 'px'
-	
-#support chrome ff
-window.toReadFile = () ->
-	if !!window.File && !!window.FileList && !!window.FileReader && !/Opera/.test(navigator.userAgent)
-		document.getElementById('read_file').click()
-	else
-		showSimpleError('"Load file" is only supported by Chrome or Firefox now.')
+	if !$.browser.msie || flashImage != "fileloader"
+		el.left = pos.left + 'px'
+		el.top = pos.top + 'px'
+	else 
+		pos = $("#write_file").offset()
+		el.left = pos.left + 64 + 'px'
+		el.top = pos.top + 'px'
 
+relocate = () ->
+	locate("#write_file", "downloadify")	
+	if !fileApiDetect()
+		locate("#load_file", "fileloader")
+	
+window.toReadFile = () ->
+	if fileApiDetect()
+		$('#read_file').click()
+	
 window.readFile = (files) ->
 		if files.length
 			file = files[0]
@@ -267,7 +298,17 @@ window.readFile = (files) ->
 				reader.readAsText file
 			else
 				showSimpleError("Only text file is acceptable.")
-	
+
+window.mouseEventHandle = (elementId, event) ->
+	###
+	id = '#' + elementId
+	switch event
+		when "down" then	console.log("down")
+		when "up" then console.log("up")
+		when "enter" then console.log("enter")# $(id).css("background-color", "blue")
+		else console.log("leave")# $(id).css("background-color", "white") # leave
+	###
+		
 window.saveModel = ->
 	serverRequest "POST", "/", {"Content-Type": "text/plain"}, sbvrEditor.getValue(),
 		(statusCode, result) ->
@@ -297,6 +338,7 @@ window.parseModel = ->
 
 # Initialise controls and shoot off the loadUI & processHash functions
 $( ->
+	$.browser.chrome = $.browser.webkit && !!window.chrome
 	$("#tabs").tabs(select: (event, ui) ->
 		#IFDEF server
 		if ui.panel.id not in ["modelTab", "httpTab"] and clientOnAir == false
@@ -328,6 +370,8 @@ $( ->
 	loadUI()
 	loadState()
 	setupDownloadify()
+	setupLoadfile()
+	$(window).bind("resize", relocate);
 	processHash()
 	$("#bldb").file().choose (e, input) ->
 		handleFiles input[0].files

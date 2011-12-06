@@ -94,45 +94,14 @@ http.createServer((request, response) ->
 		request.on('end', () ->
 			console.log('End', request.method, request.url)
 			nodePath = '/node'
-			if nodePath == request.url[0...nodePath.length] #/node/a
-				#key = "file"
+			if nodePath == request.url[0...nodePath.length] # && nodePath != "/node/upload"
 				response.writeHead(200, "content-type": "text/plain")
-				if request.method == "POST"
-					db.transaction (tx) ->
-						try
-							lfmod = SBVRParser.matchAll(body, "expr")
-						catch e
-							console.log 'Error parsing model', e
-							response.end(JSON.stringify('Error parsing model'))
-							return null
-						value = JSON.stringify(body)
-						tx.executeSql 'INSERT INTO "_sbvr_editor_cache" ("value") VALUES (?);', [value], 
-							(tx, result) ->
-								response.end(JSON.stringify(toBase(result.insertId,62)))
-							(tx, error) ->
-								response.end(JSON.stringify(error))
-	#						tx.executeSql('SELECT 1 FROM "_sbvr_editor_cache" WHERE key = ?;', [key], (tx, result) ->
-	#							if result.rows.length==0
-	#								tx.executeSql 'INSERT INTO "_sbvr_editor_cache" VALUES (?, ?);', [key, value], null, null, false
-	#							else
-	#								tx.executeSql 'UPDATE "_sbvr_editor_cache" SET value = ? WHERE key = ?;', [value, key]
-	#						)
-				else if request.method == "GET"
-					key = decodeBase(request.url[nodePath.length+1..],62)
-					if key != false
-						console.log('key: ',key)
-						db.transaction (tx) ->
-							tx.executeSql 'SELECT * FROM "_sbvr_editor_cache" WHERE id = ?;', [key],
-								(tx, result) ->
-									if result.rows.length == 0
-										response.end(JSON.stringify("Error"))
-									else
-										response.end(result.rows.item(0).value)
-								(tx, error) ->
-									response.end(JSON.stringify(error))
-				else 
-					response.end()
-					
+				
+				switch request.method
+					when "POST" then handlePost(request, response, body)	
+					when "GET" then handleGet(request, response)	
+					else response.end()
+			
 			else
 				console.log('Static')
 				staticServer.serve(request, response)
@@ -140,3 +109,38 @@ http.createServer((request, response) ->
 ).listen(process.env.PORT or 1337, () ->
 	console.log('Server started')
 )
+
+handlePost = (request, response, body)->
+		db.transaction (tx) ->
+			try
+				lfmod = SBVRParser.matchAll(body, "expr")
+			catch e
+				console.log 'Error parsing model', e
+				response.end(JSON.stringify('Error parsing model'))
+				return null
+			value = JSON.stringify(body)
+			tx.executeSql 'INSERT INTO "_sbvr_editor_cache" ("value") VALUES (?);', [value], 
+				(tx, result) ->
+					response.end(JSON.stringify(toBase(result.insertId,62)))
+				(tx, error) ->
+					response.end(JSON.stringify(error))
+			#						tx.executeSql('SELECT 1 FROM "_sbvr_editor_cache" WHERE key = ?;', [key], (tx, result) ->
+			#							if result.rows.length==0
+			#								tx.executeSql 'INSERT INTO "_sbvr_editor_cache" VALUES (?, ?);', [key, value], null, null, false
+			#							else
+			#								tx.executeSql 'UPDATE "_sbvr_editor_cache" SET value = ? WHERE key = ?;', [value, key]
+			#						)			
+		
+handleGet = (request, response) ->
+		key = decodeBase(request.url['/node'.length+1..],62)
+		if key != false
+			console.log('key: ',key)
+			db.transaction (tx) ->
+				tx.executeSql 'SELECT * FROM "_sbvr_editor_cache" WHERE id = ?;', [key],
+					(tx, result) ->
+						if result.rows.length == 0
+							response.end(JSON.stringify("Error"))
+						else
+							response.end(result.rows.item(0).value)
+					(tx, error) ->
+						response.end(JSON.stringify(error))
