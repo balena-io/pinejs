@@ -307,13 +307,6 @@ namespace('editor', ->
 			console.log('Copying to final: ' + this.name)
 			return data
 	)
-
-	alterFileTask(process.env.finalDir + 'server.js', 'projects/editor/server.js'
-		(data) -> 
-			console.log('Copying to final: ' + this.name)
-			return data
-		['coffee:dev:projects/editor/server.js']
-	)
 	
 	namespaceFinalDir = getCurrentNamespace() + process.env.finalDir
 	
@@ -332,7 +325,7 @@ namespace('editor', ->
 	)
 	
 	desc('Build the editor')
-	task('build', ['js', 'copy:final:all', namespaceFinalDir + 'manifest.json', namespaceFinalDir + 'Procfile', namespaceFinalDir + 'package.json', namespaceFinalDir + 'server.js'])
+	task('build', ['js', 'copy:final:all', namespaceFinalDir + 'manifest.json', namespaceFinalDir + 'Procfile', namespaceFinalDir + 'package.json'])
 	
 	desc('Deploy the editor')
 	task('deploy', ['editor:build'], ->

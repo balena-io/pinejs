@@ -21,8 +21,11 @@ else
 		addHandler = (handlerName, match, middleware...) ->
 			#Strip wildcard
 			match = match.replace(/\/\*$/,'')
+			paramMatch = /:(.*)$/.exec(match)
+			paramName = (paramMatch == null ? null : paramMatch[1] )
 			handlers[handlerName].push(
 				match: match
+				paramName: paramName
 				middleware: middleware
 			)
 		return {
@@ -46,6 +49,7 @@ else
 					body: body
 					headers: headers
 					url: uri
+					params: {}
 				res =
 					json: (obj, headers = 200, statusCode) ->
 						if typeof headers == 'number' and !statusCode?
@@ -74,6 +78,8 @@ else
 					if i < methodHandlers.length
 						if uri[0...methodHandlers[i].match.length] == methodHandlers[i].match
 							j = -1
+							if methodHandlers[i].paramName != null
+								req.params[methodHandlers[i].paramName] = uri[methodHandlers[i].match.length..]
 							next()
 						else
 							checkMethodHandlers()
@@ -86,13 +92,19 @@ else
 #IFDEF server
 requirejs(['mylibs/SBVRServer'], (sbvrServer) ->
 	sbvrServer.setup(app, requirejs)
-
-	if process?
-		app.listen(process.env.PORT or 1337, () ->
-			console.log('Server started')
-		)
 )
 #ENDIFDEF
+
+#IFDEF editor
+requirejs(['mylibs/editorServer'], (editorServer) ->
+	editorServer.setup(app, requirejs)
+)
+#ENDIFDEF
+
+if process?
+	app.listen(process.env.PORT or 1337, () ->
+		console.log('Server started')
+	)
 
 # fs = require('fs')
 # lazy = require("lazy");

@@ -40,7 +40,7 @@ defaultSuccessCallback = (statusCode, result, headers) ->
 
 
 loadState = ->
-	serverRequest "GET", "/onAir/", [], "", (statusCode, result) ->
+	serverRequest "GET", "/onAir/", {}, null, (statusCode, result) ->
 		setClientOnAir(result)
 
 
@@ -59,7 +59,7 @@ processHash = ->
 		#IFDEF server
 		when "server"
 			uri = location.hash.slice(9)
-			serverRequest "GET", uri, "", {}, (statusCode, result) ->
+			serverRequest "GET", uri, {}, null, (statusCode, result) ->
 				alert result
 		when "sql"
 			$("#tabs").tabs "select", 3
@@ -84,13 +84,13 @@ processHash = ->
 setClientOnAir = (bool) ->
 	clientOnAir = bool
 	if clientOnAir == true
-		serverRequest "GET", "/lfmodel/", [], "", (statusCode, result) ->
+		serverRequest "GET", "/lfmodel/", {}, null, (statusCode, result) ->
 			lfEditor.setValue Prettify.match(result, "elem")
 		
-		serverRequest "GET", "/prepmodel/", [], "", (statusCode, result) ->
+		serverRequest "GET", "/prepmodel/", {}, null, (statusCode, result) ->
 			$("#prepArea").val Prettify.match(result, "elem")
 		
-		serverRequest "GET", "/sqlmodel/", [], "", (statusCode, result) ->
+		serverRequest "GET", "/sqlmodel/", {}, null, (statusCode, result) ->
 			sqlEditor.setValue Prettify.match(result, "elem")
 		
 		$("#bem").attr "disabled", "disabled"
@@ -113,14 +113,14 @@ loadUI = ->
 		sqlEditor = CodeMirror.fromTextArea(document.getElementById("sqlArea"), mode: "text/x-plsql")
 		window.importExportEditor = CodeMirror.fromTextArea(document.getElementById("importExportArea"), mode: "text/x-plsql")
 	window.onhashchange = processHash
-	serverRequest "GET", "/ui/textarea*filt:name=model_area/", [], "", (statusCode, result) ->
+	serverRequest "GET", "/ui/textarea*filt:name=model_area/", {}, null, (statusCode, result) ->
 		sbvrEditor.setValue result.value
 	
-	serverRequest "GET", "/ui/textarea-is_disabled*filt:textarea.name=model_area/", [], "", (statusCode, result) ->
+	serverRequest "GET", "/ui/textarea-is_disabled*filt:textarea.name=model_area/", {}, null, (statusCode, result) ->
 		$("#modelArea").attr "disabled", result.value
 		
 	$("#modelArea").change ->
-		serverRequest("PUT", "/ui/textarea*filt:name=model_area/", {"Content-Type": "application/json"}, value: sbvrEditor.getValue())
+		serverRequest("PUT", "/ui/textarea*filt:name=model_area/", {}, value: sbvrEditor.getValue())
 	
 	$("#dialog-message").dialog 
 		modal: true
@@ -162,7 +162,8 @@ cleanUp = (a) ->
 window.serverRequest = (method, uri, headers = {}, body = null, successCallback, failureCallback) ->
 	successCallback = (if typeof successCallback != "function" then defaultSuccessCallback else successCallback)
 	failureCallback = (if typeof failureCallback != "function" then defaultFailureCallback else failureCallback)
-	
+	if !headers["Content-Type"]?
+		headers["Content-Type"] = "application/json"
 	$("#httpTable").append "<tr class=\"server_row\"><td><strong>" + method + "</strong></td><td>" + uri + "</td><td>" + (if headers.length == 0 then "" else headers) + "</td><td>" + body + "</td></tr>"
 	if typeof remoteServerRequest == "function"
 		remoteServerRequest method, uri, headers, body, successCallback, failureCallback
@@ -186,14 +187,14 @@ window.serverRequest = (method, uri, headers = {}, body = null, successCallback,
 
 window.transformClient = (model) ->
 	$("#modelArea").attr "disabled", true
-	serverRequest "PUT", "/ui/textarea-is_disabled*filt:textarea.name=model_area/", {"Content-Type": "application/json"}, {value: true}, ->
-		serverRequest "PUT", "/ui/textarea*filt:name=model_area/", {"Content-Type": "application/json"}, {value: model}, ->
-			serverRequest "POST", "/execute/", {"Content-Type": "application/json"}, "", ->
+	serverRequest "PUT", "/ui/textarea-is_disabled*filt:textarea.name=model_area/", {}, {value: true}, ->
+		serverRequest "PUT", "/ui/textarea*filt:name=model_area/", {}, {value: model}, ->
+			serverRequest "POST", "/execute/", {}, null, ->
 				setClientOnAir(true)
 
 
 window.resetClient = ->
-	serverRequest "DELETE", "/", [], "", ->
+	serverRequest "DELETE", "/", {}, null, ->
 		$("#modelArea").attr "disabled", false
 		sbvrEditor.setValue ""
 		lfEditor.setValue ""
@@ -310,17 +311,17 @@ window.mouseEventHandle = (elementId, event) ->
 	###
 		
 window.saveModel = ->
-	serverRequest "POST", "/", {"Content-Type": "text/plain"}, sbvrEditor.getValue(),
+	serverRequest "POST", "/publish", {"Content-Type": "application/json"}, sbvrEditor.getValue(),
 		(statusCode, result) ->
 			showUrlMessage(result)
 		(statusCode, error) ->
 			showSimpleError('Error: ' + error)
-			
+
 window.getModel = ->
 	qIndex = window.location.href.indexOf("?")
 	if qIndex != -1 
 		key = window.location.href[qIndex+1..]
-		serverRequest "GET", "/"+key, {}, "",
+		serverRequest "GET", "/publish/"+key, {}, null,
 		(statusCode, result) ->
 			sbvrEditor.setValue(result)
 		(statusCode, error) ->

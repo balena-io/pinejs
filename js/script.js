@@ -53,7 +53,7 @@
   defaultSuccessCallback = function(statusCode, result, headers) {};
 
   loadState = function() {
-    return serverRequest("GET", "/onAir/", [], "", function(statusCode, result) {
+    return serverRequest("GET", "/onAir/", {}, null, function(statusCode, result) {
       return setClientOnAir(result);
     });
   };
@@ -75,7 +75,7 @@
     switch (switchVal) {
       case "server":
         uri = location.hash.slice(9);
-        return serverRequest("GET", uri, "", {}, function(statusCode, result) {
+        return serverRequest("GET", uri, {}, null, function(statusCode, result) {
           return alert(result);
         });
       case "sql":
@@ -102,13 +102,13 @@
   setClientOnAir = function(bool) {
     clientOnAir = bool;
     if (clientOnAir === true) {
-      serverRequest("GET", "/lfmodel/", [], "", function(statusCode, result) {
+      serverRequest("GET", "/lfmodel/", {}, null, function(statusCode, result) {
         return lfEditor.setValue(Prettify.match(result, "elem"));
       });
-      serverRequest("GET", "/prepmodel/", [], "", function(statusCode, result) {
+      serverRequest("GET", "/prepmodel/", {}, null, function(statusCode, result) {
         return $("#prepArea").val(Prettify.match(result, "elem"));
       });
-      serverRequest("GET", "/sqlmodel/", [], "", function(statusCode, result) {
+      serverRequest("GET", "/sqlmodel/", {}, null, function(statusCode, result) {
         return sqlEditor.setValue(Prettify.match(result, "elem"));
       });
       $("#bem").attr("disabled", "disabled");
@@ -137,16 +137,14 @@
       });
     }
     window.onhashchange = processHash;
-    serverRequest("GET", "/ui/textarea*filt:name=model_area/", [], "", function(statusCode, result) {
+    serverRequest("GET", "/ui/textarea*filt:name=model_area/", {}, null, function(statusCode, result) {
       return sbvrEditor.setValue(result.value);
     });
-    serverRequest("GET", "/ui/textarea-is_disabled*filt:textarea.name=model_area/", [], "", function(statusCode, result) {
+    serverRequest("GET", "/ui/textarea-is_disabled*filt:textarea.name=model_area/", {}, null, function(statusCode, result) {
       return $("#modelArea").attr("disabled", result.value);
     });
     $("#modelArea").change(function() {
-      return serverRequest("PUT", "/ui/textarea*filt:name=model_area/", {
-        "Content-Type": "application/json"
-      }, {
+      return serverRequest("PUT", "/ui/textarea*filt:name=model_area/", {}, {
         value: sbvrEditor.getValue()
       });
     });
@@ -198,6 +196,9 @@
     if (body == null) body = null;
     successCallback = (typeof successCallback !== "function" ? defaultSuccessCallback : successCallback);
     failureCallback = (typeof failureCallback !== "function" ? defaultFailureCallback : failureCallback);
+    if (!(headers["Content-Type"] != null)) {
+      headers["Content-Type"] = "application/json";
+    }
     $("#httpTable").append("<tr class=\"server_row\"><td><strong>" + method + "</strong></td><td>" + uri + "</td><td>" + (headers.length === 0 ? "" : headers) + "</td><td>" + body + "</td></tr>");
     if (typeof remoteServerRequest === "function") {
       return remoteServerRequest(method, uri, headers, body, successCallback, failureCallback);
@@ -225,19 +226,13 @@
 
   window.transformClient = function(model) {
     $("#modelArea").attr("disabled", true);
-    return serverRequest("PUT", "/ui/textarea-is_disabled*filt:textarea.name=model_area/", {
-      "Content-Type": "application/json"
-    }, {
+    return serverRequest("PUT", "/ui/textarea-is_disabled*filt:textarea.name=model_area/", {}, {
       value: true
     }, function() {
-      return serverRequest("PUT", "/ui/textarea*filt:name=model_area/", {
-        "Content-Type": "application/json"
-      }, {
+      return serverRequest("PUT", "/ui/textarea*filt:name=model_area/", {}, {
         value: model
       }, function() {
-        return serverRequest("POST", "/execute/", {
-          "Content-Type": "application/json"
-        }, "", function() {
+        return serverRequest("POST", "/execute/", {}, null, function() {
           return setClientOnAir(true);
         });
       });
@@ -245,7 +240,7 @@
   };
 
   window.resetClient = function() {
-    return serverRequest("DELETE", "/", [], "", function() {
+    return serverRequest("DELETE", "/", {}, null, function() {
       $("#modelArea").attr("disabled", false);
       sbvrEditor.setValue("");
       lfEditor.setValue("");
@@ -383,8 +378,8 @@
   };
 
   window.saveModel = function() {
-    return serverRequest("POST", "/", {
-      "Content-Type": "text/plain"
+    return serverRequest("POST", "/publish", {
+      "Content-Type": "application/json"
     }, sbvrEditor.getValue(), function(statusCode, result) {
       return showUrlMessage(result);
     }, function(statusCode, error) {
@@ -397,7 +392,7 @@
     qIndex = window.location.href.indexOf("?");
     if (qIndex !== -1) {
       key = window.location.href.slice(qIndex + 1);
-      serverRequest("GET", "/" + key, {}, "", function(statusCode, result) {
+      serverRequest("GET", "/publish/" + key, {}, null, function(statusCode, result) {
         return sbvrEditor.setValue(result);
       });
       return function(statusCode, error) {

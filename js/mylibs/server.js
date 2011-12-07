@@ -25,11 +25,16 @@
         GET: []
       };
       addHandler = function() {
-        var handlerName, match, middleware;
+        var handlerName, match, middleware, paramMatch, paramName, _ref;
         handlerName = arguments[0], match = arguments[1], middleware = 3 <= arguments.length ? __slice.call(arguments, 2) : [];
         match = match.replace(/\/\*$/, '');
+        paramMatch = /:(.*)$/.exec(match);
+        paramName = (_ref = paramMatch === null) != null ? _ref : {
+          "null": paramMatch[1]
+        };
         return handlers[handlerName].push({
           match: match,
+          paramName: paramName,
           middleware: middleware
         });
       };
@@ -69,7 +74,8 @@
           req = {
             body: body,
             headers: headers,
-            url: uri
+            url: uri,
+            params: {}
           };
           res = {
             json: function(obj, headers, statusCode) {
@@ -108,6 +114,9 @@
             if (i < methodHandlers.length) {
               if (uri.slice(0, methodHandlers[i].match.length) === methodHandlers[i].match) {
                 j = -1;
+                if (methodHandlers[i].paramName !== null) {
+                  req.params[methodHandlers[i].paramName] = uri.slice(methodHandlers[i].match.length);
+                }
                 return next();
               } else {
                 return checkMethodHandlers();
@@ -126,12 +135,17 @@
   }
 
   requirejs(['mylibs/SBVRServer'], function(sbvrServer) {
-    sbvrServer.setup(app, requirejs);
-    if (typeof process !== "undefined" && process !== null) {
-      return app.listen(process.env.PORT || 1337, function() {
-        return console.log('Server started');
-      });
-    }
+    return sbvrServer.setup(app, requirejs);
   });
+
+  requirejs(['mylibs/editorServer'], function(editorServer) {
+    return editorServer.setup(app, requirejs);
+  });
+
+  if (typeof process !== "undefined" && process !== null) {
+    app.listen(process.env.PORT || 1337, function() {
+      return console.log('Server started');
+    });
+  }
 
 }).call(this);
