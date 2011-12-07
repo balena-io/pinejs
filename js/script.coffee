@@ -168,9 +168,11 @@ window.serverRequest = (method, uri, headers = {}, body = null, successCallback,
 	if typeof remoteServerRequest == "function"
 		remoteServerRequest method, uri, headers, body, successCallback, failureCallback
 	else
+		if body != null
+			body = JSON.stringify(body)
 		$.ajax uri, 
 			headers: headers
-			data: JSON.stringify(body)
+			data: body
 			error: (jqXHR, textStatus, errorThrown) ->
 				failureCallback jqXHR.status, JSON.parse(jqXHR.responseText)
 			
@@ -249,15 +251,15 @@ setupDownloadify = () ->
 # html 5 file api supports chrome ff; flash implements others	
 setupLoadfile = () ->
 	if !fileApiDetect()
-		flashvars = {};
+		flashvars = {}
 		params = {
 			wmode: "transparent",
 			allowScriptAccess: "always"
-		};
+		}
 		attributes = {
 			id: "fileloader"
-		};
-		swfobject.embedSWF("FileLoader/FileLoader.swf", "TheFileLoader", 53, 19, "10", null, flashvars, params, attributes);
+		}
+		swfobject.embedSWF("FileLoader/FileLoader.swf", "TheFileLoader", 53, 19, "10", null, flashvars, params, attributes)
 		locate("#load_file","fileloader")
 
 		
@@ -372,7 +374,7 @@ $( ->
 	loadState()
 	setupDownloadify()
 	setupLoadfile()
-	$(window).bind("resize", relocate);
+	$(window).bind("resize", relocate)
 	processHash()
 	$("#bldb").file().choose (e, input) ->
 		handleFiles input[0].files

@@ -203,9 +203,10 @@
     if (typeof remoteServerRequest === "function") {
       return remoteServerRequest(method, uri, headers, body, successCallback, failureCallback);
     } else {
+      if (body !== null) body = JSON.stringify(body);
       return $.ajax(uri, {
         headers: headers,
-        data: JSON.stringify(body),
+        data: body,
         error: function(jqXHR, textStatus, errorThrown) {
           return failureCallback(jqXHR.status, JSON.parse(jqXHR.responseText));
         },
