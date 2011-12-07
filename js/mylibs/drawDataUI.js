@@ -73,7 +73,7 @@
     rootURI = location.pathname;
     filters = ["filters"];
     $("#dataTab").html("<table id='terms'><tbody><tr><td></td></tr></tbody></table><div align='left'><br/><input type='button' value='Apply All Changes' onClick='runTrans($(\"#terms\"));return false;'></div>");
-    return serverRequest("GET", "/data/", [], "", function(statusCode, result, headers) {
+    return serverRequest("GET", "/data/", {}, null, function(statusCode, result, headers) {
       var i, j, launch, leaf, newb, npos, objcb, post, pre, term, _len, _len2, _ref, _ref2, _results;
       objcb = {
         totsub: result.terms.length,
@@ -116,7 +116,7 @@
           pre += "<div style='display:inline; background-color:#FFFFFF;'>" + term.name + "</div>";
           pre += "<div style='display:inline;background-color:#FFFFFF'><a href='" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a></div>";
           _results.push((function(i, pre, post, launch) {
-            return serverRequest("GET", "/sqlmodel/", [], "", function(statusCode, result) {
+            return serverRequest("GET", "/sqlmodel/", {}, null, function(statusCode, result) {
               var uid;
               uid = new uidraw(i, objcb, pre, post, rootURI, [], [], filters, [launch - 2], true, tree, result);
               return uid.subRowIn();
@@ -222,7 +222,7 @@
           }
         }
         this.targ = serverAPI(this.about, this.filters);
-        return serverRequest("GET", this.targ, [], "", function(statusCode, result, headers) {
+        return serverRequest("GET", this.targ, {}, null, function(statusCode, result, headers) {
           var actn, branch, currBranch, currBranchType, i, instance, j, k, launch, locn, mod, newb, npos, posl, postl, prel, res, resl, schema, subcolcb, termVerb, uid, _len10, _len11, _len12, _len6, _len7, _len8, _len9, _n, _o, _p, _q, _ref10, _ref11, _ref12, _ref13, _ref14, _ref6, _ref7, _ref8, _ref9, _results;
           resl = "";
           parent.rows = result.instances.length;
@@ -392,7 +392,7 @@
           case "view":
             if (this.type === "term") {
               this.targ = serverAPI(this.about, this.filters);
-              return serverRequest("GET", this.targ, [], "", function(statusCode, result, headers) {
+              return serverRequest("GET", this.targ, {}, null, function(statusCode, result, headers) {
                 var item, res;
                 res = "";
                 for (item in result.instances[0]) {
@@ -404,7 +404,7 @@
               });
             } else if (this.type === "fcTp") {
               this.targ = serverAPI(this.about, this.filters);
-              return serverRequest("GET", this.targ, [], "", function(statusCode, result, headers) {
+              return serverRequest("GET", this.targ, {}, null, function(statusCode, result, headers) {
                 var res, schema, _len7, _o, _ref8;
                 res = "id: " + result.instances[0].id + "<br/>";
                 _ref8 = parent.schema;
@@ -457,7 +457,7 @@
               resultsRequested = Object.keys(termResults).length;
               _results = [];
               for (termName in termResults) {
-                _results.push(serverRequest("GET", serverAPI(termName, parent.filters), [], "", (function(termName) {
+                _results.push(serverRequest("GET", serverAPI(termName, parent.filters), {}, null, (function(termName) {
                   return function(statusCode, result, headers) {
                     termResults[termName] = result.instances;
                     resultsReceived++;
@@ -480,7 +480,7 @@
                 if (mod[1] === this.about) schema = mod[3];
               }
               this.targ = serverAPI(this.about, this.filters);
-              return serverRequest("GET", this.targ, [], "", function(statusCode, result, headers) {
+              return serverRequest("GET", this.targ, {}, null, function(statusCode, result, headers) {
                 var currSchema, id, _len11, _s;
                 id = result.instances[0].id;
                 res = "<div align='left'>";
@@ -506,7 +506,7 @@
               });
             } else if (this.type === "fcTp") {
               this.targ = serverAPI(this.about, this.filters);
-              return serverRequest("GET", this.targ, [], "", function(statusCode, result, headers) {
+              return serverRequest("GET", this.targ, {}, null, function(statusCode, result, headers) {
                 var currentFactType, schema, termName, _len11, _ref11, _results2, _s;
                 currentFactType = result.instances[0];
                 termResults = {};
@@ -519,7 +519,7 @@
                 resultsRequested = Object.keys(termResults).length;
                 _results2 = [];
                 for (termName in termResults) {
-                  _results2.push(serverRequest("GET", serverAPI(termName, parent.filters), [], "", (function(termName) {
+                  _results2.push(serverRequest("GET", serverAPI(termName, parent.filters), {}, null, (function(termName) {
                     return function(statusCode, result, headers) {
                       termResults[termName] = result.instances;
                       resultsReceived++;
@@ -612,7 +612,7 @@
 
   delInst = function(forma, uri, backURI) {
     this.backURI = backURI;
-    serverRequest("DELETE", uri, [], "", function(statusCode, result, headers) {
+    serverRequest("DELETE", uri, {}, null, function(statusCode, result, headers) {
       return location.hash = "#!" + backURI;
     });
     return false;
@@ -630,7 +630,7 @@
         return o;
       }
     });
-    serverRequest("PUT", serverURI, [], obj, function(statusCode, result, headers) {
+    serverRequest("PUT", serverURI, {}, obj, function(statusCode, result, headers) {
       return location.hash = "#!" + backURI;
     });
     return false;
@@ -648,7 +648,7 @@
         return o;
       }
     });
-    serverRequest("POST", uri, [], obj, function(statusCode, result, headers) {
+    serverRequest("POST", uri, {}, obj, function(statusCode, result, headers) {
       return location.hash = "#!" + backURI;
     });
     return false;

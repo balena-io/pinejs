@@ -9,8 +9,8 @@
           name: 'trans'
         }
       ];
-      serverRequest('POST', '/data/transaction', [], obj, function(statusCode, result, headers) {
-        return serverRequest("GET", headers.location, [], '', function(statusCode, trans, headers) {
+      serverRequest('POST', '/data/transaction', {}, obj, function(statusCode, result, headers) {
+        return serverRequest("GET", headers.location, {}, null, function(statusCode, trans, headers) {
           var callback, data, lockCount;
           lockCount = 0;
           data = [];
@@ -27,12 +27,12 @@
                   i++;
                   switch (dataElement[0]) {
                     case "del":
-                      return serverRequest("DELETE", dataElement[1], [], "", nextLoopCallback);
+                      return serverRequest("DELETE", dataElement[1], {}, null, nextLoopCallback);
                     case "edit":
-                      return serverRequest("PUT", dataElement[1], [], dataElement[2], nextLoopCallback);
+                      return serverRequest("PUT", dataElement[1], {}, dataElement[2], nextLoopCallback);
                   }
                 } else {
-                  return serverRequest("POST", trans.ctURI, [], "", function(statusCode, result, headers) {
+                  return serverRequest("POST", trans.ctURI, {}, null, function(statusCode, result, headers) {
                     return location.hash = "#!/data/";
                   });
                 }
@@ -82,12 +82,12 @@
       });
     }
     return lockResource = function(resource_type, resource_id, trans, successCallback, failureCallback) {
-      return serverRequest("POST", trans.lcURI, [], [
+      return serverRequest("POST", trans.lcURI, {}, [
         {
           name: "lok"
         }
       ], (function(statusCode, result, headers) {
-        return serverRequest("GET", headers.location, [], "", (function(statusCode, lock, headers) {
+        return serverRequest("GET", headers.location, {}, null, (function(statusCode, lock, headers) {
           var lockID, o;
           lockID = lock.instances[0].id;
           o = [
@@ -96,13 +96,13 @@
               lock_id: lockID
             }
           ];
-          return serverRequest("POST", trans.tlcURI, [], o, (function(statusCode, result, headers) {
+          return serverRequest("POST", trans.tlcURI, {}, o, (function(statusCode, result, headers) {
             o = [
               {
                 lock_id: lockID
               }
             ];
-            return serverRequest("POST", trans.xlcURI, [], o, (function(statusCode, result, headers) {
+            return serverRequest("POST", trans.xlcURI, {}, o, (function(statusCode, result, headers) {
               o = [
                 {
                   resource_id: parseInt(resource_id),
@@ -110,7 +110,7 @@
                   lock_id: lockID
                 }
               ];
-              return serverRequest("POST", trans.lrcURI, [], o, (function(statusCode, result, headers) {
+              return serverRequest("POST", trans.lrcURI, {}, o, (function(statusCode, result, headers) {
                 return successCallback(lockID);
               }), failureCallback);
             }), failureCallback);

@@ -3,9 +3,9 @@ runTrans = (rootElement) ->
 		#fetch transaction collection location?(?) - [not needed as this is code on demand]
 		#create transaction resource
 		obj = [name:'trans']
-		serverRequest('POST', '/data/transaction', [], obj, (statusCode, result, headers) ->
+		serverRequest('POST', '/data/transaction', {}, obj, (statusCode, result, headers) ->
 			#get 'trans'action resource to extract lcURI,tlcURI,rcURI,lrcURI,xlcURI,slcURI,ctURI
-			serverRequest("GET", headers.location, [], '', (statusCode, trans, headers) ->
+			serverRequest("GET", headers.location, {}, null, (statusCode, trans, headers) ->
 				lockCount = 0
 				data = []
 				callback = (op, cr_uri, o = {}) ->
@@ -18,11 +18,11 @@ runTrans = (rootElement) ->
 								i++
 								switch dataElement[0]
 									when "del"
-										serverRequest "DELETE", dataElement[1], [], "", nextLoopCallback
+										serverRequest "DELETE", dataElement[1], {}, null, nextLoopCallback
 									when "edit"
-										serverRequest "PUT", dataElement[1], [], dataElement[2], nextLoopCallback
+										serverRequest "PUT", dataElement[1], {}, dataElement[2], nextLoopCallback
 							else
-								serverRequest "POST", trans.ctURI, [], "", (statusCode, result, headers) ->
+								serverRequest "POST", trans.ctURI, {}, null, (statusCode, result, headers) ->
 									location.hash = "#!/data/"
 						nextLoopCallback()
 				
@@ -58,15 +58,15 @@ runTrans = (rootElement) ->
 
 
 	lockResource = (resource_type, resource_id, trans, successCallback, failureCallback) ->
-		serverRequest "POST", trans.lcURI, [], [ name: "lok" ], ((statusCode, result, headers) ->
-			serverRequest "GET", headers.location, [], "", ((statusCode, lock, headers) ->
+		serverRequest "POST", trans.lcURI, {}, [ name: "lok" ], ((statusCode, result, headers) ->
+			serverRequest "GET", headers.location, {}, null, ((statusCode, lock, headers) ->
 				lockID = lock.instances[0].id
 				o = [ transaction_id: trans.id, lock_id: lockID ]
-				serverRequest "POST", trans.tlcURI, [], o, ((statusCode, result, headers) ->
+				serverRequest "POST", trans.tlcURI, {}, o, ((statusCode, result, headers) ->
 					o = [ lock_id: lockID ]
-					serverRequest "POST", trans.xlcURI, [], o, ((statusCode, result, headers) ->
+					serverRequest "POST", trans.xlcURI, {}, o, ((statusCode, result, headers) ->
 						o = [ resource_id: parseInt(resource_id), resource_type: resource_type, lock_id: lockID ]
-						serverRequest "POST", trans.lrcURI, [], o, ((statusCode, result, headers) ->
+						serverRequest "POST", trans.lrcURI, {}, o, ((statusCode, result, headers) ->
 							successCallback(lockID)
 						), failureCallback
 					), failureCallback

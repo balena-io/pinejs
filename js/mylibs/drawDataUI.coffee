@@ -53,7 +53,7 @@ drawData = (tree) ->
 	rootURI = location.pathname
 	filters = [ "filters" ]
 	$("#dataTab").html "<table id='terms'><tbody><tr><td></td></tr></tbody></table><div align='left'><br/><input type='button' value='Apply All Changes' onClick='runTrans($(\"#terms\"));return false;'></div>"
-	serverRequest "GET", "/data/", [], "", (statusCode, result, headers) ->
+	serverRequest "GET", "/data/", {}, null, (statusCode, result, headers) ->
 		objcb =
 			totsub: result.terms.length
 			totend: 0
@@ -85,7 +85,7 @@ drawData = (tree) ->
 				#request schema from server and store locally.
 				do (i, pre, post, launch) ->
 					#TODO: We shouldn't really be requesting/using the SQL model on client side
-					serverRequest "GET", "/sqlmodel/", [], "", (statusCode, result) ->
+					serverRequest "GET", "/sqlmodel/", {}, null, (statusCode, result) ->
 						uid = new uidraw(i, objcb, pre, post, rootURI, [], [], filters, [ launch - 2 ], true, tree, result)
 						uid.subRowIn()
 			else
@@ -165,7 +165,7 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 					@cols++
 
 			@targ = serverAPI(@about, @filters)
-			serverRequest "GET", @targ, [], "", (statusCode, result, headers) ->
+			serverRequest "GET", @targ, {}, null, (statusCode, result, headers) ->
 				resl = ""
 				parent.rows = result.instances.length
 				parent.items = parent.rows + 2 + parent.adds + 1 + parent.cols
@@ -294,14 +294,14 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 				when "view"
 					if @type == "term"
 						@targ = serverAPI(@about, @filters)
-						serverRequest "GET", @targ, [], "", (statusCode, result, headers) ->
+						serverRequest "GET", @targ, {}, null, (statusCode, result, headers) ->
 							res = ""
 							for item of result.instances[0] when item != "__clone"
 								res += item + ": " + result.instances[0][item] + "<br/>"
 							parent.callback 1, res
 					else if @type == "fcTp"
 						@targ = serverAPI(@about, @filters)
-						serverRequest "GET", @targ, [], "", (statusCode, result, headers) ->
+						serverRequest "GET", @targ, {}, null, (statusCode, result, headers) ->
 							res = "id: " + result.instances[0].id + "<br/>"
 							#loop around terms
 							for schema in parent.schema
@@ -343,7 +343,7 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 						resultsReceived = 0
 						resultsRequested = Object.keys(termResults).length
 						for termName of termResults
-							serverRequest "GET", serverAPI(termName, parent.filters), [], "", do(termName) ->
+							serverRequest "GET", serverAPI(termName, parent.filters), {}, null, do(termName) ->
 								(statusCode, result, headers) ->
 									termResults[termName] = result.instances
 									resultsReceived++
@@ -359,7 +359,7 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 							schema = mod[3]
 
 						@targ = serverAPI(@about, @filters)
-						serverRequest "GET", @targ, [], "", (statusCode, result, headers) ->
+						serverRequest "GET", @targ, {}, null, (statusCode, result, headers) ->
 							id = result.instances[0].id
 							res = "<div align='left'>"
 							res += "<form class='action'>"
@@ -380,7 +380,7 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 							parent.callback 1, res
 					else if @type == "fcTp"
 						@targ = serverAPI(@about, @filters)
-						serverRequest "GET", @targ, [], "", (statusCode, result, headers) ->
+						serverRequest "GET", @targ, {}, null, (statusCode, result, headers) ->
 							currentFactType = result.instances[0]
 							termResults = {}
 							for schema in parent.schema when schema[0] == "term"
@@ -390,7 +390,7 @@ uidraw = (idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, c
 							resultsReceived = 0
 							resultsRequested = Object.keys(termResults).length
 							for termName of termResults
-								serverRequest "GET", serverAPI(termName, parent.filters), [], "", do(termName) ->
+								serverRequest "GET", serverAPI(termName, parent.filters), {}, null, do(termName) ->
 									(statusCode, result, headers) ->
 										termResults[termName] = result.instances
 										resultsReceived++
@@ -473,7 +473,7 @@ processForm = (forma) ->
 
 delInst = (forma, uri, backURI) ->
 	@backURI = backURI
-	serverRequest "DELETE", uri, [], "", (statusCode, result, headers) ->
+	serverRequest "DELETE", uri, {}, null, (statusCode, result, headers) ->
 		location.hash = "#!" + backURI
 
 	false
@@ -487,7 +487,7 @@ editInst = (forma, serverURI, backURI) ->
 			o[n.id] = $(n).val()
 			o
 	)
-	serverRequest "PUT", serverURI, [], obj, (statusCode, result, headers) ->
+	serverRequest "PUT", serverURI, {}, obj, (statusCode, result, headers) ->
 		location.hash = "#!" + backURI
 
 	false
@@ -501,7 +501,7 @@ addInst = (forma, uri, backURI) ->
 			o[n.id] = $(n).val()
 			o
 	)
-	serverRequest "POST", uri, [], obj, (statusCode, result, headers) ->
+	serverRequest "POST", uri, {}, obj, (statusCode, result, headers) ->
 		location.hash = "#!" + backURI
 
 	false
