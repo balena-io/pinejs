@@ -76,8 +76,9 @@
                 t, tt;
             this._form((function() {
                 return tt = this._many((function() {
-                    t = this._applyWithArgs("token", "term");
-                    return ["ForeignKey", (t[(1)] + "_id"), t[(2)], [t[(1)], "id", "name"]]
+                    t = this._apply("anything");
+                    this._pred((t[(0)] == "term"));
+                    return ["ForeignKey", (t[(1)] + "_id"), t[(1)], [t[(1)], "id", "name"]]
                 }))
             }));
             return tt
@@ -88,7 +89,8 @@
                 t, tt;
             this._form((function() {
                 return tt = this._many((function() {
-                    t = this._applyWithArgs("token", "term");
+                    t = this._apply("anything");
+                    this._pred((t[(0)] == "term"));
                     return (("\"" + t[(1)]) + "_id\" INTEGER")
                 }))
             }));
@@ -100,7 +102,8 @@
                 t, tt;
             this._form((function() {
                 return tt = this._many((function() {
-                    t = this._applyWithArgs("token", "term");
+                    t = this._apply("anything");
+                    this._pred((t[(0)] == "term"));
                     return (((("FOREIGN KEY (\"" + t[(1)]) + "_id\") REFERENCES \"") + t[(1)]) + "\"(\"id\")")
                 }))
             }));

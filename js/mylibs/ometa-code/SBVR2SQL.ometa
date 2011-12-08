@@ -38,12 +38,17 @@ ometa SBVR2SQL {
 	num			= number:n ?{!isNaN(n)}							-> ['num', n],
 	text		= :a											-> a,
 
-	ftsc		= [("term":t -> ['ForeignKey', t[1]+'_id', t[2], [t[1],'id','name']])*:tt]
+	//These check if the array is a term and uses the info directly, as it has already been processed
+	ftsc		= [(anything:t ?(t[0]=='term')
+																-> ['ForeignKey', t[1]+'_id', t[1], [t[1],'id','name']])*:tt]
 																-> tt,
-	ftfl		= [("term":t -> ('"'+t[1]+'_id" INTEGER'))*:tt]	-> tt,
-	ftfk		= [("term":t -> ('FOREIGN KEY ("'+t[1]+'_id") REFERENCES "'+t[1]+'"("id")'))*:tt]
+	ftfl		= [(anything:t ?(t[0]=='term')
+																-> ('"'+t[1]+'_id" INTEGER'))*:tt]
 																-> tt,
-	model		= ("term":t -> ['term', t[1], t[2], t[3], 
+	ftfk		= [(anything:t ?(t[0]=='term')
+																-> ('FOREIGN KEY ("'+t[1]+'_id") REFERENCES "'+t[1]+'"("id")'))*:tt]
+																-> tt,
+	model		= ("term":t -> ['term', t[1], t[2], t[3],
 								'CREATE TABLE ' + /*Postgres does not support: IF NOT EXISTS*/ '"'+t[1]+'" ("id" INTEGER PRIMARY KEY AUTOINCREMENT,"name" TEXT)',
 								'DROP TABLE "'+t[1]+'";']
 				|"fcTp":f ftfl(f[3]):l ftfk(f[3]):k ftsc(f[3]):s
@@ -67,17 +72,6 @@ ometa SBVR2SQL {
 		0: "term",
 		1: termName,
 		2: ?[attributes],
-	]
-	Or
-	[
-		0: "term",
-		1: tableName (replace ' ' with '_' for termName),
-		2: termName,
-		3: [
-			?[field],
-			?[...]
-		],
-		4: createTableSQL
 	]
 	Returns
 	term = [
