@@ -218,7 +218,7 @@
           while (match = rheaders.exec(responseHeadersString)) {
             responseHeaders[match[1].toLowerCase()] = match[2];
           }
-          return successCallback(jqXHR.status, JSON.parse(data), responseHeaders);
+          return successCallback(jqXHR.status, data, responseHeaders);
         },
         type: method
       });

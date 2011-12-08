@@ -182,7 +182,7 @@ window.serverRequest = (method, uri, headers = {}, body = null, successCallback,
 				responseHeadersString = jqXHR.getAllResponseHeaders()
 				while match = rheaders.exec( responseHeadersString )
 					responseHeaders[ match[1].toLowerCase() ] = match[2]
-				successCallback jqXHR.status, JSON.parse(data), responseHeaders
+				successCallback jqXHR.status, data, responseHeaders
 			
 			type: method
 
