@@ -1,18 +1,56 @@
 (function() {
-  var app, express, requirejs;
+  var LocalStrategy, app, crypto, db, express, isAuthed, passport, requirejs;
   var __slice = Array.prototype.slice;
 
   if (typeof process !== "undefined" && process !== null) {
-    express = require('express');
-    app = express.createServer();
-    app.configure(function() {
-      app.use(express.bodyParser());
-      return app.use(express.static(process.cwd()));
-    });
     requirejs = require('requirejs');
     requirejs.config({
       nodeRequire: require,
       baseUrl: 'js'
+    });
+    express = require('express');
+    app = express.createServer();
+    passport = require('passport');
+    app.configure(function() {
+      app.use(express.cookieParser());
+      app.use(express.session({
+        secret: "A pink cat jumped over a rainbow"
+      }));
+      app.use(passport.initialize());
+      app.use(passport.session());
+      app.use(express.bodyParser());
+      return app.use(express.static(process.cwd()));
+    });
+    db = null;
+    requirejs(['mylibs/db'], function(dbModule) {
+      return db = dbModule.postgres(process.env.DATABASE_URL || "postgres://postgres:.@localhost:5432/postgres");
+    });
+    crypto = require('crypto');
+    passport.serializeUser(function(user, done) {
+      return done(null, user);
+    });
+    passport.deserializeUser(function(user, done) {
+      return done(null, user);
+    });
+    LocalStrategy = require('passport-local').Strategy;
+    passport.use(new LocalStrategy(function(username, password, done) {
+      return db.transaction(function(tx) {
+        password = crypto.createHash('sha512').update(password).digest('hex');
+        return tx.executeSql('SELECT 1 FROM users WHERE username = ? AND password = ?', [username, password], function(tx, result) {
+          if (result.rows.length === 0) {
+            return done(null, false);
+          } else {
+            return done(null, username);
+          }
+        }, function(tx, err) {
+          return done(null, false);
+        });
+      });
+    }));
+    app.post('/login', passport.authenticate('local', {
+      failureRedirect: '/login.html'
+    }), function(req, res, next) {
+      return res.redirect('/');
     });
   } else {
     requirejs = window.requirejs;
@@ -134,12 +172,20 @@
     }
   }
 
+  isAuthed = function(req, res, next) {
+    if (!(req.isAuthenticated != null) || req.isAuthenticated()) {
+      return next();
+    } else {
+      return res.redirect('/login.html');
+    }
+  };
+
   requirejs(['mylibs/SBVRServer'], function(sbvrServer) {
-    return sbvrServer.setup(app, requirejs);
+    return sbvrServer.setup(app, requirejs, isAuthed);
   });
 
   requirejs(['mylibs/editorServer'], function(editorServer) {
-    return editorServer.setup(app, requirejs);
+    return editorServer.setup(app, requirejs, isAuthed);
   });
 
   if (typeof process !== "undefined" && process !== null) {

@@ -247,7 +247,7 @@ define((requirejs, exports, module) ->
 			next()
 
 	#Setup function
-	exports.setup = (app, requirejs) ->
+	exports.setup = (app, requirejs, isAuthed) ->
 		requirejs(["libs/inflection",
 				"../ometa-js/lib",
 				"../ometa-js/ometa-base"])
@@ -268,14 +268,13 @@ define((requirejs, exports, module) ->
 			serverModelCache = serverModelCache()
 		)
 
-		app.get('/onair',					   (req, res, next) -> res.json(serverModelCache.isServerOnAir()))
-		app.get('/model',		serverIsOnAir, (req, res, next) -> res.json(serverModelCache.getLastSE()))
-		app.get('/lfmodel',		serverIsOnAir, (req, res, next) -> res.json(serverModelCache.getLF()))
-		app.get('/prepmodel',	serverIsOnAir, (req, res, next) -> res.json(serverModelCache.getPrepLF()))
-		app.get('/sqlmodel',	serverIsOnAir, (req, res, next) -> res.json(serverModelCache.getSQL()))
-		app.get('/onair',		serverIsOnAir, (req, res, next) -> res.json(serverModelCache.getSQL()))
-		app.post('/update',		serverIsOnAir, (req, res, next) -> res.send(404))
-		app.post('/execute',				   (req, res, next) ->
+		app.get('/onair',						(req, res, next) -> res.json(serverModelCache.isServerOnAir()))
+		app.get('/model',		serverIsOnAir,	(req, res, next) -> res.json(serverModelCache.getLastSE()))
+		app.get('/lfmodel',		serverIsOnAir,	(req, res, next) -> res.json(serverModelCache.getLF()))
+		app.get('/prepmodel',	serverIsOnAir,	(req, res, next) -> res.json(serverModelCache.getPrepLF()))
+		app.get('/sqlmodel',	serverIsOnAir,	(req, res, next) -> res.json(serverModelCache.getSQL()))
+		app.post('/update',		serverIsOnAir,	(req, res, next) -> res.send(404))
+		app.post('/execute',					(req, res, next) ->
 			se = serverModelCache.getSE()
 			try
 				lfmod = SBVRParser.matchAll(se, "expr")

@@ -277,7 +277,7 @@
         return next();
       }
     };
-    exports.setup = function(app, requirejs) {
+    exports.setup = function(app, requirejs, isAuthed) {
       requirejs(["libs/inflection", "../ometa-js/lib", "../ometa-js/ometa-base"]);
       requirejs(["mylibs/ometa-code/SBVRModels", "mylibs/ometa-code/SBVRParser", "mylibs/ometa-code/SBVR_PreProc", "mylibs/ometa-code/SBVR2SQL", "mylibs/ometa-code/ServerURIParser"]);
       requirejs(['mylibs/db'], function(dbModule) {
@@ -301,9 +301,6 @@
         return res.json(serverModelCache.getPrepLF());
       });
       app.get('/sqlmodel', serverIsOnAir, function(req, res, next) {
-        return res.json(serverModelCache.getSQL());
-      });
-      app.get('/onair', serverIsOnAir, function(req, res, next) {
         return res.json(serverModelCache.getSQL());
       });
       app.post('/update', serverIsOnAir, function(req, res, next) {
