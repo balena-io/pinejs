@@ -482,9 +482,10 @@
 
 	test("SBVR2SQL",function() {
 		expect(testModel.length);
+		var parser = SBVR2SQL.createInstance();
 		for(var i=0,l=testModel.length;i<l;i++) {
 			try {
-				deepEqual(SBVR2SQL.match(['model',testModel[i][2]],'trans'), ['model',testModel[i][3]], testModel[i][0]);
+				deepEqual(parser.match(['model',testModel[i][2]],'trans'), ['model',testModel[i][3]], testModel[i][0]);
 			}
 			catch(e) {
 				console.log(e);
