@@ -85,7 +85,9 @@ ometa SBVR2SQL {
 		4: createTableSQL
 	]
 	**/
-	term		= [letters+:l] [letters+:m]? [anything*]?		-> ['term', l.join('_'), l.join(' '), [['Text', 'name', 'Name', []]] ],
+	term		= anything:termName
+					( anything:attrs {this.terms[termName] = ['term', this.attrVal(attrs, 'DatabaseTableName'), termName, [['Text', 'name', 'Name', []]] ]})?
+																-> this.terms[termName],
 	rule		= ("obl"|"nec"|"pos"|"prm"):xs "text":t			-> ['rule', [], t, [], xs, []],
 
 	//TODO: xs[3] is hacky and needs fixing properly.
@@ -153,6 +155,18 @@ ometa SBVR2SQL {
 	bind		= "term":t number:n								-> ('"var' + n + '"."id" = "f"."' + t[1] + '_id"')
 }
 
+SBVR2SQL.initialize = function() {
+	this.terms = {}
+}
+	
+SBVR2SQL.attrVal = function(attrs, attrName) {
+	for(var i=0;i<attrs.length;i++) {
+		if(attrs[i][0] == attrName)
+			return attrs[i][1]
+	}
+	return ''
+}
+
 SBVR2SQL._cLst = function(v) {
 	for(var i=1;i<v.length;i++) {
 		v[0] = v[0].concat(v[i])
@@ -163,9 +177,9 @@ SBVR2SQL._fLst = function(v) {
 	v = this._cLst(v);
 	var r = [];
 	for(var i=0;i<v.length;i++) {
-		r = r.concat(v[i][1])
+		r = r.concat(v[i][2])
 	}
-	return r.join('-')
+	return r.join('-').replace(/ /g,'_')
 }
 SBVR2SQL._fLstt = function(v) {
 	v = this._cLst(v);

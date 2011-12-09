@@ -191,29 +191,15 @@
         "term": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                l, m;
-            this._form((function() {
-                return l = this._many1((function() {
-                    return this._apply("letters")
-                }))
-            }));
+                termName, attrs;
+            termName = this._apply("anything");
             this._opt((function() {
-                return this._form((function() {
-                    return m = this._many1((function() {
-                        return this._apply("letters")
-                    }))
-                }))
+                attrs = this._apply("anything");
+                return (this["terms"][termName] = ["term", this.attrVal(attrs, "DatabaseTableName"), termName, [
+                    ["Text", "name", "Name", []]
+                ]])
             }));
-            this._opt((function() {
-                return this._form((function() {
-                    return this._many((function() {
-                        return this._apply("anything")
-                    }))
-                }))
-            }));
-            return ["term", l.join("_"), l.join(" "), [
-                ["Text", "name", "Name", []]
-            ]]
+            return this["terms"][termName]
         },
         "rule": function() {
             var $elf = this,
@@ -385,6 +371,20 @@
             return (((("\"var" + n) + "\".\"id\" = \"f\".\"") + t[(1)]) + "_id\"")
         }
     });
+    (SBVR2SQL["initialize"] = (function() {
+        (this["terms"] = ({}))
+    }));
+    (SBVR2SQL["attrVal"] = (function(attrs, attrName) {
+        for (var i = (0);
+        (i < attrs["length"]); i++) {
+            if ((attrs[i][(0)] == attrName)) {
+                return attrs[i][(1)]
+            } else {
+                undefined
+            }
+        };
+        return ""
+    }));
     (SBVR2SQL["_cLst"] = (function(v) {
         for (var i = (1);
         (i < v["length"]); i++) {
@@ -397,9 +397,9 @@
         var r = [];
         for (var i = (0);
         (i < v["length"]); i++) {
-            (r = r.concat(v[i][(1)]))
+            (r = r.concat(v[i][(2)]))
         };
-        return r.join("-")
+        return r.join("-").replace(/ /g, "_")
     }));
     (SBVR2SQL["_fLstt"] = (function(v) {
         (v = this._cLst(v));
