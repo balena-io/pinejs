@@ -240,10 +240,10 @@ setupDownloadify = () ->
 		onError: ->
 			showSimpleError "Content Is Empty"
 		transparent: false
-		swf: "downloadify/downloadify.swf"
+		swf: "downloadify/Downloadify.swf"
 		downloadImage: "downloadify/download.png"
-		width: 52	
-		height: 19
+		width: 62	
+		height: 22
 		transparent: true
 		append: false
 	locate("#write_file", "downloadify")	
@@ -259,7 +259,7 @@ setupLoadfile = () ->
 		attributes = {
 			id: "fileloader"
 		}
-		swfobject.embedSWF("FileLoader/FileLoader.swf", "TheFileLoader", 53, 19, "10", null, flashvars, params, attributes)
+		swfobject.embedSWF("FileLoader/FileLoader.swf", "TheFileLoader", 63, 22, "10", null, flashvars, params, attributes)
 		locate("#load_file","fileloader")
 
 		
@@ -302,15 +302,17 @@ window.readFile = (files) ->
 			else
 				showSimpleError("Only text file is acceptable.")
 
-window.mouseEventHandle = (elementId, event) ->
-	###
-	id = '#' + elementId
+window.mouseEventHandle = (id, event) ->
 	switch event
-		when "down" then	console.log("down")
-		when "up" then console.log("up")
-		when "enter" then console.log("enter")# $(id).css("background-color", "blue")
-		else console.log("leave")# $(id).css("background-color", "white") # leave
-	###
+		when "e" 
+			$(id).addClass("ui-state-hover")			# enter
+		when "l" 
+			$(id).removeClass("ui-state-hover ui-state-active")		# leave
+		when "d" 
+			$(id).addClass("ui-state-active")			# down
+		else 
+			$(id).removeClass("ui-state-active ui-state-hover")	# up
+	return false
 		
 window.saveModel = ->
 	serverRequest "POST", "/publish", {"Content-Type": "application/json"}, sbvrEditor.getValue(),
@@ -372,9 +374,10 @@ $( ->
 	getModel()
 	loadUI()
 	loadState()
+	$("input[class!='hidden-input']").button()
 	setupDownloadify()
 	setupLoadfile()
-	$(window).bind("resize", relocate)
+	$(window).on("resize", relocate)
 	processHash()
 	$("#bldb").file().choose (e, input) ->
 		handleFiles input[0].files

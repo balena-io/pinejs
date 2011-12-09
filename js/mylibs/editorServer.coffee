@@ -11,12 +11,12 @@ define((requirejs, exports, module) ->
 
 	# To run:
 	# rulemotion-canvas/out/publish
-	# node server.js
+	# node js/mylibs/server.js
 	# http://localhost:1337/
 
 	db = null
 
-	#number to base 62
+	# number to base 62
 	toBase = (decimal , base) ->
 		symbols = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".split("")
 		chars = ""
@@ -27,17 +27,17 @@ define((requirejs, exports, module) ->
 				decimal = Math.floor(decimal / base)	
 		return  chars
 
-	#base 62 to number
+	# base 62 to number
 	decodeBase = (url, base) -> 
 		symbols = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".split("")
 		sum = 0
 		for alphaChar in url.split("")
 			alphaNum = alphaChar.charCodeAt(0)
-			if (48 <= alphaNum && alphaNum <= 57) #0-9 48-57
+			if (48 <= alphaNum && alphaNum <= 57) # 0-9 48-57
 				alphaNum -= 48
-			else if (65 <= alphaNum && alphaNum <= 90) #A-Z 36-61
+			else if (65 <= alphaNum && alphaNum <= 90) # A-Z 36-61
 				alphaNum -= 29
-			else if (97 <= alphaNum && alphaNum <= 122) #a-z 10-35
+			else if (97 <= alphaNum && alphaNum <= 122) # a-z 10-35
 				alphaNum -= 87
 			else 
 				return false
@@ -66,10 +66,10 @@ define((requirejs, exports, module) ->
 				tx.tableList(
 					(tx, result) ->
 						if result.rows.length == 0
-							tx.executeSql	'CREATE TABLE '+#Postgres does not support: IF NOT EXISTS
+							tx.executeSql	'CREATE TABLE '+ # Postgres does not support: IF NOT EXISTS
 											'"_sbvr_editor_cache" (' +
 											'"id" INTEGER PRIMARY KEY AUTOINCREMENT,' +
-											#'"key" VARCHAR PRIMARY KEY,' +
+											# '"key" VARCHAR PRIMARY KEY,' +
 											'"value" VARCHAR );' 
 					null
 					"name = '_sbvr_editor_cache'"

@@ -292,10 +292,10 @@
         return showSimpleError("Content Is Empty");
       },
       transparent: false,
-      swf: "downloadify/downloadify.swf",
+      swf: "downloadify/Downloadify.swf",
       downloadImage: "downloadify/download.png",
-      width: 52,
-      height: 19,
+      width: 62,
+      height: 22,
       transparent: true,
       append: false
     });
@@ -313,7 +313,7 @@
       attributes = {
         id: "fileloader"
       };
-      swfobject.embedSWF("FileLoader/FileLoader.swf", "TheFileLoader", 53, 19, "10", null, flashvars, params, attributes);
+      swfobject.embedSWF("FileLoader/FileLoader.swf", "TheFileLoader", 63, 22, "10", null, flashvars, params, attributes);
       return locate("#load_file", "fileloader");
     }
   };
@@ -367,15 +367,21 @@
     }
   };
 
-  window.mouseEventHandle = function(elementId, event) {
-    /*
-    	id = '#' + elementId
-    	switch event
-    		when "down" then	console.log("down")
-    		when "up" then console.log("up")
-    		when "enter" then console.log("enter")# $(id).css("background-color", "blue")
-    		else console.log("leave")# $(id).css("background-color", "white") # leave
-    */
+  window.mouseEventHandle = function(id, event) {
+    switch (event) {
+      case "e":
+        $(id).addClass("ui-state-hover");
+        break;
+      case "l":
+        $(id).removeClass("ui-state-hover ui-state-active");
+        break;
+      case "d":
+        $(id).addClass("ui-state-active");
+        break;
+      default:
+        $(id).removeClass("ui-state-active ui-state-hover");
+    }
+    return false;
   };
 
   window.saveModel = function() {
@@ -452,9 +458,10 @@
     getModel();
     loadUI();
     loadState();
+    $("input[class!='hidden-input']").button();
     setupDownloadify();
     setupLoadfile();
-    $(window).bind("resize", relocate);
+    $(window).on("resize", relocate);
     processHash();
     return $("#bldb").file().choose(function(e, input) {
       return handleFiles(input[0].files);
