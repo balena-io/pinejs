@@ -67,7 +67,7 @@ else
 			GET: []
 		addHandler = (handlerName, match, middleware...) ->
 			#Strip wildcard
-			match = match.replace(/\/\*$/,'')
+			match = match.replace(/[\/\*]*$/,'')
 			paramMatch = /:(.*)$/.exec(match)
 			paramName = (paramMatch == null ? null : paramMatch[1] )
 			handlers[handlerName].push(

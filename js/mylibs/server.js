@@ -65,7 +65,7 @@
       addHandler = function() {
         var handlerName, match, middleware, paramMatch, paramName, _ref;
         handlerName = arguments[0], match = arguments[1], middleware = 3 <= arguments.length ? __slice.call(arguments, 2) : [];
-        match = match.replace(/\/\*$/, '');
+        match = match.replace(/[\/\*]*$/, '');
         paramMatch = /:(.*)$/.exec(match);
         paramName = (_ref = paramMatch === null) != null ? _ref : {
           "null": paramMatch[1]
