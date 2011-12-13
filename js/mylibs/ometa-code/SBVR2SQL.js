@@ -386,11 +386,12 @@
         return ""
     }));
     (SBVR2SQL["_cLst"] = (function(v) {
-        for (var i = (1);
+        (c = []);
+        for (var i = (0);
         (i < v["length"]); i++) {
-            (v[(0)] = v[(0)].concat(v[i]))
+            (c = c.concat(v[i]))
         };
-        return v[(0)]
+        return c
     }));
     (SBVR2SQL["_fLst"] = (function(v) {
         (v = this._cLst(v));

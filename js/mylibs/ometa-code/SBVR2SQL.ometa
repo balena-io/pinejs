@@ -63,7 +63,7 @@ ometa SBVR2SQL {
 					("term":t "verb":v->[t,v])*:r ("term":t->[('-'+t[1]),(' '+t[1])]|empty->['','']):e
 					(anything*->['','']):attr
 																-> ['fcTp', this._fLst(r).concat(e[0]), this._fLstt(r).concat(e[1]), s, a],
-
+					
 	verb		= [letters+:l]									-> ['verb', l.join('_'), l.join(' ')],
 
 	/**
@@ -168,10 +168,11 @@ SBVR2SQL.attrVal = function(attrs, attrName) {
 }
 
 SBVR2SQL._cLst = function(v) {
-	for(var i=1;i<v.length;i++) {
-		v[0] = v[0].concat(v[i])
+	c = []
+	for(var i=0;i<v.length;i++) {
+		c = c.concat(v[i])
 	}
-	return v[0]
+	return c
 }
 SBVR2SQL._fLst = function(v) {
 	v = this._cLst(v);
