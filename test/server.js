@@ -62,29 +62,37 @@ test("DELETE /",function() {
 
 test("Execute model /",function() {
 	resetState(function(){
-		testName = "textarea-is_disabled model_area"
+		testName = "PUT textarea-is_disabled model_area"
 		remoteServerRequest ("PUT", "/ui/textarea-is_disabled*filt:textarea.name=model_area/", {}, {value: true}, function(statusCode, result, headers) {
-			equal(statusCode, 200, "PUT " + testName);
+			equal(statusCode, 200, testName);
+			testName = "GET textarea-is_disabled model_area"
 			remoteServerRequest ("GET", "/ui/textarea-is_disabled*filt:textarea.name=model_area/", {}, null, function(statusCode, result, headers) {
-				equal(statusCode, 200, "GET " + testName);
-				deepEqual(result, {value: true}, "GET " + testName);
+				equal(statusCode, 200, testName);
+				deepEqual(result, {value: true}, testName);
 			}, function(statusCode, error) {
-				ok(false, "GET " + testName);
+				ok(false, testName);
 			})
-			testName = "textarea model_area"
+			testName = "PUT textarea model_area"
 			remoteServerRequest ("PUT", "/ui/textarea*filt:name=model_area/", {}, {value: model1}, function(statusCode, result, headers) {
-				equal(statusCode, 200, "PUT " + testName);
+				equal(statusCode, 200, testName);
+				testName = "GET textarea model_area"
 				remoteServerRequest ("GET", "/ui/textarea*filt:name=model_area/", {}, null, function(statusCode, result, headers) {
-					equal(statusCode, 200, "GET " + testName);
-					deepEqual(result, {value: model1}, "GET " + testName);
+					equal(statusCode, 200, testName);
+					deepEqual(result, {value: model1}, testName);
 				}, function(statusCode, error) {
-					ok(false, "GET " + testName);
+					ok(false, testName);
 				})
-				testName = "/execute/"
+				testName = "POST /execute/"
 				remoteServerRequest ("POST", "/execute/", {}, null, function (statusCode, result, headers) {
-					equal(statusCode, 200, "POST " + testName);
+					equal(statusCode, 200, testName);
+				}, function(statusCode, error) {
+					ok(false, testName);
 				})
+			}, function(statusCode, error) {
+				ok(false, testName);
 			})
+		}, function(statusCode, error) {
+			ok(false, testName);
 		})
 	})
 })
