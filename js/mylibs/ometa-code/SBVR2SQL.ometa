@@ -51,18 +51,32 @@ ometa SBVR2SQL {
 	model		= ("term":t -> ['term', t[1], t[2], t[3],
 								'CREATE TABLE ' + /*Postgres does not support: IF NOT EXISTS*/ '"'+t[1]+'" ("id" INTEGER PRIMARY KEY AUTOINCREMENT,"name" TEXT)',
 								'DROP TABLE "'+t[1]+'";']
-				|"fcTp":f ftfl(f[3]):l ftfk(f[3]):k ftsc(f[3]):s
-								-> ['fcTp', f[1], f[2], s, ('CREATE TABLE ' + /*Postgres does not support: IF NOT EXISTS*/ '"'+f[1]+
-									'" ("id" INTEGER PRIMARY KEY AUTOINCREMENT, '+l.join(', ')+', '+k.join(', ')+')'),
-									'DROP TABLE "'+f[1]+'";', f[4]]
+				|"fcTp":f
+								-> ['fcTp', f[1], f[2], f[6], ('CREATE TABLE ' + /*Postgres does not support: IF NOT EXISTS*/ '"'+f[1]+
+									'" ("id" INTEGER PRIMARY KEY AUTOINCREMENT, '+f[4].join(', ')+', '+f[5].join(', ')+')'),
+									'DROP TABLE "'+f[1]+'";', f[3]]
 				|"rule")*:xs									-> ['model'].concat(xs),
 
-	fcTp		= {a=[]} &(	( "term":c "verb":d	-> ( a = a.concat([[c[0],c[2]],[d[0],d[2]]])	) )* 
-							( "term":b			-> ( a = a.concat([[b[0], b[2]]])				) )?)
-					&(("term":t "verb" ->t)*:s $('term'):e) {s=s.concat(e)}
-					("term":t "verb":v->[t,v])*:r ("term":t->[('-'+t[1]),(' '+t[1])]|empty->['','']):e
-					(anything*->['','']):attr
-																-> ['fcTp', this._fLst(r).concat(e[0]), this._fLstt(r).concat(e[1]), s, a],
+	fcTp		= {lfForm=[]; terms=[]; results=[]; resultsE=''}
+					("term":t "verb":v {
+										lfForm.push([t[0],t[2]]); lfForm.push([v[0],v[2]]);
+										terms.push(t);
+										results.push([t,v])}
+					)*
+					("term":t	{
+								lfForm.push([t[0],t[2]]);
+								terms.push(t);
+								resultsE = ' '+t[1]}
+					)?
+					
+					( //Check for attrs (standalone fact type) and create cached result if we have them
+						anything:attrs
+						ftfl(terms):fkCols
+						ftfk(terms):fkRefs
+						ftsc(terms):fkSchema
+						{this.factTypes[lfForm] = ['fcTp', this.attrVal(attrs, 'DatabaseTableName'), this._fLstt(results).concat(resultsE), lfForm, fkCols, fkRefs, fkSchema]}
+					)?
+																-> this.factTypes[lfForm],
 					
 	verb		= [letters+:l]									-> ['verb', l.join('_'), l.join(' ')],
 
@@ -157,6 +171,7 @@ ometa SBVR2SQL {
 
 SBVR2SQL.initialize = function() {
 	this.terms = {}
+	this.factTypes = {}
 }
 	
 SBVR2SQL.attrVal = function(attrs, attrName) {
@@ -173,14 +188,6 @@ SBVR2SQL._cLst = function(v) {
 		c = c.concat(v[i])
 	}
 	return c
-}
-SBVR2SQL._fLst = function(v) {
-	v = this._cLst(v);
-	var r = [];
-	for(var i=0;i<v.length;i++) {
-		r = r.concat(v[i][2])
-	}
-	return r.join('-').replace(/ /g,'_')
 }
 SBVR2SQL._fLstt = function(v) {
 	v = this._cLst(v);

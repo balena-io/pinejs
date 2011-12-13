@@ -112,17 +112,14 @@
         "model": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                t, f, l, k, s, xs;
+                t, f, xs;
             xs = this._many((function() {
                 return this._or((function() {
                     t = this._applyWithArgs("token", "term");
                     return ["term", t[(1)], t[(2)], t[(3)], ((("CREATE TABLE " + "\"") + t[(1)]) + "\" (\"id\" INTEGER PRIMARY KEY AUTOINCREMENT,\"name\" TEXT)"), (("DROP TABLE \"" + t[(1)]) + "\";")]
                 }), (function() {
                     f = this._applyWithArgs("token", "fcTp");
-                    l = this._applyWithArgs("ftfl", f[(3)]);
-                    k = this._applyWithArgs("ftfk", f[(3)]);
-                    s = this._applyWithArgs("ftsc", f[(3)]);
-                    return ["fcTp", f[(1)], f[(2)], s, ((((((("CREATE TABLE " + "\"") + f[(1)]) + "\" (\"id\" INTEGER PRIMARY KEY AUTOINCREMENT, ") + l.join(", ")) + ", ") + k.join(", ")) + ")"), (("DROP TABLE \"" + f[(1)]) + "\";"), f[(4)]]
+                    return ["fcTp", f[(1)], f[(2)], f[(6)], ((((((("CREATE TABLE " + "\"") + f[(1)]) + "\" (\"id\" INTEGER PRIMARY KEY AUTOINCREMENT, ") + f[(4)].join(", ")) + ", ") + f[(5)].join(", ")) + ")"), (("DROP TABLE \"" + f[(1)]) + "\";"), f[(3)]]
                 }), (function() {
                     return this._applyWithArgs("token", "rule")
                 }))
@@ -132,50 +129,39 @@
         "fcTp": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                c, d, b, t, s, e, v, r, attr;
-            (a = []);
-            this._lookahead((function() {
-                this._many((function() {
-                    c = this._applyWithArgs("token", "term");
-                    d = this._applyWithArgs("token", "verb");
-                    return (a = a.concat([
-                        [c[(0)], c[(2)]],
-                        [d[(0)], d[(2)]]
-                    ]))
-                }));
-                return this._opt((function() {
-                    b = this._applyWithArgs("token", "term");
-                    return (a = a.concat([
-                        [b[(0)], b[(2)]]
-                    ]))
-                }))
-            }));
-            this._lookahead((function() {
-                s = this._many((function() {
-                    t = this._applyWithArgs("token", "term");
-                    this._applyWithArgs("token", "verb");
-                    return t
-                }));
-                return e = this._applyWithArgs("$", "term")
-            }));
-            (s = s.concat(e));
-            r = this._many((function() {
+                t, v, attrs, fkCols, fkRefs, fkSchema;
+            (function() {
+                (lfForm = []);
+                (terms = []);
+                (results = []);
+                return (resultsE = "")
+            }).call(this);
+            this._many((function() {
                 t = this._applyWithArgs("token", "term");
                 v = this._applyWithArgs("token", "verb");
-                return [t, v]
+                return (function() {
+                    lfForm.push([t[(0)], t[(2)]]);
+                    lfForm.push([v[(0)], v[(2)]]);
+                    terms.push(t);
+                    return results.push([t, v])
+                }).call(this)
             }));
-            e = this._or((function() {
+            this._opt((function() {
                 t = this._applyWithArgs("token", "term");
-                return [("-" + t[(1)]), (" " + t[(1)])]
-            }), (function() {
-                this._apply("empty");
-                return ["", ""]
+                return (function() {
+                    lfForm.push([t[(0)], t[(2)]]);
+                    terms.push(t);
+                    return (resultsE = (" " + t[(1)]))
+                }).call(this)
             }));
-            this._many((function() {
-                return this._apply("anything")
+            this._opt((function() {
+                attrs = this._apply("anything");
+                fkCols = this._applyWithArgs("ftfl", terms);
+                fkRefs = this._applyWithArgs("ftfk", terms);
+                fkSchema = this._applyWithArgs("ftsc", terms);
+                return (this["factTypes"][lfForm] = ["fcTp", this.attrVal(attrs, "DatabaseTableName"), this._fLstt(results).concat(resultsE), lfForm, fkCols, fkRefs, fkSchema])
             }));
-            attr = ["", ""];
-            return ["fcTp", this._fLst(r).concat(e[(0)]), this._fLstt(r).concat(e[(1)]), s, a]
+            return this["factTypes"][lfForm]
         },
         "verb": function() {
             var $elf = this,
@@ -372,7 +358,8 @@
         }
     });
     (SBVR2SQL["initialize"] = (function() {
-        (this["terms"] = ({}))
+        (this["terms"] = ({}));
+        (this["factTypes"] = ({}))
     }));
     (SBVR2SQL["attrVal"] = (function(attrs, attrName) {
         for (var i = (0);
@@ -392,15 +379,6 @@
             (c = c.concat(v[i]))
         };
         return c
-    }));
-    (SBVR2SQL["_fLst"] = (function(v) {
-        (v = this._cLst(v));
-        var r = [];
-        for (var i = (0);
-        (i < v["length"]); i++) {
-            (r = r.concat(v[i][(2)]))
-        };
-        return r.join("-").replace(/ /g, "_")
     }));
     (SBVR2SQL["_fLstt"] = (function(v) {
         (v = this._cLst(v));
