@@ -13,12 +13,12 @@
     passport = require('passport');
     app.configure(function() {
       app.use(express.cookieParser());
+      app.use(express.bodyParser());
       app.use(express.session({
         secret: "A pink cat jumped over a rainbow"
       }));
       app.use(passport.initialize());
       app.use(passport.session());
-      app.use(express.bodyParser());
       return app.use(express.static(process.cwd()));
     });
     db = null;

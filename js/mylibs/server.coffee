@@ -14,11 +14,13 @@ if process?
 	app.configure(->
 		#IFDEF server
 		app.use(express.cookieParser())
+		#ENDIFDEF
+		app.use(express.bodyParser())
+		#IFDEF server
 		app.use(express.session({ secret: "A pink cat jumped over a rainbow" }))
 		app.use(passport.initialize())
 		app.use(passport.session())
 		#ENDIFDEF
-		app.use(express.bodyParser())
 		app.use(express.static(process.cwd()))
 	)
 	
@@ -134,7 +136,9 @@ else
 						res.send(404)
 				checkMethodHandlers()
 		}
+	#IFDEF websql
 	window?.remoteServerRequest = app.process
+	#ENDIFDEF
 
 isAuthed = (req, res, next) ->
 	if (!req.isAuthenticated? || req.isAuthenticated())
