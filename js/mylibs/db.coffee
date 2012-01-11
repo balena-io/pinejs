@@ -1,8 +1,7 @@
 define((requirejs, exports, module) ->
 	if process?
 		exports.postgres = (connectString) ->
-			requirejs(["../ometa-js/lib",
-			"../ometa-js/ometa-base"])
+			requirejs(["../ometa-js/lib", "../ometa-js/ometa-base"])
 			requirejs(["mylibs/ometa-code/SQLBinds"])
 			Client = new requirejs('pg').Client
 			_db = new Client(connectString)
@@ -24,12 +23,13 @@ define((requirejs, exports, module) ->
 						console.log(sql)
 					bindNo = 1
 					sql = SQLBinds.matchAll(sql, "parse", [-> '$'+bindNo++])
-					_db.query {text: sql, values: bindings}, (err, res) ->
+					_db.query({text: sql, values: bindings}, (err, res) ->
 						if err?
 							errorCallback? thisTX, err
 							console.log(sql, bindings, err)
 						else
 							callback? thisTX, result(res.rows)
+					)
 				begin: -> this.executeSql('BEGIN;')
 				end: -> this.executeSql('END;')
 				rollback: -> this.executeSql('ROLLBACK;')
@@ -38,6 +38,44 @@ define((requirejs, exports, module) ->
 						extraWhereClause = ' WHERE ' + extraWhereClause
 					this.executeSql("SELECT * FROM (SELECT tablename as name FROM pg_tables WHERE schemaname = 'public' AND tablename != '_server_model_cache') t" + extraWhereClause + ";", [], callback, errorCallback)
 				dropTable: (tableName, ifExists = true, callback, errorCallback) -> this.executeSql('DROP TABLE ' + (if ifExists == true then 'IF EXISTS ' else '') + '"' + tableName + '" CASCADE;', [], callback, errorCallback)
+			}
+			return {
+				transaction: (callback) ->
+					callback(tx)
+			}
+			
+		exports.mysql = (options) ->
+			mysql = new requirejs('mysql')
+			_db = mysql.createClient(options)
+			_db.query("SET sql_mode='ANSI_QUOTES';");
+			result = (rows) ->
+				return {
+					rows:
+						length: rows?.length or 0
+						item: (i) -> rows[i]
+					insertId: rows.insertId || null
+				}
+			tx = {
+				executeSql: (sql, bindings = [], callback, errorCallback, addReturning = true) ->
+					thisTX = this
+					sql = sql.replace(/GROUP BY NULL/g, '') #HACK: Remove GROUP BY NULL for MySQL? as it does not need/accept? it.
+					sql = sql.replace(/AUTOINCREMENT/g, 'AUTO_INCREMENT') #HACK: MySQL uses AUTO_INCREMENT rather than AUTOINCREMENT.
+					sql = sql.replace(/DROP CONSTRAINT/g, 'DROP FOREIGN KEY') #HACK: MySQL uses FOREIGN KEY rather than CONSTRAINT.
+					_db.query(sql, bindings, (err, res, fields) ->
+						if err?
+							errorCallback? thisTX, err
+							console.log(sql, bindings, err)
+						else
+							callback? thisTX, result(res)
+					)
+				begin: -> this.executeSql('START TRANSACTION;')
+				end: -> this.executeSql('COMMIT;')
+				rollback: -> this.executeSql('ROLLBACK;')
+				tableList: (callback, errorCallback, extraWhereClause = '') ->
+					if extraWhereClause != ''
+						extraWhereClause = ' WHERE ' + extraWhereClause
+					this.executeSql("SELECT name FROM (SELECT tablename as name FROM information_schema.tables WHERE table_schema = '" + _db.escape(options.database) + "' AND tablename != '_server_model_cache') t" + extraWhereClause + ";", [], callback, errorCallback)
+				dropTable: (tableName, ifExists = true, callback, errorCallback) -> this.executeSql('DROP TABLE ' + (if ifExists == true then 'IF EXISTS ' else '') + '"' + tableName + '";', [], callback, errorCallback)
 			}
 			return {
 				transaction: (callback) ->

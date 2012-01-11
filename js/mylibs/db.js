@@ -79,6 +79,69 @@
           }
         };
       };
+      exports.mysql = function(options) {
+        var mysql, result, tx, _db;
+        mysql = new requirejs('mysql');
+        _db = mysql.createClient(options);
+        _db.query("SET sql_mode='ANSI_QUOTES';");
+        result = function(rows) {
+          return {
+            rows: {
+              length: (rows != null ? rows.length : void 0) || 0,
+              item: function(i) {
+                return rows[i];
+              }
+            },
+            insertId: rows.insertId || null
+          };
+        };
+        tx = {
+          executeSql: function(sql, bindings, callback, errorCallback, addReturning) {
+            var thisTX;
+            if (bindings == null) bindings = [];
+            if (addReturning == null) addReturning = true;
+            thisTX = this;
+            sql = sql.replace(/GROUP BY NULL/g, '');
+            sql = sql.replace(/AUTOINCREMENT/g, 'AUTO_INCREMENT');
+            sql = sql.replace(/DROP CONSTRAINT/g, 'DROP FOREIGN KEY');
+            return _db.query(sql, bindings, function(err, res, fields) {
+              if (err != null) {
+                if (typeof errorCallback === "function") {
+                  errorCallback(thisTX, err);
+                }
+                return console.log(sql, bindings, err);
+              } else {
+                return typeof callback === "function" ? callback(thisTX, result(res)) : void 0;
+              }
+            });
+          },
+          begin: function() {
+            return this.executeSql('START TRANSACTION;');
+          },
+          end: function() {
+            return this.executeSql('COMMIT;');
+          },
+          rollback: function() {
+            return this.executeSql('ROLLBACK;');
+          },
+          tableList: function(callback, errorCallback, extraWhereClause) {
+            if (extraWhereClause == null) extraWhereClause = '';
+            if (extraWhereClause !== '') {
+              extraWhereClause = ' WHERE ' + extraWhereClause;
+            }
+            return this.executeSql("SELECT name FROM (SELECT tablename as name FROM information_schema.tables WHERE table_schema = '" + _db.escape(options.database) + "' AND tablename != '_server_model_cache') t" + extraWhereClause + ";", [], callback, errorCallback);
+          },
+          dropTable: function(tableName, ifExists, callback, errorCallback) {
+            if (ifExists == null) ifExists = true;
+            return this.executeSql('DROP TABLE ' + (ifExists === true ? 'IF EXISTS ' : '') + '"' + tableName + '";', [], callback, errorCallback);
+          }
+        };
+        return {
+          transaction: function(callback) {
+            return callback(tx);
+          }
+        };
+      };
       exports.sqlite = function(filepath) {
         var result, sqlite3, tx, _db;
         sqlite3 = requirejs('sqlite3').verbose();
