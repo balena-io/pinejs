@@ -22,7 +22,7 @@
         trans: []
       };
       db.transaction(function(tx) {
-        tx.executeSql('CREATE TABLE ' + '"_server_model_cache" (' + '"key"	VARCHAR PRIMARY KEY,' + '"value"	VARCHAR );');
+        tx.executeSql('CREATE TABLE ' + '"_server_model_cache" (' + '"key"		VARCHAR(40) PRIMARY KEY,' + '"value"	VARCHAR(32768) );');
         return tx.executeSql('SELECT * FROM "_server_model_cache";', [], function(tx, result) {
           var i, row, _ref, _results;
           _results = [];

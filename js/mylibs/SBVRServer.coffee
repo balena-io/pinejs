@@ -21,8 +21,8 @@ define((requirejs, exports, module) ->
 		db.transaction (tx) ->
 			tx.executeSql 'CREATE TABLE '+#Postgres does not support: IF NOT EXISTS
 							'"_server_model_cache" (' +
-						'"key"	VARCHAR PRIMARY KEY,' +
-						'"value"	VARCHAR );'
+							'"key"		VARCHAR(40) PRIMARY KEY,' +
+							'"value"	VARCHAR(32768) );'
 			tx.executeSql 'SELECT * FROM "_server_model_cache";', [], (tx, result) ->
 				for i in [0...result.rows.length]
 					row = result.rows.item(i)
