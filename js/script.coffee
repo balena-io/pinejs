@@ -162,9 +162,9 @@ cleanUp = (a) ->
 window.serverRequest = (method, uri, headers = {}, body = null, successCallback, failureCallback) ->
 	successCallback = (if typeof successCallback != "function" then defaultSuccessCallback else successCallback)
 	failureCallback = (if typeof failureCallback != "function" then defaultFailureCallback else failureCallback)
-	if !headers["Content-Type"]?
+	if !headers["Content-Type"]? and body?
 		headers["Content-Type"] = "application/json"
-	$("#httpTable").append "<tr class=\"server_row\"><td><strong>" + method + "</strong></td><td>" + uri + "</td><td>" + (if headers.length == 0 then "" else headers) + "</td><td>" + body + "</td></tr>"
+	$("#httpTable").append "<tr class=\"server_row\"><td><strong>" + method + "</strong></td><td>" + uri + "</td><td>" + (if headers.length == 0 then "" else JSON.stringify(headers)) + "</td><td>" + JSON.stringify(body) + "</td></tr>"
 	if typeof remoteServerRequest == "function"
 		remoteServerRequest method, uri, headers, body, successCallback, failureCallback
 	else

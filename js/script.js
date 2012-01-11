@@ -196,10 +196,10 @@
     if (body == null) body = null;
     successCallback = (typeof successCallback !== "function" ? defaultSuccessCallback : successCallback);
     failureCallback = (typeof failureCallback !== "function" ? defaultFailureCallback : failureCallback);
-    if (!(headers["Content-Type"] != null)) {
+    if (!(headers["Content-Type"] != null) && (body != null)) {
       headers["Content-Type"] = "application/json";
     }
-    $("#httpTable").append("<tr class=\"server_row\"><td><strong>" + method + "</strong></td><td>" + uri + "</td><td>" + (headers.length === 0 ? "" : headers) + "</td><td>" + body + "</td></tr>");
+    $("#httpTable").append("<tr class=\"server_row\"><td><strong>" + method + "</strong></td><td>" + uri + "</td><td>" + (headers.length === 0 ? "" : JSON.stringify(headers)) + "</td><td>" + JSON.stringify(body) + "</td></tr>");
     if (typeof remoteServerRequest === "function") {
       return remoteServerRequest(method, uri, headers, body, successCallback, failureCallback);
     } else {
