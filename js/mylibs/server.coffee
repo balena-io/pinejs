@@ -28,33 +28,9 @@ if process?
 	db = null
 	requirejs(['mylibs/db'], (dbModule) ->
 		db = dbModule.postgres(process.env.DATABASE_URL || "postgres://postgres:.@localhost:5432/postgres")
-	)
-	bcrypt = require('bcrypt')
-	
-	passport.serializeUser( (user, done)  ->
-		done(null, user)
-	)
-
-	passport.deserializeUser( (user, done) ->
-		done(null, user)
+		requirejs('mylibs/passportBCrypt').init(passport, db)
 	)
 	
-	LocalStrategy = require('passport-local').Strategy;
-	passport.use(new LocalStrategy(
-		(username, password, done) ->
-			db.transaction( (tx) ->
-				# password = bcrypt.encrypt_sync(password, bcrypt.gen_salt_sync()) # To generate a hashed password we can use this line.
-				tx.executeSql('SELECT password FROM users WHERE username = ?', [username],
-					(tx, result) ->
-						if result.rows.length != 0 && password = bcrypt.compare_sync(password, result.rows.item(i).password)
-							done(null, username)
-						else 
-							done(null, false)
-					(tx, err) ->
-						done(null, false)
-				)
-			)
-	))
 	app.post('/login', passport.authenticate('local', {failureRedirect: '/login.html'}), (req, res, next) ->
 		res.redirect('/')
 	)
