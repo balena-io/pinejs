@@ -1,5 +1,5 @@
 (function() {
-  var LocalStrategy, app, crypto, db, express, isAuthed, passport, requirejs;
+  var LocalStrategy, app, bcrypt, db, express, isAuthed, passport, requirejs;
   var __slice = Array.prototype.slice;
 
   if (typeof process !== "undefined" && process !== null) {
@@ -25,7 +25,7 @@
     requirejs(['mylibs/db'], function(dbModule) {
       return db = dbModule.postgres(process.env.DATABASE_URL || "postgres://postgres:.@localhost:5432/postgres");
     });
-    crypto = require('crypto');
+    bcrypt = require('bcrypt');
     passport.serializeUser(function(user, done) {
       return done(null, user);
     });
@@ -35,12 +35,11 @@
     LocalStrategy = require('passport-local').Strategy;
     passport.use(new LocalStrategy(function(username, password, done) {
       return db.transaction(function(tx) {
-        password = crypto.createHash('sha512').update(password).digest('hex');
-        return tx.executeSql('SELECT 1 FROM users WHERE username = ? AND password = ?', [username, password], function(tx, result) {
-          if (result.rows.length === 0) {
-            return done(null, false);
-          } else {
+        return tx.executeSql('SELECT password FROM users WHERE username = ?', [username], function(tx, result) {
+          if (result.rows.length !== 0 && (password = bcrypt.compare_sync(password, result.rows.item(i).password))) {
             return done(null, username);
+          } else {
+            return done(null, false);
           }
         }, function(tx, err) {
           return done(null, false);

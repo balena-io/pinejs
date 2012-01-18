@@ -8,6 +8,7 @@
 		"passport": "0.1.x",
 		"passport-local": "0.1.x",
 		"sqlite3": "2.x",
-		"lazy": "1.x"
+		"lazy": "1.x",
+		"bcrypt": "0.4.x"
 	}
 }
