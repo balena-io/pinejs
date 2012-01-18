@@ -26,7 +26,7 @@ define((requirejs, exports, module) ->
 				db.transaction( (tx) ->
 					tx.executeSql('SELECT password FROM users WHERE username = ?', [username],
 						(tx, result) ->
-							if result.rows.length != 0 && bcrypt.compare_sync(password, result.rows.item(i).password)
+							if result.rows.length != 0 && bcrypt.compare_sync(password, result.rows.item(0).password)
 								done(null, username)
 							else 
 								done(null, false)

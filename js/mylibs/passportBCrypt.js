@@ -23,7 +23,7 @@
       return passport.use(new LocalStrategy(function(username, password, done) {
         return db.transaction(function(tx) {
           return tx.executeSql('SELECT password FROM users WHERE username = ?', [username], function(tx, result) {
-            if (result.rows.length !== 0 && bcrypt.compare_sync(password, result.rows.item(i).password)) {
+            if (result.rows.length !== 0 && bcrypt.compare_sync(password, result.rows.item(0).password)) {
               return done(null, username);
             } else {
               return done(null, false);
