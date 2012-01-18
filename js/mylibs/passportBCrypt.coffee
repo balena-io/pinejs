@@ -17,7 +17,7 @@ define((requirejs, exports, module) ->
 					# password = bcrypt.encrypt_sync(password, bcrypt.gen_salt_sync()) # To generate a hashed password we can use this line.
 					tx.executeSql('SELECT password FROM users WHERE username = ?', [username],
 						(tx, result) ->
-							if result.rows.length != 0 && password = bcrypt.compare_sync(password, result.rows.item(i).password)
+							if result.rows.length != 0 && bcrypt.compare_sync(password, result.rows.item(i).password)
 								done(null, username)
 							else 
 								done(null, false)
