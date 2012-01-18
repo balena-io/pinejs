@@ -262,6 +262,7 @@ define((requirejs, exports, module) ->
 		requirejs(['mylibs/db'], (dbModule) ->
 			if process?
 				db = dbModule.postgres(process.env.DATABASE_URL || "postgres://postgres:.@localhost:5432/postgres")
+				# db = dbModule.mysql({user: 'root', password: '.', database: 'rulemotion'})
 				# db = dbModule.sqlite('/tmp/rulemotion.db')
 			else
 				db = dbModule.websql('rulemotion')
