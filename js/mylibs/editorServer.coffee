@@ -45,7 +45,7 @@ define((requirejs, exports, module) ->
 			sum += alphaNum
 		return sum
 
-	exports.setup = (app, requirejs, isAuthed) ->
+	exports.setup = (app, requirejs) ->
 		requirejs([
 			"libs/inflection",
 			"../ometa-js/lib",

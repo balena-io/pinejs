@@ -116,21 +116,15 @@ else
 	window?.remoteServerRequest = app.process
 	#ENDIFDEF
 
-isAuthed = (req, res, next) ->
-	if (!req.isAuthenticated? || req.isAuthenticated())
-		next()
-	else
-		res.redirect('/login.html')
-
 #IFDEF server
 requirejs(['mylibs/SBVRServer'], (sbvrServer) ->
-	sbvrServer.setup(app, requirejs, isAuthed)
+	sbvrServer.setup(app, requirejs)
 )
 #ENDIFDEF
 
 #IFDEF editor
 requirejs(['mylibs/editorServer'], (editorServer) ->
-	editorServer.setup(app, requirejs, isAuthed)
+	editorServer.setup(app, requirejs)
 )
 #ENDIFDEF
 

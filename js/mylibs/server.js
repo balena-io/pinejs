@@ -1,5 +1,5 @@
 (function() {
-  var app, db, express, isAuthed, passport, requirejs;
+  var app, db, express, passport, requirejs;
   var __slice = Array.prototype.slice;
 
   if (typeof process !== "undefined" && process !== null) {
@@ -151,20 +151,12 @@
     }
   }
 
-  isAuthed = function(req, res, next) {
-    if (!(req.isAuthenticated != null) || req.isAuthenticated()) {
-      return next();
-    } else {
-      return res.redirect('/login.html');
-    }
-  };
-
   requirejs(['mylibs/SBVRServer'], function(sbvrServer) {
-    return sbvrServer.setup(app, requirejs, isAuthed);
+    return sbvrServer.setup(app, requirejs);
   });
 
   requirejs(['mylibs/editorServer'], function(editorServer) {
-    return editorServer.setup(app, requirejs, isAuthed);
+    return editorServer.setup(app, requirejs);
   });
 
   if (typeof process !== "undefined" && process !== null) {

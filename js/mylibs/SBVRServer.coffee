@@ -247,7 +247,7 @@ define((requirejs, exports, module) ->
 			next()
 
 	#Setup function
-	exports.setup = (app, requirejs, isAuthed) ->
+	exports.setup = (app, requirejs) ->
 		requirejs(["libs/inflection",
 				"../ometa-js/lib",
 				"../ometa-js/ometa-base"])
