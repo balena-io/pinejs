@@ -14,8 +14,9 @@ define((requirejs, exports, module) ->
 					insertId: rows[0]?.id || null
 				}
 			tx = {
-				executeSql: (sql, bindings = [], callback, errorCallback, addReturning = true) ->
+				executeSql: (sql, _bindings = [], callback, errorCallback, addReturning = true) ->
 					thisTX = this
+					bindings = _bindings.slice(0) # Deal with the fact we may splice arrays directly into bindings
 					sql = sql.replace(/GROUP BY NULL/g, '') #HACK: Remove GROUP BY NULL for Postgres as it does not need/accept it.
 					sql = sql.replace(/INTEGER PRIMARY KEY AUTOINCREMENT/g, 'SERIAL PRIMARY KEY') #HACK: Postgres uses SERIAL data type rather than auto increment
 					if addReturning and /^\s*INSERT\s+INTO/i.test(sql)

@@ -21,11 +21,12 @@
           };
         };
         tx = {
-          executeSql: function(sql, bindings, callback, errorCallback, addReturning) {
-            var bindNo, thisTX;
-            if (bindings == null) bindings = [];
+          executeSql: function(sql, _bindings, callback, errorCallback, addReturning) {
+            var bindNo, bindings, thisTX;
+            if (_bindings == null) _bindings = [];
             if (addReturning == null) addReturning = true;
             thisTX = this;
+            bindings = _bindings.slice(0);
             sql = sql.replace(/GROUP BY NULL/g, '');
             sql = sql.replace(/INTEGER PRIMARY KEY AUTOINCREMENT/g, 'SERIAL PRIMARY KEY');
             if (addReturning && /^\s*INSERT\s+INTO/i.test(sql)) {
