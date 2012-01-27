@@ -21,8 +21,17 @@ define((requirejs, exports, module) ->
 					if addReturning and /^\s*INSERT\s+INTO/i.test(sql)
 						sql = sql.replace(/;?$/, ' RETURNING id;')
 						console.log(sql)
-					bindNo = 1
-					sql = SQLBinds.matchAll(sql, "parse", [-> '$'+bindNo++])
+					bindNo = 0
+					sql = SQLBinds.matchAll(sql, "parse", [
+						->
+							initialBindNo = bindNo
+							bindString = '$' + ++bindNo
+							if Array.isArray(bindings[initialBindNo])
+								for i in bindings[initialBindNo][1..]
+									bindString += ',' + '$' + ++bindNo
+								Array.prototype.splice.apply(bindings, [initialBindNo, 1].concat(bindings[initialBindNo]))
+							return bindString
+					])
 					_db.query({text: sql, values: bindings}, (err, res) ->
 						if err?
 							errorCallback? thisTX, err

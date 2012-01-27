@@ -32,10 +32,21 @@
               sql = sql.replace(/;?$/, ' RETURNING id;');
               console.log(sql);
             }
-            bindNo = 1;
+            bindNo = 0;
             sql = SQLBinds.matchAll(sql, "parse", [
               function() {
-                return '$' + bindNo++;
+                var bindString, i, initialBindNo, _i, _len, _ref;
+                initialBindNo = bindNo;
+                bindString = '$' + ++bindNo;
+                if (Array.isArray(bindings[initialBindNo])) {
+                  _ref = bindings[initialBindNo].slice(1);
+                  for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+                    i = _ref[_i];
+                    bindString += ',' + '$' + ++bindNo;
+                  }
+                  Array.prototype.splice.apply(bindings, [initialBindNo, 1].concat(bindings[initialBindNo]));
+                }
+                return bindString;
               }
             ]);
             return _db.query({
