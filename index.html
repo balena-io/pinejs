@@ -130,7 +130,7 @@ Copyright 2011 University of Surrey
 					}
 				</script>
 				<output></output>
-				<input type="button" id='bidb' value="Import DB" onClick="serverRequest('POST', '/importdb/', {}, importExportEditor.getValue());return false">
+				<input type="button" id='bidb' value="Import DB" onClick="serverRequest('PUT', '/importdb/', {}, importExportEditor.getValue());return false">
 				<input type="button" id='bedb' value="Export DB" onClick="serverRequest('GET', '/exportdb/', {}, '', function(statusCode, result){importExportEditor.setValue(result)});return false">
 			</div>
 		<!--#ENDIFDEF-->
