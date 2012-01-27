@@ -318,7 +318,7 @@ define((requirejs, exports, module) ->
 					res.send(200)
 				)
 		)
-		app.put('/cleardb', (req, res, next) ->
+		app.put('/importdb', (req, res, next) ->
 			queries = req.body.split(";")
 			imported = 0
 			db.transaction (tx) ->

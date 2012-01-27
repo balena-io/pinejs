@@ -352,7 +352,7 @@
           });
         });
       });
-      app.put('/cleardb', function(req, res, next) {
+      app.put('/importdb', function(req, res, next) {
         var imported, queries;
         queries = req.body.split(";");
         imported = 0;
