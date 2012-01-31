@@ -223,14 +223,7 @@ Copyright 2011 University of Surrey
 			//window.editor.setValue("345345324532453245");
 
 			var requirejs = require;
-			requirejs({
-				baseUrl: '../js',
-				paths: {
-					jquery: 'libs/jquery-1.7.1.min'
-	//				jquery: 'https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min'
-				},
-				priority: ['jquery']
-			});
+			requirejs({ baseUrl: '../js' });
 		</script>
     </body>
 </html>
