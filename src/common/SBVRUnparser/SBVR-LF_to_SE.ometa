@@ -1,0 +1,425 @@
+requirejs(["libs/underscore-1.2.1.min", "libs/inflection"], function() {
+	requirejs(["underscore"], function(_) {
+
+/*
+Copyright 2011 University of Surrey
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
+
+//A parser for Semantics of Business Vocabulary and Rules (SBVR), an OMG standard.
+//Converts from Structured English (SBVR-SE) to Logical Formulation (SBVR-LF)
+//Specification: http://www.omg.org/spec/SBVR/1.0/
+
+ometa SBVRParser {
+	isTerm		:term
+					= ?this._isTerm(term),
+	isVerb		:prevTerm :verb
+					= ?this._isVerb(prevTerm, verb),
+	isFctp		:factType
+					= ?this._isFctp(factType),
+
+	findVar		:x	= {this.state.ruleVars[x[1]]},
+	bind		:x	= findVar(x):y											-> [`bind, x, y],
+
+	letters			= letter+:l												-> l.join(''),
+	num				= spaces digit+:n										-> ['num', parseInt(n.join(''))]
+					| "one"													-> ['num', 1],
+	toEOL			= spaces (~(spaces lineStart) spaces?:s (~space anything)+:a -> s.concat(a).join(''))*:w				-> w.join(''),
+
+	token		:x	= spaces seq(x):s &(space+)								-> s,
+
+	addTerm			= &(termPart+):t {this.possMap.term[t.join(' ')] = true}
+					  term,
+	term			= findTerm,
+	findTerm	:termSoFar
+					= termPart:t {termSoFar = termSoFar==undefined ? t : [termSoFar, t].join(' ')}
+						( findTerm(termSoFar)
+						| isTerm(termSoFar)									-> ['term',this._termForm(termSoFar)]
+						),
+	termPart		= spaces ~lineStart letters,
+	
+	
+	addVerb		:prevTerm
+					= clearSuggestions &((verbPart)+):v {this._addVerbToTerm(prevTerm,v.join(' '))}
+					  verb(prevTerm),
+	verb		:prevTerm
+					= findVerb(prevTerm),
+	findVerb	:prevTerm :verbSoFar
+					= verbPart:v {verbSoFar = verbSoFar==undefined ? v : [verbSoFar, v].join(' ')}
+						( findVerb(prevTerm, verbSoFar)
+						| isVerb(prevTerm, verbSoFar)									-> ['verb',this._verbForm(prevTerm, verbSoFar)]
+						),
+	verbPart		= spaces ~lineStart ~term letters,
+	
+	joinQuant		= matchForAll('keyword',["and","at","most"]),
+	quant			= keyword("each")										-> [`univQ]
+					| matchForAny('keyword',["a","an","some"])				-> [`existQ]
+					| matchForAll('keyword',["at","most"])		num:n		-> [`atMostQ, [`maxCard, n]]
+					| matchForAll('keyword',["at","least"])		num:n
+										( joinQuant num:m					-> [`numRngQ, [`minCard, n], [`maxCard, m]]
+										| empty 							-> [`atLeastQ, [`minCard, n]])
+					| matchForAll('keyword',["more","than"])	num:n {++n[1]}
+																			-> [`atLeastQ, [`minCard, n]]
+					| keyword("exactly")						num:n		-> [`exactQ, [`card, n]],
+
+	keyword		:word :noToken
+					= ?(noToken==true) seq(word)
+					| ?(noToken!=true) token(word),
+	
+	addThat			= keyword("that"),
+	addThe			= keyword("the"),
+	addVar		:prevTerm
+					= {this.state.ruleVars[prevTerm[1]] = this.state.ruleVarsCount++} {['var', ['num', this.state.ruleVars[prevTerm[1]]], prevTerm]}:v
+					( addThat
+						( addThe terbRi([[]], prevTerm)
+						| qTerbRi([[]], prevTerm) ):q {v.push(q)}
+					)?														-> v,
+
+	atfo		:c	= isFctp(c[0]) {c[0] = ['fcTp'].concat(c[0])}			-> ['aFrm'].concat(c),
+
+	terbRi	:c :prevTerm
+					= term:t verb(t):v bind(t):b {c[0].push(t,v);c.push(b)} (qTerbRi(c,prevTerm)),
+
+	qTerbRi	:c :prevTerm
+					= (quant:q term:t addVar(t):a verb(t):v bind(t):b
+							{q.push(a);c[0].push(t,v);c.push(b)}
+							(qTerbRi(c,prevTerm)):r							-> q.concat([r])
+						| verb(prevTerm):v bind(prevTerm):b {c[0].push(prevTerm,v);c.push(b)} (atfo(c)|qTerbR(c)|qTerm(c))
+						| bind(prevTerm):b {c[0].push(prevTerm);c.push(b)} atfo(c)
+					),
+
+	qTerm		:c	= quant:q term:t addVar(t):a bind(t):b {q.push(a);c[0].push(t);c.push(b)}
+							atfo(c):r										-> q.concat([r]),
+
+	qTerbR		:c	= quant:q term:t addVar(t):a verb(t):v bind(t):b {q.push(a);c[0].push(t,v);c.push(b)}
+							(atfo(c)|qTerbR(c)|qTerm(c)):r					-> q.concat([r]),
+
+	modRule			= "It" "is" 
+						( "obligatory"		-> ['obl']
+						| "necessary"		-> ['nec']
+						| "prohibited"		-> ['obl', ['neg']]
+						| "impossible"		-> ['nec', ['neg']]
+						| "not" "possible"	-> ['nec', ['neg']]
+						| "possible"		-> ['pos']
+						| "permissible"		-> ['prm']
+						):r
+					  "that"											-> r,
+
+	startRule		= "R:"|"Rule:",
+	newRule			= startRule spaces &(toEOL):ruleText {this.state.ruleVarsCount=0}
+						modRule:r qTerbR([[]]):q {r.length == 2 ? r[1][1] = q : r[1] = q}
+																		-> ['rule', r, ['text', ruleText]],
+	terb			= term:t addVerb(t):v								-> [t, v],
+	startFactType	= "F:"|"Fact type:",
+	newFactType		= startFactType {[]}:t (terb:b {t.concat(b)}:t)+ (term:e {t.push(e)})? {this.fctps[t] = true; t.push([])}
+																		-> [`fcTp].concat(t),
+	startTerm		= "T:"|"Term:",
+	newTerm			= startTerm clearSuggestions addTerm:t {t.push([])}					-> t,
+	attribute		= ?{this.lines[this.lines.length-1][0] == 'term' ||
+						this.lines[this.lines.length-1][0] == 'fcTp'}
+						allowedAttrs:attrName
+						applyFirstExisting(['attr'+attrName,'toEOL']):attrVal
+																		-> {var lastLine = this.lines.pop(); lastLine[lastLine.length-1].push([attrName.replace(new RegExp(' ','g'),''), attrVal]); lastLine},
+						
+	allowedAttrs	= matchForAny('seq',this.possMap.allowedAttrs):attrName -> attrName.replace(':',''),
+	attrDefinition	= qTerbR([[]]),
+
+	terminator		= spaces keyword('.',true),
+	lineStart		= startTerm
+					| startFactType
+					| startRule
+					| allowedAttrs,
+	line			= spaces (newTerm | newFactType | newRule | attribute):l terminator? clearSuggestions spaces
+						{this.lines.push(l)}							-> l,
+	expr			= line* end											-> this.lines
+}
+
+SBVRParser.keyTokens = ["startTerm", "startFactType", "startRule", "term", "modRule", "verb", "keyword", "allowedAttrs", "num"];
+SBVRParser.clearSuggestions = function() {}
+/**
+	Following are "instance" variables/functions rather than shared.
+*/
+SBVRParser.initialize = function() {
+	this.reset();
+}
+
+SBVRParser._isTerm = function(k) {
+	return this.possMap.term.hasOwnProperty(k) || this.possMap.term.hasOwnProperty(k.singularize())
+}
+
+SBVRParser._termForm = function(k) {
+	return this.possMap.term.hasOwnProperty(k.singularize()) ? k.singularize() : k
+}
+
+SBVRParser._isVerb = function(prevTerm, verb) {
+	if(typeof prevTerm == 'undefined') {
+		for(term in this.possMap.verb) {
+			if(this._isVerb(term, verb)) {
+				return true
+			}
+		}
+	}
+	else {
+		if(!this.possMap.verb.hasOwnProperty(prevTerm)) {
+			return false
+		}
+		if(this.possMap.verb[prevTerm].hasOwnProperty(verb)) {
+			return true
+		}
+		if( verb.slice(0,3)=='are' && this.possMap.verb[prevTerm].hasOwnProperty('is' + verb.slice(3)) ) {
+			return true
+		}
+		if(verb=='have' && this.possMap.verb[prevTerm].hasOwnProperty('has')) {
+			return true
+		}
+	}
+	return false
+}
+
+SBVRParser._verbForm = function(prevTerm, verb) {
+	if(this.possMap.verb.hasOwnProperty(prevTerm)) {
+		if(verb.slice(0,3)=='are' && this.possMap.verb[prevTerm].hasOwnProperty('is' + verb.slice(3))) {
+			return 'is' + verb.slice(3)
+		}
+		if(verb=='have' && this.possMap.verb[prevTerm].hasOwnProperty('has')) {
+			return 'has'
+		}
+		return verb
+	}
+	return verb //TODO: This should fail really.
+}
+
+SBVRParser._addVerbToTerm = function(term, verb) {
+	if(!this.possMap.verb.hasOwnProperty(term)) {
+		this.possMap.verb[term] = {}
+	}
+	this.possMap.verb[term][verb] = true
+}
+
+SBVRParser._isFctp = function(k) { return this.fctps.hasOwnProperty(k) }
+
+SBVRParser.reset = function() {
+	this.possMap = {
+		clearSuggestions: [], //This stops us suggesting any autocomplete before this point.
+		startTerm: ['Term:     '],
+		startFactType: ['Fact type:'],
+		startRule: ['Rule:     '],
+		term: {},
+		verb: {},
+		allowedAttrs: [
+			'Concept Type:',
+			/*#IFDEF server */
+				/* Custom Attributes */
+				'Database ID Field:',
+				'Database Name Field:',
+				'Database Table Name:',
+				/* End Custom */
+			/*#ENDIFDEF*/
+			'Definition:',
+			'Dictionary Basis:',
+			'Example:',
+			'General Concept:',
+			'Namespace URI:',
+			'Necessity:',
+			'Note:',
+			'Possibility:',
+			'Reference Scheme:',
+			'See:',
+			'Source:',
+			'Subject Field:',
+			'Synonymous Form:',
+			'Synonym:'
+		],
+		modRule: [
+			'It is obligatory that',
+			'It is necessary that',
+			'It is prohibited that',
+			'It is impossible that',
+			'It is not possible that',
+			'It is possible that',
+			'It is permissible that'
+		],
+		quant: [
+			'each',
+			'a',
+			'an',
+			'some',
+			'at most',
+			'at least',
+//			'and at most',
+			'more than',
+			"exactly"
+		],
+		joinQuant: ['and at most'],
+		num: [
+			'1', '2', '3', '4', '5', '6', '7', '8', '9',
+			'one'
+		],
+		addThat: ['that', 'that the'],
+		addThe: ['the'],
+		terminator: ['.']
+	}
+	this.fctps = {}
+	this.state = {}
+	this.state.ruleVars = {}
+	this.state.ruleVarsCount = 0
+	this.lines = ['model']
+}
+
+SBVRParser.equals = function(compareTo) {
+	if(this.possMap.verb.length != compareTo.possMap.verb.length) return false
+	for(var i = this.possMap.verb.length - 1; i >= 0; i--) {
+		//TODO: Make this a deeper check
+		if(this.possMap.verb[i].length != compareTo.possMap.verb[i].length) return false
+	}
+	for(var x in this.possMap.term) {
+		if(!compareTo.possMap.term.hasOwnProperty(x)) return false
+	}
+	for(var x in compareTo.possMap.term) {
+		if(!this.possMap.term.hasOwnProperty(x)) return false
+	}
+	return true
+}
+
+
+/** **/
+SBVRParser.matchForAny = function(rule,arr) {
+	var origInput = this.input
+	for (var idx = 0; idx < arr.length; idx++)
+		try { this.input = origInput; return this._applyWithArgs.call(this, rule, arr[idx]) }
+		catch (f) {
+			if (f != fail) {
+				console.log(f.stack)
+				throw f
+			}
+		}
+	throw fail
+}
+SBVRParser.matchForAll = function(rule,arr) {
+	var ret
+	for (var idx = 0; idx < arr.length; idx++)
+		ret = this._applyWithArgs.call(this, rule, arr[idx])
+	return ret
+}
+SBVRParser.applyFirstExisting = function(arr) {
+	for (var i = 0; i < arr.length; i++)
+		if(this[arr[i]] != undefined)
+			return this._apply(arr[i])
+}
+/* This is a bit of a hack for case insensitivity, a better solution needs to be implemented in future. */
+SBVRParser.exactly = function(wanted) {
+	if (wanted.toLowerCase() === this._apply("anything").toLowerCase())
+		return wanted
+	throw fail
+}
+
+//* Comment out everything past this point
+
+ometa Prettify {
+//  elem = [{this.d++} (string|elem|number)*:e {s=this.s(this.d--)}] -> ('['+e.join(',\n'+s+'  ')+'\n'+s+']')
+  elem = [{this.d++} (string|elem|number)*:e {s=this.s(this.d--)}] -> ('['+e.join(',\n'+s)+']')
+}
+
+Prettify.d = 1
+Prettify.s = function(d){a=' ';for(var i=0;i<d;i++){a+='  '};return a}
+
+model1 = 'T: student
+T: module
+T: lecturer
+F: student is registered for module
+F: student is registered for module with lecturer
+R: It is obligatory that a student is registered for a module with a lecturer'
+
+model2 = 'T: student
+T: module
+T: study programme
+F: student is registered for module
+F: student is enrolled in study programme
+F: module is available for study programme
+R: It is obligatory that each student that is registered for a module is enrolled in a study programme that the module is available for'
+
+ometa SBVR_LF2SE {
+  $ :x       = token(x):a                              -> [a] 
+             |                                         -> [],
+
+  trans      [:t apply(t):a]                           -> a,
+  token :x   [:t ?{t==x} apply(x):a]                   -> a,
+
+  letters    = letter+:l space*                        -> l.join(''),
+
+  num        number:n ?{!isNaN(n)}                     -> [`num, parseInt(n)],
+
+  model      ("term"|"fcTp"|"rule")*:xs                -> [`model].concat(xs),
+    
+  fcTp       {a=[]}("term":t "verb":v {a=a.concat([t,v])})* $('term'):e  (:attr->[attr]|->[]):attr
+                                                       -> a.concat(e),
+
+  verb       :v                                        -> [`verb, v],
+  term       :t (:attr->[attr]|->[]):attr              -> [`term, t].concat(attr),
+  rule       ("obl"|"nec"|"pos"|"prm"):x "text":t      -> [`rule, x, t],
+
+  text	     :a	                                       -> [`text, a],
+  
+  obl        trans*:xs                                 -> [`obl].concat(xs),
+  nec        trans*:xs                                 -> [`nec].concat(xs),
+  pos        trans*:xs                                 -> [`pos].concat(xs),
+  prm        trans*:xs                                 -> [`prm].concat(xs),
+
+  neg        trans:xs                                  -> [`neg].concat([xs]),
+
+  quant      = "univQ" | "existQ" | "exactQ" | "atMostQ" | "atLeastQ" | "numRngQ" ,
+  univQ                              "var":v trans*:xs -> [`univQ, v].concat(xs),
+  existQ                             "var":v trans*:xs -> [`existQ, v].concat(xs),
+  exactQ     "card":i                "var":v trans*:xs -> [`exactQ, i, v].concat(xs),
+  atMostQ                "maxCard":a "var":v trans*:xs -> [`atMostQ, a, v].concat(xs),
+  atLeastQ   "minCard":i             "var":v trans*:xs -> [`atLeastQ, i, v].concat(xs),
+  numRngQ    "minCard":i "maxCard":a "var":v trans*:xs -> [`numRngQ, i, a, v].concat(xs),
+
+  card       "num":n                                   -> [`card, n],
+  minCard    "num":n                                   -> [`minCard, n],
+  maxCard    "num":n                                   -> [`maxCard, n],
+
+  var        "num":n "term":t "aFrm":w //{this.findReplace(w, n[1], t[1]);}
+                                                       -> [`var, n, t, w],
+  var        "num":n "term":t quant:w                  -> [`var, n, t, w],    
+  var        "num":n "term":t                          -> [`var, n, t],
+
+  bind       "term":t number:n                         -> [`bind, t, n], 
+  aFrm       "fcTp":f "bind"*:b {for(var i = 0; i<b.length; i++) {this.findReplace(f, b[i][1], b[i][2]);}}
+   						       -> f
+}
+
+SBVR_LF2SE.initialize = function() { this._didSomething = false }
+
+SBVR_LF2SE.findReplace = function(targetArray, oldValue) {
+  /* finds oldValue in targetArray and adds the rest 
+  of the arguments as elements in its place */
+  
+  newValues = Array.prototype.slice.call(arguments, 2);
+  //alert([targetArray, oldValue, newValues]);
+  
+  for(var i=0;i<targetArray.length;i++) {
+    if(targetArray[i]==oldValue || _.isEqual(targetArray[i], oldValue)) {
+      Array.prototype.splice.apply(targetArray,[i,1].concat(newValues));
+    }
+  }
+  
+  //alert(targetArray);
+}
+
+})})
+
+tree = SBVRParser.matchAll(model2, "expr")
+tree = SBVR_LF2SE.match(tree, "trans")
+Prettify.match(tree, "elem")
