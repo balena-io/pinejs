@@ -94,7 +94,7 @@ test("defaults", function() {
     eq(defs.indentUnit, 5);
     eq(cm.getValue(), "uu");
     eq(cm.getOption("enterMode"), "keep");
-    eq(cm.getInputField().tabindex, 55);
+    eq(cm.getInputField().tabIndex, 55);
   }
   finally {
     CodeMirror.defaults = olddefaults;
@@ -126,8 +126,7 @@ testCM("coords", function(cm) {
   is(top.x < bot.x);
   is(top.y < bot.y);
   is(top.y < top.yBot);
-  scroller.scrollTop = 100;
-  cm.refresh();
+  cm.scrollTo(100);
   var top2 = cm.charCoords({line: 0, ch: 0});
   is(top.y > top2.y);
   eq(top.x, top2.x);
@@ -147,7 +146,7 @@ testCM("coordsChar", function(cm) {
   }
 });
 
-testCM("coordsFromIndex", function(cm) {
+testCM("posFromIndex", function(cm) {
   cm.setValue(
     "This function should\n" +
     "convert a zero based index\n" +
@@ -166,9 +165,11 @@ testCM("coordsFromIndex", function(cm) {
 
   for (var i = 0; i < examples.length; i++) {
     var example = examples[i];
-    var pos = cm.coordsFromIndex(example.index);
+    var pos = cm.posFromIndex(example.index);
     eq(pos.line, example.line);
     eq(pos.ch, example.ch);
+    if (example.index >= 0 && example.index < 64)
+      eq(cm.indexFromPos(pos), example.index);
   }  
 });
 
@@ -190,17 +191,10 @@ testCM("undo", function(cm) {
     cm.replaceRange("a", {line: 0, ch: 0});
     cm.replaceRange("b", {line: 3, ch: 0});
   }
-  eq(cm.historySize().undo, 40);
-  for (var i = 0; i < 38; ++i) cm.undo();
-  eq(cm.historySize().undo, 2);
-  eq(cm.historySize().redo, 38);
-  eq(cm.getValue(), "a1\n\n\nb2");
-  cm.setOption("undoDepth", 10);
-  for (var i = 0; i < 20; ++i) {
-    cm.replaceRange("a", {line: 0, ch: 0});
-    cm.replaceRange("b", {line: 3, ch: 0});
-  }
-  eq(cm.historySize().undo, 10);
+  eq(cm.historySize().undo, 1);
+  cm.undo();
+  eq(cm.historySize().redo, 1);
+  eq(cm.getValue(), "1\n\n\n2");
 }, {value: "abc"});
 
 testCM("undoMultiLine", function(cm) {
