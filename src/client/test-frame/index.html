@@ -2,27 +2,27 @@
 <html lang="en">
 <head>
 	<title>QUnit Tests</title>
-	<link rel="stylesheet" href="qunit/qunit.css" media="screen">
+	<link rel="stylesheet" href="../../external/qunit/qunit.css" media="screen">
 
 	<!-- reference your own javascript files here -->
-	<script src="../js/libs/require-1.0.4.min.js"></script>
+	<script src="../../external/require-1.0.4.min.js"></script>
 
 	<script>
 		var requirejs = require;
 		requirejs({
-			baseUrl: '../js',
+			baseUrl: '../..',
 			paths: {
-				jquery: 'libs/jquery-1.7.1.min'
+				jquery: 'external/jquery-1.7.1.min'
 //				jquery: 'https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min'
 			},
 			priority: ['jquery']
-		}, ['libs/jquery-ui-1.8.17.custom.min',
-			'libs/jquery-custom-file-input',
+		}, ['external/jquery-ui-1.8.17.custom.min',
+			'external/jquery-custom-file-input',
 			'main']);
     </script>
 
 <!-- test runner files -->
-	<script src="qunit/qunit.js"></script>
+	<script src="../../external/qunit/qunit.js"></script>
 	<script src="sbvr.js"></script>
 	<script src="server.js"></script>
 	<script src="ClientURI.js"></script>
