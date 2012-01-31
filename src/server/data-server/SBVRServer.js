@@ -2,13 +2,17 @@
   var __hasProp = Object.prototype.hasOwnProperty;
 
   define(function(requirejs, exports, module) {
-    var db, endLock, executeSasync, executeTasync, getFTree, getID, hasCR, isExecute, op, parseURITree, serverIsOnAir, serverModelCache, updateRules, validateDB;
+    var db, endLock, executeSasync, executeTasync, getFTree, getID, hasCR, isExecute, op, parseURITree, serverIsOnAir, serverModelCache, transactionModel, updateRules, validateDB;
     db = null;
     op = {
       eq: "=",
       ne: "!=",
       lk: "~"
     };
+    transactionModel = 'Term:      resource\nTerm:      transaction\nTerm:      lock\nTerm:      conditional representation\nFact type: lock is exclusive\nFact type: lock is shared\nFact type: resource is under lock\nFact type: lock belongs to transaction\nRule:      It is obligatory that each resource is under at most 1 lock that is exclusive';
+    transactionModel = SBVRParser.matchAll(modelT, "expr");
+    transactionModel = SBVR_PreProc.match(tree, "optimizeTree");
+    transactionModel = SBVR2SQL.match(tree, "trans");
     serverModelCache = function() {
       var setValue, values;
       values = {
@@ -279,7 +283,7 @@
     };
     exports.setup = function(app, requirejs) {
       requirejs(["libs/inflection", "../ometa-js/lib", "../ometa-js/ometa-base"]);
-      requirejs(["mylibs/ometa-code/SBVRModels", "mylibs/ometa-code/SBVRParser", "mylibs/ometa-code/SBVR_PreProc", "mylibs/ometa-code/SBVR2SQL", "mylibs/ometa-code/ServerURIParser"]);
+      requirejs(["mylibs/ometa-code/SBVRParser", "mylibs/ometa-code/SBVR_PreProc", "mylibs/ometa-code/SBVR2SQL", "mylibs/ometa-code/ServerURIParser"]);
       requirejs(['mylibs/db'], function(dbModule) {
         if (typeof process !== "undefined" && process !== null) {
           db = dbModule.postgres(process.env.DATABASE_URL || "postgres://postgres:.@localhost:5432/postgres");
@@ -307,7 +311,7 @@
         return res.send(404);
       });
       app.post('/execute', function(req, res, next) {
-        var lfmod, prepmod, se, sqlmod, tree, trnmod;
+        var lfmod, prepmod, se, sqlmod;
         se = serverModelCache.getSE();
         try {
           lfmod = SBVRParser.matchAll(se, "expr");
@@ -318,20 +322,17 @@
         }
         prepmod = SBVR_PreProc.match(lfmod, "optimizeTree");
         sqlmod = SBVR2SQL.match(prepmod, "trans");
-        tree = SBVRParser.matchAll(modelT, "expr");
-        tree = SBVR_PreProc.match(tree, "optimizeTree");
-        trnmod = SBVR2SQL.match(tree, "trans");
         return db.transaction(function(tx) {
           tx.begin();
           return executeSasync(tx, sqlmod, function(tx, result) {
-            return executeTasync(tx, trnmod, function(tx, result) {
+            return executeTasync(tx, transactionModel, function(tx, result) {
               serverModelCache.setModelAreaDisabled(true);
               serverModelCache.setServerOnAir(true);
               serverModelCache.setLastSE(se);
               serverModelCache.setLF(lfmod);
               serverModelCache.setPrepLF(prepmod);
               serverModelCache.setSQL(sqlmod);
-              serverModelCache.setTrans(trnmod);
+              serverModelCache.setTrans(transactionModel);
               return res.json(result);
             }, function(errors) {
               return res.json(errors, 404);

@@ -60,14 +60,3 @@ Rule:      It is obligatory that at most 10 students are under probation
 Fact type: lecturer grades student for study programme with grade
 Rule:      It is prohibited that a student that is under probation is enrolled in more than 2 study programmes
 Rule:      It is obligatory that each student is registered for each module'
-
-modelT =
-'Term:      resource
-Term:      transaction
-Term:      lock
-Term:      conditional representation
-Fact type: lock is exclusive
-Fact type: lock is shared
-Fact type: resource is under lock
-Fact type: lock belongs to transaction
-Rule:      It is obligatory that each resource is under at most 1 lock that is exclusive'

@@ -4,6 +4,21 @@ define((requirejs, exports, module) ->
 		eq: "="
 		ne: "!="
 		lk: "~"
+	
+	
+	transactionModel = '''
+			Term:      resource
+			Term:      transaction
+			Term:      lock
+			Term:      conditional representation
+			Fact type: lock is exclusive
+			Fact type: lock is shared
+			Fact type: resource is under lock
+			Fact type: lock belongs to transaction
+			Rule:      It is obligatory that each resource is under at most 1 lock that is exclusive'''
+	transactionModel = SBVRParser.matchAll(modelT, "expr")
+	transactionModel = SBVR_PreProc.match(tree, "optimizeTree")
+	transactionModel = SBVR2SQL.match(tree, "trans")
 
 	serverModelCache = () ->
 		#This is needed as the switch has no value on first execution. Maybe there's a better way?
@@ -252,7 +267,6 @@ define((requirejs, exports, module) ->
 				"../ometa-js/lib",
 				"../ometa-js/ometa-base"])
 		requirejs([
-			"mylibs/ometa-code/SBVRModels",
 			"mylibs/ometa-code/SBVRParser",
 			"mylibs/ometa-code/SBVR_PreProc",
 			"mylibs/ometa-code/SBVR2SQL",
@@ -285,21 +299,18 @@ define((requirejs, exports, module) ->
 				return null
 			prepmod = SBVR_PreProc.match(lfmod, "optimizeTree")
 			sqlmod = SBVR2SQL.match(prepmod, "trans")
-			tree = SBVRParser.matchAll(modelT, "expr")
-			tree = SBVR_PreProc.match(tree, "optimizeTree")
-			trnmod = SBVR2SQL.match(tree, "trans")
 			db.transaction((tx) ->
 				tx.begin()
 				executeSasync(tx, sqlmod, (tx, result) ->
 					#TODO: fix this as soon as the successCallback mess is fixed
-					executeTasync(tx, trnmod, (tx, result) ->
+					executeTasync(tx, transactionModel, (tx, result) ->
 						serverModelCache.setModelAreaDisabled(true)
 						serverModelCache.setServerOnAir true
 						serverModelCache.setLastSE se
 						serverModelCache.setLF lfmod
 						serverModelCache.setPrepLF prepmod
 						serverModelCache.setSQL sqlmod
-						serverModelCache.setTrans trnmod
+						serverModelCache.setTrans transactionModel
 						res.json(result)
 					, (errors) ->
 						res.json(errors, 404)
