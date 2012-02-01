@@ -1,8 +1,7 @@
-define((requirejs, exports, module) ->
+define(["./SQLBinds.js"], (SQLBinds) ->
+	exports = {}
 	if process?
 		exports.postgres = (connectString) ->
-			requirejs(["../ometa-js/lib", "../ometa-js/ometa-base"])
-			requirejs(["mylibs/ometa-code/SQLBinds"])
 			Client = new requirejs('pg').Client
 			_db = new Client(connectString)
 			_db.connect()

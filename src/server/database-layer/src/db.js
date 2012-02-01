@@ -1,10 +1,11 @@
+(function() {
 
-  define(function(requirejs, exports, module) {
+  define(["./SQLBinds.js"], function(SQLBinds) {
+    var exports;
+    exports = {};
     if (typeof process !== "undefined" && process !== null) {
       exports.postgres = function(connectString) {
         var Client, result, tx, _db;
-        requirejs(["../ometa-js/lib", "../ometa-js/ometa-base"]);
-        requirejs(["mylibs/ometa-code/SQLBinds"]);
         Client = new requirejs('pg').Client;
         _db = new Client(connectString);
         _db.connect();
@@ -265,3 +266,5 @@
     }
     return exports;
   });
+
+}).call(this);
