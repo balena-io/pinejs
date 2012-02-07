@@ -1,54 +1,42 @@
-/*
-Copyright 2011 University of Surrey
+define(['ometa-base'], function() {
+	var ServerURIParser;
+	ometa ServerURIParser{
+		word = (letter|``-'')+:l                                                       -> l.join(''),
 
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
+		dgit = ^digit:d                                                                -> d.digitValue(),
+		nmbr = nmbr:n dgit:d                                                         -> (n * 10 + d)
+			   | dgit,
 
-       http://www.apache.org/licenses/LICENSE-2.0
+		part = (letter|digit|``-''|``_'')+:l                                     -> l.join(''),
 
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
-*/
+		mdtp = ``filt'' | ``sort'',
 
-ometa ServerURIParser{
-    word = (letter|``-'')+:l                                                       -> l.join(''),
+		parm = part:t (``.'' word| -> {f=t;t=[];f}):f
+					  (``='' ->`eq
+					  |``!=''->`ne|``~'' ->`lk):o part:v ``;''?                        -> [o,t,f,v],
 
-    dgit = ^digit:d                                                                -> d.digitValue(),
-    nmbr = nmbr:n dgit:d                                                         -> (n * 10 + d)
-           | dgit,
+		actn = (``*'' mdtp:a (``:'' parm+|->[]):p -> [a].concat(p))+ | -> [],
+		comm = ``cr'' | ``execute'',
+		term = (letter|``_'')+:l                                                 -> l.join(''),     
+		verb = (letter|``_'')+:l                                                 -> l.join(''),     
 
-    part = (letter|digit|``-''|``_'')+:l                                     -> l.join(''),
+		trmf = term:t -> [`term, t],
 
-    mdtp = ``filt'' | ``sort'',
+		fcTp = {ts=[`terms];ft=''} (term:t ``-'' verb:v -> {ts.push(t);ft += t + "-" + v})+ 
+			   (``-'' term:t -> {ts.push(t);ft += "-" + t})?                           -> [`fcTp, ft, ts], 
 
-    parm = part:t (``.'' word| -> {f=t;t=[];f}):f
-                  (``='' ->`eq
-                  |``!=''->`ne|``~'' ->`lk):o part:v ``;''?                        -> [o,t,f,v],
+		  id = (``.'' nmbr:n -> [n]|->['']),
 
-    actn = (``*'' mdtp:a (``:'' parm+|->[]):p -> [a].concat(p))+ | -> [],
-    comm = ``cr'' | ``execute'',
-    term = (letter|``_'')+:l                                                 -> l.join(''),     
-    verb = (letter|``_'')+:l                                                 -> l.join(''),     
-
-    trmf = term:t -> [`term, t],
-
-    fcTp = {ts=[`terms];ft=''} (term:t ``-'' verb:v -> {ts.push(t);ft += t + "-" + v})+ 
-           (``-'' term:t -> {ts.push(t);ft += "-" + t})?                           -> [`fcTp, ft, ts], 
-
-      id = (``.'' nmbr:n -> [n]|->['']),
-
-     uri = ``/'' word:w ``/''? fcTp:f id:i actn:a ``/'' comm:c 
-										-> [w].concat([f.concat(i).concat([[`mod].concat(a).concat([[c]])])])
-         | ``/'' word:w ``/''? trmf:t id:i actn:a ``/'' comm:c 
-										-> [w].concat([t.concat(i).concat([[`mod].concat(a).concat([[c]])])])
-         | ``/'' word:w ``/''? fcTp:f id:i actn:a ``/''?       
-										-> [w].concat([f.concat(i).concat([[`mod].concat(a)])])
-         | ``/'' word:w ``/''? trmf:t id:i actn:a ``/''?       
-										-> [w].concat([t.concat(i).concat([[`mod].concat(a)])])
-         | ``/'' (word|->''):w ``/''?   -> [w]
-}
-
+		 uri = ``/'' word:w ``/''? fcTp:f id:i actn:a ``/'' comm:c 
+											-> [w].concat([f.concat(i).concat([[`mod].concat(a).concat([[c]])])])
+			 | ``/'' word:w ``/''? trmf:t id:i actn:a ``/'' comm:c 
+											-> [w].concat([t.concat(i).concat([[`mod].concat(a).concat([[c]])])])
+			 | ``/'' word:w ``/''? fcTp:f id:i actn:a ``/''?       
+											-> [w].concat([f.concat(i).concat([[`mod].concat(a)])])
+			 | ``/'' word:w ``/''? trmf:t id:i actn:a ``/''?       
+											-> [w].concat([t.concat(i).concat([[`mod].concat(a)])])
+			 | ``/'' (word|->''):w ``/''?   -> [w]
+	}
+	
+	return ServerURIParser;
+});
