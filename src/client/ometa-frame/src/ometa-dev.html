@@ -16,136 +16,21 @@ Copyright 2011 University of Surrey
 
 ﻿<html>
 	<head>
-		<script src="../js/libs/require-1.0.4.min.js"></script>
-		
-		<script src="../ometa-js/lib.js"></script>
-		<script src="../ometa-js/ometa-base.js"></script>
-		<script src="../ometa-js/parser.js"></script>
-		<script src="../ometa-js/bs-js-compiler.js"></script>
-		<script src="../ometa-js/bs-ometa-compiler.js"></script>
-		<script src="../ometa-js/bs-ometa-optimizer.js"></script>
-		<script src="../ometa-js/bs-ometa-js-compiler.js"></script>
-		
-		<script src="js/beautify.js"></script>
-		<script src="../CodeMirror2/lib/codemirror.js"></script>
-		<script src="../CodeMirror2/mode/javascript/javascript.js"></script> 
-		<script src="../js/libs/jquery-1.7.1.min.js"></script>
-		<script src="../js/libs/jquery.hotkeys.js"></script>
-		<script src="../js/libs/jquery-custom-file-input.js"></script>
-		<script src="../js/libs/jquery-ui-1.8.17.custom.min.js"></script>
-		
-		<link type="text/css" href="../css/ui-lightness/jquery-ui.css" rel="stylesheet" />
-		<link rel="stylesheet" href="../CodeMirror2/lib/codemirror.css">
-		<link rel="stylesheet" href="../CodeMirror2/theme/default.css">
+		<script src="../../../external/require-1.0.4.min.js"></script>
+		<script src="../../../common/config/requirejs.js"></script>
+		<script>
+			requirejs(['main']);
+		</script>
 		
 		<style type="text/css">
-		.codemirror-scroll {
-			overflow: auto;
-			height: 380px;
-			position: relative;
-		}
+			.codemirror-scroll {
+				overflow: auto;
+				height: 380px;
+				position: relative;
+			}
 		</style>
-		
-		<script>
-			function translateCode(s) {
-	  			var translationError = function(m, i) { 
-	  					alert("Translation error - please tell Alex about this!"); throw fail 
-	  				};
-//				try {
-					var parsingError = function(m, i) {
-						console.log(m);
-						var start = Math.max(0,i-20);
-						console.log('Error around: '+s.substring(start, Math.min(s.length,start+40)));
-						console.log('Error around: '+s.substring(i-2, Math.min(s.length,i+2)));
-						throw m;
-					}
-					var tree = BSOMetaJSParser.matchAll(s, "topLevel", undefined, parsingError)
-					//console.log(tree);
-					return BSOMetaJSTranslator.match(tree, "trans", undefined, translationError);
-//				}
-/*			  catch(e) {
-				console.log(e);
-				var start = Math.max(0,e.errorPos-20);
-				console.log('Error around: '+s.substring(start, Math.min(s.length,start+40)));
-				throw e;
-			  }*/
-			}
-		
-			function compile(ometacode){
-				var jscode;
-				jscode = translateCode(ometacode + '\n'); //'\n' avoids failing on comment-terminated strings.
-				cmRaw.setValue(jscode);		
-				cmFormatted.setValue( js_beautify(jscode) );
-				alert('Compilation complete!');
-			}
-			
-			function compileAndRun(ometacode){
-				var jscode, evaloutput;
-				jscode = translateCode(ometacode + '\n'); //'\n' avoids failing on comment-terminated strings.
-				cmRaw.setValue(jscode);		
-				cmFormatted.setValue( js_beautify(jscode) );
-				evaloutput = "" + eval(jscode)
-				console.log(evaloutput)
-				outputArea.setValue(evaloutput)
-				console.log(jscode)
-				alert('Compile & Run complete!');
-			}
-		</script>
 	</head>
 	<body>
-		<script>
-			window.downloadFile = function(filename, text){
-				var MIME_TYPE, a, bb, output, prevLink;
-				MIME_TYPE = "text/plain";
-				output = document.querySelector("output");
-				window.URL = window.webkitURL || window.URL;
-				window.BlobBuilder = window.BlobBuilder || window.WebKitBlobBuilder || window.MozBlobBuilder;
-				prevLink = output.querySelector("a");
-				if (prevLink) {
-					window.URL.revokeObjectURL(prevLink.href);
-					output.innerHTML = "";
-				}
-				bb = new BlobBuilder();
-				bb.append(text);
-				a = document.createElement("a");
-				a.download = filename;
-				a.href = window.URL.createObjectURL(bb.getBlob(MIME_TYPE));
-				a.textContent = "Download ready";
-				a.dataset.downloadurl = [MIME_TYPE, a.download, a.href].join(":");
-				a.draggable = true;
-				a.classList.add("dragout");
-				output.appendChild(a);
-				return a.onclick = function(e) {
-					if ("disabled" in this.dataset) {
-						return false;
-					}
-					return cleanUp(this);
-				};
-			};
-		
-			$(function() {
-				$("#tabs").tabs({
-				   show: function(event, ui) { cmFormatted.refresh(); cmRaw.refresh();}
-				});
-				
-				function bindings(){
-					$(document).bind('keydown', 'ctrl+y', function(){
-						compileAndRun(ometacodeArea.getValue())
-					});
-				}
-				
-				$(document).ready(bindings);
-				
-				return $("#bldb").file().choose(function(e, input) {
-					return handleFiles(input[0].files);
-				});
-			});
-		</script>
-		
-		<script language="JavaScript">
-		  window.onbeforeunload = confirmExit;
-		  function confirmExit() { return "You have attempted to leave the OMeta editor. Any unsaved changes will be lost."; }
-		</script>
 		
 		<div id="tabs">
 			<ul>
@@ -186,44 +71,5 @@ Copyright 2011 University of Surrey
 				<textarea id="jsformattedArea" name="jsformattedArea" ></textarea>
 			</div>
 		</div>
-
-		<script> 
-			ometacodeArea = CodeMirror.fromTextArea(document.getElementById("ometacodeArea"), {
-				lineNumbers: true,
-				matchBrackets: true,
-				onKeyEvent: function(editor, event){
-					event = $.event.fix(event);
-					$(document).trigger(event);
-				}
-			});
-			outputArea = CodeMirror.fromTextArea(document.getElementById("outputArea"), {
-				lineNumbers: true,
-				matchBrackets: true,
-				readOnly: true,
-				onKeyEvent: function(editor, event){
-					event = $.event.fix(event);
-					$(document).trigger(event);
-				}
-			});			
-			cmRaw = CodeMirror.fromTextArea(document.getElementById("jsrawArea"), {
-				lineNumbers: true,
-				matchBrackets: true,
-				readOnly: true,
-				onKeyEvent: function(editor, event){
-					event = $.event.fix(event);
-					$(document).trigger(event);
-				}
-			});
-			cmFormatted = CodeMirror.fromTextArea(document.getElementById("jsformattedArea"), {
-				lineNumbers: true,
-				matchBrackets: true,
-				readOnly: true
-			});
-			
-			//window.editor.setValue("345345324532453245");
-
-			var requirejs = require;
-			requirejs({ baseUrl: '../js' });
-		</script>
     </body>
 </html>
