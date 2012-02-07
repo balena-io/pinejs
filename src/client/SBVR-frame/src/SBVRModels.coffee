@@ -1,35 +1,20 @@
-/*
-Copyright 2011 University of Surrey
-
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
-
-       http://www.apache.org/licenses/LICENSE-2.0
-
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
-*/
-
-model1 =
-'Term:      pilot
+window.model1 = '''
+Term:      pilot
 Term:      plane
 Fact type: pilot can fly plane
 Fact type: pilot is experienced
 Rule:      It is obligatory that each pilot can fly at least 1 plane
-Rule:      It is obligatory that each pilot that is experienced can fly at least 3 planes'
+Rule:      It is obligatory that each pilot that is experienced can fly at least 3 planes
+'''
 
-model2 =
-'Term:      student
+window.model2 = '''
+Term:      student
 Term:      course
 Term:      study programme
 Fact type: student is registered for course
 Fact type: student is enrolled in study programme
 Fact type: course is available for study programme 
-Rule:      It is obligatory that each student is registered for at most 5 courses
+Rule:      It is obligatory that each student is registered for at most 5 course
 
 Rule:      It is obligatory that each student that is registered for a course is enrolled in a study programme that the course is available for
 
@@ -39,10 +24,11 @@ Rule:      It is obligatory that each student that is under probation is registe
 Term:      lecturer
 Term:      grade
 Fact type: student is marked with grade by lecturer for course
-Rule:      It is obligatory that each student is marked with a grade by a lecturer for each course that the student is registered for'
+Rule:      It is obligatory that each student is marked with a grade by a lecturer for each course that the student is registered for
+'''
 
-model3 =
-'Term:      student
+window.model3 = '''
+Term:      student
 Fact type: student is school president
 Rule:      It is obligatory that a student is school president
 Term:      module
@@ -59,4 +45,5 @@ Rule:      It is obligatory that each student that is under probation is registe
 Rule:      It is obligatory that at most 10 students are under probation
 Fact type: lecturer grades student for study programme with grade
 Rule:      It is prohibited that a student that is under probation is enrolled in more than 2 study programmes
-Rule:      It is obligatory that each student is registered for each module'
+Rule:      It is obligatory that each student is registered for each module
+'''
