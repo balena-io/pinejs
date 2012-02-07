@@ -1,6 +1,6 @@
 (function() {
-	var rootPath = 'file://D:/Projects/startup/mondat-canvas/src/'; //WARNING: This is dependant upon local folder structure, could do with a better way of doing this.
-	
+	var rootPath = 'file://D:/Development/Ometa/rulemotion-canvas/src/'; //WARNING: This is dependant upon local folder structure, we need a better way of doing this.
+
 	window.requireCSS = (function() {
 		var paths = {
 			'jquery-ui':		rootPath + 'external/jquery-ui/css/ui-lightness/jquery-ui.css',
@@ -37,11 +37,13 @@
 			'qunit':					rootPath + 'external/qunit/qunit',
 			'underscore':				rootPath + 'external/underscore-1.2.1.min',
 			'inflection':				rootPath + 'external/inflection/inflection',
+			'json2':					rootPath + 'external/json2',
 			
 			'SBVRParser':				rootPath + 'common/SBVRParser/src/SBVRParser',
 			
 			'sbvr-frame':				rootPath + 'client/SBVR-frame/src',
 			'data-frame':				rootPath + 'client/data-frame/src',
+			'Prettify':					rootPath + 'client/prettify-ometa/src/Prettify',
 			
 			'SBVR2SQL':					rootPath + 'server/sbvr-compiler/src/SBVR2SQL',
 			'SBVR_PreProc':				rootPath + 'server/sbvr-compiler/src/SBVR_PreProc',
@@ -54,5 +56,6 @@
 		},
 		priority: ['jquery']
 	}, ['jquery-ui',
-		'jquery-custom-file-input']);
+		'jquery-custom-file-input',
+		'json2']);
 })()
