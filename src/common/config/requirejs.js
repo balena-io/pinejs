@@ -32,6 +32,7 @@
 			'ometa':					rootPath + 'external/ometa-js',
 			'ometa-base':				rootPath + 'external/ometa-js/ometa-base',
 			'codemirror':				rootPath + 'external/CodeMirror2/lib/codemirror',
+			'codemirror-util':			rootPath + 'external/CodeMirror2/lib/util',
 			'codemirror-modes':			rootPath + 'external/CodeMirror2/mode',
 			'js-beautify':				rootPath + 'external/beautify/beautify',
 			'qunit':					rootPath + 'external/qunit/qunit',
@@ -44,6 +45,7 @@
 			'sbvr-frame':				rootPath + 'client/SBVR-frame/src',
 			'data-frame':				rootPath + 'client/data-frame/src',
 			'Prettify':					rootPath + 'client/prettify-ometa/src/Prettify',
+			'codemirror-ometa-bridge':	rootPath + 'client/codemirror-ometa-bridge/src',
 			
 			'SBVR2SQL':					rootPath + 'server/sbvr-compiler/src/SBVR2SQL',
 			'SBVR_PreProc':				rootPath + 'server/sbvr-compiler/src/SBVR_PreProc',

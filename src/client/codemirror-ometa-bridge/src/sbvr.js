@@ -67,4 +67,4 @@ define(['SBVRParser', 'codemirror'], function(SBVRParser) {
 	});
 
 	CodeMirror.defineMIME("text/sbvr", "sbvr");
-}
+});

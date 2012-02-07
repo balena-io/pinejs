@@ -3,19 +3,17 @@
 {console.log();return window.console;}catch(err){return window.console={};}})());
 
 require(["ometa-base"], function() {
-	require(["libs/json2",
-			/*#IFDEF server */
+	require([/*#IFDEF server */
 				"data-frame/drawDataUI",
 				"data-frame/runTrans",
 			/*#ENDIFDEF*/
 			"data-frame/ClientURIParser",
 			"data-frame/ClientURIUnparser"]);
 	require(["inflection",
-			"SBVRParser",
-			"mylibs/ometa-code/Prettify"], function() {
+			"SBVRParser"], function() {
 		require(["codemirror"], function() {
-			require(["../CodeMirror2/lib/util/simple-hint"], function() {
-				require(["mylibs/cm/sbvr","mylibs/cm/sbvrac"]);
+			require(["codemirror-util/simple-hint"], function() {
+				require(["codemirror-ometa-bridge/sbvr","codemirror-ometa-bridge/sbvrac"]);
 				/*#IFDEF server */
 				require(["codemirror-modes/plsql/plsql"], function() {/*#ENDIFDEF*/
 					require(["script"]);
@@ -27,7 +25,6 @@ require(["ometa-base"], function() {
 	});
 	
 	/*#IFDEF websql */
-		require(["libs/json2",
-				"mylibs/server"]);
+		require(["server-glue"]);
 	/*#ENDIFDEF*/
 });
