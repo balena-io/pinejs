@@ -1,4 +1,5 @@
-{
+define(["ometa-base"], (function() {
+    var SBVR2SQL = undefined;
     SBVR2SQL = objectThatDelegatesTo(OMeta, {
         "$": function(x) {
             var $elf = this,
@@ -388,5 +389,6 @@
             (r = r.concat(v[i][(2)]))
         };
         return r.join(" ")
-    }))
-}
+    }));
+    return SBVR2SQL
+}))

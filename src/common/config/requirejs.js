@@ -33,8 +33,13 @@
 			'ometa-base':				rootPath + 'external/ometa-js/ometa-base',
 			'codemirror':				rootPath + 'external/CodeMirror2/lib/codemirror',
 			'codemirror-modes':			rootPath + 'external/CodeMirror2/mode',
+			'SBVRParser':				rootPath + 'common/SBVRParser/src/SBVRParser',
+			'SBVR2SQL':					rootPath + 'server/sbvr-compiler/src/SBVR2SQL',
+			'SBVR_PreProc':				rootPath + 'server/sbvr-compiler/src/SBVR_PreProc',
 			'js-beautify':				rootPath + 'external/beautify/beautify',
-			'qunit':					rootPath + 'external/qunit/qunit'
+			'qunit':					rootPath + 'external/qunit/qunit',
+			'underscore':				rootPath + 'external/underscore-1.2.1.min',
+			'inflection':				rootPath + 'external/inflection/inflection'
 		},
 		priority: ['jquery']
 	}, ['jquery-ui',

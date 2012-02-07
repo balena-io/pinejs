@@ -1,7 +1,4 @@
-
-// documentation on writing tests here: http://docs.jquery.com/QUnit
-
-(function() {
+define(['SBVRParser', 'SBVR2SQL', 'SBVR_PreProc'], function(SBVRParser, SBVR2SQL, SBVR_PreProc) {
 	var testModel = [
 		[
 			'T: person',
@@ -493,4 +490,4 @@
 			}
 		}
 	})
-})();
+});

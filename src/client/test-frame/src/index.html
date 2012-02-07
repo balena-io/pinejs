@@ -1,41 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-	<title>QUnit Tests</title>
-	<link rel="stylesheet" href="../../external/qunit/qunit.css" media="screen">
-
-	<!-- reference your own javascript files here -->
-	<script src="../../external/require-1.0.4.min.js"></script>
-
-	<script>
-		var requirejs = require;
-		requirejs({
-			baseUrl: '../..',
-			paths: {
-				jquery: 'external/jquery-1.7.1.min'
-//				jquery: 'https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min'
-			},
-			priority: ['jquery']
-		}, ['external/jquery-ui-1.8.17.custom.min',
-			'external/jquery-custom-file-input',
-			'main']);
-    </script>
-
-<!-- test runner files -->
-	<script src="../../external/qunit/qunit.js"></script>
-	<script src="sbvr.js"></script>
-	<script src="server.js"></script>
-	<script src="ClientURI.js"></script>
-
-
-
-</head>
-<body class="flora">
-	<h1 id="qunit-header">QUnit Test Suite</h1>
-	<h2 id="qunit-banner"></h2>
-	<div id="qunit-testrunner-toolbar"></div>
-	<h2 id="qunit-userAgent"></h2>
-	<ol id="qunit-tests"></ol>
-	<div id="qunit-fixture">test markup</div>
-	</body>
+	<head>
+		<title>QUnit Tests</title>
+		<script src="../../../external/require-1.0.4.min.js"></script>
+		<script src="../../../common/config/requirejs.js"></script>
+		<script>
+			requirejs(['main']);
+		</script>
+	</head>
+	<body class="flora">
+		<h1 id="qunit-header">QUnit Test Suite</h1>
+		<h2 id="qunit-banner"></h2>
+		<div id="qunit-testrunner-toolbar"></div>
+		<h2 id="qunit-userAgent"></h2>
+		<ol id="qunit-tests"></ol>
+		<div id="qunit-fixture">test markup</div>
+		</body>
 </html>

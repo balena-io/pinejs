@@ -1,199 +1,188 @@
-/*
-Copyright 2011 University of Surrey
+define(['ometa-base'], function() {
+	var SBVR2SQL;
+	//Transformation from SBVR Logical Formulation to SQL
 
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
+	ometa SBVR2SQL {
+		$ :x		= token(x):a									-> [a] 
+					|												-> [],
 
-       http://www.apache.org/licenses/LICENSE-2.0
+		trans		= [:t apply(t):a]								-> a,
 
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
-*/
+		/**
+		If we match a token we run the function matching the token name.
+		*/
+		token :x	= [:t ?{t==x} apply(x):a]						-> a,
 
-//Transformation from SBVR Logical Formulation to SQL
+		letters		= (letter|'_')+:l space*						-> l.join(''),
 
-ometa SBVR2SQL {
-	$ :x		= token(x):a									-> [a] 
-				|												-> [],
+		/**
+		num = {
+			0: "num",
+			1: number
+		}
+		*/
+		num			= number:n ?{!isNaN(n)}							-> ['num', n],
+		text		= :a											-> a,
 
-	trans		= [:t apply(t):a]								-> a,
+		//These check if the array is a term and uses the info directly, as it has already been processed
+		ftsc		= [(anything:t ?(t[0]=='term')
+																	-> ['ForeignKey', t[1]+'_id', t[1], [t[1],'id','name']])*:tt]
+																	-> tt,
+		ftfl		= [(anything:t ?(t[0]=='term')
+																	-> ('"'+t[1]+'_id" INTEGER'))*:tt]
+																	-> tt,
+		ftfk		= [(anything:t ?(t[0]=='term')
+																	-> ('FOREIGN KEY ("'+t[1]+'_id") REFERENCES "'+t[1]+'"("id")'))*:tt]
+																	-> tt,
+		model		= ("term":t -> ['term', t[1], t[2], t[3],
+									'CREATE TABLE ' + /*Postgres does not support: IF NOT EXISTS*/ '"'+t[1]+'" ("id" INTEGER PRIMARY KEY AUTOINCREMENT,"name" TEXT)',
+									'DROP TABLE "'+t[1]+'";']
+					|"fcTp":f
+									-> ['fcTp', f[1], f[2], f[6], ('CREATE TABLE ' + /*Postgres does not support: IF NOT EXISTS*/ '"'+f[1]+
+										'" ("id" INTEGER PRIMARY KEY AUTOINCREMENT, '+f[4].join(', ')+', '+f[5].join(', ')+')'),
+										'DROP TABLE "'+f[1]+'";', f[3]]
+					|"rule")*:xs									-> ['model'].concat(xs),
 
-	/**
-	If we match a token we run the function matching the token name.
-	*/
-	token :x	= [:t ?{t==x} apply(x):a]						-> a,
+		fcTp		= {lfForm=[]; terms=[]; results=[]; resultsE=''}
+						("term":t "verb":v {
+											lfForm.push([t[0],t[2]]); lfForm.push([v[0],v[2]]);
+											terms.push(t);
+											results.push([t,v])}
+						)*
+						("term":t	{
+									lfForm.push([t[0],t[2]]);
+									terms.push(t);
+									resultsE = ' '+t[1]}
+						)?
+						
+						( //Check for attrs (standalone fact type) and create cached result if we have them
+							anything:attrs
+							ftfl(terms):fkCols
+							ftfk(terms):fkRefs
+							ftsc(terms):fkSchema
+							{this.factTypes[lfForm] = ['fcTp', this.attrVal(attrs, 'DatabaseTableName'), this._fLstt(results).concat(resultsE), lfForm, fkCols, fkRefs, fkSchema]}
+						)?
+																	-> this.factTypes[lfForm],
+						
+		verb		= [letters+:l]									-> ['verb', l.join('_'), l.join(' ')],
 
-	letters		= (letter|'_')+:l space*						-> l.join(''),
+		/**
+		Takes
+		[
+			0: "term",
+			1: termName,
+			2: ?[attributes],
+		]
+		Returns
+		term = [
+			0: "term",
+			1: tableName (replace ' ' with '_' for termName),
+			2: termName,
+			3: [
+				?[field],
+				?[...]
+			],
+			4: createTableSQL
+		]
+		**/
+		term		= anything:termName
+						( anything:attrs {this.terms[termName] = ['term', this.attrVal(attrs, 'DatabaseTableName'), termName, [['Text', 'name', 'Name', []]] ]})?
+																	-> this.terms[termName],
+		rule		= ("obl"|"nec"|"pos"|"prm"):xs "text":t			-> ['rule', [], t, [], xs, []],
 
-	/**
-	num = {
-		0: "num",
-		1: number
+		//TODO: xs[3] is hacky and needs fixing properly.
+		obl			= expr:xs										-> ('SELECT ' + (xs[3] ? xs[3] : xs[0] + xs[1]) + ' AS "result"'),
+		nec			= expr:xs										-> ('SELECT ' + (xs[3] ? xs[3] : xs[0] + xs[1]) + ' AS "result"'),
+		pos			= expr:xs										-> ('SELECT ' + (xs[3] ? xs[3] : xs[0] + xs[1]) + ' AS "result"'),
+		prm			= expr:xs										-> ('SELECT ' + (xs[3] ? xs[3] : xs[0] + xs[1]) + ' AS "result"'),
+
+
+		/**
+		expr = {
+			0: WHERE clause
+			1: After WHERE clause (ie GROUP BY/HAVING)
+			2: JOIN clause
+			3: Hacky, for existQ when we are the very first level.
+		}
+		*/
+		//TODO: atMostQ isn't implemented, we convert to a neg atLeastQ
+		expr		= "aFrm" | "existQ" | "exactQ" | /*"atMostQ" |*/ "atLeastQ" | "numRngQ" | "neg",
+
+		aFrm		= "fcTp":f "bind"*:b							-> ['EXISTS(SELECT * FROM "' + f[1] + '" AS "f" WHERE ' + b.join(' AND '), ')', ''],
+
+		existQ		= "var":v expr:xs
+																	-> ['1=1', '',
+																			' JOIN "'+v[2][1]+'" AS "var'+v[1][1]+'" ON '+v[3][0]+xs[0]+xs[1]+v[3][1]+v[3][2]+xs[2],
+																			'EXISTS(SELECT * FROM "'+v[2][1]+'" AS "var'+v[1][1]+'" WHERE '+v[3][0]+xs[0]+xs[1]+v[3][1]+')'],
+
+		exactQ		= "card":i "var":v expr:xs
+																	-> ['EXISTS(SELECT count(*) AS "card" FROM "'+v[2][1]+'" AS "var'+v[1][1]+'"'+v[3][2]+xs[2]+' WHERE '+v[3][0]+xs[0], 
+																			xs[1]+v[3][1]+' GROUP BY NULL HAVING count(*)='+i[1][1]+')', '', ''],
+
+		atLeastQ	= "minCard":i "var":v expr:xs
+																	-> ['EXISTS(SELECT count(*) AS "card" FROM "'+v[2][1]+'" AS "var'+v[1][1]+'"'+v[3][2]+xs[2]+' WHERE '+v[3][0]+xs[0], 
+																			xs[1]+v[3][1]+' GROUP BY NULL HAVING count(*)>='+i[1][1]+')', '', ''],
+
+		numRngQ		= "minCard":i "maxCard":a "var":v expr:xs
+																	-> ['EXISTS(SELECT count(*) AS "card" FROM "'+v[2][1]+'" AS "var'+v[1][1]+'"'+v[3][2]+xs[2]+' WHERE '+v[3][0]+xs[0], 
+																			xs[1]+v[3][1]+' GROUP BY NULL HAVING count(*)>='+i[1][1]+' AND "card"<='+a[1][1]+')', '', ''],
+
+		/**
+		negExistQ
+		*/
+		neg			= [:s ?{s=='existQ'} "var":v expr:xs]
+																	-> ['NOT EXISTS(SELECT * FROM "'+v[2][1]+'" AS "var'+v[1][1]+'"'+v[3][2]+xs[2]+' WHERE '+v[3][0]+xs[0],
+																		xs[1]+v[3][1]+')', '', ''],
+
+		neg			= expr:xs										-> ['NOT ' + xs[0], xs[1], '', ''],
+
+		card		= "num":n										-> ['card', n],
+		minCard		= "num":n										-> ['minCard', n],
+		maxCard		= "num":n										-> ['maxCard', n],
+
+		/**
+		var = {
+			0: "var",
+			1: num,
+			2: term,
+			3: expr | {'',''}
+		}
+		*/
+		var			= "num":n "term":t expr:w {w[0]==''?'':w[0]+=' AND '}
+																	-> ['var', n, t, w],
+		var			= "num":n "term":t								-> ['var', n, t, ['','','']],
+
+		bind		= "term":t number:n								-> ('"var' + n + '"."id" = "f"."' + t[1] + '_id"')
 	}
-	*/
-	num			= number:n ?{!isNaN(n)}							-> ['num', n],
-	text		= :a											-> a,
 
-	//These check if the array is a term and uses the info directly, as it has already been processed
-	ftsc		= [(anything:t ?(t[0]=='term')
-																-> ['ForeignKey', t[1]+'_id', t[1], [t[1],'id','name']])*:tt]
-																-> tt,
-	ftfl		= [(anything:t ?(t[0]=='term')
-																-> ('"'+t[1]+'_id" INTEGER'))*:tt]
-																-> tt,
-	ftfk		= [(anything:t ?(t[0]=='term')
-																-> ('FOREIGN KEY ("'+t[1]+'_id") REFERENCES "'+t[1]+'"("id")'))*:tt]
-																-> tt,
-	model		= ("term":t -> ['term', t[1], t[2], t[3],
-								'CREATE TABLE ' + /*Postgres does not support: IF NOT EXISTS*/ '"'+t[1]+'" ("id" INTEGER PRIMARY KEY AUTOINCREMENT,"name" TEXT)',
-								'DROP TABLE "'+t[1]+'";']
-				|"fcTp":f
-								-> ['fcTp', f[1], f[2], f[6], ('CREATE TABLE ' + /*Postgres does not support: IF NOT EXISTS*/ '"'+f[1]+
-									'" ("id" INTEGER PRIMARY KEY AUTOINCREMENT, '+f[4].join(', ')+', '+f[5].join(', ')+')'),
-									'DROP TABLE "'+f[1]+'";', f[3]]
-				|"rule")*:xs									-> ['model'].concat(xs),
-
-	fcTp		= {lfForm=[]; terms=[]; results=[]; resultsE=''}
-					("term":t "verb":v {
-										lfForm.push([t[0],t[2]]); lfForm.push([v[0],v[2]]);
-										terms.push(t);
-										results.push([t,v])}
-					)*
-					("term":t	{
-								lfForm.push([t[0],t[2]]);
-								terms.push(t);
-								resultsE = ' '+t[1]}
-					)?
-					
-					( //Check for attrs (standalone fact type) and create cached result if we have them
-						anything:attrs
-						ftfl(terms):fkCols
-						ftfk(terms):fkRefs
-						ftsc(terms):fkSchema
-						{this.factTypes[lfForm] = ['fcTp', this.attrVal(attrs, 'DatabaseTableName'), this._fLstt(results).concat(resultsE), lfForm, fkCols, fkRefs, fkSchema]}
-					)?
-																-> this.factTypes[lfForm],
-					
-	verb		= [letters+:l]									-> ['verb', l.join('_'), l.join(' ')],
-
-	/**
-	Takes
-	[
-		0: "term",
-		1: termName,
-		2: ?[attributes],
-	]
-	Returns
-	term = [
-		0: "term",
-		1: tableName (replace ' ' with '_' for termName),
-		2: termName,
-		3: [
-			?[field],
-			?[...]
-		],
-		4: createTableSQL
-	]
-	**/
-	term		= anything:termName
-					( anything:attrs {this.terms[termName] = ['term', this.attrVal(attrs, 'DatabaseTableName'), termName, [['Text', 'name', 'Name', []]] ]})?
-																-> this.terms[termName],
-	rule		= ("obl"|"nec"|"pos"|"prm"):xs "text":t			-> ['rule', [], t, [], xs, []],
-
-	//TODO: xs[3] is hacky and needs fixing properly.
-	obl			= expr:xs										-> ('SELECT ' + (xs[3] ? xs[3] : xs[0] + xs[1]) + ' AS "result"'),
-	nec			= expr:xs										-> ('SELECT ' + (xs[3] ? xs[3] : xs[0] + xs[1]) + ' AS "result"'),
-	pos			= expr:xs										-> ('SELECT ' + (xs[3] ? xs[3] : xs[0] + xs[1]) + ' AS "result"'),
-	prm			= expr:xs										-> ('SELECT ' + (xs[3] ? xs[3] : xs[0] + xs[1]) + ' AS "result"'),
-
-
-	/**
-	expr = {
-		0: WHERE clause
-		1: After WHERE clause (ie GROUP BY/HAVING)
-		2: JOIN clause
-		3: Hacky, for existQ when we are the very first level.
+	SBVR2SQL.initialize = function() {
+		this.terms = {}
+		this.factTypes = {}
 	}
-	*/
-	//TODO: atMostQ isn't implemented, we convert to a neg atLeastQ
-	expr		= "aFrm" | "existQ" | "exactQ" | /*"atMostQ" |*/ "atLeastQ" | "numRngQ" | "neg",
-
-	aFrm		= "fcTp":f "bind"*:b							-> ['EXISTS(SELECT * FROM "' + f[1] + '" AS "f" WHERE ' + b.join(' AND '), ')', ''],
-
-	existQ		= "var":v expr:xs
-																-> ['1=1', '',
-																		' JOIN "'+v[2][1]+'" AS "var'+v[1][1]+'" ON '+v[3][0]+xs[0]+xs[1]+v[3][1]+v[3][2]+xs[2],
-																		'EXISTS(SELECT * FROM "'+v[2][1]+'" AS "var'+v[1][1]+'" WHERE '+v[3][0]+xs[0]+xs[1]+v[3][1]+')'],
-
-	exactQ		= "card":i "var":v expr:xs
-																-> ['EXISTS(SELECT count(*) AS "card" FROM "'+v[2][1]+'" AS "var'+v[1][1]+'"'+v[3][2]+xs[2]+' WHERE '+v[3][0]+xs[0], 
-																		xs[1]+v[3][1]+' GROUP BY NULL HAVING count(*)='+i[1][1]+')', '', ''],
-
-	atLeastQ	= "minCard":i "var":v expr:xs
-																-> ['EXISTS(SELECT count(*) AS "card" FROM "'+v[2][1]+'" AS "var'+v[1][1]+'"'+v[3][2]+xs[2]+' WHERE '+v[3][0]+xs[0], 
-																		xs[1]+v[3][1]+' GROUP BY NULL HAVING count(*)>='+i[1][1]+')', '', ''],
-
-	numRngQ		= "minCard":i "maxCard":a "var":v expr:xs
-																-> ['EXISTS(SELECT count(*) AS "card" FROM "'+v[2][1]+'" AS "var'+v[1][1]+'"'+v[3][2]+xs[2]+' WHERE '+v[3][0]+xs[0], 
-																		xs[1]+v[3][1]+' GROUP BY NULL HAVING count(*)>='+i[1][1]+' AND "card"<='+a[1][1]+')', '', ''],
-
-	/**
-	negExistQ
-	*/
-	neg			= [:s ?{s=='existQ'} "var":v expr:xs]
-																-> ['NOT EXISTS(SELECT * FROM "'+v[2][1]+'" AS "var'+v[1][1]+'"'+v[3][2]+xs[2]+' WHERE '+v[3][0]+xs[0],
-																	xs[1]+v[3][1]+')', '', ''],
-
-	neg			= expr:xs										-> ['NOT ' + xs[0], xs[1], '', ''],
-
-	card		= "num":n										-> ['card', n],
-	minCard		= "num":n										-> ['minCard', n],
-	maxCard		= "num":n										-> ['maxCard', n],
-
-	/**
-	var = {
-		0: "var",
-		1: num,
-		2: term,
-		3: expr | {'',''}
+		
+	SBVR2SQL.attrVal = function(attrs, attrName) {
+		for(var i=0;i<attrs.length;i++) {
+			if(attrs[i][0] == attrName)
+				return attrs[i][1]
+		}
+		return ''
 	}
-	*/
-	var			= "num":n "term":t expr:w {w[0]==''?'':w[0]+=' AND '}
-																-> ['var', n, t, w],
-	var			= "num":n "term":t								-> ['var', n, t, ['','','']],
 
-	bind		= "term":t number:n								-> ('"var' + n + '"."id" = "f"."' + t[1] + '_id"')
-}
-
-SBVR2SQL.initialize = function() {
-	this.terms = {}
-	this.factTypes = {}
-}
+	SBVR2SQL._cLst = function(v) {
+		c = []
+		for(var i=0;i<v.length;i++) {
+			c = c.concat(v[i])
+		}
+		return c
+	}
+	SBVR2SQL._fLstt = function(v) {
+		v = this._cLst(v);
+		var r = [];
+		for(var i=0;i<v.length;i++) {
+			r = r.concat(v[i][2])
+		}
+		return r.join(' ')
+	}
 	
-SBVR2SQL.attrVal = function(attrs, attrName) {
-	for(var i=0;i<attrs.length;i++) {
-		if(attrs[i][0] == attrName)
-			return attrs[i][1]
-	}
-	return ''
-}
-
-SBVR2SQL._cLst = function(v) {
-	c = []
-	for(var i=0;i<v.length;i++) {
-		c = c.concat(v[i])
-	}
-	return c
-}
-SBVR2SQL._fLstt = function(v) {
-	v = this._cLst(v);
-	var r = [];
-	for(var i=0;i<v.length;i++) {
-		r = r.concat(v[i][2])
-	}
-	return r.join(' ')
-}
+	return SBVR2SQL;
+});

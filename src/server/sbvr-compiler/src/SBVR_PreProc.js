@@ -1,4 +1,10 @@
-{
+define(["ometa-base"], (function() {
+    {
+        var SBVR_NullOpt = undefined;
+        var SBVR2SQLPrep = undefined;
+        var FNN_Elim = undefined;
+        var SBVR_PreProc = undefined
+    };
     SBVR_NullOpt = objectThatDelegatesTo(OMeta, {
         "$": function(x) {
             var $elf = this,
@@ -478,5 +484,6 @@
             r = this._applyWithArgs("foreign", SBVR2SQLPrep, 'trans', r);
             return r
         }
-    })
-}
+    });
+    return SBVR_PreProc
+}))
