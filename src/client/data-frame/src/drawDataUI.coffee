@@ -1,5 +1,5 @@
 widgets = {}
-requirejs(['mylibs/widgets/inputText'], (inputText) ->
+requirejs(['data-frame/widgets/inputText'], (inputText) ->
 	widgets.inputText = inputText
 )
 	

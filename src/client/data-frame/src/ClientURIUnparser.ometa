@@ -13,43 +13,46 @@ Copyright 2011 University of Surrey
    See the License for the specific language governing permissions and
    limitations under the License.
 */
+define(['ometa-base'], function() {
+	var ClientURIUnparser;
+    ometa ClientURIUnparser{
+          word = [(letter|``-''|``_'')+:l]                                        -> l.join(''),
+          nmbr = number,
 
-ometa ClientURIUnparser{
-      word = [(letter|``-''|``_'')+:l]                                        -> l.join(''),
-      nmbr = number,
+         trans = [:t apply(t):a] -> a,
+           uri   trans:t         -> ('#!/' + t),
 
-     trans = [:t apply(t):a] -> a,
-       uri   trans:t         -> ('#!/' + t),
+          name = [word:w nmbr:n] -> (w + '.' + n),
+          name = [word:w word:o] -> (w + '.' + o),
+          name = [word:w]        -> (w),
 
-      name = [word:w nmbr:n] -> (w + '.' + n),
-      name = [word:w word:o] -> (w + '.' + o),
-      name = [word:w]        -> (w),
-       
-       col = name:n mod:m trans:t trans+:r {t=[t].concat(r)} -> (n + m + '/(' + t.join(',') + ')'),
-       col = name:n mod:m trans:t                          -> (n + m + '/' + t),
-       col = name:n mod:m                                  -> (n + m),
+           col = name:n mod:m trans:t trans+:r {t=[t].concat(r)} -> (n + m + '/(' + t.join(',') + ')'),
+           col = name:n mod:m trans:t                          -> (n + m + '/' + t),
+           col = name:n mod:m                                  -> (n + m),
 
-       ins = name:n mod:m trans:t trans+:r {t=[t].concat(r)} -> (n + m + '/(' + t.join(',') + ')'),
-       ins = name:n mod:m trans:t                          -> (n + m + '/' + t),
-       ins = name:n mod:m                                  -> (n + m),
+           ins = name:n mod:m trans:t trans+:r {t=[t].concat(r)} -> (n + m + '/(' + t.join(',') + ')'),
+           ins = name:n mod:m trans:t                          -> (n + m + '/' + t),
+           ins = name:n mod:m                                  -> (n + m),
 
-       mod = ['mod' actn+:a] -> a.join('')
-           | ['mod']         -> '',
+           mod = ['mod' actn+:a] -> a.join('')
+               | ['mod']         -> '',
 
-      actn = (add|filt|del|edit),
-       add = ['add']          -> '*add',
-       del = ['del']          -> '*del',
-      edit = ['edit']         -> '*edit',
+          actn = (add|filt|del|edit),
+           add = ['add']          -> '*add',
+           del = ['del']          -> '*del',
+          edit = ['edit']         -> '*edit',
 
-      filt = ['filt' eqi:o]   -> '',
-      filt = ['filt' op*:o]   -> ('*filt:' + o),
+          filt = ['filt' eqi:o]   -> '',
+          filt = ['filt' op*:o]   -> ('*filt:' + o),
 
-        op = eq|ne|lk,
+            op = eq|ne|lk,
 
-       eqi = ['eq' ([]|word) 'id'   nmbr]        -> '',
-       eqi = ['eq' ([]|word) 'name' word]        -> '',        
-        eq = ['eq' ([]|word) word   (word|nmbr)],
+           eqi = ['eq' ([]|word) 'id'   nmbr]        -> '',
+           eqi = ['eq' ([]|word) 'name' word]        -> '',
+            eq = ['eq' ([]|word) word   (word|nmbr)],
 
-        ne = ['ne' ([]|word) word   (word|nmbr)],
-        lk = ['lk' ([]|word) word   (word|nmbr)]
-}
+            ne = ['ne' ([]|word) word   (word|nmbr)],
+            lk = ['lk' ([]|word) word   (word|nmbr)]
+    }
+    return ClientURIUnparser;
+});

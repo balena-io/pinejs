@@ -1,5 +1,5 @@
 (function() {
-	var rootPath = 'file://D:/Development/Ometa/rulemotion-canvas/src/'; //WARNING: This is dependant upon local folder structure, could do with a better way of doing this.
+	var rootPath = 'file://D:/Projects/startup/mondat-canvas/src/'; //WARNING: This is dependant upon local folder structure, could do with a better way of doing this.
 	
 	window.requireCSS = (function() {
 		var paths = {
