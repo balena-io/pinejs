@@ -1,5 +1,5 @@
 (function() {
-	var rootPath = '/'; //WARNING: This is dependant upon local folder structure, could do with a better way of doing this.
+	var rootPath = 'file://D:/Development/Ometa/rulemotion-canvas/src/'; //WARNING: This is dependant upon local folder structure, could do with a better way of doing this.
 	
 	window.requireCSS = (function() {
 		var paths = {
@@ -37,6 +37,7 @@
 			'SBVR2SQL':					rootPath + 'server/sbvr-compiler/src/SBVR2SQL',
 			'SBVR_PreProc':				rootPath + 'server/sbvr-compiler/src/SBVR_PreProc',
 			'sbvr-frame':				rootPath + 'client/SBVR-frame/src',
+			'data-frame':				rootPath + 'client/data-frame/src',
 			'js-beautify':				rootPath + 'external/beautify/beautify',
 			'qunit':					rootPath + 'external/qunit/qunit',
 			'underscore':				rootPath + 'external/underscore-1.2.1.min',

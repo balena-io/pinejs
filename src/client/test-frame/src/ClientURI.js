@@ -1,7 +1,4 @@
-
-// documentation on writing tests here: http://docs.jquery.com/QUnit
-
-(function() {
+define(['data-frame/ClientURIParser'], function(ClientURIParser) {
 	var testModel = [
 		[
 			'',
@@ -63,4 +60,4 @@
 			}
 		}
 	})
-})();
+});
