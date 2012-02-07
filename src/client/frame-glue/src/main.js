@@ -7,11 +7,14 @@ require(["ometa-base"], function() {
 				"data-frame/drawDataUI",
 				"data-frame/runTrans",
 			/*#ENDIFDEF*/
-			"data-frame/ClientURIParser",
-			"data-frame/ClientURIUnparser"]);
+			"data-frame/ClientURIUnparser",
+			'downloadify/downloadify.min',
+			'downloadify/swfobject']);
 	require(["inflection",
 			"SBVRParser"], function() {
+		requireCSS('codemirror');
 		require(["codemirror"], function() {
+			requireCSS('codemirror-util/simple-hint.css')
 			require(["codemirror-util/simple-hint"], function() {
 				require(["codemirror-ometa-bridge/sbvr","codemirror-ometa-bridge/sbvrac"]);
 				/*#IFDEF server */

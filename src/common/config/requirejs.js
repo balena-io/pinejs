@@ -3,10 +3,12 @@
 
 	window.requireCSS = (function() {
 		var paths = {
-			'jquery-ui':		rootPath + 'external/jquery-ui/css/ui-lightness/jquery-ui.css',
-			'codemirror':		rootPath + 'external/CodeMirror2/lib/codemirror.css',
-			'codemirror-theme':	rootPath + 'external/CodeMirror2/theme',
-			'qunit':			rootPath + 'external/qunit/qunit.css'
+			'jquery-ui':				rootPath + 'external/jquery-ui/css/ui-lightness/jquery-ui.css',
+			'codemirror':				rootPath + 'external/CodeMirror2/lib/codemirror.css',
+			'codemirror-util':			rootPath + 'external/CodeMirror2/lib/util',
+			'codemirror-theme':			rootPath + 'external/CodeMirror2/theme',
+			'qunit':					rootPath + 'external/qunit/qunit.css',
+			'codemirror-ometa-bridge':	rootPath + 'client/codemirror-ometa-bridge/src/sbvr.css'
 		};
 		return function(url) {
 			var firstPathPart = url.split('/')[0];
@@ -39,6 +41,7 @@
 			'underscore':				rootPath + 'external/underscore-1.2.1.min',
 			'inflection':				rootPath + 'external/inflection/inflection',
 			'json2':					rootPath + 'external/json2',
+			'downloadify':				rootPath + 'external/downloadify',
 			
 			'SBVRParser':				rootPath + 'common/SBVRParser/src/SBVRParser',
 			
