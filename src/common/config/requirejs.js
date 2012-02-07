@@ -33,20 +33,24 @@
 			'ometa-base':				rootPath + 'external/ometa-js/ometa-base',
 			'codemirror':				rootPath + 'external/CodeMirror2/lib/codemirror',
 			'codemirror-modes':			rootPath + 'external/CodeMirror2/mode',
-			'SBVRParser':				rootPath + 'common/SBVRParser/src/SBVRParser',
-			'SBVR2SQL':					rootPath + 'server/sbvr-compiler/src/SBVR2SQL',
-			'SBVR_PreProc':				rootPath + 'server/sbvr-compiler/src/SBVR_PreProc',
-			'sbvr-frame':				rootPath + 'client/SBVR-frame/src',
-			'data-frame':				rootPath + 'client/data-frame/src',
 			'js-beautify':				rootPath + 'external/beautify/beautify',
 			'qunit':					rootPath + 'external/qunit/qunit',
 			'underscore':				rootPath + 'external/underscore-1.2.1.min',
 			'inflection':				rootPath + 'external/inflection/inflection',
+			
+			'SBVRParser':				rootPath + 'common/SBVRParser/src/SBVRParser',
+			
+			'sbvr-frame':				rootPath + 'client/SBVR-frame/src',
+			'data-frame':				rootPath + 'client/data-frame/src',
+			
+			'SBVR2SQL':					rootPath + 'server/sbvr-compiler/src/SBVR2SQL',
+			'SBVR_PreProc':				rootPath + 'server/sbvr-compiler/src/SBVR_PreProc',
 			'server-glue':				rootPath + 'server/server-glue/src/server',
 			'express-emulator':			rootPath + 'server/express-emulator/src/express',
 			'data-server':				rootPath + 'server/data-server/src',
 			'editorServer':				rootPath + 'server/editor-server/src/editorServer',
-			'database-layer':			rootPath + 'server/database-layer/src/'
+			'database-layer':			rootPath + 'server/database-layer/src/',
+			'passportBCrypt':			rootPath + 'server/passport-bcrypt/src/passportBCrypt'
 		},
 		priority: ['jquery']
 	}, ['jquery-ui',

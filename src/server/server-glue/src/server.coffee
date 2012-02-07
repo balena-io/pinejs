@@ -48,7 +48,7 @@ if process?
 	db = null
 	requirejs(['database-layer/db'], (dbModule) ->
 		db = dbModule.postgres(process.env.DATABASE_URL || "postgres://postgres:.@localhost:5432/postgres")
-		requirejs('mylibs/passportBCrypt').init(passport, db)
+		requirejs('passportBCrypt').init(passport, db)
 	)
 	
 	app.post('/login', passport.authenticate('local', {failureRedirect: '/login.html'}), (req, res, next) ->
