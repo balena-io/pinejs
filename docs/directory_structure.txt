@@ -38,7 +38,7 @@ root
 		\---client
 			+---frame-glue
 			+---appgen-frame
-			+---data-rame
+			+---data-frame
 				\---src
 					\---widgets
 			+---data-val-frame
