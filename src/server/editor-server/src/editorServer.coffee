@@ -46,18 +46,7 @@ define((requirejs, exports, module) ->
 		return sum
 
 	exports.setup = (app, requirejs) ->
-		requirejs([
-			"libs/inflection",
-			"../ometa-js/lib",
-			"../ometa-js/ometa-base"])
-		requirejs([
-			"mylibs/ometa-code/SBVRModels",
-			"mylibs/ometa-code/SBVRParser",
-			"mylibs/ometa-code/SBVR_PreProc",
-			"mylibs/ometa-code/SBVR2SQL",
-			"mylibs/ometa-code/ServerURIParser"]
-		)		
-		requirejs(['mylibs/db'], (dbModule) ->
+		requirejs(['database-layer/db'], (dbModule) ->
 			if process?
 				db = dbModule.postgres(process.env.DATABASE_URL || "postgres://postgres:.@localhost:5432/postgres")
 			else

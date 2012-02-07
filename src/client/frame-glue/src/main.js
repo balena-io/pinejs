@@ -24,7 +24,7 @@ require(["../ometa-js/lib",
 				})/*#ENDIFDEF*/
 			})
 		});
-		require(["mylibs/ometa-code/SBVRModels"])
+		require(["sbvr-frame/SBVRModels"])
 	});
 	
 	/*#IFDEF websql */

@@ -1,12 +1,12 @@
 setupCallback = (requirejs, app) ->
 	#IFDEF server
-	requirejs(['mylibs/SBVRServer'], (sbvrServer) ->
+	requirejs(['data-server/SBVRServer'], (sbvrServer) ->
 		sbvrServer.setup(app, requirejs)
 	)
 	#ENDIFDEF
 
 	#IFDEF editor
-	requirejs(['mylibs/editorServer'], (editorServer) ->
+	requirejs(['editorServer'], (editorServer) ->
 		editorServer.setup(app, requirejs)
 	)
 	#ENDIFDEF

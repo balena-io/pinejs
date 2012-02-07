@@ -1,8 +1,9 @@
 (function() {
   var __hasProp = Object.prototype.hasOwnProperty;
 
-  define(function(requirejs, exports, module) {
-    var db, endLock, executeSasync, executeTasync, getFTree, getID, hasCR, isExecute, op, parseURITree, serverIsOnAir, serverModelCache, transactionModel, updateRules, validateDB;
+  define(['SBVRParser', 'SBVR_PreProc', 'SBVR2SQL', 'data-server/ServerURIParser'], function(SBVRParser, SBVR_PreProc, SBVR2SQL, ServerURIParser) {
+    var db, endLock, executeSasync, executeTasync, exports, getFTree, getID, hasCR, isExecute, op, parseURITree, serverIsOnAir, serverModelCache, transactionModel, updateRules, validateDB;
+    exports = {};
     db = null;
     op = {
       eq: "=",
@@ -10,9 +11,9 @@
       lk: "~"
     };
     transactionModel = 'Term:      resource\nTerm:      transaction\nTerm:      lock\nTerm:      conditional representation\nFact type: lock is exclusive\nFact type: lock is shared\nFact type: resource is under lock\nFact type: lock belongs to transaction\nRule:      It is obligatory that each resource is under at most 1 lock that is exclusive';
-    transactionModel = SBVRParser.matchAll(modelT, "expr");
-    transactionModel = SBVR_PreProc.match(tree, "optimizeTree");
-    transactionModel = SBVR2SQL.match(tree, "trans");
+    transactionModel = SBVRParser.matchAll(transactionModel, "expr");
+    transactionModel = SBVR_PreProc.match(transactionModel, "optimizeTree");
+    transactionModel = SBVR2SQL.match(transactionModel, "trans");
     serverModelCache = function() {
       var setValue, values;
       values = {
@@ -282,9 +283,7 @@
       }
     };
     exports.setup = function(app, requirejs) {
-      requirejs(["libs/inflection", "../ometa-js/lib", "../ometa-js/ometa-base"]);
-      requirejs(["mylibs/ometa-code/SBVRParser", "mylibs/ometa-code/SBVR_PreProc", "mylibs/ometa-code/SBVR2SQL", "mylibs/ometa-code/ServerURIParser"]);
-      requirejs(['mylibs/db'], function(dbModule) {
+      requirejs(['database-layer/db'], function(dbModule) {
         if (typeof process !== "undefined" && process !== null) {
           db = dbModule.postgres(process.env.DATABASE_URL || "postgres://postgres:.@localhost:5432/postgres");
         } else {
@@ -574,17 +573,12 @@
           if (sql !== "") {
             return db.transaction(function(tx) {
               return tx.executeSql(sql + ";", [], function(tx, result) {
-                var data, i;
-                data = {
-                  instances: (function() {
-                    var _ref5, _results;
-                    _results = [];
-                    for (i = 0, _ref5 = result.rows.length; 0 <= _ref5 ? i < _ref5 : i > _ref5; 0 <= _ref5 ? i++ : i--) {
-                      _results.push(result.rows.item(i));
-                    }
-                    return _results;
-                  })()
-                };
+                var data, i, _ref5;
+                for (i = 0, _ref5 = result.rows.length; 0 <= _ref5 ? i < _ref5 : i > _ref5; 0 <= _ref5 ? i++ : i--) {
+                  data = {
+                    instances: result.rows.item(i)
+                  };
+                }
                 return res.json(data);
               });
             });

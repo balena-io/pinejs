@@ -2,10 +2,10 @@
   var app, db, express, passport, requirejs, setupCallback;
 
   setupCallback = function(requirejs, app) {
-    requirejs(['mylibs/SBVRServer'], function(sbvrServer) {
+    requirejs(['data-server/SBVRServer'], function(sbvrServer) {
       return sbvrServer.setup(app, requirejs);
     });
-    requirejs(['mylibs/editorServer'], function(editorServer) {
+    requirejs(['editorServer'], function(editorServer) {
       return editorServer.setup(app, requirejs);
     });
     if (typeof process !== "undefined" && process !== null) {

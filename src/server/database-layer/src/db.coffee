@@ -1,4 +1,4 @@
-define(["./SQLBinds.js"], (SQLBinds) ->
+define(["database-layer/SQLBinds"], (SQLBinds) ->
 	exports = {}
 	if process?
 		exports.postgres = (connectString) ->

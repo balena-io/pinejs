@@ -1,3 +1,4 @@
+(function() {
 
   define(function(requirejs, exports, module) {
     var db, decodeBase, toBase;
@@ -36,9 +37,7 @@
       return sum;
     };
     exports.setup = function(app, requirejs) {
-      requirejs(["libs/inflection", "../ometa-js/lib", "../ometa-js/ometa-base"]);
-      requirejs(["mylibs/ometa-code/SBVRModels", "mylibs/ometa-code/SBVRParser", "mylibs/ometa-code/SBVR_PreProc", "mylibs/ometa-code/SBVR2SQL", "mylibs/ometa-code/ServerURIParser"]);
-      requirejs(['mylibs/db'], function(dbModule) {
+      requirejs(['database-layer/db'], function(dbModule) {
         if (typeof process !== "undefined" && process !== null) {
           db = dbModule.postgres(process.env.DATABASE_URL || "postgres://postgres:.@localhost:5432/postgres");
         } else {
@@ -93,3 +92,5 @@
     };
     return exports;
   });
+
+}).call(this);

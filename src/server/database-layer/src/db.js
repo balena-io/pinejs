@@ -1,6 +1,6 @@
 (function() {
 
-  define(["./SQLBinds.js"], function(SQLBinds) {
+  define(["database-layer/SQLBinds"], function(SQLBinds) {
     var exports;
     exports = {};
     if (typeof process !== "undefined" && process !== null) {

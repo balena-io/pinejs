@@ -1,4 +1,5 @@
-define((requirejs, exports, module) ->
+define(['SBVRParser', 'SBVR_PreProc', 'SBVR2SQL', 'data-server/ServerURIParser'], (SBVRParser, SBVR_PreProc, SBVR2SQL, ServerURIParser) ->
+	exports = {}
 	db = null
 	op =
 		eq: "="
@@ -16,9 +17,9 @@ define((requirejs, exports, module) ->
 			Fact type: resource is under lock
 			Fact type: lock belongs to transaction
 			Rule:      It is obligatory that each resource is under at most 1 lock that is exclusive'''
-	transactionModel = SBVRParser.matchAll(modelT, "expr")
-	transactionModel = SBVR_PreProc.match(tree, "optimizeTree")
-	transactionModel = SBVR2SQL.match(tree, "trans")
+	transactionModel = SBVRParser.matchAll(transactionModel, "expr")
+	transactionModel = SBVR_PreProc.match(transactionModel, "optimizeTree")
+	transactionModel = SBVR2SQL.match(transactionModel, "trans")
 
 	serverModelCache = () ->
 		#This is needed as the switch has no value on first execution. Maybe there's a better way?
@@ -263,17 +264,8 @@ define((requirejs, exports, module) ->
 
 	#Setup function
 	exports.setup = (app, requirejs) ->
-		requirejs(["libs/inflection",
-				"../ometa-js/lib",
-				"../ometa-js/ometa-base"])
-		requirejs([
-			"mylibs/ometa-code/SBVRParser",
-			"mylibs/ometa-code/SBVR_PreProc",
-			"mylibs/ometa-code/SBVR2SQL",
-			"mylibs/ometa-code/ServerURIParser"]
-		)
 
-		requirejs(['mylibs/db'], (dbModule) ->
+		requirejs(['database-layer/db'], (dbModule) ->
 			if process?
 				db = dbModule.postgres(process.env.DATABASE_URL || "postgres://postgres:.@localhost:5432/postgres")
 				# db = dbModule.mysql({user: 'root', password: '.', database: 'rulemotion'})
