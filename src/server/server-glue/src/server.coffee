@@ -60,7 +60,7 @@ else
 	requirejs = window.requirejs
 	#IFDEF websql
 	requirejs(['express-emulator'], (express) ->
-		window?.remoteServerRequest = app.process
+		window?.remoteServerRequest = express.app.process
 		setupCallback(requirejs, express.app)
 	)
 	#ENDIFDEF

@@ -49,7 +49,7 @@
     requirejs = window.requirejs;
     requirejs(['express-emulator'], function(express) {
       if (typeof window !== "undefined" && window !== null) {
-        window.remoteServerRequest = app.process;
+        window.remoteServerRequest = express.app.process;
       }
       return setupCallback(requirejs, express.app);
     });
