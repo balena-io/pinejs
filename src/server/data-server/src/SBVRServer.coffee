@@ -496,7 +496,7 @@ define(['SBVRParser', 'SBVR_PreProc', 'SBVR2SQL', 'data-server/ServerURIParser']
 				if sql != ""
 					db.transaction (tx) ->
 						tx.executeSql sql + ";", [], (tx, result) ->
-							data = instances: result.rows.item(i) for i in [0...result.rows.length]
+							data = instances: (result.rows.item(i) for i in [0...result.rows.length])
 							res.json(data)
 				else
 					res.send(404)

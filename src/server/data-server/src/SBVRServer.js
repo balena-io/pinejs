@@ -573,12 +573,17 @@
           if (sql !== "") {
             return db.transaction(function(tx) {
               return tx.executeSql(sql + ";", [], function(tx, result) {
-                var data, i, _ref5;
-                for (i = 0, _ref5 = result.rows.length; 0 <= _ref5 ? i < _ref5 : i > _ref5; 0 <= _ref5 ? i++ : i--) {
-                  data = {
-                    instances: result.rows.item(i)
-                  };
-                }
+                var data, i;
+                data = {
+                  instances: (function() {
+                    var _ref5, _results;
+                    _results = [];
+                    for (i = 0, _ref5 = result.rows.length; 0 <= _ref5 ? i < _ref5 : i > _ref5; 0 <= _ref5 ? i++ : i--) {
+                      _results.push(result.rows.item(i));
+                    }
+                    return _results;
+                  })()
+                };
                 return res.json(data);
               });
             });
