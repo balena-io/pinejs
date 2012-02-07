@@ -1,5 +1,5 @@
 define(["ometa-base"], (function() {
-    var ClientURIUnParser = undefined;
+    var ClientURIUnparser = undefined;
     ClientURIUnparser = objectThatDelegatesTo(OMeta, {
         "word": function() {
             var $elf = this,
@@ -12,12 +12,12 @@ define(["ometa-base"], (function() {
                     }), (function() {
                         return (function() {
                             switch (this._apply('anything')) {
-                                case "-":
-                                    return "-";
-                                case "_":
-                                    return "_";
-                                default:
-                                    throw fail
+                            case "-":
+                                return "-";
+                            case "_":
+                                return "_";
+                            default:
+                                throw fail
                             }
                         }).call(this)
                     }))
@@ -299,5 +299,5 @@ define(["ometa-base"], (function() {
             }))
         }
     });
-    return ClientURIParser
+    return ClientURIUnparser
 }))
