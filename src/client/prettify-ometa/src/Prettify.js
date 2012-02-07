@@ -32,7 +32,7 @@ define(["ometa-base"], (function() {
             (spaces += "  ")
         };
         undefined;
-        return a
+        return spaces
     }));
     return Prettify
 }))

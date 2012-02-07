@@ -13,7 +13,7 @@ define(['ometa-base'], function() {
 		for(; i<indentLevel; i++) {
 			spaces += '  ';
 		};
-		return a;
+		return spaces;
 	}
 	return Prettify;
 })
