@@ -46,7 +46,7 @@ if process?
 	
 	#IFDEF server
 	db = null
-	requirejs(['mylibs/db'], (dbModule) ->
+	requirejs(['database-layer/db'], (dbModule) ->
 		db = dbModule.postgres(process.env.DATABASE_URL || "postgres://postgres:.@localhost:5432/postgres")
 		requirejs('mylibs/passportBCrypt').init(passport, db)
 	)

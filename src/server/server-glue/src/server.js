@@ -35,7 +35,7 @@
       return app.use(express.static(process.cwd()));
     });
     db = null;
-    requirejs(['mylibs/db'], function(dbModule) {
+    requirejs(['database-layer/db'], function(dbModule) {
       db = dbModule.postgres(process.env.DATABASE_URL || "postgres://postgres:.@localhost:5432/postgres");
       return requirejs('mylibs/passportBCrypt').init(passport, db);
     });
