@@ -1,11 +1,12 @@
-{
+define(["ometa-base"], (function() {
+    var Prettify = undefined;
     Prettify = objectThatDelegatesTo(OMeta, {
         "elem": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 e;
             this._form((function() {
-                this["d"]++;
+                this["indentLevel"]++;
                 e = this._many((function() {
                     return this._or((function() {
                         return this._apply("string")
@@ -15,19 +16,23 @@
                         return this._apply("number")
                     }))
                 }));
-                return (s = this.s(this["d"]--))
+                return (spaces = this.indent(this["indentLevel"]--))
             }));
-            return (("[" + e.join((",\n" + s))) + "]")
+            return (("[" + e.join((",\n" + spaces))) + "]")
         }
     });
-    (Prettify["d"] = (1));
-    (Prettify["s"] = (function(d) {
-        (a = " ");
-        for (var i = (0);
-        (i < d); i++) {
-            (a += "  ")
+    (Prettify["indentLevel"] = (1));
+    (Prettify["indent"] = (function(indentLevel) {
+        {
+            var i = (0);
+            var spaces = " "
+        };
+        for (undefined;
+        (i < indentLevel); i++) {
+            (spaces += "  ")
         };
         undefined;
         return a
-    }))
-}
+    }));
+    return Prettify
+}))
