@@ -1,0 +1,15 @@
+File Guidelines
+
+1. Use lowercase
+
+2. Separate with dashes
+
+3. Use file extensions:
+	.coffee - CoffeeScript
+	.js - JavaScript
+	.ometa - OMeta/JS 2
+	.jade - Jade
+	.css - CSS
+	.html - HTML5
+
+4. Record new projects in docs/directory-structure.txt
