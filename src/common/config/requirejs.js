@@ -1,13 +1,11 @@
 (function() {
 	var scripts = document.getElementsByTagName('script'),
 		uriParts = scripts[scripts.length - 1].src.split('/'),
-		rootPath = '';
-	for(var i=0;i<uriParts.length;i++) {
-		rootPath += uriParts[i] + '/';
-		if(uriParts[i] === 'src') {
-			break;
-		}
+		rootPath, i=0;
+	for(;i<3;i++) {
+		uriParts.pop();
 	}
+	rootPath = uriParts.join('/') + '/';
 	delete scripts;
 	delete uriParts;
 
