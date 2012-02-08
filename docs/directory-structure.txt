@@ -24,7 +24,7 @@ root
 		+---server
 			+---database-layer
 			+---express-emulator
-			+---edior-server
+			+---editor-server
 			+---sbvr-compiler
 			+---data-server
 			+---passport-bcrypt
@@ -44,7 +44,6 @@ root
 			+---data-val-frame
 			+---demo-frame
 			+---devtools-frame
-			+---frame-loader
 			+---log-frame
 			+---ometa-frame
 			+---sbvr-frame
