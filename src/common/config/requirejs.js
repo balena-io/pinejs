@@ -1,5 +1,15 @@
 (function() {
-	var rootPath = 'file://D:/Development/Ometa/rulemotion-canvas/src/'; //WARNING: This is dependant upon local folder structure, we need a better way of doing this.
+	var scripts = document.getElementsByTagName('script'),
+		uriParts = scripts[scripts.length - 1].src.split('/'),
+		rootPath = '';
+	for(var i=0;i<uriParts.length;i++) {
+		rootPath += uriParts[i] + '/';
+		if(uriParts[i] === 'src') {
+			break;
+		}
+	}
+	delete scripts;
+	delete uriParts;
 
 	window.requireCSS = (function() {
 		var paths = {
