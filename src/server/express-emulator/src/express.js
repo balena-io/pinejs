@@ -72,9 +72,9 @@
                 _ref = [headers, {}], statusCode = _ref[0], headers = _ref[1];
               }
               if (statusCode === 404) {
-                return failureCallback(statusCode, obj);
+                return failureCallback(statusCode, obj, headers);
               } else {
-                return successCallback(statusCode, obj);
+                return successCallback(statusCode, obj, headers);
               }
             },
             send: function(statusCode) {

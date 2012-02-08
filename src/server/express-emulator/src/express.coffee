@@ -42,9 +42,9 @@ define((requirejs, exports, module) ->
 						if typeof headers == 'number' and !statusCode?
 							[statusCode, headers] = [headers, {}]
 						if statusCode == 404
-							failureCallback(statusCode, obj)
+							failureCallback(statusCode, obj, headers)
 						else
-							successCallback(statusCode, obj)
+							successCallback(statusCode, obj, headers)
 					send: (statusCode) ->
 						if statusCode == 404
 							failureCallback(statusCode)
