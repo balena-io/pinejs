@@ -51,7 +51,7 @@
 			'json2':					rootPath + 'external/json2',
 			'downloadify':				rootPath + 'external/downloadify',
 			
-			'SBVRParser':				rootPath + 'common/SBVRParser/src/SBVRParser',
+			'SBVRParser':				rootPath + 'common/sbvr-parser/src/SBVRParser',
 			
 			'sbvr-frame':				rootPath + 'client/sbvr-frame/src',
 			'data-frame':				rootPath + 'client/data-frame/src',
