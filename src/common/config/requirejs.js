@@ -53,7 +53,7 @@
 			
 			'SBVRParser':				rootPath + 'common/SBVRParser/src/SBVRParser',
 			
-			'sbvr-frame':				rootPath + 'client/SBVR-frame/src',
+			'sbvr-frame':				rootPath + 'client/sbvr-frame/src',
 			'data-frame':				rootPath + 'client/data-frame/src',
 			'Prettify':					rootPath + 'client/prettify-ometa/src/Prettify',
 			'codemirror-ometa-bridge':	rootPath + 'client/codemirror-ometa-bridge/src',
