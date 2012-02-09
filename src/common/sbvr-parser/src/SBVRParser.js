@@ -500,7 +500,7 @@ define(["underscore", "ometa-base", "inflection"], (function(_) {
                 attrName, attrVal;
             this._pred(((this["lines"][(this["lines"]["length"] - (1))][(0)] == "term") || (this["lines"][(this["lines"]["length"] - (1))][(0)] == "fcTp")));
             attrName = this._apply("allowedAttrs");
-            attrVal = this._applyWithArgs("applyFirstExisting", [("attr" + attrName), "toSBVREOL"]);
+            attrVal = this._applyWithArgs("applyFirstExisting", [("attr" + attrName.replace(" ", "")), "toSBVREOL"]);
             return (function() {
                 var lastLine = this["lines"].pop();
                 lastLine[(lastLine["length"] - (1))].push([attrName.replace(new RegExp(" ", "g"), ""), attrVal]);
@@ -520,6 +520,11 @@ define(["underscore", "ometa-base", "inflection"], (function(_) {
             return this._applyWithArgs("qTerbR", [
                 []
             ])
+        },
+        "attrConceptType": function() {
+            var $elf = this,
+                _fromIdx = this.input.idx;
+            return this._apply("term")
         },
         "startComment": function() {
             var $elf = this,
