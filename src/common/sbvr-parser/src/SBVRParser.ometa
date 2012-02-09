@@ -118,8 +118,9 @@ define(['underscore', 'ometa-base', 'inflection'], function(_) {
 		attribute		= ?{this.lines[this.lines.length-1][0] == 'term' ||
 							this.lines[this.lines.length-1][0] == 'fcTp'}
 							allowedAttrs:attrName
-							applyFirstExisting(['attr'+attrName.replace(' ', ''),'toSBVREOL']):attrVal
-																			-> {var lastLine = this.lines.pop(); lastLine[lastLine.length-1].push([attrName.replace(new RegExp(' ','g'),''), attrVal]); lastLine},
+							{attrName.replace(new RegExp(' ','g'),'')}:attrName
+							applyFirstExisting(['attr'+attrName,'toSBVREOL']):attrVal
+																			-> {var lastLine = this.lines.pop(); lastLine[lastLine.length-1].push([attrName, attrVal]); lastLine},
 							
 		allowedAttrs	= matchForAny('seq',this.possMap.allowedAttrs):attrName -> attrName.replace(':',''),
 		attrDefinition	= qTerbR([[]]),
