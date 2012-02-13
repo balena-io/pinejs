@@ -1,4 +1,4 @@
-define(['ometa-base'], function() {
+define(['ometa/ometa-base'], function() {
 	var SBVR2SQL;
 	//Transformation from SBVR Logical Formulation to SQL
 

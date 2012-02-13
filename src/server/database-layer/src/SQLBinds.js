@@ -1,4 +1,4 @@
-define(["ometa-base"], (function() {
+define(["ometa/ometa-base"], (function() {
     var SQLBinds = undefined;
     SQLBinds = objectThatDelegatesTo(OMeta, {
         "skipToEnd": function(quote) {

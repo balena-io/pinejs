@@ -1,4 +1,4 @@
-define(["ometa-base"], (function() {
+define(["ometa/ometa-base"], (function() {
     {
         var SBVR_NullOpt = undefined;
         var SBVR2SQLPrep = undefined;

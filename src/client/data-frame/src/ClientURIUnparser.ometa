@@ -13,7 +13,7 @@ Copyright 2011 University of Surrey
    See the License for the specific language governing permissions and
    limitations under the License.
 */
-define(['ometa-base'], function() {
+define(['ometa/ometa-base'], function() {
 	var ClientURIUnparser;
     ometa ClientURIUnparser{
           word = [(letter|``-''|``_'')+:l]                                        -> l.join(''),

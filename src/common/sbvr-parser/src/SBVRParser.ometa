@@ -1,4 +1,4 @@
-define(['underscore', 'ometa-base', 'inflection'], function(_) {
+define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 	var SBVRParser;
 
 	//A parser for Semantics of Business Vocabulary and Rules (SBVR), an OMG standard.

@@ -1,4 +1,4 @@
-define(["ometa-base"], (function() {
+define(["ometa/ometa-base"], (function() {
     var ServerURIParser = undefined;
     ServerURIParser = objectThatDelegatesTo(OMeta, {
         "word": function() {

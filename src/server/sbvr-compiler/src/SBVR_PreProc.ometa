@@ -1,4 +1,4 @@
-define(['ometa-base'], function() {
+define(['ometa/ometa-base'], function() {
 	var SBVR_NullOpt, SBVR2SQLPrep, FNN_Elim, SBVR_PreProc;
 	ometa SBVR_NullOpt {
 		$ :x		= token(x):a								-> [a] 

@@ -35,9 +35,9 @@
         var evaloutput, jscode;
         jscode = compile(ometacode);
         evaloutput = "" + eval(jscode);
-        console.log(evaloutput);
+        // console.log(evaloutput);
         outputArea.setValue(evaloutput);
-        console.log(jscode);
+        // console.log(jscode);
         return alert('Run complete!');
       };
       window.downloadFile = function(filename, text) {

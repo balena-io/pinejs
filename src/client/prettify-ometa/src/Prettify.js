@@ -1,4 +1,4 @@
-define(["ometa-base"], (function() {
+define(["ometa/ometa-base"], (function() {
     var Prettify = undefined;
     Prettify = objectThatDelegatesTo(OMeta, {
         "elem": function() {

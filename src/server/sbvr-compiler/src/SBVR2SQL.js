@@ -1,4 +1,4 @@
-define(["ometa-base"], (function() {
+define(["ometa/ometa-base"], (function() {
     var SBVR2SQL = undefined;
     SBVR2SQL = objectThatDelegatesTo(OMeta, {
         "$": function(x) {

@@ -1,4 +1,4 @@
-define(["underscore", "ometa-base", "inflection"], (function(_) {
+define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
     var SBVRParser = undefined;
     SBVRParser = objectThatDelegatesTo(OMeta, {
         "isTerm": function(term) {
