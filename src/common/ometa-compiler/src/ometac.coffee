@@ -4,14 +4,14 @@ vm = require("vm")
 load = (filePath) ->
 	vm.runInThisContext fs.readFileSync(filePath, "utf8"), __filename
 
-load(__dirname + "/../../ometa-js/lib.js")
-load(__dirname + "/../../ometa-js/ometa-base.js")
-load(__dirname + "/../../ometa-js/parser.js")
-load(__dirname + "/../../ometa-js/bs-js-compiler.js")
-load(__dirname + "/../../ometa-js/bs-ometa-compiler.js")
-load(__dirname + "/../../ometa-js/bs-ometa-optimizer.js")
-load(__dirname + "/../../ometa-js/bs-ometa-js-compiler.js")
-load(__dirname + "/../../ometa-dev/js/beautify.js")
+load(__dirname + "/../../../external/ometa-js/lib.js")
+load(__dirname + "/../../../external/ometa-js/ometa-base.js")
+load(__dirname + "/../../../external/ometa-js/parser.js")
+load(__dirname + "/../../../external/ometa-js/bs-js-compiler.js")
+load(__dirname + "/../../../external/ometa-js/bs-ometa-compiler.js")
+load(__dirname + "/../../../external/ometa-js/bs-ometa-optimizer.js")
+load(__dirname + "/../../../external/ometa-js/bs-ometa-js-compiler.js")
+load(__dirname + "/../../../external/beautify/beautify.js")
 
 translationError = (m, i) ->
 	console.log "Translation error - please tell Alex about this!"
@@ -41,7 +41,7 @@ compileOmetaFile = (ometaFilePath, jsFilePath, pretty) ->
 				console.log(err)
 			else
 				ometa = data.replace(/\r\n/g, "\n")
-				compileOmeta(ometa, pretty, ometaFilePath)
+				js = compileOmeta(ometa, pretty, ometaFilePath)
 				console.log("Writing: " + ometaFilePath)
 				fs.writeFile(jsFilePath, js)
 
