@@ -437,6 +437,13 @@ define(['SBVRParser', 'SBVR2SQL', 'SBVR_PreProc'], function(SBVRParser, SBVR2SQL
 			'match failed',
 			'match failed'
 		],
+		/* Ending on a that */
+		[
+			'R: It is obligatory that each student is registered for a module that is available for a study programme',
+			[ "rule", [ "obl", [ "univQ", [ "var", [ "num", 0 ], [ "term", "student" ] ], [ "existQ", [ "var", [ "num", 1 ], [ "term", "module" ], [ "existQ", [ "var", [ "num", 2 ], [ "term", "study programme" ] ], [ "aFrm", [ "fcTp", [ "term", "module" ], [ "verb", "is available for" ], [ "term", "study programme" ] ], [ "bind", [ "term", "module" ], 1 ], [ "bind", [ "term", "study programme" ], 2 ] ] ] ], [ "aFrm", [ "fcTp", [ "term", "student" ], [ "verb", "is registered for" ], [ "term", "module" ] ], [ "bind", [ "term", "student" ], 0 ], [ "bind", [ "term", "module" ], 1 ] ] ] ] ], [ "text", "It is obligatory that each student is registered for a module that is available for a study programme" ] ],
+			[ "rule", [ "obl", [ "neg", [ "existQ", [ "var", [ "num", 0 ], [ "term", "student" ] ], [ "neg", [ "existQ", [ "var", [ "num", 1 ], [ "term", "module" ], [ "existQ", [ "var", [ "num", 2 ], [ "term", "study programme" ] ], [ "aFrm", [ "fcTp", [ "term", "module" ], [ "verb", "is available for" ], [ "term", "study programme" ] ], [ "bind", [ "term", "module" ], 1 ], [ "bind", [ "term", "study programme" ], 2 ] ] ] ], [ "aFrm", [ "fcTp", [ "term", "student" ], [ "verb", "is registered for" ], [ "term", "module" ] ], [ "bind", [ "term", "student" ], 0 ], [ "bind", [ "term", "module" ], 1 ] ] ] ] ] ] ], [ "text", "It is obligatory that each student is registered for a module that is available for a study programme" ] ],
+			[ "rule", [], "It is obligatory that each student is registered for a module that is available for a study programme", [], "SELECT NOT EXISTS(SELECT * FROM \"student_table\" AS \"var0\" WHERE NOT EXISTS(SELECT * FROM \"module\" AS \"var1\" JOIN \"study_programme\" AS \"var2\" ON EXISTS(SELECT * FROM \"module-is_available_for-study_programme\" AS \"f\" WHERE \"var1\".\"id\" = \"f\".\"module_id\" AND \"var2\".\"id\" = \"f\".\"study_programme_id\") WHERE 1=1 AND EXISTS(SELECT * FROM \"student-is_registered_for-module\" AS \"f\" WHERE \"var0\".\"id\" = \"f\".\"student_table_id\" AND \"var1\".\"id\" = \"f\".\"module_id\"))) AS \"result\"", [] ]
+		],
 		
 		/* New lines */
 		[
