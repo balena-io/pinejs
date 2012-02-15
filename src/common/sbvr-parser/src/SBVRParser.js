@@ -196,18 +196,6 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
                 _fromIdx = this.input.idx;
             return this._applyWithArgs("matchForAll", "keyword", ["and", "at", "most"])
         },
-        "quantTermAddVar": function() {
-            var $elf = this,
-                _fromIdx = this.input.idx,
-                q, t, v;
-            q = this._apply("quant");
-            t = this._apply("term");
-            v = this._applyWithArgs("addVar", t);
-            return ({
-                "quantVar": q.concat([v]),
-                "term": t
-            })
-        },
         "quant": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
@@ -265,27 +253,40 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
                 _fromIdx = this.input.idx;
             return this._applyWithArgs("keyword", "the")
         },
-        "addVar": function(prevTerm) {
+        "createVar": function(term) {
+            var $elf = this,
+                _fromIdx = this.input.idx;
+            (this["ruleVars"][term[(1)]] = this["ruleVarsCount"]++);
+            return ["var", ["num", this["ruleVars"][term[(1)]]], term]
+        },
+        "checkThat": function(term) {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                v, q;
-            (this["ruleVars"][prevTerm[(1)]] = this["ruleVarsCount"]++);
-            v = ["var", ["num", this["ruleVars"][prevTerm[(1)]]], prevTerm];
-            this._opt((function() {
-                this._apply("addThat");
-                q = this._or((function() {
-                    this._apply("addThe");
-                    return this._applyWithArgs("terbRi", [
-                        []
-                    ], prevTerm)
+                termBind, t, v, b, c;
+            this._apply("addThat");
+            termBind = this._applyWithArgs("bind", term);
+            return this._or((function() {
+                this._apply("addThe");
+                t = this._apply("term");
+                v = this._apply("verb");
+                b = this._applyWithArgs("bind", t);
+                c = [
+                    [t, v, term], b, termBind];
+                return this._or((function() {
+                    return this._applyWithArgs("ruleBody", c)
                 }), (function() {
-                    return this._applyWithArgs("qTerbRi", [
-                        []
-                    ], prevTerm)
-                }));
-                return v.push(q)
-            }));
-            return v
+                    return this._applyWithArgs("atfo", c)
+                }))
+            }), (function() {
+                v = this._apply("verb");
+                c = [
+                    [term, v], termBind];
+                return this._applyWithArgs("ruleBody", c, true)
+            }), (function() {
+                return this._applyWithArgs("ruleBody", [
+                    []
+                ])
+            }))
         },
         "atfo": function(c) {
             var $elf = this,
@@ -294,91 +295,39 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
             (c[(0)] = ["fcTp"].concat(c[(0)]));
             return ["aFrm"].concat(c)
         },
-        "terbRi": function(c, prevTerm) {
+        "ruleBody": function(c, exitOnTermFactType) {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                t, v, b;
+                q, t, tVar, b, thatC, v, r;
+            q = this._apply("quant");
             t = this._apply("term");
-            v = this._applyWithArgs("verb", t);
-            b = this._applyWithArgs("bind", t);
-            (function() {
-                c[(0)].push(t, v);
-                return c.push(b)
-            }).call(this);
-            return this._applyWithArgs("qTerbRi", c, prevTerm)
-        },
-        "qTerbRi": function(c, prevTerm) {
-            var $elf = this,
-                _fromIdx = this.input.idx,
-                qt, t, v, b, r;
-            return this._or((function() {
-                qt = this._apply("quantTermAddVar");
-                t = qt["term"];
-                v = this._apply("verb");
-                b = this._applyWithArgs("bind", t);
-                (function() {
-                    c[(0)].push(t, v);
-                    return c.push(b)
-                }).call(this);
-                r = this._applyWithArgs("qTerbRi", c, prevTerm);
-                return qt["quantVar"].concat([r])
-            }), (function() {
-                v = this._applyWithArgs("verb", prevTerm);
-                b = this._applyWithArgs("bind", prevTerm);
-                (function() {
-                    c[(0)].push(prevTerm, v);
-                    return c.push(b)
-                }).call(this);
-                return this._or((function() {
-                    return this._applyWithArgs("atfo", c)
-                }), (function() {
-                    return this._applyWithArgs("qTerbR", c)
-                }), (function() {
-                    return this._applyWithArgs("qTerm", c)
-                }))
-            }), (function() {
-                b = this._applyWithArgs("bind", prevTerm);
-                (function() {
-                    c[(0)].push(prevTerm);
-                    return c.push(b)
-                }).call(this);
-                return this._applyWithArgs("atfo", c)
-            }))
-        },
-        "qTerm": function(c) {
-            var $elf = this,
-                _fromIdx = this.input.idx,
-                qt, t, b, r;
-            qt = this._apply("quantTermAddVar");
-            t = qt["term"];
+            tVar = this._applyWithArgs("createVar", t);
             b = this._applyWithArgs("bind", t);
             (function() {
                 c[(0)].push(t);
                 return c.push(b)
             }).call(this);
-            r = this._applyWithArgs("atfo", c);
-            return qt["quantVar"].concat([r])
-        },
-        "qTerbR": function(c) {
-            var $elf = this,
-                _fromIdx = this.input.idx,
-                qt, v, b, r;
-            qt = this._apply("quantTermAddVar");
-            (t = qt["term"]);
-            v = this._applyWithArgs("verb", t);
-            b = this._applyWithArgs("bind", t);
-            (function() {
-                c[(0)].push(t, v);
-                return c.push(b)
-            }).call(this);
-            r = this._or((function() {
-                return this._applyWithArgs("atfo", c)
-            }), (function() {
-                return this._applyWithArgs("qTerbR", c)
-            }), (function() {
-                return this._applyWithArgs("qTerm", c)
+            this._opt((function() {
+                thatC = this._applyWithArgs("checkThat", t);
+                return (function() {
+                    tVar.push(thatC);
+                    return console.log(thatC)
+                }).call(this)
             }));
-            return qt["quantVar"].concat([r])
+            q.push(tVar);
+            r = this._or((function() {
+                v = this._applyWithArgs("verb", t);
+                c[(0)].push(v);
+                return this._or((function() {
+                    return this._applyWithArgs("atfo", c)
+                }), (function() {
+                    return this._applyWithArgs("ruleBody", c, true)
+                }))
+            }), (function() {
+                this._pred((exitOnTermFactType === true));
+                return this._applyWithArgs("atfo", c)
+            }));
+            return q.concat([r])
         },
         "modRule": function() {
             var $elf = this,
@@ -432,7 +381,7 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
             }));
             (this["ruleVarsCount"] = (0));
             r = this._apply("modRule");
-            q = this._applyWithArgs("qTerbR", [
+            q = this._applyWithArgs("ruleBody", [
                 []
             ]);
             ((r["length"] == (2)) ? (r[(1)][(1)] = q) : (r[(1)] = q));
@@ -518,7 +467,7 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
         "attrDefinition": function() {
             var $elf = this,
                 _fromIdx = this.input.idx;
-            return this._applyWithArgs("qTerbR", [
+            return this._applyWithArgs("ruleBody", [
                 []
             ])
         },

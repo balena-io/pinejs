@@ -50,7 +50,6 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 		
 		joinQuant		= matchForAll('keyword',["and","at","most"]),
 		
-		quantTermAddVar	= quant:q term:t addVar(t):v							-> {quantVar: q.concat([v]), term: t},
 		//Be very careful with anywhere you use quant as any in-place modifications of the array will be remembered in memoisation.
 		quant			= keyword("each")										-> ['univQ']
 						| matchForAny('keyword',["a","an","some"])				-> ['existQ']
@@ -68,31 +67,32 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 		
 		addThat			= keyword("that"),
 		addThe			= keyword("the"),
-		addVar		:prevTerm
-						= {this.ruleVars[prevTerm[1]] = this.ruleVarsCount++} {['var', ['num', this.ruleVars[prevTerm[1]]], prevTerm]}:v
-						( addThat
-							( addThe terbRi([[]], prevTerm)
-							| qTerbRi([[]], prevTerm) ):q {v.push(q)}
-						)?														-> v,
+		createVar	:term
+						= {this.ruleVars[term[1]] = this.ruleVarsCount++} {['var', ['num', this.ruleVars[term[1]]], term]},
+		checkThat	:term
+						= addThat
+							bind(term):termBind
+							( addThe term:t verb:v bind(t):b {[[t, v, term], b, termBind]}:c
+								( ruleBody(c)
+								| atfo(c) )
+							|	( verb:v {[[term, v], termBind]}:c ruleBody(c, true)
+								| ruleBody([[]]))
+							),
 
 		atfo		:c	= isFctp(c[0]) {c[0] = ['fcTp'].concat(c[0])}			-> ['aFrm'].concat(c),
 
-		terbRi	:c :prevTerm
-						= term:t verb(t):v bind(t):b {c[0].push(t,v);c.push(b)} (qTerbRi(c,prevTerm)),
-
-		qTerbRi	:c :prevTerm
-						= (quantTermAddVar:qt {qt.term}:t verb():v bind(t):b
-								{c[0].push(t,v);c.push(b)}
-								(qTerbRi(c,prevTerm)):r							-> qt.quantVar.concat([r])
-							| verb(prevTerm):v bind(prevTerm):b {c[0].push(prevTerm,v);c.push(b)} (atfo(c)|qTerbR(c)|qTerm(c))
-							| bind(prevTerm):b {c[0].push(prevTerm);c.push(b)} atfo(c)
-						),
-
-		qTerm		:c	= quantTermAddVar:qt {qt.term}:t bind(t):b {c[0].push(t);c.push(b)}
-								atfo(c):r										-> qt.quantVar.concat([r]),
-
-		qTerbR		:c	= quantTermAddVar:qt {t = qt.term} verb(t):v bind(t):b {c[0].push(t,v);c.push(b)}
-								(atfo(c)|qTerbR(c)|qTerm(c)):r					-> qt.quantVar.concat([r]),
+		ruleBody :c :exitOnTermFactType
+			= quant:q term:t createVar(t):tVar bind(t):b {c[0].push(t);c.push(b)}
+				(checkThat(t):thatC {tVar.push(thatC); console.log(thatC)})?
+				{q.push(tVar);}
+				(
+					verb(t):v {c[0].push(v)}
+					( atfo(c)
+					| ruleBody(c, true)
+					)
+				| ?(exitOnTermFactType === true) atfo(c)
+				):r
+																			-> q.concat([r]),
 
 		modRule			= "It" "is" 
 							( "obligatory"		-> ['obl']
@@ -107,7 +107,7 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 
 		startRule		= "R:"|"Rule:",
 		newRule			= startRule spaces &(toSBVREOL):ruleText {this.ruleVarsCount=0}
-							modRule:r qTerbR([[]]):q {r.length == 2 ? r[1][1] = q : r[1] = q}
+							modRule:r ruleBody([[]]):q {r.length == 2 ? r[1][1] = q : r[1] = q}
 																			-> ['rule', r, ['text', ruleText]],
 		terb			= term:t addVerb(t):v								-> [t, v],
 		startFactType	= "F:"|"Fact type:",
@@ -123,7 +123,7 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 																			-> {var lastLine = this.lines.pop(); lastLine[lastLine.length-1].push([attrName, attrVal]); lastLine},
 							
 		allowedAttrs	= matchForAny('seq',this.possMap.allowedAttrs):attrName -> attrName.replace(':',''),
-		attrDefinition	= qTerbR([[]]),
+		attrDefinition	= ruleBody([[]]),
 		attrConceptType	= term,
 
 		startComment	= seq('--'),
