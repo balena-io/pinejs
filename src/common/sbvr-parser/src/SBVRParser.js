@@ -259,12 +259,11 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
             (this["ruleVars"][term[(1)]] = this["ruleVarsCount"]++);
             return ["var", ["num", this["ruleVars"][term[(1)]]], term]
         },
-        "checkThat": function(term) {
+        "checkThat": function(term, termBind) {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                termBind, t, v, b, c;
+                t, v, b, c;
             this._apply("addThat");
-            termBind = this._applyWithArgs("bind", term);
             return this._or((function() {
                 this._apply("addThe");
                 t = this._apply("term");
@@ -308,7 +307,7 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
                 return c.push(b)
             }).call(this);
             this._opt((function() {
-                thatC = this._applyWithArgs("checkThat", t);
+                thatC = this._applyWithArgs("checkThat", t, b);
                 return (function() {
                     tVar.push(thatC);
                     return console.log(thatC)

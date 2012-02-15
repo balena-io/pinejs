@@ -69,9 +69,8 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 		addThe			= keyword("the"),
 		createVar	:term
 						= {this.ruleVars[term[1]] = this.ruleVarsCount++} {['var', ['num', this.ruleVars[term[1]]], term]},
-		checkThat	:term
+		checkThat	:term :termBind
 						= addThat
-							bind(term):termBind
 							( addThe term:t verb:v bind(t):b {[[t, v, term], b, termBind]}:c
 								( ruleBody(c)
 								| atfo(c) )
@@ -83,8 +82,8 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 
 		ruleBody :c :exitOnTermFactType
 			= quant:q term:t createVar(t):tVar bind(t):b {c[0].push(t);c.push(b)}
-				(checkThat(t):thatC {tVar.push(thatC); console.log(thatC)})?
-				{q.push(tVar);}
+				(checkThat(t, b):thatC {tVar.push(thatC); console.log(thatC)})?
+				{q.push(tVar)}
 				(
 					verb(t):v {c[0].push(v)}
 					( atfo(c)
