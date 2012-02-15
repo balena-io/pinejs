@@ -76,7 +76,8 @@
   if (process.argv[1] === __filename) {
     arguments = process.argv.slice(2);
     ometaPath = arguments[0];
-    if ((pretty = arguments[0] === "pretty") === true) arguments.shift();
+    pretty = arguments[0] === "pretty";
+    if (pretty === true) arguments.shift();
     for (_i = 0, _len = arguments.length; _i < _len; _i++) {
       filePath = arguments[_i];
       compileOmetaFile(filePath, filePath.substring(0, filePath.lastIndexOf(".")) + ".js", pretty);
