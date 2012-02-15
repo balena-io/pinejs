@@ -14,7 +14,7 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 						= ?this._isFctp(factType),
 
 		findVar		:x	= {this.ruleVars[x[1]]},
-		bind		:x	= findVar(x):y											-> [`bind, x, y],
+		bind		:x	= findVar(x):y											-> ['bind', x, y],
 
 		letters			= letter+:l												-> l.join(''),
 		num				= spaces digit+:n										-> ['num', parseInt(n.join(''))]
@@ -52,15 +52,15 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 		
 		quantTermAddVar	= quant:q term:t addVar(t):v							-> {quantVar: q.concat([v]), term: t},
 		//Be very careful with anywhere you use quant as any in-place modifications of the array will be remembered in memoisation.
-		quant			= keyword("each")										-> [`univQ]
-						| matchForAny('keyword',["a","an","some"])				-> [`existQ]
-						| matchForAll('keyword',["at","most"])		num:n		-> [`atMostQ, [`maxCard, n]]
+		quant			= keyword("each")										-> ['univQ']
+						| matchForAny('keyword',["a","an","some"])				-> ['existQ']
+						| matchForAll('keyword',["at","most"])		num:n		-> ['atMostQ', ['maxCard', n]]
 						| matchForAll('keyword',["at","least"])		num:n
-											( joinQuant num:m					-> [`numRngQ, [`minCard, n], [`maxCard, m]]
-											| empty 							-> [`atLeastQ, [`minCard, n]])
+											( joinQuant num:m					-> ['numRngQ', ['minCard', n], ['maxCard', m]]
+											| empty 							-> ['atLeastQ', ['minCard', n]])
 						| matchForAll('keyword',["more","than"])	num:n {++n[1]}
-																				-> [`atLeastQ, [`minCard, n]]
-						| keyword("exactly")						num:n		-> [`exactQ, [`card, n]],
+																				-> ['atLeastQ', ['minCard', n]]
+						| keyword("exactly")						num:n		-> ['exactQ', ['card', n]],
 
 		keyword		:word :noToken
 						= ?(noToken==true) seq(word)
@@ -112,7 +112,7 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 		terb			= term:t addVerb(t):v								-> [t, v],
 		startFactType	= "F:"|"Fact type:",
 		newFactType		= startFactType {[]}:t (terb:b {t.concat(b)}:t)+ (term:e {t.push(e)})? {this.fctps[t] = true; t.push([])}
-																			-> [`fcTp].concat(t),
+																			-> ['fcTp'].concat(t),
 		startTerm		= "T:"|"Term:",
 		newTerm			= startTerm clearSuggestions addTerm:t {t.push([])}					-> t,
 		attribute		= ?{this.lines[this.lines.length-1][0] == 'term' ||
