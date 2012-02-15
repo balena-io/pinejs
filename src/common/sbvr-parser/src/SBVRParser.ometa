@@ -50,7 +50,7 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 		
 		joinQuant		= matchForAll('keyword',["and","at","most"]),
 		
-		//Be very careful with anywhere you use quant as any in-place modifications of the array will be remembered in memoisation.
+		// Be very careful with anywhere you use quant as any in-place modifications of the array will be remembered in memoisation.
 		quant			= keyword("each")										-> ['univQ']
 						| matchForAny('keyword',["a","an","some"])				-> ['existQ']
 						| matchForAll('keyword',["at","most"])		num:n		-> ['atMostQ', ['maxCard', n]]
@@ -68,7 +68,7 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 		addThat			= keyword("that"),
 		addThe			= keyword("the"),
 		createVar	:term
-						= {this.ruleVars[term[1]] = this.ruleVarsCount++} {['var', ['num', this.ruleVars[term[1]]], term]},
+						= {this.ruleVars[term[1]] = this.ruleVarsCount++}		-> ['var', ['num', this.ruleVars[term[1]]], term],
 		checkThat	:term :termBind
 						= addThat
 							( addThe term:t verb:v bind(t):b {[[t, v, term], b, termBind]}:c
@@ -80,10 +80,11 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 
 		atfo		:c	= isFctp(c[0]) {c[0] = ['fcTp'].concat(c[0])}			-> ['aFrm'].concat(c),
 
+		// c[0] should contain the current fact type that is being built
+		// c[1..] should contain the bindings for the fact type being built
 		ruleBody :c :exitOnTermFactType
-			= quant:q term:t createVar(t):tVar bind(t):b {c[0].push(t);c.push(b)}
+			= quant:body term:t createVar(t):tVar bind(t):b {c[0].push(t);c.push(b)}
 				(checkThat(t, b):thatC {tVar.push(thatC); console.log(thatC)})?
-				{q.push(tVar)}
 				(
 					verb(t):v {c[0].push(v)}
 					( ruleBody(c, true)
@@ -91,7 +92,8 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 					)
 				| ?(exitOnTermFactType === true) atfo(c)
 				):r
-																			-> q.concat([r]),
+				{body.push(tVar, r)}
+																			-> body,
 
 		modRule			= "It" "is" 
 							( "obligatory"		-> ['obl']

@@ -297,8 +297,8 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
         "ruleBody": function(c, exitOnTermFactType) {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                q, t, tVar, b, thatC, v, r;
-            q = this._apply("quant");
+                body, t, tVar, b, thatC, v, r;
+            body = this._apply("quant");
             t = this._apply("term");
             tVar = this._applyWithArgs("createVar", t);
             b = this._applyWithArgs("bind", t);
@@ -313,7 +313,6 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
                     return console.log(thatC)
                 }).call(this)
             }));
-            q.push(tVar);
             r = this._or((function() {
                 v = this._applyWithArgs("verb", t);
                 c[(0)].push(v);
@@ -326,7 +325,8 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
                 this._pred((exitOnTermFactType === true));
                 return this._applyWithArgs("atfo", c)
             }));
-            return q.concat([r])
+            body.push(tVar, r);
+            return body
         },
         "modRule": function() {
             var $elf = this,
