@@ -318,9 +318,9 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
                 v = this._applyWithArgs("verb", t);
                 c[(0)].push(v);
                 return this._or((function() {
-                    return this._applyWithArgs("atfo", c)
-                }), (function() {
                     return this._applyWithArgs("ruleBody", c, true)
+                }), (function() {
+                    return this._applyWithArgs("atfo", c)
                 }))
             }), (function() {
                 this._pred((exitOnTermFactType === true));
