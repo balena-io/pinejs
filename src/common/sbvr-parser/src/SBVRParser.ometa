@@ -74,7 +74,9 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 							( addThe term:t verb:v bind(t):b {[[t, v, term], b, termBind]}:c
 								( ruleBody(c)
 								| atfo(c) )
-							|	( verb:v {[[term, v], termBind]}:c ruleBody(c, true)
+							|	( verb:v {[[term, v], termBind]}:c 
+									( ruleBody(c, true)
+									| atfo(c) )
 								| ruleBody([[]]))
 							),
 

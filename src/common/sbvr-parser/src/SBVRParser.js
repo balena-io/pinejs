@@ -280,7 +280,11 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
                 v = this._apply("verb");
                 c = [
                     [term, v], termBind];
-                return this._applyWithArgs("ruleBody", c, true)
+                return this._or((function() {
+                    return this._applyWithArgs("ruleBody", c, true)
+                }), (function() {
+                    return this._applyWithArgs("atfo", c)
+                }))
             }), (function() {
                 return this._applyWithArgs("ruleBody", [
                     []
