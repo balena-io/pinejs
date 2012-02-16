@@ -6,6 +6,8 @@ import time, sys
 #TODO: Reduce time by waiting for next event specifically instead of adding random sleep time.
 
 browser = webdriver.Chrome()
+
+#expects to be three levels deep from the root. If path changes, the value '3' below may need to change also.
 root_path = sys.argv[0].split('\\')[:-3]
 root_path = '/'.join(root_path)
 browser.get("file:///%s/src/client/frame-glue/src/index.html" % root_path)
