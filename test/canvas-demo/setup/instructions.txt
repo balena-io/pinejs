@@ -3,8 +3,6 @@ install Python (2.7+)
 
 install setuptools (http://pypi.python.org/pypi/setuptools)
 
-get and run appropriate lxml installer: http://www.lfd.uci.edu/~gohlke/pythonlibs/#lxml
-
 get to C:\Python27\Scripts or equivalent
 
 easy_install -U selenium
