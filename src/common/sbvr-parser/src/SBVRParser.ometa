@@ -6,10 +6,10 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 	//Specification: http://www.omg.org/spec/SBVR/1.0/
 
 	ometa SBVRParser {
-		isTerm		:term
-						= ?this._isTerm(term),
-		isVerb		:prevTerm :verb
-						= ?this._isVerb(prevTerm, verb),
+		isTerm		:factTypeSoFar :term
+						= ?this._isTerm(factTypeSoFar, term),
+		isVerb		:factTypeSoFar :verb
+						= ?this._isVerb(factTypeSoFar, verb),
 		isFctp		:factType
 						= ?this._isFctp(factType),
 
@@ -25,26 +25,27 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 
 		token		:x	= spaces seq(x):s &(space+)								-> s,
 
-		addTerm			= &(termPart+):t {this.possMap.term[t.join(' ')] = true}
+		addTerm			= &(termPart+):t {this.terms[t.join(' ')] = true}
 						  term,
-		term			= findTerm,
-		findTerm	:termSoFar
-						= termPart:t {termSoFar = termSoFar==undefined ? t : [termSoFar, t].join(' ')}
-							( findTerm(termSoFar)
-							| isTerm(termSoFar)									-> ['term',this._termForm(termSoFar)]
+		term		:factTypeSoFar
+						= findTerm(factTypeSoFar),
+		findTerm	:factTypeSoFar :termSoFar
+						= termPart:t {termSoFar = termSoFar==null ? t : [termSoFar, t].join(' ')}
+							( findTerm(factTypeSoFar, termSoFar)
+							| isTerm(factTypeSoFar, termSoFar)					-> ['term',this._termForm(factTypeSoFar, termSoFar)]
 							),
 		termPart		= spaces ~lineStart letters,
 		
 		
-		addVerb		:prevTerm
-						= clearSuggestions &((verbPart)+):v {this._addVerbToTerm(prevTerm,v.join(' '))}
-						  verb(prevTerm),
-		verb		:prevTerm
-						= findVerb(prevTerm),
-		findVerb	:prevTerm :verbSoFar
+		addVerb			= clearSuggestions verb(true),
+		verb		:factTypeSoFar
+						= findVerb(factTypeSoFar),
+		findVerb	:factTypeSoFar :verbSoFar
 						= verbPart:v {verbSoFar = verbSoFar==undefined ? v : [verbSoFar, v].join(' ')}
-							( findVerb(prevTerm, verbSoFar)
-							| isVerb(prevTerm, verbSoFar)									-> ['verb',this._verbForm(prevTerm, verbSoFar)]
+							( findVerb(factTypeSoFar, verbSoFar)
+							|	( ?(factTypeSoFar===true)
+								| isVerb(factTypeSoFar, verbSoFar)
+								)												-> ['verb',this._verbForm(verbSoFar)]
 							),
 		verbPart		= spaces ~lineStart ~term letters,
 		
@@ -71,10 +72,10 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 						= {this.ruleVars[term[1]] = this.ruleVarsCount++}		-> ['var', ['num', this.ruleVars[term[1]]], term],
 		checkThat	:term :termBind
 						= addThat
-							( addThe term:t verb:v bind(t):b {[[t, v, term], b, termBind]}:c
+							( addThe term:t bind(t):b {[[t],b]}:c verb(c[0]):v {c[0].push(v, term); c.push(termBind)}
 								( ruleBody(c)
 								| atfo(c) )
-							|	( verb:v {[[term, v], termBind]}:c 
+							|	( {[[term], termBind]}:c verb(c[0]):v {c[0].push(v)}
 									( ruleBody(c, true)
 									| atfo(c) )
 								| ruleBody([[]]))
@@ -85,10 +86,10 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 		// c[0] should contain the current fact type that is being built
 		// c[1..] should contain the bindings for the fact type being built
 		ruleBody :c :exitOnTermFactType
-			= quant:body term:t createVar(t):tVar bind(t):b {c[0].push(t);c.push(b)}
-				(checkThat(t, b):thatC {tVar.push(thatC); console.log(thatC)})?
+			= quant:body term(c[0]):t createVar(t):tVar bind(t):b {c[0].push(t);c.push(b)}
+				(checkThat(t, b):thatC {tVar.push(thatC)})?
 				(
-					verb(t):v {c[0].push(v)}
+					verb(c[0]):v {c[0].push(v)}
 					( ruleBody(c, true)
 					| atfo(c)
 					)
@@ -112,10 +113,13 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 		newRule			= startRule spaces &(toSBVREOL):ruleText {this.ruleVarsCount=0}
 							modRule:r ruleBody([[]]):q {r.length == 2 ? r[1][1] = q : r[1] = q}
 																			-> ['rule', r, ['text', ruleText]],
-		terb			= term:t addVerb(t):v								-> [t, v],
+		terb			= term:t addVerb:v								-> [t, v],
 		startFactType	= "F:"|"Fact type:",
-		newFactType		= startFactType {[]}:t (terb:b {t.concat(b)}:t)+ (term:e {t.push(e)})? {this.fctps[t] = true; t.push([])}
-																			-> ['fcTp'].concat(t),
+		newFactType		= startFactType {[]}:fctp
+							(term:t addVerb:v {fctp.push(t, v)})+
+							(term:t {fctp.push(t)})?
+							{this._addFactType(fctp); fctp.push([])}
+																			-> ['fcTp'].concat(fctp),
 		startTerm		= "T:"|"Term:",
 		newTerm			= startTerm clearSuggestions addTerm:t {t.push([])}					-> t,
 		attribute		= ?{this.lines[this.lines.length-1][0] == 'term' ||
@@ -153,69 +157,118 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 		this.reset();
 	}
 
-	SBVRParser._isTerm = function(k) {
-		return this.possMap.term.hasOwnProperty(k) || this.possMap.term.hasOwnProperty(k.singularize())
+	SBVRParser._isTerm = function(factTypeSoFar, term) {
+		var terms = this.possMap.term(factTypeSoFar);
+		return $.inArray(term,terms) !== -1 || $.inArray(term.singularize(),terms) !== -1
 	}
 
-	SBVRParser._termForm = function(k) {
-		return this.possMap.term.hasOwnProperty(k.singularize()) ? k.singularize() : k
+	SBVRParser._termForm = function(factTypeSoFar, term) {
+		return $.inArray(term.singularize(), this.possMap.term(factTypeSoFar)) !== -1 ? term.singularize() : term
 	}
 
-	SBVRParser._isVerb = function(prevTerm, verb) {
-		if(typeof prevTerm == 'undefined') {
-			for(term in this.possMap.verb) {
-				if(this._isVerb(term, verb)) {
-					return true
+	SBVRParser._traverseFactType = function(fctp, create) {
+		var currentLevel = this.factTypes;
+		for(var i=0; i<fctp.length;i++) {
+			currentFactTypePart = fctp[i];
+			if(!currentLevel.hasOwnProperty(currentFactTypePart)) {
+				if(create===true) {
+					currentLevel[currentFactTypePart] = {}
 				}
+				else {
+					return false;
 				}
 			}
-		else {
-			if(!this.possMap.verb.hasOwnProperty(prevTerm)) {
-				return false
+			currentLevel = currentLevel[currentFactTypePart];
 		}
-			if(this.possMap.verb[prevTerm].hasOwnProperty(verb)) {
-				return true
-	}
-			if( verb.slice(0,3)=='are' && this.possMap.verb[prevTerm].hasOwnProperty('is' + verb.slice(3)) ) {
-				return true
-			}
-			if(verb=='have' && this.possMap.verb[prevTerm].hasOwnProperty('has')) {
-				return true
-			}
-		}
-		return false
+		return currentLevel;
 	}
 
-	SBVRParser._verbForm = function(prevTerm, verb) {
-		if(this.possMap.verb.hasOwnProperty(prevTerm)) {
-			if(verb.slice(0,3)=='are' && this.possMap.verb[prevTerm].hasOwnProperty('is' + verb.slice(3))) {
-			return 'is' + verb.slice(3)
+	SBVRParser._isVerb = function(factTypeSoFar, verb) {
+		verb = ['verb',this._verbForm(verb)];
+		var currentLevel = this._traverseFactType(factTypeSoFar);
+		if(currentLevel===false) {
+			// We have no fact type matching this chain.
+			return false;
 		}
-			if(verb=='have' && this.possMap.verb[prevTerm].hasOwnProperty('has')) {
+		if(currentLevel.hasOwnProperty(verb)) {
+			// We found the verb.
+			return true;
+		}
+		if(currentLevel.hasOwnProperty('__valid') && currentLevel.__valid===true) {
+			// We have a valid fact type up to here, try a new one.
+			// TODO: Should this actually be looking if the verb before last term is valid?
+			return this._isVerb([], verb);
+		}
+		return false;
+	}
+
+	SBVRParser._verbForm = function(verb) {
+		// People are eating.. Person is eating
+		// Not: Police arest people.. Police isst people
+		// I used a mispelling here because I could not find a case with a correct word, however in case I just missed one I'd rather check for the space.
+		// People aren't animals.. Person isn't animal. Should probably be allowed, however what are our thoughts on contractions?
+		if(verb.slice(0,4) == 'are ') {
+			return 'is ' + verb.slice(4)
+		}
+		// Students are people.. Student is person
+		if(verb == 'are') {
+			return 'is'
+		}
+		// People have eyes.. Person has eyes
+		if(verb=='have') {
 			return 'has'
 		}
-			return verb
-		}
-		return verb //TODO: This should fail really.
+		return verb;
 	}
 
-	SBVRParser._addVerbToTerm = function(term, verb) {
-		if(!this.possMap.verb.hasOwnProperty(term)) {
-			this.possMap.verb[term] = {}
-		}
-		this.possMap.verb[term][verb] = true
+	SBVRParser._addFactType = function(factType) {
+		this._traverseFactType(factType, true).__valid = true;
 	}
 
-	SBVRParser._isFctp = function(k) { return this.fctps.hasOwnProperty(k) }
+	SBVRParser._isFctp = function(factType) {
+		var currentLevel = this._traverseFactType(factType);
+		if(currentLevel === false) {
+			return false;
+		}
+		return currentLevel.__valid = true;
+	}
 
+	var removeVerbRegex = new RegExp('^' + ['verb',''].toString()),
+		removeTermRegex = new RegExp('^' + ['term',''].toString());
 	SBVRParser.reset = function() {
+		var self = this;
+		this.factTypes = {};
+		this.terms = {};
 		this.possMap = {
 			clearSuggestions: [], //This stops us suggesting any autocomplete before this point.
 			startTerm: ['Term:     '],
 			startFactType: ['Fact type:'],
 			startRule: ['Rule:     '],
-			term: {},
-			verb: {},
+			term: function(factTypeSoFar) {
+				if(factTypeSoFar == null || factTypeSoFar.length == 0) {
+					return _.keys(self.terms);
+				}
+				var term, currentLevel = self._traverseFactType(factTypeSoFar), terms = [];
+				for(term in currentLevel) {
+					if(currentLevel.hasOwnProperty(term)) {
+						if(removeTermRegex.test(term)) {
+							terms.push(term.replace(removeTermRegex,''))
+						}
+					}
+				}
+				return terms;
+			},
+			verb: function(factTypeSoFar) {
+				var verb, currentLevel = self._traverseFactType(factTypeSoFar), verbs = [];
+				for(verb in currentLevel) {
+					if(currentLevel.hasOwnProperty(verb)) {
+						if(removeVerbRegex.test(verb)) {
+							verbs.push(verb.replace(removeVerbRegex,''))
+						}
+					}
+				}
+				return verbs;
+			},
 			allowedAttrs: [
 				'Concept Type:',
 				/*#IFDEF server */
@@ -269,17 +322,17 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 			addThe: ['the'],
 			terminator: ['.']
 		}
-		this.fctps = {}
 		this.ruleVars = {}
 		this.ruleVarsCount = 0
 		this.lines = ['model']
 	}
 
 	SBVRParser.equals = function(compareTo) {
-		if(!_.isEqual(this.possMap.term, compareTo.possMap.term)) return false
-		if(!_.isEqual(this.possMap.verb, compareTo.possMap.verb)) return false
-		if(!_.isEqual(this.fctps, compareTo.fctps)) return false
-		return true
+		if(!_.isEqual(this.terms, compareTo.terms)) return false
+		if(!_.isEqual(this.factTypes, compareTo.factTypes)) {
+			return false;
+		}
+		return true;
 	}
 
 

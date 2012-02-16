@@ -1,15 +1,15 @@
 define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
     var SBVRParser = undefined;
     SBVRParser = objectThatDelegatesTo(OMeta, {
-        "isTerm": function(term) {
+        "isTerm": function(factTypeSoFar, term) {
             var $elf = this,
                 _fromIdx = this.input.idx;
-            return this._pred(this._isTerm(term))
+            return this._pred(this._isTerm(factTypeSoFar, term))
         },
-        "isVerb": function(prevTerm, verb) {
+        "isVerb": function(factTypeSoFar, verb) {
             var $elf = this,
                 _fromIdx = this.input.idx;
-            return this._pred(this._isVerb(prevTerm, verb))
+            return this._pred(this._isVerb(factTypeSoFar, verb))
         },
         "isFctp": function(factType) {
             var $elf = this,
@@ -118,25 +118,25 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
                     return this._apply("termPart")
                 }))
             }));
-            (this["possMap"]["term"][t.join(" ")] = true);
+            (this["terms"][t.join(" ")] = true);
             return this._apply("term")
         },
-        "term": function() {
+        "term": function(factTypeSoFar) {
             var $elf = this,
                 _fromIdx = this.input.idx;
-            return this._apply("findTerm")
+            return this._applyWithArgs("findTerm", factTypeSoFar)
         },
-        "findTerm": function(termSoFar) {
+        "findTerm": function(factTypeSoFar, termSoFar) {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 t;
             t = this._apply("termPart");
-            (termSoFar = ((termSoFar == undefined) ? t : [termSoFar, t].join(" ")));
+            (termSoFar = ((termSoFar == null) ? t : [termSoFar, t].join(" ")));
             return this._or((function() {
-                return this._applyWithArgs("findTerm", termSoFar)
+                return this._applyWithArgs("findTerm", factTypeSoFar, termSoFar)
             }), (function() {
-                this._applyWithArgs("isTerm", termSoFar);
-                return ["term", this._termForm(termSoFar)]
+                this._applyWithArgs("isTerm", factTypeSoFar, termSoFar);
+                return ["term", this._termForm(factTypeSoFar, termSoFar)]
             }))
         },
         "termPart": function() {
@@ -148,35 +148,32 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
             }));
             return this._apply("letters")
         },
-        "addVerb": function(prevTerm) {
-            var $elf = this,
-                _fromIdx = this.input.idx,
-                v;
-            this._apply("clearSuggestions");
-            v = this._lookahead((function() {
-                return this._many1((function() {
-                    return this._apply("verbPart")
-                }))
-            }));
-            this._addVerbToTerm(prevTerm, v.join(" "));
-            return this._applyWithArgs("verb", prevTerm)
-        },
-        "verb": function(prevTerm) {
+        "addVerb": function() {
             var $elf = this,
                 _fromIdx = this.input.idx;
-            return this._applyWithArgs("findVerb", prevTerm)
+            this._apply("clearSuggestions");
+            return this._applyWithArgs("verb", true)
         },
-        "findVerb": function(prevTerm, verbSoFar) {
+        "verb": function(factTypeSoFar) {
+            var $elf = this,
+                _fromIdx = this.input.idx;
+            return this._applyWithArgs("findVerb", factTypeSoFar)
+        },
+        "findVerb": function(factTypeSoFar, verbSoFar) {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 v;
             v = this._apply("verbPart");
             (verbSoFar = ((verbSoFar == undefined) ? v : [verbSoFar, v].join(" ")));
             return this._or((function() {
-                return this._applyWithArgs("findVerb", prevTerm, verbSoFar)
+                return this._applyWithArgs("findVerb", factTypeSoFar, verbSoFar)
             }), (function() {
-                this._applyWithArgs("isVerb", prevTerm, verbSoFar);
-                return ["verb", this._verbForm(prevTerm, verbSoFar)]
+                this._or((function() {
+                    return this._pred((factTypeSoFar === true))
+                }), (function() {
+                    return this._applyWithArgs("isVerb", factTypeSoFar, verbSoFar)
+                }));
+                return ["verb", this._verbForm(verbSoFar)]
             }))
         },
         "verbPart": function() {
@@ -262,24 +259,29 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
         "checkThat": function(term, termBind) {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                t, v, b, c;
+                t, b, c, v;
             this._apply("addThat");
             return this._or((function() {
                 this._apply("addThe");
                 t = this._apply("term");
-                v = this._apply("verb");
                 b = this._applyWithArgs("bind", t);
                 c = [
-                    [t, v, term], b, termBind];
+                    [t], b];
+                v = this._applyWithArgs("verb", c[(0)]);
+                (function() {
+                    c[(0)].push(v, term);
+                    return c.push(termBind)
+                }).call(this);
                 return this._or((function() {
                     return this._applyWithArgs("ruleBody", c)
                 }), (function() {
                     return this._applyWithArgs("atfo", c)
                 }))
             }), (function() {
-                v = this._apply("verb");
                 c = [
-                    [term, v], termBind];
+                    [term], termBind];
+                v = this._applyWithArgs("verb", c[(0)]);
+                c[(0)].push(v);
                 return this._or((function() {
                     return this._applyWithArgs("ruleBody", c, true)
                 }), (function() {
@@ -303,7 +305,7 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
                 _fromIdx = this.input.idx,
                 body, t, tVar, b, thatC, v, r;
             body = this._apply("quant");
-            t = this._apply("term");
+            t = this._applyWithArgs("term", c[(0)]);
             tVar = this._applyWithArgs("createVar", t);
             b = this._applyWithArgs("bind", t);
             (function() {
@@ -312,13 +314,10 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
             }).call(this);
             this._opt((function() {
                 thatC = this._applyWithArgs("checkThat", t, b);
-                return (function() {
-                    tVar.push(thatC);
-                    return console.log(thatC)
-                }).call(this)
+                return tVar.push(thatC)
             }));
             r = this._or((function() {
-                v = this._applyWithArgs("verb", t);
+                v = this._applyWithArgs("verb", c[(0)]);
                 c[(0)].push(v);
                 return this._or((function() {
                     return this._applyWithArgs("ruleBody", c, true)
@@ -395,7 +394,7 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
                 _fromIdx = this.input.idx,
                 t, v;
             t = this._apply("term");
-            v = this._applyWithArgs("addVerb", t);
+            v = this._apply("addVerb");
             return [t, v]
         },
         "startFactType": function() {
@@ -410,22 +409,23 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
         "newFactType": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                t, b, e;
+                fctp, t, v;
             this._apply("startFactType");
-            t = [];
+            fctp = [];
             this._many1((function() {
-                b = this._apply("terb");
-                return t = t.concat(b)
+                t = this._apply("term");
+                v = this._apply("addVerb");
+                return fctp.push(t, v)
             }));
             this._opt((function() {
-                e = this._apply("term");
-                return t.push(e)
+                t = this._apply("term");
+                return fctp.push(t)
             }));
             (function() {
-                (this["fctps"][t] = true);
-                return t.push([])
+                this._addFactType(fctp);
+                return fctp.push([])
             }).call(this);
-            return ["fcTp"].concat(t)
+            return ["fcTp"].concat(fctp)
         },
         "startTerm": function() {
             var $elf = this,
@@ -559,82 +559,135 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
     (SBVRParser["initialize"] = (function() {
         this.reset()
     }));
-    (SBVRParser["_isTerm"] = (function(k) {
-        return (this["possMap"]["term"].hasOwnProperty(k) || this["possMap"]["term"].hasOwnProperty(k.singularize()))
+    (SBVRParser["_isTerm"] = (function(factTypeSoFar, term) {
+        var terms = this["possMap"].term(factTypeSoFar);
+        return (($.inArray(term, terms) !== (-(1))) || ($.inArray(term.singularize(), terms) !== (-(1))))
     }));
-    (SBVRParser["_termForm"] = (function(k) {
-        return (this["possMap"]["term"].hasOwnProperty(k.singularize()) ? k.singularize() : k)
+    (SBVRParser["_termForm"] = (function(factTypeSoFar, term) {
+        return (($.inArray(term.singularize(), this["possMap"].term(factTypeSoFar)) !== (-(1))) ? term.singularize() : term)
     }));
-    (SBVRParser["_isVerb"] = (function(prevTerm, verb) {
-        if (((typeof prevTerm) == "undefined")) {
-            for (term in this["possMap"]["verb"]) {
-                if (this._isVerb(term, verb)) {
-                    return true
+    (SBVRParser["_traverseFactType"] = (function(fctp, create) {
+        var currentLevel = this["factTypes"];
+        for (var i = (0);
+        (i < fctp["length"]); i++) {
+            (currentFactTypePart = fctp[i]);
+            if ((!currentLevel.hasOwnProperty(currentFactTypePart))) {
+                if ((create === true)) {
+                    (currentLevel[currentFactTypePart] = ({}))
                 } else {
-                    undefined
+                    return false
                 }
-            }
+            } else {
+                undefined
+            };
+            (currentLevel = currentLevel[currentFactTypePart])
+        };
+        return currentLevel
+    }));
+    (SBVRParser["_isVerb"] = (function(factTypeSoFar, verb) {
+        (verb = ["verb", this._verbForm(verb)]);
+        var currentLevel = this._traverseFactType(factTypeSoFar);
+        if ((currentLevel === false)) {
+            return false
         } else {
-            if ((!this["possMap"]["verb"].hasOwnProperty(prevTerm))) {
-                return false
-            } else {
-                undefined
-            };
-            if (this["possMap"]["verb"][prevTerm].hasOwnProperty(verb)) {
-                return true
-            } else {
-                undefined
-            };
-            if (((verb.slice((0), (3)) == "are") && this["possMap"]["verb"][prevTerm].hasOwnProperty(("is" + verb.slice((3)))))) {
-                return true
-            } else {
-                undefined
-            };
-            if (((verb == "have") && this["possMap"]["verb"][prevTerm].hasOwnProperty("has"))) {
-                return true
-            } else {
-                undefined
-            }
+            undefined
+        };
+        if (currentLevel.hasOwnProperty(verb)) {
+            return true
+        } else {
+            undefined
+        };
+        if ((currentLevel.hasOwnProperty("__valid") && (currentLevel["__valid"] === true))) {
+            return this._isVerb([], verb)
+        } else {
+            undefined
         };
         return false
     }));
-    (SBVRParser["_verbForm"] = (function(prevTerm, verb) {
-        if (this["possMap"]["verb"].hasOwnProperty(prevTerm)) {
-            if (((verb.slice((0), (3)) == "are") && this["possMap"]["verb"][prevTerm].hasOwnProperty(("is" + verb.slice((3)))))) {
-                return ("is" + verb.slice((3)))
-            } else {
-                undefined
-            };
-            if (((verb == "have") && this["possMap"]["verb"][prevTerm].hasOwnProperty("has"))) {
-                return "has"
-            } else {
-                undefined
-            };
-            return verb
+    (SBVRParser["_verbForm"] = (function(verb) {
+        if ((verb.slice((0), (4)) == "are ")) {
+            return ("is " + verb.slice((4)))
+        } else {
+            undefined
+        };
+        if ((verb == "are")) {
+            return "is"
+        } else {
+            undefined
+        };
+        if ((verb == "have")) {
+            return "has"
         } else {
             undefined
         };
         return verb
     }));
-    (SBVRParser["_addVerbToTerm"] = (function(term, verb) {
-        if ((!this["possMap"]["verb"].hasOwnProperty(term))) {
-            (this["possMap"]["verb"][term] = ({}))
+    (SBVRParser["_addFactType"] = (function(factType) {
+        (this._traverseFactType(factType, true)["__valid"] = true)
+    }));
+    (SBVRParser["_isFctp"] = (function(factType) {
+        var currentLevel = this._traverseFactType(factType);
+        if ((currentLevel === false)) {
+            return false
         } else {
             undefined
         };
-        (this["possMap"]["verb"][term][verb] = true)
-    }));
-    (SBVRParser["_isFctp"] = (function(k) {
-        return this["fctps"].hasOwnProperty(k)
-    }));
+        return (currentLevel["__valid"] = true)
+    })); {
+        var removeVerbRegex = new RegExp(("^" + ["verb", ""].toString()));
+        var removeTermRegex = new RegExp(("^" + ["term", ""].toString()))
+    };
     (SBVRParser["reset"] = (function() {
+        var $elf = this;
+        (this["factTypes"] = ({}));
+        (this["terms"] = ({}));
         (this["possMap"] = ({
             "clearSuggestions": [],
             "startTerm": ["Term:     "],
             "startFactType": ["Fact type:"],
             "startRule": ["Rule:     "],
-            "term": ({}),
-            "verb": ({}),
+            "term": (function(factTypeSoFar) {
+                if (((factTypeSoFar == null) || (factTypeSoFar["length"] == (0)))) {
+                    return _.keys($elf["terms"])
+                } else {
+                    undefined
+                }; {
+                    var term = undefined;
+                    var currentLevel = $elf._traverseFactType(factTypeSoFar);
+                    var terms = []
+                };
+                for (term in currentLevel) {
+                    if (currentLevel.hasOwnProperty(term)) {
+                        if (removeTermRegex.test(term)) {
+                            terms.push(term.replace(removeTermRegex, ""))
+                        } else {
+                            undefined
+                        }
+                    } else {
+                        undefined
+                    }
+                };
+                return terms
+            }),
+            "verb": (function(factTypeSoFar) {
+                {
+                    var verb = undefined;
+                    var currentLevel = $elf._traverseFactType(factTypeSoFar);
+                    var verbs = []
+                };
+                for (verb in currentLevel) {
+                    if (currentLevel.hasOwnProperty(verb)) {
+                        if (removeVerbRegex.test(verb)) {
+                            verbs.push(verb.replace(removeVerbRegex, ""))
+                        } else {
+                            undefined
+                        }
+                    } else {
+                        undefined
+                    }
+                };
+                return verbs
+            }),
             "allowedAttrs": ["Concept Type:", "Database ID Field:", "Database Name Field:", "Database Table Name:", "Definition:", "Dictionary Basis:", "Example:", "General Concept:", "Namespace URI:", "Necessity:", "Note:", "Possibility:", "Reference Scheme:", "See:", "Source:", "Subject Field:", "Synonymous Form:", "Synonym:"],
             "modRule": ["It is obligatory that", "It is necessary that", "It is prohibited that", "It is impossible that", "It is not possible that", "It is possible that", "It is permissible that"],
             "quant": ["each", "a", "an", "some", "at most", "at least", "more than", "exactly"],
@@ -644,23 +697,17 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
             "addThe": ["the"],
             "terminator": ["."]
         }));
-        (this["fctps"] = ({}));
         (this["ruleVars"] = ({}));
         (this["ruleVarsCount"] = (0));
         (this["lines"] = ["model"])
     }));
     (SBVRParser["equals"] = (function(compareTo) {
-        if ((!_.isEqual(this["possMap"]["term"], compareTo["possMap"]["term"]))) {
+        if ((!_.isEqual(this["terms"], compareTo["terms"]))) {
             return false
         } else {
             undefined
         };
-        if ((!_.isEqual(this["possMap"]["verb"], compareTo["possMap"]["verb"]))) {
-            return false
-        } else {
-            undefined
-        };
-        if ((!_.isEqual(this["fctps"], compareTo["fctps"]))) {
+        if ((!_.isEqual(this["factTypes"], compareTo["factTypes"]))) {
             return false
         } else {
             undefined
