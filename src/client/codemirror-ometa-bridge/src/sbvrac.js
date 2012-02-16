@@ -32,6 +32,28 @@ var sbvrAutoComplete = (function () {
 
 		var maybeAdd = function(str) {
 			if (str.toLowerCase().indexOf(start) == 0 && !arrayContains(found, str)) found.push(whitespace+str+" ");
+		},
+		addPossibilities = function(ruleMap, ruleArgs) {
+			var i;
+			if($.isArray(ruleMap)) {
+				forEach(ruleMap, maybeAdd);
+			}
+			else if($.isFunction(ruleMap)) {
+				addPossibilities(ruleMap.apply(ruleMap, ruleArgs));
+			}
+			else {
+				for(prop in ruleMap) {
+					if(typeof ruleMap[prop] == 'object') {
+						if(ruleMap.hasOwnProperty(""+ruleArgs[0])) {
+							forEach(ruleMap[ruleArgs[0]], maybeAdd);
+						}
+					}
+					else {
+						forEach(ruleMap, maybeAdd);
+					}
+					break;
+				}
+			}
 		};
 		
 		try {
@@ -47,24 +69,8 @@ var sbvrAutoComplete = (function () {
 		for(var i=cur.ch;i>=0;i--) {
 			if(poss[i] != undefined) {
 				for(rule in poss[i]) {
-					ruleMap = possMap[rule];
 					try {
-						if($.isArray(ruleMap)) {
-							forEach(ruleMap, maybeAdd);
-						}
-						else {
-							for(prop in ruleMap) {
-								if(typeof ruleMap[prop] == 'object') {
-									if(ruleMap.hasOwnProperty(""+poss[i][rule][0])) {
-										forEach(ruleMap[poss[i][rule][0]], maybeAdd);
-									}
-								}
-								else {
-									forEach(ruleMap, maybeAdd);
-								}
-								break;
-							}
-						}
+						addPossibilities(possMap[rule], poss[i][rule]);
 					} catch (e) {
 						console.log(e);
 					}
