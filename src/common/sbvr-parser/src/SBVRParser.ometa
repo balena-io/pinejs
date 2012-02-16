@@ -138,7 +138,7 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 						| startRule
 						| allowedAttrs
 						| startComment,
-		line			= (spaces (newTerm | newFactType | newRule | attribute):l terminator? clearSuggestions spaces
+		line			= (spaces (newTerm | newFactType | newRule | attribute):l terminator? clearSuggestions spaces (lineStart | end)
 							{this.lines.push(l)}							-> l)
 						| newComment,
 		expr			= line* end											-> this.lines
@@ -167,15 +167,15 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 				if(this._isVerb(term, verb)) {
 					return true
 				}
+				}
 			}
-		}
 		else {
 			if(!this.possMap.verb.hasOwnProperty(prevTerm)) {
 				return false
-			}
+		}
 			if(this.possMap.verb[prevTerm].hasOwnProperty(verb)) {
 				return true
-			}
+	}
 			if( verb.slice(0,3)=='are' && this.possMap.verb[prevTerm].hasOwnProperty('is' + verb.slice(3)) ) {
 				return true
 			}
@@ -189,11 +189,11 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 	SBVRParser._verbForm = function(prevTerm, verb) {
 		if(this.possMap.verb.hasOwnProperty(prevTerm)) {
 			if(verb.slice(0,3)=='are' && this.possMap.verb[prevTerm].hasOwnProperty('is' + verb.slice(3))) {
-				return 'is' + verb.slice(3)
-			}
+			return 'is' + verb.slice(3)
+		}
 			if(verb=='have' && this.possMap.verb[prevTerm].hasOwnProperty('has')) {
-				return 'has'
-			}
+			return 'has'
+		}
 			return verb
 		}
 		return verb //TODO: This should fail really.
