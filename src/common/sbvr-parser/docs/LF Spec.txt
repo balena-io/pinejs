@@ -1,0 +1,31 @@
+Number = [1-9][0-9]* | 0
+Term = [A-Za-z0-9]+
+Verb = [A-Za-z0-9]+
+Text = [A-Za-z0-9]+
+
+Model = (term | factTypeDecl | rule)+
+Term Decl = [A-Za-z0-9]+ attributes
+Fact Type Decl = (term verb)+ term? attributes
+Attributes = ..
+Rule = obl, text
+
+# Modifiers
+Obligatory	= negative | quantifier
+Necessary	= negative | quantifier
+Permissible	= negative | quantifier
+Posssible	= quantifier
+Negative	= quantifier
+
+Quantifier -> existQ | atMostQ | ..
+AtMostQ = maxCard var atomicFormulation
+AtLeastQ = minCard var atomicFormulation
+ExistQ = var atomicFormulation
+# Each
+UnivQ = var, quantifier
+
+Var = number term quantifier
+MaxCard = number
+
+Atomic Formulation = factType bind+
+Fact Type = (term verb)+ term?
+Bind = term number
