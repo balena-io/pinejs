@@ -1,12 +1,14 @@
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.keys import Keys
-import time
+import time, sys
 
 #TODO: Reduce time by waiting for next event specifically instead of adding random sleep time.
 
 browser = webdriver.Chrome()
-browser.get("file:///C:/Users/Alexandros/Dropbox/Projects/rulemotion-canvas-win/src/client/frame-glue/src/index.html")
+root_path = sys.argv[0].split('\\')[:-3]
+root_path = '/'.join(root_path)
+browser.get("file:///%s/src/client/frame-glue/src/index.html" % root_path)
 time.sleep(1)
 browser.find_element_by_id("blm1").click()
 browser.find_element_by_id("bem").click()
