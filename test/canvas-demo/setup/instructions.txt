@@ -1,5 +1,5 @@
 install Python (2.7+)
-	BE CAREFUL: get the right python and libs for your OS. Do not install x86 python on a x86-64 OS.
+	BE CAREFUL: get the right python for your OS. Do not install x86 python on a x86-64 OS.
 
 install setuptools (http://pypi.python.org/pypi/setuptools)
 
@@ -7,7 +7,7 @@ get and run appropriate lxml installer: http://www.lfd.uci.edu/~gohlke/pythonlib
 
 get to C:\Python27\Scripts or equivalent
 
-run: easy_install -U selenium
+easy_install -U selenium
 
 download ChromeDriver from here: http://code.google.com/p/chromedriver/downloads/list
 
@@ -19,4 +19,4 @@ place directory in path
 
 get to tests\canvas-demo
 
-run: python test-demo.py
+python test-demo.py
