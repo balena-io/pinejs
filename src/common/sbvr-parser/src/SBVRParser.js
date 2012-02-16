@@ -533,10 +533,12 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
                 }));
                 this._apply("clearSuggestions");
                 this._apply("spaces");
-                this._or((function() {
-                    return this._apply("lineStart")
-                }), (function() {
-                    return this._apply("end")
+                this._lookahead((function() {
+                    return this._or((function() {
+                        return this._apply("lineStart")
+                    }), (function() {
+                        return this._apply("end")
+                    }))
                 }));
                 this["lines"].push(l);
                 return l
