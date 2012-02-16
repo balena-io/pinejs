@@ -469,10 +469,22 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
         },
         "attrDefinition": function() {
             var $elf = this,
-                _fromIdx = this.input.idx;
-            return this._applyWithArgs("ruleBody", [
+                _fromIdx = this.input.idx,
+                c, t, tVar, b, thatC;
+            (this["ruleVarsCount"] = (0));
+            c = [
                 []
-            ])
+            ];
+            t = this._apply("term");
+            tVar = this._applyWithArgs("createVar", t);
+            b = this._applyWithArgs("bind", t);
+            (function() {
+                c[(0)].push(t);
+                return c.push(b)
+            }).call(this);
+            thatC = this._applyWithArgs("checkThat", t, b);
+            tVar.push(thatC);
+            return tVar
         },
         "attrConceptType": function() {
             var $elf = this,
