@@ -1,12 +1,11 @@
 var sbvrAutoComplete = (function () {
-	function forEach(o, f) {
+	var forEach = function (o, f) {
 		if($.isArray(o))
 			for (var i = 0, e = o.length; i < e; ++i) f(o[i]);
 		else
 			for (var i in o) f(i);
-	}
-	
-	function arrayContains(arr, item) {
+	},
+	arrayContains = function(arr, item) {
 		if (!Array.prototype.indexOf) {
 			var i = arr.length;
 			while (i--) {
@@ -17,7 +16,8 @@ var sbvrAutoComplete = (function () {
 			return false;
 		}
 		return arr.indexOf(item) != -1;
-	}
+	};
+	
 	CodeMirror.sbvrHint = function(editor) {
 		var cur = editor.getCursor(false),
 			token = editor.getTokenAt(cur),
@@ -30,9 +30,9 @@ var sbvrAutoComplete = (function () {
 			start = start.replace(whitespace, '');
 		}
 
-		function maybeAdd(str) {
+		var maybeAdd = function(str) {
 			if (str.toLowerCase().indexOf(start) == 0 && !arrayContains(found, str)) found.push(whitespace+str+" ");
-		}
+		};
 		
 		try {
 			state._tokens = [];
