@@ -136,7 +136,8 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 						=  {this.ruleVarsCount=0} {[[]]}:c term:t createVar(t):tVar bind(t):b {c[0].push(t);c.push(b)}
 							checkThat(t, b):thatC {tVar.push(thatC)}	-> tVar,
 		attrConceptType :currentLine
-						= term,
+						= ?(!this.conceptTypes.hasOwnProperty(currentLine[1])) // Only allow one instance of Concept Type: attribute.
+							term:t {this.conceptTypes[currentLine[1]] = t[1]} -> t,
 		attrSynonym :currentLine
 						= addTerm:t {this.terms[t[1]] = currentLine[1]} -> t,
 
@@ -289,6 +290,7 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 		var self = this;
 		this.factTypes = {};
 		this.terms = {};
+		this.conceptTypes = {};
 		this.possMap = {
 			clearSuggestions: [], //This stops us suggesting any autocomplete before this point.
 			startTerm: ['Term:     '],
@@ -360,7 +362,13 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 	}
 
 	SBVRParser.equals = function(compareTo) {
-		if(!_.isEqual(this.terms, compareTo.terms)) return false
+		// TODO: Can this be simplified to just compare lines (and made provably comparable)?
+		if(!_.isEqual(this.terms, compareTo.terms)) {
+			return false;
+		}
+		if(!_.isEqual(this.conceptTypes, compareTo.conceptTypes)) {
+			return false;
+		}
 		if(!_.isEqual(this.factTypes, compareTo.factTypes)) {
 			return false;
 		}

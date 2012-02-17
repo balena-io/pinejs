@@ -493,8 +493,12 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
         },
         "attrConceptType": function(currentLine) {
             var $elf = this,
-                _fromIdx = this.input.idx;
-            return this._apply("term")
+                _fromIdx = this.input.idx,
+                t;
+            this._pred((!this["conceptTypes"].hasOwnProperty(currentLine[(1)])));
+            t = this._apply("term");
+            (this["conceptTypes"][currentLine[(1)]] = t[(1)]);
+            return t
         },
         "attrSynonym": function(currentLine) {
             var $elf = this,
@@ -689,6 +693,7 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
         var $elf = this;
         (this["factTypes"] = ({}));
         (this["terms"] = ({}));
+        (this["conceptTypes"] = ({}));
         (this["possMap"] = ({
             "clearSuggestions": [],
             "startTerm": ["Term:     "],
@@ -758,6 +763,11 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
     }));
     (SBVRParser["equals"] = (function(compareTo) {
         if ((!_.isEqual(this["terms"], compareTo["terms"]))) {
+            return false
+        } else {
+            undefined
+        };
+        if ((!_.isEqual(this["conceptTypes"], compareTo["conceptTypes"]))) {
             return false
         } else {
             undefined

@@ -71,6 +71,11 @@ define(['SBVRParser', 'SBVR2SQL', 'SBVR_PreProc'], function(SBVRParser, SBVR2SQL
 			[ "term", "student", [ [ "Definition", [ "var", [ "num", 0 ], [ "term", "person" ], [ "existQ", [ "var", [ "num", 1 ], [ "term", "educational institution" ] ], [ "aFrm", [ "fcTp", [ "term", "person" ], [ "verb", "is enrolled in" ], [ "term", "educational institution" ] ], [ "bind", [ "term", "person" ], 0 ], [ "bind", [ "term", "educational institution" ], 1 ] ] ] ] ], [ "Source", "A source" ], [ "DictionaryBasis", "A dictionary basis" ], [ "GeneralConcept", "A general concept" ], [ "ConceptType", [ "term", "person" ] ], [ "DatabaseIDField", "id" ], [ "DatabaseNameField", "name" ], [ "DatabaseTableName", "student" ] ] ],
 			[ "term", "student", "student", [ [ "Text", "name", "Name", [] ] ], "CREATE TABLE \"student\" (\"id\" INTEGER PRIMARY KEY AUTOINCREMENT,\"name\" TEXT)", "DROP TABLE \"student\";" ]
 		], [
+			'	Concept Type: educational institution -- This should fail as we only allow one concept type per term.',
+			'match failed',
+			'match failed',
+			'match failed',
+		], [
 			'	Necessity: A necessity',
 			[ "term", "student", [ [ "Definition", [ "var", [ "num", 0 ], [ "term", "person" ], [ "atLeastQ", [ "minCard", [ "num", 1 ] ], [ "var", [ "num", 1 ], [ "term", "educational institution" ] ], [ "aFrm", [ "fcTp", [ "term", "person" ], [ "verb", "is enrolled in" ], [ "term", "educational institution" ] ], [ "bind", [ "term", "person" ], 0 ], [ "bind", [ "term", "educational institution" ], 1 ] ] ] ] ], [ "Source", "A source" ], [ "DictionaryBasis", "A dictionary basis" ], [ "GeneralConcept", "A general concept" ], [ "ConceptType", [ "term", "person" ] ], [ "Necessity", "A necessity" ] ] ],
 			[ "term", "student", [ [ "Definition", [ "var", [ "num", 0 ], [ "term", "person" ], [ "existQ", [ "var", [ "num", 1 ], [ "term", "educational institution" ] ], [ "aFrm", [ "fcTp", [ "term", "person" ], [ "verb", "is enrolled in" ], [ "term", "educational institution" ] ], [ "bind", [ "term", "person" ], 0 ], [ "bind", [ "term", "educational institution" ], 1 ] ] ] ] ], [ "Source", "A source" ], [ "DictionaryBasis", "A dictionary basis" ], [ "GeneralConcept", "A general concept" ], [ "ConceptType", [ "term", "person" ] ], [ "Necessity", "A necessity" ], [ "DatabaseIDField", "id" ], [ "DatabaseNameField", "name" ], [ "DatabaseTableName", "student" ] ] ],
