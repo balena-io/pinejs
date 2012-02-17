@@ -498,6 +498,7 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
             trimmedLine = [currentLine[(0)], currentLine[(1)]];
             this._pred((!this["conceptTypes"].hasOwnProperty(trimmedLine)));
             t = this._apply("term");
+            this._pred((trimmedLine[(1)] != t[(1)]));
             (this["conceptTypes"][trimmedLine] = t);
             return t
         },

@@ -134,13 +134,15 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 						= toSBVREOL,
 		attrDefinition :currentLine
 						=  {this.ruleVarsCount=0} {[[]]}:c term:t createVar(t):tVar bind(t):b {c[0].push(t);c.push(b)}
-							checkThat(t, b):thatC {tVar.push(thatC)}	-> tVar,
+							checkThat(t, b):thatC {tVar.push(thatC)}		-> tVar,
 		attrConceptType :currentLine
 						= {[currentLine[0], currentLine[1]]}:trimmedLine
 							?(!this.conceptTypes.hasOwnProperty(trimmedLine)) // Only allow one instance of Concept Type: attribute.
-							term:t {this.conceptTypes[trimmedLine] = t} -> t,
+															 // TODO: Improve this to deal with synonyms and autocomplete/highlighting.
+							term:t ?(trimmedLine[1] != t[1]) // Do not allow a term to have itself as its concept type.
+							{this.conceptTypes[trimmedLine] = t}			-> t,
 		attrSynonym :currentLine
-						= addTerm:t {this.terms[t[1]] = currentLine[1]} -> t,
+						= addTerm:t {this.terms[t[1]] = currentLine[1]}		-> t,
 
 		startComment	= seq('--'),
 		newComment		= startComment toEOL,
