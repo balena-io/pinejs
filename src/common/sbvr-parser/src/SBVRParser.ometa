@@ -123,13 +123,13 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 		startTerm		= "T:"|"Term:",
 		newTerm			= startTerm clearSuggestions addTerm:t {t.push([])}					-> t,
 		attribute		= {this.lines[this.lines.length-1]}:currentLine
-							?{currentLine[0] == 'term' || currentLine[0] == 'fcTp'}
-							allowedAttrs:attrName
+							allowedAttrs(currentLine[0]):attrName
 							{attrName.replace(new RegExp(' ','g'),'')}:attrName
 							applyFirstExisting(['attr'+attrName,'defaultAttr'], [currentLine]):attrVal
 																			-> {var lastLine = this.lines.pop(); lastLine[lastLine.length-1].push([attrName, attrVal]); lastLine},
 							
-		allowedAttrs	= matchForAny('seq',this.possMap.allowedAttrs):attrName -> attrName.replace(':',''),
+		allowedAttrs :termOrFactType
+						= matchForAny('seq',this.possMap.allowedAttrs(termOrFactType)):attrName -> attrName.replace(':',''),
 		defaultAttr :currentLine
 						= toSBVREOL,
 		attrDefinition :currentLine
@@ -147,7 +147,7 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 		lineStart		= startTerm
 						| startFactType
 						| startRule
-						| allowedAttrs
+						| allowedAttrs(this.lines[this.lines.length-1][0])
 						| startComment,
 		line			= (spaces (newTerm | newFactType | newRule | attribute):l terminator? clearSuggestions spaces &(lineStart | end)
 							{this.lines.push(l)}							-> l)
@@ -253,7 +253,38 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 	}
 
 	var removeVerbRegex = new RegExp('^' + ['verb',''].toString()),
-		removeTermRegex = new RegExp('^' + ['term',''].toString());
+		removeTermRegex = new RegExp('^' + ['term',''].toString()),
+		allowedAttrLists = [
+			/*#IFDEF server */
+				/* Custom Attributes */
+				'Database ID Field:',
+				'Database Name Field:',
+				'Database Table Name:',
+				/* End Custom */
+			/*#ENDIFDEF*/
+			'Dictionary Basis:',
+			'Example:',
+			'General Concept:',
+			'Namespace URI:',
+			'Necessity:',
+			'Note:',
+			'Possibility:',
+			'Reference Scheme:',
+			'See:',
+			'Source:',
+			'Subject Field:'
+		];
+		allowedAttrLists = {
+			term: [
+				'Concept Type:',
+				'Definition:',
+				'Synonym:'
+			].concat(allowedAttrLists),
+			fcTp: [
+				'Synonymous Form:'
+			].concat(allowedAttrLists),
+			rule: []
+		};
 	SBVRParser.reset = function() {
 		var self = this;
 		this.factTypes = {};
@@ -288,30 +319,12 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 				}
 				return verbs;
 			},
-			allowedAttrs: [
-				'Concept Type:',
-				/*#IFDEF server */
-					/* Custom Attributes */
-					'Database ID Field:',
-					'Database Name Field:',
-					'Database Table Name:',
-					/* End Custom */
-				/*#ENDIFDEF*/
-				'Definition:',
-				'Dictionary Basis:',
-				'Example:',
-				'General Concept:',
-				'Namespace URI:',
-				'Necessity:',
-				'Note:',
-				'Possibility:',
-				'Reference Scheme:',
-				'See:',
-				'Source:',
-				'Subject Field:',
-				'Synonymous Form:',
-				'Synonym:'
-			],
+			allowedAttrs: function(termOrFactType) {
+				if(allowedAttrLists.hasOwnProperty(termOrFactType)) {
+					return allowedAttrLists[termOrFactType];
+				}
+				return [];
+			},
 			modRule: [
 				'It is obligatory that',
 				'It is necessary that',

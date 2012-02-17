@@ -451,8 +451,7 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
                 _fromIdx = this.input.idx,
                 currentLine, attrName, attrVal;
             currentLine = this["lines"][(this["lines"]["length"] - (1))];
-            this._pred(((currentLine[(0)] == "term") || (currentLine[(0)] == "fcTp")));
-            attrName = this._apply("allowedAttrs");
+            attrName = this._applyWithArgs("allowedAttrs", currentLine[(0)]);
             attrName = attrName.replace(new RegExp(" ", "g"), "");
             attrVal = this._applyWithArgs("applyFirstExisting", [("attr" + attrName), "defaultAttr"], [currentLine]);
             return (function() {
@@ -461,11 +460,11 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
                 return lastLine
             }).call(this)
         },
-        "allowedAttrs": function() {
+        "allowedAttrs": function(termOrFactType) {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 attrName;
-            attrName = this._applyWithArgs("matchForAny", "seq", this["possMap"]["allowedAttrs"]);
+            attrName = this._applyWithArgs("matchForAny", "seq", this["possMap"].allowedAttrs(termOrFactType));
             return attrName.replace(":", "")
         },
         "defaultAttr": function(currentLine) {
@@ -534,7 +533,7 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
             }), (function() {
                 return this._apply("startRule")
             }), (function() {
-                return this._apply("allowedAttrs")
+                return this._applyWithArgs("allowedAttrs", this["lines"][(this["lines"]["length"] - (1))][(0)])
             }), (function() {
                 return this._apply("startComment")
             }))
@@ -678,8 +677,14 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
         return (currentLevel["__valid"] = true)
     })); {
         var removeVerbRegex = new RegExp(("^" + ["verb", ""].toString()));
-        var removeTermRegex = new RegExp(("^" + ["term", ""].toString()))
+        var removeTermRegex = new RegExp(("^" + ["term", ""].toString()));
+        var allowedAttrLists = ["Database ID Field:", "Database Name Field:", "Database Table Name:", "Dictionary Basis:", "Example:", "General Concept:", "Namespace URI:", "Necessity:", "Note:", "Possibility:", "Reference Scheme:", "See:", "Source:", "Subject Field:"]
     };
+    (allowedAttrLists = ({
+        "term": ["Concept Type:", "Definition:", "Synonym:"].concat(allowedAttrLists),
+        "fcTp": ["Synonymous Form:"].concat(allowedAttrLists),
+        "rule": []
+    }));
     (SBVRParser["reset"] = (function() {
         var $elf = this;
         (this["factTypes"] = ({}));
@@ -731,7 +736,14 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
                 };
                 return verbs
             }),
-            "allowedAttrs": ["Concept Type:", "Database ID Field:", "Database Name Field:", "Database Table Name:", "Definition:", "Dictionary Basis:", "Example:", "General Concept:", "Namespace URI:", "Necessity:", "Note:", "Possibility:", "Reference Scheme:", "See:", "Source:", "Subject Field:", "Synonymous Form:", "Synonym:"],
+            "allowedAttrs": (function(termOrFactType) {
+                if (allowedAttrLists.hasOwnProperty(termOrFactType)) {
+                    return allowedAttrLists[termOrFactType]
+                } else {
+                    undefined
+                };
+                return []
+            }),
             "modRule": ["It is obligatory that", "It is necessary that", "It is prohibited that", "It is impossible that", "It is not possible that", "It is possible that", "It is permissible that"],
             "quant": ["each", "a", "an", "some", "at most", "at least", "more than", "exactly"],
             "joinQuant": ["and at most"],
