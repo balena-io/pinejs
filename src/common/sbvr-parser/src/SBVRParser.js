@@ -494,10 +494,11 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
         "attrConceptType": function(currentLine) {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                t;
-            this._pred((!this["conceptTypes"].hasOwnProperty(currentLine[(1)])));
+                trimmedLine, t;
+            trimmedLine = [currentLine[(0)], currentLine[(1)]];
+            this._pred((!this["conceptTypes"].hasOwnProperty(trimmedLine)));
             t = this._apply("term");
-            (this["conceptTypes"][currentLine[(1)]] = t[(1)]);
+            (this["conceptTypes"][trimmedLine] = t);
             return t
         },
         "attrSynonym": function(currentLine) {
@@ -613,22 +614,53 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
         return (($.inArray(term.singularize(), this["possMap"].term(factTypeSoFar)) !== (-(1))) ? term.singularize() : term)
     }));
     (SBVRParser["_traverseFactType"] = (function(fctp, create) {
-        var currentLevel = this["factTypes"];
-        for (var i = (0);
-        (i < fctp["length"]); i++) {
-            (currentFactTypePart = fctp[i]);
-            if ((!currentLevel.hasOwnProperty(currentFactTypePart))) {
-                if ((create === true)) {
-                    (currentLevel[currentFactTypePart] = ({}))
+        {
+            var $elf = this;
+            var traverseRecurse = (function(currentFactTypePart, remainingFactType, currentLevel) {
+                if ((currentFactTypePart == null)) {
+                    if ((create === true)) {
+                        (currentLevel["__valid"] = true)
+                    } else {
+                        undefined
+                    };
+                    return currentLevel
                 } else {
-                    return false
-                }
-            } else {
-                undefined
-            };
-            (currentLevel = currentLevel[currentFactTypePart])
+                    undefined
+                }; {
+                    var finalLevel = undefined;
+                    var finalLevels = ({})
+                };
+                if ((currentLevel.hasOwnProperty(currentFactTypePart) || ((create === true) && (currentLevel[currentFactTypePart] = ({}))))) {
+                    (finalLevel = traverseRecurse(remainingFactType[(0)], remainingFactType.slice((1)), currentLevel[currentFactTypePart]));
+                    if ((finalLevel != false)) {
+                        $.extend(finalLevels, finalLevel)
+                    } else {
+                        undefined
+                    }
+                } else {
+                    undefined
+                };
+                if (((create !== true) && (currentFactTypePart[(0)] == "term"))) {
+                    while ($elf["conceptTypes"].hasOwnProperty(currentFactTypePart)) {
+                        (currentFactTypePart = $elf["conceptTypes"][currentFactTypePart]);
+                        if (currentLevel.hasOwnProperty(currentFactTypePart)) {
+                            (finalLevel = traverseRecurse(remainingFactType[(0)], remainingFactType.slice((1)), currentLevel[currentFactTypePart]));
+                            if ((finalLevel !== false)) {
+                                $.extend(finalLevels, finalLevel)
+                            } else {
+                                undefined
+                            }
+                        } else {
+                            undefined
+                        }
+                    }
+                } else {
+                    undefined
+                };
+                return (($.isEmptyObject(finalLevels) === true) ? false : finalLevels)
+            })
         };
-        return currentLevel
+        return traverseRecurse(fctp[(0)], fctp.slice((1)), this["factTypes"])
     }));
     (SBVRParser["_isVerb"] = (function(factTypeSoFar, verb) {
         (verb = ["verb", this._verbForm(verb)]);
@@ -669,7 +701,7 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
         return verb
     }));
     (SBVRParser["_addFactType"] = (function(factType) {
-        (this._traverseFactType(factType, true)["__valid"] = true)
+        this._traverseFactType(factType, true)
     }));
     (SBVRParser["_isFctp"] = (function(factType) {
         var currentLevel = this._traverseFactType(factType);

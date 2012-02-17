@@ -136,8 +136,9 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 						=  {this.ruleVarsCount=0} {[[]]}:c term:t createVar(t):tVar bind(t):b {c[0].push(t);c.push(b)}
 							checkThat(t, b):thatC {tVar.push(thatC)}	-> tVar,
 		attrConceptType :currentLine
-						= ?(!this.conceptTypes.hasOwnProperty(currentLine[1])) // Only allow one instance of Concept Type: attribute.
-							term:t {this.conceptTypes[currentLine[1]] = t[1]} -> t,
+						= {[currentLine[0], currentLine[1]]}:trimmedLine
+							?(!this.conceptTypes.hasOwnProperty(trimmedLine)) // Only allow one instance of Concept Type: attribute.
+							term:t {this.conceptTypes[trimmedLine] = t} -> t,
 		attrSynonym :currentLine
 						= addTerm:t {this.terms[t[1]] = currentLine[1]} -> t,
 
@@ -187,20 +188,38 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 	}
 
 	SBVRParser._traverseFactType = function(fctp, create) {
-		var currentLevel = this.factTypes;
-		for(var i=0; i<fctp.length;i++) {
-			currentFactTypePart = fctp[i];
-			if(!currentLevel.hasOwnProperty(currentFactTypePart)) {
-				if(create===true) {
-					currentLevel[currentFactTypePart] = {}
+		var self = this,
+			traverseRecurse = function(currentFactTypePart, remainingFactType, currentLevel) {
+			if(currentFactTypePart == null) {
+				if(create === true) {
+					currentLevel.__valid = true;
 				}
-				else {
-					return false;
+				return currentLevel;
+			}
+			var finalLevel, finalLevels = {};
+			
+			if(currentLevel.hasOwnProperty(currentFactTypePart) || (create===true && (currentLevel[currentFactTypePart] = {})) ) {
+				finalLevel = traverseRecurse(remainingFactType[0], remainingFactType.slice(1), currentLevel[currentFactTypePart]);
+				if(finalLevel != false) {
+					$.extend(finalLevels, finalLevel);
 				}
 			}
-			currentLevel = currentLevel[currentFactTypePart];
-		}
-		return currentLevel;
+			
+			if(create !== true && currentFactTypePart[0] == 'term') {
+				while( self.conceptTypes.hasOwnProperty(currentFactTypePart) ) {
+					currentFactTypePart = self.conceptTypes[currentFactTypePart];
+					if( currentLevel.hasOwnProperty(currentFactTypePart) ) {
+						// We use recursion so here we go down each branch until we find the suitable one, or run out of branches.
+						finalLevel = traverseRecurse(remainingFactType[0], remainingFactType.slice(1), currentLevel[currentFactTypePart]);
+						if(finalLevel !== false) {
+							$.extend(finalLevels, finalLevel);
+						}
+					}
+				}
+			}
+			return $.isEmptyObject(finalLevels) === true ? false : finalLevels;
+		};
+		return traverseRecurse(fctp[0], fctp.slice(1), this.factTypes);
 	}
 
 	SBVRParser._isVerb = function(factTypeSoFar, verb) {
@@ -242,7 +261,7 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 	}
 
 	SBVRParser._addFactType = function(factType) {
-		this._traverseFactType(factType, true).__valid = true;
+		this._traverseFactType(factType, true);
 	}
 
 	SBVRParser._isFctp = function(factType) {

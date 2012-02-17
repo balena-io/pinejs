@@ -26,6 +26,11 @@ define(['SBVRParser', 'SBVR2SQL', 'SBVR_PreProc'], function(SBVRParser, SBVR2SQL
 			[ "fcTp", [ "term", "person" ], [ "verb", "is enrolled in" ], [ "term", "educational institution" ], [ [ "DatabaseIDField", "id" ], [ "DatabaseTableName", "person-is_enrolled_in-educational_institution" ] ] ],
 			[ "fcTp", "person-is_enrolled_in-educational_institution", "person is enrolled in educational_institution", [ [ "ForeignKey", "person_id", "person", [ "person", "id", "name" ] ], [ "ForeignKey", "educational_institution_id", "educational_institution", [ "educational_institution", "id", "name" ] ] ], "CREATE TABLE \"person-is_enrolled_in-educational_institution\" (\"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"person_id\" INTEGER, \"educational_institution_id\" INTEGER, FOREIGN KEY (\"person_id\") REFERENCES \"person\"(\"id\"), FOREIGN KEY (\"educational_institution_id\") REFERENCES \"educational_institution\"(\"id\"))", "DROP TABLE \"person-is_enrolled_in-educational_institution\";", [ [ "term", "person" ], [ "verb", "is enrolled in" ], [ "term", "educational institution" ] ] ]
 		], [
+			'F: person has age',
+			[ "fcTp", [ "term", "person" ], [ "verb", "has age" ], [] ],
+			[ "fcTp", [ "term", "person" ], [ "verb", "has age" ], [ [ "DatabaseIDField", "id" ], [ "DatabaseTableName", "person-has_age" ] ] ],
+			[ "fcTp", "person-has_age", "person has age", [ [ "ForeignKey", "person_id", "person", [ "person", "id", "name" ] ] ], "CREATE TABLE \"person-has_age\" (\"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"person_id\" INTEGER, FOREIGN KEY (\"person_id\") REFERENCES \"person\"(\"id\"))", "DROP TABLE \"person-has_age\";", [ [ "term", "person" ], [ "verb", "has age" ] ] ]
+		], [
 			'T: student',
 			[ "term", "student", [] ],
 			[ "term", "student", [ [ "DatabaseIDField", "id" ], [ "DatabaseNameField", "name" ], [ "DatabaseTableName", "student" ] ] ],
@@ -432,7 +437,7 @@ define(['SBVRParser', 'SBVR2SQL', 'SBVR_PreProc'], function(SBVRParser, SBVR2SQL
 		
 		/* Term-Verb Linking */
 		[
-			'R: It is obligatory that exactly 0 students  are swimming',
+			'R: It is obligatory that exactly 0 people are school president',
 			'match failed',
 			'match failed',
 			'match failed'
@@ -464,6 +469,19 @@ define(['SBVRParser', 'SBVR2SQL', 'SBVR_PreProc'], function(SBVRParser, SBVR2SQL
 			'R: It is obligatory that each student that is school president is registered for at least 8 modules',
 			[ "rule", [ "obl", [ "univQ", [ "var", [ "num", 0 ], [ "term", "student" ], [ "aFrm", [ "fcTp", [ "term", "student" ], [ "verb", "is school president" ] ], [ "bind", [ "term", "student" ], 0 ] ] ], [ "atLeastQ", [ "minCard", [ "num", 8 ] ], [ "var", [ "num", 1 ], [ "term", "module" ] ], [ "aFrm", [ "fcTp", [ "term", "student" ], [ "verb", "is registered for" ], [ "term", "module" ] ], [ "bind", [ "term", "student" ], 0 ], [ "bind", [ "term", "module" ], 1 ] ] ] ] ], [ "text", "It is obligatory that each student that is school president is registered for at least 8 modules" ] ],
 			[ "rule", [ "obl", [ "neg", [ "existQ", [ "var", [ "num", 0 ], [ "term", "student" ], [ "aFrm", [ "fcTp", [ "term", "student" ], [ "verb", "is school president" ] ], [ "bind", [ "term", "student" ], 0 ] ] ], [ "neg", [ "atLeastQ", [ "minCard", [ "num", 8 ] ], [ "var", [ "num", 1 ], [ "term", "module" ] ], [ "aFrm", [ "fcTp", [ "term", "student" ], [ "verb", "is registered for" ], [ "term", "module" ] ], [ "bind", [ "term", "student" ], 0 ], [ "bind", [ "term", "module" ], 1 ] ] ] ] ] ] ], [ "text", "It is obligatory that each student that is school president is registered for at least 8 modules" ] ],
+			[ "rule", [], "It is obligatory that each student that is school president is registered for at least 8 modules", [], "SELECT NOT EXISTS(SELECT * FROM \"student_table\" AS \"var0\" WHERE EXISTS(SELECT * FROM \"school_president\" AS \"f\" WHERE \"var0\".\"id\" = \"f\".\"student_table_id\" AND NOT EXISTS(SELECT count(*) AS \"card\" FROM \"module\" AS \"var1\" WHERE EXISTS(SELECT * FROM \"student-is_registered_for-module\" AS \"f\" WHERE \"var0\".\"id\" = \"f\".\"student_table_id\" AND \"var1\".\"id\" = \"f\".\"module_id\") GROUP BY NULL HAVING count(*)>=8))) AS \"result\"", [] ]
+		],
+		/* Concept type */
+		[
+			'R: It is obligatory that each student has age',
+			[ "rule", [ "obl", [ "univQ", [ "var", [ "num", 0 ], [ "term", "student" ] ], [ "aFrm", [ "fcTp", [ "term", "student" ], [ "verb", "has age" ] ], [ "bind", [ "term", "student" ], 0 ] ] ] ], [ "text", "It is obligatory that each student has age" ] ],
+			[ "rule", [ "obl", [ "neg", [ "existQ", [ "var", [ "num", 0 ], [ "term", "student" ] ], [ "neg", [ "aFrm", [ "fcTp", [ "term", "student" ], [ "verb", "has age" ] ], [ "bind", [ "term", "student" ], 0 ] ] ] ] ] ], [ "text", "It is obligatory that each student has age" ] ],
+			[ "rule", [], "It is obligatory that each student that is school president is registered for at least 8 modules", [], "SELECT NOT EXISTS(SELECT * FROM \"student_table\" AS \"var0\" WHERE EXISTS(SELECT * FROM \"school_president\" AS \"f\" WHERE \"var0\".\"id\" = \"f\".\"student_table_id\" AND NOT EXISTS(SELECT count(*) AS \"card\" FROM \"module\" AS \"var1\" WHERE EXISTS(SELECT * FROM \"student-is_registered_for-module\" AS \"f\" WHERE \"var0\".\"id\" = \"f\".\"student_table_id\" AND \"var1\".\"id\" = \"f\".\"module_id\") GROUP BY NULL HAVING count(*)>=8))) AS \"result\"", [] ]
+		],
+		[
+			'R: It is obligatory that each student is enrolled in an educational institution',
+			[ "rule", [ "obl", [ "univQ", [ "var", [ "num", 0 ], [ "term", "student" ] ], [ "existQ", [ "var", [ "num", 1 ], [ "term", "educational institution" ] ], [ "aFrm", [ "fcTp", [ "term", "student" ], [ "verb", "is enrolled in" ], [ "term", "educational institution" ] ], [ "bind", [ "term", "student" ], 0 ], [ "bind", [ "term", "educational institution" ], 1 ] ] ] ] ], [ "text", "It is obligatory that each student is enrolled in an educational institution" ] ],
+			[ "rule", [ "obl", [ "neg", [ "existQ", [ "var", [ "num", 0 ], [ "term", "student" ] ], [ "neg", [ "existQ", [ "var", [ "num", 1 ], [ "term", "educational institution" ] ], [ "aFrm", [ "fcTp", [ "term", "student" ], [ "verb", "is enrolled in" ], [ "term", "educational institution" ] ], [ "bind", [ "term", "student" ], 0 ], [ "bind", [ "term", "educational institution" ], 1 ] ] ] ] ] ] ], [ "text", "It is obligatory that each student is enrolled in an educational institution" ] ],
 			[ "rule", [], "It is obligatory that each student that is school president is registered for at least 8 modules", [], "SELECT NOT EXISTS(SELECT * FROM \"student_table\" AS \"var0\" WHERE EXISTS(SELECT * FROM \"school_president\" AS \"f\" WHERE \"var0\".\"id\" = \"f\".\"student_table_id\" AND NOT EXISTS(SELECT count(*) AS \"card\" FROM \"module\" AS \"var1\" WHERE EXISTS(SELECT * FROM \"student-is_registered_for-module\" AS \"f\" WHERE \"var0\".\"id\" = \"f\".\"student_table_id\" AND \"var1\".\"id\" = \"f\".\"module_id\") GROUP BY NULL HAVING count(*)>=8))) AS \"result\"", [] ]
 		],
 		
