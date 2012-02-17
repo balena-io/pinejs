@@ -118,7 +118,7 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
                     return this._apply("termPart")
                 }))
             }));
-            (this["terms"][t.join(" ")] = true);
+            (this["terms"][t.join(" ")] = t.join(" "));
             return this._apply("term")
         },
         "term": function(factTypeSoFar) {
@@ -449,11 +449,12 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
         "attribute": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                attrName, attrVal;
-            this._pred(((this["lines"][(this["lines"]["length"] - (1))][(0)] == "term") || (this["lines"][(this["lines"]["length"] - (1))][(0)] == "fcTp")));
+                currentLine, attrName, attrVal;
+            currentLine = this["lines"][(this["lines"]["length"] - (1))];
+            this._pred(((currentLine[(0)] == "term") || (currentLine[(0)] == "fcTp")));
             attrName = this._apply("allowedAttrs");
             attrName = attrName.replace(new RegExp(" ", "g"), "");
-            attrVal = this._applyWithArgs("applyFirstExisting", [("attr" + attrName), "toSBVREOL"]);
+            attrVal = this._applyWithArgs("applyFirstExisting", [("attr" + attrName), "defaultAttr"], [currentLine]);
             return (function() {
                 var lastLine = this["lines"].pop();
                 lastLine[(lastLine["length"] - (1))].push([attrName, attrVal]);
@@ -467,7 +468,12 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
             attrName = this._applyWithArgs("matchForAny", "seq", this["possMap"]["allowedAttrs"]);
             return attrName.replace(":", "")
         },
-        "attrDefinition": function() {
+        "defaultAttr": function(currentLine) {
+            var $elf = this,
+                _fromIdx = this.input.idx;
+            return this._apply("toSBVREOL")
+        },
+        "attrDefinition": function(currentLine) {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 c, t, tVar, b, thatC;
@@ -486,10 +492,18 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
             tVar.push(thatC);
             return tVar
         },
-        "attrConceptType": function() {
+        "attrConceptType": function(currentLine) {
             var $elf = this,
                 _fromIdx = this.input.idx;
             return this._apply("term")
+        },
+        "attrSynonym": function(currentLine) {
+            var $elf = this,
+                _fromIdx = this.input.idx,
+                t;
+            t = this._apply("addTerm");
+            (this["terms"][t[(1)]] = currentLine[(1)]);
+            return t
         },
         "startComment": function() {
             var $elf = this,
@@ -573,11 +587,26 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
     (SBVRParser["initialize"] = (function() {
         this.reset()
     }));
+    (SBVRParser["_baseTerm"] = (function(factTypeSoFar, term) {
+        if (this["terms"].hasOwnProperty(term)) {
+            return this["terms"][term]
+        } else {
+            undefined
+        };
+        if (this["terms"].hasOwnProperty(term.singularize())) {
+            return this["terms"][term.singularize()]
+        } else {
+            undefined
+        };
+        return false
+    }));
     (SBVRParser["_isTerm"] = (function(factTypeSoFar, term) {
         var terms = this["possMap"].term(factTypeSoFar);
-        return (($.inArray(term, terms) !== (-(1))) || ($.inArray(term.singularize(), terms) !== (-(1))))
+        (term = this._baseTerm(factTypeSoFar, term));
+        return ((term !== false) && (($.inArray(term, terms) !== (-(1))) || ($.inArray(term.singularize(), terms) !== (-(1)))))
     }));
     (SBVRParser["_termForm"] = (function(factTypeSoFar, term) {
+        (term = this._baseTerm(factTypeSoFar, term));
         return (($.inArray(term.singularize(), this["possMap"].term(factTypeSoFar)) !== (-(1))) ? term.singularize() : term)
     }));
     (SBVRParser["_traverseFactType"] = (function(fctp, create) {
@@ -756,11 +785,22 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
         };
         return ret
     }));
-    (SBVRParser["applyFirstExisting"] = (function(arr) {
+    (SBVRParser["applyFirstExisting"] = (function(arr, ruleArgs) {
+        if ((ruleArgs == null)) {
+            (ruleArgs = [])
+        } else {
+            undefined
+        };
         for (var i = (0);
         (i < arr["length"]); i++) {
             if ((this[arr[i]] != undefined)) {
-                return this._apply(arr[i])
+                if (((ruleArgs != null) && (ruleArgs["length"] > (0)))) {
+                    ruleArgs.unshift(arr[i]);
+                    return this["_applyWithArgs"].apply(this, ruleArgs)
+                } else {
+                    undefined
+                };
+                return this._apply(arr[i], ruleArgs)
             } else {
                 undefined
             }

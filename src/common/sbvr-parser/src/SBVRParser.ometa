@@ -25,7 +25,7 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 
 		token		:x	= spaces seq(x):s &(space+)								-> s,
 
-		addTerm			= &(termPart+):t {this.terms[t.join(' ')] = true}
+		addTerm			= &(termPart+):t {this.terms[t.join(' ')] = t.join(' ')}
 						  term,
 		term		:factTypeSoFar
 						= findTerm(factTypeSoFar),
@@ -122,17 +122,23 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 																			-> ['fcTp'].concat(fctp),
 		startTerm		= "T:"|"Term:",
 		newTerm			= startTerm clearSuggestions addTerm:t {t.push([])}					-> t,
-		attribute		= ?{this.lines[this.lines.length-1][0] == 'term' ||
-							this.lines[this.lines.length-1][0] == 'fcTp'}
+		attribute		= {this.lines[this.lines.length-1]}:currentLine
+							?{currentLine[0] == 'term' || currentLine[0] == 'fcTp'}
 							allowedAttrs:attrName
 							{attrName.replace(new RegExp(' ','g'),'')}:attrName
-							applyFirstExisting(['attr'+attrName,'toSBVREOL']):attrVal
+							applyFirstExisting(['attr'+attrName,'defaultAttr'], [currentLine]):attrVal
 																			-> {var lastLine = this.lines.pop(); lastLine[lastLine.length-1].push([attrName, attrVal]); lastLine},
 							
 		allowedAttrs	= matchForAny('seq',this.possMap.allowedAttrs):attrName -> attrName.replace(':',''),
-		attrDefinition	= {this.ruleVarsCount=0} {[[]]}:c term:t createVar(t):tVar bind(t):b {c[0].push(t);c.push(b)}
+		defaultAttr :currentLine
+						= toSBVREOL,
+		attrDefinition :currentLine
+						=  {this.ruleVarsCount=0} {[[]]}:c term:t createVar(t):tVar bind(t):b {c[0].push(t);c.push(b)}
 							checkThat(t, b):thatC {tVar.push(thatC)}	-> tVar,
-		attrConceptType	= term,
+		attrConceptType :currentLine
+						= term,
+		attrSynonym :currentLine
+						= addTerm:t {this.terms[t[1]] = currentLine[1]} -> t,
 
 		startComment	= seq('--'),
 		newComment		= startComment toEOL,
@@ -157,13 +163,25 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 	SBVRParser.initialize = function() {
 		this.reset();
 	}
+	
+	SBVRParser._baseTerm = function(factTypeSoFar, term) {
+		if(this.terms.hasOwnProperty(term)) {
+			return this.terms[term];
+		}
+		if(this.terms.hasOwnProperty(term.singularize())) {
+			return this.terms[term.singularize()];
+		}
+		return false;
+	}
 
 	SBVRParser._isTerm = function(factTypeSoFar, term) {
 		var terms = this.possMap.term(factTypeSoFar);
-		return $.inArray(term,terms) !== -1 || $.inArray(term.singularize(),terms) !== -1
+		term = this._baseTerm(factTypeSoFar, term);
+		return term !== false && ($.inArray(term,terms) !== -1 || $.inArray(term.singularize(),terms) !== -1);
 	}
 
 	SBVRParser._termForm = function(factTypeSoFar, term) {
+		term = this._baseTerm(factTypeSoFar, term);
 		return $.inArray(term.singularize(), this.possMap.term(factTypeSoFar)) !== -1 ? term.singularize() : term
 	}
 
@@ -356,10 +374,19 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 			ret = this._applyWithArgs.call(this, rule, arr[idx])
 		return ret
 	}
-	SBVRParser.applyFirstExisting = function(arr) {
-		for (var i = 0; i < arr.length; i++)
-			if(this[arr[i]] != undefined)
-				return this._apply(arr[i])
+	SBVRParser.applyFirstExisting = function(arr, ruleArgs) {
+		if(ruleArgs == null) {
+			ruleArgs = [];
+		}
+		for (var i = 0; i < arr.length; i++) {
+			if(this[arr[i]] != undefined) {
+				if(ruleArgs != null && ruleArgs.length > 0) {
+					ruleArgs.unshift(arr[i])
+					return this._applyWithArgs.apply(this, ruleArgs)
+				}
+				return this._apply(arr[i], ruleArgs)
+			}
+		}
 	}
 	/* This is a bit of a hack for case insensitivity, a better solution needs to be implemented in future. */
 	SBVRParser.exactly = function(wanted) {
