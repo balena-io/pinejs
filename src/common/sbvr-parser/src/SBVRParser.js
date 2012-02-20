@@ -250,6 +250,11 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
                 _fromIdx = this.input.idx;
             return this._applyWithArgs("keyword", "the")
         },
+        "addComma": function() {
+            var $elf = this,
+                _fromIdx = this.input.idx;
+            return this._applyWithArgs("keyword", ",")
+        },
         "createVar": function(term) {
             var $elf = this,
                 _fromIdx = this.input.idx;
@@ -259,9 +264,9 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
         "checkThat": function(term, termBind) {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                t, b, c, v;
+                t, b, c, v, r;
             this._apply("addThat");
-            return this._or((function() {
+            r = this._or((function() {
                 this._apply("addThe");
                 t = this._apply("term");
                 b = this._applyWithArgs("bind", t);
@@ -291,7 +296,11 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
                 return this._applyWithArgs("ruleBody", [
                     []
                 ])
-            }))
+            }));
+            this._opt((function() {
+                return this._apply("addComma")
+            }));
+            return r
         },
         "atfo": function(c) {
             var $elf = this,

@@ -68,6 +68,7 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 		
 		addThat			= keyword("that"),
 		addThe			= keyword("the"),
+		addComma		= keyword(","),
 		createVar	:term
 						= {this.ruleVars[term[1]] = this.ruleVarsCount++}		-> ['var', ['num', this.ruleVars[term[1]]], term],
 		checkThat	:term :termBind
@@ -79,7 +80,8 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 									( ruleBody(c, true)
 									| atfo(c) )
 								| ruleBody([[]]))
-							),
+							):r
+							addComma?												-> r,
 
 		atfo		:c	= isFctp(c[0]) {c[0] = ['fcTp'].concat(c[0])}			-> ['aFrm'].concat(c),
 
