@@ -150,10 +150,11 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 		newComment		= startComment toEOL,
 		
 		terminator		= spaces keyword('.',true),
-		lineStart		= startTerm
+		lineStart :lineType
+						= startTerm
 						| startFactType
 						| startRule
-						| allowedAttrs(this.lines[this.lines.length-1][0])
+						| allowedAttrs
 						| startComment,
 		line			= (spaces (newTerm | newFactType | newRule | attribute):l terminator? clearSuggestions spaces &(lineStart | end)
 							{this.lines.push(l)}							-> l)
@@ -347,6 +348,9 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 			allowedAttrs: function(termOrFactType) {
 				if(allowedAttrLists.hasOwnProperty(termOrFactType)) {
 					return allowedAttrLists[termOrFactType];
+				}
+				else if(termOrFactType == null) {
+					return allowedAttrLists.term.concat(allowedAttrLists.fcTp);
 				}
 				return [];
 			},

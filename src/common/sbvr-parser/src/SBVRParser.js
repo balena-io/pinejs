@@ -538,7 +538,7 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
             this._apply("spaces");
             return this._applyWithArgs("keyword", ".", true)
         },
-        "lineStart": function() {
+        "lineStart": function(lineType) {
             var $elf = this,
                 _fromIdx = this.input.idx;
             return this._or((function() {
@@ -548,7 +548,7 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
             }), (function() {
                 return this._apply("startRule")
             }), (function() {
-                return this._applyWithArgs("allowedAttrs", this["lines"][(this["lines"]["length"] - (1))][(0)])
+                return this._apply("allowedAttrs")
             }), (function() {
                 return this._apply("startComment")
             }))
@@ -787,7 +787,11 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
                 if (allowedAttrLists.hasOwnProperty(termOrFactType)) {
                     return allowedAttrLists[termOrFactType]
                 } else {
-                    undefined
+                    if ((termOrFactType == null)) {
+                        return allowedAttrLists["term"].concat(allowedAttrLists["fcTp"])
+                    } else {
+                        undefined
+                    }
                 };
                 return []
             }),
