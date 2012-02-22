@@ -32,6 +32,9 @@ time.sleep(1)
 browser.find_element_by_id("blm1").click()
 time.sleep(1)
 
+modeldata = '''Term:      pilot\\nTerm:      plane type\\nFact type: pilot can fly plane type\\nFact type: pilot is experienced\\nRule:      It is obligatory that each pilot can fly at least 1 plane type\\nRule:      It is obligatory that each pilot that is experienced can fly at least 3 plane types'''
+
+browser.execute_script('window.sbvrEditor.setValue("%s");' % modeldata)
 browser.find_element_by_id("bem").click()
 time.sleep(1)
 
@@ -45,7 +48,7 @@ except NoSuchElementException:
 #within the string (escaped) from those enclosing the string (not escaped). Also, it's 
 #all one line as newlines make the javascript fail. Same goes for the '\\n'.
 
-SQLdata = '''INSERT INTO \\"pilot\\" (\\"id\\",\\"name\\") values ('1','Joachim');\\nINSERT INTO \\"pilot\\" (\\"id\\",\\"name\\") values ('2','Esteban');\\nINSERT INTO \\"plane\\" (\\"id\\",\\"name\\") values ('1','Boeing 747');\\nINSERT INTO \\"plane\\" (\\"id\\",\\"name\\") values ('2','Spitfire');\\nINSERT INTO \\"plane\\" (\\"id\\",\\"name\\") values ('3','Concorde');\\nINSERT INTO \\"plane\\" (\\"id\\",\\"name\\") values ('4','Mirage 2000');\\nINSERT INTO \\"pilot-can_fly-plane\\" (\\"id\\",\\"pilot_id\\",\\"plane_id\\") values ('1','1','2');\\nINSERT INTO \\"pilot-can_fly-plane\\" (\\"id\\",\\"pilot_id\\",\\"plane_id\\") values ('2','1','3');\\nINSERT INTO \\"pilot-can_fly-plane\\" (\\"id\\",\\"pilot_id\\",\\"plane_id\\") values ('3','1','4');\\nINSERT INTO \\"pilot-can_fly-plane\\" (\\"id\\",\\"pilot_id\\",\\"plane_id\\") values ('4','2','1');\\nINSERT INTO \\"pilot-is_experienced\\" (\\"id\\",\\"pilot_id\\") values ('1','1');'''
+SQLdata = '''INSERT INTO \\"pilot\\" (\\"id\\",\\"name\\") values ('1','Joachim');\\nINSERT INTO \\"pilot\\" (\\"id\\",\\"name\\") values ('2','Esteban');\\nINSERT INTO \\"plane_type\\" (\\"id\\",\\"name\\") values ('1','Boeing 747');\\nINSERT INTO \\"plane_type\\" (\\"id\\",\\"name\\") values ('2','Spitfire');\\nINSERT INTO \\"plane_type\\" (\\"id\\",\\"name\\") values ('3','Concorde');\\nINSERT INTO \\"plane_type\\" (\\"id\\",\\"name\\") values ('4','Mirage 2000');\\nINSERT INTO \\"pilot-can_fly-plane_type\\" (\\"id\\",\\"pilot_id\\",\\"plane_type_id\\") values ('1','1','2');\\nINSERT INTO \\"pilot-can_fly-plane_type\\" (\\"id\\",\\"pilot_id\\",\\"plane_type_id\\") values ('2','1','3');\\nINSERT INTO \\"pilot-can_fly-plane_type\\" (\\"id\\",\\"pilot_id\\",\\"plane_type_id\\") values ('3','1','4');\\nINSERT INTO \\"pilot-can_fly-plane_type\\" (\\"id\\",\\"pilot_id\\",\\"plane_type_id\\") values ('4','2','1');\\nINSERT INTO \\"pilot-is_experienced\\" (\\"id\\",\\"pilot_id\\") values ('1','1');'''
 
 browser.execute_script('window.importExportEditor.setValue("%s");' % SQLdata)
 browser.find_element_by_id("bidb").click()
@@ -61,12 +64,12 @@ time.sleep(1)
 
 find_and_click("//a[contains(@onclick,'pilot\"')]", "expand pilots")
 
-find_and_click("//a[contains(@onclick,'pilot/pilot-can_fly-plane\"')]", "can't expand pilot can fly plane")
+find_and_click("//a[contains(@onclick,'pilot/pilot-can_fly-plane_type\"')]", "can't expand pilot can fly plane type")
 
-find_and_click("//a[contains(@onclick,'pilot/pilot-can_fly-plane/pilot-can_fly-plane.3*del')]", "delete fact [Joachim can fly Boeing 747]")
+find_and_click("//a[contains(@onclick,'pilot/pilot-can_fly-plane_type/pilot-can_fly-plane_type.3*del')]", "delete fact [Joachim can fly Boeing 747]")
 
 '''click -confirm- or whatever'''
-browser.find_element_by_xpath("//tr[@id='tr--data--pilot-can_fly-plane']//input[@type='submit']").click()
+browser.find_element_by_xpath("//tr[@id='tr--data--pilot-can_fly-plane_type']//input[@type='submit']").click()
 time.sleep(1)
 
 '''click revise request'''
@@ -74,10 +77,10 @@ browser.find_element_by_xpath("//button[descendant::text()='Revise Request']").c
 time.sleep(1)
 
 '''expand pilot is experienced'''
-find_and_click("//a[contains(@onclick,'pilot/(pilot-can_fly-plane/pilot-can_fly-plane.3*del,pilot-is_experienced)\"')]", "expand pilot is experienced")
+find_and_click("//a[contains(@onclick,'pilot/(pilot-can_fly-plane_type/pilot-can_fly-plane_type.3*del,pilot-is_experienced)\"')]", "expand pilot is experienced")
 
 '''delete joachim is experienced'''
-find_and_click("//a[contains(@onclick,'/pilot/(pilot-can_fly-plane/pilot-can_fly-plane.3*del,pilot-is_experienced/pilot-is_experienced.1*del)\"')]", "delete fact [Joachim is experienced]")
+find_and_click("//a[contains(@onclick,'/pilot/(pilot-can_fly-plane_type/pilot-can_fly-plane_type.3*del,pilot-is_experienced/pilot-is_experienced.1*del)\"')]", "delete fact [Joachim is experienced]")
 
 '''click Apply All'''
 browser.find_element_by_xpath("//input[@value='Apply All Changes']").click()
