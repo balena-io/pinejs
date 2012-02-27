@@ -473,7 +473,7 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 attrName;
-            attrName = this._applyWithArgs("matchForAny", "seq", this["possMap"].allowedAttrs(termOrFactType));
+            attrName = this._applyWithArgs("matchForAny", "seq", this["possMap"]["allowedAttrs"].call(this, termOrFactType));
             return attrName.replace(":", "")
         },
         "defaultAttr": function(currentLine) {
@@ -615,13 +615,13 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
         return false
     }));
     (SBVRParser["_isTerm"] = (function(factTypeSoFar, term) {
-        var terms = this["possMap"].term(factTypeSoFar);
+        var terms = this["possMap"]["term"].call(this, factTypeSoFar);
         (term = this._baseTerm(factTypeSoFar, term));
         return ((term !== false) && (($.inArray(term, terms) !== (-(1))) || ($.inArray(term.singularize(), terms) !== (-(1)))))
     }));
     (SBVRParser["_termForm"] = (function(factTypeSoFar, term) {
         (term = this._baseTerm(factTypeSoFar, term));
-        return (($.inArray(term.singularize(), this["possMap"].term(factTypeSoFar)) !== (-(1))) ? term.singularize() : term)
+        return (($.inArray(term.singularize(), this["possMap"]["term"].call(this, factTypeSoFar)) !== (-(1))) ? term.singularize() : term)
     }));
     (SBVRParser["_traverseFactType"] = (function(fctp, create) {
         {
@@ -732,7 +732,6 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
         "rule": []
     }));
     (SBVRParser["reset"] = (function() {
-        var $elf = this;
         (this["factTypes"] = ({}));
         (this["terms"] = ({}));
         (this["conceptTypes"] = ({}));
@@ -743,12 +742,12 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
             "startRule": ["Rule:     "],
             "term": (function(factTypeSoFar) {
                 if (((factTypeSoFar == null) || (factTypeSoFar["length"] == (0)))) {
-                    return _.keys($elf["terms"])
+                    return _.keys(this["terms"])
                 } else {
                     undefined
                 }; {
                     var term = undefined;
-                    var currentLevel = $elf._traverseFactType(factTypeSoFar);
+                    var currentLevel = this._traverseFactType(factTypeSoFar);
                     var terms = []
                 };
                 for (term in currentLevel) {
@@ -767,7 +766,7 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
             "verb": (function(factTypeSoFar) {
                 {
                     var verb = undefined;
-                    var currentLevel = $elf._traverseFactType(factTypeSoFar);
+                    var currentLevel = this._traverseFactType(factTypeSoFar);
                     var verbs = []
                 };
                 for (verb in currentLevel) {

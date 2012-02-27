@@ -131,7 +131,7 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 																			-> {var lastLine = this.lines.pop(); lastLine[lastLine.length-1].push([attrName, attrVal]); lastLine},
 							
 		allowedAttrs :termOrFactType
-						= matchForAny('seq',this.possMap.allowedAttrs(termOrFactType)):attrName -> attrName.replace(':',''),
+						= matchForAny('seq',this.possMap.allowedAttrs.call(this, termOrFactType)):attrName -> attrName.replace(':',''),
 		defaultAttr :currentLine
 						= toSBVREOL,
 		attrDefinition :currentLine
@@ -182,14 +182,14 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 	}
 
 	SBVRParser._isTerm = function(factTypeSoFar, term) {
-		var terms = this.possMap.term(factTypeSoFar);
+		var terms = this.possMap.term.call(this, factTypeSoFar);
 		term = this._baseTerm(factTypeSoFar, term);
 		return term !== false && ($.inArray(term,terms) !== -1 || $.inArray(term.singularize(),terms) !== -1);
 	}
 
 	SBVRParser._termForm = function(factTypeSoFar, term) {
 		term = this._baseTerm(factTypeSoFar, term);
-		return $.inArray(term.singularize(), this.possMap.term(factTypeSoFar)) !== -1 ? term.singularize() : term
+		return $.inArray(term.singularize(), this.possMap.term.call(this, factTypeSoFar)) !== -1 ? term.singularize() : term
 	}
 
 	SBVRParser._traverseFactType = function(fctp, create) {
@@ -311,7 +311,6 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 			rule: []
 		};
 	SBVRParser.reset = function() {
-		var self = this;
 		this.factTypes = {};
 		this.terms = {};
 		this.conceptTypes = {};
@@ -322,9 +321,9 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 			startRule: ['Rule:     '],
 			term: function(factTypeSoFar) {
 				if(factTypeSoFar == null || factTypeSoFar.length == 0) {
-					return _.keys(self.terms);
+					return _.keys(this.terms);
 				}
-				var term, currentLevel = self._traverseFactType(factTypeSoFar), terms = [];
+				var term, currentLevel = this._traverseFactType(factTypeSoFar), terms = [];
 				for(term in currentLevel) {
 					if(currentLevel.hasOwnProperty(term)) {
 						if(removeTermRegex.test(term)) {
@@ -335,7 +334,7 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 				return terms;
 			},
 			verb: function(factTypeSoFar) {
-				var verb, currentLevel = self._traverseFactType(factTypeSoFar), verbs = [];
+				var verb, currentLevel = this._traverseFactType(factTypeSoFar), verbs = [];
 				for(verb in currentLevel) {
 					if(currentLevel.hasOwnProperty(verb)) {
 						if(removeVerbRegex.test(verb)) {

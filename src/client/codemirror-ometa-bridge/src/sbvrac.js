@@ -33,13 +33,13 @@ var sbvrAutoComplete = (function () {
 		var maybeAdd = function(str) {
 			if (str.toLowerCase().indexOf(start) == 0 && !arrayContains(found, str)) found.push(whitespace+str+" ");
 		},
-		addPossibilities = function(ruleMap, ruleArgs) {
+		addPossibilities = function(state, ruleMap, ruleArgs) {
 			var i;
 			if($.isArray(ruleMap)) {
 				forEach(ruleMap, maybeAdd);
 			}
 			else if($.isFunction(ruleMap)) {
-				addPossibilities(ruleMap.apply(ruleMap, ruleArgs));
+				addPossibilities(state, ruleMap.apply(state, ruleArgs));
 			}
 			else {
 				for(prop in ruleMap) {
@@ -70,7 +70,7 @@ var sbvrAutoComplete = (function () {
 			if(poss[i] != undefined) {
 				for(rule in poss[i]) {
 					try {
-						addPossibilities(possMap[rule], poss[i][rule]);
+						addPossibilities(state, possMap[rule], poss[i][rule]);
 					} catch (e) {
 						console.log(e);
 					}
