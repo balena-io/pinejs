@@ -241,6 +241,9 @@ input.hidden-input {
 	position: absolute;
 }
 
+.ui-icon {
+	display: inline-block; !important
+}
 
 
 
