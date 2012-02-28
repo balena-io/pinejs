@@ -4,7 +4,8 @@ define(['ometa/ometa-base'], function() {
 
 	ometa Prettify {
 		// elem = [{this.indentLevel++} (string|elem|number)*:e {spaces=this.indent(this.indentLevel--)}] -> ('['+e.join(',\n'+spaces+'  ')+'\n'+spaces+']')
-		elem = [{this.indentLevel++} (string|elem|number)*:e {spaces=this.indent(this.indentLevel--)}] -> ('['+e.join(',\n'+spaces)+']')
+		bool = true | false,
+		elem = [{this.indentLevel++} (string|elem|number|bool)*:e {spaces=this.indent(this.indentLevel--)}] -> ('['+e.join(',\n'+spaces)+']')
 	}
 
 	Prettify.indentLevel = 1

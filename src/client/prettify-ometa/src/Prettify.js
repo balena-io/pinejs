@@ -1,6 +1,15 @@
 define(["ometa/ometa-base"], (function() {
     var Prettify = undefined;
     Prettify = objectThatDelegatesTo(OMeta, {
+        "bool": function() {
+            var $elf = this,
+                _fromIdx = this.input.idx;
+            return this._or((function() {
+                return this._apply("true")
+            }), (function() {
+                return this._apply("false")
+            }))
+        },
         "elem": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
@@ -14,6 +23,8 @@ define(["ometa/ometa-base"], (function() {
                         return this._apply("elem")
                     }), (function() {
                         return this._apply("number")
+                    }), (function() {
+                        return this._apply("bool")
                     }))
                 }));
                 return (spaces = this.indent(this["indentLevel"]--))
