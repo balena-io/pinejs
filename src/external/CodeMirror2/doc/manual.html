@@ -214,11 +214,11 @@
       and <code>to</code> are the positions (in the pre-change
       coordinate system) where the change started and
       ended (for example, it might be <code>{ch:0, line:18}</code> if the
-      position is at line #19, at the first character. <code>text</code> is an
-      array of strings representing the text that replaced the changed range
-      (split by line). If multiple changes happened during a single operation,
-      the object will have a <code>next</code> property pointing to another
-      change object (which may point to another, etc).</dd>
+      position is at the beginning of line #19). <code>text</code>
+      is an array of strings representing the text that replaced the changed
+      range (split by line). If multiple changes happened during a single
+      operation, the object will have a <code>next</code> property pointing to
+      another change object (which may point to another, etc).</dd>
 
       <dt id="option_onCursorActivity"><code>onCursorActivity (function)</code></dt>
       <dd>Will be called when the cursor or selection moves, or any
@@ -305,7 +305,7 @@
     is an object mapping strings that identify the keys to functions
     that implement their functionality.</p>
 
-    <p>Keys are identified in either by name or by character.
+    <p>Keys are identified either by name or by character.
     The <code>CodeMirror.keyNames</code> object defines names for
     common keys and associates them with their key codes. Examples of
     names defined here are <code>Enter</code>, <code>F5</code>,
@@ -555,11 +555,14 @@
       number or a handle returned by <code>setMarker</code> (since a
       number may now refer to a different line if something was added
       or deleted).</dd>
-      <dt id="setLineClass"><code>setLineClass(line, className) → lineHandle</code></dt>
+      <dt id="setLineClass"><code>setLineClass(line, className, backgroundClassName) → lineHandle</code></dt>
       <dd>Set a CSS class name for the given line. <code>line</code>
       can be a number or a line handle (as returned
-      by <code>setMarker</code> or this function).
-      Pass <code>null</code> to clear the class for a line.</dd>
+      by <code>setMarker</code> or this
+      function). <code>className</code> will be used to style the text
+      for the line, and <code>backgroundClassName</code> to style its
+      background (which lies behind the selection).
+      Pass <code>null</code> to clear the classes for a line.</dd>
       <dt id="hideLine"><code>hideLine(line) → lineHandle</code></dt>
       <dd>Hide the given line (either by number or by handle). Hidden
       lines don't show up in the editor, and their numbers are skipped
@@ -578,7 +581,8 @@
       <dd>Returns the line number, text content, and marker status of
       the given line, which can be either a number or a handle
       returned by <code>setMarker</code>. The returned object has the
-      structure <code>{line, handle, text, markerText, markerClass}</code>.</dd>
+      structure <code>{line, handle, text, markerText, markerClass,
+      lineClass, bgClass}</code>.</dd>
 
       <dt id="getLineHandle"><code>getLineHandle(num) → lineHandle</code></dt>
       <dd>Fetches the line handle for the given line number.</dd>
@@ -630,7 +634,7 @@
       and <code>to</code> must be <code>{line, ch}</code>
       objects. <code>to</code> can be left off to simply insert the
       string at position <code>from</code>.</dd>
-      
+
       <dt id="posFromIndex"><code>posFromIndex(index) → object</code></dt>
       <dd>Calculates and returns a <code>{line, ch}</code> object for a
       zero-based <code>index</code> who's value is relative to the start of the

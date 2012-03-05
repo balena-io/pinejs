@@ -85,6 +85,7 @@ var CodeMirror = (function() {
     // Tracks the maximum line length so that the horizontal scrollbar
     // can be kept static when scrolling.
     var maxLine = "", maxWidth;
+    var tabCache = {};
 
     // Initialize the content.
     operation(function(){setValue(options.value || ""); updateInput = false;})();
@@ -254,6 +255,7 @@ var CodeMirror = (function() {
       replaceRange: operation(replaceRange),
       getRange: function(from, to) {return getRange(clipPos(from), clipPos(to));},
 
+      triggerOnKeyDown: operation(onKeyDown),
       execCommand: function(cmd) {return commands[cmd](instance);},
       // Stuff used by commands, probably not much use to outside code.
       moveH: operation(moveH),
@@ -382,6 +384,8 @@ var CodeMirror = (function() {
           }
         }), true);
         draggingText = true;
+        // IE's approach to draggable
+        if (lineSpace.dragDrop) lineSpace.dragDrop();
         return;
       }
       e_preventDefault(e);
@@ -462,11 +466,14 @@ var CodeMirror = (function() {
     }
     function onDragStart(e) {
       var txt = getSelection();
-      // Disabled until further notice. Doesn't work on most browsers,
-      // and crashes Safari (issue #332).
-      //htmlEscape(txt);
-      //e.dataTransfer.setDragImage(escapeElement, 0, 0);
       e.dataTransfer.setData("Text", txt);
+      
+      // Use dummy image instead of default browsers image.
+      if (gecko || chrome) {
+        var img = document.createElement('img');
+        img.scr = 'data:image/gif;base64,R0lGODdhAgACAIAAAAAAAP///ywAAAAAAgACAAACAoRRADs='; //1x1 image
+        e.dataTransfer.setDragImage(img, 0, 0);
+      }
     }
 
     function doHandleBinding(bound, dropShift) {
@@ -510,7 +517,10 @@ var CodeMirror = (function() {
       if (!handled)
         handled = lookupKey(name, options.extraKeys, options.keyMap, doHandleBinding);
 
-      if (handled) e_preventDefault(e);
+      if (handled) {
+        e_preventDefault(e);
+        if (ie) { e.oldKeyCode = e.keyCode; e.keyCode = 0; }
+      }
       return handled;
     }
     function handleCharBinding(e, ch) {
@@ -1000,10 +1010,11 @@ var CodeMirror = (function() {
         if (!nextIntact || nextIntact.from > j) {
           if (line.hidden) var html = scratch.innerHTML = "<pre></pre>";
           else {
-            var html = '<pre>' + line.getHTML(makeTab) + '</pre>';
+            var html = '<pre' + (line.className ? ' class="' + line.className + '"' : '') + '>'
+              + line.getHTML(makeTab) + '</pre>';
             // Kludge to make sure the styled element lies behind the selection (by z-index)
-            if (line.className)
-              html = '<div style="position: relative"><pre class="' + line.className +
+            if (line.bgClassName)
+              html = '<div style="position: relative"><pre class="' + line.bgClassName +
               '" style="position: absolute; left: 0; right: 0; top: 0; bottom: 0; z-index: -2">&#160;</pre>' + html + "</div>";
           }
           scratch.innerHTML = html;
@@ -1293,9 +1304,10 @@ var CodeMirror = (function() {
       changes.push({from: 0, to: doc.size});
     }
     function makeTab(col) {
-      var w = options.tabSize - col % options.tabSize;
+      var w = options.tabSize - col % options.tabSize, cached = tabCache[w];
+      if (cached) return cached;
       for (var str = '<span class="cm-tab">', i = 0; i < w; ++i) str += " ";
-      return {html: str + "</span>", width: w};
+      return (tabCache[w] = {html: str + "</span>", width: w});
     }
     function themeChanged() {
       scroller.className = scroller.className.replace(/\s*cm-s-\w+/g, "") +
@@ -1339,6 +1351,7 @@ var CodeMirror = (function() {
     function markText(from, to, className) {
       from = clipPos(from); to = clipPos(to);
       var tm = new TextMarker();
+      if (!posLess(from, to)) return tm;
       function add(line, from, to, className) {
         getLine(line).addMark(new MarkedText(from, to, className, tm.set));
       }
@@ -1381,10 +1394,11 @@ var CodeMirror = (function() {
       else return null;
       return line;
     }
-    function setLineClass(handle, className) {
+    function setLineClass(handle, className, bgClassName) {
       return changeLine(handle, function(line) {
-        if (line.className != className) {
+        if (line.className != className || line.bgClassName != bgClassName) {
           line.className = className;
+          line.bgClassName = bgClassName;
           return true;
         }
       });
@@ -1418,7 +1432,7 @@ var CodeMirror = (function() {
       }
       var marker = line.gutterMarker;
       return {line: n, handle: line, text: line.text, markerText: marker && marker.text,
-              markerClass: marker && marker.style, lineClass: line.className};
+              markerClass: marker && marker.style, lineClass: line.className, bgClass: line.bgClassName};
     }
 
     function stringWidth(str) {
@@ -1462,7 +1476,7 @@ var CodeMirror = (function() {
       var extra = "";
       // Include extra text at the end to make sure the measured line is wrapped in the right way.
       if (options.lineWrapping) {
-        var end = line.text.indexOf(" ", ch + 2);
+        var end = line.text.indexOf(" ", ch + 6);
         extra = htmlEscape(line.text.slice(ch + 1, end < 0 ? line.text.length : end + (ie ? 5 : 0)));
       }
       measure.innerHTML = "<pre>" + line.getHTML(makeTab, ch) +
@@ -2113,14 +2127,14 @@ var CodeMirror = (function() {
     },
     dup: function() { return new MarkedText(null, null, this.style, this.set); },
     clipTo: function(fromOpen, from, toOpen, to, diff) {
-      if (this.from != null && this.from >= from)
-        this.from = Math.max(to, this.from) + diff;
-      if (this.to != null && this.to > from)
-        this.to = to < this.to ? this.to + diff : from;
       if (fromOpen && to > this.from && (to < this.to || this.to == null))
         this.from = null;
+      else if (this.from != null && this.from >= from)
+        this.from = Math.max(to, this.from) + diff;
       if (toOpen && (from < this.to || this.to == null) && (from > this.from || this.from == null))
         this.to = null;
+      else if (this.to != null && this.to > from)
+        this.to = to < this.to ? this.to + diff : from;
     },
     isDead: function() { return this.from != null && this.to != null && this.from >= this.to; },
     sameSet: function(x) { return this.set == x.set; }
@@ -2166,7 +2180,7 @@ var CodeMirror = (function() {
     this.styles = styles || [text, null];
     this.text = text;
     this.height = 1;
-    this.marked = this.gutterMarker = this.className = this.handlers = null;
+    this.marked = this.gutterMarker = this.className = this.bgClassName = this.handlers = null;
     this.stateAfter = this.parent = this.hidden = null;
   }
   Line.inheritMarks = function(text, orig) {
@@ -2705,19 +2719,20 @@ var CodeMirror = (function() {
 
   var Pass = CodeMirror.Pass = {toString: function(){return "CodeMirror.Pass";}};
 
-  // Detect drag-and-drop
-  var dragAndDrop = function() {
-    // IE8 has ondragstart and ondrop properties, but doesn't seem to
-    // actually support ondragstart the way it's supposed to work.
-    if (/MSIE [1-8]\b/.test(navigator.userAgent)) return false;
-    var div = document.createElement('div');
-    return "draggable" in div;
-  }();
-
   var gecko = /gecko\/\d{7}/i.test(navigator.userAgent);
   var ie = /MSIE \d/.test(navigator.userAgent);
   var ie_lt9 = /MSIE [1-8]\b/.test(navigator.userAgent);
   var webkit = /WebKit\//.test(navigator.userAgent);
+  var chrome = /Chrome\//.test(navigator.userAgent);
+
+  // Detect drag-and-drop
+  var dragAndDrop = function() {
+    // There is *some* kind of drag-and-drop support in IE6-8, but I
+    // couldn't get it to work yet.
+    if (ie_lt9) return false;
+    var div = document.createElement('div');
+    return "draggable" in div || "dragDrop" in div;
+  }();
 
   var lineSep = "\n";
   // Feature-detect whether newlines in textareas are converted to \r\n
