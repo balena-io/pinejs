@@ -150,8 +150,16 @@ define(["ometa/ometa-base"], (function() {
         },
         "attrDefinition": function() {
             var $elf = this,
-                _fromIdx = this.input.idx;
-            return this._apply("trans")
+                _fromIdx = this.input.idx,
+                values;
+            return this._or((function() {
+                return this._form((function() {
+                    this._applyWithArgs("exactly", "Enum");
+                    return values = this._apply("anything")
+                }))
+            }), (function() {
+                return this._apply("trans")
+            }))
         },
         "text": function() {
             var $elf = this,

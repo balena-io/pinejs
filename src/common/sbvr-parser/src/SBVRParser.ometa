@@ -19,6 +19,11 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 		letters			= letter+:l												-> l.join(''),
 		num				= spaces digit+:n										-> ['num', parseInt(n.join(''))]
 						| "one"													-> ['num', 1],
+		Value :stopOn =
+			(	spaces ~token(stopOn) letterOrDigit+:alphaNum
+				-> alphaNum.join('')
+			)+:value
+			-> value.join(''),
 		toSBVREOL		= spaces (~(spaces lineStart) spaces?:s (~space anything)+:a -> s.concat(a).join(''))*:w
 																				-> w.join(''),
 		toEOL			= (~('\r'|'\n') anything)+:a							-> a.join(''),
@@ -134,9 +139,17 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 						= matchForAny('seq',this.possMap.allowedAttrs.call(this, termOrFactType)):attrName -> attrName.replace(':',''),
 		defaultAttr :currentLine
 						= toSBVREOL,
-		attrDefinition :currentLine
-						=  {this.ruleVarsCount=0} {[[]]}:c term:t createVar(t):tVar bind(t):b {c[0].push(t);c.push(b)}
-							checkThat(t, b):thatC {tVar.push(thatC)}		-> tVar,
+		attrDefinition :currentLine =
+			(	{this.ruleVarsCount=0} {[[]]}:c term:t createVar(t):tVar bind(t):b {c[0].push(t);c.push(b)}
+				checkThat(t, b):thatC {tVar.push(thatC)}
+				-> tVar
+			|	Value('or'):name
+				(	keyword('or')
+					Value('or')
+				)*:names
+				{names.unshift(name)}
+				-> ['Enum', names]
+			),
 		attrConceptType :currentLine
 						= {[currentLine[0], currentLine[1]]}:trimmedLine
 							?(!this.conceptTypes.hasOwnProperty(trimmedLine)) // Only allow one instance of Concept Type: attribute.
@@ -162,7 +175,7 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 		expr			= line* end											-> this.lines
 	}
 
-	SBVRParser.keyTokens = ["startTerm", "startFactType", "startRule", "newComment", "term", "modRule", "verb", "keyword", "allowedAttrs", "num"];
+	SBVRParser.keyTokens = ["startTerm", "startFactType", "startRule", "newComment", "term", "modRule", "verb", "keyword", "allowedAttrs", "num", "Value"];
 	SBVRParser.clearSuggestions = function() {}
 	/**
 		Following are "instance" variables/functions rather than shared.

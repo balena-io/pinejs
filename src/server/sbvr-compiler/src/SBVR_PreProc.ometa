@@ -34,8 +34,10 @@ define(['ometa/ometa-base'], function() {
 							]
 						) defaultAttributes(termOrVerb, attrsFound, attrs)
 					)											-> termOrVerb,
-		attrDefinition
-					= trans,
+		attrDefinition =
+			(	['Enum' :values]
+			|	trans
+			),
 
 		text		:a											-> ['text', a],
 		

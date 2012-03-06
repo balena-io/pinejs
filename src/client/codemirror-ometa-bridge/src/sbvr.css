@@ -46,3 +46,9 @@ span.cm-sbvr-allowedAttrs {
 span.cm-sbvr-newComment {
 	color: grey;
 }
+
+span.cm-sbvr-Value {
+	color: #108070;
+	text-decoration: underline;
+	border-bottom: 1px solid #108070;
+}

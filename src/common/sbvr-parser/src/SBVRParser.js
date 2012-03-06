@@ -52,6 +52,22 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
                 return ["num", (1)]
             }))
         },
+        "Value": function(stopOn) {
+            var $elf = this,
+                _fromIdx = this.input.idx,
+                alphaNum, value;
+            value = this._many1((function() {
+                this._apply("spaces");
+                this._not((function() {
+                    return this._applyWithArgs("token", stopOn)
+                }));
+                alphaNum = this._many1((function() {
+                    return this._apply("letterOrDigit")
+                }));
+                return alphaNum.join("")
+            }));
+            return value.join("")
+        },
         "toSBVREOL": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
@@ -484,21 +500,31 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
         "attrDefinition": function(currentLine) {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                c, t, tVar, b, thatC;
-            (this["ruleVarsCount"] = (0));
-            c = [
-                []
-            ];
-            t = this._apply("term");
-            tVar = this._applyWithArgs("createVar", t);
-            b = this._applyWithArgs("bind", t);
-            (function() {
-                c[(0)].push(t);
-                return c.push(b)
-            }).call(this);
-            thatC = this._applyWithArgs("checkThat", t, b);
-            tVar.push(thatC);
-            return tVar
+                c, t, tVar, b, thatC, name, names;
+            return this._or((function() {
+                (this["ruleVarsCount"] = (0));
+                c = [
+                    []
+                ];
+                t = this._apply("term");
+                tVar = this._applyWithArgs("createVar", t);
+                b = this._applyWithArgs("bind", t);
+                (function() {
+                    c[(0)].push(t);
+                    return c.push(b)
+                }).call(this);
+                thatC = this._applyWithArgs("checkThat", t, b);
+                tVar.push(thatC);
+                return tVar
+            }), (function() {
+                name = this._applyWithArgs("Value", "or");
+                names = this._many((function() {
+                    this._applyWithArgs("keyword", "or");
+                    return this._applyWithArgs("Value", "or")
+                }));
+                names.unshift(name);
+                return ["Enum", names]
+            }))
         },
         "attrConceptType": function(currentLine) {
             var $elf = this,
@@ -596,7 +622,7 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
             return this["lines"]
         }
     });
-    (SBVRParser["keyTokens"] = ["startTerm", "startFactType", "startRule", "newComment", "term", "modRule", "verb", "keyword", "allowedAttrs", "num"]);
+    (SBVRParser["keyTokens"] = ["startTerm", "startFactType", "startRule", "newComment", "term", "modRule", "verb", "keyword", "allowedAttrs", "num", "Value"]);
     (SBVRParser["clearSuggestions"] = (function() {}));
     (SBVRParser["initialize"] = (function() {
         this.reset()
