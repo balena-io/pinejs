@@ -6,140 +6,211 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 	//Specification: http://www.omg.org/spec/SBVR/1.0/
 
 	ometa SBVRParser {
-		isTerm		:factTypeSoFar :term
-						= ?this._isTerm(factTypeSoFar, term),
-		isVerb		:factTypeSoFar :verb
-						= ?this._isVerb(factTypeSoFar, verb),
-		isFctp		:factType
-						= ?this._isFctp(factType),
+		isTerm :factTypeSoFar :term =
+			?this._isTerm(factTypeSoFar, term),
+		isVerb :factTypeSoFar :verb =
+			?this._isVerb(factTypeSoFar, verb),
+		isFctp :factType =
+			?this._isFctp(factType),
 
-		findVar		:x	= {this.ruleVars[x[1]]},
-		bind		:x	= findVar(x):y											-> ['bind', x, y],
+		findVar :x	=
+			{this.ruleVars[x[1]]},
+		bind :x	=
+			findVar(x):y
+			-> ['bind', x, y],
 
-		letters			= letter+:l												-> l.join(''),
-		num				= spaces digit+:n										-> ['num', parseInt(n.join(''))]
-						| "one"													-> ['num', 1],
+		letters =
+			letter+:l
+			-> l.join(''),
+		num =
+			(	spaces digit+:n
+				-> ['num', parseInt(n.join(''))]
+			|	"one"
+				-> ['num', 1]
+			),
 		Value :stopOn =
 			(	spaces ~token(stopOn) letterOrDigit+:alphaNum
 				-> alphaNum.join('')
 			)+:value
 			-> value.join(''),
-		toSBVREOL		= spaces (~(spaces lineStart) spaces?:s (~space anything)+:a -> s.concat(a).join(''))*:w
-																				-> w.join(''),
-		toEOL			= (~('\r'|'\n') anything)+:a							-> a.join(''),
+		toSBVREOL =
+			spaces
+			(
+				~(spaces lineStart) spaces?:s
+				(~space anything)+:a
+				-> s.concat(a).join('')
+			)*:w
+			-> w.join(''),
+		toEOL =
+			(	~('\r'|'\n')
+				anything
+			)+:a
+			-> a.join(''),
 
-		token		:x	= spaces seq(x):s &(space+|end)							-> s,
+		token :x =
+			spaces seq(x):s
+			&(	space+
+			|	end
+			)
+			-> s,
 
-		addTerm			= &(termPart+):t {this.terms[t.join(' ')] = t.join(' ')}
-						  term,
-		term		:factTypeSoFar
-						= findTerm(factTypeSoFar),
-		findTerm	:factTypeSoFar :termSoFar
-						= termPart:t {termSoFar = termSoFar==null ? t : [termSoFar, t].join(' ')}
-							( findTerm(factTypeSoFar, termSoFar)
-							| isTerm(factTypeSoFar, termSoFar)					-> ['term',this._termForm(factTypeSoFar, termSoFar)]
-							),
-		termPart		= spaces ~lineStart letters,
+		addTerm =
+			&(termPart+):t {this.terms[t.join(' ')] = t.join(' ')}
+			term,
+		term :factTypeSoFar =
+			findTerm(factTypeSoFar),
+		findTerm :factTypeSoFar :termSoFar =
+			termPart:t {termSoFar = termSoFar==null ? t : [termSoFar, t].join(' ')}
+			(	findTerm(factTypeSoFar, termSoFar)
+			|	isTerm(factTypeSoFar, termSoFar)
+				-> ['term',this._termForm(factTypeSoFar, termSoFar)]
+			),
+		termPart =
+			spaces ~lineStart letters,
 		
 		
-		addVerb			= clearSuggestions verb(true),
-		verb		:factTypeSoFar
-						= findVerb(factTypeSoFar),
-		findVerb	:factTypeSoFar :verbSoFar
-						= verbPart:v {verbSoFar = verbSoFar==undefined ? v : [verbSoFar, v].join(' ')}
-							( findVerb(factTypeSoFar, verbSoFar)
-							|	( ?(factTypeSoFar===true)
-								| isVerb(factTypeSoFar, verbSoFar)
-								)												-> ['verb',this._verbForm(verbSoFar)]
-							),
-		verbPart		= spaces ~lineStart ~term letters,
+		addVerb =
+			clearSuggestions verb(true),
+		verb :factTypeSoFar =
+			findVerb(factTypeSoFar),
+		findVerb :factTypeSoFar :verbSoFar =
+			verbPart:v {verbSoFar = verbSoFar==undefined ? v : [verbSoFar, v].join(' ')}
+			(	findVerb(factTypeSoFar, verbSoFar)
+			|	( ?(factTypeSoFar===true)
+				|	isVerb(factTypeSoFar, verbSoFar)
+				)
+				-> ['verb',this._verbForm(verbSoFar)]
+			),
+		verbPart =
+			spaces ~lineStart ~term letters,
 		
-		joinQuant		= matchForAll('keyword',["and","at","most"]),
+		joinQuant =
+			matchForAll('keyword',["and","at","most"]),
 		
 		// Be very careful with anywhere you use quant as any in-place modifications of the array will be remembered in memoisation.
-		quant			= keyword("each")										-> ['univQ']
-						| matchForAny('keyword',["a","an","some"])				-> ['existQ']
-						| matchForAll('keyword',["at","most"])		num:n		-> ['atMostQ', ['maxCard', n]]
-						| matchForAll('keyword',["at","least"])		num:n
-											( joinQuant num:m					-> ['numRngQ', ['minCard', n], ['maxCard', m]]
-											| empty 							-> ['atLeastQ', ['minCard', n]])
-						| matchForAll('keyword',["more","than"])	num:n {++n[1]}
-																				-> ['atLeastQ', ['minCard', n]]
-						| keyword("exactly")						num:n		-> ['exactQ', ['card', n]],
+		quant =
+			(	keyword("each")
+				-> ['univQ']
+			|	matchForAny('keyword',["a","an","some"])
+				-> ['existQ']
+			|	matchForAll('keyword',["at","most"]) num:n
+				-> ['atMostQ', ['maxCard', n]]
+			|	matchForAll('keyword',["at","least"]) num:n
+				(	joinQuant num:m
+					-> ['numRngQ', ['minCard', n], ['maxCard', m]]
+				|	empty
+					-> ['atLeastQ', ['minCard', n]]
+				)
+			|	matchForAll('keyword',["more","than"]) num:n {++n[1]}
+				-> ['atLeastQ', ['minCard', n]]
+			|	keyword("exactly") num:n
+				-> ['exactQ', ['card', n]]
+			),
 
-		keyword		:word :noToken
-						= ?(noToken==true) seq(word)
-						| ?(noToken!=true) token(word),
+		keyword :word :noToken =
+			(	?(noToken==true) seq(word)
+			|	?(noToken!=true) token(word)
+			),
 		
-		addThat			= keyword("that"),
-		addThe			= keyword("the"),
-		addComma		= keyword(","),
-		addOr			= keyword("or"),
-		createVar	:term
-						= {this.ruleVars[term[1]] = this.ruleVarsCount++}		-> ['var', ['num', this.ruleVars[term[1]]], term],
-		checkThat	:term :termBind
-						= addThat
-							( addThe term:t bind(t):b {[[t],b]}:c verb(c[0]):v {c[0].push(v, term); c.push(termBind)}
-								( ruleBody(c)
-								| atfo(c) )
-							|	( {[[term], termBind]}:c verb(c[0]):v {c[0].push(v)}
-									( ruleBody(c, true)
-									| atfo(c) )
-								| ruleBody([[]]))
-							):r
-							addComma?												-> r,
+		addThat =
+			keyword("that"),
+		addThe =
+			keyword("the"),
+		addComma =
+			keyword(","),
+		addOr =
+			keyword("or"),
+		createVar :term =
+			{this.ruleVars[term[1]] = this.ruleVarsCount++}
+			-> ['var', ['num', this.ruleVars[term[1]]], term],
+		checkThat :term :termBind =
+			addThat
+			(	addThe term:t bind(t):b {[[t],b]}:c verb(c[0]):v {c[0].push(v, term); c.push(termBind)}
+				(	ruleBody(c)
+				|	atfo(c) )
+			|	(	{[[term], termBind]}:c verb(c[0]):v {c[0].push(v)}
+					(	ruleBody(c, true)
+					|	atfo(c)
+					)
+				| ruleBody([[]])
+				)
+			):r
+			addComma?
+			-> r,
 
-		atfo		:c	= isFctp(c[0]) {c[0] = ['fcTp'].concat(c[0])}			-> ['aFrm'].concat(c),
+		atfo :c	=
+			isFctp(c[0]) {c[0] = ['fcTp'].concat(c[0])}
+			-> ['aFrm'].concat(c),
 
 		// c[0] should contain the current fact type that is being built
 		// c[1..] should contain the bindings for the fact type being built
-		ruleBody :c :exitOnTermFactType
-			= quant:body term(c[0]):t createVar(t):tVar bind(t):b {c[0].push(t);c.push(b)}
-				(checkThat(t, b):thatC {tVar.push(thatC)})?
-				(
-					verb(c[0]):v {c[0].push(v)}
-					( ruleBody(c, true)
-					| atfo(c)
-					)
-				| ?(exitOnTermFactType === true) atfo(c)
-				):r
-				{body.push(tVar, r)}
-																			-> body,
+		ruleBody :c :exitOnTermFactType =
+			quant:body term(c[0]):t createVar(t):tVar bind(t):b {c[0].push(t);c.push(b)}
+			(checkThat(t, b):thatC {tVar.push(thatC)})?
+			(
+				verb(c[0]):v {c[0].push(v)}
+				(	ruleBody(c, true)
+				|	atfo(c)
+				)
+			|	?(exitOnTermFactType === true)
+				atfo(c)
+			):r
+			{body.push(tVar, r)}
+			-> body,
 
-		modRule			= "It" "is" 
-							( "obligatory"		-> ['obl']
-							| "necessary"		-> ['nec']
-							| "prohibited"		-> ['obl', ['neg']]
-							| "impossible"		-> ['nec', ['neg']]
-							| "not" "possible"	-> ['nec', ['neg']]
-							| "possible"		-> ['pos']
-							| "permissible"		-> ['prm']
-							):r
-						  "that"											-> r,
+		modRule =
+			"It" "is" 
+			(	"obligatory"
+				-> ['obl']
+			|	"necessary"	
+				-> ['nec']
+			|	"prohibited"
+				-> ['obl', ['neg']]
+			|	"impossible"
+				-> ['nec', ['neg']]
+			|	"not" "possible"
+				-> ['nec', ['neg']]
+			|	"possible"
+				-> ['pos']
+			|	"permissible"
+				-> ['prm']
+			):r
+			"that"
+			-> r,
 
-		startRule		= "R:"|"Rule:",
-		newRule			= startRule spaces &(toSBVREOL):ruleText {this.ruleVarsCount=0}
-							modRule:r ruleBody([[]]):q {r.length == 2 ? r[1][1] = q : r[1] = q}
-																			-> ['rule', r, ['text', ruleText]],
-		terb			= term:t addVerb:v								-> [t, v],
-		startFactType	= "F:"|"Fact type:",
-		newFactType		= startFactType {[]}:fctp
-							(term:t addVerb:v {fctp.push(t, v)})+
-							(term:t {fctp.push(t)})?
-							{this._addFactType(fctp); fctp.push([])}
-																			-> ['fcTp'].concat(fctp),
-		startTerm		= "T:"|"Term:",
-		newTerm			= startTerm clearSuggestions addTerm:t {t.push([])}					-> t,
-		attribute		= {this.lines[this.lines.length-1]}:currentLine
-							allowedAttrs(currentLine[0]):attrName
-							{attrName.replace(new RegExp(' ','g'),'')}:attrName
-							applyFirstExisting(['attr'+attrName,'defaultAttr'], [currentLine]):attrVal
-																			-> {var lastLine = this.lines.pop(); lastLine[lastLine.length-1].push([attrName, attrVal]); lastLine},
+		startRule =
+			"R:"|"Rule:",
+		newRule =
+			startRule spaces &(toSBVREOL):ruleText {this.ruleVarsCount=0}
+			modRule:r ruleBody([[]]):q {r.length == 2 ? r[1][1] = q : r[1] = q}
+			-> ['rule', r, ['text', ruleText]],
+		terb =
+			term:t addVerb:v
+			-> [t, v],
+		startFactType =
+			"F:"|"Fact type:",
+		newFactType =
+			startFactType {[]}:fctp
+			(term:t addVerb:v {fctp.push(t, v)})+
+			(term:t {fctp.push(t)})?
+			{this._addFactType(fctp); fctp.push([])}
+			-> ['fcTp'].concat(fctp),
+		startTerm =
+			"T:"|"Term:",
+		newTerm =
+			startTerm clearSuggestions addTerm:t {t.push([])}
+			-> t,
+		attribute =
+			{this.lines[this.lines.length-1]}:currentLine
+			allowedAttrs(currentLine[0]):attrName
+			{attrName.replace(new RegExp(' ','g'),'')}:attrName
+			applyFirstExisting(['attr'+attrName,'defaultAttr'], [currentLine]):attrVal
+			-> {var lastLine = this.lines.pop(); lastLine[lastLine.length-1].push([attrName, attrVal]); lastLine},
 							
-		allowedAttrs :termOrFactType
-						= matchForAny('seq',this.possMap.allowedAttrs.call(this, termOrFactType)):attrName -> attrName.replace(':',''),
-		defaultAttr :currentLine
-						= toSBVREOL,
+		allowedAttrs :termOrFactType =
+			matchForAny('seq',this.possMap.allowedAttrs.call(this, termOrFactType)):attrName -> attrName.replace(':',''),
+		defaultAttr :currentLine =
+			toSBVREOL,
 		attrDefinition :currentLine =
 			(	{this.ruleVarsCount=0} {[[]]}:c term:t createVar(t):tVar bind(t):b {c[0].push(t);c.push(b)}
 				checkThat(t, b):thatC {tVar.push(thatC)}
@@ -151,39 +222,57 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 				{names.unshift(name)}
 				-> ['Enum', names]
 			),
-		attrConceptType :currentLine
-						= {[currentLine[0], currentLine[1]]}:trimmedLine
-							?(!this.conceptTypes.hasOwnProperty(trimmedLine)) // Only allow one instance of Concept Type: attribute.
-															 // TODO: Improve this to deal with synonyms and autocomplete/highlighting.
-							term:t ?(trimmedLine[1] != t[1]) // Do not allow a term to have itself as its concept type.
-							{this.conceptTypes[trimmedLine] = t}			-> t,
-		attrSynonym :currentLine
-						= addTerm:t {this.terms[t[1]] = currentLine[1]}		-> t,
+		attrConceptType :currentLine =
+			{[currentLine[0], currentLine[1]]}:trimmedLine
+			?(!this.conceptTypes.hasOwnProperty(trimmedLine)) // Only allow one instance of Concept Type: attribute.
+											 // TODO: Improve this to deal with synonyms and autocomplete/highlighting.
+			term:t ?(trimmedLine[1] != t[1]) // Do not allow a term to have itself as its concept type.
+			{this.conceptTypes[trimmedLine] = t}
+			-> t,
+		attrSynonym :currentLine =
+			addTerm:t {this.terms[t[1]] = currentLine[1]}
+			-> t,
 
-		startComment	= seq('--'),
-		newComment		= startComment toEOL,
+		startComment =
+			seq('--'),
+		newComment =
+			startComment toEOL,
 		
-		terminator		= spaces keyword('.',true),
-		lineStart :lineType
-						= startTerm
-						| startFactType
-						| startRule
-						| allowedAttrs
-						| startComment,
-		line			= (spaces (newTerm | newFactType | newRule | attribute):l terminator? clearSuggestions spaces &(lineStart | end)
-							{this.lines.push(l)}							-> l)
-						| newComment,
-		expr			= line* end											-> this.lines
+		terminator =
+			spaces keyword('.',true),
+		lineStart :lineType =
+			(	startTerm
+			|	startFactType
+			|	startRule
+			|	allowedAttrs
+			|	startComment
+			),
+		line =
+			(	spaces
+				(	newTerm
+				|	newFactType
+				|	newRule
+				|	attribute
+				):l
+				terminator? clearSuggestions
+				spaces &(lineStart | end)
+				{this.lines.push(l)}
+				-> l
+			|	newComment
+			),
+		expr =
+			line* end
+			-> this.lines
 	}
 
 	SBVRParser.keyTokens = ["startTerm", "startFactType", "startRule", "newComment", "term", "modRule", "verb", "keyword", "allowedAttrs", "num", "Value"];
-	SBVRParser.clearSuggestions = function() {}
+	SBVRParser.clearSuggestions = function() {};
 	/**
 		Following are "instance" variables/functions rather than shared.
 	*/
 	SBVRParser.initialize = function() {
 		this.reset();
-	}
+	};
 	
 	SBVRParser._baseTerm = function(factTypeSoFar, term) {
 		if(this.terms.hasOwnProperty(term)) {
@@ -193,18 +282,18 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 			return this.terms[term.singularize()];
 		}
 		return false;
-	}
+	};
 
 	SBVRParser._isTerm = function(factTypeSoFar, term) {
 		var terms = this.possMap.term.call(this, factTypeSoFar);
 		term = this._baseTerm(factTypeSoFar, term);
 		return term !== false && ($.inArray(term,terms) !== -1 || $.inArray(term.singularize(),terms) !== -1);
-	}
+	};
 
 	SBVRParser._termForm = function(factTypeSoFar, term) {
 		term = this._baseTerm(factTypeSoFar, term);
 		return $.inArray(term.singularize(), this.possMap.term.call(this, factTypeSoFar)) !== -1 ? term.singularize() : term
-	}
+	};
 
 	SBVRParser._traverseFactType = function(fctp, create) {
 		var self = this,
@@ -239,7 +328,7 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 			return $.isEmptyObject(finalLevels) === true ? false : finalLevels;
 		};
 		return traverseRecurse(fctp[0], fctp.slice(1), this.factTypes);
-	}
+	};
 
 	SBVRParser._isVerb = function(factTypeSoFar, verb) {
 		verb = ['verb',this._verbForm(verb)];
@@ -258,7 +347,7 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 			return this._isVerb([], verb);
 		}
 		return false;
-	}
+	};
 
 	SBVRParser._verbForm = function(verb) {
 		// People are eating.. Person is eating
@@ -266,22 +355,22 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 		// I used a mispelling here because I could not find a case with a correct word, however in case I just missed one I'd rather check for the space.
 		// People aren't animals.. Person isn't animal. Should probably be allowed, however what are our thoughts on contractions?
 		if(verb.slice(0,4) == 'are ') {
-			return 'is ' + verb.slice(4)
+			return 'is ' + verb.slice(4);
 		}
 		// Students are people.. Student is person
 		if(verb == 'are') {
-			return 'is'
+			return 'is';
 		}
 		// People have eyes.. Person has eyes
 		if(verb=='have') {
-			return 'has'
+			return 'has';
 		}
 		return verb;
-	}
+	};
 
 	SBVRParser._addFactType = function(factType) {
 		this._traverseFactType(factType, true);
-	}
+	};
 
 	SBVRParser._isFctp = function(factType) {
 		var currentLevel = this._traverseFactType(factType);
@@ -289,7 +378,7 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 			return false;
 		}
 		return currentLevel.__valid = true;
-	}
+	};
 
 	var removeVerbRegex = new RegExp('^' + ['verb',''].toString()),
 		removeTermRegex = new RegExp('^' + ['term',''].toString()),
@@ -397,11 +486,11 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 			addComma: [','],
 			addOr: ['or'],
 			terminator: ['.']
-		}
-		this.ruleVars = {}
-		this.ruleVarsCount = 0
-		this.lines = ['model']
-	}
+		};
+		this.ruleVars = {};
+		this.ruleVarsCount = 0;
+		this.lines = ['model'];
+	};
 
 	SBVRParser.equals = function(compareTo) {
 		// TODO: Can this be simplified to just compare lines (and made provably comparable)?
@@ -415,28 +504,33 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 			return false;
 		}
 		return true;
-	}
+	};
 
 
 	/** **/
 	SBVRParser.matchForAny = function(rule,arr) {
-		var origInput = this.input
-		for (var idx = 0; idx < arr.length; idx++)
-			try { this.input = origInput; return this._applyWithArgs.call(this, rule, arr[idx]) }
+		var origInput = this.input;
+		for (var idx = 0; idx < arr.length; idx++) {
+			try {
+				this.input = origInput;
+				return this._applyWithArgs.call(this, rule, arr[idx]);
+			}
 			catch (f) {
 				if (f != fail) {
-					console.log(f.stack)
-					throw f
+					console.log(f.stack);
+					throw f;
 				}
 			}
-		throw fail
-	}
+		}
+		throw fail;
+	};
 	SBVRParser.matchForAll = function(rule,arr) {
-		var ret
-		for (var idx = 0; idx < arr.length; idx++)
-			ret = this._applyWithArgs.call(this, rule, arr[idx])
-		return ret
-	}
+		var ret;
+		for (var idx = 0; idx < arr.length; idx++) {
+			ret = this._applyWithArgs.call(this, rule, arr[idx]);
+		}
+		return ret;
+	};
 	SBVRParser.applyFirstExisting = function(arr, ruleArgs) {
 		if(ruleArgs == null) {
 			ruleArgs = [];
@@ -444,19 +538,20 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 		for (var i = 0; i < arr.length; i++) {
 			if(this[arr[i]] != undefined) {
 				if(ruleArgs != null && ruleArgs.length > 0) {
-					ruleArgs.unshift(arr[i])
-					return this._applyWithArgs.apply(this, ruleArgs)
+					ruleArgs.unshift(arr[i]);
+					return this._applyWithArgs.apply(this, ruleArgs);
 				}
-				return this._apply(arr[i], ruleArgs)
+				return this._apply(arr[i], ruleArgs);
 			}
 		}
-	}
-	/* This is a bit of a hack for case insensitivity, a better solution needs to be implemented in future. */
+	};
+	//TODO: This is a bit of a hack for case insensitivity, a better solution needs to be implemented in future.
 	SBVRParser.exactly = function(wanted) {
-		if (wanted.toLowerCase() === this._apply("anything").toLowerCase())
-			return wanted
-		throw fail
-	}
+		if (wanted.toLowerCase() === this._apply("anything").toLowerCase()) {
+			return wanted;
+		}
+		throw fail;
+	};
 	
 	return SBVRParser;
 
