@@ -119,8 +119,12 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
             this._apply("spaces");
             s = this._applyWithArgs("seq", x);
             this._lookahead((function() {
-                return this._many1((function() {
-                    return this._apply("space")
+                return this._or((function() {
+                    return this._many1((function() {
+                        return this._apply("space")
+                    }))
+                }), (function() {
+                    return this._apply("end")
                 }))
             }));
             return s
@@ -270,6 +274,11 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
             var $elf = this,
                 _fromIdx = this.input.idx;
             return this._applyWithArgs("keyword", ",")
+        },
+        "addOr": function() {
+            var $elf = this,
+                _fromIdx = this.input.idx;
+            return this._applyWithArgs("keyword", "or")
         },
         "createVar": function(term) {
             var $elf = this,
@@ -519,7 +528,8 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
             }), (function() {
                 name = this._applyWithArgs("Value", "or");
                 names = this._many((function() {
-                    this._applyWithArgs("keyword", "or");
+                    this._apply("addOr");
+                    this._apply("clearSuggestions");
                     return this._applyWithArgs("Value", "or")
                 }));
                 names.unshift(name);
@@ -826,6 +836,8 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
             "num": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "one"],
             "addThat": ["that", "that the"],
             "addThe": ["the"],
+            "addComma": [","],
+            "addOr": ["or"],
             "terminator": ["."]
         }));
         (this["ruleVars"] = ({}));

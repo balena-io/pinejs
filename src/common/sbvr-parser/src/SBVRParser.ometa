@@ -28,7 +28,7 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 																				-> w.join(''),
 		toEOL			= (~('\r'|'\n') anything)+:a							-> a.join(''),
 
-		token		:x	= spaces seq(x):s &(space+)								-> s,
+		token		:x	= spaces seq(x):s &(space+|end)							-> s,
 
 		addTerm			= &(termPart+):t {this.terms[t.join(' ')] = t.join(' ')}
 						  term,
@@ -74,6 +74,7 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 		addThat			= keyword("that"),
 		addThe			= keyword("the"),
 		addComma		= keyword(","),
+		addOr			= keyword("or"),
 		createVar	:term
 						= {this.ruleVars[term[1]] = this.ruleVarsCount++}		-> ['var', ['num', this.ruleVars[term[1]]], term],
 		checkThat	:term :termBind
@@ -144,7 +145,7 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 				checkThat(t, b):thatC {tVar.push(thatC)}
 				-> tVar
 			|	Value('or'):name
-				(	keyword('or')
+				(	addOr clearSuggestions
 					Value('or')
 				)*:names
 				{names.unshift(name)}
@@ -393,6 +394,8 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 			],
 			addThat: ['that', 'that the'],
 			addThe: ['the'],
+			addComma: [','],
+			addOr: ['or'],
 			terminator: ['.']
 		}
 		this.ruleVars = {}
