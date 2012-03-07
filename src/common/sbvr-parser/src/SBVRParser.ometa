@@ -6,18 +6,8 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 	//Specification: http://www.omg.org/spec/SBVR/1.0/
 
 	ometa SBVRParser {
-		isTerm :factTypeSoFar :term =
-			?this._isTerm(factTypeSoFar, term),
-		isVerb :factTypeSoFar :verb =
-			?this._isVerb(factTypeSoFar, verb),
-		isFctp :factType =
-			?this._isFctp(factType),
-
-		findVar :x	=
-			{this.ruleVars[x[1]]},
 		bind :x	=
-			findVar(x):y
-			-> ['bind', x, y],
+			-> ['bind', x, this.ruleVars[x[1]]],
 
 		letters =
 			letter+:l
@@ -62,7 +52,7 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 		findTerm :factTypeSoFar :termSoFar =
 			termPart:t {termSoFar = termSoFar==null ? t : [termSoFar, t].join(' ')}
 			(	findTerm(factTypeSoFar, termSoFar)
-			|	isTerm(factTypeSoFar, termSoFar)
+			|	?this.isTerm(factTypeSoFar, termSoFar)
 				-> ['term',this._termForm(factTypeSoFar, termSoFar)]
 			),
 		termPart =
@@ -76,8 +66,8 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 		findVerb :factTypeSoFar :verbSoFar =
 			verbPart:v {verbSoFar = verbSoFar==undefined ? v : [verbSoFar, v].join(' ')}
 			(	findVerb(factTypeSoFar, verbSoFar)
-			|	( ?(factTypeSoFar===true)
-				|	isVerb(factTypeSoFar, verbSoFar)
+			|	(	?(factTypeSoFar===true)
+				|	?this.isVerb(factTypeSoFar, verbSoFar)
 				)
 				-> ['verb',this._verbForm(verbSoFar)]
 			),
@@ -139,7 +129,8 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 			-> r,
 
 		atfo :c	=
-			isFctp(c[0]) {c[0] = ['fcTp'].concat(c[0])}
+			?this.isFactType(c[0])
+			{c[0] = ['fcTp'].concat(c[0])}
 			-> ['aFrm'].concat(c),
 
 		// c[0] should contain the current fact type that is being built
@@ -284,7 +275,7 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 		return false;
 	};
 
-	SBVRParser._isTerm = function(factTypeSoFar, term) {
+	SBVRParser.isTerm = function(factTypeSoFar, term) {
 		var terms = this.possMap.term.call(this, factTypeSoFar);
 		term = this._baseTerm(factTypeSoFar, term);
 		return term !== false && ($.inArray(term,terms) !== -1 || $.inArray(term.singularize(),terms) !== -1);
@@ -330,7 +321,7 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 		return traverseRecurse(fctp[0], fctp.slice(1), this.factTypes);
 	};
 
-	SBVRParser._isVerb = function(factTypeSoFar, verb) {
+	SBVRParser.isVerb = function(factTypeSoFar, verb) {
 		verb = ['verb',this._verbForm(verb)];
 		var currentLevel = this._traverseFactType(factTypeSoFar);
 		if(currentLevel===false) {
@@ -344,7 +335,7 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 		if(currentLevel.hasOwnProperty('__valid') && currentLevel.__valid===true) {
 			// We have a valid fact type up to here, try a new one.
 			// TODO: Should this actually be looking if the verb before last term is valid?
-			return this._isVerb([], verb);
+			return this.isVerb([], verb);
 		}
 		return false;
 	};
@@ -372,7 +363,7 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 		this._traverseFactType(factType, true);
 	};
 
-	SBVRParser._isFctp = function(factType) {
+	SBVRParser.isFactType = function(factType) {
 		var currentLevel = this._traverseFactType(factType);
 		if(currentLevel === false) {
 			return false;

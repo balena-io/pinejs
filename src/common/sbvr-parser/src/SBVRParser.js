@@ -1,32 +1,10 @@
 define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
     var SBVRParser = undefined;
     SBVRParser = objectThatDelegatesTo(OMeta, {
-        "isTerm": function(factTypeSoFar, term) {
-            var $elf = this,
-                _fromIdx = this.input.idx;
-            return this._pred(this._isTerm(factTypeSoFar, term))
-        },
-        "isVerb": function(factTypeSoFar, verb) {
-            var $elf = this,
-                _fromIdx = this.input.idx;
-            return this._pred(this._isVerb(factTypeSoFar, verb))
-        },
-        "isFctp": function(factType) {
-            var $elf = this,
-                _fromIdx = this.input.idx;
-            return this._pred(this._isFctp(factType))
-        },
-        "findVar": function(x) {
-            var $elf = this,
-                _fromIdx = this.input.idx;
-            return this["ruleVars"][x[(1)]]
-        },
         "bind": function(x) {
             var $elf = this,
-                _fromIdx = this.input.idx,
-                y;
-            y = this._applyWithArgs("findVar", x);
-            return ["bind", x, y]
+                _fromIdx = this.input.idx;
+            return ["bind", x, this["ruleVars"][x[(1)]]]
         },
         "letters": function() {
             var $elf = this,
@@ -155,7 +133,7 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
             return this._or((function() {
                 return this._applyWithArgs("findTerm", factTypeSoFar, termSoFar)
             }), (function() {
-                this._applyWithArgs("isTerm", factTypeSoFar, termSoFar);
+                this._pred(this.isTerm(factTypeSoFar, termSoFar));
                 return ["term", this._termForm(factTypeSoFar, termSoFar)]
             }))
         },
@@ -191,7 +169,7 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
                 this._or((function() {
                     return this._pred((factTypeSoFar === true))
                 }), (function() {
-                    return this._applyWithArgs("isVerb", factTypeSoFar, verbSoFar)
+                    return this._pred(this.isVerb(factTypeSoFar, verbSoFar))
                 }));
                 return ["verb", this._verbForm(verbSoFar)]
             }))
@@ -330,7 +308,7 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
         "atfo": function(c) {
             var $elf = this,
                 _fromIdx = this.input.idx;
-            this._applyWithArgs("isFctp", c[(0)]);
+            this._pred(this.isFactType(c[(0)]));
             (c[(0)] = ["fcTp"].concat(c[(0)]));
             return ["aFrm"].concat(c)
         },
@@ -650,7 +628,7 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
         };
         return false
     }));
-    (SBVRParser["_isTerm"] = (function(factTypeSoFar, term) {
+    (SBVRParser["isTerm"] = (function(factTypeSoFar, term) {
         var terms = this["possMap"]["term"].call(this, factTypeSoFar);
         (term = this._baseTerm(factTypeSoFar, term));
         return ((term !== false) && (($.inArray(term, terms) !== (-(1))) || ($.inArray(term.singularize(), terms) !== (-(1)))))
@@ -708,7 +686,7 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
         };
         return traverseRecurse(fctp[(0)], fctp.slice((1)), this["factTypes"])
     }));
-    (SBVRParser["_isVerb"] = (function(factTypeSoFar, verb) {
+    (SBVRParser["isVerb"] = (function(factTypeSoFar, verb) {
         (verb = ["verb", this._verbForm(verb)]);
         var currentLevel = this._traverseFactType(factTypeSoFar);
         if ((currentLevel === false)) {
@@ -722,7 +700,7 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
             undefined
         };
         if ((currentLevel.hasOwnProperty("__valid") && (currentLevel["__valid"] === true))) {
-            return this._isVerb([], verb)
+            return this.isVerb([], verb)
         } else {
             undefined
         };
@@ -749,7 +727,7 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
     (SBVRParser["_addFactType"] = (function(factType) {
         this._traverseFactType(factType, true)
     }));
-    (SBVRParser["_isFctp"] = (function(factType) {
+    (SBVRParser["isFactType"] = (function(factType) {
         var currentLevel = this._traverseFactType(factType);
         if ((currentLevel === false)) {
             return false
