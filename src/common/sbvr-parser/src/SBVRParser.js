@@ -98,9 +98,7 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
             s = this._applyWithArgs("seq", x);
             this._lookahead((function() {
                 return this._or((function() {
-                    return this._many1((function() {
-                        return this._apply("space")
-                    }))
+                    return this._apply("space")
                 }), (function() {
                     return this._apply("end")
                 }))
@@ -213,7 +211,6 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
                     m = this._apply("num");
                     return ["numRngQ", ["minCard", n], ["maxCard", m]]
                 }), (function() {
-                    this._apply("empty");
                     return ["atLeastQ", ["minCard", n]]
                 }))
             }), (function() {
@@ -231,10 +228,10 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
             var $elf = this,
                 _fromIdx = this.input.idx;
             return this._or((function() {
-                this._pred((noToken == true));
+                this._pred((noToken === true));
                 return this._applyWithArgs("seq", word)
             }), (function() {
-                this._pred((noToken != true));
+                this._pred((noToken !== true));
                 return this._applyWithArgs("token", word)
             }))
         },

@@ -39,7 +39,7 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 
 		token :x =
 			spaces seq(x):s
-			&(	space+
+			&(	space
 			|	end
 			)
 			-> s,
@@ -88,8 +88,7 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 			|	matchForAll('keyword',["at","least"]) num:n
 				(	joinQuant num:m
 					-> ['numRngQ', ['minCard', n], ['maxCard', m]]
-				|	empty
-					-> ['atLeastQ', ['minCard', n]]
+				|	-> ['atLeastQ', ['minCard', n]]
 				)
 			|	matchForAll('keyword',["more","than"]) num:n {++n[1]}
 				-> ['atLeastQ', ['minCard', n]]
@@ -98,8 +97,8 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 			),
 
 		keyword :word :noToken =
-			(	?(noToken==true) seq(word)
-			|	?(noToken!=true) token(word)
+			(	?(noToken===true) seq(word)
+			|	?(noToken!==true) token(word)
 			),
 		
 		addThat =
@@ -117,7 +116,8 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 			addThat
 			(	addThe term:t bind(t):b {[[t],b]}:c verb(c[0]):v {c[0].push(v, term); c.push(termBind)}
 				(	ruleBody(c)
-				|	atfo(c) )
+				|	atfo(c)
+				)
 			|	(	{[[term], termBind]}:c verb(c[0]):v {c[0].push(v)}
 					(	ruleBody(c, true)
 					|	atfo(c)
