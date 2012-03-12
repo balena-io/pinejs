@@ -1,39 +1,60 @@
 define(['ometa/ometa-base'], function() {
 	var SBVR_NullOpt, SBVR2SQLPrep, FNN_Elim, SBVR_PreProc;
 	ometa SBVR_NullOpt {
-		$ :x		= token(x):a								-> [a] 
-					|											-> [],
+		$ :x =
+			(	token(x):a
+				-> [a] 
+			|	-> []
+			),
 
-		trans		[:t apply(t):a]								-> a,
-		token :x	= [:t ?{t==x} apply(x):a]					-> a,
+		trans
+			[:t apply(t):a]
+			-> a,
+		token :x =
+			[:t ?{t==x} apply(x):a]
+			-> a,
 
-		letters	= letter+:l space*								-> l.join(''),
+		letters =
+			letter+:l space*
+			-> l.join(''),
 
-		num			number:n ?{!isNaN(n)}						-> ['num', parseInt(n)],
+		num
+			number:n ?{!isNaN(n)}
+			-> ['num', parseInt(n)],
 
-		model		("term"|"fcTp"|"rule")*:xs					-> ['model'].concat(xs),
+		model
+			("term"|"fcTp"|"rule")*:xs
+			-> ['model'].concat(xs),
 
-		fcTp		{a=[]}("term":t "verb":v {a=a.concat([t,v])})* $('term'):e
-					addAttributes(['fcTp'].concat(a).concat(e)),
+		fcTp
+			{a=[]}("term":t "verb":v {a=a.concat([t,v])})* $('term'):e
+			addAttributes(['fcTp'].concat(a).concat(e)),
 
-		term		:t addAttributes(['term', t]),
-		verb		:v											-> ['verb', v],
-		rule		("obl"|"nec"|"pos"|"prm"):x "text":t		-> ['rule', x, t],
-		addAttributes :termOrVerb
-					= (end
-					| {[]}:attrs {{}}:attrsFound
-						(
-							[ end
-							|
-								(
-									[:attrName {attrsFound[attrName] = true}
-										( ?(this['attr'+attrName]) apply('attr'+attrName):attrVal
-										| :attrVal )
-									] -> [attrName, attrVal]
-								)*:attrs
-							]
-						) defaultAttributes(termOrVerb, attrsFound, attrs)
-					)											-> termOrVerb,
+		term
+			:t addAttributes(['term', t]),
+		verb
+			:v
+			-> ['verb', v],
+		rule
+			("obl"|"nec"|"pos"|"prm"):x "text":t
+			-> ['rule', x, t],
+		addAttributes :termOrVerb =
+			(	end
+			|	{[]}:attrs {{}}:attrsFound
+				[	end
+				|
+					(
+						[	:attrName {attrsFound[attrName] = true}
+							(	?(this['attr'+attrName]) apply('attr'+attrName):attrVal
+							|	:attrVal
+							)
+						]
+						-> [attrName, attrVal]
+					)*:attrs
+				]
+				defaultAttributes(termOrVerb, attrsFound, attrs)
+			)
+			-> termOrVerb,
 		attrDefinition =
 			(	['Enum' :values]
 			|	trans
@@ -41,30 +62,77 @@ define(['ometa/ometa-base'], function() {
 
 		text		:a											-> ['text', a],
 		
-		obl			trans*:xs									-> ['obl'].concat(xs),
-		nec			trans*:xs									-> ['nec'].concat(xs),
-		pos			trans*:xs									-> ['pos'].concat(xs),
-		prm			trans*:xs									-> ['prm'].concat(xs),
+		obl
+			trans*:xs
+			-> ['obl'].concat(xs),
+		nec
+			trans*:xs
+			-> ['nec'].concat(xs),
+		pos
+			trans*:xs
+			-> ['pos'].concat(xs),
+		prm
+			trans*:xs
+			-> ['prm'].concat(xs),
 
-		neg			trans:xs									-> ['neg'].concat([xs]),
+		neg
+			trans:xs
+			-> ['neg'].concat([xs]),
 
-		quant		= "univQ" | "existQ" | "exactQ" | "atMostQ" | "atLeastQ" | "numRngQ",
-		univQ								"var":v trans*:xs	-> ['univQ', v].concat(xs),
-		existQ								"var":v trans*:xs	-> ['existQ', v].concat(xs),
-		exactQ		"card":i				"var":v trans*:xs	-> ['exactQ', i, v].concat(xs),
-		atMostQ					"maxCard":a "var":v trans*:xs	-> ['atMostQ', a, v].concat(xs),
-		atLeastQ	"minCard":i				"var":v trans*:xs	-> ['atLeastQ', i, v].concat(xs),
-		numRngQ		"minCard":i "maxCard":a "var":v trans*:xs	-> ['numRngQ', i, a, v].concat(xs),
+		quant =
+			(	"univQ"
+			|	"existQ"
+			|	"exactQ"
+			|	"atMostQ"
+			|	"atLeastQ"
+			|	"numRngQ"
+			),
+		univQ
+			"var":v trans*:xs
+			-> ['univQ', v].concat(xs),
+		existQ
+			"var":v trans*:xs
+			-> ['existQ', v].concat(xs),
+		exactQ
+			"card":i
+			"var":v trans*:xs
+			-> ['exactQ', i, v].concat(xs),
+		atMostQ
+			"maxCard":a
+			"var":v trans*:xs
+			-> ['atMostQ', a, v].concat(xs),
+		atLeastQ
+			"minCard":i
+			"var":v trans*:xs
+			-> ['atLeastQ', i, v].concat(xs),
+		numRngQ
+			"minCard":i "maxCard":a
+			"var":v trans*:xs
+			-> ['numRngQ', i, a, v].concat(xs),
 
-		card		"num":n										-> ['card', n],
-		minCard		"num":n										-> ['minCard', n],
-		maxCard		"num":n										-> ['maxCard', n],
+		card
+			"num":n
+			-> ['card', n],
+		minCard
+			"num":n
+			-> ['minCard', n],
+		maxCard
+			"num":n
+			-> ['maxCard', n],
 
-		var			"num":n "term":t ("aFrm"|quant):w			-> ['var', n, t, w],
-		var			"num":n "term":t							-> ['var', n, t],
+		var
+			"num":n "term":t ("aFrm"|quant):w
+			-> ['var', n, t, w],
+		var
+			"num":n "term":t
+			-> ['var', n, t],
 
-		bind		"term":t number:n							-> ['bind', t, n], 
-		aFrm		"fcTp":f "bind"*:b							-> ['aFrm', f].concat(b)
+		bind
+			"term":t number:n
+			-> ['bind', t, n], 
+		aFrm
+			"fcTp":f "bind"*:b
+			-> ['aFrm', f].concat(b)
 	}
 
 	SBVR_NullOpt.defaultAttributes = function(termOrVerb, attrsFound, attrs) {
@@ -73,21 +141,24 @@ define(['ometa/ometa-base'], function() {
 
 	ometa SBVR2SQLPrep <: SBVR_NullOpt {}
 	SBVR2SQLPrep.defaultAttributes = function(termOrVerb, attrsFound, attrs) {
-		if(!attrsFound.hasOwnProperty('DatabaseIDField'))
+		if(!attrsFound.hasOwnProperty('DatabaseIDField')) {
 			attrs.push(['DatabaseIDField', 'id']);
+		}
 		switch(termOrVerb[0]) {
 			case 'term':
-				if(!attrsFound.hasOwnProperty('DatabaseNameField'))
+				if(!attrsFound.hasOwnProperty('DatabaseNameField')) {
 					attrs.push(['DatabaseNameField', 'name']);
-				if(!attrsFound.hasOwnProperty('DatabaseTableName'))
+				}
+				if(!attrsFound.hasOwnProperty('DatabaseTableName')) {
 					attrs.push(['DatabaseTableName', termOrVerb[1].replace(new RegExp(' ','g'),'_')]);
+				}
 			break;
 			case 'fcTp':
-				if(!attrsFound.hasOwnProperty('DatabaseTableName'))
-				{
+				if(!attrsFound.hasOwnProperty('DatabaseTableName')) {
 					var tableName = termOrVerb[1][1].replace(new RegExp(' ','g'),'_');
-					for(var i=2;i<termOrVerb.length;i++)
+					for(var i=2;i<termOrVerb.length;i++) {
 						tableName += '-' + termOrVerb[i][1].replace(new RegExp(' ','g'),'_');
+					}
 					attrs.push(['DatabaseTableName', tableName]);
 				}
 			break;
@@ -96,28 +167,46 @@ define(['ometa/ometa-base'], function() {
 	}
 
 	ometa FNN_Elim <: SBVR_NullOpt {
-		setHelped	= !(self._didSomething = true),
-		helped		= ?self._didSomething,
+		setHelped =
+			{self._didSomething = true},
+		helped =
+			?self._didSomething,
 
-		optimize	= trans:x helped							-> x,
+		optimize =
+			trans:x helped
+			-> x,
 
-		univQ		"var":v trans*:xs setHelped -> ['neg', ['existQ', v, ['neg'].concat(xs)]],
+		univQ
+			"var":v trans*:xs setHelped
+			-> ['neg', ['existQ', v, ['neg'].concat(xs)]],
 
-		atLeastQ	"minCard":i ?{i[1][1]==1} "var":v trans*:xs
-													setHelped	-> ['existQ', v].concat(xs),
-		atLeastQ	"minCard":i "var":v trans*:xs				-> ['atLeastQ', i, v].concat(xs),
+		atLeastQ
+			"minCard":i ?{i[1][1]==1} "var":v trans*:xs
+			setHelped
+			-> ['existQ', v].concat(xs),
+		atLeastQ
+			"minCard":i "var":v trans*:xs
+			-> ['atLeastQ', i, v].concat(xs),
 
-		atMostQ		"maxCard":a "var":v trans*:xs	setHelped	-> {a[1][1]++;['neg', ['atLeastQ', ['minCard', a[1]], v].concat(xs)]},
+		atMostQ
+			"maxCard":a "var":v trans*:xs setHelped
+			-> {a[1][1]++;['neg', ['atLeastQ', ['minCard', a[1]], v].concat(xs)]},
 
-		neg			= ['neg' trans:xs]				setHelped	-> xs
-					| ^neg
+		neg =
+			(	['neg' trans:xs] setHelped
+				-> xs
+			|	^neg
+			)
 	}
 
-	FNN_Elim.initialize = function() { this._didSomething = false }
+	FNN_Elim.initialize = function() {
+		this._didSomething = false;
+	}
 
 	ometa SBVR_PreProc {
-		optimizeTree	= :r (FNN_Elim.optimize(r):r)* SBVR2SQLPrep.trans(r):r
-																-> r
+		optimizeTree =
+			:r (FNN_Elim.optimize(r):r)* SBVR2SQLPrep.trans(r):r
+			-> r
 	}
 	
 	return SBVR_PreProc;
