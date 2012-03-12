@@ -94,26 +94,9 @@ define(['SBVRParser', 'data-frame/ClientURIParser', 'Prettify'], (SBVRParser, Cl
 			serverRequest "GET", "/sqlmodel/", {}, null, (statusCode, result) ->
 				sqlEditor.setValue Prettify.match(result, "elem")
 
-			#$("#bem").attr "disabled", "disabled"
-			#$("#bum").removeAttr "disabled"
-			#$("#br").removeAttr "disabled"
-
-			#$("#bem").addClass("ui-button-disabled ui-state-disabled")
-			#$("#bum").removeClass("ui-button-disabled ui-state-disabled")
-
 			$("#bem").button("disable")
 			$("#bum, #br").button("enable")
-			#$("#br").button("enable")
 		else
-			#$("#bem").removeAttr "disabled"
-			#$("#bum").attr "disabled", "disabled"
-			#$("#br").attr "disabled", "disabled"
-
-			#$("#bem").removeClass("ui-button-disabled ui-state-disabled")
-			#$("#bum").addClass("ui-button-disabled ui-state-disabled")
-
-			console.log("here")
-
 			$("#bem").button("enable")
 			$("#bum, #br").button("disable")
 

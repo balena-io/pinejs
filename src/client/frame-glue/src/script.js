@@ -106,7 +106,6 @@
         $("#bem").button("disable");
         return $("#bum, #br").button("enable");
       } else {
-        console.log("here");
         $("#bem").button("enable");
         return $("#bum, #br").button("disable");
       }
