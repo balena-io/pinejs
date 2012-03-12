@@ -103,13 +103,12 @@
         serverRequest("GET", "/sqlmodel/", {}, null, function(statusCode, result) {
           return sqlEditor.setValue(Prettify.match(result, "elem"));
         });
-        $("#bem").attr("disabled", "disabled");
-        $("#bum").removeAttr("disabled");
-        return $("#br").removeAttr("disabled");
+        $("#bem").button("disable");
+        return $("#bum, #br").button("enable");
       } else {
-        $("#bem").removeAttr("disabled");
-        $("#bum").attr("disabled", "disabled");
-        return $("#br").attr("disabled", "disabled");
+        console.log("here");
+        $("#bem").button("enable");
+        return $("#bum, #br").button("disable");
       }
     };
     loadUI = function() {
@@ -162,7 +161,7 @@
           }
         }
       });
-      return $("#dialog-url-message").dialog({
+      $("#dialog-url-message").dialog({
         modal: true,
         resizable: false,
         autoOpen: false,
@@ -172,6 +171,7 @@
           }
         }
       });
+      return $("input[class!='hidden-input']").button();
     };
     cleanUp = function(a) {
       a.textContent = "Downloaded";
@@ -431,7 +431,6 @@
       getModel();
       loadUI();
       loadState();
-      $("input[class!='hidden-input']").button();
       setupDownloadify();
       setupLoadfile();
       $(window).on("resize", relocate);

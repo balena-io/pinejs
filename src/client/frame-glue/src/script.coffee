@@ -5,21 +5,21 @@ define(['SBVRParser', 'data-frame/ClientURIParser', 'Prettify'], (SBVRParser, Cl
 	showErrorMessage = (errorMessage) ->
 		$("#dialog-message").html '<span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 50px 0;"></span>' + errorMessage
 		$("#dialog-message").dialog "open"
-		
+
 	showSimpleError = (errorMessage) ->
 		$("#dialog-simple-error").html '<span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 50px 0;"></span>' + errorMessage
 		$("#dialog-simple-error").dialog "open"
-		
+
 	showUrlMessage = (url) ->
 		uiIcon = "ui-icon-check"
 		qIndex = window.location.href.indexOf("?")
 		if url == "Error parsing model"
 			uiIcon = "ui-icon-alert"
 			anchor = url
-		else 
+		else
 			if qIndex == -1
 				url = window.location.href + "?" + url
-			else 
+			else
 				url = window.location.href[0...qIndex] + "?" + url
 			anchor = '<a href=\"'+ url + '\">' + url + '</a>'
 		$("#dialog-url-message").html '<span class="ui-icon ' + uiIcon + '" style="float:left; margin:0 7px 50px 0;"></span>' + anchor
@@ -87,24 +87,40 @@ define(['SBVRParser', 'data-frame/ClientURIParser', 'Prettify'], (SBVRParser, Cl
 		if clientOnAir == true
 			serverRequest "GET", "/lfmodel/", {}, null, (statusCode, result) ->
 				lfEditor.setValue Prettify.match(result, "elem")
-			
+
 			serverRequest "GET", "/prepmodel/", {}, null, (statusCode, result) ->
 				$("#prepArea").val Prettify.match(result, "elem")
-			
+
 			serverRequest "GET", "/sqlmodel/", {}, null, (statusCode, result) ->
 				sqlEditor.setValue Prettify.match(result, "elem")
-			
-			$("#bem").attr "disabled", "disabled"
-			$("#bum").removeAttr "disabled"
-			$("#br").removeAttr "disabled"
+
+			#$("#bem").attr "disabled", "disabled"
+			#$("#bum").removeAttr "disabled"
+			#$("#br").removeAttr "disabled"
+
+			#$("#bem").addClass("ui-button-disabled ui-state-disabled")
+			#$("#bum").removeClass("ui-button-disabled ui-state-disabled")
+
+			$("#bem").button("disable")
+			$("#bum, #br").button("enable")
+			#$("#br").button("enable")
 		else
-			$("#bem").removeAttr "disabled"
-			$("#bum").attr "disabled", "disabled"
-			$("#br").attr "disabled", "disabled"
+			#$("#bem").removeAttr "disabled"
+			#$("#bum").attr "disabled", "disabled"
+			#$("#br").attr "disabled", "disabled"
+
+			#$("#bem").removeClass("ui-button-disabled ui-state-disabled")
+			#$("#bum").addClass("ui-button-disabled ui-state-disabled")
+
+			console.log("here")
+
+			$("#bem").button("enable")
+			$("#bum, #br").button("disable")
+
 
 	# break loadUI apart to loadState and SetUI (with a view to converting LoadState to a single request)?
 	loadUI = ->
-		window.sbvrEditor = CodeMirror.fromTextArea(document.getElementById("modelArea"), 
+		window.sbvrEditor = CodeMirror.fromTextArea(document.getElementById("modelArea"),
 			mode: "sbvr"
 			onKeyEvent: sbvrAutoComplete
 			lineWrapping: true
@@ -116,39 +132,41 @@ define(['SBVRParser', 'data-frame/ClientURIParser', 'Prettify'], (SBVRParser, Cl
 		window.onhashchange = processHash
 		serverRequest "GET", "/ui/textarea*filt:name=model_area/", {}, null, (statusCode, result) ->
 			sbvrEditor.setValue result.value
-		
+
 		serverRequest "GET", "/ui/textarea-is_disabled*filt:textarea.name=model_area/", {}, null, (statusCode, result) ->
 			$("#modelArea").attr "disabled", result.value
-			
+
 		$("#modelArea").change ->
 			serverRequest("PUT", "/ui/textarea*filt:name=model_area/", {}, value: sbvrEditor.getValue())
-		
-		$("#dialog-message").dialog 
+
+		$("#dialog-message").dialog
 			modal: true
 			resizable: false
 			autoOpen: false
-			buttons: 
+			buttons:
 				"Revise Request": ->
 					$(this).dialog "close"
-				
+
 				"Revise Model": ->
 					$(this).dialog "close"
-					
-		$("#dialog-simple-error").dialog 
+
+		$("#dialog-simple-error").dialog
 			modal: true
 			resizable: false
 			autoOpen: false
-			buttons: 
+			buttons:
 				"OK": ->
 					$(this).dialog "close"
-					
-		$("#dialog-url-message").dialog 
+
+		$("#dialog-url-message").dialog
 			modal: true
 			resizable: false
 			autoOpen: false
-			buttons: 
+			buttons:
 				"OK": ->
 					$(this).dialog "close"
+
+		$("input[class!='hidden-input']").button()
 
 	cleanUp = (a) ->
 		a.textContent = "Downloaded"
@@ -171,12 +189,12 @@ define(['SBVRParser', 'data-frame/ClientURIParser', 'Prettify'], (SBVRParser, Cl
 		else
 			if body != null
 				body = JSON.stringify(body)
-			$.ajax uri, 
+			$.ajax uri,
 				headers: headers
 				data: body
 				error: (jqXHR, textStatus, errorThrown) ->
 					failureCallback jqXHR.status, JSON.parse(jqXHR.responseText)
-				
+
 				success: (data, textStatus, jqXHR) ->
 					rheaders = /^(.*?):[ \t]*([^\r\n]*)\r?$/mg
 					responseHeaders = {}
@@ -184,12 +202,12 @@ define(['SBVRParser', 'data-frame/ClientURIParser', 'Prettify'], (SBVRParser, Cl
 					while match = rheaders.exec( responseHeadersString )
 						responseHeaders[ match[1].toLowerCase() ] = match[2]
 					successCallback jqXHR.status, data, responseHeaders
-				
-				type: method
 
+				type: method
 
 	window.transformClient = (model) ->
 		$("#modelArea").attr "disabled", true
+
 		serverRequest "PUT", "/ui/textarea-is_disabled*filt:textarea.name=model_area/", {}, {value: true}, ->
 			serverRequest "PUT", "/ui/textarea*filt:name=model_area/", {}, {value: model}, ->
 				serverRequest "POST", "/execute/", {}, null, ->
@@ -243,13 +261,13 @@ define(['SBVRParser', 'data-frame/ClientURIParser', 'Prettify'], (SBVRParser, Cl
 			transparent: false
 			swf: "downloadify/Downloadify.swf"
 			downloadImage: "downloadify/download.png"
-			width: 62	
+			width: 62
 			height: 22
 			transparent: true
 			append: false
-		locate("#write_file", "downloadify")	
+		locate("#write_file", "downloadify")
 
-	# html 5 file api supports chrome ff; flash implements others	
+	# html 5 file api supports chrome ff; flash implements others
 	setupLoadfile = () ->
 		if !fileApiDetect()
 			flashvars = {}
@@ -263,13 +281,13 @@ define(['SBVRParser', 'data-frame/ClientURIParser', 'Prettify'], (SBVRParser, Cl
 			swfobject.embedSWF("FileLoader/FileLoader.swf", "TheFileLoader", 63, 22, "10", null, flashvars, params, attributes)
 			locate("#load_file","fileloader")
 
-			
+
 	fileApiDetect = () ->
 		if !!window.FileReader and ( $.browser.chrome or $.browser.mozilla )
 			return true
-		else 
+		else
 			return false
-		
+
 	locate = (htmlBotton, flashImage) ->
 		pos = $(htmlBotton).offset()
 		el = document.getElementById(flashImage).style
@@ -278,26 +296,26 @@ define(['SBVRParser', 'data-frame/ClientURIParser', 'Prettify'], (SBVRParser, Cl
 		if !$.browser.msie || flashImage != "fileloader"
 			el.left = pos.left + 'px'
 			el.top = pos.top + 'px'
-		else 
+		else
 			pos = $("#write_file").offset()
 			el.left = pos.left + 64 + 'px'
 			el.top = pos.top + 'px'
 
 	relocate = () ->
-		locate("#write_file", "downloadify")	
+		locate("#write_file", "downloadify")
 		if !fileApiDetect()
 			locate("#load_file", "fileloader")
-		
+
 	window.toReadFile = () ->
 		if fileApiDetect()
 			$('#read_file').click()
-		
+
 	window.readFile = (files) ->
 			if files.length
 				file = files[0]
 				reader = new FileReader()
 				if /text/.test(file.type)
-					reader.onload = -> 
+					reader.onload = ->
 						sbvrEditor.setValue this.result
 					reader.readAsText file
 				else
@@ -305,16 +323,16 @@ define(['SBVRParser', 'data-frame/ClientURIParser', 'Prettify'], (SBVRParser, Cl
 
 	window.mouseEventHandle = (id, event) ->
 		switch event
-			when "e" 
+			when "e"
 				$(id).addClass("ui-state-hover")			# enter
-			when "l" 
+			when "l"
 				$(id).removeClass("ui-state-hover ui-state-active")		# leave
-			when "d" 
+			when "d"
 				$(id).addClass("ui-state-active")			# down
-			else 
+			else
 				$(id).removeClass("ui-state-active ui-state-hover")	# up
 		return false
-			
+
 	window.saveModel = ->
 		serverRequest "POST", "/publish", {"Content-Type": "application/json"}, sbvrEditor.getValue(),
 			(statusCode, result) ->
@@ -324,14 +342,14 @@ define(['SBVRParser', 'data-frame/ClientURIParser', 'Prettify'], (SBVRParser, Cl
 
 	window.getModel = ->
 		qIndex = window.location.href.indexOf("?")
-		if qIndex != -1 
+		if qIndex != -1
 			key = window.location.href[qIndex+1..]
 			serverRequest "GET", "/publish/"+key, {}, null,
 			(statusCode, result) ->
 				sbvrEditor.setValue(result)
 			(statusCode, error) ->
 				showSimpleError('Error: ' + error)
-							
+
 
 	window.parseModel = ->
 		try
@@ -375,7 +393,6 @@ define(['SBVRParser', 'data-frame/ClientURIParser', 'Prettify'], (SBVRParser, Cl
 		getModel()
 		loadUI()
 		loadState()
-		$("input[class!='hidden-input']").button()
 		setupDownloadify()
 		setupLoadfile()
 		$(window).on("resize", relocate)
