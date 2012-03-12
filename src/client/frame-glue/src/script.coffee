@@ -213,7 +213,6 @@ define(['SBVRParser', 'data-frame/ClientURIParser', 'Prettify'], (SBVRParser, Cl
 				serverRequest "POST", "/execute/", {}, null, ->
 					setClientOnAir(true)
 
-
 	window.resetClient = ->
 		serverRequest "DELETE", "/", {}, null, ->
 			$("#modelArea").attr "disabled", false
@@ -259,8 +258,9 @@ define(['SBVRParser', 'data-frame/ClientURIParser', 'Prettify'], (SBVRParser, Cl
 			onError: ->
 				showSimpleError "Content Is Empty"
 			transparent: false
-			swf: "downloadify/Downloadify.swf"
-			downloadImage: "downloadify/download.png"
+			# TODO: Improve build system so we don't have to ../../../......
+			swf: "../../../external/downloadify/Downloadify.swf"
+			downloadImage: "../../../external/downloadify/download.png"
 			width: 62
 			height: 22
 			transparent: true

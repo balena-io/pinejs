@@ -276,8 +276,8 @@
           return showSimpleError("Content Is Empty");
         },
         transparent: false,
-        swf: "downloadify/Downloadify.swf",
-        downloadImage: "downloadify/download.png",
+        swf: "../../../external/downloadify/Downloadify.swf",
+        downloadImage: "../../../external/downloadify/download.png",
         width: 62,
         height: 22,
         transparent: true,
