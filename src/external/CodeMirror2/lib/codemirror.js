@@ -13,9 +13,8 @@ var CodeMirror = (function() {
       if (defaults.hasOwnProperty(opt))
         options[opt] = (givenOptions && givenOptions.hasOwnProperty(opt) ? givenOptions : defaults)[opt];
 
-    var targetDocument = options["document"];
     // The element in which the editor lives.
-    var wrapper = targetDocument.createElement("div");
+    var wrapper = document.createElement("div");
     wrapper.className = "CodeMirror" + (options.lineWrapping ? " CodeMirror-wrap" : "");
     // This mess creates the base DOM structure for the editor.
     wrapper.innerHTML =
@@ -125,7 +124,7 @@ var CodeMirror = (function() {
 
     // IE throws unspecified error in certain cases, when
     // trying to access activeElement before onload
-    var hasFocus; try { hasFocus = (targetDocument.activeElement == input); } catch(e) { }
+    var hasFocus; try { hasFocus = (document.activeElement == input); } catch(e) { }
     if (hasFocus) setTimeout(onFocus, 20);
     else onBlur();
 
@@ -177,11 +176,16 @@ var CodeMirror = (function() {
         line = clipLine(line == null ? doc.size - 1: line);
         return getStateBefore(line + 1);
       },
-      cursorCoords: function(start){
+      cursorCoords: function(start, mode) {
         if (start == null) start = sel.inverted;
-        return pageCoords(start ? sel.from : sel.to);
+        return this.charCoords(start ? sel.from : sel.to, mode);
       },
-      charCoords: function(pos){return pageCoords(clipPos(pos));},
+      charCoords: function(pos, mode) {
+        pos = clipPos(pos);
+        if (mode == "local") return localCoords(pos, false);
+        if (mode == "div") return localCoords(pos, true);
+        return pageCoords(pos);
+      },
       coordsChar: function(coords) {
         var off = eltOffset(lineSpace);
         return coordsChar(coords.x - off.left, coords.y - off.top);
@@ -373,7 +377,7 @@ var CodeMirror = (function() {
           !posLess(start, sel.from) && !posLess(sel.to, start)) {
         // Let the drag handler handle this.
         if (webkit) lineSpace.draggable = true;
-        var up = connect(targetDocument, "mouseup", operation(function(e2) {
+        var up = connect(document, "mouseup", operation(function(e2) {
           if (webkit) lineSpace.draggable = false;
           draggingText = false;
           up();
@@ -404,12 +408,7 @@ var CodeMirror = (function() {
         }
       }
 
-      var move = connect(targetDocument, "mousemove", operation(function(e) {
-        clearTimeout(going);
-        e_preventDefault(e);
-        extend(e);
-      }), true);
-      var up = connect(targetDocument, "mouseup", operation(function(e) {
+      function done(e) {
         clearTimeout(going);
         var cur = posFromMouse(e);
         if (cur) setSelectionUser(start, cur);
@@ -417,7 +416,14 @@ var CodeMirror = (function() {
         focusInput();
         updateInput = true;
         move(); up();
+      }
+      var move = connect(document, "mousemove", operation(function(e) {
+        clearTimeout(going);
+        e_preventDefault(e);
+        if (!ie && !e_button(e)) done(e);
+        else extend(e);
       }), true);
+      var up = connect(document, "mouseup", operation(done), true);
     }
     function onDoubleClick(e) {
       for (var n = e_target(e); n != wrapper; n = n.parentNode)
@@ -511,12 +517,15 @@ var CodeMirror = (function() {
       if (e_prop(e, "ctrlKey")) name = "Ctrl-" + name;
       if (e_prop(e, "metaKey")) name = "Cmd-" + name;
 
-      if (e_prop(e, "shiftKey"))
+      if (e_prop(e, "shiftKey")) {
         handled = lookupKey("Shift-" + name, options.extraKeys, options.keyMap,
-                            function(b) {return doHandleBinding(b, true);});
-      if (!handled)
+                            function(b) {return doHandleBinding(b, true);})
+               || lookupKey(name, options.extraKeys, options.keyMap, function(b) {
+                 if (typeof b == "string" && /^go/.test(b)) return doHandleBinding(b);
+               });
+      } else {
         handled = lookupKey(name, options.extraKeys, options.keyMap, doHandleBinding);
-
+      }
       if (handled) {
         e_preventDefault(e);
         if (ie) { e.oldKeyCode = e.keyCode; e.keyCode = 0; }
@@ -1004,7 +1013,7 @@ var CodeMirror = (function() {
       }
       // This pass fills in the lines that actually changed.
       var nextIntact = intact.shift(), curNode = lineDiv.firstChild, j = from;
-      var scratch = targetDocument.createElement("div"), newElt;
+      var scratch = document.createElement("div"), newElt;
       doc.iter(from, to, function(line) {
         if (nextIntact && nextIntact.to == j) nextIntact = intact.shift();
         if (!nextIntact || nextIntact.from > j) {
@@ -1030,7 +1039,7 @@ var CodeMirror = (function() {
       if (!options.gutter && !options.lineNumbers) return;
       var hText = mover.offsetHeight, hEditor = scroller.clientHeight;
       gutter.style.height = (hText - hEditor < 2 ? hEditor : hText) + "px";
-      var html = [], i = showingFrom;
+      var html = [], i = showingFrom, normalNode;
       doc.iter(showingFrom, Math.max(showingTo, showingFrom + 1), function(line) {
         if (line.hidden) {
           html.push("<pre></pre>");
@@ -1044,14 +1053,19 @@ var CodeMirror = (function() {
           html.push((marker && marker.style ? '<pre class="' + marker.style + '">' : "<pre>"), text);
           for (var j = 1; j < line.height; ++j) html.push("<br/>&#160;");
           html.push("</pre>");
+          if (!marker) normalNode = i;
         }
         ++i;
       });
       gutter.style.display = "none";
       gutterText.innerHTML = html.join("");
-      var minwidth = String(doc.size).length, firstNode = gutterText.firstChild, val = eltText(firstNode), pad = "";
-      while (val.length + pad.length < minwidth) pad += "\u00a0";
-      if (pad) firstNode.insertBefore(targetDocument.createTextNode(pad), firstNode.firstChild);
+      // Make sure scrolling doesn't cause number gutter size to pop
+      if (normalNode != null) {
+        var node = gutterText.childNodes[normalNode - showingFrom];
+        var minwidth = String(doc.size).length, val = eltText(node), pad = "";
+        while (val.length + pad.length < minwidth) pad += "\u00a0";
+        if (pad) node.insertBefore(document.createTextNode(pad), node.firstChild);
+      }
       gutter.style.display = "";
       lineSpace.style.marginLeft = gutter.offsetWidth + "px";
       gutterDirty = false;
@@ -1834,8 +1848,7 @@ var CodeMirror = (function() {
     workDelay: 200,
     pollInterval: 100,
     undoDepth: 40,
-    tabindex: null,
-    document: window.document
+    tabindex: null
   };
 
   var ios = /AppleWebKit/.test(navigator.userAgent) && /Mobile\/\w+/.test(navigator.userAgent);
@@ -1854,6 +1867,8 @@ var CodeMirror = (function() {
   CodeMirror.resolveMode = function(spec) {
     if (typeof spec == "string" && mimeModes.hasOwnProperty(spec))
       spec = mimeModes[spec];
+    else if (typeof spec == "string" && /^[\w\-]+\/[\w\-]+\+xml$/.test(spec))
+      return CodeMirror.resolveMode("application/xml");
     if (typeof spec == "string") return {name: spec};
     else return spec || {name: "null"};
   };
@@ -2226,6 +2241,7 @@ var CodeMirror = (function() {
           if (newmark) {
             if (!taken.marked) taken.marked = [];
             taken.marked.push(newmark); newmark.attach(taken);
+            if (newmark == mark) mk.splice(i--, 1);
           }
         }
       }
@@ -2649,10 +2665,10 @@ var CodeMirror = (function() {
         if (start < last.start) {
           for (var i = last.start - start - 1; i >= 0; --i)
             last.old.unshift(old[i]);
-          last.added += last.start - start;
+          oldoff = Math.min(0, added - old.length);
+          last.added += last.start - start + oldoff;
           last.start = start;
-        }
-        else if (last.start < start) {
+        } else if (last.start < start) {
           oldoff = start - last.start;
           added += oldoff;
         }
