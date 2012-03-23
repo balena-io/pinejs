@@ -19,7 +19,7 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 				-> ['num', 1]
 			),
 		Value :stopOn =
-			(	spaces ~token(stopOn) letterOrDigit+:alphaNum
+			(	spaces ~token(stopOn) ~lineStart letterOrDigit+:alphaNum
 				-> alphaNum.join('')
 			)+:value
 			-> value.join(''),
@@ -34,7 +34,7 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 		toEOL =
 			(	~('\r'|'\n')
 				anything
-			)+:a
+			)*:a
 			-> a.join(''),
 
 		token :x =
@@ -239,7 +239,8 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 			|	startComment
 			),
 		line =
-			(	spaces
+			spaces
+			(
 				(	newTerm
 				|	newFactType
 				|	newRule

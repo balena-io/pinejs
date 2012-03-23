@@ -39,6 +39,9 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
                 this._not((function() {
                     return this._applyWithArgs("token", stopOn)
                 }));
+                this._not((function() {
+                    return this._apply("lineStart")
+                }));
                 alphaNum = this._many1((function() {
                     return this._apply("letterOrDigit")
                 }));
@@ -73,7 +76,7 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 a;
-            a = this._many1((function() {
+            a = this._many((function() {
                 this._not((function() {
                     return (function() {
                         switch (this._apply('anything')) {
@@ -568,8 +571,8 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 l;
+            this._apply("spaces");
             return this._or((function() {
-                this._apply("spaces");
                 l = this._or((function() {
                     return this._apply("newTerm")
                 }), (function() {
