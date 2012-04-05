@@ -1,6 +1,8 @@
 define(['ometa/ometa-base'], function() {
-	var SBVR_NullOpt, SBVR2SQLPrep, FNN_Elim, SBVR_PreProc;
-	ometa SBVR_NullOpt {
+	var LFValidator;
+	
+	// TODO: Make the LFValidator validate that it is actually correctly structured LF.
+	ometa LFValidator {
 		$ :x =
 			(	token(x):a
 				-> [a] 
@@ -135,79 +137,9 @@ define(['ometa/ometa-base'], function() {
 			-> ['aFrm', f].concat(b)
 	}
 
-	SBVR_NullOpt.defaultAttributes = function(termOrVerb, attrsFound, attrs) {
+	LFValidator.defaultAttributes = function(termOrVerb, attrsFound, attrs) {
 		termOrVerb.push(attrs);
-	}
-
-	ometa SBVR2SQLPrep <: SBVR_NullOpt {}
-	SBVR2SQLPrep.defaultAttributes = function(termOrVerb, attrsFound, attrs) {
-		if(!attrsFound.hasOwnProperty('DatabaseIDField')) {
-			attrs.push(['DatabaseIDField', 'id']);
-		}
-		switch(termOrVerb[0]) {
-			case 'term':
-				if(!attrsFound.hasOwnProperty('DatabaseNameField')) {
-					attrs.push(['DatabaseNameField', 'name']);
-				}
-				if(!attrsFound.hasOwnProperty('DatabaseTableName')) {
-					attrs.push(['DatabaseTableName', termOrVerb[1].replace(new RegExp(' ','g'),'_')]);
-				}
-			break;
-			case 'fcTp':
-				if(!attrsFound.hasOwnProperty('DatabaseTableName')) {
-					var tableName = termOrVerb[1][1].replace(new RegExp(' ','g'),'_');
-					for(var i=2;i<termOrVerb.length;i++) {
-						tableName += '-' + termOrVerb[i][1].replace(new RegExp(' ','g'),'_');
-					}
-					attrs.push(['DatabaseTableName', tableName]);
-				}
-			break;
-		}
-		termOrVerb.push(attrs);
-	}
-
-	ometa FNN_Elim <: SBVR_NullOpt {
-		setHelped =
-			{self._didSomething = true},
-		helped =
-			?self._didSomething,
-
-		optimize =
-			trans:x helped
-			-> x,
-
-		univQ
-			"var":v trans*:xs setHelped
-			-> ['neg', ['existQ', v, ['neg'].concat(xs)]],
-
-		atLeastQ
-			"minCard":i ?{i[1][1]==1} "var":v trans*:xs
-			setHelped
-			-> ['existQ', v].concat(xs),
-		atLeastQ
-			"minCard":i "var":v trans*:xs
-			-> ['atLeastQ', i, v].concat(xs),
-
-		atMostQ
-			"maxCard":a "var":v trans*:xs setHelped
-			-> {a[1][1]++;['neg', ['atLeastQ', ['minCard', a[1]], v].concat(xs)]},
-
-		neg =
-			(	['neg' trans:xs] setHelped
-				-> xs
-			|	^neg
-			)
-	}
-
-	FNN_Elim.initialize = function() {
-		this._didSomething = false;
-	}
-
-	ometa SBVR_PreProc {
-		optimizeTree =
-			:r (FNN_Elim.optimize(r):r)* SBVR2SQLPrep.trans(r):r
-			-> r
 	}
 	
-	return SBVR_PreProc;
+	return LFValidator;
 });

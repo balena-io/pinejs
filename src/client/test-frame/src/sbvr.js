@@ -1,4 +1,4 @@
-define(['SBVRParser', 'SBVR2SQL', 'SBVR_PreProc'], function(SBVRParser, SBVR2SQL, SBVR_PreProc) {
+define(['SBVRParser', 'SBVR2SQL', 'sbvr-compiler/LF2AbstractSQLPrep'], function(SBVRParser, SBVR2SQL, LF2AbstractSQLPrep) {
 	var testModel = [
 		[
 			'T: person',
@@ -511,11 +511,11 @@ define(['SBVRParser', 'SBVR2SQL', 'SBVR_PreProc'], function(SBVRParser, SBVR2SQL
 		}
 	})
 
-	test("SBVR_PreProc",function() {
+	test("LF2AbstractSQLPrep",function() {
 		expect(testModel.length);
 		for(var i=0,l=testModel.length;i<l;i++) {
 			try {
-				deepEqual(SBVR_PreProc.match(['model',testModel[i][1]],'optimizeTree'), ['model',testModel[i][2]], testModel[i][0]);
+				deepEqual(LF2AbstractSQLPrep.match(['model',testModel[i][1]],'Process'), ['model',testModel[i][2]], testModel[i][0]);
 			}
 			catch(e) {
 				console.log(e);

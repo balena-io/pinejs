@@ -1,4 +1,4 @@
-define(['SBVRParser', 'SBVR_PreProc', 'SBVR2SQL', 'data-server/ServerURIParser'], (SBVRParser, SBVR_PreProc, SBVR2SQL, ServerURIParser) ->
+define(['SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'SBVR2SQL', 'data-server/ServerURIParser'], (SBVRParser, LF2AbstractSQLPrep, SBVR2SQL, ServerURIParser) ->
 	exports = {}
 	db = null
 	op =
@@ -18,7 +18,7 @@ define(['SBVRParser', 'SBVR_PreProc', 'SBVR2SQL', 'data-server/ServerURIParser']
 			Fact type: lock belongs to transaction
 			Rule:      It is obligatory that each resource is under at most 1 lock that is exclusive'''
 	transactionModel = SBVRParser.matchAll(transactionModel, "expr")
-	transactionModel = SBVR_PreProc.match(transactionModel, "optimizeTree")
+	transactionModel = LF2AbstractSQLPrep.match(transactionModel, "Process")
 	transactionModel = SBVR2SQL.match(transactionModel, "trans")
 
 	serverModelCache = () ->
@@ -289,7 +289,7 @@ define(['SBVRParser', 'SBVR_PreProc', 'SBVR2SQL', 'data-server/ServerURIParser']
 				console.log('Error parsing model', e)
 				res.json('Error parsing model', 404)
 				return null
-			prepmod = SBVR_PreProc.match(lfmod, "optimizeTree")
+			prepmod = LF2AbstractSQLPrep.match(lfmod, "Process")
 			sqlmod = SBVR2SQL.match(prepmod, "trans")
 			db.transaction((tx) ->
 				tx.begin()

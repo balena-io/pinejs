@@ -1,1 +1,1 @@
-node ../../../common/ometa-compiler/src/ometac.js pretty ../src/SBVR_PreProc.ometa
+node ../../../common/ometa-compiler/src/ometac.js pretty ../src/LFValidator.ometa ../src/LFOptimiser.ometa ../src/LF2AbstractSQLPrep.ometa

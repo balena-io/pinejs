@@ -1,0 +1,39 @@
+define(['sbvr-compiler/LFOptimiser'], function(LFOptimiser) {
+	var LF2AbstractSQLPrep;
+
+	ometa LF2AbstractSQLPrep <: LFOptimiser {
+		univQ
+			"var":v trans*:xs SetHelped
+			-> ['neg', ['existQ', v, ['neg'].concat(xs)]],
+		
+		atMostQ
+			"maxCard":a "var":v trans*:xs SetHelped
+			-> {a[1][1]++;['neg', ['atLeastQ', ['minCard', a[1]], v].concat(xs)]}
+	}
+	LF2AbstractSQLPrep.defaultAttributes = function(termOrVerb, attrsFound, attrs) {
+		if(!attrsFound.hasOwnProperty('DatabaseIDField')) {
+			attrs.push(['DatabaseIDField', 'id']);
+		}
+		switch(termOrVerb[0]) {
+			case 'term':
+				if(!attrsFound.hasOwnProperty('DatabaseNameField')) {
+					attrs.push(['DatabaseNameField', 'name']);
+				}
+				if(!attrsFound.hasOwnProperty('DatabaseTableName')) {
+					attrs.push(['DatabaseTableName', termOrVerb[1].replace(new RegExp(' ','g'),'_')]);
+				}
+			break;
+			case 'fcTp':
+				if(!attrsFound.hasOwnProperty('DatabaseTableName')) {
+					var tableName = termOrVerb[1][1].replace(new RegExp(' ','g'),'_');
+					for(var i=2;i<termOrVerb.length;i++) {
+						tableName += '-' + termOrVerb[i][1].replace(new RegExp(' ','g'),'_');
+					}
+					attrs.push(['DatabaseTableName', tableName]);
+				}
+			break;
+		}
+		termOrVerb.push(attrs);
+	}
+	return LF2AbstractSQLPrep;
+});

@@ -1,0 +1,34 @@
+define(['sbvr-compiler/LFValidator'], function(LFValidator) {
+	var LFOptimiser;
+
+	ometa LFOptimiser <: LFValidator {
+		Helped =
+			?(this.helped === true)
+			{this.helped = false},
+		
+		SetHelped =
+			{this.helped = true},
+
+		Process =
+			:x
+			(trans(x):x Helped('disableMemoisation'))*
+			-> x,
+
+		atLeastQ
+				"minCard":i ?{i[1][1]==1} "var":v trans*:xs
+				SetHelped
+				-> ['existQ', v].concat(xs)
+			|	^atLeastQ,
+
+		neg =
+				['neg' trans:xs] SetHelped
+				-> xs
+			|	^neg
+	}
+
+	LFOptimiser.initialize = function() {
+		this._didSomething = false;
+	}
+	
+	return LFOptimiser;
+});

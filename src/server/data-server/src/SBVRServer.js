@@ -1,7 +1,7 @@
 (function() {
   var __hasProp = Object.prototype.hasOwnProperty;
 
-  define(['SBVRParser', 'SBVR_PreProc', 'SBVR2SQL', 'data-server/ServerURIParser'], function(SBVRParser, SBVR_PreProc, SBVR2SQL, ServerURIParser) {
+  define(['SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'SBVR2SQL', 'data-server/ServerURIParser'], function(SBVRParser, LF2AbstractSQLPrep, SBVR2SQL, ServerURIParser) {
     var db, endLock, executeSasync, executeTasync, exports, getFTree, getID, hasCR, isExecute, op, parseURITree, serverIsOnAir, serverModelCache, transactionModel, updateRules, validateDB;
     exports = {};
     db = null;
@@ -12,7 +12,7 @@
     };
     transactionModel = 'Term:      resource\nTerm:      transaction\nTerm:      lock\nTerm:      conditional representation\nFact type: lock is exclusive\nFact type: lock is shared\nFact type: resource is under lock\nFact type: lock belongs to transaction\nRule:      It is obligatory that each resource is under at most 1 lock that is exclusive';
     transactionModel = SBVRParser.matchAll(transactionModel, "expr");
-    transactionModel = SBVR_PreProc.match(transactionModel, "optimizeTree");
+    transactionModel = LF2AbstractSQLPrep.match(transactionModel, "Process");
     transactionModel = SBVR2SQL.match(transactionModel, "trans");
     serverModelCache = function() {
       var setValue, values;
@@ -319,7 +319,7 @@
           res.json('Error parsing model', 404);
           return null;
         }
-        prepmod = SBVR_PreProc.match(lfmod, "optimizeTree");
+        prepmod = LF2AbstractSQLPrep.match(lfmod, "Process");
         sqlmod = SBVR2SQL.match(prepmod, "trans");
         return db.transaction(function(tx) {
           tx.begin();
