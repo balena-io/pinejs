@@ -8,11 +8,11 @@ define(['ometa/ometa-base'], function() {
 		elem = [{this.indentLevel++} (string|elem|number|bool)*:e {spaces=this.indent(this.indentLevel--)}] -> ('['+e.join(',\n'+spaces)+']')
 	}
 
-	Prettify.indentLevel = 1
+	Prettify.indentLevel = 0
 	Prettify.indent = function(indentLevel) {
-		var i=0, spaces=' ';
+		var i=0, spaces='';
 		for(; i<indentLevel; i++) {
-			spaces += '  ';
+			spaces += '\t';
 		};
 		return spaces;
 	}

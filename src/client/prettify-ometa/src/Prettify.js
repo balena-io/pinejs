@@ -32,15 +32,15 @@ define(["ometa/ometa-base"], (function() {
             return (("[" + e.join((",\n" + spaces))) + "]")
         }
     });
-    (Prettify["indentLevel"] = (1));
+    (Prettify["indentLevel"] = (0));
     (Prettify["indent"] = (function(indentLevel) {
         {
             var i = (0);
-            var spaces = " "
+            var spaces = ""
         };
         for (undefined;
         (i < indentLevel); i++) {
-            (spaces += "  ")
+            (spaces += "\t")
         };
         undefined;
         return spaces
