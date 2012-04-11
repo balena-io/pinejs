@@ -5,7 +5,8 @@ define(['ometa/ometa-base'], function() {
 	ometa Prettify {
 		Elem :indent =
 			[
-				(	string
+				(	string:s
+					-> { "'" + s + "'" }
 				|	Elem(indent + '\t')
 				|	number
 				|	true

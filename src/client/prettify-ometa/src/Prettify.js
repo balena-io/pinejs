@@ -4,11 +4,12 @@ define(["ometa/ometa-base"], (function() {
         "Elem": function(indent) {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                e;
+                s, e;
             this._form((function() {
                 return e = this._many((function() {
                     return this._or((function() {
-                        return this._apply("string")
+                        s = this._apply("string");
+                        return (("\'" + s) + "\'")
                     }), (function() {
                         return this._applyWithArgs("Elem", (indent + "\t"))
                     }), (function() {
