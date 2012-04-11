@@ -95,13 +95,13 @@
       clientOnAir = bool;
       if (clientOnAir === true) {
         serverRequest("GET", "/lfmodel/", {}, null, function(statusCode, result) {
-          return lfEditor.setValue(Prettify.match(result, "elem"));
+          return lfEditor.setValue(Prettify.match(result, "Process"));
         });
         serverRequest("GET", "/prepmodel/", {}, null, function(statusCode, result) {
-          return $("#prepArea").val(Prettify.match(result, "elem"));
+          return $("#prepArea").val(Prettify.match(result, "Process"));
         });
         serverRequest("GET", "/sqlmodel/", {}, null, function(statusCode, result) {
-          return sqlEditor.setValue(Prettify.match(result, "elem"));
+          return sqlEditor.setValue(Prettify.match(result, "Process"));
         });
         $("#bem").button("disable");
         return $("#bum, #br").button("enable");
@@ -383,7 +383,7 @@
     };
     window.parseModel = function() {
       try {
-        lfEditor.setValue(Prettify.match(SBVRParser.matchAll(sbvrEditor.getValue(), 'expr'), 'elem'));
+        lfEditor.setValue(Prettify.match(SBVRParser.matchAll(sbvrEditor.getValue(), 'expr'), 'Process'));
       } catch (e) {
         console.log('Error parsing model', e);
         showSimpleError('Error parsing model');

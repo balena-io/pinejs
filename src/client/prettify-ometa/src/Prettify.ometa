@@ -3,18 +3,19 @@ define(['ometa/ometa-base'], function() {
 	//Converts a tree to a nested list.
 
 	ometa Prettify {
-		// elem = [{this.indentLevel++} (string|elem|number)*:e {spaces=this.indent(this.indentLevel--)}] -> ('['+e.join(',\n'+spaces+'  ')+'\n'+spaces+']')
-		bool = true | false,
-		elem = [{this.indentLevel++} (string|elem|number|bool)*:e {spaces=this.indent(this.indentLevel--)}] -> ('['+e.join(',\n'+spaces)+']')
+		Elem :indent =
+			[
+				(	string
+				|	Elem(indent + '\t')
+				|	number
+				|	true
+				|	false
+				)*:e
+			]
+			-> ('[' + e.join(',\n' + indent) + ']'),
+		Process =
+			Elem('\t')
 	}
 
-	Prettify.indentLevel = 0
-	Prettify.indent = function(indentLevel) {
-		var i=0, spaces='';
-		for(; i<indentLevel; i++) {
-			spaces += '\t';
-		};
-		return spaces;
-	}
 	return Prettify;
 })

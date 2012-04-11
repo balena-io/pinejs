@@ -1,49 +1,32 @@
 define(["ometa/ometa-base"], (function() {
     var Prettify = undefined;
     Prettify = objectThatDelegatesTo(OMeta, {
-        "bool": function() {
-            var $elf = this,
-                _fromIdx = this.input.idx;
-            return this._or((function() {
-                return this._apply("true")
-            }), (function() {
-                return this._apply("false")
-            }))
-        },
-        "elem": function() {
+        "Elem": function(indent) {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 e;
             this._form((function() {
-                this["indentLevel"]++;
-                e = this._many((function() {
+                return e = this._many((function() {
                     return this._or((function() {
                         return this._apply("string")
                     }), (function() {
-                        return this._apply("elem")
+                        return this._applyWithArgs("Elem", (indent + "\t"))
                     }), (function() {
                         return this._apply("number")
                     }), (function() {
-                        return this._apply("bool")
+                        return this._apply("true")
+                    }), (function() {
+                        return this._apply("false")
                     }))
-                }));
-                return (spaces = this.indent(this["indentLevel"]--))
+                }))
             }));
-            return (("[" + e.join((",\n" + spaces))) + "]")
+            return (("[" + e.join((",\n" + indent))) + "]")
+        },
+        "Process": function() {
+            var $elf = this,
+                _fromIdx = this.input.idx;
+            return this._applyWithArgs("Elem", "\t")
         }
     });
-    (Prettify["indentLevel"] = (0));
-    (Prettify["indent"] = (function(indentLevel) {
-        {
-            var i = (0);
-            var spaces = ""
-        };
-        for (undefined;
-        (i < indentLevel); i++) {
-            (spaces += "\t")
-        };
-        undefined;
-        return spaces
-    }));
     return Prettify
 }))

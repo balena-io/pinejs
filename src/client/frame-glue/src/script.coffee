@@ -86,13 +86,13 @@ define(['SBVRParser', 'data-frame/ClientURIParser', 'Prettify'], (SBVRParser, Cl
 		clientOnAir = bool
 		if clientOnAir == true
 			serverRequest "GET", "/lfmodel/", {}, null, (statusCode, result) ->
-				lfEditor.setValue Prettify.match(result, "elem")
+				lfEditor.setValue Prettify.match(result, "Process")
 
 			serverRequest "GET", "/prepmodel/", {}, null, (statusCode, result) ->
-				$("#prepArea").val Prettify.match(result, "elem")
+				$("#prepArea").val Prettify.match(result, "Process")
 
 			serverRequest "GET", "/sqlmodel/", {}, null, (statusCode, result) ->
-				sqlEditor.setValue Prettify.match(result, "elem")
+				sqlEditor.setValue Prettify.match(result, "Process")
 
 			$("#bem").button("disable")
 			$("#bum, #br").button("enable")
@@ -336,7 +336,7 @@ define(['SBVRParser', 'data-frame/ClientURIParser', 'Prettify'], (SBVRParser, Cl
 
 	window.parseModel = ->
 		try
-			lfEditor.setValue(Prettify.match(SBVRParser.matchAll(sbvrEditor.getValue(), 'expr'),'elem'))
+			lfEditor.setValue(Prettify.match(SBVRParser.matchAll(sbvrEditor.getValue(), 'expr'),'Process'))
 		catch e
 			console.log 'Error parsing model', e
 			showSimpleError('Error parsing model')
