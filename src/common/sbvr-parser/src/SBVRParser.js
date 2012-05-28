@@ -307,9 +307,12 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
         },
         "atfo": function(c) {
             var $elf = this,
-                _fromIdx = this.input.idx;
-            this._pred(this.isFactType(c[(0)]));
-            (c[(0)] = ["fcTp"].concat(c[(0)]));
+                _fromIdx = this.input.idx,
+                realFactType;
+            realFactType = this._applyWithArgs("isFactType", c[(0)]);
+            console.error(c[(0)], realFactType);
+            this._pred(realFactType);
+            (c[(0)] = ["fcTp"].concat(realFactType));
             return ["aFrm"].concat(c)
         },
         "ruleBody": function(c, exitOnTermFactType) {
@@ -433,10 +436,8 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
                 t = this._apply("term");
                 return fctp.push(t)
             }));
-            (function() {
-                this._addFactType(fctp);
-                return fctp.push([])
-            }).call(this);
+            this._applyWithArgs("addFactType", fctp, fctp);
+            fctp.push([]);
             return ["fcTp"].concat(fctp)
         },
         "startTerm": function() {
@@ -532,6 +533,24 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
             t = this._apply("addTerm");
             (this["terms"][t[(1)]] = currentLine[(1)]);
             return t
+        },
+        "attrSynonymousForm": function(currentLine) {
+            var $elf = this,
+                _fromIdx = this.input.idx,
+                fctp, t, v;
+            fctp = [];
+            this._many1((function() {
+                t = this._apply("term");
+                v = this._apply("addVerb");
+                return fctp.push(t, v)
+            }));
+            this._opt((function() {
+                t = this._apply("term");
+                return fctp.push(t)
+            }));
+            this._applyWithArgs("addFactType", fctp, currentLine.slice((1), (-(1))));
+            fctp.push([]);
+            return fctp
         },
         "startComment": function() {
             var $elf = this,
@@ -642,8 +661,8 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
             var $elf = this;
             var traverseRecurse = (function(currentFactTypePart, remainingFactType, currentLevel) {
                 if ((currentFactTypePart == null)) {
-                    if ((create === true)) {
-                        (currentLevel["__valid"] = true)
+                    if (create) {
+                        (currentLevel["__valid"] = create)
                     } else {
                         undefined
                     };
@@ -654,7 +673,7 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
                     var finalLevel = undefined;
                     var finalLevels = ({})
                 };
-                if ((currentLevel.hasOwnProperty(currentFactTypePart) || ((create === true) && (currentLevel[currentFactTypePart] = ({}))))) {
+                if ((currentLevel.hasOwnProperty(currentFactTypePart) || (create && (currentLevel[currentFactTypePart] = ({}))))) {
                     (finalLevel = traverseRecurse(remainingFactType[(0)], remainingFactType.slice((1)), currentLevel[currentFactTypePart]));
                     if ((finalLevel != false)) {
                         $.extend(finalLevels, finalLevel)
@@ -664,7 +683,7 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
                 } else {
                     undefined
                 };
-                if (((create !== true) && (currentFactTypePart[(0)] == "term"))) {
+                if (((!create) && (currentFactTypePart[(0)] == "term"))) {
                     while ($elf["conceptTypes"].hasOwnProperty(currentFactTypePart)) {
                         (currentFactTypePart = $elf["conceptTypes"][currentFactTypePart]);
                         if (currentLevel.hasOwnProperty(currentFactTypePart)) {
@@ -724,8 +743,8 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
         };
         return verb
     }));
-    (SBVRParser["_addFactType"] = (function(factType) {
-        this._traverseFactType(factType, true)
+    (SBVRParser["addFactType"] = (function(factType, realFactType) {
+        this._traverseFactType(factType, realFactType)
     }));
     (SBVRParser["isFactType"] = (function(factType) {
         var currentLevel = this._traverseFactType(factType);
@@ -734,7 +753,8 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
         } else {
             undefined
         };
-        return (currentLevel["__valid"] = true)
+        console.error(currentLevel);
+        return currentLevel["__valid"]
     })); {
         var removeVerbRegex = new RegExp(("^" + ["verb", ""].toString()));
         var removeTermRegex = new RegExp(("^" + ["term", ""].toString()));

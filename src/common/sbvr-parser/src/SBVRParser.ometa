@@ -129,8 +129,10 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 			-> r,
 
 		atfo :c	=
-			?this.isFactType(c[0])
-			{c[0] = ['fcTp'].concat(c[0])}
+			isFactType(c[0]):realFactType
+			{console.error(c[0], realFactType)}
+			?realFactType
+			{c[0] = ['fcTp'].concat(realFactType)}
 			-> ['aFrm'].concat(c),
 
 		// c[0] should contain the current fact type that is being built
@@ -184,7 +186,7 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 			startFactType {[]}:fctp
 			(term:t addVerb:v {fctp.push(t, v)})+
 			(term:t {fctp.push(t)})?
-			{this._addFactType(fctp); fctp.push([])}
+			addFactType(fctp, fctp) {fctp.push([])}
 			-> ['fcTp'].concat(fctp),
 		startTerm =
 			"T:"|"Term:",
@@ -223,6 +225,12 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 		attrSynonym :currentLine =
 			addTerm:t {this.terms[t[1]] = currentLine[1]}
 			-> t,
+		attrSynonymousForm :currentLine =
+			{[]}:fctp
+			(term:t addVerb:v {fctp.push(t, v)})+
+			(term:t {fctp.push(t)})?
+			addFactType(fctp, currentLine.slice(1,-1)) {fctp.push([])}
+			-> fctp,
 
 		startComment =
 			seq('--'),
@@ -291,21 +299,21 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 		var self = this,
 			traverseRecurse = function(currentFactTypePart, remainingFactType, currentLevel) {
 			if(currentFactTypePart == null) {
-				if(create === true) {
-					currentLevel.__valid = true;
+				if(create) {
+					currentLevel.__valid = create;
 				}
 				return currentLevel;
 			}
 			var finalLevel, finalLevels = {};
 			
-			if(currentLevel.hasOwnProperty(currentFactTypePart) || (create===true && (currentLevel[currentFactTypePart] = {})) ) {
+			if(currentLevel.hasOwnProperty(currentFactTypePart) || (create && (currentLevel[currentFactTypePart] = {})) ) {
 				finalLevel = traverseRecurse(remainingFactType[0], remainingFactType.slice(1), currentLevel[currentFactTypePart]);
 				if(finalLevel != false) {
 					$.extend(finalLevels, finalLevel);
 				}
 			}
 			
-			if(create !== true && currentFactTypePart[0] == 'term') {
+			if(!create && currentFactTypePart[0] == 'term') {
 				while( self.conceptTypes.hasOwnProperty(currentFactTypePart) ) {
 					currentFactTypePart = self.conceptTypes[currentFactTypePart];
 					if( currentLevel.hasOwnProperty(currentFactTypePart) ) {
@@ -360,8 +368,8 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 		return verb;
 	};
 
-	SBVRParser._addFactType = function(factType) {
-		this._traverseFactType(factType, true);
+	SBVRParser.addFactType = function(factType, realFactType) {
+		this._traverseFactType(factType, realFactType);
 	};
 
 	SBVRParser.isFactType = function(factType) {
@@ -369,7 +377,8 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 		if(currentLevel === false) {
 			return false;
 		}
-		return currentLevel.__valid = true;
+		console.error(currentLevel);
+		return currentLevel.__valid;
 	};
 
 	var removeVerbRegex = new RegExp('^' + ['verb',''].toString()),
