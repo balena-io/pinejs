@@ -27,6 +27,9 @@
       <input type="hidden" id="download" name="download" value="codemirror-compressed.js"/>
       <p>Version: <select id="version" onchange="setVersion(this);" style="padding: 1px">
         <option value="http://codemirror.net/">HEAD</option>
+        <option value="http://marijnhaverbeke.nl/git/codemirror2?a=blob_plain;hb=v2.25;f=">2.25</option>
+        <option value="http://marijnhaverbeke.nl/git/codemirror2?a=blob_plain;hb=v2.24;f=">2.24</option>
+        <option value="http://marijnhaverbeke.nl/git/codemirror2?a=blob_plain;hb=v2.23;f=">2.23</option>
         <option value="http://marijnhaverbeke.nl/git/codemirror2?a=blob_plain;hb=v2.22;f=">2.22</option>
         <option value="http://marijnhaverbeke.nl/git/codemirror2?a=blob_plain;hb=v2.21;f=">2.21</option>
         <option value="http://marijnhaverbeke.nl/git/codemirror2?a=blob_plain;hb=v2.2;f=">2.2</option>
@@ -55,6 +58,7 @@
           <option value="http://codemirror.net/mode/css/css.js">css.js</option>
           <option value="http://codemirror.net/mode/diff/diff.js">diff.js</option>
           <option value="http://codemirror.net/mode/ecl/ecl.js">ecl.js</option>
+          <option value="http://codemirror.net/mode/erlang/erlang.js">erlang.js</option>
           <option value="http://codemirror.net/mode/gfm/gfm.js">gfm.js</option>
           <option value="http://codemirror.net/mode/go/go.js">go.js</option>
           <option value="http://codemirror.net/mode/groovy/groovy.js">groovy.js</option>
@@ -71,6 +75,7 @@
           <option value="http://codemirror.net/mode/pascal/pascal.js">pascal.js</option>
           <option value="http://codemirror.net/mode/perl/perl.js">perl.js</option>
           <option value="http://codemirror.net/mode/php/php.js">php.js</option>
+          <option value="http://codemirror.net/mode/pig/pig.js">pig.js</option>
           <option value="http://codemirror.net/mode/plsql/plsql.js">plsql.js</option>
           <option value="http://codemirror.net/mode/properties/properties.js">properties.js</option>
           <option value="http://codemirror.net/mode/python/python.js">python.js</option>
@@ -81,15 +86,17 @@
           <option value="http://codemirror.net/mode/ruby/ruby.js">ruby.js</option>
           <option value="http://codemirror.net/mode/rust/rust.js">rust.js</option>
           <option value="http://codemirror.net/mode/scheme/scheme.js">scheme.js</option>
+          <option value="http://codemirror.net/mode/shell/shell.js">shell.js</option>
           <option value="http://codemirror.net/mode/smalltalk/smalltalk.js">smalltalk.js</option>
           <option value="http://codemirror.net/mode/smarty/smarty.js">smarty.js</option>
           <option value="http://codemirror.net/mode/sparql/sparql.js">sparql.js</option>
           <option value="http://codemirror.net/mode/stex/stex.js">stex.js</option>
           <option value="http://codemirror.net/mode/tiddlywiki/tiddlywiki.js">tiddlywiki.js</option>
+          <option value="http://codemirror.net/mode/tiki/tiki.js">tiki.js</option>
+          <option value="http://codemirror.net/mode/vbscript/vbscript.js">vbscript.js</option>
           <option value="http://codemirror.net/mode/velocity/velocity.js">velocity.js</option>
           <option value="http://codemirror.net/mode/verilog/verilog.js">verilog.js</option>
           <option value="http://codemirror.net/mode/xml/xml.js">xml.js</option>
-          <option value="http://codemirror.net/mode/xmlpure/xmlpure.js">xmlpure.js</option>
           <option value="http://codemirror.net/mode/xquery/xquery.js">xquery.js</option>
           <option value="http://codemirror.net/mode/yaml/yaml.js">yaml.js</option>
         </optgroup>
@@ -104,6 +111,8 @@
           <option value="http://codemirror.net/lib/util/searchcursor.js">searchcursor.js</option>
           <option value="http://codemirror.net/lib/util/formatting.js">formatting.js</option>
           <option value="http://codemirror.net/lib/util/match-highlighter.js">match-highlighter.js</option>
+          <option value="http://codemirror.net/lib/util/closetag.js">closetag.js</option>
+          <option value="http://codemirror.net/lib/util/loadmode.js">loadmode.js</option>
         </optgroup>
         <optgroup label="Keymaps">
           <option value="http://codemirror.net/keymap/emacs.js">emacs.js</option>
@@ -136,4 +145,3 @@
 
   </body>
 </html>
-

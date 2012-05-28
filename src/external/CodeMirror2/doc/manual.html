@@ -27,13 +27,13 @@
     functionality can be straightforwardly implemented. See
     the <a href="#addons">add-ons</a> included in the distribution,
     and
-    the <a href="http://www.octolabs.com/javascripts/codemirror-ui/">CodeMirror
+    the <a href="https://github.com/jagthedrummer/codemirror-ui">CodeMirror
     UI</a> project, for reusable implementations of extra features.</p>
 
     <p>CodeMirror works with language-specific modes. Modes are
     JavaScript programs that help color (and optionally indent) text
-    written in a given language. The distribution comes with a few
-    modes (see the <code>mode/</code> directory), and it isn't hard
+    written in a given language. The distribution comes with a number
+    of modes (see the <code>mode/</code> directory), and it isn't hard
     to <a href="#modeapi">write new ones</a> for other languages.</p>
 
     <h2 id="usage">Basic Usage</h2>
@@ -274,6 +274,26 @@
       index</a> to assign to the editor. If not given, no tab index
       will be assigned.</dd>
 
+      <dt id="option_autofocus"><code>autofocus (boolean)</code></dt>
+      <dd>Can be used to make CodeMirror focus itself on
+      initialization. Defaults to off.
+      When <a href="#fromTextArea"><code>fromTextArea</code></a> is
+      used, and no explicit value is given for this option, it will
+      inherit the setting from the textarea's <code>autofocus</code>
+      attribute.</dd>
+
+      <dt id="option_dragDrop"><code>dragDrop (boolean)</code></dt>
+      <dd>Controls whether drag-and-drop is enabled. On by default.</dd>
+
+      <dt id="option_onDragEvent"><code>onDragEvent (function)</code></dt>
+      <dd>When given, this will be called when the editor is handling
+      a <code>dragenter</code>, <code>dragover</code>,
+      or <code>drop</code> event. It will be passed the editor instance
+      and the event object as arguments. The callback can choose to
+      handle the event itself, in which case it should
+      return <code>true</code> to indicate that CodeMirror should not
+      do anything further.</dd>
+
       <dt id="option_onKeyEvent"><code>onKeyEvent (function)</code></dt>
       <dd>This provides a rather low-level hook into CodeMirror's key
       handling. If provided, this function will be called on
@@ -345,9 +365,11 @@
     be searched. It can hold either a single keymap or an array of
     keymaps.</p>
 
-    <p>When a keymap contains a <code>catchall</code> property, the
-    handler function under that property will be called for all keys
-    dispatched through the keymap.</p>
+    <p>When a keymap contains a <code>nofallthrough</code> property
+    set to <code>true</code>, keys matched against that map will be
+    ignored if they don't match any of the bindings in the map (no
+    further child maps will be tried, and the default effect of
+    inserting a character will not occur).</p>
 
     <h2 id="styling">Customized Styling</h2>
 
@@ -541,6 +563,10 @@
       the document, and the second explicitly removes the
       bookmark.</dd>
 
+      <dt id="findMarksAt"><code>findMarksAt(pos) → array</code></dt>
+      <dd>Returns an array of all the bookmarks and marked ranges
+      present at the given position.</dd>
+
       <dt id="setMarker"><code>setMarker(line, text, className) → lineHandle</code></dt>
       <dd>Add a gutter marker for the given line. Gutter markers are
       shown in the line-number area (instead of the number for this
@@ -662,6 +688,11 @@
       the expensive update after the function returns. This can be a
       lot faster. The return value from this method will be the return
       value of your function.</dd>
+
+      <dt id="compoundChange"><code>compoundChange(func) → result</code></dt>
+      <dd>Will call the given function (and return its result),
+      combining all changes made while that function executes into a
+      single undo event.</dd>
 
       <dt id="refresh"><code>refresh()</code></dt>
       <dd>If your code does something to change the size of the editor
@@ -815,6 +846,22 @@
       Depends on
       the <a href="#util_searchcursor"><code>searchcursor</code></a>
       add-on. Demo <a href="../demo/matchhighlighter.html">here</a>.</dd>
+      <dt id="util_closetag"><a href="../lib/util/closetag.js"><code>closetag.js</code></a></dt>
+      <dd>Provides utility functions for adding automatic tag closing
+      to XML modes. See
+      the <a href="../demo/closetag.html">demo</a>.</dd>
+      <dt id="util_loadmode"><a href="../lib/util/loadmode.js"><code>loadmode.js</code></a></dt>
+      <dd>Defines a <code>CodeMirror.requireMode(modename,
+      callback)</code> function that will try to load a given mode and
+      call the callback when it succeeded. You'll have to
+      set <code>CodeMirror.modeURL</code> to a string that mode paths
+      can be constructed from, for
+      example <code>"mode/%N/%N.js"</code>—the <code>%N</code>'s will
+      be replaced with the mode name. Also
+      defines <code>CodeMirror.autoLoadMode(instance, mode)</code>,
+      which will ensure the given mode is loaded and cause the given
+      editor instance to refresh its mode when the loading
+      succeeded. See the <a href="../demo/loadmode.html">demo</a>.</dd>
     </dl>
 
     <h2 id="modeapi">Writing CodeMirror Modes</h2>
@@ -865,8 +912,7 @@
     style string, or <code>null</code> for tokens that do not have to
     be styled. For your styles, you can either use the 'standard' ones
     defined in the themes (without the <code>cm-</code> prefix), or
-    define your own (as the <a href="../mode/diff/index.html">diff</a>
-    mode does) and have people include a custom CSS file for your
+    define your own and have people include a custom CSS file for your
     mode.<p>
 
     <p id="StringStream">The stream object encapsulates a line of code
