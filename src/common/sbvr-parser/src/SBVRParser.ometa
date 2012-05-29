@@ -230,6 +230,17 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 			(term:t {fctp.push(t)})?
 			addFactType(fctp, currentLine.slice(1,-1)) {fctp.push([])}
 			-> fctp,
+		attrTermForm :currentLine =
+			addTerm:t
+			{
+				for(var i = 0; i < currentLine.length; i++) {
+					if(currentLine[i][0] == 'term') {
+						var fctp = [t, ['verb', 'has'], currentLine[i]];
+						this.addFactType(fctp, fctp);
+					}
+				}
+			}
+		-> t,
 
 		startComment =
 			seq('--'),
@@ -414,7 +425,8 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 				'Synonym:'
 			].concat(allowedAttrLists),
 			fcTp: [
-				'Synonymous Form:'
+				'Synonymous Form:',
+				'Term Form:'
 			].concat(allowedAttrLists),
 			rule: []
 		};

@@ -551,6 +551,24 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
             fctp.push([]);
             return fctp
         },
+        "attrTermForm": function(currentLine) {
+            var $elf = this,
+                _fromIdx = this.input.idx,
+                t;
+            t = this._apply("addTerm");
+            (function() {
+                for (var i = (0);
+                (i < currentLine["length"]); i++) {
+                    if ((currentLine[i][(0)] == "term")) {
+                        var fctp = [t, ["verb", "has"], currentLine[i]];
+                        this.addFactType(fctp, fctp)
+                    } else {
+                        undefined
+                    }
+                }
+            }).call(this);
+            return t
+        },
         "startComment": function() {
             var $elf = this,
                 _fromIdx = this.input.idx;
@@ -773,7 +791,7 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
     };
     (allowedAttrLists = ({
         "term": ["Concept Type:", "Definition:", "Synonym:"].concat(allowedAttrLists),
-        "fcTp": ["Synonymous Form:"].concat(allowedAttrLists),
+        "fcTp": ["Synonymous Form:", "Term Form:"].concat(allowedAttrLists),
         "rule": []
     }));
     (SBVRParser["reset"] = (function() {
