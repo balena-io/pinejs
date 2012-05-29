@@ -744,7 +744,20 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
         return verb
     }));
     (SBVRParser["addFactType"] = (function(factType, realFactType) {
-        this._traverseFactType(factType, realFactType)
+        this._traverseFactType(factType, realFactType);
+        if (((factType["length"] == (3)) && (factType[(1)][(1)] == "has"))) {
+            this._traverseFactType([factType[(2)],
+                ["verb", "is of"], factType[(0)]
+            ], realFactType)
+        } else {
+            if (((factType["length"] == (3)) && (factType[(1)][(1)] == "is of"))) {
+                this._traverseFactType([factType[(2)],
+                    ["verb", "has"], factType[(0)]
+                ], realFactType)
+            } else {
+                undefined
+            }
+        }
     }));
     (SBVRParser["isFactType"] = (function(factType) {
         var currentLevel = this._traverseFactType(factType);
