@@ -310,7 +310,6 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
                 _fromIdx = this.input.idx,
                 realFactType;
             realFactType = this._applyWithArgs("isFactType", c[(0)]);
-            console.error(c[(0)], realFactType);
             this._pred(realFactType);
             (c[(0)] = ["fcTp"].concat(realFactType));
             return ["aFrm"].concat(c)
@@ -766,7 +765,6 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
         } else {
             undefined
         };
-        console.error(currentLevel);
         return currentLevel["__valid"]
     })); {
         var removeVerbRegex = new RegExp(("^" + ["verb", ""].toString()));

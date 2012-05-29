@@ -130,7 +130,6 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 
 		atfo :c	=
 			isFactType(c[0]):realFactType
-			{console.error(c[0], realFactType)}
 			?realFactType
 			{c[0] = ['fcTp'].concat(realFactType)}
 			-> ['aFrm'].concat(c),
@@ -383,7 +382,6 @@ define(['underscore', 'ometa/ometa-base', 'inflection'], function(_) {
 		if(currentLevel === false) {
 			return false;
 		}
-		console.error(currentLevel);
 		return currentLevel.__valid;
 	};
 
