@@ -222,20 +222,25 @@
             executeSql: function(sql, bindings, callback, errorCallback) {
               var thisTX;
               thisTX = this;
-              if (callback != null) {
-                callback = (function(callback) {
-                  return function(_tx, _results) {
-                    return callback(thisTX, _results);
+              try {
+                return ___STACK_TRACE___.please;
+              } catch (stackTrace) {
+                null;
+                if (callback != null) {
+                  callback = (function(callback) {
+                    return function(_tx, _results) {
+                      return callback(thisTX, _results);
+                    };
+                  })(callback);
+                }
+                errorCallback = (function(errorCallback) {
+                  return function(_tx, _err) {
+                    console.log(sql, _err, stackTrace.stack);
+                    return typeof errorCallback === "function" ? errorCallback(thisTX, _err) : void 0;
                   };
-                })(callback);
+                })(errorCallback);
+                return _tx.executeSql(sql, bindings, callback, errorCallback);
               }
-              errorCallback = (function(errorCallback) {
-                return function(_tx, _err) {
-                  console.log(sql, _err);
-                  return typeof errorCallback === "function" ? errorCallback(thisTX, _err) : void 0;
-                };
-              })(errorCallback);
-              return _tx.executeSql(sql, bindings, callback, errorCallback);
             },
             begin: function() {},
             end: function() {},

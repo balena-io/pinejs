@@ -131,20 +131,25 @@ define(["database-layer/SQLBinds"], (SQLBinds) ->
 				return {
 					executeSql: (sql, bindings, callback, errorCallback) ->
 						thisTX = this
-						#Wrap the callbacks passed in with our own if necessary to pass in the wrapped tx.
-						if callback?
-							callback = do(callback) ->
-								(_tx, _results) ->
-									callback(thisTX, _results)
-						errorCallback = do(errorCallback) ->
-							(_tx, _err) ->
-								console.log(sql, _err)
-								errorCallback?(thisTX, _err)
-						_tx.executeSql(sql, bindings, callback, errorCallback)
+						try
+							# This is used so we can find the useful part of the stack trace, as WebSQL is asynchronous and starts a new stack.
+							___STACK_TRACE___.please
+						catch stackTrace
+							null
+							# Wrap the callbacks passed in with our own if necessary to pass in the wrapped tx.
+							if callback?
+								callback = do(callback) ->
+									(_tx, _results) ->
+										callback(thisTX, _results)
+							errorCallback = do(errorCallback) ->
+								(_tx, _err) ->
+									console.log(sql, _err, stackTrace.stack)
+									errorCallback?(thisTX, _err)
+							_tx.executeSql(sql, bindings, callback, errorCallback)
 					begin: ->
 					end: ->
 					# We need to use _tx here rather than this as it does not work when we use this
-					#TODO: Investigate why it breaks with this
+					# TODO: Investigate why it breaks with this
 					rollback: -> _tx.executeSql("DROP TABLE '__Fo0oFoo'")
 					tableList: (callback, errorCallback, extraWhereClause = '') ->
 						if extraWhereClause != ''
