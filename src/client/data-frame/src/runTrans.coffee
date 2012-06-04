@@ -1,10 +1,10 @@
 runTrans = (rootElement) ->
 	if $(".action").size() > 0
-		#fetch transaction collection location?(?) - [not needed as this is code on demand]
-		#create transaction resource
+		# fetch transaction collection location?(?) - [not needed as this is code on demand]
+		# create transaction resource
 		obj = [name:'trans']
 		serverRequest('POST', '/data/transaction', {}, obj, (statusCode, result, headers) ->
-			#get 'trans'action resource to extract lcURI,tlcURI,rcURI,lrcURI,xlcURI,slcURI,ctURI
+			# get 'trans'action resource to extract lcURI,tlcURI,rcURI,lrcURI,xlcURI,slcURI,ctURI
 			serverRequest("GET", headers.location, {}, null, (statusCode, trans, headers) ->
 				lockCount = 0
 				data = []
@@ -26,7 +26,7 @@ runTrans = (rootElement) ->
 									location.hash = "#!/data/"
 						nextLoopCallback()
 				
-				#find and lock relevant resources (l,t-l,r-l)
+				# find and lock relevant resources (l,t-l,r-l)
 				$(".action").each((index) ->
 					if $(this).children("#__actype").val() in ["editterm", "editfctp", "del"]
 						lockCount++
@@ -61,11 +61,11 @@ runTrans = (rootElement) ->
 		serverRequest "POST", trans.lcURI, {}, [ name: "lok" ], ((statusCode, result, headers) ->
 			serverRequest "GET", headers.location, {}, null, ((statusCode, lock, headers) ->
 				lockID = lock.instances[0].id
-				o = [ transaction_id: trans.id, lock_id: lockID ]
+				o = [ transaction: trans.id, lock: lockID ]
 				serverRequest "POST", trans.tlcURI, {}, o, ((statusCode, result, headers) ->
-					o = [ lock_id: lockID ]
+					o = [ lock: lockID ]
 					serverRequest "POST", trans.xlcURI, {}, o, ((statusCode, result, headers) ->
-						o = [ resource_id: parseInt(resource_id), resource_type: resource_type, lock_id: lockID ]
+						o = [ resource: parseInt(resource_id), resource_type: resource_type, lock: lockID ]
 						serverRequest "POST", trans.lrcURI, {}, o, ((statusCode, result, headers) ->
 							successCallback(lockID)
 						), failureCallback

@@ -656,10 +656,12 @@ function push(result, actual, expected, message) {
 	message = escapeHtml(message) || (result ? "okay" : "failed");
 	message = '<span class="test-message">' + message + "</span>";
 	expected = escapeHtml(QUnit.jsDump.parse(expected));
-	actual = escapeHtml(QUnit.jsDump.parse(actual));
+	// actual = escapeHtml(QUnit.jsDump.parse(actual));
 	var output = message + ', expected: <span class="test-expected">' + expected + '</span>';
 	if (actual != expected) {
-		output += ' result: <span class="test-actual">' + actual + '</span>, diff: ' + QUnit.diff(expected, actual);
+		output += ' result: <pre class="test-actual">			' + JSON.stringify(actual) + ',</pre>';
+		actual = escapeHtml(QUnit.jsDump.parse(actual));
+		output += '<br/>diff: ' + QUnit.diff(expected, actual);
 	}
 	
 	// can't use ok, as that would double-escape messages

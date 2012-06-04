@@ -311,7 +311,7 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
                 realFactType;
             realFactType = this._applyWithArgs("isFactType", c[(0)]);
             this._pred(realFactType);
-            (c[(0)] = ["fcTp"].concat(realFactType));
+            (c[(0)] = ["fcTp"].concat(c[(0)]));
             return ["aFrm"].concat(c)
         },
         "ruleBody": function(c, exitOnTermFactType) {
@@ -761,6 +761,7 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
         return verb
     }));
     (SBVRParser["addFactType"] = (function(factType, realFactType) {
+        (realFactType = $.extend([], realFactType));
         this._traverseFactType(factType, realFactType);
         if (((factType["length"] == (3)) && (factType[(1)][(1)] == "has"))) {
             this._traverseFactType([factType[(2)],

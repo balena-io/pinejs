@@ -16,7 +16,7 @@ Copyright 2011 University of Surrey
 define(['ometa/ometa-base'], function() {
 	var ClientURIUnparser;
     ometa ClientURIUnparser{
-          word = [(letter|``-''|``_'')+:l]                                        -> l.join(''),
+          word = [(letter|'-'|'_')+:l]                                        -> l.join(''),
           nmbr = number,
 
          trans = [:t apply(t):a] -> a,

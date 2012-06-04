@@ -98,10 +98,10 @@
           return lfEditor.setValue(Prettify.match(result, "Process"));
         });
         serverRequest("GET", "/prepmodel/", {}, null, function(statusCode, result) {
-          return $("#prepArea").val(Prettify.match(result, "Process"));
+          return $("#prepArea").val(JSON.stringify(result));
         });
         serverRequest("GET", "/sqlmodel/", {}, null, function(statusCode, result) {
-          return sqlEditor.setValue(Prettify.match(result, "Process"));
+          return sqlEditor.setValue(JSON.stringify(result));
         });
         $("#bem").button("disable");
         return $("#bum, #br").button("enable");

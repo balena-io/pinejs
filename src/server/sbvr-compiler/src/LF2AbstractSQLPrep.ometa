@@ -8,19 +8,82 @@ define(['sbvr-compiler/LFOptimiser'], function(LFOptimiser) {
 		
 		atMostQ
 			"maxCard":a "var":v trans*:xs SetHelped
-			-> {a[1][1]++;['neg', ['atLeastQ', ['minCard', a[1]], v].concat(xs)]}
+			-> {a[1][1]++;['neg', ['atLeastQ', ['minCard', a[1]], v].concat(xs)]},
+		
+		ForeignKey :v1 =
+			// Just a basic var
+			?(v1.length == 3)
+			(
+				[	'exactQ'
+					"card":card
+					?(card[1][1] == 1)
+					"var":v2
+					// Just a basic var
+					?(v2.length == 3)
+					"aFrm":atomicForm
+					{atomicForm[1]}:factType
+					// A term verb term fact type, in the same order as the vars appear.
+					?(atomicForm.length == 4 && factType.length == 4 && v1[2] == factType[1] && v2[2] == factType[3])
+					{this.foreignKeys[factType] = 'NOT NULL'}
+				]
+			|
+				[	'atMostQ'
+					"maxCard":card
+					?(card[1][1] == 1)
+					"var":v2
+					// Just a basic var
+					?(v2.length == 3)
+					"aFrm":atomicForm
+					{atomicForm[1]}:factType
+					// A term verb term fact type, in the same order as the vars appear.
+					?(atomicForm.length == 4 && factType.length == 4 && v1[2] == factType[1] && v2[2] == factType[3])
+					{this.foreignKeys[factType] = 'NULL'}
+				]
+			)
+			// We have matched a foreign key, so call SetHelped.
+			SetHelped,
+			
+		
+		rule
+				[	'obl'
+					[	'univQ'
+						"var":v1
+						ForeignKey(v1)
+					|
+						'neg'
+						[	'existQ'
+							"var":v1
+							[	'neg'
+								ForeignKey(v1)
+							]
+						]
+					]
+				]
+				"text"
+				// We have matched a foreign key, return an empty array to remove the rule.
+				-> null
+			|	^rule
 	}
+	
+	LF2AbstractSQLPrep.initialize = function() {
+		this.__proto__.initialize()
+		this.foreignKeys = [];
+	}
+	
 	LF2AbstractSQLPrep.defaultAttributes = function(termOrVerb, attrsFound, attrs) {
 		if(!attrsFound.hasOwnProperty('DatabaseIDField')) {
 			attrs.push(['DatabaseIDField', 'id']);
+			this.SetHelped();
 		}
 		switch(termOrVerb[0]) {
 			case 'term':
 				if(!attrsFound.hasOwnProperty('DatabaseNameField')) {
 					attrs.push(['DatabaseNameField', 'name']);
+					this.SetHelped();
 				}
 				if(!attrsFound.hasOwnProperty('DatabaseTableName')) {
 					attrs.push(['DatabaseTableName', termOrVerb[1].replace(new RegExp(' ','g'),'_')]);
+					this.SetHelped();
 				}
 			break;
 			case 'fcTp':
@@ -30,6 +93,13 @@ define(['sbvr-compiler/LFOptimiser'], function(LFOptimiser) {
 						tableName += '-' + termOrVerb[i][1].replace(new RegExp(' ','g'),'_');
 					}
 					attrs.push(['DatabaseTableName', tableName]);
+					this.SetHelped();
+				}
+				if(this.foreignKeys.hasOwnProperty(termOrVerb)) {
+					console.log('Adding FK attr');
+					attrs.push(['ForeignKey', this.foreignKeys[termOrVerb]]);
+					delete this.foreignKeys[termOrVerb];
+					this.SetHelped();
 				}
 			break;
 		}

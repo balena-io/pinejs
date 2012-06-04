@@ -111,7 +111,7 @@
             pre += "<div style='display:inline; background-color:#FFFFFF;'>" + term.name + "</div>";
             pre += "<div style='display:inline;background-color:#FFFFFF'><a href='" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a></div>";
             _results.push((function(i, pre, post, launch) {
-              return serverRequest("GET", "/sqlmodel/", {}, null, function(statusCode, result) {
+              return serverRequest("GET", "/lfmodel/", {}, null, function(statusCode, result) {
                 var uid;
                 uid = new uidraw(i, objcb, pre, post, rootURI, [], [], filters, [launch - 2], true, tree, result);
                 return uid.subRowIn();
@@ -129,7 +129,7 @@
       });
     };
     uidraw = function(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, cmod) {
-      var mod, _i, _len, _ref;
+      var getIdent, mod, _i, _len, _ref;
       this.idx = idx;
       this.objcb = objcb;
       this.pre = pre;
@@ -180,15 +180,33 @@
           return this.objcb.callback(this.idx, this.html);
         }
       };
+      getIdent = function(mod) {
+        var factTypePart, ident, _i, _len, _ref;
+        switch (mod[0]) {
+          case 'term':
+          case 'verb':
+            return mod[1].replace(new RegExp(' ', 'g'), '_');
+          case 'fcTp':
+            ident = [];
+            _ref = mod.slice(1, -1);
+            for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+              factTypePart = _ref[_i];
+              ident.push(getIdent(factTypePart));
+            }
+            return ident.join('-');
+          default:
+            return '';
+        }
+      };
       _ref = cmod.slice(1);
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         mod = _ref[_i];
-        if (!(mod[1] === this.about)) continue;
+        if (!(getIdent(mod) === this.about)) continue;
         this.type = mod[0];
-        if (this.type === "fcTp") this.schema = mod[6];
+        if (this.type === "fcTp") this.schema = mod.slice(1);
       }
       this.subRowIn = function() {
-        var actn, branchType, col, currBranch, currBranchType, currSchema, mod, parent, posl, res, resultsReceived, resultsRequested, schema, targ, termName, termResults, _j, _k, _l, _len10, _len2, _len3, _len4, _len5, _len6, _len7, _len8, _len9, _m, _n, _o, _p, _q, _r, _ref10, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7, _ref8, _ref9, _results;
+        var actn, branchType, col, currBranch, currBranchType, currSchema, mod, parent, posl, res, resultsReceived, resultsRequested, schema, targ, termName, termResults, _j, _k, _l, _len2, _len3, _len4, _len5, _len6, _len7, _len8, _m, _n, _o, _p, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7, _ref8, _results;
         parent = this;
         if (this.branch[0] === "col") {
           this.pre += "<div class='panel' style='background-color:" + this.bg + ";'><table id='tbl--" + pid + "'><tbody>";
@@ -208,10 +226,10 @@
           for (_l = 0, _len4 = _ref4.length; _l < _len4; _l++) {
             mod = _ref4[_l];
             if (mod[0] === "fcTp") {
-              _ref5 = mod[6];
+              _ref5 = mod.slice(1);
               for (_m = 0, _len5 = _ref5.length; _m < _len5; _m++) {
                 col = _ref5[_m];
-                if (col[1] === this.about) this.cols++;
+                if (getIdent(col) === this.about) this.cols++;
               }
             }
           }
@@ -322,7 +340,7 @@
               if (mod[0] === "fcTp") {
                 _results.push((function() {
                   var _len13, _len14, _r, _ref15, _ref16, _results2;
-                  _ref15 = mod[6];
+                  _ref15 = mod.slice(1);
                   _results2 = [];
                   for (_r = 0, _len13 = _ref15.length; _r < _len13; _r++) {
                     termVerb = _ref15[_r];
@@ -331,17 +349,17 @@
                     _ref16 = parent.branch.slice(3);
                     for (k = 0, _len14 = _ref16.length; k < _len14; k++) {
                       branch = _ref16[k];
-                      if (!(branch[1][0] === mod[1])) continue;
+                      if (!(branch[1][0] === getIdent(mod))) continue;
                       launch = k + 1;
                       break;
                     }
                     parent.colsout++;
                     res = "";
-                    pre = "<tr id='tr--data--" + mod[1] + "'><td>";
+                    pre = "<tr id='tr--data--" + getIdent(mod) + "'><td>";
                     post = "</td></tr>";
                     if (launch !== -1) {
                       npos = getTarg(parent.ftree, parent.loc, "del", launch);
-                      pre += "<div style='display:inline;background-color:" + parent.unbg + "'>" + mod[2] + "</div>";
+                      pre += "<div style='display:inline;background-color:" + parent.unbg + "'>" + getIdent(mod) + "</div>";
                       pre += "<div style='display:inline;background-color:" + parent.unbg + "'><a href='" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a></div>";
                       subcolcb = {
                         callback: function(n, prod) {
@@ -351,9 +369,9 @@
                       uid = new uidraw(parent.rows + 1 + parent.adds + 1 + parent.colsout, subcolcb, pre, post, rootURI, [], [], parent.filters, loc.concat([launch]), !parent.even, parent.ftree, cmod);
                       _results2.push(uid.subRowIn());
                     } else {
-                      newb = ["col", [mod[1]], ["mod"]];
+                      newb = ["col", [getIdent(mod)], ["mod"]];
                       npos = getTarg(parent.ftree, parent.loc, "add", newb);
-                      pre += mod[2];
+                      pre += getIdent(mod);
                       pre += " <a href='" + parent.rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false'><span title='See all' class='ui-icon ui-icon-search'></span></a>";
                       res += pre + post;
                       _results2.push(parent.callback(parent.rows + 1 + parent.adds + 1 + parent.colsout, res));
@@ -416,18 +434,13 @@
               break;
             case "add":
               if (this.type === "term") {
-                schema = [];
-                _ref8 = cmod.slice(1);
-                for (_o = 0, _len7 = _ref8.length; _o < _len7; _o++) {
-                  mod = _ref8[_o];
-                  if (mod[1] === this.about) schema = mod[3];
-                }
+                schema = [['Text', 'name', 'Name', []]];
                 res = "<div align='right'>";
                 res += "<form class='action'>";
                 res += createHiddenInputs('addterm', serverAPI(this.about, []), targ, this.about);
                 console.log("addterm backURI=" + targ);
-                for (_p = 0, _len8 = schema.length; _p < _len8; _p++) {
-                  currSchema = schema[_p];
+                for (_o = 0, _len7 = schema.length; _o < _len7; _o++) {
+                  currSchema = schema[_o];
                   switch (currSchema[0]) {
                     case "Text":
                       res += currSchema[2] + ": " + widgets.inputText(currSchema[1]) + "<br />";
@@ -442,9 +455,9 @@
                 return this.callback(1, res);
               } else if (this.type === "fcTp") {
                 termResults = {};
-                _ref9 = parent.schema;
-                for (_q = 0, _len9 = _ref9.length; _q < _len9; _q++) {
-                  schema = _ref9[_q];
+                _ref8 = parent.schema;
+                for (_p = 0, _len8 = _ref8.length; _p < _len8; _p++) {
+                  schema = _ref8[_p];
                   if (schema[0] === "term") termResults[schema[1]] = [];
                 }
                 resultsReceived = 0;
@@ -467,22 +480,17 @@
               break;
             case "edit":
               if (this.type === "term") {
-                schema = [];
-                _ref10 = cmod.slice(1);
-                for (_r = 0, _len10 = _ref10.length; _r < _len10; _r++) {
-                  mod = _ref10[_r];
-                  if (mod[1] === this.about) schema = mod[3];
-                }
+                schema = [['Text', 'name', 'Name', []]];
                 this.targ = serverAPI(this.about, this.filters);
                 return serverRequest("GET", this.targ, {}, null, function(statusCode, result, headers) {
-                  var currSchema, id, _len11, _s;
+                  var currSchema, id, _len9, _q;
                   id = result.instances[0].id;
                   res = "<div align='left'>";
                   res += "<form class='action'>";
                   res += createHiddenInputs('editterm', serverAPI(parent.about, []) + "." + id, serverAPI(parent.about, []), parent.about, id);
                   res += "id: " + id + "<br/>";
-                  for (_s = 0, _len11 = schema.length; _s < _len11; _s++) {
-                    currSchema = schema[_s];
+                  for (_q = 0, _len9 = schema.length; _q < _len9; _q++) {
+                    currSchema = schema[_q];
                     switch (currSchema[0]) {
                       case "Text":
                         res += currSchema[2] + ": " + widgets.inputText(currSchema[1], result.instances[0][currSchema[1]]) + " /><br />";
@@ -501,12 +509,12 @@
               } else if (this.type === "fcTp") {
                 this.targ = serverAPI(this.about, this.filters);
                 return serverRequest("GET", this.targ, {}, null, function(statusCode, result, headers) {
-                  var currentFactType, schema, termName, _len11, _ref11, _results2, _s;
+                  var currentFactType, schema, termName, _len9, _q, _ref9, _results2;
                   currentFactType = result.instances[0];
                   termResults = {};
-                  _ref11 = parent.schema;
-                  for (_s = 0, _len11 = _ref11.length; _s < _len11; _s++) {
-                    schema = _ref11[_s];
+                  _ref9 = parent.schema;
+                  for (_q = 0, _len9 = _ref9.length; _q < _len9; _q++) {
+                    schema = _ref9[_q];
                     if (schema[0] === "term") termResults[schema[1]] = [];
                   }
                   resultsReceived = 0;
@@ -556,7 +564,7 @@
       termSelects = {};
       for (termName in termResults) {
         termResult = termResults[termName];
-        select = "<select id='" + termName + "_id'>";
+        select = "<select id='" + termName + "'>";
         for (_i = 0, _len = termResult.length; _i < _len; _i++) {
           term = termResult[_i];
           select += "<option value='" + term.id + "'";

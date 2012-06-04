@@ -1,0 +1,158 @@
+define(['ometa/ometa-base'], function() {
+	var AbstractSQLRules2SQL,
+		comparisons = {
+			'Equals': ' = ',
+			'EqualOrGreater': ' >= ',
+			'NotEquals': ' != '
+		};
+	
+	ometa AbstractSQLRules2SQL {
+		NestedIndent :indent =
+			-> (indent + '\t'),
+	
+		Not :indent =
+			NestedIndent(indent):nestedIndent
+			[	'Not'
+				(	Exists(indent):ruleBody
+					-> ('NOT ' + ruleBody)
+				|	RuleBody(nestedIndent):ruleBody
+					-> ('NOT (' + nestedIndent + ruleBody + indent + ')')
+				):notStatement
+			]
+			-> notStatement,
+
+		Exists :indent =
+			[	'Exists':x
+				Query(indent):ruleBody
+			]
+			-> ('EXISTS ' + ruleBody),
+		
+		Query :indent =
+			{indent}:origIndent
+			NestedIndent(indent):indent
+			NestedIndent(indent):nestedIndent
+			{['']}:joins
+			{[]}:froms
+			[	'Query':x
+				[
+					(	'Select'
+						?(select==null)
+						{[]}:fields
+						[	end
+							{fields.push('1')}
+						|	
+							[
+								(	'Count'
+									'*'
+									-> 'COUNT(*)'
+								):field
+								{fields.push(field)}
+							]*
+						]
+						{indent + 'SELECT ' + fields.join(', ')}:select
+					|	'From'
+						// ?(from==null)
+						anything:table
+						{'"' + table + '"'}:from
+						(	:as
+							{from + ' AS "' + as + '"'}:from
+						)?
+						{froms.push(from)}
+					// Unused now:
+					// |	'Join'
+						// [	'With'
+							// :table
+						// ]
+						// [	'On'
+							// RuleBody(nestedIndent):ruleBody
+						// ]
+						// {joins.push('JOIN "' + table + '" ON '+ ruleBody)}
+					|	'Where'
+						RuleBody(indent):ruleBody
+						{indent + 'WHERE ' + ruleBody}:where
+					)
+				]*
+			]
+			-> ( '(' + select + indent + 'FROM ' + froms.join(',' + indent + '\t') + joins.join(indent) + (where!=null ? where : '') + origIndent + ')'),
+		
+		// Currently unused:
+		Field =
+			[	'Field'
+				:field
+			]
+			-> ('"' + field + '"'),
+		
+		ReferencedField =
+			[	'ReferencedField'
+				:binding
+				:field
+			]
+			-> ('"' + binding + '"."' + field + '"'),
+		
+		Number =
+			[	'Number'
+				:number
+			]
+			-> number,
+		
+		Boolean =
+			[	'Boolean'
+				(	true
+					-> 1
+				|	false
+					-> 2
+				):bool
+			]
+			-> bool,
+		
+		And :indent =
+			[	'And'
+				RuleBody(indent)*:ruleBodies
+			]
+		->	ruleBodies.join(' AND '),
+		
+		Comparison :indent =
+			[	(	'Equals'
+				|	'EqualOrGreater'
+				|	'NotEquals'
+				):comparison
+				RuleBody(indent):a
+				RuleBody(indent):b
+			]
+			-> (a + comparisons[comparison] + b),
+		
+		Between :indent =
+			[	'Between'
+				Comparator(indent):val
+				Comparator(indent):a
+				Comparator(indent):b
+			]
+			-> (val + ' BETWEEN ' + a + ' AND ' + b),
+		
+		Comparator :indent =
+				Query(indent)
+			|	Field
+			|	ReferencedField
+			|	Number
+			|	Boolean,
+			
+		
+		RuleBody :indent =
+				Comparator(indent)
+			|	Not(indent)
+			|	Exists(indent)
+			|	Comparison(indent)
+			|	Between(indent)
+			|	And(indent),
+		
+		Process =
+			RuleBody('\n'):ruleBody
+			-> ('SELECT ' + ruleBody + ' AS "result";')
+	}
+	
+	var primitives = {
+		'integer': true
+	}
+	
+	return AbstractSQLRules2SQL;
+});

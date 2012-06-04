@@ -1,0 +1,255 @@
+define(['underscore', 'Prettify', 'ometa/ometa-base'], function(_, Prettify) {
+	var AbstractSQLOptimiser, AbstractSQLValidator;
+
+	ometa AbstractSQLValidator {
+		
+		Query =
+			{['Query']}:query
+			[	'Query'
+				(
+					(	?(select==null)
+						Select:select
+					|	//?(from==null)
+						From:from
+					|	Join
+					|	?(where==null)
+						Where:where
+					):queryPart
+					{query.concat(queryPart)}:query
+				)+
+				?(select!=null)
+				?(from!=null)
+			]
+			-> query,
+		
+		Select =
+			[	'Select'
+				[
+					(
+						Count
+					)*:fields
+				]
+			]
+			-> [['Select', fields]],
+		
+		Count = 
+			[	'Count'
+				'*'
+			],
+		
+		From =
+			[	'From'
+				:table
+				{['From', table]}:from
+				(anything:as {from.push(as)})?
+			]
+			-> [from],
+		
+		Join =
+			[	'Join'
+				[	'With'
+					:table
+				]
+				[	'On'
+					BooleanStatement:boolStatement
+				]
+			]
+			-> [['Join', ['With', table], ['On', boolStatement]]],
+		
+		BooleanStatement =
+			(	Not
+			|	And
+			|	Exists
+			|	Equals
+			|	EqualOrGreater
+			|	Between
+			),
+		
+		Where =
+			[	'Where'
+				BooleanStatement:boolStatement
+			]
+			-> [['Where', boolStatement]],
+		
+		Not =
+			[	'Not'
+				BooleanStatement:boolStatement
+			]
+			-> ['Not', boolStatement],
+		
+		And =
+			[	'And'
+				BooleanStatement:boolStatement1
+				BooleanStatement+:boolStatement2
+			]
+			-> ['And', boolStatement1].concat(boolStatement2),
+
+		Exists =
+			[	'Exists'
+				Query:query
+			]
+			-> ['Exists', query],
+		
+		NotEquals =
+			[	'NotEquals'
+				Comparator:comp1
+				Comparator:comp2
+			]
+			-> ['NotEquals', comp1, comp2],
+		
+		Equals =
+			[	'Equals'
+				Comparator:comp1
+				Comparator:comp2
+			]
+			-> ['Equals', comp1, comp2],
+		
+		EqualOrGreater =
+			[	'EqualOrGreater'
+				Comparator:comp1
+				Comparator:comp2
+			]
+			-> ['EqualOrGreater', comp1, comp2],
+		
+		Between =
+			[	'Between'
+				Comparator:comp1
+				Comparator:comp2
+				Comparator:comp3
+			]
+			-> ['Between', comp1, comp2, comp3],
+		
+		Comparator =
+				Query
+			|	Field
+			|	ReferencedField
+			|	Number
+			|	Boolean,
+		
+		Field =
+			[	'Field'
+				:table
+				:field
+			]
+			-> ['Field', table, field],
+		
+		ReferencedField =
+			[	'ReferencedField'
+				:binding
+				:field
+			]
+			-> ['ReferencedField', binding, field],
+		
+		Number =
+			[	'Number'
+				:number
+			]
+			-> ['Number', number],
+		
+		Boolean =
+			[	'Boolean'
+				(	true
+				|	false
+				):bool
+			]
+			-> ['Boolean', bool]
+	}
+	
+	ometa AbstractSQLOptimiser <: AbstractSQLValidator {
+	
+		// TODO: NotEquals 0 -> Exists?
+	
+		// AndApply :rule =
+			// (	apply(actual)
+			// |	'And'
+				// (	AndApply(rule)
+				// |	BooleanStatement
+				// )
+				// (	AndApply(rule)
+				// |	BooleanStatement
+				// )+
+			// ),
+	
+		// WhereExists =
+			// [	'Exists'
+				// Query
+			// ]
+			
+		// Where =
+				// [	'Where'
+					// AndApply('WhereExists')
+					
+					// // [	'Not'
+						// // Exists:exists
+						// // ?(exists[1][0] == 'Query')
+						// // {[]}:queryAdditions
+						// // {console.log('x', exists);}
+						// // {exists[1].slice(1)}:queryClauses
+						// // {console.log('t', queryClauses);}
+						// // {	for(var i=0; i<queryClauses.length;i++) {
+								// // switch(queryClauses[i][0]) {
+									// // case 'Select':
+									// // break;
+									// // case 'From':
+									// // case 'Join':
+										// // queryAdditions.push(['LeftJoin', queryClauses[i][1]]);
+									// // break;
+									// // case 'Where':
+										// // queryAdditions.push(queryClauses[i]);
+									// // break;
+									// // default:
+										// // console.log('x', queryClauses);
+										// // throw 'Defaulted in Where Exists Query: "' + queryClauses[i] + '"';
+								// // }
+							// // }
+						// // }
+					// // ]
+				// ]
+				// {console.log('Wooo')}
+				// SetHelped
+				// -> queryAdditions
+			// |	^Where,
+	
+		Not =
+				[	'Not'
+					(
+						[	'Not'
+							BooleanStatement:boolStatement
+						]
+					|	Equals:boolStatement
+						{boolStatement[0] = 'NotEquals'}
+					)
+				]
+				SetHelped
+				-> boolStatement
+			|
+				[	'Exists'
+					[	'Query'
+						
+					]
+				]
+			|	^Not,
+		
+		Helped =
+			?(this.helped === true)
+			{this.helped = false},
+		
+		SetHelped =
+			{this.helped = true},
+	
+		Process =
+			:boolStatement
+			// Make sure we can at least do one valid pass.
+			BooleanStatement(boolStatement):boolStatement
+			(	Helped('disableMemoisation')
+				BooleanStatement(boolStatement):boolStatement
+			)*
+			-> boolStatement
+	}
+	
+	AbstractSQLOptimiser.initialize = function() {
+		this.helped = false;
+	}
+	
+	return AbstractSQLOptimiser;
+});

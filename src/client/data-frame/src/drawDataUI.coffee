@@ -21,7 +21,7 @@ define(['data-frame/ClientURIUnparser'], (ClientURIUnparser) ->
 
 	getTarg = (tree, loc, actn, newb) ->
 		ptree = jQuery.extend(true, [], tree)
-		#We take a reference to ptree so we can dig into it whilst still having ptree as a reference to the top level.
+		# We take a reference to ptree so we can dig into it whilst still having ptree as a reference to the top level.
 		parr = ptree
 
 		for childIndex in loc
@@ -32,7 +32,7 @@ define(['data-frame/ClientURIUnparser'], (ClientURIUnparser) ->
 				parr.push newb
 			when "del"
 				parr.splice (newb + 2), 1
-		#render tree into hash and return
+		# render tree into hash and return
 		return ClientURIUnparser.match(ptree, "trans")
 
 	serverAPI = (about, filters) ->
@@ -68,7 +68,7 @@ define(['data-frame/ClientURIUnparser'], (ClientURIUnparser) ->
 						for item in @data
 							$("#terms").append(item[1])
 
-			#if any terms have been selected
+			# if any terms have been selected
 			for term, i in result.terms
 				term = result.terms[i]
 				launch = -1
@@ -83,10 +83,10 @@ define(['data-frame/ClientURIUnparser'], (ClientURIUnparser) ->
 					pre += "<div style='display:inline; background-color:#FFFFFF;'>" + term.name + "</div>"
 					pre += "<div style='display:inline;background-color:#FFFFFF'><a href='" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a></div>"
 
-					#request schema from server and store locally.
+					# request schema from server and store locally.
 					do (i, pre, post, launch) ->
-						#TODO: We shouldn't really be requesting/using the SQL model on client side
-						serverRequest "GET", "/sqlmodel/", {}, null, (statusCode, result) ->
+						# TODO: We shouldn't really be requesting/using the SQL model on client side
+						serverRequest "GET", "/lfmodel/", {}, null, (statusCode, result) ->
 							uid = new uidraw(i, objcb, pre, post, rootURI, [], [], filters, [ launch - 2 ], true, tree, result)
 							uid.subRowIn()
 				else
@@ -143,11 +143,24 @@ define(['data-frame/ClientURIUnparser'], (ClientURIUnparser) ->
 				@html += @post
 				@objcb.callback @idx, @html
 
-		#is the thing we're talking about a term or a fact type?
-		for mod in cmod[1..] when mod[1] == @about
+		# TODO: This needs to be given by the server rather than generated here
+		getIdent = (mod) ->
+			switch mod[0]
+				when 'term', 'verb'
+					mod[1].replace(new RegExp(' ', 'g'), '_')
+				when 'fcTp'
+					ident = []
+					for factTypePart in mod[1...-1]
+						ident.push(getIdent(factTypePart))
+					return ident.join('-')
+				else
+					return ''
+		
+		# is the thing we're talking about a term or a fact type?
+		for mod in cmod[1..] when getIdent(mod) == @about
 			@type = mod[0]
 			if @type == "fcTp"
-				@schema = mod[6]
+				@schema = mod[1..]
 
 		@subRowIn = ->
 			parent = this
@@ -155,14 +168,14 @@ define(['data-frame/ClientURIUnparser'], (ClientURIUnparser) ->
 				@pre += "<div class='panel' style='background-color:" + @bg + ";'><table id='tbl--" + pid + "'><tbody>"
 				@post += "</tbody></table></div>"
 
-				#are there children with 'add' modifiers? huh?
+				# are there children with 'add' modifiers? huh?
 				for currBranch in @branch when currBranch[0] == "ins" and currBranch[1][0] == @about and currBranch[1][1] == undefined
 					for currBranchType in currBranch[2][1..] when currBranchType[0] == "add"
 						@adds++
 
-				#are there any subcollections?
+				# are there any subcollections?
 				for mod in cmod[1..] when mod[0] == "fcTp"
-					for col in mod[6] when col[1] == @about
+					for col in mod[1..] when getIdent(col) == @about
 						@cols++
 
 				@targ = serverAPI(@about, @filters)
@@ -170,12 +183,12 @@ define(['data-frame/ClientURIUnparser'], (ClientURIUnparser) ->
 					resl = ""
 					parent.rows = result.instances.length
 					parent.items = parent.rows + 2 + parent.adds + 1 + parent.cols
-					#get link which adds an 'add inst' dialog.
+					# get link which adds an 'add inst' dialog.
 					newb = [ "ins", [ parent.about ], [ "mod", [ "add" ] ] ]
 					npos = getTarg(parent.ftree, parent.loc, "add", newb)
 					parent.data.push [ parent.rows + 1, "<tr><td><a href = '" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false;'>[(+)add new]</a></td></tr>" ]
 
-					#render each child and call back
+					# render each child and call back
 					for instance, i in result.instances
 						launch = -1
 						actn = "view"
@@ -183,7 +196,7 @@ define(['data-frame/ClientURIUnparser'], (ClientURIUnparser) ->
 						for currBranch, j in parent.branch[3..]
 							if currBranch[0] == "ins" and currBranch[1][0] == parent.about and currBranch[1][1] != undefined and currBranch[1][1] in [instance.id, instance.name]
 								launch = j + 3
-								#find action.
+								# find action.
 								for currBranchType in currBranch[2][1..] when currBranchType[0] in ["edit","del"]
 									actn = currBranchType[0]
 									break
@@ -235,7 +248,7 @@ define(['data-frame/ClientURIUnparser'], (ClientURIUnparser) ->
 							parent.callback i, prel + postl
 
 					parent.callback parent.rows, "<tr><td><hr style='border:0px; width:90%; background-color: #999; height:1px;'></td></tr>"
-					#launch more uids to render the adds
+					# launch more uids to render the adds
 					posl = parent.targ + "/" + parent.about
 
 					for currBranch, j in parent.branch[3..]
@@ -248,22 +261,22 @@ define(['data-frame/ClientURIUnparser'], (ClientURIUnparser) ->
 
 					parent.callback parent.rows + 1 + parent.adds + 1, "<tr><td><hr style='border:0px; width:90%; background-color: #999; height:1px;'></td></tr>"
 
-					#launch a final callback to add the subcollections.
+					# launch a final callback to add the subcollections.
 					for mod in cmod[1..] when mod[0] == "fcTp"
-						for termVerb in mod[6] when termVerb[1] == parent.about
+						for termVerb in mod[1..] when termVerb[1] == parent.about
 							launch = -1
 
-							for branch, k in parent.branch[3...] when branch[1][0] == mod[1]
+							for branch, k in parent.branch[3...] when branch[1][0] == getIdent(mod)
 								launch = k + 1
 								break
 
 							parent.colsout++
 							res = ""
-							pre = "<tr id='tr--data--" + mod[1] + "'><td>"
+							pre = "<tr id='tr--data--" + getIdent(mod) + "'><td>"
 							post = "</td></tr>"
 							if launch != -1
 								npos = getTarg(parent.ftree, parent.loc, "del", launch)
-								pre += "<div style='display:inline;background-color:" + parent.unbg + "'>" + mod[2] + "</div>"
+								pre += "<div style='display:inline;background-color:" + parent.unbg + "'>" + getIdent(mod) + "</div>"
 								pre += "<div style='display:inline;background-color:" + parent.unbg + "'><a href='" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a></div>"
 								subcolcb = callback: (n, prod) ->
 									parent.callback n, prod
@@ -271,9 +284,9 @@ define(['data-frame/ClientURIUnparser'], (ClientURIUnparser) ->
 								uid = new uidraw(parent.rows + 1 + parent.adds + 1 + parent.colsout, subcolcb, pre, post, rootURI, [], [], parent.filters, loc.concat([ launch ]), not parent.even, parent.ftree, cmod)
 								uid.subRowIn()
 							else
-								newb = [ "col", [ mod[1] ], [ "mod" ] ]
+								newb = [ "col", [ getIdent(mod) ], [ "mod" ] ]
 								npos = getTarg(parent.ftree, parent.loc, "add", newb)
-								pre += mod[2]
+								pre += getIdent(mod)
 								pre += " <a href='" + parent.rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false'><span title='See all' class='ui-icon ui-icon-search'></span></a>"
 								res += (pre + post)
 								parent.callback parent.rows + 1 + parent.adds + 1 + parent.colsout, res
@@ -286,7 +299,7 @@ define(['data-frame/ClientURIUnparser'], (ClientURIUnparser) ->
 				@id = @branch[1][1]
 				actn = "view"
 
-				#find first action.
+				# find first action.
 				for branchType in @branch[2][1..] when branchType[0] in ["add", "edit", "del"]
 					actn = branchType[0]
 					break
@@ -304,7 +317,7 @@ define(['data-frame/ClientURIUnparser'], (ClientURIUnparser) ->
 							@targ = serverAPI(@about, @filters)
 							serverRequest "GET", @targ, {}, null, (statusCode, result, headers) ->
 								res = "id: " + result.instances[0].id + "<br/>"
-								#loop around terms
+								# loop around terms
 								for schema in parent.schema
 									if schema[0] == "term"
 										res += result.instances[0][schema[1] + "_name"] + " "
@@ -313,13 +326,10 @@ define(['data-frame/ClientURIUnparser'], (ClientURIUnparser) ->
 								parent.callback 1, res
 					when "add"
 						if @type == "term"
-							#get schema
-							schema = []
+							# TODO: The schema info should come from cmod
+							schema = [['Text', 'name', 'Name', []]]
 
-							for mod in cmod[1..] when mod[1] == @about
-								schema = mod[3]	
-
-							#print form.
+							# print form.
 							res = "<div align='right'>"
 							res += "<form class='action'>"
 							res += createHiddenInputs('addterm', serverAPI(@about, []), targ, @about)
@@ -340,7 +350,7 @@ define(['data-frame/ClientURIUnparser'], (ClientURIUnparser) ->
 							for schema in parent.schema when schema[0] == "term"
 								termResults[schema[1]] = []
 
-							#Get results for all the terms and process them once finished
+							# Get results for all the terms and process them once finished
 							resultsReceived = 0
 							resultsRequested = Object.keys(termResults).length
 							for termName of termResults
@@ -349,15 +359,14 @@ define(['data-frame/ClientURIUnparser'], (ClientURIUnparser) ->
 										termResults[termName] = result.instances
 										resultsReceived++
 
-										#If all requests have returned then construct dropdowns & form
+										# If all requests have returned then construct dropdowns & form
 										if resultsReceived == resultsRequested
 											res = createFactTypeForm(parent.schema, termResults, 'addfctp', serverAPI(parent.about, []), posl, parent.about)
 											parent.callback 1, res
 					when "edit"
 						if @type == "term"
-							schema = []
-							for mod in cmod[1..] when mod[1] == @about
-								schema = mod[3]
+							# TODO: The schema info should come from cmod
+							schema = [['Text', 'name', 'Name', []]]
 
 							@targ = serverAPI(@about, @filters)
 							serverRequest "GET", @targ, {}, null, (statusCode, result, headers) ->
@@ -403,7 +412,7 @@ define(['data-frame/ClientURIUnparser'], (ClientURIUnparser) ->
 												res += "</div>"
 												parent.callback 1, res
 					when "del"
-						#TODO: make this a function
+						# TODO: make this a function
 						res =
 							"<div align='left'>" +
 								"marked for deletion" +
@@ -429,11 +438,11 @@ define(['data-frame/ClientURIUnparser'], (ClientURIUnparser) ->
 	createFactTypeForm = (schemas, termResults, action, serverURI, backURI, type, currentFactType = false) ->
 		termSelects = {}
 		for termName, termResult of termResults
-			select = "<select id='" + termName + "_id'>"
-			#Loop through options
+			select = "<select id='" + termName + "'>"
+			# Loop through options
 			for term in termResult
 				select += "<option value='" + term.id + "'"
-				#if current value, print selected
+				# if current value, print selected
 				if currentFactType != false and currentFactType[termName + "_id"] == term.id
 					select += " selected='selected'" 
 				select += ">" + term.name + "</option>"
@@ -443,7 +452,7 @@ define(['data-frame/ClientURIUnparser'], (ClientURIUnparser) ->
 		res = "<form class='action'>"
 		res += createHiddenInputs(action, serverURI, backURI, type, if currentFactType == false then false else currentFactType.id)
 
-		#merge dropdowns with verbs to create 'form'
+		# merge dropdowns with verbs to create 'form'
 		for schema in schemas
 			if schema[0] == "term"
 				res += termSelects[schema[1]] + " "
@@ -507,12 +516,12 @@ define(['data-frame/ClientURIUnparser'], (ClientURIUnparser) ->
 
 		false
 
-	#needs to somehow travel to the server...
+	# needs to somehow travel to the server...
 	filtmerge = (branch, fltrs) ->
 		filters = jQuery.extend(true, [], fltrs)
 		rootURI = "/data/" + branch[1][0]
-		#filter -> API uri processing
-		#append uri filters
+		# filter -> API uri processing
+		# append uri filters
 		for leaf in branch[2][1..]
 			if leaf[0] == "filt"
 				if leaf[1][1][0] == undefined

@@ -1,0 +1,416 @@
+define(['underscore', 'Prettify', 'ometa/ometa-base'], function(_, Prettify) {
+	var LF2AbstractSQL;
+	//Transformation from SBVR Logical Formulation to SQL
+
+	ometa LF2AbstractSQL {
+		
+		/** Terms **/
+		TermName =
+			:termName {this.terms[termName] = termName}
+			(	?(!this.tables.hasOwnProperty(termName))
+			|	{console.error('We already have a term with a name of: ' + termName)} ?(false)
+			)
+			{this.tables[termName] = {fields:[], primitive: this.isPrimitive(termName), name: null, idField: null}}
+			-> termName,
+		Attributes :tableID =
+			[(
+				[ :attributeName ApplyFirstExisting(['Attr' + attributeName, 'DefaultAttr'], [tableID]):attributeValue ]
+			)*],
+		DefaultAttr :tableID =
+			:anything
+			{console.log('Default', tableID, anything)},
+		AttrConceptType :termName = // tableID will be same as termName for ConceptType (fact types cannot have a concept type)
+			['term' :conceptType] {this.conceptTypes[termName] = conceptType}
+			{this.tables[termName].fields.push(['ConceptType', this.tables[conceptType].name, this.tables[conceptType].idField, 'NOT NULL']); this.tables[termName].primitive = this.isPrimitive(termName)},
+		AttrDatabaseIDField :tableID =
+			:idField
+			(	?(this.tables[tableID] == 'Attribute')
+			|	{this.tables[tableID].fields.push(['PrimaryKey', idField])}
+				{this.tables[tableID].idField = idField}
+			),
+		AttrDatabaseNameField :tableID =
+			:nameField
+			(	?(this.tables[tableID] == 'Attribute')
+			|	{this.tables[tableID].fields.push(['Name', nameField])}
+			),
+		AttrDatabaseTableName :tableID =
+			:tableName
+			(	?(this.tables[tableID] == 'Attribute')
+			|	{this.tables[tableID].name = tableName}
+			),
+		AttrForeignKey :factType =
+			:type
+			{this.tables[factType[0][1]].fields.push(['ForeignKey', this.tables[factType[2][1]].name, this.tables[factType[2][1]].idField, type])}
+			// {delete this.tables[factType]}
+			{this.tables[factType] = 'ForeignKey'}
+		,
+		// AttrSynonym :term =
+			// :synonym {this.terms[synonym[1]] = term[1]},
+		AttrSynonymousForm :factType =
+			:synForm
+			AddFactType(synForm.slice(0, -1), factType),
+		AttrTermForm :factType =
+			:term
+			{this.terms[term[1]] = factType}
+			{this.tables[term[1]] = this.tables[factType]},
+			
+			
+		
+		/** Fact Types **/
+		FactType =
+			&((:factTypePart &(:attributes) -> factTypePart)+:factType)
+			AddFactType(factType, factType)
+			(	?(factType.length == 2)
+				// Eat input
+				(:factTypePart &(:attributes))+
+				
+				{this.tables[factType[0][1]].fields.push(['Boolean', factType[1][1]])}
+				{this.tables[factType] = 'Attribute'}
+			|	{this.tables[factType] = {fields:[], primitive: false, name: null}}
+				(	['term' :termName]
+					{this.tables[factType].fields.push(['ForeignKey', this.tables[termName].name, this.tables[termName].idField, 'NOT NULL'])}
+				|	['verb' :verb]
+				)+
+			)
+			-> factType,
+		
+		Cardinality =
+			[
+				(	'minCard'
+				|	'maxCard'
+				|	'card'
+				)
+				Number:cardinality
+			]
+			-> cardinality,
+		Number =
+			[	'num'
+				:num ?{!isNaN(num)}
+			]
+			-> num,
+		Variable =
+			[	'var'
+				Number:bind
+				['term' :termName]
+				{'var' + bind}:varAlias
+				{['Query', ['Select', []], ['From', this.tables[termName].name, varAlias + termName]]}:query
+				ResolveConceptTypes(query, termName, varAlias)
+				(	
+					(	RulePart:whereBody
+						AddWhereClause(query, whereBody)
+					)
+				)?
+			]
+			(	RulePart:whereBody
+				AddWhereClause(query, whereBody)
+			)
+			-> query,
+		
+		Bind =
+			[	'bind'
+				['term' :termName]
+				:bind
+			]
+			-> bind,
+
+		LinkTable :actualFactType :rootTerms =
+			{'link' + this.linkTableBind++}:tableAlias
+			{['Query', ['Select', []], ['From', this.tables[actualFactType].name, tableAlias]]}:query
+			{0}:i
+			(	?(i < rootTerms.length)
+				Bind:bind
+				{rootTerms[i]}:termName
+				AddWhereClause(query, ['Equals', ['ReferencedField', tableAlias, this.tables[termName].name], ['ReferencedField', 'var' + bind + termName, this.tables[termName].idField]])
+				{i++}
+			)+
+			-> ['Exists', query],
+		
+		ForeignKey :actualFactType :rootTerms =
+			?(this.tables[actualFactType] == 'ForeignKey')
+			(	Bind:bindFrom
+				Bind:bindTo
+				end
+				{rootTerms[0]}:termFrom
+				{rootTerms[1]}:termTo
+			|	___ForeignKeyMatchingFailed___.die
+			)
+			-> ['Equals', ['ReferencedField', 'var' + bindFrom + termFrom, this.tables[termTo].name], ['ReferencedField', 'var' + bindTo + termTo, this.tables[termTo].idField]],
+
+		Attribute :actualFactType =
+			?(this.tables[actualFactType] == 'Attribute')
+			(	Bind:bindFrom
+				end
+				{actualFactType[0][1]}:termFrom
+				{actualFactType[1][1]}:attributeName
+			|	___AttributeMatchingFailed___.die
+			)
+			-> ['Equals', ['ReferencedField', 'var' + bindFrom + termFrom, attributeName], ['Boolean', true]],
+		
+		AtomicFormulation =
+			[	'aFrm'
+				['fcTp' anything+:factType]
+				ActualFactType(factType):actualFactType
+				FactTypeRootTerms(factType, actualFactType):rootTerms
+				(	ForeignKey(actualFactType, rootTerms)
+				|	Attribute(actualFactType)
+				|	LinkTable(actualFactType, rootTerms)
+				):whereClause
+			]
+			-> whereClause,
+		AtLeast =
+			[	'atLeastQ'
+				Cardinality:minCard
+				Variable:query
+				{query[1][1].push(['Count', '*'])}
+			]
+			-> ['EqualOrGreater', query, ['Number', minCard]],
+		Exactly =
+			[	'exactQ'
+				Cardinality:card
+				Variable:query
+				{query[1][1].push(['Count', '*'])}
+			]
+			-> ['Equals', query, ['Number', card]],
+		Range =
+			[	'numRngQ'
+				Cardinality:minCard
+				Cardinality:maxCard
+				Variable:query
+				{query[1][1].push(['Count', '*'])}
+			]
+			-> ['Between', query, ['Number', minCard], ['Number', maxCard]],
+		Exists =
+			[	'existQ'
+				Variable:query
+			]
+			-> ['Exists', query],
+		Negation =
+			[	'neg'
+				RulePart:whereBody
+			]
+			-> ['Not', whereBody],
+			
+		
+		RulePart =
+			(	AtomicFormulation
+			|	AtLeast
+			|	Exactly
+			|	Exists
+			|	Negation
+			|	Range
+			|	:x {console.error('Hit unhandled operation:', x)} ?(false)
+			):whereBody
+			-> whereBody,
+		
+		RuleBody =
+			[
+				(	'obl'
+				|	'nec'
+				|	'pos'
+				|	'prm'
+				)
+				RulePart:rule
+				// {console.log(Prettify.match(rule, 'elem')); console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')}
+			]
+			-> rule,
+		
+		Process =
+			[	'model'
+				(
+					[	'term' TermName:termName Attributes(termName)
+					|	'fcTp' FactType:factType Attributes(factType)
+					|	'rule' RuleBody:ruleBody ['text' :ruleText]
+						{this.linkTableBind = 0}
+						{this.rules.push(['Rule', ['Text', ruleText], ['Body', ruleBody]])}
+					]
+				)+
+			]
+			-> {tables:this.tables, rules:this.rules}
+	}
+	
+	LF2AbstractSQL.AddWhereClause = function(query, whereBody) {
+		// TODO: Move this to an optimisation pass?
+		// Check if it's a place where we can do a join optimisation.
+		if(whereBody[0] == 'Exists' && whereBody[1][0] == 'Query') {
+			whereBody = whereBody[1].slice(1);
+			for(var i=0; i < whereBody.length; i++) {
+				if(whereBody[i][0] == 'From') {
+					query.push(whereBody[i]);
+				}
+			}
+			for(var i=0; i < whereBody.length; i++) {
+				if(whereBody[i][0] == 'Where') {
+					this.AddWhereClause(query, whereBody[i][1]);
+				}
+			}
+		}
+		else {
+			for(var i=0; i < query.length; i++) {
+				if(query[i][0] == 'Where') {
+					query[i][1] = ['And', query[i][1], whereBody];
+					return;
+				}
+			}
+			query.push(['Where', whereBody]);
+		}
+	}
+	
+	LF2AbstractSQL.ResolveConceptTypes = function(query, termName, varAlias) {
+		var conceptAlias,
+			parentAlias = varAlias + termName,
+			conceptName = termName;
+		while(this.conceptTypes.hasOwnProperty(conceptName)) {
+			conceptName = this.conceptTypes[termName];
+			conceptAlias = varAlias + conceptName;
+			{query.push(['From', this.tables[conceptName].name, conceptAlias])}
+			this.AddWhereClause(query, ['Equals', ['ReferencedField', parentAlias, this.tables[conceptName].name], ['ReferencedField', conceptAlias, this.tables[conceptName].idField]])
+			parentAlias = conceptAlias;
+		}
+	}
+	
+	var primitives = {
+		'integer': true
+	}
+	LF2AbstractSQL.isPrimitive = function(termName) {
+		do {
+			if (primitives.hasOwnProperty(termName)) {
+				return termName;
+			}
+		} while (this.conceptTypes.hasOwnProperty(termName) && (termName = this.conceptTypes[termName]));
+		return false;
+	}
+	
+	LF2AbstractSQL.initialize = function() {
+		this.tables = {};
+		this.terms = {}; // Is this needed?
+		this.conceptTypes = {};
+		this.rules = [];
+		this.factTypes = [];
+		this.linkTableBind = 0;
+	}
+	
+	/** Copied code */
+	LF2AbstractSQL.AddFactType = function(factType, realFactType) {
+		realFactType = _.extend([], realFactType)
+		this._traverseFactType(factType, realFactType);
+		if(factType.length == 3 && factType[1][1] == 'has') {
+			this._traverseFactType([factType[2], ['verb', 'is of'], factType[0]], realFactType);
+		}
+		else if(factType.length == 3 && factType[1][1] == 'is of') {
+			this._traverseFactType([factType[2], ['verb', 'has'], factType[0]], realFactType);
+		}
+	};
+	
+	LF2AbstractSQL.ApplyFirstExisting = function(arr, ruleArgs) {
+		if(ruleArgs == null) {
+			ruleArgs = [];
+		}
+		for (var i = 0; i < arr.length; i++) {
+			if(this[arr[i]] != undefined) {
+				if(ruleArgs != null && ruleArgs.length > 0) {
+					ruleArgs.unshift(arr[i]);
+					return this._applyWithArgs.apply(this, ruleArgs);
+				}
+				return this._apply(arr[i], ruleArgs);
+			}
+		}
+	}
+
+	LF2AbstractSQL._traverseFactType = function(fctp, create) {
+		var self = this,
+			traverseRecurse = function(currentFactTypePart, remainingFactType, currentLevel) {
+			if(currentFactTypePart == null) {
+				if(create) {
+					currentLevel.__valid = create;
+				}
+				return currentLevel;
+			}
+			var finalLevel, finalLevels = {};
+			
+			if(currentLevel.hasOwnProperty(currentFactTypePart) || (create && (currentLevel[currentFactTypePart] = {})) ) {
+				finalLevel = traverseRecurse(remainingFactType[0], remainingFactType.slice(1), currentLevel[currentFactTypePart]);
+				if(finalLevel != false) {
+					_.extend(finalLevels, finalLevel);
+				}
+			}
+			
+			if(!create && currentFactTypePart[0] == 'term') {
+				while( self.conceptTypes.hasOwnProperty(currentFactTypePart[1]) ) {
+					currentFactTypePart = ['term', self.conceptTypes[currentFactTypePart[1]]];
+					if( currentLevel.hasOwnProperty(currentFactTypePart) ) {
+						// We use recursion so here we go down each branch until we find the suitable one, or run out of branches.
+						finalLevel = traverseRecurse(remainingFactType[0], remainingFactType.slice(1), currentLevel[currentFactTypePart]);
+						if(finalLevel !== false) {
+							_.extend(finalLevels, finalLevel);
+						}
+					}
+				}
+			}
+			return _.isEmpty(finalLevels) === true ? false : finalLevels;
+		};
+		return traverseRecurse(fctp[0], fctp.slice(1), this.factTypes);
+	};
+	/** End copied code. */
+
+	LF2AbstractSQL.ActualFactType = function(factType) {
+		var traverseInfo = this._traverseFactType(factType);
+		if(traverseInfo===false || !traverseInfo.hasOwnProperty('__valid')) {
+			return false;
+		}
+		return traverseInfo.__valid;
+	};
+
+	LF2AbstractSQL.FactTypeRootTerms = function(factType, actualFactType) {
+		var $elf = this,
+			rootTerms = [],
+			rootTermIndex = 0;
+		for(var i=0; i<actualFactType.length; i+=2) {
+			// Check that terms match.
+			if(factType[i][1] != actualFactType[i][1]) {
+				// Find the term in the fact type that matches (for synonymous form)
+				for(var j=0; j<actualFactType.length; j++ && rootTerms.length == rootTermIndex) {
+					var termName = factType[i][1];
+					if(termName != actualFactType[j][1]) {
+						while( self.conceptTypes.hasOwnProperty(termName) ) {
+							termName = self.conceptTypes[termName];
+							if( termName == actualFactType[j][1] ) {
+								rootTerms[rootTermIndex] = termName;
+								break;
+							}
+						}
+					}
+					else {
+						rootTerms[rootTermIndex] = termName;
+						break;
+					}
+				}
+			}
+			else {
+				rootTerms[rootTermIndex] = factType[i][1];
+			}
+			rootTermIndex++;
+		}
+		return rootTerms;
+	};
+	
+	// ometaifyObject = function(variable) {
+		// if(_.isArray(variable)) {
+			// for(var i=0;i<variable.length;i++) {
+				// variable[i] = ometaifyObject(variable[i]);
+			// }
+			// return variable;
+		// }
+		// if (typeof variable === 'object') {
+			// var ometaArray = [];
+			// for(var key in variable) {
+				// if(variable.hasOwnProperty(key)) {
+					// ometaArray.push([key, ometaifyObject(variable[key])]);
+				// }
+			// }
+			// return ometaArray;
+		// }
+		// return variable;
+	// }
+	
+	return LF2AbstractSQL;
+});

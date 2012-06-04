@@ -1,28 +1,48 @@
-define(['SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'SBVR2SQL', 'data-server/ServerURIParser'], (SBVRParser, LF2AbstractSQLPrep, SBVR2SQL, ServerURIParser) ->
+define(['SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-compiler/LF2AbstractSQL', 'sbvr-compiler/AbstractSQL2SQL', 'data-server/ServerURIParser'], (SBVRParser, LF2AbstractSQLPrep, LF2AbstractSQL, AbstractSQL2SQL, ServerURIParser) ->
 	exports = {}
 	db = null
+	transactionModel = null
 	op =
 		eq: "="
 		ne: "!="
 		lk: "~"
 	
-	
-	transactionModel = '''
-			Term:      resource
-			Term:      transaction
-			Term:      lock
-			Term:      conditional representation
-			Fact type: lock is exclusive
-			Fact type: lock is shared
-			Fact type: resource is under lock
-			Fact type: lock belongs to transaction
-			Rule:      It is obligatory that each resource is under at most 1 lock that is exclusive'''
-	transactionModel = SBVRParser.matchAll(transactionModel, "expr")
-	transactionModel = LF2AbstractSQLPrep.match(transactionModel, "Process")
-	transactionModel = SBVR2SQL.match(transactionModel, "trans")
+	rebuildFactType = (factType) ->
+		factType = factType.split('-')
+		for factTypePart, key in factType
+			factTypePart = factTypePart.replace(/_/g, ' ')
+			if key % 2 == 0
+				factType[key] = ['term', factTypePart]
+			else
+				factType[key] = ['verb', factTypePart]
+		return factType
+					
+	getCorrectTableInfo = (oldTableName) ->
+		sqlmod = serverModelCache.getSQL()
+		isAttribute = false
+		attributeName = null
+		factType = rebuildFactType(oldTableName)
+		if sqlmod.tables.hasOwnProperty(factType)
+			if sqlmod.tables[factType] == 'Attribute'
+				isAttribute = {termName: factType[0][1], attributeName: factType[1][1]}
+				table = sqlmod.tables[isAttribute.termName]
+			else
+				table = sqlmod.tables[factType]
+		# Transaction model..
+		else if transactionModel.tables.hasOwnProperty(factType)
+			if transactionModel.tables[factType] == 'Attribute'
+				isAttribute = {termName: factType[0][1], attributeName: factType[1][1]}
+				table = transactionModel.tables[isAttribute.termName]
+			else
+				table = transactionModel.tables[factType]
+		else if sqlmod.tables.hasOwnProperty(oldTableName)
+			table = sqlmod.tables[oldTableName]
+		else # Transaction model..
+			table = transactionModel.tables[oldTableName]
+		return {table, isAttribute}
 
 	serverModelCache = () ->
-		#This is needed as the switch has no value on first execution. Maybe there's a better way?
+		# This is needed as the switch has no value on first execution. Maybe there's a better way?
 		values = {
 			serverOnAir: false
 			modelAreaDisabled: false
@@ -101,17 +121,23 @@ define(['SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'SBVR2SQL', 'data-serv
 				validateDB(tx, serverModelCache.getSQL(), successCallback, failureCallback)
 
 
-		#get conditional representations (if exist)
-		lock_id = locks.rows.item(i).lock_id
-		tx.executeSql('SELECT * FROM "conditional_representation" WHERE "lock_id" = ?;', [lock_id], (tx, crs) ->
+		# get conditional representations (if exist)
+		lock_id = locks.rows.item(i).lock
+		tx.executeSql('SELECT * FROM "conditional_representation" WHERE "lock" = ?;', [lock_id], (tx, crs) ->
 			#find which resource is under this lock
-			tx.executeSql('SELECT * FROM "resource-is_under-lock" WHERE "lock_id" = ?;', [lock_id], (tx, locked) ->
+			tx.executeSql('SELECT * FROM "resource-is_under-lock" WHERE "lock" = ?;', [lock_id], (tx, locked) ->
+				{table, isAttribute} = getCorrectTableInfo(locked.rows.item(0).resource_type)
 				if crs.rows.item(0).field_name == "__DELETE"
-					#delete said resource
-					tx.executeSql 'DELETE FROM "' + locked.rows.item(0).resource_type + '" WHERE "id" = ?;', [locked.rows.item(0).resource_id], continueEndingLock
+					# delete said resource
+					if isAttribute
+						sql = 'UPDATE "' + table.name + '" SET "' + isAttribute.attributeName + '" = 0 WHERE "' + table.idField + '" = ?;'
+					else
+						sql = 'DELETE FROM "' + table.name + '" WHERE "' + table.idField + '" = ?;'
+					
+					tx.executeSql(sql, [locked.rows.item(0).resource], continueEndingLock)
 				else
-					#commit conditional_representation
-					sql = 'UPDATE "' + locked.rows.item(0).resource_type + '" SET '
+					# commit conditional_representation
+					sql = 'UPDATE "' + table.name + '" SET '
 
 					for j in [0...crs.rows.length]
 						item = crs.rows.item(j);
@@ -121,16 +147,14 @@ define(['SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'SBVR2SQL', 'data-serv
 						else
 							sql += item.field_value
 						sql += ", " if j < crs.rows.length - 1
-					sql += ' WHERE "id"=' + locked.rows.item(0).resource_id + ';'
+					sql += ' WHERE "' + table.idField + '"=' + locked.rows.item(0).resource + ';'
 					tx.executeSql sql, [], continueEndingLock
-				tx.executeSql 'DELETE FROM "conditional_representation" WHERE "lock_id" = ?;', [lock_id]
-				tx.executeSql 'DELETE FROM "resource-is_under-lock" WHERE "lock_id" = ?;', [lock_id]
+				tx.executeSql 'DELETE FROM "conditional_representation" WHERE "lock" = ?;', [lock_id]
+				tx.executeSql 'DELETE FROM "resource-is_under-lock" WHERE "lock" = ?;', [lock_id]
 			)
 		)
 
-		tx.executeSql 'DELETE FROM "lock-is_shared" WHERE "lock_id" = ?;', [lock_id]
-		tx.executeSql 'DELETE FROM "lock-is_exclusive" WHERE "lock_id" = ?;', [lock_id]
-		tx.executeSql 'DELETE FROM "lock-belongs_to-transaction" WHERE "lock_id" = ?;', [lock_id]
+		tx.executeSql 'DELETE FROM "lock-belongs_to-transaction" WHERE "lock" = ?;', [lock_id]
 		tx.executeSql 'DELETE FROM "lock" WHERE "id" = ?;', [lock_id]
 
 	# successCallback = (tx, sqlmod, failureCallback, result)
@@ -140,13 +164,13 @@ define(['SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'SBVR2SQL', 'data-serv
 		totalQueries = 0
 		totalExecuted = 0
 
-		for row in sqlmod when row[0] == "rule"
+		for rule in sqlmod.rules
 			totalQueries++
-			tx.executeSql row[4], [], do(row) ->
+			tx.executeSql(rule.sql, [], do(rule) ->
 				(tx, result) ->
 					totalExecuted++
 					if result.rows.item(0).result in [false, 0]
-						errors.push row[2]
+						errors.push(rule.text)
 
 					if totalQueries == totalExecuted
 						if errors.length > 0
@@ -155,6 +179,7 @@ define(['SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'SBVR2SQL', 'data-serv
 						else
 							tx.end()
 							successCallback tx, result
+			)
 		if totalQueries == 0
 			successCallback tx, ""
 
@@ -162,29 +187,29 @@ define(['SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'SBVR2SQL', 'data-serv
 	# successCallback = (tx, sqlmod, failureCallback, result)
 	# failureCallback = (errors)
 	executeSasync = (tx, sqlmod, successCallback, failureCallback, result) ->
-		#Create tables related to terms and fact types
-		for row in sqlmod when row[0] in ["fcTp", "term"]
-			tx.executeSql(row[4])
+		# Create tables related to terms and fact types
+		for createStatement in sqlmod.createSchema
+			tx.executeSql(createStatement)
 
-		#Validate the [empty] model according to the rules.
-		#This may eventually lead to entering obligatory data.
-		#For the moment it blocks such models from execution.
+		# Validate the [empty] model according to the rules.
+		# This may eventually lead to entering obligatory data.
+		# For the moment it blocks such models from execution.
 		validateDB(tx, sqlmod, successCallback, failureCallback)
 
 
 	# successCallback = (tx, sqlmod, failureCallback, result)
 	# failureCallback = (errors)
 	executeTasync = (tx, trnmod, successCallback, failureCallback, result) ->
-		#Execute transaction model.
+		# Execute transaction model.
 		executeSasync(tx, trnmod, (tx, result) ->
-			#Hack: Add certain attributes to the transaction model tables.
-			#This should eventually be done with SBVR, when we add attributes.
+			# Hack: Add certain attributes to the transaction model tables.
+			# This should eventually be done with SBVR, when we add attributes.
 			tx.executeSql 'ALTER TABLE "resource-is_under-lock" ADD COLUMN resource_type TEXT'
 			tx.executeSql 'ALTER TABLE "resource-is_under-lock" DROP CONSTRAINT "resource-is_under-lock_resource_id_fkey";'
 			tx.executeSql 'ALTER TABLE "conditional_representation" ADD COLUMN field_name TEXT'
 			tx.executeSql 'ALTER TABLE "conditional_representation" ADD COLUMN field_value TEXT'
 			tx.executeSql 'ALTER TABLE "conditional_representation" ADD COLUMN field_type TEXT'
-			tx.executeSql 'ALTER TABLE "conditional_representation" ADD COLUMN lock_id INTEGER'
+			tx.executeSql 'ALTER TABLE "conditional_representation" ADD COLUMN lock INTEGER'
 			successCallback tx, result
 		, (errors) ->
 			serverModelCache.setModelAreaDisabled false
@@ -194,22 +219,21 @@ define(['SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'SBVR2SQL', 'data-serv
 
 
 	updateRules = (sqlmod) ->
-		#Create tables related to terms and fact types
-		#if not exists clause makes sure table is not double-created,
-		#tho this should be dealt with more elegantly.
-		for row in sqlmod when row[0] in ["fcTp", "term"]
-			tx.executeSql row[4]
+		# Create tables related to terms and fact types
+		# if not exists clause makes sure table is not double-created,
+		# though this should be dealt with more elegantly.
+		for createStatement in sqlmod.createSchema
+			tx.executeSql(createStatement)
 
-		#Validate the [empty] model according to the rules.
-		#This may eventually lead to entering obligatory data.
-		#For the moment it blocks such models from execution.
-		for row in sqlmod when row[0] == "rule"
-			query = row[4]
-			l[++m] = row[2]
-			tx.executeSql query, [], (tx, result) ->
+		# Validate the [empty] model according to the rules.
+		# This may eventually lead to entering obligatory data.
+		# For the moment it blocks such models from execution.
+		for rule in sqlmod.rules
+			l[++m] = rule.text
+			tx.executeSql(rule.sql, [], (tx, result) ->
 				if result.rows.item(0).result in [0, false]
 					alert "Error: " + l[++k]
-
+			)
 
 	getFTree = (tree) ->
 		if tree[1][0] == "term"
@@ -224,7 +248,7 @@ define(['SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'SBVR2SQL', 'data-serv
 		else if tree[1][0] == "fcTp"
 			id = tree[1][3]
 		id = 0 if id == ""
-		#if the id is empty, search the filters for one
+		# if the id is empty, search the filters for one
 		if id is 0
 			ftree = getFTree tree
 			for f in ftree[1..] when f[0] == "filt" and
@@ -233,7 +257,7 @@ define(['SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'SBVR2SQL', 'data-serv
 		return id
 
 	hasCR = (tree) ->
-		#figure out if this is a CR posted to a Lock
+		# figure out if this is a CR posted to a Lock
 		for f in getFTree(tree) when f[0] == "cr"
 			return true
 		return false
@@ -243,7 +267,7 @@ define(['SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'SBVR2SQL', 'data-serv
 			return true
 		return false
 
-	#Middleware
+	# Middleware
 	serverIsOnAir = (req, res, next) ->
 		if serverModelCache.isServerOnAir()
 			next()
@@ -262,16 +286,33 @@ define(['SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'SBVR2SQL', 'data-serv
 		else
 			next()
 
-	#Setup function
+	# Setup function
 	exports.setup = (app, requirejs) ->
 
 		requirejs(['database-layer/db'], (dbModule) ->
 			if process?
 				db = dbModule.postgres(process.env.DATABASE_URL || "postgres://postgres:.@localhost:5432/postgres")
+				AbstractSQL2SQL = AbstractSQL2SQL.postgres
 				# db = dbModule.mysql({user: 'root', password: '.', database: 'rulemotion'})
 				# db = dbModule.sqlite('/tmp/rulemotion.db')
 			else
 				db = dbModule.websql('rulemotion')
+				AbstractSQL2SQL = AbstractSQL2SQL.websql
+			transactionModel = '''
+					Term:      resource
+					Term:      transaction
+					Term:      lock
+					Term:      conditional representation
+					Fact type: lock is exclusive
+					Fact type: lock is shared
+					Fact type: resource is under lock
+					Fact type: lock belongs to transaction
+					Rule:      It is obligatory that each resource is under at most 1 lock that is exclusive'''
+			transactionModel = SBVRParser.matchAll(transactionModel, "expr")
+			transactionModel = LF2AbstractSQLPrep.match(transactionModel, "Process")
+			transactionModel = LF2AbstractSQL.match(transactionModel, "Process")
+			transactionModel = AbstractSQL2SQL(transactionModel)
+			
 			serverModelCache = serverModelCache()
 		)
 
@@ -289,12 +330,13 @@ define(['SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'SBVR2SQL', 'data-serv
 				console.log('Error parsing model', e)
 				res.json('Error parsing model', 404)
 				return null
-			prepmod = LF2AbstractSQLPrep.match(lfmod, "Process")
-			sqlmod = SBVR2SQL.match(prepmod, "trans")
+			prepmod = LF2AbstractSQL.match(LF2AbstractSQLPrep.match(lfmod, "Process"), "Process")
+			sqlmod = AbstractSQL2SQL(prepmod, "trans")
+			
 			db.transaction((tx) ->
 				tx.begin()
 				executeSasync(tx, sqlmod, (tx, result) ->
-					#TODO: fix this as soon as the successCallback mess is fixed
+					# TODO: fix this as soon as the successCallback mess is fixed
 					executeTasync(tx, transactionModel, (tx, result) ->
 						serverModelCache.setModelAreaDisabled(true)
 						serverModelCache.setServerOnAir true
@@ -436,16 +478,17 @@ define(['SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'SBVR2SQL', 'data-serv
 					terms: []
 					fcTps: []
 				sqlmod = serverModelCache.getSQL()
-
-				for row in sqlmod[1..]
-					if row[0] == "term"
-						result.terms.push
-							id: row[1]
-							name: row[2]
-					else if row[0] == "fcTp"
-						result.fcTps.push
-							id: row[1]
-							name: row[2]
+				for key, row of sqlmod.tables
+					if /term,.*verb,/.test(key)
+						result.fcTps.push(
+							id: row.name
+							name: row.name
+						)
+					else
+						result.terms.push(
+							id: row.name
+							name: row.name
+						)
 
 				res.json(result)
 			else if tree[1][1] == "transaction"
@@ -463,23 +506,28 @@ define(['SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'SBVR2SQL', 'data-serv
 			else
 				ftree = getFTree(tree)
 				sql = ""
+				{table, isAttribute} = getCorrectTableInfo(tree[1][1])
 				if tree[1][0] == "term"
-					sql = "SELECT * FROM " + tree[1][1]
-					sql += " WHERE " unless ftree.length == 1
+					sql = 'SELECT * FROM "' + table.name + '"'
+					sql += " WHERE " if ftree.length != 1
 				else if tree[1][0] == "fcTp"
 					ft = tree[1][1]
-					fl = [ '"' + ft + '".id AS id' ]
-					jn = []
-					tb = [ '"' + ft + '"' ]
+					if isAttribute
+						sql = 'SELECT id, name AS "' + isAttribute.termName + '_name", "' + isAttribute.attributeName + '" FROM "' + table.name + '" WHERE "' + isAttribute.attributeName + '" = 1'
+					else
+						fl = [ '"' + ft + '".id AS id' ]
+						jn = []
+						tb = [ '"' + ft + '"' ]
 
-					for row in tree[1][2][1..]
-						fl.push '"' + row + '".id AS "' + row + '_id"'
-						fl.push '"' + row + '".name AS "' + row + '_name"'
-						tb.push '"' + row + '"'
-						jn.push '"' + row + '".id = "' + ft + '"."' + row + '_id"'
+						for row in tree[1][2][1..]
+							fl.push '"' + row + '".id AS "' + row + '_id"'
+							fl.push '"' + row + '".name AS "' + row + '_name"'
+							tb.push '"' + row + '"'
+							jn.push '"' + row + '".id = "' + ft + '"."' + row + '"'
 
-					sql = "SELECT " + fl.join(", ") + " FROM " + tb.join(", ") + " WHERE " + jn.join(" AND ")
-					sql += " AND " unless ftree.length == 1
+						sql = "SELECT " + fl.join(", ") + " FROM " + tb.join(", ") + " WHERE " + jn.join(" AND ")
+					sql += " AND " if ftree.length != 1
+				
 				if ftree.length != 1
 					filts = []
 
@@ -487,10 +535,12 @@ define(['SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'SBVR2SQL', 'data-serv
 						if row[0] == "filt"
 							for row2 in row[1..]
 								obj = ""
-								obj = '"' + row2[1] + '".' if row2[1][0]?
+								if row2[1][0]?
+									{table} = getCorrectTableInfo(row2[1])
+									obj = '"' + table.name + '".' 
 								filts.push obj + '"' + row2[2] + '"' + op[row2[0]] + row2[3]
 						else if row[0] == "sort"
-							#process sort
+							# process sort
 							null
 					sql += filts.join(" AND ")
 				if sql != ""
@@ -508,13 +558,13 @@ define(['SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'SBVR2SQL', 'data-serv
 				res.send(404)
 			else
 				tree = req.tree
-				#figure out if it's a POST to transaction/execute
+				# figure out if it's a POST to transaction/execute
 				if tree[1][1] == "transaction" and isExecute(tree)
 					id = getID tree
 
-					#get all locks of transaction
+					# get all locks of transaction
 					db.transaction ((tx) ->
-						tx.executeSql 'SELECT * FROM "lock-belongs_to-transaction" WHERE "transaction_id" = ?;', [id], (tx, locks) ->
+						tx.executeSql 'SELECT * FROM "lock-belongs_to-transaction" WHERE "transaction" = ?;', [id], (tx, locks) ->
 							endLock(tx, locks, 0, id, (tx, result) ->
 								res.json(result)
 							, (errors) ->
@@ -530,13 +580,19 @@ define(['SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'SBVR2SQL', 'data-serv
 							fields.push field
 							values.push value
 							binds.push '?'
+					
+					{table, isAttribute} = getCorrectTableInfo(tree[1][1])
+					if isAttribute
+						sql = 'UPDATE "' + table.name + '" SET "' + isAttribute.attributeName + '" = 1 WHERE "' + table.idField + '" = ?;'
+					else
+						sql = 'INSERT INTO "' + table.name + '" ("' + fields.join('","') + '") VALUES (' + binds.join(",") + ');'
+					
 					db.transaction (tx) ->
 						tx.begin()
-						sql = 'INSERT INTO "' + tree[1][1] + '" ("' + fields.join('","') + '") VALUES (' + binds.join(",") + ");"
 						tx.executeSql(sql, values, (tx, sqlResult) ->
 							validateDB(tx, serverModelCache.getSQL(), (tx, result) ->
 								res.json(result,
-									location: "/data/" + tree[1][1] + "*filt:" + tree[1][1] + ".id=" + sqlResult.insertId
+									location: "/data/" + tree[1][1] + "*filt:" + tree[1][1] + ".id=" + if isAttribute then binds[0] else sqlResult.insertId
 									201
 								)
 							, (errors) ->
@@ -552,12 +608,12 @@ define(['SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'SBVR2SQL', 'data-serv
 				tree = req.tree
 				id = getID(tree)
 				if tree[1][1] == "lock" and hasCR(tree)
-					#CR posted to Lock
+					# CR posted to Lock
 					db.transaction (tx) ->
-						tx.executeSql 'DELETE FROM "conditional_representation" WHERE "lock_id" = ?;', [id]
+						tx.executeSql 'DELETE FROM "conditional_representation" WHERE "lock" = ?;', [id]
 
 						sql = 'INSERT INTO "conditional_representation"' +
-							'("lock_id","field_name","field_type","field_value")' +
+							'("lock","field_name","field_type","field_value")' +
 							"VALUES (?, ?, ?, ?)"
 						for pair in req.body
 							for own key, value of pair
@@ -565,7 +621,7 @@ define(['SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'SBVR2SQL', 'data-serv
 						res.send(200)
 				else
 					db.transaction ((tx) ->
-						tx.executeSql 'SELECT NOT EXISTS(SELECT * FROM "resource-is_under-lock" AS r WHERE r."resource_type" = ? AND r."resource_id" = ?) AS result;', [tree[1][1], id], (tx, result) ->
+						tx.executeSql 'SELECT NOT EXISTS(SELECT * FROM "resource-is_under-lock" AS r WHERE r."resource_type" = ? AND r."resource" = ?) AS result;', [tree[1][1], id], (tx, result) ->
 							if result.rows.item(0).result in [1, true]
 								if id != ""
 									setStatements = []
@@ -597,43 +653,50 @@ define(['SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'SBVR2SQL', 'data-serv
 				id = getID(tree)
 				if id != 0
 					if tree[1][1] == "lock" and hasCR(tree)
-						#CR posted to Lock
-						#insert delete entry
+						# CR posted to Lock
+						# insert delete entry
 						db.transaction (tx) ->
-							tx.executeSql 'DELETE FROM "conditional_representation" WHERE "lock_id" = ?;', [id]
-							tx.executeSql 'INSERT INTO "conditional_representation" ("lock_id","field_name","field_type","field_value")' +
+							tx.executeSql 'DELETE FROM "conditional_representation" WHERE "lock" = ?;', [id]
+							tx.executeSql 'INSERT INTO "conditional_representation" ("lock","field_name","field_type","field_value")' +
 										"VALUES (?,'__DELETE','','')", [id]
 							res.send(200)
 					else
 						db.transaction ((tx) ->
-							tx.executeSql 'SELECT NOT EXISTS(SELECT * FROM "resource-is_under-lock" AS r WHERE r."resource_type" = ? AND r."resource_id" = ?) AS result;', [tree[1][1], id], (tx, result) ->
+							tx.executeSql 'SELECT NOT EXISTS(SELECT * FROM "resource-is_under-lock" AS r WHERE r."resource_type" = ? AND r."resource" = ?) AS result;', [tree[1][1], id], (tx, result) ->
 								if result.rows.item(0).result in [1, true]
 									tx.begin()
-									tx.executeSql 'DELETE FROM "' + tree[1][1] + '" WHERE id = ?;', [id], (tx, result) ->
+									{table, isAttribute} = getCorrectTableInfo(tree[1][1])
+									if isAttribute
+										sql = 'UPDATE "' + table.name + '" SET "' + isAttribute.attributeName + '" = 0 WHERE "' + table.idField + '" = ?;'
+									else
+										sql = 'DELETE FROM "' + table.name + '" WHERE "' + table.idField + '" = ?;'
+									
+									tx.executeSql(sql, [id], (tx, result) ->
 										validateDB(tx, serverModelCache.getSQL(), (tx, result) ->
 											tx.end()
 											res.json(result)
 										, (errors) ->
 											res.json(errors, 404)
 										)
+									)
 								else
 									res.json([ "The resource is locked and cannot be deleted" ], 404)
 						)
 		)
 
 		app.del('/', serverIsOnAir, (req, res, next) ->
-			#TODO: This should be reorganised to be properly async.
+			# TODO: This should be reorganised to be properly async.
 			db.transaction ((sqlmod) ->
 				(tx) ->
-					for row in sqlmod[1..] when row[0] in ["fcTp", "term"]
-						tx.executeSql row[5]
+					for dropStatement in sqlmod.dropSchema
+						tx.executeSql(dropStatement)
 			)(serverModelCache.getSQL())
 			db.transaction ((trnmod) ->
 				(tx) ->
-					for row in trnmod[1..] when row[0] in ["fcTp", "term"]
-						tx.executeSql row[5]
+					for dropStatement in trnmod.dropSchema
+						tx.executeSql(dropStatement)
 			)(serverModelCache.getTrans())
-			#TODO: these two do not belong here
+			# TODO: these two do not belong here
 			serverModelCache.setSE ""
 			serverModelCache.setModelAreaDisabled false
 

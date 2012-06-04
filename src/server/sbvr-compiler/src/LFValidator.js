@@ -56,14 +56,19 @@ define(["ometa/ometa-base"], (function() {
         "model": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                xs;
-            xs = this._many((function() {
-                return this._or((function() {
+                xs, x;
+            xs = [];
+            this._many((function() {
+                x = this._or((function() {
                     return this._applyWithArgs("token", "term")
                 }), (function() {
                     return this._applyWithArgs("token", "fcTp")
                 }), (function() {
                     return this._applyWithArgs("token", "rule")
+                }));
+                return this._opt((function() {
+                    this._pred((x != null));
+                    return xs.push(x)
                 }))
             }));
             return ["model"].concat(xs)
@@ -114,30 +119,26 @@ define(["ometa/ometa-base"], (function() {
         "addAttributes": function(termOrVerb) {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                attrs, attrsFound, attrName, attrVal;
+                attrsFound, attrName, attrVal, attrs;
             this._or((function() {
                 return this._apply("end")
             }), (function() {
-                attrs = [];
                 attrsFound = ({});
                 this._form((function() {
-                    return this._or((function() {
-                        return this._apply("end")
-                    }), (function() {
-                        return attrs = this._many((function() {
-                            this._form((function() {
-                                attrName = this._apply("anything");
-                                (attrsFound[attrName] = true);
-                                return this._or((function() {
-                                    this._pred(this[("attr" + attrName)]);
-                                    return attrVal = this._applyWithArgs("apply", ("attr" + attrName))
-                                }), (function() {
-                                    return attrVal = this._apply("anything")
-                                }))
-                            }));
-                            return [attrName, attrVal]
-                        }))
-                    }))
+                    attrs = this._many((function() {
+                        this._form((function() {
+                            attrName = this._apply("anything");
+                            (attrsFound[attrName] = true);
+                            return attrVal = this._or((function() {
+                                this._pred(this[("attr" + attrName)]);
+                                return this._applyWithArgs("apply", ("attr" + attrName))
+                            }), (function() {
+                                return this._apply("anything")
+                            }))
+                        }));
+                        return [attrName, attrVal]
+                    }));
+                    return this._apply("end")
                 }));
                 return this._applyWithArgs("defaultAttributes", termOrVerb, attrsFound, attrs)
             }));

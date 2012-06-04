@@ -92,22 +92,22 @@
           lockID = lock.instances[0].id;
           o = [
             {
-              transaction_id: trans.id,
-              lock_id: lockID
+              transaction: trans.id,
+              lock: lockID
             }
           ];
           return serverRequest("POST", trans.tlcURI, {}, o, (function(statusCode, result, headers) {
             o = [
               {
-                lock_id: lockID
+                lock: lockID
               }
             ];
             return serverRequest("POST", trans.xlcURI, {}, o, (function(statusCode, result, headers) {
               o = [
                 {
-                  resource_id: parseInt(resource_id),
+                  resource: parseInt(resource_id),
                   resource_type: resource_type,
-                  lock_id: lockID
+                  lock: lockID
                 }
               ];
               return serverRequest("POST", trans.lrcURI, {}, o, (function(statusCode, result, headers) {

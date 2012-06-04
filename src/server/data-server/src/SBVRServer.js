@@ -1,19 +1,66 @@
 (function() {
   var __hasProp = Object.prototype.hasOwnProperty;
 
-  define(['SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'SBVR2SQL', 'data-server/ServerURIParser'], function(SBVRParser, LF2AbstractSQLPrep, SBVR2SQL, ServerURIParser) {
-    var db, endLock, executeSasync, executeTasync, exports, getFTree, getID, hasCR, isExecute, op, parseURITree, serverIsOnAir, serverModelCache, transactionModel, updateRules, validateDB;
+  define(['SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-compiler/LF2AbstractSQL', 'sbvr-compiler/AbstractSQL2SQL', 'data-server/ServerURIParser'], function(SBVRParser, LF2AbstractSQLPrep, LF2AbstractSQL, AbstractSQL2SQL, ServerURIParser) {
+    var db, endLock, executeSasync, executeTasync, exports, getCorrectTableInfo, getFTree, getID, hasCR, isExecute, op, parseURITree, rebuildFactType, serverIsOnAir, serverModelCache, transactionModel, updateRules, validateDB;
     exports = {};
     db = null;
+    transactionModel = null;
     op = {
       eq: "=",
       ne: "!=",
       lk: "~"
     };
-    transactionModel = 'Term:      resource\nTerm:      transaction\nTerm:      lock\nTerm:      conditional representation\nFact type: lock is exclusive\nFact type: lock is shared\nFact type: resource is under lock\nFact type: lock belongs to transaction\nRule:      It is obligatory that each resource is under at most 1 lock that is exclusive';
-    transactionModel = SBVRParser.matchAll(transactionModel, "expr");
-    transactionModel = LF2AbstractSQLPrep.match(transactionModel, "Process");
-    transactionModel = SBVR2SQL.match(transactionModel, "trans");
+    rebuildFactType = function(factType) {
+      var factTypePart, key, _len;
+      factType = factType.split('-');
+      for (key = 0, _len = factType.length; key < _len; key++) {
+        factTypePart = factType[key];
+        factTypePart = factTypePart.replace(/_/g, ' ');
+        if (key % 2 === 0) {
+          factType[key] = ['term', factTypePart];
+        } else {
+          factType[key] = ['verb', factTypePart];
+        }
+      }
+      return factType;
+    };
+    getCorrectTableInfo = function(oldTableName) {
+      var attributeName, factType, isAttribute, sqlmod, table;
+      sqlmod = serverModelCache.getSQL();
+      isAttribute = false;
+      attributeName = null;
+      factType = rebuildFactType(oldTableName);
+      if (sqlmod.tables.hasOwnProperty(factType)) {
+        if (sqlmod.tables[factType] === 'Attribute') {
+          isAttribute = {
+            termName: factType[0][1],
+            attributeName: factType[1][1]
+          };
+          table = sqlmod.tables[isAttribute.termName];
+        } else {
+          table = sqlmod.tables[factType];
+        }
+      } else if (transactionModel.tables.hasOwnProperty(factType)) {
+        if (transactionModel.tables[factType] === 'Attribute') {
+          isAttribute = {
+            termName: factType[0][1],
+            attributeName: factType[1][1]
+          };
+          table = transactionModel.tables[isAttribute.termName];
+        } else {
+          table = transactionModel.tables[factType];
+        }
+      } else if (sqlmod.tables.hasOwnProperty(oldTableName)) {
+        table = sqlmod.tables[oldTableName];
+      } else {
+        table = transactionModel.tables[oldTableName];
+      }
+      return {
+        table: table,
+        isAttribute: isAttribute
+      };
+    };
     serverModelCache = function() {
       var setValue, values;
       values = {
@@ -112,15 +159,21 @@
           return validateDB(tx, serverModelCache.getSQL(), successCallback, failureCallback);
         }
       };
-      lock_id = locks.rows.item(i).lock_id;
-      tx.executeSql('SELECT * FROM "conditional_representation" WHERE "lock_id" = ?;', [lock_id], function(tx, crs) {
-        return tx.executeSql('SELECT * FROM "resource-is_under-lock" WHERE "lock_id" = ?;', [lock_id], function(tx, locked) {
-          var item, j, sql, _ref;
+      lock_id = locks.rows.item(i).lock;
+      tx.executeSql('SELECT * FROM "conditional_representation" WHERE "lock" = ?;', [lock_id], function(tx, crs) {
+        return tx.executeSql('SELECT * FROM "resource-is_under-lock" WHERE "lock" = ?;', [lock_id], function(tx, locked) {
+          var isAttribute, item, j, sql, table, _ref, _ref2;
+          _ref = getCorrectTableInfo(locked.rows.item(0).resource_type), table = _ref.table, isAttribute = _ref.isAttribute;
           if (crs.rows.item(0).field_name === "__DELETE") {
-            tx.executeSql('DELETE FROM "' + locked.rows.item(0).resource_type + '" WHERE "id" = ?;', [locked.rows.item(0).resource_id], continueEndingLock);
+            if (isAttribute) {
+              sql = 'UPDATE "' + table.name + '" SET "' + isAttribute.attributeName + '" = 0 WHERE "' + table.idField + '" = ?;';
+            } else {
+              sql = 'DELETE FROM "' + table.name + '" WHERE "' + table.idField + '" = ?;';
+            }
+            tx.executeSql(sql, [locked.rows.item(0).resource], continueEndingLock);
           } else {
-            sql = 'UPDATE "' + locked.rows.item(0).resource_type + '" SET ';
-            for (j = 0, _ref = crs.rows.length; 0 <= _ref ? j < _ref : j > _ref; 0 <= _ref ? j++ : j--) {
+            sql = 'UPDATE "' + table.name + '" SET ';
+            for (j = 0, _ref2 = crs.rows.length; 0 <= _ref2 ? j < _ref2 : j > _ref2; 0 <= _ref2 ? j++ : j--) {
               item = crs.rows.item(j);
               sql += '"' + item.field_name + '"=';
               if (item.field_type === "string") {
@@ -130,33 +183,31 @@
               }
               if (j < crs.rows.length - 1) sql += ", ";
             }
-            sql += ' WHERE "id"=' + locked.rows.item(0).resource_id + ';';
+            sql += ' WHERE "' + table.idField + '"=' + locked.rows.item(0).resource + ';';
             tx.executeSql(sql, [], continueEndingLock);
           }
-          tx.executeSql('DELETE FROM "conditional_representation" WHERE "lock_id" = ?;', [lock_id]);
-          return tx.executeSql('DELETE FROM "resource-is_under-lock" WHERE "lock_id" = ?;', [lock_id]);
+          tx.executeSql('DELETE FROM "conditional_representation" WHERE "lock" = ?;', [lock_id]);
+          return tx.executeSql('DELETE FROM "resource-is_under-lock" WHERE "lock" = ?;', [lock_id]);
         });
       });
-      tx.executeSql('DELETE FROM "lock-is_shared" WHERE "lock_id" = ?;', [lock_id]);
-      tx.executeSql('DELETE FROM "lock-is_exclusive" WHERE "lock_id" = ?;', [lock_id]);
-      tx.executeSql('DELETE FROM "lock-belongs_to-transaction" WHERE "lock_id" = ?;', [lock_id]);
+      tx.executeSql('DELETE FROM "lock-belongs_to-transaction" WHERE "lock" = ?;', [lock_id]);
       return tx.executeSql('DELETE FROM "lock" WHERE "id" = ?;', [lock_id]);
     };
     validateDB = function(tx, sqlmod, successCallback, failureCallback) {
-      var errors, row, totalExecuted, totalQueries, _i, _len;
+      var errors, rule, totalExecuted, totalQueries, _i, _len, _ref;
       errors = [];
       totalQueries = 0;
       totalExecuted = 0;
-      for (_i = 0, _len = sqlmod.length; _i < _len; _i++) {
-        row = sqlmod[_i];
-        if (!(row[0] === "rule")) continue;
+      _ref = sqlmod.rules;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        rule = _ref[_i];
         totalQueries++;
-        tx.executeSql(row[4], [], (function(row) {
+        tx.executeSql(rule.sql, [], (function(rule) {
           return function(tx, result) {
-            var _ref;
+            var _ref2;
             totalExecuted++;
-            if ((_ref = result.rows.item(0).result) === false || _ref === 0) {
-              errors.push(row[2]);
+            if ((_ref2 = result.rows.item(0).result) === false || _ref2 === 0) {
+              errors.push(rule.text);
             }
             if (totalQueries === totalExecuted) {
               if (errors.length > 0) {
@@ -168,15 +219,16 @@
               }
             }
           };
-        })(row));
+        })(rule));
       }
       if (totalQueries === 0) return successCallback(tx, "");
     };
     executeSasync = function(tx, sqlmod, successCallback, failureCallback, result) {
-      var row, _i, _len, _ref;
-      for (_i = 0, _len = sqlmod.length; _i < _len; _i++) {
-        row = sqlmod[_i];
-        if ((_ref = row[0]) === "fcTp" || _ref === "term") tx.executeSql(row[4]);
+      var createStatement, _i, _len, _ref;
+      _ref = sqlmod.createSchema;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        createStatement = _ref[_i];
+        tx.executeSql(createStatement);
       }
       return validateDB(tx, sqlmod, successCallback, failureCallback);
     };
@@ -187,7 +239,7 @@
         tx.executeSql('ALTER TABLE "conditional_representation" ADD COLUMN field_name TEXT');
         tx.executeSql('ALTER TABLE "conditional_representation" ADD COLUMN field_value TEXT');
         tx.executeSql('ALTER TABLE "conditional_representation" ADD COLUMN field_type TEXT');
-        tx.executeSql('ALTER TABLE "conditional_representation" ADD COLUMN lock_id INTEGER');
+        tx.executeSql('ALTER TABLE "conditional_representation" ADD COLUMN lock INTEGER');
         return successCallback(tx, result);
       }, function(errors) {
         serverModelCache.setModelAreaDisabled(false);
@@ -195,20 +247,20 @@
       }, result);
     };
     updateRules = function(sqlmod) {
-      var query, row, _i, _j, _len, _len2, _ref, _results;
-      for (_i = 0, _len = sqlmod.length; _i < _len; _i++) {
-        row = sqlmod[_i];
-        if ((_ref = row[0]) === "fcTp" || _ref === "term") tx.executeSql(row[4]);
+      var createStatement, rule, _i, _j, _len, _len2, _ref, _ref2, _results;
+      _ref = sqlmod.createSchema;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        createStatement = _ref[_i];
+        tx.executeSql(createStatement);
       }
+      _ref2 = sqlmod.rules;
       _results = [];
-      for (_j = 0, _len2 = sqlmod.length; _j < _len2; _j++) {
-        row = sqlmod[_j];
-        if (!(row[0] === "rule")) continue;
-        query = row[4];
-        l[++m] = row[2];
-        _results.push(tx.executeSql(query, [], function(tx, result) {
-          var _ref2;
-          if ((_ref2 = result.rows.item(0).result) === 0 || _ref2 === false) {
+      for (_j = 0, _len2 = _ref2.length; _j < _len2; _j++) {
+        rule = _ref2[_j];
+        l[++m] = rule.text;
+        _results.push(tx.executeSql(rule.sql, [], function(tx, result) {
+          var _ref3;
+          if ((_ref3 = result.rows.item(0).result) === 0 || _ref3 === false) {
             return alert("Error: " + l[++k]);
           }
         }));
@@ -286,9 +338,16 @@
       requirejs(['database-layer/db'], function(dbModule) {
         if (typeof process !== "undefined" && process !== null) {
           db = dbModule.postgres(process.env.DATABASE_URL || "postgres://postgres:.@localhost:5432/postgres");
+          AbstractSQL2SQL = AbstractSQL2SQL.postgres;
         } else {
           db = dbModule.websql('rulemotion');
+          AbstractSQL2SQL = AbstractSQL2SQL.websql;
         }
+        transactionModel = 'Term:      resource\nTerm:      transaction\nTerm:      lock\nTerm:      conditional representation\nFact type: lock is exclusive\nFact type: lock is shared\nFact type: resource is under lock\nFact type: lock belongs to transaction\nRule:      It is obligatory that each resource is under at most 1 lock that is exclusive';
+        transactionModel = SBVRParser.matchAll(transactionModel, "expr");
+        transactionModel = LF2AbstractSQLPrep.match(transactionModel, "Process");
+        transactionModel = LF2AbstractSQL.match(transactionModel, "Process");
+        transactionModel = AbstractSQL2SQL(transactionModel);
         return serverModelCache = serverModelCache();
       });
       app.get('/onair', function(req, res, next) {
@@ -319,8 +378,8 @@
           res.json('Error parsing model', 404);
           return null;
         }
-        prepmod = LF2AbstractSQLPrep.match(lfmod, "Process");
-        sqlmod = SBVR2SQL.match(prepmod, "trans");
+        prepmod = LF2AbstractSQL.match(LF2AbstractSQLPrep.match(lfmod, "Process"), "Process");
+        sqlmod = AbstractSQL2SQL(prepmod, "trans");
         return db.transaction(function(tx) {
           tx.begin();
           return executeSasync(tx, sqlmod, function(tx, result) {
@@ -493,7 +552,7 @@
         }
       });
       app.get('/data/*', serverIsOnAir, parseURITree, function(req, res, next) {
-        var filts, fl, ft, ftree, jn, obj, result, row, row2, sql, sqlmod, tb, tree, _i, _j, _k, _l, _len, _len2, _len3, _len4, _ref, _ref2, _ref3, _ref4;
+        var filts, fl, ft, ftree, isAttribute, jn, key, obj, result, row, row2, sql, sqlmod, table, tb, tree, _i, _j, _k, _len, _len2, _len3, _ref, _ref2, _ref3, _ref4, _ref5;
         tree = req.tree;
         if (tree[1] === void 0) {
           result = {
@@ -501,18 +560,18 @@
             fcTps: []
           };
           sqlmod = serverModelCache.getSQL();
-          _ref = sqlmod.slice(1);
-          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-            row = _ref[_i];
-            if (row[0] === "term") {
-              result.terms.push({
-                id: row[1],
-                name: row[2]
-              });
-            } else if (row[0] === "fcTp") {
+          _ref = sqlmod.tables;
+          for (key in _ref) {
+            row = _ref[key];
+            if (/term,.*verb,/.test(key)) {
               result.fcTps.push({
-                id: row[1],
-                name: row[2]
+                id: row.name,
+                name: row.name
+              });
+            } else {
+              result.terms.push({
+                id: row.name,
+                name: row.name
               });
             }
           }
@@ -532,36 +591,44 @@
         } else {
           ftree = getFTree(tree);
           sql = "";
+          _ref2 = getCorrectTableInfo(tree[1][1]), table = _ref2.table, isAttribute = _ref2.isAttribute;
           if (tree[1][0] === "term") {
-            sql = "SELECT * FROM " + tree[1][1];
+            sql = 'SELECT * FROM "' + table.name + '"';
             if (ftree.length !== 1) sql += " WHERE ";
           } else if (tree[1][0] === "fcTp") {
             ft = tree[1][1];
-            fl = ['"' + ft + '".id AS id'];
-            jn = [];
-            tb = ['"' + ft + '"'];
-            _ref2 = tree[1][2].slice(1);
-            for (_j = 0, _len2 = _ref2.length; _j < _len2; _j++) {
-              row = _ref2[_j];
-              fl.push('"' + row + '".id AS "' + row + '_id"');
-              fl.push('"' + row + '".name AS "' + row + '_name"');
-              tb.push('"' + row + '"');
-              jn.push('"' + row + '".id = "' + ft + '"."' + row + '_id"');
+            if (isAttribute) {
+              sql = 'SELECT id, name AS "' + isAttribute.termName + '_name", "' + isAttribute.attributeName + '" FROM "' + table.name + '" WHERE "' + isAttribute.attributeName + '" = 1';
+            } else {
+              fl = ['"' + ft + '".id AS id'];
+              jn = [];
+              tb = ['"' + ft + '"'];
+              _ref3 = tree[1][2].slice(1);
+              for (_i = 0, _len = _ref3.length; _i < _len; _i++) {
+                row = _ref3[_i];
+                fl.push('"' + row + '".id AS "' + row + '_id"');
+                fl.push('"' + row + '".name AS "' + row + '_name"');
+                tb.push('"' + row + '"');
+                jn.push('"' + row + '".id = "' + ft + '"."' + row + '"');
+              }
+              sql = "SELECT " + fl.join(", ") + " FROM " + tb.join(", ") + " WHERE " + jn.join(" AND ");
             }
-            sql = "SELECT " + fl.join(", ") + " FROM " + tb.join(", ") + " WHERE " + jn.join(" AND ");
             if (ftree.length !== 1) sql += " AND ";
           }
           if (ftree.length !== 1) {
             filts = [];
-            _ref3 = ftree.slice(1);
-            for (_k = 0, _len3 = _ref3.length; _k < _len3; _k++) {
-              row = _ref3[_k];
+            _ref4 = ftree.slice(1);
+            for (_j = 0, _len2 = _ref4.length; _j < _len2; _j++) {
+              row = _ref4[_j];
               if (row[0] === "filt") {
-                _ref4 = row.slice(1);
-                for (_l = 0, _len4 = _ref4.length; _l < _len4; _l++) {
-                  row2 = _ref4[_l];
+                _ref5 = row.slice(1);
+                for (_k = 0, _len3 = _ref5.length; _k < _len3; _k++) {
+                  row2 = _ref5[_k];
                   obj = "";
-                  if (row2[1][0] != null) obj = '"' + row2[1] + '".';
+                  if (row2[1][0] != null) {
+                    table = getCorrectTableInfo(row2[1]).table;
+                    obj = '"' + table.name + '".';
+                  }
                   filts.push(obj + '"' + row2[2] + '"' + op[row2[0]] + row2[3]);
                 }
               } else if (row[0] === "sort") {
@@ -576,9 +643,9 @@
                 var data, i;
                 data = {
                   instances: (function() {
-                    var _ref5, _results;
+                    var _ref6, _results;
                     _results = [];
-                    for (i = 0, _ref5 = result.rows.length; 0 <= _ref5 ? i < _ref5 : i > _ref5; 0 <= _ref5 ? i++ : i--) {
+                    for (i = 0, _ref6 = result.rows.length; 0 <= _ref6 ? i < _ref6 : i > _ref6; 0 <= _ref6 ? i++ : i--) {
                       _results.push(result.rows.item(i));
                     }
                     return _results;
@@ -593,7 +660,7 @@
         }
       });
       app.post('/data/*', serverIsOnAir, parseURITree, function(req, res, next) {
-        var binds, field, fields, i, id, pair, tree, value, values, _ref;
+        var binds, field, fields, i, id, isAttribute, pair, sql, table, tree, value, values, _ref, _ref2;
         if (req.tree[1] === void 0) {
           return res.send(404);
         } else {
@@ -601,7 +668,7 @@
           if (tree[1][1] === "transaction" && isExecute(tree)) {
             id = getID(tree);
             return db.transaction((function(tx) {
-              return tx.executeSql('SELECT * FROM "lock-belongs_to-transaction" WHERE "transaction_id" = ?;', [id], function(tx, locks) {
+              return tx.executeSql('SELECT * FROM "lock-belongs_to-transaction" WHERE "transaction" = ?;', [id], function(tx, locks) {
                 return endLock(tx, locks, 0, id, function(tx, result) {
                   return res.json(result);
                 }, function(errors) {
@@ -625,14 +692,18 @@
                 binds.push('?');
               }
             }
+            _ref2 = getCorrectTableInfo(tree[1][1]), table = _ref2.table, isAttribute = _ref2.isAttribute;
+            if (isAttribute) {
+              sql = 'UPDATE "' + table.name + '" SET "' + isAttribute.attributeName + '" = 1 WHERE "' + table.idField + '" = ?;';
+            } else {
+              sql = 'INSERT INTO "' + table.name + '" ("' + fields.join('","') + '") VALUES (' + binds.join(",") + ');';
+            }
             return db.transaction(function(tx) {
-              var sql;
               tx.begin();
-              sql = 'INSERT INTO "' + tree[1][1] + '" ("' + fields.join('","') + '") VALUES (' + binds.join(",") + ");";
               return tx.executeSql(sql, values, function(tx, sqlResult) {
                 return validateDB(tx, serverModelCache.getSQL(), function(tx, result) {
                   return res.json(result, {
-                    location: "/data/" + tree[1][1] + "*filt:" + tree[1][1] + ".id=" + sqlResult.insertId
+                    location: "/data/" + tree[1][1] + "*filt:" + tree[1][1] + ".id=" + (isAttribute ? binds[0] : sqlResult.insertId)
                   }, 201);
                 }, function(errors) {
                   return res.json(errors, 404);
@@ -652,8 +723,8 @@
           if (tree[1][1] === "lock" && hasCR(tree)) {
             return db.transaction(function(tx) {
               var key, pair, sql, value, _i, _len, _ref;
-              tx.executeSql('DELETE FROM "conditional_representation" WHERE "lock_id" = ?;', [id]);
-              sql = 'INSERT INTO "conditional_representation"' + '("lock_id","field_name","field_type","field_value")' + "VALUES (?, ?, ?, ?)";
+              tx.executeSql('DELETE FROM "conditional_representation" WHERE "lock" = ?;', [id]);
+              sql = 'INSERT INTO "conditional_representation"' + '("lock","field_name","field_type","field_value")' + "VALUES (?, ?, ?, ?)";
               _ref = req.body;
               for (_i = 0, _len = _ref.length; _i < _len; _i++) {
                 pair = _ref[_i];
@@ -667,7 +738,7 @@
             });
           } else {
             return db.transaction((function(tx) {
-              return tx.executeSql('SELECT NOT EXISTS(SELECT * FROM "resource-is_under-lock" AS r WHERE r."resource_type" = ? AND r."resource_id" = ?) AS result;', [tree[1][1], id], function(tx, result) {
+              return tx.executeSql('SELECT NOT EXISTS(SELECT * FROM "resource-is_under-lock" AS r WHERE r."resource_type" = ? AND r."resource" = ?) AS result;', [tree[1][1], id], function(tx, result) {
                 var binds, key, pair, setStatements, value, _i, _len, _ref, _ref2;
                 if ((_ref = result.rows.item(0).result) === 1 || _ref === true) {
                   if (id !== "") {
@@ -712,17 +783,23 @@
           if (id !== 0) {
             if (tree[1][1] === "lock" && hasCR(tree)) {
               return db.transaction(function(tx) {
-                tx.executeSql('DELETE FROM "conditional_representation" WHERE "lock_id" = ?;', [id]);
-                tx.executeSql('INSERT INTO "conditional_representation" ("lock_id","field_name","field_type","field_value")' + "VALUES (?,'__DELETE','','')", [id]);
+                tx.executeSql('DELETE FROM "conditional_representation" WHERE "lock" = ?;', [id]);
+                tx.executeSql('INSERT INTO "conditional_representation" ("lock","field_name","field_type","field_value")' + "VALUES (?,'__DELETE','','')", [id]);
                 return res.send(200);
               });
             } else {
               return db.transaction((function(tx) {
-                return tx.executeSql('SELECT NOT EXISTS(SELECT * FROM "resource-is_under-lock" AS r WHERE r."resource_type" = ? AND r."resource_id" = ?) AS result;', [tree[1][1], id], function(tx, result) {
-                  var _ref;
+                return tx.executeSql('SELECT NOT EXISTS(SELECT * FROM "resource-is_under-lock" AS r WHERE r."resource_type" = ? AND r."resource" = ?) AS result;', [tree[1][1], id], function(tx, result) {
+                  var isAttribute, sql, table, _ref, _ref2;
                   if ((_ref = result.rows.item(0).result) === 1 || _ref === true) {
                     tx.begin();
-                    return tx.executeSql('DELETE FROM "' + tree[1][1] + '" WHERE id = ?;', [id], function(tx, result) {
+                    _ref2 = getCorrectTableInfo(tree[1][1]), table = _ref2.table, isAttribute = _ref2.isAttribute;
+                    if (isAttribute) {
+                      sql = 'UPDATE "' + table.name + '" SET "' + isAttribute.attributeName + '" = 0 WHERE "' + table.idField + '" = ?;';
+                    } else {
+                      sql = 'DELETE FROM "' + table.name + '" WHERE "' + table.idField + '" = ?;';
+                    }
+                    return tx.executeSql(sql, [id], function(tx, result) {
                       return validateDB(tx, serverModelCache.getSQL(), function(tx, result) {
                         tx.end();
                         return res.json(result);
@@ -742,28 +819,24 @@
       return app.del('/', serverIsOnAir, function(req, res, next) {
         db.transaction((function(sqlmod) {
           return function(tx) {
-            var row, _i, _len, _ref, _ref2, _results;
-            _ref = sqlmod.slice(1);
+            var dropStatement, _i, _len, _ref, _results;
+            _ref = sqlmod.dropSchema;
             _results = [];
             for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-              row = _ref[_i];
-              if ((_ref2 = row[0]) === "fcTp" || _ref2 === "term") {
-                _results.push(tx.executeSql(row[5]));
-              }
+              dropStatement = _ref[_i];
+              _results.push(tx.executeSql(dropStatement));
             }
             return _results;
           };
         })(serverModelCache.getSQL()));
         db.transaction((function(trnmod) {
           return function(tx) {
-            var row, _i, _len, _ref, _ref2, _results;
-            _ref = trnmod.slice(1);
+            var dropStatement, _i, _len, _ref, _results;
+            _ref = trnmod.dropSchema;
             _results = [];
             for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-              row = _ref[_i];
-              if ((_ref2 = row[0]) === "fcTp" || _ref2 === "term") {
-                _results.push(tx.executeSql(row[5]));
-              }
+              dropStatement = _ref[_i];
+              _results.push(tx.executeSql(dropStatement));
             }
             return _results;
           };

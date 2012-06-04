@@ -58,11 +58,6 @@
 			'codemirror-ometa-bridge':	rootPath + 'client/codemirror-ometa-bridge/src',
 			
 			'sbvr-compiler':			rootPath + 'server/sbvr-compiler/src/',
-			'SBVR2SQL':					rootPath + 'server/sbvr-compiler/src/SBVR2SQL',
-
-			'LF2AbstractSQL':			rootPath + 'server/sbvr-compiler/src/LF2AbstractSQL',
-			'AbstractSQLOptimiser':		rootPath + 'server/sbvr-compiler/src/AbstractSQLOptimiser',
-			'AbstractSQL2Postgres2':	rootPath + 'server/sbvr-compiler/src/AbstractSQL2Postgres2',
 			
 			'server-glue':				rootPath + 'server/server-glue/src/server',
 			'express-emulator':			rootPath + 'server/express-emulator/src/express',

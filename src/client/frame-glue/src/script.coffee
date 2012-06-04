@@ -86,13 +86,13 @@ define(['SBVRParser', 'data-frame/ClientURIParser', 'Prettify'], (SBVRParser, Cl
 		clientOnAir = bool
 		if clientOnAir == true
 			serverRequest "GET", "/lfmodel/", {}, null, (statusCode, result) ->
-				lfEditor.setValue Prettify.match(result, "Process")
+				lfEditor.setValue(Prettify.match(result, "Process"))
 
 			serverRequest "GET", "/prepmodel/", {}, null, (statusCode, result) ->
-				$("#prepArea").val Prettify.match(result, "Process")
+				$("#prepArea").val(JSON.stringify(result))
 
 			serverRequest "GET", "/sqlmodel/", {}, null, (statusCode, result) ->
-				sqlEditor.setValue Prettify.match(result, "Process")
+				sqlEditor.setValue(JSON.stringify(result))
 
 			$("#bem").button("disable")
 			$("#bum, #br").button("enable")
