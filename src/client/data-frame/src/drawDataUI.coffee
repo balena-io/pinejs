@@ -43,7 +43,7 @@ define(['data-frame/ClientURIUnparser'], (ClientURIUnparser) ->
 
 		flts = ""
 
-		#render filters
+		# render filters
 		for filter in filters[1..] when about is filter[1]
 			flts = flts + filter[1] + "." + filter[2] + op[filter[0]] + filter[3] + ";"
 
@@ -194,7 +194,7 @@ define(['data-frame/ClientURIUnparser'], (ClientURIUnparser) ->
 						actn = "view"
 
 						for currBranch, j in parent.branch[3..]
-							if currBranch[0] == "ins" and currBranch[1][0] == parent.about and currBranch[1][1] != undefined and currBranch[1][1] in [instance.id, instance.name]
+							if currBranch[0] == "ins" and currBranch[1][0] == parent.about and currBranch[1][1] != undefined and currBranch[1][1] in [instance.id, instance._name]
 								launch = j + 3
 								# find action.
 								for currBranchType in currBranch[2][1..] when currBranchType[0] in ["edit","del"]
@@ -204,7 +204,7 @@ define(['data-frame/ClientURIUnparser'], (ClientURIUnparser) ->
 						prel = "<tr id='tr--" + pid + "--" + instance.id + "'><td>"
 						prel += "<div style='display:inline;background-color:" + parent.unbg + "'>"	unless launch == -1
 						if parent.type == "term"
-							prel += instance.name
+							prel += instance._name
 						else if parent.type == "fcTp"
 							for schema in parent.schema
 								if schema[0] == "term"
@@ -327,7 +327,7 @@ define(['data-frame/ClientURIUnparser'], (ClientURIUnparser) ->
 					when "add"
 						if @type == "term"
 							# TODO: The schema info should come from cmod
-							schema = [['Text', 'name', 'Name', []]]
+							schema = [['Text', '_name', 'Name', []]]
 
 							# print form.
 							res = "<div align='right'>"
@@ -366,7 +366,7 @@ define(['data-frame/ClientURIUnparser'], (ClientURIUnparser) ->
 					when "edit"
 						if @type == "term"
 							# TODO: The schema info should come from cmod
-							schema = [['Text', 'name', 'Name', []]]
+							schema = [['Text', '_name', 'Name', []]]
 
 							@targ = serverAPI(@about, @filters)
 							serverRequest "GET", @targ, {}, null, (statusCode, result, headers) ->
@@ -379,7 +379,7 @@ define(['data-frame/ClientURIUnparser'], (ClientURIUnparser) ->
 								for currSchema in schema
 									switch currSchema[0]
 										when "Text"
-											res += currSchema[2] + ": " + widgets.inputText(currSchema[1], result.instances[0][currSchema[1]]) + " /><br />"
+											res += currSchema[2] + ": " + widgets.inputText(currSchema[1], result.instances[0][currSchema[1]]) + "<br />"
 										when "ForeignKey"
 											console.log currSchema
 								res += "<div align='right'>"
@@ -396,7 +396,7 @@ define(['data-frame/ClientURIUnparser'], (ClientURIUnparser) ->
 								for schema in parent.schema when schema[0] == "term"
 									termResults[schema[1]] = []
 
-								#Get results for all the terms and process them once finished
+								# Get results for all the terms and process them once finished
 								resultsReceived = 0
 								resultsRequested = Object.keys(termResults).length
 								for termName of termResults

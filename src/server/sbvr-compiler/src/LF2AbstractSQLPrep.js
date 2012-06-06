@@ -41,7 +41,7 @@ define(["sbvr-compiler/LFOptimiser"], (function(LFOptimiser) {
                     this._pred((v2["length"] == (3)));
                     atomicForm = this._applyWithArgs("token", "aFrm");
                     factType = atomicForm[(1)];
-                    this._pred(((((atomicForm["length"] == (4)) && (factType["length"] == (4))) && (v1[(2)] == factType[(1)])) && (v2[(2)] == factType[(3)])));
+                    this._pred(((((atomicForm["length"] == (4)) && (factType["length"] == (4))) && (v1[(2)][(1)] == factType[(1)][(1)])) && (v2[(2)][(1)] == factType[(3)][(1)])));
                     return (this["foreignKeys"][factType] = "NOT NULL")
                 }))
             }), (function() {
@@ -53,7 +53,7 @@ define(["sbvr-compiler/LFOptimiser"], (function(LFOptimiser) {
                     this._pred((v2["length"] == (3)));
                     atomicForm = this._applyWithArgs("token", "aFrm");
                     factType = atomicForm[(1)];
-                    this._pred(((((atomicForm["length"] == (4)) && (factType["length"] == (4))) && (v1[(2)] == factType[(1)])) && (v2[(2)] == factType[(3)])));
+                    this._pred(((((atomicForm["length"] == (4)) && (factType["length"] == (4))) && (v1[(2)][(1)] == factType[(1)][(1)])) && (v2[(2)][(1)] == factType[(3)][(1)])));
                     return (this["foreignKeys"][factType] = "NULL")
                 }))
             }));
@@ -111,7 +111,7 @@ define(["sbvr-compiler/LFOptimiser"], (function(LFOptimiser) {
         case "term":
             {
                 if ((!attrsFound.hasOwnProperty("DatabaseNameField"))) {
-                    attrs.push(["DatabaseNameField", "name"]);
+                    attrs.push(["DatabaseNameField", "_name"]);
                     this.SetHelped()
                 } else {
                     undefined

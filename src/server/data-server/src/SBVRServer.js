@@ -607,7 +607,7 @@
               for (_i = 0, _len = _ref3.length; _i < _len; _i++) {
                 row = _ref3[_i];
                 fl.push('"' + row + '".id AS "' + row + '_id"');
-                fl.push('"' + row + '".name AS "' + row + '_name"');
+                fl.push('"' + row + '"."_name" AS "' + row + '_name"');
                 tb.push('"' + row + '"');
                 jn.push('"' + row + '".id = "' + ft + '"."' + row + '"');
               }
