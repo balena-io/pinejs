@@ -41,6 +41,7 @@ define(['SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-compiler/LF2Abst
 			table = transactionModel.tables[oldTableName]
 		return {table, isAttribute}
 
+	# serverModelCache needs to be called after 'db' has been assigned in order to set itself up. 
 	serverModelCache = () ->
 		# This is needed as the switch has no value on first execution. Maybe there's a better way?
 		values = {
@@ -53,16 +54,8 @@ define(['SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-compiler/LF2Abst
 			sql:		[]
 			trans:	[]
 		}
-
-		db.transaction (tx) ->
-			tx.executeSql 'CREATE TABLE '+#Postgres does not support: IF NOT EXISTS
-							'"_server_model_cache" (' +
-							'"key"		VARCHAR(40) PRIMARY KEY,' +
-							'"value"	VARCHAR(32768) );'
-			tx.executeSql 'SELECT * FROM "_server_model_cache";', [], (tx, result) ->
-				for i in [0...result.rows.length]
-					row = result.rows.item(i)
-					values[row.key] = JSON.parse row.value;
+		
+		pendingCallbacks = []
 
 		setValue = (key, value) ->
 			values[key] = value
@@ -75,7 +68,9 @@ define(['SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-compiler/LF2Abst
 						tx.executeSql 'UPDATE "_server_model_cache" SET value = ? WHERE "key" = ?;', [value, key]
 				)
 
-		return {
+		serverModelCache = {
+			whenLoaded: (func) -> pendingCallbacks.push(func)
+		
 			isServerOnAir: -> values.serverOnAir
 			setServerOnAir: (bool) ->
 				setValue 'serverOnAir', bool
@@ -109,6 +104,20 @@ define(['SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-compiler/LF2Abst
 				setValue 'trans', trnmod
 		}
 
+		db.transaction (tx) ->
+			tx.executeSql 'CREATE TABLE ' + # Postgres does not support: IF NOT EXISTS
+							'"_server_model_cache" (' +
+							'"key"		VARCHAR(40) PRIMARY KEY,' +
+							'"value"	VARCHAR(32768) );'
+			tx.executeSql 'SELECT * FROM "_server_model_cache";', [], (tx, result) ->
+				for i in [0...result.rows.length]
+					row = result.rows.item(i)
+					values[row.key] = JSON.parse row.value
+
+				serverModelCache.whenLoaded = (func) -> func()
+				for callback in pendingCallbacks
+					callback()
+
 
 
 	endLock = (tx, locks, i, trans_id, successCallback, failureCallback) ->
@@ -140,7 +149,7 @@ define(['SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-compiler/LF2Abst
 					sql = 'UPDATE "' + table.name + '" SET '
 
 					for j in [0...crs.rows.length]
-						item = crs.rows.item(j);
+						item = crs.rows.item(j)
 						sql += '"' + item.field_name + '"='
 						if item.field_type == "string"
 							sql += '"' + item.field_value + '"'
@@ -269,11 +278,12 @@ define(['SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-compiler/LF2Abst
 
 	# Middleware
 	serverIsOnAir = (req, res, next) ->
-		if serverModelCache.isServerOnAir()
-			next()
-		else
-			next('route')
-
+		serverModelCache.whenLoaded( () ->
+			if serverModelCache.isServerOnAir()
+				next()
+			else
+				next('route')
+		)
 
 	parseURITree = (req, res, next) ->
 		if !req.tree?
@@ -298,6 +308,8 @@ define(['SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-compiler/LF2Abst
 			else
 				db = dbModule.websql('rulemotion')
 				AbstractSQL2SQL = AbstractSQL2SQL.websql
+			
+			serverModelCache()
 			transactionModel = '''
 					Term:      resource
 					Term:      transaction
@@ -312,8 +324,6 @@ define(['SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-compiler/LF2Abst
 			transactionModel = LF2AbstractSQLPrep.match(transactionModel, "Process")
 			transactionModel = LF2AbstractSQL.match(transactionModel, "Process")
 			transactionModel = AbstractSQL2SQL(transactionModel)
-			
-			serverModelCache = serverModelCache()
 		)
 
 		app.get('/onair',						(req, res, next) -> res.json(serverModelCache.isServerOnAir()))
@@ -380,7 +390,7 @@ define(['SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-compiler/LF2Abst
 			if process?
 				env = process.env
 				env['PGPASSWORD'] = '.'
-				req = require;
+				req = require
 				req('child_process').exec('pg_dump --clean -U postgres -h localhost -p 5432', env: env, (error, stdout, stderr) ->
 					console.log(stdout, stderr)
 					res.json(stdout)

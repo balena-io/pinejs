@@ -62,7 +62,7 @@
       };
     };
     serverModelCache = function() {
-      var setValue, values;
+      var pendingCallbacks, setValue, values;
       values = {
         serverOnAir: false,
         modelAreaDisabled: false,
@@ -73,18 +73,7 @@
         sql: [],
         trans: []
       };
-      db.transaction(function(tx) {
-        tx.executeSql('CREATE TABLE ' + '"_server_model_cache" (' + '"key"		VARCHAR(40) PRIMARY KEY,' + '"value"	VARCHAR(32768) );');
-        return tx.executeSql('SELECT * FROM "_server_model_cache";', [], function(tx, result) {
-          var i, row, _ref, _results;
-          _results = [];
-          for (i = 0, _ref = result.rows.length; 0 <= _ref ? i < _ref : i > _ref; 0 <= _ref ? i++ : i--) {
-            row = result.rows.item(i);
-            _results.push(values[row.key] = JSON.parse(row.value));
-          }
-          return _results;
-        });
-      });
+      pendingCallbacks = [];
       setValue = function(key, value) {
         values[key] = value;
         return db.transaction(function(tx) {
@@ -98,7 +87,10 @@
           });
         });
       };
-      return {
+      serverModelCache = {
+        whenLoaded: function(func) {
+          return pendingCallbacks.push(func);
+        },
         isServerOnAir: function() {
           return values.serverOnAir;
         },
@@ -148,6 +140,25 @@
           return setValue('trans', trnmod);
         }
       };
+      return db.transaction(function(tx) {
+        tx.executeSql('CREATE TABLE ' + '"_server_model_cache" (' + '"key"		VARCHAR(40) PRIMARY KEY,' + '"value"	VARCHAR(32768) );');
+        return tx.executeSql('SELECT * FROM "_server_model_cache";', [], function(tx, result) {
+          var callback, i, row, _i, _len, _ref, _results;
+          for (i = 0, _ref = result.rows.length; 0 <= _ref ? i < _ref : i > _ref; 0 <= _ref ? i++ : i--) {
+            row = result.rows.item(i);
+            values[row.key] = JSON.parse(row.value);
+          }
+          serverModelCache.whenLoaded = function(func) {
+            return func();
+          };
+          _results = [];
+          for (_i = 0, _len = pendingCallbacks.length; _i < _len; _i++) {
+            callback = pendingCallbacks[_i];
+            _results.push(callback());
+          }
+          return _results;
+        });
+      });
     };
     endLock = function(tx, locks, i, trans_id, successCallback, failureCallback) {
       var continueEndingLock, lock_id;
@@ -314,11 +325,13 @@
       return false;
     };
     serverIsOnAir = function(req, res, next) {
-      if (serverModelCache.isServerOnAir()) {
-        return next();
-      } else {
-        return next('route');
-      }
+      return serverModelCache.whenLoaded(function() {
+        if (serverModelCache.isServerOnAir()) {
+          return next();
+        } else {
+          return next('route');
+        }
+      });
     };
     parseURITree = function(req, res, next) {
       if (!(req.tree != null)) {
@@ -343,12 +356,12 @@
           db = dbModule.websql('rulemotion');
           AbstractSQL2SQL = AbstractSQL2SQL.websql;
         }
+        serverModelCache();
         transactionModel = 'Term:      resource\nTerm:      transaction\nTerm:      lock\nTerm:      conditional representation\nFact type: lock is exclusive\nFact type: lock is shared\nFact type: resource is under lock\nFact type: lock belongs to transaction\nRule:      It is obligatory that each resource is under at most 1 lock that is exclusive';
         transactionModel = SBVRParser.matchAll(transactionModel, "expr");
         transactionModel = LF2AbstractSQLPrep.match(transactionModel, "Process");
         transactionModel = LF2AbstractSQL.match(transactionModel, "Process");
-        transactionModel = AbstractSQL2SQL(transactionModel);
-        return serverModelCache = serverModelCache();
+        return transactionModel = AbstractSQL2SQL(transactionModel);
       });
       app.get('/onair', function(req, res, next) {
         return res.json(serverModelCache.isServerOnAir());
