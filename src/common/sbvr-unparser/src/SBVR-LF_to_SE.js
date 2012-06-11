@@ -1,4 +1,4 @@
-define(["SBVRParser", "underscore", "Prettify", "sbvr-frame/SBVRModels", "ometa-base", "inflection"], (function(SBVRParser, _, Prettify) {
+define(["sbvr-parser/SBVRParser", "underscore", "Prettify", "sbvr-frame/SBVRModels", "ometa-base", "inflection"], (function(SBVRParser, _, Prettify) {
     var SBVR_LF2SE = undefined;
     SBVR_LF2SE = objectThatDelegatesTo(OMeta, {
         "$": function(x) {

@@ -11,7 +11,7 @@ require(["ometa/ometa-base"], function() {
 			'downloadify/downloadify.min',
 			'downloadify/swfobject']);
 	require(["inflection",
-			"SBVRParser"], function() {
+			"sbvr-parser/SBVRParser"], function() {
 		requireCSS('codemirror');
 		require(["codemirror"], function() {
 			requireCSS('codemirror-util/simple-hint.css')

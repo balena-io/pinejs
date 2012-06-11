@@ -1,4 +1,4 @@
-define(['SBVRParser', 'data-frame/ClientURIParser', 'Prettify'], (SBVRParser, ClientURIParser, Prettify) ->
+define(['sbvr-parser/SBVRParser', 'data-frame/ClientURIParser', 'Prettify'], (SBVRParser, ClientURIParser, Prettify) ->
 	sqlEditor = null
 	clientOnAir = false
 

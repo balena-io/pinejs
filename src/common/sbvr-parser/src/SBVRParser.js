@@ -1,6 +1,6 @@
-define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
+define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base", "inflection"], (function(SBVRLibs, _) {
     var SBVRParser = undefined;
-    SBVRParser = objectThatDelegatesTo(OMeta, {
+    SBVRParser = objectThatDelegatesTo(SBVRLibs, {
         "bind": function(x) {
             var $elf = this,
                 _fromIdx = this.input.idx;
@@ -435,7 +435,7 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
                 t = this._apply("term");
                 return fctp.push(t)
             }));
-            this._applyWithArgs("addFactType", fctp, fctp);
+            this._applyWithArgs("AddFactType", fctp, fctp);
             fctp.push([]);
             return ["fcTp"].concat(fctp)
         },
@@ -465,7 +465,7 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
             currentLine = this["lines"][(this["lines"]["length"] - (1))];
             attrName = this._applyWithArgs("allowedAttrs", currentLine[(0)]);
             attrName = attrName.replace(new RegExp(" ", "g"), "");
-            attrVal = this._applyWithArgs("applyFirstExisting", [("attr" + attrName), "defaultAttr"], [currentLine]);
+            attrVal = this._applyWithArgs("ApplyFirstExisting", [("attr" + attrName), "defaultAttr"], [currentLine]);
             return (function() {
                 var lastLine = this["lines"].pop();
                 lastLine[(lastLine["length"] - (1))].push([attrName, attrVal]);
@@ -517,12 +517,12 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
         "attrConceptType": function(currentLine) {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                trimmedLine, t;
-            trimmedLine = [currentLine[(0)], currentLine[(1)]];
-            this._pred((!this["conceptTypes"].hasOwnProperty(trimmedLine)));
+                termName, t;
+            termName = currentLine[(1)];
+            this._pred((!this["conceptTypes"].hasOwnProperty(termName)));
             t = this._apply("term");
-            this._pred((trimmedLine[(1)] != t[(1)]));
-            (this["conceptTypes"][trimmedLine] = t);
+            this._pred((termName != t[(1)]));
+            (this["conceptTypes"][termName] = t[(1)]);
             return t
         },
         "attrSynonym": function(currentLine) {
@@ -547,7 +547,7 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
                 t = this._apply("term");
                 return fctp.push(t)
             }));
-            this._applyWithArgs("addFactType", fctp, currentLine.slice((1), (-(1))));
+            this._applyWithArgs("AddFactType", fctp, currentLine.slice((1), (-(1))));
             fctp.push([]);
             return fctp
         },
@@ -561,7 +561,7 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
                 (i < currentLine["length"]); i++) {
                     if ((currentLine[i][(0)] == "term")) {
                         var fctp = [t, ["verb", "has"], currentLine[i]];
-                        this.addFactType(fctp, fctp)
+                        this.AddFactType(fctp, fctp)
                     } else {
                         undefined
                     }
@@ -673,55 +673,6 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
         (term = this._baseTerm(factTypeSoFar, term));
         return (($.inArray(term.singularize(), this["possMap"]["term"].call(this, factTypeSoFar)) !== (-(1))) ? term.singularize() : term)
     }));
-    (SBVRParser["_traverseFactType"] = (function(fctp, create) {
-        {
-            var $elf = this;
-            var traverseRecurse = (function(currentFactTypePart, remainingFactType, currentLevel) {
-                if ((currentFactTypePart == null)) {
-                    if (create) {
-                        (currentLevel["__valid"] = create)
-                    } else {
-                        undefined
-                    };
-                    return currentLevel
-                } else {
-                    undefined
-                }; {
-                    var finalLevel = undefined;
-                    var finalLevels = ({})
-                };
-                if ((currentLevel.hasOwnProperty(currentFactTypePart) || (create && (currentLevel[currentFactTypePart] = ({}))))) {
-                    (finalLevel = traverseRecurse(remainingFactType[(0)], remainingFactType.slice((1)), currentLevel[currentFactTypePart]));
-                    if ((finalLevel != false)) {
-                        $.extend(finalLevels, finalLevel)
-                    } else {
-                        undefined
-                    }
-                } else {
-                    undefined
-                };
-                if (((!create) && (currentFactTypePart[(0)] == "term"))) {
-                    while ($elf["conceptTypes"].hasOwnProperty(currentFactTypePart)) {
-                        (currentFactTypePart = $elf["conceptTypes"][currentFactTypePart]);
-                        if (currentLevel.hasOwnProperty(currentFactTypePart)) {
-                            (finalLevel = traverseRecurse(remainingFactType[(0)], remainingFactType.slice((1)), currentLevel[currentFactTypePart]));
-                            if ((finalLevel !== false)) {
-                                $.extend(finalLevels, finalLevel)
-                            } else {
-                                undefined
-                            }
-                        } else {
-                            undefined
-                        }
-                    }
-                } else {
-                    undefined
-                };
-                return (($.isEmptyObject(finalLevels) === true) ? false : finalLevels)
-            })
-        };
-        return traverseRecurse(fctp[(0)], fctp.slice((1)), this["factTypes"])
-    }));
     (SBVRParser["isVerb"] = (function(factTypeSoFar, verb) {
         (verb = ["verb", this._verbForm(verb)]);
         var currentLevel = this._traverseFactType(factTypeSoFar);
@@ -760,23 +711,6 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
         };
         return verb
     }));
-    (SBVRParser["addFactType"] = (function(factType, realFactType) {
-        (realFactType = $.extend([], realFactType));
-        this._traverseFactType(factType, realFactType);
-        if (((factType["length"] == (3)) && (factType[(1)][(1)] == "has"))) {
-            this._traverseFactType([factType[(2)],
-                ["verb", "is of"], factType[(0)]
-            ], realFactType)
-        } else {
-            if (((factType["length"] == (3)) && (factType[(1)][(1)] == "is of"))) {
-                this._traverseFactType([factType[(2)],
-                    ["verb", "has"], factType[(0)]
-                ], realFactType)
-            } else {
-                undefined
-            }
-        }
-    }));
     (SBVRParser["isFactType"] = (function(factType) {
         var currentLevel = this._traverseFactType(factType);
         if ((currentLevel === false)) {
@@ -796,9 +730,8 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
         "rule": []
     }));
     (SBVRParser["reset"] = (function() {
-        (this["factTypes"] = ({}));
+        SBVRLibs["initialize"].call(this);
         (this["terms"] = ({}));
-        (this["conceptTypes"] = ({}));
         (this["possMap"] = ({
             "clearSuggestions": [],
             "startTerm": ["Term:     "],
@@ -917,27 +850,6 @@ define(["underscore", "ometa/ometa-base", "inflection"], (function(_) {
             (ret = this["_applyWithArgs"].call(this, rule, arr[idx]))
         };
         return ret
-    }));
-    (SBVRParser["applyFirstExisting"] = (function(arr, ruleArgs) {
-        if ((ruleArgs == null)) {
-            (ruleArgs = [])
-        } else {
-            undefined
-        };
-        for (var i = (0);
-        (i < arr["length"]); i++) {
-            if ((this[arr[i]] != undefined)) {
-                if (((ruleArgs != null) && (ruleArgs["length"] > (0)))) {
-                    ruleArgs.unshift(arr[i]);
-                    return this["_applyWithArgs"].apply(this, ruleArgs)
-                } else {
-                    undefined
-                };
-                return this._apply(arr[i], ruleArgs)
-            } else {
-                undefined
-            }
-        }
     }));
     (SBVRParser["exactly"] = (function(wanted) {
         if ((wanted.toLowerCase() === this._apply("anything").toLowerCase())) {

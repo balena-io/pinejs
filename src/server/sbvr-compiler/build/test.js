@@ -99,19 +99,19 @@
 // Rule:      It is obligatory that each student is registered for each module
 
 
-// require(['SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'Prettify'], function(SBVRParser, LF2AbstractSQLPrep, Prettify) {
+// require(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'Prettify'], function(SBVRParser, LF2AbstractSQLPrep, Prettify) {
 	// console.log(Prettify.match(LF2AbstractSQLPrep.match(SBVRParser.matchAll(sbvrEditor.getValue(),'expr'),'Process'), 'Process'))
 // });
 
-// require(['SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep'], function(SBVRParser, LF2AbstractSQLPrep) {
+// require(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep'], function(SBVRParser, LF2AbstractSQLPrep) {
 	// console.log(JSON.stringify(LF2AbstractSQLPrep.match(SBVRParser.matchAll(sbvrEditor.getValue(),'expr'),'Process')))
 // });
 
-// require(['SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep'], function(SBVRParser, LF2AbstractSQLPrep) {
+// require(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep'], function(SBVRParser, LF2AbstractSQLPrep) {
 	// console.log(JSON.stringify(SBVRParser.matchAll(sbvrEditor.getValue(),'expr'),'Process'))
 // });
 
-// require(['SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'Prettify', 'LF2AbstractSQL'], function(SBVRParser, LF2AbstractSQLPrep, Prettify, LF2AbstractSQL) {
+// require(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'Prettify', 'LF2AbstractSQL'], function(SBVRParser, LF2AbstractSQLPrep, Prettify, LF2AbstractSQL) {
 	// console.log(Prettify.match(LF2AbstractSQL.match(LF2AbstractSQLPrep.match(SBVRParser.matchAll(sbvrEditor.getValue(),'expr'),'Process'), 'Process'), 'Process'))
 // });
 
@@ -128,7 +128,8 @@ requirejs.config({
 		'ometa': '../../../external/ometa-js',
 		'underscore': '../../../external/underscore-1.2.1.min',
 		'Prettify': '../../../client/prettify-ometa/src/Prettify',
-		'sbvr-compiler': '../src/'
+		'sbvr-compiler': '../src/',
+		'sbvr-parser': '../../../common/sbvr-parser/src/'
 	}
 });
 
@@ -192,8 +193,8 @@ try {
 		result
 		, 'Process'
 	);
-	prettify('result', result);
-	console.log(Prettify.match(result.rules, 'Process'));
+	// prettify('result', result);
+	// console.log(Prettify.match(result.rules, 'Process'));
 	
 	// console.log(_.isEqual(model, result));
 	
@@ -220,7 +221,7 @@ try {
 	try {
 		console.log('Part 4: Generate SQL');
 		result = AbstractSQL2SQL(result);
-		console.log(prettify('result', result));
+		// console.log(prettify('result', result));
 	}
 	catch(e) {
 		console.log(e)
@@ -228,7 +229,7 @@ try {
 	}
 }
 catch(e) {
-	console.log(e.toString());
+	console.log(e.stack)
 	console.log(instance.input);
 	console.log(Prettify.match(instance.input.hd, 'Process'));
 	// console.log(instance.tables, instance.terms, instance.conceptTypes, instance.rules);

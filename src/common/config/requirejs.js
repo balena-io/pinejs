@@ -50,7 +50,7 @@
 			'json2':					rootPath + 'external/json2',
 			'downloadify':				rootPath + 'external/downloadify',
 			
-			'SBVRParser':				rootPath + 'common/sbvr-parser/src/SBVRParser',
+			'sbvr-parser':				rootPath + 'common/sbvr-parser/src/',
 			
 			'sbvr-frame':				rootPath + 'client/sbvr-frame/src',
 			'data-frame':				rootPath + 'client/data-frame/src',

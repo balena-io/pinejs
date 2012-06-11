@@ -1,6 +1,6 @@
-define(["underscore", "Prettify", "ometa/ometa-base"], (function(_, Prettify) {
+define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBVRLibs, _) {
     var LF2AbstractSQL = undefined;
-    LF2AbstractSQL = objectThatDelegatesTo(OMeta, {
+    LF2AbstractSQL = objectThatDelegatesTo(SBVRLibs, {
         "TermName": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
@@ -94,7 +94,7 @@ define(["underscore", "Prettify", "ometa/ometa-base"], (function(_, Prettify) {
                 _fromIdx = this.input.idx,
                 type;
             type = this._apply("anything");
-            this["tables"][factType[(0)][(1)]]["fields"].push(["ForeignKey", this["tables"][factType[(2)][(1)]]["name"], this["tables"][factType[(2)][(1)]]["idField"], type]);
+                this["tables"][factType[(0)][(1)]]["fields"].push(["ForeignKey", this["tables"][factType[(2)][(1)]]["name"], this["tables"][factType[(2)][(1)]]["idField"], type]);
             return (this["tables"][factType] = "ForeignKey")
         },
         "AttrSynonymousForm": function(factType) {
@@ -276,7 +276,7 @@ define(["underscore", "Prettify", "ometa/ometa-base"], (function(_, Prettify) {
                 this._apply("end");
                 termFrom = actualFactType[(0)][(1)];
                 return attributeName = actualFactType[(1)][(1)]
-            }), (function() {
+                    }), (function() {
                 return this._applyWithArgs("foreign", ___AttributeMatchingFailed___, 'die')
             }));
             return ["Equals", ["ReferencedField", (("var" + bindFrom) + termFrom), attributeName], ["Boolean", true]]
@@ -515,144 +515,11 @@ define(["underscore", "Prettify", "ometa/ometa-base"], (function(_, Prettify) {
         return false
     }));
     (LF2AbstractSQL["initialize"] = (function() {
+        SBVRLibs["initialize"].call(this);
         (this["tables"] = ({}));
         (this["terms"] = ({}));
-        (this["conceptTypes"] = ({}));
         (this["rules"] = []);
-        (this["factTypes"] = []);
         (this["linkTableBind"] = (0))
-    }));
-    (LF2AbstractSQL["AddFactType"] = (function(factType, realFactType) {
-        (realFactType = _.extend([], realFactType));
-        this._traverseFactType(factType, realFactType);
-        if (((factType["length"] == (3)) && (factType[(1)][(1)] == "has"))) {
-            this._traverseFactType([factType[(2)],
-                ["verb", "is of"], factType[(0)]
-            ], realFactType)
-        } else {
-            if (((factType["length"] == (3)) && (factType[(1)][(1)] == "is of"))) {
-                this._traverseFactType([factType[(2)],
-                    ["verb", "has"], factType[(0)]
-                ], realFactType)
-            } else {
-                undefined
-            }
-        }
-    }));
-    (LF2AbstractSQL["ApplyFirstExisting"] = (function(arr, ruleArgs) {
-        if ((ruleArgs == null)) {
-            (ruleArgs = [])
-        } else {
-            undefined
-        };
-        for (var i = (0);
-        (i < arr["length"]); i++) {
-            if ((this[arr[i]] != undefined)) {
-                if (((ruleArgs != null) && (ruleArgs["length"] > (0)))) {
-                    ruleArgs.unshift(arr[i]);
-                    return this["_applyWithArgs"].apply(this, ruleArgs)
-                } else {
-                    undefined
-                };
-                return this._apply(arr[i], ruleArgs)
-            } else {
-                undefined
-            }
-        }
-    }));
-    (LF2AbstractSQL["_traverseFactType"] = (function(fctp, create) {
-        {
-            var $elf = this;
-            var traverseRecurse = (function(currentFactTypePart, remainingFactType, currentLevel) {
-                if ((currentFactTypePart == null)) {
-                    if (create) {
-                        (currentLevel["__valid"] = create)
-                    } else {
-                        undefined
-                    };
-                    return currentLevel
-                } else {
-                    undefined
-                }; {
-                    var finalLevel = undefined;
-                    var finalLevels = ({})
-                };
-                if ((currentLevel.hasOwnProperty(currentFactTypePart) || (create && (currentLevel[currentFactTypePart] = ({}))))) {
-                    (finalLevel = traverseRecurse(remainingFactType[(0)], remainingFactType.slice((1)), currentLevel[currentFactTypePart]));
-                    if ((finalLevel != false)) {
-                        _.extend(finalLevels, finalLevel)
-                    } else {
-                        undefined
-                    }
-                } else {
-                    undefined
-                };
-                if (((!create) && (currentFactTypePart[(0)] == "term"))) {
-                    while ($elf["conceptTypes"].hasOwnProperty(currentFactTypePart[(1)])) {
-                        (currentFactTypePart = ["term", $elf["conceptTypes"][currentFactTypePart[(1)]]]);
-                        if (currentLevel.hasOwnProperty(currentFactTypePart)) {
-                            (finalLevel = traverseRecurse(remainingFactType[(0)], remainingFactType.slice((1)), currentLevel[currentFactTypePart]));
-                            if ((finalLevel !== false)) {
-                                _.extend(finalLevels, finalLevel)
-                            } else {
-                                undefined
-                            }
-                        } else {
-                            undefined
-                        }
-                    }
-                } else {
-                    undefined
-                };
-                return ((_.isEmpty(finalLevels) === true) ? false : finalLevels)
-            })
-        };
-        return traverseRecurse(fctp[(0)], fctp.slice((1)), this["factTypes"])
-    }));
-    (LF2AbstractSQL["ActualFactType"] = (function(factType) {
-        var traverseInfo = this._traverseFactType(factType);
-        if (((traverseInfo === false) || (!traverseInfo.hasOwnProperty("__valid")))) {
-            return false
-        } else {
-            undefined
-        };
-        return traverseInfo["__valid"]
-    }));
-    (LF2AbstractSQL["FactTypeRootTerms"] = (function(factType, actualFactType) {
-        {
-            var $elf = this;
-            var rootTerms = [];
-            var rootTermIndex = (0)
-        };
-        for (var i = (0);
-        (i < actualFactType["length"]);
-        (i += (2))) {
-            if ((factType[i][(1)] != actualFactType[i][(1)])) {
-                for (var j = (0);
-                (j < actualFactType["length"]);
-                (j++ && (rootTerms["length"] == rootTermIndex))) {
-                    var termName = factType[i][(1)];
-                    if ((termName != actualFactType[j][(1)])) {
-                        while ($elf["conceptTypes"].hasOwnProperty(termName)) {
-                            (termName = $elf["conceptTypes"][termName]);
-                            if ((termName == actualFactType[j][(1)])) {
-                                (rootTerms[rootTermIndex] = termName);
-                                break
-                            } else {
-                                undefined
-                            }
-                        }
-                    } else {
-                        (rootTerms[rootTermIndex] = termName);
-                        break
-                    }
-                }
-            } else {
-                (rootTerms[rootTermIndex] = factType[i][(1)])
-            };
-            rootTermIndex++
-        };
-        return rootTerms
     }));
     return LF2AbstractSQL
 }))

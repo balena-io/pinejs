@@ -1,4 +1,4 @@
-define(['SBVRParser', 'codemirror'], function(SBVRParser) {
+define(['sbvr-parser/SBVRParser', 'codemirror'], function(SBVRParser) {
 	requireCSS('codemirror-ometa-bridge');
 	CodeMirror.defineMode("sbvr", function(config) {
 

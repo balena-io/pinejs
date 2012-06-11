@@ -1,6 +1,6 @@
 (function() {
 
-  define(['SBVRParser', 'data-frame/ClientURIParser', 'Prettify'], function(SBVRParser, ClientURIParser, Prettify) {
+  define(['sbvr-parser/SBVRParser', 'data-frame/ClientURIParser', 'Prettify'], function(SBVRParser, ClientURIParser, Prettify) {
     var cleanUp, clientOnAir, defaultFailureCallback, defaultSuccessCallback, fileApiDetect, loadState, loadUI, locate, processHash, relocate, setClientOnAir, setupDownloadify, setupLoadfile, showErrorMessage, showSimpleError, showUrlMessage, sqlEditor;
     sqlEditor = null;
     clientOnAir = false;

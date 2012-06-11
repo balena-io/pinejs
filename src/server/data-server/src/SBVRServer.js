@@ -1,7 +1,7 @@
 (function() {
   var __hasProp = Object.prototype.hasOwnProperty;
 
-  define(['SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-compiler/LF2AbstractSQL', 'sbvr-compiler/AbstractSQL2SQL', 'data-server/ServerURIParser'], function(SBVRParser, LF2AbstractSQLPrep, LF2AbstractSQL, AbstractSQL2SQL, ServerURIParser) {
+  define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-compiler/LF2AbstractSQL', 'sbvr-compiler/AbstractSQL2SQL', 'data-server/ServerURIParser'], function(SBVRParser, LF2AbstractSQLPrep, LF2AbstractSQL, AbstractSQL2SQL, ServerURIParser) {
     var db, endLock, executeSasync, executeTasync, exports, getCorrectTableInfo, getFTree, getID, hasCR, isExecute, op, parseURITree, rebuildFactType, serverIsOnAir, serverModelCache, transactionModel, updateRules, validateDB;
     exports = {};
     db = null;
