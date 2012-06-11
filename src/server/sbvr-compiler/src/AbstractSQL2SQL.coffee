@@ -4,8 +4,12 @@ define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQLOptimise
 		switch dataType
 			when 'PrimaryKey'
 				return 'SERIAL PRIMARY KEY'
-			when 'integer'
+			when 'Integer'
 				return 'INTEGER'
+			when 'Short Text'
+				return 'varchar(20)'
+			when 'Long Text'
+				return 'varchar(200)'
 			when 'Boolean'
 				return 'INTEGER NOT NULL DEFAULT 0'
 			when 'ForeignKey', 'ConceptType'
@@ -17,8 +21,12 @@ define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQLOptimise
 		switch dataType
 			when 'PrimaryKey'
 				return 'INTEGER PRIMARY KEY AUTOINCREMENT'
-			when 'integer'
+			when 'Integer'
 				return 'INTEGER'
+			when 'Short Text'
+				return 'varchar(20)'
+			when 'Long Text'
+				return 'varchar(200)'
 			when 'Boolean'
 				return 'INTEGER NOT NULL DEFAULT 0'
 			when 'ForeignKey', 'ConceptType'
@@ -68,6 +76,7 @@ define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQLOptimise
 		dropSchemaStatements = dropSchemaStatements.reverse()
 		
 		try
+			# console.log('rules', sqlModel.rules)
 			for rule in sqlModel.rules
 				instance = AbstractSQLOptimiser.createInstance()
 				rule[2][1] = instance.match(
@@ -82,13 +91,11 @@ define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQLOptimise
 		try
 			for rule in sqlModel.rules
 				# console.log(Prettify.match(rule[2][1], 'Process'))
-				# console.log(Prettify.match(rule[2][1], 'Process'))
 				instance = AbstractSQLRules2SQL.createInstance()
 				ruleSQL = instance.match(
 					rule[2][1]
 					, 'Process'
 				)
-				# console.log(rule[1][1])
 				console.log(ruleSQL)
 				ruleStatements.push({text: rule[1][1], sql: ruleSQL})
 		catch e

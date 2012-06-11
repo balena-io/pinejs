@@ -7,8 +7,12 @@
       switch (dataType) {
         case 'PrimaryKey':
           return 'SERIAL PRIMARY KEY';
-        case 'integer':
+        case 'Integer':
           return 'INTEGER';
+        case 'Short Text':
+          return 'varchar(20)';
+        case 'Long Text':
+          return 'varchar(200)';
         case 'Boolean':
           return 'INTEGER NOT NULL DEFAULT 0';
         case 'ForeignKey':
@@ -22,8 +26,12 @@
       switch (dataType) {
         case 'PrimaryKey':
           return 'INTEGER PRIMARY KEY AUTOINCREMENT';
-        case 'integer':
+        case 'Integer':
           return 'INTEGER';
+        case 'Short Text':
+          return 'varchar(20)';
+        case 'Long Text':
+          return 'varchar(200)';
         case 'Boolean':
           return 'INTEGER NOT NULL DEFAULT 0';
         case 'ForeignKey':

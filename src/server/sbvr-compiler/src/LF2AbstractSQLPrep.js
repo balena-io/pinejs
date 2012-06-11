@@ -30,7 +30,7 @@ define(["sbvr-compiler/LFOptimiser"], (function(LFOptimiser) {
         "ForeignKey": function(v1) {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                card, v2, atomicForm, factType;
+                card, v2, atomicForm, necessity, factType, actualFactType;
             this._pred((v1["length"] == (3)));
             this._or((function() {
                 return this._form((function() {
@@ -40,9 +40,7 @@ define(["sbvr-compiler/LFOptimiser"], (function(LFOptimiser) {
                     v2 = this._applyWithArgs("token", "var");
                     this._pred((v2["length"] == (3)));
                     atomicForm = this._applyWithArgs("token", "aFrm");
-                    factType = atomicForm[(1)];
-                    this._pred(((((atomicForm["length"] == (4)) && (factType["length"] == (4))) && (v1[(2)][(1)] == factType[(1)][(1)])) && (v2[(2)][(1)] == factType[(3)][(1)])));
-                    return (this["foreignKeys"][factType] = "NOT NULL")
+                    return necessity = "NOT NULL"
                 }))
             }), (function() {
                 return this._form((function() {
@@ -52,11 +50,14 @@ define(["sbvr-compiler/LFOptimiser"], (function(LFOptimiser) {
                     v2 = this._applyWithArgs("token", "var");
                     this._pred((v2["length"] == (3)));
                     atomicForm = this._applyWithArgs("token", "aFrm");
-                    factType = atomicForm[(1)];
-                    this._pred(((((atomicForm["length"] == (4)) && (factType["length"] == (4))) && (v1[(2)][(1)] == factType[(1)][(1)])) && (v2[(2)][(1)] == factType[(3)][(1)])));
-                    return (this["foreignKeys"][factType] = "NULL")
+                    return necessity = "NULL"
                 }))
             }));
+            factType = atomicForm[(1)];
+            this._pred(((atomicForm["length"] == (4)) && (factType["length"] == (4))));
+            actualFactType = this._applyWithArgs("ActualFactType", factType.slice((1)));
+            this._pred(((v1[(2)][(1)] == actualFactType[(0)][(1)]) && (v2[(2)][(1)] == actualFactType[(2)][(1)])));
+            (this["foreignKeys"][factType] = necessity);
             return this._apply("SetHelped")
         },
         "rule": function() {
@@ -97,7 +98,7 @@ define(["sbvr-compiler/LFOptimiser"], (function(LFOptimiser) {
         }
     });
     (LF2AbstractSQLPrep["initialize"] = (function() {
-        this["__proto__"].initialize();
+        LFOptimiser["initialize"].call(this);
         (this["foreignKeys"] = [])
     }));
     (LF2AbstractSQLPrep["defaultAttributes"] = (function(termOrVerb, attrsFound, attrs) {

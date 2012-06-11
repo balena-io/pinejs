@@ -21,10 +21,7 @@ define(['sbvr-compiler/LFOptimiser'], function(LFOptimiser) {
 					// Just a basic var
 					?(v2.length == 3)
 					"aFrm":atomicForm
-					{atomicForm[1]}:factType
-					// A term verb term fact type, in the same order as the vars appear.
-					?(atomicForm.length == 4 && factType.length == 4 && v1[2][1] == factType[1][1] && v2[2][1] == factType[3][1])
-					{this.foreignKeys[factType] = 'NOT NULL'}
+					{'NOT NULL'}:necessity
 				]
 			|
 				[	'atMostQ'
@@ -34,12 +31,15 @@ define(['sbvr-compiler/LFOptimiser'], function(LFOptimiser) {
 					// Just a basic var
 					?(v2.length == 3)
 					"aFrm":atomicForm
-					{atomicForm[1]}:factType
-					// A term verb term fact type, in the same order as the vars appear.
-					?(atomicForm.length == 4 && factType.length == 4 && v1[2][1] == factType[1][1] && v2[2][1] == factType[3][1])
-					{this.foreignKeys[factType] = 'NULL'}
+					{'NULL'}:necessity
 				]
 			)
+			// A term verb term fact type, in the same order as the vars appear.
+			{atomicForm[1]}:factType
+			?(atomicForm.length == 4 && factType.length == 4)
+			ActualFactType(factType.slice(1)):actualFactType
+			?(v1[2][1] == actualFactType[0][1] && v2[2][1] == actualFactType[2][1])
+			{this.foreignKeys[factType] = necessity}
 			// We have matched a foreign key, so call SetHelped.
 			SetHelped,
 			
@@ -66,7 +66,7 @@ define(['sbvr-compiler/LFOptimiser'], function(LFOptimiser) {
 	}
 	
 	LF2AbstractSQLPrep.initialize = function() {
-		this.__proto__.initialize()
+		LFOptimiser.initialize.call(this);
 		this.foreignKeys = [];
 	}
 	

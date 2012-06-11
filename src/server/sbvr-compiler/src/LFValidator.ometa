@@ -1,8 +1,8 @@
-define(['ometa/ometa-base'], function() {
+define(['sbvr-parser/SBVRLibs', 'ometa/ometa-base'], function(SBVRLibs) {
 	var LFValidator;
 	
 	// TODO: Make the LFValidator validate that it is actually correctly structured LF.
-	ometa LFValidator {
+	ometa LFValidator <: SBVRLibs {
 		$ :x =
 			(	token(x):a
 				-> [a] 
@@ -38,8 +38,15 @@ define(['ometa/ometa-base'], function() {
 			-> ['model'].concat(xs),
 
 		fcTp
-			{a=[]}("term":t "verb":v {a=a.concat([t,v])})* $('term'):e
-			addAttributes(['fcTp'].concat(a).concat(e)),
+			{[]}:factType
+			(	"term":t
+				"verb":v
+				{factType.concat([t,v])}:factType
+			)*
+			$('term'):t
+			{factType.concat(t)}:factType
+			&(:attrs AddFactType(factType, factType))?
+			addAttributes(['fcTp'].concat(factType)),
 
 		term
 			:t addAttributes(['term', t]),
@@ -54,7 +61,7 @@ define(['ometa/ometa-base'], function() {
 			|	{{}}:attrsFound
 				[	(
 						[	:attrName {attrsFound[attrName] = true}
-							(	?(this['attr'+attrName]) apply('attr'+attrName)
+							(	?(this['attr'+attrName]) {this._applyWithArgs.call(this, 'attr'+attrName, termOrVerb)}
 							|	anything
 							):attrVal
 						]
@@ -65,10 +72,14 @@ define(['ometa/ometa-base'], function() {
 				defaultAttributes(termOrVerb, attrsFound, attrs)
 			)
 			-> termOrVerb,
-		attrDefinition =
+		attrDefinition :termOrVerb =
 			(	['Enum' :values]
 			|	trans
 			),
+		attrSynonymousForm :factType =
+			:synForm
+			AddFactType(synForm.slice(0, -1), factType.slice(1))
+			-> synForm,
 
 		text
 			:a
@@ -145,6 +156,10 @@ define(['ometa/ometa-base'], function() {
 		aFrm
 			"fcTp":f "bind"*:b
 			-> ['aFrm', f].concat(b)
+	}
+	
+	LFValidator.initialize = function() {
+		SBVRLibs.initialize.call(this);
 	}
 
 	LFValidator.defaultAttributes = function(termOrVerb, attrsFound, attrs) {

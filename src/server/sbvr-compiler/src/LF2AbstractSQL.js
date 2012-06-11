@@ -94,7 +94,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                 _fromIdx = this.input.idx,
                 type;
             type = this._apply("anything");
-                this["tables"][factType[(0)][(1)]]["fields"].push(["ForeignKey", this["tables"][factType[(2)][(1)]]["name"], this["tables"][factType[(2)][(1)]]["idField"], type]);
+            this["tables"][factType[(0)][(1)]]["fields"].push(["ForeignKey", this["tables"][factType[(2)][(1)]]["name"], this["tables"][factType[(2)][(1)]]["idField"], type]);
             return (this["tables"][factType] = "ForeignKey")
         },
         "AttrSynonymousForm": function(factType) {
@@ -276,7 +276,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                 this._apply("end");
                 termFrom = actualFactType[(0)][(1)];
                 return attributeName = actualFactType[(1)][(1)]
-                    }), (function() {
+            }), (function() {
                 return this._applyWithArgs("foreign", ___AttributeMatchingFailed___, 'die')
             }));
             return ["Equals", ["ReferencedField", (("var" + bindFrom) + termFrom), attributeName], ["Boolean", true]]
@@ -502,7 +502,9 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
         }
     }));
     var primitives = ({
-        "integer": true
+        "Integer": true,
+        "Short Text": true,
+        "Long Text": true
     });
     (LF2AbstractSQL["isPrimitive"] = (function(termName) {
         do {

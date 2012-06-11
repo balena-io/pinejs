@@ -268,7 +268,9 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 	}
 	
 	var primitives = {
-		'integer': true
+		'Integer': true,
+		'Short Text': true,
+		'Long Text': true
 	}
 	LF2AbstractSQL.isPrimitive = function(termName) {
 		do {

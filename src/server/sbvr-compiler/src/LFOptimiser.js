@@ -76,6 +76,7 @@ define(["sbvr-compiler/LFValidator"], (function(LFValidator) {
         }
     });
     (LFOptimiser["initialize"] = (function() {
+        LFValidator["initialize"].call(this);
         (this["_didSomething"] = false)
     }));
     return LFOptimiser

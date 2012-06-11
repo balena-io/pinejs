@@ -1,6 +1,6 @@
-define(["ometa/ometa-base"], (function() {
+define(["sbvr-parser/SBVRLibs", "ometa/ometa-base"], (function(SBVRLibs) {
     var LFValidator = undefined;
-    LFValidator = objectThatDelegatesTo(OMeta, {
+    LFValidator = objectThatDelegatesTo(SBVRLibs, {
         "$": function(x) {
             var $elf = this,
                 _fromIdx = this.input.idx,
@@ -76,15 +76,22 @@ define(["ometa/ometa-base"], (function() {
         "fcTp": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                t, v, e;
-            (a = []);
+                factType, t, v, attrs;
+            factType = [];
             this._many((function() {
                 t = this._applyWithArgs("token", "term");
                 v = this._applyWithArgs("token", "verb");
-                return (a = a.concat([t, v]))
+                return factType = factType.concat([t, v])
             }));
-            e = this._applyWithArgs("$", "term");
-            return this._applyWithArgs("addAttributes", ["fcTp"].concat(a).concat(e))
+            t = this._applyWithArgs("$", "term");
+            factType = factType.concat(t);
+            this._opt((function() {
+                return this._lookahead((function() {
+                    attrs = this._apply("anything");
+                    return this._applyWithArgs("AddFactType", factType, factType)
+                }))
+            }));
+            return this._applyWithArgs("addAttributes", ["fcTp"].concat(factType))
         },
         "term": function() {
             var $elf = this,
@@ -131,7 +138,7 @@ define(["ometa/ometa-base"], (function() {
                             (attrsFound[attrName] = true);
                             return attrVal = this._or((function() {
                                 this._pred(this[("attr" + attrName)]);
-                                return this._applyWithArgs("apply", ("attr" + attrName))
+                                return this["_applyWithArgs"].call(this, ("attr" + attrName), termOrVerb)
                             }), (function() {
                                 return this._apply("anything")
                             }))
@@ -144,7 +151,7 @@ define(["ometa/ometa-base"], (function() {
             }));
             return termOrVerb
         },
-        "attrDefinition": function() {
+        "attrDefinition": function(termOrVerb) {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 values;
@@ -156,6 +163,14 @@ define(["ometa/ometa-base"], (function() {
             }), (function() {
                 return this._apply("trans")
             }))
+        },
+        "attrSynonymousForm": function(factType) {
+            var $elf = this,
+                _fromIdx = this.input.idx,
+                synForm;
+            synForm = this._apply("anything");
+            this._applyWithArgs("AddFactType", synForm.slice((0), (-(1))), factType.slice((1)));
+            return synForm
         },
         "text": function() {
             var $elf = this,
@@ -348,6 +363,9 @@ define(["ometa/ometa-base"], (function() {
             return ["aFrm", f].concat(b)
         }
     });
+    (LFValidator["initialize"] = (function() {
+        SBVRLibs["initialize"].call(this)
+    }));
     (LFValidator["defaultAttributes"] = (function(termOrVerb, attrsFound, attrs) {
         termOrVerb.push(attrs)
     }));
