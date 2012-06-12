@@ -18,7 +18,7 @@
         factTypePart = factType[key];
         factTypePart = factTypePart.replace(/_/g, ' ');
         if (key % 2 === 0) {
-          factType[key] = ['term', factTypePart];
+          factType[key] = ['Term', factTypePart];
         } else {
           factType[key] = ['verb', factTypePart];
         }
@@ -279,7 +279,7 @@
       return _results;
     };
     getFTree = function(tree) {
-      if (tree[1][0] === "term") {
+      if (tree[1][0] === "Term") {
         return tree[1][3];
       } else if (tree[1][0] === "FactType") {
         return tree[1][4];
@@ -288,7 +288,7 @@
     };
     getID = function(tree) {
       var f, ftree, id, _i, _len, _ref;
-      if (tree[1][0] === "term") {
+      if (tree[1][0] === "Term") {
         id = tree[1][2];
       } else if (tree[1][0] === "FactType") {
         id = tree[1][3];
@@ -576,7 +576,7 @@
           _ref = sqlmod.tables;
           for (key in _ref) {
             row = _ref[key];
-            if (/term,.*verb,/.test(key)) {
+            if (/Term,.*verb,/.test(key)) {
               result.factTypes.push({
                 id: row.name,
                 name: row.name
@@ -605,7 +605,7 @@
           ftree = getFTree(tree);
           sql = "";
           _ref2 = getCorrectTableInfo(tree[1][1]), table = _ref2.table, isAttribute = _ref2.isAttribute;
-          if (tree[1][0] === "term") {
+          if (tree[1][0] === "Term") {
             sql = 'SELECT * FROM "' + table.name + '"';
             if (ftree.length !== 1) sql += " WHERE ";
           } else if (tree[1][0] === "FactType") {

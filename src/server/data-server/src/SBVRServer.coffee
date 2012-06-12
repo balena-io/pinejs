@@ -12,7 +12,7 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 		for factTypePart, key in factType
 			factTypePart = factTypePart.replace(/_/g, ' ')
 			if key % 2 == 0
-				factType[key] = ['term', factTypePart]
+				factType[key] = ['Term', factTypePart]
 			else
 				factType[key] = ['verb', factTypePart]
 		return factType
@@ -245,14 +245,14 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 			)
 
 	getFTree = (tree) ->
-		if tree[1][0] == "term"
+		if tree[1][0] == "Term"
 			return tree[1][3]
 		else if tree[1][0] == "FactType"
 			return tree[1][4]
 		return []
 
 	getID = (tree) ->
-		if tree[1][0] == "term"
+		if tree[1][0] == "Term"
 			id = tree[1][2]
 		else if tree[1][0] == "FactType"
 			id = tree[1][3]
@@ -489,7 +489,7 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 					factTypes: []
 				sqlmod = serverModelCache.getSQL()
 				for key, row of sqlmod.tables
-					if /term,.*verb,/.test(key)
+					if /Term,.*verb,/.test(key)
 						result.factTypes.push(
 							id: row.name
 							name: row.name
@@ -517,7 +517,7 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 				ftree = getFTree(tree)
 				sql = ""
 				{table, isAttribute} = getCorrectTableInfo(tree[1][1])
-				if tree[1][0] == "term"
+				if tree[1][0] == "Term"
 					sql = 'SELECT * FROM "' + table.name + '"'
 					sql += " WHERE " if ftree.length != 1
 				else if tree[1][0] == "FactType"

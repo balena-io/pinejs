@@ -60,7 +60,7 @@ define(["sbvr-parser/SBVRLibs", "ometa/ometa-base"], (function(SBVRLibs) {
             xs = [];
             this._many((function() {
                 x = this._or((function() {
-                    return this._applyWithArgs("token", "term")
+                    return this._applyWithArgs("token", "Term")
                 }), (function() {
                     return this._applyWithArgs("token", "FactType")
                 }), (function() {
@@ -79,11 +79,11 @@ define(["sbvr-parser/SBVRLibs", "ometa/ometa-base"], (function(SBVRLibs) {
                 factType, t, v, attrs;
             factType = [];
             this._many((function() {
-                t = this._applyWithArgs("token", "term");
+                t = this._applyWithArgs("token", "Term");
                 v = this._applyWithArgs("token", "verb");
                 return factType = factType.concat([t, v])
             }));
-            t = this._applyWithArgs("$", "term");
+            t = this._applyWithArgs("$", "Term");
             factType = factType.concat(t);
             this._opt((function() {
                 return this._lookahead((function() {
@@ -93,12 +93,12 @@ define(["sbvr-parser/SBVRLibs", "ometa/ometa-base"], (function(SBVRLibs) {
             }));
             return this._applyWithArgs("addAttributes", ["FactType"].concat(factType))
         },
-        "term": function() {
+        "Term": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 t;
             t = this._apply("anything");
-            return this._applyWithArgs("addAttributes", ["term", t])
+            return this._applyWithArgs("addAttributes", ["Term", t])
         },
         "verb": function() {
             var $elf = this,
@@ -331,7 +331,7 @@ define(["sbvr-parser/SBVRLibs", "ometa/ometa-base"], (function(SBVRLibs) {
                 n, t, w;
             return this._or((function() {
                 n = this._applyWithArgs("token", "num");
-                t = this._applyWithArgs("token", "term");
+                t = this._applyWithArgs("token", "Term");
                 w = this._or((function() {
                     return this._applyWithArgs("token", "AtomicFormulation")
                 }), (function() {
@@ -340,7 +340,7 @@ define(["sbvr-parser/SBVRLibs", "ometa/ometa-base"], (function(SBVRLibs) {
                 return ["var", n, t, w]
             }), (function() {
                 n = this._applyWithArgs("token", "num");
-                t = this._applyWithArgs("token", "term");
+                t = this._applyWithArgs("token", "Term");
                 return ["var", n, t]
             }))
         },
@@ -348,7 +348,7 @@ define(["sbvr-parser/SBVRLibs", "ometa/ometa-base"], (function(SBVRLibs) {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 t, n;
-            t = this._applyWithArgs("token", "term");
+            t = this._applyWithArgs("token", "Term");
             n = this._apply("number");
             return ["bind", t, n]
         },

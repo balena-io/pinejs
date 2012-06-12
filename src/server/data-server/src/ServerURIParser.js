@@ -198,7 +198,7 @@ define(["ometa/ometa-base"], (function() {
                 }
             }).call(this)
         },
-        "term": function() {
+        "Term": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 l;
@@ -242,8 +242,8 @@ define(["ometa/ometa-base"], (function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 t;
-            t = this._apply("term");
-            return ["term", t]
+            t = this._apply("Term");
+            return ["Term", t]
         },
         "FactType": function() {
             var $elf = this,
@@ -254,7 +254,7 @@ define(["ometa/ometa-base"], (function() {
                 return (ft = "")
             }).call(this);
             this._many1((function() {
-                t = this._apply("term");
+                t = this._apply("Term");
                 this._applyWithArgs("exactly", "-");
                 "-";
                 v = this._apply("verb");
@@ -266,7 +266,7 @@ define(["ometa/ometa-base"], (function() {
             this._opt((function() {
                 this._applyWithArgs("exactly", "-");
                 "-";
-                t = this._apply("term");
+                t = this._apply("Term");
                 return (function() {
                     ts.push(t);
                     return (ft += ("-" + t))

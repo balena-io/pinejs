@@ -11,13 +11,13 @@ define(['sbvr-parser/SBVRParser', 'underscore', 'Prettify', 'sbvr-frame/SBVRMode
 
 	  num        number:n ?{!isNaN(n)}                     -> [`num, parseInt(n)],
 
-	  model      ("term"|"FactType"|"rule")*:xs                -> [`model].concat(xs),
+	  model      ("Term"|"FactType"|"rule")*:xs                -> [`model].concat(xs),
 		
-	  FactType   {a=[]}("term":t "verb":v {a=a.concat([t,v])})* $('term'):e  (:attr->[attr]|->[]):attr
+	  FactType   {a=[]}("Term":t "verb":v {a=a.concat([t,v])})* $('Term'):e  (:attr->[attr]|->[]):attr
 														   -> a.concat(e),
 
 	  verb       :v                                        -> [`verb, v],
-	  term       :t (:attr->[attr]|->[]):attr              -> [`term, t].concat(attr),
+	  Term       :t (:attr->[attr]|->[]):attr              -> ['Term', t].concat(attr),
 	  rule       ("obl"|"nec"|"pos"|"prm"):x "text":t      -> [`rule, x, t],
 
 	  text	     :a	                                       -> [`text, a],
@@ -41,12 +41,12 @@ define(['sbvr-parser/SBVRParser', 'underscore', 'Prettify', 'sbvr-frame/SBVRMode
 	  minCard    "num":n                                   -> [`minCard, n],
 	  maxCard    "num":n                                   -> [`maxCard, n],
 
-	  var        "num":n "term":t "AtomicFormulation":w //{this.findReplace(w, n[1], t[1]);}
+	  var        "num":n "Term":t "AtomicFormulation":w //{this.findReplace(w, n[1], t[1]);}
 														   -> [`var, n, t, w],
-	  var        "num":n "term":t quant:w                  -> [`var, n, t, w],    
-	  var        "num":n "term":t                          -> [`var, n, t],
+	  var        "num":n "Term":t quant:w                  -> [`var, n, t, w],    
+	  var        "num":n "Term":t                          -> [`var, n, t],
 
-	  bind       "term":t number:n                         -> [`bind, t, n], 
+	  bind       "Term":t number:n                         -> [`bind, t, n], 
 	  AtomicFormulation       "FactType":f "bind"*:b {for(var i = 0; i<b.length; i++) {this.findReplace(f, b[i][1], b[i][2]);}}
 								   -> f
 	}

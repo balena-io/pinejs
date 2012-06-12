@@ -122,7 +122,7 @@ define(['data-frame/ClientURIUnparser'], (ClientURIUnparser) ->
 		@colsout = 0
 		@rows = 0
 		@targ = ""
-		@type = "term"
+		@type = "Term"
 		@schema = []
 		if even
 			@bg = "#FFFFFF"
@@ -146,7 +146,7 @@ define(['data-frame/ClientURIUnparser'], (ClientURIUnparser) ->
 		# TODO: This needs to be given by the server rather than generated here
 		getIdent = (mod) ->
 			switch mod[0]
-				when 'term', 'verb'
+				when 'Term', 'verb'
 					mod[1].replace(new RegExp(' ', 'g'), '_')
 				when 'FactType'
 					ident = []
@@ -203,11 +203,11 @@ define(['data-frame/ClientURIUnparser'], (ClientURIUnparser) ->
 						posl = parent.targ + "/" + parent.about + "." + instance.id
 						prel = "<tr id='tr--" + pid + "--" + instance.id + "'><td>"
 						prel += "<div style='display:inline;background-color:" + parent.unbg + "'>"	unless launch == -1
-						if parent.type == "term"
+						if parent.type == "Term"
 							prel += instance._name
 						else if parent.type == "FactType"
 							for schema in parent.schema
-								if schema[0] == "term"
+								if schema[0] == "Term"
 									prel += instance[schema[1] + "_name"] + " "
 								else if schema[0] == "verb"
 									prel += "<em>" + schema[1] + "</em> "
@@ -306,7 +306,7 @@ define(['data-frame/ClientURIUnparser'], (ClientURIUnparser) ->
 
 				switch actn
 					when "view"
-						if @type == "term"
+						if @type == "Term"
 							@targ = serverAPI(@about, @filters)
 							serverRequest "GET", @targ, {}, null, (statusCode, result, headers) ->
 								res = ""
@@ -319,13 +319,13 @@ define(['data-frame/ClientURIUnparser'], (ClientURIUnparser) ->
 								res = "id: " + result.instances[0].id + "<br/>"
 								# loop around terms
 								for schema in parent.schema
-									if schema[0] == "term"
+									if schema[0] == "Term"
 										res += result.instances[0][schema[1] + "_name"] + " "
 									else if schema[0] == "verb"
 										res += schema[1] + " "
 								parent.callback 1, res
 					when "add"
-						if @type == "term"
+						if @type == "Term"
 							# TODO: The schema info should come from cmod
 							schema = [['Text', '_name', 'Name', []]]
 
@@ -347,7 +347,7 @@ define(['data-frame/ClientURIUnparser'], (ClientURIUnparser) ->
 							@callback 1, res
 						else if @type == "FactType"
 							termResults = {}
-							for schema in parent.schema when schema[0] == "term"
+							for schema in parent.schema when schema[0] == "Term"
 								termResults[schema[1]] = []
 
 							# Get results for all the terms and process them once finished
@@ -364,7 +364,7 @@ define(['data-frame/ClientURIUnparser'], (ClientURIUnparser) ->
 											res = createFactTypeForm(parent.schema, termResults, 'addfctp', serverAPI(parent.about, []), posl, parent.about)
 											parent.callback 1, res
 					when "edit"
-						if @type == "term"
+						if @type == "Term"
 							# TODO: The schema info should come from cmod
 							schema = [['Text', '_name', 'Name', []]]
 
@@ -393,7 +393,7 @@ define(['data-frame/ClientURIUnparser'], (ClientURIUnparser) ->
 							serverRequest "GET", @targ, {}, null, (statusCode, result, headers) ->
 								currentFactType = result.instances[0]
 								termResults = {}
-								for schema in parent.schema when schema[0] == "term"
+								for schema in parent.schema when schema[0] == "Term"
 									termResults[schema[1]] = []
 
 								# Get results for all the terms and process them once finished
@@ -454,7 +454,7 @@ define(['data-frame/ClientURIUnparser'], (ClientURIUnparser) ->
 
 		# merge dropdowns with verbs to create 'form'
 		for schema in schemas
-			if schema[0] == "term"
+			if schema[0] == "Term"
 				res += termSelects[schema[1]] + " "
 			else if schema[0] == "verb"
 				res += schema[1] + " "

@@ -27,7 +27,7 @@ define(['sbvr-parser/SBVRLibs', 'ometa/ometa-base'], function(SBVRLibs) {
 		model
 			{[]}:xs
 			(
-				(	"term"
+				(	"Term"
 				|	"FactType"
 				|	"rule"
 				):x
@@ -39,17 +39,17 @@ define(['sbvr-parser/SBVRLibs', 'ometa/ometa-base'], function(SBVRLibs) {
 
 		FactType
 			{[]}:factType
-			(	"term":t
+			(	"Term":t
 				"verb":v
 				{factType.concat([t,v])}:factType
 			)*
-			$('term'):t
+			$('Term'):t
 			{factType.concat(t)}:factType
 			&(:attrs AddFactType(factType, factType))?
 			addAttributes(['FactType'].concat(factType)),
 
-		term
-			:t addAttributes(['term', t]),
+		Term
+			:t addAttributes(['Term', t]),
 		verb
 			:v
 			-> ['verb', v],
@@ -144,14 +144,14 @@ define(['sbvr-parser/SBVRLibs', 'ometa/ometa-base'], function(SBVRLibs) {
 			-> ['maxCard', n],
 
 		var
-			"num":n "term":t ("AtomicFormulation"|quant):w
+			"num":n "Term":t ("AtomicFormulation"|quant):w
 			-> ['var', n, t, w],
 		var
-			"num":n "term":t
+			"num":n "Term":t
 			-> ['var', n, t],
 
 		bind
-			"term":t number:n
+			"Term":t number:n
 			-> ['bind', t, n], 
 		AtomicFormulation
 			"FactType":f "bind"*:b

@@ -60,7 +60,7 @@ define(["sbvr-parser/SBVRParser", "underscore", "Prettify", "sbvr-frame/SBVRMode
                 xs;
             xs = this._many((function() {
                 return this._or((function() {
-                    return this._applyWithArgs("token", "term")
+                    return this._applyWithArgs("token", "Term")
                 }), (function() {
                     return this._applyWithArgs("token", "FactType")
                 }), (function() {
@@ -75,11 +75,11 @@ define(["sbvr-parser/SBVRParser", "underscore", "Prettify", "sbvr-frame/SBVRMode
                 t, v, e, attr;
             (a = []);
             this._many((function() {
-                t = this._applyWithArgs("token", "term");
+                t = this._applyWithArgs("token", "Term");
                 v = this._applyWithArgs("token", "verb");
                 return (a = a.concat([t, v]))
             }));
-            e = this._applyWithArgs("$", "term");
+            e = this._applyWithArgs("$", "Term");
             attr = this._or((function() {
                 attr = this._apply("anything");
                 return [attr]
@@ -95,7 +95,7 @@ define(["sbvr-parser/SBVRParser", "underscore", "Prettify", "sbvr-frame/SBVRMode
             v = this._apply("anything");
             return ["verb", v]
         },
-        "term": function() {
+        "Term": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 t, attr;
@@ -106,7 +106,7 @@ define(["sbvr-parser/SBVRParser", "underscore", "Prettify", "sbvr-frame/SBVRMode
             }), (function() {
                 return []
             }));
-            return ["term", t].concat(attr)
+            return ["Term", t].concat(attr)
         },
         "rule": function() {
             var $elf = this,
@@ -283,17 +283,17 @@ define(["sbvr-parser/SBVRParser", "underscore", "Prettify", "sbvr-frame/SBVRMode
                 n, t, w;
             return this._or((function() {
                 n = this._applyWithArgs("token", "num");
-                t = this._applyWithArgs("token", "term");
+                t = this._applyWithArgs("token", "Term");
                 w = this._applyWithArgs("token", "AtomicFormulation");
                 return ["var", n, t, w]
             }), (function() {
                 n = this._applyWithArgs("token", "num");
-                t = this._applyWithArgs("token", "term");
+                t = this._applyWithArgs("token", "Term");
                 w = this._apply("quant");
                 return ["var", n, t, w]
             }), (function() {
                 n = this._applyWithArgs("token", "num");
-                t = this._applyWithArgs("token", "term");
+                t = this._applyWithArgs("token", "Term");
                 return ["var", n, t]
             }))
         },
@@ -301,7 +301,7 @@ define(["sbvr-parser/SBVRParser", "underscore", "Prettify", "sbvr-frame/SBVRMode
             var $elf = this,
                 _fromIdx = this.input.idx,
                 t, n;
-            t = this._applyWithArgs("token", "term");
+            t = this._applyWithArgs("token", "Term");
             n = this._apply("number");
             return ["bind", t, n]
         },

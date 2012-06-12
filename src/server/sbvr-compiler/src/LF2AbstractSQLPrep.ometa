@@ -76,7 +76,7 @@ define(['sbvr-compiler/LFOptimiser'], function(LFOptimiser) {
 			this.SetHelped();
 		}
 		switch(termOrVerb[0]) {
-			case 'term':
+			case 'Term':
 				if(!attrsFound.hasOwnProperty('DatabaseNameField')) {
 					attrs.push(['DatabaseNameField', '_name']);
 					this.SetHelped();

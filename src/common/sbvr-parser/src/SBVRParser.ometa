@@ -46,14 +46,14 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base', 'inflection'],
 
 		addTerm =
 			&(termPart+):t {this.terms[t.join(' ')] = t.join(' ')}
-			term,
-		term :factTypeSoFar =
+			Term,
+		Term :factTypeSoFar =
 			findTerm(factTypeSoFar),
 		findTerm :factTypeSoFar :termSoFar =
 			termPart:t {termSoFar = termSoFar==null ? t : [termSoFar, t].join(' ')}
 			(	findTerm(factTypeSoFar, termSoFar)
 			|	?this.isTerm(factTypeSoFar, termSoFar)
-				-> ['term',this._termForm(factTypeSoFar, termSoFar)]
+				-> ['Term',this._termForm(factTypeSoFar, termSoFar)]
 			),
 		termPart =
 			spaces ~lineStart letters,
@@ -72,7 +72,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base', 'inflection'],
 				-> ['verb',this._verbForm(verbSoFar)]
 			),
 		verbPart =
-			spaces ~lineStart ~term letters,
+			spaces ~lineStart ~Term letters,
 		
 		joinQuant =
 			matchForAll('keyword',["and","at","most"]),
@@ -114,7 +114,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base', 'inflection'],
 			-> ['var', ['num', this.ruleVars[term[1]]], term],
 		checkThat :term :termBind =
 			addThat
-			(	addThe term:t bind(t):b {[[t],b]}:c verb(c[0]):v {c[0].push(v, term); c.push(termBind)}
+			(	addThe Term:t bind(t):b {[[t],b]}:c verb(c[0]):v {c[0].push(v, term); c.push(termBind)}
 				(	ruleBody(c)
 				|	atfo(c)
 				)
@@ -137,7 +137,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base', 'inflection'],
 		// c[0] should contain the current fact type that is being built
 		// c[1..] should contain the bindings for the fact type being built
 		ruleBody :c :exitOnTermFactType =
-			quant:body term(c[0]):t createVar(t):tVar bind(t):b {c[0].push(t);c.push(b)}
+			quant:body Term(c[0]):t createVar(t):tVar bind(t):b {c[0].push(t);c.push(b)}
 			(checkThat(t, b):thatC {tVar.push(thatC)})?
 			(
 				verb(c[0]):v {c[0].push(v)}
@@ -177,14 +177,14 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base', 'inflection'],
 			modRule:r ruleBody([[]]):q {r.length == 2 ? r[1][1] = q : r[1] = q}
 			-> ['rule', r, ['text', ruleText]],
 		terb =
-			term:t addVerb:v
+			Term:t addVerb:v
 			-> [t, v],
 		startFactType =
 			"F:"|"Fact type:",
 		newFactType =
 			startFactType {[]}:factType
-			(term:t addVerb:v {factType.push(t, v)})+
-			(term:t {factType.push(t)})?
+			(Term:t addVerb:v {factType.push(t, v)})+
+			(Term:t {factType.push(t)})?
 			AddFactType(factType, factType) {factType.push([])}
 			-> ['FactType'].concat(factType),
 		startTerm =
@@ -204,7 +204,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base', 'inflection'],
 		defaultAttr :currentLine =
 			toSBVREOL,
 		attrDefinition :currentLine =
-			(	{this.ruleVarsCount=0} {[[]]}:c term:t createVar(t):tVar bind(t):b {c[0].push(t);c.push(b)}
+			(	{this.ruleVarsCount=0} {[[]]}:c Term:t createVar(t):tVar bind(t):b {c[0].push(t);c.push(b)}
 				checkThat(t, b):thatC {tVar.push(thatC)}
 				-> tVar
 			|	Value('or'):name
@@ -218,7 +218,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base', 'inflection'],
 			{currentLine[1]}:termName
 			?(!this.conceptTypes.hasOwnProperty(termName)) // Only allow one instance of Concept Type: attribute.
 											 // TODO: Improve this to deal with synonyms and autocomplete/highlighting.
-			term:t ?(termName != t[1]) // Do not allow a term to have itself as its concept type.
+			Term:t ?(termName != t[1]) // Do not allow a term to have itself as its concept type.
 			{this.conceptTypes[termName] = t[1]}
 			-> t,
 		attrSynonym :currentLine =
@@ -226,15 +226,15 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base', 'inflection'],
 			-> t,
 		attrSynonymousForm :currentLine =
 			{[]}:factType
-			(term:t addVerb:v {factType.push(t, v)})+
-			(term:t {factType.push(t)})?
+			(Term:t addVerb:v {factType.push(t, v)})+
+			(Term:t {factType.push(t)})?
 			AddFactType(factType, currentLine.slice(1,-1)) {factType.push([])}
 			-> factType,
 		attrTermForm :currentLine =
 			addTerm:t
 			{
 				for(var i = 0; i < currentLine.length; i++) {
-					if(currentLine[i][0] == 'term') {
+					if(currentLine[i][0] == 'Term') {
 						var factType = [t, ['verb', 'has'], currentLine[i]];
 						this.AddFactType(factType, factType);
 					}
@@ -275,7 +275,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base', 'inflection'],
 			-> this.lines
 	}
 
-	SBVRParser.keyTokens = ["startTerm", "startFactType", "startRule", "newComment", "term", "modRule", "verb", "keyword", "allowedAttrs", "num", "Value"];
+	SBVRParser.keyTokens = ["startTerm", "startFactType", "startRule", "newComment", "Term", "modRule", "verb", "keyword", "allowedAttrs", "num", "Value"];
 	SBVRParser.clearSuggestions = function() {};
 	/**
 		Following are "instance" variables/functions rather than shared.
@@ -295,14 +295,14 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base', 'inflection'],
 	};
 
 	SBVRParser.isTerm = function(factTypeSoFar, term) {
-		var terms = this.possMap.term.call(this, factTypeSoFar);
+		var terms = this.possMap['Term'].call(this, factTypeSoFar);
 		term = this._baseTerm(factTypeSoFar, term);
 		return term !== false && ($.inArray(term,terms) !== -1 || $.inArray(term.singularize(),terms) !== -1);
 	};
 
 	SBVRParser._termForm = function(factTypeSoFar, term) {
 		term = this._baseTerm(factTypeSoFar, term);
-		return $.inArray(term.singularize(), this.possMap.term.call(this, factTypeSoFar)) !== -1 ? term.singularize() : term
+		return $.inArray(term.singularize(), this.possMap['Term'].call(this, factTypeSoFar)) !== -1 ? term.singularize() : term
 	};
 
 	SBVRParser.isVerb = function(factTypeSoFar, verb) {
@@ -352,7 +352,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base', 'inflection'],
 	};
 
 	var removeVerbRegex = new RegExp('^' + ['verb',''].toString()),
-		removeTermRegex = new RegExp('^' + ['term',''].toString()),
+		removeTermRegex = new RegExp('^' + ['Term',''].toString()),
 		allowedAttrLists = [
 			/*#IFDEF server */
 				/* Custom Attributes */
@@ -374,7 +374,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base', 'inflection'],
 			'Subject Field:'
 		];
 		allowedAttrLists = {
-			term: [
+			Term: [
 				'Concept Type:',
 				'Definition:',
 				'Synonym:'
@@ -393,7 +393,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base', 'inflection'],
 			startTerm: ['Term:     '],
 			startFactType: ['Fact type:'],
 			startRule: ['Rule:     '],
-			term: function(factTypeSoFar) {
+			Term: function(factTypeSoFar) {
 				if(factTypeSoFar == null || factTypeSoFar.length == 0) {
 					return _.keys(this.terms);
 				}
@@ -423,7 +423,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base', 'inflection'],
 					return allowedAttrLists[termOrFactType];
 				}
 				else if(termOrFactType == null) {
-					return allowedAttrLists.term.concat(allowedAttrLists.FactType);
+					return allowedAttrLists.Term.concat(allowedAttrLists.FactType);
 				}
 				return [];
 			},

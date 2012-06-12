@@ -52,9 +52,9 @@ define(['underscore', 'ometa/ometa-base'], function(_) {
 				}
 			}
 			
-			if(!create && currentFactTypePart[0] == 'term') {
+			if(!create && currentFactTypePart[0] == 'Term') {
 				while( self.conceptTypes.hasOwnProperty(currentFactTypePart[1]) ) {
-					currentFactTypePart = ['term', self.conceptTypes[currentFactTypePart[1]]];
+					currentFactTypePart = ['Term', self.conceptTypes[currentFactTypePart[1]]];
 					if( currentLevel.hasOwnProperty(currentFactTypePart) ) {
 						// We use recursion so here we go down each branch until we find the suitable one, or run out of branches.
 						finalLevel = traverseRecurse(remainingFactType[0], remainingFactType.slice(1), currentLevel[currentFactTypePart]);

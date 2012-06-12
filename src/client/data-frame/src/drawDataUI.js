@@ -154,7 +154,7 @@
       this.colsout = 0;
       this.rows = 0;
       this.targ = "";
-      this.type = "term";
+      this.type = "Term";
       this.schema = [];
       if (even) {
         this.bg = "#FFFFFF";
@@ -183,7 +183,7 @@
       getIdent = function(mod) {
         var factTypePart, ident, _i, _len, _ref;
         switch (mod[0]) {
-          case 'term':
+          case 'Term':
           case 'verb':
             return mod[1].replace(new RegExp(' ', 'g'), '_');
           case 'FactType':
@@ -268,13 +268,13 @@
               if (launch !== -1) {
                 prel += "<div style='display:inline;background-color:" + parent.unbg + "'>";
               }
-              if (parent.type === "term") {
+              if (parent.type === "Term") {
                 prel += instance._name;
               } else if (parent.type === "FactType") {
                 _ref11 = parent.schema;
                 for (_o = 0, _len9 = _ref11.length; _o < _len9; _o++) {
                   schema = _ref11[_o];
-                  if (schema[0] === "term") {
+                  if (schema[0] === "Term") {
                     prel += instance[schema[1] + "_name"] + " ";
                   } else if (schema[0] === "verb") {
                     prel += "<em>" + schema[1] + "</em> ";
@@ -402,7 +402,7 @@
           }
           switch (actn) {
             case "view":
-              if (this.type === "term") {
+              if (this.type === "Term") {
                 this.targ = serverAPI(this.about, this.filters);
                 return serverRequest("GET", this.targ, {}, null, function(statusCode, result, headers) {
                   var item, res;
@@ -422,7 +422,7 @@
                   _ref8 = parent.schema;
                   for (_o = 0, _len7 = _ref8.length; _o < _len7; _o++) {
                     schema = _ref8[_o];
-                    if (schema[0] === "term") {
+                    if (schema[0] === "Term") {
                       res += result.instances[0][schema[1] + "_name"] + " ";
                     } else if (schema[0] === "verb") {
                       res += schema[1] + " ";
@@ -433,7 +433,7 @@
               }
               break;
             case "add":
-              if (this.type === "term") {
+              if (this.type === "Term") {
                 schema = [['Text', '_name', 'Name', []]];
                 res = "<div align='right'>";
                 res += "<form class='action'>";
@@ -458,7 +458,7 @@
                 _ref8 = parent.schema;
                 for (_p = 0, _len8 = _ref8.length; _p < _len8; _p++) {
                   schema = _ref8[_p];
-                  if (schema[0] === "term") termResults[schema[1]] = [];
+                  if (schema[0] === "Term") termResults[schema[1]] = [];
                 }
                 resultsReceived = 0;
                 resultsRequested = Object.keys(termResults).length;
@@ -479,7 +479,7 @@
               }
               break;
             case "edit":
-              if (this.type === "term") {
+              if (this.type === "Term") {
                 schema = [['Text', '_name', 'Name', []]];
                 this.targ = serverAPI(this.about, this.filters);
                 return serverRequest("GET", this.targ, {}, null, function(statusCode, result, headers) {
@@ -515,7 +515,7 @@
                   _ref9 = parent.schema;
                   for (_q = 0, _len9 = _ref9.length; _q < _len9; _q++) {
                     schema = _ref9[_q];
-                    if (schema[0] === "term") termResults[schema[1]] = [];
+                    if (schema[0] === "Term") termResults[schema[1]] = [];
                   }
                   resultsReceived = 0;
                   resultsRequested = Object.keys(termResults).length;
@@ -580,7 +580,7 @@
       res += createHiddenInputs(action, serverURI, backURI, type, currentFactType === false ? false : currentFactType.id);
       for (_j = 0, _len2 = schemas.length; _j < _len2; _j++) {
         schema = schemas[_j];
-        if (schema[0] === "term") {
+        if (schema[0] === "Term") {
           res += termSelects[schema[1]] + " ";
         } else if (schema[0] === "verb") {
           res += schema[1] + " ";

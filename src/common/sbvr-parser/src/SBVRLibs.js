@@ -70,9 +70,9 @@ define(["underscore", "ometa/ometa-base"], (function(_) {
                 } else {
                     undefined
                 };
-                if (((!create) && (currentFactTypePart[(0)] == "term"))) {
+                if (((!create) && (currentFactTypePart[(0)] == "Term"))) {
                     while ($elf["conceptTypes"].hasOwnProperty(currentFactTypePart[(1)])) {
-                        (currentFactTypePart = ["term", $elf["conceptTypes"][currentFactTypePart[(1)]]]);
+                        (currentFactTypePart = ["Term", $elf["conceptTypes"][currentFactTypePart[(1)]]]);
                         if (currentLevel.hasOwnProperty(currentFactTypePart)) {
                             (finalLevel = traverseRecurse(remainingFactType[(0)], remainingFactType.slice((1)), currentLevel[currentFactTypePart]));
                             if ((finalLevel !== false)) {

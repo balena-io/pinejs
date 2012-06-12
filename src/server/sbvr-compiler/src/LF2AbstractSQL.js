@@ -46,7 +46,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                 _fromIdx = this.input.idx,
                 conceptType;
             this._form((function() {
-                this._applyWithArgs("exactly", "term");
+                this._applyWithArgs("exactly", "Term");
                 return conceptType = this._apply("anything")
             }));
             (this["conceptTypes"][termName] = conceptType);
@@ -145,7 +145,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                 return this._many1((function() {
                     return this._or((function() {
                         this._form((function() {
-                            this._applyWithArgs("exactly", "term");
+                            this._applyWithArgs("exactly", "Term");
                             return termName = this._apply("anything")
                         }));
                         return this["tables"][factType]["fields"].push(["ForeignKey", this["tables"][termName]["name"], this["tables"][termName]["idField"], "NOT NULL"])
@@ -199,7 +199,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                 this._applyWithArgs("exactly", "var");
                 bind = this._apply("Number");
                 this._form((function() {
-                    this._applyWithArgs("exactly", "term");
+                    this._applyWithArgs("exactly", "Term");
                     return termName = this._apply("anything")
                 }));
                 varAlias = ("var" + bind);
@@ -223,7 +223,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
             this._form((function() {
                 this._applyWithArgs("exactly", "bind");
                 this._form((function() {
-                    this._applyWithArgs("exactly", "term");
+                    this._applyWithArgs("exactly", "Term");
                     return termName = this._apply("anything")
                 }));
                 return bind = this._apply("anything")
@@ -418,7 +418,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                     return this._form((function() {
                         return (function() {
                             switch (this._apply('anything')) {
-                            case "term":
+                            case "Term":
                                 return (function() {
                                     termName = this._apply("TermName");
                                     return this._applyWithArgs("Attributes", termName)

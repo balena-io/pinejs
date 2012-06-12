@@ -17,13 +17,13 @@ define(['ometa/ometa-base'], function() {
 
 		actn = (``*'' mdtp:a (``:'' parm+|->[]):p -> [a].concat(p))+ | -> [],
 		comm = ``cr'' | ``execute'',
-		term = (letter|``_'')+:l                                                 -> l.join(''),     
+		Term = (letter|``_'')+:l                                                 -> l.join(''),     
 		verb = (letter|``_'')+:l                                                 -> l.join(''),     
 
-		trmf = term:t -> [`term, t],
+		trmf = Term:t -> ['Term', t],
 
-		FactType = {ts=[`terms];ft=''} (term:t ``-'' verb:v -> {ts.push(t);ft += t + "-" + v})+ 
-			   (``-'' term:t -> {ts.push(t);ft += "-" + t})?                           -> ['FactType', ft, ts], 
+		FactType = {ts=['terms'];ft=''} (Term:t ``-'' verb:v -> {ts.push(t);ft += t + "-" + v})+ 
+			   (``-'' Term:t -> {ts.push(t);ft += "-" + t})?                           -> ['FactType', ft, ts], 
 
 		  id = (``.'' nmbr:n -> [n]|->['']),
 

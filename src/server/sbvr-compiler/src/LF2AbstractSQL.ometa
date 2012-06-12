@@ -20,7 +20,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 			:anything
 			{console.log('Default', tableID, anything)},
 		AttrConceptType :termName = // tableID will be same as termName for ConceptType (fact types cannot have a concept type)
-			['term' :conceptType] {this.conceptTypes[termName] = conceptType}
+			['Term' :conceptType] {this.conceptTypes[termName] = conceptType}
 			{this.tables[termName].fields.push(['ConceptType', this.tables[conceptType].name, this.tables[conceptType].idField, 'NOT NULL']); this.tables[termName].primitive = this.isPrimitive(termName)},
 		AttrDatabaseIDField :tableID =
 			:idField
@@ -67,7 +67,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 				{this.tables[factType[0][1]].fields.push(['Boolean', factType[1][1]])}
 				{this.tables[factType] = 'Attribute'}
 			|	{this.tables[factType] = {fields:[], primitive: false, name: null}}
-				(	['term' :termName]
+				(	['Term' :termName]
 					{this.tables[factType].fields.push(['ForeignKey', this.tables[termName].name, this.tables[termName].idField, 'NOT NULL'])}
 				|	['verb' :verb]
 				)+
@@ -91,7 +91,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 		Variable =
 			[	'var'
 				Number:bind
-				['term' :termName]
+				['Term' :termName]
 				{'var' + bind}:varAlias
 				{['Query', ['Select', []], ['From', this.tables[termName].name, varAlias + termName]]}:query
 				ResolveConceptTypes(query, termName, varAlias)
@@ -108,7 +108,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 		
 		Bind =
 			[	'bind'
-				['term' :termName]
+				['Term' :termName]
 				:bind
 			]
 			-> bind,
@@ -216,7 +216,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 		Process =
 			[	'model'
 				(
-					[	'term' TermName:termName Attributes(termName)
+					[	'Term' TermName:termName Attributes(termName)
 					|	'FactType' FactType:factType Attributes(factType)
 					|	'rule' RuleBody:ruleBody ['text' :ruleText]
 						{this.linkTableBind = 0}
