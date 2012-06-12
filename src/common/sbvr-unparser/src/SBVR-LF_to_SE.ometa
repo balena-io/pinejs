@@ -46,8 +46,8 @@ define(['sbvr-parser/SBVRParser', 'underscore', 'Prettify', 'sbvr-frame/SBVRMode
 	  var        "num":n "Term":t quant:w                  -> [`var, n, t, w],    
 	  var        "num":n "Term":t                          -> [`var, n, t],
 
-	  bind       "Term":t number:n                         -> [`bind, t, n], 
-	  AtomicFormulation       "FactType":f "bind"*:b {for(var i = 0; i<b.length; i++) {this.findReplace(f, b[i][1], b[i][2]);}}
+	  RoleBinding       "Term":t number:n                         -> ['RoleBinding', t, n], 
+	  AtomicFormulation       "FactType":f "RoleBinding"*:b {for(var i = 0; i<b.length; i++) {this.findReplace(f, b[i][1], b[i][2]);}}
 								   -> f
 	}
 

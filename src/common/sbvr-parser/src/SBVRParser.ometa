@@ -6,8 +6,8 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base', 'inflection'],
 	//Specification: http://www.omg.org/spec/SBVR/1.0/
 
 	ometa SBVRParser <: SBVRLibs {
-		bind :x	=
-			-> ['bind', x, this.ruleVars[x[1]]],
+		Bind :x	=
+			-> ['RoleBinding', x, this.ruleVars[x[1]]],
 
 		letters =
 			letter+:l
@@ -114,7 +114,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base', 'inflection'],
 			-> ['var', ['num', this.ruleVars[term[1]]], term],
 		checkThat :term :termBind =
 			addThat
-			(	addThe Term:t bind(t):b {[[t],b]}:c Verb(c[0]):v {c[0].push(v, term); c.push(termBind)}
+			(	addThe Term:t Bind(t):b {[[t],b]}:c Verb(c[0]):v {c[0].push(v, term); c.push(termBind)}
 				(	ruleBody(c)
 				|	atfo(c)
 				)
@@ -137,7 +137,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base', 'inflection'],
 		// c[0] should contain the current fact type that is being built
 		// c[1..] should contain the bindings for the fact type being built
 		ruleBody :c :exitOnTermFactType =
-			quant:body Term(c[0]):t createVar(t):tVar bind(t):b {c[0].push(t);c.push(b)}
+			quant:body Term(c[0]):t createVar(t):tVar Bind(t):b {c[0].push(t);c.push(b)}
 			(checkThat(t, b):thatC {tVar.push(thatC)})?
 			(
 				Verb(c[0]):v {c[0].push(v)}
@@ -204,7 +204,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base', 'inflection'],
 		defaultAttr :currentLine =
 			toSBVREOL,
 		attrDefinition :currentLine =
-			(	{this.ruleVarsCount=0} {[[]]}:c Term:t createVar(t):tVar bind(t):b {c[0].push(t);c.push(b)}
+			(	{this.ruleVarsCount=0} {[[]]}:c Term:t createVar(t):tVar Bind(t):b {c[0].push(t);c.push(b)}
 				checkThat(t, b):thatC {tVar.push(thatC)}
 				-> tVar
 			|	Value('or'):name

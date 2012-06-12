@@ -297,13 +297,13 @@ define(["sbvr-parser/SBVRParser", "underscore", "Prettify", "sbvr-frame/SBVRMode
                 return ["var", n, t]
             }))
         },
-        "bind": function() {
+        "RoleBinding": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 t, n;
             t = this._applyWithArgs("token", "Term");
             n = this._apply("number");
-            return ["bind", t, n]
+            return ["RoleBinding", t, n]
         },
         "AtomicFormulation": function() {
             var $elf = this,
@@ -311,7 +311,7 @@ define(["sbvr-parser/SBVRParser", "underscore", "Prettify", "sbvr-frame/SBVRMode
                 f, b;
             f = this._applyWithArgs("token", "FactType");
             b = this._many((function() {
-                return this._applyWithArgs("token", "bind")
+                return this._applyWithArgs("token", "RoleBinding")
             }));
             (function() {
                 for (var i = (0);

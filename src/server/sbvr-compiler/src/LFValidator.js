@@ -344,13 +344,13 @@ define(["sbvr-parser/SBVRLibs", "ometa/ometa-base"], (function(SBVRLibs) {
                 return ["var", n, t]
             }))
         },
-        "bind": function() {
+        "RoleBinding": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 t, n;
             t = this._applyWithArgs("token", "Term");
             n = this._apply("number");
-            return ["bind", t, n]
+            return ["RoleBinding", t, n]
         },
         "AtomicFormulation": function() {
             var $elf = this,
@@ -358,7 +358,7 @@ define(["sbvr-parser/SBVRLibs", "ometa/ometa-base"], (function(SBVRLibs) {
                 f, b;
             f = this._applyWithArgs("token", "FactType");
             b = this._many((function() {
-                return this._applyWithArgs("token", "bind")
+                return this._applyWithArgs("token", "RoleBinding")
             }));
             return ["AtomicFormulation", f].concat(b)
         }

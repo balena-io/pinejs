@@ -150,11 +150,11 @@ define(['sbvr-parser/SBVRLibs', 'ometa/ometa-base'], function(SBVRLibs) {
 			"num":n "Term":t
 			-> ['var', n, t],
 
-		bind
+		RoleBinding
 			"Term":t number:n
-			-> ['bind', t, n], 
+			-> ['RoleBinding', t, n], 
 		AtomicFormulation
-			"FactType":f "bind"*:b
+			"FactType":f "RoleBinding"*:b
 			-> ['AtomicFormulation', f].concat(b)
 	}
 	

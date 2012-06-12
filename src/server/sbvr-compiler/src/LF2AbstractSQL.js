@@ -216,12 +216,12 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
             this._applyWithArgs("AddWhereClause", query, whereBody);
             return query
         },
-        "Bind": function() {
+        "RoleBinding": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 termName, bind;
             this._form((function() {
-                this._applyWithArgs("exactly", "bind");
+                this._applyWithArgs("exactly", "RoleBinding");
                 this._form((function() {
                     this._applyWithArgs("exactly", "Term");
                     return termName = this._apply("anything")
@@ -241,7 +241,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
             i = (0);
             this._many1((function() {
                 this._pred((i < rootTerms["length"]));
-                bind = this._apply("Bind");
+                bind = this._apply("RoleBinding");
                 termName = rootTerms[i];
                 this._applyWithArgs("AddWhereClause", query, ["Equals", ["ReferencedField", tableAlias, this["tables"][termName]["name"]],
                     ["ReferencedField", (("var" + bind) + termName), this["tables"][termName]["idField"]]
@@ -256,8 +256,8 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                 bindFrom, bindTo, termFrom, termTo;
             this._pred((this["tables"][actualFactType] == "ForeignKey"));
             this._or((function() {
-                bindFrom = this._apply("Bind");
-                bindTo = this._apply("Bind");
+                bindFrom = this._apply("RoleBinding");
+                bindTo = this._apply("RoleBinding");
                 this._apply("end");
                 termFrom = rootTerms[(0)];
                 return termTo = rootTerms[(1)]
@@ -272,7 +272,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                 bindFrom, termFrom, attributeName;
             this._pred((this["tables"][actualFactType] == "Attribute"));
             this._or((function() {
-                bindFrom = this._apply("Bind");
+                bindFrom = this._apply("RoleBinding");
                 this._apply("end");
                 termFrom = actualFactType[(0)][(1)];
                 return attributeName = actualFactType[(1)][(1)]

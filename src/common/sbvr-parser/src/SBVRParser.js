@@ -1,10 +1,10 @@
 define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base", "inflection"], (function(SBVRLibs, _) {
     var SBVRParser = undefined;
     SBVRParser = objectThatDelegatesTo(SBVRLibs, {
-        "bind": function(x) {
+        "Bind": function(x) {
             var $elf = this,
                 _fromIdx = this.input.idx;
-            return ["bind", x, this["ruleVars"][x[(1)]]]
+            return ["RoleBinding", x, this["ruleVars"][x[(1)]]]
         },
         "letters": function() {
             var $elf = this,
@@ -272,7 +272,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base", "inflection"],
             r = this._or((function() {
                 this._apply("addThe");
                 t = this._apply("Term");
-                b = this._applyWithArgs("bind", t);
+                b = this._applyWithArgs("Bind", t);
                 c = [
                     [t], b];
                 v = this._applyWithArgs("Verb", c[(0)]);
@@ -321,7 +321,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base", "inflection"],
             body = this._apply("quant");
             t = this._applyWithArgs("Term", c[(0)]);
             tVar = this._applyWithArgs("createVar", t);
-            b = this._applyWithArgs("bind", t);
+            b = this._applyWithArgs("Bind", t);
             (function() {
                 c[(0)].push(t);
                 return c.push(b)
@@ -495,7 +495,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base", "inflection"],
                 ];
                 t = this._apply("Term");
                 tVar = this._applyWithArgs("createVar", t);
-                b = this._applyWithArgs("bind", t);
+                b = this._applyWithArgs("Bind", t);
                 (function() {
                     c[(0)].push(t);
                     return c.push(b)

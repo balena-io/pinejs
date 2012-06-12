@@ -106,8 +106,8 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 			)
 			-> query,
 		
-		Bind =
-			[	'bind'
+		RoleBinding =
+			[	'RoleBinding'
 				['Term' :termName]
 				:bind
 			]
@@ -118,7 +118,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 			{['Query', ['Select', []], ['From', this.tables[actualFactType].name, tableAlias]]}:query
 			{0}:i
 			(	?(i < rootTerms.length)
-				Bind:bind
+				RoleBinding:bind
 				{rootTerms[i]}:termName
 				AddWhereClause(query, ['Equals', ['ReferencedField', tableAlias, this.tables[termName].name], ['ReferencedField', 'var' + bind + termName, this.tables[termName].idField]])
 				{i++}
@@ -127,8 +127,8 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 		
 		ForeignKey :actualFactType :rootTerms =
 			?(this.tables[actualFactType] == 'ForeignKey')
-			(	Bind:bindFrom
-				Bind:bindTo
+			(	RoleBinding:bindFrom
+				RoleBinding:bindTo
 				end
 				{rootTerms[0]}:termFrom
 				{rootTerms[1]}:termTo
@@ -138,7 +138,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 
 		Attribute :actualFactType =
 			?(this.tables[actualFactType] == 'Attribute')
-			(	Bind:bindFrom
+			(	RoleBinding:bindFrom
 				end
 				{actualFactType[0][1]}:termFrom
 				{actualFactType[1][1]}:attributeName
