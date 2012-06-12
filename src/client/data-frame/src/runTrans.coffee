@@ -2,7 +2,7 @@ runTrans = (rootElement) ->
 	if $(".action").size() > 0
 		# fetch transaction collection location?(?) - [not needed as this is code on demand]
 		# create transaction resource
-		obj = [name:'trans']
+		obj = [_name:'trans']
 		serverRequest('POST', '/data/transaction', {}, obj, (statusCode, result, headers) ->
 			# get 'trans'action resource to extract lcURI,tlcURI,rcURI,lrcURI,xlcURI,slcURI,ctURI
 			serverRequest("GET", headers.location, {}, null, (statusCode, trans, headers) ->
@@ -58,7 +58,7 @@ runTrans = (rootElement) ->
 
 
 	lockResource = (resource_type, resource_id, trans, successCallback, failureCallback) ->
-		serverRequest "POST", trans.lcURI, {}, [ name: "lok" ], ((statusCode, result, headers) ->
+		serverRequest "POST", trans.lcURI, {}, [ _name: "lok" ], ((statusCode, result, headers) ->
 			serverRequest "GET", headers.location, {}, null, ((statusCode, lock, headers) ->
 				lockID = lock.instances[0].id
 				o = [ transaction: trans.id, lock: lockID ]

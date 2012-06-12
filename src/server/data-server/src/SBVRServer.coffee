@@ -523,7 +523,7 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 				else if tree[1][0] == "fcTp"
 					ft = tree[1][1]
 					if isAttribute
-						sql = 'SELECT id, name AS "' + isAttribute.termName + '_name", "' + isAttribute.attributeName + '" FROM "' + table.name + '" WHERE "' + isAttribute.attributeName + '" = 1'
+						sql = 'SELECT id, _name AS "' + isAttribute.termName + '_name", "' + isAttribute.attributeName + '" FROM "' + table.name + '" WHERE "' + isAttribute.attributeName + '" = 1'
 					else
 						fl = [ '"' + ft + '".id AS id' ]
 						jn = []
