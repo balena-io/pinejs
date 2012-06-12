@@ -90,7 +90,7 @@ define(["sbvr-compiler/LFOptimiser"], (function(LFOptimiser) {
                         }).call(this)
                     }))
                 }));
-                this._applyWithArgs("token", "text");
+                this._applyWithArgs("token", "StructuredEnglish");
                 return null
             }), (function() {
                 return LFOptimiser._superApplyWithArgs(this, 'Rule')

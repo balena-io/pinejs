@@ -97,7 +97,7 @@ define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQLOptimise
 					, 'Process'
 				)
 				console.log(ruleSQL)
-				ruleStatements.push({text: rule[1][1], sql: ruleSQL})
+				ruleStatements.push({structuredEnglish: rule[1][1], sql: ruleSQL})
 		catch e
 			console.log(e)
 			console.log(instance.input)

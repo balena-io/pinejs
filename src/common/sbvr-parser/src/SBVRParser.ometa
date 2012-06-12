@@ -175,7 +175,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base', 'inflection'],
 		newRule =
 			startRule spaces &(toSBVREOL):ruleText {this.ruleVarsCount=0}
 			modRule:r ruleBody([[]]):q {r.length == 2 ? r[1][1] = q : r[1] = q}
-			-> ['Rule', r, ['text', ruleText]],
+			-> ['Rule', r, ['StructuredEnglish', ruleText]],
 		terb =
 			Term:t addVerb:v
 			-> [t, v],

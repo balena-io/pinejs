@@ -118,7 +118,7 @@
           ruleSQL = instance.match(rule[2][1], 'Process');
           console.log(ruleSQL);
           ruleStatements.push({
-            text: rule[1][1],
+            structuredEnglish: rule[1][1],
             sql: ruleSQL
           });
         }

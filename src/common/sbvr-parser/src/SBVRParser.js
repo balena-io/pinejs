@@ -401,7 +401,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base", "inflection"],
                 []
             ]);
             ((r["length"] == (2)) ? (r[(1)][(1)] = q) : (r[(1)] = q));
-            return ["Rule", r, ["text", ruleText]]
+            return ["Rule", r, ["StructuredEnglish", ruleText]]
         },
         "terb": function() {
             var $elf = this,

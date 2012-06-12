@@ -432,11 +432,11 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                                 return (function() {
                                     ruleBody = this._apply("RuleBody");
                                     this._form((function() {
-                                        this._applyWithArgs("exactly", "text");
+                                        this._applyWithArgs("exactly", "StructuredEnglish");
                                         return ruleText = this._apply("anything")
                                     }));
                                     (this["linkTableBind"] = (0));
-                                    return this["rules"].push(["Rule", ["Text", ruleText],
+                                    return this["rules"].push(["Rule", ["StructuredEnglish", ruleText],
                                         ["Body", ruleBody]
                                     ])
                                 }).call(this);

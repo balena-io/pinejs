@@ -218,7 +218,7 @@
             var _ref2;
             totalExecuted++;
             if ((_ref2 = result.rows.item(0).result) === false || _ref2 === 0) {
-              errors.push(rule.text);
+              errors.push(rule.structuredEnglish);
             }
             if (totalQueries === totalExecuted) {
               if (errors.length > 0) {
@@ -268,7 +268,7 @@
       _results = [];
       for (_j = 0, _len2 = _ref2.length; _j < _len2; _j++) {
         rule = _ref2[_j];
-        l[++m] = rule.text;
+        l[++m] = rule.structuredEnglish;
         _results.push(tx.executeSql(rule.sql, [], function(tx, result) {
           var _ref3;
           if ((_ref3 = result.rows.item(0).result) === 0 || _ref3 === false) {

@@ -120,7 +120,7 @@ define(["sbvr-parser/SBVRLibs", "ometa/ometa-base"], (function(SBVRLibs) {
             }), (function() {
                 return this._applyWithArgs("token", "PermissibilityF")
             }));
-            t = this._applyWithArgs("token", "text");
+            t = this._applyWithArgs("token", "StructuredEnglish");
             return ["Rule", x, t]
         },
         "addAttributes": function(termOrVerb) {
@@ -172,12 +172,12 @@ define(["sbvr-parser/SBVRLibs", "ometa/ometa-base"], (function(SBVRLibs) {
             this._applyWithArgs("AddFactType", synForm.slice((0), (-(1))), factType.slice((1)));
             return synForm
         },
-        "text": function() {
+        "StructuredEnglish": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 a;
             a = this._apply("anything");
-            return ["text", a]
+            return ["StructuredEnglish", a]
         },
         "ObligationF": function() {
             var $elf = this,

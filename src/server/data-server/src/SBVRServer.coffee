@@ -179,7 +179,7 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 				(tx, result) ->
 					totalExecuted++
 					if result.rows.item(0).result in [false, 0]
-						errors.push(rule.text)
+						errors.push(rule.structuredEnglish)
 
 					if totalQueries == totalExecuted
 						if errors.length > 0
@@ -238,7 +238,7 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 		# This may eventually lead to entering obligatory data.
 		# For the moment it blocks such models from execution.
 		for rule in sqlmod.rules
-			l[++m] = rule.text
+			l[++m] = rule.structuredEnglish
 			tx.executeSql(rule.sql, [], (tx, result) ->
 				if result.rows.item(0).result in [0, false]
 					alert "Error: " + l[++k]

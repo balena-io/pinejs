@@ -18,9 +18,9 @@ define(['sbvr-parser/SBVRParser', 'underscore', 'Prettify', 'sbvr-frame/SBVRMode
 
 	  Verb       :v                                        -> ['Verb', v],
 	  Term       :t (:attr->[attr]|->[]):attr              -> ['Term', t].concat(attr),
-	  Rule       ("ObligationF"|"NecessityF"|"PossibilityF"|"PermissibilityF"):x "text":t      -> ['Rule', x, t],
+	  Rule       ("ObligationF"|"NecessityF"|"PossibilityF"|"PermissibilityF"):x "StructuredEnglish":t      -> ['Rule', x, t],
 
-	  text	     :a	                                       -> [`text, a],
+	  StructuredEnglish	     :a	                                       -> ['StructuredEnglish', a],
 	  
 	  ObligationF        trans*:xs                                 -> ['ObligationF'].concat(xs),
 	  NecessityF        trans*:xs                                 -> ['NecessityF'].concat(xs),

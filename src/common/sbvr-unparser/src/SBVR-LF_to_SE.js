@@ -121,15 +121,15 @@ define(["sbvr-parser/SBVRParser", "underscore", "Prettify", "sbvr-frame/SBVRMode
             }), (function() {
                 return this._applyWithArgs("token", "PermissibilityF")
             }));
-            t = this._applyWithArgs("token", "text");
+            t = this._applyWithArgs("token", "StructuredEnglish");
             return ["Rule", x, t]
         },
-        "text": function() {
+        "StructuredEnglish": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 a;
             a = this._apply("anything");
-            return ["text", a]
+            return ["StructuredEnglish", a]
         },
         "ObligationF": function() {
             var $elf = this,

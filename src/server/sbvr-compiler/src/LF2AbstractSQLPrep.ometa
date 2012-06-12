@@ -59,7 +59,7 @@ define(['sbvr-compiler/LFOptimiser'], function(LFOptimiser) {
 						]
 					]
 				]
-				"text"
+				"StructuredEnglish"
 				// We have matched a foreign key, return an empty array to remove the rule.
 				-> null
 			|	^Rule

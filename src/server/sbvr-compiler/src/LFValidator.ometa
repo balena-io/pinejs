@@ -54,7 +54,7 @@ define(['sbvr-parser/SBVRLibs', 'ometa/ometa-base'], function(SBVRLibs) {
 			:v
 			-> ['Verb', v],
 		Rule
-			("ObligationF"|"NecessityF"|"PossibilityF"|"PermissibilityF"):x "text":t
+			("ObligationF"|"NecessityF"|"PossibilityF"|"PermissibilityF"):x "StructuredEnglish":t
 			-> ['Rule', x, t],
 		addAttributes :termOrVerb =
 			(	end
@@ -81,9 +81,9 @@ define(['sbvr-parser/SBVRLibs', 'ometa/ometa-base'], function(SBVRLibs) {
 			AddFactType(synForm.slice(0, -1), factType.slice(1))
 			-> synForm,
 
-		text
+		StructuredEnglish
 			:a
-			-> ['text', a],
+			-> ['StructuredEnglish', a],
 		
 		ObligationF
 			trans*:xs
