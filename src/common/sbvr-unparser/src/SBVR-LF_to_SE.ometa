@@ -13,10 +13,10 @@ define(['sbvr-parser/SBVRParser', 'underscore', 'Prettify', 'sbvr-frame/SBVRMode
 
 	  model      ("Term"|"FactType"|"rule")*:xs                -> [`model].concat(xs),
 		
-	  FactType   {a=[]}("Term":t "verb":v {a=a.concat([t,v])})* $('Term'):e  (:attr->[attr]|->[]):attr
+	  FactType   {a=[]}("Term":t "Verb":v {a=a.concat([t,v])})* $('Term'):e  (:attr->[attr]|->[]):attr
 														   -> a.concat(e),
 
-	  verb       :v                                        -> [`verb, v],
+	  Verb       :v                                        -> ['Verb', v],
 	  Term       :t (:attr->[attr]|->[]):attr              -> ['Term', t].concat(attr),
 	  rule       ("obl"|"nec"|"pos"|"prm"):x "text":t      -> [`rule, x, t],
 

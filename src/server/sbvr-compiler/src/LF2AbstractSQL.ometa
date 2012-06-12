@@ -69,7 +69,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 			|	{this.tables[factType] = {fields:[], primitive: false, name: null}}
 				(	['Term' :termName]
 					{this.tables[factType].fields.push(['ForeignKey', this.tables[termName].name, this.tables[termName].idField, 'NOT NULL'])}
-				|	['verb' :verb]
+				|	['Verb' :verb]
 				)+
 			)
 			-> factType,

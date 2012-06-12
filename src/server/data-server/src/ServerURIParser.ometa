@@ -18,11 +18,11 @@ define(['ometa/ometa-base'], function() {
 		actn = (``*'' mdtp:a (``:'' parm+|->[]):p -> [a].concat(p))+ | -> [],
 		comm = ``cr'' | ``execute'',
 		Term = (letter|``_'')+:l                                                 -> l.join(''),     
-		verb = (letter|``_'')+:l                                                 -> l.join(''),     
+		Verb = (letter|``_'')+:l                                                 -> l.join(''),     
 
 		trmf = Term:t -> ['Term', t],
 
-		FactType = {ts=['terms'];ft=''} (Term:t ``-'' verb:v -> {ts.push(t);ft += t + "-" + v})+ 
+		FactType = {ts=['terms'];ft=''} (Term:t ``-'' Verb:v -> {ts.push(t);ft += t + "-" + v})+ 
 			   (``-'' Term:t -> {ts.push(t);ft += "-" + t})?                           -> ['FactType', ft, ts], 
 
 		  id = (``.'' nmbr:n -> [n]|->['']),

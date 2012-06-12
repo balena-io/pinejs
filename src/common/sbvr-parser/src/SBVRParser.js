@@ -151,9 +151,9 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base", "inflection"],
             var $elf = this,
                 _fromIdx = this.input.idx;
             this._apply("clearSuggestions");
-            return this._applyWithArgs("verb", true)
+            return this._applyWithArgs("Verb", true)
         },
-        "verb": function(factTypeSoFar) {
+        "Verb": function(factTypeSoFar) {
             var $elf = this,
                 _fromIdx = this.input.idx;
             return this._applyWithArgs("findVerb", factTypeSoFar)
@@ -172,7 +172,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base", "inflection"],
                 }), (function() {
                     return this._pred(this.isVerb(factTypeSoFar, verbSoFar))
                 }));
-                return ["verb", this._verbForm(verbSoFar)]
+                return ["Verb", this._verbForm(verbSoFar)]
             }))
         },
         "verbPart": function() {
@@ -275,7 +275,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base", "inflection"],
                 b = this._applyWithArgs("bind", t);
                 c = [
                     [t], b];
-                v = this._applyWithArgs("verb", c[(0)]);
+                v = this._applyWithArgs("Verb", c[(0)]);
                 (function() {
                     c[(0)].push(v, term);
                     return c.push(termBind)
@@ -288,7 +288,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base", "inflection"],
             }), (function() {
                 c = [
                     [term], termBind];
-                v = this._applyWithArgs("verb", c[(0)]);
+                v = this._applyWithArgs("Verb", c[(0)]);
                 c[(0)].push(v);
                 return this._or((function() {
                     return this._applyWithArgs("ruleBody", c, true)
@@ -331,7 +331,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base", "inflection"],
                 return tVar.push(thatC)
             }));
             r = this._or((function() {
-                v = this._applyWithArgs("verb", c[(0)]);
+                v = this._applyWithArgs("Verb", c[(0)]);
                 c[(0)].push(v);
                 return this._or((function() {
                     return this._applyWithArgs("ruleBody", c, true)
@@ -560,7 +560,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base", "inflection"],
                 for (var i = (0);
                 (i < currentLine["length"]); i++) {
                     if ((currentLine[i][(0)] == "Term")) {
-                        var factType = [t, ["verb", "has"], currentLine[i]];
+                        var factType = [t, ["Verb", "has"], currentLine[i]];
                         this.AddFactType(factType, factType)
                     } else {
                         undefined
@@ -646,7 +646,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base", "inflection"],
             return this["lines"]
         }
     });
-    (SBVRParser["keyTokens"] = ["startTerm", "startFactType", "startRule", "newComment", "Term", "modRule", "verb", "keyword", "allowedAttrs", "num", "Value"]);
+    (SBVRParser["keyTokens"] = ["startTerm", "startFactType", "startRule", "newComment", "Term", "modRule", "Verb", "keyword", "allowedAttrs", "num", "Value"]);
     (SBVRParser["clearSuggestions"] = (function() {}));
     (SBVRParser["initialize"] = (function() {
         this.reset()
@@ -674,7 +674,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base", "inflection"],
         return (($.inArray(term.singularize(), this["possMap"]["Term"].call(this, factTypeSoFar)) !== (-(1))) ? term.singularize() : term)
     }));
     (SBVRParser["isVerb"] = (function(factTypeSoFar, verb) {
-        (verb = ["verb", this._verbForm(verb)]);
+        (verb = ["Verb", this._verbForm(verb)]);
         var currentLevel = this._traverseFactType(factTypeSoFar);
         if ((currentLevel === false)) {
             return false
@@ -720,7 +720,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base", "inflection"],
         };
         return currentLevel["__valid"]
     })); {
-        var removeVerbRegex = new RegExp(("^" + ["verb", ""].toString()));
+        var removeVerbRegex = new RegExp(("^" + ["Verb", ""].toString()));
         var removeTermRegex = new RegExp(("^" + ["Term", ""].toString()));
         var allowedAttrLists = ["Database ID Field:", "Database Name Field:", "Database Table Name:", "Dictionary Basis:", "Example:", "General Concept:", "Namespace URI:", "Necessity:", "Note:", "Possibility:", "Reference Scheme:", "See:", "Source:", "Subject Field:"]
     };
@@ -760,7 +760,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base", "inflection"],
                 };
                 return terms
             }),
-            "verb": (function(factTypeSoFar) {
+            "Verb": (function(factTypeSoFar) {
                 {
                     var verb = undefined;
                     var currentLevel = this._traverseFactType(factTypeSoFar);

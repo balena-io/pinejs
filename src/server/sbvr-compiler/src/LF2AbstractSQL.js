@@ -151,7 +151,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                         return this["tables"][factType]["fields"].push(["ForeignKey", this["tables"][termName]["name"], this["tables"][termName]["idField"], "NOT NULL"])
                     }), (function() {
                         return this._form((function() {
-                            this._applyWithArgs("exactly", "verb");
+                            this._applyWithArgs("exactly", "Verb");
                             return verb = this._apply("anything")
                         }))
                     }))

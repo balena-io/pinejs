@@ -60,8 +60,8 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base', 'inflection'],
 		
 		
 		addVerb =
-			clearSuggestions verb(true),
-		verb :factTypeSoFar =
+			clearSuggestions Verb(true),
+		Verb :factTypeSoFar =
 			findVerb(factTypeSoFar),
 		findVerb :factTypeSoFar :verbSoFar =
 			verbPart:v {verbSoFar = verbSoFar==undefined ? v : [verbSoFar, v].join(' ')}
@@ -69,7 +69,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base', 'inflection'],
 			|	(	?(factTypeSoFar===true)
 				|	?this.isVerb(factTypeSoFar, verbSoFar)
 				)
-				-> ['verb',this._verbForm(verbSoFar)]
+				-> ['Verb',this._verbForm(verbSoFar)]
 			),
 		verbPart =
 			spaces ~lineStart ~Term letters,
@@ -114,11 +114,11 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base', 'inflection'],
 			-> ['var', ['num', this.ruleVars[term[1]]], term],
 		checkThat :term :termBind =
 			addThat
-			(	addThe Term:t bind(t):b {[[t],b]}:c verb(c[0]):v {c[0].push(v, term); c.push(termBind)}
+			(	addThe Term:t bind(t):b {[[t],b]}:c Verb(c[0]):v {c[0].push(v, term); c.push(termBind)}
 				(	ruleBody(c)
 				|	atfo(c)
 				)
-			|	(	{[[term], termBind]}:c verb(c[0]):v {c[0].push(v)}
+			|	(	{[[term], termBind]}:c Verb(c[0]):v {c[0].push(v)}
 					(	ruleBody(c, true)
 					|	atfo(c)
 					)
@@ -140,7 +140,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base', 'inflection'],
 			quant:body Term(c[0]):t createVar(t):tVar bind(t):b {c[0].push(t);c.push(b)}
 			(checkThat(t, b):thatC {tVar.push(thatC)})?
 			(
-				verb(c[0]):v {c[0].push(v)}
+				Verb(c[0]):v {c[0].push(v)}
 				(	ruleBody(c, true)
 				|	atfo(c)
 				)
@@ -235,7 +235,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base', 'inflection'],
 			{
 				for(var i = 0; i < currentLine.length; i++) {
 					if(currentLine[i][0] == 'Term') {
-						var factType = [t, ['verb', 'has'], currentLine[i]];
+						var factType = [t, ['Verb', 'has'], currentLine[i]];
 						this.AddFactType(factType, factType);
 					}
 				}
@@ -275,7 +275,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base', 'inflection'],
 			-> this.lines
 	}
 
-	SBVRParser.keyTokens = ["startTerm", "startFactType", "startRule", "newComment", "Term", "modRule", "verb", "keyword", "allowedAttrs", "num", "Value"];
+	SBVRParser.keyTokens = ["startTerm", "startFactType", "startRule", "newComment", "Term", "modRule", "Verb", "keyword", "allowedAttrs", "num", "Value"];
 	SBVRParser.clearSuggestions = function() {};
 	/**
 		Following are "instance" variables/functions rather than shared.
@@ -306,7 +306,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base', 'inflection'],
 	};
 
 	SBVRParser.isVerb = function(factTypeSoFar, verb) {
-		verb = ['verb',this._verbForm(verb)];
+		verb = ['Verb',this._verbForm(verb)];
 		var currentLevel = this._traverseFactType(factTypeSoFar);
 		if(currentLevel===false) {
 			// We have no fact type matching this chain.
@@ -351,7 +351,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base', 'inflection'],
 		return currentLevel.__valid;
 	};
 
-	var removeVerbRegex = new RegExp('^' + ['verb',''].toString()),
+	var removeVerbRegex = new RegExp('^' + ['Verb',''].toString()),
 		removeTermRegex = new RegExp('^' + ['Term',''].toString()),
 		allowedAttrLists = [
 			/*#IFDEF server */
@@ -407,7 +407,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base', 'inflection'],
 				}
 				return terms;
 			},
-			verb: function(factTypeSoFar) {
+			Verb: function(factTypeSoFar) {
 				var verb, currentLevel = this._traverseFactType(factTypeSoFar), verbs = [];
 				for(verb in currentLevel) {
 					if(currentLevel.hasOwnProperty(verb)) {

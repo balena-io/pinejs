@@ -40,7 +40,7 @@ define(['sbvr-parser/SBVRLibs', 'ometa/ometa-base'], function(SBVRLibs) {
 		FactType
 			{[]}:factType
 			(	"Term":t
-				"verb":v
+				"Verb":v
 				{factType.concat([t,v])}:factType
 			)*
 			$('Term'):t
@@ -50,9 +50,9 @@ define(['sbvr-parser/SBVRLibs', 'ometa/ometa-base'], function(SBVRLibs) {
 
 		Term
 			:t addAttributes(['Term', t]),
-		verb
+		Verb
 			:v
-			-> ['verb', v],
+			-> ['Verb', v],
 		rule
 			("obl"|"nec"|"pos"|"prm"):x "text":t
 			-> ['rule', x, t],

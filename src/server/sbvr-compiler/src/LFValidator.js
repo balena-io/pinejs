@@ -80,7 +80,7 @@ define(["sbvr-parser/SBVRLibs", "ometa/ometa-base"], (function(SBVRLibs) {
             factType = [];
             this._many((function() {
                 t = this._applyWithArgs("token", "Term");
-                v = this._applyWithArgs("token", "verb");
+                v = this._applyWithArgs("token", "Verb");
                 return factType = factType.concat([t, v])
             }));
             t = this._applyWithArgs("$", "Term");
@@ -100,12 +100,12 @@ define(["sbvr-parser/SBVRLibs", "ometa/ometa-base"], (function(SBVRLibs) {
             t = this._apply("anything");
             return this._applyWithArgs("addAttributes", ["Term", t])
         },
-        "verb": function() {
+        "Verb": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 v;
             v = this._apply("anything");
-            return ["verb", v]
+            return ["Verb", v]
         },
         "rule": function() {
             var $elf = this,

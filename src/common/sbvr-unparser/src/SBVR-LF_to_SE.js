@@ -76,7 +76,7 @@ define(["sbvr-parser/SBVRParser", "underscore", "Prettify", "sbvr-frame/SBVRMode
             (a = []);
             this._many((function() {
                 t = this._applyWithArgs("token", "Term");
-                v = this._applyWithArgs("token", "verb");
+                v = this._applyWithArgs("token", "Verb");
                 return (a = a.concat([t, v]))
             }));
             e = this._applyWithArgs("$", "Term");
@@ -88,12 +88,12 @@ define(["sbvr-parser/SBVRParser", "underscore", "Prettify", "sbvr-frame/SBVRMode
             }));
             return a.concat(e)
         },
-        "verb": function() {
+        "Verb": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 v;
             v = this._apply("anything");
-            return ["verb", v]
+            return ["Verb", v]
         },
         "Term": function() {
             var $elf = this,

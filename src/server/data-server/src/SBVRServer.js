@@ -20,7 +20,7 @@
         if (key % 2 === 0) {
           factType[key] = ['Term', factTypePart];
         } else {
-          factType[key] = ['verb', factTypePart];
+          factType[key] = ['Verb', factTypePart];
         }
       }
       return factType;
@@ -576,7 +576,7 @@
           _ref = sqlmod.tables;
           for (key in _ref) {
             row = _ref[key];
-            if (/Term,.*verb,/.test(key)) {
+            if (/Term,.*Verb,/.test(key)) {
               result.factTypes.push({
                 id: row.name,
                 name: row.name

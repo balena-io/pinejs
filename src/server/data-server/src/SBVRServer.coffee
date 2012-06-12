@@ -14,7 +14,7 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 			if key % 2 == 0
 				factType[key] = ['Term', factTypePart]
 			else
-				factType[key] = ['verb', factTypePart]
+				factType[key] = ['Verb', factTypePart]
 		return factType
 					
 	getCorrectTableInfo = (oldTableName) ->
@@ -489,7 +489,7 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 					factTypes: []
 				sqlmod = serverModelCache.getSQL()
 				for key, row of sqlmod.tables
-					if /Term,.*verb,/.test(key)
+					if /Term,.*Verb,/.test(key)
 						result.factTypes.push(
 							id: row.name
 							name: row.name

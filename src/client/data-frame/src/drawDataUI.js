@@ -184,7 +184,7 @@
         var factTypePart, ident, _i, _len, _ref;
         switch (mod[0]) {
           case 'Term':
-          case 'verb':
+          case 'Verb':
             return mod[1].replace(new RegExp(' ', 'g'), '_');
           case 'FactType':
             ident = [];
@@ -276,7 +276,7 @@
                   schema = _ref11[_o];
                   if (schema[0] === "Term") {
                     prel += instance[schema[1] + "_name"] + " ";
-                  } else if (schema[0] === "verb") {
+                  } else if (schema[0] === "Verb") {
                     prel += "<em>" + schema[1] + "</em> ";
                   }
                 }
@@ -424,7 +424,7 @@
                     schema = _ref8[_o];
                     if (schema[0] === "Term") {
                       res += result.instances[0][schema[1] + "_name"] + " ";
-                    } else if (schema[0] === "verb") {
+                    } else if (schema[0] === "Verb") {
                       res += schema[1] + " ";
                     }
                   }
@@ -582,7 +582,7 @@
         schema = schemas[_j];
         if (schema[0] === "Term") {
           res += termSelects[schema[1]] + " ";
-        } else if (schema[0] === "verb") {
+        } else if (schema[0] === "Verb") {
           res += schema[1] + " ";
         }
       }

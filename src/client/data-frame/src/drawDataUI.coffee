@@ -146,7 +146,7 @@ define(['data-frame/ClientURIUnparser'], (ClientURIUnparser) ->
 		# TODO: This needs to be given by the server rather than generated here
 		getIdent = (mod) ->
 			switch mod[0]
-				when 'Term', 'verb'
+				when 'Term', 'Verb'
 					mod[1].replace(new RegExp(' ', 'g'), '_')
 				when 'FactType'
 					ident = []
@@ -209,7 +209,7 @@ define(['data-frame/ClientURIUnparser'], (ClientURIUnparser) ->
 							for schema in parent.schema
 								if schema[0] == "Term"
 									prel += instance[schema[1] + "_name"] + " "
-								else if schema[0] == "verb"
+								else if schema[0] == "Verb"
 									prel += "<em>" + schema[1] + "</em> "
 
 						if launch != -1
@@ -321,7 +321,7 @@ define(['data-frame/ClientURIUnparser'], (ClientURIUnparser) ->
 								for schema in parent.schema
 									if schema[0] == "Term"
 										res += result.instances[0][schema[1] + "_name"] + " "
-									else if schema[0] == "verb"
+									else if schema[0] == "Verb"
 										res += schema[1] + " "
 								parent.callback 1, res
 					when "add"
@@ -456,7 +456,7 @@ define(['data-frame/ClientURIUnparser'], (ClientURIUnparser) ->
 		for schema in schemas
 			if schema[0] == "Term"
 				res += termSelects[schema[1]] + " "
-			else if schema[0] == "verb"
+			else if schema[0] == "Verb"
 				res += schema[1] + " "
 		#add submit button etc.
 		res += "<div align='right'>"

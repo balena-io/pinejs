@@ -218,7 +218,7 @@ define(["ometa/ometa-base"], (function() {
             }));
             return l.join("")
         },
-        "verb": function() {
+        "Verb": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 l;
@@ -257,7 +257,7 @@ define(["ometa/ometa-base"], (function() {
                 t = this._apply("Term");
                 this._applyWithArgs("exactly", "-");
                 "-";
-                v = this._apply("verb");
+                v = this._apply("Verb");
                 return (function() {
                     ts.push(t);
                     return (ft += ((t + "-") + v))
