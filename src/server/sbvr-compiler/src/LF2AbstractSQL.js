@@ -196,7 +196,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                 _fromIdx = this.input.idx,
                 bind, termName, varAlias, query, whereBody;
             this._form((function() {
-                this._applyWithArgs("exactly", "var");
+                this._applyWithArgs("exactly", "Variable");
                 bind = this._apply("Number");
                 this._form((function() {
                     this._applyWithArgs("exactly", "Term");

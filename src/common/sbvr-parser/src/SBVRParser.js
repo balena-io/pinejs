@@ -262,7 +262,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base", "inflection"],
             var $elf = this,
                 _fromIdx = this.input.idx;
             (this["ruleVars"][term[(1)]] = this["ruleVarsCount"]++);
-            return ["var", ["num", this["ruleVars"][term[(1)]]], term]
+            return ["Variable", ["num", this["ruleVars"][term[(1)]]], term]
         },
         "checkThat": function(term, termBind) {
             var $elf = this,

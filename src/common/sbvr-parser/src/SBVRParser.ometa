@@ -111,7 +111,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base', 'inflection'],
 			keyword("or"),
 		createVar :term =
 			{this.ruleVars[term[1]] = this.ruleVarsCount++}
-			-> ['var', ['num', this.ruleVars[term[1]]], term],
+			-> ['Variable', ['num', this.ruleVars[term[1]]], term],
 		checkThat :term :termBind =
 			addThat
 			(	addThe Term:t Bind(t):b {[[t],b]}:c Verb(c[0]):v {c[0].push(v, term); c.push(termBind)}

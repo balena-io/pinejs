@@ -5,7 +5,7 @@ define(["sbvr-compiler/LFOptimiser"], (function(LFOptimiser) {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 v, xs;
-            v = this._applyWithArgs("token", "var");
+            v = this._applyWithArgs("token", "Variable");
             xs = this._many((function() {
                 return this._apply("trans")
             }));
@@ -17,7 +17,7 @@ define(["sbvr-compiler/LFOptimiser"], (function(LFOptimiser) {
                 _fromIdx = this.input.idx,
                 a, v, xs;
             a = this._applyWithArgs("token", "maxCard");
-            v = this._applyWithArgs("token", "var");
+            v = this._applyWithArgs("token", "Variable");
             xs = this._many((function() {
                 return this._apply("trans")
             }));
@@ -37,7 +37,7 @@ define(["sbvr-compiler/LFOptimiser"], (function(LFOptimiser) {
                     this._applyWithArgs("exactly", "exactQ");
                     card = this._applyWithArgs("token", "card");
                     this._pred((card[(1)][(1)] == (1)));
-                    v2 = this._applyWithArgs("token", "var");
+                    v2 = this._applyWithArgs("token", "Variable");
                     this._pred((v2["length"] == (3)));
                     atomicForm = this._applyWithArgs("token", "AtomicFormulation");
                     return necessity = "NOT NULL"
@@ -47,7 +47,7 @@ define(["sbvr-compiler/LFOptimiser"], (function(LFOptimiser) {
                     this._applyWithArgs("exactly", "atMostQ");
                     card = this._applyWithArgs("token", "maxCard");
                     this._pred((card[(1)][(1)] == (1)));
-                    v2 = this._applyWithArgs("token", "var");
+                    v2 = this._applyWithArgs("token", "Variable");
                     this._pred((v2["length"] == (3)));
                     atomicForm = this._applyWithArgs("token", "AtomicFormulation");
                     return necessity = "NULL"
@@ -72,13 +72,13 @@ define(["sbvr-compiler/LFOptimiser"], (function(LFOptimiser) {
                             switch (this._apply('anything')) {
                             case "univQ":
                                 return (function() {
-                                    v1 = this._applyWithArgs("token", "var");
+                                    v1 = this._applyWithArgs("token", "Variable");
                                     return this._applyWithArgs("ForeignKey", v1)
                                 }).call(this);
                             case "neg":
                                 return this._form((function() {
                                     this._applyWithArgs("exactly", "existQ");
-                                    v1 = this._applyWithArgs("token", "var");
+                                    v1 = this._applyWithArgs("token", "Variable");
                                     return this._form((function() {
                                         this._applyWithArgs("exactly", "neg");
                                         return this._applyWithArgs("ForeignKey", v1)

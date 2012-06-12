@@ -16,7 +16,7 @@ define(['sbvr-compiler/LFValidator'], function(LFValidator) {
 			-> x,
 
 		atLeastQ
-				"minCard":i ?{i[1][1]==1} "var":v trans*:xs
+				"minCard":i ?{i[1][1]==1} "Variable":v trans*:xs
 				SetHelped
 				-> ['existQ', v].concat(xs)
 			|	^atLeastQ,
@@ -25,7 +25,7 @@ define(['sbvr-compiler/LFValidator'], function(LFValidator) {
 				"minCard":i
 				"maxCard":j
 				?{i[1][1]==j[1][1]}
-				"var":v trans*:xs
+				"Variable":v trans*:xs
 				SetHelped
 				-> ['exactQ', ['card', i[1]], v].concat(xs)
 			|	^numRngQ,

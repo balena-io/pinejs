@@ -30,21 +30,21 @@ define(['sbvr-parser/SBVRParser', 'underscore', 'Prettify', 'sbvr-frame/SBVRMode
 	  neg        trans:xs                                  -> [`neg].concat([xs]),
 
 	  quant      = "univQ" | "existQ" | "exactQ" | "atMostQ" | "atLeastQ" | "numRngQ" ,
-	  univQ                              "var":v trans*:xs -> [`univQ, v].concat(xs),
-	  existQ                             "var":v trans*:xs -> [`existQ, v].concat(xs),
-	  exactQ     "card":i                "var":v trans*:xs -> [`exactQ, i, v].concat(xs),
-	  atMostQ                "maxCard":a "var":v trans*:xs -> [`atMostQ, a, v].concat(xs),
-	  atLeastQ   "minCard":i             "var":v trans*:xs -> [`atLeastQ, i, v].concat(xs),
-	  numRngQ    "minCard":i "maxCard":a "var":v trans*:xs -> [`numRngQ, i, a, v].concat(xs),
+	  univQ                              "Variable":v trans*:xs -> [`univQ, v].concat(xs),
+	  existQ                             "Variable":v trans*:xs -> [`existQ, v].concat(xs),
+	  exactQ     "card":i                "Variable":v trans*:xs -> [`exactQ, i, v].concat(xs),
+	  atMostQ                "maxCard":a "Variable":v trans*:xs -> [`atMostQ, a, v].concat(xs),
+	  atLeastQ   "minCard":i             "Variable":v trans*:xs -> [`atLeastQ, i, v].concat(xs),
+	  numRngQ    "minCard":i "maxCard":a "Variable":v trans*:xs -> [`numRngQ, i, a, v].concat(xs),
 
 	  card       "num":n                                   -> [`card, n],
 	  minCard    "num":n                                   -> [`minCard, n],
 	  maxCard    "num":n                                   -> [`maxCard, n],
 
-	  var        "num":n "Term":t "AtomicFormulation":w //{this.findReplace(w, n[1], t[1]);}
-														   -> [`var, n, t, w],
-	  var        "num":n "Term":t quant:w                  -> [`var, n, t, w],    
-	  var        "num":n "Term":t                          -> [`var, n, t],
+	  Variable        "num":n "Term":t "AtomicFormulation":w //{this.findReplace(w, n[1], t[1]);}
+														   -> ['Variable', n, t, w],
+	  Variable        "num":n "Term":t quant:w                  -> ['Variable', n, t, w],    
+	  Variable        "num":n "Term":t                          -> ['Variable', n, t],
 
 	  RoleBinding       "Term":t number:n                         -> ['RoleBinding', t, n], 
 	  AtomicFormulation       "FactType":f "RoleBinding"*:b {for(var i = 0; i<b.length; i++) {this.findReplace(f, b[i][1], b[i][2]);}}

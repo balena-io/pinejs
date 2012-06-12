@@ -31,7 +31,7 @@ define(["sbvr-compiler/LFValidator"], (function(LFValidator) {
             return this._or((function() {
                 i = this._applyWithArgs("token", "minCard");
                 this._pred((i[(1)][(1)] == (1)));
-                v = this._applyWithArgs("token", "var");
+                v = this._applyWithArgs("token", "Variable");
                 xs = this._many((function() {
                     return this._apply("trans")
                 }));
@@ -49,7 +49,7 @@ define(["sbvr-compiler/LFValidator"], (function(LFValidator) {
                 i = this._applyWithArgs("token", "minCard");
                 j = this._applyWithArgs("token", "maxCard");
                 this._pred((i[(1)][(1)] == j[(1)][(1)]));
-                v = this._applyWithArgs("token", "var");
+                v = this._applyWithArgs("token", "Variable");
                 xs = this._many((function() {
                     return this._apply("trans")
                 }));

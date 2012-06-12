@@ -3,11 +3,11 @@ define(['sbvr-compiler/LFOptimiser'], function(LFOptimiser) {
 
 	ometa LF2AbstractSQLPrep <: LFOptimiser {
 		univQ
-			"var":v trans*:xs SetHelped
+			"Variable":v trans*:xs SetHelped
 			-> ['neg', ['existQ', v, ['neg'].concat(xs)]],
 		
 		atMostQ
-			"maxCard":a "var":v trans*:xs SetHelped
+			"maxCard":a "Variable":v trans*:xs SetHelped
 			-> {a[1][1]++;['neg', ['atLeastQ', ['minCard', a[1]], v].concat(xs)]},
 		
 		ForeignKey :v1 =
@@ -17,7 +17,7 @@ define(['sbvr-compiler/LFOptimiser'], function(LFOptimiser) {
 				[	'exactQ'
 					"card":card
 					?(card[1][1] == 1)
-					"var":v2
+					"Variable":v2
 					// Just a basic var
 					?(v2.length == 3)
 					"AtomicFormulation":atomicForm
@@ -27,7 +27,7 @@ define(['sbvr-compiler/LFOptimiser'], function(LFOptimiser) {
 				[	'atMostQ'
 					"maxCard":card
 					?(card[1][1] == 1)
-					"var":v2
+					"Variable":v2
 					// Just a basic var
 					?(v2.length == 3)
 					"AtomicFormulation":atomicForm
@@ -47,12 +47,12 @@ define(['sbvr-compiler/LFOptimiser'], function(LFOptimiser) {
 		Rule
 				[	'obl'
 					[	'univQ'
-						"var":v1
+						"Variable":v1
 						ForeignKey(v1)
 					|
 						'neg'
 						[	'existQ'
-							"var":v1
+							"Variable":v1
 							[	'neg'
 								ForeignKey(v1)
 							]

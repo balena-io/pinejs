@@ -111,26 +111,26 @@ define(['sbvr-parser/SBVRLibs', 'ometa/ometa-base'], function(SBVRLibs) {
 			|	"numRngQ"
 			),
 		univQ
-			"var":v trans*:xs
+			"Variable":v trans*:xs
 			-> ['univQ', v].concat(xs),
 		existQ
-			"var":v trans*:xs
+			"Variable":v trans*:xs
 			-> ['existQ', v].concat(xs),
 		exactQ
 			"card":i
-			"var":v trans*:xs
+			"Variable":v trans*:xs
 			-> ['exactQ', i, v].concat(xs),
 		atMostQ
 			"maxCard":a
-			"var":v trans*:xs
+			"Variable":v trans*:xs
 			-> ['atMostQ', a, v].concat(xs),
 		atLeastQ
 			"minCard":i
-			"var":v trans*:xs
+			"Variable":v trans*:xs
 			-> ['atLeastQ', i, v].concat(xs),
 		numRngQ
 			"minCard":i "maxCard":a
-			"var":v trans*:xs
+			"Variable":v trans*:xs
 			-> ['numRngQ', i, a, v].concat(xs),
 
 		card
@@ -143,12 +143,12 @@ define(['sbvr-parser/SBVRLibs', 'ometa/ometa-base'], function(SBVRLibs) {
 			"num":n
 			-> ['maxCard', n],
 
-		var
+		Variable
 			"num":n "Term":t ("AtomicFormulation"|quant):w
-			-> ['var', n, t, w],
-		var
+			-> ['Variable', n, t, w],
+		Variable
 			"num":n "Term":t
-			-> ['var', n, t],
+			-> ['Variable', n, t],
 
 		RoleBinding
 			"Term":t number:n

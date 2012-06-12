@@ -89,7 +89,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 			]
 			-> num,
 		Variable =
-			[	'var'
+			[	'Variable'
 				Number:bind
 				['Term' :termName]
 				{'var' + bind}:varAlias

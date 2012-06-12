@@ -243,7 +243,7 @@ define(["sbvr-parser/SBVRLibs", "ometa/ometa-base"], (function(SBVRLibs) {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 v, xs;
-            v = this._applyWithArgs("token", "var");
+            v = this._applyWithArgs("token", "Variable");
             xs = this._many((function() {
                 return this._apply("trans")
             }));
@@ -253,7 +253,7 @@ define(["sbvr-parser/SBVRLibs", "ometa/ometa-base"], (function(SBVRLibs) {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 v, xs;
-            v = this._applyWithArgs("token", "var");
+            v = this._applyWithArgs("token", "Variable");
             xs = this._many((function() {
                 return this._apply("trans")
             }));
@@ -264,7 +264,7 @@ define(["sbvr-parser/SBVRLibs", "ometa/ometa-base"], (function(SBVRLibs) {
                 _fromIdx = this.input.idx,
                 i, v, xs;
             i = this._applyWithArgs("token", "card");
-            v = this._applyWithArgs("token", "var");
+            v = this._applyWithArgs("token", "Variable");
             xs = this._many((function() {
                 return this._apply("trans")
             }));
@@ -275,7 +275,7 @@ define(["sbvr-parser/SBVRLibs", "ometa/ometa-base"], (function(SBVRLibs) {
                 _fromIdx = this.input.idx,
                 a, v, xs;
             a = this._applyWithArgs("token", "maxCard");
-            v = this._applyWithArgs("token", "var");
+            v = this._applyWithArgs("token", "Variable");
             xs = this._many((function() {
                 return this._apply("trans")
             }));
@@ -286,7 +286,7 @@ define(["sbvr-parser/SBVRLibs", "ometa/ometa-base"], (function(SBVRLibs) {
                 _fromIdx = this.input.idx,
                 i, v, xs;
             i = this._applyWithArgs("token", "minCard");
-            v = this._applyWithArgs("token", "var");
+            v = this._applyWithArgs("token", "Variable");
             xs = this._many((function() {
                 return this._apply("trans")
             }));
@@ -298,7 +298,7 @@ define(["sbvr-parser/SBVRLibs", "ometa/ometa-base"], (function(SBVRLibs) {
                 i, a, v, xs;
             i = this._applyWithArgs("token", "minCard");
             a = this._applyWithArgs("token", "maxCard");
-            v = this._applyWithArgs("token", "var");
+            v = this._applyWithArgs("token", "Variable");
             xs = this._many((function() {
                 return this._apply("trans")
             }));
@@ -325,7 +325,7 @@ define(["sbvr-parser/SBVRLibs", "ometa/ometa-base"], (function(SBVRLibs) {
             n = this._applyWithArgs("token", "num");
             return ["maxCard", n]
         },
-        "var": function() {
+        "Variable": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 n, t, w;
@@ -337,11 +337,11 @@ define(["sbvr-parser/SBVRLibs", "ometa/ometa-base"], (function(SBVRLibs) {
                 }), (function() {
                     return this._apply("quant")
                 }));
-                return ["var", n, t, w]
+                return ["Variable", n, t, w]
             }), (function() {
                 n = this._applyWithArgs("token", "num");
                 t = this._applyWithArgs("token", "Term");
-                return ["var", n, t]
+                return ["Variable", n, t]
             }))
         },
         "RoleBinding": function() {
