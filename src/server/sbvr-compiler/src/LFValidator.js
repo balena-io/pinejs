@@ -45,13 +45,13 @@ define(["sbvr-parser/SBVRLibs", "ometa/ometa-base"], (function(SBVRLibs) {
             }));
             return l.join("")
         },
-        "num": function() {
+        "Number": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 n;
             n = this._apply("number");
             this._pred((!isNaN(n)));
-            return ["num", parseInt(n)]
+            return ["Number", parseInt(n)]
         },
         "Model": function() {
             var $elf = this,
@@ -308,21 +308,21 @@ define(["sbvr-parser/SBVRLibs", "ometa/ometa-base"], (function(SBVRLibs) {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 n;
-            n = this._applyWithArgs("token", "num");
+            n = this._applyWithArgs("token", "Number");
             return ["card", n]
         },
         "minCard": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 n;
-            n = this._applyWithArgs("token", "num");
+            n = this._applyWithArgs("token", "Number");
             return ["minCard", n]
         },
         "maxCard": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 n;
-            n = this._applyWithArgs("token", "num");
+            n = this._applyWithArgs("token", "Number");
             return ["maxCard", n]
         },
         "Variable": function() {
@@ -330,7 +330,7 @@ define(["sbvr-parser/SBVRLibs", "ometa/ometa-base"], (function(SBVRLibs) {
                 _fromIdx = this.input.idx,
                 n, t, w;
             return this._or((function() {
-                n = this._applyWithArgs("token", "num");
+                n = this._applyWithArgs("token", "Number");
                 t = this._applyWithArgs("token", "Term");
                 w = this._or((function() {
                     return this._applyWithArgs("token", "AtomicFormulation")
@@ -339,7 +339,7 @@ define(["sbvr-parser/SBVRLibs", "ometa/ometa-base"], (function(SBVRLibs) {
                 }));
                 return ["Variable", n, t, w]
             }), (function() {
-                n = this._applyWithArgs("token", "num");
+                n = this._applyWithArgs("token", "Number");
                 t = this._applyWithArgs("token", "Term");
                 return ["Variable", n, t]
             }))

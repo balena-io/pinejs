@@ -84,7 +84,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 			]
 			-> cardinality,
 		Number =
-			[	'num'
+			[	'Number'
 				:num ?{!isNaN(num)}
 			]
 			-> num,

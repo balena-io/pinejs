@@ -14,9 +14,9 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base', 'inflection'],
 			-> l.join(''),
 		num =
 			(	spaces digit+:n
-				-> ['num', parseInt(n.join(''))]
+				-> ['Number', parseInt(n.join(''))]
 			|	"one"
-				-> ['num', 1]
+				-> ['Number', 1]
 			),
 		Value :stopOn =
 			(	spaces ~token(stopOn) ~lineStart letterOrDigit+:alphaNum
@@ -111,7 +111,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base', 'inflection'],
 			keyword("or"),
 		createVar :term =
 			{this.ruleVars[term[1]] = this.ruleVarsCount++}
-			-> ['Variable', ['num', this.ruleVars[term[1]]], term],
+			-> ['Variable', ['Number', this.ruleVars[term[1]]], term],
 		checkThat :term :termBind =
 			addThat
 			(	addThe Term:t Bind(t):b {[[t],b]}:c Verb(c[0]):v {c[0].push(v, term); c.push(termBind)}

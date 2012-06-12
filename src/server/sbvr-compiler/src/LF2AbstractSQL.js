@@ -185,7 +185,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                 _fromIdx = this.input.idx,
                 num;
             this._form((function() {
-                this._applyWithArgs("exactly", "num");
+                this._applyWithArgs("exactly", "Number");
                 num = this._apply("anything");
                 return this._pred((!isNaN(num)))
             }));

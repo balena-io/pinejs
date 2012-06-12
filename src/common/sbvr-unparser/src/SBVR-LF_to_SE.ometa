@@ -9,7 +9,7 @@ define(['sbvr-parser/SBVRParser', 'underscore', 'Prettify', 'sbvr-frame/SBVRMode
 
 	  letters    = letter+:l space*                        -> l.join(''),
 
-	  num        number:n ?{!isNaN(n)}                     -> [`num, parseInt(n)],
+	  Number        number:n ?{!isNaN(n)}                     -> ['Number', parseInt(n)],
 
 	  Model      ("Term"|"FactType"|"Rule")*:xs                -> ['Model'].concat(xs),
 		
@@ -37,14 +37,14 @@ define(['sbvr-parser/SBVRParser', 'underscore', 'Prettify', 'sbvr-frame/SBVRMode
 	  AtLeastNQ   "minCard":i             "Variable":v trans*:xs -> ['AtLeastNQ', i, v].concat(xs),
 	  NumericalRangeQ    "minCard":i "maxCard":a "Variable":v trans*:xs -> ['NumericalRangeQ', i, a, v].concat(xs),
 
-	  card       "num":n                                   -> [`card, n],
-	  minCard    "num":n                                   -> [`minCard, n],
-	  maxCard    "num":n                                   -> [`maxCard, n],
+	  card       "Number":n                                   -> [`card, n],
+	  minCard    "Number":n                                   -> [`minCard, n],
+	  maxCard    "Number":n                                   -> [`maxCard, n],
 
-	  Variable        "num":n "Term":t "AtomicFormulation":w //{this.findReplace(w, n[1], t[1]);}
+	  Variable        "Number":n "Term":t "AtomicFormulation":w //{this.findReplace(w, n[1], t[1]);}
 														   -> ['Variable', n, t, w],
-	  Variable        "num":n "Term":t quant:w                  -> ['Variable', n, t, w],    
-	  Variable        "num":n "Term":t                          -> ['Variable', n, t],
+	  Variable        "Number":n "Term":t quant:w                  -> ['Variable', n, t, w],    
+	  Variable        "Number":n "Term":t                          -> ['Variable', n, t],
 
 	  RoleBinding       "Term":t number:n                         -> ['RoleBinding', t, n], 
 	  AtomicFormulation       "FactType":f "RoleBinding"*:b {for(var i = 0; i<b.length; i++) {this.findReplace(f, b[i][1], b[i][2]);}}

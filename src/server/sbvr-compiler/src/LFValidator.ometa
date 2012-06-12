@@ -20,9 +20,9 @@ define(['sbvr-parser/SBVRLibs', 'ometa/ometa-base'], function(SBVRLibs) {
 			letter+:l space*
 			-> l.join(''),
 
-		num
+		Number
 			number:n ?{!isNaN(n)}
-			-> ['num', parseInt(n)],
+			-> ['Number', parseInt(n)],
 
 		Model
 			{[]}:xs
@@ -134,20 +134,20 @@ define(['sbvr-parser/SBVRLibs', 'ometa/ometa-base'], function(SBVRLibs) {
 			-> ['NumericalRangeQ', i, a, v].concat(xs),
 
 		card
-			"num":n
+			"Number":n
 			-> ['card', n],
 		minCard
-			"num":n
+			"Number":n
 			-> ['minCard', n],
 		maxCard
-			"num":n
+			"Number":n
 			-> ['maxCard', n],
 
 		Variable
-			"num":n "Term":t ("AtomicFormulation"|quant):w
+			"Number":n "Term":t ("AtomicFormulation"|quant):w
 			-> ['Variable', n, t, w],
 		Variable
-			"num":n "Term":t
+			"Number":n "Term":t
 			-> ['Variable', n, t],
 
 		RoleBinding
