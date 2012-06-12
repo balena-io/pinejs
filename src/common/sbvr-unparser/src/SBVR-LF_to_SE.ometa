@@ -11,14 +11,14 @@ define(['sbvr-parser/SBVRParser', 'underscore', 'Prettify', 'sbvr-frame/SBVRMode
 
 	  num        number:n ?{!isNaN(n)}                     -> [`num, parseInt(n)],
 
-	  Model      ("Term"|"FactType"|"rule")*:xs                -> ['Model'].concat(xs),
+	  Model      ("Term"|"FactType"|"Rule")*:xs                -> ['Model'].concat(xs),
 		
 	  FactType   {a=[]}("Term":t "Verb":v {a=a.concat([t,v])})* $('Term'):e  (:attr->[attr]|->[]):attr
 														   -> a.concat(e),
 
 	  Verb       :v                                        -> ['Verb', v],
 	  Term       :t (:attr->[attr]|->[]):attr              -> ['Term', t].concat(attr),
-	  rule       ("obl"|"nec"|"pos"|"prm"):x "text":t      -> [`rule, x, t],
+	  Rule       ("obl"|"nec"|"pos"|"prm"):x "text":t      -> ['Rule', x, t],
 
 	  text	     :a	                                       -> [`text, a],
 	  

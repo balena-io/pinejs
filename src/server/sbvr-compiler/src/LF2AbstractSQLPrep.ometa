@@ -44,7 +44,7 @@ define(['sbvr-compiler/LFOptimiser'], function(LFOptimiser) {
 			SetHelped,
 			
 		
-		rule
+		Rule
 				[	'obl'
 					[	'univQ'
 						"var":v1
@@ -62,7 +62,7 @@ define(['sbvr-compiler/LFOptimiser'], function(LFOptimiser) {
 				"text"
 				// We have matched a foreign key, return an empty array to remove the rule.
 				-> null
-			|	^rule
+			|	^Rule
 	}
 	
 	LF2AbstractSQLPrep.initialize = function() {

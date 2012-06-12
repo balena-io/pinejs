@@ -60,7 +60,7 @@ define(["sbvr-compiler/LFOptimiser"], (function(LFOptimiser) {
             (this["foreignKeys"][factType] = necessity);
             return this._apply("SetHelped")
         },
-        "rule": function() {
+        "Rule": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 v1;
@@ -93,7 +93,7 @@ define(["sbvr-compiler/LFOptimiser"], (function(LFOptimiser) {
                 this._applyWithArgs("token", "text");
                 return null
             }), (function() {
-                return LFOptimiser._superApplyWithArgs(this, 'rule')
+                return LFOptimiser._superApplyWithArgs(this, 'Rule')
             }))
         }
     });

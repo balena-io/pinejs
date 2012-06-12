@@ -175,7 +175,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base', 'inflection'],
 		newRule =
 			startRule spaces &(toSBVREOL):ruleText {this.ruleVarsCount=0}
 			modRule:r ruleBody([[]]):q {r.length == 2 ? r[1][1] = q : r[1] = q}
-			-> ['rule', r, ['text', ruleText]],
+			-> ['Rule', r, ['text', ruleText]],
 		terb =
 			Term:t addVerb:v
 			-> [t, v],
@@ -383,7 +383,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base', 'inflection'],
 				'Synonymous Form:',
 				'Term Form:'
 			].concat(allowedAttrLists),
-			rule: []
+			Rule: []
 		};
 	SBVRParser.reset = function() {
 		SBVRLibs.initialize.call(this);

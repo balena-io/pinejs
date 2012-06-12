@@ -29,7 +29,7 @@ define(['sbvr-parser/SBVRLibs', 'ometa/ometa-base'], function(SBVRLibs) {
 			(
 				(	"Term"
 				|	"FactType"
-				|	"rule"
+				|	"Rule"
 				):x
 				(	?(x != null)
 					{xs.push(x)}
@@ -53,9 +53,9 @@ define(['sbvr-parser/SBVRLibs', 'ometa/ometa-base'], function(SBVRLibs) {
 		Verb
 			:v
 			-> ['Verb', v],
-		rule
+		Rule
 			("obl"|"nec"|"pos"|"prm"):x "text":t
-			-> ['rule', x, t],
+			-> ['Rule', x, t],
 		addAttributes :termOrVerb =
 			(	end
 			|	{{}}:attrsFound

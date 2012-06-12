@@ -401,7 +401,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base", "inflection"],
                 []
             ]);
             ((r["length"] == (2)) ? (r[(1)][(1)] = q) : (r[(1)] = q));
-            return ["rule", r, ["text", ruleText]]
+            return ["Rule", r, ["text", ruleText]]
         },
         "terb": function() {
             var $elf = this,
@@ -727,7 +727,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base", "inflection"],
     (allowedAttrLists = ({
         "Term": ["Concept Type:", "Definition:", "Synonym:"].concat(allowedAttrLists),
         "FactType": ["Synonymous Form:", "Term Form:"].concat(allowedAttrLists),
-        "rule": []
+        "Rule": []
     }));
     (SBVRParser["reset"] = (function() {
         SBVRLibs["initialize"].call(this);

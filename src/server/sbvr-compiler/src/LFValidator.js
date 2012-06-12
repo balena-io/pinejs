@@ -64,7 +64,7 @@ define(["sbvr-parser/SBVRLibs", "ometa/ometa-base"], (function(SBVRLibs) {
                 }), (function() {
                     return this._applyWithArgs("token", "FactType")
                 }), (function() {
-                    return this._applyWithArgs("token", "rule")
+                    return this._applyWithArgs("token", "Rule")
                 }));
                 return this._opt((function() {
                     this._pred((x != null));
@@ -107,7 +107,7 @@ define(["sbvr-parser/SBVRLibs", "ometa/ometa-base"], (function(SBVRLibs) {
             v = this._apply("anything");
             return ["Verb", v]
         },
-        "rule": function() {
+        "Rule": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 x, t;
@@ -121,7 +121,7 @@ define(["sbvr-parser/SBVRLibs", "ometa/ometa-base"], (function(SBVRLibs) {
                 return this._applyWithArgs("token", "prm")
             }));
             t = this._applyWithArgs("token", "text");
-            return ["rule", x, t]
+            return ["Rule", x, t]
         },
         "addAttributes": function(termOrVerb) {
             var $elf = this,

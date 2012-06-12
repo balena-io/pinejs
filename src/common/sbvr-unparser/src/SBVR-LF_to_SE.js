@@ -64,7 +64,7 @@ define(["sbvr-parser/SBVRParser", "underscore", "Prettify", "sbvr-frame/SBVRMode
                 }), (function() {
                     return this._applyWithArgs("token", "FactType")
                 }), (function() {
-                    return this._applyWithArgs("token", "rule")
+                    return this._applyWithArgs("token", "Rule")
                 }))
             }));
             return ["Model"].concat(xs)
@@ -108,7 +108,7 @@ define(["sbvr-parser/SBVRParser", "underscore", "Prettify", "sbvr-frame/SBVRMode
             }));
             return ["Term", t].concat(attr)
         },
-        "rule": function() {
+        "Rule": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 x, t;
@@ -122,7 +122,7 @@ define(["sbvr-parser/SBVRParser", "underscore", "Prettify", "sbvr-frame/SBVRMode
                 return this._applyWithArgs("token", "prm")
             }));
             t = this._applyWithArgs("token", "text");
-            return ["rule", x, t]
+            return ["Rule", x, t]
         },
         "text": function() {
             var $elf = this,

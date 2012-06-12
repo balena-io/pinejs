@@ -428,7 +428,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                                     factType = this._apply("FactType");
                                     return this._applyWithArgs("Attributes", factType)
                                 }).call(this);
-                            case "rule":
+                            case "Rule":
                                 return (function() {
                                     ruleBody = this._apply("RuleBody");
                                     this._form((function() {
