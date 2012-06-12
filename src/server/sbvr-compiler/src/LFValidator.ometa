@@ -54,7 +54,7 @@ define(['sbvr-parser/SBVRLibs', 'ometa/ometa-base'], function(SBVRLibs) {
 			:v
 			-> ['Verb', v],
 		Rule
-			("obl"|"nec"|"pos"|"prm"):x "text":t
+			("ObligationF"|"NecessityF"|"PossibilityF"|"PermissibilityF"):x "text":t
 			-> ['Rule', x, t],
 		addAttributes :termOrVerb =
 			(	end
@@ -85,18 +85,18 @@ define(['sbvr-parser/SBVRLibs', 'ometa/ometa-base'], function(SBVRLibs) {
 			:a
 			-> ['text', a],
 		
-		obl
+		ObligationF
 			trans*:xs
-			-> ['obl'].concat(xs),
-		nec
+			-> ['ObligationF'].concat(xs),
+		NecessityF
 			trans*:xs
-			-> ['nec'].concat(xs),
-		pos
+			-> ['NecessityF'].concat(xs),
+		PossibilityF
 			trans*:xs
-			-> ['pos'].concat(xs),
-		prm
+			-> ['PossibilityF'].concat(xs),
+		PermissibilityF
 			trans*:xs
-			-> ['prm'].concat(xs),
+			-> ['PermissibilityF'].concat(xs),
 
 		LogicalNegation
 			trans:xs

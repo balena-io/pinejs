@@ -112,13 +112,13 @@ define(["sbvr-parser/SBVRLibs", "ometa/ometa-base"], (function(SBVRLibs) {
                 _fromIdx = this.input.idx,
                 x, t;
             x = this._or((function() {
-                return this._applyWithArgs("token", "obl")
+                return this._applyWithArgs("token", "ObligationF")
             }), (function() {
-                return this._applyWithArgs("token", "nec")
+                return this._applyWithArgs("token", "NecessityF")
             }), (function() {
-                return this._applyWithArgs("token", "pos")
+                return this._applyWithArgs("token", "PossibilityF")
             }), (function() {
-                return this._applyWithArgs("token", "prm")
+                return this._applyWithArgs("token", "PermissibilityF")
             }));
             t = this._applyWithArgs("token", "text");
             return ["Rule", x, t]
@@ -179,41 +179,41 @@ define(["sbvr-parser/SBVRLibs", "ometa/ometa-base"], (function(SBVRLibs) {
             a = this._apply("anything");
             return ["text", a]
         },
-        "obl": function() {
+        "ObligationF": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 xs;
             xs = this._many((function() {
                 return this._apply("trans")
             }));
-            return ["obl"].concat(xs)
+            return ["ObligationF"].concat(xs)
         },
-        "nec": function() {
+        "NecessityF": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 xs;
             xs = this._many((function() {
                 return this._apply("trans")
             }));
-            return ["nec"].concat(xs)
+            return ["NecessityF"].concat(xs)
         },
-        "pos": function() {
+        "PossibilityF": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 xs;
             xs = this._many((function() {
                 return this._apply("trans")
             }));
-            return ["pos"].concat(xs)
+            return ["PossibilityF"].concat(xs)
         },
-        "prm": function() {
+        "PermissibilityF": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 xs;
             xs = this._many((function() {
                 return this._apply("trans")
             }));
-            return ["prm"].concat(xs)
+            return ["PermissibilityF"].concat(xs)
         },
         "LogicalNegation": function() {
             var $elf = this,

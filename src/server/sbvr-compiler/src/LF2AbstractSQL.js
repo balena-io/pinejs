@@ -392,14 +392,14 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
             this._form((function() {
                 (function() {
                     switch (this._apply('anything')) {
-                    case "obl":
-                        return "obl";
-                    case "nec":
-                        return "nec";
-                    case "pos":
-                        return "pos";
-                    case "prm":
-                        return "prm";
+                    case "ObligationF":
+                        return "ObligationF";
+                    case "NecessityF":
+                        return "NecessityF";
+                    case "PossibilityF":
+                        return "PossibilityF";
+                    case "PermissibilityF":
+                        return "PermissibilityF";
                     default:
                         throw fail
                     }

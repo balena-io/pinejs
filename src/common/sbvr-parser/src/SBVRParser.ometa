@@ -153,19 +153,19 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base', 'inflection'],
 		modRule =
 			"It" "is" 
 			(	"obligatory"
-				-> ['obl']
+				-> ['ObligationF']
 			|	"necessary"	
-				-> ['nec']
+				-> ['NecessityF']
 			|	"prohibited"
-				-> ['obl', ['LogicalNegation']]
+				-> ['ObligationF', ['LogicalNegation']]
 			|	"impossible"
-				-> ['nec', ['LogicalNegation']]
+				-> ['NecessityF', ['LogicalNegation']]
 			|	"not" "possible"
-				-> ['nec', ['LogicalNegation']]
+				-> ['NecessityF', ['LogicalNegation']]
 			|	"possible"
-				-> ['pos']
+				-> ['PossibilityF']
 			|	"permissible"
-				-> ['prm']
+				-> ['PermissibilityF']
 			):r
 			"that"
 			-> r,

@@ -45,7 +45,7 @@ define(['sbvr-compiler/LFOptimiser'], function(LFOptimiser) {
 			
 		
 		Rule
-				[	'obl'
+				[	'ObligationF'
 					[	'UniversalQ'
 						"Variable":v1
 						ForeignKey(v1)

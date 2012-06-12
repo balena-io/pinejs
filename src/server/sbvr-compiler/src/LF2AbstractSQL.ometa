@@ -204,10 +204,10 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 		
 		RuleBody =
 			[
-				(	'obl'
-				|	'nec'
-				|	'pos'
-				|	'prm'
+				(	'ObligationF'
+				|	'NecessityF'
+				|	'PossibilityF'
+				|	'PermissibilityF'
 				)
 				RulePart:rule
 			]

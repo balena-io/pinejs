@@ -353,26 +353,26 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base", "inflection"],
             this._applyWithArgs("token", "is");
             r = this._or((function() {
                 this._applyWithArgs("token", "obligatory");
-                return ["obl"]
+                return ["ObligationF"]
             }), (function() {
                 this._applyWithArgs("token", "necessary");
-                return ["nec"]
+                return ["NecessityF"]
             }), (function() {
                 this._applyWithArgs("token", "prohibited");
-                return ["obl", ["LogicalNegation"]]
+                return ["ObligationF", ["LogicalNegation"]]
             }), (function() {
                 this._applyWithArgs("token", "impossible");
-                return ["nec", ["LogicalNegation"]]
+                return ["NecessityF", ["LogicalNegation"]]
             }), (function() {
                 this._applyWithArgs("token", "not");
                 this._applyWithArgs("token", "possible");
-                return ["nec", ["LogicalNegation"]]
+                return ["NecessityF", ["LogicalNegation"]]
             }), (function() {
                 this._applyWithArgs("token", "possible");
-                return ["pos"]
+                return ["PossibilityF"]
             }), (function() {
                 this._applyWithArgs("token", "permissible");
-                return ["prm"]
+                return ["PermissibilityF"]
             }));
             this._applyWithArgs("token", "that");
             return r

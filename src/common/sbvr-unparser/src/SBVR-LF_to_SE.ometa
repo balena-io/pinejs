@@ -18,14 +18,14 @@ define(['sbvr-parser/SBVRParser', 'underscore', 'Prettify', 'sbvr-frame/SBVRMode
 
 	  Verb       :v                                        -> ['Verb', v],
 	  Term       :t (:attr->[attr]|->[]):attr              -> ['Term', t].concat(attr),
-	  Rule       ("obl"|"nec"|"pos"|"prm"):x "text":t      -> ['Rule', x, t],
+	  Rule       ("ObligationF"|"NecessityF"|"PossibilityF"|"PermissibilityF"):x "text":t      -> ['Rule', x, t],
 
 	  text	     :a	                                       -> [`text, a],
 	  
-	  obl        trans*:xs                                 -> [`obl].concat(xs),
-	  nec        trans*:xs                                 -> [`nec].concat(xs),
-	  pos        trans*:xs                                 -> [`pos].concat(xs),
-	  prm        trans*:xs                                 -> [`prm].concat(xs),
+	  ObligationF        trans*:xs                                 -> ['ObligationF'].concat(xs),
+	  NecessityF        trans*:xs                                 -> ['NecessityF'].concat(xs),
+	  PossibilityF        trans*:xs                                 -> ['PossibilityF'].concat(xs),
+	  PermissibilityF        trans*:xs                                 -> ['PermissibilityF'].concat(xs),
 
 	  LogicalNegation        trans:xs                                  -> ['LogicalNegation'].concat([xs]),
 

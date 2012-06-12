@@ -66,7 +66,7 @@ define(["sbvr-compiler/LFOptimiser"], (function(LFOptimiser) {
                 v1;
             return this._or((function() {
                 this._form((function() {
-                    this._applyWithArgs("exactly", "obl");
+                    this._applyWithArgs("exactly", "ObligationF");
                     return this._form((function() {
                         return (function() {
                             switch (this._apply('anything')) {
