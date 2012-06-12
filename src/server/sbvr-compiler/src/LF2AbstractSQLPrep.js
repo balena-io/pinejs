@@ -1,7 +1,7 @@
 define(["sbvr-compiler/LFOptimiser"], (function(LFOptimiser) {
     var LF2AbstractSQLPrep = undefined;
     LF2AbstractSQLPrep = objectThatDelegatesTo(LFOptimiser, {
-        "univQ": function() {
+        "UniversalQ": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 v, xs;
@@ -10,9 +10,9 @@ define(["sbvr-compiler/LFOptimiser"], (function(LFOptimiser) {
                 return this._apply("trans")
             }));
             this._apply("SetHelped");
-            return ["LogicalNegation", ["existQ", v, ["LogicalNegation"].concat(xs)]]
+            return ["LogicalNegation", ["ExistentialQ", v, ["LogicalNegation"].concat(xs)]]
         },
-        "atMostQ": function() {
+        "AtMostNQ": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 a, v, xs;
@@ -24,7 +24,7 @@ define(["sbvr-compiler/LFOptimiser"], (function(LFOptimiser) {
             this._apply("SetHelped");
             return (function() {
                 a[(1)][(1)]++;
-                return ["LogicalNegation", ["atLeastQ", ["minCard", a[(1)]], v].concat(xs)]
+                return ["LogicalNegation", ["AtLeastNQ", ["minCard", a[(1)]], v].concat(xs)]
             }).call(this)
         },
         "ForeignKey": function(v1) {
@@ -34,7 +34,7 @@ define(["sbvr-compiler/LFOptimiser"], (function(LFOptimiser) {
             this._pred((v1["length"] == (3)));
             this._or((function() {
                 return this._form((function() {
-                    this._applyWithArgs("exactly", "exactQ");
+                    this._applyWithArgs("exactly", "ExactQ");
                     card = this._applyWithArgs("token", "card");
                     this._pred((card[(1)][(1)] == (1)));
                     v2 = this._applyWithArgs("token", "Variable");
@@ -44,7 +44,7 @@ define(["sbvr-compiler/LFOptimiser"], (function(LFOptimiser) {
                 }))
             }), (function() {
                 return this._form((function() {
-                    this._applyWithArgs("exactly", "atMostQ");
+                    this._applyWithArgs("exactly", "AtMostNQ");
                     card = this._applyWithArgs("token", "maxCard");
                     this._pred((card[(1)][(1)] == (1)));
                     v2 = this._applyWithArgs("token", "Variable");
@@ -70,14 +70,14 @@ define(["sbvr-compiler/LFOptimiser"], (function(LFOptimiser) {
                     return this._form((function() {
                         return (function() {
                             switch (this._apply('anything')) {
-                            case "univQ":
+                            case "UniversalQ":
                                 return (function() {
                                     v1 = this._applyWithArgs("token", "Variable");
                                     return this._applyWithArgs("ForeignKey", v1)
                                 }).call(this);
                             case "LogicalNegation":
                                 return this._form((function() {
-                                    this._applyWithArgs("exactly", "existQ");
+                                    this._applyWithArgs("exactly", "ExistentialQ");
                                     v1 = this._applyWithArgs("token", "Variable");
                                     return this._form((function() {
                                         this._applyWithArgs("exactly", "LogicalNegation");

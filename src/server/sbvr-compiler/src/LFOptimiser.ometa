@@ -15,20 +15,20 @@ define(['sbvr-compiler/LFValidator'], function(LFValidator) {
 			(Helped('disableMemoisation') trans(x):x)*
 			-> x,
 
-		atLeastQ
+		AtLeastNQ
 				"minCard":i ?{i[1][1]==1} "Variable":v trans*:xs
 				SetHelped
-				-> ['existQ', v].concat(xs)
-			|	^atLeastQ,
+				-> ['ExistentialQ', v].concat(xs)
+			|	^AtLeastNQ,
 
-		numRngQ
+		NumericalRangeQ
 				"minCard":i
 				"maxCard":j
 				?{i[1][1]==j[1][1]}
 				"Variable":v trans*:xs
 				SetHelped
-				-> ['exactQ', ['card', i[1]], v].concat(xs)
-			|	^numRngQ,
+				-> ['ExactQ', ['card', i[1]], v].concat(xs)
+			|	^NumericalRangeQ,
 
 		LogicalNegation =
 				['LogicalNegation' trans:xs] SetHelped

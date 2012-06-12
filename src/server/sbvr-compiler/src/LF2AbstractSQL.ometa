@@ -158,21 +158,21 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 			]
 			-> whereClause,
 		AtLeast =
-			[	'atLeastQ'
+			[	'AtLeastNQ'
 				Cardinality:minCard
 				Variable:query
 				{query[1][1].push(['Count', '*'])}
 			]
 			-> ['EqualOrGreater', query, ['Number', minCard]],
 		Exactly =
-			[	'exactQ'
+			[	'ExactQ'
 				Cardinality:card
 				Variable:query
 				{query[1][1].push(['Count', '*'])}
 			]
 			-> ['Equals', query, ['Number', card]],
 		Range =
-			[	'numRngQ'
+			[	'NumericalRangeQ'
 				Cardinality:minCard
 				Cardinality:maxCard
 				Variable:query
@@ -180,7 +180,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 			]
 			-> ['Between', query, ['Number', minCard], ['Number', maxCard]],
 		Exists =
-			[	'existQ'
+			[	'ExistentialQ'
 				Variable:query
 			]
 			-> ['Exists', query],

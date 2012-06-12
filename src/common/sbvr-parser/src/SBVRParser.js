@@ -198,33 +198,33 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base", "inflection"],
                 n, m;
             return this._or((function() {
                 this._applyWithArgs("keyword", "each");
-                return ["univQ"]
+                return ["UniversalQ"]
             }), (function() {
                 this._applyWithArgs("matchForAny", "keyword", ["a", "an", "some"]);
-                return ["existQ"]
+                return ["ExistentialQ"]
             }), (function() {
                 this._applyWithArgs("matchForAll", "keyword", ["at", "most"]);
                 n = this._apply("num");
-                return ["atMostQ", ["maxCard", n]]
+                return ["AtMostNQ", ["maxCard", n]]
             }), (function() {
                 this._applyWithArgs("matchForAll", "keyword", ["at", "least"]);
                 n = this._apply("num");
                 return this._or((function() {
                     this._apply("joinQuant");
                     m = this._apply("num");
-                    return ["numRngQ", ["minCard", n], ["maxCard", m]]
+                    return ["NumericalRangeQ", ["minCard", n], ["maxCard", m]]
                 }), (function() {
-                    return ["atLeastQ", ["minCard", n]]
+                    return ["AtLeastNQ", ["minCard", n]]
                 }))
             }), (function() {
                 this._applyWithArgs("matchForAll", "keyword", ["more", "than"]);
                 n = this._apply("num");
                 ++n[(1)];
-                return ["atLeastQ", ["minCard", n]]
+                return ["AtLeastNQ", ["minCard", n]]
             }), (function() {
                 this._applyWithArgs("keyword", "exactly");
                 n = this._apply("num");
-                return ["exactQ", ["card", n]]
+                return ["ExactQ", ["card", n]]
             }))
         },
         "keyword": function(word, noToken) {

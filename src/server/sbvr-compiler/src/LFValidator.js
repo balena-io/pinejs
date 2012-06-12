@@ -226,20 +226,20 @@ define(["sbvr-parser/SBVRLibs", "ometa/ometa-base"], (function(SBVRLibs) {
             var $elf = this,
                 _fromIdx = this.input.idx;
             return this._or((function() {
-                return this._applyWithArgs("token", "univQ")
+                return this._applyWithArgs("token", "UniversalQ")
             }), (function() {
-                return this._applyWithArgs("token", "existQ")
+                return this._applyWithArgs("token", "ExistentialQ")
             }), (function() {
-                return this._applyWithArgs("token", "exactQ")
+                return this._applyWithArgs("token", "ExactQ")
             }), (function() {
-                return this._applyWithArgs("token", "atMostQ")
+                return this._applyWithArgs("token", "AtMostNQ")
             }), (function() {
-                return this._applyWithArgs("token", "atLeastQ")
+                return this._applyWithArgs("token", "AtLeastNQ")
             }), (function() {
-                return this._applyWithArgs("token", "numRngQ")
+                return this._applyWithArgs("token", "NumericalRangeQ")
             }))
         },
-        "univQ": function() {
+        "UniversalQ": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 v, xs;
@@ -247,9 +247,9 @@ define(["sbvr-parser/SBVRLibs", "ometa/ometa-base"], (function(SBVRLibs) {
             xs = this._many((function() {
                 return this._apply("trans")
             }));
-            return ["univQ", v].concat(xs)
+            return ["UniversalQ", v].concat(xs)
         },
-        "existQ": function() {
+        "ExistentialQ": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 v, xs;
@@ -257,9 +257,9 @@ define(["sbvr-parser/SBVRLibs", "ometa/ometa-base"], (function(SBVRLibs) {
             xs = this._many((function() {
                 return this._apply("trans")
             }));
-            return ["existQ", v].concat(xs)
+            return ["ExistentialQ", v].concat(xs)
         },
-        "exactQ": function() {
+        "ExactQ": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 i, v, xs;
@@ -268,9 +268,9 @@ define(["sbvr-parser/SBVRLibs", "ometa/ometa-base"], (function(SBVRLibs) {
             xs = this._many((function() {
                 return this._apply("trans")
             }));
-            return ["exactQ", i, v].concat(xs)
+            return ["ExactQ", i, v].concat(xs)
         },
-        "atMostQ": function() {
+        "AtMostNQ": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 a, v, xs;
@@ -279,9 +279,9 @@ define(["sbvr-parser/SBVRLibs", "ometa/ometa-base"], (function(SBVRLibs) {
             xs = this._many((function() {
                 return this._apply("trans")
             }));
-            return ["atMostQ", a, v].concat(xs)
+            return ["AtMostNQ", a, v].concat(xs)
         },
-        "atLeastQ": function() {
+        "AtLeastNQ": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 i, v, xs;
@@ -290,9 +290,9 @@ define(["sbvr-parser/SBVRLibs", "ometa/ometa-base"], (function(SBVRLibs) {
             xs = this._many((function() {
                 return this._apply("trans")
             }));
-            return ["atLeastQ", i, v].concat(xs)
+            return ["AtLeastNQ", i, v].concat(xs)
         },
-        "numRngQ": function() {
+        "NumericalRangeQ": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 i, a, v, xs;
@@ -302,7 +302,7 @@ define(["sbvr-parser/SBVRLibs", "ometa/ometa-base"], (function(SBVRLibs) {
             xs = this._many((function() {
                 return this._apply("trans")
             }));
-            return ["numRngQ", i, a, v].concat(xs)
+            return ["NumericalRangeQ", i, a, v].concat(xs)
         },
         "card": function() {
             var $elf = this,

@@ -310,7 +310,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                 _fromIdx = this.input.idx,
                 minCard, query;
             this._form((function() {
-                this._applyWithArgs("exactly", "atLeastQ");
+                this._applyWithArgs("exactly", "AtLeastNQ");
                 minCard = this._apply("Cardinality");
                 query = this._apply("Variable");
                 return query[(1)][(1)].push(["Count", "*"])
@@ -322,7 +322,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                 _fromIdx = this.input.idx,
                 card, query;
             this._form((function() {
-                this._applyWithArgs("exactly", "exactQ");
+                this._applyWithArgs("exactly", "ExactQ");
                 card = this._apply("Cardinality");
                 query = this._apply("Variable");
                 return query[(1)][(1)].push(["Count", "*"])
@@ -334,7 +334,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                 _fromIdx = this.input.idx,
                 minCard, maxCard, query;
             this._form((function() {
-                this._applyWithArgs("exactly", "numRngQ");
+                this._applyWithArgs("exactly", "NumericalRangeQ");
                 minCard = this._apply("Cardinality");
                 maxCard = this._apply("Cardinality");
                 query = this._apply("Variable");
@@ -347,7 +347,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                 _fromIdx = this.input.idx,
                 query;
             this._form((function() {
-                this._applyWithArgs("exactly", "existQ");
+                this._applyWithArgs("exactly", "ExistentialQ");
                 return query = this._apply("Variable")
             }));
             return ["Exists", query]

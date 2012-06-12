@@ -24,7 +24,7 @@ define(["sbvr-compiler/LFValidator"], (function(LFValidator) {
             }));
             return x
         },
-        "atLeastQ": function() {
+        "AtLeastNQ": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 i, v, xs;
@@ -36,12 +36,12 @@ define(["sbvr-compiler/LFValidator"], (function(LFValidator) {
                     return this._apply("trans")
                 }));
                 this._apply("SetHelped");
-                return ["existQ", v].concat(xs)
+                return ["ExistentialQ", v].concat(xs)
             }), (function() {
-                return LFValidator._superApplyWithArgs(this, 'atLeastQ')
+                return LFValidator._superApplyWithArgs(this, 'AtLeastNQ')
             }))
         },
-        "numRngQ": function() {
+        "NumericalRangeQ": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 i, j, v, xs;
@@ -54,9 +54,9 @@ define(["sbvr-compiler/LFValidator"], (function(LFValidator) {
                     return this._apply("trans")
                 }));
                 this._apply("SetHelped");
-                return ["exactQ", ["card", i[(1)]], v].concat(xs)
+                return ["ExactQ", ["card", i[(1)]], v].concat(xs)
             }), (function() {
-                return LFValidator._superApplyWithArgs(this, 'numRngQ')
+                return LFValidator._superApplyWithArgs(this, 'NumericalRangeQ')
             }))
         },
         "LogicalNegation": function() {

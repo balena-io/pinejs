@@ -16,7 +16,7 @@ Permissible	= negative | quantifier
 Posssible	= quantifier
 Negative	= quantifier
 
-Quantifier -> existQ | atMostQ | ..
+Quantifier -> ExistentialQ | AtMostNQ | ..
 AtMostQ = maxCard var atomicFormulation
 AtLeastQ = minCard var atomicFormulation
 ExistQ = var atomicFormulation

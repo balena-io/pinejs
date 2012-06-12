@@ -80,20 +80,20 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base', 'inflection'],
 		// Be very careful with anywhere you use quant as any in-place modifications of the array will be remembered in memoisation.
 		quant =
 			(	keyword("each")
-				-> ['univQ']
+				-> ['UniversalQ']
 			|	matchForAny('keyword',["a","an","some"])
-				-> ['existQ']
+				-> ['ExistentialQ']
 			|	matchForAll('keyword',["at","most"]) num:n
-				-> ['atMostQ', ['maxCard', n]]
+				-> ['AtMostNQ', ['maxCard', n]]
 			|	matchForAll('keyword',["at","least"]) num:n
 				(	joinQuant num:m
-					-> ['numRngQ', ['minCard', n], ['maxCard', m]]
-				|	-> ['atLeastQ', ['minCard', n]]
+					-> ['NumericalRangeQ', ['minCard', n], ['maxCard', m]]
+				|	-> ['AtLeastNQ', ['minCard', n]]
 				)
 			|	matchForAll('keyword',["more","than"]) num:n {++n[1]}
-				-> ['atLeastQ', ['minCard', n]]
+				-> ['AtLeastNQ', ['minCard', n]]
 			|	keyword("exactly") num:n
-				-> ['exactQ', ['card', n]]
+				-> ['ExactQ', ['card', n]]
 			),
 
 		keyword :word :noToken =

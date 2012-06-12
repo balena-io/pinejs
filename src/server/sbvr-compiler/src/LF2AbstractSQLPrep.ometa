@@ -2,19 +2,19 @@ define(['sbvr-compiler/LFOptimiser'], function(LFOptimiser) {
 	var LF2AbstractSQLPrep;
 
 	ometa LF2AbstractSQLPrep <: LFOptimiser {
-		univQ
+		UniversalQ
 			"Variable":v trans*:xs SetHelped
-			-> ['LogicalNegation', ['existQ', v, ['LogicalNegation'].concat(xs)]],
+			-> ['LogicalNegation', ['ExistentialQ', v, ['LogicalNegation'].concat(xs)]],
 		
-		atMostQ
+		AtMostNQ
 			"maxCard":a "Variable":v trans*:xs SetHelped
-			-> {a[1][1]++;['LogicalNegation', ['atLeastQ', ['minCard', a[1]], v].concat(xs)]},
+			-> {a[1][1]++;['LogicalNegation', ['AtLeastNQ', ['minCard', a[1]], v].concat(xs)]},
 		
 		ForeignKey :v1 =
 			// Just a basic var
 			?(v1.length == 3)
 			(
-				[	'exactQ'
+				[	'ExactQ'
 					"card":card
 					?(card[1][1] == 1)
 					"Variable":v2
@@ -24,7 +24,7 @@ define(['sbvr-compiler/LFOptimiser'], function(LFOptimiser) {
 					{'NOT NULL'}:necessity
 				]
 			|
-				[	'atMostQ'
+				[	'AtMostNQ'
 					"maxCard":card
 					?(card[1][1] == 1)
 					"Variable":v2
@@ -46,12 +46,12 @@ define(['sbvr-compiler/LFOptimiser'], function(LFOptimiser) {
 		
 		Rule
 				[	'obl'
-					[	'univQ'
+					[	'UniversalQ'
 						"Variable":v1
 						ForeignKey(v1)
 					|
 						'LogicalNegation'
-						[	'existQ'
+						[	'ExistentialQ'
 							"Variable":v1
 							[	'LogicalNegation'
 								ForeignKey(v1)

@@ -103,35 +103,35 @@ define(['sbvr-parser/SBVRLibs', 'ometa/ometa-base'], function(SBVRLibs) {
 			-> ['LogicalNegation'].concat([xs]),
 
 		quant =
-			(	"univQ"
-			|	"existQ"
-			|	"exactQ"
-			|	"atMostQ"
-			|	"atLeastQ"
-			|	"numRngQ"
+			(	"UniversalQ"
+			|	"ExistentialQ"
+			|	"ExactQ"
+			|	"AtMostNQ"
+			|	"AtLeastNQ"
+			|	"NumericalRangeQ"
 			),
-		univQ
+		UniversalQ
 			"Variable":v trans*:xs
-			-> ['univQ', v].concat(xs),
-		existQ
+			-> ['UniversalQ', v].concat(xs),
+		ExistentialQ
 			"Variable":v trans*:xs
-			-> ['existQ', v].concat(xs),
-		exactQ
+			-> ['ExistentialQ', v].concat(xs),
+		ExactQ
 			"card":i
 			"Variable":v trans*:xs
-			-> ['exactQ', i, v].concat(xs),
-		atMostQ
+			-> ['ExactQ', i, v].concat(xs),
+		AtMostNQ
 			"maxCard":a
 			"Variable":v trans*:xs
-			-> ['atMostQ', a, v].concat(xs),
-		atLeastQ
+			-> ['AtMostNQ', a, v].concat(xs),
+		AtLeastNQ
 			"minCard":i
 			"Variable":v trans*:xs
-			-> ['atLeastQ', i, v].concat(xs),
-		numRngQ
+			-> ['AtLeastNQ', i, v].concat(xs),
+		NumericalRangeQ
 			"minCard":i "maxCard":a
 			"Variable":v trans*:xs
-			-> ['numRngQ', i, a, v].concat(xs),
+			-> ['NumericalRangeQ', i, a, v].concat(xs),
 
 		card
 			"num":n
