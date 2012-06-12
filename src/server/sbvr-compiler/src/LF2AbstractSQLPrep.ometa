@@ -20,7 +20,7 @@ define(['sbvr-compiler/LFOptimiser'], function(LFOptimiser) {
 					"var":v2
 					// Just a basic var
 					?(v2.length == 3)
-					"aFrm":atomicForm
+					"AtomicFormulation":atomicForm
 					{'NOT NULL'}:necessity
 				]
 			|
@@ -30,7 +30,7 @@ define(['sbvr-compiler/LFOptimiser'], function(LFOptimiser) {
 					"var":v2
 					// Just a basic var
 					?(v2.length == 3)
-					"aFrm":atomicForm
+					"AtomicFormulation":atomicForm
 					{'NULL'}:necessity
 				]
 			)

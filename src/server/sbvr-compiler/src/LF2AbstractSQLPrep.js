@@ -39,7 +39,7 @@ define(["sbvr-compiler/LFOptimiser"], (function(LFOptimiser) {
                     this._pred((card[(1)][(1)] == (1)));
                     v2 = this._applyWithArgs("token", "var");
                     this._pred((v2["length"] == (3)));
-                    atomicForm = this._applyWithArgs("token", "aFrm");
+                    atomicForm = this._applyWithArgs("token", "AtomicFormulation");
                     return necessity = "NOT NULL"
                 }))
             }), (function() {
@@ -49,7 +49,7 @@ define(["sbvr-compiler/LFOptimiser"], (function(LFOptimiser) {
                     this._pred((card[(1)][(1)] == (1)));
                     v2 = this._applyWithArgs("token", "var");
                     this._pred((v2["length"] == (3)));
-                    atomicForm = this._applyWithArgs("token", "aFrm");
+                    atomicForm = this._applyWithArgs("token", "AtomicFormulation");
                     return necessity = "NULL"
                 }))
             }));

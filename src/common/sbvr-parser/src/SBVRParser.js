@@ -312,7 +312,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base", "inflection"],
             realFactType = this._applyWithArgs("isFactType", c[(0)]);
             this._pred(realFactType);
             (c[(0)] = ["FactType"].concat(c[(0)]));
-            return ["aFrm"].concat(c)
+            return ["AtomicFormulation"].concat(c)
         },
         "ruleBody": function(c, exitOnTermFactType) {
             var $elf = this,

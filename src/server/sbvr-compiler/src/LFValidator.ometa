@@ -144,7 +144,7 @@ define(['sbvr-parser/SBVRLibs', 'ometa/ometa-base'], function(SBVRLibs) {
 			-> ['maxCard', n],
 
 		var
-			"num":n "term":t ("aFrm"|quant):w
+			"num":n "term":t ("AtomicFormulation"|quant):w
 			-> ['var', n, t, w],
 		var
 			"num":n "term":t
@@ -153,9 +153,9 @@ define(['sbvr-parser/SBVRLibs', 'ometa/ometa-base'], function(SBVRLibs) {
 		bind
 			"term":t number:n
 			-> ['bind', t, n], 
-		aFrm
+		AtomicFormulation
 			"FactType":f "bind"*:b
-			-> ['aFrm', f].concat(b)
+			-> ['AtomicFormulation', f].concat(b)
 	}
 	
 	LFValidator.initialize = function() {

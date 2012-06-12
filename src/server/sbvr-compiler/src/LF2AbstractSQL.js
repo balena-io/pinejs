@@ -286,7 +286,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                 _fromIdx = this.input.idx,
                 factType, actualFactType, rootTerms, whereClause;
             this._form((function() {
-                this._applyWithArgs("exactly", "aFrm");
+                this._applyWithArgs("exactly", "AtomicFormulation");
                 this._form((function() {
                     this._applyWithArgs("exactly", "FactType");
                     return factType = this._many1((function() {

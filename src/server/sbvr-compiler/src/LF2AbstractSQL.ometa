@@ -147,7 +147,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 			-> ['Equals', ['ReferencedField', 'var' + bindFrom + termFrom, attributeName], ['Boolean', true]],
 		
 		AtomicFormulation =
-			[	'aFrm'
+			[	'AtomicFormulation'
 				['FactType' anything+:factType]
 				ActualFactType(factType):actualFactType
 				FactTypeRootTerms(factType, actualFactType):rootTerms

@@ -41,13 +41,13 @@ define(['sbvr-parser/SBVRParser', 'underscore', 'Prettify', 'sbvr-frame/SBVRMode
 	  minCard    "num":n                                   -> [`minCard, n],
 	  maxCard    "num":n                                   -> [`maxCard, n],
 
-	  var        "num":n "term":t "aFrm":w //{this.findReplace(w, n[1], t[1]);}
+	  var        "num":n "term":t "AtomicFormulation":w //{this.findReplace(w, n[1], t[1]);}
 														   -> [`var, n, t, w],
 	  var        "num":n "term":t quant:w                  -> [`var, n, t, w],    
 	  var        "num":n "term":t                          -> [`var, n, t],
 
 	  bind       "term":t number:n                         -> [`bind, t, n], 
-	  aFrm       "FactType":f "bind"*:b {for(var i = 0; i<b.length; i++) {this.findReplace(f, b[i][1], b[i][2]);}}
+	  AtomicFormulation       "FactType":f "bind"*:b {for(var i = 0; i<b.length; i++) {this.findReplace(f, b[i][1], b[i][2]);}}
 								   -> f
 	}
 

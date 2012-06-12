@@ -333,7 +333,7 @@ define(["sbvr-parser/SBVRLibs", "ometa/ometa-base"], (function(SBVRLibs) {
                 n = this._applyWithArgs("token", "num");
                 t = this._applyWithArgs("token", "term");
                 w = this._or((function() {
-                    return this._applyWithArgs("token", "aFrm")
+                    return this._applyWithArgs("token", "AtomicFormulation")
                 }), (function() {
                     return this._apply("quant")
                 }));
@@ -352,7 +352,7 @@ define(["sbvr-parser/SBVRLibs", "ometa/ometa-base"], (function(SBVRLibs) {
             n = this._apply("number");
             return ["bind", t, n]
         },
-        "aFrm": function() {
+        "AtomicFormulation": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 f, b;
@@ -360,7 +360,7 @@ define(["sbvr-parser/SBVRLibs", "ometa/ometa-base"], (function(SBVRLibs) {
             b = this._many((function() {
                 return this._applyWithArgs("token", "bind")
             }));
-            return ["aFrm", f].concat(b)
+            return ["AtomicFormulation", f].concat(b)
         }
     });
     (LFValidator["initialize"] = (function() {

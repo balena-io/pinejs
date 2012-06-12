@@ -132,7 +132,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base', 'inflection'],
 			isFactType(c[0]):realFactType
 			?realFactType
 			{c[0] = ['FactType'].concat(c[0])}
-			-> ['aFrm'].concat(c),
+			-> ['AtomicFormulation'].concat(c),
 
 		// c[0] should contain the current fact type that is being built
 		// c[1..] should contain the bindings for the fact type being built

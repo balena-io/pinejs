@@ -284,7 +284,7 @@ define(["sbvr-parser/SBVRParser", "underscore", "Prettify", "sbvr-frame/SBVRMode
             return this._or((function() {
                 n = this._applyWithArgs("token", "num");
                 t = this._applyWithArgs("token", "term");
-                w = this._applyWithArgs("token", "aFrm");
+                w = this._applyWithArgs("token", "AtomicFormulation");
                 return ["var", n, t, w]
             }), (function() {
                 n = this._applyWithArgs("token", "num");
@@ -305,7 +305,7 @@ define(["sbvr-parser/SBVRParser", "underscore", "Prettify", "sbvr-frame/SBVRMode
             n = this._apply("number");
             return ["bind", t, n]
         },
-        "aFrm": function() {
+        "AtomicFormulation": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 f, b;
