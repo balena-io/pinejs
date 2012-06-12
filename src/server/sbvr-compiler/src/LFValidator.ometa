@@ -117,31 +117,31 @@ define(['sbvr-parser/SBVRLibs', 'ometa/ometa-base'], function(SBVRLibs) {
 			"Variable":v trans*:xs
 			-> ['ExistentialQ', v].concat(xs),
 		ExactQ
-			"card":i
+			"Cardinality":i
 			"Variable":v trans*:xs
 			-> ['ExactQ', i, v].concat(xs),
 		AtMostNQ
-			"maxCard":a
+			"MaximumCardinality":a
 			"Variable":v trans*:xs
 			-> ['AtMostNQ', a, v].concat(xs),
 		AtLeastNQ
-			"minCard":i
+			"MinimumCardinality":i
 			"Variable":v trans*:xs
 			-> ['AtLeastNQ', i, v].concat(xs),
 		NumericalRangeQ
-			"minCard":i "maxCard":a
+			"MinimumCardinality":i "MaximumCardinality":a
 			"Variable":v trans*:xs
 			-> ['NumericalRangeQ', i, a, v].concat(xs),
 
-		card
+		Cardinality
 			"Number":n
-			-> ['card', n],
-		minCard
+			-> ['Cardinality', n],
+		MinimumCardinality
 			"Number":n
-			-> ['minCard', n],
-		maxCard
+			-> ['MinimumCardinality', n],
+		MaximumCardinality
 			"Number":n
-			-> ['maxCard', n],
+			-> ['MaximumCardinality', n],
 
 		Variable
 			"Number":n "Term":t ("AtomicFormulation"|quant):w

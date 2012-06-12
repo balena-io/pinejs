@@ -32,14 +32,14 @@ define(['sbvr-parser/SBVRParser', 'underscore', 'Prettify', 'sbvr-frame/SBVRMode
 	  quant      = "UniversalQ" | "ExistentialQ" | "ExactQ" | "AtMostNQ" | "AtLeastNQ" | "NumericalRangeQ" ,
 	  UniversalQ                              "Variable":v trans*:xs -> ['UniversalQ', v].concat(xs),
 	  ExistentialQ                             "Variable":v trans*:xs -> ['ExistentialQ', v].concat(xs),
-	  ExactQ     "card":i                "Variable":v trans*:xs -> ['ExactQ', i, v].concat(xs),
-	  AtMostNQ                "maxCard":a "Variable":v trans*:xs -> ['AtMostNQ', a, v].concat(xs),
-	  AtLeastNQ   "minCard":i             "Variable":v trans*:xs -> ['AtLeastNQ', i, v].concat(xs),
-	  NumericalRangeQ    "minCard":i "maxCard":a "Variable":v trans*:xs -> ['NumericalRangeQ', i, a, v].concat(xs),
+	  ExactQ     "Cardinality":i                "Variable":v trans*:xs -> ['ExactQ', i, v].concat(xs),
+	  AtMostNQ                "MaximumCardinality":a "Variable":v trans*:xs -> ['AtMostNQ', a, v].concat(xs),
+	  AtLeastNQ   "MinimumCardinality":i             "Variable":v trans*:xs -> ['AtLeastNQ', i, v].concat(xs),
+	  NumericalRangeQ    "MinimumCardinality":i "MaximumCardinality":a "Variable":v trans*:xs -> ['NumericalRangeQ', i, a, v].concat(xs),
 
-	  card       "Number":n                                   -> [`card, n],
-	  minCard    "Number":n                                   -> [`minCard, n],
-	  maxCard    "Number":n                                   -> [`maxCard, n],
+	  Cardinality       "Number":n                                   -> ['Cardinality', n],
+	  MinimumCardinality    "Number":n                                   -> ['MinimumCardinality', n],
+	  MaximumCardinality    "Number":n                                   -> ['MaximumCardinality', n],
 
 	  Variable        "Number":n "Term":t "AtomicFormulation":w //{this.findReplace(w, n[1], t[1]);}
 														   -> ['Variable', n, t, w],

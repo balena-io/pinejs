@@ -16,7 +16,7 @@ define(["sbvr-compiler/LFOptimiser"], (function(LFOptimiser) {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 a, v, xs;
-            a = this._applyWithArgs("token", "maxCard");
+            a = this._applyWithArgs("token", "MaximumCardinality");
             v = this._applyWithArgs("token", "Variable");
             xs = this._many((function() {
                 return this._apply("trans")
@@ -24,7 +24,7 @@ define(["sbvr-compiler/LFOptimiser"], (function(LFOptimiser) {
             this._apply("SetHelped");
             return (function() {
                 a[(1)][(1)]++;
-                return ["LogicalNegation", ["AtLeastNQ", ["minCard", a[(1)]], v].concat(xs)]
+                return ["LogicalNegation", ["AtLeastNQ", ["MinimumCardinality", a[(1)]], v].concat(xs)]
             }).call(this)
         },
         "ForeignKey": function(v1) {
@@ -35,7 +35,7 @@ define(["sbvr-compiler/LFOptimiser"], (function(LFOptimiser) {
             this._or((function() {
                 return this._form((function() {
                     this._applyWithArgs("exactly", "ExactQ");
-                    card = this._applyWithArgs("token", "card");
+                    card = this._applyWithArgs("token", "Cardinality");
                     this._pred((card[(1)][(1)] == (1)));
                     v2 = this._applyWithArgs("token", "Variable");
                     this._pred((v2["length"] == (3)));
@@ -45,7 +45,7 @@ define(["sbvr-compiler/LFOptimiser"], (function(LFOptimiser) {
             }), (function() {
                 return this._form((function() {
                     this._applyWithArgs("exactly", "AtMostNQ");
-                    card = this._applyWithArgs("token", "maxCard");
+                    card = this._applyWithArgs("token", "MaximumCardinality");
                     this._pred((card[(1)][(1)] == (1)));
                     v2 = this._applyWithArgs("token", "Variable");
                     this._pred((v2["length"] == (3)));

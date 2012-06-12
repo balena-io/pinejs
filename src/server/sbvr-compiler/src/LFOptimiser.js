@@ -29,7 +29,7 @@ define(["sbvr-compiler/LFValidator"], (function(LFValidator) {
                 _fromIdx = this.input.idx,
                 i, v, xs;
             return this._or((function() {
-                i = this._applyWithArgs("token", "minCard");
+                i = this._applyWithArgs("token", "MinimumCardinality");
                 this._pred((i[(1)][(1)] == (1)));
                 v = this._applyWithArgs("token", "Variable");
                 xs = this._many((function() {
@@ -46,15 +46,15 @@ define(["sbvr-compiler/LFValidator"], (function(LFValidator) {
                 _fromIdx = this.input.idx,
                 i, j, v, xs;
             return this._or((function() {
-                i = this._applyWithArgs("token", "minCard");
-                j = this._applyWithArgs("token", "maxCard");
+                i = this._applyWithArgs("token", "MinimumCardinality");
+                j = this._applyWithArgs("token", "MaximumCardinality");
                 this._pred((i[(1)][(1)] == j[(1)][(1)]));
                 v = this._applyWithArgs("token", "Variable");
                 xs = this._many((function() {
                     return this._apply("trans")
                 }));
                 this._apply("SetHelped");
-                return ["ExactQ", ["card", i[(1)]], v].concat(xs)
+                return ["ExactQ", ["Cardinality", i[(1)]], v].concat(xs)
             }), (function() {
                 return LFValidator._superApplyWithArgs(this, 'NumericalRangeQ')
             }))

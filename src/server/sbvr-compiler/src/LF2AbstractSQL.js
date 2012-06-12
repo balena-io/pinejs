@@ -166,12 +166,12 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
             this._form((function() {
                 (function() {
                     switch (this._apply('anything')) {
-                    case "minCard":
-                        return "minCard";
-                    case "maxCard":
-                        return "maxCard";
-                    case "card":
-                        return "card";
+                    case "MinimumCardinality":
+                        return "MinimumCardinality";
+                    case "MaximumCardinality":
+                        return "MaximumCardinality";
+                    case "Cardinality":
+                        return "Cardinality";
                     default:
                         throw fail
                     }

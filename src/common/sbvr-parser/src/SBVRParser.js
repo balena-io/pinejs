@@ -205,26 +205,26 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base", "inflection"],
             }), (function() {
                 this._applyWithArgs("matchForAll", "keyword", ["at", "most"]);
                 n = this._apply("num");
-                return ["AtMostNQ", ["maxCard", n]]
+                return ["AtMostNQ", ["MaximumCardinality", n]]
             }), (function() {
                 this._applyWithArgs("matchForAll", "keyword", ["at", "least"]);
                 n = this._apply("num");
                 return this._or((function() {
                     this._apply("joinQuant");
                     m = this._apply("num");
-                    return ["NumericalRangeQ", ["minCard", n], ["maxCard", m]]
+                    return ["NumericalRangeQ", ["MinimumCardinality", n], ["MaximumCardinality", m]]
                 }), (function() {
-                    return ["AtLeastNQ", ["minCard", n]]
+                    return ["AtLeastNQ", ["MinimumCardinality", n]]
                 }))
             }), (function() {
                 this._applyWithArgs("matchForAll", "keyword", ["more", "than"]);
                 n = this._apply("num");
                 ++n[(1)];
-                return ["AtLeastNQ", ["minCard", n]]
+                return ["AtLeastNQ", ["MinimumCardinality", n]]
             }), (function() {
                 this._applyWithArgs("keyword", "exactly");
                 n = this._apply("num");
-                return ["ExactQ", ["card", n]]
+                return ["ExactQ", ["Cardinality", n]]
             }))
         },
         "keyword": function(word, noToken) {

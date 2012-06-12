@@ -76,9 +76,9 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 		
 		Cardinality =
 			[
-				(	'minCard'
-				|	'maxCard'
-				|	'card'
+				(	'MinimumCardinality'
+				|	'MaximumCardinality'
+				|	'Cardinality'
 				)
 				Number:cardinality
 			]

@@ -16,18 +16,18 @@ define(['sbvr-compiler/LFValidator'], function(LFValidator) {
 			-> x,
 
 		AtLeastNQ
-				"minCard":i ?{i[1][1]==1} "Variable":v trans*:xs
+				"MinimumCardinality":i ?{i[1][1]==1} "Variable":v trans*:xs
 				SetHelped
 				-> ['ExistentialQ', v].concat(xs)
 			|	^AtLeastNQ,
 
 		NumericalRangeQ
-				"minCard":i
-				"maxCard":j
+				"MinimumCardinality":i
+				"MaximumCardinality":j
 				?{i[1][1]==j[1][1]}
 				"Variable":v trans*:xs
 				SetHelped
-				-> ['ExactQ', ['card', i[1]], v].concat(xs)
+				-> ['ExactQ', ['Cardinality', i[1]], v].concat(xs)
 			|	^NumericalRangeQ,
 
 		LogicalNegation =

@@ -84,16 +84,16 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base', 'inflection'],
 			|	matchForAny('keyword',["a","an","some"])
 				-> ['ExistentialQ']
 			|	matchForAll('keyword',["at","most"]) num:n
-				-> ['AtMostNQ', ['maxCard', n]]
+				-> ['AtMostNQ', ['MaximumCardinality', n]]
 			|	matchForAll('keyword',["at","least"]) num:n
 				(	joinQuant num:m
-					-> ['NumericalRangeQ', ['minCard', n], ['maxCard', m]]
-				|	-> ['AtLeastNQ', ['minCard', n]]
+					-> ['NumericalRangeQ', ['MinimumCardinality', n], ['MaximumCardinality', m]]
+				|	-> ['AtLeastNQ', ['MinimumCardinality', n]]
 				)
 			|	matchForAll('keyword',["more","than"]) num:n {++n[1]}
-				-> ['AtLeastNQ', ['minCard', n]]
+				-> ['AtLeastNQ', ['MinimumCardinality', n]]
 			|	keyword("exactly") num:n
-				-> ['ExactQ', ['card', n]]
+				-> ['ExactQ', ['Cardinality', n]]
 			),
 
 		keyword :word :noToken =

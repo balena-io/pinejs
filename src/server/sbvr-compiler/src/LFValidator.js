@@ -263,7 +263,7 @@ define(["sbvr-parser/SBVRLibs", "ometa/ometa-base"], (function(SBVRLibs) {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 i, v, xs;
-            i = this._applyWithArgs("token", "card");
+            i = this._applyWithArgs("token", "Cardinality");
             v = this._applyWithArgs("token", "Variable");
             xs = this._many((function() {
                 return this._apply("trans")
@@ -274,7 +274,7 @@ define(["sbvr-parser/SBVRLibs", "ometa/ometa-base"], (function(SBVRLibs) {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 a, v, xs;
-            a = this._applyWithArgs("token", "maxCard");
+            a = this._applyWithArgs("token", "MaximumCardinality");
             v = this._applyWithArgs("token", "Variable");
             xs = this._many((function() {
                 return this._apply("trans")
@@ -285,7 +285,7 @@ define(["sbvr-parser/SBVRLibs", "ometa/ometa-base"], (function(SBVRLibs) {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 i, v, xs;
-            i = this._applyWithArgs("token", "minCard");
+            i = this._applyWithArgs("token", "MinimumCardinality");
             v = this._applyWithArgs("token", "Variable");
             xs = this._many((function() {
                 return this._apply("trans")
@@ -296,34 +296,34 @@ define(["sbvr-parser/SBVRLibs", "ometa/ometa-base"], (function(SBVRLibs) {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 i, a, v, xs;
-            i = this._applyWithArgs("token", "minCard");
-            a = this._applyWithArgs("token", "maxCard");
+            i = this._applyWithArgs("token", "MinimumCardinality");
+            a = this._applyWithArgs("token", "MaximumCardinality");
             v = this._applyWithArgs("token", "Variable");
             xs = this._many((function() {
                 return this._apply("trans")
             }));
             return ["NumericalRangeQ", i, a, v].concat(xs)
         },
-        "card": function() {
+        "Cardinality": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 n;
             n = this._applyWithArgs("token", "Number");
-            return ["card", n]
+            return ["Cardinality", n]
         },
-        "minCard": function() {
+        "MinimumCardinality": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 n;
             n = this._applyWithArgs("token", "Number");
-            return ["minCard", n]
+            return ["MinimumCardinality", n]
         },
-        "maxCard": function() {
+        "MaximumCardinality": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 n;
             n = this._applyWithArgs("token", "Number");
-            return ["maxCard", n]
+            return ["MaximumCardinality", n]
         },
         "Variable": function() {
             var $elf = this,
