@@ -131,7 +131,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base', 'inflection'],
 		atfo :c	=
 			isFactType(c[0]):realFactType
 			?realFactType
-			{c[0] = ['fcTp'].concat(c[0])}
+			{c[0] = ['FactType'].concat(c[0])}
 			-> ['aFrm'].concat(c),
 
 		// c[0] should contain the current fact type that is being built
@@ -182,11 +182,11 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base', 'inflection'],
 		startFactType =
 			"F:"|"Fact type:",
 		newFactType =
-			startFactType {[]}:fctp
-			(term:t addVerb:v {fctp.push(t, v)})+
-			(term:t {fctp.push(t)})?
-			AddFactType(fctp, fctp) {fctp.push([])}
-			-> ['fcTp'].concat(fctp),
+			startFactType {[]}:factType
+			(term:t addVerb:v {factType.push(t, v)})+
+			(term:t {factType.push(t)})?
+			AddFactType(factType, factType) {factType.push([])}
+			-> ['FactType'].concat(factType),
 		startTerm =
 			"T:"|"Term:",
 		newTerm =
@@ -225,18 +225,18 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base', 'inflection'],
 			addTerm:t {this.terms[t[1]] = currentLine[1]}
 			-> t,
 		attrSynonymousForm :currentLine =
-			{[]}:fctp
-			(term:t addVerb:v {fctp.push(t, v)})+
-			(term:t {fctp.push(t)})?
-			AddFactType(fctp, currentLine.slice(1,-1)) {fctp.push([])}
-			-> fctp,
+			{[]}:factType
+			(term:t addVerb:v {factType.push(t, v)})+
+			(term:t {factType.push(t)})?
+			AddFactType(factType, currentLine.slice(1,-1)) {factType.push([])}
+			-> factType,
 		attrTermForm :currentLine =
 			addTerm:t
 			{
 				for(var i = 0; i < currentLine.length; i++) {
 					if(currentLine[i][0] == 'term') {
-						var fctp = [t, ['verb', 'has'], currentLine[i]];
-						this.AddFactType(fctp, fctp);
+						var factType = [t, ['verb', 'has'], currentLine[i]];
+						this.AddFactType(factType, factType);
 					}
 				}
 			}
@@ -379,7 +379,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base', 'inflection'],
 				'Definition:',
 				'Synonym:'
 			].concat(allowedAttrLists),
-			fcTp: [
+			FactType: [
 				'Synonymous Form:',
 				'Term Form:'
 			].concat(allowedAttrLists),
@@ -423,7 +423,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base', 'inflection'],
 					return allowedAttrLists[termOrFactType];
 				}
 				else if(termOrFactType == null) {
-					return allowedAttrLists.term.concat(allowedAttrLists.fcTp);
+					return allowedAttrLists.term.concat(allowedAttrLists.FactType);
 				}
 				return [];
 			},

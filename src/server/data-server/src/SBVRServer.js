@@ -281,7 +281,7 @@
     getFTree = function(tree) {
       if (tree[1][0] === "term") {
         return tree[1][3];
-      } else if (tree[1][0] === "fcTp") {
+      } else if (tree[1][0] === "FactType") {
         return tree[1][4];
       }
       return [];
@@ -290,7 +290,7 @@
       var f, ftree, id, _i, _len, _ref;
       if (tree[1][0] === "term") {
         id = tree[1][2];
-      } else if (tree[1][0] === "fcTp") {
+      } else if (tree[1][0] === "FactType") {
         id = tree[1][3];
       }
       if (id === "") id = 0;
@@ -570,14 +570,14 @@
         if (tree[1] === void 0) {
           result = {
             terms: [],
-            fcTps: []
+            factTypes: []
           };
           sqlmod = serverModelCache.getSQL();
           _ref = sqlmod.tables;
           for (key in _ref) {
             row = _ref[key];
             if (/term,.*verb,/.test(key)) {
-              result.fcTps.push({
+              result.factTypes.push({
                 id: row.name,
                 name: row.name
               });
@@ -608,7 +608,7 @@
           if (tree[1][0] === "term") {
             sql = 'SELECT * FROM "' + table.name + '"';
             if (ftree.length !== 1) sql += " WHERE ";
-          } else if (tree[1][0] === "fcTp") {
+          } else if (tree[1][0] === "FactType") {
             ft = tree[1][1];
             if (isAttribute) {
               sql = 'SELECT id, _name AS "' + isAttribute.termName + '_name", "' + isAttribute.attributeName + '" FROM "' + table.name + '" WHERE "' + isAttribute.attributeName + '" = 1';

@@ -125,7 +125,7 @@ define(["sbvr-compiler/LFOptimiser"], (function(LFOptimiser) {
                 }
                 break
             };
-        case "fcTp":
+        case "FactType":
             {
                 if ((!attrsFound.hasOwnProperty("DatabaseTableName"))) {
                     var tableName = termOrVerb[(1)][(1)].replace(new RegExp(" ", "g"), "_");

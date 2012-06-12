@@ -148,7 +148,7 @@ define(['data-frame/ClientURIUnparser'], (ClientURIUnparser) ->
 			switch mod[0]
 				when 'term', 'verb'
 					mod[1].replace(new RegExp(' ', 'g'), '_')
-				when 'fcTp'
+				when 'FactType'
 					ident = []
 					for factTypePart in mod[1...-1]
 						ident.push(getIdent(factTypePart))
@@ -159,7 +159,7 @@ define(['data-frame/ClientURIUnparser'], (ClientURIUnparser) ->
 		# is the thing we're talking about a term or a fact type?
 		for mod in cmod[1..] when getIdent(mod) == @about
 			@type = mod[0]
-			if @type == "fcTp"
+			if @type == "FactType"
 				@schema = mod[1..]
 
 		@subRowIn = ->
@@ -174,7 +174,7 @@ define(['data-frame/ClientURIUnparser'], (ClientURIUnparser) ->
 						@adds++
 
 				# are there any subcollections?
-				for mod in cmod[1..] when mod[0] == "fcTp"
+				for mod in cmod[1..] when mod[0] == "FactType"
 					for col in mod[1..] when getIdent(col) == @about
 						@cols++
 
@@ -205,7 +205,7 @@ define(['data-frame/ClientURIUnparser'], (ClientURIUnparser) ->
 						prel += "<div style='display:inline;background-color:" + parent.unbg + "'>"	unless launch == -1
 						if parent.type == "term"
 							prel += instance._name
-						else if parent.type == "fcTp"
+						else if parent.type == "FactType"
 							for schema in parent.schema
 								if schema[0] == "term"
 									prel += instance[schema[1] + "_name"] + " "
@@ -262,7 +262,7 @@ define(['data-frame/ClientURIUnparser'], (ClientURIUnparser) ->
 					parent.callback parent.rows + 1 + parent.adds + 1, "<tr><td><hr style='border:0px; width:90%; background-color: #999; height:1px;'></td></tr>"
 
 					# launch a final callback to add the subcollections.
-					for mod in cmod[1..] when mod[0] == "fcTp"
+					for mod in cmod[1..] when mod[0] == "FactType"
 						for termVerb in mod[1..] when termVerb[1] == parent.about
 							launch = -1
 
@@ -313,7 +313,7 @@ define(['data-frame/ClientURIUnparser'], (ClientURIUnparser) ->
 								for item of result.instances[0] when item != "__clone"
 									res += item + ": " + result.instances[0][item] + "<br/>"
 								parent.callback 1, res
-						else if @type == "fcTp"
+						else if @type == "FactType"
 							@targ = serverAPI(@about, @filters)
 							serverRequest "GET", @targ, {}, null, (statusCode, result, headers) ->
 								res = "id: " + result.instances[0].id + "<br/>"
@@ -345,7 +345,7 @@ define(['data-frame/ClientURIUnparser'], (ClientURIUnparser) ->
 							res += "</form>"
 							res += "</div>"
 							@callback 1, res
-						else if @type == "fcTp"
+						else if @type == "FactType"
 							termResults = {}
 							for schema in parent.schema when schema[0] == "term"
 								termResults[schema[1]] = []
@@ -388,7 +388,7 @@ define(['data-frame/ClientURIUnparser'], (ClientURIUnparser) ->
 								res += "</form>"
 								res += "</div>"
 								parent.callback 1, res
-						else if @type == "fcTp"
+						else if @type == "FactType"
 							@targ = serverAPI(@about, @filters)
 							serverRequest "GET", @targ, {}, null, (statusCode, result, headers) ->
 								currentFactType = result.instances[0]

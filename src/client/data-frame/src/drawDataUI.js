@@ -186,7 +186,7 @@
           case 'term':
           case 'verb':
             return mod[1].replace(new RegExp(' ', 'g'), '_');
-          case 'fcTp':
+          case 'FactType':
             ident = [];
             _ref = mod.slice(1, -1);
             for (_i = 0, _len = _ref.length; _i < _len; _i++) {
@@ -203,7 +203,7 @@
         mod = _ref[_i];
         if (!(getIdent(mod) === this.about)) continue;
         this.type = mod[0];
-        if (this.type === "fcTp") this.schema = mod.slice(1);
+        if (this.type === "FactType") this.schema = mod.slice(1);
       }
       this.subRowIn = function() {
         var actn, branchType, col, currBranch, currBranchType, currSchema, mod, parent, posl, res, resultsReceived, resultsRequested, schema, targ, termName, termResults, _j, _k, _l, _len2, _len3, _len4, _len5, _len6, _len7, _len8, _m, _n, _o, _p, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7, _ref8, _results;
@@ -225,7 +225,7 @@
           _ref4 = cmod.slice(1);
           for (_l = 0, _len4 = _ref4.length; _l < _len4; _l++) {
             mod = _ref4[_l];
-            if (mod[0] === "fcTp") {
+            if (mod[0] === "FactType") {
               _ref5 = mod.slice(1);
               for (_m = 0, _len5 = _ref5.length; _m < _len5; _m++) {
                 col = _ref5[_m];
@@ -270,7 +270,7 @@
               }
               if (parent.type === "term") {
                 prel += instance._name;
-              } else if (parent.type === "fcTp") {
+              } else if (parent.type === "FactType") {
                 _ref11 = parent.schema;
                 for (_o = 0, _len9 = _ref11.length; _o < _len9; _o++) {
                   schema = _ref11[_o];
@@ -337,7 +337,7 @@
             _results = [];
             for (_q = 0, _len12 = _ref14.length; _q < _len12; _q++) {
               mod = _ref14[_q];
-              if (mod[0] === "fcTp") {
+              if (mod[0] === "FactType") {
                 _results.push((function() {
                   var _len13, _len14, _r, _ref15, _ref16, _results2;
                   _ref15 = mod.slice(1);
@@ -414,7 +414,7 @@
                   }
                   return parent.callback(1, res);
                 });
-              } else if (this.type === "fcTp") {
+              } else if (this.type === "FactType") {
                 this.targ = serverAPI(this.about, this.filters);
                 return serverRequest("GET", this.targ, {}, null, function(statusCode, result, headers) {
                   var res, schema, _len7, _o, _ref8;
@@ -453,7 +453,7 @@
                 res += "</form>";
                 res += "</div>";
                 return this.callback(1, res);
-              } else if (this.type === "fcTp") {
+              } else if (this.type === "FactType") {
                 termResults = {};
                 _ref8 = parent.schema;
                 for (_p = 0, _len8 = _ref8.length; _p < _len8; _p++) {
@@ -506,7 +506,7 @@
                   res += "</div>";
                   return parent.callback(1, res);
                 });
-              } else if (this.type === "fcTp") {
+              } else if (this.type === "FactType") {
                 this.targ = serverAPI(this.about, this.filters);
                 return serverRequest("GET", this.targ, {}, null, function(statusCode, result, headers) {
                   var currentFactType, schema, termName, _len9, _q, _ref9, _results2;

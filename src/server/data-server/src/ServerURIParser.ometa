@@ -22,16 +22,16 @@ define(['ometa/ometa-base'], function() {
 
 		trmf = term:t -> [`term, t],
 
-		fcTp = {ts=[`terms];ft=''} (term:t ``-'' verb:v -> {ts.push(t);ft += t + "-" + v})+ 
-			   (``-'' term:t -> {ts.push(t);ft += "-" + t})?                           -> [`fcTp, ft, ts], 
+		FactType = {ts=[`terms];ft=''} (term:t ``-'' verb:v -> {ts.push(t);ft += t + "-" + v})+ 
+			   (``-'' term:t -> {ts.push(t);ft += "-" + t})?                           -> ['FactType', ft, ts], 
 
 		  id = (``.'' nmbr:n -> [n]|->['']),
 
-		 uri = ``/'' word:w ``/''? fcTp:f id:i actn:a ``/'' comm:c 
+		 uri = ``/'' word:w ``/''? FactType:f id:i actn:a ``/'' comm:c 
 											-> [w].concat([f.concat(i).concat([[`mod].concat(a).concat([[c]])])])
 			 | ``/'' word:w ``/''? trmf:t id:i actn:a ``/'' comm:c 
 											-> [w].concat([t.concat(i).concat([[`mod].concat(a).concat([[c]])])])
-			 | ``/'' word:w ``/''? fcTp:f id:i actn:a ``/''?       
+			 | ``/'' word:w ``/''? FactType:f id:i actn:a ``/''?       
 											-> [w].concat([f.concat(i).concat([[`mod].concat(a)])])
 			 | ``/'' word:w ``/''? trmf:t id:i actn:a ``/''?       
 											-> [w].concat([t.concat(i).concat([[`mod].concat(a)])])

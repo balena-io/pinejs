@@ -28,7 +28,7 @@ define(['sbvr-parser/SBVRLibs', 'ometa/ometa-base'], function(SBVRLibs) {
 			{[]}:xs
 			(
 				(	"term"
-				|	"fcTp"
+				|	"FactType"
 				|	"rule"
 				):x
 				(	?(x != null)
@@ -37,7 +37,7 @@ define(['sbvr-parser/SBVRLibs', 'ometa/ometa-base'], function(SBVRLibs) {
 			)*
 			-> ['model'].concat(xs),
 
-		fcTp
+		FactType
 			{[]}:factType
 			(	"term":t
 				"verb":v
@@ -46,7 +46,7 @@ define(['sbvr-parser/SBVRLibs', 'ometa/ometa-base'], function(SBVRLibs) {
 			$('term'):t
 			{factType.concat(t)}:factType
 			&(:attrs AddFactType(factType, factType))?
-			addAttributes(['fcTp'].concat(factType)),
+			addAttributes(['FactType'].concat(factType)),
 
 		term
 			:t addAttributes(['term', t]),
@@ -154,7 +154,7 @@ define(['sbvr-parser/SBVRLibs', 'ometa/ometa-base'], function(SBVRLibs) {
 			"term":t number:n
 			-> ['bind', t, n], 
 		aFrm
-			"fcTp":f "bind"*:b
+			"FactType":f "bind"*:b
 			-> ['aFrm', f].concat(b)
 	}
 	

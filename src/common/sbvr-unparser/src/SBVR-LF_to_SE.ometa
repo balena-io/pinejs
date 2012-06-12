@@ -11,9 +11,9 @@ define(['sbvr-parser/SBVRParser', 'underscore', 'Prettify', 'sbvr-frame/SBVRMode
 
 	  num        number:n ?{!isNaN(n)}                     -> [`num, parseInt(n)],
 
-	  model      ("term"|"fcTp"|"rule")*:xs                -> [`model].concat(xs),
+	  model      ("term"|"FactType"|"rule")*:xs                -> [`model].concat(xs),
 		
-	  fcTp       {a=[]}("term":t "verb":v {a=a.concat([t,v])})* $('term'):e  (:attr->[attr]|->[]):attr
+	  FactType   {a=[]}("term":t "verb":v {a=a.concat([t,v])})* $('term'):e  (:attr->[attr]|->[]):attr
 														   -> a.concat(e),
 
 	  verb       :v                                        -> [`verb, v],
@@ -47,7 +47,7 @@ define(['sbvr-parser/SBVRParser', 'underscore', 'Prettify', 'sbvr-frame/SBVRMode
 	  var        "num":n "term":t                          -> [`var, n, t],
 
 	  bind       "term":t number:n                         -> [`bind, t, n], 
-	  aFrm       "fcTp":f "bind"*:b {for(var i = 0; i<b.length; i++) {this.findReplace(f, b[i][1], b[i][2]);}}
+	  aFrm       "FactType":f "bind"*:b {for(var i = 0; i<b.length; i++) {this.findReplace(f, b[i][1], b[i][2]);}}
 								   -> f
 	}
 

@@ -247,14 +247,14 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 	getFTree = (tree) ->
 		if tree[1][0] == "term"
 			return tree[1][3]
-		else if tree[1][0] == "fcTp"
+		else if tree[1][0] == "FactType"
 			return tree[1][4]
 		return []
 
 	getID = (tree) ->
 		if tree[1][0] == "term"
 			id = tree[1][2]
-		else if tree[1][0] == "fcTp"
+		else if tree[1][0] == "FactType"
 			id = tree[1][3]
 		id = 0 if id == ""
 		# if the id is empty, search the filters for one
@@ -486,11 +486,11 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 			if tree[1] == undefined
 				result =
 					terms: []
-					fcTps: []
+					factTypes: []
 				sqlmod = serverModelCache.getSQL()
 				for key, row of sqlmod.tables
 					if /term,.*verb,/.test(key)
-						result.fcTps.push(
+						result.factTypes.push(
 							id: row.name
 							name: row.name
 						)
@@ -520,7 +520,7 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 				if tree[1][0] == "term"
 					sql = 'SELECT * FROM "' + table.name + '"'
 					sql += " WHERE " if ftree.length != 1
-				else if tree[1][0] == "fcTp"
+				else if tree[1][0] == "FactType"
 					ft = tree[1][1]
 					if isAttribute
 						sql = 'SELECT id, _name AS "' + isAttribute.termName + '_name", "' + isAttribute.attributeName + '" FROM "' + table.name + '" WHERE "' + isAttribute.attributeName + '" = 1'

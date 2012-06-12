@@ -62,7 +62,7 @@ define(["sbvr-parser/SBVRLibs", "ometa/ometa-base"], (function(SBVRLibs) {
                 x = this._or((function() {
                     return this._applyWithArgs("token", "term")
                 }), (function() {
-                    return this._applyWithArgs("token", "fcTp")
+                    return this._applyWithArgs("token", "FactType")
                 }), (function() {
                     return this._applyWithArgs("token", "rule")
                 }));
@@ -73,7 +73,7 @@ define(["sbvr-parser/SBVRLibs", "ometa/ometa-base"], (function(SBVRLibs) {
             }));
             return ["model"].concat(xs)
         },
-        "fcTp": function() {
+        "FactType": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 factType, t, v, attrs;
@@ -91,7 +91,7 @@ define(["sbvr-parser/SBVRLibs", "ometa/ometa-base"], (function(SBVRLibs) {
                     return this._applyWithArgs("AddFactType", factType, factType)
                 }))
             }));
-            return this._applyWithArgs("addAttributes", ["fcTp"].concat(factType))
+            return this._applyWithArgs("addAttributes", ["FactType"].concat(factType))
         },
         "term": function() {
             var $elf = this,
@@ -356,7 +356,7 @@ define(["sbvr-parser/SBVRLibs", "ometa/ometa-base"], (function(SBVRLibs) {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 f, b;
-            f = this._applyWithArgs("token", "fcTp");
+            f = this._applyWithArgs("token", "FactType");
             b = this._many((function() {
                 return this._applyWithArgs("token", "bind")
             }));

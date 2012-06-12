@@ -288,7 +288,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
             this._form((function() {
                 this._applyWithArgs("exactly", "aFrm");
                 this._form((function() {
-                    this._applyWithArgs("exactly", "fcTp");
+                    this._applyWithArgs("exactly", "FactType");
                     return factType = this._many1((function() {
                         return this._apply("anything")
                     }))
@@ -423,7 +423,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                                     termName = this._apply("TermName");
                                     return this._applyWithArgs("Attributes", termName)
                                 }).call(this);
-                            case "fcTp":
+                            case "FactType":
                                 return (function() {
                                     factType = this._apply("FactType");
                                     return this._applyWithArgs("Attributes", factType)

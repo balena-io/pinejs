@@ -1,4 +1,4 @@
-define(["sbvr-parser/SBVRParser", "underscore", "Prettify", "sbvr-frame/SBVRModels", "ometa-base", "inflection"], (function(SBVRParser, _, Prettify) {
+define(["sbvr-parser/SBVRParser", "underscore", "Prettify", "sbvr-frame/SBVRModels", "ometa/ometa-base", "inflection"], (function(SBVRParser, _, Prettify) {
     var SBVR_LF2SE = undefined;
     SBVR_LF2SE = objectThatDelegatesTo(OMeta, {
         "$": function(x) {
@@ -62,14 +62,14 @@ define(["sbvr-parser/SBVRParser", "underscore", "Prettify", "sbvr-frame/SBVRMode
                 return this._or((function() {
                     return this._applyWithArgs("token", "term")
                 }), (function() {
-                    return this._applyWithArgs("token", "fcTp")
+                    return this._applyWithArgs("token", "FactType")
                 }), (function() {
                     return this._applyWithArgs("token", "rule")
                 }))
             }));
             return ["model"].concat(xs)
         },
-        "fcTp": function() {
+        "FactType": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 t, v, e, attr;
@@ -309,7 +309,7 @@ define(["sbvr-parser/SBVRParser", "underscore", "Prettify", "sbvr-frame/SBVRMode
             var $elf = this,
                 _fromIdx = this.input.idx,
                 f, b;
-            f = this._applyWithArgs("token", "fcTp");
+            f = this._applyWithArgs("token", "FactType");
             b = this._many((function() {
                 return this._applyWithArgs("token", "bind")
             }));

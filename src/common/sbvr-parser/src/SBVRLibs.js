@@ -43,7 +43,7 @@ define(["underscore", "ometa/ometa-base"], (function(_) {
             }
         }
     }));
-    (SBVRLibs["_traverseFactType"] = (function(fctp, create) {
+    (SBVRLibs["_traverseFactType"] = (function(factType, create) {
         {
             var $elf = this;
             var traverseRecurse = (function(currentFactTypePart, remainingFactType, currentLevel) {
@@ -90,7 +90,7 @@ define(["underscore", "ometa/ometa-base"], (function(_) {
                 return ((_.isEmpty(finalLevels) === true) ? false : finalLevels)
             })
         };
-        return traverseRecurse(fctp[(0)], fctp.slice((1)), this["factTypes"])
+        return traverseRecurse(factType[(0)], factType.slice((1)), this["factTypes"])
     }));
     (SBVRLibs["ActualFactType"] = (function(factType) {
         var traverseInfo = this._traverseFactType(factType);

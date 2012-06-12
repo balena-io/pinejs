@@ -148,7 +148,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 		
 		AtomicFormulation =
 			[	'aFrm'
-				['fcTp' anything+:factType]
+				['FactType' anything+:factType]
 				ActualFactType(factType):actualFactType
 				FactTypeRootTerms(factType, actualFactType):rootTerms
 				(	ForeignKey(actualFactType, rootTerms)
@@ -217,7 +217,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 			[	'model'
 				(
 					[	'term' TermName:termName Attributes(termName)
-					|	'fcTp' FactType:factType Attributes(factType)
+					|	'FactType' FactType:factType Attributes(factType)
 					|	'rule' RuleBody:ruleBody ['text' :ruleText]
 						{this.linkTableBind = 0}
 						{this.rules.push(['Rule', ['Text', ruleText], ['Body', ruleBody]])}

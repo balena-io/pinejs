@@ -311,7 +311,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base", "inflection"],
                 realFactType;
             realFactType = this._applyWithArgs("isFactType", c[(0)]);
             this._pred(realFactType);
-            (c[(0)] = ["fcTp"].concat(c[(0)]));
+            (c[(0)] = ["FactType"].concat(c[(0)]));
             return ["aFrm"].concat(c)
         },
         "ruleBody": function(c, exitOnTermFactType) {
@@ -423,21 +423,21 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base", "inflection"],
         "newFactType": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                fctp, t, v;
+                factType, t, v;
             this._apply("startFactType");
-            fctp = [];
+            factType = [];
             this._many1((function() {
                 t = this._apply("term");
                 v = this._apply("addVerb");
-                return fctp.push(t, v)
+                return factType.push(t, v)
             }));
             this._opt((function() {
                 t = this._apply("term");
-                return fctp.push(t)
+                return factType.push(t)
             }));
-            this._applyWithArgs("AddFactType", fctp, fctp);
-            fctp.push([]);
-            return ["fcTp"].concat(fctp)
+            this._applyWithArgs("AddFactType", factType, factType);
+            factType.push([]);
+            return ["FactType"].concat(factType)
         },
         "startTerm": function() {
             var $elf = this,
@@ -536,20 +536,20 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base", "inflection"],
         "attrSynonymousForm": function(currentLine) {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                fctp, t, v;
-            fctp = [];
+                factType, t, v;
+            factType = [];
             this._many1((function() {
                 t = this._apply("term");
                 v = this._apply("addVerb");
-                return fctp.push(t, v)
+                return factType.push(t, v)
             }));
             this._opt((function() {
                 t = this._apply("term");
-                return fctp.push(t)
+                return factType.push(t)
             }));
-            this._applyWithArgs("AddFactType", fctp, currentLine.slice((1), (-(1))));
-            fctp.push([]);
-            return fctp
+            this._applyWithArgs("AddFactType", factType, currentLine.slice((1), (-(1))));
+            factType.push([]);
+            return factType
         },
         "attrTermForm": function(currentLine) {
             var $elf = this,
@@ -560,8 +560,8 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base", "inflection"],
                 for (var i = (0);
                 (i < currentLine["length"]); i++) {
                     if ((currentLine[i][(0)] == "term")) {
-                        var fctp = [t, ["verb", "has"], currentLine[i]];
-                        this.AddFactType(fctp, fctp)
+                        var factType = [t, ["verb", "has"], currentLine[i]];
+                        this.AddFactType(factType, factType)
                     } else {
                         undefined
                     }
@@ -726,7 +726,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base", "inflection"],
     };
     (allowedAttrLists = ({
         "term": ["Concept Type:", "Definition:", "Synonym:"].concat(allowedAttrLists),
-        "fcTp": ["Synonymous Form:", "Term Form:"].concat(allowedAttrLists),
+        "FactType": ["Synonymous Form:", "Term Form:"].concat(allowedAttrLists),
         "rule": []
     }));
     (SBVRParser["reset"] = (function() {
@@ -784,7 +784,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base", "inflection"],
                     return allowedAttrLists[termOrFactType]
                 } else {
                     if ((termOrFactType == null)) {
-                        return allowedAttrLists["term"].concat(allowedAttrLists["fcTp"])
+                        return allowedAttrLists["term"].concat(allowedAttrLists["FactType"])
                     } else {
                         undefined
                     }

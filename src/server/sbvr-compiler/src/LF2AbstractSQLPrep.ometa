@@ -86,7 +86,7 @@ define(['sbvr-compiler/LFOptimiser'], function(LFOptimiser) {
 					this.SetHelped();
 				}
 			break;
-			case 'fcTp':
+			case 'FactType':
 				if(!attrsFound.hasOwnProperty('DatabaseTableName')) {
 					var tableName = termOrVerb[1][1].replace(new RegExp(' ','g'),'_');
 					for(var i=2;i<termOrVerb.length;i++) {
