@@ -413,7 +413,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                 _fromIdx = this.input.idx,
                 termName, factType, ruleBody, ruleText;
             this._form((function() {
-                this._applyWithArgs("exactly", "model");
+                this._applyWithArgs("exactly", "Model");
                 return this._many1((function() {
                     return this._form((function() {
                         return (function() {

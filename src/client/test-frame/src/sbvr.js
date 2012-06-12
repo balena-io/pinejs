@@ -674,7 +674,7 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 		expect(testModel.length);
 		for(var i=0,l=testModel.length;i<l;i++) {
 			try {
-				deepEqual(LF2AbstractSQLPrep.match(['model',testModel[i][1]],'Process'), ['model',testModel[i][2]], testModel[i][0]);
+				deepEqual(LF2AbstractSQLPrep.match(['Model',testModel[i][1]],'Process'), ['Model',testModel[i][2]], testModel[i][0]);
 			}
 			catch(e) {
 				console.log(e);
@@ -692,7 +692,7 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 				delete instance.tables[testModel[i][2][1]];
 			}
 			try {
-				deepEqual(instance.match(['model',testModel[i][2]],'Process'), testModel[i][3], testModel[i][0]);
+				deepEqual(instance.match(['Model',testModel[i][2]],'Process'), testModel[i][3], testModel[i][0]);
 			}
 			catch(e) {
 				console.log(e);

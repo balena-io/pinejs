@@ -54,7 +54,7 @@ define(["sbvr-parser/SBVRParser", "underscore", "Prettify", "sbvr-frame/SBVRMode
             this._pred((!isNaN(n)));
             return ["num", parseInt(n)]
         },
-        "model": function() {
+        "Model": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 xs;
@@ -67,7 +67,7 @@ define(["sbvr-parser/SBVRParser", "underscore", "Prettify", "sbvr-frame/SBVRMode
                     return this._applyWithArgs("token", "rule")
                 }))
             }));
-            return ["model"].concat(xs)
+            return ["Model"].concat(xs)
         },
         "FactType": function() {
             var $elf = this,

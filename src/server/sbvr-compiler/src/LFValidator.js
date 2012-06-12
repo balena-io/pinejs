@@ -53,7 +53,7 @@ define(["sbvr-parser/SBVRLibs", "ometa/ometa-base"], (function(SBVRLibs) {
             this._pred((!isNaN(n)));
             return ["num", parseInt(n)]
         },
-        "model": function() {
+        "Model": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 xs, x;
@@ -71,7 +71,7 @@ define(["sbvr-parser/SBVRLibs", "ometa/ometa-base"], (function(SBVRLibs) {
                     return xs.push(x)
                 }))
             }));
-            return ["model"].concat(xs)
+            return ["Model"].concat(xs)
         },
         "FactType": function() {
             var $elf = this,

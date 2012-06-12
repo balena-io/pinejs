@@ -803,7 +803,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base", "inflection"],
         }));
         (this["ruleVars"] = ({}));
         (this["ruleVarsCount"] = (0));
-        (this["lines"] = ["model"])
+        (this["lines"] = ["Model"])
     }));
     (SBVRParser["equals"] = (function(compareTo) {
         if ((!_.isEqual(this["terms"], compareTo["terms"]))) {

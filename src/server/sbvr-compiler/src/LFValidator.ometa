@@ -24,7 +24,7 @@ define(['sbvr-parser/SBVRLibs', 'ometa/ometa-base'], function(SBVRLibs) {
 			number:n ?{!isNaN(n)}
 			-> ['num', parseInt(n)],
 
-		model
+		Model
 			{[]}:xs
 			(
 				(	"Term"
@@ -35,7 +35,7 @@ define(['sbvr-parser/SBVRLibs', 'ometa/ometa-base'], function(SBVRLibs) {
 					{xs.push(x)}
 				)?
 			)*
-			-> ['model'].concat(xs),
+			-> ['Model'].concat(xs),
 
 		FactType
 			{[]}:factType

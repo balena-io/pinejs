@@ -214,7 +214,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 			-> rule,
 		
 		Process =
-			[	'model'
+			[	'Model'
 				(
 					[	'Term' TermName:termName Attributes(termName)
 					|	'FactType' FactType:factType Attributes(factType)
