@@ -27,7 +27,7 @@ define(['sbvr-parser/SBVRParser', 'underscore', 'Prettify', 'sbvr-frame/SBVRMode
 	  pos        trans*:xs                                 -> [`pos].concat(xs),
 	  prm        trans*:xs                                 -> [`prm].concat(xs),
 
-	  neg        trans:xs                                  -> [`neg].concat([xs]),
+	  LogicalNegation        trans:xs                                  -> ['LogicalNegation'].concat([xs]),
 
 	  quant      = "univQ" | "existQ" | "exactQ" | "atMostQ" | "atLeastQ" | "numRngQ" ,
 	  univQ                              "Variable":v trans*:xs -> [`univQ, v].concat(xs),

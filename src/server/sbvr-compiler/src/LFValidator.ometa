@@ -98,9 +98,9 @@ define(['sbvr-parser/SBVRLibs', 'ometa/ometa-base'], function(SBVRLibs) {
 			trans*:xs
 			-> ['prm'].concat(xs),
 
-		neg
+		LogicalNegation
 			trans:xs
-			-> ['neg'].concat([xs]),
+			-> ['LogicalNegation'].concat([xs]),
 
 		quant =
 			(	"univQ"

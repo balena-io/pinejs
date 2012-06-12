@@ -10,7 +10,7 @@ define(["sbvr-compiler/LFOptimiser"], (function(LFOptimiser) {
                 return this._apply("trans")
             }));
             this._apply("SetHelped");
-            return ["neg", ["existQ", v, ["neg"].concat(xs)]]
+            return ["LogicalNegation", ["existQ", v, ["LogicalNegation"].concat(xs)]]
         },
         "atMostQ": function() {
             var $elf = this,
@@ -24,7 +24,7 @@ define(["sbvr-compiler/LFOptimiser"], (function(LFOptimiser) {
             this._apply("SetHelped");
             return (function() {
                 a[(1)][(1)]++;
-                return ["neg", ["atLeastQ", ["minCard", a[(1)]], v].concat(xs)]
+                return ["LogicalNegation", ["atLeastQ", ["minCard", a[(1)]], v].concat(xs)]
             }).call(this)
         },
         "ForeignKey": function(v1) {
@@ -75,12 +75,12 @@ define(["sbvr-compiler/LFOptimiser"], (function(LFOptimiser) {
                                     v1 = this._applyWithArgs("token", "Variable");
                                     return this._applyWithArgs("ForeignKey", v1)
                                 }).call(this);
-                            case "neg":
+                            case "LogicalNegation":
                                 return this._form((function() {
                                     this._applyWithArgs("exactly", "existQ");
                                     v1 = this._applyWithArgs("token", "Variable");
                                     return this._form((function() {
-                                        this._applyWithArgs("exactly", "neg");
+                                        this._applyWithArgs("exactly", "LogicalNegation");
                                         return this._applyWithArgs("ForeignKey", v1)
                                     }))
                                 }));

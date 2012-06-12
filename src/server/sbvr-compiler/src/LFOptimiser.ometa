@@ -30,10 +30,10 @@ define(['sbvr-compiler/LFValidator'], function(LFValidator) {
 				-> ['exactQ', ['card', i[1]], v].concat(xs)
 			|	^numRngQ,
 
-		neg =
-				['neg' trans:xs] SetHelped
+		LogicalNegation =
+				['LogicalNegation' trans:xs] SetHelped
 				-> xs
-			|	^neg
+			|	^LogicalNegation
 	}
 
 	LFOptimiser.initialize = function() {

@@ -59,19 +59,19 @@ define(["sbvr-compiler/LFValidator"], (function(LFValidator) {
                 return LFValidator._superApplyWithArgs(this, 'numRngQ')
             }))
         },
-        "neg": function() {
+        "LogicalNegation": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 xs;
             return this._or((function() {
                 this._form((function() {
-                    this._applyWithArgs("exactly", "neg");
+                    this._applyWithArgs("exactly", "LogicalNegation");
                     return xs = this._apply("trans")
                 }));
                 this._apply("SetHelped");
                 return xs
             }), (function() {
-                return LFValidator._superApplyWithArgs(this, 'neg')
+                return LFValidator._superApplyWithArgs(this, 'LogicalNegation')
             }))
         }
     });

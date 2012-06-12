@@ -359,14 +359,14 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base", "inflection"],
                 return ["nec"]
             }), (function() {
                 this._applyWithArgs("token", "prohibited");
-                return ["obl", ["neg"]]
+                return ["obl", ["LogicalNegation"]]
             }), (function() {
                 this._applyWithArgs("token", "impossible");
-                return ["nec", ["neg"]]
+                return ["nec", ["LogicalNegation"]]
             }), (function() {
                 this._applyWithArgs("token", "not");
                 this._applyWithArgs("token", "possible");
-                return ["nec", ["neg"]]
+                return ["nec", ["LogicalNegation"]]
             }), (function() {
                 this._applyWithArgs("token", "possible");
                 return ["pos"]

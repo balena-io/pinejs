@@ -157,11 +157,11 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base', 'inflection'],
 			|	"necessary"	
 				-> ['nec']
 			|	"prohibited"
-				-> ['obl', ['neg']]
+				-> ['obl', ['LogicalNegation']]
 			|	"impossible"
-				-> ['nec', ['neg']]
+				-> ['nec', ['LogicalNegation']]
 			|	"not" "possible"
-				-> ['nec', ['neg']]
+				-> ['nec', ['LogicalNegation']]
 			|	"possible"
 				-> ['pos']
 			|	"permissible"

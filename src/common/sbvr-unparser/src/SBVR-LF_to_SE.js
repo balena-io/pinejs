@@ -167,12 +167,12 @@ define(["sbvr-parser/SBVRParser", "underscore", "Prettify", "sbvr-frame/SBVRMode
             }));
             return ["prm"].concat(xs)
         },
-        "neg": function() {
+        "LogicalNegation": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 xs;
             xs = this._apply("trans");
-            return ["neg"].concat([xs])
+            return ["LogicalNegation"].concat([xs])
         },
         "quant": function() {
             var $elf = this,

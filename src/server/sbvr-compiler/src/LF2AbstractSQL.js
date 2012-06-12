@@ -357,7 +357,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                 _fromIdx = this.input.idx,
                 whereBody;
             this._form((function() {
-                this._applyWithArgs("exactly", "neg");
+                this._applyWithArgs("exactly", "LogicalNegation");
                 return whereBody = this._apply("RulePart")
             }));
             return ["Not", whereBody]

@@ -185,7 +185,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 			]
 			-> ['Exists', query],
 		Negation =
-			[	'neg'
+			[	'LogicalNegation'
 				RulePart:whereBody
 			]
 			-> ['Not', whereBody],

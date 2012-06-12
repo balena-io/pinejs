@@ -4,11 +4,11 @@ define(['sbvr-compiler/LFOptimiser'], function(LFOptimiser) {
 	ometa LF2AbstractSQLPrep <: LFOptimiser {
 		univQ
 			"Variable":v trans*:xs SetHelped
-			-> ['neg', ['existQ', v, ['neg'].concat(xs)]],
+			-> ['LogicalNegation', ['existQ', v, ['LogicalNegation'].concat(xs)]],
 		
 		atMostQ
 			"maxCard":a "Variable":v trans*:xs SetHelped
-			-> {a[1][1]++;['neg', ['atLeastQ', ['minCard', a[1]], v].concat(xs)]},
+			-> {a[1][1]++;['LogicalNegation', ['atLeastQ', ['minCard', a[1]], v].concat(xs)]},
 		
 		ForeignKey :v1 =
 			// Just a basic var
@@ -50,10 +50,10 @@ define(['sbvr-compiler/LFOptimiser'], function(LFOptimiser) {
 						"Variable":v1
 						ForeignKey(v1)
 					|
-						'neg'
+						'LogicalNegation'
 						[	'existQ'
 							"Variable":v1
-							[	'neg'
+							[	'LogicalNegation'
 								ForeignKey(v1)
 							]
 						]
