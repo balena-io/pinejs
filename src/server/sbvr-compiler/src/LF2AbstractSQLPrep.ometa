@@ -2,6 +2,11 @@ define(['sbvr-compiler/LFOptimiser'], function(LFOptimiser) {
 	var LF2AbstractSQLPrep;
 
 	ometa LF2AbstractSQLPrep <: LFOptimiser {
+		AttrConceptType :termName =
+			^AttrConceptType(termName):conceptType
+			{this.primitives[conceptType] = false}
+			-> conceptType,
+		
 		UniversalQ
 			"Variable":v trans*:xs SetHelped
 			-> ['LogicalNegation', ['ExistentialQ', v, ['LogicalNegation'].concat(xs)]],
@@ -68,6 +73,7 @@ define(['sbvr-compiler/LFOptimiser'], function(LFOptimiser) {
 	LF2AbstractSQLPrep.initialize = function() {
 		LFOptimiser.initialize.call(this);
 		this.foreignKeys = [];
+		this.primitives = [];
 	}
 	
 	LF2AbstractSQLPrep.defaultAttributes = function(termOrVerb, attrsFound, attrs) {
@@ -85,6 +91,14 @@ define(['sbvr-compiler/LFOptimiser'], function(LFOptimiser) {
 					attrs.push(['DatabaseTableName', termOrVerb[1].replace(new RegExp(' ','g'),'_')]);
 					this.SetHelped();
 				}
+				if(!this.primitives.hasOwnProperty(termOrVerb)) {
+					this.primitives[termOrVerb] = this.isPrimitive(termOrVerb[1]) !== false;
+				}
+				if(this.primitives.hasOwnProperty(termOrVerb) && (!attrsFound.hasOwnProperty('DatabasePrimitive') || this.primitives[termOrVerb] != attrsFound['DatabasePrimitive'])) {
+					console.log('Adding primitive attr', termOrVerb, this.primitives[termOrVerb]);
+					attrs.push(['DatabasePrimitive', this.primitives[termOrVerb]]);
+					this.SetHelped();
+				}
 			break;
 			case 'FactType':
 				if(!attrsFound.hasOwnProperty('DatabaseTableName')) {
@@ -96,14 +110,44 @@ define(['sbvr-compiler/LFOptimiser'], function(LFOptimiser) {
 					this.SetHelped();
 				}
 				if(this.foreignKeys.hasOwnProperty(termOrVerb)) {
-					console.log('Adding FK attr');
-					attrs.push(['ForeignKey', this.foreignKeys[termOrVerb]]);
+					if(!attrsFound.hasOwnProperty('ForeignKey')) {
+						console.log('Adding FK attr', termOrVerb, this.foreignKeys[termOrVerb]);
+						attrs.push(['ForeignKey', this.foreignKeys[termOrVerb]]);
+						this.SetHelped();
+					}
+					else if(attrsFound['ForeignKey'] != this.foreignKeys[termOrVerb]) {
+						console.error(attrsFound['ForeignKey'], this.foreignKeys[termOrVerb])
+						__MISMATCHED_FOREIGN_KEY__.die();
+					}
 					delete this.foreignKeys[termOrVerb];
+				}
+				// Boolean fact type
+				if(termOrVerb.length==3 && !this.primitives.hasOwnProperty(termOrVerb[1])) {
+					this.primitives[termOrVerb[1]] = false;
 					this.SetHelped();
 				}
 			break;
 		}
 		termOrVerb.push(attrs);
+	}
+
+	var primitives = {
+		'Integer': true,
+		'Short Text': true,
+		'Long Text': true
+	};
+	LF2AbstractSQLPrep.isPrimitive = function(termName) {
+		// do {
+			if (primitives.hasOwnProperty(termName)) {
+				return termName;
+			}
+		// } while (this.conceptTypes.hasOwnProperty(termName) && (termName = this.conceptTypes[termName]));
+		if (this.conceptTypes.hasOwnProperty(termName) && (termName = this.conceptTypes[termName])) {
+			if (primitives.hasOwnProperty(termName)) {
+				return termName;
+			}
+		}
+		return false;
 	}
 	return LF2AbstractSQLPrep;
 });

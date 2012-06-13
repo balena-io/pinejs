@@ -135,13 +135,8 @@ define(["sbvr-parser/SBVRLibs", "ometa/ometa-base"], (function(SBVRLibs) {
                     attrs = this._many((function() {
                         this._form((function() {
                             attrName = this._apply("anything");
-                            (attrsFound[attrName] = true);
-                            return attrVal = this._or((function() {
-                                this._pred(this[("attr" + attrName)]);
-                                return this["_applyWithArgs"].call(this, ("attr" + attrName), termOrVerb)
-                            }), (function() {
-                                return this._apply("anything")
-                            }))
+                            attrVal = this._applyWithArgs("ApplyFirstExisting", [("Attr" + attrName), "DefaultAttr"], [termOrVerb]);
+                            return (attrsFound[attrName] = attrVal)
                         }));
                         return [attrName, attrVal]
                     }));
@@ -151,7 +146,22 @@ define(["sbvr-parser/SBVRLibs", "ometa/ometa-base"], (function(SBVRLibs) {
             }));
             return termOrVerb
         },
-        "attrDefinition": function(termOrVerb) {
+        "DefaultAttr": function(tableID) {
+            var $elf = this,
+                _fromIdx = this.input.idx;
+            return this._apply("anything")
+        },
+        "AttrConceptType": function(termName) {
+            var $elf = this,
+                _fromIdx = this.input.idx,
+                conceptType;
+            return this._form((function() {
+                this._applyWithArgs("exactly", "Term");
+                conceptType = this._apply("anything");
+                return (this["conceptTypes"][termName[(1)]] = conceptType)
+            }))
+        },
+        "AttrDefinition": function(termOrVerb) {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 values;
@@ -164,7 +174,7 @@ define(["sbvr-parser/SBVRLibs", "ometa/ometa-base"], (function(SBVRLibs) {
                 return this._apply("trans")
             }))
         },
-        "attrSynonymousForm": function(factType) {
+        "AttrSynonymousForm": function(factType) {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 synForm;

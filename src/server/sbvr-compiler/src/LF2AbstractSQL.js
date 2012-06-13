@@ -15,7 +15,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
             }));
             (this["tables"][termName] = ({
                 "fields": [],
-                "primitive": this.isPrimitive(termName),
+                "primitive": false,
                 "name": null,
                 "idField": null
             }));
@@ -88,6 +88,13 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
             }), (function() {
                 return (this["tables"][tableID]["name"] = tableName)
             }))
+        },
+        "AttrDatabasePrimitive": function(termName) {
+            var $elf = this,
+                _fromIdx = this.input.idx,
+                attrVal;
+            attrVal = this._apply("anything");
+            return (this["tables"][termName]["primitive"] = attrVal)
         },
         "AttrForeignKey": function(factType) {
             var $elf = this,
@@ -500,21 +507,6 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
             ]);
             (parentAlias = conceptAlias)
         }
-    }));
-    var primitives = ({
-        "Integer": true,
-        "Short Text": true,
-        "Long Text": true
-    });
-    (LF2AbstractSQL["isPrimitive"] = (function(termName) {
-        do {
-            if (primitives.hasOwnProperty(termName)) {
-                return termName
-            } else {
-                undefined
-            }
-        } while ((this["conceptTypes"].hasOwnProperty(termName) && (termName = this["conceptTypes"][termName])));
-        return false
     }));
     (LF2AbstractSQL["initialize"] = (function() {
         SBVRLibs["initialize"].call(this);

@@ -187,12 +187,12 @@ try {
 	// prettify('result', result)
 	// console.log(Prettify.match(result, 'Process'));
 
-	instance = LF2AbstractSQL.createInstance();
-	console.log('Part 2: Generate abstract');
-	result = instance.match(
-		result
-		, 'Process'
-	);
+	// instance = LF2AbstractSQL.createInstance();
+	// console.log('Part 2: Generate abstract');
+	// result = instance.match(
+		// result
+		// , 'Process'
+	// );
 	// prettify('result', result);
 	// console.log(Prettify.match(result.rules, 'Process'));
 	
@@ -219,8 +219,8 @@ try {
 	// }
 	
 	try {
-		console.log('Part 4: Generate SQL');
-		result = AbstractSQL2SQL(result);
+		// console.log('Part 4: Generate SQL');
+		// result = AbstractSQL2SQL(result);
 		// console.log(prettify('result', result));
 	}
 	catch(e) {

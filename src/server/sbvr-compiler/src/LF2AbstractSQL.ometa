@@ -10,7 +10,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 			(	?(!this.tables.hasOwnProperty(termName))
 			|	{console.error('We already have a term with a name of: ' + termName)} ?(false)
 			)
-			{this.tables[termName] = {fields:[], primitive: this.isPrimitive(termName), name: null, idField: null}}
+			{this.tables[termName] = {fields:[], primitive: false, name: null, idField: null}}
 			-> termName,
 		Attributes :tableID =
 			[(
@@ -38,6 +38,9 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 			(	?(this.tables[tableID] == 'Attribute')
 			|	{this.tables[tableID].name = tableName}
 			),
+		AttrDatabasePrimitive :termName =
+			:attrVal
+			{this.tables[termName].primitive = attrVal},
 		AttrForeignKey :factType =
 			:type
 			{this.tables[factType[0][1]].fields.push(['ForeignKey', this.tables[factType[2][1]].name, this.tables[factType[2][1]].idField, type])}
@@ -265,20 +268,6 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 			this.AddWhereClause(query, ['Equals', ['ReferencedField', parentAlias, this.tables[conceptName].name], ['ReferencedField', conceptAlias, this.tables[conceptName].idField]])
 			parentAlias = conceptAlias;
 		}
-	}
-	
-	var primitives = {
-		'Integer': true,
-		'Short Text': true,
-		'Long Text': true
-	}
-	LF2AbstractSQL.isPrimitive = function(termName) {
-		do {
-			if (primitives.hasOwnProperty(termName)) {
-				return termName;
-			}
-		} while (this.conceptTypes.hasOwnProperty(termName) && (termName = this.conceptTypes[termName]));
-		return false;
 	}
 	
 	LF2AbstractSQL.initialize = function() {

@@ -60,10 +60,9 @@ define(['sbvr-parser/SBVRLibs', 'ometa/ometa-base'], function(SBVRLibs) {
 			(	end
 			|	{{}}:attrsFound
 				[	(
-						[	:attrName {attrsFound[attrName] = true}
-							(	?(this['attr'+attrName]) {this._applyWithArgs.call(this, 'attr'+attrName, termOrVerb)}
-							|	anything
-							):attrVal
+						[	:attrName
+							ApplyFirstExisting(['Attr' + attrName, 'DefaultAttr'], [termOrVerb]):attrVal
+							{attrsFound[attrName] = attrVal}
 						]
 						-> [attrName, attrVal]
 					)*:attrs
@@ -72,11 +71,15 @@ define(['sbvr-parser/SBVRLibs', 'ometa/ometa-base'], function(SBVRLibs) {
 				defaultAttributes(termOrVerb, attrsFound, attrs)
 			)
 			-> termOrVerb,
-		attrDefinition :termOrVerb =
+		DefaultAttr :tableID =
+			anything,
+		AttrConceptType :termName =
+			['Term' :conceptType {this.conceptTypes[termName[1]] = conceptType}],
+		AttrDefinition :termOrVerb =
 			(	['Enum' :values]
 			|	trans
 			),
-		attrSynonymousForm :factType =
+		AttrSynonymousForm :factType =
 			:synForm
 			AddFactType(synForm.slice(0, -1), factType.slice(1))
 			-> synForm,

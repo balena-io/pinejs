@@ -11,11 +11,12 @@ define(["underscore", "ometa/ometa-base"], (function(_) {
         } else {
             undefined
         };
+        ruleArgs.unshift("");
         for (var i = (0);
         (i < rules["length"]); i++) {
             if ((this[rules[i]] != undefined)) {
                 if (((ruleArgs != null) && (ruleArgs["length"] > (0)))) {
-                    ruleArgs.unshift(rules[i]);
+                    (ruleArgs[(0)] = rules[i]);
                     return this["_applyWithArgs"].apply(this, ruleArgs)
                 } else {
                     undefined

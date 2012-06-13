@@ -1,6 +1,14 @@
 define(["sbvr-compiler/LFOptimiser"], (function(LFOptimiser) {
     var LF2AbstractSQLPrep = undefined;
     LF2AbstractSQLPrep = objectThatDelegatesTo(LFOptimiser, {
+        "AttrConceptType": function(termName) {
+            var $elf = this,
+                _fromIdx = this.input.idx,
+                conceptType;
+            conceptType = LFOptimiser._superApplyWithArgs(this, 'AttrConceptType', termName);
+            (this["primitives"][conceptType] = false);
+            return conceptType
+        },
         "UniversalQ": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
@@ -99,7 +107,8 @@ define(["sbvr-compiler/LFOptimiser"], (function(LFOptimiser) {
     });
     (LF2AbstractSQLPrep["initialize"] = (function() {
         LFOptimiser["initialize"].call(this);
-        (this["foreignKeys"] = [])
+        (this["foreignKeys"] = []);
+        (this["primitives"] = [])
     }));
     (LF2AbstractSQLPrep["defaultAttributes"] = (function(termOrVerb, attrsFound, attrs) {
         if ((!attrsFound.hasOwnProperty("DatabaseIDField"))) {
@@ -123,6 +132,18 @@ define(["sbvr-compiler/LFOptimiser"], (function(LFOptimiser) {
                 } else {
                     undefined
                 }
+                if ((!this["primitives"].hasOwnProperty(termOrVerb))) {
+                    (this["primitives"][termOrVerb] = (this.isPrimitive(termOrVerb[(1)]) !== false))
+                } else {
+                    undefined
+                }
+                if ((this["primitives"].hasOwnProperty(termOrVerb) && ((!attrsFound.hasOwnProperty("DatabasePrimitive")) || (this["primitives"][termOrVerb] != attrsFound["DatabasePrimitive"])))) {
+                    console.log("Adding primitive attr", termOrVerb, this["primitives"][termOrVerb]);
+                    attrs.push(["DatabasePrimitive", this["primitives"][termOrVerb]]);
+                    this.SetHelped()
+                } else {
+                    undefined
+                }
                 break
             };
         case "FactType":
@@ -139,9 +160,24 @@ define(["sbvr-compiler/LFOptimiser"], (function(LFOptimiser) {
                     undefined
                 }
                 if (this["foreignKeys"].hasOwnProperty(termOrVerb)) {
-                    console.log("Adding FK attr");
-                    attrs.push(["ForeignKey", this["foreignKeys"][termOrVerb]]);
-                    (delete this["foreignKeys"][termOrVerb]);
+                    if ((!attrsFound.hasOwnProperty("ForeignKey"))) {
+                        console.log("Adding FK attr", termOrVerb, this["foreignKeys"][termOrVerb]);
+                        attrs.push(["ForeignKey", this["foreignKeys"][termOrVerb]]);
+                        this.SetHelped()
+                    } else {
+                        if ((attrsFound["ForeignKey"] != this["foreignKeys"][termOrVerb])) {
+                            console.error(attrsFound["ForeignKey"], this["foreignKeys"][termOrVerb]);
+                            __MISMATCHED_FOREIGN_KEY__.die()
+                        } else {
+                            undefined
+                        }
+                    };
+                    (delete this["foreignKeys"][termOrVerb])
+                } else {
+                    undefined
+                }
+                if (((termOrVerb["length"] == (3)) && (!this["primitives"].hasOwnProperty(termOrVerb[(1)])))) {
+                    (this["primitives"][termOrVerb[(1)]] = false);
                     this.SetHelped()
                 } else {
                     undefined
@@ -150,6 +186,28 @@ define(["sbvr-compiler/LFOptimiser"], (function(LFOptimiser) {
             }
         };
         termOrVerb.push(attrs)
+    }));
+    var primitives = ({
+        "Integer": true,
+        "Short Text": true,
+        "Long Text": true
+    });
+    (LF2AbstractSQLPrep["isPrimitive"] = (function(termName) {
+        if (primitives.hasOwnProperty(termName)) {
+            return termName
+        } else {
+            undefined
+        };
+        if ((this["conceptTypes"].hasOwnProperty(termName) && (termName = this["conceptTypes"][termName]))) {
+            if (primitives.hasOwnProperty(termName)) {
+                return termName
+            } else {
+                undefined
+            }
+        } else {
+            undefined
+        };
+        return false
     }));
     return LF2AbstractSQLPrep
 }))
