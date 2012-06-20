@@ -1,4 +1,4 @@
-define(["sbvr-compiler/LFOptimiser"], (function(LFOptimiser) {
+define(["sbvr-compiler/LFOptimiser", "underscore"], (function(LFOptimiser, _) {
     var LF2AbstractSQLPrep = undefined;
     LF2AbstractSQLPrep = objectThatDelegatesTo(LFOptimiser, {
         "AttrConceptType": function(termName) {
@@ -8,6 +8,84 @@ define(["sbvr-compiler/LFOptimiser"], (function(LFOptimiser) {
             conceptType = LFOptimiser._superApplyWithArgs(this, 'AttrConceptType', termName);
             (this["primitives"][conceptType] = false);
             return conceptType
+        },
+        "AttrDatabaseAttribute": function(termOrFactType) {
+            var $elf = this,
+                _fromIdx = this.input.idx,
+                attrVal, newAttrVal;
+            attrVal = this._apply("anything");
+            newAttrVal = (((termOrFactType[(0)] == "Term") && ((!this["attributes"].hasOwnProperty(termOrFactType[(3)])) || (this["attributes"][termOrFactType[(3)]] === true))) || (((((termOrFactType[(0)] == "FactType") && (termOrFactType["length"] == (4))) && ((!this["attributes"].hasOwnProperty(termOrFactType[(3)])) || (this["attributes"][termOrFactType[(3)]] === true))) && this["primitives"].hasOwnProperty(termOrFactType[(3)])) && (this["primitives"][termOrFactType[(3)]] !== false)));
+            (this["attributes"][termOrFactType] = newAttrVal);
+            this._opt((function() {
+                this._pred((newAttrVal != attrVal));
+                console.log("Changing DatabaseAttribute attr to:", newAttrVal, termOrFactType);
+                return this._apply("SetHelped")
+            }));
+            return newAttrVal
+        },
+        "AttrDatabasePrimitive": function(termOrFactType) {
+            var $elf = this,
+                _fromIdx = this.input.idx,
+                attrVal, newAttrVal;
+            attrVal = this._apply("anything");
+            newAttrVal = attrVal;
+            this._opt((function() {
+                this._pred(this["primitives"].hasOwnProperty(termOrFactType));
+                newAttrVal = this["primitives"][termOrFactType];
+                this._pred((newAttrVal != attrVal));
+                console.log("Changing DatabaseAttribute attr to:", newAttrVal, termOrFactType);
+                return this._apply("SetHelped")
+            }));
+            (this["primitives"][termOrFactType] = newAttrVal);
+            return newAttrVal
+        },
+        "Variable": function() {
+            var $elf = this,
+                _fromIdx = this.input.idx,
+                variable, term, newTerm;
+            variable = LFOptimiser._superApplyWithArgs(this, 'Variable');
+            this._opt((function() {
+                term = variable[(2)];
+                this._pred(((this["processingAttributeRule"] && this["primitives"].hasOwnProperty(term)) && (this["primitives"][term] !== false)));
+                newTerm = (function() {
+                    for (var i = (1);
+                    (i < this["processingAttributeRule"]["length"]);
+                    (i += (2))) {
+                        if ((!this.IsChild(term[(1)], this["processingAttributeRule"][i][(1)]))) {
+                            return this["processingAttributeRule"][i][(1)]
+                        } else {
+                            undefined
+                        }
+                    }
+                }).call(this);
+                console.log("Switched variable term", term, "to", newTerm);
+                return (variable[(2)][(1)] = newTerm)
+            }));
+            return variable
+        },
+        "AtomicFormulation": function() {
+            var $elf = this,
+                _fromIdx = this.input.idx,
+                factType, actualFactType;
+            factType = this._lookahead((function() {
+                return this._applyWithArgs("token", "FactType")
+            }));
+            actualFactType = this._applyWithArgs("ActualFactType", factType.slice((1)));
+            actualFactType = ["FactType"].concat(actualFactType);
+            return this._or((function() {
+                this._pred(this["attributes"].hasOwnProperty(actualFactType));
+                console.log("Atomic Formulation Attr", this["processingAttributeRule"]);
+                return this._or((function() {
+                    this._pred(this["processingAttributeRule"]);
+                    return LFOptimiser._superApplyWithArgs(this, 'AtomicFormulation')
+                }), (function() {
+                    (this["processingAttributeRule"] = actualFactType);
+                    return this._pred(false)
+                }))
+            }), (function() {
+                this._pred((!this["attributes"].hasOwnProperty(actualFactType)));
+                return LFOptimiser._superApplyWithArgs(this, 'AtomicFormulation')
+            }))
         },
         "UniversalQ": function() {
             var $elf = this,
@@ -23,17 +101,15 @@ define(["sbvr-compiler/LFOptimiser"], (function(LFOptimiser) {
         "AtMostNQ": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                a, v, xs;
-            a = this._applyWithArgs("token", "MaximumCardinality");
+                maxCard, v, xs;
+            maxCard = this._applyWithArgs("token", "MaximumCardinality");
             v = this._applyWithArgs("token", "Variable");
             xs = this._many((function() {
                 return this._apply("trans")
             }));
             this._apply("SetHelped");
-            return (function() {
-                a[(1)][(1)]++;
-                return ["LogicalNegation", ["AtLeastNQ", ["MinimumCardinality", a[(1)]], v].concat(xs)]
-            }).call(this)
+            maxCard[(1)][(1)]++;
+            return ["LogicalNegation", ["AtLeastNQ", ["MinimumCardinality", maxCard[(1)]], v].concat(xs)]
         },
         "ForeignKey": function(v1) {
             var $elf = this,
@@ -72,6 +148,7 @@ define(["sbvr-compiler/LFOptimiser"], (function(LFOptimiser) {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 v1;
+            (this["processingAttributeRule"] = false);
             return this._or((function() {
                 this._form((function() {
                     this._applyWithArgs("exactly", "ObligationF");
@@ -102,13 +179,18 @@ define(["sbvr-compiler/LFOptimiser"], (function(LFOptimiser) {
                 return null
             }), (function() {
                 return LFOptimiser._superApplyWithArgs(this, 'Rule')
+            }), (function() {
+                this._pred(this["processingAttributeRule"]);
+                return LFOptimiser._superApplyWithArgs(this, 'Rule')
             }))
         }
     });
     (LF2AbstractSQLPrep["initialize"] = (function() {
         LFOptimiser["initialize"].call(this);
         (this["foreignKeys"] = []);
-        (this["primitives"] = [])
+        (this["primitives"] = []);
+        (this["attributes"] = []);
+        (this["processingAttributeRule"] = false)
     }));
     (LF2AbstractSQLPrep["defaultAttributes"] = (function(termOrVerb, attrsFound, attrs) {
         if ((!attrsFound.hasOwnProperty("DatabaseIDField"))) {
@@ -132,13 +214,13 @@ define(["sbvr-compiler/LFOptimiser"], (function(LFOptimiser) {
                 } else {
                     undefined
                 }
-                if ((!this["primitives"].hasOwnProperty(termOrVerb))) {
-                    (this["primitives"][termOrVerb] = (this.isPrimitive(termOrVerb[(1)]) !== false))
-                } else {
-                    undefined
-                }
-                if ((this["primitives"].hasOwnProperty(termOrVerb) && ((!attrsFound.hasOwnProperty("DatabasePrimitive")) || (this["primitives"][termOrVerb] != attrsFound["DatabasePrimitive"])))) {
-                    console.log("Adding primitive attr", termOrVerb, this["primitives"][termOrVerb]);
+                if ((!attrsFound.hasOwnProperty("DatabasePrimitive"))) {
+                    if ((!this["primitives"].hasOwnProperty(termOrVerb))) {
+                        (this["primitives"][termOrVerb] = this.isPrimitive(termOrVerb[(1)]))
+                    } else {
+                        undefined
+                    };
+                    console.log("Adding primitive attr", this["primitives"][termOrVerb], termOrVerb);
                     attrs.push(["DatabasePrimitive", this["primitives"][termOrVerb]]);
                     this.SetHelped()
                 } else {
@@ -161,26 +243,48 @@ define(["sbvr-compiler/LFOptimiser"], (function(LFOptimiser) {
                 }
                 if (this["foreignKeys"].hasOwnProperty(termOrVerb)) {
                     if ((!attrsFound.hasOwnProperty("ForeignKey"))) {
-                        console.log("Adding FK attr", termOrVerb, this["foreignKeys"][termOrVerb]);
+                        console.log("Adding FK attr", this["foreignKeys"][termOrVerb], termOrVerb);
                         attrs.push(["ForeignKey", this["foreignKeys"][termOrVerb]]);
                         this.SetHelped()
                     } else {
                         if ((attrsFound["ForeignKey"] != this["foreignKeys"][termOrVerb])) {
                             console.error(attrsFound["ForeignKey"], this["foreignKeys"][termOrVerb]);
-                            __MISMATCHED_FOREIGN_KEY__.die()
+                            ___MISMATCHED_FOREIGN_KEY___.die()
                         } else {
                             undefined
                         }
                     };
-                    (delete this["foreignKeys"][termOrVerb])
+                    if ((!attrsFound.hasOwnProperty("DatabaseAttribute"))) {
+                        attrs.push(["DatabaseAttribute", false]);
+                        this.SetHelped()
+                    } else {
+                        undefined
+                    }
                 } else {
                     undefined
                 }
-                if (((termOrVerb["length"] == (3)) && (!this["primitives"].hasOwnProperty(termOrVerb[(1)])))) {
-                    (this["primitives"][termOrVerb[(1)]] = false);
-                    this.SetHelped()
+                if ((termOrVerb["length"] == (3))) {
+                    if (((!this["primitives"].hasOwnProperty(termOrVerb[(1)])) || (this["primitives"][termOrVerb[(1)]] !== false))) {
+                        this.SetHelped()
+                    } else {
+                        undefined
+                    };
+                    (this["primitives"][termOrVerb[(1)]] = false)
                 } else {
-                    undefined
+                    if ((termOrVerb["length"] > (4))) {
+                        for (var i = (1);
+                        (i < termOrVerb["length"]);
+                        (i += (2))) {
+                            if (((!this["attributes"].hasOwnProperty(termOrVerb[i])) || (this["attributes"][termOrVerb[i]] !== false))) {
+                                this.SetHelped()
+                            } else {
+                                undefined
+                            };
+                            (this["attributes"][termOrVerb[i]] = false)
+                        }
+                    } else {
+                        undefined
+                    }
                 }
                 break
             }

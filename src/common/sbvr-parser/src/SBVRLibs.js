@@ -102,39 +102,36 @@ define(["underscore", "ometa/ometa-base"], (function(_) {
         };
         return traverseInfo["__valid"]
     }));
+    (SBVRLibs["IsChild"] = (function(child, parent) {
+        do {
+            if ((child == parent)) {
+                return true
+            } else {
+                undefined
+            }
+        } while ((this["conceptTypes"].hasOwnProperty(child) && (child = this["conceptTypes"][child])));
+        return false
+    }));
+    (SBVRLibs["FactTypeRootTerm"] = (function(term, actualFactType) {
+        for (var i = (0);
+        (i < actualFactType["length"]); i++) {
+            if (this.IsChild(term, actualFactType[i][(1)])) {
+                return actualFactType[i][(1)]
+            } else {
+                undefined
+            }
+        };
+        return false
+    }));
     (SBVRLibs["FactTypeRootTerms"] = (function(factType, actualFactType) {
         {
-            var $elf = this;
             var rootTerms = [];
             var rootTermIndex = (0)
         };
         for (var i = (0);
         (i < actualFactType["length"]);
         (i += (2))) {
-            if ((factType[i][(1)] != actualFactType[i][(1)])) {
-                for (var j = (0);
-                (j < actualFactType["length"]);
-                (j++ && (rootTerms["length"] == rootTermIndex))) {
-                    var termName = factType[i][(1)];
-                    if ((termName != actualFactType[j][(1)])) {
-                        while ($elf["conceptTypes"].hasOwnProperty(termName)) {
-                            (termName = $elf["conceptTypes"][termName]);
-                            if ((termName == actualFactType[j][(1)])) {
-                                (rootTerms[rootTermIndex] = termName);
-                                break
-                            } else {
-                                undefined
-                            }
-                        }
-                    } else {
-                        (rootTerms[rootTermIndex] = termName);
-                        break
-                    }
-                }
-            } else {
-                (rootTerms[rootTermIndex] = factType[i][(1)])
-            };
-            rootTermIndex++
+            (rootTerms[rootTermIndex++] = this.FactTypeRootTerm(factType[i][(1)], actualFactType))
         };
         return rootTerms
     }));

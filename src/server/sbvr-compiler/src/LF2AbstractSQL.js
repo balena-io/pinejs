@@ -50,10 +50,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                 return conceptType = this._apply("anything")
             }));
             (this["conceptTypes"][termName] = conceptType);
-            return (function() {
-                this["tables"][termName]["fields"].push(["ConceptType", this["tables"][conceptType]["name"], this["tables"][conceptType]["idField"], "NOT NULL"]);
-                return (this["tables"][termName]["primitive"] = this.isPrimitive(termName))
-            }).call(this)
+            return this["tables"][termName]["fields"].push(["ConceptType", this["tables"][conceptType]["name"], "NOT NULL", this["tables"][conceptType]["idField"]])
         },
         "AttrDatabaseIDField": function(tableID) {
             var $elf = this,
@@ -61,7 +58,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                 idField;
             idField = this._apply("anything");
             return this._or((function() {
-                return this._pred((this["tables"][tableID] == "Attribute"))
+                return this._pred(_.isString(this["tables"][tableID]))
             }), (function() {
                 this["tables"][tableID]["fields"].push(["PrimaryKey", idField]);
                 return (this["tables"][tableID]["idField"] = idField)
@@ -73,7 +70,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                 nameField;
             nameField = this._apply("anything");
             return this._or((function() {
-                return this._pred((this["tables"][tableID] == "Attribute"))
+                return this._pred(_.isString(this["tables"][tableID]))
             }), (function() {
                 return this["tables"][tableID]["fields"].push(["Name", nameField])
             }))
@@ -84,7 +81,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                 tableName;
             tableName = this._apply("anything");
             return this._or((function() {
-                return this._pred((this["tables"][tableID] == "Attribute"))
+                return this._pred(_.isString(this["tables"][tableID]))
             }), (function() {
                 return (this["tables"][tableID]["name"] = tableName)
             }))
@@ -96,12 +93,35 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
             attrVal = this._apply("anything");
             return (this["tables"][termName]["primitive"] = attrVal)
         },
+        "AttrDatabaseAttribute": function(factType) {
+            var $elf = this,
+                _fromIdx = this.input.idx,
+                attrVal;
+            attrVal = this._apply("anything");
+            return this._opt((function() {
+                this._pred(attrVal);
+                console.log(factType);
+                (function() {
+                    var foreignKey = undefined;
+                    for (var i = (0);
+                    (i < this["tables"][factType[(0)][(1)]]["fields"]["length"]); i++) {
+                        if ((this["tables"][factType[(0)][(1)]]["fields"][i][(1)] == this["tables"][factType[(2)][(1)]]["name"])) {
+                            (this["tables"][factType[(0)][(1)]]["fields"][i][(1)] = this["tables"][factType[(2)][(1)]]["primitive"]);
+                            break
+                        } else {
+                            undefined
+                        }
+                    }
+                }).call(this);
+                return (this["tables"][factType] = "Attribute")
+            }))
+        },
         "AttrForeignKey": function(factType) {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 type;
             type = this._apply("anything");
-            this["tables"][factType[(0)][(1)]]["fields"].push(["ForeignKey", this["tables"][factType[(2)][(1)]]["name"], this["tables"][factType[(2)][(1)]]["idField"], type]);
+            this["tables"][factType[(0)][(1)]]["fields"].push(["ForeignKey", this["tables"][factType[(2)][(1)]]["name"], type, this["tables"][factType[(2)][(1)]]["idField"]]);
             return (this["tables"][factType] = "ForeignKey")
         },
         "AttrSynonymousForm": function(factType) {
@@ -142,7 +162,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                     }))
                 }));
                 this["tables"][factType[(0)][(1)]]["fields"].push(["Boolean", factType[(1)][(1)]]);
-                return (this["tables"][factType] = "Attribute")
+                return (this["tables"][factType] = "BooleanAttribute")
             }), (function() {
                 (this["tables"][factType] = ({
                     "fields": [],
@@ -155,7 +175,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                             this._applyWithArgs("exactly", "Term");
                             return termName = this._apply("anything")
                         }));
-                        return this["tables"][factType]["fields"].push(["ForeignKey", this["tables"][termName]["name"], this["tables"][termName]["idField"], "NOT NULL"])
+                        return this["tables"][factType]["fields"].push(["ForeignKey", this["tables"][termName]["name"], "NOT NULL", this["tables"][termName]["idField"]])
                     }), (function() {
                         return this._form((function() {
                             this._applyWithArgs("exactly", "Verb");
@@ -273,20 +293,37 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
             }));
             return ["Equals", ["ReferencedField", (("var" + bindFrom) + termFrom), this["tables"][termTo]["name"]], ["ReferencedField", (("var" + bindTo) + termTo), this["tables"][termTo]["idField"]]]
         },
-        "Attribute": function(actualFactType) {
+        "BooleanAttribute": function(actualFactType) {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 bindFrom, termFrom, attributeName;
-            this._pred((this["tables"][actualFactType] == "Attribute"));
+            this._pred((this["tables"][actualFactType] == "BooleanAttribute"));
             this._or((function() {
                 bindFrom = this._apply("RoleBinding");
                 this._apply("end");
                 termFrom = actualFactType[(0)][(1)];
                 return attributeName = actualFactType[(1)][(1)]
             }), (function() {
-                return this._applyWithArgs("foreign", ___AttributeMatchingFailed___, 'die')
+                console.error(this["input"]);
+                return this._applyWithArgs("foreign", ___BooleanAttributeMatchingFailed___, 'die')
             }));
             return ["Equals", ["ReferencedField", (("var" + bindFrom) + termFrom), attributeName], ["Boolean", true]]
+        },
+        "Attribute": function(actualFactType, rootTerms) {
+            var $elf = this,
+                _fromIdx = this.input.idx,
+                query, bindAttr, bindReal, termNameAttr, termNameReal;
+            this._pred((this["tables"][actualFactType] == "Attribute"));
+            query = ["Query", ["Select", []]];
+            bindAttr = this._apply("RoleBinding");
+            bindReal = this._apply("RoleBinding");
+            this._apply("end");
+            termNameAttr = rootTerms[(0)];
+            termNameReal = rootTerms[(1)];
+            this._applyWithArgs("AddWhereClause", query, ["Equals", ["ReferencedField", (("var" + bindAttr) + termNameReal), this["tables"][termNameAttr]["name"]],
+                ["ReferencedField", (("var" + bindReal) + termNameReal), this["tables"][termNameAttr]["name"]]
+            ]);
+            return ["Exists", query]
         },
         "AtomicFormulation": function() {
             var $elf = this,
@@ -305,7 +342,9 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                 return whereClause = this._or((function() {
                     return this._applyWithArgs("ForeignKey", actualFactType, rootTerms)
                 }), (function() {
-                    return this._applyWithArgs("Attribute", actualFactType)
+                    return this._applyWithArgs("BooleanAttribute", actualFactType)
+                }), (function() {
+                    return this._applyWithArgs("Attribute", actualFactType, rootTerms)
                 }), (function() {
                     return this._applyWithArgs("LinkTable", actualFactType, rootTerms)
                 }))

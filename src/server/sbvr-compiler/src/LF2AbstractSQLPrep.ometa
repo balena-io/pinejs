@@ -1,4 +1,4 @@
-define(['sbvr-compiler/LFOptimiser'], function(LFOptimiser) {
+define(['sbvr-compiler/LFOptimiser', 'underscore'], function(LFOptimiser, _) {
 	var LF2AbstractSQLPrep;
 
 	ometa LF2AbstractSQLPrep <: LFOptimiser {
@@ -6,14 +6,71 @@ define(['sbvr-compiler/LFOptimiser'], function(LFOptimiser) {
 			^AttrConceptType(termName):conceptType
 			{this.primitives[conceptType] = false}
 			-> conceptType,
+		AttrDatabaseAttribute :termOrFactType =
+			:attrVal
+			{	(termOrFactType[0] == 'Term' && (!this.attributes.hasOwnProperty(termOrFactType[3]) || this.attributes[termOrFactType[3]] === true))
+				|| (termOrFactType[0] == 'FactType' && termOrFactType.length == 4
+					&& (!this.attributes.hasOwnProperty(termOrFactType[3]) || this.attributes[termOrFactType[3]] === true)
+					&& this.primitives.hasOwnProperty(termOrFactType[3]) && this.primitives[termOrFactType[3]] !== false)
+			}:newAttrVal
+			{this.attributes[termOrFactType] = newAttrVal}
+			(	?(newAttrVal != attrVal)
+				{console.log('Changing DatabaseAttribute attr to:', newAttrVal, termOrFactType)}
+				SetHelped
+			)?
+			-> newAttrVal,
+		AttrDatabasePrimitive :termOrFactType =
+			:attrVal
+			{attrVal}:newAttrVal
+			(	?(this.primitives.hasOwnProperty(termOrFactType))
+				{this.primitives[termOrFactType]}:newAttrVal
+				?(newAttrVal != attrVal)
+				{console.log('Changing DatabaseAttribute attr to:', newAttrVal, termOrFactType)}
+				SetHelped
+			)?
+			{this.primitives[termOrFactType] = newAttrVal}
+			-> newAttrVal,
+
+		Variable
+			^Variable:variable
+			(	{variable[2]}:term
+				// Replace the term if it's a primitive and we're processing an attribute rule.
+				?(this.processingAttributeRule && this.primitives.hasOwnProperty(term) && this.primitives[term] !== false)
+				{	for(var i=1; i < this.processingAttributeRule.length; i+=2) {
+						if(!this.IsChild(term[1], this.processingAttributeRule[i][1])) {
+							return this.processingAttributeRule[i][1];
+						}
+					}
+				}:newTerm
+				{console.log('Switched variable term', term, 'to', newTerm)}
+				{variable[2][1] = newTerm}
+			)?
+			-> variable,
+			
+		AtomicFormulation =
+			&"FactType":factType
+			ActualFactType(factType.slice(1)):actualFactType
+			{['FactType'].concat(actualFactType)}:actualFactType
+			// {console.log(actualFactType.toString(), ['FactType'].concat(actualFactType).toString(), this.attributes)}
+			(	?(this.attributes.hasOwnProperty(actualFactType))
+				{console.log('Atomic Formulation Attr', this.processingAttributeRule)}
+				(	?this.processingAttributeRule
+					^AtomicFormulation
+				|	{this.processingAttributeRule = actualFactType}
+					?false
+				)
+			|	?(!this.attributes.hasOwnProperty(actualFactType))
+				^AtomicFormulation
+			),
 		
 		UniversalQ
 			"Variable":v trans*:xs SetHelped
 			-> ['LogicalNegation', ['ExistentialQ', v, ['LogicalNegation'].concat(xs)]],
 		
 		AtMostNQ
-			"MaximumCardinality":a "Variable":v trans*:xs SetHelped
-			-> {a[1][1]++;['LogicalNegation', ['AtLeastNQ', ['MinimumCardinality', a[1]], v].concat(xs)]},
+			"MaximumCardinality":maxCard "Variable":v trans*:xs SetHelped
+			{maxCard[1][1]++}
+			-> ['LogicalNegation', ['AtLeastNQ', ['MinimumCardinality', maxCard[1]], v].concat(xs)],
 		
 		ForeignKey :v1 =
 			// Just a basic var
@@ -50,7 +107,8 @@ define(['sbvr-compiler/LFOptimiser'], function(LFOptimiser) {
 			
 		
 		Rule
-				[	'ObligationF'
+			{this.processingAttributeRule = false}
+			(	[	'ObligationF'
 					[	'UniversalQ'
 						"Variable":v1
 						ForeignKey(v1)
@@ -68,12 +126,17 @@ define(['sbvr-compiler/LFOptimiser'], function(LFOptimiser) {
 				// We have matched a foreign key, return an empty array to remove the rule.
 				-> null
 			|	^Rule
+			|	?this.processingAttributeRule
+				^Rule
+			)
 	}
 	
 	LF2AbstractSQLPrep.initialize = function() {
 		LFOptimiser.initialize.call(this);
 		this.foreignKeys = [];
 		this.primitives = [];
+		this.attributes = [];
+		this.processingAttributeRule = false;
 	}
 	
 	LF2AbstractSQLPrep.defaultAttributes = function(termOrVerb, attrsFound, attrs) {
@@ -91,11 +154,11 @@ define(['sbvr-compiler/LFOptimiser'], function(LFOptimiser) {
 					attrs.push(['DatabaseTableName', termOrVerb[1].replace(new RegExp(' ','g'),'_')]);
 					this.SetHelped();
 				}
-				if(!this.primitives.hasOwnProperty(termOrVerb)) {
-					this.primitives[termOrVerb] = this.isPrimitive(termOrVerb[1]) !== false;
-				}
-				if(this.primitives.hasOwnProperty(termOrVerb) && (!attrsFound.hasOwnProperty('DatabasePrimitive') || this.primitives[termOrVerb] != attrsFound['DatabasePrimitive'])) {
-					console.log('Adding primitive attr', termOrVerb, this.primitives[termOrVerb]);
+				if(!attrsFound.hasOwnProperty('DatabasePrimitive')) {
+					if(!this.primitives.hasOwnProperty(termOrVerb)) {
+						this.primitives[termOrVerb] = this.isPrimitive(termOrVerb[1]);
+					}
+					console.log('Adding primitive attr', this.primitives[termOrVerb], termOrVerb);
 					attrs.push(['DatabasePrimitive', this.primitives[termOrVerb]]);
 					this.SetHelped();
 				}
@@ -111,20 +174,35 @@ define(['sbvr-compiler/LFOptimiser'], function(LFOptimiser) {
 				}
 				if(this.foreignKeys.hasOwnProperty(termOrVerb)) {
 					if(!attrsFound.hasOwnProperty('ForeignKey')) {
-						console.log('Adding FK attr', termOrVerb, this.foreignKeys[termOrVerb]);
+						console.log('Adding FK attr', this.foreignKeys[termOrVerb], termOrVerb);
 						attrs.push(['ForeignKey', this.foreignKeys[termOrVerb]]);
 						this.SetHelped();
 					}
 					else if(attrsFound['ForeignKey'] != this.foreignKeys[termOrVerb]) {
 						console.error(attrsFound['ForeignKey'], this.foreignKeys[termOrVerb])
-						__MISMATCHED_FOREIGN_KEY__.die();
+						___MISMATCHED_FOREIGN_KEY___.die();
 					}
-					delete this.foreignKeys[termOrVerb];
+					if(!attrsFound.hasOwnProperty('DatabaseAttribute')) {
+						attrs.push(['DatabaseAttribute', false]);
+						this.SetHelped();
+					}
 				}
 				// Boolean fact type
-				if(termOrVerb.length==3 && !this.primitives.hasOwnProperty(termOrVerb[1])) {
+				if(termOrVerb.length == 3) {
+					if(!this.primitives.hasOwnProperty(termOrVerb[1]) || this.primitives[termOrVerb[1]] !== false) {
+						this.SetHelped();
+					}
+					// The term of a boolean fact type cannot be a primitive.
 					this.primitives[termOrVerb[1]] = false;
-					this.SetHelped();
+				} // Tertiary or higher fact type
+				else if(termOrVerb.length > 4) {
+					// The terms in a tertiary or higher fact type cannot become attributes.
+					for(var i = 1;i < termOrVerb.length; i+=2) {
+						if(!this.attributes.hasOwnProperty(termOrVerb[i]) || this.attributes[termOrVerb[i]] !== false) {
+							this.SetHelped();
+						}
+						this.attributes[termOrVerb[i]] = false;
+					}
 				}
 			break;
 		}

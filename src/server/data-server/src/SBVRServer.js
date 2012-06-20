@@ -26,40 +26,49 @@
       return factType;
     };
     getCorrectTableInfo = function(oldTableName) {
-      var attributeName, factType, isAttribute, sqlmod, table;
+      var factType, getAttributeInfo, sqlmod;
+      getAttributeInfo = function(sqlmod) {
+        var isAttribute, table;
+        switch (sqlmod.tables[factType]) {
+          case 'BooleanAttribute':
+            isAttribute = {
+              termName: factType[0][1],
+              attributeName: factType[1][1]
+            };
+            table = sqlmod.tables[isAttribute.termName];
+            break;
+          case 'Attribute':
+            isAttribute = {
+              termName: factType[0][1],
+              attributeName: sqlmod.tables[factType[2][1]].name
+            };
+            table = sqlmod.tables[isAttribute.termName];
+            break;
+          default:
+            table = sqlmod.tables[factType];
+        }
+        return {
+          table: table,
+          isAttribute: isAttribute
+        };
+      };
       sqlmod = serverModelCache.getSQL();
-      isAttribute = false;
-      attributeName = null;
       factType = rebuildFactType(oldTableName);
       if (sqlmod.tables.hasOwnProperty(factType)) {
-        if (sqlmod.tables[factType] === 'Attribute') {
-          isAttribute = {
-            termName: factType[0][1],
-            attributeName: factType[1][1]
-          };
-          table = sqlmod.tables[isAttribute.termName];
-        } else {
-          table = sqlmod.tables[factType];
-        }
+        return getAttributeInfo(sqlmod);
       } else if (transactionModel.tables.hasOwnProperty(factType)) {
-        if (transactionModel.tables[factType] === 'Attribute') {
-          isAttribute = {
-            termName: factType[0][1],
-            attributeName: factType[1][1]
-          };
-          table = transactionModel.tables[isAttribute.termName];
-        } else {
-          table = transactionModel.tables[factType];
-        }
+        return getAttributeInfo(transactionModel);
       } else if (sqlmod.tables.hasOwnProperty(oldTableName)) {
-        table = sqlmod.tables[oldTableName];
+        return {
+          table: sqlmod.tables[oldTableName],
+          isAttribute: false
+        };
       } else {
-        table = transactionModel.tables[oldTableName];
+        return {
+          table: transactionModel.tables[oldTableName],
+          isAttribute: false
+        };
       }
-      return {
-        table: table,
-        isAttribute: isAttribute
-      };
     };
     serverModelCache = function() {
       var pendingCallbacks, setValue, values;

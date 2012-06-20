@@ -1,15 +1,15 @@
-define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQLOptimiser', 'Prettify'], (AbstractSQLRules2SQL, AbstractSQLOptimiser, Prettify) ->
+define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQLOptimiser', 'Prettify', 'underscore'], (AbstractSQLRules2SQL, AbstractSQLOptimiser, Prettify, _) ->
 	
 	postgresDataType = (dataType, necessity) ->
 		switch dataType
 			when 'PrimaryKey'
 				return 'SERIAL PRIMARY KEY'
 			when 'Integer'
-				return 'INTEGER'
+				return 'INTEGER ' + necessity
 			when 'Short Text'
-				return 'varchar(20)'
+				return 'varchar(20) ' + necessity
 			when 'Long Text'
-				return 'varchar(200)'
+				return 'varchar(200) ' + necessity
 			when 'Boolean'
 				return 'INTEGER NOT NULL DEFAULT 0'
 			when 'ForeignKey', 'ConceptType'
@@ -22,11 +22,11 @@ define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQLOptimise
 			when 'PrimaryKey'
 				return 'INTEGER PRIMARY KEY AUTOINCREMENT'
 			when 'Integer'
-				return 'INTEGER'
+				return 'INTEGER ' + necessity
 			when 'Short Text'
-				return 'varchar(20)'
+				return 'varchar(20) ' + necessity
 			when 'Long Text'
-				return 'varchar(200)'
+				return 'varchar(200) ' + necessity
 			when 'Boolean'
 				return 'INTEGER NOT NULL DEFAULT 0'
 			when 'ForeignKey', 'ConceptType'
@@ -36,19 +36,19 @@ define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQLOptimise
 	
 	generate = (sqlModel, dataTypeGen) ->
 		schemaDependencyMap = {}
-		for own key, table of sqlModel.tables when table not in ['ForeignKey', 'Attribute']# and table.primitive is false
+		for own key, table of sqlModel.tables when !_.isString(table) # and table.primitive is false
 			foreignKeys = []
 			depends = []
 			dropSQL = 'DROP TABLE "' + table.name + '";'
 			createSQL = 'CREATE TABLE "' + table.name + '" (\n\t'
+			
 			for field in table.fields
-				dataType = dataTypeGen(field[0], field[3])
+				createSQL += '"' + field[1] + '" ' + dataTypeGen(field[0], field[2]) + '\n,\t'
 				
 				if field[0] in ['ForeignKey', 'ConceptType']
-					foreignKeys.push([field[1], field[2]])
+					foreignKeys.push([field[1], field[3]])
 					depends.push(field[1])
 				
-				createSQL += '"' + field[1] + '" ' + dataType + '\n,\t'
 			for foreignKey in foreignKeys
 				createSQL += 'FOREIGN KEY ("' + foreignKey[0] + '") REFERENCES "' + foreignKey[0] + '" ("' + foreignKey[1] + '")' + '\n,\t'
 			createSQL = createSQL[0...-2] + ');'
@@ -96,6 +96,7 @@ define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQLOptimise
 					rule[2][1]
 					, 'Process'
 				)
+				console.log(rule[1][1])
 				console.log(ruleSQL)
 				ruleStatements.push({structuredEnglish: rule[1][1], sql: ruleSQL})
 		catch e

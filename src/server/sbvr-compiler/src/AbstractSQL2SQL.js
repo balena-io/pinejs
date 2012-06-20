@@ -1,18 +1,18 @@
 (function() {
   var __hasProp = Object.prototype.hasOwnProperty;
 
-  define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQLOptimiser', 'Prettify'], function(AbstractSQLRules2SQL, AbstractSQLOptimiser, Prettify) {
+  define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQLOptimiser', 'Prettify', 'underscore'], function(AbstractSQLRules2SQL, AbstractSQLOptimiser, Prettify, _) {
     var generate, postgresDataType, websqlDataType;
     postgresDataType = function(dataType, necessity) {
       switch (dataType) {
         case 'PrimaryKey':
           return 'SERIAL PRIMARY KEY';
         case 'Integer':
-          return 'INTEGER';
+          return 'INTEGER ' + necessity;
         case 'Short Text':
-          return 'varchar(20)';
+          return 'varchar(20) ' + necessity;
         case 'Long Text':
-          return 'varchar(200)';
+          return 'varchar(200) ' + necessity;
         case 'Boolean':
           return 'INTEGER NOT NULL DEFAULT 0';
         case 'ForeignKey':
@@ -27,11 +27,11 @@
         case 'PrimaryKey':
           return 'INTEGER PRIMARY KEY AUTOINCREMENT';
         case 'Integer':
-          return 'INTEGER';
+          return 'INTEGER ' + necessity;
         case 'Short Text':
-          return 'varchar(20)';
+          return 'varchar(20) ' + necessity;
         case 'Long Text':
-          return 'varchar(200)';
+          return 'varchar(200) ' + necessity;
         case 'Boolean':
           return 'INTEGER NOT NULL DEFAULT 0';
         case 'ForeignKey':
@@ -42,13 +42,13 @@
       }
     };
     generate = function(sqlModel, dataTypeGen) {
-      var createSQL, createSchemaStatements, dataType, dependency, depends, dropSQL, dropSchemaStatements, field, foreignKey, foreignKeys, instance, key, rule, ruleSQL, ruleStatements, schemaDependencyMap, table, tableName, tableNames, unsolvedDependency, _i, _j, _k, _l, _len, _len2, _len3, _len4, _len5, _len6, _m, _n, _ref, _ref2, _ref3, _ref4, _ref5, _ref6;
+      var createSQL, createSchemaStatements, dependency, depends, dropSQL, dropSchemaStatements, field, foreignKey, foreignKeys, instance, key, rule, ruleSQL, ruleStatements, schemaDependencyMap, table, tableName, tableNames, unsolvedDependency, _i, _j, _k, _l, _len, _len2, _len3, _len4, _len5, _len6, _m, _n, _ref, _ref2, _ref3, _ref4, _ref5, _ref6;
       schemaDependencyMap = {};
       _ref = sqlModel.tables;
       for (key in _ref) {
         if (!__hasProp.call(_ref, key)) continue;
         table = _ref[key];
-        if (!(table !== 'ForeignKey' && table !== 'Attribute')) continue;
+        if (!(!_.isString(table))) continue;
         foreignKeys = [];
         depends = [];
         dropSQL = 'DROP TABLE "' + table.name + '";';
@@ -56,12 +56,11 @@
         _ref2 = table.fields;
         for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
           field = _ref2[_i];
-          dataType = dataTypeGen(field[0], field[3]);
+          createSQL += '"' + field[1] + '" ' + dataTypeGen(field[0], field[2]) + '\n,\t';
           if ((_ref3 = field[0]) === 'ForeignKey' || _ref3 === 'ConceptType') {
-            foreignKeys.push([field[1], field[2]]);
+            foreignKeys.push([field[1], field[3]]);
             depends.push(field[1]);
           }
-          createSQL += '"' + field[1] + '" ' + dataType + '\n,\t';
         }
         for (_j = 0, _len2 = foreignKeys.length; _j < _len2; _j++) {
           foreignKey = foreignKeys[_j];
@@ -116,6 +115,7 @@
           rule = _ref6[_n];
           instance = AbstractSQLRules2SQL.createInstance();
           ruleSQL = instance.match(rule[2][1], 'Process');
+          console.log(rule[1][1]);
           console.log(ruleSQL);
           ruleStatements.push({
             structuredEnglish: rule[1][1],

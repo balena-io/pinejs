@@ -338,21 +338,17 @@ define(["sbvr-parser/SBVRLibs", "ometa/ometa-base"], (function(SBVRLibs) {
         "Variable": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                n, t, w;
-            return this._or((function() {
-                n = this._applyWithArgs("token", "Number");
-                t = this._applyWithArgs("token", "Term");
-                w = this._or((function() {
+                num, term, w;
+            num = this._applyWithArgs("token", "Number");
+            term = this._applyWithArgs("token", "Term");
+            w = this._many((function() {
+                return this._or((function() {
                     return this._applyWithArgs("token", "AtomicFormulation")
                 }), (function() {
                     return this._apply("quant")
-                }));
-                return ["Variable", n, t, w]
-            }), (function() {
-                n = this._applyWithArgs("token", "Number");
-                t = this._applyWithArgs("token", "Term");
-                return ["Variable", n, t]
-            }))
+                }))
+            }));
+            return ["Variable", num, term].concat(w)
         },
         "RoleBinding": function() {
             var $elf = this,

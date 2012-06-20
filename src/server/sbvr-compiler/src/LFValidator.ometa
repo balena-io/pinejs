@@ -147,11 +147,12 @@ define(['sbvr-parser/SBVRLibs', 'ometa/ometa-base'], function(SBVRLibs) {
 			-> ['MaximumCardinality', n],
 
 		Variable
-			"Number":n "Term":t ("AtomicFormulation"|quant):w
-			-> ['Variable', n, t, w],
-		Variable
-			"Number":n "Term":t
-			-> ['Variable', n, t],
+			"Number":num
+			"Term":term
+			(	"AtomicFormulation"
+			|	quant
+			)*:w
+			-> ['Variable', num, term].concat(w),
 
 		RoleBinding
 			"Term":t number:n

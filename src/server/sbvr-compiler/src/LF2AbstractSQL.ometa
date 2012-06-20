@@ -21,29 +21,43 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 			{console.log('Default', tableID, anything)},
 		AttrConceptType :termName = // tableID will be same as termName for ConceptType (fact types cannot have a concept type)
 			['Term' :conceptType] {this.conceptTypes[termName] = conceptType}
-			{this.tables[termName].fields.push(['ConceptType', this.tables[conceptType].name, this.tables[conceptType].idField, 'NOT NULL']); this.tables[termName].primitive = this.isPrimitive(termName)},
+			{this.tables[termName].fields.push(['ConceptType', this.tables[conceptType].name, 'NOT NULL', this.tables[conceptType].idField])},
 		AttrDatabaseIDField :tableID =
 			:idField
-			(	?(this.tables[tableID] == 'Attribute')
+			(	?_.isString(this.tables[tableID])
 			|	{this.tables[tableID].fields.push(['PrimaryKey', idField])}
 				{this.tables[tableID].idField = idField}
 			),
 		AttrDatabaseNameField :tableID =
 			:nameField
-			(	?(this.tables[tableID] == 'Attribute')
+			(	?_.isString(this.tables[tableID])
 			|	{this.tables[tableID].fields.push(['Name', nameField])}
 			),
 		AttrDatabaseTableName :tableID =
 			:tableName
-			(	?(this.tables[tableID] == 'Attribute')
+			(	?_.isString(this.tables[tableID])
 			|	{this.tables[tableID].name = tableName}
 			),
 		AttrDatabasePrimitive :termName =
 			:attrVal
 			{this.tables[termName].primitive = attrVal},
+		AttrDatabaseAttribute :factType =
+			:attrVal
+			(	?attrVal
+				{console.log(factType)}
+				{	var foreignKey;
+					for(var i = 0; i < this.tables[factType[0][1]].fields.length; i++) {
+						if(this.tables[factType[0][1]].fields[i][1] == this.tables[factType[2][1]].name) {
+							this.tables[factType[0][1]].fields[i][1] = this.tables[factType[2][1]].primitive;
+							break;
+						}
+					}
+				}
+				{this.tables[factType] = 'Attribute'}
+			)?,
 		AttrForeignKey :factType =
 			:type
-			{this.tables[factType[0][1]].fields.push(['ForeignKey', this.tables[factType[2][1]].name, this.tables[factType[2][1]].idField, type])}
+			{this.tables[factType[0][1]].fields.push(['ForeignKey', this.tables[factType[2][1]].name, type, this.tables[factType[2][1]].idField])}
 			// {delete this.tables[factType]}
 				{this.tables[factType] = 'ForeignKey'}
 		,
@@ -68,10 +82,10 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 				(:factTypePart &(:attributes))+
 				
 				{this.tables[factType[0][1]].fields.push(['Boolean', factType[1][1]])}
-				{this.tables[factType] = 'Attribute'}
+				{this.tables[factType] = 'BooleanAttribute'}
 			|	{this.tables[factType] = {fields:[], primitive: false, name: null}}
 				(	['Term' :termName]
-					{this.tables[factType].fields.push(['ForeignKey', this.tables[termName].name, this.tables[termName].idField, 'NOT NULL'])}
+					{this.tables[factType].fields.push(['ForeignKey', this.tables[termName].name, 'NOT NULL', this.tables[termName].idField])}
 				|	['Verb' :verb]
 				)+
 			)
@@ -139,15 +153,27 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 			)
 			-> ['Equals', ['ReferencedField', 'var' + bindFrom + termFrom, this.tables[termTo].name], ['ReferencedField', 'var' + bindTo + termTo, this.tables[termTo].idField]],
 
-		Attribute :actualFactType =
-			?(this.tables[actualFactType] == 'Attribute')
+		BooleanAttribute :actualFactType =
+			?(this.tables[actualFactType] == 'BooleanAttribute')
 			(	RoleBinding:bindFrom
 				end
 				{actualFactType[0][1]}:termFrom
 				{actualFactType[1][1]}:attributeName
-			|	___AttributeMatchingFailed___.die
+			|	{console.error(this.input)}
+				___BooleanAttributeMatchingFailed___.die
 			)
 			-> ['Equals', ['ReferencedField', 'var' + bindFrom + termFrom, attributeName], ['Boolean', true]],
+
+		Attribute :actualFactType :rootTerms =
+			?(this.tables[actualFactType] == 'Attribute')
+			{['Query', ['Select', []]]}:query
+			RoleBinding:bindAttr
+			RoleBinding:bindReal
+			end
+			{rootTerms[0]}:termNameAttr
+			{rootTerms[1]}:termNameReal
+			AddWhereClause(query, ['Equals', ['ReferencedField', 'var' + bindAttr + termNameReal, this.tables[termNameAttr].name], ['ReferencedField', 'var' + bindReal + termNameReal, this.tables[termNameAttr].name]])
+			-> ['Exists', query],
 		
 		AtomicFormulation =
 			[	'AtomicFormulation'
@@ -155,7 +181,8 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 				ActualFactType(factType):actualFactType
 				FactTypeRootTerms(factType, actualFactType):rootTerms
 				(	ForeignKey(actualFactType, rootTerms)
-				|	Attribute(actualFactType)
+				|	BooleanAttribute(actualFactType)
+				|	Attribute(actualFactType, rootTerms)
 				|	LinkTable(actualFactType, rootTerms)
 				):whereClause
 			]

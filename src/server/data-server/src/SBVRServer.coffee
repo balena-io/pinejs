@@ -18,28 +18,29 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 		return factType
 					
 	getCorrectTableInfo = (oldTableName) ->
+		getAttributeInfo = (sqlmod) ->
+			switch sqlmod.tables[factType]
+				when 'BooleanAttribute'
+					isAttribute = {termName: factType[0][1], attributeName: factType[1][1]}
+					table = sqlmod.tables[isAttribute.termName]
+				when 'Attribute'
+					isAttribute = {termName: factType[0][1], attributeName: sqlmod.tables[factType[2][1]].name}
+					table = sqlmod.tables[isAttribute.termName]
+				else
+					table = sqlmod.tables[factType]
+			return {table, isAttribute}
+			
 		sqlmod = serverModelCache.getSQL()
-		isAttribute = false
-		attributeName = null
 		factType = rebuildFactType(oldTableName)
 		if sqlmod.tables.hasOwnProperty(factType)
-			if sqlmod.tables[factType] == 'Attribute'
-				isAttribute = {termName: factType[0][1], attributeName: factType[1][1]}
-				table = sqlmod.tables[isAttribute.termName]
-			else
-				table = sqlmod.tables[factType]
+			return getAttributeInfo(sqlmod)
 		# Transaction model..
 		else if transactionModel.tables.hasOwnProperty(factType)
-			if transactionModel.tables[factType] == 'Attribute'
-				isAttribute = {termName: factType[0][1], attributeName: factType[1][1]}
-				table = transactionModel.tables[isAttribute.termName]
-			else
-				table = transactionModel.tables[factType]
+			return getAttributeInfo(transactionModel)
 		else if sqlmod.tables.hasOwnProperty(oldTableName)
-			table = sqlmod.tables[oldTableName]
+			return {table: sqlmod.tables[oldTableName], isAttribute: false}
 		else # Transaction model..
-			table = transactionModel.tables[oldTableName]
-		return {table, isAttribute}
+			return {table: transactionModel.tables[oldTableName], isAttribute: false}
 
 	# serverModelCache needs to be called after 'db' has been assigned in order to set itself up. 
 	serverModelCache = () ->
