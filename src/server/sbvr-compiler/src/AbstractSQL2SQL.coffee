@@ -7,9 +7,9 @@ define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQLOptimise
 			when 'Integer'
 				return 'INTEGER ' + necessity
 			when 'Short Text'
-				return 'varchar(20) ' + necessity
+				return 'VARCHAR(20) ' + necessity
 			when 'Long Text'
-				return 'varchar(200) ' + necessity
+				return 'VARCHAR(200) ' + necessity
 			when 'Boolean'
 				return 'INTEGER NOT NULL DEFAULT 0'
 			when 'ForeignKey', 'ConceptType'
@@ -24,9 +24,9 @@ define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQLOptimise
 			when 'Integer'
 				return 'INTEGER ' + necessity
 			when 'Short Text'
-				return 'varchar(20) ' + necessity
+				return 'VARCHAR(20) ' + necessity
 			when 'Long Text'
-				return 'varchar(200) ' + necessity
+				return 'VARCHAR(200) ' + necessity
 			when 'Boolean'
 				return 'INTEGER NOT NULL DEFAULT 0'
 			when 'ForeignKey', 'ConceptType'

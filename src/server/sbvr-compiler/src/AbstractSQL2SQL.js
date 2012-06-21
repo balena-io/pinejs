@@ -10,9 +10,9 @@
         case 'Integer':
           return 'INTEGER ' + necessity;
         case 'Short Text':
-          return 'varchar(20) ' + necessity;
+          return 'VARCHAR(20) ' + necessity;
         case 'Long Text':
-          return 'varchar(200) ' + necessity;
+          return 'VARCHAR(200) ' + necessity;
         case 'Boolean':
           return 'INTEGER NOT NULL DEFAULT 0';
         case 'ForeignKey':
@@ -29,9 +29,9 @@
         case 'Integer':
           return 'INTEGER ' + necessity;
         case 'Short Text':
-          return 'varchar(20) ' + necessity;
+          return 'VARCHAR(20) ' + necessity;
         case 'Long Text':
-          return 'varchar(200) ' + necessity;
+          return 'VARCHAR(200) ' + necessity;
         case 'Boolean':
           return 'INTEGER NOT NULL DEFAULT 0';
         case 'ForeignKey':
