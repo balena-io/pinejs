@@ -106,7 +106,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                     for (var i = (0);
                     (i < this["tables"][factType[(0)][(1)]]["fields"]["length"]); i++) {
                         if ((this["tables"][factType[(0)][(1)]]["fields"][i][(1)] == this["tables"][factType[(2)][(1)]]["name"])) {
-                            (this["tables"][factType[(0)][(1)]]["fields"][i][(1)] = this["tables"][factType[(2)][(1)]]["primitive"]);
+                            (this["tables"][factType[(0)][(1)]]["fields"][i][(0)] = this["tables"][factType[(2)][(1)]]["primitive"]);
                             break
                         } else {
                             undefined
