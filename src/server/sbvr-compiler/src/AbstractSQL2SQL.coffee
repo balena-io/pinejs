@@ -14,6 +14,8 @@ define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQLOptimise
 				return 'INTEGER NOT NULL DEFAULT 0'
 			when 'ForeignKey', 'ConceptType'
 				return 'INTEGER ' + necessity
+			when 'Name'
+				return 'VARCHAR(100) NOT NULL'
 			else
 				return 'VARCHAR(100)'
 	
@@ -31,6 +33,8 @@ define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQLOptimise
 				return 'INTEGER NOT NULL DEFAULT 0'
 			when 'ForeignKey', 'ConceptType'
 				return 'INTEGER ' + necessity
+			when 'Name'
+				return 'VARCHAR(100)' + necessity
 			else
 				return 'VARCHAR(100)'
 	

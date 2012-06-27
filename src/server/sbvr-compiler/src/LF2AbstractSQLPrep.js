@@ -216,7 +216,7 @@ define(["sbvr-compiler/LFOptimiser", "underscore"], (function(LFOptimiser, _) {
                 }
                 if ((!attrsFound.hasOwnProperty("DatabasePrimitive"))) {
                     if ((!this["primitives"].hasOwnProperty(termOrVerb))) {
-                        (this["primitives"][termOrVerb] = this.isPrimitive(termOrVerb[(1)]))
+                        (this["primitives"][termOrVerb] = this.IsPrimitive(termOrVerb[(1)]))
                     } else {
                         undefined
                     };
@@ -290,28 +290,6 @@ define(["sbvr-compiler/LFOptimiser", "underscore"], (function(LFOptimiser, _) {
             }
         };
         termOrVerb.push(attrs)
-    }));
-    var primitives = ({
-        "Integer": true,
-        "Short Text": true,
-        "Long Text": true
-    });
-    (LF2AbstractSQLPrep["isPrimitive"] = (function(termName) {
-        if (primitives.hasOwnProperty(termName)) {
-            return termName
-        } else {
-            undefined
-        };
-        if ((this["conceptTypes"].hasOwnProperty(termName) && (termName = this["conceptTypes"][termName]))) {
-            if (primitives.hasOwnProperty(termName)) {
-                return termName
-            } else {
-                undefined
-            }
-        } else {
-            undefined
-        };
-        return false
     }));
     return LF2AbstractSQLPrep
 }))

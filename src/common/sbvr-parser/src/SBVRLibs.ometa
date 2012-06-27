@@ -1,5 +1,9 @@
 define(['underscore', 'ometa/ometa-base'], function(_) {
-	var SBVRLibs;
+	var SBVRLibs, primitives = {
+		'Integer': true,
+		'Short Text': true,
+		'Long Text': true
+	};
 	
 	ometa SBVRLibs {}
 	
@@ -22,6 +26,20 @@ define(['underscore', 'ometa/ometa-base'], function(_) {
 				return this._apply(rules[i], ruleArgs);
 			}
 		}
+	}
+
+	SBVRLibs.IsPrimitive = function(termName) {
+		// do {
+			if (primitives.hasOwnProperty(termName)) {
+				return termName;
+			}
+		// } while (this.conceptTypes.hasOwnProperty(termName) && (termName = this.conceptTypes[termName]));
+		if (this.conceptTypes.hasOwnProperty(termName) && (termName = this.conceptTypes[termName])) {
+			if (primitives.hasOwnProperty(termName)) {
+				return termName;
+			}
+		}
+		return false;
 	}
 	
 	SBVRLibs.AddFactType = function(factType, realFactType) {

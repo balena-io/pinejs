@@ -1,5 +1,12 @@
 define(["underscore", "ometa/ometa-base"], (function(_) {
-    var SBVRLibs = undefined;
+    {
+        var SBVRLibs = undefined;
+        var primitives = ({
+            "Integer": true,
+            "Short Text": true,
+            "Long Text": true
+        })
+    };
     SBVRLibs = objectThatDelegatesTo(OMeta, {});
     (SBVRLibs["initialize"] = (function() {
         (this["factTypes"] = ({}));
@@ -26,6 +33,23 @@ define(["underscore", "ometa/ometa-base"], (function(_) {
                 undefined
             }
         }
+    }));
+    (SBVRLibs["IsPrimitive"] = (function(termName) {
+        if (primitives.hasOwnProperty(termName)) {
+            return termName
+        } else {
+            undefined
+        };
+        if ((this["conceptTypes"].hasOwnProperty(termName) && (termName = this["conceptTypes"][termName]))) {
+            if (primitives.hasOwnProperty(termName)) {
+                return termName
+            } else {
+                undefined
+            }
+        } else {
+            undefined
+        };
+        return false
     }));
     (SBVRLibs["AddFactType"] = (function(factType, realFactType) {
         (realFactType = _.extend([], realFactType));

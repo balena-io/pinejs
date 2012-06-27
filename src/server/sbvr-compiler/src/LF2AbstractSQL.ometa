@@ -21,7 +21,20 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 			{console.log('Default', tableID, anything)},
 		AttrConceptType :termName = // tableID will be same as termName for ConceptType (fact types cannot have a concept type)
 			['Term' :conceptType] {this.conceptTypes[termName] = conceptType}
-			{this.tables[termName].fields.push(['ConceptType', this.tables[conceptType].name, 'NOT NULL', this.tables[conceptType].idField])},
+			IsPrimitive(conceptType):primitive
+			{['ConceptType', this.tables[conceptType].name, 'NOT NULL', this.tables[conceptType].idField]}:field
+			(	?(primitive !== false && conceptType === primitive)
+				{field[0] = primitive}
+				// Find existing name field and remove it if it exists.
+				(	?(this.tables[termName].hasOwnProperty('nameField'))
+					FindFieldID(termName, this.tables[termName].nameField):fieldID
+					?(fieldID !== false)
+					{field[1] = this.tables[termName].fields[fieldID][1]}
+					{this.tables[termName].fields.splice(fieldID, 1)}
+				|	{this.tables[termName].nameField = this.tables[conceptType].name}
+				)
+			)
+			{this.tables[termName].fields.push(field)},
 		AttrDatabaseIDField :tableID =
 			:idField
 			(	?_.isString(this.tables[tableID])
@@ -31,7 +44,15 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 		AttrDatabaseNameField :tableID =
 			:nameField
 			(	?_.isString(this.tables[tableID])
-			|	{this.tables[tableID].fields.push(['Name', nameField])}
+			|	// Find existing name field and update it if it exists.
+				(	?(this.tables[tableID].hasOwnProperty('nameField'))
+					FindFieldID(tableID, this.tables[tableID].nameField):fieldID
+					?(fieldID !== false)
+					{this.tables[tableID].fields[fieldID][1] = nameField}
+				|	// Add a name field if there isn't one already to rename.
+					{this.tables[tableID].fields.push(['Name', nameField, 'NOT NULL'])}
+				)
+				{this.tables[tableID].nameField = nameField}
 			),
 		AttrDatabaseTableName :tableID =
 			:tableName
@@ -44,23 +65,14 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 		AttrDatabaseAttribute :factType =
 			:attrVal
 			(	?attrVal
-				{console.log(factType)}
-				{	var foreignKey;
-					for(var i = 0; i < this.tables[factType[0][1]].fields.length; i++) {
-						if(this.tables[factType[0][1]].fields[i][1] == this.tables[factType[2][1]].name) {
-							this.tables[factType[0][1]].fields[i][0] = this.tables[factType[2][1]].primitive;
-							break;
-						}
-					}
-				}
 				{this.tables[factType] = 'Attribute'}
+				FindFieldID(factType[0][1], this.tables[factType[2][1]].name):fieldID
+				{this.tables[factType[0][1]].fields[fieldID][0] = this.tables[factType[2][1]].primitive}
 			)?,
 		AttrForeignKey :factType =
 			:type
 			{this.tables[factType[0][1]].fields.push(['ForeignKey', this.tables[factType[2][1]].name, type, this.tables[factType[2][1]].idField])}
-			// {delete this.tables[factType]}
-				{this.tables[factType] = 'ForeignKey'}
-		,
+			{this.tables[factType] = 'ForeignKey'},
 		// AttrSynonym :term =
 			// :synonym {this.terms[synonym[1]] = term[1]},
 		AttrSynonymousForm :factType =
@@ -256,6 +268,16 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 			]
 			-> {tables:this.tables, rules:this.rules}
 	}
+	
+	LF2AbstractSQL.FindFieldID = function(tableID, fieldName) {
+		var tableFields = this.tables[tableID].fields;
+		for(var i = 0; i < tableFields.length; i++) {
+			if(tableFields[i][1] == fieldName) {
+				return i;
+			}
+		}
+		return false;
+	};
 	
 	LF2AbstractSQL.AddWhereClause = function(query, whereBody) {
 		// TODO: Move this to an optimisation pass?
