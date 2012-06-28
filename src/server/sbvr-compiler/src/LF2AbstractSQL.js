@@ -52,16 +52,18 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
             (this["conceptTypes"][termName] = conceptType);
             primitive = this._applyWithArgs("IsPrimitive", conceptType);
             field = ["ConceptType", this["tables"][conceptType]["name"], "NOT NULL", this["tables"][conceptType]["idField"]];
-            this._pred(((primitive !== false) && (conceptType === primitive)));
-            (field[(0)] = primitive);
-            this._or((function() {
-                this._pred(this["tables"][termName].hasOwnProperty("nameField"));
-                fieldID = this._applyWithArgs("FindFieldID", termName, this["tables"][termName]["nameField"]);
-                this._pred((fieldID !== false));
-                (field[(1)] = this["tables"][termName]["fields"][fieldID][(1)]);
-                return this["tables"][termName]["fields"].splice(fieldID, (1))
-            }), (function() {
-                return (this["tables"][termName]["nameField"] = this["tables"][conceptType]["name"])
+            this._opt((function() {
+                this._pred(((primitive !== false) && (conceptType === primitive)));
+                (field[(0)] = primitive);
+                return this._or((function() {
+                    this._pred(this["tables"][termName].hasOwnProperty("nameField"));
+                    fieldID = this._applyWithArgs("FindFieldID", termName, this["tables"][termName]["nameField"]);
+                    this._pred((fieldID !== false));
+                    (field[(1)] = this["tables"][termName]["fields"][fieldID][(1)]);
+                    return this["tables"][termName]["fields"].splice(fieldID, (1))
+                }), (function() {
+                    return (this["tables"][termName]["nameField"] = this["tables"][conceptType]["name"])
+                }))
             }));
             return this["tables"][termName]["fields"].push(field)
         },

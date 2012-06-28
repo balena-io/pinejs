@@ -33,7 +33,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 					{this.tables[termName].fields.splice(fieldID, 1)}
 				|	{this.tables[termName].nameField = this.tables[conceptType].name}
 				)
-			)
+			)?
 			{this.tables[termName].fields.push(field)},
 		AttrDatabaseIDField :tableID =
 			:idField
