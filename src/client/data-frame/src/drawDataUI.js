@@ -250,7 +250,7 @@
               _ref7 = parent.branch.slice(3);
               for (j = 0, _len7 = _ref7.length; j < _len7; j++) {
                 currBranch = _ref7[j];
-                if (currBranch[0] === "ins" && currBranch[1][0] === parent.about && currBranch[1][1] !== void 0 && ((_ref8 = currBranch[1][1]) === instance.id || _ref8 === instance._name)) {
+                if (currBranch[0] === "ins" && currBranch[1][0] === parent.about && currBranch[1][1] !== void 0 && ((_ref8 = currBranch[1][1]) === instance.id || _ref8 === instance.value)) {
                   launch = j + 3;
                   _ref9 = currBranch[2].slice(1);
                   for (_n = 0, _len8 = _ref9.length; _n < _len8; _n++) {
@@ -269,13 +269,13 @@
                 prel += "<div style='display:inline;background-color:" + parent.unbg + "'>";
               }
               if (parent.type === "Term") {
-                prel += instance._name;
+                prel += instance.value;
               } else if (parent.type === "FactType") {
                 _ref11 = parent.schema;
                 for (_o = 0, _len9 = _ref11.length; _o < _len9; _o++) {
                   schema = _ref11[_o];
                   if (schema[0] === "Term") {
-                    prel += instance[schema[1] + "_name"] + " ";
+                    prel += instance[schema[1] + "_value"] + " ";
                   } else if (schema[0] === "Verb") {
                     prel += "<em>" + schema[1] + "</em> ";
                   }
@@ -423,7 +423,7 @@
                   for (_o = 0, _len7 = _ref8.length; _o < _len7; _o++) {
                     schema = _ref8[_o];
                     if (schema[0] === "Term") {
-                      res += result.instances[0][schema[1] + "_name"] + " ";
+                      res += result.instances[0][schema[1] + "_value"] + " ";
                     } else if (schema[0] === "Verb") {
                       res += schema[1] + " ";
                     }
@@ -434,7 +434,7 @@
               break;
             case "add":
               if (this.type === "Term") {
-                schema = [['Text', '_name', 'Name', []]];
+                schema = [['Text', 'value', 'Name', []]];
                 res = "<div align='right'>";
                 res += "<form class='action'>";
                 res += createHiddenInputs('addterm', serverAPI(this.about, []), targ, this.about);
@@ -480,7 +480,7 @@
               break;
             case "edit":
               if (this.type === "Term") {
-                schema = [['Text', '_name', 'Name', []]];
+                schema = [['Text', 'value', 'Name', []]];
                 this.targ = serverAPI(this.about, this.filters);
                 return serverRequest("GET", this.targ, {}, null, function(statusCode, result, headers) {
                   var currSchema, id, _len9, _q;

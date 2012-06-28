@@ -18,7 +18,7 @@
         case 'ForeignKey':
         case 'ConceptType':
           return 'INTEGER ' + necessity;
-        case 'Name':
+        case 'Value':
           return 'VARCHAR(100) NOT NULL';
         default:
           return 'VARCHAR(100)';
@@ -39,7 +39,7 @@
         case 'ForeignKey':
         case 'ConceptType':
           return 'INTEGER ' + necessity;
-        case 'Name':
+        case 'Value':
           return 'VARCHAR(100)' + necessity;
         default:
           return 'VARCHAR(100)';

@@ -6,7 +6,7 @@
     if ($(".action").size() > 0) {
       obj = [
         {
-          _name: 'trans'
+          value: 'trans'
         }
       ];
       serverRequest('POST', '/data/transaction', {}, obj, function(statusCode, result, headers) {
@@ -84,7 +84,7 @@
     return lockResource = function(resource_type, resource_id, trans, successCallback, failureCallback) {
       return serverRequest("POST", trans.lcURI, {}, [
         {
-          _name: "lok"
+          value: "lok"
         }
       ], (function(statusCode, result, headers) {
         return serverRequest("GET", headers.location, {}, null, (function(statusCode, lock, headers) {

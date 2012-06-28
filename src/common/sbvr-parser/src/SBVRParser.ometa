@@ -357,7 +357,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base', 'inflection'],
 			/*#IFDEF server */
 				/* Custom Attributes */
 				'Database ID Field:',
-				'Database Name Field:',
+				'Database Value Field:',
 				'Database Table Name:',
 				/* End Custom */
 			/*#ENDIFDEF*/

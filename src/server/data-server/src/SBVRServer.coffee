@@ -524,7 +524,7 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 				else if tree[1][0] == "FactType"
 					ft = tree[1][1]
 					if isAttribute
-						sql = 'SELECT id, _name AS "' + isAttribute.termName + '_name", "' + isAttribute.attributeName + '" FROM "' + table.name + '" WHERE "' + isAttribute.attributeName + '" = 1'
+						sql = 'SELECT id, value AS "' + isAttribute.termName + '_value", "' + isAttribute.attributeName + '" FROM "' + table.name + '" WHERE "' + isAttribute.attributeName + '" = 1'
 					else
 						fl = [ '"' + ft + '".id AS id' ]
 						jn = []
@@ -532,7 +532,7 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 
 						for row in tree[1][2][1..]
 							fl.push '"' + row + '".id AS "' + row + '_id"'
-							fl.push '"' + row + '"."_name" AS "' + row + '_name"'
+							fl.push '"' + row + '"."value" AS "' + row + '_value"'
 							tb.push '"' + row + '"'
 							jn.push '"' + row + '".id = "' + ft + '"."' + row + '"'
 

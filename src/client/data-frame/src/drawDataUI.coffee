@@ -194,7 +194,7 @@ define(['data-frame/ClientURIUnparser'], (ClientURIUnparser) ->
 						actn = "view"
 
 						for currBranch, j in parent.branch[3..]
-							if currBranch[0] == "ins" and currBranch[1][0] == parent.about and currBranch[1][1] != undefined and currBranch[1][1] in [instance.id, instance._name]
+							if currBranch[0] == "ins" and currBranch[1][0] == parent.about and currBranch[1][1] != undefined and currBranch[1][1] in [instance.id, instance.value]
 								launch = j + 3
 								# find action.
 								for currBranchType in currBranch[2][1..] when currBranchType[0] in ["edit","del"]
@@ -204,11 +204,11 @@ define(['data-frame/ClientURIUnparser'], (ClientURIUnparser) ->
 						prel = "<tr id='tr--" + pid + "--" + instance.id + "'><td>"
 						prel += "<div style='display:inline;background-color:" + parent.unbg + "'>"	unless launch == -1
 						if parent.type == "Term"
-							prel += instance._name
+							prel += instance.value
 						else if parent.type == "FactType"
 							for schema in parent.schema
 								if schema[0] == "Term"
-									prel += instance[schema[1] + "_name"] + " "
+									prel += instance[schema[1] + "_value"] + " "
 								else if schema[0] == "Verb"
 									prel += "<em>" + schema[1] + "</em> "
 
@@ -320,14 +320,14 @@ define(['data-frame/ClientURIUnparser'], (ClientURIUnparser) ->
 								# loop around terms
 								for schema in parent.schema
 									if schema[0] == "Term"
-										res += result.instances[0][schema[1] + "_name"] + " "
+										res += result.instances[0][schema[1] + "_value"] + " "
 									else if schema[0] == "Verb"
 										res += schema[1] + " "
 								parent.callback 1, res
 					when "add"
 						if @type == "Term"
 							# TODO: The schema info should come from cmod
-							schema = [['Text', '_name', 'Name', []]]
+							schema = [['Text', 'value', 'Name', []]]
 
 							# print form.
 							res = "<div align='right'>"
@@ -366,7 +366,7 @@ define(['data-frame/ClientURIUnparser'], (ClientURIUnparser) ->
 					when "edit"
 						if @type == "Term"
 							# TODO: The schema info should come from cmod
-							schema = [['Text', '_name', 'Name', []]]
+							schema = [['Text', 'value', 'Name', []]]
 
 							@targ = serverAPI(@about, @filters)
 							serverRequest "GET", @targ, {}, null, (statusCode, result, headers) ->

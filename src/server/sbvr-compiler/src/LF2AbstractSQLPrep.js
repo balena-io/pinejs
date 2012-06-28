@@ -202,8 +202,8 @@ define(["sbvr-compiler/LFOptimiser", "underscore"], (function(LFOptimiser, _) {
         switch (termOrVerb[(0)]) {
         case "Term":
             {
-                if ((!attrsFound.hasOwnProperty("DatabaseNameField"))) {
-                    attrs.push(["DatabaseNameField", "_name"]);
+                if ((!attrsFound.hasOwnProperty("DatabaseValueField"))) {
+                    attrs.push(["DatabaseValueField", "value"]);
                     this.SetHelped()
                 } else {
                     undefined

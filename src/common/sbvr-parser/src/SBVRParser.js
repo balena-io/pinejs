@@ -722,7 +722,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base", "inflection"],
     })); {
         var removeVerbRegex = new RegExp(("^" + ["Verb", ""].toString()));
         var removeTermRegex = new RegExp(("^" + ["Term", ""].toString()));
-        var allowedAttrLists = ["Database ID Field:", "Database Name Field:", "Database Table Name:", "Dictionary Basis:", "Example:", "General Concept:", "Namespace URI:", "Necessity:", "Note:", "Possibility:", "Reference Scheme:", "See:", "Source:", "Subject Field:"]
+        var allowedAttrLists = ["Database ID Field:", "Database Value Field:", "Database Table Name:", "Dictionary Basis:", "Example:", "General Concept:", "Namespace URI:", "Necessity:", "Note:", "Possibility:", "Reference Scheme:", "See:", "Source:", "Subject Field:"]
     };
     (allowedAttrLists = ({
         "Term": ["Concept Type:", "Definition:", "Synonym:"].concat(allowedAttrLists),

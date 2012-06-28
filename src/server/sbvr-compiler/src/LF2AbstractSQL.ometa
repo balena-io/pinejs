@@ -26,12 +26,12 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 			(	?(primitive !== false && conceptType === primitive)
 				{field[0] = primitive}
 				// Find existing name field and remove it if it exists.
-				(	?(this.tables[termName].hasOwnProperty('nameField'))
-					FindFieldID(termName, this.tables[termName].nameField):fieldID
+				(	?(this.tables[termName].hasOwnProperty('valueField'))
+					FindFieldID(termName, this.tables[termName].valueField):fieldID
 					?(fieldID !== false)
 					{field[1] = this.tables[termName].fields[fieldID][1]}
 					{this.tables[termName].fields.splice(fieldID, 1)}
-				|	{this.tables[termName].nameField = this.tables[conceptType].name}
+				|	{this.tables[termName].valueField = this.tables[conceptType].name}
 				)
 			)?
 			{this.tables[termName].fields.push(field)},
@@ -41,18 +41,18 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 			|	{this.tables[tableID].fields.push(['PrimaryKey', idField])}
 				{this.tables[tableID].idField = idField}
 			),
-		AttrDatabaseNameField :tableID =
-			:nameField
+		AttrDatabaseValueField :tableID =
+			:valueField
 			(	?_.isString(this.tables[tableID])
 			|	// Find existing name field and update it if it exists.
-				(	?(this.tables[tableID].hasOwnProperty('nameField'))
-					FindFieldID(tableID, this.tables[tableID].nameField):fieldID
+				(	?(this.tables[tableID].hasOwnProperty('valueField'))
+					FindFieldID(tableID, this.tables[tableID].valueField):fieldID
 					?(fieldID !== false)
-					{this.tables[tableID].fields[fieldID][1] = nameField}
+					{this.tables[tableID].fields[fieldID][1] = valueField}
 				|	// Add a name field if there isn't one already to rename.
-					{this.tables[tableID].fields.push(['Name', nameField, 'NOT NULL'])}
+					{this.tables[tableID].fields.push(['Value', valueField, 'NOT NULL'])}
 				)
-				{this.tables[tableID].nameField = nameField}
+				{this.tables[tableID].valueField = valueField}
 			),
 		AttrDatabaseTableName :tableID =
 			:tableName

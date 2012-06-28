@@ -56,13 +56,13 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                 this._pred(((primitive !== false) && (conceptType === primitive)));
                 (field[(0)] = primitive);
                 return this._or((function() {
-                    this._pred(this["tables"][termName].hasOwnProperty("nameField"));
-                    fieldID = this._applyWithArgs("FindFieldID", termName, this["tables"][termName]["nameField"]);
+                    this._pred(this["tables"][termName].hasOwnProperty("valueField"));
+                    fieldID = this._applyWithArgs("FindFieldID", termName, this["tables"][termName]["valueField"]);
                     this._pred((fieldID !== false));
                     (field[(1)] = this["tables"][termName]["fields"][fieldID][(1)]);
                     return this["tables"][termName]["fields"].splice(fieldID, (1))
                 }), (function() {
-                    return (this["tables"][termName]["nameField"] = this["tables"][conceptType]["name"])
+                    return (this["tables"][termName]["valueField"] = this["tables"][conceptType]["name"])
                 }))
             }));
             return this["tables"][termName]["fields"].push(field)
@@ -79,23 +79,23 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                 return (this["tables"][tableID]["idField"] = idField)
             }))
         },
-        "AttrDatabaseNameField": function(tableID) {
+        "AttrDatabaseValueField": function(tableID) {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                nameField, fieldID;
-            nameField = this._apply("anything");
+                valueField, fieldID;
+            valueField = this._apply("anything");
             return this._or((function() {
                 return this._pred(_.isString(this["tables"][tableID]))
             }), (function() {
                 this._or((function() {
-                    this._pred(this["tables"][tableID].hasOwnProperty("nameField"));
-                    fieldID = this._applyWithArgs("FindFieldID", tableID, this["tables"][tableID]["nameField"]);
+                    this._pred(this["tables"][tableID].hasOwnProperty("valueField"));
+                    fieldID = this._applyWithArgs("FindFieldID", tableID, this["tables"][tableID]["valueField"]);
                     this._pred((fieldID !== false));
-                    return (this["tables"][tableID]["fields"][fieldID][(1)] = nameField)
+                    return (this["tables"][tableID]["fields"][fieldID][(1)] = valueField)
                 }), (function() {
-                    return this["tables"][tableID]["fields"].push(["Name", nameField, "NOT NULL"])
+                    return this["tables"][tableID]["fields"].push(["Value", valueField, "NOT NULL"])
                 }));
-                return (this["tables"][tableID]["nameField"] = nameField)
+                return (this["tables"][tableID]["valueField"] = valueField)
             }))
         },
         "AttrDatabaseTableName": function(tableID) {
