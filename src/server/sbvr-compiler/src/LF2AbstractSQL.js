@@ -131,9 +131,16 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
         "AttrForeignKey": function(factType) {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                type;
+                type, fieldID;
             type = this._apply("anything");
-            this["tables"][factType[(0)][(1)]]["fields"].push(["ForeignKey", this["tables"][factType[(2)][(1)]]["name"], type, this["tables"][factType[(2)][(1)]]["idField"]]);
+            this._or((function() {
+                this._pred((this["tables"][factType[(0)][(1)]]["valueField"] == this["tables"][factType[(2)][(1)]]["name"]));
+                fieldID = this._applyWithArgs("FindFieldID", factType[(0)][(1)], this["tables"][factType[(2)][(1)]]["name"]);
+                this._pred((fieldID !== false));
+                return (this["tables"][factType[(0)][(1)]]["fields"][fieldID][(0)] = "ForeignKey")
+            }), (function() {
+                return this["tables"][factType[(0)][(1)]]["fields"].push(["ForeignKey", this["tables"][factType[(2)][(1)]]["name"], type, this["tables"][factType[(2)][(1)]]["idField"]])
+            }));
             return (this["tables"][factType] = "ForeignKey")
         },
         "AttrSynonymousForm": function(factType) {

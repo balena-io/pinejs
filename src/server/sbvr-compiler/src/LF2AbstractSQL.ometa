@@ -71,7 +71,13 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 			)?,
 		AttrForeignKey :factType =
 			:type
-			{this.tables[factType[0][1]].fields.push(['ForeignKey', this.tables[factType[2][1]].name, type, this.tables[factType[2][1]].idField])}
+			(	?(this.tables[factType[0][1]].valueField == this.tables[factType[2][1]].name)
+				// If the value field for the first term matches the name of the FK term then update the value field to be a FK.
+				FindFieldID(factType[0][1], this.tables[factType[2][1]].name):fieldID
+				?(fieldID !== false)
+				{this.tables[factType[0][1]].fields[fieldID][0] = 'ForeignKey'}
+			|	{this.tables[factType[0][1]].fields.push(['ForeignKey', this.tables[factType[2][1]].name, type, this.tables[factType[2][1]].idField])}
+			)
 			{this.tables[factType] = 'ForeignKey'},
 		// AttrSynonym :term =
 			// :synonym {this.terms[synonym[1]] = term[1]},
