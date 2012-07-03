@@ -314,11 +314,7 @@
     };
     executeTasync = function(tx, trnmod, successCallback, failureCallback) {
       return executeSasync(tx, trnmod, function(tx) {
-        tx.executeSql('ALTER TABLE "resource-is_under-lock" ADD COLUMN resource_type TEXT');
         tx.executeSql('ALTER TABLE "resource-is_under-lock" DROP CONSTRAINT "resource-is_under-lock_resource_id_fkey";');
-        tx.executeSql('ALTER TABLE "conditional_representation" ADD COLUMN field_name TEXT');
-        tx.executeSql('ALTER TABLE "conditional_representation" ADD COLUMN field_value TEXT');
-        tx.executeSql('ALTER TABLE "conditional_representation" ADD COLUMN field_type TEXT');
         return successCallback(tx);
       }, function(tx, errors) {
         serverModelCache.setModelAreaDisabled(false);
@@ -425,7 +421,7 @@
           AbstractSQL2SQL = AbstractSQL2SQL.websql;
         }
         serverModelCache();
-        transactionModel = 'Term:      Integer\nTerm:      resource\nTerm:      transaction\nTerm:      lock\nTerm:      conditional representation\n	Concept type: Integer\n	Database Value Field: lock\nFact type: lock is exclusive\nFact type: lock is shared\nFact type: resource is under lock\nFact type: lock belongs to transaction\nRule:      It is obligatory that each resource is under at most 1 lock that is exclusive';
+        transactionModel = 'Term:      Integer\nTerm:      Long Text\nTerm:      resource type\n	Concept type: Long Text\nTerm:      field name\n	Concept type: Long Text\nTerm:      field value\n	Concept type: Long Text\nTerm:      field type\n	Concept type: Long Text\nTerm:      resource\nTerm:      transaction\nTerm:      lock\nTerm:      conditional representation\n	Concept type: Integer\n	Database Value Field: lock\nFact type: lock is exclusive\nFact type: lock is shared\nFact type: resource is under lock\n	Term Form: locked resource\nFact type: locked resource has resource type\nFact type: lock belongs to transaction\nFact type: conditional representation has field name\nFact type: conditional representation has field value\nFact type: conditional representation has field type\nFact type: conditional representation has lock\nRule:      It is obligatory that each locked resource has exactly 1 resource type\nRule:      It is obligatory that each conditional representation has exactly 1 field name\nRule:      It is obligatory that each conditional representation has exactly 1 field value\nRule:      It is obligatory that each conditional representation has exactly 1 field type\nRule:      It is obligatory that each conditional representation has exactly 1 lock\nRule:      It is obligatory that each resource is under at most 1 lock that is exclusive';
         transactionModel = SBVRParser.matchAll(transactionModel, "expr");
         transactionModel = LF2AbstractSQLPrep.match(transactionModel, "Process");
         transactionModel = LF2AbstractSQL.match(transactionModel, "Process");

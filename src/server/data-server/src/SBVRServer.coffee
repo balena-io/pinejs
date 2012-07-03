@@ -254,11 +254,7 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 		executeSasync(tx, trnmod, (tx) ->
 			# Hack: Add certain attributes to the transaction model tables.
 			# This should eventually be done with SBVR, when we add attributes.
-			tx.executeSql 'ALTER TABLE "resource-is_under-lock" ADD COLUMN resource_type TEXT'
 			tx.executeSql 'ALTER TABLE "resource-is_under-lock" DROP CONSTRAINT "resource-is_under-lock_resource_id_fkey";'
-			tx.executeSql 'ALTER TABLE "conditional_representation" ADD COLUMN field_name TEXT'
-			tx.executeSql 'ALTER TABLE "conditional_representation" ADD COLUMN field_value TEXT'
-			tx.executeSql 'ALTER TABLE "conditional_representation" ADD COLUMN field_type TEXT'
 			successCallback tx
 		, (tx, errors) ->
 			serverModelCache.setModelAreaDisabled false
@@ -351,16 +347,35 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 			serverModelCache()
 			transactionModel = '''
 					Term:      Integer
+					Term:      Long Text
+					Term:      resource type
+						Concept type: Long Text
+					Term:      field name
+						Concept type: Long Text
+					Term:      field value
+						Concept type: Long Text
+					Term:      field type
+						Concept type: Long Text
 					Term:      resource
 					Term:      transaction
 					Term:      lock
 					Term:      conditional representation
-						Concept type: Integer
 						Database Value Field: lock
 					Fact type: lock is exclusive
 					Fact type: lock is shared
 					Fact type: resource is under lock
+						Term Form: locked resource
+					Fact type: locked resource has resource type
 					Fact type: lock belongs to transaction
+					Fact type: conditional representation has field name
+					Fact type: conditional representation has field value
+					Fact type: conditional representation has field type
+					Fact type: conditional representation has lock
+					Rule:      It is obligatory that each locked resource has exactly 1 resource type
+					Rule:      It is obligatory that each conditional representation has exactly 1 field name
+					Rule:      It is obligatory that each conditional representation has exactly 1 field value
+					Rule:      It is obligatory that each conditional representation has exactly 1 field type
+					Rule:      It is obligatory that each conditional representation has exactly 1 lock
 					Rule:      It is obligatory that each resource is under at most 1 lock that is exclusive'''
 			transactionModel = SBVRParser.matchAll(transactionModel, "expr")
 			transactionModel = LF2AbstractSQLPrep.match(transactionModel, "Process")
