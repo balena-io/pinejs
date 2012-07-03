@@ -2,7 +2,7 @@
   var __hasProp = Object.prototype.hasOwnProperty;
 
   define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-compiler/LF2AbstractSQL', 'sbvr-compiler/AbstractSQL2SQL', 'data-server/ServerURIParser'], function(SBVRParser, LF2AbstractSQLPrep, LF2AbstractSQL, AbstractSQL2SQL, ServerURIParser) {
-    var db, endLock, executeSasync, executeTasync, exports, getCorrectTableInfo, getFTree, getID, hasCR, isExecute, op, parseURITree, rebuildFactType, serverIsOnAir, serverModelCache, transactionModel, updateRules, validateDB;
+    var createAsyncQueueCallback, db, endLock, executeSasync, executeTasync, exports, getCorrectTableInfo, getFTree, getID, hasCR, isExecute, op, parseURITree, rebuildFactType, serverIsOnAir, serverModelCache, transactionModel, updateRules, validateDB;
     exports = {};
     db = null;
     transactionModel = null;
@@ -10,6 +10,61 @@
       eq: "=",
       ne: "!=",
       lk: "~"
+    };
+    createAsyncQueueCallback = function(successCallback, errorCallback, successCollectFunc, errorCollectFunc) {
+      var checkFinished, endedAdding, error, errors, queriesFinished, results, totalQueries;
+      if (successCollectFunc == null) {
+        successCollectFunc = (function(arg) {
+          return arg;
+        });
+      }
+      if (errorCollectFunc == null) {
+        errorCollectFunc = (function(arg) {
+          return arg;
+        });
+      }
+      totalQueries = 0;
+      queriesFinished = 0;
+      endedAdding = false;
+      error = false;
+      results = [];
+      errors = [];
+      checkFinished = function() {
+        if (endedAdding && queriesFinished === totalQueries) {
+          if (error) {
+            return errorCallback(errors);
+          } else {
+            return successCallback(results);
+          }
+        }
+      };
+      return {
+        addWork: function(amount) {
+          if (amount == null) amount = 1;
+          if (endedAdding) throw 'You cannot add after ending adding';
+          return totalQueries += amount;
+        },
+        endAdding: function() {
+          if (endedAdding) throw 'You cannot end adding twice';
+          endedAdding = true;
+          return checkFinished();
+        },
+        successCallback: function() {
+          if ((successCollectFunc != null)) {
+            results.push(successCollectFunc.apply(null, arguments));
+          }
+          queriesFinished++;
+          return checkFinished();
+        },
+        errorCallback: function() {
+          if ((errorCollectFunc != null)) {
+            errors.push(errorCollectFunc.apply(null, arguments));
+          }
+          error = true;
+          queriesFinished++;
+          return checkFinished();
+        }
+      };
     };
     rebuildFactType = function(factType) {
       var factTypePart, key, _len;
@@ -171,26 +226,33 @@
     };
     endLock = function(tx, locks, i, trans_id, successCallback, failureCallback) {
       var continueEndingLock, lock_id;
-      continueEndingLock = function(tx, result) {
+      continueEndingLock = function(tx) {
         if (i < locks.rows.length - 1) {
           return endLock(tx, locks, i + 1, trans_id, successCallback, failureCallback);
         } else {
-          tx.executeSql('DELETE FROM "transaction" WHERE "id" = ?;', [trans_id]);
-          return validateDB(tx, serverModelCache.getSQL(), successCallback, failureCallback);
+          return tx.executeSql('DELETE FROM "transaction" WHERE "id" = ?;', [trans_id], function(tx, result) {
+            return validateDB(tx, serverModelCache.getSQL(), successCallback, failureCallback);
+          }, function(tx, error) {
+            return failureCallback(tx, [error]);
+          });
         }
       };
       lock_id = locks.rows.item(i).lock;
       tx.executeSql('SELECT * FROM "conditional_representation" WHERE "lock" = ?;', [lock_id], function(tx, crs) {
         return tx.executeSql('SELECT * FROM "resource-is_under-lock" WHERE "lock" = ?;', [lock_id], function(tx, locked) {
-          var isAttribute, item, j, sql, table, _ref, _ref2;
+          var asyncCallback, isAttribute, item, j, sql, table, _ref, _ref2;
           _ref = getCorrectTableInfo(locked.rows.item(0).resource_type), table = _ref.table, isAttribute = _ref.isAttribute;
+          asyncCallback = createAsyncQueueCallback(function() {
+            return continueEndingLock(tx);
+          }, function(errors) {
+            return failureCallback(tx, errors);
+          });
           if (crs.rows.item(0).field_name === "__DELETE") {
             if (isAttribute) {
               sql = 'UPDATE "' + table.name + '" SET "' + isAttribute.attributeName + '" = 0 WHERE "' + table.idField + '" = ?;';
             } else {
               sql = 'DELETE FROM "' + table.name + '" WHERE "' + table.idField + '" = ?;';
             }
-            tx.executeSql(sql, [locked.rows.item(0).resource], continueEndingLock);
           } else {
             sql = 'UPDATE "' + table.name + '" SET ';
             for (j = 0, _ref2 = crs.rows.length; 0 <= _ref2 ? j < _ref2 : j > _ref2; 0 <= _ref2 ? j++ : j--) {
@@ -203,47 +265,45 @@
               }
               if (j < crs.rows.length - 1) sql += ", ";
             }
-            sql += ' WHERE "' + table.idField + '"=' + locked.rows.item(0).resource + ';';
-            tx.executeSql(sql, [], continueEndingLock);
+            sql += ' WHERE "' + table.idField + '" = ? ;';
           }
-          tx.executeSql('DELETE FROM "conditional_representation" WHERE "lock" = ?;', [lock_id]);
-          return tx.executeSql('DELETE FROM "resource-is_under-lock" WHERE "lock" = ?;', [lock_id]);
+          asyncCallback.addWork(3);
+          tx.executeSql(sql, [locked.rows.item(0).resource], asyncCallback.successCallback, asyncCallback.errorCallback);
+          tx.executeSql('DELETE FROM "conditional_representation" WHERE "lock" = ?;', [lock_id], asyncCallback.successCallback, asyncCallback.errorCallback);
+          tx.executeSql('DELETE FROM "resource-is_under-lock" WHERE "lock" = ?;', [lock_id], asyncCallback.successCallback, asyncCallback.errorCallback);
+          return asyncCallback.endAdding();
         });
       });
       tx.executeSql('DELETE FROM "lock-belongs_to-transaction" WHERE "lock" = ?;', [lock_id]);
       return tx.executeSql('DELETE FROM "lock" WHERE "id" = ?;', [lock_id]);
     };
     validateDB = function(tx, sqlmod, successCallback, failureCallback) {
-      var errors, rule, totalExecuted, totalQueries, _i, _len, _ref;
-      errors = [];
-      totalQueries = 0;
-      totalExecuted = 0;
+      var asyncCallback, rule, _i, _len, _ref;
+      asyncCallback = createAsyncQueueCallback(function() {
+        tx.end();
+        return successCallback(tx);
+      }, function(errors) {
+        tx.rollback();
+        return failureCallback(tx, errors);
+      });
+      asyncCallback.addWork(sqlmod.rules.length);
       _ref = sqlmod.rules;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         rule = _ref[_i];
-        totalQueries++;
         tx.executeSql(rule.sql, [], (function(rule) {
           return function(tx, result) {
             var _ref2;
-            totalExecuted++;
             if ((_ref2 = result.rows.item(0).result) === false || _ref2 === 0) {
-              errors.push(rule.structuredEnglish);
-            }
-            if (totalQueries === totalExecuted) {
-              if (errors.length > 0) {
-                tx.rollback();
-                return failureCallback(errors);
-              } else {
-                tx.end();
-                return successCallback(tx, result);
-              }
+              return asyncCallback.errorCallback(rule.structuredEnglish);
+            } else {
+              return asyncCallback.successCallback();
             }
           };
         })(rule));
       }
-      if (totalQueries === 0) return successCallback(tx, "");
+      return asyncCallback.endAdding();
     };
-    executeSasync = function(tx, sqlmod, successCallback, failureCallback, result) {
+    executeSasync = function(tx, sqlmod, successCallback, failureCallback) {
       var createStatement, _i, _len, _ref;
       _ref = sqlmod.createSchema;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
@@ -252,19 +312,18 @@
       }
       return validateDB(tx, sqlmod, successCallback, failureCallback);
     };
-    executeTasync = function(tx, trnmod, successCallback, failureCallback, result) {
-      return executeSasync(tx, trnmod, function(tx, result) {
+    executeTasync = function(tx, trnmod, successCallback, failureCallback) {
+      return executeSasync(tx, trnmod, function(tx) {
         tx.executeSql('ALTER TABLE "resource-is_under-lock" ADD COLUMN resource_type TEXT');
         tx.executeSql('ALTER TABLE "resource-is_under-lock" DROP CONSTRAINT "resource-is_under-lock_resource_id_fkey";');
         tx.executeSql('ALTER TABLE "conditional_representation" ADD COLUMN field_name TEXT');
         tx.executeSql('ALTER TABLE "conditional_representation" ADD COLUMN field_value TEXT');
         tx.executeSql('ALTER TABLE "conditional_representation" ADD COLUMN field_type TEXT');
-        tx.executeSql('ALTER TABLE "conditional_representation" ADD COLUMN lock INTEGER');
-        return successCallback(tx, result);
-      }, function(errors) {
+        return successCallback(tx);
+      }, function(tx, errors) {
         serverModelCache.setModelAreaDisabled(false);
         return failureCallback(errors);
-      }, result);
+      });
     };
     updateRules = function(sqlmod) {
       var createStatement, rule, _i, _j, _len, _len2, _ref, _ref2, _results;
@@ -366,7 +425,7 @@
           AbstractSQL2SQL = AbstractSQL2SQL.websql;
         }
         serverModelCache();
-        transactionModel = 'Term:      resource\nTerm:      transaction\nTerm:      lock\nTerm:      conditional representation\nFact type: lock is exclusive\nFact type: lock is shared\nFact type: resource is under lock\nFact type: lock belongs to transaction\nRule:      It is obligatory that each resource is under at most 1 lock that is exclusive';
+        transactionModel = 'Term:      Integer\nTerm:      resource\nTerm:      transaction\nTerm:      lock\nTerm:      conditional representation\n	Concept type: Integer\n	Database Value Field: lock\nFact type: lock is exclusive\nFact type: lock is shared\nFact type: resource is under lock\nFact type: lock belongs to transaction\nRule:      It is obligatory that each resource is under at most 1 lock that is exclusive';
         transactionModel = SBVRParser.matchAll(transactionModel, "expr");
         transactionModel = LF2AbstractSQLPrep.match(transactionModel, "Process");
         transactionModel = LF2AbstractSQL.match(transactionModel, "Process");
@@ -404,8 +463,8 @@
         sqlmod = AbstractSQL2SQL(prepmod, "trans");
         return db.transaction(function(tx) {
           tx.begin();
-          return executeSasync(tx, sqlmod, function(tx, result) {
-            return executeTasync(tx, transactionModel, function(tx, result) {
+          return executeSasync(tx, sqlmod, function(tx) {
+            return executeTasync(tx, transactionModel, function(tx) {
               serverModelCache.setModelAreaDisabled(true);
               serverModelCache.setServerOnAir(true);
               serverModelCache.setLastSE(se);
@@ -413,11 +472,11 @@
               serverModelCache.setPrepLF(prepmod);
               serverModelCache.setSQL(sqlmod);
               serverModelCache.setTrans(transactionModel);
-              return res.json(result);
-            }, function(errors) {
+              return res.send(200);
+            }, function(tx, errors) {
               return res.json(errors, 404);
-            }, result);
-          }, function(errors) {
+            });
+          }, function(tx, errors) {
             return res.json(errors, 404);
           });
         });
@@ -434,28 +493,30 @@
         });
       });
       app.put('/importdb', function(req, res, next) {
-        var imported, queries;
+        var asyncCallback, queries;
         queries = req.body.split(";");
-        imported = 0;
-        db.transaction(function(tx) {
-          var query, _i, _len, _results;
-          _results = [];
+        asyncCallback = createAsyncQueueCallback(function() {
+          return res.send(200);
+        }, function() {
+          return res.send(404);
+        });
+        return db.transaction(function(tx) {
+          var query, _i, _len;
           for (_i = 0, _len = queries.length; _i < _len; _i++) {
             query = queries[_i];
             if (query.trim().length > 0) {
-              _results.push((function(query) {
-                return tx.executeSql(query, [], (function(tx, result) {
-                  return console.log("Import Success", imported++);
-                }), function(tx, error) {
+              (function(query) {
+                asyncCallback.addWork();
+                return tx.executeSql(query, [], asyncCallback.successCallback, function(tx, error) {
                   console.log(query);
-                  return console.log(error);
+                  console.log(error);
+                  return asyncCallback.errorCallback;
                 });
-              })(query));
+              })(query);
             }
           }
-          return _results;
+          return asyncCallback.endAdding();
         });
-        return res.send(200);
       });
       app.get('/exportdb', function(req, res, next) {
         var env;
@@ -472,13 +533,17 @@
         } else {
           return db.transaction(function(tx) {
             return tx.tableList(function(tx, result) {
-              var exported, exportsProcessed, i, tbn, totalExports, _fn, _ref;
-              totalExports = result.rows.length + 1;
-              exportsProcessed = 0;
+              var asyncCallback, exported, i, tbn, _fn, _ref;
               exported = '';
+              asyncCallback = createAsyncQueueCallback(function() {
+                return res.json(exported);
+              }, function() {
+                return res.send(404);
+              });
+              asyncCallback.addWork(result.rows.length);
               _fn = function(tbn) {
                 return db.transaction(function(tx) {
-                  return tx.executeSql('SELECT * FROM "' + tbn + '";', [], (function(tx, result) {
+                  return tx.executeSql('SELECT * FROM "' + tbn + '";', [], function(tx, result) {
                     var currRow, i, insQuery, notFirst, propName, valQuery, _ref2;
                     insQuery = "";
                     for (i = 0, _ref2 = result.rows.length; 0 <= _ref2 ? i < _ref2 : i > _ref2; 0 <= _ref2 ? i++ : i--) {
@@ -500,11 +565,8 @@
                       insQuery += ") values (" + valQuery + ");\n";
                     }
                     exported += insQuery;
-                    exportsProcessed++;
-                    if (exportsProcessed === totalExports) {
-                      return res.json(exported);
-                    }
-                  }));
+                    return asyncCallback.successCallback();
+                  }, asyncCallback.errorCallback);
                 });
               };
               for (i = 0, _ref = result.rows.length; 0 <= _ref ? i < _ref : i > _ref; 0 <= _ref ? i++ : i--) {
@@ -513,8 +575,7 @@
                 exported += result.rows.item(i).sql + ";\n";
                 _fn(tbn);
               }
-              exportsProcessed++;
-              if (exportsProcessed === totalExports) return res.json(exported);
+              return asyncCallback.endAdding();
             }, null, "name NOT LIKE '%_buk'");
           });
         }
@@ -691,9 +752,9 @@
             id = getID(tree);
             return db.transaction((function(tx) {
               return tx.executeSql('SELECT * FROM "lock-belongs_to-transaction" WHERE "transaction" = ?;', [id], function(tx, locks) {
-                return endLock(tx, locks, 0, id, function(tx, result) {
-                  return res.json(result);
-                }, function(errors) {
+                return endLock(tx, locks, 0, id, function(tx) {
+                  return res.send(200);
+                }, function(tx, errors) {
                   return res.json(errors, 404);
                 });
               });
@@ -723,11 +784,11 @@
             return db.transaction(function(tx) {
               tx.begin();
               return tx.executeSql(sql, values, function(tx, sqlResult) {
-                return validateDB(tx, serverModelCache.getSQL(), function(tx, result) {
-                  return res.json(result, {
-                    location: "/data/" + tree[1][1] + "*filt:" + tree[1][1] + ".id=" + (isAttribute ? binds[0] : sqlResult.insertId)
-                  }, 201);
-                }, function(errors) {
+                return validateDB(tx, serverModelCache.getSQL(), function(tx) {
+                  return res.send(201, {
+                    location: "/data/" + tree[1][1] + "*filt:" + tree[1][1] + ".id=" + (isAttribute ? values[0] : sqlResult.insertId)
+                  });
+                }, function(tx, errors) {
                   return res.json(errors, 404);
                 });
               });
@@ -744,19 +805,26 @@
           id = getID(tree);
           if (tree[1][1] === "lock" && hasCR(tree)) {
             return db.transaction(function(tx) {
-              var key, pair, sql, value, _i, _len, _ref;
-              tx.executeSql('DELETE FROM "conditional_representation" WHERE "lock" = ?;', [id]);
-              sql = 'INSERT INTO "conditional_representation"' + '("lock","field_name","field_type","field_value")' + "VALUES (?, ?, ?, ?)";
-              _ref = req.body;
-              for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-                pair = _ref[_i];
-                for (key in pair) {
-                  if (!__hasProp.call(pair, key)) continue;
-                  value = pair[key];
-                  tx.executeSql(sql, [id, key, typeof value, value]);
+              return tx.executeSql('DELETE FROM "conditional_representation" WHERE "lock" = ?;', [id], function(tx, result) {
+                var asyncCallback, key, pair, sql, value, _i, _len, _ref;
+                asyncCallback = createAsyncQueueCallback(function() {
+                  return res.send(200);
+                }, function() {
+                  return res.send(404);
+                });
+                sql = 'INSERT INTO "conditional_representation"' + '("lock","field_name","field_type","field_value")' + "VALUES (?, ?, ?, ?)";
+                _ref = req.body;
+                for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+                  pair = _ref[_i];
+                  for (key in pair) {
+                    if (!__hasProp.call(pair, key)) continue;
+                    value = pair[key];
+                    asyncCallback.addWork();
+                    tx.executeSql(sql, [id, key, typeof value, value], asyncCallback.successCallback, asyncCallback.errorCallback);
+                  }
                 }
-              }
-              return res.send(200);
+                return asyncCallback.endAdding();
+              });
             });
           } else {
             return db.transaction((function(tx) {
@@ -779,10 +847,10 @@
                     binds.push(id);
                     tx.begin();
                     return tx.executeSql('UPDATE "' + tree[1][1] + '" SET ' + setStatements.join(", ") + " WHERE id = ?;", binds, function(tx) {
-                      return validateDB(tx, serverModelCache.getSQL(), function(tx, result) {
+                      return validateDB(tx, serverModelCache.getSQL(), function(tx) {
                         tx.end();
-                        return res.json(result);
-                      }, function(errors) {
+                        return res.send(200);
+                      }, function(tx, errors) {
                         return res.json(errors, 404);
                       });
                     });
@@ -805,9 +873,16 @@
           if (id !== 0) {
             if (tree[1][1] === "lock" && hasCR(tree)) {
               return db.transaction(function(tx) {
-                tx.executeSql('DELETE FROM "conditional_representation" WHERE "lock" = ?;', [id]);
-                tx.executeSql('INSERT INTO "conditional_representation" ("lock","field_name","field_type","field_value")' + "VALUES (?,'__DELETE','','')", [id]);
-                return res.send(200);
+                var asyncCallback;
+                asyncCallback = createAsyncQueueCallback(function() {
+                  return res.send(200);
+                }, function() {
+                  return res.send(404);
+                });
+                asyncCallback.addWork(2);
+                tx.executeSql('DELETE FROM "conditional_representation" WHERE "lock" = ?;', [id], asyncCallback.successCallback, asyncCallback.errorCallback);
+                tx.executeSql('INSERT INTO "conditional_representation" ("lock","field_name","field_type","field_value")' + "VALUES (?,'__DELETE','','')", [id], asyncCallback.successCallback, asyncCallback.errorCallback);
+                return asyncCallback.endAdding();
               });
             } else {
               return db.transaction((function(tx) {
@@ -822,10 +897,10 @@
                       sql = 'DELETE FROM "' + table.name + '" WHERE "' + table.idField + '" = ?;';
                     }
                     return tx.executeSql(sql, [id], function(tx, result) {
-                      return validateDB(tx, serverModelCache.getSQL(), function(tx, result) {
+                      return validateDB(tx, serverModelCache.getSQL(), function(tx) {
                         tx.end();
-                        return res.json(result);
-                      }, function(errors) {
+                        return res.send(200);
+                      }, function(tx, errors) {
                         return res.json(errors, 404);
                       });
                     });

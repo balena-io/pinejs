@@ -7,6 +7,42 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 		ne: "!="
 		lk: "~"
 	
+	createAsyncQueueCallback = (successCallback, errorCallback, successCollectFunc = ((arg) -> return arg), errorCollectFunc = ((arg) -> return arg)) ->
+		totalQueries = 0
+		queriesFinished = 0
+		endedAdding = false
+		error = false
+		results = []
+		errors = []
+		checkFinished = () ->
+			if(endedAdding && queriesFinished == totalQueries)
+				if(error)
+					errorCallback(errors)
+				else
+					successCallback(results)
+		return {
+			addWork: (amount = 1) ->
+				if(endedAdding)
+					throw 'You cannot add after ending adding'
+				totalQueries += amount
+			endAdding: () ->
+				if(endedAdding)
+					throw 'You cannot end adding twice'
+				endedAdding = true
+				checkFinished()
+			successCallback: () ->
+				if(successCollectFunc?)
+					results.push(successCollectFunc.apply(null, arguments))
+				queriesFinished++
+				checkFinished()
+			errorCallback: () ->
+				if(errorCollectFunc?)
+					errors.push(errorCollectFunc.apply(null, arguments))
+				error = true
+				queriesFinished++
+				checkFinished()
+		}
+	
 	rebuildFactType = (factType) ->
 		factType = factType.split('-')
 		for factTypePart, key in factType
@@ -122,29 +158,35 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 
 
 	endLock = (tx, locks, i, trans_id, successCallback, failureCallback) ->
-		continueEndingLock = (tx, result) ->
+		continueEndingLock = (tx) ->
 			if i < locks.rows.length - 1
 				endLock(tx, locks, i + 1, trans_id, successCallback, failureCallback)
 			else
-				tx.executeSql 'DELETE FROM "transaction" WHERE "id" = ?;', [trans_id]
-
-				validateDB(tx, serverModelCache.getSQL(), successCallback, failureCallback)
-
+				tx.executeSql('DELETE FROM "transaction" WHERE "id" = ?;', [trans_id],
+					(tx, result) ->
+						validateDB(tx, serverModelCache.getSQL(), successCallback, failureCallback)
+					(tx, error) ->
+						failureCallback(tx, [error])
+				)
 
 		# get conditional representations (if exist)
 		lock_id = locks.rows.item(i).lock
 		tx.executeSql('SELECT * FROM "conditional_representation" WHERE "lock" = ?;', [lock_id], (tx, crs) ->
-			#find which resource is under this lock
+			# find which resource is under this lock
 			tx.executeSql('SELECT * FROM "resource-is_under-lock" WHERE "lock" = ?;', [lock_id], (tx, locked) ->
 				{table, isAttribute} = getCorrectTableInfo(locked.rows.item(0).resource_type)
+				asyncCallback = createAsyncQueueCallback(
+					() ->
+						continueEndingLock(tx)
+					(errors) ->
+						failureCallback(tx, errors)
+				)
 				if crs.rows.item(0).field_name == "__DELETE"
 					# delete said resource
 					if isAttribute
 						sql = 'UPDATE "' + table.name + '" SET "' + isAttribute.attributeName + '" = 0 WHERE "' + table.idField + '" = ?;'
 					else
 						sql = 'DELETE FROM "' + table.name + '" WHERE "' + table.idField + '" = ?;'
-					
-					tx.executeSql(sql, [locked.rows.item(0).resource], continueEndingLock)
 				else
 					# commit conditional_representation
 					sql = 'UPDATE "' + table.name + '" SET '
@@ -157,10 +199,12 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 						else
 							sql += item.field_value
 						sql += ", " if j < crs.rows.length - 1
-					sql += ' WHERE "' + table.idField + '"=' + locked.rows.item(0).resource + ';'
-					tx.executeSql sql, [], continueEndingLock
-				tx.executeSql 'DELETE FROM "conditional_representation" WHERE "lock" = ?;', [lock_id]
-				tx.executeSql 'DELETE FROM "resource-is_under-lock" WHERE "lock" = ?;', [lock_id]
+					sql += ' WHERE "' + table.idField + '" = ? ;'
+				asyncCallback.addWork(3)
+				tx.executeSql(sql, [locked.rows.item(0).resource], asyncCallback.successCallback, asyncCallback.errorCallback)
+				tx.executeSql('DELETE FROM "conditional_representation" WHERE "lock" = ?;', [lock_id], asyncCallback.successCallback, asyncCallback.errorCallback)
+				tx.executeSql('DELETE FROM "resource-is_under-lock" WHERE "lock" = ?;', [lock_id], asyncCallback.successCallback, asyncCallback.errorCallback)
+				asyncCallback.endAdding()
 			)
 		)
 
@@ -168,35 +212,31 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 		tx.executeSql 'DELETE FROM "lock" WHERE "id" = ?;', [lock_id]
 
 	# successCallback = (tx, sqlmod, failureCallback, result)
-	# failureCallback = (errors)
+	# failureCallback = (tx, errors)
 	validateDB = (tx, sqlmod, successCallback, failureCallback) ->
-		errors = []
-		totalQueries = 0
-		totalExecuted = 0
+		asyncCallback = createAsyncQueueCallback(
+			() ->
+				tx.end()
+				successCallback(tx)
+			(errors) ->
+				tx.rollback()
+				failureCallback(tx, errors)
+		)
 
+		asyncCallback.addWork(sqlmod.rules.length)
 		for rule in sqlmod.rules
-			totalQueries++
 			tx.executeSql(rule.sql, [], do(rule) ->
 				(tx, result) ->
-					totalExecuted++
 					if result.rows.item(0).result in [false, 0]
-						errors.push(rule.structuredEnglish)
-
-					if totalQueries == totalExecuted
-						if errors.length > 0
-							tx.rollback()
-							failureCallback(errors)
-						else
-							tx.end()
-							successCallback tx, result
+						asyncCallback.errorCallback(rule.structuredEnglish)
+					else
+						asyncCallback.successCallback()
 			)
-		if totalQueries == 0
-			successCallback tx, ""
+		asyncCallback.endAdding()
 
-
-	# successCallback = (tx, sqlmod, failureCallback, result)
-	# failureCallback = (errors)
-	executeSasync = (tx, sqlmod, successCallback, failureCallback, result) ->
+	# successCallback = (tx, sqlmod, failureCallback)
+	# failureCallback = (tx, errors)
+	executeSasync = (tx, sqlmod, successCallback, failureCallback) ->
 		# Create tables related to terms and fact types
 		for createStatement in sqlmod.createSchema
 			tx.executeSql(createStatement)
@@ -207,11 +247,11 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 		validateDB(tx, sqlmod, successCallback, failureCallback)
 
 
-	# successCallback = (tx, sqlmod, failureCallback, result)
-	# failureCallback = (errors)
-	executeTasync = (tx, trnmod, successCallback, failureCallback, result) ->
+	# successCallback = (tx, sqlmod, failureCallback)
+	# failureCallback = (tx, errors)
+	executeTasync = (tx, trnmod, successCallback, failureCallback) ->
 		# Execute transaction model.
-		executeSasync(tx, trnmod, (tx, result) ->
+		executeSasync(tx, trnmod, (tx) ->
 			# Hack: Add certain attributes to the transaction model tables.
 			# This should eventually be done with SBVR, when we add attributes.
 			tx.executeSql 'ALTER TABLE "resource-is_under-lock" ADD COLUMN resource_type TEXT'
@@ -219,12 +259,10 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 			tx.executeSql 'ALTER TABLE "conditional_representation" ADD COLUMN field_name TEXT'
 			tx.executeSql 'ALTER TABLE "conditional_representation" ADD COLUMN field_value TEXT'
 			tx.executeSql 'ALTER TABLE "conditional_representation" ADD COLUMN field_type TEXT'
-			tx.executeSql 'ALTER TABLE "conditional_representation" ADD COLUMN lock INTEGER'
-			successCallback tx, result
-		, (errors) ->
+			successCallback tx
+		, (tx, errors) ->
 			serverModelCache.setModelAreaDisabled false
 			failureCallback(errors)
-		, result
 		)
 
 
@@ -312,10 +350,13 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 			
 			serverModelCache()
 			transactionModel = '''
+					Term:      Integer
 					Term:      resource
 					Term:      transaction
 					Term:      lock
 					Term:      conditional representation
+						Concept type: Integer
+						Database Value Field: lock
 					Fact type: lock is exclusive
 					Fact type: lock is shared
 					Fact type: resource is under lock
@@ -346,9 +387,9 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 			
 			db.transaction((tx) ->
 				tx.begin()
-				executeSasync(tx, sqlmod, (tx, result) ->
+				executeSasync(tx, sqlmod, (tx) ->
 					# TODO: fix this as soon as the successCallback mess is fixed
-					executeTasync(tx, transactionModel, (tx, result) ->
+					executeTasync(tx, transactionModel, (tx) ->
 						serverModelCache.setModelAreaDisabled(true)
 						serverModelCache.setServerOnAir true
 						serverModelCache.setLastSE se
@@ -356,12 +397,11 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 						serverModelCache.setPrepLF prepmod
 						serverModelCache.setSQL sqlmod
 						serverModelCache.setTrans transactionModel
-						res.json(result)
-					, (errors) ->
+						res.send(200)
+					, (tx, errors) ->
 						res.json(errors, 404)
-					, result
 					)
-				, (errors) ->
+				, (tx, errors) ->
 					res.json(errors, 404)
 				)
 			)
@@ -376,16 +416,21 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 		)
 		app.put('/importdb', (req, res, next) ->
 			queries = req.body.split(";")
-			imported = 0
+			asyncCallback = createAsyncQueueCallback(
+				() ->
+					res.send(200)
+				() ->
+					res.send(404)
+			)
 			db.transaction (tx) ->
 				for query in queries when query.trim().length > 0
 					do (query) ->
-						tx.executeSql query, [], ((tx, result) ->
-							console.log "Import Success", imported++
-						), (tx, error) ->
-							console.log query
-							console.log error
-			res.send(200)
+						asyncCallback.addWork()
+						tx.executeSql query, [], asyncCallback.successCallback, (tx, error) ->
+							console.log(query)
+							console.log(error)
+							asyncCallback.errorCallback
+				asyncCallback.endAdding()
 		)
 		app.get('/exportdb', (req, res, next) ->
 			if process?
@@ -400,39 +445,42 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 				db.transaction (tx) ->
 					tx.tableList(
 						(tx, result) ->
-							totalExports = result.rows.length + 1
-							exportsProcessed = 0
 							exported = ''
+							asyncCallback = createAsyncQueueCallback(
+								() ->
+									res.json(exported)
+								() ->
+									res.send(404)
+							)
+							asyncCallback.addWork(result.rows.length)
 							for i in [0...result.rows.length]
 								tbn = result.rows.item(i).name
 								exported += 'DROP TABLE IF EXISTS "' + tbn + '";\n'
 								exported += result.rows.item(i).sql + ";\n"
 								do (tbn) ->
 									db.transaction (tx) ->
-										tx.executeSql 'SELECT * FROM "' + tbn + '";', [], ((tx, result) ->
-											insQuery = ""
-											for i in [0...result.rows.length]
-												currRow = result.rows.item(i)
-												notFirst = false
-												insQuery += 'INSERT INTO "' + tbn + '" ('
-												valQuery = ''
-												for own propName of currRow
-													if notFirst
-														insQuery += ","
-														valQuery += ","
-													else
-														notFirst = true
-													insQuery += '"' + propName + '"'
-													valQuery += "'" + currRow[propName] + "'"
-												insQuery += ") values (" + valQuery + ");\n"
-											exported += insQuery
-											exportsProcessed++
-											if exportsProcessed == totalExports
-												res.json(exported)
+										tx.executeSql('SELECT * FROM "' + tbn + '";', [], 
+											(tx, result) ->
+												insQuery = ""
+												for i in [0...result.rows.length]
+													currRow = result.rows.item(i)
+													notFirst = false
+													insQuery += 'INSERT INTO "' + tbn + '" ('
+													valQuery = ''
+													for own propName of currRow
+														if notFirst
+															insQuery += ","
+															valQuery += ","
+														else
+															notFirst = true
+														insQuery += '"' + propName + '"'
+														valQuery += "'" + currRow[propName] + "'"
+													insQuery += ") values (" + valQuery + ");\n"
+												exported += insQuery
+												asyncCallback.successCallback()
+											asyncCallback.errorCallback
 										)
-							exportsProcessed++
-							if exportsProcessed == totalExports
-								res.json(exported)
+							asyncCallback.endAdding()
 						null
 						"name NOT LIKE '%_buk'"
 					)
@@ -571,16 +619,17 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 				tree = req.tree
 				# figure out if it's a POST to transaction/execute
 				if tree[1][1] == "transaction" and isExecute(tree)
-					id = getID tree
+					id = getID(tree)
 
 					# get all locks of transaction
 					db.transaction ((tx) ->
-						tx.executeSql 'SELECT * FROM "lock-belongs_to-transaction" WHERE "transaction" = ?;', [id], (tx, locks) ->
-							endLock(tx, locks, 0, id, (tx, result) ->
-								res.json(result)
-							, (errors) ->
+						tx.executeSql('SELECT * FROM "lock-belongs_to-transaction" WHERE "transaction" = ?;', [id], (tx, locks) ->
+							endLock(tx, locks, 0, id, (tx) ->
+								res.send(200)
+							, (tx, errors) ->
 								res.json(errors, 404)
 							)
+						)
 					)
 				else
 					fields = []
@@ -598,18 +647,18 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 					else
 						sql = 'INSERT INTO "' + table.name + '" ("' + fields.join('","') + '") VALUES (' + binds.join(",") + ');'
 					
-					db.transaction (tx) ->
+					db.transaction( (tx) ->
 						tx.begin()
 						tx.executeSql(sql, values, (tx, sqlResult) ->
-							validateDB(tx, serverModelCache.getSQL(), (tx, result) ->
-								res.json(result,
-									location: "/data/" + tree[1][1] + "*filt:" + tree[1][1] + ".id=" + if isAttribute then binds[0] else sqlResult.insertId
-									201
+							validateDB(tx, serverModelCache.getSQL(), (tx) ->
+								res.send(201,
+									location: "/data/" + tree[1][1] + "*filt:" + tree[1][1] + ".id=" + if isAttribute then values[0] else sqlResult.insertId
 								)
-							, (errors) ->
+							, (tx, errors) ->
 								res.json(errors, 404)
 							)
 						)
+					)
 		)
 
 		app.put('/data/*', serverIsOnAir, parseURITree, (req, res, next) ->
@@ -621,15 +670,22 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 				if tree[1][1] == "lock" and hasCR(tree)
 					# CR posted to Lock
 					db.transaction (tx) ->
-						tx.executeSql 'DELETE FROM "conditional_representation" WHERE "lock" = ?;', [id]
-
-						sql = 'INSERT INTO "conditional_representation"' +
-							'("lock","field_name","field_type","field_value")' +
-							"VALUES (?, ?, ?, ?)"
-						for pair in req.body
-							for own key, value of pair
-								tx.executeSql(sql, [ id, key, typeof value, value ])
-						res.send(200)
+						tx.executeSql('DELETE FROM "conditional_representation" WHERE "lock" = ?;', [id], (tx, result) ->
+							asyncCallback = createAsyncQueueCallback(
+								() ->
+									res.send(200)
+								() ->
+									res.send(404)
+							)
+							sql = 'INSERT INTO "conditional_representation"' +
+								'("lock","field_name","field_type","field_value")' +
+								"VALUES (?, ?, ?, ?)"
+							for pair in req.body
+								for own key, value of pair
+									asyncCallback.addWork()
+									tx.executeSql(sql, [ id, key, typeof value, value ], asyncCallback.successCallback, asyncCallback.errorCallback)
+							asyncCallback.endAdding()
+						)
 				else
 					db.transaction ((tx) ->
 						tx.executeSql 'SELECT NOT EXISTS(SELECT * FROM "resource-is_under-lock" AS r WHERE r."resource_type" = ? AND r."resource" = ?) AS result;', [tree[1][1], id], (tx, result) ->
@@ -644,10 +700,10 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 									binds.push(id)
 									tx.begin()
 									tx.executeSql('UPDATE "' + tree[1][1] + '" SET ' + setStatements.join(", ") + " WHERE id = ?;", binds, (tx) ->
-										validateDB(tx, serverModelCache.getSQL(), (tx, result) ->
+										validateDB(tx, serverModelCache.getSQL(), (tx) ->
 											tx.end()
-											res.json(result)
-										, (errors) ->
+											res.send(200)
+										, (tx, errors) ->
 											res.json(errors, 404)
 										)
 									)
@@ -667,13 +723,20 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 						# CR posted to Lock
 						# insert delete entry
 						db.transaction (tx) ->
-							tx.executeSql 'DELETE FROM "conditional_representation" WHERE "lock" = ?;', [id]
-							tx.executeSql 'INSERT INTO "conditional_representation" ("lock","field_name","field_type","field_value")' +
-										"VALUES (?,'__DELETE','','')", [id]
-							res.send(200)
+							asyncCallback = createAsyncQueueCallback(
+								() ->
+									res.send(200)
+								() ->
+									res.send(404)
+							)
+							asyncCallback.addWork(2)
+							tx.executeSql('DELETE FROM "conditional_representation" WHERE "lock" = ?;', [id], asyncCallback.successCallback, asyncCallback.errorCallback)
+							tx.executeSql('INSERT INTO "conditional_representation" ("lock","field_name","field_type","field_value")' +
+										"VALUES (?,'__DELETE','','')", [id], asyncCallback.successCallback, asyncCallback.errorCallback)
+							asyncCallback.endAdding()
 					else
 						db.transaction ((tx) ->
-							tx.executeSql 'SELECT NOT EXISTS(SELECT * FROM "resource-is_under-lock" AS r WHERE r."resource_type" = ? AND r."resource" = ?) AS result;', [tree[1][1], id], (tx, result) ->
+							tx.executeSql('SELECT NOT EXISTS(SELECT * FROM "resource-is_under-lock" AS r WHERE r."resource_type" = ? AND r."resource" = ?) AS result;', [tree[1][1], id], (tx, result) ->
 								if result.rows.item(0).result in [1, true]
 									tx.begin()
 									{table, isAttribute} = getCorrectTableInfo(tree[1][1])
@@ -683,15 +746,16 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 										sql = 'DELETE FROM "' + table.name + '" WHERE "' + table.idField + '" = ?;'
 									
 									tx.executeSql(sql, [id], (tx, result) ->
-										validateDB(tx, serverModelCache.getSQL(), (tx, result) ->
+										validateDB(tx, serverModelCache.getSQL(), (tx) ->
 											tx.end()
-											res.json(result)
-										, (errors) ->
+											res.send(200)
+										, (tx, errors) ->
 											res.json(errors, 404)
 										)
 									)
 								else
 									res.json([ "The resource is locked and cannot be deleted" ], 404)
+							)
 						)
 		)
 

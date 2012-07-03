@@ -45,11 +45,11 @@ define((requirejs, exports, module) ->
 							failureCallback(statusCode, obj, headers)
 						else
 							successCallback(statusCode, obj, headers)
-					send: (statusCode) ->
+					send: (statusCode, headers) ->
 						if statusCode == 404
-							failureCallback(statusCode)
+							failureCallback(statusCode, null, headers)
 						else
-							successCallback(statusCode)
+							successCallback(statusCode, null, headers)
 				next = (route) ->
 					j++
 					if route == 'route' or j >= methodHandlers[i].middleware.length

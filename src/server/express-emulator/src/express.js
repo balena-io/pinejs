@@ -77,11 +77,11 @@
                 return successCallback(statusCode, obj, headers);
               }
             },
-            send: function(statusCode) {
+            send: function(statusCode, headers) {
               if (statusCode === 404) {
-                return failureCallback(statusCode);
+                return failureCallback(statusCode, null, headers);
               } else {
-                return successCallback(statusCode);
+                return successCallback(statusCode, null, headers);
               }
             }
           };
