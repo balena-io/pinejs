@@ -25,8 +25,8 @@ define(['ometa/ometa-base'], function() {
 			-> l.join(''),
 
 		mdtp =
-				``filt''
-			|	``sort'',
+				seq('filt')
+			|	seq('sort'),
 
 		parm =
 			part:t
@@ -36,7 +36,7 @@ define(['ometa/ometa-base'], function() {
 			):f
 			(	'='
 				-> 'eq'
-			|	``!=''
+			|	seq('!=')
 				-> 'ne'
 			|	'~'
 				-> 'lk'
@@ -56,8 +56,8 @@ define(['ometa/ometa-base'], function() {
 			)+
 			| -> [],
 		comm =
-				``cr''
-			|	``execute'',
+				seq('cr')
+			|	seq('execute'),
 		Term =
 			(	letter
 			|	'_'
