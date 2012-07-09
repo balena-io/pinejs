@@ -2,27 +2,22 @@ define(['ometa/ometa-base'], function() {
 	var ServerURIParser;
 	ometa ServerURIParser{
 		word =
-			(	letter
-			|	'-'
-			)+:l
-			-> l.join(''),
+			<	(	letter
+				|	'-'
+				)+
+			>,
 
-		dgit =
-			^digit:d
-			-> d.digitValue(),
 		nmbr =
-				nmbr:n
-				dgit:d
-				-> (n * 10 + d)
-			|	dgit,
+			<digit+>:number
+			-> parseInt(number, 10),
 
 		part =
-			(	letter
-			|	digit
-			|	'-'
-			|	'_'
-			)+:l
-			-> l.join(''),
+			<	(	letter
+				|	digit
+				|	'-'
+				|	'_'
+				)+
+			>,
 
 		mdtp =
 				seq('filt')
@@ -61,15 +56,15 @@ define(['ometa/ometa-base'], function() {
 				seq('cr')
 			|	seq('execute'),
 		Term =
-			(	letter
-			|	'_'
-			)+:l
-			-> l.join(''),
+			<	(	letter
+				|	'_'
+				)+
+			>,
 		Verb =
-			(	letter
-			|	'_'
-			)+:l
-			-> l.join(''),
+			<	(	letter
+				|	'_'
+				)+
+			>,
 
 		trmf =
 			Term:t

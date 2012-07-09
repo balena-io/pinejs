@@ -3,66 +3,58 @@ define(["ometa/ometa-base"], (function() {
     ServerURIParser = objectThatDelegatesTo(OMeta, {
         "word": function() {
             var $elf = this,
-                _fromIdx = this.input.idx,
-                l;
-            l = this._many1((function() {
-                return this._or((function() {
-                    return this._apply("letter")
-                }), (function() {
-                    return (function() {
-                        switch (this._apply('anything')) {
-                        case "-":
-                            return "-";
-                        default:
-                            throw fail
-                        }
-                    }).call(this)
+                _fromIdx = this.input.idx;
+            return this._consumedBy((function() {
+                return this._many1((function() {
+                    return this._or((function() {
+                        return this._apply("letter")
+                    }), (function() {
+                        return (function() {
+                            switch (this._apply('anything')) {
+                            case "-":
+                                return "-";
+                            default:
+                                throw fail
+                            }
+                        }).call(this)
+                    }))
                 }))
-            }));
-            return l.join("")
-        },
-        "dgit": function() {
-            var $elf = this,
-                _fromIdx = this.input.idx,
-                d;
-            d = OMeta._superApplyWithArgs(this, 'digit');
-            return d.digitValue()
+            }))
         },
         "nmbr": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                n, d;
-            return this._or((function() {
-                n = this._apply("nmbr");
-                d = this._apply("dgit");
-                return ((n * (10)) + d)
-            }), (function() {
-                return this._apply("dgit")
-            }))
+                number;
+            number = this._consumedBy((function() {
+                return this._many1((function() {
+                    return this._apply("digit")
+                }))
+            }));
+            return parseInt(number, (10))
         },
         "part": function() {
             var $elf = this,
-                _fromIdx = this.input.idx,
-                l;
-            l = this._many1((function() {
-                return this._or((function() {
-                    return this._apply("letter")
-                }), (function() {
-                    return this._apply("digit")
-                }), (function() {
-                    return (function() {
-                        switch (this._apply('anything')) {
-                        case "-":
-                            return "-";
-                        case "_":
-                            return "_";
-                        default:
-                            throw fail
-                        }
-                    }).call(this)
+                _fromIdx = this.input.idx;
+            return this._consumedBy((function() {
+                return this._many1((function() {
+                    return this._or((function() {
+                        return this._apply("letter")
+                    }), (function() {
+                        return this._apply("digit")
+                    }), (function() {
+                        return (function() {
+                            switch (this._apply('anything')) {
+                            case "-":
+                                return "-";
+                            case "_":
+                                return "_";
+                            default:
+                                throw fail
+                            }
+                        }).call(this)
+                    }))
                 }))
-            }));
-            return l.join("")
+            }))
         },
         "mdtp": function() {
             var $elf = this,
@@ -184,43 +176,43 @@ define(["ometa/ometa-base"], (function() {
         },
         "Term": function() {
             var $elf = this,
-                _fromIdx = this.input.idx,
-                l;
-            l = this._many1((function() {
-                return this._or((function() {
-                    return this._apply("letter")
-                }), (function() {
-                    return (function() {
-                        switch (this._apply('anything')) {
-                        case "_":
-                            return "_";
-                        default:
-                            throw fail
-                        }
-                    }).call(this)
+                _fromIdx = this.input.idx;
+            return this._consumedBy((function() {
+                return this._many1((function() {
+                    return this._or((function() {
+                        return this._apply("letter")
+                    }), (function() {
+                        return (function() {
+                            switch (this._apply('anything')) {
+                            case "_":
+                                return "_";
+                            default:
+                                throw fail
+                            }
+                        }).call(this)
+                    }))
                 }))
-            }));
-            return l.join("")
+            }))
         },
         "Verb": function() {
             var $elf = this,
-                _fromIdx = this.input.idx,
-                l;
-            l = this._many1((function() {
-                return this._or((function() {
-                    return this._apply("letter")
-                }), (function() {
-                    return (function() {
-                        switch (this._apply('anything')) {
-                        case "_":
-                            return "_";
-                        default:
-                            throw fail
-                        }
-                    }).call(this)
+                _fromIdx = this.input.idx;
+            return this._consumedBy((function() {
+                return this._many1((function() {
+                    return this._or((function() {
+                        return this._apply("letter")
+                    }), (function() {
+                        return (function() {
+                            switch (this._apply('anything')) {
+                            case "_":
+                                return "_";
+                            default:
+                                throw fail
+                            }
+                        }).call(this)
+                    }))
                 }))
-            }));
-            return l.join("")
+            }))
         },
         "trmf": function() {
             var $elf = this,
