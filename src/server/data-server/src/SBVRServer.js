@@ -421,7 +421,7 @@
           AbstractSQL2SQL = AbstractSQL2SQL.websql;
         }
         serverModelCache();
-        transactionModel = 'Term:      Integer\nTerm:      Long Text\nTerm:      resource type\n	Concept type: Long Text\nTerm:      field name\n	Concept type: Long Text\nTerm:      field value\n	Concept type: Long Text\nTerm:      field type\n	Concept type: Long Text\nTerm:      resource\nTerm:      transaction\nTerm:      lock\nTerm:      conditional representation\n	Concept type: Integer\n	Database Value Field: lock\nFact type: lock is exclusive\nFact type: lock is shared\nFact type: resource is under lock\n	Term Form: locked resource\nFact type: locked resource has resource type\nFact type: lock belongs to transaction\nFact type: conditional representation has field name\nFact type: conditional representation has field value\nFact type: conditional representation has field type\nFact type: conditional representation has lock\nRule:      It is obligatory that each locked resource has exactly 1 resource type\nRule:      It is obligatory that each conditional representation has exactly 1 field name\nRule:      It is obligatory that each conditional representation has exactly 1 field value\nRule:      It is obligatory that each conditional representation has exactly 1 field type\nRule:      It is obligatory that each conditional representation has exactly 1 lock\nRule:      It is obligatory that each resource is under at most 1 lock that is exclusive';
+        transactionModel = 'Term:      Integer\nTerm:      Long Text\nTerm:      resource type\n	Concept type: Long Text\nTerm:      field name\n	Concept type: Long Text\nTerm:      field value\n	Concept type: Long Text\nTerm:      field type\n	Concept type: Long Text\nTerm:      resource\nTerm:      transaction\nTerm:      lock\nTerm:      conditional representation\n	Database Value Field: lock\nFact type: lock is exclusive\nFact type: lock is shared\nFact type: resource is under lock\n	Term Form: locked resource\nFact type: locked resource has resource type\nFact type: lock belongs to transaction\nFact type: conditional representation has field name\nFact type: conditional representation has field value\nFact type: conditional representation has field type\nFact type: conditional representation has lock\nRule:      It is obligatory that each locked resource has exactly 1 resource type\nRule:      It is obligatory that each conditional representation has exactly 1 field name\nRule:      It is obligatory that each conditional representation has exactly 1 field value\nRule:      It is obligatory that each conditional representation has exactly 1 field type\nRule:      It is obligatory that each conditional representation has exactly 1 lock\nRule:      It is obligatory that each resource is under at most 1 lock that is exclusive';
         transactionModel = SBVRParser.matchAll(transactionModel, "expr");
         transactionModel = LF2AbstractSQLPrep.match(transactionModel, "Process");
         transactionModel = LF2AbstractSQL.match(transactionModel, "Process");
@@ -577,34 +577,48 @@
         }
       });
       app.post('/backupdb', serverIsOnAir, function(req, res, next) {
-        db.transaction(function(tx) {
+        return db.transaction(function(tx) {
           return tx.tableList(function(tx, result) {
-            var i, tbn, _ref, _results;
+            var asyncCallback, i, tbn, _ref, _results;
+            asyncCallback = createAsyncQueueCallback(function() {
+              return res.send(200);
+            }, function() {
+              return res.send(404);
+            });
+            asyncCallback.addWork(result.rows.length * 2);
             _results = [];
             for (i = 0, _ref = result.rows.length; 0 <= _ref ? i < _ref : i > _ref; 0 <= _ref ? i++ : i--) {
               tbn = result.rows.item(i).name;
-              tx.dropTable(tbn + '_buk', true);
-              _results.push(tx.executeSql('ALTER TABLE "' + tbn + '" RENAME TO "' + tbn + '_buk";'));
+              tx.dropTable(tbn + '_buk', true, asyncCallback.successCallback, asyncCallback.errorCallback);
+              _results.push(tx.executeSql('ALTER TABLE "' + tbn + '" RENAME TO "' + tbn + '_buk";', asyncCallback.successCallback, asyncCallback.errorCallback));
             }
             return _results;
-          }, null, "name NOT LIKE '%_buk'");
+          }, function() {
+            return res.send(404);
+          }, "name NOT LIKE '%_buk'");
         });
-        return res.send(200);
       });
       app.post('/restoredb', serverIsOnAir, function(req, res, next) {
-        db.transaction(function(tx) {
+        return db.transaction(function(tx) {
           return tx.tableList(function(tx, result) {
-            var i, tbn, _ref, _results;
+            var asyncCallback, i, tbn, _ref, _results;
+            asyncCallback = createAsyncQueueCallback(function() {
+              return res.send(200);
+            }, function() {
+              return res.send(404);
+            });
+            asyncCallback.addWork(result.rows.length * 2);
             _results = [];
             for (i = 0, _ref = result.rows.length; 0 <= _ref ? i < _ref : i > _ref; 0 <= _ref ? i++ : i--) {
               tbn = result.rows.item(i).name;
-              tx.dropTable(tbn.slice(0, -4), true);
-              _results.push(tx.executeSql('ALTER TABLE "' + tbn + '" RENAME TO "' + tbn.slice(0, -4) + '";'));
+              tx.dropTable(tbn.slice(0, -4), true, asyncCallback.successCallback, asyncCallback.errorCallback);
+              _results.push(tx.executeSql('ALTER TABLE "' + tbn + '" RENAME TO "' + tbn.slice(0, -4) + '";', asyncCallback.successCallback, asyncCallback.errorCallback));
             }
             return _results;
-          }, null, "name LIKE '%_buk'");
+          }, function() {
+            return res.send(404);
+          }, "name LIKE '%_buk'");
         });
-        return res.send(200);
       });
       app.get('/ui/*', parseURITree, function(req, res, next) {
         if (req.tree[1][1] === "textarea" && req.tree[1][3][1][1][3] === "model_area") {
@@ -631,7 +645,7 @@
         }
       });
       app.get('/data/*', serverIsOnAir, parseURITree, function(req, res, next) {
-        var filts, fl, ft, ftree, isAttribute, jn, key, obj, result, row, row2, sql, sqlmod, table, tb, tree, _i, _j, _k, _len, _len2, _len3, _ref, _ref2, _ref3, _ref4, _ref5;
+        var factType, fields, filts, ftree, isAttribute, joins, key, obj, result, row, row2, sql, sqlmod, table, tables, tree, _i, _j, _k, _len, _len2, _len3, _ref, _ref2, _ref3, _ref4, _ref5;
         tree = req.tree;
         if (tree[1] === void 0) {
           result = {
@@ -673,26 +687,24 @@
           _ref2 = getCorrectTableInfo(tree[1][1]), table = _ref2.table, isAttribute = _ref2.isAttribute;
           if (tree[1][0] === "Term") {
             sql = 'SELECT * FROM "' + table.name + '"';
-            if (ftree.length !== 1) sql += " WHERE ";
           } else if (tree[1][0] === "FactType") {
-            ft = tree[1][1];
+            factType = tree[1][1];
             if (isAttribute) {
-              sql = 'SELECT id, value AS "' + isAttribute.termName + '_value", "' + isAttribute.attributeName + '" FROM "' + table.name + '" WHERE "' + isAttribute.attributeName + '" = 1';
+              sql = 'SELECT id, value AS "' + isAttribute.termName + '_value", "' + isAttribute.attributeName + '" ' + 'FROM "' + table.name + '" ' + 'WHERE "' + isAttribute.attributeName + '" = 1';
             } else {
-              fl = ['"' + ft + '".id AS id'];
-              jn = [];
-              tb = ['"' + ft + '"'];
+              fields = ['"' + factType + '".id AS id'];
+              joins = [];
+              tables = ['"' + factType + '"'];
               _ref3 = tree[1][2].slice(1);
               for (_i = 0, _len = _ref3.length; _i < _len; _i++) {
                 row = _ref3[_i];
-                fl.push('"' + row + '".id AS "' + row + '_id"');
-                fl.push('"' + row + '"."value" AS "' + row + '_value"');
-                tb.push('"' + row + '"');
-                jn.push('"' + row + '".id = "' + ft + '"."' + row + '"');
+                fields.push('"' + row + '".id AS "' + row + '_id"');
+                fields.push('"' + row + '"."value" AS "' + row + '_value"');
+                tables.push('"' + row + '"');
+                joins.push('"' + row + '".id = "' + factType + '"."' + row + '"');
               }
-              sql = "SELECT " + fl.join(", ") + " FROM " + tb.join(", ") + " WHERE " + jn.join(" AND ");
+              sql = "SELECT " + fields.join(", ") + " FROM " + tables.join(", ") + " WHERE " + joins.join(" AND ");
             }
-            if (ftree.length !== 1) sql += " AND ";
           }
           if (ftree.length !== 1) {
             filts = [];
@@ -714,7 +726,7 @@
                 null;
               }
             }
-            sql += filts.join(" AND ");
+            sql += " AND " + filts.join(" AND ");
           }
           if (sql !== "") {
             return db.transaction(function(tx) {
