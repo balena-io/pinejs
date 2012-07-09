@@ -176,8 +176,10 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 			tx.executeSql('SELECT * FROM "resource-is_under-lock" WHERE "lock" = ?;', [lock_id], (tx, locked) ->
 				{table, isAttribute} = getCorrectTableInfo(locked.rows.item(0).resource_type)
 				asyncCallback = createAsyncQueueCallback(
-					() -> continueEndingLock(tx)
-					(errors) -> failureCallback(tx, errors)
+					() ->
+						continueEndingLock(tx)
+					(errors) ->
+						failureCallback(tx, errors)
 				)
 				if crs.rows.item(0).field_name == "__DELETE"
 					# delete said resource
@@ -585,6 +587,8 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 				{table, isAttribute} = getCorrectTableInfo(tree[1][1])
 				if tree[1][0] == "Term"
 					sql = 'SELECT * FROM "' + table.name + '"'
+					if ftree.length != 1
+						sql += " WHERE "
 				else if tree[1][0] == "FactType"
 					factType = tree[1][1]
 					if isAttribute
@@ -603,7 +607,8 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 							joins.push '"' + row + '".id = "' + factType + '"."' + row + '"'
 
 						sql = "SELECT " + fields.join(", ") + " FROM " + tables.join(", ") + " WHERE " + joins.join(" AND ")
-				
+						if ftree.length != 1
+							sql += " AND "
 				if ftree.length != 1
 					filts = []
 
@@ -618,7 +623,7 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 						else if row[0] == "sort"
 							# process sort
 							null
-					sql += " AND " + filts.join(" AND ")
+					sql += filts.join(" AND ")
 				if sql != ""
 					db.transaction (tx) ->
 						tx.executeSql sql + ";", [], (tx, result) ->
@@ -689,8 +694,10 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 					db.transaction (tx) ->
 						tx.executeSql('DELETE FROM "conditional_representation" WHERE "lock" = ?;', [id], (tx, result) ->
 							asyncCallback = createAsyncQueueCallback(
-								() -> res.send(200)
-								() -> res.send(404)
+								() ->
+									res.send(200)
+								() ->
+									res.send(404)
 							)
 							sql = 'INSERT INTO "conditional_representation"' +
 								'("lock","field_name","field_type","field_value")' +
@@ -739,8 +746,10 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 						# insert delete entry
 						db.transaction (tx) ->
 							asyncCallback = createAsyncQueueCallback(
-								() -> res.send(200)
-								() -> res.send(404)
+								() ->
+									res.send(200)
+								() ->
+									res.send(404)
 							)
 							asyncCallback.addWork(2)
 							tx.executeSql('DELETE FROM "conditional_representation" WHERE "lock" = ?;', [id], asyncCallback.successCallback, asyncCallback.errorCallback)

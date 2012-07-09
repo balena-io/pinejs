@@ -687,6 +687,7 @@
           _ref2 = getCorrectTableInfo(tree[1][1]), table = _ref2.table, isAttribute = _ref2.isAttribute;
           if (tree[1][0] === "Term") {
             sql = 'SELECT * FROM "' + table.name + '"';
+            if (ftree.length !== 1) sql += " WHERE ";
           } else if (tree[1][0] === "FactType") {
             factType = tree[1][1];
             if (isAttribute) {
@@ -704,6 +705,7 @@
                 joins.push('"' + row + '".id = "' + factType + '"."' + row + '"');
               }
               sql = "SELECT " + fields.join(", ") + " FROM " + tables.join(", ") + " WHERE " + joins.join(" AND ");
+              if (ftree.length !== 1) sql += " AND ";
             }
           }
           if (ftree.length !== 1) {
@@ -726,7 +728,7 @@
                 null;
               }
             }
-            sql += " AND " + filts.join(" AND ");
+            sql += filts.join(" AND ");
           }
           if (sql !== "") {
             return db.transaction(function(tx) {
