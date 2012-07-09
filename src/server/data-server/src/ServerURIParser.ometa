@@ -1,42 +1,110 @@
 define(['ometa/ometa-base'], function() {
 	var ServerURIParser;
 	ometa ServerURIParser{
-		word = (letter|``-'')+:l                                                       -> l.join(''),
+		word =
+			(	letter
+			|	``-''
+			)+:l
+			-> l.join(''),
 
-		dgit = ^digit:d                                                                -> d.digitValue(),
-		nmbr = nmbr:n dgit:d                                                         -> (n * 10 + d)
-			   | dgit,
+		dgit =
+			^digit:d
+			-> d.digitValue(),
+		nmbr =
+				nmbr:n
+				dgit:d
+				-> (n * 10 + d)
+			|	dgit,
 
-		part = (letter|digit|``-''|``_'')+:l                                     -> l.join(''),
+		part =
+			(	letter
+			|	digit
+			|	``-''
+			|	``_''
+			)+:l
+			-> l.join(''),
 
-		mdtp = ``filt'' | ``sort'',
+		mdtp =
+				``filt''
+			|	``sort'',
 
-		parm = part:t (``.'' word| -> {f=t;t=[];f}):f
-					  (``='' ->`eq
-					  |``!=''->`ne|``~'' ->`lk):o part:v ``;''?                        -> [o,t,f,v],
+		parm =
+			part:t
+			(	``.''
+				word
+			|	-> {f=t;t=[];f}
+			):f
+			(	``=''
+				-> `eq
+			|	``!=''
+				-> `ne
+			|	``~''
+				-> `lk
+			):o
+			part:v
+			``;''?
+			-> [o,t,f,v],
 
-		actn = (``*'' mdtp:a (``:'' parm+|->[]):p -> [a].concat(p))+ | -> [],
-		comm = ``cr'' | ``execute'',
-		Term = (letter|``_'')+:l                                                 -> l.join(''),     
-		Verb = (letter|``_'')+:l                                                 -> l.join(''),     
+		actn =
+			(	``*''
+				mdtp:a
+				(	``:''
+					parm+
+				|	->[]
+				):p
+				-> [a].concat(p)
+			)+
+			| -> [],
+		comm =
+				``cr''
+			|	``execute'',
+		Term =
+			(	letter
+			|	``_''
+			)+:l
+			-> l.join(''),
+		Verb =
+			(	letter
+			|	``_''
+			)+:l
+			-> l.join(''),
 
-		trmf = Term:t -> ['Term', t],
+		trmf =
+			Term:t
+ 			-> ['Term', t],
 
-		FactType = {ts=['terms'];ft=''} (Term:t ``-'' Verb:v -> {ts.push(t);ft += t + "-" + v})+ 
-			   (``-'' Term:t -> {ts.push(t);ft += "-" + t})?                           -> ['FactType', ft, ts], 
+		FactType =
+			{ts=['terms'];ft=''}
+			(	Term:t
+				``-''
+				Verb:v
+				-> {ts.push(t);ft += t + "-" + v}
+			)+ 
+			(	``-''
+				Term:t
+				-> {ts.push(t);ft += "-" + t}
+			)?
+			-> ['FactType', ft, ts], 
 
-		  id = (``.'' nmbr:n -> [n]|->['']),
+		id =
+			(	``.''
+				nmbr:n
+				-> [n]
+			|	-> ['']
+			),
 
-		 uri = ``/'' word:w ``/''? FactType:f id:i actn:a ``/'' comm:c 
-											-> [w].concat([f.concat(i).concat([[`mod].concat(a).concat([[c]])])])
-			 | ``/'' word:w ``/''? trmf:t id:i actn:a ``/'' comm:c 
-											-> [w].concat([t.concat(i).concat([[`mod].concat(a).concat([[c]])])])
-			 | ``/'' word:w ``/''? FactType:f id:i actn:a ``/''?       
-											-> [w].concat([f.concat(i).concat([[`mod].concat(a)])])
-			 | ``/'' word:w ``/''? trmf:t id:i actn:a ``/''?       
-											-> [w].concat([t.concat(i).concat([[`mod].concat(a)])])
-			 | ``/'' (word|->''):w ``/''?   -> [w]
+		 uri =
+				``/'' word:w ``/''? FactType:f id:i actn:a ``/'' comm:c 
+				-> [w].concat([f.concat(i).concat([[`mod].concat(a).concat([[c]])])])
+			|	``/'' word:w ``/''? trmf:t id:i actn:a ``/'' comm:c
+				-> [w].concat([t.concat(i).concat([[`mod].concat(a).concat([[c]])])])
+			|	``/'' word:w ``/''? FactType:f id:i actn:a ``/''?
+				-> [w].concat([f.concat(i).concat([[`mod].concat(a)])])
+			|	``/'' word:w ``/''? trmf:t id:i actn:a ``/''?
+				-> [w].concat([t.concat(i).concat([[`mod].concat(a)])])
+			|	``/'' (word|->''):w ``/''?
+				-> [w]
 	}
-	
+
 	return ServerURIParser;
 });
