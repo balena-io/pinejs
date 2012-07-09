@@ -265,79 +265,34 @@ define(["ometa/ometa-base"], (function() {
         "uri": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                w, f, i, a, c, t;
-            return (function() {
-                switch (this._apply('anything')) {
-                case "/":
-                    return this._or((function() {
-                        w = this._apply("word");
-                        this._opt((function() {
-                            return this._applyWithArgs("exactly", "/")
-                        }));
-                        f = this._apply("FactType");
-                        i = this._apply("id");
-                        a = this._apply("actn");
-                        this._applyWithArgs("exactly", "/");
-                        c = this._apply("comm");
-                        return [w].concat([f.concat(i).concat([
-                            ["mod"].concat(a).concat([
-                                [c]
-                            ])])])
-                    }), (function() {
-                        w = this._apply("word");
-                        this._opt((function() {
-                            return this._applyWithArgs("exactly", "/")
-                        }));
-                        t = this._apply("trmf");
-                        i = this._apply("id");
-                        a = this._apply("actn");
-                        this._applyWithArgs("exactly", "/");
-                        c = this._apply("comm");
-                        return [w].concat([t.concat(i).concat([
-                            ["mod"].concat(a).concat([
-                                [c]
-                            ])])])
-                    }), (function() {
-                        w = this._apply("word");
-                        this._opt((function() {
-                            return this._applyWithArgs("exactly", "/")
-                        }));
-                        f = this._apply("FactType");
-                        i = this._apply("id");
-                        a = this._apply("actn");
-                        this._opt((function() {
-                            return this._applyWithArgs("exactly", "/")
-                        }));
-                        return [w].concat([f.concat(i).concat([
-                            ["mod"].concat(a)])])
-                    }), (function() {
-                        w = this._apply("word");
-                        this._opt((function() {
-                            return this._applyWithArgs("exactly", "/")
-                        }));
-                        t = this._apply("trmf");
-                        i = this._apply("id");
-                        a = this._apply("actn");
-                        this._opt((function() {
-                            return this._applyWithArgs("exactly", "/")
-                        }));
-                        return [w].concat([t.concat(i).concat([
-                            ["mod"].concat(a)])])
-                    }), (function() {
-                        w = this._or((function() {
-                            return this._apply("word")
-                        }), (function() {
-                            return ""
-                        }));
-                        this._opt((function() {
-                            return this._applyWithArgs("exactly", "/")
-                        }));
-                        return [w]
-                    }));
-                default:
-                    throw fail
-                }
-            }).call(this)
+                w, f, i, a, c;
+            this._applyWithArgs("exactly", "/");
+            w = this._apply("word");
+            this._opt((function() {
+                return this._applyWithArgs("exactly", "/")
+            }));
+            return this._or((function() {
+                f = this._or((function() {
+                    return this._apply("FactType")
+                }), (function() {
+                    return this._apply("trmf")
+                }));
+                i = this._apply("id");
+                a = this._apply("actn");
+                a = ["mod"].concat(a);
+                this._opt((function() {
+                    return this._applyWithArgs("exactly", "/")
+                }));
+                this._opt((function() {
+                    c = this._apply("comm");
+                    return a.push([c])
+                }));
+                f = f.concat(i);
+                f.push(a);
+                return [w].concat([f])
+            }), (function() {
+                return [w]
+            }))
         }
     });
     return ServerURIParser

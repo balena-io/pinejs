@@ -94,16 +94,23 @@ define(['ometa/ometa-base'], function() {
 			),
 
 		 uri =
-				'/' word:w '/'? FactType:f id:i actn:a '/' comm:c 
-				-> [w].concat([f.concat(i).concat([['mod'].concat(a).concat([[c]])])])
-			|	'/' word:w '/'? trmf:t id:i actn:a '/' comm:c
-				-> [w].concat([t.concat(i).concat([['mod'].concat(a).concat([[c]])])])
-			|	'/' word:w '/'? FactType:f id:i actn:a '/'?
-				-> [w].concat([f.concat(i).concat([['mod'].concat(a)])])
-			|	'/' word:w '/'? trmf:t id:i actn:a '/'?
-				-> [w].concat([t.concat(i).concat([['mod'].concat(a)])])
-			|	'/' (word|->''):w '/'?
-				-> [w]
+			'/' word:w '/'? 
+			(
+				(	FactType
+				|	trmf
+				):f
+				id:i
+				actn:a
+				{['mod'].concat(a)}:a
+				'/'?
+				(	comm:c
+					{a.push([c])}
+				)?
+				{f.concat(i)}:f
+				{f.push(a)}
+				-> [w].concat([f])
+			|	-> [w]
+			)
 	}
 
 	return ServerURIParser;
