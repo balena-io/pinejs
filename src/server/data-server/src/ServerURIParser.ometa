@@ -32,7 +32,9 @@ define(['ometa/ometa-base'], function() {
 			part:t
 			(	'.'
 				word
-			|	-> {f=t;t=[];f}
+			|	{t}:f
+				{[]}:t
+				-> f
 			):f
 			(	'='
 				-> 'eq'
@@ -50,7 +52,7 @@ define(['ometa/ometa-base'], function() {
 				mdtp:a
 				(	':'
 					parm+
-				|	->[]
+				|	-> []
 				):p
 				-> [a].concat(p)
 			)+
@@ -71,18 +73,21 @@ define(['ometa/ometa-base'], function() {
 
 		trmf =
 			Term:t
- 			-> ['Term', t],
+			-> ['Term', t],
 
 		FactType =
-			{ts=['terms'];ft=''}
+			{['terms']}:ts
+			{''}:ft
 			(	Term:t
 				'-'
 				Verb:v
-				-> {ts.push(t);ft += t + "-" + v}
+				{ts.push(t)}
+				{ft + t + "-" + v}:ft
 			)+ 
 			(	'-'
 				Term:t
-				-> {ts.push(t);ft += "-" + t}
+				{ts.push(t)}
+				{ft + "-" + t}:ft
 			)?
 			-> ['FactType', ft, ts], 
 

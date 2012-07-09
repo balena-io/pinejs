@@ -103,11 +103,9 @@ define(["ometa/ometa-base"], (function() {
                     }
                 }).call(this)
             }), (function() {
-                return (function() {
-                    (f = t);
-                    (t = []);
-                    return f
-                }).call(this)
+                f = t;
+                t = [];
+                return f
             }));
             o = (function() {
                 switch (this._apply('anything')) {
@@ -234,27 +232,21 @@ define(["ometa/ometa-base"], (function() {
         "FactType": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                t, v;
-            (function() {
-                (ts = ["terms"]);
-                return (ft = "")
-            }).call(this);
+                ts, ft, t, v;
+            ts = ["terms"];
+            ft = "";
             this._many1((function() {
                 t = this._apply("Term");
                 this._applyWithArgs("exactly", "-");
                 v = this._apply("Verb");
-                return (function() {
-                    ts.push(t);
-                    return (ft += ((t + "-") + v))
-                }).call(this)
+                ts.push(t);
+                return ft = (((ft + t) + "-") + v)
             }));
             this._opt((function() {
                 this._applyWithArgs("exactly", "-");
                 t = this._apply("Term");
-                return (function() {
-                    ts.push(t);
-                    return (ft += ("-" + t))
-                }).call(this)
+                ts.push(t);
+                return ft = ((ft + "-") + t)
             }));
             return ["FactType", ft, ts]
         },
