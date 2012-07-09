@@ -97,10 +97,7 @@ define(["ometa/ometa-base"], (function() {
                 return (function() {
                     switch (this._apply('anything')) {
                     case ".":
-                        return (function() {
-                            ".";
-                            return this._apply("word")
-                        }).call(this);
+                        return this._apply("word");
                     default:
                         throw fail
                     }
@@ -115,10 +112,7 @@ define(["ometa/ometa-base"], (function() {
             o = (function() {
                 switch (this._apply('anything')) {
                 case "=":
-                    return (function() {
-                        "=";
-                        return "eq"
-                    }).call(this);
+                    return "eq";
                 case "!":
                     return (function() {
                         this._applyWithArgs("exactly", "=");
@@ -126,18 +120,14 @@ define(["ometa/ometa-base"], (function() {
                         return "ne"
                     }).call(this);
                 case "~":
-                    return (function() {
-                        "~";
-                        return "lk"
-                    }).call(this);
+                    return "lk";
                 default:
                     throw fail
                 }
             }).call(this);
             v = this._apply("part");
             this._opt((function() {
-                this._applyWithArgs("exactly", ";");
-                return ";"
+                return this._applyWithArgs("exactly", ";")
             }));
             return [o, t, f, v]
         },
@@ -148,18 +138,14 @@ define(["ometa/ometa-base"], (function() {
             return this._or((function() {
                 return this._many1((function() {
                     this._applyWithArgs("exactly", "*");
-                    "*";
                     a = this._apply("mdtp");
                     p = this._or((function() {
                         return (function() {
                             switch (this._apply('anything')) {
                             case ":":
-                                return (function() {
-                                    ":";
-                                    return this._many1((function() {
-                                        return this._apply("parm")
-                                    }))
-                                }).call(this);
+                                return this._many1((function() {
+                                    return this._apply("parm")
+                                }));
                             default:
                                 throw fail
                             }
@@ -256,7 +242,6 @@ define(["ometa/ometa-base"], (function() {
             this._many1((function() {
                 t = this._apply("Term");
                 this._applyWithArgs("exactly", "-");
-                "-";
                 v = this._apply("Verb");
                 return (function() {
                     ts.push(t);
@@ -265,7 +250,6 @@ define(["ometa/ometa-base"], (function() {
             }));
             this._opt((function() {
                 this._applyWithArgs("exactly", "-");
-                "-";
                 t = this._apply("Term");
                 return (function() {
                     ts.push(t);
@@ -283,7 +267,6 @@ define(["ometa/ometa-base"], (function() {
                     switch (this._apply('anything')) {
                     case ".":
                         return (function() {
-                            ".";
                             n = this._apply("nmbr");
                             return [n]
                         }).call(this);
@@ -303,81 +286,67 @@ define(["ometa/ometa-base"], (function() {
                 switch (this._apply('anything')) {
                 case "/":
                     return this._or((function() {
-                        "/";
                         w = this._apply("word");
                         this._opt((function() {
-                            this._applyWithArgs("exactly", "/");
-                            return "/"
+                            return this._applyWithArgs("exactly", "/")
                         }));
                         f = this._apply("FactType");
                         i = this._apply("id");
                         a = this._apply("actn");
                         this._applyWithArgs("exactly", "/");
-                        "/";
                         c = this._apply("comm");
                         return [w].concat([f.concat(i).concat([
                             ["mod"].concat(a).concat([
                                 [c]
                             ])])])
                     }), (function() {
-                        "/";
                         w = this._apply("word");
                         this._opt((function() {
-                            this._applyWithArgs("exactly", "/");
-                            return "/"
+                            return this._applyWithArgs("exactly", "/")
                         }));
                         t = this._apply("trmf");
                         i = this._apply("id");
                         a = this._apply("actn");
                         this._applyWithArgs("exactly", "/");
-                        "/";
                         c = this._apply("comm");
                         return [w].concat([t.concat(i).concat([
                             ["mod"].concat(a).concat([
                                 [c]
                             ])])])
                     }), (function() {
-                        "/";
                         w = this._apply("word");
                         this._opt((function() {
-                            this._applyWithArgs("exactly", "/");
-                            return "/"
+                            return this._applyWithArgs("exactly", "/")
                         }));
                         f = this._apply("FactType");
                         i = this._apply("id");
                         a = this._apply("actn");
                         this._opt((function() {
-                            this._applyWithArgs("exactly", "/");
-                            return "/"
+                            return this._applyWithArgs("exactly", "/")
                         }));
                         return [w].concat([f.concat(i).concat([
                             ["mod"].concat(a)])])
                     }), (function() {
-                        "/";
                         w = this._apply("word");
                         this._opt((function() {
-                            this._applyWithArgs("exactly", "/");
-                            return "/"
+                            return this._applyWithArgs("exactly", "/")
                         }));
                         t = this._apply("trmf");
                         i = this._apply("id");
                         a = this._apply("actn");
                         this._opt((function() {
-                            this._applyWithArgs("exactly", "/");
-                            return "/"
+                            return this._applyWithArgs("exactly", "/")
                         }));
                         return [w].concat([t.concat(i).concat([
                             ["mod"].concat(a)])])
                     }), (function() {
-                        "/";
                         w = this._or((function() {
                             return this._apply("word")
                         }), (function() {
                             return ""
                         }));
                         this._opt((function() {
-                            this._applyWithArgs("exactly", "/");
-                            return "/"
+                            return this._applyWithArgs("exactly", "/")
                         }));
                         return [w]
                     }));
