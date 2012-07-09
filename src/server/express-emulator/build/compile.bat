@@ -1,0 +1,1 @@
+coffee -c ../src/express.coffee
