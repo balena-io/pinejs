@@ -35,11 +35,11 @@ define(['ometa/ometa-base'], function() {
 			|	-> {f=t;t=[];f}
 			):f
 			(	'='
-				-> `eq
+				-> 'eq'
 			|	``!=''
-				-> `ne
+				-> 'ne'
 			|	'~'
-				-> `lk
+				-> 'lk'
 			):o
 			part:v
 			';'?
@@ -95,13 +95,13 @@ define(['ometa/ometa-base'], function() {
 
 		 uri =
 				'/' word:w '/'? FactType:f id:i actn:a '/' comm:c 
-				-> [w].concat([f.concat(i).concat([[`mod].concat(a).concat([[c]])])])
+				-> [w].concat([f.concat(i).concat([['mod'].concat(a).concat([[c]])])])
 			|	'/' word:w '/'? trmf:t id:i actn:a '/' comm:c
-				-> [w].concat([t.concat(i).concat([[`mod].concat(a).concat([[c]])])])
+				-> [w].concat([t.concat(i).concat([['mod'].concat(a).concat([[c]])])])
 			|	'/' word:w '/'? FactType:f id:i actn:a '/'?
-				-> [w].concat([f.concat(i).concat([[`mod].concat(a)])])
+				-> [w].concat([f.concat(i).concat([['mod'].concat(a)])])
 			|	'/' word:w '/'? trmf:t id:i actn:a '/'?
-				-> [w].concat([t.concat(i).concat([[`mod].concat(a)])])
+				-> [w].concat([t.concat(i).concat([['mod'].concat(a)])])
 			|	'/' (word|->''):w '/'?
 				-> [w]
 	}
