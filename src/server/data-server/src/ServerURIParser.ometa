@@ -3,7 +3,7 @@ define(['ometa/ometa-base'], function() {
 	ometa ServerURIParser{
 		word =
 			<	(	letter
-				|	'-'
+				|	'_'
 				)+
 			>,
 
@@ -52,39 +52,29 @@ define(['ometa/ometa-base'], function() {
 				-> [a].concat(p)
 			)+
 			| -> [],
-		comm =
+		Command =
 				seq('cr')
 			|	seq('execute'),
-		Term =
-			<	(	letter
-				|	'_'
-				)+
-			>,
-		Verb =
-			<	(	letter
-				|	'_'
-				)+
-			>,
 
-		trmf =
-			Term:t
-			-> ['Term', t],
+		Term =
+			word:term
+			-> ['Term', term],
 
 		FactType =
-			{['terms']}:ts
-			{''}:ft
-			(	Term:t
+			{['terms']}:terms
+			{''}:factType
+			(	word:term
 				'-'
-				Verb:v
-				{ts.push(t)}
-				{ft + t + "-" + v}:ft
+				word:verb
+				{terms.push(term)}
+				{factType + term + "-" + verb}:factType
 			)+ 
 			(	'-'
-				Term:t
-				{ts.push(t)}
-				{ft + "-" + t}:ft
+				word:term
+				{terms.push(term)}
+				{factType + "-" + term}:factType
 			)?
-			-> ['FactType', ft, ts], 
+			-> ['FactType', factType, terms], 
 
 		id =
 			(	'.'
@@ -97,13 +87,13 @@ define(['ometa/ometa-base'], function() {
 			'/' word:w '/'? 
 			(
 				(	FactType
-				|	trmf
+				|	Term
 				):f
 				id:i
 				actn:a
 				{['mod'].concat(a)}:a
 				'/'?
-				(	comm:c
+				(	Command:c
 					{a.push([c])}
 				)?
 				{f.concat(i)}:f

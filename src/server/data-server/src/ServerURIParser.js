@@ -11,8 +11,8 @@ define(["ometa/ometa-base"], (function() {
                     }), (function() {
                         return (function() {
                             switch (this._apply('anything')) {
-                            case "-":
-                                return "-";
+                            case "_":
+                                return "_";
                             default:
                                 throw fail
                             }
@@ -149,7 +149,7 @@ define(["ometa/ometa-base"], (function() {
                 return []
             }))
         },
-        "comm": function() {
+        "Command": function() {
             var $elf = this,
                 _fromIdx = this.input.idx;
             return (function() {
@@ -176,71 +176,31 @@ define(["ometa/ometa-base"], (function() {
         },
         "Term": function() {
             var $elf = this,
-                _fromIdx = this.input.idx;
-            return this._consumedBy((function() {
-                return this._many1((function() {
-                    return this._or((function() {
-                        return this._apply("letter")
-                    }), (function() {
-                        return (function() {
-                            switch (this._apply('anything')) {
-                            case "_":
-                                return "_";
-                            default:
-                                throw fail
-                            }
-                        }).call(this)
-                    }))
-                }))
-            }))
-        },
-        "Verb": function() {
-            var $elf = this,
-                _fromIdx = this.input.idx;
-            return this._consumedBy((function() {
-                return this._many1((function() {
-                    return this._or((function() {
-                        return this._apply("letter")
-                    }), (function() {
-                        return (function() {
-                            switch (this._apply('anything')) {
-                            case "_":
-                                return "_";
-                            default:
-                                throw fail
-                            }
-                        }).call(this)
-                    }))
-                }))
-            }))
-        },
-        "trmf": function() {
-            var $elf = this,
                 _fromIdx = this.input.idx,
-                t;
-            t = this._apply("Term");
-            return ["Term", t]
+                term;
+            term = this._apply("word");
+            return ["Term", term]
         },
         "FactType": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                ts, ft, t, v;
-            ts = ["terms"];
-            ft = "";
+                terms, factType, term, verb;
+            terms = ["terms"];
+            factType = "";
             this._many1((function() {
-                t = this._apply("Term");
+                term = this._apply("word");
                 this._applyWithArgs("exactly", "-");
-                v = this._apply("Verb");
-                ts.push(t);
-                return ft = (((ft + t) + "-") + v)
+                verb = this._apply("word");
+                terms.push(term);
+                return factType = (((factType + term) + "-") + verb)
             }));
             this._opt((function() {
                 this._applyWithArgs("exactly", "-");
-                t = this._apply("Term");
-                ts.push(t);
-                return ft = ((ft + "-") + t)
+                term = this._apply("word");
+                terms.push(term);
+                return factType = ((factType + "-") + term)
             }));
-            return ["FactType", ft, ts]
+            return ["FactType", factType, terms]
         },
         "id": function() {
             var $elf = this,
@@ -275,7 +235,7 @@ define(["ometa/ometa-base"], (function() {
                 f = this._or((function() {
                     return this._apply("FactType")
                 }), (function() {
-                    return this._apply("trmf")
+                    return this._apply("Term")
                 }));
                 i = this._apply("id");
                 a = this._apply("actn");
@@ -284,7 +244,7 @@ define(["ometa/ometa-base"], (function() {
                     return this._applyWithArgs("exactly", "/")
                 }));
                 this._opt((function() {
-                    c = this._apply("comm");
+                    c = this._apply("Command");
                     return a.push([c])
                 }));
                 f = f.concat(i);
