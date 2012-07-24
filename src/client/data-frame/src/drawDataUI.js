@@ -2,14 +2,16 @@
   var __indexOf = Array.prototype.indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
   define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs'], function(ClientURIUnparser, createAsyncQueueCallback, ejs) {
-    var addInst, createNavigableTree, delInst, drawData, editInst, getResolvedFactType, getTermResults, processForm, serverAPI, templateDeleteForm, templateFactTypeForm, templateHiddenFormInputs, uidraw, widgets;
+    var addInst, createNavigableTree, delInst, drawData, editInst, getResolvedFactType, getTermResults, processForm, serverAPI, templates, uidraw, widgets;
     widgets = {};
     requirejs(['data-frame/widgets/inputText'], function(inputText) {
       return widgets.inputText = inputText;
     });
-    templateHiddenFormInputs = ejs.compile('<input type="hidden" id="__actype" value="<%= action %>">\n<input type="hidden" id="__serverURI" value="<%= serverURI %>">\n<input type="hidden" id="__backURI" value="<%= backURI %>">\n<input type="hidden" id="__type" value="<%= type %>">\n<% if(id != null && id !== false) { %>\n	<input type="hidden" id="__id" value="<%= id %>">\n<% } %>');
-    templateFactTypeForm = ejs.compile('<form class="action">\n	<%- templateHiddenFormInputs(locals) %><%\n	for(var i = 0; i < factType.length; i++) {\n		var factTypePart = factType[i];\n		switch(factTypePart[0]) {\n			case "Term":\n				var termName = factTypePart[1],\n					termResult = termResults[termName]; %>\n				<select id="<%= termName %>"><%\n					for(var j = 0; j < termResult.length; j++) {\n						var term = termResult[j]; %>\n						<option value="<%= term.id %>"<%\n							if(currentFactType != false && currentFactType[termName].id == term.id) { %>\n								selected="selected" <%\n							} %>\n						>\n							<%= term.value %>\n						</option><%\n					} %>\n				</select><%\n			break;\n			case "Verb":\n				%><%= factTypePart[1] %><%\n			break;\n		}\n	} %>\n	<div align="right">\n		<input type="submit" value="Submit This" onClick="processForm(this.parentNode.parentNode);return false;">\n	</div>\n</form>');
-    templateDeleteForm = ejs.compile('<div align="left">\n	marked for deletion\n	<div align="right">\n		<form class="action">\n			<%- templateHiddenFormInputs(locals) %>\n			<input type="submit" value="Confirm" onClick="processForm(this.parentNode.parentNode);return false;">\n		</form>\n	</div>\n</div>');
+    templates = {
+      hiddenFormInput: ejs.compile('<input type="hidden" id="__actype" value="<%= action %>">\n<input type="hidden" id="__serverURI" value="<%= serverURI %>">\n<input type="hidden" id="__backURI" value="<%= backURI %>">\n<input type="hidden" id="__type" value="<%= type %>">\n<% if(id != null && id !== false) { %>\n	<input type="hidden" id="__id" value="<%= id %>">\n<% } %>'),
+      factTypeForm: ejs.compile('<form class="action">\n	<%- templates.hiddenFormInput(locals) %><%\n	for(var i = 0; i < factType.length; i++) {\n		var factTypePart = factType[i];\n		switch(factTypePart[0]) {\n			case "Term":\n				var termName = factTypePart[1],\n					termResult = termResults[termName]; %>\n				<select id="<%= termName %>"><%\n					for(var j = 0; j < termResult.length; j++) {\n						var term = termResult[j]; %>\n						<option value="<%= term.id %>"<%\n							if(currentFactType != false && currentFactType[termName].id == term.id) { %>\n								selected="selected" <%\n							} %>\n						>\n							<%= term.value %>\n						</option><%\n					} %>\n				</select><%\n			break;\n			case "Verb":\n				%><%= factTypePart[1] %><%\n			break;\n		}\n	} %>\n	<div align="right">\n		<input type="submit" value="Submit This" onClick="processForm(this.parentNode.parentNode);return false;">\n	</div>\n</form>'),
+      deleteForm: ejs.compile('<div align="left">\n	marked for deletion\n	<div align="right">\n		<form class="action">\n			<%- templates.hiddenFormInput(locals) %>\n			<input type="submit" value="Confirm" onClick="processForm(this.parentNode.parentNode);return false;">\n		</form>\n	</div>\n</div>')
+    };
     createNavigableTree = function(tree, descendTree) {
       var ascend, currentLocation, descendByIndex, getIndexForResource, index, previousLocations, _i, _len;
       if (descendTree == null) descendTree = [];
@@ -552,7 +554,7 @@
                   backURI: backURI,
                   type: about
                 };
-                res += templateHiddenFormInputs(templateVars);
+                res += templates.hiddenFormInput(templateVars);
                 console.log("addterm backURI=" + backURI);
                 for (_o = 0, _len7 = schema.length; _o < _len7; _o++) {
                   currSchema = schema[_o];
@@ -578,9 +580,9 @@
                     backURI: backURI,
                     type: about,
                     id: false,
-                    templateHiddenFormInputs: templateHiddenFormInputs
+                    templates: templates
                   };
-                  res = templateFactTypeForm(templateVars);
+                  res = templates.factTypeForm(templateVars);
                   return asyncCallback.successCallback(1, res);
                 });
               }
@@ -601,7 +603,7 @@
                     type: about,
                     id: id
                   };
-                  res += templateHiddenFormInputs(templateVars);
+                  res += templates.hiddenFormInput(templateVars);
                   res += "id: " + id + "<br/>";
                   for (_p = 0, _len8 = schema.length; _p < _len8; _p++) {
                     currSchema = schema[_p];
@@ -635,9 +637,9 @@
                         type: about,
                         currentFactType: factTypeInstance,
                         id: factTypeInstance.id,
-                        templateHiddenFormInputs: templateHiddenFormInputs
+                        templates: templates
                       };
-                      res += templateFactTypeForm(templateVars);
+                      res += templates.factTypeForm(templateVars);
                       res += "</div>";
                       return asyncCallback.successCallback(1, res);
                     });
@@ -655,9 +657,9 @@
                 backURI: serverAPI(about),
                 type: about,
                 id: this.id,
-                templateHiddenFormInputs: templateHiddenFormInputs
+                templates: templates
               };
-              res = templateDeleteForm(templateVars);
+              res = templates.deleteForm(templateVars);
               return asyncCallback.successCallback(1, res);
           }
         }

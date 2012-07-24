@@ -6,58 +6,60 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 	
 	
 
-	templateHiddenFormInputs = ejs.compile('''
-		<input type="hidden" id="__actype" value="<%= action %>">
-		<input type="hidden" id="__serverURI" value="<%= serverURI %>">
-		<input type="hidden" id="__backURI" value="<%= backURI %>">
-		<input type="hidden" id="__type" value="<%= type %>">
-		<% if(id != null && id !== false) { %>
-			<input type="hidden" id="__id" value="<%= id %>">
-		<% } %>
-		''')
-	templateFactTypeForm = ejs.compile('''
-		<form class="action">
-			<%- templateHiddenFormInputs(locals) %><%
-			for(var i = 0; i < factType.length; i++) {
-				var factTypePart = factType[i];
-				switch(factTypePart[0]) {
-					case "Term":
-						var termName = factTypePart[1],
-							termResult = termResults[termName]; %>
-						<select id="<%= termName %>"><%
-							for(var j = 0; j < termResult.length; j++) {
-								var term = termResult[j]; %>
-								<option value="<%= term.id %>"<%
-									if(currentFactType != false && currentFactType[termName].id == term.id) { %>
-										selected="selected" <%
-									} %>
-								>
-									<%= term.value %>
-								</option><%
-							} %>
-						</select><%
-					break;
-					case "Verb":
-						%><%= factTypePart[1] %><%
-					break;
-				}
-			} %>
-			<div align="right">
-				<input type="submit" value="Submit This" onClick="processForm(this.parentNode.parentNode);return false;">
+	templates = {
+		hiddenFormInput: ejs.compile('''
+			<input type="hidden" id="__actype" value="<%= action %>">
+			<input type="hidden" id="__serverURI" value="<%= serverURI %>">
+			<input type="hidden" id="__backURI" value="<%= backURI %>">
+			<input type="hidden" id="__type" value="<%= type %>">
+			<% if(id != null && id !== false) { %>
+				<input type="hidden" id="__id" value="<%= id %>">
+			<% } %>
+			''')
+		factTypeForm: ejs.compile('''
+			<form class="action">
+				<%- templates.hiddenFormInput(locals) %><%
+				for(var i = 0; i < factType.length; i++) {
+					var factTypePart = factType[i];
+					switch(factTypePart[0]) {
+						case "Term":
+							var termName = factTypePart[1],
+								termResult = termResults[termName]; %>
+							<select id="<%= termName %>"><%
+								for(var j = 0; j < termResult.length; j++) {
+									var term = termResult[j]; %>
+									<option value="<%= term.id %>"<%
+										if(currentFactType != false && currentFactType[termName].id == term.id) { %>
+											selected="selected" <%
+										} %>
+									>
+										<%= term.value %>
+									</option><%
+								} %>
+							</select><%
+						break;
+						case "Verb":
+							%><%= factTypePart[1] %><%
+						break;
+					}
+				} %>
+				<div align="right">
+					<input type="submit" value="Submit This" onClick="processForm(this.parentNode.parentNode);return false;">
+				</div>
+			</form>
+			''')
+		deleteForm: ejs.compile('''
+			<div align="left">
+				marked for deletion
+				<div align="right">
+					<form class="action">
+						<%- templates.hiddenFormInput(locals) %>
+						<input type="submit" value="Confirm" onClick="processForm(this.parentNode.parentNode);return false;">
+					</form>
+				</div>
 			</div>
-		</form>
-		''')
-	templateDeleteForm = ejs.compile('''
-		<div align="left">
-			marked for deletion
-			<div align="right">
-				<form class="action">
-					<%- templateHiddenFormInputs(locals) %>
-					<input type="submit" value="Confirm" onClick="processForm(this.parentNode.parentNode);return false;">
-				</form>
-			</div>
-		</div>
-		''')
+			''')
+	}
 	
 	createNavigableTree = (tree, descendTree = []) ->
 		tree = jQuery.extend(true, [], tree)
@@ -497,7 +499,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 								serverURI: serverAPI(about)
 								backURI: backURI
 								type: about
-							res += templateHiddenFormInputs(templateVars)
+							res += templates.hiddenFormInput(templateVars)
 							console.log "addterm backURI=" + backURI
 
 							for currSchema in schema
@@ -520,8 +522,8 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 									backURI: backURI
 									type: about
 									id: false
-									templateHiddenFormInputs: templateHiddenFormInputs
-								res = templateFactTypeForm(templateVars)
+									templates: templates
+								res = templates.factTypeForm(templateVars)
 								asyncCallback.successCallback(1, res)
 							)
 					when "edit"
@@ -540,7 +542,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 									backURI: serverAPI(about)
 									type: about
 									id: id
-								res += templateHiddenFormInputs(templateVars)
+								res += templates.hiddenFormInput(templateVars)
 								res += "id: " + id + "<br/>"
 
 								for currSchema in schema
@@ -572,8 +574,8 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 												type: about
 												currentFactType: factTypeInstance
 												id: factTypeInstance.id
-												templateHiddenFormInputs: templateHiddenFormInputs
-											res += templateFactTypeForm(templateVars)
+												templates: templates
+											res += templates.factTypeForm(templateVars)
 											res += "</div>"
 											asyncCallback.successCallback(1, res)
 										)
@@ -590,8 +592,8 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 							backURI: serverAPI(about)
 							type: about
 							id: @id
-							templateHiddenFormInputs: templateHiddenFormInputs 
-						res = templateDeleteForm(templateVars)
+							templates: templates 
+						res = templates.deleteForm(templateVars)
 						asyncCallback.successCallback(1, res)
 		return this
 
