@@ -15,6 +15,44 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 			<input type="hidden" id="__id" value="<%= id %>">
 		<% } %>
 		''')
+	createFactTypeForm = ejs.compile('''
+		<form class="action"><%
+			createHiddenInputs({
+				action: action,
+				serverURI: serverURI,
+				backURI: backURI,
+				type: type,
+				id: (currentFactType == null || currentFactType === false ? false : currentFactType.id)
+			});
+			for(var i = 0; i < factType.length; i++) {
+				var factTypePart = factType[i];
+				switch(factTypePart[0]) {
+					case "Term":
+						var termName = factTypePart[1],
+							termResult = termResults[termName]; %>
+						<select id="<%= termName %>"><%
+							for(var j = 0; j < termResult.length; j++) {
+								var term = termResult[j]; %>
+								<option value="<%= term.id %>"<%
+									if(currentFactType != false && currentFactType[termName].id == term.id) { %>
+										selected="selected" <%
+									} %>
+								>
+									<%= term.value %>
+								</option><%
+							} %>
+						</select><%
+					break;
+					case "Verb":
+						%><%= factTypePart[1] %><%
+					break;
+				}
+			} %>
+			<div align="right">
+				<input type="submit" value="Submit This" onClick="processForm(this.parentNode.parentNode);return false;">
+			</div>
+		</form>
+		''', {debug:true})
 	
 	createNavigableTree = (tree, descendTree = []) ->
 		tree = jQuery.extend(true, [], tree)
@@ -469,7 +507,15 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 							asyncCallback.successCallback(1, res)
 						else if @type == "FactType"
 							getTermResults(parent.schema, (termResults) ->
-								res = createFactTypeForm(parent.schema, termResults, 'addfctp', serverAPI(about), backURI, about)
+								templateVars =
+									factType: parent.schema
+									termResults: termResults
+									action: 'addfctp'
+									serverURI: serverAPI(about)
+									backURI: backURI
+									type: about
+									createHiddenInputs: createHiddenInputs
+								res = createFactTypeForm(templateVars)
 								asyncCallback.successCallback(1, res)
 							)
 					when "edit"
@@ -511,7 +557,16 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 									(factTypeInstance) ->
 										getTermResults(parent.schema, (termResults) ->
 											res = "<div align='left'>"
-											res += createFactTypeForm(parent.schema, termResults, 'editfctp', serverAPI(about) + "*filt:id=" + factTypeInstance.id, serverAPI(about), about, factTypeInstance)
+											templateVars =
+												factType: parent.schema
+												termResults: termResults
+												action: 'editfctp'
+												serverURI: serverAPI(about, [['id', '=', factTypeInstance.id]])
+												backURI: serverAPI(about)
+												type: about
+												currentFactType: factTypeInstance
+												createHiddenInputs: createHiddenInputs
+											res += createFactTypeForm(templateVars)
 											res += "</div>"
 											asyncCallback.successCallback(1, res)
 										)
@@ -540,42 +595,6 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 							"</div>"
 						asyncCallback.successCallback(1, res)
 		return this
-
-	createFactTypeForm = (schemas, termResults, action, serverURI, backURI, type, currentFactType = false) ->
-		termSelects = {}
-		for termName, termResult of termResults
-			select = "<select id='" + termName + "'>"
-			# Loop through options
-			for term in termResult
-				select += "<option value='" + term.id + "'"
-				# if current value, print selected
-				if currentFactType != false and currentFactType[termName].id == term.id
-					select += " selected='selected'" 
-				select += ">" + term.value + "</option>"
-			select += "</select>"
-			termSelects[termName] = select
-
-		res = "<form class='action'>"
-		templateVars =
-			action: action
-			serverURI: serverURI
-			backURI: backURI
-			type: type
-			id: if currentFactType == false then false else currentFactType.id
-		res += createHiddenInputs(templateVars)
-
-		# merge dropdowns with verbs to create 'form'
-		for schema in schemas
-			if schema[0] == "Term"
-				res += termSelects[schema[1]] + " "
-			else if schema[0] == "Verb"
-				res += schema[1] + " "
-		#add submit button etc.
-		res += "<div align='right'>"
-		res += "<input type='submit' value='Submit This' onClick='processForm(this.parentNode.parentNode);return false;'>"
-		res += "</div>"
-		res += "</form>"
-		return res
 
 	processForm = (forma) ->
 		action = $("#__actype", forma).val()

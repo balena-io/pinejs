@@ -8,6 +8,9 @@
       return widgets.inputText = inputText;
     });
     createHiddenInputs = ejs.compile('<input type="hidden" id="__actype" value="<%= action %>">\n<input type="hidden" id="__serverURI" value="<%= serverURI %>">\n<input type="hidden" id="__backURI" value="<%= backURI %>">\n<input type="hidden" id="__type" value="<%= type %>">\n<% if(id != null && id !== false) { %>\n	<input type="hidden" id="__id" value="<%= id %>">\n<% } %>');
+    createFactTypeForm = ejs.compile('<form class="action"><%\n	createHiddenInputs({\n		action: action,\n		serverURI: serverURI,\n		backURI: backURI,\n		type: type,\n		id: (currentFactType == null || currentFactType === false ? false : currentFactType.id)\n	});\n	for(var i = 0; i < factType.length; i++) {\n		var factTypePart = factType[i];\n		switch(factTypePart[0]) {\n			case "Term":\n				var termName = factTypePart[1],\n					termResult = termResults[termName]; %>\n				<select id="<%= termName %>"><%\n					for(var j = 0; j < termResult.length; j++) {\n						var term = termResult[j]; %>\n						<option value="<%= term.id %>"<%\n							if(currentFactType != false && currentFactType[termName].id == term.id) { %>\n								selected="selected" <%\n							} %>\n						>\n							<%= term.value %>\n						</option><%\n					} %>\n				</select><%\n			break;\n			case "Verb":\n				%><%= factTypePart[1] %><%\n			break;\n		}\n	} %>\n	<div align="right">\n		<input type="submit" value="Submit This" onClick="processForm(this.parentNode.parentNode);return false;">\n	</div>\n</form>', {
+      debug: true
+    });
     createNavigableTree = function(tree, descendTree) {
       var ascend, currentLocation, descendByIndex, getIndexForResource, index, previousLocations, _i, _len;
       if (descendTree == null) descendTree = [];
@@ -568,7 +571,16 @@
                 return asyncCallback.successCallback(1, res);
               } else if (this.type === "FactType") {
                 return getTermResults(parent.schema, function(termResults) {
-                  res = createFactTypeForm(parent.schema, termResults, 'addfctp', serverAPI(about), backURI, about);
+                  templateVars = {
+                    factType: parent.schema,
+                    termResults: termResults,
+                    action: 'addfctp',
+                    serverURI: serverAPI(about),
+                    backURI: backURI,
+                    type: about,
+                    createHiddenInputs: createHiddenInputs
+                  };
+                  res = createFactTypeForm(templateVars);
                   return asyncCallback.successCallback(1, res);
                 });
               }
@@ -614,7 +626,17 @@
                   return getResolvedFactType(parent.schema, result.instances[0], function(factTypeInstance) {
                     return getTermResults(parent.schema, function(termResults) {
                       res = "<div align='left'>";
-                      res += createFactTypeForm(parent.schema, termResults, 'editfctp', serverAPI(about) + "*filt:id=" + factTypeInstance.id, serverAPI(about), about, factTypeInstance);
+                      templateVars = {
+                        factType: parent.schema,
+                        termResults: termResults,
+                        action: 'editfctp',
+                        serverURI: serverAPI(about, [['id', '=', factTypeInstance.id]]),
+                        backURI: serverAPI(about),
+                        type: about,
+                        currentFactType: factTypeInstance,
+                        createHiddenInputs: createHiddenInputs
+                      };
+                      res += createFactTypeForm(templateVars);
                       res += "</div>";
                       return asyncCallback.successCallback(1, res);
                     });
@@ -639,47 +661,6 @@
         }
       };
       return this;
-    };
-    createFactTypeForm = function(schemas, termResults, action, serverURI, backURI, type, currentFactType) {
-      var res, schema, select, templateVars, term, termName, termResult, termSelects, _i, _j, _len, _len2;
-      if (currentFactType == null) currentFactType = false;
-      termSelects = {};
-      for (termName in termResults) {
-        termResult = termResults[termName];
-        select = "<select id='" + termName + "'>";
-        for (_i = 0, _len = termResult.length; _i < _len; _i++) {
-          term = termResult[_i];
-          select += "<option value='" + term.id + "'";
-          if (currentFactType !== false && currentFactType[termName].id === term.id) {
-            select += " selected='selected'";
-          }
-          select += ">" + term.value + "</option>";
-        }
-        select += "</select>";
-        termSelects[termName] = select;
-      }
-      res = "<form class='action'>";
-      templateVars = {
-        action: action,
-        serverURI: serverURI,
-        backURI: backURI,
-        type: type,
-        id: currentFactType === false ? false : currentFactType.id
-      };
-      res += createHiddenInputs(templateVars);
-      for (_j = 0, _len2 = schemas.length; _j < _len2; _j++) {
-        schema = schemas[_j];
-        if (schema[0] === "Term") {
-          res += termSelects[schema[1]] + " ";
-        } else if (schema[0] === "Verb") {
-          res += schema[1] + " ";
-        }
-      }
-      res += "<div align='right'>";
-      res += "<input type='submit' value='Submit This' onClick='processForm(this.parentNode.parentNode);return false;'>";
-      res += "</div>";
-      res += "</form>";
-      return res;
     };
     processForm = function(forma) {
       var action, backURI, id, serverURI, type;
