@@ -45,8 +45,10 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 		termForm: ejs.compile('''
 			<div align="left">
 				<form class="action">
-					<%- templates.hiddenFormInput(locals) %>
-					id: <%= id %><br/><%
+					<%- templates.hiddenFormInput(locals) %><%
+					if(id !== false) { %>
+						id: <%= id %><br/><%
+					}
 
 					for(var i = 0; i < termFields.length; i++) {
 						var termField = termFields[i]; %>
