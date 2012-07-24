@@ -464,7 +464,6 @@
                     if (!(termVerb[1] === about)) continue;
                     resourceName = getIdent(mod);
                     parent.colsout++;
-                    res = "";
                     pre = "<tr id='tr--data--" + resourceName + "'><td>";
                     post = "</td></tr>";
                     if (ftree.isExpanded(resourceName)) {
@@ -479,7 +478,7 @@
                       npos = ftree.getNewURI("add", newb);
                       pre += resourceName;
                       pre += " <a href='" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false'><span title='See all' class='ui-icon ui-icon-search'></span></a>";
-                      res += pre + post;
+                      res = pre + post;
                       _results2.push(asyncCallback.successCallback(rows + 1 + parent.adds + 1 + parent.colsout, res));
                     }
                   }

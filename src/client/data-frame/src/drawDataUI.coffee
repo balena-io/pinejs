@@ -449,7 +449,6 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 							resourceName = getIdent(mod)
 
 							parent.colsout++
-							res = ""
 							pre = "<tr id='tr--data--" + resourceName + "'><td>"
 							post = "</td></tr>"
 							if ftree.isExpanded(resourceName)
@@ -464,7 +463,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 								npos = ftree.getNewURI("add", newb)
 								pre += resourceName
 								pre += " <a href='" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false'><span title='See all' class='ui-icon ui-icon-search'></span></a>"
-								res += (pre + post)
+								res = (pre + post)
 								asyncCallback.successCallback(rows + 1 + parent.adds + 1 + parent.colsout, res)
 				)
 			else if currentLocation[0] == 'instance'
@@ -585,7 +584,6 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 								)
 							)
 					when "del"
-						# TODO: make this a function
 						templateVars =
 							action: 'del'
 							serverURI: serverAPI(about, [['id', '=', @id]])
