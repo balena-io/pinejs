@@ -1,107 +1,268 @@
-define(['ometa/ometa-base'], function() {
+define(['underscore', 'ometa/ometa-base'], function(_) {
 	var ServerURIParser;
-	ometa ServerURIParser{
-		word =
-			<	(	letter
-				|	'_'
+	ometa ServerURIParser {
+		Process =
+			[	(	'GET'
+				|	'PUT'
+				|	'POST'
+				|	'DELETE'
+				):method
+				{this.currentMethod = method}
+				
+				[	'/' Vocabulary:vocab
+					{this.currentVocab = vocab}
+					{['URI', ['Vocabulary', vocab]]}:uri
+					(	'/'
+						Resource:resource
+						{uri.concat(resource)}:uri
+					)?
+					'/'?
+				]
+			]
+			-> uri,
+
+		Vocabulary =
+			<	(	~'/'
+					anything
 				)+
 			>,
 
-		nmbr =
-			<digit+>:number
-			-> parseInt(number, 10),
-
-		part =
+		ResourcePart =
 			<	(	letter
-				|	digit
-				|	'-'
 				|	'_'
 				)+
-			>,
-
-		mdtp =
-				seq('filt')
-			|	seq('sort'),
-
-		parm =
-			part:t
-			(	'.'
-				word
-			|	{t}:f
-				{[]}:t
-				-> f
-			):f
-			(	'='
-				-> 'eq'
-			|	seq('!=')
-				-> 'ne'
-			|	'~'
-				-> 'lk'
-			):o
-			part:v
-			';'?
-			-> [o,t,f,v],
-
-		actn =
-			(	'*'
-				mdtp:a
-				(	':'
-					parm+
-				|	-> []
-				):p
-				-> [a].concat(p)
-			)+
-			| -> [],
-		Command =
-				seq('cr')
-			|	seq('execute'),
+			>:resourcePart
+			-> resourcePart.replace(new RegExp('_', 'g'), ' '),
 
 		Term =
-			word:term
+			ResourcePart:term
 			-> ['Term', term],
+		Verb =
+			ResourcePart:verb
+			-> ['Verb', verb],
 
-		FactType =
-			{['terms']}:terms
-			{''}:factType
-			(	word:term
-				'-'
-				word:verb
-				{terms.push(term)}
-				{factType + term + "-" + verb}:factType
-			)+ 
+		TermOrFactType :query =
+			Term:term
+			{[term]}:factType
 			(	'-'
-				word:term
-				{terms.push(term)}
-				{factType + "-" + term}:factType
-			)?
-			-> ['FactType', factType, terms], 
-
-		id =
-			(	'.'
-				nmbr:n
-				-> [n]
-			|	-> ['']
+				Verb:verb {factType.push(verb)}
+				(	'-'
+					Term:term
+					{factType.push(term)}
+				)?
+			)*
+			(	?verb
+				AddQueryTable(query, factType)
+			|	AddQueryTable(query, term[1])
 			),
 
-		 uri =
-			'/' word:w '/'? 
-			(
-				(	FactType
-				|	Term
-				):f
-				id:i
-				actn:a
-				{['mod'].concat(a)}:a
-				'/'?
-				(	Command:c
-					{a.push([c])}
-				)?
-				{f.concat(i)}:f
-				{f.push(a)}
-				-> [w].concat([f])
-			|	-> [w]
+		Resource =
+			{['Query']}:query
+			TermOrFactType(query):fields
+			Modifiers(query, fields)
+			-> [query].concat(fields),
+
+		Comparator =
+				'='
+				-> 'Equals'
+			|	seq('!=')
+				-> 'NotEquals'
+			|	'~'
+				-> 'Like',
+
+		Modifiers :query :fields =
+			(	Filters(query, fields)
+			|	Sorts:sorts
+				{query.push(sorts)}
+			)*,
+
+		Field =
+				ResourcePart:table '.' ResourcePart:field
+				-> ['ReferencedField', table, field]
+			|	ResourcePart:field
+				-> ['Field', field],
+
+		Filters :query :fields =
+			seq('*filt:')
+			(	Field:field
+				Comparator:comparator
+				<	(	~ValueBreak
+						anything
+					)+
+				>:value
+				';'?
+				AddWhereClause(query, [comparator, field, ['Value', value]], fields)
+			)+,
+
+		Sorts =
+			seq('*sort:')
+			(	';'?
+				Field:field
+				'='
+				(	seq('ASC')
+				|	seq('DESC')
+				):direction
+				-> [direction, field]
+			)+:sorts
+			->	['OrderBy'].concat(sorts),
+
+		ValueBreak =
+			(	';'
+			|	'*'
+			|	'/'
 			)
 	}
+	
+	ServerURIParser.initialize = function() {
+		this.sqlModels = {}
+		this.currentVocab = '';
+		this.currentMethod =  '';
+	};
+	
+	ServerURIParser.setSQLModel = function(vocab, model) {
+		this.sqlModels[vocab] = model;
+	};
+	
+	ServerURIParser.AddWhereClause = function(query, whereBody, fields) {
+		// TODO: Move this to an optimisation pass?
+		// Check if it's a place where we can do a join optimisation.
+		if(whereBody[0] == 'Exists' && (
+				whereBody[1][0] == 'SelectQuery' || whereBody[1][0] == 'InsertQuery' ||
+				whereBody[1][0] == 'UpdateQuery' || whereBody[1][0] == 'UpsertQuery')) {
+			whereBody = whereBody[1].slice(1);
+			for(var i=0; i < whereBody.length; i++) {
+				if(whereBody[i][0] == 'From') {
+					query.push(whereBody[i]);
+				}
+			}
+			for(var i=0; i < whereBody.length; i++) {
+				if(whereBody[i][0] == 'Where') {
+					this.AddWhereClause(query, whereBody[i][1], fields);
+				}
+			}
+		}
+		else {
+			for(var i=1; i < query.length; i++) {
+				if(query[i][0] == 'Where') {
+					query[i][1] = ['And', query[i][1], whereBody];
+					return;
+				}
+			}
+			query.push(['Where', whereBody]);
+		}
+		
+		if(query[0] == 'UpsertQuery' && whereBody[0] == 'Equals') {
+			var field, value;
+			if(whereBody[1][0] == 'Field') {
+				field = whereBody[1][1];
+			}
+			else if(whereBody[1][0] == 'ReferencedField') {
+				field = whereBody[1][2];
+			}
+			else if(whereBody[2][0] == 'Field') {
+				field = whereBody[2][1];
+			}
+			else if(whereBody[2][0] == 'ReferencedField') {
+				field = whereBody[2][2];
+			}
+			
+			if(whereBody[1][0] == 'Value') {
+				value = whereBody[1][1];
+			}
+			else if(whereBody[2][0] == 'Value') {
+				value = whereBody[2][1];
+			}
+			
+			for(var i=1; i < query.length; i++) {
+				if(query[i][0] == 'Fields') {
+					for(var j=0; j < query[i][1].length; j++) {
+						if(query[i][1][j][0] == field) {
+							query[i][1][j][1] = value;
+							for(var k=0; k < fields[0].length; k++) {
+								if(fields[0][k] == field) {
+									fields[0].splice(k, 1);
+								}
+							}
+							break;
+						}
+					}
+					break;
+				}
+			}
+		}
+	};
+	
+	ServerURIParser.AddQueryTable = function(query, termOrFactType) {
+		var tables = this.sqlModels[this.currentVocab].tables;
+		var table = tables[termOrFactType];
+		var fieldOrdering = [];
+		console.log(termOrFactType, table, this.sqlModels[this.currentVocab]);
+		switch(table) {
+			case 'Attribute':
+			case 'ForeignKey':
+				__TODO__.die();
+			break;
+			case 'BooleanAttribute':
+				// Return table for the term.
+				table = tables[termOrFactType[0][1]];
+				attributeName = termOrFactType[1][1];
+				switch(this.currentMethod) {
+					case 'DELETE':
+						query[0] = 'UpdateQuery';
+						query.push(['Fields', [[attributeName, false]]]);
+					break;
+					case 'GET':
+						query[0] = 'SelectQuery';
+						query.push(['Select', ['*']]);
+					break;
+					case 'PUT':
+					case 'POST':
+						query[0] = 'UpdateQuery';
+						query.push(['Fields', [[attributeName, true]]]);
+					break;
+				}
+				query.push(['From', table.name])
+				switch(this.currentMethod) {
+					case 'GET':
+					case 'DELETE':
+						this.AddWhereClause(query, ['Equals', ['Field', attributeName], ['Boolean', true]])
+				}
+			break;
+			default:
+				switch(this.currentMethod) {
+					case 'DELETE':
+						query[0] = 'DeleteQuery';
+					break;
+					case 'GET':
+						query[0] = 'SelectQuery';
+						query.push(['Select', ['*']]);
+					break;
+					case 'PUT':
+					case 'POST':
+						if(this.currentMethod == 'PUT') {
+							query[0] = 'UpsertQuery';
+						}
+						else {
+							query[0] = 'InsertQuery';
+						}
+						var fields = [];
+						for(var i=0; i < table.fields.length; i++) {
+							var field = table.fields[i];
+							if(field[2] == 'NOT NULL' || (field[2] == 'PRIMARY KEY' && field[0] != 'Serial')) {
+								var fieldName = field[1];
+								fieldOrdering.push(fieldName)
+								fields.push([fieldName, '?']);
+							}
+						}
+						query.push(['Fields', fields]);
+					break;
+				}
+				query.push(['From', table.name])
+				// All good.
+			break;
+		}
+		return [fieldOrdering];
+	};
 
 	return ServerURIParser;
 });

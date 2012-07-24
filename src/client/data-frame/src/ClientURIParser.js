@@ -329,11 +329,11 @@ define(["ometa/ometa-base"], (function() {
             return this._or((function() {
                 w = this._apply("cole");
                 f = this._apply("frbd");
-                return ["col"].concat(w.concat(f))
+                return ["collection"].concat(w.concat(f))
             }), (function() {
                 w = this._apply("inst");
                 f = this._apply("frbd");
-                return ["ins"].concat(w.concat(f))
+                return ["instance"].concat(w.concat(f))
             }))
         },
         "expr": function() {

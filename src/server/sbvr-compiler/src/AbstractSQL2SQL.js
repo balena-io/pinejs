@@ -5,14 +5,14 @@
     var generate, postgresDataType, websqlDataType;
     postgresDataType = function(dataType, necessity) {
       switch (dataType) {
-        case 'PrimaryKey':
-          return 'SERIAL PRIMARY KEY';
+        case 'Serial':
+          return 'SERIAL ' + necessity;
         case 'Integer':
           return 'INTEGER ' + necessity;
         case 'Short Text':
           return 'VARCHAR(20) ' + necessity;
         case 'Long Text':
-          return 'VARCHAR(200) ' + necessity;
+          return 'TEXT ' + necessity;
         case 'Boolean':
           return 'INTEGER NOT NULL DEFAULT 0';
         case 'ForeignKey':
@@ -26,14 +26,14 @@
     };
     websqlDataType = function(dataType, necessity) {
       switch (dataType) {
-        case 'PrimaryKey':
-          return 'INTEGER PRIMARY KEY AUTOINCREMENT';
+        case 'Serial':
+          return 'INTEGER ' + necessity + ' AUTOINCREMENT';
         case 'Integer':
           return 'INTEGER ' + necessity;
         case 'Short Text':
           return 'VARCHAR(20) ' + necessity;
         case 'Long Text':
-          return 'VARCHAR(200) ' + necessity;
+          return 'TEXT ' + necessity;
         case 'Boolean':
           return 'INTEGER NOT NULL DEFAULT 0';
         case 'ForeignKey':

@@ -1,7 +1,7 @@
 (function() {
 
   define(['sbvr-parser/SBVRParser', 'data-frame/ClientURIParser', 'Prettify'], function(SBVRParser, ClientURIParser, Prettify) {
-    var cleanUp, clientOnAir, defaultFailureCallback, defaultSuccessCallback, fileApiDetect, loadState, loadUI, locate, processHash, relocate, setClientOnAir, setupDownloadify, setupLoadfile, showErrorMessage, showSimpleError, showUrlMessage, sqlEditor;
+    var cleanUp, clientOnAir, defaultFailureCallback, defaultSuccessCallback, fileApiDetect, loadState, loadUI, locate, processHash, relocate, setClientOnAir, setupDownloadify, setupLoadfile, showErrorMessage, showSimpleError, showUrlMessage, sqlEditor, switchTab;
     sqlEditor = null;
     clientOnAir = false;
     showErrorMessage = function(errorMessage) {
@@ -32,7 +32,6 @@
     };
     defaultFailureCallback = function(statusCode, error) {
       if (error != null) {
-        console.log(error);
         if (error.constructor.name === 'Array') {
           if (error["status-line"]) {
             error = error["status-line"];
@@ -43,22 +42,27 @@
       } else {
         error = statusCode;
       }
+      console.log(error);
+      try {
+        ___STACK_TRACE___.please;
+      } catch (stackTrace) {
+        console.error(stackTrace.stack);
+      }
       return showErrorMessage(error);
     };
     defaultSuccessCallback = function(statusCode, result, headers) {};
-    loadState = function() {
+    loadState = function(callback) {
       return serverRequest("GET", "/onAir/", {}, null, function(statusCode, result) {
-        return setClientOnAir(result);
+        setClientOnAir(result);
+        return callback();
       });
     };
     processHash = function() {
-      var URItree, switchVal, theHash, uri;
-      theHash = location.hash;
-      if (theHash === "") theHash = "#!/model";
-      if (theHash.slice(1, 9) === "!/server") {
+      var URItree, switchVal, uri;
+      if (location.hash.slice(1, 9) === "!/server") {
         URItree = [[], [[], ["server"]]];
       } else {
-        URItree = ClientURIParser.matchAll(theHash, "expr");
+        URItree = ClientURIParser.matchAll(location.hash, "expr");
       }
       try {
         switchVal = URItree[1][1][0];
@@ -68,26 +72,49 @@
       switch (switchVal) {
         case "server":
           uri = location.hash.slice(9);
-          return serverRequest("GET", uri, {}, null, function(statusCode, result) {
+          serverRequest("GET", uri, {}, null, function(statusCode, result) {
             return alert(result);
           });
+          break;
         case "sql":
-          $("#tabs").tabs("select", 3);
-          return sqlEditor.refresh();
+          sqlEditor.refresh();
+          break;
         case "data":
-          $("#tabs").tabs("select", 4);
-          return drawData(URItree[1]);
+          drawData(URItree[1]);
+          break;
+        case "export":
+          importExportEditor.refresh();
+          break;
+        case "lf":
+          lfEditor.refresh();
+          break;
+        default:
+          sbvrEditor.refresh();
+      }
+      return switchTab();
+    };
+    switchTab = function() {
+      var URItree, switchVal;
+      try {
+        URItree = ClientURIParser.matchAll(location.hash, "expr");
+        switchVal = URItree[1][1][0];
+      } catch ($e) {
+        switchVal = "";
+      }
+      switch (switchVal) {
+        case "preplf":
+          return $("#tabs").tabs("select", 2);
+        case "sql":
+          return $("#tabs").tabs("select", 3);
+        case "data":
+          return $("#tabs").tabs("select", 4);
         case "http":
           return $("#tabs").tabs("select", 5);
         case "export":
-          importExportEditor.refresh();
           return $("#tabs").tabs("select", 6);
-        case "preplf":
-          break;
         case "lf":
-          return lfEditor.refresh();
+          return $("#tabs").tabs("select", 1);
         default:
-          sbvrEditor.refresh();
           return $("#tabs").tabs("select", 0);
       }
     };
@@ -125,17 +152,19 @@
           mode: "text/x-plsql"
         });
       }
-      window.onhashchange = processHash;
       serverRequest("GET", "/ui/textarea*filt:name=model_area/", {}, null, function(statusCode, result) {
-        return sbvrEditor.setValue(result.value);
-      });
+        return sbvrEditor.setValue(result.instances[0].text);
+      }, function() {});
       serverRequest("GET", "/ui/textarea-is_disabled*filt:textarea.name=model_area/", {}, null, function(statusCode, result) {
         return $("#modelArea").attr("disabled", result.value);
-      });
+      }, function() {});
+      window.onhashchange = processHash;
       $("#modelArea").change(function() {
-        return serverRequest("PUT", "/ui/textarea*filt:name=model_area/", {}, {
-          value: sbvrEditor.getValue()
-        });
+        return serverRequest("PUT", "/ui/textarea*filt:name=model_area/", {}, [
+          {
+            text: sbvrEditor.getValue()
+          }
+        ]);
       });
       $("#dialog-message").dialog({
         modal: true,
@@ -214,12 +243,16 @@
     };
     window.transformClient = function(model) {
       $("#modelArea").attr("disabled", true);
-      return serverRequest("PUT", "/ui/textarea-is_disabled*filt:textarea.name=model_area/", {}, {
-        value: true
-      }, function() {
-        return serverRequest("PUT", "/ui/textarea*filt:name=model_area/", {}, {
-          value: model
-        }, function() {
+      return serverRequest("PUT", "/ui/textarea-is_disabled*filt:textarea.name=model_area/", {}, [
+        {
+          text: true
+        }
+      ], function() {
+        return serverRequest("PUT", "/ui/textarea*filt:name=model_area/", {}, [
+          {
+            text: model
+          }
+        ], function() {
           return serverRequest("POST", "/execute/", {}, null, function() {
             return setClientOnAir(true);
           });
@@ -392,50 +425,51 @@
       return $('#tabs').tabs('select', 1);
     };
     return $(function() {
-      $.browser.chrome = $.browser.webkit && !!window.chrome;
-      $("#tabs").tabs({
-        select: function(event, ui) {
-          var _ref;
-          if (((_ref = ui.panel.id) !== "modelTab" && _ref !== "httpTab") && clientOnAir === false) {
-            showErrorMessage("This tab is only accessible after a model is executed<br/>");
-            return false;
-          } else {
-            switch (ui.panel.id) {
-              case "prepTab":
-                location.hash = "!/preplf/";
-                break;
-              case "sqlTab":
-                location.hash = "!/sql/";
-                break;
-              case "dataTab":
-                location.hash = "!/data/";
-                break;
-              case "httpTab":
-                location.hash = "!/http/";
-                break;
-              case "importExportTab":
-                location.hash = "!/export/";
-                break;
-              case "lfTab":
-                location.hash = "!/lf/";
-                break;
-              default:
-                location.hash = "!/model/";
-            }
-            return true;
-          }
-        }
-      });
-      $('#tabs').show();
-      getModel();
       loadUI();
-      loadState();
-      setupDownloadify();
-      setupLoadfile();
-      $(window).on("resize", relocate);
-      processHash();
-      return $("#bldb").file().choose(function(e, input) {
-        return handleFiles(input[0].files);
+      return loadState(function() {
+        $.browser.chrome = $.browser.webkit && !!window.chrome;
+        $("#tabs").tabs({
+          select: function(event, ui) {
+            var _ref;
+            if (((_ref = ui.panel.id) !== "modelTab" && _ref !== "httpTab") && clientOnAir === false) {
+              showErrorMessage("This tab is only accessible after a model is executed<br/>");
+              return false;
+            } else {
+              switch (ui.panel.id) {
+                case "prepTab":
+                  location.hash = "!/preplf/";
+                  break;
+                case "sqlTab":
+                  location.hash = "!/sql/";
+                  break;
+                case "dataTab":
+                  location.hash = "!/data/";
+                  break;
+                case "httpTab":
+                  location.hash = "!/http/";
+                  break;
+                case "importExportTab":
+                  location.hash = "!/export/";
+                  break;
+                case "lfTab":
+                  location.hash = "!/lf/";
+                  break;
+                default:
+                  location.hash = "!/model/";
+              }
+              return true;
+            }
+          }
+        });
+        $('#tabs').show();
+        getModel();
+        setupDownloadify();
+        setupLoadfile();
+        $(window).on("resize", relocate);
+        switchTab();
+        return $("#bldb").file().choose(function(e, input) {
+          return handleFiles(input[0].files);
+        });
       });
     });
   });

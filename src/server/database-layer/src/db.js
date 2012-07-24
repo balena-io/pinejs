@@ -235,7 +235,7 @@
                 }
                 errorCallback = (function(errorCallback) {
                   return function(_tx, _err) {
-                    console.log(sql, _err, stackTrace.stack);
+                    console.log(sql, bindings, _err, stackTrace.stack);
                     return typeof errorCallback === "function" ? errorCallback(thisTX, _err) : void 0;
                   };
                 })(errorCallback);

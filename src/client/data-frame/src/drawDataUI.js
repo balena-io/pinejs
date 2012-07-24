@@ -1,159 +1,271 @@
 (function() {
+  var __indexOf = Array.prototype.indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
-  define(['data-frame/ClientURIUnparser'], function(ClientURIUnparser) {
-    var addInst, createFactTypeForm, createHiddenInputs, delInst, drawData, editInst, filtmerge, getBranch, getPid, getTarg, processForm, serverAPI, uidraw, widgets;
+  define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback'], function(ClientURIUnparser, createAsyncQueueCallback) {
+    var addInst, createFactTypeForm, createHiddenInputs, createNavigableTree, delInst, drawData, editInst, getResolvedFactType, getTermResults, processForm, serverAPI, uidraw, widgets;
     widgets = {};
     requirejs(['data-frame/widgets/inputText'], function(inputText) {
       return widgets.inputText = inputText;
     });
-    getBranch = function(branch, loc) {
-      var childIndex, _i, _len;
-      for (_i = 0, _len = loc.length; _i < _len; _i++) {
-        childIndex = loc[_i];
-        branch = branch[childIndex + 2];
-      }
-      return branch;
-    };
-    getPid = function(branch, loc) {
-      var childIndex, pid, _i, _len;
-      pid = branch[1][0];
-      for (_i = 0, _len = loc.length; _i < _len; _i++) {
-        childIndex = loc[_i];
-        branch = branch[childIndex + 2];
-        if (branch[0] === "col") {
-          pid += "--" + branch[1][0];
-        } else {
-          pid += "--" + branch[1][1];
+    createNavigableTree = function(tree, descendTree) {
+      var ascend, currentLocation, descendByIndex, getIndexForResource, index, previousLocations, _i, _len;
+      if (descendTree == null) descendTree = [];
+      tree = jQuery.extend(true, [], tree);
+      descendTree = jQuery.extend(true, [], descendTree);
+      previousLocations = [];
+      currentLocation = tree;
+      getIndexForResource = function(resourceName, resourceID) {
+        var j, leaf, _len, _ref, _ref2, _ref3;
+        for (j = 0, _len = currentLocation.length; j < _len; j++) {
+          leaf = currentLocation[j];
+          if (((_ref = leaf[0]) === 'collection' || _ref === 'instance') && ((_ref2 = leaf[1]) != null ? _ref2[0] : void 0) === resourceName && (!(resourceID != null) || (leaf[1][1] !== void 0 && (_ref3 = leaf[1][1], __indexOf.call(resourceID, _ref3) >= 0)))) {
+            return j;
+          }
         }
-      }
-      return pid;
-    };
-    getTarg = function(tree, loc, actn, newb) {
-      var childIndex, parr, ptree, _i, _len;
-      ptree = jQuery.extend(true, [], tree);
-      parr = ptree;
-      for (_i = 0, _len = loc.length; _i < _len; _i++) {
-        childIndex = loc[_i];
-        parr = parr[childIndex + 2];
-      }
-      switch (actn) {
-        case "add":
-          parr.push(newb);
-          break;
-        case "del":
-          parr.splice(newb + 2, 1);
-      }
-      return ClientURIUnparser.match(ptree, "trans");
-    };
-    serverAPI = function(about, filters) {
-      var filter, flts, op, _i, _len, _ref;
-      op = {
-        eq: "=",
-        ne: "!=",
-        lk: "~"
+        return false;
       };
-      flts = "";
-      _ref = filters.slice(1);
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        filter = _ref[_i];
-        if (about === filter[1]) {
-          flts = flts + filter[1] + "." + filter[2] + op[filter[0]] + filter[3] + ";";
-        }
+      ascend = function() {
+        currentLocation = previousLocations.pop();
+        return descendTree.pop();
+      };
+      descendByIndex = function(index) {
+        descendTree.push(index);
+        previousLocations.push(currentLocation);
+        return currentLocation = currentLocation[index];
+      };
+      for (_i = 0, _len = descendTree.length; _i < _len; _i++) {
+        index = descendTree[_i];
+        previousLocations.push(currentLocation);
+        currentLocation = currentLocation[index];
       }
-      if (flts !== "") flts = "*filt:" + flts;
-      return "/data/" + about + flts;
-    };
-    drawData = function(tree) {
-      var filters, rootURI;
-      rootURI = location.pathname;
-      filters = ["filters"];
-      $("#dataTab").html("<table id='terms'><tbody><tr><td></td></tr></tbody></table><div align='left'><br/><input type='button' value='Apply All Changes' onClick='runTrans($(\"#terms\"));return false;'></div>");
-      return serverRequest("GET", "/data/", {}, null, function(statusCode, result, headers) {
-        var i, j, launch, leaf, newb, npos, objcb, post, pre, term, _len, _len2, _ref, _ref2, _results;
-        objcb = {
-          totsub: result.terms.length,
-          totend: 0,
-          data: [],
-          callback: function(n, prod) {
-            var item, _i, _len, _ref, _results;
-            this.data.push([n, prod]);
-            if (++this.totend === this.totsub) {
-              this.data.sort(function(a, b) {
-                return a[0] - b[0];
-              });
-              _ref = this.data;
-              _results = [];
-              for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-                item = _ref[_i];
-                _results.push($("#terms").append(item[1]));
+      return {
+        getCurrentLocation: function() {
+          return currentLocation;
+        },
+        getCurrentIndex: function() {
+          return descendTree[descendTree.length - 1];
+        },
+        descendByIndex: function(index) {
+          descendByIndex(index);
+          return this;
+        },
+        getAbout: function() {
+          var _ref;
+          if (((_ref = currentLocation[1]) != null ? _ref[0] : void 0) != null) {
+            return currentLocation[1][0];
+          } else {
+            return currentLocation[0];
+          }
+        },
+        getAction: function(resourceName, resourceID) {
+          var currBranch, currBranchType, _j, _len2, _ref, _ref2;
+          index = getIndexForResource(resourceName, resourceID);
+          if (index !== false) {
+            currBranch = currentLocation[index];
+            _ref = currBranch[2].slice(1);
+            for (_j = 0, _len2 = _ref.length; _j < _len2; _j++) {
+              currBranchType = _ref[_j];
+              if ((_ref2 = currBranchType[0]) === 'view' || _ref2 === 'edit' || _ref2 === 'del') {
+                return currBranchType[0];
               }
-              return _results;
             }
           }
-        };
+          return 'view';
+        },
+        getPid: function() {
+          var index, pid, pidTree, _j, _len2;
+          pidTree = tree;
+          pid = pidTree[1][0];
+          for (_j = 0, _len2 = descendTree.length; _j < _len2; _j++) {
+            index = descendTree[_j];
+            pidTree = pidTree[index];
+            if (pidTree[0] === 'collection') {
+              pid += "--" + pidTree[1][0];
+            } else {
+              pid += "--" + pidTree[1][1];
+            }
+          }
+          return pid;
+        },
+        getServerURI: function() {
+          var filters, leaf, op, _j, _len2, _ref;
+          op = {
+            eq: "=",
+            ne: "!=",
+            lk: "~"
+          };
+          filters = [];
+          _ref = currentLocation[2];
+          for (_j = 0, _len2 = _ref.length; _j < _len2; _j++) {
+            leaf = _ref[_j];
+            if (!(leaf[0] === "filt")) continue;
+            leaf = leaf[1];
+            if (leaf[1][0] === void 0) leaf[1] = this.getAbout();
+            filters.push([leaf[2], op[leaf[0]], leaf[3]]);
+          }
+          return serverAPI(this.getAbout(), filters);
+        },
+        isExpanded: function(resourceName, resourceID) {
+          return getIndexForResource(resourceName, resourceID) !== false;
+        },
+        descend: function(resourceName, resourceID) {
+          index = getIndexForResource(resourceName, resourceID);
+          descendByIndex(index);
+          return this;
+        },
+        modify: function(action, change) {
+          var oldIndex;
+          switch (action) {
+            case "add":
+              currentLocation.push(change);
+              break;
+            case "del":
+              oldIndex = ascend();
+              currentLocation.splice(oldIndex, 1);
+          }
+          return this;
+        },
+        getURI: function() {
+          return ClientURIUnparser.match(tree, "trans");
+        },
+        clone: function() {
+          return createNavigableTree(tree, descendTree);
+        },
+        getChangeURI: function(action, resourceName, resourceID) {
+          var resource;
+          resource = [resourceName];
+          if (resourceID != null) resource.push(resourceID);
+          return this.getNewURI("add", ['instance', resource, ["mod", [action]]]);
+        },
+        getNewURI: function(action, change) {
+          return this.clone().modify(action, change).getURI();
+        }
+      };
+    };
+    getResolvedFactType = function(factType, factTypeInstance, successCallback, errorCallback) {
+      var asyncCallback, factTypePart, i, idField, isBooleanFactType, uri, valueField, _len;
+      factTypeInstance = $.extend(true, [], factTypeInstance);
+      asyncCallback = createAsyncQueueCallback(function() {
+        return successCallback(factTypeInstance);
+      }, errorCallback);
+      isBooleanFactType = factType.length === 3;
+      for (i = 0, _len = factType.length; i < _len; i++) {
+        factTypePart = factType[i];
+        if (factTypePart[0] === "Term") {
+          asyncCallback.addWork(1);
+          idField = isBooleanFactType ? 'id' : factTypePart[1];
+          valueField = factTypePart[1];
+          uri = serverAPI(factTypePart[1], [['id', '=', factTypeInstance[idField]]]);
+          serverRequest("GET", uri, {}, null, (function(valueField) {
+            return function(statusCode, result, headers) {
+              factTypeInstance[valueField] = result.instances[0];
+              return asyncCallback.successCallback();
+            };
+          })(valueField), asyncCallback.errorCallback);
+        }
+      }
+      return asyncCallback.endAdding();
+    };
+    getTermResults = function(factType, successCallback) {
+      var factTypePart, resultsReceived, resultsRequested, termName, termResults, _i, _len, _results;
+      termResults = {};
+      for (_i = 0, _len = factType.length; _i < _len; _i++) {
+        factTypePart = factType[_i];
+        if (factTypePart[0] === "Term") termResults[factTypePart[1]] = [];
+      }
+      resultsReceived = 0;
+      resultsRequested = Object.keys(termResults).length;
+      _results = [];
+      for (termName in termResults) {
+        _results.push(serverRequest("GET", serverAPI(termName), {}, null, (function(termName) {
+          return function(statusCode, result, headers) {
+            termResults[termName] = result.instances;
+            resultsReceived++;
+            if (resultsReceived === resultsRequested) {
+              return successCallback(termResults);
+            }
+          };
+        })(termName)));
+      }
+      return _results;
+    };
+    serverAPI = function(about, filters) {
+      var filter, filterString, _i, _len;
+      if (filters == null) filters = [];
+      filterString = '';
+      for (_i = 0, _len = filters.length; _i < _len; _i++) {
+        filter = filters[_i];
+        filterString += filter[0] + filter[1] + filter[2] + ";";
+      }
+      if (filterString !== '') filterString = "*filt:" + filterString;
+      return "/data/" + about + filterString;
+    };
+    drawData = function(tree) {
+      var rootURI;
+      tree = createNavigableTree(tree);
+      rootURI = location.pathname;
+      $("#dataTab").html("<table id='terms'><tbody><tr><td></td></tr></tbody></table><div align='left'><br/><input type='button' value='Apply All Changes' onClick='runTrans($(\"#terms\"));return false;'></div>");
+      return serverRequest("GET", "/data/", {}, null, function(statusCode, result, headers) {
+        var asyncCallback, expandedTree, i, newb, npos, post, pre, term, _len, _ref, _results;
+        asyncCallback = createAsyncQueueCallback(function(results) {
+          var item, _i, _len, _results;
+          results.sort(function(a, b) {
+            return a[0] - b[0];
+          });
+          _results = [];
+          for (_i = 0, _len = results.length; _i < _len; _i++) {
+            item = results[_i];
+            _results.push($("#terms").append(item[1]));
+          }
+          return _results;
+        }, function(errors) {
+          console.error(errors);
+          return rowCallback(idx, 'Error: ' + errors);
+        }, function(n, prod) {
+          return [n, prod];
+        });
+        asyncCallback.addWork(result.terms.length);
+        asyncCallback.endAdding();
         _ref = result.terms;
         _results = [];
         for (i = 0, _len = _ref.length; i < _len; i++) {
           term = _ref[i];
           term = result.terms[i];
-          launch = -1;
-          _ref2 = tree.slice(3);
-          for (j = 0, _len2 = _ref2.length; j < _len2; j++) {
-            leaf = _ref2[j];
-            if (!(leaf[1][0] === term.id)) continue;
-            launch = j + 3;
-            break;
-          }
           pre = "<tr id='tr--data--" + term.id + "'><td>";
           post = "</td></tr>";
-          if (launch !== -1) {
-            npos = getTarg(tree, [], "del", launch - 2);
+          if (tree.isExpanded(term.id)) {
+            expandedTree = tree.clone().descend(term.id);
+            npos = expandedTree.getNewURI("del");
             pre += "<div style='display:inline; background-color:#FFFFFF;'>" + term.name + "</div>";
             pre += "<div style='display:inline;background-color:#FFFFFF'><a href='" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a></div>";
-            _results.push((function(i, pre, post, launch) {
+            _results.push((function(i, pre, post) {
               return serverRequest("GET", "/lfmodel/", {}, null, function(statusCode, result) {
                 var uid;
-                uid = new uidraw(i, objcb, pre, post, rootURI, [], [], filters, [launch - 2], true, tree, result);
+                uid = new uidraw(i, asyncCallback.successCallback, pre, post, rootURI, true, expandedTree, result);
                 return uid.subRowIn();
               });
-            })(i, pre, post, launch));
+            })(i, pre, post));
           } else {
-            newb = ["col", [term.id], ["mod"]];
-            npos = getTarg(tree, [], "add", newb);
+            newb = ['collection', [term.id], ["mod"]];
+            npos = tree.getNewURI("add", newb);
             pre += term.name;
             pre += " <a href='" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false'><span title='See all' class='ui-icon ui-icon-search'></span></a>";
-            _results.push(objcb.callback(i, pre + post));
+            _results.push(asyncCallback.successCallback(i, pre + post));
           }
         }
         return _results;
       });
     };
-    uidraw = function(idx, objcb, pre, post, rootURI, pos, pid, filters, loc, even, ftree, cmod) {
-      var getIdent, mod, _i, _len, _ref;
-      this.idx = idx;
-      this.objcb = objcb;
+    uidraw = function(idx, rowCallback, pre, post, rootURI, even, ftree, cmod) {
+      var about, asyncCallback, currentLocation, getIdent, mod, parent, _i, _len, _ref;
+      currentLocation = ftree.getCurrentLocation();
+      about = ftree.getAbout();
       this.pre = pre;
       this.post = post;
-      this.rootURI = rootURI;
-      this.pos = pos;
-      this.loc = loc;
-      this.even = even;
-      this.ftree = ftree;
-      this.branch = getBranch(this.ftree, this.loc);
-      this.filters = filters;
-      this.filters = filtmerge(this.branch, this.filters);
-      this.pid = getPid(this.ftree, this.loc);
-      this.about = this.branch[1][0];
-      this.data = [];
-      this.items = 0;
-      this.submitted = 0;
-      this.html = "";
       this.adds = 0;
       this.addsout = 0;
       this.cols = 0;
       this.colsout = 0;
-      this.rows = 0;
-      this.targ = "";
       this.type = "Term";
       this.schema = [];
       if (even) {
@@ -163,23 +275,25 @@
         this.bg = "#EEEEEE";
         this.unbg = "#FFFFFF";
       }
-      this.callback = function(n, prod) {
-        var item, _i, _len, _ref;
-        this.data.push([n, prod]);
-        if (this.data.length === this.items) {
-          this.data.sort(function(a, b) {
-            return a[0] - b[0];
-          });
-          this.html = this.pre;
-          _ref = this.data;
-          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-            item = _ref[_i];
-            this.html += item[1];
-          }
-          this.html += this.post;
-          return this.objcb.callback(this.idx, this.html);
+      parent = this;
+      asyncCallback = createAsyncQueueCallback(function(results) {
+        var html, item, _i, _len;
+        results.sort(function(a, b) {
+          return a[0] - b[0];
+        });
+        html = parent.pre;
+        for (_i = 0, _len = results.length; _i < _len; _i++) {
+          item = results[_i];
+          html += item[1];
         }
-      };
+        html += parent.post;
+        return rowCallback(idx, html);
+      }, function(errors) {
+        console.error(errors);
+        return rowCallback(idx, 'Error: ' + errors);
+      }, function(n, prod) {
+        return [n, prod];
+      });
       getIdent = function(mod) {
         var factTypePart, ident, _i, _len, _ref;
         switch (mod[0]) {
@@ -201,180 +315,166 @@
       _ref = cmod.slice(1);
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         mod = _ref[_i];
-        if (!(getIdent(mod) === this.about)) continue;
+        if (!(getIdent(mod) === about)) continue;
         this.type = mod[0];
         if (this.type === "FactType") this.schema = mod.slice(1);
       }
       this.subRowIn = function() {
-        var actn, branchType, col, currBranch, currBranchType, currSchema, mod, parent, posl, res, resultsReceived, resultsRequested, schema, targ, termName, termResults, _j, _k, _l, _len2, _len3, _len4, _len5, _len6, _len7, _len8, _m, _n, _o, _p, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7, _ref8, _results;
-        parent = this;
-        if (this.branch[0] === "col") {
-          this.pre += "<div class='panel' style='background-color:" + this.bg + ";'><table id='tbl--" + pid + "'><tbody>";
+        var actn, backURI, branchType, collection, currBranch, currBranchType, currSchema, mod, res, schema, targ, _j, _k, _l, _len2, _len3, _len4, _len5, _len6, _len7, _m, _n, _o, _ref2, _ref3, _ref4, _ref5, _ref6;
+        if (currentLocation[0] === 'collection') {
+          this.pre += "<div class='panel' style='background-color:" + this.bg + ";'><table id='tbl--" + ftree.getPid() + "'><tbody>";
           this.post += "</tbody></table></div>";
-          _ref2 = this.branch;
-          for (_j = 0, _len2 = _ref2.length; _j < _len2; _j++) {
-            currBranch = _ref2[_j];
-            if (currBranch[0] === "ins" && currBranch[1][0] === this.about && currBranch[1][1] === void 0) {
-              _ref3 = currBranch[2].slice(1);
-              for (_k = 0, _len3 = _ref3.length; _k < _len3; _k++) {
-                currBranchType = _ref3[_k];
+          for (_j = 0, _len2 = currentLocation.length; _j < _len2; _j++) {
+            currBranch = currentLocation[_j];
+            if (currBranch[0] === 'instance' && currBranch[1][0] === about && currBranch[1][1] === void 0) {
+              _ref2 = currBranch[2].slice(1);
+              for (_k = 0, _len3 = _ref2.length; _k < _len3; _k++) {
+                currBranchType = _ref2[_k];
                 if (currBranchType[0] === "add") this.adds++;
               }
             }
           }
-          _ref4 = cmod.slice(1);
-          for (_l = 0, _len4 = _ref4.length; _l < _len4; _l++) {
-            mod = _ref4[_l];
+          _ref3 = cmod.slice(1);
+          for (_l = 0, _len4 = _ref3.length; _l < _len4; _l++) {
+            mod = _ref3[_l];
             if (mod[0] === "FactType") {
-              _ref5 = mod.slice(1);
-              for (_m = 0, _len5 = _ref5.length; _m < _len5; _m++) {
-                col = _ref5[_m];
-                if (getIdent(col) === this.about) this.cols++;
+              _ref4 = mod.slice(1);
+              for (_m = 0, _len5 = _ref4.length; _m < _len5; _m++) {
+                collection = _ref4[_m];
+                if (getIdent(collection) === about) this.cols++;
               }
             }
           }
-          this.targ = serverAPI(this.about, this.filters);
-          return serverRequest("GET", this.targ, {}, null, function(statusCode, result, headers) {
-            var actn, branch, currBranch, currBranchType, i, instance, j, k, launch, locn, mod, newb, npos, posl, postl, prel, res, resl, schema, subcolcb, termVerb, uid, _len10, _len11, _len12, _len6, _len7, _len8, _len9, _n, _o, _p, _q, _ref10, _ref11, _ref12, _ref13, _ref14, _ref6, _ref7, _ref8, _ref9, _results;
+          targ = serverAPI(about);
+          return serverRequest("GET", targ, {}, null, function(statusCode, result, headers) {
+            var currBranch, currBranchType, expandedTree, i, instance, j, mod, newTree, newb, npos, posl, res, resl, resourceName, rows, termVerb, uid, _fn, _len6, _len7, _len8, _len9, _n, _o, _ref5, _ref6, _ref7, _ref8, _results;
             resl = "";
-            parent.rows = result.instances.length;
-            parent.items = parent.rows + 2 + parent.adds + 1 + parent.cols;
-            newb = ["ins", [parent.about], ["mod", ["add"]]];
-            npos = getTarg(parent.ftree, parent.loc, "add", newb);
-            parent.data.push([parent.rows + 1, "<tr><td><a href = '" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false;'>[(+)add new]</a></td></tr>"]);
-            _ref6 = result.instances;
-            for (i = 0, _len6 = _ref6.length; i < _len6; i++) {
-              instance = _ref6[i];
-              launch = -1;
-              actn = "view";
-              _ref7 = parent.branch.slice(3);
-              for (j = 0, _len7 = _ref7.length; j < _len7; j++) {
-                currBranch = _ref7[j];
-                if (currBranch[0] === "ins" && currBranch[1][0] === parent.about && currBranch[1][1] !== void 0 && ((_ref8 = currBranch[1][1]) === instance.id || _ref8 === instance.value)) {
-                  launch = j + 3;
-                  _ref9 = currBranch[2].slice(1);
-                  for (_n = 0, _len8 = _ref9.length; _n < _len8; _n++) {
-                    currBranchType = _ref9[_n];
-                    if (!((_ref10 = currBranchType[0]) === "edit" || _ref10 === "del")) {
-                      continue;
+            rows = result.instances.length;
+            asyncCallback.addWork(rows + 2 + parent.adds + 1 + parent.cols);
+            asyncCallback.endAdding();
+            npos = ftree.getChangeURI('add', about);
+            asyncCallback.successCallback(rows + 1, "<tr><td><a href = '" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false;'>[(+)add new]</a></td></tr>");
+            _ref5 = result.instances;
+            _fn = function(instance, i) {
+              var processInstance;
+              processInstance = function() {
+                var action, expandedTree, isExpanded, posl, postl, prel, schema, uid, _len7, _n, _ref6;
+                isExpanded = ftree.isExpanded(about, [instance.id, instance.value]);
+                action = ftree.getAction(about, [instance.id, instance.value]);
+                posl = targ + "/" + about + "*filt:id=" + instance.id;
+                prel = "<tr id='tr--" + ftree.getPid() + "--" + instance.id + "'><td>";
+                if (isExpanded) {
+                  expandedTree = ftree.clone().descend(about, [instance.id, instance.value]);
+                  prel += "<div style='display:inline;background-color:" + parent.unbg + "'>";
+                }
+                if (parent.type === "Term") {
+                  prel += instance.value;
+                } else if (parent.type === "FactType") {
+                  _ref6 = parent.schema;
+                  for (_n = 0, _len7 = _ref6.length; _n < _len7; _n++) {
+                    schema = _ref6[_n];
+                    if (schema[0] === "Term") {
+                      prel += instance[schema[1]].value + " ";
+                    } else if (schema[0] === "Verb") {
+                      prel += "<em>" + schema[1] + "</em> ";
                     }
-                    actn = currBranchType[0];
-                    break;
                   }
                 }
-              }
-              posl = parent.targ + "/" + parent.about + "." + instance.id;
-              prel = "<tr id='tr--" + pid + "--" + instance.id + "'><td>";
-              if (launch !== -1) {
-                prel += "<div style='display:inline;background-color:" + parent.unbg + "'>";
-              }
-              if (parent.type === "Term") {
-                prel += instance.value;
-              } else if (parent.type === "FactType") {
-                _ref11 = parent.schema;
-                for (_o = 0, _len9 = _ref11.length; _o < _len9; _o++) {
-                  schema = _ref11[_o];
-                  if (schema[0] === "Term") {
-                    prel += instance[schema[1] + "_value"] + " ";
-                  } else if (schema[0] === "Verb") {
-                    prel += "<em>" + schema[1] + "</em> ";
-                  }
+                if (isExpanded) prel += "</div>";
+                if (!isExpanded) {
+                  npos = ftree.getChangeURI('view', about, instance.id);
+                  prel += " <a href='" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false'><span title='View' class='ui-icon ui-icon-search'></span></a>";
+                } else if (action === "view") {
+                  npos = expandedTree.getNewURI("del");
+                  prel += "<div style='display:inline;background-color:" + parent.unbg + "'> <a href='" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a></div>";
                 }
-              }
-              if (launch !== -1) prel += "</div>";
-              if (launch === -1) {
-                newb = ["ins", [parent.about, instance.id], ["mod"]];
-                npos = getTarg(parent.ftree, parent.loc, "add", newb);
-                prel += " <a href='" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false'><span title='View' class='ui-icon ui-icon-search'></span></a>";
-              } else if (actn === "view") {
-                npos = getTarg(parent.ftree, parent.loc, "del", launch - 2);
-                prel += "<div style='display:inline;background-color:" + parent.unbg + "'> <a href='" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a></div>";
-              }
-              if (launch === -1) {
-                newb = ["ins", [parent.about, instance.id], ["mod", ["edit"]]];
-                npos = getTarg(parent.ftree, parent.loc, "add", newb);
-                prel += " <a href='" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Edit' class='ui-icon ui-icon-pencil'></span></a>";
-              } else if (actn === "edit") {
-                npos = getTarg(parent.ftree, parent.loc, "del", launch - 2);
-                prel += "<div style='display:inline;background-color:" + parent.unbg + "'> <a href='" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a></div>";
-              }
-              if (launch === -1) {
-                newb = ["ins", [parent.about, instance.id], ["mod", ["del"]]];
-                npos = getTarg(parent.ftree, parent.loc, "add", newb);
-                prel += " <a href='" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Delete' class='ui-icon ui-icon-trash'></span></a>";
-              } else if (actn === "del") {
-                npos = getTarg(parent.ftree, parent.loc, "del", launch - 2);
-                prel += "<div style='display:inline;background-color:" + parent.unbg + "'> <a href='" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false'>[unmark]</a></div>";
-              }
-              postl = "</td></tr>";
-              if (launch !== -1) {
-                locn = parent.loc.concat([launch - 2]);
-                uid = new uidraw(i, parent, prel, postl, rootURI, [], [], parent.filters, locn, !parent.even, parent.ftree, cmod);
-                uid.subRowIn();
+                if (!isExpanded) {
+                  npos = ftree.getChangeURI('edit', about, instance.id);
+                  prel += " <a href='" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Edit' class='ui-icon ui-icon-pencil'></span></a>";
+                } else if (action === "edit") {
+                  npos = expandedTree.getNewURI("del");
+                  prel += "<div style='display:inline;background-color:" + parent.unbg + "'> <a href='" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a></div>";
+                }
+                if (!isExpanded) {
+                  npos = ftree.getChangeURI('del', about, instance.id);
+                  prel += " <a href='" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Delete' class='ui-icon ui-icon-trash'></span></a>";
+                } else if (action === "del") {
+                  npos = expandedTree.getNewURI("del");
+                  prel += "<div style='display:inline;background-color:" + parent.unbg + "'> <a href='" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false'>[unmark]</a></div>";
+                }
+                postl = "</td></tr>";
+                if (isExpanded) {
+                  uid = new uidraw(i, asyncCallback.successCallback, prel, postl, rootURI, !even, expandedTree, cmod);
+                  return uid.subRowIn();
+                } else {
+                  return asyncCallback.successCallback(i, prel + postl);
+                }
+              };
+              if (parent.type === "FactType") {
+                return getResolvedFactType(parent.schema, instance, function(factTypeInstance) {
+                  instance = factTypeInstance;
+                  return processInstance();
+                }, function(errors) {
+                  console.error(errors);
+                  return asyncCallback.successCallback(i, 'Errors: ' + errors);
+                });
               } else {
-                parent.callback(i, prel + postl);
+                return processInstance();
               }
+            };
+            for (i = 0, _len6 = _ref5.length; i < _len6; i++) {
+              instance = _ref5[i];
+              _fn(instance, i);
             }
-            parent.callback(parent.rows, "<tr><td><hr style='border:0px; width:90%; background-color: #999; height:1px;'></td></tr>");
-            posl = parent.targ + "/" + parent.about;
-            _ref12 = parent.branch.slice(3);
-            for (j = 0, _len10 = _ref12.length; j < _len10; j++) {
-              currBranch = _ref12[j];
-              if (currBranch[0] === "ins" && currBranch[1][0] === parent.about && currBranch[1][1] === void 0) {
-                _ref13 = currBranch[2];
-                for (_p = 0, _len11 = _ref13.length; _p < _len11; _p++) {
-                  currBranchType = _ref13[_p];
+            asyncCallback.successCallback(rows, "<tr><td><hr style='border:0px; width:90%; background-color: #999; height:1px;'></td></tr>");
+            posl = targ + "/" + about;
+            _ref6 = currentLocation.slice(3);
+            for (j = 0, _len7 = _ref6.length; j < _len7; j++) {
+              currBranch = _ref6[j];
+              if (currBranch[0] === 'instance' && currBranch[1][0] === about && currBranch[1][1] === void 0) {
+                _ref7 = currBranch[2];
+                for (_n = 0, _len8 = _ref7.length; _n < _len8; _n++) {
+                  currBranchType = _ref7[_n];
                   if (!(currBranchType[0] === "add")) continue;
-                  locn = parent.loc.concat([j + 1]);
-                  uid = new uidraw(parent.rows + 1 + ++parent.addsout, parent, "<tr><td>", "</td></tr>", rootURI, [], [], parent.filters, locn, !parent.even, parent.ftree, cmod);
+                  newTree = ftree.clone().descendByIndex(j + 3);
+                  uid = new uidraw(rows + 1 + ++parent.addsout, asyncCallback.successCallback, "<tr><td>", "</td></tr>", rootURI, !even, newTree, cmod);
                   uid.subRowIn();
                   break;
                 }
               }
             }
-            parent.callback(parent.rows + 1 + parent.adds + 1, "<tr><td><hr style='border:0px; width:90%; background-color: #999; height:1px;'></td></tr>");
-            _ref14 = cmod.slice(1);
+            asyncCallback.successCallback(rows + 1 + parent.adds + 1, "<tr><td><hr style='border:0px; width:90%; background-color: #999; height:1px;'></td></tr>");
+            _ref8 = cmod.slice(1);
             _results = [];
-            for (_q = 0, _len12 = _ref14.length; _q < _len12; _q++) {
-              mod = _ref14[_q];
+            for (_o = 0, _len9 = _ref8.length; _o < _len9; _o++) {
+              mod = _ref8[_o];
               if (mod[0] === "FactType") {
                 _results.push((function() {
-                  var _len13, _len14, _r, _ref15, _ref16, _results2;
-                  _ref15 = mod.slice(1);
+                  var _len10, _p, _ref9, _results2;
+                  _ref9 = mod.slice(1);
                   _results2 = [];
-                  for (_r = 0, _len13 = _ref15.length; _r < _len13; _r++) {
-                    termVerb = _ref15[_r];
-                    if (!(termVerb[1] === parent.about)) continue;
-                    launch = -1;
-                    _ref16 = parent.branch.slice(3);
-                    for (k = 0, _len14 = _ref16.length; k < _len14; k++) {
-                      branch = _ref16[k];
-                      if (!(branch[1][0] === getIdent(mod))) continue;
-                      launch = k + 1;
-                      break;
-                    }
+                  for (_p = 0, _len10 = _ref9.length; _p < _len10; _p++) {
+                    termVerb = _ref9[_p];
+                    if (!(termVerb[1] === about)) continue;
+                    resourceName = getIdent(mod);
                     parent.colsout++;
                     res = "";
-                    pre = "<tr id='tr--data--" + getIdent(mod) + "'><td>";
+                    pre = "<tr id='tr--data--" + resourceName + "'><td>";
                     post = "</td></tr>";
-                    if (launch !== -1) {
-                      npos = getTarg(parent.ftree, parent.loc, "del", launch);
-                      pre += "<div style='display:inline;background-color:" + parent.unbg + "'>" + getIdent(mod) + "</div>";
+                    if (ftree.isExpanded(resourceName)) {
+                      expandedTree = ftree.clone().descend(resourceName);
+                      npos = expandedTree.getNewURI("del");
+                      pre += "<div style='display:inline;background-color:" + parent.unbg + "'>" + resourceName + "</div>";
                       pre += "<div style='display:inline;background-color:" + parent.unbg + "'><a href='" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a></div>";
-                      subcolcb = {
-                        callback: function(n, prod) {
-                          return parent.callback(n, prod);
-                        }
-                      };
-                      uid = new uidraw(parent.rows + 1 + parent.adds + 1 + parent.colsout, subcolcb, pre, post, rootURI, [], [], parent.filters, loc.concat([launch]), !parent.even, parent.ftree, cmod);
+                      uid = new uidraw(rows + 1 + parent.adds + 1 + parent.colsout, asyncCallback.successCallback, pre, post, rootURI, !even, expandedTree, cmod);
                       _results2.push(uid.subRowIn());
                     } else {
-                      newb = ["col", [getIdent(mod)], ["mod"]];
-                      npos = getTarg(parent.ftree, parent.loc, "add", newb);
-                      pre += getIdent(mod);
-                      pre += " <a href='" + parent.rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false'><span title='See all' class='ui-icon ui-icon-search'></span></a>";
+                      newb = ['collection', [resourceName], ["mod"]];
+                      npos = ftree.getNewURI("add", newb);
+                      pre += resourceName;
+                      pre += " <a href='" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false'><span title='See all' class='ui-icon ui-icon-search'></span></a>";
                       res += pre + post;
-                      _results2.push(parent.callback(parent.rows + 1 + parent.adds + 1 + parent.colsout, res));
+                      _results2.push(asyncCallback.successCallback(rows + 1 + parent.adds + 1 + parent.colsout, res));
                     }
                   }
                   return _results2;
@@ -383,18 +483,18 @@
             }
             return _results;
           });
-        } else if (this.branch[0] === "ins") {
-          this.items = 1;
+        } else if (currentLocation[0] === 'instance') {
+          asyncCallback.addWork(1);
+          asyncCallback.endAdding();
           this.pre += "<div class='panel' style='background-color:" + this.bg + ";'>";
           this.post += "</div>";
-          targ = serverAPI(this.about, this.filters);
-          posl = targ;
-          this.id = this.branch[1][1];
+          backURI = ftree.getNewURI('del');
+          this.id = currentLocation[1][1];
           actn = "view";
-          _ref6 = this.branch[2].slice(1);
-          for (_n = 0, _len6 = _ref6.length; _n < _len6; _n++) {
-            branchType = _ref6[_n];
-            if (!((_ref7 = branchType[0]) === "add" || _ref7 === "edit" || _ref7 === "del")) {
+          _ref5 = currentLocation[2].slice(1);
+          for (_n = 0, _len6 = _ref5.length; _n < _len6; _n++) {
+            branchType = _ref5[_n];
+            if (!((_ref6 = branchType[0]) === "add" || _ref6 === "edit" || _ref6 === "del")) {
               continue;
             }
             actn = branchType[0];
@@ -403,8 +503,8 @@
           switch (actn) {
             case "view":
               if (this.type === "Term") {
-                this.targ = serverAPI(this.about, this.filters);
-                return serverRequest("GET", this.targ, {}, null, function(statusCode, result, headers) {
+                targ = serverAPI(about);
+                return serverRequest("GET", targ, {}, null, function(statusCode, result, headers) {
                   var item, res;
                   res = "";
                   for (item in result.instances[0]) {
@@ -412,23 +512,29 @@
                       res += item + ": " + result.instances[0][item] + "<br/>";
                     }
                   }
-                  return parent.callback(1, res);
+                  return asyncCallback.successCallback(1, res);
                 });
               } else if (this.type === "FactType") {
-                this.targ = serverAPI(this.about, this.filters);
-                return serverRequest("GET", this.targ, {}, null, function(statusCode, result, headers) {
-                  var res, schema, _len7, _o, _ref8;
+                targ = serverAPI(about);
+                return serverRequest("GET", targ, {}, null, function(statusCode, result, headers) {
+                  var res;
                   res = "id: " + result.instances[0].id + "<br/>";
-                  _ref8 = parent.schema;
-                  for (_o = 0, _len7 = _ref8.length; _o < _len7; _o++) {
-                    schema = _ref8[_o];
-                    if (schema[0] === "Term") {
-                      res += result.instances[0][schema[1] + "_value"] + " ";
-                    } else if (schema[0] === "Verb") {
-                      res += schema[1] + " ";
+                  return getResolvedFactType(parent.schema, result.instances[0], function(factTypeInstance) {
+                    var schema, _len7, _o, _ref7;
+                    _ref7 = parent.schema;
+                    for (_o = 0, _len7 = _ref7.length; _o < _len7; _o++) {
+                      schema = _ref7[_o];
+                      if (schema[0] === "Term") {
+                        res += factTypeInstance[schema[1]].value + " ";
+                      } else if (schema[0] === "Verb") {
+                        res += schema[1] + " ";
+                      }
                     }
-                  }
-                  return parent.callback(1, res);
+                    return asyncCallback.successCallback(1, res);
+                  }, function(errors) {
+                    console.error(errors);
+                    return asyncCallback.successCallback(1, 'Errors: ' + errors);
+                  });
                 });
               }
               break;
@@ -437,8 +543,8 @@
                 schema = [['Text', 'value', 'Name', []]];
                 res = "<div align='right'>";
                 res += "<form class='action'>";
-                res += createHiddenInputs('addterm', serverAPI(this.about, []), targ, this.about);
-                console.log("addterm backURI=" + targ);
+                res += createHiddenInputs('addterm', serverAPI(about), backURI, about);
+                console.log("addterm backURI=" + backURI);
                 for (_o = 0, _len7 = schema.length; _o < _len7; _o++) {
                   currSchema = schema[_o];
                   switch (currSchema[0]) {
@@ -452,45 +558,27 @@
                 res += "<input type='submit' value='Submit This' onClick='processForm(this.parentNode);return false;'>";
                 res += "</form>";
                 res += "</div>";
-                return this.callback(1, res);
+                return asyncCallback.successCallback(1, res);
               } else if (this.type === "FactType") {
-                termResults = {};
-                _ref8 = parent.schema;
-                for (_p = 0, _len8 = _ref8.length; _p < _len8; _p++) {
-                  schema = _ref8[_p];
-                  if (schema[0] === "Term") termResults[schema[1]] = [];
-                }
-                resultsReceived = 0;
-                resultsRequested = Object.keys(termResults).length;
-                _results = [];
-                for (termName in termResults) {
-                  _results.push(serverRequest("GET", serverAPI(termName, parent.filters), {}, null, (function(termName) {
-                    return function(statusCode, result, headers) {
-                      termResults[termName] = result.instances;
-                      resultsReceived++;
-                      if (resultsReceived === resultsRequested) {
-                        res = createFactTypeForm(parent.schema, termResults, 'addfctp', serverAPI(parent.about, []), posl, parent.about);
-                        return parent.callback(1, res);
-                      }
-                    };
-                  })(termName)));
-                }
-                return _results;
+                return getTermResults(parent.schema, function(termResults) {
+                  res = createFactTypeForm(parent.schema, termResults, 'addfctp', serverAPI(about), backURI, about);
+                  return asyncCallback.successCallback(1, res);
+                });
               }
               break;
             case "edit":
               if (this.type === "Term") {
                 schema = [['Text', 'value', 'Name', []]];
-                this.targ = serverAPI(this.about, this.filters);
-                return serverRequest("GET", this.targ, {}, null, function(statusCode, result, headers) {
-                  var currSchema, id, _len9, _q;
+                targ = serverAPI(about);
+                return serverRequest("GET", targ, {}, null, function(statusCode, result, headers) {
+                  var currSchema, id, _len8, _p;
                   id = result.instances[0].id;
                   res = "<div align='left'>";
                   res += "<form class='action'>";
-                  res += createHiddenInputs('editterm', serverAPI(parent.about, []) + "." + id, serverAPI(parent.about, []), parent.about, id);
+                  res += createHiddenInputs('editterm', serverAPI(about) + "*filt:id=" + id, serverAPI(about), about, id);
                   res += "id: " + id + "<br/>";
-                  for (_q = 0, _len9 = schema.length; _q < _len9; _q++) {
-                    currSchema = schema[_q];
+                  for (_p = 0, _len8 = schema.length; _p < _len8; _p++) {
+                    currSchema = schema[_p];
                     switch (currSchema[0]) {
                       case "Text":
                         res += currSchema[2] + ": " + widgets.inputText(currSchema[1], result.instances[0][currSchema[1]]) + "<br />";
@@ -504,43 +592,28 @@
                   res += "</div>";
                   res += "</form>";
                   res += "</div>";
-                  return parent.callback(1, res);
+                  return asyncCallback.successCallback(1, res);
                 });
               } else if (this.type === "FactType") {
-                this.targ = serverAPI(this.about, this.filters);
-                return serverRequest("GET", this.targ, {}, null, function(statusCode, result, headers) {
-                  var currentFactType, schema, termName, _len9, _q, _ref9, _results2;
-                  currentFactType = result.instances[0];
-                  termResults = {};
-                  _ref9 = parent.schema;
-                  for (_q = 0, _len9 = _ref9.length; _q < _len9; _q++) {
-                    schema = _ref9[_q];
-                    if (schema[0] === "Term") termResults[schema[1]] = [];
-                  }
-                  resultsReceived = 0;
-                  resultsRequested = Object.keys(termResults).length;
-                  _results2 = [];
-                  for (termName in termResults) {
-                    _results2.push(serverRequest("GET", serverAPI(termName, parent.filters), {}, null, (function(termName) {
-                      return function(statusCode, result, headers) {
-                        termResults[termName] = result.instances;
-                        resultsReceived++;
-                        if (resultsReceived === resultsRequested) {
-                          res = "<div align='left'>";
-                          res += createFactTypeForm(parent.schema, termResults, 'editfctp', serverAPI(parent.about, []) + "." + currentFactType.id, serverAPI(parent.about, []), parent.about, currentFactType);
-                          res += "</div>";
-                          return parent.callback(1, res);
-                        }
-                      };
-                    })(termName)));
-                  }
-                  return _results2;
+                targ = ftree.getServerURI();
+                return serverRequest("GET", targ, {}, null, function(statusCode, result, headers) {
+                  return getResolvedFactType(parent.schema, result.instances[0], function(factTypeInstance) {
+                    return getTermResults(parent.schema, function(termResults) {
+                      res = "<div align='left'>";
+                      res += createFactTypeForm(parent.schema, termResults, 'editfctp', serverAPI(about) + "*filt:id=" + factTypeInstance.id, serverAPI(about), about, factTypeInstance);
+                      res += "</div>";
+                      return asyncCallback.successCallback(1, res);
+                    });
+                  }, function(errors) {
+                    console.error(errors);
+                    return asyncCallback.successCallback(1, 'Errors: ' + errors);
+                  });
                 });
               }
               break;
             case "del":
-              res = "<div align='left'>" + "marked for deletion" + "<div align='right'>" + "<form class='action'>" + createHiddenInputs('del', serverAPI(this.about, []) + "." + this.id, serverAPI(this.about, []), this.about, this.id) + "<input type='submit' value='Confirm' onClick='processForm(this.parentNode.parentNode);return false;'>" + "</form>" + "</div>" + "</div>";
-              return this.callback(1, res);
+              res = "<div align='left'>" + "marked for deletion" + "<div align='right'>" + "<form class='action'>" + createHiddenInputs('del', serverAPI(about) + "*filt:id=" + this.id, serverAPI(about), about, this.id) + "<input type='submit' value='Confirm' onClick='processForm(this.parentNode.parentNode);return false;'>" + "</form>" + "</div>" + "</div>";
+              return asyncCallback.successCallback(1, res);
           }
         }
       };
@@ -568,10 +641,10 @@
         for (_i = 0, _len = termResult.length; _i < _len; _i++) {
           term = termResult[_i];
           select += "<option value='" + term.id + "'";
-          if (currentFactType !== false && currentFactType[termName + "_id"] === term.id) {
+          if (currentFactType !== false && currentFactType[termName].id === term.id) {
             select += " selected='selected'";
           }
-          select += ">" + term.name + "</option>";
+          select += ">" + term.value + "</option>";
         }
         select += "</select>";
         termSelects[termName] = select;
@@ -650,20 +723,6 @@
         return location.hash = "#!" + backURI;
       });
       return false;
-    };
-    filtmerge = function(branch, fltrs) {
-      var filters, leaf, rootURI, _i, _len, _ref;
-      filters = jQuery.extend(true, [], fltrs);
-      rootURI = "/data/" + branch[1][0];
-      _ref = branch[2].slice(1);
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        leaf = _ref[_i];
-        if (leaf[0] === "filt") {
-          if (leaf[1][1][0] === void 0) leaf[1][1] = branch[1][0];
-          filters.push(leaf[1]);
-        }
-      }
-      return filters;
     };
     window.drawData = drawData;
     return window.processForm = processForm;

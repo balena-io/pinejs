@@ -6,11 +6,16 @@ define(["underscore", "Prettify", "ometa/ometa-base"], (function(_, Prettify) {
     AbstractSQLValidator = objectThatDelegatesTo(OMeta, {
         "Query": function() {
             var $elf = this,
+                _fromIdx = this.input.idx;
+            return this._apply("SelectQuery")
+        },
+        "SelectQuery": function() {
+            var $elf = this,
                 _fromIdx = this.input.idx,
                 query, select, from, where, queryPart;
-            query = ["Query"];
+            query = ["SelectQuery"];
             this._form((function() {
-                this._applyWithArgs("exactly", "Query");
+                this._applyWithArgs("exactly", "SelectQuery");
                 this._many1((function() {
                     queryPart = this._or((function() {
                         this._pred((select == null));
@@ -277,7 +282,7 @@ define(["underscore", "Prettify", "ometa/ometa-base"], (function(_, Prettify) {
                 return this._form((function() {
                     this._applyWithArgs("exactly", "Exists");
                     return this._form((function() {
-                        return this._applyWithArgs("exactly", "Query")
+                        return this._applyWithArgs("exactly", "SelectQuery")
                     }))
                 }))
             }), (function() {

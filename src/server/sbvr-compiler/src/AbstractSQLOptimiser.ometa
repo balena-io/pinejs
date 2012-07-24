@@ -4,8 +4,11 @@ define(['underscore', 'Prettify', 'ometa/ometa-base'], function(_, Prettify) {
 	ometa AbstractSQLValidator {
 		
 		Query =
-			{['Query']}:query
-			[	'Query'
+			SelectQuery,
+		
+		SelectQuery =
+			{['SelectQuery']}:query
+			[	'SelectQuery'
 				(
 					(	?(select==null)
 						Select:select
@@ -224,8 +227,8 @@ define(['underscore', 'Prettify', 'ometa/ometa-base'], function(_, Prettify) {
 				-> boolStatement
 			|
 				[	'Exists'
-					[	'Query'
-						
+					[	'SelectQuery'
+						// TODO: ?
 					]
 				]
 			|	^Not,

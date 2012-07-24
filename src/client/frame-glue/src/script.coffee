@@ -27,7 +27,6 @@ define(['sbvr-parser/SBVRParser', 'data-frame/ClientURIParser', 'Prettify'], (SB
 
 	defaultFailureCallback = (statusCode, error) ->
 		if error?
-			console.log error
 			if error.constructor.name == 'Array'
 				if error["status-line"]
 					error = error["status-line"]
@@ -35,23 +34,28 @@ define(['sbvr-parser/SBVRParser', 'data-frame/ClientURIParser', 'Prettify'], (SB
 					error = error.join("<br/>")
 		else
 			error = statusCode
+		console.log(error)
+		try
+			# This is used so we can find the stack trace.
+			___STACK_TRACE___.please
+		catch stackTrace
+			console.error(stackTrace.stack)
 		showErrorMessage(error)
 
 	defaultSuccessCallback = (statusCode, result, headers) ->
 
 
-	loadState = ->
+	loadState = (callback) ->
 		serverRequest "GET", "/onAir/", {}, null, (statusCode, result) ->
 			setClientOnAir(result)
+			callback()
 
 
 	processHash = ->
-		theHash = location.hash
-		theHash = "#!/model" if theHash == ""
-		if theHash.slice(1, 9) == "!/server"
+		if location.hash.slice(1, 9) == "!/server"
 			URItree = [ [], [ [], [ "server" ] ] ]
 		else
-			URItree = ClientURIParser.matchAll(theHash, "expr")
+			URItree = ClientURIParser.matchAll(location.hash, "expr")
 		try
 			switchVal = URItree[1][1][0]
 		catch $e
@@ -63,23 +67,38 @@ define(['sbvr-parser/SBVRParser', 'data-frame/ClientURIParser', 'Prettify'], (SB
 				serverRequest "GET", uri, {}, null, (statusCode, result) ->
 					alert result
 			when "sql"
-				$("#tabs").tabs "select", 3
 				sqlEditor.refresh() # Force a refresh on switching to the tab, otherwise it wasn't appearing.
 			when "data"
-				$("#tabs").tabs("select", 4)
 				drawData(URItree[1])
-			when "http"
-				$("#tabs").tabs("select", 5)
 			when "export"
 				importExportEditor.refresh()
-				$("#tabs").tabs("select", 6)
-			when "preplf"
-				break
 			#ENDIFDEF
 			when "lf"
 				lfEditor.refresh()
 			else
 				sbvrEditor.refresh()
+		switchTab()
+	switchTab = ->
+		try
+			URItree = ClientURIParser.matchAll(location.hash, "expr")
+			switchVal = URItree[1][1][0]
+		catch $e
+			switchVal = ""
+		switch(switchVal)
+			when "preplf"
+				$("#tabs").tabs("select", 2)
+			when "sql"
+				$("#tabs").tabs("select", 3)
+			when "data"
+				$("#tabs").tabs("select", 4)
+			when "http"
+				$("#tabs").tabs("select", 5)
+			when "export"
+				$("#tabs").tabs("select", 6)
+			#ENDIFDEF
+			when "lf"
+				$("#tabs").tabs("select", 1)
+			else
 				$("#tabs").tabs("select", 0)
 
 	setClientOnAir = (bool) ->
@@ -112,17 +131,27 @@ define(['sbvr-parser/SBVRParser', 'data-frame/ClientURIParser', 'Prettify'], (SB
 		if CodeMirror.listModes().indexOf("plsql") > -1
 			sqlEditor = CodeMirror.fromTextArea(document.getElementById("sqlArea"), mode: "text/x-plsql")
 			window.importExportEditor = CodeMirror.fromTextArea(document.getElementById("importExportArea"), mode: "text/x-plsql")
+		serverRequest("GET", "/ui/textarea*filt:name=model_area/", {}, null,
+			(statusCode, result) ->
+				sbvrEditor.setValue(result.instances[0].text)
+			() ->
+				# Ignore an error, it means no model area has been stored
+		)
+
+		serverRequest("GET", "/ui/textarea-is_disabled*filt:textarea.name=model_area/", {}, null,
+			(statusCode, result) ->
+				$("#modelArea").attr("disabled", result.value)
+			() ->
+				# Ignore an error, it means no model area has been stored
+		)
+		
 		window.onhashchange = processHash
-		serverRequest "GET", "/ui/textarea*filt:name=model_area/", {}, null, (statusCode, result) ->
-			sbvrEditor.setValue result.value
 
-		serverRequest "GET", "/ui/textarea-is_disabled*filt:textarea.name=model_area/", {}, null, (statusCode, result) ->
-			$("#modelArea").attr "disabled", result.value
+		$("#modelArea").change( ->
+			serverRequest("PUT", "/ui/textarea*filt:name=model_area/", {}, [text: sbvrEditor.getValue()])
+		)
 
-		$("#modelArea").change ->
-			serverRequest("PUT", "/ui/textarea*filt:name=model_area/", {}, value: sbvrEditor.getValue())
-
-		$("#dialog-message").dialog
+		$("#dialog-message").dialog(
 			modal: true
 			resizable: false
 			autoOpen: false
@@ -132,23 +161,26 @@ define(['sbvr-parser/SBVRParser', 'data-frame/ClientURIParser', 'Prettify'], (SB
 
 				"Revise Model": ->
 					$(this).dialog "close"
+		)
 
-		$("#dialog-simple-error").dialog
+		$("#dialog-simple-error").dialog(
 			modal: true
 			resizable: false
 			autoOpen: false
 			buttons:
 				"OK": ->
 					$(this).dialog "close"
+		)
 
-		$("#dialog-url-message").dialog
+		$("#dialog-url-message").dialog(
 			modal: true
 			resizable: false
 			autoOpen: false
 			buttons:
 				"OK": ->
-					$(this).dialog "close"
-
+					$(this).dialog("close")
+		)
+					
 		$("input[class!='hidden-input']").button()
 
 	cleanUp = (a) ->
@@ -191,8 +223,8 @@ define(['sbvr-parser/SBVRParser', 'data-frame/ClientURIParser', 'Prettify'], (SB
 	window.transformClient = (model) ->
 		$("#modelArea").attr "disabled", true
 
-		serverRequest "PUT", "/ui/textarea-is_disabled*filt:textarea.name=model_area/", {}, {value: true}, ->
-			serverRequest "PUT", "/ui/textarea*filt:name=model_area/", {}, {value: model}, ->
+		serverRequest "PUT", "/ui/textarea-is_disabled*filt:textarea.name=model_area/", {}, [{text: true}], ->
+			serverRequest "PUT", "/ui/textarea*filt:name=model_area/", {}, [{text: model}], ->
 				serverRequest "POST", "/execute/", {}, null, ->
 					setClientOnAir(true)
 
@@ -345,42 +377,44 @@ define(['sbvr-parser/SBVRParser', 'data-frame/ClientURIParser', 'Prettify'], (SB
 
 	# Initialise controls and shoot off the loadUI & processHash functions
 	$( ->
-		$.browser.chrome = $.browser.webkit && !!window.chrome
-		$("#tabs").tabs(select: (event, ui) ->
-			#IFDEF server
-			if ui.panel.id not in ["modelTab", "httpTab"] and clientOnAir == false
-				showErrorMessage("This tab is only accessible after a model is executed<br/>")
-				false
-			else
-			#ENDIFDEF
-				switch ui.panel.id
-					#IFDEF server
-					when "prepTab"
-						location.hash = "!/preplf/"
-					when "sqlTab"
-						location.hash = "!/sql/"
-					when "dataTab"
-						location.hash = "!/data/"
-					when "httpTab"
-						location.hash = "!/http/"
-					when "importExportTab"
-						location.hash = "!/export/"
-					#ENDIFDEF
-					when "lfTab"
-						location.hash = "!/lf/"
-					else
-						location.hash = "!/model/"
-				true
-		)
-		$('#tabs').show()
-		getModel()
 		loadUI()
-		loadState()
-		setupDownloadify()
-		setupLoadfile()
-		$(window).on("resize", relocate)
-		processHash()
-		$("#bldb").file().choose (e, input) ->
-			handleFiles input[0].files
+		loadState( () ->
+			$.browser.chrome = $.browser.webkit && !!window.chrome
+			$("#tabs").tabs(select: (event, ui) ->
+				#IFDEF server
+				if ui.panel.id not in ["modelTab", "httpTab"] and clientOnAir == false
+					showErrorMessage("This tab is only accessible after a model is executed<br/>")
+					false
+				else
+				#ENDIFDEF
+					switch ui.panel.id
+						#IFDEF server
+						when "prepTab"
+							location.hash = "!/preplf/"
+						when "sqlTab"
+							location.hash = "!/sql/"
+						when "dataTab"
+							location.hash = "!/data/"
+						when "httpTab"
+							location.hash = "!/http/"
+						when "importExportTab"
+							location.hash = "!/export/"
+						#ENDIFDEF
+						when "lfTab"
+							location.hash = "!/lf/"
+						else
+							location.hash = "!/model/"
+					true
+			)
+			$('#tabs').show()
+			getModel()
+			setupDownloadify()
+			setupLoadfile()
+			$(window).on("resize", relocate)
+			switchTab()
+			$("#bldb").file().choose( (e, input) ->
+				handleFiles input[0].files
+			)
+		)
 	)
 )

@@ -29,10 +29,11 @@ define((requirejs, exports, module) ->
 				if uri[-1..] == '/'
 					uri = uri[0...uri.length - 1]
 				uri = uri.toLowerCase()
-				console.log(uri)
+				console.log(method, uri)
 				if !handlers[method]
 					failureCallback(404)
 				req =
+					method: method
 					body: body
 					headers: headers
 					url: uri
@@ -41,6 +42,8 @@ define((requirejs, exports, module) ->
 					json: (obj, headers = 200, statusCode) ->
 						if typeof headers == 'number' and !statusCode?
 							[statusCode, headers] = [headers, {}]
+						# Stringify and parse to emulate passing over network.
+						obj = JSON.parse(JSON.stringify(obj))
 						if statusCode == 404
 							failureCallback(statusCode, obj, headers)
 						else

@@ -45,8 +45,8 @@ define(['ometa/ometa-base'], function() {
 			   |'/'? '(' (frag:g ','? -> g)+:r ')' -> r
 			   |'/'? -> []):f &(end | '/' | ')' | ',') -> f,
 
-		frag = cole:w frbd:f	-> ['col'].concat(w.concat(f))
-			 | inst:w frbd:f	-> ['ins'].concat(w.concat(f)),
+		frag = cole:w frbd:f	-> ['collection'].concat(w.concat(f))
+			 | inst:w frbd:f	-> ['instance'].concat(w.concat(f)),
 
 		expr = seq('#!/') (frag:f end -> f):f -> ['uri', f]
 			 | empty -> []

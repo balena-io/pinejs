@@ -38,7 +38,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 		AttrDatabaseIDField :tableID =
 			:idField
 			(	?_.isString(this.tables[tableID])
-			|	{this.tables[tableID].fields.push(['PrimaryKey', idField])}
+			|	{this.tables[tableID].fields.push(['Serial', idField, 'PRIMARY KEY'])}
 				{this.tables[tableID].idField = idField}
 			),
 		AttrDatabaseValueField :tableID =
@@ -71,7 +71,8 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 			)?,
 		AttrForeignKey :factType =
 			:type
-			(	?(this.tables[factType[0][1]].valueField == this.tables[factType[2][1]].name)
+			(	?(this.tables[factType[0][1]].valueField == this.tables[factType[2][1]].name
+					|| this.tables[factType[0][1]].idField == this.tables[factType[2][1]].name)
 				// If the value field for the first term matches the name of the FK term then update the value field to be a FK.
 				FindFieldID(factType[0][1], this.tables[factType[2][1]].name):fieldID
 				?(fieldID !== false)
@@ -128,7 +129,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 				Number:bind
 				['Term' :termName]
 				{'var' + bind}:varAlias
-				{['Query', ['Select', []], ['From', this.tables[termName].name, varAlias + termName]]}:query
+				{['SelectQuery', ['Select', []], ['From', this.tables[termName].name, varAlias + termName]]}:query
 				ResolveConceptTypes(query, termName, varAlias)
 				(	
 					(	RulePart:whereBody
@@ -150,7 +151,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 
 		LinkTable :actualFactType :rootTerms =
 			{'link' + this.linkTableBind++}:tableAlias
-			{['Query', ['Select', []], ['From', this.tables[actualFactType].name, tableAlias]]}:query
+			{['SelectQuery', ['Select', []], ['From', this.tables[actualFactType].name, tableAlias]]}:query
 			{0}:i
 			(	?(i < rootTerms.length)
 				RoleBinding:bind
@@ -184,7 +185,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 
 		Attribute :actualFactType :rootTerms =
 			?(this.tables[actualFactType] == 'Attribute')
-			{['Query', ['Select', []]]}:query
+			{['SelectQuery', ['Select', []]]}:query
 			RoleBinding:bindAttr
 			RoleBinding:bindReal
 			end
@@ -288,7 +289,9 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 	LF2AbstractSQL.AddWhereClause = function(query, whereBody) {
 		// TODO: Move this to an optimisation pass?
 		// Check if it's a place where we can do a join optimisation.
-		if(whereBody[0] == 'Exists' && whereBody[1][0] == 'Query') {
+		if(whereBody[0] == 'Exists' && (
+				whereBody[1][0] == 'SelectQuery' || whereBody[1][0] == 'InsertQuery' ||
+				whereBody[1][0] == 'UpdateQuery' || whereBody[1][0] == 'UpsertQuery')) {
 			whereBody = whereBody[1].slice(1);
 			for(var i=0; i < whereBody.length; i++) {
 				if(whereBody[i][0] == 'From') {
@@ -302,7 +305,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 			}
 		}
 		else {
-			for(var i=0; i < query.length; i++) {
+			for(var i=1; i < query.length; i++) {
 				if(query[i][0] == 'Where') {
 					query[i][1] = ['And', query[i][1], whereBody];
 					return;

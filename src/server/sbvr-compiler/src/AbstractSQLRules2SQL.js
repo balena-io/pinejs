@@ -43,62 +43,247 @@ define(["ometa/ometa-base"], (function() {
         "Query": function(indent) {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                origIndent, indent, nestedIndent, joins, froms, x, fields, field, select, table, from, as, ruleBody, where;
-            origIndent = indent;
-            indent = this._applyWithArgs("NestedIndent", indent);
+                noBrackets, indent, origIndent, query;
+            this._or((function() {
+                this._pred((!indent));
+                noBrackets = true;
+                return indent = "\n"
+            }), (function() {
+                origIndent = indent;
+                return indent = this._applyWithArgs("NestedIndent", indent)
+            }));
+            query = this._or((function() {
+                return this._applyWithArgs("SelectQuery", indent)
+            }), (function() {
+                return this._applyWithArgs("InsertQuery", indent)
+            }), (function() {
+                return this._applyWithArgs("UpdateQuery", indent)
+            }), (function() {
+                return this._applyWithArgs("DeleteQuery", indent)
+            }), (function() {
+                return this._applyWithArgs("UpsertQuery", indent)
+            }));
+            this._opt((function() {
+                this._pred((!noBrackets));
+                return query = (((("(" + indent) + query) + origIndent) + ")")
+            }));
+            return query
+        },
+        "SelectQuery": function(indent) {
+            var $elf = this,
+                _fromIdx = this.input.idx,
+                nestedIndent, tables, fields, table, where;
             nestedIndent = this._applyWithArgs("NestedIndent", indent);
-            joins = [""];
-            froms = [];
+            tables = [];
             this._form((function() {
-                x = this._applyWithArgs("exactly", "Query");
+                this._applyWithArgs("exactly", "SelectQuery");
                 return this._many((function() {
                     return this._form((function() {
-                        return (function() {
-                            switch (this._apply('anything')) {
-                            case "Select":
-                                return (function() {
-                                    this._pred((select == null));
-                                    fields = [];
-                                    this._form((function() {
-                                        return this._or((function() {
-                                            this._apply("end");
-                                            return fields.push("1")
-                                        }), (function() {
-                                            return this._many((function() {
-                                                return this._form((function() {
-                                                    this._applyWithArgs("exactly", "Count");
-                                                    this._applyWithArgs("exactly", "*");
-                                                    field = "COUNT(*)";
-                                                    return fields.push(field)
-                                                }))
-                                            }))
-                                        }))
-                                    }));
-                                    return select = ((indent + "SELECT ") + fields.join(", "))
-                                }).call(this);
-                            case "From":
-                                return (function() {
-                                    table = this._apply("anything");
-                                    from = (("\"" + table) + "\"");
-                                    this._opt((function() {
-                                        as = this._apply("anything");
-                                        return from = (((from + " AS \"") + as) + "\"")
-                                    }));
-                                    return froms.push(from)
-                                }).call(this);
-                            case "Where":
-                                return (function() {
-                                    ruleBody = this._applyWithArgs("RuleBody", indent);
-                                    return where = ((indent + "WHERE ") + ruleBody)
-                                }).call(this);
-                            default:
-                                throw fail
-                            }
-                        }).call(this)
+                        return this._or((function() {
+                            return fields = this._apply("Select")
+                        }), (function() {
+                            table = this._apply("Table");
+                            return tables.push(table)
+                        }), (function() {
+                            where = this._applyWithArgs("Where", indent);
+                            return where = ((indent + "WHERE ") + where)
+                        }))
                     }))
                 }))
             }));
-            return (((((((("(" + select) + indent) + "FROM ") + froms.join((("," + indent) + "\t"))) + joins.join(indent)) + ((where != null) ? where : "")) + origIndent) + ")")
+            return ((((("SELECT " + fields.join(", ")) + indent) + "FROM ") + tables.join(("," + nestedIndent))) + ((where != null) ? where : ""))
+        },
+        "DeleteQuery": function(indent) {
+            var $elf = this,
+                _fromIdx = this.input.idx,
+                tables, table, where;
+            tables = [];
+            this._form((function() {
+                this._applyWithArgs("exactly", "DeleteQuery");
+                return this._many((function() {
+                    return this._form((function() {
+                        return this._or((function() {
+                            table = this._apply("Table");
+                            return tables.push(table)
+                        }), (function() {
+                            where = this._applyWithArgs("Where", indent);
+                            return where = ((indent + "WHERE ") + where)
+                        }))
+                    }))
+                }))
+            }));
+            return ((("DELETE FROM " + tables.join(", ")) + indent) + ((where != null) ? where : ""))
+        },
+        "InsertBody": function(indent) {
+            var $elf = this,
+                _fromIdx = this.input.idx,
+                tables, fieldValues, table;
+            tables = [];
+            this._many((function() {
+                return this._form((function() {
+                    return this._or((function() {
+                        return fieldValues = this._apply("Fields")
+                    }), (function() {
+                        table = this._apply("Table");
+                        return tables.push(table)
+                    }))
+                }))
+            }));
+            return (((((((("INSERT INTO " + tables.join(", ")) + " (") + fieldValues[(0)].join(", ")) + ")") + indent) + " VALUES (") + fieldValues[(1)].join(", ")) + ")")
+        },
+        "UpdateBody": function(indent) {
+            var $elf = this,
+                _fromIdx = this.input.idx,
+                tables, fieldValues, table, where, sets;
+            tables = [];
+            this._many((function() {
+                return this._form((function() {
+                    return this._or((function() {
+                        return fieldValues = this._apply("Fields")
+                    }), (function() {
+                        table = this._apply("Table");
+                        return tables.push(table)
+                    }), (function() {
+                        where = this._applyWithArgs("Where", indent);
+                        return where = ((indent + "WHERE ") + where)
+                    }))
+                }))
+            }));
+            sets = [];
+            (function() {
+                for (var i = (0);
+                (i < fieldValues[(0)]["length"]); i++) {
+                    (sets[i] = ((fieldValues[(0)][i] + " = ") + fieldValues[(1)][i]))
+                }
+            }).call(this);
+            return ((((("UPDATE " + tables.join(", ")) + indent) + " SET ") + sets.join(("," + indent))) + ((where != null) ? where : ""))
+        },
+        "UpsertQuery": function(indent) {
+            var $elf = this,
+                _fromIdx = this.input.idx,
+                tables, insert, update;
+            tables = [];
+            this._form((function() {
+                this._applyWithArgs("exactly", "UpsertQuery");
+                insert = this._lookahead((function() {
+                    return this._applyWithArgs("InsertBody", indent)
+                }));
+                return update = this._applyWithArgs("UpdateBody", indent)
+            }));
+            return [insert, update]
+        },
+        "InsertQuery": function(indent) {
+            var $elf = this,
+                _fromIdx = this.input.idx,
+                insert;
+            this._form((function() {
+                this._applyWithArgs("exactly", "InsertQuery");
+                return insert = this._applyWithArgs("InsertBody", indent)
+            }));
+            return insert
+        },
+        "UpdateQuery": function(indent) {
+            var $elf = this,
+                _fromIdx = this.input.idx,
+                update;
+            this._form((function() {
+                this._applyWithArgs("exactly", "UpdateQuery");
+                return update = this._applyWithArgs("UpdateBody", indent)
+            }));
+            return update
+        },
+        "Fields": function() {
+            var $elf = this,
+                _fromIdx = this.input.idx,
+                fields, values, field, value;
+            this._applyWithArgs("exactly", "Fields");
+            fields = [];
+            values = [];
+            this._form((function() {
+                return this._many1((function() {
+                    return this._form((function() {
+                        field = this._apply("anything");
+                        fields.push((("\"" + field) + "\""));
+                        value = this._or((function() {
+                            return (function() {
+                                switch (this._apply('anything')) {
+                                case "?":
+                                    return "?";
+                                default:
+                                    throw fail
+                                }
+                            }).call(this)
+                        }), (function() {
+                            this._apply("true");
+                            return (1)
+                        }), (function() {
+                            this._apply("false");
+                            return (0)
+                        }), (function() {
+                            value = this._apply("anything");
+                            return (("\'" + value) + "\'")
+                        }));
+                        return values.push(value)
+                    }))
+                }))
+            }));
+            return [fields, values]
+        },
+        "Select": function() {
+            var $elf = this,
+                _fromIdx = this.input.idx,
+                fields, field;
+            this._applyWithArgs("exactly", "Select");
+            fields = [];
+            this._form((function() {
+                return this._or((function() {
+                    this._apply("end");
+                    return fields.push("1")
+                }), (function() {
+                    return this._many((function() {
+                        return this._or((function() {
+                            return this._form((function() {
+                                this._applyWithArgs("exactly", "Count");
+                                this._applyWithArgs("exactly", "*");
+                                field = "COUNT(*)";
+                                return fields.push(field)
+                            }))
+                        }), (function() {
+                            return (function() {
+                                switch (this._apply('anything')) {
+                                case "*":
+                                    return fields.push("*");
+                                default:
+                                    throw fail
+                                }
+                            }).call(this)
+                        }), (function() {
+                            field = this._apply("anything");
+                            return fields.push((("\"" + field) + "\""))
+                        }))
+                    }))
+                }))
+            }));
+            return fields
+        },
+        "Table": function() {
+            var $elf = this,
+                _fromIdx = this.input.idx,
+                table, alias;
+            this._applyWithArgs("exactly", "From");
+            table = this._apply("anything");
+            alias = [];
+            this._opt((function() {
+                alias = this._apply("anything");
+                return alias = [(("\"" + alias) + "\"")]
+            }));
+            return [(("\"" + table) + "\"")].concat(alias).join(" AS ")
+        },
+        "Where": function(indent) {
+            var $elf = this,
+                _fromIdx = this.input.idx;
+            this._applyWithArgs("exactly", "Where");
+            return this._applyWithArgs("RuleBody", indent)
         },
         "Field": function() {
             var $elf = this,
@@ -146,6 +331,16 @@ define(["ometa/ometa-base"], (function() {
                 }))
             }));
             return bool
+        },
+        "Value": function() {
+            var $elf = this,
+                _fromIdx = this.input.idx,
+                value;
+            this._form((function() {
+                this._applyWithArgs("exactly", "Value");
+                return value = this._apply("anything")
+            }));
+            return (("\'" + value) + "\'")
         },
         "And": function(indent) {
             var $elf = this,
@@ -206,6 +401,8 @@ define(["ometa/ometa-base"], (function() {
                 return this._apply("Number")
             }), (function() {
                 return this._apply("Boolean")
+            }), (function() {
+                return this._apply("Value")
             }))
         },
         "RuleBody": function(indent) {

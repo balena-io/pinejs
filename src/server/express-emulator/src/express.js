@@ -56,9 +56,10 @@
           var checkMethodHandlers, i, j, methodHandlers, next, req, res;
           if (uri.slice(-1) === '/') uri = uri.slice(0, (uri.length - 1));
           uri = uri.toLowerCase();
-          console.log(uri);
+          console.log(method, uri);
           if (!handlers[method]) failureCallback(404);
           req = {
+            method: method,
             body: body,
             headers: headers,
             url: uri,
@@ -71,6 +72,7 @@
               if (typeof headers === 'number' && !(statusCode != null)) {
                 _ref = [headers, {}], statusCode = _ref[0], headers = _ref[1];
               }
+              obj = JSON.parse(JSON.stringify(obj));
               if (statusCode === 404) {
                 return failureCallback(statusCode, obj, headers);
               } else {

@@ -28,54 +28,155 @@ define(['ometa/ometa-base'], function() {
 			-> ('EXISTS ' + ruleBody),
 		
 		Query :indent =
-			{indent}:origIndent
-			NestedIndent(indent):indent
+			(	?(!indent)
+				{true}:noBrackets
+				{'\n'}:indent
+			|	{indent}:origIndent
+				NestedIndent(indent):indent
+			)
+			(	SelectQuery(indent)
+			|	InsertQuery(indent)
+			|	UpdateQuery(indent)
+			|	DeleteQuery(indent)
+			|	UpsertQuery(indent)
+			):query
+			
+					// |	'Delete'
+						// ?(crud==null)
+						// {indent + 'DELETE'}:crud
+					// |	'Insert'
+						// ?(crud==null)
+						// {indent + 'DELETE'}:crud
+						
+			(	?(!noBrackets)
+				{ '(' + indent + query + origIndent + ')'}:query
+			)?
+			-> query,
+		
+		SelectQuery :indent =
 			NestedIndent(indent):nestedIndent
-			{['']}:joins
-			{[]}:froms
-			[	'Query':x
-				[
-					(	'Select'
-						?(select==null)
-						{[]}:fields
-						[	end
-							{fields.push('1')}
-						|	
-							[
-								(	'Count'
-									'*'
-									-> 'COUNT(*)'
-								):field
-								{fields.push(field)}
-							]*
-						]
-						{indent + 'SELECT ' + fields.join(', ')}:select
-					|	'From'
-						// ?(from==null)
-						anything:table
-						{'"' + table + '"'}:from
-						(	:as
-							{from + ' AS "' + as + '"'}:from
-						)?
-						{froms.push(from)}
-					// Unused now:
-					// |	'Join'
-						// [	'With'
-							// :table
-						// ]
-						// [	'On'
-							// RuleBody(nestedIndent):ruleBody
-						// ]
-						// {joins.push('JOIN "' + table + '" ON '+ ruleBody)}
-					|	'Where'
-						RuleBody(indent):ruleBody
-						{indent + 'WHERE ' + ruleBody}:where
-					)
+			{[]}:tables
+			[	'SelectQuery'
+				[	Select:fields
+				|	Table:table
+					{tables.push(table)}
+				|	Where(indent):where
+					{indent + 'WHERE ' + where}:where
 				]*
 			]
-			-> ( '(' + select + indent + 'FROM ' + froms.join(',' + indent + '\t') + joins.join(indent) + (where!=null ? where : '') + origIndent + ')'),
+			-> ('SELECT ' + fields.join(', ') + indent + 'FROM ' + tables.join(',' + nestedIndent) + (where!=null ? where : '')),
+
+		DeleteQuery :indent =
+			{[]}:tables
+			[	'DeleteQuery'
+				[	Table:table
+					{tables.push(table)}
+				|	Where(indent):where
+					{indent + 'WHERE ' + where}:where
+				]*
+			]
+			-> ('DELETE FROM ' + tables.join(', ') + indent + (where!=null ? where : '')),
 		
-		// Currently unused:
+		InsertBody :indent =
+			{[]}:tables
+			[	Fields:fieldValues
+			|	Table:table
+				{tables.push(table)}
+			]*
+			-> ('INSERT INTO ' + tables.join(', ') + ' (' + fieldValues[0].join(', ') + ')' + indent + ' VALUES (' + fieldValues[1].join(', ') + ')'),
+		
+		UpdateBody :indent =
+			{[]}:tables
+			[	Fields:fieldValues
+			|	Table:table
+				{tables.push(table)}
+			|	Where(indent):where
+				{indent + 'WHERE ' + where}:where
+			]*
+			{[]}:sets
+			{	for(var i=0; i < fieldValues[0].length; i++) {
+					sets[i] = fieldValues[0][i] + ' = ' + fieldValues[1][i];
+				}
+			}
+			-> ('UPDATE ' + tables.join(', ') + indent + ' SET ' + sets.join(',' + indent) + (where!=null ? where : '')),
+		
+		UpsertQuery :indent =
+			{[]}:tables
+			[	'UpsertQuery'
+				&InsertBody(indent):insert
+				UpdateBody(indent):update
+			]
+			-> [insert, update],
+		
+		InsertQuery :indent =
+			[	'InsertQuery'
+				InsertBody(indent):insert
+			]
+			-> insert,
+		
+		UpdateQuery :indent =
+			[	'UpdateQuery'
+				UpdateBody(indent):update
+			]
+			-> update,
+		
+		
+		Fields =
+			'Fields'
+			{[]}:fields
+			{[]}:values
+			[
+				[	anything:field
+					{fields.push('"' + field + '"')}
+					(	'?'
+					|	true
+						-> 1
+					|	false
+						-> 0
+					|	anything:value
+						// TODO: Should escape this.
+						-> ("'" + value + "'")
+					):value
+					{values.push(value)}
+				]+
+			]
+			-> [fields, values],
+		
+		Select =
+			'Select'
+			{[]}:fields
+			[	end
+				{fields.push('1')}
+			|
+				(	[
+						(	'Count'
+							'*'
+							-> 'COUNT(*)'
+						):field
+						{fields.push(field)}
+					]
+				|	'*'
+					{fields.push('*')}
+				|	anything:field
+					// TODO: Should escape "
+					{fields.push('"' + field + '"')}
+				)*
+			]
+			-> fields,
+		
+		Table =
+			'From'
+			anything:table
+			{[]}:alias
+			(	:alias
+				{['"' + alias + '"']}:alias
+			)?
+			-> ['"' + table + '"'].concat(alias).join(' AS '),
+		
+		Where :indent =
+			'Where'
+			RuleBody(indent),
+		
 		Field =
 			[	'Field'
 				:field
@@ -104,6 +205,13 @@ define(['ometa/ometa-base'], function() {
 				):bool
 			]
 			-> bool,
+		
+		// A generic value, no idea what data type it may be..
+		Value =
+			[	'Value'
+				:value
+			]
+			-> ("'" + value + "'"),
 		
 		And :indent =
 			[	'And'
@@ -134,7 +242,8 @@ define(['ometa/ometa-base'], function() {
 			|	Field
 			|	ReferencedField
 			|	Number
-			|	Boolean,
+			|	Boolean
+			|	Value,
 			
 		
 		RuleBody :indent =

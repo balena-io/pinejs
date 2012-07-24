@@ -2,14 +2,14 @@ define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQLOptimise
 	
 	postgresDataType = (dataType, necessity) ->
 		switch dataType
-			when 'PrimaryKey'
-				return 'SERIAL PRIMARY KEY'
+			when 'Serial'
+				return 'SERIAL ' + necessity
 			when 'Integer'
 				return 'INTEGER ' + necessity
 			when 'Short Text'
 				return 'VARCHAR(20) ' + necessity
 			when 'Long Text'
-				return 'VARCHAR(200) ' + necessity
+				return 'TEXT ' + necessity
 			when 'Boolean'
 				return 'INTEGER NOT NULL DEFAULT 0'
 			when 'ForeignKey', 'ConceptType'
@@ -21,14 +21,14 @@ define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQLOptimise
 	
 	websqlDataType = (dataType, necessity) ->
 		switch dataType
-			when 'PrimaryKey'
-				return 'INTEGER PRIMARY KEY AUTOINCREMENT'
+			when 'Serial'
+				return 'INTEGER ' + necessity + ' AUTOINCREMENT'
 			when 'Integer'
 				return 'INTEGER ' + necessity
 			when 'Short Text'
 				return 'VARCHAR(20) ' + necessity
 			when 'Long Text'
-				return 'VARCHAR(200) ' + necessity
+				return 'TEXT ' + necessity
 			when 'Boolean'
 				return 'INTEGER NOT NULL DEFAULT 0'
 			when 'ForeignKey', 'ConceptType'

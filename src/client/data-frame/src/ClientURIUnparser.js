@@ -70,7 +70,7 @@ define(["ometa/ometa-base"], (function() {
                 return w
             }))
         },
-        "col": function() {
+        "collection": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 n, m, t, r;
@@ -94,7 +94,7 @@ define(["ometa/ometa-base"], (function() {
                 return (n + m)
             }))
         },
-        "ins": function() {
+        "instance": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 n, m, t, r;
@@ -141,6 +141,8 @@ define(["ometa/ometa-base"], (function() {
             var $elf = this,
                 _fromIdx = this.input.idx;
             return this._or((function() {
+                return this._apply("view")
+            }), (function() {
                 return this._apply("add")
             }), (function() {
                 return this._apply("filt")
@@ -149,6 +151,14 @@ define(["ometa/ometa-base"], (function() {
             }), (function() {
                 return this._apply("edit")
             }))
+        },
+        "view": function() {
+            var $elf = this,
+                _fromIdx = this.input.idx;
+            this._form((function() {
+                return this._applyWithArgs("exactly", "view")
+            }));
+            return "*view"
         },
         "add": function() {
             var $elf = this,

@@ -75,7 +75,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
             return this._or((function() {
                 return this._pred(_.isString(this["tables"][tableID]))
             }), (function() {
-                this["tables"][tableID]["fields"].push(["PrimaryKey", idField]);
+                this["tables"][tableID]["fields"].push(["Serial", idField, "PRIMARY KEY"]);
                 return (this["tables"][tableID]["idField"] = idField)
             }))
         },
@@ -134,7 +134,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                 type, fieldID;
             type = this._apply("anything");
             this._or((function() {
-                this._pred((this["tables"][factType[(0)][(1)]]["valueField"] == this["tables"][factType[(2)][(1)]]["name"]));
+                this._pred(((this["tables"][factType[(0)][(1)]]["valueField"] == this["tables"][factType[(2)][(1)]]["name"]) || (this["tables"][factType[(0)][(1)]]["idField"] == this["tables"][factType[(2)][(1)]]["name"])));
                 fieldID = this._applyWithArgs("FindFieldID", factType[(0)][(1)], this["tables"][factType[(2)][(1)]]["name"]);
                 this._pred((fieldID !== false));
                 return (this["tables"][factType[(0)][(1)]]["fields"][fieldID][(0)] = "ForeignKey")
@@ -249,7 +249,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                     return termName = this._apply("anything")
                 }));
                 varAlias = ("var" + bind);
-                query = ["Query", ["Select", []],
+                query = ["SelectQuery", ["Select", []],
                     ["From", this["tables"][termName]["name"], (varAlias + termName)]
                 ];
                 this._applyWithArgs("ResolveConceptTypes", query, termName, varAlias);
@@ -281,7 +281,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                 _fromIdx = this.input.idx,
                 tableAlias, query, i, bind, termName;
             tableAlias = ("link" + this["linkTableBind"]++);
-            query = ["Query", ["Select", []],
+            query = ["SelectQuery", ["Select", []],
                 ["From", this["tables"][actualFactType]["name"], tableAlias]
             ];
             i = (0);
@@ -333,7 +333,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                 _fromIdx = this.input.idx,
                 query, bindAttr, bindReal, termNameAttr, termNameReal;
             this._pred((this["tables"][actualFactType] == "Attribute"));
-            query = ["Query", ["Select", []]];
+            query = ["SelectQuery", ["Select", []]];
             bindAttr = this._apply("RoleBinding");
             bindReal = this._apply("RoleBinding");
             this._apply("end");
@@ -531,7 +531,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
         return false
     }));
     (LF2AbstractSQL["AddWhereClause"] = (function(query, whereBody) {
-        if (((whereBody[(0)] == "Exists") && (whereBody[(1)][(0)] == "Query"))) {
+        if (((whereBody[(0)] == "Exists") && ((((whereBody[(1)][(0)] == "SelectQuery") || (whereBody[(1)][(0)] == "InsertQuery")) || (whereBody[(1)][(0)] == "UpdateQuery")) || (whereBody[(1)][(0)] == "UpsertQuery")))) {
             (whereBody = whereBody[(1)].slice((1)));
             for (var i = (0);
             (i < whereBody["length"]); i++) {
@@ -550,7 +550,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                 }
             }
         } else {
-            for (var i = (0);
+            for (var i = (1);
             (i < query["length"]); i++) {
                 if ((query[i][(0)] == "Where")) {
                     (query[i][(1)] = ["And", query[i][(1)], whereBody]);

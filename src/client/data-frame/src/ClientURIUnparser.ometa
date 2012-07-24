@@ -26,20 +26,21 @@ define(['ometa/ometa-base'], function() {
           name = [word:w word:o] -> (w + '.' + o),
           name = [word:w]        -> (w),
 
-           col = name:n mod:m trans:t trans+:r {t=[t].concat(r)} -> (n + m + '/(' + t.join(',') + ')'),
-           col = name:n mod:m trans:t                          -> (n + m + '/' + t),
-           col = name:n mod:m                                  -> (n + m),
+           collection = name:n mod:m trans:t trans+:r {t=[t].concat(r)} -> (n + m + '/(' + t.join(',') + ')'),
+           collection = name:n mod:m trans:t                          -> (n + m + '/' + t),
+           collection = name:n mod:m                                  -> (n + m),
 
-           ins = name:n mod:m trans:t trans+:r {t=[t].concat(r)} -> (n + m + '/(' + t.join(',') + ')'),
-           ins = name:n mod:m trans:t                          -> (n + m + '/' + t),
-           ins = name:n mod:m                                  -> (n + m),
+           instance = name:n mod:m trans:t trans+:r {t=[t].concat(r)} -> (n + m + '/(' + t.join(',') + ')'),
+           instance = name:n mod:m trans:t                          -> (n + m + '/' + t),
+           instance = name:n mod:m                                  -> (n + m),
 
            mod = ['mod' actn+:a] -> a.join('')
                | ['mod']         -> '',
 
-          actn = (add|filt|del|edit),
-           add = ['add']          -> '*add',
-           del = ['del']          -> '*del',
+          actn = (view|add|filt|del|edit),
+          view = ['view']         -> '*view',
+          add = ['add']          -> '*add',
+          del = ['del']          -> '*del',
           edit = ['edit']         -> '*edit',
 
           filt = ['filt' eqi:o]   -> '',

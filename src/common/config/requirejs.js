@@ -51,6 +51,7 @@
 			'downloadify':				rootPath + 'external/downloadify',
 			
 			'sbvr-parser':				rootPath + 'common/sbvr-parser/src/',
+			'utils':					rootPath + 'common/utils/src/',
 			
 			'sbvr-frame':				rootPath + 'client/sbvr-frame/src',
 			'data-frame':				rootPath + 'client/data-frame/src',

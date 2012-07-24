@@ -143,7 +143,7 @@ define(["database-layer/SQLBinds"], (SQLBinds) ->
 										callback(thisTX, _results)
 							errorCallback = do(errorCallback) ->
 								(_tx, _err) ->
-									console.log(sql, _err, stackTrace.stack)
+									console.log(sql, bindings, _err, stackTrace.stack)
 									errorCallback?(thisTX, _err)
 							_tx.executeSql(sql, bindings, callback, errorCallback)
 					begin: ->
