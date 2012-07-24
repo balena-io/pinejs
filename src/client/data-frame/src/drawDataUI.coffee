@@ -80,6 +80,31 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 				</div>
 			</div>
 			''')
+		factTypeCollection: ejs.compile('''
+			<%
+			for(var i = 0; i < factTypeCollections.length; i++) {
+				var factTypeCollection = factTypeCollections[i]; %>
+				<tr id="tr--data--<%= factTypeCollection.resourceName %>">
+					<td><%
+						if(factTypeCollection.isExpanded) { %>
+							<div style="display:inline;background-color:"<%= altBackground %>"><%= factTypeCollection.resourceName %></div>
+							<div style="display:inline;background-color:"<%= altBackground %>">
+								<a href="<%= factTypeCollection.uri %>" onClick="location.hash='<%= factTypeCollection.hash %>';return false">
+									<span title="Close" class="ui-icon ui-icon-circle-close"></span>
+								</a>
+							</div>
+							<%- factTypeCollection.html %><%
+						}
+						else { %>
+							<%= factTypeCollection.resourceName %>
+							<a href="<%= factTypeCollection.uri %>" onClick="location.hash='<%= factTypeCollection.hash %>';return false">
+								<span title="See all" class="ui-icon ui-icon-search"></span>
+							</a><%
+						} %>
+					</td>
+				</tr><%
+			} %>
+			''')
 	}
 	requirejs(['data-frame/widgets/inputText'], (inputText) ->
 		templates.widgets.inputText = inputText
@@ -360,7 +385,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 				serverRequest("GET", targ, {}, null, (statusCode, result, headers) ->
 					resl = ""
 					rows = result.instances.length
-					asyncCallback.addWork(rows + 2 + parent.adds + 1 + parent.cols)
+					asyncCallback.addWork(rows + 2 + parent.adds + 1 + 1)
 					asyncCallback.endAdding()
 					# get link which adds an 'add inst' dialog.
 					npos = ftree.getChangeURI('add', about)
@@ -443,28 +468,44 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 
 					asyncCallback.successCallback(rows + 1 + parent.adds + 1, "<tr><td><hr style='border:0px; width:90%; background-color: #999; height:1px;'></td></tr>")
 
+					factTypeCollections = []
+					factTypeCollectionsCallback = createAsyncQueueCallback(
+						() ->
+							templateVars =
+								factTypeCollections: factTypeCollections
+								templates: templates
+								altBackground: parent.unbg
+							res = templates.factTypeCollection(templateVars)
+							asyncCallback.successCallback(rows + 1 + parent.adds + 1, res)
+						(errors) ->
+							console.error(errors)
+							asyncCallback.successCallback(rows + 1 + parent.adds + 1, 'Error: ' + errors)
+						(index, html) ->
+							factTypeCollections[index].html = html
+							return null
+					)
+					i = 0
 					# launch a final callback to add the subcollections.
 					for mod in cmod[1..] when mod[0] == "FactType"
 						for termVerb in mod[1..] when termVerb[1] == about
 							resourceName = getIdent(mod)
-
-							parent.colsout++
-							pre = "<tr id='tr--data--" + resourceName + "'><td>"
-							post = "</td></tr>"
-							if ftree.isExpanded(resourceName)
+							factTypeCollections[i] = {
+								resourceName: resourceName
+								isExpanded: ftree.isExpanded(resourceName)
+							}
+							if factTypeCollections[i].isExpanded
 								expandedTree = ftree.clone().descend(resourceName)
-								npos = expandedTree.getNewURI("del")
-								pre += "<div style='display:inline;background-color:" + parent.unbg + "'>" + resourceName + "</div>"
-								pre += "<div style='display:inline;background-color:" + parent.unbg + "'><a href='" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a></div>"
-								uid = new uidraw(rows + 1 + parent.adds + 1 + parent.colsout, asyncCallback.successCallback, pre, post, rootURI, not even, expandedTree, cmod)
+								factTypeCollections[i].hash = '#!/' + expandedTree.getNewURI("del")
+								factTypeCollections[i].uri = rootURI + factTypeCollections[i].hash
+								factTypeCollectionsCallback.addWork(1)
+								uid = new uidraw(i, factTypeCollectionsCallback.successCallback, pre, post, rootURI, not even, expandedTree, cmod)
 								uid.subRowIn()
 							else
 								newb = [ 'collection', [ resourceName ], [ "mod" ] ]
-								npos = ftree.getNewURI("add", newb)
-								pre += resourceName
-								pre += " <a href='" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false'><span title='See all' class='ui-icon ui-icon-search'></span></a>"
-								res = (pre + post)
-								asyncCallback.successCallback(rows + 1 + parent.adds + 1 + parent.colsout, res)
+								factTypeCollections[i].hash = '#!/' + ftree.getNewURI("add", newb)
+								factTypeCollections[i].uri = rootURI + factTypeCollections[i].hash
+							i++
+					factTypeCollectionsCallback.endAdding()
 				)
 			else if currentLocation[0] == 'instance'
 				asyncCallback.addWork(1)

@@ -8,7 +8,8 @@
       hiddenFormInput: ejs.compile('<input type="hidden" id="__actype" value="<%= action %>">\n<input type="hidden" id="__serverURI" value="<%= serverURI %>">\n<input type="hidden" id="__backURI" value="<%= backURI %>">\n<input type="hidden" id="__type" value="<%= type %>">\n<% if(id !== false) { %>\n	<input type="hidden" id="__id" value="<%= id %>">\n<% } %>'),
       factTypeForm: ejs.compile('<form class="action">\n	<%- templates.hiddenFormInput(locals) %><%\n	for(var i = 0; i < factType.length; i++) {\n		var factTypePart = factType[i];\n		switch(factTypePart[0]) {\n			case "Term":\n				var termName = factTypePart[1],\n					termResult = termResults[termName]; %>\n				<select id="<%= termName %>"><%\n					for(var j = 0; j < termResult.length; j++) {\n						var term = termResult[j]; %>\n						<option value="<%= term.id %>"<%\n							if(currentFactType !== false && currentFactType[termName].id == term.id) { %>\n								selected="selected" <%\n							} %>\n						>\n							<%= term.value %>\n						</option><%\n					} %>\n				</select><%\n			break;\n			case "Verb":\n				%><%= factTypePart[1] %><%\n			break;\n		}\n	} %>\n	<div align="right">\n		<input type="submit" value="Submit This" onClick="processForm(this.parentNode.parentNode);return false;">\n	</div>\n</form>'),
       termForm: ejs.compile('<div align="left">\n	<form class="action">\n		<%- templates.hiddenFormInput(locals) %>\n		id: <%= id %><br/><%\n\n		for(var i = 0; i < termFields.length; i++) {\n			var termField = termFields[i]; %>\n			<%= termField[2] %>: <%\n			switch(termField[0]) {\n				case "Text": %>\n					<%- templates.widgets.inputText(termField[1], term === false ? "" : term[termField[1]]) %><%\n				break;\n				case "ForeignKey":\n					console.error("Hit FK", termField);\n				break;\n				default:\n					console.error("Hit default, wtf?");\n			} %>\n			<br /><%\n		} %>\n		<div align="right">\n			<input type="submit" value="Submit This" onClick="processForm(this.parentNode.parentNode);return false;">\n		</div>\n	</form>\n</div>'),
-      deleteForm: ejs.compile('<div align="left">\n	marked for deletion\n	<div align="right">\n		<form class="action">\n			<%- templates.hiddenFormInput(locals) %>\n			<input type="submit" value="Confirm" onClick="processForm(this.parentNode.parentNode);return false;">\n		</form>\n	</div>\n</div>')
+      deleteForm: ejs.compile('<div align="left">\n	marked for deletion\n	<div align="right">\n		<form class="action">\n			<%- templates.hiddenFormInput(locals) %>\n			<input type="submit" value="Confirm" onClick="processForm(this.parentNode.parentNode);return false;">\n		</form>\n	</div>\n</div>'),
+      factTypeCollection: ejs.compile('<%\nfor(var i = 0; i < factTypeCollections.length; i++) {\n	var factTypeCollection = factTypeCollections[i]; %>\n	<tr id="tr--data--<%= factTypeCollection.resourceName %>">\n		<td><%\n			if(factTypeCollection.isExpanded) { %>\n				<div style="display:inline;background-color:"<%= altBackground %>"><%= factTypeCollection.resourceName %></div>\n				<div style="display:inline;background-color:"<%= altBackground %>">\n					<a href="<%= factTypeCollection.uri %>" onClick="location.hash=\'<%= factTypeCollection.hash %>\';return false">\n						<span title="Close" class="ui-icon ui-icon-circle-close"></span>\n					</a>\n				</div>\n				<%- factTypeCollection.html %><%\n			}\n			else { %>\n				<%= factTypeCollection.resourceName %>\n				<a href="<%= factTypeCollection.uri %>" onClick="location.hash=\'<%= factTypeCollection.hash %>\';return false">\n					<span title="See all" class="ui-icon ui-icon-search"></span>\n				</a><%\n			} %>\n		</td>\n	</tr><%\n} %>')
     };
     requirejs(['data-frame/widgets/inputText'], function(inputText) {
       return templates.widgets.inputText = inputText;
@@ -353,10 +354,10 @@
           }
           targ = serverAPI(about);
           return serverRequest("GET", targ, {}, null, function(statusCode, result, headers) {
-            var currBranch, currBranchType, expandedTree, i, instance, j, mod, newTree, newb, npos, posl, res, resl, resourceName, rows, termVerb, uid, _fn, _len6, _len7, _len8, _len9, _n, _o, _ref5, _ref6, _ref7, _ref8, _results;
+            var currBranch, currBranchType, expandedTree, factTypeCollections, factTypeCollectionsCallback, i, instance, j, mod, newTree, newb, npos, posl, resl, resourceName, rows, termVerb, uid, _fn, _len10, _len6, _len7, _len8, _len9, _n, _o, _p, _ref5, _ref6, _ref7, _ref8, _ref9;
             resl = "";
             rows = result.instances.length;
-            asyncCallback.addWork(rows + 2 + parent.adds + 1 + parent.cols);
+            asyncCallback.addWork(rows + 2 + parent.adds + 1 + 1);
             asyncCallback.endAdding();
             npos = ftree.getChangeURI('add', about);
             asyncCallback.successCallback(rows + 1, "<tr><td><a href = '" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false;'>[(+)add new]</a></td></tr>");
@@ -450,43 +451,54 @@
               }
             }
             asyncCallback.successCallback(rows + 1 + parent.adds + 1, "<tr><td><hr style='border:0px; width:90%; background-color: #999; height:1px;'></td></tr>");
+            factTypeCollections = [];
+            factTypeCollectionsCallback = createAsyncQueueCallback(function() {
+              var res, templateVars;
+              templateVars = {
+                factTypeCollections: factTypeCollections,
+                templates: templates,
+                altBackground: parent.unbg
+              };
+              res = templates.factTypeCollection(templateVars);
+              return asyncCallback.successCallback(rows + 1 + parent.adds + 1, res);
+            }, function(errors) {
+              console.error(errors);
+              return asyncCallback.successCallback(rows + 1 + parent.adds + 1, 'Error: ' + errors);
+            }, function(index, html) {
+              factTypeCollections[index].html = html;
+              return null;
+            });
+            i = 0;
             _ref8 = cmod.slice(1);
-            _results = [];
             for (_o = 0, _len9 = _ref8.length; _o < _len9; _o++) {
               mod = _ref8[_o];
               if (mod[0] === "FactType") {
-                _results.push((function() {
-                  var _len10, _p, _ref9, _results2;
-                  _ref9 = mod.slice(1);
-                  _results2 = [];
-                  for (_p = 0, _len10 = _ref9.length; _p < _len10; _p++) {
-                    termVerb = _ref9[_p];
-                    if (!(termVerb[1] === about)) continue;
-                    resourceName = getIdent(mod);
-                    parent.colsout++;
-                    pre = "<tr id='tr--data--" + resourceName + "'><td>";
-                    post = "</td></tr>";
-                    if (ftree.isExpanded(resourceName)) {
-                      expandedTree = ftree.clone().descend(resourceName);
-                      npos = expandedTree.getNewURI("del");
-                      pre += "<div style='display:inline;background-color:" + parent.unbg + "'>" + resourceName + "</div>";
-                      pre += "<div style='display:inline;background-color:" + parent.unbg + "'><a href='" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a></div>";
-                      uid = new uidraw(rows + 1 + parent.adds + 1 + parent.colsout, asyncCallback.successCallback, pre, post, rootURI, !even, expandedTree, cmod);
-                      _results2.push(uid.subRowIn());
-                    } else {
-                      newb = ['collection', [resourceName], ["mod"]];
-                      npos = ftree.getNewURI("add", newb);
-                      pre += resourceName;
-                      pre += " <a href='" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false'><span title='See all' class='ui-icon ui-icon-search'></span></a>";
-                      res = pre + post;
-                      _results2.push(asyncCallback.successCallback(rows + 1 + parent.adds + 1 + parent.colsout, res));
-                    }
+                _ref9 = mod.slice(1);
+                for (_p = 0, _len10 = _ref9.length; _p < _len10; _p++) {
+                  termVerb = _ref9[_p];
+                  if (!(termVerb[1] === about)) continue;
+                  resourceName = getIdent(mod);
+                  factTypeCollections[i] = {
+                    resourceName: resourceName,
+                    isExpanded: ftree.isExpanded(resourceName)
+                  };
+                  if (factTypeCollections[i].isExpanded) {
+                    expandedTree = ftree.clone().descend(resourceName);
+                    factTypeCollections[i].hash = '#!/' + expandedTree.getNewURI("del");
+                    factTypeCollections[i].uri = rootURI + factTypeCollections[i].hash;
+                    factTypeCollectionsCallback.addWork(1);
+                    uid = new uidraw(i, factTypeCollectionsCallback.successCallback, pre, post, rootURI, !even, expandedTree, cmod);
+                    uid.subRowIn();
+                  } else {
+                    newb = ['collection', [resourceName], ["mod"]];
+                    factTypeCollections[i].hash = '#!/' + ftree.getNewURI("add", newb);
+                    factTypeCollections[i].uri = rootURI + factTypeCollections[i].hash;
                   }
-                  return _results2;
-                })());
+                  i++;
+                }
               }
             }
-            return _results;
+            return factTypeCollectionsCallback.endAdding();
           });
         } else if (currentLocation[0] === 'instance') {
           asyncCallback.addWork(1);
