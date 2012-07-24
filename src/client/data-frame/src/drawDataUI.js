@@ -145,7 +145,7 @@
     };
     getResolvedFactType = function(factType, factTypeInstance, successCallback, errorCallback) {
       var asyncCallback, factTypePart, i, idField, isBooleanFactType, uri, valueField, _len;
-      factTypeInstance = $.extend(true, [], factTypeInstance);
+      factTypeInstance = $.extend(true, {}, factTypeInstance);
       asyncCallback = createAsyncQueueCallback(function() {
         return successCallback(factTypeInstance);
       }, errorCallback);

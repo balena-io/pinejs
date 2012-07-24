@@ -114,7 +114,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 	
 	
 	getResolvedFactType = (factType, factTypeInstance, successCallback, errorCallback) ->
-		factTypeInstance = $.extend(true, [], factTypeInstance)
+		factTypeInstance = $.extend(true, {}, factTypeInstance)
 		asyncCallback = createAsyncQueueCallback(
 			() ->
 				successCallback(factTypeInstance)
