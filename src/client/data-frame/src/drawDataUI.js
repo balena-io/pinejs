@@ -5,11 +5,13 @@
     var addInst, createNavigableTree, delInst, drawData, editInst, getResolvedFactType, getTermResults, processForm, serverAPI, templates, uidraw;
     templates = {
       widgets: {},
-      hiddenFormInput: ejs.compile('<input type="hidden" id="__actype" value="<%= action %>">\n<input type="hidden" id="__serverURI" value="<%= serverURI %>">\n<input type="hidden" id="__backURI" value="<%= backURI %>">\n<input type="hidden" id="__type" value="<%= type %>">\n<% if(id !== false) { %>\n	<input type="hidden" id="__id" value="<%= id %>">\n<% } %>'),
-      factTypeForm: ejs.compile('<form class="action">\n	<%- templates.hiddenFormInput(locals) %><%\n	for(var i = 0; i < factType.length; i++) {\n		var factTypePart = factType[i];\n		switch(factTypePart[0]) {\n			case "Term":\n				var termName = factTypePart[1],\n					termResult = termResults[termName]; %>\n				<select id="<%= termName %>"><%\n					for(var j = 0; j < termResult.length; j++) {\n						var term = termResult[j]; %>\n						<option value="<%= term.id %>"<%\n							if(currentFactType !== false && currentFactType[termName].id == term.id) { %>\n								selected="selected" <%\n							} %>\n						>\n							<%= term.value %>\n						</option><%\n					} %>\n				</select><%\n			break;\n			case "Verb":\n				%><%= factTypePart[1] %><%\n			break;\n		}\n	} %>\n	<div align="right">\n		<input type="submit" value="Submit This" onClick="processForm(this.parentNode.parentNode);return false;">\n	</div>\n</form>'),
-      termForm: ejs.compile('<div align="left">\n	<form class="action">\n		<%- templates.hiddenFormInput(locals) %><%\n		if(id !== false) { %>\n			id: <%= id %><br/><%\n		}\n\n		for(var i = 0; i < termFields.length; i++) {\n			var termField = termFields[i]; %>\n			<%= termField[2] %>: <%\n			switch(termField[0]) {\n				case "Text": %>\n					<%- templates.widgets.inputText(termField[1], term === false ? "" : term[termField[1]]) %><%\n				break;\n				case "ForeignKey":\n					console.error("Hit FK", termField);\n				break;\n				default:\n					console.error("Hit default, wtf?");\n			} %>\n			<br /><%\n		} %>\n		<div align="right">\n			<input type="submit" value="Submit This" onClick="processForm(this.parentNode.parentNode);return false;">\n		</div>\n	</form>\n</div>'),
-      deleteForm: ejs.compile('<div align="left">\n	marked for deletion\n	<div align="right">\n		<form class="action">\n			<%- templates.hiddenFormInput(locals) %>\n			<input type="submit" value="Confirm" onClick="processForm(this.parentNode.parentNode);return false;">\n		</form>\n	</div>\n</div>'),
-      factTypeCollection: ejs.compile('<%\nfor(var i = 0; i < factTypeCollections.length; i++) {\n	var factTypeCollection = factTypeCollections[i]; %>\n	<tr id="tr--data--<%= factTypeCollection.resourceName %>">\n		<td><%\n			if(factTypeCollection.isExpanded) { %>\n				<div style="display:inline;background-color:"<%= altBackground %>"><%= factTypeCollection.resourceName %></div>\n				<div style="display:inline;background-color:"<%= altBackground %>">\n					<a href="<%= factTypeCollection.uri %>" onClick="location.hash=\'<%= factTypeCollection.hash %>\';return false">\n						<span title="Close" class="ui-icon ui-icon-circle-close"></span>\n					</a>\n				</div>\n				<%- factTypeCollection.html %><%\n			}\n			else { %>\n				<%= factTypeCollection.resourceName %>\n				<a href="<%= factTypeCollection.uri %>" onClick="location.hash=\'<%= factTypeCollection.hash %>\';return false">\n					<span title="See all" class="ui-icon ui-icon-search"></span>\n				</a><%\n			} %>\n		</td>\n	</tr><%\n} %>')
+      hiddenFormInput: ejs.compile('<input type="hidden" id="__actype" value="<%= action %>">\n<input type="hidden" id="__serverURI" value="<%= serverURI %>">\n<input type="hidden" id="__backURI" value="<%= backURI %>">\n<input type="hidden" id="__type" value="<%= type %>"><%\nif(id !== false) { %>\n	<input type="hidden" id="__id" value="<%= id %>"><%\n} %>'),
+      factTypeForm: ejs.compile('<div class="panel" style="background-color:<%= backgroundColour %>;">\n	<form class="action">\n		<%- templates.hiddenFormInput(locals) %><%\n		for(var i = 0; i < factType.length; i++) {\n			var factTypePart = factType[i];\n			switch(factTypePart[0]) {\n				case "Term":\n					var termName = factTypePart[1],\n						termResult = termResults[termName]; %>\n					<select id="<%= termName %>"><%\n						for(var j = 0; j < termResult.length; j++) {\n							var term = termResult[j]; %>\n							<option value="<%= term.id %>"<%\n								if(currentFactType !== false && currentFactType[termName].id == term.id) { %>\n									selected="selected" <%\n								} %>\n							>\n								<%= term.value %>\n							</option><%\n						} %>\n					</select><%\n				break;\n				case "Verb":\n					%><%= factTypePart[1] %><%\n				break;\n			}\n		} %>\n		<div align="right">\n			<input type="submit" value="Submit This" onClick="processForm(this.parentNode.parentNode);return false;">\n		</div>\n	</form>\n</div>'),
+      termForm: ejs.compile('<div class="panel" style="background-color:<%= backgroundColour %>;">\n	<div align="left">\n		<form class="action">\n			<%- templates.hiddenFormInput(locals) %><%\n			if(id !== false) { %>\n				id: <%= id %><br/><%\n			}\n\n			for(var i = 0; i < termFields.length; i++) {\n				var termField = termFields[i]; %>\n				<%= termField[2] %>: <%\n				switch(termField[0]) {\n					case "Text": %>\n						<%- templates.widgets.inputText(termField[1], term === false ? "" : term[termField[1]]) %><%\n					break;\n					case "ForeignKey":\n						console.error("Hit FK", termField);\n					break;\n					default:\n						console.error("Hit default, wtf?");\n				} %>\n				<br /><%\n			} %>\n			<div align="right">\n				<input type="submit" value="Submit This" onClick="processForm(this.parentNode.parentNode);return false;">\n			</div>\n		</form>\n	</div>\n</div>'),
+      deleteForm: ejs.compile('<div class="panel" style="background-color:<%= backgroundColour %>;">\n	<div align="left">\n		marked for deletion\n		<div align="right">\n			<form class="action">\n				<%- templates.hiddenFormInput(locals) %>\n				<input type="submit" value="Confirm" onClick="processForm(this.parentNode.parentNode);return false;">\n			</form>\n		</div>\n	</div>\n</div>'),
+      factTypeCollection: ejs.compile('<%\nfor(var i = 0; i < factTypeCollections.length; i++) {\n	var factTypeCollection = factTypeCollections[i]; %>\n	<tr id="tr--data--<%= factTypeCollection.resourceName %>">\n		<td><%\n			if(factTypeCollection.isExpanded) { %>\n				<div style="display:inline;background-color:"<%= altBackgroundColour %>"><%= factTypeCollection.resourceName %></div>\n				<div style="display:inline;background-color:"<%= altBackgroundColour %>">\n					<a href="<%= factTypeCollection.uri %>" onClick="location.hash=\'<%= factTypeCollection.hash %>\';return false">\n						<span title="Close" class="ui-icon ui-icon-circle-close"></span>\n					</a>\n				</div>\n				<%- factTypeCollection.html %><%\n			}\n			else { %>\n				<%= factTypeCollection.resourceName %>\n				<a href="<%= factTypeCollection.uri %>" onClick="location.hash=\'<%= factTypeCollection.hash %>\';return false">\n					<span title="See all" class="ui-icon ui-icon-search"></span>\n				</a><%\n			} %>\n		</td>\n	</tr><%\n} %>'),
+      termView: ejs.compile('<div class="panel" style="background-color:<%= backgroundColour %>;"><%\n	for(var field in termInstance) { %>\n		<%= termInstance %>: <%= termInstance[field] %><br/><%\n	} %>\n</div>'),
+      factTypeView: ejs.compile('<% console.error(factType, factTypeInstance) %>\n<div class="panel" style="background-color:<%= backgroundColour %>;"><%\n	for(var i = 0; i < factType.length; i++) {\n		factTypePart = factType[i];\n		if(factTypePart[0] == "Term") { %>\n			<%= factTypeInstance[factTypePart[1]].value %> <%\n		}\n		else if(factTypePart[0] == "Verb") { %>\n			<%= factTypePart[1] %><%\n		}\n	} %>\n</div>')
     };
     requirejs(['data-frame/widgets/inputText'], function(inputText) {
       return templates.widgets.inputText = inputText;
@@ -354,8 +356,7 @@
           }
           targ = serverAPI(about);
           return serverRequest("GET", targ, {}, null, function(statusCode, result, headers) {
-            var currBranch, currBranchType, expandedTree, factTypeCollections, factTypeCollectionsCallback, i, instance, j, mod, newTree, newb, npos, posl, resl, resourceName, rows, termVerb, uid, _fn, _len10, _len6, _len7, _len8, _len9, _n, _o, _p, _ref5, _ref6, _ref7, _ref8, _ref9;
-            resl = "";
+            var currBranch, currBranchType, expandedTree, factTypeCollections, factTypeCollectionsCallback, i, instance, j, mod, newTree, newb, npos, posl, resourceName, rows, termVerb, uid, _fn, _len10, _len6, _len7, _len8, _len9, _n, _o, _p, _ref5, _ref6, _ref7, _ref8, _ref9;
             rows = result.instances.length;
             asyncCallback.addWork(rows + 2 + parent.adds + 1 + 1);
             asyncCallback.endAdding();
@@ -457,7 +458,8 @@
               templateVars = {
                 factTypeCollections: factTypeCollections,
                 templates: templates,
-                altBackground: parent.unbg
+                backgroundColour: parent.bg,
+                altBackgroundColour: parent.unbg
               };
               res = templates.factTypeCollection(templateVars);
               return asyncCallback.successCallback(rows + 1 + parent.adds + 1, res);
@@ -503,10 +505,7 @@
         } else if (currentLocation[0] === 'instance') {
           asyncCallback.addWork(1);
           asyncCallback.endAdding();
-          this.pre += "<div class='panel' style='background-color:" + this.bg + ";'>";
-          this.post += "</div>";
           backURI = ftree.getNewURI('del');
-          this.id = currentLocation[1][1];
           actn = "view";
           _ref5 = currentLocation[2].slice(1);
           for (_n = 0, _len6 = _ref5.length; _n < _len6; _n++) {
@@ -522,31 +521,31 @@
               if (this.type === "Term") {
                 targ = serverAPI(about);
                 return serverRequest("GET", targ, {}, null, function(statusCode, result, headers) {
-                  var item, res;
-                  res = "";
-                  for (item in result.instances[0]) {
-                    if (item !== "__clone") {
-                      res += item + ": " + result.instances[0][item] + "<br/>";
-                    }
-                  }
+                  var res, templateVars;
+                  templateVars = {
+                    termInstance: result.instances[0],
+                    backgroundColour: parent.bg,
+                    altBackgroundColour: parent.unbg,
+                    templates: templates
+                  };
+                  res = templates.termView(templateVars);
                   return asyncCallback.successCallback(1, res);
                 });
               } else if (this.type === "FactType") {
-                targ = serverAPI(about);
+                targ = ftree.getServerURI();
                 return serverRequest("GET", targ, {}, null, function(statusCode, result, headers) {
                   var res;
                   res = "id: " + result.instances[0].id + "<br/>";
                   return getResolvedFactType(parent.schema, result.instances[0], function(factTypeInstance) {
-                    var schema, _len7, _o, _ref7;
-                    _ref7 = parent.schema;
-                    for (_o = 0, _len7 = _ref7.length; _o < _len7; _o++) {
-                      schema = _ref7[_o];
-                      if (schema[0] === "Term") {
-                        res += factTypeInstance[schema[1]].value + " ";
-                      } else if (schema[0] === "Verb") {
-                        res += schema[1] + " ";
-                      }
-                    }
+                    var templateVars;
+                    templateVars = {
+                      factType: parent.schema,
+                      factTypeInstance: factTypeInstance,
+                      backgroundColour: parent.bg,
+                      altBackgroundColour: parent.unbg,
+                      templates: templates
+                    };
+                    res = templates.factTypeView(templateVars);
                     return asyncCallback.successCallback(1, res);
                   }, function(errors) {
                     console.error(errors);
@@ -566,6 +565,8 @@
                   id: false,
                   term: false,
                   termFields: termFields,
+                  backgroundColour: this.bg,
+                  altBackgroundColour: this.unbg,
                   templates: templates
                 };
                 res = templates.termForm(templateVars);
@@ -581,6 +582,8 @@
                     type: about,
                     currentFactType: false,
                     id: false,
+                    backgroundColour: parent.bg,
+                    altBackgroundColour: parent.unbg,
                     templates: templates
                   };
                   res = templates.factTypeForm(templateVars);
@@ -603,6 +606,8 @@
                     id: id,
                     term: result.instances[0],
                     termFields: termFields,
+                    backgroundColour: parent.bg,
+                    altBackgroundColour: parent.unbg,
                     templates: templates
                   };
                   res = templates.termForm(templateVars);
@@ -622,6 +627,8 @@
                         type: about,
                         currentFactType: factTypeInstance,
                         id: factTypeInstance.id,
+                        backgroundColour: parent.bg,
+                        altBackgroundColour: parent.unbg,
                         templates: templates
                       };
                       res = templates.factTypeForm(templateVars);
@@ -640,7 +647,9 @@
                 serverURI: serverAPI(about, [['id', '=', this.id]]),
                 backURI: serverAPI(about),
                 type: about,
-                id: this.id,
+                id: currentLocation[1][1],
+                backgroundColour: this.bg,
+                altBackgroundColour: this.unbg,
                 templates: templates
               };
               res = templates.deleteForm(templateVars);

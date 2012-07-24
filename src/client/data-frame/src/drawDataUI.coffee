@@ -5,65 +5,38 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 			<input type="hidden" id="__actype" value="<%= action %>">
 			<input type="hidden" id="__serverURI" value="<%= serverURI %>">
 			<input type="hidden" id="__backURI" value="<%= backURI %>">
-			<input type="hidden" id="__type" value="<%= type %>">
-			<% if(id !== false) { %>
-				<input type="hidden" id="__id" value="<%= id %>">
-			<% } %>
+			<input type="hidden" id="__type" value="<%= type %>"><%
+			if(id !== false) { %>
+				<input type="hidden" id="__id" value="<%= id %>"><%
+			} %>
 			''')
 		factTypeForm: ejs.compile('''
-			<form class="action">
-				<%- templates.hiddenFormInput(locals) %><%
-				for(var i = 0; i < factType.length; i++) {
-					var factTypePart = factType[i];
-					switch(factTypePart[0]) {
-						case "Term":
-							var termName = factTypePart[1],
-								termResult = termResults[termName]; %>
-							<select id="<%= termName %>"><%
-								for(var j = 0; j < termResult.length; j++) {
-									var term = termResult[j]; %>
-									<option value="<%= term.id %>"<%
-										if(currentFactType !== false && currentFactType[termName].id == term.id) { %>
-											selected="selected" <%
-										} %>
-									>
-										<%= term.value %>
-									</option><%
-								} %>
-							</select><%
-						break;
-						case "Verb":
-							%><%= factTypePart[1] %><%
-						break;
-					}
-				} %>
-				<div align="right">
-					<input type="submit" value="Submit This" onClick="processForm(this.parentNode.parentNode);return false;">
-				</div>
-			</form>
-			''')
-		termForm: ejs.compile('''
-			<div align="left">
+			<div class="panel" style="background-color:<%= backgroundColour %>;">
 				<form class="action">
 					<%- templates.hiddenFormInput(locals) %><%
-					if(id !== false) { %>
-						id: <%= id %><br/><%
-					}
-
-					for(var i = 0; i < termFields.length; i++) {
-						var termField = termFields[i]; %>
-						<%= termField[2] %>: <%
-						switch(termField[0]) {
-							case "Text": %>
-								<%- templates.widgets.inputText(termField[1], term === false ? "" : term[termField[1]]) %><%
+					for(var i = 0; i < factType.length; i++) {
+						var factTypePart = factType[i];
+						switch(factTypePart[0]) {
+							case "Term":
+								var termName = factTypePart[1],
+									termResult = termResults[termName]; %>
+								<select id="<%= termName %>"><%
+									for(var j = 0; j < termResult.length; j++) {
+										var term = termResult[j]; %>
+										<option value="<%= term.id %>"<%
+											if(currentFactType !== false && currentFactType[termName].id == term.id) { %>
+												selected="selected" <%
+											} %>
+										>
+											<%= term.value %>
+										</option><%
+									} %>
+								</select><%
 							break;
-							case "ForeignKey":
-								console.error("Hit FK", termField);
+							case "Verb":
+								%><%= factTypePart[1] %><%
 							break;
-							default:
-								console.error("Hit default, wtf?");
-						} %>
-						<br /><%
+						}
 					} %>
 					<div align="right">
 						<input type="submit" value="Submit This" onClick="processForm(this.parentNode.parentNode);return false;">
@@ -71,14 +44,47 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 				</form>
 			</div>
 			''')
-		deleteForm: ejs.compile('''
-			<div align="left">
-				marked for deletion
-				<div align="right">
+		termForm: ejs.compile('''
+			<div class="panel" style="background-color:<%= backgroundColour %>;">
+				<div align="left">
 					<form class="action">
-						<%- templates.hiddenFormInput(locals) %>
-						<input type="submit" value="Confirm" onClick="processForm(this.parentNode.parentNode);return false;">
+						<%- templates.hiddenFormInput(locals) %><%
+						if(id !== false) { %>
+							id: <%= id %><br/><%
+						}
+
+						for(var i = 0; i < termFields.length; i++) {
+							var termField = termFields[i]; %>
+							<%= termField[2] %>: <%
+							switch(termField[0]) {
+								case "Text": %>
+									<%- templates.widgets.inputText(termField[1], term === false ? "" : term[termField[1]]) %><%
+								break;
+								case "ForeignKey":
+									console.error("Hit FK", termField);
+								break;
+								default:
+									console.error("Hit default, wtf?");
+							} %>
+							<br /><%
+						} %>
+						<div align="right">
+							<input type="submit" value="Submit This" onClick="processForm(this.parentNode.parentNode);return false;">
+						</div>
 					</form>
+				</div>
+			</div>
+			''')
+		deleteForm: ejs.compile('''
+			<div class="panel" style="background-color:<%= backgroundColour %>;">
+				<div align="left">
+					marked for deletion
+					<div align="right">
+						<form class="action">
+							<%- templates.hiddenFormInput(locals) %>
+							<input type="submit" value="Confirm" onClick="processForm(this.parentNode.parentNode);return false;">
+						</form>
+					</div>
 				</div>
 			</div>
 			''')
@@ -89,8 +95,8 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 				<tr id="tr--data--<%= factTypeCollection.resourceName %>">
 					<td><%
 						if(factTypeCollection.isExpanded) { %>
-							<div style="display:inline;background-color:"<%= altBackground %>"><%= factTypeCollection.resourceName %></div>
-							<div style="display:inline;background-color:"<%= altBackground %>">
+							<div style="display:inline;background-color:"<%= altBackgroundColour %>"><%= factTypeCollection.resourceName %></div>
+							<div style="display:inline;background-color:"<%= altBackgroundColour %>">
 								<a href="<%= factTypeCollection.uri %>" onClick="location.hash='<%= factTypeCollection.hash %>';return false">
 									<span title="Close" class="ui-icon ui-icon-circle-close"></span>
 								</a>
@@ -106,6 +112,27 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 					</td>
 				</tr><%
 			} %>
+			''')
+		termView: ejs.compile('''
+			<div class="panel" style="background-color:<%= backgroundColour %>;"><%
+				for(var field in termInstance) { %>
+					<%= termInstance %>: <%= termInstance[field] %><br/><%
+				} %>
+			</div>
+			''')
+		factTypeView: ejs.compile('''
+			<% console.error(factType, factTypeInstance) %>
+			<div class="panel" style="background-color:<%= backgroundColour %>;"><%
+				for(var i = 0; i < factType.length; i++) {
+					factTypePart = factType[i];
+					if(factTypePart[0] == "Term") { %>
+						<%= factTypeInstance[factTypePart[1]].value %> <%
+					}
+					else if(factTypePart[0] == "Verb") { %>
+						<%= factTypePart[1] %><%
+					}
+				} %>
+			</div>
 			''')
 	}
 	requirejs(['data-frame/widgets/inputText'], (inputText) ->
@@ -385,7 +412,6 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 
 				targ = serverAPI(about)
 				serverRequest("GET", targ, {}, null, (statusCode, result, headers) ->
-					resl = ""
 					rows = result.instances.length
 					asyncCallback.addWork(rows + 2 + parent.adds + 1 + 1)
 					asyncCallback.endAdding()
@@ -476,7 +502,8 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 							templateVars =
 								factTypeCollections: factTypeCollections
 								templates: templates
-								altBackground: parent.unbg
+								backgroundColour: parent.bg
+								altBackgroundColour: parent.unbg
 							res = templates.factTypeCollection(templateVars)
 							asyncCallback.successCallback(rows + 1 + parent.adds + 1, res)
 						(errors) ->
@@ -512,11 +539,8 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 			else if currentLocation[0] == 'instance'
 				asyncCallback.addWork(1)
 				asyncCallback.endAdding()
-				@pre += "<div class='panel' style='background-color:" + @bg + ";'>"
-				@post += "</div>"
 				# backURI = serverAPI(about)
 				backURI = ftree.getNewURI('del')
-				@id = currentLocation[1][1]
 				actn = "view"
 
 				# find first action.
@@ -529,22 +553,27 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 						if @type == "Term"
 							targ = serverAPI(about)
 							serverRequest("GET", targ, {}, null, (statusCode, result, headers) ->
-								res = ""
-								for item of result.instances[0] when item != "__clone"
-									res += item + ": " + result.instances[0][item] + "<br/>"
+								templateVars =
+									termInstance: result.instances[0]
+									backgroundColour: parent.bg
+									altBackgroundColour: parent.unbg
+									templates: templates
+								res = templates.termView(templateVars)
 								asyncCallback.successCallback(1, res)
 							)
 						else if @type == "FactType"
-							targ = serverAPI(about)
+							targ = ftree.getServerURI()
 							serverRequest("GET", targ, {}, null, (statusCode, result, headers) ->
 								res = "id: " + result.instances[0].id + "<br/>"
 								getResolvedFactType(parent.schema, result.instances[0],
 									(factTypeInstance) -> 
-										for schema in parent.schema
-											if schema[0] == "Term"
-												res += factTypeInstance[schema[1]].value + " "
-											else if schema[0] == "Verb"
-												res += schema[1] + " "
+										templateVars =
+											factType: parent.schema
+											factTypeInstance: factTypeInstance
+											backgroundColour: parent.bg
+											altBackgroundColour: parent.unbg
+											templates: templates
+										res = templates.factTypeView(templateVars)
 										asyncCallback.successCallback(1, res)
 									(errors) ->
 										console.error(errors)
@@ -564,6 +593,8 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 								id: false
 								term: false
 								termFields: termFields
+								backgroundColour: @bg
+								altBackgroundColour: @unbg
 								templates: templates
 							res = templates.termForm(templateVars)
 							asyncCallback.successCallback(1, res)
@@ -578,6 +609,8 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 									type: about
 									currentFactType: false
 									id: false
+									backgroundColour: parent.bg
+									altBackgroundColour: parent.unbg
 									templates: templates
 								res = templates.factTypeForm(templateVars)
 								asyncCallback.successCallback(1, res)
@@ -598,6 +631,8 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 									id: id
 									term: result.instances[0]
 									termFields: termFields
+									backgroundColour: parent.bg
+									altBackgroundColour: parent.unbg
 									templates: templates
 								res = templates.termForm(templateVars)
 								asyncCallback.successCallback(1, res)
@@ -617,6 +652,8 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 												type: about
 												currentFactType: factTypeInstance
 												id: factTypeInstance.id
+												backgroundColour: parent.bg
+												altBackgroundColour: parent.unbg
 												templates: templates
 											res = templates.factTypeForm(templateVars)
 											asyncCallback.successCallback(1, res)
@@ -632,7 +669,9 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 							serverURI: serverAPI(about, [['id', '=', @id]])
 							backURI: serverAPI(about)
 							type: about
-							id: @id
+							id: currentLocation[1][1]
+							backgroundColour: @bg
+							altBackgroundColour: @unbg
 							templates: templates 
 						res = templates.deleteForm(templateVars)
 						asyncCallback.successCallback(1, res)
