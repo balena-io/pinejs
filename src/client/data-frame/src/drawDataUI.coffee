@@ -6,7 +6,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 	
 	
 
-	createHiddenInputs = ejs.compile('''
+	templateHiddenFormInputs = ejs.compile('''
 		<input type="hidden" id="__actype" value="<%= action %>">
 		<input type="hidden" id="__serverURI" value="<%= serverURI %>">
 		<input type="hidden" id="__backURI" value="<%= backURI %>">
@@ -15,9 +15,9 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 			<input type="hidden" id="__id" value="<%= id %>">
 		<% } %>
 		''')
-	createFactTypeForm = ejs.compile('''
+	templateFactTypeForm = ejs.compile('''
 		<form class="action"><%
-			createHiddenInputs({
+			templateHiddenFormInputs({
 				action: action,
 				serverURI: serverURI,
 				backURI: backURI,
@@ -492,7 +492,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 								serverURI: serverAPI(about)
 								backURI: backURI
 								type: about
-							res += createHiddenInputs(templateVars)
+							res += templateHiddenFormInputs(templateVars)
 							console.log "addterm backURI=" + backURI
 
 							for currSchema in schema
@@ -514,8 +514,8 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 									serverURI: serverAPI(about)
 									backURI: backURI
 									type: about
-									createHiddenInputs: createHiddenInputs
-								res = createFactTypeForm(templateVars)
+									templateHiddenFormInputs: templateHiddenFormInputs
+								res = templateFactTypeForm(templateVars)
 								asyncCallback.successCallback(1, res)
 							)
 					when "edit"
@@ -534,7 +534,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 									backURI: serverAPI(about)
 									type: about
 									id: id
-								res += createHiddenInputs(templateVars)
+								res += templateHiddenFormInputs(templateVars)
 								res += "id: " + id + "<br/>"
 
 								for currSchema in schema
@@ -565,8 +565,8 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 												backURI: serverAPI(about)
 												type: about
 												currentFactType: factTypeInstance
-												createHiddenInputs: createHiddenInputs
-											res += createFactTypeForm(templateVars)
+												templateHiddenFormInputs: templateHiddenFormInputs
+											res += templateFactTypeForm(templateVars)
 											res += "</div>"
 											asyncCallback.successCallback(1, res)
 										)
@@ -588,7 +588,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 								"marked for deletion" +
 								"<div align='right'>" +
 									"<form class='action'>" +
-										createHiddenInputs(templateVars) +
+										templateHiddenFormInputs(templateVars) +
 										"<input type='submit' value='Confirm' onClick='processForm(this.parentNode.parentNode);return false;'>" +
 									"</form>" +
 								"</div>" +

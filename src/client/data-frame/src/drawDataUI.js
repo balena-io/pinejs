@@ -2,13 +2,13 @@
   var __indexOf = Array.prototype.indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
   define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs'], function(ClientURIUnparser, createAsyncQueueCallback, ejs) {
-    var addInst, createFactTypeForm, createHiddenInputs, createNavigableTree, delInst, drawData, editInst, getResolvedFactType, getTermResults, processForm, serverAPI, uidraw, widgets;
+    var addInst, createNavigableTree, delInst, drawData, editInst, getResolvedFactType, getTermResults, processForm, serverAPI, templateFactTypeForm, templateHiddenFormInputs, uidraw, widgets;
     widgets = {};
     requirejs(['data-frame/widgets/inputText'], function(inputText) {
       return widgets.inputText = inputText;
     });
-    createHiddenInputs = ejs.compile('<input type="hidden" id="__actype" value="<%= action %>">\n<input type="hidden" id="__serverURI" value="<%= serverURI %>">\n<input type="hidden" id="__backURI" value="<%= backURI %>">\n<input type="hidden" id="__type" value="<%= type %>">\n<% if(id != null && id !== false) { %>\n	<input type="hidden" id="__id" value="<%= id %>">\n<% } %>');
-    createFactTypeForm = ejs.compile('<form class="action"><%\n	createHiddenInputs({\n		action: action,\n		serverURI: serverURI,\n		backURI: backURI,\n		type: type,\n		id: (currentFactType == null || currentFactType === false ? false : currentFactType.id)\n	});\n	for(var i = 0; i < factType.length; i++) {\n		var factTypePart = factType[i];\n		switch(factTypePart[0]) {\n			case "Term":\n				var termName = factTypePart[1],\n					termResult = termResults[termName]; %>\n				<select id="<%= termName %>"><%\n					for(var j = 0; j < termResult.length; j++) {\n						var term = termResult[j]; %>\n						<option value="<%= term.id %>"<%\n							if(currentFactType != false && currentFactType[termName].id == term.id) { %>\n								selected="selected" <%\n							} %>\n						>\n							<%= term.value %>\n						</option><%\n					} %>\n				</select><%\n			break;\n			case "Verb":\n				%><%= factTypePart[1] %><%\n			break;\n		}\n	} %>\n	<div align="right">\n		<input type="submit" value="Submit This" onClick="processForm(this.parentNode.parentNode);return false;">\n	</div>\n</form>', {
+    templateHiddenFormInputs = ejs.compile('<input type="hidden" id="__actype" value="<%= action %>">\n<input type="hidden" id="__serverURI" value="<%= serverURI %>">\n<input type="hidden" id="__backURI" value="<%= backURI %>">\n<input type="hidden" id="__type" value="<%= type %>">\n<% if(id != null && id !== false) { %>\n	<input type="hidden" id="__id" value="<%= id %>">\n<% } %>');
+    templateFactTypeForm = ejs.compile('<form class="action"><%\n	templateHiddenFormInputs({\n		action: action,\n		serverURI: serverURI,\n		backURI: backURI,\n		type: type,\n		id: (currentFactType == null || currentFactType === false ? false : currentFactType.id)\n	});\n	for(var i = 0; i < factType.length; i++) {\n		var factTypePart = factType[i];\n		switch(factTypePart[0]) {\n			case "Term":\n				var termName = factTypePart[1],\n					termResult = termResults[termName]; %>\n				<select id="<%= termName %>"><%\n					for(var j = 0; j < termResult.length; j++) {\n						var term = termResult[j]; %>\n						<option value="<%= term.id %>"<%\n							if(currentFactType != false && currentFactType[termName].id == term.id) { %>\n								selected="selected" <%\n							} %>\n						>\n							<%= term.value %>\n						</option><%\n					} %>\n				</select><%\n			break;\n			case "Verb":\n				%><%= factTypePart[1] %><%\n			break;\n		}\n	} %>\n	<div align="right">\n		<input type="submit" value="Submit This" onClick="processForm(this.parentNode.parentNode);return false;">\n	</div>\n</form>', {
       debug: true
     });
     createNavigableTree = function(tree, descendTree) {
@@ -553,7 +553,7 @@
                   backURI: backURI,
                   type: about
                 };
-                res += createHiddenInputs(templateVars);
+                res += templateHiddenFormInputs(templateVars);
                 console.log("addterm backURI=" + backURI);
                 for (_o = 0, _len7 = schema.length; _o < _len7; _o++) {
                   currSchema = schema[_o];
@@ -578,9 +578,9 @@
                     serverURI: serverAPI(about),
                     backURI: backURI,
                     type: about,
-                    createHiddenInputs: createHiddenInputs
+                    templateHiddenFormInputs: templateHiddenFormInputs
                   };
-                  res = createFactTypeForm(templateVars);
+                  res = templateFactTypeForm(templateVars);
                   return asyncCallback.successCallback(1, res);
                 });
               }
@@ -601,7 +601,7 @@
                     type: about,
                     id: id
                   };
-                  res += createHiddenInputs(templateVars);
+                  res += templateHiddenFormInputs(templateVars);
                   res += "id: " + id + "<br/>";
                   for (_p = 0, _len8 = schema.length; _p < _len8; _p++) {
                     currSchema = schema[_p];
@@ -634,9 +634,9 @@
                         backURI: serverAPI(about),
                         type: about,
                         currentFactType: factTypeInstance,
-                        createHiddenInputs: createHiddenInputs
+                        templateHiddenFormInputs: templateHiddenFormInputs
                       };
-                      res += createFactTypeForm(templateVars);
+                      res += templateFactTypeForm(templateVars);
                       res += "</div>";
                       return asyncCallback.successCallback(1, res);
                     });
@@ -655,7 +655,7 @@
                 type: about,
                 id: this.id
               };
-              res = "<div align='left'>" + "marked for deletion" + "<div align='right'>" + "<form class='action'>" + createHiddenInputs(templateVars) + "<input type='submit' value='Confirm' onClick='processForm(this.parentNode.parentNode);return false;'>" + "</form>" + "</div>" + "</div>";
+              res = "<div align='left'>" + "marked for deletion" + "<div align='right'>" + "<form class='action'>" + templateHiddenFormInputs(templateVars) + "<input type='submit' value='Confirm' onClick='processForm(this.parentNode.parentNode);return false;'>" + "</form>" + "</div>" + "</div>";
               return asyncCallback.successCallback(1, res);
           }
         }
