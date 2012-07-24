@@ -53,7 +53,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 						<%= termField[2] %>: <%
 						switch(termField[0]) {
 							case "Text": %>
-								<%- templates.widgets.inputText(termField[1], term[termField[1]]) %><%
+								<%- templates.widgets.inputText(termField[1], term === false ? "" : term[termField[1]]) %><%
 							break;
 							case "ForeignKey":
 								console.error("Hit FK", termField);
@@ -68,7 +68,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 					</div>
 				</form>
 			</div>
-			''', debug:true)
+			''')
 		deleteForm: ejs.compile('''
 			<div align="left">
 				marked for deletion
@@ -512,30 +512,18 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 							)
 					when "add"
 						if @type == "Term"
-							# TODO: The schema info should come from cmod
-							schema = [['Text', 'value', 'Name', []]]
-
-							# print form.
-							res = "<div align='right'>"
-							res += "<form class='action'>"
+							# TODO: The termFields info should come from a client model
+							termFields = [['Text', 'value', 'Name', []]]
 							templateVars =
 								action: 'addterm'
 								serverURI: serverAPI(about)
 								backURI: backURI
 								type: about
 								id: false
-							res += templates.hiddenFormInput(templateVars)
-							console.log "addterm backURI=" + backURI
-
-							for currSchema in schema
-								switch currSchema[0]
-									when "Text"
-										res += currSchema[2] + ": " + templates.widgets.inputText(currSchema[1]) + "<br />"
-									when "ForeignKey"
-										alert currSchema
-							res += "<input type='submit' value='Submit This' onClick='processForm(this.parentNode);return false;'>"
-							res += "</form>"
-							res += "</div>"
+								term: false
+								termFields: termFields
+								templates: templates
+							res = templates.termForm(templateVars)
 							asyncCallback.successCallback(1, res)
 						else if @type == "FactType"
 							getTermResults(parent.schema, (termResults) ->

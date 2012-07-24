@@ -7,9 +7,7 @@
       widgets: {},
       hiddenFormInput: ejs.compile('<input type="hidden" id="__actype" value="<%= action %>">\n<input type="hidden" id="__serverURI" value="<%= serverURI %>">\n<input type="hidden" id="__backURI" value="<%= backURI %>">\n<input type="hidden" id="__type" value="<%= type %>">\n<% if(id !== false) { %>\n	<input type="hidden" id="__id" value="<%= id %>">\n<% } %>'),
       factTypeForm: ejs.compile('<form class="action">\n	<%- templates.hiddenFormInput(locals) %><%\n	for(var i = 0; i < factType.length; i++) {\n		var factTypePart = factType[i];\n		switch(factTypePart[0]) {\n			case "Term":\n				var termName = factTypePart[1],\n					termResult = termResults[termName]; %>\n				<select id="<%= termName %>"><%\n					for(var j = 0; j < termResult.length; j++) {\n						var term = termResult[j]; %>\n						<option value="<%= term.id %>"<%\n							if(currentFactType !== false && currentFactType[termName].id == term.id) { %>\n								selected="selected" <%\n							} %>\n						>\n							<%= term.value %>\n						</option><%\n					} %>\n				</select><%\n			break;\n			case "Verb":\n				%><%= factTypePart[1] %><%\n			break;\n		}\n	} %>\n	<div align="right">\n		<input type="submit" value="Submit This" onClick="processForm(this.parentNode.parentNode);return false;">\n	</div>\n</form>'),
-      termForm: ejs.compile('<div align="left">\n	<form class="action">\n		<%- templates.hiddenFormInput(locals) %>\n		id: <%= id %><br/><%\n\n		for(var i = 0; i < termFields.length; i++) {\n			var termField = termFields[i]; %>\n			<%= termField[2] %>: <%\n			switch(termField[0]) {\n				case "Text": %>\n					<%- templates.widgets.inputText(termField[1], term[termField[1]]) %><%\n				break;\n				case "ForeignKey":\n					console.error("Hit FK", termField);\n				break;\n				default:\n					console.error("Hit default, wtf?");\n			} %>\n			<br /><%\n		} %>\n		<div align="right">\n			<input type="submit" value="Submit This" onClick="processForm(this.parentNode.parentNode);return false;">\n		</div>\n	</form>\n</div>', {
-        debug: true
-      }),
+      termForm: ejs.compile('<div align="left">\n	<form class="action">\n		<%- templates.hiddenFormInput(locals) %>\n		id: <%= id %><br/><%\n\n		for(var i = 0; i < termFields.length; i++) {\n			var termField = termFields[i]; %>\n			<%= termField[2] %>: <%\n			switch(termField[0]) {\n				case "Text": %>\n					<%- templates.widgets.inputText(termField[1], term === false ? "" : term[termField[1]]) %><%\n				break;\n				case "ForeignKey":\n					console.error("Hit FK", termField);\n				break;\n				default:\n					console.error("Hit default, wtf?");\n			} %>\n			<br /><%\n		} %>\n		<div align="right">\n			<input type="submit" value="Submit This" onClick="processForm(this.parentNode.parentNode);return false;">\n		</div>\n	</form>\n</div>'),
       deleteForm: ejs.compile('<div align="left">\n	marked for deletion\n	<div align="right">\n		<form class="action">\n			<%- templates.hiddenFormInput(locals) %>\n			<input type="submit" value="Confirm" onClick="processForm(this.parentNode.parentNode);return false;">\n		</form>\n	</div>\n</div>')
     };
     requirejs(['data-frame/widgets/inputText'], function(inputText) {
@@ -328,7 +326,7 @@
         if (this.type === "FactType") this.schema = mod.slice(1);
       }
       this.subRowIn = function() {
-        var actn, backURI, branchType, collection, currBranch, currBranchType, currSchema, mod, res, schema, targ, templateVars, termFields, _j, _k, _l, _len2, _len3, _len4, _len5, _len6, _len7, _m, _n, _o, _ref2, _ref3, _ref4, _ref5, _ref6;
+        var actn, backURI, branchType, collection, currBranch, currBranchType, mod, res, targ, templateVars, termFields, _j, _k, _l, _len2, _len3, _len4, _len5, _len6, _m, _n, _ref2, _ref3, _ref4, _ref5, _ref6;
         if (currentLocation[0] === 'collection') {
           this.pre += "<div class='panel' style='background-color:" + this.bg + ";'><table id='tbl--" + ftree.getPid() + "'><tbody>";
           this.post += "</tbody></table></div>";
@@ -548,31 +546,18 @@
               break;
             case "add":
               if (this.type === "Term") {
-                schema = [['Text', 'value', 'Name', []]];
-                res = "<div align='right'>";
-                res += "<form class='action'>";
+                termFields = [['Text', 'value', 'Name', []]];
                 templateVars = {
                   action: 'addterm',
                   serverURI: serverAPI(about),
                   backURI: backURI,
                   type: about,
-                  id: false
+                  id: false,
+                  term: false,
+                  termFields: termFields,
+                  templates: templates
                 };
-                res += templates.hiddenFormInput(templateVars);
-                console.log("addterm backURI=" + backURI);
-                for (_o = 0, _len7 = schema.length; _o < _len7; _o++) {
-                  currSchema = schema[_o];
-                  switch (currSchema[0]) {
-                    case "Text":
-                      res += currSchema[2] + ": " + templates.widgets.inputText(currSchema[1]) + "<br />";
-                      break;
-                    case "ForeignKey":
-                      alert(currSchema);
-                  }
-                }
-                res += "<input type='submit' value='Submit This' onClick='processForm(this.parentNode);return false;'>";
-                res += "</form>";
-                res += "</div>";
+                res = templates.termForm(templateVars);
                 return asyncCallback.successCallback(1, res);
               } else if (this.type === "FactType") {
                 return getTermResults(parent.schema, function(termResults) {
