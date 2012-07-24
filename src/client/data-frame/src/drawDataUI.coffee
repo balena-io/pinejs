@@ -12,7 +12,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 			<input type="hidden" id="__serverURI" value="<%= serverURI %>">
 			<input type="hidden" id="__backURI" value="<%= backURI %>">
 			<input type="hidden" id="__type" value="<%= type %>">
-			<% if(id != null && id !== false) { %>
+			<% if(id !== false) { %>
 				<input type="hidden" id="__id" value="<%= id %>">
 			<% } %>
 			''')
@@ -29,7 +29,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 								for(var j = 0; j < termResult.length; j++) {
 									var term = termResult[j]; %>
 									<option value="<%= term.id %>"<%
-										if(currentFactType != false && currentFactType[termName].id == term.id) { %>
+										if(currentFactType !== false && currentFactType[termName].id == term.id) { %>
 											selected="selected" <%
 										} %>
 									>
@@ -499,6 +499,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 								serverURI: serverAPI(about)
 								backURI: backURI
 								type: about
+								id: false
 							res += templates.hiddenFormInput(templateVars)
 							console.log "addterm backURI=" + backURI
 
@@ -521,6 +522,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 									serverURI: serverAPI(about)
 									backURI: backURI
 									type: about
+									currentFactType: false
 									id: false
 									templates: templates
 								res = templates.factTypeForm(templateVars)
