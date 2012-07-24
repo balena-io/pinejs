@@ -2,16 +2,19 @@
   var __indexOf = Array.prototype.indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
   define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs'], function(ClientURIUnparser, createAsyncQueueCallback, ejs) {
-    var addInst, createNavigableTree, delInst, drawData, editInst, getResolvedFactType, getTermResults, processForm, serverAPI, templates, uidraw, widgets;
-    widgets = {};
-    requirejs(['data-frame/widgets/inputText'], function(inputText) {
-      return widgets.inputText = inputText;
-    });
+    var addInst, createNavigableTree, delInst, drawData, editInst, getResolvedFactType, getTermResults, processForm, serverAPI, templates, uidraw;
     templates = {
+      widgets: {},
       hiddenFormInput: ejs.compile('<input type="hidden" id="__actype" value="<%= action %>">\n<input type="hidden" id="__serverURI" value="<%= serverURI %>">\n<input type="hidden" id="__backURI" value="<%= backURI %>">\n<input type="hidden" id="__type" value="<%= type %>">\n<% if(id !== false) { %>\n	<input type="hidden" id="__id" value="<%= id %>">\n<% } %>'),
       factTypeForm: ejs.compile('<form class="action">\n	<%- templates.hiddenFormInput(locals) %><%\n	for(var i = 0; i < factType.length; i++) {\n		var factTypePart = factType[i];\n		switch(factTypePart[0]) {\n			case "Term":\n				var termName = factTypePart[1],\n					termResult = termResults[termName]; %>\n				<select id="<%= termName %>"><%\n					for(var j = 0; j < termResult.length; j++) {\n						var term = termResult[j]; %>\n						<option value="<%= term.id %>"<%\n							if(currentFactType !== false && currentFactType[termName].id == term.id) { %>\n								selected="selected" <%\n							} %>\n						>\n							<%= term.value %>\n						</option><%\n					} %>\n				</select><%\n			break;\n			case "Verb":\n				%><%= factTypePart[1] %><%\n			break;\n		}\n	} %>\n	<div align="right">\n		<input type="submit" value="Submit This" onClick="processForm(this.parentNode.parentNode);return false;">\n	</div>\n</form>'),
+      termForm: ejs.compile('<div align="left">\n	<form class="action">\n		<%- templates.hiddenFormInput(locals) %>\n		id: <%= id %><br/><%\n\n		for(var i = 0; i < termFields.length; i++) {\n			var termField = termFields[i]; %>\n			<%= termField[2] %>: <%\n			switch(termField[0]) {\n				case "Text": %>\n					<%- templates.widgets.inputText(termField[1], term[termField[1]]) %><%\n				break;\n				case "ForeignKey":\n					console.error("Hit FK", termField);\n				break;\n				default:\n					console.error("Hit default, wtf?");\n			} %>\n			<br /><%\n		} %>\n		<div align="right">\n			<input type="submit" value="Submit This" onClick="processForm(this.parentNode.parentNode);return false;">\n		</div>\n	</form>\n</div>', {
+        debug: true
+      }),
       deleteForm: ejs.compile('<div align="left">\n	marked for deletion\n	<div align="right">\n		<form class="action">\n			<%- templates.hiddenFormInput(locals) %>\n			<input type="submit" value="Confirm" onClick="processForm(this.parentNode.parentNode);return false;">\n		</form>\n	</div>\n</div>')
     };
+    requirejs(['data-frame/widgets/inputText'], function(inputText) {
+      return templates.widgets.inputText = inputText;
+    });
     createNavigableTree = function(tree, descendTree) {
       var ascend, currentLocation, descendByIndex, getIndexForResource, index, previousLocations, _i, _len;
       if (descendTree == null) descendTree = [];
@@ -325,7 +328,7 @@
         if (this.type === "FactType") this.schema = mod.slice(1);
       }
       this.subRowIn = function() {
-        var actn, backURI, branchType, collection, currBranch, currBranchType, currSchema, mod, res, schema, targ, templateVars, _j, _k, _l, _len2, _len3, _len4, _len5, _len6, _len7, _m, _n, _o, _ref2, _ref3, _ref4, _ref5, _ref6;
+        var actn, backURI, branchType, collection, currBranch, currBranchType, currSchema, mod, res, schema, targ, templateVars, termFields, _j, _k, _l, _len2, _len3, _len4, _len5, _len6, _len7, _m, _n, _o, _ref2, _ref3, _ref4, _ref5, _ref6;
         if (currentLocation[0] === 'collection') {
           this.pre += "<div class='panel' style='background-color:" + this.bg + ";'><table id='tbl--" + ftree.getPid() + "'><tbody>";
           this.post += "</tbody></table></div>";
@@ -561,7 +564,7 @@
                   currSchema = schema[_o];
                   switch (currSchema[0]) {
                     case "Text":
-                      res += currSchema[2] + ": " + widgets.inputText(currSchema[1]) + "<br />";
+                      res += currSchema[2] + ": " + templates.widgets.inputText(currSchema[1]) + "<br />";
                       break;
                     case "ForeignKey":
                       alert(currSchema);
@@ -591,37 +594,22 @@
               break;
             case "edit":
               if (this.type === "Term") {
-                schema = [['Text', 'value', 'Name', []]];
+                termFields = [['Text', 'value', 'Name', []]];
                 targ = serverAPI(about);
                 return serverRequest("GET", targ, {}, null, function(statusCode, result, headers) {
-                  var currSchema, id, _len8, _p;
+                  var id;
                   id = result.instances[0].id;
-                  res = "<div align='left'>";
-                  res += "<form class='action'>";
                   templateVars = {
                     action: 'editterm',
                     serverURI: serverAPI(about, [['id', '=', id]]),
                     backURI: serverAPI(about),
                     type: about,
-                    id: id
+                    id: id,
+                    term: result.instances[0],
+                    termFields: termFields,
+                    templates: templates
                   };
-                  res += templates.hiddenFormInput(templateVars);
-                  res += "id: " + id + "<br/>";
-                  for (_p = 0, _len8 = schema.length; _p < _len8; _p++) {
-                    currSchema = schema[_p];
-                    switch (currSchema[0]) {
-                      case "Text":
-                        res += currSchema[2] + ": " + widgets.inputText(currSchema[1], result.instances[0][currSchema[1]]) + "<br />";
-                        break;
-                      case "ForeignKey":
-                        console.log(currSchema);
-                    }
-                  }
-                  res += "<div align='right'>";
-                  res += "<input type='submit' value='Submit This' onClick='processForm(this.parentNode.parentNode);return false;'>";
-                  res += "</div>";
-                  res += "</form>";
-                  res += "</div>";
+                  res = templates.termForm(templateVars);
                   return asyncCallback.successCallback(1, res);
                 });
               } else if (this.type === "FactType") {
@@ -629,7 +617,6 @@
                 return serverRequest("GET", targ, {}, null, function(statusCode, result, headers) {
                   return getResolvedFactType(parent.schema, result.instances[0], function(factTypeInstance) {
                     return getTermResults(parent.schema, function(termResults) {
-                      res = "<div align='left'>";
                       templateVars = {
                         factType: parent.schema,
                         termResults: termResults,
@@ -641,8 +628,7 @@
                         id: factTypeInstance.id,
                         templates: templates
                       };
-                      res += templates.factTypeForm(templateVars);
-                      res += "</div>";
+                      res = templates.factTypeForm(templateVars);
                       return asyncCallback.successCallback(1, res);
                     });
                   }, function(errors) {

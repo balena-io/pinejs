@@ -1,12 +1,6 @@
 define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs'], (ClientURIUnparser, createAsyncQueueCallback, ejs) ->
-	widgets = {}
-	requirejs(['data-frame/widgets/inputText'], (inputText) ->
-		widgets.inputText = inputText
-	)
-	
-	
-
 	templates = {
+		widgets: {}
 		hiddenFormInput: ejs.compile('''
 			<input type="hidden" id="__actype" value="<%= action %>">
 			<input type="hidden" id="__serverURI" value="<%= serverURI %>">
@@ -48,6 +42,33 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 				</div>
 			</form>
 			''')
+		termForm: ejs.compile('''
+			<div align="left">
+				<form class="action">
+					<%- templates.hiddenFormInput(locals) %>
+					id: <%= id %><br/><%
+
+					for(var i = 0; i < termFields.length; i++) {
+						var termField = termFields[i]; %>
+						<%= termField[2] %>: <%
+						switch(termField[0]) {
+							case "Text": %>
+								<%- templates.widgets.inputText(termField[1], term[termField[1]]) %><%
+							break;
+							case "ForeignKey":
+								console.error("Hit FK", termField);
+							break;
+							default:
+								console.error("Hit default, wtf?");
+						} %>
+						<br /><%
+					} %>
+					<div align="right">
+						<input type="submit" value="Submit This" onClick="processForm(this.parentNode.parentNode);return false;">
+					</div>
+				</form>
+			</div>
+			''', debug:true)
 		deleteForm: ejs.compile('''
 			<div align="left">
 				marked for deletion
@@ -60,6 +81,9 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 			</div>
 			''')
 	}
+	requirejs(['data-frame/widgets/inputText'], (inputText) ->
+		templates.widgets.inputText = inputText
+	)
 	
 	createNavigableTree = (tree, descendTree = []) ->
 		tree = jQuery.extend(true, [], tree)
@@ -506,7 +530,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 							for currSchema in schema
 								switch currSchema[0]
 									when "Text"
-										res += currSchema[2] + ": " + widgets.inputText(currSchema[1]) + "<br />"
+										res += currSchema[2] + ": " + templates.widgets.inputText(currSchema[1]) + "<br />"
 									when "ForeignKey"
 										alert currSchema
 							res += "<input type='submit' value='Submit This' onClick='processForm(this.parentNode);return false;'>"
@@ -530,34 +554,22 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 							)
 					when "edit"
 						if @type == "Term"
-							# TODO: The schema info should come from cmod
-							schema = [['Text', 'value', 'Name', []]]
+							# TODO: The termFields info should come from a client model
+							termFields = [['Text', 'value', 'Name', []]]
 
 							targ = serverAPI(about)
 							serverRequest("GET", targ, {}, null, (statusCode, result, headers) ->
 								id = result.instances[0].id
-								res = "<div align='left'>"
-								res += "<form class='action'>"
 								templateVars =
 									action: 'editterm'
 									serverURI: serverAPI(about, [['id', '=', id]])
 									backURI: serverAPI(about)
 									type: about
 									id: id
-								res += templates.hiddenFormInput(templateVars)
-								res += "id: " + id + "<br/>"
-
-								for currSchema in schema
-									switch currSchema[0]
-										when "Text"
-											res += currSchema[2] + ": " + widgets.inputText(currSchema[1], result.instances[0][currSchema[1]]) + "<br />"
-										when "ForeignKey"
-											console.log currSchema
-								res += "<div align='right'>"
-								res += "<input type='submit' value='Submit This' onClick='processForm(this.parentNode.parentNode);return false;'>"
-								res += "</div>"
-								res += "</form>"
-								res += "</div>"
+									term: result.instances[0]
+									termFields: termFields
+									templates: templates
+								res = templates.termForm(templateVars)
 								asyncCallback.successCallback(1, res)
 							)
 						else if @type == "FactType"
@@ -566,7 +578,6 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 								getResolvedFactType(parent.schema, result.instances[0],
 									(factTypeInstance) ->
 										getTermResults(parent.schema, (termResults) ->
-											res = "<div align='left'>"
 											templateVars =
 												factType: parent.schema
 												termResults: termResults
@@ -577,8 +588,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 												currentFactType: factTypeInstance
 												id: factTypeInstance.id
 												templates: templates
-											res += templates.factTypeForm(templateVars)
-											res += "</div>"
+											res = templates.factTypeForm(templateVars)
 											asyncCallback.successCallback(1, res)
 										)
 									(errors) ->
