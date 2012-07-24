@@ -49,6 +49,7 @@
 			'inflection':				rootPath + 'external/inflection/inflection',
 			'json2':					rootPath + 'external/json2',
 			'downloadify':				rootPath + 'external/downloadify',
+			'ejs':						rootPath + 'external/ejs/ejs.min',
 			
 			'sbvr-parser':				rootPath + 'common/sbvr-parser/src/',
 			'utils':					rootPath + 'common/utils/src/',

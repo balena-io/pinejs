@@ -1,4 +1,4 @@
-ejs = (function(){
+define([], function(){ return (function(){
 
 // CommonJS require()
 
@@ -578,4 +578,4 @@ exports.escape = function(html){
 }); // module: utils.js
 
  return require("ejs");
-})();
+})() });

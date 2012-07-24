@@ -1,12 +1,13 @@
 (function() {
   var __indexOf = Array.prototype.indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
-  define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback'], function(ClientURIUnparser, createAsyncQueueCallback) {
+  define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs'], function(ClientURIUnparser, createAsyncQueueCallback, ejs) {
     var addInst, createFactTypeForm, createHiddenInputs, createNavigableTree, delInst, drawData, editInst, getResolvedFactType, getTermResults, processForm, serverAPI, uidraw, widgets;
     widgets = {};
     requirejs(['data-frame/widgets/inputText'], function(inputText) {
       return widgets.inputText = inputText;
     });
+    createHiddenInputs = ejs.compile('<input type="hidden" id="__actype" value="<%= action %>">\n<input type="hidden" id="__serverURI" value="<%= serverURI %>">\n<input type="hidden" id="__backURI" value="<%= backURI %>">\n<input type="hidden" id="__type" value="<%= type %>">\n<% if(id != null && id !== false) { %>\n	<input type="hidden" id="__id" value="<%= id %>">\n<% } %>');
     createNavigableTree = function(tree, descendTree) {
       var ascend, currentLocation, descendByIndex, getIndexForResource, index, previousLocations, _i, _len;
       if (descendTree == null) descendTree = [];
@@ -320,7 +321,7 @@
         if (this.type === "FactType") this.schema = mod.slice(1);
       }
       this.subRowIn = function() {
-        var actn, backURI, branchType, collection, currBranch, currBranchType, currSchema, mod, res, schema, targ, _j, _k, _l, _len2, _len3, _len4, _len5, _len6, _len7, _m, _n, _o, _ref2, _ref3, _ref4, _ref5, _ref6;
+        var actn, backURI, branchType, collection, currBranch, currBranchType, currSchema, mod, res, schema, targ, templateVars, _j, _k, _l, _len2, _len3, _len4, _len5, _len6, _len7, _m, _n, _o, _ref2, _ref3, _ref4, _ref5, _ref6;
         if (currentLocation[0] === 'collection') {
           this.pre += "<div class='panel' style='background-color:" + this.bg + ";'><table id='tbl--" + ftree.getPid() + "'><tbody>";
           this.post += "</tbody></table></div>";
@@ -543,7 +544,13 @@
                 schema = [['Text', 'value', 'Name', []]];
                 res = "<div align='right'>";
                 res += "<form class='action'>";
-                res += createHiddenInputs('addterm', serverAPI(about), backURI, about);
+                templateVars = {
+                  action: 'addterm',
+                  serverURI: serverAPI(about),
+                  backURI: backURI,
+                  type: about
+                };
+                res += createHiddenInputs(templateVars);
                 console.log("addterm backURI=" + backURI);
                 for (_o = 0, _len7 = schema.length; _o < _len7; _o++) {
                   currSchema = schema[_o];
@@ -575,7 +582,14 @@
                   id = result.instances[0].id;
                   res = "<div align='left'>";
                   res += "<form class='action'>";
-                  res += createHiddenInputs('editterm', serverAPI(about) + "*filt:id=" + id, serverAPI(about), about, id);
+                  templateVars = {
+                    action: 'editterm',
+                    serverURI: serverAPI(about, [['id', '=', id]]),
+                    backURI: serverAPI(about),
+                    type: about,
+                    id: id
+                  };
+                  res += createHiddenInputs(templateVars);
                   res += "id: " + id + "<br/>";
                   for (_p = 0, _len8 = schema.length; _p < _len8; _p++) {
                     currSchema = schema[_p];
@@ -612,27 +626,22 @@
               }
               break;
             case "del":
-              res = "<div align='left'>" + "marked for deletion" + "<div align='right'>" + "<form class='action'>" + createHiddenInputs('del', serverAPI(about) + "*filt:id=" + this.id, serverAPI(about), about, this.id) + "<input type='submit' value='Confirm' onClick='processForm(this.parentNode.parentNode);return false;'>" + "</form>" + "</div>" + "</div>";
+              templateVars = {
+                action: 'del',
+                serverURI: serverAPI(about, [['id', '=', this.id]]),
+                backURI: serverAPI(about),
+                type: about,
+                id: this.id
+              };
+              res = "<div align='left'>" + "marked for deletion" + "<div align='right'>" + "<form class='action'>" + createHiddenInputs(templateVars) + "<input type='submit' value='Confirm' onClick='processForm(this.parentNode.parentNode);return false;'>" + "</form>" + "</div>" + "</div>";
               return asyncCallback.successCallback(1, res);
           }
         }
       };
       return this;
     };
-    createHiddenInputs = function(action, serverURI, backURI, type, id) {
-      var res;
-      if (id == null) id = false;
-      res = "<input type='hidden' id='__actype' value='" + action + "'>";
-      res += "<input type='hidden' id='__serverURI' value='" + serverURI + "'>";
-      res += "<input type='hidden' id='__backURI' value='" + backURI + "'>";
-      res += "<input type='hidden' id='__type' value='" + type + "'>";
-      if (id !== false) {
-        res += "<input type='hidden' id='__id' value='" + id + "'>";
-      }
-      return res;
-    };
     createFactTypeForm = function(schemas, termResults, action, serverURI, backURI, type, currentFactType) {
-      var res, schema, select, term, termName, termResult, termSelects, _i, _j, _len, _len2;
+      var res, schema, select, templateVars, term, termName, termResult, termSelects, _i, _j, _len, _len2;
       if (currentFactType == null) currentFactType = false;
       termSelects = {};
       for (termName in termResults) {
@@ -650,7 +659,14 @@
         termSelects[termName] = select;
       }
       res = "<form class='action'>";
-      res += createHiddenInputs(action, serverURI, backURI, type, currentFactType === false ? false : currentFactType.id);
+      templateVars = {
+        action: action,
+        serverURI: serverURI,
+        backURI: backURI,
+        type: type,
+        id: currentFactType === false ? false : currentFactType.id
+      };
+      res += createHiddenInputs(templateVars);
       for (_j = 0, _len2 = schemas.length; _j < _len2; _j++) {
         schema = schemas[_j];
         if (schema[0] === "Term") {

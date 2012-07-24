@@ -1,8 +1,20 @@
-define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback'], (ClientURIUnparser, createAsyncQueueCallback) ->
+define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs'], (ClientURIUnparser, createAsyncQueueCallback, ejs) ->
 	widgets = {}
 	requirejs(['data-frame/widgets/inputText'], (inputText) ->
 		widgets.inputText = inputText
 	)
+	
+	
+
+	createHiddenInputs = ejs.compile('''
+		<input type="hidden" id="__actype" value="<%= action %>">
+		<input type="hidden" id="__serverURI" value="<%= serverURI %>">
+		<input type="hidden" id="__backURI" value="<%= backURI %>">
+		<input type="hidden" id="__type" value="<%= type %>">
+		<% if(id != null && id !== false) { %>
+			<input type="hidden" id="__id" value="<%= id %>">
+		<% } %>
+		''')
 	
 	createNavigableTree = (tree, descendTree = []) ->
 		tree = jQuery.extend(true, [], tree)
@@ -437,7 +449,12 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback'], (Clie
 							# print form.
 							res = "<div align='right'>"
 							res += "<form class='action'>"
-							res += createHiddenInputs('addterm', serverAPI(about), backURI, about)
+							templateVars =
+								action: 'addterm'
+								serverURI: serverAPI(about)
+								backURI: backURI
+								type: about
+							res += createHiddenInputs(templateVars)
 							console.log "addterm backURI=" + backURI
 
 							for currSchema in schema
@@ -465,7 +482,13 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback'], (Clie
 								id = result.instances[0].id
 								res = "<div align='left'>"
 								res += "<form class='action'>"
-								res += createHiddenInputs('editterm', serverAPI(about) + "*filt:id=" + id, serverAPI(about), about, id)
+								templateVars =
+									action: 'editterm'
+									serverURI: serverAPI(about, [['id', '=', id]])
+									backURI: serverAPI(about)
+									type: about
+									id: id
+								res += createHiddenInputs(templateVars)
 								res += "id: " + id + "<br/>"
 
 								for currSchema in schema
@@ -499,27 +522,24 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback'], (Clie
 							)
 					when "del"
 						# TODO: make this a function
+						templateVars =
+							action: 'del'
+							serverURI: serverAPI(about, [['id', '=', @id]])
+							backURI: serverAPI(about)
+							type: about
+							id: @id
 						res =
 							"<div align='left'>" +
 								"marked for deletion" +
 								"<div align='right'>" +
 									"<form class='action'>" +
-										createHiddenInputs('del', serverAPI(about) + "*filt:id=" + @id, serverAPI(about), about, @id) +
+										createHiddenInputs(templateVars) +
 										"<input type='submit' value='Confirm' onClick='processForm(this.parentNode.parentNode);return false;'>" +
 									"</form>" +
 								"</div>" +
 							"</div>"
 						asyncCallback.successCallback(1, res)
 		return this
-
-	createHiddenInputs = (action, serverURI, backURI, type, id = false) ->
-		res = "<input type='hidden' id='__actype' value='" + action + "'>"
-		res += "<input type='hidden' id='__serverURI' value='" + serverURI + "'>"
-		res += "<input type='hidden' id='__backURI' value='" + backURI + "'>"
-		res += "<input type='hidden' id='__type' value='" + type + "'>"
-		if id != false
-			res += "<input type='hidden' id='__id' value='" + id + "'>"
-		return res
 
 	createFactTypeForm = (schemas, termResults, action, serverURI, backURI, type, currentFactType = false) ->
 		termSelects = {}
@@ -536,7 +556,13 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback'], (Clie
 			termSelects[termName] = select
 
 		res = "<form class='action'>"
-		res += createHiddenInputs(action, serverURI, backURI, type, if currentFactType == false then false else currentFactType.id)
+		templateVars =
+			action: action
+			serverURI: serverURI
+			backURI: backURI
+			type: type
+			id: if currentFactType == false then false else currentFactType.id
+		res += createHiddenInputs(templateVars)
 
 		# merge dropdowns with verbs to create 'form'
 		for schema in schemas
