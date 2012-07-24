@@ -61,45 +61,31 @@ define(['sbvr-parser/SBVRParser', 'data-frame/ClientURIParser', 'Prettify'], (SB
 		catch $e
 			switchVal = ""
 		switch switchVal
+			when "lf"
+				$("#tabs").tabs("select", 1)
+				lfEditor.refresh()
+			when "preplf"
+				$("#tabs").tabs("select", 2)
 			#IFDEF server
 			when "server"
 				uri = location.hash.slice(9)
 				serverRequest "GET", uri, {}, null, (statusCode, result) ->
 					alert result
 			when "sql"
+				$("#tabs").tabs("select", 3)
 				sqlEditor.refresh() # Force a refresh on switching to the tab, otherwise it wasn't appearing.
 			when "data"
+				$("#tabs").tabs("select", 4)
 				drawData(URItree[1])
 			when "export"
+				$("#tabs").tabs("select", 6)
 				importExportEditor.refresh()
 			#ENDIFDEF
-			when "lf"
-				lfEditor.refresh()
-			else
-				sbvrEditor.refresh()
-		switchTab()
-	switchTab = ->
-		try
-			URItree = ClientURIParser.matchAll(location.hash, "expr")
-			switchVal = URItree[1][1][0]
-		catch $e
-			switchVal = ""
-		switch(switchVal)
-			when "preplf"
-				$("#tabs").tabs("select", 2)
-			when "sql"
-				$("#tabs").tabs("select", 3)
-			when "data"
-				$("#tabs").tabs("select", 4)
 			when "http"
 				$("#tabs").tabs("select", 5)
-			when "export"
-				$("#tabs").tabs("select", 6)
-			#ENDIFDEF
-			when "lf"
-				$("#tabs").tabs("select", 1)
 			else
 				$("#tabs").tabs("select", 0)
+				sbvrEditor.refresh()
 
 	setClientOnAir = (bool) ->
 		clientOnAir = bool
@@ -384,34 +370,36 @@ define(['sbvr-parser/SBVRParser', 'data-frame/ClientURIParser', 'Prettify'], (SB
 				#IFDEF server
 				if ui.panel.id not in ["modelTab", "httpTab"] and clientOnAir == false
 					showErrorMessage("This tab is only accessible after a model is executed<br/>")
-					false
+					return false
 				else
 				#ENDIFDEF
 					switch ui.panel.id
 						#IFDEF server
 						when "prepTab"
-							location.hash = "!/preplf/"
+							newHash = "!/preplf/"
 						when "sqlTab"
-							location.hash = "!/sql/"
+							newHash = "!/sql/"
 						when "dataTab"
-							location.hash = "!/data/"
+							newHash = "!/data/"
 						when "httpTab"
-							location.hash = "!/http/"
+							newHash = "!/http/"
 						when "importExportTab"
-							location.hash = "!/export/"
+							newHash = "!/export/"
 						#ENDIFDEF
 						when "lfTab"
-							location.hash = "!/lf/"
+							newHash = "!/lf/"
 						else
-							location.hash = "!/model/"
-					true
+							newHash = "!/model/"
+					if location.hash.indexOf(newHash) != 1
+						location.hash = newHash
+					return true
 			)
 			$('#tabs').show()
 			getModel()
 			setupDownloadify()
 			setupLoadfile()
 			$(window).on("resize", relocate)
-			switchTab()
+			processHash()
 			$("#bldb").file().choose( (e, input) ->
 				handleFiles input[0].files
 			)

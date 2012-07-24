@@ -1,7 +1,7 @@
 (function() {
 
   define(['sbvr-parser/SBVRParser', 'data-frame/ClientURIParser', 'Prettify'], function(SBVRParser, ClientURIParser, Prettify) {
-    var cleanUp, clientOnAir, defaultFailureCallback, defaultSuccessCallback, fileApiDetect, loadState, loadUI, locate, processHash, relocate, setClientOnAir, setupDownloadify, setupLoadfile, showErrorMessage, showSimpleError, showUrlMessage, sqlEditor, switchTab;
+    var cleanUp, clientOnAir, defaultFailureCallback, defaultSuccessCallback, fileApiDetect, loadState, loadUI, locate, processHash, relocate, setClientOnAir, setupDownloadify, setupLoadfile, showErrorMessage, showSimpleError, showUrlMessage, sqlEditor;
     sqlEditor = null;
     clientOnAir = false;
     showErrorMessage = function(errorMessage) {
@@ -70,52 +70,30 @@
         switchVal = "";
       }
       switch (switchVal) {
-        case "server":
-          uri = location.hash.slice(9);
-          serverRequest("GET", uri, {}, null, function(statusCode, result) {
-            return alert(result);
-          });
-          break;
-        case "sql":
-          sqlEditor.refresh();
-          break;
-        case "data":
-          drawData(URItree[1]);
-          break;
-        case "export":
-          importExportEditor.refresh();
-          break;
         case "lf":
-          lfEditor.refresh();
-          break;
-        default:
-          sbvrEditor.refresh();
-      }
-      return switchTab();
-    };
-    switchTab = function() {
-      var URItree, switchVal;
-      try {
-        URItree = ClientURIParser.matchAll(location.hash, "expr");
-        switchVal = URItree[1][1][0];
-      } catch ($e) {
-        switchVal = "";
-      }
-      switch (switchVal) {
+          $("#tabs").tabs("select", 1);
+          return lfEditor.refresh();
         case "preplf":
           return $("#tabs").tabs("select", 2);
+        case "server":
+          uri = location.hash.slice(9);
+          return serverRequest("GET", uri, {}, null, function(statusCode, result) {
+            return alert(result);
+          });
         case "sql":
-          return $("#tabs").tabs("select", 3);
+          $("#tabs").tabs("select", 3);
+          return sqlEditor.refresh();
         case "data":
-          return $("#tabs").tabs("select", 4);
+          $("#tabs").tabs("select", 4);
+          return drawData(URItree[1]);
+        case "export":
+          $("#tabs").tabs("select", 6);
+          return importExportEditor.refresh();
         case "http":
           return $("#tabs").tabs("select", 5);
-        case "export":
-          return $("#tabs").tabs("select", 6);
-        case "lf":
-          return $("#tabs").tabs("select", 1);
         default:
-          return $("#tabs").tabs("select", 0);
+          $("#tabs").tabs("select", 0);
+          return sbvrEditor.refresh();
       }
     };
     setClientOnAir = function(bool) {
@@ -430,33 +408,34 @@
         $.browser.chrome = $.browser.webkit && !!window.chrome;
         $("#tabs").tabs({
           select: function(event, ui) {
-            var _ref;
+            var newHash, _ref;
             if (((_ref = ui.panel.id) !== "modelTab" && _ref !== "httpTab") && clientOnAir === false) {
               showErrorMessage("This tab is only accessible after a model is executed<br/>");
               return false;
             } else {
               switch (ui.panel.id) {
                 case "prepTab":
-                  location.hash = "!/preplf/";
+                  newHash = "!/preplf/";
                   break;
                 case "sqlTab":
-                  location.hash = "!/sql/";
+                  newHash = "!/sql/";
                   break;
                 case "dataTab":
-                  location.hash = "!/data/";
+                  newHash = "!/data/";
                   break;
                 case "httpTab":
-                  location.hash = "!/http/";
+                  newHash = "!/http/";
                   break;
                 case "importExportTab":
-                  location.hash = "!/export/";
+                  newHash = "!/export/";
                   break;
                 case "lfTab":
-                  location.hash = "!/lf/";
+                  newHash = "!/lf/";
                   break;
                 default:
-                  location.hash = "!/model/";
+                  newHash = "!/model/";
               }
+              if (location.hash.indexOf(newHash) !== 1) location.hash = newHash;
               return true;
             }
           }
@@ -466,7 +445,7 @@
         setupDownloadify();
         setupLoadfile();
         $(window).on("resize", relocate);
-        switchTab();
+        processHash();
         return $("#bldb").file().choose(function(e, input) {
           return handleFiles(input[0].files);
         });
