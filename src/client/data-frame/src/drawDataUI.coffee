@@ -121,7 +121,6 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 			</div>
 			''')
 		factTypeView: ejs.compile('''
-			<% console.error(factType, factTypeInstance) %>
 			<div class="panel" style="background-color:<%= backgroundColour %>;"><%
 				for(var i = 0; i < factType.length; i++) {
 					factTypePart = factType[i];
