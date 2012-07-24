@@ -16,14 +16,8 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 		<% } %>
 		''')
 	templateFactTypeForm = ejs.compile('''
-		<form class="action"><%
-			templateHiddenFormInputs({
-				action: action,
-				serverURI: serverURI,
-				backURI: backURI,
-				type: type,
-				id: (currentFactType == null || currentFactType === false ? false : currentFactType.id)
-			});
+		<form class="action">
+			<%- templateHiddenFormInputs(locals) %><%
 			for(var i = 0; i < factType.length; i++) {
 				var factTypePart = factType[i];
 				switch(factTypePart[0]) {
@@ -52,7 +46,18 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 				<input type="submit" value="Submit This" onClick="processForm(this.parentNode.parentNode);return false;">
 			</div>
 		</form>
-		''', {debug:true})
+		''')
+	templateDeleteForm = ejs.compile('''
+		<div align="left">
+			marked for deletion
+			<div align="right">
+				<form class="action">
+					<%- templateHiddenFormInputs(locals) %>
+					<input type="submit" value="Confirm" onClick="processForm(this.parentNode.parentNode);return false;">
+				</form>
+			</div>
+		</div>
+		''')
 	
 	createNavigableTree = (tree, descendTree = []) ->
 		tree = jQuery.extend(true, [], tree)
@@ -514,6 +519,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 									serverURI: serverAPI(about)
 									backURI: backURI
 									type: about
+									id: false
 									templateHiddenFormInputs: templateHiddenFormInputs
 								res = templateFactTypeForm(templateVars)
 								asyncCallback.successCallback(1, res)
@@ -565,6 +571,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 												backURI: serverAPI(about)
 												type: about
 												currentFactType: factTypeInstance
+												id: factTypeInstance.id
 												templateHiddenFormInputs: templateHiddenFormInputs
 											res += templateFactTypeForm(templateVars)
 											res += "</div>"
@@ -583,16 +590,8 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 							backURI: serverAPI(about)
 							type: about
 							id: @id
-						res =
-							"<div align='left'>" +
-								"marked for deletion" +
-								"<div align='right'>" +
-									"<form class='action'>" +
-										templateHiddenFormInputs(templateVars) +
-										"<input type='submit' value='Confirm' onClick='processForm(this.parentNode.parentNode);return false;'>" +
-									"</form>" +
-								"</div>" +
-							"</div>"
+							templateHiddenFormInputs: templateHiddenFormInputs 
+						res = templateDeleteForm(templateVars)
 						asyncCallback.successCallback(1, res)
 		return this
 

@@ -2,15 +2,14 @@
   var __indexOf = Array.prototype.indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
   define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs'], function(ClientURIUnparser, createAsyncQueueCallback, ejs) {
-    var addInst, createNavigableTree, delInst, drawData, editInst, getResolvedFactType, getTermResults, processForm, serverAPI, templateFactTypeForm, templateHiddenFormInputs, uidraw, widgets;
+    var addInst, createNavigableTree, delInst, drawData, editInst, getResolvedFactType, getTermResults, processForm, serverAPI, templateDeleteForm, templateFactTypeForm, templateHiddenFormInputs, uidraw, widgets;
     widgets = {};
     requirejs(['data-frame/widgets/inputText'], function(inputText) {
       return widgets.inputText = inputText;
     });
     templateHiddenFormInputs = ejs.compile('<input type="hidden" id="__actype" value="<%= action %>">\n<input type="hidden" id="__serverURI" value="<%= serverURI %>">\n<input type="hidden" id="__backURI" value="<%= backURI %>">\n<input type="hidden" id="__type" value="<%= type %>">\n<% if(id != null && id !== false) { %>\n	<input type="hidden" id="__id" value="<%= id %>">\n<% } %>');
-    templateFactTypeForm = ejs.compile('<form class="action"><%\n	templateHiddenFormInputs({\n		action: action,\n		serverURI: serverURI,\n		backURI: backURI,\n		type: type,\n		id: (currentFactType == null || currentFactType === false ? false : currentFactType.id)\n	});\n	for(var i = 0; i < factType.length; i++) {\n		var factTypePart = factType[i];\n		switch(factTypePart[0]) {\n			case "Term":\n				var termName = factTypePart[1],\n					termResult = termResults[termName]; %>\n				<select id="<%= termName %>"><%\n					for(var j = 0; j < termResult.length; j++) {\n						var term = termResult[j]; %>\n						<option value="<%= term.id %>"<%\n							if(currentFactType != false && currentFactType[termName].id == term.id) { %>\n								selected="selected" <%\n							} %>\n						>\n							<%= term.value %>\n						</option><%\n					} %>\n				</select><%\n			break;\n			case "Verb":\n				%><%= factTypePart[1] %><%\n			break;\n		}\n	} %>\n	<div align="right">\n		<input type="submit" value="Submit This" onClick="processForm(this.parentNode.parentNode);return false;">\n	</div>\n</form>', {
-      debug: true
-    });
+    templateFactTypeForm = ejs.compile('<form class="action">\n	<%- templateHiddenFormInputs(locals) %><%\n	for(var i = 0; i < factType.length; i++) {\n		var factTypePart = factType[i];\n		switch(factTypePart[0]) {\n			case "Term":\n				var termName = factTypePart[1],\n					termResult = termResults[termName]; %>\n				<select id="<%= termName %>"><%\n					for(var j = 0; j < termResult.length; j++) {\n						var term = termResult[j]; %>\n						<option value="<%= term.id %>"<%\n							if(currentFactType != false && currentFactType[termName].id == term.id) { %>\n								selected="selected" <%\n							} %>\n						>\n							<%= term.value %>\n						</option><%\n					} %>\n				</select><%\n			break;\n			case "Verb":\n				%><%= factTypePart[1] %><%\n			break;\n		}\n	} %>\n	<div align="right">\n		<input type="submit" value="Submit This" onClick="processForm(this.parentNode.parentNode);return false;">\n	</div>\n</form>');
+    templateDeleteForm = ejs.compile('<div align="left">\n	marked for deletion\n	<div align="right">\n		<form class="action">\n			<%- templateHiddenFormInputs(locals) %>\n			<input type="submit" value="Confirm" onClick="processForm(this.parentNode.parentNode);return false;">\n		</form>\n	</div>\n</div>');
     createNavigableTree = function(tree, descendTree) {
       var ascend, currentLocation, descendByIndex, getIndexForResource, index, previousLocations, _i, _len;
       if (descendTree == null) descendTree = [];
@@ -578,6 +577,7 @@
                     serverURI: serverAPI(about),
                     backURI: backURI,
                     type: about,
+                    id: false,
                     templateHiddenFormInputs: templateHiddenFormInputs
                   };
                   res = templateFactTypeForm(templateVars);
@@ -634,6 +634,7 @@
                         backURI: serverAPI(about),
                         type: about,
                         currentFactType: factTypeInstance,
+                        id: factTypeInstance.id,
                         templateHiddenFormInputs: templateHiddenFormInputs
                       };
                       res += templateFactTypeForm(templateVars);
@@ -653,9 +654,10 @@
                 serverURI: serverAPI(about, [['id', '=', this.id]]),
                 backURI: serverAPI(about),
                 type: about,
-                id: this.id
+                id: this.id,
+                templateHiddenFormInputs: templateHiddenFormInputs
               };
-              res = "<div align='left'>" + "marked for deletion" + "<div align='right'>" + "<form class='action'>" + templateHiddenFormInputs(templateVars) + "<input type='submit' value='Confirm' onClick='processForm(this.parentNode.parentNode);return false;'>" + "</form>" + "</div>" + "</div>";
+              res = templateDeleteForm(templateVars);
               return asyncCallback.successCallback(1, res);
           }
         }
