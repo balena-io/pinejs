@@ -466,8 +466,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 				resourceFactType = mod[1..]
 
 		if currentLocation[0] is 'collection'
-			targ = serverAPI(about)
-			serverRequest("GET", targ, {}, null, (statusCode, result, headers) ->
+			serverRequest("GET", ftree.getServerURI(), {}, null, (statusCode, result, headers) ->
 				resourceCollections = []
 				resourceCollectionsCallback = createAsyncQueueCallback(
 					() ->
@@ -599,8 +598,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 			switch actn
 				when "view"
 					if resourceType == "Term"
-						targ = serverAPI(about)
-						serverRequest("GET", targ, {}, null, (statusCode, result, headers) ->
+						serverRequest("GET", ftree.getServerURI(), {}, null, (statusCode, result, headers) ->
 							templateVars =
 								termInstance: result.instances[0]
 								backgroundColour: bgColour
@@ -610,8 +608,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 							rowCallback(idx, html)
 						)
 					else if resourceType == "FactType"
-						targ = ftree.getServerURI()
-						serverRequest("GET", targ, {}, null, (statusCode, result, headers) ->
+						serverRequest("GET", ftree.getServerURI(), {}, null, (statusCode, result, headers) ->
 							getResolvedFactType(resourceFactType, result.instances[0],
 								(factTypeInstance) -> 
 									templateVars =
@@ -667,8 +664,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 						# TODO: The termFields info should come from a client model
 						termFields = [['Text', 'value', 'Name', []]]
 
-						targ = serverAPI(about)
-						serverRequest("GET", targ, {}, null, (statusCode, result, headers) ->
+						serverRequest("GET", ftree.getServerURI(), {}, null, (statusCode, result, headers) ->
 							id = result.instances[0].id
 							templateVars =
 								action: 'editterm'
@@ -685,8 +681,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 							rowCallback(idx, html)
 						)
 					else if resourceType == "FactType"
-						targ = ftree.getServerURI()
-						serverRequest("GET", targ, {}, null, (statusCode, result, headers) ->
+						serverRequest("GET", ftree.getServerURI(), {}, null, (statusCode, result, headers) ->
 							getResolvedFactType(resourceFactType, result.instances[0],
 								(factTypeInstance) ->
 									getTermResults(resourceFactType, (termResults) ->

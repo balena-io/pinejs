@@ -260,7 +260,7 @@
       });
     };
     renderResource = function(idx, rowCallback, rootURI, even, ftree, cmod) {
-      var about, actn, altBgColour, backURI, bgColour, currentLocation, getIdent, html, mod, resourceFactType, resourceType, targ, templateVars, termFields, _i, _len, _ref;
+      var about, actn, altBgColour, backURI, bgColour, currentLocation, getIdent, html, mod, resourceFactType, resourceType, templateVars, termFields, _i, _len, _ref;
       currentLocation = ftree.getCurrentLocation();
       about = ftree.getAbout();
       resourceType = "Term";
@@ -298,8 +298,7 @@
         if (resourceType === "FactType") resourceFactType = mod.slice(1);
       }
       if (currentLocation[0] === 'collection') {
-        targ = serverAPI(about);
-        return serverRequest("GET", targ, {}, null, function(statusCode, result, headers) {
+        return serverRequest("GET", ftree.getServerURI(), {}, null, function(statusCode, result, headers) {
           var addsCallback, addsHTML, currBranch, currBranchType, expandedTree, factTypeCollections, factTypeCollectionsCallback, i, instance, j, mod, newTree, newb, resourceCollections, resourceCollectionsCallback, resourceName, termVerb, _fn, _j, _k, _l, _len2, _len3, _len4, _len5, _len6, _ref2, _ref3, _ref4, _ref5, _ref6;
           resourceCollections = [];
           resourceCollectionsCallback = createAsyncQueueCallback(function() {
@@ -453,8 +452,7 @@
         switch (actn) {
           case "view":
             if (resourceType === "Term") {
-              targ = serverAPI(about);
-              return serverRequest("GET", targ, {}, null, function(statusCode, result, headers) {
+              return serverRequest("GET", ftree.getServerURI(), {}, null, function(statusCode, result, headers) {
                 var html, templateVars;
                 templateVars = {
                   termInstance: result.instances[0],
@@ -466,8 +464,7 @@
                 return rowCallback(idx, html);
               });
             } else if (resourceType === "FactType") {
-              targ = ftree.getServerURI();
-              return serverRequest("GET", targ, {}, null, function(statusCode, result, headers) {
+              return serverRequest("GET", ftree.getServerURI(), {}, null, function(statusCode, result, headers) {
                 return getResolvedFactType(resourceFactType, result.instances[0], function(factTypeInstance) {
                   var html, templateVars;
                   templateVars = {
@@ -526,8 +523,7 @@
           case "edit":
             if (resourceType === "Term") {
               termFields = [['Text', 'value', 'Name', []]];
-              targ = serverAPI(about);
-              return serverRequest("GET", targ, {}, null, function(statusCode, result, headers) {
+              return serverRequest("GET", ftree.getServerURI(), {}, null, function(statusCode, result, headers) {
                 var id;
                 id = result.instances[0].id;
                 templateVars = {
@@ -546,8 +542,7 @@
                 return rowCallback(idx, html);
               });
             } else if (resourceType === "FactType") {
-              targ = ftree.getServerURI();
-              return serverRequest("GET", targ, {}, null, function(statusCode, result, headers) {
+              return serverRequest("GET", ftree.getServerURI(), {}, null, function(statusCode, result, headers) {
                 return getResolvedFactType(resourceFactType, result.instances[0], function(factTypeInstance) {
                   return getTermResults(resourceFactType, function(termResults) {
                     templateVars = {
