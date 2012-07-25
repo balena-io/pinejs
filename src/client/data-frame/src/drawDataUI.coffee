@@ -418,8 +418,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 					# request schema from server and store locally.
 					do (i) ->
 						serverRequest("GET", "/lfmodel/", {}, null, (statusCode, result) ->
-							uid = new uidraw(i, asyncCallback.successCallback, rootURI, true, expandedTree, result)
-							uid.subRowIn()
+							renderResource(i, asyncCallback.successCallback, rootURI, true, expandedTree, result)
 						)
 				else
 					newb = [ 'collection', [ term.id ], [ "mod" ] ]
@@ -428,7 +427,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 					asyncCallback.successCallback(false)
 		)
 
-	uidraw = (idx, rowCallback, rootURI, even, ftree, cmod) ->
+	renderResource = (idx, rowCallback, rootURI, even, ftree, cmod) ->
 		currentLocation = ftree.getCurrentLocation()
 		about = ftree.getAbout()
 		resourceType = "Term"
@@ -459,276 +458,271 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 			if resourceType == "FactType"
 				resourceFactType = mod[1..]
 
-		@subRowIn = ->
-			if currentLocation[0] is 'collection'
-				targ = serverAPI(about)
-				serverRequest("GET", targ, {}, null, (statusCode, result, headers) ->
-					resourceCollections = []
-					resourceCollectionsCallback = createAsyncQueueCallback(
-						() ->
-							addHash = '!#/' + ftree.getChangeURI('add', about)
+		if currentLocation[0] is 'collection'
+			targ = serverAPI(about)
+			serverRequest("GET", targ, {}, null, (statusCode, result, headers) ->
+				resourceCollections = []
+				resourceCollectionsCallback = createAsyncQueueCallback(
+					() ->
+						addHash = '!#/' + ftree.getChangeURI('add', about)
+						templateVars =
+							pid: ftree.getPid()
+							addHash: addHash
+							addURI: rootURI + addHash
+							addsHTML: addsHTML
+							factTypeCollections: factTypeCollections
+							resourceCollections: resourceCollections
+							backgroundColour: bgColour
+							altBackgroundColour: altBgColour
+							templates: templates
+						html = templates.resourceCollection(templateVars)
+						rowCallback(idx, html)
+					(errors) ->
+						console.error(errors)
+						rowCallback(idx, 'Resource Collections Errors: ' + errors)
+					(index, html, isResourceName) ->
+						if index != false
+							resourceCollections[index].html = html
+						return null
+				)
+				# render each child and call back
+				for instance, i in result.instances
+					do(instance, i) ->
+						resourceCollections[i] =
+							isExpanded: ftree.isExpanded(about, [instance.id, instance.value])
+							action: ftree.getAction(about, [instance.id, instance.value])
+							id: instance.id
+						
+						if resourceType == "Term"
+							resourceCollections[i].resourceName = instance.value
+						else if resourceType == "FactType"
+							resourceCollectionsCallback.addWork(1)
+							getResolvedFactType(resourceFactType, instance,
+								(factTypeInstance) -> 
+									resourceName = ''
+									for factTypePart in resourceFactType
+										if factTypePart[0] == "Term"
+											resourceName += factTypeInstance[factTypePart[1]].value + " "
+										else if factTypePart[0] == "Verb"
+											resourceName += "<em>" + factTypePart[1] + "</em> "
+									resourceCollections[i].resourceName = resourceName
+									resourceCollectionsCallback.successCallback(false)
+								(errors) ->
+									console.error(errors)
+									resourceCollectionsCallback.errorCallback(i, 'Errors: ' + errors, true)
+							)
+						
+						if resourceCollections[i].isExpanded
+							expandedTree = ftree.clone().descend(about, [instance.id, instance.value])
+							resourceCollections[i].closeHash = '#!/' + expandedTree.getNewURI("del")
+							resourceCollections[i].closeURI = rootURI + resourceCollections[i].deleteHash
+							resourceCollectionsCallback.addWork(1)
+							renderResource(i, resourceCollectionsCallback.successCallback, rootURI, not even, expandedTree, cmod)
+						else
+							resourceCollections[i].viewHash = '#!/' + ftree.getChangeURI('view', about, instance.id)
+							resourceCollections[i].viewURI = rootURI + resourceCollections[i].viewHash
+							resourceCollections[i].editHash = '#!/' + ftree.getChangeURI('edit', about, instance.id)
+							resourceCollections[i].editURI = rootURI + resourceCollections[i].editHash
+							resourceCollections[i].deleteHash = '#!/' + ftree.getChangeURI('del', about, instance.id)
+							resourceCollections[i].deleteURI = rootURI + resourceCollections[i].deleteHash
+				
+				addsHTML = []
+				resourceCollectionsCallback.addWork(1)
+				addsCallback = createAsyncQueueCallback(
+					(results) ->
+						results.sort( (a, b) ->
+							a[0] - b[0]
+						)
+						for item, i in results
+							addsHTML[i] = item[1]
+						resourceCollectionsCallback.successCallback(false)
+					(errors) ->
+						console.error(errors)
+						resourceCollectionsCallback.errorCallback('Adds Errors: ' + errors)
+					(n, prod) ->
+						return [n, prod]
+				)
+				i = 0
+				for currBranch, j in currentLocation[3..]
+					if currBranch[0] == 'instance' and currBranch[1][0] == about and currBranch[1][1] == undefined
+						for currBranchType in currBranch[2] when currBranchType[0] == "add"
+							newTree = ftree.clone().descendByIndex(j + 3)
+							addsCallback.addWork(1)
+							renderResource(i++, addsCallback.successCallback, rootURI, not even, newTree, cmod)
+							break
+				addsCallback.endAdding()
+
+				factTypeCollections = []
+				resourceCollectionsCallback.addWork(1)
+				factTypeCollectionsCallback = createAsyncQueueCallback(
+					() ->
+						resourceCollectionsCallback.successCallback(false)
+					(errors) ->
+						console.error(errors)
+						resourceCollectionsCallback.errorCallback('Fact Type Collection Errors: ' + errors)
+					(index, html) ->
+						factTypeCollections[index].html = html
+						return null
+				)
+				i = 0
+				# launch a final callback to add the subcollections.
+				for mod in cmod[1..] when mod[0] == "FactType"
+					for termVerb in mod[1..] when termVerb[1] == about
+						resourceName = getIdent(mod)
+						factTypeCollections[i] = {
+							resourceName: resourceName
+							isExpanded: ftree.isExpanded(resourceName)
+						}
+						if factTypeCollections[i].isExpanded
+							expandedTree = ftree.clone().descend(resourceName)
+							factTypeCollections[i].closeHash = '#!/' + expandedTree.getNewURI("del")
+							factTypeCollections[i].closeURI = rootURI + factTypeCollections[i].closeHash
+							factTypeCollectionsCallback.addWork(1)
+							renderResource(i, factTypeCollectionsCallback.successCallback, rootURI, not even, expandedTree, cmod)
+						else
+							newb = [ 'collection', [ resourceName ], [ "mod" ] ]
+							factTypeCollections[i].expandHash = '#!/' + ftree.getNewURI("add", newb)
+							factTypeCollections[i].expandURI = rootURI + factTypeCollections[i].expandHash
+						i++
+				factTypeCollectionsCallback.endAdding()
+				resourceCollectionsCallback.endAdding()
+			)
+		else if currentLocation[0] == 'instance'
+			# backURI = serverAPI(about)
+			backURI = ftree.getNewURI('del')
+			actn = "view"
+
+			# find first action.
+			for branchType in currentLocation[2][1..] when branchType[0] in ["add", "edit", "del"]
+				actn = branchType[0]
+				break
+
+			switch actn
+				when "view"
+					if resourceType == "Term"
+						targ = serverAPI(about)
+						serverRequest("GET", targ, {}, null, (statusCode, result, headers) ->
 							templateVars =
-								pid: ftree.getPid()
-								addHash: addHash
-								addURI: rootURI + addHash
-								addsHTML: addsHTML
-								factTypeCollections: factTypeCollections
-								resourceCollections: resourceCollections
+								termInstance: result.instances[0]
 								backgroundColour: bgColour
 								altBackgroundColour: altBgColour
 								templates: templates
-							html = templates.resourceCollection(templateVars)
+							html = templates.termView(templateVars)
 							rowCallback(idx, html)
-						(errors) ->
-							console.error(errors)
-							rowCallback(idx, 'Resource Collections Errors: ' + errors)
-						(index, html, isResourceName) ->
-							if index != false
-								resourceCollections[index].html = html
-							return null
-					)
-					# render each child and call back
-					for instance, i in result.instances
-						do(instance, i) ->
-							resourceCollections[i] =
-								isExpanded: ftree.isExpanded(about, [instance.id, instance.value])
-								action: ftree.getAction(about, [instance.id, instance.value])
-								id: instance.id
+						)
+					else if resourceType == "FactType"
+						targ = ftree.getServerURI()
+						serverRequest("GET", targ, {}, null, (statusCode, result, headers) ->
+							getResolvedFactType(resourceFactType, result.instances[0],
+								(factTypeInstance) -> 
+									templateVars =
+										factType: resourceFactType
+										factTypeInstance: factTypeInstance
+										backgroundColour: bgColour
+										altBackgroundColour: altBgColour
+										templates: templates
+									html = templates.factTypeView(templateVars)
+									rowCallback(idx, html)
+								(errors) ->
+									console.error(errors)
+									rowCallback(idx, 'Errors: ' + errors)
+							)
 							
-							if resourceType == "Term"
-								resourceCollections[i].resourceName = instance.value
-							else if resourceType == "FactType"
-								resourceCollectionsCallback.addWork(1)
-								getResolvedFactType(resourceFactType, instance,
-									(factTypeInstance) -> 
-										resourceName = ''
-										for factTypePart in resourceFactType
-											if factTypePart[0] == "Term"
-												resourceName += factTypeInstance[factTypePart[1]].value + " "
-											else if factTypePart[0] == "Verb"
-												resourceName += "<em>" + factTypePart[1] + "</em> "
-										resourceCollections[i].resourceName = resourceName
-										resourceCollectionsCallback.successCallback(false)
-									(errors) ->
-										console.error(errors)
-										resourceCollectionsCallback.errorCallback(i, 'Errors: ' + errors, true)
-								)
-							
-							if resourceCollections[i].isExpanded
-								expandedTree = ftree.clone().descend(about, [instance.id, instance.value])
-								resourceCollections[i].closeHash = '#!/' + expandedTree.getNewURI("del")
-								resourceCollections[i].closeURI = rootURI + resourceCollections[i].deleteHash
-								resourceCollectionsCallback.addWork(1)
-								uid = new uidraw(i, resourceCollectionsCallback.successCallback, rootURI, not even, expandedTree, cmod)
-								uid.subRowIn()
-							else
-								resourceCollections[i].viewHash = '#!/' + ftree.getChangeURI('view', about, instance.id)
-								resourceCollections[i].viewURI = rootURI + resourceCollections[i].viewHash
-								resourceCollections[i].editHash = '#!/' + ftree.getChangeURI('edit', about, instance.id)
-								resourceCollections[i].editURI = rootURI + resourceCollections[i].editHash
-								resourceCollections[i].deleteHash = '#!/' + ftree.getChangeURI('del', about, instance.id)
-								resourceCollections[i].deleteURI = rootURI + resourceCollections[i].deleteHash
-					
-					addsHTML = []
-					resourceCollectionsCallback.addWork(1)
-					addsCallback = createAsyncQueueCallback(
-						(results) ->
-							results.sort( (a, b) ->
-								a[0] - b[0]
-							)
-							for item, i in results
-								addsHTML[i] = item[1]
-							resourceCollectionsCallback.successCallback(false)
-						(errors) ->
-							console.error(errors)
-							resourceCollectionsCallback.errorCallback('Adds Errors: ' + errors)
-						(n, prod) ->
-							return [n, prod]
-					)
-					i = 0
-					for currBranch, j in currentLocation[3..]
-						if currBranch[0] == 'instance' and currBranch[1][0] == about and currBranch[1][1] == undefined
-							for currBranchType in currBranch[2] when currBranchType[0] == "add"
-								newTree = ftree.clone().descendByIndex(j + 3)
-								addsCallback.addWork(1)
-								uid = new uidraw(i++, addsCallback.successCallback, rootURI, not even, newTree, cmod)
-								uid.subRowIn()
-								break
-					addsCallback.endAdding()
-
-					factTypeCollections = []
-					resourceCollectionsCallback.addWork(1)
-					factTypeCollectionsCallback = createAsyncQueueCallback(
-						() ->
-							resourceCollectionsCallback.successCallback(false)
-						(errors) ->
-							console.error(errors)
-							resourceCollectionsCallback.errorCallback('Fact Type Collection Errors: ' + errors)
-						(index, html) ->
-							factTypeCollections[index].html = html
-							return null
-					)
-					i = 0
-					# launch a final callback to add the subcollections.
-					for mod in cmod[1..] when mod[0] == "FactType"
-						for termVerb in mod[1..] when termVerb[1] == about
-							resourceName = getIdent(mod)
-							factTypeCollections[i] = {
-								resourceName: resourceName
-								isExpanded: ftree.isExpanded(resourceName)
-							}
-							if factTypeCollections[i].isExpanded
-								expandedTree = ftree.clone().descend(resourceName)
-								factTypeCollections[i].closeHash = '#!/' + expandedTree.getNewURI("del")
-								factTypeCollections[i].closeURI = rootURI + factTypeCollections[i].closeHash
-								factTypeCollectionsCallback.addWork(1)
-								uid = new uidraw(i, factTypeCollectionsCallback.successCallback, rootURI, not even, expandedTree, cmod)
-								uid.subRowIn()
-							else
-								newb = [ 'collection', [ resourceName ], [ "mod" ] ]
-								factTypeCollections[i].expandHash = '#!/' + ftree.getNewURI("add", newb)
-								factTypeCollections[i].expandURI = rootURI + factTypeCollections[i].expandHash
-							i++
-					factTypeCollectionsCallback.endAdding()
-					resourceCollectionsCallback.endAdding()
-				)
-			else if currentLocation[0] == 'instance'
-				# backURI = serverAPI(about)
-				backURI = ftree.getNewURI('del')
-				actn = "view"
-
-				# find first action.
-				for branchType in currentLocation[2][1..] when branchType[0] in ["add", "edit", "del"]
-					actn = branchType[0]
-					break
-
-				switch actn
-					when "view"
-						if resourceType == "Term"
-							targ = serverAPI(about)
-							serverRequest("GET", targ, {}, null, (statusCode, result, headers) ->
-								templateVars =
-									termInstance: result.instances[0]
-									backgroundColour: bgColour
-									altBackgroundColour: altBgColour
-									templates: templates
-								html = templates.termView(templateVars)
-								rowCallback(idx, html)
-							)
-						else if resourceType == "FactType"
-							targ = ftree.getServerURI()
-							serverRequest("GET", targ, {}, null, (statusCode, result, headers) ->
-								getResolvedFactType(resourceFactType, result.instances[0],
-									(factTypeInstance) -> 
-										templateVars =
-											factType: resourceFactType
-											factTypeInstance: factTypeInstance
-											backgroundColour: bgColour
-											altBackgroundColour: altBgColour
-											templates: templates
-										html = templates.factTypeView(templateVars)
-										rowCallback(idx, html)
-									(errors) ->
-										console.error(errors)
-										rowCallback(idx, 'Errors: ' + errors)
-								)
-								
-							)
-					when "add"
-						if resourceType == "Term"
-							# TODO: The termFields info should come from a client model
-							termFields = [['Text', 'value', 'Name', []]]
+						)
+				when "add"
+					if resourceType == "Term"
+						# TODO: The termFields info should come from a client model
+						termFields = [['Text', 'value', 'Name', []]]
+						templateVars =
+							action: 'addterm'
+							serverURI: serverAPI(about)
+							backURI: backURI
+							type: about
+							id: false
+							term: false
+							termFields: termFields
+							backgroundColour: bgColour
+							altBackgroundColour: altBgColour
+							templates: templates
+						html = templates.termForm(templateVars)
+						rowCallback(idx, html)
+					else if resourceType == "FactType"
+						getTermResults(resourceFactType, (termResults) ->
 							templateVars =
-								action: 'addterm'
+								factType: resourceFactType
+								termResults: termResults
+								action: 'addfctp'
 								serverURI: serverAPI(about)
 								backURI: backURI
 								type: about
+								currentFactType: false
 								id: false
-								term: false
+								backgroundColour: bgColour
+								altBackgroundColour: altBgColour
+								templates: templates
+							html = templates.factTypeForm(templateVars)
+							rowCallback(idx, html)
+						)
+				when "edit"
+					if resourceType == "Term"
+						# TODO: The termFields info should come from a client model
+						termFields = [['Text', 'value', 'Name', []]]
+
+						targ = serverAPI(about)
+						serverRequest("GET", targ, {}, null, (statusCode, result, headers) ->
+							id = result.instances[0].id
+							templateVars =
+								action: 'editterm'
+								serverURI: serverAPI(about, [['id', '=', id]])
+								backURI: serverAPI(about)
+								type: about
+								id: id
+								term: result.instances[0]
 								termFields: termFields
 								backgroundColour: bgColour
 								altBackgroundColour: altBgColour
 								templates: templates
 							html = templates.termForm(templateVars)
 							rowCallback(idx, html)
-						else if resourceType == "FactType"
-							getTermResults(resourceFactType, (termResults) ->
-								templateVars =
-									factType: resourceFactType
-									termResults: termResults
-									action: 'addfctp'
-									serverURI: serverAPI(about)
-									backURI: backURI
-									type: about
-									currentFactType: false
-									id: false
-									backgroundColour: bgColour
-									altBackgroundColour: altBgColour
-									templates: templates
-								html = templates.factTypeForm(templateVars)
-								rowCallback(idx, html)
+						)
+					else if resourceType == "FactType"
+						targ = ftree.getServerURI()
+						serverRequest("GET", targ, {}, null, (statusCode, result, headers) ->
+							getResolvedFactType(resourceFactType, result.instances[0],
+								(factTypeInstance) ->
+									getTermResults(resourceFactType, (termResults) ->
+										templateVars =
+											factType: resourceFactType
+											termResults: termResults
+											action: 'editfctp'
+											serverURI: serverAPI(about, [['id', '=', factTypeInstance.id]])
+											backURI: serverAPI(about)
+											type: about
+											currentFactType: factTypeInstance
+											id: factTypeInstance.id
+											backgroundColour: bgColour
+											altBackgroundColour: altBgColour
+											templates: templates
+										html = templates.factTypeForm(templateVars)
+										rowCallback(idx, html)
+									)
+								(errors) ->
+									console.error(errors)
+									rowCallback(idx, 'Errors: ' + errors)
 							)
-					when "edit"
-						if resourceType == "Term"
-							# TODO: The termFields info should come from a client model
-							termFields = [['Text', 'value', 'Name', []]]
-
-							targ = serverAPI(about)
-							serverRequest("GET", targ, {}, null, (statusCode, result, headers) ->
-								id = result.instances[0].id
-								templateVars =
-									action: 'editterm'
-									serverURI: serverAPI(about, [['id', '=', id]])
-									backURI: serverAPI(about)
-									type: about
-									id: id
-									term: result.instances[0]
-									termFields: termFields
-									backgroundColour: bgColour
-									altBackgroundColour: altBgColour
-									templates: templates
-								html = templates.termForm(templateVars)
-								rowCallback(idx, html)
-							)
-						else if resourceType == "FactType"
-							targ = ftree.getServerURI()
-							serverRequest("GET", targ, {}, null, (statusCode, result, headers) ->
-								getResolvedFactType(resourceFactType, result.instances[0],
-									(factTypeInstance) ->
-										getTermResults(resourceFactType, (termResults) ->
-											templateVars =
-												factType: resourceFactType
-												termResults: termResults
-												action: 'editfctp'
-												serverURI: serverAPI(about, [['id', '=', factTypeInstance.id]])
-												backURI: serverAPI(about)
-												type: about
-												currentFactType: factTypeInstance
-												id: factTypeInstance.id
-												backgroundColour: bgColour
-												altBackgroundColour: altBgColour
-												templates: templates
-											html = templates.factTypeForm(templateVars)
-											rowCallback(idx, html)
-										)
-									(errors) ->
-										console.error(errors)
-										rowCallback(idx, 'Errors: ' + errors)
-								)
-							)
-					when "del"
-						templateVars =
-							action: 'del'
-							serverURI: serverAPI(about, [['id', '=', @id]])
-							backURI: serverAPI(about)
-							type: about
-							id: currentLocation[1][1]
-							backgroundColour: bgColour
-							altBackgroundColour: altBgColour
-							templates: templates 
-						html = templates.deleteForm(templateVars)
-						rowCallback(idx, html)
-		return this
+						)
+				when "del"
+					templateVars =
+						action: 'del'
+						serverURI: serverAPI(about, [['id', '=', @id]])
+						backURI: serverAPI(about)
+						type: about
+						id: currentLocation[1][1]
+						backgroundColour: bgColour
+						altBackgroundColour: altBgColour
+						templates: templates 
+					html = templates.deleteForm(templateVars)
+					rowCallback(idx, html)
 
 	processForm = (forma) ->
 		action = $("#__actype", forma).val()
