@@ -146,6 +146,7 @@
             values[row.key] = JSON.parse(row.value);
             if (row.key === 'sql') {
               serverURIParser.setSQLModel('data', values[row.key]);
+              sqlModels['data'] = values[row.key];
             }
           }
           serverModelCache.whenLoaded = function(func) {

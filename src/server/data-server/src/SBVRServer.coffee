@@ -168,6 +168,7 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 					values[row.key] = JSON.parse(row.value)
 					if row.key == 'sql'
 						serverURIParser.setSQLModel('data', values[row.key])
+						sqlModels['data'] = values[row.key]
 
 				serverModelCache.whenLoaded = (func) -> func()
 				for callback in pendingCallbacks
