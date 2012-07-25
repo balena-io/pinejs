@@ -182,7 +182,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 		termView: ejs.compile('''
 			<div class="panel" style="background-color:<%= backgroundColour %>;"><%
 				for(var field in termInstance) { %>
-					<%= termInstance %>: <%= termInstance[field] %><br/><%
+					<%= field %>: <%= termInstance[field] %><br/><%
 				} %>
 			</div>
 			''')
