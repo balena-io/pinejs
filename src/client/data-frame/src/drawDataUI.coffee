@@ -161,8 +161,14 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 							<td>
 								<a href="<%= addURI %>" onClick="location.hash='<%= addHash %>';return false;">[(+)add new]</a>
 							</td>
-						</tr>
-						<%- addsHTML %>
+						</tr><%
+						for(var i = 0; i < addsHTML.length; i++) { %>
+							<tr>
+								<td>
+									<%- addsHTML[i] %>
+								</td>
+							</tr><%
+						} %>
 						<tr>
 							<td>
 								<hr style="border:0px; width:90%; background-color: #999; height:1px;">
@@ -412,7 +418,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 					# request schema from server and store locally.
 					do (i) ->
 						serverRequest("GET", "/lfmodel/", {}, null, (statusCode, result) ->
-							uid = new uidraw(i, asyncCallback.successCallback, '', '', rootURI, true, expandedTree, result)
+							uid = new uidraw(i, asyncCallback.successCallback, rootURI, true, expandedTree, result)
 							uid.subRowIn()
 						)
 				else
@@ -422,7 +428,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 					asyncCallback.successCallback(false)
 		)
 
-	uidraw = (idx, rowCallback, pre, post, rootURI, even, ftree, cmod) ->
+	uidraw = (idx, rowCallback, rootURI, even, ftree, cmod) ->
 		currentLocation = ftree.getCurrentLocation()
 		about = ftree.getAbout()
 		@adds = 0
@@ -439,23 +445,6 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 			@unbg = "#FFFFFF"
 		
 		parent = this
-
-		asyncCallback = createAsyncQueueCallback(
-			(results) -> 
-				results.sort( (a, b) ->
-					a[0] - b[0]
-				)
-				html = pre
-				for item in results
-					html += item[1]
-				html += post
-				rowCallback(idx, html)
-			(errors) ->
-				console.error(errors)
-				rowCallback(idx, 'Error: ' + errors)
-			(n, prod) ->
-				return [n, prod]
-		)
 
 		# TODO: This needs to be given by the server rather than generated here
 		getIdent = (mod) ->
@@ -491,8 +480,6 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 
 				targ = serverAPI(about)
 				serverRequest("GET", targ, {}, null, (statusCode, result, headers) ->
-					asyncCallback.addWork(1)
-					asyncCallback.endAdding()
 					resourceCollections = []
 					resourceCollectionsCallback = createAsyncQueueCallback(
 						() ->
@@ -507,11 +494,11 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 								backgroundColour: parent.bg
 								altBackgroundColour: parent.unbg
 								templates: templates
-							res = templates.resourceCollection(templateVars)
-							asyncCallback.successCallback(0, res)
+							html = templates.resourceCollection(templateVars)
+							rowCallback(idx, html)
 						(errors) ->
 							console.error(errors)
-							asyncCallback.successCallback('Resource Collections Errors: ' + errors)
+							rowCallback(idx, 'Resource Collections Errors: ' + errors)
 						(index, html, isResourceName) ->
 							if index != false
 								resourceCollections[index].html = html
@@ -549,7 +536,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 								resourceCollections[i].closeHash = '#!/' + expandedTree.getNewURI("del")
 								resourceCollections[i].closeURI = rootURI + resourceCollections[i].deleteHash
 								resourceCollectionsCallback.addWork(1)
-								uid = new uidraw(i, resourceCollectionsCallback.successCallback, '', '', rootURI, not even, expandedTree, cmod)
+								uid = new uidraw(i, resourceCollectionsCallback.successCallback, rootURI, not even, expandedTree, cmod)
 								uid.subRowIn()
 							else
 								resourceCollections[i].viewHash = '#!/' + ftree.getChangeURI('view', about, instance.id)
@@ -559,15 +546,15 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 								resourceCollections[i].deleteHash = '#!/' + ftree.getChangeURI('del', about, instance.id)
 								resourceCollections[i].deleteURI = rootURI + resourceCollections[i].deleteHash
 					
-					addsHTML = ''
+					addsHTML = []
 					resourceCollectionsCallback.addWork(1)
 					addsCallback = createAsyncQueueCallback(
 						(results) ->
 							results.sort( (a, b) ->
 								a[0] - b[0]
 							)
-							for item in results
-								addsHTML += item[1]
+							for item, i in results
+								addsHTML[i] = item[1]
 							resourceCollectionsCallback.successCallback(false)
 						(errors) ->
 							console.error(errors)
@@ -580,7 +567,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 							for currBranchType in currBranch[2] when currBranchType[0] == "add"
 								newTree = ftree.clone().descendByIndex(j + 3)
 								addsCallback.addWork(1)
-								uid = new uidraw(++parent.addsout, addsCallback.successCallback, "<tr><td>", "</td></tr>", rootURI, not even, newTree, cmod)
+								uid = new uidraw(++parent.addsout, addsCallback.successCallback, rootURI, not even, newTree, cmod)
 								uid.subRowIn()
 								break
 					addsCallback.endAdding()
@@ -611,7 +598,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 								factTypeCollections[i].closeHash = '#!/' + expandedTree.getNewURI("del")
 								factTypeCollections[i].closeURI = rootURI + factTypeCollections[i].closeHash
 								factTypeCollectionsCallback.addWork(1)
-								uid = new uidraw(i, factTypeCollectionsCallback.successCallback, '', '', rootURI, not even, expandedTree, cmod)
+								uid = new uidraw(i, factTypeCollectionsCallback.successCallback, rootURI, not even, expandedTree, cmod)
 								uid.subRowIn()
 							else
 								newb = [ 'collection', [ resourceName ], [ "mod" ] ]
@@ -622,8 +609,6 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 					resourceCollectionsCallback.endAdding()
 				)
 			else if currentLocation[0] == 'instance'
-				asyncCallback.addWork(1)
-				asyncCallback.endAdding()
 				# backURI = serverAPI(about)
 				backURI = ftree.getNewURI('del')
 				actn = "view"
@@ -643,8 +628,8 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 									backgroundColour: parent.bg
 									altBackgroundColour: parent.unbg
 									templates: templates
-								res = templates.termView(templateVars)
-								asyncCallback.successCallback(1, res)
+								html = templates.termView(templateVars)
+								rowCallback(idx, html)
 							)
 						else if @type == "FactType"
 							targ = ftree.getServerURI()
@@ -657,11 +642,11 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 											backgroundColour: parent.bg
 											altBackgroundColour: parent.unbg
 											templates: templates
-										res = templates.factTypeView(templateVars)
-										asyncCallback.successCallback(1, res)
+										html = templates.factTypeView(templateVars)
+										rowCallback(idx, html)
 									(errors) ->
 										console.error(errors)
-										asyncCallback.successCallback(1, 'Errors: ' + errors)
+										rowCallback(idx, 'Errors: ' + errors)
 								)
 								
 							)
@@ -680,8 +665,8 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 								backgroundColour: @bg
 								altBackgroundColour: @unbg
 								templates: templates
-							res = templates.termForm(templateVars)
-							asyncCallback.successCallback(1, res)
+							html = templates.termForm(templateVars)
+							rowCallback(idx, html)
 						else if @type == "FactType"
 							getTermResults(parent.schema, (termResults) ->
 								templateVars =
@@ -696,8 +681,8 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 									backgroundColour: parent.bg
 									altBackgroundColour: parent.unbg
 									templates: templates
-								res = templates.factTypeForm(templateVars)
-								asyncCallback.successCallback(1, res)
+								html = templates.factTypeForm(templateVars)
+								rowCallback(idx, html)
 							)
 					when "edit"
 						if @type == "Term"
@@ -718,8 +703,8 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 									backgroundColour: parent.bg
 									altBackgroundColour: parent.unbg
 									templates: templates
-								res = templates.termForm(templateVars)
-								asyncCallback.successCallback(1, res)
+								html = templates.termForm(templateVars)
+								rowCallback(idx, html)
 							)
 						else if @type == "FactType"
 							targ = ftree.getServerURI()
@@ -739,12 +724,12 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 												backgroundColour: parent.bg
 												altBackgroundColour: parent.unbg
 												templates: templates
-											res = templates.factTypeForm(templateVars)
-											asyncCallback.successCallback(1, res)
+											html = templates.factTypeForm(templateVars)
+											rowCallback(idx, html)
 										)
 									(errors) ->
 										console.error(errors)
-										asyncCallback.successCallback(1, 'Errors: ' + errors)
+										rowCallback(idx, 'Errors: ' + errors)
 								)
 							)
 					when "del"
@@ -757,8 +742,8 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 							backgroundColour: @bg
 							altBackgroundColour: @unbg
 							templates: templates 
-						res = templates.deleteForm(templateVars)
-						asyncCallback.successCallback(1, res)
+						html = templates.deleteForm(templateVars)
+						rowCallback(idx, html)
 		return this
 
 	processForm = (forma) ->
