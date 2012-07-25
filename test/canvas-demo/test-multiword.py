@@ -66,7 +66,7 @@ find_and_click("//a[contains(@onclick,\"pilot'\")]", "expand pilots")
 
 find_and_click("//a[contains(@onclick,\"pilot/pilot-can_fly-plane_type'\")]", "can't expand pilot can fly plane type")
 
-find_and_click("//a[contains(@onclick,\"pilot/pilot-can_fly-plane_type/pilot-can_fly-plane_type.3*del')]", "delete fact [Joachim can fly Boeing 747]")
+find_and_click("//a[contains(@onclick,\"pilot/pilot-can_fly-plane_type/pilot-can_fly-plane_type.3*del'\")]", "delete fact [Joachim can fly Boeing 747]")
 
 '''click -confirm- or whatever'''
 browser.find_element_by_xpath("//tr[@id='tr--data--pilot-can_fly-plane_type']//input[@type='submit']").click()

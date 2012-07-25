@@ -164,7 +164,7 @@
         factTypePart = factType[i];
         if (factTypePart[0] === "Term") {
           asyncCallback.addWork(1);
-          idField = isBooleanFactType ? 'id' : factTypePart[1];
+          idField = isBooleanFactType ? 'id' : factTypePart[1].replace(new RegExp(' ', 'g'), '_');
           valueField = factTypePart[1];
           uri = serverAPI(factTypePart[1], [['id', '=', factTypeInstance[idField]]]);
           serverRequest("GET", uri, {}, null, (function(valueField) {
@@ -209,7 +209,7 @@
         filterString += filter[0] + filter[1] + filter[2] + ";";
       }
       if (filterString !== '') filterString = "*filt:" + filterString;
-      return "/data/" + about + filterString;
+      return "/data/" + about.replace(new RegExp(' ', 'g'), '_') + filterString;
     };
     drawData = function(tree) {
       var rootURI;

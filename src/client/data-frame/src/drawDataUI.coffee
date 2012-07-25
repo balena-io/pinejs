@@ -344,7 +344,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 		for factTypePart, i in factType
 			if factTypePart[0] == "Term"
 				asyncCallback.addWork(1)
-				idField = if isBooleanFactType then 'id' else factTypePart[1]
+				idField = if isBooleanFactType then 'id' else factTypePart[1].replace(new RegExp(' ', 'g'), '_')
 				valueField = factTypePart[1]
 				uri = serverAPI(factTypePart[1], [['id', '=', factTypeInstance[idField]]])
 				serverRequest("GET", uri, {}, null,
@@ -384,7 +384,8 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 		
 		if filterString != ''
 			filterString = "*filt:" + filterString
-		"/data/" + about + filterString
+					
+		"/data/" + about.replace(new RegExp(' ', 'g'), '_') + filterString
 
 	drawData = (tree) ->
 		tree = createNavigableTree(tree)
