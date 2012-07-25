@@ -588,7 +588,6 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 				resourceCollectionsCallback.endAdding()
 			)
 		else if currentLocation[0] == 'instance'
-			actn = ftree.getAction()
 			templateVars = $.extend(templateVars, {
 				serverURI: ftree.getServerURI()
 				backURI: '#!/' + ftree.getNewURI('del')
@@ -596,7 +595,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 				id: currentLocation[1][1]
 			})
 
-			switch actn
+			switch ftree.getAction()
 				when "view"
 					if resourceType == "Term"
 						serverRequest("GET", ftree.getServerURI(), {}, null, (statusCode, result, headers) ->

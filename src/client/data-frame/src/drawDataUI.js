@@ -260,7 +260,7 @@
       });
     };
     renderResource = function(idx, rowCallback, rootURI, even, ftree, cmod) {
-      var about, actn, currentLocation, getIdent, html, mod, resourceFactType, resourceType, templateVars, termFields, _i, _len, _ref;
+      var about, currentLocation, getIdent, html, mod, resourceFactType, resourceType, templateVars, termFields, _i, _len, _ref;
       currentLocation = ftree.getCurrentLocation();
       about = ftree.getAbout();
       resourceType = "Term";
@@ -441,14 +441,13 @@
           return resourceCollectionsCallback.endAdding();
         });
       } else if (currentLocation[0] === 'instance') {
-        actn = ftree.getAction();
         templateVars = $.extend(templateVars, {
           serverURI: ftree.getServerURI(),
           backURI: '#!/' + ftree.getNewURI('del'),
           type: about,
           id: currentLocation[1][1]
         });
-        switch (actn) {
+        switch (ftree.getAction()) {
           case "view":
             if (resourceType === "Term") {
               return serverRequest("GET", ftree.getServerURI(), {}, null, function(statusCode, result, headers) {
