@@ -97,7 +97,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 						if(factTypeCollection.isExpanded) { %>
 							<div style="display:inline;background-color:"<%= altBackgroundColour %>"><%= factTypeCollection.resourceName %></div>
 							<div style="display:inline;background-color:"<%= altBackgroundColour %>">
-								<a href="<%= factTypeCollection.uri %>" onClick="location.hash='<%= factTypeCollection.hash %>';return false">
+								<a href="<%= factTypeCollection.closeURI %>" onClick="location.hash='<%= factTypeCollection.closeHash %>';return false">
 									<span title="Close" class="ui-icon ui-icon-circle-close"></span>
 								</a>
 							</div>
@@ -105,8 +105,46 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 						}
 						else { %>
 							<%= factTypeCollection.resourceName %>
-							<a href="<%= factTypeCollection.uri %>" onClick="location.hash='<%= factTypeCollection.hash %>';return false">
+							<a href="<%= factTypeCollection.expandURI %>" onClick="location.hash='<%= factTypeCollection.expandHash %>';return false">
 								<span title="See all" class="ui-icon ui-icon-search"></span>
+							</a><%
+						} %>
+					</td>
+				</tr><%
+			} %>
+			''')
+		resourceCollection: ejs.compile('''
+			<%
+			for(var i = 0; i < resourceCollections.length; i++) {
+				var resourceCollection = resourceCollections[i]; %>
+				<tr id="tr--<%= pid %>--<%= resourceCollection.id %>">
+					<td><%
+						if(resourceCollection.isExpanded) { %>
+							<div style="display:inline;background-color:<%= altBackgroundColour %>">
+								<%- resourceCollection.resourceName %>
+								<a href="<%= resourceCollection.closeURI %>" onClick="location.hash='<%= resourceCollection.closeHash %>';return false"><%
+									switch(resourceCollection.action) {
+										case "view":
+										case "edit":
+											%><span title="Close" class="ui-icon ui-icon-circle-close"></span><%
+										break;
+										case "del":
+											%>[unmark]<%
+									} %>
+								</a>
+							</div>
+							<%- resourceCollection.html %><%
+						}
+						else { %>
+							<%- resourceCollection.resourceName %>
+							<a href="<%= resourceCollection.viewURI %>" onClick="location.hash='<%= resourceCollection.viewHash %>';return false">
+								<span title="View" class="ui-icon ui-icon-search"></span>
+							</a>
+							<a href="<%= resourceCollection.editURI %>" onClick="location.hash='<%= resourceCollection.editHash %>';return false">
+								<span title="Edit" class="ui-icon ui-icon-pencil"></span>
+							</a>
+							<a href="<%= resourceCollection.deleteURI %>" onClick="location.hash='<%= resourceCollection.deleteHash %>';return false">
+								<span title="Delete" class="ui-icon ui-icon-trash"></span>
 							</a><%
 						} %>
 					</td>
@@ -412,77 +450,73 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 
 				targ = serverAPI(about)
 				serverRequest("GET", targ, {}, null, (statusCode, result, headers) ->
-					rows = result.instances.length
-					asyncCallback.addWork(rows + 2 + parent.adds + 1 + 1)
+					asyncCallback.addWork(3 + parent.adds + 1 + 1)
 					asyncCallback.endAdding()
-					# get link which adds an 'add inst' dialog.
-					npos = ftree.getChangeURI('add', about)
-					asyncCallback.successCallback(rows + 1, "<tr><td><a href = '" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false;'>[(+)add new]</a></td></tr>")
-
+					resourceCollections = []
+					resourceCollectionsCallback = createAsyncQueueCallback(
+						() ->
+							templateVars =
+								pid: ftree.getPid()
+								resourceCollections: resourceCollections
+								backgroundColour: parent.bg
+								altBackgroundColour: parent.unbg
+							res = templates.resourceCollection(templateVars)
+							asyncCallback.successCallback(0, res)
+						(errors) ->
+							console.error(errors)
+							asyncCallback.successCallback(0, 'Error: ' + errors)
+						(index, html, isResourceName) ->
+							if index != false
+								resourceCollections[index].html = html
+							return null
+					)
 					# render each child and call back
 					for instance, i in result.instances
 						do(instance, i) ->
-							processInstance = () ->
-								isExpanded = ftree.isExpanded(about, [instance.id, instance.value])
-								action = ftree.getAction(about, [instance.id, instance.value])
-											
-								posl = targ + "/" + about + "*filt:id=" + instance.id
-								prel = "<tr id='tr--" + ftree.getPid() + "--" + instance.id + "'><td>"
-								if isExpanded
-									expandedTree = ftree.clone().descend(about, [instance.id, instance.value])
-									prel += "<div style='display:inline;background-color:" + parent.unbg + "'>"
-								if parent.type == "Term"
-									prel += instance.value
-								else if parent.type == "FactType"
-									for schema in parent.schema
-										if schema[0] == "Term"
-											prel += instance[schema[1]].value + " "
-										else if schema[0] == "Verb"
-											prel += "<em>" + schema[1] + "</em> "
-
-								if isExpanded
-									prel += "</div>"
-
-								if !isExpanded
-									npos = ftree.getChangeURI('view', about, instance.id)
-									prel += " <a href='" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false'><span title='View' class='ui-icon ui-icon-search'></span></a>"
-								else if action == "view"
-									npos = expandedTree.getNewURI("del")
-									prel += "<div style='display:inline;background-color:" + parent.unbg + "'> <a href='" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a></div>"
-
-								if !isExpanded
-									npos = ftree.getChangeURI('edit', about, instance.id)
-									prel += " <a href='" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Edit' class='ui-icon ui-icon-pencil'></span></a>"
-								else if action == "edit"
-									npos = expandedTree.getNewURI("del")
-									prel += "<div style='display:inline;background-color:" + parent.unbg + "'> <a href='" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a></div>"
-
-								if !isExpanded
-									npos = ftree.getChangeURI('del', about, instance.id)
-									prel += " <a href='" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Delete' class='ui-icon ui-icon-trash'></span></a>"
-								else if action == "del"
-									npos = expandedTree.getNewURI("del")
-									prel += "<div style='display:inline;background-color:" + parent.unbg + "'> <a href='" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false'>[unmark]</a></div>"
-
-								postl = "</td></tr>"
-								if isExpanded
-									uid = new uidraw(i, asyncCallback.successCallback, prel, postl, rootURI, not even, expandedTree, cmod)
-									uid.subRowIn()
-								else
-									asyncCallback.successCallback(i, prel + postl)
-							if parent.type == "FactType"
+							resourceCollections[i] =
+								isExpanded: ftree.isExpanded(about, [instance.id, instance.value])
+								action: ftree.getAction(about, [instance.id, instance.value])
+								id: instance.id
+							
+							if parent.type == "Term"
+								resourceCollections[i].resourceName = instance.value
+							else if parent.type == "FactType"
+								resourceCollectionsCallback.addWork(1)
 								getResolvedFactType(parent.schema, instance,
 									(factTypeInstance) -> 
-										instance = factTypeInstance
-										processInstance()
+										resourceName = ''
+										for schema in parent.schema
+											if schema[0] == "Term"
+												resourceName += factTypeInstance[schema[1]].value + " "
+											else if schema[0] == "Verb"
+												resourceName += "<em>" + schema[1] + "</em> "
+										resourceCollections[i].resourceName = resourceName
+										resourceCollectionsCallback.successCallback(false)
 									(errors) ->
 										console.error(errors)
-										asyncCallback.successCallback(i, 'Errors: ' + errors)
+										resourceCollectionsCallback.errorCallback(i, 'Errors: ' + errors, true)
 								)
+							
+							if resourceCollections[i].isExpanded
+								expandedTree = ftree.clone().descend(about, [instance.id, instance.value])
+								resourceCollections[i].closeHash = '#!/' + expandedTree.getNewURI("del")
+								resourceCollections[i].closeURI = rootURI + resourceCollections[i].deleteHash
+								resourceCollectionsCallback.addWork(1)
+								uid = new uidraw(i, resourceCollectionsCallback.successCallback, '', '', rootURI, not even, expandedTree, cmod)
+								uid.subRowIn()
 							else
-								processInstance()
+								resourceCollections[i].viewHash = '#!/' + ftree.getChangeURI('view', about, instance.id)
+								resourceCollections[i].viewURI = rootURI + resourceCollections[i].viewHash
+								resourceCollections[i].editHash = '#!/' + ftree.getChangeURI('edit', about, instance.id)
+								resourceCollections[i].editURI = rootURI + resourceCollections[i].editHash
+								resourceCollections[i].deleteHash = '#!/' + ftree.getChangeURI('del', about, instance.id)
+								resourceCollections[i].deleteURI = rootURI + resourceCollections[i].deleteHash
+					resourceCollectionsCallback.endAdding()
 
-					asyncCallback.successCallback(rows, "<tr><td><hr style='border:0px; width:90%; background-color: #999; height:1px;'></td></tr>")
+					asyncCallback.successCallback(1, "<tr><td><hr style='border:0px; width:90%; background-color: #999; height:1px;'></td></tr>")
+					# get link which adds an 'add inst' dialog.
+					npos = ftree.getChangeURI('add', about)
+					asyncCallback.successCallback(2, "<tr><td><a href = '" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false;'>[(+)add new]</a></td></tr>")
 					# launch more uids to render the adds
 					posl = targ + "/" + about
 
@@ -490,11 +524,11 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 						if currBranch[0] == 'instance' and currBranch[1][0] == about and currBranch[1][1] == undefined
 							for currBranchType in currBranch[2] when currBranchType[0] == "add"
 								newTree = ftree.clone().descendByIndex(j + 3)
-								uid = new uidraw(rows + 1 + ++parent.addsout, asyncCallback.successCallback, "<tr><td>", "</td></tr>", rootURI, not even, newTree, cmod)
+								uid = new uidraw(2 + ++parent.addsout, asyncCallback.successCallback, "<tr><td>", "</td></tr>", rootURI, not even, newTree, cmod)
 								uid.subRowIn()
 								break
 
-					asyncCallback.successCallback(rows + 1 + parent.adds + 1, "<tr><td><hr style='border:0px; width:90%; background-color: #999; height:1px;'></td></tr>")
+					asyncCallback.successCallback(2 + parent.adds + 1, "<tr><td><hr style='border:0px; width:90%; background-color: #999; height:1px;'></td></tr>")
 
 					factTypeCollections = []
 					factTypeCollectionsCallback = createAsyncQueueCallback(
@@ -505,10 +539,10 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 								backgroundColour: parent.bg
 								altBackgroundColour: parent.unbg
 							res = templates.factTypeCollection(templateVars)
-							asyncCallback.successCallback(rows + 1 + parent.adds + 1, res)
+							asyncCallback.successCallback(2 + parent.adds + 1, res)
 						(errors) ->
 							console.error(errors)
-							asyncCallback.successCallback(rows + 1 + parent.adds + 1, 'Error: ' + errors)
+							asyncCallback.successCallback(2 + parent.adds + 1, 'Error: ' + errors)
 						(index, html) ->
 							factTypeCollections[index].html = html
 							return null
@@ -524,15 +558,15 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 							}
 							if factTypeCollections[i].isExpanded
 								expandedTree = ftree.clone().descend(resourceName)
-								factTypeCollections[i].hash = '#!/' + expandedTree.getNewURI("del")
-								factTypeCollections[i].uri = rootURI + factTypeCollections[i].hash
+								factTypeCollections[i].closeHash = '#!/' + expandedTree.getNewURI("del")
+								factTypeCollections[i].closeURI = rootURI + factTypeCollections[i].closeHash
 								factTypeCollectionsCallback.addWork(1)
 								uid = new uidraw(i, factTypeCollectionsCallback.successCallback, pre, post, rootURI, not even, expandedTree, cmod)
 								uid.subRowIn()
 							else
 								newb = [ 'collection', [ resourceName ], [ "mod" ] ]
-								factTypeCollections[i].hash = '#!/' + ftree.getNewURI("add", newb)
-								factTypeCollections[i].uri = rootURI + factTypeCollections[i].hash
+								factTypeCollections[i].expandHash = '#!/' + ftree.getNewURI("add", newb)
+								factTypeCollections[i].expandURI = rootURI + factTypeCollections[i].expandHash
 							i++
 					factTypeCollectionsCallback.endAdding()
 				)
