@@ -450,7 +450,7 @@
           return resourceCollectionsCallback.endAdding();
         });
       } else if (currentLocation[0] === 'instance') {
-        backURI = ftree.getNewURI('del');
+        backURI = '#!/' + ftree.getNewURI('del');
         actn = "view";
         _ref2 = currentLocation[2].slice(1);
         for (_j = 0, _len2 = _ref2.length; _j < _len2; _j++) {
@@ -544,7 +544,7 @@
                 templateVars = {
                   action: 'editterm',
                   serverURI: serverAPI(about, [['id', '=', id]]),
-                  backURI: serverAPI(about),
+                  backURI: backURI,
                   type: about,
                   id: id,
                   term: result.instances[0],
@@ -566,7 +566,7 @@
                       termResults: termResults,
                       action: 'editfctp',
                       serverURI: serverAPI(about, [['id', '=', factTypeInstance.id]]),
-                      backURI: serverAPI(about),
+                      backURI: backURI,
                       type: about,
                       currentFactType: factTypeInstance,
                       id: factTypeInstance.id,
@@ -587,8 +587,8 @@
           case "del":
             templateVars = {
               action: 'del',
-              serverURI: serverAPI(about, [['id', '=', this.id]]),
-              backURI: serverAPI(about),
+              serverURI: serverAPI(about, [['id', '=', currentLocation[1][1]]]),
+              backURI: backURI,
               type: about,
               id: currentLocation[1][1],
               backgroundColour: bgColour,
@@ -619,15 +619,13 @@
       }
     };
     delInst = function(forma, uri, backURI) {
-      this.backURI = backURI;
       serverRequest("DELETE", uri, {}, null, function(statusCode, result, headers) {
-        return location.hash = "#!" + backURI;
+        return location.hash = backURI;
       });
       return false;
     };
     editInst = function(forma, serverURI, backURI) {
       var inputs, obj;
-      this.backURI = backURI;
       inputs = $(":input:not(:submit)", forma);
       obj = $.map(inputs, function(n, i) {
         var o;
@@ -638,13 +636,12 @@
         }
       });
       serverRequest("PUT", serverURI, {}, obj, function(statusCode, result, headers) {
-        return location.hash = "#!" + backURI;
+        return location.hash = backURI;
       });
       return false;
     };
     addInst = function(forma, uri, backURI) {
       var inputs, obj;
-      this.backURI = backURI;
       inputs = $(":input:not(:submit)", forma);
       obj = $.map(inputs, function(n, i) {
         var o;
@@ -655,7 +652,7 @@
         }
       });
       serverRequest("POST", uri, {}, obj, function(statusCode, result, headers) {
-        return location.hash = "#!" + backURI;
+        return location.hash = backURI;
       });
       return false;
     };

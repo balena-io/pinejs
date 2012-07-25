@@ -589,7 +589,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 			)
 		else if currentLocation[0] == 'instance'
 			# backURI = serverAPI(about)
-			backURI = ftree.getNewURI('del')
+			backURI = '#!/' + ftree.getNewURI('del')
 			actn = "view"
 
 			# find first action.
@@ -674,7 +674,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 							templateVars =
 								action: 'editterm'
 								serverURI: serverAPI(about, [['id', '=', id]])
-								backURI: serverAPI(about)
+								backURI: backURI
 								type: about
 								id: id
 								term: result.instances[0]
@@ -696,7 +696,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 											termResults: termResults
 											action: 'editfctp'
 											serverURI: serverAPI(about, [['id', '=', factTypeInstance.id]])
-											backURI: serverAPI(about)
+											backURI: backURI
 											type: about
 											currentFactType: factTypeInstance
 											id: factTypeInstance.id
@@ -714,8 +714,8 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 				when "del"
 					templateVars =
 						action: 'del'
-						serverURI: serverAPI(about, [['id', '=', @id]])
-						backURI: serverAPI(about)
+						serverURI: serverAPI(about, [['id', '=', currentLocation[1][1]]])
+						backURI: backURI
 						type: about
 						id: currentLocation[1][1]
 						backgroundColour: bgColour
@@ -741,14 +741,12 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 				delInst(forma, serverURI, backURI)
 
 	delInst = (forma, uri, backURI) ->
-		@backURI = backURI
 		serverRequest "DELETE", uri, {}, null, (statusCode, result, headers) ->
-			location.hash = "#!" + backURI
+			location.hash = backURI
 
 		false
 
 	editInst = (forma, serverURI, backURI) ->
-		@backURI = backURI
 		inputs = $(":input:not(:submit)", forma)
 		obj = $.map(inputs, (n, i) ->
 			unless n.id.slice(0, 2) == "__"
@@ -757,12 +755,11 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 				o
 		)
 		serverRequest "PUT", serverURI, {}, obj, (statusCode, result, headers) ->
-			location.hash = "#!" + backURI
+			location.hash = backURI
 
 		false
 
 	addInst = (forma, uri, backURI) ->
-		@backURI = backURI
 		inputs = $(":input:not(:submit)", forma)
 		obj = $.map(inputs, (n, i) ->
 			unless n.id.slice(0, 2) == "__"
@@ -771,7 +768,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 				o
 		)
 		serverRequest "POST", uri, {}, obj, (statusCode, result, headers) ->
-			location.hash = "#!" + backURI
+			location.hash = backURI
 
 		false
 
