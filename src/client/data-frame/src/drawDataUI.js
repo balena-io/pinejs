@@ -487,7 +487,7 @@
                     factTypeCollections[i].closeHash = '#!/' + expandedTree.getNewURI("del");
                     factTypeCollections[i].closeURI = rootURI + factTypeCollections[i].closeHash;
                     factTypeCollectionsCallback.addWork(1);
-                    uid = new uidraw(i, factTypeCollectionsCallback.successCallback, pre, post, rootURI, !even, expandedTree, cmod);
+                    uid = new uidraw(i, factTypeCollectionsCallback.successCallback, '', '', rootURI, !even, expandedTree, cmod);
                     uid.subRowIn();
                   } else {
                     newb = ['collection', [resourceName], ["mod"]];
