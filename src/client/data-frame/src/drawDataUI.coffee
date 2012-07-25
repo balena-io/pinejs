@@ -470,7 +470,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 				resourceCollections = []
 				resourceCollectionsCallback = createAsyncQueueCallback(
 					() ->
-						addHash = '!#/' + ftree.getChangeURI('add', about)
+						addHash = '#!/' + ftree.getChangeURI('add', about)
 						templateVars =
 							pid: ftree.getPid()
 							addHash: addHash
@@ -631,7 +631,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 						termFields = [['Text', 'value', 'Name', []]]
 						templateVars =
 							action: 'addterm'
-							serverURI: serverAPI(about)
+							serverURI: ftree.getServerURI()
 							backURI: backURI
 							type: about
 							id: false
@@ -648,7 +648,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 								factType: resourceFactType
 								termResults: termResults
 								action: 'addfctp'
-								serverURI: serverAPI(about)
+								serverURI: ftree.getServerURI()
 								backURI: backURI
 								type: about
 								currentFactType: false
@@ -668,7 +668,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 							id = result.instances[0].id
 							templateVars =
 								action: 'editterm'
-								serverURI: serverAPI(about, [['id', '=', id]])
+								serverURI: ftree.getServerURI()
 								backURI: backURI
 								type: about
 								id: id
@@ -689,7 +689,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 											factType: resourceFactType
 											termResults: termResults
 											action: 'editfctp'
-											serverURI: serverAPI(about, [['id', '=', factTypeInstance.id]])
+											serverURI: ftree.getServerURI()
 											backURI: backURI
 											type: about
 											currentFactType: factTypeInstance
@@ -708,7 +708,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 				when "del"
 					templateVars =
 						action: 'del'
-						serverURI: serverAPI(about, [['id', '=', currentLocation[1][1]]])
+						serverURI: ftree.getServerURI()
 						backURI: backURI
 						type: about
 						id: currentLocation[1][1]

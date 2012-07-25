@@ -303,7 +303,7 @@
           resourceCollections = [];
           resourceCollectionsCallback = createAsyncQueueCallback(function() {
             var addHash, html, templateVars;
-            addHash = '!#/' + ftree.getChangeURI('add', about);
+            addHash = '#!/' + ftree.getChangeURI('add', about);
             templateVars = {
               pid: ftree.getPid(),
               addHash: addHash,
@@ -488,7 +488,7 @@
               termFields = [['Text', 'value', 'Name', []]];
               templateVars = {
                 action: 'addterm',
-                serverURI: serverAPI(about),
+                serverURI: ftree.getServerURI(),
                 backURI: backURI,
                 type: about,
                 id: false,
@@ -506,7 +506,7 @@
                   factType: resourceFactType,
                   termResults: termResults,
                   action: 'addfctp',
-                  serverURI: serverAPI(about),
+                  serverURI: ftree.getServerURI(),
                   backURI: backURI,
                   type: about,
                   currentFactType: false,
@@ -528,7 +528,7 @@
                 id = result.instances[0].id;
                 templateVars = {
                   action: 'editterm',
-                  serverURI: serverAPI(about, [['id', '=', id]]),
+                  serverURI: ftree.getServerURI(),
                   backURI: backURI,
                   type: about,
                   id: id,
@@ -549,7 +549,7 @@
                       factType: resourceFactType,
                       termResults: termResults,
                       action: 'editfctp',
-                      serverURI: serverAPI(about, [['id', '=', factTypeInstance.id]]),
+                      serverURI: ftree.getServerURI(),
                       backURI: backURI,
                       type: about,
                       currentFactType: factTypeInstance,
@@ -571,7 +571,7 @@
           case "del":
             templateVars = {
               action: 'del',
-              serverURI: serverAPI(about, [['id', '=', currentLocation[1][1]]]),
+              serverURI: ftree.getServerURI(),
               backURI: backURI,
               type: about,
               id: currentLocation[1][1],
