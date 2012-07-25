@@ -62,11 +62,11 @@ time.sleep(1)
 
 #here are the 11 remaining steps for this test case:
 
-find_and_click("//a[contains(@onclick,'pilot\"')]", "expand pilots")
+find_and_click("//a[contains(@onclick,\"pilot'\")]", "expand pilots")
 
-find_and_click("//a[contains(@onclick,'pilot/pilot-can_fly-plane_type\"')]", "can't expand pilot can fly plane type")
+find_and_click("//a[contains(@onclick,\"pilot/pilot-can_fly-plane_type'\")]", "can't expand pilot can fly plane type")
 
-find_and_click("//a[contains(@onclick,'pilot/pilot-can_fly-plane_type/pilot-can_fly-plane_type.3*del')]", "delete fact [Joachim can fly Boeing 747]")
+find_and_click("//a[contains(@onclick,\"pilot/pilot-can_fly-plane_type/pilot-can_fly-plane_type.3*del')]", "delete fact [Joachim can fly Boeing 747]")
 
 '''click -confirm- or whatever'''
 browser.find_element_by_xpath("//tr[@id='tr--data--pilot-can_fly-plane_type']//input[@type='submit']").click()
@@ -77,10 +77,10 @@ browser.find_element_by_xpath("//button[descendant::text()='Revise Request']").c
 time.sleep(1)
 
 '''expand pilot is experienced'''
-find_and_click("//a[contains(@onclick,'pilot/(pilot-can_fly-plane_type/pilot-can_fly-plane_type.3*del,pilot-is_experienced)\"')]", "expand pilot is experienced")
+find_and_click("//a[contains(@onclick,\"pilot/(pilot-can_fly-plane_type/pilot-can_fly-plane_type.3*del,pilot-is_experienced)'\")]", "expand pilot is experienced")
 
 '''delete joachim is experienced'''
-find_and_click("//a[contains(@onclick,'/pilot/(pilot-can_fly-plane_type/pilot-can_fly-plane_type.3*del,pilot-is_experienced/pilot-is_experienced.1*del)\"')]", "delete fact [Joachim is experienced]")
+find_and_click("//a[contains(@onclick,\"/pilot/(pilot-can_fly-plane_type/pilot-can_fly-plane_type.3*del,pilot-is_experienced/pilot-is_experienced.1*del)'\")]", "delete fact [Joachim is experienced]")
 
 '''click Apply All'''
 browser.find_element_by_xpath("//input[@value='Apply All Changes']").click()
