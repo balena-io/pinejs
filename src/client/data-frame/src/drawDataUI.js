@@ -12,7 +12,8 @@
       factTypeCollection: ejs.compile('<%\nfor(var i = 0; i < factTypeCollections.length; i++) {\n	var factTypeCollection = factTypeCollections[i]; %>\n	<tr id="tr--data--<%= factTypeCollection.resourceName %>">\n		<td><%\n			if(factTypeCollection.isExpanded) { %>\n				<div style="display:inline;background-color:"<%= altBackgroundColour %>"><%= factTypeCollection.resourceName %></div>\n				<div style="display:inline;background-color:"<%= altBackgroundColour %>">\n					<a href="<%= factTypeCollection.closeURI %>" onClick="location.hash=\'<%= factTypeCollection.closeHash %>\';return false">\n						<span title="Close" class="ui-icon ui-icon-circle-close"></span>\n					</a>\n				</div>\n				<%- factTypeCollection.html %><%\n			}\n			else { %>\n				<%= factTypeCollection.resourceName %>\n				<a href="<%= factTypeCollection.expandURI %>" onClick="location.hash=\'<%= factTypeCollection.expandHash %>\';return false">\n					<span title="See all" class="ui-icon ui-icon-search"></span>\n				</a><%\n			} %>\n		</td>\n	</tr><%\n} %>'),
       resourceCollection: ejs.compile('<div class="panel" style="background-color:<%= backgroundColour %>;">\n	<table id="tbl--<%= pid %>">\n		<tbody><%\n			for(var i = 0; i < resourceCollections.length; i++) {\n				var resourceCollection = resourceCollections[i]; %>\n				<tr id="tr--<%= pid %>--<%= resourceCollection.id %>">\n					<td><%\n						if(resourceCollection.isExpanded) { %>\n							<div style="display:inline;background-color:<%= altBackgroundColour %>">\n								<%- resourceCollection.resourceName %>\n								<a href="<%= resourceCollection.closeURI %>" onClick="location.hash=\'<%= resourceCollection.closeHash %>\';return false"><%\n									switch(resourceCollection.action) {\n										case "view":\n										case "edit":\n											%><span title="Close" class="ui-icon ui-icon-circle-close"></span><%\n										break;\n										case "del":\n											%>[unmark]<%\n									} %>\n								</a>\n							</div>\n							<%- resourceCollection.html %><%\n						}\n						else { %>\n							<%- resourceCollection.resourceName %>\n							<a href="<%= resourceCollection.viewURI %>" onClick="location.hash=\'<%= resourceCollection.viewHash %>\';return false">\n								<span title="View" class="ui-icon ui-icon-search"></span>\n							</a>\n							<a href="<%= resourceCollection.editURI %>" onClick="location.hash=\'<%= resourceCollection.editHash %>\';return false">\n								<span title="Edit" class="ui-icon ui-icon-pencil"></span>\n							</a>\n							<a href="<%= resourceCollection.deleteURI %>" onClick="location.hash=\'<%= resourceCollection.deleteHash %>\';return false">\n								<span title="Delete" class="ui-icon ui-icon-trash"></span>\n							</a><%\n						} %>\n					</td>\n				</tr><%\n			} %>\n			<tr>\n				<td>\n					<hr style="border:0px; width:90%; background-color: #999; height:1px;">\n				</td>\n			</tr>\n			<tr>\n				<td>\n					<a href="<%= addURI %>" onClick="location.hash=\'<%= addHash %>\';return false;">[(+)add new]</a>\n				</td>\n			</tr>\n			<%- addsHTML %>\n			<tr>\n				<td>\n					<hr style="border:0px; width:90%; background-color: #999; height:1px;">\n				</td>\n			</tr>\n			<%- templates.factTypeCollection(locals) %>\n		</tbody>\n	</table>\n</div>'),
       termView: ejs.compile('<div class="panel" style="background-color:<%= backgroundColour %>;"><%\n	for(var field in termInstance) { %>\n		<%= termInstance %>: <%= termInstance[field] %><br/><%\n	} %>\n</div>'),
-      factTypeView: ejs.compile('<div class="panel" style="background-color:<%= backgroundColour %>;">\n	id: <%= factTypeInstance.id %><br/><%\n	for(var i = 0; i < factType.length; i++) {\n		factTypePart = factType[i];\n		if(factTypePart[0] == "Term") { %>\n			<%= factTypeInstance[factTypePart[1]].value %> <%\n		}\n		else if(factTypePart[0] == "Verb") { %>\n			<%= factTypePart[1] %><%\n		}\n	} %>\n</div>')
+      factTypeView: ejs.compile('<div class="panel" style="background-color:<%= backgroundColour %>;">\n	id: <%= factTypeInstance.id %><br/><%\n	for(var i = 0; i < factType.length; i++) {\n		var factTypePart = factType[i];\n		if(factTypePart[0] == "Term") { %>\n			<%= factTypeInstance[factTypePart[1]].value %> <%\n		}\n		else if(factTypePart[0] == "Verb") { %>\n			<%= factTypePart[1] %><%\n		}\n	} %>\n</div>'),
+      topLevelTemplate: ejs.compile('<table id="terms">\n	<tbody><%\n		for(var i = 0; i < terms.length; i++) {\n			var term = terms[i]; %>\n			<tr id="tr--data--"<%= term.id %>">\n				<td><%\n					if(term.isExpanded) { %>\n						<div style="display:inline; background-color:#FFFFFF;">\n							<%= term.name %>\n							<a href="<%= term.closeURI %>" onClick="location.hash=\'<%= term.closeHash %>\';return false">\n								<span title="Close" class="ui-icon ui-icon-circle-close"></span>\n							</a>\n						</div>\n						<%- term.html %><%\n					}\n					else { %>\n						<%= term.name %>\n						<a href="<%= term.expandURI %>" onClick="location.hash=\'<%= term.expandHash %>\';return false">\n							<span title="See all" class="ui-icon ui-icon-search"></span>\n						</a><%\n					} %>\n				</td>\n			</tr><%\n		} %>\n	</tbody>\n</table><br/>\n<div align="left">\n	<input type="button" value="Apply All Changes" onClick="runTrans($(\'#terms\'));return false;">\n</div>')
     };
     requirejs(['data-frame/widgets/inputText'], function(inputText) {
       return templates.widgets.inputText = inputText;
@@ -214,25 +215,19 @@
       var rootURI;
       tree = createNavigableTree(tree);
       rootURI = location.pathname;
-      $("#dataTab").html("<table id='terms'><tbody><tr><td></td></tr></tbody></table><div align='left'><br/><input type='button' value='Apply All Changes' onClick='runTrans($(\"#terms\"));return false;'></div>");
       return serverRequest("GET", "/data/", {}, null, function(statusCode, result, headers) {
-        var asyncCallback, expandedTree, i, newb, npos, post, pre, term, _len, _ref, _results;
+        var asyncCallback, expandedTree, i, newb, term, _len, _ref, _results;
         asyncCallback = createAsyncQueueCallback(function(results) {
-          var item, _i, _len, _results;
-          results.sort(function(a, b) {
-            return a[0] - b[0];
-          });
-          _results = [];
-          for (_i = 0, _len = results.length; _i < _len; _i++) {
-            item = results[_i];
-            _results.push($("#terms").append(item[1]));
-          }
-          return _results;
-        }, function(errors) {
-          console.error(errors);
-          return rowCallback(idx, 'Error: ' + errors);
-        }, function(n, prod) {
-          return [n, prod];
+          var res, templateVars;
+          templateVars = {
+            terms: result.terms,
+            templates: templates
+          };
+          res = templates.topLevelTemplate(templateVars);
+          return $("#dataTab").html(res);
+        }, null, function(i, html) {
+          if (i !== false) result.terms[i].html = html;
+          return null;
         });
         asyncCallback.addWork(result.terms.length);
         asyncCallback.endAdding();
@@ -241,26 +236,23 @@
         for (i = 0, _len = _ref.length; i < _len; i++) {
           term = _ref[i];
           term = result.terms[i];
-          pre = "<tr id='tr--data--" + term.id + "'><td>";
-          post = "</td></tr>";
-          if (tree.isExpanded(term.id)) {
+          term.isExpanded = tree.isExpanded(term.id);
+          if (term.isExpanded) {
             expandedTree = tree.clone().descend(term.id);
-            npos = expandedTree.getNewURI("del");
-            pre += "<div style='display:inline; background-color:#FFFFFF;'>" + term.name + "</div>";
-            pre += "<div style='display:inline;background-color:#FFFFFF'><a href='" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a></div>";
-            _results.push((function(i, pre, post) {
+            term.deleteHash = '#!/' + expandedTree.getNewURI("del");
+            term.deleteURI = rootURI + term.deleteHash;
+            _results.push((function(i) {
               return serverRequest("GET", "/lfmodel/", {}, null, function(statusCode, result) {
                 var uid;
-                uid = new uidraw(i, asyncCallback.successCallback, pre, post, rootURI, true, expandedTree, result);
+                uid = new uidraw(i, asyncCallback.successCallback, '', '', rootURI, true, expandedTree, result);
                 return uid.subRowIn();
               });
-            })(i, pre, post));
+            })(i));
           } else {
             newb = ['collection', [term.id], ["mod"]];
-            npos = tree.getNewURI("add", newb);
-            pre += term.name;
-            pre += " <a href='" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false'><span title='See all' class='ui-icon ui-icon-search'></span></a>";
-            _results.push(asyncCallback.successCallback(i, pre + post));
+            term.expandHash = '#!/' + tree.getNewURI("add", newb);
+            term.expandURI = rootURI + term.deleteHash;
+            _results.push(asyncCallback.successCallback(false));
           }
         }
         return _results;

@@ -184,7 +184,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 			<div class="panel" style="background-color:<%= backgroundColour %>;">
 				id: <%= factTypeInstance.id %><br/><%
 				for(var i = 0; i < factType.length; i++) {
-					factTypePart = factType[i];
+					var factTypePart = factType[i];
 					if(factTypePart[0] == "Term") { %>
 						<%= factTypeInstance[factTypePart[1]].value %> <%
 					}
@@ -192,6 +192,37 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 						<%= factTypePart[1] %><%
 					}
 				} %>
+			</div>
+			''')
+		topLevelTemplate: ejs.compile('''
+			<table id="terms">
+				<tbody><%
+					for(var i = 0; i < terms.length; i++) {
+						var term = terms[i]; %>
+						<tr id="tr--data--"<%= term.id %>">
+							<td><%
+								if(term.isExpanded) { %>
+									<div style="display:inline; background-color:#FFFFFF;">
+										<%= term.name %>
+										<a href="<%= term.closeURI %>" onClick="location.hash='<%= term.closeHash %>';return false">
+											<span title="Close" class="ui-icon ui-icon-circle-close"></span>
+										</a>
+									</div>
+									<%- term.html %><%
+								}
+								else { %>
+									<%= term.name %>
+									<a href="<%= term.expandURI %>" onClick="location.hash='<%= term.expandHash %>';return false">
+										<span title="See all" class="ui-icon ui-icon-search"></span>
+									</a><%
+								} %>
+							</td>
+						</tr><%
+					} %>
+				</tbody>
+			</table><br/>
+			<div align="left">
+				<input type="button" value="Apply All Changes" onClick="runTrans($('#terms'));return false;">
 			</div>
 			''')
 	}
@@ -352,20 +383,19 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 	drawData = (tree) ->
 		tree = createNavigableTree(tree)
 		rootURI = location.pathname
-		$("#dataTab").html("<table id='terms'><tbody><tr><td></td></tr></tbody></table><div align='left'><br/><input type='button' value='Apply All Changes' onClick='runTrans($(\"#terms\"));return false;'></div>")
 		serverRequest("GET", "/data/", {}, null, (statusCode, result, headers) ->
 			asyncCallback = createAsyncQueueCallback(
-				(results) -> 
-					results.sort( (a, b) ->
-						a[0] - b[0]
-					)
-					for item in results
-						$("#terms").append(item[1])
-				(errors) ->
-					console.error(errors)
-					rowCallback(idx, 'Error: ' + errors)
-				(n, prod) ->
-					return [n, prod]
+				(results) ->
+					templateVars =
+						terms: result.terms
+						templates: templates
+					res = templates.topLevelTemplate(templateVars)
+					$("#dataTab").html(res)
+				null
+				(i, html) ->
+					if i != false
+						result.terms[i].html = html
+					return null
 			)
 			asyncCallback.addWork(result.terms.length)
 			asyncCallback.endAdding()
@@ -373,29 +403,23 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 			# SECTION: Top level resources
 			for term, i in result.terms
 				term = result.terms[i]
-				pre = "<tr id='tr--data--" + term.id + "'><td>"
-				
-				post = "</td></tr>"
-				if tree.isExpanded(term.id)
+				term.isExpanded = tree.isExpanded(term.id)
+				if term.isExpanded
 					# SECTION: Expanded resource
 					expandedTree = tree.clone().descend(term.id)
-					npos = expandedTree.getNewURI("del")
-					pre += "<div style='display:inline; background-color:#FFFFFF;'>" + term.name + "</div>"
-					pre += "<div style='display:inline;background-color:#FFFFFF'><a href='" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false'><span title='Close' class='ui-icon ui-icon-circle-close'></span></a></div>"
-
+					term.deleteHash = '#!/' + expandedTree.getNewURI("del")
+					term.deleteURI = rootURI + term.deleteHash
 					# request schema from server and store locally.
-					do (i, pre, post) ->
-						# TODO: We shouldn't really be requesting/using the SQL model on client side
+					do (i) ->
 						serverRequest("GET", "/lfmodel/", {}, null, (statusCode, result) ->
-							uid = new uidraw(i, asyncCallback.successCallback, pre, post, rootURI, true, expandedTree, result)
+							uid = new uidraw(i, asyncCallback.successCallback, '', '', rootURI, true, expandedTree, result)
 							uid.subRowIn()
 						)
 				else
 					newb = [ 'collection', [ term.id ], [ "mod" ] ]
-					npos = tree.getNewURI("add", newb)
-					pre += term.name
-					pre += " <a href='" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false'><span title='See all' class='ui-icon ui-icon-search'></span></a>"
-					asyncCallback.successCallback(i, pre + post)
+					term.expandHash = '#!/' + tree.getNewURI("add", newb)
+					term.expandURI = rootURI + term.deleteHash
+					asyncCallback.successCallback(false)
 		)
 
 	uidraw = (idx, rowCallback, pre, post, rootURI, even, ftree, cmod) ->
