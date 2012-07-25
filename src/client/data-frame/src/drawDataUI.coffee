@@ -431,10 +431,6 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 	uidraw = (idx, rowCallback, rootURI, even, ftree, cmod) ->
 		currentLocation = ftree.getCurrentLocation()
 		about = ftree.getAbout()
-		@adds = 0
-		@addsout = 0
-		@cols = 0
-		@colsout = 0
 		@type = "Term"
 		@schema = []
 		if even
@@ -467,17 +463,6 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 
 		@subRowIn = ->
 			if currentLocation[0] is 'collection'
-
-				# are there children with 'add' modifiers? huh?
-				for currBranch in currentLocation when currBranch[0] == 'instance' and currBranch[1][0] == about and currBranch[1][1] == undefined
-					for currBranchType in currBranch[2][1..] when currBranchType[0] == "add"
-						@adds++
-
-				# are there any subcollections?
-				for mod in cmod[1..] when mod[0] == "FactType"
-					for collection in mod[1..] when getIdent(collection) == about
-						@cols++
-
 				targ = serverAPI(about)
 				serverRequest("GET", targ, {}, null, (statusCode, result, headers) ->
 					resourceCollections = []
@@ -562,12 +547,13 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 						(n, prod) ->
 							return [n, prod]
 					)
+					i = 0
 					for currBranch, j in currentLocation[3..]
 						if currBranch[0] == 'instance' and currBranch[1][0] == about and currBranch[1][1] == undefined
 							for currBranchType in currBranch[2] when currBranchType[0] == "add"
 								newTree = ftree.clone().descendByIndex(j + 3)
 								addsCallback.addWork(1)
-								uid = new uidraw(++parent.addsout, addsCallback.successCallback, rootURI, not even, newTree, cmod)
+								uid = new uidraw(i++, addsCallback.successCallback, rootURI, not even, newTree, cmod)
 								uid.subRowIn()
 								break
 					addsCallback.endAdding()

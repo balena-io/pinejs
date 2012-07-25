@@ -262,10 +262,6 @@
       var about, currentLocation, getIdent, mod, parent, _i, _len, _ref;
       currentLocation = ftree.getCurrentLocation();
       about = ftree.getAbout();
-      this.adds = 0;
-      this.addsout = 0;
-      this.cols = 0;
-      this.colsout = 0;
       this.type = "Term";
       this.schema = [];
       if (even) {
@@ -302,32 +298,11 @@
         if (this.type === "FactType") this.schema = mod.slice(1);
       }
       this.subRowIn = function() {
-        var actn, backURI, branchType, collection, currBranch, currBranchType, html, mod, targ, templateVars, termFields, _j, _k, _l, _len2, _len3, _len4, _len5, _len6, _m, _n, _ref2, _ref3, _ref4, _ref5, _ref6;
+        var actn, backURI, branchType, html, targ, templateVars, termFields, _j, _len2, _ref2, _ref3;
         if (currentLocation[0] === 'collection') {
-          for (_j = 0, _len2 = currentLocation.length; _j < _len2; _j++) {
-            currBranch = currentLocation[_j];
-            if (currBranch[0] === 'instance' && currBranch[1][0] === about && currBranch[1][1] === void 0) {
-              _ref2 = currBranch[2].slice(1);
-              for (_k = 0, _len3 = _ref2.length; _k < _len3; _k++) {
-                currBranchType = _ref2[_k];
-                if (currBranchType[0] === "add") this.adds++;
-              }
-            }
-          }
-          _ref3 = cmod.slice(1);
-          for (_l = 0, _len4 = _ref3.length; _l < _len4; _l++) {
-            mod = _ref3[_l];
-            if (mod[0] === "FactType") {
-              _ref4 = mod.slice(1);
-              for (_m = 0, _len5 = _ref4.length; _m < _len5; _m++) {
-                collection = _ref4[_m];
-                if (getIdent(collection) === about) this.cols++;
-              }
-            }
-          }
           targ = serverAPI(about);
           return serverRequest("GET", targ, {}, null, function(statusCode, result, headers) {
-            var addsCallback, addsHTML, currBranch, currBranchType, expandedTree, factTypeCollections, factTypeCollectionsCallback, i, instance, j, mod, newTree, newb, resourceCollections, resourceCollectionsCallback, resourceName, termVerb, uid, _fn, _len10, _len6, _len7, _len8, _len9, _n, _o, _p, _ref5, _ref6, _ref7, _ref8, _ref9;
+            var addsCallback, addsHTML, currBranch, currBranchType, expandedTree, factTypeCollections, factTypeCollectionsCallback, i, instance, j, mod, newTree, newb, resourceCollections, resourceCollectionsCallback, resourceName, termVerb, uid, _fn, _j, _k, _l, _len2, _len3, _len4, _len5, _len6, _ref2, _ref3, _ref4, _ref5, _ref6;
             resourceCollections = [];
             resourceCollectionsCallback = createAsyncQueueCallback(function() {
               var addHash, html, templateVars;
@@ -352,7 +327,7 @@
               if (index !== false) resourceCollections[index].html = html;
               return null;
             });
-            _ref5 = result.instances;
+            _ref2 = result.instances;
             _fn = function(instance, i) {
               var expandedTree, uid;
               resourceCollections[i] = {
@@ -365,11 +340,11 @@
               } else if (parent.type === "FactType") {
                 resourceCollectionsCallback.addWork(1);
                 getResolvedFactType(parent.schema, instance, function(factTypeInstance) {
-                  var resourceName, schema, _len7, _n, _ref6;
+                  var resourceName, schema, _j, _len3, _ref3;
                   resourceName = '';
-                  _ref6 = parent.schema;
-                  for (_n = 0, _len7 = _ref6.length; _n < _len7; _n++) {
-                    schema = _ref6[_n];
+                  _ref3 = parent.schema;
+                  for (_j = 0, _len3 = _ref3.length; _j < _len3; _j++) {
+                    schema = _ref3[_j];
                     if (schema[0] === "Term") {
                       resourceName += factTypeInstance[schema[1]].value + " ";
                     } else if (schema[0] === "Verb") {
@@ -399,18 +374,18 @@
                 return resourceCollections[i].deleteURI = rootURI + resourceCollections[i].deleteHash;
               }
             };
-            for (i = 0, _len6 = _ref5.length; i < _len6; i++) {
-              instance = _ref5[i];
+            for (i = 0, _len2 = _ref2.length; i < _len2; i++) {
+              instance = _ref2[i];
               _fn(instance, i);
             }
             addsHTML = [];
             resourceCollectionsCallback.addWork(1);
             addsCallback = createAsyncQueueCallback(function(results) {
-              var i, item, _len7;
+              var i, item, _len3;
               results.sort(function(a, b) {
                 return a[0] - b[0];
               });
-              for (i = 0, _len7 = results.length; i < _len7; i++) {
+              for (i = 0, _len3 = results.length; i < _len3; i++) {
                 item = results[i];
                 addsHTML[i] = item[1];
               }
@@ -421,17 +396,18 @@
             }, function(n, prod) {
               return [n, prod];
             });
-            _ref6 = currentLocation.slice(3);
-            for (j = 0, _len7 = _ref6.length; j < _len7; j++) {
-              currBranch = _ref6[j];
+            i = 0;
+            _ref3 = currentLocation.slice(3);
+            for (j = 0, _len3 = _ref3.length; j < _len3; j++) {
+              currBranch = _ref3[j];
               if (currBranch[0] === 'instance' && currBranch[1][0] === about && currBranch[1][1] === void 0) {
-                _ref7 = currBranch[2];
-                for (_n = 0, _len8 = _ref7.length; _n < _len8; _n++) {
-                  currBranchType = _ref7[_n];
+                _ref4 = currBranch[2];
+                for (_j = 0, _len4 = _ref4.length; _j < _len4; _j++) {
+                  currBranchType = _ref4[_j];
                   if (!(currBranchType[0] === "add")) continue;
                   newTree = ftree.clone().descendByIndex(j + 3);
                   addsCallback.addWork(1);
-                  uid = new uidraw(++parent.addsout, addsCallback.successCallback, rootURI, !even, newTree, cmod);
+                  uid = new uidraw(i++, addsCallback.successCallback, rootURI, !even, newTree, cmod);
                   uid.subRowIn();
                   break;
                 }
@@ -450,13 +426,13 @@
               return null;
             });
             i = 0;
-            _ref8 = cmod.slice(1);
-            for (_o = 0, _len9 = _ref8.length; _o < _len9; _o++) {
-              mod = _ref8[_o];
+            _ref5 = cmod.slice(1);
+            for (_k = 0, _len5 = _ref5.length; _k < _len5; _k++) {
+              mod = _ref5[_k];
               if (mod[0] === "FactType") {
-                _ref9 = mod.slice(1);
-                for (_p = 0, _len10 = _ref9.length; _p < _len10; _p++) {
-                  termVerb = _ref9[_p];
+                _ref6 = mod.slice(1);
+                for (_l = 0, _len6 = _ref6.length; _l < _len6; _l++) {
+                  termVerb = _ref6[_l];
                   if (!(termVerb[1] === about)) continue;
                   resourceName = getIdent(mod);
                   factTypeCollections[i] = {
@@ -485,10 +461,10 @@
         } else if (currentLocation[0] === 'instance') {
           backURI = ftree.getNewURI('del');
           actn = "view";
-          _ref5 = currentLocation[2].slice(1);
-          for (_n = 0, _len6 = _ref5.length; _n < _len6; _n++) {
-            branchType = _ref5[_n];
-            if (!((_ref6 = branchType[0]) === "add" || _ref6 === "edit" || _ref6 === "del")) {
+          _ref2 = currentLocation[2].slice(1);
+          for (_j = 0, _len2 = _ref2.length; _j < _len2; _j++) {
+            branchType = _ref2[_j];
+            if (!((_ref3 = branchType[0]) === "add" || _ref3 === "edit" || _ref3 === "del")) {
               continue;
             }
             actn = branchType[0];
