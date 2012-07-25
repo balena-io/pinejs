@@ -74,12 +74,14 @@
           index = getIndexForResource(resourceName, resourceID);
           if (index !== false) {
             currBranch = currentLocation[index];
-            _ref = currBranch[2].slice(1);
-            for (_j = 0, _len2 = _ref.length; _j < _len2; _j++) {
-              currBranchType = _ref[_j];
-              if ((_ref2 = currBranchType[0]) === 'view' || _ref2 === 'edit' || _ref2 === 'del') {
-                return currBranchType[0];
-              }
+          } else {
+            currBranch = currentLocation;
+          }
+          _ref = currBranch[2].slice(1);
+          for (_j = 0, _len2 = _ref.length; _j < _len2; _j++) {
+            currBranchType = _ref[_j];
+            if ((_ref2 = currBranchType[0]) === 'view' || _ref2 === 'add' || _ref2 === 'edit' || _ref2 === 'del') {
+              return currBranchType[0];
             }
           }
           return 'view';
@@ -258,7 +260,7 @@
       });
     };
     renderResource = function(idx, rowCallback, rootURI, even, ftree, cmod) {
-      var about, actn, altBgColour, backURI, bgColour, branchType, currentLocation, getIdent, html, mod, resourceFactType, resourceType, targ, templateVars, termFields, _i, _j, _len, _len2, _ref, _ref2, _ref3;
+      var about, actn, altBgColour, backURI, bgColour, currentLocation, getIdent, html, mod, resourceFactType, resourceType, targ, templateVars, termFields, _i, _len, _ref;
       currentLocation = ftree.getCurrentLocation();
       about = ftree.getAbout();
       resourceType = "Term";
@@ -447,16 +449,7 @@
         });
       } else if (currentLocation[0] === 'instance') {
         backURI = '#!/' + ftree.getNewURI('del');
-        actn = "view";
-        _ref2 = currentLocation[2].slice(1);
-        for (_j = 0, _len2 = _ref2.length; _j < _len2; _j++) {
-          branchType = _ref2[_j];
-          if (!((_ref3 = branchType[0]) === "add" || _ref3 === "edit" || _ref3 === "del")) {
-            continue;
-          }
-          actn = branchType[0];
-          break;
-        }
+        actn = ftree.getAction();
         switch (actn) {
           case "view":
             if (resourceType === "Term") {

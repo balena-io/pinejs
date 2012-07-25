@@ -283,8 +283,10 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 				index = getIndexForResource(resourceName, resourceID)
 				if index != false
 					currBranch = currentLocation[index]
-					for currBranchType in currBranch[2][1..] when currBranchType[0] in ['view','edit','del']
-						return currBranchType[0]
+				else
+					currBranch = currentLocation
+				for currBranchType in currBranch[2][1..] when currBranchType[0] in ['view', 'add', 'edit', 'del']
+					return currBranchType[0]
 				return 'view'
 			getPid: () ->
 				pidTree = tree
@@ -592,12 +594,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 		else if currentLocation[0] == 'instance'
 			# backURI = serverAPI(about)
 			backURI = '#!/' + ftree.getNewURI('del')
-			actn = "view"
-
-			# find first action.
-			for branchType in currentLocation[2][1..] when branchType[0] in ["add", "edit", "del"]
-				actn = branchType[0]
-				break
+			actn = ftree.getAction()
 
 			switch actn
 				when "view"
