@@ -114,42 +114,64 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 			} %>
 			''')
 		resourceCollection: ejs.compile('''
-			<%
-			for(var i = 0; i < resourceCollections.length; i++) {
-				var resourceCollection = resourceCollections[i]; %>
-				<tr id="tr--<%= pid %>--<%= resourceCollection.id %>">
-					<td><%
-						if(resourceCollection.isExpanded) { %>
-							<div style="display:inline;background-color:<%= altBackgroundColour %>">
-								<%- resourceCollection.resourceName %>
-								<a href="<%= resourceCollection.closeURI %>" onClick="location.hash='<%= resourceCollection.closeHash %>';return false"><%
-									switch(resourceCollection.action) {
-										case "view":
-										case "edit":
-											%><span title="Close" class="ui-icon ui-icon-circle-close"></span><%
-										break;
-										case "del":
-											%>[unmark]<%
+			<div class="panel" style="background-color:<%= backgroundColour %>;">
+				<table id="tbl--<%= pid %>">
+					<tbody><%
+						for(var i = 0; i < resourceCollections.length; i++) {
+							var resourceCollection = resourceCollections[i]; %>
+							<tr id="tr--<%= pid %>--<%= resourceCollection.id %>">
+								<td><%
+									if(resourceCollection.isExpanded) { %>
+										<div style="display:inline;background-color:<%= altBackgroundColour %>">
+											<%- resourceCollection.resourceName %>
+											<a href="<%= resourceCollection.closeURI %>" onClick="location.hash='<%= resourceCollection.closeHash %>';return false"><%
+												switch(resourceCollection.action) {
+													case "view":
+													case "edit":
+														%><span title="Close" class="ui-icon ui-icon-circle-close"></span><%
+													break;
+													case "del":
+														%>[unmark]<%
+												} %>
+											</a>
+										</div>
+										<%- resourceCollection.html %><%
+									}
+									else { %>
+										<%- resourceCollection.resourceName %>
+										<a href="<%= resourceCollection.viewURI %>" onClick="location.hash='<%= resourceCollection.viewHash %>';return false">
+											<span title="View" class="ui-icon ui-icon-search"></span>
+										</a>
+										<a href="<%= resourceCollection.editURI %>" onClick="location.hash='<%= resourceCollection.editHash %>';return false">
+											<span title="Edit" class="ui-icon ui-icon-pencil"></span>
+										</a>
+										<a href="<%= resourceCollection.deleteURI %>" onClick="location.hash='<%= resourceCollection.deleteHash %>';return false">
+											<span title="Delete" class="ui-icon ui-icon-trash"></span>
+										</a><%
 									} %>
-								</a>
-							</div>
-							<%- resourceCollection.html %><%
-						}
-						else { %>
-							<%- resourceCollection.resourceName %>
-							<a href="<%= resourceCollection.viewURI %>" onClick="location.hash='<%= resourceCollection.viewHash %>';return false">
-								<span title="View" class="ui-icon ui-icon-search"></span>
-							</a>
-							<a href="<%= resourceCollection.editURI %>" onClick="location.hash='<%= resourceCollection.editHash %>';return false">
-								<span title="Edit" class="ui-icon ui-icon-pencil"></span>
-							</a>
-							<a href="<%= resourceCollection.deleteURI %>" onClick="location.hash='<%= resourceCollection.deleteHash %>';return false">
-								<span title="Delete" class="ui-icon ui-icon-trash"></span>
-							</a><%
+								</td>
+							</tr><%
 						} %>
-					</td>
-				</tr><%
-			} %>
+						<tr>
+							<td>
+								<hr style="border:0px; width:90%; background-color: #999; height:1px;">
+							</td>
+						</tr>
+						<tr>
+							<td>
+								<a href="<%= addURI %>" onClick="location.hash='<%= addHash %>';return false;">[(+)add new]</a>
+							</td>
+						</tr>
+						<%- addsHTML %>
+						<tr>
+							<td>
+								<hr style="border:0px; width:90%; background-color: #999; height:1px;">
+							</td>
+						</tr>
+						<%- templates.factTypeCollection(locals) %>
+					</tbody>
+				</table>
+			</div>
 			''')
 		termView: ejs.compile('''
 			<div class="panel" style="background-color:<%= backgroundColour %>;"><%
@@ -379,9 +401,6 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 	uidraw = (idx, rowCallback, pre, post, rootURI, even, ftree, cmod) ->
 		currentLocation = ftree.getCurrentLocation()
 		about = ftree.getAbout()
-		@pre = pre
-		@post = post
-		
 		@adds = 0
 		@addsout = 0
 		@cols = 0
@@ -402,10 +421,10 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 				results.sort( (a, b) ->
 					a[0] - b[0]
 				)
-				html = parent.pre
+				html = pre
 				for item in results
 					html += item[1]
-				html += parent.post
+				html += post
 				rowCallback(idx, html)
 			(errors) ->
 				console.error(errors)
@@ -435,8 +454,6 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 
 		@subRowIn = ->
 			if currentLocation[0] is 'collection'
-				@pre += "<div class='panel' style='background-color:" + @bg + ";'><table id='tbl--" + ftree.getPid() + "'><tbody>"
-				@post += "</tbody></table></div>"
 
 				# are there children with 'add' modifiers? huh?
 				for currBranch in currentLocation when currBranch[0] == 'instance' and currBranch[1][0] == about and currBranch[1][1] == undefined
@@ -450,21 +467,27 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 
 				targ = serverAPI(about)
 				serverRequest("GET", targ, {}, null, (statusCode, result, headers) ->
-					asyncCallback.addWork(3 + parent.adds + 1 + 1)
+					asyncCallback.addWork(1)
 					asyncCallback.endAdding()
 					resourceCollections = []
 					resourceCollectionsCallback = createAsyncQueueCallback(
 						() ->
+							addHash = '!#/' + ftree.getChangeURI('add', about)
 							templateVars =
 								pid: ftree.getPid()
+								addHash: addHash
+								addURI: rootURI + addHash
+								addsHTML: addsHTML
+								factTypeCollections: factTypeCollections
 								resourceCollections: resourceCollections
 								backgroundColour: parent.bg
 								altBackgroundColour: parent.unbg
+								templates: templates
 							res = templates.resourceCollection(templateVars)
 							asyncCallback.successCallback(0, res)
 						(errors) ->
 							console.error(errors)
-							asyncCallback.successCallback(0, 'Error: ' + errors)
+							asyncCallback.successCallback('Resource Collections Errors: ' + errors)
 						(index, html, isResourceName) ->
 							if index != false
 								resourceCollections[index].html = html
@@ -511,38 +534,41 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 								resourceCollections[i].editURI = rootURI + resourceCollections[i].editHash
 								resourceCollections[i].deleteHash = '#!/' + ftree.getChangeURI('del', about, instance.id)
 								resourceCollections[i].deleteURI = rootURI + resourceCollections[i].deleteHash
-					resourceCollectionsCallback.endAdding()
-
-					asyncCallback.successCallback(1, "<tr><td><hr style='border:0px; width:90%; background-color: #999; height:1px;'></td></tr>")
-					# get link which adds an 'add inst' dialog.
-					npos = ftree.getChangeURI('add', about)
-					asyncCallback.successCallback(2, "<tr><td><a href = '" + rootURI + "#!/" + npos + "' onClick='location.hash=\"#!/" + npos + "\";return false;'>[(+)add new]</a></td></tr>")
-					# launch more uids to render the adds
-					posl = targ + "/" + about
-
+					
+					addsHTML = ''
+					resourceCollectionsCallback.addWork(1)
+					addsCallback = createAsyncQueueCallback(
+						(results) ->
+							results.sort( (a, b) ->
+								a[0] - b[0]
+							)
+							for item in results
+								addsHTML += item[1]
+							resourceCollectionsCallback.successCallback(false)
+						(errors) ->
+							console.error(errors)
+							resourceCollectionsCallback.errorCallback('Adds Errors: ' + errors)
+						(n, prod) ->
+							return [n, prod]
+					)
 					for currBranch, j in currentLocation[3..]
 						if currBranch[0] == 'instance' and currBranch[1][0] == about and currBranch[1][1] == undefined
 							for currBranchType in currBranch[2] when currBranchType[0] == "add"
 								newTree = ftree.clone().descendByIndex(j + 3)
-								uid = new uidraw(2 + ++parent.addsout, asyncCallback.successCallback, "<tr><td>", "</td></tr>", rootURI, not even, newTree, cmod)
+								addsCallback.addWork(1)
+								uid = new uidraw(++parent.addsout, addsCallback.successCallback, "<tr><td>", "</td></tr>", rootURI, not even, newTree, cmod)
 								uid.subRowIn()
 								break
-
-					asyncCallback.successCallback(2 + parent.adds + 1, "<tr><td><hr style='border:0px; width:90%; background-color: #999; height:1px;'></td></tr>")
+					addsCallback.endAdding()
 
 					factTypeCollections = []
+					resourceCollectionsCallback.addWork(1)
 					factTypeCollectionsCallback = createAsyncQueueCallback(
 						() ->
-							templateVars =
-								factTypeCollections: factTypeCollections
-								templates: templates
-								backgroundColour: parent.bg
-								altBackgroundColour: parent.unbg
-							res = templates.factTypeCollection(templateVars)
-							asyncCallback.successCallback(2 + parent.adds + 1, res)
+							resourceCollectionsCallback.successCallback(false)
 						(errors) ->
 							console.error(errors)
-							asyncCallback.successCallback(2 + parent.adds + 1, 'Error: ' + errors)
+							resourceCollectionsCallback.errorCallback('Fact Type Collection Errors: ' + errors)
 						(index, html) ->
 							factTypeCollections[index].html = html
 							return null
@@ -569,6 +595,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 								factTypeCollections[i].expandURI = rootURI + factTypeCollections[i].expandHash
 							i++
 					factTypeCollectionsCallback.endAdding()
+					resourceCollectionsCallback.endAdding()
 				)
 			else if currentLocation[0] == 'instance'
 				asyncCallback.addWork(1)
