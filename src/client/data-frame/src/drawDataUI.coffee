@@ -186,18 +186,22 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 				} %>
 			</div>
 			''')
-		factTypeView: ejs.compile('''
-			<div class="panel" style="background-color:<%= backgroundColour %>;">
-				id: <%= factTypeInstance.id %><br/><%
+		factTypeName: ejs.compile('''
+				<%
 				for(var i = 0; i < factType.length; i++) {
 					var factTypePart = factType[i];
 					if(factTypePart[0] == "Term") { %>
 						<%= factTypeInstance[factTypePart[1]].value %> <%
 					}
 					else if(factTypePart[0] == "Verb") { %>
-						<%= factTypePart[1] %><%
+						<em><%= factTypePart[1] %></em><%
 					}
 				} %>
+				''')
+		factTypeView: ejs.compile('''
+			<div class="panel" style="background-color:<%= backgroundColour %>;">
+				id: <%= factTypeInstance.id %><br/>
+				<%- templates.factTypeName(locals) %>
 			</div>
 			''')
 		topLevelTemplate: ejs.compile('''
@@ -500,13 +504,10 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 							resourceCollectionsCallback.addWork(1)
 							getResolvedFactType(resourceFactType, instance,
 								(factTypeInstance) -> 
-									resourceName = ''
-									for factTypePart in resourceFactType
-										if factTypePart[0] == "Term"
-											resourceName += factTypeInstance[factTypePart[1]].value + " "
-										else if factTypePart[0] == "Verb"
-											resourceName += "<em>" + factTypePart[1] + "</em> "
-									resourceCollections[i].resourceName = resourceName
+									templateVars =
+										factType: resourceFactType
+										factTypeInstance: factTypeInstance
+									resourceCollections[i].resourceName = templates.factTypeName(templateVars)
 									resourceCollectionsCallback.successCallback(false)
 								(errors) ->
 									console.error(errors)
