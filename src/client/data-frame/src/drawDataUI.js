@@ -260,7 +260,7 @@
       });
     };
     renderResource = function(idx, rowCallback, rootURI, even, ftree, cmod) {
-      var about, actn, altBgColour, backURI, bgColour, currentLocation, getIdent, html, mod, resourceFactType, resourceType, templateVars, termFields, _i, _len, _ref;
+      var about, actn, altBgColour, bgColour, currentLocation, getIdent, html, mod, resourceFactType, resourceType, templateVars, termFields, _i, _len, _ref;
       currentLocation = ftree.getCurrentLocation();
       about = ftree.getAbout();
       resourceType = "Term";
@@ -447,33 +447,35 @@
           return resourceCollectionsCallback.endAdding();
         });
       } else if (currentLocation[0] === 'instance') {
-        backURI = '#!/' + ftree.getNewURI('del');
         actn = ftree.getAction();
+        templateVars = {
+          serverURI: ftree.getServerURI(),
+          backURI: '#!/' + ftree.getNewURI('del'),
+          type: about,
+          id: currentLocation[1][1],
+          backgroundColour: bgColour,
+          altBackgroundColour: altBgColour,
+          templates: templates
+        };
         switch (actn) {
           case "view":
             if (resourceType === "Term") {
               return serverRequest("GET", ftree.getServerURI(), {}, null, function(statusCode, result, headers) {
-                var html, templateVars;
-                templateVars = {
-                  termInstance: result.instances[0],
-                  backgroundColour: bgColour,
-                  altBackgroundColour: altBgColour,
-                  templates: templates
-                };
+                var html;
+                templateVars = $.extend(templateVars, {
+                  termInstance: result.instances[0]
+                });
                 html = templates.termView(templateVars);
                 return rowCallback(idx, html);
               });
             } else if (resourceType === "FactType") {
               return serverRequest("GET", ftree.getServerURI(), {}, null, function(statusCode, result, headers) {
                 return getResolvedFactType(resourceFactType, result.instances[0], function(factTypeInstance) {
-                  var html, templateVars;
-                  templateVars = {
+                  var html;
+                  templateVars = $.extend(templateVars, {
                     factType: resourceFactType,
-                    factTypeInstance: factTypeInstance,
-                    backgroundColour: bgColour,
-                    altBackgroundColour: altBgColour,
-                    templates: templates
-                  };
+                    factTypeInstance: factTypeInstance
+                  });
                   html = templates.factTypeView(templateVars);
                   return rowCallback(idx, html);
                 }, function(errors) {
@@ -486,35 +488,23 @@
           case "add":
             if (resourceType === "Term") {
               termFields = [['Text', 'value', 'Name', []]];
-              templateVars = {
+              templateVars = $.extend(templateVars, {
                 action: 'addterm',
-                serverURI: ftree.getServerURI(),
-                backURI: backURI,
-                type: about,
                 id: false,
                 term: false,
-                termFields: termFields,
-                backgroundColour: bgColour,
-                altBackgroundColour: altBgColour,
-                templates: templates
-              };
+                termFields: termFields
+              });
               html = templates.termForm(templateVars);
               return rowCallback(idx, html);
             } else if (resourceType === "FactType") {
               return getTermResults(resourceFactType, function(termResults) {
-                templateVars = {
+                templateVars = $.extend(templateVars, {
                   factType: resourceFactType,
                   termResults: termResults,
                   action: 'addfctp',
-                  serverURI: ftree.getServerURI(),
-                  backURI: backURI,
-                  type: about,
                   currentFactType: false,
-                  id: false,
-                  backgroundColour: bgColour,
-                  altBackgroundColour: altBgColour,
-                  templates: templates
-                };
+                  id: false
+                });
                 html = templates.factTypeForm(templateVars);
                 return rowCallback(idx, html);
               });
@@ -526,18 +516,12 @@
               return serverRequest("GET", ftree.getServerURI(), {}, null, function(statusCode, result, headers) {
                 var id;
                 id = result.instances[0].id;
-                templateVars = {
+                templateVars = $.extend(templateVars, {
                   action: 'editterm',
-                  serverURI: ftree.getServerURI(),
-                  backURI: backURI,
-                  type: about,
                   id: id,
                   term: result.instances[0],
-                  termFields: termFields,
-                  backgroundColour: bgColour,
-                  altBackgroundColour: altBgColour,
-                  templates: templates
-                };
+                  termFields: termFields
+                });
                 html = templates.termForm(templateVars);
                 return rowCallback(idx, html);
               });
@@ -545,19 +529,14 @@
               return serverRequest("GET", ftree.getServerURI(), {}, null, function(statusCode, result, headers) {
                 return getResolvedFactType(resourceFactType, result.instances[0], function(factTypeInstance) {
                   return getTermResults(resourceFactType, function(termResults) {
-                    templateVars = {
+                    templateVars = $.extend(templateVars, {
                       factType: resourceFactType,
                       termResults: termResults,
                       action: 'editfctp',
-                      serverURI: ftree.getServerURI(),
-                      backURI: backURI,
                       type: about,
                       currentFactType: factTypeInstance,
-                      id: factTypeInstance.id,
-                      backgroundColour: bgColour,
-                      altBackgroundColour: altBgColour,
-                      templates: templates
-                    };
+                      id: factTypeInstance.id
+                    });
                     html = templates.factTypeForm(templateVars);
                     return rowCallback(idx, html);
                   });
@@ -569,16 +548,10 @@
             }
             break;
           case "del":
-            templateVars = {
+            templateVars = $.extend(templateVars, {
               action: 'del',
-              serverURI: ftree.getServerURI(),
-              backURI: backURI,
-              type: about,
-              id: currentLocation[1][1],
-              backgroundColour: bgColour,
-              altBackgroundColour: altBgColour,
-              templates: templates
-            };
+              id: currentLocation[1][1]
+            });
             html = templates.deleteForm(templateVars);
             return rowCallback(idx, html);
         }

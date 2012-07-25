@@ -591,19 +591,23 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 				resourceCollectionsCallback.endAdding()
 			)
 		else if currentLocation[0] == 'instance'
-			# backURI = serverAPI(about)
-			backURI = '#!/' + ftree.getNewURI('del')
 			actn = ftree.getAction()
+			templateVars =
+				serverURI: ftree.getServerURI()
+				backURI: '#!/' + ftree.getNewURI('del')
+				type: about
+				id: currentLocation[1][1]
+				backgroundColour: bgColour
+				altBackgroundColour: altBgColour
+				templates: templates 
 
 			switch actn
 				when "view"
 					if resourceType == "Term"
 						serverRequest("GET", ftree.getServerURI(), {}, null, (statusCode, result, headers) ->
-							templateVars =
+							templateVars = $.extend(templateVars, {
 								termInstance: result.instances[0]
-								backgroundColour: bgColour
-								altBackgroundColour: altBgColour
-								templates: templates
+							})
 							html = templates.termView(templateVars)
 							rowCallback(idx, html)
 						)
@@ -611,12 +615,10 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 						serverRequest("GET", ftree.getServerURI(), {}, null, (statusCode, result, headers) ->
 							getResolvedFactType(resourceFactType, result.instances[0],
 								(factTypeInstance) -> 
-									templateVars =
+									templateVars = $.extend(templateVars, {
 										factType: resourceFactType
 										factTypeInstance: factTypeInstance
-										backgroundColour: bgColour
-										altBackgroundColour: altBgColour
-										templates: templates
+									})
 									html = templates.factTypeView(templateVars)
 									rowCallback(idx, html)
 								(errors) ->
@@ -629,33 +631,23 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 					if resourceType == "Term"
 						# TODO: The termFields info should come from a client model
 						termFields = [['Text', 'value', 'Name', []]]
-						templateVars =
+						templateVars = $.extend(templateVars, {
 							action: 'addterm'
-							serverURI: ftree.getServerURI()
-							backURI: backURI
-							type: about
 							id: false
 							term: false
 							termFields: termFields
-							backgroundColour: bgColour
-							altBackgroundColour: altBgColour
-							templates: templates
+						})
 						html = templates.termForm(templateVars)
 						rowCallback(idx, html)
 					else if resourceType == "FactType"
 						getTermResults(resourceFactType, (termResults) ->
-							templateVars =
+							templateVars = $.extend(templateVars, {
 								factType: resourceFactType
 								termResults: termResults
 								action: 'addfctp'
-								serverURI: ftree.getServerURI()
-								backURI: backURI
-								type: about
 								currentFactType: false
 								id: false
-								backgroundColour: bgColour
-								altBackgroundColour: altBgColour
-								templates: templates
+							})
 							html = templates.factTypeForm(templateVars)
 							rowCallback(idx, html)
 						)
@@ -666,17 +658,12 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 
 						serverRequest("GET", ftree.getServerURI(), {}, null, (statusCode, result, headers) ->
 							id = result.instances[0].id
-							templateVars =
+							templateVars = $.extend(templateVars, {
 								action: 'editterm'
-								serverURI: ftree.getServerURI()
-								backURI: backURI
-								type: about
 								id: id
 								term: result.instances[0]
 								termFields: termFields
-								backgroundColour: bgColour
-								altBackgroundColour: altBgColour
-								templates: templates
+							})
 							html = templates.termForm(templateVars)
 							rowCallback(idx, html)
 						)
@@ -685,18 +672,14 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 							getResolvedFactType(resourceFactType, result.instances[0],
 								(factTypeInstance) ->
 									getTermResults(resourceFactType, (termResults) ->
-										templateVars =
+										templateVars = $.extend(templateVars, {
 											factType: resourceFactType
 											termResults: termResults
 											action: 'editfctp'
-											serverURI: ftree.getServerURI()
-											backURI: backURI
 											type: about
 											currentFactType: factTypeInstance
 											id: factTypeInstance.id
-											backgroundColour: bgColour
-											altBackgroundColour: altBgColour
-											templates: templates
+										})
 										html = templates.factTypeForm(templateVars)
 										rowCallback(idx, html)
 									)
@@ -706,15 +689,10 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 							)
 						)
 				when "del"
-					templateVars =
+					templateVars = $.extend(templateVars, {
 						action: 'del'
-						serverURI: ftree.getServerURI()
-						backURI: backURI
-						type: about
 						id: currentLocation[1][1]
-						backgroundColour: bgColour
-						altBackgroundColour: altBgColour
-						templates: templates 
+					})
 					html = templates.deleteForm(templateVars)
 					rowCallback(idx, html)
 
