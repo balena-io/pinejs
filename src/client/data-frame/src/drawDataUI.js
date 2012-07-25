@@ -249,7 +249,7 @@
           } else {
             newb = ['collection', [term.id], ["mod"]];
             term.expandHash = '#!/' + tree.getNewURI("add", newb);
-            term.expandURI = rootURI + term.deleteHash;
+            term.expandURI = rootURI + term.expandHash;
             _results.push(asyncCallback.successCallback(false));
           }
         }

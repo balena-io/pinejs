@@ -423,7 +423,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 				else
 					newb = [ 'collection', [ term.id ], [ "mod" ] ]
 					term.expandHash = '#!/' + tree.getNewURI("add", newb)
-					term.expandURI = rootURI + term.deleteHash
+					term.expandURI = rootURI + term.expandHash
 					asyncCallback.successCallback(false)
 		)
 
