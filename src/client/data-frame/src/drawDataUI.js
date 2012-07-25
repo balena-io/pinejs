@@ -259,19 +259,18 @@
       });
     };
     uidraw = function(idx, rowCallback, rootURI, even, ftree, cmod) {
-      var about, currentLocation, getIdent, mod, parent, _i, _len, _ref;
+      var about, altBgColour, bgColour, currentLocation, getIdent, mod, resourceFactType, resourceType, _i, _len, _ref;
       currentLocation = ftree.getCurrentLocation();
       about = ftree.getAbout();
-      this.type = "Term";
-      this.schema = [];
+      resourceType = "Term";
+      resourceFactType = [];
       if (even) {
-        this.bg = "#FFFFFF";
-        this.unbg = "#EEEEEE";
+        bgColour = "#FFFFFF";
+        altBgColour = "#EEEEEE";
       } else {
-        this.bg = "#EEEEEE";
-        this.unbg = "#FFFFFF";
+        bgColour = "#EEEEEE";
+        altBgColour = "#FFFFFF";
       }
-      parent = this;
       getIdent = function(mod) {
         var factTypePart, ident, _i, _len, _ref;
         switch (mod[0]) {
@@ -294,8 +293,8 @@
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         mod = _ref[_i];
         if (!(getIdent(mod) === about)) continue;
-        this.type = mod[0];
-        if (this.type === "FactType") this.schema = mod.slice(1);
+        resourceType = mod[0];
+        if (resourceType === "FactType") resourceFactType = mod.slice(1);
       }
       this.subRowIn = function() {
         var actn, backURI, branchType, html, targ, templateVars, termFields, _j, _len2, _ref2, _ref3;
@@ -314,8 +313,8 @@
                 addsHTML: addsHTML,
                 factTypeCollections: factTypeCollections,
                 resourceCollections: resourceCollections,
-                backgroundColour: parent.bg,
-                altBackgroundColour: parent.unbg,
+                backgroundColour: bgColour,
+                altBackgroundColour: altBgColour,
                 templates: templates
               };
               html = templates.resourceCollection(templateVars);
@@ -335,20 +334,19 @@
                 action: ftree.getAction(about, [instance.id, instance.value]),
                 id: instance.id
               };
-              if (parent.type === "Term") {
+              if (resourceType === "Term") {
                 resourceCollections[i].resourceName = instance.value;
-              } else if (parent.type === "FactType") {
+              } else if (resourceType === "FactType") {
                 resourceCollectionsCallback.addWork(1);
-                getResolvedFactType(parent.schema, instance, function(factTypeInstance) {
-                  var resourceName, schema, _j, _len3, _ref3;
+                getResolvedFactType(resourceFactType, instance, function(factTypeInstance) {
+                  var factTypePart, resourceName, _j, _len3;
                   resourceName = '';
-                  _ref3 = parent.schema;
-                  for (_j = 0, _len3 = _ref3.length; _j < _len3; _j++) {
-                    schema = _ref3[_j];
-                    if (schema[0] === "Term") {
-                      resourceName += factTypeInstance[schema[1]].value + " ";
-                    } else if (schema[0] === "Verb") {
-                      resourceName += "<em>" + schema[1] + "</em> ";
+                  for (_j = 0, _len3 = resourceFactType.length; _j < _len3; _j++) {
+                    factTypePart = resourceFactType[_j];
+                    if (factTypePart[0] === "Term") {
+                      resourceName += factTypeInstance[factTypePart[1]].value + " ";
+                    } else if (factTypePart[0] === "Verb") {
+                      resourceName += "<em>" + factTypePart[1] + "</em> ";
                     }
                   }
                   resourceCollections[i].resourceName = resourceName;
@@ -472,29 +470,29 @@
           }
           switch (actn) {
             case "view":
-              if (this.type === "Term") {
+              if (resourceType === "Term") {
                 targ = serverAPI(about);
                 return serverRequest("GET", targ, {}, null, function(statusCode, result, headers) {
                   var html, templateVars;
                   templateVars = {
                     termInstance: result.instances[0],
-                    backgroundColour: parent.bg,
-                    altBackgroundColour: parent.unbg,
+                    backgroundColour: bgColour,
+                    altBackgroundColour: altBgColour,
                     templates: templates
                   };
                   html = templates.termView(templateVars);
                   return rowCallback(idx, html);
                 });
-              } else if (this.type === "FactType") {
+              } else if (resourceType === "FactType") {
                 targ = ftree.getServerURI();
                 return serverRequest("GET", targ, {}, null, function(statusCode, result, headers) {
-                  return getResolvedFactType(parent.schema, result.instances[0], function(factTypeInstance) {
+                  return getResolvedFactType(resourceFactType, result.instances[0], function(factTypeInstance) {
                     var html, templateVars;
                     templateVars = {
-                      factType: parent.schema,
+                      factType: resourceFactType,
                       factTypeInstance: factTypeInstance,
-                      backgroundColour: parent.bg,
-                      altBackgroundColour: parent.unbg,
+                      backgroundColour: bgColour,
+                      altBackgroundColour: altBgColour,
                       templates: templates
                     };
                     html = templates.factTypeView(templateVars);
@@ -507,7 +505,7 @@
               }
               break;
             case "add":
-              if (this.type === "Term") {
+              if (resourceType === "Term") {
                 termFields = [['Text', 'value', 'Name', []]];
                 templateVars = {
                   action: 'addterm',
@@ -517,16 +515,16 @@
                   id: false,
                   term: false,
                   termFields: termFields,
-                  backgroundColour: this.bg,
-                  altBackgroundColour: this.unbg,
+                  backgroundColour: bgColour,
+                  altBackgroundColour: altBgColour,
                   templates: templates
                 };
                 html = templates.termForm(templateVars);
                 return rowCallback(idx, html);
-              } else if (this.type === "FactType") {
-                return getTermResults(parent.schema, function(termResults) {
+              } else if (resourceType === "FactType") {
+                return getTermResults(resourceFactType, function(termResults) {
                   templateVars = {
-                    factType: parent.schema,
+                    factType: resourceFactType,
                     termResults: termResults,
                     action: 'addfctp',
                     serverURI: serverAPI(about),
@@ -534,8 +532,8 @@
                     type: about,
                     currentFactType: false,
                     id: false,
-                    backgroundColour: parent.bg,
-                    altBackgroundColour: parent.unbg,
+                    backgroundColour: bgColour,
+                    altBackgroundColour: altBgColour,
                     templates: templates
                   };
                   html = templates.factTypeForm(templateVars);
@@ -544,7 +542,7 @@
               }
               break;
             case "edit":
-              if (this.type === "Term") {
+              if (resourceType === "Term") {
                 termFields = [['Text', 'value', 'Name', []]];
                 targ = serverAPI(about);
                 return serverRequest("GET", targ, {}, null, function(statusCode, result, headers) {
@@ -558,20 +556,20 @@
                     id: id,
                     term: result.instances[0],
                     termFields: termFields,
-                    backgroundColour: parent.bg,
-                    altBackgroundColour: parent.unbg,
+                    backgroundColour: bgColour,
+                    altBackgroundColour: altBgColour,
                     templates: templates
                   };
                   html = templates.termForm(templateVars);
                   return rowCallback(idx, html);
                 });
-              } else if (this.type === "FactType") {
+              } else if (resourceType === "FactType") {
                 targ = ftree.getServerURI();
                 return serverRequest("GET", targ, {}, null, function(statusCode, result, headers) {
-                  return getResolvedFactType(parent.schema, result.instances[0], function(factTypeInstance) {
-                    return getTermResults(parent.schema, function(termResults) {
+                  return getResolvedFactType(resourceFactType, result.instances[0], function(factTypeInstance) {
+                    return getTermResults(resourceFactType, function(termResults) {
                       templateVars = {
-                        factType: parent.schema,
+                        factType: resourceFactType,
                         termResults: termResults,
                         action: 'editfctp',
                         serverURI: serverAPI(about, [['id', '=', factTypeInstance.id]]),
@@ -579,8 +577,8 @@
                         type: about,
                         currentFactType: factTypeInstance,
                         id: factTypeInstance.id,
-                        backgroundColour: parent.bg,
-                        altBackgroundColour: parent.unbg,
+                        backgroundColour: bgColour,
+                        altBackgroundColour: altBgColour,
                         templates: templates
                       };
                       html = templates.factTypeForm(templateVars);
@@ -600,8 +598,8 @@
                 backURI: serverAPI(about),
                 type: about,
                 id: currentLocation[1][1],
-                backgroundColour: this.bg,
-                altBackgroundColour: this.unbg,
+                backgroundColour: bgColour,
+                altBackgroundColour: altBgColour,
                 templates: templates
               };
               html = templates.deleteForm(templateVars);

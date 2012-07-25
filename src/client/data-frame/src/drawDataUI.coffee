@@ -431,16 +431,14 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 	uidraw = (idx, rowCallback, rootURI, even, ftree, cmod) ->
 		currentLocation = ftree.getCurrentLocation()
 		about = ftree.getAbout()
-		@type = "Term"
-		@schema = []
+		resourceType = "Term"
+		resourceFactType = []
 		if even
-			@bg = "#FFFFFF"
-			@unbg = "#EEEEEE"
+			bgColour = "#FFFFFF"
+			altBgColour = "#EEEEEE"
 		else
-			@bg = "#EEEEEE"
-			@unbg = "#FFFFFF"
-		
-		parent = this
+			bgColour = "#EEEEEE"
+			altBgColour = "#FFFFFF"
 
 		# TODO: This needs to be given by the server rather than generated here
 		getIdent = (mod) ->
@@ -457,9 +455,9 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 		
 		# is the thing we're talking about a term or a fact type?
 		for mod in cmod[1..] when getIdent(mod) == about
-			@type = mod[0]
-			if @type == "FactType"
-				@schema = mod[1..]
+			resourceType = mod[0]
+			if resourceType == "FactType"
+				resourceFactType = mod[1..]
 
 		@subRowIn = ->
 			if currentLocation[0] is 'collection'
@@ -476,8 +474,8 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 								addsHTML: addsHTML
 								factTypeCollections: factTypeCollections
 								resourceCollections: resourceCollections
-								backgroundColour: parent.bg
-								altBackgroundColour: parent.unbg
+								backgroundColour: bgColour
+								altBackgroundColour: altBgColour
 								templates: templates
 							html = templates.resourceCollection(templateVars)
 							rowCallback(idx, html)
@@ -497,18 +495,18 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 								action: ftree.getAction(about, [instance.id, instance.value])
 								id: instance.id
 							
-							if parent.type == "Term"
+							if resourceType == "Term"
 								resourceCollections[i].resourceName = instance.value
-							else if parent.type == "FactType"
+							else if resourceType == "FactType"
 								resourceCollectionsCallback.addWork(1)
-								getResolvedFactType(parent.schema, instance,
+								getResolvedFactType(resourceFactType, instance,
 									(factTypeInstance) -> 
 										resourceName = ''
-										for schema in parent.schema
-											if schema[0] == "Term"
-												resourceName += factTypeInstance[schema[1]].value + " "
-											else if schema[0] == "Verb"
-												resourceName += "<em>" + schema[1] + "</em> "
+										for factTypePart in resourceFactType
+											if factTypePart[0] == "Term"
+												resourceName += factTypeInstance[factTypePart[1]].value + " "
+											else if factTypePart[0] == "Verb"
+												resourceName += "<em>" + factTypePart[1] + "</em> "
 										resourceCollections[i].resourceName = resourceName
 										resourceCollectionsCallback.successCallback(false)
 									(errors) ->
@@ -606,27 +604,27 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 
 				switch actn
 					when "view"
-						if @type == "Term"
+						if resourceType == "Term"
 							targ = serverAPI(about)
 							serverRequest("GET", targ, {}, null, (statusCode, result, headers) ->
 								templateVars =
 									termInstance: result.instances[0]
-									backgroundColour: parent.bg
-									altBackgroundColour: parent.unbg
+									backgroundColour: bgColour
+									altBackgroundColour: altBgColour
 									templates: templates
 								html = templates.termView(templateVars)
 								rowCallback(idx, html)
 							)
-						else if @type == "FactType"
+						else if resourceType == "FactType"
 							targ = ftree.getServerURI()
 							serverRequest("GET", targ, {}, null, (statusCode, result, headers) ->
-								getResolvedFactType(parent.schema, result.instances[0],
+								getResolvedFactType(resourceFactType, result.instances[0],
 									(factTypeInstance) -> 
 										templateVars =
-											factType: parent.schema
+											factType: resourceFactType
 											factTypeInstance: factTypeInstance
-											backgroundColour: parent.bg
-											altBackgroundColour: parent.unbg
+											backgroundColour: bgColour
+											altBackgroundColour: altBgColour
 											templates: templates
 										html = templates.factTypeView(templateVars)
 										rowCallback(idx, html)
@@ -637,7 +635,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 								
 							)
 					when "add"
-						if @type == "Term"
+						if resourceType == "Term"
 							# TODO: The termFields info should come from a client model
 							termFields = [['Text', 'value', 'Name', []]]
 							templateVars =
@@ -648,15 +646,15 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 								id: false
 								term: false
 								termFields: termFields
-								backgroundColour: @bg
-								altBackgroundColour: @unbg
+								backgroundColour: bgColour
+								altBackgroundColour: altBgColour
 								templates: templates
 							html = templates.termForm(templateVars)
 							rowCallback(idx, html)
-						else if @type == "FactType"
-							getTermResults(parent.schema, (termResults) ->
+						else if resourceType == "FactType"
+							getTermResults(resourceFactType, (termResults) ->
 								templateVars =
-									factType: parent.schema
+									factType: resourceFactType
 									termResults: termResults
 									action: 'addfctp'
 									serverURI: serverAPI(about)
@@ -664,14 +662,14 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 									type: about
 									currentFactType: false
 									id: false
-									backgroundColour: parent.bg
-									altBackgroundColour: parent.unbg
+									backgroundColour: bgColour
+									altBackgroundColour: altBgColour
 									templates: templates
 								html = templates.factTypeForm(templateVars)
 								rowCallback(idx, html)
 							)
 					when "edit"
-						if @type == "Term"
+						if resourceType == "Term"
 							# TODO: The termFields info should come from a client model
 							termFields = [['Text', 'value', 'Name', []]]
 
@@ -686,20 +684,20 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 									id: id
 									term: result.instances[0]
 									termFields: termFields
-									backgroundColour: parent.bg
-									altBackgroundColour: parent.unbg
+									backgroundColour: bgColour
+									altBackgroundColour: altBgColour
 									templates: templates
 								html = templates.termForm(templateVars)
 								rowCallback(idx, html)
 							)
-						else if @type == "FactType"
+						else if resourceType == "FactType"
 							targ = ftree.getServerURI()
 							serverRequest("GET", targ, {}, null, (statusCode, result, headers) ->
-								getResolvedFactType(parent.schema, result.instances[0],
+								getResolvedFactType(resourceFactType, result.instances[0],
 									(factTypeInstance) ->
-										getTermResults(parent.schema, (termResults) ->
+										getTermResults(resourceFactType, (termResults) ->
 											templateVars =
-												factType: parent.schema
+												factType: resourceFactType
 												termResults: termResults
 												action: 'editfctp'
 												serverURI: serverAPI(about, [['id', '=', factTypeInstance.id]])
@@ -707,8 +705,8 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 												type: about
 												currentFactType: factTypeInstance
 												id: factTypeInstance.id
-												backgroundColour: parent.bg
-												altBackgroundColour: parent.unbg
+												backgroundColour: bgColour
+												altBackgroundColour: altBgColour
 												templates: templates
 											html = templates.factTypeForm(templateVars)
 											rowCallback(idx, html)
@@ -725,8 +723,8 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 							backURI: serverAPI(about)
 							type: about
 							id: currentLocation[1][1]
-							backgroundColour: @bg
-							altBackgroundColour: @unbg
+							backgroundColour: bgColour
+							altBackgroundColour: altBgColour
 							templates: templates 
 						html = templates.deleteForm(templateVars)
 						rowCallback(idx, html)
