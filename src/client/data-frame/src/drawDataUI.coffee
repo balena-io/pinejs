@@ -95,8 +95,8 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 				<tr id="tr--data--<%= factTypeCollection.resourceName %>">
 					<td><%
 						if(factTypeCollection.isExpanded) { %>
-							<div style="display:inline;background-color:"<%= altBackgroundColour %>"><%= factTypeCollection.resourceName %></div>
-							<div style="display:inline;background-color:"<%= altBackgroundColour %>">
+							<div style="display:inline;background-color:<%= altBackgroundColour %>">
+								<%= factTypeCollection.resourceName %>
 								<a href="<%= factTypeCollection.closeURI %>" onClick="location.hash='<%= factTypeCollection.closeHash %>';return false">
 									<span title="Close" class="ui-icon ui-icon-circle-close"></span>
 								</a>
