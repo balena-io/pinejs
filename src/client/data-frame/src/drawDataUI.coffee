@@ -121,7 +121,8 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 			</div>
 			''')
 		factTypeView: ejs.compile('''
-			<div class="panel" style="background-color:<%= backgroundColour %>;"><%
+			<div class="panel" style="background-color:<%= backgroundColour %>;">
+				id: <%= factTypeInstance.id %><br/><%
 				for(var i = 0; i < factType.length; i++) {
 					factTypePart = factType[i];
 					if(factTypePart[0] == "Term") { %>
@@ -563,7 +564,6 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 						else if @type == "FactType"
 							targ = ftree.getServerURI()
 							serverRequest("GET", targ, {}, null, (statusCode, result, headers) ->
-								res = "id: " + result.instances[0].id + "<br/>"
 								getResolvedFactType(parent.schema, result.instances[0],
 									(factTypeInstance) -> 
 										templateVars =
