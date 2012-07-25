@@ -260,18 +260,16 @@
       });
     };
     renderResource = function(idx, rowCallback, rootURI, even, ftree, cmod) {
-      var about, actn, altBgColour, bgColour, currentLocation, getIdent, html, mod, resourceFactType, resourceType, templateVars, termFields, _i, _len, _ref;
+      var about, actn, currentLocation, getIdent, html, mod, resourceFactType, resourceType, templateVars, termFields, _i, _len, _ref;
       currentLocation = ftree.getCurrentLocation();
       about = ftree.getAbout();
       resourceType = "Term";
       resourceFactType = [];
-      if (even) {
-        bgColour = "#FFFFFF";
-        altBgColour = "#EEEEEE";
-      } else {
-        bgColour = "#EEEEEE";
-        altBgColour = "#FFFFFF";
-      }
+      templateVars = {
+        templates: templates,
+        backgroundColour: even ? "#FFFFFF" : "#EEEEEE",
+        altBackgroundColour: even ? "#EEEEEE" : "#FFFFFF"
+      };
       getIdent = function(mod) {
         var factTypePart, ident, _i, _len, _ref;
         switch (mod[0]) {
@@ -302,19 +300,16 @@
           var addsCallback, addsHTML, currBranch, currBranchType, expandedTree, factTypeCollections, factTypeCollectionsCallback, i, instance, j, mod, newTree, newb, resourceCollections, resourceCollectionsCallback, resourceName, termVerb, _fn, _j, _k, _l, _len2, _len3, _len4, _len5, _len6, _ref2, _ref3, _ref4, _ref5, _ref6;
           resourceCollections = [];
           resourceCollectionsCallback = createAsyncQueueCallback(function() {
-            var addHash, html, templateVars;
+            var addHash, html;
             addHash = '#!/' + ftree.getChangeURI('add', about);
-            templateVars = {
+            templateVars = $.extend(templateVars, {
               pid: ftree.getPid(),
               addHash: addHash,
               addURI: rootURI + addHash,
               addsHTML: addsHTML,
               factTypeCollections: factTypeCollections,
-              resourceCollections: resourceCollections,
-              backgroundColour: bgColour,
-              altBackgroundColour: altBgColour,
-              templates: templates
-            };
+              resourceCollections: resourceCollections
+            });
             html = templates.resourceCollection(templateVars);
             return rowCallback(idx, html);
           }, function(errors) {
@@ -337,11 +332,10 @@
             } else if (resourceType === "FactType") {
               resourceCollectionsCallback.addWork(1);
               getResolvedFactType(resourceFactType, instance, function(factTypeInstance) {
-                var templateVars;
-                templateVars = {
+                templateVars = $.extend(templateVars, {
                   factType: resourceFactType,
                   factTypeInstance: factTypeInstance
-                };
+                });
                 resourceCollections[i].resourceName = templates.factTypeName(templateVars);
                 return resourceCollectionsCallback.successCallback(false);
               }, function(errors) {
@@ -448,15 +442,12 @@
         });
       } else if (currentLocation[0] === 'instance') {
         actn = ftree.getAction();
-        templateVars = {
+        templateVars = $.extend(templateVars, {
           serverURI: ftree.getServerURI(),
           backURI: '#!/' + ftree.getNewURI('del'),
           type: about,
-          id: currentLocation[1][1],
-          backgroundColour: bgColour,
-          altBackgroundColour: altBgColour,
-          templates: templates
-        };
+          id: currentLocation[1][1]
+        });
         switch (actn) {
           case "view":
             if (resourceType === "Term") {

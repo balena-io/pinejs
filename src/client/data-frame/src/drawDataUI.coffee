@@ -439,12 +439,10 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 		about = ftree.getAbout()
 		resourceType = "Term"
 		resourceFactType = []
-		if even
-			bgColour = "#FFFFFF"
-			altBgColour = "#EEEEEE"
-		else
-			bgColour = "#EEEEEE"
-			altBgColour = "#FFFFFF"
+		templateVars =
+			templates: templates
+			backgroundColour: if even then "#FFFFFF" else "#EEEEEE"
+			altBackgroundColour: if even then "#EEEEEE" else "#FFFFFF"
 
 		# TODO: This needs to be given by the server rather than generated here
 		getIdent = (mod) ->
@@ -471,16 +469,14 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 				resourceCollectionsCallback = createAsyncQueueCallback(
 					() ->
 						addHash = '#!/' + ftree.getChangeURI('add', about)
-						templateVars =
+						templateVars = $.extend(templateVars, {
 							pid: ftree.getPid()
 							addHash: addHash
 							addURI: rootURI + addHash
 							addsHTML: addsHTML
 							factTypeCollections: factTypeCollections
 							resourceCollections: resourceCollections
-							backgroundColour: bgColour
-							altBackgroundColour: altBgColour
-							templates: templates
+						})
 						html = templates.resourceCollection(templateVars)
 						rowCallback(idx, html)
 					(errors) ->
@@ -504,10 +500,11 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 						else if resourceType == "FactType"
 							resourceCollectionsCallback.addWork(1)
 							getResolvedFactType(resourceFactType, instance,
-								(factTypeInstance) -> 
-									templateVars =
+								(factTypeInstance) ->
+									templateVars = $.extend(templateVars, {
 										factType: resourceFactType
 										factTypeInstance: factTypeInstance
+									})
 									resourceCollections[i].resourceName = templates.factTypeName(templateVars)
 									resourceCollectionsCallback.successCallback(false)
 								(errors) ->
@@ -592,14 +589,12 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 			)
 		else if currentLocation[0] == 'instance'
 			actn = ftree.getAction()
-			templateVars =
+			templateVars = $.extend(templateVars, {
 				serverURI: ftree.getServerURI()
 				backURI: '#!/' + ftree.getNewURI('del')
 				type: about
 				id: currentLocation[1][1]
-				backgroundColour: bgColour
-				altBackgroundColour: altBgColour
-				templates: templates 
+			})
 
 			switch actn
 				when "view"
