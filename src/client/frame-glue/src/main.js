@@ -15,7 +15,7 @@ require(["ometa/ometa-base"], function() {
 		requireCSS('codemirror');
 		require(["codemirror"], function() {
 			requireCSS('codemirror-util/simple-hint.css')
-			require(["codemirror-util/simple-hint"], function() {
+			require(["codemirror-util/simple-hint", "codemirror-keymap/vim"], function() {
 				require(["codemirror-ometa-bridge/sbvr","codemirror-ometa-bridge/sbvrac"]);
 				/*#IFDEF server */
 				require(["codemirror-modes/plsql/plsql"], function() {/*#ENDIFDEF*/

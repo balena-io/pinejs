@@ -42,6 +42,7 @@
 			'ometa':					rootPath + 'external/ometa-js',
 			'codemirror':				rootPath + 'external/CodeMirror2/lib/codemirror',
 			'codemirror-util':			rootPath + 'external/CodeMirror2/lib/util',
+			'codemirror-keymap':		rootPath + 'external/CodeMirror2/keymap',
 			'codemirror-modes':			rootPath + 'external/CodeMirror2/mode',
 			'js-beautify':				rootPath + 'external/beautify/beautify',
 			'qunit':					rootPath + 'external/qunit/qunit',
