@@ -62,9 +62,11 @@ define(['ometa/ometa-base'], function() {
 					{tables.push(table)}
 				|	Where(indent):where
 					{indent + 'WHERE ' + where}:where
+				|	OrderBy(indent):orderBy
+					{indent + 'ORDER BY ' + orderBy}:orderBy
 				]*
 			]
-			-> ('SELECT ' + fields.join(', ') + indent + 'FROM ' + tables.join(',' + nestedIndent) + (where!=null ? where : '')),
+			-> ('SELECT ' + fields.join(', ') + indent + 'FROM ' + tables.join(',' + nestedIndent) + (where!=null ? where : '') + (orderBy!=null ? orderBy : '')),
 
 		DeleteQuery :indent =
 			{[]}:tables
@@ -184,6 +186,17 @@ define(['ometa/ometa-base'], function() {
 		Where :indent =
 			'Where'
 			RuleBody(indent),
+		
+		OrderBy :indent =
+			'OrderBy'
+			{[]}:orders
+			[	(	'ASC'
+				|	'DESC'
+				):order
+				Field:field
+				{orders.push(field + ' ' + order)}
+			]+
+			-> orders.join(', '),
 		
 		Field =
 			[	'Field'

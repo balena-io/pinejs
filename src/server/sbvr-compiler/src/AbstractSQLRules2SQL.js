@@ -72,7 +72,7 @@ define(["ometa/ometa-base"], (function() {
         "SelectQuery": function(indent) {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                nestedIndent, tables, fields, table, where;
+                nestedIndent, tables, fields, table, where, orderBy;
             nestedIndent = this._applyWithArgs("NestedIndent", indent);
             tables = [];
             this._form((function() {
@@ -87,11 +87,14 @@ define(["ometa/ometa-base"], (function() {
                         }), (function() {
                             where = this._applyWithArgs("Where", indent);
                             return where = ((indent + "WHERE ") + where)
+                        }), (function() {
+                            orderBy = this._applyWithArgs("OrderBy", indent);
+                            return orderBy = ((indent + "ORDER BY ") + orderBy)
                         }))
                     }))
                 }))
             }));
-            return ((((("SELECT " + fields.join(", ")) + indent) + "FROM ") + tables.join(("," + nestedIndent))) + ((where != null) ? where : ""))
+            return (((((("SELECT " + fields.join(", ")) + indent) + "FROM ") + tables.join(("," + nestedIndent))) + ((where != null) ? where : "")) + ((orderBy != null) ? orderBy : ""))
         },
         "DeleteQuery": function(indent) {
             var $elf = this,
@@ -269,6 +272,9 @@ define(["ometa/ometa-base"], (function() {
                                 }
                             }).call(this)
                         }), (function() {
+                            this._apply("Null");
+                            return fields.push("NULL")
+                        }), (function() {
                             field = this._apply("anything");
                             return fields.push((("\"" + field) + "\""))
                         }))
@@ -295,6 +301,30 @@ define(["ometa/ometa-base"], (function() {
                 _fromIdx = this.input.idx;
             this._applyWithArgs("exactly", "Where");
             return this._applyWithArgs("RuleBody", indent)
+        },
+        "OrderBy": function(indent) {
+            var $elf = this,
+                _fromIdx = this.input.idx,
+                orders, order, field;
+            this._applyWithArgs("exactly", "OrderBy");
+            orders = [];
+            this._many1((function() {
+                return this._form((function() {
+                    order = (function() {
+                        switch (this._apply('anything')) {
+                        case "ASC":
+                            return "ASC";
+                        case "DESC":
+                            return "DESC";
+                        default:
+                            throw fail
+                        }
+                    }).call(this);
+                    field = this._apply("Field");
+                    return orders.push(((field + " ") + order))
+                }))
+            }));
+            return orders.join(", ")
         },
         "Field": function() {
             var $elf = this,
