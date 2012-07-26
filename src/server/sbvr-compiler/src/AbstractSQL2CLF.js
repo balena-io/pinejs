@@ -27,12 +27,21 @@
       })();
     };
     return function(sqlModel) {
-      var baseTable, clfTables, id, idParts, table, tables, valueField;
+      var baseTable, clfTables, id, idParts, newID, part, table, tables, valueField;
       tables = sqlModel.tables;
       clfTables = {};
       for (id in tables) {
         table = tables[id];
         idParts = splitID(id);
+        newID = ((function() {
+          var _i, _len, _results;
+          _results = [];
+          for (_i = 0, _len = idParts.length; _i < _len; _i++) {
+            part = idParts[_i];
+            _results.push(part.replace(/\s/g, '_'));
+          }
+          return _results;
+        })()).join('-');
         if (_.isString(table)) {
           switch (table) {
             case 'Attribute':
@@ -46,13 +55,13 @@
               throw 'Unrecognised table type';
           }
           baseTable = tables[idParts[0]];
-          clfTables[idParts.join(' ')] = {
+          clfTables[newID] = {
             fields: [getField(baseTable, baseTable.idField), getField(baseTable, valueField)],
             idField: baseTable.idField,
             valueField: valueField
           };
         } else {
-          clfTables[idParts.join(' ')] = {
+          clfTables[newID] = {
             fields: table.fields,
             idField: table.idField,
             valueField: table.valueField

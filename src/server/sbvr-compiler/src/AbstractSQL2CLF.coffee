@@ -17,6 +17,7 @@ define(['underscore'], (_) ->
 		clfTables = {}
 		for id, table of tables
 			idParts = splitID(id)
+			newID = (part.replace(/\s/g, '_') for part in idParts).join('-')
 			if _.isString(table)
 				switch table
 					when 'Attribute', 'ForeignKey'
@@ -26,12 +27,12 @@ define(['underscore'], (_) ->
 					else
 						throw 'Unrecognised table type'
 				baseTable = tables[idParts[0]]
-				clfTables[idParts.join(' ')] =
+				clfTables[newID] =
 					fields: [ getField(baseTable, baseTable.idField), getField(baseTable, valueField) ]
 					idField: baseTable.idField
 					valueField: valueField
 			else
-				clfTables[idParts.join(' ')] = 
+				clfTables[newID] = 
 					fields: table.fields
 					idField: table.idField
 					valueField: table.valueField 
