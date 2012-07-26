@@ -192,6 +192,14 @@ define(["ometa/ometa-base"], (function() {
             }));
             return update
         },
+        "Null": function() {
+            var $elf = this,
+                _fromIdx = this.input.idx,
+                next;
+            next = this._apply("anything");
+            this._pred((next === null));
+            return null
+        },
         "Fields": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
@@ -219,6 +227,9 @@ define(["ometa/ometa-base"], (function() {
                         }), (function() {
                             this._apply("false");
                             return (0)
+                        }), (function() {
+                            this._apply("Null");
+                            return "NULL"
                         }), (function() {
                             value = this._apply("anything");
                             return (("\'" + value) + "\'")

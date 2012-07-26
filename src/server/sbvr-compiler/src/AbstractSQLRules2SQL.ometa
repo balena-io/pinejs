@@ -120,6 +120,10 @@ define(['ometa/ometa-base'], function() {
 			]
 			-> update,
 		
+		Null =
+			:next
+			?(next===null)
+			-> null,
 		
 		Fields =
 			'Fields'
@@ -133,6 +137,8 @@ define(['ometa/ometa-base'], function() {
 						-> 1
 					|	false
 						-> 0
+					|	Null
+						-> 'NULL'
 					|	anything:value
 						// TODO: Should escape this.
 						-> ("'" + value + "'")
@@ -157,6 +163,8 @@ define(['ometa/ometa-base'], function() {
 					]
 				|	'*'
 					{fields.push('*')}
+				|	Null
+					{fields.push('NULL')}
 				|	anything:field
 					// TODO: Should escape "
 					{fields.push('"' + field + '"')}
