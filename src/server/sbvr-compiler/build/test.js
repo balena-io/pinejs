@@ -138,6 +138,7 @@ LF2AbstractSQL = requirejs('../src/LF2AbstractSQL.js');
 AbstractSQLOptimiser = requirejs('../src/AbstractSQLOptimiser.js');
 Prettify = requirejs('Prettify');
 AbstractSQL2SQL = requirejs('../src/AbstractSQL2SQL.js').postgres;
+AbstractSQL2CLF = requirejs('../src/AbstractSQL2CLF.js');
 AbstractSQLRules2SQL = requirejs('../src/AbstractSQLRules2SQL.js');
 _ = requirejs('underscore');
 
@@ -192,10 +193,11 @@ try {
 
 	instance = LF2AbstractSQL.createInstance();
 	console.log('Part 2: Generate abstract');
-	result = instance.match(
+	sqlmodel = instance.match(
 		result
 		, 'Process'
 	);
+	console.log(JSON.stringify(sqlmodel))
 
 	// prettify('result', result);
 	// console.log(Prettify.match(result.rules, 'Process'));
@@ -224,13 +226,14 @@ try {
 	
 	try {
 		console.log('Part 4: Generate SQL');
-		result = AbstractSQL2SQL(result);
+		result = AbstractSQL2SQL(sqlmodel);
 		// console.log(prettify('result', result));
 	}
 	catch(e) {
 		console.log(e)
 		console.log(e.stack)
 	}
+	prettify('x', AbstractSQL2CLF(sqlmodel))
 }
 catch(e) {
 	console.log(e.stack)
