@@ -2,7 +2,7 @@
   var __hasProp = Object.prototype.hasOwnProperty;
 
   define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-compiler/LF2AbstractSQL', 'sbvr-compiler/AbstractSQL2SQL', 'sbvr-compiler/AbstractSQLRules2SQL', 'data-server/ServerURIParser', 'underscore', 'utils/createAsyncQueueCallback'], function(SBVRParser, LF2AbstractSQLPrep, LF2AbstractSQL, AbstractSQL2SQL, AbstractSQLRules2SQL, ServerURIParser, _, createAsyncQueueCallback) {
-    var db, endLock, executeSqlModel, exports, getCorrectTableInfo, getFTree, getID, op, parseURITree, rebuildFactType, runDelete, runGet, runPost, runPut, runURI, serverIsOnAir, serverModelCache, serverURIParser, sqlModels, transactionModel, uiModel, validateDB;
+    var db, endLock, executeSqlModel, exports, getCorrectTableInfo, getID, op, parseURITree, rebuildFactType, runDelete, runGet, runPost, runPut, runURI, serverIsOnAir, serverModelCache, serverURIParser, sqlModels, transactionModel, uiModel, validateDB;
     exports = {};
     db = null;
     transactionModel = 'Term:      Integer\nTerm:      Long Text\nTerm:      resource type\n	Concept type: Long Text\nTerm:      field name\n	Concept type: Long Text\nTerm:      field value\n	Concept type: Long Text\nTerm:      field type\n	Concept type: Long Text\nTerm:      resource\nTerm:      transaction\nTerm:      lock\nTerm:      conditional representation\n	Database Value Field: lock\nFact type: lock is exclusive\nFact type: lock is shared\nFact type: resource is under lock\n	Term Form: locked resource\nFact type: locked resource has resource type\nFact type: lock belongs to transaction\nFact type: conditional representation has field name\nFact type: conditional representation has field value\nFact type: conditional representation has field type\nFact type: conditional representation has lock\nRule:      It is obligatory that each locked resource has exactly 1 resource type\nRule:      It is obligatory that each conditional representation has exactly 1 field name\nRule:      It is obligatory that each conditional representation has exactly 1 field value\nRule:      It is obligatory that each conditional representation has exactly 1 field type\nRule:      It is obligatory that each conditional representation has exactly 1 lock\nRule:      It is obligatory that each resource is under at most 1 lock that is exclusive';
@@ -250,33 +250,20 @@
       }
       return validateDB(tx, sqlModel, successCallback, failureCallback);
     };
-    getFTree = function(tree) {
-      var _ref;
-      if ((_ref = tree[2][1][0]) === 'Term' || _ref === 'FactType') {
-        return tree[2][2];
-      }
-      return [];
-    };
     getID = function(tree) {
-      var andClause, comparison, id, modifiers, whereClause, _i, _j, _len, _len2, _ref, _ref2;
-      if (tree[1][0] === "Term") {
-        id = tree[1][2];
-      } else if (tree[1][0] === "FactType") {
-        id = tree[1][3];
-      }
-      if (id === "") id = 0;
+      var comparison, id, query, whereClause, _i, _j, _len, _len2, _ref, _ref2;
+      id = 0;
       if (id === 0) {
-        modifiers = getFTree(tree);
-        _ref = modifiers.slice(1);
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          whereClause = _ref[_i];
-          if (!(filters[0] === 'Where')) continue;
-          andClause = whereClause[1];
-          _ref2 = andClause.slice(1);
-          for (_j = 0, _len2 = _ref2.length; _j < _len2; _j++) {
-            comparison = _ref2[_j];
-            if (comparison[0] === "Equals" && comparison[1][1] === "id") {
-              return comparison[2][1];
+        query = tree[2];
+        for (_i = 0, _len = query.length; _i < _len; _i++) {
+          whereClause = query[_i];
+          if (whereClause[0] === 'Where') {
+            _ref = whereClause.slice(1);
+            for (_j = 0, _len2 = _ref.length; _j < _len2; _j++) {
+              comparison = _ref[_j];
+              if (comparison[0] === "Equals" && ((_ref2 = comparison[1][2]) === 'id' || _ref2 === 'name')) {
+                return comparison[2][1];
+              }
             }
           }
         }

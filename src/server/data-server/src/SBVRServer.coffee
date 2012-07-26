@@ -264,23 +264,14 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 		# For the moment it blocks such models from execution.
 		validateDB(tx, sqlModel, successCallback, failureCallback)
 
-	getFTree = (tree) ->
-		if tree[2][1][0] in ['Term', 'FactType']
-			return tree[2][2]
-		return []
-
 	getID = (tree) ->
-		if tree[1][0] == "Term"
-			id = tree[1][2]
-		else if tree[1][0] == "FactType"
-			id = tree[1][3]
-		id = 0 if id == ""
+		id = 0
 		# if the id is empty, search the filters for one
 		if id is 0
-			modifiers = getFTree(tree)
-			for whereClause in modifiers[1..] when filters[0] == 'Where'
-				andClause = whereClause[1]
-				for comparison in andClause[1..] when comparison[0] == "Equals" and comparison[1][1] == "id"
+			query = tree[2]
+			for whereClause in query when whereClause[0] == 'Where'
+				# TODO: This should use the idField from sqlModel
+				for comparison in whereClause[1..] when comparison[0] == "Equals" and comparison[1][2] in ['id', 'name']
 					return comparison[2][1]
 		return id
 	
