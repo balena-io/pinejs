@@ -54,9 +54,6 @@
         },
         process: function(method, uri, headers, body, successCallback, failureCallback) {
           var checkMethodHandlers, i, j, methodHandlers, next, req, res;
-          if (uri.slice(-1) === '/') uri = uri.slice(0, (uri.length - 1));
-          uri = uri.toLowerCase();
-          console.log(method, uri);
           if (!handlers[method]) failureCallback(404);
           req = {
             method: method,
@@ -65,6 +62,9 @@
             url: uri,
             params: {}
           };
+          console.log(method, uri);
+          if (uri.slice(-1) === '/') uri = uri.slice(0, (uri.length - 1));
+          uri = uri.toLowerCase();
           res = {
             json: function(obj, headers, statusCode) {
               var _ref;

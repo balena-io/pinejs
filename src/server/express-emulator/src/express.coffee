@@ -26,10 +26,6 @@ define((requirejs, exports, module) ->
 				this.put.apply(this, arguments)
 				this.del.apply(this, arguments)
 			process: (method, uri, headers, body, successCallback, failureCallback) ->
-				if uri[-1..] == '/'
-					uri = uri[0...uri.length - 1]
-				uri = uri.toLowerCase()
-				console.log(method, uri)
 				if !handlers[method]
 					failureCallback(404)
 				req =
@@ -38,6 +34,10 @@ define((requirejs, exports, module) ->
 					headers: headers
 					url: uri
 					params: {}
+				console.log(method, uri)
+				if uri[-1..] == '/'
+					uri = uri[0...uri.length - 1]
+				uri = uri.toLowerCase()
 				res =
 					json: (obj, headers = 200, statusCode) ->
 						if typeof headers == 'number' and !statusCode?
