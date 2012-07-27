@@ -54,6 +54,7 @@
         },
         process: function(method, uri, headers, body, successCallback, failureCallback) {
           var checkMethodHandlers, i, j, methodHandlers, next, req, res;
+          if (body == null) body = '';
           if (!handlers[method]) failureCallback(404);
           req = {
             method: method,

@@ -25,7 +25,7 @@ define((requirejs, exports, module) ->
 				this.get.apply(this, arguments)
 				this.put.apply(this, arguments)
 				this.del.apply(this, arguments)
-			process: (method, uri, headers, body, successCallback, failureCallback) ->
+			process: (method, uri, headers, body = '', successCallback, failureCallback) ->
 				if !handlers[method]
 					failureCallback(404)
 				req =
