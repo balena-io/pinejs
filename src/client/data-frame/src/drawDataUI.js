@@ -242,8 +242,8 @@
           term.isExpanded = tree.isExpanded(term.id);
           if (term.isExpanded) {
             expandedTree = tree.clone().descend(term.id);
-            term.deleteHash = '#!/' + expandedTree.getNewURI("del");
-            term.deleteURI = rootURI + term.deleteHash;
+            term.closeHash = '#!/' + expandedTree.getNewURI("del");
+            term.closeURI = rootURI + term.closeHash;
             _results.push((function(i) {
               return serverRequest("GET", "/lfmodel/", {}, null, function(statusCode, result) {
                 return renderResource(i, asyncCallback.successCallback, rootURI, true, expandedTree, result);

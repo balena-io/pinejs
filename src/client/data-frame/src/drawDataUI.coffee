@@ -420,8 +420,8 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 				if term.isExpanded
 					# SECTION: Expanded resource
 					expandedTree = tree.clone().descend(term.id)
-					term.deleteHash = '#!/' + expandedTree.getNewURI("del")
-					term.deleteURI = rootURI + term.deleteHash
+					term.closeHash = '#!/' + expandedTree.getNewURI("del")
+					term.closeURI = rootURI + term.closeHash
 					# request schema from server and store locally.
 					do (i) ->
 						serverRequest("GET", "/lfmodel/", {}, null, (statusCode, result) ->
