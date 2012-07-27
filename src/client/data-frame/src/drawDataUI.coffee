@@ -139,15 +139,9 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 									}
 									else { %>
 										<%- resourceCollection.resourceName %>
-										<a href="<%= resourceCollection.viewURI %>" onClick="location.hash='<%= resourceCollection.viewHash %>';return false">
-											<span title="View" class="ui-icon ui-icon-search"></span>
-										</a>
-										<a href="<%= resourceCollection.editURI %>" onClick="location.hash='<%= resourceCollection.editHash %>';return false">
-											<span title="Edit" class="ui-icon ui-icon-pencil"></span>
-										</a>
-										<a href="<%= resourceCollection.deleteURI %>" onClick="location.hash='<%= resourceCollection.deleteHash %>';return false">
-											<span title="Delete" class="ui-icon ui-icon-trash"></span>
-										</a><%
+										<a href="<%= resourceCollection.viewURI %>" onClick="location.hash='<%= resourceCollection.viewHash %>';return false"><span title="View" class="ui-icon ui-icon-search"></span></a>
+										<a href="<%= resourceCollection.editURI %>" onClick="location.hash='<%= resourceCollection.editHash %>';return false"><span title="Edit" class="ui-icon ui-icon-pencil"></span></a>
+										<a href="<%= resourceCollection.deleteURI %>" onClick="location.hash='<%= resourceCollection.deleteHash %>';return false"><span title="Delete" class="ui-icon ui-icon-trash"></span></a><%
 									} %>
 								</td>
 							</tr><%
