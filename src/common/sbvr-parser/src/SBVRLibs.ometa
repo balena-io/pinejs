@@ -124,6 +124,24 @@ define(['underscore', 'ometa/ometa-base'], function(_) {
 		return rootTerms;
 	};
 	
+	SBVRLibs.GetTableField = function(table, fieldName) {
+		fieldID = this.GetTableFieldID(table, fieldName);
+		if(fieldID === false) {
+			return false;
+		}
+		return table.fields[fieldID];
+	}
+	
+	SBVRLibs.GetTableFieldID = function(table, fieldName) {
+		tableFields = table.fields;
+		for(var i = 0; i < tableFields.length; i++) {
+			if(tableFields[i][1] == fieldName) {
+				return i;
+			}
+		}
+		return false;
+	};
+	
 	// ometaifyObject = function(variable) {
 		// if(_.isArray(variable)) {
 			// for(var i=0;i<variable.length;i++) {

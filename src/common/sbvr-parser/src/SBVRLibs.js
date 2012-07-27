@@ -159,5 +159,26 @@ define(["underscore", "ometa/ometa-base"], (function(_) {
         };
         return rootTerms
     }));
+    (SBVRLibs["GetTableField"] = (function(table, fieldName) {
+        (fieldID = this.GetTableFieldID(table, fieldName));
+        if ((fieldID === false)) {
+            return false
+        } else {
+            undefined
+        };
+        return table["fields"][fieldID]
+    }));
+    (SBVRLibs["GetTableFieldID"] = (function(table, fieldName) {
+        (tableFields = table["fields"]);
+        for (var i = (0);
+        (i < tableFields["length"]); i++) {
+            if ((tableFields[i][(1)] == fieldName)) {
+                return i
+            } else {
+                undefined
+            }
+        };
+        return false
+    }));
     return SBVRLibs
 }))

@@ -308,7 +308,7 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 			sql = AbstractSQLRules2SQL.match(tree[2], 'Query')
 			values = []
 			for field in tree[3]
-				values.push(req.body[0][field])
+				values.push(req.body[0][field[1]])
 			console.log(sql, values)
 			db.transaction( (tx) ->
 				tx.executeSql(sql, values,
@@ -332,7 +332,7 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 			sql = AbstractSQLRules2SQL.match(tree[2], 'Query')
 			values = []
 			for field in tree[3]
-				values.push(req.body[0][field])
+				values.push(req.body[0][field[1]])
 			console.log(sql, values)
 			vocab = tree[1][1]
 			db.transaction( (tx) ->
@@ -363,7 +363,7 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 			sql = AbstractSQLRules2SQL.match(tree[2], 'Query')
 			values = []
 			for field in tree[3]
-				values.push(req.body[0][field])
+				values.push(req.body[0][field[1]])
 			console.log(sql, values)
 			vocab = tree[1][1]
 			
@@ -413,7 +413,7 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 			sql = AbstractSQLRules2SQL.match(tree[2], 'Query')
 			values = []
 			for field in tree[3]
-				values.push(req.body[0][field])
+				values.push(req.body[0][field[1]])
 			console.log(sql, values)
 			vocab = tree[1][1]
 			
@@ -682,7 +682,7 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 					sql = AbstractSQLRules2SQL.match(tree[2], 'Query')
 					values = []
 					for field in tree[3]
-						values.push(req.body[0][field])
+						values.push(req.body[0][field[1]])
 					console.log(sql, values)
 					db.transaction( (tx) ->
 						tx.executeSql(sql, values,

@@ -1,6 +1,6 @@
-define(["underscore", "ometa/ometa-base"], (function(_) {
+define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBVRLibs, _) {
     var ServerURIParser = undefined;
-    ServerURIParser = objectThatDelegatesTo(OMeta, {
+    ServerURIParser = objectThatDelegatesTo(SBVRLibs, {
         "Process": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
@@ -387,7 +387,7 @@ define(["underscore", "ometa/ometa-base"], (function(_) {
                         query.push(["Fields", [
                             [attributeName, "?"]
                         ]]);
-                        fieldOrdering.push(attributeName);
+                        fieldOrdering.push(this.GetTableField(table, attributeName));
                         break
                     }
                 }
@@ -463,9 +463,8 @@ define(["underscore", "ometa/ometa-base"], (function(_) {
                         (i < table["fields"]["length"]); i++) {
                             var field = table["fields"][i];
                             if (((field[(2)] == "NOT NULL") || ((field[(2)] == "PRIMARY KEY") && (field[(0)] != "Serial")))) {
-                                var fieldName = field[(1)];
-                                fieldOrdering.push(fieldName);
-                                fields.push([fieldName, "?"])
+                                fieldOrdering.push(field);
+                                fields.push([field[(1)], "?"])
                             } else {
                                 undefined
                             }

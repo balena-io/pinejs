@@ -313,7 +313,7 @@
         _ref = tree[3];
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           field = _ref[_i];
-          values.push(req.body[0][field]);
+          values.push(req.body[0][field[1]]);
         }
         console.log(sql, values);
         return db.transaction(function(tx) {
@@ -352,7 +352,7 @@
         _ref = tree[3];
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           field = _ref[_i];
-          values.push(req.body[0][field]);
+          values.push(req.body[0][field[1]]);
         }
         console.log(sql, values);
         vocab = tree[1][1];
@@ -388,7 +388,7 @@
         _ref = tree[3];
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           field = _ref[_i];
-          values.push(req.body[0][field]);
+          values.push(req.body[0][field[1]]);
         }
         console.log(sql, values);
         vocab = tree[1][1];
@@ -445,7 +445,7 @@
         _ref = tree[3];
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           field = _ref[_i];
-          values.push(req.body[0][field]);
+          values.push(req.body[0][field[1]]);
         }
         console.log(sql, values);
         vocab = tree[1][1];
@@ -753,7 +753,7 @@
             _ref = tree[3];
             for (_i = 0, _len = _ref.length; _i < _len; _i++) {
               field = _ref[_i];
-              values.push(req.body[0][field]);
+              values.push(req.body[0][field[1]]);
             }
             console.log(sql, values);
             return db.transaction(function(tx) {
