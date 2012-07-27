@@ -320,17 +320,22 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                     undefined
                 }
             };
+            var foundField = false;
             for (var i = (1);
             (i < query["length"]); i++) {
-                if ((query[i][(0)] == "Fields")) {
+                var queryPart = query[i];
+                if ((queryPart[(0)] == "Fields")) {
                     for (var j = (0);
-                    (j < query[i][(1)]["length"]); j++) {
-                        if ((query[i][(1)][j][(0)] == field)) {
-                            (query[i][(1)][j][(1)] = value);
+                    (j < queryPart[(1)]["length"]); j++) {
+                        var queryFields = queryPart[(1)][j];
+                        if ((queryFields[(0)] == field)) {
+                            (foundField = true);
+                            (queryFields[(1)] = value);
                             for (var k = (0);
                             (k < fields[(0)]["length"]); k++) {
                                 if ((fields[(0)][k] == field)) {
-                                    fields[(0)].splice(k, (1))
+                                    fields[(0)].splice(k, (1));
+                                    break
                                 } else {
                                     undefined
                                 }
@@ -339,6 +344,11 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                         } else {
                             undefined
                         }
+                    };
+                    if ((j === queryPart[(1)]["length"])) {
+                        queryPart[(1)].push([field, value])
+                    } else {
+                        undefined
                     };
                     break
                 } else {
