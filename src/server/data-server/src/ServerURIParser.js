@@ -320,7 +320,6 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                     undefined
                 }
             };
-            var foundField = false;
             for (var i = (1);
             (i < query["length"]); i++) {
                 var queryPart = query[i];
@@ -329,11 +328,10 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                     (j < queryPart[(1)]["length"]); j++) {
                         var queryFields = queryPart[(1)][j];
                         if ((queryFields[(0)] == field)) {
-                            (foundField = true);
                             (queryFields[(1)] = value);
                             for (var k = (0);
                             (k < fields[(0)]["length"]); k++) {
-                                if ((fields[(0)][k] == field)) {
+                                if ((fields[(0)][k][(1)] == field)) {
                                     fields[(0)].splice(k, (1));
                                     break
                                 } else {
