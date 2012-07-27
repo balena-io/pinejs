@@ -247,7 +247,7 @@
             _results.push((function(i) {
               return serverRequest("GET", "/lfmodel/", {}, null, function(statusCode, result) {
                 return renderResource(i, asyncCallback.successCallback, rootURI, true, expandedTree, result);
-              });
+              }, asyncCallback.errorCallback);
             })(i));
           } else {
             newb = ['collection', [term.id], ["mod"]];

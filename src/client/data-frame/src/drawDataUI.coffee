@@ -424,8 +424,10 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 					term.closeURI = rootURI + term.closeHash
 					# request schema from server and store locally.
 					do (i) ->
-						serverRequest("GET", "/lfmodel/", {}, null, (statusCode, result) ->
-							renderResource(i, asyncCallback.successCallback, rootURI, true, expandedTree, result)
+						serverRequest("GET", "/lfmodel/", {}, null,
+							(statusCode, result) ->
+								renderResource(i, asyncCallback.successCallback, rootURI, true, expandedTree, result)
+							asyncCallback.errorCallback
 						)
 				else
 					newb = [ 'collection', [ term.id ], [ "mod" ] ]
