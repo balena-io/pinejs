@@ -413,6 +413,11 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                         query.push(["Fields", [
                             [attributeName, false]
                         ]]);
+                        this.AddWhereClause(query, ["Equals", ["Field", table["idField"]],
+                            ["Bind"]
+                        ]);
+                        var field = this.GetTableField(table, table["idField"]);
+                        fieldOrdering.push([field[(0)], table["name"], field[(1)]]);
                         break
                     };
                 case "GET":
@@ -429,6 +434,11 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                         query.push(["Fields", [
                             [attributeName, true]
                         ]]);
+                        this.AddWhereClause(query, ["Equals", ["Field", table["idField"]],
+                            ["Bind"]
+                        ]);
+                        var field = this.GetTableField(table, table["idField"]);
+                        fieldOrdering.push([field[(0)], table["name"], field[(1)]]);
                         break
                     }
                 }

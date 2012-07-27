@@ -239,6 +239,10 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 					case 'DELETE':
 						query[0] = 'UpdateQuery';
 						query.push(['Fields', [[attributeName, false]]]);
+						// TODO: This should be added by checking the body.
+						this.AddWhereClause(query, ['Equals', ['Field', table.idField], ['Bind']])
+						var field = this.GetTableField(table, table.idField);
+						fieldOrdering.push([field[0], table.name, field[1]]);
 					break;
 					case 'GET':
 						query[0] = 'SelectQuery';
@@ -248,6 +252,10 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 					case 'POST':
 						query[0] = 'UpdateQuery';
 						query.push(['Fields', [[attributeName, true]]]);
+						// TODO: This should be added by checking the body.
+						this.AddWhereClause(query, ['Equals', ['Field', table.idField], ['Bind']])
+						var field = this.GetTableField(table, table.idField);
+						fieldOrdering.push([field[0], table.name, field[1]]);
 					break;
 				}
 				query.push(['From', table.name])
