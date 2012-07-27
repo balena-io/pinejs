@@ -298,8 +298,41 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 			when 'DELETE'
 				runDelete(req,res)
 	
-	getBindValues = (fields, values) ->
-		return (values[field[1]] for field in fields)
+	getAndCheckBindValues = (fields, values) ->
+		bindValues = []
+		for field in fields
+			fieldName = field[1]
+			value = values[fieldName]
+			fieldName = '"' + fieldName + '"'
+			if value == null
+				switch field[2]
+					when 'PRIMARY KEY', 'NOT NULL'
+						return fieldName + ' cannot be null'
+			else
+				switch field[0]
+					when 'Serial', 'Integer', 'ForeignKey', 'ConceptType'
+						value = parseInt(value, 10)
+						if _.isNaN(value)
+							return fieldName + ' is not a number: ' + value
+					when 'Short Text'
+						if !_.isString(value)
+							return fieldName + ' is not a string'
+						else if value.length > 20
+							return fieldName + ' longer than 20 characters (' + value.length + ')'
+					when 'Long Text'
+						if !_.isString(value)
+							return fieldName + ' is not a string'
+					when 'Boolean'
+						value = parseInt(value, 10)
+						if _.isNaN(value) || (value not in [0, 1])
+							return fieldName + ' is not a boolean'
+					else
+						if !_.isString(value)
+							return fieldName + ' is not a string'
+						else if value.length > 100
+							return fieldName + ' longer than 100 characters (' + value.length + ')'
+			bindValues.push(value)
+		return bindValues
 	
 	runGet = (req, res) ->
 		tree = req.tree
@@ -308,20 +341,23 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 		else
 			console.log(tree[2])
 			sql = AbstractSQLRules2SQL.match(tree[2], 'Query')
-			values = getBindValues(tree[3], req.body[0])
+			values = getAndCheckBindValues(tree[3], req.body[0])
 			console.log(sql, values)
-			db.transaction( (tx) ->
-				tx.executeSql(sql, values,
-					(tx, result) ->
-						if values.length > 0 && result.rows.length == 0
+			if !_.isArray(values)
+				res.json(values, 404)
+			else
+				db.transaction( (tx) ->
+					tx.executeSql(sql, values,
+						(tx, result) ->
+							if values.length > 0 && result.rows.length == 0
+								res.send(404)
+							else
+								data = instances: (result.rows.item(i) for i in [0...result.rows.length])
+								res.json(data)
+						() ->
 							res.send(404)
-						else
-							data = instances: (result.rows.item(i) for i in [0...result.rows.length])
-							res.json(data)
-					() ->
-						res.send(404)
+					)
 				)
-			)
 	
 	runPost = (req, res) ->
 		tree = req.tree
@@ -330,27 +366,30 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 		else
 			console.log(tree[2])
 			sql = AbstractSQLRules2SQL.match(tree[2], 'Query')
-			values = getBindValues(tree[3], req.body[0])
+			values = getAndCheckBindValues(tree[3], req.body[0])
 			console.log(sql, values)
-			vocab = tree[1][1]
-			db.transaction( (tx) ->
-				tx.begin()
-				# TODO: Check for transaction locks.
-				tx.executeSql(sql, values,
-					(tx, sqlResult) ->
-						validateDB(tx, sqlModels[vocab],
-							(tx) ->
-								tx.end()
-								insertID = if tree[2][0] == 'UpdateQuery' then values[0] else sqlResult.insertId
-								console.log('Insert ID: ', insertID)
-								res.send(201,
-									location: '/' + vocab + '/' + tree[2][2][1] + "*filt:" + tree[2][2][1] + ".id=" + insertID
-								)
-							() -> res.send(404)
-						)
-					() -> res.send(404)
+			if !_.isArray(values)
+				res.json(values, 404)
+			else
+				vocab = tree[1][1]
+				db.transaction( (tx) ->
+					tx.begin()
+					# TODO: Check for transaction locks.
+					tx.executeSql(sql, values,
+						(tx, sqlResult) ->
+							validateDB(tx, sqlModels[vocab],
+								(tx) ->
+									tx.end()
+									insertID = if tree[2][0] == 'UpdateQuery' then values[0] else sqlResult.insertId
+									console.log('Insert ID: ', insertID)
+									res.send(201,
+										location: '/' + vocab + '/' + tree[2][2][1] + "*filt:" + tree[2][2][1] + ".id=" + insertID
+									)
+								() -> res.send(404)
+							)
+						() -> res.send(404)
+					)
 				)
-			)
 	
 	runPut = (req, res) ->
 		tree = req.tree
@@ -359,46 +398,49 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 		else
 			console.log(tree[2])
 			sql = AbstractSQLRules2SQL.match(tree[2], 'Query')
-			values = getBindValues(tree[3], req.body[0])
+			values = getAndCheckBindValues(tree[3], req.body[0])
 			console.log(sql, values)
-			vocab = tree[1][1]
-			
-			insertSQL = sql
-			if _.isArray(sql)
-				insertSQL = sql[0]
-				updateSQL = sql[1]
-			
-			doValidate = (tx) ->
-				validateDB(tx, sqlModels[vocab], (tx) ->
-					tx.end()
-					res.send(200)
-				, (tx, errors) ->
-					res.json(errors, 404)
-				)
-			
-			id = getID(tree)
-			db.transaction( (tx) ->
-				tx.begin()
+			if !_.isArray(values)
+				res.json(values, 404)
+			else
+				vocab = tree[1][1]
+				
+				insertSQL = sql
+				if _.isArray(sql)
+					insertSQL = sql[0]
+					updateSQL = sql[1]
+				
+				doValidate = (tx) ->
+					validateDB(tx, sqlModels[vocab], (tx) ->
+						tx.end()
+						res.send(200)
+					, (tx, errors) ->
+						res.json(errors, 404)
+					)
+				
+				id = getID(tree)
 				db.transaction( (tx) ->
-					tx.executeSql('SELECT NOT EXISTS(SELECT 1 FROM "resource-is_under-lock" AS r WHERE r."resource_type" = ? AND r."resource" = ?) AS result;', [tree[2][2][1], id],
-						(tx, result) ->
-							if result.rows.item(0).result in [0, false]
-								res.json([ "The resource is locked and cannot be edited" ], 404)
-							else
-								tx.executeSql(insertSQL, values,
-									(tx, result) -> doValidate(tx)
-									(tx) ->
-										if updateSQL?
-											tx.executeSql(updateSQL, values,
-												(tx, result) -> doValidate(tx)
-												() -> res.send(404)
-											)
-										else
-											res.send(404)
-								)
+					tx.begin()
+					db.transaction( (tx) ->
+						tx.executeSql('SELECT NOT EXISTS(SELECT 1 FROM "resource-is_under-lock" AS r WHERE r."resource_type" = ? AND r."resource" = ?) AS result;', [tree[2][2][1], id],
+							(tx, result) ->
+								if result.rows.item(0).result in [0, false]
+									res.json([ "The resource is locked and cannot be edited" ], 404)
+								else
+									tx.executeSql(insertSQL, values,
+										(tx, result) -> doValidate(tx)
+										(tx) ->
+											if updateSQL?
+												tx.executeSql(updateSQL, values,
+													(tx, result) -> doValidate(tx)
+													() -> res.send(404)
+												)
+											else
+												res.send(404)
+									)
+						)
 					)
 				)
-			)
 	
 	runDelete = (req, res) ->
 		tree = req.tree
@@ -407,24 +449,27 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 		else
 			console.log(tree[2])
 			sql = AbstractSQLRules2SQL.match(tree[2], 'Query')
-			values = getBindValues(tree[3], req.body[0])
+			values = getAndCheckBindValues(tree[3], req.body[0])
 			console.log(sql, values)
-			vocab = tree[1][1]
-			
-			db.transaction( (tx) ->
-				tx.begin()
-				tx.executeSql(sql, values,
-					(tx, result) ->
-						validateDB(tx, sqlModels[vocab], (tx) ->
-							tx.end()
-							res.send(200)
-						, (tx, errors) ->
-							res.json(errors, 404)
-						)
-					() ->
-						res.send(404)
+			if !_.isArray(values)
+				res.json(values, 404)
+			else
+				vocab = tree[1][1]
+				
+				db.transaction( (tx) ->
+					tx.begin()
+					tx.executeSql(sql, values,
+						(tx, result) ->
+							validateDB(tx, sqlModels[vocab], (tx) ->
+								tx.end()
+								res.send(200)
+							, (tx, errors) ->
+								res.json(errors, 404)
+							)
+						() ->
+							res.send(404)
+					)
 				)
-			)
 
 	# Middleware
 	serverIsOnAir = (req, res, next) ->
@@ -674,28 +719,31 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 				if tree[2][2][1] == 'transaction'
 					console.log(tree[2])
 					sql = AbstractSQLRules2SQL.match(tree[2], 'Query')
-					values = getBindValues(tree[3], req.body[0])
+					values = getAndCheckBindValues(tree[3], req.body[0])
 					console.log(sql, values)
-					db.transaction( (tx) ->
-						tx.executeSql(sql, values,
-							(tx, result) ->
-								if result.rows.length > 1
-									__TODO__.die()
-								res.json(
-									id: result.rows.item(0).id
-									tcURI: "/transaction"
-									lcURI: "/transaction/lock"
-									tlcURI: "/transaction/lock-belongs_to-transaction"
-									rcURI: "/transaction/resource"
-									lrcURI: "/transaction/resource-is_under-lock"
-									slcURI: "/transaction/lock-is_shared"
-									xlcURI: "/transaction/lock-is_exclusive"
-									ctURI: "/transaction/execute/" + result.rows.item(0).id
-								)
-							() ->
-								res.send(404)
+					if !_.isArray(values)
+						res.json(values, 404)
+					else
+						db.transaction( (tx) ->
+							tx.executeSql(sql, values,
+								(tx, result) ->
+									if result.rows.length > 1
+										__TODO__.die()
+									res.json(
+										id: result.rows.item(0).id
+										tcURI: "/transaction"
+										lcURI: "/transaction/lock"
+										tlcURI: "/transaction/lock-belongs_to-transaction"
+										rcURI: "/transaction/resource"
+										lrcURI: "/transaction/resource-is_under-lock"
+										slcURI: "/transaction/lock-is_shared"
+										xlcURI: "/transaction/lock-is_exclusive"
+										ctURI: "/transaction/execute/" + result.rows.item(0).id
+									)
+								() ->
+									res.send(404)
+							)
 						)
-					)
 				else
 					runGet(req, res)
 		)

@@ -2,7 +2,7 @@
   var __hasProp = Object.prototype.hasOwnProperty;
 
   define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-compiler/LF2AbstractSQL', 'sbvr-compiler/AbstractSQL2SQL', 'sbvr-compiler/AbstractSQLRules2SQL', 'data-server/ServerURIParser', 'underscore', 'utils/createAsyncQueueCallback'], function(SBVRParser, LF2AbstractSQLPrep, LF2AbstractSQL, AbstractSQL2SQL, AbstractSQLRules2SQL, ServerURIParser, _, createAsyncQueueCallback) {
-    var db, endLock, executeSqlModel, exports, getBindValues, getCorrectTableInfo, getID, op, parseURITree, rebuildFactType, runDelete, runGet, runPost, runPut, runURI, serverIsOnAir, serverModelCache, serverURIParser, sqlModels, transactionModel, uiModel, validateDB;
+    var db, endLock, executeSqlModel, exports, getAndCheckBindValues, getCorrectTableInfo, getID, op, parseURITree, rebuildFactType, runDelete, runGet, runPost, runPut, runURI, serverIsOnAir, serverModelCache, serverURIParser, sqlModels, transactionModel, uiModel, validateDB;
     exports = {};
     db = null;
     transactionModel = 'Term:      Integer\nTerm:      Long Text\nTerm:      resource type\n	Concept type: Long Text\nTerm:      field name\n	Concept type: Long Text\nTerm:      field value\n	Concept type: Long Text\nTerm:      field type\n	Concept type: Long Text\nTerm:      resource\nTerm:      transaction\nTerm:      lock\nTerm:      conditional representation\n	Database Value Field: lock\nFact type: lock is exclusive\nFact type: lock is shared\nFact type: resource is under lock\n	Term Form: locked resource\nFact type: locked resource has resource type\nFact type: lock belongs to transaction\nFact type: conditional representation has field name\nFact type: conditional representation has field value\nFact type: conditional representation has field type\nFact type: conditional representation has lock\nRule:      It is obligatory that each locked resource has exactly 1 resource type\nRule:      It is obligatory that each conditional representation has exactly 1 field name\nRule:      It is obligatory that each conditional representation has exactly 1 field value\nRule:      It is obligatory that each conditional representation has exactly 1 field type\nRule:      It is obligatory that each conditional representation has exactly 1 lock\nRule:      It is obligatory that each resource is under at most 1 lock that is exclusive';
@@ -301,17 +301,56 @@
           return runDelete(req, res);
       }
     };
-    getBindValues = function(fields, values) {
-      var field;
-      return (function() {
-        var _i, _len, _results;
-        _results = [];
-        for (_i = 0, _len = fields.length; _i < _len; _i++) {
-          field = fields[_i];
-          _results.push(values[field[1]]);
+    getAndCheckBindValues = function(fields, values) {
+      var bindValues, field, fieldName, value, _i, _len;
+      bindValues = [];
+      for (_i = 0, _len = fields.length; _i < _len; _i++) {
+        field = fields[_i];
+        fieldName = field[1];
+        value = values[fieldName];
+        fieldName = '"' + fieldName + '"';
+        if (value === null) {
+          switch (field[2]) {
+            case 'PRIMARY KEY':
+            case 'NOT NULL':
+              return fieldName + ' cannot be null';
+          }
+        } else {
+          switch (field[0]) {
+            case 'Serial':
+            case 'Integer':
+            case 'ForeignKey':
+            case 'ConceptType':
+              value = parseInt(value, 10);
+              if (_.isNaN(value)) return fieldName + ' is not a number: ' + value;
+              break;
+            case 'Short Text':
+              if (!_.isString(value)) {
+                return fieldName + ' is not a string';
+              } else if (value.length > 20) {
+                return fieldName + ' longer than 20 characters (' + value.length + ')';
+              }
+              break;
+            case 'Long Text':
+              if (!_.isString(value)) return fieldName + ' is not a string';
+              break;
+            case 'Boolean':
+              value = parseInt(value, 10);
+              if (_.isNaN(value) || (value !== 0 && value !== 1)) {
+                return fieldName + ' is not a boolean';
+              }
+              break;
+            default:
+              if (!_.isString(value)) {
+                return fieldName + ' is not a string';
+              } else if (value.length > 100) {
+                return fieldName + ' longer than 100 characters (' + value.length + ')';
+              }
+          }
         }
-        return _results;
-      })();
+        bindValues.push(value);
+      }
+      return bindValues;
     };
     runGet = function(req, res) {
       var sql, tree, values;
@@ -321,30 +360,34 @@
       } else {
         console.log(tree[2]);
         sql = AbstractSQLRules2SQL.match(tree[2], 'Query');
-        values = getBindValues(tree[3], req.body[0]);
+        values = getAndCheckBindValues(tree[3], req.body[0]);
         console.log(sql, values);
-        return db.transaction(function(tx) {
-          return tx.executeSql(sql, values, function(tx, result) {
-            var data, i;
-            if (values.length > 0 && result.rows.length === 0) {
+        if (!_.isArray(values)) {
+          return res.json(values, 404);
+        } else {
+          return db.transaction(function(tx) {
+            return tx.executeSql(sql, values, function(tx, result) {
+              var data, i;
+              if (values.length > 0 && result.rows.length === 0) {
+                return res.send(404);
+              } else {
+                data = {
+                  instances: (function() {
+                    var _ref, _results;
+                    _results = [];
+                    for (i = 0, _ref = result.rows.length; 0 <= _ref ? i < _ref : i > _ref; 0 <= _ref ? i++ : i--) {
+                      _results.push(result.rows.item(i));
+                    }
+                    return _results;
+                  })()
+                };
+                return res.json(data);
+              }
+            }, function() {
               return res.send(404);
-            } else {
-              data = {
-                instances: (function() {
-                  var _ref, _results;
-                  _results = [];
-                  for (i = 0, _ref = result.rows.length; 0 <= _ref ? i < _ref : i > _ref; 0 <= _ref ? i++ : i--) {
-                    _results.push(result.rows.item(i));
-                  }
-                  return _results;
-                })()
-              };
-              return res.json(data);
-            }
-          }, function() {
-            return res.send(404);
+            });
           });
-        });
+        }
       }
     };
     runPost = function(req, res) {
@@ -355,27 +398,31 @@
       } else {
         console.log(tree[2]);
         sql = AbstractSQLRules2SQL.match(tree[2], 'Query');
-        values = getBindValues(tree[3], req.body[0]);
+        values = getAndCheckBindValues(tree[3], req.body[0]);
         console.log(sql, values);
-        vocab = tree[1][1];
-        return db.transaction(function(tx) {
-          tx.begin();
-          return tx.executeSql(sql, values, function(tx, sqlResult) {
-            return validateDB(tx, sqlModels[vocab], function(tx) {
-              var insertID;
-              tx.end();
-              insertID = tree[2][0] === 'UpdateQuery' ? values[0] : sqlResult.insertId;
-              console.log('Insert ID: ', insertID);
-              return res.send(201, {
-                location: '/' + vocab + '/' + tree[2][2][1] + "*filt:" + tree[2][2][1] + ".id=" + insertID
+        if (!_.isArray(values)) {
+          return res.json(values, 404);
+        } else {
+          vocab = tree[1][1];
+          return db.transaction(function(tx) {
+            tx.begin();
+            return tx.executeSql(sql, values, function(tx, sqlResult) {
+              return validateDB(tx, sqlModels[vocab], function(tx) {
+                var insertID;
+                tx.end();
+                insertID = tree[2][0] === 'UpdateQuery' ? values[0] : sqlResult.insertId;
+                console.log('Insert ID: ', insertID);
+                return res.send(201, {
+                  location: '/' + vocab + '/' + tree[2][2][1] + "*filt:" + tree[2][2][1] + ".id=" + insertID
+                });
+              }, function() {
+                return res.send(404);
               });
             }, function() {
               return res.send(404);
             });
-          }, function() {
-            return res.send(404);
           });
-        });
+        }
       }
     };
     runPut = function(req, res) {
@@ -386,48 +433,52 @@
       } else {
         console.log(tree[2]);
         sql = AbstractSQLRules2SQL.match(tree[2], 'Query');
-        values = getBindValues(tree[3], req.body[0]);
+        values = getAndCheckBindValues(tree[3], req.body[0]);
         console.log(sql, values);
-        vocab = tree[1][1];
-        insertSQL = sql;
-        if (_.isArray(sql)) {
-          insertSQL = sql[0];
-          updateSQL = sql[1];
-        }
-        doValidate = function(tx) {
-          return validateDB(tx, sqlModels[vocab], function(tx) {
-            tx.end();
-            return res.send(200);
-          }, function(tx, errors) {
-            return res.json(errors, 404);
-          });
-        };
-        id = getID(tree);
-        return db.transaction(function(tx) {
-          tx.begin();
+        if (!_.isArray(values)) {
+          return res.json(values, 404);
+        } else {
+          vocab = tree[1][1];
+          insertSQL = sql;
+          if (_.isArray(sql)) {
+            insertSQL = sql[0];
+            updateSQL = sql[1];
+          }
+          doValidate = function(tx) {
+            return validateDB(tx, sqlModels[vocab], function(tx) {
+              tx.end();
+              return res.send(200);
+            }, function(tx, errors) {
+              return res.json(errors, 404);
+            });
+          };
+          id = getID(tree);
           return db.transaction(function(tx) {
-            return tx.executeSql('SELECT NOT EXISTS(SELECT 1 FROM "resource-is_under-lock" AS r WHERE r."resource_type" = ? AND r."resource" = ?) AS result;', [tree[2][2][1], id], function(tx, result) {
-              var _ref;
-              if ((_ref = result.rows.item(0).result) === 0 || _ref === false) {
-                return res.json(["The resource is locked and cannot be edited"], 404);
-              } else {
-                return tx.executeSql(insertSQL, values, function(tx, result) {
-                  return doValidate(tx);
-                }, function(tx) {
-                  if (updateSQL != null) {
-                    return tx.executeSql(updateSQL, values, function(tx, result) {
-                      return doValidate(tx);
-                    }, function() {
+            tx.begin();
+            return db.transaction(function(tx) {
+              return tx.executeSql('SELECT NOT EXISTS(SELECT 1 FROM "resource-is_under-lock" AS r WHERE r."resource_type" = ? AND r."resource" = ?) AS result;', [tree[2][2][1], id], function(tx, result) {
+                var _ref;
+                if ((_ref = result.rows.item(0).result) === 0 || _ref === false) {
+                  return res.json(["The resource is locked and cannot be edited"], 404);
+                } else {
+                  return tx.executeSql(insertSQL, values, function(tx, result) {
+                    return doValidate(tx);
+                  }, function(tx) {
+                    if (updateSQL != null) {
+                      return tx.executeSql(updateSQL, values, function(tx, result) {
+                        return doValidate(tx);
+                      }, function() {
+                        return res.send(404);
+                      });
+                    } else {
                       return res.send(404);
-                    });
-                  } else {
-                    return res.send(404);
-                  }
-                });
-              }
+                    }
+                  });
+                }
+              });
             });
           });
-        });
+        }
       }
     };
     runDelete = function(req, res) {
@@ -438,22 +489,26 @@
       } else {
         console.log(tree[2]);
         sql = AbstractSQLRules2SQL.match(tree[2], 'Query');
-        values = getBindValues(tree[3], req.body[0]);
+        values = getAndCheckBindValues(tree[3], req.body[0]);
         console.log(sql, values);
-        vocab = tree[1][1];
-        return db.transaction(function(tx) {
-          tx.begin();
-          return tx.executeSql(sql, values, function(tx, result) {
-            return validateDB(tx, sqlModels[vocab], function(tx) {
-              tx.end();
-              return res.send(200);
-            }, function(tx, errors) {
-              return res.json(errors, 404);
+        if (!_.isArray(values)) {
+          return res.json(values, 404);
+        } else {
+          vocab = tree[1][1];
+          return db.transaction(function(tx) {
+            tx.begin();
+            return tx.executeSql(sql, values, function(tx, result) {
+              return validateDB(tx, sqlModels[vocab], function(tx) {
+                tx.end();
+                return res.send(200);
+              }, function(tx, errors) {
+                return res.json(errors, 404);
+              });
+            }, function() {
+              return res.send(404);
             });
-          }, function() {
-            return res.send(404);
           });
-        });
+        }
       }
     };
     serverIsOnAir = function(req, res, next) {
@@ -741,26 +796,30 @@
           if (tree[2][2][1] === 'transaction') {
             console.log(tree[2]);
             sql = AbstractSQLRules2SQL.match(tree[2], 'Query');
-            values = getBindValues(tree[3], req.body[0]);
+            values = getAndCheckBindValues(tree[3], req.body[0]);
             console.log(sql, values);
-            return db.transaction(function(tx) {
-              return tx.executeSql(sql, values, function(tx, result) {
-                if (result.rows.length > 1) __TODO__.die();
-                return res.json({
-                  id: result.rows.item(0).id,
-                  tcURI: "/transaction",
-                  lcURI: "/transaction/lock",
-                  tlcURI: "/transaction/lock-belongs_to-transaction",
-                  rcURI: "/transaction/resource",
-                  lrcURI: "/transaction/resource-is_under-lock",
-                  slcURI: "/transaction/lock-is_shared",
-                  xlcURI: "/transaction/lock-is_exclusive",
-                  ctURI: "/transaction/execute/" + result.rows.item(0).id
+            if (!_.isArray(values)) {
+              return res.json(values, 404);
+            } else {
+              return db.transaction(function(tx) {
+                return tx.executeSql(sql, values, function(tx, result) {
+                  if (result.rows.length > 1) __TODO__.die();
+                  return res.json({
+                    id: result.rows.item(0).id,
+                    tcURI: "/transaction",
+                    lcURI: "/transaction/lock",
+                    tlcURI: "/transaction/lock-belongs_to-transaction",
+                    rcURI: "/transaction/resource",
+                    lrcURI: "/transaction/resource-is_under-lock",
+                    slcURI: "/transaction/lock-is_shared",
+                    xlcURI: "/transaction/lock-is_exclusive",
+                    ctURI: "/transaction/execute/" + result.rows.item(0).id
+                  });
+                }, function() {
+                  return res.send(404);
                 });
-              }, function() {
-                return res.send(404);
               });
-            });
+            }
           } else {
             return runGet(req, res);
           }
