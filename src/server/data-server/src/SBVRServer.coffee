@@ -313,7 +313,7 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 			db.transaction( (tx) ->
 				tx.executeSql(sql, values,
 					(tx, result) ->
-						if result.rows.length == 0
+						if values.length > 0 && result.rows.length == 0
 							res.send(404)
 						else
 							data = instances: (result.rows.item(i) for i in [0...result.rows.length])

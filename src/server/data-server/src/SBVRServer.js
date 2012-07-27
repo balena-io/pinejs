@@ -319,7 +319,7 @@
         return db.transaction(function(tx) {
           return tx.executeSql(sql, values, function(tx, result) {
             var data, i;
-            if (result.rows.length === 0) {
+            if (values.length > 0 && result.rows.length === 0) {
               return res.send(404);
             } else {
               data = {
