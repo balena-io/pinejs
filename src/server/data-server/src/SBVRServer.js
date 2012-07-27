@@ -2,7 +2,7 @@
   var __hasProp = Object.prototype.hasOwnProperty;
 
   define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-compiler/LF2AbstractSQL', 'sbvr-compiler/AbstractSQL2SQL', 'sbvr-compiler/AbstractSQLRules2SQL', 'data-server/ServerURIParser', 'underscore', 'utils/createAsyncQueueCallback'], function(SBVRParser, LF2AbstractSQLPrep, LF2AbstractSQL, AbstractSQL2SQL, AbstractSQLRules2SQL, ServerURIParser, _, createAsyncQueueCallback) {
-    var db, endLock, executeSqlModel, exports, getCorrectTableInfo, getID, op, parseURITree, rebuildFactType, runDelete, runGet, runPost, runPut, runURI, serverIsOnAir, serverModelCache, serverURIParser, sqlModels, transactionModel, uiModel, validateDB;
+    var db, endLock, executeSqlModel, exports, getBindValues, getCorrectTableInfo, getID, op, parseURITree, rebuildFactType, runDelete, runGet, runPost, runPut, runURI, serverIsOnAir, serverModelCache, serverURIParser, sqlModels, transactionModel, uiModel, validateDB;
     exports = {};
     db = null;
     transactionModel = 'Term:      Integer\nTerm:      Long Text\nTerm:      resource type\n	Concept type: Long Text\nTerm:      field name\n	Concept type: Long Text\nTerm:      field value\n	Concept type: Long Text\nTerm:      field type\n	Concept type: Long Text\nTerm:      resource\nTerm:      transaction\nTerm:      lock\nTerm:      conditional representation\n	Database Value Field: lock\nFact type: lock is exclusive\nFact type: lock is shared\nFact type: resource is under lock\n	Term Form: locked resource\nFact type: locked resource has resource type\nFact type: lock belongs to transaction\nFact type: conditional representation has field name\nFact type: conditional representation has field value\nFact type: conditional representation has field type\nFact type: conditional representation has lock\nRule:      It is obligatory that each locked resource has exactly 1 resource type\nRule:      It is obligatory that each conditional representation has exactly 1 field name\nRule:      It is obligatory that each conditional representation has exactly 1 field value\nRule:      It is obligatory that each conditional representation has exactly 1 field type\nRule:      It is obligatory that each conditional representation has exactly 1 lock\nRule:      It is obligatory that each resource is under at most 1 lock that is exclusive';
@@ -301,20 +301,27 @@
           return runDelete(req, res);
       }
     };
+    getBindValues = function(fields, values) {
+      var field;
+      return (function() {
+        var _i, _len, _results;
+        _results = [];
+        for (_i = 0, _len = fields.length; _i < _len; _i++) {
+          field = fields[_i];
+          _results.push(values[field[1]]);
+        }
+        return _results;
+      })();
+    };
     runGet = function(req, res) {
-      var field, sql, tree, values, _i, _len, _ref;
+      var sql, tree, values;
       tree = req.tree;
       if (tree[2] === void 0) {
         return res.send(404);
       } else {
         console.log(tree[2]);
         sql = AbstractSQLRules2SQL.match(tree[2], 'Query');
-        values = [];
-        _ref = tree[3];
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          field = _ref[_i];
-          values.push(req.body[0][field[1]]);
-        }
+        values = getBindValues(tree[3], req.body[0]);
         console.log(sql, values);
         return db.transaction(function(tx) {
           return tx.executeSql(sql, values, function(tx, result) {
@@ -324,9 +331,9 @@
             } else {
               data = {
                 instances: (function() {
-                  var _ref2, _results;
+                  var _ref, _results;
                   _results = [];
-                  for (i = 0, _ref2 = result.rows.length; 0 <= _ref2 ? i < _ref2 : i > _ref2; 0 <= _ref2 ? i++ : i--) {
+                  for (i = 0, _ref = result.rows.length; 0 <= _ref ? i < _ref : i > _ref; 0 <= _ref ? i++ : i--) {
                     _results.push(result.rows.item(i));
                   }
                   return _results;
@@ -341,19 +348,14 @@
       }
     };
     runPost = function(req, res) {
-      var field, sql, tree, values, vocab, _i, _len, _ref;
+      var sql, tree, values, vocab;
       tree = req.tree;
       if (tree[2] === void 0) {
         return res.send(404);
       } else {
         console.log(tree[2]);
         sql = AbstractSQLRules2SQL.match(tree[2], 'Query');
-        values = [];
-        _ref = tree[3];
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          field = _ref[_i];
-          values.push(req.body[0][field[1]]);
-        }
+        values = getBindValues(tree[3], req.body[0]);
         console.log(sql, values);
         vocab = tree[1][1];
         return db.transaction(function(tx) {
@@ -377,19 +379,14 @@
       }
     };
     runPut = function(req, res) {
-      var doValidate, field, id, insertSQL, sql, tree, updateSQL, values, vocab, _i, _len, _ref;
+      var doValidate, id, insertSQL, sql, tree, updateSQL, values, vocab;
       tree = req.tree;
       if (tree[1] === void 0) {
         return res.send(404);
       } else {
         console.log(tree[2]);
         sql = AbstractSQLRules2SQL.match(tree[2], 'Query');
-        values = [];
-        _ref = tree[3];
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          field = _ref[_i];
-          values.push(req.body[0][field[1]]);
-        }
+        values = getBindValues(tree[3], req.body[0]);
         console.log(sql, values);
         vocab = tree[1][1];
         insertSQL = sql;
@@ -410,8 +407,8 @@
           tx.begin();
           return db.transaction(function(tx) {
             return tx.executeSql('SELECT NOT EXISTS(SELECT 1 FROM "resource-is_under-lock" AS r WHERE r."resource_type" = ? AND r."resource" = ?) AS result;', [tree[2][2][1], id], function(tx, result) {
-              var _ref2;
-              if ((_ref2 = result.rows.item(0).result) === 0 || _ref2 === false) {
+              var _ref;
+              if ((_ref = result.rows.item(0).result) === 0 || _ref === false) {
                 return res.json(["The resource is locked and cannot be edited"], 404);
               } else {
                 return tx.executeSql(insertSQL, values, function(tx, result) {
@@ -434,19 +431,14 @@
       }
     };
     runDelete = function(req, res) {
-      var field, sql, tree, values, vocab, _i, _len, _ref;
+      var sql, tree, values, vocab;
       tree = req.tree;
       if (tree[1] === void 0) {
         return res.send(404);
       } else {
         console.log(tree[2]);
         sql = AbstractSQLRules2SQL.match(tree[2], 'Query');
-        values = [];
-        _ref = tree[3];
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          field = _ref[_i];
-          values.push(req.body[0][field[1]]);
-        }
+        values = getBindValues(tree[3], req.body[0]);
         console.log(sql, values);
         vocab = tree[1][1];
         return db.transaction(function(tx) {
@@ -741,7 +733,7 @@
         return runGet(req, res);
       });
       app.get('/transaction/*', serverIsOnAir, parseURITree, function(req, res, next) {
-        var field, sql, tree, values, _i, _len, _ref;
+        var sql, tree, values;
         tree = req.tree;
         if (tree[2] === void 0) {
           return __TODO__.die();
@@ -749,12 +741,7 @@
           if (tree[2][2][1] === 'transaction') {
             console.log(tree[2]);
             sql = AbstractSQLRules2SQL.match(tree[2], 'Query');
-            values = [];
-            _ref = tree[3];
-            for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-              field = _ref[_i];
-              values.push(req.body[0][field[1]]);
-            }
+            values = getBindValues(tree[3], req.body[0]);
             console.log(sql, values);
             return db.transaction(function(tx) {
               return tx.executeSql(sql, values, function(tx, result) {
