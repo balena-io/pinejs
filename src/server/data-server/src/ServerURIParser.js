@@ -355,11 +355,43 @@ define(["underscore", "ometa/ometa-base"], (function(_) {
         var fieldOrdering = [];
         console.log(termOrFactType, table, this["sqlModels"][this["currentVocab"]]);
         switch (table) {
-        case "Attribute":
-            {};
         case "ForeignKey":
             {
                 __TODO__.die();
+                break
+            };
+        case "Attribute":
+            {
+                (table = tables[termOrFactType[(0)][(1)]]);
+                (attributeName = termOrFactType[(1)][(1)]);
+                switch (this["currentMethod"]) {
+                case "DELETE":
+                    {
+                        (query[(0)] = "UpdateQuery");
+                        query.push(["Fields", [
+                            [attributeName, "NULL"]
+                        ]]);
+                        break
+                    };
+                case "GET":
+                    {
+                        (query[(0)] = "SelectQuery");
+                        query.push(["Select", ["*"]]);
+                        break
+                    };
+                case "PUT":
+                    {};
+                case "POST":
+                    {
+                        (query[(0)] = "UpdateQuery");
+                        query.push(["Fields", [
+                            [attributeName, "?"]
+                        ]]);
+                        fieldOrdering.push(attributeName);
+                        break
+                    }
+                }
+                query.push(["From", table["name"]]);
                 break
             };
         case "BooleanAttribute":
