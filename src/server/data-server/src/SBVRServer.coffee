@@ -385,7 +385,8 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 									res.send(201,
 										location: '/' + vocab + '/' + tree[2][2][1] + "*filt:" + tree[2][2][1] + ".id=" + insertID
 									)
-								() -> res.send(404)
+								(tx, errors) ->
+									res.json(errors, 404)
 							)
 						() -> res.send(404)
 					)
@@ -411,11 +412,12 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 					updateSQL = sql[1]
 				
 				doValidate = (tx) ->
-					validateDB(tx, sqlModels[vocab], (tx) ->
-						tx.end()
-						res.send(200)
-					, (tx, errors) ->
-						res.json(errors, 404)
+					validateDB(tx, sqlModels[vocab],
+						(tx) ->
+							tx.end()
+							res.send(200)
+						(tx, errors) ->
+							res.json(errors, 404)
 					)
 				
 				id = getID(tree)
@@ -460,11 +462,12 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 					tx.begin()
 					tx.executeSql(sql, values,
 						(tx, result) ->
-							validateDB(tx, sqlModels[vocab], (tx) ->
-								tx.end()
-								res.send(200)
-							, (tx, errors) ->
-								res.json(errors, 404)
+							validateDB(tx, sqlModels[vocab]
+								(tx) ->
+									tx.end()
+									res.send(200)
+								(tx, errors) ->
+									res.json(errors, 404)
 							)
 						() ->
 							res.send(404)

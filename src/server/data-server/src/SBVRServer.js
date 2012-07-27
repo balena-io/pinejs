@@ -415,8 +415,8 @@
                 return res.send(201, {
                   location: '/' + vocab + '/' + tree[2][2][1] + "*filt:" + tree[2][2][1] + ".id=" + insertID
                 });
-              }, function() {
-                return res.send(404);
+              }, function(tx, errors) {
+                return res.json(errors, 404);
               });
             }, function() {
               return res.send(404);
