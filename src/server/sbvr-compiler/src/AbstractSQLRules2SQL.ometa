@@ -226,6 +226,9 @@ define(['ometa/ometa-base'], function() {
 				):bool
 			]
 			-> bool,
+		Bind =
+			['Bind']
+			-> '?',
 		
 		// A generic value, no idea what data type it may be..
 		Value =
@@ -264,7 +267,8 @@ define(['ometa/ometa-base'], function() {
 			|	ReferencedField
 			|	Number
 			|	Boolean
-			|	Value,
+			|	Value
+			|	Bind,
 			
 		
 		RuleBody :indent =

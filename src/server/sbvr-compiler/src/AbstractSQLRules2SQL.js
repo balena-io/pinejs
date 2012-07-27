@@ -373,6 +373,14 @@ define(["ometa/ometa-base"], (function() {
             }));
             return bool
         },
+        "Bind": function() {
+            var $elf = this,
+                _fromIdx = this.input.idx;
+            this._form((function() {
+                return this._applyWithArgs("exactly", "Bind")
+            }));
+            return "?"
+        },
         "Value": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
@@ -444,6 +452,8 @@ define(["ometa/ometa-base"], (function() {
                 return this._apply("Boolean")
             }), (function() {
                 return this._apply("Value")
+            }), (function() {
+                return this._apply("Bind")
             }))
         },
         "RuleBody": function(indent) {
