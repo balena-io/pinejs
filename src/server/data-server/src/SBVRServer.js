@@ -302,52 +302,13 @@
       }
     };
     getAndCheckBindValues = function(fields, values) {
-      var bindValues, field, fieldName, value, _i, _len;
+      var bindValues, field, fieldName, validated, value, _i, _len, _ref;
       bindValues = [];
       for (_i = 0, _len = fields.length; _i < _len; _i++) {
         field = fields[_i];
         fieldName = field[1];
-        value = values[fieldName];
-        fieldName = '"' + fieldName + '"';
-        if (value === null) {
-          switch (field[2]) {
-            case 'PRIMARY KEY':
-            case 'NOT NULL':
-              return fieldName + ' cannot be null';
-          }
-        } else {
-          switch (field[0]) {
-            case 'Serial':
-            case 'Integer':
-            case 'ForeignKey':
-            case 'ConceptType':
-              value = parseInt(value, 10);
-              if (_.isNaN(value)) return fieldName + ' is not a number: ' + value;
-              break;
-            case 'Short Text':
-              if (!_.isString(value)) {
-                return fieldName + ' is not a string';
-              } else if (value.length > 20) {
-                return fieldName + ' longer than 20 characters (' + value.length + ')';
-              }
-              break;
-            case 'Long Text':
-              if (!_.isString(value)) return fieldName + ' is not a string';
-              break;
-            case 'Boolean':
-              value = parseInt(value, 10);
-              if (_.isNaN(value) || (value !== 0 && value !== 1)) {
-                return fieldName + ' is not a boolean';
-              }
-              break;
-            default:
-              if (!_.isString(value)) {
-                return fieldName + ' is not a string';
-              } else if (value.length > 100) {
-                return fieldName + ' longer than 100 characters (' + value.length + ')';
-              }
-          }
-        }
+        _ref = AbstractSQL2SQL.dataTypeValidate(values[fieldName], field), validated = _ref.validated, value = _ref.value;
+        if (validated !== true) return '"' + fieldName + '" ' + validated;
         bindValues.push(value);
       }
       return bindValues;
@@ -545,8 +506,8 @@
           AbstractSQL2SQL = AbstractSQL2SQL.websql;
         }
         serverModelCache();
-        transactionModel = AbstractSQL2SQL(transactionModel);
-        uiModel = AbstractSQL2SQL(uiModel);
+        transactionModel = AbstractSQL2SQL.generate(transactionModel);
+        uiModel = AbstractSQL2SQL.generate(uiModel);
         sqlModels['transaction'] = transactionModel;
         sqlModels['ui'] = uiModel;
         return db.transaction(function(tx) {
@@ -594,7 +555,7 @@
             return null;
           }
           prepmod = LF2AbstractSQL.match(LF2AbstractSQLPrep.match(lfmod, "Process"), "Process");
-          sqlmod = AbstractSQL2SQL(prepmod, "trans");
+          sqlmod = AbstractSQL2SQL.generate(prepmod, "trans");
           return db.transaction(function(tx) {
             tx.begin();
             return executeSqlModel(tx, sqlmod, function(tx) {

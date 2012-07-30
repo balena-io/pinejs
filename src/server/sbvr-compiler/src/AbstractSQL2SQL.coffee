@@ -1,5 +1,36 @@
 define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQLOptimiser', 'Prettify', 'underscore'], (AbstractSQLRules2SQL, AbstractSQLOptimiser, Prettify, _) ->
 	
+	dataTypeValidate = (value, field) ->
+		validated = true
+		if value == null
+			switch field[2]
+				when 'PRIMARY KEY', 'NOT NULL'
+					validated = 'cannot be null'
+		else
+			switch field[0]
+				when 'Serial', 'Integer', 'ForeignKey', 'ConceptType'
+					value = parseInt(value, 10)
+					if _.isNaN(value)
+						validated = 'is not a number: ' + value
+				when 'Short Text'
+					if !_.isString(value)
+						validated = 'is not a string'
+					else if value.length > 20
+						validated = 'longer than 20 characters (' + value.length + ')'
+				when 'Long Text'
+					if !_.isString(value)
+						validated = 'is not a string'
+				when 'Boolean'
+					value = parseInt(value, 10)
+					if _.isNaN(value) || (value not in [0, 1])
+						validated = 'is not a boolean'
+				else
+					if !_.isString(value)
+						validated = 'is not a string'
+					else if value.length > 100
+						validated = 'longer than 100 characters (' + value.length + ')'
+		return {validated, value}
+	
 	postgresDataType = (dataType, necessity) ->
 		switch dataType
 			when 'Serial'
@@ -113,8 +144,12 @@ define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQLOptimise
 
 
 	return {
-		websql: (sqlModel) -> generate(sqlModel, websqlDataType),
-		postgres: (sqlModel) -> generate(sqlModel, postgresDataType)
+		websql: 
+			generate: (sqlModel) -> generate(sqlModel, websqlDataType)
+			dataTypeValidate: dataTypeValidate
+		postgres: 
+			generate: (sqlModel) -> generate(sqlModel, postgresDataType)
+			dataTypeValidate: dataTypeValidate
 	}
 
 

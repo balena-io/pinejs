@@ -709,7 +709,7 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 				continue;
 			}
 			try {
-				deepEqual(AbstractSQL2SQL.postgres(testModel[i][3]), testModel[i][4], testModel[i][0]);
+				deepEqual(AbstractSQL2SQL.postgres.generate(testModel[i][3]), testModel[i][4], testModel[i][0]);
 			}
 			catch(e) {
 				console.log(e);

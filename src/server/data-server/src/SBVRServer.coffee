@@ -302,35 +302,9 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 		bindValues = []
 		for field in fields
 			fieldName = field[1]
-			value = values[fieldName]
-			fieldName = '"' + fieldName + '"'
-			if value == null
-				switch field[2]
-					when 'PRIMARY KEY', 'NOT NULL'
-						return fieldName + ' cannot be null'
-			else
-				switch field[0]
-					when 'Serial', 'Integer', 'ForeignKey', 'ConceptType'
-						value = parseInt(value, 10)
-						if _.isNaN(value)
-							return fieldName + ' is not a number: ' + value
-					when 'Short Text'
-						if !_.isString(value)
-							return fieldName + ' is not a string'
-						else if value.length > 20
-							return fieldName + ' longer than 20 characters (' + value.length + ')'
-					when 'Long Text'
-						if !_.isString(value)
-							return fieldName + ' is not a string'
-					when 'Boolean'
-						value = parseInt(value, 10)
-						if _.isNaN(value) || (value not in [0, 1])
-							return fieldName + ' is not a boolean'
-					else
-						if !_.isString(value)
-							return fieldName + ' is not a string'
-						else if value.length > 100
-							return fieldName + ' longer than 100 characters (' + value.length + ')'
+			{validated, value} = AbstractSQL2SQL.dataTypeValidate(values[fieldName], field)
+			if validated != true
+				return '"' + fieldName + '" ' + validated
 			bindValues.push(value)
 		return bindValues
 	
@@ -509,8 +483,8 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 				AbstractSQL2SQL = AbstractSQL2SQL.websql
 			
 			serverModelCache()
-			transactionModel = AbstractSQL2SQL(transactionModel)
-			uiModel = AbstractSQL2SQL(uiModel)
+			transactionModel = AbstractSQL2SQL.generate(transactionModel)
+			uiModel = AbstractSQL2SQL.generate(uiModel)
 			
 			sqlModels['transaction'] = transactionModel
 			sqlModels['ui'] = uiModel
@@ -553,7 +527,7 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 						res.json('Error parsing model', 404)
 						return null
 					prepmod = LF2AbstractSQL.match(LF2AbstractSQLPrep.match(lfmod, "Process"), "Process")
-					sqlmod = AbstractSQL2SQL(prepmod, "trans")
+					sqlmod = AbstractSQL2SQL.generate(prepmod, "trans")
 					
 					db.transaction((tx) ->
 						tx.begin()

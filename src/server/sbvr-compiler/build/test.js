@@ -226,7 +226,7 @@ try {
 	
 	try {
 		console.log('Part 4: Generate SQL');
-		result = AbstractSQL2SQL(sqlmodel);
+		result = AbstractSQL2SQL.generate(sqlmodel);
 		// console.log(prettify('result', result));
 	}
 	catch(e) {

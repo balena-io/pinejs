@@ -2,7 +2,54 @@
   var __hasProp = Object.prototype.hasOwnProperty;
 
   define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQLOptimiser', 'Prettify', 'underscore'], function(AbstractSQLRules2SQL, AbstractSQLOptimiser, Prettify, _) {
-    var generate, postgresDataType, websqlDataType;
+    var dataTypeValidate, generate, postgresDataType, websqlDataType;
+    dataTypeValidate = function(value, field) {
+      var validated;
+      validated = true;
+      if (value === null) {
+        switch (field[2]) {
+          case 'PRIMARY KEY':
+          case 'NOT NULL':
+            validated = 'cannot be null';
+        }
+      } else {
+        switch (field[0]) {
+          case 'Serial':
+          case 'Integer':
+          case 'ForeignKey':
+          case 'ConceptType':
+            value = parseInt(value, 10);
+            if (_.isNaN(value)) validated = 'is not a number: ' + value;
+            break;
+          case 'Short Text':
+            if (!_.isString(value)) {
+              validated = 'is not a string';
+            } else if (value.length > 20) {
+              validated = 'longer than 20 characters (' + value.length + ')';
+            }
+            break;
+          case 'Long Text':
+            if (!_.isString(value)) validated = 'is not a string';
+            break;
+          case 'Boolean':
+            value = parseInt(value, 10);
+            if (_.isNaN(value) || (value !== 0 && value !== 1)) {
+              validated = 'is not a boolean';
+            }
+            break;
+          default:
+            if (!_.isString(value)) {
+              validated = 'is not a string';
+            } else if (value.length > 100) {
+              validated = 'longer than 100 characters (' + value.length + ')';
+            }
+        }
+      }
+      return {
+        validated: validated,
+        value: value
+      };
+    };
     postgresDataType = function(dataType, necessity) {
       switch (dataType) {
         case 'Serial':
@@ -138,11 +185,17 @@
       };
     };
     return {
-      websql: function(sqlModel) {
-        return generate(sqlModel, websqlDataType);
+      websql: {
+        generate: function(sqlModel) {
+          return generate(sqlModel, websqlDataType);
+        },
+        dataTypeValidate: dataTypeValidate
       },
-      postgres: function(sqlModel) {
-        return generate(sqlModel, postgresDataType);
+      postgres: {
+        generate: function(sqlModel) {
+          return generate(sqlModel, postgresDataType);
+        },
+        dataTypeValidate: dataTypeValidate
       }
     };
   });
