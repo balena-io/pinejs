@@ -268,7 +268,7 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 		id = 0
 		# if the id is empty, search the filters for one
 		if id is 0
-			query = tree[2]
+			query = tree[2][0]
 			for whereClause in query when whereClause[0] == 'Where'
 				# TODO: This should use the idField from sqlModel
 				for comparison in whereClause[1..] when comparison[0] == "Equals" and comparison[1][2] in ['id', 'name']
@@ -313,9 +313,9 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 		if tree[2] == undefined
 			res.send(404)
 		else
-			console.log(tree[2])
-			sql = AbstractSQLRules2SQL.match(tree[2], 'Query')
-			values = getAndCheckBindValues(tree[3], req.body[0])
+			console.log(tree[2][0])
+			sql = AbstractSQLRules2SQL.match(tree[2][0], 'Query')
+			values = getAndCheckBindValues(tree[2][1], req.body[0])
 			console.log(sql, values)
 			if !_.isArray(values)
 				res.json(values, 404)
@@ -338,9 +338,9 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 		if tree[2] == undefined
 			res.send(404)
 		else
-			console.log(tree[2])
-			sql = AbstractSQLRules2SQL.match(tree[2], 'Query')
-			values = getAndCheckBindValues(tree[3], req.body[0])
+			console.log(tree[2][0])
+			sql = AbstractSQLRules2SQL.match(tree[2][0], 'Query')
+			values = getAndCheckBindValues(tree[2][1], req.body[0])
 			console.log(sql, values)
 			if !_.isArray(values)
 				res.json(values, 404)
@@ -354,10 +354,10 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 							validateDB(tx, sqlModels[vocab],
 								(tx) ->
 									tx.end()
-									insertID = if tree[2][0] == 'UpdateQuery' then values[0] else sqlResult.insertId
+									insertID = if tree[2][0][0] == 'UpdateQuery' then values[0] else sqlResult.insertId
 									console.log('Insert ID: ', insertID)
 									res.send(201,
-										location: '/' + vocab + '/' + tree[2][2][1] + "*filt:" + tree[2][2][1] + ".id=" + insertID
+										location: '/' + vocab + '/' + tree[2][0][2][1] + "*filt:" + tree[2][0][2][1] + ".id=" + insertID
 									)
 								(tx, errors) ->
 									res.json(errors, 404)
@@ -368,12 +368,12 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 	
 	runPut = (req, res) ->
 		tree = req.tree
-		if tree[1] == undefined
+		if tree[2] == undefined
 			res.send(404)
 		else
-			console.log(tree[2])
-			sql = AbstractSQLRules2SQL.match(tree[2], 'Query')
-			values = getAndCheckBindValues(tree[3], req.body[0])
+			console.log(tree[2][0])
+			sql = AbstractSQLRules2SQL.match(tree[2][0], 'Query')
+			values = getAndCheckBindValues(tree[2][1], req.body[0])
 			console.log(sql, values)
 			if !_.isArray(values)
 				res.json(values, 404)
@@ -398,7 +398,7 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 				db.transaction( (tx) ->
 					tx.begin()
 					db.transaction( (tx) ->
-						tx.executeSql('SELECT NOT EXISTS(SELECT 1 FROM "resource-is_under-lock" AS r WHERE r."resource_type" = ? AND r."resource" = ?) AS result;', [tree[2][2][1], id],
+						tx.executeSql('SELECT NOT EXISTS(SELECT 1 FROM "resource-is_under-lock" AS r WHERE r."resource_type" = ? AND r."resource" = ?) AS result;', [tree[2][0][2][1], id],
 							(tx, result) ->
 								if result.rows.item(0).result in [0, false]
 									res.json([ "The resource is locked and cannot be edited" ], 404)
@@ -420,12 +420,12 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 	
 	runDelete = (req, res) ->
 		tree = req.tree
-		if tree[1] == undefined
+		if tree[2] == undefined
 			res.send(404)
 		else
-			console.log(tree[2])
-			sql = AbstractSQLRules2SQL.match(tree[2], 'Query')
-			values = getAndCheckBindValues(tree[3], req.body[0])
+			console.log(tree[2][0])
+			sql = AbstractSQLRules2SQL.match(tree[2][0], 'Query')
+			values = getAndCheckBindValues(tree[2][1], req.body[0])
 			console.log(sql, values)
 			if !_.isArray(values)
 				res.json(values, 404)
@@ -460,7 +460,7 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 	parseURITree = (req, res, next) ->
 		if !req.tree?
 			try
-				req.tree = serverURIParser.match([req.method, req.url], 'Process')
+				req.tree = serverURIParser.match([req.method, req.body, req.url], 'Process')
 				console.log(req.url, req.tree, req.body)
 			catch e
 				req.tree = false
@@ -693,10 +693,10 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 			if tree[2] == undefined
 				__TODO__.die()
 			else
-				if tree[2][2][1] == 'transaction'
-					console.log(tree[2])
-					sql = AbstractSQLRules2SQL.match(tree[2], 'Query')
-					values = getAndCheckBindValues(tree[3], req.body[0])
+				if tree[2][0][2][1] == 'transaction'
+					console.log(tree[2][0])
+					sql = AbstractSQLRules2SQL.match(tree[2][0], 'Query')
+					values = getAndCheckBindValues(tree[2][1], req.body[0])
 					console.log(sql, values)
 					if !_.isArray(values)
 						res.json(values, 404)

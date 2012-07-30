@@ -4,7 +4,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
         "Process": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                method, vocab, uri, resource;
+                method, body, vocab, uri, resources, i;
             this._form((function() {
                 method = (function() {
                     switch (this._apply('anything')) {
@@ -21,22 +21,41 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                     }
                 }).call(this);
                 (this["currentMethod"] = method);
+                body = this._apply("anything");
+                this._opt((function() {
+                    this._pred((!_.isArray(body)));
+                    console.error("Body is not an array:", body);
+                    return body = [({})]
+                }));
                 return this._form((function() {
                     this._applyWithArgs("exactly", "/");
                     vocab = this._apply("Vocabulary");
+                    this._opt((function() {
+                        return this._applyWithArgs("exactly", "/")
+                    }));
                     (this["currentVocab"] = vocab);
                     uri = ["URI", ["Vocabulary", vocab]];
-                    this._opt((function() {
-                        this._applyWithArgs("exactly", "/");
-                        resource = this._apply("Resource");
-                        return uri = uri.concat(resource)
-                    }));
+                    resources = [];
+                    i = (0);
+                    (function() {
+                        for (undefined;
+                        (i < body["length"]); i++) {
+                            (this["currentBody"] = body[i]);
+                            if ((i < (body["length"] - (1)))) {
+                                this._lookahead((function() {
+                                    resources.push(this._apply("Resource"))
+                                }))
+                            } else {
+                                resources.push(this._apply("Resource"))
+                            }
+                        }
+                    }).call(this);
                     return this._opt((function() {
                         return this._applyWithArgs("exactly", "/")
                     }))
                 }))
             }));
-            return uri
+            return uri.concat(resources)
         },
         "Vocabulary": function() {
             var $elf = this,
@@ -253,7 +272,8 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
     (ServerURIParser["initialize"] = (function() {
         (this["sqlModels"] = ({}));
         (this["currentVocab"] = "");
-        (this["currentMethod"] = "")
+        (this["currentMethod"] = "");
+        (this["currentBody"] = [])
     }));
     (ServerURIParser["setSQLModel"] = (function(vocab, model) {
         (this["sqlModels"][vocab] = model)

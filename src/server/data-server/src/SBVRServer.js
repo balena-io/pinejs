@@ -254,7 +254,7 @@
       var comparison, id, query, whereClause, _i, _j, _len, _len2, _ref, _ref2;
       id = 0;
       if (id === 0) {
-        query = tree[2];
+        query = tree[2][0];
         for (_i = 0, _len = query.length; _i < _len; _i++) {
           whereClause = query[_i];
           if (whereClause[0] === 'Where') {
@@ -319,9 +319,9 @@
       if (tree[2] === void 0) {
         return res.send(404);
       } else {
-        console.log(tree[2]);
-        sql = AbstractSQLRules2SQL.match(tree[2], 'Query');
-        values = getAndCheckBindValues(tree[3], req.body[0]);
+        console.log(tree[2][0]);
+        sql = AbstractSQLRules2SQL.match(tree[2][0], 'Query');
+        values = getAndCheckBindValues(tree[2][1], req.body[0]);
         console.log(sql, values);
         if (!_.isArray(values)) {
           return res.json(values, 404);
@@ -357,9 +357,9 @@
       if (tree[2] === void 0) {
         return res.send(404);
       } else {
-        console.log(tree[2]);
-        sql = AbstractSQLRules2SQL.match(tree[2], 'Query');
-        values = getAndCheckBindValues(tree[3], req.body[0]);
+        console.log(tree[2][0]);
+        sql = AbstractSQLRules2SQL.match(tree[2][0], 'Query');
+        values = getAndCheckBindValues(tree[2][1], req.body[0]);
         console.log(sql, values);
         if (!_.isArray(values)) {
           return res.json(values, 404);
@@ -371,10 +371,10 @@
               return validateDB(tx, sqlModels[vocab], function(tx) {
                 var insertID;
                 tx.end();
-                insertID = tree[2][0] === 'UpdateQuery' ? values[0] : sqlResult.insertId;
+                insertID = tree[2][0][0] === 'UpdateQuery' ? values[0] : sqlResult.insertId;
                 console.log('Insert ID: ', insertID);
                 return res.send(201, {
-                  location: '/' + vocab + '/' + tree[2][2][1] + "*filt:" + tree[2][2][1] + ".id=" + insertID
+                  location: '/' + vocab + '/' + tree[2][0][2][1] + "*filt:" + tree[2][0][2][1] + ".id=" + insertID
                 });
               }, function(tx, errors) {
                 return res.json(errors, 404);
@@ -389,12 +389,12 @@
     runPut = function(req, res) {
       var doValidate, id, insertSQL, sql, tree, updateSQL, values, vocab;
       tree = req.tree;
-      if (tree[1] === void 0) {
+      if (tree[2] === void 0) {
         return res.send(404);
       } else {
-        console.log(tree[2]);
-        sql = AbstractSQLRules2SQL.match(tree[2], 'Query');
-        values = getAndCheckBindValues(tree[3], req.body[0]);
+        console.log(tree[2][0]);
+        sql = AbstractSQLRules2SQL.match(tree[2][0], 'Query');
+        values = getAndCheckBindValues(tree[2][1], req.body[0]);
         console.log(sql, values);
         if (!_.isArray(values)) {
           return res.json(values, 404);
@@ -417,7 +417,7 @@
           return db.transaction(function(tx) {
             tx.begin();
             return db.transaction(function(tx) {
-              return tx.executeSql('SELECT NOT EXISTS(SELECT 1 FROM "resource-is_under-lock" AS r WHERE r."resource_type" = ? AND r."resource" = ?) AS result;', [tree[2][2][1], id], function(tx, result) {
+              return tx.executeSql('SELECT NOT EXISTS(SELECT 1 FROM "resource-is_under-lock" AS r WHERE r."resource_type" = ? AND r."resource" = ?) AS result;', [tree[2][0][2][1], id], function(tx, result) {
                 var _ref;
                 if ((_ref = result.rows.item(0).result) === 0 || _ref === false) {
                   return res.json(["The resource is locked and cannot be edited"], 404);
@@ -445,12 +445,12 @@
     runDelete = function(req, res) {
       var sql, tree, values, vocab;
       tree = req.tree;
-      if (tree[1] === void 0) {
+      if (tree[2] === void 0) {
         return res.send(404);
       } else {
-        console.log(tree[2]);
-        sql = AbstractSQLRules2SQL.match(tree[2], 'Query');
-        values = getAndCheckBindValues(tree[3], req.body[0]);
+        console.log(tree[2][0]);
+        sql = AbstractSQLRules2SQL.match(tree[2][0], 'Query');
+        values = getAndCheckBindValues(tree[2][1], req.body[0]);
         console.log(sql, values);
         if (!_.isArray(values)) {
           return res.json(values, 404);
@@ -484,7 +484,7 @@
     parseURITree = function(req, res, next) {
       if (!(req.tree != null)) {
         try {
-          req.tree = serverURIParser.match([req.method, req.url], 'Process');
+          req.tree = serverURIParser.match([req.method, req.body, req.url], 'Process');
           console.log(req.url, req.tree, req.body);
         } catch (e) {
           req.tree = false;
@@ -754,10 +754,10 @@
         if (tree[2] === void 0) {
           return __TODO__.die();
         } else {
-          if (tree[2][2][1] === 'transaction') {
-            console.log(tree[2]);
-            sql = AbstractSQLRules2SQL.match(tree[2], 'Query');
-            values = getAndCheckBindValues(tree[3], req.body[0]);
+          if (tree[2][0][2][1] === 'transaction') {
+            console.log(tree[2][0]);
+            sql = AbstractSQLRules2SQL.match(tree[2][0], 'Query');
+            values = getAndCheckBindValues(tree[2][1], req.body[0]);
             console.log(sql, values);
             if (!_.isArray(values)) {
               return res.json(values, 404);

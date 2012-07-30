@@ -8,18 +8,32 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 				|	'DELETE'
 				):method
 				{this.currentMethod = method}
-				
-				[	'/' Vocabulary:vocab
+				anything:body
+				(	?(!_.isArray(body))
+					{console.error('Body is not an array:', body)}
+					{[{}]}:body
+				)?
+				[	'/' Vocabulary:vocab '/'?
 					{this.currentVocab = vocab}
 					{['URI', ['Vocabulary', vocab]]}:uri
-					(	'/'
-						Resource:resource
-						{uri.concat(resource)}:uri
-					)?
+					{[]}:resources
+					{0}:i
+					{	for(;i<body.length;i++) {
+							this.currentBody = body[i];
+							if(i<body.length-1) {
+								this._lookahead(function() {
+									resources.push(this._apply('Resource'));
+								});
+							}
+							else {
+								resources.push(this._apply('Resource'));
+							}
+						}
+					}
 					'/'?
 				]
 			]
-			-> uri,
+			-> uri.concat(resources),
 
 		Vocabulary =
 			<	(	~'/'
@@ -116,7 +130,8 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 	ServerURIParser.initialize = function() {
 		this.sqlModels = {}
 		this.currentVocab = '';
-		this.currentMethod =  '';
+		this.currentMethod = '';
+		this.currentBody = [];
 	};
 	
 	ServerURIParser.setSQLModel = function(vocab, model) {
