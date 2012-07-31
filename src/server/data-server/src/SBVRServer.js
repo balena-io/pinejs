@@ -1,7 +1,7 @@
 (function() {
   var __hasProp = Object.prototype.hasOwnProperty;
 
-  define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-compiler/LF2AbstractSQL', 'sbvr-compiler/AbstractSQL2SQL', 'sbvr-compiler/AbstractSQLRules2SQL', 'data-server/ServerURIParser', 'underscore', 'utils/createAsyncQueueCallback'], function(SBVRParser, LF2AbstractSQLPrep, LF2AbstractSQL, AbstractSQL2SQL, AbstractSQLRules2SQL, ServerURIParser, _, createAsyncQueueCallback) {
+  define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-compiler/LF2AbstractSQL', 'sbvr-compiler/AbstractSQL2SQL', 'sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQL2CLF', 'data-server/ServerURIParser', 'underscore', 'utils/createAsyncQueueCallback'], function(SBVRParser, LF2AbstractSQLPrep, LF2AbstractSQL, AbstractSQL2SQL, AbstractSQLRules2SQL, AbstractSQL2CLF, ServerURIParser, _, createAsyncQueueCallback) {
     var db, endLock, executeSqlModel, exports, getAndCheckBindValues, getCorrectTableInfo, getID, op, parseURITree, rebuildFactType, runDelete, runGet, runPost, runPut, runURI, serverIsOnAir, serverModelCache, serverURIParser, sqlModels, transactionModel, uiModel, validateDB;
     exports = {};
     db = null;
@@ -84,6 +84,7 @@
         lf: [],
         prepLF: [],
         sql: [],
+        clf: [],
         trans: []
       };
       pendingCallbacks = [];
@@ -135,6 +136,12 @@
           serverURIParser.setSQLModel('data', sqlmod);
           sqlModels['data'] = sqlmod;
           return setValue('sql', sqlmod);
+        },
+        getCLF: function() {
+          return values.clf;
+        },
+        setCLF: function(clientModel) {
+          return setValue('clf', clientModel);
         }
       };
       return db.transaction(function(tx) {
@@ -254,7 +261,7 @@
       var comparison, id, query, whereClause, _i, _j, _len, _len2, _ref, _ref2;
       id = 0;
       if (id === 0) {
-        query = tree[2][0];
+        query = tree[2].query;
         for (_i = 0, _len = query.length; _i < _len; _i++) {
           whereClause = query[_i];
           if (whereClause[0] === 'Where') {
@@ -322,19 +329,20 @@
       if (tree[2] === void 0) {
         return res.send(404);
       } else {
-        console.log(tree[2][0]);
-        _ref = AbstractSQLRules2SQL.match(tree[2][0], 'ProcessQuery'), query = _ref.query, bindings = _ref.bindings;
-        values = getAndCheckBindValues(bindings, tree[2][1]);
+        console.log(tree[2].query);
+        _ref = AbstractSQLRules2SQL.match(tree[2].query, 'ProcessQuery'), query = _ref.query, bindings = _ref.bindings;
+        values = getAndCheckBindValues(bindings, tree[2].values);
         console.log(query, values);
         if (!_.isArray(values)) {
           return res.json(values, 404);
         } else {
           return db.transaction(function(tx) {
             return tx.executeSql(query, values, function(tx, result) {
-              var data, i;
+              var clientModel, data, i;
               if (values.length > 0 && result.rows.length === 0) {
                 return res.send(404);
               } else {
+                clientModel = serverModelCache.getCLF();
                 data = {
                   instances: (function() {
                     var _ref2, _results;
@@ -343,7 +351,8 @@
                       _results.push(result.rows.item(i));
                     }
                     return _results;
-                  })()
+                  })(),
+                  model: clientModel[tree[2].resourceName]
                 };
                 return res.json(data);
               }
@@ -360,9 +369,9 @@
       if (tree[2] === void 0) {
         return res.send(404);
       } else {
-        console.log(tree[2][0]);
-        _ref = AbstractSQLRules2SQL.match(tree[2][0], 'ProcessQuery'), query = _ref.query, bindings = _ref.bindings;
-        values = getAndCheckBindValues(bindings, tree[2][1]);
+        console.log(tree[2].query);
+        _ref = AbstractSQLRules2SQL.match(tree[2].query, 'ProcessQuery'), query = _ref.query, bindings = _ref.bindings;
+        values = getAndCheckBindValues(bindings, tree[2].values);
         console.log(query, values);
         if (!_.isArray(values)) {
           return res.json(values, 404);
@@ -374,10 +383,10 @@
               return validateDB(tx, sqlModels[vocab], function(tx) {
                 var insertID;
                 tx.end();
-                insertID = tree[2][0][0] === 'UpdateQuery' ? values[0] : sqlResult.insertId;
+                insertID = tree[2].query[0] === 'UpdateQuery' ? values[0] : sqlResult.insertId;
                 console.log('Insert ID: ', insertID);
                 return res.send(201, {
-                  location: '/' + vocab + '/' + tree[2][0][2][1] + "*filt:" + tree[2][0][2][1] + ".id=" + insertID
+                  location: '/' + vocab + '/' + tree[2].query[2][1] + "*filt:" + tree[2].query[2][1] + ".id=" + insertID
                 });
               }, function(tx, errors) {
                 return res.json(errors, 404);
@@ -395,15 +404,15 @@
       if (tree[2] === void 0) {
         return res.send(404);
       } else {
-        console.log(tree[2][0]);
-        queries = AbstractSQLRules2SQL.match(tree[2][0], 'ProcessQuery');
+        console.log(tree[2].query);
+        queries = AbstractSQLRules2SQL.match(tree[2].query, 'ProcessQuery');
         if (_.isArray(queries)) {
           insertQuery = queries[0];
           updateQuery = queries[1];
         } else {
           insertQuery = queries;
         }
-        values = getAndCheckBindValues(insertQuery.bindings, tree[2][1]);
+        values = getAndCheckBindValues(insertQuery.bindings, tree[2].values);
         console.log(insertQuery.query, values);
         if (!_.isArray(values)) {
           return res.json(values, 404);
@@ -421,7 +430,7 @@
           return db.transaction(function(tx) {
             tx.begin();
             return db.transaction(function(tx) {
-              return tx.executeSql('SELECT NOT EXISTS(SELECT 1 FROM "resource-is_under-lock" AS r WHERE r."resource_type" = ? AND r."resource" = ?) AS result;', [tree[2][0][2][1], id], function(tx, result) {
+              return tx.executeSql('SELECT NOT EXISTS(SELECT 1 FROM "resource-is_under-lock" AS r WHERE r."resource_type" = ? AND r."resource" = ?) AS result;', [tree[2].query[2][1], id], function(tx, result) {
                 var _ref;
                 if ((_ref = result.rows.item(0).result) === 0 || _ref === false) {
                   return res.json(["The resource is locked and cannot be edited"], 404);
@@ -430,7 +439,7 @@
                     return doValidate(tx);
                   }, function(tx) {
                     if (updateQuery != null) {
-                      values = getAndCheckBindValues(updateQuery.bindings, tree[2][1]);
+                      values = getAndCheckBindValues(updateQuery.bindings, tree[2].values);
                       console.log(updateQuery.query, values);
                       if (!_.isArray(values)) {
                         return res.json(values, 404);
@@ -458,9 +467,9 @@
       if (tree[2] === void 0) {
         return res.send(404);
       } else {
-        console.log(tree[2][0]);
-        _ref = AbstractSQLRules2SQL.match(tree[2][0], 'ProcessQuery'), query = _ref.query, bindings = _ref.bindings;
-        values = getAndCheckBindValues(bindings, tree[2][1]);
+        console.log(tree[2].query);
+        _ref = AbstractSQLRules2SQL.match(tree[2].query, 'ProcessQuery'), query = _ref.query, bindings = _ref.bindings;
+        values = getAndCheckBindValues(bindings, tree[2].values);
         console.log(query, values);
         if (!_.isArray(values)) {
           return res.json(values, 404);
@@ -555,7 +564,7 @@
       });
       app.post('/execute', function(req, res, next) {
         return runURI('GET', '/ui/textarea*filt:name=model_area', null, function(result) {
-          var lfmod, prepmod, se, sqlmod;
+          var clientModel, lfmod, prepmod, se, sqlModel;
           se = result.instances[0].text;
           try {
             lfmod = SBVRParser.matchAll(se, "expr");
@@ -565,10 +574,11 @@
             return null;
           }
           prepmod = LF2AbstractSQL.match(LF2AbstractSQLPrep.match(lfmod, "Process"), "Process");
-          sqlmod = AbstractSQL2SQL.generate(prepmod, "trans");
+          sqlModel = AbstractSQL2SQL.generate(prepmod);
+          clientModel = AbstractSQL2CLF(prepmod);
           return db.transaction(function(tx) {
             tx.begin();
-            return executeSqlModel(tx, sqlmod, function(tx) {
+            return executeSqlModel(tx, sqlModel, function(tx) {
               runURI('PUT', '/ui/textarea-is_disabled*filt:textarea.name=model_area/', [
                 {
                   value: true
@@ -578,7 +588,8 @@
               serverModelCache.setLastSE(se);
               serverModelCache.setLF(lfmod);
               serverModelCache.setPrepLF(prepmod);
-              serverModelCache.setSQL(sqlmod);
+              serverModelCache.setSQL(sqlModel);
+              serverModelCache.setCLF(clientModel);
               return res.send(200);
             }, function(tx, errors) {
               return res.json(errors, 404);
@@ -764,10 +775,10 @@
         if (tree[2] === void 0) {
           return __TODO__.die();
         } else {
-          if (tree[2][0][2][1] === 'transaction') {
-            console.log(tree[2][0]);
-            _ref = AbstractSQLRules2SQL.match(tree[2][0], 'ProcessQuery'), query = _ref.query, bindings = _ref.bindings;
-            values = getAndCheckBindValues(bindings, tree[2][1]);
+          if (tree[2].query[2][1] === 'transaction') {
+            console.log(tree[2].query);
+            _ref = AbstractSQLRules2SQL.match(tree[2].query, 'ProcessQuery'), query = _ref.query, bindings = _ref.bindings;
+            values = getAndCheckBindValues(bindings, tree[2].values);
             console.log(query, values);
             if (!_.isArray(values)) {
               return res.json(values, 404);
@@ -865,7 +876,7 @@
             text: ''
           }
         ]);
-        serverModelCache.setLastSE("");
+        serverModelCache.setLastSE('');
         serverModelCache.setPrepLF([]);
         serverModelCache.setLF([]);
         serverModelCache.setSQL([]);

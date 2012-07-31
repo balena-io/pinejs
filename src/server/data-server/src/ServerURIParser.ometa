@@ -56,26 +56,29 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 			ResourcePart:verb
 			-> ['Verb', verb],
 
-		TermOrFactType :query =
+		TermOrFactType =
 			Term:term
 			{[term]}:factType
-			(	'-'
-				Verb:verb {factType.push(verb)}
-				(	'-'
-					Term:term
-					{factType.push(term)}
-				)?
-			)*
+			<	(	'-'
+					Verb:verb {factType.push(verb)}
+					(	'-'
+						Term:term
+						{factType.push(term)}
+					)?
+				)*
+			>:resourceName
 			(	?verb
-				AddQueryTable(query, factType)
-			|	AddQueryTable(query, term[1])
-			),
+				-> factType
+			|	-> term[1]
+			):tableName
+			-> {resourceName: resourceName, tableName: tableName},
 
 		Resource =
 			{['Query']}:query
-			TermOrFactType(query)
+			TermOrFactType:resourceInfo
+			AddQueryTable(query, resourceInfo.tableName)
 			Modifiers(query)
-			-> [query, this.currentBody],
+			-> {resourceName: resourceInfo.resourceName, query: query, values: this.currentBody},
 
 		Comparator =
 				'='

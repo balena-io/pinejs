@@ -107,37 +107,48 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
             verb = this._apply("ResourcePart");
             return ["Verb", verb]
         },
-        "TermOrFactType": function(query) {
+        "TermOrFactType": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                term, factType, verb;
+                term, factType, verb, resourceName, tableName;
             term = this._apply("Term");
             factType = [term];
-            this._many((function() {
-                this._applyWithArgs("exactly", "-");
-                verb = this._apply("Verb");
-                factType.push(verb);
-                return this._opt((function() {
+            resourceName = this._consumedBy((function() {
+                return this._many((function() {
                     this._applyWithArgs("exactly", "-");
-                    term = this._apply("Term");
-                    return factType.push(term)
+                    verb = this._apply("Verb");
+                    factType.push(verb);
+                    return this._opt((function() {
+                        this._applyWithArgs("exactly", "-");
+                        term = this._apply("Term");
+                        return factType.push(term)
+                    }))
                 }))
             }));
-            return this._or((function() {
+            tableName = this._or((function() {
                 this._pred(verb);
-                return this._applyWithArgs("AddQueryTable", query, factType)
+                return factType
             }), (function() {
-                return this._applyWithArgs("AddQueryTable", query, term[(1)])
-            }))
+                return term[(1)]
+            }));
+            return ({
+                "resourceName": resourceName,
+                "tableName": tableName
+            })
         },
         "Resource": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                query;
+                query, resourceInfo;
             query = ["Query"];
-            this._applyWithArgs("TermOrFactType", query);
+            resourceInfo = this._apply("TermOrFactType");
+            this._applyWithArgs("AddQueryTable", query, resourceInfo["tableName"]);
             this._applyWithArgs("Modifiers", query);
-            return [query, this["currentBody"]]
+            return ({
+                "resourceName": resourceInfo["resourceName"],
+                "query": query,
+                "values": this["currentBody"]
+            })
         },
         "Comparator": function() {
             var $elf = this,
