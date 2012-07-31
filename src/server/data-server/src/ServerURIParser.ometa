@@ -18,18 +18,19 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 					{['URI', ['Vocabulary', vocab]]}:uri
 					{[]}:resources
 					{0}:i
-					{	for(;i<body.length;i++) {
-							this.currentBody = body[i];
-							if(i<body.length-1) {
-								this._lookahead(function() {
+					(	{	for(;i<body.length;i++) {
+								this.currentBody = body[i];
+								if(i<body.length-1) {
+									this._lookahead(function() {
+										resources.push(this._apply('Resource'));
+									});
+								}
+								else {
 									resources.push(this._apply('Resource'));
-								});
-							}
-							else {
-								resources.push(this._apply('Resource'));
+								}
 							}
 						}
-					}
+					)?
 					'/'?
 				]
 			]
@@ -72,9 +73,9 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 
 		Resource =
 			{['Query']}:query
-			TermOrFactType(query):fields
-			Modifiers(query, fields)
-			-> [query].concat(fields),
+			TermOrFactType(query)
+			Modifiers(query)
+			-> [query, this.currentBody],
 
 		Comparator =
 				'='
@@ -84,8 +85,8 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 			|	'~'
 				-> 'Like',
 
-		Modifiers :query :fields =
-			(	Filters(query, fields)
+		Modifiers :query =
+			(	Filters(query)
 			|	Sorts:sorts
 				{query.push(sorts)}
 			)*,
@@ -96,7 +97,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 			|	ResourcePart:field
 				-> ['Field', field],
 
-		Filters :query :fields =
+		Filters :query =
 			seq('*filt:')
 			(	Field:field
 				Comparator:comparator
@@ -105,7 +106,13 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 					)+
 				>:value
 				';'?
-				AddWhereClause(query, [comparator, field, ['Value', value]], fields)
+				// TODO: Properly support referenced fields
+				(	?(field[0] == 'ReferencedField')
+					-> field[2]
+				|	-> field[1]
+				):fieldName
+				AddWhereClause(query, [comparator, field, ['Bind', this.GetTableField(this.currentTable, fieldName)]])
+				{this.currentBody[fieldName] = value}
 			)+,
 
 		Sorts =
@@ -132,13 +139,14 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 		this.currentVocab = '';
 		this.currentMethod = '';
 		this.currentBody = [];
+		this.currentTable = null;
 	};
 	
 	ServerURIParser.setSQLModel = function(vocab, model) {
 		this.sqlModels[vocab] = model;
 	};
 	
-	ServerURIParser.AddWhereClause = function(query, whereBody, fields) {
+	ServerURIParser.AddWhereClause = function(query, whereBody) {
 		// TODO: Move this to an optimisation pass?
 		// Check if it's a place where we can do a join optimisation.
 		if(whereBody[0] == 'Exists' && (
@@ -152,7 +160,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 			}
 			for(var i=0; i < whereBody.length; i++) {
 				if(whereBody[i][0] == 'Where') {
-					this.AddWhereClause(query, whereBody[i][1], fields);
+					this.AddWhereClause(query, whereBody[i][1]);
 				}
 			}
 		}
@@ -181,11 +189,11 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 				field = whereBody[2][2];
 			}
 			
-			if(whereBody[1][0] == 'Value') {
-				value = whereBody[1][1];
+			if(whereBody[1][0] == 'Bind') {
+				bind = whereBody[1];
 			}
-			else if(whereBody[2][0] == 'Value') {
-				value = whereBody[2][1];
+			else if(whereBody[2][0] == 'Bind') {
+				bind = whereBody[2];
 			}
 			
 			for(var i=1; i < query.length; i++) {
@@ -195,20 +203,13 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 						var queryFields = queryPart[1][j];
 						if(queryFields[0] == field) {
 							// Update the value field for the query
-							queryFields[1] = value;
-							for(var k=0; k < fields[0].length; k++) {
-								// If the field we just set is in bind fields then remove it.
-								if(fields[0][k][1] == field) {
-									fields[0].splice(k, 1);
-									break;
-								}
-							}
+							queryFields[1] = bind;
 							break;
 						}
 					}
 					if(j === queryPart[1].length) {
 						// We need to add it to field and values list of query.
-						queryPart[1].push([field, value]);
+						queryPart[1].push([field, bind]);
 					}
 					break;
 				}
@@ -219,7 +220,6 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 	ServerURIParser.AddQueryTable = function(query, termOrFactType) {
 		var tables = this.sqlModels[this.currentVocab].tables;
 		var table = tables[termOrFactType];
-		var fieldOrdering = [];
 		console.log(termOrFactType, table, this.sqlModels[this.currentVocab]);
 		switch(table) {
 			case 'ForeignKey':
@@ -240,8 +240,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 					case 'PUT':
 					case 'POST':
 						query[0] = 'UpdateQuery';
-						query.push(['Fields', [[attributeName, '?']]]);
-						fieldOrdering.push(this.GetTableField(table, attributeName))
+						query.push(['Fields', [[attributeName, ['Bind', this.GetTableField(table, attributeName)]]]]);
 					break;
 				}
 				query.push(['From', table.name])
@@ -255,9 +254,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 						query[0] = 'UpdateQuery';
 						query.push(['Fields', [[attributeName, false]]]);
 						// TODO: This should be added by checking the body.
-						this.AddWhereClause(query, ['Equals', ['Field', table.idField], ['Bind']])
-						var field = this.GetTableField(table, table.idField);
-						fieldOrdering.push([field[0], table.name, field[1]]);
+						this.AddWhereClause(query, ['Equals', ['Field', table.idField], ['Bind', this.GetTableField(table, table.idField)]]);
 					break;
 					case 'GET':
 						query[0] = 'SelectQuery';
@@ -268,9 +265,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 						query[0] = 'UpdateQuery';
 						query.push(['Fields', [[attributeName, true]]]);
 						// TODO: This should be added by checking the body.
-						this.AddWhereClause(query, ['Equals', ['Field', table.idField], ['Bind']])
-						var field = this.GetTableField(table, table.idField);
-						fieldOrdering.push([field[0], table.name, field[1]]);
+						this.AddWhereClause(query, ['Equals', ['Field', table.idField], ['Bind', this.GetTableField(table, table.idField)]]);
 					break;
 				}
 				query.push(['From', table.name])
@@ -301,8 +296,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 						for(var i=0; i < table.fields.length; i++) {
 							var field = table.fields[i];
 							if(field[2] == 'NOT NULL' || (field[2] == 'PRIMARY KEY' && field[0] != 'Serial')) {
-								fieldOrdering.push(field)
-								fields.push([field[1], '?']);
+								fields.push([field[1], ['Bind', field]]);
 							}
 						}
 						query.push(['Fields', fields]);
@@ -312,7 +306,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 				// All good.
 			break;
 		}
-		return [fieldOrdering];
+		this.currentTable = table;
 	};
 
 	return ServerURIParser;

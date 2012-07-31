@@ -11,47 +11,31 @@ define(['ometa/ometa-base'], function() {
 			-> (indent + '\t'),
 	
 		Not :indent =
-			NestedIndent(indent):nestedIndent
 			[	'Not'
 				(	Exists(indent):ruleBody
 					-> ('NOT ' + ruleBody)
-				|	RuleBody(nestedIndent):ruleBody
+				|	NestedIndent(indent):nestedIndent
+					RuleBody(nestedIndent):ruleBody
 					-> ('NOT (' + nestedIndent + ruleBody + indent + ')')
 				):notStatement
 			]
 			-> notStatement,
 
 		Exists :indent =
-			[	'Exists':x
-				Query(indent):ruleBody
+			[	'Exists'
+				NestedIndent(indent):nestedIndent
+				SelectQuery(nestedIndent):ruleBody
 			]
-			-> ('EXISTS ' + ruleBody),
+			-> ('EXISTS (' + nestedIndent + ruleBody + indent + ')'),
 		
-		Query :indent =
-			(	?(!indent)
-				{true}:noBrackets
-				{'\n'}:indent
-			|	{indent}:origIndent
-				NestedIndent(indent):indent
-			)
-			(	SelectQuery(indent)
-			|	InsertQuery(indent)
-			|	UpdateQuery(indent)
-			|	DeleteQuery(indent)
-			|	UpsertQuery(indent)
-			):query
-			
-					// |	'Delete'
-						// ?(crud==null)
-						// {indent + 'DELETE'}:crud
-					// |	'Insert'
-						// ?(crud==null)
-						// {indent + 'DELETE'}:crud
-						
-			(	?(!noBrackets)
-				{ '(' + indent + query + origIndent + ')'}:query
-			)?
-			-> query,
+		ProcessQuery =
+				(	SelectQuery('\n')
+				|	InsertQuery('\n')
+				|	UpdateQuery('\n')
+				|	DeleteQuery('\n')
+				):query
+				-> {query: query, bindings: this.fieldOrderings}
+			|	UpsertQuery('\n'),
 		
 		SelectQuery :indent =
 			NestedIndent(indent):nestedIndent
@@ -106,7 +90,10 @@ define(['ometa/ometa-base'], function() {
 			{[]}:tables
 			[	'UpsertQuery'
 				&InsertBody(indent):insert
+				{{query: insert, bindings: this.fieldOrderings}}:insert
+				{this.fieldOrderings = []}
 				UpdateBody(indent):update
+				{{query: update, bindings: this.fieldOrderings}}:update
 			]
 			-> [insert, update],
 		
@@ -141,6 +128,7 @@ define(['ometa/ometa-base'], function() {
 						-> 0
 					|	Null
 						-> 'NULL'
+					|	Bind
 					|	anything:value
 						// TODO: Should escape this.
 						-> ("'" + value + "'")
@@ -227,7 +215,8 @@ define(['ometa/ometa-base'], function() {
 			]
 			-> bool,
 		Bind =
-			['Bind']
+			['Bind' :field]
+			{this.fieldOrderings.push(field)}
 			-> '?',
 		
 		// A generic value, no idea what data type it may be..
@@ -262,7 +251,9 @@ define(['ometa/ometa-base'], function() {
 			-> (val + ' BETWEEN ' + a + ' AND ' + b),
 		
 		Comparator :indent =
-				Query(indent)
+				SelectQuery(indent):query
+				NestedIndent(indent):nestedIndent
+				-> ('(' + nestedIndent + query + indent + ')')
 			|	Field
 			|	ReferencedField
 			|	Number
@@ -284,8 +275,8 @@ define(['ometa/ometa-base'], function() {
 			-> ('SELECT ' + ruleBody + ' AS "result";')
 	}
 	
-	var primitives = {
-		'integer': true
+	AbstractSQLRules2SQL.initialize = function() {
+		this.fieldOrderings = [];
 	}
 	
 	return AbstractSQLRules2SQL;

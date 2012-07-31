@@ -131,13 +131,13 @@
             return serverRequest("POST", trans.tlcURI, {}, o, (function(statusCode, result, headers) {
               o = [
                 {
-                  lock: lockID
+                  id: lockID
                 }
               ];
               return serverRequest("POST", trans.xlcURI, {}, o, (function(statusCode, result, headers) {
                 o = [
                   {
-                    value: parseInt(resource_id, 10)
+                    resource_id: parseInt(resource_id, 10)
                   }
                 ];
                 return serverRequest("POST", trans.rcURI, {}, o, (function(statusCode, result, headers) {

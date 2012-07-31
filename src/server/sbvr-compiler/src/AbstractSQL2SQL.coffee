@@ -1,6 +1,7 @@
 define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQLOptimiser', 'Prettify', 'underscore'], (AbstractSQLRules2SQL, AbstractSQLOptimiser, Prettify, _) ->
 	
-	dataTypeValidate = (value, field) ->
+	dataTypeValidate = (originalValue, field) ->
+		value = originalValue
 		validated = true
 		if value == null
 			switch field[2]
@@ -11,22 +12,22 @@ define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQLOptimise
 				when 'Serial', 'Integer', 'ForeignKey', 'ConceptType'
 					value = parseInt(value, 10)
 					if _.isNaN(value)
-						validated = 'is not a number: ' + value
+						validated = 'is not a number: ' + originalValue
 				when 'Short Text'
 					if !_.isString(value)
-						validated = 'is not a string'
+						validated = 'is not a string: ' + originalValue
 					else if value.length > 20
 						validated = 'longer than 20 characters (' + value.length + ')'
 				when 'Long Text'
 					if !_.isString(value)
-						validated = 'is not a string'
+						validated = 'is not a string: ' + originalValue
 				when 'Boolean'
 					value = parseInt(value, 10)
 					if _.isNaN(value) || (value not in [0, 1])
-						validated = 'is not a boolean'
+						validated = 'is not a boolean: ' + originalValue
 				else
 					if !_.isString(value)
-						validated = 'is not a string'
+						validated = 'is not a string: ' + originalValue
 					else if value.length > 100
 						validated = 'longer than 100 characters (' + value.length + ')'
 		return {validated, value}

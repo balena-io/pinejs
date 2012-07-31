@@ -3,8 +3,9 @@
 
   define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQLOptimiser', 'Prettify', 'underscore'], function(AbstractSQLRules2SQL, AbstractSQLOptimiser, Prettify, _) {
     var dataTypeValidate, generate, postgresDataType, websqlDataType;
-    dataTypeValidate = function(value, field) {
-      var validated;
+    dataTypeValidate = function(originalValue, field) {
+      var validated, value;
+      value = originalValue;
       validated = true;
       if (value === null) {
         switch (field[2]) {
@@ -19,27 +20,29 @@
           case 'ForeignKey':
           case 'ConceptType':
             value = parseInt(value, 10);
-            if (_.isNaN(value)) validated = 'is not a number: ' + value;
+            if (_.isNaN(value)) validated = 'is not a number: ' + originalValue;
             break;
           case 'Short Text':
             if (!_.isString(value)) {
-              validated = 'is not a string';
+              validated = 'is not a string: ' + originalValue;
             } else if (value.length > 20) {
               validated = 'longer than 20 characters (' + value.length + ')';
             }
             break;
           case 'Long Text':
-            if (!_.isString(value)) validated = 'is not a string';
+            if (!_.isString(value)) {
+              validated = 'is not a string: ' + originalValue;
+            }
             break;
           case 'Boolean':
             value = parseInt(value, 10);
             if (_.isNaN(value) || (value !== 0 && value !== 1)) {
-              validated = 'is not a boolean';
+              validated = 'is not a boolean: ' + originalValue;
             }
             break;
           default:
             if (!_.isString(value)) {
-              validated = 'is not a string';
+              validated = 'is not a string: ' + originalValue;
             } else if (value.length > 100) {
               validated = 'longer than 100 characters (' + value.length + ')';
             }

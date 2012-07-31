@@ -5,7 +5,7 @@
     var db, endLock, executeSqlModel, exports, getAndCheckBindValues, getCorrectTableInfo, getID, op, parseURITree, rebuildFactType, runDelete, runGet, runPost, runPut, runURI, serverIsOnAir, serverModelCache, serverURIParser, sqlModels, transactionModel, uiModel, validateDB;
     exports = {};
     db = null;
-    transactionModel = 'Term:      Integer\nTerm:      Long Text\nTerm:      resource type\n	Concept type: Long Text\nTerm:      field name\n	Concept type: Long Text\nTerm:      field value\n	Concept type: Long Text\nTerm:      field type\n	Concept type: Long Text\nTerm:      resource\nTerm:      transaction\nTerm:      lock\nTerm:      conditional representation\n	Database Value Field: lock\nFact type: lock is exclusive\nFact type: lock is shared\nFact type: resource is under lock\n	Term Form: locked resource\nFact type: locked resource has resource type\nFact type: lock belongs to transaction\nFact type: conditional representation has field name\nFact type: conditional representation has field value\nFact type: conditional representation has field type\nFact type: conditional representation has lock\nRule:      It is obligatory that each locked resource has exactly 1 resource type\nRule:      It is obligatory that each conditional representation has exactly 1 field name\nRule:      It is obligatory that each conditional representation has exactly 1 field value\nRule:      It is obligatory that each conditional representation has exactly 1 field type\nRule:      It is obligatory that each conditional representation has exactly 1 lock\nRule:      It is obligatory that each resource is under at most 1 lock that is exclusive';
+    transactionModel = 'Term:      Integer\nTerm:      Long Text\nTerm:      resource id\n	Concept type: Integer\nTerm:      resource type\n	Concept type: Long Text\nTerm:      field name\n	Concept type: Long Text\nTerm:      field value\n	Concept type: Long Text\nTerm:      field type\n	Concept type: Long Text\nTerm:      resource\n	Database Value Field: resource_id\nFact type: resource has resource id\nRule:      It is obligatory that each resource has exactly 1 resource id\nTerm:      transaction\nTerm:      lock\nTerm:      conditional representation\n	Database Value Field: lock\nFact type: lock is exclusive\nFact type: lock is shared\nFact type: resource is under lock\n	Term Form: locked resource\nFact type: locked resource has resource type\nFact type: lock belongs to transaction\nFact type: conditional representation has field name\nFact type: conditional representation has field value\nFact type: conditional representation has field type\nFact type: conditional representation has lock\nRule:      It is obligatory that each locked resource has exactly 1 resource type\nRule:      It is obligatory that each conditional representation has exactly 1 field name\nRule:      It is obligatory that each conditional representation has exactly 1 field value\nRule:      It is obligatory that each conditional representation has exactly 1 field type\nRule:      It is obligatory that each conditional representation has exactly 1 lock\nRule:      It is obligatory that each resource is under at most 1 lock that is exclusive';
     transactionModel = SBVRParser.matchAll(transactionModel, "expr");
     transactionModel = LF2AbstractSQLPrep.match(transactionModel, "Process");
     transactionModel = LF2AbstractSQL.match(transactionModel, "Process");
@@ -176,7 +176,7 @@
       };
       lock_id = locks.rows.item(i).lock;
       tx.executeSql('SELECT * FROM "conditional_representation" WHERE "lock" = ?;', [lock_id], function(tx, crs) {
-        return tx.executeSql('SELECT rl."resource_type", r."value" AS "resource_id" FROM "resource-is_under-lock" rl JOIN "resource" r ON rl."resource" = r."id" WHERE "lock" = ?;', [lock_id], function(tx, locked) {
+        return tx.executeSql('SELECT rl."resource_type", r."resource_id" FROM "resource-is_under-lock" rl JOIN "resource" r ON rl."resource" = r."id" WHERE "lock" = ?;', [lock_id], function(tx, locked) {
           var asyncCallback, isAttribute, item, j, lockedRow, sql, table, _ref, _ref2;
           lockedRow = locked.rows.item(0);
           _ref = getCorrectTableInfo(lockedRow.resource_type), table = _ref.table, isAttribute = _ref.isAttribute;
@@ -275,7 +275,7 @@
       if (body == null) body = {};
       console.log('Running URI', method, uri, body);
       req = {
-        tree: serverURIParser.match([method, uri], 'Process'),
+        tree: serverURIParser.match([method, body, uri], 'Process'),
         body: body
       };
       res = {
@@ -314,29 +314,29 @@
       return bindValues;
     };
     runGet = function(req, res) {
-      var sql, tree, values;
+      var bindings, query, tree, values, _ref;
       tree = req.tree;
       if (tree[2] === void 0) {
         return res.send(404);
       } else {
         console.log(tree[2][0]);
-        sql = AbstractSQLRules2SQL.match(tree[2][0], 'Query');
-        values = getAndCheckBindValues(tree[2][1], req.body[0]);
-        console.log(sql, values);
+        _ref = AbstractSQLRules2SQL.match(tree[2][0], 'ProcessQuery'), query = _ref.query, bindings = _ref.bindings;
+        values = getAndCheckBindValues(bindings, tree[2][1]);
+        console.log(query, values);
         if (!_.isArray(values)) {
           return res.json(values, 404);
         } else {
           return db.transaction(function(tx) {
-            return tx.executeSql(sql, values, function(tx, result) {
+            return tx.executeSql(query, values, function(tx, result) {
               var data, i;
               if (values.length > 0 && result.rows.length === 0) {
                 return res.send(404);
               } else {
                 data = {
                   instances: (function() {
-                    var _ref, _results;
+                    var _ref2, _results;
                     _results = [];
-                    for (i = 0, _ref = result.rows.length; 0 <= _ref ? i < _ref : i > _ref; 0 <= _ref ? i++ : i--) {
+                    for (i = 0, _ref2 = result.rows.length; 0 <= _ref2 ? i < _ref2 : i > _ref2; 0 <= _ref2 ? i++ : i--) {
                       _results.push(result.rows.item(i));
                     }
                     return _results;
@@ -352,22 +352,22 @@
       }
     };
     runPost = function(req, res) {
-      var sql, tree, values, vocab;
+      var bindings, query, tree, values, vocab, _ref;
       tree = req.tree;
       if (tree[2] === void 0) {
         return res.send(404);
       } else {
         console.log(tree[2][0]);
-        sql = AbstractSQLRules2SQL.match(tree[2][0], 'Query');
-        values = getAndCheckBindValues(tree[2][1], req.body[0]);
-        console.log(sql, values);
+        _ref = AbstractSQLRules2SQL.match(tree[2][0], 'ProcessQuery'), query = _ref.query, bindings = _ref.bindings;
+        values = getAndCheckBindValues(bindings, tree[2][1]);
+        console.log(query, values);
         if (!_.isArray(values)) {
           return res.json(values, 404);
         } else {
           vocab = tree[1][1];
           return db.transaction(function(tx) {
             tx.begin();
-            return tx.executeSql(sql, values, function(tx, sqlResult) {
+            return tx.executeSql(query, values, function(tx, sqlResult) {
               return validateDB(tx, sqlModels[vocab], function(tx) {
                 var insertID;
                 tx.end();
@@ -387,24 +387,25 @@
       }
     };
     runPut = function(req, res) {
-      var doValidate, id, insertSQL, sql, tree, updateSQL, values, vocab;
+      var doValidate, id, insertQuery, queries, tree, updateQuery, values, vocab;
       tree = req.tree;
       if (tree[2] === void 0) {
         return res.send(404);
       } else {
         console.log(tree[2][0]);
-        sql = AbstractSQLRules2SQL.match(tree[2][0], 'Query');
-        values = getAndCheckBindValues(tree[2][1], req.body[0]);
-        console.log(sql, values);
+        queries = AbstractSQLRules2SQL.match(tree[2][0], 'ProcessQuery');
+        if (_.isArray(queries)) {
+          insertQuery = queries[0];
+          updateQuery = queries[1];
+        } else {
+          insertQuery = queries;
+        }
+        values = getAndCheckBindValues(insertQuery.bindings, tree[2][1]);
+        console.log(insertQuery.query, values);
         if (!_.isArray(values)) {
           return res.json(values, 404);
         } else {
           vocab = tree[1][1];
-          insertSQL = sql;
-          if (_.isArray(sql)) {
-            insertSQL = sql[0];
-            updateSQL = sql[1];
-          }
           doValidate = function(tx) {
             return validateDB(tx, sqlModels[vocab], function(tx) {
               tx.end();
@@ -422,15 +423,21 @@
                 if ((_ref = result.rows.item(0).result) === 0 || _ref === false) {
                   return res.json(["The resource is locked and cannot be edited"], 404);
                 } else {
-                  return tx.executeSql(insertSQL, values, function(tx, result) {
+                  return tx.executeSql(insertQuery.query, values, function(tx, result) {
                     return doValidate(tx);
                   }, function(tx) {
-                    if (updateSQL != null) {
-                      return tx.executeSql(updateSQL, values, function(tx, result) {
-                        return doValidate(tx);
-                      }, function() {
-                        return res.send(404);
-                      });
+                    if (updateQuery != null) {
+                      values = getAndCheckBindValues(updateQuery.bindings, tree[2][1]);
+                      console.log(updateQuery.query, values);
+                      if (!_.isArray(values)) {
+                        return res.json(values, 404);
+                      } else {
+                        return tx.executeSql(updateQuery.query, values, function(tx, result) {
+                          return doValidate(tx);
+                        }, function() {
+                          return res.send(404);
+                        });
+                      }
                     } else {
                       return res.send(404);
                     }
@@ -443,22 +450,22 @@
       }
     };
     runDelete = function(req, res) {
-      var sql, tree, values, vocab;
+      var bindings, query, tree, values, vocab, _ref;
       tree = req.tree;
       if (tree[2] === void 0) {
         return res.send(404);
       } else {
         console.log(tree[2][0]);
-        sql = AbstractSQLRules2SQL.match(tree[2][0], 'Query');
-        values = getAndCheckBindValues(tree[2][1], req.body[0]);
-        console.log(sql, values);
+        _ref = AbstractSQLRules2SQL.match(tree[2][0], 'ProcessQuery'), query = _ref.query, bindings = _ref.bindings;
+        values = getAndCheckBindValues(bindings, tree[2][1]);
+        console.log(query, values);
         if (!_.isArray(values)) {
           return res.json(values, 404);
         } else {
           vocab = tree[1][1];
           return db.transaction(function(tx) {
             tx.begin();
-            return tx.executeSql(sql, values, function(tx, result) {
+            return tx.executeSql(query, values, function(tx, result) {
               return validateDB(tx, sqlModels[vocab], function(tx) {
                 tx.end();
                 return res.send(200);
@@ -749,21 +756,21 @@
         return runGet(req, res);
       });
       app.get('/transaction/*', serverIsOnAir, parseURITree, function(req, res, next) {
-        var sql, tree, values;
+        var bindings, query, tree, values, _ref;
         tree = req.tree;
         if (tree[2] === void 0) {
           return __TODO__.die();
         } else {
           if (tree[2][0][2][1] === 'transaction') {
             console.log(tree[2][0]);
-            sql = AbstractSQLRules2SQL.match(tree[2][0], 'Query');
-            values = getAndCheckBindValues(tree[2][1], req.body[0]);
-            console.log(sql, values);
+            _ref = AbstractSQLRules2SQL.match(tree[2][0], 'ProcessQuery'), query = _ref.query, bindings = _ref.bindings;
+            values = getAndCheckBindValues(bindings, tree[2][1]);
+            console.log(query, values);
             if (!_.isArray(values)) {
               return res.json(values, 404);
             } else {
               return db.transaction(function(tx) {
-                return tx.executeSql(sql, values, function(tx, result) {
+                return tx.executeSql(query, values, function(tx, result) {
                   if (result.rows.length > 1) __TODO__.die();
                   return res.json({
                     id: result.rows.item(0).id,

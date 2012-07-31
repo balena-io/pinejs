@@ -37,19 +37,21 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                     uri = ["URI", ["Vocabulary", vocab]];
                     resources = [];
                     i = (0);
-                    (function() {
-                        for (undefined;
-                        (i < body["length"]); i++) {
-                            (this["currentBody"] = body[i]);
-                            if ((i < (body["length"] - (1)))) {
-                                this._lookahead((function() {
+                    this._opt((function() {
+                        return (function() {
+                            for (undefined;
+                            (i < body["length"]); i++) {
+                                (this["currentBody"] = body[i]);
+                                if ((i < (body["length"] - (1)))) {
+                                    this._lookahead((function() {
+                                        resources.push(this._apply("Resource"))
+                                    }))
+                                } else {
                                     resources.push(this._apply("Resource"))
-                                }))
-                            } else {
-                                resources.push(this._apply("Resource"))
+                                }
                             }
-                        }
-                    }).call(this);
+                        }).call(this)
+                    }));
                     return this._opt((function() {
                         return this._applyWithArgs("exactly", "/")
                     }))
@@ -131,11 +133,11 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
         "Resource": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                query, fields;
+                query;
             query = ["Query"];
-            fields = this._applyWithArgs("TermOrFactType", query);
-            this._applyWithArgs("Modifiers", query, fields);
-            return [query].concat(fields)
+            this._applyWithArgs("TermOrFactType", query);
+            this._applyWithArgs("Modifiers", query);
+            return [query, this["currentBody"]]
         },
         "Comparator": function() {
             var $elf = this,
@@ -157,13 +159,13 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                 }
             }).call(this)
         },
-        "Modifiers": function(query, fields) {
+        "Modifiers": function(query) {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 sorts;
             return this._many((function() {
                 return this._or((function() {
-                    return this._applyWithArgs("Filters", query, fields)
+                    return this._applyWithArgs("Filters", query)
                 }), (function() {
                     sorts = this._apply("Sorts");
                     return query.push(sorts)
@@ -184,10 +186,10 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                 return ["Field", field]
             }))
         },
-        "Filters": function(query, fields) {
+        "Filters": function(query) {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                field, comparator, value;
+                field, comparator, value, fieldName;
             this._applyWithArgs("exactly", "*");
             this._applyWithArgs("exactly", "f");
             this._applyWithArgs("exactly", "i");
@@ -209,7 +211,14 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                 this._opt((function() {
                     return this._applyWithArgs("exactly", ";")
                 }));
-                return this._applyWithArgs("AddWhereClause", query, [comparator, field, ["Value", value]], fields)
+                fieldName = this._or((function() {
+                    this._pred((field[(0)] == "ReferencedField"));
+                    return field[(2)]
+                }), (function() {
+                    return field[(1)]
+                }));
+                this._applyWithArgs("AddWhereClause", query, [comparator, field, ["Bind", this.GetTableField(this["currentTable"], fieldName)]]);
+                return (this["currentBody"][fieldName] = value)
             }))
         },
         "Sorts": function() {
@@ -273,12 +282,13 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
         (this["sqlModels"] = ({}));
         (this["currentVocab"] = "");
         (this["currentMethod"] = "");
-        (this["currentBody"] = [])
+        (this["currentBody"] = []);
+        (this["currentTable"] = null)
     }));
     (ServerURIParser["setSQLModel"] = (function(vocab, model) {
         (this["sqlModels"][vocab] = model)
     }));
-    (ServerURIParser["AddWhereClause"] = (function(query, whereBody, fields) {
+    (ServerURIParser["AddWhereClause"] = (function(query, whereBody) {
         if (((whereBody[(0)] == "Exists") && ((((whereBody[(1)][(0)] == "SelectQuery") || (whereBody[(1)][(0)] == "InsertQuery")) || (whereBody[(1)][(0)] == "UpdateQuery")) || (whereBody[(1)][(0)] == "UpsertQuery")))) {
             (whereBody = whereBody[(1)].slice((1)));
             for (var i = (0);
@@ -292,7 +302,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
             for (var i = (0);
             (i < whereBody["length"]); i++) {
                 if ((whereBody[i][(0)] == "Where")) {
-                    this.AddWhereClause(query, whereBody[i][(1)], fields)
+                    this.AddWhereClause(query, whereBody[i][(1)])
                 } else {
                     undefined
                 }
@@ -331,11 +341,11 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                     }
                 }
             };
-            if ((whereBody[(1)][(0)] == "Value")) {
-                (value = whereBody[(1)][(1)])
+            if ((whereBody[(1)][(0)] == "Bind")) {
+                (bind = whereBody[(1)])
             } else {
-                if ((whereBody[(2)][(0)] == "Value")) {
-                    (value = whereBody[(2)][(1)])
+                if ((whereBody[(2)][(0)] == "Bind")) {
+                    (bind = whereBody[(2)])
                 } else {
                     undefined
                 }
@@ -348,23 +358,14 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                     (j < queryPart[(1)]["length"]); j++) {
                         var queryFields = queryPart[(1)][j];
                         if ((queryFields[(0)] == field)) {
-                            (queryFields[(1)] = value);
-                            for (var k = (0);
-                            (k < fields[(0)]["length"]); k++) {
-                                if ((fields[(0)][k][(1)] == field)) {
-                                    fields[(0)].splice(k, (1));
-                                    break
-                                } else {
-                                    undefined
-                                }
-                            };
+                            (queryFields[(1)] = bind);
                             break
                         } else {
                             undefined
                         }
                     };
                     if ((j === queryPart[(1)]["length"])) {
-                        queryPart[(1)].push([field, value])
+                        queryPart[(1)].push([field, bind])
                     } else {
                         undefined
                     };
@@ -380,7 +381,6 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
     (ServerURIParser["AddQueryTable"] = (function(query, termOrFactType) {
         var tables = this["sqlModels"][this["currentVocab"]]["tables"];
         var table = tables[termOrFactType];
-        var fieldOrdering = [];
         console.log(termOrFactType, table, this["sqlModels"][this["currentVocab"]]);
         switch (table) {
         case "ForeignKey":
@@ -413,9 +413,8 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                     {
                         (query[(0)] = "UpdateQuery");
                         query.push(["Fields", [
-                            [attributeName, "?"]
+                            [attributeName, ["Bind", this.GetTableField(table, attributeName)]]
                         ]]);
-                        fieldOrdering.push(this.GetTableField(table, attributeName));
                         break
                     }
                 }
@@ -434,10 +433,8 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                             [attributeName, false]
                         ]]);
                         this.AddWhereClause(query, ["Equals", ["Field", table["idField"]],
-                            ["Bind"]
+                            ["Bind", this.GetTableField(table, table["idField"])]
                         ]);
-                        var field = this.GetTableField(table, table["idField"]);
-                        fieldOrdering.push([field[(0)], table["name"], field[(1)]]);
                         break
                     };
                 case "GET":
@@ -455,10 +452,8 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                             [attributeName, true]
                         ]]);
                         this.AddWhereClause(query, ["Equals", ["Field", table["idField"]],
-                            ["Bind"]
+                            ["Bind", this.GetTableField(table, table["idField"])]
                         ]);
-                        var field = this.GetTableField(table, table["idField"]);
-                        fieldOrdering.push([field[(0)], table["name"], field[(1)]]);
                         break
                     }
                 }
@@ -501,8 +496,9 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                         (i < table["fields"]["length"]); i++) {
                             var field = table["fields"][i];
                             if (((field[(2)] == "NOT NULL") || ((field[(2)] == "PRIMARY KEY") && (field[(0)] != "Serial")))) {
-                                fieldOrdering.push(field);
-                                fields.push([field[(1)], "?"])
+                                fields.push([field[(1)],
+                                    ["Bind", field]
+                                ])
                             } else {
                                 undefined
                             }
@@ -515,7 +511,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                 break
             }
         };
-        return [fieldOrdering]
+        (this["currentTable"] = table)
     }));
     return ServerURIParser
 }))

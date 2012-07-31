@@ -16,14 +16,14 @@ define(["ometa/ometa-base"], (function() {
         "Not": function(indent) {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                nestedIndent, ruleBody, notStatement;
-            nestedIndent = this._applyWithArgs("NestedIndent", indent);
+                ruleBody, nestedIndent, notStatement;
             this._form((function() {
                 this._applyWithArgs("exactly", "Not");
                 return notStatement = this._or((function() {
                     ruleBody = this._applyWithArgs("Exists", indent);
                     return ("NOT " + ruleBody)
                 }), (function() {
+                    nestedIndent = this._applyWithArgs("NestedIndent", indent);
                     ruleBody = this._applyWithArgs("RuleBody", nestedIndent);
                     return (((("NOT (" + nestedIndent) + ruleBody) + indent) + ")")
                 }))
@@ -33,41 +33,35 @@ define(["ometa/ometa-base"], (function() {
         "Exists": function(indent) {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                x, ruleBody;
+                nestedIndent, ruleBody;
             this._form((function() {
-                x = this._applyWithArgs("exactly", "Exists");
-                return ruleBody = this._applyWithArgs("Query", indent)
+                this._applyWithArgs("exactly", "Exists");
+                nestedIndent = this._applyWithArgs("NestedIndent", indent);
+                return ruleBody = this._applyWithArgs("SelectQuery", nestedIndent)
             }));
-            return ("EXISTS " + ruleBody)
+            return (((("EXISTS (" + nestedIndent) + ruleBody) + indent) + ")")
         },
-        "Query": function(indent) {
+        "ProcessQuery": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                noBrackets, indent, origIndent, query;
-            this._or((function() {
-                this._pred((!indent));
-                noBrackets = true;
-                return indent = "\n"
+                query;
+            return this._or((function() {
+                query = this._or((function() {
+                    return this._applyWithArgs("SelectQuery", "\n")
+                }), (function() {
+                    return this._applyWithArgs("InsertQuery", "\n")
+                }), (function() {
+                    return this._applyWithArgs("UpdateQuery", "\n")
+                }), (function() {
+                    return this._applyWithArgs("DeleteQuery", "\n")
+                }));
+                return ({
+                    "query": query,
+                    "bindings": this["fieldOrderings"]
+                })
             }), (function() {
-                origIndent = indent;
-                return indent = this._applyWithArgs("NestedIndent", indent)
-            }));
-            query = this._or((function() {
-                return this._applyWithArgs("SelectQuery", indent)
-            }), (function() {
-                return this._applyWithArgs("InsertQuery", indent)
-            }), (function() {
-                return this._applyWithArgs("UpdateQuery", indent)
-            }), (function() {
-                return this._applyWithArgs("DeleteQuery", indent)
-            }), (function() {
-                return this._applyWithArgs("UpsertQuery", indent)
-            }));
-            this._opt((function() {
-                this._pred((!noBrackets));
-                return query = (((("(" + indent) + query) + origIndent) + ")")
-            }));
-            return query
+                return this._applyWithArgs("UpsertQuery", "\n")
+            }))
         },
         "SelectQuery": function(indent) {
             var $elf = this,
@@ -171,7 +165,16 @@ define(["ometa/ometa-base"], (function() {
                 insert = this._lookahead((function() {
                     return this._applyWithArgs("InsertBody", indent)
                 }));
-                return update = this._applyWithArgs("UpdateBody", indent)
+                insert = ({
+                    "query": insert,
+                    "bindings": this["fieldOrderings"]
+                });
+                (this["fieldOrderings"] = []);
+                update = this._applyWithArgs("UpdateBody", indent);
+                return update = ({
+                    "query": update,
+                    "bindings": this["fieldOrderings"]
+                })
             }));
             return [insert, update]
         },
@@ -233,6 +236,8 @@ define(["ometa/ometa-base"], (function() {
                         }), (function() {
                             this._apply("Null");
                             return "NULL"
+                        }), (function() {
+                            return this._apply("Bind")
                         }), (function() {
                             value = this._apply("anything");
                             return (("\'" + value) + "\'")
@@ -375,10 +380,13 @@ define(["ometa/ometa-base"], (function() {
         },
         "Bind": function() {
             var $elf = this,
-                _fromIdx = this.input.idx;
+                _fromIdx = this.input.idx,
+                field;
             this._form((function() {
-                return this._applyWithArgs("exactly", "Bind")
+                this._applyWithArgs("exactly", "Bind");
+                return field = this._apply("anything")
             }));
+            this["fieldOrderings"].push(field);
             return "?"
         },
         "Value": function() {
@@ -439,9 +447,12 @@ define(["ometa/ometa-base"], (function() {
         },
         "Comparator": function(indent) {
             var $elf = this,
-                _fromIdx = this.input.idx;
+                _fromIdx = this.input.idx,
+                query, nestedIndent;
             return this._or((function() {
-                return this._applyWithArgs("Query", indent)
+                query = this._applyWithArgs("SelectQuery", indent);
+                nestedIndent = this._applyWithArgs("NestedIndent", indent);
+                return (((("(" + nestedIndent) + query) + indent) + ")")
             }), (function() {
                 return this._apply("Field")
             }), (function() {
@@ -481,8 +492,8 @@ define(["ometa/ometa-base"], (function() {
             return (("SELECT " + ruleBody) + " AS \"result\";")
         }
     });
-    var primitives = ({
-        "integer": true
-    });
+    (AbstractSQLRules2SQL["initialize"] = (function() {
+        (this["fieldOrderings"] = [])
+    }));
     return AbstractSQLRules2SQL
 }))

@@ -84,9 +84,9 @@ require(['utils/createAsyncQueueCallback'], (createAsyncQueueCallback) ->
 					lockID = lock.instances[0].id
 					o = [ transaction: trans.id, lock: lockID ]
 					serverRequest "POST", trans.tlcURI, {}, o, ((statusCode, result, headers) ->
-						o = [ lock: lockID ]
+						o = [ id: lockID ]
 						serverRequest "POST", trans.xlcURI, {}, o, ((statusCode, result, headers) ->
-							o = [ value: parseInt(resource_id, 10)]
+							o = [ resource_id: parseInt(resource_id, 10)]
 							serverRequest "POST", trans.rcURI, {}, o, ((statusCode, result, headers) ->
 								serverRequest "GET", headers.location, {}, null, ((statusCode, resource, headers) ->
 									o = [ resource: resource.instances[0].id, resource_type: resource_type, lock: lockID ]
