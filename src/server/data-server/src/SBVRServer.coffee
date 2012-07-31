@@ -303,11 +303,14 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 			when 'DELETE'
 				runDelete(req,res)
 	
-	getAndCheckBindValues = (fields, values) ->
+	getAndCheckBindValues = (bindings, values) ->
 		bindValues = []
-		for field in fields
+		for binding in bindings
+			field = binding[1]
 			fieldName = field[1]
-			{validated, value} = AbstractSQL2SQL.dataTypeValidate(values[fieldName], field)
+			referencedName = binding[0] + '.' + fieldName
+			value = if values[referencedName] == undefined then values[fieldName] else values[referencedName]
+			{validated, value} = AbstractSQL2SQL.dataTypeValidate(value, field)
 			if validated != true
 				return '"' + fieldName + '" ' + validated
 			bindValues.push(value)

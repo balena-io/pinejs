@@ -301,13 +301,16 @@
           return runDelete(req, res);
       }
     };
-    getAndCheckBindValues = function(fields, values) {
-      var bindValues, field, fieldName, validated, value, _i, _len, _ref;
+    getAndCheckBindValues = function(bindings, values) {
+      var bindValues, binding, field, fieldName, referencedName, validated, value, _i, _len, _ref;
       bindValues = [];
-      for (_i = 0, _len = fields.length; _i < _len; _i++) {
-        field = fields[_i];
+      for (_i = 0, _len = bindings.length; _i < _len; _i++) {
+        binding = bindings[_i];
+        field = binding[1];
         fieldName = field[1];
-        _ref = AbstractSQL2SQL.dataTypeValidate(values[fieldName], field), validated = _ref.validated, value = _ref.value;
+        referencedName = binding[0] + '.' + fieldName;
+        value = values[referencedName] === void 0 ? values[fieldName] : values[referencedName];
+        _ref = AbstractSQL2SQL.dataTypeValidate(value, field), validated = _ref.validated, value = _ref.value;
         if (validated !== true) return '"' + fieldName + '" ' + validated;
         bindValues.push(value);
       }

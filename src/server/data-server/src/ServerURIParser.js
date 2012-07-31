@@ -189,7 +189,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
         "Filters": function(query) {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                field, comparator, value, fieldName;
+                field, comparator, value, table, fieldName;
             this._applyWithArgs("exactly", "*");
             this._applyWithArgs("exactly", "f");
             this._applyWithArgs("exactly", "i");
@@ -211,14 +211,16 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                 this._opt((function() {
                     return this._applyWithArgs("exactly", ";")
                 }));
-                fieldName = this._or((function() {
+                this._or((function() {
                     this._pred((field[(0)] == "ReferencedField"));
-                    return field[(2)]
+                    table = this["sqlModels"][this["currentVocab"]]["tables"][field[(1)]];
+                    return fieldName = field[(2)]
                 }), (function() {
-                    return field[(1)]
+                    table = this["currentTable"];
+                    return fieldName = field[(1)]
                 }));
-                this._applyWithArgs("AddWhereClause", query, [comparator, field, ["Bind", this.GetTableField(this["currentTable"], fieldName)]]);
-                return (this["currentBody"][fieldName] = value)
+                this._applyWithArgs("AddWhereClause", query, [comparator, field, ["Bind", table["name"], this.GetTableField(table, fieldName)]]);
+                return (this["currentBody"][((table["name"] + ".") + fieldName)] = value)
             }))
         },
         "Sorts": function() {
@@ -413,7 +415,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                     {
                         (query[(0)] = "UpdateQuery");
                         query.push(["Fields", [
-                            [attributeName, ["Bind", this.GetTableField(table, attributeName)]]
+                            [attributeName, ["Bind", table["name"], this.GetTableField(table, attributeName)]]
                         ]]);
                         break
                     }
@@ -433,7 +435,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                             [attributeName, false]
                         ]]);
                         this.AddWhereClause(query, ["Equals", ["Field", table["idField"]],
-                            ["Bind", this.GetTableField(table, table["idField"])]
+                            ["Bind", table["name"], this.GetTableField(table, table["idField"])]
                         ]);
                         break
                     };
@@ -452,7 +454,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                             [attributeName, true]
                         ]]);
                         this.AddWhereClause(query, ["Equals", ["Field", table["idField"]],
-                            ["Bind", this.GetTableField(table, table["idField"])]
+                            ["Bind", table["name"], this.GetTableField(table, table["idField"])]
                         ]);
                         break
                     }
@@ -497,7 +499,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                             var field = table["fields"][i];
                             if (((field[(2)] == "NOT NULL") || ((field[(2)] == "PRIMARY KEY") && (field[(0)] != "Serial")))) {
                                 fields.push([field[(1)],
-                                    ["Bind", field]
+                                    ["Bind", table["name"], field]
                                 ])
                             } else {
                                 undefined

@@ -381,12 +381,13 @@ define(["ometa/ometa-base"], (function() {
         "Bind": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                field;
+                tableName, field;
             this._form((function() {
                 this._applyWithArgs("exactly", "Bind");
+                tableName = this._apply("anything");
                 return field = this._apply("anything")
             }));
-            this["fieldOrderings"].push(field);
+            this["fieldOrderings"].push([tableName, field]);
             return "?"
         },
         "Value": function() {

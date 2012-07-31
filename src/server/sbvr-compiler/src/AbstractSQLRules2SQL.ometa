@@ -215,8 +215,11 @@ define(['ometa/ometa-base'], function() {
 			]
 			-> bool,
 		Bind =
-			['Bind' :field]
-			{this.fieldOrderings.push(field)}
+			[	'Bind'
+				:tableName
+				:field
+			]
+			{this.fieldOrderings.push([tableName, field])}
 			-> '?',
 		
 		// A generic value, no idea what data type it may be..
