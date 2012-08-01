@@ -11,7 +11,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 			} %>
 			''')
 		factTypeForm: ejs.compile('''
-			<div class="panel" style="background-color:<%= backgroundColour %>;">
+			<div class="panel" style="background-color:<%= altBackgroundColour %>;">
 				<form class="action">
 					<%- templates.hiddenFormInput(locals) %><%
 					for(var i = 0; i < factType.length; i++) {
@@ -45,34 +45,32 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 			</div>
 			''')
 		termForm: ejs.compile('''
-			<div class="panel" style="background-color:<%= backgroundColour %>;">
-				<div align="left">
-					<form class="action">
-						<%- templates.hiddenFormInput(locals) %><%
-						if(id !== false) { %>
-							id: <%= id %><br/><%
-						}
+			<div class="panel" style="background-color:<%= altBackgroundColour %>;">
+				<form class="action">
+					<%- templates.hiddenFormInput(locals) %><%
+					if(id !== false) { %>
+						id: <%= id %><br/><%
+					}
 
-						for(var i = 0; i < termFields.length; i++) {
-							var termField = termFields[i]; %>
-							<%= termField[2] %>: <%
-							switch(termField[0]) {
-								case "Text": %>
-									<%- templates.widgets.inputText(termField[1], term === false ? "" : term[termField[1]]) %><%
-								break;
-								case "ForeignKey":
-									console.error("Hit FK", termField);
-								break;
-								default:
-									console.error("Hit default, wtf?");
-							} %>
-							<br /><%
+					for(var i = 0; i < termFields.length; i++) {
+						var termField = termFields[i]; %>
+						<%= termField[2] %>: <%
+						switch(termField[0]) {
+							case "Text": %>
+								<%- templates.widgets.inputText(termField[1], term === false ? "" : term[termField[1]]) %><%
+							break;
+							case "ForeignKey":
+								console.error("Hit FK", termField);
+							break;
+							default:
+								console.error("Hit default, wtf?");
 						} %>
-						<div align="right">
-							<input type="submit" value="Submit This" onClick="processForm(this.parentNode.parentNode);return false;">
-						</div>
-					</form>
-				</div>
+						<br /><%
+					} %>
+					<div align="right">
+						<input type="submit" value="Submit This" onClick="processForm(this.parentNode.parentNode);return false;">
+					</div>
+				</form>
 			</div>
 			''')
 		deleteResource: ejs.compile('''
