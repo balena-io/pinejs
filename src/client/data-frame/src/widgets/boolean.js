@@ -8,7 +8,7 @@ define(['data-frame/widgets/foreignKey'], function(foreignKey) {
 			value: "true"
 		}
 	];
-	return function(id, value) {
-		return foreignKey(id, booleanValues, value);
-	}
+	return function(action, id, value) {
+		return foreignKey(action, id, value, booleanValues);
+	};
 });

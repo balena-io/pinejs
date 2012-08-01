@@ -2,17 +2,16 @@
   var __indexOf = Array.prototype.indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
   define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs'], function(ClientURIUnparser, createAsyncQueueCallback, ejs) {
-    var baseTemplateVars, createNavigableTree, drawData, evenTemplateVars, getResolvedFactType, getTermResults, oddTemplateVars, processForm, renderInstance, renderResource, serverAPI, submitInstance, templates;
+    var baseTemplateVars, createNavigableTree, drawData, evenTemplateVars, getForeignKeyResults, getResolvedFactType, oddTemplateVars, processForm, renderInstance, renderResource, serverAPI, submitInstance, templates;
     templates = {
       widgets: {},
       hiddenFormInput: ejs.compile('<input type="hidden" id="__actype" value="<%= action %>">\n<input type="hidden" id="__serverURI" value="<%= serverURI %>">\n<input type="hidden" id="__backURI" value="<%= backURI %>"><%\nif(id !== false) { %>\n	<input type="hidden" id="__id" value="<%= id %>"><%\n} %>'),
-      dataTypeDisplay: ejs.compile('<%\nvar fieldName = resourceField[1],\n	fieldValue = resourceInstance === false ? "" : resourceInstance[fieldName]\nswitch(resourceField[0]) {\n	case "Short Text":\n	case "Value": %>\n		<%= fieldName %>: <%- templates.widgets.text(fieldName, fieldValue) %><br /><%\n	break;\n	case "Long Text": %>\n		<%= fieldName %>: <%- templates.widgets.textArea(fieldName, fieldValue) %><br /><%\n	break;\n	case "Integer": %>\n		<%= fieldName %>: <%- templates.widgets.integer(fieldName, fieldValue) %><br /><%\n	break;\n	case "Boolean": %>\n		<%= fieldName %>: <%- templates.widgets.boolean(fieldName, fieldValue) %><br /><%\n	break;\n	case "ForeignKey": %>\n		<%= fieldName %>: <%- templates.widgets.foreignKey(fieldName, foreignKeys[fieldName], fieldValue) %><br /><%\n	break;\n	case "Serial": \n		if(resourceInstance !== false) { %>\n			<%= fieldName %>: <%= fieldValue %><br /><%\n		}\n	break;\n	default:\n		console.error("Hit default, wtf?");\n} %>'),
-      addEditResource: ejs.compile('<div class="panel" style="background-color:<%= backgroundColour %>;">\n	<form class="action">\n		<%- templates.hiddenFormInput(locals) %><%\n		for(var i = 0; i < resourceModel.fields.length; i++) { %>\n				<%-\n					templates.dataTypeDisplay({\n						templates: templates,\n						resourceInstance: resourceInstance,\n						resourceField: resourceModel.fields[i],\n						foreignKeys: foreignKeys\n					})\n				%><%\n		} %>\n		<div align="right">\n			<input type="submit" value="Submit This" onClick="processForm(this.parentNode.parentNode);return false;">\n		</div>\n	</form>\n</div>'),
+      dataTypeDisplay: ejs.compile('<%\nvar fieldName = resourceField[1],\n	fieldValue = resourceInstance === false ? "" : resourceInstance[fieldName]\nswitch(resourceField[0]) {\n	case "Short Text":\n	case "Value": %>\n		<%= fieldName %>: <%- templates.widgets.text(action, fieldName, fieldValue) %><br /><%\n	break;\n	case "Long Text": %>\n		<%= fieldName %>: <%- templates.widgets.textArea(action, fieldName, fieldValue) %><br /><%\n	break;\n	case "Integer": %>\n		<%= fieldName %>: <%- templates.widgets.integer(action, fieldName, fieldValue) %><br /><%\n	break;\n	case "Boolean": %>\n		<%= fieldName %>: <%- templates.widgets.boolean(action, fieldName, fieldValue) %><br /><%\n	break;\n	case "ForeignKey": %>\n		<%= fieldName %>: <%- templates.widgets.foreignKey(action, fieldName, fieldValue, foreignKeys[fieldName]) %><br /><%\n	break;\n	case "Serial": \n		if(resourceInstance !== false) { %>\n			<%= fieldName %>: <%= fieldValue %><br /><%\n		}\n	break;\n	default:\n		console.error("Hit default, wtf?");\n} %>'),
+      viewAddEditResource: ejs.compile('<div class="panel" style="background-color:<%= backgroundColour %>;">\n	<form class="action">\n		<%- templates.hiddenFormInput(locals) %><%\n		for(var i = 0; i < resourceModel.fields.length; i++) { %>\n			<%-\n				templates.dataTypeDisplay({\n					templates: templates,\n					resourceInstance: resourceInstance,\n					resourceField: resourceModel.fields[i],\n					foreignKeys: foreignKeys,\n					action: action\n				})\n			%><%\n		} %>\n		<div align="right">\n			<input type="submit" value="Submit This" onClick="processForm(this.parentNode.parentNode);return false;">\n		</div>\n	</form>\n</div>'),
       deleteResource: ejs.compile('<div class="panel" style="background-color:<%= backgroundColour %>;">\n	<div align="left">\n		marked for deletion\n		<div align="right">\n			<form class="action">\n				<%- templates.hiddenFormInput(locals) %>\n				<input type="submit" value="Confirm" onClick="processForm(this.parentNode.parentNode);return false;">\n			</form>\n		</div>\n	</div>\n</div>'),
       factTypeCollection: ejs.compile('<%\nfor(var i = 0; i < factTypeCollections.length; i++) {\n	var factTypeCollection = factTypeCollections[i]; %>\n	<tr id="tr--data--<%= factTypeCollection.resourceName %>">\n		<td><%\n			if(factTypeCollection.isExpanded) { %>\n				<div style="display:inline;background-color:<%= altBackgroundColour %>">\n					<%= factTypeCollection.resourceName.replace(/[_-]/g, \' \') %>\n					<a href="<%= factTypeCollection.closeURI %>" onClick="location.hash=\'<%= factTypeCollection.closeHash %>\';return false">\n						<span title="Close" class="ui-icon ui-icon-circle-close"></span>\n					</a>\n				</div>\n				<%- factTypeCollection.html %><%\n			}\n			else { %>\n				<%= factTypeCollection.resourceName %>\n				<a href="<%= factTypeCollection.expandURI %>" onClick="location.hash=\'<%= factTypeCollection.expandHash %>\';return false">\n					<span title="See all" class="ui-icon ui-icon-search"></span>\n				</a><%\n			} %>\n		</td>\n	</tr><%\n} %>'),
       resourceCollection: ejs.compile('<div class="panel" style="background-color:<%= backgroundColour %>;">\n	<table id="tbl--<%= pid %>">\n		<tbody><%\n			for(var i = 0; i < resourceCollections.length; i++) {\n				var resourceCollection = resourceCollections[i]; %>\n				<tr id="tr--<%= pid %>--<%= resourceCollection.id %>">\n					<td><%\n						if(resourceCollection.isExpanded) { %>\n							<div style="display:inline;background-color:<%= altBackgroundColour %>">\n								<%- resourceCollection.resourceName %>\n								<a href="<%= resourceCollection.closeURI %>" onClick="location.hash=\'<%= resourceCollection.closeHash %>\';return false"><%\n									switch(resourceCollection.action) {\n										case "view":\n										case "edit":\n											%><span title="Close" class="ui-icon ui-icon-circle-close"></span><%\n										break;\n										case "del":\n											%>[unmark]<%\n									} %>\n								</a>\n							</div>\n							<%- resourceCollection.html %><%\n						}\n						else { %>\n							<%- resourceCollection.resourceName %>\n							<a href="<%= resourceCollection.viewURI %>" onClick="location.hash=\'<%= resourceCollection.viewHash %>\';return false"><span title="View" class="ui-icon ui-icon-search"></span></a>\n							<a href="<%= resourceCollection.editURI %>" onClick="location.hash=\'<%= resourceCollection.editHash %>\';return false"><span title="Edit" class="ui-icon ui-icon-pencil"></span></a>\n							<a href="<%= resourceCollection.deleteURI %>" onClick="location.hash=\'<%= resourceCollection.deleteHash %>\';return false"><span title="Delete" class="ui-icon ui-icon-trash"></span></a><%\n						} %>\n					</td>\n				</tr><%\n			} %>\n			<tr>\n				<td>\n					<hr style="border:0px; width:90%; background-color: #999; height:1px;">\n				</td>\n			</tr>\n			<tr>\n				<td>\n					<a href="<%= addURI %>" onClick="location.hash=\'<%= addHash %>\';return false;">[(+)add new]</a>\n				</td>\n			</tr><%\n			for(var i = 0; i < addsHTML.length; i++) { %>\n				<tr>\n					<td>\n						<%- addsHTML[i] %>\n					</td>\n				</tr><%\n			} %>\n			<tr>\n				<td>\n					<hr style="border:0px; width:90%; background-color: #999; height:1px;">\n				</td>\n			</tr>\n			<%- templates.factTypeCollection(locals) %>\n		</tbody>\n	</table>\n</div>'),
       factTypeName: ejs.compile('<%\nfor(var i = 0; i < factType.length; i++) {\n	var factTypePart = factType[i];\n	if(factTypePart[0] == "Term") { %>\n		<%= factTypeInstance[factTypePart[1]].value %> <%\n	}\n	else if(factTypePart[0] == "Verb") { %>\n		<em><%= factTypePart[1] %></em><%\n	}\n} %>'),
-      viewResource: ejs.compile('<div class="panel" style="background-color:<%= backgroundColour %>;"><%\n	for(var fieldName in resourceInstance) {\n		var field = resourceInstance[fieldName];\n		if(typeof field === "object") { %>\n			<%= fieldName %>: <%= field.value %><br/><%\n		}\n		else { %>\n			<%= fieldName %>: <%= field %><br/><%\n		}\n	} %>\n</div>'),
       topLevelTemplate: ejs.compile('<table id="terms">\n	<tbody><%\n		for(var i = 0; i < terms.length; i++) {\n			var term = terms[i]; %>\n			<tr id="tr--data--"<%= term.id %>">\n				<td><%\n					if(term.isExpanded) { %>\n						<div style="display:inline; background-color:#FFFFFF;">\n							<%= term.name %>\n							<a href="<%= term.closeURI %>" onClick="location.hash=\'<%= term.closeHash %>\';return false">\n								<span title="Close" class="ui-icon ui-icon-circle-close"></span>\n							</a>\n						</div>\n						<%- term.html %><%\n					}\n					else { %>\n						<%= term.name %>\n						<a href="<%= term.expandURI %>" onClick="location.hash=\'<%= term.expandHash %>\';return false">\n							<span title="See all" class="ui-icon ui-icon-search"></span>\n						</a><%\n					} %>\n				</td>\n			</tr><%\n		} %>\n	</tbody>\n</table><br/>\n<div align="left">\n	<input type="button" value="Apply All Changes" onClick="runTrans($(\'#terms\'));return false;">\n</div>')
     };
     requirejs(['data-frame/widgets/text', 'data-frame/widgets/textArea', 'data-frame/widgets/foreignKey', 'data-frame/widgets/integer', 'data-frame/widgets/boolean'], function(text, textArea, foreignKey, integer, boolean) {
@@ -194,28 +193,29 @@
       }
       return asyncCallback.endAdding();
     };
-    getTermResults = function(factType, successCallback) {
-      var factTypePart, resultsReceived, resultsRequested, termName, termResults, _i, _len, _results;
+    getForeignKeyResults = function(factType, successCallback) {
+      var asyncCallback, factTypePart, termName, termResults, _i, _len;
       termResults = {};
       for (_i = 0, _len = factType.length; _i < _len; _i++) {
         factTypePart = factType[_i];
         if (factTypePart[0] === "Term") termResults[factTypePart[1]] = [];
       }
-      resultsReceived = 0;
-      resultsRequested = Object.keys(termResults).length;
-      _results = [];
+      asyncCallback = createAsyncQueueCallback(function() {
+        return successCallback(termResults);
+      }, function(errors) {
+        console.error(errors);
+        return successCallback(termResults);
+      });
       for (termName in termResults) {
-        _results.push(serverRequest("GET", serverAPI(termName), {}, null, (function(termName) {
+        asyncCallback.addWork(1);
+        serverRequest('GET', serverAPI(termName), {}, null, (function(termName) {
           return function(statusCode, result, headers) {
             termResults[termName] = result.instances;
-            resultsReceived++;
-            if (resultsReceived === resultsRequested) {
-              return successCallback(termResults);
-            }
+            return asyncCallback.successCallback();
           };
-        })(termName)));
+        })(termName), asyncCallback.errorCallback);
       }
-      return _results;
+      return asyncCallback.endAdding();
     };
     serverAPI = function(about, filters) {
       var filter, filterString, _i, _len;
@@ -468,23 +468,18 @@
       switch (ftree.getAction()) {
         case "view":
           return serverRequest("GET", ftree.getServerURI(), {}, null, function(statusCode, result, headers) {
-            var displayView;
-            displayView = function(resourceInstance) {
+            return getForeignKeyResults(resourceFactType, function(termResults) {
               var html;
               templateVars = $.extend(templateVars, {
-                resourceInstance: resourceInstance
+                action: 'view',
+                id: result.instances[0].id,
+                resourceInstance: result.instances[0],
+                resourceModel: result.model,
+                foreignKeys: termResults
               });
-              html = templates.viewResource(templateVars);
+              html = templates.viewAddEditResource(templateVars);
               return rowCallback(html);
-            };
-            if (resourceType === "Term") {
-              return displayView(result.instances[0]);
-            } else if (resourceType === "FactType") {
-              return getResolvedFactType(resourceFactType, result.instances[0], displayView, function(errors) {
-                console.error(errors);
-                return rowCallback('Errors: ' + errors);
-              });
-            }
+            });
           });
         case "add":
           if (resourceType === "Term") {
@@ -497,12 +492,12 @@
                 resourceModel: result.model,
                 foreignKeys: null
               });
-              html = templates.addEditResource(templateVars);
+              html = templates.viewAddEditResource(templateVars);
               return rowCallback(html);
             });
           } else if (resourceType === "FactType") {
             return serverRequest("GET", ftree.getServerURI(), {}, null, function(statusCode, result, headers) {
-              return getTermResults(resourceFactType, function(termResults) {
+              return getForeignKeyResults(resourceFactType, function(termResults) {
                 var html;
                 templateVars = $.extend(templateVars, {
                   action: 'addfctp',
@@ -511,7 +506,7 @@
                   resourceModel: result.model,
                   foreignKeys: termResults
                 });
-                html = templates.addEditResource(templateVars);
+                html = templates.viewAddEditResource(templateVars);
                 return rowCallback(html);
               });
             });
@@ -528,12 +523,12 @@
                 resourceModel: result.model,
                 foreignKeys: null
               });
-              html = templates.addEditResource(templateVars);
+              html = templates.viewAddEditResource(templateVars);
               return rowCallback(html);
             });
           } else if (resourceType === "FactType") {
             return serverRequest("GET", ftree.getServerURI(), {}, null, function(statusCode, result, headers) {
-              return getTermResults(resourceFactType, function(termResults) {
+              return getForeignKeyResults(resourceFactType, function(termResults) {
                 var html;
                 templateVars = $.extend(templateVars, {
                   action: 'editfctp',
@@ -542,7 +537,7 @@
                   resourceModel: result.model,
                   foreignKeys: termResults
                 });
-                html = templates.addEditResource(templateVars);
+                html = templates.viewAddEditResource(templateVars);
                 return rowCallback(html);
               });
             }, function(errors) {

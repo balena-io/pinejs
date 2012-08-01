@@ -16,19 +16,19 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 			switch(resourceField[0]) {
 				case "Short Text":
 				case "Value": %>
-					<%= fieldName %>: <%- templates.widgets.text(fieldName, fieldValue) %><br /><%
+					<%= fieldName %>: <%- templates.widgets.text(action, fieldName, fieldValue) %><br /><%
 				break;
 				case "Long Text": %>
-					<%= fieldName %>: <%- templates.widgets.textArea(fieldName, fieldValue) %><br /><%
+					<%= fieldName %>: <%- templates.widgets.textArea(action, fieldName, fieldValue) %><br /><%
 				break;
 				case "Integer": %>
-					<%= fieldName %>: <%- templates.widgets.integer(fieldName, fieldValue) %><br /><%
+					<%= fieldName %>: <%- templates.widgets.integer(action, fieldName, fieldValue) %><br /><%
 				break;
 				case "Boolean": %>
-					<%= fieldName %>: <%- templates.widgets.boolean(fieldName, fieldValue) %><br /><%
+					<%= fieldName %>: <%- templates.widgets.boolean(action, fieldName, fieldValue) %><br /><%
 				break;
 				case "ForeignKey": %>
-					<%= fieldName %>: <%- templates.widgets.foreignKey(fieldName, foreignKeys[fieldName], fieldValue) %><br /><%
+					<%= fieldName %>: <%- templates.widgets.foreignKey(action, fieldName, fieldValue, foreignKeys[fieldName]) %><br /><%
 				break;
 				case "Serial": 
 					if(resourceInstance !== false) { %>
@@ -39,19 +39,20 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 					console.error("Hit default, wtf?");
 			} %>
 			''')
-		addEditResource: ejs.compile('''
+		viewAddEditResource: ejs.compile('''
 			<div class="panel" style="background-color:<%= backgroundColour %>;">
 				<form class="action">
 					<%- templates.hiddenFormInput(locals) %><%
 					for(var i = 0; i < resourceModel.fields.length; i++) { %>
-							<%-
-								templates.dataTypeDisplay({
-									templates: templates,
-									resourceInstance: resourceInstance,
-									resourceField: resourceModel.fields[i],
-									foreignKeys: foreignKeys
-								})
-							%><%
+						<%-
+							templates.dataTypeDisplay({
+								templates: templates,
+								resourceInstance: resourceInstance,
+								resourceField: resourceModel.fields[i],
+								foreignKeys: foreignKeys,
+								action: action
+							})
+						%><%
 					} %>
 					<div align="right">
 						<input type="submit" value="Submit This" onClick="processForm(this.parentNode.parentNode);return false;">
@@ -169,19 +170,6 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 					}
 				} %>
 				''')
-		viewResource: ejs.compile('''
-			<div class="panel" style="background-color:<%= backgroundColour %>;"><%
-				for(var fieldName in resourceInstance) {
-					var field = resourceInstance[fieldName];
-					if(typeof field === "object") { %>
-						<%= fieldName %>: <%= field.value %><br/><%
-					}
-					else { %>
-						<%= fieldName %>: <%= field %><br/><%
-					}
-				} %>
-			</div>
-			''')
 		topLevelTemplate: ejs.compile('''
 			<table id="terms">
 				<tbody><%
@@ -352,24 +340,30 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 				)
 		asyncCallback.endAdding()
 	
-	getTermResults = (factType, successCallback) ->
+	getForeignKeyResults = (factType, successCallback) ->
 		termResults = {}
 		for factTypePart in factType when factTypePart[0] == "Term"
 			termResults[factTypePart[1]] = []
+		
+		asyncCallback = createAsyncQueueCallback(
+			() ->
+				successCallback(termResults)
+			(errors) ->
+				console.error(errors)
+				successCallback(termResults)
+		)
 
 		# Get results for all the terms and process them once finished
-		resultsReceived = 0
-		resultsRequested = Object.keys(termResults).length
 		for termName of termResults
-			serverRequest("GET", serverAPI(termName), {}, null, do(termName) ->
-				(statusCode, result, headers) ->
-					termResults[termName] = result.instances
-					resultsReceived++
-
-					# If all requests have returned then construct dropdowns & form
-					if resultsReceived == resultsRequested
-						successCallback(termResults)
+			asyncCallback.addWork(1)
+			serverRequest('GET', serverAPI(termName), {}, null,
+				do(termName) ->
+					(statusCode, result, headers) ->
+						termResults[termName] = result.instances
+						asyncCallback.successCallback()
+				asyncCallback.errorCallback
 			)
+		asyncCallback.endAdding()
 
 	serverAPI = (about, filters = []) ->
 		filterString = ''
@@ -590,21 +584,17 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 		switch ftree.getAction()
 			when "view"
 				serverRequest("GET", ftree.getServerURI(), {}, null, (statusCode, result, headers) ->
-					displayView = (resourceInstance) ->
+					getForeignKeyResults(resourceFactType, (termResults) ->
 						templateVars = $.extend(templateVars, {
-							resourceInstance: resourceInstance
+							action: 'view'
+							id: result.instances[0].id
+							resourceInstance: result.instances[0]
+							resourceModel: result.model
+							foreignKeys: termResults
 						})
-						html = templates.viewResource(templateVars)
+						html = templates.viewAddEditResource(templateVars)
 						rowCallback(html)
-					if resourceType == "Term"
-						displayView(result.instances[0])
-					else if resourceType == "FactType"
-						getResolvedFactType(resourceFactType, result.instances[0],
-							displayView
-							(errors) ->
-								console.error(errors)
-								rowCallback('Errors: ' + errors)
-						)
+					)
 				)
 			when "add"
 				if resourceType == "Term"
@@ -616,12 +606,12 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 							resourceModel: result.model
 							foreignKeys: null
 						})
-						html = templates.addEditResource(templateVars)
+						html = templates.viewAddEditResource(templateVars)
 						rowCallback(html)
 					)
 				else if resourceType == "FactType"
 					serverRequest("GET", ftree.getServerURI(), {}, null, (statusCode, result, headers) ->
-						getTermResults(resourceFactType, (termResults) ->
+						getForeignKeyResults(resourceFactType, (termResults) ->
 							templateVars = $.extend(templateVars, {
 								action: 'addfctp'
 								id: false
@@ -629,7 +619,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 								resourceModel: result.model
 								foreignKeys: termResults
 							})
-							html = templates.addEditResource(templateVars)
+							html = templates.viewAddEditResource(templateVars)
 							rowCallback(html)
 						)
 					)
@@ -643,13 +633,13 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 							resourceModel: result.model
 							foreignKeys: null
 						})
-						html = templates.addEditResource(templateVars)
+						html = templates.viewAddEditResource(templateVars)
 						rowCallback(html)
 					)
 				else if resourceType == "FactType"
 					serverRequest("GET", ftree.getServerURI(), {}, null,
 						(statusCode, result, headers) ->
-							getTermResults(resourceFactType, (termResults) ->
+							getForeignKeyResults(resourceFactType, (termResults) ->
 								templateVars = $.extend(templateVars, {
 									action: 'editfctp'
 									id: result.instances[0].id
@@ -657,7 +647,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 									resourceModel: result.model
 									foreignKeys: termResults
 								})
-								html = templates.addEditResource(templateVars)
+								html = templates.viewAddEditResource(templateVars)
 								rowCallback(html)
 							)
 						(errors) ->
