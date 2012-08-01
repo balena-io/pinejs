@@ -26,7 +26,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 								<%= fieldName %>: <%- templates.widgets.inputText(fieldName, fieldValue) %><br /><%
 							break;
 							case "Integer": %>
-								<%= fieldName %>: <%- templates.widgets.inputText(fieldName, fieldValue) %><br /><%
+								<%= fieldName %>: <%- templates.widgets.inputInteger(fieldName, fieldValue) %><br /><%
 							break;
 							case "Boolean": %>
 								<%= fieldName %>: <%- templates.widgets.inputText(fieldName, fieldValue) %><br /><%
@@ -204,10 +204,11 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 			</div>
 			''')
 	}
-	requirejs(['data-frame/widgets/inputText', 'data-frame/widgets/inputTextArea', 'data-frame/widgets/inputForeignKey'], (inputText, inputTextArea, inputForeignKey) ->
+	requirejs(['data-frame/widgets/inputText', 'data-frame/widgets/inputTextArea', 'data-frame/widgets/inputForeignKey', 'data-frame/widgets/inputInteger'], (inputText, inputTextArea, inputForeignKey, inputInteger) ->
 		templates.widgets.inputText = inputText
 		templates.widgets.inputTextArea = inputTextArea
 		templates.widgets.inputForeignKey = inputForeignKey
+		templates.widgets.inputInteger = inputInteger
 	)
 	baseTemplateVars =
 		templates: templates
