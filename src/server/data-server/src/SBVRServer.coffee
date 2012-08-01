@@ -326,7 +326,6 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 		if tree[2] == undefined
 			res.send(404)
 		else
-			console.log(tree[2].query)
 			{query, bindings} = AbstractSQLRules2SQL.match(tree[2].query, 'ProcessQuery')
 			values = getAndCheckBindValues(bindings, tree[2].values)
 			console.log(query, values)
@@ -356,7 +355,6 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 		if tree[2] == undefined
 			res.send(404)
 		else
-			console.log(tree[2].query)
 			{query, bindings} = AbstractSQLRules2SQL.match(tree[2].query, 'ProcessQuery')
 			values = getAndCheckBindValues(bindings, tree[2].values)
 			console.log(query, values)
@@ -389,7 +387,6 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 		if tree[2] == undefined
 			res.send(404)
 		else
-			console.log(tree[2].query)
 			queries = AbstractSQLRules2SQL.match(tree[2].query, 'ProcessQuery')
 			
 			if _.isArray(queries)
@@ -448,7 +445,6 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 		if tree[2] == undefined
 			res.send(404)
 		else
-			console.log(tree[2].query)
 			{query, bindings} = AbstractSQLRules2SQL.match(tree[2].query, 'ProcessQuery')
 			values = getAndCheckBindValues(bindings, tree[2].values)
 			console.log(query, values)
@@ -721,7 +717,6 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 				__TODO__.die()
 			else
 				if tree[2].query[2][1] == 'transaction'
-					console.log(tree[2].query)
 					{query, bindings} = AbstractSQLRules2SQL.match(tree[2].query, 'ProcessQuery')
 					values = getAndCheckBindValues(bindings, tree[2].values)
 					console.log(query, values)

@@ -393,7 +393,6 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
     (ServerURIParser["AddQueryTable"] = (function(query, termOrFactType) {
         var tables = this["sqlModels"][this["currentVocab"]]["tables"];
         var table = tables[termOrFactType];
-        console.log(termOrFactType, table, this["sqlModels"][this["currentVocab"]]);
         switch (table) {
         case "ForeignKey":
             {

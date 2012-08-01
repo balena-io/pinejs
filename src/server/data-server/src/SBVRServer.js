@@ -329,7 +329,6 @@
       if (tree[2] === void 0) {
         return res.send(404);
       } else {
-        console.log(tree[2].query);
         _ref = AbstractSQLRules2SQL.match(tree[2].query, 'ProcessQuery'), query = _ref.query, bindings = _ref.bindings;
         values = getAndCheckBindValues(bindings, tree[2].values);
         console.log(query, values);
@@ -369,7 +368,6 @@
       if (tree[2] === void 0) {
         return res.send(404);
       } else {
-        console.log(tree[2].query);
         _ref = AbstractSQLRules2SQL.match(tree[2].query, 'ProcessQuery'), query = _ref.query, bindings = _ref.bindings;
         values = getAndCheckBindValues(bindings, tree[2].values);
         console.log(query, values);
@@ -404,7 +402,6 @@
       if (tree[2] === void 0) {
         return res.send(404);
       } else {
-        console.log(tree[2].query);
         queries = AbstractSQLRules2SQL.match(tree[2].query, 'ProcessQuery');
         if (_.isArray(queries)) {
           insertQuery = queries[0];
@@ -467,7 +464,6 @@
       if (tree[2] === void 0) {
         return res.send(404);
       } else {
-        console.log(tree[2].query);
         _ref = AbstractSQLRules2SQL.match(tree[2].query, 'ProcessQuery'), query = _ref.query, bindings = _ref.bindings;
         values = getAndCheckBindValues(bindings, tree[2].values);
         console.log(query, values);
@@ -776,7 +772,6 @@
           return __TODO__.die();
         } else {
           if (tree[2].query[2][1] === 'transaction') {
-            console.log(tree[2].query);
             _ref = AbstractSQLRules2SQL.match(tree[2].query, 'ProcessQuery'), query = _ref.query, bindings = _ref.bindings;
             values = getAndCheckBindValues(bindings, tree[2].values);
             console.log(query, values);
