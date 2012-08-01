@@ -1,4 +1,4 @@
-define(['data-frame/widgets/inputForeignKey'], function(inputForeignKey) {
+define(['data-frame/widgets/foreignKey'], function(foreignKey) {
 	var booleanValues = [
 		{
 			id: 0,
@@ -9,6 +9,6 @@ define(['data-frame/widgets/inputForeignKey'], function(inputForeignKey) {
 		}
 	];
 	return function(id, value) {
-		return inputForeignKey(id, booleanValues, value);
+		return foreignKey(id, booleanValues, value);
 	}
 });

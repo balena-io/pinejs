@@ -20,19 +20,19 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 						switch(resourceField[0]) {
 							case "Short Text":
 							case "Value": %>
-								<%= fieldName %>: <%- templates.widgets.inputText(fieldName, fieldValue) %><br /><%
+								<%= fieldName %>: <%- templates.widgets.text(fieldName, fieldValue) %><br /><%
 							break;
 							case "Long Text": %>
-								<%= fieldName %>: <%- templates.widgets.inputTextArea(fieldName, fieldValue) %><br /><%
+								<%= fieldName %>: <%- templates.widgets.textArea(fieldName, fieldValue) %><br /><%
 							break;
 							case "Integer": %>
-								<%= fieldName %>: <%- templates.widgets.inputInteger(fieldName, fieldValue) %><br /><%
+								<%= fieldName %>: <%- templates.widgets.integer(fieldName, fieldValue) %><br /><%
 							break;
 							case "Boolean": %>
-								<%= fieldName %>: <%- templates.widgets.inputBoolean(fieldName, fieldValue) %><br /><%
+								<%= fieldName %>: <%- templates.widgets.boolean(fieldName, fieldValue) %><br /><%
 							break;
 							case "ForeignKey": %>
-								<%= fieldName %>: <%- templates.widgets.inputForeignKey(fieldName, foreignKeys[fieldName], fieldValue) %><br /><%
+								<%= fieldName %>: <%- templates.widgets.foreignKey(fieldName, foreignKeys[fieldName], fieldValue) %><br /><%
 							break;
 							case "Serial": 
 								if(resourceInstance !== false) { %>
@@ -204,12 +204,12 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 			</div>
 			''')
 	}
-	requirejs(['data-frame/widgets/inputText', 'data-frame/widgets/inputTextArea', 'data-frame/widgets/inputForeignKey', 'data-frame/widgets/inputInteger', 'data-frame/widgets/inputBoolean'], (inputText, inputTextArea, inputForeignKey, inputInteger, inputBoolean) ->
-		templates.widgets.inputText = inputText
-		templates.widgets.inputTextArea = inputTextArea
-		templates.widgets.inputForeignKey = inputForeignKey
-		templates.widgets.inputInteger = inputInteger
-		templates.widgets.inputBoolean = inputBoolean
+	requirejs(['data-frame/widgets/text', 'data-frame/widgets/textArea', 'data-frame/widgets/foreignKey', 'data-frame/widgets/integer', 'data-frame/widgets/boolean'], (text, textArea, foreignKey, integer, boolean) ->
+		templates.widgets.text = text
+		templates.widgets.textArea = textArea
+		templates.widgets.foreignKey = foreignKey
+		templates.widgets.integer = integer
+		templates.widgets.boolean = boolean
 	)
 	baseTemplateVars =
 		templates: templates
