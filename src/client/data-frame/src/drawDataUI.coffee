@@ -32,7 +32,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 								<%= fieldName %>: <%- templates.widgets.inputText(fieldName, fieldValue) %><br /><%
 							break;
 							case "ForeignKey": %>
-								<%= fieldName %>: <%- templates.widgets.inputText(fieldName, fieldValue) %><br /><%
+								<%= fieldName %>: <%- templates.widgets.inputForeignKey(fieldName, foreignKeys[fieldName], fieldValue) %><br /><%
 							break;
 							case "Serial": 
 								if(resourceInstance !== false) { %>
@@ -204,8 +204,10 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 			</div>
 			''')
 	}
-	requirejs(['data-frame/widgets/inputText'], (inputText) ->
+	requirejs(['data-frame/widgets/inputText', 'data-frame/widgets/inputTextArea', 'data-frame/widgets/inputForeignKey'], (inputText, inputTextArea, inputForeignKey) ->
 		templates.widgets.inputText = inputText
+		templates.widgets.inputTextArea = inputTextArea
+		templates.widgets.inputForeignKey = inputForeignKey
 	)
 	baseTemplateVars =
 		templates: templates
