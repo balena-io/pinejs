@@ -193,7 +193,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 				} %>
 				''')
 		factTypeView: ejs.compile('''
-			<div class="panel" style="background-color:<%= backgroundColour %>;">
+			<div class="panel" style="background-color:<%= altBackgroundColour %>;">
 				id: <%= factTypeInstance.id %><br/>
 				<%- templates.factTypeName(locals) %>
 			</div>
@@ -233,6 +233,14 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 	requirejs(['data-frame/widgets/inputText'], (inputText) ->
 		templates.widgets.inputText = inputText
 	)
+	baseTemplateVars =
+		templates: templates
+	evenTemplateVars =
+		backgroundColour: '#FFFFFF'
+		altBackgroundColour: '#EEEEEE'
+	oddTemplateVars =
+		backgroundColour: '#EEEEEE'
+		altBackgroundColour: '#FFFFFF'
 	
 	createNavigableTree = (tree, descendTree = []) ->
 		tree = jQuery.extend(true, [], tree)
@@ -435,10 +443,6 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 		about = ftree.getAbout()
 		resourceType = "Term"
 		resourceFactType = []
-		templateVars =
-			templates: templates
-			backgroundColour: if even then "#FFFFFF" else "#EEEEEE"
-			altBackgroundColour: if even then "#EEEEEE" else "#FFFFFF"
 
 		# TODO: This needs to be given by the server rather than generated here
 		getIdent = (mod) ->
@@ -465,7 +469,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 				resourceCollectionsCallback = createAsyncQueueCallback(
 					() ->
 						addHash = '#!/' + ftree.getChangeURI('add', about)
-						templateVars = $.extend(templateVars, {
+						templateVars = $.extend(baseTemplateVars, (if even then evenTemplateVars else oddTemplateVars), {
 							pid: ftree.getPid()
 							addHash: addHash
 							addURI: rootURI + addHash
@@ -497,7 +501,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 							resourceCollectionsCallback.addWork(1)
 							getResolvedFactType(resourceFactType, instance,
 								(factTypeInstance) ->
-									templateVars = $.extend(templateVars, {
+									templateVars = $.extend(baseTemplateVars, (if even then evenTemplateVars else oddTemplateVars), {
 										factType: resourceFactType
 										factTypeInstance: factTypeInstance
 									})
@@ -584,107 +588,111 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 				resourceCollectionsCallback.endAdding()
 			)
 		else if currentLocation[0] == 'instance'
-			templateVars = $.extend(templateVars, {
-				serverURI: ftree.getServerURI()
-				backURI: '#!/' + ftree.getNewURI('del')
-				type: about
-				id: currentLocation[1][1]
-			})
+			renderInstance(ftree, even, resourceType, resourceFactType, (html) -> rowCallback(idx,html))
+		
+	renderInstance = (ftree, even, resourceType, resourceFactType, rowCallback) ->
+		about = ftree.getAbout()
+		currentLocation = ftree.getCurrentLocation()
+		templateVars = $.extend(baseTemplateVars, (if even then evenTemplateVars else oddTemplateVars), {
+			serverURI: ftree.getServerURI()
+			backURI: '#!/' + ftree.getNewURI('del')
+			type: about
+			id: currentLocation[1][1]
+		})
 
-			switch ftree.getAction()
-				when "view"
-					if resourceType == "Term"
-						serverRequest("GET", ftree.getServerURI(), {}, null, (statusCode, result, headers) ->
-							templateVars = $.extend(templateVars, {
-								termInstance: result.instances[0]
-							})
-							html = templates.termView(templateVars)
-							rowCallback(idx, html)
-						)
-					else if resourceType == "FactType"
-						serverRequest("GET", ftree.getServerURI(), {}, null, (statusCode, result, headers) ->
-							getResolvedFactType(resourceFactType, result.instances[0],
-								(factTypeInstance) -> 
-									templateVars = $.extend(templateVars, {
-										factType: resourceFactType
-										factTypeInstance: factTypeInstance
-									})
-									html = templates.factTypeView(templateVars)
-									rowCallback(idx, html)
-								(errors) ->
-									console.error(errors)
-									rowCallback(idx, 'Errors: ' + errors)
-							)
-							
-						)
-				when "add"
-					if resourceType == "Term"
-						# TODO: The termFields info should come from a client model
-						termFields = [['Text', 'value', 'Name', []]]
+		switch ftree.getAction()
+			when "view"
+				if resourceType == "Term"
+					serverRequest("GET", ftree.getServerURI(), {}, null, (statusCode, result, headers) ->
 						templateVars = $.extend(templateVars, {
-							action: 'addterm'
+							termInstance: result.instances[0]
+						})
+						html = templates.termView(templateVars)
+						rowCallback(html)
+					)
+				else if resourceType == "FactType"
+					serverRequest("GET", ftree.getServerURI(), {}, null, (statusCode, result, headers) ->
+						getResolvedFactType(resourceFactType, result.instances[0],
+							(factTypeInstance) -> 
+								templateVars = $.extend(templateVars, {
+									factType: resourceFactType
+									factTypeInstance: factTypeInstance
+								})
+								html = templates.factTypeView(templateVars)
+								rowCallback(html)
+							(errors) ->
+								console.error(errors)
+								rowCallback('Errors: ' + errors)
+						)
+						
+					)
+			when "add"
+				if resourceType == "Term"
+					# TODO: The termFields info should come from a client model
+					termFields = [['Text', 'value', 'Name', []]]
+					templateVars = $.extend(templateVars, {
+						action: 'addterm'
+						id: false
+						term: false
+						termFields: termFields
+					})
+					html = templates.termForm(templateVars)
+					rowCallback(html)
+				else if resourceType == "FactType"
+					getTermResults(resourceFactType, (termResults) ->
+						templateVars = $.extend(templateVars, {
+							factType: resourceFactType
+							termResults: termResults
+							action: 'addfctp'
+							currentFactType: false
 							id: false
-							term: false
+						})
+						html = templates.factTypeForm(templateVars)
+						rowCallback(html)
+					)
+			when "edit"
+				if resourceType == "Term"
+					# TODO: The termFields info should come from a client model
+					termFields = [['Text', 'value', 'Name', []]]
+
+					serverRequest("GET", ftree.getServerURI(), {}, null, (statusCode, result, headers) ->
+						id = result.instances[0].id
+						templateVars = $.extend(templateVars, {
+							action: 'editterm'
+							id: id
+							term: result.instances[0]
 							termFields: termFields
 						})
 						html = templates.termForm(templateVars)
-						rowCallback(idx, html)
-					else if resourceType == "FactType"
-						getTermResults(resourceFactType, (termResults) ->
-							templateVars = $.extend(templateVars, {
-								factType: resourceFactType
-								termResults: termResults
-								action: 'addfctp'
-								currentFactType: false
-								id: false
-							})
-							html = templates.factTypeForm(templateVars)
-							rowCallback(idx, html)
+						rowCallback(html)
+					)
+				else if resourceType == "FactType"
+					serverRequest("GET", ftree.getServerURI(), {}, null, (statusCode, result, headers) ->
+						getResolvedFactType(resourceFactType, result.instances[0],
+							(factTypeInstance) ->
+								getTermResults(resourceFactType, (termResults) ->
+									templateVars = $.extend(templateVars, {
+										factType: resourceFactType
+										termResults: termResults
+										action: 'editfctp'
+										type: about
+										currentFactType: factTypeInstance
+										id: factTypeInstance.id
+									})
+									html = templates.factTypeForm(templateVars)
+									rowCallback(html)
+								)
+							(errors) ->
+								console.error(errors)
+								rowCallback('Errors: ' + errors)
 						)
-				when "edit"
-					if resourceType == "Term"
-						# TODO: The termFields info should come from a client model
-						termFields = [['Text', 'value', 'Name', []]]
-
-						serverRequest("GET", ftree.getServerURI(), {}, null, (statusCode, result, headers) ->
-							id = result.instances[0].id
-							templateVars = $.extend(templateVars, {
-								action: 'editterm'
-								id: id
-								term: result.instances[0]
-								termFields: termFields
-							})
-							html = templates.termForm(templateVars)
-							rowCallback(idx, html)
-						)
-					else if resourceType == "FactType"
-						serverRequest("GET", ftree.getServerURI(), {}, null, (statusCode, result, headers) ->
-							getResolvedFactType(resourceFactType, result.instances[0],
-								(factTypeInstance) ->
-									getTermResults(resourceFactType, (termResults) ->
-										templateVars = $.extend(templateVars, {
-											factType: resourceFactType
-											termResults: termResults
-											action: 'editfctp'
-											type: about
-											currentFactType: factTypeInstance
-											id: factTypeInstance.id
-										})
-										html = templates.factTypeForm(templateVars)
-										rowCallback(idx, html)
-									)
-								(errors) ->
-									console.error(errors)
-									rowCallback(idx, 'Errors: ' + errors)
-							)
-						)
-				when "del"
-					templateVars = $.extend(templateVars, {
-						action: 'del'
-						id: currentLocation[1][1]
-					})
-					html = templates.deleteForm(templateVars)
-					rowCallback(idx, html)
+					)
+			when "del"
+				templateVars = $.extend(templateVars, {
+					action: 'del'
+				})
+				html = templates.deleteForm(templateVars)
+				rowCallback(html)
 
 	processForm = (forma) ->
 		action = $("#__actype", forma).val()

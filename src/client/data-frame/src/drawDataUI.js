@@ -2,7 +2,7 @@
   var __indexOf = Array.prototype.indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
   define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs'], function(ClientURIUnparser, createAsyncQueueCallback, ejs) {
-    var addInst, createNavigableTree, delInst, drawData, editInst, getResolvedFactType, getTermResults, processForm, renderResource, serverAPI, templates;
+    var addInst, baseTemplateVars, createNavigableTree, delInst, drawData, editInst, evenTemplateVars, getResolvedFactType, getTermResults, oddTemplateVars, processForm, renderInstance, renderResource, serverAPI, templates;
     templates = {
       widgets: {},
       hiddenFormInput: ejs.compile('<input type="hidden" id="__actype" value="<%= action %>">\n<input type="hidden" id="__serverURI" value="<%= serverURI %>">\n<input type="hidden" id="__backURI" value="<%= backURI %>">\n<input type="hidden" id="__type" value="<%= type %>"><%\nif(id !== false) { %>\n	<input type="hidden" id="__id" value="<%= id %>"><%\n} %>'),
@@ -13,12 +13,23 @@
       resourceCollection: ejs.compile('<div class="panel" style="background-color:<%= backgroundColour %>;">\n	<table id="tbl--<%= pid %>">\n		<tbody><%\n			for(var i = 0; i < resourceCollections.length; i++) {\n				var resourceCollection = resourceCollections[i]; %>\n				<tr id="tr--<%= pid %>--<%= resourceCollection.id %>">\n					<td><%\n						if(resourceCollection.isExpanded) { %>\n							<div style="display:inline;background-color:<%= altBackgroundColour %>">\n								<%- resourceCollection.resourceName %>\n								<a href="<%= resourceCollection.closeURI %>" onClick="location.hash=\'<%= resourceCollection.closeHash %>\';return false"><%\n									switch(resourceCollection.action) {\n										case "view":\n										case "edit":\n											%><span title="Close" class="ui-icon ui-icon-circle-close"></span><%\n										break;\n										case "del":\n											%>[unmark]<%\n									} %>\n								</a>\n							</div>\n							<%- resourceCollection.html %><%\n						}\n						else { %>\n							<%- resourceCollection.resourceName %>\n							<a href="<%= resourceCollection.viewURI %>" onClick="location.hash=\'<%= resourceCollection.viewHash %>\';return false"><span title="View" class="ui-icon ui-icon-search"></span></a>\n							<a href="<%= resourceCollection.editURI %>" onClick="location.hash=\'<%= resourceCollection.editHash %>\';return false"><span title="Edit" class="ui-icon ui-icon-pencil"></span></a>\n							<a href="<%= resourceCollection.deleteURI %>" onClick="location.hash=\'<%= resourceCollection.deleteHash %>\';return false"><span title="Delete" class="ui-icon ui-icon-trash"></span></a><%\n						} %>\n					</td>\n				</tr><%\n			} %>\n			<tr>\n				<td>\n					<hr style="border:0px; width:90%; background-color: #999; height:1px;">\n				</td>\n			</tr>\n			<tr>\n				<td>\n					<a href="<%= addURI %>" onClick="location.hash=\'<%= addHash %>\';return false;">[(+)add new]</a>\n				</td>\n			</tr><%\n			for(var i = 0; i < addsHTML.length; i++) { %>\n				<tr>\n					<td>\n						<%- addsHTML[i] %>\n					</td>\n				</tr><%\n			} %>\n			<tr>\n				<td>\n					<hr style="border:0px; width:90%; background-color: #999; height:1px;">\n				</td>\n			</tr>\n			<%- templates.factTypeCollection(locals) %>\n		</tbody>\n	</table>\n</div>'),
       termView: ejs.compile('<div class="panel" style="background-color:<%= backgroundColour %>;"><%\n	for(var field in termInstance) { %>\n		<%= field %>: <%= termInstance[field] %><br/><%\n	} %>\n</div>'),
       factTypeName: ejs.compile('<%\nfor(var i = 0; i < factType.length; i++) {\n	var factTypePart = factType[i];\n	if(factTypePart[0] == "Term") { %>\n		<%= factTypeInstance[factTypePart[1]].value %> <%\n	}\n	else if(factTypePart[0] == "Verb") { %>\n		<em><%= factTypePart[1] %></em><%\n	}\n} %>'),
-      factTypeView: ejs.compile('<div class="panel" style="background-color:<%= backgroundColour %>;">\n	id: <%= factTypeInstance.id %><br/>\n	<%- templates.factTypeName(locals) %>\n</div>'),
+      factTypeView: ejs.compile('<div class="panel" style="background-color:<%= altBackgroundColour %>;">\n	id: <%= factTypeInstance.id %><br/>\n	<%- templates.factTypeName(locals) %>\n</div>'),
       topLevelTemplate: ejs.compile('<table id="terms">\n	<tbody><%\n		for(var i = 0; i < terms.length; i++) {\n			var term = terms[i]; %>\n			<tr id="tr--data--"<%= term.id %>">\n				<td><%\n					if(term.isExpanded) { %>\n						<div style="display:inline; background-color:#FFFFFF;">\n							<%= term.name %>\n							<a href="<%= term.closeURI %>" onClick="location.hash=\'<%= term.closeHash %>\';return false">\n								<span title="Close" class="ui-icon ui-icon-circle-close"></span>\n							</a>\n						</div>\n						<%- term.html %><%\n					}\n					else { %>\n						<%= term.name %>\n						<a href="<%= term.expandURI %>" onClick="location.hash=\'<%= term.expandHash %>\';return false">\n							<span title="See all" class="ui-icon ui-icon-search"></span>\n						</a><%\n					} %>\n				</td>\n			</tr><%\n		} %>\n	</tbody>\n</table><br/>\n<div align="left">\n	<input type="button" value="Apply All Changes" onClick="runTrans($(\'#terms\'));return false;">\n</div>')
     };
     requirejs(['data-frame/widgets/inputText'], function(inputText) {
       return templates.widgets.inputText = inputText;
     });
+    baseTemplateVars = {
+      templates: templates
+    };
+    evenTemplateVars = {
+      backgroundColour: '#FFFFFF',
+      altBackgroundColour: '#EEEEEE'
+    };
+    oddTemplateVars = {
+      backgroundColour: '#EEEEEE',
+      altBackgroundColour: '#FFFFFF'
+    };
     createNavigableTree = function(tree, descendTree) {
       var ascend, currentLocation, descendByIndex, getIndexForResource, index, previousLocations, _i, _len;
       if (descendTree == null) descendTree = [];
@@ -260,16 +271,11 @@
       });
     };
     renderResource = function(idx, rowCallback, rootURI, even, ftree, cmod) {
-      var about, currentLocation, getIdent, html, mod, resourceFactType, resourceType, templateVars, termFields, _i, _len, _ref;
+      var about, currentLocation, getIdent, mod, resourceFactType, resourceType, _i, _len, _ref;
       currentLocation = ftree.getCurrentLocation();
       about = ftree.getAbout();
       resourceType = "Term";
       resourceFactType = [];
-      templateVars = {
-        templates: templates,
-        backgroundColour: even ? "#FFFFFF" : "#EEEEEE",
-        altBackgroundColour: even ? "#EEEEEE" : "#FFFFFF"
-      };
       getIdent = function(mod) {
         var factTypePart, ident, _i, _len, _ref;
         switch (mod[0]) {
@@ -300,9 +306,9 @@
           var addsCallback, addsHTML, currBranch, currBranchType, expandedTree, factTypeCollections, factTypeCollectionsCallback, i, instance, j, mod, newTree, newb, resourceCollections, resourceCollectionsCallback, resourceName, termVerb, _fn, _j, _k, _l, _len2, _len3, _len4, _len5, _len6, _ref2, _ref3, _ref4, _ref5, _ref6;
           resourceCollections = [];
           resourceCollectionsCallback = createAsyncQueueCallback(function() {
-            var addHash, html;
+            var addHash, html, templateVars;
             addHash = '#!/' + ftree.getChangeURI('add', about);
-            templateVars = $.extend(templateVars, {
+            templateVars = $.extend(baseTemplateVars, (even ? evenTemplateVars : oddTemplateVars), {
               pid: ftree.getPid(),
               addHash: addHash,
               addURI: rootURI + addHash,
@@ -332,7 +338,8 @@
             } else if (resourceType === "FactType") {
               resourceCollectionsCallback.addWork(1);
               getResolvedFactType(resourceFactType, instance, function(factTypeInstance) {
-                templateVars = $.extend(templateVars, {
+                var templateVars;
+                templateVars = $.extend(baseTemplateVars, (even ? evenTemplateVars : oddTemplateVars), {
                   factType: resourceFactType,
                   factTypeInstance: factTypeInstance
                 });
@@ -441,110 +448,117 @@
           return resourceCollectionsCallback.endAdding();
         });
       } else if (currentLocation[0] === 'instance') {
-        templateVars = $.extend(templateVars, {
-          serverURI: ftree.getServerURI(),
-          backURI: '#!/' + ftree.getNewURI('del'),
-          type: about,
-          id: currentLocation[1][1]
+        return renderInstance(ftree, even, resourceType, resourceFactType, function(html) {
+          return rowCallback(idx, html);
         });
-        switch (ftree.getAction()) {
-          case "view":
-            if (resourceType === "Term") {
-              return serverRequest("GET", ftree.getServerURI(), {}, null, function(statusCode, result, headers) {
+      }
+    };
+    renderInstance = function(ftree, even, resourceType, resourceFactType, rowCallback) {
+      var about, currentLocation, html, templateVars, termFields;
+      about = ftree.getAbout();
+      currentLocation = ftree.getCurrentLocation();
+      templateVars = $.extend(baseTemplateVars, (even ? evenTemplateVars : oddTemplateVars), {
+        serverURI: ftree.getServerURI(),
+        backURI: '#!/' + ftree.getNewURI('del'),
+        type: about,
+        id: currentLocation[1][1]
+      });
+      switch (ftree.getAction()) {
+        case "view":
+          if (resourceType === "Term") {
+            return serverRequest("GET", ftree.getServerURI(), {}, null, function(statusCode, result, headers) {
+              var html;
+              templateVars = $.extend(templateVars, {
+                termInstance: result.instances[0]
+              });
+              html = templates.termView(templateVars);
+              return rowCallback(html);
+            });
+          } else if (resourceType === "FactType") {
+            return serverRequest("GET", ftree.getServerURI(), {}, null, function(statusCode, result, headers) {
+              return getResolvedFactType(resourceFactType, result.instances[0], function(factTypeInstance) {
                 var html;
                 templateVars = $.extend(templateVars, {
-                  termInstance: result.instances[0]
+                  factType: resourceFactType,
+                  factTypeInstance: factTypeInstance
                 });
-                html = templates.termView(templateVars);
-                return rowCallback(idx, html);
+                html = templates.factTypeView(templateVars);
+                return rowCallback(html);
+              }, function(errors) {
+                console.error(errors);
+                return rowCallback('Errors: ' + errors);
               });
-            } else if (resourceType === "FactType") {
-              return serverRequest("GET", ftree.getServerURI(), {}, null, function(statusCode, result, headers) {
-                return getResolvedFactType(resourceFactType, result.instances[0], function(factTypeInstance) {
-                  var html;
-                  templateVars = $.extend(templateVars, {
-                    factType: resourceFactType,
-                    factTypeInstance: factTypeInstance
-                  });
-                  html = templates.factTypeView(templateVars);
-                  return rowCallback(idx, html);
-                }, function(errors) {
-                  console.error(errors);
-                  return rowCallback(idx, 'Errors: ' + errors);
-                });
-              });
-            }
-            break;
-          case "add":
-            if (resourceType === "Term") {
-              termFields = [['Text', 'value', 'Name', []]];
+            });
+          }
+          break;
+        case "add":
+          if (resourceType === "Term") {
+            termFields = [['Text', 'value', 'Name', []]];
+            templateVars = $.extend(templateVars, {
+              action: 'addterm',
+              id: false,
+              term: false,
+              termFields: termFields
+            });
+            html = templates.termForm(templateVars);
+            return rowCallback(html);
+          } else if (resourceType === "FactType") {
+            return getTermResults(resourceFactType, function(termResults) {
               templateVars = $.extend(templateVars, {
-                action: 'addterm',
-                id: false,
-                term: false,
+                factType: resourceFactType,
+                termResults: termResults,
+                action: 'addfctp',
+                currentFactType: false,
+                id: false
+              });
+              html = templates.factTypeForm(templateVars);
+              return rowCallback(html);
+            });
+          }
+          break;
+        case "edit":
+          if (resourceType === "Term") {
+            termFields = [['Text', 'value', 'Name', []]];
+            return serverRequest("GET", ftree.getServerURI(), {}, null, function(statusCode, result, headers) {
+              var id;
+              id = result.instances[0].id;
+              templateVars = $.extend(templateVars, {
+                action: 'editterm',
+                id: id,
+                term: result.instances[0],
                 termFields: termFields
               });
               html = templates.termForm(templateVars);
-              return rowCallback(idx, html);
-            } else if (resourceType === "FactType") {
-              return getTermResults(resourceFactType, function(termResults) {
-                templateVars = $.extend(templateVars, {
-                  factType: resourceFactType,
-                  termResults: termResults,
-                  action: 'addfctp',
-                  currentFactType: false,
-                  id: false
-                });
-                html = templates.factTypeForm(templateVars);
-                return rowCallback(idx, html);
-              });
-            }
-            break;
-          case "edit":
-            if (resourceType === "Term") {
-              termFields = [['Text', 'value', 'Name', []]];
-              return serverRequest("GET", ftree.getServerURI(), {}, null, function(statusCode, result, headers) {
-                var id;
-                id = result.instances[0].id;
-                templateVars = $.extend(templateVars, {
-                  action: 'editterm',
-                  id: id,
-                  term: result.instances[0],
-                  termFields: termFields
-                });
-                html = templates.termForm(templateVars);
-                return rowCallback(idx, html);
-              });
-            } else if (resourceType === "FactType") {
-              return serverRequest("GET", ftree.getServerURI(), {}, null, function(statusCode, result, headers) {
-                return getResolvedFactType(resourceFactType, result.instances[0], function(factTypeInstance) {
-                  return getTermResults(resourceFactType, function(termResults) {
-                    templateVars = $.extend(templateVars, {
-                      factType: resourceFactType,
-                      termResults: termResults,
-                      action: 'editfctp',
-                      type: about,
-                      currentFactType: factTypeInstance,
-                      id: factTypeInstance.id
-                    });
-                    html = templates.factTypeForm(templateVars);
-                    return rowCallback(idx, html);
-                  });
-                }, function(errors) {
-                  console.error(errors);
-                  return rowCallback(idx, 'Errors: ' + errors);
-                });
-              });
-            }
-            break;
-          case "del":
-            templateVars = $.extend(templateVars, {
-              action: 'del',
-              id: currentLocation[1][1]
+              return rowCallback(html);
             });
-            html = templates.deleteForm(templateVars);
-            return rowCallback(idx, html);
-        }
+          } else if (resourceType === "FactType") {
+            return serverRequest("GET", ftree.getServerURI(), {}, null, function(statusCode, result, headers) {
+              return getResolvedFactType(resourceFactType, result.instances[0], function(factTypeInstance) {
+                return getTermResults(resourceFactType, function(termResults) {
+                  templateVars = $.extend(templateVars, {
+                    factType: resourceFactType,
+                    termResults: termResults,
+                    action: 'editfctp',
+                    type: about,
+                    currentFactType: factTypeInstance,
+                    id: factTypeInstance.id
+                  });
+                  html = templates.factTypeForm(templateVars);
+                  return rowCallback(html);
+                });
+              }, function(errors) {
+                console.error(errors);
+                return rowCallback('Errors: ' + errors);
+              });
+            });
+          }
+          break;
+        case "del":
+          templateVars = $.extend(templateVars, {
+            action: 'del'
+          });
+          html = templates.deleteForm(templateVars);
+          return rowCallback(html);
       }
     };
     processForm = function(forma) {
