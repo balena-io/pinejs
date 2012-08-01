@@ -45,27 +45,37 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 			</div>
 			''')
 		termForm: ejs.compile('''
-			<div class="panel" style="background-color:<%= altBackgroundColour %>;">
+			<div class="panel" style="background-color:<%= backgroundColour %>;">
 				<form class="action">
 					<%- templates.hiddenFormInput(locals) %><%
-					if(id !== false) { %>
-						id: <%= id %><br/><%
-					}
-
-					for(var i = 0; i < termFields.length; i++) {
-						var termField = termFields[i]; %>
-						<%= termField[2] %>: <%
+					
+					for(var i = 0; i < resourceModel.fields.length; i++) {
+						var termField = resourceModel.fields[i],
+							fieldName = termField[1],
+							fieldValue = resourceInstance === false ? "" : resourceInstance[termField[1]];
 						switch(termField[0]) {
-							case "Text": %>
-								<%- templates.widgets.inputText(termField[1], term === false ? "" : term[termField[1]]) %><%
+							case "Short Text":
+							case "Long Text":
+							case "Value": %>
+								<%= fieldName %>: <%- templates.widgets.inputText(fieldName, fieldValue) %><br /><%
+							break;
+							case "Integer": %>
+								<%= fieldName %>: <%- templates.widgets.inputText(fieldName, fieldValue) %><br /><%
+							break;
+							case "Boolean": %>
+								<%= fieldName %>: <%- templates.widgets.inputText(fieldName, fieldValue) %><br /><%
 							break;
 							case "ForeignKey":
 								console.error("Hit FK", termField);
 							break;
+							case "Serial": 
+								if(resourceInstance !== false) { %>
+									<%= fieldName %>: <%= fieldValue %><br /><%
+								}
+							break;
 							default:
 								console.error("Hit default, wtf?");
-						} %>
-						<br /><%
+						}
 					} %>
 					<div align="right">
 						<input type="submit" value="Submit This" onClick="processForm(this.parentNode.parentNode);return false;">
@@ -467,7 +477,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 				resourceCollectionsCallback = createAsyncQueueCallback(
 					() ->
 						addHash = '#!/' + ftree.getChangeURI('add', about)
-						templateVars = $.extend(baseTemplateVars, (if even then evenTemplateVars else oddTemplateVars), {
+						templateVars = $.extend({}, baseTemplateVars, (if even then evenTemplateVars else oddTemplateVars), {
 							pid: ftree.getPid()
 							addHash: addHash
 							addURI: rootURI + addHash
@@ -499,7 +509,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 							resourceCollectionsCallback.addWork(1)
 							getResolvedFactType(resourceFactType, instance,
 								(factTypeInstance) ->
-									templateVars = $.extend(baseTemplateVars, (if even then evenTemplateVars else oddTemplateVars), {
+									templateVars = $.extend({}, baseTemplateVars, (if even then evenTemplateVars else oddTemplateVars), {
 										factType: resourceFactType
 										factTypeInstance: factTypeInstance
 									})
@@ -515,7 +525,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 							resourceCollections[i].closeHash = '#!/' + expandedTree.getNewURI("del")
 							resourceCollections[i].closeURI = rootURI + resourceCollections[i].deleteHash
 							resourceCollectionsCallback.addWork(1)
-							renderResource(i, resourceCollectionsCallback.successCallback, rootURI, even, expandedTree, cmod)
+							renderResource(i, resourceCollectionsCallback.successCallback, rootURI, not even, expandedTree, cmod)
 						else
 							resourceCollections[i].viewHash = '#!/' + ftree.getChangeURI('view', about, instance.id)
 							resourceCollections[i].viewURI = rootURI + resourceCollections[i].viewHash
@@ -591,7 +601,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 	renderInstance = (ftree, even, resourceType, resourceFactType, rowCallback) ->
 		about = ftree.getAbout()
 		currentLocation = ftree.getCurrentLocation()
-		templateVars = $.extend(baseTemplateVars, (if even then evenTemplateVars else oddTemplateVars), {
+		templateVars = $.extend({}, baseTemplateVars, (if even then evenTemplateVars else oddTemplateVars), {
 			serverURI: ftree.getServerURI()
 			backURI: '#!/' + ftree.getNewURI('del')
 			type: about
@@ -619,16 +629,16 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 				)
 			when "add"
 				if resourceType == "Term"
-					# TODO: The termFields info should come from a client model
-					termFields = [['Text', 'value', 'Name', []]]
-					templateVars = $.extend(templateVars, {
-						action: 'addterm'
-						id: false
-						term: false
-						termFields: termFields
-					})
-					html = templates.termForm(templateVars)
-					rowCallback(html)
+					serverRequest("GET", ftree.getServerURI(), {}, null, (statusCode, result, headers) ->
+						templateVars = $.extend(templateVars, {
+							action: 'addterm'
+							id: false
+							resourceInstance: false
+							resourceModel: result.model
+						})
+						html = templates.termForm(templateVars)
+						rowCallback(html)
+					)
 				else if resourceType == "FactType"
 					getTermResults(resourceFactType, (termResults) ->
 						templateVars = $.extend(templateVars, {
@@ -643,16 +653,12 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 					)
 			when "edit"
 				if resourceType == "Term"
-					# TODO: The termFields info should come from a client model
-					termFields = [['Text', 'value', 'Name', []]]
-
 					serverRequest("GET", ftree.getServerURI(), {}, null, (statusCode, result, headers) ->
-						id = result.instances[0].id
 						templateVars = $.extend(templateVars, {
 							action: 'editterm'
-							id: id
-							term: result.instances[0]
-							termFields: termFields
+							id: result.instances[0].id
+							resourceInstance: result.instances[0]
+							resourceModel: result.model
 						})
 						html = templates.termForm(templateVars)
 						rowCallback(html)
@@ -685,53 +691,32 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 				html = templates.deleteResource(templateVars)
 				rowCallback(html)
 
-	processForm = (forma) ->
-		action = $("#__actype", forma).val()
-		serverURI = $("#__serverURI", forma).val()
-		id = $("#__id", forma).val()
-		type = $("#__type", forma).val()
-		backURI = $("#__backURI", forma).val()
+	processForm = (form) ->
+		action = $("#__actype", form).val()
+		serverURI = $("#__serverURI", form).val()
+		id = $("#__id", form).val()
+		type = $("#__type", form).val()
+		backURI = $("#__backURI", form).val()
 		# TODO: id and type (and half of actype) are not yet used.
 		# Should they be used instead of serverURI?
 		switch action
 			when "editterm", "editfctp"
-				editInst(forma, serverURI, backURI)
+				submitInstance('PUT', form, serverURI, backURI)
 			when "addterm", "addfctp"
-				addInst(forma, serverURI, backURI)
+				submitInstance('POST', form, serverURI, backURI)
 			when "del"
-				delInst(forma, serverURI, backURI)
+				submitInstance('DELETE', form, serverURI, backURI)
 
-	delInst = (forma, uri, backURI) ->
-		serverRequest "DELETE", uri, {}, null, (statusCode, result, headers) ->
+	submitInstance = (method, form, serverURI, backURI) ->
+		obj = {}
+		if method != 'DELETE'
+			inputs = $(":input:not(:submit)", form)
+			for input in inputs when input.id[...2] != "__"
+				obj[input.id] = $(input).val()
+		serverRequest(method, serverURI, {}, [obj], (statusCode, result, headers) ->
 			location.hash = backURI
-
-		false
-
-	editInst = (forma, serverURI, backURI) ->
-		inputs = $(":input:not(:submit)", forma)
-		obj = $.map(inputs, (n, i) ->
-			unless n.id.slice(0, 2) == "__"
-				o = {}
-				o[n.id] = $(n).val()
-				o
 		)
-		serverRequest "PUT", serverURI, {}, obj, (statusCode, result, headers) ->
-			location.hash = backURI
-
-		false
-
-	addInst = (forma, uri, backURI) ->
-		inputs = $(":input:not(:submit)", forma)
-		obj = $.map(inputs, (n, i) ->
-			unless n.id.slice(0, 2) == "__"
-				o = {}
-				o[n.id] = $(n).val()
-				o
-		)
-		serverRequest "POST", uri, {}, obj, (statusCode, result, headers) ->
-			location.hash = backURI
-
-		false
+		return false
 
 
 	window.drawData = drawData

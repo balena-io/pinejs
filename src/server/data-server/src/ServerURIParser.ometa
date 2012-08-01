@@ -57,9 +57,9 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 			-> ['Verb', verb],
 
 		TermOrFactType =
-			Term:term
-			{[term]}:factType
-			<	(	'-'
+			<	Term:term
+				{[term]}:factType
+				(	'-'
 					Verb:verb {factType.push(verb)}
 					(	'-'
 						Term:term
@@ -298,9 +298,11 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 						}
 						var fields = [];
 						for(var i=0; i < table.fields.length; i++) {
-							var field = table.fields[i];
-							if(field[2] == 'NOT NULL' || (field[2] == 'PRIMARY KEY' && field[0] != 'Serial')) {
-								fields.push([field[1], ['Bind', table.name, field]]);
+							var field = table.fields[i],
+								fieldName = field[1];
+							if((field[2] == 'NOT NULL' || this.currentBody.hasOwnProperty(table.name + '.' + fieldName) || this.currentBody.hasOwnProperty(fieldName))
+								|| (field[2] == 'PRIMARY KEY' && field[0] != 'Serial')) {
+								fields.push([fieldName, ['Bind', table.name, field]]);
 							}
 						}
 						query.push(['Fields', fields]);

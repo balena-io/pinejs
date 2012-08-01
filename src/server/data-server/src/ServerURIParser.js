@@ -111,9 +111,9 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
             var $elf = this,
                 _fromIdx = this.input.idx,
                 term, factType, verb, resourceName, tableName;
-            term = this._apply("Term");
-            factType = [term];
             resourceName = this._consumedBy((function() {
+                term = this._apply("Term");
+                factType = [term];
                 return this._many((function() {
                     this._applyWithArgs("exactly", "-");
                     verb = this._apply("Verb");
@@ -507,11 +507,12 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                         var fields = [];
                         for (var i = (0);
                         (i < table["fields"]["length"]); i++) {
-                            var field = table["fields"][i];
-                            if (((field[(2)] == "NOT NULL") || ((field[(2)] == "PRIMARY KEY") && (field[(0)] != "Serial")))) {
-                                fields.push([field[(1)],
-                                    ["Bind", table["name"], field]
-                                ])
+                            {
+                                var field = table["fields"][i];
+                                var fieldName = field[(1)]
+                            };
+                            if (((((field[(2)] == "NOT NULL") || this["currentBody"].hasOwnProperty(((table["name"] + ".") + fieldName))) || this["currentBody"].hasOwnProperty(fieldName)) || ((field[(2)] == "PRIMARY KEY") && (field[(0)] != "Serial")))) {
+                                fields.push([fieldName, ["Bind", table["name"], field]])
                             } else {
                                 undefined
                             }
