@@ -9,39 +9,49 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 				<input type="hidden" id="__id" value="<%= id %>"><%
 			} %>
 			''')
+		dataTypeDisplay: ejs.compile('''
+			<%
+			var fieldName = resourceField[1],
+				fieldValue = resourceInstance === false ? "" : resourceInstance[fieldName]
+			switch(resourceField[0]) {
+				case "Short Text":
+				case "Value": %>
+					<%= fieldName %>: <%- templates.widgets.text(fieldName, fieldValue) %><br /><%
+				break;
+				case "Long Text": %>
+					<%= fieldName %>: <%- templates.widgets.textArea(fieldName, fieldValue) %><br /><%
+				break;
+				case "Integer": %>
+					<%= fieldName %>: <%- templates.widgets.integer(fieldName, fieldValue) %><br /><%
+				break;
+				case "Boolean": %>
+					<%= fieldName %>: <%- templates.widgets.boolean(fieldName, fieldValue) %><br /><%
+				break;
+				case "ForeignKey": %>
+					<%= fieldName %>: <%- templates.widgets.foreignKey(fieldName, foreignKeys[fieldName], fieldValue) %><br /><%
+				break;
+				case "Serial": 
+					if(resourceInstance !== false) { %>
+						<%= fieldName %>: <%= fieldValue %><br /><%
+					}
+				break;
+				default:
+					console.error("Hit default, wtf?");
+			} %>
+			''')
 		addEditResource: ejs.compile('''
 			<div class="panel" style="background-color:<%= backgroundColour %>;">
 				<form class="action">
 					<%- templates.hiddenFormInput(locals) %><%
-					for(var i = 0; i < resourceModel.fields.length; i++) {
-						var resourceField = resourceModel.fields[i],
-							fieldName = resourceField[1],
-							fieldValue = resourceInstance === false ? "" : resourceInstance[fieldName];
-						switch(resourceField[0]) {
-							case "Short Text":
-							case "Value": %>
-								<%= fieldName %>: <%- templates.widgets.text(fieldName, fieldValue) %><br /><%
-							break;
-							case "Long Text": %>
-								<%= fieldName %>: <%- templates.widgets.textArea(fieldName, fieldValue) %><br /><%
-							break;
-							case "Integer": %>
-								<%= fieldName %>: <%- templates.widgets.integer(fieldName, fieldValue) %><br /><%
-							break;
-							case "Boolean": %>
-								<%= fieldName %>: <%- templates.widgets.boolean(fieldName, fieldValue) %><br /><%
-							break;
-							case "ForeignKey": %>
-								<%= fieldName %>: <%- templates.widgets.foreignKey(fieldName, foreignKeys[fieldName], fieldValue) %><br /><%
-							break;
-							case "Serial": 
-								if(resourceInstance !== false) { %>
-									<%= fieldName %>: <%= fieldValue %><br /><%
-								}
-							break;
-							default:
-								console.error("Hit default, wtf?");
-						}
+					for(var i = 0; i < resourceModel.fields.length; i++) { %>
+							<%-
+								templates.dataTypeDisplay({
+									templates: templates,
+									resourceInstance: resourceInstance,
+									resourceField: resourceModel.fields[i],
+									foreignKeys: foreignKeys
+								})
+							%><%
 					} %>
 					<div align="right">
 						<input type="submit" value="Submit This" onClick="processForm(this.parentNode.parentNode);return false;">
@@ -604,6 +614,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 							id: false
 							resourceInstance: false
 							resourceModel: result.model
+							foreignKeys: null
 						})
 						html = templates.addEditResource(templateVars)
 						rowCallback(html)
@@ -630,6 +641,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 							id: result.instances[0].id
 							resourceInstance: result.instances[0]
 							resourceModel: result.model
+							foreignKeys: null
 						})
 						html = templates.addEditResource(templateVars)
 						rowCallback(html)
