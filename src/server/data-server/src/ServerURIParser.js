@@ -24,7 +24,6 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                 body = this._apply("anything");
                 this._opt((function() {
                     this._pred((!_.isArray(body)));
-                    console.error("Body is not an array:", body);
                     return body = [({})]
                 }));
                 return this._form((function() {
