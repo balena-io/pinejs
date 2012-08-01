@@ -13,12 +13,10 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 			<div class="panel" style="background-color:<%= backgroundColour %>;">
 				<form class="action">
 					<%- templates.hiddenFormInput(locals) %><%
-					console.error(resourceInstance)
 					for(var i = 0; i < resourceModel.fields.length; i++) {
 						var resourceField = resourceModel.fields[i],
 							fieldName = resourceField[1],
 							fieldValue = resourceInstance === false ? "" : resourceInstance[fieldName];
-						console.error(resourceField)
 						switch(resourceField[0]) {
 							case "Short Text":
 							case "Long Text":
@@ -29,7 +27,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 								<%= fieldName %>: <%- templates.widgets.inputInteger(fieldName, fieldValue) %><br /><%
 							break;
 							case "Boolean": %>
-								<%= fieldName %>: <%- templates.widgets.inputText(fieldName, fieldValue) %><br /><%
+								<%= fieldName %>: <%- templates.widgets.inputBoolean(fieldName, fieldValue) %><br /><%
 							break;
 							case "ForeignKey": %>
 								<%= fieldName %>: <%- templates.widgets.inputForeignKey(fieldName, foreignKeys[fieldName], fieldValue) %><br /><%
@@ -204,11 +202,12 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 			</div>
 			''')
 	}
-	requirejs(['data-frame/widgets/inputText', 'data-frame/widgets/inputTextArea', 'data-frame/widgets/inputForeignKey', 'data-frame/widgets/inputInteger'], (inputText, inputTextArea, inputForeignKey, inputInteger) ->
+	requirejs(['data-frame/widgets/inputText', 'data-frame/widgets/inputTextArea', 'data-frame/widgets/inputForeignKey', 'data-frame/widgets/inputInteger', 'data-frame/widgets/inputBoolean'], (inputText, inputTextArea, inputForeignKey, inputInteger, inputBoolean) ->
 		templates.widgets.inputText = inputText
 		templates.widgets.inputTextArea = inputTextArea
 		templates.widgets.inputForeignKey = inputForeignKey
 		templates.widgets.inputInteger = inputInteger
+		templates.widgets.inputBoolean = inputBoolean
 	)
 	baseTemplateVars =
 		templates: templates
