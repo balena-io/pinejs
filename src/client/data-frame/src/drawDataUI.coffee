@@ -75,7 +75,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 				</div>
 			</div>
 			''')
-		deleteForm: ejs.compile('''
+		deleteResource: ejs.compile('''
 			<div class="panel" style="background-color:<%= backgroundColour %>;">
 				<div align="left">
 					marked for deletion
@@ -185,7 +185,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 					}
 				} %>
 				''')
-		resourceView: ejs.compile('''
+		viewResource: ejs.compile('''
 			<div class="panel" style="background-color:<%= altBackgroundColour %>;"><%
 				for(var fieldName in resourceInstance) {
 					var field = resourceInstance[fieldName];
@@ -607,7 +607,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 						templateVars = $.extend(templateVars, {
 							resourceInstance: resourceInstance
 						})
-						html = templates.resourceView(templateVars)
+						html = templates.viewResource(templateVars)
 						rowCallback(html)
 					if resourceType == "Term"
 						displayView(result.instances[0])
@@ -684,7 +684,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 				templateVars = $.extend(templateVars, {
 					action: 'del'
 				})
-				html = templates.deleteForm(templateVars)
+				html = templates.deleteResource(templateVars)
 				rowCallback(html)
 
 	processForm = (forma) ->
