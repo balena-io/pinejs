@@ -10,50 +10,17 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 				<input type="hidden" id="__id" value="<%= id %>"><%
 			} %>
 			''')
-		factTypeForm: ejs.compile('''
-			<div class="panel" style="background-color:<%= altBackgroundColour %>;">
-				<form class="action">
-					<%- templates.hiddenFormInput(locals) %><%
-					for(var i = 0; i < factType.length; i++) {
-						var factTypePart = factType[i];
-						switch(factTypePart[0]) {
-							case "Term":
-								var termName = factTypePart[1],
-									termResult = termResults[termName]; %>
-								<select id="<%= termName %>"><%
-									for(var j = 0; j < termResult.length; j++) {
-										var term = termResult[j]; %>
-										<option value="<%= term.id %>"<%
-											if(currentFactType !== false && currentFactType[termName].id == term.id) { %>
-												selected="selected" <%
-											} %>
-										>
-											<%= term.value %>
-										</option><%
-									} %>
-								</select><%
-							break;
-							case "Verb":
-								%><%= factTypePart[1] %><%
-							break;
-						}
-					} %>
-					<div align="right">
-						<input type="submit" value="Submit This" onClick="processForm(this.parentNode.parentNode);return false;">
-					</div>
-				</form>
-			</div>
-			''')
-		termForm: ejs.compile('''
+		addEditResource: ejs.compile('''
 			<div class="panel" style="background-color:<%= backgroundColour %>;">
 				<form class="action">
 					<%- templates.hiddenFormInput(locals) %><%
-					
+					console.error(resourceInstance)
 					for(var i = 0; i < resourceModel.fields.length; i++) {
-						var termField = resourceModel.fields[i],
-							fieldName = termField[1],
-							fieldValue = resourceInstance === false ? "" : resourceInstance[termField[1]];
-						switch(termField[0]) {
+						var resourceField = resourceModel.fields[i],
+							fieldName = resourceField[1],
+							fieldValue = resourceInstance === false ? "" : resourceInstance[fieldName];
+						console.error(resourceField)
+						switch(resourceField[0]) {
 							case "Short Text":
 							case "Long Text":
 							case "Value": %>
@@ -65,8 +32,8 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 							case "Boolean": %>
 								<%= fieldName %>: <%- templates.widgets.inputText(fieldName, fieldValue) %><br /><%
 							break;
-							case "ForeignKey":
-								console.error("Hit FK", termField);
+							case "ForeignKey": %>
+								<%= fieldName %>: <%- templates.widgets.inputText(fieldName, fieldValue) %><br /><%
 							break;
 							case "Serial": 
 								if(resourceInstance !== false) { %>
@@ -636,20 +603,22 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 							resourceInstance: false
 							resourceModel: result.model
 						})
-						html = templates.termForm(templateVars)
+						html = templates.addEditResource(templateVars)
 						rowCallback(html)
 					)
 				else if resourceType == "FactType"
-					getTermResults(resourceFactType, (termResults) ->
-						templateVars = $.extend(templateVars, {
-							factType: resourceFactType
-							termResults: termResults
-							action: 'addfctp'
-							currentFactType: false
-							id: false
-						})
-						html = templates.factTypeForm(templateVars)
-						rowCallback(html)
+					serverRequest("GET", ftree.getServerURI(), {}, null, (statusCode, result, headers) ->
+						getTermResults(resourceFactType, (termResults) ->
+							templateVars = $.extend(templateVars, {
+								action: 'addfctp'
+								id: false
+								resourceInstance: false
+								resourceModel: result.model
+								foreignKeys: termResults
+							})
+							html = templates.addEditResource(templateVars)
+							rowCallback(html)
+						)
 					)
 			when "edit"
 				if resourceType == "Term"
@@ -660,29 +629,26 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 							resourceInstance: result.instances[0]
 							resourceModel: result.model
 						})
-						html = templates.termForm(templateVars)
+						html = templates.addEditResource(templateVars)
 						rowCallback(html)
 					)
 				else if resourceType == "FactType"
-					serverRequest("GET", ftree.getServerURI(), {}, null, (statusCode, result, headers) ->
-						getResolvedFactType(resourceFactType, result.instances[0],
-							(factTypeInstance) ->
-								getTermResults(resourceFactType, (termResults) ->
-									templateVars = $.extend(templateVars, {
-										factType: resourceFactType
-										termResults: termResults
-										action: 'editfctp'
-										type: about
-										currentFactType: factTypeInstance
-										id: factTypeInstance.id
-									})
-									html = templates.factTypeForm(templateVars)
-									rowCallback(html)
-								)
-							(errors) ->
-								console.error(errors)
-								rowCallback('Errors: ' + errors)
-						)
+					serverRequest("GET", ftree.getServerURI(), {}, null,
+						(statusCode, result, headers) ->
+							getTermResults(resourceFactType, (termResults) ->
+								templateVars = $.extend(templateVars, {
+									action: 'editfctp'
+									id: result.instances[0].id
+									resourceInstance: result.instances[0]
+									resourceModel: result.model
+									foreignKeys: termResults
+								})
+								html = templates.addEditResource(templateVars)
+								rowCallback(html)
+							)
+						(errors) ->
+							console.error(errors)
+							rowCallback('Errors: ' + errors)
 					)
 			when "del"
 				templateVars = $.extend(templateVars, {

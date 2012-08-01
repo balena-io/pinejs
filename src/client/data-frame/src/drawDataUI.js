@@ -6,8 +6,7 @@
     templates = {
       widgets: {},
       hiddenFormInput: ejs.compile('<input type="hidden" id="__actype" value="<%= action %>">\n<input type="hidden" id="__serverURI" value="<%= serverURI %>">\n<input type="hidden" id="__backURI" value="<%= backURI %>">\n<input type="hidden" id="__type" value="<%= type %>"><%\nif(id !== false) { %>\n	<input type="hidden" id="__id" value="<%= id %>"><%\n} %>'),
-      factTypeForm: ejs.compile('<div class="panel" style="background-color:<%= altBackgroundColour %>;">\n	<form class="action">\n		<%- templates.hiddenFormInput(locals) %><%\n		for(var i = 0; i < factType.length; i++) {\n			var factTypePart = factType[i];\n			switch(factTypePart[0]) {\n				case "Term":\n					var termName = factTypePart[1],\n						termResult = termResults[termName]; %>\n					<select id="<%= termName %>"><%\n						for(var j = 0; j < termResult.length; j++) {\n							var term = termResult[j]; %>\n							<option value="<%= term.id %>"<%\n								if(currentFactType !== false && currentFactType[termName].id == term.id) { %>\n									selected="selected" <%\n								} %>\n							>\n								<%= term.value %>\n							</option><%\n						} %>\n					</select><%\n				break;\n				case "Verb":\n					%><%= factTypePart[1] %><%\n				break;\n			}\n		} %>\n		<div align="right">\n			<input type="submit" value="Submit This" onClick="processForm(this.parentNode.parentNode);return false;">\n		</div>\n	</form>\n</div>'),
-      termForm: ejs.compile('<div class="panel" style="background-color:<%= backgroundColour %>;">\n	<form class="action">\n		<%- templates.hiddenFormInput(locals) %><%\n		\n		for(var i = 0; i < resourceModel.fields.length; i++) {\n			var termField = resourceModel.fields[i],\n				fieldName = termField[1],\n				fieldValue = resourceInstance === false ? "" : resourceInstance[termField[1]];\n			switch(termField[0]) {\n				case "Short Text":\n				case "Long Text":\n				case "Value": %>\n					<%= fieldName %>: <%- templates.widgets.inputText(fieldName, fieldValue) %><br /><%\n				break;\n				case "Integer": %>\n					<%= fieldName %>: <%- templates.widgets.inputText(fieldName, fieldValue) %><br /><%\n				break;\n				case "Boolean": %>\n					<%= fieldName %>: <%- templates.widgets.inputText(fieldName, fieldValue) %><br /><%\n				break;\n				case "ForeignKey":\n					console.error("Hit FK", termField);\n				break;\n				case "Serial": \n					if(resourceInstance !== false) { %>\n						<%= fieldName %>: <%= fieldValue %><br /><%\n					}\n				break;\n				default:\n					console.error("Hit default, wtf?");\n			}\n		} %>\n		<div align="right">\n			<input type="submit" value="Submit This" onClick="processForm(this.parentNode.parentNode);return false;">\n		</div>\n	</form>\n</div>'),
+      addEditResource: ejs.compile('<div class="panel" style="background-color:<%= backgroundColour %>;">\n	<form class="action">\n		<%- templates.hiddenFormInput(locals) %><%\n		console.error(resourceInstance)\n		for(var i = 0; i < resourceModel.fields.length; i++) {\n			var resourceField = resourceModel.fields[i],\n				fieldName = resourceField[1],\n				fieldValue = resourceInstance === false ? "" : resourceInstance[fieldName];\n			console.error(resourceField)\n			switch(resourceField[0]) {\n				case "Short Text":\n				case "Long Text":\n				case "Value": %>\n					<%= fieldName %>: <%- templates.widgets.inputText(fieldName, fieldValue) %><br /><%\n				break;\n				case "Integer": %>\n					<%= fieldName %>: <%- templates.widgets.inputText(fieldName, fieldValue) %><br /><%\n				break;\n				case "Boolean": %>\n					<%= fieldName %>: <%- templates.widgets.inputText(fieldName, fieldValue) %><br /><%\n				break;\n				case "ForeignKey": %>\n					<%= fieldName %>: <%- templates.widgets.inputText(fieldName, fieldValue) %><br /><%\n				break;\n				case "Serial": \n					if(resourceInstance !== false) { %>\n						<%= fieldName %>: <%= fieldValue %><br /><%\n					}\n				break;\n				default:\n					console.error("Hit default, wtf?");\n			}\n		} %>\n		<div align="right">\n			<input type="submit" value="Submit This" onClick="processForm(this.parentNode.parentNode);return false;">\n		</div>\n	</form>\n</div>'),
       deleteResource: ejs.compile('<div class="panel" style="background-color:<%= backgroundColour %>;">\n	<div align="left">\n		marked for deletion\n		<div align="right">\n			<form class="action">\n				<%- templates.hiddenFormInput(locals) %>\n				<input type="submit" value="Confirm" onClick="processForm(this.parentNode.parentNode);return false;">\n			</form>\n		</div>\n	</div>\n</div>'),
       factTypeCollection: ejs.compile('<%\nfor(var i = 0; i < factTypeCollections.length; i++) {\n	var factTypeCollection = factTypeCollections[i]; %>\n	<tr id="tr--data--<%= factTypeCollection.resourceName %>">\n		<td><%\n			if(factTypeCollection.isExpanded) { %>\n				<div style="display:inline;background-color:<%= altBackgroundColour %>">\n					<%= factTypeCollection.resourceName.replace(/[_-]/g, \' \') %>\n					<a href="<%= factTypeCollection.closeURI %>" onClick="location.hash=\'<%= factTypeCollection.closeHash %>\';return false">\n						<span title="Close" class="ui-icon ui-icon-circle-close"></span>\n					</a>\n				</div>\n				<%- factTypeCollection.html %><%\n			}\n			else { %>\n				<%= factTypeCollection.resourceName %>\n				<a href="<%= factTypeCollection.expandURI %>" onClick="location.hash=\'<%= factTypeCollection.expandHash %>\';return false">\n					<span title="See all" class="ui-icon ui-icon-search"></span>\n				</a><%\n			} %>\n		</td>\n	</tr><%\n} %>'),
       resourceCollection: ejs.compile('<div class="panel" style="background-color:<%= backgroundColour %>;">\n	<table id="tbl--<%= pid %>">\n		<tbody><%\n			for(var i = 0; i < resourceCollections.length; i++) {\n				var resourceCollection = resourceCollections[i]; %>\n				<tr id="tr--<%= pid %>--<%= resourceCollection.id %>">\n					<td><%\n						if(resourceCollection.isExpanded) { %>\n							<div style="display:inline;background-color:<%= altBackgroundColour %>">\n								<%- resourceCollection.resourceName %>\n								<a href="<%= resourceCollection.closeURI %>" onClick="location.hash=\'<%= resourceCollection.closeHash %>\';return false"><%\n									switch(resourceCollection.action) {\n										case "view":\n										case "edit":\n											%><span title="Close" class="ui-icon ui-icon-circle-close"></span><%\n										break;\n										case "del":\n											%>[unmark]<%\n									} %>\n								</a>\n							</div>\n							<%- resourceCollection.html %><%\n						}\n						else { %>\n							<%- resourceCollection.resourceName %>\n							<a href="<%= resourceCollection.viewURI %>" onClick="location.hash=\'<%= resourceCollection.viewHash %>\';return false"><span title="View" class="ui-icon ui-icon-search"></span></a>\n							<a href="<%= resourceCollection.editURI %>" onClick="location.hash=\'<%= resourceCollection.editHash %>\';return false"><span title="Edit" class="ui-icon ui-icon-pencil"></span></a>\n							<a href="<%= resourceCollection.deleteURI %>" onClick="location.hash=\'<%= resourceCollection.deleteHash %>\';return false"><span title="Delete" class="ui-icon ui-icon-trash"></span></a><%\n						} %>\n					</td>\n				</tr><%\n			} %>\n			<tr>\n				<td>\n					<hr style="border:0px; width:90%; background-color: #999; height:1px;">\n				</td>\n			</tr>\n			<tr>\n				<td>\n					<a href="<%= addURI %>" onClick="location.hash=\'<%= addHash %>\';return false;">[(+)add new]</a>\n				</td>\n			</tr><%\n			for(var i = 0; i < addsHTML.length; i++) { %>\n				<tr>\n					<td>\n						<%- addsHTML[i] %>\n					</td>\n				</tr><%\n			} %>\n			<tr>\n				<td>\n					<hr style="border:0px; width:90%; background-color: #999; height:1px;">\n				</td>\n			</tr>\n			<%- templates.factTypeCollection(locals) %>\n		</tbody>\n	</table>\n</div>'),
@@ -493,21 +492,23 @@
                 resourceInstance: false,
                 resourceModel: result.model
               });
-              html = templates.termForm(templateVars);
+              html = templates.addEditResource(templateVars);
               return rowCallback(html);
             });
           } else if (resourceType === "FactType") {
-            return getTermResults(resourceFactType, function(termResults) {
-              var html;
-              templateVars = $.extend(templateVars, {
-                factType: resourceFactType,
-                termResults: termResults,
-                action: 'addfctp',
-                currentFactType: false,
-                id: false
+            return serverRequest("GET", ftree.getServerURI(), {}, null, function(statusCode, result, headers) {
+              return getTermResults(resourceFactType, function(termResults) {
+                var html;
+                templateVars = $.extend(templateVars, {
+                  action: 'addfctp',
+                  id: false,
+                  resourceInstance: false,
+                  resourceModel: result.model,
+                  foreignKeys: termResults
+                });
+                html = templates.addEditResource(templateVars);
+                return rowCallback(html);
               });
-              html = templates.factTypeForm(templateVars);
-              return rowCallback(html);
             });
           }
           break;
@@ -521,29 +522,26 @@
                 resourceInstance: result.instances[0],
                 resourceModel: result.model
               });
-              html = templates.termForm(templateVars);
+              html = templates.addEditResource(templateVars);
               return rowCallback(html);
             });
           } else if (resourceType === "FactType") {
             return serverRequest("GET", ftree.getServerURI(), {}, null, function(statusCode, result, headers) {
-              return getResolvedFactType(resourceFactType, result.instances[0], function(factTypeInstance) {
-                return getTermResults(resourceFactType, function(termResults) {
-                  var html;
-                  templateVars = $.extend(templateVars, {
-                    factType: resourceFactType,
-                    termResults: termResults,
-                    action: 'editfctp',
-                    type: about,
-                    currentFactType: factTypeInstance,
-                    id: factTypeInstance.id
-                  });
-                  html = templates.factTypeForm(templateVars);
-                  return rowCallback(html);
+              return getTermResults(resourceFactType, function(termResults) {
+                var html;
+                templateVars = $.extend(templateVars, {
+                  action: 'editfctp',
+                  id: result.instances[0].id,
+                  resourceInstance: result.instances[0],
+                  resourceModel: result.model,
+                  foreignKeys: termResults
                 });
-              }, function(errors) {
-                console.error(errors);
-                return rowCallback('Errors: ' + errors);
+                html = templates.addEditResource(templateVars);
+                return rowCallback(html);
               });
+            }, function(errors) {
+              console.error(errors);
+              return rowCallback('Errors: ' + errors);
             });
           }
           break;
