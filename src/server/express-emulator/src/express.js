@@ -63,7 +63,7 @@
             url: uri,
             params: {}
           };
-          console.log(method, uri);
+          console.log(method, uri, body);
           if (uri.slice(-1) === '/') uri = uri.slice(0, (uri.length - 1));
           uri = uri.toLowerCase();
           res = {
