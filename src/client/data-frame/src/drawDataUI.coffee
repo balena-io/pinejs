@@ -602,29 +602,23 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 
 		switch ftree.getAction()
 			when "view"
-				if resourceType == "Term"
-					serverRequest("GET", ftree.getServerURI(), {}, null, (statusCode, result, headers) ->
+				serverRequest("GET", ftree.getServerURI(), {}, null, (statusCode, result, headers) ->
+					displayView = (resourceInstance) ->
 						templateVars = $.extend(templateVars, {
-							resourceInstance: result.instances[0]
+							resourceInstance: resourceInstance
 						})
 						html = templates.resourceView(templateVars)
 						rowCallback(html)
-					)
-				else if resourceType == "FactType"
-					serverRequest("GET", ftree.getServerURI(), {}, null, (statusCode, result, headers) ->
+					if resourceType == "Term"
+						displayView(result.instances[0])
+					else if resourceType == "FactType"
 						getResolvedFactType(resourceFactType, result.instances[0],
-							(factTypeInstance) -> 
-								templateVars = $.extend(templateVars, {
-									resourceInstance: factTypeInstance
-								})
-								html = templates.resourceView(templateVars)
-								rowCallback(html)
+							displayView
 							(errors) ->
 								console.error(errors)
 								rowCallback('Errors: ' + errors)
 						)
-						
-					)
+				)
 			when "add"
 				if resourceType == "Term"
 					# TODO: The termFields info should come from a client model

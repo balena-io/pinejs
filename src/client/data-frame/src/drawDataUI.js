@@ -464,31 +464,25 @@
       });
       switch (ftree.getAction()) {
         case "view":
-          if (resourceType === "Term") {
-            return serverRequest("GET", ftree.getServerURI(), {}, null, function(statusCode, result, headers) {
+          return serverRequest("GET", ftree.getServerURI(), {}, null, function(statusCode, result, headers) {
+            var displayView;
+            displayView = function(resourceInstance) {
               var html;
               templateVars = $.extend(templateVars, {
-                resourceInstance: result.instances[0]
+                resourceInstance: resourceInstance
               });
               html = templates.resourceView(templateVars);
               return rowCallback(html);
-            });
-          } else if (resourceType === "FactType") {
-            return serverRequest("GET", ftree.getServerURI(), {}, null, function(statusCode, result, headers) {
-              return getResolvedFactType(resourceFactType, result.instances[0], function(factTypeInstance) {
-                var html;
-                templateVars = $.extend(templateVars, {
-                  resourceInstance: factTypeInstance
-                });
-                html = templates.resourceView(templateVars);
-                return rowCallback(html);
-              }, function(errors) {
+            };
+            if (resourceType === "Term") {
+              return displayView(result.instances[0]);
+            } else if (resourceType === "FactType") {
+              return getResolvedFactType(resourceFactType, result.instances[0], displayView, function(errors) {
                 console.error(errors);
                 return rowCallback('Errors: ' + errors);
               });
-            });
-          }
-          break;
+            }
+          });
         case "add":
           if (resourceType === "Term") {
             termFields = [['Text', 'value', 'Name', []]];
