@@ -194,7 +194,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 				} %>
 				''')
 		viewResource: ejs.compile('''
-			<div class="panel" style="background-color:<%= altBackgroundColour %>;"><%
+			<div class="panel" style="background-color:<%= backgroundColour %>;"><%
 				for(var fieldName in resourceInstance) {
 					var field = resourceInstance[fieldName];
 					if(typeof field === "object") { %>
