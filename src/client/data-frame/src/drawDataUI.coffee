@@ -19,9 +19,11 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 							fieldValue = resourceInstance === false ? "" : resourceInstance[fieldName];
 						switch(resourceField[0]) {
 							case "Short Text":
-							case "Long Text":
 							case "Value": %>
 								<%= fieldName %>: <%- templates.widgets.inputText(fieldName, fieldValue) %><br /><%
+							break;
+							case "Long Text": %>
+								<%= fieldName %>: <%- templates.widgets.inputTextArea(fieldName, fieldValue) %><br /><%
 							break;
 							case "Integer": %>
 								<%= fieldName %>: <%- templates.widgets.inputInteger(fieldName, fieldValue) %><br /><%
