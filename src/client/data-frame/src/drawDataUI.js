@@ -5,7 +5,7 @@
     var baseTemplateVars, createNavigableTree, drawData, evenTemplateVars, getResolvedFactType, getTermResults, oddTemplateVars, processForm, renderInstance, renderResource, serverAPI, submitInstance, templates;
     templates = {
       widgets: {},
-      hiddenFormInput: ejs.compile('<input type="hidden" id="__actype" value="<%= action %>">\n<input type="hidden" id="__serverURI" value="<%= serverURI %>">\n<input type="hidden" id="__backURI" value="<%= backURI %>">\n<input type="hidden" id="__type" value="<%= type %>"><%\nif(id !== false) { %>\n	<input type="hidden" id="__id" value="<%= id %>"><%\n} %>'),
+      hiddenFormInput: ejs.compile('<input type="hidden" id="__actype" value="<%= action %>">\n<input type="hidden" id="__serverURI" value="<%= serverURI %>">\n<input type="hidden" id="__backURI" value="<%= backURI %>"><%\nif(id !== false) { %>\n	<input type="hidden" id="__id" value="<%= id %>"><%\n} %>'),
       addEditResource: ejs.compile('<div class="panel" style="background-color:<%= backgroundColour %>;">\n	<form class="action">\n		<%- templates.hiddenFormInput(locals) %><%\n		console.error(resourceInstance)\n		for(var i = 0; i < resourceModel.fields.length; i++) {\n			var resourceField = resourceModel.fields[i],\n				fieldName = resourceField[1],\n				fieldValue = resourceInstance === false ? "" : resourceInstance[fieldName];\n			console.error(resourceField)\n			switch(resourceField[0]) {\n				case "Short Text":\n				case "Long Text":\n				case "Value": %>\n					<%= fieldName %>: <%- templates.widgets.inputText(fieldName, fieldValue) %><br /><%\n				break;\n				case "Integer": %>\n					<%= fieldName %>: <%- templates.widgets.inputText(fieldName, fieldValue) %><br /><%\n				break;\n				case "Boolean": %>\n					<%= fieldName %>: <%- templates.widgets.inputText(fieldName, fieldValue) %><br /><%\n				break;\n				case "ForeignKey": %>\n					<%= fieldName %>: <%- templates.widgets.inputText(fieldName, fieldValue) %><br /><%\n				break;\n				case "Serial": \n					if(resourceInstance !== false) { %>\n						<%= fieldName %>: <%= fieldValue %><br /><%\n					}\n				break;\n				default:\n					console.error("Hit default, wtf?");\n			}\n		} %>\n		<div align="right">\n			<input type="submit" value="Submit This" onClick="processForm(this.parentNode.parentNode);return false;">\n		</div>\n	</form>\n</div>'),
       deleteResource: ejs.compile('<div class="panel" style="background-color:<%= backgroundColour %>;">\n	<div align="left">\n		marked for deletion\n		<div align="right">\n			<form class="action">\n				<%- templates.hiddenFormInput(locals) %>\n				<input type="submit" value="Confirm" onClick="processForm(this.parentNode.parentNode);return false;">\n			</form>\n		</div>\n	</div>\n</div>'),
       factTypeCollection: ejs.compile('<%\nfor(var i = 0; i < factTypeCollections.length; i++) {\n	var factTypeCollection = factTypeCollections[i]; %>\n	<tr id="tr--data--<%= factTypeCollection.resourceName %>">\n		<td><%\n			if(factTypeCollection.isExpanded) { %>\n				<div style="display:inline;background-color:<%= altBackgroundColour %>">\n					<%= factTypeCollection.resourceName.replace(/[_-]/g, \' \') %>\n					<a href="<%= factTypeCollection.closeURI %>" onClick="location.hash=\'<%= factTypeCollection.closeHash %>\';return false">\n						<span title="Close" class="ui-icon ui-icon-circle-close"></span>\n					</a>\n				</div>\n				<%- factTypeCollection.html %><%\n			}\n			else { %>\n				<%= factTypeCollection.resourceName %>\n				<a href="<%= factTypeCollection.expandURI %>" onClick="location.hash=\'<%= factTypeCollection.expandHash %>\';return false">\n					<span title="See all" class="ui-icon ui-icon-search"></span>\n				</a><%\n			} %>\n		</td>\n	</tr><%\n} %>'),
@@ -458,7 +458,6 @@
       templateVars = $.extend({}, baseTemplateVars, (even ? evenTemplateVars : oddTemplateVars), {
         serverURI: ftree.getServerURI(),
         backURI: '#!/' + ftree.getNewURI('del'),
-        type: about,
         id: currentLocation[1][1]
       });
       switch (ftree.getAction()) {
@@ -554,11 +553,10 @@
       }
     };
     processForm = function(form) {
-      var action, backURI, id, serverURI, type;
+      var action, backURI, id, serverURI;
       action = $("#__actype", form).val();
       serverURI = $("#__serverURI", form).val();
       id = $("#__id", form).val();
-      type = $("#__type", form).val();
       backURI = $("#__backURI", form).val();
       switch (action) {
         case "editterm":

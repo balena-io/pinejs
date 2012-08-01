@@ -4,8 +4,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 		hiddenFormInput: ejs.compile('''
 			<input type="hidden" id="__actype" value="<%= action %>">
 			<input type="hidden" id="__serverURI" value="<%= serverURI %>">
-			<input type="hidden" id="__backURI" value="<%= backURI %>">
-			<input type="hidden" id="__type" value="<%= type %>"><%
+			<input type="hidden" id="__backURI" value="<%= backURI %>"><%
 			if(id !== false) { %>
 				<input type="hidden" id="__id" value="<%= id %>"><%
 			} %>
@@ -571,7 +570,6 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 		templateVars = $.extend({}, baseTemplateVars, (if even then evenTemplateVars else oddTemplateVars), {
 			serverURI: ftree.getServerURI()
 			backURI: '#!/' + ftree.getNewURI('del')
-			type: about
 			id: currentLocation[1][1]
 		})
 
@@ -661,7 +659,6 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 		action = $("#__actype", form).val()
 		serverURI = $("#__serverURI", form).val()
 		id = $("#__id", form).val()
-		type = $("#__type", form).val()
 		backURI = $("#__backURI", form).val()
 		# TODO: id and type (and half of actype) are not yet used.
 		# Should they be used instead of serverURI?
