@@ -173,13 +173,6 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 				</table>
 			</div>
 			''')
-		termView: ejs.compile('''
-			<div class="panel" style="background-color:<%= backgroundColour %>;"><%
-				for(var field in termInstance) { %>
-					<%= field %>: <%= termInstance[field] %><br/><%
-				} %>
-			</div>
-			''')
 		factTypeName: ejs.compile('''
 				<%
 				for(var i = 0; i < factType.length; i++) {
@@ -192,10 +185,17 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 					}
 				} %>
 				''')
-		factTypeView: ejs.compile('''
-			<div class="panel" style="background-color:<%= altBackgroundColour %>;">
-				id: <%= factTypeInstance.id %><br/>
-				<%- templates.factTypeName(locals) %>
+		resourceView: ejs.compile('''
+			<div class="panel" style="background-color:<%= altBackgroundColour %>;"><%
+				for(var fieldName in resourceInstance) {
+					var field = resourceInstance[fieldName];
+					if(typeof field === "object") { %>
+						<%= fieldName %>: <%= field.value %><br/><%
+					}
+					else { %>
+						<%= fieldName %>: <%= field %><br/><%
+					}
+				} %>
 			</div>
 			''')
 		topLevelTemplate: ejs.compile('''
@@ -517,7 +517,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 							resourceCollections[i].closeHash = '#!/' + expandedTree.getNewURI("del")
 							resourceCollections[i].closeURI = rootURI + resourceCollections[i].deleteHash
 							resourceCollectionsCallback.addWork(1)
-							renderResource(i, resourceCollectionsCallback.successCallback, rootURI, not even, expandedTree, cmod)
+							renderResource(i, resourceCollectionsCallback.successCallback, rootURI, even, expandedTree, cmod)
 						else
 							resourceCollections[i].viewHash = '#!/' + ftree.getChangeURI('view', about, instance.id)
 							resourceCollections[i].viewURI = rootURI + resourceCollections[i].viewHash
@@ -605,9 +605,9 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 				if resourceType == "Term"
 					serverRequest("GET", ftree.getServerURI(), {}, null, (statusCode, result, headers) ->
 						templateVars = $.extend(templateVars, {
-							termInstance: result.instances[0]
+							resourceInstance: result.instances[0]
 						})
-						html = templates.termView(templateVars)
+						html = templates.resourceView(templateVars)
 						rowCallback(html)
 					)
 				else if resourceType == "FactType"
@@ -615,10 +615,9 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 						getResolvedFactType(resourceFactType, result.instances[0],
 							(factTypeInstance) -> 
 								templateVars = $.extend(templateVars, {
-									factType: resourceFactType
-									factTypeInstance: factTypeInstance
+									resourceInstance: factTypeInstance
 								})
-								html = templates.factTypeView(templateVars)
+								html = templates.resourceView(templateVars)
 								rowCallback(html)
 							(errors) ->
 								console.error(errors)
