@@ -73,10 +73,13 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 			-> {resourceName: resourceName, tableName: tableName},
 
 		Resource =
-			{['Query']}:query
 			TermOrFactType:resourceInfo
-			AddQueryTable(query, resourceInfo.tableName)
-			Modifiers(query)
+			(	&'*'
+				{['Query']}:query
+				AddQueryTable(query, resourceInfo.tableName)
+				Modifiers(query)
+				'*'?
+			)?
 			-> {resourceName: resourceInfo.resourceName, query: query, values: this.currentBody},
 
 		Comparator =

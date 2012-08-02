@@ -324,11 +324,11 @@
       return bindValues;
     };
     runGet = function(req, res) {
-      var bindings, query, tree, values, _ref;
+      var bindings, clientModel, data, query, tree, values, _ref;
       tree = req.tree;
       if (tree[2] === void 0) {
         return res.send(404);
-      } else {
+      } else if (tree[2].query != null) {
         _ref = AbstractSQLRules2SQL.match(tree[2].query, 'ProcessQuery'), query = _ref.query, bindings = _ref.bindings;
         values = getAndCheckBindValues(bindings, tree[2].values);
         console.log(query, values);
@@ -360,6 +360,12 @@
             });
           });
         }
+      } else {
+        clientModel = serverModelCache.getCLF();
+        data = {
+          model: clientModel[tree[2].resourceName]
+        };
+        return res.json(data);
       }
     };
     runPost = function(req, res) {

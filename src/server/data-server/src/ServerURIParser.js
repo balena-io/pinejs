@@ -138,11 +138,19 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
         "Resource": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                query, resourceInfo;
-            query = ["Query"];
+                resourceInfo, query;
             resourceInfo = this._apply("TermOrFactType");
-            this._applyWithArgs("AddQueryTable", query, resourceInfo["tableName"]);
-            this._applyWithArgs("Modifiers", query);
+            this._opt((function() {
+                this._lookahead((function() {
+                    return this._applyWithArgs("exactly", "*")
+                }));
+                query = ["Query"];
+                this._applyWithArgs("AddQueryTable", query, resourceInfo["tableName"]);
+                this._applyWithArgs("Modifiers", query);
+                return this._opt((function() {
+                    return this._applyWithArgs("exactly", "*")
+                }))
+            }));
             return ({
                 "resourceName": resourceInfo["resourceName"],
                 "query": query,

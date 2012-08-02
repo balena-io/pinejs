@@ -279,6 +279,8 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 						pid += "--" + pidTree[1][1]
 				return pid
 			# Needed
+			getModelURI: () ->
+				return serverAPI(this.getAbout(), false)
 			getServerURI: () ->
 				op =
 					eq: "="
@@ -368,15 +370,14 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 		asyncCallback.endAdding()
 
 	serverAPI = (about, filters = []) ->
-		filterString = ''
-
 		# render filters
-		for filter in filters
-			filterString += filter[0] + filter[1] + filter[2] + ";"
+		if filters == false
+			filterString = ''
+		else if filters.length == 0
+			filterString = '*'
+		else
+			filterString = '*filt:' + (filter[0] + filter[1] + filter[2] for filter in filters).join(';')
 		
-		if filterString != ''
-			filterString = "*filt:" + filterString
-					
 		"/data/" + about.replace(new RegExp(' ', 'g'), '_') + filterString
 
 	drawData = (tree) ->
@@ -611,7 +612,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 						rowCallback('Errors: ' + errors)
 				)
 			when 'add'
-				serverRequest("GET", ftree.getServerURI(), {}, null,
+				serverRequest("GET", ftree.getModelURI(), {}, null,
 					(statusCode, result, headers) ->
 						getForeignKeyResults(resourceFactType, (termResults) ->
 							templateVars = $.extend(templateVars, {

@@ -325,7 +325,7 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 		tree = req.tree
 		if tree[2] == undefined
 			res.send(404)
-		else
+		else if tree[2].query?
 			{query, bindings} = AbstractSQLRules2SQL.match(tree[2].query, 'ProcessQuery')
 			values = getAndCheckBindValues(bindings, tree[2].values)
 			console.log(query, values)
@@ -349,6 +349,12 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 							res.send(404)
 					)
 				)
+		else
+			clientModel = serverModelCache.getCLF()
+			data =
+				model:
+					clientModel[tree[2].resourceName]
+			res.json(data)
 	
 	runPost = (req, res) ->
 		tree = req.tree

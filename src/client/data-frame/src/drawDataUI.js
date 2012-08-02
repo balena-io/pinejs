@@ -114,6 +114,9 @@
           }
           return pid;
         },
+        getModelURI: function() {
+          return serverAPI(this.getAbout(), false);
+        },
         getServerURI: function() {
           var filters, leaf, op, _j, _len2, _ref;
           op = {
@@ -218,14 +221,23 @@
       return asyncCallback.endAdding();
     };
     serverAPI = function(about, filters) {
-      var filter, filterString, _i, _len;
+      var filter, filterString;
       if (filters == null) filters = [];
-      filterString = '';
-      for (_i = 0, _len = filters.length; _i < _len; _i++) {
-        filter = filters[_i];
-        filterString += filter[0] + filter[1] + filter[2] + ";";
+      if (filters === false) {
+        filterString = '';
+      } else if (filters.length === 0) {
+        filterString = '*';
+      } else {
+        filterString = '*filt:' + ((function() {
+          var _i, _len, _results;
+          _results = [];
+          for (_i = 0, _len = filters.length; _i < _len; _i++) {
+            filter = filters[_i];
+            _results.push(filter[0] + filter[1] + filter[2]);
+          }
+          return _results;
+        })()).join(';');
       }
-      if (filterString !== '') filterString = "*filt:" + filterString;
       return "/data/" + about.replace(new RegExp(' ', 'g'), '_') + filterString;
     };
     drawData = function(tree) {
@@ -492,7 +504,7 @@
             return rowCallback('Errors: ' + errors);
           });
         case 'add':
-          return serverRequest("GET", ftree.getServerURI(), {}, null, function(statusCode, result, headers) {
+          return serverRequest("GET", ftree.getModelURI(), {}, null, function(statusCode, result, headers) {
             return getForeignKeyResults(resourceFactType, function(termResults) {
               var html;
               templateVars = $.extend(templateVars, {
