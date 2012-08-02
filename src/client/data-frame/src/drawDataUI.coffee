@@ -53,10 +53,12 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 								action: action
 							})
 						%><%
+					}
+					if(action !== "view") { %>
+						<div align="right">
+							<input type="submit" value="Submit This" onClick="processForm(this.parentNode.parentNode);return false;">
+						</div><%
 					} %>
-					<div align="right">
-						<input type="submit" value="Submit This" onClick="processForm(this.parentNode.parentNode);return false;">
-					</div>
 				</form>
 			</div>
 			''')
