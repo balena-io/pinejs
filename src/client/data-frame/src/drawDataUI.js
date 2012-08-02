@@ -482,36 +482,20 @@
             });
           });
         case "add":
-          if (resourceType === "Term") {
-            return serverRequest("GET", ftree.getServerURI(), {}, null, function(statusCode, result, headers) {
+          return serverRequest("GET", ftree.getServerURI(), {}, null, function(statusCode, result, headers) {
+            return getForeignKeyResults(resourceFactType, function(termResults) {
               var html;
               templateVars = $.extend(templateVars, {
-                action: 'addterm',
+                action: 'add',
                 id: false,
                 resourceInstance: false,
                 resourceModel: result.model,
-                foreignKeys: null
+                foreignKeys: termResults
               });
               html = templates.viewAddEditResource(templateVars);
               return rowCallback(html);
             });
-          } else if (resourceType === "FactType") {
-            return serverRequest("GET", ftree.getServerURI(), {}, null, function(statusCode, result, headers) {
-              return getForeignKeyResults(resourceFactType, function(termResults) {
-                var html;
-                templateVars = $.extend(templateVars, {
-                  action: 'addfctp',
-                  id: false,
-                  resourceInstance: false,
-                  resourceModel: result.model,
-                  foreignKeys: termResults
-                });
-                html = templates.viewAddEditResource(templateVars);
-                return rowCallback(html);
-              });
-            });
-          }
-          break;
+          });
         case "edit":
           if (resourceType === "Term") {
             return serverRequest("GET", ftree.getServerURI(), {}, null, function(statusCode, result, headers) {
@@ -564,10 +548,9 @@
         case "editterm":
         case "editfctp":
           return submitInstance('PUT', form, serverURI, backURI);
-        case "addterm":
-        case "addfctp":
+        case 'add':
           return submitInstance('POST', form, serverURI, backURI);
-        case "del":
+        case 'del':
           return submitInstance('DELETE', form, serverURI, backURI);
       }
     };

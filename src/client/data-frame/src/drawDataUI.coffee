@@ -597,32 +597,19 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 					)
 				)
 			when "add"
-				if resourceType == "Term"
-					serverRequest("GET", ftree.getServerURI(), {}, null, (statusCode, result, headers) ->
+				serverRequest("GET", ftree.getServerURI(), {}, null, (statusCode, result, headers) ->
+					getForeignKeyResults(resourceFactType, (termResults) ->
 						templateVars = $.extend(templateVars, {
-							action: 'addterm'
+							action: 'add'
 							id: false
 							resourceInstance: false
 							resourceModel: result.model
-							foreignKeys: null
+							foreignKeys: termResults
 						})
 						html = templates.viewAddEditResource(templateVars)
 						rowCallback(html)
 					)
-				else if resourceType == "FactType"
-					serverRequest("GET", ftree.getServerURI(), {}, null, (statusCode, result, headers) ->
-						getForeignKeyResults(resourceFactType, (termResults) ->
-							templateVars = $.extend(templateVars, {
-								action: 'addfctp'
-								id: false
-								resourceInstance: false
-								resourceModel: result.model
-								foreignKeys: termResults
-							})
-							html = templates.viewAddEditResource(templateVars)
-							rowCallback(html)
-						)
-					)
+				)
 			when "edit"
 				if resourceType == "Term"
 					serverRequest("GET", ftree.getServerURI(), {}, null, (statusCode, result, headers) ->
@@ -671,9 +658,9 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 		switch action
 			when "editterm", "editfctp"
 				submitInstance('PUT', form, serverURI, backURI)
-			when "addterm", "addfctp"
+			when 'add'
 				submitInstance('POST', form, serverURI, backURI)
-			when "del"
+			when 'del'
 				submitInstance('DELETE', form, serverURI, backURI)
 
 	submitInstance = (method, form, serverURI, backURI) ->
