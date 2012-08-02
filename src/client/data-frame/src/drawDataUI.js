@@ -271,6 +271,9 @@
           }
         }
         return _results;
+      }, function(statusCode, errors) {
+        console.error(errors);
+        return $("#dataTab").html('Errors: ' + errors);
       });
     };
     renderResource = function(idx, rowCallback, rootURI, even, ftree, cmod) {
@@ -449,6 +452,9 @@
           }
           factTypeCollectionsCallback.endAdding();
           return resourceCollectionsCallback.endAdding();
+        }, function(statusCode, errors) {
+          console.error(errors);
+          return rowCallback(idx, 'Errors: ' + errors);
         });
       } else if (currentLocation[0] === 'instance') {
         return renderInstance(ftree, even, resourceType, resourceFactType, function(html) {
@@ -480,6 +486,9 @@
               html = templates.viewAddEditResource(templateVars);
               return rowCallback(html);
             });
+          }, function(statusCode, errors) {
+            console.error(errors);
+            return rowCallback('Errors: ' + errors);
           });
         case "add":
           return serverRequest("GET", ftree.getServerURI(), {}, null, function(statusCode, result, headers) {
@@ -495,6 +504,9 @@
               html = templates.viewAddEditResource(templateVars);
               return rowCallback(html);
             });
+          }, function(statusCode, errors) {
+            console.error(errors);
+            return rowCallback('Errors: ' + errors);
           });
         case "edit":
           return serverRequest("GET", ftree.getServerURI(), {}, null, function(statusCode, result, headers) {
@@ -510,7 +522,7 @@
               html = templates.viewAddEditResource(templateVars);
               return rowCallback(html);
             });
-          }, function(errors) {
+          }, function(statusCode, errors) {
             console.error(errors);
             return rowCallback('Errors: ' + errors);
           });
