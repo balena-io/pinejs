@@ -588,16 +588,16 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 		templateVars = $.extend({}, baseTemplateVars, (if even then evenTemplateVars else oddTemplateVars), {
 			serverURI: ftree.getServerURI()
 			backURI: '#!/' + ftree.getNewURI('del')
-			id: currentLocation[1][1]
 		})
 
-		switch ftree.getAction()
-			when "view"
+		action = ftree.getAction()
+		switch action
+			when 'view', 'edit'
 				serverRequest("GET", ftree.getServerURI(), {}, null,
 					(statusCode, result, headers) ->
 						getForeignKeyResults(resourceFactType, (termResults) ->
 							templateVars = $.extend(templateVars, {
-								action: 'view'
+								action: action
 								id: result.instances[0].id
 								resourceInstance: result.instances[0]
 								resourceModel: result.model
@@ -610,7 +610,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 						console.error(errors)
 						rowCallback('Errors: ' + errors)
 				)
-			when "add"
+			when 'add'
 				serverRequest("GET", ftree.getServerURI(), {}, null,
 					(statusCode, result, headers) ->
 						getForeignKeyResults(resourceFactType, (termResults) ->
@@ -628,27 +628,10 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 						console.error(errors)
 						rowCallback('Errors: ' + errors)
 				)
-			when "edit"
-				serverRequest("GET", ftree.getServerURI(), {}, null,
-					(statusCode, result, headers) ->
-						getForeignKeyResults(resourceFactType, (termResults) ->
-							templateVars = $.extend(templateVars, {
-								action: 'edit'
-								id: result.instances[0].id
-								resourceInstance: result.instances[0]
-								resourceModel: result.model
-								foreignKeys: termResults
-							})
-							html = templates.viewAddEditResource(templateVars)
-							rowCallback(html)
-						)
-					(statusCode, errors) ->
-						console.error(errors)
-						rowCallback('Errors: ' + errors)
-				)
 			when "del"
 				templateVars = $.extend(templateVars, {
 					action: 'del'
+					id: currentLocation[1][1]
 				})
 				html = templates.deleteResource(templateVars)
 				rowCallback(html)

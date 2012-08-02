@@ -463,21 +463,22 @@
       }
     };
     renderInstance = function(ftree, even, resourceType, resourceFactType, rowCallback) {
-      var about, currentLocation, html, templateVars;
+      var about, action, currentLocation, html, templateVars;
       about = ftree.getAbout();
       currentLocation = ftree.getCurrentLocation();
       templateVars = $.extend({}, baseTemplateVars, (even ? evenTemplateVars : oddTemplateVars), {
         serverURI: ftree.getServerURI(),
-        backURI: '#!/' + ftree.getNewURI('del'),
-        id: currentLocation[1][1]
+        backURI: '#!/' + ftree.getNewURI('del')
       });
-      switch (ftree.getAction()) {
-        case "view":
+      action = ftree.getAction();
+      switch (action) {
+        case 'view':
+        case 'edit':
           return serverRequest("GET", ftree.getServerURI(), {}, null, function(statusCode, result, headers) {
             return getForeignKeyResults(resourceFactType, function(termResults) {
               var html;
               templateVars = $.extend(templateVars, {
-                action: 'view',
+                action: action,
                 id: result.instances[0].id,
                 resourceInstance: result.instances[0],
                 resourceModel: result.model,
@@ -490,7 +491,7 @@
             console.error(errors);
             return rowCallback('Errors: ' + errors);
           });
-        case "add":
+        case 'add':
           return serverRequest("GET", ftree.getServerURI(), {}, null, function(statusCode, result, headers) {
             return getForeignKeyResults(resourceFactType, function(termResults) {
               var html;
@@ -508,27 +509,10 @@
             console.error(errors);
             return rowCallback('Errors: ' + errors);
           });
-        case "edit":
-          return serverRequest("GET", ftree.getServerURI(), {}, null, function(statusCode, result, headers) {
-            return getForeignKeyResults(resourceFactType, function(termResults) {
-              var html;
-              templateVars = $.extend(templateVars, {
-                action: 'edit',
-                id: result.instances[0].id,
-                resourceInstance: result.instances[0],
-                resourceModel: result.model,
-                foreignKeys: termResults
-              });
-              html = templates.viewAddEditResource(templateVars);
-              return rowCallback(html);
-            });
-          }, function(statusCode, errors) {
-            console.error(errors);
-            return rowCallback('Errors: ' + errors);
-          });
         case "del":
           templateVars = $.extend(templateVars, {
-            action: 'del'
+            action: 'del',
+            id: currentLocation[1][1]
           });
           html = templates.deleteResource(templateVars);
           return rowCallback(html);
