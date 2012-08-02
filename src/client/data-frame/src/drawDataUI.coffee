@@ -235,7 +235,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 
 		getIndexForResource = (resourceName, resourceID) ->
 			for leaf, j in currentLocation when leaf[0] in ['collection', 'instance'] and leaf[1]?[0] == resourceName and (
-					!resourceID? or (leaf[1][1] != undefined and leaf[1][1] in resourceID))
+					!resourceID? or (leaf[1][1] != undefined and leaf[1][1] == resourceID))
 				return j
 			return false
 		
@@ -489,12 +489,12 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 						do(instance, i) ->
 							instanceID = instance[clientModel.idField]
 							resourceCollections[i] =
-								isExpanded: ftree.isExpanded(about, [instanceID, instance.value])
-								action: ftree.getAction(about, [instanceID, instance.value])
+								isExpanded: ftree.isExpanded(about, instanceID)
+								action: ftree.getAction(about, instanceID)
 								id: instanceID
 							
 							if resourceType == "Term"
-								resourceCollections[i].resourceName = instance.value
+								resourceCollections[i].resourceName = instance[clientModel.valueField]
 							else if resourceType == "FactType"
 								resourceCollectionsCallback.addWork(1)
 								getResolvedFactType(resourceFactType, instance, clientModel,
@@ -511,7 +511,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 								)
 							
 							if resourceCollections[i].isExpanded
-								expandedTree = ftree.clone().descend(about, [instanceID, instance.value])
+								expandedTree = ftree.clone().descend(about, instanceID)
 								resourceCollections[i].closeHash = '#!/' + expandedTree.getNewURI("del")
 								resourceCollections[i].closeURI = rootURI + resourceCollections[i].deleteHash
 								resourceCollectionsCallback.addWork(1)
@@ -604,7 +604,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 			when 'view', 'edit'
 				serverRequest("GET", ftree.getServerURI(), {}, null,
 					(statusCode, result, headers) ->
-						clientModel= result.model
+						clientModel = result.model
 						instanceID = result.instances[0][clientModel.idField]
 						getForeignKeyResults(result.model, (termResults) ->
 							templateVars = $.extend(templateVars, {

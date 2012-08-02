@@ -1,5 +1,4 @@
 (function() {
-  var __indexOf = Array.prototype.indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
   define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs'], function(ClientURIUnparser, createAsyncQueueCallback, ejs) {
     var baseTemplateVars, createNavigableTree, drawData, evenTemplateVars, getForeignKeyResults, getResolvedFactType, oddTemplateVars, processForm, renderInstance, renderResource, serverAPI, submitInstance, templates;
@@ -40,10 +39,10 @@
       previousLocations = [];
       currentLocation = tree;
       getIndexForResource = function(resourceName, resourceID) {
-        var j, leaf, _len, _ref, _ref2, _ref3;
+        var j, leaf, _len, _ref, _ref2;
         for (j = 0, _len = currentLocation.length; j < _len; j++) {
           leaf = currentLocation[j];
-          if (((_ref = leaf[0]) === 'collection' || _ref === 'instance') && ((_ref2 = leaf[1]) != null ? _ref2[0] : void 0) === resourceName && (!(resourceID != null) || (leaf[1][1] !== void 0 && (_ref3 = leaf[1][1], __indexOf.call(resourceID, _ref3) >= 0)))) {
+          if (((_ref = leaf[0]) === 'collection' || _ref === 'instance') && ((_ref2 = leaf[1]) != null ? _ref2[0] : void 0) === resourceName && (!(resourceID != null) || (leaf[1][1] !== void 0 && leaf[1][1] === resourceID))) {
             return j;
           }
         }
@@ -351,12 +350,12 @@
             var expandedTree, instanceID;
             instanceID = instance[clientModel.idField];
             resourceCollections[i] = {
-              isExpanded: ftree.isExpanded(about, [instanceID, instance.value]),
-              action: ftree.getAction(about, [instanceID, instance.value]),
+              isExpanded: ftree.isExpanded(about, instanceID),
+              action: ftree.getAction(about, instanceID),
               id: instanceID
             };
             if (resourceType === "Term") {
-              resourceCollections[i].resourceName = instance.value;
+              resourceCollections[i].resourceName = instance[clientModel.valueField];
             } else if (resourceType === "FactType") {
               resourceCollectionsCallback.addWork(1);
               getResolvedFactType(resourceFactType, instance, clientModel, function(factTypeInstance) {
@@ -373,7 +372,7 @@
               });
             }
             if (resourceCollections[i].isExpanded) {
-              expandedTree = ftree.clone().descend(about, [instanceID, instance.value]);
+              expandedTree = ftree.clone().descend(about, instanceID);
               resourceCollections[i].closeHash = '#!/' + expandedTree.getNewURI("del");
               resourceCollections[i].closeURI = rootURI + resourceCollections[i].deleteHash;
               resourceCollectionsCallback.addWork(1);
