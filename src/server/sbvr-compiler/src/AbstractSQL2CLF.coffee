@@ -15,26 +15,34 @@ define(['underscore'], (_) ->
 	return (sqlModel) ->
 		tables = sqlModel.tables
 		clfTables = {}
+		conversions = {}
 		for id, table of tables
 			idParts = splitID(id)
 			newID = (part.replace(/\s/g, '_') for part in idParts).join('-')
+			conversions[newID] = {}
 			if _.isString(table)
-				switch table
-					when 'Attribute', 'ForeignKey'
-						valueField = tables[idParts[2]].name
-					when 'BooleanAttribute'
-						valueField = idParts[1]
-					else
-						throw 'Unrecognised table type'
 				baseTable = tables[idParts[0]]
 				clfTables[newID] =
-					fields: [ getField(baseTable, baseTable.idField), getField(baseTable, valueField) ]
-					idField: baseTable.idField
-					valueField: valueField
+					fields: [ ['ForeignKey', baseTable.name, 'NOT NULL', baseTable.idField] ]
+					idField: baseTable.name
+					valueField: baseTable.idField
+					actions: ['view', 'add', 'delete']
+				conversions[newID][baseTable.idField] = baseTable.name
+				switch table
+					when 'Attribute', 'ForeignKey'
+						clfTables[newID].fields.push(getField(baseTable, tables[idParts[2]].name))
+						clfTables[newID].valueField = baseTable.valueField
+						conversions[newID][baseTable.valueField] = baseTable.valueField
+					when 'BooleanAttribute'
+					else
+						throw 'Unrecognised table type'
 			else
 				clfTables[newID] = 
 					fields: table.fields
 					idField: table.idField
-					valueField: table.valueField 
-		return clfTables
+					valueField: table.valueField
+					actions: ['view', 'add', 'edit', 'delete']
+				for field in clfTables[newID].fields
+					conversions[newID][field[1]] = field[1]
+		return {tables: clfTables, conversions}
 )

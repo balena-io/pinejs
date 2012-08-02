@@ -76,7 +76,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 			TermOrFactType:resourceInfo
 			(	&'*'
 				{['Query']}:query
-				AddQueryTable(query, resourceInfo.tableName)
+				AddQueryTable(query, resourceInfo.tableName, resourceInfo.resourceName)
 				Modifiers(query)
 				'*'?
 			)?
@@ -223,9 +223,10 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 		}
 	};
 	
-	ServerURIParser.AddQueryTable = function(query, termOrFactType) {
-		var tables = this.sqlModels[this.currentVocab].tables;
-		var table = tables[termOrFactType];
+	ServerURIParser.AddQueryTable = function(query, termOrFactType, resourceName) {
+		var newValue, fieldName, value, fields, i, field,
+			tables = this.sqlModels[this.currentVocab].tables,
+			table = tables[termOrFactType];
 		switch(table) {
 			case 'ForeignKey':
 				__TODO__.die();
@@ -255,22 +256,29 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 				table = tables[termOrFactType[0][1]];
 				attributeName = termOrFactType[1][1];
 				switch(this.currentMethod) {
-					case 'DELETE':
-						query[0] = 'UpdateQuery';
-						query.push(['Fields', [[attributeName, false]]]);
-						// TODO: This should be added by checking the body.
-						this.AddWhereClause(query, ['Equals', ['Field', table.idField], ['Bind', table.name, this.GetTableField(table, table.idField)]]);
-					break;
 					case 'GET':
 						query[0] = 'SelectQuery';
 						query.push(['Select', ['*']]);
 					break;
+					case 'DELETE':
+						newValue = false;
 					case 'PUT':
 					case 'POST':
+						if(newValue == null) {
+							newValue = true;
+						}
 						query[0] = 'UpdateQuery';
-						query.push(['Fields', [[attributeName, true]]]);
+						query.push(['Fields', [[attributeName, newValue]]]);
 						// TODO: This should be added by checking the body.
-						this.AddWhereClause(query, ['Equals', ['Field', table.idField], ['Bind', table.name, this.GetTableField(table, table.idField)]]);
+						fieldName = table.idField;
+						this.AddWhereClause(query, ['Equals', ['Field', fieldName], ['Bind', table.name, this.GetTableField(table, fieldName)]]);
+						if(this.currentBody.hasOwnProperty(resourceName + '.' + table.name)) {
+							value = this.currentBody[resourceName + '.' + table.name];
+						}
+						else {
+							value = this.currentBody[table.name];
+						}
+						this.currentBody[table.name + '.' + fieldName] = value;
 					break;
 				}
 				query.push(['From', table.name])
@@ -297,10 +305,10 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 						else {
 							query[0] = 'InsertQuery';
 						}
-						var fields = [];
-						for(var i=0; i < table.fields.length; i++) {
-							var field = table.fields[i],
-								fieldName = field[1];
+						fields = [];
+						for(i = 0; i < table.fields.length; i++) {
+							field = table.fields[i];
+							fieldName = field[1];
 							if((field[2] == 'NOT NULL' || this.currentBody.hasOwnProperty(table.name + '.' + fieldName) || this.currentBody.hasOwnProperty(fieldName))
 								|| (field[2] == 'PRIMARY KEY' && field[0] != 'Serial')) {
 								fields.push([fieldName, ['Bind', table.name, field]]);

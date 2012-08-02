@@ -125,10 +125,16 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 										<%- resourceCollection.html %><%
 									}
 									else { %>
-										<%- resourceCollection.resourceName %>
-										<a href="<%= resourceCollection.viewURI %>" onClick="location.hash='<%= resourceCollection.viewHash %>';return false"><span title="View" class="ui-icon ui-icon-search"></span></a>
-										<a href="<%= resourceCollection.editURI %>" onClick="location.hash='<%= resourceCollection.editHash %>';return false"><span title="Edit" class="ui-icon ui-icon-pencil"></span></a>
-										<a href="<%= resourceCollection.deleteURI %>" onClick="location.hash='<%= resourceCollection.deleteHash %>';return false"><span title="Delete" class="ui-icon ui-icon-trash"></span></a><%
+										<%- resourceCollection.resourceName %><%
+										if(resourceModel.actions.indexOf("view") !== -1) { %>
+											<a href="<%= resourceCollection.viewURI %>" onClick="location.hash='<%= resourceCollection.viewHash %>';return false"><span title="View" class="ui-icon ui-icon-search"></span></a><%
+										}
+										if(resourceModel.actions.indexOf("edit") !== -1) { %>
+											<a href="<%= resourceCollection.editURI %>" onClick="location.hash='<%= resourceCollection.editHash %>';return false"><span title="Edit" class="ui-icon ui-icon-pencil"></span></a><%
+										}
+										if(resourceModel.actions.indexOf("delete") !== -1) { %>
+											<a href="<%= resourceCollection.deleteURI %>" onClick="location.hash='<%= resourceCollection.deleteHash %>';return false"><span title="Delete" class="ui-icon ui-icon-trash"></span></a><%
+										}
 									} %>
 								</td>
 							</tr><%
@@ -321,7 +327,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 		}
 	
 	
-	getResolvedFactType = (factType, factTypeInstance, successCallback, errorCallback) ->
+	getResolvedFactType = (factType, factTypeInstance, clientModel, successCallback, errorCallback) ->
 		factTypeInstance = $.extend(true, {}, factTypeInstance)
 		asyncCallback = createAsyncQueueCallback(
 			() ->
@@ -332,9 +338,8 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 		for factTypePart, i in factType
 			if factTypePart[0] == "Term"
 				asyncCallback.addWork(1)
-				idField = if isBooleanFactType then 'id' else factTypePart[1].replace(new RegExp(' ', 'g'), '_')
 				valueField = factTypePart[1]
-				uri = serverAPI(factTypePart[1], [['id', '=', factTypeInstance[idField]]])
+				uri = serverAPI(factTypePart[1], [['id', '=', factTypeInstance[factTypePart[1]]]])
 				serverRequest("GET", uri, {}, null,
 					do(valueField) ->
 						(statusCode, result, headers) ->
@@ -344,29 +349,29 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 				)
 		asyncCallback.endAdding()
 	
-	getForeignKeyResults = (factType, successCallback) ->
-		termResults = {}
-		for factTypePart in factType when factTypePart[0] == "Term"
-			termResults[factTypePart[1]] = []
+	getForeignKeyResults = (clientModel, successCallback) ->
+		foreignKeyResults = {}
 		
 		asyncCallback = createAsyncQueueCallback(
 			() ->
-				successCallback(termResults)
+				successCallback(foreignKeyResults)
 			(errors) ->
 				console.error(errors)
-				successCallback(termResults)
+				successCallback(foreignKeyResults)
 		)
 
-		# Get results for all the terms and process them once finished
-		for termName of termResults
-			asyncCallback.addWork(1)
-			serverRequest('GET', serverAPI(termName), {}, null,
-				do(termName) ->
+		# Get results for all the foreign keys
+		for field in clientModel.fields when field[0] == 'ForeignKey'
+			foreignKey = field[1]
+			do(foreignKey) ->
+				foreignKeyResults[foreignKey] = []
+				asyncCallback.addWork(1)
+				serverRequest('GET', serverAPI(foreignKey), {}, null,
 					(statusCode, result, headers) ->
-						termResults[termName] = result.instances
+						foreignKeyResults[foreignKey] = result.instances
 						asyncCallback.successCallback()
-				asyncCallback.errorCallback
-			)
+					asyncCallback.errorCallback
+				)
 		asyncCallback.endAdding()
 
 	serverAPI = (about, filters = []) ->
@@ -455,6 +460,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 		if currentLocation[0] is 'collection'
 			serverRequest("GET", ftree.getServerURI(), {}, null,
 				(statusCode, result, headers) ->
+					clientModel = result.model
 					resourceCollections = []
 					resourceCollectionsCallback = createAsyncQueueCallback(
 						() ->
@@ -466,6 +472,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 								addsHTML: addsHTML
 								factTypeCollections: factTypeCollections
 								resourceCollections: resourceCollections
+								resourceModel: clientModel
 							})
 							html = templates.resourceCollection(templateVars)
 							rowCallback(idx, html)
@@ -480,16 +487,17 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 					# render each child and call back
 					for instance, i in result.instances
 						do(instance, i) ->
+							instanceID = instance[clientModel.idField]
 							resourceCollections[i] =
-								isExpanded: ftree.isExpanded(about, [instance.id, instance.value])
-								action: ftree.getAction(about, [instance.id, instance.value])
-								id: instance.id
+								isExpanded: ftree.isExpanded(about, [instanceID, instance.value])
+								action: ftree.getAction(about, [instanceID, instance.value])
+								id: instanceID
 							
 							if resourceType == "Term"
 								resourceCollections[i].resourceName = instance.value
 							else if resourceType == "FactType"
 								resourceCollectionsCallback.addWork(1)
-								getResolvedFactType(resourceFactType, instance,
+								getResolvedFactType(resourceFactType, instance, clientModel,
 									(factTypeInstance) ->
 										templateVars = $.extend({}, baseTemplateVars, (if even then evenTemplateVars else oddTemplateVars), {
 											factType: resourceFactType
@@ -503,17 +511,17 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 								)
 							
 							if resourceCollections[i].isExpanded
-								expandedTree = ftree.clone().descend(about, [instance.id, instance.value])
+								expandedTree = ftree.clone().descend(about, [instanceID, instance.value])
 								resourceCollections[i].closeHash = '#!/' + expandedTree.getNewURI("del")
 								resourceCollections[i].closeURI = rootURI + resourceCollections[i].deleteHash
 								resourceCollectionsCallback.addWork(1)
 								renderResource(i, resourceCollectionsCallback.successCallback, rootURI, not even, expandedTree, cmod)
 							else
-								resourceCollections[i].viewHash = '#!/' + ftree.getChangeURI('view', about, instance.id)
+								resourceCollections[i].viewHash = '#!/' + ftree.getChangeURI('view', about, instanceID)
 								resourceCollections[i].viewURI = rootURI + resourceCollections[i].viewHash
-								resourceCollections[i].editHash = '#!/' + ftree.getChangeURI('edit', about, instance.id)
+								resourceCollections[i].editHash = '#!/' + ftree.getChangeURI('edit', about, instanceID)
 								resourceCollections[i].editURI = rootURI + resourceCollections[i].editHash
-								resourceCollections[i].deleteHash = '#!/' + ftree.getChangeURI('del', about, instance.id)
+								resourceCollections[i].deleteHash = '#!/' + ftree.getChangeURI('del', about, instanceID)
 								resourceCollections[i].deleteURI = rootURI + resourceCollections[i].deleteHash
 					
 					addsHTML = []
@@ -596,10 +604,12 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 			when 'view', 'edit'
 				serverRequest("GET", ftree.getServerURI(), {}, null,
 					(statusCode, result, headers) ->
-						getForeignKeyResults(resourceFactType, (termResults) ->
+						clientModel= result.model
+						instanceID = result.instances[0][clientModel.idField]
+						getForeignKeyResults(result.model, (termResults) ->
 							templateVars = $.extend(templateVars, {
 								action: action
-								id: result.instances[0].id
+								id: instanceID
 								resourceInstance: result.instances[0]
 								resourceModel: result.model
 								foreignKeys: termResults
@@ -614,7 +624,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 			when 'add'
 				serverRequest("GET", ftree.getModelURI(), {}, null,
 					(statusCode, result, headers) ->
-						getForeignKeyResults(resourceFactType, (termResults) ->
+						getForeignKeyResults(result.model, (termResults) ->
 							templateVars = $.extend(templateVars, {
 								action: 'add'
 								id: false
@@ -645,7 +655,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 		# TODO: id and type (and half of actype) are not yet used.
 		# Should they be used instead of serverURI?
 		switch action
-			when "editterm", "editfctp"
+			when 'edit'
 				submitInstance('PUT', form, serverURI, backURI)
 			when 'add'
 				submitInstance('POST', form, serverURI, backURI)

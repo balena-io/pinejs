@@ -63,11 +63,15 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 	uiModel = LF2AbstractSQLPrep.match(uiModel, "Process")
 	uiModel = LF2AbstractSQL.match(uiModel, "Process")
 	
+	clientModels = {}
+	clientModels['transaction'] = AbstractSQL2CLF(transactionModel)
+	clientModels['ui'] = AbstractSQL2CLF(uiModel)
+	
 	serverURIParser = ServerURIParser.createInstance()
 	serverURIParser.setSQLModel('transaction', transactionModel)
 	serverURIParser.setSQLModel('ui', uiModel)
 	
-	sqlModels = []
+	sqlModels = {}
 	
 	op =
 		eq: "="
@@ -160,11 +164,7 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 			setSQL: (sqlmod) ->
 				serverURIParser.setSQLModel('data', sqlmod)
 				sqlModels['data'] = sqlmod
-				setValue 'sql', sqlmod
-
-			getCLF: -> values.clf
-			setCLF: (clientModel) ->
-				setValue('clf', clientModel)
+				setValue('sql', sqlmod)
 		}
 
 		db.transaction (tx) ->
@@ -179,6 +179,8 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 					if row.key == 'sql'
 						serverURIParser.setSQLModel('data', values[row.key])
 						sqlModels['data'] = values[row.key]
+					if row.key == 'prepLF'
+						clientModels['data'] = AbstractSQL2CLF(values[row.key])
 
 				serverModelCache.whenLoaded = (func) -> func()
 				for callback in pendingCallbacks
@@ -338,22 +340,29 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 							if values.length > 0 && result.rows.length == 0
 								res.send(404)
 							else
-								clientModel = serverModelCache.getCLF()
+								clientModel = clientModels[tree[1][1]]
+								conversions = clientModel.conversions[tree[2].resourceName]
+								convertToClientModel = (row) ->
+									results = {}
+									for field, value of row when conversions.hasOwnProperty(field)
+										results[conversions[field]] = value
+									return results
+								
 								data =
 									instances:
-										(result.rows.item(i) for i in [0...result.rows.length])
+										(convertToClientModel(result.rows.item(i)) for i in [0...result.rows.length])
 									model:
-										clientModel[tree[2].resourceName]
+										clientModel.tables[tree[2].resourceName]
 								res.json(data)
 						() ->
 							res.send(404)
 					)
 				)
 		else
-			clientModel = serverModelCache.getCLF()
+			clientModel = clientModels[tree[1][1]]
 			data =
 				model:
-					clientModel[tree[2].resourceName]
+					clientModel.tables[tree[2].resourceName]
 			res.json(data)
 	
 	runPost = (req, res) ->
@@ -567,7 +576,7 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 								serverModelCache.setLF(lfmod)
 								serverModelCache.setPrepLF(prepmod)
 								serverModelCache.setSQL(sqlModel)
-								serverModelCache.setCLF(clientModel)
+								clientModels['data'] = clientModel
 								res.send(200)
 							(tx, errors) ->
 								res.json(errors, 404)

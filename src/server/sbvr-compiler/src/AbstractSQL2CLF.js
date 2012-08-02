@@ -27,9 +27,10 @@
       })();
     };
     return function(sqlModel) {
-      var baseTable, clfTables, id, idParts, newID, part, table, tables, valueField;
+      var baseTable, clfTables, conversions, field, id, idParts, newID, part, table, tables, _i, _len, _ref;
       tables = sqlModel.tables;
       clfTables = {};
+      conversions = {};
       for (id in tables) {
         table = tables[id];
         idParts = splitID(id);
@@ -42,33 +43,46 @@
           }
           return _results;
         })()).join('-');
+        conversions[newID] = {};
         if (_.isString(table)) {
+          baseTable = tables[idParts[0]];
+          clfTables[newID] = {
+            fields: [['ForeignKey', baseTable.name, 'NOT NULL', baseTable.idField]],
+            idField: baseTable.name,
+            valueField: baseTable.idField,
+            actions: ['view', 'add', 'delete']
+          };
+          conversions[newID][baseTable.idField] = baseTable.name;
           switch (table) {
             case 'Attribute':
             case 'ForeignKey':
-              valueField = tables[idParts[2]].name;
+              clfTables[newID].fields.push(getField(baseTable, tables[idParts[2]].name));
+              clfTables[newID].valueField = baseTable.valueField;
+              conversions[newID][baseTable.valueField] = baseTable.valueField;
               break;
             case 'BooleanAttribute':
-              valueField = idParts[1];
               break;
             default:
               throw 'Unrecognised table type';
           }
-          baseTable = tables[idParts[0]];
-          clfTables[newID] = {
-            fields: [getField(baseTable, baseTable.idField), getField(baseTable, valueField)],
-            idField: baseTable.idField,
-            valueField: valueField
-          };
         } else {
           clfTables[newID] = {
             fields: table.fields,
             idField: table.idField,
-            valueField: table.valueField
+            valueField: table.valueField,
+            actions: ['view', 'add', 'edit', 'delete']
           };
+          _ref = clfTables[newID].fields;
+          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+            field = _ref[_i];
+            conversions[newID][field[1]] = field[1];
+          }
         }
       }
-      return clfTables;
+      return {
+        tables: clfTables,
+        conversions: conversions
+      };
     };
   });
 

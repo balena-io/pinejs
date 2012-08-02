@@ -2,7 +2,7 @@
   var __hasProp = Object.prototype.hasOwnProperty;
 
   define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-compiler/LF2AbstractSQL', 'sbvr-compiler/AbstractSQL2SQL', 'sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQL2CLF', 'data-server/ServerURIParser', 'underscore', 'utils/createAsyncQueueCallback'], function(SBVRParser, LF2AbstractSQLPrep, LF2AbstractSQL, AbstractSQL2SQL, AbstractSQLRules2SQL, AbstractSQL2CLF, ServerURIParser, _, createAsyncQueueCallback) {
-    var db, endLock, executeSqlModel, exports, getAndCheckBindValues, getCorrectTableInfo, getID, op, parseURITree, rebuildFactType, runDelete, runGet, runPost, runPut, runURI, serverIsOnAir, serverModelCache, serverURIParser, sqlModels, transactionModel, uiModel, validateDB;
+    var clientModels, db, endLock, executeSqlModel, exports, getAndCheckBindValues, getCorrectTableInfo, getID, op, parseURITree, rebuildFactType, runDelete, runGet, runPost, runPut, runURI, serverIsOnAir, serverModelCache, serverURIParser, sqlModels, transactionModel, uiModel, validateDB;
     exports = {};
     db = null;
     transactionModel = 'Term:      Integer\nTerm:      Long Text\nTerm:      resource id\n	Concept type: Integer\nTerm:      resource type\n	Concept type: Long Text\nTerm:      field name\n	Concept type: Long Text\nTerm:      field value\n	Concept type: Long Text\nTerm:      field type\n	Concept type: Long Text\nTerm:      resource\n	Database Value Field: resource_id\nFact type: resource has resource id\nRule:      It is obligatory that each resource has exactly 1 resource id\nTerm:      transaction\nTerm:      lock\nTerm:      conditional representation\n	Database Value Field: lock\nFact type: lock is exclusive\nFact type: lock is shared\nFact type: resource is under lock\n	Term Form: locked resource\nFact type: locked resource has resource type\nFact type: lock belongs to transaction\nFact type: conditional representation has field name\nFact type: conditional representation has field value\nFact type: conditional representation has field type\nFact type: conditional representation has lock\nRule:      It is obligatory that each locked resource has exactly 1 resource type\nRule:      It is obligatory that each conditional representation has exactly 1 field name\nRule:      It is obligatory that each conditional representation has exactly 1 field value\nRule:      It is obligatory that each conditional representation has exactly 1 field type\nRule:      It is obligatory that each conditional representation has exactly 1 lock\nRule:      It is obligatory that each resource is under at most 1 lock that is exclusive';
@@ -13,10 +13,13 @@
     uiModel = SBVRParser.matchAll(uiModel, "expr");
     uiModel = LF2AbstractSQLPrep.match(uiModel, "Process");
     uiModel = LF2AbstractSQL.match(uiModel, "Process");
+    clientModels = {};
+    clientModels['transaction'] = AbstractSQL2CLF(transactionModel);
+    clientModels['ui'] = AbstractSQL2CLF(uiModel);
     serverURIParser = ServerURIParser.createInstance();
     serverURIParser.setSQLModel('transaction', transactionModel);
     serverURIParser.setSQLModel('ui', uiModel);
-    sqlModels = [];
+    sqlModels = {};
     op = {
       eq: "=",
       ne: "!=",
@@ -136,12 +139,6 @@
           serverURIParser.setSQLModel('data', sqlmod);
           sqlModels['data'] = sqlmod;
           return setValue('sql', sqlmod);
-        },
-        getCLF: function() {
-          return values.clf;
-        },
-        setCLF: function(clientModel) {
-          return setValue('clf', clientModel);
         }
       };
       return db.transaction(function(tx) {
@@ -154,6 +151,9 @@
             if (row.key === 'sql') {
               serverURIParser.setSQLModel('data', values[row.key]);
               sqlModels['data'] = values[row.key];
+            }
+            if (row.key === 'prepLF') {
+              clientModels['data'] = AbstractSQL2CLF(values[row.key]);
             }
           }
           serverModelCache.whenLoaded = function(func) {
@@ -337,21 +337,33 @@
         } else {
           return db.transaction(function(tx) {
             return tx.executeSql(query, values, function(tx, result) {
-              var clientModel, data, i;
+              var clientModel, conversions, convertToClientModel, data, i;
               if (values.length > 0 && result.rows.length === 0) {
                 return res.send(404);
               } else {
-                clientModel = serverModelCache.getCLF();
+                clientModel = clientModels[tree[1][1]];
+                conversions = clientModel.conversions[tree[2].resourceName];
+                convertToClientModel = function(row) {
+                  var field, results, value;
+                  results = {};
+                  for (field in row) {
+                    value = row[field];
+                    if (conversions.hasOwnProperty(field)) {
+                      results[conversions[field]] = value;
+                    }
+                  }
+                  return results;
+                };
                 data = {
                   instances: (function() {
                     var _ref2, _results;
                     _results = [];
                     for (i = 0, _ref2 = result.rows.length; 0 <= _ref2 ? i < _ref2 : i > _ref2; 0 <= _ref2 ? i++ : i--) {
-                      _results.push(result.rows.item(i));
+                      _results.push(convertToClientModel(result.rows.item(i)));
                     }
                     return _results;
                   })(),
-                  model: clientModel[tree[2].resourceName]
+                  model: clientModel.tables[tree[2].resourceName]
                 };
                 return res.json(data);
               }
@@ -361,9 +373,9 @@
           });
         }
       } else {
-        clientModel = serverModelCache.getCLF();
+        clientModel = clientModels[tree[1][1]];
         data = {
-          model: clientModel[tree[2].resourceName]
+          model: clientModel.tables[tree[2].resourceName]
         };
         return res.json(data);
       }
@@ -591,7 +603,7 @@
               serverModelCache.setLF(lfmod);
               serverModelCache.setPrepLF(prepmod);
               serverModelCache.setSQL(sqlModel);
-              serverModelCache.setCLF(clientModel);
+              clientModels['data'] = clientModel;
               return res.send(200);
             }, function(tx, errors) {
               return res.json(errors, 404);
