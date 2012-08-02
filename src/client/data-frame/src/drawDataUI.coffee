@@ -600,49 +600,36 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 				)
 			when "add"
 				serverRequest("GET", ftree.getServerURI(), {}, null, (statusCode, result, headers) ->
-					getForeignKeyResults(resourceFactType, (termResults) ->
-						templateVars = $.extend(templateVars, {
-							action: 'add'
-							id: false
-							resourceInstance: false
-							resourceModel: result.model
-							foreignKeys: termResults
-						})
-						html = templates.viewAddEditResource(templateVars)
-						rowCallback(html)
-					)
+						getForeignKeyResults(resourceFactType, (termResults) ->
+							templateVars = $.extend(templateVars, {
+								action: 'add'
+								id: false
+								resourceInstance: false
+								resourceModel: result.model
+								foreignKeys: termResults
+							})
+							html = templates.viewAddEditResource(templateVars)
+							rowCallback(html)
+						)
 				)
 			when "edit"
-				if resourceType == "Term"
-					serverRequest("GET", ftree.getServerURI(), {}, null, (statusCode, result, headers) ->
-						templateVars = $.extend(templateVars, {
-							action: 'editterm'
-							id: result.instances[0].id
-							resourceInstance: result.instances[0]
-							resourceModel: result.model
-							foreignKeys: null
-						})
-						html = templates.viewAddEditResource(templateVars)
-						rowCallback(html)
-					)
-				else if resourceType == "FactType"
-					serverRequest("GET", ftree.getServerURI(), {}, null,
-						(statusCode, result, headers) ->
-							getForeignKeyResults(resourceFactType, (termResults) ->
-								templateVars = $.extend(templateVars, {
-									action: 'editfctp'
-									id: result.instances[0].id
-									resourceInstance: result.instances[0]
-									resourceModel: result.model
-									foreignKeys: termResults
-								})
-								html = templates.viewAddEditResource(templateVars)
-								rowCallback(html)
-							)
-						(errors) ->
-							console.error(errors)
-							rowCallback('Errors: ' + errors)
-					)
+				serverRequest("GET", ftree.getServerURI(), {}, null,
+					(statusCode, result, headers) ->
+						getForeignKeyResults(resourceFactType, (termResults) ->
+							templateVars = $.extend(templateVars, {
+								action: 'edit'
+								id: result.instances[0].id
+								resourceInstance: result.instances[0]
+								resourceModel: result.model
+								foreignKeys: termResults
+							})
+							html = templates.viewAddEditResource(templateVars)
+							rowCallback(html)
+						)
+					(errors) ->
+						console.error(errors)
+						rowCallback('Errors: ' + errors)
+				)
 			when "del"
 				templateVars = $.extend(templateVars, {
 					action: 'del'

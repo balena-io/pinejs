@@ -497,39 +497,23 @@
             });
           });
         case "edit":
-          if (resourceType === "Term") {
-            return serverRequest("GET", ftree.getServerURI(), {}, null, function(statusCode, result, headers) {
+          return serverRequest("GET", ftree.getServerURI(), {}, null, function(statusCode, result, headers) {
+            return getForeignKeyResults(resourceFactType, function(termResults) {
               var html;
               templateVars = $.extend(templateVars, {
-                action: 'editterm',
+                action: 'edit',
                 id: result.instances[0].id,
                 resourceInstance: result.instances[0],
                 resourceModel: result.model,
-                foreignKeys: null
+                foreignKeys: termResults
               });
               html = templates.viewAddEditResource(templateVars);
               return rowCallback(html);
             });
-          } else if (resourceType === "FactType") {
-            return serverRequest("GET", ftree.getServerURI(), {}, null, function(statusCode, result, headers) {
-              return getForeignKeyResults(resourceFactType, function(termResults) {
-                var html;
-                templateVars = $.extend(templateVars, {
-                  action: 'editfctp',
-                  id: result.instances[0].id,
-                  resourceInstance: result.instances[0],
-                  resourceModel: result.model,
-                  foreignKeys: termResults
-                });
-                html = templates.viewAddEditResource(templateVars);
-                return rowCallback(html);
-              });
-            }, function(errors) {
-              console.error(errors);
-              return rowCallback('Errors: ' + errors);
-            });
-          }
-          break;
+          }, function(errors) {
+            console.error(errors);
+            return rowCallback('Errors: ' + errors);
+          });
         case "del":
           templateVars = $.extend(templateVars, {
             action: 'del'
