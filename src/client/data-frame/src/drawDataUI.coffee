@@ -12,23 +12,24 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 		dataTypeDisplay: ejs.compile('''
 			<%
 			var fieldName = resourceField[1],
-				fieldValue = resourceInstance === false ? "" : resourceInstance[fieldName]
+				fieldValue = resourceInstance === false ? "" : resourceInstance[fieldName],
+				fieldIdentifier = resourceName + "." + fieldName;
 			switch(resourceField[0]) {
 				case "Short Text":
 				case "Value": %>
-					<%= fieldName %>: <%- templates.widgets.text(action, fieldName, fieldValue) %><br /><%
+					<%= fieldName %>: <%- templates.widgets.text(action, fieldIdentifier, fieldValue) %><br /><%
 				break;
 				case "Long Text": %>
-					<%= fieldName %>: <%- templates.widgets.textArea(action, fieldName, fieldValue) %><br /><%
+					<%= fieldName %>: <%- templates.widgets.textArea(action, fieldIdentifier, fieldValue) %><br /><%
 				break;
 				case "Integer": %>
-					<%= fieldName %>: <%- templates.widgets.integer(action, fieldName, fieldValue) %><br /><%
+					<%= fieldName %>: <%- templates.widgets.integer(action, fieldIdentifier, fieldValue) %><br /><%
 				break;
 				case "Boolean": %>
-					<%= fieldName %>: <%- templates.widgets.boolean(action, fieldName, fieldValue) %><br /><%
+					<%= fieldName %>: <%- templates.widgets.boolean(action, fieldIdentifier, fieldValue) %><br /><%
 				break;
 				case "ForeignKey": %>
-					<%= fieldName %>: <%- templates.widgets.foreignKey(action, fieldName, fieldValue, foreignKeys[fieldName]) %><br /><%
+					<%= fieldName %>: <%- templates.widgets.foreignKey(action, fieldIdentifier, fieldValue, foreignKeys[fieldName]) %><br /><%
 				break;
 				case "Serial": 
 					if(resourceInstance !== false) { %>
@@ -48,6 +49,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 							templates.dataTypeDisplay({
 								templates: templates,
 								resourceInstance: resourceInstance,
+								resourceName: resourceModel.name,
 								resourceField: resourceModel.fields[i],
 								foreignKeys: foreignKeys,
 								action: action

@@ -57,6 +57,7 @@
           resourceField = sqlTableName = sqlTable.name;
           addMapping(resourceName, resourceField, sqlTableName, sqlFieldName);
           resources[resourceName] = {
+            name: resourceName,
             fields: [['ForeignKey', resourceField, 'NOT NULL', sqlFieldName]],
             idField: resourceField,
             valueField: resourceField,
@@ -78,6 +79,7 @@
           }
         } else {
           resources[resourceName] = {
+            name: resourceName,
             fields: table.fields,
             idField: table.idField,
             valueField: table.valueField,
