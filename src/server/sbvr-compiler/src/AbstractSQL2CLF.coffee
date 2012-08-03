@@ -25,7 +25,6 @@ define(['underscore'], (_) ->
 		for id, table of tables
 			idParts = splitID(id)
 			resourceName = (part.replace(/\s/g, '_') for part in idParts).join('-')
-			resourceFromSQLMappings[resourceName] = {}
 			resourceToSQLMappings[resourceName] = {}
 			if _.isString(table)
 				sqlTable = tables[idParts[0]]
@@ -60,6 +59,6 @@ define(['underscore'], (_) ->
 					valueField: table.valueField
 					actions: ['view', 'add', 'edit', 'delete']
 				for sqlField in table.fields
-					addMapping(resourceName, sqlField[1], sqlTableName, sqlField[1])
+					addMapping(resourceName, sqlField[1], table.name, sqlField[1])
 		return {resources, resourceToSQLMappings}
 )

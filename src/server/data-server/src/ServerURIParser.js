@@ -410,12 +410,31 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
             var fields = undefined;
             var i = undefined;
             var field = undefined;
-            var clientModel = undefined;
-            var resourceToSQLMappings = undefined;
             var mapping = undefined;
-            var resourceField = undefined;
+            var clientModel = this["clientModels"][this["currentVocab"]];
+            var resourceModel = clientModel["resources"][resourceName];
+            var resourceToSQLMappings = clientModel["resourceToSQLMappings"][resourceName];
             var tables = this["sqlModels"][this["currentVocab"]]["tables"];
-            var table = tables[termOrFactType]
+            var table = tables[termOrFactType];
+            var getSelectFields = (function() {
+                {
+                    var mapping = undefined;
+                    var resourceField = undefined;
+                    var fields = undefined
+                };
+                (fields = []);
+                for (resourceField in resourceToSQLMappings) {
+                    if (resourceToSQLMappings.hasOwnProperty(resourceField)) {
+                        (mapping = resourceToSQLMappings[resourceField]);
+                        fields.push([
+                            ["ReferencedField"].concat(mapping), resourceField])
+                    } else {
+                        undefined
+                    }
+                };
+                console.error(fields);
+                return fields
+            })
         };
         switch (table) {
         case "ForeignKey":
@@ -439,7 +458,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                 case "GET":
                     {
                         (query[(0)] = "SelectQuery");
-                        query.push(["Select", ["*"]]);
+                        query.push(["Select", getSelectFields()]);
                         break
                     };
                 case "PUT":
@@ -458,25 +477,13 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
             };
         case "BooleanAttribute":
             {
-                (clientModel = this["clientModels"][this["currentVocab"]]);
                 (table = tables[termOrFactType[(0)][(1)]]);
                 (attributeName = termOrFactType[(1)][(1)]);
                 switch (this["currentMethod"]) {
                 case "GET":
                     {
                         (query[(0)] = "SelectQuery");
-                        (fields = []);
-                        (resourceToSQLMappings = clientModel["resourceToSQLMappings"][resourceName]);
-                        for (resourceField in resourceToSQLMappings) {
-                            if (resourceToSQLMappings.hasOwnProperty(resourceField)) {
-                                (mapping = resourceToSQLMappings[resourceField]);
-                                fields.push([
-                                    ["ReferencedField", mapping[(0)], mapping[(1)]], resourceField])
-                            } else {
-                                undefined
-                            }
-                        }
-                        query.push(["Select", fields]);
+                        query.push(["Select", getSelectFields()]);
                         break
                     };
                 case "DELETE":
@@ -527,7 +534,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                 case "GET":
                     {
                         (query[(0)] = "SelectQuery");
-                        query.push(["Select", ["*"]]);
+                        query.push(["Select", getSelectFields()]);
                         break
                     };
                 case "PUT":

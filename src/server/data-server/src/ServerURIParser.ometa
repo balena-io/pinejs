@@ -229,9 +229,24 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 	};
 	
 	ServerURIParser.AddQueryTable = function(query, termOrFactType, resourceName) {
-		var newValue, fieldName, value, fields, i, field, clientModel, resourceToSQLMappings, mapping, resourceField,
+		var newValue, fieldName, value, fields, i, field, mapping,
+			clientModel = this.clientModels[this.currentVocab],
+			resourceModel = clientModel.resources[resourceName],
+			resourceToSQLMappings = clientModel.resourceToSQLMappings[resourceName],
 			tables = this.sqlModels[this.currentVocab].tables,
-			table = tables[termOrFactType];
+			table = tables[termOrFactType],
+			getSelectFields = function() {
+				var mapping, resourceField, fields;
+				fields = [];
+				for(resourceField in resourceToSQLMappings) {
+					if(resourceToSQLMappings.hasOwnProperty(resourceField)) {
+						mapping = resourceToSQLMappings[resourceField];
+						fields.push([['ReferencedField'].concat(mapping), resourceField]);
+					}
+				}
+				console.error(fields)
+				return fields;
+			};
 		switch(table) {
 			case 'ForeignKey':
 				__TODO__.die();
@@ -246,7 +261,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 					break;
 					case 'GET':
 						query[0] = 'SelectQuery';
-						query.push(['Select', ['*']]);
+						query.push(['Select', getSelectFields()]);
 					break;
 					case 'PUT':
 					case 'POST':
@@ -257,21 +272,12 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 				query.push(['From', table.name])
 			break;
 			case 'BooleanAttribute':
-				clientModel = this.clientModels[this.currentVocab];
 				table = tables[termOrFactType[0][1]];
 				attributeName = termOrFactType[1][1];
 				switch(this.currentMethod) {
 					case 'GET':
 						query[0] = 'SelectQuery';
-						fields = [];
-						resourceToSQLMappings = clientModel.resourceToSQLMappings[resourceName];
-						for(resourceField in resourceToSQLMappings) {
-							if(resourceToSQLMappings.hasOwnProperty(resourceField)) {
-								mapping = resourceToSQLMappings[resourceField];
-								fields.push([['ReferencedField', mapping[0], mapping[1]], resourceField]);
-							}
-						}
-						query.push(['Select', fields]);
+						query.push(['Select', getSelectFields()]);
 					break;
 					case 'DELETE':
 						newValue = false;
@@ -308,7 +314,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 					break;
 					case 'GET':
 						query[0] = 'SelectQuery';
-						query.push(['Select', ['*']]);
+						query.push(['Select', getSelectFields()]);
 					break;
 					case 'PUT':
 					case 'POST':

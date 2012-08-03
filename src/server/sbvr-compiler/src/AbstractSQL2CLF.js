@@ -50,7 +50,6 @@
           }
           return _results;
         })()).join('-');
-        resourceFromSQLMappings[resourceName] = {};
         resourceToSQLMappings[resourceName] = {};
         if (_.isString(table)) {
           sqlTable = tables[idParts[0]];
@@ -87,7 +86,7 @@
           _ref = table.fields;
           for (_i = 0, _len = _ref.length; _i < _len; _i++) {
             sqlField = _ref[_i];
-            addMapping(resourceName, sqlField[1], sqlTableName, sqlField[1]);
+            addMapping(resourceName, sqlField[1], table.name, sqlField[1]);
           }
         }
       }
