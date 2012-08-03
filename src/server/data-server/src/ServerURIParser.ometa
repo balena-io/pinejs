@@ -244,7 +244,6 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 						fields.push([['ReferencedField'].concat(mapping), resourceField]);
 					}
 				}
-				console.error(fields)
 				return fields;
 			};
 		switch(table) {
@@ -287,17 +286,19 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 							newValue = true;
 						}
 						query[0] = 'UpdateQuery';
+						var resourceField = resourceModel.idField;
+						mapping = resourceToSQLMappings[resourceField];
 						query.push(['Fields', [[attributeName, newValue]]]);
 						// TODO: This should be added by checking the body.
 						fieldName = table.idField;
-						this.AddWhereClause(query, ['Equals', ['Field', fieldName], ['Bind', table.name, this.GetTableField(table, fieldName)]]);
-						if(this.currentBody.hasOwnProperty(resourceName + '.' + table.name)) {
-							value = this.currentBody[resourceName + '.' + table.name];
+						this.AddWhereClause(query, ['Equals', ['ReferencedField'].concat(mapping), ['Bind', table.name, this.GetTableField(table, fieldName)]]);
+						if(this.currentBody.hasOwnProperty(resourceName + '.' + resourceField)) {
+							value = this.currentBody[resourceName + '.' + resourceField];
 						}
 						else {
-							value = this.currentBody[table.name];
+							value = this.currentBody[resourceField];
 						}
-						this.currentBody[table.name + '.' + fieldName] = value;
+						this.currentBody[mapping.join('.')] = value;
 					break;
 				}
 				query.push(['From', table.name])

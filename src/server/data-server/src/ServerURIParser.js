@@ -432,7 +432,6 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                         undefined
                     }
                 };
-                console.error(fields);
                 return fields
             })
         };
@@ -497,18 +496,18 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                         } else {
                             undefined
                         }(query[(0)] = "UpdateQuery");
+                        var resourceField = resourceModel["idField"];
+                        (mapping = resourceToSQLMappings[resourceField]);
                         query.push(["Fields", [
                             [attributeName, newValue]
                         ]]);
                         (fieldName = table["idField"]);
-                        this.AddWhereClause(query, ["Equals", ["Field", fieldName],
-                            ["Bind", table["name"], this.GetTableField(table, fieldName)]
-                        ]);
-                        if (this["currentBody"].hasOwnProperty(((resourceName + ".") + table["name"]))) {
-                            (value = this["currentBody"][((resourceName + ".") + table["name"])])
+                        this.AddWhereClause(query, ["Equals", ["ReferencedField"].concat(mapping), ["Bind", table["name"], this.GetTableField(table, fieldName)]]);
+                        if (this["currentBody"].hasOwnProperty(((resourceName + ".") + resourceField))) {
+                            (value = this["currentBody"][((resourceName + ".") + resourceField)])
                         } else {
-                            (value = this["currentBody"][table["name"]])
-                        }(this["currentBody"][((table["name"] + ".") + fieldName)] = value);
+                            (value = this["currentBody"][resourceField])
+                        }(this["currentBody"][mapping.join(".")] = value);
                         break
                     }
                 }
