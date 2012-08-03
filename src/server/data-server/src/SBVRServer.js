@@ -19,6 +19,8 @@
     serverURIParser = ServerURIParser.createInstance();
     serverURIParser.setSQLModel('transaction', transactionModel);
     serverURIParser.setSQLModel('ui', uiModel);
+    serverURIParser.setClientModel('transaction', clientModels['transaction']);
+    serverURIParser.setClientModel('ui', clientModels['ui']);
     sqlModels = {};
     op = {
       eq: "=",
@@ -154,6 +156,7 @@
             }
             if (row.key === 'prepLF') {
               clientModels['data'] = AbstractSQL2CLF(values[row.key]);
+              serverURIParser.setClientModel('data', clientModels['data']);
             }
           }
           serverModelCache.whenLoaded = function(func) {
@@ -337,33 +340,21 @@
         } else {
           return db.transaction(function(tx) {
             return tx.executeSql(query, values, function(tx, result) {
-              var clientModel, conversions, convertToClientModel, data, i;
+              var clientModel, data, i;
               if (values.length > 0 && result.rows.length === 0) {
                 return res.send(404);
               } else {
                 clientModel = clientModels[tree[1][1]];
-                conversions = clientModel.conversions[tree[2].resourceName];
-                convertToClientModel = function(row) {
-                  var field, results, value;
-                  results = {};
-                  for (field in row) {
-                    value = row[field];
-                    if (conversions.hasOwnProperty(field)) {
-                      results[conversions[field]] = value;
-                    }
-                  }
-                  return results;
-                };
                 data = {
                   instances: (function() {
                     var _ref2, _results;
                     _results = [];
                     for (i = 0, _ref2 = result.rows.length; 0 <= _ref2 ? i < _ref2 : i > _ref2; 0 <= _ref2 ? i++ : i--) {
-                      _results.push(convertToClientModel(result.rows.item(i)));
+                      _results.push(result.rows.item(i));
                     }
                     return _results;
                   })(),
-                  model: clientModel.tables[tree[2].resourceName]
+                  model: clientModel.resources[tree[2].resourceName]
                 };
                 return res.json(data);
               }
@@ -375,7 +366,7 @@
       } else {
         clientModel = clientModels[tree[1][1]];
         data = {
-          model: clientModel.tables[tree[2].resourceName]
+          model: clientModel.resources[tree[2].resourceName]
         };
         return res.json(data);
       }
@@ -604,6 +595,7 @@
               serverModelCache.setPrepLF(prepmod);
               serverModelCache.setSQL(sqlModel);
               clientModels['data'] = clientModel;
+              serverURIParser.setClientModel('data', clientModels['data']);
               return res.send(200);
             }, function(tx, errors) {
               return res.json(errors, 404);

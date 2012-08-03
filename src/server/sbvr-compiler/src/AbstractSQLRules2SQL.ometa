@@ -148,6 +148,11 @@ define(['ometa/ometa-base'], function() {
 						(	'Count'
 							'*'
 							-> 'COUNT(*)'
+						|	(	Field
+							|	ReferencedField
+							):field
+							anything:as
+							-> (field + ' AS "' + as + '"')
 						):field
 						{fields.push(field)}
 					]

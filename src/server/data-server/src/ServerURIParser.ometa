@@ -141,7 +141,8 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 	}
 	
 	ServerURIParser.initialize = function() {
-		this.sqlModels = {}
+		this.sqlModels = {};
+		this.clientModels = {};
 		this.currentVocab = '';
 		this.currentMethod = '';
 		this.currentBody = [];
@@ -150,6 +151,10 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 	
 	ServerURIParser.setSQLModel = function(vocab, model) {
 		this.sqlModels[vocab] = model;
+	};
+	
+	ServerURIParser.setClientModel = function(vocab, model) {
+		this.clientModels[vocab] = model;
 	};
 	
 	ServerURIParser.AddWhereClause = function(query, whereBody) {
@@ -224,7 +229,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 	};
 	
 	ServerURIParser.AddQueryTable = function(query, termOrFactType, resourceName) {
-		var newValue, fieldName, value, fields, i, field,
+		var newValue, fieldName, value, fields, i, field, clientModel, resourceToSQLMappings, mapping, resourceField,
 			tables = this.sqlModels[this.currentVocab].tables,
 			table = tables[termOrFactType];
 		switch(table) {
@@ -252,13 +257,21 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 				query.push(['From', table.name])
 			break;
 			case 'BooleanAttribute':
-				// Return table for the term.
+				clientModel = this.clientModels[this.currentVocab];
 				table = tables[termOrFactType[0][1]];
 				attributeName = termOrFactType[1][1];
 				switch(this.currentMethod) {
 					case 'GET':
 						query[0] = 'SelectQuery';
-						query.push(['Select', ['*']]);
+						fields = [];
+						resourceToSQLMappings = clientModel.resourceToSQLMappings[resourceName];
+						for(resourceField in resourceToSQLMappings) {
+							if(resourceToSQLMappings.hasOwnProperty(resourceField)) {
+								mapping = resourceToSQLMappings[resourceField];
+								fields.push([['ReferencedField', mapping[0], mapping[1]], resourceField]);
+							}
+						}
+						query.push(['Select', fields]);
 					break;
 					case 'DELETE':
 						newValue = false;

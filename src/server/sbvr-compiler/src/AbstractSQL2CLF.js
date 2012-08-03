@@ -27,14 +27,21 @@
       })();
     };
     return function(sqlModel) {
-      var baseTable, clfTables, conversions, field, id, idParts, newID, part, table, tables, _i, _len, _ref;
+      var addMapping, id, idParts, part, resourceField, resourceName, resourceToSQLMappings, resources, sqlField, sqlFieldName, sqlTable, sqlTableName, table, tables, _i, _len, _ref;
       tables = sqlModel.tables;
-      clfTables = {};
-      conversions = {};
+      resources = {};
+      resourceToSQLMappings = {};
+      /**
+      		*	resourceToSQLMappings =
+      		*		[resourceName][resourceField] = [sqlTableName, sqlFieldName]
+      */
+      addMapping = function(resourceName, resourceField, sqlTableName, sqlFieldName) {
+        return resourceToSQLMappings[resourceName][resourceField] = [sqlTableName, sqlFieldName];
+      };
       for (id in tables) {
         table = tables[id];
         idParts = splitID(id);
-        newID = ((function() {
+        resourceName = ((function() {
           var _i, _len, _results;
           _results = [];
           for (_i = 0, _len = idParts.length; _i < _len; _i++) {
@@ -43,22 +50,27 @@
           }
           return _results;
         })()).join('-');
-        conversions[newID] = {};
+        resourceFromSQLMappings[resourceName] = {};
+        resourceToSQLMappings[resourceName] = {};
         if (_.isString(table)) {
-          baseTable = tables[idParts[0]];
-          clfTables[newID] = {
-            fields: [['ForeignKey', baseTable.name, 'NOT NULL', baseTable.idField]],
-            idField: baseTable.name,
-            valueField: baseTable.idField,
+          sqlTable = tables[idParts[0]];
+          sqlFieldName = sqlTable.idField;
+          resourceField = sqlTableName = sqlTable.name;
+          addMapping(resourceName, resourceField, sqlTableName, sqlFieldName);
+          resources[resourceName] = {
+            fields: [['ForeignKey', resourceField, 'NOT NULL', sqlFieldName]],
+            idField: resourceField,
+            valueField: resourceField,
             actions: ['view', 'add', 'delete']
           };
-          conversions[newID][baseTable.idField] = baseTable.name;
           switch (table) {
             case 'Attribute':
             case 'ForeignKey':
-              clfTables[newID].fields.push(getField(baseTable, tables[idParts[2]].name));
-              clfTables[newID].valueField = baseTable.valueField;
-              conversions[newID][baseTable.valueField] = baseTable.valueField;
+              resourceField = sqlFieldName = tables[idParts[2]].name;
+              sqlTableName = sqlTable.name;
+              addMapping(resourceName, resourceField, sqlTableName, sqlFieldName);
+              resources[resourceName].fields.push(getField(sqlTable, sqlFieldName));
+              resources[resourceName].valueField = resourceField;
               break;
             case 'BooleanAttribute':
               break;
@@ -66,22 +78,22 @@
               throw 'Unrecognised table type';
           }
         } else {
-          clfTables[newID] = {
+          resources[resourceName] = {
             fields: table.fields,
             idField: table.idField,
             valueField: table.valueField,
             actions: ['view', 'add', 'edit', 'delete']
           };
-          _ref = clfTables[newID].fields;
+          _ref = table.fields;
           for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-            field = _ref[_i];
-            conversions[newID][field[1]] = field[1];
+            sqlField = _ref[_i];
+            addMapping(resourceName, sqlField[1], sqlTableName, sqlField[1]);
           }
         }
       }
       return {
-        tables: clfTables,
-        conversions: conversions
+        resources: resources,
+        resourceToSQLMappings: resourceToSQLMappings
       };
     };
   });

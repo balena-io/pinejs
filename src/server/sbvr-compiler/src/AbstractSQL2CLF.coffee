@@ -14,35 +14,52 @@ define(['underscore'], (_) ->
 	
 	return (sqlModel) ->
 		tables = sqlModel.tables
-		clfTables = {}
-		conversions = {}
+		resources = {}
+		resourceToSQLMappings = {}
+		###*
+		*	resourceToSQLMappings =
+		*		[resourceName][resourceField] = [sqlTableName, sqlFieldName]
+		###
+		addMapping = (resourceName, resourceField, sqlTableName, sqlFieldName) ->
+			resourceToSQLMappings[resourceName][resourceField] = [sqlTableName, sqlFieldName]
 		for id, table of tables
 			idParts = splitID(id)
-			newID = (part.replace(/\s/g, '_') for part in idParts).join('-')
-			conversions[newID] = {}
+			resourceName = (part.replace(/\s/g, '_') for part in idParts).join('-')
+			resourceFromSQLMappings[resourceName] = {}
+			resourceToSQLMappings[resourceName] = {}
 			if _.isString(table)
-				baseTable = tables[idParts[0]]
-				clfTables[newID] =
-					fields: [ ['ForeignKey', baseTable.name, 'NOT NULL', baseTable.idField] ]
-					idField: baseTable.name
-					valueField: baseTable.idField
+				sqlTable = tables[idParts[0]]
+				sqlFieldName = sqlTable.idField
+				resourceField = sqlTableName = sqlTable.name
+				addMapping(resourceName, resourceField, sqlTableName, sqlFieldName)
+				resources[resourceName] =
+					fields: [ ['ForeignKey', resourceField, 'NOT NULL', sqlFieldName] ]
+					idField: resourceField
+					# TODO: value field is really reference scheme?
+					valueField: resourceField
 					actions: ['view', 'add', 'delete']
-				conversions[newID][baseTable.idField] = baseTable.name
 				switch table
 					when 'Attribute', 'ForeignKey'
-						clfTables[newID].fields.push(getField(baseTable, tables[idParts[2]].name))
-						clfTables[newID].valueField = baseTable.valueField
-						conversions[newID][baseTable.valueField] = baseTable.valueField
+						# person has age
+						# person: fk - id
+						# age: fk
+						resourceField = sqlFieldName = tables[idParts[2]].name
+						sqlTableName = sqlTable.name
+						addMapping(resourceName, resourceField, sqlTableName, sqlFieldName)
+						resources[resourceName].fields.push(getField(sqlTable, sqlFieldName))
+						resources[resourceName].valueField = resourceField
 					when 'BooleanAttribute'
+						# person is old
+						# person: fk - id
 					else
 						throw 'Unrecognised table type'
 			else
-				clfTables[newID] = 
+				resources[resourceName] = 
 					fields: table.fields
 					idField: table.idField
 					valueField: table.valueField
 					actions: ['view', 'add', 'edit', 'delete']
-				for field in clfTables[newID].fields
-					conversions[newID][field[1]] = field[1]
-		return {tables: clfTables, conversions}
+				for sqlField in table.fields
+					addMapping(resourceName, sqlField[1], sqlTableName, sqlField[1])
+		return {resources, resourceToSQLMappings}
 )

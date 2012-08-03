@@ -300,6 +300,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
     });
     (ServerURIParser["initialize"] = (function() {
         (this["sqlModels"] = ({}));
+        (this["clientModels"] = ({}));
         (this["currentVocab"] = "");
         (this["currentMethod"] = "");
         (this["currentBody"] = []);
@@ -307,6 +308,9 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
     }));
     (ServerURIParser["setSQLModel"] = (function(vocab, model) {
         (this["sqlModels"][vocab] = model)
+    }));
+    (ServerURIParser["setClientModel"] = (function(vocab, model) {
+        (this["clientModels"][vocab] = model)
     }));
     (ServerURIParser["AddWhereClause"] = (function(query, whereBody) {
         if (((whereBody[(0)] == "Exists") && ((((whereBody[(1)][(0)] == "SelectQuery") || (whereBody[(1)][(0)] == "InsertQuery")) || (whereBody[(1)][(0)] == "UpdateQuery")) || (whereBody[(1)][(0)] == "UpsertQuery")))) {
@@ -406,6 +410,10 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
             var fields = undefined;
             var i = undefined;
             var field = undefined;
+            var clientModel = undefined;
+            var resourceToSQLMappings = undefined;
+            var mapping = undefined;
+            var resourceField = undefined;
             var tables = this["sqlModels"][this["currentVocab"]]["tables"];
             var table = tables[termOrFactType]
         };
@@ -450,13 +458,25 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
             };
         case "BooleanAttribute":
             {
+                (clientModel = this["clientModels"][this["currentVocab"]]);
                 (table = tables[termOrFactType[(0)][(1)]]);
                 (attributeName = termOrFactType[(1)][(1)]);
                 switch (this["currentMethod"]) {
                 case "GET":
                     {
                         (query[(0)] = "SelectQuery");
-                        query.push(["Select", ["*"]]);
+                        (fields = []);
+                        (resourceToSQLMappings = clientModel["resourceToSQLMappings"][resourceName]);
+                        for (resourceField in resourceToSQLMappings) {
+                            if (resourceToSQLMappings.hasOwnProperty(resourceField)) {
+                                (mapping = resourceToSQLMappings[resourceField]);
+                                fields.push([
+                                    ["ReferencedField", mapping[(0)], mapping[(1)]], resourceField])
+                            } else {
+                                undefined
+                            }
+                        }
+                        query.push(["Select", fields]);
                         break
                     };
                 case "DELETE":

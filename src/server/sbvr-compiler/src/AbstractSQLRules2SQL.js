@@ -251,7 +251,7 @@ define(["ometa/ometa-base"], (function() {
         "Select": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                fields, field;
+                fields, field, as;
             this._applyWithArgs("exactly", "Select");
             fields = [];
             this._form((function() {
@@ -262,9 +262,27 @@ define(["ometa/ometa-base"], (function() {
                     return this._many((function() {
                         return this._or((function() {
                             return this._form((function() {
-                                this._applyWithArgs("exactly", "Count");
-                                this._applyWithArgs("exactly", "*");
-                                field = "COUNT(*)";
+                                field = this._or((function() {
+                                    return (function() {
+                                        switch (this._apply('anything')) {
+                                        case "Count":
+                                            return (function() {
+                                                this._applyWithArgs("exactly", "*");
+                                                return "COUNT(*)"
+                                            }).call(this);
+                                        default:
+                                            throw fail
+                                        }
+                                    }).call(this)
+                                }), (function() {
+                                    field = this._or((function() {
+                                        return this._apply("Field")
+                                    }), (function() {
+                                        return this._apply("ReferencedField")
+                                    }));
+                                    as = this._apply("anything");
+                                    return (((field + " AS \"") + as) + "\"")
+                                }));
                                 return fields.push(field)
                             }))
                         }), (function() {
