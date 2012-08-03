@@ -483,6 +483,9 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                     {
                         (query[(0)] = "SelectQuery");
                         query.push(["Select", getSelectFields()]);
+                        this.AddWhereClause(query, ["Equals", ["Field", attributeName],
+                            ["Boolean", true]
+                        ]);
                         break
                     };
                 case "DELETE":
@@ -512,14 +515,6 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                     }
                 }
                 query.push(["From", table["name"]]);
-                switch (this["currentMethod"]) {
-                case "GET":
-                    {};
-                case "DELETE":
-                    this.AddWhereClause(query, ["Equals", ["Field", attributeName],
-                        ["Boolean", true]
-                    ])
-                }
                 break
             };
         default:
