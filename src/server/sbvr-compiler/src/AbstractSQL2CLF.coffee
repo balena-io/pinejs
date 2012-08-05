@@ -7,10 +7,8 @@ define(['underscore'], (_) ->
 		return false
 	
 	splitID = (id) ->
-		parts = id.split(',')
-		if parts.length == 1
-			return parts
-		return (part for part in parts[1..] by 2)
+		parts = id.split('-')
+		return (part.replace(/_/g, ' ') for part in parts)
 	
 	return (sqlModel) ->
 		tables = sqlModel.tables
@@ -22,9 +20,8 @@ define(['underscore'], (_) ->
 		###
 		addMapping = (resourceName, resourceField, sqlTableName, sqlFieldName) ->
 			resourceToSQLMappings[resourceName][resourceField] = [sqlTableName, sqlFieldName]
-		for id, table of tables
-			idParts = splitID(id)
-			resourceName = (part.replace(/\s/g, '_') for part in idParts).join('-')
+		for resourceName, table of tables
+			idParts = splitID(resourceName)
 			resourceToSQLMappings[resourceName] = {}
 			if _.isString(table)
 				sqlTable = tables[idParts[0]]

@@ -134,7 +134,7 @@ define(['sbvr-parser/SBVRParser', 'data-frame/ClientURIParser', 'Prettify'], (SB
 		window.onhashchange = processHash
 
 		$("#modelArea").change( ->
-			serverRequest("PUT", "/ui/textarea*filt:name=model_area/", {}, [text: sbvrEditor.getValue()])
+			serverRequest("PUT", "/ui/textarea*filt:name=model_area/", {}, [{'textarea.text': sbvrEditor.getValue()}])
 		)
 
 		$("#dialog-message").dialog(
@@ -209,10 +209,13 @@ define(['sbvr-parser/SBVRParser', 'data-frame/ClientURIParser', 'Prettify'], (SB
 	window.transformClient = (model) ->
 		$("#modelArea").attr "disabled", true
 
-		serverRequest "PUT", "/ui/textarea-is_disabled*filt:textarea.name=model_area/", {}, [{text: true}], ->
-			serverRequest "PUT", "/ui/textarea*filt:name=model_area/", {}, [{text: model}], ->
-				serverRequest "POST", "/execute/", {}, null, ->
+		serverRequest("PUT", "/ui/textarea-is_disabled*filt:textarea.name=model_area/", {}, null, ->
+			serverRequest("PUT", "/ui/textarea*filt:name=model_area/", {}, [{'textarea.text': sbvrEditor.getValue()}], ->
+				serverRequest("POST", "/execute/", {}, null, ->
 					setClientOnAir(true)
+				)
+			)
+		)
 
 	window.resetClient = ->
 		serverRequest "DELETE", "/", {}, null, ->

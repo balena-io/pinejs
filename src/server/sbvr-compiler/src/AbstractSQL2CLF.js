@@ -13,21 +13,19 @@
     };
     splitID = function(id) {
       var part, parts;
-      parts = id.split(',');
-      if (parts.length === 1) return parts;
+      parts = id.split('-');
       return (function() {
-        var _i, _len, _ref, _results, _step;
-        _ref = parts.slice(1);
+        var _i, _len, _results;
         _results = [];
-        for (_i = 0, _len = _ref.length, _step = 2; _i < _len; _i += _step) {
-          part = _ref[_i];
-          _results.push(part);
+        for (_i = 0, _len = parts.length; _i < _len; _i++) {
+          part = parts[_i];
+          _results.push(part.replace(/_/g, ' '));
         }
         return _results;
       })();
     };
     return function(sqlModel) {
-      var addMapping, id, idParts, part, resourceField, resourceName, resourceToSQLMappings, resources, sqlField, sqlFieldName, sqlTable, sqlTableName, table, tables, _i, _len, _ref;
+      var addMapping, idParts, resourceField, resourceName, resourceToSQLMappings, resources, sqlField, sqlFieldName, sqlTable, sqlTableName, table, tables, _i, _len, _ref;
       tables = sqlModel.tables;
       resources = {};
       resourceToSQLMappings = {};
@@ -38,18 +36,9 @@
       addMapping = function(resourceName, resourceField, sqlTableName, sqlFieldName) {
         return resourceToSQLMappings[resourceName][resourceField] = [sqlTableName, sqlFieldName];
       };
-      for (id in tables) {
-        table = tables[id];
-        idParts = splitID(id);
-        resourceName = ((function() {
-          var _i, _len, _results;
-          _results = [];
-          for (_i = 0, _len = idParts.length; _i < _len; _i++) {
-            part = idParts[_i];
-            _results.push(part.replace(/\s/g, '_'));
-          }
-          return _results;
-        })()).join('-');
+      for (resourceName in tables) {
+        table = tables[resourceName];
+        idParts = splitID(resourceName);
         resourceToSQLMappings[resourceName] = {};
         if (_.isString(table)) {
           sqlTable = tables[idParts[0]];

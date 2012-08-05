@@ -38,15 +38,16 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 			{this.tables[termName].fields.push(field)},
 		AttrDatabaseIDField :tableID =
 			:idField
-			(	?_.isString(this.tables[tableID])
-			|	{this.tables[tableID].fields.push(['Serial', idField, 'PRIMARY KEY'])}
-				{this.tables[tableID].idField = idField}
+			{this.tables[this.GetResourceName(tableID)]}:table
+			(	?_.isString(table)
+			|	{table.fields.push(['Serial', idField, 'PRIMARY KEY'])}
+				{table.idField = idField}
 			),
 		AttrDatabaseValueField :tableID =
 			:valueField
-			(	?_.isString(this.tables[tableID])
+			{this.tables[this.GetResourceName(tableID)]}:table
+			(	?_.isString(table)
 			|	// Find existing name field and update it if it exists.
-				{this.tables[tableID]}:table
 				(	?(table.hasOwnProperty('valueField'))
 					GetTableFieldID(table, table.valueField):fieldID
 					?(fieldID !== false)
@@ -58,8 +59,9 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 			),
 		AttrDatabaseTableName :tableID =
 			:tableName
-			(	?_.isString(this.tables[tableID])
-			|	{this.tables[tableID].name = tableName}
+			{this.tables[this.GetResourceName(tableID)]}:table
+			(	?_.isString(table)
+			|	{table.name = tableName}
 			),
 		AttrDatabasePrimitive :termName =
 			:attrVal
@@ -67,7 +69,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 		AttrDatabaseAttribute :factType =
 			:attrVal
 			(	?attrVal
-				{this.tables[factType] = 'Attribute'}
+				{this.tables[this.GetResourceName(factType)] = 'Attribute'}
 				GetTableFieldID(this.tables[factType[0][1]], this.tables[factType[2][1]].name):fieldID
 				{this.tables[factType[0][1]].fields[fieldID][0] = this.tables[factType[2][1]].primitive}
 			)?,
@@ -81,7 +83,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 				{this.tables[factType[0][1]].fields[fieldID][0] = 'ForeignKey'}
 			|	{this.tables[factType[0][1]].fields.push(['ForeignKey', this.tables[factType[2][1]].name, type, this.tables[factType[2][1]].idField])}
 			)
-			{this.tables[factType] = 'ForeignKey'},
+			{this.tables[this.GetResourceName(factType)] = 'ForeignKey'},
 		// AttrSynonym :term =
 			// :synonym {this.terms[synonym[1]] = term[1]},
 		AttrSynonymousForm :factType =
@@ -90,7 +92,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 		AttrTermForm :factType =
 			:term
 			{this.terms[term[1]] = factType}
-			{this.tables[term[1]] = this.tables[factType]},
+			{this.tables[term[1]] = this.tables[this.GetResourceName(factType)]},
 			
 			
 		
@@ -98,15 +100,16 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 		FactType =
 			&((:factTypePart &(:attributes) -> factTypePart)+:factType)
 			AddFactType(factType, factType)
+			{this.GetResourceName(factType)}:resourceName
 			(	?(factType.length == 2)
 				// Eat input
 				(:factTypePart &(:attributes))+
 				
 				{this.tables[factType[0][1]].fields.push(['Boolean', factType[1][1]])}
-				{this.tables[factType] = 'BooleanAttribute'}
-			|	{this.tables[factType] = {fields:[], primitive: false, name: null}}
+				{this.tables[resourceName] = 'BooleanAttribute'}
+			|	{this.tables[resourceName] = {fields:[], primitive: false, name: null}}
 				(	['Term' :termName]
-					{this.tables[factType].fields.push(['ForeignKey', this.tables[termName].name, 'NOT NULL', this.tables[termName].idField])}
+					{this.tables[resourceName].fields.push(['ForeignKey', this.tables[termName].name, 'NOT NULL', this.tables[termName].idField])}
 				|	['Verb' :verb]
 				)+
 			)
@@ -153,7 +156,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 
 		LinkTable :actualFactType :rootTerms =
 			{'link' + this.linkTableBind++}:tableAlias
-			{['SelectQuery', ['Select', []], ['From', this.tables[actualFactType].name, tableAlias]]}:query
+			{['SelectQuery', ['Select', []], ['From', this.tables[this.GetResourceName(actualFactType)].name, tableAlias]]}:query
 			{0}:i
 			(	?(i < rootTerms.length)
 				RoleBinding:bind
@@ -164,7 +167,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 			-> ['Exists', query],
 		
 		ForeignKey :actualFactType :rootTerms =
-			?(this.tables[actualFactType] == 'ForeignKey')
+			?(this.tables[this.GetResourceName(actualFactType)] == 'ForeignKey')
 			(	RoleBinding:bindFrom
 				RoleBinding:bindTo
 				end
@@ -175,7 +178,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 			-> ['Equals', ['ReferencedField', 'var' + bindFrom + termFrom, this.tables[termTo].name], ['ReferencedField', 'var' + bindTo + termTo, this.tables[termTo].idField]],
 
 		BooleanAttribute :actualFactType =
-			?(this.tables[actualFactType] == 'BooleanAttribute')
+			?(this.tables[this.GetResourceName(actualFactType)] == 'BooleanAttribute')
 			(	RoleBinding:bindFrom
 				end
 				{actualFactType[0][1]}:termFrom
@@ -186,7 +189,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 			-> ['Equals', ['ReferencedField', 'var' + bindFrom + termFrom, attributeName], ['Boolean', true]],
 
 		Attribute :actualFactType :rootTerms =
-			?(this.tables[actualFactType] == 'Attribute')
+			?(this.tables[this.GetResourceName(actualFactType)] == 'Attribute')
 			{['SelectQuery', ['Select', []]]}:query
 			RoleBinding:bindAttr
 			RoleBinding:bindReal
@@ -275,6 +278,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 					]
 				)+
 			]
+			{{}}:tables
 			-> {tables:this.tables, rules:this.rules}
 	}
 	

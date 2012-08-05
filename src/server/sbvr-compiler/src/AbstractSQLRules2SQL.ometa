@@ -68,6 +68,9 @@ define(['ometa/ometa-base'], function() {
 			[	Fields:fieldValues
 			|	Table:table
 				{tables.push(table)}
+			|	// Ignore a where - we're probably in an Upsert.
+				'Where'
+				anything*
 			]*
 			-> ('INSERT INTO ' + tables.join(', ') + ' (' + fieldValues[0].join(', ') + ')' + indent + ' VALUES (' + fieldValues[1].join(', ') + ')'),
 		

@@ -124,6 +124,19 @@ define(['underscore', 'ometa/ometa-base'], function(_) {
 		return rootTerms;
 	};
 	
+	SBVRLibs.GetResourceName = function(termOrFactType) {
+		var i = 0, resource = [];
+		if(_.isString(termOrFactType)) {
+			return termOrFactType;
+		}
+		else {
+			for(;i < termOrFactType.length; i++) {
+				resource.push(termOrFactType[i][1].replace(new RegExp(' ', 'g'), '_'));
+			}
+			return resource.join('-');
+		}
+	}
+	
 	SBVRLibs.GetTableField = function(table, fieldName) {
 		fieldID = this.GetTableFieldID(table, fieldName);
 		if(fieldID === false) {

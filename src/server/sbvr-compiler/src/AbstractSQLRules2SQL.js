@@ -123,6 +123,17 @@ define(["ometa/ometa-base"], (function() {
                     }), (function() {
                         table = this._apply("Table");
                         return tables.push(table)
+                    }), (function() {
+                        return (function() {
+                            switch (this._apply('anything')) {
+                            case "Where":
+                                return this._many((function() {
+                                    return this._apply("anything")
+                                }));
+                            default:
+                                throw fail
+                            }
+                        }).call(this)
                     }))
                 }))
             }));

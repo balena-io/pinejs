@@ -767,7 +767,7 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 					factTypes: []
 				sqlmod = serverModelCache.getSQL()
 				for key, row of sqlmod.tables
-					if /Term,.*Verb,/.test(key)
+					if /-/.test(key)
 						result.factTypes.push(
 							id: row.name
 							name: row.name

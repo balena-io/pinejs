@@ -140,7 +140,7 @@
       $("#modelArea").change(function() {
         return serverRequest("PUT", "/ui/textarea*filt:name=model_area/", {}, [
           {
-            text: sbvrEditor.getValue()
+            'textarea.text': sbvrEditor.getValue()
           }
         ]);
       });
@@ -221,14 +221,10 @@
     };
     window.transformClient = function(model) {
       $("#modelArea").attr("disabled", true);
-      return serverRequest("PUT", "/ui/textarea-is_disabled*filt:textarea.name=model_area/", {}, [
-        {
-          text: true
-        }
-      ], function() {
+      return serverRequest("PUT", "/ui/textarea-is_disabled*filt:textarea.name=model_area/", {}, null, function() {
         return serverRequest("PUT", "/ui/textarea*filt:name=model_area/", {}, [
           {
-            text: model
+            'textarea.text': sbvrEditor.getValue()
           }
         ], function() {
           return serverRequest("POST", "/execute/", {}, null, function() {

@@ -824,7 +824,7 @@
           _ref = sqlmod.tables;
           for (key in _ref) {
             row = _ref[key];
-            if (/Term,.*Verb,/.test(key)) {
+            if (/-/.test(key)) {
               result.factTypes.push({
                 id: row.name,
                 name: row.name
