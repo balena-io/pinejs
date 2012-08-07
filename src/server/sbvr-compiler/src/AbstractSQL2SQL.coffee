@@ -13,6 +13,10 @@ define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQLOptimise
 					value = parseInt(value, 10)
 					if _.isNaN(value)
 						validated = 'is not a number: ' + originalValue
+				when 'Real'
+					value = parseFloat(value)
+					if _.isNaN(value)
+						validated = 'is not a number: ' + originalValue
 				when 'Short Text'
 					if !_.isString(value)
 						validated = 'is not a string: ' + originalValue
@@ -36,7 +40,9 @@ define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQLOptimise
 		switch dataType
 			when 'Serial'
 				return 'SERIAL ' + necessity
-			when 'Integer'
+			when 'Real'
+				return 'REAL ' + necessity
+			when 'Integer', 'ForeignKey', 'ConceptType'
 				return 'INTEGER ' + necessity
 			when 'Short Text'
 				return 'VARCHAR(20) ' + necessity
@@ -44,8 +50,6 @@ define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQLOptimise
 				return 'TEXT ' + necessity
 			when 'Boolean'
 				return 'INTEGER NOT NULL DEFAULT 0'
-			when 'ForeignKey', 'ConceptType'
-				return 'INTEGER ' + necessity
 			when 'Value'
 				return 'VARCHAR(100) NOT NULL'
 			else
@@ -55,7 +59,9 @@ define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQLOptimise
 		switch dataType
 			when 'Serial'
 				return 'INTEGER ' + necessity + ' AUTOINCREMENT'
-			when 'Integer'
+			when 'Real'
+				return 'REAL ' + necessity
+			when 'Integer', 'ForeignKey', 'ConceptType'
 				return 'INTEGER ' + necessity
 			when 'Short Text'
 				return 'VARCHAR(20) ' + necessity
@@ -63,8 +69,6 @@ define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQLOptimise
 				return 'TEXT ' + necessity
 			when 'Boolean'
 				return 'INTEGER NOT NULL DEFAULT 0'
-			when 'ForeignKey', 'ConceptType'
-				return 'INTEGER ' + necessity
 			when 'Value'
 				return 'VARCHAR(100)' + necessity
 			else

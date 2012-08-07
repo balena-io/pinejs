@@ -4,7 +4,8 @@ define(["underscore", "ometa/ometa-base"], (function(_) {
         var primitives = ({
             "Integer": true,
             "Short Text": true,
-            "Long Text": true
+            "Long Text": true,
+            "Real": true
         })
     };
     SBVRLibs = objectThatDelegatesTo(OMeta, {});

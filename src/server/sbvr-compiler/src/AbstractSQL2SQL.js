@@ -22,6 +22,10 @@
             value = parseInt(value, 10);
             if (_.isNaN(value)) validated = 'is not a number: ' + originalValue;
             break;
+          case 'Real':
+            value = parseFloat(value);
+            if (_.isNaN(value)) validated = 'is not a number: ' + originalValue;
+            break;
           case 'Short Text':
             if (!_.isString(value)) {
               validated = 'is not a string: ' + originalValue;
@@ -57,7 +61,11 @@
       switch (dataType) {
         case 'Serial':
           return 'SERIAL ' + necessity;
+        case 'Real':
+          return 'REAL ' + necessity;
         case 'Integer':
+        case 'ForeignKey':
+        case 'ConceptType':
           return 'INTEGER ' + necessity;
         case 'Short Text':
           return 'VARCHAR(20) ' + necessity;
@@ -65,9 +73,6 @@
           return 'TEXT ' + necessity;
         case 'Boolean':
           return 'INTEGER NOT NULL DEFAULT 0';
-        case 'ForeignKey':
-        case 'ConceptType':
-          return 'INTEGER ' + necessity;
         case 'Value':
           return 'VARCHAR(100) NOT NULL';
         default:
@@ -78,7 +83,11 @@
       switch (dataType) {
         case 'Serial':
           return 'INTEGER ' + necessity + ' AUTOINCREMENT';
+        case 'Real':
+          return 'REAL ' + necessity;
         case 'Integer':
+        case 'ForeignKey':
+        case 'ConceptType':
           return 'INTEGER ' + necessity;
         case 'Short Text':
           return 'VARCHAR(20) ' + necessity;
@@ -86,9 +95,6 @@
           return 'TEXT ' + necessity;
         case 'Boolean':
           return 'INTEGER NOT NULL DEFAULT 0';
-        case 'ForeignKey':
-        case 'ConceptType':
-          return 'INTEGER ' + necessity;
         case 'Value':
           return 'VARCHAR(100)' + necessity;
         default:

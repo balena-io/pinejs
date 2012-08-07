@@ -2,7 +2,8 @@ define(['underscore', 'ometa/ometa-base'], function(_) {
 	var SBVRLibs, primitives = {
 		'Integer': true,
 		'Short Text': true,
-		'Long Text': true
+		'Long Text': true,
+		'Real': true
 	};
 	
 	ometa SBVRLibs {}
