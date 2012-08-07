@@ -34,7 +34,7 @@
 	requireCSS('jquery-ui');
 	requirejs({
 		paths: {
-			// jquery:						rootPath + 'external/jquery-1.7.1.min'
+			// 'jquery':					rootPath + 'external/jquery-1.7.1.min',
 			'jquery':					'https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min',
 			'jquery-ui':				rootPath + 'external/jquery-ui/js/jquery-ui-1.8.17.custom.min',
 			'jquery-custom-file-input':	rootPath + 'external/jquery-custom-file-input',
