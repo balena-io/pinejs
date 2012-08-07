@@ -22,6 +22,14 @@
             value = parseInt(value, 10);
             if (_.isNaN(value)) validated = 'is not a number: ' + originalValue;
             break;
+          case 'Date':
+          case 'Date Time':
+          case 'Time':
+            value = Date.parse(value);
+            if (_.isNaN(value)) {
+              validated = 'is not a ' + field[0] + ': ' + originalValue;
+            }
+            break;
           case 'Real':
             value = parseFloat(value);
             if (_.isNaN(value)) validated = 'is not a number: ' + originalValue;
@@ -61,6 +69,12 @@
       switch (dataType) {
         case 'Serial':
           return 'SERIAL ' + necessity;
+        case 'Date':
+          return 'DATE ' + necessity;
+        case 'Date Time':
+          return 'TIMESTAMP ' + necessity;
+        case 'Time':
+          return 'TIME ' + necessity;
         case 'Real':
           return 'REAL ' + necessity;
         case 'Integer':
@@ -83,6 +97,12 @@
       switch (dataType) {
         case 'Serial':
           return 'INTEGER ' + necessity + ' AUTOINCREMENT';
+        case 'Date':
+          return 'TEXT ' + necessity;
+        case 'Date Time':
+          return 'TEXT ' + necessity;
+        case 'Time':
+          return 'TEXT ' + necessity;
         case 'Real':
           return 'REAL ' + necessity;
         case 'Integer':
