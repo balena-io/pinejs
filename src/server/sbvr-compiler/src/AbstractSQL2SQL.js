@@ -30,6 +30,10 @@
               validated = 'is not a ' + field[0] + ': ' + originalValue;
             }
             break;
+          case 'Interval':
+            value = parseInt(value, 10);
+            if (_.isNaN(value)) validated = 'is not a number: ' + originalValue;
+            break;
           case 'Real':
             value = parseFloat(value);
             if (_.isNaN(value)) validated = 'is not a number: ' + originalValue;
@@ -75,6 +79,8 @@
           return 'TIMESTAMP ' + necessity;
         case 'Time':
           return 'TIME ' + necessity;
+        case 'Interval':
+          return 'Interval ' + necessity;
         case 'Real':
           return 'REAL ' + necessity;
         case 'Integer':
@@ -103,6 +109,8 @@
           return 'TEXT ' + necessity;
         case 'Time':
           return 'TEXT ' + necessity;
+        case 'Interval':
+          return 'INTEGER ' + necessity;
         case 'Real':
           return 'REAL ' + necessity;
         case 'Integer':

@@ -8,7 +8,8 @@ define(["underscore", "ometa/ometa-base"], (function(_) {
             "Real": true,
             "Date": true,
             "Date Time": true,
-            "Time": true
+            "Time": true,
+            "Interval": true
         })
     };
     SBVRLibs = objectThatDelegatesTo(OMeta, {});

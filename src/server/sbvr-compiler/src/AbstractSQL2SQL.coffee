@@ -17,6 +17,10 @@ define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQLOptimise
 					value = Date.parse(value)
 					if _.isNaN(value)
 						validated = 'is not a ' + field[0] + ': ' + originalValue
+				when 'Interval'
+					value = parseInt(value, 10)
+					if _.isNaN(value)
+						validated = 'is not a number: ' + originalValue
 				when 'Real'
 					value = parseFloat(value)
 					if _.isNaN(value)
@@ -50,6 +54,8 @@ define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQLOptimise
 				return 'TIMESTAMP ' + necessity
 			when 'Time'
 				return 'TIME ' + necessity
+			when 'Interval'
+				return 'Interval ' + necessity
 			when 'Real'
 				return 'REAL ' + necessity
 			when 'Integer', 'ForeignKey', 'ConceptType'
@@ -75,6 +81,8 @@ define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQLOptimise
 				return 'TEXT ' + necessity
 			when 'Time'
 				return 'TEXT ' + necessity
+			when 'Interval'
+				return 'INTEGER ' + necessity
 			when 'Real'
 				return 'REAL ' + necessity
 			when 'Integer', 'ForeignKey', 'ConceptType'
