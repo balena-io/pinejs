@@ -262,8 +262,8 @@ define(['ometa/ometa-base'], function() {
 			-> (val + ' BETWEEN ' + a + ' AND ' + b),
 		
 		Comparator :indent =
-				SelectQuery(indent):query
 				NestedIndent(indent):nestedIndent
+				SelectQuery(nestedIndent):query
 				-> ('(' + nestedIndent + query + indent + ')')
 			|	Field
 			|	ReferencedField

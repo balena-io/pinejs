@@ -478,10 +478,10 @@ define(["ometa/ometa-base"], (function() {
         "Comparator": function(indent) {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                query, nestedIndent;
+                nestedIndent, query;
             return this._or((function() {
-                query = this._applyWithArgs("SelectQuery", indent);
                 nestedIndent = this._applyWithArgs("NestedIndent", indent);
+                query = this._applyWithArgs("SelectQuery", nestedIndent);
                 return (((("(" + nestedIndent) + query) + indent) + ")")
             }), (function() {
                 return this._apply("Field")
