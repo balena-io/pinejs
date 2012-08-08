@@ -152,7 +152,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 				['Term' :termName]
 				:bind
 			]
-			-> bind,
+			-> [termName, bind],
 
 		LinkTable :actualFactType :rootTerms =
 			{'link' + this.linkTableBind++}:tableAlias
@@ -161,7 +161,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 			(	?(i < rootTerms.length)
 				RoleBinding:bind
 				{rootTerms[i]}:termName
-				AddWhereClause(query, ['Equals', ['ReferencedField', tableAlias, this.tables[termName].name], ['ReferencedField', 'var' + bind + termName, this.tables[termName].idField]])
+				AddWhereClause(query, ['Equals', ['ReferencedField', tableAlias, this.tables[termName].name], ['ReferencedField', 'var' + bind[1] + termName, this.tables[termName].idField]])
 				{i++}
 			)+
 			-> ['Exists', query],
@@ -171,11 +171,18 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 			(	RoleBinding:bindFrom
 				RoleBinding:bindTo
 				end
-				{rootTerms[0]}:termFrom
-				{rootTerms[1]}:termTo
+				(	?this.IsChild(bindFrom[0], actualFactType[0])
+					{rootTerms[0]}:termFrom
+					{rootTerms[1]}:termTo
+				|	{bindTo}:temp
+					{bindFrom}:bindTo
+					{temp}:bindFrom
+					{rootTerms[1]}:termFrom
+					{rootTerms[0]}:termTo
+				)
 			|	___ForeignKeyMatchingFailed___.die
 			)
-			-> ['Equals', ['ReferencedField', 'var' + bindFrom + termFrom, this.tables[termTo].name], ['ReferencedField', 'var' + bindTo + termTo, this.tables[termTo].idField]],
+			-> ['Equals', ['ReferencedField', 'var' + bindFrom[1] + termFrom, this.tables[termTo].name], ['ReferencedField', 'var' + bindTo[1] + termTo, this.tables[termTo].idField]],
 
 		BooleanAttribute :actualFactType =
 			?(this.tables[this.GetResourceName(actualFactType)] == 'BooleanAttribute')
@@ -186,17 +193,24 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 			|	{console.error(this.input)}
 				___BooleanAttributeMatchingFailed___.die
 			)
-			-> ['Equals', ['ReferencedField', 'var' + bindFrom + termFrom, attributeName], ['Boolean', true]],
+			-> ['Equals', ['ReferencedField', 'var' + bindFrom[1] + termFrom, attributeName], ['Boolean', true]],
 
 		Attribute :actualFactType :rootTerms =
 			?(this.tables[this.GetResourceName(actualFactType)] == 'Attribute')
 			{['SelectQuery', ['Select', []]]}:query
-			RoleBinding:bindAttr
 			RoleBinding:bindReal
+			RoleBinding:bindAttr
 			end
-			{rootTerms[0]}:termNameAttr
-			{rootTerms[1]}:termNameReal
-			AddWhereClause(query, ['Equals', ['ReferencedField', 'var' + bindAttr + termNameReal, this.tables[termNameAttr].name], ['ReferencedField', 'var' + bindReal + termNameReal, this.tables[termNameAttr].name]])
+			(	?this.IsChild(bindReal[0], actualFactType[0])
+				{rootTerms[0]}:termNameReal
+				{rootTerms[1]}:termNameAttr
+			|	{bindAttr}:temp
+				{bindReal}:bindAttr
+				{temp}:bindReal
+				{rootTerms[1]}:termNameReal
+				{rootTerms[0]}:termNameAttr
+			)
+			AddWhereClause(query, ['Equals', ['ReferencedField', 'var' + bindAttr[1] + termNameReal, this.tables[termNameAttr].name], ['ReferencedField', 'var' + bindReal[1] + termNameReal, this.tables[termNameAttr].name]])
 			-> ['Exists', query],
 		
 		AtomicFormulation =

@@ -279,7 +279,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                 }));
                 return bind = this._apply("anything")
             }));
-            return bind
+            return [termName, bind]
         },
         "LinkTable": function(actualFactType, rootTerms) {
             var $elf = this,
@@ -295,7 +295,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                 bind = this._apply("RoleBinding");
                 termName = rootTerms[i];
                 this._applyWithArgs("AddWhereClause", query, ["Equals", ["ReferencedField", tableAlias, this["tables"][termName]["name"]],
-                    ["ReferencedField", (("var" + bind) + termName), this["tables"][termName]["idField"]]
+                    ["ReferencedField", (("var" + bind[(1)]) + termName), this["tables"][termName]["idField"]]
                 ]);
                 return i++
             }));
@@ -304,18 +304,27 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
         "ForeignKey": function(actualFactType, rootTerms) {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                bindFrom, bindTo, termFrom, termTo;
+                bindFrom, bindTo, termFrom, termTo, temp;
             this._pred((this["tables"][this.GetResourceName(actualFactType)] == "ForeignKey"));
             this._or((function() {
                 bindFrom = this._apply("RoleBinding");
                 bindTo = this._apply("RoleBinding");
                 this._apply("end");
-                termFrom = rootTerms[(0)];
-                return termTo = rootTerms[(1)]
+                return this._or((function() {
+                    this._pred(this.IsChild(bindFrom[(0)], actualFactType[(0)]));
+                    termFrom = rootTerms[(0)];
+                    return termTo = rootTerms[(1)]
+                }), (function() {
+                    temp = bindTo;
+                    bindTo = bindFrom;
+                    bindFrom = temp;
+                    termFrom = rootTerms[(1)];
+                    return termTo = rootTerms[(0)]
+                }))
             }), (function() {
                 return this._applyWithArgs("foreign", ___ForeignKeyMatchingFailed___, 'die')
             }));
-            return ["Equals", ["ReferencedField", (("var" + bindFrom) + termFrom), this["tables"][termTo]["name"]], ["ReferencedField", (("var" + bindTo) + termTo), this["tables"][termTo]["idField"]]]
+            return ["Equals", ["ReferencedField", (("var" + bindFrom[(1)]) + termFrom), this["tables"][termTo]["name"]], ["ReferencedField", (("var" + bindTo[(1)]) + termTo), this["tables"][termTo]["idField"]]]
         },
         "BooleanAttribute": function(actualFactType) {
             var $elf = this,
@@ -331,21 +340,30 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                 console.error(this["input"]);
                 return this._applyWithArgs("foreign", ___BooleanAttributeMatchingFailed___, 'die')
             }));
-            return ["Equals", ["ReferencedField", (("var" + bindFrom) + termFrom), attributeName], ["Boolean", true]]
+            return ["Equals", ["ReferencedField", (("var" + bindFrom[(1)]) + termFrom), attributeName], ["Boolean", true]]
         },
         "Attribute": function(actualFactType, rootTerms) {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                query, bindAttr, bindReal, termNameAttr, termNameReal;
+                query, bindReal, bindAttr, termNameReal, termNameAttr, temp;
             this._pred((this["tables"][this.GetResourceName(actualFactType)] == "Attribute"));
             query = ["SelectQuery", ["Select", []]];
-            bindAttr = this._apply("RoleBinding");
             bindReal = this._apply("RoleBinding");
+            bindAttr = this._apply("RoleBinding");
             this._apply("end");
-            termNameAttr = rootTerms[(0)];
-            termNameReal = rootTerms[(1)];
-            this._applyWithArgs("AddWhereClause", query, ["Equals", ["ReferencedField", (("var" + bindAttr) + termNameReal), this["tables"][termNameAttr]["name"]],
-                ["ReferencedField", (("var" + bindReal) + termNameReal), this["tables"][termNameAttr]["name"]]
+            this._or((function() {
+                this._pred(this.IsChild(bindReal[(0)], actualFactType[(0)]));
+                termNameReal = rootTerms[(0)];
+                return termNameAttr = rootTerms[(1)]
+            }), (function() {
+                temp = bindAttr;
+                bindAttr = bindReal;
+                bindReal = temp;
+                termNameReal = rootTerms[(1)];
+                return termNameAttr = rootTerms[(0)]
+            }));
+            this._applyWithArgs("AddWhereClause", query, ["Equals", ["ReferencedField", (("var" + bindAttr[(1)]) + termNameReal), this["tables"][termNameAttr]["name"]],
+                ["ReferencedField", (("var" + bindReal[(1)]) + termNameReal), this["tables"][termNameAttr]["name"]]
             ]);
             return ["Exists", query]
         },
