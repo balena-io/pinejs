@@ -198,17 +198,19 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 		Attribute :actualFactType :rootTerms =
 			?(this.tables[this.GetResourceName(actualFactType)] == 'Attribute')
 			{['SelectQuery', ['Select', []]]}:query
-			RoleBinding:bindReal
-			RoleBinding:bindAttr
-			end
-			(	?this.IsChild(bindReal[0], actualFactType[0])
-				{rootTerms[0]}:termNameReal
-				{rootTerms[1]}:termNameAttr
-			|	{bindAttr}:temp
-				{bindReal}:bindAttr
-				{temp}:bindReal
-				{rootTerms[1]}:termNameReal
-				{rootTerms[0]}:termNameAttr
+			(	RoleBinding:bindReal
+				RoleBinding:bindAttr
+				end
+				(	?this.IsChild(bindReal[0], actualFactType[0])
+					{rootTerms[0]}:termNameReal
+					{rootTerms[1]}:termNameAttr
+				|	{bindAttr}:temp
+					{bindReal}:bindAttr
+					{temp}:bindReal
+					{rootTerms[1]}:termNameReal
+					{rootTerms[0]}:termNameAttr
+				)
+				|	___AttributeMatchingFailed___.die
 			)
 			AddWhereClause(query, ['Equals', ['ReferencedField', 'var' + bindAttr[1] + termNameReal, this.tables[termNameAttr].name], ['ReferencedField', 'var' + bindReal[1] + termNameReal, this.tables[termNameAttr].name]])
 			-> ['Exists', query],

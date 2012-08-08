@@ -348,19 +348,23 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                 query, bindReal, bindAttr, termNameReal, termNameAttr, temp;
             this._pred((this["tables"][this.GetResourceName(actualFactType)] == "Attribute"));
             query = ["SelectQuery", ["Select", []]];
-            bindReal = this._apply("RoleBinding");
-            bindAttr = this._apply("RoleBinding");
-            this._apply("end");
             this._or((function() {
-                this._pred(this.IsChild(bindReal[(0)], actualFactType[(0)]));
-                termNameReal = rootTerms[(0)];
-                return termNameAttr = rootTerms[(1)]
+                bindReal = this._apply("RoleBinding");
+                bindAttr = this._apply("RoleBinding");
+                this._apply("end");
+                return this._or((function() {
+                    this._pred(this.IsChild(bindReal[(0)], actualFactType[(0)]));
+                    termNameReal = rootTerms[(0)];
+                    return termNameAttr = rootTerms[(1)]
+                }), (function() {
+                    temp = bindAttr;
+                    bindAttr = bindReal;
+                    bindReal = temp;
+                    termNameReal = rootTerms[(1)];
+                    return termNameAttr = rootTerms[(0)]
+                }))
             }), (function() {
-                temp = bindAttr;
-                bindAttr = bindReal;
-                bindReal = temp;
-                termNameReal = rootTerms[(1)];
-                return termNameAttr = rootTerms[(0)]
+                return this._applyWithArgs("foreign", ___AttributeMatchingFailed___, 'die')
             }));
             this._applyWithArgs("AddWhereClause", query, ["Equals", ["ReferencedField", (("var" + bindAttr[(1)]) + termNameReal), this["tables"][termNameAttr]["name"]],
                 ["ReferencedField", (("var" + bindReal[(1)]) + termNameReal), this["tables"][termNameAttr]["name"]]
