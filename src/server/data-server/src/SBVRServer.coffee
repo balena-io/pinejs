@@ -85,31 +85,6 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 		if factType.length == 1
 			return factType[0][1]
 		return factType
-	
-	getCorrectTableInfo = (termOrFactType) ->
-		getAttributeInfo = (sqlmod) ->
-			isAttribute = false
-			switch sqlmod.tables[termOrFactType]
-				when 'BooleanAttribute'
-					isAttribute = {termName: termOrFactType[0][1], attributeName: termOrFactType[1][1]}
-					table = sqlmod.tables[isAttribute.termName]
-				when 'Attribute'
-					isAttribute = {termName: termOrFactType[0][1], attributeName: sqlmod.tables[termOrFactType[2][1]].name}
-					table = sqlmod.tables[isAttribute.termName]
-				else
-					table = sqlmod.tables[termOrFactType]
-			return {table, isAttribute}
-			
-		sqlmod = serverModelCache.getSQL()
-		termOrFactType = rebuildFactType(termOrFactType)
-		if sqlmod.tables.hasOwnProperty(termOrFactType)
-			return getAttributeInfo(sqlmod)
-		# Transaction model..
-		else if transactionModel.tables.hasOwnProperty(termOrFactType)
-			return getAttributeInfo(transactionModel)
-		else
-			console.error('Could not find table')
-			__DIE__.die()
 
 	# serverModelCache needs to be called after 'db' has been assigned in order to set itself up. 
 	serverModelCache = () ->
@@ -184,58 +159,53 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 
 
 
-	endLock = (tx, locks, i, trans_id, successCallback, failureCallback) ->
-		continueEndingLock = (tx) ->
-			if i < locks.rows.length - 1
-				endLock(tx, locks, i + 1, trans_id, successCallback, failureCallback)
-			else
+	endLock = (tx, locks, trans_id, successCallback, failureCallback) ->
+		locksCallback = createAsyncQueueCallback(
+			() ->
 				tx.executeSql('DELETE FROM "transaction" WHERE "id" = ?;', [trans_id],
 					(tx, result) ->
 						validateDB(tx, serverModelCache.getSQL(), successCallback, failureCallback)
 					(tx, error) ->
 						failureCallback(tx, [error])
 				)
-
-		# get conditional representations (if exist)
-		lock_id = locks.rows.item(i).lock
-		tx.executeSql('SELECT * FROM "conditional_representation" WHERE "lock" = ?;', [lock_id], (tx, crs) ->
-			# find which resource is under this lock
-			tx.executeSql('SELECT r."resource_type", r."resource_id" FROM "resource-is_under-lock" rl JOIN "resource" r ON rl."resource" = r."id" WHERE "lock" = ?;', [lock_id], (tx, locked) ->
-				lockedRow = locked.rows.item(0)
-				{table, isAttribute} = getCorrectTableInfo(lockedRow.resource_type)
-				asyncCallback = createAsyncQueueCallback(
-					() -> continueEndingLock(tx)
-					(errors) -> failureCallback(tx, errors)
-				)
-				if crs.rows.item(0).field_name == "__DELETE"
-					# delete said resource
-					if isAttribute
-						sql = 'UPDATE "' + table.name + '" SET "' + isAttribute.attributeName + '" = 0 WHERE "' + table.idField + '" = ?;'
-					else
-						sql = 'DELETE FROM "' + table.name + '" WHERE "' + table.idField + '" = ?;'
-				else
-					# commit conditional_representation
-					sql = 'UPDATE "' + table.name + '" SET '
-
-					for j in [0...crs.rows.length]
-						item = crs.rows.item(j)
-						sql += '"' + item.field_name + '"='
-						if item.field_type == "string"
-							sql += '"' + item.field_value + '"'
-						else
-							sql += item.field_value
-						sql += ", " if j < crs.rows.length - 1
-					sql += ' WHERE "' + table.idField + '" = ? ;'
-				asyncCallback.addWork(3)
-				tx.executeSql(sql, [lockedRow.resource_id], asyncCallback.successCallback, asyncCallback.errorCallback)
-				tx.executeSql('DELETE FROM "conditional_representation" WHERE "lock" = ?;', [lock_id], asyncCallback.successCallback, asyncCallback.errorCallback)
-				tx.executeSql('DELETE FROM "resource-is_under-lock" WHERE "lock" = ?;', [lock_id], asyncCallback.successCallback, asyncCallback.errorCallback)
-				asyncCallback.endAdding()
-			)
+			(errors) -> failureCallback(tx, errors)
 		)
 
-		tx.executeSql 'DELETE FROM "lock-belongs_to-transaction" WHERE "lock" = ?;', [lock_id]
-		tx.executeSql 'DELETE FROM "lock" WHERE "id" = ?;', [lock_id]
+		# get conditional representations (if exist)
+		for i in [0...locks.rows.length]
+			lock_id = locks.rows.item(i).lock
+			locksCallback.addWork(3)
+			tx.executeSql('SELECT * FROM "conditional_representation" WHERE "lock" = ?;', [lock_id], (tx, crs) ->
+				# find which resource is under this lock
+				tx.executeSql('SELECT r."resource_type", r."resource_id" FROM "resource-is_under-lock" rl JOIN "resource" r ON rl."resource" = r."id" WHERE "lock" = ?;', [lock_id], (tx, locked) ->
+					lockedRow = locked.rows.item(0)
+					asyncCallback = createAsyncQueueCallback(
+						locksCallback.successCallback
+						locksCallback.failureCallback
+					)
+					asyncCallback.addWork(3)
+					tx.executeSql('DELETE FROM "conditional_representation" WHERE "lock" = ?;', [lock_id], asyncCallback.successCallback, asyncCallback.errorCallback)
+					tx.executeSql('DELETE FROM "resource-is_under-lock" WHERE "lock" = ?;', [lock_id], asyncCallback.successCallback, asyncCallback.errorCallback)
+					requestBody = [{}]
+					if crs.rows.item(0).field_name == "__DELETE"
+						# delete said resource
+						method = 'DELETE'
+					else
+						# commit conditional_representation
+						method = 'PUT'
+						for j in [0...crs.rows.length]
+							item = crs.rows.item(j)
+							requestBody[0][item.field_name] = item.field_value
+					clientModel = clientModels['data'].resources[lockedRow.resource_type]
+					uri = '/data/' + lockedRow.resource_type + '*filt:' + clientModel.idField + '=' + lockedRow.resource_id
+					runURI(method, uri, requestBody, tx, asyncCallback.successCallback, asyncCallback.errorCallback)
+					asyncCallback.endAdding()
+				)
+			)
+
+			tx.executeSql('DELETE FROM "lock-belongs_to-transaction" WHERE "lock" = ?;', [lock_id], locksCallback.successCallback, locksCallback.errorCallback)
+			tx.executeSql('DELETE FROM "lock" WHERE "id" = ?;', [lock_id], locksCallback.successCallback, locksCallback.errorCallback)
+		locksCallback.endAdding()
 
 	# successCallback = (tx, sqlmod, failureCallback, result)
 	# failureCallback = (tx, errors)
@@ -283,7 +253,7 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 					return comparison[2][1]
 		return id
 	
-	runURI = (method, uri, body = {}, successCallback, failureCallback) ->
+	runURI = (method, uri, body = {}, tx, successCallback, failureCallback) ->
 		console.log('Running URI', method, uri, body)
 		req =
 			tree: serverURIParser.match([method, body, uri], 'Process')
@@ -298,13 +268,13 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 				successCallback?(data)
 		switch method
 			when 'GET'
-				runGet(req,res)
+				runGet(req, res, tx)
 			when 'POST'
-				runPost(req,res)
+				runPost(req, res, tx)
 			when 'PUT'
-				runPut(req,res)
+				runPut(req, res, tx)
 			when 'DELETE'
-				runDelete(req,res)
+				runDelete(req, res, tx)
 	
 	getAndCheckBindValues = (bindings, values) ->
 		bindValues = []
@@ -319,7 +289,7 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 			bindValues.push(value)
 		return bindValues
 	
-	runGet = (req, res) ->
+	runGet = (req, res, tx) ->
 		tree = req.tree
 		if tree[2] == undefined
 			res.send(404)
@@ -330,7 +300,7 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 			if !_.isArray(values)
 				res.json(values, 404)
 			else
-				db.transaction( (tx) ->
+				runQuery = (tx) ->
 					tx.executeSql(query, values,
 						(tx, result) ->
 							if values.length > 0 && result.rows.length == 0
@@ -347,7 +317,10 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 						() ->
 							res.send(404)
 					)
-				)
+				if tx?
+					runQuery(tx)
+				else
+					db.transaction(runQuery)
 		else
 			clientModel = clientModels[tree[1][1]]
 			data =
@@ -355,7 +328,7 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 					clientModel.resources[tree[2].resourceName]
 			res.json(data)
 	
-	runPost = (req, res) ->
+	runPost = (req, res, tx) ->
 		tree = req.tree
 		if tree[2] == undefined
 			res.send(404)
@@ -367,7 +340,7 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 				res.json(values, 404)
 			else
 				vocab = tree[1][1]
-				db.transaction( (tx) ->
+				runQuery = (tx) ->
 					tx.begin()
 					# TODO: Check for transaction locks.
 					tx.executeSql(query, values,
@@ -385,9 +358,12 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 							)
 						() -> res.send(404)
 					)
-				)
+				if tx?
+					runQuery(tx)
+				else
+					db.transaction(runQuery)
 	
-	runPut = (req, res) ->
+	runPut = (req, res, tx) ->
 		tree = req.tree
 		if tree[2] == undefined
 			res.send(404)
@@ -417,7 +393,7 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 					)
 				
 				id = getID(tree)
-				db.transaction( (tx) ->
+				runQuery = (tx) ->
 					tx.begin()
 					db.transaction( (tx) ->
 						tx.executeSql('SELECT NOT EXISTS(SELECT 1 FROM "resource" r JOIN "resource-is_under-lock" AS rl ON rl."resource" = r."id" WHERE r."resource_type" = ? AND r."id" = ?) AS result;', [tree[2].resourceName, id],
@@ -443,9 +419,12 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 									)
 						)
 					)
-				)
+				if tx?
+					runQuery(tx)
+				else
+					db.transaction(runQuery)
 	
-	runDelete = (req, res) ->
+	runDelete = (req, res, tx) ->
 		tree = req.tree
 		if tree[2] == undefined
 			res.send(404)
@@ -457,8 +436,7 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 				res.json(values, 404)
 			else
 				vocab = tree[1][1]
-				
-				db.transaction( (tx) ->
+				runQuery = (tx) ->
 					tx.begin()
 					tx.executeSql(query, values,
 						(tx, result) ->
@@ -472,7 +450,10 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 						() ->
 							res.send(404)
 					)
-				)
+				if tx?
+					runQuery(tx)
+				else
+					db.transaction(runQuery)
 
 	# Middleware
 	serverIsOnAir = (req, res, next) ->
@@ -547,7 +528,7 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 		app.get('/sqlmodel',	serverIsOnAir,	(req, res, next) -> res.json(serverModelCache.getSQL()))
 		app.post('/update',		serverIsOnAir,	(req, res, next) -> res.send(404))
 		app.post('/execute',					(req, res, next) ->
-			runURI('GET', '/ui/textarea*filt:name=model_area', null,
+			runURI('GET', '/ui/textarea*filt:name=model_area', null, null,
 				(result) ->
 					se = result.instances[0].text
 					try
@@ -564,7 +545,7 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 						tx.begin()
 						executeSqlModel(tx, sqlModel,
 							(tx) ->
-								runURI('PUT', '/ui/textarea-is_disabled*filt:textarea.name=model_area/', [{value: true}])
+								runURI('PUT', '/ui/textarea-is_disabled*filt:textarea.name=model_area/', [{value: true}], tx)
 								serverModelCache.setServerOnAir(true)
 								serverModelCache.setLastSE(se)
 								serverModelCache.setLF(lfmod)
@@ -709,7 +690,7 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 			# get all locks of transaction
 			db.transaction ((tx) ->
 				tx.executeSql('SELECT * FROM "lock-belongs_to-transaction" WHERE "transaction" = ?;', [id], (tx, locks) ->
-					endLock(tx, locks, 0, id, (tx) ->
+					endLock(tx, locks, id, (tx) ->
 						res.send(200)
 					, (tx, errors) ->
 						res.json(errors, 404)

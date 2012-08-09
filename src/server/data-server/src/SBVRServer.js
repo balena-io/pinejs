@@ -3,7 +3,7 @@
   var __hasProp = {}.hasOwnProperty;
 
   define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-compiler/LF2AbstractSQL', 'sbvr-compiler/AbstractSQL2SQL', 'sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQL2CLF', 'data-server/ServerURIParser', 'underscore', 'utils/createAsyncQueueCallback'], function(SBVRParser, LF2AbstractSQLPrep, LF2AbstractSQL, AbstractSQL2SQL, AbstractSQLRules2SQL, AbstractSQL2CLF, ServerURIParser, _, createAsyncQueueCallback) {
-    var clientModels, db, endLock, executeSqlModel, exports, getAndCheckBindValues, getCorrectTableInfo, getID, op, parseURITree, rebuildFactType, runDelete, runGet, runPost, runPut, runURI, serverIsOnAir, serverModelCache, serverURIParser, sqlModels, transactionModel, uiModel, validateDB;
+    var clientModels, db, endLock, executeSqlModel, exports, getAndCheckBindValues, getID, op, parseURITree, rebuildFactType, runDelete, runGet, runPost, runPut, runURI, serverIsOnAir, serverModelCache, serverURIParser, sqlModels, transactionModel, uiModel, validateDB;
     exports = {};
     db = null;
     transactionModel = 'Term:      Integer\nTerm:      Long Text\nTerm:      resource id\n	Concept type: Integer\nTerm:      resource type\n	Concept type: Long Text\nTerm:      field name\n	Concept type: Long Text\nTerm:      field value\n	Concept type: Long Text\nTerm:      field type\n	Concept type: Long Text\nTerm:      resource\n	Database Value Field: resource_id\nFact type: resource has resource id\nFact type: resource has resource type\nRule:      It is obligatory that each resource has exactly 1 resource type\nRule:      It is obligatory that each resource has exactly 1 resource id\nTerm:      transaction\nTerm:      lock\nTerm:      conditional representation\n	Database Value Field: lock\nFact type: lock is exclusive\nFact type: lock is shared\nFact type: resource is under lock\nFact type: lock belongs to transaction\nFact type: conditional representation has field name\nFact type: conditional representation has field value\nFact type: conditional representation has field type\nFact type: conditional representation has lock\nRule:      It is obligatory that each conditional representation has exactly 1 field name\nRule:      It is obligatory that each conditional representation has exactly 1 field value\nRule:      It is obligatory that each conditional representation has exactly 1 field type\nRule:      It is obligatory that each conditional representation has exactly 1 lock\nRule:      It is obligatory that each resource is under at most 1 lock that is exclusive';
@@ -40,45 +40,6 @@
         return factType[0][1];
       }
       return factType;
-    };
-    getCorrectTableInfo = function(termOrFactType) {
-      var getAttributeInfo, sqlmod;
-      getAttributeInfo = function(sqlmod) {
-        var isAttribute, table;
-        isAttribute = false;
-        switch (sqlmod.tables[termOrFactType]) {
-          case 'BooleanAttribute':
-            isAttribute = {
-              termName: termOrFactType[0][1],
-              attributeName: termOrFactType[1][1]
-            };
-            table = sqlmod.tables[isAttribute.termName];
-            break;
-          case 'Attribute':
-            isAttribute = {
-              termName: termOrFactType[0][1],
-              attributeName: sqlmod.tables[termOrFactType[2][1]].name
-            };
-            table = sqlmod.tables[isAttribute.termName];
-            break;
-          default:
-            table = sqlmod.tables[termOrFactType];
-        }
-        return {
-          table: table,
-          isAttribute: isAttribute
-        };
-      };
-      sqlmod = serverModelCache.getSQL();
-      termOrFactType = rebuildFactType(termOrFactType);
-      if (sqlmod.tables.hasOwnProperty(termOrFactType)) {
-        return getAttributeInfo(sqlmod);
-      } else if (transactionModel.tables.hasOwnProperty(termOrFactType)) {
-        return getAttributeInfo(transactionModel);
-      } else {
-        console.error('Could not find table');
-        return __DIE__.die();
-      }
     };
     serverModelCache = function() {
       var pendingCallbacks, setValue, values;
@@ -168,61 +129,48 @@
         });
       });
     };
-    endLock = function(tx, locks, i, trans_id, successCallback, failureCallback) {
-      var continueEndingLock, lock_id;
-      continueEndingLock = function(tx) {
-        if (i < locks.rows.length - 1) {
-          return endLock(tx, locks, i + 1, trans_id, successCallback, failureCallback);
-        } else {
-          return tx.executeSql('DELETE FROM "transaction" WHERE "id" = ?;', [trans_id], function(tx, result) {
-            return validateDB(tx, serverModelCache.getSQL(), successCallback, failureCallback);
-          }, function(tx, error) {
-            return failureCallback(tx, [error]);
-          });
-        }
-      };
-      lock_id = locks.rows.item(i).lock;
-      tx.executeSql('SELECT * FROM "conditional_representation" WHERE "lock" = ?;', [lock_id], function(tx, crs) {
-        return tx.executeSql('SELECT r."resource_type", r."resource_id" FROM "resource-is_under-lock" rl JOIN "resource" r ON rl."resource" = r."id" WHERE "lock" = ?;', [lock_id], function(tx, locked) {
-          var asyncCallback, isAttribute, item, j, lockedRow, sql, table, _i, _ref, _ref1;
-          lockedRow = locked.rows.item(0);
-          _ref = getCorrectTableInfo(lockedRow.resource_type), table = _ref.table, isAttribute = _ref.isAttribute;
-          asyncCallback = createAsyncQueueCallback(function() {
-            return continueEndingLock(tx);
-          }, function(errors) {
-            return failureCallback(tx, errors);
-          });
-          if (crs.rows.item(0).field_name === "__DELETE") {
-            if (isAttribute) {
-              sql = 'UPDATE "' + table.name + '" SET "' + isAttribute.attributeName + '" = 0 WHERE "' + table.idField + '" = ?;';
-            } else {
-              sql = 'DELETE FROM "' + table.name + '" WHERE "' + table.idField + '" = ?;';
-            }
-          } else {
-            sql = 'UPDATE "' + table.name + '" SET ';
-            for (j = _i = 0, _ref1 = crs.rows.length; 0 <= _ref1 ? _i < _ref1 : _i > _ref1; j = 0 <= _ref1 ? ++_i : --_i) {
-              item = crs.rows.item(j);
-              sql += '"' + item.field_name + '"=';
-              if (item.field_type === "string") {
-                sql += '"' + item.field_value + '"';
-              } else {
-                sql += item.field_value;
-              }
-              if (j < crs.rows.length - 1) {
-                sql += ", ";
-              }
-            }
-            sql += ' WHERE "' + table.idField + '" = ? ;';
-          }
-          asyncCallback.addWork(3);
-          tx.executeSql(sql, [lockedRow.resource_id], asyncCallback.successCallback, asyncCallback.errorCallback);
-          tx.executeSql('DELETE FROM "conditional_representation" WHERE "lock" = ?;', [lock_id], asyncCallback.successCallback, asyncCallback.errorCallback);
-          tx.executeSql('DELETE FROM "resource-is_under-lock" WHERE "lock" = ?;', [lock_id], asyncCallback.successCallback, asyncCallback.errorCallback);
-          return asyncCallback.endAdding();
+    endLock = function(tx, locks, trans_id, successCallback, failureCallback) {
+      var i, lock_id, locksCallback, _i, _ref;
+      locksCallback = createAsyncQueueCallback(function() {
+        return tx.executeSql('DELETE FROM "transaction" WHERE "id" = ?;', [trans_id], function(tx, result) {
+          return validateDB(tx, serverModelCache.getSQL(), successCallback, failureCallback);
+        }, function(tx, error) {
+          return failureCallback(tx, [error]);
         });
+      }, function(errors) {
+        return failureCallback(tx, errors);
       });
-      tx.executeSql('DELETE FROM "lock-belongs_to-transaction" WHERE "lock" = ?;', [lock_id]);
-      return tx.executeSql('DELETE FROM "lock" WHERE "id" = ?;', [lock_id]);
+      for (i = _i = 0, _ref = locks.rows.length; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
+        lock_id = locks.rows.item(i).lock;
+        locksCallback.addWork(3);
+        tx.executeSql('SELECT * FROM "conditional_representation" WHERE "lock" = ?;', [lock_id], function(tx, crs) {
+          return tx.executeSql('SELECT r."resource_type", r."resource_id" FROM "resource-is_under-lock" rl JOIN "resource" r ON rl."resource" = r."id" WHERE "lock" = ?;', [lock_id], function(tx, locked) {
+            var asyncCallback, clientModel, item, j, lockedRow, method, requestBody, uri, _j, _ref1;
+            lockedRow = locked.rows.item(0);
+            asyncCallback = createAsyncQueueCallback(locksCallback.successCallback, locksCallback.failureCallback);
+            asyncCallback.addWork(3);
+            tx.executeSql('DELETE FROM "conditional_representation" WHERE "lock" = ?;', [lock_id], asyncCallback.successCallback, asyncCallback.errorCallback);
+            tx.executeSql('DELETE FROM "resource-is_under-lock" WHERE "lock" = ?;', [lock_id], asyncCallback.successCallback, asyncCallback.errorCallback);
+            requestBody = [{}];
+            if (crs.rows.item(0).field_name === "__DELETE") {
+              method = 'DELETE';
+            } else {
+              method = 'PUT';
+              for (j = _j = 0, _ref1 = crs.rows.length; 0 <= _ref1 ? _j < _ref1 : _j > _ref1; j = 0 <= _ref1 ? ++_j : --_j) {
+                item = crs.rows.item(j);
+                requestBody[0][item.field_name] = item.field_value;
+              }
+            }
+            clientModel = clientModels['data'].resources[lockedRow.resource_type];
+            uri = '/data/' + lockedRow.resource_type + '*filt:' + clientModel.idField + '=' + lockedRow.resource_id;
+            runURI(method, uri, requestBody, tx, asyncCallback.successCallback, asyncCallback.errorCallback);
+            return asyncCallback.endAdding();
+          });
+        });
+        tx.executeSql('DELETE FROM "lock-belongs_to-transaction" WHERE "lock" = ?;', [lock_id], locksCallback.successCallback, locksCallback.errorCallback);
+        tx.executeSql('DELETE FROM "lock" WHERE "id" = ?;', [lock_id], locksCallback.successCallback, locksCallback.errorCallback);
+      }
+      return locksCallback.endAdding();
     };
     validateDB = function(tx, sqlmod, successCallback, failureCallback) {
       var asyncCallback, rule, _i, _len, _ref;
@@ -279,7 +227,7 @@
       }
       return id;
     };
-    runURI = function(method, uri, body, successCallback, failureCallback) {
+    runURI = function(method, uri, body, tx, successCallback, failureCallback) {
       var req, res;
       if (body == null) {
         body = {};
@@ -303,13 +251,13 @@
       };
       switch (method) {
         case 'GET':
-          return runGet(req, res);
+          return runGet(req, res, tx);
         case 'POST':
-          return runPost(req, res);
+          return runPost(req, res, tx);
         case 'PUT':
-          return runPut(req, res);
+          return runPut(req, res, tx);
         case 'DELETE':
-          return runDelete(req, res);
+          return runDelete(req, res, tx);
       }
     };
     getAndCheckBindValues = function(bindings, values) {
@@ -329,8 +277,8 @@
       }
       return bindValues;
     };
-    runGet = function(req, res) {
-      var bindings, clientModel, data, query, tree, values, _ref;
+    runGet = function(req, res, tx) {
+      var bindings, clientModel, data, query, runQuery, tree, values, _ref;
       tree = req.tree;
       if (tree[2] === void 0) {
         return res.send(404);
@@ -341,7 +289,7 @@
         if (!_.isArray(values)) {
           return res.json(values, 404);
         } else {
-          return db.transaction(function(tx) {
+          runQuery = function(tx) {
             return tx.executeSql(query, values, function(tx, result) {
               var clientModel, data, i;
               if (values.length > 0 && result.rows.length === 0) {
@@ -364,7 +312,12 @@
             }, function() {
               return res.send(404);
             });
-          });
+          };
+          if (tx != null) {
+            return runQuery(tx);
+          } else {
+            return db.transaction(runQuery);
+          }
         }
       } else {
         clientModel = clientModels[tree[1][1]];
@@ -374,8 +327,8 @@
         return res.json(data);
       }
     };
-    runPost = function(req, res) {
-      var bindings, query, tree, values, vocab, _ref;
+    runPost = function(req, res, tx) {
+      var bindings, query, runQuery, tree, values, vocab, _ref;
       tree = req.tree;
       if (tree[2] === void 0) {
         return res.send(404);
@@ -387,7 +340,7 @@
           return res.json(values, 404);
         } else {
           vocab = tree[1][1];
-          return db.transaction(function(tx) {
+          runQuery = function(tx) {
             tx.begin();
             return tx.executeSql(query, values, function(tx, sqlResult) {
               return validateDB(tx, sqlModels[vocab], function(tx) {
@@ -404,12 +357,17 @@
             }, function() {
               return res.send(404);
             });
-          });
+          };
+          if (tx != null) {
+            return runQuery(tx);
+          } else {
+            return db.transaction(runQuery);
+          }
         }
       }
     };
-    runPut = function(req, res) {
-      var doValidate, id, insertQuery, queries, tree, updateQuery, values, vocab;
+    runPut = function(req, res, tx) {
+      var doValidate, id, insertQuery, queries, runQuery, tree, updateQuery, values, vocab;
       tree = req.tree;
       if (tree[2] === void 0) {
         return res.send(404);
@@ -436,7 +394,7 @@
             });
           };
           id = getID(tree);
-          return db.transaction(function(tx) {
+          runQuery = function(tx) {
             tx.begin();
             return db.transaction(function(tx) {
               return tx.executeSql('SELECT NOT EXISTS(SELECT 1 FROM "resource" r JOIN "resource-is_under-lock" AS rl ON rl."resource" = r."id" WHERE r."resource_type" = ? AND r."id" = ?) AS result;', [tree[2].resourceName, id], function(tx, result) {
@@ -466,12 +424,17 @@
                 }
               });
             });
-          });
+          };
+          if (tx != null) {
+            return runQuery(tx);
+          } else {
+            return db.transaction(runQuery);
+          }
         }
       }
     };
-    runDelete = function(req, res) {
-      var bindings, query, tree, values, vocab, _ref;
+    runDelete = function(req, res, tx) {
+      var bindings, query, runQuery, tree, values, vocab, _ref;
       tree = req.tree;
       if (tree[2] === void 0) {
         return res.send(404);
@@ -483,7 +446,7 @@
           return res.json(values, 404);
         } else {
           vocab = tree[1][1];
-          return db.transaction(function(tx) {
+          runQuery = function(tx) {
             tx.begin();
             return tx.executeSql(query, values, function(tx, result) {
               return validateDB(tx, sqlModels[vocab], function(tx) {
@@ -495,7 +458,12 @@
             }, function() {
               return res.send(404);
             });
-          });
+          };
+          if (tx != null) {
+            return runQuery(tx);
+          } else {
+            return db.transaction(runQuery);
+          }
         }
       }
     };
@@ -575,7 +543,7 @@
         return res.send(404);
       });
       app.post('/execute', function(req, res, next) {
-        return runURI('GET', '/ui/textarea*filt:name=model_area', null, function(result) {
+        return runURI('GET', '/ui/textarea*filt:name=model_area', null, null, function(result) {
           var clientModel, lfmod, prepmod, se, sqlModel;
           se = result.instances[0].text;
           try {
@@ -595,7 +563,7 @@
                 {
                   value: true
                 }
-              ]);
+              ], tx);
               serverModelCache.setServerOnAir(true);
               serverModelCache.setLastSE(se);
               serverModelCache.setLF(lfmod);
@@ -771,7 +739,7 @@
         id = id[id.length - 1];
         return db.transaction((function(tx) {
           return tx.executeSql('SELECT * FROM "lock-belongs_to-transaction" WHERE "transaction" = ?;', [id], function(tx, locks) {
-            return endLock(tx, locks, 0, id, function(tx) {
+            return endLock(tx, locks, id, function(tx) {
               return res.send(200);
             }, function(tx, errors) {
               return res.json(errors, 404);
