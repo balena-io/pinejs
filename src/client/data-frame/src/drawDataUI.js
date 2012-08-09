@@ -181,7 +181,7 @@
       };
     };
     getResolvedFactType = function(factType, factTypeInstance, clientModel, successCallback, errorCallback) {
-      var asyncCallback, factTypePart, i, isBooleanFactType, uri, valueField, _i, _len;
+      var asyncCallback, factTypePart, i, isBooleanFactType, termResourceName, uri, valueField, _i, _len;
       factTypeInstance = $.extend(true, {}, factTypeInstance);
       asyncCallback = createAsyncQueueCallback(function() {
         return successCallback(factTypeInstance);
@@ -192,7 +192,8 @@
         if (factTypePart[0] === "Term") {
           asyncCallback.addWork(1);
           valueField = factTypePart[1];
-          uri = serverAPI(factTypePart[1], [['id', '=', factTypeInstance[factTypePart[1]]]]);
+          termResourceName = factTypePart[1].replace(new RegExp(' ', 'g'), '_');
+          uri = serverAPI(termResourceName, [['id', '=', factTypeInstance[termResourceName]]]);
           serverRequest("GET", uri, {}, null, (function(valueField) {
             return function(statusCode, result, headers) {
               factTypeInstance[valueField] = result.instances[0];

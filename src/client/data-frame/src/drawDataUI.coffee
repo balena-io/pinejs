@@ -342,7 +342,8 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 			if factTypePart[0] == "Term"
 				asyncCallback.addWork(1)
 				valueField = factTypePart[1]
-				uri = serverAPI(factTypePart[1], [['id', '=', factTypeInstance[factTypePart[1]]]])
+				termResourceName = factTypePart[1].replace(new RegExp(' ', 'g'), '_')
+				uri = serverAPI(termResourceName, [['id', '=', factTypeInstance[termResourceName]]])
 				serverRequest("GET", uri, {}, null,
 					do(valueField) ->
 						(statusCode, result, headers) ->
