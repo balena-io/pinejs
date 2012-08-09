@@ -3,6 +3,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 		widgets: {}
 		hiddenFormInput: ejs.compile('''
 			<input type="hidden" id="__actype" value="<%= action %>">
+			<input type="hidden" id="__type" value="<%= resourceModel.resourceName %>">
 			<input type="hidden" id="__serverURI" value="<%= serverURI %>">
 			<input type="hidden" id="__backURI" value="<%= backURI %>"><%
 			if(id !== false) { %>
@@ -642,12 +643,19 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 						rowCallback('Errors: ' + errors)
 				)
 			when "del"
-				templateVars = $.extend(templateVars, {
-					action: 'del'
-					id: currentLocation[1][1]
-				})
-				html = templates.deleteResource(templateVars)
-				rowCallback(html)
+				serverRequest("GET", ftree.getModelURI(), {}, null,
+					(statusCode, result, headers) ->
+						templateVars = $.extend(templateVars, {
+							resourceModel: result.model
+							action: 'del'
+							id: currentLocation[1][1]
+						})
+						html = templates.deleteResource(templateVars)
+						rowCallback(html)
+					(statusCode, errors) ->
+						console.error(errors)
+						rowCallback('Errors: ' + errors)
+				)
 
 	processForm = (form) ->
 		action = $("#__actype", form).val()

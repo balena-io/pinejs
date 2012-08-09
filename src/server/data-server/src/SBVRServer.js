@@ -6,7 +6,7 @@
     var clientModels, db, endLock, executeSqlModel, exports, getAndCheckBindValues, getCorrectTableInfo, getID, op, parseURITree, rebuildFactType, runDelete, runGet, runPost, runPut, runURI, serverIsOnAir, serverModelCache, serverURIParser, sqlModels, transactionModel, uiModel, validateDB;
     exports = {};
     db = null;
-    transactionModel = 'Term:      Integer\nTerm:      Long Text\nTerm:      resource id\n	Concept type: Integer\nTerm:      resource type\n	Concept type: Long Text\nTerm:      field name\n	Concept type: Long Text\nTerm:      field value\n	Concept type: Long Text\nTerm:      field type\n	Concept type: Long Text\nTerm:      resource\n	Database Value Field: resource_id\nFact type: resource has resource id\nRule:      It is obligatory that each resource has exactly 1 resource id\nTerm:      transaction\nTerm:      lock\nTerm:      conditional representation\n	Database Value Field: lock\nFact type: lock is exclusive\nFact type: lock is shared\nFact type: resource is under lock\n	Term Form: locked resource\nFact type: locked resource has resource type\nFact type: lock belongs to transaction\nFact type: conditional representation has field name\nFact type: conditional representation has field value\nFact type: conditional representation has field type\nFact type: conditional representation has lock\nRule:      It is obligatory that each locked resource has exactly 1 resource type\nRule:      It is obligatory that each conditional representation has exactly 1 field name\nRule:      It is obligatory that each conditional representation has exactly 1 field value\nRule:      It is obligatory that each conditional representation has exactly 1 field type\nRule:      It is obligatory that each conditional representation has exactly 1 lock\nRule:      It is obligatory that each resource is under at most 1 lock that is exclusive';
+    transactionModel = 'Term:      Integer\nTerm:      Long Text\nTerm:      resource id\n	Concept type: Integer\nTerm:      resource type\n	Concept type: Long Text\nTerm:      field name\n	Concept type: Long Text\nTerm:      field value\n	Concept type: Long Text\nTerm:      field type\n	Concept type: Long Text\nTerm:      resource\n	Database Value Field: resource_id\nFact type: resource has resource id\nFact type: resource has resource type\nRule:      It is obligatory that each resource has exactly 1 resource type\nRule:      It is obligatory that each resource has exactly 1 resource id\nTerm:      transaction\nTerm:      lock\nTerm:      conditional representation\n	Database Value Field: lock\nFact type: lock is exclusive\nFact type: lock is shared\nFact type: resource is under lock\nFact type: lock belongs to transaction\nFact type: conditional representation has field name\nFact type: conditional representation has field value\nFact type: conditional representation has field type\nFact type: conditional representation has lock\nRule:      It is obligatory that each conditional representation has exactly 1 field name\nRule:      It is obligatory that each conditional representation has exactly 1 field value\nRule:      It is obligatory that each conditional representation has exactly 1 field type\nRule:      It is obligatory that each conditional representation has exactly 1 lock\nRule:      It is obligatory that each resource is under at most 1 lock that is exclusive';
     transactionModel = SBVRParser.matchAll(transactionModel, "expr");
     transactionModel = LF2AbstractSQLPrep.match(transactionModel, "Process");
     transactionModel = LF2AbstractSQL.match(transactionModel, "Process");
@@ -183,7 +183,7 @@
       };
       lock_id = locks.rows.item(i).lock;
       tx.executeSql('SELECT * FROM "conditional_representation" WHERE "lock" = ?;', [lock_id], function(tx, crs) {
-        return tx.executeSql('SELECT rl."resource_type", r."resource_id" FROM "resource-is_under-lock" rl JOIN "resource" r ON rl."resource" = r."id" WHERE "lock" = ?;', [lock_id], function(tx, locked) {
+        return tx.executeSql('SELECT r."resource_type", r."resource_id" FROM "resource-is_under-lock" rl JOIN "resource" r ON rl."resource" = r."id" WHERE "lock" = ?;', [lock_id], function(tx, locked) {
           var asyncCallback, isAttribute, item, j, lockedRow, sql, table, _i, _ref, _ref1;
           lockedRow = locked.rows.item(0);
           _ref = getCorrectTableInfo(lockedRow.resource_type), table = _ref.table, isAttribute = _ref.isAttribute;
@@ -396,7 +396,7 @@
                 insertID = tree[2].query[0] === 'UpdateQuery' ? values[0] : sqlResult.insertId;
                 console.log('Insert ID: ', insertID);
                 return res.send(201, {
-                  location: '/' + vocab + '/' + tree[2].query[2][1] + "*filt:" + tree[2].query[2][1] + ".id=" + insertID
+                  location: '/' + vocab + '/' + tree[2].resourceName + "*filt:" + tree[2].resourceName + ".id=" + insertID
                 });
               }, function(tx, errors) {
                 return res.json(errors, 404);
@@ -439,7 +439,7 @@
           return db.transaction(function(tx) {
             tx.begin();
             return db.transaction(function(tx) {
-              return tx.executeSql('SELECT NOT EXISTS(SELECT 1 FROM "resource-is_under-lock" AS r WHERE r."resource_type" = ? AND r."resource" = ?) AS result;', [tree[2].query[2][1], id], function(tx, result) {
+              return tx.executeSql('SELECT NOT EXISTS(SELECT 1 FROM "resource" r JOIN "resource-is_under-lock" AS rl ON rl."resource" = r."id" WHERE r."resource_type" = ? AND r."id" = ?) AS result;', [tree[2].resourceName, id], function(tx, result) {
                 var _ref;
                 if ((_ref = result.rows.item(0).result) === 0 || _ref === false) {
                   return res.json(["The resource is locked and cannot be edited"], 404);
@@ -788,7 +788,7 @@
         if (tree[2] === void 0) {
           return __TODO__.die();
         } else {
-          if (tree[2].query[2][1] === 'transaction') {
+          if (tree[2].resourceName === 'transaction') {
             _ref = AbstractSQLRules2SQL.match(tree[2].query, 'ProcessQuery'), query = _ref.query, bindings = _ref.bindings;
             values = getAndCheckBindValues(bindings, tree[2].values);
             console.log(query, values);
@@ -822,7 +822,7 @@
         }
       });
       app.get('/data/*', serverIsOnAir, parseURITree, function(req, res, next) {
-        var clientModel, key, result, row, tree, _ref;
+        var clientModel, resourceName, result, row, tree, _ref;
         tree = req.tree;
         if (tree[2] === void 0) {
           result = {
@@ -831,17 +831,17 @@
           };
           clientModel = clientModels[tree[1][1]];
           _ref = clientModel.resources;
-          for (key in _ref) {
-            row = _ref[key];
-            if (/-/.test(key)) {
+          for (resourceName in _ref) {
+            row = _ref[resourceName];
+            if (/-/.test(resourceName)) {
               result.factTypes.push({
-                id: row.name,
-                name: row.name
+                id: resourceName,
+                name: row.modelName
               });
             } else {
               result.terms.push({
-                id: row.name,
-                name: row.name
+                id: resourceName,
+                name: row.modelName
               });
             }
           }

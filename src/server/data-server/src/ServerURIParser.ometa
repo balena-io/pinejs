@@ -74,7 +74,9 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 
 		Resource =
 			TermOrFactType:resourceInfo
-			(	&'*'
+			(	(	?(this.currentMethod != 'GET')
+				|	&'*'
+				)
 				{['Query']}:query
 				AddQueryResource(query, resourceInfo.tableName, resourceInfo.resourceName)
 				Modifiers(query)
@@ -236,7 +238,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 			if(this.currentBody.hasOwnProperty(resourceName + '.' + resourceFieldName)) {
 				value = this.currentBody[resourceName + '.' + resourceFieldName];
 			}
-			else if(this.currentBody.hasOwnProperty(resourceName + '.' + resourceFieldName)) {
+			else if(this.currentBody.hasOwnProperty(resourceFieldName)) {
 				value = this.currentBody[resourceFieldName];
 			}
 			else {

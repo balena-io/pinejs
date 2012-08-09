@@ -58,7 +58,7 @@ require(['utils/createAsyncQueueCallback'], (createAsyncQueueCallback) ->
 						resourceID = $(this).children("#__id").val()
 						resourceType = $(this).children("#__type").val()
 						switch $(this).children("#__actype").val()
-							when "editfctp", "editterm"
+							when 'edit'
 								lockResource resourceType, resourceID, trans, (lockID) ->
 									inputs = $(":input:not(:submit)", rootElement)
 									o = $.map(inputs, (n, i) ->
@@ -68,11 +68,13 @@ require(['utils/createAsyncQueueCallback'], (createAsyncQueueCallback) ->
 											return ob
 									)
 									callback("edit", lockID, o)
-							when "del"
+							when 'del'
 								lockResource resourceType, resourceID, trans, (lockID) ->
 									callback("del", lockID)
-							when "addterm", "addfctp"
+							when 'add'
 								break
+							else
+								console.error('Unknown transaction action', $(this).children("#__actype").val())
 					)
 				)
 			)
@@ -86,10 +88,10 @@ require(['utils/createAsyncQueueCallback'], (createAsyncQueueCallback) ->
 					serverRequest "POST", trans.tlcURI, {}, o, ((statusCode, result, headers) ->
 						o = [ id: lockID ]
 						serverRequest "POST", trans.xlcURI, {}, o, ((statusCode, result, headers) ->
-							o = [ resource_id: parseInt(resource_id, 10)]
+							o = [ resource_id: parseInt(resource_id, 10), resource_type: resource_type]
 							serverRequest "POST", trans.rcURI, {}, o, ((statusCode, result, headers) ->
 								serverRequest "GET", headers.location, {}, null, ((statusCode, resource, headers) ->
-									o = [ resource: resource.instances[0].id, resource_type: resource_type, lock: lockID ]
+									o = [ resource: resource.instances[0].id, lock: lockID ]
 									serverRequest "POST", trans.lrcURI, {}, o, ((statusCode, result, headers) ->
 										successCallback(lockID)
 									), failureCallback

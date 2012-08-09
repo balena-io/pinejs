@@ -15,7 +15,7 @@
       return false;
     };
     return function(sqlModel) {
-      var addMapping, idParts, resourceField, resourceName, resourceToSQLMappings, resources, sqlField, sqlFieldName, sqlTable, sqlTableName, table, tables, _i, _len, _ref;
+      var addMapping, idParts, part, resourceField, resourceName, resourceToSQLMappings, resources, sqlField, sqlFieldName, sqlTable, sqlTableName, table, tables, _i, _len, _ref;
       tables = sqlModel.tables;
       resources = {};
       resourceToSQLMappings = {};
@@ -40,7 +40,16 @@
           resourceField = sqlTableName = sqlTable.name;
           addMapping(resourceName, resourceField, sqlTableName, sqlFieldName);
           resources[resourceName] = {
-            name: resourceName,
+            resourceName: resourceName,
+            modelName: ((function() {
+              var _i, _len, _results;
+              _results = [];
+              for (_i = 0, _len = idParts.length; _i < _len; _i++) {
+                part = idParts[_i];
+                _results.push(part.replace(/_/g, ' '));
+              }
+              return _results;
+            })()).join(' '),
             fields: [['ForeignKey', resourceField, 'NOT NULL', sqlFieldName]],
             idField: resourceField,
             valueField: resourceField,
@@ -62,7 +71,16 @@
           }
         } else {
           resources[resourceName] = {
-            name: resourceName,
+            resourceName: resourceName,
+            modelName: ((function() {
+              var _i, _len, _results;
+              _results = [];
+              for (_i = 0, _len = idParts.length; _i < _len; _i++) {
+                part = idParts[_i];
+                _results.push(part.replace(/_/g, ' '));
+              }
+              return _results;
+            })()).join(' '),
             fields: table.fields,
             idField: table.idField,
             valueField: table.valueField,

@@ -141,8 +141,12 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                 resourceInfo, query;
             resourceInfo = this._apply("TermOrFactType");
             this._opt((function() {
-                this._lookahead((function() {
-                    return this._applyWithArgs("exactly", "*")
+                this._or((function() {
+                    return this._pred((this["currentMethod"] != "GET"))
+                }), (function() {
+                    return this._lookahead((function() {
+                        return this._applyWithArgs("exactly", "*")
+                    }))
                 }));
                 query = ["Query"];
                 this._applyWithArgs("AddQueryResource", query, resourceInfo["tableName"], resourceInfo["resourceName"]);
@@ -410,7 +414,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
             if (this["currentBody"].hasOwnProperty(((resourceName + ".") + resourceFieldName))) {
                 (value = this["currentBody"][((resourceName + ".") + resourceFieldName)])
             } else {
-                if (this["currentBody"].hasOwnProperty(((resourceName + ".") + resourceFieldName))) {
+                if (this["currentBody"].hasOwnProperty(resourceFieldName)) {
                     (value = this["currentBody"][resourceFieldName])
                 } else {
                     return undefined
@@ -542,7 +546,12 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                         (resourceFieldName = resourceModel["idField"]);
                         (mapping = resourceToSQLMappings[resourceFieldName]);
                         (fieldName = mapping[(1)]);
-                        this.AddWhereClause(query, ["Equals", ["ReferencedField"].concat(mapping), ["Bind", mapping[(0)], this.GetTableField(sqlTables[mapping[(0)]], mapping[(1)])]]);
+                        if ((this.AddBodyVar(resourceName, resourceFieldName, mapping) !== undefined)) {
+                            this.AddQueryTable(query, mapping[(0)]);
+                            this.AddWhereClause(query, ["Equals", ["ReferencedField"].concat(mapping), ["Bind", mapping[(0)], this.GetTableField(sqlTables[mapping[(0)]], mapping[(1)])]])
+                        } else {
+                            undefined
+                        }
                         break
                     }
                 }

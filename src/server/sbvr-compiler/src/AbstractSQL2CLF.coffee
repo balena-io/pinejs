@@ -25,7 +25,8 @@ define(['underscore'], (_) ->
 				resourceField = sqlTableName = sqlTable.name
 				addMapping(resourceName, resourceField, sqlTableName, sqlFieldName)
 				resources[resourceName] =
-					name: resourceName
+					resourceName: resourceName
+					modelName: (part.replace(/_/g, ' ') for part in idParts).join(' ')
 					fields: [ ['ForeignKey', resourceField, 'NOT NULL', sqlFieldName] ]
 					idField: resourceField
 					# TODO: value field is really reference scheme?
@@ -48,7 +49,8 @@ define(['underscore'], (_) ->
 						throw 'Unrecognised table type'
 			else
 				resources[resourceName] =
-					name: resourceName
+					resourceName: resourceName
+					modelName: (part.replace(/_/g, ' ') for part in idParts).join(' ')
 					fields: table.fields
 					idField: table.idField
 					valueField: table.valueField

@@ -18,6 +18,8 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 			Term:      resource
 				Database Value Field: resource_id
 			Fact type: resource has resource id
+			Fact type: resource has resource type
+			Rule:      It is obligatory that each resource has exactly 1 resource type
 			Rule:      It is obligatory that each resource has exactly 1 resource id
 			Term:      transaction
 			Term:      lock
@@ -26,14 +28,11 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 			Fact type: lock is exclusive
 			Fact type: lock is shared
 			Fact type: resource is under lock
-				Term Form: locked resource
-			Fact type: locked resource has resource type
 			Fact type: lock belongs to transaction
 			Fact type: conditional representation has field name
 			Fact type: conditional representation has field value
 			Fact type: conditional representation has field type
 			Fact type: conditional representation has lock
-			Rule:      It is obligatory that each locked resource has exactly 1 resource type
 			Rule:      It is obligatory that each conditional representation has exactly 1 field name
 			Rule:      It is obligatory that each conditional representation has exactly 1 field value
 			Rule:      It is obligatory that each conditional representation has exactly 1 field type
@@ -201,7 +200,7 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 		lock_id = locks.rows.item(i).lock
 		tx.executeSql('SELECT * FROM "conditional_representation" WHERE "lock" = ?;', [lock_id], (tx, crs) ->
 			# find which resource is under this lock
-			tx.executeSql('SELECT rl."resource_type", r."resource_id" FROM "resource-is_under-lock" rl JOIN "resource" r ON rl."resource" = r."id" WHERE "lock" = ?;', [lock_id], (tx, locked) ->
+			tx.executeSql('SELECT r."resource_type", r."resource_id" FROM "resource-is_under-lock" rl JOIN "resource" r ON rl."resource" = r."id" WHERE "lock" = ?;', [lock_id], (tx, locked) ->
 				lockedRow = locked.rows.item(0)
 				{table, isAttribute} = getCorrectTableInfo(lockedRow.resource_type)
 				asyncCallback = createAsyncQueueCallback(
@@ -379,7 +378,7 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 									insertID = if tree[2].query[0] == 'UpdateQuery' then values[0] else sqlResult.insertId
 									console.log('Insert ID: ', insertID)
 									res.send(201,
-										location: '/' + vocab + '/' + tree[2].query[2][1] + "*filt:" + tree[2].query[2][1] + ".id=" + insertID
+										location: '/' + vocab + '/' + tree[2].resourceName + "*filt:" + tree[2].resourceName + ".id=" + insertID
 									)
 								(tx, errors) ->
 									res.json(errors, 404)
@@ -421,7 +420,7 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 				db.transaction( (tx) ->
 					tx.begin()
 					db.transaction( (tx) ->
-						tx.executeSql('SELECT NOT EXISTS(SELECT 1 FROM "resource-is_under-lock" AS r WHERE r."resource_type" = ? AND r."resource" = ?) AS result;', [tree[2].query[2][1], id],
+						tx.executeSql('SELECT NOT EXISTS(SELECT 1 FROM "resource" r JOIN "resource-is_under-lock" AS rl ON rl."resource" = r."id" WHERE r."resource_type" = ? AND r."id" = ?) AS result;', [tree[2].resourceName, id],
 							(tx, result) ->
 								if result.rows.item(0).result in [0, false]
 									res.json([ "The resource is locked and cannot be edited" ], 404)
@@ -727,7 +726,7 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 			if tree[2] == undefined
 				__TODO__.die()
 			else
-				if tree[2].query[2][1] == 'transaction'
+				if tree[2].resourceName == 'transaction'
 					{query, bindings} = AbstractSQLRules2SQL.match(tree[2].query, 'ProcessQuery')
 					values = getAndCheckBindValues(bindings, tree[2].values)
 					console.log(query, values)
@@ -764,16 +763,16 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 					terms: []
 					factTypes: []
 				clientModel = clientModels[tree[1][1]]
-				for key, row of clientModel.resources
-					if /-/.test(key)
+				for resourceName, row of clientModel.resources
+					if /-/.test(resourceName)
 						result.factTypes.push(
-							id: row.name
-							name: row.name
+							id: resourceName
+							name: row.modelName
 						)
 					else
 						result.terms.push(
-							id: row.name
-							name: row.name
+							id: resourceName
+							name: row.modelName
 						)
 
 				res.json(result)
