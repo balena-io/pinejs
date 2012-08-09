@@ -790,30 +790,10 @@
         }
       });
       app.get('/data/*', serverIsOnAir, parseURITree, function(req, res, next) {
-        var clientModel, resourceName, result, row, tree, _ref;
+        var tree;
         tree = req.tree;
         if (tree[2] === void 0) {
-          result = {
-            terms: [],
-            factTypes: []
-          };
-          clientModel = clientModels[tree[1][1]];
-          _ref = clientModel.resources;
-          for (resourceName in _ref) {
-            row = _ref[resourceName];
-            if (/-/.test(resourceName)) {
-              result.factTypes.push({
-                id: resourceName,
-                name: row.modelName
-              });
-            } else {
-              result.terms.push({
-                id: resourceName,
-                name: row.modelName
-              });
-            }
-          }
-          return res.json(result);
+          return res.json(clientModels[tree[1][1]].resources);
         } else {
           return runGet(req, res);
         }

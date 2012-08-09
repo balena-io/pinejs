@@ -50,6 +50,7 @@
               }
               return _results;
             })()).join(' '),
+            topLevel: idParts.length === 1,
             fields: [['ForeignKey', resourceField, 'NOT NULL', sqlFieldName]],
             idField: resourceField,
             valueField: resourceField,
@@ -81,6 +82,7 @@
               }
               return _results;
             })()).join(' '),
+            topLevel: idParts.length === 1,
             fields: table.fields,
             idField: table.idField,
             valueField: table.valueField,

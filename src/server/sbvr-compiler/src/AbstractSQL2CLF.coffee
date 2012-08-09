@@ -27,6 +27,7 @@ define(['underscore'], (_) ->
 				resources[resourceName] =
 					resourceName: resourceName
 					modelName: (part.replace(/_/g, ' ') for part in idParts).join(' ')
+					topLevel: idParts.length == 1
 					fields: [ ['ForeignKey', resourceField, 'NOT NULL', sqlFieldName] ]
 					idField: resourceField
 					# TODO: value field is really reference scheme?
@@ -51,6 +52,7 @@ define(['underscore'], (_) ->
 				resources[resourceName] =
 					resourceName: resourceName
 					modelName: (part.replace(/_/g, ' ') for part in idParts).join(' ')
+					topLevel: idParts.length == 1
 					fields: table.fields
 					idField: table.idField
 					valueField: table.valueField

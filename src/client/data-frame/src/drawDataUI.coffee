@@ -184,22 +184,25 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 		topLevelTemplate: ejs.compile('''
 			<table id="terms">
 				<tbody><%
-					for(var i = 0; i < terms.length; i++) {
-						var term = terms[i]; %>
-						<tr id="tr--data--"<%= term.id %>">
+					for(var resourceName in topLevelResources) {
+						if(!topLevelResources.hasOwnProperty(resourceName)) {
+							continue;
+						}
+						var resource = topLevelResources[resourceName]; %>
+						<tr id="tr--data--"<%= resourceName %>">
 							<td><%
-								if(term.isExpanded) { %>
+								if(resource.isExpanded) { %>
 									<div style="display:inline; background-color:#FFFFFF;">
-										<%= term.name %>
-										<a href="<%= term.closeURI %>" onClick="location.hash='<%= term.closeHash %>';return false">
+										<%= resourceName %>
+										<a href="<%= resource.closeURI %>" onClick="location.hash='<%= resource.closeHash %>';return false">
 											<span title="Close" class="ui-icon ui-icon-circle-close"></span>
 										</a>
 									</div>
-									<%- term.html %><%
+									<%- resource.html %><%
 								}
 								else { %>
-									<%= term.name %>
-									<a href="<%= term.expandURI %>" onClick="location.hash='<%= term.expandHash %>';return false">
+									<%= resourceName %>
+									<a href="<%= resource.expandURI %>" onClick="location.hash='<%= resource.expandHash %>';return false">
 										<span title="See all" class="ui-icon ui-icon-search"></span>
 									</a><%
 								} %>
@@ -393,44 +396,45 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 		tree = createNavigableTree(tree)
 		rootURI = location.pathname
 		serverRequest("GET", "/data/", {}, null,
-			(statusCode, result, headers) ->
+			(statusCode, clientModel, headers) ->
+				topLevelResources = {}
 				asyncCallback = createAsyncQueueCallback(
 					(results) ->
 						templateVars =
-							terms: result.terms
+							topLevelResources: topLevelResources
 							templates: templates
 						res = templates.topLevelTemplate(templateVars)
 						$("#dataTab").html(res)
 					null
-					(i, html) ->
-						if i != false
-							result.terms[i].html = html
+					(resourceName, html) ->
+						if resourceName != false
+							topLevelResources[resourceName].html = html
 						return null
 				)
-				asyncCallback.addWork(result.terms.length)
-				asyncCallback.endAdding()
 
 				# SECTION: Top level resources
-				for term, i in result.terms
-					term = result.terms[i]
-					term.isExpanded = tree.isExpanded(term.id)
-					if term.isExpanded
+				for own resourceName, resource of clientModel when resource.topLevel == true
+					asyncCallback.addWork(1)
+					topLevelResources[resourceName] = resource
+					resource.isExpanded = tree.isExpanded(resourceName)
+					if resource.isExpanded
 						# SECTION: Expanded resource
-						expandedTree = tree.clone().descend(term.id)
-						term.closeHash = '#!/' + expandedTree.getNewURI("del")
-						term.closeURI = rootURI + term.closeHash
+						expandedTree = tree.clone().descend(resourceName)
+						resource.closeHash = '#!/' + expandedTree.getNewURI("del")
+						resource.closeURI = rootURI + resource.closeHash
 						# request schema from server and store locally.
-						do (i) ->
+						do (resourceName) ->
 							serverRequest("GET", "/lfmodel/", {}, null,
 								(statusCode, result) ->
-									renderResource(i, asyncCallback.successCallback, rootURI, true, expandedTree, result)
+									renderResource(resourceName, asyncCallback.successCallback, rootURI, true, expandedTree, result)
 								asyncCallback.errorCallback
 							)
 					else
-						newb = [ 'collection', [ term.id ], [ "mod" ] ]
-						term.expandHash = '#!/' + tree.getNewURI("add", newb)
-						term.expandURI = rootURI + term.expandHash
+						newb = [ 'collection', [ resourceName ], [ "mod" ] ]
+						resource.expandHash = '#!/' + tree.getNewURI("add", newb)
+						resource.expandURI = rootURI + resource.expandHash
 						asyncCallback.successCallback(false)
+				asyncCallback.endAdding()
 			(statusCode, errors) ->
 				console.error(errors)
 				$("#dataTab").html('Errors: ' + errors)

@@ -740,23 +740,7 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 		app.get('/data/*', serverIsOnAir, parseURITree, (req, res, next) ->
 			tree = req.tree
 			if tree[2] == undefined
-				result =
-					terms: []
-					factTypes: []
-				clientModel = clientModels[tree[1][1]]
-				for resourceName, row of clientModel.resources
-					if /-/.test(resourceName)
-						result.factTypes.push(
-							id: resourceName
-							name: row.modelName
-						)
-					else
-						result.terms.push(
-							id: resourceName
-							name: row.modelName
-						)
-
-				res.json(result)
+				res.json(clientModels[tree[1][1]].resources)
 			else
 				runGet(req, res)
 		)
