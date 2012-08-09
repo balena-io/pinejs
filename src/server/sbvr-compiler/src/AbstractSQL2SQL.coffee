@@ -99,8 +99,9 @@ define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQLOptimise
 				return 'VARCHAR(100)'
 	
 	generate = (sqlModel, dataTypeGen) ->
+		hasDependants = {}
 		schemaDependencyMap = {}
-		for own key, table of sqlModel.tables when !_.isString(table) # and table.primitive is false
+		for own resourceName, table of sqlModel.tables when !_.isString(table) # and table.primitive is false
 			foreignKeys = []
 			depends = []
 			dropSQL = 'DROP TABLE "' + table.name + '";'
@@ -112,11 +113,14 @@ define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQLOptimise
 				if field[0] in ['ForeignKey', 'ConceptType']
 					foreignKeys.push([field[1], field[3]])
 					depends.push(field[1])
+					hasDependants[field[1]] = true
 				
 			for foreignKey in foreignKeys
 				createSQL += 'FOREIGN KEY ("' + foreignKey[0] + '") REFERENCES "' + foreignKey[0] + '" ("' + foreignKey[1] + '")' + '\n,\t'
 			createSQL = createSQL[0...-2] + ');'
 			schemaDependencyMap[table.name] = {
+				resourceName: resourceName
+				primitive: table.primitive
 				createSQL: createSQL
 				dropSQL: dropSQL
 				depends: depends
@@ -127,15 +131,19 @@ define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQLOptimise
 		tableNames = []
 		while tableNames.length != (tableNames = Object.keys(schemaDependencyMap)).length && tableNames.length > 0
 			for tableName in tableNames
+				schemaInfo = schemaDependencyMap[tableName]
 				unsolvedDependency = false
-				for dependency in schemaDependencyMap[tableName].depends
+				for dependency in schemaInfo.depends
 					if schemaDependencyMap.hasOwnProperty(dependency)
 						unsolvedDependency = true
 						break
 				if unsolvedDependency == false
-					createSchemaStatements.push(schemaDependencyMap[tableName].createSQL)
-					dropSchemaStatements.push(schemaDependencyMap[tableName].dropSQL)
-					console.log(schemaDependencyMap[tableName].createSQL)
+					if sqlModel.tables[schemaInfo.resourceName].exists = (schemaInfo.primitive == false || hasDependants[tableName]?)
+						if schemaInfo.primitive != false
+							console.warn("We're adding a primitive table??", schemaInfo.resourceName)
+						createSchemaStatements.push(schemaInfo.createSQL)
+						dropSchemaStatements.push(schemaInfo.dropSQL)
+						console.log(schemaInfo.createSQL)
 					delete schemaDependencyMap[tableName]
 		dropSchemaStatements = dropSchemaStatements.reverse()
 		

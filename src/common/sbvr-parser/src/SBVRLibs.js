@@ -170,7 +170,7 @@ define(["underscore", "ometa/ometa-base"], (function(_) {
             var resource = []
         };
         if (_.isString(termOrFactType)) {
-            return termOrFactType
+            return termOrFactType.replace(new RegExp(" ", "g"), "_")
         } else {
             for (undefined;
             (i < termOrFactType["length"]); i++) {

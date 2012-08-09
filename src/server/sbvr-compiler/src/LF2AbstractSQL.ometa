@@ -6,11 +6,12 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 		
 		/** Terms **/
 		TermName =
-			:termName {this.terms[termName] = termName}
-			(	?(!this.tables.hasOwnProperty(termName))
+			:termName 
+			(	?(!this.tables.hasOwnProperty(this.GetResourceName(termName)))
 			|	{console.error('We already have a term with a name of: ' + termName)} ?(false)
 			)
-			{this.tables[termName] = {fields:[], primitive: false, name: null, idField: null}}
+			{this.terms[termName] = termName}
+			{this.tables[this.GetResourceName(termName)] = {fields:[], primitive: false, name: null, idField: null}}
 			-> termName,
 		Attributes :tableID =
 			[(
@@ -22,20 +23,21 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 		AttrConceptType :termName = // tableID will be same as termName for ConceptType (fact types cannot have a concept type)
 			['Term' :conceptType] {this.conceptTypes[termName] = conceptType}
 			IsPrimitive(conceptType):primitive
-			{['ConceptType', this.tables[conceptType].name, 'NOT NULL', this.tables[conceptType].idField]}:field
+			{this.tables[this.GetResourceName(conceptType)]}:conceptTable
+			{this.tables[this.GetResourceName(termName)]}:termTable
+			{['ConceptType', conceptTable.name, 'NOT NULL', conceptTable.idField]}:field
 			(	?(primitive !== false && conceptType === primitive)
 				{field[0] = primitive}
 				// Find existing name field and remove it if it exists.
-				(	{this.tables[termName]}:table
-					?(table.hasOwnProperty('valueField'))
-					GetTableFieldID(table, table.valueField):fieldID
+				(	?(termTable.hasOwnProperty('valueField'))
+					GetTableFieldID(termTable, termTable.valueField):fieldID
 					?(fieldID !== false)
-					{field[1] = table.fields[fieldID][1]}
-					{table.fields.splice(fieldID, 1)}
-				|	{table.valueField = this.tables[conceptType].name}
+					{field[1] = termTable.fields[fieldID][1]}
+					{termTable.fields.splice(fieldID, 1)}
+				|	{termTable.valueField = conceptTable.name}
 				)
 			)?
-			{this.tables[termName].fields.push(field)},
+			{termTable.fields.push(field)},
 		AttrDatabaseIDField :tableID =
 			:idField
 			{this.tables[this.GetResourceName(tableID)]}:table
@@ -65,23 +67,27 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 			),
 		AttrDatabasePrimitive :termName =
 			:attrVal
-			{this.tables[termName].primitive = attrVal},
+			{this.tables[this.GetResourceName(termName)].primitive = attrVal},
 		AttrDatabaseAttribute :factType =
 			:attrVal
 			(	?attrVal
 				{this.tables[this.GetResourceName(factType)] = 'Attribute'}
-				GetTableFieldID(this.tables[factType[0][1]], this.tables[factType[2][1]].name):fieldID
-				{this.tables[factType[0][1]].fields[fieldID][0] = this.tables[factType[2][1]].primitive}
+				{this.tables[this.GetResourceName(factType[0][1])]}:baseTable
+				{this.tables[this.GetResourceName(factType[2][1])]}:attributeTable
+				GetTableFieldID(baseTable, attributeTable.name):fieldID
+				{baseTable.fields[fieldID][0] = attributeTable.primitive}
 			)?,
 		AttrForeignKey :factType =
 			:type
-			(	?(this.tables[factType[0][1]].valueField == this.tables[factType[2][1]].name
-					|| this.tables[factType[0][1]].idField == this.tables[factType[2][1]].name)
+				{this.tables[this.GetResourceName(factType[0][1])]}:baseTable
+				{this.tables[this.GetResourceName(factType[2][1])]}:fkTable
+			(	?(baseTable.valueField == fkTable.name
+					|| baseTable.idField == fkTable.name)
 				// If the value field for the first term matches the name of the FK term then update the value field to be a FK.
-				GetTableFieldID(this.tables[factType[0][1]], this.tables[factType[2][1]].name):fieldID
+				GetTableFieldID(baseTable, fkTable.name):fieldID
 				?(fieldID !== false)
-				{this.tables[factType[0][1]].fields[fieldID][0] = 'ForeignKey'}
-			|	{this.tables[factType[0][1]].fields.push(['ForeignKey', this.tables[factType[2][1]].name, type, this.tables[factType[2][1]].idField])}
+				{baseTable.fields[fieldID][0] = 'ForeignKey'}
+			|	{baseTable.fields.push(['ForeignKey', fkTable.name, type, fkTable.idField])}
 			)
 			{this.tables[this.GetResourceName(factType)] = 'ForeignKey'},
 		// AttrSynonym :term =
@@ -92,7 +98,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 		AttrTermForm :factType =
 			:term
 			{this.terms[term[1]] = factType}
-			{this.tables[term[1]] = this.tables[this.GetResourceName(factType)]},
+			{this.tables[this.GetResourceName(term[1])] = this.tables[this.GetResourceName(factType)]},
 			
 			
 		
@@ -105,11 +111,12 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 				// Eat input
 				(:factTypePart &(:attributes))+
 				
-				{this.tables[factType[0][1]].fields.push(['Boolean', factType[1][1]])}
+				{this.tables[this.GetResourceName(factType[0][1])].fields.push(['Boolean', factType[1][1]])}
 				{this.tables[resourceName] = 'BooleanAttribute'}
 			|	{this.tables[resourceName] = {fields:[], primitive: false, name: null}}
 				(	['Term' :termName]
-					{this.tables[resourceName].fields.push(['ForeignKey', this.tables[termName].name, 'NOT NULL', this.tables[termName].idField])}
+					{this.tables[this.GetResourceName(termName)]}:fkTable
+					{this.tables[resourceName].fields.push(['ForeignKey', fkTable.name, 'NOT NULL', fkTable.idField])}
 				|	['Verb' :verb]
 				)+
 			)
@@ -134,7 +141,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 				Number:bind
 				['Term' :termName]
 				{'var' + bind}:varAlias
-				{['SelectQuery', ['Select', []], ['From', this.tables[termName].name, varAlias + termName]]}:query
+				{['SelectQuery', ['Select', []], ['From', this.tables[this.GetResourceName(termName)].name, varAlias + termName]]}:query
 				ResolveConceptTypes(query, termName, varAlias)
 				(	
 					(	RulePart:whereBody
@@ -161,7 +168,8 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 			(	?(i < rootTerms.length)
 				RoleBinding:bind
 				{rootTerms[i]}:termName
-				AddWhereClause(query, ['Equals', ['ReferencedField', tableAlias, this.tables[termName].name], ['ReferencedField', 'var' + bind[1] + termName, this.tables[termName].idField]])
+				{this.GetResourceName(termName)}:resourceName
+				AddWhereClause(query, ['Equals', ['ReferencedField', tableAlias, this.tables[resourceName].name], ['ReferencedField', 'var' + bind[1] + termName, this.tables[resourceName].idField]])
 				{i++}
 			)+
 			-> ['Exists', query],
@@ -180,9 +188,10 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 					{rootTerms[1]}:termFrom
 					{rootTerms[0]}:termTo
 				)
+				{this.tables[this.GetResourceName(termTo)]}:tableTo
 			|	___ForeignKeyMatchingFailed___.die
 			)
-			-> ['Equals', ['ReferencedField', 'var' + bindFrom[1] + termFrom, this.tables[termTo].name], ['ReferencedField', 'var' + bindTo[1] + termTo, this.tables[termTo].idField]],
+			-> ['Equals', ['ReferencedField', 'var' + bindFrom[1] + termFrom, tableTo.name], ['ReferencedField', 'var' + bindTo[1] + termTo, tableTo.idField]],
 
 		BooleanAttribute :actualFactType =
 			?(this.tables[this.GetResourceName(actualFactType)] == 'BooleanAttribute')
@@ -212,7 +221,8 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 				)
 				|	___AttributeMatchingFailed___.die
 			)
-			AddWhereClause(query, ['Equals', ['ReferencedField', 'var' + bindAttr[1] + termNameReal, this.tables[termNameAttr].name], ['ReferencedField', 'var' + bindReal[1] + termNameReal, this.tables[termNameAttr].name]])
+			{this.GetResourceName(termNameAttr)}:resourceAttr
+			AddWhereClause(query, ['Equals', ['ReferencedField', 'var' + bindAttr[1] + termNameReal, this.tables[resourceAttr].name], ['ReferencedField', 'var' + bindReal[1] + termNameReal, this.tables[resourceAttr].name]])
 			-> ['Exists', query],
 		
 		AtomicFormulation =
@@ -330,12 +340,14 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 	LF2AbstractSQL.ResolveConceptTypes = function(query, termName, varAlias) {
 		var conceptAlias,
 			parentAlias = varAlias + termName,
-			conceptName = termName;
+			conceptName = termName,
+			conceptTable;
 		while(this.conceptTypes.hasOwnProperty(conceptName)) {
 			conceptName = this.conceptTypes[termName];
 			conceptAlias = varAlias + conceptName;
-			{query.push(['From', this.tables[conceptName].name, conceptAlias])}
-			this.AddWhereClause(query, ['Equals', ['ReferencedField', parentAlias, this.tables[conceptName].name], ['ReferencedField', conceptAlias, this.tables[conceptName].idField]])
+			conceptTable = this.tables[this.GetResourceName(conceptName)];
+			query.push(['From', conceptTable.name, conceptAlias])
+			this.AddWhereClause(query, ['Equals', ['ReferencedField', parentAlias, conceptTable.name], ['ReferencedField', conceptAlias, conceptTable.idField]])
 			parentAlias = conceptAlias;
 		}
 	}

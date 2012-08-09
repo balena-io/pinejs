@@ -132,7 +132,7 @@ define(['underscore', 'ometa/ometa-base'], function(_) {
 	SBVRLibs.GetResourceName = function(termOrFactType) {
 		var i = 0, resource = [];
 		if(_.isString(termOrFactType)) {
-			return termOrFactType;
+			return termOrFactType.replace(new RegExp(' ', 'g'), '_');
 		}
 		else {
 			for(;i < termOrFactType.length; i++) {

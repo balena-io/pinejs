@@ -63,17 +63,12 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 	uiModel = LF2AbstractSQLPrep.match(uiModel, "Process")
 	uiModel = LF2AbstractSQL.match(uiModel, "Process")
 	
-	clientModels = {}
-	clientModels['transaction'] = AbstractSQL2CLF(transactionModel)
-	clientModels['ui'] = AbstractSQL2CLF(uiModel)
-	
 	serverURIParser = ServerURIParser.createInstance()
 	serverURIParser.setSQLModel('transaction', transactionModel)
 	serverURIParser.setSQLModel('ui', uiModel)
-	serverURIParser.setClientModel('transaction', clientModels['transaction'])
-	serverURIParser.setClientModel('ui', clientModels['ui'])
 	
 	sqlModels = {}
+	clientModels = {}
 	
 	op =
 		eq: "="
@@ -181,7 +176,6 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 					if row.key == 'sql'
 						serverURIParser.setSQLModel('data', values[row.key])
 						sqlModels['data'] = values[row.key]
-					if row.key == 'prepLF'
 						clientModels['data'] = AbstractSQL2CLF(values[row.key])
 						serverURIParser.setClientModel('data', clientModels['data'])
 
@@ -521,6 +515,10 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 			
 			sqlModels['transaction'] = transactionModel
 			sqlModels['ui'] = uiModel
+			clientModels['transaction'] = AbstractSQL2CLF(transactionModel)
+			clientModels['ui'] = AbstractSQL2CLF(uiModel)
+			serverURIParser.setClientModel('transaction', clientModels['transaction'])
+			serverURIParser.setClientModel('ui', clientModels['ui'])
 			
 			db.transaction( (tx) ->
 				executeSqlModel(tx, uiModel,
@@ -561,7 +559,7 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 						return null
 					prepmod = LF2AbstractSQL.match(LF2AbstractSQLPrep.match(lfmod, "Process"), "Process")
 					sqlModel = AbstractSQL2SQL.generate(prepmod)
-					clientModel = AbstractSQL2CLF(prepmod)
+					clientModel = AbstractSQL2CLF(sqlModel)
 					
 					db.transaction((tx) ->
 						tx.begin()
@@ -765,8 +763,8 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 				result =
 					terms: []
 					factTypes: []
-				sqlmod = serverModelCache.getSQL()
-				for key, row of sqlmod.tables
+				clientModel = clientModels[tree[1][1]]
+				for key, row of clientModel.resources
 					if /-/.test(key)
 						result.factTypes.push(
 							id: row.name
