@@ -6,7 +6,11 @@ define(["sbvr-compiler/LFOptimiser", "underscore"], (function(LFOptimiser, _) {
                 _fromIdx = this.input.idx,
                 conceptType;
             conceptType = LFOptimiser._superApplyWithArgs(this, 'AttrConceptType', termName);
-            (this["primitives"][conceptType] = false);
+            this._opt((function() {
+                this._pred(((this["primitives"][termName] === false) && (this["primitives"][conceptType] !== false)));
+                (this["primitives"][conceptType] = false);
+                return this._apply("SetHelped")
+            }));
             return conceptType
         },
         "AttrDatabaseAttribute": function(termOrFactType) {
@@ -33,7 +37,7 @@ define(["sbvr-compiler/LFOptimiser", "underscore"], (function(LFOptimiser, _) {
                 this._pred(this["primitives"].hasOwnProperty(termOrFactType));
                 newAttrVal = this["primitives"][termOrFactType];
                 this._pred((newAttrVal != attrVal));
-                console.log("Changing DatabaseAttribute attr to:", newAttrVal, termOrFactType);
+                console.log("Changing DatabasePrimitive attr to:", newAttrVal, termOrFactType);
                 return this._apply("SetHelped")
             }));
             (this["primitives"][termOrFactType] = newAttrVal);

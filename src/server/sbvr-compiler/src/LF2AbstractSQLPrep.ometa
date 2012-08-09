@@ -4,7 +4,10 @@ define(['sbvr-compiler/LFOptimiser', 'underscore'], function(LFOptimiser, _) {
 	ometa LF2AbstractSQLPrep <: LFOptimiser {
 		AttrConceptType :termName =
 			^AttrConceptType(termName):conceptType
-			{this.primitives[conceptType] = false}
+			(	?(this.primitives[termName] === false && this.primitives[conceptType] !== false)
+				{this.primitives[conceptType] = false}
+				SetHelped
+			)?
 			-> conceptType,
 		AttrDatabaseAttribute :termOrFactType =
 			:attrVal
@@ -25,7 +28,7 @@ define(['sbvr-compiler/LFOptimiser', 'underscore'], function(LFOptimiser, _) {
 			(	?(this.primitives.hasOwnProperty(termOrFactType))
 				{this.primitives[termOrFactType]}:newAttrVal
 				?(newAttrVal != attrVal)
-				{console.log('Changing DatabaseAttribute attr to:', newAttrVal, termOrFactType)}
+				{console.log('Changing DatabasePrimitive attr to:', newAttrVal, termOrFactType)}
 				SetHelped
 			)?
 			{this.primitives[termOrFactType] = newAttrVal}
