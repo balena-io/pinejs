@@ -1,6 +1,6 @@
-define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs'], (ClientURIUnparser, createAsyncQueueCallback, ejs) ->
+define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs', 'data-frame/widgets'], (ClientURIUnparser, createAsyncQueueCallback, ejs, widgets) ->
 	templates = {
-		widgets: {}
+		widgets: widgets
 		hiddenFormInput: ejs.compile('''
 			<input type="hidden" id="__actype" value="<%= action %>">
 			<input type="hidden" id="__type" value="<%= resourceModel.resourceName %>">
@@ -217,13 +217,6 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 			</div>
 			''')
 	}
-	requirejs(['data-frame/widgets/text', 'data-frame/widgets/textArea', 'data-frame/widgets/foreignKey', 'data-frame/widgets/integer', 'data-frame/widgets/boolean'], (text, textArea, foreignKey, integer, boolean) ->
-		templates.widgets.text = text
-		templates.widgets.textArea = textArea
-		templates.widgets.foreignKey = foreignKey
-		templates.widgets.integer = integer
-		templates.widgets.boolean = boolean
-	)
 	baseTemplateVars =
 		templates: templates
 	evenTemplateVars =

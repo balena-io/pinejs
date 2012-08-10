@@ -2,10 +2,10 @@
 (function() {
   var __hasProp = {}.hasOwnProperty;
 
-  define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs'], function(ClientURIUnparser, createAsyncQueueCallback, ejs) {
+  define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs', 'data-frame/widgets'], function(ClientURIUnparser, createAsyncQueueCallback, ejs, widgets) {
     var baseTemplateVars, createNavigableTree, drawData, evenTemplateVars, getForeignKeyResults, oddTemplateVars, processForm, renderInstance, renderResource, serverAPI, submitInstance, templates;
     templates = {
-      widgets: {},
+      widgets: widgets,
       hiddenFormInput: ejs.compile('<input type="hidden" id="__actype" value="<%= action %>">\n<input type="hidden" id="__type" value="<%= resourceModel.resourceName %>">\n<input type="hidden" id="__serverURI" value="<%= serverURI %>">\n<input type="hidden" id="__backURI" value="<%= backURI %>"><%\nif(id !== false) { %>\n	<input type="hidden" id="__id" value="<%= id %>"><%\n} %>'),
       dataTypeDisplay: ejs.compile('<%\nvar fieldName = resourceField[1],\n	fieldValue = resourceInstance === false ? "" : resourceInstance[fieldName],\n	fieldIdentifier = resourceModel.resourceName + "." + fieldName;\nswitch(resourceField[0]) {\n	case "Short Text":\n	case "Value": %>\n		<%= fieldName %>: <%- templates.widgets.text(action, fieldIdentifier, fieldValue) %><br /><%\n	break;\n	case "Long Text": %>\n		<%= fieldName %>: <%- templates.widgets.textArea(action, fieldIdentifier, fieldValue) %><br /><%\n	break;\n	case "Integer": %>\n		<%= fieldName %>: <%- templates.widgets.integer(action, fieldIdentifier, fieldValue) %><br /><%\n	break;\n	case "Boolean": %>\n		<%= fieldName %>: <%- templates.widgets.boolean(action, fieldIdentifier, fieldValue) %><br /><%\n	break;\n	case "ConceptType":\n	case "ForeignKey": %>\n		<%= fieldName %>: <%- templates.widgets.foreignKey(action, fieldIdentifier, fieldValue, foreignKeys[fieldName]) %><br /><%\n	break;\n	case "Serial": \n		if(resourceInstance !== false) { %>\n			<%= fieldName %>: <%= fieldValue %><br /><%\n		}\n	break;\n	default:\n		console.error("Hit default, wtf?");\n} %>'),
       viewAddEditResource: ejs.compile('<div class="panel" style="background-color:<%= backgroundColour %>;">\n	<form class="action">\n		<%- templates.hiddenFormInput(locals) %><%\n		for(var i = 0; i < resourceModel.fields.length; i++) { %>\n			<%-\n				templates.dataTypeDisplay({\n					templates: templates,\n					resourceInstance: resourceInstance,\n					resourceModel: resourceModel,\n					resourceField: resourceModel.fields[i],\n					foreignKeys: foreignKeys,\n					action: action\n				})\n			%><%\n		}\n		if(action !== "view") { %>\n			<div align="right">\n				<input type="submit" value="Submit This" onClick="processForm(this.parentNode.parentNode);return false;">\n			</div><%\n		} %>\n	</form>\n</div>'),
@@ -15,13 +15,6 @@
       factTypeName: ejs.compile('<%\nfor(var i = 0; i < factType.length; i++) {\n	var factTypePart = factType[i];\n	if(factTypePart[0] == "Term") { %>\n		<%= foreignKeys[factTypePart[1]][instance[factTypePart[1]]].value %> <%\n	}\n	else if(factTypePart[0] == "Verb") { %>\n		<em><%= factTypePart[1] %></em><%\n	}\n} %>'),
       topLevelTemplate: ejs.compile('<table id="terms">\n	<tbody><%\n		for(var resourceName in topLevelResources) {\n			if(!topLevelResources.hasOwnProperty(resourceName)) {\n				continue;\n			}\n			var resource = topLevelResources[resourceName]; %>\n			<tr id="tr--data--"<%= resourceName %>">\n				<td><%\n					if(resource.isExpanded) { %>\n						<div style="display:inline; background-color:#FFFFFF;">\n							<%= resourceName %>\n							<a href="<%= resource.closeURI %>" onClick="location.hash=\'<%= resource.closeHash %>\';return false">\n								<span title="Close" class="ui-icon ui-icon-circle-close"></span>\n							</a>\n						</div>\n						<%- resource.html %><%\n					}\n					else { %>\n						<%= resourceName %>\n						<a href="<%= resource.expandURI %>" onClick="location.hash=\'<%= resource.expandHash %>\';return false">\n							<span title="See all" class="ui-icon ui-icon-search"></span>\n						</a><%\n					} %>\n				</td>\n			</tr><%\n		} %>\n	</tbody>\n</table><br/>\n<div align="left">\n	<input type="button" value="Apply All Changes" onClick="runTrans($(\'#terms\'));return false;">\n</div>')
     };
-    requirejs(['data-frame/widgets/text', 'data-frame/widgets/textArea', 'data-frame/widgets/foreignKey', 'data-frame/widgets/integer', 'data-frame/widgets/boolean'], function(text, textArea, foreignKey, integer, boolean) {
-      templates.widgets.text = text;
-      templates.widgets.textArea = textArea;
-      templates.widgets.foreignKey = foreignKey;
-      templates.widgets.integer = integer;
-      return templates.widgets.boolean = boolean;
-    });
     baseTemplateVars = {
       templates: templates
     };
