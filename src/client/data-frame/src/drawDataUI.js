@@ -3,7 +3,7 @@
   var __hasProp = {}.hasOwnProperty;
 
   define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs'], function(ClientURIUnparser, createAsyncQueueCallback, ejs) {
-    var baseTemplateVars, createNavigableTree, drawData, evenTemplateVars, getForeignKeyResults, getResolvedFactType, oddTemplateVars, processForm, renderInstance, renderResource, serverAPI, submitInstance, templates;
+    var baseTemplateVars, createNavigableTree, drawData, evenTemplateVars, getForeignKeyResults, oddTemplateVars, processForm, renderInstance, renderResource, serverAPI, submitInstance, templates;
     templates = {
       widgets: {},
       hiddenFormInput: ejs.compile('<input type="hidden" id="__actype" value="<%= action %>">\n<input type="hidden" id="__type" value="<%= resourceModel.resourceName %>">\n<input type="hidden" id="__serverURI" value="<%= serverURI %>">\n<input type="hidden" id="__backURI" value="<%= backURI %>"><%\nif(id !== false) { %>\n	<input type="hidden" id="__id" value="<%= id %>"><%\n} %>'),
@@ -12,7 +12,7 @@
       deleteResource: ejs.compile('<div class="panel" style="background-color:<%= backgroundColour %>;">\n	<div align="left">\n		marked for deletion\n		<div align="right">\n			<form class="action">\n				<%- templates.hiddenFormInput(locals) %>\n				<input type="submit" value="Confirm" onClick="processForm(this.parentNode.parentNode);return false;">\n			</form>\n		</div>\n	</div>\n</div>'),
       factTypeCollection: ejs.compile('<%\nfor(var i = 0; i < factTypeCollections.length; i++) {\n	var factTypeCollection = factTypeCollections[i]; %>\n	<tr id="tr--data--<%= factTypeCollection.resourceName %>">\n		<td><%\n			if(factTypeCollection.isExpanded) { %>\n				<div style="display:inline;background-color:<%= altBackgroundColour %>">\n					<%= factTypeCollection.resourceName.replace(/[_-]/g, \' \') %>\n					<a href="<%= factTypeCollection.closeURI %>" onClick="location.hash=\'<%= factTypeCollection.closeHash %>\';return false">\n						<span title="Close" class="ui-icon ui-icon-circle-close"></span>\n					</a>\n				</div>\n				<%- factTypeCollection.html %><%\n			}\n			else { %>\n				<%= factTypeCollection.resourceName %>\n				<a href="<%= factTypeCollection.expandURI %>" onClick="location.hash=\'<%= factTypeCollection.expandHash %>\';return false">\n					<span title="See all" class="ui-icon ui-icon-search"></span>\n				</a><%\n			} %>\n		</td>\n	</tr><%\n} %>'),
       resourceCollection: ejs.compile('<div class="panel" style="background-color:<%= backgroundColour %>;">\n	<table id="tbl--<%= pid %>">\n		<tbody><%\n			for(var i = 0; i < resourceCollections.length; i++) {\n				var resourceCollection = resourceCollections[i]; %>\n				<tr id="tr--<%= pid %>--<%= resourceCollection.id %>">\n					<td><%\n						if(resourceCollection.isExpanded) { %>\n							<div style="display:inline;background-color:<%= altBackgroundColour %>">\n								<%- resourceCollection.resourceName %>\n								<a href="<%= resourceCollection.closeURI %>" onClick="location.hash=\'<%= resourceCollection.closeHash %>\';return false"><%\n									switch(resourceCollection.action) {\n										case "view":\n										case "edit":\n											%><span title="Close" class="ui-icon ui-icon-circle-close"></span><%\n										break;\n										case "del":\n											%>[unmark]<%\n									} %>\n								</a>\n							</div>\n							<%- resourceCollection.html %><%\n						}\n						else { %>\n							<%- resourceCollection.resourceName %><%\n							if(resourceModel.actions.indexOf("view") !== -1) { %>\n								<a href="<%= resourceCollection.viewURI %>" onClick="location.hash=\'<%= resourceCollection.viewHash %>\';return false"><span title="View" class="ui-icon ui-icon-search"></span></a><%\n							}\n							if(resourceModel.actions.indexOf("edit") !== -1) { %>\n								<a href="<%= resourceCollection.editURI %>" onClick="location.hash=\'<%= resourceCollection.editHash %>\';return false"><span title="Edit" class="ui-icon ui-icon-pencil"></span></a><%\n							}\n							if(resourceModel.actions.indexOf("delete") !== -1) { %>\n								<a href="<%= resourceCollection.deleteURI %>" onClick="location.hash=\'<%= resourceCollection.deleteHash %>\';return false"><span title="Delete" class="ui-icon ui-icon-trash"></span></a><%\n							}\n						} %>\n					</td>\n				</tr><%\n			} %>\n			<tr>\n				<td>\n					<hr style="border:0px; width:90%; background-color: #999; height:1px;">\n				</td>\n			</tr>\n			<tr>\n				<td>\n					<a href="<%= addURI %>" onClick="location.hash=\'<%= addHash %>\';return false;">[(+)add new]</a>\n				</td>\n			</tr><%\n			for(var i = 0; i < addsHTML.length; i++) { %>\n				<tr>\n					<td>\n						<%- addsHTML[i] %>\n					</td>\n				</tr><%\n			} %>\n			<tr>\n				<td>\n					<hr style="border:0px; width:90%; background-color: #999; height:1px;">\n				</td>\n			</tr>\n			<%- templates.factTypeCollection(locals) %>\n		</tbody>\n	</table>\n</div>'),
-      factTypeName: ejs.compile('<%\nfor(var i = 0; i < factType.length; i++) {\n	var factTypePart = factType[i];\n	if(factTypePart[0] == "Term") { %>\n		<%= factTypeInstance[factTypePart[1]].value %> <%\n	}\n	else if(factTypePart[0] == "Verb") { %>\n		<em><%= factTypePart[1] %></em><%\n	}\n} %>'),
+      factTypeName: ejs.compile('<%\nfor(var i = 0; i < factType.length; i++) {\n	var factTypePart = factType[i];\n	if(factTypePart[0] == "Term") { %>\n		<%= foreignKeys[factTypePart[1]][instance[factTypePart[1]]].value %> <%\n	}\n	else if(factTypePart[0] == "Verb") { %>\n		<em><%= factTypePart[1] %></em><%\n	}\n} %>'),
       topLevelTemplate: ejs.compile('<table id="terms">\n	<tbody><%\n		for(var resourceName in topLevelResources) {\n			if(!topLevelResources.hasOwnProperty(resourceName)) {\n				continue;\n			}\n			var resource = topLevelResources[resourceName]; %>\n			<tr id="tr--data--"<%= resourceName %>">\n				<td><%\n					if(resource.isExpanded) { %>\n						<div style="display:inline; background-color:#FFFFFF;">\n							<%= resourceName %>\n							<a href="<%= resource.closeURI %>" onClick="location.hash=\'<%= resource.closeHash %>\';return false">\n								<span title="Close" class="ui-icon ui-icon-circle-close"></span>\n							</a>\n						</div>\n						<%- resource.html %><%\n					}\n					else { %>\n						<%= resourceName %>\n						<a href="<%= resource.expandURI %>" onClick="location.hash=\'<%= resource.expandHash %>\';return false">\n							<span title="See all" class="ui-icon ui-icon-search"></span>\n						</a><%\n					} %>\n				</td>\n			</tr><%\n		} %>\n	</tbody>\n</table><br/>\n<div align="left">\n	<input type="button" value="Apply All Changes" onClick="runTrans($(\'#terms\'));return false;">\n</div>')
     };
     requirejs(['data-frame/widgets/text', 'data-frame/widgets/textArea', 'data-frame/widgets/foreignKey', 'data-frame/widgets/integer', 'data-frame/widgets/boolean'], function(text, textArea, foreignKey, integer, boolean) {
@@ -181,30 +181,6 @@
         }
       };
     };
-    getResolvedFactType = function(factType, factTypeInstance, clientModel, successCallback, errorCallback) {
-      var asyncCallback, factTypePart, i, isBooleanFactType, termResourceName, uri, valueField, _i, _len;
-      factTypeInstance = $.extend(true, {}, factTypeInstance);
-      asyncCallback = createAsyncQueueCallback(function() {
-        return successCallback(factTypeInstance);
-      }, errorCallback);
-      isBooleanFactType = factType.length === 3;
-      for (i = _i = 0, _len = factType.length; _i < _len; i = ++_i) {
-        factTypePart = factType[i];
-        if (factTypePart[0] === "Term") {
-          asyncCallback.addWork(1);
-          valueField = factTypePart[1];
-          termResourceName = factTypePart[1].replace(new RegExp(' ', 'g'), '_');
-          uri = serverAPI(termResourceName, [['id', '=', factTypeInstance[termResourceName]]]);
-          serverRequest("GET", uri, {}, null, (function(valueField) {
-            return function(statusCode, result, headers) {
-              factTypeInstance[valueField] = result.instances[0];
-              return asyncCallback.successCallback();
-            };
-          })(valueField), asyncCallback.errorCallback);
-        }
-      }
-      return asyncCallback.endAdding();
-    };
     getForeignKeyResults = function(clientModel, successCallback) {
       var asyncCallback, field, foreignKey, foreignKeyResults, _fn, _i, _len, _ref, _ref1;
       foreignKeyResults = {};
@@ -219,7 +195,14 @@
         foreignKeyResults[foreignKey] = [];
         asyncCallback.addWork(1);
         return serverRequest('GET', serverAPI(foreignKey), {}, null, function(statusCode, result, headers) {
-          foreignKeyResults[foreignKey] = result.instances;
+          var foreignKeys, instance, _j, _len1, _ref1;
+          foreignKeys = {};
+          _ref1 = result.instances;
+          for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+            instance = _ref1[_j];
+            foreignKeys[instance[result.model.idField]] = instance;
+          }
+          foreignKeyResults[foreignKey] = foreignKeys;
           return asyncCallback.successCallback();
         }, asyncCallback.errorCallback);
       };
@@ -383,11 +366,12 @@
               resourceCollections[i].resourceName = instance[clientModel.valueField];
             } else if (resourceType === "FactType") {
               resourceCollectionsCallback.addWork(1);
-              getResolvedFactType(resourceFactType, instance, clientModel, function(factTypeInstance) {
+              getForeignKeyResults(clientModel, function(foreignKeys) {
                 var templateVars;
                 templateVars = $.extend({}, baseTemplateVars, (even ? evenTemplateVars : oddTemplateVars), {
+                  foreignKeys: foreignKeys,
                   factType: resourceFactType,
-                  factTypeInstance: factTypeInstance
+                  instance: instance
                 });
                 resourceCollections[i].resourceName = templates.factTypeName(templateVars);
                 return resourceCollectionsCallback.successCallback(false);

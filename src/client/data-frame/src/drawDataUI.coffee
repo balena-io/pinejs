@@ -175,7 +175,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 				for(var i = 0; i < factType.length; i++) {
 					var factTypePart = factType[i];
 					if(factTypePart[0] == "Term") { %>
-						<%= factTypeInstance[factTypePart[1]].value %> <%
+						<%= foreignKeys[factTypePart[1]][instance[factTypePart[1]]].value %> <%
 					}
 					else if(factTypePart[0] == "Verb") { %>
 						<em><%= factTypePart[1] %></em><%
@@ -333,30 +333,6 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 				return this.clone().modify(action, change).getURI()
 		}
 	
-	
-	getResolvedFactType = (factType, factTypeInstance, clientModel, successCallback, errorCallback) ->
-		factTypeInstance = $.extend(true, {}, factTypeInstance)
-		asyncCallback = createAsyncQueueCallback(
-			() ->
-				successCallback(factTypeInstance)
-			errorCallback
-		)
-		isBooleanFactType = factType.length == 3
-		for factTypePart, i in factType
-			if factTypePart[0] == "Term"
-				asyncCallback.addWork(1)
-				valueField = factTypePart[1]
-				termResourceName = factTypePart[1].replace(new RegExp(' ', 'g'), '_')
-				uri = serverAPI(termResourceName, [['id', '=', factTypeInstance[termResourceName]]])
-				serverRequest("GET", uri, {}, null,
-					do(valueField) ->
-						(statusCode, result, headers) ->
-							factTypeInstance[valueField] = result.instances[0]
-							asyncCallback.successCallback()
-					asyncCallback.errorCallback
-				)
-		asyncCallback.endAdding()
-	
 	getForeignKeyResults = (clientModel, successCallback) ->
 		foreignKeyResults = {}
 		
@@ -376,7 +352,10 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 				asyncCallback.addWork(1)
 				serverRequest('GET', serverAPI(foreignKey), {}, null,
 					(statusCode, result, headers) ->
-						foreignKeyResults[foreignKey] = result.instances
+						foreignKeys = {}
+						for instance in result.instances
+							foreignKeys[instance[result.model.idField]] = instance
+						foreignKeyResults[foreignKey] = foreignKeys
 						asyncCallback.successCallback()
 					asyncCallback.errorCallback
 				)
@@ -506,11 +485,12 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 								resourceCollections[i].resourceName = instance[clientModel.valueField]
 							else if resourceType == "FactType"
 								resourceCollectionsCallback.addWork(1)
-								getResolvedFactType(resourceFactType, instance, clientModel,
-									(factTypeInstance) ->
+								getForeignKeyResults(clientModel,
+									(foreignKeys) ->
 										templateVars = $.extend({}, baseTemplateVars, (if even then evenTemplateVars else oddTemplateVars), {
+											foreignKeys: foreignKeys
 											factType: resourceFactType
-											factTypeInstance: factTypeInstance
+											instance: instance
 										})
 										resourceCollections[i].resourceName = templates.factTypeName(templateVars)
 										resourceCollectionsCallback.successCallback(false)
