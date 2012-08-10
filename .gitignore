@@ -40,4 +40,4 @@ build/buildinfo.properties
 build/config/buildinfo.properties
 
 /cache.properties
-/node_modules
+node_modules
