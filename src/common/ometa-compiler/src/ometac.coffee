@@ -47,13 +47,14 @@ compileOmetaFile = (ometaFilePath, jsFilePath, pretty) ->
 
 
 if process.argv[1] == __filename
-	arguments = process.argv[2..]
-	ometaPath = arguments[0]
-	pretty = arguments[0] == "pretty"
-	if pretty == true
-		arguments.shift()
-	for filePath in arguments
-		compileOmetaFile(filePath, filePath.substring(0, filePath.lastIndexOf(".")) + ".js", pretty)
+	nopt = require('nopt')
+	knownOpts =
+		'pretty': Boolean
+	shortHands = 
+		'-p': ['--pretty']
+	parsed = nopt(knownOpts, shortHands, process.argv, 2)
+	for filePath in parsed.argv.remain
+		compileOmetaFile(filePath, filePath.substring(0, filePath.lastIndexOf(".")) + ".js", parsed.pretty)
 
 
 exports?.compileOmetaFile = compileOmetaFile

@@ -1,1 +1,1 @@
-node ../../../common/ometa-compiler/src/ometac.js pretty ../src/SQLBinds.ometa && coffee -c ../src/db.coffee
+node ../../../common/ometa-compiler/src/ometac.js -p ../src/SQLBinds.ometa && coffee -c ../src/db.coffee

@@ -1,0 +1,7 @@
+{
+	"name": "OMetac",
+	"version": "0.0.1",
+	"dependencies": {
+		"nopt": "1.0.x"
+	}
+}

@@ -1,1 +1,1 @@
-node ../../ometa-compiler/src/ometac.js pretty ../src/SBVRParser.ometa ../src/SBVRLibs.ometa
+node ../../ometa-compiler/src/ometac.js -p ../src/SBVRParser.ometa ../src/SBVRLibs.ometa
