@@ -76,13 +76,11 @@ if process.argv[1] == __filename
 	doCompile = (filePath) ->
 		compileOmetaFile(filePath, filePath.substring(0, filePath.lastIndexOf('.')) + '.js', parsed.pretty)
 	for filePath in parsed.argv.remain
-		if parsed.watch
-			fsWatcher = fs.watch(filePath)
-			fsWatcher.on('change', (event, filename) ->
+		doCompile(filePath)
+		do (filePath) ->
+			fs.watch(filePath).on('change', (event, filename) ->
 				doCompile(filePath)
 			)
-		else
-			doCompile(filePath)
 		
 
 
