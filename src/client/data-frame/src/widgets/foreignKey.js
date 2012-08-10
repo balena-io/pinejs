@@ -12,14 +12,17 @@ define(function() {
 	var edit = function(id, value, values) {
 		var html = '<select id="' + id + '">',
 			selected,
-			i = 0;
-		for(; i < values.length; i++) {
+			id;
+		for(id in values) {
+			if(!values.hasOwnProperty(id)) {
+				continue;
+			}
 			selected = '';
-			if(value!=undefined && value == values[i].id) {
+			if(value == id) {
 				selected = ' selected="selected"';
 			}
 			// TODO: This should come from client model.
-			html += '<option value="' + values[i].id + '"' + selected + '>' + values[i].value + '</option>';
+			html += '<option value="' + id + '"' + selected + '>' + values[id].value + '</option>';
 		}
 		return html + '</select>';
 	};
