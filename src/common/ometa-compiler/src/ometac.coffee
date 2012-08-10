@@ -12,14 +12,28 @@ load(__dirname + '/../../../external/ometa-js/bs-ometa-optimizer.js')
 load(__dirname + '/../../../external/ometa-js/bs-ometa-js-compiler.js')
 load(__dirname + '/../../../external/beautify/beautify.js')
 
+calculateLineColInfo = (string, index) ->
+	line = 1
+	column = 0
+	for char in string[..index]
+		column++
+		if char == '\n'
+			line++
+			column = 0
+	return {line, column}
+	console.log('Line:', line)
+	console.log('Col:', column)
+
 translationError = (m, i) ->
 	console.log('Translation error - please report this!')
 	throw fail
 parsingError = (ometa) ->
 	(m, i) ->
+		{line, column} = calculateLineColInfo(ometa, i)
 		start = Math.max(0, i - 20)
-		console.log "Error around: " + ometa.substring(start, Math.min(ometa.length, start + 40))
-		console.log "Error around: " + ometa.substring(i - 2, Math.min(ometa.length, i + 2))
+		console.log('Error on line ' + line + ', column ' + column)
+		console.log('Error around: ' + ometa.substring(start, Math.min(ometa.length, start + 40)))
+		console.log('Error around: ' + ometa.substring(i - 2, Math.min(ometa.length, i + 2)))
 		throw m
 
 compileOmeta = (ometa, pretty, desc = 'OMeta') ->
