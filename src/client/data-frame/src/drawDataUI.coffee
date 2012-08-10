@@ -578,9 +578,9 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 					rowCallback(idx, 'Errors: ' + errors)
 			)
 		else if currentLocation[0] == 'instance'
-			renderInstance(ftree, even, resourceType, resourceFactType, (html) -> rowCallback(idx,html))
+			renderInstance(ftree, even, (html) -> rowCallback(idx,html))
 		
-	renderInstance = (ftree, even, resourceType, resourceFactType, rowCallback) ->
+	renderInstance = (ftree, even, rowCallback) ->
 		about = ftree.getAbout()
 		currentLocation = ftree.getCurrentLocation()
 		templateVars = $.extend({}, baseTemplateVars, (if even then evenTemplateVars else oddTemplateVars), {

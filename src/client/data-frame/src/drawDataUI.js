@@ -485,12 +485,12 @@
           return rowCallback(idx, 'Errors: ' + errors);
         });
       } else if (currentLocation[0] === 'instance') {
-        return renderInstance(ftree, even, resourceType, resourceFactType, function(html) {
+        return renderInstance(ftree, even, function(html) {
           return rowCallback(idx, html);
         });
       }
     };
-    renderInstance = function(ftree, even, resourceType, resourceFactType, rowCallback) {
+    renderInstance = function(ftree, even, rowCallback) {
       var about, action, currentLocation, templateVars;
       about = ftree.getAbout();
       currentLocation = ftree.getCurrentLocation();
