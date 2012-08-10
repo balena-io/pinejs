@@ -1,8 +1,7 @@
-console = require("console")
 fs = require("fs")
 vm = require("vm")
 load = (filePath) ->
-	vm.runInThisContext fs.readFileSync(filePath, "utf8"), __filename
+	vm.runInThisContext(fs.readFileSync(filePath, "utf8"), __filename)
 
 load(__dirname + "/../../../external/ometa-js/lib.js")
 load(__dirname + "/../../../external/ometa-js/ometa-base.js")
@@ -50,11 +49,22 @@ if process.argv[1] == __filename
 	nopt = require('nopt')
 	knownOpts =
 		'pretty': Boolean
+		'watch': Boolean
 	shortHands = 
 		'-p': ['--pretty']
+		'-w': ['--watch']
 	parsed = nopt(knownOpts, shortHands, process.argv, 2)
-	for filePath in parsed.argv.remain
+	doCompile = (filePath) ->
 		compileOmetaFile(filePath, filePath.substring(0, filePath.lastIndexOf(".")) + ".js", parsed.pretty)
+	for filePath in parsed.argv.remain
+		if parsed.watch
+			fsWatcher = fs.watch(filePath)
+			fsWatcher.on('change', (event, filename) ->
+				doCompile(filePath)
+			)
+		else
+			doCompile(filePath)
+		
 
 
 exports?.compileOmetaFile = compileOmetaFile
