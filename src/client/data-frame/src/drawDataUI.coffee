@@ -14,7 +14,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 			<%
 			var fieldName = resourceField[1],
 				fieldValue = resourceInstance === false ? "" : resourceInstance[fieldName],
-				fieldIdentifier = resourceName + "." + fieldName;
+				fieldIdentifier = resourceModel.resourceName + "." + fieldName;
 			switch(resourceField[0]) {
 				case "Short Text":
 				case "Value": %>
@@ -29,6 +29,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 				case "Boolean": %>
 					<%= fieldName %>: <%- templates.widgets.boolean(action, fieldIdentifier, fieldValue) %><br /><%
 				break;
+				case "ConceptType":
 				case "ForeignKey": %>
 					<%= fieldName %>: <%- templates.widgets.foreignKey(action, fieldIdentifier, fieldValue, foreignKeys[fieldName]) %><br /><%
 				break;
@@ -50,7 +51,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 							templates.dataTypeDisplay({
 								templates: templates,
 								resourceInstance: resourceInstance,
-								resourceName: resourceModel.name,
+								resourceModel: resourceModel,
 								resourceField: resourceModel.fields[i],
 								foreignKeys: foreignKeys,
 								action: action
@@ -368,7 +369,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 		)
 
 		# Get results for all the foreign keys
-		for field in clientModel.fields when field[0] == 'ForeignKey'
+		for field in clientModel.fields when field[0] in ['ForeignKey', 'ConceptType']
 			foreignKey = field[1]
 			do(foreignKey) ->
 				foreignKeyResults[foreignKey] = []
@@ -614,13 +615,13 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 					(statusCode, result, headers) ->
 						clientModel = result.model
 						instanceID = result.instances[0][clientModel.idField]
-						getForeignKeyResults(result.model, (termResults) ->
+						getForeignKeyResults(result.model, (foreignKeys) ->
 							templateVars = $.extend(templateVars, {
 								action: action
 								id: instanceID
 								resourceInstance: result.instances[0]
 								resourceModel: result.model
-								foreignKeys: termResults
+								foreignKeys: foreignKeys
 							})
 							html = templates.viewAddEditResource(templateVars)
 							rowCallback(html)
@@ -632,13 +633,13 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs']
 			when 'add'
 				serverRequest("GET", ftree.getModelURI(), {}, null,
 					(statusCode, result, headers) ->
-						getForeignKeyResults(result.model, (termResults) ->
+						getForeignKeyResults(result.model, (foreignKeys) ->
 							templateVars = $.extend(templateVars, {
 								action: 'add'
 								id: false
 								resourceInstance: false
 								resourceModel: result.model
-								foreignKeys: termResults
+								foreignKeys: foreignKeys
 							})
 							html = templates.viewAddEditResource(templateVars)
 							rowCallback(html)
