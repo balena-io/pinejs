@@ -1,19 +1,19 @@
-fs = require("fs")
-vm = require("vm")
+fs = require('fs')
+vm = require('vm')
 load = (filePath) ->
-	vm.runInThisContext(fs.readFileSync(filePath, "utf8"), __filename)
+	vm.runInThisContext(fs.readFileSync(filePath, 'utf8'), __filename)
 
-load(__dirname + "/../../../external/ometa-js/lib.js")
-load(__dirname + "/../../../external/ometa-js/ometa-base.js")
-load(__dirname + "/../../../external/ometa-js/parser.js")
-load(__dirname + "/../../../external/ometa-js/bs-js-compiler.js")
-load(__dirname + "/../../../external/ometa-js/bs-ometa-compiler.js")
-load(__dirname + "/../../../external/ometa-js/bs-ometa-optimizer.js")
-load(__dirname + "/../../../external/ometa-js/bs-ometa-js-compiler.js")
-load(__dirname + "/../../../external/beautify/beautify.js")
+load(__dirname + '/../../../external/ometa-js/lib.js')
+load(__dirname + '/../../../external/ometa-js/ometa-base.js')
+load(__dirname + '/../../../external/ometa-js/parser.js')
+load(__dirname + '/../../../external/ometa-js/bs-js-compiler.js')
+load(__dirname + '/../../../external/ometa-js/bs-ometa-compiler.js')
+load(__dirname + '/../../../external/ometa-js/bs-ometa-optimizer.js')
+load(__dirname + '/../../../external/ometa-js/bs-ometa-js-compiler.js')
+load(__dirname + '/../../../external/beautify/beautify.js')
 
 translationError = (m, i) ->
-	console.log "Translation error - please tell Alex about this!"
+	console.log('Translation error - please report this!')
 	throw fail
 parsingError = (ometa) ->
 	(m, i) ->
@@ -23,26 +23,31 @@ parsingError = (ometa) ->
 		throw m
 
 compileOmeta = (ometa, pretty, desc = 'OMeta') ->
-	console.log("Parsing: " + desc)
-	tree = BSOMetaJSParser.matchAll(ometa, "topLevel", undefined, parsingError(ometa))
-	console.log("Compiling: " + desc)
-	js = BSOMetaJSTranslator.match(tree, "trans", undefined, translationError)
-	if pretty == true
-		console.log("Beautifying: " + desc)
-		js = js_beautify(js)
-	return js
+	try
+		console.log('Parsing: ' + desc)
+		tree = BSOMetaJSParser.matchAll(ometa, 'topLevel', undefined, parsingError(ometa))
+		console.log('Compiling: ' + desc)
+		js = BSOMetaJSTranslator.match(tree, 'trans', undefined, translationError)
+		if pretty == true
+			console.log('Beautifying: ' + desc)
+			js = js_beautify(js)
+		return js
+	catch e
+		return false
 
 compileOmetaFile = (ometaFilePath, jsFilePath, pretty) ->
-	console.log("Reading: " + ometaFilePath)
-	fs.readFile ometaFilePath, "utf8", do (ometaFilePath) ->
+	console.log('Reading: ' + ometaFilePath)
+	fs.readFile(ometaFilePath, 'utf8', do (ometaFilePath) ->
 		(err, data) ->
 			if err
 				console.log(err)
 			else
-				ometa = data.replace(/\r\n/g, "\n")
+				ometa = data.replace(/\r\n/g, '\n')
 				js = compileOmeta(ometa, pretty, ometaFilePath)
-				console.log("Writing: " + ometaFilePath)
-				fs.writeFile(jsFilePath, js)
+				if js != false
+					console.log('Writing: ' + ometaFilePath)
+					fs.writeFile(jsFilePath, js)
+	)
 
 
 if process.argv[1] == __filename
@@ -55,7 +60,7 @@ if process.argv[1] == __filename
 		'-w': ['--watch']
 	parsed = nopt(knownOpts, shortHands, process.argv, 2)
 	doCompile = (filePath) ->
-		compileOmetaFile(filePath, filePath.substring(0, filePath.lastIndexOf(".")) + ".js", parsed.pretty)
+		compileOmetaFile(filePath, filePath.substring(0, filePath.lastIndexOf('.')) + '.js', parsed.pretty)
 	for filePath in parsed.argv.remain
 		if parsed.watch
 			fsWatcher = fs.watch(filePath)

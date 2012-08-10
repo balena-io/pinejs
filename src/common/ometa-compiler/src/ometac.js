@@ -2,32 +2,32 @@
 (function() {
   var compileOmeta, compileOmetaFile, doCompile, filePath, fs, fsWatcher, knownOpts, load, nopt, parsed, parsingError, shortHands, translationError, vm, _i, _len, _ref;
 
-  fs = require("fs");
+  fs = require('fs');
 
-  vm = require("vm");
+  vm = require('vm');
 
   load = function(filePath) {
-    return vm.runInThisContext(fs.readFileSync(filePath, "utf8"), __filename);
+    return vm.runInThisContext(fs.readFileSync(filePath, 'utf8'), __filename);
   };
 
-  load(__dirname + "/../../../external/ometa-js/lib.js");
+  load(__dirname + '/../../../external/ometa-js/lib.js');
 
-  load(__dirname + "/../../../external/ometa-js/ometa-base.js");
+  load(__dirname + '/../../../external/ometa-js/ometa-base.js');
 
-  load(__dirname + "/../../../external/ometa-js/parser.js");
+  load(__dirname + '/../../../external/ometa-js/parser.js');
 
-  load(__dirname + "/../../../external/ometa-js/bs-js-compiler.js");
+  load(__dirname + '/../../../external/ometa-js/bs-js-compiler.js');
 
-  load(__dirname + "/../../../external/ometa-js/bs-ometa-compiler.js");
+  load(__dirname + '/../../../external/ometa-js/bs-ometa-compiler.js');
 
-  load(__dirname + "/../../../external/ometa-js/bs-ometa-optimizer.js");
+  load(__dirname + '/../../../external/ometa-js/bs-ometa-optimizer.js');
 
-  load(__dirname + "/../../../external/ometa-js/bs-ometa-js-compiler.js");
+  load(__dirname + '/../../../external/ometa-js/bs-ometa-js-compiler.js');
 
-  load(__dirname + "/../../../external/beautify/beautify.js");
+  load(__dirname + '/../../../external/beautify/beautify.js');
 
   translationError = function(m, i) {
-    console.log("Translation error - please tell Alex about this!");
+    console.log('Translation error - please report this!');
     throw fail;
   };
 
@@ -46,29 +46,35 @@
     if (desc == null) {
       desc = 'OMeta';
     }
-    console.log("Parsing: " + desc);
-    tree = BSOMetaJSParser.matchAll(ometa, "topLevel", void 0, parsingError(ometa));
-    console.log("Compiling: " + desc);
-    js = BSOMetaJSTranslator.match(tree, "trans", void 0, translationError);
-    if (pretty === true) {
-      console.log("Beautifying: " + desc);
-      js = js_beautify(js);
+    try {
+      console.log('Parsing: ' + desc);
+      tree = BSOMetaJSParser.matchAll(ometa, 'topLevel', void 0, parsingError(ometa));
+      console.log('Compiling: ' + desc);
+      js = BSOMetaJSTranslator.match(tree, 'trans', void 0, translationError);
+      if (pretty === true) {
+        console.log('Beautifying: ' + desc);
+        js = js_beautify(js);
+      }
+      return js;
+    } catch (e) {
+      return false;
     }
-    return js;
   };
 
   compileOmetaFile = function(ometaFilePath, jsFilePath, pretty) {
-    console.log("Reading: " + ometaFilePath);
-    return fs.readFile(ometaFilePath, "utf8", (function(ometaFilePath) {
+    console.log('Reading: ' + ometaFilePath);
+    return fs.readFile(ometaFilePath, 'utf8', (function(ometaFilePath) {
       return function(err, data) {
         var js, ometa;
         if (err) {
           return console.log(err);
         } else {
-          ometa = data.replace(/\r\n/g, "\n");
+          ometa = data.replace(/\r\n/g, '\n');
           js = compileOmeta(ometa, pretty, ometaFilePath);
-          console.log("Writing: " + ometaFilePath);
-          return fs.writeFile(jsFilePath, js);
+          if (js !== false) {
+            console.log('Writing: ' + ometaFilePath);
+            return fs.writeFile(jsFilePath, js);
+          }
         }
       };
     })(ometaFilePath));
@@ -86,7 +92,7 @@
     };
     parsed = nopt(knownOpts, shortHands, process.argv, 2);
     doCompile = function(filePath) {
-      return compileOmetaFile(filePath, filePath.substring(0, filePath.lastIndexOf(".")) + ".js", parsed.pretty);
+      return compileOmetaFile(filePath, filePath.substring(0, filePath.lastIndexOf('.')) + '.js', parsed.pretty);
     };
     _ref = parsed.argv.remain;
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
