@@ -10,7 +10,7 @@ load(__dirname + '/../../../external/ometa-js/bs-js-compiler.js')
 load(__dirname + '/../../../external/ometa-js/bs-ometa-compiler.js')
 load(__dirname + '/../../../external/ometa-js/bs-ometa-optimizer.js')
 load(__dirname + '/../../../external/ometa-js/bs-ometa-js-compiler.js')
-load(__dirname + '/../../../external/beautify/beautify.js')
+js_beautify = require('js-beautify').js_beautify
 
 calculateLineColInfo = (string, index) ->
 	line = 1
