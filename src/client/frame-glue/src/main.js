@@ -19,7 +19,7 @@ require(["ometa/ometa-base"], function() {
 				require(["codemirror-ometa-bridge/sbvr","codemirror-ometa-bridge/sbvrac"]);
 				/*#IFDEF server */
 				require(["codemirror-modes/plsql/plsql"], function() {/*#ENDIFDEF*/
-					require(["script"]);
+					require(["frame-glue/script"]);
 				/*#IFDEF server */
 				})/*#ENDIFDEF*/
 			})
