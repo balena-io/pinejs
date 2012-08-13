@@ -482,15 +482,15 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
             };
         case "Attribute":
             {
-                (table = sqlTables[termOrFactType[(0)][(1)]]);
-                (attributeName = termOrFactType[(1)][(1)]);
+                (resourceFieldName = resourceModel["valueField"]);
+                (mapping = resourceToSQLMappings[resourceFieldName]);
                 switch (this["currentMethod"]) {
                 case "DELETE":
                     {
                         (query[(0)] = "UpdateQuery");
-                        this.AddQueryTable(query, table["name"]);
+                        this.AddQueryTable(query, mapping[(0)]);
                         query.push(["Fields", [
-                            [attributeName, "NULL"]
+                            [mapping[(1)], "NULL"]
                         ]]);
                         break
                     };
@@ -505,10 +505,16 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                 case "POST":
                     {
                         (query[(0)] = "UpdateQuery");
-                        this.AddQueryTable(query, table["name"]);
-                        query.push(["Fields", [
-                            [attributeName, ["Bind", table["name"], this.GetTableField(table, attributeName)]]
-                        ]]);
+                        if ((this.AddBodyVar(resourceName, resourceFieldName, mapping) !== undefined)) {
+                            this.AddQueryTable(query, mapping[(0)]);
+                            query.push(["Fields", [
+                                [mapping[(0)],
+                                    ["Bind", mapping[(0)], this.GetTableField(sqlTables[mapping[(0)]], mapping[(1)])]
+                                ]
+                            ]])
+                        } else {
+                            undefined
+                        }
                         break
                     }
                 }

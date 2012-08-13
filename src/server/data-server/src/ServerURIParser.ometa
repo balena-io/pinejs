@@ -282,14 +282,14 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 				__TODO__.die();
 			break;
 			case 'Attribute':
-				// TODO: This should be a list of tables which comes from the mapping.
-				table = sqlTables[termOrFactType[0][1]];
-				attributeName = termOrFactType[1][1];
+				// The attribute is value field
+				resourceFieldName = resourceModel.valueField;
+				mapping = resourceToSQLMappings[resourceFieldName];
 				switch(this.currentMethod) {
 					case 'DELETE':
 						query[0] = 'UpdateQuery';
-						this.AddQueryTable(query, table.name);
-						query.push(['Fields', [[attributeName, 'NULL']]]);
+						this.AddQueryTable(query, mapping[0]);
+						query.push(['Fields', [[mapping[1], 'NULL']]]);
 					break;
 					case 'GET':
 						query[0] = 'SelectQuery';
@@ -298,8 +298,10 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 					case 'PUT':
 					case 'POST':
 						query[0] = 'UpdateQuery';
-						this.AddQueryTable(query, table.name);
-						query.push(['Fields', [[attributeName, ['Bind', table.name, this.GetTableField(table, attributeName)]]]]);
+						if(this.AddBodyVar(resourceName, resourceFieldName, mapping) !== undefined) {
+							this.AddQueryTable(query, mapping[0]);
+							query.push(['Fields', [[mapping[0], ['Bind', mapping[0], this.GetTableField(sqlTables[mapping[0]], mapping[1])]]]]);
+						}
 					break;
 				}
 			break;
