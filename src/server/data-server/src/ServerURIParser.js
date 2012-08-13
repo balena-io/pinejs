@@ -92,54 +92,22 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
             }));
             return resourcePart.replace(new RegExp("_", "g"), " ")
         },
-        "Term": function() {
+        "ResourceName": function() {
             var $elf = this,
-                _fromIdx = this.input.idx,
-                term;
-            term = this._apply("ResourcePart");
-            return ["Term", term]
-        },
-        "Verb": function() {
-            var $elf = this,
-                _fromIdx = this.input.idx,
-                verb;
-            verb = this._apply("ResourcePart");
-            return ["Verb", verb]
-        },
-        "TermOrFactType": function() {
-            var $elf = this,
-                _fromIdx = this.input.idx,
-                term, factType, verb, resourceName, tableName;
-            resourceName = this._consumedBy((function() {
-                term = this._apply("Term");
-                factType = [term];
+                _fromIdx = this.input.idx;
+            return this._consumedBy((function() {
+                this._apply("ResourcePart");
                 return this._many((function() {
                     this._applyWithArgs("exactly", "-");
-                    verb = this._apply("Verb");
-                    factType.push(verb);
-                    return this._opt((function() {
-                        this._applyWithArgs("exactly", "-");
-                        term = this._apply("Term");
-                        return factType.push(term)
-                    }))
+                    return this._apply("ResourcePart")
                 }))
-            }));
-            tableName = this._or((function() {
-                this._pred(verb);
-                return factType
-            }), (function() {
-                return term[(1)]
-            }));
-            return ({
-                "resourceName": resourceName,
-                "tableName": tableName
-            })
+            }))
         },
         "Resource": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
-                resourceInfo, query;
-            resourceInfo = this._apply("TermOrFactType");
+                resourceName, query;
+            resourceName = this._apply("ResourceName");
             this._opt((function() {
                 this._or((function() {
                     return this._pred((this["currentMethod"] != "GET"))
@@ -149,14 +117,14 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                     }))
                 }));
                 query = ["Query"];
-                this._applyWithArgs("AddQueryResource", query, resourceInfo["tableName"], resourceInfo["resourceName"]);
+                this._applyWithArgs("AddQueryResource", query, resourceName);
                 this._applyWithArgs("Modifiers", query);
                 return this._opt((function() {
                     return this._applyWithArgs("exactly", "*")
                 }))
             }));
             return ({
-                "resourceName": resourceInfo["resourceName"],
+                "resourceName": resourceName,
                 "query": query,
                 "values": this["newBody"]
             })
@@ -437,16 +405,12 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
         };
         query.push(["From", tableName])
     }));
-    (ServerURIParser["AddQueryResource"] = (function(query, termOrFactType, resourceName) {
+    (ServerURIParser["AddQueryResource"] = (function(query, resourceName) {
         {
             var newValue = undefined;
             var fieldName = undefined;
-            var value = undefined;
             var fields = undefined;
-            var i = undefined;
-            var field = undefined;
             var mapping = undefined;
-            var resourceField = undefined;
             var resourceFieldName = undefined;
             var $elf = this;
             var clientModel = this["clientModels"][this["currentVocab"]];

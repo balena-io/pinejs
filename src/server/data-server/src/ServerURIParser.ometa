@@ -48,41 +48,24 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 			>:resourcePart
 			-> resourcePart.replace(new RegExp('_', 'g'), ' '),
 
-		Term =
-			ResourcePart:term
-			-> ['Term', term],
-		Verb =
-			ResourcePart:verb
-			-> ['Verb', verb],
-
-		TermOrFactType =
-			<	Term:term
-				{[term]}:factType
+		ResourceName =
+			<	ResourcePart
 				(	'-'
-					Verb:verb {factType.push(verb)}
-					(	'-'
-						Term:term
-						{factType.push(term)}
-					)?
+					ResourcePart
 				)*
-			>:resourceName
-			(	?verb
-				-> factType
-			|	-> term[1]
-			):tableName
-			-> {resourceName: resourceName, tableName: tableName},
+			>,
 
 		Resource =
-			TermOrFactType:resourceInfo
+			ResourceName:resourceName
 			(	(	?(this.currentMethod != 'GET')
 				|	&'*'
 				)
 				{['Query']}:query
-				AddQueryResource(query, resourceInfo.tableName, resourceInfo.resourceName)
+				AddQueryResource(query, resourceName)
 				Modifiers(query)
 				'*'?
 			)?
-			-> {resourceName: resourceInfo.resourceName, query: query, values: this.newBody},
+			-> {resourceName: resourceName, query: query, values: this.newBody},
 
 		Comparator =
 				'='
@@ -258,8 +241,8 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 		query.push(['From', tableName]);
 	}
 
-	ServerURIParser.AddQueryResource = function(query, termOrFactType, resourceName) {
-		var newValue, fieldName, value, fields, i, field, mapping, resourceField, resourceFieldName, self = this,
+	ServerURIParser.AddQueryResource = function(query, resourceName) {
+		var newValue, fieldName, fields, mapping, resourceFieldName, self = this,
 			clientModel = this.clientModels[this.currentVocab],
 			resourceModel = clientModel.resources[resourceName],
 			resourceToSQLMappings = clientModel.resourceToSQLMappings[resourceName],
