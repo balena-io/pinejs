@@ -259,14 +259,14 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 	}
 
 	ServerURIParser.AddQueryResource = function(query, termOrFactType, resourceName) {
-		var newValue, fieldName, value, fields, i, field, mapping, resourceField, self = this,
+		var newValue, fieldName, value, fields, i, field, mapping, resourceField, resourceFieldName, self = this,
 			clientModel = this.clientModels[this.currentVocab],
 			resourceModel = clientModel.resources[resourceName],
 			resourceToSQLMappings = clientModel.resourceToSQLMappings[resourceName],
 			sqlTables = this.sqlModels[this.currentVocab].tables,
 			table = sqlTables[resourceName],
 			getSelectFields = function() {
-				var mapping, resourceField, fields = [], table;
+				var mapping, resourceField, fields = [];
 				for(resourceField in resourceToSQLMappings) {
 					if(resourceToSQLMappings.hasOwnProperty(resourceField)) {
 						mapping = resourceToSQLMappings[resourceField];
@@ -306,24 +306,27 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 				}
 			break;
 			case 'BooleanAttribute':
-				table = sqlTables[termOrFactType[0][1]];
-				attributeName = termOrFactType[1][1];
+				// The attribute is value field
+				resourceFieldName = resourceModel.valueField;
+				mapping = resourceToSQLMappings[resourceFieldName];
 				switch(this.currentMethod) {
 					case 'GET':
 						query[0] = 'SelectQuery';
 						query.push(['Select', getSelectFields()]);
-						this.AddWhereClause(query, ['Equals', ['Field', attributeName], ['Boolean', true]])
+						this.AddQueryTable(query, mapping[0]);
+						this.AddWhereClause(query, ['Equals', ['ReferencedField'].concat(mapping), ['Boolean', true]]);
 					break;
 					case 'DELETE':
 						newValue = false;
+						// Fallthrough
 					case 'PUT':
 					case 'POST':
 						if(newValue == null) {
 							newValue = true;
 						}
 						query[0] = 'UpdateQuery';
-						query.push(['Fields', [[attributeName, newValue]]]);
-						this.AddQueryTable(query, table.name);
+						query.push(['Fields', [[mapping[1], newValue]]]);
+						this.AddQueryTable(query, mapping[0]);
 						resourceFieldName = resourceModel.idField;
 						mapping = resourceToSQLMappings[resourceFieldName];
 						fieldName = mapping[1];
@@ -345,7 +348,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVR
 					break;
 					case 'PUT':
 					case 'POST':
-						if(this.currentMethod == 'PUT') {
+						if(this.currentMethod === 'PUT') {
 							query[0] = 'UpsertQuery';
 						}
 						else {

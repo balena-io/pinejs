@@ -66,6 +66,11 @@
               resources[resourceName].valueField = resourceField;
               break;
             case 'BooleanAttribute':
+              resourceField = sqlFieldName = idParts[1].replace(/_/g, ' ');
+              sqlTableName = sqlTable.name;
+              addMapping(resourceName, resourceField, sqlTableName, sqlFieldName);
+              resources[resourceName].fields.push(getField(sqlTable, sqlFieldName));
+              resources[resourceName].valueField = resourceField;
               break;
             default:
               throw 'Unrecognised table type';

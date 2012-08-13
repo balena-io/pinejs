@@ -447,6 +447,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
             var field = undefined;
             var mapping = undefined;
             var resourceField = undefined;
+            var resourceFieldName = undefined;
             var $elf = this;
             var clientModel = this["clientModels"][this["currentVocab"]];
             var resourceModel = clientModel["resources"][resourceName];
@@ -457,8 +458,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                 {
                     var mapping = undefined;
                     var resourceField = undefined;
-                    var fields = [];
-                    var table = undefined
+                    var fields = []
                 };
                 for (resourceField in resourceToSQLMappings) {
                     if (resourceToSQLMappings.hasOwnProperty(resourceField)) {
@@ -522,16 +522,15 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
             };
         case "BooleanAttribute":
             {
-                (table = sqlTables[termOrFactType[(0)][(1)]]);
-                (attributeName = termOrFactType[(1)][(1)]);
+                (resourceFieldName = resourceModel["valueField"]);
+                (mapping = resourceToSQLMappings[resourceFieldName]);
                 switch (this["currentMethod"]) {
                 case "GET":
                     {
                         (query[(0)] = "SelectQuery");
                         query.push(["Select", getSelectFields()]);
-                        this.AddWhereClause(query, ["Equals", ["Field", attributeName],
-                            ["Boolean", true]
-                        ]);
+                        this.AddQueryTable(query, mapping[(0)]);
+                        this.AddWhereClause(query, ["Equals", ["ReferencedField"].concat(mapping), ["Boolean", true]]);
                         break
                     };
                 case "DELETE":
@@ -546,9 +545,9 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                             undefined
                         }(query[(0)] = "UpdateQuery");
                         query.push(["Fields", [
-                            [attributeName, newValue]
+                            [mapping[(1)], newValue]
                         ]]);
-                        this.AddQueryTable(query, table["name"]);
+                        this.AddQueryTable(query, mapping[(0)]);
                         (resourceFieldName = resourceModel["idField"]);
                         (mapping = resourceToSQLMappings[resourceFieldName]);
                         (fieldName = mapping[(1)]);
@@ -581,7 +580,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base"], (function(SBV
                     {};
                 case "POST":
                     {
-                        if ((this["currentMethod"] == "PUT")) {
+                        if ((this["currentMethod"] === "PUT")) {
                             (query[(0)] = "UpsertQuery")
                         } else {
                             (query[(0)] = "InsertQuery")

@@ -46,6 +46,12 @@ define(['underscore'], (_) ->
 					when 'BooleanAttribute'
 						# person is old
 						# person: fk - id
+						# is old: boolean
+						resourceField = sqlFieldName = idParts[1].replace(/_/g, ' ')
+						sqlTableName = sqlTable.name
+						addMapping(resourceName, resourceField, sqlTableName, sqlFieldName)
+						resources[resourceName].fields.push(getField(sqlTable, sqlFieldName))
+						resources[resourceName].valueField = resourceField
 					else
 						throw 'Unrecognised table type'
 			else
