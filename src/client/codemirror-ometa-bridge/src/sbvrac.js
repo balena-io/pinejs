@@ -22,7 +22,7 @@ var sbvrAutoComplete = (function () {
 		var cur = editor.getCursor(false),
 			token = editor.getTokenAt(cur),
 			tokenString = token.string.substr(0,cur.ch-token.start),
-			state = $.extend(true,{},editor.getTokenAt({line: cur.line, ch: 0}).state);
+			state = editor.getTokenAt({line: cur.line, ch: 0}).state.clone();
 		
 		var found = [], start = tokenString.toLowerCase(), whitespace = "", whitespaceRegexp = /^[\W]+/;
 		if(whitespaceRegexp.test(start)) {

@@ -731,7 +731,6 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base", "inflection"],
     }));
     (SBVRParser["reset"] = (function() {
         SBVRLibs["initialize"].call(this);
-        (this["terms"] = ({}));
         (this["possMap"] = ({
             "clearSuggestions": [],
             "startTerm": ["Term:     "],
@@ -801,6 +800,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base", "inflection"],
             "addOr": ["or"],
             "terminator": ["."]
         }));
+        (this["terms"] = ({}));
         (this["ruleVars"] = ({}));
         (this["ruleVarsCount"] = (0));
         (this["lines"] = ["Model"])
@@ -822,6 +822,16 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa/ometa-base", "inflection"],
             undefined
         };
         return true
+    }));
+    (SBVRParser["clone"] = (function() {
+        return $.extend(true, SBVRParser.createInstance(), ({
+            "terms": this["terms"],
+            "conceptTypes": this["conceptTypes"],
+            "factTypes": this["factTypes"],
+            "ruleVars": this["ruleVars"],
+            "ruleVarsCount": this["ruleVarsCount"],
+            "lines": this["lines"]
+        }))
     }));
     (SBVRParser["matchForAny"] = (function(rule, arr) {
         var origInput = this["input"];

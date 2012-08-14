@@ -4,7 +4,7 @@ define(['sbvr-parser/SBVRParser', 'codemirror'], function(SBVRParser) {
 
 		return {
 			copyState: function(state) {
-				return $.extend(true,{},state);
+				return state.clone();
 			},
 		
 			startState: function(base) {

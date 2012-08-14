@@ -387,7 +387,6 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base', 'inflection'],
 		};
 	SBVRParser.reset = function() {
 		SBVRLibs.initialize.call(this);
-		this.terms = {};
 		this.possMap = {
 			clearSuggestions: [], //This stops us suggesting any autocomplete before this point.
 			startTerm: ['Term:     '],
@@ -458,6 +457,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base', 'inflection'],
 			addOr: ['or'],
 			terminator: ['.']
 		};
+		this.terms = {};
 		this.ruleVars = {};
 		this.ruleVarsCount = 0;
 		this.lines = ['Model'];
@@ -475,6 +475,17 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base', 'inflection'],
 			return false;
 		}
 		return true;
+	};
+
+	SBVRParser.clone = function() {
+		return $.extend(true,SBVRParser.createInstance(),{
+			terms: this.terms,
+			conceptTypes: this.conceptTypes,
+			factTypes: this.factTypes,
+			ruleVars: this.ruleVars,
+			ruleVarsCount: this.ruleVarsCount,
+			lines: this.lines
+		});
 	};
 
 
