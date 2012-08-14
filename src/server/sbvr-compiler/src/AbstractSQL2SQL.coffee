@@ -3,7 +3,7 @@ define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQLOptimise
 	dataTypeValidate = (originalValue, field) ->
 		value = originalValue
 		validated = true
-		if value == null
+		if value == null || value == ''
 			switch field[2]
 				when 'PRIMARY KEY', 'NOT NULL'
 					validated = 'cannot be null'

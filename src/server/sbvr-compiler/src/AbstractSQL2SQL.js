@@ -8,7 +8,7 @@
       var validated, value;
       value = originalValue;
       validated = true;
-      if (value === null) {
+      if (value === null || value === '') {
         switch (field[2]) {
           case 'PRIMARY KEY':
           case 'NOT NULL':
