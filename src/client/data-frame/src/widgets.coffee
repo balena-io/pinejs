@@ -1,4 +1,4 @@
-define(['data-frame/widgets/text', 'data-frame/widgets/textArea', 'data-frame/widgets/foreignKey', 'data-frame/widgets/integer', 'data-frame/widgets/boolean'], (text, textArea, foreignKey, integer, boolean) ->
+define(['data-frame/widgets/text', 'data-frame/widgets/textArea', 'data-frame/widgets/foreignKey', 'data-frame/widgets/integer', 'data-frame/widgets/boolean', 'data-frame/widgets/real'], (text, textArea, foreignKey, integer, boolean, real) ->
 	widgets = {}
 	widgets['Value'] = text
 	widgets['Short Text'] = text
@@ -7,11 +7,12 @@ define(['data-frame/widgets/text', 'data-frame/widgets/textArea', 'data-frame/wi
 	widgets['ForeignKey'] = foreignKey
 	widgets['Integer'] = integer
 	widgets['Boolean'] = boolean
+	widgets['Real'] = real
 	widgets['Serial'] = (action, id, value) ->
 		if value != ''
 			return value
 		return '?'
-	widgets['Real'] = widgets['Interval'] = widgets['Date'] = widgets['Date Time'] = widgets['Time'] = () ->
+	widgets['Interval'] = widgets['Date'] = widgets['Date Time'] = widgets['Time'] = () ->
 		return 'TODO'
 	
 	return (widgetType, action, id, value, foreignKeys = []) ->
