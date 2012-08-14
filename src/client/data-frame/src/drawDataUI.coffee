@@ -14,33 +14,8 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs',
 			<%
 			var fieldName = resourceField[1],
 				fieldValue = resourceInstance === false ? "" : resourceInstance[fieldName],
-				fieldIdentifier = resourceModel.resourceName + "." + fieldName;
-			switch(resourceField[0]) {
-				case "Short Text":
-				case "Value": %>
-					<%= fieldName %>: <%- templates.widgets.text(action, fieldIdentifier, fieldValue) %><br /><%
-				break;
-				case "Long Text": %>
-					<%= fieldName %>: <%- templates.widgets.textArea(action, fieldIdentifier, fieldValue) %><br /><%
-				break;
-				case "Integer": %>
-					<%= fieldName %>: <%- templates.widgets.integer(action, fieldIdentifier, fieldValue) %><br /><%
-				break;
-				case "Boolean": %>
-					<%= fieldName %>: <%- templates.widgets.boolean(action, fieldIdentifier, fieldValue) %><br /><%
-				break;
-				case "ConceptType":
-				case "ForeignKey": %>
-					<%= fieldName %>: <%- templates.widgets.foreignKey(action, fieldIdentifier, fieldValue, foreignKeys[fieldName]) %><br /><%
-				break;
-				case "Serial": 
-					if(resourceInstance !== false) { %>
-						<%= fieldName %>: <%= fieldValue %><br /><%
-					}
-				break;
-				default:
-					console.error("Hit default, wtf?", resourceField[0]);
-			} %>
+				fieldIdentifier = resourceModel.resourceName + "." + fieldName; %>
+			<%= fieldName %>: <%- templates.widgets(resourceField[0], action, fieldIdentifier, fieldValue, foreignKeys[fieldName]) %><br />
 			''')
 		viewAddEditResource: ejs.compile('''
 			<div class="panel" style="background-color:<%= backgroundColour %>;">
