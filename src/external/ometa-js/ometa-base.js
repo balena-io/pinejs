@@ -150,50 +150,47 @@ Failer.prototype.used = false
 
 OMeta = {
   _addToken: function(startIdx, endIdx, rule, ruleArgs) {
-    if(this.keyTokens != undefined) {
-      if(startIdx != endIdx) {
-        if(this.keyTokens.indexOf(rule)!=-1) {
-          if(this._tokens == undefined) {
-            this._tokens = []
-          }
+    if(this.keyTokens == undefined) {
+      this._addToken = function(){}
+    }
+    else {
+      if(this._tokens == undefined) {
+        this._tokens = []
+      }
+      this._addToken = function(startIdx, endIdx, rule, ruleArgs) {
+        if(startIdx != endIdx && this.keyTokens.indexOf(rule)!=-1) {
           if(this._tokens[startIdx] == undefined) {
             this._tokens[startIdx] = []
           }
           this._tokens[startIdx].push([endIdx, rule, ruleArgs])
         }
       }
+      this._addToken(startIdx, endIdx, rule, ruleArgs)
     }
   },
   
   _storePossibility: function(rule, ruleArgs) {
-    if(this.possMap != undefined && this.possMap.hasOwnProperty(rule)) {
+    if(this.possMap == undefined) {
+      this._storePossibility = function(){}
+    }
+    else {
       if(this.__possibilities == undefined) {
         this.__possibilities = []
       }
-      var idx = this.input.idx;
-      if(this.__possibilities[idx] == undefined) {
-        this.__possibilities[idx] = {}
+      this._storePossibility = function(rule, ruleArgs) {
+        if(this.possMap.hasOwnProperty(rule)) {
+          var idx = this.input.idx;
+          if(this.__possibilities[idx] == undefined) {
+            this.__possibilities[idx] = {}
+          }
+          this.__possibilities[idx][rule] = ruleArgs
+        }
       }
-      this.__possibilities[idx][rule] = ruleArgs
+      this._storePossibility(rule, ruleArgs)
     }
   },
   
   _apply: function(rule) {
-    // if(rule != 'anything' && rule != 'exactly' && rule != 'char'
-      // && rule != 'number' && rule != 'upper' && rule != 'lower'
-      // && rule != 'space' && rule != 'spaces' && rule != 'trans'
-      // && rule != 'token' && rule != 'end' && rule != 'string'
-      // && rule != 'true' && rule != 'false' && rule != 'transFn'
-      // && rule != 'tok' && rule != 'Act' && rule != 'Form'
-      // && rule != 'params' && rule != 'jtCase' && rule != 'Set'
-      // && rule != 'locals' && rule != 'or' && rule != 'And'
-      // && rule != 'Seq' && rule != 'App' && rule != 'Many'
-      // && rule != 'get' && rule != 'var' && rule != 'curlyTrans'
-      // && rule != 'func' && rule != 'arr' && rule != 'call'
-      // && rule != 'begin' && rule != 'addExpr' && rule != 'mulExpr'
-      // && rule != 'binding' && rule != 'Grammar' && rule != 'andExpr'
-      // && rule != 'str' && rule != 'relExpr' && rule != 'orExpr')
-      // console.log(rule)
     var memoRec = this.input.memo[rule]
     if (memoRec == undefined) {
       var origInput = this.input,
@@ -239,7 +236,7 @@ OMeta = {
     var ruleFnArity = ruleFn.length
     var ruleArgs = Array.prototype.slice.call(arguments, 1, ruleFnArity + 1)
     this._storePossibility(rule, ruleArgs)
-    for (var idx = arguments.length - 1; idx >= ruleFnArity + 1; idx--) // prepend "extra" arguments in reverse order
+    for (var idx = arguments.length - 1; idx > ruleFnArity; idx--) // prepend "extra" arguments in reverse order
       this._prependInput(arguments[idx])
     var origIdx = this.input.idx
     var ans = ruleFnArity == 0 ?
@@ -249,8 +246,6 @@ OMeta = {
     return ans
   },
   _superApplyWithArgs: function(recv, rule) {
-    // if(rule != 'space')
-      // console.log('Called super rule: ', rule)
     var ruleFn = this[rule]
     var ruleFnArity = ruleFn.length
     var ruleArgs = Array.prototype.slice.call(arguments, 2, ruleFnArity + 2)
@@ -258,8 +253,6 @@ OMeta = {
     for (var idx = arguments.length - 1; idx > ruleFnArity + 2; idx--) // prepend "extra" arguments in reverse order
       recv._prependInput(arguments[idx])
     var origIdx = recv.input.idx
-    // if(rule != 'space')
-      // console.log('Furthered super rule: ', rule)
     var ans = ruleFnArity == 0 ?
              ruleFn.call(recv) :
              ruleFn.apply(recv, ruleArgs)
