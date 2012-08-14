@@ -39,7 +39,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs',
 					}
 				break;
 				default:
-					console.error("Hit default, wtf?");
+					console.error("Hit default, wtf?", resourceField[0]);
 			} %>
 			''')
 		viewAddEditResource: ejs.compile('''
