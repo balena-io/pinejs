@@ -59,13 +59,15 @@ ometa BSOMetaParser {
                  | "<"  expr:x ">"                                     -> [#ConsBy,    x]
                  | "@<" expr:x ">"                                     -> [#IdxConsBy, x]
                  | "("  expr:x ")"                                     -> x,
+  param          = ":" name:n                                          -> n,
   ruleName       = name
                  | spaces tsString,
   rule           = &(ruleName:n) !(this.locals = ['$elf=this', '_fromIdx=this.input.idx'])
-                     rulePart(n):x ("," rulePart(n))*:xs               -> [#Rule, n, this.locals, [#Or, x].concat(xs)],
-  rulePart :rn   = ruleName:n ?(n == rn) expr4:b1 ( "=" expr:b2        -> [#And, b1, b2]
-                                                  | empty              -> b1
-                                                  ),
+                     !(this.params = [])
+                     rulePart(n):x ("," rulePart(n))*:xs               -> [#Rule, n, this.params, this.locals, [#Or, x].concat(xs)],
+  rulePart :rn   = ruleName:n ?(n == rn)
+                   ( param*:p "=" {this.params = this.params.concat(p)} expr:b
+                   | expr:b)                                           -> b,
   grammar        = keyword('ometa') name:n
                      ( "<:" name | empty -> 'OMeta' ):sn
                      "{" listOf(#rule, ','):rs "}"                        BSOMetaOptimizer.optimizeGrammar(
@@ -100,7 +102,8 @@ ometa BSOMetaTranslator {
   Interleave intPart*:xs                   -> ['this._interleave(', xs.join(','), ')']                             .join(''),
   
   Rule       :name {this.rName = name}
-             locals:ls trans:body          -> ['\n"', name, '":function(){', ls, 'return ', body, '}']             .join(''),
+             params:ps locals:ls
+             trans:body                    -> ['\n"', name, '":function(', ps, '){', ls, 'return ', body, '}']             .join(''),
   Grammar    :name :sName
              {this.name = name}
              {this.sName = sName}
@@ -108,6 +111,8 @@ ometa BSOMetaTranslator {
   intPart  = [:mode transFn:part]          -> (inspect(mode)  + "," + part),
   jtCase   = [:x trans:e]                  -> [inspect(x), e],
   locals   = [string+:vs]                  -> ['var ', vs.join(','), ';']                                          .join('')
+           | []                            -> '',
+  params   = [string+:vs]                  -> vs.join(',')
            | []                            -> '',
   trans    = [:t apply(t):ans]             -> ans,
   transFn  = trans:x                       -> ['(function(){return ', x, '})']                                     .join('')
