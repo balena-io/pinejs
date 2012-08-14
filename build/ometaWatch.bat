@@ -1,0 +1,1 @@
+node ..\src\common\ometa-compiler\src\ometac.js -p -w ..\src\server\data-server\src\ServerURIParser.ometa ..\src\common\sbvr-parser\src\SBVRParser.ometa ..\src\common\sbvr-parser\src\SBVRLibs.ometa
