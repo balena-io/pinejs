@@ -4,43 +4,30 @@
   define(['data-frame/widgets/text', 'data-frame/widgets/textArea', 'data-frame/widgets/foreignKey', 'data-frame/widgets/integer', 'data-frame/widgets/boolean'], function(text, textArea, foreignKey, integer, boolean) {
     var widgets;
     widgets = {};
-    widgets.text = text;
-    widgets.textArea = textArea;
-    widgets.foreignKey = foreignKey;
-    widgets.integer = integer;
-    widgets.boolean = boolean;
+    widgets['Value'] = text;
+    widgets['Short Text'] = text;
+    widgets['Long Text'] = textArea;
+    widgets['ConceptType'] = foreignKey;
+    widgets['ForeignKey'] = foreignKey;
+    widgets['Integer'] = integer;
+    widgets['Boolean'] = boolean;
+    widgets['Serial'] = function(action, id, value) {
+      if (value !== '') {
+        return value;
+      }
+      return '?';
+    };
+    widgets['Real'] = widgets['Interval'] = widgets['Date'] = widgets['Date Time'] = widgets['Time'] = function() {
+      return 'TODO';
+    };
     return function(widgetType, action, id, value, foreignKeys) {
       if (foreignKeys == null) {
         foreignKeys = [];
       }
-      switch (widgetType) {
-        case 'Short Text':
-        case 'Value':
-          return text(action, id, value);
-        case 'Long Text':
-          return textArea(action, id, value);
-        case 'Date':
-        case 'Date Time':
-        case 'Time':
-          return 'TODO';
-        case 'Interval':
-          return 'TODO';
-        case 'Real':
-          return 'TODO';
-        case 'Integer':
-          return integer(action, id, value);
-        case 'Boolean':
-          return boolean(action, id, value);
-        case 'ConceptType':
-        case 'ForeignKey':
-          return foreignKey(action, id, value, foreignKeys);
-        case 'Serial':
-          if (value !== '') {
-            return value;
-          }
-          return '?';
-        default:
-          return console.error('Hit default, wtf?', widgetType);
+      if (widgets.hasOwnProperty(widgetType)) {
+        return widgets[widgetType](action, id, value, foreignKeys);
+      } else {
+        return console.error('Hit default, wtf?', widgetType);
       }
     };
   });

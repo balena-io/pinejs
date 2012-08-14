@@ -1,33 +1,22 @@
 define(['data-frame/widgets/text', 'data-frame/widgets/textArea', 'data-frame/widgets/foreignKey', 'data-frame/widgets/integer', 'data-frame/widgets/boolean'], (text, textArea, foreignKey, integer, boolean) ->
 	widgets = {}
-	widgets.text = text
-	widgets.textArea = textArea
-	widgets.foreignKey = foreignKey
-	widgets.integer = integer
-	widgets.boolean = boolean
+	widgets['Value'] = text
+	widgets['Short Text'] = text
+	widgets['Long Text'] = textArea
+	widgets['ConceptType'] = foreignKey
+	widgets['ForeignKey'] = foreignKey
+	widgets['Integer'] = integer
+	widgets['Boolean'] = boolean
+	widgets['Serial'] = (action, id, value) ->
+		if value != ''
+			return value
+		return '?'
+	widgets['Real'] = widgets['Interval'] = widgets['Date'] = widgets['Date Time'] = widgets['Time'] = () ->
+		return 'TODO'
 	
 	return (widgetType, action, id, value, foreignKeys = []) ->
-		switch(widgetType)
-			when 'Short Text', 'Value'
-				return text(action, id, value)
-			when 'Long Text'
-				return textArea(action, id, value)
-			when 'Date', 'Date Time', 'Time'
-				return 'TODO'
-			when 'Interval'
-				return 'TODO'
-			when 'Real'
-				return 'TODO'
-			when 'Integer'
-				return integer(action, id, value)
-			when 'Boolean'
-				return boolean(action, id, value)
-			when 'ConceptType', 'ForeignKey'
-				return foreignKey(action, id, value, foreignKeys)
-			when 'Serial'
-				if value != ''
-					return value
-				return '?'
-			else
-				console.error('Hit default, wtf?', widgetType)
+		if widgets.hasOwnProperty(widgetType)
+			return widgets[widgetType](action, id, value, foreignKeys)
+		else
+			console.error('Hit default, wtf?', widgetType)
 )
