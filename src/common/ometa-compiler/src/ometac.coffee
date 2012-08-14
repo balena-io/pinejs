@@ -60,7 +60,9 @@ compileOmetaFile = (ometaFilePath, jsFilePath, pretty) ->
 				js = compileOmeta(ometa, pretty, ometaFilePath)
 				if js != false
 					console.log('Writing: ' + ometaFilePath)
-					fs.writeFile(jsFilePath, js)
+					fs.writeFile(jsFilePath, js, () ->
+						console.log('Finished: ' + ometaFilePath)
+					)
 	)
 
 

@@ -96,7 +96,9 @@
           js = compileOmeta(ometa, pretty, ometaFilePath);
           if (js !== false) {
             console.log('Writing: ' + ometaFilePath);
-            return fs.writeFile(jsFilePath, js);
+            return fs.writeFile(jsFilePath, js, function() {
+              return console.log('Finished: ' + ometaFilePath);
+            });
           }
         }
       };
