@@ -34,8 +34,8 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 			Fact type: conditional representation has field type
 			Fact type: conditional representation has lock
 			Rule:      It is obligatory that each conditional representation has exactly 1 field name
-			Rule:      It is obligatory that each conditional representation has exactly 1 field value
-			Rule:      It is obligatory that each conditional representation has exactly 1 field type
+			Rule:      It is obligatory that each conditional representation has at most 1 field value
+			Rule:      It is obligatory that each conditional representation has at most 1 field type
 			Rule:      It is obligatory that each conditional representation has exactly 1 lock
 			Rule:      It is obligatory that each resource is under at most 1 lock that is exclusive'''
 	transactionModel = SBVRParser.matchAll(transactionModel, "expr")
