@@ -37,11 +37,9 @@ define(['sbvr-parser/SBVRParser', 'codemirror'], function(SBVRParser) {
 					try {
 						this.blankLine(state);
 						state.grammar.matchAll(stream.string,'line');
-						state.tokens = state.grammar._getTokens();
 					}
-					catch(e) {
-						console.error(e);
-					}
+					catch(e) {}
+					state.tokens = state.grammar._getTokens();
 				}
 				if(state.nextToken != null) {
 					var nextToken = state.nextToken;
