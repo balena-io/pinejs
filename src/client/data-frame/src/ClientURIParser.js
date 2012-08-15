@@ -23,24 +23,16 @@ define(["ometa/ometa-base"], (function() {
             }));
             return l.join("")
         },
-        "dgit": function() {
+        "number": function() {
             var $elf = this,
                 _fromIdx = this.input.idx,
                 d;
-            d = OMeta._superApplyWithArgs(this, 'digit');
-            return d.digitValue()
-        },
-        "nmbr": function() {
-            var $elf = this,
-                _fromIdx = this.input.idx,
-                n, d;
-            return this._or((function() {
-                n = this._apply("nmbr");
-                d = this._apply("dgit");
-                return ((n * (10)) + d)
-            }), (function() {
-                return this._apply("dgit")
-            }))
+            d = this._consumedBy((function() {
+                return this._many1((function() {
+                    return this._apply("digit")
+                }))
+            }));
+            return parseInt(d, (10))
         },
         "part": function() {
             var $elf = this,
@@ -259,7 +251,7 @@ define(["ometa/ometa-base"], (function() {
             }), (function() {
                 t = this._apply("part");
                 this._applyWithArgs("exactly", ".");
-                f = this._apply("nmbr");
+                f = this._apply("number");
                 s = this._apply("iact");
                 return [[t, f]].concat([
                     ["mod"].concat([

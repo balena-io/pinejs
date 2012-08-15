@@ -3,8 +3,6 @@ define(['ometa/ometa-base'], function() {
 	/*
 		frag = fragment
 		frbd = fragment body
-		dgit = digit
-		nmbr = number
 		part = ???
 		parm = parameter
 		imod = ???
@@ -19,9 +17,7 @@ define(['ometa/ometa-base'], function() {
 	ometa ClientURIParser{
 		word = (letter|'-'|'_')+:l	-> l.join(''),
 
-		dgit = ^digit:d -> d.digitValue(),
-		nmbr = nmbr:n dgit:d -> (n * 10 + d)
-			   | dgit,
+		number = <digit+>:d -> parseInt(d, 10),
 
 		part = (letter|digit|'-'|'_')+:l	-> l.join(''),
 		parm = part:t ('.' word:o -> o| -> {f=t;t=[];f}):f
@@ -38,7 +34,7 @@ define(['ometa/ometa-base'], function() {
 		cole = part:t cact:s  -> [[t]].concat([['mod'].concat(s)]),
 
 		inst = part:t '.' word:f iact:s -> [[t,f]].concat([['mod'].concat([['filt', ['eq', [], 'name', f]]]).concat(s)]),
-		inst = part:t '.' nmbr:f iact:s -> [[t,f]].concat([['mod'].concat([['filt', ['eq', [], 'id', f]]]).concat(s)]),
+		inst = part:t '.' number:f iact:s -> [[t,f]].concat([['mod'].concat([['filt', ['eq', [], 'id', f]]]).concat(s)]),
 		inst = part:t iact:s -> [[t]].concat([['mod'].concat(s)]),
 
 		frbd = ('/'? frag:f -> [f]
