@@ -4,7 +4,7 @@
 
   requireCSS('codemirror');
 
-  requirejs(['codemirror', 'ometa/ometa-base', 'js-beautify', 'jquery.hotkeys'], function() {
+  requirejs(['codemirror', 'js-beautify', 'jquery.hotkeys'], function() {
     return requirejs(['codemirror-modes/javascript/javascript', 'ometa/lib', 'ometa/bs-js-compiler', 'ometa/parser', 'ometa/bs-js-compiler', 'ometa/bs-ometa-compiler', 'ometa/bs-ometa-optimizer', 'ometa/bs-ometa-js-compiler'], function() {
       var cmFormatted, cmRaw, ometacodeArea, outputArea, translateCode;
       translateCode = function(s) {

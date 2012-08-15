@@ -39,7 +39,7 @@
 			'jquery-ui':				rootPath + 'external/jquery-ui/js/jquery-ui-1.8.17.custom.min',
 			'jquery-custom-file-input':	rootPath + 'external/jquery-custom-file-input',
 			'jquery.hotkeys':			rootPath + 'external/jquery.hotkeys',
-			'ometa':					rootPath + 'external/ometa-js',
+			'ometa-core':				rootPath + 'external/ometa-js/lib/ometajs/core',
 			'codemirror':				rootPath + 'external/CodeMirror2/lib/codemirror',
 			'codemirror-util':			rootPath + 'external/CodeMirror2/lib/util',
 			'codemirror-keymap':		rootPath + 'external/CodeMirror2/keymap',

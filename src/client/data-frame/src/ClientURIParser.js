@@ -1,31 +1,29 @@
-define(["ometa/ometa-base"], (function() {
-    var ClientURIParser = undefined;
-    ClientURIParser = objectThatDelegatesTo(OMeta, {
+define(['ometa-core'], (function() {
+    var ClientURIParser = objectThatDelegatesTo(OMeta, {
         "word": function() {
-            var $elf = this,
-                _fromIdx = this.input.idx,
-                l;
+            var _fromIdx = this.input.idx,
+                l, $elf = this;
             l = this._many1((function() {
                 return this._or((function() {
                     return this._apply("letter")
                 }), (function() {
                     return (function() {
                         switch (this._apply('anything')) {
-                        case "-":
-                            return "-";
-                        case "_":
-                            return "_";
+                        case '-':
+                            return '-';
+                        case '_':
+                            return '_';
                         default:
-                            throw fail
+                            throw fail()
                         }
                     }).call(this)
                 }))
             }));
-            return l.join("")
+            return l.join('')
         },
         "number": function() {
-            var $elf = this,
-                _fromIdx = this.input.idx,
+            var _fromIdx = this.input.idx,
+                $elf = this,
                 d;
             d = this._consumedBy((function() {
                 return this._many1((function() {
@@ -35,9 +33,8 @@ define(["ometa/ometa-base"], (function() {
             return parseInt(d, (10))
         },
         "part": function() {
-            var $elf = this,
-                _fromIdx = this.input.idx,
-                l;
+            var _fromIdx = this.input.idx,
+                l, $elf = this;
             l = this._many1((function() {
                 return this._or((function() {
                     return this._apply("letter")
@@ -46,33 +43,32 @@ define(["ometa/ometa-base"], (function() {
                 }), (function() {
                     return (function() {
                         switch (this._apply('anything')) {
-                        case "-":
-                            return "-";
-                        case "_":
-                            return "_";
+                        case '-':
+                            return '-';
+                        case '_':
+                            return '_';
                         default:
-                            throw fail
+                            throw fail()
                         }
                     }).call(this)
                 }))
             }));
-            return l.join("")
+            return l.join('')
         },
         "parm": function() {
-            var $elf = this,
-                _fromIdx = this.input.idx,
-                t, o, f, v;
+            var o, t, _fromIdx = this.input.idx,
+                v, f, $elf = this;
             t = this._apply("part");
             f = this._or((function() {
                 return (function() {
                     switch (this._apply('anything')) {
-                    case ".":
+                    case '.':
                         return (function() {
                             o = this._apply("word");
                             return o
                         }).call(this);
                     default:
-                        throw fail
+                        throw fail()
                     }
                 }).call(this)
             }), (function() {
@@ -84,109 +80,109 @@ define(["ometa/ometa-base"], (function() {
             }));
             o = (function() {
                 switch (this._apply('anything')) {
-                case "=":
-                    return "eq";
-                case "!":
+                case '=':
+                    return 'eq';
+                case '!':
                     return (function() {
-                        this._applyWithArgs("exactly", "=");
-                        "!=";
-                        return "ne"
+                        this._applyWithArgs("exactly", '=');
+                        '!=';
+                        return 'ne'
                     }).call(this);
-                case "~":
-                    return "lk";
+                case '~':
+                    return 'lk';
                 default:
-                    throw fail
+                    throw fail()
                 }
             }).call(this);
             v = this._apply("part");
             this._opt((function() {
-                return this._applyWithArgs("exactly", ";")
+                return this._applyWithArgs("exactly", ';')
             }));
             return [o, t, f, v]
         },
         "imod": function() {
-            var $elf = this,
-                _fromIdx = this.input.idx;
+            var _fromIdx = this.input.idx,
+                $elf = this;
             return (function() {
                 switch (this._apply('anything')) {
-                case "d":
+                case 'v':
                     return (function() {
-                        this._applyWithArgs("exactly", "e");
-                        this._applyWithArgs("exactly", "l");
-                        return "del"
+                        this._applyWithArgs("exactly", 'i');
+                        this._applyWithArgs("exactly", 'e');
+                        this._applyWithArgs("exactly", 'w');
+                        return 'view'
                     }).call(this);
-                case "a":
+                case 'e':
                     return (function() {
-                        this._applyWithArgs("exactly", "d");
-                        this._applyWithArgs("exactly", "d");
-                        return "add"
+                        this._applyWithArgs("exactly", 'd');
+                        this._applyWithArgs("exactly", 'i');
+                        this._applyWithArgs("exactly", 't');
+                        return 'edit'
                     }).call(this);
-                case "v":
+                case 'd':
                     return (function() {
-                        this._applyWithArgs("exactly", "i");
-                        this._applyWithArgs("exactly", "e");
-                        this._applyWithArgs("exactly", "w");
-                        return "view"
+                        this._applyWithArgs("exactly", 'e');
+                        this._applyWithArgs("exactly", 'l');
+                        return 'del'
                     }).call(this);
-                case "e":
+                case 'a':
                     return (function() {
-                        this._applyWithArgs("exactly", "d");
-                        this._applyWithArgs("exactly", "i");
-                        this._applyWithArgs("exactly", "t");
-                        return "edit"
+                        this._applyWithArgs("exactly", 'd');
+                        this._applyWithArgs("exactly", 'd');
+                        return 'add'
                     }).call(this);
                 default:
-                    throw fail
+                    throw fail()
                 }
             }).call(this)
         },
         "cmod": function() {
-            var $elf = this,
-                _fromIdx = this.input.idx;
+            var _fromIdx = this.input.idx,
+                $elf = this;
             return (function() {
                 switch (this._apply('anything')) {
-                case "d":
+                case 'f':
                     return (function() {
-                        this._applyWithArgs("exactly", "e");
-                        this._applyWithArgs("exactly", "l");
-                        return "del"
+                        this._applyWithArgs("exactly", 'i');
+                        this._applyWithArgs("exactly", 'l');
+                        this._applyWithArgs("exactly", 't');
+                        return 'filt'
                     }).call(this);
-                case "f":
+                case 'd':
                     return (function() {
-                        this._applyWithArgs("exactly", "i");
-                        this._applyWithArgs("exactly", "l");
-                        this._applyWithArgs("exactly", "t");
-                        return "filt"
+                        this._applyWithArgs("exactly", 'e');
+                        this._applyWithArgs("exactly", 'l');
+                        return 'del'
                     }).call(this);
-                case "s":
+                case 's':
                     return (function() {
-                        this._applyWithArgs("exactly", "o");
-                        this._applyWithArgs("exactly", "r");
-                        this._applyWithArgs("exactly", "t");
-                        return "sort"
+                        this._applyWithArgs("exactly", 'o');
+                        this._applyWithArgs("exactly", 'r');
+                        this._applyWithArgs("exactly", 't');
+                        return 'sort'
                     }).call(this);
                 default:
-                    throw fail
+                    throw fail()
                 }
             }).call(this)
         },
         "iact": function() {
-            var $elf = this,
-                _fromIdx = this.input.idx,
-                a, p;
+            var _fromIdx = this.input.idx,
+                p, $elf = this,
+                a;
             return this._or((function() {
                 return this._many1((function() {
-                    this._applyWithArgs("exactly", "*");
+                    this._applyWithArgs("exactly", '*');
                     a = this._apply("imod");
                     p = this._or((function() {
                         return (function() {
                             switch (this._apply('anything')) {
-                            case ":":
+                            case ':':
                                 return this._many1((function() {
                                     return this._apply("parm")
                                 }));
                             default:
-                                throw fail
+                                throw fail()
                             }
                         }).call(this)
                     }), (function() {
@@ -199,22 +195,22 @@ define(["ometa/ometa-base"], (function() {
             }))
         },
         "cact": function() {
-            var $elf = this,
-                _fromIdx = this.input.idx,
-                a, p;
+            var _fromIdx = this.input.idx,
+                p, $elf = this,
+                a;
             return this._or((function() {
                 return this._many1((function() {
-                    this._applyWithArgs("exactly", "*");
+                    this._applyWithArgs("exactly", '*');
                     a = this._apply("cmod");
                     p = this._or((function() {
                         return (function() {
                             switch (this._apply('anything')) {
-                            case ":":
+                            case ':':
                                 return this._many1((function() {
                                     return this._apply("parm")
                                 }));
                             default:
-                                throw fail
+                                throw fail()
                             }
                         }).call(this)
                     }), (function() {
@@ -227,70 +223,67 @@ define(["ometa/ometa-base"], (function() {
             }))
         },
         "cole": function() {
-            var $elf = this,
-                _fromIdx = this.input.idx,
-                t, s;
+            var t, _fromIdx = this.input.idx,
+                s, $elf = this;
             t = this._apply("part");
             s = this._apply("cact");
             return [[t]].concat([
-                ["mod"].concat(s)])
+                ['mod'].concat(s)])
         },
         "inst": function() {
-            var $elf = this,
-                _fromIdx = this.input.idx,
-                t, f, s;
+            var t, _fromIdx = this.input.idx,
+                s, f, $elf = this;
             return this._or((function() {
                 t = this._apply("part");
-                this._applyWithArgs("exactly", ".");
+                this._applyWithArgs("exactly", '.');
                 f = this._apply("word");
                 s = this._apply("iact");
                 return [[t, f]].concat([
-                    ["mod"].concat([
-                        ["filt", ["eq", [], "name", f]]
+                    ['mod'].concat([
+                        ['filt', ['eq', [], 'name', f]]
                     ]).concat(s)])
             }), (function() {
                 t = this._apply("part");
-                this._applyWithArgs("exactly", ".");
+                this._applyWithArgs("exactly", '.');
                 f = this._apply("number");
                 s = this._apply("iact");
                 return [[t, f]].concat([
-                    ["mod"].concat([
-                        ["filt", ["eq", [], "id", f]]
+                    ['mod'].concat([
+                        ['filt', ['eq', [], 'id', f]]
                     ]).concat(s)])
             }), (function() {
                 t = this._apply("part");
                 s = this._apply("iact");
                 return [[t]].concat([
-                    ["mod"].concat(s)])
+                    ['mod'].concat(s)])
             }))
         },
         "frbd": function() {
-            var $elf = this,
-                _fromIdx = this.input.idx,
-                f, g, r;
+            var _fromIdx = this.input.idx,
+                g, r, f, $elf = this;
             f = this._or((function() {
                 this._opt((function() {
-                    return this._applyWithArgs("exactly", "/")
+                    return this._applyWithArgs("exactly", '/')
                 }));
                 f = this._apply("frag");
                 return [f]
             }), (function() {
                 this._opt((function() {
-                    return this._applyWithArgs("exactly", "/")
+                    return this._applyWithArgs("exactly", '/')
                 }));
-                this._applyWithArgs("exactly", "(");
+                this._applyWithArgs("exactly", '(');
                 r = this._many1((function() {
                     g = this._apply("frag");
                     this._opt((function() {
-                        return this._applyWithArgs("exactly", ",")
+                        return this._applyWithArgs("exactly", ',')
                     }));
                     return g
                 }));
-                this._applyWithArgs("exactly", ")");
+                this._applyWithArgs("exactly", ')');
                 return r
             }), (function() {
                 this._opt((function() {
-                    return this._applyWithArgs("exactly", "/")
+                    return this._applyWithArgs("exactly", '/')
                 }));
                 return []
             }));
@@ -300,14 +293,14 @@ define(["ometa/ometa-base"], (function() {
                 }), (function() {
                     return (function() {
                         switch (this._apply('anything')) {
-                        case "/":
-                            return "/";
-                        case ")":
-                            return ")";
-                        case ",":
-                            return ",";
+                        case '/':
+                            return '/';
+                        case ',':
+                            return ',';
+                        case ')':
+                            return ')';
                         default:
-                            throw fail
+                            throw fail()
                         }
                     }).call(this)
                 }))
@@ -315,38 +308,36 @@ define(["ometa/ometa-base"], (function() {
             return f
         },
         "frag": function() {
-            var $elf = this,
-                _fromIdx = this.input.idx,
-                w, f;
+            var _fromIdx = this.input.idx,
+                w, f, $elf = this;
             return this._or((function() {
                 w = this._apply("cole");
                 f = this._apply("frbd");
-                return ["collection"].concat(w.concat(f))
+                return ['collection'].concat(w.concat(f))
             }), (function() {
                 w = this._apply("inst");
                 f = this._apply("frbd");
-                return ["instance"].concat(w.concat(f))
+                return ['instance'].concat(w.concat(f))
             }))
         },
         "expr": function() {
-            var $elf = this,
-                _fromIdx = this.input.idx,
-                f;
+            var _fromIdx = this.input.idx,
+                f, $elf = this;
             return this._or((function() {
                 return (function() {
                     switch (this._apply('anything')) {
-                    case "#":
+                    case '#':
                         return (function() {
-                            this._applyWithArgs("exactly", "!");
-                            this._applyWithArgs("exactly", "/");
-                            "#!/";
+                            this._applyWithArgs("exactly", '!');
+                            this._applyWithArgs("exactly", '/');
+                            '#!/';
                             f = this._apply("frag");
                             this._apply("end");
                             f = f;
-                            return ["uri", f]
+                            return ['uri', f]
                         }).call(this);
                     default:
-                        throw fail
+                        throw fail()
                     }
                 }).call(this)
             }), (function() {

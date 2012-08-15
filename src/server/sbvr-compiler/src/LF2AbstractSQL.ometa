@@ -1,5 +1,4 @@
-define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base'], function(SBVRLibs, _) {
-	var LF2AbstractSQL;
+define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core'], function(SBVRLibs, _) {
 	//Transformation from SBVR Logical Formulation to SQL
 
 	ometa LF2AbstractSQL <: SBVRLibs {

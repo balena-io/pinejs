@@ -4,60 +4,70 @@ define(['sbvr-parser/SBVRParser', 'codemirror'], function(SBVRParser) {
 
 		return {
 			copyState: function(state) {
-				return state.clone();
+				return {
+					tokens: state.tokens,
+					nextToken: state.nextToken,
+					grammar: state.grammar.clone()
+				};
 			},
 		
-			startState: function(base) {
-				return SBVRParser.createInstance();
+			startState: function(grammar) {
+				if(grammar == undefined) {
+					grammar = SBVRParser.createInstance();
+				}
+				return {
+					tokens: [],
+					nextToken: null,
+					grammar: grammar
+				};
 			},
 			
 			compareStates: function(origState, newState) {
-				return origState.equals(newState);
+				return origState.grammar.equals(newState.grammar);
 			},
 			
 			blankLine: function(state) {
-				state._tokens = [];
-				state.__possibilities = [];
+				state.tokens = [];
+				state.nextToken = null;
 			},
 
 			token: function(stream, state) {
 				if(stream.sol()) { //Reset most of the state because it's a new line.
 					try {
 						this.blankLine(state);
-						state.matchAll(stream.string,'line');
+						state.grammar.matchAll(stream.string,'line');
+						state.tokens = state.grammar._getTokens();
 					}
-					catch(e) {}
+					catch(e) {
+						console.error(e);
+					}
 				}
-				if(state.nextToken != undefined && state.nextToken != null) {
+				if(state.nextToken != null) {
 					var nextToken = state.nextToken;
 					state.nextToken = null;
 					stream.pos = nextToken[0];
 					return "sbvr-"+nextToken[1];
 				}
-				if(state._tokens[stream.pos]) {
-					var currTokens = state._tokens[stream.pos];
-					delete state._tokens[stream.pos];
+				if(state.tokens[stream.pos]) {
+					var currTokens = state.tokens[stream.pos];
+					delete state.tokens[stream.pos];
 					for (var i in currTokens) {
-						if(state.keyTokens.indexOf(currTokens[i][1])!=-1) {
-							if(stream.eatSpace()) {
-								state.nextToken = currTokens[i];
-								return null;
-							}
-							stream.pos = currTokens[i][0];
-							return "sbvr-"+currTokens[i][1];
+						if(stream.eatSpace()) {
+							state.nextToken = currTokens[i];
+							return null;
 						}
+						stream.pos = currTokens[i][0];
+						return "sbvr-"+currTokens[i][1];
 					}
 				}
-				for(var i in state._tokens) {
-					if(isNaN(parseInt(i))) {
-						stream.skipToEnd();
-						return null;
-					}
-					if(i>stream.pos) {
+				for(var i = stream.pos + 1; i < state.tokens.length; i++) {
+					if(state.tokens[i] != null) {
 						stream.pos = i;
 						return null;
 					}
 				}
+				stream.skipToEnd();
+				return null;
 			},
 
 			indent: function(state, textAfter) {

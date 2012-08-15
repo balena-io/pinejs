@@ -1,6 +1,5 @@
-define(['ometa/ometa-base'], function() {
-	var AbstractSQLRules2SQL,
-		comparisons = {
+define(['ometa-core'], function() {
+	var comparisons = {
 			'Equals': ' = ',
 			'EqualOrGreater': ' >= ',
 			'NotEquals': ' != '

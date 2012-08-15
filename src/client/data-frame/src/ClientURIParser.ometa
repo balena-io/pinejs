@@ -1,5 +1,4 @@
-define(['ometa/ometa-base'], function() {
-	var ClientURIParser;
+define(['ometa-core'], function() {
 	/*
 		frag = fragment
 		frbd = fragment body

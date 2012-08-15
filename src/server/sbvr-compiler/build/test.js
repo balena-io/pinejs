@@ -233,7 +233,7 @@ try {
 		console.log(e)
 		console.log(e.stack)
 	}
-	prettify('x', AbstractSQL2CLF(sqlmodel))
+	// prettify('x', AbstractSQL2CLF(sqlmodel))
 }
 catch(e) {
 	console.log(e.stack)

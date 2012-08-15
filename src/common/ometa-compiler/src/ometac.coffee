@@ -3,13 +3,7 @@ vm = require('vm')
 load = (filePath) ->
 	vm.runInThisContext(fs.readFileSync(filePath, 'utf8'), __filename)
 
-load(__dirname + '/../../../external/ometa-js/lib.js')
-load(__dirname + '/../../../external/ometa-js/ometa-base.js')
-load(__dirname + '/../../../external/ometa-js/parser.js')
-load(__dirname + '/../../../external/ometa-js/bs-js-compiler.js')
-load(__dirname + '/../../../external/ometa-js/bs-ometa-compiler.js')
-load(__dirname + '/../../../external/ometa-js/bs-ometa-optimizer.js')
-load(__dirname + '/../../../external/ometa-js/bs-ometa-js-compiler.js')
+ometajs = require('../../../external/ometa-js/lib/ometajs.js')
 js_beautify = require('js-beautify').js_beautify
 
 calculateLineColInfo = (string, index) ->
@@ -39,14 +33,15 @@ parsingError = (ometa) ->
 compileOmeta = (ometa, pretty, desc = 'OMeta') ->
 	try
 		console.log('Parsing: ' + desc)
-		tree = BSOMetaJSParser.matchAll(ometa, 'topLevel', undefined, parsingError(ometa))
+		tree = ometajs.BSOMetaJSParser.matchAll(ometa, 'topLevel', undefined, parsingError(ometa))
 		console.log('Compiling: ' + desc)
-		js = BSOMetaJSTranslator.match(tree, 'trans', undefined, translationError)
+		js = ometajs.BSOMetaJSTranslator.match(tree, 'trans', undefined, translationError)
 		if pretty == true
 			console.log('Beautifying: ' + desc)
 			js = js_beautify(js)
 		return js
 	catch e
+		# console.log(e)
 		return false
 
 compileOmetaFile = (ometaFilePath, jsFilePath, pretty) ->
@@ -79,10 +74,11 @@ if process.argv[1] == __filename
 		compileOmetaFile(filePath, filePath.substring(0, filePath.lastIndexOf('.')) + '.js', parsed.pretty)
 	for filePath in parsed.argv.remain
 		doCompile(filePath)
-		do (filePath) ->
-			fs.watch(filePath).on('change', (event, filename) ->
-				doCompile(filePath)
-			)
+		if parsed.watch
+			do (filePath) ->
+				fs.watch(filePath).on('change', (event, filename) ->
+					doCompile(filePath)
+				)
 		
 
 

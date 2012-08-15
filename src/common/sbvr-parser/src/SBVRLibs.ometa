@@ -1,5 +1,5 @@
-define(['underscore', 'ometa/ometa-base'], function(_) {
-	var SBVRLibs, primitives = {
+define(['underscore', 'ometa-core'], function(_) {
+	var primitives = {
 		'Integer': true,
 		'Short Text': true,
 		'Long Text': true,

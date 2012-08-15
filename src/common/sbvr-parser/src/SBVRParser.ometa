@@ -1,6 +1,4 @@
-define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base', 'inflection'], function(SBVRLibs, _) {
-	var SBVRParser;
-
+define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], function(SBVRLibs, _) {
 	//A parser for Semantics of Business Vocabulary and Rules (SBVR), an OMG standard.
 	//Converts from Structured English (SBVR-SE) to Logical Formulation (SBVR-LF)
 	//Specification: http://www.omg.org/spec/SBVR/1.0/
@@ -174,7 +172,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base', 'inflection'],
 			"R:"|"Rule:",
 		newRule =
 			startRule spaces &(toSBVREOL):ruleText {this.ruleVarsCount=0}
-			modRule:r ruleBody([[]]):q {r.length == 2 ? r[1][1] = q : r[1] = q}
+			modRule:r ruleBody([[]]):q {r.length == 2 ? (r[1][1] = q) : (r[1] = q)}
 			-> ['Rule', r, ['StructuredEnglish', ruleText]],
 		terb =
 			Term:t addVerb:v
@@ -275,12 +273,12 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base', 'inflection'],
 			-> this.lines
 	}
 
-	SBVRParser.keyTokens = ["startTerm", "startFactType", "startRule", "newComment", "Term", "modRule", "Verb", "keyword", "allowedAttrs", "num", "Value"];
 	SBVRParser.clearSuggestions = function() {};
 	/**
 		Following are "instance" variables/functions rather than shared.
 	*/
 	SBVRParser.initialize = function() {
+		this._enableTokens(["startTerm", "startFactType", "startRule", "newComment", "Term", "modRule", "Verb", "keyword", "allowedAttrs", "num", "Value"]);
 		this.reset();
 	};
 	
@@ -490,35 +488,33 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa/ometa-base', 'inflection'],
 
 
 	/** **/
-	SBVRParser.matchForAny = function(rule,arr) {
-		var origInput = this.input;
+	SBVRParser.matchForAny = function(rule, arr) {
+		var self = this,
+        origInput = this.input,
+        ref = {},
+        result = ref;
+		
 		for (var idx = 0; idx < arr.length; idx++) {
-			try {
-				this.input = origInput;
-				return this._applyWithArgs.call(this, rule, arr[idx]);
-			}
-			catch (f) {
-				if (f != fail) {
-					console.log(f.stack);
-					throw f;
-				}
-			}
+			lookup(function() {
+				self.input = origInput;
+				result = self._applyWithArgs.call(self, rule, arr[idx]);
+			});
+
+			if (result !== ref) return result;
 		}
-		throw fail;
+		throw fail();
 	};
-	SBVRParser.matchForAll = function(rule,arr) {
-		var ret;
+	SBVRParser.matchForAll = function(rule, arr) {
 		for (var idx = 0; idx < arr.length; idx++) {
-			ret = this._applyWithArgs.call(this, rule, arr[idx]);
+			this._applyWithArgs.call(this, rule, arr[idx]);
 		}
-		return ret;
 	};
 	//TODO: This is a bit of a hack for case insensitivity, a better solution needs to be implemented in future.
 	SBVRParser.exactly = function(wanted) {
 		if (wanted.toLowerCase() === this._apply("anything").toLowerCase()) {
 			return wanted;
 		}
-		throw fail;
+		throw fail();
 	};
 	
 	return SBVRParser;
