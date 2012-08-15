@@ -1,7 +1,7 @@
 // TODO: turn off the "seq" inliner when G.seq !== OMeta.seq (will require some refactoring)
 // TODO: add a factorizing optimization (will make jumptables more useful)
 
-ometa BSNullOptimization {
+export ometa BSNullOptimization {
   setHelped = !(this._didSomething = true),
   helped    = ?this._didSomething,
   trans     = [:t ?(this[t] != undefined) apply(t):ans] -> ans,
@@ -28,7 +28,7 @@ ometa BSNullOptimization {
 }
 BSNullOptimization.initialize = function() { this._didSomething = false }
 
-ometa BSAssociativeOptimization <: BSNullOptimization {
+export ometa BSAssociativeOptimization <: BSNullOptimization {
   And trans:x end           setHelped -> x,
   And transInside('And'):xs           -> ['And'].concat(xs),
   Or  trans:x end           setHelped -> x,
@@ -41,13 +41,13 @@ ometa BSAssociativeOptimization <: BSNullOptimization {
                  |                                                            -> []
 }
 
-ometa BSPushDownSet <: BSNullOptimization {
+export ometa BSPushDownSet <: BSNullOptimization {
   Set  :n ['And' notLast('trans')*:xs trans:y]
                             setHelped -> ['And'].concat(xs).concat([['Set', n, y]]),
   Set  :n trans:v                     -> ['Set', n, v]
 }
 
-ometa BSSeqInliner <: BSNullOptimization {
+export ometa BSSeqInliner <: BSNullOptimization {
   App        = 'seq' :s end seqString(s):cs setHelped -> ['And'].concat(cs).concat([['Act', s]])
              | :rule anything*:args                   -> ['App', rule].concat(args),
   inlineChar = BSOMetaParser.eChar:c ~end             -> ['App', 'exactly', inspect(c)],
@@ -79,7 +79,7 @@ JumpTable.prototype.toTree = function() {
     r.push([choiceKeys[i], this.choices[choiceKeys[i]]])
   return r
 }
-ometa BSJumpTableOptimization <: BSNullOptimization {
+export ometa BSJumpTableOptimization <: BSNullOptimization {
   Or  (jtChoices('Or')  | trans)*:cs -> ['Or'].concat(cs),
   XOr (jtChoices('XOr') | trans)*:cs -> ['XOr'].concat(cs),
   quotedString  = &string [ '"'  (BSOMetaParser.eChar:c ~end -> c)*:cs '"'
@@ -89,8 +89,8 @@ ometa BSJumpTableOptimization <: BSNullOptimization {
   jtChoices :op = jtChoice:c {new JumpTable(op, c)}:jt (jtChoice:c {jt.add(c)})* setHelped -> jt.toTree()
 }
 
-ometa BSOMetaOptimizer {
-  optimizeGrammar = ['Grammar' :n :sn optimizeRule*:rs]          -> ['Grammar', n, sn].concat(rs),
+export ometa BSOMetaOptimizer {
+  optimizeGrammar = ['Grammar' :exported :n :sn optimizeRule*:rs]          -> ['Grammar', exported, n, sn].concat(rs),
   optimizeRule    = :r (BSSeqInliner.optimize(r):r | empty)
                        ( BSAssociativeOptimization.optimize(r):r
                        | BSJumpTableOptimization.optimize(r):r

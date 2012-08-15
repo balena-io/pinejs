@@ -1,4 +1,4 @@
-ometa BSJSParser {
+export ometa BSJSParser {
   space        = ^space | fromTo('//', '\n') | fromTo('/*', '*/'),
   nameFirst    = letter | '$' | '_',
   nameRest     = nameFirst | digit,
@@ -171,7 +171,7 @@ for (var idx = 0; idx < keywords.length; idx++)
 BSJSParser._isKeyword = function(k) { return this.keywords.hasOwnProperty(k) }
 
 
-ometa BSSemActionParser <: BSJSParser {
+export ometa BSSemActionParser <: BSJSParser {
   curlySemAction = "{" asgnExpr:r sc "}" spaces                              -> r
                  | "{" (srcElem:s &srcElem -> s)*:ss
                        ( asgnExpr:r sc -> [#return, r] | srcElem):s {ss.push(s)}
@@ -182,7 +182,7 @@ ometa BSSemActionParser <: BSJSParser {
                  | primExpr:r spaces                                         -> r
 }
 
-ometa BSJSIdentity {
+export ometa BSJSIdentity {
   trans      = [:t apply(t):ans]     -> ans
              | [:t] -> t,
 
@@ -232,7 +232,7 @@ ometa BSJSIdentity {
   default          trans:y                              -> [#default, y]
 }
 
-ometa BSJSTranslator {
+export ometa BSJSTranslator {
   trans      = [:t apply(t):ans]     -> ans,
   curlyTrans = [#begin curlyTrans:r] -> r
              | [#begin trans*:rs]    -> ('{' + rs.join(';') + '}')
