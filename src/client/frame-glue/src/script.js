@@ -122,7 +122,9 @@
         onKeyEvent: sbvrAutoComplete,
         lineWrapping: true
       });
-      window.lfEditor = CodeMirror.fromTextArea(document.getElementById("lfArea"));
+      window.lfEditor = CodeMirror.fromTextArea(document.getElementById("lfArea"), {
+        mode: null
+      });
       if (CodeMirror.listModes().indexOf("plsql") > -1) {
         sqlEditor = CodeMirror.fromTextArea(document.getElementById("sqlArea"), {
           mode: "text/x-plsql"

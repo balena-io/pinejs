@@ -113,7 +113,7 @@ define(['sbvr-parser/SBVRParser', 'data-frame/ClientURIParser', 'Prettify'], (SB
 			onKeyEvent: sbvrAutoComplete
 			lineWrapping: true
 		)
-		window.lfEditor = CodeMirror.fromTextArea(document.getElementById("lfArea"))
+		window.lfEditor = CodeMirror.fromTextArea(document.getElementById("lfArea"), mode: null)
 		if CodeMirror.listModes().indexOf("plsql") > -1
 			sqlEditor = CodeMirror.fromTextArea(document.getElementById("sqlArea"), mode: "text/x-plsql")
 			window.importExportEditor = CodeMirror.fromTextArea(document.getElementById("importExportArea"), mode: "text/x-plsql")
