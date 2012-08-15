@@ -22,7 +22,7 @@ var sbvrAutoComplete = (function () {
 		var cur = editor.getCursor(false),
 			token = editor.getTokenAt(cur),
 			tokenString = token.string.substr(0,cur.ch-token.start),
-			state = editor.getTokenAt({line: cur.line, ch: 0}).state.clone();
+			grammar = editor.getTokenAt({line: cur.line, ch: 0}).state.grammar.clone();
 		
 		var found = [], start = tokenString.toLowerCase(), whitespace = "", whitespaceRegexp = /^[\W]+/;
 		if(whitespaceRegexp.test(start)) {
@@ -33,13 +33,13 @@ var sbvrAutoComplete = (function () {
 		var maybeAdd = function(str) {
 			if (str.toLowerCase().indexOf(start) == 0 && !arrayContains(found, str)) found.push(whitespace+str+" ");
 		},
-		addPossibilities = function(state, ruleMap, ruleArgs) {
+		addPossibilities = function(ruleMap, ruleArgs) {
 			var i;
 			if($.isArray(ruleMap)) {
 				forEach(ruleMap, maybeAdd);
 			}
 			else if($.isFunction(ruleMap)) {
-				addPossibilities(state, ruleMap.apply(state, ruleArgs));
+				addPossibilities(ruleMap.apply(grammar, ruleArgs));
 			}
 			else {
 				for(prop in ruleMap) {
@@ -57,20 +57,20 @@ var sbvrAutoComplete = (function () {
 		};
 		
 		try {
-			state._tokens = [];
-			state.__possibilities = [];
-			state.matchAll(editor.getLine(cur.line).substring(0,cur.ch),'line');
+			grammar._enableBranchTracking(grammar.possMap);
+			branches = grammar._getBranches();
+			branches.splice(0, branches.length);
+			grammar.matchAll(editor.getLine(cur.line).substring(0,cur.ch),'line');
 		}
 		catch(e) {}
 
-		var poss = state.__possibilities;
-		var possMap = state.possMap;
+		var possMap = grammar.possMap;
 		
 		for(var i=cur.ch;i>=0;i--) {
-			if(poss[i] != undefined) {
-				for(rule in poss[i]) {
+			if(branches[i] != null) {
+				for(rule in branches[i]) {
 					try {
-						addPossibilities(state, possMap[rule], poss[i][rule]);
+						addPossibilities(possMap[rule], branches[i][rule]);
 					} catch (e) {
 						console.log(e);
 					}
