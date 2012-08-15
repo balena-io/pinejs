@@ -1,10 +1,10 @@
 <!doctype html>
 <html>
   <head>
+    <meta charset="utf-8"/>
     <title>CodeMirror: User Manual</title>
     <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Droid+Sans|Droid+Sans:bold"/>
     <link rel="stylesheet" type="text/css" href="docs.css"/>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <style>dl dl {margin: 0;}</style>
   </head>
   <body>
@@ -227,6 +227,13 @@
       <dd>Will be called when the cursor or selection moves, or any
       change is made to the editor content.</dd>
 
+      <dt id="option_onViewportChange"><code>onViewportChange (function)</code></dt>
+      <dd>When given, will be called whenever
+      the <a href="#getViewport">view port</a> of the editor changes
+      (due to scrolling, editing, or any other factor). It will be
+      passed three arguments, the editor instance, the start of the
+      viewport, and its end.</dd>
+
       <dt id="option_onGutterClick"><code>onGutterClick (function)</code></dt>
       <dd>When given, will be called whenever the editor gutter (the
       line-number area) is clicked. Will be given the editor instance
@@ -253,6 +260,10 @@
       <dt id="option_matchBrackets"><code>matchBrackets (boolean)</code></dt>
       <dd>Determines whether brackets are matched whenever the cursor
       is moved next to a bracket.</dd>
+
+      <dt id="option_cursorBlinkRate"><code>cursorBlinkRate (number)</code></dt>
+      <dd>Half-period in milliseconds used for cursor blinking. The default blink
+      rate is 530ms.</dd>
 
       <dt id="option_workTime"><code>workTime, workDelay (number)</code></dt>
       <dd>Highlighting is done by a pseudo background-thread that will
@@ -281,9 +292,10 @@
       <dd>Can be used to make CodeMirror focus itself on
       initialization. Defaults to off.
       When <a href="#fromTextArea"><code>fromTextArea</code></a> is
-      used, and no explicit value is given for this option, it will
-      inherit the setting from the textarea's <code>autofocus</code>
-      attribute.</dd>
+      used, and no explicit value is given for this option, it will be
+      set to true when either the source textarea is focused, or it
+      has an <code>autofocus</code> attribute and no other element is
+      focused.</dd>
 
       <dt id="option_dragDrop"><code>dragDrop (boolean)</code></dt>
       <dd>Controls whether drag-and-drop is enabled. On by default.</dd>
@@ -346,14 +358,15 @@
     default bindings.</p>
 
     <p>The values of properties in keymaps can be either functions of
-    a single argument (the CodeMirror instance), or strings. Such
-    strings refer to properties of the
+    a single argument (the CodeMirror instance), strings, or
+    <code>false</code>. Such strings refer to properties of the
     <code>CodeMirror.commands</code> object, which defines a number of
     common commands that are used by the default keybindings, and maps
-    them to functions. A key handler function may throw
-    <code>CodeMirror.Pass</code> to indicate that it has decided not
-    to handle the key, and other handlers (or the default behavior)
-    should be given a turn.</p>
+    them to functions. If the property is set to <code>false</code>,
+    CodeMirror leaves handling of the key up to the browser. A key
+    handler function may throw <code>CodeMirror.Pass</code> to indicate
+    that it has decided not to handle the key, and other handlers (or
+    the default behavior) should be given a turn.</p>
 
     <p>Keys mapped to command names that start with the
     characters <code>"go"</code> (which should be used for
@@ -650,6 +663,15 @@
 
       <dt id="getLineHandle"><code>getLineHandle(num) → lineHandle</code></dt>
       <dd>Fetches the line handle for the given line number.</dd>
+
+      <dt id="getViewport"><code>getViewport() → object</code></dt>
+      <dd>Returns a <code>{from, to}</code> object indicating the
+      start (inclusive) and end (exclusive) of the currently displayed
+      part of the document. In big documents, when most content is
+      scrolled out of view, CodeMirror will only render the visible
+      part, and a margin around it. See also
+      the <a href="#option_onViewportChange"><code>onViewportChange</code></a>
+      option.</dd>
 
       <dt id="addWidget"><code>addWidget(pos, node, scrollIntoView)</code></dt>
       <dd>Puts <code>node</code>, which should be an absolutely
@@ -991,8 +1013,7 @@
 
       <dt><code>peek() → character</code></dt>
       <dd>Returns the next character in the stream without advancing
-      it. Will return <code>undefined</code> at the end of the
-      line.</dd>
+      it. Will return an empty string at the end of the line.</dd>
       <dt><code>next() → character</code></dt>
       <dd>Returns the next character in the stream and advances it.
       Also returns <code>undefined</code> when no more characters are
