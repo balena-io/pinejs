@@ -14,6 +14,7 @@ define(['sbvr-parser/SBVRParser', 'codemirror'], function(SBVRParser) {
 			startState: function(grammar) {
 				if(grammar == undefined) {
 					grammar = SBVRParser.createInstance();
+					grammar._enableTokens();
 				}
 				return {
 					tokens: [],

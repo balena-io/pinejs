@@ -278,8 +278,13 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 		Following are "instance" variables/functions rather than shared.
 	*/
 	SBVRParser.initialize = function() {
-		this._enableTokens(["startTerm", "startFactType", "startRule", "newComment", "Term", "modRule", "Verb", "keyword", "allowedAttrs", "num", "Value"]);
+		this.tokensEnabled = false;
 		this.reset();
+	};
+	
+	SBVRParser._enableTokens = function() {
+		this.tokensEnabled = true;
+		SBVRLibs._enableTokens.call(this, ["startTerm", "startFactType", "startRule", "newComment", "Term", "modRule", "Verb", "keyword", "allowedAttrs", "num", "Value"]);
 	};
 	
 	SBVRParser._baseTerm = function(factTypeSoFar, term) {
@@ -476,7 +481,11 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 	};
 
 	SBVRParser.clone = function() {
-		return $.extend(true,SBVRParser.createInstance(),{
+		var clone = SBVRParser.createInstance();
+		if(this.tokensEnabled) {
+			clone._enableTokens();
+		}
+		return $.extend(true, clone, {
 			terms: this.terms,
 			conceptTypes: this.conceptTypes,
 			factTypes: this.factTypes,
