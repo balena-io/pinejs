@@ -52,16 +52,13 @@ var CodeMirror = (function() {
     // Needed to handle Tab key in KHTML
     if (khtml) inputDiv.style.height = "1px", inputDiv.style.position = "absolute";
 
-    // Check for OS X >= 10.7. If so, we need to force a width on the scrollbar, and
-    // make it overlap the content. (But we only do this if the scrollbar doesn't already
-    // have a natural width. If the mouse is plugged in or the user sets the system pref
-    // to always show scrollbars, the scrollbar shouldn't overlap.)
-    if (mac_geLion) {
-      scrollbar.className += (overlapScrollbars() ? " cm-sb-overlap" : " cm-sb-nonoverlap");
-    } else if (ie_lt8) {
-      // Need to set a minimum width to see the scrollbar on IE7 (but must not set it on IE8).
-      scrollbar.className += " cm-sb-ie7";
-    }
+    // Check for OS X >= 10.7. This has transparent scrollbars, so the
+    // overlaying of one scrollbar with another won't work. This is a
+    // temporary hack to simply turn off the overlay scrollbar. See
+    // issue #727.
+    if (mac_geLion) scrollbar.style.display = "none";
+    // Need to set a minimum width to see the scrollbar on IE7 (but must not set it on IE8).
+    else if (ie_lt8) scrollbar.style.minWidth = "18px";
 
     // Check for problem with IE innerHTML not working when we have a
     // P (or similar) parent node.
@@ -119,7 +116,10 @@ var CodeMirror = (function() {
     connect(scroller, "scroll", onScrollMain);
     connect(scrollbar, "scroll", onScrollBar);
     connect(scrollbar, "mousedown", function() {if (focused) setTimeout(focusInput, 0);});
-    connect(window, "resize", function() {updateDisplay(true);});
+    var resizeHandler = connect(window, "resize", function() {
+      if (wrapper.parentNode) updateDisplay(true);
+      else resizeHandler();
+    }, true);
     connect(input, "keyup", operation(onKeyUp));
     connect(input, "input", fastPoll);
     connect(input, "keydown", operation(onKeyDown));
@@ -839,7 +839,7 @@ var CodeMirror = (function() {
 
     function updateVerticalScroll(scrollTop) {
       var scrollHeight = needsScrollbar();
-      scrollbar.style.display = scrollHeight ? "block" : "none";
+      scrollbar.style.display = (scrollHeight && !mac_geLion) ? "block" : "none";
       if (scrollHeight) {
         scrollbarInner.style.height = sizer.style.minHeight = scrollHeight + "px";
         scrollbar.style.height = scroller.clientHeight + "px";
@@ -862,18 +862,6 @@ var CodeMirror = (function() {
       }
       // Position the mover div to align with the current virtual scroll position
       mover.style.top = displayOffset * textHeight() + "px";
-    }
-
-    // On Mac OS X Lion and up, detect whether the mouse is plugged in by measuring
-    // the width of a div with a scrollbar in it. If the width is <= 1, then
-    // the mouse isn't plugged in and scrollbars should overlap the content.
-    function overlapScrollbars() {
-      var tmpSbInner = elt("div", null, "CodeMirror-scrollbar-inner", "height: 200px");
-      var tmpSb = elt("div", [tmpSbInner], "CodeMirror-scrollbar", "position: absolute; left: -9999px; height: 100px;");
-      document.body.appendChild(tmpSb);
-      var result = (tmpSb.offsetWidth <= 1);
-      document.body.removeChild(tmpSb);
-      return result;
     }
 
     function computeMaxLength() {
@@ -981,7 +969,7 @@ var CodeMirror = (function() {
       if (!posEq(sel.from, sel.to)) {
         prevInput = "";
         input.value = getSelection();
-        selectInput(input);
+        if (focused) selectInput(input);
       } else if (user) prevInput = input.value = "";
     }
 
@@ -1112,16 +1100,7 @@ var CodeMirror = (function() {
         return heightChanged;
       }
 
-      if (options.lineWrapping) {
-        checkHeights();
-        var scrollHeight = needsScrollbar();
-        var shouldHaveScrollbar = scrollHeight ? "block" : "none";
-        if (scrollbar.style.display != shouldHaveScrollbar) {
-          scrollbar.style.display = shouldHaveScrollbar;
-          if (scrollHeight) scrollbarInner.style.height = scrollHeight + "px";
-          checkHeights();
-        }
-      }
+      if (options.lineWrapping) checkHeights();
 
       gutter.style.display = gutterDisplay;
       if (different || gutterDirty) {
