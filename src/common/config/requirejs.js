@@ -11,17 +11,17 @@
 
 	window.requireCSS = (function() {
 		var paths = {
-			'jquery-ui':				rootPath + 'external/jquery-ui/css/ui-lightness/jquery-ui.css',
-			'codemirror':				rootPath + 'external/CodeMirror2/lib/codemirror.css',
+			'jquery-ui':				rootPath + 'external/jquery-ui/css/ui-lightness/jquery-ui',
+			'codemirror':				rootPath + 'external/CodeMirror2/lib/codemirror',
 			'codemirror-util':			rootPath + 'external/CodeMirror2/lib/util',
 			'codemirror-theme':			rootPath + 'external/CodeMirror2/theme',
 			'qunit':					rootPath + 'external/qunit/qunit.css',
-			'codemirror-ometa-bridge':	rootPath + 'client/codemirror-ometa-bridge/src/sbvr.css'
+			'codemirror-ometa-bridge':	rootPath + 'client/codemirror-ometa-bridge/src'
 		};
 		return function(url) {
 			var firstPathPart = url.split('/')[0];
 			if (paths.hasOwnProperty(firstPathPart)) {
-				url = url.replace(firstPathPart, paths[firstPathPart]);
+				url = url.replace(firstPathPart, paths[firstPathPart]) + '.css';
 			}
 			var link = document.createElement("link");
 			link.type = "text/css";

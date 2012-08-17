@@ -11,22 +11,19 @@ require(['underscore', 'ometa-core'], function(_) {
 			"data-frame/ClientURIUnparser",
 			'downloadify/downloadify.min',
 			'downloadify/swfobject']);
-	require(["inflection",
-			"sbvr-parser/SBVRParser"], function() {
-		requireCSS('codemirror');
-		require(["codemirror"], function() {
-			requireCSS('codemirror-util/simple-hint.css')
-			require(["codemirror-util/simple-hint", "codemirror-keymap/vim"], function() {
-				require(["codemirror-ometa-bridge/sbvr","codemirror-ometa-bridge/sbvrac"]);
-				/*#IFDEF server */
-				require(["codemirror-modes/plsql/plsql"], function() {/*#ENDIFDEF*/
-					require(["frame-glue/script"]);
-				/*#IFDEF server */
-				})/*#ENDIFDEF*/
-			})
-		});
-		require(["sbvr-frame/SBVRModels"])
+	requireCSS('codemirror');
+	require(["codemirror"], function() {
+		requireCSS('codemirror-util/simple-hint')
+		require(["codemirror-util/simple-hint", "codemirror-keymap/vim"], function() {
+			require(['codemirror-ometa-bridge/sbvr', "codemirror-ometa-bridge/sbvrac"]);
+			/*#IFDEF server */
+			require(["codemirror-modes/plsql/plsql"], function() {/*#ENDIFDEF*/
+				require(["frame-glue/script"]);
+			/*#IFDEF server */
+			})/*#ENDIFDEF*/
+		})
 	});
+	require(["sbvr-frame/SBVRModels"])
 	
 	/*#IFDEF websql */
 		require(["server-glue"]);
