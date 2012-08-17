@@ -1,4 +1,4 @@
-var sbvrAutoComplete = (function () {
+var ometaAutoComplete = (function () {
 	var forEach = function (o, f) {
 		if($.isArray(o))
 			for (var i = 0, e = o.length; i < e; ++i) f(o[i]);
@@ -18,7 +18,7 @@ var sbvrAutoComplete = (function () {
 		return arr.indexOf(item) != -1;
 	};
 	
-	CodeMirror.sbvrHint = function(editor) {
+	CodeMirror.ometaHint = function(editor) {
 		var cur = editor.getCursor(false),
 			token = editor.getTokenAt(cur),
 			tokenString = token.string.substr(0,cur.ch-token.start),
@@ -86,7 +86,7 @@ var sbvrAutoComplete = (function () {
 		// Hook into ctrl-space
 		if (e.keyCode == 32 && (e.ctrlKey || e.metaKey) && !e.altKey) {
 			e.stop();
-			return CodeMirror.simpleHint(instance, CodeMirror.sbvrHint);
+			return CodeMirror.simpleHint(instance, CodeMirror.ometaHint);
 		}
 	}
 })();

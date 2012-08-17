@@ -119,7 +119,7 @@
     loadUI = function() {
       window.sbvrEditor = CodeMirror.fromTextArea(document.getElementById("modelArea"), {
         mode: "sbvr",
-        onKeyEvent: sbvrAutoComplete,
+        onKeyEvent: ometaAutoComplete,
         lineWrapping: true
       });
       window.lfEditor = CodeMirror.fromTextArea(document.getElementById("lfArea"), {

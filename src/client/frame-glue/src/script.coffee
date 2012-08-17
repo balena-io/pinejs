@@ -110,7 +110,7 @@ define(['sbvr-parser/SBVRParser', 'data-frame/ClientURIParser', 'Prettify'], (SB
 	loadUI = ->
 		window.sbvrEditor = CodeMirror.fromTextArea(document.getElementById("modelArea"),
 			mode: "sbvr"
-			onKeyEvent: sbvrAutoComplete
+			onKeyEvent: ometaAutoComplete
 			lineWrapping: true
 		)
 		window.lfEditor = CodeMirror.fromTextArea(document.getElementById("lfArea"), mode: null)
