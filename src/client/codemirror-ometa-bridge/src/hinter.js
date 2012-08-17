@@ -57,20 +57,20 @@ var ometaAutoComplete = (function () {
 		};
 		
 		try {
-			grammar._enableBranchTracking(grammar.possMap);
+			grammar._enableBranchTracking(grammar.branches);
 			branches = grammar._getBranches();
 			branches.splice(0, branches.length);
 			grammar.matchAll(editor.getLine(cur.line).substring(0,cur.ch),'line');
 		}
 		catch(e) {}
 
-		var possMap = grammar.possMap;
+		var hintBranches = grammar.branches;
 		
 		for(var i=cur.ch;i>=0;i--) {
 			if(branches[i] != null) {
 				for(rule in branches[i]) {
 					try {
-						addPossibilities(possMap[rule], branches[i][rule]);
+						addPossibilities(hintBranches[rule], branches[i][rule]);
 					} catch (e) {
 						console.log(e);
 					}

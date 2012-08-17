@@ -198,7 +198,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 			-> {var lastLine = this.lines.pop(); lastLine[lastLine.length-1].push([attrName, attrVal]); lastLine},
 							
 		allowedAttrs :termOrFactType =
-			matchForAny('seq',this.possMap.allowedAttrs.call(this, termOrFactType)):attrName -> attrName.replace(':',''),
+			matchForAny('seq',this.branches.allowedAttrs.call(this, termOrFactType)):attrName -> attrName.replace(':',''),
 		defaultAttr :currentLine =
 			toSBVREOL,
 		attrDefinition :currentLine =
@@ -298,14 +298,14 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 	};
 
 	SBVRParser.isTerm = function(factTypeSoFar, term) {
-		var terms = this.possMap['Term'].call(this, factTypeSoFar);
+		var terms = this.branches['Term'].call(this, factTypeSoFar);
 		term = this._baseTerm(factTypeSoFar, term);
 		return term !== false && ($.inArray(term,terms) !== -1 || $.inArray(term.singularize(),terms) !== -1);
 	};
 
 	SBVRParser._termForm = function(factTypeSoFar, term) {
 		term = this._baseTerm(factTypeSoFar, term);
-		return $.inArray(term.singularize(), this.possMap['Term'].call(this, factTypeSoFar)) !== -1 ? term.singularize() : term
+		return $.inArray(term.singularize(), this.branches['Term'].call(this, factTypeSoFar)) !== -1 ? term.singularize() : term
 	};
 
 	SBVRParser.isVerb = function(factTypeSoFar, verb) {
@@ -390,7 +390,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 		};
 	SBVRParser.reset = function() {
 		SBVRLibs.initialize.call(this);
-		this.possMap = {
+		this.branches = {
 			clearSuggestions: [], //This stops us suggesting any autocomplete before this point.
 			startTerm: ['Term:     '],
 			startFactType: ['Fact type:'],
