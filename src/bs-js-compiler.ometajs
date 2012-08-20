@@ -6,18 +6,14 @@ export ometa BSJSParser {
   isKeyword :x = ?BSJSParser._isKeyword(x),
   name         = iName:n ~isKeyword(n)                                               -> [#name, n=='self' ? '$elf' : n],
   keyword      = iName:k isKeyword(k)                                                -> [k, k],
-  hexDigit     = char:x {this.hexDigits.indexOf(x.toLowerCase())}:v ?(v >= 0)        -> v,
   hexLit       = hexLit:n hexDigit:d                                                 -> (n * 16 + d)
                | hexDigit,
   number       = ``0x'' hexLit:n                                                     -> [#number, n]
                | <digit+ (('e' | 'E') ('-' | '+')? digit+)?>:f                       -> [#number, parseFloat(f)]
                | <digit+ ('.' digit+)?>:f                                            -> [#number, parseFloat(f)],
-  escapeChar   = <'\\' ('u' hexDigit hexDigit hexDigit hexDigit
-                      | 'x' hexDigit hexDigit
-                      | char                                    )>:s                 -> unescape(s),
-  str          = seq('"""')  (escapeChar | ~seq('"""') char)*:cs seq('"""')          -> [#string, cs.join('')]
-               | '\'' (escapeChar | ~'\'' char)*:cs '\''                             -> [#string, cs.join('')]
-               | '"'  (escapeChar | ~'"'  char)*:cs '"'                              -> [#string, cs.join('')]
+  str          = seq('"""')  (escapedChar | ~seq('"""') char)*:cs seq('"""')          -> [#string, cs.join('')]
+               | '\'' (escapedChar | ~'\'' char)*:cs '\''                             -> [#string, cs.join('')]
+               | '"'  (escapedChar | ~'"'  char)*:cs '"'                              -> [#string, cs.join('')]
                | ('#' | '`') iName:n                                                 -> [#string, n],
   special      = ( '('   | ')'    | '{'    | '}'     | '['    | ']'     | ','
                  | ';'   | '?'    | ':'    | ``!=='' | ``!='' | ``==='' | ``==''
@@ -108,7 +104,7 @@ export ometa BSJSParser {
   re           = spaces <'/' reBody '/' reFlag*>:x                                   -> [#regExp, x],
   reBody       = re1stChar reChar*,
   re1stChar    = ~('*' || '\\' || '/' || '[') reNonTerm
-               | escapeChar
+               | escapedChar
                | reClass,
   reChar       = re1stChar | '*',
   reNonTerm    = ~('\n' || '\r') char,
@@ -162,7 +158,6 @@ export ometa BSJSParser {
 
   topLevel     = srcElems:r spaces end                                               -> r
 }
-BSJSParser.hexDigits = "0123456789abcdef"
 BSJSParser.keywords  = { }
 keywords = ["break", "case", "catch", "continue", "default", "delete", "do", "else", "finally", "for", "function", "if", "in",
             "instanceof", "new", "return", "switch", "this", "throw", "try", "typeof", "var", "void", "while", "with", "ometa"]

@@ -4,7 +4,7 @@ export ometa BSOMetaParser {
   nameRest       = nameFirst | digit,
   tsName         = <nameFirst nameRest*>,
   name           = spaces tsName,
-  eChar          = '\\' char:c                                         -> unescape('\\' +c)
+  eChar          = escapedChar
                  | char,
   tsString       = '\'' (~'\'' eChar)*:xs '\''                         -> xs.join(''),
   characters     = '`' '`' (~('\'' '\'') eChar)*:xs '\'' '\''          -> [#App, #seq,     JSON.stringify(xs.join(''))],
