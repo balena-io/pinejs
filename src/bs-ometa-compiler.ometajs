@@ -110,7 +110,7 @@ export ometa BSOMetaTranslator {
   Grammar    :exported :name :sName
              {this.name = name}
              {this.sName = sName}
-             trans*:rules                  -> ['var ', name, (exported ? "=exports." + name : ''), '=objectThatDelegatesTo(', sName, ',{', rules.join(','), '})'].join(''),
+             trans*:rules                  -> ['var ', name, (exported ? "=exports." + name : ''), '=', sName, '._extend({', rules.join(','), '})'].join(''),
   intPart  = [:mode transFn:part]          -> (JSON.stringify(mode)  + "," + part),
   jtCase   = [:x trans:e]                  -> [JSON.stringify(x), e],
   locals   = [string+:vs]                  -> ['var ', vs.join(','), ';']                                          .join('')
