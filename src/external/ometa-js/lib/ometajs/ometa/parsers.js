@@ -1,82 +1,17 @@
-var ometajs_ = require("../../ometajs").globals || global;
+var OMeta;
 
-var StringBuffer = ometajs_.StringBuffer;
+if (typeof window !== "undefined") {
+    OMeta = window.OMeta;
+} else {
+    OMeta = require("../core").OMeta;
+}
 
-var isImmutable = ometajs_.isImmutable;
-
-var digitValue = ometajs_.digitValue;
-
-var escapeChar = ometajs_.escapeChar;
-
-var unescape = ometajs_.unescape;
-
-var inspect = ometajs_.inspect;
-
-var lift = ometajs_.lift;
-
-var clone = ometajs_.clone;
-
-var Parser = ometajs_.Parser;
-
-var fail = ometajs_.fail;
-
-var objectThatDelegatesTo = ometajs_.objectThatDelegatesTo;
-
-var isSequenceable = ometajs_.isSequenceable;
-
-var getTag = ometajs_.getTag;
-
-var OMInputStream = ometajs_.OMInputStream;
-
-var OMInputStreamEnd = ometajs_.OMInputStreamEnd;
-
-var ListOMInputStream = ometajs_.ListOMInputStream;
-
-var makeListOMInputStream = ometajs_.makeListOMInputStream;
-
-var makeOMInputStreamProxy = ometajs_.makeOMInputStreamProxy;
-
-var OMeta = ometajs_.OMeta;
-
-var BSNullOptimization = ometajs_.BSNullOptimization;
-
-var BSAssociativeOptimization = ometajs_.BSAssociativeOptimization;
-
-var BSSeqInliner = ometajs_.BSSeqInliner;
-
-var BSJumpTableOptimization = ometajs_.BSJumpTableOptimization;
-
-var BSOMetaOptimizer = ometajs_.BSOMetaOptimizer;
-
-var BSOMetaParser = ometajs_.BSOMetaParser;
-
-var BSOMetaTranslator = ometajs_.BSOMetaTranslator;
-
-var BSJSParser = ometajs_.BSJSParser;
-
-var BSSemActionParser = ometajs_.BSSemActionParser;
-
-var BSJSIdentity = ometajs_.BSJSIdentity;
-
-var BSJSTranslator = ometajs_.BSJSTranslator;
-
-var BSOMetaJSParser = ometajs_.BSOMetaJSParser;
-
-var BSOMetaJSTranslator = ometajs_.BSOMetaJSTranslator;
-
-var BSPushDownSet = ometajs_.BSPushDownSet;
-
-if (global === ometajs_) {
-    fail = function(fail) {
-        return function() {
-            return fail;
-        };
-    }(fail);
-    OMeta = require("../../ometajs").OMeta;
+if (typeof exports === "undefined") {
+    exports = {};
 }
 
 {
-    var BSJSParser = exports.BSJSParser = objectThatDelegatesTo(OMeta, {
+    var BSJSParser = exports.BSJSParser = OMeta._extend({
         space: function() {
             var _fromIdx = this.input.idx, $elf = this;
             return this._or(function() {
@@ -99,7 +34,7 @@ if (global === ometajs_) {
                       case "_":
                         return "_";
                       default:
-                        throw fail();
+                        throw this._fail();
                     }
                 }.call(this);
             });
@@ -139,13 +74,6 @@ if (global === ometajs_) {
             this._applyWithArgs("isKeyword", k);
             return [ k, k ];
         },
-        hexDigit: function() {
-            var _fromIdx = this.input.idx, $elf = this, v, x;
-            x = this._apply("char");
-            v = this["hexDigits"].indexOf(x.toLowerCase());
-            this._pred(v >= 0);
-            return v;
-        },
         hexLit: function() {
             var _fromIdx = this.input.idx, $elf = this, n, d;
             return this._or(function() {
@@ -169,7 +97,7 @@ if (global === ometajs_) {
                             return [ "number", n ];
                         }.call(this);
                       default:
-                        throw fail();
+                        throw this._fail();
                     }
                 }.call(this);
             }, function() {
@@ -185,7 +113,7 @@ if (global === ometajs_) {
                               case "e":
                                 return "e";
                               default:
-                                throw fail();
+                                throw this._fail();
                             }
                         })).call(this);
                         this._opt(function() {
@@ -196,7 +124,7 @@ if (global === ometajs_) {
                                   case "+":
                                     return "+";
                                   default:
-                                    throw fail();
+                                    throw this._fail();
                                 }
                             }.call(this);
                         });
@@ -221,35 +149,6 @@ if (global === ometajs_) {
                 return [ "number", parseFloat(f) ];
             });
         },
-        escapeChar: function() {
-            var _fromIdx = this.input.idx, $elf = this, s;
-            s = this._consumedBy(function() {
-                this._applyWithArgs("exactly", "\\");
-                return this._or(function() {
-                    return function() {
-                        switch (this._apply("anything")) {
-                          case "x":
-                            return function() {
-                                this._apply("hexDigit");
-                                return this._apply("hexDigit");
-                            }.call(this);
-                          case "u":
-                            return function() {
-                                this._apply("hexDigit");
-                                this._apply("hexDigit");
-                                this._apply("hexDigit");
-                                return this._apply("hexDigit");
-                            }.call(this);
-                          default:
-                            throw fail();
-                        }
-                    }.call(this);
-                }, function() {
-                    return this._apply("char");
-                });
-            });
-            return unescape(s);
-        },
         str: function() {
             var _fromIdx = this.input.idx, $elf = this, cs, n;
             return this._or(function() {
@@ -265,7 +164,7 @@ if (global === ometajs_) {
                                         '"""';
                                         cs = this._many(function() {
                                             return this._or(function() {
-                                                return this._apply("escapeChar");
+                                                return this._apply("escapedChar");
                                             }, function() {
                                                 this._not(function() {
                                                     this._applyWithArgs("exactly", '"');
@@ -283,13 +182,13 @@ if (global === ometajs_) {
                                         return [ "string", cs.join("") ];
                                     }.call(this);
                                   default:
-                                    throw fail();
+                                    throw this._fail();
                                 }
                             }.call(this);
                         }, function() {
                             cs = this._many(function() {
                                 return this._or(function() {
-                                    return this._apply("escapeChar");
+                                    return this._apply("escapedChar");
                                 }, function() {
                                     this._not(function() {
                                         return this._applyWithArgs("exactly", '"');
@@ -304,7 +203,7 @@ if (global === ometajs_) {
                         return function() {
                             cs = this._many(function() {
                                 return this._or(function() {
-                                    return this._apply("escapeChar");
+                                    return this._apply("escapedChar");
                                 }, function() {
                                     this._not(function() {
                                         return this._applyWithArgs("exactly", "'");
@@ -316,7 +215,7 @@ if (global === ometajs_) {
                             return [ "string", cs.join("") ];
                         }.call(this);
                       default:
-                        throw fail();
+                        throw this._fail();
                     }
                 }.call(this);
             }, function() {
@@ -327,7 +226,7 @@ if (global === ometajs_) {
                       case "#":
                         return "#";
                       default:
-                        throw fail();
+                        throw this._fail();
                     }
                 })).call(this);
                 n = this._apply("iName");
@@ -347,7 +246,7 @@ if (global === ometajs_) {
                               case "=":
                                 return "/=";
                               default:
-                                throw fail();
+                                throw this._fail();
                             }
                         }.call(this);
                     }, function() {
@@ -368,14 +267,14 @@ if (global === ometajs_) {
                                           case "=":
                                             return "===";
                                           default:
-                                            throw fail();
+                                            throw this._fail();
                                         }
                                     }.call(this);
                                 }, function() {
                                     return "==";
                                 });
                               default:
-                                throw fail();
+                                throw this._fail();
                             }
                         }.call(this);
                     }, function() {
@@ -392,7 +291,7 @@ if (global === ometajs_) {
                               case "+":
                                 return "++";
                               default:
-                                throw fail();
+                                throw this._fail();
                             }
                         }.call(this);
                     }, function() {
@@ -405,7 +304,7 @@ if (global === ometajs_) {
                               case "=":
                                 return "<=";
                               default:
-                                throw fail();
+                                throw this._fail();
                             }
                         }.call(this);
                     }, function() {
@@ -422,14 +321,14 @@ if (global === ometajs_) {
                                           case "=":
                                             return "!==";
                                           default:
-                                            throw fail();
+                                            throw this._fail();
                                         }
                                     }.call(this);
                                 }, function() {
                                     return "!=";
                                 });
                               default:
-                                throw fail();
+                                throw this._fail();
                             }
                         }.call(this);
                     }, function() {
@@ -445,14 +344,14 @@ if (global === ometajs_) {
                                       case "=":
                                         return "&&=";
                                       default:
-                                        throw fail();
+                                        throw this._fail();
                                     }
                                 }.call(this);
                             }, function() {
                                 return "&&";
                             });
                           default:
-                            throw fail();
+                            throw this._fail();
                         }
                     }.call(this);
                   case ":":
@@ -472,7 +371,7 @@ if (global === ometajs_) {
                               case "=":
                                 return "-=";
                               default:
-                                throw fail();
+                                throw this._fail();
                             }
                         }.call(this);
                     }, function() {
@@ -485,7 +384,7 @@ if (global === ometajs_) {
                               case "=":
                                 return ">=";
                               default:
-                                throw fail();
+                                throw this._fail();
                             }
                         }.call(this);
                     }, function() {
@@ -505,14 +404,14 @@ if (global === ometajs_) {
                                       case "=":
                                         return "||=";
                                       default:
-                                        throw fail();
+                                        throw this._fail();
                                     }
                                 }.call(this);
                             }, function() {
                                 return "||";
                             });
                           default:
-                            throw fail();
+                            throw this._fail();
                         }
                     }.call(this);
                   case "%":
@@ -522,7 +421,7 @@ if (global === ometajs_) {
                               case "=":
                                 return "%=";
                               default:
-                                throw fail();
+                                throw this._fail();
                             }
                         }.call(this);
                     }, function() {
@@ -537,14 +436,14 @@ if (global === ometajs_) {
                               case "=":
                                 return "*=";
                               default:
-                                throw fail();
+                                throw this._fail();
                             }
                         }.call(this);
                     }, function() {
                         return "*";
                     });
                   default:
-                    throw fail();
+                    throw this._fail();
                 }
             }.call(this);
             return [ s, s ];
@@ -973,13 +872,13 @@ if (global === ometajs_) {
                           case "*":
                             return "*";
                           default:
-                            throw fail();
+                            throw this._fail();
                         }
                     }.call(this);
                 });
                 return this._apply("reNonTerm");
             }, function() {
-                return this._apply("escapeChar");
+                return this._apply("escapedChar");
             }, function() {
                 return this._apply("reClass");
             });
@@ -994,7 +893,7 @@ if (global === ometajs_) {
                       case "*":
                         return "*";
                       default:
-                        throw fail();
+                        throw this._fail();
                     }
                 }.call(this);
             });
@@ -1009,7 +908,7 @@ if (global === ometajs_) {
                       case "\r":
                         return "\r";
                       default:
-                        throw fail();
+                        throw this._fail();
                     }
                 }.call(this);
             });
@@ -1033,7 +932,7 @@ if (global === ometajs_) {
                       case "[":
                         return "[";
                       default:
-                        throw fail();
+                        throw this._fail();
                     }
                 }.call(this);
             });
@@ -1068,7 +967,7 @@ if (global === ometajs_) {
                           case "\n":
                             return "\n";
                           default:
-                            throw fail();
+                            throw this._fail();
                         }
                     }.call(this);
                 }, function() {
@@ -1292,7 +1191,6 @@ if (global === ometajs_) {
             return r;
         }
     });
-    BSJSParser["hexDigits"] = "0123456789abcdef";
     BSJSParser["keywords"] = {};
     keywords = [ "break", "case", "catch", "continue", "default", "delete", "do", "else", "finally", "for", "function", "if", "in", "instanceof", "new", "return", "switch", "this", "throw", "try", "typeof", "var", "void", "while", "with", "ometa" ];
     for (var idx = 0; idx < keywords["length"]; idx++) {
@@ -1301,7 +1199,7 @@ if (global === ometajs_) {
     BSJSParser["_isKeyword"] = function(k) {
         return this["keywords"].hasOwnProperty(k);
     };
-    var BSSemActionParser = exports.BSSemActionParser = objectThatDelegatesTo(BSJSParser, {
+    var BSSemActionParser = exports.BSSemActionParser = BSJSParser._extend({
         curlySemAction: function() {
             var _fromIdx = this.input.idx, r, $elf = this, ss, s;
             return this._or(function() {
@@ -1344,7 +1242,7 @@ if (global === ometajs_) {
             });
         }
     });
-    var BSJSIdentity = exports.BSJSIdentity = objectThatDelegatesTo(OMeta, {
+    var BSJSIdentity = exports.BSJSIdentity = OMeta._extend({
         trans: function() {
             var _fromIdx = this.input.idx, $elf = this, t, ans;
             return this._or(function() {
@@ -1628,7 +1526,7 @@ if (global === ometajs_) {
             return [ "default", y ];
         }
     });
-    var BSJSTranslator = exports.BSJSTranslator = objectThatDelegatesTo(OMeta, {
+    var BSJSTranslator = exports.BSJSTranslator = OMeta._extend({
         trans: function() {
             var _fromIdx = this.input.idx, $elf = this, t, ans;
             this._form(function() {
@@ -1678,7 +1576,7 @@ if (global === ometajs_) {
         string: function() {
             var _fromIdx = this.input.idx, $elf = this, s;
             s = this._apply("anything");
-            return inspect(s);
+            return JSON.stringify(s);
         },
         regExp: function() {
             var _fromIdx = this.input.idx, $elf = this, x;
@@ -1894,7 +1792,7 @@ if (global === ometajs_) {
             var _fromIdx = this.input.idx, val, $elf = this, name;
             name = this._apply("anything");
             val = this._apply("trans");
-            return inspect(name) + ": " + val;
+            return JSON.stringify(name) + ": " + val;
         },
         "switch": function() {
             var _fromIdx = this.input.idx, $elf = this, cases, x;
@@ -1916,7 +1814,7 @@ if (global === ometajs_) {
             return "default: " + y;
         }
     });
-    var BSOMetaParser = exports.BSOMetaParser = objectThatDelegatesTo(OMeta, {
+    var BSOMetaParser = exports.BSOMetaParser = OMeta._extend({
         space: function() {
             var _fromIdx = this.input.idx, $elf = this;
             return this._or(function() {
@@ -1937,7 +1835,7 @@ if (global === ometajs_) {
                       case "_":
                         return "_";
                       default:
-                        throw fail();
+                        throw this._fail();
                     }
                 }.call(this);
             }, function() {
@@ -1967,19 +1865,9 @@ if (global === ometajs_) {
             return this._apply("tsName");
         },
         eChar: function() {
-            var _fromIdx = this.input.idx, $elf = this, c;
+            var _fromIdx = this.input.idx, $elf = this;
             return this._or(function() {
-                return function() {
-                    switch (this._apply("anything")) {
-                      case "\\":
-                        return function() {
-                            c = this._apply("char");
-                            return unescape("\\" + c);
-                        }.call(this);
-                      default:
-                        throw fail();
-                    }
-                }.call(this);
+                return this._apply("escapedChar");
             }, function() {
                 return this._apply("char");
             });
@@ -2009,7 +1897,7 @@ if (global === ometajs_) {
             });
             this._applyWithArgs("exactly", "'");
             this._applyWithArgs("exactly", "'");
-            return [ "App", "seq", inspect(xs.join("")) ];
+            return [ "App", "seq", JSON.stringify(xs.join("")) ];
         },
         sCharacters: function() {
             var _fromIdx = this.input.idx, $elf = this, xs;
@@ -2021,7 +1909,7 @@ if (global === ometajs_) {
                 return this._apply("eChar");
             });
             this._applyWithArgs("exactly", '"');
-            return [ "App", "token", inspect(xs.join("")) ];
+            return [ "App", "token", JSON.stringify(xs.join("")) ];
         },
         string: function() {
             var _fromIdx = this.input.idx, $elf = this, xs;
@@ -2033,14 +1921,14 @@ if (global === ometajs_) {
                       case "#":
                         return "#";
                       default:
-                        throw fail();
+                        throw this._fail();
                     }
                 })).call(this);
                 return this._apply("tsName");
             }, function() {
                 return this._apply("tsString");
             });
-            return [ "App", "exactly", inspect(xs) ];
+            return [ "App", "exactly", JSON.stringify(xs) ];
         },
         number: function() {
             var _fromIdx = this.input.idx, $elf = this, n;
@@ -2074,7 +1962,7 @@ if (global === ometajs_) {
                             return xs;
                         }.call(this);
                       default:
-                        throw fail();
+                        throw this._fail();
                     }
                 }.call(this);
             }, function() {
@@ -2260,7 +2148,7 @@ if (global === ometajs_) {
                       case "*":
                         return [ "Many", x ];
                       default:
-                        throw fail();
+                        throw this._fail();
                     }
                 }.call(this);
             }, function() {
@@ -2282,7 +2170,7 @@ if (global === ometajs_) {
                             }.call(this);
                         }.call(this);
                       default:
-                        throw fail();
+                        throw this._fail();
                     }
                 }.call(this);
             }, function() {
@@ -2444,7 +2332,7 @@ if (global === ometajs_) {
             return this._applyWithArgs("foreign", BSOMetaOptimizer, "optimizeGrammar", [ "Grammar", exported, n, sn ].concat(rs));
         }
     });
-    var BSOMetaTranslator = exports.BSOMetaTranslator = objectThatDelegatesTo(OMeta, {
+    var BSOMetaTranslator = exports.BSOMetaTranslator = OMeta._extend({
         App: function() {
             var _fromIdx = this.input.idx, rule, $elf = this, args;
             return this._or(function() {
@@ -2458,7 +2346,7 @@ if (global === ometajs_) {
                             return [ this["sName"], "._superApplyWithArgs(this,", args.join(","), ")" ].join("");
                         }.call(this);
                       default:
-                        throw fail();
+                        throw this._fail();
                     }
                 }.call(this);
             }, function() {
@@ -2494,7 +2382,7 @@ if (global === ometajs_) {
             xs = this._many(function() {
                 return this._apply("transFn");
             });
-            inspect(xs.unshift(this["name"] + "." + this["rName"]));
+            JSON.stringify(xs.unshift(this["name"] + "." + this["rName"]));
             return [ "this._xor(", xs.join(","), ")" ].join("");
         },
         Seq: function() {
@@ -2602,7 +2490,7 @@ if (global === ometajs_) {
             rules = this._many(function() {
                 return this._apply("trans");
             });
-            return [ "var ", name, exported ? "=exports." + name : "", "=objectThatDelegatesTo(", sName, ",{", rules.join(","), "})" ].join("");
+            return [ "var ", name, exported ? "=exports." + name : "", "=", sName, "._extend({", rules.join(","), "})" ].join("");
         },
         intPart: function() {
             var _fromIdx = this.input.idx, $elf = this, mode, part;
@@ -2610,7 +2498,7 @@ if (global === ometajs_) {
                 mode = this._apply("anything");
                 return part = this._apply("transFn");
             });
-            return inspect(mode) + "," + part;
+            return JSON.stringify(mode) + "," + part;
         },
         jtCase: function() {
             var _fromIdx = this.input.idx, $elf = this, e, x;
@@ -2618,7 +2506,7 @@ if (global === ometajs_) {
                 x = this._apply("anything");
                 return e = this._apply("trans");
             });
-            return [ inspect(x), e ];
+            return [ JSON.stringify(x), e ];
         },
         locals: function() {
             var _fromIdx = this.input.idx, $elf = this, vs;
@@ -2675,15 +2563,15 @@ if (global === ometajs_) {
         }
     });
     BSOMetaTranslator["jumpTableCode"] = function(cases) {
-        var buf = new StringBuffer;
-        buf.put("(function(){switch(this._apply('anything')){");
-        for (var i = 0; i < cases["length"]; i += 1) {
-            buf.put("case " + cases[i][0] + ":return " + cases[i][1] + ";");
+        var buf = [];
+        buf.push("(function(){switch(this._apply('anything')){");
+        for (var i = 0; i < cases["length"]; ++i) {
+            buf.push("case " + cases[i][0] + ":return " + cases[i][1] + ";");
         }
-        buf.put("default: throw fail()}}).call(this)");
-        return buf.contents();
+        buf.push("default: throw this._fail()}}).call(this)");
+        return buf.join("");
     };
-    var BSOMetaJSParser = exports.BSOMetaJSParser = objectThatDelegatesTo(BSJSParser, {
+    var BSOMetaJSParser = exports.BSOMetaJSParser = BSJSParser._extend({
         srcElem: function() {
             var _fromIdx = this.input.idx, r, $elf = this;
             return this._or(function() {
@@ -2696,13 +2584,13 @@ if (global === ometajs_) {
             });
         }
     });
-    var BSOMetaJSTranslator = exports.BSOMetaJSTranslator = objectThatDelegatesTo(BSJSTranslator, {
+    var BSOMetaJSTranslator = exports.BSOMetaJSTranslator = BSJSTranslator._extend({
         Grammar: function() {
             var _fromIdx = this.input.idx, $elf = this;
             return this._applyWithArgs("foreign", BSOMetaTranslator, "Grammar");
         }
     });
-    var BSNullOptimization = exports.BSNullOptimization = objectThatDelegatesTo(OMeta, {
+    var BSNullOptimization = exports.BSNullOptimization = OMeta._extend({
         setHelped: function() {
             var _fromIdx = this.input.idx, $elf = this;
             return this["_didSomething"] = true;
@@ -2845,7 +2733,7 @@ if (global === ometajs_) {
     BSNullOptimization["initialize"] = function() {
         this["_didSomething"] = false;
     };
-    var BSAssociativeOptimization = exports.BSAssociativeOptimization = objectThatDelegatesTo(BSNullOptimization, {
+    var BSAssociativeOptimization = exports.BSAssociativeOptimization = BSNullOptimization._extend({
         And: function() {
             var _fromIdx = this.input.idx, $elf = this, x, xs;
             return this._or(function() {
@@ -2901,7 +2789,7 @@ if (global === ometajs_) {
             });
         }
     });
-    var BSPushDownSet = exports.BSPushDownSet = objectThatDelegatesTo(BSNullOptimization, {
+    var BSPushDownSet = exports.BSPushDownSet = BSNullOptimization._extend({
         Set: function() {
             var _fromIdx = this.input.idx, $elf = this, v, n, xs, y;
             return this._or(function() {
@@ -2922,7 +2810,7 @@ if (global === ometajs_) {
             });
         }
     });
-    var BSSeqInliner = exports.BSSeqInliner = objectThatDelegatesTo(BSNullOptimization, {
+    var BSSeqInliner = exports.BSSeqInliner = BSNullOptimization._extend({
         App: function() {
             var _fromIdx = this.input.idx, rule, $elf = this, cs, s, args;
             return this._or(function() {
@@ -2937,7 +2825,7 @@ if (global === ometajs_) {
                             return [ "And" ].concat(cs).concat([ [ "Act", s ] ]);
                         }.call(this);
                       default:
-                        throw fail();
+                        throw this._fail();
                     }
                 }.call(this);
             }, function() {
@@ -2954,7 +2842,7 @@ if (global === ometajs_) {
             this._not(function() {
                 return this._apply("end");
             });
-            return [ "App", "exactly", inspect(c) ];
+            return [ "App", "exactly", JSON.stringify(c) ];
         },
         seqString: function() {
             var _fromIdx = this.input.idx, $elf = this, cs, s;
@@ -3007,7 +2895,7 @@ if (global === ometajs_) {
         }
         return r;
     };
-    var BSJumpTableOptimization = exports.BSJumpTableOptimization = objectThatDelegatesTo(BSNullOptimization, {
+    var BSJumpTableOptimization = exports.BSJumpTableOptimization = BSNullOptimization._extend({
         Or: function() {
             var _fromIdx = this.input.idx, $elf = this, cs;
             cs = this._many(function() {
@@ -3061,7 +2949,7 @@ if (global === ometajs_) {
                             return this._applyWithArgs("exactly", "'");
                         }.call(this);
                       default:
-                        throw fail();
+                        throw this._fail();
                     }
                 }.call(this);
             });
@@ -3088,7 +2976,7 @@ if (global === ometajs_) {
                     this._applyWithArgs("exactly", "exactly");
                     return x = this._apply("quotedString");
                 });
-                return [ x, [ "Act", inspect(x) ] ];
+                return [ x, [ "Act", JSON.stringify(x) ] ];
             });
         },
         jtChoices: function(op) {
@@ -3103,7 +2991,7 @@ if (global === ometajs_) {
             return jt.toTree();
         }
     });
-    var BSOMetaOptimizer = exports.BSOMetaOptimizer = objectThatDelegatesTo(OMeta, {
+    var BSOMetaOptimizer = exports.BSOMetaOptimizer = OMeta._extend({
         optimizeGrammar: function() {
             var _fromIdx = this.input.idx, $elf = this, rs, exported, sn, n;
             this._form(function() {

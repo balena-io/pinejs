@@ -504,14 +504,21 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
         result = ref;
 		
 		for (var idx = 0; idx < arr.length; idx++) {
-			lookup(function() {
+			try {
 				self.input = origInput;
 				result = self._applyWithArgs.call(self, rule, arr[idx]);
-			});
+			}
+			catch (e) {
+				if (!(e instanceof SyntaxError)) {
+					throw e;
+				}
+			}
 
-			if (result !== ref) return result;
+			if (result !== ref) {
+				return result;
+			}
 		}
-		throw fail();
+		throw this._fail();
 	};
 	SBVRParser.matchForAll = function(rule, arr) {
 		for (var idx = 0; idx < arr.length; idx++) {
@@ -523,7 +530,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 		if (wanted.toLowerCase() === this._apply("anything").toLowerCase()) {
 			return wanted;
 		}
-		throw fail();
+		throw this._fail();
 	};
 	
 	return SBVRParser;

@@ -1,17 +1,17 @@
-define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], (function(SBVRLibs, _) {
-    var SBVRParser = objectThatDelegatesTo(SBVRLibs, {
+define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core", "inflection"], (function(SBVRLibs, _) {
+    var SBVRParser = SBVRLibs._extend({
         "Bind": function(x) {
             var _fromIdx = this.input.idx,
                 $elf = this;
-            return ['RoleBinding', x, this['ruleVars'][x[(1)]]]
+            return ["RoleBinding", x, this["ruleVars"][x[(1)]]]
         },
         "letters": function() {
-            var _fromIdx = this.input.idx,
-                l, $elf = this;
+            var l, _fromIdx = this.input.idx,
+                $elf = this;
             l = this._many1((function() {
                 return this._apply("letter")
             }));
-            return l.join('')
+            return l.join("")
         },
         "num": function() {
             var _fromIdx = this.input.idx,
@@ -22,15 +22,15 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], (func
                 n = this._many1((function() {
                     return this._apply("digit")
                 }));
-                return ['Number', parseInt(n.join(''))]
+                return ["Number", parseInt(n.join(""))]
             }), (function() {
-                this._applyWithArgs("token", 'one');
-                return ['Number', (1)]
+                this._applyWithArgs("token", "one");
+                return ["Number", (1)]
             }))
         },
         "Value": function(stopOn) {
-            var _fromIdx = this.input.idx,
-                value, $elf = this,
+            var value, _fromIdx = this.input.idx,
+                $elf = this,
                 alphaNum;
             value = this._many1((function() {
                 this._apply("spaces");
@@ -43,14 +43,14 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], (func
                 alphaNum = this._many1((function() {
                     return this._apply("letterOrDigit")
                 }));
-                return alphaNum.join('')
+                return alphaNum.join("")
             }));
-            return value.join('')
+            return value.join("")
         },
         "toSBVREOL": function() {
-            var _fromIdx = this.input.idx,
-                s, w, $elf = this,
-                a;
+            var a, w, _fromIdx = this.input.idx,
+                $elf = this,
+                s;
             this._apply("spaces");
             w = this._many((function() {
                 this._not((function() {
@@ -66,34 +66,34 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], (func
                     }));
                     return this._apply("anything")
                 }));
-                return s.concat(a).join('')
+                return s.concat(a).join("")
             }));
-            return w.join('')
+            return w.join("")
         },
         "toEOL": function() {
-            var _fromIdx = this.input.idx,
-                $elf = this,
-                a;
+            var a, _fromIdx = this.input.idx,
+                $elf = this;
             a = this._many((function() {
                 this._not((function() {
                     return (function() {
                         switch (this._apply('anything')) {
-                        case '\n':
-                            return '\n';
-                        case '\r':
-                            return '\r';
+                        case "\n":
+                            return "\n";
+                        case "\r":
+                            return "\r";
                         default:
-                            throw fail()
+                            throw this._fail()
                         }
                     }).call(this)
                 }));
                 return this._apply("anything")
             }));
-            return a.join('')
+            return a.join("")
         },
         "token": function(x) {
             var _fromIdx = this.input.idx,
-                s, $elf = this;
+                $elf = this,
+                s;
             this._apply("spaces");
             s = this._applyWithArgs("seq", x);
             this._lookahead((function() {
@@ -113,7 +113,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], (func
                     return this._apply("termPart")
                 }))
             }));
-            (this['terms'][t.join(' ')] = t.join(' '));
+            (this["terms"][t.join(" ")] = t.join(" "));
             return this._apply("Term")
         },
         "Term": function(factTypeSoFar) {
@@ -125,12 +125,12 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], (func
             var t, _fromIdx = this.input.idx,
                 $elf = this;
             t = this._apply("termPart");
-            (termSoFar = ((termSoFar == null) ? t : [termSoFar, t].join(' ')));
+            (termSoFar = ((termSoFar == null) ? t : [termSoFar, t].join(" ")));
             return this._or((function() {
                 return this._applyWithArgs("findTerm", factTypeSoFar, termSoFar)
             }), (function() {
                 this._pred(this.isTerm(factTypeSoFar, termSoFar));
-                return ['Term', this._termForm(factTypeSoFar, termSoFar)]
+                return ["Term", this._termForm(factTypeSoFar, termSoFar)]
             }))
         },
         "termPart": function() {
@@ -157,7 +157,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], (func
             var _fromIdx = this.input.idx,
                 v, $elf = this;
             v = this._apply("verbPart");
-            (verbSoFar = ((verbSoFar == undefined) ? v : [verbSoFar, v].join(' ')));
+            (verbSoFar = ((verbSoFar == undefined) ? v : [verbSoFar, v].join(" ")));
             return this._or((function() {
                 return this._applyWithArgs("findVerb", factTypeSoFar, verbSoFar)
             }), (function() {
@@ -166,7 +166,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], (func
                 }), (function() {
                     return this._pred(this.isVerb(factTypeSoFar, verbSoFar))
                 }));
-                return ['Verb', this._verbForm(verbSoFar)]
+                return ["Verb", this._verbForm(verbSoFar)]
             }))
         },
         "verbPart": function() {
@@ -184,41 +184,41 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], (func
         "joinQuant": function() {
             var _fromIdx = this.input.idx,
                 $elf = this;
-            return this._applyWithArgs("matchForAll", 'keyword', ['and', 'at', 'most'])
+            return this._applyWithArgs("matchForAll", "keyword", ["and", "at", "most"])
         },
         "quant": function() {
-            var _fromIdx = this.input.idx,
-                m, $elf = this,
+            var m, _fromIdx = this.input.idx,
+                $elf = this,
                 n;
             return this._or((function() {
-                this._applyWithArgs("keyword", 'each');
-                return ['UniversalQ']
+                this._applyWithArgs("keyword", "each");
+                return ["UniversalQ"]
             }), (function() {
-                this._applyWithArgs("matchForAny", 'keyword', ['a', 'an', 'some']);
-                return ['ExistentialQ']
+                this._applyWithArgs("matchForAny", "keyword", ["a", "an", "some"]);
+                return ["ExistentialQ"]
             }), (function() {
-                this._applyWithArgs("matchForAll", 'keyword', ['at', 'most']);
+                this._applyWithArgs("matchForAll", "keyword", ["at", "most"]);
                 n = this._apply("num");
-                return ['AtMostNQ', ['MaximumCardinality', n]]
+                return ["AtMostNQ", ["MaximumCardinality", n]]
             }), (function() {
-                this._applyWithArgs("matchForAll", 'keyword', ['at', 'least']);
+                this._applyWithArgs("matchForAll", "keyword", ["at", "least"]);
                 n = this._apply("num");
                 return this._or((function() {
                     this._apply("joinQuant");
                     m = this._apply("num");
-                    return ['NumericalRangeQ', ['MinimumCardinality', n], ['MaximumCardinality', m]]
+                    return ["NumericalRangeQ", ["MinimumCardinality", n], ["MaximumCardinality", m]]
                 }), (function() {
-                    return ['AtLeastNQ', ['MinimumCardinality', n]]
+                    return ["AtLeastNQ", ["MinimumCardinality", n]]
                 }))
             }), (function() {
-                this._applyWithArgs("matchForAll", 'keyword', ['more', 'than']);
+                this._applyWithArgs("matchForAll", "keyword", ["more", "than"]);
                 n = this._apply("num");
                 ++n[(1)];
-                return ['AtLeastNQ', ['MinimumCardinality', n]]
+                return ["AtLeastNQ", ["MinimumCardinality", n]]
             }), (function() {
-                this._applyWithArgs("keyword", 'exactly');
+                this._applyWithArgs("keyword", "exactly");
                 n = this._apply("num");
-                return ['ExactQ', ['Cardinality', n]]
+                return ["ExactQ", ["Cardinality", n]]
             }))
         },
         "keyword": function(word, noToken) {
@@ -235,32 +235,32 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], (func
         "addThat": function() {
             var _fromIdx = this.input.idx,
                 $elf = this;
-            return this._applyWithArgs("keyword", 'that')
+            return this._applyWithArgs("keyword", "that")
         },
         "addThe": function() {
             var _fromIdx = this.input.idx,
                 $elf = this;
-            return this._applyWithArgs("keyword", 'the')
+            return this._applyWithArgs("keyword", "the")
         },
         "addComma": function() {
             var _fromIdx = this.input.idx,
                 $elf = this;
-            return this._applyWithArgs("keyword", ',')
+            return this._applyWithArgs("keyword", ",")
         },
         "addOr": function() {
             var _fromIdx = this.input.idx,
                 $elf = this;
-            return this._applyWithArgs("keyword", 'or')
+            return this._applyWithArgs("keyword", "or")
         },
         "createVar": function(term) {
             var _fromIdx = this.input.idx,
                 $elf = this;
-            (this['ruleVars'][term[(1)]] = this['ruleVarsCount']++);
-            return ['Variable', ['Number', this['ruleVars'][term[(1)]]], term]
+            (this["ruleVars"][term[(1)]] = this["ruleVarsCount"]++);
+            return ["Variable", ["Number", this["ruleVars"][term[(1)]]], term]
         },
         "checkThat": function(term, termBind) {
-            var t, _fromIdx = this.input.idx,
-                c, b, r, v, $elf = this;
+            var r, t, c, b, _fromIdx = this.input.idx,
+                v, $elf = this;
             this._apply("addThat");
             r = this._or((function() {
                 this._apply("addThe");
@@ -303,13 +303,12 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], (func
                 realFactType, $elf = this;
             realFactType = this._applyWithArgs("isFactType", c[(0)]);
             this._pred(realFactType);
-            (c[(0)] = ['FactType'].concat(c[(0)]));
-            return ['AtomicFormulation'].concat(c)
+            (c[(0)] = ["FactType"].concat(c[(0)]));
+            return ["AtomicFormulation"].concat(c)
         },
         "ruleBody": function(c, exitOnTermFactType) {
-            var thatC, t, _fromIdx = this.input.idx,
-                b, r, v, body, $elf = this,
-                tVar;
+            var thatC, r, t, tVar, body, b, _fromIdx = this.input.idx,
+                v, $elf = this;
             body = this._apply("quant");
             t = this._applyWithArgs("Term", c[(0)]);
             tVar = this._applyWithArgs("createVar", t);
@@ -338,61 +337,60 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], (func
             return body
         },
         "modRule": function() {
-            var _fromIdx = this.input.idx,
-                r, $elf = this;
-            this._applyWithArgs("token", 'It');
-            this._applyWithArgs("token", 'is');
+            var r, _fromIdx = this.input.idx,
+                $elf = this;
+            this._applyWithArgs("token", "It");
+            this._applyWithArgs("token", "is");
             r = this._or((function() {
-                this._applyWithArgs("token", 'obligatory');
-                return ['ObligationF']
+                this._applyWithArgs("token", "obligatory");
+                return ["ObligationF"]
             }), (function() {
-                this._applyWithArgs("token", 'necessary');
-                return ['NecessityF']
+                this._applyWithArgs("token", "necessary");
+                return ["NecessityF"]
             }), (function() {
-                this._applyWithArgs("token", 'prohibited');
-                return ['ObligationF', ['LogicalNegation']]
+                this._applyWithArgs("token", "prohibited");
+                return ["ObligationF", ["LogicalNegation"]]
             }), (function() {
-                this._applyWithArgs("token", 'impossible');
-                return ['NecessityF', ['LogicalNegation']]
+                this._applyWithArgs("token", "impossible");
+                return ["NecessityF", ["LogicalNegation"]]
             }), (function() {
-                this._applyWithArgs("token", 'not');
-                this._applyWithArgs("token", 'possible');
-                return ['NecessityF', ['LogicalNegation']]
+                this._applyWithArgs("token", "not");
+                this._applyWithArgs("token", "possible");
+                return ["NecessityF", ["LogicalNegation"]]
             }), (function() {
-                this._applyWithArgs("token", 'possible');
-                return ['PossibilityF']
+                this._applyWithArgs("token", "possible");
+                return ["PossibilityF"]
             }), (function() {
-                this._applyWithArgs("token", 'permissible');
-                return ['PermissibilityF']
+                this._applyWithArgs("token", "permissible");
+                return ["PermissibilityF"]
             }));
-            this._applyWithArgs("token", 'that');
+            this._applyWithArgs("token", "that");
             return r
         },
         "startRule": function() {
             var _fromIdx = this.input.idx,
                 $elf = this;
             return this._or((function() {
-                return this._applyWithArgs("token", 'R:')
+                return this._applyWithArgs("token", "R:")
             }), (function() {
-                return this._applyWithArgs("token", 'Rule:')
+                return this._applyWithArgs("token", "Rule:")
             }))
         },
         "newRule": function() {
-            var q, _fromIdx = this.input.idx,
-                r, $elf = this,
-                ruleText;
+            var r, ruleText, _fromIdx = this.input.idx,
+                q, $elf = this;
             this._apply("startRule");
             this._apply("spaces");
             ruleText = this._lookahead((function() {
                 return this._apply("toSBVREOL")
             }));
-            (this['ruleVarsCount'] = (0));
+            (this["ruleVarsCount"] = (0));
             r = this._apply("modRule");
             q = this._applyWithArgs("ruleBody", [
                 []
             ]);
-            ((r['length'] == (2)) ? (r[(1)][(1)] = q) : (r[(1)] = q));
-            return ['Rule', r, ['StructuredEnglish', ruleText]]
+            ((r["length"] == (2)) ? (r[(1)][(1)] = q) : (r[(1)] = q));
+            return ["Rule", r, ["StructuredEnglish", ruleText]]
         },
         "terb": function() {
             var t, _fromIdx = this.input.idx,
@@ -405,14 +403,14 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], (func
             var _fromIdx = this.input.idx,
                 $elf = this;
             return this._or((function() {
-                return this._applyWithArgs("token", 'F:')
+                return this._applyWithArgs("token", "F:")
             }), (function() {
-                return this._applyWithArgs("token", 'Fact type:')
+                return this._applyWithArgs("token", "Fact type:")
             }))
         },
         "newFactType": function() {
             var t, _fromIdx = this.input.idx,
-                v, factType, $elf = this;
+                factType, v, $elf = this;
             this._apply("startFactType");
             factType = [];
             this._many1((function() {
@@ -426,15 +424,15 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], (func
             }));
             this._applyWithArgs("AddFactType", factType, factType);
             factType.push([]);
-            return ['FactType'].concat(factType)
+            return ["FactType"].concat(factType)
         },
         "startTerm": function() {
             var _fromIdx = this.input.idx,
                 $elf = this;
             return this._or((function() {
-                return this._applyWithArgs("token", 'T:')
+                return this._applyWithArgs("token", "T:")
             }), (function() {
-                return this._applyWithArgs("token", 'Term:')
+                return this._applyWithArgs("token", "Term:")
             }))
         },
         "newTerm": function() {
@@ -447,24 +445,24 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], (func
             return t
         },
         "attribute": function() {
-            var attrName, _fromIdx = this.input.idx,
-                currentLine, $elf = this,
+            var currentLine, attrName, _fromIdx = this.input.idx,
+                $elf = this,
                 attrVal;
-            currentLine = this['lines'][(this['lines']['length'] - (1))];
+            currentLine = this["lines"][(this["lines"]["length"] - (1))];
             attrName = this._applyWithArgs("allowedAttrs", currentLine[(0)]);
-            attrName = attrName.replace(new RegExp(' ', 'g'), '');
-            attrVal = this._applyWithArgs("ApplyFirstExisting", [('attr' + attrName), 'defaultAttr'], [currentLine]);
+            attrName = attrName.replace(new RegExp(" ", "g"), "");
+            attrVal = this._applyWithArgs("ApplyFirstExisting", [("attr" + attrName), "defaultAttr"], [currentLine]);
             return (function() {
-                var lastLine = this['lines'].pop();
-                lastLine[(lastLine['length'] - (1))].push([attrName, attrVal]);
+                var lastLine = this["lines"].pop();
+                lastLine[(lastLine["length"] - (1))].push([attrName, attrVal]);
                 return lastLine
             }).call(this)
         },
         "allowedAttrs": function(termOrFactType) {
             var attrName, _fromIdx = this.input.idx,
                 $elf = this;
-            attrName = this._applyWithArgs("matchForAny", 'seq', this['possMap']['allowedAttrs'].call(this, termOrFactType));
-            return attrName.replace(':', '')
+            attrName = this._applyWithArgs("matchForAny", "seq", this["branches"]["allowedAttrs"].call(this, termOrFactType));
+            return attrName.replace(":", "")
         },
         "defaultAttr": function(currentLine) {
             var _fromIdx = this.input.idx,
@@ -472,11 +470,10 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], (func
             return this._apply("toSBVREOL")
         },
         "attrDefinition": function(currentLine) {
-            var thatC, t, _fromIdx = this.input.idx,
-                c, name, b, names, $elf = this,
-                tVar;
+            var thatC, name, t, names, c, tVar, b, _fromIdx = this.input.idx,
+                $elf = this;
             return this._or((function() {
-                (this['ruleVarsCount'] = (0));
+                (this["ruleVarsCount"] = (0));
                 c = [
                     []
                 ];
@@ -491,37 +488,36 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], (func
                 tVar.push(thatC);
                 return tVar
             }), (function() {
-                name = this._applyWithArgs("Value", 'or');
+                name = this._applyWithArgs("Value", "or");
                 names = this._many((function() {
                     this._apply("addOr");
                     this._apply("clearSuggestions");
-                    return this._applyWithArgs("Value", 'or')
+                    return this._applyWithArgs("Value", "or")
                 }));
                 names.unshift(name);
-                return ['Enum', names]
+                return ["Enum", names]
             }))
         },
         "attrConceptType": function(currentLine) {
-            var t, _fromIdx = this.input.idx,
-                $elf = this,
-                termName;
+            var termName, t, _fromIdx = this.input.idx,
+                $elf = this;
             termName = currentLine[(1)];
-            this._pred((!this['conceptTypes'].hasOwnProperty(termName)));
+            this._pred((!this["conceptTypes"].hasOwnProperty(termName)));
             t = this._apply("Term");
             this._pred((termName != t[(1)]));
-            (this['conceptTypes'][termName] = t[(1)]);
+            (this["conceptTypes"][termName] = t[(1)]);
             return t
         },
         "attrSynonym": function(currentLine) {
             var t, _fromIdx = this.input.idx,
                 $elf = this;
             t = this._apply("addTerm");
-            (this['terms'][t[(1)]] = currentLine[(1)]);
+            (this["terms"][t[(1)]] = currentLine[(1)]);
             return t
         },
         "attrSynonymousForm": function(currentLine) {
             var t, _fromIdx = this.input.idx,
-                v, factType, $elf = this;
+                factType, v, $elf = this;
             factType = [];
             this._many1((function() {
                 t = this._apply("Term");
@@ -542,9 +538,9 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], (func
             t = this._apply("addTerm");
             (function() {
                 for (var i = (0);
-                (i < currentLine['length']); i++) {
-                    if ((currentLine[i][(0)] == 'Term')) {
-                        var factType = [t, ['Verb', 'has'], currentLine[i]];
+                (i < currentLine["length"]); i++) {
+                    if ((currentLine[i][(0)] == "Term")) {
+                        var factType = [t, ["Verb", "has"], currentLine[i]];
                         this.AddFactType(factType, factType)
                     } else {
                         undefined
@@ -556,9 +552,9 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], (func
         "startComment": function() {
             var _fromIdx = this.input.idx,
                 $elf = this;
-            this._applyWithArgs("exactly", '-');
-            this._applyWithArgs("exactly", '-');
-            return '--'
+            this._applyWithArgs("exactly", "-");
+            this._applyWithArgs("exactly", "-");
+            return "--"
         },
         "newComment": function() {
             var _fromIdx = this.input.idx,
@@ -570,7 +566,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], (func
             var _fromIdx = this.input.idx,
                 $elf = this;
             this._apply("spaces");
-            return this._applyWithArgs("keyword", '.', true)
+            return this._applyWithArgs("keyword", ".", true)
         },
         "lineStart": function(lineType) {
             var _fromIdx = this.input.idx,
@@ -588,8 +584,8 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], (func
             }))
         },
         "line": function() {
-            var _fromIdx = this.input.idx,
-                l, $elf = this;
+            var l, _fromIdx = this.input.idx,
+                $elf = this;
             this._apply("spaces");
             return this._or((function() {
                 l = this._or((function() {
@@ -613,55 +609,55 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], (func
                         return this._apply("end")
                     }))
                 }));
-                this['lines'].push(l);
+                this["lines"].push(l);
                 return l
             }), (function() {
                 return this._apply("newComment")
             }))
         },
-        "expr": function() {
+        "Process": function() {
             var _fromIdx = this.input.idx,
                 $elf = this;
             this._many((function() {
                 return this._apply("line")
             }));
             this._apply("end");
-            return this['lines']
+            return this["lines"]
         }
     });
-    (SBVRParser['clearSuggestions'] = (function() {}));
-    (SBVRParser['initialize'] = (function() {
-        (this['tokensEnabled'] = false);
+    (SBVRParser["clearSuggestions"] = (function() {}));
+    (SBVRParser["initialize"] = (function() {
+        (this["tokensEnabled"] = false);
         this.reset()
     }));
-    (SBVRParser['_enableTokens'] = (function() {
-        (this['tokensEnabled'] = true);
-        SBVRLibs['_enableTokens'].call(this, ['startTerm', 'startFactType', 'startRule', 'newComment', 'Term', 'modRule', 'Verb', 'keyword', 'allowedAttrs', 'num', 'Value'])
+    (SBVRParser["_enableTokens"] = (function() {
+        (this["tokensEnabled"] = true);
+        SBVRLibs["_enableTokens"].call(this, ["startTerm", "startFactType", "startRule", "newComment", "Term", "modRule", "Verb", "keyword", "allowedAttrs", "num", "Value"])
     }));
-    (SBVRParser['_baseTerm'] = (function(factTypeSoFar, term) {
-        if (this['terms'].hasOwnProperty(term)) {
-            return this['terms'][term]
+    (SBVRParser["_baseTerm"] = (function(factTypeSoFar, term) {
+        if (this["terms"].hasOwnProperty(term)) {
+            return this["terms"][term]
         } else {
             undefined
         };
-        if (this['terms'].hasOwnProperty(term.singularize())) {
-            return this['terms'][term.singularize()]
+        if (this["terms"].hasOwnProperty(term.singularize())) {
+            return this["terms"][term.singularize()]
         } else {
             undefined
         };
         return false
     }));
-    (SBVRParser['isTerm'] = (function(factTypeSoFar, term) {
-        var terms = this['possMap']['Term'].call(this, factTypeSoFar);
+    (SBVRParser["isTerm"] = (function(factTypeSoFar, term) {
+        var terms = this["branches"]["Term"].call(this, factTypeSoFar);
         (term = this._baseTerm(factTypeSoFar, term));
         return ((term !== false) && (($.inArray(term, terms) !== (-(1))) || ($.inArray(term.singularize(), terms) !== (-(1)))))
     }));
-    (SBVRParser['_termForm'] = (function(factTypeSoFar, term) {
+    (SBVRParser["_termForm"] = (function(factTypeSoFar, term) {
         (term = this._baseTerm(factTypeSoFar, term));
-        return (($.inArray(term.singularize(), this['possMap']['Term'].call(this, factTypeSoFar)) !== (-(1))) ? term.singularize() : term)
+        return (($.inArray(term.singularize(), this["branches"]["Term"].call(this, factTypeSoFar)) !== (-(1))) ? term.singularize() : term)
     }));
-    (SBVRParser['isVerb'] = (function(factTypeSoFar, verb) {
-        (verb = ['Verb', this._verbForm(verb)]);
+    (SBVRParser["isVerb"] = (function(factTypeSoFar, verb) {
+        (verb = ["Verb", this._verbForm(verb)]);
         var currentLevel = this._traverseFactType(factTypeSoFar);
         if ((currentLevel === false)) {
             return false
@@ -673,58 +669,58 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], (func
         } else {
             undefined
         };
-        if ((currentLevel.hasOwnProperty('__valid') && (currentLevel['__valid'] === true))) {
+        if ((currentLevel.hasOwnProperty("__valid") && (currentLevel["__valid"] === true))) {
             return this.isVerb([], verb)
         } else {
             undefined
         };
         return false
     }));
-    (SBVRParser['_verbForm'] = (function(verb) {
-        if ((verb.slice((0), (4)) == 'are ')) {
-            return ('is ' + verb.slice((4)))
+    (SBVRParser["_verbForm"] = (function(verb) {
+        if ((verb.slice((0), (4)) == "are ")) {
+            return ("is " + verb.slice((4)))
         } else {
             undefined
         };
-        if ((verb == 'are')) {
-            return 'is'
+        if ((verb == "are")) {
+            return "is"
         } else {
             undefined
         };
-        if ((verb == 'have')) {
-            return 'has'
+        if ((verb == "have")) {
+            return "has"
         } else {
             undefined
         };
         return verb
     }));
-    (SBVRParser['isFactType'] = (function(factType) {
+    (SBVRParser["isFactType"] = (function(factType) {
         var currentLevel = this._traverseFactType(factType);
         if ((currentLevel === false)) {
             return false
         } else {
             undefined
         };
-        return currentLevel['__valid']
+        return currentLevel["__valid"]
     }));
-    var removeVerbRegex = new RegExp(('^' + ['Verb', ''].toString())),
-        removeTermRegex = new RegExp(('^' + ['Term', ''].toString())),
-        allowedAttrLists = ['Database ID Field:', 'Database Value Field:', 'Database Table Name:', 'Dictionary Basis:', 'Example:', 'General Concept:', 'Namespace URI:', 'Necessity:', 'Note:', 'Possibility:', 'Reference Scheme:', 'See:', 'Source:', 'Subject Field:'];
+    var removeVerbRegex = new RegExp(("^" + ["Verb", ""].toString())),
+        removeTermRegex = new RegExp(("^" + ["Term", ""].toString())),
+        allowedAttrLists = ["Database ID Field:", "Database Value Field:", "Database Table Name:", "Dictionary Basis:", "Example:", "General Concept:", "Namespace URI:", "Necessity:", "Note:", "Possibility:", "Reference Scheme:", "See:", "Source:", "Subject Field:"];
     (allowedAttrLists = ({
-        'Term': ['Concept Type:', 'Definition:', 'Synonym:'].concat(allowedAttrLists),
-        'FactType': ['Synonymous Form:', 'Term Form:'].concat(allowedAttrLists),
-        'Rule': []
+        "Term": ["Concept Type:", "Definition:", "Synonym:"].concat(allowedAttrLists),
+        "FactType": ["Synonymous Form:", "Term Form:"].concat(allowedAttrLists),
+        "Rule": []
     }));
-    (SBVRParser['reset'] = (function() {
-        SBVRLibs['initialize'].call(this);
-        (this['possMap'] = ({
-            'clearSuggestions': [],
-            'startTerm': ['Term:     '],
-            'startFactType': ['Fact type:'],
-            'startRule': ['Rule:     '],
-            'Term': (function(factTypeSoFar) {
-                if (((factTypeSoFar == null) || (factTypeSoFar['length'] == (0)))) {
-                    return _.keys(this['terms'])
+    (SBVRParser["reset"] = (function() {
+        SBVRLibs["initialize"].call(this);
+        (this["branches"] = ({
+            "clearSuggestions": [],
+            "startTerm": ["Term:     "],
+            "startFactType": ["Fact type:"],
+            "startRule": ["Rule:     "],
+            "Term": (function(factTypeSoFar) {
+                if (((factTypeSoFar == null) || (factTypeSoFar["length"] == (0)))) {
+                    return _.keys(this["terms"])
                 } else {
                     undefined
                 };
@@ -733,7 +729,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], (func
                 for (term in currentLevel) {
                     if (currentLevel.hasOwnProperty(term)) {
                         if (removeTermRegex.test(term)) {
-                            terms.push(term.replace(removeTermRegex, ''))
+                            terms.push(term.replace(removeTermRegex, ""))
                         } else {
                             undefined
                         }
@@ -743,13 +739,13 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], (func
                 };
                 return terms
             }),
-            'Verb': (function(factTypeSoFar) {
+            "Verb": (function(factTypeSoFar) {
                 var verb, currentLevel = this._traverseFactType(factTypeSoFar),
                     verbs = [];
                 for (verb in currentLevel) {
                     if (currentLevel.hasOwnProperty(verb)) {
                         if (removeVerbRegex.test(verb)) {
-                            verbs.push(verb.replace(removeVerbRegex, ''))
+                            verbs.push(verb.replace(removeVerbRegex, ""))
                         } else {
                             undefined
                         }
@@ -759,99 +755,107 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], (func
                 };
                 return verbs
             }),
-            'allowedAttrs': (function(termOrFactType) {
+            "allowedAttrs": (function(termOrFactType) {
                 if (allowedAttrLists.hasOwnProperty(termOrFactType)) {
                     return allowedAttrLists[termOrFactType]
                 } else {
                     if ((termOrFactType == null)) {
-                        return allowedAttrLists['Term'].concat(allowedAttrLists['FactType'])
+                        return allowedAttrLists["Term"].concat(allowedAttrLists["FactType"])
                     } else {
                         undefined
                     }
                 };
                 return []
             }),
-            'modRule': ['It is obligatory that', 'It is necessary that', 'It is prohibited that', 'It is impossible that', 'It is not possible that', 'It is possible that', 'It is permissible that'],
-            'quant': ['each', 'a', 'an', 'some', 'at most', 'at least', 'more than', 'exactly'],
-            'joinQuant': ['and at most'],
-            'num': ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'one'],
-            'addThat': ['that', 'that the'],
-            'addThe': ['the'],
-            'addComma': [','],
-            'addOr': ['or'],
-            'terminator': ['.']
+            "modRule": ["It is obligatory that", "It is necessary that", "It is prohibited that", "It is impossible that", "It is not possible that", "It is possible that", "It is permissible that"],
+            "quant": ["each", "a", "an", "some", "at most", "at least", "more than", "exactly"],
+            "joinQuant": ["and at most"],
+            "num": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "one"],
+            "addThat": ["that", "that the"],
+            "addThe": ["the"],
+            "addComma": [","],
+            "addOr": ["or"],
+            "terminator": ["."]
         }));
-        (this['terms'] = ({}));
-        (this['ruleVars'] = ({}));
-        (this['ruleVarsCount'] = (0));
-        (this['lines'] = ['Model'])
+        (this["terms"] = ({}));
+        (this["ruleVars"] = ({}));
+        (this["ruleVarsCount"] = (0));
+        (this["lines"] = ["Model"])
     }));
-    (SBVRParser['equals'] = (function(compareTo) {
-        if ((!_.isEqual(this['terms'], compareTo['terms']))) {
+    (SBVRParser["equals"] = (function(compareTo) {
+        if ((!_.isEqual(this["terms"], compareTo["terms"]))) {
             return false
         } else {
             undefined
         };
-        if ((!_.isEqual(this['conceptTypes'], compareTo['conceptTypes']))) {
+        if ((!_.isEqual(this["conceptTypes"], compareTo["conceptTypes"]))) {
             return false
         } else {
             undefined
         };
-        if ((!_.isEqual(this['factTypes'], compareTo['factTypes']))) {
+        if ((!_.isEqual(this["factTypes"], compareTo["factTypes"]))) {
             return false
         } else {
             undefined
         };
         return true
     }));
-    (SBVRParser['clone'] = (function() {
+    (SBVRParser["clone"] = (function() {
         var clone = SBVRParser.createInstance();
-        if (this['tokensEnabled']) {
+        if (this["tokensEnabled"]) {
             clone._enableTokens()
         } else {
             undefined
         };
         return $.extend(true, clone, ({
-            'terms': this['terms'],
-            'conceptTypes': this['conceptTypes'],
-            'factTypes': this['factTypes'],
-            'ruleVars': this['ruleVars'],
-            'ruleVarsCount': this['ruleVarsCount'],
-            'lines': this['lines']
+            "terms": this["terms"],
+            "conceptTypes": this["conceptTypes"],
+            "factTypes": this["factTypes"],
+            "ruleVars": this["ruleVars"],
+            "ruleVarsCount": this["ruleVarsCount"],
+            "lines": this["lines"]
         }))
     }));
-    (SBVRParser['matchForAny'] = (function(rule, arr) {
+    (SBVRParser["matchForAny"] = (function(rule, arr) {
         var $elf = this,
-            origInput = this['input'],
+            origInput = this["input"],
             ref = ({}),
             result = ref;
         for (var idx = (0);
-        (idx < arr['length']); idx++) {
-            lookup((function() {
-                ($elf['input'] = origInput);
-                (result = $elf['_applyWithArgs'].call($elf, rule, arr[idx]))
-            }));
+        (idx < arr["length"]); idx++) {
+            try {
+                ($elf["input"] = origInput);
+                (result = $elf["_applyWithArgs"].call($elf, rule, arr[idx]))
+            } catch (e) {
+                if ((!(e instanceof SyntaxError))) {
+                    throw e
+                } else {
+                    undefined
+                }
+            } finally {
+                undefined
+            };
             if ((result !== ref)) {
                 return result
             } else {
                 undefined
             }
         };
-        throw fail()
+        throw this._fail()
     }));
-    (SBVRParser['matchForAll'] = (function(rule, arr) {
+    (SBVRParser["matchForAll"] = (function(rule, arr) {
         for (var idx = (0);
-        (idx < arr['length']); idx++) {
-            this['_applyWithArgs'].call(this, rule, arr[idx])
+        (idx < arr["length"]); idx++) {
+            this["_applyWithArgs"].call(this, rule, arr[idx])
         }
     }));
-    (SBVRParser['exactly'] = (function(wanted) {
-        if ((wanted.toLowerCase() === this._apply('anything').toLowerCase())) {
+    (SBVRParser["exactly"] = (function(wanted) {
+        if ((wanted.toLowerCase() === this._apply("anything").toLowerCase())) {
             return wanted
         } else {
             undefined
         };
-        throw fail()
+        throw this._fail()
     }));
     return SBVRParser
 }))

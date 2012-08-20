@@ -23,7 +23,7 @@ L.matchAll('6*(4+3)', 'expr')
 // a recognizer that also interprets
 
 ometa Calc {
-  digit    = ^digit:d                 -> d.digitValue(),
+  digit    = ^digit:d                 -> parseInt(d, 10),
   number   = number:n digit:d         -> (n * 10 + d)
            | digit,
   addExpr  = addExpr:x '+' mulExpr:y  -> (x + y)
@@ -47,7 +47,7 @@ Calc.matchAll('6**(4+3)', 'expr')
 // parser and simple interpreter combo
 
 ometa CalcParser {
-  digit    = ^digit:d                 -> d.digitValue(),
+  digit    = ^digit:d                 -> parseInt(d, 10),
   number   = number:n digit:d         -> (n * 10 + d)
            | digit,
   addExpr  = addExpr:x '+' mulExpr:y  -> ['add', x, y]

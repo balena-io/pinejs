@@ -2,17 +2,15 @@ var ometajs = require('../ometajs'),
     uglify = require('uglify-js'),
     utils = ometajs.utils,
     vm = require('vm'),
-    Module = require('module'),
-    fail = ometajs.globals.fail;
-    objectThatDelegatesTo = ometajs.globals.objectThatDelegatesTo;
+    Module = require('module');
 
 //
 // ### function compilationError(m, i)
 // #### @m {Number}
 // #### @i {Number}
 //
-function compilationError(m, i) {
-  throw objectThatDelegatesTo(fail(), {errorPos: i});
+function compilationError(m, i, fail) {
+  throw fail.extend({errorPos: i});
 };
 
 //
@@ -20,33 +18,28 @@ function compilationError(m, i) {
 // #### @m {Number}
 // #### @i {Number}
 //
-function translationError(m, i) {
-  throw fail();
+function translationError(m, i, fail) {
+  throw fail;
 };
 
 //
 // ### function wrapModule(module)
 // #### @code {String} javascript code to wrap
-// Wrap javascript code in ometajs.globals context
+// Wrap javascript code in ometajs.core context
 //
 function wrapModule(code, options) {
-  var req = 'require(\'' + (options.root || ometajs.root || 'ometajs') + '\')',
+  var req = 'require(\'' + (options.root || ometajs.root || 'core') + '\')',
       buf = [
-        'var ometajs_ = ', req, '.globals || global;'
+        'var OMeta;',
+        'if(typeof window !== "undefined") {',
+          'OMeta = window.OMeta;',
+        '} else {',
+          'OMeta = ', req, '.OMeta;',
+        '}',
+        'if(typeof exports === "undefined") {',
+          'exports = {};',
+        '}'
       ];
-
-  Object.keys(ometajs.globals).forEach(function(key) {
-    buf.push('var ', key, ' = ometajs_.', key, ';\n');
-  });
-
-  buf.push(
-    'if (global === ometajs_) {\n',
-    '  fail = (function(fail) {\n',
-    '    return function() { return fail };\n',
-    '  })(fail);\n',
-    '  OMeta = ', req, '.OMeta;\n',
-    '}'
-  );
 
   buf.push(code);
 
@@ -87,7 +80,7 @@ function evalCode(code, filename, options) {
 
   code = translateCode(code, options);
   return vm.runInNewContext('var exports = {};' + code + '\n;exports',
-                            utils.clone(ometajs.globals),
+                            utils.clone(ometajs.core),
                             filename || 'ometa');
 };
 exports.evalCode = evalCode;

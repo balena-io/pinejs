@@ -31,7 +31,7 @@ require('coa').Cmd()
     .opt()
         .name('root').title('Path to root module (default: ometajs)')
         .long('root')
-        .def('ometajs')
+        .def('core')
         .end()
     .act(function(options) {
       return require('../lib/ometajs').run(options);

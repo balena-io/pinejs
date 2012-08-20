@@ -1,16 +1,16 @@
-define(['ometa-core'], (function() {
-    var Prettify = objectThatDelegatesTo(OMeta, {
+define(["ometa-core"], (function() {
+    var Prettify = OMeta._extend({
         "Elem": function(indent) {
             var _fromIdx = this.input.idx,
-                s, $elf = this,
-                e;
+                $elf = this,
+                e, s;
             this._form((function() {
                 return e = this._many((function() {
                     return this._or((function() {
                         s = this._apply("string");
-                        return (('\'' + s) + '\'')
+                        return (("'" + s) + "'")
                     }), (function() {
-                        return this._applyWithArgs("Elem", (indent + '\t'))
+                        return this._applyWithArgs("Elem", (indent + "\t"))
                     }), (function() {
                         return this._apply("number")
                     }), (function() {
@@ -20,12 +20,12 @@ define(['ometa-core'], (function() {
                     }))
                 }))
             }));
-            return (('[' + e.join((',\n' + indent))) + ']')
+            return (("[" + e.join((",\n" + indent))) + "]")
         },
         "Process": function() {
             var _fromIdx = this.input.idx,
                 $elf = this;
-            return this._applyWithArgs("Elem", '\t')
+            return this._applyWithArgs("Elem", "\t")
         }
     });
     return Prettify

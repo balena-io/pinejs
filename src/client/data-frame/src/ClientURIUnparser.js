@@ -1,8 +1,8 @@
-define(['ometa-core'], (function() {
-    var ClientURIUnparser = objectThatDelegatesTo(OMeta, {
+define(["ometa-core"], (function() {
+    var ClientURIUnparser = OMeta._extend({
         "word": function() {
-            var _fromIdx = this.input.idx,
-                l, $elf = this;
+            var l, _fromIdx = this.input.idx,
+                $elf = this;
             this._form((function() {
                 return l = this._many1((function() {
                     return this._or((function() {
@@ -10,18 +10,18 @@ define(['ometa-core'], (function() {
                     }), (function() {
                         return (function() {
                             switch (this._apply('anything')) {
-                            case '-':
-                                return '-';
-                            case '_':
-                                return '_';
+                            case "_":
+                                return "_";
+                            case "-":
+                                return "-";
                             default:
-                                throw fail()
+                                throw this._fail()
                             }
                         }).call(this)
                     }))
                 }))
             }));
-            return l.join('')
+            return l.join("")
         },
         "nmbr": function() {
             var _fromIdx = this.input.idx,
@@ -29,9 +29,8 @@ define(['ometa-core'], (function() {
             return this._apply("number")
         },
         "trans": function() {
-            var t, _fromIdx = this.input.idx,
-                $elf = this,
-                a;
+            var a, t, _fromIdx = this.input.idx,
+                $elf = this;
             this._form((function() {
                 t = this._apply("anything");
                 return a = this._applyWithArgs("apply", t)
@@ -42,24 +41,24 @@ define(['ometa-core'], (function() {
             var t, _fromIdx = this.input.idx,
                 $elf = this;
             t = this._apply("trans");
-            return ('#!/' + t)
+            return ("#!/" + t)
         },
         "name": function() {
-            var o, _fromIdx = this.input.idx,
-                w, $elf = this,
+            var o, w, _fromIdx = this.input.idx,
+                $elf = this,
                 n;
             return this._or((function() {
                 this._form((function() {
                     w = this._apply("word");
                     return n = this._apply("nmbr")
                 }));
-                return ((w + '.') + n)
+                return ((w + ".") + n)
             }), (function() {
                 this._form((function() {
                     w = this._apply("word");
                     return o = this._apply("word")
                 }));
-                return ((w + '.') + o)
+                return ((w + ".") + o)
             }), (function() {
                 this._form((function() {
                     return w = this._apply("word")
@@ -68,8 +67,8 @@ define(['ometa-core'], (function() {
             }))
         },
         "collection": function() {
-            var t, _fromIdx = this.input.idx,
-                m, r, $elf = this,
+            var m, r, t, _fromIdx = this.input.idx,
+                $elf = this,
                 n;
             return this._or((function() {
                 n = this._apply("name");
@@ -79,12 +78,12 @@ define(['ometa-core'], (function() {
                     return this._apply("trans")
                 }));
                 (t = [t].concat(r));
-                return ((((n + m) + '/(') + t.join(',')) + ')')
+                return ((((n + m) + "/(") + t.join(",")) + ")")
             }), (function() {
                 n = this._apply("name");
                 m = this._apply("mod");
                 t = this._apply("trans");
-                return (((n + m) + '/') + t)
+                return (((n + m) + "/") + t)
             }), (function() {
                 n = this._apply("name");
                 m = this._apply("mod");
@@ -92,8 +91,8 @@ define(['ometa-core'], (function() {
             }))
         },
         "instance": function() {
-            var t, _fromIdx = this.input.idx,
-                m, r, $elf = this,
+            var m, r, t, _fromIdx = this.input.idx,
+                $elf = this,
                 n;
             return this._or((function() {
                 n = this._apply("name");
@@ -103,12 +102,12 @@ define(['ometa-core'], (function() {
                     return this._apply("trans")
                 }));
                 (t = [t].concat(r));
-                return ((((n + m) + '/(') + t.join(',')) + ')')
+                return ((((n + m) + "/(") + t.join(",")) + ")")
             }), (function() {
                 n = this._apply("name");
                 m = this._apply("mod");
                 t = this._apply("trans");
-                return (((n + m) + '/') + t)
+                return (((n + m) + "/") + t)
             }), (function() {
                 n = this._apply("name");
                 m = this._apply("mod");
@@ -116,22 +115,21 @@ define(['ometa-core'], (function() {
             }))
         },
         "mod": function() {
-            var _fromIdx = this.input.idx,
-                $elf = this,
-                a;
+            var a, _fromIdx = this.input.idx,
+                $elf = this;
             return this._or((function() {
                 this._form((function() {
-                    this._applyWithArgs("exactly", 'mod');
+                    this._applyWithArgs("exactly", "mod");
                     return a = this._many1((function() {
                         return this._apply("actn")
                     }))
                 }));
-                return a.join('')
+                return a.join("")
             }), (function() {
                 this._form((function() {
-                    return this._applyWithArgs("exactly", 'mod')
+                    return this._applyWithArgs("exactly", "mod")
                 }));
-                return ''
+                return ""
             }))
         },
         "actn": function() {
@@ -153,51 +151,51 @@ define(['ometa-core'], (function() {
             var _fromIdx = this.input.idx,
                 $elf = this;
             this._form((function() {
-                return this._applyWithArgs("exactly", 'view')
+                return this._applyWithArgs("exactly", "view")
             }));
-            return '*view'
+            return "*view"
         },
         "add": function() {
             var _fromIdx = this.input.idx,
                 $elf = this;
             this._form((function() {
-                return this._applyWithArgs("exactly", 'add')
+                return this._applyWithArgs("exactly", "add")
             }));
-            return '*add'
+            return "*add"
         },
         "del": function() {
             var _fromIdx = this.input.idx,
                 $elf = this;
             this._form((function() {
-                return this._applyWithArgs("exactly", 'del')
+                return this._applyWithArgs("exactly", "del")
             }));
-            return '*del'
+            return "*del"
         },
         "edit": function() {
             var _fromIdx = this.input.idx,
                 $elf = this;
             this._form((function() {
-                return this._applyWithArgs("exactly", 'edit')
+                return this._applyWithArgs("exactly", "edit")
             }));
-            return '*edit'
+            return "*edit"
         },
         "filt": function() {
             var o, _fromIdx = this.input.idx,
                 $elf = this;
             return this._or((function() {
                 this._form((function() {
-                    this._applyWithArgs("exactly", 'filt');
+                    this._applyWithArgs("exactly", "filt");
                     return o = this._apply("eqi")
                 }));
-                return ''
+                return ""
             }), (function() {
                 this._form((function() {
-                    this._applyWithArgs("exactly", 'filt');
+                    this._applyWithArgs("exactly", "filt");
                     return o = this._many((function() {
                         return this._apply("op")
                     }))
                 }));
-                return ('*filt:' + o)
+                return ("*filt:" + o)
             }))
         },
         "op": function() {
@@ -216,7 +214,7 @@ define(['ometa-core'], (function() {
                 $elf = this;
             return this._or((function() {
                 this._form((function() {
-                    this._applyWithArgs("exactly", 'eq');
+                    this._applyWithArgs("exactly", "eq");
                     this._or((function() {
                         return this._form((function() {
                             undefined
@@ -224,13 +222,13 @@ define(['ometa-core'], (function() {
                     }), (function() {
                         return this._apply("word")
                     }));
-                    this._applyWithArgs("exactly", 'id');
+                    this._applyWithArgs("exactly", "id");
                     return this._apply("nmbr")
                 }));
-                return ''
+                return ""
             }), (function() {
                 this._form((function() {
-                    this._applyWithArgs("exactly", 'eq');
+                    this._applyWithArgs("exactly", "eq");
                     this._or((function() {
                         return this._form((function() {
                             undefined
@@ -238,17 +236,17 @@ define(['ometa-core'], (function() {
                     }), (function() {
                         return this._apply("word")
                     }));
-                    this._applyWithArgs("exactly", 'name');
+                    this._applyWithArgs("exactly", "name");
                     return this._apply("word")
                 }));
-                return ''
+                return ""
             }))
         },
         "eq": function() {
             var _fromIdx = this.input.idx,
                 $elf = this;
             return this._form((function() {
-                this._applyWithArgs("exactly", 'eq');
+                this._applyWithArgs("exactly", "eq");
                 this._or((function() {
                     return this._form((function() {
                         undefined
@@ -268,7 +266,7 @@ define(['ometa-core'], (function() {
             var _fromIdx = this.input.idx,
                 $elf = this;
             return this._form((function() {
-                this._applyWithArgs("exactly", 'ne');
+                this._applyWithArgs("exactly", "ne");
                 this._or((function() {
                     return this._form((function() {
                         undefined
@@ -288,7 +286,7 @@ define(['ometa-core'], (function() {
             var _fromIdx = this.input.idx,
                 $elf = this;
             return this._form((function() {
-                this._applyWithArgs("exactly", 'lk');
+                this._applyWithArgs("exactly", "lk");
                 this._or((function() {
                     return this._form((function() {
                         undefined

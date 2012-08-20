@@ -1,67 +1,69 @@
-define(['sbvr-compiler/LFValidator'], (function(LFValidator) {
+define(["sbvr-compiler/LFValidator"], (function(LFValidator) {
     var LFOptimiser;
-    var LFOptimiser = objectThatDelegatesTo(LFValidator, {
+    var LFOptimiser = LFValidator._extend({
         "Helped": function() {
             var _fromIdx = this.input.idx,
                 $elf = this;
-            this._pred((this['helped'] === true));
-            return (this['helped'] = false)
+            this._pred((this["helped"] === true));
+            return (this["helped"] = false)
         },
         "SetHelped": function() {
             var _fromIdx = this.input.idx,
                 $elf = this;
-            return (this['helped'] = true)
+            return (this["helped"] = true)
         },
         "Process": function() {
             var _fromIdx = this.input.idx,
-                x, $elf = this;
+                $elf = this,
+                x;
             x = this._apply("anything");
             x = this._applyWithArgs("trans", x);
             this._many((function() {
-                this._applyWithArgs("Helped", 'disableMemoisation');
+                this._applyWithArgs("Helped", "disableMemoisation");
                 return x = this._applyWithArgs("trans", x)
             }));
             return x
         },
         "AtLeastNQ": function() {
-            var _fromIdx = this.input.idx,
-                v, xs, i, $elf = this;
+            var xs, i, _fromIdx = this.input.idx,
+                v, $elf = this;
             return this._or((function() {
-                i = this._applyWithArgs("token", 'MinimumCardinality');
+                i = this._applyWithArgs("token", "MinimumCardinality");
                 this._pred((i[(1)][(1)] == (1)));
-                v = this._applyWithArgs("token", 'Variable');
+                v = this._applyWithArgs("token", "Variable");
                 xs = this._many((function() {
                     return this._apply("trans")
                 }));
                 this._apply("SetHelped");
-                return ['ExistentialQ', v].concat(xs)
+                return ["ExistentialQ", v].concat(xs)
             }), (function() {
                 return LFValidator._superApplyWithArgs(this, 'AtLeastNQ')
             }))
         },
         "NumericalRangeQ": function() {
-            var _fromIdx = this.input.idx,
-                v, j, xs, i, $elf = this;
+            var xs, i, _fromIdx = this.input.idx,
+                v, $elf = this,
+                j;
             return this._or((function() {
-                i = this._applyWithArgs("token", 'MinimumCardinality');
-                j = this._applyWithArgs("token", 'MaximumCardinality');
+                i = this._applyWithArgs("token", "MinimumCardinality");
+                j = this._applyWithArgs("token", "MaximumCardinality");
                 this._pred((i[(1)][(1)] == j[(1)][(1)]));
-                v = this._applyWithArgs("token", 'Variable');
+                v = this._applyWithArgs("token", "Variable");
                 xs = this._many((function() {
                     return this._apply("trans")
                 }));
                 this._apply("SetHelped");
-                return ['ExactQ', ['Cardinality', i[(1)]], v].concat(xs)
+                return ["ExactQ", ["Cardinality", i[(1)]], v].concat(xs)
             }), (function() {
                 return LFValidator._superApplyWithArgs(this, 'NumericalRangeQ')
             }))
         },
         "LogicalNegation": function() {
-            var _fromIdx = this.input.idx,
-                xs, $elf = this;
+            var xs, _fromIdx = this.input.idx,
+                $elf = this;
             return this._or((function() {
                 this._form((function() {
-                    this._applyWithArgs("exactly", 'LogicalNegation');
+                    this._applyWithArgs("exactly", "LogicalNegation");
                     return xs = this._apply("trans")
                 }));
                 this._apply("SetHelped");
@@ -71,9 +73,9 @@ define(['sbvr-compiler/LFValidator'], (function(LFValidator) {
             }))
         }
     });
-    (LFOptimiser['initialize'] = (function() {
-        LFValidator['initialize'].call(this);
-        (this['_didSomething'] = false)
+    (LFOptimiser["initialize"] = (function() {
+        LFValidator["initialize"].call(this);
+        (this["_didSomething"] = false)
     }));
     return LFOptimiser
 }))

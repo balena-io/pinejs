@@ -2,19 +2,12 @@
 // OmetaJS
 //
 
-// Common context for all ometa parsers
-var globals = exports.globals = {};
-
 // JS modules
 exports.utils = require('./ometajs/utils');
 exports.core = require('./ometajs/core');
-exports.parser = require('./ometajs/parser');
 
-exports.utils.lift(exports.globals, [
-  exports.utils,
-  exports.parser,
-  exports.core
-]);
+// Common context for all ometa parsers
+var globals = exports.core;
 
 // Include API early
 var api = require('./ometajs/api');
@@ -30,7 +23,7 @@ var parsers = require('./ometajs/ometa/parsers');
   'BSJSTranslator', 'BSOMetaJSParser',
   'BSOMetaJSTranslator', 'BSPushDownSet'
 ].forEach(function(name) {
-  exports[name] = globals[name] = parsers[name];
+  exports[name] = parsers[name];
 });
 
 // API
