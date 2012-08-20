@@ -268,7 +268,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 				-> l
 			|	newComment
 			),
-		expr =
+		Process =
 			line* end
 			-> this.lines
 	}

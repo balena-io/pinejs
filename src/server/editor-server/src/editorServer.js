@@ -58,7 +58,7 @@
         return db.transaction(function(tx) {
           var lfmod, value;
           try {
-            lfmod = SBVRParser.matchAll(req.body, "expr");
+            lfmod = SBVRParser.matchAll(req.body, "Process");
           } catch (e) {
             console.log('Error parsing model', e);
             res.json('Error parsing model');

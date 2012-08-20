@@ -7,11 +7,11 @@
     exports = {};
     db = null;
     transactionModel = 'Term:      Integer\nTerm:      Long Text\nTerm:      resource id\n	Concept type: Integer\nTerm:      resource type\n	Concept type: Long Text\nTerm:      field name\n	Concept type: Long Text\nTerm:      field value\n	Concept type: Long Text\nTerm:      field type\n	Concept type: Long Text\nTerm:      resource\n	Database Value Field: resource_id\nFact type: resource has resource id\nFact type: resource has resource type\nRule:      It is obligatory that each resource has exactly 1 resource type\nRule:      It is obligatory that each resource has exactly 1 resource id\nTerm:      transaction\nTerm:      lock\nTerm:      conditional representation\n	Database Value Field: lock\nFact type: lock is exclusive\nFact type: lock is shared\nFact type: resource is under lock\nFact type: lock belongs to transaction\nFact type: conditional representation has field name\nFact type: conditional representation has field value\nFact type: conditional representation has field type\nFact type: conditional representation has lock\nRule:      It is obligatory that each conditional representation has exactly 1 field name\nRule:      It is obligatory that each conditional representation has at most 1 field value\nRule:      It is obligatory that each conditional representation has at most 1 field type\nRule:      It is obligatory that each conditional representation has exactly 1 lock\nRule:      It is obligatory that each resource is under at most 1 lock that is exclusive';
-    transactionModel = SBVRParser.matchAll(transactionModel, "expr");
+    transactionModel = SBVRParser.matchAll(transactionModel, "Process");
     transactionModel = LF2AbstractSQLPrep.match(transactionModel, "Process");
     transactionModel = LF2AbstractSQL.match(transactionModel, "Process");
     uiModel = 'Term:      Short Text\nTerm:      Long Text\nTerm:      text\n	Concept type: Long Text\nTerm:      name\n	Concept type: Short Text\nTerm:      textarea\n	Database id Field: name\n	Database Value Field: text\nFact type: textarea is disabled\nFact type: textarea has name\nFact type: textarea has text\nRule:      It is obligatory that each textarea has exactly 1 name\nRule:      It is obligatory that each name is of exactly 1 textarea\nRule:      It is obligatory that each textarea has exactly 1 text';
-    uiModel = SBVRParser.matchAll(uiModel, "expr");
+    uiModel = SBVRParser.matchAll(uiModel, "Process");
     uiModel = LF2AbstractSQLPrep.match(uiModel, "Process");
     uiModel = LF2AbstractSQL.match(uiModel, "Process");
     serverURIParser = ServerURIParser.createInstance();
@@ -547,7 +547,7 @@
           var clientModel, lfmod, prepmod, se, sqlModel;
           se = result.instances[0].text;
           try {
-            lfmod = SBVRParser.matchAll(se, "expr");
+            lfmod = SBVRParser.matchAll(se, "Process");
           } catch (e) {
             console.log('Error parsing model', e);
             res.json('Error parsing model', 404);

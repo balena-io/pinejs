@@ -38,7 +38,7 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 			Rule:      It is obligatory that each conditional representation has at most 1 field type
 			Rule:      It is obligatory that each conditional representation has exactly 1 lock
 			Rule:      It is obligatory that each resource is under at most 1 lock that is exclusive'''
-	transactionModel = SBVRParser.matchAll(transactionModel, "expr")
+	transactionModel = SBVRParser.matchAll(transactionModel, "Process")
 	transactionModel = LF2AbstractSQLPrep.match(transactionModel, "Process")
 	transactionModel = LF2AbstractSQL.match(transactionModel, "Process")
 	
@@ -58,7 +58,7 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 			Rule:      It is obligatory that each textarea has exactly 1 name
 			Rule:      It is obligatory that each name is of exactly 1 textarea
 			Rule:      It is obligatory that each textarea has exactly 1 text'''
-	uiModel = SBVRParser.matchAll(uiModel, "expr")
+	uiModel = SBVRParser.matchAll(uiModel, "Process")
 	uiModel = LF2AbstractSQLPrep.match(uiModel, "Process")
 	uiModel = LF2AbstractSQL.match(uiModel, "Process")
 	
@@ -532,7 +532,7 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 				(result) ->
 					se = result.instances[0].text
 					try
-						lfmod = SBVRParser.matchAll(se, "expr")
+						lfmod = SBVRParser.matchAll(se, "Process")
 					catch e
 						console.log('Error parsing model', e)
 						res.json('Error parsing model', 404)

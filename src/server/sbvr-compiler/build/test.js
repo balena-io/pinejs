@@ -100,19 +100,19 @@
 
 
 // require(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'Prettify'], function(SBVRParser, LF2AbstractSQLPrep, Prettify) {
-	// console.log(Prettify.match(LF2AbstractSQLPrep.match(SBVRParser.matchAll(sbvrEditor.getValue(),'expr'),'Process'), 'Process'))
+	// console.log(Prettify.match(LF2AbstractSQLPrep.match(SBVRParser.matchAll(sbvrEditor.getValue(),'Process'),'Process'), 'Process'))
 // });
 
 // require(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep'], function(SBVRParser, LF2AbstractSQLPrep) {
-	// console.log(JSON.stringify(LF2AbstractSQLPrep.match(SBVRParser.matchAll(sbvrEditor.getValue(),'expr'),'Process')))
+	// console.log(JSON.stringify(LF2AbstractSQLPrep.match(SBVRParser.matchAll(sbvrEditor.getValue(),'Process'),'Process')))
 // });
 
 // require(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep'], function(SBVRParser, LF2AbstractSQLPrep) {
-	// console.log(JSON.stringify(SBVRParser.matchAll(sbvrEditor.getValue(),'expr'),'Process'))
+	// console.log(JSON.stringify(SBVRParser.matchAll(sbvrEditor.getValue(),'Process'),'Process'))
 // });
 
 // require(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'Prettify', 'sbvr-compiler/LF2AbstractSQL'], function(SBVRParser, LF2AbstractSQLPrep, Prettify, LF2AbstractSQL) {
-	// console.log(JSON.stringify(LF2AbstractSQL.match(LF2AbstractSQLPrep.match(SBVRParser.matchAll(sbvrEditor.getValue(),'expr'),'Process'), 'Process'), 'Process'))
+	// console.log(JSON.stringify(LF2AbstractSQL.match(LF2AbstractSQLPrep.match(SBVRParser.matchAll(sbvrEditor.getValue(),'Process'),'Process'), 'Process'), 'Process'))
 // });
 
 var prettify = function(key, value) {

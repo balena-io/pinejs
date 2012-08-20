@@ -118,7 +118,12 @@
     };
     loadUI = function() {
       window.sbvrEditor = CodeMirror.fromTextArea(document.getElementById("modelArea"), {
-        mode: "sbvr",
+        mode: {
+          name: 'sbvr',
+          getOMetaEditor: function() {
+            return sbvrEditor;
+          }
+        },
         onKeyEvent: ometaAutoComplete,
         lineWrapping: true
       });
@@ -404,7 +409,7 @@
     };
     window.parseModel = function() {
       try {
-        lfEditor.setValue(Prettify.match(SBVRParser.matchAll(sbvrEditor.getValue(), 'expr'), 'Process'));
+        lfEditor.setValue(Prettify.match(SBVRParser.matchAll(sbvrEditor.getValue(), 'Process'), 'Process'));
       } catch (e) {
         console.log('Error parsing model', e);
         showSimpleError('Error parsing model');

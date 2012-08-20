@@ -109,7 +109,10 @@ define(['sbvr-parser/SBVRParser', 'data-frame/ClientURIParser', 'Prettify'], (SB
 	# break loadUI apart to loadState and SetUI (with a view to converting LoadState to a single request)?
 	loadUI = ->
 		window.sbvrEditor = CodeMirror.fromTextArea(document.getElementById("modelArea"),
-			mode: "sbvr"
+			mode: {
+				name: 'sbvr'
+				getOMetaEditor: () -> sbvrEditor
+			}
 			onKeyEvent: ometaAutoComplete
 			lineWrapping: true
 		)
@@ -356,7 +359,7 @@ define(['sbvr-parser/SBVRParser', 'data-frame/ClientURIParser', 'Prettify'], (SB
 
 	window.parseModel = ->
 		try
-			lfEditor.setValue(Prettify.match(SBVRParser.matchAll(sbvrEditor.getValue(), 'expr'),'Process'))
+			lfEditor.setValue(Prettify.match(SBVRParser.matchAll(sbvrEditor.getValue(), 'Process'),'Process'))
 		catch e
 			console.log 'Error parsing model', e
 			showSimpleError('Error parsing model')
