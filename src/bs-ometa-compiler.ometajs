@@ -123,11 +123,12 @@ export ometa BSOMetaTranslator {
              )                             -> ['(function(){', x, '})']                                            .join('')
 }
 BSOMetaTranslator.jumpTableCode = function(cases) {
-  var buf = new StringBuffer()
-  buf.put("(function(){switch(this._apply('anything')){")
-  for (var i = 0; i < cases.length; i += 1)
-    buf.put("case " + cases[i][0] + ":return " + cases[i][1] + ";")
-  buf.put("default: throw fail()}}).call(this)")
-  return buf.contents()
+  var buf = [];
+  buf.push("(function(){switch(this._apply('anything')){");
+  for (var i = 0; i < cases.length; ++i) {
+    buf.push("case " + cases[i][0] + ":return " + cases[i][1] + ";");
+  }
+  buf.push("default: throw fail()}}).call(this)");
+  return buf.join('');
 }
 
