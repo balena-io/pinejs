@@ -7,9 +7,9 @@ export ometa BSOMetaParser {
   eChar          = '\\' char:c                                         -> unescape('\\' +c)
                  | char,
   tsString       = '\'' (~'\'' eChar)*:xs '\''                         -> xs.join(''),
-  characters     = '`' '`' (~('\'' '\'') eChar)*:xs '\'' '\''          -> [#App, #seq,     inspect(xs.join(''))],
-  sCharacters    = '"'     (~'"'         eChar)*:xs '"'                -> [#App, #token,   inspect(xs.join(''))],
-  string         = (('#' | '`') tsName | tsString):xs                  -> [#App, #exactly, inspect(xs)],
+  characters     = '`' '`' (~('\'' '\'') eChar)*:xs '\'' '\''          -> [#App, #seq,     JSON.stringify(xs.join(''))],
+  sCharacters    = '"'     (~'"'         eChar)*:xs '"'                -> [#App, #token,   JSON.stringify(xs.join(''))],
+  string         = (('#' | '`') tsName | tsString):xs                  -> [#App, #exactly, JSON.stringify(xs)],
   number         = <'-'? digit+>:n                                     -> [#App, #exactly, n],
   keyword :xs    = token(xs) ~letterOrDigit                            -> xs,
   args           = '(' listOf(#hostExpr, ','):xs ")"                   -> xs
@@ -84,7 +84,7 @@ export ometa BSOMetaTranslator {
   Act        :expr                         -> expr,
   Pred       :expr                         -> ['this._pred(', expr, ')']                                           .join(''),
   Or         transFn*:xs                   -> ['this._or(',  xs.join(','), ')']                                    .join(''),
-  XOr        transFn*:xs                       { inspect(xs.unshift((this.name + "." + this.rName))) }
+  XOr        transFn*:xs                       { JSON.stringify(xs.unshift((this.name + "." + this.rName))) }
                                            -> ['this._xor(', xs.join(','), ')']                                    .join(''),
   Seq        notLast(#trans)*:xs trans:y
              {xs.push('return ' + y)}      -> xs.join(';'),
@@ -111,8 +111,8 @@ export ometa BSOMetaTranslator {
              {this.name = name}
              {this.sName = sName}
              trans*:rules                  -> ['var ', name, (exported ? "=exports." + name : ''), '=objectThatDelegatesTo(', sName, ',{', rules.join(','), '})'].join(''),
-  intPart  = [:mode transFn:part]          -> (inspect(mode)  + "," + part),
-  jtCase   = [:x trans:e]                  -> [inspect(x), e],
+  intPart  = [:mode transFn:part]          -> (JSON.stringify(mode)  + "," + part),
+  jtCase   = [:x trans:e]                  -> [JSON.stringify(x), e],
   locals   = [string+:vs]                  -> ['var ', vs.join(','), ';']                                          .join('')
            | []                            -> '',
   params   = [string+:vs]                  -> vs.join(',')

@@ -50,7 +50,7 @@ export ometa BSPushDownSet <: BSNullOptimization {
 export ometa BSSeqInliner <: BSNullOptimization {
   App        = 'seq' :s end seqString(s):cs setHelped -> ['And'].concat(cs).concat([['Act', s]])
              | :rule anything*:args                   -> ['App', rule].concat(args),
-  inlineChar = BSOMetaParser.eChar:c ~end             -> ['App', 'exactly', inspect(c)],
+  inlineChar = BSOMetaParser.eChar:c ~end             -> ['App', 'exactly', JSON.stringify(c)],
   seqString  = &(:s ?(typeof s === 'string'))
                  ( ['"'  inlineChar*:cs '"' ]         -> cs
                  | ['\'' inlineChar*:cs '\'']         -> cs
@@ -85,7 +85,7 @@ export ometa BSJumpTableOptimization <: BSNullOptimization {
   quotedString  = &string [ '"'  (BSOMetaParser.eChar:c ~end -> c)*:cs '"'
                           | '\'' (BSOMetaParser.eChar:c ~end -> c)*:cs '\'']               -> cs.join(''),
   jtChoice      = ['And' ['App' 'exactly' quotedString:x] anything*:rest]                  -> [x, ['And'].concat(rest)]
-                |        ['App' 'exactly' quotedString:x]                                  -> [x, ['Act', inspect(x)]],
+                |        ['App' 'exactly' quotedString:x]                                  -> [x, ['Act', JSON.stringify(x)]],
   jtChoices :op = jtChoice:c {new JumpTable(op, c)}:jt (jtChoice:c {jt.add(c)})* setHelped -> jt.toTree()
 }
 
