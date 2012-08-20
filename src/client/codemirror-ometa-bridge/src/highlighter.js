@@ -6,7 +6,14 @@ define(['codemirror'], function() {
 			return grammar;
 		};
 		CodeMirror.defineMode(modeName, function(config, mode) {
-			var applyToken = function(token, stream, state) {
+			var eol = function(state) {
+				if(state.shared.tokens[state.index] && state.nextToken == null) {
+					state.nextToken = getLongestToken(state.shared.tokens[state.index]);
+					delete state.shared.tokens[state.index];
+				}
+				state.index++;
+			},
+			applyToken = function(token, stream, state) {
 				var startPos = stream.pos;
 				if(stream.eatSpace()) {
 					state.index += stream.pos - startPos;
@@ -24,6 +31,10 @@ define(['codemirror'], function() {
 				advanceDistance = Math.min(advanceDistance, totalAdvanceDistance);
 				stream.pos += advanceDistance;
 				state.index += advanceDistance;
+				if(stream.eol()) {
+					// Advance index for new line
+					eol(state);
+				}
 				return modeName + '-' + token[1];
 			},
 			getLongestToken = function(tokens) {
@@ -60,13 +71,7 @@ define(['codemirror'], function() {
 					return false;
 				},
 				
-				blankLine: function(state) {
-					state.index++;
-					if(state.shared.tokens[state.index] && state.nextToken == null) {
-						state.nextToken = getLongestToken(state.shared.tokens[state.index]);
-						delete state.shared.tokens[state.index];
-					}
-				},
+				blankLine: eol,
 
 				token: function(stream, state) {
 					if(stream.sol()) { //Reset most of the state because it's a new line.
@@ -79,9 +84,17 @@ define(['codemirror'], function() {
 							}
 							catch(e) {}
 							state.shared.tokens = grammar._getTokens();
-						}
-						else {
-							this.blankLine(state);
+							// Backtrack if we are now covered by a token
+							// Advance the stream and state pointers until we hit a token.
+							for(var i = state.index; i >= 0; i--) {
+								if(state.shared.tokens[i] != null) {
+									var token = getLongestToken(state.shared.tokens[i]);
+									delete state.shared.tokens[i];
+									if(token[0] > state.index) {
+										state.nextToken = token;
+									}
+								}
+							}
 						}
 					}
 					if(state.nextToken != null) {
@@ -99,7 +112,8 @@ define(['codemirror'], function() {
 							return null;
 						}
 					}
-					// We hit the end of the stream without finding a token
+					// We hit the end of the stream without finding a token, advance index for new line
+					eol(state);
 					return null;
 				},
 
