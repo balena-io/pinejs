@@ -44,7 +44,10 @@ define(['codemirror'], function() {
 						tokens = grammar._getTokens();
 					}
 				},
-				eol = function(state) {
+				eol = function(state, stream) {
+					if(stream && !stream.eol()) {
+						return;
+					}
 					// We check in case they deleted everything.
 					checkForNewText(state);
 					state.index++;
@@ -53,6 +56,7 @@ define(['codemirror'], function() {
 					var startPos = stream.pos;
 					if(stream.eatSpace()) {
 						state.index += stream.pos - startPos;
+						eol(state, stream);
 						return null;
 					}
 					var token = getNextToken(state);
@@ -61,10 +65,7 @@ define(['codemirror'], function() {
 					advanceDistance = Math.min(advanceDistance, totalAdvanceDistance);
 					stream.pos += advanceDistance;
 					state.index += advanceDistance;
-					if(stream.eol()) {
-						// Advance index for new line
-						eol(state);
-					}
+					eol(state, stream);
 					return modeName + '-' + token[1];
 				};
 			return {
