@@ -42,22 +42,11 @@ define(['codemirror'], function() {
 							console.error(e, e.stack);
 						}
 						tokens = grammar._getTokens();
-						// Backtrack if we are now covered by a token
-						// Advance the stream and state pointers until we hit a token.
-						for(var i = state.index - 1; i >= 0; i--) {
-							if(tokens[i] != null) {
-								state.currentTokens = tokens[i];
-								delete tokens[i];
-							}
-						}
 					}
 				},
 				eol = function(state) {
+					// We check in case they deleted everything.
 					checkForNewText(state);
-					if(tokens[state.index]) {
-						state.currentTokens = state.currentTokens.concat(tokens[state.index]);
-						delete tokens[state.index];
-					}
 					state.index++;
 				},
 				applyTokens = function(stream, state) {
@@ -103,12 +92,17 @@ define(['codemirror'], function() {
 					if(stream.sol()) {
 						checkForNewText(state);
 					}
-					if(tokens[state.index]) {
-						state.currentTokens = state.currentTokens.concat(tokens[state.index]);
-						delete tokens[state.index];
-					}
 					
+					// Check current and backtrack to add available tokens
+					for(var i = state.index; i >= 0; i--) {
+						if(tokens[i] != null) {
+							state.currentTokens = state.currentTokens.concat(tokens[i]);
+							delete tokens[i];
+						}
+					}
+					// Remove any useless tokens we may have just added.
 					removeOldTokens(state);
+					
 					if(state.currentTokens.length > 0) {
 						return applyTokens(stream, state);
 					}
