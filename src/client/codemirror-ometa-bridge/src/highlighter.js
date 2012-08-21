@@ -72,6 +72,7 @@ define(['codemirror'], function() {
 				copyState: function(state) {
 					return {
 						index: state.index,
+						previousIndex: state.previousIndex,
 						currentTokens: state.currentTokens
 					};
 				},
@@ -79,6 +80,7 @@ define(['codemirror'], function() {
 				startState: function() {
 					return {
 						index: 0,
+						previousIndex: -1,
 						currentTokens: []
 					};
 				},
@@ -95,12 +97,13 @@ define(['codemirror'], function() {
 					}
 					
 					// Check current and backtrack to add available tokens
-					for(var i = state.index; i >= 0; i--) {
+					for(var i = state.index; i >= state.previousIndex; i--) {
 						if(tokens[i] != null) {
 							state.currentTokens = state.currentTokens.concat(tokens[i]);
 							delete tokens[i];
 						}
 					}
+					state.previousIndex = state.index;
 					// Remove any useless tokens we may have just added.
 					removeOldTokens(state);
 					
