@@ -1,41 +1,9 @@
 define(['codemirror'], function() {
 	return function(ometaGrammar, modeName, mimeType) {
 		var getGrammar = function() {
-			var grammar = ometaGrammar.createInstance();
-			grammar._enableTokens();
-			return grammar;
-		};
-		CodeMirror.defineMode(modeName, function(config, mode) {
-			var eol = function(state) {
-				if(state.shared.tokens[state.index] && state.nextToken == null) {
-					state.nextToken = getLongestToken(state.shared.tokens[state.index]);
-					delete state.shared.tokens[state.index];
-				}
-				state.index++;
-			},
-			applyToken = function(token, stream, state) {
-				var startPos = stream.pos;
-				if(stream.eatSpace()) {
-					state.index += stream.pos - startPos;
-					state.nextToken = token;
-					return null;
-				}
-				var totalAdvanceDistance = token[0] - state.index;
-				var advanceDistance = stream.string.length - stream.pos;
-				if(advanceDistance + 1 < totalAdvanceDistance) {
-					state.nextToken = token;
-				}
-				else {
-					state.nextToken = null;
-				}
-				advanceDistance = Math.min(advanceDistance, totalAdvanceDistance);
-				stream.pos += advanceDistance;
-				state.index += advanceDistance;
-				if(stream.eol()) {
-					// Advance index for new line
-					eol(state);
-				}
-				return modeName + '-' + token[1];
+				var grammar = ometaGrammar.createInstance();
+				grammar._enableTokens();
+				return grammar;
 			},
 			getLongestToken = function(tokens) {
 				var token = tokens[0];
@@ -46,10 +14,43 @@ define(['codemirror'], function() {
 				}
 				return token;
 			};
+		CodeMirror.defineMode(modeName, function(config, mode) {
+			var previousText = '',
+				tokens = [],
+				eol = function(state) {
+					if(tokens[state.index] && state.nextToken == null) {
+						state.nextToken = getLongestToken(tokens[state.index]);
+						delete tokens[state.index];
+					}
+					state.index++;
+				},
+				applyToken = function(token, stream, state) {
+					var startPos = stream.pos;
+					if(stream.eatSpace()) {
+						state.index += stream.pos - startPos;
+						state.nextToken = token;
+						return null;
+					}
+					var totalAdvanceDistance = token[0] - state.index;
+					var advanceDistance = stream.string.length - stream.pos;
+					if(advanceDistance + 1 < totalAdvanceDistance) {
+						state.nextToken = token;
+					}
+					else {
+						state.nextToken = null;
+					}
+					advanceDistance = Math.min(advanceDistance, totalAdvanceDistance);
+					stream.pos += advanceDistance;
+					state.index += advanceDistance;
+					if(stream.eol()) {
+						// Advance index for new line
+						eol(state);
+					}
+					return modeName + '-' + token[1];
+				};
 			return {
 				copyState: function(state) {
 					return {
-						shared: state.shared,
 						index: state.index,
 						nextToken: state.nextToken
 					};
@@ -57,11 +58,6 @@ define(['codemirror'], function() {
 				
 				startState: function() {
 					return {
-						// We use an object for shared so that the reference can be the same for all states.
-						shared: {
-							text: '',
-							tokens: []
-						},
 						index: 0,
 						nextToken: null
 					};
@@ -76,20 +72,20 @@ define(['codemirror'], function() {
 				token: function(stream, state) {
 					if(stream.sol()) { //Reset most of the state because it's a new line.
 						var text = mode.getOMetaEditor().getValue();
-						if(text != state.shared.text) {
-							state.shared.text = text;
+						if(text != previousText) {
+							previousText = text;
 							var grammar = getGrammar();
 							try {
-								grammar.matchAll(state.shared.text, 'Process');
+								grammar.matchAll(text, 'Process');
 							}
 							catch(e) {}
-							state.shared.tokens = grammar._getTokens();
+							tokens = grammar._getTokens();
 							// Backtrack if we are now covered by a token
 							// Advance the stream and state pointers until we hit a token.
 							for(var i = state.index; i >= 0; i--) {
-								if(state.shared.tokens[i] != null) {
-									var token = getLongestToken(state.shared.tokens[i]);
-									delete state.shared.tokens[i];
+								if(tokens[i] != null) {
+									var token = getLongestToken(tokens[i]);
+									delete tokens[i];
 									if(token[0] > state.index) {
 										state.nextToken = token;
 									}
@@ -100,15 +96,15 @@ define(['codemirror'], function() {
 					if(state.nextToken != null) {
 						return applyToken(state.nextToken, stream, state);;
 					}
-					if(state.shared.tokens[state.index]) {
-						var currTokens = state.shared.tokens[state.index];
-						delete state.shared.tokens[state.index];
+					if(tokens[state.index]) {
+						var currTokens = tokens[state.index];
+						delete tokens[state.index];
 						return applyToken(getLongestToken(currTokens), stream, state);
 					}
 					
 					// Advance the stream and state pointers until we hit a token.
 					for(stream.pos++, state.index++; stream.pos < stream.string.length; stream.pos++ && state.index++) {
-						if(state.shared.tokens[state.index] != null) {
+						if(tokens[state.index] != null) {
 							return null;
 						}
 					}
