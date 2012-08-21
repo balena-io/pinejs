@@ -1,7 +1,6 @@
 requireCSS('codemirror')
 requirejs(['codemirror', 'js-beautify', 'jquery.hotkeys'], ->
-	requirejs(['codemirror-modes/javascript/javascript', 'ometa/lib', 'ometa/bs-js-compiler', 'ometa/parser',
-		'ometa/bs-js-compiler', 'ometa/bs-ometa-compiler', 'ometa/bs-ometa-optimizer', 'ometa/bs-ometa-js-compiler'], () ->
+	requirejs(['codemirror-modes/javascript/javascript', 'codemirror-ometa-bridge/ometa', 'ometa-core', 'ometa-compiler'], () ->
 		translateCode = (s) ->
 			translationError = (m, i) -> 
 					alert("Translation error - please tell Alex about this!"); throw fail 
@@ -87,22 +86,29 @@ requirejs(['codemirror', 'js-beautify', 'jquery.hotkeys'], ->
 			)
 		)
 		window.ometacodeArea = ometacodeArea = CodeMirror.fromTextArea(document.getElementById("ometacodeArea"), {
-			lineNumbers: true,
+			mode: {
+				name: 'ometa',
+				getOMetaEditor: () -> ometacodeArea
+			}
+			lineNumbers: true
 			matchBrackets: true
 		})
 		outputArea = CodeMirror.fromTextArea(document.getElementById("outputArea"), {
-			lineNumbers: true,
-			matchBrackets: true,
+			mode: null
+			lineNumbers: true
+			matchBrackets: true
 			readOnly: true
 		})
 		cmRaw = CodeMirror.fromTextArea(document.getElementById("jsrawArea"), {
-			lineNumbers: true,
-			matchBrackets: true,
+			mode: null
+			lineNumbers: true
+			matchBrackets: true
 			readOnly: true
 		})
 		cmFormatted = CodeMirror.fromTextArea(document.getElementById("jsformattedArea"), {
-			lineNumbers: true,
-			matchBrackets: true,
+			mode: null
+			lineNumbers: true
+			matchBrackets: true
 			readOnly: true
 		})
 	)

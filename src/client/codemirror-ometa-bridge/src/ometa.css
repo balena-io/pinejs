@@ -1,0 +1,51 @@
+.CodeMirror {
+	font-family:monospace; /* It is required to use a monospace font for CodeMirror to work nicely. */
+	font-size: 1.5em;
+	line-height: inherit;
+	background: white;
+	border: 1px solid #ADABB3;
+}
+
+span.cm-ometa-keyword, span.cm-ometa-constant {
+	color: #A22;
+}
+span.cm-ometa-str {
+	color: blue;
+}
+span.cm-ometa-comment {
+	color: gray;
+/* 	background-color: #BFF; */
+}
+
+/* Noun */
+span.cm-ometa-hexLit {
+	color: #108070;
+	text-decoration: underline;
+}
+
+span.cm-ometa-binLit {
+	color: blue;
+	font-style: italic;
+}
+span.cm-ometa-decLit {
+	color: orange;
+}
+span.cm-ometa-regExp {
+	color: purple;
+}
+
+span.cm-ometa-ruleName {
+	color: green;
+}
+
+span.cm-ometa-seqString {
+	color: blue;
+}
+
+span.cm-ometa-tokenString {
+	color: purple;
+}
+
+span.cm-ometa-string {
+	color: pink;
+}

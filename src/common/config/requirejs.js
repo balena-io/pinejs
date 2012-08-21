@@ -40,6 +40,7 @@
 			'jquery-custom-file-input':	rootPath + 'external/jquery-custom-file-input',
 			'jquery.hotkeys':			rootPath + 'external/jquery.hotkeys',
 			'ometa-core':				rootPath + 'external/ometa-js/lib/ometajs/core',
+			'ometa-compiler':			rootPath + 'external/ometa-js/lib/ometajs/ometa/parsers',
 			'codemirror':				rootPath + 'external/CodeMirror2/lib/codemirror',
 			'codemirror-util':			rootPath + 'external/CodeMirror2/lib/util',
 			'codemirror-keymap':		rootPath + 'external/CodeMirror2/keymap',

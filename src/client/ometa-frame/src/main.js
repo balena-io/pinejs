@@ -5,7 +5,7 @@
   requireCSS('codemirror');
 
   requirejs(['codemirror', 'js-beautify', 'jquery.hotkeys'], function() {
-    return requirejs(['codemirror-modes/javascript/javascript', 'ometa/lib', 'ometa/bs-js-compiler', 'ometa/parser', 'ometa/bs-js-compiler', 'ometa/bs-ometa-compiler', 'ometa/bs-ometa-optimizer', 'ometa/bs-ometa-js-compiler'], function() {
+    return requirejs(['codemirror-modes/javascript/javascript', 'codemirror-ometa-bridge/ometa', 'ometa-core', 'ometa-compiler'], function() {
       var cmFormatted, cmRaw, ometacodeArea, outputArea, translateCode;
       translateCode = function(s) {
         var parsingError, translationError, tree;
@@ -88,20 +88,29 @@
         });
       });
       window.ometacodeArea = ometacodeArea = CodeMirror.fromTextArea(document.getElementById("ometacodeArea"), {
+        mode: {
+          name: 'ometa',
+          getOMetaEditor: function() {
+            return ometacodeArea;
+          }
+        },
         lineNumbers: true,
         matchBrackets: true
       });
       outputArea = CodeMirror.fromTextArea(document.getElementById("outputArea"), {
+        mode: null,
         lineNumbers: true,
         matchBrackets: true,
         readOnly: true
       });
       cmRaw = CodeMirror.fromTextArea(document.getElementById("jsrawArea"), {
+        mode: null,
         lineNumbers: true,
         matchBrackets: true,
         readOnly: true
       });
       return cmFormatted = CodeMirror.fromTextArea(document.getElementById("jsformattedArea"), {
+        mode: null,
         lineNumbers: true,
         matchBrackets: true,
         readOnly: true
