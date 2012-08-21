@@ -9,8 +9,10 @@ export ometa BSJSParser {
   name         = iName:n ~isKeyword(n)                                               -> [#name, n=='self' ? '$elf' : n],
   keyword      = iName:k isKeyword(k)                                                -> [k, k],
   hexLit       = ``0x'' <hexDigit+>:x                                                -> parseInt(x, 16),
+  binLit       = ``0b'' <('0' | '1')+>:b                                             -> parseInt(b, 2),
   number       = hexLit:n                                                            -> [#number, n]
-               | <digit+ (('e' | 'E') ('-' | '+')? digit+)?>:f                       -> [#number, parseFloat(f)]
+               | binLit:n                                                            -> [#number, n]
+			   | <digit+ (('e' | 'E') ('-' | '+')? digit+)?>:f                       -> [#number, parseFloat(f)]
                | <digit+ ('.' digit+)?>:f                                            -> [#number, parseFloat(f)],
   str          = seq('"""')  (escapedChar | ~seq('"""') char)*:cs seq('"""')         -> [#string, cs.join('')]
                | '\'' (escapedChar | ~'\'' char)*:cs '\''                            -> [#string, cs.join('')]
