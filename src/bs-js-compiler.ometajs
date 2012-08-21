@@ -8,14 +8,13 @@ export ometa BSJSParser {
   isKeyword :x = ?BSJSParser._isKeyword(x),
   name         = iName:n ~isKeyword(n)                                               -> [#name, n=='self' ? '$elf' : n],
   keyword      = iName:k isKeyword(k)                                                -> [k, k],
-  hexLit       = hexLit:n hexDigit:d                                                 -> (n * 16 + d)
-               | hexDigit,
-  number       = ``0x'' hexLit:n                                                     -> [#number, n]
+  hexLit       = ``0x'' <hexDigit+>:x                                                -> parseInt(x, 16),
+  number       = hexLit:n                                                            -> [#number, n]
                | <digit+ (('e' | 'E') ('-' | '+')? digit+)?>:f                       -> [#number, parseFloat(f)]
                | <digit+ ('.' digit+)?>:f                                            -> [#number, parseFloat(f)],
-  str          = seq('"""')  (escapedChar | ~seq('"""') char)*:cs seq('"""')          -> [#string, cs.join('')]
-               | '\'' (escapedChar | ~'\'' char)*:cs '\''                             -> [#string, cs.join('')]
-               | '"'  (escapedChar | ~'"'  char)*:cs '"'                              -> [#string, cs.join('')]
+  str          = seq('"""')  (escapedChar | ~seq('"""') char)*:cs seq('"""')         -> [#string, cs.join('')]
+               | '\'' (escapedChar | ~'\'' char)*:cs '\''                            -> [#string, cs.join('')]
+               | '"'  (escapedChar | ~'"'  char)*:cs '"'                             -> [#string, cs.join('')]
                | ('#' | '`') iName:n                                                 -> [#string, n],
   special      = ( '('   | ')'    | '{'    | '}'     | '['    | ']'     | ','
                  | ';'   | '?'    | ':'    | ``!=='' | ``!='' | ``==='' | ``==''
