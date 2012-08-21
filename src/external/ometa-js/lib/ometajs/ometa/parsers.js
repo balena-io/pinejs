@@ -12,14 +12,59 @@ if (typeof exports === "undefined") {
 
 {
     var BSJSParser = exports.BSJSParser = OMeta._extend({
+        comment: function() {
+            var _fromIdx = this.input.idx, $elf = this;
+            return this._or(function() {
+                return function() {
+                    switch (this._apply("anything")) {
+                      case "/":
+                        return function() {
+                            this._applyWithArgs("exactly", "/");
+                            "//";
+                            this._many(function() {
+                                this._not(function() {
+                                    return this._or(function() {
+                                        return this._apply("end");
+                                    }, function() {
+                                        return function() {
+                                            switch (this._apply("anything")) {
+                                              case "\n":
+                                                return "\n";
+                                              default:
+                                                throw this._fail();
+                                            }
+                                        }.call(this);
+                                    });
+                                });
+                                return this._apply("char");
+                            });
+                            return this._or(function() {
+                                return this._apply("end");
+                            }, function() {
+                                return function() {
+                                    switch (this._apply("anything")) {
+                                      case "\n":
+                                        return "\n";
+                                      default:
+                                        throw this._fail();
+                                    }
+                                }.call(this);
+                            });
+                        }.call(this);
+                      default:
+                        throw this._fail();
+                    }
+                }.call(this);
+            }, function() {
+                return this._applyWithArgs("fromTo", "/*", "*/");
+            });
+        },
         space: function() {
             var _fromIdx = this.input.idx, $elf = this;
             return this._or(function() {
                 return OMeta._superApplyWithArgs(this, "space");
             }, function() {
-                return this._applyWithArgs("fromTo", "//", "\n");
-            }, function() {
-                return this._applyWithArgs("fromTo", "/*", "*/");
+                return this._apply("comment");
             });
         },
         nameFirst: function() {
@@ -60,11 +105,25 @@ if (typeof exports === "undefined") {
             var _fromIdx = this.input.idx, $elf = this;
             return this._pred(BSJSParser._isKeyword(x));
         },
+        isConstant: function(x) {
+            var _fromIdx = this.input.idx, $elf = this;
+            return this._pred(BSJSParser._isConstant(x));
+        },
+        constant: function() {
+            var _fromIdx = this.input.idx, $elf = this, c;
+            c = this._apply("iName");
+            this._applyWithArgs("isConstant", c);
+            return [ "name", c ];
+        },
         name: function() {
             var _fromIdx = this.input.idx, $elf = this, n;
             n = this._apply("iName");
             this._not(function() {
-                return this._applyWithArgs("isKeyword", n);
+                return this._or(function() {
+                    return this._applyWithArgs("isKeyword", n);
+                }, function() {
+                    return this._applyWithArgs("isConstant", n);
+                });
             });
             return [ "name", n == "self" ? "$elf" : n ];
         },
@@ -75,79 +134,102 @@ if (typeof exports === "undefined") {
             return [ k, k ];
         },
         hexLit: function() {
-            var _fromIdx = this.input.idx, $elf = this, n, d;
-            return this._or(function() {
-                n = this._apply("hexLit");
-                d = this._apply("hexDigit");
-                return n * 16 + d;
-            }, function() {
-                return this._apply("hexDigit");
+            var _fromIdx = this.input.idx, $elf = this, x;
+            this._applyWithArgs("exactly", "0");
+            this._applyWithArgs("exactly", "x");
+            "0x";
+            x = this._consumedBy(function() {
+                return this._many1(function() {
+                    return this._apply("hexDigit");
+                });
             });
+            return parseInt(x, 16);
         },
-        number: function() {
-            var _fromIdx = this.input.idx, f, $elf = this, n;
-            return this._or(function() {
-                return function() {
-                    switch (this._apply("anything")) {
-                      case "0":
-                        return function() {
-                            this._applyWithArgs("exactly", "x");
-                            "0x";
-                            n = this._apply("hexLit");
-                            return [ "number", n ];
-                        }.call(this);
-                      default:
-                        throw this._fail();
-                    }
-                }.call(this);
-            }, function() {
-                f = this._consumedBy(function() {
-                    this._many1(function() {
+        binLit: function() {
+            var _fromIdx = this.input.idx, $elf = this, b;
+            this._applyWithArgs("exactly", "0");
+            this._applyWithArgs("exactly", "b");
+            "0b";
+            b = this._consumedBy(function() {
+                return this._many1(function() {
+                    return function() {
+                        switch (this._apply("anything")) {
+                          case "0":
+                            return "0";
+                          case "1":
+                            return "1";
+                          default:
+                            throw this._fail();
+                        }
+                    }.call(this);
+                });
+            });
+            return parseInt(b, 2);
+        },
+        decLit: function() {
+            var _fromIdx = this.input.idx, f, $elf = this;
+            f = this._consumedBy(function() {
+                this._opt(function() {
+                    return function() {
+                        switch (this._apply("anything")) {
+                          case "-":
+                            return "-";
+                          case "+":
+                            return "+";
+                          default:
+                            throw this._fail();
+                        }
+                    }.call(this);
+                });
+                this._many1(function() {
+                    return this._apply("digit");
+                });
+                this._opt(function() {
+                    this._applyWithArgs("exactly", ".");
+                    return this._many1(function() {
                         return this._apply("digit");
                     });
-                    return this._opt(function() {
-                        ((function() {
+                });
+                return this._opt(function() {
+                    ((function() {
+                        switch (this._apply("anything")) {
+                          case "E":
+                            return "E";
+                          case "e":
+                            return "e";
+                          default:
+                            throw this._fail();
+                        }
+                    })).call(this);
+                    this._opt(function() {
+                        return function() {
                             switch (this._apply("anything")) {
-                              case "E":
-                                return "E";
-                              case "e":
-                                return "e";
+                              case "-":
+                                return "-";
+                              case "+":
+                                return "+";
                               default:
                                 throw this._fail();
                             }
-                        })).call(this);
-                        this._opt(function() {
-                            return function() {
-                                switch (this._apply("anything")) {
-                                  case "-":
-                                    return "-";
-                                  case "+":
-                                    return "+";
-                                  default:
-                                    throw this._fail();
-                                }
-                            }.call(this);
-                        });
-                        return this._many1(function() {
-                            return this._apply("digit");
-                        });
+                        }.call(this);
                     });
-                });
-                return [ "number", parseFloat(f) ];
-            }, function() {
-                f = this._consumedBy(function() {
-                    this._many1(function() {
+                    return this._many1(function() {
                         return this._apply("digit");
                     });
-                    return this._opt(function() {
-                        this._applyWithArgs("exactly", ".");
-                        return this._many1(function() {
-                            return this._apply("digit");
-                        });
-                    });
                 });
-                return [ "number", parseFloat(f) ];
             });
+            return parseFloat(f);
+        },
+        number: function() {
+            var _fromIdx = this.input.idx, $elf = this, n;
+            n = this._or(function() {
+                return this._apply("hexLit");
+            }, function() {
+                return this._apply("binLit");
+            }, function() {
+                return this._apply("decLit");
+            });
+            return [ "number", n ];
         },
         str: function() {
             var _fromIdx = this.input.idx, $elf = this, cs, n;
@@ -454,13 +536,15 @@ if (typeof exports === "undefined") {
             return this._or(function() {
                 return this._apply("name");
             }, function() {
+                return this._apply("constant");
+            }, function() {
                 return this._apply("keyword");
+            }, function() {
+                return this._apply("special");
             }, function() {
                 return this._apply("number");
             }, function() {
                 return this._apply("str");
-            }, function() {
-                return this._apply("special");
             });
         },
         toks: function() {
@@ -805,7 +889,7 @@ if (typeof exports === "undefined") {
             }, function() {
                 return this._apply("json");
             }, function() {
-                return this._apply("re");
+                return this._apply("regExp");
             });
         },
         json: function() {
@@ -837,108 +921,84 @@ if (typeof exports === "undefined") {
                 return n;
             });
         },
-        re: function() {
+        regExp: function() {
             var _fromIdx = this.input.idx, $elf = this, x;
             this._apply("spaces");
             x = this._consumedBy(function() {
                 this._applyWithArgs("exactly", "/");
-                this._apply("reBody");
+                this._apply("regExpBody");
                 this._applyWithArgs("exactly", "/");
                 return this._many(function() {
-                    return this._apply("reFlag");
+                    return this._apply("regExpFlag");
                 });
             });
             return [ "regExp", x ];
         },
-        reBody: function() {
+        regExpBody: function() {
             var _fromIdx = this.input.idx, $elf = this;
-            this._apply("re1stChar");
-            return this._many(function() {
-                return this._apply("reChar");
+            this._not(function() {
+                return this._applyWithArgs("exactly", "*");
+            });
+            return this._many1(function() {
+                return this._apply("regExpChar");
             });
         },
-        re1stChar: function() {
+        regExpChar: function() {
             var _fromIdx = this.input.idx, $elf = this;
             return this._or(function() {
+                return this._apply("regExpClass");
+            }, function() {
                 this._not(function() {
                     return function() {
                         switch (this._apply("anything")) {
-                          case "\\":
-                            return "\\";
                           case "/":
                             return "/";
                           case "[":
                             return "[";
-                          case "*":
-                            return "*";
                           default:
                             throw this._fail();
                         }
                     }.call(this);
                 });
-                return this._apply("reNonTerm");
-            }, function() {
-                return this._apply("escapedChar");
-            }, function() {
-                return this._apply("reClass");
+                return this._apply("regExpNonTerm");
             });
         },
-        reChar: function() {
+        regExpNonTerm: function() {
             var _fromIdx = this.input.idx, $elf = this;
             return this._or(function() {
-                return this._apply("re1stChar");
+                return this._apply("escapedChar");
             }, function() {
-                return function() {
-                    switch (this._apply("anything")) {
-                      case "*":
-                        return "*";
-                      default:
-                        throw this._fail();
-                    }
-                }.call(this);
+                this._not(function() {
+                    return function() {
+                        switch (this._apply("anything")) {
+                          case "\n":
+                            return "\n";
+                          case "\r":
+                            return "\r";
+                          default:
+                            throw this._fail();
+                        }
+                    }.call(this);
+                });
+                return this._apply("char");
             });
         },
-        reNonTerm: function() {
-            var _fromIdx = this.input.idx, $elf = this;
-            this._not(function() {
-                return function() {
-                    switch (this._apply("anything")) {
-                      case "\n":
-                        return "\n";
-                      case "\r":
-                        return "\r";
-                      default:
-                        throw this._fail();
-                    }
-                }.call(this);
-            });
-            return this._apply("char");
-        },
-        reClass: function() {
+        regExpClass: function() {
             var _fromIdx = this.input.idx, $elf = this;
             this._applyWithArgs("exactly", "[");
             this._many(function() {
-                return this._apply("reClassChar");
+                return this._apply("regExpClassChar");
             });
             return this._applyWithArgs("exactly", "]");
         },
-        reClassChar: function() {
+        regExpClassChar: function() {
             var _fromIdx = this.input.idx, $elf = this;
             this._not(function() {
-                return function() {
-                    switch (this._apply("anything")) {
-                      case "]":
-                        return "]";
-                      case "[":
-                        return "[";
-                      default:
-                        throw this._fail();
-                    }
-                }.call(this);
+                return this._applyWithArgs("exactly", "]");
             });
-            return this._apply("reChar");
+            return this._apply("regExpNonTerm");
         },
-        reFlag: function() {
+        regExpFlag: function() {
             var _fromIdx = this.input.idx, $elf = this;
             return this._apply("nameFirst");
         },
@@ -983,13 +1043,15 @@ if (typeof exports === "undefined") {
         },
         binding: function() {
             var _fromIdx = this.input.idx, $elf = this, v, n;
+            n = this._applyWithArgs("token", "name");
+            this._not(function() {
+                return this._applyWithArgs("isConstant", n);
+            });
             return this._or(function() {
-                n = this._applyWithArgs("token", "name");
                 this._applyWithArgs("token", "=");
                 v = this._apply("asgnExpr");
                 return [ n, v ];
             }, function() {
-                n = this._applyWithArgs("token", "name");
                 return [ n ];
             });
         },
@@ -1191,13 +1253,16 @@ if (typeof exports === "undefined") {
             return r;
         }
     });
-    BSJSParser["keywords"] = {};
-    keywords = [ "break", "case", "catch", "continue", "default", "delete", "do", "else", "finally", "for", "function", "if", "in", "instanceof", "new", "return", "switch", "this", "throw", "try", "typeof", "var", "void", "while", "with", "ometa" ];
-    for (var idx = 0; idx < keywords["length"]; idx++) {
-        BSJSParser["keywords"][keywords[idx]] = true;
-    }
+    BSJSParser["_enableTokens"] = function() {
+        OMeta["_enableTokens"].call(this, [ "keyword", "str", "comment", "hexLit", "binLit", "decLit", "constant", "regExp" ]);
+    };
+    var keywords = [ "break", "case", "catch", "continue", "default", "delete", "do", "else", "finally", "for", "function", "if", "in", "instanceof", "new", "return", "switch", "this", "throw", "try", "typeof", "var", "void", "while", "with", "ometa" ];
     BSJSParser["_isKeyword"] = function(k) {
-        return this["keywords"].hasOwnProperty(k);
+        return keywords.indexOf(k) !== -1;
+    };
+    var constants = [ "true", "false", "undefined" ];
+    BSJSParser["_isConstant"] = function(c) {
+        return constants.indexOf(c) !== -1;
     };
     var BSSemActionParser = exports.BSSemActionParser = BSJSParser._extend({
         curlySemAction: function() {
@@ -1884,7 +1949,7 @@ if (typeof exports === "undefined") {
             this._applyWithArgs("exactly", "'");
             return xs.join("");
         },
-        characters: function() {
+        seqString: function() {
             var _fromIdx = this.input.idx, $elf = this, xs;
             this._applyWithArgs("exactly", "`");
             this._applyWithArgs("exactly", "`");
@@ -1899,7 +1964,7 @@ if (typeof exports === "undefined") {
             this._applyWithArgs("exactly", "'");
             return [ "App", "seq", JSON.stringify(xs.join("")) ];
         },
-        sCharacters: function() {
+        tokenString: function() {
             var _fromIdx = this.input.idx, $elf = this, xs;
             this._applyWithArgs("exactly", '"');
             xs = this._many(function() {
@@ -2231,9 +2296,9 @@ if (typeof exports === "undefined") {
             }, function() {
                 this._apply("spaces");
                 return this._or(function() {
-                    return this._apply("characters");
+                    return this._apply("seqString");
                 }, function() {
-                    return this._apply("sCharacters");
+                    return this._apply("tokenString");
                 }, function() {
                     return this._apply("string");
                 }, function() {
@@ -2332,6 +2397,9 @@ if (typeof exports === "undefined") {
             return this._applyWithArgs("foreign", BSOMetaOptimizer, "optimizeGrammar", [ "Grammar", exported, n, sn ].concat(rs));
         }
     });
+    BSOMetaParser["_enableTokens"] = function() {
+        OMeta["_enableTokens"].call(this, [ "keyword", "ruleName", "seqString", "tokenString", "string" ]);
+    };
     var BSOMetaTranslator = exports.BSOMetaTranslator = OMeta._extend({
         App: function() {
             var _fromIdx = this.input.idx, rule, $elf = this, args;
@@ -2582,6 +2650,10 @@ if (typeof exports === "undefined") {
             }, function() {
                 return BSJSParser._superApplyWithArgs(this, "srcElem");
             });
+        },
+        Process: function() {
+            var _fromIdx = this.input.idx, $elf = this;
+            return this._apply("topLevel");
         }
     });
     var BSOMetaJSTranslator = exports.BSOMetaJSTranslator = BSJSTranslator._extend({

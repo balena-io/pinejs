@@ -279,6 +279,10 @@ var OMeta = (function() {
     },
     _fail: fail,
     _enableTokens: function(rulesToTrack) {
+      if(rulesToTrack == null) {
+        // No rules to track were supplied and it wasn't even a reference they could be added to.
+        return;
+      }
       var tokens = [];
       this._enableTokens = function() {
         throw 'Can only enable tokens once';
@@ -694,10 +698,31 @@ var OMeta = (function() {
     apply: function(r) {
       return this._apply(r);
     },
-    foreign: function(g, r) {
-      var gi  = objectThatDelegatesTo(g, {input: makeOMInputStreamProxy(this.input)}),
-          ans = gi._apply(r);
-      this.input = gi.input.target;
+    foreign: function(grammar, ruleName) {
+      var ans, grammarInstance = grammar._extend({input: makeOMInputStreamProxy(this.input)}),
+          localTokens, foreignTokens, tokensEnabled = this._getTokens() != null, i = 0;
+      if(tokensEnabled) { // Tokens are enabled
+        grammarInstance._enableTokens();
+      }
+      ans = grammarInstance._apply(ruleName);
+      if(tokensEnabled) { // Tokens are enabled
+        foreignTokens = grammarInstance._getTokens();
+        // Merge the tokens we just gained.
+        if(foreignTokens) {
+          localTokens = this._getTokens();
+          for(;i < foreignTokens.length; i++) {
+            if(foreignTokens[i]) {
+              if(localTokens[i]) {
+                localTokens[i] = localTokens[i].concat(foreignTokens[i]);
+              }
+              else {
+                localTokens[i] = foreignTokens[i]
+              }
+            }
+          }
+        }
+      }
+      this.input = grammarInstance.input.target;
       return ans;
     },
 

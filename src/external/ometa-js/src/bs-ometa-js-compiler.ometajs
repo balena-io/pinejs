@@ -1,6 +1,7 @@
 export ometa BSOMetaJSParser <: BSJSParser {
   srcElem = spaces BSOMetaParser.grammar:r sc -> r
-          | ^srcElem
+          | ^srcElem,
+  Process = topLevel
 }
 
 export ometa BSOMetaJSTranslator <: BSJSTranslator {
