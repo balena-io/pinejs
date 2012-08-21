@@ -57,9 +57,11 @@ var OMeta = (function() {
   function objectThatDelegatesTo(obj, props) {
     var clone = Object.create(obj || {});
 
-    Object.getOwnPropertyNames(props || {}).forEach(function(key) {
-      clone[key] = props[key];
-    });
+    for (var key in props) {
+      if (props.hasOwnProperty(key)) {
+        clone[key] = props[key];
+      }
+    }
 
     return clone;
   }
@@ -251,14 +253,22 @@ var OMeta = (function() {
   // (has self-expanding tail)
   //
   function makeOMInputStreamProxy(target) {
-    return objectThatDelegatesTo(target, {
-      memo:   { },
+    return {
+      memo: {},
       target: target,
+      idx: target.idx,
       tl: undefined,
+      type: function() {
+        return String;
+      },
+      upTo: OMInputStream.prototype.upTo,
+      head: function() {
+        return target.head();
+      },
       tail: function() {
         return this.tl || (this.tl = makeOMInputStreamProxy(target.tail()));
       }
-    });
+    };
   }
 
   //
