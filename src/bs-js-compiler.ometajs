@@ -12,10 +12,10 @@ export ometa BSJSParser {
   keyword      = iName:k isKeyword(k)                                                -> [k, k],
   hexLit       = ``0x'' <hexDigit+>:x                                                -> parseInt(x, 16),
   binLit       = ``0b'' <('0' | '1')+>:b                                             -> parseInt(b, 2),
-  number       = hexLit:n                                                            -> [#number, n]
-               | binLit:n                                                            -> [#number, n]
-			   | <digit+ (('e' | 'E') ('-' | '+')? digit+)?>:f                       -> [#number, parseFloat(f)]
-               | <digit+ ('.' digit+)?>:f                                            -> [#number, parseFloat(f)],
+  decLit       = <('-' | '+')? digit+ ('.' digit+)? (('e' | 'E') ('-' | '+')? digit+)?>:f         -> parseFloat(f),
+  number       = ( hexLit
+                 | binLit
+                 | decLit):n                                                         -> [#number, n],
   str          = seq('"""')  (escapedChar | ~seq('"""') char)*:cs seq('"""')         -> [#string, cs.join('')]
                | '\'' (escapedChar | ~'\'' char)*:cs '\''                            -> [#string, cs.join('')]
                | '"'  (escapedChar | ~'"'  char)*:cs '"'                             -> [#string, cs.join('')]
@@ -26,7 +26,7 @@ export ometa BSJSParser {
                  | '+'   | ``--'' | ``-='' | '-'     | ``*='' | '*'     | ``/=''
                  | '/'   | ``%='' | '%'    | ``&&='' | ``&&'' | ``||='' | ``||''
                  | '.'   | '!'                                                   ):s -> [s, s],
-  tok          = spaces (name | constant | keyword | number | str | special),
+  tok          = spaces (name | constant | keyword | special | number | str),
   toks         = token*:ts spaces end                                                -> ts,
   token :tt    = tok:t ?(t[0] == tt)                                                 -> t[1],
   spacesNoNl   = (~'\n' space)*,
