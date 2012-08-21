@@ -2,8 +2,9 @@
 (function() {
 
   define(['sbvr-parser/SBVRParser', 'data-frame/ClientURIParser', 'Prettify'], function(SBVRParser, ClientURIParser, Prettify) {
-    var cleanUp, clientOnAir, defaultFailureCallback, defaultSuccessCallback, fileApiDetect, loadState, loadUI, locate, processHash, relocate, setClientOnAir, setupDownloadify, setupLoadfile, showErrorMessage, showSimpleError, showUrlMessage, sqlEditor;
+    var cleanUp, clientOnAir, defaultFailureCallback, defaultSuccessCallback, fileApiDetect, loadState, loadUI, locate, processHash, relocate, sbvrEditor, setClientOnAir, setupDownloadify, setupLoadfile, showErrorMessage, showSimpleError, showUrlMessage, sqlEditor;
     sqlEditor = null;
+    sbvrEditor = null;
     clientOnAir = false;
     showErrorMessage = function(errorMessage) {
       $("#dialog-message").html('<span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 50px 0;"></span>' + errorMessage);
@@ -117,7 +118,7 @@
       }
     };
     loadUI = function() {
-      window.sbvrEditor = CodeMirror.fromTextArea(document.getElementById("modelArea"), {
+      window.sbvrEditor = sbvrEditor = CodeMirror.fromTextArea(document.getElementById("modelArea"), {
         mode: {
           name: 'sbvr',
           getOMetaEditor: function() {

@@ -5,11 +5,20 @@ define(['codemirror'], function() {
 				grammar._enableTokens();
 				return grammar;
 			},
-			getLongestToken = function(tokens) {
-				var token = tokens[0];
-				for(var i = 1; i < tokens.length; i++) {
-					if(tokens[i][0] > token[0]) {
-						token = tokens[i];
+			removeOldTokens = function(state) {
+				for(var i = 0; i < state.currentTokens.length; i++) {
+					if(state.currentTokens[i][0] <= state.index) {
+						state.currentTokens.splice(i, 1);
+						i--;
+					}
+				}
+			},
+			getNextToken = function(state) {
+				removeOldTokens(state);
+				var token = state.currentTokens[0];
+				for(var i = 1; i < state.currentTokens.length; i++) {
+					if(state.currentTokens[i][0] < token[0]) {
+						token = state.currentTokens[i];
 					}
 				}
 				return token;
@@ -17,28 +26,49 @@ define(['codemirror'], function() {
 		CodeMirror.defineMode(modeName, function(config, mode) {
 			var previousText = '',
 				tokens = [],
+				checkForNewText = function(state) {
+					var ometaEditor = mode.getOMetaEditor();
+					if(ometaEditor == null) {
+						return;
+					}
+					var text = ometaEditor.getValue();
+					if(text != previousText) {
+						previousText = text;
+						var grammar = getGrammar();
+						try {
+							grammar.matchAll(text, 'Process');
+						}
+						catch(e) {
+							console.error(e, e.stack);
+						}
+						tokens = grammar._getTokens();
+						// Backtrack if we are now covered by a token
+						// Advance the stream and state pointers until we hit a token.
+						for(var i = state.index - 1; i >= 0; i--) {
+							if(tokens[i] != null) {
+								state.currentTokens = tokens[i];
+								delete tokens[i];
+							}
+						}
+					}
+				},
 				eol = function(state) {
-					if(tokens[state.index] && state.nextToken == null) {
-						state.nextToken = getLongestToken(tokens[state.index]);
+					checkForNewText(state);
+					if(tokens[state.index]) {
+						state.currentTokens = state.currentTokens.concat(tokens[state.index]);
 						delete tokens[state.index];
 					}
 					state.index++;
 				},
-				applyToken = function(token, stream, state) {
+				applyTokens = function(stream, state) {
 					var startPos = stream.pos;
 					if(stream.eatSpace()) {
 						state.index += stream.pos - startPos;
-						state.nextToken = token;
 						return null;
 					}
+					var token = getNextToken(state);
 					var totalAdvanceDistance = token[0] - state.index;
 					var advanceDistance = stream.string.length - stream.pos;
-					if(advanceDistance + 1 < totalAdvanceDistance) {
-						state.nextToken = token;
-					}
-					else {
-						state.nextToken = null;
-					}
 					advanceDistance = Math.min(advanceDistance, totalAdvanceDistance);
 					stream.pos += advanceDistance;
 					state.index += advanceDistance;
@@ -52,14 +82,14 @@ define(['codemirror'], function() {
 				copyState: function(state) {
 					return {
 						index: state.index,
-						nextToken: state.nextToken
+						currentTokens: state.currentTokens
 					};
 				},
 				
 				startState: function() {
 					return {
 						index: 0,
-						nextToken: null
+						currentTokens: []
 					};
 				},
 				
@@ -70,36 +100,17 @@ define(['codemirror'], function() {
 				blankLine: eol,
 
 				token: function(stream, state) {
-					if(stream.sol()) { //Reset most of the state because it's a new line.
-						var text = mode.getOMetaEditor().getValue();
-						if(text != previousText) {
-							previousText = text;
-							var grammar = getGrammar();
-							try {
-								grammar.matchAll(text, 'Process');
-							}
-							catch(e) {}
-							tokens = grammar._getTokens();
-							// Backtrack if we are now covered by a token
-							// Advance the stream and state pointers until we hit a token.
-							for(var i = state.index; i >= 0; i--) {
-								if(tokens[i] != null) {
-									var token = getLongestToken(tokens[i]);
-									delete tokens[i];
-									if(token[0] > state.index) {
-										state.nextToken = token;
-									}
-								}
-							}
-						}
-					}
-					if(state.nextToken != null) {
-						return applyToken(state.nextToken, stream, state);;
+					if(stream.sol()) {
+						checkForNewText(state);
 					}
 					if(tokens[state.index]) {
-						var currTokens = tokens[state.index];
+						state.currentTokens = state.currentTokens.concat(tokens[state.index]);
 						delete tokens[state.index];
-						return applyToken(getLongestToken(currTokens), stream, state);
+					}
+					
+					removeOldTokens(state);
+					if(state.currentTokens.length > 0) {
+						return applyTokens(stream, state);
 					}
 					
 					// Advance the stream and state pointers until we hit a token.

@@ -1,5 +1,6 @@
 define(['sbvr-parser/SBVRParser', 'data-frame/ClientURIParser', 'Prettify'], (SBVRParser, ClientURIParser, Prettify) ->
 	sqlEditor = null
+	sbvrEditor = null
 	clientOnAir = false
 
 	showErrorMessage = (errorMessage) ->
@@ -108,7 +109,7 @@ define(['sbvr-parser/SBVRParser', 'data-frame/ClientURIParser', 'Prettify'], (SB
 
 	# break loadUI apart to loadState and SetUI (with a view to converting LoadState to a single request)?
 	loadUI = ->
-		window.sbvrEditor = CodeMirror.fromTextArea(document.getElementById("modelArea"),
+		window.sbvrEditor = sbvrEditor = CodeMirror.fromTextArea(document.getElementById("modelArea"),
 			mode: {
 				name: 'sbvr'
 				getOMetaEditor: () -> sbvrEditor
