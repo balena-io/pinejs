@@ -1,5 +1,7 @@
 export ometa BSJSParser {
-  space        = ^space | fromTo('//', '\n') | fromTo('/*', '*/'),
+  comment      = seq('//') (~(end | '\n') char)* (end | '\n')
+               | fromTo('/*', '*/'),
+  space        = ^space | comment,
   nameFirst    = letter | '$' | '_',
   nameRest     = nameFirst | digit,
   iName        = <nameFirst nameRest*>,
