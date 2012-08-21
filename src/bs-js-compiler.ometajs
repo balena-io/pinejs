@@ -164,6 +164,10 @@ export ometa BSJSParser {
 
   topLevel     = srcElems:r spaces end                                               -> r
 }
+BSJSParser._enableTokens = function() {
+  OMeta._enableTokens.call(this, ['keyword', 'str', 'comment', 'hexLit', 'binLit', 'decLit', 'constant', 'regExp']);
+};
+
 var keywords = ["break", "case", "catch", "continue", "default", "delete", "do", "else", "finally", "for", "function", "if", "in",
             "instanceof", "new", "return", "switch", "this", "throw", "try", "typeof", "var", "void", "while", "with", "ometa"];
 BSJSParser._isKeyword = function(k) { return keywords.indexOf(k) !== -1 }
