@@ -7,8 +7,8 @@ export ometa BSOMetaParser {
   eChar          = escapedChar
                  | char,
   tsString       = '\'' (~'\'' eChar)*:xs '\''                         -> xs.join(''),
-  characters     = '`' '`' (~('\'' '\'') eChar)*:xs '\'' '\''          -> [#App, #seq,     JSON.stringify(xs.join(''))],
-  sCharacters    = '"'     (~'"'         eChar)*:xs '"'                -> [#App, #token,   JSON.stringify(xs.join(''))],
+  seqString      = '`' '`' (~('\'' '\'') eChar)*:xs '\'' '\''          -> [#App, #seq,     JSON.stringify(xs.join(''))],
+  tokenString    = '"'     (~'"'         eChar)*:xs '"'                -> [#App, #token,   JSON.stringify(xs.join(''))],
   string         = (('#' | '`') tsName | tsString):xs                  -> [#App, #exactly, JSON.stringify(xs)],
   number         = <'-'? digit+>:n                                     -> [#App, #exactly, n],
   keyword :xs    = token(xs) ~letterOrDigit                            -> xs,
@@ -54,7 +54,7 @@ export ometa BSOMetaParser {
   expr1          = application 
                  | ( keyword('undefined') | keyword('nil')
                    | keyword('true')      | keyword('false') ):x       -> [#App, #exactly, x]
-                 | spaces (characters | sCharacters | string | number)
+                 | spaces (seqString | tokenString | string | number)
                  | "["  expr:x "]"                                     -> [#Form,      x]
                  | "<"  expr:x ">"                                     -> [#ConsBy,    x]
                  | "@<" expr:x ">"                                     -> [#IdxConsBy, x]
