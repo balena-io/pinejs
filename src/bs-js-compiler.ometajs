@@ -102,20 +102,19 @@ export ometa BSJSParser {
                | "new" "name":n "(" listOf(#asgnExpr, ','):as ")"                    -> [#new, n].concat(as)
                | "[" listOf(#asgnExpr, ','):es "]"                                   -> [#arr].concat(es)
                | json
-               | re,
+               | regExp,
   json         = "{" listOf(#jsonBinding, ','):bs "}"                                -> [#json].concat(bs),
   jsonBinding  = jsonPropName:n ":" asgnExpr:v                                       -> [#binding, n, v],
   jsonPropName = "name" | "number" | "string" | spaces iName:n isKeyword(n)          -> n,
-  re           = spaces <'/' reBody '/' reFlag*>:x                                   -> [#regExp, x],
-  reBody       = re1stChar reChar*,
-  re1stChar    = ~('*' || '\\' || '/' || '[') reNonTerm
-               | escapedChar
-               | reClass,
-  reChar       = re1stChar | '*',
-  reNonTerm    = ~('\n' || '\r') char,
-  reClass      = '[' reClassChar* ']',
-  reClassChar  = ~('[' || ']') reChar,
-  reFlag       = nameFirst,
+  regExp       = spaces <'/' regExpBody '/' regExpFlag*>:x                           -> [#regExp, x],
+  regExpBody   = ~'*' regExpChar+,
+  regExpChar   = regExpClass
+               | ~('/' || '[') regExpNonTerm,
+  regExpNonTerm = escapedChar
+                |  ~('\n' || '\r') char,
+  regExpClass  = '[' regExpClassChar* ']',
+  regExpClassChar = ~']' regExpNonTerm,
+  regExpFlag   = nameFirst,
   formal       = spaces "name",
   funcRest     = "(" listOf(#formal, ','):fs ")" "{" srcElems:body "}"               -> [#func, fs, body],
   sc           = spacesNoNl ('\n' | &'}' | end)
