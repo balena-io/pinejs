@@ -123,7 +123,7 @@ define(['codemirror'], function() {
 				},
 
 				indent: function(state, textAfter) {
-					return 0; //We don't indent SBVR
+					return 0; // We don't indent as we currently have no way of asking the grammar about indentation.
 				}
 				
 			};
