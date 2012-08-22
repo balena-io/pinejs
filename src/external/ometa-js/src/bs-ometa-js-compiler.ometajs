@@ -5,6 +5,8 @@ export ometa BSOMetaJSParser <: BSJSParser {
 }
 
 export ometa BSOMetaJSTranslator <: BSJSTranslator {
-  Grammar = BSOMetaTranslator.Grammar
+Grammar =  anything*:r
+           BSOMetaOptimizer.optimizeGrammar([#Grammar].concat(r)):r
+           BSOMetaTranslator.trans(r)
 }
 
