@@ -70,9 +70,7 @@ export ometa BSOMetaParser {
                    | expr:b)                                           -> b,
   grammar        = (keyword('export') -> true | -> false):exported keyword('ometa') name:n
                      ( "<:" name | empty -> 'OMeta' ):sn
-                     "{" listOf(#rule, ','):rs "}"                        BSOMetaOptimizer.optimizeGrammar(
-                                                                            [#Grammar, exported, n, sn].concat(rs)
-                                                                          )
+                     "{" listOf(#rule, ','):rs "}"                     -> [#Grammar, exported, n, sn].concat(rs)
 }
 BSOMetaParser._enableTokens = function() {
   OMeta._enableTokens.call(this, ['keyword', 'ruleName', 'seqString', 'tokenString', 'string']);
