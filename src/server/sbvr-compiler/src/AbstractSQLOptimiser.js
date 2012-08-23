@@ -96,7 +96,13 @@ define(["underscore", "Prettify", "ometa-core"], (function(_, Prettify) {
             }), (function() {
                 return this._apply("Equals")
             }), (function() {
+                return this._apply("GreaterThan")
+            }), (function() {
                 return this._apply("GreaterThanOrEqual")
+            }), (function() {
+                return this._apply("LessThan")
+            }), (function() {
+                return this._apply("LessThanOrEqual")
             }), (function() {
                 return this._apply("Between")
             }))
@@ -161,6 +167,16 @@ define(["underscore", "Prettify", "ometa-core"], (function(_, Prettify) {
             }));
             return ["Equals", comp1, comp2]
         },
+        "GreaterThan": function() {
+            var comp2, comp1, $elf = this,
+                _fromIdx = this.input.idx;
+            this._form((function() {
+                this._applyWithArgs("exactly", "GreaterThan");
+                comp1 = this._apply("Comparator");
+                return comp2 = this._apply("Comparator")
+            }));
+            return ["GreaterThan", comp1, comp2]
+        },
         "GreaterThanOrEqual": function() {
             var comp2, comp1, $elf = this,
                 _fromIdx = this.input.idx;
@@ -170,6 +186,26 @@ define(["underscore", "Prettify", "ometa-core"], (function(_, Prettify) {
                 return comp2 = this._apply("Comparator")
             }));
             return ["GreaterThanOrEqual", comp1, comp2]
+        },
+        "LessThan": function() {
+            var comp2, comp1, $elf = this,
+                _fromIdx = this.input.idx;
+            this._form((function() {
+                this._applyWithArgs("exactly", "LessThan");
+                comp1 = this._apply("Comparator");
+                return comp2 = this._apply("Comparator")
+            }));
+            return ["LessThan", comp1, comp2]
+        },
+        "LessThanOrEqual": function() {
+            var comp2, comp1, $elf = this,
+                _fromIdx = this.input.idx;
+            this._form((function() {
+                this._applyWithArgs("exactly", "LessThanOrEqual");
+                comp1 = this._apply("Comparator");
+                return comp2 = this._apply("Comparator")
+            }));
+            return ["LessThanOrEqual", comp1, comp2]
         },
         "Between": function() {
             var comp3, comp2, comp1, $elf = this,

@@ -1,7 +1,10 @@
 define(["ometa-core"], (function() {
     var comparisons = ({
         "Equals": " = ",
+        "GreaterThan": " > ",
         "GreaterThanOrEqual": " >= ",
+        "LessThan": " < ",
+        "LessThanOrEqual": " <= ",
         "NotEquals": " != "
     });
     var AbstractSQLRules2SQL = OMeta._extend({
@@ -437,10 +440,16 @@ define(["ometa-core"], (function() {
                     switch (this._apply('anything')) {
                     case "NotEquals":
                         return "NotEquals";
+                    case "LessThanOrEqual":
+                        return "LessThanOrEqual";
                     case "Equals":
                         return "Equals";
                     case "GreaterThanOrEqual":
                         return "GreaterThanOrEqual";
+                    case "GreaterThan":
+                        return "GreaterThan";
+                    case "LessThan":
+                        return "LessThan";
                     default:
                         throw this._fail()
                     }

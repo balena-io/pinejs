@@ -62,7 +62,10 @@ define(['underscore', 'Prettify', 'ometa-core'], function(_, Prettify) {
 			|	And
 			|	Exists
 			|	Equals
+			|	GreaterThan
 			|	GreaterThanOrEqual
+			|	LessThan
+			|	LessThanOrEqual
 			|	Between
 			),
 		
@@ -105,12 +108,33 @@ define(['underscore', 'Prettify', 'ometa-core'], function(_, Prettify) {
 			]
 			-> ['Equals', comp1, comp2],
 		
+		GreaterThan =
+			[	'GreaterThan'
+				Comparator:comp1
+				Comparator:comp2
+			]
+			-> ['GreaterThan', comp1, comp2],
+		
 		GreaterThanOrEqual =
 			[	'GreaterThanOrEqual'
 				Comparator:comp1
 				Comparator:comp2
 			]
 			-> ['GreaterThanOrEqual', comp1, comp2],
+		
+		LessThan =
+			[	'LessThan'
+				Comparator:comp1
+				Comparator:comp2
+			]
+			-> ['LessThan', comp1, comp2],
+		
+		LessThanOrEqual =
+			[	'LessThanOrEqual'
+				Comparator:comp1
+				Comparator:comp2
+			]
+			-> ['LessThanOrEqual', comp1, comp2],
 		
 		Between =
 			[	'Between'

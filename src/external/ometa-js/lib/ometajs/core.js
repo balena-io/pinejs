@@ -714,7 +714,10 @@ var OMeta = (function() {
       if(tokensEnabled) { // Tokens are enabled
         grammarInstance._enableTokens();
       }
-      ans = grammarInstance._apply(ruleName);
+      try {
+        ans = grammarInstance._apply(ruleName);
+      }
+      finally {
       if(tokensEnabled) { // Tokens are enabled
         foreignTokens = grammarInstance._getTokens();
         // Merge the tokens we just gained.
@@ -731,6 +734,7 @@ var OMeta = (function() {
             }
           }
         }
+      }
       }
       this.input = grammarInstance.input.target;
       return ans;
