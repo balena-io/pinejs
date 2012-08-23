@@ -71,6 +71,16 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core'], function(SBVRLibs, 
 				-> 'Equals'
 			|	seq('!=')
 				-> 'NotEquals'
+			|	'>'
+				(	'='
+					-> 'GreaterThanOrEqual'
+				|	-> 'GreaterThan'
+				)
+			|	'<'
+				(	'='
+					-> 'LessThanOrEqual'
+				|	-> 'LessThan'
+				)
 			|	'~'
 				-> 'Like',
 

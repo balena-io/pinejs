@@ -1,20 +1,19 @@
 define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs, _) {
     var ServerURIParser = SBVRLibs._extend({
         "Process": function() {
-            var i, method, uri, resources, body, _fromIdx = this.input.idx,
-                $elf = this,
-                vocab;
+            var method, vocab, $elf = this,
+                i, resources, uri, body, _fromIdx = this.input.idx;
             this._form((function() {
                 method = (function() {
                     switch (this._apply('anything')) {
-                    case "DELETE":
-                        return "DELETE";
-                    case "GET":
-                        return "GET";
                     case "POST":
                         return "POST";
+                    case "DELETE":
+                        return "DELETE";
                     case "PUT":
                         return "PUT";
+                    case "GET":
+                        return "GET";
                     default:
                         throw this._fail()
                     }
@@ -58,8 +57,8 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs,
             return uri.concat(resources)
         },
         "Vocabulary": function() {
-            var _fromIdx = this.input.idx,
-                $elf = this;
+            var $elf = this,
+                _fromIdx = this.input.idx;
             return this._consumedBy((function() {
                 return this._many1((function() {
                     this._not((function() {
@@ -70,8 +69,8 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs,
             }))
         },
         "ResourcePart": function() {
-            var _fromIdx = this.input.idx,
-                resourcePart, $elf = this;
+            var $elf = this,
+                resourcePart, _fromIdx = this.input.idx;
             resourcePart = this._consumedBy((function() {
                 return this._many1((function() {
                     return this._or((function() {
@@ -91,8 +90,8 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs,
             return resourcePart.replace(new RegExp("_", "g"), " ")
         },
         "ResourceName": function() {
-            var _fromIdx = this.input.idx,
-                $elf = this;
+            var $elf = this,
+                _fromIdx = this.input.idx;
             return this._consumedBy((function() {
                 this._apply("ResourcePart");
                 return this._many((function() {
@@ -102,9 +101,8 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs,
             }))
         },
         "Resource": function() {
-            var resourceName, _fromIdx = this.input.idx,
-                $elf = this,
-                query;
+            var $elf = this,
+                query, resourceName, _fromIdx = this.input.idx;
             resourceName = this._apply("ResourceName");
             this._opt((function() {
                 this._or((function() {
@@ -128,28 +126,54 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs,
             })
         },
         "Comparator": function() {
-            var _fromIdx = this.input.idx,
-                $elf = this;
+            var $elf = this,
+                _fromIdx = this.input.idx;
             return (function() {
                 switch (this._apply('anything')) {
                 case "=":
                     return "Equals";
+                case "~":
+                    return "Like";
                 case "!":
                     return (function() {
                         this._applyWithArgs("exactly", "=");
                         "!=";
                         return "NotEquals"
                     }).call(this);
-                case "~":
-                    return "Like";
+                case "<":
+                    return this._or((function() {
+                        return (function() {
+                            switch (this._apply('anything')) {
+                            case "=":
+                                return "LessThanOrEqual";
+                            default:
+                                throw this._fail()
+                            }
+                        }).call(this)
+                    }), (function() {
+                        return "LessThan"
+                    }));
+                case ">":
+                    return this._or((function() {
+                        return (function() {
+                            switch (this._apply('anything')) {
+                            case "=":
+                                return "GreaterThanOrEqual";
+                            default:
+                                throw this._fail()
+                            }
+                        }).call(this)
+                    }), (function() {
+                        return "GreaterThan"
+                    }));
                 default:
                     throw this._fail()
                 }
             }).call(this)
         },
         "Modifiers": function(query) {
-            var sorts, _fromIdx = this.input.idx,
-                $elf = this;
+            var $elf = this,
+                sorts, _fromIdx = this.input.idx;
             return this._many((function() {
                 return this._or((function() {
                     return this._applyWithArgs("Filters", query)
@@ -160,8 +184,9 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs,
             }))
         },
         "Field": function() {
-            var field, table, _fromIdx = this.input.idx,
-                $elf = this;
+            var table, $elf = this,
+                _fromIdx = this.input.idx,
+                field;
             return this._or((function() {
                 table = this._apply("ResourcePart");
                 this._applyWithArgs("exactly", ".");
@@ -173,9 +198,9 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs,
             }))
         },
         "Filters": function(query) {
-            var resourceFieldName, field, resourceName, value, comparator, _fromIdx = this.input.idx,
-                $elf = this,
-                mapping;
+            var value, mapping, $elf = this,
+                resourceName, _fromIdx = this.input.idx,
+                field, resourceFieldName, comparator;
             this._applyWithArgs("exactly", "*");
             this._applyWithArgs("exactly", "f");
             this._applyWithArgs("exactly", "i");
@@ -212,9 +237,9 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs,
             }))
         },
         "Sorts": function() {
-            var field, sorts, _fromIdx = this.input.idx,
-                $elf = this,
-                direction;
+            var $elf = this,
+                sorts, _fromIdx = this.input.idx,
+                field, direction;
             this._applyWithArgs("exactly", "*");
             this._applyWithArgs("exactly", "s");
             this._applyWithArgs("exactly", "o");
@@ -230,18 +255,18 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs,
                 this._applyWithArgs("exactly", "=");
                 direction = (function() {
                     switch (this._apply('anything')) {
+                    case "A":
+                        return (function() {
+                            this._applyWithArgs("exactly", "S");
+                            this._applyWithArgs("exactly", "C");
+                            return "ASC"
+                        }).call(this);
                     case "D":
                         return (function() {
                             this._applyWithArgs("exactly", "E");
                             this._applyWithArgs("exactly", "S");
                             this._applyWithArgs("exactly", "C");
                             return "DESC"
-                        }).call(this);
-                    case "A":
-                        return (function() {
-                            this._applyWithArgs("exactly", "S");
-                            this._applyWithArgs("exactly", "C");
-                            return "ASC"
                         }).call(this);
                     default:
                         throw this._fail()
@@ -252,16 +277,16 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs,
             return ["OrderBy"].concat(sorts)
         },
         "ValueBreak": function() {
-            var _fromIdx = this.input.idx,
-                $elf = this;
+            var $elf = this,
+                _fromIdx = this.input.idx;
             return (function() {
                 switch (this._apply('anything')) {
-                case "/":
-                    return "/";
-                case "*":
-                    return "*";
                 case ";":
                     return ";";
+                case "*":
+                    return "*";
+                case "/":
+                    return "/";
                 default:
                     throw this._fail()
                 }
