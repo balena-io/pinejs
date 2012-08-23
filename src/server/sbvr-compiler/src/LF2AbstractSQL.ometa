@@ -242,7 +242,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core'], function(SBVRLibs, 
 				Variable:query
 				{query[1][1].push(['Count', '*'])}
 			]
-			-> ['EqualOrGreater', query, ['Number', minCard]],
+			-> ['GreaterThanOrEqual', query, ['Number', minCard]],
 		Exactly =
 			[	'ExactQ'
 				Cardinality:card

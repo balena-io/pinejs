@@ -62,7 +62,7 @@ define(['underscore', 'Prettify', 'ometa-core'], function(_, Prettify) {
 			|	And
 			|	Exists
 			|	Equals
-			|	EqualOrGreater
+			|	GreaterThanOrEqual
 			|	Between
 			),
 		
@@ -105,12 +105,12 @@ define(['underscore', 'Prettify', 'ometa-core'], function(_, Prettify) {
 			]
 			-> ['Equals', comp1, comp2],
 		
-		EqualOrGreater =
-			[	'EqualOrGreater'
+		GreaterThanOrEqual =
+			[	'GreaterThanOrEqual'
 				Comparator:comp1
 				Comparator:comp2
 			]
-			-> ['EqualOrGreater', comp1, comp2],
+			-> ['GreaterThanOrEqual', comp1, comp2],
 		
 		Between =
 			[	'Between'

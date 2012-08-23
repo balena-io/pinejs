@@ -1,7 +1,7 @@
 define(['ometa-core'], function() {
 	var comparisons = {
 			'Equals': ' = ',
-			'EqualOrGreater': ' >= ',
+			'GreaterThanOrEqual': ' >= ',
 			'NotEquals': ' != '
 		};
 	
@@ -244,7 +244,7 @@ define(['ometa-core'], function() {
 		
 		Comparison :indent =
 			[	(	'Equals'
-				|	'EqualOrGreater'
+				|	'GreaterThanOrEqual'
 				|	'NotEquals'
 				):comparison
 				RuleBody(indent):a

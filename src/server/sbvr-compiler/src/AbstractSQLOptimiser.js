@@ -1,14 +1,13 @@
 define(["underscore", "Prettify", "ometa-core"], (function(_, Prettify) {
     var AbstractSQLValidator = OMeta._extend({
         "Query": function() {
-            var _fromIdx = this.input.idx,
-                $elf = this;
+            var $elf = this,
+                _fromIdx = this.input.idx;
             return this._apply("SelectQuery")
         },
         "SelectQuery": function() {
-            var where, select, _fromIdx = this.input.idx,
-                queryPart, $elf = this,
-                query, from;
+            var select, queryPart, from, $elf = this,
+                query, where, _fromIdx = this.input.idx;
             query = ["SelectQuery"];
             this._form((function() {
                 this._applyWithArgs("exactly", "SelectQuery");
@@ -32,8 +31,8 @@ define(["underscore", "Prettify", "ometa-core"], (function(_, Prettify) {
             return query
         },
         "Select": function() {
-            var fields, _fromIdx = this.input.idx,
-                $elf = this;
+            var fields, $elf = this,
+                _fromIdx = this.input.idx;
             this._form((function() {
                 this._applyWithArgs("exactly", "Select");
                 return this._form((function() {
@@ -45,17 +44,17 @@ define(["underscore", "Prettify", "ometa-core"], (function(_, Prettify) {
             return [["Select", fields]]
         },
         "Count": function() {
-            var _fromIdx = this.input.idx,
-                $elf = this;
+            var $elf = this,
+                _fromIdx = this.input.idx;
             return this._form((function() {
                 this._applyWithArgs("exactly", "Count");
                 return this._applyWithArgs("exactly", "*")
             }))
         },
         "From": function() {
-            var as, table, _fromIdx = this.input.idx,
-                $elf = this,
-                from;
+            var table, from, $elf = this,
+                _fromIdx = this.input.idx,
+                as;
             this._form((function() {
                 this._applyWithArgs("exactly", "From");
                 table = this._apply("anything");
@@ -68,8 +67,8 @@ define(["underscore", "Prettify", "ometa-core"], (function(_, Prettify) {
             return [from]
         },
         "Join": function() {
-            var table, boolStatement, _fromIdx = this.input.idx,
-                $elf = this;
+            var table, boolStatement, $elf = this,
+                _fromIdx = this.input.idx;
             this._form((function() {
                 this._applyWithArgs("exactly", "Join");
                 this._form((function() {
@@ -86,8 +85,8 @@ define(["underscore", "Prettify", "ometa-core"], (function(_, Prettify) {
             ]]
         },
         "BooleanStatement": function() {
-            var _fromIdx = this.input.idx,
-                $elf = this;
+            var $elf = this,
+                _fromIdx = this.input.idx;
             return this._or((function() {
                 return this._apply("Not")
             }), (function() {
@@ -97,14 +96,14 @@ define(["underscore", "Prettify", "ometa-core"], (function(_, Prettify) {
             }), (function() {
                 return this._apply("Equals")
             }), (function() {
-                return this._apply("EqualOrGreater")
+                return this._apply("GreaterThanOrEqual")
             }), (function() {
                 return this._apply("Between")
             }))
         },
         "Where": function() {
-            var boolStatement, _fromIdx = this.input.idx,
-                $elf = this;
+            var boolStatement, $elf = this,
+                _fromIdx = this.input.idx;
             this._form((function() {
                 this._applyWithArgs("exactly", "Where");
                 return boolStatement = this._apply("BooleanStatement")
@@ -112,8 +111,8 @@ define(["underscore", "Prettify", "ometa-core"], (function(_, Prettify) {
             return [["Where", boolStatement]]
         },
         "Not": function() {
-            var boolStatement, _fromIdx = this.input.idx,
-                $elf = this;
+            var boolStatement, $elf = this,
+                _fromIdx = this.input.idx;
             this._form((function() {
                 this._applyWithArgs("exactly", "Not");
                 return boolStatement = this._apply("BooleanStatement")
@@ -121,9 +120,9 @@ define(["underscore", "Prettify", "ometa-core"], (function(_, Prettify) {
             return ["Not", boolStatement]
         },
         "And": function() {
-            var _fromIdx = this.input.idx,
-                $elf = this,
-                boolStatement2, boolStatement1;
+            var $elf = this,
+                boolStatement2, _fromIdx = this.input.idx,
+                boolStatement1;
             this._form((function() {
                 this._applyWithArgs("exactly", "And");
                 boolStatement1 = this._apply("BooleanStatement");
@@ -134,9 +133,8 @@ define(["underscore", "Prettify", "ometa-core"], (function(_, Prettify) {
             return ["And", boolStatement1].concat(boolStatement2)
         },
         "Exists": function() {
-            var _fromIdx = this.input.idx,
-                $elf = this,
-                query;
+            var $elf = this,
+                query, _fromIdx = this.input.idx;
             this._form((function() {
                 this._applyWithArgs("exactly", "Exists");
                 return query = this._apply("Query")
@@ -144,9 +142,8 @@ define(["underscore", "Prettify", "ometa-core"], (function(_, Prettify) {
             return ["Exists", query]
         },
         "NotEquals": function() {
-            var comp2, _fromIdx = this.input.idx,
-                $elf = this,
-                comp1;
+            var comp2, comp1, $elf = this,
+                _fromIdx = this.input.idx;
             this._form((function() {
                 this._applyWithArgs("exactly", "NotEquals");
                 comp1 = this._apply("Comparator");
@@ -155,9 +152,8 @@ define(["underscore", "Prettify", "ometa-core"], (function(_, Prettify) {
             return ["NotEquals", comp1, comp2]
         },
         "Equals": function() {
-            var comp2, _fromIdx = this.input.idx,
-                $elf = this,
-                comp1;
+            var comp2, comp1, $elf = this,
+                _fromIdx = this.input.idx;
             this._form((function() {
                 this._applyWithArgs("exactly", "Equals");
                 comp1 = this._apply("Comparator");
@@ -165,21 +161,19 @@ define(["underscore", "Prettify", "ometa-core"], (function(_, Prettify) {
             }));
             return ["Equals", comp1, comp2]
         },
-        "EqualOrGreater": function() {
-            var comp2, _fromIdx = this.input.idx,
-                $elf = this,
-                comp1;
+        "GreaterThanOrEqual": function() {
+            var comp2, comp1, $elf = this,
+                _fromIdx = this.input.idx;
             this._form((function() {
-                this._applyWithArgs("exactly", "EqualOrGreater");
+                this._applyWithArgs("exactly", "GreaterThanOrEqual");
                 comp1 = this._apply("Comparator");
                 return comp2 = this._apply("Comparator")
             }));
-            return ["EqualOrGreater", comp1, comp2]
+            return ["GreaterThanOrEqual", comp1, comp2]
         },
         "Between": function() {
-            var comp2, _fromIdx = this.input.idx,
-                $elf = this,
-                comp1, comp3;
+            var comp3, comp2, comp1, $elf = this,
+                _fromIdx = this.input.idx;
             this._form((function() {
                 this._applyWithArgs("exactly", "Between");
                 comp1 = this._apply("Comparator");
@@ -189,8 +183,8 @@ define(["underscore", "Prettify", "ometa-core"], (function(_, Prettify) {
             return ["Between", comp1, comp2, comp3]
         },
         "Comparator": function() {
-            var _fromIdx = this.input.idx,
-                $elf = this;
+            var $elf = this,
+                _fromIdx = this.input.idx;
             return this._or((function() {
                 return this._apply("Query")
             }), (function() {
@@ -204,8 +198,9 @@ define(["underscore", "Prettify", "ometa-core"], (function(_, Prettify) {
             }))
         },
         "Field": function() {
-            var field, table, _fromIdx = this.input.idx,
-                $elf = this;
+            var table, $elf = this,
+                _fromIdx = this.input.idx,
+                field;
             this._form((function() {
                 this._applyWithArgs("exactly", "Field");
                 table = this._apply("anything");
@@ -214,8 +209,9 @@ define(["underscore", "Prettify", "ometa-core"], (function(_, Prettify) {
             return ["Field", table, field]
         },
         "ReferencedField": function() {
-            var field, binding, _fromIdx = this.input.idx,
-                $elf = this;
+            var $elf = this,
+                binding, _fromIdx = this.input.idx,
+                field;
             this._form((function() {
                 this._applyWithArgs("exactly", "ReferencedField");
                 binding = this._apply("anything");
@@ -224,8 +220,8 @@ define(["underscore", "Prettify", "ometa-core"], (function(_, Prettify) {
             return ["ReferencedField", binding, field]
         },
         "Number": function() {
-            var number, _fromIdx = this.input.idx,
-                $elf = this;
+            var number, $elf = this,
+                _fromIdx = this.input.idx;
             this._form((function() {
                 this._applyWithArgs("exactly", "Number");
                 return number = this._apply("anything")
@@ -233,8 +229,8 @@ define(["underscore", "Prettify", "ometa-core"], (function(_, Prettify) {
             return ["Number", number]
         },
         "Boolean": function() {
-            var bool, _fromIdx = this.input.idx,
-                $elf = this;
+            var $elf = this,
+                bool, _fromIdx = this.input.idx;
             this._form((function() {
                 this._applyWithArgs("exactly", "Boolean");
                 return bool = this._or((function() {
@@ -248,8 +244,8 @@ define(["underscore", "Prettify", "ometa-core"], (function(_, Prettify) {
     });
     var AbstractSQLOptimiser = AbstractSQLValidator._extend({
         "Not": function() {
-            var boolStatement, _fromIdx = this.input.idx,
-                $elf = this;
+            var boolStatement, $elf = this,
+                _fromIdx = this.input.idx;
             return this._or((function() {
                 this._form((function() {
                     this._applyWithArgs("exactly", "Not");
@@ -277,19 +273,19 @@ define(["underscore", "Prettify", "ometa-core"], (function(_, Prettify) {
             }))
         },
         "Helped": function() {
-            var _fromIdx = this.input.idx,
-                $elf = this;
+            var $elf = this,
+                _fromIdx = this.input.idx;
             this._pred((this["helped"] === true));
             return (this["helped"] = false)
         },
         "SetHelped": function() {
-            var _fromIdx = this.input.idx,
-                $elf = this;
+            var $elf = this,
+                _fromIdx = this.input.idx;
             return (this["helped"] = true)
         },
         "Process": function() {
-            var boolStatement, _fromIdx = this.input.idx,
-                $elf = this;
+            var boolStatement, $elf = this,
+                _fromIdx = this.input.idx;
             boolStatement = this._apply("anything");
             boolStatement = this._applyWithArgs("BooleanStatement", boolStatement);
             this._many((function() {
