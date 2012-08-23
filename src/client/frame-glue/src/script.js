@@ -139,15 +139,15 @@
           mode: "text/x-plsql"
         });
       }
-      serverRequest("GET", "/ui/textarea*filt:name=model_area/", {}, null, function(statusCode, result) {
+      serverRequest("GET", "/ui/textarea?filter=name:model_area/", {}, null, function(statusCode, result) {
         return sbvrEditor.setValue(result.instances[0].text);
       }, function() {});
-      serverRequest("GET", "/ui/textarea-is_disabled*filt:textarea.name=model_area/", {}, null, function(statusCode, result) {
+      serverRequest("GET", "/ui/textarea-is_disabled?filter=textarea.name:model_area/", {}, null, function(statusCode, result) {
         return $("#modelArea").attr("disabled", result.value);
       }, function() {});
       window.onhashchange = processHash;
       $("#modelArea").change(function() {
-        return serverRequest("PUT", "/ui/textarea*filt:name=model_area/", {}, [
+        return serverRequest("PUT", "/ui/textarea?filter=name:model_area/", {}, [
           {
             'textarea.text': sbvrEditor.getValue()
           }
@@ -236,8 +236,8 @@
     };
     window.transformClient = function(model) {
       $("#modelArea").attr("disabled", true);
-      return serverRequest("PUT", "/ui/textarea-is_disabled*filt:textarea.name=model_area/", {}, null, function() {
-        return serverRequest("PUT", "/ui/textarea*filt:name=model_area/", {}, [
+      return serverRequest("PUT", "/ui/textarea-is_disabled?filter=textarea.name:model_area/", {}, null, function() {
+        return serverRequest("PUT", "/ui/textarea?filter=name:model_area/", {}, [
           {
             'textarea.text': sbvrEditor.getValue()
           }

@@ -44,7 +44,7 @@
                         }
                       ];
                       (function(sendData) {
-                        return serverRequest("DELETE", cr_uri + '*filt:lock=' + sendData[0].lock, {}, null, function() {
+                        return serverRequest("DELETE", cr_uri + '?filter=lock:' + sendData[0].lock, {}, null, function() {
                           return serverRequest("PUT", cr_uri, {}, sendData, asyncCallback.successCallback);
                         });
                       })(sendData);
@@ -54,7 +54,7 @@
                       for (_j = 0, _len1 = _ref.length; _j < _len1; _j++) {
                         pair = _ref[_j];
                         _fn = function(sendData) {
-                          return serverRequest("DELETE", cr_uri + '*filt:lock=' + sendData[0].lock, {}, null, function() {
+                          return serverRequest("DELETE", cr_uri + '?filter=lock:' + sendData[0].lock, {}, null, function() {
                             return serverRequest("PUT", cr_uri, {}, sendData, asyncCallback.successCallback);
                           });
                         };

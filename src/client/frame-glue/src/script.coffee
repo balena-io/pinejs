@@ -121,14 +121,14 @@ define(['sbvr-parser/SBVRParser', 'data-frame/ClientURIParser', 'Prettify'], (SB
 		if CodeMirror.listModes().indexOf("plsql") > -1
 			sqlEditor = CodeMirror.fromTextArea(document.getElementById("sqlArea"), mode: "text/x-plsql")
 			window.importExportEditor = CodeMirror.fromTextArea(document.getElementById("importExportArea"), mode: "text/x-plsql")
-		serverRequest("GET", "/ui/textarea*filt:name=model_area/", {}, null,
+		serverRequest("GET", "/ui/textarea?filter=name:model_area/", {}, null,
 			(statusCode, result) ->
 				sbvrEditor.setValue(result.instances[0].text)
 			() ->
 				# Ignore an error, it means no model area has been stored
 		)
 
-		serverRequest("GET", "/ui/textarea-is_disabled*filt:textarea.name=model_area/", {}, null,
+		serverRequest("GET", "/ui/textarea-is_disabled?filter=textarea.name:model_area/", {}, null,
 			(statusCode, result) ->
 				$("#modelArea").attr("disabled", result.value)
 			() ->
@@ -138,7 +138,7 @@ define(['sbvr-parser/SBVRParser', 'data-frame/ClientURIParser', 'Prettify'], (SB
 		window.onhashchange = processHash
 
 		$("#modelArea").change( ->
-			serverRequest("PUT", "/ui/textarea*filt:name=model_area/", {}, [{'textarea.text': sbvrEditor.getValue()}])
+			serverRequest("PUT", "/ui/textarea?filter=name:model_area/", {}, [{'textarea.text': sbvrEditor.getValue()}])
 		)
 
 		$("#dialog-message").dialog(
@@ -213,8 +213,8 @@ define(['sbvr-parser/SBVRParser', 'data-frame/ClientURIParser', 'Prettify'], (SB
 	window.transformClient = (model) ->
 		$("#modelArea").attr "disabled", true
 
-		serverRequest("PUT", "/ui/textarea-is_disabled*filt:textarea.name=model_area/", {}, null, ->
-			serverRequest("PUT", "/ui/textarea*filt:name=model_area/", {}, [{'textarea.text': sbvrEditor.getValue()}], ->
+		serverRequest("PUT", "/ui/textarea-is_disabled?filter=textarea.name:model_area/", {}, null, ->
+			serverRequest("PUT", "/ui/textarea?filter=name:model_area/", {}, [{'textarea.text': sbvrEditor.getValue()}], ->
 				serverRequest("POST", "/execute/", {}, null, ->
 					setClientOnAir(true)
 				)

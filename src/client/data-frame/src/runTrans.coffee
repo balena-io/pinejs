@@ -30,7 +30,7 @@ require(['utils/createAsyncQueueCallback'], (createAsyncQueueCallback) ->
 											field_value: ''
 										]
 										do(sendData) ->
-											serverRequest("DELETE", cr_uri + '*filt:lock=' + sendData[0].lock, {}, null, () ->
+											serverRequest("DELETE", cr_uri + '?filter=lock:' + sendData[0].lock, {}, null, () ->
 												serverRequest("PUT", cr_uri, {}, sendData, asyncCallback.successCallback)
 											)
 									when "edit"
@@ -44,7 +44,7 @@ require(['utils/createAsyncQueueCallback'], (createAsyncQueueCallback) ->
 												]
 												asyncCallback.addWork(1)
 												do(sendData) ->
-													serverRequest("DELETE", cr_uri + '*filt:lock=' + sendData[0].lock, {}, null, () ->
+													serverRequest("DELETE", cr_uri + '?filter=lock:' + sendData[0].lock, {}, null, () ->
 														serverRequest("PUT", cr_uri, {}, sendData, asyncCallback.successCallback)
 													)
 							asyncCallback.endAdding()

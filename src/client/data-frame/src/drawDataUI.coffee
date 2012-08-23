@@ -264,8 +264,8 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs',
 				return serverAPI(this.getAbout(), false)
 			getServerURI: () ->
 				op =
-					eq: "="
-					ne: "!="
+					eq: ":"
+					ne: "!:"
 					lk: "~"
 				filters = []
 				for leaf in currentLocation[2] when leaf[0] == "filt"
@@ -334,9 +334,9 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs',
 		if filters == false
 			filterString = ''
 		else if filters.length == 0
-			filterString = '*'
+			filterString = '?'
 		else
-			filterString = '*filt:' + (filter[0] + filter[1] + filter[2] for filter in filters).join(';')
+			filterString = '?filter=' + (filter[0] + filter[1] + filter[2] for filter in filters).join(';')
 		
 		"/data/" + about.replace(new RegExp(' ', 'g'), '_') + filterString
 

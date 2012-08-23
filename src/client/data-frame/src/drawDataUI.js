@@ -116,8 +116,8 @@
         getServerURI: function() {
           var filters, leaf, op, _j, _len1, _ref;
           op = {
-            eq: "=",
-            ne: "!=",
+            eq: ":",
+            ne: "!:",
             lk: "~"
           };
           filters = [];
@@ -217,9 +217,9 @@
       if (filters === false) {
         filterString = '';
       } else if (filters.length === 0) {
-        filterString = '*';
+        filterString = '?';
       } else {
-        filterString = '*filt:' + ((function() {
+        filterString = '?filter=' + ((function() {
           var _i, _len, _results;
           _results = [];
           for (_i = 0, _len = filters.length; _i < _len; _i++) {

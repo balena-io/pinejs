@@ -197,7 +197,7 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 							item = crs.rows.item(j)
 							requestBody[0][item.field_name] = item.field_value
 					clientModel = clientModels['data'].resources[lockedRow.resource_type]
-					uri = '/data/' + lockedRow.resource_type + '*filt:' + clientModel.idField + '=' + lockedRow.resource_id
+					uri = '/data/' + lockedRow.resource_type + '?filter=' + clientModel.idField + ':' + lockedRow.resource_id
 					runURI(method, uri, requestBody, tx, asyncCallback.successCallback, asyncCallback.errorCallback)
 					asyncCallback.endAdding()
 				)
@@ -351,7 +351,7 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 									insertID = if tree[2].query[0] == 'UpdateQuery' then values[0] else sqlResult.insertId
 									console.log('Insert ID: ', insertID)
 									res.send(201,
-										location: '/' + vocab + '/' + tree[2].resourceName + "*filt:" + tree[2].resourceName + ".id=" + insertID
+										location: '/' + vocab + '/' + tree[2].resourceName + "?filter=" + tree[2].resourceName + ".id:" + insertID
 									)
 								(tx, errors) ->
 									res.json(errors, 404)
@@ -528,7 +528,7 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 		app.get('/sqlmodel',	serverIsOnAir,	(req, res, next) -> res.json(serverModelCache.getSQL()))
 		app.post('/update',		serverIsOnAir,	(req, res, next) -> res.send(404))
 		app.post('/execute',					(req, res, next) ->
-			runURI('GET', '/ui/textarea*filt:name=model_area', null, null,
+			runURI('GET', '/ui/textarea?filter=name:model_area', null, null,
 				(result) ->
 					se = result.instances[0].text
 					try
@@ -545,7 +545,7 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 						tx.begin()
 						executeSqlModel(tx, sqlModel,
 							(tx) ->
-								runURI('PUT', '/ui/textarea-is_disabled*filt:textarea.name=model_area/', [{value: true}], tx)
+								runURI('PUT', '/ui/textarea-is_disabled?filter=textarea.name:model_area/', [{value: true}], tx)
 								serverModelCache.setServerOnAir(true)
 								serverModelCache.setLastSE(se)
 								serverModelCache.setLF(lfmod)
@@ -779,8 +779,8 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 			)(serverModelCache.getSQL())
 			
 			# TODO: This should be done a better way?
-			runURI('DELETE', '/ui/textarea-is_disabled*filt:textarea.name=model_area/')
-			runURI('PUT', '/ui/textarea*filt:name=model_area/', [{text: ''}])
+			runURI('DELETE', '/ui/textarea-is_disabled?filter=textarea.name:model_area/')
+			runURI('PUT', '/ui/textarea?filter=name:model_area/', [{text: ''}])
 
 			serverModelCache.setLastSE('')
 			serverModelCache.setPrepLF([])

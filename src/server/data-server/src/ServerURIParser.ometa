@@ -57,7 +57,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core'], function(SBVRLibs, 
 		Resource =
 			ResourceName:resourceName
 			(	(	?(this.currentMethod != 'GET')
-				|	&'*'
+				|	&'?'
 				)
 				{['Query']}:query
 				AddQueryResource(query, resourceName)
@@ -67,17 +67,17 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core'], function(SBVRLibs, 
 			-> {resourceName: resourceName, query: query, values: this.newBody},
 
 		Comparator =
-				'='
+				':'
 				-> 'Equals'
-			|	seq('!=')
+			|	seq('!:')
 				-> 'NotEquals'
 			|	'>'
-				(	'='
+				(	':'
 					-> 'GreaterThanOrEqual'
 				|	-> 'GreaterThan'
 				)
 			|	'<'
-				(	'='
+				(	':'
 					-> 'LessThanOrEqual'
 				|	-> 'LessThan'
 				)
@@ -85,9 +85,12 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core'], function(SBVRLibs, 
 				-> 'Like',
 
 		Modifiers :query =
-			(	Filters(query)
-			|	Sorts:sorts
-				{query.push(sorts)}
+			'?'
+			(	'&'?
+				(	Filters(query)
+				|	Sorts:sorts
+					{query.push(sorts)}
+				)
 			)*,
 
 		Field =
@@ -97,7 +100,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core'], function(SBVRLibs, 
 				-> ['Field', field],
 
 		Filters :query =
-			seq('*filt:')
+			seq('filter=')
 			(	Field:field
 				Comparator:comparator
 				<	(	~ValueBreak
@@ -118,13 +121,13 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core'], function(SBVRLibs, 
 			)+,
 
 		Sorts =
-			seq('*sort:')
-			(	';'?
-				Field:field
+			seq('order=')
+			(	Field:field
 				'='
 				(	seq('ASC')
 				|	seq('DESC')
 				):direction
+				';'?
 				-> [direction, field]
 			)+:sorts
 			->	['OrderBy'].concat(sorts),

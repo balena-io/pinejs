@@ -64,20 +64,20 @@ define(['server-glue', 'sbvr-frame/SBVRModels'], function() {
 	test("Execute model /",function() {
 		resetState(function(){
 			testName = "PUT textarea-is_disabled model_area"
-			remoteServerRequest("PUT", "/ui/textarea-is_disabled*filt:textarea.name=model_area/", {}, {value: true}, function(statusCode, result, headers) {
+			remoteServerRequest("PUT", "/ui/textarea-is_disabled?filter=textarea.name:model_area/", {}, {value: true}, function(statusCode, result, headers) {
 				equal(statusCode, 200, testName);
 				testName = "GET textarea-is_disabled model_area"
-				remoteServerRequest("GET", "/ui/textarea-is_disabled*filt:textarea.name=model_area/", {}, null, function(statusCode, result, headers) {
+				remoteServerRequest("GET", "/ui/textarea-is_disabled?filter=textarea.name:model_area/", {}, null, function(statusCode, result, headers) {
 					equal(statusCode, 200, testName);
 					deepEqual(result, {value: true}, testName);
 				}, function(statusCode, error) {
 					ok(false, testName);
 				});
 				testName = "PUT textarea model_area"
-				remoteServerRequest("PUT", "/ui/textarea*filt:name=model_area/", {}, {value: model1}, function(statusCode, result, headers) {
+				remoteServerRequest("PUT", "/ui/textarea?filter=name:model_area/", {}, {value: model1}, function(statusCode, result, headers) {
 					equal(statusCode, 200, testName);
 					testName = "GET textarea model_area"
-					remoteServerRequest ("GET", "/ui/textarea*filt:name=model_area/", {}, null, function(statusCode, result, headers) {
+					remoteServerRequest ("GET", "/ui/textarea?filter=name:model_area/", {}, null, function(statusCode, result, headers) {
 						equal(statusCode, 200, testName);
 						deepEqual(result, {value: model1}, testName);
 					}, function(statusCode, error) {

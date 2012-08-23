@@ -162,7 +162,7 @@
               }
             }
             clientModel = clientModels['data'].resources[lockedRow.resource_type];
-            uri = '/data/' + lockedRow.resource_type + '*filt:' + clientModel.idField + '=' + lockedRow.resource_id;
+            uri = '/data/' + lockedRow.resource_type + '?filter=' + clientModel.idField + ':' + lockedRow.resource_id;
             runURI(method, uri, requestBody, tx, asyncCallback.successCallback, asyncCallback.errorCallback);
             return asyncCallback.endAdding();
           });
@@ -349,7 +349,7 @@
                 insertID = tree[2].query[0] === 'UpdateQuery' ? values[0] : sqlResult.insertId;
                 console.log('Insert ID: ', insertID);
                 return res.send(201, {
-                  location: '/' + vocab + '/' + tree[2].resourceName + "*filt:" + tree[2].resourceName + ".id=" + insertID
+                  location: '/' + vocab + '/' + tree[2].resourceName + "?filter=" + tree[2].resourceName + ".id:" + insertID
                 });
               }, function(tx, errors) {
                 return res.json(errors, 404);
@@ -543,7 +543,7 @@
         return res.send(404);
       });
       app.post('/execute', function(req, res, next) {
-        return runURI('GET', '/ui/textarea*filt:name=model_area', null, null, function(result) {
+        return runURI('GET', '/ui/textarea?filter=name:model_area', null, null, function(result) {
           var clientModel, lfmod, prepmod, se, sqlModel;
           se = result.instances[0].text;
           try {
@@ -559,7 +559,7 @@
           return db.transaction(function(tx) {
             tx.begin();
             return executeSqlModel(tx, sqlModel, function(tx) {
-              runURI('PUT', '/ui/textarea-is_disabled*filt:textarea.name=model_area/', [
+              runURI('PUT', '/ui/textarea-is_disabled?filter=textarea.name:model_area/', [
                 {
                   value: true
                 }
@@ -832,8 +832,8 @@
             return _results;
           };
         })(serverModelCache.getSQL()));
-        runURI('DELETE', '/ui/textarea-is_disabled*filt:textarea.name=model_area/');
-        runURI('PUT', '/ui/textarea*filt:name=model_area/', [
+        runURI('DELETE', '/ui/textarea-is_disabled?filter=textarea.name:model_area/');
+        runURI('PUT', '/ui/textarea?filter=name:model_area/', [
           {
             text: ''
           }
