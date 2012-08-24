@@ -15,7 +15,7 @@ define(['underscore', 'ometa-core'], function(_) {
 	SBVRLibs.initialize = function() {
 		this.factTypes = {};
 		this.conceptTypes = {};
-	}
+	};
 	
 	SBVRLibs.ApplyFirstExisting = function(rules, ruleArgs) {
 		if(ruleArgs == null) {
@@ -31,7 +31,7 @@ define(['underscore', 'ometa-core'], function(_) {
 				return this._apply(rules[i], ruleArgs);
 			}
 		}
-	}
+	};
 
 	SBVRLibs.IsPrimitive = function(termName) {
 		// do {
@@ -45,10 +45,10 @@ define(['underscore', 'ometa-core'], function(_) {
 			}
 		}
 		return false;
-	}
+	};
 	
 	SBVRLibs.AddFactType = function(factType, realFactType) {
-		realFactType = _.extend([], realFactType)
+		realFactType = _.extend([], realFactType);
 		this._traverseFactType(factType, realFactType);
 		if(factType.length == 3 && factType[1][1] == 'has') {
 			this._traverseFactType([factType[2], ['Verb', 'is of'], factType[0]], realFactType);
@@ -108,7 +108,7 @@ define(['underscore', 'ometa-core'], function(_) {
 			}
 		} while( this.conceptTypes.hasOwnProperty(child) && (child = this.conceptTypes[child]) );
 		return false;
-	}
+	};
 	
 	SBVRLibs.FactTypeRootTerm = function(term, actualFactType) {
 		// Find the term in the fact type that matches (for synonymous form)
@@ -118,7 +118,7 @@ define(['underscore', 'ometa-core'], function(_) {
 			}
 		}
 		return false;
-	}
+	};
 
 	SBVRLibs.FactTypeRootTerms = function(factType, actualFactType) {
 		var rootTerms = [],
@@ -140,18 +140,18 @@ define(['underscore', 'ometa-core'], function(_) {
 			}
 			return resource.join('-');
 		}
-	}
+	};
 	
 	SBVRLibs.GetTableField = function(table, fieldName) {
-		fieldID = this.GetTableFieldID(table, fieldName);
+		var fieldID = this.GetTableFieldID(table, fieldName);
 		if(fieldID === false) {
 			return false;
 		}
 		return table.fields[fieldID];
-	}
+	};
 	
 	SBVRLibs.GetTableFieldID = function(table, fieldName) {
-		tableFields = table.fields;
+		var tableFields = table.fields;
 		for(var i = 0; i < tableFields.length; i++) {
 			if(tableFields[i][1] == fieldName) {
 				return i;

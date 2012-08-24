@@ -334,7 +334,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core'], function(SBVRLibs, 
 			}
 			query.push(['Where', whereBody]);
 		}
-	}
+	};
 	
 	LF2AbstractSQL.ResolveConceptTypes = function(query, termName, varAlias) {
 		var conceptAlias,
@@ -345,11 +345,11 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core'], function(SBVRLibs, 
 			conceptName = this.conceptTypes[termName];
 			conceptAlias = varAlias + conceptName;
 			conceptTable = this.tables[this.GetResourceName(conceptName)];
-			query.push(['From', conceptTable.name, conceptAlias])
-			this.AddWhereClause(query, ['Equals', ['ReferencedField', parentAlias, conceptTable.name], ['ReferencedField', conceptAlias, conceptTable.idField]])
+			query.push(['From', conceptTable.name, conceptAlias]);
+			this.AddWhereClause(query, ['Equals', ['ReferencedField', parentAlias, conceptTable.name], ['ReferencedField', conceptAlias, conceptTable.idField]]);
 			parentAlias = conceptAlias;
 		}
-	}
+	};
 	
 	LF2AbstractSQL.initialize = function() {
 		SBVRLibs.initialize.call(this);
@@ -357,7 +357,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core'], function(SBVRLibs, 
 		this.terms = {}; // TODO: Is this needed?
 		this.rules = [];
 		this.linkTableBind = 0;
-	}
+	};
 
 	
 	return LF2AbstractSQL;

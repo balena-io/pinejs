@@ -169,7 +169,7 @@ define(["underscore", "ometa-core"], (function(_) {
         }
     }));
     (SBVRLibs["GetTableField"] = (function(table, fieldName) {
-        (fieldID = this.GetTableFieldID(table, fieldName));
+        var fieldID = this.GetTableFieldID(table, fieldName);
         if ((fieldID === false)) {
             return false
         } else {
@@ -178,7 +178,7 @@ define(["underscore", "ometa-core"], (function(_) {
         return table["fields"][fieldID]
     }));
     (SBVRLibs["GetTableFieldID"] = (function(table, fieldName) {
-        (tableFields = table["fields"]);
+        var tableFields = table["fields"];
         for (var i = (0);
         (i < tableFields["length"]); i++) {
             if ((tableFields[i][(1)] == fieldName)) {

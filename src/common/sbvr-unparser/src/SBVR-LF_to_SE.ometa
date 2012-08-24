@@ -1,72 +1,132 @@
 define(['sbvr-parser/SBVRParser', 'underscore', 'Prettify', 'sbvr-frame/SBVRModels', 'ometa-core', 'inflection'], function(SBVRParser, _, Prettify) {
 	ometa SBVR_LF2SE {
-	  $ :x       = token(x):a                              -> [a] 
-				 |                                         -> [],
+		$ :x =
+				token(x):a
+				-> [a] 
+			|	-> [],
 
-	  trans      [:t apply(t):a]                           -> a,
-	  token :x   [:t ?{t==x} apply(x):a]                   -> a,
+		trans
+			[:t apply(t):a]
+			-> a,
+		token
+			:x [:t ?{t==x} apply(x):a]
+			-> a,
 
-	  letters    = letter+:l space*                        -> l.join(''),
+		letters =
+			letter+:l space*
+			-> l.join(''),
 
-	  Number        number:n ?{!isNaN(n)}                     -> ['Number', parseInt(n)],
+		Number
+			number:n ?{!isNaN(n)}
+			-> ['Number', parseInt(n)],
 
-	  Model      ("Term"|"FactType"|"Rule")*:xs                -> ['Model'].concat(xs),
+		Model
+			("Term"|"FactType"|"Rule")*:xs
+			-> ['Model'].concat(xs),
 		
-	  FactType   {a=[]}("Term":t "Verb":v {a=a.concat([t,v])})* $('Term'):e  (:attr->[attr]|->[]):attr
-														   -> a.concat(e),
+		FactType
+			{a=[]}("Term":t "Verb":v {a=a.concat([t,v])})* $('Term'):e (:attr->[attr]|->[]):attr
+			-> a.concat(e),
 
-	  Verb       :v                                        -> ['Verb', v],
-	  Term       :t (:attr->[attr]|->[]):attr              -> ['Term', t].concat(attr),
-	  Rule       ("ObligationF"|"NecessityF"|"PossibilityF"|"PermissibilityF"):x "StructuredEnglish":t      -> ['Rule', x, t],
+		Verb
+			:v
+			-> ['Verb', v],
+		Term
+			:t (:attr->[attr]|->[]):attr
+			-> ['Term', t].concat(attr),
+		Rule
+			("ObligationF"|"NecessityF"|"PossibilityF"|"PermissibilityF"):x "StructuredEnglish":t
+			-> ['Rule', x, t],
 
-	  StructuredEnglish	     :a	                                       -> ['StructuredEnglish', a],
-	  
-	  ObligationF        trans*:xs                                 -> ['ObligationF'].concat(xs),
-	  NecessityF        trans*:xs                                 -> ['NecessityF'].concat(xs),
-	  PossibilityF        trans*:xs                                 -> ['PossibilityF'].concat(xs),
-	  PermissibilityF        trans*:xs                                 -> ['PermissibilityF'].concat(xs),
+		StructuredEnglish
+			:a
+			-> ['StructuredEnglish', a],
+	
+		ObligationF
+			trans*:xs
+			-> ['ObligationF'].concat(xs),
+		NecessityF
+			trans*:xs
+			-> ['NecessityF'].concat(xs),
+		PossibilityF
+			trans*:xs
+			-> ['PossibilityF'].concat(xs),
+		PermissibilityF
+			trans*:xs
+			-> ['PermissibilityF'].concat(xs),
 
-	  LogicalNegation        trans:xs                                  -> ['LogicalNegation'].concat([xs]),
+		LogicalNegation
+			trans:xs
+			-> ['LogicalNegation'].concat([xs]),
 
-	  quant      = "UniversalQ" | "ExistentialQ" | "ExactQ" | "AtMostNQ" | "AtLeastNQ" | "NumericalRangeQ" ,
-	  UniversalQ                              "Variable":v trans*:xs -> ['UniversalQ', v].concat(xs),
-	  ExistentialQ                             "Variable":v trans*:xs -> ['ExistentialQ', v].concat(xs),
-	  ExactQ     "Cardinality":i                "Variable":v trans*:xs -> ['ExactQ', i, v].concat(xs),
-	  AtMostNQ                "MaximumCardinality":a "Variable":v trans*:xs -> ['AtMostNQ', a, v].concat(xs),
-	  AtLeastNQ   "MinimumCardinality":i             "Variable":v trans*:xs -> ['AtLeastNQ', i, v].concat(xs),
-	  NumericalRangeQ    "MinimumCardinality":i "MaximumCardinality":a "Variable":v trans*:xs -> ['NumericalRangeQ', i, a, v].concat(xs),
+		quant =
+			"UniversalQ" | "ExistentialQ" | "ExactQ" | "AtMostNQ" | "AtLeastNQ" | "NumericalRangeQ",
+		UniversalQ
+			"Variable":v trans*:xs
+			-> ['UniversalQ', v].concat(xs),
+		ExistentialQ
+			"Variable":v trans*:xs
+			-> ['ExistentialQ', v].concat(xs),
+		ExactQ
+			"Cardinality":i "Variable":v trans*:xs
+			-> ['ExactQ', i, v].concat(xs),
+		AtMostNQ
+			"MaximumCardinality":a "Variable":v trans*:xs
+			-> ['AtMostNQ', a, v].concat(xs),
+		AtLeastNQ
+			"MinimumCardinality":i "Variable":v trans*:xs
+			-> ['AtLeastNQ', i, v].concat(xs),
+		NumericalRangeQ
+			"MinimumCardinality":i "MaximumCardinality":a "Variable":v trans*:xs
+			-> ['NumericalRangeQ', i, a, v].concat(xs),
 
-	  Cardinality       "Number":n                                   -> ['Cardinality', n],
-	  MinimumCardinality    "Number":n                                   -> ['MinimumCardinality', n],
-	  MaximumCardinality    "Number":n                                   -> ['MaximumCardinality', n],
+		Cardinality
+			"Number":n
+			-> ['Cardinality', n],
+		MinimumCardinality
+			"Number":n
+			-> ['MinimumCardinality', n],
+		MaximumCardinality
+			"Number":n
+			-> ['MaximumCardinality', n],
 
-	  Variable        "Number":n "Term":t "AtomicFormulation":w //{this.findReplace(w, n[1], t[1]);}
-														   -> ['Variable', n, t, w],
-	  Variable        "Number":n "Term":t quant:w                  -> ['Variable', n, t, w],    
-	  Variable        "Number":n "Term":t                          -> ['Variable', n, t],
+		Variable
+			"Number":n "Term":t "AtomicFormulation":w //{this.findReplace(w, n[1], t[1]);}
+			-> ['Variable', n, t, w],
+		Variable
+			"Number":n "Term":t quant:w
+			-> ['Variable', n, t, w],
+		Variable
+			"Number":n "Term":t
+			-> ['Variable', n, t],
 
-	  RoleBinding       "Term":t number:n                         -> ['RoleBinding', t, n], 
-	  AtomicFormulation       "FactType":f "RoleBinding"*:b {for(var i = 0; i<b.length; i++) {this.findReplace(f, b[i][1], b[i][2]);}}
-								   -> f
+		RoleBinding
+			"Term":t number:n
+			-> ['RoleBinding', t, n], 
+		AtomicFormulation
+			"FactType":f "RoleBinding"*:b {for(var i = 0; i<b.length; i++) {this.findReplace(f, b[i][1], b[i][2]);}}
+			-> f
 	}
 
-	SBVR_LF2SE.initialize = function() { this._didSomething = false }
+	SBVR_LF2SE.initialize = function() {
+		this._didSomething = false;
+	};
 
 	SBVR_LF2SE.findReplace = function(targetArray, oldValue) {
-	  /* finds oldValue in targetArray and adds the rest 
-	  of the arguments as elements in its place */
-	  
-	  newValues = Array.prototype.slice.call(arguments, 2);
-	  //alert([targetArray, oldValue, newValues]);
-	  
-	  for(var i=0;i<targetArray.length;i++) {
-		if(targetArray[i]==oldValue || _.isEqual(targetArray[i], oldValue)) {
-		  Array.prototype.splice.apply(targetArray,[i,1].concat(newValues));
+		/* finds oldValue in targetArray and adds the rest 
+		of the arguments as elements in its place */
+
+		var newValues = Array.prototype.slice.call(arguments, 2);
+		//alert([targetArray, oldValue, newValues]);
+
+		for(var i=0;i<targetArray.length;i++) {
+			if(targetArray[i]==oldValue || _.isEqual(targetArray[i], oldValue)) {
+				Array.prototype.splice.apply(targetArray,[i,1].concat(newValues));
+			}
 		}
-	  }
-	  
-	  //alert(targetArray);
-	}
+
+		//alert(targetArray);
+	};
 
 	// tree = SBVRParser.matchAll(model2, "expr")
 	// tree = SBVR_LF2SE.match(tree, "trans")

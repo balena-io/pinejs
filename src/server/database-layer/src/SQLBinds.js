@@ -1,9 +1,9 @@
 define(["ometa-core"], (function() {
     var SQLBinds = OMeta._extend({
         "skipToEnd": function(quote) {
-            var prev, text, _fromIdx = this.input.idx,
-                $elf = this,
-                found;
+            var found, $elf = this,
+                _fromIdx = this.input.idx,
+                text, prev;
             text = this._many((function() {
                 this._not((function() {
                     return (found == quote)
@@ -20,9 +20,9 @@ define(["ometa-core"], (function() {
             return text.join("")
         },
         "parse": function(nextBind) {
-            var text, _fromIdx = this.input.idx,
-                sql, $elf = this,
-                quote;
+            var quote, sql, $elf = this,
+                _fromIdx = this.input.idx,
+                text;
             sql = this._many((function() {
                 return this._or((function() {
                     quote = (function() {

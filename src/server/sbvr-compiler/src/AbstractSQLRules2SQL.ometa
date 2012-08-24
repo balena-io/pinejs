@@ -293,7 +293,7 @@ define(['ometa-core'], function() {
 	
 	AbstractSQLRules2SQL.initialize = function() {
 		this.fieldOrderings = [];
-	}
+	};
 	
 	return AbstractSQLRules2SQL;
 });

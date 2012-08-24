@@ -14,8 +14,9 @@ define(["ometa-core"], (function() {
             return (indent + "\t")
         },
         "Not": function(indent) {
-            var notStatement, nestedIndent, ruleBody, $elf = this,
-                _fromIdx = this.input.idx;
+            var nestedIndent, notStatement, $elf = this,
+                _fromIdx = this.input.idx,
+                ruleBody;
             this._form((function() {
                 this._applyWithArgs("exactly", "Not");
                 return notStatement = this._or((function() {
@@ -30,8 +31,9 @@ define(["ometa-core"], (function() {
             return notStatement
         },
         "Exists": function(indent) {
-            var nestedIndent, ruleBody, $elf = this,
-                _fromIdx = this.input.idx;
+            var nestedIndent, $elf = this,
+                _fromIdx = this.input.idx,
+                ruleBody;
             this._form((function() {
                 this._applyWithArgs("exactly", "Exists");
                 nestedIndent = this._applyWithArgs("NestedIndent", indent);
@@ -41,7 +43,8 @@ define(["ometa-core"], (function() {
         },
         "ProcessQuery": function() {
             var $elf = this,
-                query, _fromIdx = this.input.idx;
+                _fromIdx = this.input.idx,
+                query;
             return this._or((function() {
                 query = this._or((function() {
                     return this._applyWithArgs("SelectQuery", "\n")
@@ -61,9 +64,9 @@ define(["ometa-core"], (function() {
             }))
         },
         "SelectQuery": function(indent) {
-            var table, nestedIndent, fields, $elf = this,
-                where, _fromIdx = this.input.idx,
-                tables, orderBy;
+            var nestedIndent, tables, where, $elf = this,
+                _fromIdx = this.input.idx,
+                fields, table, orderBy;
             nestedIndent = this._applyWithArgs("NestedIndent", indent);
             tables = [];
             this._form((function() {
@@ -88,9 +91,9 @@ define(["ometa-core"], (function() {
             return (((((("SELECT " + fields.join(", ")) + indent) + "FROM ") + tables.join(("," + nestedIndent))) + ((where != null) ? where : "")) + ((orderBy != null) ? orderBy : ""))
         },
         "DeleteQuery": function(indent) {
-            var table, $elf = this,
-                where, _fromIdx = this.input.idx,
-                tables;
+            var tables, where, $elf = this,
+                _fromIdx = this.input.idx,
+                table;
             tables = [];
             this._form((function() {
                 this._applyWithArgs("exactly", "DeleteQuery");
@@ -109,9 +112,9 @@ define(["ometa-core"], (function() {
             return ((("DELETE FROM " + tables.join(", ")) + indent) + ((where != null) ? where : ""))
         },
         "InsertBody": function(indent) {
-            var table, $elf = this,
+            var fieldValues, tables, $elf = this,
                 _fromIdx = this.input.idx,
-                fieldValues, tables;
+                table;
             tables = [];
             this._many((function() {
                 return this._form((function() {
@@ -137,9 +140,9 @@ define(["ometa-core"], (function() {
             return (((((((("INSERT INTO " + tables.join(", ")) + " (") + fieldValues[(0)].join(", ")) + ")") + indent) + " VALUES (") + fieldValues[(1)].join(", ")) + ")")
         },
         "UpdateBody": function(indent) {
-            var table, sets, $elf = this,
-                where, _fromIdx = this.input.idx,
-                fieldValues, tables;
+            var fieldValues, sets, tables, where, $elf = this,
+                _fromIdx = this.input.idx,
+                table;
             tables = [];
             this._many((function() {
                 return this._form((function() {
@@ -164,9 +167,9 @@ define(["ometa-core"], (function() {
             return ((((("UPDATE " + tables.join(", ")) + indent) + " SET ") + sets.join(("," + indent))) + ((where != null) ? where : ""))
         },
         "UpsertQuery": function(indent) {
-            var $elf = this,
-                insert, _fromIdx = this.input.idx,
-                tables, update;
+            var update, tables, $elf = this,
+                _fromIdx = this.input.idx,
+                insert;
             tables = [];
             this._form((function() {
                 this._applyWithArgs("exactly", "UpsertQuery");
@@ -188,7 +191,8 @@ define(["ometa-core"], (function() {
         },
         "InsertQuery": function(indent) {
             var $elf = this,
-                insert, _fromIdx = this.input.idx;
+                _fromIdx = this.input.idx,
+                insert;
             this._form((function() {
                 this._applyWithArgs("exactly", "InsertQuery");
                 return insert = this._applyWithArgs("InsertBody", indent)
@@ -196,9 +200,8 @@ define(["ometa-core"], (function() {
             return insert
         },
         "UpdateQuery": function(indent) {
-            var $elf = this,
-                _fromIdx = this.input.idx,
-                update;
+            var update, $elf = this,
+                _fromIdx = this.input.idx;
             this._form((function() {
                 this._applyWithArgs("exactly", "UpdateQuery");
                 return update = this._applyWithArgs("UpdateBody", indent)
@@ -206,16 +209,16 @@ define(["ometa-core"], (function() {
             return update
         },
         "Null": function() {
-            var $elf = this,
-                next, _fromIdx = this.input.idx;
+            var next, $elf = this,
+                _fromIdx = this.input.idx;
             next = this._apply("anything");
             this._pred((next === null));
             return null
         },
         "Fields": function() {
-            var value, fields, $elf = this,
+            var value, field, values, $elf = this,
                 _fromIdx = this.input.idx,
-                field, values;
+                fields;
             this._applyWithArgs("exactly", "Fields");
             fields = [];
             values = [];
@@ -255,9 +258,9 @@ define(["ometa-core"], (function() {
             return [fields, values]
         },
         "Select": function() {
-            var fields, $elf = this,
+            var field, $elf = this,
                 _fromIdx = this.input.idx,
-                field, as;
+                fields, as;
             this._applyWithArgs("exactly", "Select");
             fields = [];
             this._form((function() {
@@ -313,9 +316,9 @@ define(["ometa-core"], (function() {
             return fields
         },
         "Table": function() {
-            var table, $elf = this,
+            var $elf = this,
                 _fromIdx = this.input.idx,
-                alias;
+                table, alias;
             this._applyWithArgs("exactly", "From");
             table = this._apply("anything");
             alias = [];
@@ -332,9 +335,9 @@ define(["ometa-core"], (function() {
             return this._applyWithArgs("RuleBody", indent)
         },
         "OrderBy": function(indent) {
-            var order, $elf = this,
+            var field, orders, $elf = this,
                 _fromIdx = this.input.idx,
-                field, orders;
+                order;
             this._applyWithArgs("exactly", "OrderBy");
             orders = [];
             this._many1((function() {
@@ -356,9 +359,8 @@ define(["ometa-core"], (function() {
             return orders.join(", ")
         },
         "Field": function() {
-            var $elf = this,
-                _fromIdx = this.input.idx,
-                field;
+            var field, $elf = this,
+                _fromIdx = this.input.idx;
             this._form((function() {
                 this._applyWithArgs("exactly", "Field");
                 return field = this._apply("anything")
@@ -366,9 +368,9 @@ define(["ometa-core"], (function() {
             return (("\"" + field) + "\"")
         },
         "ReferencedField": function() {
-            var $elf = this,
-                binding, _fromIdx = this.input.idx,
-                field;
+            var field, $elf = this,
+                _fromIdx = this.input.idx,
+                binding;
             this._form((function() {
                 this._applyWithArgs("exactly", "ReferencedField");
                 binding = this._apply("anything");
@@ -386,8 +388,8 @@ define(["ometa-core"], (function() {
             return number
         },
         "Boolean": function() {
-            var $elf = this,
-                bool, _fromIdx = this.input.idx;
+            var bool, $elf = this,
+                _fromIdx = this.input.idx;
             this._form((function() {
                 this._applyWithArgs("exactly", "Boolean");
                 return bool = this._or((function() {
@@ -401,9 +403,8 @@ define(["ometa-core"], (function() {
             return bool
         },
         "Bind": function() {
-            var tableName, $elf = this,
-                _fromIdx = this.input.idx,
-                field;
+            var field, tableName, $elf = this,
+                _fromIdx = this.input.idx;
             this._form((function() {
                 this._applyWithArgs("exactly", "Bind");
                 tableName = this._apply("anything");
@@ -433,23 +434,24 @@ define(["ometa-core"], (function() {
             return ruleBodies.join(" AND ")
         },
         "Comparison": function(indent) {
-            var comparison, $elf = this,
-                a, b, _fromIdx = this.input.idx;
+            var a, comparison, $elf = this,
+                _fromIdx = this.input.idx,
+                b;
             this._form((function() {
                 comparison = (function() {
                     switch (this._apply('anything')) {
-                    case "NotEquals":
-                        return "NotEquals";
-                    case "LessThanOrEqual":
-                        return "LessThanOrEqual";
-                    case "Equals":
-                        return "Equals";
                     case "GreaterThanOrEqual":
                         return "GreaterThanOrEqual";
-                    case "GreaterThan":
-                        return "GreaterThan";
+                    case "NotEquals":
+                        return "NotEquals";
                     case "LessThan":
                         return "LessThan";
+                    case "Equals":
+                        return "Equals";
+                    case "GreaterThan":
+                        return "GreaterThan";
+                    case "LessThanOrEqual":
+                        return "LessThanOrEqual";
                     default:
                         throw this._fail()
                     }
@@ -460,9 +462,9 @@ define(["ometa-core"], (function() {
             return ((a + comparisons[comparison]) + b)
         },
         "Between": function(indent) {
-            var $elf = this,
-                a, b, _fromIdx = this.input.idx,
-                val;
+            var a, $elf = this,
+                _fromIdx = this.input.idx,
+                val, b;
             this._form((function() {
                 this._applyWithArgs("exactly", "Between");
                 val = this._applyWithArgs("Comparator", indent);
@@ -473,7 +475,8 @@ define(["ometa-core"], (function() {
         },
         "Comparator": function(indent) {
             var nestedIndent, $elf = this,
-                query, _fromIdx = this.input.idx;
+                _fromIdx = this.input.idx,
+                query;
             return this._or((function() {
                 nestedIndent = this._applyWithArgs("NestedIndent", indent);
                 query = this._applyWithArgs("SelectQuery", nestedIndent);
@@ -510,8 +513,9 @@ define(["ometa-core"], (function() {
             }))
         },
         "Process": function() {
-            var ruleBody, $elf = this,
-                _fromIdx = this.input.idx;
+            var $elf = this,
+                _fromIdx = this.input.idx,
+                ruleBody;
             ruleBody = this._applyWithArgs("RuleBody", "\n");
             return (("SELECT " + ruleBody) + " AS \"result\";")
         }

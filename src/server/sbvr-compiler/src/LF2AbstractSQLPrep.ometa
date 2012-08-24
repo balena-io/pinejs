@@ -140,7 +140,7 @@ define(['sbvr-compiler/LFOptimiser', 'underscore'], function(LFOptimiser, _) {
 		this.primitives = [];
 		this.attributes = [];
 		this.processingAttributeRule = false;
-	}
+	};
 	
 	LF2AbstractSQLPrep.defaultAttributes = function(termOrVerb, attrsFound, attrs) {
 		if(!attrsFound.hasOwnProperty('DatabaseIDField')) {
@@ -182,7 +182,7 @@ define(['sbvr-compiler/LFOptimiser', 'underscore'], function(LFOptimiser, _) {
 						this.SetHelped();
 					}
 					else if(attrsFound['ForeignKey'] != this.foreignKeys[termOrVerb]) {
-						console.error(attrsFound['ForeignKey'], this.foreignKeys[termOrVerb])
+						console.error(attrsFound['ForeignKey'], this.foreignKeys[termOrVerb]);
 						___MISMATCHED_FOREIGN_KEY___.die();
 					}
 					if(!attrsFound.hasOwnProperty('DatabaseAttribute')) {
@@ -210,6 +210,6 @@ define(['sbvr-compiler/LFOptimiser', 'underscore'], function(LFOptimiser, _) {
 			break;
 		}
 		termOrVerb.push(attrs);
-	}
+	};
 	return LF2AbstractSQLPrep;
 });

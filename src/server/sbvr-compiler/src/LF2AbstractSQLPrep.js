@@ -2,8 +2,8 @@ define(["sbvr-compiler/LFOptimiser", "underscore"], (function(LFOptimiser, _) {
     var LF2AbstractSQLPrep;
     var LF2AbstractSQLPrep = LFOptimiser._extend({
         "AttrConceptType": function(termName) {
-            var _fromIdx = this.input.idx,
-                $elf = this,
+            var $elf = this,
+                _fromIdx = this.input.idx,
                 conceptType;
             conceptType = LFOptimiser._superApplyWithArgs(this, 'AttrConceptType', termName);
             this._opt((function() {
@@ -14,9 +14,9 @@ define(["sbvr-compiler/LFOptimiser", "underscore"], (function(LFOptimiser, _) {
             return conceptType
         },
         "AttrDatabaseAttribute": function(termOrFactType) {
-            var newAttrVal, _fromIdx = this.input.idx,
-                $elf = this,
-                attrVal;
+            var attrVal, $elf = this,
+                _fromIdx = this.input.idx,
+                newAttrVal;
             attrVal = this._apply("anything");
             newAttrVal = (((termOrFactType[(0)] == "Term") && ((!this["attributes"].hasOwnProperty(termOrFactType[(3)])) || (this["attributes"][termOrFactType[(3)]] === true))) || (((((termOrFactType[(0)] == "FactType") && (termOrFactType["length"] == (4))) && ((!this["attributes"].hasOwnProperty(termOrFactType[(3)])) || (this["attributes"][termOrFactType[(3)]] === true))) && this["primitives"].hasOwnProperty(termOrFactType[(3)])) && (this["primitives"][termOrFactType[(3)]] !== false)));
             (this["attributes"][termOrFactType] = newAttrVal);
@@ -28,9 +28,9 @@ define(["sbvr-compiler/LFOptimiser", "underscore"], (function(LFOptimiser, _) {
             return newAttrVal
         },
         "AttrDatabasePrimitive": function(termOrFactType) {
-            var newAttrVal, _fromIdx = this.input.idx,
-                $elf = this,
-                attrVal;
+            var attrVal, $elf = this,
+                _fromIdx = this.input.idx,
+                newAttrVal;
             attrVal = this._apply("anything");
             newAttrVal = attrVal;
             this._opt((function() {
@@ -44,8 +44,8 @@ define(["sbvr-compiler/LFOptimiser", "underscore"], (function(LFOptimiser, _) {
             return newAttrVal
         },
         "Variable": function() {
-            var variable, newTerm, term, _fromIdx = this.input.idx,
-                $elf = this;
+            var newTerm, variable, term, $elf = this,
+                _fromIdx = this.input.idx;
             variable = LFOptimiser._superApplyWithArgs(this, 'Variable');
             this._opt((function() {
                 term = variable[(2)];
@@ -67,8 +67,8 @@ define(["sbvr-compiler/LFOptimiser", "underscore"], (function(LFOptimiser, _) {
             return variable
         },
         "AtomicFormulation": function() {
-            var actualFactType, _fromIdx = this.input.idx,
-                factType, $elf = this;
+            var actualFactType, factType, $elf = this,
+                _fromIdx = this.input.idx;
             factType = this._lookahead((function() {
                 return this._applyWithArgs("token", "FactType")
             }));
@@ -90,8 +90,8 @@ define(["sbvr-compiler/LFOptimiser", "underscore"], (function(LFOptimiser, _) {
             }))
         },
         "UniversalQ": function() {
-            var xs, _fromIdx = this.input.idx,
-                v, $elf = this;
+            var v, xs, $elf = this,
+                _fromIdx = this.input.idx;
             v = this._applyWithArgs("token", "Variable");
             xs = this._many((function() {
                 return this._apply("trans")
@@ -100,8 +100,8 @@ define(["sbvr-compiler/LFOptimiser", "underscore"], (function(LFOptimiser, _) {
             return ["LogicalNegation", ["ExistentialQ", v, ["LogicalNegation"].concat(xs)]]
         },
         "AtMostNQ": function() {
-            var maxCard, xs, _fromIdx = this.input.idx,
-                v, $elf = this;
+            var v, maxCard, xs, $elf = this,
+                _fromIdx = this.input.idx;
             maxCard = this._applyWithArgs("token", "MaximumCardinality");
             v = this._applyWithArgs("token", "Variable");
             xs = this._many((function() {
@@ -112,9 +112,9 @@ define(["sbvr-compiler/LFOptimiser", "underscore"], (function(LFOptimiser, _) {
             return ["LogicalNegation", ["AtLeastNQ", ["MinimumCardinality", maxCard[(1)]], v].concat(xs)]
         },
         "ForeignKey": function(v1) {
-            var actualFactType, card, _fromIdx = this.input.idx,
-                necessity, factType, $elf = this,
-                v2, atomicForm;
+            var actualFactType, v2, factType, card, atomicForm, $elf = this,
+                _fromIdx = this.input.idx,
+                necessity;
             this._pred((v1["length"] == (3)));
             this._or((function() {
                 return this._form((function() {
@@ -145,8 +145,8 @@ define(["sbvr-compiler/LFOptimiser", "underscore"], (function(LFOptimiser, _) {
             return this._apply("SetHelped")
         },
         "Rule": function() {
-            var v1, _fromIdx = this.input.idx,
-                $elf = this;
+            var v1, $elf = this,
+                _fromIdx = this.input.idx;
             (this["processingAttributeRule"] = false);
             return this._or((function() {
                 this._form((function() {
@@ -154,6 +154,11 @@ define(["sbvr-compiler/LFOptimiser", "underscore"], (function(LFOptimiser, _) {
                     return this._form((function() {
                         return (function() {
                             switch (this._apply('anything')) {
+                            case "UniversalQ":
+                                return (function() {
+                                    v1 = this._applyWithArgs("token", "Variable");
+                                    return this._applyWithArgs("ForeignKey", v1)
+                                }).call(this);
                             case "LogicalNegation":
                                 return this._form((function() {
                                     this._applyWithArgs("exactly", "ExistentialQ");
@@ -163,11 +168,6 @@ define(["sbvr-compiler/LFOptimiser", "underscore"], (function(LFOptimiser, _) {
                                         return this._applyWithArgs("ForeignKey", v1)
                                     }))
                                 }));
-                            case "UniversalQ":
-                                return (function() {
-                                    v1 = this._applyWithArgs("token", "Variable");
-                                    return this._applyWithArgs("ForeignKey", v1)
-                                }).call(this);
                             default:
                                 throw this._fail()
                             }

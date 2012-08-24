@@ -162,11 +162,11 @@ define(['sbvr-parser/SBVRLibs', 'ometa-core'], function(SBVRLibs) {
 	
 	LFValidator.initialize = function() {
 		SBVRLibs.initialize.call(this);
-	}
+	};
 
 	LFValidator.defaultAttributes = function(termOrVerb, attrsFound, attrs) {
 		termOrVerb.push(attrs);
-	}
+	};
 	
 	return LFValidator;
 });

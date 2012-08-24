@@ -274,7 +274,7 @@ define(['underscore', 'Prettify', 'ometa-core'], function(_, Prettify) {
 	
 	AbstractSQLOptimiser.initialize = function() {
 		this.helped = false;
-	}
+	};
 	
 	return AbstractSQLOptimiser;
 });

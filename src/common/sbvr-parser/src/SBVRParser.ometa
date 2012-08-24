@@ -403,7 +403,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 				for(term in currentLevel) {
 					if(currentLevel.hasOwnProperty(term)) {
 						if(removeTermRegex.test(term)) {
-							terms.push(term.replace(removeTermRegex,''))
+							terms.push(term.replace(removeTermRegex,''));
 						}
 					}
 				}
@@ -414,7 +414,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 				for(verb in currentLevel) {
 					if(currentLevel.hasOwnProperty(verb)) {
 						if(removeVerbRegex.test(verb)) {
-							verbs.push(verb.replace(removeVerbRegex,''))
+							verbs.push(verb.replace(removeVerbRegex,''));
 						}
 					}
 				}

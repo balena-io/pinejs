@@ -1,8 +1,8 @@
 define(["sbvr-parser/SBVRLibs", "ometa-core"], (function(SBVRLibs) {
     var LFValidator = SBVRLibs._extend({
         "$": function(x) {
-            var a, _fromIdx = this.input.idx,
-                $elf = this;
+            var a, $elf = this,
+                _fromIdx = this.input.idx;
             return this._or((function() {
                 a = this._applyWithArgs("token", x);
                 return [a]
@@ -11,8 +11,9 @@ define(["sbvr-parser/SBVRLibs", "ometa-core"], (function(SBVRLibs) {
             }))
         },
         "trans": function() {
-            var a, t, _fromIdx = this.input.idx,
-                $elf = this;
+            var a, $elf = this,
+                _fromIdx = this.input.idx,
+                t;
             this._form((function() {
                 t = this._apply("anything");
                 return a = this._applyWithArgs("apply", t)
@@ -20,8 +21,9 @@ define(["sbvr-parser/SBVRLibs", "ometa-core"], (function(SBVRLibs) {
             return a
         },
         "token": function(x) {
-            var a, t, _fromIdx = this.input.idx,
-                $elf = this;
+            var a, $elf = this,
+                _fromIdx = this.input.idx,
+                t;
             this._form((function() {
                 t = this._apply("anything");
                 this._pred((t == x));
@@ -30,8 +32,8 @@ define(["sbvr-parser/SBVRLibs", "ometa-core"], (function(SBVRLibs) {
             return a
         },
         "letters": function() {
-            var l, _fromIdx = this.input.idx,
-                $elf = this;
+            var l, $elf = this,
+                _fromIdx = this.input.idx;
             l = this._many1((function() {
                 return this._apply("letter")
             }));
@@ -41,17 +43,15 @@ define(["sbvr-parser/SBVRLibs", "ometa-core"], (function(SBVRLibs) {
             return l.join("")
         },
         "Number": function() {
-            var _fromIdx = this.input.idx,
-                $elf = this,
-                n;
+            var n, $elf = this,
+                _fromIdx = this.input.idx;
             n = this._apply("number");
             this._pred((!isNaN(n)));
             return ["Number", parseInt(n)]
         },
         "Model": function() {
-            var xs, _fromIdx = this.input.idx,
-                $elf = this,
-                x;
+            var x, xs, $elf = this,
+                _fromIdx = this.input.idx;
             xs = [];
             this._many((function() {
                 x = this._or((function() {
@@ -69,8 +69,9 @@ define(["sbvr-parser/SBVRLibs", "ometa-core"], (function(SBVRLibs) {
             return ["Model"].concat(xs)
         },
         "FactType": function() {
-            var t, attrs, _fromIdx = this.input.idx,
-                factType, v, $elf = this;
+            var factType, v, $elf = this,
+                _fromIdx = this.input.idx,
+                attrs, t;
             factType = [];
             this._many((function() {
                 t = this._applyWithArgs("token", "Term");
@@ -88,21 +89,22 @@ define(["sbvr-parser/SBVRLibs", "ometa-core"], (function(SBVRLibs) {
             return this._applyWithArgs("addAttributes", ["FactType"].concat(factType))
         },
         "Term": function() {
-            var t, _fromIdx = this.input.idx,
-                $elf = this;
+            var $elf = this,
+                _fromIdx = this.input.idx,
+                t;
             t = this._apply("anything");
             return this._applyWithArgs("addAttributes", ["Term", t])
         },
         "Verb": function() {
-            var _fromIdx = this.input.idx,
-                v, $elf = this;
+            var v, $elf = this,
+                _fromIdx = this.input.idx;
             v = this._apply("anything");
             return ["Verb", v]
         },
         "Rule": function() {
-            var t, _fromIdx = this.input.idx,
-                $elf = this,
-                x;
+            var x, $elf = this,
+                _fromIdx = this.input.idx,
+                t;
             x = this._or((function() {
                 return this._applyWithArgs("token", "ObligationF")
             }), (function() {
@@ -116,9 +118,9 @@ define(["sbvr-parser/SBVRLibs", "ometa-core"], (function(SBVRLibs) {
             return ["Rule", x, t]
         },
         "addAttributes": function(termOrVerb) {
-            var attrName, attrs, attrsFound, _fromIdx = this.input.idx,
-                $elf = this,
-                attrVal;
+            var attrVal, $elf = this,
+                _fromIdx = this.input.idx,
+                attrs, attrName, attrsFound;
             this._or((function() {
                 return this._apply("end")
             }), (function() {
@@ -139,13 +141,13 @@ define(["sbvr-parser/SBVRLibs", "ometa-core"], (function(SBVRLibs) {
             return termOrVerb
         },
         "DefaultAttr": function(tableID) {
-            var _fromIdx = this.input.idx,
-                $elf = this;
+            var $elf = this,
+                _fromIdx = this.input.idx;
             return this._apply("anything")
         },
         "AttrConceptType": function(termName) {
-            var _fromIdx = this.input.idx,
-                $elf = this,
+            var $elf = this,
+                _fromIdx = this.input.idx,
                 conceptType;
             return this._form((function() {
                 this._applyWithArgs("exactly", "Term");
@@ -154,8 +156,8 @@ define(["sbvr-parser/SBVRLibs", "ometa-core"], (function(SBVRLibs) {
             }))
         },
         "AttrDefinition": function(termOrVerb) {
-            var values, _fromIdx = this.input.idx,
-                $elf = this;
+            var values, $elf = this,
+                _fromIdx = this.input.idx;
             return this._or((function() {
                 return this._form((function() {
                     this._applyWithArgs("exactly", "Enum");
@@ -166,59 +168,60 @@ define(["sbvr-parser/SBVRLibs", "ometa-core"], (function(SBVRLibs) {
             }))
         },
         "AttrSynonymousForm": function(factType) {
-            var synForm, _fromIdx = this.input.idx,
-                $elf = this;
+            var $elf = this,
+                _fromIdx = this.input.idx,
+                synForm;
             synForm = this._apply("anything");
             this._applyWithArgs("AddFactType", synForm.slice((0), (-(1))), factType.slice((1)));
             return synForm
         },
         "StructuredEnglish": function() {
-            var a, _fromIdx = this.input.idx,
-                $elf = this;
+            var a, $elf = this,
+                _fromIdx = this.input.idx;
             a = this._apply("anything");
             return ["StructuredEnglish", a]
         },
         "ObligationF": function() {
-            var xs, _fromIdx = this.input.idx,
-                $elf = this;
+            var xs, $elf = this,
+                _fromIdx = this.input.idx;
             xs = this._many((function() {
                 return this._apply("trans")
             }));
             return ["ObligationF"].concat(xs)
         },
         "NecessityF": function() {
-            var xs, _fromIdx = this.input.idx,
-                $elf = this;
+            var xs, $elf = this,
+                _fromIdx = this.input.idx;
             xs = this._many((function() {
                 return this._apply("trans")
             }));
             return ["NecessityF"].concat(xs)
         },
         "PossibilityF": function() {
-            var xs, _fromIdx = this.input.idx,
-                $elf = this;
+            var xs, $elf = this,
+                _fromIdx = this.input.idx;
             xs = this._many((function() {
                 return this._apply("trans")
             }));
             return ["PossibilityF"].concat(xs)
         },
         "PermissibilityF": function() {
-            var xs, _fromIdx = this.input.idx,
-                $elf = this;
+            var xs, $elf = this,
+                _fromIdx = this.input.idx;
             xs = this._many((function() {
                 return this._apply("trans")
             }));
             return ["PermissibilityF"].concat(xs)
         },
         "LogicalNegation": function() {
-            var xs, _fromIdx = this.input.idx,
-                $elf = this;
+            var xs, $elf = this,
+                _fromIdx = this.input.idx;
             xs = this._apply("trans");
             return ["LogicalNegation"].concat([xs])
         },
         "quant": function() {
-            var _fromIdx = this.input.idx,
-                $elf = this;
+            var $elf = this,
+                _fromIdx = this.input.idx;
             return this._or((function() {
                 return this._applyWithArgs("token", "UniversalQ")
             }), (function() {
@@ -234,8 +237,8 @@ define(["sbvr-parser/SBVRLibs", "ometa-core"], (function(SBVRLibs) {
             }))
         },
         "UniversalQ": function() {
-            var xs, _fromIdx = this.input.idx,
-                v, $elf = this;
+            var v, xs, $elf = this,
+                _fromIdx = this.input.idx;
             v = this._applyWithArgs("token", "Variable");
             xs = this._many((function() {
                 return this._apply("trans")
@@ -243,8 +246,8 @@ define(["sbvr-parser/SBVRLibs", "ometa-core"], (function(SBVRLibs) {
             return ["UniversalQ", v].concat(xs)
         },
         "ExistentialQ": function() {
-            var xs, _fromIdx = this.input.idx,
-                v, $elf = this;
+            var v, xs, $elf = this,
+                _fromIdx = this.input.idx;
             v = this._applyWithArgs("token", "Variable");
             xs = this._many((function() {
                 return this._apply("trans")
@@ -252,8 +255,9 @@ define(["sbvr-parser/SBVRLibs", "ometa-core"], (function(SBVRLibs) {
             return ["ExistentialQ", v].concat(xs)
         },
         "ExactQ": function() {
-            var xs, i, _fromIdx = this.input.idx,
-                v, $elf = this;
+            var v, xs, $elf = this,
+                _fromIdx = this.input.idx,
+                i;
             i = this._applyWithArgs("token", "Cardinality");
             v = this._applyWithArgs("token", "Variable");
             xs = this._many((function() {
@@ -262,8 +266,8 @@ define(["sbvr-parser/SBVRLibs", "ometa-core"], (function(SBVRLibs) {
             return ["ExactQ", i, v].concat(xs)
         },
         "AtMostNQ": function() {
-            var xs, a, _fromIdx = this.input.idx,
-                v, $elf = this;
+            var a, v, xs, $elf = this,
+                _fromIdx = this.input.idx;
             a = this._applyWithArgs("token", "MaximumCardinality");
             v = this._applyWithArgs("token", "Variable");
             xs = this._many((function() {
@@ -272,8 +276,9 @@ define(["sbvr-parser/SBVRLibs", "ometa-core"], (function(SBVRLibs) {
             return ["AtMostNQ", a, v].concat(xs)
         },
         "AtLeastNQ": function() {
-            var xs, i, _fromIdx = this.input.idx,
-                v, $elf = this;
+            var v, xs, $elf = this,
+                _fromIdx = this.input.idx,
+                i;
             i = this._applyWithArgs("token", "MinimumCardinality");
             v = this._applyWithArgs("token", "Variable");
             xs = this._many((function() {
@@ -282,8 +287,9 @@ define(["sbvr-parser/SBVRLibs", "ometa-core"], (function(SBVRLibs) {
             return ["AtLeastNQ", i, v].concat(xs)
         },
         "NumericalRangeQ": function() {
-            var xs, i, a, _fromIdx = this.input.idx,
-                v, $elf = this;
+            var a, v, xs, $elf = this,
+                _fromIdx = this.input.idx,
+                i;
             i = this._applyWithArgs("token", "MinimumCardinality");
             a = this._applyWithArgs("token", "MaximumCardinality");
             v = this._applyWithArgs("token", "Variable");
@@ -293,29 +299,27 @@ define(["sbvr-parser/SBVRLibs", "ometa-core"], (function(SBVRLibs) {
             return ["NumericalRangeQ", i, a, v].concat(xs)
         },
         "Cardinality": function() {
-            var _fromIdx = this.input.idx,
-                $elf = this,
-                n;
+            var n, $elf = this,
+                _fromIdx = this.input.idx;
             n = this._applyWithArgs("token", "Number");
             return ["Cardinality", n]
         },
         "MinimumCardinality": function() {
-            var _fromIdx = this.input.idx,
-                $elf = this,
-                n;
+            var n, $elf = this,
+                _fromIdx = this.input.idx;
             n = this._applyWithArgs("token", "Number");
             return ["MinimumCardinality", n]
         },
         "MaximumCardinality": function() {
-            var _fromIdx = this.input.idx,
-                $elf = this,
-                n;
+            var n, $elf = this,
+                _fromIdx = this.input.idx;
             n = this._applyWithArgs("token", "Number");
             return ["MaximumCardinality", n]
         },
         "Variable": function() {
-            var term, w, _fromIdx = this.input.idx,
-                num, $elf = this;
+            var w, term, $elf = this,
+                _fromIdx = this.input.idx,
+                num;
             num = this._applyWithArgs("token", "Number");
             term = this._applyWithArgs("token", "Term");
             w = this._many((function() {
@@ -328,17 +332,17 @@ define(["sbvr-parser/SBVRLibs", "ometa-core"], (function(SBVRLibs) {
             return ["Variable", num, term].concat(w)
         },
         "RoleBinding": function() {
-            var t, _fromIdx = this.input.idx,
-                $elf = this,
-                n;
+            var n, $elf = this,
+                _fromIdx = this.input.idx,
+                t;
             t = this._applyWithArgs("token", "Term");
             n = this._apply("number");
             return ["RoleBinding", t, n]
         },
         "AtomicFormulation": function() {
-            var b, _fromIdx = this.input.idx,
-                $elf = this,
-                f;
+            var f, $elf = this,
+                _fromIdx = this.input.idx,
+                b;
             f = this._applyWithArgs("token", "FactType");
             b = this._many((function() {
                 return this._applyWithArgs("token", "RoleBinding")

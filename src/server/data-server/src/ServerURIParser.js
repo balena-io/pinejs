@@ -1,16 +1,16 @@
 define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs, _) {
     var ServerURIParser = SBVRLibs._extend({
         "Process": function() {
-            var i, $elf = this,
-                body, vocab, resources, _fromIdx = this.input.idx,
-                uri, method;
+            var resources, body, vocab, $elf = this,
+                _fromIdx = this.input.idx,
+                method, i, uri;
             this._form((function() {
                 method = (function() {
                     switch (this._apply('anything')) {
-                    case "POST":
-                        return "POST";
                     case "PUT":
                         return "PUT";
+                    case "POST":
+                        return "POST";
                     case "DELETE":
                         return "DELETE";
                     case "GET":
@@ -103,9 +103,9 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs,
             }))
         },
         "Resource": function() {
-            var query, $elf = this,
+            var resourceName, $elf = this,
                 _fromIdx = this.input.idx,
-                resourceName;
+                query;
             resourceName = this._apply("ResourceName");
             this._opt((function() {
                 this._or((function() {
@@ -133,6 +133,16 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs,
                 _fromIdx = this.input.idx;
             return (function() {
                 switch (this._apply('anything')) {
+                case ":":
+                    return "Equals";
+                case "~":
+                    return "Like";
+                case "!":
+                    return (function() {
+                        this._applyWithArgs("exactly", ":");
+                        "!:";
+                        return "NotEquals"
+                    }).call(this);
                 case "<":
                     return this._or((function() {
                         return (function() {
@@ -146,16 +156,6 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs,
                     }), (function() {
                         return "LessThan"
                     }));
-                case "~":
-                    return "Like";
-                case "!":
-                    return (function() {
-                        this._applyWithArgs("exactly", ":");
-                        "!:";
-                        return "NotEquals"
-                    }).call(this);
-                case ":":
-                    return "Equals";
                 case ">":
                     return this._or((function() {
                         return (function() {
@@ -191,9 +191,9 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs,
             }))
         },
         "Field": function() {
-            var $elf = this,
-                table, _fromIdx = this.input.idx,
-                field;
+            var field, $elf = this,
+                _fromIdx = this.input.idx,
+                table;
             return this._or((function() {
                 table = this._apply("ResourcePart");
                 this._applyWithArgs("exactly", ".");
@@ -205,9 +205,9 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs,
             }))
         },
         "Filters": function(query) {
-            var comparator, value, $elf = this,
-                mapping, _fromIdx = this.input.idx,
-                resourceFieldName, resourceName, field;
+            var value, field, resourceName, resourceFieldName, $elf = this,
+                _fromIdx = this.input.idx,
+                mapping, comparator;
             this._applyWithArgs("exactly", "f");
             this._applyWithArgs("exactly", "i");
             this._applyWithArgs("exactly", "l");
@@ -245,9 +245,9 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs,
             }))
         },
         "Sorts": function() {
-            var direction, sorts, $elf = this,
+            var sorts, field, $elf = this,
                 _fromIdx = this.input.idx,
-                field;
+                direction;
             this._applyWithArgs("exactly", "o");
             this._applyWithArgs("exactly", "r");
             this._applyWithArgs("exactly", "d");
@@ -260,18 +260,18 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs,
                 this._applyWithArgs("exactly", "=");
                 direction = (function() {
                     switch (this._apply('anything')) {
+                    case "A":
+                        return (function() {
+                            this._applyWithArgs("exactly", "S");
+                            this._applyWithArgs("exactly", "C");
+                            return "ASC"
+                        }).call(this);
                     case "D":
                         return (function() {
                             this._applyWithArgs("exactly", "E");
                             this._applyWithArgs("exactly", "S");
                             this._applyWithArgs("exactly", "C");
                             return "DESC"
-                        }).call(this);
-                    case "A":
-                        return (function() {
-                            this._applyWithArgs("exactly", "S");
-                            this._applyWithArgs("exactly", "C");
-                            return "ASC"
                         }).call(this);
                     default:
                         throw this._fail()
@@ -351,7 +351,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs,
             query.push(["Where", whereBody])
         };
         if (((query[(0)] == "UpsertQuery") && (whereBody[(0)] == "Equals"))) {
-            var field, value;
+            var field, bind;
             if ((whereBody[(1)][(0)] == "Field")) {
                 (field = whereBody[(1)][(1)])
             } else {

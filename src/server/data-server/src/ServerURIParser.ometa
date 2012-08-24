@@ -190,7 +190,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core'], function(SBVRLibs, 
 		}
 		
 		if(query[0] == 'UpsertQuery' && whereBody[0] == 'Equals') {
-			var field, value;
+			var field, bind;
 			if(whereBody[1][0] == 'Field') {
 				field = whereBody[1][1];
 			}
@@ -245,7 +245,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core'], function(SBVRLibs, 
 			}
 		}
 		return this.newBody[mapping.join('.')] = value;
-	}
+	};
 
 	ServerURIParser.AddQueryTable = function(query, tableName) {
 		var i = 0;
@@ -255,7 +255,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core'], function(SBVRLibs, 
 			}
 		}
 		query.push(['From', tableName]);
-	}
+	};
 
 	ServerURIParser.AddQueryResource = function(query, resourceName) {
 		var newValue, fieldName, fields, mapping, resourceFieldName, self = this,

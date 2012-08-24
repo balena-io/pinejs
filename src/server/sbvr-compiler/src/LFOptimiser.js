@@ -2,20 +2,19 @@ define(["sbvr-compiler/LFValidator"], (function(LFValidator) {
     var LFOptimiser;
     var LFOptimiser = LFValidator._extend({
         "Helped": function() {
-            var _fromIdx = this.input.idx,
-                $elf = this;
+            var $elf = this,
+                _fromIdx = this.input.idx;
             this._pred((this["helped"] === true));
             return (this["helped"] = false)
         },
         "SetHelped": function() {
-            var _fromIdx = this.input.idx,
-                $elf = this;
+            var $elf = this,
+                _fromIdx = this.input.idx;
             return (this["helped"] = true)
         },
         "Process": function() {
-            var _fromIdx = this.input.idx,
-                $elf = this,
-                x;
+            var x, $elf = this,
+                _fromIdx = this.input.idx;
             x = this._apply("anything");
             x = this._applyWithArgs("trans", x);
             this._many((function() {
@@ -25,8 +24,9 @@ define(["sbvr-compiler/LFValidator"], (function(LFValidator) {
             return x
         },
         "AtLeastNQ": function() {
-            var xs, i, _fromIdx = this.input.idx,
-                v, $elf = this;
+            var v, xs, $elf = this,
+                _fromIdx = this.input.idx,
+                i;
             return this._or((function() {
                 i = this._applyWithArgs("token", "MinimumCardinality");
                 this._pred((i[(1)][(1)] == (1)));
@@ -41,9 +41,9 @@ define(["sbvr-compiler/LFValidator"], (function(LFValidator) {
             }))
         },
         "NumericalRangeQ": function() {
-            var xs, i, _fromIdx = this.input.idx,
-                v, $elf = this,
-                j;
+            var v, j, xs, $elf = this,
+                _fromIdx = this.input.idx,
+                i;
             return this._or((function() {
                 i = this._applyWithArgs("token", "MinimumCardinality");
                 j = this._applyWithArgs("token", "MaximumCardinality");
@@ -59,8 +59,8 @@ define(["sbvr-compiler/LFValidator"], (function(LFValidator) {
             }))
         },
         "LogicalNegation": function() {
-            var xs, _fromIdx = this.input.idx,
-                $elf = this;
+            var xs, $elf = this,
+                _fromIdx = this.input.idx;
             return this._or((function() {
                 this._form((function() {
                     this._applyWithArgs("exactly", "LogicalNegation");
