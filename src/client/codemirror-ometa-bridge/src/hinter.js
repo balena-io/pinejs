@@ -20,9 +20,12 @@ var ometaAutoComplete = (function () {
 	
 	CodeMirror.ometaHint = function(editor) {
 		var cur = editor.getCursor(false),
+			text = editor.getRange({ch:0, line:0}, cur),
+			modeName = editor.getOption('mode').name,
+			mode = CodeMirror.getMode(null, modeName),
+			grammar = mode.getGrammar(),
 			token = editor.getTokenAt(cur),
-			tokenString = token.string.substr(0,cur.ch-token.start),
-			grammar = editor.getTokenAt({line: cur.line, ch: 0}).state.grammar.clone();
+			tokenString = token.string.substr(0,cur.ch-token.start);
 		
 		var found = [], start = tokenString.toLowerCase(), whitespace = "", whitespaceRegexp = /^[\W]+/;
 		if(whitespaceRegexp.test(start)) {
@@ -58,15 +61,15 @@ var ometaAutoComplete = (function () {
 		
 		try {
 			grammar._enableBranchTracking(grammar.branches);
-			branches = grammar._getBranches();
-			branches.splice(0, branches.length);
-			grammar.matchAll(editor.getLine(cur.line).substring(0,cur.ch),'line');
+			grammar._enableTokens();
+			grammar.matchAll(text,'Process');
 		}
 		catch(e) {}
 
+		var branches = grammar._getBranches();
 		var hintBranches = grammar.branches;
 		
-		for(var i=cur.ch;i>=0;i--) {
+		for(var i = branches.length; i >= 0; i--) {
 			if(branches[i] != null) {
 				for(rule in branches[i]) {
 					try {

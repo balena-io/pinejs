@@ -26,7 +26,7 @@ define(['codemirror'], function() {
 		CodeMirror.defineMode(modeName, function(config, mode) {
 			var previousText = '',
 				tokens = [],
-				checkForNewText = function(state) {
+				checkForNewText = function() {
 					var ometaEditor = mode.getOMetaEditor();
 					if(ometaEditor == null) {
 						return;
@@ -49,7 +49,7 @@ define(['codemirror'], function() {
 						return;
 					}
 					// We check in case they deleted everything.
-					checkForNewText(state);
+					checkForNewText();
 					state.index++;
 				},
 				applyTokens = function(stream, state) {
@@ -93,14 +93,13 @@ define(['codemirror'], function() {
 
 				token: function(stream, state) {
 					if(stream.sol()) {
-						checkForNewText(state);
+						checkForNewText();
 					}
 					
 					// Check current and backtrack to add available tokens
 					for(var i = state.index; i >= state.previousIndex; i--) {
 						if(tokens[i] != null) {
 							state.currentTokens = state.currentTokens.concat(tokens[i]);
-							delete tokens[i];
 						}
 					}
 					state.previousIndex = state.index;
@@ -124,8 +123,11 @@ define(['codemirror'], function() {
 
 				indent: function(state, textAfter) {
 					return 0; // We don't indent as we currently have no way of asking the grammar about indentation.
-				}
+				},
 				
+				getGrammar: function() {
+					return ometaGrammar.createInstance();
+				}
 			};
 		});
 
