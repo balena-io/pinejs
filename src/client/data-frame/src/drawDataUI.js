@@ -110,8 +110,11 @@
           }
           return pid;
         },
+        getVocabulary: function() {
+          return tree[1][0];
+        },
         getModelURI: function() {
-          return serverAPI(this.getAbout(), false);
+          return serverAPI(this.getVocabulary(), this.getAbout(), false);
         },
         getServerURI: function() {
           var filters, leaf, op, _j, _len1, _ref;
@@ -133,7 +136,7 @@
             }
             filters.push([leaf[2], op[leaf[0]], leaf[3]]);
           }
-          return serverAPI(this.getAbout(), filters);
+          return serverAPI(this.getVocabulary(), this.getAbout(), filters);
         },
         isExpanded: function(resourceName, resourceID) {
           return getIndexForResource(resourceName, resourceID) !== false;
@@ -174,7 +177,7 @@
         }
       };
     };
-    getForeignKeyResults = function(clientModel, successCallback) {
+    getForeignKeyResults = function(tree, clientModel, successCallback) {
       var asyncCallback, field, foreignKey, foreignKeyResults, _fn, _i, _len, _ref, _ref1;
       foreignKeyResults = {};
       asyncCallback = createAsyncQueueCallback(function() {
@@ -187,7 +190,7 @@
       _fn = function(foreignKey) {
         foreignKeyResults[foreignKey] = [];
         asyncCallback.addWork(1);
-        return serverRequest('GET', serverAPI(foreignKey), {}, null, function(statusCode, result, headers) {
+        return serverRequest('GET', serverAPI(tree.getVocabulary(), foreignKey), {}, null, function(statusCode, result, headers) {
           var foreignKeys, instance, _j, _len1, _ref1;
           foreignKeys = {};
           _ref1 = result.instances;
@@ -209,12 +212,15 @@
       }
       return asyncCallback.endAdding();
     };
-    serverAPI = function(about, filters) {
+    serverAPI = function(vocabulary, about, filters) {
       var filter, filterString;
+      if (about == null) {
+        about = '';
+      }
       if (filters == null) {
         filters = [];
       }
-      if (filters === false) {
+      if (filters === false || about === '') {
         filterString = '';
       } else if (filters.length === 0) {
         filterString = '?';
@@ -229,13 +235,13 @@
           return _results;
         })()).join(';');
       }
-      return "/data/" + about.replace(new RegExp(' ', 'g'), '_') + filterString;
+      return '/' + vocabulary + '/' + about.replace(new RegExp(' ', 'g'), '_') + filterString;
     };
     drawData = function(tree) {
       var rootURI;
       tree = createNavigableTree(tree);
       rootURI = location.pathname;
-      return serverRequest("GET", "/data/", {}, null, function(statusCode, clientModel, headers) {
+      return serverRequest("GET", serverAPI(tree.getVocabulary()), {}, null, function(statusCode, clientModel, headers) {
         var asyncCallback, expandedTree, newb, resource, resourceName, topLevelResources;
         topLevelResources = {};
         asyncCallback = createAsyncQueueCallback(function(results) {
@@ -359,7 +365,7 @@
               resourceCollections[i].resourceName = instance[clientModel.valueField];
             } else if (resourceType === "FactType") {
               resourceCollectionsCallback.addWork(1);
-              getForeignKeyResults(clientModel, function(foreignKeys) {
+              getForeignKeyResults(ftree, clientModel, function(foreignKeys) {
                 var templateVars;
                 templateVars = $.extend({}, baseTemplateVars, (even ? evenTemplateVars : oddTemplateVars), {
                   foreignKeys: foreignKeys,
@@ -499,7 +505,7 @@
             var clientModel, instanceID;
             clientModel = result.model;
             instanceID = result.instances[0][clientModel.idField];
-            return getForeignKeyResults(result.model, function(foreignKeys) {
+            return getForeignKeyResults(ftree, result.model, function(foreignKeys) {
               var html;
               templateVars = $.extend(templateVars, {
                 action: action,
@@ -517,7 +523,7 @@
           });
         case 'add':
           return serverRequest("GET", ftree.getModelURI(), {}, null, function(statusCode, result, headers) {
-            return getForeignKeyResults(result.model, function(foreignKeys) {
+            return getForeignKeyResults(ftree, result.model, function(foreignKeys) {
               var html;
               templateVars = $.extend(templateVars, {
                 action: 'add',

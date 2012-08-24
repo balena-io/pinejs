@@ -260,8 +260,10 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs',
 						pid += "--" + pidTree[1][1]
 				return pid
 			# Needed
+			getVocabulary: () ->
+				return tree[1][0]
 			getModelURI: () ->
-				return serverAPI(this.getAbout(), false)
+				return serverAPI(this.getVocabulary(), this.getAbout(), false)
 			getServerURI: () ->
 				op =
 					eq: ":"
@@ -274,7 +276,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs',
 						# The resource name - not currently used in filter
 						leaf[1] = this.getAbout()
 					filters.push([leaf[2], op[leaf[0]], leaf[3]])
-				return serverAPI(this.getAbout(), filters)
+				return serverAPI(this.getVocabulary(), this.getAbout(), filters)
 			isExpanded: (resourceName, resourceID) -> getIndexForResource(resourceName, resourceID) != false
 			descend: (resourceName, resourceID) ->
 				index = getIndexForResource(resourceName, resourceID)
@@ -301,7 +303,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs',
 				return this.clone().modify(action, change).getURI()
 		}
 	
-	getForeignKeyResults = (clientModel, successCallback) ->
+	getForeignKeyResults = (tree, clientModel, successCallback) ->
 		foreignKeyResults = {}
 		
 		asyncCallback = createAsyncQueueCallback(
@@ -318,7 +320,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs',
 			do(foreignKey) ->
 				foreignKeyResults[foreignKey] = []
 				asyncCallback.addWork(1)
-				serverRequest('GET', serverAPI(foreignKey), {}, null,
+				serverRequest('GET', serverAPI(tree.getVocabulary(), foreignKey), {}, null,
 					(statusCode, result, headers) ->
 						foreignKeys = {}
 						for instance in result.instances
@@ -329,21 +331,21 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs',
 				)
 		asyncCallback.endAdding()
 
-	serverAPI = (about, filters = []) ->
+	serverAPI = (vocabulary, about = '', filters = []) ->
 		# render filters
-		if filters == false
+		if filters == false or about == ''
 			filterString = ''
 		else if filters.length == 0
 			filterString = '?'
 		else
 			filterString = '?filter=' + (filter[0] + filter[1] + filter[2] for filter in filters).join(';')
 		
-		"/data/" + about.replace(new RegExp(' ', 'g'), '_') + filterString
+		'/' + vocabulary + '/' + about.replace(new RegExp(' ', 'g'), '_') + filterString
 
 	drawData = (tree) ->
 		tree = createNavigableTree(tree)
 		rootURI = location.pathname
-		serverRequest("GET", "/data/", {}, null,
+		serverRequest("GET", serverAPI(tree.getVocabulary()), {}, null,
 			(statusCode, clientModel, headers) ->
 				topLevelResources = {}
 				asyncCallback = createAsyncQueueCallback(
@@ -453,7 +455,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs',
 								resourceCollections[i].resourceName = instance[clientModel.valueField]
 							else if resourceType == "FactType"
 								resourceCollectionsCallback.addWork(1)
-								getForeignKeyResults(clientModel,
+								getForeignKeyResults(ftree, clientModel,
 									(foreignKeys) ->
 										templateVars = $.extend({}, baseTemplateVars, (if even then evenTemplateVars else oddTemplateVars), {
 											foreignKeys: foreignKeys
@@ -563,7 +565,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs',
 					(statusCode, result, headers) ->
 						clientModel = result.model
 						instanceID = result.instances[0][clientModel.idField]
-						getForeignKeyResults(result.model, (foreignKeys) ->
+						getForeignKeyResults(ftree, result.model, (foreignKeys) ->
 							templateVars = $.extend(templateVars, {
 								action: action
 								id: instanceID
@@ -581,7 +583,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs',
 			when 'add'
 				serverRequest("GET", ftree.getModelURI(), {}, null,
 					(statusCode, result, headers) ->
-						getForeignKeyResults(result.model, (foreignKeys) ->
+						getForeignKeyResults(ftree, result.model, (foreignKeys) ->
 							templateVars = $.extend(templateVars, {
 								action: 'add'
 								id: false
