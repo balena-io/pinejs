@@ -38,9 +38,21 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 			Rule:      It is obligatory that each conditional representation has at most 1 field type
 			Rule:      It is obligatory that each conditional representation has exactly 1 lock
 			Rule:      It is obligatory that each resource is under at most 1 lock that is exclusive'''
-	transactionModel = SBVRParser.matchAll(transactionModel, "Process")
-	transactionModel = LF2AbstractSQLPrep.match(transactionModel, "Process")
-	transactionModel = LF2AbstractSQL.match(transactionModel, "Process")
+	
+	userModel = '''
+			Term:      Hashed
+			Term:      Short Text
+
+			Term:      user
+			Term:      user name
+				Concept Type: Short Text
+			Term:      password
+				Concept Type: Hashed
+			Fact type: user has user name
+			Rule:      It is obligatory that each user has exactly one user name.
+			Rule:      It is obligatory that each user name is of exactly one user.
+			Fact type: user has password
+			Rule:      It is obligatory that each user has exactly one password.'''
 	
 	uiModel = '''
 			Term:      Short Text
@@ -58,12 +70,20 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 			Rule:      It is obligatory that each textarea has exactly 1 name
 			Rule:      It is obligatory that each name is of exactly 1 textarea
 			Rule:      It is obligatory that each textarea has exactly 1 text'''
-	uiModel = SBVRParser.matchAll(uiModel, "Process")
-	uiModel = LF2AbstractSQLPrep.match(uiModel, "Process")
-	uiModel = LF2AbstractSQL.match(uiModel, "Process")
+
+	transactionModel = SBVRParser.matchAll(transactionModel, 'Process')
+	transactionModel = LF2AbstractSQLPrep.match(transactionModel, 'Process')
+	transactionModel = LF2AbstractSQL.match(transactionModel, 'Process')
+	userModel = SBVRParser.matchAll(userModel, 'Process')
+	userModel = LF2AbstractSQLPrep.match(userModel, 'Process')
+	userModel = LF2AbstractSQL.match(userModel, 'Process')
+	uiModel = SBVRParser.matchAll(uiModel, 'Process')
+	uiModel = LF2AbstractSQLPrep.match(uiModel, 'Process')
+	uiModel = LF2AbstractSQL.match(uiModel, 'Process')
 	
 	serverURIParser = ServerURIParser.createInstance()
 	serverURIParser.setSQLModel('transaction', transactionModel)
+	serverURIParser.setSQLModel('user', userModel)
 	serverURIParser.setSQLModel('ui', uiModel)
 	
 	sqlModels = {}
@@ -491,27 +511,37 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 			
 			serverModelCache()
 			transactionModel = AbstractSQL2SQL.generate(transactionModel)
+			userModel = AbstractSQL2SQL.generate(userModel)
 			uiModel = AbstractSQL2SQL.generate(uiModel)
 			
 			sqlModels['transaction'] = transactionModel
+			sqlModels['user'] = userModel
 			sqlModels['ui'] = uiModel
 			clientModels['transaction'] = AbstractSQL2CLF(transactionModel)
+			clientModels['user'] = AbstractSQL2CLF(userModel)
 			clientModels['ui'] = AbstractSQL2CLF(uiModel)
 			serverURIParser.setClientModel('transaction', clientModels['transaction'])
+			serverURIParser.setClientModel('user', clientModels['user'])
 			serverURIParser.setClientModel('ui', clientModels['ui'])
 			
 			db.transaction( (tx) ->
-				executeSqlModel(tx, uiModel,
-					() ->
-						console.log('Sucessfully executed ui model.')
-					(tx, error) ->
-						console.log('Failed to execute ui model.', error)
-				)
 				executeSqlModel(tx, transactionModel,
 					() ->
 						console.log('Sucessfully executed transaction model.')
 					(tx, error) ->
 						console.log('Failed to execute transaction model.', error)
+				)
+				executeSqlModel(tx, userModel,
+					() ->
+						console.log('Sucessfully executed user model.')
+					(tx, error) ->
+						console.log('Failed to execute user model.', error)
+				)
+				executeSqlModel(tx, uiModel,
+					() ->
+						console.log('Sucessfully executed ui model.')
+					(tx, error) ->
+						console.log('Failed to execute ui model.', error)
 				)
 			)
 		)
@@ -566,17 +596,23 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 				tx.tableList( (tx, result) ->
 					for i in [0...result.rows.length]
 						tx.dropTable(result.rows.item(i).name)
-					executeSqlModel(tx, uiModel,
-						() ->
-							console.log('Sucessfully executed ui model.')
-						(tx, error) ->
-							console.log('Failed to execute ui model.', error)
-					)
 					executeSqlModel(tx, transactionModel,
 						() ->
 							console.log('Sucessfully executed transaction model.')
 						(tx, error) ->
 							console.log('Failed to execute transaction model.', error)
+					)
+					executeSqlModel(tx, userModel,
+						() ->
+							console.log('Sucessfully executed user model.')
+						(tx, error) ->
+							console.log('Failed to execute user model.', error)
+					)
+					executeSqlModel(tx, uiModel,
+						() ->
+							console.log('Sucessfully executed ui model.')
+						(tx, error) ->
+							console.log('Failed to execute ui model.', error)
 					)
 					res.send(200)
 				)
