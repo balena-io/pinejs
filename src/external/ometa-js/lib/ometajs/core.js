@@ -467,7 +467,7 @@ var OMeta = (function() {
           origInput = this.input,
           origAddBranch = this._addBranch,
           origAddToken = this._addToken;
-      this.origAddBranch = this._addToken = function() {};
+      this._addBranch = this._addToken = function() {};
       try {
         return lookup(function() {
           x.call(self);
@@ -714,10 +714,7 @@ var OMeta = (function() {
       if(tokensEnabled) { // Tokens are enabled
         grammarInstance._enableTokens();
       }
-      try {
-        ans = grammarInstance._apply(ruleName);
-      }
-      finally {
+      ans = grammarInstance._apply(ruleName);
       if(tokensEnabled) { // Tokens are enabled
         foreignTokens = grammarInstance._getTokens();
         // Merge the tokens we just gained.
@@ -734,7 +731,6 @@ var OMeta = (function() {
             }
           }
         }
-      }
       }
       this.input = grammarInstance.input.target;
       return ans;
