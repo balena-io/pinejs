@@ -5,7 +5,7 @@
   define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQLOptimiser', 'Prettify', 'underscore'], function(AbstractSQLRules2SQL, AbstractSQLOptimiser, Prettify, _) {
     var dataTypeValidate, generate, postgresDataType, websqlDataType;
     dataTypeValidate = function(originalValue, field) {
-      var validated, value;
+      var bcrypt, salt, validated, value;
       value = originalValue;
       validated = true;
       if (value === null || value === '') {
@@ -63,6 +63,21 @@
               validated = 'is not a boolean: ' + originalValue;
             }
             break;
+          case 'Hashed':
+            if (!_.isString(value)) {
+              validated = 'is not a string';
+            } else if ((typeof window !== "undefined" && window !== null) && window === (function() {
+              return this;
+            })()) {
+              if (value.length > 60) {
+                validated = 'longer than 60 characters (' + value.length + ')';
+              }
+            } else {
+              bcrypt = require('bcrypt');
+              salt = bcrypt.genSaltSync();
+              value = bcrypt.hashSync(value, salt);
+            }
+            break;
           default:
             if (!_.isString(value)) {
               validated = 'is not a string: ' + originalValue;
@@ -100,6 +115,8 @@
           return 'TEXT ' + necessity;
         case 'Boolean':
           return 'INTEGER NOT NULL DEFAULT 0';
+        case 'Hashed':
+          return 'CHAR(60) ' + necessity;
         case 'Value':
           return 'VARCHAR(100) NOT NULL';
         default:
@@ -130,8 +147,10 @@
           return 'TEXT ' + necessity;
         case 'Boolean':
           return 'INTEGER NOT NULL DEFAULT 0';
+        case 'Hashed':
+          return 'CHAR(60) ' + necessity;
         case 'Value':
-          return 'VARCHAR(100)' + necessity;
+          return 'VARCHAR(100) ' + necessity;
         default:
           return 'VARCHAR(100)';
       }

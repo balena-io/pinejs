@@ -37,6 +37,17 @@ define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQLOptimise
 					value = parseInt(value, 10)
 					if _.isNaN(value) || (value not in [0, 1])
 						validated = 'is not a boolean: ' + originalValue
+				when 'Hashed'
+					if !_.isString(value)
+						validated = 'is not a string'
+					else if window? && window == (()->this)()
+						# Warning: If we're running in the browser then store unencrypted (no bcrypt module available)
+						if value.length > 60
+							validated = 'longer than 60 characters (' + value.length + ')'
+					else
+						bcrypt = require('bcrypt')
+						salt = bcrypt.genSaltSync()
+						value = bcrypt.hashSync(value, salt)
 				else
 					if !_.isString(value)
 						validated = 'is not a string: ' + originalValue
@@ -66,6 +77,8 @@ define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQLOptimise
 				return 'TEXT ' + necessity
 			when 'Boolean'
 				return 'INTEGER NOT NULL DEFAULT 0'
+			when 'Hashed'
+				return 'CHAR(60) ' + necessity
 			when 'Value'
 				return 'VARCHAR(100) NOT NULL'
 			else
@@ -93,8 +106,10 @@ define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQLOptimise
 				return 'TEXT ' + necessity
 			when 'Boolean'
 				return 'INTEGER NOT NULL DEFAULT 0'
+			when 'Hashed'
+				return 'CHAR(60) ' + necessity
 			when 'Value'
-				return 'VARCHAR(100)' + necessity
+				return 'VARCHAR(100) ' + necessity
 			else
 				return 'VARCHAR(100)'
 	
