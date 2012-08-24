@@ -115,7 +115,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core'], function(SBVRLibs, 
 					{field[1]}:resourceFieldName
 				)
 				{this.clientModels[this.currentVocab].resourceToSQLMappings[resourceName][resourceFieldName]}:mapping
-				AddWhereClause(query, [comparator, field, ['Bind', mapping[0], this.GetTableField(this.sqlModels[this.currentVocab].tables[mapping[0]], mapping[1])]])
+				AddWhereClause(query, [comparator, field, ['Bind', mapping[0], this.GetTableField(mapping)]])
 				AddBodyVar(resourceName, resourceFieldName, mapping, value)
 				AddQueryTable(query, mapping[0])
 			)+,
@@ -147,6 +147,10 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core'], function(SBVRLibs, 
 		this.currentBody = [];
 		this.newBody = [];
 		this.currentResource = null;
+	};
+	
+	ServerURIParser.GetTableField = function(mapping) {
+		return SBVRLibs.GetTableField.call(this, this.sqlModels[this.currentVocab].tables[mapping[0]], mapping[1]);
 	};
 	
 	ServerURIParser.setSQLModel = function(vocab, model) {
@@ -258,8 +262,6 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core'], function(SBVRLibs, 
 			clientModel = this.clientModels[this.currentVocab],
 			resourceModel = clientModel.resources[resourceName],
 			resourceToSQLMappings = clientModel.resourceToSQLMappings[resourceName],
-			sqlTables = this.sqlModels[this.currentVocab].tables,
-			table = sqlTables[resourceName],
 			getSelectFields = function() {
 				var mapping, resourceField, fields = [];
 				for(resourceField in resourceToSQLMappings) {
@@ -272,7 +274,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core'], function(SBVRLibs, 
 				return fields;
 			};
 		this.currentResource = resourceName;
-		switch(table) {
+		switch(this.sqlModels[this.currentVocab].tables[resourceName]) {
 			case 'ForeignKey':
 				__TODO__.die();
 			break;
@@ -295,7 +297,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core'], function(SBVRLibs, 
 						query[0] = 'UpdateQuery';
 						if(this.AddBodyVar(resourceName, resourceFieldName, mapping) !== undefined) {
 							this.AddQueryTable(query, mapping[0]);
-							query.push(['Fields', [[mapping[0], ['Bind', mapping[0], this.GetTableField(sqlTables[mapping[0]], mapping[1])]]]]);
+							query.push(['Fields', [[mapping[0], ['Bind', mapping[0], this.GetTableField(mapping)]]]]);
 						}
 					break;
 				}
@@ -327,7 +329,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core'], function(SBVRLibs, 
 						fieldName = mapping[1];
 						if(this.AddBodyVar(resourceName, resourceFieldName, mapping) !== undefined) {
 							this.AddQueryTable(query, mapping[0]);
-							this.AddWhereClause(query, ['Equals', ['ReferencedField'].concat(mapping), ['Bind', mapping[0], this.GetTableField(sqlTables[mapping[0]], mapping[1])]]);
+							this.AddWhereClause(query, ['Equals', ['ReferencedField'].concat(mapping), ['Bind', mapping[0], this.GetTableField(mapping)]]);
 						}
 					break;
 				}
@@ -355,7 +357,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core'], function(SBVRLibs, 
 								mapping = resourceToSQLMappings[resourceFieldName];
 								if(this.AddBodyVar(resourceName, resourceFieldName, mapping) !== undefined) {
 									this.AddQueryTable(query, mapping[0]);
-									fields.push([mapping[1], ['Bind', mapping[0], this.GetTableField(sqlTables[mapping[0]], mapping[1])] ]);
+									fields.push([mapping[1], ['Bind', mapping[0], this.GetTableField(mapping)] ]);
 								}
 							}
 						}

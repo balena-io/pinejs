@@ -1,17 +1,18 @@
 define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs, _) {
     var ServerURIParser = SBVRLibs._extend({
         "Process": function() {
-            var method, vocab, $elf = this,
-                i, resources, uri, body, _fromIdx = this.input.idx;
+            var i, $elf = this,
+                body, vocab, resources, _fromIdx = this.input.idx,
+                uri, method;
             this._form((function() {
                 method = (function() {
                     switch (this._apply('anything')) {
                     case "POST":
                         return "POST";
-                    case "DELETE":
-                        return "DELETE";
                     case "PUT":
                         return "PUT";
+                    case "DELETE":
+                        return "DELETE";
                     case "GET":
                         return "GET";
                     default:
@@ -70,7 +71,8 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs,
         },
         "ResourcePart": function() {
             var $elf = this,
-                resourcePart, _fromIdx = this.input.idx;
+                _fromIdx = this.input.idx,
+                resourcePart;
             resourcePart = this._consumedBy((function() {
                 return this._many1((function() {
                     return this._or((function() {
@@ -101,8 +103,9 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs,
             }))
         },
         "Resource": function() {
-            var $elf = this,
-                query, resourceName, _fromIdx = this.input.idx;
+            var query, $elf = this,
+                _fromIdx = this.input.idx,
+                resourceName;
             resourceName = this._apply("ResourceName");
             this._opt((function() {
                 this._or((function() {
@@ -130,16 +133,6 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs,
                 _fromIdx = this.input.idx;
             return (function() {
                 switch (this._apply('anything')) {
-                case "~":
-                    return "Like";
-                case "!":
-                    return (function() {
-                        this._applyWithArgs("exactly", ":");
-                        "!:";
-                        return "NotEquals"
-                    }).call(this);
-                case ":":
-                    return "Equals";
                 case "<":
                     return this._or((function() {
                         return (function() {
@@ -153,6 +146,16 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs,
                     }), (function() {
                         return "LessThan"
                     }));
+                case "~":
+                    return "Like";
+                case "!":
+                    return (function() {
+                        this._applyWithArgs("exactly", ":");
+                        "!:";
+                        return "NotEquals"
+                    }).call(this);
+                case ":":
+                    return "Equals";
                 case ">":
                     return this._or((function() {
                         return (function() {
@@ -172,8 +175,8 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs,
             }).call(this)
         },
         "Modifiers": function(query) {
-            var $elf = this,
-                sorts, _fromIdx = this.input.idx;
+            var sorts, $elf = this,
+                _fromIdx = this.input.idx;
             this._applyWithArgs("exactly", "?");
             return this._many((function() {
                 this._opt((function() {
@@ -188,8 +191,8 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs,
             }))
         },
         "Field": function() {
-            var table, $elf = this,
-                _fromIdx = this.input.idx,
+            var $elf = this,
+                table, _fromIdx = this.input.idx,
                 field;
             return this._or((function() {
                 table = this._apply("ResourcePart");
@@ -202,9 +205,9 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs,
             }))
         },
         "Filters": function(query) {
-            var value, mapping, $elf = this,
-                resourceName, _fromIdx = this.input.idx,
-                field, resourceFieldName, comparator;
+            var comparator, value, $elf = this,
+                mapping, _fromIdx = this.input.idx,
+                resourceFieldName, resourceName, field;
             this._applyWithArgs("exactly", "f");
             this._applyWithArgs("exactly", "i");
             this._applyWithArgs("exactly", "l");
@@ -236,15 +239,15 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs,
                     return resourceFieldName = field[(1)]
                 }));
                 mapping = this["clientModels"][this["currentVocab"]]["resourceToSQLMappings"][resourceName][resourceFieldName];
-                this._applyWithArgs("AddWhereClause", query, [comparator, field, ["Bind", mapping[(0)], this.GetTableField(this["sqlModels"][this["currentVocab"]]["tables"][mapping[(0)]], mapping[(1)])]]);
+                this._applyWithArgs("AddWhereClause", query, [comparator, field, ["Bind", mapping[(0)], this.GetTableField(mapping)]]);
                 this._applyWithArgs("AddBodyVar", resourceName, resourceFieldName, mapping, value);
                 return this._applyWithArgs("AddQueryTable", query, mapping[(0)])
             }))
         },
         "Sorts": function() {
-            var $elf = this,
-                sorts, _fromIdx = this.input.idx,
-                field, direction;
+            var direction, sorts, $elf = this,
+                _fromIdx = this.input.idx,
+                field;
             this._applyWithArgs("exactly", "o");
             this._applyWithArgs("exactly", "r");
             this._applyWithArgs("exactly", "d");
@@ -257,18 +260,18 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs,
                 this._applyWithArgs("exactly", "=");
                 direction = (function() {
                     switch (this._apply('anything')) {
-                    case "A":
-                        return (function() {
-                            this._applyWithArgs("exactly", "S");
-                            this._applyWithArgs("exactly", "C");
-                            return "ASC"
-                        }).call(this);
                     case "D":
                         return (function() {
                             this._applyWithArgs("exactly", "E");
                             this._applyWithArgs("exactly", "S");
                             this._applyWithArgs("exactly", "C");
                             return "DESC"
+                        }).call(this);
+                    case "A":
+                        return (function() {
+                            this._applyWithArgs("exactly", "S");
+                            this._applyWithArgs("exactly", "C");
+                            return "ASC"
                         }).call(this);
                     default:
                         throw this._fail()
@@ -286,12 +289,12 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs,
                 _fromIdx = this.input.idx;
             return (function() {
                 switch (this._apply('anything')) {
-                case ";":
-                    return ";";
                 case "*":
                     return "*";
                 case "/":
                     return "/";
+                case ";":
+                    return ";";
                 default:
                     throw this._fail()
                 }
@@ -306,6 +309,9 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs,
         (this["currentBody"] = []);
         (this["newBody"] = []);
         (this["currentResource"] = null)
+    }));
+    (ServerURIParser["GetTableField"] = (function(mapping) {
+        return SBVRLibs["GetTableField"].call(this, this["sqlModels"][this["currentVocab"]]["tables"][mapping[(0)]], mapping[(1)])
     }));
     (ServerURIParser["setSQLModel"] = (function(vocab, model) {
         (this["sqlModels"][vocab] = model)
@@ -433,8 +439,6 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs,
             clientModel = this["clientModels"][this["currentVocab"]],
             resourceModel = clientModel["resources"][resourceName],
             resourceToSQLMappings = clientModel["resourceToSQLMappings"][resourceName],
-            sqlTables = this["sqlModels"][this["currentVocab"]]["tables"],
-            table = sqlTables[resourceName],
             getSelectFields = (function() {
                 var mapping, resourceField, fields = [];
                 for (resourceField in resourceToSQLMappings) {
@@ -450,7 +454,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs,
                 return fields
             });
         (this["currentResource"] = resourceName);
-        switch (table) {
+        switch (this["sqlModels"][this["currentVocab"]]["tables"][resourceName]) {
         case "ForeignKey":
             {
                 __TODO__.die();
@@ -485,7 +489,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs,
                             this.AddQueryTable(query, mapping[(0)]);
                             query.push(["Fields", [
                                 [mapping[(0)],
-                                    ["Bind", mapping[(0)], this.GetTableField(sqlTables[mapping[(0)]], mapping[(1)])]
+                                    ["Bind", mapping[(0)], this.GetTableField(mapping)]
                                 ]
                             ]])
                         } else {
@@ -529,7 +533,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs,
                         (fieldName = mapping[(1)]);
                         if ((this.AddBodyVar(resourceName, resourceFieldName, mapping) !== undefined)) {
                             this.AddQueryTable(query, mapping[(0)]);
-                            this.AddWhereClause(query, ["Equals", ["ReferencedField"].concat(mapping), ["Bind", mapping[(0)], this.GetTableField(sqlTables[mapping[(0)]], mapping[(1)])]])
+                            this.AddWhereClause(query, ["Equals", ["ReferencedField"].concat(mapping), ["Bind", mapping[(0)], this.GetTableField(mapping)]])
                         } else {
                             undefined
                         }
@@ -567,7 +571,7 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs,
                                 if ((this.AddBodyVar(resourceName, resourceFieldName, mapping) !== undefined)) {
                                     this.AddQueryTable(query, mapping[(0)]);
                                     fields.push([mapping[(1)],
-                                        ["Bind", mapping[(0)], this.GetTableField(sqlTables[mapping[(0)]], mapping[(1)])]
+                                        ["Bind", mapping[(0)], this.GetTableField(mapping)]
                                     ])
                                 } else {
                                     undefined
