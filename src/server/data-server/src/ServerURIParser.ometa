@@ -94,10 +94,11 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core'], function(SBVRLibs, 
 			)*,
 
 		Field =
-				ResourcePart:table '.' ResourcePart:field
-				-> ['ReferencedField', table, field]
-			|	ResourcePart:field
-				-> ['Field', field],
+				ResourcePart:resourceName '.' ResourcePart:resourceFieldName
+				GetMapping(resourceName, resourceFieldName):mapping
+				-> ['ReferencedField'].concat(mapping)
+			|	ResourcePart:resourceFieldName
+				-> ['Field', resourceFieldName],
 
 		Filters :query =
 			seq('filter=')
@@ -114,7 +115,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core'], function(SBVRLibs, 
 				|	{this.currentResource}:resourceName
 					{field[1]}:resourceFieldName
 				)
-				{this.clientModels[this.currentVocab].resourceToSQLMappings[resourceName][resourceFieldName]}:mapping
+				GetMapping(resourceName,resourceFieldName):mapping
 				AddWhereClause(query, [comparator, field, ['Bind', mapping[0], this.GetTableField(mapping)]])
 				AddBodyVar(resourceName, resourceFieldName, mapping, value)
 				AddQueryTable(query, mapping[0])
@@ -151,6 +152,18 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core'], function(SBVRLibs, 
 	
 	ServerURIParser.GetTableField = function(mapping) {
 		return SBVRLibs.GetTableField.call(this, this.sqlModels[this.currentVocab].tables[mapping[0]], mapping[1]);
+	};
+	
+	ServerURIParser.GetMapping = function(resourceName, resourceFieldName) {
+		var resourceMapping = this.clientModels[this.currentVocab].resourceToSQLMappings[resourceName]
+		if(resourceMapping.hasOwnProperty(resourceFieldName)) {
+			return resourceMapping[resourceFieldName];
+		}
+		resourceFieldName = resourceFieldName.replace(/ /g, '_');
+		if(resourceMapping.hasOwnProperty(resourceFieldName)) {
+			return resourceMapping[resourceFieldName];
+		}
+		throw 'Could not map resource: ' + resourceName + ' - ' + resourceFieldName;
 	};
 	
 	ServerURIParser.setSQLModel = function(vocab, model) {
@@ -281,7 +294,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core'], function(SBVRLibs, 
 			case 'Attribute':
 				// The attribute is value field
 				resourceFieldName = resourceModel.valueField;
-				mapping = resourceToSQLMappings[resourceFieldName];
+				mapping = this.GetMapping(resourceName, resourceFieldName);
 				switch(this.currentMethod) {
 					case 'DELETE':
 						query[0] = 'UpdateQuery';
@@ -305,7 +318,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core'], function(SBVRLibs, 
 			case 'BooleanAttribute':
 				// The attribute is value field
 				resourceFieldName = resourceModel.valueField;
-				mapping = resourceToSQLMappings[resourceFieldName];
+				mapping = this.GetMapping(resourceName, resourceFieldName);
 				switch(this.currentMethod) {
 					case 'GET':
 						query[0] = 'SelectQuery';
@@ -325,7 +338,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core'], function(SBVRLibs, 
 						query.push(['Fields', [[mapping[1], newValue]]]);
 						this.AddQueryTable(query, mapping[0]);
 						resourceFieldName = resourceModel.idField;
-						mapping = resourceToSQLMappings[resourceFieldName];
+						mapping = this.GetMapping(resourceName, resourceFieldName);
 						fieldName = mapping[1];
 						if(this.AddBodyVar(resourceName, resourceFieldName, mapping) !== undefined) {
 							this.AddQueryTable(query, mapping[0]);
