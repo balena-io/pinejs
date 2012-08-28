@@ -16,7 +16,7 @@ define(['sbvr-compiler/LFOptimiser', 'underscore'], function(LFOptimiser, _) {
 			}:newAttrVal
 			{this.attributes[termOrFactType] = newAttrVal}
 			(	?(newAttrVal != attrVal)
-				{console.log('Changing DatabaseAttribute attr to:', newAttrVal, termOrFactType)}
+				// {console.log('Changing DatabaseAttribute attr to:', newAttrVal, termOrFactType)}
 				SetHelped
 			)?
 			-> newAttrVal,
@@ -26,7 +26,7 @@ define(['sbvr-compiler/LFOptimiser', 'underscore'], function(LFOptimiser, _) {
 			(	?(this.primitives.hasOwnProperty(termOrFactType))
 				{this.primitives[termOrFactType]}:newAttrVal
 				?(newAttrVal != attrVal)
-				{console.log('Changing DatabasePrimitive attr to:', newAttrVal, termOrFactType)}
+				// {console.log('Changing DatabasePrimitive attr to:', newAttrVal, termOrFactType)}
 				SetHelped
 			)?
 			{this.primitives[termOrFactType] = newAttrVal}
@@ -43,7 +43,7 @@ define(['sbvr-compiler/LFOptimiser', 'underscore'], function(LFOptimiser, _) {
 						}
 					}
 				}:newTerm
-				{console.log('Switched variable term', term, 'to', newTerm)}
+				// {console.log('Switched variable term', term, 'to', newTerm)}
 				{variable[2][1] = newTerm}
 			)?
 			-> variable,
@@ -54,7 +54,7 @@ define(['sbvr-compiler/LFOptimiser', 'underscore'], function(LFOptimiser, _) {
 			{['FactType'].concat(actualFactType)}:actualFactType
 			// {console.log(actualFactType.toString(), ['FactType'].concat(actualFactType).toString(), this.attributes)}
 			(	?(this.attributes.hasOwnProperty(actualFactType))
-				{console.log('Atomic Formulation Attr', this.processingAttributeRule)}
+				// {console.log('Atomic Formulation Attr', this.processingAttributeRule)}
 				(	?this.processingAttributeRule
 					^AtomicFormulation
 				|	{this.processingAttributeRule = actualFactType}
@@ -159,7 +159,7 @@ define(['sbvr-compiler/LFOptimiser', 'underscore'], function(LFOptimiser, _) {
 					if(!this.primitives.hasOwnProperty(termOrVerb)) {
 						this.primitives[termOrVerb] = this.IsPrimitive(termOrVerb[1]);
 					}
-					console.log('Adding primitive attr', this.primitives[termOrVerb], termOrVerb);
+					// console.log('Adding primitive attr', this.primitives[termOrVerb], termOrVerb);
 					attrs.push(['DatabasePrimitive', this.primitives[termOrVerb]]);
 					this.SetHelped();
 				}
@@ -175,7 +175,7 @@ define(['sbvr-compiler/LFOptimiser', 'underscore'], function(LFOptimiser, _) {
 				}
 				if(this.foreignKeys.hasOwnProperty(termOrVerb)) {
 					if(!attrsFound.hasOwnProperty('ForeignKey')) {
-						console.log('Adding FK attr', this.foreignKeys[termOrVerb], termOrVerb);
+						// console.log('Adding FK attr', this.foreignKeys[termOrVerb], termOrVerb);
 						attrs.push(['ForeignKey', this.foreignKeys[termOrVerb]]);
 						this.SetHelped();
 					}
