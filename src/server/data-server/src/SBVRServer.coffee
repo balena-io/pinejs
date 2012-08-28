@@ -44,13 +44,14 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 			Term:      Short Text
 
 			Term:      user
-			Term:      user name
+				Database Value Field: username
+			Term:      username
 				Concept Type: Short Text
 			Term:      password
 				Concept Type: Hashed
-			Fact type: user has user name
-			Rule:      It is obligatory that each user has exactly one user name.
-			Rule:      It is obligatory that each user name is of exactly one user.
+			Fact type: user has username
+			Rule:      It is obligatory that each user has exactly one username.
+			Rule:      It is obligatory that each username is of exactly one user.
 			Fact type: user has password
 			Rule:      It is obligatory that each user has exactly one password.'''
 	
