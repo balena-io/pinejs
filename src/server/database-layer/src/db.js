@@ -157,7 +157,7 @@
             if (extraWhereClause !== '') {
               extraWhereClause = ' WHERE ' + extraWhereClause;
             }
-            return this.executeSql("SELECT name FROM (SELECT tablename as name FROM information_schema.tables WHERE table_schema = '" + _db.escape(options.database) + "' AND tablename != '_server_model_cache') t" + extraWhereClause + ";", [], callback, errorCallback);
+            return this.executeSql("SELECT name FROM (SELECT table_name as name FROM information_schema.tables WHERE table_schema = " + _db.escape(options.database) + " AND table_name != '_server_model_cache') t" + extraWhereClause + ";", [], callback, errorCallback);
           },
           dropTable: function(tableName, ifExists, callback, errorCallback) {
             if (ifExists == null) {

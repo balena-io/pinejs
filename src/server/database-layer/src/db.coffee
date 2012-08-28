@@ -83,7 +83,7 @@ define(["database-layer/SQLBinds"], (SQLBinds) ->
 				tableList: (callback, errorCallback, extraWhereClause = '') ->
 					if extraWhereClause != ''
 						extraWhereClause = ' WHERE ' + extraWhereClause
-					this.executeSql("SELECT name FROM (SELECT tablename as name FROM information_schema.tables WHERE table_schema = '" + _db.escape(options.database) + "' AND tablename != '_server_model_cache') t" + extraWhereClause + ";", [], callback, errorCallback)
+					this.executeSql("SELECT name FROM (SELECT table_name as name FROM information_schema.tables WHERE table_schema = " + _db.escape(options.database) + " AND table_name != '_server_model_cache') t" + extraWhereClause + ";", [], callback, errorCallback)
 				dropTable: (tableName, ifExists = true, callback, errorCallback) -> this.executeSql('DROP TABLE ' + (if ifExists == true then 'IF EXISTS ' else '') + '"' + tableName + '";', [], callback, errorCallback)
 			}
 			return {
