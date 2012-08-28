@@ -102,7 +102,7 @@
         case 'Time':
           return 'TIME ' + necessity;
         case 'Interval':
-          return 'Interval ' + necessity;
+          return 'INTERVAL ' + necessity;
         case 'Real':
           return 'REAL ' + necessity;
         case 'Integer':
@@ -134,7 +134,7 @@
         case 'Time':
           return 'TIME ' + necessity;
         case 'Interval':
-          return 'Interval ' + necessity;
+          return 'INTEGER ' + necessity;
         case 'Real':
           return 'REAL ' + necessity;
         case 'Integer':

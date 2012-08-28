@@ -66,7 +66,7 @@ define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQLOptimise
 			when 'Time'
 				return 'TIME ' + necessity
 			when 'Interval'
-				return 'Interval ' + necessity
+				return 'INTERVAL ' + necessity
 			when 'Real'
 				return 'REAL ' + necessity
 			when 'Integer', 'ForeignKey', 'ConceptType'
@@ -95,7 +95,7 @@ define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQLOptimise
 			when 'Time'
 				return 'TIME ' + necessity
 			when 'Interval'
-				return 'Interval ' + necessity
+				return 'INTEGER ' + necessity
 			when 'Real'
 				return 'REAL ' + necessity
 			when 'Integer', 'ForeignKey', 'ConceptType'
