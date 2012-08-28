@@ -125,7 +125,7 @@ var prettify = function(key, value) {
 requirejs = require('requirejs');
 requirejs.config({
 	paths: {
-		'ometa': '../../../external/ometa-js',
+		'ometa-core': '../../../external/ometa-js/lib/ometajs/core',
 		'underscore': '../../../external/underscore-1.2.1.min',
 		'Prettify': '../../../client/prettify-ometa/src/Prettify',
 		'sbvr-compiler': '../src/',
