@@ -3,11 +3,7 @@
 //
 
 // JS modules
-exports.utils = require('./ometajs/utils');
 exports.core = require('./ometajs/core');
-
-// Common context for all ometa parsers
-var globals = exports.core;
 
 // Include API early
 var api = require('./ometajs/api');

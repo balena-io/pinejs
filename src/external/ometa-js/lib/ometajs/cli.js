@@ -25,12 +25,8 @@ exports.run = function run(options) {
     try {
       var out = ometajs.translateCode(input, options);
     } catch (e) {
-      if (e.errorPos !== undefined) {
-        console.error(
-          input.slice(0, e.errorPos) +
-          '\n--- Parse error ->' +
-          input.slice(e.errorPos)
-        );
+      if (e.line !== undefined) {
+        console.error('Parsing error at: ' + e.line + ':' + e.column);
       }
 
       deferred.reject(e);

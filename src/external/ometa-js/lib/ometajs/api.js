@@ -1,16 +1,43 @@
 var ometajs = require('../ometajs'),
     uglify = require('uglify-js'),
-    utils = ometajs.utils,
     vm = require('vm'),
-    Module = require('module');
+    Module = require('module'),
+    clone = function clone(obj) {
+      var o = {};
+
+      Object.keys(obj).forEach(function(key) {
+        o[key] = obj[key];
+      });
+
+      return o;
+    },
+    getLineAndColumn = function(string, index) {
+      var char,
+          column = 0,
+          line = 1,
+          i = 0,
+          len;
+      string = string.slice(0, index + 1);
+      for (len = string.length; i < len; i++) {
+        column++;
+        if (string[i] == '\n') {
+          line++;
+          column = 0;
+        }
+      }
+      return {line: line, column: column, index: index};
+    };
 
 //
 // ### function compilationError(m, i)
 // #### @m {Number}
 // #### @i {Number}
 //
-function compilationError(m, i, fail) {
-  throw fail.extend({errorPos: i});
+function compilationError(code) {
+  return function(m, i, fail) {
+    var lineCol = getLineAndColumn(code, i);
+    throw fail._extend(lineCol);
+  };
 };
 
 //
@@ -54,7 +81,7 @@ function wrapModule(code, options) {
 function translateCode(code, options) {
   options || (options = {});
   var tree = ometajs.BSOMetaJSParser.matchAll(code, "topLevel", undefined,
-                                              compilationError);
+                                              compilationError(code));
 
   code = ometajs.BSOMetaJSTranslator.match(tree, "trans", undefined,
                                            translationError);
@@ -80,13 +107,13 @@ function evalCode(code, filename, options) {
 
   code = translateCode(code, options);
   return vm.runInNewContext('var exports = {};' + code + '\n;exports',
-                            utils.clone(ometajs.core),
+                            clone(ometajs.core),
                             filename || 'ometa');
 };
 exports.evalCode = evalCode;
 
 // Allow users to `require(...)` ometa files
-require.extensions['.ometajs'] = function(module, filename) {
+require.extensions['.ometajs'] = require.extensions['.ojs'] = require.extensions['.ometa'] = function(module, filename) {
   var code = translateCode(require('fs').readFileSync(filename).toString());
 
   module._compile(code, filename);

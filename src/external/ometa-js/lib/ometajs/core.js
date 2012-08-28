@@ -1,4 +1,4 @@
-var OMeta = (function() {
+OMeta = (function() {
   "use strict";
   /*
     new syntax:
@@ -44,7 +44,7 @@ var OMeta = (function() {
     return fail.error;
   };
   fail.error = new SyntaxError('match failed');
-  fail._extend = function(child) {
+  fail.error._extend = function(child) {
     return objectThatDelegatesTo(this, child);
   };
 
