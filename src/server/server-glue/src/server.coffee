@@ -1,3 +1,20 @@
+if process?
+	databaseOptions =
+		engine: 'mysql'
+		params:
+			host: 'localhost'
+			user: 'root'
+			password: '.'
+			database: 'rulemotion'
+	# databaseOptions =
+		# engine: 'postgres'
+		# params: process.env.DATABASE_URL || "postgres://postgres:.@localhost:5432/postgres"
+else
+	databaseOptions =
+		engine: 'websql'
+		params: 'rulemotion'
+		
+
 setupCallback = (requirejs, app) ->
 	#IFDEF server
 	requirejs(['data-server/SBVRServer'], (sbvrServer) ->
@@ -86,9 +103,8 @@ if process?
 	)
 	
 	#IFDEF server
-	db = null
 	requirejs(['database-layer/db'], (dbModule) ->
-		db = dbModule.postgres(process.env.DATABASE_URL || "postgres://postgres:.@localhost:5432/postgres")
+		db = dbModule.connect(databaseOptions)
 		requirejs('passportBCrypt').init(passport, db)
 	)
 	
