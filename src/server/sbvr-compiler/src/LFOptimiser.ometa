@@ -1,6 +1,4 @@
 define(['sbvr-compiler/LFValidator'], function(LFValidator) {
-	var LFOptimiser;
-
 	ometa LFOptimiser <: LFValidator {
 		Helped =
 			?(this.helped === true)

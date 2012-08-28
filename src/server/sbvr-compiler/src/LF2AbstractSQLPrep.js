@@ -1,5 +1,4 @@
 define(["sbvr-compiler/LFOptimiser", "underscore"], (function(LFOptimiser, _) {
-    var LF2AbstractSQLPrep;
     var LF2AbstractSQLPrep = LFOptimiser._extend({
         "AttrConceptType": function(termName) {
             var $elf = this,

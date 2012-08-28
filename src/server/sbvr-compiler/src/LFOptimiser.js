@@ -1,5 +1,4 @@
 define(["sbvr-compiler/LFValidator"], (function(LFValidator) {
-    var LFOptimiser;
     var LFOptimiser = LFValidator._extend({
         "Helped": function() {
             var $elf = this,
