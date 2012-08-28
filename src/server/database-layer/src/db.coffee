@@ -163,5 +163,8 @@ define(["database-layer/SQLBinds"], (SQLBinds) ->
 						callback(tx(_tx))
 					)
 			}
+	exports.connect = (databaseOptions) ->
+		return exports[databaseOptions.engine](databaseOptions.params)
+
 	return exports
 )

@@ -294,6 +294,9 @@
         };
       };
     }
+    exports.connect = function(databaseOptions) {
+      return exports[databaseOptions.engine](databaseOptions.params);
+    };
     return exports;
   });
 
