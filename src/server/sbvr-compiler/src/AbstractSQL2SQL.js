@@ -3,7 +3,7 @@
   var __hasProp = {}.hasOwnProperty;
 
   define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQLOptimiser', 'Prettify', 'underscore'], function(AbstractSQLRules2SQL, AbstractSQLOptimiser, Prettify, _) {
-    var dataTypeValidate, generate, postgresDataType, websqlDataType;
+    var dataTypeValidate, generate, mysqlDataType, postgresDataType, websqlDataType;
     dataTypeValidate = function(originalValue, field) {
       var bcrypt, salt, validated, value;
       value = originalValue;
@@ -95,6 +95,38 @@
       switch (dataType) {
         case 'Serial':
           return 'SERIAL ' + necessity;
+        case 'Date':
+          return 'DATE ' + necessity;
+        case 'Date Time':
+          return 'TIMESTAMP ' + necessity;
+        case 'Time':
+          return 'TIME ' + necessity;
+        case 'Interval':
+          return 'Interval ' + necessity;
+        case 'Real':
+          return 'REAL ' + necessity;
+        case 'Integer':
+        case 'ForeignKey':
+        case 'ConceptType':
+          return 'INTEGER ' + necessity;
+        case 'Short Text':
+          return 'VARCHAR(20) ' + necessity;
+        case 'Long Text':
+          return 'TEXT ' + necessity;
+        case 'Boolean':
+          return 'INTEGER NOT NULL DEFAULT 0';
+        case 'Hashed':
+          return 'CHAR(60) ' + necessity;
+        case 'Value':
+          return 'VARCHAR(100) NOT NULL';
+        default:
+          return 'VARCHAR(100)';
+      }
+    };
+    mysqlDataType = function(dataType, necessity) {
+      switch (dataType) {
+        case 'Serial':
+          return 'INTEGER ' + necessity + ' AUTO_INCREMENT';
         case 'Date':
           return 'DATE ' + necessity;
         case 'Date Time':
@@ -269,6 +301,12 @@
       postgres: {
         generate: function(sqlModel) {
           return generate(sqlModel, postgresDataType);
+        },
+        dataTypeValidate: dataTypeValidate
+      },
+      mysql: {
+        generate: function(sqlModel) {
+          return generate(sqlModel, mysqlDataType);
         },
         dataTypeValidate: dataTypeValidate
       }

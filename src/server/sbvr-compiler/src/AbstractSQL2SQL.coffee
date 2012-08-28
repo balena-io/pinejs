@@ -84,6 +84,35 @@ define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQLOptimise
 			else
 				return 'VARCHAR(100)'
 	
+	mysqlDataType = (dataType, necessity) ->
+		switch dataType
+			when 'Serial'
+				return 'INTEGER ' + necessity + ' AUTO_INCREMENT'
+			when 'Date'
+				return 'DATE ' + necessity
+			when 'Date Time'
+				return 'TIMESTAMP ' + necessity
+			when 'Time'
+				return 'TIME ' + necessity
+			when 'Interval'
+				return 'Interval ' + necessity
+			when 'Real'
+				return 'REAL ' + necessity
+			when 'Integer', 'ForeignKey', 'ConceptType'
+				return 'INTEGER ' + necessity
+			when 'Short Text'
+				return 'VARCHAR(20) ' + necessity
+			when 'Long Text'
+				return 'TEXT ' + necessity
+			when 'Boolean'
+				return 'INTEGER NOT NULL DEFAULT 0'
+			when 'Hashed'
+				return 'CHAR(60) ' + necessity
+			when 'Value'
+				return 'VARCHAR(100) NOT NULL'
+			else
+				return 'VARCHAR(100)'
+	
 	websqlDataType = (dataType, necessity) ->
 		switch dataType
 			when 'Serial'
@@ -201,6 +230,9 @@ define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQLOptimise
 			dataTypeValidate: dataTypeValidate
 		postgres: 
 			generate: (sqlModel) -> generate(sqlModel, postgresDataType)
+			dataTypeValidate: dataTypeValidate
+		mysql: 
+			generate: (sqlModel) -> generate(sqlModel, mysqlDataType)
 			dataTypeValidate: dataTypeValidate
 	}
 
