@@ -85,7 +85,7 @@
       }));
       app.use(passport.initialize());
       app.use(passport.session());
-      return app.use(express["static"](process.cwd()));
+      return app.use(express["static"](rootPath));
     });
     requirejs(['database-layer/db'], function(dbModule) {
       var db;

@@ -99,7 +99,7 @@ if process?
 		app.use(passport.initialize())
 		app.use(passport.session())
 		#ENDIFDEF
-		app.use(express.static(process.cwd()))
+		app.use(express.static(rootPath))
 	)
 	
 	#IFDEF server
