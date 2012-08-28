@@ -300,12 +300,13 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 	SBVRParser.isTerm = function(factTypeSoFar, term) {
 		var terms = this.branches['Term'].call(this, factTypeSoFar);
 		term = this._baseTerm(factTypeSoFar, term);
-		return term !== false && ($.inArray(term,terms) !== -1 || $.inArray(term.singularize(),terms) !== -1);
+		return term !== false && (terms.indexOf(term) !== -1 || terms.indexOf(term.singularize()) !== -1);
 	};
 
 	SBVRParser._termForm = function(factTypeSoFar, term) {
 		term = this._baseTerm(factTypeSoFar, term);
-		return $.inArray(term.singularize(), this.branches['Term'].call(this, factTypeSoFar)) !== -1 ? term.singularize() : term
+		var termForms = this.branches['Term'].call(this, factTypeSoFar);
+		return termForms.indexOf(term.singularize()) !== -1 ? term.singularize() : term
 	};
 
 	SBVRParser.isVerb = function(factTypeSoFar, verb) {
