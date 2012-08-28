@@ -498,17 +498,11 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 			next()
 
 	# Setup function
-	exports.setup = (app, requirejs) ->
+	exports.setup = (app, requirejs, databaseOptions) ->
 
 		requirejs(['database-layer/db'], (dbModule) ->
-			if process?
-				db = dbModule.postgres(process.env.DATABASE_URL || "postgres://postgres:.@localhost:5432/postgres")
-				AbstractSQL2SQL = AbstractSQL2SQL.postgres
-				# db = dbModule.mysql({user: 'root', password: '.', database: 'rulemotion'})
-				# db = dbModule.sqlite('/tmp/rulemotion.db')
-			else
-				db = dbModule.websql('rulemotion')
-				AbstractSQL2SQL = AbstractSQL2SQL.websql
+			db = dbModule.connect(databaseOptions)
+			AbstractSQL2SQL = AbstractSQL2SQL[databaseOptions.engine]
 			
 			serverModelCache()
 			transactionModel = AbstractSQL2SQL.generate(transactionModel)

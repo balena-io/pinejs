@@ -496,15 +496,10 @@
         return next();
       }
     };
-    exports.setup = function(app, requirejs) {
+    exports.setup = function(app, requirejs, databaseOptions) {
       requirejs(['database-layer/db'], function(dbModule) {
-        if (typeof process !== "undefined" && process !== null) {
-          db = dbModule.postgres(process.env.DATABASE_URL || "postgres://postgres:.@localhost:5432/postgres");
-          AbstractSQL2SQL = AbstractSQL2SQL.postgres;
-        } else {
-          db = dbModule.websql('rulemotion');
-          AbstractSQL2SQL = AbstractSQL2SQL.websql;
-        }
+        db = dbModule.connect(databaseOptions);
+        AbstractSQL2SQL = AbstractSQL2SQL[databaseOptions.engine];
         serverModelCache();
         transactionModel = AbstractSQL2SQL.generate(transactionModel);
         userModel = AbstractSQL2SQL.generate(userModel);

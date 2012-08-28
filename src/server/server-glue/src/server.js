@@ -21,10 +21,10 @@
 
   setupCallback = function(requirejs, app) {
     requirejs(['data-server/SBVRServer'], function(sbvrServer) {
-      return sbvrServer.setup(app, requirejs);
+      return sbvrServer.setup(app, requirejs, databaseOptions);
     });
     requirejs(['editorServer'], function(editorServer) {
-      return editorServer.setup(app, requirejs);
+      return editorServer.setup(app, requirejs, databaseOptions);
     });
     if (typeof process !== "undefined" && process !== null) {
       return app.listen(process.env.PORT || 1337, function() {

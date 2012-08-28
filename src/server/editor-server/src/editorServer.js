@@ -39,17 +39,13 @@
       }
       return sum;
     };
-    exports.setup = function(app, requirejs) {
+    exports.setup = function(app, requirejs, databaseOptions) {
       requirejs(['database-layer/db'], function(dbModule) {
-        if (typeof process !== "undefined" && process !== null) {
-          db = dbModule.postgres(process.env.DATABASE_URL || "postgres://postgres:.@localhost:5432/postgres");
-        } else {
-          db = dbModule.websql('rulemotion');
-        }
+        db = dbModule.connect(databaseOptions);
         return db.transaction(function(tx) {
           return tx.tableList(function(tx, result) {
             if (result.rows.length === 0) {
-              return tx.executeSql('CREATE TABLE ' + '"_sbvr_editor_cache" (' + '"id" INTEGER PRIMARY KEY AUTOINCREMENT,' + '"value" VARCHAR );');
+              return tx.executeSql('CREATE TABLE ' + '"_sbvr_editor_cache" (' + '"id" INTEGER PRIMARY KEY AUTOINCREMENT,' + '"value" TEXT );');
             }
           }, null, "name = '_sbvr_editor_cache'");
         });

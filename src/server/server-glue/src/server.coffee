@@ -18,13 +18,13 @@ else
 setupCallback = (requirejs, app) ->
 	#IFDEF server
 	requirejs(['data-server/SBVRServer'], (sbvrServer) ->
-		sbvrServer.setup(app, requirejs)
+		sbvrServer.setup(app, requirejs, databaseOptions)
 	)
 	#ENDIFDEF
 
 	#IFDEF editor
 	requirejs(['editorServer'], (editorServer) ->
-		editorServer.setup(app, requirejs)
+		editorServer.setup(app, requirejs, databaseOptions)
 	)
 	#ENDIFDEF
 

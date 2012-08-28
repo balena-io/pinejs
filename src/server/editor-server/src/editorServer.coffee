@@ -45,12 +45,9 @@ define((requirejs, exports, module) ->
 			sum += alphaNum
 		return sum
 
-	exports.setup = (app, requirejs) ->
+	exports.setup = (app, requirejs, databaseOptions) ->
 		requirejs(['database-layer/db'], (dbModule) ->
-			if process?
-				db = dbModule.postgres(process.env.DATABASE_URL || "postgres://postgres:.@localhost:5432/postgres")
-			else
-				db = dbModule.websql('rulemotion')
+			db = dbModule.connect(databaseOptions)
 			db.transaction( (tx) ->
 				tx.tableList(
 					(tx, result) ->
@@ -59,7 +56,7 @@ define((requirejs, exports, module) ->
 											'"_sbvr_editor_cache" (' +
 											'"id" INTEGER PRIMARY KEY AUTOINCREMENT,' +
 											# '"key" VARCHAR PRIMARY KEY,' +
-											'"value" VARCHAR );' 
+											'"value" TEXT );' 
 					null
 					"name = '_sbvr_editor_cache'"
 				)
