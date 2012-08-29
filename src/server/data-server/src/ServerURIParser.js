@@ -1,20 +1,20 @@
 define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs, _) {
     var ServerURIParser = SBVRLibs._extend({
         "Process": function() {
-            var vocab, resources, method, i, _fromIdx = this.input.idx,
-                uri, $elf = this,
-                body;
+            var i, body, vocab, uri, _fromIdx = this.input.idx,
+                method, $elf = this,
+                resources;
             this._form((function() {
                 method = (function() {
                     switch (this._apply('anything')) {
-                    case "PUT":
-                        return "PUT";
-                    case "DELETE":
-                        return "DELETE";
                     case "GET":
                         return "GET";
+                    case "PUT":
+                        return "PUT";
                     case "POST":
                         return "POST";
+                    case "DELETE":
+                        return "DELETE";
                     default:
                         throw this._fail()
                     }
@@ -70,8 +70,9 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs,
             }))
         },
         "ResourcePart": function() {
-            var resourcePart, _fromIdx = this.input.idx,
-                $elf = this;
+            var _fromIdx = this.input.idx,
+                $elf = this,
+                resourcePart;
             resourcePart = this._consumedBy((function() {
                 return this._many1((function() {
                     return this._or((function() {
@@ -102,8 +103,9 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs,
             }))
         },
         "Resource": function() {
-            var resourceName, query, _fromIdx = this.input.idx,
-                $elf = this;
+            var query, _fromIdx = this.input.idx,
+                $elf = this,
+                resourceName;
             resourceName = this._apply("ResourceName");
             this._opt((function() {
                 this._or((function() {
@@ -131,8 +133,6 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs,
                 $elf = this;
             return (function() {
                 switch (this._apply('anything')) {
-                case ":":
-                    return "Equals";
                 case "<":
                     return this._or((function() {
                         return (function() {
@@ -146,6 +146,16 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs,
                     }), (function() {
                         return "LessThan"
                     }));
+                case "~":
+                    return "Like";
+                case "!":
+                    return (function() {
+                        this._applyWithArgs("exactly", ":");
+                        "!:";
+                        return "NotEquals"
+                    }).call(this);
+                case ":":
+                    return "Equals";
                 case ">":
                     return this._or((function() {
                         return (function() {
@@ -159,22 +169,15 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs,
                     }), (function() {
                         return "GreaterThan"
                     }));
-                case "~":
-                    return "Like";
-                case "!":
-                    return (function() {
-                        this._applyWithArgs("exactly", ":");
-                        "!:";
-                        return "NotEquals"
-                    }).call(this);
                 default:
                     throw this._fail()
                 }
             }).call(this)
         },
         "Modifiers": function(query) {
-            var sorts, _fromIdx = this.input.idx,
-                $elf = this;
+            var _fromIdx = this.input.idx,
+                $elf = this,
+                sorts;
             this._applyWithArgs("exactly", "?");
             return this._many((function() {
                 this._opt((function() {
@@ -189,24 +192,24 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs,
             }))
         },
         "Field": function() {
-            var resourceName, mapping, _fromIdx = this.input.idx,
-                $elf = this,
-                resourceFieldName;
-            return this._or((function() {
+            var _fromIdx = this.input.idx,
+                mapping, $elf = this,
+                resourceName, resourceFieldName;
+            this._or((function() {
                 resourceName = this._apply("ResourcePart");
                 this._applyWithArgs("exactly", ".");
-                resourceFieldName = this._apply("ResourcePart");
-                mapping = this._applyWithArgs("GetMapping", resourceName, resourceFieldName);
-                return ["ReferencedField"].concat(mapping)
+                return resourceFieldName = this._apply("ResourcePart")
             }), (function() {
-                resourceFieldName = this._apply("ResourcePart");
-                return ["Field", resourceFieldName]
-            }))
+                resourceName = this["currentResource"];
+                return resourceFieldName = this._apply("ResourcePart")
+            }));
+            mapping = this._applyWithArgs("GetMapping", resourceName, resourceFieldName);
+            return ["ReferencedField"].concat(mapping)
         },
         "Filters": function(query) {
-            var resourceFieldName, resourceName, mapping, value, _fromIdx = this.input.idx,
-                $elf = this,
-                field, comparator;
+            var field, value, _fromIdx = this.input.idx,
+                comparator, mapping, $elf = this,
+                resourceName, resourceFieldName;
             this._applyWithArgs("exactly", "f");
             this._applyWithArgs("exactly", "i");
             this._applyWithArgs("exactly", "l");
@@ -229,14 +232,8 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs,
                 this._opt((function() {
                     return this._applyWithArgs("exactly", ";")
                 }));
-                this._or((function() {
-                    this._pred((field[(0)] == "ReferencedField"));
-                    resourceName = field[(1)];
-                    return resourceFieldName = field[(2)]
-                }), (function() {
-                    resourceName = this["currentResource"];
-                    return resourceFieldName = field[(1)]
-                }));
+                resourceName = field[(1)];
+                resourceFieldName = field[(2)];
                 mapping = this._applyWithArgs("GetMapping", resourceName, resourceFieldName);
                 this._applyWithArgs("AddWhereClause", query, [comparator, field, ["Bind", mapping[(0)], this.GetTableField(mapping)]]);
                 this._applyWithArgs("AddBodyVar", resourceName, resourceFieldName, mapping, value);
@@ -244,9 +241,9 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs,
             }))
         },
         "Sorts": function() {
-            var sorts, direction, _fromIdx = this.input.idx,
+            var direction, field, _fromIdx = this.input.idx,
                 $elf = this,
-                field;
+                sorts;
             this._applyWithArgs("exactly", "o");
             this._applyWithArgs("exactly", "r");
             this._applyWithArgs("exactly", "d");
@@ -288,12 +285,12 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs,
                 $elf = this;
             return (function() {
                 switch (this._apply('anything')) {
-                case "*":
-                    return "*";
                 case ";":
                     return ";";
                 case "/":
                     return "/";
+                case "*":
+                    return "*";
                 default:
                     throw this._fail()
                 }

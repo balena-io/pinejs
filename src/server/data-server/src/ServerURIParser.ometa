@@ -94,11 +94,12 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core'], function(SBVRLibs, 
 			)*,
 
 		Field =
-				ResourcePart:resourceName '.' ResourcePart:resourceFieldName
-				GetMapping(resourceName, resourceFieldName):mapping
-				-> ['ReferencedField'].concat(mapping)
-			|	ResourcePart:resourceFieldName
-				-> ['Field', resourceFieldName],
+			(	ResourcePart:resourceName '.' ResourcePart:resourceFieldName
+			|	{this.currentResource}:resourceName
+				ResourcePart:resourceFieldName
+			)
+			GetMapping(resourceName, resourceFieldName):mapping
+			-> ['ReferencedField'].concat(mapping),
 
 		Filters :query =
 			seq('filter=')
@@ -109,12 +110,8 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core'], function(SBVRLibs, 
 					)+
 				>:value
 				';'?
-				(	?(field[0] == 'ReferencedField')
-					{field[1]}:resourceName
-					{field[2]}:resourceFieldName
-				|	{this.currentResource}:resourceName
-					{field[1]}:resourceFieldName
-				)
+				{field[1]}:resourceName
+				{field[2]}:resourceFieldName
 				GetMapping(resourceName,resourceFieldName):mapping
 				AddWhereClause(query, [comparator, field, ['Bind', mapping[0], this.GetTableField(mapping)]])
 				AddBodyVar(resourceName, resourceFieldName, mapping, value)
