@@ -3,25 +3,13 @@
   var __hasProp = {}.hasOwnProperty;
 
   define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-compiler/LF2AbstractSQL', 'sbvr-compiler/AbstractSQL2SQL', 'sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQL2CLF', 'data-server/ServerURIParser', 'underscore', 'utils/createAsyncQueueCallback'], function(SBVRParser, LF2AbstractSQLPrep, LF2AbstractSQL, AbstractSQL2SQL, AbstractSQLRules2SQL, AbstractSQL2CLF, ServerURIParser, _, createAsyncQueueCallback) {
-    var clientModels, db, endLock, executeSqlModel, exports, getAndCheckBindValues, getID, op, parseURITree, rebuildFactType, runDelete, runGet, runPost, runPut, runURI, serverIsOnAir, serverModelCache, serverURIParser, sqlModels, transactionModel, uiModel, userModel, validateDB;
+    var clientModels, db, endLock, executeModel, exports, getAndCheckBindValues, getID, op, parseURITree, rebuildFactType, runDelete, runGet, runPost, runPut, runURI, serverIsOnAir, serverModelCache, serverURIParser, sqlModels, transactionModel, uiModel, userModel, validateDB;
     exports = {};
     db = null;
     transactionModel = 'Term:      Integer\nTerm:      Long Text\nTerm:      resource id\n	Concept type: Integer\nTerm:      resource type\n	Concept type: Long Text\nTerm:      field name\n	Concept type: Long Text\nTerm:      field value\n	Concept type: Long Text\nTerm:      field type\n	Concept type: Long Text\nTerm:      resource\n	Database Value Field: resource_id\nFact type: resource has resource id\nFact type: resource has resource type\nRule:      It is obligatory that each resource has exactly 1 resource type\nRule:      It is obligatory that each resource has exactly 1 resource id\nTerm:      transaction\nTerm:      lock\nTerm:      conditional representation\n	Database Value Field: lock\nFact type: lock is exclusive\nFact type: lock is shared\nFact type: resource is under lock\nFact type: lock belongs to transaction\nFact type: conditional representation has field name\nFact type: conditional representation has field value\nFact type: conditional representation has field type\nFact type: conditional representation has lock\nRule:      It is obligatory that each conditional representation has exactly 1 field name\nRule:      It is obligatory that each conditional representation has at most 1 field value\nRule:      It is obligatory that each conditional representation has at most 1 field type\nRule:      It is obligatory that each conditional representation has exactly 1 lock\nRule:      It is obligatory that each resource is under at most 1 lock that is exclusive';
     userModel = 'Term:      Hashed\nTerm:      Short Text\n\nTerm:      user\n	Database Value Field: username\nTerm:      username\n	Concept Type: Short Text\nTerm:      password\n	Concept Type: Hashed\nFact type: user has username\nRule:      It is obligatory that each user has exactly one username.\nRule:      It is obligatory that each username is of exactly one user.\nFact type: user has password\nRule:      It is obligatory that each user has exactly one password.';
     uiModel = 'Term:      Short Text\nTerm:      Long Text\nTerm:      text\n	Concept type: Long Text\nTerm:      name\n	Concept type: Short Text\nTerm:      textarea\n	Database id Field: name\n	Database Value Field: text\nFact type: textarea is disabled\nFact type: textarea has name\nFact type: textarea has text\nRule:      It is obligatory that each textarea has exactly 1 name\nRule:      It is obligatory that each name is of exactly 1 textarea\nRule:      It is obligatory that each textarea has exactly 1 text';
-    transactionModel = SBVRParser.matchAll(transactionModel, 'Process');
-    transactionModel = LF2AbstractSQLPrep.match(transactionModel, 'Process');
-    transactionModel = LF2AbstractSQL.match(transactionModel, 'Process');
-    userModel = SBVRParser.matchAll(userModel, 'Process');
-    userModel = LF2AbstractSQLPrep.match(userModel, 'Process');
-    userModel = LF2AbstractSQL.match(userModel, 'Process');
-    uiModel = SBVRParser.matchAll(uiModel, 'Process');
-    uiModel = LF2AbstractSQLPrep.match(uiModel, 'Process');
-    uiModel = LF2AbstractSQL.match(uiModel, 'Process');
     serverURIParser = ServerURIParser.createInstance();
-    serverURIParser.setSQLModel('transaction', transactionModel);
-    serverURIParser.setSQLModel('user', userModel);
-    serverURIParser.setSQLModel('ui', uiModel);
     sqlModels = {};
     clientModels = {};
     op = {
@@ -203,14 +191,30 @@
       }
       return asyncCallback.endAdding();
     };
-    executeSqlModel = function(tx, sqlModel, successCallback, failureCallback) {
-      var createStatement, _i, _len, _ref;
+    executeModel = function(tx, vocab, seModel, successCallback, failureCallback) {
+      var abstractSqlModel, clientModel, createStatement, lfModel, slfModel, sqlModel, _i, _len, _ref;
+      try {
+        lfModel = SBVRParser.matchAll(seModel, 'Process');
+      } catch (e) {
+        console.log('Error parsing model', e);
+        return failureCallback(tx, 'Error parsing model');
+      }
+      slfModel = LF2AbstractSQLPrep.match(lfModel, 'Process');
+      abstractSqlModel = LF2AbstractSQL.match(slfModel, 'Process');
+      sqlModel = AbstractSQL2SQL.generate(abstractSqlModel);
+      clientModel = AbstractSQL2CLF(sqlModel);
       _ref = sqlModel.createSchema;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         createStatement = _ref[_i];
         tx.executeSql(createStatement);
       }
-      return validateDB(tx, sqlModel, successCallback, failureCallback);
+      return validateDB(tx, sqlModel, function(tx) {
+        sqlModels[vocab] = sqlModel;
+        clientModels[vocab] = clientModel;
+        serverURIParser.setSQLModel(vocab, abstractSqlModel);
+        serverURIParser.setClientModel(vocab, clientModel);
+        return successCallback(tx, lfModel, slfModel, abstractSqlModel, sqlModel, clientModel);
+      }, failureCallback);
     };
     getID = function(tree) {
       var comparison, id, query, whereClause, _i, _j, _len, _len1, _ref, _ref1;
@@ -501,30 +505,18 @@
         db = dbModule.connect(databaseOptions);
         AbstractSQL2SQL = AbstractSQL2SQL[databaseOptions.engine];
         serverModelCache();
-        transactionModel = AbstractSQL2SQL.generate(transactionModel);
-        userModel = AbstractSQL2SQL.generate(userModel);
-        uiModel = AbstractSQL2SQL.generate(uiModel);
-        sqlModels['transaction'] = transactionModel;
-        sqlModels['user'] = userModel;
-        sqlModels['ui'] = uiModel;
-        clientModels['transaction'] = AbstractSQL2CLF(transactionModel);
-        clientModels['user'] = AbstractSQL2CLF(userModel);
-        clientModels['ui'] = AbstractSQL2CLF(uiModel);
-        serverURIParser.setClientModel('transaction', clientModels['transaction']);
-        serverURIParser.setClientModel('user', clientModels['user']);
-        serverURIParser.setClientModel('ui', clientModels['ui']);
         return db.transaction(function(tx) {
-          executeSqlModel(tx, transactionModel, function() {
+          executeModel(tx, 'transaction', transactionModel, function() {
             return console.log('Sucessfully executed transaction model.');
           }, function(tx, error) {
             return console.log('Failed to execute transaction model.', error);
           });
-          executeSqlModel(tx, userModel, function() {
+          executeModel(tx, 'user', userModel, function() {
             return console.log('Sucessfully executed user model.');
           }, function(tx, error) {
             return console.log('Failed to execute user model.', error);
           });
-          return executeSqlModel(tx, uiModel, function() {
+          return executeModel(tx, 'ui', uiModel, function() {
             return console.log('Sucessfully executed ui model.');
           }, function(tx, error) {
             return console.log('Failed to execute ui model.', error);
@@ -553,33 +545,21 @@
       });
       app.post('/execute', function(req, res, next) {
         return runURI('GET', '/ui/textarea?filter=name:model_area', null, null, function(result) {
-          var clientModel, lfmod, prepmod, se, sqlModel;
-          se = result.instances[0].text;
-          try {
-            lfmod = SBVRParser.matchAll(se, "Process");
-          } catch (e) {
-            console.log('Error parsing model', e);
-            res.json('Error parsing model', 404);
-            return null;
-          }
-          prepmod = LF2AbstractSQL.match(LF2AbstractSQLPrep.match(lfmod, "Process"), "Process");
-          sqlModel = AbstractSQL2SQL.generate(prepmod);
-          clientModel = AbstractSQL2CLF(sqlModel);
+          var seModel;
+          seModel = result.instances[0].text;
           return db.transaction(function(tx) {
             tx.begin();
-            return executeSqlModel(tx, sqlModel, function(tx) {
+            return executeModel(tx, 'data', seModel, function(tx, lfModel, slfModel, abstractSqlModel, sqlModel, clientModel) {
               runURI('PUT', '/ui/textarea-is_disabled?filter=textarea.name:model_area/', [
                 {
                   value: true
                 }
               ], tx);
               serverModelCache.setServerOnAir(true);
-              serverModelCache.setLastSE(se);
-              serverModelCache.setLF(lfmod);
-              serverModelCache.setPrepLF(prepmod);
+              serverModelCache.setLastSE(seModel);
+              serverModelCache.setLF(lfModel);
+              serverModelCache.setPrepLF(abstractSqlModel);
               serverModelCache.setSQL(sqlModel);
-              clientModels['data'] = clientModel;
-              serverURIParser.setClientModel('data', clientModels['data']);
               return res.send(200);
             }, function(tx, errors) {
               return res.json(errors, 404);
@@ -596,17 +576,17 @@
             for (i = _i = 0, _ref = result.rows.length; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
               tx.dropTable(result.rows.item(i).name);
             }
-            executeSqlModel(tx, transactionModel, function() {
+            executeModel(tx, 'transaction', transactionModel, function() {
               return console.log('Sucessfully executed transaction model.');
             }, function(tx, error) {
               return console.log('Failed to execute transaction model.', error);
             });
-            executeSqlModel(tx, userModel, function() {
+            executeModel(tx, 'user', userModel, function() {
               return console.log('Sucessfully executed user model.');
             }, function(tx, error) {
               return console.log('Failed to execute user model.', error);
             });
-            executeSqlModel(tx, uiModel, function() {
+            executeModel(tx, 'ui', uiModel, function() {
               return console.log('Sucessfully executed ui model.');
             }, function(tx, error) {
               return console.log('Failed to execute ui model.', error);

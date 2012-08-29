@@ -71,21 +71,8 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 			Rule:      It is obligatory that each textarea has exactly 1 name
 			Rule:      It is obligatory that each name is of exactly 1 textarea
 			Rule:      It is obligatory that each textarea has exactly 1 text'''
-
-	transactionModel = SBVRParser.matchAll(transactionModel, 'Process')
-	transactionModel = LF2AbstractSQLPrep.match(transactionModel, 'Process')
-	transactionModel = LF2AbstractSQL.match(transactionModel, 'Process')
-	userModel = SBVRParser.matchAll(userModel, 'Process')
-	userModel = LF2AbstractSQLPrep.match(userModel, 'Process')
-	userModel = LF2AbstractSQL.match(userModel, 'Process')
-	uiModel = SBVRParser.matchAll(uiModel, 'Process')
-	uiModel = LF2AbstractSQLPrep.match(uiModel, 'Process')
-	uiModel = LF2AbstractSQL.match(uiModel, 'Process')
 	
 	serverURIParser = ServerURIParser.createInstance()
-	serverURIParser.setSQLModel('transaction', transactionModel)
-	serverURIParser.setSQLModel('user', userModel)
-	serverURIParser.setSQLModel('ui', uiModel)
 	
 	sqlModels = {}
 	clientModels = {}
@@ -251,9 +238,19 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 			)
 		asyncCallback.endAdding()
 
-	# successCallback = (tx, sqlmod)
+	# successCallback = (tx, lfModel, slfModel, abstractSqlModel, sqlModel, clientModel)
 	# failureCallback = (tx, errors)
-	executeSqlModel = (tx, sqlModel, successCallback, failureCallback) ->
+	executeModel = (tx, vocab, seModel, successCallback, failureCallback) ->
+		try
+			lfModel = SBVRParser.matchAll(seModel, 'Process')
+		catch e
+			console.log('Error parsing model', e)
+			return failureCallback(tx, 'Error parsing model')
+		slfModel = LF2AbstractSQLPrep.match(lfModel, 'Process')
+		abstractSqlModel = LF2AbstractSQL.match(slfModel, 'Process')
+		sqlModel = AbstractSQL2SQL.generate(abstractSqlModel)
+		clientModel = AbstractSQL2CLF(sqlModel)
+		
 		# Create tables related to terms and fact types
 		for createStatement in sqlModel.createSchema
 			tx.executeSql(createStatement)
@@ -261,7 +258,16 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 		# Validate the [empty] model according to the rules.
 		# This may eventually lead to entering obligatory data.
 		# For the moment it blocks such models from execution.
-		validateDB(tx, sqlModel, successCallback, failureCallback)
+		validateDB(tx, sqlModel,
+			(tx) ->
+				sqlModels[vocab] = sqlModel
+				clientModels[vocab] = clientModel
+				
+				serverURIParser.setSQLModel(vocab, abstractSqlModel)
+				serverURIParser.setClientModel(vocab, clientModel)
+				
+				successCallback(tx, lfModel, slfModel, abstractSqlModel, sqlModel, clientModel)
+			, failureCallback)
 
 	getID = (tree) ->
 		id = 0
@@ -505,34 +511,21 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 			AbstractSQL2SQL = AbstractSQL2SQL[databaseOptions.engine]
 			
 			serverModelCache()
-			transactionModel = AbstractSQL2SQL.generate(transactionModel)
-			userModel = AbstractSQL2SQL.generate(userModel)
-			uiModel = AbstractSQL2SQL.generate(uiModel)
-			
-			sqlModels['transaction'] = transactionModel
-			sqlModels['user'] = userModel
-			sqlModels['ui'] = uiModel
-			clientModels['transaction'] = AbstractSQL2CLF(transactionModel)
-			clientModels['user'] = AbstractSQL2CLF(userModel)
-			clientModels['ui'] = AbstractSQL2CLF(uiModel)
-			serverURIParser.setClientModel('transaction', clientModels['transaction'])
-			serverURIParser.setClientModel('user', clientModels['user'])
-			serverURIParser.setClientModel('ui', clientModels['ui'])
 			
 			db.transaction( (tx) ->
-				executeSqlModel(tx, transactionModel,
+				executeModel(tx, 'transaction', transactionModel,
 					() ->
 						console.log('Sucessfully executed transaction model.')
 					(tx, error) ->
 						console.log('Failed to execute transaction model.', error)
 				)
-				executeSqlModel(tx, userModel,
+				executeModel(tx, 'user', userModel,
 					() ->
 						console.log('Sucessfully executed user model.')
 					(tx, error) ->
 						console.log('Failed to execute user model.', error)
 				)
-				executeSqlModel(tx, uiModel,
+				executeModel(tx, 'ui', uiModel,
 					() ->
 						console.log('Sucessfully executed ui model.')
 					(tx, error) ->
@@ -555,29 +548,17 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 		app.post('/execute',					(req, res, next) ->
 			runURI('GET', '/ui/textarea?filter=name:model_area', null, null,
 				(result) ->
-					se = result.instances[0].text
-					try
-						lfmod = SBVRParser.matchAll(se, "Process")
-					catch e
-						console.log('Error parsing model', e)
-						res.json('Error parsing model', 404)
-						return null
-					prepmod = LF2AbstractSQL.match(LF2AbstractSQLPrep.match(lfmod, "Process"), "Process")
-					sqlModel = AbstractSQL2SQL.generate(prepmod)
-					clientModel = AbstractSQL2CLF(sqlModel)
-					
+					seModel = result.instances[0].text
 					db.transaction((tx) ->
 						tx.begin()
-						executeSqlModel(tx, sqlModel,
-							(tx) ->
+						executeModel(tx, 'data', seModel,
+							(tx, lfModel, slfModel, abstractSqlModel, sqlModel, clientModel) ->
 								runURI('PUT', '/ui/textarea-is_disabled?filter=textarea.name:model_area/', [{value: true}], tx)
 								serverModelCache.setServerOnAir(true)
-								serverModelCache.setLastSE(se)
-								serverModelCache.setLF(lfmod)
-								serverModelCache.setPrepLF(prepmod)
+								serverModelCache.setLastSE(seModel)
+								serverModelCache.setLF(lfModel)
+								serverModelCache.setPrepLF(abstractSqlModel)
 								serverModelCache.setSQL(sqlModel)
-								clientModels['data'] = clientModel
-								serverURIParser.setClientModel('data', clientModels['data'])
 								res.send(200)
 							(tx, errors) ->
 								res.json(errors, 404)
@@ -591,19 +572,19 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 				tx.tableList( (tx, result) ->
 					for i in [0...result.rows.length]
 						tx.dropTable(result.rows.item(i).name)
-					executeSqlModel(tx, transactionModel,
+					executeModel(tx, 'transaction', transactionModel,
 						() ->
 							console.log('Sucessfully executed transaction model.')
 						(tx, error) ->
 							console.log('Failed to execute transaction model.', error)
 					)
-					executeSqlModel(tx, userModel,
+					executeModel(tx, 'user', userModel,
 						() ->
 							console.log('Sucessfully executed user model.')
 						(tx, error) ->
 							console.log('Failed to execute user model.', error)
 					)
-					executeSqlModel(tx, uiModel,
+					executeModel(tx, 'ui', uiModel,
 						() ->
 							console.log('Sucessfully executed ui model.')
 						(tx, error) ->
