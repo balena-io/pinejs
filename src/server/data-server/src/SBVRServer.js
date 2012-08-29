@@ -2,17 +2,11 @@
 (function() {
   var __hasProp = {}.hasOwnProperty;
 
-  define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-compiler/LF2AbstractSQL', 'sbvr-compiler/AbstractSQL2SQL', 'sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQL2CLF', 'data-server/ServerURIParser', 'underscore', 'utils/createAsyncQueueCallback'], function(SBVRParser, LF2AbstractSQLPrep, LF2AbstractSQL, AbstractSQL2SQL, AbstractSQLRules2SQL, AbstractSQL2CLF, ServerURIParser, _, createAsyncQueueCallback) {
-    var clientModels, db, devModel, endLock, executeModel, exports, getAndCheckBindValues, getID, isServerOnAir, parseURITree, runDelete, runGet, runPost, runPut, runURI, serverIsOnAir, serverURIParser, sqlModels, transactionModel, uiModel, userModel, validateDB;
+  define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQL2CLF', 'data-server/ServerURIParser', 'underscore', 'utils/createAsyncQueueCallback'], function(AbstractSQLRules2SQL, AbstractSQL2CLF, ServerURIParser, _, createAsyncQueueCallback) {
+    var db, exports, isServerOnAir, serverIsOnAir, uiModel;
     exports = {};
     db = null;
-    transactionModel = 'Term:      Integer\nTerm:      Long Text\nTerm:      resource id\n	Concept type: Integer\nTerm:      resource type\n	Concept type: Long Text\nTerm:      field name\n	Concept type: Long Text\nTerm:      field value\n	Concept type: Long Text\nTerm:      field type\n	Concept type: Long Text\nTerm:      resource\n	Database Value Field: resource_id\nFact type: resource has resource id\nFact type: resource has resource type\nRule:      It is obligatory that each resource has exactly 1 resource type\nRule:      It is obligatory that each resource has exactly 1 resource id\nTerm:      transaction\nTerm:      lock\nTerm:      conditional representation\n	Database Value Field: lock\nFact type: lock is exclusive\nFact type: lock is shared\nFact type: resource is under lock\nFact type: lock belongs to transaction\nFact type: conditional representation has field name\nFact type: conditional representation has field value\nFact type: conditional representation has field type\nFact type: conditional representation has lock\nRule:      It is obligatory that each conditional representation has exactly 1 field name\nRule:      It is obligatory that each conditional representation has at most 1 field value\nRule:      It is obligatory that each conditional representation has at most 1 field type\nRule:      It is obligatory that each conditional representation has exactly 1 lock\nRule:      It is obligatory that each resource is under at most 1 lock that is exclusive';
-    devModel = 'Term:      Short Text\nTerm:      JSON\n\nTerm:      model\n	Database Value Field: model_value\nTerm:      vocabulary\n	Concept Type: Short Text\nTerm:      model type\n	Concept Type: Short Text\nTerm:      model value\n	Concept Type: JSON\n\nFact Type: model is of vocabulary\nRule: It is obligatory that each model is of exactly one vocabulary\nFact Type: model has model type\nRule: It is obligatory that each model has exactly one model type \nFact Type: model has model value\nRule: It is obligatory that each model has exactly one model value';
-    userModel = 'Term:      Hashed\nTerm:      Short Text\n\nTerm:      user\n	Database Value Field: username\nTerm:      username\n	Concept Type: Short Text\nTerm:      password\n	Concept Type: Hashed\nFact type: user has username\nRule:      It is obligatory that each user has exactly one username.\nRule:      It is obligatory that each username is of exactly one user.\nFact type: user has password\nRule:      It is obligatory that each user has exactly one password.';
     uiModel = 'Term:      Short Text\nTerm:      Long Text\nTerm:      text\n	Concept type: Long Text\nTerm:      name\n	Concept type: Short Text\nTerm:      textarea\n	Database id Field: name\n	Database Value Field: text\nFact type: textarea is disabled\nFact type: textarea has name\nFact type: textarea has text\nRule:      It is obligatory that each textarea has exactly 1 name\nRule:      It is obligatory that each name is of exactly 1 textarea\nRule:      It is obligatory that each textarea has exactly 1 text';
-    serverURIParser = ServerURIParser.createInstance();
-    sqlModels = {};
-    clientModels = {};
     isServerOnAir = (function() {
       var onAir, pendingCallbacks;
       onAir = null;
@@ -37,410 +31,6 @@
         }
       };
     })();
-    endLock = function(tx, locks, trans_id, successCallback, failureCallback) {
-      var i, lock_id, locksCallback, _i, _ref;
-      locksCallback = createAsyncQueueCallback(function() {
-        return tx.executeSql('DELETE FROM "transaction" WHERE "id" = ?;', [trans_id], function(tx, result) {
-          return validateDB(tx, sqlModels['data'], successCallback, failureCallback);
-        }, function(tx, error) {
-          return failureCallback(tx, [error]);
-        });
-      }, function(errors) {
-        return failureCallback(tx, errors);
-      });
-      for (i = _i = 0, _ref = locks.rows.length; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
-        lock_id = locks.rows.item(i).lock;
-        locksCallback.addWork(3);
-        tx.executeSql('SELECT * FROM "conditional_representation" WHERE "lock" = ?;', [lock_id], function(tx, crs) {
-          return tx.executeSql('SELECT r."resource_type", r."resource_id" FROM "resource-is_under-lock" rl JOIN "resource" r ON rl."resource" = r."id" WHERE "lock" = ?;', [lock_id], function(tx, locked) {
-            var asyncCallback, clientModel, item, j, lockedRow, method, requestBody, uri, _j, _ref1;
-            lockedRow = locked.rows.item(0);
-            asyncCallback = createAsyncQueueCallback(locksCallback.successCallback, locksCallback.failureCallback);
-            asyncCallback.addWork(3);
-            tx.executeSql('DELETE FROM "conditional_representation" WHERE "lock" = ?;', [lock_id], asyncCallback.successCallback, asyncCallback.errorCallback);
-            tx.executeSql('DELETE FROM "resource-is_under-lock" WHERE "lock" = ?;', [lock_id], asyncCallback.successCallback, asyncCallback.errorCallback);
-            requestBody = [{}];
-            if (crs.rows.item(0).field_name === "__DELETE") {
-              method = 'DELETE';
-            } else {
-              method = 'PUT';
-              for (j = _j = 0, _ref1 = crs.rows.length; 0 <= _ref1 ? _j < _ref1 : _j > _ref1; j = 0 <= _ref1 ? ++_j : --_j) {
-                item = crs.rows.item(j);
-                requestBody[0][item.field_name] = item.field_value;
-              }
-            }
-            clientModel = clientModels['data'].resources[lockedRow.resource_type];
-            uri = '/data/' + lockedRow.resource_type + '?filter=' + clientModel.idField + ':' + lockedRow.resource_id;
-            runURI(method, uri, requestBody, tx, asyncCallback.successCallback, asyncCallback.errorCallback);
-            return asyncCallback.endAdding();
-          });
-        });
-        tx.executeSql('DELETE FROM "lock-belongs_to-transaction" WHERE "lock" = ?;', [lock_id], locksCallback.successCallback, locksCallback.errorCallback);
-        tx.executeSql('DELETE FROM "lock" WHERE "id" = ?;', [lock_id], locksCallback.successCallback, locksCallback.errorCallback);
-      }
-      return locksCallback.endAdding();
-    };
-    validateDB = function(tx, sqlmod, successCallback, failureCallback) {
-      var asyncCallback, rule, _i, _len, _ref;
-      asyncCallback = createAsyncQueueCallback(function() {
-        tx.end();
-        return successCallback(tx);
-      }, function(errors) {
-        tx.rollback();
-        return failureCallback(tx, errors);
-      });
-      asyncCallback.addWork(sqlmod.rules.length);
-      _ref = sqlmod.rules;
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        rule = _ref[_i];
-        tx.executeSql(rule.sql, [], (function(rule) {
-          return function(tx, result) {
-            var _ref1;
-            if ((_ref1 = result.rows.item(0).result) === false || _ref1 === 0) {
-              return asyncCallback.errorCallback(rule.structuredEnglish);
-            } else {
-              return asyncCallback.successCallback();
-            }
-          };
-        })(rule));
-      }
-      return asyncCallback.endAdding();
-    };
-    executeModel = function(tx, vocab, seModel, successCallback, failureCallback) {
-      var abstractSqlModel, clientModel, createStatement, lfModel, slfModel, sqlModel, _i, _len, _ref;
-      try {
-        lfModel = SBVRParser.matchAll(seModel, 'Process');
-      } catch (e) {
-        console.log('Error parsing model', e);
-        return failureCallback(tx, 'Error parsing model');
-      }
-      slfModel = LF2AbstractSQLPrep.match(lfModel, 'Process');
-      abstractSqlModel = LF2AbstractSQL.match(slfModel, 'Process');
-      sqlModel = AbstractSQL2SQL.generate(abstractSqlModel);
-      clientModel = AbstractSQL2CLF(sqlModel);
-      _ref = sqlModel.createSchema;
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        createStatement = _ref[_i];
-        tx.executeSql(createStatement);
-      }
-      return validateDB(tx, sqlModel, function(tx) {
-        sqlModels[vocab] = sqlModel;
-        clientModels[vocab] = clientModel;
-        serverURIParser.setSQLModel(vocab, abstractSqlModel);
-        serverURIParser.setClientModel(vocab, clientModel);
-        runURI('PUT', '/dev/model?filter=model_type:se', [
-          {
-            vocabulary: vocab,
-            model_value: seModel
-          }
-        ], tx);
-        runURI('PUT', '/dev/model?filter=model_type:lf', [
-          {
-            vocabulary: vocab,
-            model_value: lfModel
-          }
-        ], tx);
-        runURI('PUT', '/dev/model?filter=model_type:slf', [
-          {
-            vocabulary: vocab,
-            model_value: slfModel
-          }
-        ], tx);
-        runURI('PUT', '/dev/model?filter=model_type:abstractsql', [
-          {
-            vocabulary: vocab,
-            model_value: abstractSqlModel
-          }
-        ], tx);
-        runURI('PUT', '/dev/model?filter=model_type:sql', [
-          {
-            vocabulary: vocab,
-            model_value: sqlModel
-          }
-        ], tx);
-        runURI('PUT', '/dev/model?filter=model_type:client', [
-          {
-            vocabulary: vocab,
-            model_value: clientModel
-          }
-        ], tx);
-        return successCallback(tx, lfModel, slfModel, abstractSqlModel, sqlModel, clientModel);
-      }, failureCallback);
-    };
-    getID = function(tree) {
-      var comparison, id, query, whereClause, _i, _j, _len, _len1, _ref, _ref1;
-      id = 0;
-      if (id === 0) {
-        query = tree[2].query;
-        for (_i = 0, _len = query.length; _i < _len; _i++) {
-          whereClause = query[_i];
-          if (whereClause[0] === 'Where') {
-            _ref = whereClause.slice(1);
-            for (_j = 0, _len1 = _ref.length; _j < _len1; _j++) {
-              comparison = _ref[_j];
-              if (comparison[0] === "Equals" && ((_ref1 = comparison[1][2]) === 'id' || _ref1 === 'name')) {
-                return comparison[2][1];
-              }
-            }
-          }
-        }
-      }
-      return id;
-    };
-    runURI = function(method, uri, body, tx, successCallback, failureCallback) {
-      var req, res;
-      if (body == null) {
-        body = {};
-      }
-      uri = decodeURI(uri);
-      console.log('Running URI', method, uri, body);
-      req = {
-        tree: serverURIParser.match([method, body, uri], 'Process'),
-        body: body
-      };
-      res = {
-        send: function(statusCode) {
-          if (statusCode === 404) {
-            return typeof failureCallback === "function" ? failureCallback() : void 0;
-          } else {
-            return typeof successCallback === "function" ? successCallback() : void 0;
-          }
-        },
-        json: function(data) {
-          return typeof successCallback === "function" ? successCallback(data) : void 0;
-        }
-      };
-      switch (method) {
-        case 'GET':
-          return runGet(req, res, tx);
-        case 'POST':
-          return runPost(req, res, tx);
-        case 'PUT':
-          return runPut(req, res, tx);
-        case 'DELETE':
-          return runDelete(req, res, tx);
-      }
-    };
-    getAndCheckBindValues = function(bindings, values) {
-      var bindValues, binding, field, fieldName, referencedName, validated, value, _i, _len, _ref;
-      bindValues = [];
-      for (_i = 0, _len = bindings.length; _i < _len; _i++) {
-        binding = bindings[_i];
-        field = binding[1];
-        fieldName = field[1];
-        referencedName = binding[0] + '.' + fieldName;
-        value = values[referencedName] === void 0 ? values[fieldName] : values[referencedName];
-        _ref = AbstractSQL2SQL.dataTypeValidate(value, field), validated = _ref.validated, value = _ref.value;
-        if (validated !== true) {
-          return '"' + fieldName + '" ' + validated;
-        }
-        bindValues.push(value);
-      }
-      return bindValues;
-    };
-    runGet = function(req, res, tx) {
-      var bindings, clientModel, data, processInstance, query, runQuery, tree, values, _ref;
-      processInstance = function(resourceModel, instance) {
-        var field, _i, _len, _ref;
-        instance = _.clone(instance);
-        _ref = resourceModel.fields;
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          field = _ref[_i];
-          if (field[0] === 'JSON' && instance.hasOwnProperty(field[1])) {
-            instance[field[1]] = JSON.parse(instance[field[1]]);
-          }
-        }
-        return instance;
-      };
-      tree = req.tree;
-      if (tree[2] === void 0) {
-        return res.send(404);
-      } else if (tree[2].query != null) {
-        _ref = AbstractSQLRules2SQL.match(tree[2].query, 'ProcessQuery'), query = _ref.query, bindings = _ref.bindings;
-        values = getAndCheckBindValues(bindings, tree[2].values);
-        console.log(query, values);
-        if (!_.isArray(values)) {
-          return res.json(values, 404);
-        } else {
-          runQuery = function(tx) {
-            return tx.executeSql(query, values, function(tx, result) {
-              var clientModel, data, i, resourceModel;
-              if (values.length > 0 && result.rows.length === 0) {
-                return res.send(404);
-              } else {
-                clientModel = clientModels[tree[1][1]];
-                resourceModel = clientModel.resources[tree[2].resourceName];
-                data = {
-                  instances: (function() {
-                    var _i, _ref1, _results;
-                    _results = [];
-                    for (i = _i = 0, _ref1 = result.rows.length; 0 <= _ref1 ? _i < _ref1 : _i > _ref1; i = 0 <= _ref1 ? ++_i : --_i) {
-                      _results.push(processInstance(resourceModel, result.rows.item(i)));
-                    }
-                    return _results;
-                  })(),
-                  model: resourceModel
-                };
-                return res.json(data);
-              }
-            }, function() {
-              return res.send(404);
-            });
-          };
-          if (tx != null) {
-            return runQuery(tx);
-          } else {
-            return db.transaction(runQuery);
-          }
-        }
-      } else {
-        clientModel = clientModels[tree[1][1]];
-        data = {
-          model: clientModel.resources[tree[2].resourceName]
-        };
-        return res.json(data);
-      }
-    };
-    runPost = function(req, res, tx) {
-      var bindings, query, runQuery, tree, values, vocab, _ref;
-      tree = req.tree;
-      if (tree[2] === void 0) {
-        return res.send(404);
-      } else {
-        _ref = AbstractSQLRules2SQL.match(tree[2].query, 'ProcessQuery'), query = _ref.query, bindings = _ref.bindings;
-        values = getAndCheckBindValues(bindings, tree[2].values);
-        console.log(query, values);
-        if (!_.isArray(values)) {
-          return res.json(values, 404);
-        } else {
-          vocab = tree[1][1];
-          runQuery = function(tx) {
-            tx.begin();
-            return tx.executeSql(query, values, function(tx, sqlResult) {
-              return validateDB(tx, sqlModels[vocab], function(tx) {
-                var insertID;
-                tx.end();
-                insertID = tree[2].query[0] === 'UpdateQuery' ? values[0] : sqlResult.insertId;
-                console.log('Insert ID: ', insertID);
-                return res.send(201, {
-                  location: '/' + vocab + '/' + tree[2].resourceName + "?filter=" + tree[2].resourceName + ".id:" + insertID
-                });
-              }, function(tx, errors) {
-                return res.json(errors, 404);
-              });
-            }, function() {
-              return res.send(404);
-            });
-          };
-          if (tx != null) {
-            return runQuery(tx);
-          } else {
-            return db.transaction(runQuery);
-          }
-        }
-      }
-    };
-    runPut = function(req, res, tx) {
-      var doValidate, id, insertQuery, queries, runQuery, tree, updateQuery, values, vocab;
-      tree = req.tree;
-      if (tree[2] === void 0) {
-        return res.send(404);
-      } else {
-        queries = AbstractSQLRules2SQL.match(tree[2].query, 'ProcessQuery');
-        if (_.isArray(queries)) {
-          insertQuery = queries[0];
-          updateQuery = queries[1];
-        } else {
-          insertQuery = queries;
-        }
-        values = getAndCheckBindValues(insertQuery.bindings, tree[2].values);
-        console.log(insertQuery.query, values);
-        if (!_.isArray(values)) {
-          return res.json(values, 404);
-        } else {
-          vocab = tree[1][1];
-          doValidate = function(tx) {
-            return validateDB(tx, sqlModels[vocab], function(tx) {
-              tx.end();
-              return res.send(200);
-            }, function(tx, errors) {
-              return res.json(errors, 404);
-            });
-          };
-          id = getID(tree);
-          runQuery = function(tx) {
-            tx.begin();
-            return db.transaction(function(tx) {
-              return tx.executeSql('SELECT NOT EXISTS(SELECT 1 FROM "resource" r JOIN "resource-is_under-lock" AS rl ON rl."resource" = r."id" WHERE r."resource_type" = ? AND r."id" = ?) AS result;', [tree[2].resourceName, id], function(tx, result) {
-                var _ref;
-                if ((_ref = result.rows.item(0).result) === 0 || _ref === false) {
-                  return res.json(["The resource is locked and cannot be edited"], 404);
-                } else {
-                  return tx.executeSql(insertQuery.query, values, function(tx, result) {
-                    return doValidate(tx);
-                  }, function(tx) {
-                    if (updateQuery != null) {
-                      values = getAndCheckBindValues(updateQuery.bindings, tree[2].values);
-                      console.log(updateQuery.query, values);
-                      if (!_.isArray(values)) {
-                        return res.json(values, 404);
-                      } else {
-                        return tx.executeSql(updateQuery.query, values, function(tx, result) {
-                          return doValidate(tx);
-                        }, function() {
-                          return res.send(404);
-                        });
-                      }
-                    } else {
-                      return res.send(404);
-                    }
-                  });
-                }
-              });
-            });
-          };
-          if (tx != null) {
-            return runQuery(tx);
-          } else {
-            return db.transaction(runQuery);
-          }
-        }
-      }
-    };
-    runDelete = function(req, res, tx) {
-      var bindings, query, runQuery, tree, values, vocab, _ref;
-      tree = req.tree;
-      if (tree[2] === void 0) {
-        return res.send(404);
-      } else {
-        _ref = AbstractSQLRules2SQL.match(tree[2].query, 'ProcessQuery'), query = _ref.query, bindings = _ref.bindings;
-        values = getAndCheckBindValues(bindings, tree[2].values);
-        console.log(query, values);
-        if (!_.isArray(values)) {
-          return res.json(values, 404);
-        } else {
-          vocab = tree[1][1];
-          runQuery = function(tx) {
-            tx.begin();
-            return tx.executeSql(query, values, function(tx, result) {
-              return validateDB(tx, sqlModels[vocab], function(tx) {
-                tx.end();
-                return res.send(200);
-              }, function(tx, errors) {
-                return res.json(errors, 404);
-              });
-            }, function() {
-              return res.send(404);
-            });
-          };
-          if (tx != null) {
-            return runQuery(tx);
-          } else {
-            return db.transaction(runQuery);
-          }
-        }
-      }
-    };
     serverIsOnAir = function(req, res, next) {
       return isServerOnAir(function(onAir) {
         if (onAir) {
@@ -450,59 +40,20 @@
         }
       });
     };
-    parseURITree = function(req, res, next) {
-      var uri;
-      if (!(req.tree != null)) {
-        try {
-          uri = decodeURI(req.url);
-          req.tree = serverURIParser.match([req.method, req.body, uri], 'Process');
-          console.log(uri, req.tree, req.body);
-        } catch (e) {
-          req.tree = false;
-        }
-      }
-      if (req.tree === false) {
-        return next('route');
-      } else {
-        return next();
-      }
-    };
-    exports.setup = function(app, requirejs, databaseOptions) {
+    exports.setup = function(app, requirejs, sbvrUtils, databaseOptions) {
       requirejs(['database-layer/db'], function(dbModule) {
         db = dbModule.connect(databaseOptions);
-        AbstractSQL2SQL = AbstractSQL2SQL[databaseOptions.engine];
         return db.transaction(function(tx) {
-          executeModel(tx, 'dev', devModel, function() {
-            return console.log('Sucessfully executed dev model.');
-          }, function(tx, error) {
-            return console.log('Failed to execute dev model.', error);
-          });
-          runURI('GET', '/dev/model?filter=model_type:sql;vocabulary:data', null, tx, function(result) {
-            var clientModel, sqlModel;
-            sqlModel = result.instances[0].model_value;
-            clientModel = AbstractSQL2CLF(sqlModel);
-            sqlModels['data'] = sqlModel;
-            serverURIParser.setSQLModel('data', sqlModel);
-            clientModels['data'] = clientModel;
-            serverURIParser.setClientModel('data', clientModel);
-            return isServerOnAir(true);
-          }, function() {
-            return isServerOnAir(false);
-          });
-          executeModel(tx, 'transaction', transactionModel, function() {
-            return console.log('Sucessfully executed transaction model.');
-          }, function(tx, error) {
-            return console.log('Failed to execute transaction model.', error);
-          });
-          executeModel(tx, 'user', userModel, function() {
-            return console.log('Sucessfully executed user model.');
-          }, function(tx, error) {
-            return console.log('Failed to execute user model.', error);
-          });
-          return executeModel(tx, 'ui', uiModel, function() {
+          sbvrUtils.executeStandardModels(tx);
+          sbvrUtils.executeModel(tx, 'ui', uiModel, function() {
             return console.log('Sucessfully executed ui model.');
           }, function(tx, error) {
             return console.log('Failed to execute ui model.', error);
+          });
+          return sbvrUtils.runURI('GET', '/dev/model?filter=model_type:sql;vocabulary:data', null, tx, function(result) {
+            return isServerOnAir(true);
+          }, function() {
+            return isServerOnAir(false);
           });
         });
       });
@@ -515,13 +66,13 @@
         return res.send(404);
       });
       app.post('/execute', function(req, res, next) {
-        return runURI('GET', '/ui/textarea?filter=name:model_area', null, null, function(result) {
+        return sbvrUtils.runURI('GET', '/ui/textarea?filter=name:model_area', null, null, function(result) {
           var seModel;
           seModel = result.instances[0].text;
           return db.transaction(function(tx) {
             tx.begin();
-            return executeModel(tx, 'data', seModel, function(tx, lfModel, slfModel, abstractSqlModel, sqlModel, clientModel) {
-              runURI('PUT', '/ui/textarea-is_disabled?filter=textarea.name:model_area/', [
+            return sbvrUtils.executeModel(tx, 'data', seModel, function(tx, lfModel, slfModel, abstractSqlModel, sqlModel, clientModel) {
+              sbvrUtils.runURI('PUT', '/ui/textarea-is_disabled?filter=textarea.name:model_area/', [
                 {
                   value: true
                 }
@@ -543,22 +94,8 @@
             for (i = _i = 0, _ref = result.rows.length; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
               tx.dropTable(result.rows.item(i).name);
             }
-            executeModel(tx, 'transaction', transactionModel, function() {
-              return console.log('Sucessfully executed transaction model.');
-            }, function(tx, error) {
-              return console.log('Failed to execute transaction model.', error);
-            });
-            executeModel(tx, 'dev', devModel, function() {
-              return console.log('Sucessfully executed dev model.');
-            }, function(tx, error) {
-              return console.log('Failed to execute dev model.', error);
-            });
-            executeModel(tx, 'user', userModel, function() {
-              return console.log('Sucessfully executed user model.');
-            }, function(tx, error) {
-              return console.log('Failed to execute user model.', error);
-            });
-            executeModel(tx, 'ui', uiModel, function() {
+            sbvrUtils.executeStandardModels(tx);
+            sbvrUtils.executeModel(tx, 'ui', uiModel, function() {
               return console.log('Sucessfully executed ui model.');
             }, function(tx, error) {
               return console.log('Failed to execute ui model.', error);
@@ -699,124 +236,32 @@
           }, "name LIKE '%_buk'");
         });
       });
-      app.post('/transaction/execute/*', serverIsOnAir, function(req, res, next) {
-        var id;
-        id = req.url.split('/');
-        id = id[id.length - 1];
-        return db.transaction((function(tx) {
-          return tx.executeSql('SELECT * FROM "lock-belongs_to-transaction" WHERE "transaction" = ?;', [id], function(tx, locks) {
-            return endLock(tx, locks, id, function(tx) {
-              return res.send(200);
-            }, function(tx, errors) {
-              return res.json(errors, 404);
-            });
-          });
-        }));
+      app.get('/ui/*', sbvrUtils.parseURITree, function(req, res, next) {
+        return sbvrUtils.runGet(req, res);
       });
-      app.get('/dev/*', parseURITree, function(req, res, next) {
-        return runGet(req, res);
+      app.get('/data/*', serverIsOnAir, sbvrUtils.parseURITree, function(req, res, next) {
+        return sbvrUtils.runGet(req, res);
       });
-      app.get('/ui/*', parseURITree, function(req, res, next) {
-        return runGet(req, res);
+      app.post('/data/*', serverIsOnAir, sbvrUtils.parseURITree, function(req, res, next) {
+        return sbvrUtils.runPost(req, res);
       });
-      app.get('/transaction/*', serverIsOnAir, parseURITree, function(req, res, next) {
-        var bindings, query, tree, values, _ref;
-        tree = req.tree;
-        if (tree[2] === void 0) {
-          return __TODO__.die();
-        } else {
-          if (tree[2].resourceName === 'transaction') {
-            _ref = AbstractSQLRules2SQL.match(tree[2].query, 'ProcessQuery'), query = _ref.query, bindings = _ref.bindings;
-            values = getAndCheckBindValues(bindings, tree[2].values);
-            console.log(query, values);
-            if (!_.isArray(values)) {
-              return res.json(values, 404);
-            } else {
-              return db.transaction(function(tx) {
-                return tx.executeSql(query, values, function(tx, result) {
-                  if (result.rows.length > 1) {
-                    __TODO__.die();
-                  }
-                  return res.json({
-                    id: result.rows.item(0).id,
-                    tcURI: "/transaction",
-                    lcURI: "/transaction/lock",
-                    tlcURI: "/transaction/lock-belongs_to-transaction",
-                    rcURI: "/transaction/resource",
-                    lrcURI: "/transaction/resource-is_under-lock",
-                    slcURI: "/transaction/lock-is_shared",
-                    xlcURI: "/transaction/lock-is_exclusive",
-                    ctURI: "/transaction/execute/" + result.rows.item(0).id
-                  });
-                }, function() {
-                  return res.send(404);
-                });
-              });
-            }
-          } else {
-            return runGet(req, res);
-          }
-        }
+      app.put('/ui/*', sbvrUtils.parseURITree, function(req, res, next) {
+        return sbvrUtils.runPut(req, res);
       });
-      app.get('/data/*', serverIsOnAir, parseURITree, function(req, res, next) {
-        var tree;
-        tree = req.tree;
-        if (tree[2] === void 0) {
-          return res.json(clientModels[tree[1][1]].resources);
-        } else {
-          return runGet(req, res);
-        }
+      app.put('/data/*', serverIsOnAir, sbvrUtils.parseURITree, function(req, res, next) {
+        return sbvrUtils.runPut(req, res);
       });
-      app.post('/transaction/*', serverIsOnAir, parseURITree, function(req, res, next) {
-        return runPost(req, res);
-      });
-      app.post('/data/*', serverIsOnAir, parseURITree, function(req, res, next) {
-        return runPost(req, res);
-      });
-      app.put('/ui/*', parseURITree, function(req, res, next) {
-        return runPut(req, res);
-      });
-      app.put('/transaction/*', serverIsOnAir, parseURITree, function(req, res, next) {
-        return runPut(req, res);
-      });
-      app.put('/data/*', serverIsOnAir, parseURITree, function(req, res, next) {
-        return runPut(req, res);
-      });
-      app.del('/transaction/*', serverIsOnAir, parseURITree, function(req, res, next) {
-        return runDelete(req, res);
-      });
-      app.del('/data/*', serverIsOnAir, parseURITree, function(req, res, next) {
-        return runDelete(req, res);
+      app.del('/data/*', serverIsOnAir, sbvrUtils.parseURITree, function(req, res, next) {
+        return sbvrUtils.runDelete(req, res);
       });
       return app.del('/', serverIsOnAir, function(req, res, next) {
-        db.transaction((function(sqlmod) {
-          return function(tx) {
-            var dropStatement, _i, _len, _ref, _results;
-            _ref = sqlmod.dropSchema;
-            _results = [];
-            for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-              dropStatement = _ref[_i];
-              _results.push(tx.executeSql(dropStatement));
-            }
-            return _results;
-          };
-        })(sqlModels['data']));
-        runURI('DELETE', '/ui/textarea-is_disabled?filter=textarea.name:model_area/');
-        runURI('PUT', '/ui/textarea?filter=name:model_area/', [
+        sbvrUtils.runURI('DELETE', '/ui/textarea-is_disabled?filter=textarea.name:model_area/');
+        sbvrUtils.runURI('PUT', '/ui/textarea?filter=name:model_area/', [
           {
             text: ''
           }
         ]);
-        runURI('DELETE', '/dev/model?filter=model_type:se;vocabulary:data', null, tx);
-        runURI('DELETE', '/dev/model?filter=model_type:lf;vocabulary:data', null, tx);
-        runURI('DELETE', '/dev/model?filter=model_type:slf;vocabulary:data', null, tx);
-        runURI('DELETE', '/dev/model?filter=model_type:abstractsql;vocabulary:data', null, tx);
-        runURI('DELETE', '/dev/model?filter=model_type:sql;vocabulary:data', null, tx);
-        runURI('DELETE', '/dev/model?filter=model_type:client;vocabulary:data', null, tx);
-        sqlModels['data'] = [];
-        serverURIParser.setSQLModel('data', sqlModels['data']);
-        clientModels['data'] = [];
-        serverURIParser.setClientModel('data', clientModels['data']);
+        sbvrUtils.deleteModel('data');
         isServerOnAir(false);
         return res.send(200);
       });

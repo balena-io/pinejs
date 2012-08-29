@@ -39,7 +39,7 @@
       }
       return sum;
     };
-    exports.setup = function(app, requirejs, databaseOptions) {
+    exports.setup = function(app, requirejs, sbvrUtils, databaseOptions) {
       requirejs(['database-layer/db'], function(dbModule) {
         db = dbModule.connect(databaseOptions);
         return db.transaction(function(tx) {

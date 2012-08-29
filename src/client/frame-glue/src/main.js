@@ -26,6 +26,6 @@ require(['underscore', 'ometa-core'], function(_) {
 	require(["sbvr-frame/SBVRModels"])
 	
 	/*#IFDEF websql */
-		require(["server-glue"]);
+		require(["server-glue/server"]);
 	/*#ENDIFDEF*/
 });

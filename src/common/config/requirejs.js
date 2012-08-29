@@ -63,7 +63,7 @@
 			
 			'sbvr-compiler':			rootPath + 'server/sbvr-compiler/src/',
 			
-			'server-glue':				rootPath + 'server/server-glue/src/server',
+			'server-glue':				rootPath + 'server/server-glue/src/',
 			'express-emulator':			rootPath + 'server/express-emulator/src/express',
 			'data-server':				rootPath + 'server/data-server/src',
 			'editorServer':				rootPath + 'server/editor-server/src/editorServer',

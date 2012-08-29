@@ -1,4 +1,4 @@
-define(['server-glue', 'sbvr-frame/SBVRModels'], function() {
+define(['server-glue/server', 'sbvr-frame/SBVRModels'], function() {
 	var resetState = function (callback) {
 		remoteServerRequest('DELETE', '/', {}, null, callback, callback);
 	}

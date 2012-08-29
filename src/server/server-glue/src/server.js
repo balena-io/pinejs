@@ -20,11 +20,14 @@
   }
 
   setupCallback = function(requirejs, app) {
-    requirejs(['data-server/SBVRServer'], function(sbvrServer) {
-      return sbvrServer.setup(app, requirejs, databaseOptions);
-    });
-    requirejs(['editorServer'], function(editorServer) {
-      return editorServer.setup(app, requirejs, databaseOptions);
+    requirejs(['server-glue/sbvr-utils'], function(sbvrUtils) {
+      sbvrUtils.setup(app, requirejs, databaseOptions);
+      requirejs(['data-server/SBVRServer'], function(sbvrServer) {
+        return sbvrServer.setup(app, requirejs, sbvrUtils, databaseOptions);
+      });
+      return requirejs(['editorServer'], function(editorServer) {
+        return editorServer.setup(app, requirejs, sbvrUtils, databaseOptions);
+      });
     });
     if (typeof process !== "undefined" && process !== null) {
       return app.listen(process.env.PORT || 1337, function() {
@@ -62,7 +65,7 @@
         'Prettify': rootPath + 'client/prettify-ometa/src/Prettify',
         'codemirror-ometa-bridge': rootPath + 'client/codemirror-ometa-bridge/src',
         'sbvr-compiler': rootPath + 'server/sbvr-compiler/src/',
-        'server-glue': rootPath + 'server/server-glue/src/server',
+        'server-glue': rootPath + 'server/server-glue/src/',
         'express-emulator': rootPath + 'server/express-emulator/src/express',
         'data-server': rootPath + 'server/data-server/src',
         'editorServer': rootPath + 'server/editor-server/src/editorServer',

@@ -16,17 +16,21 @@ else
 		
 
 setupCallback = (requirejs, app) ->
-	#IFDEF server
-	requirejs(['data-server/SBVRServer'], (sbvrServer) ->
-		sbvrServer.setup(app, requirejs, databaseOptions)
-	)
-	#ENDIFDEF
+	requirejs(['server-glue/sbvr-utils'], (sbvrUtils) ->
+		sbvrUtils.setup(app, requirejs, databaseOptions)
+		
+		#IFDEF server
+		requirejs(['data-server/SBVRServer'], (sbvrServer) ->
+			sbvrServer.setup(app, requirejs, sbvrUtils, databaseOptions)
+		)
+		#ENDIFDEF
 
-	#IFDEF editor
-	requirejs(['editorServer'], (editorServer) ->
-		editorServer.setup(app, requirejs, databaseOptions)
+		#IFDEF editor
+		requirejs(['editorServer'], (editorServer) ->
+			editorServer.setup(app, requirejs, sbvrUtils, databaseOptions)
+		)
+		#ENDIFDEF
 	)
-	#ENDIFDEF
 
 	if process?
 		app.listen(process.env.PORT or 1337, () ->
@@ -69,7 +73,7 @@ if process?
 			
 			'sbvr-compiler':			rootPath + 'server/sbvr-compiler/src/',
 			
-			'server-glue':				rootPath + 'server/server-glue/src/server',
+			'server-glue':				rootPath + 'server/server-glue/src/',
 			'express-emulator':			rootPath + 'server/express-emulator/src/express',
 			'data-server':				rootPath + 'server/data-server/src',
 			'editorServer':				rootPath + 'server/editor-server/src/editorServer',
