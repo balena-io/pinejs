@@ -86,6 +86,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core'], function(SBVRLibs, 
 				GetTableFieldID(baseTable, fkTable.name):fieldID
 				?(fieldID !== false)
 				{baseTable.fields[fieldID][0] = 'ForeignKey'}
+				{baseTable.fields[fieldID][3] = fkTable.idField}
 			|	{baseTable.fields.push(['ForeignKey', fkTable.name, type, fkTable.idField])}
 			)
 			{this.tables[this.GetResourceName(factType)] = 'ForeignKey'},

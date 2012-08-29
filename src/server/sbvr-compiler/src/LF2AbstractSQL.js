@@ -1,9 +1,8 @@
 define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs, _) {
     var LF2AbstractSQL = SBVRLibs._extend({
         "TermName": function() {
-            var $elf = this,
-                _fromIdx = this.input.idx,
-                termName;
+            var termName, _fromIdx = this.input.idx,
+                $elf = this;
             termName = this._apply("anything");
             this._or((function() {
                 return this._pred((!this["tables"].hasOwnProperty(this.GetResourceName(termName))))
@@ -21,9 +20,8 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs,
             return termName
         },
         "Attributes": function(tableID) {
-            var attributeValue, $elf = this,
-                _fromIdx = this.input.idx,
-                attributeName;
+            var attributeName, _fromIdx = this.input.idx,
+                attributeValue, $elf = this;
             return this._form((function() {
                 return this._many((function() {
                     return this._form((function() {
@@ -34,15 +32,15 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs,
             }))
         },
         "DefaultAttr": function(tableID) {
-            var anything, $elf = this,
-                _fromIdx = this.input.idx;
+            var _fromIdx = this.input.idx,
+                anything, $elf = this;
             anything = this._apply("anything");
             return console.log("Default", tableID, anything)
         },
         "AttrConceptType": function(termName) {
-            var termTable, fieldID, field, $elf = this,
-                _fromIdx = this.input.idx,
-                conceptType, primitive, conceptTable;
+            var termTable, conceptTable, primitive, field, _fromIdx = this.input.idx,
+                $elf = this,
+                conceptType, fieldID;
             this._form((function() {
                 this._applyWithArgs("exactly", "Term");
                 return conceptType = this._apply("anything")
@@ -68,9 +66,9 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs,
             return termTable["fields"].push(field)
         },
         "AttrDatabaseIDField": function(tableID) {
-            var idField, $elf = this,
-                _fromIdx = this.input.idx,
-                table;
+            var _fromIdx = this.input.idx,
+                table, $elf = this,
+                idField;
             idField = this._apply("anything");
             table = this["tables"][this.GetResourceName(tableID)];
             return this._or((function() {
@@ -81,9 +79,9 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs,
             }))
         },
         "AttrDatabaseValueField": function(tableID) {
-            var valueField, fieldID, $elf = this,
-                _fromIdx = this.input.idx,
-                table;
+            var _fromIdx = this.input.idx,
+                table, $elf = this,
+                fieldID, valueField;
             valueField = this._apply("anything");
             table = this["tables"][this.GetResourceName(tableID)];
             return this._or((function() {
@@ -101,9 +99,9 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs,
             }))
         },
         "AttrDatabaseTableName": function(tableID) {
-            var tableName, $elf = this,
-                _fromIdx = this.input.idx,
-                table;
+            var _fromIdx = this.input.idx,
+                table, $elf = this,
+                tableName;
             tableName = this._apply("anything");
             table = this["tables"][this.GetResourceName(tableID)];
             return this._or((function() {
@@ -113,15 +111,16 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs,
             }))
         },
         "AttrDatabasePrimitive": function(termName) {
-            var attrVal, $elf = this,
-                _fromIdx = this.input.idx;
+            var _fromIdx = this.input.idx,
+                $elf = this,
+                attrVal;
             attrVal = this._apply("anything");
             return (this["tables"][this.GetResourceName(termName)]["primitive"] = attrVal)
         },
         "AttrDatabaseAttribute": function(factType) {
-            var attrVal, fieldID, attributeTable, $elf = this,
-                _fromIdx = this.input.idx,
-                baseTable;
+            var attributeTable, baseTable, _fromIdx = this.input.idx,
+                $elf = this,
+                attrVal, fieldID;
             attrVal = this._apply("anything");
             return this._opt((function() {
                 this._pred(attrVal);
@@ -133,9 +132,9 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs,
             }))
         },
         "AttrForeignKey": function(factType) {
-            var fkTable, fieldID, type, $elf = this,
-                _fromIdx = this.input.idx,
-                baseTable;
+            var baseTable, fkTable, _fromIdx = this.input.idx,
+                $elf = this,
+                type, fieldID;
             type = this._apply("anything");
             baseTable = this["tables"][this.GetResourceName(factType[(0)][(1)])];
             fkTable = this["tables"][this.GetResourceName(factType[(2)][(1)])];
@@ -143,30 +142,31 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs,
                 this._pred(((baseTable["valueField"] == fkTable["name"]) || (baseTable["idField"] == fkTable["name"])));
                 fieldID = this._applyWithArgs("GetTableFieldID", baseTable, fkTable["name"]);
                 this._pred((fieldID !== false));
-                return (baseTable["fields"][fieldID][(0)] = "ForeignKey")
+                (baseTable["fields"][fieldID][(0)] = "ForeignKey");
+                return (baseTable["fields"][fieldID][(3)] = fkTable["idField"])
             }), (function() {
                 return baseTable["fields"].push(["ForeignKey", fkTable["name"], type, fkTable["idField"]])
             }));
             return (this["tables"][this.GetResourceName(factType)] = "ForeignKey")
         },
         "AttrSynonymousForm": function(factType) {
-            var $elf = this,
-                _fromIdx = this.input.idx,
-                synForm;
+            var synForm, _fromIdx = this.input.idx,
+                $elf = this;
             synForm = this._apply("anything");
             return this._applyWithArgs("AddFactType", synForm.slice((0), (-(1))), factType)
         },
         "AttrTermForm": function(factType) {
-            var term, $elf = this,
-                _fromIdx = this.input.idx;
+            var _fromIdx = this.input.idx,
+                $elf = this,
+                term;
             term = this._apply("anything");
             (this["terms"][term[(1)]] = factType);
             return (this["tables"][this.GetResourceName(term[(1)])] = this["tables"][this.GetResourceName(factType)])
         },
         "FactType": function() {
-            var fkTable, factTypePart, resourceName, factType, $elf = this,
-                _fromIdx = this.input.idx,
-                termName, attributes, verb;
+            var attributes, termName, factType, verb, fkTable, _fromIdx = this.input.idx,
+                $elf = this,
+                resourceName, factTypePart;
             this._lookahead((function() {
                 return factType = this._many1((function() {
                     factTypePart = this._apply("anything");
@@ -213,8 +213,8 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs,
             return factType
         },
         "Cardinality": function() {
-            var cardinality, $elf = this,
-                _fromIdx = this.input.idx;
+            var cardinality, _fromIdx = this.input.idx,
+                $elf = this;
             this._form((function() {
                 (function() {
                     switch (this._apply('anything')) {
@@ -233,9 +233,8 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs,
             return cardinality
         },
         "Number": function() {
-            var $elf = this,
-                _fromIdx = this.input.idx,
-                num;
+            var num, _fromIdx = this.input.idx,
+                $elf = this;
             this._form((function() {
                 this._applyWithArgs("exactly", "Number");
                 num = this._apply("anything");
@@ -244,9 +243,8 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs,
             return num
         },
         "Variable": function() {
-            var bind, whereBody, $elf = this,
-                _fromIdx = this.input.idx,
-                termName, query, varAlias;
+            var varAlias, termName, query, whereBody, bind, _fromIdx = this.input.idx,
+                $elf = this;
             this._form((function() {
                 this._applyWithArgs("exactly", "Variable");
                 bind = this._apply("Number");
@@ -269,9 +267,8 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs,
             return query
         },
         "RoleBinding": function() {
-            var bind, $elf = this,
-                _fromIdx = this.input.idx,
-                termName;
+            var termName, bind, _fromIdx = this.input.idx,
+                $elf = this;
             this._form((function() {
                 this._applyWithArgs("exactly", "RoleBinding");
                 this._form((function() {
@@ -283,9 +280,9 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs,
             return [termName, bind]
         },
         "LinkTable": function(actualFactType, rootTerms) {
-            var tableAlias, bind, resourceName, $elf = this,
-                _fromIdx = this.input.idx,
-                query, i, termName;
+            var i, termName, tableAlias, query, bind, _fromIdx = this.input.idx,
+                $elf = this,
+                resourceName;
             tableAlias = ("link" + this["linkTableBind"]++);
             query = ["SelectQuery", ["Select", []],
                 ["From", this["tables"][this.GetResourceName(actualFactType)]["name"], tableAlias]
@@ -304,9 +301,9 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs,
             return ["Exists", query]
         },
         "ForeignKey": function(actualFactType, rootTerms) {
-            var tableTo, termTo, bindTo, termFrom, temp, $elf = this,
-                _fromIdx = this.input.idx,
-                bindFrom;
+            var tableTo, bindFrom, bindTo, termFrom, temp, _fromIdx = this.input.idx,
+                $elf = this,
+                termTo;
             this._pred((this["tables"][this.GetResourceName(actualFactType)] == "ForeignKey"));
             this._or((function() {
                 bindFrom = this._apply("RoleBinding");
@@ -330,9 +327,8 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs,
             return ["Equals", ["ReferencedField", (("var" + bindFrom[(1)]) + termFrom), tableTo["name"]], ["ReferencedField", (("var" + bindTo[(1)]) + termTo), tableTo["idField"]]]
         },
         "BooleanAttribute": function(actualFactType) {
-            var termFrom, $elf = this,
-                _fromIdx = this.input.idx,
-                bindFrom, attributeName;
+            var bindFrom, termFrom, attributeName, _fromIdx = this.input.idx,
+                $elf = this;
             this._pred((this["tables"][this.GetResourceName(actualFactType)] == "BooleanAttribute"));
             this._or((function() {
                 bindFrom = this._apply("RoleBinding");
@@ -346,9 +342,9 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs,
             return ["Equals", ["ReferencedField", (("var" + bindFrom[(1)]) + termFrom), attributeName], ["Boolean", true]]
         },
         "Attribute": function(actualFactType, rootTerms) {
-            var termNameAttr, bindReal, temp, resourceAttr, $elf = this,
-                _fromIdx = this.input.idx,
-                query, termNameReal, bindAttr;
+            var query, bindAttr, termNameAttr, temp, _fromIdx = this.input.idx,
+                termNameReal, bindReal, $elf = this,
+                resourceAttr;
             this._pred((this["tables"][this.GetResourceName(actualFactType)] == "Attribute"));
             query = ["SelectQuery", ["Select", []]];
             this._or((function() {
@@ -376,8 +372,9 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs,
             return ["Exists", query]
         },
         "AtomicFormulation": function() {
-            var actualFactType, whereClause, factType, rootTerms, $elf = this,
-                _fromIdx = this.input.idx;
+            var actualFactType, factType, rootTerms, _fromIdx = this.input.idx,
+                $elf = this,
+                whereClause;
             this._form((function() {
                 this._applyWithArgs("exactly", "AtomicFormulation");
                 this._form((function() {
@@ -401,9 +398,9 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs,
             return whereClause
         },
         "AtLeast": function() {
-            var minCard, $elf = this,
-                _fromIdx = this.input.idx,
-                query;
+            var query, _fromIdx = this.input.idx,
+                $elf = this,
+                minCard;
             this._form((function() {
                 this._applyWithArgs("exactly", "AtLeastNQ");
                 minCard = this._apply("Cardinality");
@@ -413,9 +410,9 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs,
             return ["GreaterThanOrEqual", query, ["Number", minCard]]
         },
         "Exactly": function() {
-            var card, $elf = this,
-                _fromIdx = this.input.idx,
-                query;
+            var query, _fromIdx = this.input.idx,
+                $elf = this,
+                card;
             this._form((function() {
                 this._applyWithArgs("exactly", "ExactQ");
                 card = this._apply("Cardinality");
@@ -425,9 +422,9 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs,
             return ["Equals", query, ["Number", card]]
         },
         "Range": function() {
-            var minCard, maxCard, $elf = this,
-                _fromIdx = this.input.idx,
-                query;
+            var maxCard, query, _fromIdx = this.input.idx,
+                $elf = this,
+                minCard;
             this._form((function() {
                 this._applyWithArgs("exactly", "NumericalRangeQ");
                 minCard = this._apply("Cardinality");
@@ -438,9 +435,8 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs,
             return ["Between", query, ["Number", minCard], ["Number", maxCard]]
         },
         "Exists": function() {
-            var $elf = this,
-                _fromIdx = this.input.idx,
-                query;
+            var query, _fromIdx = this.input.idx,
+                $elf = this;
             this._form((function() {
                 this._applyWithArgs("exactly", "ExistentialQ");
                 return query = this._apply("Variable")
@@ -448,8 +444,8 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs,
             return ["Exists", query]
         },
         "Negation": function() {
-            var whereBody, $elf = this,
-                _fromIdx = this.input.idx;
+            var whereBody, _fromIdx = this.input.idx,
+                $elf = this;
             this._form((function() {
                 this._applyWithArgs("exactly", "LogicalNegation");
                 return whereBody = this._apply("RulePart")
@@ -457,8 +453,8 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs,
             return ["Not", whereBody]
         },
         "RulePart": function() {
-            var x, whereBody, $elf = this,
-                _fromIdx = this.input.idx;
+            var x, whereBody, _fromIdx = this.input.idx,
+                $elf = this;
             whereBody = this._or((function() {
                 return this._apply("AtomicFormulation")
             }), (function() {
@@ -479,20 +475,19 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs,
             return whereBody
         },
         "RuleBody": function() {
-            var $elf = this,
-                _fromIdx = this.input.idx,
-                rule;
+            var rule, _fromIdx = this.input.idx,
+                $elf = this;
             this._form((function() {
                 (function() {
                     switch (this._apply('anything')) {
                     case "ObligationF":
                         return "ObligationF";
-                    case "NecessityF":
-                        return "NecessityF";
-                    case "PermissibilityF":
-                        return "PermissibilityF";
                     case "PossibilityF":
                         return "PossibilityF";
+                    case "PermissibilityF":
+                        return "PermissibilityF";
+                    case "NecessityF":
+                        return "NecessityF";
                     default:
                         throw this._fail()
                     }
@@ -502,25 +497,15 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs,
             return rule
         },
         "Process": function() {
-            var ruleText, factType, tables, $elf = this,
-                _fromIdx = this.input.idx,
-                termName, ruleBody;
+            var tables, termName, factType, _fromIdx = this.input.idx,
+                $elf = this,
+                ruleBody, ruleText;
             this._form((function() {
                 this._applyWithArgs("exactly", "Model");
                 return this._many1((function() {
                     return this._form((function() {
                         return (function() {
                             switch (this._apply('anything')) {
-                            case "Term":
-                                return (function() {
-                                    termName = this._apply("TermName");
-                                    return this._applyWithArgs("Attributes", termName)
-                                }).call(this);
-                            case "FactType":
-                                return (function() {
-                                    factType = this._apply("FactType");
-                                    return this._applyWithArgs("Attributes", factType)
-                                }).call(this);
                             case "Rule":
                                 return (function() {
                                     ruleBody = this._apply("RuleBody");
@@ -532,6 +517,16 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs,
                                     return this["rules"].push(["Rule", ["StructuredEnglish", ruleText],
                                         ["Body", ruleBody]
                                     ])
+                                }).call(this);
+                            case "Term":
+                                return (function() {
+                                    termName = this._apply("TermName");
+                                    return this._applyWithArgs("Attributes", termName)
+                                }).call(this);
+                            case "FactType":
+                                return (function() {
+                                    factType = this._apply("FactType");
+                                    return this._applyWithArgs("Attributes", factType)
                                 }).call(this);
                             default:
                                 throw this._fail()
