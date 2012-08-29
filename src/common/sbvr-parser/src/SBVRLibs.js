@@ -8,7 +8,8 @@ define(["underscore", "ometa-core"], (function(_) {
         "Date Time": true,
         "Time": true,
         "Interval": true,
-        "Hashed": true
+        "Hashed": true,
+        "JSON": true
     });
     var SBVRLibs = OMeta._extend({});
     (SBVRLibs["initialize"] = (function() {

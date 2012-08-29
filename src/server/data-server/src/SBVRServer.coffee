@@ -317,6 +317,12 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 		return bindValues
 	
 	runGet = (req, res, tx) ->
+		processInstance = (resourceModel, instance) ->
+			instance = _.clone(instance)
+			for field in resourceModel.fields when field[0] == 'JSON' and instance.hasOwnProperty(field[1])
+				instance[field[1]] = JSON.parse(instance[field[1]])
+			return instance
+		
 		tree = req.tree
 		if tree[2] == undefined
 			res.send(404)
@@ -334,12 +340,12 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 								res.send(404)
 							else
 								clientModel = clientModels[tree[1][1]]
-								
+								resourceModel = clientModel.resources[tree[2].resourceName]
 								data =
 									instances:
-										(result.rows.item(i) for i in [0...result.rows.length])
+										(processInstance(resourceModel, result.rows.item(i)) for i in [0...result.rows.length])
 									model:
-										clientModel.resources[tree[2].resourceName]
+										resourceModel
 								res.json(data)
 						() ->
 							res.send(404)

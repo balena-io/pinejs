@@ -33,6 +33,11 @@ define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQLOptimise
 				when 'Long Text'
 					if !_.isString(value)
 						validated = 'is not a string: ' + originalValue
+				when 'JSON'
+					try
+						value = JSON.stringify(value)
+					catch e
+						validated = 'cannot be turned into JSON: ' + originalValue
 				when 'Boolean'
 					value = parseInt(value, 10)
 					if _.isNaN(value) || (value not in [0, 1])
@@ -73,7 +78,7 @@ define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQLOptimise
 				return 'INTEGER ' + necessity
 			when 'Short Text'
 				return 'VARCHAR(20) ' + necessity
-			when 'Long Text'
+			when 'Long Text', 'JSON'
 				return 'TEXT ' + necessity
 			when 'Boolean'
 				return 'INTEGER NOT NULL DEFAULT 0'
@@ -102,7 +107,7 @@ define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQLOptimise
 				return 'INTEGER ' + necessity
 			when 'Short Text'
 				return 'VARCHAR(20) ' + necessity
-			when 'Long Text'
+			when 'Long Text', 'JSON'
 				return 'TEXT ' + necessity
 			when 'Boolean'
 				return 'INTEGER NOT NULL DEFAULT 0'
@@ -131,7 +136,7 @@ define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQLOptimise
 				return 'INTEGER ' + necessity
 			when 'Short Text'
 				return 'VARCHAR(20) ' + necessity
-			when 'Long Text'
+			when 'Long Text', 'JSON'
 				return 'TEXT ' + necessity
 			when 'Boolean'
 				return 'INTEGER NOT NULL DEFAULT 0'

@@ -12,7 +12,7 @@ define(['data-frame/widgets/text', 'data-frame/widgets/textArea', 'data-frame/wi
 		if value != ''
 			return value
 		return '?'
-	widgets['Interval'] = widgets['Date'] = widgets['Date Time'] = widgets['Time'] = () ->
+	widgets['JSON'] = widgets['Interval'] = widgets['Date'] = widgets['Date Time'] = widgets['Time'] = () ->
 		return 'TODO'
 	
 	return (widgetType, action, id, value, foreignKeys = []) ->

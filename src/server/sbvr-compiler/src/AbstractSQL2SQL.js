@@ -57,6 +57,13 @@
               validated = 'is not a string: ' + originalValue;
             }
             break;
+          case 'JSON':
+            try {
+              value = JSON.stringify(value);
+            } catch (e) {
+              validated = 'cannot be turned into JSON: ' + originalValue;
+            }
+            break;
           case 'Boolean':
             value = parseInt(value, 10);
             if (_.isNaN(value) || (value !== 0 && value !== 1)) {
@@ -112,6 +119,7 @@
         case 'Short Text':
           return 'VARCHAR(20) ' + necessity;
         case 'Long Text':
+        case 'JSON':
           return 'TEXT ' + necessity;
         case 'Boolean':
           return 'INTEGER NOT NULL DEFAULT 0';
@@ -144,6 +152,7 @@
         case 'Short Text':
           return 'VARCHAR(20) ' + necessity;
         case 'Long Text':
+        case 'JSON':
           return 'TEXT ' + necessity;
         case 'Boolean':
           return 'INTEGER NOT NULL DEFAULT 0';
@@ -176,6 +185,7 @@
         case 'Short Text':
           return 'VARCHAR(20) ' + necessity;
         case 'Long Text':
+        case 'JSON':
           return 'TEXT ' + necessity;
         case 'Boolean':
           return 'INTEGER NOT NULL DEFAULT 0';

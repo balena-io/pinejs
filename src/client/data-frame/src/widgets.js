@@ -18,7 +18,7 @@
       }
       return '?';
     };
-    widgets['Interval'] = widgets['Date'] = widgets['Date Time'] = widgets['Time'] = function() {
+    widgets['JSON'] = widgets['Interval'] = widgets['Date'] = widgets['Date Time'] = widgets['Time'] = function() {
       return 'TODO';
     };
     return function(widgetType, action, id, value, foreignKeys) {

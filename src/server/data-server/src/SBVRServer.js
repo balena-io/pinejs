@@ -287,7 +287,19 @@
       return bindValues;
     };
     runGet = function(req, res, tx) {
-      var bindings, clientModel, data, query, runQuery, tree, values, _ref;
+      var bindings, clientModel, data, processInstance, query, runQuery, tree, values, _ref;
+      processInstance = function(resourceModel, instance) {
+        var field, _i, _len, _ref;
+        instance = _.clone(instance);
+        _ref = resourceModel.fields;
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          field = _ref[_i];
+          if (field[0] === 'JSON' && instance.hasOwnProperty(field[1])) {
+            instance[field[1]] = JSON.parse(instance[field[1]]);
+          }
+        }
+        return instance;
+      };
       tree = req.tree;
       if (tree[2] === void 0) {
         return res.send(404);
@@ -300,21 +312,22 @@
         } else {
           runQuery = function(tx) {
             return tx.executeSql(query, values, function(tx, result) {
-              var clientModel, data, i;
+              var clientModel, data, i, resourceModel;
               if (values.length > 0 && result.rows.length === 0) {
                 return res.send(404);
               } else {
                 clientModel = clientModels[tree[1][1]];
+                resourceModel = clientModel.resources[tree[2].resourceName];
                 data = {
                   instances: (function() {
                     var _i, _ref1, _results;
                     _results = [];
                     for (i = _i = 0, _ref1 = result.rows.length; 0 <= _ref1 ? _i < _ref1 : _i > _ref1; i = 0 <= _ref1 ? ++_i : --_i) {
-                      _results.push(result.rows.item(i));
+                      _results.push(processInstance(resourceModel, result.rows.item(i)));
                     }
                     return _results;
                   })(),
-                  model: clientModel.resources[tree[2].resourceName]
+                  model: resourceModel
                 };
                 return res.json(data);
               }
