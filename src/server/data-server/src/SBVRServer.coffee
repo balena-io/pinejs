@@ -253,6 +253,7 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 		return id
 	
 	runURI = (method, uri, body = {}, tx, successCallback, failureCallback) ->
+		uri = decodeURI(uri)
 		console.log('Running URI', method, uri, body)
 		req =
 			tree: serverURIParser.match([method, body, uri], 'Process')
@@ -472,8 +473,9 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 	parseURITree = (req, res, next) ->
 		if !req.tree?
 			try
-				req.tree = serverURIParser.match([req.method, req.body, req.url], 'Process')
-				console.log(req.url, req.tree, req.body)
+				uri = decodeURI(req.url)
+				req.tree = serverURIParser.match([req.method, req.body, uri], 'Process')
+				console.log(uri, req.tree, req.body)
 			catch e
 				req.tree = false
 		if req.tree == false

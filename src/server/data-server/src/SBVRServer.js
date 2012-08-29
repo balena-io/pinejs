@@ -214,6 +214,7 @@
       if (body == null) {
         body = {};
       }
+      uri = decodeURI(uri);
       console.log('Running URI', method, uri, body);
       req = {
         tree: serverURIParser.match([method, body, uri], 'Process'),
@@ -472,10 +473,12 @@
       });
     };
     parseURITree = function(req, res, next) {
+      var uri;
       if (!(req.tree != null)) {
         try {
-          req.tree = serverURIParser.match([req.method, req.body, req.url], 'Process');
-          console.log(req.url, req.tree, req.body);
+          uri = decodeURI(req.url);
+          req.tree = serverURIParser.match([req.method, req.body, uri], 'Process');
+          console.log(uri, req.tree, req.body);
         } catch (e) {
           req.tree = false;
         }
