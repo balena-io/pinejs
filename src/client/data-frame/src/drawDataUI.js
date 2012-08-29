@@ -272,8 +272,8 @@
             resource.closeHash = '#!/' + expandedTree.getNewURI("del");
             resource.closeURI = rootURI + resource.closeHash;
             (function(resourceName) {
-              return serverRequest("GET", "/lfmodel/", {}, null, function(statusCode, result) {
-                return renderResource(resourceName, asyncCallback.successCallback, rootURI, true, expandedTree, result);
+              return serverRequest('GET', '/dev/model?filter=model_type:lf;vocabulary:data', {}, null, function(statusCode, result) {
+                return renderResource(resourceName, asyncCallback.successCallback, rootURI, true, expandedTree, result.instances[0].model_value);
               }, asyncCallback.errorCallback);
             })(resourceName);
           } else {

@@ -374,9 +374,9 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs',
 						resource.closeURI = rootURI + resource.closeHash
 						# request schema from server and store locally.
 						do (resourceName) ->
-							serverRequest("GET", "/lfmodel/", {}, null,
+							serverRequest('GET', '/dev/model?filter=model_type:lf;vocabulary:data', {}, null,
 								(statusCode, result) ->
-									renderResource(resourceName, asyncCallback.successCallback, rootURI, true, expandedTree, result)
+									renderResource(resourceName, asyncCallback.successCallback, rootURI, true, expandedTree, result.instances[0].model_value)
 								asyncCallback.errorCallback
 							)
 					else

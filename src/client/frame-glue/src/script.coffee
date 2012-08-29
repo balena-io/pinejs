@@ -91,14 +91,17 @@ define(['sbvr-parser/SBVRParser', 'data-frame/ClientURIParser', 'Prettify'], (SB
 	setClientOnAir = (bool) ->
 		clientOnAir = bool
 		if clientOnAir == true
-			serverRequest "GET", "/lfmodel/", {}, null, (statusCode, result) ->
-				lfEditor.setValue(Prettify.match(result, "Process"))
+			serverRequest('GET', '/dev/model?filter=model_type:lf;vocabulary:data', {}, null, (statusCode, result) ->
+				lfEditor.setValue(Prettify.match(result.instances[0].model_value, 'Process'))
+			)
 
-			serverRequest "GET", "/prepmodel/", {}, null, (statusCode, result) ->
-				$("#prepArea").val(JSON.stringify(result))
+			serverRequest('GET', '/dev/model?filter=model_type:abstractsql;vocabulary:data', {}, null, (statusCode, result) ->
+				$("#prepArea").val(JSON.stringify(result.instances[0].model_value))
+			)
 
-			serverRequest "GET", "/sqlmodel/", {}, null, (statusCode, result) ->
-				sqlEditor.setValue(JSON.stringify(result))
+			serverRequest('GET', '/dev/model?filter=model_type:sql;vocabulary:data', {}, null, (statusCode, result) ->
+				sqlEditor.setValue(JSON.stringify(result.instances[0].model_value))
+			)
 
 			$("#bem").button("disable")
 			$("#bum, #br").button("enable")

@@ -3,10 +3,11 @@
   var __hasProp = {}.hasOwnProperty;
 
   define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-compiler/LF2AbstractSQL', 'sbvr-compiler/AbstractSQL2SQL', 'sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQL2CLF', 'data-server/ServerURIParser', 'underscore', 'utils/createAsyncQueueCallback'], function(SBVRParser, LF2AbstractSQLPrep, LF2AbstractSQL, AbstractSQL2SQL, AbstractSQLRules2SQL, AbstractSQL2CLF, ServerURIParser, _, createAsyncQueueCallback) {
-    var clientModels, db, endLock, executeModel, exports, getAndCheckBindValues, getID, op, parseURITree, rebuildFactType, runDelete, runGet, runPost, runPut, runURI, serverIsOnAir, serverModelCache, serverURIParser, sqlModels, transactionModel, uiModel, userModel, validateDB;
+    var clientModels, db, devModel, endLock, executeModel, exports, getAndCheckBindValues, getID, isServerOnAir, op, parseURITree, rebuildFactType, runDelete, runGet, runPost, runPut, runURI, serverIsOnAir, serverURIParser, sqlModels, transactionModel, uiModel, userModel, validateDB;
     exports = {};
     db = null;
     transactionModel = 'Term:      Integer\nTerm:      Long Text\nTerm:      resource id\n	Concept type: Integer\nTerm:      resource type\n	Concept type: Long Text\nTerm:      field name\n	Concept type: Long Text\nTerm:      field value\n	Concept type: Long Text\nTerm:      field type\n	Concept type: Long Text\nTerm:      resource\n	Database Value Field: resource_id\nFact type: resource has resource id\nFact type: resource has resource type\nRule:      It is obligatory that each resource has exactly 1 resource type\nRule:      It is obligatory that each resource has exactly 1 resource id\nTerm:      transaction\nTerm:      lock\nTerm:      conditional representation\n	Database Value Field: lock\nFact type: lock is exclusive\nFact type: lock is shared\nFact type: resource is under lock\nFact type: lock belongs to transaction\nFact type: conditional representation has field name\nFact type: conditional representation has field value\nFact type: conditional representation has field type\nFact type: conditional representation has lock\nRule:      It is obligatory that each conditional representation has exactly 1 field name\nRule:      It is obligatory that each conditional representation has at most 1 field value\nRule:      It is obligatory that each conditional representation has at most 1 field type\nRule:      It is obligatory that each conditional representation has exactly 1 lock\nRule:      It is obligatory that each resource is under at most 1 lock that is exclusive';
+    devModel = 'Term:      Short Text\nTerm:      JSON\n\nTerm:      model\n	Database Value Field: model_value\nTerm:      vocabulary\n	Concept Type: Short Text\nTerm:      model type\n	Concept Type: Short Text\nTerm:      model value\n	Concept Type: JSON\n\nFact Type: model is of vocabulary\nRule: It is obligatory that each model is of exactly one vocabulary\nFact Type: model has model type\nRule: It is obligatory that each model has exactly one model type \nFact Type: model has model value\nRule: It is obligatory that each model has exactly one model value';
     userModel = 'Term:      Hashed\nTerm:      Short Text\n\nTerm:      user\n	Database Value Field: username\nTerm:      username\n	Concept Type: Short Text\nTerm:      password\n	Concept Type: Hashed\nFact type: user has username\nRule:      It is obligatory that each user has exactly one username.\nRule:      It is obligatory that each username is of exactly one user.\nFact type: user has password\nRule:      It is obligatory that each user has exactly one password.';
     uiModel = 'Term:      Short Text\nTerm:      Long Text\nTerm:      text\n	Concept type: Long Text\nTerm:      name\n	Concept type: Short Text\nTerm:      textarea\n	Database id Field: name\n	Database Value Field: text\nFact type: textarea is disabled\nFact type: textarea has name\nFact type: textarea has text\nRule:      It is obligatory that each textarea has exactly 1 name\nRule:      It is obligatory that each name is of exactly 1 textarea\nRule:      It is obligatory that each textarea has exactly 1 text';
     serverURIParser = ServerURIParser.createInstance();
@@ -34,99 +35,35 @@
       }
       return factType;
     };
-    serverModelCache = function() {
-      var pendingCallbacks, setValue, values;
-      values = {
-        serverOnAir: false,
-        lastSE: "",
-        lf: [],
-        prepLF: [],
-        sql: [],
-        clf: [],
-        trans: []
-      };
+    isServerOnAir = (function() {
+      var onAir, pendingCallbacks;
+      onAir = null;
       pendingCallbacks = [];
-      setValue = function(key, value) {
-        values[key] = value;
-        return db.transaction(function(tx) {
-          value = JSON.stringify(value);
-          return tx.executeSql('SELECT 1 FROM "_server_model_cache" WHERE "key" = ?;', [key], function(tx, result) {
-            if (result.rows.length === 0) {
-              return tx.executeSql('INSERT INTO "_server_model_cache" VALUES (?, ?);', [key, value], null, null, false);
+      return function(funcOrVal) {
+        var callback, _i, _len;
+        if (funcOrVal === true || funcOrVal === false) {
+          isServerOnAir = function(funcOrVal) {
+            if (funcOrVal === true || funcOrVal === false) {
+              return onAir = funcOrVal;
             } else {
-              return tx.executeSql('UPDATE "_server_model_cache" SET value = ? WHERE "key" = ?;', [value, key]);
+              return funcOrVal(onAir);
             }
-          });
-        });
-      };
-      serverModelCache = {
-        whenLoaded: function(func) {
-          return pendingCallbacks.push(func);
-        },
-        isServerOnAir: function() {
-          return values.serverOnAir;
-        },
-        setServerOnAir: function(bool) {
-          return setValue('serverOnAir', bool);
-        },
-        getLastSE: function() {
-          return values.lastSE;
-        },
-        setLastSE: function(txtmod) {
-          return setValue('lastSE', txtmod);
-        },
-        getLF: function() {
-          return values.lf;
-        },
-        setLF: function(lfmod) {
-          return setValue('lf', lfmod);
-        },
-        getPrepLF: function() {
-          return values.prepLF;
-        },
-        setPrepLF: function(prepmod) {
-          return setValue('prepLF', prepmod);
-        },
-        getSQL: function() {
-          return values.sql;
-        },
-        setSQL: function(sqlmod) {
-          serverURIParser.setSQLModel('data', sqlmod);
-          sqlModels['data'] = sqlmod;
-          return setValue('sql', sqlmod);
+          };
+          for (_i = 0, _len = pendingCallbacks.length; _i < _len; _i++) {
+            callback = pendingCallbacks[_i];
+            callback(onAir);
+          }
+          return pendingCallbacks = null;
+        } else {
+          return pendingCallbacks.push(funcOrVal);
         }
       };
-      return db.transaction(function(tx) {
-        tx.executeSql('CREATE TABLE ' + '"_server_model_cache" (' + '"key"		VARCHAR(40) PRIMARY KEY,' + '"value"	VARCHAR(32768) );');
-        return tx.executeSql('SELECT * FROM "_server_model_cache";', [], function(tx, result) {
-          var callback, i, row, _i, _j, _len, _ref, _results;
-          for (i = _i = 0, _ref = result.rows.length; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
-            row = result.rows.item(i);
-            values[row.key] = JSON.parse(row.value);
-            if (row.key === 'sql') {
-              serverURIParser.setSQLModel('data', values[row.key]);
-              sqlModels['data'] = values[row.key];
-              clientModels['data'] = AbstractSQL2CLF(values[row.key]);
-              serverURIParser.setClientModel('data', clientModels['data']);
-            }
-          }
-          serverModelCache.whenLoaded = function(func) {
-            return func();
-          };
-          _results = [];
-          for (_j = 0, _len = pendingCallbacks.length; _j < _len; _j++) {
-            callback = pendingCallbacks[_j];
-            _results.push(callback());
-          }
-          return _results;
-        });
-      });
-    };
+    })();
     endLock = function(tx, locks, trans_id, successCallback, failureCallback) {
       var i, lock_id, locksCallback, _i, _ref;
       locksCallback = createAsyncQueueCallback(function() {
         return tx.executeSql('DELETE FROM "transaction" WHERE "id" = ?;', [trans_id], function(tx, result) {
-          return validateDB(tx, serverModelCache.getSQL(), successCallback, failureCallback);
+          return validateDB(tx, sqlModels['data'], successCallback, failureCallback);
         }, function(tx, error) {
           return failureCallback(tx, [error]);
         });
@@ -213,6 +150,42 @@
         clientModels[vocab] = clientModel;
         serverURIParser.setSQLModel(vocab, abstractSqlModel);
         serverURIParser.setClientModel(vocab, clientModel);
+        runURI('PUT', '/dev/model?filter=model_type:se', [
+          {
+            vocabulary: vocab,
+            model_value: seModel
+          }
+        ], tx);
+        runURI('PUT', '/dev/model?filter=model_type:lf', [
+          {
+            vocabulary: vocab,
+            model_value: lfModel
+          }
+        ], tx);
+        runURI('PUT', '/dev/model?filter=model_type:slf', [
+          {
+            vocabulary: vocab,
+            model_value: slfModel
+          }
+        ], tx);
+        runURI('PUT', '/dev/model?filter=model_type:abstractsql', [
+          {
+            vocabulary: vocab,
+            model_value: abstractSqlModel
+          }
+        ], tx);
+        runURI('PUT', '/dev/model?filter=model_type:sql', [
+          {
+            vocabulary: vocab,
+            model_value: sqlModel
+          }
+        ], tx);
+        runURI('PUT', '/dev/model?filter=model_type:client', [
+          {
+            vocabulary: vocab,
+            model_value: clientModel
+          }
+        ], tx);
         return successCallback(tx, lfModel, slfModel, abstractSqlModel, sqlModel, clientModel);
       }, failureCallback);
     };
@@ -490,8 +463,8 @@
       }
     };
     serverIsOnAir = function(req, res, next) {
-      return serverModelCache.whenLoaded(function() {
-        if (serverModelCache.isServerOnAir()) {
+      return isServerOnAir(function(onAir) {
+        if (onAir) {
           return next();
         } else {
           return next('route');
@@ -517,8 +490,24 @@
       requirejs(['database-layer/db'], function(dbModule) {
         db = dbModule.connect(databaseOptions);
         AbstractSQL2SQL = AbstractSQL2SQL[databaseOptions.engine];
-        serverModelCache();
         return db.transaction(function(tx) {
+          executeModel(tx, 'dev', devModel, function() {
+            return console.log('Sucessfully executed dev model.');
+          }, function(tx, error) {
+            return console.log('Failed to execute dev model.', error);
+          });
+          runURI('GET', '/dev/model?filter=model_type:sql;vocabulary:data', null, tx, function(result) {
+            var clientModel, sqlModel;
+            sqlModel = result.instances[0].model_value;
+            clientModel = AbstractSQL2CLF(sqlModel);
+            sqlModels['data'] = sqlModel;
+            serverURIParser.setSQLModel('data', sqlModel);
+            clientModels['data'] = clientModel;
+            serverURIParser.setClientModel('data', clientModel);
+            return isServerOnAir(true);
+          }, function() {
+            return isServerOnAir(false);
+          });
           executeModel(tx, 'transaction', transactionModel, function() {
             return console.log('Sucessfully executed transaction model.');
           }, function(tx, error) {
@@ -537,21 +526,9 @@
         });
       });
       app.get('/onair', function(req, res, next) {
-        return serverModelCache.whenLoaded(function() {
-          return res.json(serverModelCache.isServerOnAir());
+        return isServerOnAir(function(onAir) {
+          return res.json(onAir);
         });
-      });
-      app.get('/model', serverIsOnAir, function(req, res, next) {
-        return res.json(serverModelCache.getLastSE());
-      });
-      app.get('/lfmodel', serverIsOnAir, function(req, res, next) {
-        return res.json(serverModelCache.getLF());
-      });
-      app.get('/prepmodel', serverIsOnAir, function(req, res, next) {
-        return res.json(serverModelCache.getPrepLF());
-      });
-      app.get('/sqlmodel', serverIsOnAir, function(req, res, next) {
-        return res.json(serverModelCache.getSQL());
       });
       app.post('/update', serverIsOnAir, function(req, res, next) {
         return res.send(404);
@@ -568,11 +545,7 @@
                   value: true
                 }
               ], tx);
-              serverModelCache.setServerOnAir(true);
-              serverModelCache.setLastSE(seModel);
-              serverModelCache.setLF(lfModel);
-              serverModelCache.setPrepLF(abstractSqlModel);
-              serverModelCache.setSQL(sqlModel);
+              isServerOnAir(true);
               return res.send(200);
             }, function(tx, errors) {
               return res.json(errors, 404);
@@ -593,6 +566,11 @@
               return console.log('Sucessfully executed transaction model.');
             }, function(tx, error) {
               return console.log('Failed to execute transaction model.', error);
+            });
+            executeModel(tx, 'dev', devModel, function() {
+              return console.log('Sucessfully executed dev model.');
+            }, function(tx, error) {
+              return console.log('Failed to execute dev model.', error);
             });
             executeModel(tx, 'user', userModel, function() {
               return console.log('Sucessfully executed user model.');
@@ -754,6 +732,9 @@
           });
         }));
       });
+      app.get('/dev/*', parseURITree, function(req, res, next) {
+        return runGet(req, res);
+      });
       app.get('/ui/*', parseURITree, function(req, res, next) {
         return runGet(req, res);
       });
@@ -838,18 +819,24 @@
             }
             return _results;
           };
-        })(serverModelCache.getSQL()));
+        })(sqlModels['data']));
         runURI('DELETE', '/ui/textarea-is_disabled?filter=textarea.name:model_area/');
         runURI('PUT', '/ui/textarea?filter=name:model_area/', [
           {
             text: ''
           }
         ]);
-        serverModelCache.setLastSE('');
-        serverModelCache.setPrepLF([]);
-        serverModelCache.setLF([]);
-        serverModelCache.setSQL([]);
-        serverModelCache.setServerOnAir(false);
+        runURI('DELETE', '/dev/model?filter=model_type:se;vocabulary:data', null, tx);
+        runURI('DELETE', '/dev/model?filter=model_type:lf;vocabulary:data', null, tx);
+        runURI('DELETE', '/dev/model?filter=model_type:slf;vocabulary:data', null, tx);
+        runURI('DELETE', '/dev/model?filter=model_type:abstractsql;vocabulary:data', null, tx);
+        runURI('DELETE', '/dev/model?filter=model_type:sql;vocabulary:data', null, tx);
+        runURI('DELETE', '/dev/model?filter=model_type:client;vocabulary:data', null, tx);
+        sqlModels['data'] = [];
+        serverURIParser.setSQLModel('data', sqlModels['data']);
+        clientModels['data'] = [];
+        serverURIParser.setClientModel('data', clientModels['data']);
+        isServerOnAir(false);
         return res.send(200);
       });
     };

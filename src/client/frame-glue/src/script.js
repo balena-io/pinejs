@@ -101,14 +101,14 @@
     setClientOnAir = function(bool) {
       clientOnAir = bool;
       if (clientOnAir === true) {
-        serverRequest("GET", "/lfmodel/", {}, null, function(statusCode, result) {
-          return lfEditor.setValue(Prettify.match(result, "Process"));
+        serverRequest('GET', '/dev/model?filter=model_type:lf;vocabulary:data', {}, null, function(statusCode, result) {
+          return lfEditor.setValue(Prettify.match(result.instances[0].model_value, 'Process'));
         });
-        serverRequest("GET", "/prepmodel/", {}, null, function(statusCode, result) {
-          return $("#prepArea").val(JSON.stringify(result));
+        serverRequest('GET', '/dev/model?filter=model_type:abstractsql;vocabulary:data', {}, null, function(statusCode, result) {
+          return $("#prepArea").val(JSON.stringify(result.instances[0].model_value));
         });
-        serverRequest("GET", "/sqlmodel/", {}, null, function(statusCode, result) {
-          return sqlEditor.setValue(JSON.stringify(result));
+        serverRequest('GET', '/dev/model?filter=model_type:sql;vocabulary:data', {}, null, function(statusCode, result) {
+          return sqlEditor.setValue(JSON.stringify(result.instances[0].model_value));
         });
         $("#bem").button("disable");
         return $("#bum, #br").button("enable");

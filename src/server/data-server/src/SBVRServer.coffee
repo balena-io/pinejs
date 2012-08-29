@@ -39,6 +39,26 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 			Rule:      It is obligatory that each conditional representation has exactly 1 lock
 			Rule:      It is obligatory that each resource is under at most 1 lock that is exclusive'''
 	
+	devModel = '''
+			Term:      Short Text
+			Term:      JSON
+
+			Term:      model
+				Database Value Field: model_value
+			Term:      vocabulary
+				Concept Type: Short Text
+			Term:      model type
+				Concept Type: Short Text
+			Term:      model value
+				Concept Type: JSON
+
+			Fact Type: model is of vocabulary
+			Rule: It is obligatory that each model is of exactly one vocabulary
+			Fact Type: model has model type
+			Rule: It is obligatory that each model has exactly one model type 
+			Fact Type: model has model value
+			Rule: It is obligatory that each model has exactly one model value'''
+	
 	userModel = '''
 			Term:      Hashed
 			Term:      Short Text
@@ -94,85 +114,31 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 			return factType[0][1]
 		return factType
 
-	# serverModelCache needs to be called after 'db' has been assigned in order to set itself up. 
-	serverModelCache = () ->
-		# This is needed as the switch has no value on first execution. Maybe there's a better way?
-		values = {
-			serverOnAir: false
-			lastSE:	""
-			lf:		[]
-			prepLF:	[]
-			sql:	[]
-			clf:	[]
-			trans:	[]
-		}
-		
+	isServerOnAir = do() ->
+		onAir = null
 		pendingCallbacks = []
-
-		setValue = (key, value) ->
-			values[key] = value
-			db.transaction (tx) ->
-				value = JSON.stringify(value)
-				tx.executeSql('SELECT 1 FROM "_server_model_cache" WHERE "key" = ?;', [key], (tx, result) ->
-					if result.rows.length==0
-						tx.executeSql 'INSERT INTO "_server_model_cache" VALUES (?, ?);', [key, value], null, null, false
+		return (funcOrVal) ->
+			if funcOrVal == true or funcOrVal == false
+				# If we are setting new value then monkey patch to just set value or call callback.
+				isServerOnAir = (funcOrVal) ->
+					if funcOrVal == true or funcOrVal == false
+						onAir = funcOrVal
 					else
-						tx.executeSql 'UPDATE "_server_model_cache" SET value = ? WHERE "key" = ?;', [value, key]
-				)
-
-		serverModelCache = {
-			whenLoaded: (func) -> pendingCallbacks.push(func)
-		
-			isServerOnAir: -> values.serverOnAir
-			setServerOnAir: (bool) ->
-				setValue 'serverOnAir', bool
-
-			getLastSE: -> values.lastSE
-			setLastSE: (txtmod) ->
-				setValue 'lastSE', txtmod
-
-			getLF: -> values.lf
-			setLF: (lfmod) ->
-				setValue 'lf', lfmod
-
-			getPrepLF: -> values.prepLF
-			setPrepLF: (prepmod) ->
-				setValue 'prepLF', prepmod
-
-			getSQL: -> values.sql
-			setSQL: (sqlmod) ->
-				serverURIParser.setSQLModel('data', sqlmod)
-				sqlModels['data'] = sqlmod
-				setValue('sql', sqlmod)
-		}
-
-		db.transaction (tx) ->
-			tx.executeSql 'CREATE TABLE ' + # Postgres does not support: IF NOT EXISTS
-							'"_server_model_cache" (' +
-							'"key"		VARCHAR(40) PRIMARY KEY,' +
-							'"value"	VARCHAR(32768) );'
-			tx.executeSql 'SELECT * FROM "_server_model_cache";', [], (tx, result) ->
-				for i in [0...result.rows.length]
-					row = result.rows.item(i)
-					values[row.key] = JSON.parse(row.value)
-					if row.key == 'sql'
-						serverURIParser.setSQLModel('data', values[row.key])
-						sqlModels['data'] = values[row.key]
-						clientModels['data'] = AbstractSQL2CLF(values[row.key])
-						serverURIParser.setClientModel('data', clientModels['data'])
-
-				serverModelCache.whenLoaded = (func) -> func()
+						funcOrVal(onAir)
+				# And call all the callbacks that are pending.
 				for callback in pendingCallbacks
-					callback()
-
-
+					callback(onAir)
+				pendingCallbacks = null
+			else
+				# If we have no value set yet then just add the func to the callback queue
+				pendingCallbacks.push(funcOrVal)
 
 	endLock = (tx, locks, trans_id, successCallback, failureCallback) ->
 		locksCallback = createAsyncQueueCallback(
 			() ->
 				tx.executeSql('DELETE FROM "transaction" WHERE "id" = ?;', [trans_id],
 					(tx, result) ->
-						validateDB(tx, serverModelCache.getSQL(), successCallback, failureCallback)
+						validateDB(tx, sqlModels['data'], successCallback, failureCallback)
 					(tx, error) ->
 						failureCallback(tx, [error])
 				)
@@ -265,6 +231,12 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 				
 				serverURIParser.setSQLModel(vocab, abstractSqlModel)
 				serverURIParser.setClientModel(vocab, clientModel)
+				runURI('PUT', '/dev/model?filter=model_type:se', [{vocabulary: vocab, model_value: seModel}], tx)
+				runURI('PUT', '/dev/model?filter=model_type:lf', [{vocabulary: vocab, model_value: lfModel}], tx)
+				runURI('PUT', '/dev/model?filter=model_type:slf', [{vocabulary: vocab, model_value: slfModel}], tx)
+				runURI('PUT', '/dev/model?filter=model_type:abstractsql', [{vocabulary: vocab, model_value: abstractSqlModel}], tx)
+				runURI('PUT', '/dev/model?filter=model_type:sql', [{vocabulary: vocab, model_value: sqlModel}], tx)
+				runURI('PUT', '/dev/model?filter=model_type:client', [{vocabulary: vocab, model_value: clientModel}], tx)
 				
 				successCallback(tx, lfModel, slfModel, abstractSqlModel, sqlModel, clientModel)
 			, failureCallback)
@@ -490,8 +462,8 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 
 	# Middleware
 	serverIsOnAir = (req, res, next) ->
-		serverModelCache.whenLoaded( () ->
-			if serverModelCache.isServerOnAir()
+		isServerOnAir((onAir) ->
+			if onAir
 				next()
 			else
 				next('route')
@@ -516,9 +488,25 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 			db = dbModule.connect(databaseOptions)
 			AbstractSQL2SQL = AbstractSQL2SQL[databaseOptions.engine]
 			
-			serverModelCache()
-			
 			db.transaction( (tx) ->
+				executeModel(tx, 'dev', devModel,
+					() ->
+						console.log('Sucessfully executed dev model.')
+					(tx, error) ->
+						console.log('Failed to execute dev model.', error)
+				)
+				runURI('GET', '/dev/model?filter=model_type:sql;vocabulary:data', null, tx
+					(result) ->
+						sqlModel = result.instances[0].model_value
+						clientModel = AbstractSQL2CLF(sqlModel)
+						sqlModels['data'] = sqlModel
+						serverURIParser.setSQLModel('data', sqlModel)
+						clientModels['data'] = clientModel
+						serverURIParser.setClientModel('data', clientModel)
+						isServerOnAir(true)
+					() ->
+						isServerOnAir(false)
+				)
 				executeModel(tx, 'transaction', transactionModel,
 					() ->
 						console.log('Sucessfully executed transaction model.')
@@ -542,14 +530,10 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 
 		app.get('/onair',
 			(req, res, next) -> 
-				serverModelCache.whenLoaded( () ->
-					res.json(serverModelCache.isServerOnAir())
+				isServerOnAir((onAir) ->
+					res.json(onAir)
 				)
 		)
-		app.get('/model',		serverIsOnAir,	(req, res, next) -> res.json(serverModelCache.getLastSE()))
-		app.get('/lfmodel',		serverIsOnAir,	(req, res, next) -> res.json(serverModelCache.getLF()))
-		app.get('/prepmodel',	serverIsOnAir,	(req, res, next) -> res.json(serverModelCache.getPrepLF()))
-		app.get('/sqlmodel',	serverIsOnAir,	(req, res, next) -> res.json(serverModelCache.getSQL()))
 		app.post('/update',		serverIsOnAir,	(req, res, next) -> res.send(404))
 		app.post('/execute',					(req, res, next) ->
 			runURI('GET', '/ui/textarea?filter=name:model_area', null, null,
@@ -560,11 +544,7 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 						executeModel(tx, 'data', seModel,
 							(tx, lfModel, slfModel, abstractSqlModel, sqlModel, clientModel) ->
 								runURI('PUT', '/ui/textarea-is_disabled?filter=textarea.name:model_area/', [{value: true}], tx)
-								serverModelCache.setServerOnAir(true)
-								serverModelCache.setLastSE(seModel)
-								serverModelCache.setLF(lfModel)
-								serverModelCache.setPrepLF(abstractSqlModel)
-								serverModelCache.setSQL(sqlModel)
+								isServerOnAir(true)
 								res.send(200)
 							(tx, errors) ->
 								res.json(errors, 404)
@@ -583,6 +563,12 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 							console.log('Sucessfully executed transaction model.')
 						(tx, error) ->
 							console.log('Failed to execute transaction model.', error)
+					)
+					executeModel(tx, 'dev', devModel,
+						() ->
+							console.log('Sucessfully executed dev model.')
+						(tx, error) ->
+							console.log('Failed to execute dev model.', error)
 					)
 					executeModel(tx, 'user', userModel,
 						() ->
@@ -717,6 +703,9 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 			)
 		)
 		
+		app.get('/dev/*', parseURITree, (req, res, next) ->
+			runGet(req, res)
+		)
 		app.get('/ui/*', parseURITree, (req, res, next) ->
 			runGet(req, res)
 		)
@@ -794,17 +783,23 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 				(tx) ->
 					for dropStatement in sqlmod.dropSchema
 						tx.executeSql(dropStatement)
-			)(serverModelCache.getSQL())
+			)(sqlModels['data'])
 			
 			# TODO: This should be done a better way?
 			runURI('DELETE', '/ui/textarea-is_disabled?filter=textarea.name:model_area/')
 			runURI('PUT', '/ui/textarea?filter=name:model_area/', [{text: ''}])
 
-			serverModelCache.setLastSE('')
-			serverModelCache.setPrepLF([])
-			serverModelCache.setLF([])
-			serverModelCache.setSQL([])
-			serverModelCache.setServerOnAir(false)
+			runURI('DELETE', '/dev/model?filter=model_type:se;vocabulary:data', null, tx)
+			runURI('DELETE', '/dev/model?filter=model_type:lf;vocabulary:data', null, tx)
+			runURI('DELETE', '/dev/model?filter=model_type:slf;vocabulary:data', null, tx)
+			runURI('DELETE', '/dev/model?filter=model_type:abstractsql;vocabulary:data', null, tx)
+			runURI('DELETE', '/dev/model?filter=model_type:sql;vocabulary:data', null, tx)
+			runURI('DELETE', '/dev/model?filter=model_type:client;vocabulary:data', null, tx)
+			sqlModels['data'] = []
+			serverURIParser.setSQLModel('data', sqlModels['data'])
+			clientModels['data'] = []
+			serverURIParser.setClientModel('data', clientModels['data'])
+			isServerOnAir(false)
 
 			res.send(200)
 		)

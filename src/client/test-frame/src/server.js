@@ -24,29 +24,29 @@ define(['server-glue', 'sbvr-frame/SBVRModels'], function() {
 				ok(false, testName);
 			});
 
-			testName = 'GET /model';
-			remoteServerRequest('GET', '/model', {}, null, function(statusCode, result, headers){
+			testName = 'GET /dev/model?filter=model_type:se;vocabulary:data';
+			remoteServerRequest('GET', '/dev/model?filter=model_type:se;vocabulary:data', {}, null, function(statusCode, result, headers){
 				ok(false, testName);	
 			}, function(statusCode, error) {
 				equal(statusCode, 404, testName);
 			});
 
-			testName = 'GET /lfmodel';
-			remoteServerRequest('GET', '/lfmodel', {}, null, function(statusCode, result, headers){
+			testName = 'GET /dev/model?filter=model_type:lf;vocabulary:data';
+			remoteServerRequest('GET', '/dev/model?filter=model_type:lf;vocabulary:data', {}, null, function(statusCode, result, headers){
 				ok(false, testName);	
 			}, function(statusCode, error) {
 				equal(statusCode, 404, testName);
 			});
 
-			testName = 'GET /prepmodel';
-			remoteServerRequest('GET', '/prepmodel', {}, null, function(statusCode, result, headers){
+			testName = 'GET /dev/model?filter=model_type:abstractsql;vocabulary:data';
+			remoteServerRequest('GET', '/dev/model?filter=model_type:abstractsql;vocabulary:data', {}, null, function(statusCode, result, headers){
 				ok(false, testName);	
 			}, function(statusCode, error) {
 				equal(statusCode, 404, testName);
 			});
 
-			testName = 'GET /sqlmodel';
-			remoteServerRequest('GET', '/sqlmodel', {}, null, function(statusCode, result, headers){
+			testName = 'GET /dev/model?filter=model_type:sql;vocabulary:data';
+			remoteServerRequest('GET', '/dev/model?filter=model_type:sql;vocabulary:data', {}, null, function(statusCode, result, headers){
 				ok(false, testName);	
 			}, function(statusCode, error) {
 				equal(statusCode, 404, testName);

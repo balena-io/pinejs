@@ -45,7 +45,7 @@ define(["database-layer/SQLBinds"], (SQLBinds) ->
 				tableList: (callback, errorCallback, extraWhereClause = '') ->
 					if extraWhereClause != ''
 						extraWhereClause = ' WHERE ' + extraWhereClause
-					this.executeSql("SELECT * FROM (SELECT tablename as name FROM pg_tables WHERE schemaname = 'public' AND tablename != '_server_model_cache') t" + extraWhereClause + ";", [], callback, errorCallback)
+					this.executeSql("SELECT * FROM (SELECT tablename as name FROM pg_tables WHERE schemaname = 'public') t" + extraWhereClause + ";", [], callback, errorCallback)
 				dropTable: (tableName, ifExists = true, callback, errorCallback) -> this.executeSql('DROP TABLE ' + (if ifExists == true then 'IF EXISTS ' else '') + '"' + tableName + '" CASCADE;', [], callback, errorCallback)
 			}
 			return {
@@ -83,7 +83,7 @@ define(["database-layer/SQLBinds"], (SQLBinds) ->
 				tableList: (callback, errorCallback, extraWhereClause = '') ->
 					if extraWhereClause != ''
 						extraWhereClause = ' WHERE ' + extraWhereClause
-					this.executeSql("SELECT name FROM (SELECT table_name as name FROM information_schema.tables WHERE table_schema = " + _db.escape(options.database) + " AND table_name != '_server_model_cache') t" + extraWhereClause + ";", [], callback, errorCallback)
+					this.executeSql("SELECT name FROM (SELECT table_name as name FROM information_schema.tables WHERE table_schema = " + _db.escape(options.database) + ") t" + extraWhereClause + ";", [], callback, errorCallback)
 				dropTable: (tableName, ifExists = true, callback, errorCallback) -> this.executeSql('DROP TABLE ' + (if ifExists == true then 'IF EXISTS ' else '') + '"' + tableName + '";', [], callback, errorCallback)
 			}
 			return {
@@ -116,7 +116,7 @@ define(["database-layer/SQLBinds"], (SQLBinds) ->
 				tableList: (callback, errorCallback, extraWhereClause = '') ->
 					if extraWhereClause != ''
 						extraWhereClause = ' AND ' + extraWhereClause
-					this.executeSql("SELECT name, sql FROM sqlite_master WHERE type='table' AND name NOT IN ('sqlite_sequence', '_server_model_cache')" + extraWhereClause + ";", [], callback, errorCallback)
+					this.executeSql("SELECT name, sql FROM sqlite_master WHERE type='table' AND name NOT IN ('sqlite_sequence')" + extraWhereClause + ";", [], callback, errorCallback)
 				dropTable: (tableName, ifExists = true, callback, errorCallback) -> this.executeSql('DROP TABLE ' + (if ifExists == true then 'IF EXISTS ' else '') + '"' + tableName + '";', [], callback, errorCallback)
 			}
 			return {
@@ -154,7 +154,7 @@ define(["database-layer/SQLBinds"], (SQLBinds) ->
 					tableList: (callback, errorCallback, extraWhereClause = '') ->
 						if extraWhereClause != ''
 							extraWhereClause = ' AND ' + extraWhereClause
-						this.executeSql("SELECT name, sql FROM sqlite_master WHERE type='table' AND name NOT IN ('__WebKitDatabaseInfoTable__', 'sqlite_sequence', '_server_model_cache')" + extraWhereClause + ";", [], callback, errorCallback)
+						this.executeSql("SELECT name, sql FROM sqlite_master WHERE type='table' AND name NOT IN ('__WebKitDatabaseInfoTable__', 'sqlite_sequence')" + extraWhereClause + ";", [], callback, errorCallback)
 					dropTable: (tableName, ifExists = true, callback, errorCallback) -> this.executeSql('DROP TABLE ' + (if ifExists == true then 'IF EXISTS ' else '') + '"' + tableName + '";', [], callback, errorCallback)
 				}
 			return {
