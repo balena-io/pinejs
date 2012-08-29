@@ -96,23 +96,6 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 	
 	sqlModels = {}
 	clientModels = {}
-	
-	op =
-		eq: "="
-		ne: "!="
-		lk: "~"
-	
-	rebuildFactType = (factType) ->
-		factType = factType.split('-')
-		for factTypePart, key in factType
-			factTypePart = factTypePart.replace(/_/g, ' ')
-			if key % 2 == 0
-				factType[key] = ['Term', factTypePart]
-			else
-				factType[key] = ['Verb', factTypePart]
-		if factType.length == 1
-			return factType[0][1]
-		return factType
 
 	isServerOnAir = do() ->
 		onAir = null

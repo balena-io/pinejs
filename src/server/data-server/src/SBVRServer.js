@@ -3,7 +3,7 @@
   var __hasProp = {}.hasOwnProperty;
 
   define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-compiler/LF2AbstractSQL', 'sbvr-compiler/AbstractSQL2SQL', 'sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQL2CLF', 'data-server/ServerURIParser', 'underscore', 'utils/createAsyncQueueCallback'], function(SBVRParser, LF2AbstractSQLPrep, LF2AbstractSQL, AbstractSQL2SQL, AbstractSQLRules2SQL, AbstractSQL2CLF, ServerURIParser, _, createAsyncQueueCallback) {
-    var clientModels, db, devModel, endLock, executeModel, exports, getAndCheckBindValues, getID, isServerOnAir, op, parseURITree, rebuildFactType, runDelete, runGet, runPost, runPut, runURI, serverIsOnAir, serverURIParser, sqlModels, transactionModel, uiModel, userModel, validateDB;
+    var clientModels, db, devModel, endLock, executeModel, exports, getAndCheckBindValues, getID, isServerOnAir, parseURITree, runDelete, runGet, runPost, runPut, runURI, serverIsOnAir, serverURIParser, sqlModels, transactionModel, uiModel, userModel, validateDB;
     exports = {};
     db = null;
     transactionModel = 'Term:      Integer\nTerm:      Long Text\nTerm:      resource id\n	Concept type: Integer\nTerm:      resource type\n	Concept type: Long Text\nTerm:      field name\n	Concept type: Long Text\nTerm:      field value\n	Concept type: Long Text\nTerm:      field type\n	Concept type: Long Text\nTerm:      resource\n	Database Value Field: resource_id\nFact type: resource has resource id\nFact type: resource has resource type\nRule:      It is obligatory that each resource has exactly 1 resource type\nRule:      It is obligatory that each resource has exactly 1 resource id\nTerm:      transaction\nTerm:      lock\nTerm:      conditional representation\n	Database Value Field: lock\nFact type: lock is exclusive\nFact type: lock is shared\nFact type: resource is under lock\nFact type: lock belongs to transaction\nFact type: conditional representation has field name\nFact type: conditional representation has field value\nFact type: conditional representation has field type\nFact type: conditional representation has lock\nRule:      It is obligatory that each conditional representation has exactly 1 field name\nRule:      It is obligatory that each conditional representation has at most 1 field value\nRule:      It is obligatory that each conditional representation has at most 1 field type\nRule:      It is obligatory that each conditional representation has exactly 1 lock\nRule:      It is obligatory that each resource is under at most 1 lock that is exclusive';
@@ -13,28 +13,6 @@
     serverURIParser = ServerURIParser.createInstance();
     sqlModels = {};
     clientModels = {};
-    op = {
-      eq: "=",
-      ne: "!=",
-      lk: "~"
-    };
-    rebuildFactType = function(factType) {
-      var factTypePart, key, _i, _len;
-      factType = factType.split('-');
-      for (key = _i = 0, _len = factType.length; _i < _len; key = ++_i) {
-        factTypePart = factType[key];
-        factTypePart = factTypePart.replace(/_/g, ' ');
-        if (key % 2 === 0) {
-          factType[key] = ['Term', factTypePart];
-        } else {
-          factType[key] = ['Verb', factTypePart];
-        }
-      }
-      if (factType.length === 1) {
-        return factType[0][1];
-      }
-      return factType;
-    };
     isServerOnAir = (function() {
       var onAir, pendingCallbacks;
       onAir = null;
