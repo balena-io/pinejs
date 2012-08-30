@@ -151,12 +151,6 @@ define(["ometa-core"], (function() {
                 _fromIdx = this.input.idx;
             return (function() {
                 switch (this._apply('anything')) {
-                case "d":
-                    return (function() {
-                        this._applyWithArgs("exactly", "e");
-                        this._applyWithArgs("exactly", "l");
-                        return "del"
-                    }).call(this);
                 case "s":
                     return (function() {
                         this._applyWithArgs("exactly", "o");

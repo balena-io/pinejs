@@ -25,7 +25,7 @@ define(['ometa-core'], function() {
 							|'~' -> 'lk'):o (number|part):v ';'? -> [o,t,f,v],
 
 		imod = seq('del') | seq('add') | seq('view') | seq('edit') | seq('filt'),
-		cmod = seq('del') | seq('filt') | seq('sort'),
+		cmod = seq('filt') | seq('sort'),
 
 		iact = ('*' imod:a (':' parm+ | -> []):p -> [a].concat(p))+ | -> [],
 		cact = ('*' cmod:a (':' parm+ | -> []):p -> [a].concat(p))+ | -> [],
