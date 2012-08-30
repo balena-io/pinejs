@@ -152,8 +152,15 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs',
 				for(var i = 0; i < factType.length; i++) {
 					var factTypePart = factType[i],
 						partName = factTypePart[1];
-					if(factTypePart[0] == "Term") { %>
-						<%= foreignKeys[partName][instance[partName]][foreignModels[partName].valueField] %> <%
+					if(factTypePart[0] == "Term") {
+						// Foreign key
+						if(foreignKeys.hasOwnProperty(partName)) { %>
+							<%= foreignKeys[partName][instance[partName]][foreignModels[partName].valueField] %> <%
+						}
+						// Attribute
+						else { %>
+							<%= instance[partName] %><%
+						}
 					}
 					else if(factTypePart[0] == "Verb") { %>
 						<em><%= partName %></em><%
