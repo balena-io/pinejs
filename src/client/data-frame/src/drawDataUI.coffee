@@ -15,26 +15,30 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs',
 			var fieldName = resourceField[1],
 				fieldValue = resourceInstance === false ? "" : resourceInstance[fieldName],
 				fieldIdentifier = resourceModel.resourceName + "." + fieldName;
-			if(resourceField[0] !== "Serial" || action !== "view") { %>
-				<%= fieldName %>: <%- templates.widgets(resourceField[0], action, fieldIdentifier, fieldValue, foreignKeys[fieldName]) %><br /><%
+			if(resourceField[0] !== "Serial" || action === "view") { %>
+				<td><%= fieldName %>:</td><td><%- templates.widgets(resourceField[0], action, fieldIdentifier, fieldValue, foreignKeys[fieldName]) %></td><%
 			} %>
 			''')
 		viewAddEditResource: ejs.compile('''
 			<div class="panel" style="background-color:<%= backgroundColour %>;">
 				<form class="action">
-					<%- templates.hiddenFormInput(locals) %><%
-					for(var i = 0; i < resourceModel.fields.length; i++) { %>
-						<%-
-							templates.dataTypeDisplay({
-								templates: templates,
-								resourceInstance: resourceInstance,
-								resourceModel: resourceModel,
-								resourceField: resourceModel.fields[i],
-								foreignKeys: foreignKeys,
-								action: action
-							})
-						%><%
-					}
+					<%- templates.hiddenFormInput(locals) %>
+					<table><%
+						for(var i = 0; i < resourceModel.fields.length; i++) { %>
+							<tr>
+								<%-
+									templates.dataTypeDisplay({
+										templates: templates,
+										resourceInstance: resourceInstance,
+										resourceModel: resourceModel,
+										resourceField: resourceModel.fields[i],
+										foreignKeys: foreignKeys,
+										action: action
+									})
+								%>
+							</tr><%
+						} %>
+					</table><%
 					if(action !== "view") { %>
 						<div align="right">
 							<input type="submit" value="Submit This" onClick="processForm(this.parentNode.parentNode);return false;">
