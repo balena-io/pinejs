@@ -144,6 +144,26 @@ define(['sbvr-parser/SBVRParser', 'data-frame/ClientURIParser', 'Prettify'], (SB
 			serverRequest("PUT", "/ui/textarea?filter=name:model_area/", {}, [{'textarea.text': sbvrEditor.getValue()}])
 		)
 
+		loginDialog = $("#dialog-login")
+		window.processLogin = processLogin = () ->
+			serverRequest('POST', '/login', {}, {
+				username: loginDialog.find('#username').val()
+				password: loginDialog.find('#password').val()
+			})
+			loginDialog.dialog('close')
+		window.login = () ->
+			loginDialog.html('<label for="username">Username: </label><input id="username" type="text"/><br/><label for="password">Password: </label><input id="password" type="password"/>')
+			loginDialog.dialog('open')
+		loginDialog.dialog(
+			modal: true
+			resizable: false
+			autoOpen: false
+			buttons:
+				'Login': processLogin
+				'Cancel': ->
+					loginDialog.dialog('close')
+		)
+
 		$("#dialog-message").dialog(
 			modal: true
 			resizable: false

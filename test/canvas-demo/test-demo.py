@@ -24,6 +24,16 @@ root_path = sys.path[0].split('\\')[:-2]
 root_path = '/'.join(root_path)
 
 browser.get("file:///%s/src/client/frame-glue/src/index.html" % root_path)
+time.sleep(2)
+
+browser.find_element_by_id("bl").click()
+time.sleep(1)
+browser.execute_script('document.getElementById("username").value = "test";')
+browser.execute_script('document.getElementById("password").value = "test";')
+browser.find_element_by_xpath("//button[descendant::text()='Login']").click()
+time.sleep(1)
+
+browser.find_element_by_xpath("//button[descendant::text()='Revise Request']").click()
 time.sleep(1)
 
 browser.find_element_by_id("bcdb").click()

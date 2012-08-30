@@ -118,6 +118,7 @@
       }
     };
     loadUI = function() {
+      var loginDialog, processLogin;
       window.sbvrEditor = sbvrEditor = CodeMirror.fromTextArea(document.getElementById("modelArea"), {
         mode: {
           name: 'sbvr',
@@ -152,6 +153,29 @@
             'textarea.text': sbvrEditor.getValue()
           }
         ]);
+      });
+      loginDialog = $("#dialog-login");
+      window.processLogin = processLogin = function() {
+        serverRequest('POST', '/login', {}, {
+          username: loginDialog.find('#username').val(),
+          password: loginDialog.find('#password').val()
+        });
+        return loginDialog.dialog('close');
+      };
+      window.login = function() {
+        loginDialog.html('<label for="username">Username: </label><input id="username" type="text"/><br/><label for="password">Password: </label><input id="password" type="password"/>');
+        return loginDialog.dialog('open');
+      };
+      loginDialog.dialog({
+        modal: true,
+        resizable: false,
+        autoOpen: false,
+        buttons: {
+          'Login': processLogin,
+          'Cancel': function() {
+            return loginDialog.dialog('close');
+          }
+        }
       });
       $("#dialog-message").dialog({
         modal: true,

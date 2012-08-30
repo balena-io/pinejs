@@ -492,6 +492,18 @@
         return console.log('Failed to execute transaction model.', error);
       });
       return executeModel(tx, 'user', userModel, function() {
+        runURI('POST', '/user/user', [
+          {
+            'user.username': 'test',
+            'user.password': 'test'
+          }
+        ], null);
+        runURI('POST', '/user/user', [
+          {
+            'user.username': 'test2',
+            'user.password': 'test2'
+          }
+        ], null);
         return console.log('Sucessfully executed user model.');
       }, function(tx, error) {
         return console.log('Failed to execute user model.', error);

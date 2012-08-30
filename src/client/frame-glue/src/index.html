@@ -14,6 +14,7 @@
 
 <body>
 
+	<div id="dialog-login" title="Login" style="display:none;"></div>
 	<div id="dialog-message" title="Unable to complete request" style="display:none;"></div>
 	<div id="dialog-simple-error" title="Unable to complete request" style="display:none;"></div>
 	<div id="dialog-url-message" title="URL" style="display:none;"></div>
@@ -51,6 +52,7 @@
 					<div id="downloadify"></div>
 					<div id="TheFileLoader"></div>
 					<!--#IFDEF server -->
+						<input type="button" id='bl'  value="Login"         onClick="login();return false">
 						<input type="button" id='bem'  value="Execute Model" onClick="transformClient(sbvrEditor.getValue());return false">
 						<input type="button" id='bum'  value="Update Model"  onClick="return false">
 						<input type="button" id='br'   value="Reset"         onClick="resetClient();return false">

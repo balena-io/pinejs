@@ -63,10 +63,10 @@
           return res.json(onAir);
         });
       });
-      app.post('/update', serverIsOnAir, function(req, res, next) {
+      app.post('/update', isAuthed, serverIsOnAir, function(req, res, next) {
         return res.send(404);
       });
-      app.post('/execute', function(req, res, next) {
+      app.post('/execute', isAuthed, function(req, res, next) {
         return sbvrUtils.runURI('GET', '/ui/textarea?filter=name:model_area', null, null, function(result) {
           var seModel;
           seModel = result.instances[0].text;
@@ -88,7 +88,7 @@
           return res.send(404);
         });
       });
-      app.del('/cleardb', function(req, res, next) {
+      app.del('/cleardb', isAuthed, function(req, res, next) {
         return db.transaction(function(tx) {
           return tx.tableList(function(tx, result) {
             var i, _i, _ref;
@@ -105,7 +105,7 @@
           });
         });
       });
-      app.put('/importdb', function(req, res, next) {
+      app.put('/importdb', isAuthed, function(req, res, next) {
         var asyncCallback, queries;
         queries = req.body.split(";");
         asyncCallback = createAsyncQueueCallback(function() {
@@ -131,7 +131,7 @@
           return asyncCallback.endAdding();
         });
       });
-      app.get('/exportdb', function(req, res, next) {
+      app.get('/exportdb', isAuthed, function(req, res, next) {
         var env;
         if (typeof process !== "undefined" && process !== null) {
           env = process.env;
@@ -193,7 +193,7 @@
           });
         }
       });
-      app.post('/backupdb', serverIsOnAir, function(req, res, next) {
+      app.post('/backupdb', isAuthed, serverIsOnAir, function(req, res, next) {
         return db.transaction(function(tx) {
           return tx.tableList(function(tx, result) {
             var asyncCallback, i, tbn, _i, _ref, _results;
@@ -215,7 +215,7 @@
           }, "name NOT LIKE '%_buk'");
         });
       });
-      app.post('/restoredb', serverIsOnAir, function(req, res, next) {
+      app.post('/restoredb', isAuthed, serverIsOnAir, function(req, res, next) {
         return db.transaction(function(tx) {
           return tx.tableList(function(tx, result) {
             var asyncCallback, i, tbn, _i, _ref, _results;

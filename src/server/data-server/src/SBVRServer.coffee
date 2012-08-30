@@ -78,8 +78,10 @@ define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQL2CLF', '
 					res.json(onAir)
 				)
 		)
-		app.post('/update',		serverIsOnAir,	(req, res, next) -> res.send(404))
-		app.post('/execute',					(req, res, next) ->
+		app.post('/update', isAuthed, serverIsOnAir, (req, res, next) ->
+			res.send(404)
+		)
+		app.post('/execute', isAuthed, (req, res, next) ->
 			sbvrUtils.runURI('GET', '/ui/textarea?filter=name:model_area', null, null,
 				(result) ->
 					seModel = result.instances[0].text
@@ -97,7 +99,7 @@ define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQL2CLF', '
 				() -> res.send(404)
 			)
 		)
-		app.del('/cleardb', (req, res, next) ->
+		app.del('/cleardb', isAuthed, (req, res, next) ->
 			db.transaction (tx) ->
 				tx.tableList( (tx, result) ->
 					for i in [0...result.rows.length]
@@ -112,7 +114,7 @@ define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQL2CLF', '
 					res.send(200)
 				)
 		)
-		app.put('/importdb', (req, res, next) ->
+		app.put('/importdb', isAuthed, (req, res, next) ->
 			queries = req.body.split(";")
 			asyncCallback = createAsyncQueueCallback(
 				() -> res.send(200)
@@ -128,7 +130,7 @@ define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQL2CLF', '
 							asyncCallback.errorCallback
 				asyncCallback.endAdding()
 		)
-		app.get('/exportdb', (req, res, next) ->
+		app.get('/exportdb', isAuthed, (req, res, next) ->
 			if process?
 				env = process.env
 				env['PGPASSWORD'] = '.'
@@ -179,7 +181,7 @@ define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQL2CLF', '
 						"name NOT LIKE '%_buk'"
 					)
 		)
-		app.post('/backupdb', serverIsOnAir, (req, res, next) ->
+		app.post('/backupdb', isAuthed, serverIsOnAir, (req, res, next) ->
 			db.transaction (tx) ->
 				tx.tableList(
 					(tx, result) ->
@@ -196,7 +198,7 @@ define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQL2CLF', '
 					"name NOT LIKE '%_buk'"
 				)
 		)
-		app.post('/restoredb', serverIsOnAir, (req, res, next) ->
+		app.post('/restoredb', isAuthed, serverIsOnAir, (req, res, next) ->
 			db.transaction (tx) ->
 				tx.tableList(
 					(tx, result) ->
