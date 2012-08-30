@@ -16,7 +16,7 @@
       if (value !== '') {
         return value;
       }
-      return '?';
+      return '&lt;auto&gt;';
     };
     widgets['JSON'] = widgets['Interval'] = widgets['Date'] = widgets['Date Time'] = widgets['Time'] = function() {
       return 'TODO';

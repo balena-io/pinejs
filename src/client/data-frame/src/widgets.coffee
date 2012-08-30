@@ -11,7 +11,7 @@ define(['data-frame/widgets/text', 'data-frame/widgets/textArea', 'data-frame/wi
 	widgets['Serial'] = (action, id, value) ->
 		if value != ''
 			return value
-		return '?'
+		return '&lt;auto&gt;'
 	widgets['JSON'] = widgets['Interval'] = widgets['Date'] = widgets['Date Time'] = widgets['Time'] = () ->
 		return 'TODO'
 	
