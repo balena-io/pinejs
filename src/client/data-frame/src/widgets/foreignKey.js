@@ -1,10 +1,13 @@
 define(function() {
 	var view = function(id, value, values) {
 		var i = 0;
-		for(; i < values.length; i++) {
-			if(value == values[i].id) {
+		for(id in values) {
+			if(!values.hasOwnProperty(id)) {
+				continue;
+			}
+			if(value == id) {
 				// TODO: This should come from client model.
-				return values[i].value;
+				return values[id].value;
 			}
 		}
 		return value;
