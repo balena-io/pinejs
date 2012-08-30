@@ -207,18 +207,18 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 			(tx) ->
 				for dropStatement in sqlmod.dropSchema
 					tx.executeSql(dropStatement)
-		)(sqlModels[vocabulary])
+				runURI('DELETE', '/dev/model?filter=model_type:se', [{vocabulary}], tx)
+				runURI('DELETE', '/dev/model?filter=model_type:lf', [{vocabulary}], tx)
+				runURI('DELETE', '/dev/model?filter=model_type:slf', [{vocabulary}], tx)
+				runURI('DELETE', '/dev/model?filter=model_type:abstractsql', [{vocabulary}], tx)
+				runURI('DELETE', '/dev/model?filter=model_type:sql', [{vocabulary}], tx)
+				runURI('DELETE', '/dev/model?filter=model_type:client', [{vocabulary}], tx)
 
-		runURI('DELETE', '/dev/model?filter=model_type:se', [{vocabulary}], tx)
-		runURI('DELETE', '/dev/model?filter=model_type:lf', [{vocabulary}], tx)
-		runURI('DELETE', '/dev/model?filter=model_type:slf', [{vocabulary}], tx)
-		runURI('DELETE', '/dev/model?filter=model_type:abstractsql', [{vocabulary}], tx)
-		runURI('DELETE', '/dev/model?filter=model_type:sql', [{vocabulary}], tx)
-		runURI('DELETE', '/dev/model?filter=model_type:client', [{vocabulary}], tx)
-		sqlModels[vocabulary] = []
-		serverURIParser.setSQLModel(vocabulary, sqlModels[vocabulary])
-		clientModels[vocabulary] = []
-		serverURIParser.setClientModel(vocabulary, clientModels[vocabulary])
+				sqlModels[vocabulary] = []
+				serverURIParser.setSQLModel(vocabulary, sqlModels[vocabulary])
+				clientModels[vocabulary] = []
+				serverURIParser.setClientModel(vocabulary, clientModels[vocabulary])
+		)
 
 	getID = (tree) ->
 		id = 0

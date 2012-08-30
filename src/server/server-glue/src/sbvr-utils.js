@@ -159,52 +159,50 @@
       }, failureCallback);
     };
     exports.deleteModel = function(vocabulary) {
-      db.transaction((function(sqlmod) {
+      return db.transaction((function(sqlmod) {
         return function(tx) {
-          var dropStatement, _i, _len, _ref, _results;
+          var dropStatement, _i, _len, _ref;
           _ref = sqlmod.dropSchema;
-          _results = [];
           for (_i = 0, _len = _ref.length; _i < _len; _i++) {
             dropStatement = _ref[_i];
-            _results.push(tx.executeSql(dropStatement));
+            tx.executeSql(dropStatement);
           }
-          return _results;
+          runURI('DELETE', '/dev/model?filter=model_type:se', [
+            {
+              vocabulary: vocabulary
+            }
+          ], tx);
+          runURI('DELETE', '/dev/model?filter=model_type:lf', [
+            {
+              vocabulary: vocabulary
+            }
+          ], tx);
+          runURI('DELETE', '/dev/model?filter=model_type:slf', [
+            {
+              vocabulary: vocabulary
+            }
+          ], tx);
+          runURI('DELETE', '/dev/model?filter=model_type:abstractsql', [
+            {
+              vocabulary: vocabulary
+            }
+          ], tx);
+          runURI('DELETE', '/dev/model?filter=model_type:sql', [
+            {
+              vocabulary: vocabulary
+            }
+          ], tx);
+          runURI('DELETE', '/dev/model?filter=model_type:client', [
+            {
+              vocabulary: vocabulary
+            }
+          ], tx);
+          sqlModels[vocabulary] = [];
+          serverURIParser.setSQLModel(vocabulary, sqlModels[vocabulary]);
+          clientModels[vocabulary] = [];
+          return serverURIParser.setClientModel(vocabulary, clientModels[vocabulary]);
         };
-      })(sqlModels[vocabulary]));
-      runURI('DELETE', '/dev/model?filter=model_type:se', [
-        {
-          vocabulary: vocabulary
-        }
-      ], tx);
-      runURI('DELETE', '/dev/model?filter=model_type:lf', [
-        {
-          vocabulary: vocabulary
-        }
-      ], tx);
-      runURI('DELETE', '/dev/model?filter=model_type:slf', [
-        {
-          vocabulary: vocabulary
-        }
-      ], tx);
-      runURI('DELETE', '/dev/model?filter=model_type:abstractsql', [
-        {
-          vocabulary: vocabulary
-        }
-      ], tx);
-      runURI('DELETE', '/dev/model?filter=model_type:sql', [
-        {
-          vocabulary: vocabulary
-        }
-      ], tx);
-      runURI('DELETE', '/dev/model?filter=model_type:client', [
-        {
-          vocabulary: vocabulary
-        }
-      ], tx);
-      sqlModels[vocabulary] = [];
-      serverURIParser.setSQLModel(vocabulary, sqlModels[vocabulary]);
-      clientModels[vocabulary] = [];
-      return serverURIParser.setClientModel(vocabulary, clientModels[vocabulary]);
+      }));
     };
     getID = function(tree) {
       var comparison, id, query, whereClause, _i, _j, _len, _len1, _ref, _ref1;
