@@ -27,7 +27,7 @@
       altBackgroundColour: '#FFFFFF'
     };
     createNavigableTree = function(tree, descendTree) {
-      var ascend, currentLocation, descendByIndex, getIndexForResource, index, previousLocations, _i, _len;
+      var ascend, currentLocation, descendByIndex, getIndexForResource, getInstanceID, index, previousLocations, _i, _len;
       if (descendTree == null) {
         descendTree = [];
       }
@@ -35,11 +35,25 @@
       descendTree = jQuery.extend(true, [], descendTree);
       previousLocations = [];
       currentLocation = tree;
+      getInstanceID = function(leaf) {
+        var mod, _i, _len, _ref;
+        if (leaf[1][1] != null) {
+          return leaf[1][1];
+        } else {
+          _ref = leaf[2];
+          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+            mod = _ref[_i];
+            if (mod[0] === 'filt' && mod[1][0] === 'eq') {
+              return mod[1][3];
+            }
+          }
+        }
+      };
       getIndexForResource = function(resourceName, resourceID) {
         var j, leaf, _i, _len, _ref, _ref1;
         for (j = _i = 0, _len = currentLocation.length; _i < _len; j = ++_i) {
           leaf = currentLocation[j];
-          if (((_ref = leaf[0]) === 'collection' || _ref === 'instance') && ((_ref1 = leaf[1]) != null ? _ref1[0] : void 0) === resourceName && (!(resourceID != null) || (leaf[1][1] !== void 0 && leaf[1][1] === resourceID))) {
+          if (((_ref = leaf[0]) === 'collection' || _ref === 'instance') && ((_ref1 = leaf[1]) != null ? _ref1[0] : void 0) === resourceName && (!(resourceID != null) || (getInstanceID(leaf) === resourceID))) {
             return j;
           }
         }
@@ -60,6 +74,9 @@
         currentLocation = currentLocation[index];
       }
       return {
+        getInstanceID: function() {
+          return getInstanceID(currentLocation);
+        },
         getCurrentLocation: function() {
           return currentLocation;
         },
@@ -164,13 +181,13 @@
         clone: function() {
           return createNavigableTree(tree, descendTree);
         },
-        getChangeURI: function(action, resourceName, resourceID) {
-          var resource;
-          resource = [resourceName];
+        getChangeURI: function(action, resourceModel, resourceID) {
+          var mods;
+          mods = ['mod', [action]];
           if (resourceID != null) {
-            resource.push(resourceID);
+            mods.push(['filt', ['eq', [], resourceModel.idField, resourceID]]);
           }
-          return this.getNewURI("add", ['instance', resource, ["mod", [action]]]);
+          return this.getNewURI("add", ['instance', [resourceModel.resourceName], mods]);
         },
         getNewURI: function(action, change) {
           return this.clone().modify(action, change).getURI();
@@ -331,7 +348,7 @@
           resourceCollections = [];
           resourceCollectionsCallback = createAsyncQueueCallback(function() {
             var addHash, html, templateVars;
-            addHash = '#!/' + ftree.getChangeURI('add', about);
+            addHash = '#!/' + ftree.getChangeURI('add', clientModel);
             templateVars = $.extend({}, baseTemplateVars, (even ? evenTemplateVars : oddTemplateVars), {
               pid: ftree.getPid(),
               addHash: addHash,
@@ -386,11 +403,11 @@
               resourceCollectionsCallback.addWork(1);
               return renderResource(i, resourceCollectionsCallback.successCallback, rootURI, !even, expandedTree, cmod);
             } else {
-              resourceCollections[i].viewHash = '#!/' + ftree.getChangeURI('view', about, instanceID);
+              resourceCollections[i].viewHash = '#!/' + ftree.getChangeURI('view', clientModel, instanceID);
               resourceCollections[i].viewURI = rootURI + resourceCollections[i].viewHash;
-              resourceCollections[i].editHash = '#!/' + ftree.getChangeURI('edit', about, instanceID);
+              resourceCollections[i].editHash = '#!/' + ftree.getChangeURI('edit', clientModel, instanceID);
               resourceCollections[i].editURI = rootURI + resourceCollections[i].editHash;
-              resourceCollections[i].deleteHash = '#!/' + ftree.getChangeURI('del', about, instanceID);
+              resourceCollections[i].deleteHash = '#!/' + ftree.getChangeURI('del', clientModel, instanceID);
               return resourceCollections[i].deleteURI = rootURI + resourceCollections[i].deleteHash;
             }
           };
@@ -545,7 +562,7 @@
             templateVars = $.extend(templateVars, {
               resourceModel: result.model,
               action: 'del',
-              id: currentLocation[1][1]
+              id: ftree.getInstanceID()
             });
             html = templates.deleteResource(templateVars);
             return rowCallback(html);

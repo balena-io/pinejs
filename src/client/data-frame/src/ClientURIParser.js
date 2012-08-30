@@ -1,8 +1,8 @@
 define(["ometa-core"], (function() {
     var ClientURIParser = OMeta._extend({
         "word": function() {
-            var l, _fromIdx = this.input.idx,
-                $elf = this;
+            var l, $elf = this,
+                _fromIdx = this.input.idx;
             l = this._many1((function() {
                 return this._or((function() {
                     return this._apply("letter")
@@ -22,8 +22,8 @@ define(["ometa-core"], (function() {
             return l.join("")
         },
         "number": function() {
-            var d, _fromIdx = this.input.idx,
-                $elf = this;
+            var d, $elf = this,
+                _fromIdx = this.input.idx;
             d = this._consumedBy((function() {
                 return this._many1((function() {
                     return this._apply("digit")
@@ -32,8 +32,8 @@ define(["ometa-core"], (function() {
             return parseInt(d, (10))
         },
         "part": function() {
-            var l, _fromIdx = this.input.idx,
-                $elf = this;
+            var l, $elf = this,
+                _fromIdx = this.input.idx;
             l = this._many1((function() {
                 return this._or((function() {
                     return this._apply("letter")
@@ -55,9 +55,8 @@ define(["ometa-core"], (function() {
             return l.join("")
         },
         "parm": function() {
-            var o, t, _fromIdx = this.input.idx,
-                v, $elf = this,
-                f;
+            var v, o, f, t, $elf = this,
+                _fromIdx = this.input.idx;
             t = this._apply("part");
             f = this._or((function() {
                 return (function() {
@@ -80,37 +79,40 @@ define(["ometa-core"], (function() {
             }));
             o = (function() {
                 switch (this._apply('anything')) {
-                case "=":
-                    return "eq";
                 case "!":
                     return (function() {
                         this._applyWithArgs("exactly", "=");
                         "!=";
                         return "ne"
                     }).call(this);
+                case "=":
+                    return "eq";
                 case "~":
                     return "lk";
                 default:
                     throw this._fail()
                 }
             }).call(this);
-            v = this._apply("part");
+            v = this._or((function() {
+                return this._apply("number")
+            }), (function() {
+                return this._apply("part")
+            }));
             this._opt((function() {
                 return this._applyWithArgs("exactly", ";")
             }));
             return [o, t, f, v]
         },
         "imod": function() {
-            var _fromIdx = this.input.idx,
-                $elf = this;
+            var $elf = this,
+                _fromIdx = this.input.idx;
             return (function() {
                 switch (this._apply('anything')) {
-                case "e":
+                case "d":
                     return (function() {
-                        this._applyWithArgs("exactly", "d");
-                        this._applyWithArgs("exactly", "i");
-                        this._applyWithArgs("exactly", "t");
-                        return "edit"
+                        this._applyWithArgs("exactly", "e");
+                        this._applyWithArgs("exactly", "l");
+                        return "del"
                     }).call(this);
                 case "v":
                     return (function() {
@@ -119,17 +121,25 @@ define(["ometa-core"], (function() {
                         this._applyWithArgs("exactly", "w");
                         return "view"
                     }).call(this);
+                case "e":
+                    return (function() {
+                        this._applyWithArgs("exactly", "d");
+                        this._applyWithArgs("exactly", "i");
+                        this._applyWithArgs("exactly", "t");
+                        return "edit"
+                    }).call(this);
+                case "f":
+                    return (function() {
+                        this._applyWithArgs("exactly", "i");
+                        this._applyWithArgs("exactly", "l");
+                        this._applyWithArgs("exactly", "t");
+                        return "filt"
+                    }).call(this);
                 case "a":
                     return (function() {
                         this._applyWithArgs("exactly", "d");
                         this._applyWithArgs("exactly", "d");
                         return "add"
-                    }).call(this);
-                case "d":
-                    return (function() {
-                        this._applyWithArgs("exactly", "e");
-                        this._applyWithArgs("exactly", "l");
-                        return "del"
                     }).call(this);
                 default:
                     throw this._fail()
@@ -137,16 +147,15 @@ define(["ometa-core"], (function() {
             }).call(this)
         },
         "cmod": function() {
-            var _fromIdx = this.input.idx,
-                $elf = this;
+            var $elf = this,
+                _fromIdx = this.input.idx;
             return (function() {
                 switch (this._apply('anything')) {
-                case "f":
+                case "d":
                     return (function() {
-                        this._applyWithArgs("exactly", "i");
+                        this._applyWithArgs("exactly", "e");
                         this._applyWithArgs("exactly", "l");
-                        this._applyWithArgs("exactly", "t");
-                        return "filt"
+                        return "del"
                     }).call(this);
                 case "s":
                     return (function() {
@@ -155,11 +164,12 @@ define(["ometa-core"], (function() {
                         this._applyWithArgs("exactly", "t");
                         return "sort"
                     }).call(this);
-                case "d":
+                case "f":
                     return (function() {
-                        this._applyWithArgs("exactly", "e");
+                        this._applyWithArgs("exactly", "i");
                         this._applyWithArgs("exactly", "l");
-                        return "del"
+                        this._applyWithArgs("exactly", "t");
+                        return "filt"
                     }).call(this);
                 default:
                     throw this._fail()
@@ -167,9 +177,8 @@ define(["ometa-core"], (function() {
             }).call(this)
         },
         "iact": function() {
-            var a, _fromIdx = this.input.idx,
-                $elf = this,
-                p;
+            var p, a, $elf = this,
+                _fromIdx = this.input.idx;
             return this._or((function() {
                 return this._many1((function() {
                     this._applyWithArgs("exactly", "*");
@@ -195,9 +204,8 @@ define(["ometa-core"], (function() {
             }))
         },
         "cact": function() {
-            var a, _fromIdx = this.input.idx,
-                $elf = this,
-                p;
+            var p, a, $elf = this,
+                _fromIdx = this.input.idx;
             return this._or((function() {
                 return this._many1((function() {
                     this._applyWithArgs("exactly", "*");
@@ -223,18 +231,16 @@ define(["ometa-core"], (function() {
             }))
         },
         "cole": function() {
-            var t, _fromIdx = this.input.idx,
-                $elf = this,
-                s;
+            var s, t, $elf = this,
+                _fromIdx = this.input.idx;
             t = this._apply("part");
             s = this._apply("cact");
             return [[t]].concat([
                 ["mod"].concat(s)])
         },
         "inst": function() {
-            var t, _fromIdx = this.input.idx,
-                $elf = this,
-                s, f;
+            var s, f, t, $elf = this,
+                _fromIdx = this.input.idx;
             return this._or((function() {
                 t = this._apply("part");
                 this._applyWithArgs("exactly", ".");
@@ -261,9 +267,8 @@ define(["ometa-core"], (function() {
             }))
         },
         "frbd": function() {
-            var r, _fromIdx = this.input.idx,
-                $elf = this,
-                f, g;
+            var r, f, g, $elf = this,
+                _fromIdx = this.input.idx;
             f = this._or((function() {
                 this._opt((function() {
                     return this._applyWithArgs("exactly", "/")
@@ -296,10 +301,10 @@ define(["ometa-core"], (function() {
                 }), (function() {
                     return (function() {
                         switch (this._apply('anything')) {
-                        case ")":
-                            return ")";
                         case "/":
                             return "/";
+                        case ")":
+                            return ")";
                         case ",":
                             return ",";
                         default:
@@ -311,9 +316,8 @@ define(["ometa-core"], (function() {
             return f
         },
         "frag": function() {
-            var w, _fromIdx = this.input.idx,
-                $elf = this,
-                f;
+            var f, $elf = this,
+                w, _fromIdx = this.input.idx;
             return this._or((function() {
                 w = this._apply("cole");
                 f = this._apply("frbd");
@@ -325,9 +329,8 @@ define(["ometa-core"], (function() {
             }))
         },
         "expr": function() {
-            var _fromIdx = this.input.idx,
-                $elf = this,
-                f;
+            var f, $elf = this,
+                _fromIdx = this.input.idx;
             return this._or((function() {
                 return (function() {
                     switch (this._apply('anything')) {

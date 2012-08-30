@@ -210,9 +210,16 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs',
 		previousLocations = []
 		currentLocation = tree
 
+		getInstanceID = (leaf) ->
+			if leaf[1][1]?
+				return leaf[1][1]
+			else
+				for mod in leaf[2] when mod[0] == 'filt' and mod[1][0] == 'eq'
+					return mod[1][3]
+
 		getIndexForResource = (resourceName, resourceID) ->
 			for leaf, j in currentLocation when leaf[0] in ['collection', 'instance'] and leaf[1]?[0] == resourceName and (
-					!resourceID? or (leaf[1][1] != undefined and leaf[1][1] == resourceID))
+					!resourceID? or ( getInstanceID(leaf) == resourceID))
 				return j
 			return false
 		
@@ -232,6 +239,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs',
 		
 		return {
 			# Can get rid of?
+			getInstanceID: () -> getInstanceID(currentLocation)
 			getCurrentLocation: () -> return currentLocation
 			getCurrentIndex: () -> return descendTree[descendTree.length - 1]
 			descendByIndex: (index) ->
@@ -296,11 +304,11 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs',
 				return ClientURIUnparser.match(tree, "trans")
 			clone: () ->
 				return createNavigableTree(tree, descendTree)
-			getChangeURI: (action, resourceName, resourceID) ->
-				resource = [ resourceName ]
+			getChangeURI: (action, resourceModel, resourceID) ->
+				mods = [ 'mod', [ action ] ]
 				if resourceID?
-					resource.push(resourceID)
-				return this.getNewURI("add", [ 'instance', resource, [ "mod", [ action ] ] ])
+					mods.push(['filt', ['eq', [], resourceModel.idField, resourceID]])
+				return this.getNewURI("add", [ 'instance', [resourceModel.resourceName], mods ])
 			getNewURI: (action, change) ->
 				return this.clone().modify(action, change).getURI()
 		}
@@ -424,7 +432,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs',
 					resourceCollections = []
 					resourceCollectionsCallback = createAsyncQueueCallback(
 						() ->
-							addHash = '#!/' + ftree.getChangeURI('add', about)
+							addHash = '#!/' + ftree.getChangeURI('add', clientModel)
 							templateVars = $.extend({}, baseTemplateVars, (if even then evenTemplateVars else oddTemplateVars), {
 								pid: ftree.getPid()
 								addHash: addHash
@@ -478,11 +486,11 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs',
 								resourceCollectionsCallback.addWork(1)
 								renderResource(i, resourceCollectionsCallback.successCallback, rootURI, not even, expandedTree, cmod)
 							else
-								resourceCollections[i].viewHash = '#!/' + ftree.getChangeURI('view', about, instanceID)
+								resourceCollections[i].viewHash = '#!/' + ftree.getChangeURI('view', clientModel, instanceID)
 								resourceCollections[i].viewURI = rootURI + resourceCollections[i].viewHash
-								resourceCollections[i].editHash = '#!/' + ftree.getChangeURI('edit', about, instanceID)
+								resourceCollections[i].editHash = '#!/' + ftree.getChangeURI('edit', clientModel, instanceID)
 								resourceCollections[i].editURI = rootURI + resourceCollections[i].editHash
-								resourceCollections[i].deleteHash = '#!/' + ftree.getChangeURI('del', about, instanceID)
+								resourceCollections[i].deleteHash = '#!/' + ftree.getChangeURI('del', clientModel, instanceID)
 								resourceCollections[i].deleteURI = rootURI + resourceCollections[i].deleteHash
 					
 					addsHTML = []
@@ -606,7 +614,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs',
 						templateVars = $.extend(templateVars, {
 							resourceModel: result.model
 							action: 'del'
-							id: currentLocation[1][1]
+							id: ftree.getInstanceID()
 						})
 						html = templates.deleteResource(templateVars)
 						rowCallback(html)

@@ -22,9 +22,9 @@ define(['ometa-core'], function() {
 		parm = part:t ('.' word:o -> o| -> {f=t;t=[];f}):f
 					  ('=' -> 'eq'
 							|seq('!=') -> 'ne'
-							|'~' -> 'lk'):o part:v ';'? -> [o,t,f,v],
+							|'~' -> 'lk'):o (number|part):v ';'? -> [o,t,f,v],
 
-		imod = seq('del') | seq('add') | seq('view') | seq('edit'),
+		imod = seq('del') | seq('add') | seq('view') | seq('edit') | seq('filt'),
 		cmod = seq('del') | seq('filt') | seq('sort'),
 
 		iact = ('*' imod:a (':' parm+ | -> []):p -> [a].concat(p))+ | -> [],

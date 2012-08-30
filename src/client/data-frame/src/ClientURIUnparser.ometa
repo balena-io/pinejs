@@ -42,14 +42,11 @@ define(['ometa-core'], function() {
           del = ['del']          -> '*del',
           edit = ['edit']         -> '*edit',
 
-          filt = ['filt' eqi:o]   -> '',
-          filt = ['filt' op*:o]   -> ('*filt:' + o),
+          filt = ['filt' op*:o]   -> ('*filt:' + o.join(';')),
 
             op = eq|ne|lk,
 
-           eqi = ['eq' ([]|word) 'id'   nmbr]        -> '',
-           eqi = ['eq' ([]|word) 'name' word]        -> '',
-            eq = ['eq' ([]|word) word   (word|nmbr)],
+            eq = ['eq' ([]|word) word:field (word|nmbr):value] -> [field, value].join('='),
 
             ne = ['ne' ([]|word) word   (word|nmbr)],
             lk = ['lk' ([]|word) word   (word|nmbr)]
