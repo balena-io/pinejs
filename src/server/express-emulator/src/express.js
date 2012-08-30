@@ -95,6 +95,9 @@
               } else {
                 return successCallback(statusCode, null, headers);
               }
+            },
+            redirect: function() {
+              return failureCallback(307);
             }
           };
           next = function(route) {

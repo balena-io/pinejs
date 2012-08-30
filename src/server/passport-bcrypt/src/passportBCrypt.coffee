@@ -8,45 +8,66 @@ CREATE TABLE users (
 );
 ###
 
-define((requirejs, exports, module) ->
-	bcrypt = require('bcrypt')
-	LocalStrategy = require('passport-local').Strategy;
-
-	exports.init = (passport, db) ->
-		passport.serializeUser( (user, done)  ->
-			done(null, user)
-		)
-
-		passport.deserializeUser( (user, done) ->
-			done(null, user)
-		)
-
-		passport.use(new LocalStrategy(
-			(username, password, done) ->
-				db.transaction( (tx) ->
-					tx.executeSql('SELECT password FROM users WHERE username = ?', [username],
-						(tx, result) ->
-							if result.rows.length != 0
-								bcrypt.compare(password, result.rows.item(0).password, (err, res) ->
-									if(res)
-										done(null, username)
-									else
-										done(null, false)
-								)
-							else 
-								done(null, false)
-						(tx, err) ->
+define(() ->
+	return (options, sbvrUtils, app, passport) ->
+		exports = {}
+		checkPassword = (username, password, done) ->
+			sbvrUtils.runURI('GET', '/user/user?filter=user.username:' + username, [{}], null,
+				(data) ->
+					console.log(data.instances)
+					hash = data.instances[0].password
+					compare(password, hash, (err, res) ->
+						if res
+							done(null, username)
+						else
 							done(null, false)
 					)
-				)
-		))
-	
-	
+				(errors) ->
+					done(null, false)
+			)
 
-	exports.isAuthed = (req, res, next) ->
-		if (req.isAuthenticated())
-			next()
+		if passport?
+			compare = require('bcrypt').compare
+			LocalStrategy = require('passport-local').Strategy;
+			app.post(options.loginUrl, passport.authenticate('local', {failureRedirect: options.failureRedirect}), (req, res, next) ->
+				res.redirect(options.successRedirect)
+			)
+			passport.serializeUser( (user, done)  ->
+				done(null, user)
+			)
+
+			passport.deserializeUser( (user, done) ->
+				done(null, user)
+			)
+
+			passport.use(new LocalStrategy(checkPassword))
+
+			exports.isAuthed = (req, res, next) ->
+				if req.isAuthenticated()
+					next()
+				else
+					res.redirect(options.failureRedirect)
 		else
-			res.redirect('/login.html')
-	return exports
+			compare = (value, hash, callback) ->
+				callback(null, value == hash)
+			do() ->
+				_user = false
+				app.post(options.loginUrl, (req, res, next) ->
+					checkPassword(req.body.username, req.body.password, (errors, user) ->
+						_user = user
+						if res == false
+							res.redirect(options.failureRedirect)
+						else
+							res.redirect(options.successRedirect)
+					)
+				)
+
+				exports.isAuthed = (req, res, next) ->
+					console.log('wooo, checking auth')
+					if _user != false
+						next()
+					else
+						res.redirect(options.failureRedirect)
+
+		return exports
 )

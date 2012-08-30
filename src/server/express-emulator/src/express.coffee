@@ -53,6 +53,8 @@ define((requirejs, exports, module) ->
 							failureCallback(statusCode, null, headers)
 						else
 							successCallback(statusCode, null, headers)
+					redirect: () ->
+						failureCallback(307)
 				next = (route) ->
 					j++
 					if route == 'route' or j >= methodHandlers[i].middleware.length

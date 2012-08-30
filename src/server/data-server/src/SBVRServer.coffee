@@ -50,7 +50,7 @@ define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQL2CLF', '
 		)
 
 	# Setup function
-	exports.setup = (app, requirejs, sbvrUtils, databaseOptions) ->
+	exports.setup = (app, requirejs, sbvrUtils, isAuthed, databaseOptions) ->
 
 		requirejs(['database-layer/db'], (dbModule) ->
 			db = dbModule.connect(databaseOptions)

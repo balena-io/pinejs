@@ -20,13 +20,18 @@
   }
 
   setupCallback = function(requirejs, app) {
-    requirejs(['server-glue/sbvr-utils'], function(sbvrUtils) {
+    requirejs(['server-glue/sbvr-utils', 'passportBCrypt'], function(sbvrUtils, passportBCrypt) {
       sbvrUtils.setup(app, requirejs, databaseOptions);
+      passportBCrypt = passportBCrypt({
+        loginUrl: '/login',
+        failureRedirect: '/login.html',
+        successRedirect: '/'
+      }, sbvrUtils, app, passport);
       requirejs(['data-server/SBVRServer'], function(sbvrServer) {
-        return sbvrServer.setup(app, requirejs, sbvrUtils, databaseOptions);
+        return sbvrServer.setup(app, requirejs, sbvrUtils, passportBCrypt.isAuthed, databaseOptions);
       });
       return requirejs(['editorServer'], function(editorServer) {
-        return editorServer.setup(app, requirejs, sbvrUtils, databaseOptions);
+        return editorServer.setup(app, requirejs, sbvrUtils, passportBCrypt.isAuthed, databaseOptions);
       });
     });
     if (typeof process !== "undefined" && process !== null) {
@@ -89,16 +94,6 @@
       app.use(passport.initialize());
       app.use(passport.session());
       return app.use(express["static"](rootPath));
-    });
-    requirejs(['database-layer/db'], function(dbModule) {
-      var db;
-      db = dbModule.connect(databaseOptions);
-      return requirejs('passportBCrypt').init(passport, db);
-    });
-    app.post('/login', passport.authenticate('local', {
-      failureRedirect: '/login.html'
-    }), function(req, res, next) {
-      return res.redirect('/');
     });
     setupCallback(requirejs, app);
   } else {

@@ -16,18 +16,23 @@ else
 		
 
 setupCallback = (requirejs, app) ->
-	requirejs(['server-glue/sbvr-utils'], (sbvrUtils) ->
+	requirejs(['server-glue/sbvr-utils', 'passportBCrypt'], (sbvrUtils, passportBCrypt) ->
 		sbvrUtils.setup(app, requirejs, databaseOptions)
+		passportBCrypt = passportBCrypt({
+				loginUrl: '/login',
+				failureRedirect: '/login.html',
+				successRedirect: '/'
+			}, sbvrUtils, app, passport)
 		
 		#IFDEF server
 		requirejs(['data-server/SBVRServer'], (sbvrServer) ->
-			sbvrServer.setup(app, requirejs, sbvrUtils, databaseOptions)
+			sbvrServer.setup(app, requirejs, sbvrUtils, passportBCrypt.isAuthed, databaseOptions)
 		)
 		#ENDIFDEF
 
 		#IFDEF editor
 		requirejs(['editorServer'], (editorServer) ->
-			editorServer.setup(app, requirejs, sbvrUtils, databaseOptions)
+			editorServer.setup(app, requirejs, sbvrUtils, passportBCrypt.isAuthed, databaseOptions)
 		)
 		#ENDIFDEF
 	)
@@ -106,16 +111,6 @@ if process?
 		app.use(express.static(rootPath))
 	)
 	
-	#IFDEF server
-	requirejs(['database-layer/db'], (dbModule) ->
-		db = dbModule.connect(databaseOptions)
-		requirejs('passportBCrypt').init(passport, db)
-	)
-	
-	app.post('/login', passport.authenticate('local', {failureRedirect: '/login.html'}), (req, res, next) ->
-		res.redirect('/')
-	)
-	#ENDIFDEF
 	setupCallback(requirejs, app)
 else
 	requirejs = window.requirejs

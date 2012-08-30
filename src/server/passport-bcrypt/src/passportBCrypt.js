@@ -13,45 +13,77 @@ CREATE TABLE users (
 
 (function() {
 
-  define(function(requirejs, exports, module) {
-    var LocalStrategy, bcrypt;
-    bcrypt = require('bcrypt');
-    LocalStrategy = require('passport-local').Strategy;
-    exports.init = function(passport, db) {
-      passport.serializeUser(function(user, done) {
-        return done(null, user);
-      });
-      passport.deserializeUser(function(user, done) {
-        return done(null, user);
-      });
-      return passport.use(new LocalStrategy(function(username, password, done) {
-        return db.transaction(function(tx) {
-          return tx.executeSql('SELECT password FROM users WHERE username = ?', [username], function(tx, result) {
-            if (result.rows.length !== 0) {
-              return bcrypt.compare(password, result.rows.item(0).password, function(err, res) {
-                if (res) {
-                  return done(null, username);
-                } else {
-                  return done(null, false);
-                }
-              });
+  define(function() {
+    return function(options, sbvrUtils, app, passport) {
+      var LocalStrategy, checkPassword, compare, exports;
+      exports = {};
+      checkPassword = function(username, password, done) {
+        return sbvrUtils.runURI('GET', '/user/user?filter=user.username:' + username, [{}], null, function(data) {
+          var hash;
+          console.log(data.instances);
+          hash = data.instances[0].password;
+          return compare(password, hash, function(err, res) {
+            if (res) {
+              return done(null, username);
             } else {
               return done(null, false);
             }
-          }, function(tx, err) {
-            return done(null, false);
           });
+        }, function(errors) {
+          return done(null, false);
         });
-      }));
-    };
-    exports.isAuthed = function(req, res, next) {
-      if (req.isAuthenticated()) {
-        return next();
+      };
+      if (passport != null) {
+        compare = require('bcrypt').compare;
+        LocalStrategy = require('passport-local').Strategy;
+        app.post(options.loginUrl, passport.authenticate('local', {
+          failureRedirect: options.failureRedirect
+        }), function(req, res, next) {
+          return res.redirect(options.successRedirect);
+        });
+        passport.serializeUser(function(user, done) {
+          return done(null, user);
+        });
+        passport.deserializeUser(function(user, done) {
+          return done(null, user);
+        });
+        passport.use(new LocalStrategy(checkPassword));
+        exports.isAuthed = function(req, res, next) {
+          if (req.isAuthenticated()) {
+            return next();
+          } else {
+            return res.redirect(options.failureRedirect);
+          }
+        };
       } else {
-        return res.redirect('/login.html');
+        compare = function(value, hash, callback) {
+          return callback(null, value === hash);
+        };
+        (function() {
+          var _user;
+          _user = false;
+          app.post(options.loginUrl, function(req, res, next) {
+            return checkPassword(req.body.username, req.body.password, function(errors, user) {
+              _user = user;
+              if (res === false) {
+                return res.redirect(options.failureRedirect);
+              } else {
+                return res.redirect(options.successRedirect);
+              }
+            });
+          });
+          return exports.isAuthed = function(req, res, next) {
+            console.log('wooo, checking auth');
+            if (_user !== false) {
+              return next();
+            } else {
+              return res.redirect(options.failureRedirect);
+            }
+          };
+        })();
       }
+      return exports;
     };
-    return exports;
   });
 
 }).call(this);

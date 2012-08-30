@@ -45,7 +45,7 @@ define((requirejs, exports, module) ->
 			sum += alphaNum
 		return sum
 
-	exports.setup = (app, requirejs, sbvrUtils, databaseOptions) ->
+	exports.setup = (app, requirejs, sbvrUtils, isAuthed, databaseOptions) ->
 		requirejs(['database-layer/db'], (dbModule) ->
 			db = dbModule.connect(databaseOptions)
 			db.transaction( (tx) ->
