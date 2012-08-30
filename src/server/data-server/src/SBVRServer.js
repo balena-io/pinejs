@@ -14,6 +14,7 @@
       return function(funcOrVal) {
         var callback, _i, _len;
         if (funcOrVal === true || funcOrVal === false) {
+          onAir = funcOrVal;
           isServerOnAir = function(funcOrVal) {
             if (funcOrVal === true || funcOrVal === false) {
               return onAir = funcOrVal;

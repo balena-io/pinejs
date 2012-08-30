@@ -24,7 +24,9 @@ define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQL2CLF', '
 		pendingCallbacks = []
 		return (funcOrVal) ->
 			if funcOrVal == true or funcOrVal == false
-				# If we are setting new value then monkey patch to just set value or call callback.
+				# If we are setting new value then set the onAir var
+				onAir = funcOrVal
+				# And monkey patch to just set value or call callback.
 				isServerOnAir = (funcOrVal) ->
 					if funcOrVal == true or funcOrVal == false
 						onAir = funcOrVal
