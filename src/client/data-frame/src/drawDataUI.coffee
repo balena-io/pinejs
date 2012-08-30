@@ -72,7 +72,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs',
 							<%- factTypeCollection.html %><%
 						}
 						else { %>
-							<%= factTypeCollection.resourceName %>
+							<%= factTypeCollection.resourceName.replace(/[_-]/g, ' ') %>
 							<a href="<%= factTypeCollection.expandURI %>" onClick="location.hash='<%= factTypeCollection.expandHash %>';return false">
 								<span title="See all" class="ui-icon ui-icon-search"></span>
 							</a><%
