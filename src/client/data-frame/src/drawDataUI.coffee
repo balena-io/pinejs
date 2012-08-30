@@ -14,8 +14,10 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs',
 			<%
 			var fieldName = resourceField[1],
 				fieldValue = resourceInstance === false ? "" : resourceInstance[fieldName],
-				fieldIdentifier = resourceModel.resourceName + "." + fieldName; %>
-			<%= fieldName %>: <%- templates.widgets(resourceField[0], action, fieldIdentifier, fieldValue, foreignKeys[fieldName]) %><br />
+				fieldIdentifier = resourceModel.resourceName + "." + fieldName;
+			if(resourceField[0] !== "Serial" || action !== "view") { %>
+				<%= fieldName %>: <%- templates.widgets(resourceField[0], action, fieldIdentifier, fieldValue, foreignKeys[fieldName]) %><br /><%
+			} %>
 			''')
 		viewAddEditResource: ejs.compile('''
 			<div class="panel" style="background-color:<%= backgroundColour %>;">
