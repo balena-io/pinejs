@@ -150,12 +150,13 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs',
 		factTypeName: ejs.compile('''
 				<%
 				for(var i = 0; i < factType.length; i++) {
-					var factTypePart = factType[i];
+					var factTypePart = factType[i],
+						partName = factTypePart[1];
 					if(factTypePart[0] == "Term") { %>
-						<%= foreignKeys[factTypePart[1]][instance[factTypePart[1]]].value %> <%
+						<%= foreignKeys[partName][instance[partName]][foreignModels[partName].valueField] %> <%
 					}
 					else if(factTypePart[0] == "Verb") { %>
-						<em><%= factTypePart[1] %></em><%
+						<em><%= partName %></em><%
 					}
 				} %>
 				''')
@@ -315,13 +316,14 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs',
 	
 	getForeignKeyResults = (tree, clientModel, successCallback) ->
 		foreignKeyResults = {}
+		clientModelResults = {}
 		
 		asyncCallback = createAsyncQueueCallback(
 			() ->
-				successCallback(foreignKeyResults)
+				successCallback(foreignKeyResults, clientModelResults)
 			(errors) ->
 				console.error(errors)
-				successCallback(foreignKeyResults)
+				successCallback(foreignKeyResults, clientModelResults)
 		)
 
 		# Get results for all the foreign keys
@@ -329,9 +331,11 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs',
 			foreignKey = field[1]
 			do(foreignKey) ->
 				foreignKeyResults[foreignKey] = []
+				clientModelResults[foreignKey] = []
 				asyncCallback.addWork(1)
 				serverRequest('GET', serverAPI(tree.getVocabulary(), foreignKey), {}, null,
 					(statusCode, result, headers) ->
+						clientModelResults[foreignKey] = result.model
 						foreignKeys = {}
 						for instance in result.instances
 							foreignKeys[instance[result.model.idField]] = instance
@@ -466,9 +470,10 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs',
 							else if resourceType == "FactType"
 								resourceCollectionsCallback.addWork(1)
 								getForeignKeyResults(ftree, clientModel,
-									(foreignKeys) ->
+									(foreignKeys, foreignModels) ->
 										templateVars = $.extend({}, baseTemplateVars, (if even then evenTemplateVars else oddTemplateVars), {
 											foreignKeys: foreignKeys
+											foreignModels: foreignModels
 											factType: resourceFactType
 											instance: instance
 										})
