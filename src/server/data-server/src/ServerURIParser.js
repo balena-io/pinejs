@@ -468,7 +468,16 @@ define(["sbvr-parser/SBVRLibs", "underscore", "ometa-core"], (function(SBVRLibs,
         switch (this["sqlModels"][this["currentVocab"]]["tables"][resourceName]) {
         case "ForeignKey":
             {
-                __TODO__.die();
+                switch (this["currentMethod"]) {
+                case "GET":
+                    {
+                        (query[(0)] = "SelectQuery");
+                        query.push(["Select", getSelectFields()]);
+                        break
+                    };
+                default:
+                    __TODO__.die()
+                }
                 break
             };
         case "Attribute":

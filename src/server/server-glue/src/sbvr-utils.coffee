@@ -434,6 +434,7 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 				req.tree = serverURIParser.match([req.method, req.body, uri], 'Process')
 				console.log(uri, req.tree, req.body)
 			catch e
+				console.error(e)
 				req.tree = false
 		if req.tree == false
 			next('route')

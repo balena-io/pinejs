@@ -469,6 +469,7 @@
           req.tree = serverURIParser.match([req.method, req.body, uri], 'Process');
           console.log(uri, req.tree, req.body);
         } catch (e) {
+          console.error(e);
           req.tree = false;
         }
       }
