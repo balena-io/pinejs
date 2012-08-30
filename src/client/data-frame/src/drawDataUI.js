@@ -271,11 +271,11 @@
             expandedTree = tree.clone().descend(resourceName);
             resource.closeHash = '#!/' + expandedTree.getNewURI("del");
             resource.closeURI = rootURI + resource.closeHash;
-            (function(resourceName) {
+            (function(resourceName, expandedTree) {
               return serverRequest('GET', '/dev/model?filter=model_type:lf;vocabulary:data', {}, null, function(statusCode, result) {
                 return renderResource(resourceName, asyncCallback.successCallback, rootURI, true, expandedTree, result.instances[0].model_value);
               }, asyncCallback.errorCallback);
-            })(resourceName);
+            })(resourceName, expandedTree);
           } else {
             newb = ['collection', [resourceName], ["mod"]];
             resource.expandHash = '#!/' + tree.getNewURI("add", newb);
