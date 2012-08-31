@@ -7,7 +7,7 @@ define(function() {
 			}
 			if(value == id) {
 				// TODO: This should come from client model.
-				return values[id].value;
+				return values[id].value || values[id].name;
 			}
 		}
 		return value;
@@ -25,7 +25,7 @@ define(function() {
 				selected = ' selected="selected"';
 			}
 			// TODO: This should come from client model.
-			html += '<option value="' + id + '"' + selected + '>' + values[id].value + '</option>';
+			html += '<option value="' + id + '"' + selected + '>' + (values[id].value || values[id].name) + '</option>';
 		}
 		return html + '</select>';
 	};
