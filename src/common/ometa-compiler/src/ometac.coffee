@@ -44,19 +44,23 @@ compileOmeta = (ometa, pretty, desc = 'OMeta') ->
 		# console.log(e)
 		return false
 
-compileOmetaFile = (ometaFilePath, jsFilePath, pretty) ->
+compileOmetaFile = (ometaFilePath, jsFilePath, pretty, callback) ->
 	console.log('Reading: ' + ometaFilePath)
 	fs.readFile(ometaFilePath, 'utf8', do (ometaFilePath) ->
 		(err, data) ->
 			if err
 				console.log(err)
+				callback(false)
 			else
 				ometa = data.replace(/\r\n/g, '\n')
 				js = compileOmeta(ometa, pretty, ometaFilePath)
-				if js != false
+				if js == false
+					callback(false)
+				else
 					console.log('Writing: ' + ometaFilePath)
 					fs.writeFile(jsFilePath, js, () ->
 						console.log('Finished: ' + ometaFilePath)
+						callback(true)
 					)
 	)
 

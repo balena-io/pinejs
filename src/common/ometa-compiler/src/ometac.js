@@ -72,20 +72,24 @@
     }
   };
 
-  compileOmetaFile = function(ometaFilePath, jsFilePath, pretty) {
+  compileOmetaFile = function(ometaFilePath, jsFilePath, pretty, callback) {
     console.log('Reading: ' + ometaFilePath);
     return fs.readFile(ometaFilePath, 'utf8', (function(ometaFilePath) {
       return function(err, data) {
         var js, ometa;
         if (err) {
-          return console.log(err);
+          console.log(err);
+          return callback(false);
         } else {
           ometa = data.replace(/\r\n/g, '\n');
           js = compileOmeta(ometa, pretty, ometaFilePath);
-          if (js !== false) {
+          if (js === false) {
+            return callback(false);
+          } else {
             console.log('Writing: ' + ometaFilePath);
             return fs.writeFile(jsFilePath, js, function() {
-              return console.log('Finished: ' + ometaFilePath);
+              console.log('Finished: ' + ometaFilePath);
+              return callback(true);
             });
           }
         }
