@@ -1,0 +1,5 @@
+dirTasks = jake.rmutils.dirNamespace()
+ometaTasks = jake.rmutils.ometaCompileNamespace(__dirname)
+jake.rmutils.cleanTask()
+desc('Compile all of this module')
+task('all', dirTasks.concat(ometaTasks))
