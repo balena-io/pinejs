@@ -1,1 +1,0 @@
-node ../../../common/ometa-compiler/src/ometac.js -p ../src/ClientURIParser.ometa ../src/ClientURIUnparser.ometa && coffee -c ../src/drawDataUI.coffee && coffee -c ../src/runTrans.coffee
