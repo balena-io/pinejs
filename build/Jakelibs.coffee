@@ -113,7 +113,7 @@ jake.rmutils.cleanTask = () ->
 	)
 jake.rmutils.cleanTask.taskList = []
 
-createCompileNamespace = (fileType, createCompileTaskFunc) ->
+createCompileNamespace = (action, fileType, createCompileTaskFunc) ->
 	taskList = []
 	namespace(fileType, ->
 		currNamespace = getCurrentNamespace()
@@ -124,15 +124,15 @@ createCompileNamespace = (fileType, createCompileTaskFunc) ->
 			outFile = path.join(path.dirname(outFile), path.basename(outFile, '.' + fileType) + '.js')
 			
 			taskList.push(currNamespace + outFile)
-			desc('Compile ' + inFile)
+			desc(action + ' ' + inFile)
 			createCompileTaskFunc(inFile, outFile)
-		desc('Compile all ' + fileType + ' files for ' + [currentCategory, currentModule].join(':') + '.')
+		desc(action + ' all ' + fileType + ' files for ' + [currentCategory, currentModule].join(':') + '.')
 		task('all', taskList)
 	)
 	return taskList
 
 jake.rmutils.ometaCompileNamespace = () ->
-	return createCompileNamespace('ometa', (inFile, outFile) ->
+	return createCompileNamespace('Compile', 'ometa', (inFile, outFile) ->
 		file(outFile,
 			->
 				ometa.compileOmetaFile(inFile, outFile, true, (err) ->
@@ -146,7 +146,7 @@ jake.rmutils.ometaCompileNamespace = () ->
 	)
 
 jake.rmutils.coffeeCompileNamespace = () ->
-	return createCompileNamespace('coffee', (inFile, outFile) ->
+	return createCompileNamespace('Compile', 'coffee', (inFile, outFile) ->
 		alterFileTask(outFile, inFile,
 			(data, callback) ->
 				console.log('Compiling CoffeeScript for: '+ this.name)
@@ -154,5 +154,14 @@ jake.rmutils.coffeeCompileNamespace = () ->
 					callback(false, coffee.compile(data))
 				catch e
 					callback(e)
+		)
+	)
+
+jake.rmutils.jsCopyNamespace = () ->
+	return createCompileNamespace('Copy', 'js', (inFile, outFile) ->
+		alterFileTask(outFile, inFile,
+			(data, callback) ->
+				console.log('Copying JavaScript for: '+ this.name)
+				callback(false, data)
 		)
 	)
