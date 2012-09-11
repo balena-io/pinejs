@@ -69,7 +69,7 @@ if process?
 			'ejs':						rootPath + 'external/ejs/ejs.min',
 			
 			'sbvr-parser':				rootPath + 'common/sbvr-parser/out/intermediate/',
-			'utils':					rootPath + 'common/utils/src/',
+			'utils':					rootPath + 'common/utils/out/intermediate',
 			
 			'sbvr-frame':				rootPath + 'client/sbvr-frame/out/intermediate',
 			'data-frame':				rootPath + 'client/data-frame/out/intermediate',
