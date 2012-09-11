@@ -156,11 +156,33 @@ jake.rmutils.coffeeCompileNamespace = () ->
 		)
 	)
 
-jake.rmutils.jsCopyNamespace = () ->
-	return createCompileNamespace('Copy', 'js', (inFile, outFile) ->
-		alterFileTask(outFile, inFile,
-			(data, callback) ->
-				console.log('Copying JavaScript for: '+ this.name)
-				callback(false, data)
-		)
+createCopyTask = (inFile) ->
+	outFile = path.join(currentDirs.intermediate, path.relative(currentDirs.src, inFile))
+	desc('Copy ' + inFile)
+	alterFileTask(outFile, inFile,
+		(data, callback) ->
+			console.log('Copying file for: '+ this.name)
+			callback(false, data)
+	)
+	return getCurrentNamespace() + outFile
+
+jake.rmutils.createCopyTask = (inFile) ->
+	return createCopyTask(path.join(currentDirs.src, inFile))
+
+jake.rmutils.createCopyNamespace = (excludeFileTypes) ->
+	taskList = []
+	namespace('Copy', ->
+		fileList = new jake.FileList()
+		fileList.include(path.join(currentDirs.src, '**'))
+		fileList.exclude(new RegExp('(' + excludeFileTypes.join('|') + ')$'))
+		for inFile in fileList.toArray()
+			console.log('rawr', inFile)
+			taskList.push(createCopyTask(inFile))
+		desc('Copy all files other than ' + excludeFileTypes.join(', ') + '  for ' + [currentCategory, currentModule].join(':') + '.')
+		task('all', taskList)
+	)
+	return taskList
+
+jake.rmutils.copyNamespace = () ->
+	return createCopyNamespace('Copy', ['coffee', 'ometa'], (inFile, outFile) ->
 	)

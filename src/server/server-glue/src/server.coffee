@@ -85,8 +85,7 @@ if process?
 			'database-layer':			rootPath + 'server/database-layer/src/',
 			'passportBCrypt':			rootPath + 'server/passport-bcrypt/src/passportBCrypt',
 			
-			'frame-glue/main':			rootPath + 'client/frame-glue/src/main',
-			'frame-glue/script':		rootPath + 'client/frame-glue/src/script'
+			'frame-glue':				rootPath + 'client/frame-glue/out/intermediate'
 		}
 		nodeRequire: require
 		baseUrl: 'js'
