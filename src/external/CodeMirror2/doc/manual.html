@@ -11,10 +11,13 @@
 
 <h1><span class="logo-braces">{ }</span> <a href="http://codemirror.net/">CodeMirror</a></h1>
 
-<pre class="grey">
-<img src="baboon.png" class="logo" alt="logo"/>/* User manual and
+<div class="grey">
+<img src="baboon.png" class="logo" alt="logo"/>
+<pre>
+/* User manual and
    reference guide */
 </pre>
+</div>
 
 <div class="clear"><div class="leftbig blk">
 
@@ -248,11 +251,6 @@
       <dt id="option_onScroll"><code>onScroll (function)</code></dt>
       <dd>When given, will be called whenever the editor is
       scrolled.</dd>
-
-      <dt id="option_onHighlightComplete"><code>onHighlightComplete (function)</code></dt>
-      <dd>Whenever the editor's content has been fully highlighted,
-      this function (if given) will be called. It'll be given a single
-      argument, the editor instance.</dd>
 
       <dt id="option_onUpdate"><code>onUpdate (function)</code></dt>
       <dd>Will be called whenever CodeMirror updates its DOM display.</dd>
@@ -592,14 +590,30 @@
         <dt><code>state</code></dt><dd>The mode's state at the end of this token.</dd>
       </dl></dd>
 
-      <dt id="markText"><code>markText(from, to, className) → object</code></dt>
+      <dt id="markText"><code>markText(from, to, className, options) → object</code></dt>
       <dd>Can be used to mark a range of text with a specific CSS
       class name. <code>from</code> and <code>to</code> should
-      be <code>{line, ch}</code> objects. The method will return an
-      object with two methods, <code>clear()</code>, which removes the
-      mark, and <code>find()</code>, which returns a <code>{from,
-      to}</code> (both document positions), indicating the current
-      position of the marked range.</dd>
+      be <code>{line, ch}</code> objects. The <code>options</code>
+      parameter is optional. When given, it should be an object that
+      may contain the following configuration options:
+      <dl>
+        <dt><code>inclusiveLeft</code></dt><dd>Determines whether
+        text inserted on the left of the marker will end up inside
+        or outside of it.</dd>
+        <dt><code>inclusiveRight</code></dt><dd>Like <code>inclusiveLeft</code>,
+        but for the right side.</dd>
+        <dt><code>startStyle</code></dt><dd>Can be used to specify
+        an extra CSS class to be applied to the leftmost span that
+        is part of the marker.</dd>
+        <dt><code>endStyle</code></dt><dd>Equivalent
+        to <code>startStyle</code>, but for the rightmost span.</dd>
+      </dl>
+      The method will return an object with two methods,
+      <code>clear()</code>, which removes the mark,
+      and <code>find()</code>, which returns a <code>{from, to}</code>
+      (both document positions), indicating the current position of
+      the marked range, or <code>undefined</code> if the marker is no
+      longer in the document.</dd>
 
       <dt id="setBookmark"><code>setBookmark(pos) → object</code></dt>
       <dd>Inserts a bookmark, a handle that follows the text around it
@@ -782,13 +796,23 @@
       contextual information for a line.</dd>
     </dl>
 
-    <p id="fromTextArea">Finally, the <code>CodeMirror</code> object
-    itself has a method <code>fromTextArea</code>. This takes a
+    <p id="version">The <code>CodeMirror</code> object itself provides
+    several useful properties. Firstly, its <code>version</code>
+    property contains a string that indicates the version of the
+    library. For releases, this simply
+    contains <code>"major.minor"</code> (for
+    example <code>"2.33"</code>. For beta versions, <code>" B"</code>
+    (space, capital B) is added at the end of the string, for
+    development snapshots, <code>" +"</code> (space, plus) is
+    added.</p>
+
+    <p id="fromTextArea">The <code>CodeMirror.fromTextArea</code>
+    method provides another way to initialize an editor. It takes a
     textarea DOM node as first argument and an optional configuration
     object as second. It will replace the textarea with a CodeMirror
     instance, and wire up the form of that textarea (if any) to make
     sure the editor contents are put into the textarea when the form
-    is submitted. A CodeMirror instance created this way has two
+    is submitted. A CodeMirror instance created this way has three
     additional methods:</p>
 
     <dl>
@@ -1084,18 +1108,6 @@
     mode object should define a <code>copyState</code> method,
     which is given a state and should return a safe copy of that
     state.</p>
-
-    <p id="compareStates">By default, CodeMirror will stop re-parsing
-    a document as soon as it encounters a few lines that were
-    highlighted the same in the old parse as in the new one. It is
-    possible to provide an explicit way to test whether a state is
-    equivalent to another one, which CodeMirror will use (instead of
-    the unchanged-lines heuristic) to decide when to stop
-    highlighting. You do this by providing
-    a <code>compareStates</code> method on your mode object, which
-    takes two state arguments and returns a boolean indicating whether
-    they are equivalent. See the XML mode, which uses this to provide
-    reliable highlighting of bad closing tags, as an example.</p>
 
     <p id="indent">If you want your mode to provide smart indentation
     (though the <a href="#indentLine"><code>indentLine</code></a>
