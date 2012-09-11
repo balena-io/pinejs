@@ -78,7 +78,7 @@ if process?
 			
 			'sbvr-compiler':			rootPath + 'server/sbvr-compiler/src/',
 			
-			'server-glue':				rootPath + 'server/server-glue/src/',
+			'server-glue':				rootPath + 'server/server-glue/out/intermediate',
 			'express-emulator':			rootPath + 'server/express-emulator/src/express',
 			'data-server':				rootPath + 'server/data-server/out/intermediate',
 			'editorServer':				rootPath + 'server/editor-server/src/editorServer',

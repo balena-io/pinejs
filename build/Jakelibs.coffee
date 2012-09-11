@@ -79,6 +79,7 @@ jake.rmutils.importJakefile = (category, module) ->
 	return false
 
 jake.rmutils.boilerplate = (extraTasks) ->
+	intermediateDir = currentDirs.intermediate
 	taskList = []
 	namespace('dir', ->
 		folderList = new jake.FileList()
@@ -87,11 +88,11 @@ jake.rmutils.boilerplate = (extraTasks) ->
 		folderList.exclude(excludeDirs)
 		folderList.exclude(excludeNonDirs)
 		
-		dirList = [currentDirs.intermediate, currentDirs.final]
+		dirList = [intermediateDir, currentDirs.final]
 		for folderPath in folderList.toArray()
 			# We want to keep the output dir paths relative to the src dir paths
 			folderPath = path.relative(currentDirs.src, folderPath)
-			dirList.push(path.join(currentDirs.intermediate, folderPath), path.join(currentDirs.final, folderPath))
+			dirList.push(path.join(intermediateDir, folderPath), path.join(currentDirs.final, folderPath))
 		
 		currNamespace = getCurrentNamespace()
 		directory(currentDirs.output)
@@ -108,7 +109,7 @@ jake.rmutils.boilerplate = (extraTasks) ->
 		desc('Install npm dependencies')
 		task('install',
 			->
-				exec('npm install', {cwd: currentDirs.intermediate}, (err, stdout, stderr) ->
+				exec('npm install', {cwd: intermediateDir}, (err, stdout, stderr) ->
 					console.log(stdout)
 					console.error(stderr)
 					if err

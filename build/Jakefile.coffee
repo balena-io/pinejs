@@ -7,7 +7,7 @@ process.env.modules ?= ''
 fs = require('fs')
 path = require('path')
 
-require('./Jakelibs.coffee')
+require('./Jakelibs.js')
 getCurrentNamespace = jake.rmutils.getCurrentNamespace
 excludeNonDirs = jake.rmutils.excludeNonDirs
 excludeDirs = jake.rmutils.excludeDirs
