@@ -79,17 +79,17 @@
         var js, ometa;
         if (err) {
           console.log(err);
-          return callback(false);
+          return callback(true);
         } else {
           ometa = data.replace(/\r\n/g, '\n');
           js = compileOmeta(ometa, pretty, ometaFilePath);
           if (js === false) {
-            return callback(false);
+            return callback(true);
           } else {
             console.log('Writing: ' + ometaFilePath);
             return fs.writeFile(jsFilePath, js, function() {
               console.log('Finished: ' + ometaFilePath);
-              return callback(true);
+              return callback(false);
             });
           }
         }

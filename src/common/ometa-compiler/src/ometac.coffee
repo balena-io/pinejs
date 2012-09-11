@@ -50,17 +50,17 @@ compileOmetaFile = (ometaFilePath, jsFilePath, pretty, callback) ->
 		(err, data) ->
 			if err
 				console.log(err)
-				callback(false)
+				callback(true)
 			else
 				ometa = data.replace(/\r\n/g, '\n')
 				js = compileOmeta(ometa, pretty, ometaFilePath)
 				if js == false
-					callback(false)
+					callback(true)
 				else
 					console.log('Writing: ' + ometaFilePath)
 					fs.writeFile(jsFilePath, js, () ->
 						console.log('Finished: ' + ometaFilePath)
-						callback(true)
+						callback(false)
 					)
 	)
 
