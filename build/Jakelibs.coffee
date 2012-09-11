@@ -48,6 +48,7 @@ jake.rmutils.alterFileTask = alterFileTask = (outFile, inFile, taskDependencies,
 		async: true
 	)
 
+jake.rmutils.excludeDirs = excludeDirs = [process.env.outputDir, '.git', 'node_modules', 'build']
 
 currentCategory = ''
 currentModule = ''
@@ -76,7 +77,6 @@ jake.rmutils.importJakefile = (category, module) ->
 		return true
 	return false
 
-jake.rmutils.excludeDirs = excludeDirs = [process.env.outputDir, '.git', 'node_modules', 'build']
 jake.rmutils.boilerplate = (extraTasks) ->
 	taskList = []
 	namespace('dir', ->
@@ -117,6 +117,7 @@ createCompileNamespace = (action, fileType, createCompileTaskFunc) ->
 	namespace(fileType, ->
 		currNamespace = getCurrentNamespace()
 		fileList = new jake.FileList()
+		fileList.exclude(excludeDirs)
 		fileList.include(path.join(currentDirs.src, '**', '*.' + fileType))
 		for inFile in fileList.toArray()
 			outFile = path.join(currentDirs.intermediate, path.relative(currentDirs.src, inFile))
@@ -173,6 +174,7 @@ jake.rmutils.createCopyNamespace = (excludeFileTypes) ->
 	taskList = []
 	namespace('Copy', ->
 		fileList = new jake.FileList()
+		fileList.exclude(excludeDirs)
 		fileList.include(path.join(currentDirs.src, '**'))
 		fileList.exclude(new RegExp('(' + excludeFileTypes.join('|') + ')$'))
 		for inFile in fileList.toArray()
