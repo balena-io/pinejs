@@ -53,7 +53,7 @@
 			'downloadify':				rootPath + 'external/downloadify',
 			'ejs':						rootPath + 'external/ejs/ejs.min',
 			
-			'sbvr-parser':				rootPath + 'common/sbvr-parser/src/',
+			'sbvr-parser':				rootPath + 'common/sbvr-parser/out/intermediate',
 			'utils':					rootPath + 'common/utils/src/',
 			
 			'sbvr-frame':				rootPath + 'client/sbvr-frame/out/intermediate',

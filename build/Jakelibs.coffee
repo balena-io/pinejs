@@ -176,7 +176,6 @@ jake.rmutils.createCopyNamespace = (excludeFileTypes) ->
 		fileList.include(path.join(currentDirs.src, '**'))
 		fileList.exclude(new RegExp('(' + excludeFileTypes.join('|') + ')$'))
 		for inFile in fileList.toArray()
-			console.log('rawr', inFile)
 			taskList.push(createCopyTask(inFile))
 		desc('Copy all files other than ' + excludeFileTypes.join(', ') + '  for ' + [currentCategory, currentModule].join(':') + '.')
 		task('all', taskList)
