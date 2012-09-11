@@ -48,8 +48,8 @@
           case 'Short Text':
             if (!_.isString(value)) {
               validated = 'is not a string: ' + originalValue;
-            } else if (value.length > 20) {
-              validated = 'longer than 20 characters (' + value.length + ')';
+            } else if (value.length > 255) {
+              validated = 'longer than 255 characters (' + value.length + ')';
             }
             break;
           case 'Long Text':
@@ -117,7 +117,7 @@
         case 'ConceptType':
           return 'INTEGER ' + necessity;
         case 'Short Text':
-          return 'VARCHAR(20) ' + necessity;
+          return 'VARCHAR(255) ' + necessity;
         case 'Long Text':
         case 'JSON':
           return 'TEXT ' + necessity;
@@ -150,7 +150,7 @@
         case 'ConceptType':
           return 'INTEGER ' + necessity;
         case 'Short Text':
-          return 'VARCHAR(20) ' + necessity;
+          return 'VARCHAR(255) ' + necessity;
         case 'Long Text':
         case 'JSON':
           return 'TEXT ' + necessity;
@@ -183,7 +183,7 @@
         case 'ConceptType':
           return 'INTEGER ' + necessity;
         case 'Short Text':
-          return 'VARCHAR(20) ' + necessity;
+          return 'VARCHAR(255) ' + necessity;
         case 'Long Text':
         case 'JSON':
           return 'TEXT ' + necessity;
