@@ -3,7 +3,6 @@
 	"version": "0.0.1",
 	"dependencies": {
 		"express": "2.x",
-		"requirejs": "1.x",
-		"pg": "0.6.x"
+		"requirejs": "1.x"
 	}
 }
