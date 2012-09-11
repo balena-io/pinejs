@@ -65,7 +65,7 @@
         'ejs': rootPath + 'external/ejs/ejs.min',
         'sbvr-parser': rootPath + 'common/sbvr-parser/src/',
         'utils': rootPath + 'common/utils/src/',
-        'sbvr-frame': rootPath + 'client/sbvr-frame/src',
+        'sbvr-frame': rootPath + 'client/sbvr-frame/out/intermediate',
         'data-frame': rootPath + 'client/data-frame/out/intermediate',
         'Prettify': rootPath + 'client/prettify-ometa/out/intermediate/Prettify',
         'codemirror-ometa-bridge': rootPath + 'client/codemirror-ometa-bridge/src',
