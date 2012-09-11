@@ -31,7 +31,7 @@ setupCallback = (requirejs, app) ->
 		#ENDIFDEF
 
 		#IFDEF editor
-		requirejs(['editorServer'], (editorServer) ->
+		requirejs(['editor-server/editorServer'], (editorServer) ->
 			editorServer.setup(app, requirejs, sbvrUtils, passportBCrypt.isAuthed, databaseOptions)
 		)
 		#ENDIFDEF
@@ -81,7 +81,7 @@ if process?
 			'server-glue':				rootPath + 'server/server-glue/out/intermediate',
 			'express-emulator':			rootPath + 'server/express-emulator/src/express',
 			'data-server':				rootPath + 'server/data-server/out/intermediate',
-			'editorServer':				rootPath + 'server/editor-server/src/editorServer',
+			'editor-server':			rootPath + 'server/editor-server/out/intermediate',
 			'database-layer':			rootPath + 'server/database-layer/out/intermediate',
 			'passportBCrypt':			rootPath + 'server/passport-bcrypt/src/passportBCrypt',
 			
