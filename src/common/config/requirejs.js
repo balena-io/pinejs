@@ -61,7 +61,7 @@
 			'Prettify':					rootPath + 'client/prettify-ometa/out/intermediate/Prettify',
 			'codemirror-ometa-bridge':	rootPath + 'client/codemirror-ometa-bridge/src',
 			
-			'sbvr-compiler':			rootPath + 'server/sbvr-compiler/src/',
+			'sbvr-compiler':			rootPath + 'server/sbvr-compiler/out/intermediate',
 			
 			'server-glue':				rootPath + 'server/server-glue/out/intermediate',
 			'express-emulator':			rootPath + 'server/express-emulator/out/intermediate',
