@@ -69,7 +69,7 @@ namespace('module', ->
 )
 
 desc('Clean everything')
-task('clean', jake.rmutils.cleanTask.taskList, ->
+task('clean', jake.rmutils.boilerplate.cleanTaskList, ->
 	jake.rmRf(process.env.outputDir)
 )
 

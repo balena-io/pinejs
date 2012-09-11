@@ -77,7 +77,7 @@ jake.rmutils.importJakefile = (category, module) ->
 	return false
 
 jake.rmutils.excludeDirs = excludeDirs = [process.env.outputDir, '.git', 'node_modules', 'build']
-jake.rmutils.dirNamespace = () ->
+jake.rmutils.boilerplate = (extraTasks) ->
 	taskList = []
 	namespace('dir', ->
 		folderList = new jake.FileList()
@@ -102,16 +102,15 @@ jake.rmutils.dirNamespace = () ->
 		desc('Create all output directories.')
 		task('all', taskList)
 	)
-	return taskList
-
-jake.rmutils.cleanTask = () ->
-	jake.rmutils.cleanTask.taskList.push(getCurrentNamespace() + 'clean')
+	jake.rmutils.boilerplate.cleanTaskList.push(getCurrentNamespace() + 'clean')
 	outputDir = currentDirs.output
 	desc('Clean up created files')
 	task('clean', ->
 		jake.rmRf(outputDir)
 	)
-jake.rmutils.cleanTask.taskList = []
+	desc('Compile all of this module')
+	task('all', taskList.concat(extraTasks))
+jake.rmutils.boilerplate.cleanTaskList = []
 
 createCompileNamespace = (action, fileType, createCompileTaskFunc) ->
 	taskList = []
