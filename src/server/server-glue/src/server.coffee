@@ -79,7 +79,7 @@ if process?
 			'sbvr-compiler':			rootPath + 'server/sbvr-compiler/src/',
 			
 			'server-glue':				rootPath + 'server/server-glue/out/intermediate',
-			'express-emulator':			rootPath + 'server/express-emulator/src/express',
+			'express-emulator':			rootPath + 'server/express-emulator/out/intermediate',
 			'data-server':				rootPath + 'server/data-server/out/intermediate',
 			'editor-server':			rootPath + 'server/editor-server/out/intermediate',
 			'database-layer':			rootPath + 'server/database-layer/out/intermediate',
@@ -114,7 +114,7 @@ if process?
 else
 	requirejs = window.requirejs
 	#IFDEF websql
-	requirejs(['express-emulator'], (express) ->
+	requirejs(['express-emulator/express'], (express) ->
 		window?.remoteServerRequest = express.app.process
 		setupCallback(requirejs, express.app)
 	)
