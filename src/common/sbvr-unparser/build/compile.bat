@@ -1,1 +1,0 @@
-node ../../ometa-compiler/src/ometac.js -p ../src/SBVR-LF_to_SE.ometa
