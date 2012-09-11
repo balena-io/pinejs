@@ -2,6 +2,7 @@ fs = require('fs')
 path = require('path')
 ometa = require('../src/common/ometa-compiler/src/ometac.coffee')
 coffee = require('coffee-script')
+exec = require('child_process').exec
 
 jake.rmutils ?= {}
 jake.rmutils.getCurrentNamespace = getCurrentNamespace = () ->
@@ -102,14 +103,31 @@ jake.rmutils.boilerplate = (extraTasks) ->
 		desc('Create all output directories.')
 		task('all', taskList)
 	)
+	if fs.existsSync(path.join(currentDirs.src, 'package.json'))
+		extraTasks.push(getCurrentNamespace() + 'install')
+		desc('Install npm dependencies')
+		task('install',
+			->
+				exec('npm install', {cwd: currentDirs.intermediate}, (err, stdout, stderr) ->
+					console.log(stdout)
+					console.error(stderr)
+					if err
+						fail()
+					else
+						complete()
+				)
+			async: true
+		)
+
+	desc('Compile all of this module')
+	task('all', taskList.concat(extraTasks))
+
 	jake.rmutils.boilerplate.cleanTaskList.push(getCurrentNamespace() + 'clean')
 	outputDir = currentDirs.output
 	desc('Clean up created files')
 	task('clean', ->
 		jake.rmRf(outputDir)
 	)
-	desc('Compile all of this module')
-	task('all', taskList.concat(extraTasks))
 jake.rmutils.boilerplate.cleanTaskList = []
 
 createCompileNamespace = (action, fileType, createCompileTaskFunc) ->
