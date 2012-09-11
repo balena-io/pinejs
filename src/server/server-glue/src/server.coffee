@@ -72,8 +72,8 @@ if process?
 			'utils':					rootPath + 'common/utils/src/',
 			
 			'sbvr-frame':				rootPath + 'client/sbvr-frame/src',
-			'data-frame':				rootPath + 'client/data-frame/src',
-			'Prettify':					rootPath + 'client/prettify-ometa/src/Prettify',
+			'data-frame':				rootPath + 'client/data-frame/out/intermediate',
+			'Prettify':					rootPath + 'client/prettify-ometa/out/intermediate/Prettify',
 			'codemirror-ometa-bridge':	rootPath + 'client/codemirror-ometa-bridge/src',
 			
 			'sbvr-compiler':			rootPath + 'server/sbvr-compiler/src/',

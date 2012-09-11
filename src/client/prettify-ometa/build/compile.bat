@@ -1,1 +1,0 @@
-node ../../../common/ometa-compiler/src/ometac.js -p ../src/Prettify.ometa
