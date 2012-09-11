@@ -82,7 +82,7 @@ if process?
 			'express-emulator':			rootPath + 'server/express-emulator/src/express',
 			'data-server':				rootPath + 'server/data-server/src',
 			'editorServer':				rootPath + 'server/editor-server/src/editorServer',
-			'database-layer':			rootPath + 'server/database-layer/src/',
+			'database-layer':			rootPath + 'server/database-layer/out/intermediate',
 			'passportBCrypt':			rootPath + 'server/passport-bcrypt/src/passportBCrypt',
 			
 			'frame-glue':				rootPath + 'client/frame-glue/out/intermediate'
