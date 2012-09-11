@@ -80,7 +80,7 @@ if process?
 			
 			'server-glue':				rootPath + 'server/server-glue/src/',
 			'express-emulator':			rootPath + 'server/express-emulator/src/express',
-			'data-server':				rootPath + 'server/data-server/src',
+			'data-server':				rootPath + 'server/data-server/out/intermediate',
 			'editorServer':				rootPath + 'server/editor-server/src/editorServer',
 			'database-layer':			rootPath + 'server/database-layer/out/intermediate',
 			'passportBCrypt':			rootPath + 'server/passport-bcrypt/src/passportBCrypt',
