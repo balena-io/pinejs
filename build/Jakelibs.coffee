@@ -2,7 +2,8 @@ fs = require('fs')
 path = require('path')
 
 process.env.outputDir ?= 'out/'
-process.env.intermediateDir ?= process.env.outputDir + 'intermediate/'
+process.env.compiledDir ?= process.env.outputDir + 'compiled/'
+process.env.processedDir ?= process.env.outputDir + 'processed/'
 process.env.finalDir ?= process.env.outputDir + 'publish/'
 process.env.modules ?= ''
 currentCategory = ''
@@ -17,7 +18,8 @@ setDirs = (category, module) ->
 		root: rootDir
 		src: removeTrailingSlash(path.join(rootDir, 'src'))
 		output: removeTrailingSlash(path.join(rootDir, process.env.outputDir))
-		intermediate: removeTrailingSlash(path.join(rootDir, process.env.intermediateDir))
+		compiled: removeTrailingSlash(path.join(rootDir, process.env.compiledDir))
+		processed: removeTrailingSlash(path.join(rootDir, process.env.processedDir))
 		final: removeTrailingSlash(path.join(rootDir, process.env.finalDir))
 
 do ->
@@ -92,8 +94,7 @@ jake.rmutils.importJakefile = (category, module) ->
 		return true
 	return false
 
-jake.rmutils.boilerplate = (extraTasks) ->
-	intermediateDir = currentDirs.intermediate
+createDirectoryTasks = () ->
 	taskList = []
 	namespace('dir', ->
 		folderList = new jake.FileList()
@@ -102,11 +103,11 @@ jake.rmutils.boilerplate = (extraTasks) ->
 		folderList.exclude(excludeDirs)
 		folderList.exclude(excludeNonDirs)
 		
-		dirList = [intermediateDir, currentDirs.final]
+		dirList = [currentDirs.compiled, currentDirs.processed, currentDirs.final]
 		for folderPath in folderList.toArray()
 			# We want to keep the output dir paths relative to the src dir paths
 			folderPath = path.relative(currentDirs.src, folderPath)
-			dirList.push(path.join(intermediateDir, folderPath), path.join(currentDirs.final, folderPath))
+			dirList.push(path.join(currentDirs.compiled, folderPath), path.join(currentDirs.processed, folderPath), path.join(currentDirs.final, folderPath))
 		
 		currNamespace = getCurrentNamespace()
 		directory(currentDirs.output)
@@ -118,12 +119,15 @@ jake.rmutils.boilerplate = (extraTasks) ->
 		desc('Create all output directories.')
 		task('all', taskList)
 	)
+	return taskList
+
+createInstallTasks = () ->
 	if fs.existsSync(path.join(currentDirs.src, 'package.json'))
-		extraTasks.push(getCurrentNamespace() + 'install')
+		compiledDir = currentDirs.compiled
 		desc('Install npm dependencies')
 		task('install',
 			->
-				exec('npm install', {cwd: intermediateDir}, (err, stdout, stderr) ->
+				exec('npm install', {cwd: compiledDir}, (err, stdout, stderr) ->
 					console.log(stdout)
 					console.error(stderr)
 					if err
@@ -133,9 +137,14 @@ jake.rmutils.boilerplate = (extraTasks) ->
 				)
 			async: true
 		)
+		return [getCurrentNamespace() + 'install']
+
+jake.rmutils.boilerplate = (compileCopyTasks) ->
+	directoryTasks = createDirectoryTasks()
+	installTasks = createInstallTasks()
 
 	desc('Compile all of this module')
-	task('all', taskList.concat(extraTasks))
+	task('all', directoryTasks.concat(compileCopyTasks, installTasks))
 
 	jake.rmutils.boilerplate.cleanTaskList.push(getCurrentNamespace() + 'clean')
 	outputDir = currentDirs.output
@@ -152,23 +161,27 @@ createCompileNamespace = (action, fileType, createCompileTaskFunc) ->
 		fileList = new jake.FileList()
 		fileList.exclude(excludeDirs)
 		fileList.include(path.join(currentDirs.src, '**', '*.' + fileType))
-		for inFile in fileList.toArray()
-			outFile = path.join(currentDirs.intermediate, path.relative(currentDirs.src, inFile))
-			outFile = path.join(path.dirname(outFile), path.basename(outFile, '.' + fileType) + '.js')
-			
-			taskList.push(currNamespace + outFile)
-			desc(action + ' ' + inFile)
-			createCompileTaskFunc(inFile, outFile)
+		for srcFile in fileList.toArray()
+			taskList = taskList.concat(createCompileTaskFunc(srcFile))
 		desc(action + ' all ' + fileType + ' files for ' + [currentCategory, currentModule].join(':') + '.')
 		task('all', taskList)
 	)
 	return taskList
 
+getCompiledFilePaths = (srcFile) ->
+	srcFile = path.relative(currentDirs.src, srcFile)
+	jsFile = path.join(path.dirname(srcFile), path.basename(srcFile, path.extname(srcFile)) + '.js')
+	compiledFile = path.join(currentDirs.compiled, jsFile)
+	processedFile = path.join(currentDirs.processed, jsFile)
+	return {compiledFile, processedFile}
+
 jake.rmutils.ometaCompileNamespace = () ->
-	return createCompileNamespace('Compile', 'ometa', (inFile, outFile) ->
-		file(outFile,
+	return createCompileNamespace('Compile', 'ometa', (srcFile) ->
+		{compiledFile, processedFile} = getCompiledFilePaths(srcFile)
+		desc('Compile ' + srcFile)
+		file(compiledFile,
 			->
-				ometa.compileOmetaFile(inFile, outFile, true, (err) ->
+				ometa.compileOmetaFile(srcFile, compiledFile, true, (err) ->
 					if err
 						fail()
 					else
@@ -176,11 +189,21 @@ jake.rmutils.ometaCompileNamespace = () ->
 				)
 			async: true
 		)
+		desc('Process ' + srcFile)
+		alterFileTask(processedFile, compiledFile,
+			(data, callback) ->
+				# TODO: uglify
+				callback(false, data)
+		)
+		currNamespace = getCurrentNamespace()
+		return [currNamespace + compiledFile, currNamespace + processedFile]
 	)
 
 jake.rmutils.coffeeCompileNamespace = () ->
-	return createCompileNamespace('Compile', 'coffee', (inFile, outFile) ->
-		alterFileTask(outFile, inFile,
+	return createCompileNamespace('Compile', 'coffee', (srcFile) ->
+		{compiledFile, processedFile} = getCompiledFilePaths(srcFile)
+		desc('Compile ' + srcFile)
+		alterFileTask(compiledFile, srcFile,
 			(data, callback) ->
 				console.log('Compiling CoffeeScript for: '+ this.name)
 				try
@@ -188,22 +211,40 @@ jake.rmutils.coffeeCompileNamespace = () ->
 				catch e
 					callback(e)
 		)
+		desc('Process ' + srcFile)
+		alterFileTask(processedFile, compiledFile,
+			(data, callback) ->
+				# TODO: uglify
+				callback(false, data)
+		)
+		currNamespace = getCurrentNamespace()
+		return [currNamespace + compiledFile, currNamespace + processedFile]
 	)
 
 createCopyTask = (inFile) ->
-	outFile = path.join(currentDirs.intermediate, path.relative(currentDirs.src, inFile))
-	desc('Copy ' + inFile)
-	alterFileTask(outFile, inFile,
-		(data, callback) ->
-			console.log('Copying file for: '+ this.name)
-			callback(false, data)
-	)
+	relativePath = path.relative(currentDirs.src, inFile)
+	outFiles = [
+		path.join(currentDirs.compiled, relativePath)
+		path.join(currentDirs.processed, relativePath)
+		path.join(currentDirs.final, relativePath)
+	]
+	taskList = []
+	currNamespace = getCurrentNamespace()
+	desc('Copy ' + path.basename(inFile))
+	for outFile in outFiles
+		taskList.push(currNamespace + outFile)
+		alterFileTask(outFile, inFile,
+			(data, callback) ->
+				console.log('Copying file for: '+ this.name)
+				callback(false, data)
+		)
+		inFile = outFile
 	return getCurrentNamespace() + outFile
 
 jake.rmutils.createCopyTask = (inFile) ->
 	return createCopyTask(path.join(currentDirs.src, inFile))
 
-jake.rmutils.createCopyNamespace = (excludeFileTypes) ->
+jake.rmutils.createCopyNamespace = (excludeFileTypes = ['coffee', 'ometa']) ->
 	taskList = []
 	namespace('copy', ->
 		fileList = new jake.FileList()

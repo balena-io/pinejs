@@ -25,9 +25,9 @@ namespace('dir', ->
 	folderList.exclude(excludeDirs)
 	folderList.exclude(excludeNonDirs)
 	
-	dirList = [process.env.intermediateDir, process.env.finalDir]
+	dirList = [process.env.compiledDir, process.env.processedDir, process.env.finalDir]
 	for folderPath in folderList.toArray()
-		dirList.push(path.join(process.env.intermediateDir, folderPath), path.join(process.env.finalDir, folderPath))
+		dirList.push(path.join(process.env.compiledDir, folderPath), path.join(process.env.processedDir, folderPath), path.join(process.env.finalDir, folderPath))
 	
 	currNamespace = getCurrentNamespace()
 	directory(process.env.outputDir)
