@@ -5,7 +5,32 @@ process.env.outputDir ?= 'out/'
 process.env.compiledDir ?= process.env.outputDir + 'compiled/'
 process.env.processedDir ?= process.env.outputDir + 'processed/'
 process.env.finalDir ?= process.env.outputDir + 'publish/'
-process.env.defines ?= {}
+
+defines = {
+	DDUI_ENABLED: true
+	BROWSER_SERVER_ENABLED: true
+	SBVR_SERVER_ENABLED: true
+	EDITOR_SERVER_ENABLED: true
+	ENV_NODEJS: false
+}
+
+do ->
+	for key, value of defines
+		defines[key] = do(value) ->
+			if typeof value == "string"
+				return [ "string", value ]
+			if typeof value == "number"
+				return [ "num", value ]
+			if value == true
+				return [ 'name', 'true' ]
+			if value == false
+				return [ 'name', 'false' ]
+			if value == null
+				return [ 'name', 'null' ]
+			if value == undefined
+				return [ 'name', 'undefined' ]
+			throw "Can't understand the specified value: " + value
+
 currentCategory = ''
 currentModule = ''
 currentDirs = {}
@@ -176,18 +201,19 @@ getCompiledFilePaths = (srcFile) ->
 	return {compiledFile, processedFile}
 
 uglifyDefines = (data, callback) ->
-	ast = uglify.parser.parse(data)
-	ast = uglify.uglify.ast_mangle(ast,
-		mangle: false
-		defines: process.env.defines
-	)
-	ast = uglify.uglify.ast_squeeze(ast,
-		make_seqs: false
-	)
-	code = uglify.uglify.gen_code(ast,
-		beautify: true
-	)
-	callback(false, code)
+		ast = uglify.parser.parse(data)
+		ast = uglify.uglify.ast_mangle(ast,
+			mangle: false
+			defines: defines
+		)
+		ast = uglify.uglify.ast_squeeze(ast,
+			make_seqs: false
+			dead_code: true
+		)
+		code = uglify.uglify.gen_code(ast,
+			beautify: true
+		)
+		callback(false, code)
 
 jake.rmutils.ometaCompileNamespace = () ->
 	return createCompileNamespace('Compile', 'ometa', (srcFile) ->
@@ -263,3 +289,72 @@ jake.rmutils.createCopyNamespace = (excludeFileTypes = ['coffee', 'ometa']) ->
 		task('all', taskList)
 	)
 	return taskList
+
+jake.rmutils.requirejsTask = (extraRequirejsConf) ->
+	rootPath = path.resolve('src') + '/'
+	requirejsConf = jake.mixin({
+			paths: {
+				'bcrypt': 'empty:'
+				'passport-local': 'empty:'
+				'pg': 'empty:'
+			
+				'jquery':					rootPath + 'external/jquery-1.7.1.min',
+				# 'jquery':					'https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min',
+				'jquery-ui':				rootPath + 'external/jquery-ui/js/jquery-ui-1.8.17.custom.min',
+				'jquery-custom-file-input':	rootPath + 'external/jquery-custom-file-input',
+				'jquery.hotkeys':			rootPath + 'external/jquery.hotkeys',
+				'ometa-core':				rootPath + 'external/ometa-js/lib/ometajs/core',
+				'ometa-compiler':			rootPath + 'external/ometa-js/lib/ometajs/ometa/parsers',
+				'codemirror':				rootPath + 'external/CodeMirror2/lib/codemirror',
+				'codemirror-util':			rootPath + 'external/CodeMirror2/lib/util',
+				'codemirror-keymap':		rootPath + 'external/CodeMirror2/keymap',
+				'codemirror-modes':			rootPath + 'external/CodeMirror2/mode',
+				'js-beautify':				rootPath + 'external/beautify/beautify',
+				'qunit':					rootPath + 'external/qunit/qunit',
+				'underscore':				rootPath + 'external/underscore-1.2.1.min',
+				'inflection':				rootPath + 'external/inflection/inflection',
+				'json2':					rootPath + 'external/json2',
+				'downloadify':				rootPath + 'external/downloadify',
+				'ejs':						rootPath + 'external/ejs/ejs.min',
+				
+				'sbvr-parser':				rootPath + 'common/sbvr-parser/out/processed/',
+				'utils':					rootPath + 'common/utils/out/processed',
+				
+				'sbvr-frame':				rootPath + 'client/sbvr-frame/out/processed',
+				'data-frame':				rootPath + 'client/data-frame/out/processed',
+				'Prettify':					rootPath + 'client/prettify-ometa/out/processed/Prettify',
+				'codemirror-ometa-bridge':	rootPath + 'client/codemirror-ometa-bridge/src',
+				
+				'sbvr-compiler':			rootPath + 'server/sbvr-compiler/out/processed',
+				
+				'server-glue':				rootPath + 'server/server-glue/out/processed',
+				'express-emulator':			rootPath + 'server/express-emulator/out/processed',
+				'data-server':				rootPath + 'server/data-server/out/processed',
+				'editor-server':			rootPath + 'server/editor-server/out/processed',
+				'database-layer':			rootPath + 'server/database-layer/out/processed',
+				'passportBCrypt':			rootPath + 'server/passport-bcrypt/out/processed/passportBCrypt',
+				
+				'frame-glue':				rootPath + 'client/frame-glue/out/processed'
+			}
+			appDir: currentDirs.processed
+			dir: currentDirs.final
+			findNestedDependencies: true
+		}
+		extraRequirejsConf
+	)
+	buildFile = path.join(currentDirs.out, 'temp.build.js')
+	desc('rjs optimise')
+	task('requirejs',
+		->
+			console.log(requirejsConf)
+			console.log(JSON.stringify(requirejsConf))
+			console.log('Concatenating and minifying Javascript')
+			fs.writeFileSync(buildFile, JSON.stringify(requirejsConf))
+			requirejs.optimize(buildFile: buildFile, (buildResponse) ->
+				console.log('require.js: ', buildResponse)
+				fs.unlink(buildFile)
+				complete()
+			)
+		async: true
+	)
+	return getCurrentNamespace() + 'requirejs'

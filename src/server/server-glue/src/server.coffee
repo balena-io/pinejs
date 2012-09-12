@@ -1,4 +1,9 @@
-if process?
+if !ENV_NODEJS? then ENV_NODEJS = process?
+if !SBVR_SERVER_ENABLED? then SBVR_SERVER_ENABLED = true
+if !EDITOR_SERVER_ENABLED? then EDITOR_SERVER_ENABLED = true
+if !BROWSER_SERVER_ENABLED? then BROWSER_SERVER_ENABLED = !process?
+
+if ENV_NODEJS
 	databaseOptions =
 		engine: 'mysql'
 		params:
@@ -24,27 +29,25 @@ setupCallback = (requirejs, app) ->
 				successRedirect: '/'
 			}, sbvrUtils, app, passport)
 		
-		#IFDEF server
-		requirejs(['data-server/SBVRServer'], (sbvrServer) ->
-			sbvrServer.setup(app, requirejs, sbvrUtils, passportBCrypt.isAuthed, databaseOptions)
-		)
-		#ENDIFDEF
+		if SBVR_SERVER_ENABLED
+			requirejs(['data-server/SBVRServer'], (sbvrServer) ->
+				sbvrServer.setup(app, requirejs, sbvrUtils, passportBCrypt.isAuthed, databaseOptions)
+			)
 
-		#IFDEF editor
-		requirejs(['editor-server/editorServer'], (editorServer) ->
-			editorServer.setup(app, requirejs, sbvrUtils, passportBCrypt.isAuthed, databaseOptions)
-		)
-		#ENDIFDEF
+		if EDITOR_SERVER_ENABLED
+			requirejs(['editor-server/editorServer'], (editorServer) ->
+				editorServer.setup(app, requirejs, sbvrUtils, passportBCrypt.isAuthed, databaseOptions)
+			)
 	)
 
-	if process?
+	if ENV_NODEJS
 		app.listen(process.env.PORT or 1337, () ->
 			console.log('Server started')
 		)
 
 
 
-if process?
+if ENV_NODEJS
 	requirejs = require('requirejs')
 	rootPath = process.cwd() + '/../../../'
 	requirejs.config(
@@ -93,32 +96,25 @@ if process?
 	
 	express = require('express')
 	app = express.createServer()
-	#IFDEF server
 	passport = require('passport')
-	#ENDIFDEF
 	
 	app.configure(->
-		#IFDEF server
 		app.use(express.cookieParser())
-		#ENDIFDEF
 		app.use(express.bodyParser())
-		#IFDEF server
 		app.use(express.session({ secret: "A pink cat jumped over a rainbow" }))
 		app.use(passport.initialize())
 		app.use(passport.session())
-		#ENDIFDEF
 		app.use(express.static(rootPath))
 	)
 	
 	setupCallback(requirejs, app)
 else
 	requirejs = window.requirejs
-	#IFDEF websql
-	requirejs(['express-emulator/express'], (express) ->
-		window?.remoteServerRequest = express.app.process
-		setupCallback(requirejs, express.app)
-	)
-	#ENDIFDEF
+	if BROWSER_SERVER_ENABLED
+		requirejs(['express-emulator/express'], (express) ->
+			window?.remoteServerRequest = express.app.process
+			setupCallback(requirejs, express.app)
+		)
 
 # fs = require('fs')
 # lazy = require("lazy")

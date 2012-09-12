@@ -1,6 +1,8 @@
+if !ENV_NODEJS? then ENV_NODEJS = process?
+
 define(["database-layer/SQLBinds"], (SQLBinds) ->
 	exports = {}
-	if process?
+	if ENV_NODEJS
 		exports.postgres = (connectString) ->
 			Client = new requirejs('pg').Client
 			_db = new Client(connectString)

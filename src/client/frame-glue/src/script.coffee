@@ -1,3 +1,5 @@
+if !SBVR_SERVER_ENABLED? then SBVR_SERVER_ENABLED = true
+
 define(['sbvr-parser/SBVRParser', 'data-frame/ClientURIParser', 'Prettify'], (SBVRParser, ClientURIParser, Prettify) ->
 	sqlEditor = null
 	sbvrEditor = null
@@ -61,32 +63,30 @@ define(['sbvr-parser/SBVRParser', 'data-frame/ClientURIParser', 'Prettify'], (SB
 			switchVal = URItree[1][1][0]
 		catch $e
 			switchVal = ""
-		switch switchVal
-			when "lf"
-				$("#tabs").tabs("select", 1)
-				lfEditor.refresh()
-			when "preplf"
-				$("#tabs").tabs("select", 2)
-			#IFDEF server
-			when "server"
-				uri = location.hash.slice(9)
-				serverRequest "GET", uri, {}, null, (statusCode, result) ->
-					alert result
-			when "sql"
-				$("#tabs").tabs("select", 3)
-				sqlEditor.refresh() # Force a refresh on switching to the tab, otherwise it wasn't appearing.
-			when "data"
-				$("#tabs").tabs("select", 4)
-				drawData(URItree[1])
-			when "export"
-				$("#tabs").tabs("select", 6)
-				importExportEditor.refresh()
-			#ENDIFDEF
-			when "http"
-				$("#tabs").tabs("select", 5)
-			else
-				$("#tabs").tabs("select", 0)
-				sbvrEditor.refresh()
+		if switchVal == 'lf'
+			$("#tabs").tabs("select", 1)
+			lfEditor.refresh()
+		else if switchVal == 'preplf'
+			$("#tabs").tabs("select", 2)
+		else if SBVR_SERVER_ENABLED and switchVal == 'server'
+			uri = location.hash.slice(9)
+			serverRequest("GET", uri, {}, null, (statusCode, result) ->
+				alert(result)
+			)
+		else if SBVR_SERVER_ENABLED and switchVal == 'sql'
+			$("#tabs").tabs("select", 3)
+			sqlEditor.refresh() # Force a refresh on switching to the tab, otherwise it wasn't appearing.
+		else if SBVR_SERVER_ENABLED and switchVal == 'data'
+			$("#tabs").tabs("select", 4)
+			drawData(URItree[1])
+		else if SBVR_SERVER_ENABLED and switchVal == 'export'
+			$("#tabs").tabs("select", 6)
+			importExportEditor.refresh()
+		else if switchVal == 'http'
+			$("#tabs").tabs("select", 5)
+		else
+			$("#tabs").tabs("select", 0)
+			sbvrEditor.refresh()
 
 	setClientOnAir = (bool) ->
 		clientOnAir = bool
@@ -396,29 +396,26 @@ define(['sbvr-parser/SBVRParser', 'data-frame/ClientURIParser', 'Prettify'], (SB
 		loadState( () ->
 			$.browser.chrome = $.browser.webkit && !!window.chrome
 			$("#tabs").tabs(select: (event, ui) ->
-				#IFDEF server
-				if ui.panel.id not in ["modelTab", "httpTab"] and clientOnAir == false
+				if SBVR_SERVER_ENABLED and ui.panel.id not in ["modelTab", "httpTab"] and clientOnAir == false
 					showErrorMessage("This tab is only accessible after a model is executed<br/>")
 					return false
 				else
-				#ENDIFDEF
-					switch ui.panel.id
-						#IFDEF server
-						when "prepTab"
+					switchVal = ui.panel.id
+					if SBVR_SERVER_ENABLED and switchVal == 'prepTab'
 							newHash = "!/preplf/"
-						when "sqlTab"
-							newHash = "!/sql/"
-						when "dataTab"
-							newHash = "!/data/"
-						when "httpTab"
-							newHash = "!/http/"
-						when "importExportTab"
-							newHash = "!/export/"
-						#ENDIFDEF
-						when "lfTab"
-							newHash = "!/lf/"
-						else
-							newHash = "!/model/"
+					else if SBVR_SERVER_ENABLED and switchVal == 'sqlTab'
+						newHash = "!/sql/"
+					else if SBVR_SERVER_ENABLED and switchVal == 'dataTab'
+						newHash = "!/data/"
+					else if SBVR_SERVER_ENABLED and switchVal == 'httpTab'
+						newHash = "!/http/"
+					else if SBVR_SERVER_ENABLED and switchVal == 'importExportTab'
+						newHash = "!/export/"
+					else if switchVal == 'lfTab'
+						newHash = "!/lf/"
+					else
+						newHash = "!/model/"
+
 					if location.hash.indexOf(newHash) != 1
 						location.hash = newHash
 					return true

@@ -1,3 +1,5 @@
+if !ENV_NODEJS? then ENV_NODEJS = process?
+
 define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQL2CLF', 'data-server/ServerURIParser', 'underscore', 'utils/createAsyncQueueCallback'], (AbstractSQLRules2SQL, AbstractSQL2CLF, ServerURIParser, _, createAsyncQueueCallback) ->
 	exports = {}
 	db = null
@@ -131,7 +133,7 @@ define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQL2CLF', '
 				asyncCallback.endAdding()
 		)
 		app.get('/exportdb', isAuthed, (req, res, next) ->
-			if process?
+			if ENV_NODEJS
 				env = process.env
 				env['PGPASSWORD'] = '.'
 				req = require

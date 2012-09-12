@@ -1,7 +1,7 @@
 fs = require('fs')
 path = require('path')
 
-require('./Jakelibs.js')
+require('./Jakelibs.coffee')
 getCurrentNamespace = jake.rmutils.getCurrentNamespace
 excludeNonDirs = jake.rmutils.excludeNonDirs
 excludeDirs = jake.rmutils.excludeDirs
