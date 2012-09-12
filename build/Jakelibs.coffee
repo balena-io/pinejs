@@ -5,7 +5,7 @@ process.env.outputDir ?= 'out/'
 process.env.compiledDir ?= process.env.outputDir + 'compiled/'
 process.env.processedDir ?= process.env.outputDir + 'processed/'
 process.env.finalDir ?= process.env.outputDir + 'publish/'
-process.env.modules ?= ''
+process.env.defines ?= {}
 currentCategory = ''
 currentModule = ''
 currentDirs = {}
@@ -175,6 +175,20 @@ getCompiledFilePaths = (srcFile) ->
 	processedFile = path.join(currentDirs.processed, jsFile)
 	return {compiledFile, processedFile}
 
+uglifyDefines = (data, callback) ->
+	ast = uglify.parser.parse(data)
+	ast = uglify.uglify.ast_mangle(ast,
+		mangle: false
+		defines: process.env.defines
+	)
+	ast = uglify.uglify.ast_squeeze(ast,
+		make_seqs: false
+	)
+	code = uglify.uglify.gen_code(ast,
+		beautify: true
+	)
+	callback(false, code)
+
 jake.rmutils.ometaCompileNamespace = () ->
 	return createCompileNamespace('Compile', 'ometa', (srcFile) ->
 		{compiledFile, processedFile} = getCompiledFilePaths(srcFile)
@@ -190,11 +204,7 @@ jake.rmutils.ometaCompileNamespace = () ->
 			async: true
 		)
 		desc('Process ' + srcFile)
-		alterFileTask(processedFile, compiledFile,
-			(data, callback) ->
-				# TODO: uglify
-				callback(false, data)
-		)
+		alterFileTask(processedFile, compiledFile, uglifyDefines)
 		currNamespace = getCurrentNamespace()
 		return [currNamespace + compiledFile, currNamespace + processedFile]
 	)
@@ -212,11 +222,7 @@ jake.rmutils.coffeeCompileNamespace = () ->
 					callback(e)
 		)
 		desc('Process ' + srcFile)
-		alterFileTask(processedFile, compiledFile,
-			(data, callback) ->
-				# TODO: uglify
-				callback(false, data)
-		)
+		alterFileTask(processedFile, compiledFile, uglifyDefines)
 		currNamespace = getCurrentNamespace()
 		return [currNamespace + compiledFile, currNamespace + processedFile]
 	)
