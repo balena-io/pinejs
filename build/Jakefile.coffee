@@ -1,9 +1,3 @@
-process.chdir('..')
-process.env.outputDir ?= 'out/'
-process.env.intermediateDir ?= process.env.outputDir + 'intermediate/'
-process.env.finalDir ?= process.env.outputDir + 'publish/'
-process.env.modules ?= ''
-
 fs = require('fs')
 path = require('path')
 

@@ -1,8 +1,41 @@
 fs = require('fs')
 path = require('path')
+
+process.env.outputDir ?= 'out/'
+process.env.intermediateDir ?= process.env.outputDir + 'intermediate/'
+process.env.finalDir ?= process.env.outputDir + 'publish/'
+process.env.modules ?= ''
+currentCategory = ''
+currentModule = ''
+currentDirs = {}
+setDirs = (category, module) ->
+	removeTrailingSlash = (s) -> s.replace(/[/\\]*$/, '')
+	currentCategory = category
+	currentModule = module
+	rootDir = removeTrailingSlash(path.join('src', currentCategory, currentModule))
+	currentDirs =
+		root: rootDir
+		src: removeTrailingSlash(path.join(rootDir, 'src'))
+		output: removeTrailingSlash(path.join(rootDir, process.env.outputDir))
+		intermediate: removeTrailingSlash(path.join(rootDir, process.env.intermediateDir))
+		final: removeTrailingSlash(path.join(rootDir, process.env.finalDir))
+
+do ->
+	process.chdir('..')
+	cwd = process.cwd()
+	if fs.existsSync(path.resolve(path.join(cwd, '../../../build/Jakefile.coffee')))
+		module = path.basename(cwd)
+		category = path.basename(path.dirname(cwd))
+		setDirs(category, module)
+		process.chdir('../../..')
+	else
+		setDirs('', '')
+
+uglify = require('uglify-js')
 ometa = require('../src/common/ometa-compiler/src/ometac.coffee')
 coffee = require('coffee-script')
 exec = require('child_process').exec
+requirejs = require('requirejs')
 
 jake.rmutils ?= {}
 jake.rmutils.getCurrentNamespace = getCurrentNamespace = () ->
@@ -51,29 +84,10 @@ jake.rmutils.alterFileTask = alterFileTask = (outFile, inFile, taskDependencies,
 
 jake.rmutils.excludeDirs = excludeDirs = [process.env.outputDir, '.git', 'node_modules', 'build']
 
-currentCategory = ''
-currentModule = ''
-currentDirs =
-	root: ''
-	src: ''
-	output: ''
-	intermediate: ''
-	final: ''
-
-removeTrailingSlash = (s) -> s.replace(/[/\\]*$/, '')
-
 jake.rmutils.importJakefile = (category, module) ->
 	jakefile = path.resolve(path.join('src', category, module, 'build', 'Jakefile.coffee'))
 	if fs.existsSync(jakefile)
-		currentCategory = category
-		currentModule = module
-		rootDir = removeTrailingSlash(path.join('src', currentCategory, currentModule))
-		currentDirs =
-			root: rootDir
-			src: removeTrailingSlash(path.join(rootDir, 'src'))
-			output: removeTrailingSlash(path.join(rootDir, process.env.outputDir))
-			intermediate: removeTrailingSlash(path.join(rootDir, process.env.intermediateDir))
-			final: removeTrailingSlash(path.join(rootDir, process.env.finalDir))
+		setDirs(category, module)
 		require(jakefile)
 		return true
 	return false
@@ -191,7 +205,7 @@ jake.rmutils.createCopyTask = (inFile) ->
 
 jake.rmutils.createCopyNamespace = (excludeFileTypes) ->
 	taskList = []
-	namespace('Copy', ->
+	namespace('copy', ->
 		fileList = new jake.FileList()
 		fileList.exclude(excludeDirs)
 		fileList.include(path.join(currentDirs.src, '**'))
@@ -202,7 +216,3 @@ jake.rmutils.createCopyNamespace = (excludeFileTypes) ->
 		task('all', taskList)
 	)
 	return taskList
-
-jake.rmutils.copyNamespace = () ->
-	return createCopyNamespace('Copy', ['coffee', 'ometa'], (inFile, outFile) ->
-	)
