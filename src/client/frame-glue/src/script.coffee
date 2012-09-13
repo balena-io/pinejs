@@ -289,8 +289,8 @@ define(['sbvr-parser/SBVRParser', 'data-frame/ClientURIParser', 'Prettify'], (SB
 			onError: ->
 				showSimpleError "Content Is Empty"
 			# TODO: Improve build system so we don't have to ../../../......
-			swf: "../../../external/downloadify/Downloadify.swf"
-			downloadImage: "../../../external/downloadify/download.png"
+			swf: "../../../../external/downloadify/Downloadify.swf"
+			downloadImage: "../../../../external/downloadify/download.png"
 			width: 62
 			height: 22
 			transparent: true
