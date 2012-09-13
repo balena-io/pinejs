@@ -71,24 +71,24 @@ if ENV_NODEJS
 			'downloadify':				rootPath + 'external/downloadify',
 			'ejs':						rootPath + 'external/ejs/ejs.min',
 			
-			'sbvr-parser':				rootPath + 'common/sbvr-parser/out/intermediate/',
-			'utils':					rootPath + 'common/utils/out/intermediate',
+			'sbvr-parser':				rootPath + 'common/sbvr-parser/out/compiled/',
+			'utils':					rootPath + 'common/utils/out/compiled',
 			
-			'sbvr-frame':				rootPath + 'client/sbvr-frame/out/intermediate',
-			'data-frame':				rootPath + 'client/data-frame/out/intermediate',
-			'Prettify':					rootPath + 'client/prettify-ometa/out/intermediate/Prettify',
+			'sbvr-frame':				rootPath + 'client/sbvr-frame/out/compiled',
+			'data-frame':				rootPath + 'client/data-frame/out/compiled',
+			'Prettify':					rootPath + 'client/prettify-ometa/out/compiled/Prettify',
 			'codemirror-ometa-bridge':	rootPath + 'client/codemirror-ometa-bridge/src',
 			
-			'sbvr-compiler':			rootPath + 'server/sbvr-compiler/out/intermediate',
+			'sbvr-compiler':			rootPath + 'server/sbvr-compiler/out/compiled',
 			
-			'server-glue':				rootPath + 'server/server-glue/out/intermediate',
-			'express-emulator':			rootPath + 'server/express-emulator/out/intermediate',
-			'data-server':				rootPath + 'server/data-server/out/intermediate',
-			'editor-server':			rootPath + 'server/editor-server/out/intermediate',
-			'database-layer':			rootPath + 'server/database-layer/out/intermediate',
-			'passportBCrypt':			rootPath + 'server/passport-bcrypt/out/intermediate/passportBCrypt',
+			'server-glue':				rootPath + 'server/server-glue/out/compiled',
+			'express-emulator':			rootPath + 'server/express-emulator/out/compiled',
+			'data-server':				rootPath + 'server/data-server/out/compiled',
+			'editor-server':			rootPath + 'server/editor-server/out/compiled',
+			'database-layer':			rootPath + 'server/database-layer/out/compiled',
+			'passportBCrypt':			rootPath + 'server/passport-bcrypt/out/compiled/passportBCrypt',
 			
-			'frame-glue':				rootPath + 'client/frame-glue/out/intermediate'
+			'frame-glue':				rootPath + 'client/frame-glue/out/compiled'
 		}
 		nodeRequire: require
 		baseUrl: 'js'
