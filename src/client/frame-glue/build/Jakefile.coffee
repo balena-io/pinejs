@@ -1,5 +1,5 @@
 require('../../../../build/Jakelibs.coffee')
 coffeeTasks = jake.rmutils.coffeeCompileNamespace()
 copyTasks = jake.rmutils.createCopyNamespace()
-copyTasks.push(jake.rmutils.createCopyTask('.htaccess'))
+copyTasks = copyTasks.concat(jake.rmutils.createCopyTask('.htaccess'))
 jake.rmutils.boilerplate(coffeeTasks.concat(copyTasks))

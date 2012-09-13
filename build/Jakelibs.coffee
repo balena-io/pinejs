@@ -194,11 +194,13 @@ createCompileNamespace = (action, fileType, createCompileTaskFunc) ->
 	)
 	return taskList
 
-getCompiledFilePaths = (srcFile) ->
+getCompiledFilePaths = (srcFile, newExt) ->
 	srcFile = path.relative(currentDirs.src, srcFile)
-	jsFile = path.join(path.dirname(srcFile), path.basename(srcFile, path.extname(srcFile)) + '.js')
-	compiledFile = path.join(currentDirs.compiled, jsFile)
-	processedFile = path.join(currentDirs.processed, jsFile)
+	extFile = srcFile
+	if newExt?
+		extFile = path.join(path.dirname(extFile), path.basename(extFile, path.extname(extFile)) + newExt)
+	compiledFile = path.join(currentDirs.compiled, extFile)
+	processedFile = path.join(currentDirs.processed, extFile)
 	return {compiledFile, processedFile}
 
 uglifyDefines = (data, callback) ->
@@ -218,7 +220,7 @@ uglifyDefines = (data, callback) ->
 
 jake.rmutils.ometaCompileNamespace = () ->
 	return createCompileNamespace('Compile', 'ometa', (srcFile) ->
-		{compiledFile, processedFile} = getCompiledFilePaths(srcFile)
+		{compiledFile, processedFile} = getCompiledFilePaths(srcFile, '.js')
 		desc('Compile ' + srcFile)
 		file(compiledFile,
 			->
@@ -238,7 +240,7 @@ jake.rmutils.ometaCompileNamespace = () ->
 
 jake.rmutils.coffeeCompileNamespace = () ->
 	return createCompileNamespace('Compile', 'coffee', (srcFile) ->
-		{compiledFile, processedFile} = getCompiledFilePaths(srcFile)
+		{compiledFile, processedFile} = getCompiledFilePaths(srcFile, '.js')
 		desc('Compile ' + srcFile)
 		alterFileTask(compiledFile, srcFile,
 			(data, callback) ->
@@ -254,25 +256,27 @@ jake.rmutils.coffeeCompileNamespace = () ->
 		return [currNamespace + compiledFile, currNamespace + processedFile]
 	)
 
-createCopyTask = (inFile) ->
-	relativePath = path.relative(currentDirs.src, inFile)
-	outFiles = [
-		path.join(currentDirs.compiled, relativePath)
-		path.join(currentDirs.processed, relativePath)
-		path.join(currentDirs.final, relativePath)
-	]
-	taskList = []
+createCopyTask = (srcFile) ->
+	{compiledFile, processedFile} = getCompiledFilePaths(srcFile)
+	copyCallback = (data, callback) ->
+		console.log('Copying file for: '+ this.name)
+		callback(false, data)
+	
+	desc('Copy ' + path.basename(srcFile))
+	alterFileTask(compiledFile, srcFile, copyCallback)
+	if path.extname(srcFile) == '.html'
+		desc('Process ifdefs for ' + path.basename(compiledFile))
+		alterFunc = (data, callback) -> 
+			regexpDefines = (define for define, value of defines when value).join('|')
+			console.log('Processing HTML IFDEFs for: '+ this.name)
+			data = data.replace(new RegExp('<!--[^>]*?#IFDEF[^>]*?' + regexpDefines + '[\\s\\S]*?-->([\\s\\S]*?)<!--[^>]*?#ENDIFDEF[^>]*?-->','g'), '$1')
+			callback(false, data.replace(new RegExp('<!--#IFDEF[\\s\\S]*?ENDIFDEF[\\s\\S]*?-->','g'), ''))
+	else
+		desc('Copy file for ' + path.basename(compiledFile))
+		alterFunc = copyCallback
+	alterFileTask(processedFile, compiledFile, alterFunc)
 	currNamespace = getCurrentNamespace()
-	desc('Copy ' + path.basename(inFile))
-	for outFile in outFiles
-		taskList.push(currNamespace + outFile)
-		alterFileTask(outFile, inFile,
-			(data, callback) ->
-				console.log('Copying file for: '+ this.name)
-				callback(false, data)
-		)
-		inFile = outFile
-	return getCurrentNamespace() + outFile
+	return [currNamespace + compiledFile, currNamespace + processedFile]
 
 jake.rmutils.createCopyTask = (inFile) ->
 	return createCopyTask(path.join(currentDirs.src, inFile))
@@ -285,7 +289,7 @@ jake.rmutils.createCopyNamespace = (excludeFileTypes = ['coffee', 'ometa']) ->
 		fileList.include(path.join(currentDirs.src, '**'))
 		fileList.exclude(new RegExp('(' + excludeFileTypes.join('|') + ')$'))
 		for inFile in fileList.toArray()
-			taskList.push(createCopyTask(inFile))
+			taskList = taskList.concat(createCopyTask(inFile))
 		desc('Copy all files other than ' + excludeFileTypes.join(', ') + '  for ' + [currentCategory, currentModule].join(':') + '.')
 		task('all', taskList)
 	)
