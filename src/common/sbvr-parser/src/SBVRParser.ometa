@@ -358,13 +358,6 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 	var removeVerbRegex = new RegExp('^' + ['Verb',''].toString()),
 		removeTermRegex = new RegExp('^' + ['Term',''].toString()),
 		allowedAttrLists = [
-			/*#IFDEF server */
-				/* Custom Attributes */
-				'Database ID Field:',
-				'Database Value Field:',
-				'Database Table Name:',
-				/* End Custom */
-			/*#ENDIFDEF*/
 			'Dictionary Basis:',
 			'Example:',
 			'General Concept:',
@@ -377,18 +370,27 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 			'Source:',
 			'Subject Field:'
 		];
-		allowedAttrLists = {
-			Term: [
-				'Concept Type:',
-				'Definition:',
-				'Synonym:'
-			].concat(allowedAttrLists),
-			FactType: [
-				'Synonymous Form:',
-				'Term Form:'
-			].concat(allowedAttrLists),
-			Rule: []
-		};
+	if(SBVR_SERVER_ENABLED) {
+		allowedAttrLists = [
+			/* Custom Attributes */
+			'Database ID Field:',
+			'Database Value Field:',
+			'Database Table Name:'
+			/* End Custom */
+		].concat(allowedAttrLists);
+	}
+	allowedAttrLists = {
+		Term: [
+			'Concept Type:',
+			'Definition:',
+			'Synonym:'
+		].concat(allowedAttrLists),
+		FactType: [
+			'Synonymous Form:',
+			'Term Form:'
+		].concat(allowedAttrLists),
+		Rule: []
+	};
 	SBVRParser.reset = function() {
 		SBVRLibs.initialize.call(this);
 		this.branches = {
