@@ -163,6 +163,7 @@ createInstallTasks = () ->
 			async: true
 		)
 		return [getCurrentNamespace() + 'install']
+	return []
 
 jake.rmutils.boilerplate = (compileCopyTasks) ->
 	directoryTasks = createDirectoryTasks()
