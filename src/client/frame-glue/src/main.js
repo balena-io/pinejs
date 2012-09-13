@@ -1,5 +1,5 @@
-if(typeof DDUI_ENABLED === 'undefined') DDUI_ENABLED = true
-if(typeof BROWSER_SERVER_ENABLED === 'undefined') BROWSER_SERVER_ENABLED = typeof process === 'undefined'
+if(typeof DDUI_ENABLED === 'undefined') DDUI_ENABLED = true;
+if(typeof BROWSER_SERVER_ENABLED === 'undefined') BROWSER_SERVER_ENABLED = typeof process === 'undefined';
 
 // make it safe to use console.log always
 (function(b){function c(){}for(var d="assert,count,debug,dir,dirxml,error,exception,group,groupCollapsed,groupEnd,info,log,timeStamp,profile,profileEnd,time,timeEnd,trace,warn".split(","),a;a=d.pop();){b[a]=b[a]||c}})((function(){try
