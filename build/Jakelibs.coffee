@@ -208,19 +208,19 @@ getCompiledFilePaths = (srcFile, newExt) ->
 	return {compiledFile, processedFile}
 
 uglifyDefines = (data, callback) ->
-		ast = uglify.parser.parse(data)
-		ast = uglify.uglify.ast_mangle(ast,
-			mangle: false
-			defines: defines
-		)
-		ast = uglify.uglify.ast_squeeze(ast,
-			make_seqs: false
-			dead_code: true
-		)
-		code = uglify.uglify.gen_code(ast,
-			beautify: true
-		)
-		callback(false, code)
+	ast = uglify.parser.parse(data)
+	ast = uglify.uglify.ast_mangle(ast,
+		mangle: false
+		defines: defines
+	)
+	ast = uglify.uglify.ast_squeeze(ast,
+		make_seqs: false
+		dead_code: true
+	)
+	code = uglify.uglify.gen_code(ast,
+		beautify: true
+	)
+	callback(false, code)
 
 jake.rmutils.ometaCompileNamespace = () ->
 	return createCompileNamespace('Compile', 'ometa', (srcFile) ->
@@ -266,18 +266,22 @@ createCopyTask = (srcFile) ->
 		console.log('Copying file for: '+ this.name)
 		callback(false, data)
 	
-	desc('Copy ' + path.basename(srcFile))
+	desc('Copy ' + srcFile)
 	alterFileTask(compiledFile, srcFile, copyCallback)
-	if path.extname(srcFile) == '.html'
-		desc('Process ifdefs for ' + path.basename(compiledFile))
-		alterFunc = (data, callback) -> 
-			regexpDefines = (define for define, value of defines when value).join('|')
-			console.log('Processing HTML IFDEFs for: '+ this.name)
-			data = data.replace(new RegExp('<!--[^>]*?#IFDEF[^>]*?(?=' + regexpDefines + ')[\\s\\S]*?-->([\\s\\S]*?)<!--[^>]*?#ENDIFDEF[^>]*?-->','g'), '$1')
-			callback(false, data.replace(new RegExp('<!--#IFDEF[\\s\\S]*?ENDIFDEF[\\s\\S]*?-->','g'), ''))
-	else
-		desc('Copy file for ' + path.basename(compiledFile))
-		alterFunc = copyCallback
+	switch path.extname(srcFile)
+		when '.html'
+			desc('Process ifdefs for ' + srcFile)
+			alterFunc = (data, callback) -> 
+				regexpDefines = (define for define, value of defines when value[1]).join('|')
+				console.log('Processing HTML IFDEFs for: '+ this.name)
+				data = data.replace(new RegExp('<!--[^>]*?#IFDEF[^>]*?(?=' + regexpDefines + ')[\\s\\S]*?-->([\\s\\S]*?)<!--[^>]*?#ENDIFDEF[^>]*?-->','g'), '$1')
+				callback(false, data.replace(new RegExp('<!--#IFDEF[\\s\\S]*?ENDIFDEF[\\s\\S]*?-->','g'), ''))
+		when '.js'
+			desc('Process ' + srcFile)
+			alterFunc = uglifyDefines
+		else
+			desc('Copy file for ' + path.basename(compiledFile))
+			alterFunc = copyCallback
 	alterFileTask(processedFile, compiledFile, alterFunc)
 	currNamespace = getCurrentNamespace()
 	return [currNamespace + compiledFile, currNamespace + processedFile]
