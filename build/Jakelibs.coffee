@@ -6,16 +6,10 @@ process.env.compiledDir ?= process.env.outputDir + 'compiled/'
 process.env.processedDir ?= process.env.outputDir + 'processed/'
 process.env.finalDir ?= process.env.outputDir + 'publish/'
 
-defines = {
-	DDUI_ENABLED: true
-	BROWSER_SERVER_ENABLED: true
-	SBVR_SERVER_ENABLED: true
-	EDITOR_SERVER_ENABLED: true
-	ENV_NODEJS: false
-}
+defines = {}
 
-do ->
-	for key, value of defines
+setDefines = (newDefines) ->
+	for key, value of newDefines
 		defines[key] = do(value) ->
 			if typeof value == "string"
 				return [ "string", value ]
@@ -30,6 +24,14 @@ do ->
 			if value == undefined
 				return [ 'name', 'undefined' ]
 			throw "Can't understand the specified value: " + value
+
+setDefines(
+	DDUI_ENABLED: true
+	BROWSER_SERVER_ENABLED: true
+	SBVR_SERVER_ENABLED: true
+	EDITOR_SERVER_ENABLED: true
+	ENV_NODEJS: false
+)
 
 currentCategory = ''
 currentModule = ''
@@ -65,6 +67,7 @@ exec = require('child_process').exec
 requirejs = require('requirejs')
 
 jake.rmutils ?= {}
+jake.rmutils.setDefines = setDefines
 jake.rmutils.getCurrentNamespace = getCurrentNamespace = () ->
 	fullNamespace = ''
 	currNamespace = jake.currentNamespace
