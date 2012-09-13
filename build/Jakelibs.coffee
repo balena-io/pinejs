@@ -105,6 +105,7 @@ jake.rmutils.alterFileTask = alterFileTask = (outFile, inFile, taskDependencies,
 								if err
 									fail(err)
 								else
+									console.log('Finished writing: ', outFile)
 									complete()
 							)
 					)
@@ -272,7 +273,7 @@ createCopyTask = (srcFile) ->
 		alterFunc = (data, callback) -> 
 			regexpDefines = (define for define, value of defines when value).join('|')
 			console.log('Processing HTML IFDEFs for: '+ this.name)
-			data = data.replace(new RegExp('<!--[^>]*?#IFDEF[^>]*?' + regexpDefines + '[\\s\\S]*?-->([\\s\\S]*?)<!--[^>]*?#ENDIFDEF[^>]*?-->','g'), '$1')
+			data = data.replace(new RegExp('<!--[^>]*?#IFDEF[^>]*?(?=' + regexpDefines + ')[\\s\\S]*?-->([\\s\\S]*?)<!--[^>]*?#ENDIFDEF[^>]*?-->','g'), '$1')
 			callback(false, data.replace(new RegExp('<!--#IFDEF[\\s\\S]*?ENDIFDEF[\\s\\S]*?-->','g'), ''))
 	else
 		desc('Copy file for ' + path.basename(compiledFile))
