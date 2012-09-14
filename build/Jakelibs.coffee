@@ -131,6 +131,12 @@ jake.rmutils.alterFileTask = alterFileTask = (outFile, inFile, taskDependencies,
 		async: true
 	)
 
+jake.rmutils.copyFileTask = copyFileTask = (outFile, inFile, taskDependencies = []) ->
+	alterFileTask(outFile, inFile, taskDependencies, (data, callback) ->
+		console.log('Copying file for: '+ this.name)
+		callback(false, data)
+	)
+
 jake.rmutils.excludeDirs = excludeDirs = [process.env.outputDir, '.git', 'node_modules', 'build']
 
 jake.rmutils.importJakefile = (category, module) ->
@@ -294,12 +300,9 @@ jake.rmutils.coffeeCompileNamespace = () ->
 
 createCopyTask = (srcFile) ->
 	{compiledFile, processedFile, minifiedFile} = getCompiledFilePaths(srcFile)
-	copyCallback = (data, callback) ->
-		console.log('Copying file for: '+ this.name)
-		callback(false, data)
 	
 	desc('Copy ' + srcFile)
-	alterFileTask(compiledFile, srcFile, copyCallback)
+	copyFileTask(compiledFile, srcFile)
 	switch path.extname(srcFile)
 		when '.html'
 			desc('Process ifdefs for ' + srcFile)
@@ -309,7 +312,7 @@ createCopyTask = (srcFile) ->
 				data = data.replace(new RegExp('<!--[^>]*?#IFDEF[^>]*?(?=' + regexpDefines + ')[\\s\\S]*?-->([\\s\\S]*?)<!--[^>]*?#ENDIFDEF[^>]*?-->','g'), '$1')
 				callback(false, data.replace(new RegExp('<!--#IFDEF[\\s\\S]*?ENDIFDEF[\\s\\S]*?-->','g'), ''))
 			)
-			alterFileTask(minifiedFile, processedFile, copyCallback)
+			copyFileTask(minifiedFile, processedFile)
 		when '.js'
 			desc('Process ' + srcFile)
 			alterFileTask(processedFile, compiledFile, uglifyDefines)
@@ -317,9 +320,9 @@ createCopyTask = (srcFile) ->
 			alterFileTask(minifiedFile, processedFile, uglifyMin)
 		else
 			desc('Copy file for ' + srcFile)
-			alterFileTask(processedFile, compiledFile, copyCallback)
+			copyFileTask(processedFile, compiledFile)
 			desc('Copy file for ' + srcFile)
-			alterFileTask(minifiedFile, processedFile, copyCallback)
+			copyFileTask(minifiedFile, processedFile)
 	return [addTask('compile', compiledFile), addTask('process', processedFile), addTask('minify', minifiedFile)]
 
 jake.rmutils.createCopyTask = (srcFile) ->
