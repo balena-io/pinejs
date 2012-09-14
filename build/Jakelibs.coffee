@@ -76,6 +76,24 @@ jake.rmutils.getCurrentNamespace = getCurrentNamespace = () ->
 		currNamespace = currNamespace.parentNamespace
 	return fullNamespace
 
+jake.rmutils.storedTasks = storedTasks = {}
+jake.rmutils.getStoredTasks = (forCategory = null, forModule = null, forBuildType = null) ->
+	fetchedTasks = []
+	for category, modules of storedTasks when forCategory == null or forCategory == category
+		for module, buildTypes of modules when forModule == null or forModule == module
+			for buildType, tasks of buildTypes when forBuildType == null or forBuildType == buildType
+				fetchedTasks = fetchedTasks.concat(tasks)
+	return fetchedTasks
+
+addTask = (buildType, task) ->
+	storedTasks[currentCategory] ?= {}
+	storedTasks[currentCategory][currentModule] ?= {}
+	storedTasks[currentCategory][currentModule][buildType] ?= []
+
+	task = getCurrentNamespace() + task
+	storedTasks[currentCategory][currentModule][buildType].push(task)
+	return task
+
 jake.rmutils.excludeNonDirs = excludeNonDirs = (name) -> # Exclude non-directories
 	try
 		stats = fs.statSync(name)
@@ -140,10 +158,10 @@ createDirectoryTasks = () ->
 		
 		currNamespace = getCurrentNamespace()
 		directory(currentDirs.output)
-		taskList.push(currNamespace + currentDirs.output)
+		taskList.push(addTask('dir', currentDirs.output))
 		for dirTask in dirList
 			directory(dirTask, [currNamespace + path.dirname(dirTask)])
-			taskList.push(currNamespace + dirTask)
+			taskList.push(addTask('dir', dirTask))
 		
 		desc('Create all output directories.')
 		task('all', taskList)
@@ -151,23 +169,28 @@ createDirectoryTasks = () ->
 	return taskList
 
 createInstallTasks = () ->
+	taskList = []
 	if fs.existsSync(path.join(currentDirs.src, 'package.json'))
-		compiledDir = currentDirs.compiled
-		desc('Install npm dependencies')
-		task('install',
-			->
-				exec('npm install', {cwd: compiledDir}, (err, stdout, stderr) ->
-					console.log(stdout)
-					console.error(stderr)
-					if err
-						fail()
-					else
-						complete()
+		namespace('install', ->
+			actualInstallTask = (buildType, dir) ->
+				desc('Install npm dependencies')
+				task(buildType,
+					->
+						exec('npm install', {cwd: dir}, (err, stdout, stderr) ->
+							console.log(stdout)
+							console.error(stderr)
+							if err
+								fail()
+							else
+								complete()
+						)
+					async: true
 				)
-			async: true
+				taskList.push(addTask(buildType, buildType))
+			actualInstallTask('compile', currentDirs.compiled)
+			actualInstallTask('process', currentDirs.processed)
 		)
-		return [getCurrentNamespace() + 'install']
-	return []
+	return taskList
 
 jake.rmutils.boilerplate = (compileCopyTasks) ->
 	directoryTasks = createDirectoryTasks()
@@ -176,18 +199,16 @@ jake.rmutils.boilerplate = (compileCopyTasks) ->
 	desc('Compile all of this module')
 	task('all', directoryTasks.concat(compileCopyTasks, installTasks))
 
-	jake.rmutils.boilerplate.cleanTaskList.push(getCurrentNamespace() + 'clean')
 	outputDir = currentDirs.output
 	desc('Clean up created files')
 	task('clean', ->
 		jake.rmRf(outputDir)
 	)
-jake.rmutils.boilerplate.cleanTaskList = []
+	addTask('clean', 'clean')
 
 createCompileNamespace = (action, fileType, createCompileTaskFunc) ->
 	taskList = []
 	namespace(fileType, ->
-		currNamespace = getCurrentNamespace()
 		fileList = new jake.FileList()
 		fileList.exclude(excludeDirs)
 		fileList.include(path.join(currentDirs.src, '**', '*.' + fileType))
@@ -238,8 +259,7 @@ jake.rmutils.ometaCompileNamespace = () ->
 		)
 		desc('Process ' + srcFile)
 		alterFileTask(processedFile, compiledFile, uglifyDefines)
-		currNamespace = getCurrentNamespace()
-		return [currNamespace + compiledFile, currNamespace + processedFile]
+		return [addTask('compile', compiledFile), addTask('process', processedFile)]
 	)
 
 jake.rmutils.coffeeCompileNamespace = () ->
@@ -256,8 +276,7 @@ jake.rmutils.coffeeCompileNamespace = () ->
 		)
 		desc('Process ' + srcFile)
 		alterFileTask(processedFile, compiledFile, uglifyDefines)
-		currNamespace = getCurrentNamespace()
-		return [currNamespace + compiledFile, currNamespace + processedFile]
+		return [addTask('compile', compiledFile), addTask('process', processedFile)]
 	)
 
 createCopyTask = (srcFile) ->
@@ -283,11 +302,10 @@ createCopyTask = (srcFile) ->
 			desc('Copy file for ' + path.basename(compiledFile))
 			alterFunc = copyCallback
 	alterFileTask(processedFile, compiledFile, alterFunc)
-	currNamespace = getCurrentNamespace()
-	return [currNamespace + compiledFile, currNamespace + processedFile]
+	return [addTask('compile', compiledFile), addTask('process', processedFile)]
 
-jake.rmutils.createCopyTask = (inFile) ->
-	return createCopyTask(path.join(currentDirs.src, inFile))
+jake.rmutils.createCopyTask = (srcFile) ->
+	return createCopyTask(path.join(currentDirs.src, srcFile))
 
 jake.rmutils.createCopyNamespace = (excludeFileTypes = ['coffee', 'ometa']) ->
 	taskList = []

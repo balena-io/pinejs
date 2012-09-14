@@ -62,8 +62,14 @@ namespace('module', ->
 	task('all', taskList)
 )
 
+desc('Compile everything')
+task('compile', jake.rmutils.getStoredTasks(null, null, 'dir').concat(jake.rmutils.getStoredTasks(null, null, 'compile')))
+
+desc('Process everything')
+task('process', jake.rmutils.getStoredTasks(null, null, 'dir').concat(jake.rmutils.getStoredTasks(null, null, 'process')))
+
 desc('Clean everything')
-task('clean', jake.rmutils.boilerplate.cleanTaskList, ->
+task('clean', jake.rmutils.getStoredTasks(null, null, 'clean'), ->
 	jake.rmRf(process.env.outputDir)
 )
 
