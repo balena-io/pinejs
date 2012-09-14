@@ -1,10 +1,11 @@
 fs = require('fs')
 path = require('path')
 
-process.env.outputDir ?= 'out/'
-process.env.compiledDir ?= process.env.outputDir + 'compiled/'
-process.env.processedDir ?= process.env.outputDir + 'processed/'
-process.env.minifiedDir ?= process.env.outputDir + 'minified/'
+removeTrailingSlash = (s) -> s.replace(/[/\\]*$/, '')
+process.env.outputDir ?= 'out'
+process.env.compiledDir ?= removeTrailingSlash(path.join(process.env.outputDir, 'compiled'))
+process.env.processedDir ?= removeTrailingSlash(path.join(process.env.outputDir, 'processed'))
+process.env.minifiedDir ?= removeTrailingSlash(path.join(process.env.outputDir, 'minified'))
 
 defines = {}
 
@@ -37,7 +38,6 @@ currentCategory = ''
 currentModule = ''
 currentDirs = {}
 setDirs = (category, module) ->
-	removeTrailingSlash = (s) -> s.replace(/[/\\]*$/, '')
 	currentCategory = category
 	currentModule = module
 	rootDir = removeTrailingSlash(path.join('src', currentCategory, currentModule))
@@ -106,22 +106,22 @@ jake.rmutils.alterFileTask = alterFileTask = (outFile, inFile, taskDependencies,
 	if alterFunc == undefined
 		alterFunc = taskDependencies
 		taskDependencies = []
-	taskDependencies.push(inFile)
+	# taskDependencies.push(getCurrentNamespace() + inFile)
 	file(outFile, taskDependencies,
 		-> 
 			task = this
 			data = fs.readFile(inFile, 'utf8', (err, data) ->
 				if err
-					fail(err)
+					fail('Error reading ' + inFile + ': ' + err)
 				else
 					alterFunc.call(task, data, (err, data) ->
 						if err
-							fail(err)
+							fail('Error altering ' + inFile + ': ' + err)
 						else
 							console.log('Writing to: ', outFile)
 							fs.writeFile(outFile, data, (err) ->
 								if err
-									fail(err)
+									fail('Error writing ' + outFile + ': ' + err)
 								else
 									console.log('Finished writing: ', outFile)
 									complete()
@@ -193,9 +193,9 @@ createInstallTasks = () ->
 					async: true
 				)
 				taskList.push(addTask(buildType, buildType))
-			actualInstallTask('compile', currentDirs.compiled)
-			actualInstallTask('process', currentDirs.processed)
-			actualInstallTask('minified', currentDirs.processed)
+			actualInstallTask('compile-install', currentDirs.compiled)
+			actualInstallTask('process-install', currentDirs.processed)
+			actualInstallTask('minify-install', currentDirs.processed)
 		)
 	return taskList
 
@@ -234,7 +234,11 @@ getCompiledFilePaths = (srcFile, newExt) ->
 	compiledFile = path.join(currentDirs.compiled, extFile)
 	processedFile = path.join(currentDirs.processed, extFile)
 	minifiedFile = path.join(currentDirs.minified, extFile)
-	return {compiledFile, processedFile, minifiedFile}
+	dirNamespace = ['module', currentCategory, currentModule, 'dir', ''].join(':')
+	compiledDirTask = dirNamespace + path.dirname(compiledFile)
+	processedDirTask = dirNamespace + path.dirname(processedFile)
+	minifiedDirTask = dirNamespace + path.dirname(minifiedFile)
+	return {compiledFile, processedFile, minifiedFile, compiledDirTask, processedDirTask, minifiedDirTask}
 
 uglifyDefines = (data, callback) ->
 	ast = uglify.parser.parse(data)
@@ -260,9 +264,10 @@ uglifyMin = (data, callback) ->
 
 jake.rmutils.ometaCompileNamespace = () ->
 	return createCompileNamespace('Compile', 'ometa', (srcFile) ->
-		{compiledFile, processedFile, minifiedFile} = getCompiledFilePaths(srcFile, '.js')
+		{compiledFile, processedFile, minifiedFile, compiledDirTask, processedDirTask, minifiedDirTask} = getCompiledFilePaths(srcFile, '.js')
 		desc('Compile ' + srcFile)
-		file(compiledFile,
+		compileTask = addTask('compile', compiledFile)
+		file(compiledFile, [compiledDirTask]
 			->
 				ometa.compileOmetaFile(srcFile, compiledFile, true, (err) ->
 					if err
@@ -273,17 +278,19 @@ jake.rmutils.ometaCompileNamespace = () ->
 			async: true
 		)
 		desc('Process ' + srcFile)
-		alterFileTask(processedFile, compiledFile, uglifyDefines)
+		processTask = addTask('process', processedFile)
+		alterFileTask(processedFile, compiledFile, [processedDirTask, compileTask], uglifyDefines)
 		desc('Minify ' + srcFile)
-		alterFileTask(minifiedFile, processedFile, uglifyMin)
-		return [addTask('compile', compiledFile), addTask('process', processedFile), addTask('process', minifiedFile)]
+		alterFileTask(minifiedFile, processedFile, [minifiedDirTask, processTask], uglifyMin)
+		return [compileTask, processTask, addTask('minify', minifiedFile)]
 	)
 
 jake.rmutils.coffeeCompileNamespace = () ->
 	return createCompileNamespace('Compile', 'coffee', (srcFile) ->
-		{compiledFile, processedFile, minifiedFile} = getCompiledFilePaths(srcFile, '.js')
+		{compiledFile, processedFile, minifiedFile, compiledDirTask, processedDirTask, minifiedDirTask} = getCompiledFilePaths(srcFile, '.js')
 		desc('Compile ' + srcFile)
-		alterFileTask(compiledFile, srcFile,
+		compileTask = addTask('compile', compiledFile)
+		alterFileTask(compiledFile, srcFile, [compiledDirTask],
 			(data, callback) ->
 				console.log('Compiling CoffeeScript for: '+ this.name)
 				try
@@ -292,38 +299,41 @@ jake.rmutils.coffeeCompileNamespace = () ->
 					callback(e)
 		)
 		desc('Process ' + srcFile)
-		alterFileTask(processedFile, compiledFile, uglifyDefines)
+		processTask = addTask('process', processedFile)
+		alterFileTask(processedFile, compiledFile, [processedDirTask, compileTask], uglifyDefines)
 		desc('Minify ' + srcFile)
-		alterFileTask(minifiedFile, processedFile, uglifyMin)
-		return [addTask('compile', compiledFile), addTask('process', processedFile), addTask('process', minifiedFile)]
+		alterFileTask(minifiedFile, processedFile, [minifiedDirTask, processTask], uglifyMin)
+		return [compileTask, processTask, addTask('minify', minifiedFile)]
 	)
 
 createCopyTask = (srcFile) ->
-	{compiledFile, processedFile, minifiedFile} = getCompiledFilePaths(srcFile)
+	{compiledFile, processedFile, minifiedFile, compiledDirTask, processedDirTask, minifiedDirTask} = getCompiledFilePaths(srcFile)
 	
+	compileTask = addTask('compile', compiledFile)
+	processTask = addTask('process', processedFile)
 	desc('Copy ' + srcFile)
-	copyFileTask(compiledFile, srcFile)
+	copyFileTask(compiledFile, srcFile, [compiledDirTask])
 	switch path.extname(srcFile)
 		when '.html'
 			desc('Process ifdefs for ' + srcFile)
-			alterFileTask(processedFile, compiledFile, (data, callback) -> 
+			alterFileTask(processedFile, compiledFile, [processedDirTask, compiledFile], (data, callback) -> 
 				regexpDefines = (define for define, value of defines when value[1]).join('|')
 				console.log('Processing HTML IFDEFs for: '+ this.name)
 				data = data.replace(new RegExp('<!--[^>]*?#IFDEF[^>]*?(?=' + regexpDefines + ')[\\s\\S]*?-->([\\s\\S]*?)<!--[^>]*?#ENDIFDEF[^>]*?-->','g'), '$1')
 				callback(false, data.replace(new RegExp('<!--#IFDEF[\\s\\S]*?ENDIFDEF[\\s\\S]*?-->','g'), ''))
 			)
-			copyFileTask(minifiedFile, processedFile)
+			copyFileTask(minifiedFile, processedFile, [minifiedDirTask, processTask])
 		when '.js'
 			desc('Process ' + srcFile)
-			alterFileTask(processedFile, compiledFile, uglifyDefines)
+			alterFileTask(processedFile, compiledFile, [processedDirTask, compiledFile], uglifyDefines)
 			desc('Minify ' + srcFile)
-			alterFileTask(minifiedFile, processedFile, uglifyMin)
+			alterFileTask(minifiedFile, processedFile, [minifiedDirTask, processTask], uglifyMin)
 		else
 			desc('Copy file for ' + srcFile)
-			copyFileTask(processedFile, compiledFile)
+			copyFileTask(processedFile, compiledFile, [processedDirTask, compiledFile])
 			desc('Copy file for ' + srcFile)
-			copyFileTask(minifiedFile, processedFile)
-	return [addTask('compile', compiledFile), addTask('process', processedFile), addTask('minify', minifiedFile)]
+			copyFileTask(minifiedFile, processedFile, [minifiedDirTask, processTask])
+	return [compileTask, processTask, addTask('minify', minifiedFile)]
 
 jake.rmutils.createCopyTask = (srcFile) ->
 	return createCopyTask(path.join(currentDirs.src, srcFile))
@@ -333,7 +343,7 @@ jake.rmutils.createCopyNamespace = (excludeFileTypes = ['coffee', 'ometa']) ->
 	namespace('copy', ->
 		fileList = new jake.FileList()
 		fileList.exclude(excludeDirs)
-		fileList.include(path.join(currentDirs.src, '**'))
+		fileList.include(path.join(currentDirs.src, '**.*'))
 		fileList.exclude(new RegExp('(' + excludeFileTypes.join('|') + ')$'))
 		for inFile in fileList.toArray()
 			taskList = taskList.concat(createCopyTask(inFile))
