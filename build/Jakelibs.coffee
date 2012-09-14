@@ -4,7 +4,7 @@ path = require('path')
 process.env.outputDir ?= 'out/'
 process.env.compiledDir ?= process.env.outputDir + 'compiled/'
 process.env.processedDir ?= process.env.outputDir + 'processed/'
-process.env.finalDir ?= process.env.outputDir + 'publish/'
+process.env.minifiedDir ?= process.env.outputDir + 'minified/'
 
 defines = {}
 
@@ -47,7 +47,7 @@ setDirs = (category, module) ->
 		output: removeTrailingSlash(path.join(rootDir, process.env.outputDir))
 		compiled: removeTrailingSlash(path.join(rootDir, process.env.compiledDir))
 		processed: removeTrailingSlash(path.join(rootDir, process.env.processedDir))
-		final: removeTrailingSlash(path.join(rootDir, process.env.finalDir))
+		minified: removeTrailingSlash(path.join(rootDir, process.env.minifiedDir))
 
 do ->
 	process.chdir('..')
@@ -150,11 +150,11 @@ createDirectoryTasks = () ->
 		folderList.exclude(excludeDirs)
 		folderList.exclude(excludeNonDirs)
 		
-		dirList = [currentDirs.compiled, currentDirs.processed, currentDirs.final]
+		dirList = [currentDirs.compiled, currentDirs.processed, currentDirs.minified]
 		for folderPath in folderList.toArray()
 			# We want to keep the output dir paths relative to the src dir paths
 			folderPath = path.relative(currentDirs.src, folderPath)
-			dirList.push(path.join(currentDirs.compiled, folderPath), path.join(currentDirs.processed, folderPath), path.join(currentDirs.final, folderPath))
+			dirList.push(path.join(currentDirs.compiled, folderPath), path.join(currentDirs.processed, folderPath), path.join(currentDirs.minified, folderPath))
 		
 		currNamespace = getCurrentNamespace()
 		directory(currentDirs.output)
@@ -189,6 +189,7 @@ createInstallTasks = () ->
 				taskList.push(addTask(buildType, buildType))
 			actualInstallTask('compile', currentDirs.compiled)
 			actualInstallTask('process', currentDirs.processed)
+			actualInstallTask('minified', currentDirs.processed)
 		)
 	return taskList
 
@@ -226,7 +227,8 @@ getCompiledFilePaths = (srcFile, newExt) ->
 		extFile = path.join(path.dirname(extFile), path.basename(extFile, path.extname(extFile)) + newExt)
 	compiledFile = path.join(currentDirs.compiled, extFile)
 	processedFile = path.join(currentDirs.processed, extFile)
-	return {compiledFile, processedFile}
+	minifiedFile = path.join(currentDirs.minified, extFile)
+	return {compiledFile, processedFile, minifiedFile}
 
 uglifyDefines = (data, callback) ->
 	ast = uglify.parser.parse(data)
@@ -243,9 +245,16 @@ uglifyDefines = (data, callback) ->
 	)
 	callback(false, code)
 
+uglifyMin = (data, callback) ->
+	ast = uglify.parser.parse(data)
+	ast = uglify.uglify.ast_mangle(ast)
+	ast = uglify.uglify.ast_squeeze(ast)
+	code = uglify.uglify.gen_code(ast)
+	callback(false, code)
+
 jake.rmutils.ometaCompileNamespace = () ->
 	return createCompileNamespace('Compile', 'ometa', (srcFile) ->
-		{compiledFile, processedFile} = getCompiledFilePaths(srcFile, '.js')
+		{compiledFile, processedFile, minifiedFile} = getCompiledFilePaths(srcFile, '.js')
 		desc('Compile ' + srcFile)
 		file(compiledFile,
 			->
@@ -259,12 +268,14 @@ jake.rmutils.ometaCompileNamespace = () ->
 		)
 		desc('Process ' + srcFile)
 		alterFileTask(processedFile, compiledFile, uglifyDefines)
-		return [addTask('compile', compiledFile), addTask('process', processedFile)]
+		desc('Minify ' + srcFile)
+		alterFileTask(minifiedFile, processedFile, uglifyMin)
+		return [addTask('compile', compiledFile), addTask('process', processedFile), addTask('process', minifiedFile)]
 	)
 
 jake.rmutils.coffeeCompileNamespace = () ->
 	return createCompileNamespace('Compile', 'coffee', (srcFile) ->
-		{compiledFile, processedFile} = getCompiledFilePaths(srcFile, '.js')
+		{compiledFile, processedFile, minifiedFile} = getCompiledFilePaths(srcFile, '.js')
 		desc('Compile ' + srcFile)
 		alterFileTask(compiledFile, srcFile,
 			(data, callback) ->
@@ -276,11 +287,13 @@ jake.rmutils.coffeeCompileNamespace = () ->
 		)
 		desc('Process ' + srcFile)
 		alterFileTask(processedFile, compiledFile, uglifyDefines)
-		return [addTask('compile', compiledFile), addTask('process', processedFile)]
+		desc('Minify ' + srcFile)
+		alterFileTask(minifiedFile, processedFile, uglifyMin)
+		return [addTask('compile', compiledFile), addTask('process', processedFile), addTask('process', minifiedFile)]
 	)
 
 createCopyTask = (srcFile) ->
-	{compiledFile, processedFile} = getCompiledFilePaths(srcFile)
+	{compiledFile, processedFile, minifiedFile} = getCompiledFilePaths(srcFile)
 	copyCallback = (data, callback) ->
 		console.log('Copying file for: '+ this.name)
 		callback(false, data)
@@ -290,19 +303,24 @@ createCopyTask = (srcFile) ->
 	switch path.extname(srcFile)
 		when '.html'
 			desc('Process ifdefs for ' + srcFile)
-			alterFunc = (data, callback) -> 
+			alterFileTask(processedFile, compiledFile, (data, callback) -> 
 				regexpDefines = (define for define, value of defines when value[1]).join('|')
 				console.log('Processing HTML IFDEFs for: '+ this.name)
 				data = data.replace(new RegExp('<!--[^>]*?#IFDEF[^>]*?(?=' + regexpDefines + ')[\\s\\S]*?-->([\\s\\S]*?)<!--[^>]*?#ENDIFDEF[^>]*?-->','g'), '$1')
 				callback(false, data.replace(new RegExp('<!--#IFDEF[\\s\\S]*?ENDIFDEF[\\s\\S]*?-->','g'), ''))
+			)
+			alterFileTask(minifiedFile, processedFile, copyCallback)
 		when '.js'
 			desc('Process ' + srcFile)
-			alterFunc = uglifyDefines
+			alterFileTask(processedFile, compiledFile, uglifyDefines)
+			desc('Minify ' + srcFile)
+			alterFileTask(minifiedFile, processedFile, uglifyMin)
 		else
-			desc('Copy file for ' + path.basename(compiledFile))
-			alterFunc = copyCallback
-	alterFileTask(processedFile, compiledFile, alterFunc)
-	return [addTask('compile', compiledFile), addTask('process', processedFile)]
+			desc('Copy file for ' + srcFile)
+			alterFileTask(processedFile, compiledFile, copyCallback)
+			desc('Copy file for ' + srcFile)
+			alterFileTask(minifiedFile, processedFile, copyCallback)
+	return [addTask('compile', compiledFile), addTask('process', processedFile), addTask('minify', minifiedFile)]
 
 jake.rmutils.createCopyTask = (srcFile) ->
 	return createCopyTask(path.join(currentDirs.src, srcFile))
@@ -320,72 +338,3 @@ jake.rmutils.createCopyNamespace = (excludeFileTypes = ['coffee', 'ometa']) ->
 		task('all', taskList)
 	)
 	return taskList
-
-jake.rmutils.requirejsTask = (extraRequirejsConf) ->
-	rootPath = path.resolve('src') + '/'
-	requirejsConf = jake.mixin({
-			paths: {
-				'bcrypt': 'empty:'
-				'passport-local': 'empty:'
-				'pg': 'empty:'
-			
-				'jquery':					rootPath + 'external/jquery-1.7.1.min',
-				# 'jquery':					'https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min',
-				'jquery-ui':				rootPath + 'external/jquery-ui/js/jquery-ui-1.8.17.custom.min',
-				'jquery-custom-file-input':	rootPath + 'external/jquery-custom-file-input',
-				'jquery.hotkeys':			rootPath + 'external/jquery.hotkeys',
-				'ometa-core':				rootPath + 'external/ometa-js/lib/ometajs/core',
-				'ometa-compiler':			rootPath + 'external/ometa-js/lib/ometajs/ometa/parsers',
-				'codemirror':				rootPath + 'external/CodeMirror2/lib/codemirror',
-				'codemirror-util':			rootPath + 'external/CodeMirror2/lib/util',
-				'codemirror-keymap':		rootPath + 'external/CodeMirror2/keymap',
-				'codemirror-modes':			rootPath + 'external/CodeMirror2/mode',
-				'js-beautify':				rootPath + 'external/beautify/beautify',
-				'qunit':					rootPath + 'external/qunit/qunit',
-				'underscore':				rootPath + 'external/underscore-1.2.1.min',
-				'inflection':				rootPath + 'external/inflection/inflection',
-				'json2':					rootPath + 'external/json2',
-				'downloadify':				rootPath + 'external/downloadify',
-				'ejs':						rootPath + 'external/ejs/ejs.min',
-				
-				'sbvr-parser':				rootPath + 'common/sbvr-parser/out/processed/',
-				'utils':					rootPath + 'common/utils/out/processed',
-				
-				'sbvr-frame':				rootPath + 'client/sbvr-frame/out/processed',
-				'data-frame':				rootPath + 'client/data-frame/out/processed',
-				'Prettify':					rootPath + 'client/prettify-ometa/out/processed/Prettify',
-				'codemirror-ometa-bridge':	rootPath + 'client/codemirror-ometa-bridge/src',
-				
-				'sbvr-compiler':			rootPath + 'server/sbvr-compiler/out/processed',
-				
-				'server-glue':				rootPath + 'server/server-glue/out/processed',
-				'express-emulator':			rootPath + 'server/express-emulator/out/processed',
-				'data-server':				rootPath + 'server/data-server/out/processed',
-				'editor-server':			rootPath + 'server/editor-server/out/processed',
-				'database-layer':			rootPath + 'server/database-layer/out/processed',
-				'passportBCrypt':			rootPath + 'server/passport-bcrypt/out/processed/passportBCrypt',
-				
-				'frame-glue':				rootPath + 'client/frame-glue/out/processed'
-			}
-			appDir: currentDirs.processed
-			dir: currentDirs.final
-			findNestedDependencies: true
-		}
-		extraRequirejsConf
-	)
-	buildFile = path.join(currentDirs.out, 'temp.build.js')
-	desc('rjs optimise')
-	task('requirejs',
-		->
-			console.log(requirejsConf)
-			console.log(JSON.stringify(requirejsConf))
-			console.log('Concatenating and minifying Javascript')
-			fs.writeFileSync(buildFile, JSON.stringify(requirejsConf))
-			requirejs.optimize(buildFile: buildFile, (buildResponse) ->
-				console.log('require.js: ', buildResponse)
-				fs.unlink(buildFile)
-				complete()
-			)
-		async: true
-	)
-	return getCurrentNamespace() + 'requirejs'

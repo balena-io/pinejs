@@ -25,9 +25,9 @@ namespace('dir', ->
 	folderList.exclude(excludeDirs)
 	folderList.exclude(excludeNonDirs)
 	
-	dirList = [process.env.compiledDir, process.env.processedDir, process.env.finalDir]
+	dirList = [process.env.compiledDir, process.env.processedDir, process.env.minifiedDir]
 	for folderPath in folderList.toArray()
-		dirList.push(path.join(process.env.compiledDir, folderPath), path.join(process.env.processedDir, folderPath), path.join(process.env.finalDir, folderPath))
+		dirList.push(path.join(process.env.compiledDir, folderPath), path.join(process.env.processedDir, folderPath), path.join(process.env.minifiedDir, folderPath))
 	
 	currNamespace = getCurrentNamespace()
 	directory(process.env.outputDir)
@@ -67,6 +67,9 @@ task('compile', jake.rmutils.getStoredTasks(null, null, 'dir').concat(jake.rmuti
 
 desc('Process everything')
 task('process', jake.rmutils.getStoredTasks(null, null, 'dir').concat(jake.rmutils.getStoredTasks(null, null, 'process')))
+
+desc('Minify everything')
+task('minify', jake.rmutils.getStoredTasks(null, null, 'dir').concat(jake.rmutils.getStoredTasks(null, null, 'minify')))
 
 desc('Clean everything')
 task('clean', jake.rmutils.getStoredTasks(null, null, 'clean'), ->
