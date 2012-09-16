@@ -42,28 +42,37 @@ define(['ometa-core'], function() {
 		SelectQuery :indent =
 			NestedIndent(indent):nestedIndent
 			{[]}:tables
+			{''}:where
+			{''}:orderBy
+			{''}:limit
+			{''}:offset
 			[	'SelectQuery'
 				[	Select:fields
 				|	Table:table
 					{tables.push(table)}
 				|	Where(indent):where
-					{indent + 'WHERE ' + where}:where
+					{indent + where}:where
 				|	OrderBy(indent):orderBy
-					{indent + 'ORDER BY ' + orderBy}:orderBy
+					{indent + orderBy}:orderBy
+				|	Limit(indent):limit
+					{indent + limit}:limit
+				|	Offset(indent):offset
+					{indent + offset}:offset
 				]*
 			]
-			-> ('SELECT ' + fields.join(', ') + indent + 'FROM ' + tables.join(',' + nestedIndent) + (where!=null ? where : '') + (orderBy!=null ? orderBy : '')),
+			-> ('SELECT ' + fields.join(', ') + indent + 'FROM ' + tables.join(',' + nestedIndent) + where + orderBy + limit + offset),
 
 		DeleteQuery :indent =
 			{[]}:tables
+			{''}:where
 			[	'DeleteQuery'
 				[	Table:table
 					{tables.push(table)}
 				|	Where(indent):where
-					{indent + 'WHERE ' + where}:where
+					{indent + where}:where
 				]*
 			]
-			-> ('DELETE FROM ' + tables.join(', ') + indent + (where!=null ? where : '')),
+			-> ('DELETE FROM ' + tables.join(', ') + where),
 		
 		InsertBody :indent =
 			{[]}:tables
@@ -78,18 +87,19 @@ define(['ometa-core'], function() {
 		
 		UpdateBody :indent =
 			{[]}:tables
+			{''}:where
 			[	Fields:fieldValues
 			|	Table:table
 				{tables.push(table)}
 			|	Where(indent):where
-				{indent + 'WHERE ' + where}:where
+				{indent + where}:where
 			]*
 			{[]}:sets
 			{	for(var i=0; i < fieldValues[0].length; i++) {
 					sets[i] = fieldValues[0][i] + ' = ' + fieldValues[1][i];
 				}
 			}
-			-> ('UPDATE ' + tables.join(', ') + indent + ' SET ' + sets.join(',' + indent) + (where!=null ? where : '')),
+			-> ('UPDATE ' + tables.join(', ') + indent + ' SET ' + sets.join(',' + indent) + where),
 		
 		UpsertQuery :indent =
 			{[]}:tables
@@ -183,7 +193,8 @@ define(['ometa-core'], function() {
 		
 		Where :indent =
 			'Where'
-			RuleBody(indent),
+			RuleBody(indent):ruleBody
+			-> 'WHERE ' + ruleBody,
 		
 		OrderBy :indent =
 			'OrderBy'
@@ -194,7 +205,17 @@ define(['ometa-core'], function() {
 				Field:field
 				{orders.push(field + ' ' + order)}
 			]+
-			-> orders.join(', '),
+			-> 'ORDER BY ' + orders.join(', '),
+		
+		Limit :indent =
+			'Limit'
+			Number:num
+			-> 'LIMIT ' + num,
+		
+		Offset :indent =
+			'Offset'
+			Number:num
+			-> 'OFFSET ' + num,
 		
 		Field =
 			[	'Field'

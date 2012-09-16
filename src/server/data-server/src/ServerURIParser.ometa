@@ -90,6 +90,10 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core'], function(SBVRLibs, 
 				(	Filters(query)
 				|	Sorts:sorts
 					{query.push(sorts)}
+				|	Limit:limit
+					{query.push(limit)}
+				|	Offset:offset
+					{query.push(offset)}
 				)
 			)*,
 
@@ -117,6 +121,18 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core'], function(SBVRLibs, 
 				AddBodyVar(resourceName, resourceFieldName, mapping, value)
 				AddQueryTable(query, mapping[0])
 			)+,
+
+		Number = <digit+>:d -> ['Number', parseInt(d, 10)],
+
+		Limit =
+			seq('limit=')
+			Number:num
+			->	['Limit', num],
+
+		Offset =
+			seq('offset=')
+			Number:num
+			->	['Offset', num],
 
 		Sorts =
 			seq('order=')
