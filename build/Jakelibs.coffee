@@ -343,7 +343,7 @@ jake.rmutils.createCopyNamespace = (excludeFileTypes = ['coffee', 'ometa']) ->
 	namespace('copy', ->
 		fileList = new jake.FileList()
 		fileList.exclude(excludeDirs)
-		fileList.include(path.join(currentDirs.src, '**.*'))
+		fileList.include(path.join(currentDirs.src, '**', '*.*'))
 		fileList.exclude(new RegExp('(' + excludeFileTypes.join('|') + ')$'))
 		for inFile in fileList.toArray()
 			taskList = taskList.concat(createCopyTask(inFile))
