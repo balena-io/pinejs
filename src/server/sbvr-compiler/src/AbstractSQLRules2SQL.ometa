@@ -194,7 +194,7 @@ define(['ometa-core'], function() {
 		Where :indent =
 			'Where'
 			RuleBody(indent):ruleBody
-			-> 'WHERE ' + ruleBody,
+			-> ('WHERE ' + ruleBody),
 		
 		OrderBy :indent =
 			'OrderBy'
@@ -205,17 +205,17 @@ define(['ometa-core'], function() {
 				Field:field
 				{orders.push(field + ' ' + order)}
 			]+
-			-> 'ORDER BY ' + orders.join(', '),
+			-> ('ORDER BY ' + orders.join(', ')),
 		
 		Limit :indent =
 			'Limit'
 			Number:num
-			-> 'LIMIT ' + num,
+			-> ('LIMIT ' + num),
 		
 		Offset :indent =
 			'Offset'
 			Number:num
-			-> 'OFFSET ' + num,
+			-> ('OFFSET ' + num),
 		
 		Field =
 			[	'Field'
