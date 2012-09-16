@@ -23,7 +23,7 @@ browser = webdriver.Chrome()
 root_path = sys.path[0].split('\\')[:-2]
 root_path = '/'.join(root_path)
 
-browser.get("file:///%s/src/client/frame-glue/src/index.html" % root_path)
+browser.get("file:///%s/src/client/frame-glue/out/compiled/index.html" % root_path)
 time.sleep(2)
 
 browser.find_element_by_id("bl").click()
