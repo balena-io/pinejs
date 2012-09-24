@@ -88,7 +88,13 @@ namespace('consolidate', ->
 						consolidatedFilePath = path.relative(path.join('src', category, module, process.env.minifiedDir), minifyTaskFile)
 						consolidatedFilePath = path.join(process.env.compiledDir, category, module, consolidatedFilePath)
 						# console.log(consolidatedFilePath, minifyTask, minifyTaskFile)
-						jake.rmutils.copyFileTask(consolidatedFilePath, minifyTaskFile, [minifyTask])
+						if path.extname(minifyTaskFile) == '.html'
+							jake.rmutils.alterFileTask(consolidatedFilePath, minifyTaskFile, [minifyTask], (data, callback) -> 
+								console.log('Processing HTML DEV/BUILD tags for: '+ this.name)
+								callback(false, data.replace(new RegExp('<!--[^>]*?#DEV[\\s\\S]*?#BUILT([\\s\\S]*?)-->','g'), '$1'))
+							)
+						else
+							jake.rmutils.copyFileTask(consolidatedFilePath, minifyTaskFile, [minifyTask])
 						moduleTaskList.push(currNamespace + consolidatedFilePath)
 					task('all', moduleTaskList)
 					categoryTaskList[category].push(currNamespace + 'all')
