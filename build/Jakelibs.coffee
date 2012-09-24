@@ -137,7 +137,12 @@ jake.rmutils.copyFileTask = copyFileTask = (outFile, inFile, taskDependencies = 
 		callback(false, data)
 	)
 
-jake.rmutils.excludeDirs = excludeDirs = [process.env.outputDir, '.git', 'node_modules', 'build']
+jake.rmutils.excludeDirs = excludeDirs = [
+	new RegExp('(^|[\\/\\\\])' + process.env.outputDir + '([\\/\\\\]|$)')
+	/(^|[\/\\]).git([\/\\]|$)/
+	/(^|[\/\\])node_modules([\/\\]|$)/
+	/(^|[\/\\])build([\/\\]|$)/
+]
 
 jake.rmutils.importJakefile = (category, module) ->
 	jakefile = path.resolve(path.join('src', category, module, 'build', 'Jakefile.coffee'))
