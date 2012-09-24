@@ -5,7 +5,7 @@ require('./Jakelibs.coffee')
 getStoredTasks = jake.rmutils.getStoredTasks
 getCurrentNamespace = jake.rmutils.getCurrentNamespace
 excludeNonDirs = jake.rmutils.excludeNonDirs
-excludeDirs = jake.rmutils.excludeDirs
+excludedDirs = jake.rmutils.excludedDirs
 
 categorisedModules = {}
 # TODO: Move files into folders and remove the support for files in a category rather than module.
@@ -32,7 +32,7 @@ namespace('dir', ->
 	folderList.include('src/*')
 	folderList.include('src/*/*')
 	folderList.include('src/*/*/src/**')
-	folderList.exclude(excludeDirs)
+	folderList.exclude(excludedDirs)
 	folderList.exclude(excludeNonDirs)
 	
 	dirList = [process.env.compiledDir, process.env.processedDir, process.env.minifiedDir]

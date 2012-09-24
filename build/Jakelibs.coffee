@@ -94,13 +94,16 @@ addTask = (buildType, task) ->
 	storedTasks[currentCategory][currentModule][buildType].push(task)
 	return task
 
-jake.rmutils.excludeNonDirs = excludeNonDirs = (name) -> # Exclude non-directories
+jake.rmutils.excludeDirs = excludeDirs = (name) -> # Exclude directories
 	try
 		stats = fs.statSync(name)
-		return !stats.isDirectory()
+		return stats.isDirectory()
 	catch e
 		console.error(e)
-		return true
+		throw e
+
+jake.rmutils.excludeNonDirs = excludeNonDirs = (name) -> # Exclude non-directories
+	return !excludeDirs(name)
 
 jake.rmutils.alterFileTask = alterFileTask = (outFile, inFile, taskDependencies, alterFunc) ->
 	if alterFunc == undefined
@@ -137,7 +140,7 @@ jake.rmutils.copyFileTask = copyFileTask = (outFile, inFile, taskDependencies = 
 		callback(false, data)
 	)
 
-jake.rmutils.excludeDirs = excludeDirs = [
+jake.rmutils.excludedDirs = excludedDirs = [
 	new RegExp('(^|[\\/\\\\])' + process.env.outputDir + '([\\/\\\\]|$)')
 	/(^|[\/\\]).git([\/\\]|$)/
 	/(^|[\/\\])node_modules([\/\\]|$)/
@@ -156,9 +159,8 @@ createDirectoryTasks = () ->
 	taskList = []
 	namespace('dir', ->
 		folderList = new jake.FileList()
-		folderList.clearExclude() # Clear the default exclude of folders
 		folderList.include(path.join(currentDirs.src, '**'))
-		folderList.exclude(excludeDirs)
+		folderList.exclude(excludedDirs)
 		folderList.exclude(excludeNonDirs)
 		
 		dirList = [currentDirs.compiled, currentDirs.processed, currentDirs.minified]
@@ -222,7 +224,7 @@ createCompileNamespace = (action, fileType, createCompileTaskFunc) ->
 	taskList = []
 	namespace(fileType, ->
 		fileList = new jake.FileList()
-		fileList.exclude(excludeDirs)
+		fileList.exclude(excludedDirs)
 		fileList.include(path.join(currentDirs.src, '**', '*.' + fileType))
 		for srcFile in fileList.toArray()
 			taskList = taskList.concat(createCompileTaskFunc(srcFile))
@@ -347,7 +349,7 @@ jake.rmutils.createCopyNamespace = (excludeFileTypes = ['coffee', 'ometa']) ->
 	taskList = []
 	namespace('copy', ->
 		fileList = new jake.FileList()
-		fileList.exclude(excludeDirs)
+		fileList.exclude(excludedDirs)
 		fileList.include(path.join(currentDirs.src, '**', '*.*'))
 		fileList.exclude(new RegExp('(' + excludeFileTypes.join('|') + ')$'))
 		for inFile in fileList.toArray()
