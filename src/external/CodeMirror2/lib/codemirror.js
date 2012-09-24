@@ -174,6 +174,7 @@ window.CodeMirror = (function() {
         }
       },
       getOption: function(option) {return options[option];},
+      getMode: function() {return mode;},
       undo: operation(undo),
       redo: operation(redo),
       indentLine: operation(function(n, dir) {
@@ -192,8 +193,18 @@ window.CodeMirror = (function() {
         history.undone = histData.undone;
       },
       getHistory: function() {
-        history.time = 0;
-        return {done: history.done.concat([]), undone: history.undone.concat([])};
+        function cp(arr) {
+          for (var i = 0, nw = [], nwelt; i < arr.length; ++i) {
+            nw.push(nwelt = []);
+            for (var j = 0, elt = arr[i]; j < elt.length; ++j) {
+              var old = [], cur = elt[j];
+              nwelt.push({start: cur.start, added: cur.added, old: old});
+              for (var k = 0; k < cur.old.length; ++k) old.push(hlText(cur.old[k]));
+            }
+          }
+          return nw;
+        }
+        return {done: cp(history.done), undone: cp(history.undone)};
       },
       matchBrackets: operation(function(){matchBrackets(true);}),
       getTokenAt: operation(function(pos) {
@@ -601,10 +612,11 @@ window.CodeMirror = (function() {
       }, 50);
 
       var name = keyNames[e_prop(e, "keyCode")], handled = false;
+      var flipCtrlCmd = opera && mac;
       if (name == null || e.altGraphKey) return false;
       if (e_prop(e, "altKey")) name = "Alt-" + name;
-      if (e_prop(e, "ctrlKey")) name = "Ctrl-" + name;
-      if (e_prop(e, "metaKey")) name = "Cmd-" + name;
+      if (e_prop(e, flipCtrlCmd ? "metaKey" : "ctrlKey")) name = "Ctrl-" + name;
+      if (e_prop(e, flipCtrlCmd ? "ctrlKey" : "metaKey")) name = "Cmd-" + name;
 
       var stopped = false;
       function stop() { stopped = true; }
@@ -2037,7 +2049,13 @@ window.CodeMirror = (function() {
     var spec = CodeMirror.resolveMode(spec);
     var mfactory = modes[spec.name];
     if (!mfactory) return CodeMirror.getMode(options, "text/plain");
-    return mfactory(options, spec);
+    var modeObj = mfactory(options, spec);
+    if (modeExtensions.hasOwnProperty(spec.name)) {
+      var exts = modeExtensions[spec.name];
+      for (var prop in exts) if (exts.hasOwnProperty(prop)) modeObj[prop] = exts[prop];
+    }
+    modeObj.name = spec.name;
+    return modeObj;
   };
   CodeMirror.listModes = function() {
     var list = [];
@@ -2055,6 +2073,13 @@ window.CodeMirror = (function() {
   var extensions = CodeMirror.extensions = {};
   CodeMirror.defineExtension = function(name, func) {
     extensions[name] = func;
+  };
+
+  var modeExtensions = CodeMirror.modeExtensions = {};
+  CodeMirror.extendMode = function(mode, properties) {
+    var exts = modeExtensions.hasOwnProperty(mode) ? modeExtensions[mode] : (modeExtensions[mode] = {});
+    for (var prop in properties) if (properties.hasOwnProperty(prop))
+      exts[prop] = properties[prop];
   };
 
   var commands = CodeMirror.commands = {
@@ -2259,6 +2284,14 @@ window.CodeMirror = (function() {
     return mode.startState ? mode.startState(a1, a2) : true;
   }
   CodeMirror.startState = startState;
+  CodeMirror.innerMode = function(mode, state) {
+    while (mode.innerMode) {
+      var info = mode.innerMode(state);
+      state = info.state;
+      mode = info.mode;
+    }
+    return info || {mode: mode, state: state};
+  };
 
   // The character stream used by a mode's parser.
   function StringStream(string, tabSize) {
@@ -3102,7 +3135,7 @@ window.CodeMirror = (function() {
     for (var i = 1; i <= 12; i++) keyNames[i + 111] = keyNames[i + 63235] = "F" + i;
   })();
 
-  CodeMirror.version = "2.33 +";
+  CodeMirror.version = "2.34";
 
   return CodeMirror;
 })();
