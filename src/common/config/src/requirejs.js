@@ -23,7 +23,7 @@
 			'codemirror-util':			rootPath + 'external/CodeMirror2/lib/util',
 			'codemirror-theme':			rootPath + 'external/CodeMirror2/theme',
 			'qunit':					rootPath + 'external/qunit/qunit.css',
-			'codemirror-ometa-bridge':	rootPath + 'client/codemirror-ometa-bridge/src'
+			'codemirror-ometa-bridge':	rootPath + 'client/codemirror-ometa-bridge/' + buildType
 		};
 		return function(url) {
 			var firstPathPart = url.split('/')[0];
@@ -66,7 +66,7 @@
 			'sbvr-frame':				rootPath + 'client/sbvr-frame/' + buildType,
 			'data-frame':				rootPath + 'client/data-frame/' + buildType,
 			'Prettify':					rootPath + 'client/prettify-ometa/' + buildType + '/Prettify',
-			'codemirror-ometa-bridge':	rootPath + 'client/codemirror-ometa-bridge/src',
+			'codemirror-ometa-bridge':	rootPath + 'client/codemirror-ometa-bridge/' + buildType,
 			
 			'sbvr-compiler':			rootPath + 'server/sbvr-compiler/' + buildType,
 			
