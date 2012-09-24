@@ -85,10 +85,6 @@ define(['codemirror'], function() {
 					};
 				},
 				
-				compareStates: function(origState, newState) {
-					return false;
-				},
-				
 				blankLine: eol,
 
 				token: function(stream, state) {
