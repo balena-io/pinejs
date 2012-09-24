@@ -1,8 +1,15 @@
+if(typeof DEV === 'undefined') DEV = true;
 (function() {
 	var scripts = document.getElementsByTagName('script'),
 		uriParts = scripts[scripts.length - 1].src.split('/'),
-		rootPath, i=0;
-	for(;i<3;i++) {
+		rootPath, i, partsToPop;
+	if(DEV) {
+		partsToPop = 4;
+	}
+	else {
+		partsToPop = 3;
+	}
+	for(i=0;i<partsToPop;i++) {
 		uriParts.pop();
 	}
 	rootPath = uriParts.join('/') + '/';
@@ -11,9 +18,12 @@
 	
 	var currentPathParts = location.pathname.split('/');
 	currentPathParts.pop(); // Remove filename
-	var buildType = currentPathParts.pop();
-	if(buildType != 'src') {
-		buildType = currentPathParts.pop() + '/' + buildType;
+	var buildType = '';
+	if(DEV) {
+		buildType = currentPathParts.pop() + '/';
+		if(buildType != 'src') {
+			buildType = currentPathParts.pop() + '/' + buildType;
+		}
 	}
 
 	window.requireCSS = (function() {
@@ -65,7 +75,7 @@
 			
 			'sbvr-frame':				rootPath + 'client/sbvr-frame/' + buildType,
 			'data-frame':				rootPath + 'client/data-frame/' + buildType,
-			'Prettify':					rootPath + 'client/prettify-ometa/' + buildType + '/Prettify',
+			'Prettify':					rootPath + 'client/prettify-ometa/' + buildType + 'Prettify',
 			'codemirror-ometa-bridge':	rootPath + 'client/codemirror-ometa-bridge/' + buildType,
 			
 			'sbvr-compiler':			rootPath + 'server/sbvr-compiler/' + buildType,
@@ -75,7 +85,7 @@
 			'data-server':				rootPath + 'server/data-server/' + buildType,
 			'editor-server':			rootPath + 'server/editor-server/' + buildType,
 			'database-layer':			rootPath + 'server/database-layer/' + buildType,
-			'passportBCrypt':			rootPath + 'server/passport-bcrypt/' + buildType + '/passportBCrypt',
+			'passportBCrypt':			rootPath + 'server/passport-bcrypt/' + buildType + 'passportBCrypt',
 			
 			'frame-glue':				rootPath + 'client/frame-glue/' + buildType
 		},

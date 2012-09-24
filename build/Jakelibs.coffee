@@ -7,24 +7,27 @@ process.env.compiledDir ?= removeTrailingSlash(path.join(process.env.outputDir, 
 process.env.processedDir ?= removeTrailingSlash(path.join(process.env.outputDir, 'processed'))
 process.env.minifiedDir ?= removeTrailingSlash(path.join(process.env.outputDir, 'minified'))
 
+jake.rmutils ?= {}
+jake.rmutils.resolveDefine = resolveDefine = (value) ->
+	if typeof value == "string"
+		return [ "string", value ]
+	if typeof value == "number"
+		return [ "num", value ]
+	if value == true
+		return [ 'name', 'true' ]
+	if value == false
+		return [ 'name', 'false' ]
+	if value == null
+		return [ 'name', 'null' ]
+	if value == undefined
+		return [ 'name', 'undefined' ]
+	throw "Can't understand the specified value: " + value
+
 defines = {}
 
 setDefines = (newDefines) ->
 	for key, value of newDefines
-		defines[key] = do(value) ->
-			if typeof value == "string"
-				return [ "string", value ]
-			if typeof value == "number"
-				return [ "num", value ]
-			if value == true
-				return [ 'name', 'true' ]
-			if value == false
-				return [ 'name', 'false' ]
-			if value == null
-				return [ 'name', 'null' ]
-			if value == undefined
-				return [ 'name', 'undefined' ]
-			throw "Can't understand the specified value: " + value
+		defines[key] = resolveDefine(value)
 
 setDefines(
 	DDUI_ENABLED: true
@@ -66,7 +69,6 @@ coffee = require('coffee-script')
 exec = require('child_process').exec
 requirejs = require('requirejs')
 
-jake.rmutils ?= {}
 jake.rmutils.setDefines = setDefines
 jake.rmutils.getCurrentNamespace = getCurrentNamespace = () ->
 	fullNamespace = ''
@@ -262,9 +264,9 @@ uglifyDefines = (data, callback) ->
 	)
 	callback(false, code)
 
-uglifyMin = (data, callback) ->
+jake.rmutils.uglifyMin = uglifyMin = (data, callback, defines = {}) ->
 	ast = uglify.parser.parse(data)
-	ast = uglify.uglify.ast_mangle(ast)
+	ast = uglify.uglify.ast_mangle(ast, {defines: defines})
 	ast = uglify.uglify.ast_squeeze(ast)
 	code = uglify.uglify.gen_code(ast)
 	callback(false, code)

@@ -5,8 +5,10 @@ require('./Jakelibs.coffee')
 getStoredTasks = jake.rmutils.getStoredTasks
 getCurrentNamespace = jake.rmutils.getCurrentNamespace
 excludeNonDirs = jake.rmutils.excludeNonDirs
+excludeDirs = jake.rmutils.excludeDirs
 excludedDirs = jake.rmutils.excludedDirs
 
+builtModules = []
 categorisedModules = {}
 # TODO: Move files into folders and remove the support for files in a category rather than module.
 categorisedFiles = {}
@@ -26,32 +28,6 @@ do ->
 		categorisedFiles[category] ?= []
 		categorisedFiles[category].push(path.basename(file))
 
-namespace('dir', ->
-	folderList = new jake.FileList()
-	folderList.clearExclude() # Clear the default exclude of folders
-	folderList.include('src/*')
-	folderList.include('src/*/*')
-	folderList.include('src/*/*/src/**')
-	folderList.exclude(excludedDirs)
-	folderList.exclude(excludeNonDirs)
-	
-	dirList = [process.env.compiledDir, process.env.processedDir, process.env.minifiedDir]
-	for folderPath in folderList.toArray()
-		# folderPath = path.relative('src', folderPath)
-		folderPath = folderPath.replace(/src/g, '')
-		dirList.push(path.join(process.env.compiledDir, folderPath), path.join(process.env.processedDir, folderPath), path.join(process.env.minifiedDir, folderPath))
-	
-	currNamespace = getCurrentNamespace()
-	directory(process.env.outputDir)
-	taskList = [currNamespace + process.env.outputDir]
-	for dirTask in dirList
-		directory(dirTask, [currNamespace + path.dirname(dirTask)])
-		taskList.push(currNamespace + dirTask)
-	
-	desc('Create all output directories.')
-	task('all', taskList)
-)
-
 namespace('module', ->
 	taskList = []
 	for category of categorisedModules
@@ -60,6 +36,7 @@ namespace('module', ->
 			for module in categorisedModules[category]
 				namespace(module, do (module) -> ->
 					if jake.rmutils.importJakefile(category, module)
+						builtModules.push(module)
 						categoryTaskList.push(getCurrentNamespace() + 'all')
 				)
 			taskList = taskList.concat(categoryTaskList)
@@ -68,6 +45,41 @@ namespace('module', ->
 		)
 	
 	desc('Build all modules.')
+	task('all', taskList)
+)
+
+namespace('dir', ->
+	folderList = new jake.FileList()
+	folderList.include('src/*')
+	folderList.include('src/*/*')
+	folderList.include('src/*/*/src/**')
+	folderList.exclude(excludedDirs)
+	folderList.exclude(excludeNonDirs)
+	fullFolderList = []
+	for folderPath in folderList.toArray()
+		fullFolderList.push(folderPath.replace(/src/g, ''))
+
+	folderList = new jake.FileList()
+	folderList.exclude(excludedDirs)
+	folderList.exclude(excludeNonDirs)
+	for category, modules of categorisedModules
+		for module in modules when module not in builtModules
+			folderList.include(path.join('src', category, module, '**'))
+	for folderPath in folderList.toArray()
+		fullFolderList.push(path.relative('src', folderPath))
+
+	dirList = [process.env.compiledDir, process.env.processedDir, process.env.minifiedDir]
+	for folderPath in fullFolderList
+		dirList.push(path.join(process.env.compiledDir, folderPath), path.join(process.env.processedDir, folderPath), path.join(process.env.minifiedDir, folderPath))
+
+	currNamespace = getCurrentNamespace()
+	directory(process.env.outputDir)
+	taskList = [currNamespace + process.env.outputDir]
+	for dirTask in dirList
+		directory(dirTask, [currNamespace + path.dirname(dirTask)])
+		taskList.push(currNamespace + dirTask)
+	
+	desc('Create all output directories.')
 	task('all', taskList)
 )
 
@@ -81,21 +93,42 @@ namespace('consolidate', ->
 				namespace(module, do (module) -> ->
 					moduleTaskList = []
 					currNamespace = getCurrentNamespace()
-					minifyTasks = getStoredTasks(category, module, 'minify')
-					for minifyTask in minifyTasks
-						# console.log(minifyTask)
-						minifyTaskFile = minifyTask.replace(/.*:/, '')
-						consolidatedFilePath = path.relative(path.join('src', category, module, process.env.minifiedDir), minifyTaskFile)
-						consolidatedFilePath = path.join(process.env.compiledDir, category, module, consolidatedFilePath)
-						# console.log(consolidatedFilePath, minifyTask, minifyTaskFile)
-						if path.extname(minifyTaskFile) == '.html'
-							jake.rmutils.alterFileTask(consolidatedFilePath, minifyTaskFile, [minifyTask], (data, callback) -> 
-								console.log('Processing HTML DEV/BUILD tags for: '+ this.name)
-								callback(false, data.replace(new RegExp('<!--[^>]*?#DEV[\\s\\S]*?#BUILT([\\s\\S]*?)-->','g'), '$1'))
-							)
-						else
-							jake.rmutils.copyFileTask(consolidatedFilePath, minifyTaskFile, [minifyTask])
-						moduleTaskList.push(currNamespace + consolidatedFilePath)
+					if module in builtModules
+						minifyTasks = getStoredTasks(category, module, 'minify')
+						for minifyTask in minifyTasks
+							# console.log(minifyTask)
+							minifyTaskFile = minifyTask.replace(/.*:/, '')
+							consolidatedFilePath = path.relative(path.join('src', category, module, process.env.minifiedDir), minifyTaskFile)
+							consolidatedFilePath = path.join(process.env.compiledDir, category, module, consolidatedFilePath)
+							# console.log(consolidatedFilePath, minifyTask, minifyTaskFile)
+							switch path.extname(minifyTaskFile)
+								when '.html'
+									jake.rmutils.alterFileTask(consolidatedFilePath, minifyTaskFile, [minifyTask], (data, callback) -> 
+										console.log('Processing HTML DEV/BUILD tags for: '+ this.name)
+										callback(false, data.replace(new RegExp('<!--[^>]*?#DEV[\\s\\S]*?#BUILT([\\s\\S]*?)-->','g'), '$1'))
+									)
+								when '.js'
+									jake.rmutils.alterFileTask(consolidatedFilePath, minifyTaskFile, [minifyTask], (data, callback) -> 
+										console.log('Processing JS DEV/BUILD tags for: '+ this.name)
+										jake.rmutils.uglifyMin(data, callback,
+											DEV: jake.rmutils.resolveDefine(false)
+											BUILD: jake.rmutils.resolveDefine(false)
+										)
+									)
+								else
+									jake.rmutils.copyFileTask(consolidatedFilePath, minifyTaskFile, [minifyTask])
+							moduleTaskList.push(currNamespace + consolidatedFilePath)
+					else
+						moduleDir = path.join('src', category, module)
+						filesList = new jake.FileList()
+						filesList.exclude(excludeDirs)
+						filesList.exclude(excludedDirs)
+						filesList.include(path.join(moduleDir, '**'))
+						for file in filesList.toArray()
+							consolidatedFilePath = path.relative(moduleDir, file)
+							consolidatedFilePath = path.join(process.env.compiledDir, category, module, consolidatedFilePath)
+							jake.rmutils.copyFileTask(consolidatedFilePath, file)
+							moduleTaskList.push(currNamespace + consolidatedFilePath)
 					task('all', moduleTaskList)
 					categoryTaskList[category].push(currNamespace + 'all')
 				)
