@@ -266,7 +266,10 @@ uglifyDefines = (data, callback) ->
 
 jake.rmutils.uglifyMin = uglifyMin = (data, callback, defines = {}) ->
 	ast = uglify.parser.parse(data)
-	ast = uglify.uglify.ast_mangle(ast, {defines: defines})
+	ast = uglify.uglify.ast_mangle(ast,
+		except: ['DEV', 'BUILD']
+		defines: defines
+	)
 	ast = uglify.uglify.ast_squeeze(ast)
 	code = uglify.uglify.gen_code(ast)
 	callback(false, code)

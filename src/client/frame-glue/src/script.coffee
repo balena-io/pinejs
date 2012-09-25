@@ -1,4 +1,7 @@
-if !SBVR_SERVER_ENABLED? then SBVR_SERVER_ENABLED = true
+`
+if(typeof SBVR_SERVER_ENABLED === 'undefined') SBVR_SERVER_ENABLED = true
+if(typeof DEV === 'undefined') DEV = true
+`
 
 define(['sbvr-parser/SBVRParser', 'data-frame/ClientURIParser', 'Prettify'], (SBVRParser, ClientURIParser, Prettify) ->
 	sqlEditor = null
@@ -282,19 +285,23 @@ define(['sbvr-parser/SBVRParser', 'data-frame/ClientURIParser', 'Prettify'], (SB
 			cleanUp this
 
 	setupDownloadify = () ->
-		Downloadify.create "downloadify",
+		if DEV
+			rootPath = '../../../../'
+		else
+			rootPath = '../../'
+		Downloadify.create("downloadify",
 			filename: "editor.txt"
 			data: ->
 				sbvrEditor.getValue()
 			onError: ->
 				showSimpleError "Content Is Empty"
-			# TODO: Improve build system so we don't have to ../../../......
-			swf: "../../../../external/downloadify/Downloadify.swf"
-			downloadImage: "../../../../external/downloadify/download.png"
+			swf: rootPath + 'external/downloadify/Downloadify.swf'
+			downloadImage: rootPath + 'external/downloadify/download.png'
 			width: 62
 			height: 22
 			transparent: true
 			append: false
+		)
 		locate("#write_file", "downloadify")
 
 	# html 5 file api supports chrome ff; flash implements others

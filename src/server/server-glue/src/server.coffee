@@ -1,7 +1,9 @@
-if !ENV_NODEJS? then ENV_NODEJS = process?
-if !SBVR_SERVER_ENABLED? then SBVR_SERVER_ENABLED = true
-if !EDITOR_SERVER_ENABLED? then EDITOR_SERVER_ENABLED = true
-if !BROWSER_SERVER_ENABLED? then BROWSER_SERVER_ENABLED = !process?
+`
+if(typeof ENV_NODEJS === 'undefined') ENV_NODEJS = typeof process !== 'undefined';
+if(typeof SBVR_SERVER_ENABLED === 'undefined') SBVR_SERVER_ENABLED = true;
+if(typeof EDITOR_SERVER_ENABLED === 'undefined') EDITOR_SERVER_ENABLED = true;
+if(typeof BROWSER_SERVER_ENABLED === 'undefined') BROWSER_SERVER_ENABLED = !ENV_NODEJS;
+`
 
 if ENV_NODEJS
 	databaseOptions =

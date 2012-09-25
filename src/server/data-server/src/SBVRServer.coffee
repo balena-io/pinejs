@@ -1,4 +1,6 @@
-if !ENV_NODEJS? then ENV_NODEJS = process?
+`
+if(typeof ENV_NODEJS === 'undefined') ENV_NODEJS = typeof process !== 'undefined'
+`
 
 define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQL2CLF', 'data-server/ServerURIParser', 'underscore', 'utils/createAsyncQueueCallback'], (AbstractSQLRules2SQL, AbstractSQL2CLF, ServerURIParser, _, createAsyncQueueCallback) ->
 	exports = {}

@@ -112,7 +112,7 @@ namespace('consolidate', ->
 										console.log('Processing JS DEV/BUILD tags for: '+ this.name)
 										jake.rmutils.uglifyMin(data, callback,
 											DEV: jake.rmutils.resolveDefine(false)
-											BUILD: jake.rmutils.resolveDefine(false)
+											BUILD: jake.rmutils.resolveDefine(true)
 										)
 									)
 								else

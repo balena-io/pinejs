@@ -1,4 +1,6 @@
-if !ENV_NODEJS? then ENV_NODEJS = process?
+`
+if(typeof ENV_NODEJS === 'undefined') ENV_NODEJS = typeof process !== 'undefined'
+`
 
 define(["database-layer/SQLBinds"], (SQLBinds) ->
 	exports = {}

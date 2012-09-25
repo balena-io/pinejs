@@ -20,9 +20,9 @@ if(typeof DEV === 'undefined') DEV = true;
 	currentPathParts.pop(); // Remove filename
 	var buildType = '';
 	if(DEV) {
-		buildType = currentPathParts.pop() + '/';
+		buildType = '/' + currentPathParts.pop();
 		if(buildType != 'src') {
-			buildType = currentPathParts.pop() + '/' + buildType;
+			buildType = '/' + currentPathParts.pop() + buildType;
 		}
 	}
 
@@ -33,7 +33,7 @@ if(typeof DEV === 'undefined') DEV = true;
 			'codemirror-util':			rootPath + 'external/CodeMirror2/lib/util',
 			'codemirror-theme':			rootPath + 'external/CodeMirror2/theme',
 			'qunit':					rootPath + 'external/qunit/qunit.css',
-			'codemirror-ometa-bridge':	rootPath + 'client/codemirror-ometa-bridge/' + buildType
+			'codemirror-ometa-bridge':	rootPath + 'client/codemirror-ometa-bridge' + buildType
 		};
 		return function(url) {
 			var firstPathPart = url.split('/')[0];
@@ -70,24 +70,24 @@ if(typeof DEV === 'undefined') DEV = true;
 			'downloadify':				rootPath + 'external/downloadify',
 			'ejs':						rootPath + 'external/ejs/ejs.min',
 			
-			'sbvr-parser':				rootPath + 'common/sbvr-parser/' + buildType,
-			'utils':					rootPath + 'common/utils/' + buildType,
+			'sbvr-parser':				rootPath + 'common/sbvr-parser' + buildType,
+			'utils':					rootPath + 'common/utils' + buildType,
 			
-			'sbvr-frame':				rootPath + 'client/sbvr-frame/' + buildType,
-			'data-frame':				rootPath + 'client/data-frame/' + buildType,
-			'Prettify':					rootPath + 'client/prettify-ometa/' + buildType + 'Prettify',
-			'codemirror-ometa-bridge':	rootPath + 'client/codemirror-ometa-bridge/' + buildType,
+			'sbvr-frame':				rootPath + 'client/sbvr-frame' + buildType,
+			'data-frame':				rootPath + 'client/data-frame' + buildType,
+			'Prettify':					rootPath + 'client/prettify-ometa' + buildType + '/Prettify',
+			'codemirror-ometa-bridge':	rootPath + 'client/codemirror-ometa-bridge' + buildType,
 			
-			'sbvr-compiler':			rootPath + 'server/sbvr-compiler/' + buildType,
+			'sbvr-compiler':			rootPath + 'server/sbvr-compiler' + buildType,
 			
-			'server-glue':				rootPath + 'server/server-glue/' + buildType,
-			'express-emulator':			rootPath + 'server/express-emulator/' + buildType,
-			'data-server':				rootPath + 'server/data-server/' + buildType,
-			'editor-server':			rootPath + 'server/editor-server/' + buildType,
-			'database-layer':			rootPath + 'server/database-layer/' + buildType,
-			'passportBCrypt':			rootPath + 'server/passport-bcrypt/' + buildType + 'passportBCrypt',
+			'server-glue':				rootPath + 'server/server-glue' + buildType,
+			'express-emulator':			rootPath + 'server/express-emulator' + buildType,
+			'data-server':				rootPath + 'server/data-server' + buildType,
+			'editor-server':			rootPath + 'server/editor-server' + buildType,
+			'database-layer':			rootPath + 'server/database-layer' + buildType,
+			'passportBCrypt':			rootPath + 'server/passport-bcrypt' + buildType + '/passportBCrypt',
 			
-			'frame-glue':				rootPath + 'client/frame-glue/' + buildType
+			'frame-glue':				rootPath + 'client/frame-glue' + buildType
 		},
 		priority: ['jquery']
 	}, ['jquery-ui',
