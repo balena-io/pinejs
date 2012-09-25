@@ -3,6 +3,7 @@ if(typeof ENV_NODEJS === 'undefined') ENV_NODEJS = typeof process !== 'undefined
 if(typeof SBVR_SERVER_ENABLED === 'undefined') SBVR_SERVER_ENABLED = true;
 if(typeof EDITOR_SERVER_ENABLED === 'undefined') EDITOR_SERVER_ENABLED = true;
 if(typeof BROWSER_SERVER_ENABLED === 'undefined') BROWSER_SERVER_ENABLED = !ENV_NODEJS;
+if(typeof DEV === 'undefined') DEV = true;
 `
 
 if ENV_NODEJS
@@ -51,7 +52,15 @@ setupCallback = (requirejs, app) ->
 
 if ENV_NODEJS
 	requirejs = require('requirejs')
-	rootPath = process.cwd() + '/../../../'
+	buildType = ''
+	if DEV
+		rootPath = process.cwd() + '/../../../../'
+		currentPathParts = process.cwd().split(require('path').sep)
+		buildType = '/' + currentPathParts.pop()
+		if buildType != '/src'
+			buildType = '/' + currentPathParts.pop() + buildType
+	else
+		rootPath = process.cwd() + '/../../'
 	requirejs.config(
 		paths: {
 			'jquery':					rootPath + 'external/jquery-1.7.1.min',
@@ -73,24 +82,24 @@ if ENV_NODEJS
 			'downloadify':				rootPath + 'external/downloadify',
 			'ejs':						rootPath + 'external/ejs/ejs.min',
 			
-			'sbvr-parser':				rootPath + 'common/sbvr-parser/out/compiled/',
-			'utils':					rootPath + 'common/utils/out/compiled',
+			'sbvr-parser':				rootPath + 'common/sbvr-parser' + buildType,
+			'utils':					rootPath + 'common/utils' + buildType,
 			
-			'sbvr-frame':				rootPath + 'client/sbvr-frame/out/compiled',
-			'data-frame':				rootPath + 'client/data-frame/out/compiled',
-			'Prettify':					rootPath + 'client/prettify-ometa/out/compiled/Prettify',
-			'codemirror-ometa-bridge':	rootPath + 'client/codemirror-ometa-bridge/src',
+			'sbvr-frame':				rootPath + 'client/sbvr-frame' + buildType,
+			'data-frame':				rootPath + 'client/data-frame' + buildType,
+			'Prettify':					rootPath + 'client/prettify-ometa' + buildType + '/Prettify',
+			'codemirror-ometa-bridge':	rootPath + 'client/codemirror-ometa-bridge' + buildType,
 			
-			'sbvr-compiler':			rootPath + 'server/sbvr-compiler/out/compiled',
+			'sbvr-compiler':			rootPath + 'server/sbvr-compiler' + buildType,
 			
-			'server-glue':				rootPath + 'server/server-glue/out/compiled',
-			'express-emulator':			rootPath + 'server/express-emulator/out/compiled',
-			'data-server':				rootPath + 'server/data-server/out/compiled',
-			'editor-server':			rootPath + 'server/editor-server/out/compiled',
-			'database-layer':			rootPath + 'server/database-layer/out/compiled',
-			'passportBCrypt':			rootPath + 'server/passport-bcrypt/out/compiled/passportBCrypt',
+			'server-glue':				rootPath + 'server/server-glue' + buildType,
+			'express-emulator':			rootPath + 'server/express-emulator' + buildType,
+			'data-server':				rootPath + 'server/data-server' + buildType,
+			'editor-server':			rootPath + 'server/editor-server' + buildType,
+			'database-layer':			rootPath + 'server/database-layer' + buildType,
+			'passportBCrypt':			rootPath + 'server/passport-bcrypt' + buildType + '/passportBCrypt',
 			
-			'frame-glue':				rootPath + 'client/frame-glue/out/compiled'
+			'frame-glue':				rootPath + 'client/frame-glue' + buildType
 		}
 		nodeRequire: require
 		baseUrl: 'js'

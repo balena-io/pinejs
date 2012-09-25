@@ -21,7 +21,7 @@ if(typeof DEV === 'undefined') DEV = true;
 	var buildType = '';
 	if(DEV) {
 		buildType = '/' + currentPathParts.pop();
-		if(buildType != 'src') {
+		if(buildType != '/src') {
 			buildType = '/' + currentPathParts.pop() + buildType;
 		}
 	}
