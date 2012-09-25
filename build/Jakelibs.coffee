@@ -35,6 +35,8 @@ setDefines(
 	SBVR_SERVER_ENABLED: true
 	EDITOR_SERVER_ENABLED: true
 	ENV_NODEJS: false
+	USE_MYSQL: false
+	USE_POSTGRES: false
 )
 
 currentCategory = ''

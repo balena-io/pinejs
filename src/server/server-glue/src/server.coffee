@@ -3,20 +3,26 @@ if(typeof ENV_NODEJS === 'undefined') ENV_NODEJS = typeof process !== 'undefined
 if(typeof SBVR_SERVER_ENABLED === 'undefined') SBVR_SERVER_ENABLED = true;
 if(typeof EDITOR_SERVER_ENABLED === 'undefined') EDITOR_SERVER_ENABLED = true;
 if(typeof BROWSER_SERVER_ENABLED === 'undefined') BROWSER_SERVER_ENABLED = !ENV_NODEJS;
+if(ENV_NODEJS && typeof USE_MYSQL === 'undefined') USE_MYSQL = false;
+if(ENV_NODEJS && typeof USE_POSTGRES === 'undefined') USE_POSTGRES = true;
 if(typeof DEV === 'undefined') DEV = true;
 `
 
 if ENV_NODEJS
-	databaseOptions =
-		engine: 'mysql'
-		params:
-			host: 'localhost'
-			user: 'root'
-			password: '.'
-			database: 'rulemotion'
-	# databaseOptions =
-		# engine: 'postgres'
-		# params: process.env.DATABASE_URL || "postgres://postgres:.@localhost:5432/postgres"
+	if USE_MYSQL
+		databaseOptions =
+			engine: 'mysql'
+			params:
+				host: 'localhost'
+				user: 'root'
+				password: '.'
+				database: 'rulemotion'
+	else if USE_POSTGRES
+		databaseOptions =
+			engine: 'postgres'
+			params: process.env.DATABASE_URL || "postgres://postgres:.@localhost:5432/postgres"
+	else
+		throw 'What database do you want??'
 else
 	databaseOptions =
 		engine: 'websql'
