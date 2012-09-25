@@ -94,13 +94,17 @@ namespace('consolidate', ->
 					moduleTaskList = []
 					currNamespace = getCurrentNamespace()
 					if module in builtModules
+						installTask = false
 						minifyTasks = getStoredTasks(category, module, 'minify')
 						for minifyTask in minifyTasks
 							# console.log(minifyTask)
 							minifyTaskFile = minifyTask.replace(/.*:/, '')
-							consolidatedFilePath = path.relative(path.join('src', category, module, process.env.minifiedDir), minifyTaskFile)
-							consolidatedFilePath = path.join(process.env.compiledDir, category, module, consolidatedFilePath)
+							consolidatedFolderPath = path.join(process.env.compiledDir, category, module)
+							consolidatedFilePath = path.join(consolidatedFolderPath, path.relative(path.join('src', category, module, process.env.minifiedDir), minifyTaskFile))
 							# console.log(consolidatedFilePath, minifyTask, minifyTaskFile)
+							if path.basename(minifyTaskFile) == 'package.json'
+								installTask = true
+								jake.rmutils.npmInstallTask('install', consolidatedFolderPath)
 							switch path.extname(minifyTaskFile)
 								when '.html'
 									jake.rmutils.alterFileTask(consolidatedFilePath, minifyTaskFile, [minifyTask], (data, callback) -> 
@@ -118,6 +122,8 @@ namespace('consolidate', ->
 								else
 									jake.rmutils.copyFileTask(consolidatedFilePath, minifyTaskFile, [minifyTask])
 							moduleTaskList.push(currNamespace + consolidatedFilePath)
+						if installTask
+							moduleTaskList.push(currNamespace + 'install')
 					else
 						moduleDir = path.join('src', category, module)
 						filesList = new jake.FileList()

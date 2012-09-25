@@ -183,24 +183,27 @@ createDirectoryTasks = () ->
 	)
 	return taskList
 
+jake.rmutils.npmInstallTask = npmInstallTask = (taskName, dir) ->
+	desc('Install npm dependencies')
+	task(taskName,
+		->
+			exec('npm install', {cwd: dir}, (err, stdout, stderr) ->
+				console.log(stdout)
+				console.error(stderr)
+				if err
+					fail()
+				else
+					complete()
+			)
+		async: true
+	)
+
 createInstallTasks = () ->
 	taskList = []
 	if fs.existsSync(path.join(currentDirs.src, 'package.json'))
 		namespace('install', ->
 			actualInstallTask = (buildType, dir) ->
-				desc('Install npm dependencies')
-				task(buildType,
-					->
-						exec('npm install', {cwd: dir}, (err, stdout, stderr) ->
-							console.log(stdout)
-							console.error(stderr)
-							if err
-								fail()
-							else
-								complete()
-						)
-					async: true
-				)
+				npmInstallTask(buildType, dir)
 				taskList.push(addTask(buildType, buildType))
 			actualInstallTask('compile-install', currentDirs.compiled)
 			actualInstallTask('process-install', currentDirs.processed)
