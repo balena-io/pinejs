@@ -147,14 +147,15 @@ define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQLOptimise
 			else
 				return 'VARCHAR(100)'
 	
-	generate = (sqlModel, dataTypeGen) ->
+	generate = (sqlModel, dataTypeGen, ifNotExists) ->
+		ifNotExists = if ifNotExists then 'IF NOT EXISTS ' else ''
 		hasDependants = {}
 		schemaDependencyMap = {}
 		for own resourceName, table of sqlModel.tables when !_.isString(table) # and table.primitive is false
 			foreignKeys = []
 			depends = []
 			dropSQL = 'DROP TABLE "' + table.name + '";'
-			createSQL = 'CREATE TABLE "' + table.name + '" (\n\t'
+			createSQL = 'CREATE TABLE ' + ifNotExists + '"' + table.name + '" (\n\t'
 			
 			for field in table.fields
 				createSQL += '"' + field[1] + '" ' + dataTypeGen(field[0], field[2]) + '\n,\t'
@@ -231,13 +232,13 @@ define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQLOptimise
 
 	return {
 		websql: 
-			generate: (sqlModel) -> generate(sqlModel, websqlDataType)
+			generate: (sqlModel) -> generate(sqlModel, websqlDataType, false)
 			dataTypeValidate: dataTypeValidate
 		postgres: 
-			generate: (sqlModel) -> generate(sqlModel, postgresDataType)
+			generate: (sqlModel) -> generate(sqlModel, postgresDataType, true)
 			dataTypeValidate: dataTypeValidate
 		mysql: 
-			generate: (sqlModel) -> generate(sqlModel, mysqlDataType)
+			generate: (sqlModel) -> generate(sqlModel, mysqlDataType, true)
 			dataTypeValidate: dataTypeValidate
 	}
 
