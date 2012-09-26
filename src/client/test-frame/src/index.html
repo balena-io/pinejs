@@ -2,8 +2,13 @@
 <html lang="en">
 	<head>
 		<title>QUnit Tests</title>
-		<script src="../../../external/require-1.0.4.min.js"></script>
-		<script src="../../../common/config/requirejs.js"></script>
+		<!--#DEV-->
+		<script src="../../../../external/require.min.js"></script>
+		<script src="../../../../common/config/src/requirejs.js"></script>
+		<!--#BUILT
+		<script src="../../external/require.min.js"></script>
+		<script src="../../common/config/requirejs.js"></script>
+		-->
 		<script>
 			requirejs(['main']);
 		</script>
