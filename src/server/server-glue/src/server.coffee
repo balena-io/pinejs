@@ -12,11 +12,12 @@ if ENV_NODEJS
 	if USE_MYSQL
 		databaseOptions =
 			engine: 'mysql'
-			params:
+			params: process.env.DATABASE_URL || {
 				host: 'localhost'
 				user: 'root'
 				password: '.'
 				database: 'rulemotion'
+			}
 	else if USE_POSTGRES
 		databaseOptions =
 			engine: 'postgres'
@@ -58,15 +59,17 @@ setupCallback = (requirejs, app) ->
 
 if ENV_NODEJS
 	requirejs = require('requirejs')
+	path = require('path')
 	buildType = ''
+	rootPath = __dirname
 	if DEV
-		rootPath = process.cwd() + '/../../../../'
-		currentPathParts = process.cwd().split(require('path').sep)
+		currentPathParts = rootPath.split(path.sep)
+		rootPath = rootPath + '/../../../../'
 		buildType = '/' + currentPathParts.pop()
 		if buildType != '/src'
 			buildType = '/' + currentPathParts.pop() + buildType
 	else
-		rootPath = process.cwd() + '/../../'
+		rootPath = rootPath + '/../../'
 	requirejs.config(
 		paths: {
 			'jquery':					rootPath + 'external/jquery-1.7.1.min',
