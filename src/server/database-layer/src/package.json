@@ -3,6 +3,6 @@
 	"version": "0.0.1",
 	"dependencies": {
 		"pg": "0.8.x",
-		"mysql": "0.9.x"
+		"mysql": "2.0.0-alpha3"
 	}
 }

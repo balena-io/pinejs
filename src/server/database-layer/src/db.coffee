@@ -59,7 +59,7 @@ define(["database-layer/SQLBinds"], (SQLBinds) ->
 			
 		exports.mysql = (options) ->
 			mysql = new requirejs('mysql')
-			_db = mysql.createClient(options)
+			_db = mysql.createConnection(options)
 			_db.query("SET sql_mode='ANSI_QUOTES';");
 			result = (rows) ->
 				return {
