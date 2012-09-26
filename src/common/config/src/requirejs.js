@@ -32,7 +32,7 @@ if(typeof DEV === 'undefined') DEV = true;
 			'codemirror':				rootPath + 'external/CodeMirror2/lib/codemirror',
 			'codemirror-util':			rootPath + 'external/CodeMirror2/lib/util',
 			'codemirror-theme':			rootPath + 'external/CodeMirror2/theme',
-			'qunit':					rootPath + 'external/qunit/qunit.css',
+			'qunit':					rootPath + 'external/qunit/qunit',
 			'codemirror-ometa-bridge':	rootPath + 'client/codemirror-ometa-bridge' + buildType
 		};
 		return function(url) {
