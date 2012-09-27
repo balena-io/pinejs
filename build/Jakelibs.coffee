@@ -254,7 +254,7 @@ getCompiledFilePaths = (srcFile, newExt) ->
 	minifiedDirTask = dirNamespace + path.dirname(minifiedFile)
 	return {compiledFile, processedFile, minifiedFile, compiledDirTask, processedDirTask, minifiedDirTask}
 
-uglifyDefines = (data, callback) ->
+jake.rmutils.uglifyDefines = (data, callback, defines = {}) ->
 	ast = uglify.parser.parse(data)
 	ast = uglify.uglify.ast_mangle(ast,
 		mangle: false
@@ -268,6 +268,8 @@ uglifyDefines = (data, callback) ->
 		beautify: true
 	)
 	callback(false, code)
+uglifyDefines = (data, callback) ->
+	jake.rmutils.uglifyDefines(data, callback, defines)
 
 jake.rmutils.uglifyMin = uglifyMin = (data, callback, defines = {}) ->
 	ast = uglify.parser.parse(data)
