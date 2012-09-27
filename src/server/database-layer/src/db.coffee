@@ -6,43 +6,42 @@ define(["database-layer/SQLBinds"], (SQLBinds) ->
 	exports = {}
 	if ENV_NODEJS
 		exports.postgres = (connectString) ->
-			Client = new requirejs('pg').Client
-			_db = new Client(connectString)
-			_db.connect()
-			result = (rows) ->
+			pg = requirejs('pg')
+			createResult = (rows) ->
 				return {
 					rows:
 						length: rows?.length or 0
 						item: (i) -> rows[i]
 					insertId: rows[0]?.id || null
 				}
-			tx = {
-				executeSql: (sql, _bindings = [], callback, errorCallback, addReturning = true) ->
-					thisTX = this
-					bindings = _bindings.slice(0) # Deal with the fact we may splice arrays directly into bindings
-					sql = sql.replace(/GROUP BY NULL/g, '') #HACK: Remove GROUP BY NULL for Postgres as it does not need/accept it.
-					sql = sql.replace(/INTEGER PRIMARY KEY AUTOINCREMENT/g, 'SERIAL PRIMARY KEY') #HACK: Postgres uses SERIAL data type rather than auto increment
-					if addReturning and /^\s*INSERT\s+INTO/i.test(sql)
-						sql = sql.replace(/;?$/, ' RETURNING id;')
-						console.log(sql)
-					bindNo = 0
-					sql = SQLBinds.matchAll(sql, "parse", [
-						->
-							initialBindNo = bindNo
-							bindString = '$' + ++bindNo
-							if Array.isArray(bindings[initialBindNo])
-								for i in bindings[initialBindNo][1..]
-									bindString += ',' + '$' + ++bindNo
-								Array.prototype.splice.apply(bindings, [initialBindNo, 1].concat(bindings[initialBindNo]))
-							return bindString
-					])
-					_db.query({text: sql, values: bindings}, (err, res) ->
-						if err?
-							errorCallback? thisTX, err
-							console.log(sql, bindings, err)
-						else
-							callback? thisTX, result(res.rows)
-					)
+			class Tx
+				constructor: (_db) ->
+					this.executeSql = (sql, _bindings = [], callback, errorCallback, addReturning = true) ->
+						thisTX = this
+						bindings = _bindings.slice(0) # Deal with the fact we may splice arrays directly into bindings
+						sql = sql.replace(/GROUP BY NULL/g, '') #HACK: Remove GROUP BY NULL for Postgres as it does not need/accept it.
+						sql = sql.replace(/INTEGER PRIMARY KEY AUTOINCREMENT/g, 'SERIAL PRIMARY KEY') #HACK: Postgres uses SERIAL data type rather than auto increment
+						if addReturning and /^\s*INSERT\s+INTO/i.test(sql)
+							sql = sql.replace(/;?$/, ' RETURNING id;')
+							console.log(sql)
+						bindNo = 0
+						sql = SQLBinds.matchAll(sql, "parse", [
+							->
+								initialBindNo = bindNo
+								bindString = '$' + ++bindNo
+								if Array.isArray(bindings[initialBindNo])
+									for i in bindings[initialBindNo][1..]
+										bindString += ',' + '$' + ++bindNo
+									Array.prototype.splice.apply(bindings, [initialBindNo, 1].concat(bindings[initialBindNo]))
+								return bindString
+						])
+						_db.query({text: sql, values: bindings}, (err, res) ->
+							if err?
+								errorCallback?(thisTX, err)
+								console.log(sql, bindings, err)
+							else
+								callback?(thisTX, createResult(res.rows))
+						)
 				begin: -> this.executeSql('BEGIN;')
 				end: -> this.executeSql('END;')
 				rollback: -> this.executeSql('ROLLBACK;')
@@ -51,10 +50,14 @@ define(["database-layer/SQLBinds"], (SQLBinds) ->
 						extraWhereClause = ' WHERE ' + extraWhereClause
 					this.executeSql("SELECT * FROM (SELECT tablename as name FROM pg_tables WHERE schemaname = 'public') t" + extraWhereClause + ";", [], callback, errorCallback)
 				dropTable: (tableName, ifExists = true, callback, errorCallback) -> this.executeSql('DROP TABLE ' + (if ifExists == true then 'IF EXISTS ' else '') + '"' + tableName + '" CASCADE;', [], callback, errorCallback)
-			}
 			return {
-				transaction: (callback) ->
-					callback(tx)
+				transaction: (callback, errorCallback) ->
+					pg.connect(connectString, (err, client) ->
+						if err
+							errorCallback?(err)
+						else
+							callback(new Tx(client))
+					)
 			}
 			
 		exports.mysql = (options) ->
