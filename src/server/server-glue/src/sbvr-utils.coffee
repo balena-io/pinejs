@@ -368,7 +368,14 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 				runQuery = (tx) ->
 					tx.begin()
 					db.transaction( (tx) ->
-						tx.executeSql('SELECT NOT EXISTS(SELECT 1 FROM "resource" r JOIN "resource-is_under-lock" AS rl ON rl."resource" = r."id" WHERE r."resource_type" = ? AND r."id" = ?) AS result;', [tree[2].resourceName, id],
+						tx.executeSql('''
+							SELECT NOT EXISTS(
+								SELECT 1
+								FROM "resource" r
+								JOIN "resource-is_under-lock" AS rl ON rl."resource" = r."id"
+								WHERE r."resource_type" = ?
+								AND r."id" = ?
+							) AS result;''', [tree[2].resourceName, id],
 							(tx, result) ->
 								if result.rows.item(0).result in [0, false]
 									res.json([ "The resource is locked and cannot be edited" ], 404)
