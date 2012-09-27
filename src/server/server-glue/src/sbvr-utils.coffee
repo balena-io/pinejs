@@ -446,13 +446,13 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 			() ->
 				console.log('Sucessfully executed dev model.')
 			(tx, error) ->
-				console.log('Failed to execute dev model.', error)
+				console.error('Failed to execute dev model.', error)
 		)
 		executeModel(tx, 'transaction', transactionModel,
 			() ->
 				console.log('Sucessfully executed transaction model.')
 			(tx, error) ->
-				console.log('Failed to execute transaction model.', error)
+				console.error('Failed to execute transaction model.', error)
 		)
 		executeModel(tx, 'user', userModel,
 			() ->
@@ -461,7 +461,7 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 				runURI('POST', '/user/user', [{'user.username': 'test2', 'user.password': 'test2'}], null)
 				console.log('Sucessfully executed user model.')
 			(tx, error) ->
-				console.log('Failed to execute user model.', error)
+				console.error('Failed to execute user model.', error)
 		)
 
 	exports.setup = (app, requirejs, databaseOptions) ->
