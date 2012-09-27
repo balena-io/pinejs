@@ -224,7 +224,11 @@ define(['sbvr-parser/SBVRParser', 'data-frame/ClientURIParser', 'Prettify'], (SB
 				headers: headers
 				data: body
 				error: (jqXHR, textStatus, errorThrown) ->
-					failureCallback jqXHR.status, JSON.parse(jqXHR.responseText)
+					try
+						error = JSON.parse(jqXHR.responseText)
+					catch e
+						error = jqXHR.responseText
+					failureCallback(jqXHR.status, )
 
 				success: (data, textStatus, jqXHR) ->
 					rheaders = /^(.*?):[ \t]*([^\r\n]*)\r?$/mg
