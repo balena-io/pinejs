@@ -41,11 +41,11 @@ namespace('module', ->
 				)
 			taskList = taskList.concat(categoryTaskList)
 			desc('Build all ' + category + ' modules.')
-			task('all', categoryTaskList)
+			task('all', categoryTaskList, ->)
 		)
 	
 	desc('Build all modules.')
-	task('all', taskList)
+	task('all', taskList, ->)
 )
 
 namespace('dir', ->
@@ -80,91 +80,113 @@ namespace('dir', ->
 		taskList.push(currNamespace + dirTask)
 	
 	desc('Create all output directories.')
-	task('all', taskList)
+	task('all', taskList, ->)
 )
 
 namespace('consolidate', ->
-	taskList = []
-	categoryTaskList = {}
-	for category, modules of categorisedModules
-		namespace(category, do (category) -> ->
-			categoryTaskList[category] = []
-			for module in categorisedModules[category]
-				namespace(module, do (module) -> ->
-					moduleTaskList = []
-					currNamespace = getCurrentNamespace()
-					if module in builtModules
-						installTask = false
-						minifyTasks = getStoredTasks(category, module, 'minify')
-						for minifyTask in minifyTasks
-							# console.log(minifyTask)
-							minifyTaskFile = minifyTask.replace(/.*:/, '')
-							consolidatedFolderPath = path.join(process.env.compiledDir, category, module)
-							consolidatedFilePath = path.join(consolidatedFolderPath, path.relative(path.join('src', category, module, process.env.minifiedDir), minifyTaskFile))
-							# console.log(consolidatedFilePath, minifyTask, minifyTaskFile)
-							if path.basename(minifyTaskFile) == 'package.json'
-								installTask = true
-								jake.rmutils.npmInstallTask('install', consolidatedFolderPath)
-							switch path.extname(minifyTaskFile)
-								when '.html'
-									jake.rmutils.alterFileTask(consolidatedFilePath, minifyTaskFile, [minifyTask], (data, callback) -> 
-										console.log('Processing HTML DEV/BUILD tags for: '+ this.name)
-										callback(false, data.replace(new RegExp('<!--[^>]*?#DEV[\\s\\S]*?#BUILT([\\s\\S]*?)-->','g'), '$1'))
-									)
-								when '.js'
-									jake.rmutils.alterFileTask(consolidatedFilePath, minifyTaskFile, [minifyTask], (data, callback) -> 
-										console.log('Processing JS DEV/BUILD tags for: '+ this.name)
-										jake.rmutils.uglifyMin(data, callback,
-											DEV: jake.rmutils.resolveDefine(false)
-											BUILD: jake.rmutils.resolveDefine(true)
-										)
-									)
-								else
-									jake.rmutils.copyFileTask(consolidatedFilePath, minifyTaskFile, [minifyTask])
-							moduleTaskList.push(currNamespace + consolidatedFilePath)
-						if installTask
-							moduleTaskList.push(currNamespace + 'install')
-					else
-						moduleDir = path.join('src', category, module)
-						filesList = new jake.FileList()
-						filesList.exclude(excludeDirs)
-						filesList.exclude(excludedDirs)
-						filesList.include(path.join(moduleDir, '**'))
-						for file in filesList.toArray()
-							consolidatedFilePath = path.relative(moduleDir, file)
-							consolidatedFilePath = path.join(process.env.compiledDir, category, module, consolidatedFilePath)
-							jake.rmutils.copyFileTask(consolidatedFilePath, file)
-							moduleTaskList.push(currNamespace + consolidatedFilePath)
-					task('all', moduleTaskList)
-					categoryTaskList[category].push(currNamespace + 'all')
+	consolidateTypes = [{
+			dir: process.env.compiledDir
+			type: 'compile'
+			uglifyTask: jake.rmutils.uglifyDefines
+		}, {
+			dir: process.env.processedDir
+			type: 'process'
+			uglifyTask: jake.rmutils.uglifyDefines
+		}, {
+			dir: process.env.minifiedDir
+			type: 'minify'
+			uglifyTask: jake.rmutils.uglifyMin
+		}
+	]
+	consolidateTypeTaskList = []
+	for consolidateType in consolidateTypes
+		namespace(consolidateType.type, ->
+			taskList = []
+			categoryTaskList = {}
+			for category, modules of categorisedModules
+				namespace(category, do (category) -> ->
+					categoryTaskList[category] = []
+					for module in categorisedModules[category]
+						namespace(module, do (module) -> ->
+							moduleTaskList = []
+							currNamespace = getCurrentNamespace()
+							if module in builtModules
+								installTask = false
+								storedTasks = getStoredTasks(category, module, consolidateType.type)
+								for storedTask in storedTasks
+									# console.log(storedTask)
+									taskFile = storedTask.replace(/.*:/, '')
+									consolidatedFolderPath = path.join(consolidateType.dir, category, module)
+									consolidatedFilePath = path.join(consolidatedFolderPath, path.relative(path.join('src', category, module, consolidateType.dir), taskFile))
+									# console.log(consolidatedFilePath, storedTask, taskFile)
+									if path.basename(taskFile) == 'package.json'
+										installTask = true
+										jake.rmutils.npmInstallTask('install', consolidatedFolderPath)
+									switch path.extname(taskFile)
+										when '.html'
+											jake.rmutils.alterFileTask(consolidatedFilePath, taskFile, [storedTask], (data, callback) -> 
+												console.log('Processing HTML DEV/BUILD tags for: '+ this.name)
+												callback(false, data.replace(new RegExp('<!--[^>]*?#DEV[\\s\\S]*?#BUILT([\\s\\S]*?)-->','g'), '$1'))
+											)
+										when '.js'
+											jake.rmutils.alterFileTask(consolidatedFilePath, taskFile, [storedTask], (data, callback) -> 
+												console.log('Processing JS DEV/BUILD tags for: '+ this.name)
+												consolidateType.uglifyTask(data, callback, # uglifyMin(data, callback,
+													DEV: jake.rmutils.resolveDefine(false)
+													BUILD: jake.rmutils.resolveDefine(true)
+												)
+											)
+										else
+											jake.rmutils.copyFileTask(consolidatedFilePath, taskFile, [storedTask])
+									moduleTaskList.push(currNamespace + consolidatedFilePath)
+								if installTask
+									moduleTaskList.push(currNamespace + 'install')
+							else
+								moduleDir = path.join('src', category, module)
+								filesList = new jake.FileList()
+								filesList.exclude(excludeDirs)
+								filesList.exclude(excludedDirs)
+								filesList.include(path.join(moduleDir, '**'))
+								for file in filesList.toArray()
+									consolidatedFilePath = path.relative(moduleDir, file)
+									consolidatedFilePath = path.join(process.env.compiledDir, category, module, consolidatedFilePath)
+									jake.rmutils.copyFileTask(consolidatedFilePath, file)
+									moduleTaskList.push(currNamespace + consolidatedFilePath)
+							console.log('should be adding all for ', currNamespace, moduleTaskList)
+							task('all', moduleTaskList, ->)
+							categoryTaskList[category].push(currNamespace + 'all')
+						)
 				)
+			for category, modules of categorisedFiles
+				namespace(category, do (category) -> ->
+					categoryTaskList[category] ?= []
+					for file in categorisedFiles[category]
+						copyTaskFile = path.join('src', category, file)
+						consolidatedFilePath = path.join(process.env.compiledDir, category, file)
+						jake.rmutils.copyFileTask(consolidatedFilePath, copyTaskFile)
+						categoryTaskList[category].push(getCurrentNamespace() + consolidatedFilePath)
+				)
+			for category of categoryTaskList
+				namespace(category, do (category) -> ->
+					task('all', categoryTaskList[category], ->)
+					taskList.push(getCurrentNamespace() + 'all')
+				)
+			desc('Consolidate all ' + consolidateType.type + ' modules')
+			task('all', ['dir:all'].concat(taskList), ->)
+			consolidateTypeTaskList.push(getCurrentNamespace() + 'all')
 		)
-	for category, modules of categorisedFiles
-		namespace(category, do (category) -> ->
-			categoryTaskList[category] ?= []
-			for file in categorisedFiles[category]
-				copyTaskFile = path.join('src', category, file)
-				consolidatedFilePath = path.join(process.env.compiledDir, category, file)
-				jake.rmutils.copyFileTask(consolidatedFilePath, copyTaskFile)
-				categoryTaskList[category].push(getCurrentNamespace() + consolidatedFilePath)
-		)
-	for category of categoryTaskList
-		namespace(category, do (category) -> ->
-			task('all', categoryTaskList[category])
-			taskList.push(getCurrentNamespace() + 'all')
-		)
-	desc('Consolidate all modules')
-	task('all', ['dir:all'].concat(taskList))
+		desc('Consolidate all modules')
+		task('all', ['dir:all'].concat(consolidateTypeTaskList), ->)
 )
 
 desc('Compile everything')
-task('compile', getStoredTasks(null, null, 'dir').concat(getStoredTasks(null, null, 'compile'), getStoredTasks(null, null, 'compile-install')))
+task('compile', getStoredTasks(null, null, 'dir').concat(getStoredTasks(null, null, 'compile'), getStoredTasks(null, null, 'compile-install')), ->)
 
 desc('Process everything')
-task('process', getStoredTasks(null, null, 'dir').concat(getStoredTasks(null, null, 'process'), getStoredTasks(null, null, 'process-install')))
+task('process', getStoredTasks(null, null, 'dir').concat(getStoredTasks(null, null, 'process'), getStoredTasks(null, null, 'process-install')), ->)
 
 desc('Minify everything')
-task('minify', getStoredTasks(null, null, 'dir').concat(getStoredTasks(null, null, 'minify'), getStoredTasks(null, null, 'minify-install')))
+task('minify', getStoredTasks(null, null, 'dir').concat(getStoredTasks(null, null, 'minify'), getStoredTasks(null, null, 'minify-install')), ->)
 
 desc('Clean everything')
 task('clean', getStoredTasks(null, null, 'clean'), ->
