@@ -62,8 +62,6 @@ define(["database-layer/SQLBinds"], (SQLBinds) ->
 			
 		exports.mysql = (options) ->
 			mysql = new requirejs('mysql')
-			_db = mysql.createConnection(options)
-			_db.query("SET sql_mode='ANSI_QUOTES';");
 			result = (rows) ->
 				return {
 					rows:
@@ -71,31 +69,47 @@ define(["database-layer/SQLBinds"], (SQLBinds) ->
 						item: (i) -> rows[i]
 					insertId: rows.insertId || null
 				}
-			tx = {
-				executeSql: (sql, bindings = [], callback, errorCallback, addReturning = true) ->
-					thisTX = this
-					sql = sql.replace(/GROUP BY NULL/g, '') #HACK: Remove GROUP BY NULL for MySQL? as it does not need/accept? it.
-					sql = sql.replace(/AUTOINCREMENT/g, 'AUTO_INCREMENT') #HACK: MySQL uses AUTO_INCREMENT rather than AUTOINCREMENT.
-					sql = sql.replace(/DROP CONSTRAINT/g, 'DROP FOREIGN KEY') #HACK: MySQL uses FOREIGN KEY rather than CONSTRAINT.
-					_db.query(sql, bindings, (err, res, fields) ->
-						if err?
-							errorCallback? thisTX, err
-							console.log(sql, bindings, err)
-						else
-							callback? thisTX, result(res)
-					)
+			class Tx
+				constructor: (_db) ->
+					currentlyQueuedStatements = 0
+					connectionClosed = false
+					this.executeSql = (sql, bindings = [], callback, errorCallback, addReturning = true) ->
+						if connectionClosed
+							throw 'Trying to executeSQL on a closed connection'
+						# We have queued a new statement so add it.
+						currentlyQueuedStatements++
+						thisTX = this
+						sql = sql.replace(/GROUP BY NULL/g, '') # HACK: Remove GROUP BY NULL for MySQL? as it does not need/accept? it.
+						sql = sql.replace(/AUTOINCREMENT/g, 'AUTO_INCREMENT') # HACK: MySQL uses AUTO_INCREMENT rather than AUTOINCREMENT.
+						sql = sql.replace(/DROP CONSTRAINT/g, 'DROP FOREIGN KEY') # HACK: MySQL uses FOREIGN KEY rather than CONSTRAINT.
+						_db.query(sql, bindings, (err, res, fields) ->
+							try
+								if err?
+									errorCallback?(thisTX, err)
+									console.log(sql, bindings, err)
+								else
+									callback?(thisTX, result(res))
+							finally
+								# We have finished a statement so remove it.
+								currentlyQueuedStatements--
+								# Check if there are no queued statements after the callback has had a chance to remove them and close the connection if there are none queued.
+								if currentlyQueuedStatements == 0
+									connectionClosed = true
+									_db.end()
+						)
 				begin: -> this.executeSql('START TRANSACTION;')
 				end: -> this.executeSql('COMMIT;')
 				rollback: -> this.executeSql('ROLLBACK;')
 				tableList: (callback, errorCallback, extraWhereClause = '') ->
 					if extraWhereClause != ''
 						extraWhereClause = ' WHERE ' + extraWhereClause
-					this.executeSql("SELECT name FROM (SELECT table_name as name FROM information_schema.tables WHERE table_schema = " + _db.escape(options.database) + ") t" + extraWhereClause + ";", [], callback, errorCallback)
+					this.executeSql("SELECT name FROM (SELECT table_name as name FROM information_schema.tables WHERE table_schema = ?) t" + extraWhereClause + ";", [options.database], callback, errorCallback)
 				dropTable: (tableName, ifExists = true, callback, errorCallback) -> this.executeSql('DROP TABLE ' + (if ifExists == true then 'IF EXISTS ' else '') + '"' + tableName + '";', [], callback, errorCallback)
-			}
 			return {
-				transaction: (callback) ->
-					callback(tx)
+				transaction: (callback, errorCallback) ->
+					_db = mysql.createConnection(options)
+					_db.query("SET sql_mode='ANSI_QUOTES';")
+					callback(new Tx(_db))
 			}
 				
 		exports.sqlite = (filepath) ->
