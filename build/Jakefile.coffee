@@ -100,7 +100,7 @@ namespace('consolidate', ->
 	]
 	consolidateTypeTaskList = []
 	for consolidateType in consolidateTypes
-		namespace(consolidateType.type, ->
+		namespace(consolidateType.type, do(consolidateType) -> ->
 			taskList = []
 			categoryTaskList = {}
 			for category, modules of categorisedModules
@@ -131,7 +131,7 @@ namespace('consolidate', ->
 										when '.js'
 											jake.rmutils.alterFileTask(consolidatedFilePath, taskFile, [storedTask], (data, callback) -> 
 												console.log('Processing JS DEV/BUILD tags for: '+ this.name)
-												consolidateType.uglifyTask(data, callback, # uglifyMin(data, callback,
+												consolidateType.uglifyTask(data, callback,
 													DEV: jake.rmutils.resolveDefine(false)
 													BUILD: jake.rmutils.resolveDefine(true)
 												)
@@ -152,7 +152,6 @@ namespace('consolidate', ->
 									consolidatedFilePath = path.join(process.env.compiledDir, category, module, consolidatedFilePath)
 									jake.rmutils.copyFileTask(consolidatedFilePath, file)
 									moduleTaskList.push(currNamespace + consolidatedFilePath)
-							console.log('should be adding all for ', currNamespace, moduleTaskList)
 							task('all', moduleTaskList, ->)
 							categoryTaskList[category].push(currNamespace + 'all')
 						)
