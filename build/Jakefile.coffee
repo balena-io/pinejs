@@ -110,13 +110,13 @@ namespace('consolidate', ->
 						namespace(module, do (module) -> ->
 							moduleTaskList = []
 							currNamespace = getCurrentNamespace()
+							consolidatedFolderPath = path.join(consolidateType.dir, category, module)
 							if module in builtModules
 								installTask = false
 								storedTasks = getStoredTasks(category, module, consolidateType.type)
 								for storedTask in storedTasks
 									# console.log(storedTask)
 									taskFile = storedTask.replace(/.*:/, '')
-									consolidatedFolderPath = path.join(consolidateType.dir, category, module)
 									consolidatedFilePath = path.join(consolidatedFolderPath, path.relative(path.join('src', category, module, consolidateType.dir), taskFile))
 									# console.log(consolidatedFilePath, storedTask, taskFile)
 									if path.basename(taskFile) == 'package.json'
@@ -148,8 +148,7 @@ namespace('consolidate', ->
 								filesList.exclude(excludedDirs)
 								filesList.include(path.join(moduleDir, '**'))
 								for file in filesList.toArray()
-									consolidatedFilePath = path.relative(moduleDir, file)
-									consolidatedFilePath = path.join(process.env.compiledDir, category, module, consolidatedFilePath)
+									consolidatedFilePath = path.join(consolidatedFolderPath, path.relative(moduleDir, file))
 									jake.rmutils.copyFileTask(consolidatedFilePath, file)
 									moduleTaskList.push(currNamespace + consolidatedFilePath)
 							task('all', moduleTaskList, ->)
