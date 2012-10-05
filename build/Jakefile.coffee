@@ -158,9 +158,10 @@ namespace('consolidate', ->
 			for category, modules of categorisedFiles
 				namespace(category, do (category) -> ->
 					categoryTaskList[category] ?= []
+					consolidatedFolderPath = path.join(consolidateType.dir, category)
 					for file in categorisedFiles[category]
 						copyTaskFile = path.join('src', category, file)
-						consolidatedFilePath = path.join(process.env.compiledDir, category, file)
+						consolidatedFilePath = path.join(consolidatedFolderPath, file)
 						jake.rmutils.copyFileTask(consolidatedFilePath, copyTaskFile)
 						categoryTaskList[category].push(getCurrentNamespace() + consolidatedFilePath)
 				)
