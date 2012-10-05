@@ -202,7 +202,9 @@ define(['ometa-core'], function() {
 			[	(	'ASC'
 				|	'DESC'
 				):order
-				Field:field
+				(	Field
+				|	ReferencedField
+				):field
 				{orders.push(field + ' ' + order)}
 			]+
 			-> ('ORDER BY ' + orders.join(', ')),
