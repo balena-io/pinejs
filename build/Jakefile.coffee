@@ -240,6 +240,24 @@ task('clean', getStoredTasks(null, null, 'clean'), ->
 	jake.rmRf(process.env.outputDir)
 )
 
+desc('Build MySQL DDUI server/client.')
+task('mysql-drawdata', ['clean'], 
+	->
+		jake.rmutils.setDefines(
+			DDUI_ENABLED: true
+			BROWSER_SERVER_ENABLED: false
+			SBVR_SERVER_ENABLED: true
+			EDITOR_SERVER_ENABLED: false
+			ENV_NODEJS: true
+			USE_MYSQL: true
+			USE_POSTGRES: false
+		)
+		allModules = jake.Task['consolidate:all']
+		allModules.once('complete', complete)
+		allModules.invoke()
+	async: true
+)
+
 desc('Build everything.')
 task('all', ['module:all'], ->)
 task('default', 'all', ->)
