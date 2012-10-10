@@ -391,6 +391,8 @@ define(['sbvr-parser/SBVRParser', 'data-frame/ClientURIParser', 'Prettify'], (SB
 			(statusCode, error) ->
 				showSimpleError('Error: ' + error)
 
+	window.onbeforeunload = () ->
+		return "You have attempted to leave Rulemotion Canvas. Any unsaved changes will be lost."
 
 	window.parseModel = ->
 		try
