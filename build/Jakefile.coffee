@@ -259,5 +259,5 @@ task('mysql-drawdata', ['clean'],
 )
 
 desc('Build everything.')
-task('all', ['module:all'], ->)
+task('all', ['consolidate:all'], ->)
 task('default', 'all', ->)
