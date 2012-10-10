@@ -260,4 +260,7 @@ task('mysql-drawdata', ['clean'],
 
 desc('Build everything.')
 task('all', ['consolidate:all'], ->)
-task('default', 'all', ->)
+
+desc('Install everything.')
+task('all', ['consolidate:install'], ->)
+task('default', 'install', ->)
