@@ -138,9 +138,20 @@ jake.rmutils.alterFileTask = alterFileTask = (outFile, inFile, taskDependencies,
 	)
 
 jake.rmutils.copyFileTask = copyFileTask = (outFile, inFile, taskDependencies = []) ->
-	alterFileTask(outFile, inFile, taskDependencies, (data, callback) ->
-		console.log('Copying file for: '+ this.name)
-		callback(false, data)
+	# taskDependencies.push(getCurrentNamespace() + inFile)
+	file(outFile, taskDependencies,
+		-> 
+			console.log('Copying file:', inFile)
+			writeStream = fs.createWriteStream(outFile)
+			writeStream.on('close', ->
+				console.log('Finished copying file:', inFile)
+				complete()
+			)
+			writeStream.on('error', (e) ->
+				fail(e)
+			)
+			fs.createReadStream(inFile).pipe(writeStream)
+		async: true
 	)
 
 jake.rmutils.excludedDirs = excludedDirs = [
