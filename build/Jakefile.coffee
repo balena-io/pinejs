@@ -217,8 +217,8 @@ namespace('consolidate', ->
 						else
 							complete()
 					)
-				)
-			async: true
+				async: true
+			)
 		)
 	desc('Consolidate all modules')
 	task('all', ['dir:all'].concat(consolidateTypeTaskList), ->)
