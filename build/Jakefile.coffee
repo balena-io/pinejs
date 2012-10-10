@@ -99,6 +99,7 @@ namespace('consolidate', ->
 		}
 	]
 	consolidateTypeTaskList = []
+	consolidateTypeInstallTaskList = []
 	for consolidateType in consolidateTypes
 		namespace(consolidateType.type, do(consolidateType) -> ->
 			taskList = []
@@ -112,16 +113,12 @@ namespace('consolidate', ->
 							currNamespace = getCurrentNamespace()
 							consolidatedFolderPath = path.join(consolidateType.dir, category, module)
 							if module in builtModules
-								installTask = false
 								storedTasks = getStoredTasks(category, module, consolidateType.type)
 								for storedTask in storedTasks
 									# console.log(storedTask)
 									taskFile = storedTask.replace(/.*:/, '')
 									consolidatedFilePath = path.join(consolidatedFolderPath, path.relative(path.join('src', category, module, consolidateType.dir), taskFile))
 									# console.log(consolidatedFilePath, storedTask, taskFile)
-									if path.basename(taskFile) == 'package.json'
-										installTask = true
-										jake.rmutils.npmInstallTask('install', consolidatedFolderPath)
 									switch path.extname(taskFile)
 										when '.html'
 											jake.rmutils.alterFileTask(consolidatedFilePath, taskFile, [storedTask], (data, callback) -> 
@@ -139,8 +136,6 @@ namespace('consolidate', ->
 										else
 											jake.rmutils.copyFileTask(consolidatedFilePath, taskFile, [storedTask])
 									moduleTaskList.push(currNamespace + consolidatedFilePath)
-								if installTask
-									moduleTaskList.push(currNamespace + 'install')
 							else
 								moduleDir = path.join('src', category, module)
 								filesList = new jake.FileList()
@@ -170,12 +165,65 @@ namespace('consolidate', ->
 					task('all', categoryTaskList[category], ->)
 					taskList.push(getCurrentNamespace() + 'all')
 				)
+			currNamespace = getCurrentNamespace()
 			desc('Consolidate all ' + consolidateType.type + ' modules')
 			task('all', ['dir:all'].concat(taskList), ->)
-			consolidateTypeTaskList.push(getCurrentNamespace() + 'all')
+			consolidateTypeTaskList.push(currNamespace + 'all')
+			
+			consolidateTypeInstallTaskList.push(currNamespace + 'install')
+			task('install', [currNamespace + 'all'],
+				->
+					fs = require('fs')
+					filesList = new jake.FileList()
+					filesList.exclude(excludeDirs)
+					filesList.exclude(excludedDirs)
+					filesList.exclude(/(^|[\/\\])src[\/\\]external([\/\\]|$)/)
+					filesList.include('**/package.json')
+					combinedPackage = {
+						name: 'rulemotion-canvas'
+						version: '0.0.1'
+						dependencies: {}
+					}
+					for filePath in filesList.toArray()
+						try
+							packageObj = JSON.parse(fs.readFileSync(filePath, 'utf8'))
+						catch e
+							console.error(filePath, e)
+							throw e
+						for key, value of packageObj
+							switch key
+								when 'name', 'version'
+									null
+								when 'dependencies'
+									for dependency, version of value
+										if dependency of combinedPackage.dependencies
+											combinedVersion = combinedPackage.dependencies[dependency]
+											if version != combinedVersion
+												throw console.error('Trying to combine mismatched dependency versions: ', filePath, dependency, ' - ', version, ' : ', combinedVersion)
+										else
+											combinedPackage.dependencies[dependency] = version
+								else
+									console.warn('Hit an unhandled package.json element:', filePath, key)
+									if key of combinedPackage
+										throw console.error('Key is already in combined package: ', key)
+									else
+										combinedPackage[key] = value
+					fs.writeFileSync(path.join(consolidateType.dir, 'package.json'), JSON.stringify(combinedPackage), 'utf8')
+					require('child_process').exec('npm install', {cwd: consolidateType.dir}, (err, stdout, stderr) ->
+						console.log(stdout)
+						console.error(stderr)
+						if err
+							fail()
+						else
+							complete()
+					)
+				)
+			async: true
 		)
-		desc('Consolidate all modules')
-		task('all', ['dir:all'].concat(consolidateTypeTaskList), ->)
+	desc('Consolidate all modules')
+	task('all', ['dir:all'].concat(consolidateTypeTaskList), ->)
+	desc('Install all consolidated modules')
+	task('install', ['dir:all'].concat(consolidateTypeInstallTaskList), ->)
 )
 
 desc('Compile everything')
@@ -193,5 +241,5 @@ task('clean', getStoredTasks(null, null, 'clean'), ->
 )
 
 desc('Build everything.')
-task('all', ['module:all'])
-task('default', 'all')
+task('all', ['module:all'], ->)
+task('default', 'all', ->)

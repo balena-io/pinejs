@@ -3,12 +3,10 @@
 	"version": "0.0.1",
 	"dependencies": {
 		"requirejs": "1.x",
-		"pg": "0.6.x",
 		"express": "2.x",
 		"passport": "0.1.x",
 		"passport-local": "0.1.x",
 		"sqlite3": "2.x",
-		"lazy": "1.x",
-		"bcrypt": "0.4.x"
+		"lazy": "1.x"
 	}
 }

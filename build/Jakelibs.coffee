@@ -68,7 +68,6 @@ do ->
 uglify = require('uglify-js')
 ometa = require('../src/common/ometa-compiler/src/ometac.coffee')
 coffee = require('coffee-script')
-exec = require('child_process').exec
 requirejs = require('requirejs')
 
 jake.rmutils.setDefines = setDefines
@@ -185,40 +184,11 @@ createDirectoryTasks = () ->
 	)
 	return taskList
 
-jake.rmutils.npmInstallTask = npmInstallTask = (taskName, dir) ->
-	desc('Install npm dependencies')
-	task(taskName,
-		->
-			exec('npm install', {cwd: dir}, (err, stdout, stderr) ->
-				console.log(stdout)
-				console.error(stderr)
-				if err
-					fail()
-				else
-					complete()
-			)
-		async: true
-	)
-
-createInstallTasks = () ->
-	taskList = []
-	if fs.existsSync(path.join(currentDirs.src, 'package.json'))
-		namespace('install', ->
-			actualInstallTask = (buildType, dir) ->
-				npmInstallTask(buildType, dir)
-				taskList.push(addTask(buildType, buildType))
-			actualInstallTask('compile-install', currentDirs.compiled)
-			actualInstallTask('process-install', currentDirs.processed)
-			actualInstallTask('minify-install', currentDirs.processed)
-		)
-	return taskList
-
 jake.rmutils.boilerplate = (compileCopyTasks) ->
 	directoryTasks = createDirectoryTasks()
-	installTasks = createInstallTasks()
 
 	desc('Compile all of this module')
-	task('all', directoryTasks.concat(compileCopyTasks, installTasks))
+	task('all', directoryTasks.concat(compileCopyTasks))
 
 	outputDir = currentDirs.output
 	desc('Clean up created files')
