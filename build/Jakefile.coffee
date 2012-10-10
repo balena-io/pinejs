@@ -166,49 +166,51 @@ namespace('consolidate', ->
 					taskList.push(getCurrentNamespace() + 'all')
 				)
 			currNamespace = getCurrentNamespace()
+			
 			desc('Consolidate all ' + consolidateType.type + ' modules')
-			task('all', ['dir:all'].concat(taskList), ->)
+			task('all', ['dir:all'].concat(taskList), ->
+				fs = require('fs')
+				filesList = new jake.FileList()
+				filesList.exclude(excludeDirs)
+				filesList.exclude(excludedDirs)
+				filesList.exclude(/(^|[\/\\])src[\/\\]external([\/\\]|$)/)
+				filesList.include('**/package.json')
+				combinedPackage = {
+					name: 'rulemotion-canvas'
+					version: '0.0.1'
+					dependencies: {}
+				}
+				for filePath in filesList.toArray()
+					try
+						packageObj = JSON.parse(fs.readFileSync(filePath, 'utf8'))
+					catch e
+						console.error(filePath, e)
+						throw e
+					for key, value of packageObj
+						switch key
+							when 'name', 'version'
+								null
+							when 'dependencies'
+								for dependency, version of value
+									if dependency of combinedPackage.dependencies
+										combinedVersion = combinedPackage.dependencies[dependency]
+										if version != combinedVersion
+											throw console.error('Trying to combine mismatched dependency versions: ', filePath, dependency, ' - ', version, ' : ', combinedVersion)
+									else
+										combinedPackage.dependencies[dependency] = version
+							else
+								console.warn('Hit an unhandled package.json element:', filePath, key)
+								if key of combinedPackage
+									throw console.error('Key is already in combined package: ', key)
+								else
+									combinedPackage[key] = value
+				fs.writeFileSync(path.join(consolidateType.dir, 'package.json'), JSON.stringify(combinedPackage), 'utf8')
+			)
 			consolidateTypeTaskList.push(currNamespace + 'all')
 			
 			consolidateTypeInstallTaskList.push(currNamespace + 'install')
 			task('install', [currNamespace + 'all'],
 				->
-					fs = require('fs')
-					filesList = new jake.FileList()
-					filesList.exclude(excludeDirs)
-					filesList.exclude(excludedDirs)
-					filesList.exclude(/(^|[\/\\])src[\/\\]external([\/\\]|$)/)
-					filesList.include('**/package.json')
-					combinedPackage = {
-						name: 'rulemotion-canvas'
-						version: '0.0.1'
-						dependencies: {}
-					}
-					for filePath in filesList.toArray()
-						try
-							packageObj = JSON.parse(fs.readFileSync(filePath, 'utf8'))
-						catch e
-							console.error(filePath, e)
-							throw e
-						for key, value of packageObj
-							switch key
-								when 'name', 'version'
-									null
-								when 'dependencies'
-									for dependency, version of value
-										if dependency of combinedPackage.dependencies
-											combinedVersion = combinedPackage.dependencies[dependency]
-											if version != combinedVersion
-												throw console.error('Trying to combine mismatched dependency versions: ', filePath, dependency, ' - ', version, ' : ', combinedVersion)
-										else
-											combinedPackage.dependencies[dependency] = version
-								else
-									console.warn('Hit an unhandled package.json element:', filePath, key)
-									if key of combinedPackage
-										throw console.error('Key is already in combined package: ', key)
-									else
-										combinedPackage[key] = value
-					fs.writeFileSync(path.join(consolidateType.dir, 'package.json'), JSON.stringify(combinedPackage), 'utf8')
 					require('child_process').exec('npm install', {cwd: consolidateType.dir}, (err, stdout, stderr) ->
 						console.log(stdout)
 						console.error(stderr)
