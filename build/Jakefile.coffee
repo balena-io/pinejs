@@ -264,5 +264,5 @@ desc('Build everything.')
 task('all', ['consolidate:all'], ->)
 
 desc('Install everything.')
-task('all', ['consolidate:install'], ->)
+task('install', ['consolidate:install'], ->)
 task('default', 'install', ->)
