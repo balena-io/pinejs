@@ -66,7 +66,7 @@ if(typeof DEV === 'undefined') DEV = true;
 			'qunit':					rootPath + 'external/qunit/qunit',
 			'underscore':				rootPath + 'external/underscore/underscore.min',
 			'inflection':				rootPath + 'external/inflection/inflection',
-			'json2':					rootPath + 'external/json2',
+			'json2':					rootPath + 'external/json2/json2',
 			'downloadify':				rootPath + 'external/downloadify',
 			'ejs':						rootPath + 'external/ejs/ejs.min',
 			
