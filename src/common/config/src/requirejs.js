@@ -28,7 +28,7 @@ if(typeof DEV === 'undefined') DEV = true;
 
 	window.requireCSS = (function() {
 		var paths = {
-			'jquery-ui':				rootPath + 'external/jquery-ui/css/ui-lightness/jquery-ui',
+			'jquery-ui':				rootPath + 'external/jquery-ui/css/ui-lightness/jquery-ui-1.9.0.custom',
 			'codemirror':				rootPath + 'external/CodeMirror2/lib/codemirror',
 			'codemirror-util':			rootPath + 'external/CodeMirror2/lib/util',
 			'codemirror-theme':			rootPath + 'external/CodeMirror2/theme',
@@ -53,7 +53,7 @@ if(typeof DEV === 'undefined') DEV = true;
 		paths: {
 			'jquery':					rootPath + 'external/jquery/jquery-1.8.2.min',
 			// 'jquery':					'https://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min',
-			'jquery-ui':				rootPath + 'external/jquery-ui/js/jquery-ui-1.8.17.custom.min',
+			'jquery-ui':				rootPath + 'external/jquery-ui/js/jquery-ui-1.9.0.custom.min',
 			'jquery-custom-file-input':	rootPath + 'external/jquery-custom-file-input',
 			'jquery.hotkeys':			rootPath + 'external/jquery.hotkeys',
 			'ometa-core':				rootPath + 'external/ometa-js/lib/ometajs/core',

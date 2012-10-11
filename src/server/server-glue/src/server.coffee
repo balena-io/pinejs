@@ -74,7 +74,7 @@ if ENV_NODEJS
 		paths: {
 			'jquery':					rootPath + 'external/jquery-1.8.2.min',
 			# 'jquery':					'https://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min',
-			'jquery-ui':				rootPath + 'external/jquery-ui/js/jquery-ui-1.8.17.custom.min',
+			'jquery-ui':				rootPath + 'external/jquery-ui/js/jquery-ui-1.9.0.custom.min',
 			'jquery-custom-file-input':	rootPath + 'external/jquery-custom-file-input',
 			'jquery.hotkeys':			rootPath + 'external/jquery.hotkeys',
 			'ometa-core':				rootPath + 'external/ometa-js/lib/ometajs/core',
