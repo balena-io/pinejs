@@ -216,8 +216,8 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs',
 		altBackgroundColour: '#FFFFFF'
 	
 	createNavigableTree = (tree, descendTree = []) ->
-		tree = jQuery.extend(true, [], tree)
-		descendTree = jQuery.extend(true, [], descendTree)
+		tree = $.extend(true, [], tree)
+		descendTree = $.extend(true, [], descendTree)
 		
 		previousLocations = []
 		currentLocation = tree
