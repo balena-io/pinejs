@@ -64,7 +64,7 @@ if(typeof DEV === 'undefined') DEV = true;
 			'codemirror-modes':			rootPath + 'external/CodeMirror2/mode',
 			'js-beautify':				rootPath + 'external/beautify/beautify',
 			'qunit':					rootPath + 'external/qunit/qunit',
-			'underscore':				rootPath + 'external/underscore-1.2.1.min',
+			'underscore':				rootPath + 'external/underscore/underscore.min',
 			'inflection':				rootPath + 'external/inflection/inflection',
 			'json2':					rootPath + 'external/json2',
 			'downloadify':				rootPath + 'external/downloadify',

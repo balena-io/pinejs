@@ -2,7 +2,7 @@
 if(typeof ENV_NODEJS === 'undefined') ENV_NODEJS = typeof process !== 'undefined'
 `
 
-define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQL2CLF', 'data-server/ServerURIParser', 'underscore', 'utils/createAsyncQueueCallback'], (AbstractSQLRules2SQL, AbstractSQL2CLF, ServerURIParser, _, createAsyncQueueCallback) ->
+define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQL2CLF', 'data-server/ServerURIParser', 'utils/createAsyncQueueCallback', 'underscore'], (AbstractSQLRules2SQL, AbstractSQL2CLF, ServerURIParser, createAsyncQueueCallback) ->
 	exports = {}
 	db = null
 

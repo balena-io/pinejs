@@ -1,6 +1,6 @@
 if(typeof SBVR_SERVER_ENABLED === 'undefined') SBVR_SERVER_ENABLED = true;
 
-define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], function(SBVRLibs, _) {
+define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], function(SBVRLibs) {
 	//A parser for Semantics of Business Vocabulary and Rules (SBVR), an OMG standard.
 	//Converts from Structured English (SBVR-SE) to Logical Formulation (SBVR-LF)
 	//Specification: http://www.omg.org/spec/SBVR/1.0/

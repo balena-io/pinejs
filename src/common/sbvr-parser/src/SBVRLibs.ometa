@@ -1,4 +1,4 @@
-define(['underscore', 'ometa-core'], function(_) {
+define(['underscore', 'ometa-core'], function() {
 	var primitives = {
 		'Integer': true,
 		'Short Text': true,

@@ -1,4 +1,4 @@
-define(['underscore', 'Prettify', 'ometa-core'], function(_, Prettify) {
+define(['Prettify', 'underscore', 'ometa-core'], function(Prettify) {
 	ometa AbstractSQLValidator {
 		
 		Query =

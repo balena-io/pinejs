@@ -1,4 +1,4 @@
-define(['underscore'], (_) ->
+define(['underscore'], () ->
 	
 	getField = (table, fieldName) ->
 		tableFields = table.fields
