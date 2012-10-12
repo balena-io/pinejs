@@ -157,7 +157,7 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 		for rule in sqlmod.rules
 			tx.executeSql(rule.sql, [], do(rule) ->
 				(tx, result) ->
-					if result.rows.item(0).result in [false, 0]
+					if result.rows.item(0).result in [false, 0, '0']
 						asyncCallback.errorCallback(rule.structuredEnglish)
 					else
 						asyncCallback.successCallback()
@@ -377,7 +377,7 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 								AND r."id" = ?
 							) AS result;''', [tree[2].resourceName, id],
 							(tx, result) ->
-								if result.rows.item(0).result in [0, false]
+								if result.rows.item(0).result in [false, 0, '0']
 									res.json([ "The resource is locked and cannot be edited" ], 404)
 								else
 									tx.executeSql(insertQuery.query, values,
