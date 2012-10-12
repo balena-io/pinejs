@@ -124,7 +124,9 @@ if ENV_NODEJS
 		app.use(express.session({ secret: "A pink cat jumped over a rainbow" }))
 		app.use(passport.initialize())
 		app.use(passport.session())
-		app.use(express.static(rootPath))
+		app.use('/client', express.static(path.join(rootPath, 'client')))
+		app.use('/common', express.static(path.join(rootPath, 'common')))
+		app.use('/external', express.static(path.join(rootPath, 'external')))
 		app.use((req, res, next) ->
 			origin = req.get("Origin") || "*"
 			res.header('Access-Control-Allow-Origin', origin)
