@@ -50,9 +50,15 @@ var ometaAutoComplete = (function () {
 			else {
 				for(var prop in ruleMap) {
 					if(ruleMap.hasOwnProperty(prop)) {
+						// If ruleMap[prop] is an object then we should be looking at a dictionary lookup based on the first argument.
 						if(typeof ruleMap[prop] == 'object') {
-							if(ruleMap.hasOwnProperty(""+ruleArgs[0])) {
-								forEach(ruleMap[ruleArgs[0]], maybeAdd);
+							// Do the dictionary lookup
+							var lookupVal = '' + ruleArgs.shift();
+							if(ruleMap.hasOwnProperty(lookupVal)) {
+								addPossibilities(ruleMap[lookupVal], maybeAdd);
+							}
+							else {
+								console.warn('Did not find a matching lookup property', lookupVal, ruleArgs, ruleMap);
 							}
 						}
 						else {
