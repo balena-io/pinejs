@@ -80,8 +80,10 @@ var ometaAutoComplete = (function () {
 		var branches = grammar._getBranches();
 		var hintBranches = grammar.branches;
 		
-		for(var i = branches.length; i >= 0; i--) {
-			var currBranch = branches[i];
+		var lookingForBranch = true;
+		var tokenStart = text.length - (cur.ch - token.start);
+		
+		var checkBranch = function(currBranch) {
 			if(currBranch != null) {
 				for(var rule in currBranch) {
 					if(currBranch.hasOwnProperty(rule)) {
@@ -92,8 +94,16 @@ var ometaAutoComplete = (function () {
 						}
 					}
 				}
-				break;
+				lookingForBranch = false;
 			}
+		};
+		// Iterate forwards from the start of the token, so completions are added in an order that feels right when using.
+		for(var i = tokenStart; i < branches.length; i++) {
+			checkBranch(branches[i]);
+		}
+		// If we didn't find any then look backwards for the first set of completions we find.
+		for(var i = tokenStart - 1; lookingForBranch && i >= 0; i--) {
+			checkBranch(branches[i]);
 		}
 		return {
 			list: found,
