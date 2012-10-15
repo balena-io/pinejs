@@ -130,5 +130,5 @@ define(['codemirror'], function() {
 		if(mimeType != null) {
 			CodeMirror.defineMIME(mimeType, modeName);
 		}
-	}
+	};
 });
