@@ -6,6 +6,18 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 	//Specification: http://www.omg.org/spec/SBVR/1.0/
 
 	ometa SBVRParser <: SBVRLibs {
+		EOL =
+			(	'\r'?
+				'\n'
+			|	'\r'
+			),
+		EOLSpaces =
+			{false}:eol
+			(	EOL
+				{true}:eol
+			|	space
+			)*
+			?eol,
 		Bind :x	=
 			-> ['RoleBinding', x, this.ruleVars[x[1]]],
 
@@ -32,7 +44,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 			)*:w
 			-> w.join(''),
 		toEOL =
-			(	~('\r'|'\n')
+			(	~EOL
 				anything
 			)*:a
 			-> a.join(''),
@@ -265,13 +277,17 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 				|	attribute
 				):l
 				terminator? clearSuggestions
-				spaces &(lineStart | end)
 				{this.lines.push(l)}
 				-> l
 			|	newComment
 			),
 		Process =
-			line* end
+			line
+			(	EOLSpaces
+				line
+			)*
+			spaces
+			end
 			-> this.lines
 	}
 
