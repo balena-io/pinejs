@@ -191,7 +191,7 @@ createDirectoryTasks = () ->
 			taskList.push(addTask('dir', dirTask))
 		
 		desc('Create all output directories.')
-		task('all', taskList)
+		task('all', taskList, ->)
 	)
 	return taskList
 
@@ -199,14 +199,14 @@ jake.rmutils.boilerplate = (compileCopyTasks) ->
 	directoryTasks = createDirectoryTasks()
 
 	desc('Compile all of this module')
-	task('all', directoryTasks.concat(compileCopyTasks))
+	task('all', directoryTasks.concat(compileCopyTasks), ->)
 
 	outputDir = currentDirs.output
 	desc('Clean up created files')
 	task('clean', ->
 		jake.rmRf(outputDir)
 	)
-	addTask('clean', 'clean')
+	addTask('clean', 'clean', ->)
 
 createCompileNamespace = (action, fileType, createCompileTaskFunc) ->
 	taskList = []
@@ -217,7 +217,7 @@ createCompileNamespace = (action, fileType, createCompileTaskFunc) ->
 		for srcFile in fileList.toArray()
 			taskList = taskList.concat(createCompileTaskFunc(srcFile))
 		desc(action + ' all ' + fileType + ' files for ' + [currentCategory, currentModule].join(':') + '.')
-		task('all', taskList)
+		task('all', taskList, ->)
 	)
 	return taskList
 
@@ -348,6 +348,6 @@ jake.rmutils.createCopyNamespace = (excludeFileTypes = ['coffee', 'ometa']) ->
 		for inFile in fileList.toArray()
 			taskList = taskList.concat(createCopyTask(inFile))
 		desc('Copy all files other than ' + excludeFileTypes.join(', ') + '  for ' + [currentCategory, currentModule].join(':') + '.')
-		task('all', taskList)
+		task('all', taskList, ->)
 	)
 	return taskList
