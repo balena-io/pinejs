@@ -3,6 +3,7 @@
 	"version": "0.0.1",
 	"dependencies": {
 		"uglify-js": "latest",
-		"coffee-script": "latest"
+		"coffee-script": "latest",
+		"requirejs": "2.x"
 	}
 }
