@@ -1,0 +1,53 @@
+Rule ::=
+	Modifier RuleBody '.'
+RuleBody ::=
+	Quantifier term (That ',')? verb
+	NestedRuleBody
+NestedRuleBody ::=
+	Quantifier
+	term
+	(	is-fact-type
+		That?
+	|	(That ','?)?
+		verb
+		(	is-fact-type
+		|	NestedRuleBody
+		)
+	)
+That ::=
+	'that'
+	(	('the' term)?
+		verb
+		(	RuleBody
+		|	is-fact-type
+		)
+	|	RuleBody
+	)
+Modifier ::=
+	(	'It is obligatory that'
+	|	'It is necessary that'
+	|	'It is prohibited that'
+	|	'It is impossible that'
+	|	'It is not possible that'
+	|	'It is possible that'
+	|	'It is permissible that'
+	)
+Quantifier ::=
+	(	'each'
+	|	'a'
+	|	'an'
+	|	'some'
+	|	'at most'
+	|	'at least'
+		(Number 'and at most')?
+	|	'more than'
+	|	'exactly'
+	) Number
+
+Number ::=
+	[0-9]+
+
+Attribute ::=
+	Definition
+Definition ::=
+	term That
