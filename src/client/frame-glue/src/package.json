@@ -1,0 +1,7 @@
+{
+	"name": "RulemotionFrontend",
+	"version": "0.0.1",
+	"dependencies": {
+		"codemirror": "git://github.com/marijnh/CodeMirror.git#v2.34"
+	}
+}

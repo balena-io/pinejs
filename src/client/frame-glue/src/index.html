@@ -1,107 +1,15 @@
-<!doctype html>
-<head>
-	<meta charset="utf-8">
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Rulemotion Canvas</title>
+        
+        <link rel="stylesheet" href="main.css" />
+        <script data-main="main" src="lib/require-jquery.js"></script>
+    </head>
+    <body>
+        <h1>Rulemotion Canvas</h1>
 
-	<title>rulemotion canvas</title>
-	<!--#DEV-->
-	<script src="../../../../external/require.min.js"></script>
-	<script src="../../../../common/config/src/requirejs.js"></script>
-	<!--#BUILT
-	<script src="../../external/require.min.js"></script>
-	<script src="../../common/config/requirejs.js"></script>
-	-->
-	<script>
-		requirejs(['main']);
-    </script>
-	
-	<link rel="stylesheet" href="style.css">
-</head>
-
-<body>
-
-	<div id="dialog-login" title="Login" style="display:none;"></div>
-	<div id="dialog-message" title="Unable to complete request" style="display:none;"></div>
-	<div id="dialog-simple-error" title="Unable to complete request" style="display:none;"></div>
-	<div id="dialog-url-message" title="URL" style="display:none;"></div>
-	
-	<div id="tabs" style="display:none;">
-		<ul>
-			<li><a href='#modelTab' 		>Model Editor			</a></li>
-			<li><a href='#lfTab'			>Logical Formulation	</a></li>
-			<!--#IFDEF SBVR_SERVER_ENABLED -->
-				<li><a href='#prepTab'			>Preprocessed LF		</a></li>
-				<li><a href='#sqlTab'			>SQL					</a></li>
-				<li><a href='#dataTab'			>Data Browser			</a></li>
-				<li><a href='#httpTab'			>HTTP Log				</a></li>
-				<li><a href='#importExportTab'	>Import/Export Database	</a></li>
-			<!--#ENDIFDEF-->
-		</ul>
-		<div id="modelTab">
-			<form id="editform">
-				<!-- windows wants 189 cols for the textareas -->
-				<textarea id="modelArea" rows="15" cols="136"></textarea>
-				<div align="right">
-					<input type="button" id="write_file" value="Save File">
-					<input type="file" id="read_file" class="hidden-input" onchange="readFile(this.files);return false">
-					<input type="button" id='load_file' value="Load File" onClick="toReadFile();return false">
-					<input type="button" id='save_model' value="Publish"  onClick="saveModel();return false">
-					<input type="button" id='blm1' value="Load Example 1"  onClick="loadmod(model1);return false">
-					<input type="button" id='blm2' value="Load Example 2"  onClick="loadmod(model2);return false">
-					<input type="button" id='blm3' value="Load Example 3"  onClick="loadmod(model3);return false">
-					<!--#IFDEF EDITOR_SERVER_ENABLED -->
-						<input type="button" id='bpm'  value="Parse Model"   onClick="parseModel();return false">
-					<!--#ENDIFDEF-->
-					<input type="button" id='clear_editor' value="Clear Editor"  onClick="sbvrEditor.setValue('');return false">
-					<div id="downloadify"></div>
-					<div id="TheFileLoader"></div>
-					<!--#IFDEF SBVR_SERVER_ENABLED -->
-						<input type="button" id='bl'  value="Login"         onClick="login();return false">
-						<input type="button" id='bem'  value="Execute Model" onClick="transformClient(sbvrEditor.getValue());return false">
-						<input type="button" id='bum'  value="Update Model"  onClick="return false">
-						<input type="button" id='br'   value="Reset"         onClick="resetClient();return false">
-						<input type="button" id='bbdb' value="Backup DB"     onClick="serverRequest('POST', '/backupdb/');return false">
-						<input type="button" id='brdb' value="Restore DB"    onClick="serverRequest('POST', '/restoredb/');return false">
-						<input type="button" id='bcdb' value="Clear DB"      onClick="serverRequest('DELETE', '/cleardb/');return false">
-					<!--#ENDIFDEF-->
-				</div>
-			</form>
-		</div>
-		<div id="lfTab"><textarea id="lfArea" rows="15" cols="136"></textarea></div>
-		<!--#IFDEF SBVR_SERVER_ENABLED -->
-			<div id="prepTab"><textarea id="prepArea" rows="15" cols="136"></textarea></div>
-			<div id="sqlTab"><textarea id="sqlArea" rows="15" cols="136"></textarea></div>
-			<div id="dataTab"></div>
-			<div id="httpTab">
-				<table id='httpTable' class='textTable'>
-					<tr>
-						<td><strong>method</strong></td>
-						<td><strong>uri</strong></td>
-						<td><strong>headers</strong></td>
-						<td><strong>body</strong></td>
-					</tr>
-				</table>
-			</div>
-			<div id="importExportTab">
-				<textarea id="importExportArea" rows="15" cols="136"></textarea>
-				<script type="text/javascript">
-					if(!!window.FileReader)
-					{
-						document.write('<input type="button" id="bldb" value="Load File">');
-						function handleFiles(files) {
-							var reader = new FileReader();
-							reader.onloadend = function(e) {
-								importExportEditor.setValue(e.target.result);
-							}
-							reader.readAsText(files[0]);
-						}
-						document.write('<input type="button" id="bsdb" value="Save File" onClick="downloadFile(\'sbvr.txt\',importExportEditor.getValue())">');
-					}
-				</script>
-				<output></output>
-				<input type="button" id='bidb' value="Import DB" onClick="serverRequest('PUT', '/importdb/', {}, importExportEditor.getValue());return false">
-				<input type="button" id='bedb' value="Export DB" onClick="serverRequest('GET', '/exportdb/', {}, '', function(statusCode, result){importExportEditor.setValue(result)});return false">
-			</div>
-		<!--#ENDIFDEF-->
-	</div>
-</body>
+        <ul id="tabs" class="nav nav-tabs"></ul>
+        <div id="content" class="tab-content"></div>
+    </body>
 </html>
