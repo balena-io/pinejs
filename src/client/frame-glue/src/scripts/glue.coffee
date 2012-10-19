@@ -1,19 +1,16 @@
-define(["jquery", "bootstrap"], ($) ->
-    tabNum = 0
+require(["cs!modules/sbvr-editor/main", "cs!sbvr-lf/lfviz"], (modules...) ->
+    ###
+    modules = [
+        "cs!skeleton"
+    ]
 
-    $("#tabs").on("click", "a", (e) ->
-        e.preventDefault()
-        $(this).tab("show")
-    )
+    modules = modules.map((module) ->
+        if module.indexOf("!") isnt -1
+            [plugin, module] = module.split("!")
+        return "#{plugin}!modules/#{module}/main"
+    })
 
-    addTab = (title) ->
-        id = "tab" + tabNum++
-        content = $("""<div id="#{id}"></div>""")
+    ###
 
-        $("#tabs").append($("""<li><a href="##{id}">#{title}</a></li>"""))
-        $("#content").append(content)
-
-        return content
-
-    return addTab
+    module.init() for module in modules
 )

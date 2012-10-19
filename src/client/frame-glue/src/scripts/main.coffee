@@ -1,4 +1,4 @@
-require(["cs!modules/sbvr-editor/main"], (modules...) ->
+require(["cs!modules/sbvr-editor/main", "cs!sbvr-lf/lfviz"], (modules...) ->
     ###
     modules = [
         "cs!skeleton"
