@@ -5,7 +5,7 @@ requirejs.config({
         "cs": "../lib/cs",
         "codemirror": "../node_modules/codemirror/lib/codemirror",
         "text": "../lib/text",
-        "coffee-script": "../lib/coffee-script",
+        "coffee-script": "../node_modules/coffee-script/extras/coffee-script",
         "modules": "../modules",
         "bootstrap": "../lib/bootstrap/bootstrap"
     },
