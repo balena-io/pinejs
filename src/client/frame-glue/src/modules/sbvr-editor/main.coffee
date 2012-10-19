@@ -1,4 +1,4 @@
-define(["cs!glue", "text!./editor.html", "jquery", "codemirror"], (glue, html, $, CodeMirror) ->
+define(["cs!frame-glue/glue", "text!./editor.html", "jquery", "codemirror"], (glue, html, $, CodeMirror) ->
     return {
         init: ->
             content = glue("Edit")

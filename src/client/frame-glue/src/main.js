@@ -1,6 +1,7 @@
 requirejs.config({
     baseUrl: "scripts",
     paths: {
+        "frame-glue": "../scripts",
         "cs": "../lib/cs",
         "codemirror": "../node_modules/codemirror/lib/codemirror",
         "text": "../lib/text",

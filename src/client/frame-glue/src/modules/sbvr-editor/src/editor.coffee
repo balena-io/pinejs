@@ -1,4 +1,4 @@
-define(['glue'], (glue)->
+define(['frame-glue/glue'], (glue)->
     content = glue.addTab("Edit")
 
     exports.init = ->
