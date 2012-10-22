@@ -13,20 +13,20 @@ define(['sbvr-compiler/LFValidator'], function(LFValidator) {
 			(Helped('disableMemoisation') trans(x):x)*
 			-> x,
 
-		AtLeastNQ
+		AtLeastNQuantification
 				"MinimumCardinality":i ?{i[1][1]==1} "Variable":v trans*:xs
 				SetHelped
-				-> ['ExistentialQ', v].concat(xs)
-			|	^AtLeastNQ,
+				-> ['ExistentialQuantification', v].concat(xs)
+			|	^AtLeastNQuantification,
 
-		NumericalRangeQ
+		NumericalRangeQuantification
 				"MinimumCardinality":i
 				"MaximumCardinality":j
 				?{i[1][1]==j[1][1]}
 				"Variable":v trans*:xs
 				SetHelped
-				-> ['ExactQ', ['Cardinality', i[1]], v].concat(xs)
-			|	^NumericalRangeQ,
+				-> ['ExactQuantification', ['Cardinality', i[1]], v].concat(xs)
+			|	^NumericalRangeQuantification,
 
 		LogicalNegation =
 				['LogicalNegation' trans:xs] SetHelped

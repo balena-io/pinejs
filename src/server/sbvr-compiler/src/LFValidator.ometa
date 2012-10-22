@@ -52,7 +52,12 @@ define(['sbvr-parser/SBVRLibs', 'ometa-core'], function(SBVRLibs) {
 			:v
 			-> ['Verb', v],
 		Rule
-			("ObligationF"|"NecessityF"|"PossibilityF"|"PermissibilityF"):x "StructuredEnglish":t
+			(	"ObligationFormulation"
+			|	"NecessityFormulation"
+			|	"PossibilityFormulation"
+			|	"PermissibilityFormulation"
+			):x
+			"StructuredEnglish":t
 			-> ['Rule', x, t],
 		addAttributes :termOrVerb =
 			(	end
@@ -86,53 +91,53 @@ define(['sbvr-parser/SBVRLibs', 'ometa-core'], function(SBVRLibs) {
 			:a
 			-> ['StructuredEnglish', a],
 		
-		ObligationF
+		ObligationFormulation
 			trans*:xs
-			-> ['ObligationF'].concat(xs),
-		NecessityF
+			-> ['ObligationFormulation'].concat(xs),
+		NecessityFormulation
 			trans*:xs
-			-> ['NecessityF'].concat(xs),
-		PossibilityF
+			-> ['NecessityFormulation'].concat(xs),
+		PossibilityFormulation
 			trans*:xs
-			-> ['PossibilityF'].concat(xs),
-		PermissibilityF
+			-> ['PossibilityFormulation'].concat(xs),
+		PermissibilityFormulation
 			trans*:xs
-			-> ['PermissibilityF'].concat(xs),
+			-> ['PermissibilityFormulation'].concat(xs),
 
 		LogicalNegation
 			trans:xs
 			-> ['LogicalNegation'].concat([xs]),
 
 		quant =
-			(	"UniversalQ"
-			|	"ExistentialQ"
-			|	"ExactQ"
-			|	"AtMostNQ"
-			|	"AtLeastNQ"
-			|	"NumericalRangeQ"
+			(	"UniversalQuantification"
+			|	"ExistentialQuantification"
+			|	"ExactQuantification"
+			|	"AtMostNQuantification"
+			|	"AtLeastNQuantification"
+			|	"NumericalRangeQuantification"
 			),
-		UniversalQ
+		UniversalQuantification
 			"Variable":v trans*:xs
-			-> ['UniversalQ', v].concat(xs),
-		ExistentialQ
+			-> ['UniversalQuantification', v].concat(xs),
+		ExistentialQuantification
 			"Variable":v trans*:xs
-			-> ['ExistentialQ', v].concat(xs),
-		ExactQ
+			-> ['ExistentialQuantification', v].concat(xs),
+		ExactQuantification
 			"Cardinality":i
 			"Variable":v trans*:xs
-			-> ['ExactQ', i, v].concat(xs),
-		AtMostNQ
+			-> ['ExactQuantification', i, v].concat(xs),
+		AtMostNQuantification
 			"MaximumCardinality":a
 			"Variable":v trans*:xs
-			-> ['AtMostNQ', a, v].concat(xs),
-		AtLeastNQ
+			-> ['AtMostNQuantification', a, v].concat(xs),
+		AtLeastNQuantification
 			"MinimumCardinality":i
 			"Variable":v trans*:xs
-			-> ['AtLeastNQ', i, v].concat(xs),
-		NumericalRangeQ
+			-> ['AtLeastNQuantification', i, v].concat(xs),
+		NumericalRangeQuantification
 			"MinimumCardinality":i "MaximumCardinality":a
 			"Variable":v trans*:xs
-			-> ['NumericalRangeQ', i, a, v].concat(xs),
+			-> ['NumericalRangeQuantification', i, a, v].concat(xs),
 
 		Cardinality
 			"Number":n

@@ -92,20 +92,20 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 		// Be very careful with anywhere you use quant as any in-place modifications of the array will be remembered in memoisation.
 		quant =
 			(	keyword("each")
-				-> ['UniversalQ']
+				-> ['UniversalQuantification']
 			|	matchForAny('keyword',["a","an","some"])
-				-> ['ExistentialQ']
+				-> ['ExistentialQuantification']
 			|	matchForAll('keyword',["at","most"]) num:n
-				-> ['AtMostNQ', ['MaximumCardinality', n]]
+				-> ['AtMostNQuantification', ['MaximumCardinality', n]]
 			|	matchForAll('keyword',["at","least"]) num:n
 				(	joinQuant num:m
-					-> ['NumericalRangeQ', ['MinimumCardinality', n], ['MaximumCardinality', m]]
-				|	-> ['AtLeastNQ', ['MinimumCardinality', n]]
+					-> ['NumericalRangeQuantification', ['MinimumCardinality', n], ['MaximumCardinality', m]]
+				|	-> ['AtLeastNQuantification', ['MinimumCardinality', n]]
 				)
 			|	matchForAll('keyword',["more","than"]) num:n {++n[1]}
-				-> ['AtLeastNQ', ['MinimumCardinality', n]]
+				-> ['AtLeastNQuantification', ['MinimumCardinality', n]]
 			|	keyword("exactly") num:n
-				-> ['ExactQ', ['Cardinality', n]]
+				-> ['ExactQuantification', ['Cardinality', n]]
 			),
 
 		keyword :word :noToken =
@@ -165,19 +165,19 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 		modRule =
 			"It" "is" 
 			(	"obligatory"
-				-> ['ObligationF']
+				-> ['ObligationFormulation']
 			|	"necessary"	
-				-> ['NecessityF']
+				-> ['NecessityFormulation']
 			|	"prohibited"
-				-> ['ObligationF', ['LogicalNegation']]
+				-> ['ObligationFormulation', ['LogicalNegation']]
 			|	"impossible"
-				-> ['NecessityF', ['LogicalNegation']]
+				-> ['NecessityFormulation', ['LogicalNegation']]
 			|	"not" "possible"
-				-> ['NecessityF', ['LogicalNegation']]
+				-> ['NecessityFormulation', ['LogicalNegation']]
 			|	"possible"
-				-> ['PossibilityF']
+				-> ['PossibilityFormulation']
 			|	"permissible"
-				-> ['PermissibilityF']
+				-> ['PermissibilityFormulation']
 			):r
 			"that"
 			-> r,
