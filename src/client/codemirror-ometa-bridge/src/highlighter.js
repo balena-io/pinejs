@@ -39,7 +39,10 @@ define(['codemirror'], function() {
 							grammar.matchAll(text, 'Process');
 						}
 						catch(e) {
-							console.error(e, e.stack);
+							// An error here means we failed to parse the text,
+							// we can ignore it though as we just want to highlight what is valid,
+							// after all they're probably just in the middle of typing.
+							// console.error(e, e.stack);
 						}
 						tokens = grammar._getTokens();
 					}
