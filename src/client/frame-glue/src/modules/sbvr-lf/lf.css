@@ -1,0 +1,37 @@
+/* Create room for collapsed/expanded node symbols. */
+.lf li {
+   list-style: none;
+   text-indent: -1em;
+}
+
+/* We don't want link decoration. */
+.lf a {
+  color: black;
+  text-decoration: none;
+}
+
+/* Don't display the children of collapsed nodes. */
+.lf li.lf-collapsed ul {
+  display: none;
+}
+
+/* By default, don't display the collapsed node symbol. */
+.lf li .lf-symbol-collapsed {
+  display: none;
+}
+
+/* For completeness - by default, *do* display the expanded node symbol. */
+.lf li .lf-symbol-expanded {
+  display: inline;
+}
+
+/* If node is collapsed, *do* display the collapsed node symbol. */
+.lf li.lf-collapsed .lf-symbol-collapsed {
+  display: inline;
+}
+
+/* If node is collapsed, do *not* display the expanded node symbol. */
+.lf li.lf-collapsed .lf-symbol-expanded {
+  display: none;
+}
+
