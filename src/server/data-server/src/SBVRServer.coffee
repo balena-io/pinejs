@@ -52,6 +52,16 @@ define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQL2CLF', '
 			else
 				next('route')
 		)
+	
+	uiModelLoaded = do ->
+		_nexts = []
+		(req, res, next) ->
+			if req == true
+				uiModelLoaded = (req, res, next) -> next()
+				for next in _nexts
+					next()
+			else
+				_nexts.push(next)
 
 	# Setup function
 	exports.setup = (app, requirejs, sbvrUtils, isAuthed, databaseOptions) ->
@@ -64,8 +74,9 @@ define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQL2CLF', '
 				sbvrUtils.executeModel(tx, 'ui', uiModel,
 					() ->
 						console.log('Sucessfully executed ui model.')
+						uiModelLoaded(true)
 					(tx, error) ->
-						console.log('Failed to execute ui model.', error)
+						console.error('Failed to execute ui model.', error)
 				)
 				sbvrUtils.runURI('GET', '/dev/model?filter=model_type:sql;vocabulary:data', null, tx
 					(result) ->
@@ -85,7 +96,7 @@ define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQL2CLF', '
 		app.post('/update', isAuthed, serverIsOnAir, (req, res, next) ->
 			res.send(404)
 		)
-		app.post('/execute', isAuthed, (req, res, next) ->
+		app.post('/execute', isAuthed, uiModelLoaded, (req, res, next) ->
 			sbvrUtils.runURI('GET', '/ui/textarea?filter=name:model_area', null, null,
 				(result) ->
 					seModel = result.instances[0].text
@@ -220,7 +231,7 @@ define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQL2CLF', '
 				)
 		)
 		
-		app.get('/ui/*', sbvrUtils.parseURITree, (req, res, next) ->
+		app.get('/ui/*', uiModelLoaded, sbvrUtils.parseURITree, (req, res, next) ->
 			sbvrUtils.runGet(req, res)
 		)
 		app.get('/data/*', serverIsOnAir, sbvrUtils.parseURITree, (req, res, next) ->
@@ -231,7 +242,7 @@ define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQL2CLF', '
 			sbvrUtils.runPost(req, res)
 		)
 
-		app.put('/ui/*', sbvrUtils.parseURITree, (req, res, next) ->
+		app.put('/ui/*', uiModelLoaded, sbvrUtils.parseURITree, (req, res, next) ->
 			sbvrUtils.runPut(req, res)
 		)
 		app.put('/data/*', serverIsOnAir, sbvrUtils.parseURITree, (req, res, next) ->
@@ -242,7 +253,7 @@ define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQL2CLF', '
 			sbvrUtils.runDelete(req, res)
 		)
 
-		app.del('/', serverIsOnAir, (req, res, next) ->
+		app.del('/', uiModelLoaded, serverIsOnAir, (req, res, next) ->
 			# TODO: This should be done a better way?
 			sbvrUtils.runURI('DELETE', '/ui/textarea-is_disabled?filter=textarea.name:model_area/')
 			sbvrUtils.runURI('PUT', '/ui/textarea?filter=name:model_area/', [{text: ''}])
