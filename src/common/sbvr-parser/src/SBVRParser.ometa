@@ -24,7 +24,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 		letters =
 			letter+:l
 			-> l.join(''),
-		num =
+		Number =
 			(	spaces digit+:n
 				-> ['Number', parseInt(n.join(''))]
 			|	"one"
@@ -86,25 +86,26 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 		verbPart =
 			spaces ~lineStart ~Term letters,
 		
-		joinQuant =
+		JoiningQuantifier =
 			matchForAll('keyword',["and","at","most"]),
 		
-		// Be very careful with anywhere you use quant as any in-place modifications of the array will be remembered in memoisation.
-		quant =
+		// Be very careful with anywhere you use quantifier as any in-place modifications of the array will be remembered in memoisation.
+		Quantifier =
 			(	keyword("each")
 				-> ['UniversalQuantification']
 			|	matchForAny('keyword',["a","an","some"])
 				-> ['ExistentialQuantification']
-			|	matchForAll('keyword',["at","most"]) num:n
+			|	matchForAll('keyword',["at","most"]) Number:n
 				-> ['AtMostNQuantification', ['MaximumCardinality', n]]
-			|	matchForAll('keyword',["at","least"]) num:n
-				(	joinQuant num:m
+			|	matchForAll('keyword',["at","least"]) Number:n
+				(	JoiningQuantifier
+					Number:m
 					-> ['NumericalRangeQuantification', ['MinimumCardinality', n], ['MaximumCardinality', m]]
 				|	-> ['AtLeastNQuantification', ['MinimumCardinality', n]]
 				)
-			|	matchForAll('keyword',["more","than"]) num:n {++n[1]}
+			|	matchForAll('keyword',["more","than"]) Number:n {++n[1]}
 				-> ['AtLeastNQuantification', ['MinimumCardinality', n]]
-			|	keyword("exactly") num:n
+			|	keyword("exactly") Number:n
 				-> ['ExactQuantification', ['Cardinality', n]]
 			),
 
@@ -149,7 +150,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 		// c[0] should contain the current fact type that is being built
 		// c[1..] should contain the bindings for the fact type being built
 		ruleBody :c :exitOnTermFactType =
-			quant:body Term(c[0]):t createVar(t):tVar Bind(t):b {c[0].push(t);c.push(b)}
+			Quantifier:body Term(c[0]):t createVar(t):tVar Bind(t):b {c[0].push(t);c.push(b)}
 			(checkThat(t, b):thatC {tVar.push(thatC)})?
 			(
 				Verb(c[0]):v {c[0].push(v)}
@@ -162,7 +163,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 			{body.push(tVar, r)}
 			-> body,
 
-		modRule =
+		Modifier =
 			"It" "is" 
 			(	"obligatory"
 				-> ['ObligationFormulation']
@@ -186,7 +187,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 			"R:"|"Rule:",
 		newRule =
 			startRule spaces &(toSBVREOL):ruleText {this.ruleVarsCount=0}
-			modRule:r ruleBody([[]]):q {r.length == 2 ? (r[1][1] = q) : (r[1] = q)}
+			Modifier:r ruleBody([[]]):q {r.length == 2 ? (r[1][1] = q) : (r[1] = q)}
 			-> ['Rule', r, ['StructuredEnglish', ruleText]],
 		terb =
 			Term:t addVerb:v
@@ -302,7 +303,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 	
 	SBVRParser._enableTokens = function() {
 		this.tokensEnabled = true;
-		SBVRLibs._enableTokens.call(this, ["startTerm", "startFactType", "startRule", "newComment", "Term", "modRule", "Verb", "keyword", "allowedAttrs", "num", "Value"]);
+		SBVRLibs._enableTokens.call(this, ["startTerm", "startFactType", "startRule", "newComment", "Term", "Modifier", "Verb", "keyword", "allowedAttrs", "Number", "Value"]);
 	};
 	
 	SBVRParser._baseTerm = function(factTypeSoFar, term) {
@@ -450,7 +451,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 				}
 				return [];
 			},
-			modRule: [
+			Modifier: [
 				'It is obligatory that',
 				'It is necessary that',
 				'It is prohibited that',
@@ -459,7 +460,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 				'It is possible that',
 				'It is permissible that'
 			],
-			quant: [
+			Quantifier: [
 				'each',
 				'a',
 				'an',
@@ -470,8 +471,8 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 				'more than',
 				"exactly"
 			],
-			joinQuant: ['and at most'],
-			num: [
+			JoiningQuantifier: ['and at most'],
+			Number: [
 				'1', '2', '3', '4', '5', '6', '7', '8', '9',
 				'one'
 			],
