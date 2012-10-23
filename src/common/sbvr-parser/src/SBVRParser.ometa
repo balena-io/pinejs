@@ -216,7 +216,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 		defaultAttr :currentLine =
 			toSBVREOL,
 		attrDefinition :currentLine =
-			(	{this.ruleVarsCount=0} {[[]]}:c Term:t createVar(t):tVar Bind(t):b {c[0].push(t);c.push(b)}
+			(	{this.ruleVarsCount=0} addThe? {[[]]}:c Term:t createVar(t):tVar Bind(t):b {c[0].push(t);c.push(b)}
 				checkThat(t, b):thatC {tVar.push(thatC)}
 				-> tVar
 			|	Value('or'):name

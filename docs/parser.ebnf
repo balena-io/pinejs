@@ -50,4 +50,4 @@ Number ::=
 Attribute ::=
 	Definition
 Definition ::=
-	term That
+	'the'? term That
