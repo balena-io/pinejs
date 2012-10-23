@@ -4,7 +4,7 @@ define(['ometa-core'], function() {
 		Elem :indent =
 			[
 				(	string:s
-					-> { "'" + s + "'" }
+					-> { '"' + s + '"' }
 				|	Elem(indent + '\t')
 				|	number
 				|	true
