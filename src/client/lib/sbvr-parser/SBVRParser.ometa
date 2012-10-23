@@ -1,4 +1,9 @@
-if(typeof SBVR_SERVER_ENABLED === 'undefined') SBVR_SERVER_ENABLED = true;
+if(typeof global !== 'undefined' && typeof global.SBVR_SERVER_ENABLED === 'undefined') {
+	var SBVR_SERVER_ENABLED = true;
+}
+if(typeof window !== 'undefined' && typeof window.SBVR_SERVER_ENABLED === 'undefined') {
+	var SBVR_SERVER_ENABLED = true;
+}
 
 define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], function(SBVRLibs, _) {
 	//A parser for Semantics of Business Vocabulary and Rules (SBVR), an OMG standard.

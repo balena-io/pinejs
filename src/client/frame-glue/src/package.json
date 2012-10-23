@@ -1,8 +1,0 @@
-{
-	"name": "RulemotionFrontend",
-	"version": "0.0.1",
-	"dependencies": {
-		"codemirror": "git://github.com/marijnh/CodeMirror.git#v2.34",
-		"coffee-script": "git://github.com/rulemotion/coffee-script.git#b8a0c4e774ba91cb920e4b721517707be42f69d6"
-	}
-}

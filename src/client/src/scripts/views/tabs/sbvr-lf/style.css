@@ -1,0 +1,16 @@
+.lf {
+	margin-top: 15px;
+	font-size: 17px;
+}
+
+.lf ul {
+	list-style-type: none;
+}
+
+.lf-collapsed .lf-symbol-collapsed {
+	display: inline;
+}
+
+.lf-collapsed ul, .lf-symbol-collapsed, .lf-collapsed .lf-symbol-expanded {
+	display: none;
+}
