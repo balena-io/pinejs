@@ -1,27 +1,24 @@
 Rule ::=
-	Modifier RuleBody '.'
+	Modifier
+	RuleBody
+	'.'?
 RuleBody ::=
-	Quantifier term (That ',')? verb
-	NestedRuleBody
-NestedRuleBody ::=
-	Quantifier
-	term
-	(	is-fact-type
-		That?
-	|	(That ','?)?
-		verb
-		(	is-fact-type
-		|	NestedRuleBody
+	(	Quantifier
+		term
+		(	'that'
+			RuleBody
+			','?
+		)?
+	|	'the'
+		(	referenced-term
+		|	name
 		)
 	)
-That ::=
-	'that'
-	(	('the' term)?
-		verb
-		(	RuleBody
-		|	is-fact-type
+	(	ends-fact-type
+	|	verb
+		(	ends-fact-type
+		|	RuleBody
 		)
-	|	RuleBody
 	)
 Modifier ::=
 	(	'It is obligatory that'
@@ -54,4 +51,8 @@ Number ::=
 Attribute ::=
 	Definition
 Definition ::=
-	'the'? term That
+	'the'?
+	term
+	'that'
+	RuleBody
+	'.'?
