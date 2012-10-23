@@ -51,8 +51,12 @@ Number ::=
 Attribute ::=
 	Definition
 Definition ::=
-	'the'?
-	term
-	'that'
-	RuleBody
-	'.'?
+		'the'?
+		term
+		'that'
+		RuleBody
+		'.'?
+	|	value
+		(	'or'
+			value
+		)*
