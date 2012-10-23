@@ -126,21 +126,21 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 			{this.ruleVars[term[1]] = this.ruleVarsCount++}
 			-> ['Variable', ['Number', this.ruleVars[term[1]]], term],
 
-		atfo :factType :bindings =
+		IsAtomicFormulation :factType :bindings =
 			isFactType(factType):realFactType
 			?realFactType
 			-> ['AtomicFormulation'].concat([['FactType'].concat(factType)], bindings),
 
-		ruleBody :factType :bindings :exitOnTermFactType =
+		RuleBody :factType :bindings :exitOnTermFactType =
 			(	Quantifier:body
 				Term(factType):t createVar(t):tVar Bind(t):b {factType.push(t);bindings.push(b)}
 				(	addThat
 					(	{[t]}:thatFactType
 						Verb(thatFactType):v {thatFactType.push(v)}
-						(	ruleBody(thatFactType, [b], true)
-						|	atfo(thatFactType, [b])
+						(	RuleBody(thatFactType, [b], true)
+						|	IsAtomicFormulation(thatFactType, [b])
 						)
-					|	ruleBody([t], [b])
+					|	RuleBody([t], [b])
 					):thatLF {tVar.push(thatLF)}
 					','?
 				)?
@@ -156,11 +156,11 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 						bindings.push(parentTermBind);
 					}
 				}
-				(	ruleBody(factType, bindings, true)
-				|	atfo(factType, bindings)
+				(	RuleBody(factType, bindings, true)
+				|	IsAtomicFormulation(factType, bindings)
 				)
 			|	?(exitOnTermFactType === true)
-				atfo(factType, bindings)
+				IsAtomicFormulation(factType, bindings)
 			):lf
 			-> (parentTerm != null ? lf : body.concat([tVar, lf])),
 
@@ -188,7 +188,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 			"R:"|"Rule:",
 		newRule =
 			startRule spaces &(toSBVREOL):ruleText {this.ruleVarsCount=0}
-			Modifier:r ruleBody([], []):q {r.length == 2 ? (r[1][1] = q) : (r[1] = q)}
+			Modifier:r RuleBody([], []):q {r.length == 2 ? (r[1][1] = q) : (r[1] = q)}
 			-> ['Rule', r, ['StructuredEnglish', ruleText]],
 		terb =
 			Term:t addVerb:v
@@ -219,16 +219,16 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 			toSBVREOL,
 		attrDefinition :currentLine =
 			(	addThe?
-				// The following section is copied from ruleBody, should really be sorted properly.
+				// The following section is copied from RuleBody, should really be sorted properly.
 				{this.ruleVarsCount=0} {[]}:factType {[]}:bindings
 				Term:t createVar(t):tVar Bind(t):b {factType.push(t);bindings.push(b)}
 				addThat
 				(	{[t]}:thatFactType
 					Verb(thatFactType):v {thatFactType.push(v)}
-					(	ruleBody(thatFactType, [b], true)
-					|	atfo(thatFactType, [b])
+					(	RuleBody(thatFactType, [b], true)
+					|	IsAtomicFormulation(thatFactType, [b])
 					)
-				|	ruleBody([t], [b])
+				|	RuleBody([t], [b])
 				):thatLF {tVar.push(thatLF)}
 				-> tVar
 			|	Value('or'):name

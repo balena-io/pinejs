@@ -7,7 +7,7 @@ RuleBody ::=
 		term
 		(	'that'
 			(	verb
-				(	ends-fact-type
+				(	is-atomic-formulation
 				|	RuleBody
 				)
 			|	RuleBody
@@ -19,9 +19,9 @@ RuleBody ::=
 		|	name
 		)
 	)
-	(	ends-fact-type
+	(	is-atomic-formulation
 	|	verb
-		(	ends-fact-type
+		(	is-atomic-formulation
 		|	RuleBody
 		)
 	)
