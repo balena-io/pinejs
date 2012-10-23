@@ -6,7 +6,12 @@ RuleBody ::=
 	(	Quantifier
 		term
 		(	'that'
-			RuleBody
+			(	verb
+				(	ends-fact-type
+				|	RuleBody
+				)
+			|	RuleBody
+			)
 			','?
 		)?
 	|	'the'

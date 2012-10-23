@@ -125,21 +125,6 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 		createVar :term =
 			{this.ruleVars[term[1]] = this.ruleVarsCount++}
 			-> ['Variable', ['Number', this.ruleVars[term[1]]], term],
-		checkThat :term :termBind =
-			addThat
-			(	addThe Term:t Bind(t):b {[[t],b]}:c Verb(c[0]):v {c[0].push(v, term); c.push(termBind)}
-				(	ruleBody(c)
-				|	atfo(c)
-				)
-			|	(	{[[term], termBind]}:c Verb(c[0]):v {c[0].push(v)}
-					(	ruleBody(c, true)
-					|	atfo(c)
-					)
-				| ruleBody([[]])
-				)
-			):r
-			addComma?
-			-> r,
 
 		atfo :c	=
 			isFactType(c[0]):realFactType
@@ -150,18 +135,37 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 		// c[0] should contain the current fact type that is being built
 		// c[1..] should contain the bindings for the fact type being built
 		ruleBody :c :exitOnTermFactType =
-			Quantifier:body Term(c[0]):t createVar(t):tVar Bind(t):b {c[0].push(t);c.push(b)}
-			(checkThat(t, b):thatC {tVar.push(thatC)})?
+			(	Quantifier:body
+				Term(c[0]):t createVar(t):tVar Bind(t):b {c[0].push(t);c.push(b)}
+				(	addThat
+					(	{[[t], b]}:thatC
+						Verb(thatC[0]):v {thatC[0].push(v)}
+						(	ruleBody(thatC, true)
+						|	atfo(thatC)
+						)
+					|	{[[t], b]}:thatC // We reinitialise thatC in case it had an in-place modification before.
+						ruleBody(thatC)
+					):thatC {tVar.push(thatC)}
+					','?
+				)?
+			|	addThe
+				{c[0][c[0].length - 1]}:parentTerm
+				{c[c.length - 1]}:parentTermBind
+				Term:t Bind(t):b {[[t],b]}:c
+			)
 			(
 				Verb(c[0]):v {c[0].push(v)}
+				{	if(parentTerm != null) {
+						c[0].push(parentTerm); c.push(parentTermBind)
+					}
+				}
 				(	ruleBody(c, true)
 				|	atfo(c)
 				)
 			|	?(exitOnTermFactType === true)
 				atfo(c)
 			):r
-			{body.push(tVar, r)}
-			-> body,
+			-> (parentTerm != null ? r : body.concat([tVar, r])),
 
 		Modifier =
 			"It" "is" 
@@ -217,8 +221,19 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 		defaultAttr :currentLine =
 			toSBVREOL,
 		attrDefinition :currentLine =
-			(	{this.ruleVarsCount=0} addThe? {[[]]}:c Term:t createVar(t):tVar Bind(t):b {c[0].push(t);c.push(b)}
-				checkThat(t, b):thatC {tVar.push(thatC)}
+			(	addThe?
+				// The following section is copied from ruleBody, should really be sorted properly.
+				{this.ruleVarsCount=0} {[[]]}:c
+				Term:t createVar(t):tVar Bind(t):b {c[0].push(t);c.push(b)}
+				addThat
+				(	{[[t], b]}:thatC
+					Verb(thatC[0]):v {thatC[0].push(v)}
+					(	ruleBody(thatC, true)
+					|	atfo(thatC)
+					)
+				|	ruleBody([[]])
+				):thatC
+				{tVar.push(thatC)}
 				-> tVar
 			|	Value('or'):name
 				(	addOr clearSuggestions
