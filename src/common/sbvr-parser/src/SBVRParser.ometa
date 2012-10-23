@@ -25,8 +25,8 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 			letter+:l
 			-> l.join(''),
 		Number =
-			(	spaces digit+:n
-				-> ['Number', parseInt(n.join(''))]
+			(	spaces <digit+>:n
+				-> ['Number', parseInt(n, 10)]
 			|	"one"
 				-> ['Number', 1]
 			),
