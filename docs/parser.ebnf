@@ -33,16 +33,19 @@ Modifier ::=
 	|	'It is permissible that'
 	)
 Quantifier ::=
-	(	'each'
-	|	'a'
-	|	'an'
-	|	'some'
-	|	'at most'
-	|	'at least'
-		(Number 'and at most')?
-	|	'more than'
-	|	'exactly'
-	) Number
+		(	'each'
+		|	'a'
+		|	'an'
+		|	'some'
+		)
+	|	(
+		|	'at most'
+		|	'at least'
+			(Number 'and at most')?
+		|	'more than'
+		|	'exactly'
+		)
+		Number
 
 Number ::=
 		'one'
