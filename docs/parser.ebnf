@@ -45,7 +45,8 @@ Quantifier ::=
 	) Number
 
 Number ::=
-	[0-9]+
+		'one'
+	|	[0-9]+
 
 Attribute ::=
 	Definition
