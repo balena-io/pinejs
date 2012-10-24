@@ -148,7 +148,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 					addComma?
 				)?
 			|	addThe
-				Term:t Bind(t):b {[t]}:factType {[b]}:bindings
+				Term(factType):t Bind(t):b {factType.push(t);bindings.push(b)}
 			)
 			(	Verb(factType):v {factType.push(v)}
 				{	if(parentTerm != null) {
