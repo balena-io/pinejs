@@ -131,17 +131,20 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 			?realFactType
 			-> ['AtomicFormulation'].concat([['FactType'].concat(factType)], bindings),
 
+		ClosedProjection :term :termBind =
+			addThat
+			(	{[term]}:factType
+				Verb(factType):verb {factType.push(verb)}
+				(	RuleBody(factType, [termBind])
+				|	IsAtomicFormulation(factType, [termBind])
+				)
+			|	RuleBody([], [], term, termBind)
+			),
+
 		RuleBody :factType :bindings :parentTerm :parentTermBind =
 			(	Quantifier:quant
 				Term(factType):t createVar(t):tVar Bind(t):b {factType.push(t);bindings.push(b)}
-				(	addThat
-					(	{[t]}:thatFactType
-						Verb(thatFactType):v {thatFactType.push(v)}
-						(	RuleBody(thatFactType, [b])
-						|	IsAtomicFormulation(thatFactType, [b])
-						)
-					|	RuleBody([], [], t, b)
-					):thatLF {tVar.push(thatLF)}
+				(	ClosedProjection(t, b):thatLF {tVar.push(thatLF)}
 					addComma?
 				)?
 			|	addThe
@@ -216,16 +219,10 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 		attrDefinition :currentLine =
 			(	addThe?
 				// The following section is copied from RuleBody, should really be sorted properly.
-				{this.ruleVarsCount=0} {[]}:factType {[]}:bindings
-				Term:t createVar(t):tVar Bind(t):b {factType.push(t);bindings.push(b)}
-				addThat
-				(	{[t]}:thatFactType
-					Verb(thatFactType):v {thatFactType.push(v)}
-					(	RuleBody(thatFactType, [b])
-					|	IsAtomicFormulation(thatFactType, [b])
-					)
-				|	RuleBody([], [], t, b)
-				):thatLF {tVar.push(thatLF)}
+				{this.ruleVarsCount=0}
+				Term:t createVar(t):tVar Bind(t):b
+				ClosedProjection(t, b):thatLF {tVar.push(thatLF)}
+				terminator?
 				-> tVar
 			|	Value('or'):name
 				(	addOr clearSuggestions

@@ -5,13 +5,7 @@ Rule ::=
 RuleBody ::=
 	(	Quantifier
 		term
-		(	'that'
-			(	verb
-				(	is-atomic-formulation
-				|	RuleBody
-				)
-			|	RuleBody
-			)
+		(	ClosedProjection
 			','?
 		)?
 	|	'the'
@@ -48,6 +42,14 @@ Quantifier ::=
 		|	'exactly'
 		)
 		Number
+ClosedProjection ::=
+	'that'
+	(	verb
+		(	is-atomic-formulation
+		|	RuleBody
+		)
+	|	RuleBody
+	)
 
 Number ::=
 		'one'
@@ -58,8 +60,7 @@ Attribute ::=
 Definition ::=
 		'the'?
 		term
-		'that'
-		RuleBody
+		ClosedProjection
 		'.'?
 	|	value
 		(	'or'
