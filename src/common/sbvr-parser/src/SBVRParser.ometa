@@ -131,8 +131,8 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 			?realFactType
 			-> ['AtomicFormulation'].concat([['FactType'].concat(factType)], bindings),
 
-		RuleBody :factType :bindings =
-			(	Quantifier:body
+		RuleBody :factType :bindings :parentTerm :parentTermBind =
+			(	Quantifier:quant
 				Term(factType):t createVar(t):tVar Bind(t):b {factType.push(t);bindings.push(b)}
 				(	addThat
 					(	{[t]}:thatFactType
@@ -140,13 +140,11 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 						(	RuleBody(thatFactType, [b])
 						|	IsAtomicFormulation(thatFactType, [b])
 						)
-					|	RuleBody([t], [b])
+					|	RuleBody([], [], t, b)
 					):thatLF {tVar.push(thatLF)}
 					addComma?
 				)?
 			|	addThe
-				{factType[factType.length - 1]}:parentTerm
-				{bindings[bindings.length - 1]}:parentTermBind
 				Term:t Bind(t):b {[t]}:factType {[b]}:bindings
 			)
 			(	Verb(factType):v {factType.push(v)}
@@ -160,7 +158,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 				)
 			|	IsAtomicFormulation(factType, bindings)
 			):lf
-			-> (parentTerm != null ? lf : body.concat([tVar, lf])),
+			-> (quant == null ? lf : quant.concat([tVar, lf])),
 
 		Modifier =
 			"It" "is" 
@@ -226,7 +224,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 					(	RuleBody(thatFactType, [b])
 					|	IsAtomicFormulation(thatFactType, [b])
 					)
-				|	RuleBody([t], [b])
+				|	RuleBody([], [], t, b)
 				):thatLF {tVar.push(thatLF)}
 				-> tVar
 			|	Value('or'):name
