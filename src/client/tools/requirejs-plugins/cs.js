@@ -67,8 +67,8 @@ define(['coffee-script'], function (CoffeeScript) {
 		// end browser.js adapters
 	}
 
-	if (typeof localStorage === 'undefined') {
-		localStorage = {
+	if (typeof sessionStorage === 'undefined') {
+		sessionStorage = {
 			getItem: function () {return false;},
 			setItem: function () {return false;},
 		};
@@ -93,7 +93,7 @@ define(['coffee-script'], function (CoffeeScript) {
 			fetchText(path, function (source) {
 
 				
-				var cached = localStorage.getItem(path);
+				var cached = sessionStorage.getItem(path);
 				if (cached) {
 					cached = JSON.parse(cached);
 				} else {
@@ -111,7 +111,7 @@ define(['coffee-script'], function (CoffeeScript) {
 						err.message = "In " + path + ", " + err.message;
 						throw(err);
 					}
-					localStorage.setItem(path, JSON.stringify({
+					sessionStorage.setItem(path, JSON.stringify({
 						compiled: compiled,
 						source: source
 					}));
