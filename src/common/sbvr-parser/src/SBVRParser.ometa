@@ -19,7 +19,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 			)*
 			?eol,
 		Bind :term :bindings =
-			{[['RoleBinding', term, this.ruleVars[term[1]]]]}:binding
+			{['RoleBinding', term, this.ruleVars[term[1]]]}:binding
 			(	?bindings
 				{bindings.push(binding)}
 			)?
