@@ -1,4 +1,3 @@
-define(['codemirror-ometa-bridge/highlighter', 'ometa!sbvr-parser/SBVRParser', 'requirecss', 'underscore'], function(codeMirrorOmetaBridgeHighlighter, SBVRParser) {
-	requireCSS('codemirror-ometa-bridge/sbvr');
+define(['codemirror-ometa-bridge/highlighter', 'ometa!sbvr-parser/SBVRParser', 'underscore'], function(codeMirrorOmetaBridgeHighlighter, SBVRParser) {
 	codeMirrorOmetaBridgeHighlighter(SBVRParser, 'sbvr', 'text/sbvr');
 });

@@ -7,6 +7,9 @@ require({
 		'text'                     :  '../../tools/requirejs-plugins/text',
 		'coffee-script'            :  '../../tools/coffee-script',
 
+		'lib'                      :  '../../lib',
+		'static'                   :  '../static',
+
 		//Libraries
 		'backbone'                 :  '../../lib/backbone',
 		'bootstrap'                :  '../../lib/bootstrap/bootstrap',
@@ -17,16 +20,28 @@ require({
 		'jquery'                   :  '../../lib/jquery',
 		'ometa-compiler'           :  '../../lib/ometajs/ometa/parsers',
 		'ometa-core'               :  '../../lib/ometajs/core',
-		'requirecss'               :  '../../lib/requirecss',
 		'sbvr-parser'              :  '../../lib/sbvr-parser',
 		'underscore'               :  '../../lib/underscore'
 	},
+	packages: [
+        {
+            name: 'css',
+		    location: '../../tools/requirejs-plugins/css',
+            main: 'css'
+        }
+	],
 	shim: {
-		'bootstrap': ['jquery'],
+		'bootstrap': {
+			deps: ['jquery', 'css!lib/bootstrap/bootstrap']
+		},
+		'css!static/main': {
+			deps: ['bootstrap'],
+		},
 		'codemirror-simple-hint': {
-			deps: ['codemirror'],
+			deps: ['codemirror', 'css!lib/codemirror/util/simple-hint']
 		},
 		'codemirror': {
+			deps: [ 'css!lib/codemirror/codemirror'],
 			exports: 'CodeMirror'
 		},
 		'backbone': {
@@ -43,4 +58,4 @@ require({
 			}
 		}
 	}
-}, ['cs!main']);
+}, ['cs!app', 'css!static/main']);
