@@ -18,8 +18,12 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 			|	space
 			)*
 			?eol,
-		Bind :x	=
-			-> ['RoleBinding', x, this.ruleVars[x[1]]],
+		Bind :term :bindings =
+			{[['RoleBinding', term, this.ruleVars[term[1]]]]}:binding
+			(	?bindings
+				{bindings.push(binding)}
+			)?
+			-> binding,
 
 		letters =
 			letter+:l
@@ -143,12 +147,12 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 
 		RuleBody :factType :bindings :parentTerm :parentTermBind =
 			(	Quantifier:quant
-				Term(factType):t createVar(t):tVar Bind(t):b {factType.push(t);bindings.push(b)}
+				Term(factType):t createVar(t):tVar Bind(t, bindings):b {factType.push(t)}
 				(	ClosedProjection(t, b):thatLF {tVar.push(thatLF)}
 					addComma?
 				)?
 			|	addThe
-				Term(factType):t Bind(t):b {factType.push(t);bindings.push(b)}
+				Term(factType):t Bind(t, bindings) {factType.push(t)}
 			)
 			(	Verb(factType):v {factType.push(v)}
 				{	if(parentTerm != null) {
