@@ -142,7 +142,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 						)
 					|	RuleBody([t], [b])
 					):thatLF {tVar.push(thatLF)}
-					','?
+					addComma?
 				)?
 			|	addThe
 				{factType[factType.length - 1]}:parentTerm
