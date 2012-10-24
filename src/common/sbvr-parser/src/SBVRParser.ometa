@@ -496,35 +496,6 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 		this.lines = ['Model'];
 	};
 
-	SBVRParser.equals = function(compareTo) {
-		// TODO: Can this be simplified to just compare lines (and made provably comparable)?
-		if(!_.isEqual(this.terms, compareTo.terms)) {
-			return false;
-		}
-		if(!_.isEqual(this.conceptTypes, compareTo.conceptTypes)) {
-			return false;
-		}
-		if(!_.isEqual(this.factTypes, compareTo.factTypes)) {
-			return false;
-		}
-		return true;
-	};
-
-	SBVRParser.clone = function() {
-		var clone = SBVRParser.createInstance();
-		if(this.tokensEnabled) {
-			clone._enableTokens();
-		}
-		return $.extend(true, clone, {
-			terms: this.terms,
-			conceptTypes: this.conceptTypes,
-			factTypes: this.factTypes,
-			ruleVars: this.ruleVars,
-			ruleVarsCount: this.ruleVarsCount,
-			lines: this.lines
-		});
-	};
-
 
 	/** **/
 	SBVRParser.matchForAny = function(rule, arr) {
