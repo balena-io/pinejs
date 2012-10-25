@@ -1,12 +1,12 @@
-define(['backbone', 'cs!models/sbvrmodel'], (Backbone, SBVRModel) ->
+define(['backbone', 'cs!models/sbvrmodel', 'cs!sandbox'], (Backbone, SBVRModel, sandbox) ->
 	Router = Backbone.Router.extend(
 		routes:
-			'models/:slug': 'modelController'
-		modelController: (slug) ->
-			model = new SBVRModel({slug})
+			':slug': 'getModel'
+		getModel: (slug) ->
+			model = new SBVRModel({id: slug})
 			model.fetch(
 				success: ->
-					console.log('Model fetched!')
+					sandbox.trigger("modelchange", model)
 			)
 	)
 	app = new Router()
