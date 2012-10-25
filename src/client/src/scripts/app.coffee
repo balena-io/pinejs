@@ -2,6 +2,7 @@ define([
 	'cs!router'
 	'cs!views/tabs/sbvr-editor/main'
 	'cs!views/tabs/sbvr-lf/main'
+	'cs!views/tabs/sbvr-graph/main'
 ], (router, modules...) ->
     ###
     modules = [
