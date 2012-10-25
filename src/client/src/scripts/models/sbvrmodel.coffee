@@ -1,8 +1,8 @@
 define(['backbone', 'ometa!sbvr-parser/SBVRParser'], (Backbone, SBVRParser) ->
 	return Backbone.Model.extend({
-		id: ''
+		id: null
 		content: ''
-		compile: -> SBVRParser.matchAll(@content, 'Process')
-		url: 'http://api.sbvr.co:5000/v1/models'
+		compile: -> SBVRParser.matchAll(this.get('content'), 'Process')
+		urlRoot: 'http://api.sbvr.co/v1/models'
 	})
 )
