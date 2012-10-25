@@ -280,7 +280,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 		
 		terminator =
 			spaces keyword('.',true),
-		lineStart :lineType =
+		lineStart =
 			(	startTerm
 			|	startFactType
 			|	startRule
