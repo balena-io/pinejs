@@ -61,7 +61,12 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 			-> s,
 
 		addTerm =
-			&(termPart+):t {this.terms[t.join(' ')] = t.join(' ')}
+			&(termPart+):t
+			{t.join(' ')}:t
+			// Make sure the identifier isn't taken.
+			?(!this.identifierChildren.hasOwnProperty(t))
+			{this.terms[t] = t}
+			{this.identifierChildren[t] = []}
 			Term,
 		Term :factTypeSoFar =
 			findTerm(factTypeSoFar),
@@ -227,6 +232,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 				Term:t createVar(t):tVar Bind(t):b
 				ClosedProjection(t, b):thatLF {tVar.push(thatLF)}
 				terminator?
+				{this.identifierChildren[t[1]].push(currentLine[1])}
 				-> tVar
 			|	Value('or'):name
 				(	addOr clearSuggestions
@@ -239,11 +245,15 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 			{currentLine[1]}:termName
 			?(!this.conceptTypes.hasOwnProperty(termName)) // Only allow one instance of Concept Type: attribute.
 											 // TODO: Improve this to deal with synonyms and autocomplete/highlighting.
-			Term:t ?(termName != t[1]) // Do not allow a term to have itself as its concept type.
+			Term:t
+			?(termName != t[1]) // Do not allow a term to have itself as its concept type.
 			{this.conceptTypes[termName] = t[1]}
+			{this.identifierChildren[t[1]].push(termName)}
 			-> t,
 		attrSynonym :currentLine =
-			addTerm:t {this.terms[t[1]] = currentLine[1]}
+			addTerm(currentLine[0]):t
+			{this.terms[t[1]] = currentLine[1]}
+			{this.identifierChildren[currentLine[1]].push(t[1])}
 			-> t,
 		attrSynonymousForm :currentLine =
 			{[]}:factType
@@ -436,7 +446,11 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 		for(factTypePart in currentLevel) {
 			if(currentLevel.hasOwnProperty(factTypePart)) {
 				if(regex.test(factTypePart)) {
-					factTypeParts.push(factTypePart.replace(regex, ''));
+					factTypePart = factTypePart.replace(regex, '');
+					factTypeParts.push(factTypePart);
+					if(this.identifierChildren.hasOwnProperty(factTypePart)) {
+						factTypeParts = factTypeParts.concat(this.identifierChildren[factTypePart]);
+					}
 				}
 			}
 		}
@@ -496,6 +510,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 			terminator: ['.']
 		};
 		this.terms = {};
+		this.identifierChildren = {};
 		this.ruleVars = {};
 		this.ruleVarsCount = 0;
 		this.lines = ['Model'];
