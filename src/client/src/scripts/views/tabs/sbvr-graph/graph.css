@@ -1,0 +1,31 @@
+path.link {
+	fill: none;
+	stroke: grey;
+	stroke-width: 1px;
+}
+
+rect {
+	fill: #ffffff;
+}
+
+text {
+	font: 14px sans-serif;
+	pointer-events: none;
+}
+
+text.Term {
+	fill: #108070;
+	font-weight: bold;
+	text-decoration: underline;
+}
+
+text.Verb {
+	fill: blue;
+	font-style: italic;
+}
+
+text.shadow {
+	stroke: #fff;
+	stroke-width: 3px;
+	stroke-opacity: .8;
+}
