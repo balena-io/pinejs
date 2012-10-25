@@ -31,8 +31,17 @@ body {
 }
 
 .tab-content > div {
-    display: none;
+    visibility: hidden;
+    position: absolute;
+    top: 97px;
+    left: 0;
+    right: 0;
+    bottom: 0;
     background: white;
+}
+
+.tab-content > div.active {
+	visibility: visible;
 }
 
 form {
