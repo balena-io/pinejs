@@ -16,6 +16,7 @@ require({
 		'codemirror'               :  '../../lib/codemirror/codemirror',
 		'codemirror-ometa-bridge'  :  '../../lib/codemirror-ometa-bridge/src',
 		'codemirror-simple-hint'   :  '../../lib/codemirror/util/simple-hint',
+		'd3'                       :  '../../lib/d3.v2',
 		'inflection'               :  '../../lib/inflection/inflection',
 		'jquery'                   :  '../../lib/jquery',
 		'ometa-compiler'           :  '../../lib/ometajs/ometa/parsers',
@@ -43,6 +44,9 @@ require({
 		'codemirror': {
 			deps: [ 'css!lib/codemirror/codemirror'],
 			exports: 'CodeMirror'
+		},
+		'd3': {
+			exports: 'd3'
 		},
 		'backbone': {
 			deps: ['underscore', 'jquery'],
