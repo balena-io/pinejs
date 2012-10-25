@@ -382,8 +382,10 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 		return currentLevel.__valid;
 	};
 
-	var removeVerbRegex = new RegExp('^' + ['Verb',''].toString()),
-		removeTermRegex = new RegExp('^' + ['Term',''].toString()),
+	var removeRegex = {
+			'Verb': new RegExp('^' + ['Verb',''].toString()),
+			'Term': new RegExp('^' + ['Term',''].toString())
+		},
 		allowedAttrLists = [
 			'Dictionary Basis:',
 			'Example:',
@@ -418,6 +420,28 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 		].concat(allowedAttrLists),
 		Rule: []
 	};
+	function getValidFactTypeParts(partType, factTypeSoFar) {
+		if(factTypeSoFar == null || factTypeSoFar.length == 0) {
+			if(partType == 'Term') {
+				return _.keys(this.terms);
+			}
+			else {
+				return [];
+			}
+		}
+		var factTypePart,
+			currentLevel = this._traverseFactType(factTypeSoFar),
+			factTypeParts = [],
+			regex = removeRegex[partType];
+		for(factTypePart in currentLevel) {
+			if(currentLevel.hasOwnProperty(factTypePart)) {
+				if(regex.test(factTypePart)) {
+					factTypeParts.push(factTypePart.replace(regex, ''));
+				}
+			}
+		}
+		return factTypeParts;
+	}
 	SBVRParser.reset = function() {
 		SBVRLibs.initialize.call(this);
 		this.branches = {
@@ -426,29 +450,10 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 			startFactType: ['Fact type:'],
 			startRule: ['Rule:     '],
 			Term: function(factTypeSoFar) {
-				if(factTypeSoFar == null || factTypeSoFar.length == 0) {
-					return _.keys(this.terms);
-				}
-				var term, currentLevel = this._traverseFactType(factTypeSoFar), terms = [];
-				for(term in currentLevel) {
-					if(currentLevel.hasOwnProperty(term)) {
-						if(removeTermRegex.test(term)) {
-							terms.push(term.replace(removeTermRegex,''));
-						}
-					}
-				}
-				return terms;
+				return getValidFactTypeParts.call(this, 'Term', factTypeSoFar);
 			},
 			Verb: function(factTypeSoFar) {
-				var verb, currentLevel = this._traverseFactType(factTypeSoFar), verbs = [];
-				for(verb in currentLevel) {
-					if(currentLevel.hasOwnProperty(verb)) {
-						if(removeVerbRegex.test(verb)) {
-							verbs.push(verb.replace(removeVerbRegex,''));
-						}
-					}
-				}
-				return verbs;
+				return getValidFactTypeParts.call(this, 'Verb', factTypeSoFar);
 			},
 			allowedAttrs: function(termOrFactType) {
 				if(allowedAttrLists.hasOwnProperty(termOrFactType)) {
