@@ -3,7 +3,7 @@
     dir: '../out',
     stubModules: ['cs', 'text', 'ometa', 'css'],
     mainConfigFile: '../src/scripts/main.js',
-    optimize: 'none',
+    optimize: 'uglify',
     separateCSS: true,
     modules: [
     	{
