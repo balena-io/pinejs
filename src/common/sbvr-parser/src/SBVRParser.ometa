@@ -92,7 +92,12 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 				-> [identifierType, this._factTypeForm(identifierType, factTypeSoFar, identifierSoFar)]
 			),
 		IdentifierPart =
-			spaces ~lineStart letters,
+			spaces
+			~lineStart
+			<	(	letters
+				|	'-'
+				)+
+			>,
 		
 		
 		addVerb =
