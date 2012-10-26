@@ -253,18 +253,31 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 			AddIdentifier(identifierType):identifier
 			{identifier.push([])}
 			-> identifier,
-		attribute =
+		Attribute =
 			{this.lines[this.lines.length-1]}:currentLine
-			allowedAttrs(currentLine[0]):attrName
+			AllowedAttrs(currentLine[0]):attrName
 			{attrName.replace(new RegExp(' ','g'),'')}:attrName
-			ApplyFirstExisting(['attr'+attrName,'defaultAttr'], [currentLine]):attrVal
+			ApplyFirstExisting(['Attr' + attrName, 'DefaultAttr'], [currentLine]):attrVal
 			-> {var lastLine = this.lines.pop(); lastLine[lastLine.length-1].push([attrName, attrVal]); lastLine},
 							
-		allowedAttrs :termOrFactType =
-			matchForAny('seq',this.branches.allowedAttrs.call(this, termOrFactType)):attrName -> attrName.replace(':',''),
-		defaultAttr :currentLine =
+		AllowedAttrs :termOrFactType =
+			matchForAny('seq',this.branches.AllowedAttrs.call(this, termOrFactType)):attrName -> attrName.replace(':',''),
+		DefaultAttr :currentLine =
 			toSBVREOL,
-		attrDefinition :currentLine =
+		AttrConceptType :currentLine =
+			{currentLine[1]}:identifierName
+			?(!this.conceptTypes.hasOwnProperty(identifierName)) // Only allow one instance of Concept Type: attribute.
+											 // TODO: Improve this to deal with synonyms and autocomplete/highlighting.
+			// A concept type has to be a term (cannot be a name)
+			Term:term
+			(	?(currentLine[0] == 'FactType')
+			|	{term[1]}:termName
+				?(identifierName != termName) // Do not allow a term to have itself as its concept type.
+				{this.conceptTypes[identifierName] = termName}
+				{this.identifierChildren[termName].push(identifierName)}
+			)
+			-> term,
+		AttrDefinition :currentLine =
 			(	addThe?
 				// The following section is copied from RuleBody, should really be sorted properly.
 				{this.ruleVarsCount=0}
@@ -281,25 +294,12 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 				{names.unshift(name)}
 				-> ['Enum', names]
 			),
-		attrConceptType :currentLine =
-			{currentLine[1]}:identifierName
-			?(!this.conceptTypes.hasOwnProperty(identifierName)) // Only allow one instance of Concept Type: attribute.
-											 // TODO: Improve this to deal with synonyms and autocomplete/highlighting.
-			// A concept type has to be a term (cannot be a name)
-			Term:term
-			(	?(currentLine[0] == 'FactType')
-			|	{term[1]}:termName
-				?(identifierName != termName) // Do not allow a term to have itself as its concept type.
-				{this.conceptTypes[identifierName] = termName}
-				{this.identifierChildren[termName].push(identifierName)}
-			)
-			-> term,
-		attrSynonym :currentLine =
+		AttrSynonym :currentLine =
 			AddIdentifier(currentLine[0]):identifier
 			{this.identifiers[identifierType][identifier[1]] = currentLine[1]}
 			{this.identifierChildren[currentLine[1]].push(identifier[1])}
 			-> identifier,
-		attrSynonymousForm :currentLine =
+		AttrSynonymousForm :currentLine =
 			{[]}:factType
 			(	Identifier:identifier
 				addVerb:v
@@ -311,7 +311,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 			AddFactType(factType, currentLine.slice(1,-1))
 			{factType.push([])}
 			-> factType,
-		attrTermForm :currentLine =
+		AttrTermForm :currentLine =
 			AddIdentifier('Term'):term
 			{
 				for(var i = 0; i < currentLine.length; i++) {
@@ -335,7 +335,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 			|	StartName
 			|	startFactType
 			|	startRule
-			|	allowedAttrs
+			|	AllowedAttrs
 			|	startComment
 			),
 		line =
@@ -344,7 +344,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 				(	NewIdentifier
 				|	newFactType
 				|	newRule
-				|	attribute
+				|	Attribute
 				):l
 				terminator? clearSuggestions
 				{this.lines.push(l)}
@@ -372,7 +372,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 	
 	SBVRParser._enableTokens = function() {
 		this.tokensEnabled = true;
-		SBVRLibs._enableTokens.call(this, ["StartTerm", "StartName", "startFactType", "startRule", "newComment", "Term", "Name", "Modifier", "Verb", "keyword", "allowedAttrs", "Number", "Value"]);
+		SBVRLibs._enableTokens.call(this, ["StartTerm", "StartName", "startFactType", "startRule", "newComment", "Term", "Name", "Modifier", "Verb", "keyword", "AllowedAttrs", "Number", "Value"]);
 	};
 	
 	SBVRParser._baseIdentifier = function(identifierType, factTypeSoFar, identifier) {
@@ -529,7 +529,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 			Verb: function(factTypeSoFar) {
 				return getValidFactTypeParts.call(this, 'Verb', factTypeSoFar);
 			},
-			allowedAttrs: function(termOrFactType) {
+			AllowedAttrs: function(termOrFactType) {
 				if(allowedAttrLists.hasOwnProperty(termOrFactType)) {
 					return allowedAttrLists[termOrFactType];
 				}
