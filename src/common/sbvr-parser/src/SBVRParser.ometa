@@ -279,10 +279,12 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 											 // TODO: Improve this to deal with synonyms and autocomplete/highlighting.
 			// A concept type has to be a term (cannot be a name)
 			Term:term
-			{term[1]}:termName
-			?(identifierName != termName) // Do not allow a term to have itself as its concept type.
-			{this.conceptTypes[identifierName] = termName}
-			{this.identifierChildren[termName].push(identifierName)}
+			(	?(currentLine[0] == 'FactType')
+			|	{term[1]}:termName
+				?(identifierName != termName) // Do not allow a term to have itself as its concept type.
+				{this.conceptTypes[identifierName] = termName}
+				{this.identifierChildren[termName].push(identifierName)}
+			)
 			-> term,
 		attrSynonym :currentLine =
 			AddIdentifier(currentLine[0]):identifier
