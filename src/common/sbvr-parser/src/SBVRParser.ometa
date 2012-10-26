@@ -298,8 +298,10 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 				Term:t createVar(t):tVar Bind(t):b
 				ClosedProjection(t, b):thatLF {tVar.push(thatLF)}
 				terminator?
-				{this.conceptTypes[currentLine[1]] = t[1]}
-				{this.identifierChildren[t[1]].push(currentLine[1])}
+				(	?(currentLine[0] == 'FactType')
+				|	{this.conceptTypes[currentLine[1]] = t[1]}
+					{this.identifierChildren[t[1]].push(currentLine[1])}
+				)?
 				-> tVar
 			|	Value('or'):name
 				(	addOr clearSuggestions
@@ -464,6 +466,8 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 		},
 		allowedAttrLists = [
 			'Concept Type:',
+			'Definition:',
+			'Definition (Informal):',
 			'Dictionary Basis:',
 			'Example:',
 			'General Concept:',
@@ -487,11 +491,9 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 	}
 	allowedAttrLists = {
 		Term: [
-			'Definition:',
 			'Synonym:'
 		].concat(allowedAttrLists),
 		Name: [
-			'Definition:',
 			'Synonym:'
 		].concat(allowedAttrLists),
 		FactType: [
