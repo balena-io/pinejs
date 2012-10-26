@@ -7,22 +7,22 @@ body {
 }
 
 .nav-tabs > li > a {
-    padding-top: 2px;
-    padding-bottom: 2px;
+	padding-top: 2px;
+	padding-bottom: 2px;
 }
 
 .nav-tabs > li > a:hover {
-    border-color: transparent;
+	border-color: transparent;
 }
 
 .nav > li > a:hover {
-    background-color: inherit;
+	background-color: inherit;
 }
 
 .nav-tabs > li > a {
-    -webkit-border-radius: 0;
-    -moz-border-radius: 0;
-    border-radius: 0;
+	-webkit-border-radius: 0;
+	-moz-border-radius: 0;
+	border-radius: 0;
 }
 
 .nav-tabs {
@@ -31,13 +31,13 @@ body {
 }
 
 .tab-content > div {
-    visibility: hidden;
-    position: absolute;
-    top: 97px;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: white;
+	visibility: hidden;
+	position: absolute;
+	top: 97px;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: white;
 }
 
 .tab-content > div.active {
