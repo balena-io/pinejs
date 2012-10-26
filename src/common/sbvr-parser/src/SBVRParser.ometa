@@ -275,7 +275,8 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 			-> {var lastLine = this.lines.pop(); lastLine[lastLine.length-1].push([attrName, attrVal]); lastLine},
 							
 		AllowedAttrs :termOrFactType =
-			matchForAny('seq',this.branches.AllowedAttrs.call(this, termOrFactType)):attrName -> attrName.replace(':',''),
+			matchForAny('seq',this.branches.AllowedAttrs.call(this, termOrFactType)):attrName
+			-> attrName.replace(':',''),
 		DefaultAttr :currentLine =
 			toSBVREOL,
 		AttrConceptType :currentLine =
@@ -310,6 +311,8 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 				{names.unshift(name)}
 				-> ['Enum', names]
 			),
+		AttrGuidanceType :currentLine =
+			matchForAny('seq',this.branches.AttrGuidanceType),
 		AttrSynonym :currentLine =
 			AddIdentifier(currentLine[0]):identifier
 			{this.identifiers[identifierType][identifier[1]] = currentLine[1]}
@@ -563,6 +566,14 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 				}
 				return [];
 			},
+			AttrGuidanceType: [
+				'operative business rule',
+				'structural business rule',
+				'advice of permission',
+				'advice of possibility',
+				'advice of optionality',
+				'advice of contingency'
+			],
 			Modifier: [
 				'It is obligatory that',
 				'It is necessary that',
