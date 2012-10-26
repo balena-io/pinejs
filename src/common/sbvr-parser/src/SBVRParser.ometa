@@ -46,8 +46,8 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 			spaces
 			<	(	spaces
 					~lineStart
-					(	Identifier
-					|	'\'' Identifier '\''
+					(	InformalIdentifier
+					|	'\'' InformalIdentifier '\''
 					|	(	~space
 							anything
 						)+
@@ -76,9 +76,12 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 			{this.identifiers[identifierType][identifier] = identifier}
 			apply(identifierType),
 		
-		Identifier :factTypeSoFar =
+		InformalIdentifier =
+			Identifier(undefined, true),
+		Identifier :factTypeSoFar :noAutoComplete =
 			~(<Term?>:term)?
 			~(<Name?>:name)?
+			?(!noAutoComplete && (term || name))
 			(	?(term.length > name.length)
 				Term(factTypeSoFar)
 			|	Name(factTypeSoFar)
