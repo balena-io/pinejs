@@ -500,7 +500,16 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 			'Synonymous Form:',
 			'Term Form:'
 		].concat(allowedAttrLists),
-		Rule: []
+		Rule: [
+			'Rule Name:',
+			'Guidance Type:',
+			'Description:',
+			'Source:',
+			'Synonymous Statement:',
+			'Note:',
+			'Example:',
+			'Enforcement Level:'
+		]
 	};
 	function getValidFactTypeParts(partType, factTypeSoFar) {
 		if(factTypeSoFar == null || factTypeSoFar.length == 0) {
