@@ -6,9 +6,11 @@
 	border: 1px solid #ADABB3;
 }
 
-span.cm-sbvr-startTerm {
+span.cm-sbvr-StartTerm {
 	color: #A22;
-/* 	background-color: #FCC; */
+}
+span.cm-sbvr-StartName {
+	color: #A22;
 }
 span.cm-sbvr-startFactType {
 	color: #A70;
@@ -23,6 +25,12 @@ span.cm-sbvr-startRule {
 span.cm-sbvr-Term {
 	color: #108070;
 	text-decoration: underline;
+}
+span.cm-sbvr-Name {
+	color: #108070;
+	text-decoration: underline;
+	border-bottom: 1px;
+	border-bottom-color: #108070;
 }
 
 span.cm-sbvr-Verb {
