@@ -84,12 +84,24 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 			|	Name(factTypeSoFar)
 			),
 		Name :factTypeSoFar =
-			findIdentifier('Name', factTypeSoFar),
+			FindIdentifier('Name', factTypeSoFar),
 		Term :factTypeSoFar =
-			findIdentifier('Term', factTypeSoFar),
-		findIdentifier :identifierType :factTypeSoFar :identifierSoFar =
-			IdentifierPart:t {identifierSoFar = identifierSoFar==null ? t : [identifierSoFar, t].join(' ')}
-			(	findIdentifier(identifierType, factTypeSoFar, identifierSoFar)
+			FindIdentifier('Term', factTypeSoFar),
+		FindIdentifier :identifierType :factTypeSoFar =
+			spaces
+			'\''?:quote
+			FindIdentifierNest(identifierType, factTypeSoFar):identifier
+			(	?(!quote)
+			|	seq(quote)
+			)
+			-> identifier,
+		FindIdentifierNest :identifierType :factTypeSoFar :identifierSoFar =
+			IdentifierPart:part
+			(	?identifierSoFar
+				-> (identifierSoFar + ' ' + part)
+			|	-> part
+			):identifierSoFar
+			(	FindIdentifierNest(identifierType, factTypeSoFar, identifierSoFar)
 			|	?this.IsIdentifier(identifierType, factTypeSoFar, identifierSoFar)
 				-> [identifierType, this._factTypeForm(identifierType, factTypeSoFar, identifierSoFar)]
 			),
