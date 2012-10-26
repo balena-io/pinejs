@@ -28,8 +28,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 			-> binding,
 
 		letters =
-			letter+:l
-			-> l.join(''),
+			<letter+>,
 		Number =
 			(	spaces <digit+>:n
 				-> ['Number', parseInt(n, 10)]
@@ -37,23 +36,27 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 				-> ['Number', 1]
 			),
 		Value :stopOn =
-			(	spaces ~token(stopOn) ~lineStart letterOrDigit+:alphaNum
-				-> alphaNum.join('')
+			(	spaces
+				~token(stopOn)
+				~lineStart
+				<letterOrDigit+>
 			)+:value
 			-> value.join(''),
 		toSBVREOL =
 			spaces
-			(
-				~(spaces lineStart) spaces?:s
-				(~space anything)+:a
-				-> s.concat(a).join('')
-			)*:w
-			-> w.join(''),
+			<	(	spaces
+					~lineStart
+					spaces
+					(	~space
+						anything
+					)+
+				)*
+			>,
 		toEOL =
-			(	~EOL
-				anything
-			)*:a
-			-> a.join(''),
+			<	(	~EOL
+					anything
+				)*
+			>,
 
 		token :x =
 			spaces seq(x):s
