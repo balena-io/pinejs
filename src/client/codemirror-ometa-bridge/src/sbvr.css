@@ -29,8 +29,7 @@ span.cm-sbvr-Term {
 span.cm-sbvr-Name {
 	color: #108070;
 	text-decoration: underline;
-	border-bottom: 1px;
-	border-bottom-color: #108070;
+	border-bottom: 1px solid #108070;
 }
 
 span.cm-sbvr-Verb {
