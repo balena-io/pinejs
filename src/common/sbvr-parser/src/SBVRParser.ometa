@@ -207,7 +207,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 				-> ['NecessityFormulation', ['LogicalNegation']]
 			|	"possible"
 				-> ['PossibilityFormulation']
-			|	"permissible"
+			|	"permitted"
 				-> ['PermissibilityFormulation']
 			):r
 			"that"
@@ -537,7 +537,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 				'It is impossible that',
 				'It is not possible that',
 				'It is possible that',
-				'It is permissible that'
+				'It is permitted that'
 			],
 			Quantifier: [
 				'each',
