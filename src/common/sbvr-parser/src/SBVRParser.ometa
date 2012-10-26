@@ -229,6 +229,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 				Term:t createVar(t):tVar Bind(t):b
 				ClosedProjection(t, b):thatLF {tVar.push(thatLF)}
 				terminator?
+				{this.conceptTypes[currentLine[1]] = t[1]}
 				{this.identifierChildren[t[1]].push(currentLine[1])}
 				-> tVar
 			|	Value('or'):name
