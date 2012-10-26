@@ -46,10 +46,12 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 			spaces
 			<	(	spaces
 					~lineStart
-					spaces
-					(	~space
-						anything
-					)+
+					(	Identifier
+					|	'\'' Identifier '\''
+					|	(	~space
+							anything
+						)+
+					)
 				)*
 			>,
 		toEOL =
