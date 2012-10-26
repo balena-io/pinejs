@@ -75,8 +75,8 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 			apply(identifierType),
 		
 		Identifier :factTypeSoFar =
-			&(~(<Term?>:term))?
-			&(~(<Name?>:name))?
+			~(<Term?>:term)?
+			~(<Name?>:name)?
 			(	?(term.length > name.length)
 				Term(factTypeSoFar)
 			|	Name(factTypeSoFar)
