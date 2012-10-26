@@ -36,7 +36,7 @@
 		
 		//Make sure to take care of any chaining
 		return this.each(function(){ 
-		    if( $.json2html.options.prepend ) $.fn.prepend.apply($(this),$.json2html(JSONObject, transform));
+			if( $.json2html.options.prepend ) $.fn.prepend.apply($(this),$.json2html(JSONObject, transform));
 			else  $.fn.append.apply($(this),$.json2html(JSONObject, transform));
 		});
 		
@@ -257,7 +257,7 @@
 								//As long as we have an object to use then set the out
 								if(useObj != null && useObj != undefined) outVal = useObj;
 
-							    return(outVal);
+								return(outVal);
 							}) : src;
 						  }
 						);

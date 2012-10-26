@@ -34,7 +34,7 @@ define(['jquery', './jquery.json2html'], ->
 
 		for i, el of ls when el instanceof Array
 			stripSingleNodes(el, ls, i)
-		    # Strip parents too.
+			# Strip parents too.
 			doStrip()
 
 	stripCamelCase = (ls) ->

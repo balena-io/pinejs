@@ -6,13 +6,13 @@ define([
 ], (router, modules...) ->
 	###
 	modules = [
-	    'cs!skeleton'
+		'cs!skeleton'
 	]
 
 	modules = modules.map((module) ->
-	    if module.indexOf('!') isnt -1
-	        [plugin, module] = module.split('!')
-	    return '#{plugin}!modules/#{module}/main'
+		if module.indexOf('!') isnt -1
+			[plugin, module] = module.split('!')
+		return '#{plugin}!modules/#{module}/main'
 	})
 
 	###

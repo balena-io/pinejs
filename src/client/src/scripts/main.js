@@ -25,11 +25,11 @@ require({
 		'underscore'               :  '../../lib/underscore'
 	},
 	packages: [
-	    {
-	        name: 'css',
-		    location: '../../tools/requirejs-plugins/css',
-	        main: 'css'
-	    }
+		{
+			name: 'css',
+			location: '../../tools/requirejs-plugins/css',
+			main: 'css'
+		}
 	],
 	shim: {
 		'bootstrap': {
