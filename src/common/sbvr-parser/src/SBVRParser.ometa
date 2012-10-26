@@ -273,7 +273,8 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 		Attribute =
 			{this.lines[this.lines.length-1]}:currentLine
 			AllowedAttrs(currentLine[0]):attrName
-			{attrName.replace(new RegExp(' ','g'),'')}:attrName
+			{attrName.replace(/ /g, '')}:attrName
+			spaces
 			ApplyFirstExisting(['Attr' + attrName, 'DefaultAttr'], [currentLine]):attrVal
 			-> {var lastLine = this.lines.pop(); lastLine[lastLine.length-1].push([attrName, attrVal]); lastLine},
 							
@@ -315,7 +316,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 				-> ['Enum', names]
 			),
 		AttrGuidanceType :currentLine =
-			matchForAny('seq',this.branches.AttrGuidanceType),
+			matchForAny('seq', this.branches.AttrGuidanceType),
 		AttrSynonym :currentLine =
 			AddIdentifier(currentLine[0]):identifier
 			{this.identifiers[identifierType][identifier[1]] = currentLine[1]}
@@ -394,7 +395,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 	
 	SBVRParser._enableTokens = function() {
 		this.tokensEnabled = true;
-		SBVRLibs._enableTokens.call(this, ["StartTerm", "StartName", "startFactType", "startRule", "newComment", "Term", "Name", "Modifier", "Verb", "keyword", "AllowedAttrs", "Number", "Value"]);
+		SBVRLibs._enableTokens.call(this, ["StartTerm", "StartName", "startFactType", "startRule", "newComment", "Term", "Name", "Modifier", "Verb", "keyword", "AllowedAttrs", "AttrGuidanceType", "Number", "Value"]);
 	};
 	
 	SBVRParser._baseIdentifier = function(identifierType, factTypeSoFar, identifier) {
