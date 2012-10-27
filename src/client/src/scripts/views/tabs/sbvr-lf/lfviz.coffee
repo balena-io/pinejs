@@ -50,7 +50,7 @@ define(['jquery', './jquery.json2html'], ->
 	expandCamelCase = (str) -> str.replace(/([^ ])([A-Z])/g, '$1 $2')
 
 	handler = (el, ind) ->
-		createLink = (str, link) -> "<a href=\"#{link}\">#{str}</a>"
+		createLink = (str, link) -> "<a>#{str}</a>"
 		createSpan = (c, inner) -> "<span class=\"#{c}\">#{inner}</span>"
 
 		collapsed = createSpan("#{C_PREFIX}-symbol-collapsed", COLLAPSED_SYMBOL)
@@ -79,7 +79,7 @@ define(['jquery', './jquery.json2html'], ->
 		else if el instanceof Array and el.length > 0
 			text = createSpan("#{C_PREFIX}-type", el[0])
 
-			return createLink("#{collapsed}#{expanded} #{text}", '#self')
+			return createLink("#{collapsed}#{expanded} #{text}", '')
 		else
 			return '(unknown)'
 

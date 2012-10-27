@@ -1,9 +1,17 @@
-define(['cs!sandbox', 'cs!./lfviz', 'css!./style'], (sandbox, lfviz) ->
-	return {
-		init: ->
-			content = sandbox.createTab('Logical Formulation')
-			sandbox.on('modelchange', (model) ->
-				lfviz(model.compile(), content)
+define([
+	'backbone'
+	'cs!./lfviz'
+	'css!./style'
+], (Backbone, lfviz) ->
+	Backbone.View.extend(
+		setTitle: (title) ->
+			@options.title.text(title)
+
+		render: ->
+			this.setTitle('Logical Formulation')
+
+			@model.on('change:content', =>
+				lfviz(@model.compile(), @el)
 			)
-	}
+	)
 )

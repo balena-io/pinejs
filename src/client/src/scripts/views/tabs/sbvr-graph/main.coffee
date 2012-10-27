@@ -1,10 +1,18 @@
-define(['cs!sandbox', 'd3', 'css!./graph'], (sandbox, d3) ->
-	return {
-		init: ->
-			content = sandbox.createTab('LF Graph')
+define([
+	'backbone'
+	'd3'
+	'css!./graph'
+], (Backbone, d3) ->
+	Backbone.View.extend(
+		setTitle: (title) ->
+			@options.title.text(title)
 
-			sandbox.on('modelchange', (model) ->
-				dataset = model.compile()
+		render: ->
+			this.setTitle('LF Graph')
+
+			@model.on('change:content', =>
+				@$el.empty()
+				dataset = @model.compile()
 			
 				termBlacklist = ['value', 'Short Text', 'Long Text', 'Integer', 'Date']
 				nodes = {}
@@ -17,7 +25,7 @@ define(['cs!sandbox', 'd3', 'css!./graph'], (sandbox, d3) ->
 					switch contents.length
 						when 3 # unary
 							sourceNode = nodes[contents[0][1]]
-							verbNode = nodes[[sourceNode.name, contents[2][1]].join('-')] = {name: contents[1][1]}
+							verbNode = nodes[[sourceNode.name, contents[2][1]].join('-')] = {name: contents[1][1], type: 'Verb'}
 
 							link = {source: sourceNode, target: verbNode}
 							links.push(link)
@@ -37,8 +45,8 @@ define(['cs!sandbox', 'd3', 'css!./graph'], (sandbox, d3) ->
 							link = {source: verbNode, target: targetNode}
 							links.push(link)
 							
-				w = content.width()
-				h = content.height()
+				w = @$el.width()
+				h = @$el.height()
 
 				tick = ->
 					path.attr("d", (d) ->
@@ -69,8 +77,8 @@ define(['cs!sandbox', 'd3', 'css!./graph'], (sandbox, d3) ->
 					.on("tick", tick)
 					.start()
 
-				content.empty()
-				svg = d3.select(content[0]).append("svg:svg")
+				@$el.empty()
+				svg = d3.select(@el).append("svg:svg")
 					.attr("width", w)
 					.attr("height", h)
 
@@ -103,5 +111,5 @@ define(['cs!sandbox', 'd3', 'css!./graph'], (sandbox, d3) ->
 					.attr("class", (d) -> d.type)
 					.text((d) -> d.name)
 			)
-	}
+	)
 )

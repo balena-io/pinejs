@@ -1,5 +1,6 @@
 body {
-	min-width: 660px;
+	overflow: hidden;
+	min-width: 720px;
 }
 
 #header {
@@ -67,4 +68,14 @@ h1 {
 	vertical-align: bottom;
 	margin: 0;
 	padding: 10px;
+}
+#publishSuccess {
+	position: absolute;
+	top: 115px;
+	width: 400px;
+	left: 50%;
+	margin-left: -200px;
+	z-index: 4;
+	text-align: center;
+	display: none;
 }

@@ -14,3 +14,7 @@
 .lf-collapsed ul, .lf-symbol-collapsed, .lf-collapsed .lf-symbol-expanded {
 	display: none;
 }
+
+.lf a {
+	cursor: pointer;
+}

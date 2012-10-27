@@ -1,37 +1,47 @@
 define([
-	'cs!sandbox'
+	'backbone'
 	'jquery'
+	'underscore'
 	'codemirror'
 	'codemirror-ometa-bridge/hinter'
-	'ometa!./prettify'
 	'codemirror-ometa-bridge/sbvr'
 	'codemirror-simple-hint'
-], (sandbox, $, CodeMirror, ometaAutoComplete) ->
-	return {
-		init: ->
-			textarea = $('<textarea/>')
+], (Backbone, $, _, CodeMirror, ometaAutoComplete) ->
+	Backbone.View.extend(
+		setTitle: (title) ->
+			@options.title.text(title)
 
-			content = sandbox.createTab('Edit')
-			content.append(textarea)
+		render: ->
+			this.setTitle('Edit')
+
+			textarea = $('<textarea />')
+			@$el.empty().append(textarea)
+			
+			cancelUpdate = false
+
+			updateModel = _.debounce(=>
+				cancelUpdate = true
+				@model.set('content', sbvrEditor.getValue())
+			, 500)
 
 			sbvrEditor = CodeMirror.fromTextArea(textarea.get(0),
 				mode:
 					name: 'sbvr'
-					getOMetaEditor: () -> sbvrEditor
-				onKeyEvent: ometaAutoComplete
+					getOMetaEditor: -> sbvrEditor
+				onKeyEvent: =>
+					updateModel()
+					ometaAutoComplete.apply(this, arguments)
 				lineWrapping: true
 			)
-
-			sandbox.on('modelchange', (model) ->
-				sbvrEditor.setValue(model.get('content'))
-				sbvrEditor.refresh()
-			)
 			
-			sandbox.on('resize', ->
-				sbvrEditor.setSize(content.width(), content.height())
+			@model.on('change:content', =>
+				sbvrEditor.setValue(@model.get('content')) if not cancelUpdate
 			)
-			sbvrEditor.setSize(content.width(), content.height())
+
+			$(window).resize(=>
+				sbvrEditor.setSize(@$el.width(), @$el.height())
+			).resize()
 
 			sbvrEditor.focus()
-	}
+	)
 )
