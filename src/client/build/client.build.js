@@ -2,7 +2,7 @@
     appDir: '../src',
     dir: '../out',
     stubModules: ['cs', 'text', 'ometa', 'css'],
-    mainConfigFile: '../src/scripts/main.js',
+    mainConfigFile: '../out/main.js',
     optimize: 'uglify',
     separateCSS: true,
     modules: [
