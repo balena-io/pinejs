@@ -4,6 +4,11 @@ define([
 	'jquery'
 	'cs!views/main'
 ], (Backbone, SBVRModel, $, MainView) ->
+	
+	$.ajaxSetup({
+		beforeSend: (xhr) -> xhr.withCredentials = true
+	})
+
 	Router = Backbone.Router.extend(
 		routes:
 			''       :  'main'

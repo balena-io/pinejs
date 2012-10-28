@@ -4,6 +4,6 @@ define(['backbone', 'ometa!sbvr-parser/SBVRParser'], (Backbone, SBVRParser) ->
 			id: null
 			content: ''
 		compile: -> SBVRParser.matchAll(this.get('content'), 'Process')
-		urlRoot: 'http://api.sbvr.co/v1/models'
+		urlRoot: 'http://localhost:5000/v1/models'
 	})
 )
