@@ -1,8 +1,9 @@
 define([
+	'cs!config'
 	'backbone'
-], (Backbone) ->
+], (config, Backbone) ->
 	Backbone.Model.extend({
-		urlRoot: 'http://localhost:5000/v1/sessions'
+		urlRoot: config.apiServer + 'v1/sessions'
 		idAttribute: 'key'
 		validate: (attributes) ->
 			if not attributes.email?
