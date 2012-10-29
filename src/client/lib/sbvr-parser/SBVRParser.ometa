@@ -1,5 +1,3 @@
-if(typeof SBVR_SERVER_ENABLED === 'undefined') SBVR_SERVER_ENABLED = true;
-
 define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], function(SBVRLibs, _) {
 	//A parser for Semantics of Business Vocabulary and Rules (SBVR), an OMG standard.
 	//Converts from Structured English (SBVR-SE) to Logical Formulation (SBVR-LF)
@@ -491,15 +489,6 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'],
 			'Source:',
 			'Subject Field:'
 		];
-	if(SBVR_SERVER_ENABLED) {
-		allowedAttrLists = [
-			/* Custom Attributes */
-			'Database ID Field:',
-			'Database Value Field:',
-			'Database Table Name:'
-			/* End Custom */
-		].concat(allowedAttrLists);
-	}
 	allowedAttrLists = {
 		Term: [
 			'Synonym:'
