@@ -5,9 +5,11 @@
 	border: 1px solid #ADABB3;
 }
 
-span.cm-sbvr-startTerm {
+span.cm-sbvr-StartTerm {
 	color: #A22;
-/* 	background-color: #FCC; */
+}
+span.cm-sbvr-StartName {
+	color: #A22;
 }
 span.cm-sbvr-startFactType {
 	color: #A70;
@@ -23,22 +25,31 @@ span.cm-sbvr-Term {
 	color: #108070;
 	text-decoration: underline;
 }
+span.cm-sbvr-Name {
+	color: #108070;
+	text-decoration: underline;
+	border-bottom: 1px solid #108070;
+}
+span.cm-sbvr-AttrGuidanceType {
+	color: #108070;
+	text-decoration: underline;
+}
 
 span.cm-sbvr-Verb {
 	color: blue;
 	font-style: italic;
 }
-span.cm-sbvr-modRule {
+span.cm-sbvr-Modifier {
 	color: orange;
 }
 span.cm-sbvr-keyword {
 	color: orange;
 }
-span.cm-sbvr-num {
+span.cm-sbvr-Number {
 	color: purple;
 }
 
-span.cm-sbvr-allowedAttrs {
+span.cm-sbvr-AllowedAttrs {
 	color: grey;
 }
 

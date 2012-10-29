@@ -64,20 +64,20 @@ define(['sbvr-compiler/LFOptimiser', 'underscore'], function(LFOptimiser) {
 				^AtomicFormulation
 			),
 		
-		UniversalQ
+		UniversalQuantification
 			"Variable":v trans*:xs SetHelped
-			-> ['LogicalNegation', ['ExistentialQ', v, ['LogicalNegation'].concat(xs)]],
+			-> ['LogicalNegation', ['ExistentialQuantification', v, ['LogicalNegation'].concat(xs)]],
 		
-		AtMostNQ
+		AtMostNQuantification
 			"MaximumCardinality":maxCard "Variable":v trans*:xs SetHelped
 			{maxCard[1][1]++}
-			-> ['LogicalNegation', ['AtLeastNQ', ['MinimumCardinality', maxCard[1]], v].concat(xs)],
+			-> ['LogicalNegation', ['AtLeastNQuantification', ['MinimumCardinality', maxCard[1]], v].concat(xs)],
 		
 		ForeignKey :v1 =
 			// Just a basic var
 			?(v1.length == 3)
 			(
-				[	'ExactQ'
+				[	'ExactQuantification'
 					"Cardinality":card
 					?(card[1][1] == 1)
 					"Variable":v2
@@ -87,7 +87,7 @@ define(['sbvr-compiler/LFOptimiser', 'underscore'], function(LFOptimiser) {
 					{'NOT NULL'}:necessity
 				]
 			|
-				[	'AtMostNQ'
+				[	'AtMostNQuantification'
 					"MaximumCardinality":card
 					?(card[1][1] == 1)
 					"Variable":v2
@@ -109,13 +109,13 @@ define(['sbvr-compiler/LFOptimiser', 'underscore'], function(LFOptimiser) {
 		
 		Rule
 			{this.processingAttributeRule = false}
-			(	[	'ObligationF'
-					[	'UniversalQ'
+			(	[	'ObligationFormulation'
+					[	'UniversalQuantification'
 						"Variable":v1
 						ForeignKey(v1)
 					|
 						'LogicalNegation'
-						[	'ExistentialQ'
+						[	'ExistentialQuantification'
 							"Variable":v1
 							[	'LogicalNegation'
 								ForeignKey(v1)

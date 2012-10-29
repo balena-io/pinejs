@@ -1,0 +1,68 @@
+Rule ::=
+	Modifier
+	RuleBody
+	'.'?
+RuleBody ::=
+	(	Quantifier
+		term
+		(	ClosedProjection
+			','?
+		)?
+	|	'the'
+		(	referenced-term
+		|	name
+		)
+	)
+	(	is-atomic-formulation
+	|	verb
+		(	is-atomic-formulation
+		|	RuleBody
+		)
+	)
+Modifier ::=
+	(	'It is obligatory that'
+	|	'It is necessary that'
+	|	'It is prohibited that'
+	|	'It is impossible that'
+	|	'It is not possible that'
+	|	'It is possible that'
+	|	'It is permitted that'
+	)
+Quantifier ::=
+		(	'each'
+		|	'a'
+		|	'an'
+		|	'some'
+		)
+	|	(
+		|	'at most'
+		|	'at least'
+			(Number 'and at most')?
+		|	'more than'
+		|	'exactly'
+		)
+		Number
+ClosedProjection ::=
+	'that'
+	(	verb
+		(	is-atomic-formulation
+		|	RuleBody
+		)
+	|	RuleBody
+	)
+
+Number ::=
+		'one'
+	|	[0-9]+
+
+Attribute ::=
+	Definition
+Definition ::=
+		'the'?
+		term
+		ClosedProjection
+		'.'?
+	|	value
+		(	'or'
+			value
+		)*

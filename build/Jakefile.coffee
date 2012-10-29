@@ -174,7 +174,7 @@ namespace('consolidate', ->
 				filesList.exclude(excludeDirs)
 				filesList.exclude(excludedDirs)
 				filesList.exclude(/(^|[\/\\])src[\/\\]external([\/\\]|$)/)
-				filesList.include('**/package.json')
+				filesList.include('src/**/package.json')
 				combinedPackage = {
 					name: 'rulemotion-canvas'
 					version: '0.0.1'

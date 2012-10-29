@@ -78,7 +78,7 @@ define(['underscore', 'ometa-core'], function(_) {
 				}
 			}
 			
-			if(!create && currentFactTypePart[0] == 'Term') {
+			if(!create && (currentFactTypePart[0] == 'Term' || currentFactTypePart[0] == 'Name')) {
 				while( self.conceptTypes.hasOwnProperty(currentFactTypePart[1]) ) {
 					currentFactTypePart = ['Term', self.conceptTypes[currentFactTypePart[1]]];
 					if( currentLevel.hasOwnProperty(currentFactTypePart) ) {

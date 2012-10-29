@@ -238,21 +238,21 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core'], function(SBVRLibs) 
 			]
 			-> whereClause,
 		AtLeast =
-			[	'AtLeastNQ'
+			[	'AtLeastNQuantification'
 				Cardinality:minCard
 				Variable:query
 				{query[1][1].push(['Count', '*'])}
 			]
 			-> ['GreaterThanOrEqual', query, ['Number', minCard]],
 		Exactly =
-			[	'ExactQ'
+			[	'ExactQuantification'
 				Cardinality:card
 				Variable:query
 				{query[1][1].push(['Count', '*'])}
 			]
 			-> ['Equals', query, ['Number', card]],
 		Range =
-			[	'NumericalRangeQ'
+			[	'NumericalRangeQuantification'
 				Cardinality:minCard
 				Cardinality:maxCard
 				Variable:query
@@ -260,7 +260,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core'], function(SBVRLibs) 
 			]
 			-> ['Between', query, ['Number', minCard], ['Number', maxCard]],
 		Exists =
-			[	'ExistentialQ'
+			[	'ExistentialQuantification'
 				Variable:query
 			]
 			-> ['Exists', query],
@@ -284,10 +284,10 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core'], function(SBVRLibs) 
 		
 		RuleBody =
 			[
-				(	'ObligationF'
-				|	'NecessityF'
-				|	'PossibilityF'
-				|	'PermissibilityF'
+				(	'ObligationFormulation'
+				|	'NecessityFormulation'
+				|	'PossibilityFormulation'
+				|	'PermissibilityFormulation'
 				)
 				RulePart:rule
 			]

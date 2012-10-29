@@ -31,7 +31,7 @@ define(['codemirror'], function (CodeMirror) {
 			token = editor.getTokenAt(cur),
 			tokenString = token.string.substr(0,cur.ch-token.start);
 		
-		var found = [], start = tokenString.toLowerCase(), whitespace = "", whitespaceRegexp = /^[\W]+/;
+		var found = [], start = tokenString.toLowerCase(), whitespace = "", whitespaceRegexp = /^[\s]+/;
 		if(whitespaceRegexp.test(start)) {
 			whitespace = whitespaceRegexp.exec(start)[0];
 			start = start.replace(whitespace, '');
