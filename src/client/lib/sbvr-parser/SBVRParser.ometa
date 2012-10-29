@@ -1,9 +1,4 @@
-if(typeof global !== 'undefined' && typeof global.SBVR_SERVER_ENABLED === 'undefined') {
-	var SBVR_SERVER_ENABLED = true;
-}
-if(typeof window !== 'undefined' && typeof window.SBVR_SERVER_ENABLED === 'undefined') {
-	var SBVR_SERVER_ENABLED = true;
-}
+if(typeof SBVR_SERVER_ENABLED === 'undefined') SBVR_SERVER_ENABLED = true;
 
 define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], function(SBVRLibs, _) {
 	//A parser for Semantics of Business Vocabulary and Rules (SBVR), an OMG standard.
@@ -11,36 +6,59 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'],
 	//Specification: http://www.omg.org/spec/SBVR/1.0/
 
 	ometa SBVRParser <: SBVRLibs {
-		Bind :x	=
-			-> ['RoleBinding', x, this.ruleVars[x[1]]],
+		EOL =
+			(	'\r'?
+				'\n'
+			|	'\r'
+			),
+		EOLSpaces =
+			{false}:eol
+			(	EOL
+				{true}:eol
+			|	space
+			)*
+			?eol,
+		Bind :identifier :bindings =
+			// Check a var exists to bind to.
+			?(this.ruleVars.hasOwnProperty(identifier[1]))
+			{['RoleBinding', identifier, this.ruleVars[identifier[1]]]}:binding
+			(	?bindings
+				{bindings.push(binding)}
+			)?
+			-> binding,
 
 		letters =
-			letter+:l
-			-> l.join(''),
-		num =
-			(	spaces digit+:n
-				-> ['Number', parseInt(n.join(''))]
+			<letter+>,
+		Number =
+			(	spaces <digit+>:n
+				-> ['Number', parseInt(n, 10)]
 			|	"one"
 				-> ['Number', 1]
 			),
 		Value :stopOn =
-			(	spaces ~token(stopOn) ~lineStart letterOrDigit+:alphaNum
-				-> alphaNum.join('')
+			(	spaces
+				~token(stopOn)
+				~lineStart
+				<letterOrDigit+>
 			)+:value
 			-> value.join(''),
 		toSBVREOL =
 			spaces
-			(
-				~(spaces lineStart) spaces?:s
-				(~space anything)+:a
-				-> s.concat(a).join('')
-			)*:w
-			-> w.join(''),
+			<	(	spaces
+					~lineStart
+					(	InformalIdentifier
+					|	'\'' InformalIdentifier '\''
+					|	(	~space
+							anything
+						)+
+					)
+				)*
+			>,
 		toEOL =
-			(	~('\r'|'\n')
-				anything
-			)*:a
-			-> a.join(''),
+			<	(	~EOL
+					anything
+				)*
+			>,
 
 		token :x =
 			spaces seq(x):s
@@ -49,19 +67,54 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'],
 			)
 			-> s,
 
-		addTerm =
-			&(termPart+):t {this.terms[t.join(' ')] = t.join(' ')}
-			Term,
-		Term :factTypeSoFar =
-			findTerm(factTypeSoFar),
-		findTerm :factTypeSoFar :termSoFar =
-			termPart:t {termSoFar = termSoFar==null ? t : [termSoFar, t].join(' ')}
-			(	findTerm(factTypeSoFar, termSoFar)
-			|	?this.isTerm(factTypeSoFar, termSoFar)
-				-> ['Term',this._termForm(factTypeSoFar, termSoFar)]
+		AddIdentifier :identifierType =
+			&(IdentifierPart+):identifier
+			{identifier.join(' ')}:identifier
+			// Make sure the identifier isn't taken.
+			?(!this.identifierChildren.hasOwnProperty(identifier))
+			{this.identifierChildren[identifier] = []}
+			{this.identifiers[identifierType][identifier] = identifier}
+			apply(identifierType),
+		
+		InformalIdentifier =
+			Identifier(undefined, true),
+		Identifier :factTypeSoFar :noAutoComplete =
+			~(<Term?>:term)?
+			~(<Name?>:name)?
+			?(!noAutoComplete || term || name)
+			(	?(term.length > name.length)
+				Term(factTypeSoFar)
+			|	Name(factTypeSoFar)
 			),
-		termPart =
-			spaces ~lineStart letters,
+		Name :factTypeSoFar =
+			FindIdentifier('Name', factTypeSoFar),
+		Term :factTypeSoFar =
+			FindIdentifier('Term', factTypeSoFar),
+		FindIdentifier :identifierType :factTypeSoFar =
+			spaces
+			'\''?:quote
+			FindIdentifierNest(identifierType, factTypeSoFar):identifier
+			(	?(!quote)
+			|	seq(quote)
+			)
+			-> identifier,
+		FindIdentifierNest :identifierType :factTypeSoFar :identifierSoFar =
+			IdentifierPart:part
+			(	?identifierSoFar
+				-> (identifierSoFar + ' ' + part)
+			|	-> part
+			):identifierSoFar
+			(	FindIdentifierNest(identifierType, factTypeSoFar, identifierSoFar)
+			|	?this.IsIdentifier(identifierType, factTypeSoFar, identifierSoFar)
+				-> [identifierType, this._factTypeForm(identifierType, factTypeSoFar, identifierSoFar)]
+			),
+		IdentifierPart =
+			spaces
+			~lineStart
+			<	(	letters
+				|	'-'
+				)+
+			>,
 		
 		
 		addVerb =
@@ -77,28 +130,29 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'],
 				-> ['Verb',this._verbForm(verbSoFar)]
 			),
 		verbPart =
-			spaces ~lineStart ~Term letters,
+			spaces ~lineStart ~Identifier letters,
 		
-		joinQuant =
+		JoiningQuantifier =
 			matchForAll('keyword',["and","at","most"]),
 		
-		// Be very careful with anywhere you use quant as any in-place modifications of the array will be remembered in memoisation.
-		quant =
+		// Be very careful with anywhere you use quantifier as any in-place modifications of the array will be remembered in memoisation.
+		Quantifier =
 			(	keyword("each")
-				-> ['UniversalQ']
+				-> ['UniversalQuantification']
 			|	matchForAny('keyword',["a","an","some"])
-				-> ['ExistentialQ']
-			|	matchForAll('keyword',["at","most"]) num:n
-				-> ['AtMostNQ', ['MaximumCardinality', n]]
-			|	matchForAll('keyword',["at","least"]) num:n
-				(	joinQuant num:m
-					-> ['NumericalRangeQ', ['MinimumCardinality', n], ['MaximumCardinality', m]]
-				|	-> ['AtLeastNQ', ['MinimumCardinality', n]]
+				-> ['ExistentialQuantification']
+			|	matchForAll('keyword',["at","most"]) Number:n
+				-> ['AtMostNQuantification', ['MaximumCardinality', n]]
+			|	matchForAll('keyword',["at","least"]) Number:n
+				(	JoiningQuantifier
+					Number:m
+					-> ['NumericalRangeQuantification', ['MinimumCardinality', n], ['MaximumCardinality', m]]
+				|	-> ['AtLeastNQuantification', ['MinimumCardinality', n]]
 				)
-			|	matchForAll('keyword',["more","than"]) num:n {++n[1]}
-				-> ['AtLeastNQ', ['MinimumCardinality', n]]
-			|	keyword("exactly") num:n
-				-> ['ExactQ', ['Cardinality', n]]
+			|	matchForAll('keyword',["more","than"]) Number:n {++n[1]}
+				-> ['AtLeastNQuantification', ['MinimumCardinality', n]]
+			|	keyword("exactly") Number:n
+				-> ['ExactQuantification', ['Cardinality', n]]
 			),
 
 		keyword :word :noToken =
@@ -114,63 +168,72 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'],
 			keyword(","),
 		addOr =
 			keyword("or"),
-		createVar :term =
-			{this.ruleVars[term[1]] = this.ruleVarsCount++}
-			-> ['Variable', ['Number', this.ruleVars[term[1]]], term],
-		checkThat :term :termBind =
-			addThat
-			(	addThe Term:t Bind(t):b {[[t],b]}:c Verb(c[0]):v {c[0].push(v, term); c.push(termBind)}
-				(	ruleBody(c)
-				|	atfo(c)
-				)
-			|	(	{[[term], termBind]}:c Verb(c[0]):v {c[0].push(v)}
-					(	ruleBody(c, true)
-					|	atfo(c)
-					)
-				| ruleBody([[]])
-				)
-			):r
-			addComma?
-			-> r,
+		createVar :identifier :unitary =
+			{this.ruleVars[identifier[1]] = this.ruleVarsCount++}
+			-> ['Variable', ['Number', this.ruleVars[identifier[1]]], identifier],
+			// TODO: Add this unitary attribute along the entire compiler chain
+			// -> ['Variable', ['Number', this.ruleVars[identifier[1]]], identifier, ['Unitary', unitary === true]],
 
-		atfo :c	=
-			isFactType(c[0]):realFactType
+		IsAtomicFormulation :factType :bindings =
+			IsFactType(factType):realFactType
 			?realFactType
-			{c[0] = ['FactType'].concat(c[0])}
-			-> ['AtomicFormulation'].concat(c),
+			-> ['AtomicFormulation'].concat([['FactType'].concat(factType)], bindings),
 
-		// c[0] should contain the current fact type that is being built
-		// c[1..] should contain the bindings for the fact type being built
-		ruleBody :c :exitOnTermFactType =
-			quant:body Term(c[0]):t createVar(t):tVar Bind(t):b {c[0].push(t);c.push(b)}
-			(checkThat(t, b):thatC {tVar.push(thatC)})?
-			(
-				Verb(c[0]):v {c[0].push(v)}
-				(	ruleBody(c, true)
-				|	atfo(c)
+		ClosedProjection :identifier :bind =
+			addThat
+			(	{[identifier]}:factType
+				Verb(factType):verb {factType.push(verb)}
+				(	RuleBody(factType, [bind])
+				|	IsAtomicFormulation(factType, [bind])
 				)
-			|	?(exitOnTermFactType === true)
-				atfo(c)
-			):r
-			{body.push(tVar, r)}
-			-> body,
+			|	RuleBody([], [], identifier, bind)
+			),
 
-		modRule =
+		RuleBody :factType :bindings :parentIdentifier :parentBind =
+			(	Quantifier:quant
+				Term(factType):t createVar(t):tVar Bind(t, bindings):b {factType.push(t)}
+				(	ClosedProjection(t, b):thatLF {tVar.push(thatLF)}
+					addComma?
+				)?
+			|	addThe
+				// TODO: Should be a "ReferencedTerm" or Name, rather than Identifier (which is Term or Name)
+				Identifier(factType):identifier
+				(	Bind(identifier, bindings)
+				|	createVar(identifier, true):tVar
+					// TODO: Do something with the var we create.
+					Bind(identifier, bindings)
+				)
+				{factType.push(identifier)}
+			)
+			(	Verb(factType):v {factType.push(v)}
+				{	if(parentIdentifier != null) {
+						factType.push(parentIdentifier);
+						bindings.push(parentBind);
+					}
+				}
+				(	RuleBody(factType, bindings)
+				|	IsAtomicFormulation(factType, bindings)
+				)
+			|	IsAtomicFormulation(factType, bindings)
+			):lf
+			-> (quant == null ? lf : quant.concat([tVar, lf])),
+
+		Modifier =
 			"It" "is" 
 			(	"obligatory"
-				-> ['ObligationF']
+				-> ['ObligationFormulation']
 			|	"necessary"	
-				-> ['NecessityF']
+				-> ['NecessityFormulation']
 			|	"prohibited"
-				-> ['ObligationF', ['LogicalNegation']]
+				-> ['ObligationFormulation', ['LogicalNegation']]
 			|	"impossible"
-				-> ['NecessityF', ['LogicalNegation']]
+				-> ['NecessityFormulation', ['LogicalNegation']]
 			|	"not" "possible"
-				-> ['NecessityF', ['LogicalNegation']]
+				-> ['NecessityFormulation', ['LogicalNegation']]
 			|	"possible"
-				-> ['PossibilityF']
-			|	"permissible"
-				-> ['PermissibilityF']
+				-> ['PossibilityFormulation']
+			|	"permitted"
+				-> ['PermissibilityFormulation']
 			):r
 			"that"
 			-> r,
@@ -179,73 +242,113 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'],
 			"R:"|"Rule:",
 		newRule =
 			startRule spaces &(toSBVREOL):ruleText {this.ruleVarsCount=0}
-			modRule:r ruleBody([[]]):q {r.length == 2 ? (r[1][1] = q) : (r[1] = q)}
+			Modifier:r RuleBody([], []):q {r.length == 2 ? (r[1][1] = q) : (r[1] = q)}
 			-> ['Rule', r, ['StructuredEnglish', ruleText]],
-		terb =
-			Term:t addVerb:v
-			-> [t, v],
 		startFactType =
 			"F:"|"Fact type:",
 		newFactType =
 			startFactType {[]}:factType
-			(Term:t addVerb:v {factType.push(t, v)})+
-			(Term:t {factType.push(t)})?
+			(Identifier:identifier addVerb:v {factType.push(identifier, v)})+
+			(Identifier:identifier {factType.push(identifier)})?
 			AddFactType(factType, factType) {factType.push([])}
 			-> ['FactType'].concat(factType),
-		startTerm =
-			"T:"|"Term:",
-		newTerm =
-			startTerm clearSuggestions addTerm:t {t.push([])}
-			-> t,
-		attribute =
+		StartTerm =
+			(	"T:"
+			|	"Term:"
+			)
+			-> 'Term',
+		StartName =
+			(	"N:"
+			|	"Name:"
+			)
+			-> 'Name',
+		NewIdentifier =
+			(	StartTerm
+			|	StartName
+			):identifierType
+			clearSuggestions
+			AddIdentifier(identifierType):identifier
+			{identifier.push([])}
+			-> identifier,
+		Attribute =
 			{this.lines[this.lines.length-1]}:currentLine
-			allowedAttrs(currentLine[0]):attrName
-			{attrName.replace(new RegExp(' ','g'),'')}:attrName
-			ApplyFirstExisting(['attr'+attrName,'defaultAttr'], [currentLine]):attrVal
+			AllowedAttrs(currentLine[0]):attrName
+			{attrName.replace(/ /g, '')}:attrName
+			spaces
+			ApplyFirstExisting(['Attr' + attrName, 'DefaultAttr'], [currentLine]):attrVal
 			-> {var lastLine = this.lines.pop(); lastLine[lastLine.length-1].push([attrName, attrVal]); lastLine},
 							
-		allowedAttrs :termOrFactType =
-			matchForAny('seq',this.branches.allowedAttrs.call(this, termOrFactType)):attrName -> attrName.replace(':',''),
-		defaultAttr :currentLine =
+		AllowedAttrs :termOrFactType =
+			matchForAny('seq',this.branches.AllowedAttrs.call(this, termOrFactType)):attrName
+			-> attrName.replace(':',''),
+		DefaultAttr :currentLine =
 			toSBVREOL,
-		attrDefinition :currentLine =
-			(	{this.ruleVarsCount=0} {[[]]}:c Term:t createVar(t):tVar Bind(t):b {c[0].push(t);c.push(b)}
-				checkThat(t, b):thatC {tVar.push(thatC)}
+		AttrConceptType :currentLine =
+			{currentLine[1]}:identifierName
+			?(!this.conceptTypes.hasOwnProperty(identifierName)) // Only allow one instance of Concept Type: attribute.
+											 // TODO: Improve this to deal with synonyms and autocomplete/highlighting.
+			// A concept type has to be a term (cannot be a name)
+			Term:term
+			(	?(currentLine[0] == 'FactType')
+			|	{term[1]}:termName
+				?(identifierName != termName) // Do not allow a term to have itself as its concept type.
+				{this.conceptTypes[identifierName] = termName}
+				{this.identifierChildren[termName].push(identifierName)}
+			)
+			-> term,
+		AttrDefinition :currentLine =
+			(	addThe?
+				// The following section is copied from RuleBody, should really be sorted properly.
+				{this.ruleVarsCount=0}
+				Term:t createVar(t):tVar Bind(t):b
+				ClosedProjection(t, b):thatLF {tVar.push(thatLF)}
+				terminator?
+				(	?(currentLine[0] == 'FactType')
+				|	{this.conceptTypes[currentLine[1]] = t[1]}
+					{this.identifierChildren[t[1]].push(currentLine[1])}
+				)?
 				-> tVar
 			|	Value('or'):name
 				(	addOr clearSuggestions
 					Value('or')
-				)*:names
+				)+:names
 				{names.unshift(name)}
 				-> ['Enum', names]
 			),
-		attrConceptType :currentLine =
-			{currentLine[1]}:termName
-			?(!this.conceptTypes.hasOwnProperty(termName)) // Only allow one instance of Concept Type: attribute.
-											 // TODO: Improve this to deal with synonyms and autocomplete/highlighting.
-			Term:t ?(termName != t[1]) // Do not allow a term to have itself as its concept type.
-			{this.conceptTypes[termName] = t[1]}
-			-> t,
-		attrSynonym :currentLine =
-			addTerm:t {this.terms[t[1]] = currentLine[1]}
-			-> t,
-		attrSynonymousForm :currentLine =
+		AttrGuidanceType :currentLine =
+			matchForAny('seq', this.branches.AttrGuidanceType),
+		AttrNecessity :currentLine =
+			(	RuleBody([], [])
+			|	toSBVREOL
+			),
+		AttrSynonym :currentLine =
+			AddIdentifier(currentLine[0]):identifier
+			{this.identifiers[identifierType][identifier[1]] = currentLine[1]}
+			{this.identifierChildren[currentLine[1]].push(identifier[1])}
+			-> identifier,
+		AttrSynonymousForm :currentLine =
 			{[]}:factType
-			(Term:t addVerb:v {factType.push(t, v)})+
-			(Term:t {factType.push(t)})?
-			AddFactType(factType, currentLine.slice(1,-1)) {factType.push([])}
+			(	Identifier:identifier
+				addVerb:v
+				{factType.push(identifier, v)}
+			)+
+			(	Identifier:identifier
+				{factType.push(identifier)}
+			)?
+			AddFactType(factType, currentLine.slice(1,-1))
+			{factType.push([])}
 			-> factType,
-		attrTermForm :currentLine =
-			addTerm:t
+		AttrTermForm :currentLine =
+			AddIdentifier('Term'):term
 			{
 				for(var i = 0; i < currentLine.length; i++) {
 					if(currentLine[i][0] == 'Term') {
-						var factType = [t, ['Verb', 'has'], currentLine[i]];
+						var factType = [term, ['Verb', 'has'], currentLine[i]];
 						this.AddFactType(factType, factType);
 					}
 				}
 			}
-		-> t,
+		-> term,
 
 		startComment =
 			seq('--'),
@@ -254,29 +357,34 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'],
 		
 		terminator =
 			spaces keyword('.',true),
-		lineStart :lineType =
-			(	startTerm
+		lineStart =
+			(	StartTerm
+			|	StartName
 			|	startFactType
 			|	startRule
-			|	allowedAttrs
+			|	AllowedAttrs
 			|	startComment
 			),
 		line =
 			spaces
 			(
-				(	newTerm
+				(	NewIdentifier
 				|	newFactType
 				|	newRule
-				|	attribute
+				|	Attribute
 				):l
 				terminator? clearSuggestions
-				spaces &(lineStart | end)
 				{this.lines.push(l)}
 				-> l
 			|	newComment
 			),
 		Process =
-			line* end
+			line
+			(	EOLSpaces
+				line
+			)*
+			spaces
+			end
 			-> this.lines
 	}
 
@@ -291,29 +399,29 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'],
 	
 	SBVRParser._enableTokens = function() {
 		this.tokensEnabled = true;
-		SBVRLibs._enableTokens.call(this, ["startTerm", "startFactType", "startRule", "newComment", "Term", "modRule", "Verb", "keyword", "allowedAttrs", "num", "Value"]);
+		SBVRLibs._enableTokens.call(this, ["StartTerm", "StartName", "startFactType", "startRule", "newComment", "Term", "Name", "Modifier", "Verb", "keyword", "AllowedAttrs", "AttrGuidanceType", "Number", "Value"]);
 	};
 	
-	SBVRParser._baseTerm = function(factTypeSoFar, term) {
-		if(this.terms.hasOwnProperty(term)) {
-			return this.terms[term];
+	SBVRParser._baseIdentifier = function(identifierType, factTypeSoFar, identifier) {
+		if(this.identifiers[identifierType].hasOwnProperty(identifier)) {
+			return this.identifiers[identifierType][identifier];
 		}
-		if(this.terms.hasOwnProperty(term.singularize())) {
-			return this.terms[term.singularize()];
+		if(this.identifiers[identifierType].hasOwnProperty(identifier.singularize())) {
+			return this.identifiers[identifierType][identifier.singularize()];
 		}
 		return false;
 	};
 
-	SBVRParser.isTerm = function(factTypeSoFar, term) {
-		var terms = this.branches['Term'].call(this, factTypeSoFar);
-		term = this._baseTerm(factTypeSoFar, term);
-		return term !== false && (terms.indexOf(term) !== -1 || terms.indexOf(term.singularize()) !== -1);
+	SBVRParser.IsIdentifier = function(identifierType, factTypeSoFar, identifier) {
+		var identifiers = this.branches[identifierType].call(this, factTypeSoFar);
+		identifier = this._baseIdentifier(identifierType, factTypeSoFar, identifier);
+		return identifier !== false && (identifiers.indexOf(identifier) !== -1 || identifiers.indexOf(identifier.singularize()) !== -1);
 	};
 
-	SBVRParser._termForm = function(factTypeSoFar, term) {
-		term = this._baseTerm(factTypeSoFar, term);
-		var termForms = this.branches['Term'].call(this, factTypeSoFar);
-		return termForms.indexOf(term.singularize()) !== -1 ? term.singularize() : term
+	SBVRParser._factTypeForm = function(identifierType, factTypeSoFar, identifier) {
+		identifier = this._baseIdentifier(identifierType, factTypeSoFar, identifier);
+		var factTypeForms = this.branches[identifierType].call(this, factTypeSoFar);
+		return factTypeForms.indexOf(identifier.singularize()) !== -1 ? identifier.singularize() : identifier;
 	};
 
 	SBVRParser.isVerb = function(factTypeSoFar, verb) {
@@ -354,7 +462,7 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'],
 		return verb;
 	};
 
-	SBVRParser.isFactType = function(factType) {
+	SBVRParser.IsFactType = function(factType) {
 		var currentLevel = this._traverseFactType(factType);
 		if(currentLevel === false) {
 			return false;
@@ -362,9 +470,15 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'],
 		return currentLevel.__valid;
 	};
 
-	var removeVerbRegex = new RegExp('^' + ['Verb',''].toString()),
-		removeTermRegex = new RegExp('^' + ['Term',''].toString()),
+	var removeRegex = {
+			'Verb': new RegExp('^' + ['Verb',''].toString()),
+			'Term': new RegExp('^' + ['Term',''].toString()),
+			'Name': new RegExp('^' + ['Name',''].toString())
+		},
 		allowedAttrLists = [
+			'Concept Type:',
+			'Definition:',
+			'Definition (Informal):',
 			'Dictionary Basis:',
 			'Example:',
 			'General Concept:',
@@ -388,67 +502,96 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'],
 	}
 	allowedAttrLists = {
 		Term: [
-			'Concept Type:',
-			'Definition:',
+			'Synonym:'
+		].concat(allowedAttrLists),
+		Name: [
 			'Synonym:'
 		].concat(allowedAttrLists),
 		FactType: [
 			'Synonymous Form:',
 			'Term Form:'
 		].concat(allowedAttrLists),
-		Rule: []
+		Rule: [
+			'Rule Name:',
+			'Guidance Type:',
+			'Description:',
+			'Source:',
+			'Synonymous Statement:',
+			'Note:',
+			'Example:',
+			'Enforcement Level:'
+		]
 	};
+	function getValidFactTypeParts(partType, factTypeSoFar) {
+		if(factTypeSoFar == null || factTypeSoFar.length == 0) {
+			if(this.identifiers.hasOwnProperty(partType)) {
+				return _.keys(this.identifiers[partType]);
+			}
+			else {
+				return [];
+			}
+		}
+		var factTypePart,
+			currentLevel = this._traverseFactType(factTypeSoFar),
+			factTypeParts = [],
+			regex = removeRegex[partType];
+		for(factTypePart in currentLevel) {
+			if(currentLevel.hasOwnProperty(factTypePart)) {
+				if(regex.test(factTypePart)) {
+					factTypePart = factTypePart.replace(regex, '');
+					factTypeParts.push(factTypePart);
+					if(this.identifierChildren.hasOwnProperty(factTypePart)) {
+						factTypeParts = factTypeParts.concat(this.identifierChildren[factTypePart]);
+					}
+				}
+			}
+		}
+		return factTypeParts;
+	}
 	SBVRParser.reset = function() {
 		SBVRLibs.initialize.call(this);
 		this.branches = {
 			clearSuggestions: [], //This stops us suggesting any autocomplete before this point.
-			startTerm: ['Term:     '],
+			StartTerm: ['Term:     '],
+			StartName: ['Name:     '],
 			startFactType: ['Fact type:'],
 			startRule: ['Rule:     '],
 			Term: function(factTypeSoFar) {
-				if(factTypeSoFar == null || factTypeSoFar.length == 0) {
-					return _.keys(this.terms);
-				}
-				var term, currentLevel = this._traverseFactType(factTypeSoFar), terms = [];
-				for(term in currentLevel) {
-					if(currentLevel.hasOwnProperty(term)) {
-						if(removeTermRegex.test(term)) {
-							terms.push(term.replace(removeTermRegex,''));
-						}
-					}
-				}
-				return terms;
+				return getValidFactTypeParts.call(this, 'Term', factTypeSoFar);
+			},
+			Name: function(factTypeSoFar) {
+				return getValidFactTypeParts.call(this, 'Name', factTypeSoFar);
 			},
 			Verb: function(factTypeSoFar) {
-				var verb, currentLevel = this._traverseFactType(factTypeSoFar), verbs = [];
-				for(verb in currentLevel) {
-					if(currentLevel.hasOwnProperty(verb)) {
-						if(removeVerbRegex.test(verb)) {
-							verbs.push(verb.replace(removeVerbRegex,''));
-						}
-					}
-				}
-				return verbs;
+				return getValidFactTypeParts.call(this, 'Verb', factTypeSoFar);
 			},
-			allowedAttrs: function(termOrFactType) {
+			AllowedAttrs: function(termOrFactType) {
 				if(allowedAttrLists.hasOwnProperty(termOrFactType)) {
 					return allowedAttrLists[termOrFactType];
 				}
 				else if(termOrFactType == null) {
-					return allowedAttrLists.Term.concat(allowedAttrLists.FactType);
+					return allowedAttrLists.Term.concat(allowedAttrLists.Name, allowedAttrLists.FactType);
 				}
 				return [];
 			},
-			modRule: [
+			AttrGuidanceType: [
+				'operative business rule',
+				'structural business rule',
+				'advice of permission',
+				'advice of possibility',
+				'advice of optionality',
+				'advice of contingency'
+			],
+			Modifier: [
 				'It is obligatory that',
 				'It is necessary that',
 				'It is prohibited that',
 				'It is impossible that',
 				'It is not possible that',
 				'It is possible that',
-				'It is permissible that'
+				'It is permitted that'
 			],
-			quant: [
+			Quantifier: [
 				'each',
 				'a',
 				'an',
@@ -459,8 +602,8 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'],
 				'more than',
 				"exactly"
 			],
-			joinQuant: ['and at most'],
-			num: [
+			JoiningQuantifier: ['and at most'],
+			Number: [
 				'1', '2', '3', '4', '5', '6', '7', '8', '9',
 				'one'
 			],
@@ -470,39 +613,14 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'],
 			addOr: ['or'],
 			terminator: ['.']
 		};
-		this.terms = {};
+		this.identifiers = {
+			'Term': {},
+			'Name': {}
+		};
+		this.identifierChildren = {};
 		this.ruleVars = {};
 		this.ruleVarsCount = 0;
 		this.lines = ['Model'];
-	};
-
-	SBVRParser.equals = function(compareTo) {
-		// TODO: Can this be simplified to just compare lines (and made provably comparable)?
-		if(!_.isEqual(this.terms, compareTo.terms)) {
-			return false;
-		}
-		if(!_.isEqual(this.conceptTypes, compareTo.conceptTypes)) {
-			return false;
-		}
-		if(!_.isEqual(this.factTypes, compareTo.factTypes)) {
-			return false;
-		}
-		return true;
-	};
-
-	SBVRParser.clone = function() {
-		var clone = SBVRParser.createInstance();
-		if(this.tokensEnabled) {
-			clone._enableTokens();
-		}
-		return $.extend(true, clone, {
-			terms: this.terms,
-			conceptTypes: this.conceptTypes,
-			factTypes: this.factTypes,
-			ruleVars: this.ruleVars,
-			ruleVarsCount: this.ruleVarsCount,
-			lines: this.lines
-		});
 	};
 
 
