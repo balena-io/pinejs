@@ -1,33 +1,32 @@
-<div class="modal hide fade" id="registerModal" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-	<div class="modal-header">
-		<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-		<h3 id="myModalLabel">Register</h3>
-	</div>
-	<div class="modal-body">
-		<form class="form-horizontal">
-			<div class="control-group">
-				<label class="control-label" for="inputEmail">Email</label>
-				<div class="controls">
-					<input type="text" id="inputEmail" placeholder="Email">
-				</div>
+<div class="modal-header">
+	<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+	<h3 id="myModalLabel">Register</h3>
+</div>
+<div class="modal-body">
+	<form id="registerForm" class="form-horizontal">
+		<div class="control-group">
+			<label class="control-label" for="inputEmail">Email</label>
+			<div class="controls">
+				<input required type="email" id="inputEmail" placeholder="Email">
 			</div>
-			<div class="control-group">
-				<label class="control-label" for="inputPassword">Password</label>
-				<div class="controls">
-					<input type="password" id="inputPassword" placeholder="Password">
-				</div>
+		</div>
+		<div class="control-group">
+			<label class="control-label" for="inputPassword">Password</label>
+			<div class="controls">
+				<input required type="password" id="inputPassword" placeholder="Password">
 			</div>
-			<div class="control-group">
-				<label class="control-label" for="inputPassword">Confirm Password</label>
-				<div class="controls">
-					<input type="password" id="inputPasswordConfirm" placeholder="Password">
-				</div>
+		</div>
+		<div class="control-group">
+			<label class="control-label" for="inputPassword">Confirm Password</label>
+			<div class="controls">
+				<input required type="password" id="inputPasswordConfirm" placeholder="Password">
 			</div>
-			<div class="control-group">
-				<div class="controls">
-					<button type="submit" class="btn btn-primary">Register</button>
-				</div>
+		</div>
+		<div class="control-group">
+			<div class="controls">
+				<a class="btn btn-link showLogin">Sign in</a>
+				<button class="btn btn-primary doRegister">Register</button>
 			</div>
-		</form>
-	</div>
+		</div>
+	</form>
 </div>

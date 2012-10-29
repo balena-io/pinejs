@@ -1,50 +1,65 @@
 define([
-	"backbone"
-	"cs!models/session"
-	"cs!models/user"
-	"text!templates/login.html"
-], (Backbone, SessionModel, UserModel, html) ->
+	'backbone'
+	'cs!models/session'
+	'cs!models/user'
+	'text!templates/login.html'
+	'text!templates/register.html'
+], (Backbone, SessionModel, UserModel, loginHtml, registerHtml) ->
 	Backbone.View.extend(
 		id: 'app-main'
 
 		events:
-			'click button.login': 'login'
-			'click button.register': 'register'
+			'submit  #loginForm'      :  'login'
+			'click   a.showRegister'  :  'showRegister'
+			'submit  #registerForm'   :  'register'
+			'click   a.showLogin'     :  'showLogin'
 
 		render: ->
-			@$el.html(html)
-			this.$('#loginModal').modal('show')
+			@$el.html('<div class="modal hide fade" id="loginModal" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">')
+			this.showLogin()
+			@$('#loginModal').modal('show')
 			return this
 
-		login: (e) ->
-			e.preventDefault()
-			$form = ("#loginModal")
-			email = $("#inputEmail", $form).val()
-			password = $("#inputPassword", $form).val()
+		login: ->
+			email = @$('#inputEmail').val()
+			password = @$('#inputPassword').val()
 			session = new SessionModel({
 				email
 				password
 			}).save().done((data) =>
-				sessionStorage.setItem("sid", data.id)
-				this.$('#loginModal').modal("hide").on("hidden", =>
+				sessionStorage.setItem('sid', data.id)
+				this.$('#loginModal').modal('hide').on('hidden', =>
 					console.log this
-					this.trigger("login", email)
+					this.trigger('login', email)
 				)
 			).fail((error) ->
 				console.error(error)
 			)
+			return false
 
-		register: (e) ->
-			e.preventDefault()
-			$form = @$("#registerModal")
-			user = new UserModel({
-				email: $("#inputEmail", $form).val()
-				password: $("#inputPassword", $form).val()
-				password2: $("#inputPasswordConfirm", $form).val()
-			}).save().done((data)->
-			
-			).fail((error) ->
-				console.error(error)
+		register: ->
+			email = @$('#inputEmail').val()
+			password = @$('#inputPassword').val()
+			user = new UserModel(
+				email: email
+				password: password
+			).save().done(=>
+				@login()
+			)
+			return false
+
+		showLogin: ->
+			@$('#loginModal').html(loginHtml)
+
+		showRegister: ->
+			@$('#loginModal').html(registerHtml)
+			$password = @$('#inputPassword')
+			$passwordConfirm = @$('#inputPasswordConfirm')
+			$passwordConfirm.keyup(->
+				if $password.val() isnt $passwordConfirm.val()
+					$passwordConfirm[0].setCustomValidity?("Passwords don't match")
+				else
+					$passwordConfirm[0].setCustomValidity?('')
 			)
 	)
 )

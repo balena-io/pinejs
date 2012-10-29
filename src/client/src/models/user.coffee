@@ -1,18 +1,19 @@
 define([
-	"backbone"
+	'backbone'
 ], (Backbone) ->
 	Backbone.Model.extend({
-		url: -> "http://localhost:5000/users/#{email}"
+		urlRoot: 'http://localhost:5000/v1/users'
 		validate: (attributes) ->
 			if not attributes.email?
-				return "E-mail address must be specified"
+				return 'E-mail address must be specified'
 			if not attributes.password?
-				return "Password must be specified"
+				return 'Password must be specified'
 			if attributes.password is attributes.password2
-				return "Password values do not match"
+				return 'Password values do not match'
+		idAttribute: 'email'
 		toJson: -> {
-			email: this.get("email")
-			password: this.get("password")
+			email: this.get('email')
+			password: this.get('password')
 		}
 	})
 )

@@ -78,10 +78,12 @@ define([
 
 					# Reset the id to start from the beginning
 					@model.set('id', null)
+				error: (model, jqXHR) =>
+					if jqXHR.status is 401
+						@login()
 			)
 
-		login: (e) ->
-			e.preventDefault()
+		login: ->
 			this.$('#modal').remove()
 			el = $('<div id="modal"/>')
 			@$el.append(el)
@@ -93,8 +95,7 @@ define([
 				@$("#user-email").text(email)
 			)
 
-		logout: (e) ->
-			e.preventDefault()
+		logout: ->
 			session = new SessionModel({
 				key: sessionStorage.getItem("sid")
 			}).destroy().fail((error) ->
