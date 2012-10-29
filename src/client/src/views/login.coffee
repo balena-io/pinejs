@@ -27,7 +27,7 @@ define([
 				email
 				password
 			}).save().done((data) =>
-				sessionStorage.setItem('sid', data.id)
+				localStorage.setItem('sid', data.id)
 				this.$('#loginModal').modal('hide').on('hidden', =>
 					console.log this
 					this.trigger('login', email)

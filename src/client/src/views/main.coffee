@@ -24,16 +24,16 @@ define([
 		render: ->
 			@$el.html(html)
 			$userGroup = @$("#user-group").hide(0)
-			sid = sessionStorage.getItem("sid")
+			sid = localStorage.getItem("sid")
 			if sid?
 				session = new SessionModel({
-					key: sessionStorage.getItem("sid")
+					key: localStorage.getItem("sid")
 				}).fetch().done((data) =>
 					@$("#login-group").hide(0)
 					@$("#user-email").text(data.email)
 					$userGroup.show(0)
 				).fail((error) ->
-					sessionStorage.removeItem("sid")
+					localStorage.removeItem("sid")
 					console.error(error)
 				)
 
@@ -97,13 +97,13 @@ define([
 
 		logout: ->
 			session = new SessionModel({
-				key: sessionStorage.getItem("sid")
+				key: localStorage.getItem("sid")
 			}).destroy().fail((error) ->
 				console.error(error)
 			).always(=>
 				@$("#user-group").hide(0)
 				@$("#login-group").show(0)
-				sessionStorage.removeItem("sid")
+				localStorage.removeItem("sid")
 			)
 
 		closeAlert: ->
