@@ -43,14 +43,12 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 		Value :stopOn =
 			(	spaces
 				~token(stopOn)
-				~lineStart
 				<letterOrDigit+>
 			)+:value
 			-> value.join(''),
 		toSBVREOL =
 			spaces
 			<	(	spaces
-					~lineStart
 					(	InformalIdentifier
 					|	'\'' InformalIdentifier '\''
 					|	(	~space
@@ -115,7 +113,6 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 			),
 		IdentifierPart =
 			spaces
-			~lineStart
 			<	(	letters
 				|	'-'
 				)+
@@ -135,7 +132,9 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 				-> ['Verb',this._verbForm(verbSoFar)]
 			),
 		verbPart =
-			spaces ~lineStart ~Identifier letters,
+			spaces
+			~Identifier
+			letters,
 		
 		JoiningQuantifier =
 			matchForAll('keyword',["and","at","most"]),
@@ -246,7 +245,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 		startRule =
 			"R:"|"Rule:",
 		newRule =
-			startRule spaces &(toSBVREOL):ruleText {this.ruleVarsCount=0}
+			startRule spaces &(toEOL):ruleText {this.ruleVarsCount=0}
 			Modifier:r RuleBody([], []):q {r.length == 2 ? (r[1][1] = q) : (r[1] = q)}
 			-> ['Rule', r, ['StructuredEnglish', ruleText]],
 		startFactType =
@@ -362,14 +361,6 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 		
 		terminator =
 			spaces keyword('.',true),
-		lineStart =
-			(	StartTerm
-			|	StartName
-			|	startFactType
-			|	startRule
-			|	AllowedAttrs
-			|	startComment
-			),
 		line =
 			spaces
 			(
