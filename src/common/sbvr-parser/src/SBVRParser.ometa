@@ -7,9 +7,9 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 
 	ometa SBVRParser <: SBVRLibs {
 		EOL =
-			(	'\r'?
-				'\n'
+			(	'\n'
 			|	'\r'
+				'\n'?
 			),
 		EOLSpaces =
 			{false}:eol
