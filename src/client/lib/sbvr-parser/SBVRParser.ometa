@@ -5,9 +5,9 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'],
 
 	ometa SBVRParser <: SBVRLibs {
 		EOL =
-			(	'\r'?
-				'\n'
+			(	'\n'
 			|	'\r'
+				'\n'?
 			),
 		EOLSpaces =
 			{false}:eol
@@ -25,6 +25,11 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'],
 			)?
 			-> binding,
 
+		spaces =
+			(	~EOL
+				space
+			)*,
+
 		letters =
 			<letter+>,
 		Number =
@@ -36,14 +41,12 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'],
 		Value :stopOn =
 			(	spaces
 				~token(stopOn)
-				~lineStart
 				<letterOrDigit+>
 			)+:value
 			-> value.join(''),
 		toSBVREOL =
 			spaces
 			<	(	spaces
-					~lineStart
 					(	InformalIdentifier
 					|	'\'' InformalIdentifier '\''
 					|	(	~space
@@ -77,8 +80,8 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'],
 		InformalIdentifier =
 			Identifier(undefined, true),
 		Identifier :factTypeSoFar :noAutoComplete =
-			~(<Term?>:term)?
-			~(<Name?>:name)?
+			~(<Term(factTypeSoFar)?>:term)?
+			~(<Name(factTypeSoFar)?>:name)?
 			?(!noAutoComplete || term || name)
 			(	?(term.length > name.length)
 				Term(factTypeSoFar)
@@ -108,7 +111,6 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'],
 			),
 		IdentifierPart =
 			spaces
-			~lineStart
 			<	(	letters
 				|	'-'
 				)+
@@ -128,7 +130,9 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'],
 				-> ['Verb',this._verbForm(verbSoFar)]
 			),
 		verbPart =
-			spaces ~lineStart ~Identifier letters,
+			spaces
+			~Identifier
+			letters,
 		
 		JoiningQuantifier =
 			matchForAll('keyword',["and","at","most"]),
@@ -239,7 +243,7 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'],
 		startRule =
 			"R:"|"Rule:",
 		newRule =
-			startRule spaces &(toSBVREOL):ruleText {this.ruleVarsCount=0}
+			startRule spaces &(toEOL):ruleText {this.ruleVarsCount=0}
 			Modifier:r RuleBody([], []):q {r.length == 2 ? (r[1][1] = q) : (r[1] = q)}
 			-> ['Rule', r, ['StructuredEnglish', ruleText]],
 		startFactType =
@@ -355,14 +359,6 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'],
 		
 		terminator =
 			spaces keyword('.',true),
-		lineStart =
-			(	StartTerm
-			|	StartName
-			|	startFactType
-			|	startRule
-			|	AllowedAttrs
-			|	startComment
-			),
 		line =
 			spaces
 			(
@@ -381,7 +377,7 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'],
 			(	EOLSpaces
 				line
 			)*
-			spaces
+			space*
 			end
 			-> this.lines
 	}
