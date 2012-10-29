@@ -306,7 +306,6 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 				{this.ruleVarsCount=0}
 				Term:t createVar(t):tVar Bind(t):b
 				ClosedProjection(t, b):thatLF {tVar.push(thatLF)}
-				terminator?
 				(	?(currentLine[0] == 'FactType')
 				|	{this.conceptTypes[currentLine[1]] = t[1]}
 					{this.identifierChildren[t[1]].push(currentLine[1])}
@@ -359,7 +358,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 		newComment =
 			startComment toEOL,
 		
-		terminator =
+		Terminator =
 			spaces keyword('.',true),
 		line =
 			spaces
@@ -369,7 +368,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 				|	newRule
 				|	Attribute
 				):l
-				terminator? clearSuggestions
+				Terminator? clearSuggestions
 				{this.lines.push(l)}
 				-> l
 			|	newComment
@@ -609,7 +608,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 			addThe: ['the'],
 			addComma: [','],
 			addOr: ['or'],
-			terminator: ['.']
+			Terminator: ['.']
 		};
 		this.identifiers = {
 			'Term': {},
