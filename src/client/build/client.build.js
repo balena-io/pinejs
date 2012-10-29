@@ -8,7 +8,7 @@
     modules: [
     	{
 			name: "main",
-			exclude: ['coffee-script']
+			exclude: ['coffee-script', 'css', 'cs', 'text']
 		}
     ]
 })
