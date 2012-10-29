@@ -56,7 +56,10 @@ Number ::=
 	|	[0-9]+
 
 Attribute ::=
-	Definition
+		Definition
+	|	GuidanceType
+	|	Necessity
+
 Definition ::=
 		'the'?
 		term
@@ -66,3 +69,15 @@ Definition ::=
 		(	'or'
 			value
 		)*
+
+Necessity ::=
+	RuleBody
+	'.'?
+
+GuidanceType ::=
+		'operative business rule'
+	|	'structural business rule'
+	|	'advice of permission'
+	|	'advice of possibility'
+	|	'advice of optionality'
+	|	'advice of contingency'
