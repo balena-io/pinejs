@@ -191,30 +191,21 @@ InflectionJS =
         str - String - String to modify and return based on the passed rules
         rules - Array: [RegExp, String] - Regexp to match paired with String to use for replacement
         skip - Array: [String] - Strings to skip if they match
-        override - String (optional) - String to return as though this method succeeded (used to conform to APIs)
       Returns:
         String - passed String modified by passed rules
       Examples:
         InflectionJS.apply_rules("cows", InflectionJs.singular_rules) === 'cow'
     */
-    apply_rules: function(str, rules, skip, override)
-    {
-        if (override)
+    apply_rules: function(str, rules, skip) {
+        var ignore = (skip.indexOf(str.toLowerCase()) > -1);
+        if (!ignore)
         {
-            str = override;
-        }
-        else
-        {
-            var ignore = (skip.indexOf(str.toLowerCase()) > -1);
-            if (!ignore)
+            for (var x = 0; x < rules.length; x++)
             {
-                for (var x = 0; x < rules.length; x++)
+                if (str.match(rules[x][0]))
                 {
-                    if (str.match(rules[x][0]))
-                    {
-                        str = str.replace(rules[x][0], rules[x][1]);
-                        break;
-                    }
+                    str = str.replace(rules[x][0], rules[x][1]);
+                    break;
                 }
             }
         }
@@ -307,17 +298,24 @@ if (!String.prototype._non_titlecased_words)
       "Hat".pluralize() == "Hats"
       "person".pluralize("guys") == "guys"
 */
-if (!String.prototype.pluralize)
-{
-    String.prototype.pluralize = function(plural)
-    {
-        return InflectionJS.apply_rules(
-            this.toString(),
-            this._plural_rules,
-            this._uncountable_words,
-            plural
-        );
-    };
+if (!String.prototype.pluralize) {
+    (function() {
+        var memo = {};
+        String.prototype.pluralize = function(plural) {
+            if(plural) {
+                return plural;
+            }
+            var thisString = this.toString();
+            if(!memo.hasOwnProperty(thisString)) {
+                memo[thisString] = InflectionJS.apply_rules(
+                    this.toString(),
+                    this._plural_rules,
+                    this._uncountable_words
+                );
+            }
+            return memo[thisString];
+        };
+    })();
 }
 
 /*
@@ -334,17 +332,24 @@ if (!String.prototype.pluralize)
       "Hats".singularize() == "Hat"
       "guys".singularize("person") == "person"
 */
-if (!String.prototype.singularize)
-{
-    String.prototype.singularize = function(singular)
-    {
-        return InflectionJS.apply_rules(
-            this.toString(),
-            this._singular_rules,
-            this._uncountable_words,
-            singular
-        );
-    };
+if (!String.prototype.singularize) {
+    (function() {
+        var memo = {};
+        String.prototype.singularize = function(singular) {
+            if(singular) {
+                return singular;
+            }
+            var thisString = this.toString();
+            if(!memo.hasOwnProperty(thisString)) {
+                memo[thisString] = InflectionJS.apply_rules(
+                    thisString,
+                    this._singular_rules,
+                    this._uncountable_words
+                );
+            }
+            return memo[thisString];
+        };
+    })();
 }
 
 /*
