@@ -19,11 +19,17 @@ define([
 		login: (e) ->
 			e.preventDefault()
 			$form = ("#loginModal")
+			email = $("#inputEmail", $form).val()
+			password = $("#inputPassword", $form).val()
 			session = new SessionModel({
-				email: $("#inputEmail", $form).val()
-				password: $("#inputPassword", $form).val()
-			}).save().done((data)->
-				sessionStorage.set("session", data.id)
+				email
+				password
+			}).save().done((data) =>
+				sessionStorage.setItem("session", data.id)
+				sessionStorage.setItem("email", email)
+				this.$('#loginModal').modal("hide").on("hidden", =>
+					this.trigger("login")
+				)
 			).fail((error) ->
 				console.error(error)
 			)

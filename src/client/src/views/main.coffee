@@ -66,6 +66,9 @@ define([
 		login: ->
 			loginView = new LoginView({el: @$('#modal')})
 			loginView.render()
+			loginView.on("login", ->
+				$("#login-button")
+			)
 
 		closeAlert: ->
 			@$('#publishSuccess').fadeOut()

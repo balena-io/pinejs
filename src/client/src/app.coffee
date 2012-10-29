@@ -6,7 +6,9 @@ define([
 ], (Backbone, SBVRModel, $, MainView) ->
 	
 	$.ajaxSetup({
-		beforeSend: (xhr) -> xhr.withCredentials = true
+		xhrFields: {
+			withCredentials: true
+		}
 	})
 
 	Router = Backbone.Router.extend(
