@@ -81,7 +81,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 		Identifier :factTypeSoFar :noAutoComplete =
 			~(<Term?>:term)?
 			~(<Name?>:name)?
-			?(!noAutoComplete && (term || name))
+			?(!noAutoComplete || term || name)
 			(	?(term.length > name.length)
 				Term(factTypeSoFar)
 			|	Name(factTypeSoFar)
