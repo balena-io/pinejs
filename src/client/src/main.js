@@ -17,6 +17,7 @@ require({
 		'd3'                       :  '../lib/d3.v2',
 		'inflection'               :  '../lib/inflection/inflection',
 		'jquery'                   :  '../lib/jquery',
+		'jquery-xdomain'           :  '../lib/jquery-xdomain',
 		'ometa-compiler'           :  '../lib/ometajs/ometa/parsers',
 		'ometa-core'               :  '../lib/ometajs/core',
 		'sbvr-parser'              :  '../lib/sbvr-parser',
@@ -43,11 +44,14 @@ require({
 			deps: [ 'css!lib/codemirror/codemirror'],
 			exports: 'CodeMirror'
 		},
+		'jquery-xdomain': {
+			deps: ['jquery']
+		},
 		'd3': {
 			exports: 'd3'
 		},
 		'backbone': {
-			deps: ['underscore', 'jquery'],
+			deps: ['underscore', 'jquery-xdomain'],
 			exports: 'Backbone',
 			init: function () {
 				return this.Backbone.noConflict();
