@@ -79,8 +79,8 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 		InformalIdentifier =
 			Identifier(undefined, true),
 		Identifier :factTypeSoFar :noAutoComplete =
-			~(<Term?>:term)?
-			~(<Name?>:name)?
+			~(<Term(factTypeSoFar)?>:term)?
+			~(<Name(factTypeSoFar)?>:name)?
 			?(!noAutoComplete || term || name)
 			(	?(term.length > name.length)
 				Term(factTypeSoFar)
