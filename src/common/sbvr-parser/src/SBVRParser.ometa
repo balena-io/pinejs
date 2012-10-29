@@ -317,6 +317,10 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 			),
 		AttrGuidanceType :currentLine =
 			matchForAny('seq', this.branches.AttrGuidanceType),
+		AttrNecessity :currentLine =
+			(	RuleBody([], [])
+			|	toSBVREOL
+			),
 		AttrSynonym :currentLine =
 			AddIdentifier(currentLine[0]):identifier
 			{this.identifiers[identifierType][identifier[1]] = currentLine[1]}
