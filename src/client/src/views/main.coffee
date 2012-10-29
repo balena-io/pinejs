@@ -64,7 +64,10 @@ define([
 			)
 
 		login: ->
-			loginView = new LoginView({el: @$('#modal')})
+			this.$('#modal').remove()
+			el = $('<div id="modal"/>')
+			@$el.append(el)
+			loginView = new LoginView({el: el})
 			loginView.render()
 			loginView.on("login", ->
 				$("#login-button")
