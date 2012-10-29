@@ -67,8 +67,8 @@
       CodeMirror.connect(sel, "blur", close);
       CodeMirror.connect(sel, "keydown", function(event) {
         var code = event.keyCode;
-        // Enter
-        if (code == 13) {CodeMirror.e_stop(event); pick();}
+        // Tab or Enter
+        if (code == 9 || code == 13) {CodeMirror.e_stop(event); pick();}
         // Escape
         else if (code == 27) {CodeMirror.e_stop(event); close(); editor.focus();}
         else if (code != 38 && code != 40 && code != 33 && code != 34) {
