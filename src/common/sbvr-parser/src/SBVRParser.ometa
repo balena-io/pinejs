@@ -388,7 +388,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 			(	EOLSpaces
 				line
 			)*
-			spaces
+			space*
 			end
 			-> this.lines
 	}
