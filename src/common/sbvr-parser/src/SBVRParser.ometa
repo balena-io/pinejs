@@ -403,11 +403,13 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'],
 	};
 	
 	SBVRParser._baseIdentifier = function(identifierType, factTypeSoFar, identifier) {
-		if(this.identifiers[identifierType].hasOwnProperty(identifier)) {
-			return this.identifiers[identifierType][identifier];
+		var identifiers = this.identifiers[identifierType];
+		if(identifiers.hasOwnProperty(identifier)) {
+			return identifiers[identifier];
 		}
-		if(this.identifiers[identifierType].hasOwnProperty(identifier.singularize())) {
-			return this.identifiers[identifierType][identifier.singularize()];
+		identifier = identifier.singularize();
+		if(identifiers.hasOwnProperty(identifier)) {
+			return identifiers[identifier];
 		}
 		return false;
 	};
@@ -655,10 +657,15 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'],
 	};
 	//TODO: This is a bit of a hack for case insensitivity, a better solution needs to be implemented in future.
 	SBVRParser.exactly = function(wanted) {
-		if (wanted.toLowerCase() === this._apply("anything").toLowerCase()) {
+		if (wanted.toLowerCase() === this._apply("lowerCaseAnything")) {
 			return wanted;
 		}
 		throw this._fail();
+	};
+	// This is a bit hacky, but the lack of arguments means the .toLowerCase() is memoised,
+	// saving a lot of .toLowerCase() calls in "exactly" (which isn't memoised :( )
+	SBVRParser.lowerCaseAnything = function() {
+		return this._apply("anything").toLowerCase();
 	};
 	
 	return SBVRParser;
