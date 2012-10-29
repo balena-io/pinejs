@@ -1,7 +1,7 @@
 define([
 	"backbone"
-	"cs!../models/session"
-	"cs!../models/user"
+	"cs!models/session"
+	"cs!models/user"
 	"text!templates/login.html"
 ], (Backbone, SessionModel, UserModel, html) ->
 	Backbone.View.extend(
@@ -25,10 +25,10 @@ define([
 				email
 				password
 			}).save().done((data) =>
-				sessionStorage.setItem("session", data.id)
-				sessionStorage.setItem("email", email)
+				sessionStorage.setItem("sid", data.id)
 				this.$('#loginModal').modal("hide").on("hidden", =>
-					this.trigger("login")
+					console.log this
+					this.trigger("login", email)
 				)
 			).fail((error) ->
 				console.error(error)
@@ -36,7 +36,7 @@ define([
 
 		register: (e) ->
 			e.preventDefault()
-			$form = ("#registerModal")
+			$form = @$("#registerModal")
 			user = new UserModel({
 				email: $("#inputEmail", $form).val()
 				password: $("#inputPassword", $form).val()

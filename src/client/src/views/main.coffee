@@ -2,13 +2,14 @@ define([
 	'backbone'
 	'jquery'
 	'text!templates/main.html'
+	"cs!models/session"
 	'cs!views/login'
 
 	# Tab subviews
 	'cs!views/tabs/sbvr-editor/main'
 	'cs!views/tabs/sbvr-lf/main'
 	'cs!views/tabs/sbvr-graph/main'
-], (Backbone, $, html, LoginView, tabViews...) ->
+], (Backbone, $, html, SessionModel, LoginView, tabViews...) ->
 	Backbone.View.extend(
 		id: 'app-main'
 
@@ -16,11 +17,27 @@ define([
 			'click  #new-model-button'      :  'create'
 			'click  #publish-model-button'  :  'publish'
 			'click  #login-button'          :  'login'
+			'click  #logout-button'         :  'logout'
 			'click  #publishSuccess .close' :  'closeAlert'
 			'click  #publishSuccess a'      :  'closeAlert'
 
 		render: ->
 			@$el.html(html)
+			$userGroup = @$("#user-group").hide(0)
+			sid = sessionStorage.getItem("sid")
+			if sid?
+				session = new SessionModel({
+					key: sessionStorage.getItem("sid")
+				}).fetch().done((data) =>
+					@$("#login-group").hide(0)
+					@$("#user-email").text(data.email)
+					$userGroup.show(0)
+				).fail((error) ->
+					sessionStorage.removeItem("sid")
+					console.error(error)
+				)
+
+
 			for TabView, i in tabViews
 				content = $("<div id='tab#{i}' />")
 				tab = $("<li><a data-toggle='tab' href='#tab#{i}'/></li>")
@@ -63,14 +80,29 @@ define([
 					@model.set('id', null)
 			)
 
-		login: ->
+		login: (e) ->
+			e.preventDefault()
 			this.$('#modal').remove()
 			el = $('<div id="modal"/>')
 			@$el.append(el)
-			loginView = new LoginView({el: el})
+			loginView = new LoginView({el})
 			loginView.render()
-			loginView.on("login", ->
-				$("#login-button")
+			loginView.on("login", (email) =>
+				@$("#login-group").hide(0)
+				@$("#user-group").show(0)
+				@$("#user-email").text(email)
+			)
+
+		logout: (e) ->
+			e.preventDefault()
+			session = new SessionModel({
+				key: sessionStorage.getItem("sid")
+			}).destroy().fail((error) ->
+				console.error(error)
+			).always(=>
+				@$("#user-group").hide(0)
+				@$("#login-group").show(0)
+				sessionStorage.removeItem("sid")
 			)
 
 		closeAlert: ->

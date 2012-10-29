@@ -1,20 +1,30 @@
 <header>
-	<div class="btn-group">
-		<a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
-			Examples
-			<span class="caret"></span>
-		</a>
-		<ul class="dropdown-menu">
-			<li>
-				<a href="#/3E3tU3">Pilots</a>
-			</li>
-			<li>
-				<a href="#/lPWulm">Universities</a>
-			</li>
-		</ul>
-		<button id="new-model-button" class="btn">New</button>
-		<button id="publish-model-button" class="btn">Publish</button>
-		<button id="login-button" class="btn btn-info">Login</button>
+	<div class="btn-toolbar">
+		<div class="btn-group">
+			<a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
+				Examples
+				<span class="caret"></span>
+			</a>
+			<ul class="dropdown-menu">
+				<li>
+					<a href="#/3E3tU3">Pilots</a>
+				</li>
+				<li>
+					<a href="#/lPWulm">Universities</a>
+				</li>
+			</ul>
+			<button id="new-model-button" class="btn">New</button>
+			<button id="publish-model-button" class="btn">Publish</button>
+		</div>
+		<div id="login-group" class="btn-group">
+			<button id="login-button" class="btn btn-info">Login</button>
+		</div>
+		<div id="user-group" class="btn-group">
+			<a class="btn btn-info dropdown-toggle" data-toggle="dropdown" href="#"><i class="icon-user icon-white"></i> <span id="user-email">User</span> <span class="caret"></span></a>
+			<ul class="dropdown-menu pull-right">
+				<li><a href="#" id="logout-button"><i class="icon-off"></i> Logout</a></li>
+			</ul>
+		</div>
 	</div>
 	<h1><img src="static/logo.png" alt="Rulemotion" />SBVR Lab 2.0</h1>
 	<ul id="tabs" class="nav nav-tabs"></ul>
