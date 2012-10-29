@@ -27,6 +27,11 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 			)?
 			-> binding,
 
+		spaces =
+			(	~EOL
+				space
+			)*,
+
 		letters =
 			<letter+>,
 		Number =
