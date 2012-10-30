@@ -55,13 +55,15 @@ define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQL2CLF', '
 	
 	uiModelLoaded = do ->
 		_nexts = []
-		(req, res, next) ->
-			if req == true
-				uiModelLoaded = (req, res, next) -> next()
+		runNext = (next, loaded) ->
+			if loaded == true
+				runNext = (next) -> next()
 				for next in _nexts
-					next()
+					setTimeout(next, 0)
 			else
 				_nexts.push(next)
+		(req, res, next) ->
+			runNext(next, req)
 
 	# Setup function
 	exports.setup = (app, requirejs, sbvrUtils, isAuthed, databaseOptions) ->
