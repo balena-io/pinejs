@@ -68,13 +68,12 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'],
 			)
 			-> s,
 
-		AddIdentifier :identifierType =
+		AddIdentifier :identifierType :baseSynonym =
 			&(IdentifierPart+):identifier
 			{identifier.join(' ')}:identifier
 			// Make sure the identifier isn't taken.
 			?(!this.identifierChildren.hasOwnProperty(identifier))
-			{this.identifierChildren[identifier] = []}
-			{this.identifiers[identifierType][identifier] = identifier}
+			_AddIdentifier(identifierType, identifier, baseSynonym)
 			apply(identifierType),
 		
 		InformalIdentifier =
@@ -105,9 +104,12 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'],
 				-> (identifierSoFar + ' ' + part)
 			|	-> part
 			):identifierSoFar
+			// Make sure the potential identifier so far is short enough to be valid.
+			?(identifierSoFar.length <= this.longestIdentifier[identifierType])
 			(	FindIdentifierNest(identifierType, factTypeSoFar, identifierSoFar)
-			|	?this.IsIdentifier(identifierType, factTypeSoFar, identifierSoFar)
-				-> [identifierType, this._factTypeForm(identifierType, factTypeSoFar, identifierSoFar)]
+			|	IsFactTypeIdentifier(identifierType, factTypeSoFar, identifierSoFar):factTypeIdentifier
+				?(factTypeIdentifier !== false)
+				-> [identifierType, factTypeIdentifier]
 			),
 		IdentifierPart =
 			spaces
@@ -120,19 +122,23 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'],
 		addVerb =
 			clearSuggestions Verb(true),
 		Verb :factTypeSoFar =
-			findVerb(factTypeSoFar),
-		findVerb :factTypeSoFar :verbSoFar =
-			verbPart:v {verbSoFar = verbSoFar==undefined ? v : [verbSoFar, v].join(' ')}
-			(	findVerb(factTypeSoFar, verbSoFar)
+			FindVerb(factTypeSoFar),
+		FindVerb :factTypeSoFar :verbSoFar =
+			VerbPart:part
+			(	?verbSoFar
+				-> (verbSoFar + ' ' + part)
+			|	-> part
+			):verbSoFar
+			(	FindVerb(factTypeSoFar, verbSoFar)
 			|	(	?(factTypeSoFar===true)
 				|	?this.isVerb(factTypeSoFar, verbSoFar)
 				)
-				-> ['Verb',this._verbForm(verbSoFar)]
+				-> ['Verb', this._verbForm(verbSoFar)]
 			),
-		verbPart =
+		VerbPart =
 			spaces
 			~Identifier
-			letters,
+			IdentifierPart,
 		
 		JoiningQuantifier =
 			matchForAll('keyword',["and","at","most"]),
@@ -155,6 +161,8 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'],
 				-> ['AtLeastNQuantification', ['MinimumCardinality', n]]
 			|	keyword("exactly") Number:n
 				-> ['ExactQuantification', ['Cardinality', n]]
+			|	keyword("no")
+				-> ['ExactQuantification', ['Cardinality', 0]]
 			),
 
 		keyword :word :noToken =
@@ -304,7 +312,6 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'],
 				{this.ruleVarsCount=0}
 				Term:t createVar(t):tVar Bind(t):b
 				ClosedProjection(t, b):thatLF {tVar.push(thatLF)}
-				terminator?
 				(	?(currentLine[0] == 'FactType')
 				|	{this.conceptTypes[currentLine[1]] = t[1]}
 					{this.identifierChildren[t[1]].push(currentLine[1])}
@@ -324,10 +331,7 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'],
 			|	toSBVREOL
 			),
 		AttrSynonym :currentLine =
-			AddIdentifier(currentLine[0]):identifier
-			{this.identifiers[identifierType][identifier[1]] = currentLine[1]}
-			{this.identifierChildren[currentLine[1]].push(identifier[1])}
-			-> identifier,
+			AddIdentifier(currentLine[0], currentLine[1]),
 		AttrSynonymousForm :currentLine =
 			{[]}:factType
 			(	Identifier:identifier
@@ -357,7 +361,7 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'],
 		newComment =
 			startComment toEOL,
 		
-		terminator =
+		Terminator =
 			spaces keyword('.',true),
 		line =
 			spaces
@@ -367,7 +371,7 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'],
 				|	newRule
 				|	Attribute
 				):l
-				terminator? clearSuggestions
+				Terminator? clearSuggestions
 				{this.lines.push(l)}
 				-> l
 			|	newComment
@@ -396,7 +400,20 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'],
 		SBVRLibs._enableTokens.call(this, ["StartTerm", "StartName", "startFactType", "startRule", "newComment", "Term", "Name", "Modifier", "Verb", "keyword", "AllowedAttrs", "AttrGuidanceType", "Number", "Value"]);
 	};
 	
-	SBVRParser._baseIdentifier = function(identifierType, factTypeSoFar, identifier) {
+	SBVRParser._AddIdentifier = function(identifierType, identifier, baseSynonym) {
+		if(baseSynonym == null) {
+			baseSynonym = identifier;
+			this.identifierChildren[baseSynonym] = [];
+		}
+		else {
+			this.identifierChildren[baseSynonym].push(identifier);
+		}
+		this.identifiers[identifierType][identifier] = baseSynonym;
+		this.longestIdentifier[identifierType] = Math.max(identifier.length, this.longestIdentifier[identifierType]);
+	};
+	
+	// Returns the base synonym for this identifier.
+	SBVRParser.BaseSynonym = function(identifierType, identifier) {
 		var identifiers = this.identifiers[identifierType];
 		if(identifiers.hasOwnProperty(identifier)) {
 			return identifiers[identifier];
@@ -408,16 +425,17 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'],
 		return false;
 	};
 
-	SBVRParser.IsIdentifier = function(identifierType, factTypeSoFar, identifier) {
+	// Checks that the identifier is valid in this point of the fact type and returns the identifier as it is found in the fact type.
+	SBVRParser.IsFactTypeIdentifier = function(identifierType, factTypeSoFar, identifier) {
+		identifier = this.BaseSynonym(identifierType, identifier);
+		if(identifier === false) {
+			return false;
+		}
 		var identifiers = this.branches[identifierType].call(this, factTypeSoFar);
-		identifier = this._baseIdentifier(identifierType, factTypeSoFar, identifier);
-		return identifier !== false && (identifiers.indexOf(identifier) !== -1 || identifiers.indexOf(identifier.singularize()) !== -1);
-	};
-
-	SBVRParser._factTypeForm = function(identifierType, factTypeSoFar, identifier) {
-		identifier = this._baseIdentifier(identifierType, factTypeSoFar, identifier);
-		var factTypeForms = this.branches[identifierType].call(this, factTypeSoFar);
-		return factTypeForms.indexOf(identifier.singularize()) !== -1 ? identifier.singularize() : identifier;
+		if(identifiers.indexOf(identifier) !== -1) {
+			return identifier;
+		}
+		return false;
 	};
 
 	SBVRParser.isVerb = function(factTypeSoFar, verb) {
@@ -475,6 +493,7 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'],
 			'Concept Type:',
 			'Definition:',
 			'Definition (Informal):',
+			'Description:',
 			'Dictionary Basis:',
 			'Example:',
 			'General Concept:',
@@ -501,7 +520,6 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'],
 		Rule: [
 			'Rule Name:',
 			'Guidance Type:',
-			'Description:',
 			'Source:',
 			'Synonymous Statement:',
 			'Note:',
@@ -587,7 +605,8 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'],
 				'at least',
 	//			'and at most',
 				'more than',
-				"exactly"
+				'exactly',
+				'no'
 			],
 			JoiningQuantifier: ['and at most'],
 			Number: [
@@ -598,11 +617,15 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'],
 			addThe: ['the'],
 			addComma: [','],
 			addOr: ['or'],
-			terminator: ['.']
+			Terminator: ['.']
 		};
 		this.identifiers = {
 			'Term': {},
 			'Name': {}
+		};
+		this.longestIdentifier = {
+			'Term': 0,
+			'Name': 0
 		};
 		this.identifierChildren = {};
 		this.ruleVars = {};
@@ -652,6 +675,9 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'],
 	SBVRParser.lowerCaseAnything = function() {
 		return this._apply("anything").toLowerCase();
 	};
+	
+	// For performance we can use this.
+	SBVRParser._disablePrependingInput();
 	
 	return SBVRParser;
 
