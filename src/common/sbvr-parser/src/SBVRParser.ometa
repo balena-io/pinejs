@@ -108,8 +108,9 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 			|	-> part
 			):identifierSoFar
 			(	FindIdentifierNest(identifierType, factTypeSoFar, identifierSoFar)
-			|	?this.IsIdentifier(identifierType, factTypeSoFar, identifierSoFar)
-				-> [identifierType, this._factTypeForm(identifierType, factTypeSoFar, identifierSoFar)]
+			|	IsFactTypeIdentifier(identifierType, factTypeSoFar, identifierSoFar):factTypeIdentifier
+				?(factTypeIdentifier !== false)
+				-> [identifierType, factTypeIdentifier]
 			),
 		IdentifierPart =
 			spaces
@@ -418,19 +419,17 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 		return false;
 	};
 
-	SBVRParser.IsIdentifier = function(identifierType, factTypeSoFar, identifier) {
+	// Checks that the identifier is valid in this point of the fact type and returns the identifier as it is found in the fact type.
+	SBVRParser.IsFactTypeIdentifier = function(identifierType, factTypeSoFar, identifier) {
 		identifier = this._baseIdentifier(identifierType, factTypeSoFar, identifier);
 		if(identifier === false) {
 			return false;
 		}
 		var identifiers = this.branches[identifierType].call(this, factTypeSoFar);
-		return identifiers.indexOf(identifier) !== -1 || identifiers.indexOf(identifier.singularize()) !== -1;
-	};
-
-	SBVRParser._factTypeForm = function(identifierType, factTypeSoFar, identifier) {
-		identifier = this._baseIdentifier(identifierType, factTypeSoFar, identifier);
-		var factTypeForms = this.branches[identifierType].call(this, factTypeSoFar);
-		return factTypeForms.indexOf(identifier.singularize()) !== -1 ? identifier.singularize() : identifier;
+		if(identifiers.indexOf(identifier) !== -1) {
+			return identifier;
+		}
+		return false;
 	};
 
 	SBVRParser.isVerb = function(factTypeSoFar, verb) {
