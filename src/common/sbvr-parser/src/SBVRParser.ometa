@@ -485,6 +485,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 			'Concept Type:',
 			'Definition:',
 			'Definition (Informal):',
+			'Description:',
 			'Dictionary Basis:',
 			'Example:',
 			'General Concept:',
@@ -520,7 +521,6 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 		Rule: [
 			'Rule Name:',
 			'Guidance Type:',
-			'Description:',
 			'Source:',
 			'Synonymous Statement:',
 			'Note:',
