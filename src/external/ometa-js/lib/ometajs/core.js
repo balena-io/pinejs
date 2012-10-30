@@ -298,7 +298,7 @@ OMeta = (function() {
         throw 'Can only enable tokens once';
       };
       this._addToken = function(startIdx, endIdx, rule, ruleArgs) {
-        if(startIdx !== endIdx && rulesToTrack.indexOf(rule) !== -1) {
+        if(rulesToTrack.indexOf(rule) !== -1 && startIdx !== endIdx) {
           if(tokens[startIdx] === undefined) {
             tokens[startIdx] = [];
           }
@@ -420,6 +420,26 @@ OMeta = (function() {
     },
     _prependInput: function(v) {
       this.input = new OMInputStream(v, this.input);
+    },
+    
+    // Use this if you want to disable prepending to the input (increases performances but requires using `Rule :param1 :param2 =` style parameter binding at all times)
+    _disablePrependingInput: function() {
+      this._applyWithArgs = function(rule) {
+        var origIdx = this.input.idx,
+            ruleArgs = Array.prototype.slice.call(arguments, 1);
+        this._addBranch(rule, ruleArgs);
+        var ans = this[rule].apply(this, ruleArgs);
+        this._addToken(origIdx, this.input.idx, rule, ruleArgs);
+        return ans;
+      };
+      this._superApplyWithArgs = function(recv, rule) {
+        var origIdx = recv.input.idx,
+            ruleArgs = Array.prototype.slice.call(arguments, 2);
+        this._addBranch(rule, ruleArgs);
+        var ans = this[rule].apply(recv, ruleArgs);
+        this._addToken(origIdx, recv.input.idx, rule, ruleArgs);
+        return ans;
+      }
     },
 
     // if you want your grammar (and its subgrammars) to memoize parameterized rules, invoke this method on it:
