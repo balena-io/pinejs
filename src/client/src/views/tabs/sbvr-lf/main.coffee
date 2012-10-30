@@ -11,7 +11,10 @@ define([
 			this.setTitle('Logical Formulation')
 
 			@model.on('change:content', =>
-				lfviz(@model.compile(), @el)
+				try
+					lfviz(@model.compile(), @el)
+				catch e
+					console.log(e)
 			)
 	)
 )

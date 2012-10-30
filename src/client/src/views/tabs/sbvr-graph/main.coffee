@@ -12,7 +12,11 @@ define([
 
 			@model.on('change:content', =>
 				@$el.empty()
-				dataset = @model.compile()
+				try
+					dataset = @model.compile()
+				catch e
+					console.log(e)
+					return
 			
 				termBlacklist = ['value', 'Short Text', 'Long Text', 'Integer', 'Date']
 				nodes = {}

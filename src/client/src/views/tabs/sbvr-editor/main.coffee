@@ -17,12 +17,16 @@ define([
 			textarea = $('<textarea />')
 			@$el.empty().append(textarea)
 			
-			cancelUpdate = false
+			changeHandler = =>
+				sbvrEditor.setValue(@model.get('content'))
 
 			updateModel = _.debounce(=>
-				cancelUpdate = true
+				@model.off('change:content', changeHandler)
 				@model.set('content', sbvrEditor.getValue())
+				@model.on('change:content', changeHandler)
 			, 500)
+
+			@model.on('change:content', changeHandler)
 
 			sbvrEditor = CodeMirror.fromTextArea(textarea.get(0),
 				mode:
@@ -32,10 +36,6 @@ define([
 					updateModel()
 					ometaAutoComplete.apply(this, arguments)
 				lineWrapping: true
-			)
-			
-			@model.on('change:content', =>
-				sbvrEditor.setValue(@model.get('content')) if not cancelUpdate
 			)
 
 			$(window).resize(=>
