@@ -419,9 +419,12 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 	};
 
 	SBVRParser.IsIdentifier = function(identifierType, factTypeSoFar, identifier) {
-		var identifiers = this.branches[identifierType].call(this, factTypeSoFar);
 		identifier = this._baseIdentifier(identifierType, factTypeSoFar, identifier);
-		return identifier !== false && (identifiers.indexOf(identifier) !== -1 || identifiers.indexOf(identifier.singularize()) !== -1);
+		if(identifier === false) {
+			return false;
+		}
+		var identifiers = this.branches[identifierType].call(this, factTypeSoFar);
+		return identifiers.indexOf(identifier) !== -1 || identifiers.indexOf(identifier.singularize()) !== -1;
 	};
 
 	SBVRParser._factTypeForm = function(identifierType, factTypeSoFar, identifier) {
