@@ -687,6 +687,9 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 		return this._apply("anything").toLowerCase();
 	};
 	
+	// For performance we can use this.
+	SBVRParser._disablePrependingInput();
+	
 	return SBVRParser;
 
 });
