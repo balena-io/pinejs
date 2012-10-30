@@ -139,10 +139,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 		VerbPart =
 			spaces
 			~Identifier
-			<	(	letters
-				|	'-'
-				)+
-			>,
+			IdentifierPart,
 		
 		JoiningQuantifier =
 			matchForAll('keyword',["and","at","most"]),
