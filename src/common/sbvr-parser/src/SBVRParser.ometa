@@ -122,19 +122,26 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 		addVerb =
 			clearSuggestions Verb(true),
 		Verb :factTypeSoFar =
-			findVerb(factTypeSoFar),
-		findVerb :factTypeSoFar :verbSoFar =
-			verbPart:v {verbSoFar = verbSoFar==undefined ? v : [verbSoFar, v].join(' ')}
-			(	findVerb(factTypeSoFar, verbSoFar)
+			FindVerb(factTypeSoFar),
+		FindVerb :factTypeSoFar :verbSoFar =
+			VerbPart:part
+			(	?verbSoFar
+				-> (verbSoFar + ' ' + part)
+			|	-> part
+			):verbSoFar
+			(	FindVerb(factTypeSoFar, verbSoFar)
 			|	(	?(factTypeSoFar===true)
 				|	?this.isVerb(factTypeSoFar, verbSoFar)
 				)
-				-> ['Verb',this._verbForm(verbSoFar)]
+				-> ['Verb', this._verbForm(verbSoFar)]
 			),
-		verbPart =
+		VerbPart =
 			spaces
 			~Identifier
-			letters,
+			<	(	letters
+				|	'-'
+				)+
+			>,
 		
 		JoiningQuantifier =
 			matchForAll('keyword',["and","at","most"]),
