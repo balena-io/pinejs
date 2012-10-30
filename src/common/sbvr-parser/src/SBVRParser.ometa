@@ -70,13 +70,12 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 			)
 			-> s,
 
-		AddIdentifier :identifierType =
+		AddIdentifier :identifierType :baseSynonym =
 			&(IdentifierPart+):identifier
 			{identifier.join(' ')}:identifier
 			// Make sure the identifier isn't taken.
 			?(!this.identifierChildren.hasOwnProperty(identifier))
-			{this.identifierChildren[identifier] = []}
-			{this.identifiers[identifierType][identifier] = identifier}
+			_AddIdentifier(identifierType, identifier, baseSynonym)
 			apply(identifierType),
 		
 		InformalIdentifier =
@@ -107,6 +106,8 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 				-> (identifierSoFar + ' ' + part)
 			|	-> part
 			):identifierSoFar
+			// Make sure the potential identifier so far is short enough to be valid.
+			?(identifierSoFar.length <= this.longestIdentifier[identifierType])
 			(	FindIdentifierNest(identifierType, factTypeSoFar, identifierSoFar)
 			|	IsFactTypeIdentifier(identifierType, factTypeSoFar, identifierSoFar):factTypeIdentifier
 				?(factTypeIdentifier !== false)
@@ -332,10 +333,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 			|	toSBVREOL
 			),
 		AttrSynonym :currentLine =
-			AddIdentifier(currentLine[0]):identifier
-			{this.identifiers[identifier[0]][identifier[1]] = currentLine[1]}
-			{this.identifierChildren[currentLine[1]].push(identifier[1])}
-			-> identifier,
+			AddIdentifier(currentLine[0], currentLine[1]),
 		AttrSynonymousForm :currentLine =
 			{[]}:factType
 			(	Identifier:identifier
@@ -402,6 +400,18 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 	SBVRParser._enableTokens = function() {
 		this.tokensEnabled = true;
 		SBVRLibs._enableTokens.call(this, ["StartTerm", "StartName", "startFactType", "startRule", "newComment", "Term", "Name", "Modifier", "Verb", "keyword", "AllowedAttrs", "AttrGuidanceType", "Number", "Value"]);
+	};
+	
+	SBVRParser._AddIdentifier = function(identifierType, identifier, baseSynonym) {
+		if(baseSynonym == null) {
+			baseSynonym = identifier;
+			this.identifierChildren[baseSynonym] = [];
+		}
+		else {
+			this.identifierChildren[baseSynonym].push(identifier);
+		}
+		this.identifiers[identifierType][identifier] = baseSynonym;
+		this.longestIdentifier[identifierType] = Math.max(identifier.length, this.longestIdentifier[identifierType]);
 	};
 	
 	// Returns the base synonym for this identifier.
@@ -623,6 +633,10 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 		this.identifiers = {
 			'Term': {},
 			'Name': {}
+		};
+		this.longestIdentifier = {
+			'Term': 0,
+			'Name': 0
 		};
 		this.identifierChildren = {};
 		this.ruleVars = {};
