@@ -407,7 +407,8 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 		SBVRLibs._enableTokens.call(this, ["StartTerm", "StartName", "startFactType", "startRule", "newComment", "Term", "Name", "Modifier", "Verb", "keyword", "AllowedAttrs", "AttrGuidanceType", "Number", "Value"]);
 	};
 	
-	SBVRParser._baseIdentifier = function(identifierType, factTypeSoFar, identifier) {
+	// Returns the base synonym for this identifier.
+	SBVRParser.BaseSynonym = function(identifierType, identifier) {
 		var identifiers = this.identifiers[identifierType];
 		if(identifiers.hasOwnProperty(identifier)) {
 			return identifiers[identifier];
@@ -421,7 +422,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 
 	// Checks that the identifier is valid in this point of the fact type and returns the identifier as it is found in the fact type.
 	SBVRParser.IsFactTypeIdentifier = function(identifierType, factTypeSoFar, identifier) {
-		identifier = this._baseIdentifier(identifierType, factTypeSoFar, identifier);
+		identifier = this.BaseSynonym(identifierType, identifier);
 		if(identifier === false) {
 			return false;
 		}
