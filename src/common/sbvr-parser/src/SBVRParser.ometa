@@ -164,6 +164,8 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 				-> ['AtLeastNQuantification', ['MinimumCardinality', n]]
 			|	keyword("exactly") Number:n
 				-> ['ExactQuantification', ['Cardinality', n]]
+			|	keyword("no")
+				-> ['ExactQuantification', ['Cardinality', 0]]
 			),
 
 		keyword :word :noToken =
@@ -604,7 +606,8 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 				'at least',
 	//			'and at most',
 				'more than',
-				"exactly"
+				'exactly',
+				'no'
 			],
 			JoiningQuantifier: ['and at most'],
 			Number: [
