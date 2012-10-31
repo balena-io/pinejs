@@ -410,7 +410,8 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 			this.identifierChildren[baseSynonym].push(identifier);
 		}
 		this.identifiers[identifierType][identifier] = baseSynonym;
-		this.longestIdentifier[identifierType] = Math.max(identifier.length, this.longestIdentifier[identifierType]);
+		// Check for longest identifier between current and pluralised form, as the plural form may well be (and often is) longer.
+		this.longestIdentifier[identifierType] = Math.max(identifier.length, identifier.pluralize().length, this.longestIdentifier[identifierType]);
 	};
 	
 	// Returns the base synonym for this identifier.

@@ -266,3 +266,72 @@ task('all', ['consolidate:all'], ->)
 desc('Install everything.')
 task('install', ['consolidate:install'], ->)
 task('default', 'install', ->)
+
+# requirejsTask = (extraRequirejsConf) ->
+	# rootPath = path.resolve('src') + '/'
+	# requirejsConf = jake.mixin({
+			# paths: {
+				# 'bcrypt': 'empty:'
+				# 'passport-local': 'empty:'
+				# 'pg': 'empty:'
+			
+				# 'jquery':					rootPath + 'external/jquery-1.8.2.min',
+				# # 'jquery':					'https://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min',
+				# 'jquery-ui':				rootPath + 'external/jquery-ui/js/jquery-ui-1.9.0.custom.min',
+				# 'jquery-custom-file-input':	rootPath + 'external/jquery-custom-file-input',
+				# 'jquery.hotkeys':			rootPath + 'external/jquery.hotkeys',
+				# 'ometa-core':				rootPath + 'external/ometa-js/lib/ometajs/core',
+				# 'ometa-compiler':			rootPath + 'external/ometa-js/lib/ometajs/ometa/parsers',
+				# 'codemirror':				rootPath + 'external/CodeMirror2/lib/codemirror',
+				# 'codemirror-util':			rootPath + 'external/CodeMirror2/lib/util',
+				# 'codemirror-keymap':		rootPath + 'external/CodeMirror2/keymap',
+				# 'codemirror-modes':			rootPath + 'external/CodeMirror2/mode',
+				# 'js-beautify':				rootPath + 'external/beautify/beautify',
+				# 'qunit':					rootPath + 'external/qunit/qunit',
+				# 'underscore':				rootPath + 'external/underscore/underscore.min',
+				# 'inflection':				rootPath + 'external/inflection/inflection',
+				# 'json2':					rootPath + 'external/json2/json2',
+				# 'downloadify':				rootPath + 'external/downloadify',
+				# 'ejs':						rootPath + 'external/ejs/ejs.min',
+				
+				# 'sbvr-parser':				rootPath + 'common/sbvr-parser/out/processed/',
+				# 'utils':					rootPath + 'common/utils/out/processed',
+				
+				# 'sbvr-frame':				rootPath + 'client/sbvr-frame/out/processed',
+				# 'data-frame':				rootPath + 'client/data-frame/out/processed',
+				# 'Prettify':					rootPath + 'client/prettify-ometa/out/processed/Prettify',
+				# 'codemirror-ometa-bridge':	rootPath + 'client/codemirror-ometa-bridge/src',
+				
+				# 'sbvr-compiler':			rootPath + 'server/sbvr-compiler/out/processed',
+				
+				# 'server-glue':				rootPath + 'server/server-glue/out/processed',
+				# 'express-emulator':			rootPath + 'server/express-emulator/out/processed',
+				# 'data-server':				rootPath + 'server/data-server/out/processed',
+				# 'editor-server':			rootPath + 'server/editor-server/out/processed',
+				# 'database-layer':			rootPath + 'server/database-layer/out/processed',
+				# 'passportBCrypt':			rootPath + 'server/passport-bcrypt/out/processed/passportBCrypt',
+				
+				# 'frame-glue':				rootPath + 'client/frame-glue/out/processed'
+			# }
+			# appDir: currentDirs.processed
+			# dir: currentDirs.final
+			# findNestedDependencies: true
+		# }
+		# extraRequirejsConf
+	# )
+	# buildFile = path.join(currentDirs.out, 'temp.build.js')
+	# desc('rjs optimise')
+	# task('requirejs',
+		# ->
+			# console.log(requirejsConf)
+			# console.log(JSON.stringify(requirejsConf))
+			# console.log('Concatenating and minifying Javascript')
+			# fs.writeFileSync(buildFile, JSON.stringify(requirejsConf))
+			# requirejs.optimize(buildFile: buildFile, (buildResponse) ->
+				# console.log('require.js: ', buildResponse)
+				# fs.unlink(buildFile)
+				# complete()
+			# )
+		# async: true
+	# )
+	# return getCurrentNamespace() + 'requirejs'
