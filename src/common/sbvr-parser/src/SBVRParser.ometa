@@ -262,7 +262,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 			startFactType {[]}:factType
 			(Identifier:identifier addVerb:v {factType.push(identifier, v)})+
 			(Identifier:identifier {factType.push(identifier)})?
-			AddFactType(factType, factType) {factType.push([])}
+			AddFactType(factType, factType) {factType.push(['Attributes'])}
 			-> ['FactType'].concat(factType),
 		StartTerm =
 			(	"T:"
@@ -280,7 +280,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 			):identifierType
 			clearSuggestions
 			AddIdentifier(identifierType):identifier
-			{identifier.push([])}
+			{identifier.push(['Attributes'])}
 			-> identifier,
 		Attribute =
 			{this.lines[this.lines.length-1]}:currentLine
@@ -344,7 +344,6 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 				{factType.push(identifier)}
 			)?
 			AddFactType(factType, currentLine.slice(1,-1))
-			{factType.push([])}
 			-> factType,
 		AttrTermForm :currentLine =
 			AddIdentifier('Term'):term

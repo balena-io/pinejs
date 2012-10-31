@@ -13,9 +13,12 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core'], function(SBVRLibs) 
 			{this.tables[this.GetResourceName(termName)] = {fields:[], primitive: false, name: null, idField: null}}
 			-> termName,
 		Attributes :tableID =
-			[(
-				[ :attributeName ApplyFirstExisting(['Attr' + attributeName, 'DefaultAttr'], [tableID]):attributeValue ]
-			)*],
+				end
+			|	[	'Attributes'
+					(	[	:attributeName ApplyFirstExisting(['Attr' + attributeName, 'DefaultAttr'], [tableID]):attributeValue
+						]
+					)*
+				],
 		DefaultAttr :tableID =
 			:anything
 			{console.log('Default', tableID, anything)},
