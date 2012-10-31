@@ -14,7 +14,7 @@ define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQL2CLF', '
 			Term:      name
 				Concept type: Short Text
 			Term:      textarea
-				Database id Field: name
+				--Database id Field: name
 				Database Value Field: text
 			Fact type: textarea is disabled
 			Fact type: textarea has name

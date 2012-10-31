@@ -62,8 +62,8 @@ define(['sbvr-parser/SBVRLibs', 'ometa-core'], function(SBVRLibs) {
 		addAttributes :termOrVerb =
 			(	end
 			|	{{}}:attrsFound
-				[	(
-						[	:attrName
+				[	(	'Attributes'
+					|	[	:attrName
 							ApplyFirstExisting(['Attr' + attrName, 'DefaultAttr'], [termOrVerb]):attrVal
 							{attrsFound[attrName] = attrVal}
 						]
