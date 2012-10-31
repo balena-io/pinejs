@@ -8,7 +8,7 @@ define([
 			@options.title.text(title)
 
 		render: ->
-			this.setTitle('LF Graph')
+			this.setTitle('Visualize')
 
 			@model.on('change:content', =>
 				@$el.empty()
