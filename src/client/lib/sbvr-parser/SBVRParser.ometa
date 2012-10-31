@@ -260,7 +260,7 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'],
 			startFactType {[]}:factType
 			(Identifier:identifier addVerb:v {factType.push(identifier, v)})+
 			(Identifier:identifier {factType.push(identifier)})?
-			AddFactType(factType, factType) {factType.push([])}
+			AddFactType(factType, factType) {factType.push(['Attributes'])}
 			-> ['FactType'].concat(factType),
 		StartTerm =
 			(	"T:"
@@ -278,7 +278,7 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'],
 			):identifierType
 			clearSuggestions
 			AddIdentifier(identifierType):identifier
-			{identifier.push([])}
+			{identifier.push(['Attributes'])}
 			-> identifier,
 		Attribute =
 			{this.lines[this.lines.length-1]}:currentLine
@@ -342,7 +342,6 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'],
 				{factType.push(identifier)}
 			)?
 			AddFactType(factType, currentLine.slice(1,-1))
-			{factType.push([])}
 			-> factType,
 		AttrTermForm :currentLine =
 			AddIdentifier('Term'):term
@@ -409,7 +408,8 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'],
 			this.identifierChildren[baseSynonym].push(identifier);
 		}
 		this.identifiers[identifierType][identifier] = baseSynonym;
-		this.longestIdentifier[identifierType] = Math.max(identifier.length, this.longestIdentifier[identifierType]);
+		// Check for longest identifier between current and pluralised form, as the plural form may well be (and often is) longer.
+		this.longestIdentifier[identifierType] = Math.max(identifier.length, identifier.pluralize().length, this.longestIdentifier[identifierType]);
 	};
 	
 	// Returns the base synonym for this identifier.
