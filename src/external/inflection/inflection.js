@@ -179,7 +179,7 @@ InflectionJS =
     */
     id_suffix: new RegExp('(_ids|_id)$', 'g'),
     underbar: new RegExp('_', 'g'),
-    space_or_underbar: new RegExp('[\ _]', 'g'),
+    space_or_underbar: new RegExp('[ _]', 'g'),
     uppercase: new RegExp('([A-Z])', 'g'),
     underbar_prefix: new RegExp('^_'),
     
@@ -197,15 +197,10 @@ InflectionJS =
         InflectionJS.apply_rules("cows", InflectionJs.singular_rules) === 'cow'
     */
     apply_rules: function(str, rules, skip) {
-        var ignore = (skip.indexOf(str.toLowerCase()) > -1);
-        if (!ignore)
-        {
-            for (var x = 0; x < rules.length; x++)
-            {
-                if (str.match(rules[x][0]))
-                {
-                    str = str.replace(rules[x][0], rules[x][1]);
-                    break;
+        if (skip.indexOf(str.toLowerCase()) === -1) {
+            for (var x = 0, l = rules.length; x < l; x++) {
+                if (rules[x][0].test(str)) {
+                    return str.replace(rules[x][0], rules[x][1]);
                 }
             }
         }
@@ -631,7 +626,7 @@ if (!String.prototype.ordinalize)
         var str_arr = str.split(' ');
         for (var x = 0; x < str_arr.length; x++)
         {
-            var i = parseInt(str_arr[x]);
+            var i = parseInt(str_arr[x], 10);
             if (i === NaN)
             {
                 var ltd = str_arr[x].substring(str_arr[x].length - 2);
