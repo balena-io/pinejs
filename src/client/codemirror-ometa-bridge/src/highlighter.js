@@ -1,13 +1,10 @@
 define(['codemirror'], function() {
 	return function(ometaGrammar, modeName, mimeType) {
-		var getGrammar = (function() {
+		var getGrammar = function() {
 				var grammar = ometaGrammar.createInstance();
 				grammar._enableTokens();
-				return function() {
-					grammar.reset();
-					return grammar;
-				};
-			})(),
+				return grammar;
+			},
 			removeOldTokens = function(state) {
 				for(var i = 0; i < state.currentTokens.length; i++) {
 					if(state.currentTokens[i][0] <= state.index) {
