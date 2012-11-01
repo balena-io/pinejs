@@ -32,8 +32,6 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 				space
 			)*,
 
-		letters =
-			<letter+>,
 		Number =
 			(	spaces <digit+>:n
 				-> ['Number', parseInt(n, 10)]
@@ -115,7 +113,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 			),
 		IdentifierPart =
 			spaces
-			<	(	letters
+			<	(	letter
 				|	'-'
 				)+
 			>,
