@@ -39,11 +39,12 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 				-> ['Number', 1]
 			),
 		Value :stopOn =
-			(	spaces
-				~token(stopOn)
-				<letterOrDigit+>
-			)+:value
-			-> value.join(''),
+			spaces
+			<	(	spaces
+					~token(stopOn)
+					letterOrDigit+
+				)+
+			>,
 		toSBVREOL =
 			spaces
 			<	(	spaces
