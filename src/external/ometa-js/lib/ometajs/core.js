@@ -334,25 +334,22 @@ OMeta = (function() {
     _getBranches: function() {},
     
     _apply: function(rule) {
-      var self = this,
-          memoRec = this.input.memo[rule],
+      var memo = this.input.memo,
+          memoRec = memo[rule],
           origInput = this.input;
       this._addBranch(rule, []);
       if (memoRec === undefined) {
         var failer = new Failer();
 
-        if (this[rule] === undefined) {
-          throw 'tried to apply undefined rule "' + rule + '"';
-        }
-
-        this.input.memo[rule] = failer;
-        this.input.memo[rule] = memoRec = {
+        memo[rule] = failer;
+        memo[rule] = memoRec = {
           ans: this[rule].call(this),
           nextInput: this.input
         };
 
-        if (failer.used) {
-          var sentinel = this.input,
+        if (failer.used === true) {
+          var self = this,
+              sentinel = this.input,
               returnTrue = function () {
                 return true;
               },
@@ -361,7 +358,7 @@ OMeta = (function() {
               },
               lookupFunc = function() {
                 self.input = origInput;
-                var ans = self[rule].call(self);
+                var ans = self[rule]();
 
                 if (self.input === sentinel) {
                   throw fail();
