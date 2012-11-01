@@ -272,14 +272,6 @@ OMeta = (function() {
   }
 
   //
-  // ### function Failer()
-  // (i.e., that which makes things fail)
-  // Used to detect (direct) left recursion and memoize failures
-  function Failer() {
-    this.used = false;
-  }
-
-  //
   // ### OMeta
   // the OMeta "class" and basic functionality
   //
@@ -339,15 +331,16 @@ OMeta = (function() {
           origInput = this.input;
       this._addBranch(rule, []);
       if (memoRec === undefined) {
-        var failer = new Failer();
 
-        memo[rule] = failer;
-        memo[rule] = memoRec = {
+        memo[rule] = false;
+        memoRec = {
           ans: this[rule].call(this),
           nextInput: this.input
         };
+        var failer = memo[rule];
+        memo[rule] = memoRec;
 
-        if (failer.used === true) {
+        if (failer === true) {
           var self = this,
               sentinel = this.input,
               returnTrue = function () {
@@ -375,8 +368,8 @@ OMeta = (function() {
           }
         }
       }
-      else if (memoRec instanceof Failer) {
-        memoRec.used = true;
+      else if (typeof memoRec === 'boolean') {
+        memo[rule] = true;
         throw fail();
       }
       this.input = memoRec.nextInput;
@@ -436,7 +429,7 @@ OMeta = (function() {
         var ans = this[rule].apply(recv, ruleArgs);
         this._addToken(origIdx, recv.input.idx, rule, ruleArgs);
         return ans;
-      }
+      };
     },
 
     // if you want your grammar (and its subgrammars) to memoize parameterized rules, invoke this method on it:
@@ -598,6 +591,7 @@ OMeta = (function() {
     },
     _many: function(x) {
       var self = this,
+          origInput,
           ans = arguments[1] !== undefined ? [arguments[1]] : [],
           returnTrue = function () {
             self.input = origInput;
@@ -611,7 +605,7 @@ OMeta = (function() {
           };
 
       while (true) {
-        var origInput = this.input;
+        origInput = this.input;
 
         var result = lookup(lookupFunc, returnFalse, returnTrue);
 
@@ -743,7 +737,7 @@ OMeta = (function() {
                 localTokens[i] = localTokens[i].concat(foreignTokens[i]);
               }
               else {
-                localTokens[i] = foreignTokens[i]
+                localTokens[i] = foreignTokens[i];
               }
             }
           }
