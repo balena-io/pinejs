@@ -13,6 +13,17 @@ define(['codemirror'], function() {
 					}
 				}
 			},
+			addNewTokens = function(state, tokens) {
+				// Check current and backtrack to add available tokens
+				for(var i = state.index; i >= state.previousIndex; i--) {
+					if(tokens[i] != null) {
+						state.currentTokens = state.currentTokens.concat(tokens[i]);
+					}
+				}
+				state.previousIndex = state.index;
+				// Remove any useless tokens we may have just added.
+				removeOldTokens(state);
+			},
 			getNextToken = function(state) {
 				removeOldTokens(state);
 				var token = state.currentTokens[0];
@@ -95,15 +106,7 @@ define(['codemirror'], function() {
 						checkForNewText();
 					}
 					
-					// Check current and backtrack to add available tokens
-					for(var i = state.index; i >= state.previousIndex; i--) {
-						if(tokens[i] != null) {
-							state.currentTokens = state.currentTokens.concat(tokens[i]);
-						}
-					}
-					state.previousIndex = state.index;
-					// Remove any useless tokens we may have just added.
-					removeOldTokens(state);
+					addNewTokens(state, tokens);
 					
 					if(state.currentTokens.length > 0) {
 						return applyTokens(stream, state);
