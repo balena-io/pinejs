@@ -377,6 +377,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 			|	newComment
 			),
 		Process =
+			EOLSpaces?
 			line
 			(	EOLSpaces
 				line
