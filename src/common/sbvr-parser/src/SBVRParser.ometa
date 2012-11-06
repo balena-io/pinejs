@@ -258,11 +258,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 			{this.ruleVarsCount=0}
 			Modifier:mod
 			RuleBody([], []):ruleLF
-			Terminator?
-			spaces
-			&(	EOL
-			|	end
-			)
+			EOLTerminator
 			{mod.length == 2 ? (mod[1][1] = ruleLF) : (mod[1] = ruleLF)}
 			-> ['Rule', mod, ['StructuredEnglish', ruleText]],
 		startFactType =
@@ -339,6 +335,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 			matchForAny('seq', this.branches.AttrGuidanceType),
 		AttrNecessity :currentLine =
 			(	RuleBody([], [])
+				EOLTerminator
 			|	toSBVREOL
 			),
 		AttrSynonym :currentLine =
@@ -371,6 +368,12 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 		newComment =
 			startComment toEOL,
 		
+		EOLTerminator =
+			Terminator?
+			spaces
+			&(	EOL
+			|	end
+			),
 		Terminator =
 			spaces keyword('.',true),
 		line =
