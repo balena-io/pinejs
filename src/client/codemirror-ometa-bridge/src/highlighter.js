@@ -35,29 +35,43 @@ define(['codemirror'], function() {
 				return token;
 			};
 		CodeMirror.defineMode(modeName, function(config, mode) {
-			var previousText = '',
-				tokens = [],
-				checkForNewText = function() {
-					var ometaEditor = mode.getOMetaEditor();
-					if(ometaEditor == null) {
-						return;
-					}
-					var text = ometaEditor.getValue();
-					if(text != previousText) {
-						previousText = text;
-						var grammar = getGrammar();
-						try {
-							grammar.matchAll(text, 'Process');
+			var tokens = [],
+				checkForNewText = (function() {
+					var previousText = '',
+						buildTokens = function(input) { 
+							var tokens = [];
+							try {
+								do {
+									tokens[input.idx] = input.tokens;
+								} while(input = input.tail());
+							}
+							catch(e) {
+								// Ignore the error, it's due to hitting the end of input.
+							}
+							return tokens;
+						};
+					return function() {
+						var ometaEditor = mode.getOMetaEditor();
+						if(ometaEditor == null) {
+							return;
 						}
-						catch(e) {
-							// An error here means we failed to parse the text,
-							// we can ignore it though as we just want to highlight what is valid,
-							// after all they're probably just in the middle of typing.
-							// console.error(e, e.stack);
+						var text = ometaEditor.getValue();
+						if(text != previousText) {
+							previousText = text;
+							var grammar = getGrammar();
+							try {
+								grammar.matchAll(text, 'Process');
+							}
+							catch(e) {
+								// An error here means we failed to parse the text,
+								// we can ignore it though as we just want to highlight what is valid,
+								// after all they're probably just in the middle of typing.
+								// console.error(e, e.stack);
+							}
+							tokens = buildTokens(grammar.inputHead);
 						}
-						tokens = grammar._getTokens();
 					}
-				},
+				})(),
 				eol = function(state, stream) {
 					if(stream && !stream.eol()) {
 						return;
