@@ -251,10 +251,20 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 
 		startRule =
 			"R:"|"Rule:",
-		newRule =
-			startRule spaces &(toEOL):ruleText {this.ruleVarsCount=0}
-			Modifier:r RuleBody([], []):q {r.length == 2 ? (r[1][1] = q) : (r[1] = q)}
-			-> ['Rule', r, ['StructuredEnglish', ruleText]],
+		NewRule =
+			startRule
+			spaces
+			&(toEOL):ruleText
+			{this.ruleVarsCount=0}
+			Modifier:mod
+			RuleBody([], []):ruleLF
+			Terminator?
+			spaces
+			&(	EOL
+			|	end
+			)
+			{mod.length == 2 ? (mod[1][1] = ruleLF) : (mod[1] = ruleLF)}
+			-> ['Rule', mod, ['StructuredEnglish', ruleText]],
 		startFactType =
 			"F:"|"Fact type:",
 		newFactType =
@@ -368,10 +378,10 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 			(
 				(	NewIdentifier
 				|	newFactType
-				|	newRule
+				|	NewRule
 				|	Attribute
 				):l
-				Terminator? clearSuggestions
+				clearSuggestions
 				{this.lines.push(l)}
 				-> l
 			|	newComment
