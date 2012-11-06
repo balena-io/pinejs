@@ -400,6 +400,20 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core', 'inflection'], funct
 		this.tokensEnabled = true;
 		SBVRLibs._enableTokens.call(this, ["StartTerm", "StartName", "startFactType", "startRule", "newComment", "Term", "Name", "Modifier", "Verb", "keyword", "AllowedAttrs", "AttrGuidanceType", "Number", "Value"]);
 	};
+	SBVRParser._sideEffectingRules = [
+		'Process',
+		'line',
+		'NewIdentifier',
+		'AddIdentifier',
+		'newFactType',
+		'AddFactType',
+		'Attribute',
+		'AttrConceptType',
+		'AttrDefinition',
+		'AttrSynonym',
+		'AttrSynonymousForm',
+		'AttrTermForm'
+	];
 	
 	SBVRParser._AddIdentifier = function(identifierType, identifier, baseSynonym) {
 		if(baseSynonym == null) {
