@@ -951,7 +951,7 @@ OMeta = (function() {
         return this.matchAll([obj], aRule);
       };
       // This will reuse memoisations when possible, currently only works for string inputs.
-      m.enableReusingMemoisations = function(sideEffectingRules) {
+      m.enableReusingMemoizations = function(sideEffectingRules) {
         sideEffectingRules = sideEffectingRules || [];
         this.setInput = function(listyObj) {
           var input = this.inputHead;
@@ -983,9 +983,13 @@ OMeta = (function() {
                 }
                 // Remove tokens that end on or after the divergence point, similar to memoisation
                 if(memoTokens != null) {
+                  var duplicateTokens = {};
                   for(var i = memoTokens.length - 1; i >= 0; i--) {
-                    if(memoTokens[i][0] >= divergencePoint) {
+                    if(memoTokens[i][0] >= divergencePoint || duplicateTokens[memoTokens[i][1]]) {
                       memoTokens.splice(i, 1);
+                    }
+                    else {
+                      duplicateTokens[memoTokens[i][1]] = true;
                     }
                   }
                 }

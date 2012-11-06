@@ -2,7 +2,7 @@ define(['codemirror'], function() {
 	return function(ometaGrammar, modeName, mimeType) {
 		var getGrammar = (function() {
 				var grammar = ometaGrammar.createInstance();
-				grammar.enableReusingMemoisations(grammar._sideEffectingRules);
+				grammar.enableReusingMemoizations(grammar._sideEffectingRules);
 				grammar._enableTokens();
 				return function() {
 					if(grammar.reset) {
