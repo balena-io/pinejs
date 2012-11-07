@@ -81,16 +81,16 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core'], function(SBVRLibs) 
 			)?,
 		AttrForeignKey :factType =
 			:type
-				{this.tables[this.GetResourceName(factType[0][1])]}:baseTable
-				{this.tables[this.GetResourceName(factType[2][1])]}:fkTable
+			{this.tables[this.GetResourceName(factType[0][1])]}:baseTable
+			{this.tables[this.GetResourceName(factType[2][1])]}:fkTable
+			{['ForeignKey', fkTable.name, type, fkTable.idField]}:fkField
 			(	?(baseTable.valueField == fkTable.name
 					|| baseTable.idField == fkTable.name)
 				// If the value field for the first term matches the name of the FK term then update the value field to be a FK.
 				GetTableFieldID(baseTable, fkTable.name):fieldID
 				?(fieldID !== false)
-				{baseTable.fields[fieldID][0] = 'ForeignKey'}
-				{baseTable.fields[fieldID][3] = fkTable.idField}
-			|	{baseTable.fields.push(['ForeignKey', fkTable.name, type, fkTable.idField])}
+				{baseTable.fields[fieldID] = fkField}
+			|	{baseTable.fields.push(fkField)}
 			)
 			{this.tables[this.GetResourceName(factType)] = 'ForeignKey'},
 		// AttrSynonym :term =
