@@ -339,8 +339,9 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs',
 
 		# Get results for all the foreign keys
 		for field in clientModel.fields when field[0] in ['ForeignKey', 'ConceptType']
-			foreignKey = field[1]
-			do(foreignKey) ->
+			do(field) ->
+				foreignKey = field[1]
+				nullable = field[2] == 'NULL'
 				foreignKeyResults[foreignKey] = []
 				clientModelResults[foreignKey] = []
 				asyncCallback.addWork(1)
@@ -348,6 +349,9 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs',
 					(statusCode, result, headers) ->
 						clientModelResults[foreignKey] = result.model
 						foreignKeys = {}
+						if nullable
+							foreignKeys[''] = {}
+							foreignKeys[''][result.model.valueField] = ''
 						for instance in result.instances
 							foreignKeys[instance[result.model.idField]] = instance
 						foreignKeyResults[foreignKey] = foreignKeys
