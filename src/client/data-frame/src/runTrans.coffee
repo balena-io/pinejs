@@ -54,15 +54,15 @@ require(['utils/createAsyncQueueCallback'], (createAsyncQueueCallback) ->
 					
 					# find and lock relevant resources (l,t-l,r-l)
 					actions.each((index) ->
-						if $(this).children("#__actype").val() in ["edit", "del"]
-							lockCount++
-					)
-					actions.each((index) ->
+						action = $(this).children("#__actype").val()
+						if action not in ["edit", "del"]
+							return
+						lockCount++
 						resourceID = $(this).children("#__id").val()
 						resourceType = $(this).children("#__type").val()
-						switch $(this).children("#__actype").val()
+						switch action
 							when 'edit'
-								lockResource resourceType, resourceID, trans, (lockID) ->
+								lockResource(resourceType, resourceID, trans, (lockID) ->
 									inputs = $(":input:not(:submit)", rootElement)
 									o = $.map(inputs, (n, i) ->
 										if n.id[0...2] != "__"
@@ -71,39 +71,41 @@ require(['utils/createAsyncQueueCallback'], (createAsyncQueueCallback) ->
 											return ob
 									)
 									callback("edit", lockID, o)
+								)
 							when 'del'
-								lockResource resourceType, resourceID, trans, (lockID) ->
+								lockResource(resourceType, resourceID, trans, (lockID) ->
 									callback("del", lockID)
+								)
 							when 'add'
 								break
 							else
-								console.error('Unknown transaction action', $(this).children("#__actype").val())
+								console.error('Unknown transaction action', action)
 					)
 				)
 			)
 
 
 		lockResource = (resource_type, resource_id, trans, successCallback, failureCallback) ->
-			serverRequest "POST", trans.lcURI, {}, [ value: "lok" ], ((statusCode, result, headers) ->
-				serverRequest "GET", headers.location, {}, null, ((statusCode, lock, headers) ->
+			serverRequest("POST", trans.lcURI, {}, [ value: "lok" ], ((statusCode, result, headers) ->
+				serverRequest("GET", headers.location, {}, null, ((statusCode, lock, headers) ->
 					lockID = lock.instances[0].id
 					o = [ transaction: trans.id, lock: lockID ]
-					serverRequest "POST", trans.tlcURI, {}, o, ((statusCode, result, headers) ->
+					serverRequest("POST", trans.tlcURI, {}, o, ((statusCode, result, headers) ->
 						o = [ id: lockID ]
-						serverRequest "POST", trans.xlcURI, {}, o, ((statusCode, result, headers) ->
+						serverRequest("POST", trans.xlcURI, {}, o, ((statusCode, result, headers) ->
 							o = [ resource_id: parseInt(resource_id, 10), resource_type: resource_type]
-							serverRequest "POST", trans.rcURI, {}, o, ((statusCode, result, headers) ->
-								serverRequest "GET", headers.location, {}, null, ((statusCode, resource, headers) ->
+							serverRequest("POST", trans.rcURI, {}, o, ((statusCode, result, headers) ->
+								serverRequest("GET", headers.location, {}, null, ((statusCode, resource, headers) ->
 									o = [ resource: resource.instances[0].id, lock: lockID ]
-									serverRequest "POST", trans.lrcURI, {}, o, ((statusCode, result, headers) ->
+									serverRequest("POST", trans.lrcURI, {}, o, ((statusCode, result, headers) ->
 										successCallback(lockID)
-									), failureCallback
-								), failureCallback
-							), failureCallback
-						), failureCallback
-					), failureCallback
-				), failureCallback
-			), failureCallback
+									), failureCallback)
+								), failureCallback)
+							), failureCallback)
+						), failureCallback)
+					), failureCallback)
+				), failureCallback)
+			), failureCallback)
 
 	window?.runTrans = runTrans
 )
