@@ -1,8 +1,15 @@
 define(['codemirror'], function() {
-	return function(ometaGrammar, modeName, mimeType) {
+	return function(ometaGrammar, modeName, mimeType, options) {
+		options = options || {};
+		options = {
+			disableReusingMemoizations: options.disableReusingMemoizations || false,
+			disableVisibleOnlyHighlighting: options.disableVisibleOnlyHighlighting || false
+		};
 		var getGrammar = (function() {
 				var grammar = ometaGrammar.createInstance();
-				grammar.enableReusingMemoizations(grammar._sideEffectingRules);
+				if(!options.disableReusingMemoizations) {
+					grammar.enableReusingMemoizations(grammar._sideEffectingRules);
+				}
 				grammar._enableTokens();
 				return function() {
 					if(grammar.reset) {
@@ -65,20 +72,22 @@ define(['codemirror'], function() {
 						var text = ometaEditor.getValue(),
 							lastVisibleLine = ometaEditor.getViewport().to;
 						// We only regenerate tokens if the text has changed, or the last visible line is further down than before.
-						if(text != previousText || lastVisibleLine > prevLastVisibleLine) {
+						if(text != previousText || (!options.disableVisibleOnlyHighlighting && lastVisibleLine > prevLastVisibleLine)) {
 							previousText = text;
-							prevLastVisibleLine = lastVisibleLine;
-							var lastVisibleIndex = 0;
-							for(var i = 1; i < lastVisibleLine; i++) {
-								lastVisibleIndex = text.indexOf('\n', lastVisibleIndex) + 1;
+							if(!options.disableVisibleOnlyHighlighting) {
+								prevLastVisibleLine = lastVisibleLine;
+								var lastVisibleIndex = 0;
+								for(var i = 1; i < lastVisibleLine; i++) {
+									lastVisibleIndex = text.indexOf('\n', lastVisibleIndex) + 1;
+								}
+								lastVisibleIndex = text.indexOf('\n', lastVisibleIndex);
+								if(lastVisibleIndex == -1) {
+									// We were on the last line, so we just use the full text rather than partial.
+									lastVisibleIndex = text.length;
+								}
+								// Trim the text to only what is visible before parsing it.
+								text = text.slice(0, lastVisibleIndex);
 							}
-							lastVisibleIndex = text.indexOf('\n', lastVisibleIndex);
-							if(lastVisibleIndex == -1) {
-								// We were on the last line, so we just use the full text rather than partial.
-								lastVisibleIndex = text.length;
-							}
-							// Trim the text to only what is visible before parsing it.
-							text = text.slice(0, lastVisibleIndex);
 							var grammar = getGrammar();
 							try {
 								grammar.matchAll(text, 'Process');
