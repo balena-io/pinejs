@@ -615,7 +615,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs',
 					(statusCode, result, headers) ->
 						getForeignKeyResults(ftree, result.model, (foreignKeys) ->
 							templateVars = $.extend(templateVars, {
-								action: 'add'
+								action: action
 								id: false
 								resourceInstance: false
 								resourceModel: result.model
@@ -633,7 +633,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs',
 					(statusCode, result, headers) ->
 						templateVars = $.extend(templateVars, {
 							resourceModel: result.model
-							action: 'del'
+							action: action
 							id: ftree.getInstanceID()
 						})
 						html = templates.deleteResource(templateVars)

@@ -54,7 +54,7 @@ require(['utils/createAsyncQueueCallback'], (createAsyncQueueCallback) ->
 					
 					# find and lock relevant resources (l,t-l,r-l)
 					actions.each((index) ->
-						if $(this).children("#__actype").val() in ["editterm", "editfctp", "del"]
+						if $(this).children("#__actype").val() in ["edit", "del"]
 							lockCount++
 					)
 					actions.each((index) ->
