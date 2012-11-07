@@ -1,6 +1,7 @@
 require(['utils/createAsyncQueueCallback'], (createAsyncQueueCallback) ->
 	runTrans = (rootElement) ->
-		if $(".action").size() > 0
+		actions = $(".action")
+		if actions.size() > 0
 			# fetch transaction collection location?(?) - [not needed as this is code on demand]
 			# create transaction resource
 			obj = [value:'trans']
@@ -47,14 +48,16 @@ require(['utils/createAsyncQueueCallback'], (createAsyncQueueCallback) ->
 													serverRequest("DELETE", cr_uri + '?filter=lock:' + sendData[0].lock, {}, null, () ->
 														serverRequest("PUT", cr_uri, {}, sendData, asyncCallback.successCallback)
 													)
+									else
+										console.error('Unknown transaction op', dataElement[0])
 							asyncCallback.endAdding()
 					
 					# find and lock relevant resources (l,t-l,r-l)
-					$(".action").each((index) ->
+					actions.each((index) ->
 						if $(this).children("#__actype").val() in ["editterm", "editfctp", "del"]
 							lockCount++
 					)
-					$(".action").each((index) ->
+					actions.each((index) ->
 						resourceID = $(this).children("#__id").val()
 						resourceType = $(this).children("#__type").val()
 						switch $(this).children("#__actype").val()
