@@ -15,9 +15,10 @@ define(['data-frame/widgets/text', 'data-frame/widgets/textArea', 'data-frame/wi
 	widgets['JSON'] = widgets['Interval'] = widgets['Date'] = widgets['Date Time'] = widgets['Time'] = () ->
 		return 'TODO'
 	
-	return (widgetType, action, id, value, nullable, foreignKeys = {}) ->
+	return (widgetType, action, id, value, nullable, onChange, foreignKeys = {}) ->
 		if widgets.hasOwnProperty(widgetType)
-			return widgets[widgetType](action, id, value, nullable, foreignKeys)
+			onChange = if onChange then ' onChange="' + onChange + '"' else ''
+			return widgets[widgetType](action, id, value, nullable, onChange, foreignKeys)
 		else
 			console.error('Hit default, wtf?', widgetType)
 )

@@ -12,12 +12,16 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs',
 			''')
 		dataTypeDisplay: ejs.compile('''
 			<%
-			var fieldName = resourceField[1],
-				nullable = resourceField[2] == "NULL",
-				fieldValue = resourceInstance === false ? "" : resourceInstance[fieldName],
-				fieldIdentifier = resourceModel.resourceName + "." + fieldName;
-			if(resourceField[0] !== "Serial" || action === "view") { %>
-				<td><%= fieldName %>:</td><td><%- templates.widgets(resourceField[0], action, fieldIdentifier, fieldValue, nullable, foreignKeys[fieldName]) %></td><%
+			if(resourceField[0] !== "Serial" || action === "view") {
+				var fieldName = resourceField[1],
+					onChange = (fieldName == resourceModel.valueField ? "updateForeignKey('" + resourceModel.resourceName + "', '" + id + "', '" + resourceModel.valueField + "', this);" : false),
+					isNullable = resourceField[2] == "NULL",
+					fieldValue = resourceInstance === false ? "" : resourceInstance[fieldName],
+					fieldIdentifier = resourceModel.resourceName + "." + fieldName;
+				if(resourceField[0] === "ForeignKey") {
+					updateOnForeignKeyChange(fieldName, fieldIdentifier, resourceModel.valueField);
+				} %>
+				<td><%= fieldName %>:</td><td><%- templates.widgets(resourceField[0], action, fieldIdentifier, fieldValue, isNullable, onChange, foreignKeys[fieldName]) %></td><%
 			} %>
 			''')
 		viewAddEditResource: ejs.compile('''
@@ -34,7 +38,8 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs',
 										resourceModel: resourceModel,
 										resourceField: resourceModel.fields[i],
 										foreignKeys: foreignKeys,
-										action: action
+										action: action,
+										id: id
 									})
 								%>
 							</tr><%
@@ -330,7 +335,19 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs',
 		fetchedResults = {}
 		foreignKeyResults = {}
 		clientModelResults = {}
+		updateListeners = {}
 		return {
+			listen: (foreignKey, callback) ->
+				if !updateListeners[foreignKey]
+					updateListeners[foreignKey] = []
+				updateListeners[foreignKey].push(callback)
+			set: (foreignKey, id, instance) ->
+				if !foreignKeyResults.hasOwnProperty(foreignKey)
+					foreignKeyResults[foreignKey] = {}
+				foreignKeyResults[foreignKey][id] = instance
+				if updateListeners[foreignKey]
+					for callback in updateListeners[foreignKey]
+						callback(id, instance)
 			get: (tree, clientModel, successCallback) ->
 				
 				asyncCallback = createAsyncQueueCallback(
@@ -347,14 +364,17 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs',
 						foreignKey = field[1]
 						if !fetchedResults.hasOwnProperty(foreignKey)
 							fetchedResults[foreignKey] = []
-							foreignKeyResults[foreignKey] = {}
+							if !foreignKeyResults.hasOwnProperty(foreignKey)
+								foreignKeyResults[foreignKey] = {}
 							clientModelResults[foreignKey] = {}
 							asyncCallback.addWork(1)
 							serverRequest('GET', serverAPI(tree.getVocabulary(), foreignKey), {}, null,
 								(statusCode, result, headers) ->
 									clientModelResults[foreignKey] = result.model
 									for instance in result.instances
-										foreignKeyResults[foreignKey][instance[result.model.idField]] = instance
+										instanceID = instance[result.model.idField]
+										if !foreignKeyResults[foreignKey][instanceID]
+											foreignKeyResults[foreignKey][instance[result.model.idField]] = instance
 									callbacksList = fetchedResults[foreignKey]
 									fetchedResults[foreignKey] = true
 									for callbacks in callbacksList
@@ -375,6 +395,30 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs',
 							fetchedResults[foreignKey].push([asyncCallback.successCallback, asyncCallback.errorCallback])
 				asyncCallback.endAdding()
 		}
+	
+	window.updateForeignKey = (foreignKey, id, valueField, element) ->
+		instance = {}
+		instance[valueField] = $(element).val()
+		foreignKeysCache.set(foreignKey, id, instance)
+	window.updateOnForeignKeyChange = do ->
+		selectIDsAdded = {}
+		return (foreignKey, selectID, valueField) ->
+			if !selectIDsAdded[selectID]
+				selectIDsAdded[selectID] = true
+				selectID = selectID.replace(/\./g, '\\.')
+				foreignKeysCache.listen(foreignKey, (id, newInstance) ->
+					console.log($('#' + selectID))
+					newValue = newInstance[valueField]
+					$('#' + selectID).each((index) ->
+						$this = $(this)
+						option = $this.children('*[value="' + id + '"]')
+						if option.size() == 0
+							# TODO: This should include the onChange if necessary
+							$('<option value="' + id + '">' + newValue + '</option>').insertBefore($this.children(':first-child'))
+						else
+							option.text(newValue)
+					)
+				)
 
 	serverAPI = (vocabulary, about = '', filters = []) ->
 		# render filters
