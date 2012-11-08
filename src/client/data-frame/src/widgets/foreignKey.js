@@ -1,6 +1,7 @@
 define(function() {
-	var view = function(id, value, values) {
-		var i = 0;
+	var view = function(selectID, value, nullable, values) {
+		var i = 0,
+			id;
 		for(id in values) {
 			if(!values.hasOwnProperty(id)) {
 				continue;
@@ -12,8 +13,8 @@ define(function() {
 		}
 		return value;
 	};
-	var edit = function(id, value, values) {
-		var html = '<select id="' + id + '">',
+	var edit = function(selectID, value, nullable, values) {
+		var html = '<select id="' + selectID + '">',
 			selected,
 			id,
 			optionValue;
