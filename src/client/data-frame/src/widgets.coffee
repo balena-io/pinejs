@@ -15,9 +15,9 @@ define(['data-frame/widgets/text', 'data-frame/widgets/textArea', 'data-frame/wi
 	widgets['JSON'] = widgets['Interval'] = widgets['Date'] = widgets['Date Time'] = widgets['Time'] = () ->
 		return 'TODO'
 	
-	return (widgetType, action, id, value, foreignKeys = []) ->
+	return (widgetType, action, id, value, nullable, foreignKeys = {}) ->
 		if widgets.hasOwnProperty(widgetType)
-			return widgets[widgetType](action, id, value, foreignKeys)
+			return widgets[widgetType](action, id, value, nullable, foreignKeys)
 		else
 			console.error('Hit default, wtf?', widgetType)
 )

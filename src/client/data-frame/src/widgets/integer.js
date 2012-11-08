@@ -12,7 +12,7 @@ define(function() {
 		}
 		return html + ' />';
 	};
-	return function(action, id, value, anyNumber) {
+	return function(action, id, value, nullable, anyNumber) {
 		var html;
 		switch(action) {
 			case 'view':

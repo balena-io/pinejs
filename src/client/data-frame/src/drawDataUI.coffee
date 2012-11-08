@@ -13,10 +13,11 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs',
 		dataTypeDisplay: ejs.compile('''
 			<%
 			var fieldName = resourceField[1],
+				nullable = resourceField[2] == "NULL",
 				fieldValue = resourceInstance === false ? "" : resourceInstance[fieldName],
 				fieldIdentifier = resourceModel.resourceName + "." + fieldName;
 			if(resourceField[0] !== "Serial" || action === "view") { %>
-				<td><%= fieldName %>:</td><td><%- templates.widgets(resourceField[0], action, fieldIdentifier, fieldValue, foreignKeys[fieldName]) %></td><%
+				<td><%= fieldName %>:</td><td><%- templates.widgets(resourceField[0], action, fieldIdentifier, fieldValue, nullable, foreignKeys[fieldName]) %></td><%
 			} %>
 			''')
 		viewAddEditResource: ejs.compile('''
@@ -341,7 +342,6 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs',
 		for field in clientModel.fields when field[0] in ['ForeignKey', 'ConceptType']
 			do(field) ->
 				foreignKey = field[1]
-				nullable = field[2] == 'NULL'
 				foreignKeyResults[foreignKey] = []
 				clientModelResults[foreignKey] = []
 				asyncCallback.addWork(1)
@@ -349,9 +349,6 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs',
 					(statusCode, result, headers) ->
 						clientModelResults[foreignKey] = result.model
 						foreignKeys = {}
-						if nullable
-							foreignKeys[''] = {}
-							foreignKeys[''][result.model.valueField] = ''
 						for instance in result.instances
 							foreignKeys[instance[result.model.idField]] = instance
 						foreignKeyResults[foreignKey] = foreignKeys
