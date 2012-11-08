@@ -326,36 +326,55 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs',
 				return this.clone().modify(action, change).getURI()
 		}
 	
-	getForeignKeyResults = (tree, clientModel, successCallback) ->
+	foreignKeysCache = do ->
+		fetchedResults = {}
 		foreignKeyResults = {}
 		clientModelResults = {}
-		
-		asyncCallback = createAsyncQueueCallback(
-			() ->
-				successCallback(foreignKeyResults, clientModelResults)
-			(errors) ->
-				console.error(errors)
-				successCallback(foreignKeyResults, clientModelResults)
-		)
-
-		# Get results for all the foreign keys
-		for field in clientModel.fields when field[0] in ['ForeignKey', 'ConceptType']
-			do(field) ->
-				foreignKey = field[1]
-				foreignKeyResults[foreignKey] = []
-				clientModelResults[foreignKey] = []
-				asyncCallback.addWork(1)
-				serverRequest('GET', serverAPI(tree.getVocabulary(), foreignKey), {}, null,
-					(statusCode, result, headers) ->
-						clientModelResults[foreignKey] = result.model
-						foreignKeys = {}
-						for instance in result.instances
-							foreignKeys[instance[result.model.idField]] = instance
-						foreignKeyResults[foreignKey] = foreignKeys
-						asyncCallback.successCallback()
-					asyncCallback.errorCallback
+		return {
+			get: (tree, clientModel, successCallback) ->
+				
+				asyncCallback = createAsyncQueueCallback(
+					() ->
+						successCallback(foreignKeyResults, clientModelResults)
+					(errors) ->
+						console.error(errors)
+						successCallback(foreignKeyResults, clientModelResults)
 				)
-		asyncCallback.endAdding()
+
+				# Get results for all the foreign keys
+				for field in clientModel.fields when field[0] in ['ForeignKey', 'ConceptType']
+					do(field) ->
+						foreignKey = field[1]
+						if !fetchedResults.hasOwnProperty(foreignKey)
+							fetchedResults[foreignKey] = []
+							foreignKeyResults[foreignKey] = {}
+							clientModelResults[foreignKey] = {}
+							asyncCallback.addWork(1)
+							serverRequest('GET', serverAPI(tree.getVocabulary(), foreignKey), {}, null,
+								(statusCode, result, headers) ->
+									clientModelResults[foreignKey] = result.model
+									for instance in result.instances
+										foreignKeyResults[foreignKey][instance[result.model.idField]] = instance
+									callbacksList = fetchedResults[foreignKey]
+									fetchedResults[foreignKey] = true
+									for callbacks in callbacksList
+										callbacks[0]()
+									asyncCallback.successCallback()
+								->
+									callbacksList = fetchedResults[foreignKey]
+									fetchedResults[foreignKey] = true
+									for callbacks in callbacksList
+										callbacks[1]()
+									asyncCallback.errorCallback()
+							)
+						else if fetchedResults[foreignKey] == false
+							asyncCallback.addWork(1)
+							asyncCallback.errorCallback()
+						else if fetchedResults[foreignKey] != true
+							asyncCallback.addWork(1)
+							fetchedResults[foreignKey].push([asyncCallback.successCallback, asyncCallback.errorCallback])
+				asyncCallback.endAdding()
+		}
 
 	serverAPI = (vocabulary, about = '', filters = []) ->
 		# render filters
@@ -481,7 +500,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs',
 								resourceCollections[i].resourceName = instance[clientModel.valueField]
 							else if resourceType == "FactType"
 								resourceCollectionsCallback.addWork(1)
-								getForeignKeyResults(ftree, clientModel,
+								foreignKeysCache.get(ftree, clientModel,
 									(foreignKeys, foreignModels) ->
 										templateVars = $.extend({}, baseTemplateVars, (if even then evenTemplateVars else oddTemplateVars), {
 											foreignKeys: foreignKeys
@@ -592,7 +611,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs',
 					(statusCode, result, headers) ->
 						clientModel = result.model
 						instanceID = result.instances[0][clientModel.idField]
-						getForeignKeyResults(ftree, result.model, (foreignKeys) ->
+						foreignKeysCache.get(ftree, result.model, (foreignKeys) ->
 							templateVars = $.extend(templateVars, {
 								action: action
 								id: instanceID
@@ -610,7 +629,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs',
 			when 'add'
 				serverRequest("GET", ftree.getModelURI(), {}, null,
 					(statusCode, result, headers) ->
-						getForeignKeyResults(ftree, result.model, (foreignKeys) ->
+						foreignKeysCache.get(ftree, result.model, (foreignKeys) ->
 							templateVars = $.extend(templateVars, {
 								action: action
 								id: false
