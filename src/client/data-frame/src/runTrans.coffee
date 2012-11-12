@@ -11,14 +11,19 @@ require(['utils/createAsyncQueueCallback'], (createAsyncQueueCallback) ->
 					lockCount = 0
 					data = []
 					callback = (op, lockID, fields = {}) ->
-						data.push [ op, lockID, fields ]
+						data.push([ op, lockID, fields ])
 						if data.length == lockCount
 							cr_uri = "/transaction/conditional_representation"
 							asyncCallback = createAsyncQueueCallback(
 									() -> 
-										serverRequest("POST", trans.ctURI, {}, null, (statusCode, result, headers) ->
-											location.hash = "#!/data/"
+										serverRequest("POST", trans.ctURI, {}, null,
+											(statusCode, result, headers) ->
+												location.hash = "#!/data/"
+											(statusCode, errors) -> 
+												console.log(statusCode, errors)
 										)
+									(errors) -> 
+										console.log(errors)
 								)
 							for dataElement in data
 								switch dataElement[0]
