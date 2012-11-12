@@ -14,7 +14,7 @@ The goal here, dear gentlemen, is to use the canvas platform on developing Renew
 
 ###Contraints
 
-Constrain            | String | Number | Boolean | Date | File
+Constraint           | String | Number | Boolean | Date | File
 :------------------- | :----: | :----: | :-----: | :--: | :--: 
 Length: min          | x      |        |         |      | x
 Length: exact        | x      |        |         |      | x
@@ -22,8 +22,7 @@ Length: max          | x      |        |         |      | x
 Precision            |        | x      |         |      |  
 Value: min           |        | x      |         | x    |  
 Value: max           |        | x      |         | x    |
-Value: equals        | x      | x      |         | x    |  
-Value: not equals    | x      | x      |         | x    |  
+Value: not equals    | x      | x      | x       | x    |  
 Value: in (array)    | x      | x      |         | x    |  
 Value: not in        | x      | x      |         | x    |  
 Value: matches regex | x      |        |         |      |  
