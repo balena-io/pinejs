@@ -62,19 +62,25 @@ require(['utils/createAsyncQueueCallback'], (createAsyncQueueCallback) ->
 						resourceType = $(this).children("#__type").val()
 						switch action
 							when 'edit'
-								lockResource(resourceType, resourceID, trans, (lockID) ->
-									inputs = $(":input:not(:submit)", rootElement)
-									o = $.map(inputs, (n, i) ->
-										if n.id[0...2] != "__"
-											ob = {}
-											ob[n.id] = $(n).val()
-											return ob
-									)
-									callback("edit", lockID, o)
+								lockResource(resourceType, resourceID, trans,
+									(lockID) ->
+										inputs = $(":input:not(:submit)", rootElement)
+										o = $.map(inputs, (n, i) ->
+											if n.id[0...2] != "__"
+												ob = {}
+												ob[n.id] = $(n).val()
+												return ob
+										)
+										callback(action, lockID, o)
+									(statusCode, error)	->
+										console.error(statusCode, error)
 								)
 							when 'del'
-								lockResource(resourceType, resourceID, trans, (lockID) ->
-									callback("del", lockID)
+								lockResource(resourceType, resourceID, trans,
+									(lockID) ->
+										callback(action, lockID)
+									(statusCode, error)	->
+										console.error(statusCode, error)
 								)
 							when 'add'
 								break
