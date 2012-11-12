@@ -414,7 +414,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs',
 						option = $this.children('*[value="' + id + '"]')
 						if option.size() == 0
 							# TODO: This should include the onChange if necessary
-							$('<option value="' + id + '">' + newValue + '</option>').insertBefore($this.children(':first-child'))
+							$this.prepend($('<option value="' + id + '">' + newValue + '</option>'))
 						else
 							option.text(newValue)
 					)
