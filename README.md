@@ -2,7 +2,7 @@
 
 ##Intro
 
-The goal here, dear gentlemen, is to use the canvas platform on developing Renew's API. Thus, withour further delays, we need to be able to support the following features.
+The goal here, dear gentlemen, is to use the canvas platform on developing Renew's API. Thus, to cut the long story short, we need to be able to support the following features.
 
 ###Datatypes
 
@@ -16,21 +16,21 @@ The goal here, dear gentlemen, is to use the canvas platform on developing Renew
 
 Constrain            | String | Number | Boolean | Date | File
 :------------------- | :----: | :----: | :-----: | :--: | :--: 
-Length: min          | X      |        |         |      | X
-Length: exact        | X      |        |         |      | X
-Length: max          | X      |        |         |      | X
-Precision            |        | X      |         |      |  
-Value: min           |        | X      |         | X    |  
-Value: max           |        | X      |         | X    |
-Value: equals        | X      | X      |         | X    |  
-Value: not equals    | X      | X      |         | X    |  
-Value: in (array)    | X      | X      |         | X    |  
-Value: not in        | X      | X      |         | X    |  
-Value: matches regex | X      |        |         |      |  
-Value: contains      | X      |        |         |      |  
-Value: not contains  | X      |        |         |      |  
+Length: min          | x      |        |         |      | x
+Length: exact        | x      |        |         |      | x
+Length: max          | x      |        |         |      | x
+Precision            |        | x      |         |      |  
+Value: min           |        | x      |         | x    |  
+Value: max           |        | x      |         | x    |
+Value: equals        | x      | x      |         | x    |  
+Value: not equals    | x      | x      |         | x    |  
+Value: in (array)    | x      | x      |         | x    |  
+Value: not in        | x      | x      |         | x    |  
+Value: matches regex | x      |        |         |      |  
+Value: contains      | x      |        |         |      |  
+Value: not contains  | x      |        |         |      |  
 
-###Storage requirements
+##Storage requirements
 
 A database's storage requirements are determined by the combination of datatypes and their corresponding contraints, i.e.
 
