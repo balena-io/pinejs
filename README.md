@@ -12,7 +12,7 @@ The goal here, dear gentlemen, is to use the canvas platform on developing Renew
 * Date
 * File (binary)
 
-###Contrains
+###Contraints
 
 Constrain            | String | Number | Boolean | Date | File
 :------------------- | :----: | :----: | :-----: | :--: | :--: 
@@ -32,9 +32,9 @@ Value: not contains  | X      |        |         |      |
 
 ###Storage requirements
 
-A database's storage requirements are determined by the combination of datatypes and their corresponding contrains.
+A database's storage requirements are determined by the combination of datatypes and their corresponding contraints, i.e.
 
-Datatype + Contrains                       | MySql Type
+Datatype + Contraints                      | MySql Type
 :----------------------------------------- | :------------------
 String of exact length 10                  | CHAR(10)
 Number of min value 100, max value 30000   | SMALLINT UNSIGNED
