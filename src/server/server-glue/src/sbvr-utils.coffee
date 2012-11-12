@@ -155,13 +155,15 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 
 		asyncCallback.addWork(sqlmod.rules.length)
 		for rule in sqlmod.rules
-			tx.executeSql(rule.sql, [], do(rule) ->
-				(tx, result) ->
-					if result.rows.item(0).result in [false, 0, '0']
-						asyncCallback.errorCallback(rule.structuredEnglish)
-					else
-						asyncCallback.successCallback()
-			)
+			do(rule) ->
+				tx.executeSql(rule.sql, [],
+					(tx, result) ->
+						if result.rows.item(0).result in [false, 0, '0']
+							asyncCallback.errorCallback(rule.structuredEnglish)
+						else
+							asyncCallback.successCallback()
+					asyncCallback.errorCallback
+				)
 		asyncCallback.endAdding()
 
 	# successCallback = (tx, lfModel, slfModel, abstractSqlModel, sqlModel, clientModel)
