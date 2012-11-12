@@ -14,7 +14,7 @@ The goal here, dear gentlemen, is to use the canvas platform on developing Renew
 
 ###Contraints
 
-Constraint           | String | Number | Boolean | Date | File
+Constraint            | String | Number | Boolean | Date | File
 :------------------- | :----: | :----: | :-----: | :--: | :--: 
 Length: min          | x      |        |         |      | x
 Length: exact        | x      |        |         |      | x
