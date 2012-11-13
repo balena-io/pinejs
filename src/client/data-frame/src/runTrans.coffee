@@ -4,8 +4,7 @@ require(['utils/createAsyncQueueCallback'], (createAsyncQueueCallback) ->
 		if actions.size() > 0
 			# fetch transaction collection location?(?) - [not needed as this is code on demand]
 			# create transaction resource
-			obj = [value:'trans']
-			serverRequest('POST', '/transaction/transaction', {}, obj, (statusCode, result, headers) ->
+			serverRequest('POST', '/transaction/transaction', {}, null, (statusCode, result, headers) ->
 				# get 'trans'action resource to extract lcURI,tlcURI,rcURI,lrcURI,xlcURI,slcURI,ctURI
 				serverRequest("GET", headers.location, {}, null, (statusCode, trans, headers) ->
 					lockCount = 0
@@ -97,7 +96,7 @@ require(['utils/createAsyncQueueCallback'], (createAsyncQueueCallback) ->
 
 
 		lockResource = (resource_type, resource_id, trans, successCallback, failureCallback) ->
-			serverRequest("POST", trans.lcURI, {}, [ value: "lok" ], ((statusCode, result, headers) ->
+			serverRequest("POST", trans.lcURI, {}, null, ((statusCode, result, headers) ->
 				serverRequest("GET", headers.location, {}, null, ((statusCode, lock, headers) ->
 					lockID = lock.instances[0].id
 					o = [ transaction: trans.id, lock: lockID, is_exclusive: true ]

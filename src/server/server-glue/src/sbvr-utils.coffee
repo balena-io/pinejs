@@ -42,7 +42,9 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 			Rule:      It is obligatory that each resource has exactly 1 resource type
 			Rule:      It is obligatory that each resource has exactly 1 resource id
 			Term:      transaction
+				Database Value Field: id
 			Term:      lock
+				Database Value Field: id
 			Term:      conditional representation
 				Database Value Field: lock
 			Fact type: lock is exclusive
