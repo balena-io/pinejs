@@ -369,36 +369,34 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 				id = getID(tree)
 				runQuery = (tx) ->
 					tx.begin()
-					db.transaction( (tx) ->
-						tx.executeSql('''
-							SELECT NOT EXISTS(
-								SELECT 1
-								FROM "resource" r
-								JOIN "resource-is_under-lock" AS rl ON rl."resource" = r."id"
-								WHERE r."resource_type" = ?
-								AND r."id" = ?
-							) AS result;''', [tree[2].resourceName, id],
-							(tx, result) ->
-								if result.rows.item(0).result in [false, 0, '0']
-									res.json([ "The resource is locked and cannot be edited" ], 404)
-								else
-									tx.executeSql(insertQuery.query, values,
-										(tx, result) -> doValidate(tx)
-										(tx) ->
-											if updateQuery?
-												values = getAndCheckBindValues(updateQuery.bindings, tree[2].values)
-												console.log(updateQuery.query, values)
-												if !_.isArray(values)
-													res.json(values, 404)
-												else
-													tx.executeSql(updateQuery.query, values,
-														(tx, result) -> doValidate(tx)
-														() -> res.send(404)
-													)
+					tx.executeSql('''
+						SELECT NOT EXISTS(
+							SELECT 1
+							FROM "resource" r
+							JOIN "resource-is_under-lock" AS rl ON rl."resource" = r."id"
+							WHERE r."resource_type" = ?
+							AND r."id" = ?
+						) AS result;''', [tree[2].resourceName, id],
+						(tx, result) ->
+							if result.rows.item(0).result in [false, 0, '0']
+								res.json([ "The resource is locked and cannot be edited" ], 404)
+							else
+								tx.executeSql(insertQuery.query, values,
+									(tx, result) -> doValidate(tx)
+									(tx) ->
+										if updateQuery?
+											values = getAndCheckBindValues(updateQuery.bindings, tree[2].values)
+											console.log(updateQuery.query, values)
+											if !_.isArray(values)
+												res.json(values, 404)
 											else
-												res.send(404)
-									)
-						)
+												tx.executeSql(updateQuery.query, values,
+													(tx, result) -> doValidate(tx)
+													() -> res.send(404)
+												)
+										else
+											res.send(404)
+								)
 					)
 				if tx?
 					runQuery(tx)
