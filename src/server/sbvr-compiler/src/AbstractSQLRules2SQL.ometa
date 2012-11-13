@@ -83,7 +83,10 @@ define(['ometa-core'], function() {
 				'Where'
 				anything*
 			]*
-			-> ('INSERT INTO ' + tables.join(', ') + ' (' + fieldValues[0].join(', ') + ')' + indent + ' VALUES (' + fieldValues[1].join(', ') + ')'),
+			(	?(fieldValues[0].length > 0)
+				-> ('INSERT INTO ' + tables.join(', ') + ' (' + fieldValues[0].join(', ') + ')' + indent + ' VALUES (' + fieldValues[1].join(', ') + ')')
+			|	-> ('INSERT INTO ' + tables.join(', ') + ' DEFAULT VALUES')
+			),
 		
 		UpdateBody :indent =
 			{[]}:tables
@@ -94,6 +97,9 @@ define(['ometa-core'], function() {
 			|	Where(indent):where
 				{indent + where}:where
 			]*
+			(	?(fieldValues[0].length > 0)
+			|	___UPDATE_QUERY_WITH_NO_FIELDS___.die
+			)
 			{[]}:sets
 			{	for(var i=0; i < fieldValues[0].length; i++) {
 					sets[i] = fieldValues[0][i] + ' = ' + fieldValues[1][i];
@@ -149,7 +155,7 @@ define(['ometa-core'], function() {
 						-> ("'" + value + "'")
 					):value
 					{values.push(value)}
-				]+
+				]*
 			]
 			-> [fields, values],
 		
