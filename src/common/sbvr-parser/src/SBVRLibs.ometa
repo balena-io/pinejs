@@ -1,5 +1,6 @@
 define(['underscore', 'ometa-core'], function() {
 	var primitives = {
+		'Serial': true,
 		'Integer': true,
 		'Short Text': true,
 		'Long Text': true,
