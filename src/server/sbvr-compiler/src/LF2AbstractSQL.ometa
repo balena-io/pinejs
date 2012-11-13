@@ -44,7 +44,16 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core'], function(SBVRLibs) 
 			:idField
 			{this.tables[this.GetResourceName(tableID)]}:table
 			(	?_.isString(table)
-			|	{table.fields.push(['Serial', idField, 'PRIMARY KEY'])}
+			|	(	GetTableFieldID(table, idField):fieldID
+					?(fieldID !== false)
+					// If the field exists then update it.
+					{table.fields[fieldID][2] = 'PRIMARY KEY'}
+					(	?(table.fields[fieldID][0] == 'Value')
+						// DIRTY HACK: If the data type is Value then change to Serial (the value field stuff needs to be done properly)
+						{table.fields[fieldID][0] = 'Serial'}
+					)?
+				|	{table.fields.push(['Serial', idField, 'PRIMARY KEY'])}
+				)
 				{table.idField = idField}
 			),
 		AttrDatabaseValueField :tableID =
@@ -56,6 +65,9 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core'], function(SBVRLibs) 
 					GetTableFieldID(table, table.valueField):fieldID
 					?(fieldID !== false)
 					{table.fields[fieldID][1] = valueField}
+				|	GetTableFieldID(table, valueField):fieldID
+					?(fieldID !== false)
+					// If the field exists then nothing to do
 				|	// Add a name field if there isn't one already to rename.
 					{table.fields.push(['Value', valueField, 'NOT NULL'])}
 				)
