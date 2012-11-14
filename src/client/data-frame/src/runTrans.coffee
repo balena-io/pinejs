@@ -17,10 +17,10 @@ require(['utils/createAsyncQueueCallback'], (createAsyncQueueCallback) ->
 											(statusCode, result, headers) ->
 												location.hash = "#!/data/"
 											(statusCode, errors) -> 
-												console.log(statusCode, errors)
+												console.error(statusCode, errors)
 										)
 									(errors) -> 
-										console.log(errors)
+										console.error(errors)
 								)
 							for dataElement in data
 								switch dataElement[0]
@@ -33,8 +33,9 @@ require(['utils/createAsyncQueueCallback'], (createAsyncQueueCallback) ->
 											field_value: ''
 										]
 										do(sendData) ->
-											serverRequest("DELETE", trans.conditionalRepresentationURI + '?filter=lock:' + sendData[0].lock, {}, null, () ->
-												serverRequest("PUT", trans.conditionalRepresentationURI, {}, sendData, asyncCallback.successCallback)
+											serverRequest("DELETE", trans.conditionalRepresentationURI + '?filter=lock:' + sendData[0].lock, {}, null,
+												() -> serverRequest("PUT", trans.conditionalRepresentationURI, {}, sendData, asyncCallback.successCallback, asyncCallback.errorCallback)
+												asyncCallback.errorCallback
 											)
 									when "edit"
 										for pair in dataElement[2]
@@ -47,8 +48,9 @@ require(['utils/createAsyncQueueCallback'], (createAsyncQueueCallback) ->
 												]
 												asyncCallback.addWork(1)
 												do(sendData) ->
-													serverRequest("DELETE", trans.conditionalRepresentationURI + '?filter=lock:' + sendData[0].lock, {}, null, () ->
-														serverRequest("PUT", trans.conditionalRepresentationURI, {}, sendData, asyncCallback.successCallback)
+													serverRequest("DELETE", trans.conditionalRepresentationURI + '?filter=lock:' + sendData[0].lock, {}, null,
+														() -> serverRequest("PUT", trans.conditionalRepresentationURI, {}, sendData, asyncCallback.successCallback, asyncCallback.errorCallback)
+														asyncCallback.errorCallback
 													)
 									else
 										console.error('Unknown transaction op', dataElement[0])
