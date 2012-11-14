@@ -522,6 +522,7 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 									res.json(
 										id: result.rows.item(0).id
 										transactionURI: "/transaction"
+										conditionalRepresentationURI: "/transaction/conditional_representation"
 										lockURI: "/transaction/lock"
 										transactionLockURI: "/transaction/lock-belongs_to-transaction"
 										resourceURI: "/transaction/resource"

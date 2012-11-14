@@ -12,7 +12,6 @@ require(['utils/createAsyncQueueCallback'], (createAsyncQueueCallback) ->
 					callback = (op, lockID, fields = {}) ->
 						data.push([ op, lockID, fields ])
 						if data.length == lockCount
-							cr_uri = "/transaction/conditional_representation"
 							asyncCallback = createAsyncQueueCallback(
 									() -> 
 										serverRequest("POST", trans.commitTransactionURI, {}, null,
@@ -35,8 +34,8 @@ require(['utils/createAsyncQueueCallback'], (createAsyncQueueCallback) ->
 											field_value: ''
 										]
 										do(sendData) ->
-											serverRequest("DELETE", cr_uri + '?filter=lock:' + sendData[0].lock, {}, null, () ->
-												serverRequest("PUT", cr_uri, {}, sendData, asyncCallback.successCallback)
+											serverRequest("DELETE", trans.conditionalRepresentationURI + '?filter=lock:' + sendData[0].lock, {}, null, () ->
+												serverRequest("PUT", trans.conditionalRepresentationURI, {}, sendData, asyncCallback.successCallback)
 											)
 									when "edit"
 										for pair in dataElement[2]
@@ -49,8 +48,8 @@ require(['utils/createAsyncQueueCallback'], (createAsyncQueueCallback) ->
 												]
 												asyncCallback.addWork(1)
 												do(sendData) ->
-													serverRequest("DELETE", cr_uri + '?filter=lock:' + sendData[0].lock, {}, null, () ->
-														serverRequest("PUT", cr_uri, {}, sendData, asyncCallback.successCallback)
+													serverRequest("DELETE", trans.conditionalRepresentationURI + '?filter=lock:' + sendData[0].lock, {}, null, () ->
+														serverRequest("PUT", trans.conditionalRepresentationURI, {}, sendData, asyncCallback.successCallback)
 													)
 									else
 										console.error('Unknown transaction op', dataElement[0])
