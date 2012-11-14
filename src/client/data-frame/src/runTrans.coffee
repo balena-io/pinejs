@@ -5,7 +5,7 @@ require(['utils/createAsyncQueueCallback'], (createAsyncQueueCallback) ->
 			# fetch transaction collection location?(?) - [not needed as this is code on demand]
 			# create transaction resource
 			serverRequest('POST', '/transaction/transaction', {}, null, (statusCode, result, headers) ->
-				# get 'trans'action resource to extract lcURI,tlcURI,rcURI,lrcURI,xlcURI,slcURI,ctURI
+				# get 'trans' action resource to extract the URIs
 				serverRequest("GET", headers.location, {}, null, (statusCode, trans, headers) ->
 					lockCount = 0
 					data = []
@@ -15,7 +15,7 @@ require(['utils/createAsyncQueueCallback'], (createAsyncQueueCallback) ->
 							cr_uri = "/transaction/conditional_representation"
 							asyncCallback = createAsyncQueueCallback(
 									() -> 
-										serverRequest("POST", trans.ctURI, {}, null,
+										serverRequest("POST", trans.commitTransactionURI, {}, null,
 											(statusCode, result, headers) ->
 												location.hash = "#!/data/"
 											(statusCode, errors) -> 
@@ -96,16 +96,16 @@ require(['utils/createAsyncQueueCallback'], (createAsyncQueueCallback) ->
 
 
 		lockResource = (resource_type, resource_id, trans, successCallback, failureCallback) ->
-			serverRequest("POST", trans.lcURI, {}, null, ((statusCode, result, headers) ->
+			serverRequest("POST", trans.lockURI, {}, null, ((statusCode, result, headers) ->
 				serverRequest("GET", headers.location, {}, null, ((statusCode, lock, headers) ->
 					lockID = lock.instances[0].id
 					o = [ transaction: trans.id, lock: lockID, is_exclusive: true ]
-					serverRequest("POST", trans.tlcURI, {}, o, ((statusCode, result, headers) ->
+					serverRequest("POST", trans.transactionLockURI, {}, o, ((statusCode, result, headers) ->
 						o = [ resource_id: parseInt(resource_id, 10), resource_type: resource_type]
-						serverRequest("POST", trans.rcURI, {}, o, ((statusCode, result, headers) ->
+						serverRequest("POST", trans.resourceURI, {}, o, ((statusCode, result, headers) ->
 							serverRequest("GET", headers.location, {}, null, ((statusCode, resource, headers) ->
 								o = [ resource: resource.instances[0].id, lock: lockID ]
-								serverRequest("POST", trans.lrcURI, {}, o, ((statusCode, result, headers) ->
+								serverRequest("POST", trans.lockResourceURI, {}, o, ((statusCode, result, headers) ->
 									successCallback(lockID)
 								), failureCallback)
 							), failureCallback)

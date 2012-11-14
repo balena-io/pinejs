@@ -513,13 +513,13 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 										__TODO__.die()
 									res.json(
 										id: result.rows.item(0).id
-										tcURI: "/transaction"
-										lcURI: "/transaction/lock"
-										tlcURI: "/transaction/lock-belongs_to-transaction"
-										rcURI: "/transaction/resource"
-										lrcURI: "/transaction/resource-is_under-lock"
-										xlcURI: "/transaction/lock-is_exclusive"
-										ctURI: "/transaction/execute/" + result.rows.item(0).id
+										transactionURI: "/transaction"
+										lockURI: "/transaction/lock"
+										transactionLockURI: "/transaction/lock-belongs_to-transaction"
+										resourceURI: "/transaction/resource"
+										lockResourceURI: "/transaction/resource-is_under-lock"
+										exclusiveLockURI: "/transaction/lock-is_exclusive"
+										commitTransactionURI: "/transaction/execute/" + result.rows.item(0).id
 									)
 								() ->
 									res.send(404)
