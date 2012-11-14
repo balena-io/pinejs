@@ -502,6 +502,22 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 		app.get('/dev/*', parseURITree, (req, res, next) ->
 			runGet(req, res)
 		)
+		app.post('/transaction/execute/*', (req, res, next) ->
+			# id = req.id
+			id = req.url.split('/')
+			id = id[id.length-1]
+
+			# get all locks of transaction
+			db.transaction ((tx) ->
+				tx.executeSql('SELECT * FROM "lock" WHERE "transaction" = ?;', [id], (tx, locks) ->
+					endLock(tx, locks, id, (tx) ->
+						res.send(200)
+					, (tx, errors) ->
+						res.json(errors, 404)
+					)
+				)
+			)
+		)
 		app.get('/transaction/*', parseURITree, (req, res, next) ->
 			tree = req.tree
 			if tree[2] == undefined
@@ -545,22 +561,6 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 		)
 		app.del('/transaction/*', parseURITree, (req, res, next) ->
 			runDelete(req, res)
-		)
-		app.post('/transaction/execute/*', (req, res, next) ->
-			# id = req.id
-			id = req.url.split('/')
-			id = id[id.length-1]
-
-			# get all locks of transaction
-			db.transaction ((tx) ->
-				tx.executeSql('SELECT * FROM "lock" WHERE "transaction" = ?;', [id], (tx, locks) ->
-					endLock(tx, locks, id, (tx) ->
-						res.send(200)
-					, (tx, errors) ->
-						res.json(errors, 404)
-					)
-				)
-			)
 		)
 
 	return exports
