@@ -35,29 +35,34 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 				Concept type: Long Text
 			Term:      field type
 				Concept type: Long Text
+			
 			Term:      resource
 				Database Value Field: resource_id
 			Fact type: resource has resource id
+			Rule:      It is obligatory that each resource has exactly 1 resource id
 			Fact type: resource has resource type
 			Rule:      It is obligatory that each resource has exactly 1 resource type
-			Rule:      It is obligatory that each resource has exactly 1 resource id
+			
 			Term:      transaction
 				Database Value Field: id
+			
 			Term:      lock
 				Database Value Field: id
+			Fact type: lock is exclusive
+			Fact type: lock belongs to transaction
+			Fact type: resource is under lock
+			
 			Term:      conditional representation
 				Database Value Field: lock
-			Fact type: lock is exclusive
-			Fact type: resource is under lock
-			Fact type: lock belongs to transaction
 			Fact type: conditional representation has field name
-			Fact type: conditional representation has field value
-			Fact type: conditional representation has field type
-			Fact type: conditional representation has lock
 			Rule:      It is obligatory that each conditional representation has exactly 1 field name
+			Fact type: conditional representation has field value
 			Rule:      It is obligatory that each conditional representation has at most 1 field value
+			Fact type: conditional representation has field type
 			Rule:      It is obligatory that each conditional representation has at most 1 field type
+			Fact type: conditional representation has lock
 			Rule:      It is obligatory that each conditional representation has exactly 1 lock
+			
 			Rule:      It is obligatory that each resource is under at most 1 lock that is exclusive'''
 
 	userModel = '''
