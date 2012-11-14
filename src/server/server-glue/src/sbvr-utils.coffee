@@ -330,8 +330,11 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 									tx.end()
 									insertID = if tree[2].query[0] == 'UpdateQuery' then values[0] else sqlResult.insertId
 									console.log('Insert ID: ', insertID)
-									res.send(201,
-										location: '/' + vocab + '/' + tree[2].resourceName + "?filter=" + tree[2].resourceName + ".id:" + insertID
+									res.json({
+											id: insertID
+										}, {
+											location: '/' + vocab + '/' + tree[2].resourceName + "?filter=" + tree[2].resourceName + ".id:" + insertID
+										}, 201
 									)
 								(tx, errors) ->
 									res.json(errors, 404)
