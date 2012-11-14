@@ -2,11 +2,10 @@ require(['utils/createAsyncQueueCallback'], (createAsyncQueueCallback) ->
 	runTrans = (rootElement) ->
 		actions = $(".action")
 		if actions.size() > 0
-			# fetch transaction collection location?(?) - [not needed as this is code on demand]
-			# create transaction resource
-			serverRequest('POST', '/transaction/transaction', {}, null, (statusCode, result, headers) ->
-				# get 'trans' action resource to extract the URIs
-				serverRequest("GET", headers.location, {}, null, (statusCode, trans, headers) ->
+			# get 'trans' action resource to extract the URIs
+			serverRequest("GET", '/transaction', {}, null, (statusCode, trans, headers) ->
+				# create transaction resource
+				serverRequest('POST', trans.transactionURI, {}, null, (statusCode, transaction, headers) ->
 					lockCount = 0
 					data = []
 					callback = (op, lockID, fields = {}) ->
@@ -14,7 +13,7 @@ require(['utils/createAsyncQueueCallback'], (createAsyncQueueCallback) ->
 						if data.length == lockCount
 							asyncCallback = createAsyncQueueCallback(
 									() -> 
-										serverRequest("POST", trans.commitTransactionURI, {}, null,
+										serverRequest("POST", trans.commitTransactionURI, {id: transaction.id}, null,
 											(statusCode, result, headers) ->
 												location.hash = "#!/data/"
 											(statusCode, errors) -> 

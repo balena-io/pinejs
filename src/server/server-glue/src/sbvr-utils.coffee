@@ -502,11 +502,11 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 		app.get('/dev/*', parseURITree, (req, res, next) ->
 			runGet(req, res)
 		)
-		app.post('/transaction/execute/*', (req, res, next) ->
-			# id = req.id
-			id = req.url.split('/')
-			id = id[id.length-1]
-
+		app.post('/transaction/execute', (req, res, next) ->
+			id = Number(req.body.id)
+			if _.isNaN(id)
+				res.send(404)
+			
 			# get all locks of transaction
 			db.transaction ((tx) ->
 				tx.executeSql('SELECT * FROM "lock" WHERE "transaction" = ?;', [id], (tx, locks) ->
@@ -518,40 +518,20 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 				)
 			)
 		)
+		app.get('/transaction', (req, res, next) ->
+			res.json(
+				transactionURI: "/transaction/transaction"
+				conditionalRepresentationURI: "/transaction/conditional_representation"
+				lockURI: "/transaction/lock"
+				transactionLockURI: "/transaction/lock-belongs_to-transaction"
+				resourceURI: "/transaction/resource"
+				lockResourceURI: "/transaction/resource-is_under-lock"
+				exclusiveLockURI: "/transaction/lock-is_exclusive"
+				commitTransactionURI: "/transaction/execute"
+			)
+		)
 		app.get('/transaction/*', parseURITree, (req, res, next) ->
-			tree = req.tree
-			if tree[2] == undefined
-				__TODO__.die()
-			else
-				if tree[2].resourceName == 'transaction'
-					{query, bindings} = AbstractSQLRules2SQL.match(tree[2].query, 'ProcessQuery')
-					values = getAndCheckBindValues(bindings, tree[2].values)
-					console.log(query, values)
-					if !_.isArray(values)
-						res.json(values, 404)
-					else
-						db.transaction( (tx) ->
-							tx.executeSql(query, values,
-								(tx, result) ->
-									if result.rows.length > 1
-										__TODO__.die()
-									res.json(
-										id: result.rows.item(0).id
-										transactionURI: "/transaction"
-										conditionalRepresentationURI: "/transaction/conditional_representation"
-										lockURI: "/transaction/lock"
-										transactionLockURI: "/transaction/lock-belongs_to-transaction"
-										resourceURI: "/transaction/resource"
-										lockResourceURI: "/transaction/resource-is_under-lock"
-										exclusiveLockURI: "/transaction/lock-is_exclusive"
-										commitTransactionURI: "/transaction/execute/" + result.rows.item(0).id
-									)
-								() ->
-									res.send(404)
-							)
-						)
-				else
-					runGet(req, res)
+			runGet(req, res)
 		)
 		app.post('/transaction/*', parseURITree, (req, res, next) ->
 			runPost(req, res)
