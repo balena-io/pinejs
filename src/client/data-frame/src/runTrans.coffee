@@ -96,18 +96,16 @@ require(['utils/createAsyncQueueCallback'], (createAsyncQueueCallback) ->
 
 
 		lockResource = (resource_type, resource_id, trans, successCallback, failureCallback) ->
-			serverRequest("POST", trans.lockURI, {}, null, ((statusCode, result, headers) ->
+			o = [ is_exclusive: true, transaction: trans.id ]
+			serverRequest("POST", trans.lockURI, {}, o, ((statusCode, result, headers) ->
 				serverRequest("GET", headers.location, {}, null, ((statusCode, lock, headers) ->
 					lockID = lock.instances[0].id
-					o = [ transaction: trans.id, lock: lockID, is_exclusive: true ]
-					serverRequest("POST", trans.transactionLockURI, {}, o, ((statusCode, result, headers) ->
-						o = [ resource_id: parseInt(resource_id, 10), resource_type: resource_type]
-						serverRequest("POST", trans.resourceURI, {}, o, ((statusCode, result, headers) ->
-							serverRequest("GET", headers.location, {}, null, ((statusCode, resource, headers) ->
-								o = [ resource: resource.instances[0].id, lock: lockID ]
-								serverRequest("POST", trans.lockResourceURI, {}, o, ((statusCode, result, headers) ->
-									successCallback(lockID)
-								), failureCallback)
+					o = [ resource_id: parseInt(resource_id, 10), resource_type: resource_type]
+					serverRequest("POST", trans.resourceURI, {}, o, ((statusCode, result, headers) ->
+						serverRequest("GET", headers.location, {}, null, ((statusCode, resource, headers) ->
+							o = [ resource: resource.instances[0].id, lock: lockID ]
+							serverRequest("POST", trans.lockResourceURI, {}, o, ((statusCode, result, headers) ->
+								successCallback(lockID)
 							), failureCallback)
 						), failureCallback)
 					), failureCallback)

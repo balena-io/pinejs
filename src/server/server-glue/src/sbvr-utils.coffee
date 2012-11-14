@@ -50,6 +50,7 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 				Database Value Field: id
 			Fact type: lock is exclusive
 			Fact type: lock belongs to transaction
+			Rule:      It is obligatory that each lock belongs to at most 1 transaction
 			Fact type: resource is under lock
 			
 			Term:      conditional representation
@@ -113,8 +114,8 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 
 		# get conditional representations (if exist)
 		for i in [0...locks.rows.length]
-			lock_id = locks.rows.item(i).lock
-			locksCallback.addWork(3)
+			lock_id = locks.rows.item(i).id
+			locksCallback.addWork(2)
 			tx.executeSql('SELECT * FROM "conditional_representation" WHERE "lock" = ?;', [lock_id], (tx, crs) ->
 				# find which resource is under this lock
 				tx.executeSql('SELECT r."resource_type", r."resource_id" FROM "resource-is_under-lock" rl JOIN "resource" r ON rl."resource" = r."id" WHERE "lock" = ?;', [lock_id], (tx, locked) ->
@@ -143,7 +144,6 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 				)
 			)
 
-			tx.executeSql('DELETE FROM "lock-belongs_to-transaction" WHERE "lock" = ?;', [lock_id], locksCallback.successCallback, locksCallback.errorCallback)
 			tx.executeSql('DELETE FROM "lock" WHERE "id" = ?;', [lock_id], locksCallback.successCallback, locksCallback.errorCallback)
 		locksCallback.endAdding()
 
@@ -549,7 +549,7 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 
 			# get all locks of transaction
 			db.transaction ((tx) ->
-				tx.executeSql('SELECT * FROM "lock-belongs_to-transaction" WHERE "transaction" = ?;', [id], (tx, locks) ->
+				tx.executeSql('SELECT * FROM "lock" WHERE "transaction" = ?;', [id], (tx, locks) ->
 					endLock(tx, locks, id, (tx) ->
 						res.send(200)
 					, (tx, errors) ->
