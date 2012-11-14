@@ -48,7 +48,6 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 			Term:      conditional representation
 				Database Value Field: lock
 			Fact type: lock is exclusive
-			Fact type: lock is shared
 			Fact type: resource is under lock
 			Fact type: lock belongs to transaction
 			Fact type: conditional representation has field name
@@ -519,7 +518,6 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 										tlcURI: "/transaction/lock-belongs_to-transaction"
 										rcURI: "/transaction/resource"
 										lrcURI: "/transaction/resource-is_under-lock"
-										slcURI: "/transaction/lock-is_shared"
 										xlcURI: "/transaction/lock-is_exclusive"
 										ctURI: "/transaction/execute/" + result.rows.item(0).id
 									)
