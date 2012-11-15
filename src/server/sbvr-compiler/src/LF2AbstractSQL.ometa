@@ -109,7 +109,7 @@ define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core'], function(SBVRLibs) 
 			// :synonym {this.terms[synonym[1]] = term[1]},
 		AttrSynonymousForm :factType =
 			:synForm
-			AddFactType(synForm.slice(0, -1), factType),
+			AddFactType(synForm, factType),
 		AttrTermForm :factType =
 			:term
 			{this.terms[term[1]] = factType}
