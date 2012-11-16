@@ -77,13 +77,15 @@ define(['codemirror'], function() {
 							if(!options.disableVisibleOnlyHighlighting) {
 								prevLastVisibleLine = lastVisibleLine;
 								var lastVisibleIndex = 0;
-								for(var i = 1; i < lastVisibleLine; i++) {
-									lastVisibleIndex = text.indexOf('\n', lastVisibleIndex) + 1;
-								}
-								lastVisibleIndex = text.indexOf('\n', lastVisibleIndex);
-								if(lastVisibleIndex == -1) {
-									// We were on the last line, so we just use the full text rather than partial.
-									lastVisibleIndex = text.length;
+								for(var i = 0; i < lastVisibleLine; i++) {
+									lastVisibleIndex = text.indexOf('\n', lastVisibleIndex);
+									if(lastVisibleIndex === -1) {
+										// We were on the last line so found no newline character, which means we just use the full text rather than partial.
+										lastVisibleIndex = text.length;
+										break;
+									}
+									// Increment the pointer to get to the start of the next line.
+									lastVisibleIndex++;
 								}
 								// Trim the text to only what is visible before parsing it.
 								text = text.slice(0, lastVisibleIndex);
