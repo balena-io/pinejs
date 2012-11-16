@@ -164,8 +164,16 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs',
 						partName = factTypePart[1];
 					if(factTypePart[0] == "Term") {
 						// Foreign key
-						if(foreignKeys.hasOwnProperty(partName)) { %>
-							<%= foreignKeys[partName][instance[partName]][foreignModels[partName].valueField] %> <%
+						if(foreignKeys.hasOwnProperty(partName)) {
+							var foreignKeyInstances = foreignKeys[partName],
+								foreignKey = instance[partName],
+								valueField = foreignModels[partName].valueField;
+								if(foreignKeyInstances.hasOwnProperty(foreignKey)) { %>
+									<%= foreignKeyInstances[foreignKey][valueField] %><%
+								}
+								else { %>
+									Unknown (<%= foreignKey %>)<%
+								}
 						}
 						// Attribute
 						else { %>
