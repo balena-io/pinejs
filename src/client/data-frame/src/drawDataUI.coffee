@@ -492,15 +492,6 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs',
 									action: action
 									id: addID
 									resourceInstance: false
-									###
-										
-									ARGGGGGGGGGGGGGGGGGGGG, ADD TRANSACTIONS!!
-									NEED TO ALLOCATE A TEMPORARY ID ($1, $2, etc)
-									AND ALSO DISPLAY IT ANYWHERE THAT USES FKs FOR THIS OBJECT TYPE?!
-									
-									
-									NEED TO ADD TRANSACTION TO CONDITIONAL REPRESENTATION AND EXECUTE ON THAT!
-									###
 									resourceModel: result.model
 									foreignKeys: foreignKeys
 								})
