@@ -123,21 +123,52 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 
 	endTransaction = (transactionID, successCallback, failureCallback) ->
 		db.transaction ((tx) ->
+			placeholders = {}
 			getLockedRow = (lockID, successCallback, failureCallback) ->
 				tx.executeSql('''SELECT r."resource_type", r."resource_id"
 								FROM "resource-is_under-lock" rl
 								JOIN "resource" r ON rl."resource" = r."id"
 								WHERE "lock" = ?;''', [lockID], successCallback, failureCallback)
-			getFieldsObject = (conditionalResourceID, successCallback, failureCallback) ->
+			getFieldsObject = (conditionalResourceID, clientModel, successCallback, failureCallback) ->
 				tx.executeSql('SELECT "field_name", "field_value" FROM "conditional_field" WHERE "conditional_resource" = ?;', [conditionalResourceID],
 					(tx, fields) ->
 						fieldsObject = {}
-						for j in [0...fields.rows.length]
-							field = fields.rows.item(j)
-							fieldsObject[field.field_name] = field.field_value
-						successCallback(fieldsObject)
+						fieldsCallback = createAsyncQueueCallback(
+							() ->
+								successCallback(fieldsObject)
+							failureCallback
+						)
+						createPlaceholderCallback = (fieldName) ->
+							(placeholder, resolvedID) ->
+								if resolvedID == false
+									fieldsCallback.errorCallback('Placeholder failed', fieldValue)
+								else
+									fieldsObject[fieldName] = resolvedID
+									fieldsCallback.successCallback()
+						for i in [0...fields.rows.length]
+							field = fields.rows.item(i)
+							fieldName = field.field_name
+							fieldName = fieldName.replace(clientModel.resourceName + '.', '')
+							fieldValue = field.field_value
+							for modelField in clientModel.fields when modelField[1] == fieldName and modelField[0] == 'ForeignKey' and _.isNaN(Number(fieldValue))
+								fieldsCallback.addWork(1)
+								if !placeholders.hasOwnProperty(fieldValue)
+									return failureCallback('Cannot resolve placeholder', fieldValue)
+								else 
+									placeholderCallback = createPlaceholderCallback(fieldName)
+									if _.isArray(placeholders[fieldValue])
+										placeholders[fieldValue].push(placeholderCallback)
+									else
+										placeholderCallback(fieldValue, placeholders[fieldValue])
+							fieldsObject[fieldName] = fieldValue
+						fieldsCallback.endAdding()
 					failureCallback
 				)
+			resolvePlaceholder = (placeholder, resolvedID) -> 
+				placeholderCallbacks = placeholders[placeholder]
+				placeholders[placeholder] = resolvedID
+				for placeholderCallback in placeholderCallbacks
+					placeholderCallback(placeholder, resolvedID)
 			
 			tx.executeSql('SELECT * FROM "conditional_resource" WHERE "transaction" = ?;', [transactionID], (tx, conditionalResources) ->
 				resourcesCallback = createAsyncQueueCallback(
@@ -150,11 +181,18 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 						)
 					(errors) -> failureCallback(tx, errors)
 				)
-
+				do ->
+					for i in [0...conditionalResources.rows.length]
+						conditionalResource = conditionalResources.rows.item(i)
+						placeholder = conditionalResource.placeholder
+						if placeholder? and placeholder.length > 0
+							placeholders[placeholder] = []
+				
 				# get conditional resources (if exist)
 				for i in [0...conditionalResources.rows.length]
 					conditionalResource = conditionalResources.rows.item(i)
 					do(conditionalResource) ->
+						placeholder = conditionalResource.placeholder
 						lockID = conditionalResource.lock
 						doCleanup = () ->
 							cleanupCallback = createAsyncQueueCallback(resourcesCallback.successCallback, resourcesCallback.errorCallback)
@@ -180,17 +218,26 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 								getLockedRow(lockID, (tx, lockedRow) ->
 									lockedRow = lockedRow.rows.item(0)
 									uri = uri + '?filter=' + clientModel.idField + ':' + lockedRow.resource_id
-									getFieldsObject(conditionalResource.id,
+									getFieldsObject(conditionalResource.id, clientModel,
 										(fields) ->
 											runURI('PUT', uri, [fields], tx, doCleanup, resourcesCallback.errorCallback)
 										resourcesCallback.errorCallback
 									)
 								)
 							when 'ADD'
-								getFieldsObject(conditionalResource.id,
+								getFieldsObject(conditionalResource.id, clientModel,
 									(fields) ->
-										runURI('POST', uri, [fields], tx, doCleanup, resourcesCallback.errorCallback)
-									resourcesCallback.errorCallback
+										runURI('POST', uri, [fields], tx,
+											(result) ->
+												resolvePlaceholder(placeholder, result.id)
+												doCleanup()
+											() ->
+												resolvePlaceholder(placeholder, false)
+												resourcesCallback.errorCallback()
+										)
+									() ->
+										resolvePlaceholder(placeholder, false)
+										resourcesCallback.errorCallback()
 								)
 				resourcesCallback.endAdding()
 			)
