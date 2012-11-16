@@ -14,7 +14,7 @@ define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQLOptimise
 					if _.isNaN(value)
 						validated = 'is not a number: ' + originalValue
 				when 'Date', 'Date Time', 'Time'
-					value = Date.parse(value)
+					value = new Date(value)
 					if _.isNaN(value)
 						validated = 'is not a ' + field[0] + ': ' + originalValue
 				when 'Interval'
