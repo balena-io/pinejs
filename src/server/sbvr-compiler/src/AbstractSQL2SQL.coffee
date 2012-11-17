@@ -39,7 +39,8 @@ define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQLOptimise
 					catch e
 						validated = 'cannot be turned into JSON: ' + originalValue
 				when 'Boolean'
-					value = parseInt(value, 10)
+					# We use Number rather than parseInt as it deals with booleans and will return NaN for things like "a1"
+					value = Number(value)
 					if _.isNaN(value) || (value not in [0, 1])
 						validated = 'is not a boolean: ' + originalValue
 				when 'Hashed'

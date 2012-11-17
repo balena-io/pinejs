@@ -1,5 +1,6 @@
 define(['underscore', 'ometa-core'], function(_) {
 	var primitives = {
+		'Serial': true,
 		'Integer': true,
 		'Short Text': true,
 		'Long Text': true,
@@ -104,6 +105,8 @@ define(['underscore', 'ometa-core'], function(_) {
 	};
 	
 	SBVRLibs.IsChild = function(child, parent) {
+		// Parent should be in the form ['Term', ...], where we care about the ... bit.
+		parent = parent[1];
 		do {
 			if( child == parent ) {
 				return true;
@@ -115,7 +118,7 @@ define(['underscore', 'ometa-core'], function(_) {
 	SBVRLibs.FactTypeRootTerm = function(term, actualFactType) {
 		// Find the term in the fact type that matches (for synonymous form)
 		for(var i=0; i < actualFactType.length; i++) {
-			if(this.IsChild(term, actualFactType[i][1])) {
+			if(this.IsChild(term, actualFactType[i])) {
 				return actualFactType[i][1];
 			}
 		}

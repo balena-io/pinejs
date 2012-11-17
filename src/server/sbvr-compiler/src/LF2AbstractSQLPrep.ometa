@@ -37,14 +37,23 @@ define(['sbvr-compiler/LFOptimiser', 'underscore'], function(LFOptimiser) {
 			(	{variable[2]}:term
 				// Replace the term if it's a primitive and we're processing an attribute rule.
 				?(this.processingAttributeRule && this.primitives.hasOwnProperty(term) && this.primitives[term] !== false)
+				// isPartOfAttributeRule is used as a flag to indicate whether this variable is actually part of the attribute fact type,
+				// if it is not then we shouldn't replace the term.
+				{false}:isPartOfAttributeRule
+				{[]}:newTerm
 				{	for(var i=1; i < this.processingAttributeRule.length; i+=2) {
-						if(!this.IsChild(term[1], this.processingAttributeRule[i][1])) {
-							return this.processingAttributeRule[i][1];
+						if(this.IsChild(term[1], this.processingAttributeRule[i])) {
+							isPartOfAttributeRule = true;
+						}
+						else {
+							newTerm = this.processingAttributeRule[i];
 						}
 					}
-				}:newTerm
+				}
+				?isPartOfAttributeRule
 				// {console.log('Switched variable term', term, 'to', newTerm)}
-				{variable[2][1] = newTerm}
+				{variable[2] = newTerm}
+				SetHelped
 			)?
 			-> variable,
 			

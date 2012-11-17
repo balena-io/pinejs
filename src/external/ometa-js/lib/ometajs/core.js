@@ -272,14 +272,6 @@ OMeta = (function() {
   }
 
   //
-  // ### function Failer()
-  // (i.e., that which makes things fail)
-  // Used to detect (direct) left recursion and memoize failures
-  function Failer() {
-    this.used = false;
-  }
-
-  //
   // ### OMeta
   // the OMeta "class" and basic functionality
   //
@@ -293,24 +285,31 @@ OMeta = (function() {
         // No rules to track were supplied and it wasn't even a reference they could be added to.
         return;
       }
-      var tokens = [];
       this._enableTokens = function() {
         throw 'Can only enable tokens once';
       };
-      this._addToken = function(startIdx, endIdx, rule, ruleArgs) {
-        if(rulesToTrack.indexOf(rule) !== -1 && startIdx !== endIdx) {
-          if(tokens[startIdx] === undefined) {
-            tokens[startIdx] = [];
-          }
-          tokens[startIdx].push([endIdx, rule, ruleArgs]);
-        }
+      this._tokensEnabled = function() {
+        return true;
       };
-      this._getTokens = function() {
-        return tokens;
+      this._addToken = function(startInput, endInput, rule, ruleArgs) {
+        if(rulesToTrack.indexOf(rule) !== -1 && startInput !== endInput) {
+          while(startInput.hasOwnProperty('target')) {
+            startInput = startInput.target;
+          }
+          while(endInput.hasOwnProperty('target')) {
+            endInput = endInput.target;
+          }
+          if(!startInput.hasOwnProperty('tokens')) {
+            startInput.tokens = [];
+          }
+          startInput.tokens.push([endInput.idx, rule, ruleArgs]);
+        }
       };
     },
     _addToken: function() {},
-    _getTokens: function() {},
+    _tokensEnabled: function() {
+      return false;
+    },
     
     _enableBranchTracking: function(rulesToTrack) {
       var branches = [];
@@ -334,25 +333,25 @@ OMeta = (function() {
     _getBranches: function() {},
     
     _apply: function(rule) {
-      var self = this,
-          memoRec = this.input.memo[rule],
+      var memo = this.input.memo,
+          memoRec = memo[rule],
           origInput = this.input;
       this._addBranch(rule, []);
       if (memoRec === undefined) {
-        var failer = new Failer();
 
-        if (this[rule] === undefined) {
-          throw 'tried to apply undefined rule "' + rule + '"';
-        }
-
-        this.input.memo[rule] = failer;
-        this.input.memo[rule] = memoRec = {
+        memo[rule] = false;
+        memoRec = {
           ans: this[rule].call(this),
           nextInput: this.input
         };
+        var failer = memo[rule];
+        memo[rule] = memoRec;
 
-        if (failer.used) {
-          var sentinel = this.input,
+        // If we tried to match this rule again without progressing the input at all
+        // then retry matching it now that we have an answer for it, this allows for rules like `A = A 'x' | 'x'`
+        if (failer === true) {
+          var self = this,
+              sentinel = this.input,
               returnTrue = function () {
                 return true;
               },
@@ -361,7 +360,7 @@ OMeta = (function() {
               },
               lookupFunc = function() {
                 self.input = origInput;
-                var ans = self[rule].call(self);
+                var ans = self[rule]();
 
                 if (self.input === sentinel) {
                   throw fail();
@@ -378,18 +377,18 @@ OMeta = (function() {
           }
         }
       }
-      else if (memoRec instanceof Failer) {
-        memoRec.used = true;
+      else if (typeof memoRec === 'boolean') {
+        memo[rule] = true;
         throw fail();
       }
       this.input = memoRec.nextInput;
-      this._addToken(origInput.idx, this.input.idx, rule, []);
+      this._addToken(origInput, this.input, rule, []);
       return memoRec.ans;
     },
 
     // note: _applyWithArgs and _superApplyWithArgs are not memoized, so they can't be left-recursive
     _applyWithArgs: function(rule) {
-      var origIdx = this.input.idx,
+      var origInput = this.input,
           ruleFn = this[rule],
           ruleFnArity = ruleFn.length,
           ruleArgs = Array.prototype.slice.call(arguments, 1, ruleFnArity + 1);
@@ -400,11 +399,11 @@ OMeta = (function() {
       var ans = ruleFnArity === 0 ?
                ruleFn.call(this) :
                ruleFn.apply(this, ruleArgs);
-      this._addToken(origIdx, this.input.idx, rule, ruleArgs);
+      this._addToken(origInput, this.input, rule, ruleArgs);
       return ans;
     },
     _superApplyWithArgs: function(recv, rule) {
-      var origIdx = recv.input.idx,
+      var origInput = recv.input,
           ruleFn = this[rule],
           ruleFnArity = ruleFn.length,
           ruleArgs = Array.prototype.slice.call(arguments, 2, ruleFnArity + 2);
@@ -415,7 +414,7 @@ OMeta = (function() {
       var ans = ruleFnArity === 0 ?
                ruleFn.call(recv) :
                ruleFn.apply(recv, ruleArgs);
-      this._addToken(origIdx, recv.input.idx, rule, ruleArgs);
+      this._addToken(origInput, recv.input, rule, ruleArgs);
       return ans;
     },
     _prependInput: function(v) {
@@ -425,21 +424,21 @@ OMeta = (function() {
     // Use this if you want to disable prepending to the input (increases performances but requires using `Rule :param1 :param2 =` style parameter binding at all times)
     _disablePrependingInput: function() {
       this._applyWithArgs = function(rule) {
-        var origIdx = this.input.idx,
+        var origInput = this.input,
             ruleArgs = Array.prototype.slice.call(arguments, 1);
         this._addBranch(rule, ruleArgs);
         var ans = this[rule].apply(this, ruleArgs);
-        this._addToken(origIdx, this.input.idx, rule, ruleArgs);
+        this._addToken(origInput, this.input, rule, ruleArgs);
         return ans;
       };
       this._superApplyWithArgs = function(recv, rule) {
-        var origIdx = recv.input.idx,
+        var origInput = recv.input,
             ruleArgs = Array.prototype.slice.call(arguments, 2);
         this._addBranch(rule, ruleArgs);
         var ans = this[rule].apply(recv, ruleArgs);
-        this._addToken(origIdx, recv.input.idx, rule, ruleArgs);
+        this._addToken(origInput, recv.input, rule, ruleArgs);
         return ans;
-      }
+      };
     },
 
     // if you want your grammar (and its subgrammars) to memoize parameterized rules, invoke this method on it:
@@ -459,7 +458,7 @@ OMeta = (function() {
         this.input = newInput;
       };
       this._applyWithArgs = function(rule) {
-        var origIdx = this.input.idx,
+        var origInput = this.input,
             ruleFn = this[rule],
             ruleFnArity = ruleFn.length,
             ruleArgs = Array.prototype.slice.call(arguments, 1, ruleFnArity + 1);
@@ -470,7 +469,7 @@ OMeta = (function() {
         var ans = ruleFnArity === 0 ?
                  ruleFn.call(this) :
                  ruleFn.apply(this, ruleArgs);
-        this._addToken(origIdx, this.input.idx, rule, ruleArgs);
+        this._addToken(origInput, this.input, rule, ruleArgs);
         return ans;
       };
     },
@@ -601,6 +600,7 @@ OMeta = (function() {
     },
     _many: function(x) {
       var self = this,
+          origInput,
           ans = arguments[1] !== undefined ? [arguments[1]] : [],
           returnTrue = function () {
             self.input = origInput;
@@ -614,7 +614,7 @@ OMeta = (function() {
           };
 
       while (true) {
-        var origInput = this.input;
+        origInput = this.input;
 
         var result = lookup(lookupFunc, returnFalse, returnTrue);
 
@@ -729,29 +729,13 @@ OMeta = (function() {
       return this._apply(r);
     },
     foreign: function(grammar, ruleName) {
-      var ans, grammarInstance = grammar._extend({input: makeOMInputStreamProxy(this.input)}),
-          localTokens, foreignTokens, tokensEnabled = this._getTokens() != null, i = 0;
-      if(tokensEnabled) { // Tokens are enabled
+      var ans,
+          grammarInstance = grammar._extend({input: makeOMInputStreamProxy(this.input)});
+      if(this._tokensEnabled()) {
         grammarInstance._enableTokens();
       }
       ans = grammarInstance._apply(ruleName);
-      if(tokensEnabled) { // Tokens are enabled
-        foreignTokens = grammarInstance._getTokens();
-        // Merge the tokens we just gained.
-        if(foreignTokens) {
-          localTokens = this._getTokens();
-          for(;i < foreignTokens.length; i++) {
-            if(foreignTokens[i]) {
-              if(localTokens[i]) {
-                localTokens[i] = localTokens[i].concat(foreignTokens[i]);
-              }
-              else {
-                localTokens[i] = foreignTokens[i]
-              }
-            }
-          }
-        }
-      }
+      // No need to merge tokens as they will automatically have been placed on the root target.
       this.input = grammarInstance.input.target;
       return ans;
     },
@@ -819,8 +803,13 @@ OMeta = (function() {
       return r;
     },
     letter: function() {
-      return this._or(function() { return this._apply("lower"); },
-                      function() { return this._apply("upper"); });
+      var r = this._apply("char");
+      this._pred(r >= "a" && r <= "z" || r >= "A" && r <= "Z");
+      return r;
+      // Note: The following code will potentially make use of more memoisations,
+      // however it will have more overhead and it is unlikely that letter/upper/lower calls will be mixed in a memoisable way.
+      // return this._or(function() { return this._apply("lower"); },
+                      // function() { return this._apply("upper"); });
     },
     letterOrDigit: function() {
       return this._or(function() { return this._apply("letter"); },
@@ -951,12 +940,68 @@ OMeta = (function() {
     createInstance: function() {
       var m = objectThatDelegatesTo(this);
       m.initialize();
+      m.setInput = function(listyObj) {
+        return this.inputHead = this.input = makeListOMInputStream(listyObj, 0);
+      };
       m.matchAll = function(listyObj, aRule) {
-        this.input = makeListOMInputStream(listyObj, 0);
+        this.setInput(listyObj);
         return this._apply(aRule);
       };
       m.match = function(obj, aRule) {
         return this.matchAll([obj], aRule);
+      };
+      // This will reuse memoisations when possible, currently only works for string inputs.
+      m.enableReusingMemoizations = function(sideEffectingRules) {
+        sideEffectingRules = sideEffectingRules || [];
+        this.setInput = function(listyObj) {
+          var input = this.inputHead;
+          if(input && typeof input.lst === 'string' && typeof listyObj === 'string') {
+            var previousText = input.lst;
+            for(var divergencePoint = 0, l = Math.min(listyObj.length, previousText.length); divergencePoint < l; divergencePoint++) {
+              if(listyObj.charAt(divergencePoint) !== previousText.charAt(divergencePoint)) {
+                break;
+              }
+            }
+            // We will have stepped one past the divergence point, so decrement to correct.
+            divergencePoint--;
+            if(divergencePoint > 0) {
+              //  If we diverge after the first character then fixup the memoisations.
+              do {
+                var memo = input.memo,
+                  memoTokens = input.tokens;
+                // For each memoised rule, delete it if it is a boolean (failer - it may now parse)
+                // or if it is a rule with side effects.
+                // or if it ends on or after the point of divergence (the nextInput is guaranteed to be wrong,
+                // even if the rule will still pass - for the ending on the divergence point then it might be a case that with the change the rule will now encompass more)
+                // There should be no need to update the memoised new inputs - as we traverse through inputs by idx they should be updated (as they should be references).
+                for(var ruleName in memo) {
+                  if(typeof memo[ruleName] === 'boolean'
+                    || sideEffectingRules.indexOf(ruleName) !== -1
+                    || memo[ruleName].nextInput.idx >= divergencePoint) {
+                    delete memo[ruleName];
+                  }
+                }
+                // Remove tokens that end on or after the divergence point, similar to memoisation
+                if(memoTokens != null) {
+                  var duplicateTokens = {};
+                  for(var i = memoTokens.length - 1; i >= 0; i--) {
+                    if(memoTokens[i][0] >= divergencePoint || duplicateTokens[memoTokens[i][1]]) {
+                      memoTokens.splice(i, 1);
+                    }
+                    else {
+                      duplicateTokens[memoTokens[i][1]] = true;
+                    }
+                  }
+                }
+                input.lst = listyObj;
+              } while(input.idx < divergencePoint && (input = input.tail()));
+              delete input.tl;
+              return this.input = this.inputHead;
+            }
+          }
+          // If we couldn't reuse memoisations for whatever reason then just create a new input.
+          return this.input = this.inputHead = makeListOMInputStream(listyObj, 0);
+        };
       };
       return m;
     }

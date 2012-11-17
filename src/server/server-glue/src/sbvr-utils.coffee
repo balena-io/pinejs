@@ -24,6 +24,7 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 	
 	transactionModel = '''
 			Term:      Integer
+			Term:      Short Text
 			Term:      Long Text
 			Term:      resource id
 				Concept type: Integer
@@ -33,31 +34,58 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 				Concept type: Long Text
 			Term:      field value
 				Concept type: Long Text
-			Term:      field type
-				Concept type: Long Text
+			Term:      placeholder
+				Concept type: Short Text
+
 			Term:      resource
 				Database Value Field: resource_id
 			Fact type: resource has resource id
+			Rule:      It is obligatory that each resource has exactly 1 resource id.
 			Fact type: resource has resource type
-			Rule:      It is obligatory that each resource has exactly 1 resource type
-			Rule:      It is obligatory that each resource has exactly 1 resource id
+			Rule:      It is obligatory that each resource has exactly 1 resource type.
+			
 			Term:      transaction
+				Database Value Field: id
+			
 			Term:      lock
-			Term:      conditional representation
-				Database Value Field: lock
+				Database Value Field: id
 			Fact type: lock is exclusive
-			Fact type: lock is shared
-			Fact type: resource is under lock
 			Fact type: lock belongs to transaction
-			Fact type: conditional representation has field name
-			Fact type: conditional representation has field value
-			Fact type: conditional representation has field type
-			Fact type: conditional representation has lock
-			Rule:      It is obligatory that each conditional representation has exactly 1 field name
-			Rule:      It is obligatory that each conditional representation has at most 1 field value
-			Rule:      It is obligatory that each conditional representation has at most 1 field type
-			Rule:      It is obligatory that each conditional representation has exactly 1 lock
-			Rule:      It is obligatory that each resource is under at most 1 lock that is exclusive'''
+			Rule:      It is obligatory that each lock belongs to exactly 1 transaction.
+			Fact type: resource is under lock
+				Synonymous Form: lock is on resource
+			Rule:      It is obligatory that each resource that is under a lock that is exclusive, is under at most 1 lock.
+
+			Term:      conditional type
+				Concept Type: Short Text
+				Definition: ADD or EDIT or DELETE
+
+			Term:      conditional resource
+				Database Value Field: id
+			Fact type: conditional resource belongs to transaction
+			Rule:      It is obligatory that each conditional resource belongs to exactly 1 transaction.
+			Fact type: conditional resource has lock
+			Rule:      It is obligatory that each conditional resource has at most 1 lock.
+			Fact type: conditional resource has resource type
+			Rule:      It is obligatory that each conditional resource has exactly 1 resource type.
+			Fact type: conditional resource has conditional type
+			Rule:      It is obligatory that each conditional resource has exactly 1 conditional type.
+			Fact type: conditional resource has placeholder
+			Rule:      It is obligatory that each conditional resource has at most 1 placeholder.
+			--Rule:      It is obligatory that each conditional resource that has a placeholder, has a conditional type that is of "ADD".
+
+			Term:      conditional field
+				Database Value Field: field_name
+			Fact type: conditional field has field name
+			Rule:      It is obligatory that each conditional field has exactly 1 field name.
+			Fact type: conditional field has field value
+			Rule:      It is obligatory that each conditional field has at most 1 field value.
+			Fact type: conditional field is of conditional resource
+			Rule:      It is obligatory that each conditional field is of exactly 1 conditional resource.
+
+			--Rule:      It is obligatory that each conditional resource that has a conditional type that is of "EDIT" or "DELETE", has a lock that is exclusive
+			--Rule:      It is obligatory that each conditional resource that has a lock, has a resource type that is of a resource that the lock is on.
+			Rule:      It is obligatory that each conditional resource that has a lock, belongs to a transaction that the lock belongs to.'''
 
 	userModel = '''
 			Term:      Hashed
@@ -93,53 +121,127 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 			bindValues.push(value)
 		return bindValues
 
-	endLock = (tx, locks, trans_id, successCallback, failureCallback) ->
-		locksCallback = createAsyncQueueCallback(
-			() ->
-				tx.executeSql('DELETE FROM "transaction" WHERE "id" = ?;', [trans_id],
-					(tx, result) ->
-						validateDB(tx, sqlModels['data'], successCallback, failureCallback)
-					(tx, error) ->
-						failureCallback(tx, [error])
+	endTransaction = (transactionID, successCallback, failureCallback) ->
+		db.transaction ((tx) ->
+			placeholders = {}
+			getLockedRow = (lockID, successCallback, failureCallback) ->
+				tx.executeSql('''SELECT r."resource_type", r."resource_id"
+								FROM "resource-is_under-lock" rl
+								JOIN "resource" r ON rl."resource" = r."id"
+								WHERE "lock" = ?;''', [lockID], successCallback, failureCallback)
+			getFieldsObject = (conditionalResourceID, clientModel, successCallback, failureCallback) ->
+				tx.executeSql('SELECT "field_name", "field_value" FROM "conditional_field" WHERE "conditional_resource" = ?;', [conditionalResourceID],
+					(tx, fields) ->
+						fieldsObject = {}
+						fieldsCallback = createAsyncQueueCallback(
+							() ->
+								successCallback(fieldsObject)
+							failureCallback
+						)
+						createPlaceholderCallback = (fieldName) ->
+							(placeholder, resolvedID) ->
+								if resolvedID == false
+									fieldsCallback.errorCallback('Placeholder failed', fieldValue)
+								else
+									fieldsObject[fieldName] = resolvedID
+									fieldsCallback.successCallback()
+						for i in [0...fields.rows.length]
+							field = fields.rows.item(i)
+							fieldName = field.field_name
+							fieldName = fieldName.replace(clientModel.resourceName + '.', '')
+							fieldValue = field.field_value
+							for modelField in clientModel.fields when modelField[1] == fieldName and modelField[0] == 'ForeignKey' and _.isNaN(Number(fieldValue))
+								fieldsCallback.addWork(1)
+								if !placeholders.hasOwnProperty(fieldValue)
+									return failureCallback('Cannot resolve placeholder', fieldValue)
+								else 
+									placeholderCallback = createPlaceholderCallback(fieldName)
+									if _.isArray(placeholders[fieldValue])
+										placeholders[fieldValue].push(placeholderCallback)
+									else
+										placeholderCallback(fieldValue, placeholders[fieldValue])
+							fieldsObject[fieldName] = fieldValue
+						fieldsCallback.endAdding()
+					failureCallback
 				)
-			(errors) -> failureCallback(tx, errors)
-		)
-
-		# get conditional representations (if exist)
-		for i in [0...locks.rows.length]
-			lock_id = locks.rows.item(i).lock
-			locksCallback.addWork(3)
-			tx.executeSql('SELECT * FROM "conditional_representation" WHERE "lock" = ?;', [lock_id], (tx, crs) ->
-				# find which resource is under this lock
-				tx.executeSql('SELECT r."resource_type", r."resource_id" FROM "resource-is_under-lock" rl JOIN "resource" r ON rl."resource" = r."id" WHERE "lock" = ?;', [lock_id], (tx, locked) ->
-					lockedRow = locked.rows.item(0)
-					asyncCallback = createAsyncQueueCallback(
-						locksCallback.successCallback
-						locksCallback.failureCallback
-					)
-					asyncCallback.addWork(3)
-					tx.executeSql('DELETE FROM "conditional_representation" WHERE "lock" = ?;', [lock_id], asyncCallback.successCallback, asyncCallback.errorCallback)
-					tx.executeSql('DELETE FROM "resource-is_under-lock" WHERE "lock" = ?;', [lock_id], asyncCallback.successCallback, asyncCallback.errorCallback)
-					requestBody = [{}]
-					if crs.rows.item(0).field_name == "__DELETE"
-						# delete said resource
-						method = 'DELETE'
-					else
-						# commit conditional_representation
-						method = 'PUT'
-						for j in [0...crs.rows.length]
-							item = crs.rows.item(j)
-							requestBody[0][item.field_name] = item.field_value
-					clientModel = clientModels['data'].resources[lockedRow.resource_type]
-					uri = '/data/' + lockedRow.resource_type + '?filter=' + clientModel.idField + ':' + lockedRow.resource_id
-					runURI(method, uri, requestBody, tx, asyncCallback.successCallback, asyncCallback.errorCallback)
-					asyncCallback.endAdding()
+			resolvePlaceholder = (placeholder, resolvedID) -> 
+				placeholderCallbacks = placeholders[placeholder]
+				placeholders[placeholder] = resolvedID
+				for placeholderCallback in placeholderCallbacks
+					placeholderCallback(placeholder, resolvedID)
+			
+			tx.executeSql('SELECT * FROM "conditional_resource" WHERE "transaction" = ?;', [transactionID], (tx, conditionalResources) ->
+				resourcesCallback = createAsyncQueueCallback(
+					() ->
+						tx.executeSql('DELETE FROM "transaction" WHERE "id" = ?;', [transactionID],
+							(tx, result) ->
+								validateDB(tx, sqlModels['data'], successCallback, failureCallback)
+							(tx, error) ->
+								failureCallback(tx, [error])
+						)
+					(errors) -> failureCallback(tx, errors)
 				)
+				do ->
+					for i in [0...conditionalResources.rows.length]
+						conditionalResource = conditionalResources.rows.item(i)
+						placeholder = conditionalResource.placeholder
+						if placeholder? and placeholder.length > 0
+							placeholders[placeholder] = []
+				
+				# get conditional resources (if exist)
+				for i in [0...conditionalResources.rows.length]
+					conditionalResource = conditionalResources.rows.item(i)
+					do(conditionalResource) ->
+						placeholder = conditionalResource.placeholder
+						lockID = conditionalResource.lock
+						doCleanup = () ->
+							cleanupCallback = createAsyncQueueCallback(resourcesCallback.successCallback, resourcesCallback.errorCallback)
+							cleanupCallback.addWork(4)
+							cleanupCallback.endAdding()
+							tx.executeSql('DELETE FROM "conditional_field" WHERE "conditional_resource" = ?;', [conditionalResource.id], cleanupCallback.successCallback, cleanupCallback.errorCallback)
+							tx.executeSql('DELETE FROM "conditional_resource" WHERE "lock" = ?;', [lockID], cleanupCallback.successCallback, cleanupCallback.errorCallback)
+							tx.executeSql('DELETE FROM "resource-is_under-lock" WHERE "lock" = ?;', [lockID], cleanupCallback.successCallback, cleanupCallback.errorCallback)
+							tx.executeSql('DELETE FROM "lock" WHERE "id" = ?;', [lockID], cleanupCallback.successCallback, cleanupCallback.errorCallback)
+							
+						resourcesCallback.addWork(1)
+						clientModel = clientModels['data'].resources[conditionalResource.resource_type]
+						uri = '/data/' + conditionalResource.resource_type
+						requestBody = [{}]
+						switch conditionalResource.conditional_type
+							when 'DELETE'
+								getLockedRow(lockID, (tx, lockedRow) ->
+									lockedRow = lockedRow.rows.item(0)
+									uri = uri + '?filter=' + clientModel.idField + ':' + lockedRow.resource_id
+									runURI('DELETE', uri, requestBody, tx, doCleanup, resourcesCallback.errorCallback)
+								)
+							when 'EDIT'
+								getLockedRow(lockID, (tx, lockedRow) ->
+									lockedRow = lockedRow.rows.item(0)
+									uri = uri + '?filter=' + clientModel.idField + ':' + lockedRow.resource_id
+									getFieldsObject(conditionalResource.id, clientModel,
+										(fields) ->
+											runURI('PUT', uri, [fields], tx, doCleanup, resourcesCallback.errorCallback)
+										resourcesCallback.errorCallback
+									)
+								)
+							when 'ADD'
+								getFieldsObject(conditionalResource.id, clientModel,
+									(fields) ->
+										runURI('POST', uri, [fields], tx,
+											(result) ->
+												resolvePlaceholder(placeholder, result.id)
+												doCleanup()
+											() ->
+												resolvePlaceholder(placeholder, false)
+												resourcesCallback.errorCallback()
+										)
+									() ->
+										resolvePlaceholder(placeholder, false)
+										resourcesCallback.errorCallback()
+								)
+				resourcesCallback.endAdding()
 			)
-
-			tx.executeSql('DELETE FROM "lock-belongs_to-transaction" WHERE "lock" = ?;', [lock_id], locksCallback.successCallback, locksCallback.errorCallback)
-			tx.executeSql('DELETE FROM "lock" WHERE "id" = ?;', [lock_id], locksCallback.successCallback, locksCallback.errorCallback)
-		locksCallback.endAdding()
+		)
 
 	# successCallback = (tx, sqlmod, failureCallback, result)
 	# failureCallback = (tx, errors)
@@ -155,13 +257,15 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 
 		asyncCallback.addWork(sqlmod.rules.length)
 		for rule in sqlmod.rules
-			tx.executeSql(rule.sql, [], do(rule) ->
-				(tx, result) ->
-					if result.rows.item(0).result in [false, 0, '0']
-						asyncCallback.errorCallback(rule.structuredEnglish)
-					else
-						asyncCallback.successCallback()
-			)
+			do(rule) ->
+				tx.executeSql(rule.sql, [],
+					(tx, result) ->
+						if result.rows.item(0).result in [false, 0, '0']
+							asyncCallback.errorCallback(rule.structuredEnglish)
+						else
+							asyncCallback.successCallback()
+					asyncCallback.errorCallback
+				)
 		asyncCallback.endAdding()
 
 	# successCallback = (tx, lfModel, slfModel, abstractSqlModel, sqlModel, clientModel)
@@ -322,8 +426,11 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 									tx.end()
 									insertID = if tree[2].query[0] == 'UpdateQuery' then values[0] else sqlResult.insertId
 									console.log('Insert ID: ', insertID)
-									res.send(201,
-										location: '/' + vocab + '/' + tree[2].resourceName + "?filter=" + tree[2].resourceName + ".id:" + insertID
+									res.json({
+											id: insertID
+										}, {
+											location: '/' + vocab + '/' + tree[2].resourceName + "?filter=" + tree[2].resourceName + ".id:" + insertID
+										}, 201
 									)
 								(tx, errors) ->
 									res.json(errors, 404)
@@ -367,36 +474,34 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 				id = getID(tree)
 				runQuery = (tx) ->
 					tx.begin()
-					db.transaction( (tx) ->
-						tx.executeSql('''
-							SELECT NOT EXISTS(
-								SELECT 1
-								FROM "resource" r
-								JOIN "resource-is_under-lock" AS rl ON rl."resource" = r."id"
-								WHERE r."resource_type" = ?
-								AND r."id" = ?
-							) AS result;''', [tree[2].resourceName, id],
-							(tx, result) ->
-								if result.rows.item(0).result in [false, 0, '0']
-									res.json([ "The resource is locked and cannot be edited" ], 404)
-								else
-									tx.executeSql(insertQuery.query, values,
-										(tx, result) -> doValidate(tx)
-										(tx) ->
-											if updateQuery?
-												values = getAndCheckBindValues(updateQuery.bindings, tree[2].values)
-												console.log(updateQuery.query, values)
-												if !_.isArray(values)
-													res.json(values, 404)
-												else
-													tx.executeSql(updateQuery.query, values,
-														(tx, result) -> doValidate(tx)
-														() -> res.send(404)
-													)
+					tx.executeSql('''
+						SELECT NOT EXISTS(
+							SELECT 1
+							FROM "resource" r
+							JOIN "resource-is_under-lock" AS rl ON rl."resource" = r."id"
+							WHERE r."resource_type" = ?
+							AND r."id" = ?
+						) AS result;''', [tree[2].resourceName, id],
+						(tx, result) ->
+							if result.rows.item(0).result in [false, 0, '0']
+								res.json([ "The resource is locked and cannot be edited" ], 404)
+							else
+								tx.executeSql(insertQuery.query, values,
+									(tx, result) -> doValidate(tx)
+									(tx) ->
+										if updateQuery?
+											values = getAndCheckBindValues(updateQuery.bindings, tree[2].values)
+											console.log(updateQuery.query, values)
+											if !_.isArray(values)
+												res.json(values, 404)
 											else
-												res.send(404)
-									)
-						)
+												tx.executeSql(updateQuery.query, values,
+													(tx, result) -> doValidate(tx)
+													() -> res.send(404)
+												)
+										else
+											res.send(404)
+								)
 					)
 				if tx?
 					runQuery(tx)
@@ -441,7 +546,7 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 				req.tree = serverURIParser.match([req.method, req.body, uri], 'Process')
 				console.log(uri, req.tree, req.body)
 			catch e
-				console.error('Failed to parse URI tree', req.url, e)
+				console.error('Failed to parse URI tree', req.url, e.message, e.stack)
 				req.tree = false
 		if req.tree == false
 			next('route')
@@ -493,40 +598,32 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 		app.get('/dev/*', parseURITree, (req, res, next) ->
 			runGet(req, res)
 		)
-		app.get('/transaction/*', parseURITree, (req, res, next) ->
-			tree = req.tree
-			if tree[2] == undefined
-				__TODO__.die()
+		app.post('/transaction/execute', (req, res, next) ->
+			id = Number(req.body.id)
+			if _.isNaN(id)
+				res.send(404)
 			else
-				if tree[2].resourceName == 'transaction'
-					{query, bindings} = AbstractSQLRules2SQL.match(tree[2].query, 'ProcessQuery')
-					values = getAndCheckBindValues(bindings, tree[2].values)
-					console.log(query, values)
-					if !_.isArray(values)
-						res.json(values, 404)
-					else
-						db.transaction( (tx) ->
-							tx.executeSql(query, values,
-								(tx, result) ->
-									if result.rows.length > 1
-										__TODO__.die()
-									res.json(
-										id: result.rows.item(0).id
-										tcURI: "/transaction"
-										lcURI: "/transaction/lock"
-										tlcURI: "/transaction/lock-belongs_to-transaction"
-										rcURI: "/transaction/resource"
-										lrcURI: "/transaction/resource-is_under-lock"
-										slcURI: "/transaction/lock-is_shared"
-										xlcURI: "/transaction/lock-is_exclusive"
-										ctURI: "/transaction/execute/" + result.rows.item(0).id
-									)
-								() ->
-									res.send(404)
-							)
-						)
-				else
-					runGet(req, res)
+				endTransaction(id, (tx) ->
+					res.send(200)
+				, (tx, errors) ->
+					res.json(errors, 404)
+				)
+		)
+		app.get('/transaction', (req, res, next) ->
+			res.json(
+				transactionURI: "/transaction/transaction"
+				conditionalResourceURI: "/transaction/conditional_resource"
+				conditionalFieldURI: "/transaction/conditional_field"
+				lockURI: "/transaction/lock"
+				transactionLockURI: "/transaction/lock-belongs_to-transaction"
+				resourceURI: "/transaction/resource"
+				lockResourceURI: "/transaction/resource-is_under-lock"
+				exclusiveLockURI: "/transaction/lock-is_exclusive"
+				commitTransactionURI: "/transaction/execute"
+			)
+		)
+		app.get('/transaction/*', parseURITree, (req, res, next) ->
+			runGet(req, res)
 		)
 		app.post('/transaction/*', parseURITree, (req, res, next) ->
 			runPost(req, res)
@@ -536,22 +633,6 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 		)
 		app.del('/transaction/*', parseURITree, (req, res, next) ->
 			runDelete(req, res)
-		)
-		app.post('/transaction/execute/*', (req, res, next) ->
-			# id = req.id
-			id = req.url.split('/')
-			id = id[id.length-1]
-
-			# get all locks of transaction
-			db.transaction ((tx) ->
-				tx.executeSql('SELECT * FROM "lock-belongs_to-transaction" WHERE "transaction" = ?;', [id], (tx, locks) ->
-					endLock(tx, locks, id, (tx) ->
-						res.send(200)
-					, (tx, errors) ->
-						res.json(errors, 404)
-					)
-				)
-			)
 		)
 
 	return exports

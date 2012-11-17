@@ -1,10 +1,23 @@
 define(['codemirror'], function() {
-	return function(ometaGrammar, modeName, mimeType) {
-		var getGrammar = function() {
+	return function(ometaGrammar, modeName, mimeType, options) {
+		options = options || {};
+		options = {
+			disableReusingMemoizations: options.disableReusingMemoizations || false,
+			disableVisibleOnlyHighlighting: options.disableVisibleOnlyHighlighting || false
+		};
+		var getGrammar = (function() {
 				var grammar = ometaGrammar.createInstance();
+				if(!options.disableReusingMemoizations) {
+					grammar.enableReusingMemoizations(grammar._sideEffectingRules);
+				}
 				grammar._enableTokens();
-				return grammar;
-			},
+				return function() {
+					if(grammar.reset) {
+						grammar.reset();
+					}
+					return grammar;
+				};
+			})(),
 			removeOldTokens = function(state) {
 				for(var i = 0; i < state.currentTokens.length; i++) {
 					if(state.currentTokens[i][0] <= state.index) {
@@ -12,6 +25,17 @@ define(['codemirror'], function() {
 						i--;
 					}
 				}
+			},
+			addNewTokens = function(state, tokens) {
+				// Check current and backtrack to add available tokens
+				for(var i = state.index; i >= state.previousIndex; i--) {
+					if(tokens[i] != null) {
+						state.currentTokens = state.currentTokens.concat(tokens[i]);
+					}
+				}
+				state.previousIndex = state.index;
+				// Remove any useless tokens we may have just added.
+				removeOldTokens(state);
 			},
 			getNextToken = function(state) {
 				removeOldTokens(state);
@@ -24,29 +48,62 @@ define(['codemirror'], function() {
 				return token;
 			};
 		CodeMirror.defineMode(modeName, function(config, mode) {
-			var previousText = '',
-				tokens = [],
-				checkForNewText = function() {
-					var ometaEditor = mode.getOMetaEditor();
-					if(ometaEditor == null) {
-						return;
-					}
-					var text = ometaEditor.getValue();
-					if(text != previousText) {
-						previousText = text;
-						var grammar = getGrammar();
-						try {
-							grammar.matchAll(text, 'Process');
+			var tokens = [],
+				checkForNewText = (function() {
+					var previousText = '',
+						prevLastVisibleLine = 0,
+						buildTokens = function(input) { 
+							var tokens = [];
+							try {
+								do {
+									tokens[input.idx] = input.tokens;
+								} while(input = input.tail());
+							}
+							catch(e) {
+								// Ignore the error, it's due to hitting the end of input.
+							}
+							return tokens;
+						};
+					return function() {
+						var ometaEditor = mode.getOMetaEditor();
+						if(ometaEditor == null) {
+							return;
 						}
-						catch(e) {
-							// An error here means we failed to parse the text,
-							// we can ignore it though as we just want to highlight what is valid,
-							// after all they're probably just in the middle of typing.
-							// console.error(e, e.stack);
+						var text = ometaEditor.getValue(),
+							lastVisibleLine = ometaEditor.getViewport().to;
+						// We only regenerate tokens if the text has changed, or the last visible line is further down than before.
+						if(text != previousText || (!options.disableVisibleOnlyHighlighting && lastVisibleLine > prevLastVisibleLine)) {
+							previousText = text;
+							if(!options.disableVisibleOnlyHighlighting) {
+								prevLastVisibleLine = lastVisibleLine;
+								var lastVisibleIndex = 0;
+								for(var i = 0; i < lastVisibleLine; i++) {
+									lastVisibleIndex = text.indexOf('\n', lastVisibleIndex);
+									if(lastVisibleIndex === -1) {
+										// We were on the last line so found no newline character, which means we just use the full text rather than partial.
+										lastVisibleIndex = text.length;
+										break;
+									}
+									// Increment the pointer to get to the start of the next line.
+									lastVisibleIndex++;
+								}
+								// Trim the text to only what is visible before parsing it.
+								text = text.slice(0, lastVisibleIndex);
+							}
+							var grammar = getGrammar();
+							try {
+								grammar.matchAll(text, 'Process');
+							}
+							catch(e) {
+								// An error here means we failed to parse the text,
+								// we can ignore it though as we just want to highlight what is valid,
+								// after all they're probably just in the middle of typing.
+								// console.error(e, e.stack);
+							}
+							tokens = buildTokens(grammar.inputHead);
 						}
-						tokens = grammar._getTokens();
 					}
-				},
+				})(),
 				eol = function(state, stream) {
 					if(stream && !stream.eol()) {
 						return;
@@ -95,15 +152,7 @@ define(['codemirror'], function() {
 						checkForNewText();
 					}
 					
-					// Check current and backtrack to add available tokens
-					for(var i = state.index; i >= state.previousIndex; i--) {
-						if(tokens[i] != null) {
-							state.currentTokens = state.currentTokens.concat(tokens[i]);
-						}
-					}
-					state.previousIndex = state.index;
-					// Remove any useless tokens we may have just added.
-					removeOldTokens(state);
+					addNewTokens(state, tokens);
 					
 					if(state.currentTokens.length > 0) {
 						return applyTokens(stream, state);
@@ -124,6 +173,7 @@ define(['codemirror'], function() {
 					return 0; // We don't indent as we currently have no way of asking the grammar about indentation.
 				},
 				
+				// This is used by hinter to provide hints for the grammar.
 				getGrammar: function() {
 					return ometaGrammar.createInstance();
 				}

@@ -84,7 +84,7 @@ define(['sbvr-parser/SBVRLibs', 'ometa-core'], function(SBVRLibs) {
 			),
 		AttrSynonymousForm :factType =
 			:synForm
-			AddFactType(synForm.slice(0, -1), factType.slice(1))
+			AddFactType(synForm, factType.slice(1))
 			-> synForm,
 
 		StructuredEnglish
