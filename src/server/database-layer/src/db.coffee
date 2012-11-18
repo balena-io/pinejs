@@ -185,8 +185,7 @@ define(["database-layer/SQLBinds"], (SQLBinds) ->
 							_tx.executeSql(sql, bindings, callback, errorCallback)
 					begin: ->
 					end: ->
-					# We need to use _tx here rather than this as it does not work when we use this
-					# TODO: Investigate why it breaks with this
+					# Rollbacks in WebSQL are done by having a SQL statement error, and not having an error callback (or having one that returns false).
 					rollback: -> _tx.executeSql("DROP TABLE '__Fo0oFoo'")
 					tableList: (callback, errorCallback, extraWhereClause = '') ->
 						if extraWhereClause != ''
