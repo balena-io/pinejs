@@ -1,6 +1,6 @@
 require(['utils/createAsyncQueueCallback'], (createAsyncQueueCallback) ->
 	runTrans = (rootElement) ->
-		actions = $(".action")
+		actions = $(".action:has(#__actype[value!=view])")
 		if actions.size() > 0
 			# get 'trans' action resource to extract the URIs
 			serverRequest("GET", '/transaction', {}, null, (statusCode, transURIs, headers) ->
@@ -75,8 +75,6 @@ require(['utils/createAsyncQueueCallback'], (createAsyncQueueCallback) ->
 					actions.each((index) ->
 						$this = $(this)
 						action = $this.children("#__actype").val()
-						if action == 'view'
-							return
 						locksCallback.addWork(1)
 						resourceType = $this.children("#__type").val()
 						resourceID = $this.children("#__id").val()
