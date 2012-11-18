@@ -12,6 +12,8 @@ define(["database-layer/SQLBinds"], (SQLBinds) ->
 					rows:
 						length: rows?.length or 0
 						item: (i) -> rows[i]
+						forEach: (iterator, thisArg) ->
+							rows.forEach(iterator, thisArg)
 					insertId: rows[0]?.id || null
 				}
 			class Tx
@@ -62,11 +64,13 @@ define(["database-layer/SQLBinds"], (SQLBinds) ->
 			
 		exports.mysql = (options) ->
 			mysql = new requirejs('mysql')
-			result = (rows) ->
+			createResult = (rows) ->
 				return {
 					rows:
 						length: rows?.length or 0
 						item: (i) -> rows[i]
+						forEach: (iterator, thisArg) ->
+							rows.forEach(iterator, thisArg)
 					insertId: rows.insertId || null
 				}
 			class Tx
@@ -88,7 +92,7 @@ define(["database-layer/SQLBinds"], (SQLBinds) ->
 									errorCallback?(thisTX, err)
 									console.log(sql, bindings, err)
 								else
-									callback?(thisTX, result(res))
+									callback?(thisTX, createResult(res))
 							finally
 								# We have finished a statement so remove it.
 								currentlyQueuedStatements--
@@ -113,14 +117,16 @@ define(["database-layer/SQLBinds"], (SQLBinds) ->
 			}
 				
 		exports.sqlite = (filepath) ->
-			sqlite3 = requirejs('sqlite3').verbose();
-			_db = new sqlite3.Database(filepath);
-			result = (rows) ->
+			sqlite3 = requirejs('sqlite3').verbose()
+			_db = new sqlite3.Database(filepath)
+			createResult = (rows) ->
 				return {
-					rows: {
+					rows:
 						length: rows?.length or 0
 						item: (i) -> rows[i]
-					}
+						forEach: (iterator, thisArg) ->
+							rows.forEach(iterator, thisArg)
+					insertId: rows.insertId || null
 				}
 			tx = {
 				executeSql: (sql, bindings, callback, errorCallback) ->
@@ -130,7 +136,7 @@ define(["database-layer/SQLBinds"], (SQLBinds) ->
 							errorCallback? thisTX, err
 							console.log(sql, err)
 						else
-							callback? thisTX, result(rows)
+							callback? thisTX, createResult(rows)
 				begin: -> this.executeSql('BEGIN;')
 				end: -> this.executeSql('END;')
 				rollback: -> this.executeSql('ROLLBACK;')
@@ -148,6 +154,16 @@ define(["database-layer/SQLBinds"], (SQLBinds) ->
 	else
 		exports.websql = (databaseName) ->
 			_db = openDatabase(databaseName, "1.0", "rulemotion", 2 * 1024 * 1024)
+			createResult = (result) ->
+				return {
+					rows:
+						length: result.rows.length
+						item: (i) -> result.rows.item(i)
+						forEach: (iterator, thisArg) ->
+							for i in [0...result.rows.length]
+								iterator.call(thisArg, result.rows.item(i), i, result.rows)
+					insertId: -> result.insertId
+				}
 			tx = (_tx) ->
 				return {
 					executeSql: (sql, bindings, callback, errorCallback) ->
@@ -161,7 +177,7 @@ define(["database-layer/SQLBinds"], (SQLBinds) ->
 							if callback?
 								callback = do(callback) ->
 									(_tx, _results) ->
-										callback(thisTX, _results)
+										callback(thisTX, createResult(_results))
 							errorCallback = do(errorCallback) ->
 								(_tx, _err) ->
 									console.log(sql, bindings, _err, stackTrace.stack)
