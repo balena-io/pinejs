@@ -2,7 +2,7 @@
 if(typeof ENV_NODEJS === 'undefined') ENV_NODEJS = typeof process !== 'undefined'
 `
 
-define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQL2CLF', 'data-server/ServerURIParser', 'utils/createAsyncQueueCallback', 'underscore'], (AbstractSQLRules2SQL, AbstractSQL2CLF, ServerURIParser, createAsyncQueueCallback) ->
+define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQL2CLF', 'data-server/ServerURIParser', 'async', 'underscore'], (AbstractSQLRules2SQL, AbstractSQL2CLF, ServerURIParser) ->
 	exports = {}
 	db = null
 
@@ -133,22 +133,27 @@ define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQL2CLF', '
 		)
 		app.put('/importdb', isAuthed, (req, res, next) ->
 			queries = req.body.split(";")
-			asyncCallback = createAsyncQueueCallback(
-				() -> res.send(200)
-				() -> res.send(404)
+			db.transaction((tx) ->
+				async.forEach(queries,
+					(query, callback) ->
+						query = query.trim()
+						if query.length > 0
+							tx.executeSql(query, [],
+								-> callback()
+								(tx, err) -> callback([query, err])
+							)
+					(err) ->
+						if err?
+							console.error(err)
+							res.send(404)
+						else
+							res.send(200)
+				)
 			)
-			db.transaction (tx) ->
-				for query in queries when query.trim().length > 0
-					do (query) ->
-						asyncCallback.addWork()
-						tx.executeSql query, [], asyncCallback.successCallback, (tx, error) ->
-							console.log(query)
-							console.log(error)
-							asyncCallback.errorCallback
-				asyncCallback.endAdding()
 		)
 		app.get('/exportdb', isAuthed, (req, res, next) ->
 			if ENV_NODEJS
+				# TODO: This is postgres rather than node specific, so the check should be updated to reflect that.
 				env = process.env
 				env['PGPASSWORD'] = '.'
 				req = require
@@ -157,80 +162,115 @@ define(['sbvr-compiler/AbstractSQLRules2SQL', 'sbvr-compiler/AbstractSQL2CLF', '
 					res.json(stdout)
 				)
 			else
-				db.transaction (tx) ->
+				db.transaction((tx) ->
 					tx.tableList(
 						(tx, result) ->
 							exported = ''
-							asyncCallback = createAsyncQueueCallback(
-								() -> res.json(exported)
-								() -> res.send(404)
+							async.forEach(result.rows,
+								(currRow, callback) ->
+									tableName = currRow.name
+									exported += 'DROP TABLE IF EXISTS "' + tableName + '";\n'
+									exported += currRow.sql + ";\n"
+									tx.executeSql('SELECT * FROM "' + tableName + '";', [], 
+										(tx, result) ->
+											insQuery = ''
+											result.rows.forEach((currRow) ->
+												notFirst = false
+												insQuery += 'INSERT INTO "' + tableName + '" ('
+												valQuery = ''
+												for own propName of currRow
+													if notFirst
+														insQuery += ","
+														valQuery += ","
+													else
+														notFirst = true
+													insQuery += '"' + propName + '"'
+													valQuery += "'" + currRow[propName] + "'"
+												insQuery += ") values (" + valQuery + ");\n"
+											)
+											exported += insQuery
+											callback()
+										(tx, err) -> callback(err)
+									)
+								(err) ->
+									if err?
+										console.error(err)
+										res.send(404)
+									else
+										res.json(exported)
 							)
-							asyncCallback.addWork(result.rows.length)
-							for i in [0...result.rows.length]
-								tbn = result.rows.item(i).name
-								exported += 'DROP TABLE IF EXISTS "' + tbn + '";\n'
-								exported += result.rows.item(i).sql + ";\n"
-								do (tbn) ->
-									db.transaction (tx) ->
-										tx.executeSql('SELECT * FROM "' + tbn + '";', [], 
-											(tx, result) ->
-												insQuery = ""
-												for i in [0...result.rows.length]
-													currRow = result.rows.item(i)
-													notFirst = false
-													insQuery += 'INSERT INTO "' + tbn + '" ('
-													valQuery = ''
-													for own propName of currRow
-														if notFirst
-															insQuery += ","
-															valQuery += ","
-														else
-															notFirst = true
-														insQuery += '"' + propName + '"'
-														valQuery += "'" + currRow[propName] + "'"
-													insQuery += ") values (" + valQuery + ");\n"
-												exported += insQuery
-												asyncCallback.successCallback()
-											asyncCallback.errorCallback
-										)
-							asyncCallback.endAdding()
 						null
 						"name NOT LIKE '%_buk'"
 					)
+				)
 		)
 		app.post('/backupdb', isAuthed, serverIsOnAir, (req, res, next) ->
-			db.transaction (tx) ->
+			db.transaction((tx) ->
 				tx.tableList(
 					(tx, result) ->
-						asyncCallback = createAsyncQueueCallback(
-							() -> res.send(200)
-							() -> res.send(404)
+						async.forEach(result.rows,
+							(currRow, callback) ->
+								tableName = currRow.name
+								async.parallel([
+										(callback) ->
+											tx.dropTable(tableName + '_buk', true,
+												-> callback()
+												(tx, err) -> callback(err)
+											)
+										(callback) ->
+											tx.executeSql('ALTER TABLE "' + tableName + '" RENAME TO "' + tableName + '_buk";', [],
+												-> callback()
+												(tx, err) -> callback(err)
+											)
+									], callback
+								)
+							(err) ->
+								if err?
+									console.error(err)
+									res.send(404)
+								else
+									res.send(200)
 						)
-						asyncCallback.addWork(result.rows.length * 2)
-						for i in [0...result.rows.length]
-							tbn = result.rows.item(i).name
-							tx.dropTable(tbn + '_buk', true, asyncCallback.successCallback, asyncCallback.errorCallback)
-							tx.executeSql('ALTER TABLE "' + tbn + '" RENAME TO "' + tbn + '_buk";', asyncCallback.successCallback, asyncCallback.errorCallback)
-					() -> res.send(404)
+					(tx, err) ->
+						console.error(err)
+						res.send(404)
 					"name NOT LIKE '%_buk'"
 				)
+			)
 		)
 		app.post('/restoredb', isAuthed, serverIsOnAir, (req, res, next) ->
-			db.transaction (tx) ->
+			db.transaction((tx) ->
 				tx.tableList(
 					(tx, result) ->
-						asyncCallback = createAsyncQueueCallback(
-							() -> res.send(200)
-							() -> res.send(404)
+						async.forEach(result.rows,
+							(currRow, callback) ->
+								tableName = currRow.name
+								async.parallel([
+										(callback) ->
+											tx.dropTable(tableName[0...-4], true,
+												-> callback()
+												(tx, err) -> callback(err)
+											)
+										(callback) ->
+											tx.executeSql('ALTER TABLE "' + tableName + '" RENAME TO "' + tableName[0...-4] + '";', [],
+												-> callback()
+												(tx, err) -> callback(err)
+											)
+									], callback
+								)
+							(err) ->
+								if err?
+									console.error(err)
+									res.send(404)
+								else
+									res.send(200)
 						)
-						asyncCallback.addWork(result.rows.length * 2)
-						for i in [0...result.rows.length]
-							tbn = result.rows.item(i).name
-							tx.dropTable(tbn[0...-4], true, asyncCallback.successCallback, asyncCallback.errorCallback)
-							tx.executeSql('ALTER TABLE "' + tbn + '" RENAME TO "' + tbn[0...-4] + '";', asyncCallback.successCallback, asyncCallback.errorCallback)
-					() -> res.send(404)
+					(tx, err) ->
+						console.error(err)
+						res.send(404)
 					"name LIKE '%_buk'"
 				)
+			)
 		)
 		
 		app.get('/ui/*', uiModelLoaded, sbvrUtils.parseURITree, (req, res, next) ->
