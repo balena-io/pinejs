@@ -50,15 +50,14 @@ require(['utils/createAsyncQueueCallback'], (createAsyncQueueCallback) ->
 											serverRequest("POST", transURIs.conditionalResourceURI, {}, sendData,
 												(statusCode, condResource, headers) ->
 													fieldsCallback = createAsyncQueueCallback(asyncCallback.successCallback, asyncCallback.errorCallback)
-													for field in fields
-														for own key, value of field
-															fieldData = [
-																conditional_resource: condResource.id
-																field_name: key 
-																field_value: value
-															]
-															fieldsCallback.addWork(1)
-															serverRequest("POST", transURIs.conditionalFieldURI, {}, fieldData, fieldsCallback.successCallback, fieldsCallback.errorCallback)
+													for fieldName, fieldValue of fields
+														fieldData = [
+															conditional_resource: condResource.id
+															field_name: fieldName 
+															field_value: fieldValue
+														]
+														fieldsCallback.addWork(1)
+														serverRequest("POST", transURIs.conditionalFieldURI, {}, fieldData, fieldsCallback.successCallback, fieldsCallback.errorCallback)
 													fieldsCallback.endAdding()
 												asyncCallback.errorCallback
 											)
@@ -82,13 +81,10 @@ require(['utils/createAsyncQueueCallback'], (createAsyncQueueCallback) ->
 							when 'edit', 'add'
 								addEditCallback = (lockID) ->
 									inputs = $(":input:not(:submit)", $this)
-									o = $.map(inputs, (n, i) ->
-										if n.id[0...2] != "__"
-											ob = {}
-											ob[n.id] = $(n).val()
-											return ob
-									)
-									locksCallback.successCallback(resourceType, action, lockID, o)
+									fields = {}
+									for input in inputs when input.id[0...2] != "__"
+										fields[input.id] = $(input).val()
+									locksCallback.successCallback(resourceType, action, lockID, fields)
 								if action == 'edit'
 									lockResource(resourceType, resourceID, transURIs, transactionID, addEditCallback, locksCallback.errorCallback)
 								else if action == 'add'
