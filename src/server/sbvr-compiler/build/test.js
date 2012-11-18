@@ -127,6 +127,7 @@ requirejs.config({
 	paths: {
 		'ometa-core': '../../../external/ometa-js/lib/ometajs/core',
 		'underscore': '../../../external/underscore/underscore.min',
+		'async': '../../../external/async/async.min',
 		'Prettify': '../../../client/prettify-ometa/src/Prettify',
 		'sbvr-compiler': '../src/',
 		'sbvr-parser': '../../../common/sbvr-parser/src/'

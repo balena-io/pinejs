@@ -65,6 +65,7 @@ if(typeof DEV === 'undefined') DEV = true;
 			'js-beautify':				rootPath + 'external/beautify/beautify',
 			'qunit':					rootPath + 'external/qunit/qunit',
 			'underscore':				rootPath + 'external/underscore/underscore.min',
+			'async':					rootPath + 'external/async/async.min',
 			'inflection':				rootPath + 'external/inflection/inflection',
 			'json2':					rootPath + 'external/json2/json2',
 			'downloadify':				rootPath + 'external/downloadify',
