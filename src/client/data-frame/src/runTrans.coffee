@@ -1,4 +1,4 @@
-require(['utils/createAsyncQueueCallback'], (createAsyncQueueCallback) ->
+require(['async'], () ->
 	runTrans = (rootElement) ->
 		actions = $(".action:has(#__actype[value!=view])")
 		if actions.size() > 0
@@ -7,110 +7,117 @@ require(['utils/createAsyncQueueCallback'], (createAsyncQueueCallback) ->
 				# create transaction resource
 				serverRequest('POST', transURIs.transactionURI, {}, null, (statusCode, transaction, headers) ->
 					transactionID = transaction.id
-					lockCount = 0
-					data = []
-					locksCallback = createAsyncQueueCallback(
-						(data) -> 
-							asyncCallback = createAsyncQueueCallback(
-									() -> 
-										serverRequest("POST", transURIs.commitTransactionURI, null, {id: transactionID},
-											(statusCode, result, headers) ->
-												location.hash = "#!/data/"
-											(statusCode, errors) -> 
-												console.error(statusCode, errors)
-										)
-									(errors) -> 
-										console.error(errors)
-								)
-							for dataElement in data
-								sendData = [
-									transaction: transactionID
-									lock: null
-									resource_type: dataElement[0]
-									conditional_type: ''
-									placeholder: ''
-								]
-								switch dataElement[1]
-									when "del"
-										sendData[0].conditional_type = 'DELETE'
-										sendData[0].lock = dataElement[2]
-									when 'edit'
-										sendData[0].conditional_type = 'EDIT'
-										sendData[0].lock = dataElement[2]
-									when 'add'
-										sendData[0].conditional_type = 'ADD'
-										sendData[0].placeholder = dataElement[2]
-								asyncCallback.addWork(1)
-								switch dataElement[1]
-									when "del"
-										serverRequest("POST", transURIs.conditionalResourceURI, {}, sendData, asyncCallback.successCallback, asyncCallback.errorCallback)
-									when 'edit', 'add'
-										fields = dataElement[3]
-										do (fields) ->
-											serverRequest("POST", transURIs.conditionalResourceURI, {}, sendData,
-												(statusCode, condResource, headers) ->
-													fieldsCallback = createAsyncQueueCallback(asyncCallback.successCallback, asyncCallback.errorCallback)
-													for fieldName, fieldValue of fields
-														fieldData = [
-															conditional_resource: condResource.id
-															field_name: fieldName 
-															field_value: fieldValue
-														]
-														fieldsCallback.addWork(1)
-														serverRequest("POST", transURIs.conditionalFieldURI, {}, fieldData, fieldsCallback.successCallback, fieldsCallback.errorCallback)
-													fieldsCallback.endAdding()
-												asyncCallback.errorCallback
-											)
-									else
-										console.error('Unknown transaction op', dataElement[1])
-							asyncCallback.endAdding()
-						(errors) -> 
-							console.error(errors)
-						(resourceType, op, lockOrPlaceholderID = null, fields = {}) ->
-							return [ resourceType, op, lockOrPlaceholderID, fields ]
-					)
 					
 					# find and lock relevant resources (l,t-l,r-l)
-					actions.each((index) ->
-						$this = $(this)
-						action = $this.children("#__actype").val()
-						locksCallback.addWork(1)
-						resourceType = $this.children("#__type").val()
-						resourceID = $this.children("#__id").val()
-						switch action
-							when 'edit', 'add'
-								addEditCallback = (lockID) ->
+					async.map(actions.toArray(),
+						(instance, callback) ->
+							$this = $(instance)
+							action = $this.children("#__actype").val()
+							resourceType = $this.children("#__type").val()
+							resourceID = $this.children("#__id").val()
+							switch action
+								when 'edit', 'add'
 									inputs = $(":input:not(:submit)", $this)
-									fields = {}
+									fields = []
 									for input in inputs when input.id[0...2] != "__"
-										fields[input.id] = $(input).val()
-									locksCallback.successCallback(resourceType, action, lockID, fields)
-								if action == 'edit'
-									lockResource(resourceType, resourceID, transURIs, transactionID, addEditCallback, locksCallback.errorCallback)
-								else if action == 'add'
-									addEditCallback(resourceID)
-							when 'del'
-								lockResource(resourceType, resourceID, transURIs, transactionID,
-									(lockID) ->
-										locksCallback.successCallback(resourceType, action, lockID)
-									locksCallback.errorCallback
-								)
+										fields.push(
+											name: input.id
+											value: $(input).val()
+										)
+									if action == 'edit'
+										lockResource(resourceType, resourceID, transURIs, transactionID, (err, lockID) ->
+											if err?
+												callback(err)
+											else
+												callback(null, [resourceType, action, lockID, fields])
+										)
+									else
+										callback(null, [resourceType, action, resourceID, fields])
+								when 'del'
+									lockResource(resourceType, resourceID, transURIs, transactionID, (err, lockID) ->
+										if err?
+											callback(err)
+										else
+											callback(null, [resourceType, action, lockID])
+									)
+								else
+									callback(['Unknown transaction action', action])
+						(err, data) ->
+							if err?
+								console.error(err)
+								# TODO: Should probably clean up the transaction
 							else
-								locksCallback.errorCallback('Unknown transaction action', action)
+								async.forEach(data,
+									(dataElement, callback) ->
+										sendData = [
+											transaction: transactionID
+											lock: null
+											resource_type: dataElement[0]
+											conditional_type: ''
+											placeholder: ''
+										]
+										switch dataElement[1]
+											when "del"
+												sendData[0].conditional_type = 'DELETE'
+												sendData[0].lock = dataElement[2]
+											when 'edit'
+												sendData[0].conditional_type = 'EDIT'
+												sendData[0].lock = dataElement[2]
+											when 'add'
+												sendData[0].conditional_type = 'ADD'
+												sendData[0].placeholder = dataElement[2]
+										switch dataElement[1]
+											when "del"
+												serverRequest("POST", transURIs.conditionalResourceURI, {}, sendData,
+													-> callback()
+													-> callback(arguments)
+												)
+											when 'edit', 'add'
+												fields = dataElement[3]
+												serverRequest("POST", transURIs.conditionalResourceURI, {}, sendData,
+													(statusCode, condResource, headers) ->
+														async.forEach(fields,
+															(field, callback) ->
+																fieldData = [
+																	conditional_resource: condResource.id
+																	field_name: field.name 
+																	field_value: field.value
+																]
+																serverRequest("POST", transURIs.conditionalFieldURI, {}, fieldData,
+																	-> callback()
+																	-> callback(arguments)
+																)
+															callback
+														)
+													-> callback(arguments)
+												)
+											else
+												callback(['Unknown transaction op', dataElement[1]])
+									(err) ->
+										if err?
+											console.error(err)
+										else
+											serverRequest("POST", transURIs.commitTransactionURI, null, {id: transactionID},
+												(statusCode, result, headers) ->
+													location.hash = "#!/data/"
+												(statusCode, errors) -> 
+													console.error(statusCode, errors)
+											)
+								)
 					)
-					locksCallback.endAdding(1)
 				)
 			)
 
 
-		lockResource = (resourceType, resourceID, transURIs, transactionID, successCallback, failureCallback) ->
+		lockResource = (resourceType, resourceID, transURIs, transactionID, callback) ->
+			failureCallback = -> callback(arguments)
 			o = [ 'is exclusive': true, transaction: transactionID ]
 			serverRequest("POST", transURIs.lockURI, {}, o, ((statusCode, lock, headers) ->
 				o = [ resource_id: parseInt(resourceID, 10), resource_type: resourceType]
 				serverRequest("POST", transURIs.resourceURI, {}, o, ((statusCode, resource, headers) ->
 					o = [ resource: resource.id, lock: lock.id ]
 					serverRequest("POST", transURIs.lockResourceURI, {}, o, ((statusCode, result, headers) ->
-						successCallback(lock.id)
+						callback(null, lock.id)
 					), failureCallback)
 				), failureCallback)
 			), failureCallback)
