@@ -397,6 +397,8 @@ define(['data-frame/ClientURIUnparser', 'ejs', 'data-frame/widgets', 'async'], (
 								callback('Error fetching ' + foreignKey)
 							else if fetchedResults[foreignKey] != true
 								fetchedResults[foreignKey].push(callback)
+							else
+								callback()
 					(err) ->
 						if(err)
 							console.error(err)
