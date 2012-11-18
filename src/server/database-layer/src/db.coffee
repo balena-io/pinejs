@@ -155,6 +155,11 @@ define(["database-layer/SQLBinds"], (SQLBinds) ->
 		exports.websql = (databaseName) ->
 			_db = openDatabase(databaseName, "1.0", "rulemotion", 2 * 1024 * 1024)
 			createResult = (result) ->
+				try
+					insertId = result.insertId
+				catch e
+					insertId = null
+					# Ignore the potential DOM exception.
 				return {
 					rows:
 						length: result.rows.length
@@ -162,7 +167,7 @@ define(["database-layer/SQLBinds"], (SQLBinds) ->
 						forEach: (iterator, thisArg) ->
 							for i in [0...result.rows.length]
 								iterator.call(thisArg, result.rows.item(i), i, result.rows)
-					insertId: -> result.insertId
+					insertId: insertId
 				}
 			tx = (_tx) ->
 				return {
