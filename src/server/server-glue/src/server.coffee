@@ -93,7 +93,6 @@ if ENV_NODEJS
 			'ejs':						rootPath + 'external/ejs/ejs.min',
 			
 			'sbvr-parser':				rootPath + 'common/sbvr-parser' + buildType,
-			'utils':					rootPath + 'common/utils' + buildType,
 			
 			'sbvr-frame':				rootPath + 'client/sbvr-frame' + buildType,
 			'data-frame':				rootPath + 'client/data-frame' + buildType,
