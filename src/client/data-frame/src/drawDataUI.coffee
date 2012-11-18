@@ -620,7 +620,8 @@ define(['data-frame/ClientURIUnparser', 'ejs', 'data-frame/widgets', 'async'], (
 												factTypeCollection.closeURI = rootURI + factTypeCollection.closeHash
 												renderResource(0, 
 													(index, html) ->
-														callback(null, html)
+														factTypeCollection.html = html
+														callback(null, factTypeCollection)
 													rootURI, not even, expandedTree, cmod)
 											else
 												newb = [ 'collection', [ resourceName ], [ "mod" ] ]
