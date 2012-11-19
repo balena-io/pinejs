@@ -84,7 +84,7 @@ define(['sbvr-parser/SBVRParser', 'sbvr-compiler/LF2AbstractSQLPrep', 'sbvr-comp
 			Rule:      It is obligatory that each conditional field is of exactly 1 conditional resource.
 
 			--Rule:      It is obligatory that each conditional resource that has a conditional type that is of "EDIT" or "DELETE", has a lock that is exclusive
-			--Rule:      It is obligatory that each conditional resource that has a lock, has a resource type that is of a resource that the lock is on.
+			Rule:      It is obligatory that each conditional resource that has a lock, has a resource type that is of a resource that the lock is on.
 			Rule:      It is obligatory that each conditional resource that has a lock, belongs to a transaction that the lock belongs to.'''
 
 	userModel = '''
