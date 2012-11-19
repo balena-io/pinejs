@@ -512,7 +512,7 @@ define(['data-frame/ClientURIUnparser', 'ejs', 'data-frame/widgets', 'async'], (
 							rowCallback('Errors: ' + errors)
 					)
 
-		renderResource = (idx, rowCallback, rootURI, even, ftree, cmod) ->
+		renderResource = (rowCallback, rootURI, even, ftree, cmod) ->
 			currentLocation = ftree.getCurrentLocation()
 			about = ftree.getAbout()
 			resourceType = "Term"
@@ -577,7 +577,7 @@ define(['data-frame/ClientURIUnparser', 'ejs', 'data-frame/widgets', 'async'], (
 													expandedTree = ftree.clone().descend(about, instanceID)
 													resourceCollection.closeHash = '#!/' + expandedTree.getNewURI("del")
 													resourceCollection.closeURI = rootURI + resourceCollection.deleteHash
-													renderResource(0,
+													renderResource(
 														(index, html) -> 
 															resourceCollection.html = html
 															callback()
@@ -604,7 +604,7 @@ define(['data-frame/ClientURIUnparser', 'ejs', 'data-frame/widgets', 'async'], (
 										break
 								async.map(addTrees,
 									(addTree, callback) ->
-										renderResource(0, 
+										renderResource(
 											(index, html) ->
 												callback(null, html)
 											rootURI, not even, addTree, cmod)
@@ -626,7 +626,7 @@ define(['data-frame/ClientURIUnparser', 'ejs', 'data-frame/widgets', 'async'], (
 											expandedTree = ftree.clone().descend(resourceName)
 											factTypeCollection.closeHash = '#!/' + expandedTree.getNewURI("del")
 											factTypeCollection.closeURI = rootURI + factTypeCollection.closeHash
-											renderResource(0, 
+											renderResource(
 												(index, html) ->
 													factTypeCollection.html = html
 													callback(null, factTypeCollection)
@@ -642,7 +642,7 @@ define(['data-frame/ClientURIUnparser', 'ejs', 'data-frame/widgets', 'async'], (
 							(err, results) ->
 								if err
 									console.error(errors)
-									rowCallback(idx, 'Resource Collections Errors: ' + errors)
+									rowCallback('Resource Collections Errors: ' + errors)
 								else
 									addHash = '#!/' + ftree.getChangeURI('add', clientModel)
 									templateVars = $.extend({}, baseTemplateVars, (if even then evenTemplateVars else oddTemplateVars), {
@@ -655,14 +655,14 @@ define(['data-frame/ClientURIUnparser', 'ejs', 'data-frame/widgets', 'async'], (
 										resourceModel: clientModel
 									})
 									html = templates.resourceCollection(templateVars)
-									rowCallback(idx, html)
+									rowCallback(null, html)
 						)
 					(statusCode, errors) ->
 						console.error(errors)
-						rowCallback(idx, 'Errors: ' + errors)
+						rowCallback('Errors: ' + errors)
 				)
 			else if currentLocation[0] == 'instance'
-				renderInstance(ftree, even, (html) -> rowCallback(idx,html))
+				renderInstance(ftree, even, (html) -> rowCallback(null, html))
 		
 		tree = createNavigableTree(tree)
 		rootURI = location.pathname
@@ -684,7 +684,7 @@ define(['data-frame/ClientURIUnparser', 'ejs', 'data-frame/widgets', 'async'], (
 							# request schema from server and store locally.
 							serverRequest('GET', '/dev/model?filter=model_type:lf;vocabulary:data', {}, null,
 								(statusCode, result) ->
-									renderResource(0,
+									renderResource(
 										(index, html) ->
 											resource.html = html
 											callback(null, resource)
