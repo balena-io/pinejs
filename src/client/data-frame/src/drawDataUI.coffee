@@ -512,7 +512,7 @@ define(['data-frame/ClientURIUnparser', 'ejs', 'data-frame/widgets', 'async'], (
 							callback('Errors: ' + errors)
 					)
 
-		renderResource = (callback, rootURI, even, ftree, cmod) ->
+		renderResource = (rootURI, even, ftree, cmod, callback) ->
 			currentLocation = ftree.getCurrentLocation()
 			about = ftree.getAbout()
 			resourceType = "Term"
@@ -577,11 +577,11 @@ define(['data-frame/ClientURIUnparser', 'ejs', 'data-frame/widgets', 'async'], (
 													expandedTree = ftree.clone().descend(about, instanceID)
 													resourceCollection.closeHash = '#!/' + expandedTree.getNewURI("del")
 													resourceCollection.closeURI = rootURI + resourceCollection.deleteHash
-													renderResource(
+													renderResource(rootURI, not even, expandedTree, cmod,
 														(err, html) -> 
 															resourceCollection.html = html
 															callback(err)
-														rootURI, not even, expandedTree, cmod)
+													)
 												else
 													resourceCollection.viewHash = '#!/' + ftree.getChangeURI('view', clientModel, instanceID)
 													resourceCollection.viewURI = rootURI + resourceCollection.viewHash
@@ -604,10 +604,10 @@ define(['data-frame/ClientURIUnparser', 'ejs', 'data-frame/widgets', 'async'], (
 										break
 								async.map(addTrees,
 									(addTree, callback) ->
-										renderResource(
+										renderResource(rootURI, not even, addTree, cmod,
 											(err, html) ->
 												callback(err, html)
-											rootURI, not even, addTree, cmod)
+										)
 									addsHTMLCallback
 								)
 							factTypeCollections: (factTypeCollectionsCallback) ->
@@ -626,11 +626,11 @@ define(['data-frame/ClientURIUnparser', 'ejs', 'data-frame/widgets', 'async'], (
 											expandedTree = ftree.clone().descend(resourceName)
 											factTypeCollection.closeHash = '#!/' + expandedTree.getNewURI("del")
 											factTypeCollection.closeURI = rootURI + factTypeCollection.closeHash
-											renderResource(
+											renderResource(rootURI, not even, expandedTree, cmod,
 												(err, html) ->
 													factTypeCollection.html = html
 													callback(null, factTypeCollection)
-												rootURI, not even, expandedTree, cmod)
+											)
 										else
 											newb = [ 'collection', [ resourceName ], [ "mod" ] ]
 											factTypeCollection.expandHash = '#!/' + ftree.getNewURI("add", newb)
@@ -684,13 +684,12 @@ define(['data-frame/ClientURIUnparser', 'ejs', 'data-frame/widgets', 'async'], (
 							# request schema from server and store locally.
 							serverRequest('GET', '/dev/model?filter=model_type:lf;vocabulary:data', {}, null,
 								(statusCode, result) ->
-									renderResource(
+									renderResource(rootURI, true, expandedTree, result.instances[0].model_value,
 										(err, html) ->
 											resource.html = html
 											callback(err, resource)
-									rootURI, true, expandedTree, result.instances[0].model_value)
-								() ->
-									callback(arguments)
+									)
+								-> callback(arguments)
 							)
 						else
 							newb = [ 'collection', [ resourceName ], [ "mod" ] ]
