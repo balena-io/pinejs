@@ -34,44 +34,18 @@ define(['sbvr-compiler/LFOptimiser', 'underscore'], function(LFOptimiser) {
 
 		Variable
 			^Variable:variable
-			(	{variable[2]}:term
-				// Replace the term if it's a primitive and we're processing an attribute rule.
-				?(this.processingAttributeRule && this.primitives.hasOwnProperty(term) && this.primitives[term] !== false)
-				// isPartOfAttributeRule is used as a flag to indicate whether this variable is actually part of the attribute fact type,
-				// if it is not then we shouldn't replace the term.
-				{false}:isPartOfAttributeRule
-				{[]}:newTerm
-				{	for(var i=1; i < this.processingAttributeRule.length; i+=2) {
-						if(this.IsChild(term[1], this.processingAttributeRule[i])) {
-							isPartOfAttributeRule = true;
-						}
-						else {
-							newTerm = this.processingAttributeRule[i];
-						}
-					}
-				}
-				?isPartOfAttributeRule
-				// {console.log('Switched variable term', term, 'to', newTerm)}
+			(	{variable[1][1]}:bindNo
+				// Replace this bind if it's an attribute binding.
+				{this.attributeBinds[bindNo]}:newBinds
+				?(newBinds)
+				// TODO: Use all the bind replacements making sure they are all equal, rather than just the first one.
+				{newBinds[0]}:newTerm
+				// Make sure the "newTerm" is actually new before we "SetHelped"
+				?(newTerm[1] != variable[2][1])
 				{variable[2] = newTerm}
 				SetHelped
 			)?
 			-> variable,
-			
-		AtomicFormulation =
-			&"FactType":factType
-			ActualFactType(factType.slice(1)):actualFactType
-			{['FactType'].concat(actualFactType)}:actualFactType
-			// {console.log(actualFactType.toString(), ['FactType'].concat(actualFactType).toString(), this.attributes)}
-			(	?(this.attributes.hasOwnProperty(actualFactType))
-				// {console.log('Atomic Formulation Attr', this.processingAttributeRule)}
-				(	?this.processingAttributeRule
-					^AtomicFormulation
-				|	{this.processingAttributeRule = actualFactType}
-					?false
-				)
-			|	?(!this.attributes.hasOwnProperty(actualFactType))
-				^AtomicFormulation
-			),
 		
 		UniversalQuantification
 			"Variable":v trans*:xs SetHelped
@@ -114,10 +88,35 @@ define(['sbvr-compiler/LFOptimiser', 'underscore'], function(LFOptimiser) {
 			{this.foreignKeys[factType] = necessity}
 			// We have matched a foreign key, so call SetHelped.
 			SetHelped,
-			
+		
+		ProcessAtomicFormulations =
+			(	// Bit of a hack, but we only want to drill into the input if it's an array, otherwise we get infinite recursion.
+				?(_.isArray(this.input.lst))
+				[	'AtomicFormulation'
+					"FactType":factType
+					ActualFactType(factType.slice(1)):actualFactType
+					{['FactType'].concat(actualFactType)}:actualFactType
+					?(this.attributes.hasOwnProperty(actualFactType) && this.attributes[actualFactType])
+					{null}:tableTerm
+					{	for(var i=1; i < actualFactType.length; i+=2) {
+							if(!(this.primitives.hasOwnProperty(actualFactType[i]) && this.primitives[actualFactType[i]] !== false)) {
+								tableTerm = actualFactType[i];
+								break;
+							}
+						}
+					}
+					(	"RoleBinding":bind
+						(	?(this.primitives.hasOwnProperty(bind[1]) && this.primitives[bind[1]] !== false)
+							{(this.attributeBinds[bind[2]] = this.attributeBinds[bind[2]] || []).push(tableTerm)}
+						)?
+					)*
+				|	ProcessAtomicFormulations
+				]
+			|	anything
+			)*,
 		
 		Rule
-			{this.processingAttributeRule = false}
+			{this.attributeBinds = []}
 			(	[	'ObligationFormulation'
 					[	'UniversalQuantification'
 						"Variable":v1
@@ -135,18 +134,17 @@ define(['sbvr-compiler/LFOptimiser', 'underscore'], function(LFOptimiser) {
 				"StructuredEnglish"
 				// We have matched a foreign key, return an empty array to remove the rule.
 				-> null
-			|	^Rule
-			|	?this.processingAttributeRule
+			|	&ProcessAtomicFormulations
 				^Rule
 			)
 	}
 	
 	LF2AbstractSQLPrep.initialize = function() {
 		LFOptimiser.initialize.call(this);
-		this.foreignKeys = [];
-		this.primitives = [];
-		this.attributes = [];
-		this.processingAttributeRule = false;
+		this.foreignKeys = {};
+		this.primitives = {};
+		this.attributes = {};
+		this.attributeBinds = [];
 	};
 	
 	LF2AbstractSQLPrep.defaultAttributes = function(termOrVerb, attrsFound, attrs) {
