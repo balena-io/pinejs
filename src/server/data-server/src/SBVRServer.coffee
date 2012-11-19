@@ -119,16 +119,25 @@ define(['async', 'underscore'], () ->
 		app.del('/cleardb', isAuthed, (req, res, next) ->
 			db.transaction (tx) ->
 				tx.tableList( (tx, result) ->
-					for i in [0...result.rows.length]
-						tx.dropTable(result.rows.item(i).name)
-					sbvrUtils.executeStandardModels(tx)
-					sbvrUtils.executeModel(tx, 'ui', uiModel,
-						() ->
-							console.log('Sucessfully executed ui model.')
-						(tx, error) ->
-							console.log('Failed to execute ui model.', error)
+					async.forEach(result.rows,
+						(table, callback) ->
+							tx.dropTable(table.name, null,
+								-> callback()
+								-> callback(arguments)
+							)
+						(err) ->
+							if err?
+								res.send(404)
+							else
+								sbvrUtils.executeStandardModels(tx)
+								sbvrUtils.executeModel(tx, 'ui', uiModel,
+									() ->
+										console.log('Sucessfully executed ui model.')
+									(tx, error) ->
+										console.log('Failed to execute ui model.', error)
+								)
+								res.send(200)
 					)
-					res.send(200)
 				)
 		)
 		app.put('/importdb', isAuthed, (req, res, next) ->
