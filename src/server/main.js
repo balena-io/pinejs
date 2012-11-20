@@ -1,7 +1,6 @@
 require = require('requirejs')
 
 require({
-	baseUrl: '../',
 	config: {
 		has: {
 			ENV_NODEJS              :  true,
