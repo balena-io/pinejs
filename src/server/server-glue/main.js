@@ -15,11 +15,11 @@ require({
 	},
 	paths: {
 		//Developing & building tools
-		'cs'              :  'tools/requirejs-plugins/cs',
-		'ometa'           :  'tools/requirejs-plugins/ometa',
-		'text'            :  'tools/requirejs-plugins/text',
-		'coffee-script'   :  'tools/coffee-script',
-		'has'             :  'tools/has',
+		'cs'              :  '../tools/requirejs-plugins/cs',
+		'ometa'           :  '../tools/requirejs-plugins/ometa',
+		'text'            :  '../tools/requirejs-plugins/text',
+		'coffee-script'   :  '../tools/coffee-script',
+		'has'             :  '../tools/has',
 
 		//Libraries
 		'ometa-compiler'  :  '../external/ometa-js/lib/ometajs/ometa/parsers',

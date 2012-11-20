@@ -1,1 +1,0 @@
-coffee -c -w ../src
