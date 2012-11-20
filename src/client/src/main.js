@@ -21,7 +21,8 @@ require({
 		'ometa-compiler'           :  '../../external/ometa-js/lib/ometajs/ometa/parsers',
 		'ometa-core'               :  '../../external/ometa-js/lib/ometajs/core',
 		'sbvr-parser'              :  '../lib/sbvr-parser',
-		'underscore'               :  '../lib/underscore'
+		'underscore'               :  '../lib/underscore',
+		'js-beautify'              :  '../../external/beautify/beautify'
 	},
 	packages: [
 		{

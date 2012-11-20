@@ -7,7 +7,7 @@
 /*jslint */
 /*global define, window, XMLHttpRequest, importScripts, Packages, java,
   ActiveXObject, process, require */
-define(['ometa-core', 'ometa-compiler'], function () {
+define(['ometa-core', 'ometa-compiler', 'js-beautify'], function (OMeta, ometac) {
 	'use strict';
 	var fs, getXhr,
 		fetchText = function () {
@@ -92,8 +92,9 @@ define(['ometa-core', 'ometa-compiler'], function () {
 			fetchText(path, function (source) {
 
 				var compileOMeta = function (s) {
-					var tree = BSOMetaJSParser.matchAll(s, "topLevel")
-					return BSOMetaJSTranslator.match(tree, "trans")
+					var tree = ometac.BSOMetaJSParser.matchAll(s, "topLevel"),
+						js = ometac.BSOMetaJSTranslator.match(tree, "trans");
+					return js_beautify(js);
 				}
 
 				var cached = sessionStorage.getItem(path);
