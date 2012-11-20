@@ -1,4 +1,7 @@
-define(['sbvr-parser/SBVRLibs', 'ometa-core'], function(SBVRLibs) {
+define([
+	'ometa!sbvr-parser/SBVRLibs',
+	'ometa-core'
+], function(SBVRLibs) {
 	//Transformation from SBVR Logical Formulation to SQL
 	var _ = require('underscore');
 

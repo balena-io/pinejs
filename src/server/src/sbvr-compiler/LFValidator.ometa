@@ -1,4 +1,4 @@
-define(['sbvr-parser/SBVRLibs', 'ometa-core'], function(SBVRLibs) {
+define(['ometa!sbvr-parser/SBVRLibs', 'ometa-core'], function(SBVRLibs) {
 	// TODO: Make the LFValidator validate that it is actually correctly structured LF.
 	ometa LFValidator <: SBVRLibs {
 		$ :x =
