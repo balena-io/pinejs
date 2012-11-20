@@ -29,7 +29,7 @@ define([
 					switch contents.length
 						when 3 # unary
 							sourceNode = nodes[contents[0][1]]
-							verbNode = nodes[[sourceNode.name, contents[2][1]].join('-')] = {name: contents[1][1], type: 'Verb'}
+							verbNode = nodes[[sourceNode.name, contents[1][1]].join('-')] = {name: contents[1][1], type: 'Verb'}
 
 							link = {source: sourceNode, target: verbNode}
 							links.push(link)
