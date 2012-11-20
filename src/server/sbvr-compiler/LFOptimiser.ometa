@@ -1,0 +1,43 @@
+define(['ometa!sbvr-compiler/LFValidator'], function(LFValidator) {
+	ometa LFOptimiser <: LFValidator {
+		Helped =
+			?(this.helped === true)
+			{this.helped = false},
+		
+		SetHelped =
+			{this.helped = true},
+
+		Process =
+			:x
+			trans(x):x
+			(Helped('disableMemoisation') trans(x):x)*
+			-> x,
+
+		AtLeastNQuantification
+				"MinimumCardinality":i ?{i[1][1]==1} "Variable":v trans*:xs
+				SetHelped
+				-> ['ExistentialQuantification', v].concat(xs)
+			|	^AtLeastNQuantification,
+
+		NumericalRangeQuantification
+				"MinimumCardinality":i
+				"MaximumCardinality":j
+				?{i[1][1]==j[1][1]}
+				"Variable":v trans*:xs
+				SetHelped
+				-> ['ExactQuantification', ['Cardinality', i[1]], v].concat(xs)
+			|	^NumericalRangeQuantification,
+
+		LogicalNegation =
+				['LogicalNegation' trans:xs] SetHelped
+				-> xs
+			|	^LogicalNegation
+	}
+
+	LFOptimiser.initialize = function() {
+		LFValidator.initialize.call(this);
+		this._didSomething = false;
+	};
+	
+	return LFOptimiser;
+});

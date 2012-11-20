@@ -1,0 +1,15 @@
+{
+	"name": "server-glue",
+	"version": "0.0.1",
+	"dependencies": {
+		"express": "3.x",
+		"requirejs": "2.x",
+		"passport": "latest",
+		"mysql": "2.0.0-alpha4",
+		"underscore": "latest",
+		"pg": "0.8.x",
+
+		"passport-local": "0.1.x",
+		"bcrypt": "latest"
+	}
+}

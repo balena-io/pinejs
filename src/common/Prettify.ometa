@@ -1,0 +1,20 @@
+define(['ometa-core'], function() {
+	//Converts a tree to a nested list.
+	ometa Prettify {
+		Elem :indent =
+			[
+				(	string:s
+					-> { '"' + s + '"' }
+				|	Elem(indent + '\t')
+				|	number
+				|	true
+				|	false
+				)*:e
+			]
+			-> ('[' + e.join(',\n' + indent) + ']'),
+		Process =
+			Elem('\t')
+	}
+
+	return Prettify;
+})

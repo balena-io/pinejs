@@ -1,0 +1,416 @@
+define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core'], function(SBVRLibs, _) {
+	ometa ServerURIParser <: SBVRLibs {
+		Process =
+			[	(	'GET'
+				|	'PUT'
+				|	'POST'
+				|	'DELETE'
+				):method
+				{this.currentMethod = method}
+				anything:body
+				(	?(!_.isArray(body))
+					{[{}]}:body
+				)?
+				[	'/' Vocabulary:vocab '/'?
+					{this.currentVocab = vocab}
+					{['URI', ['Vocabulary', vocab]]}:uri
+					{[]}:resources
+					{0}:i
+					(	{	for(;i<body.length;i++) {
+								this.currentBody = body[i];
+								if(i<body.length-1) {
+									this._lookahead(function() {
+										resources.push(this._apply('Resource'));
+									});
+								}
+								else {
+									resources.push(this._apply('Resource'));
+								}
+							}
+						}
+					)?
+					'/'?
+				]
+			]
+			-> uri.concat(resources),
+
+		Vocabulary =
+			<	(	~'/'
+					anything
+				)+
+			>,
+
+		ResourcePart =
+			<	(	letter
+				|	'_'
+				)+
+			>:resourcePart
+			-> resourcePart.replace(new RegExp('_', 'g'), ' '),
+
+		ResourceName =
+			<	ResourcePart
+				(	'-'
+					ResourcePart
+				)*
+			>,
+
+		Resource =
+			{this.newBody = []}
+			ResourceName:resourceName
+			(	(	?(this.currentMethod != 'GET')
+				|	&'?'
+				)
+				{['Query']}:query
+				AddQueryResource(query, resourceName)
+				Modifiers(query)
+				'*'?
+			)?
+			-> {resourceName: resourceName, query: query, values: this.newBody},
+
+		Comparator =
+				':'
+				-> 'Equals'
+			|	seq('!:')
+				-> 'NotEquals'
+			|	'>'
+				(	':'
+					-> 'GreaterThanOrEqual'
+				|	-> 'GreaterThan'
+				)
+			|	'<'
+				(	':'
+					-> 'LessThanOrEqual'
+				|	-> 'LessThan'
+				)
+			|	'~'
+				-> 'Like',
+
+		Modifiers :query =
+			'?'
+			(	'&'?
+				(	Filters(query)
+				|	Sorts:sorts
+					{query.push(sorts)}
+				|	Limit:limit
+					{query.push(limit)}
+				|	Offset:offset
+					{query.push(offset)}
+				)
+			)*,
+
+		Field =
+			(	ResourcePart:resourceName '.' ResourcePart:resourceFieldName
+			|	{this.currentResource}:resourceName
+				ResourcePart:resourceFieldName
+			)
+			GetMapping(resourceName, resourceFieldName):mapping
+			-> ['ReferencedField'].concat(mapping),
+
+		Filters :query =
+			seq('filter=')
+			(	Field:field
+				Comparator:comparator
+				<	(	~ValueBreak
+						anything
+					)+
+				>:value
+				';'?
+				{field[1]}:resourceName
+				{field[2]}:resourceFieldName
+				GetMapping(resourceName,resourceFieldName):mapping
+				AddWhereClause(query, [comparator, field, ['Bind', mapping[0], this.GetTableField(mapping)]])
+				AddBodyVar(query, resourceName, resourceFieldName, mapping, value)
+			)+,
+
+		Number = <digit+>:d -> ['Number', parseInt(d, 10)],
+
+		Limit =
+			seq('limit=')
+			Number:num
+			->	['Limit', num],
+
+		Offset =
+			seq('offset=')
+			Number:num
+			->	['Offset', num],
+
+		Sorts =
+			seq('order=')
+			(	Field:field
+				':'
+				(	seq('ASC')
+				|	seq('DESC')
+				):direction
+				';'?
+				-> [direction, field]
+			)+:sorts
+			->	['OrderBy'].concat(sorts),
+
+		ValueBreak =
+			(	';'
+			|	'*'
+			|	'/'
+			)
+	}
+	
+	ServerURIParser.initialize = function() {
+		this.sqlModels = {};
+		this.clientModels = {};
+		this.currentVocab = '';
+		this.currentMethod = '';
+		this.currentBody = [];
+		this.currentResource = null;
+	};
+	
+	ServerURIParser.GetTableField = function(mapping) {
+		return SBVRLibs.GetTableField.call(this, this.sqlModels[this.currentVocab].tables[mapping[0]], mapping[1]);
+	};
+	
+	ServerURIParser.GetMapping = function(resourceName, resourceFieldName) {
+		var resourceMapping = this.clientModels[this.currentVocab].resourceToSQLMappings[resourceName]
+		if(resourceMapping.hasOwnProperty(resourceFieldName)) {
+			return resourceMapping[resourceFieldName];
+		}
+		resourceFieldName = resourceFieldName.replace(/ /g, '_');
+		if(resourceMapping.hasOwnProperty(resourceFieldName)) {
+			return resourceMapping[resourceFieldName];
+		}
+		throw 'Could not map resource: ' + resourceName + ' - ' + resourceFieldName;
+	};
+	
+	ServerURIParser.setSQLModel = function(vocab, model) {
+		this.sqlModels[vocab] = model;
+	};
+	
+	ServerURIParser.setClientModel = function(vocab, model) {
+		this.clientModels[vocab] = model;
+	};
+	
+	ServerURIParser.AddWhereClause = function(query, whereBody) {
+		// TODO: Move this to an optimisation pass?
+		// Check if it's a place where we can do a join optimisation.
+		if(whereBody[0] == 'Exists' && (
+				whereBody[1][0] == 'SelectQuery' || whereBody[1][0] == 'InsertQuery' ||
+				whereBody[1][0] == 'UpdateQuery' || whereBody[1][0] == 'UpsertQuery')) {
+			whereBody = whereBody[1].slice(1);
+			for(var i=0; i < whereBody.length; i++) {
+				if(whereBody[i][0] == 'From') {
+					query.push(whereBody[i]);
+				}
+			}
+			for(var i=0; i < whereBody.length; i++) {
+				if(whereBody[i][0] == 'Where') {
+					this.AddWhereClause(query, whereBody[i][1]);
+				}
+			}
+		}
+		else {
+			for(var i=1; i < query.length; i++) {
+				if(query[i][0] == 'Where') {
+					query[i][1] = ['And', query[i][1], whereBody];
+					return;
+				}
+			}
+			query.push(['Where', whereBody]);
+		}
+		
+		if(query[0] == 'UpsertQuery' && whereBody[0] == 'Equals') {
+			var field, bind;
+			if(whereBody[1][0] == 'Field') {
+				field = whereBody[1][1];
+			}
+			else if(whereBody[1][0] == 'ReferencedField') {
+				field = whereBody[1][2];
+			}
+			else if(whereBody[2][0] == 'Field') {
+				field = whereBody[2][1];
+			}
+			else if(whereBody[2][0] == 'ReferencedField') {
+				field = whereBody[2][2];
+			}
+			
+			if(whereBody[1][0] == 'Bind') {
+				bind = whereBody[1];
+			}
+			else if(whereBody[2][0] == 'Bind') {
+				bind = whereBody[2];
+			}
+			
+			for(var i=1; i < query.length; i++) {
+				var queryPart = query[i];
+				if(queryPart[0] == 'Fields') {
+					for(var j=0; j < queryPart[1].length; j++) {
+						var queryFields = queryPart[1][j];
+						if(queryFields[0] == field) {
+							// Update the value field for the query
+							queryFields[1] = bind;
+							break;
+						}
+					}
+					if(j === queryPart[1].length) {
+						// We need to add it to field and values list of query.
+						queryPart[1].push([field, bind]);
+					}
+					break;
+				}
+			}
+		}
+	};
+
+	ServerURIParser.AddBodyVar = function(query, resourceName, resourceFieldName, mapping, value) {
+		if(value === undefined) {
+			if(this.currentBody.hasOwnProperty(resourceName + '.' + resourceFieldName)) {
+				value = this.currentBody[resourceName + '.' + resourceFieldName];
+			}
+			else if(this.currentBody.hasOwnProperty(resourceFieldName)) {
+				value = this.currentBody[resourceFieldName];
+			}
+			else {
+				// We haven't got a value for this field, but we should check if it's an autogenerated field and if so add the table anyway.
+				var sqlTable = this.sqlModels[this.currentVocab].tables[mapping[0]];
+				if(sqlTable.hasOwnProperty('fields')) {
+					for(var i = 0; i < sqlTable.fields.length; i++) {
+						var sqlField = sqlTable.fields[i];
+						if(sqlField[1] == mapping[1]) {
+							if(sqlField[0] == 'Serial') {
+								this.AddQueryTable(query, mapping[0]);
+							}
+							return;
+						}
+					}
+				}
+				return;
+			}
+		}
+		this.AddQueryTable(query, mapping[0]);
+		return this.newBody[mapping.join('.')] = value;
+	};
+
+	ServerURIParser.AddQueryTable = function(query, tableName) {
+		var i = 0;
+		for(;i < query.length; i++) {
+			if(query[i][0] === 'From' && query[i][1] === tableName) {
+				return;
+			}
+		}
+		query.push(['From', tableName]);
+	};
+
+	ServerURIParser.AddQueryResource = function(query, resourceName) {
+		var newValue, fieldName, fields, mapping, resourceFieldName, self = this,
+			clientModel = this.clientModels[this.currentVocab],
+			resourceModel = clientModel.resources[resourceName],
+			resourceToSQLMappings = clientModel.resourceToSQLMappings[resourceName],
+			getSelectFields = function() {
+				var mapping, resourceField, fields = [];
+				for(resourceField in resourceToSQLMappings) {
+					if(resourceToSQLMappings.hasOwnProperty(resourceField)) {
+						mapping = resourceToSQLMappings[resourceField];
+						self.AddQueryTable(query, mapping[0]);
+						fields.push([['ReferencedField'].concat(mapping), resourceField]);
+					}
+				}
+				return fields;
+			};
+		this.currentResource = resourceName;
+		switch(this.sqlModels[this.currentVocab].tables[resourceName]) {
+			case 'ForeignKey':
+				switch(this.currentMethod) {
+					case 'GET':
+						query[0] = 'SelectQuery';
+						query.push(['Select', getSelectFields()]);
+					break;
+					default:
+						__TODO__.die();
+				}
+			break;
+			case 'Attribute':
+				// The attribute is value field
+				resourceFieldName = resourceModel.valueField;
+				mapping = this.GetMapping(resourceName, resourceFieldName);
+				switch(this.currentMethod) {
+					case 'DELETE':
+						query[0] = 'UpdateQuery';
+						this.AddQueryTable(query, mapping[0]);
+						query.push(['Fields', [[mapping[1], 'NULL']]]);
+					break;
+					case 'GET':
+						query[0] = 'SelectQuery';
+						query.push(['Select', getSelectFields()]);
+					break;
+					case 'PUT':
+					case 'POST':
+						query[0] = 'UpdateQuery';
+						if(this.AddBodyVar(query, resourceName, resourceFieldName, mapping) !== undefined) {
+							query.push(['Fields', [[mapping[0], ['Bind', mapping[0], this.GetTableField(mapping)]]]]);
+						}
+					break;
+				}
+			break;
+			case 'BooleanAttribute':
+				// The attribute is value field
+				resourceFieldName = resourceModel.valueField;
+				mapping = this.GetMapping(resourceName, resourceFieldName);
+				switch(this.currentMethod) {
+					case 'GET':
+						query[0] = 'SelectQuery';
+						query.push(['Select', getSelectFields()]);
+						this.AddQueryTable(query, mapping[0]);
+						this.AddWhereClause(query, ['Equals', ['ReferencedField'].concat(mapping), ['Boolean', true]]);
+					break;
+					case 'DELETE':
+						newValue = false;
+						// Fallthrough
+					case 'PUT':
+					case 'POST':
+						if(newValue == null) {
+							newValue = true;
+						}
+						query[0] = 'UpdateQuery';
+						query.push(['Fields', [[mapping[1], newValue]]]);
+						this.AddQueryTable(query, mapping[0]);
+						resourceFieldName = resourceModel.idField;
+						mapping = this.GetMapping(resourceName, resourceFieldName);
+						fieldName = mapping[1];
+						if(this.AddBodyVar(query, resourceName, resourceFieldName, mapping) !== undefined) {
+							this.AddWhereClause(query, ['Equals', ['ReferencedField'].concat(mapping), ['Bind', mapping[0], this.GetTableField(mapping)]]);
+						}
+					break;
+				}
+			break;
+			default:
+				switch(this.currentMethod) {
+					case 'DELETE':
+						query[0] = 'DeleteQuery';
+					break;
+					case 'GET':
+						query[0] = 'SelectQuery';
+						query.push(['Select', getSelectFields()]);
+					break;
+					case 'PUT':
+					case 'POST':
+						if(this.currentMethod === 'PUT') {
+							query[0] = 'UpsertQuery';
+						}
+						else {
+							query[0] = 'InsertQuery';
+						}
+						fields = [];
+						for(resourceFieldName in resourceToSQLMappings) {
+							if(resourceToSQLMappings.hasOwnProperty(resourceFieldName)) {
+								mapping = resourceToSQLMappings[resourceFieldName];
+								if(this.AddBodyVar(query, resourceName, resourceFieldName, mapping) !== undefined) {
+									fields.push([mapping[1], ['Bind', mapping[0], this.GetTableField(mapping)] ]);
+								}
+							}
+						}
+						query.push(['Fields', fields]);
+					break;
+				}
+				// All good.
+			break;
+		}
+	};
+
+	return ServerURIParser;
+});

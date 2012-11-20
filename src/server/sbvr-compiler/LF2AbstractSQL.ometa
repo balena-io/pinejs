@@ -1,0 +1,380 @@
+define(['sbvr-parser/SBVRLibs', 'underscore', 'ometa-core'], function(SBVRLibs, _) {
+	//Transformation from SBVR Logical Formulation to SQL
+
+	ometa LF2AbstractSQL <: SBVRLibs {
+		
+		/** Terms **/
+		TermName =
+			:termName 
+			(	?(!this.tables.hasOwnProperty(this.GetResourceName(termName)))
+			|	{console.error('We already have a term with a name of: ' + termName)} ?(false)
+			)
+			{this.terms[termName] = termName}
+			{this.tables[this.GetResourceName(termName)] = {fields:[], primitive: false, name: null, idField: null}}
+			-> termName,
+		Attributes :tableID =
+				end
+			|	[	'Attributes'
+					(	[	:attributeName ApplyFirstExisting(['Attr' + attributeName, 'DefaultAttr'], [tableID]):attributeValue
+						]
+					)*
+				],
+		DefaultAttr :tableID =
+			:anything
+			{console.log('Default', tableID, anything)},
+		AttrConceptType :termName = // tableID will be same as termName for ConceptType (fact types cannot have a concept type)
+			['Term' :conceptType] {this.conceptTypes[termName] = conceptType}
+			IsPrimitive(conceptType):primitive
+			{this.tables[this.GetResourceName(conceptType)]}:conceptTable
+			{this.tables[this.GetResourceName(termName)]}:termTable
+			{['ConceptType', conceptTable.name, 'NOT NULL', conceptTable.idField]}:field
+			(	?(primitive !== false && conceptType === primitive)
+				{field[0] = primitive}
+				// Find existing name field and remove it if it exists.
+				(	?(termTable.hasOwnProperty('valueField'))
+					GetTableFieldID(termTable, termTable.valueField):fieldID
+					?(fieldID !== false)
+					{field[1] = termTable.fields[fieldID][1]}
+					{termTable.fields.splice(fieldID, 1)}
+				|	{termTable.valueField = conceptTable.name}
+				)
+			)?
+			{termTable.fields.push(field)},
+		AttrDatabaseIDField :tableID =
+			:idField
+			{this.tables[this.GetResourceName(tableID)]}:table
+			(	?_.isString(table)
+			|	(	GetTableFieldID(table, idField):fieldID
+					?(fieldID !== false)
+					// If the field exists then update it.
+					{table.fields[fieldID][2] = 'PRIMARY KEY'}
+					(	?(table.fields[fieldID][0] == 'Value')
+						// DIRTY HACK: If the data type is Value then change to Serial (the value field stuff needs to be done properly)
+						{table.fields[fieldID][0] = 'Serial'}
+					)?
+				|	{table.fields.push(['Serial', idField, 'PRIMARY KEY'])}
+				)
+				{table.idField = idField}
+			),
+		AttrDatabaseValueField :tableID =
+			:valueField
+			{this.tables[this.GetResourceName(tableID)]}:table
+			(	?_.isString(table)
+			|	// Find existing name field and update it if it exists.
+				(	?(table.hasOwnProperty('valueField'))
+					GetTableFieldID(table, table.valueField):fieldID
+					?(fieldID !== false)
+					{table.fields[fieldID][1] = valueField}
+				|	GetTableFieldID(table, valueField):fieldID
+					?(fieldID !== false)
+					// If the field exists then nothing to do
+				|	// Add a name field if there isn't one already to rename.
+					{table.fields.push(['Value', valueField, 'NOT NULL'])}
+				)
+				{table.valueField = valueField}
+			),
+		AttrDatabaseTableName :tableID =
+			:tableName
+			{this.tables[this.GetResourceName(tableID)]}:table
+			(	?_.isString(table)
+			|	{table.name = tableName}
+			),
+		AttrDatabasePrimitive :termName =
+			:attrVal
+			{this.tables[this.GetResourceName(termName)].primitive = attrVal},
+		AttrDatabaseAttribute :factType =
+			:attrVal
+			(	?attrVal
+				{this.tables[this.GetResourceName(factType)] = 'Attribute'}
+				{this.tables[this.GetResourceName(factType[0][1])]}:baseTable
+				{this.tables[this.GetResourceName(factType[2][1])]}:attributeTable
+				GetTableFieldID(baseTable, attributeTable.name):fieldID
+				{baseTable.fields[fieldID][0] = attributeTable.primitive}
+			)?,
+		AttrForeignKey :factType =
+			:type
+			{this.tables[this.GetResourceName(factType[0][1])]}:baseTable
+			{this.tables[this.GetResourceName(factType[2][1])]}:fkTable
+			{['ForeignKey', fkTable.name, type, fkTable.idField]}:fkField
+			(	?(baseTable.valueField == fkTable.name
+					|| baseTable.idField == fkTable.name)
+				// If the value field for the first term matches the name of the FK term then update the value field to be a FK.
+				GetTableFieldID(baseTable, fkTable.name):fieldID
+				?(fieldID !== false)
+				{baseTable.fields[fieldID] = fkField}
+			|	{baseTable.fields.push(fkField)}
+			)
+			{this.tables[this.GetResourceName(factType)] = 'ForeignKey'},
+		// AttrSynonym :term =
+			// :synonym {this.terms[synonym[1]] = term[1]},
+		AttrSynonymousForm :factType =
+			:synForm
+			AddFactType(synForm, factType),
+		AttrTermForm :factType =
+			:term
+			{this.terms[term[1]] = factType}
+			{this.tables[this.GetResourceName(term[1])] = this.tables[this.GetResourceName(factType)]},
+			
+			
+		
+		/** Fact Types **/
+		FactType =
+			&((:factTypePart &(:attributes) -> factTypePart)+:factType)
+			AddFactType(factType, factType)
+			{this.GetResourceName(factType)}:resourceName
+			(	?(factType.length == 2)
+				// Eat input
+				(:factTypePart &(:attributes))+
+				
+				{this.tables[this.GetResourceName(factType[0][1])].fields.push(['Boolean', factType[1][1]])}
+				{this.tables[resourceName] = 'BooleanAttribute'}
+			|	{this.tables[resourceName] = {fields:[], primitive: false, name: null}}
+				(	['Term' :termName]
+					{this.tables[this.GetResourceName(termName)]}:fkTable
+					{this.tables[resourceName].fields.push(['ForeignKey', fkTable.name, 'NOT NULL', fkTable.idField])}
+				|	['Verb' :verb]
+				)+
+			)
+			-> factType,
+		
+		Cardinality =
+			[
+				(	'MinimumCardinality'
+				|	'MaximumCardinality'
+				|	'Cardinality'
+				)
+				Number:cardinality
+			]
+			-> cardinality,
+		Number =
+			[	'Number'
+				:num ?{!isNaN(num)}
+			]
+			-> num,
+		Variable =
+			[	'Variable'
+				Number:bind
+				['Term' :termName]
+				{'var' + bind}:varAlias
+				{['SelectQuery', ['Select', []], ['From', this.tables[this.GetResourceName(termName)].name, varAlias + termName]]}:query
+				ResolveConceptTypes(query, termName, varAlias)
+				(	
+					(	RulePart:whereBody
+						AddWhereClause(query, whereBody)
+					)
+				)?
+			]
+			(	RulePart:whereBody
+				AddWhereClause(query, whereBody)
+			)
+			-> query,
+		
+		RoleBinding =
+			[	'RoleBinding'
+				['Term' :termName]
+				:bind
+			]
+			-> [termName, bind],
+
+		LinkTable :actualFactType :rootTerms =
+			{'link' + this.linkTableBind++}:tableAlias
+			{['SelectQuery', ['Select', []], ['From', this.tables[this.GetResourceName(actualFactType)].name, tableAlias]]}:query
+			{0}:i
+			(	?(i < rootTerms.length)
+				RoleBinding:bind
+				{rootTerms[i]}:termName
+				{this.GetResourceName(termName)}:resourceName
+				AddWhereClause(query, ['Equals', ['ReferencedField', tableAlias, this.tables[resourceName].name], ['ReferencedField', 'var' + bind[1] + termName, this.tables[resourceName].idField]])
+				{i++}
+			)+
+			-> ['Exists', query],
+		
+		ForeignKey :actualFactType :rootTerms =
+			?(this.tables[this.GetResourceName(actualFactType)] == 'ForeignKey')
+			(	RoleBinding:bindFrom
+				RoleBinding:bindTo
+				end
+				(	?this.IsChild(bindFrom[0], actualFactType[0])
+					{rootTerms[0]}:termFrom
+					{rootTerms[1]}:termTo
+				|	{bindTo}:temp
+					{bindFrom}:bindTo
+					{temp}:bindFrom
+					{rootTerms[1]}:termFrom
+					{rootTerms[0]}:termTo
+				)
+				{this.tables[this.GetResourceName(termTo)]}:tableTo
+			|	___ForeignKeyMatchingFailed___.die
+			)
+			-> ['Equals', ['ReferencedField', 'var' + bindFrom[1] + termFrom, tableTo.name], ['ReferencedField', 'var' + bindTo[1] + termTo, tableTo.idField]],
+
+		BooleanAttribute :actualFactType =
+			?(this.tables[this.GetResourceName(actualFactType)] == 'BooleanAttribute')
+			(	RoleBinding:bindFrom
+				end
+				{actualFactType[0][1]}:termFrom
+				{actualFactType[1][1]}:attributeName
+			|	{console.error(this.input)}
+				___BooleanAttributeMatchingFailed___.die
+			)
+			-> ['Equals', ['ReferencedField', 'var' + bindFrom[1] + termFrom, attributeName], ['Boolean', true]],
+
+		Attribute :actualFactType :rootTerms =
+			?(this.tables[this.GetResourceName(actualFactType)] == 'Attribute')
+			{['SelectQuery', ['Select', []]]}:query
+			(	RoleBinding:bindReal
+				RoleBinding:bindAttr
+				end
+				(	?this.IsChild(bindReal[0], actualFactType[0])
+					{rootTerms[0]}:termNameReal
+					{rootTerms[1]}:termNameAttr
+				|	{bindAttr}:temp
+					{bindReal}:bindAttr
+					{temp}:bindReal
+					{rootTerms[1]}:termNameReal
+					{rootTerms[0]}:termNameAttr
+				)
+				|	___AttributeMatchingFailed___.die
+			)
+			{this.GetResourceName(termNameAttr)}:resourceAttr
+			AddWhereClause(query, ['Equals', ['ReferencedField', 'var' + bindAttr[1] + termNameReal, this.tables[resourceAttr].name], ['ReferencedField', 'var' + bindReal[1] + termNameReal, this.tables[resourceAttr].name]])
+			-> ['Exists', query],
+		
+		AtomicFormulation =
+			[	'AtomicFormulation'
+				['FactType' anything+:factType]
+				ActualFactType(factType):actualFactType
+				FactTypeRootTerms(factType, actualFactType):rootTerms
+				(	ForeignKey(actualFactType, rootTerms)
+				|	BooleanAttribute(actualFactType)
+				|	Attribute(actualFactType, rootTerms)
+				|	LinkTable(actualFactType, rootTerms)
+				):whereClause
+			]
+			-> whereClause,
+		AtLeast =
+			[	'AtLeastNQuantification'
+				Cardinality:minCard
+				Variable:query
+				{query[1][1].push(['Count', '*'])}
+			]
+			-> ['GreaterThanOrEqual', query, ['Number', minCard]],
+		Exactly =
+			[	'ExactQuantification'
+				Cardinality:card
+				Variable:query
+				{query[1][1].push(['Count', '*'])}
+			]
+			-> ['Equals', query, ['Number', card]],
+		Range =
+			[	'NumericalRangeQuantification'
+				Cardinality:minCard
+				Cardinality:maxCard
+				Variable:query
+				{query[1][1].push(['Count', '*'])}
+			]
+			-> ['Between', query, ['Number', minCard], ['Number', maxCard]],
+		Exists =
+			[	'ExistentialQuantification'
+				Variable:query
+			]
+			-> ['Exists', query],
+		Negation =
+			[	'LogicalNegation'
+				RulePart:whereBody
+			]
+			-> ['Not', whereBody],
+			
+		
+		RulePart =
+			(	AtomicFormulation
+			|	AtLeast
+			|	Exactly
+			|	Exists
+			|	Negation
+			|	Range
+			|	:x {console.error('Hit unhandled operation:', x)} ?(false)
+			):whereBody
+			-> whereBody,
+		
+		RuleBody =
+			[
+				(	'ObligationFormulation'
+				|	'NecessityFormulation'
+				|	'PossibilityFormulation'
+				|	'PermissibilityFormulation'
+				)
+				RulePart:rule
+			]
+			-> rule,
+		
+		Process =
+			[	'Model'
+				(
+					[	'Term' TermName:termName Attributes(termName)
+					|	'FactType' FactType:factType Attributes(factType)
+					|	'Rule' RuleBody:ruleBody ['StructuredEnglish' :ruleText]
+						{this.linkTableBind = 0}
+						{this.rules.push(['Rule', ['StructuredEnglish', ruleText], ['Body', ruleBody]])}
+					]
+				)+
+			]
+			{{}}:tables
+			-> {tables:this.tables, rules:this.rules}
+	}
+	
+	LF2AbstractSQL.AddWhereClause = function(query, whereBody) {
+		// TODO: Move this to an optimisation pass?
+		// Check if it's a place where we can do a join optimisation.
+		if(whereBody[0] == 'Exists' && (
+				whereBody[1][0] == 'SelectQuery' || whereBody[1][0] == 'InsertQuery' ||
+				whereBody[1][0] == 'UpdateQuery' || whereBody[1][0] == 'UpsertQuery')) {
+			whereBody = whereBody[1].slice(1);
+			for(var i=0; i < whereBody.length; i++) {
+				if(whereBody[i][0] == 'From') {
+					query.push(whereBody[i]);
+				}
+			}
+			for(var i=0; i < whereBody.length; i++) {
+				if(whereBody[i][0] == 'Where') {
+					this.AddWhereClause(query, whereBody[i][1]);
+				}
+			}
+		}
+		else {
+			for(var i=1; i < query.length; i++) {
+				if(query[i][0] == 'Where') {
+					query[i][1] = ['And', query[i][1], whereBody];
+					return;
+				}
+			}
+			query.push(['Where', whereBody]);
+		}
+	};
+	
+	LF2AbstractSQL.ResolveConceptTypes = function(query, termName, varAlias) {
+		var conceptAlias,
+			parentAlias = varAlias + termName,
+			conceptName = termName,
+			conceptTable;
+		while(this.conceptTypes.hasOwnProperty(conceptName)) {
+			conceptName = this.conceptTypes[termName];
+			conceptAlias = varAlias + conceptName;
+			conceptTable = this.tables[this.GetResourceName(conceptName)];
+			query.push(['From', conceptTable.name, conceptAlias]);
+			this.AddWhereClause(query, ['Equals', ['ReferencedField', parentAlias, conceptTable.name], ['ReferencedField', conceptAlias, conceptTable.idField]]);
+			parentAlias = conceptAlias;
+		}
+	};
+	
+	LF2AbstractSQL.initialize = function() {
+		SBVRLibs.initialize.call(this);
+		this.tables = {};
+		this.terms = {}; // TODO: Is this needed?
+		this.rules = [];
+		this.linkTableBind = 0;
+	};
+
+	
+	return LF2AbstractSQL;
+});

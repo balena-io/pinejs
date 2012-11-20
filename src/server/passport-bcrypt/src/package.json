@@ -1,8 +1,0 @@
-{
-	"name": "passport-bcrypt",
-	"version": "0.0.1",
-	"dependencies": {
-		"passport-local": "0.1.x",
-		"bcrypt": "latest"
-	}
-}

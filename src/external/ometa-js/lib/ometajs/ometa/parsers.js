@@ -1,11 +1,3 @@
-var OMeta;
-
-if (typeof window !== "undefined") {
-    OMeta = window.OMeta;
-} else {
-    OMeta = require("../core").OMeta;
-}
-
 if (typeof exports === "undefined") {
     exports = {};
 }
@@ -3102,3 +3094,7 @@ if (typeof exports === "undefined") {
         }
     });
 };
+
+define(function () {
+	return exports;
+});
