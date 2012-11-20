@@ -1,4 +1,19 @@
-OMeta = (function() {
+(function (root, factory) {
+  if (typeof exports === 'object') {
+    // Node. Does not work with strict CommonJS, but
+    // only CommonJS-like enviroments that support module.exports,
+    // like Node.
+    module.exports = factory();
+  } else if (typeof define === 'function' && define.amd) {
+    // AMD. Register as an anonymous module.
+    define('OMeta', function () {
+      return (root.OMeta = factory());
+    });
+  } else {
+    // Browser globals
+    root.OMeta = factory();
+  }
+}(this, function () {
   "use strict";
   /*
     new syntax:
@@ -341,7 +356,7 @@ OMeta = (function() {
 
         memo[rule] = false;
         memoRec = {
-          ans: this[rule].call(this),
+          ans: this[rule](),
           nextInput: this.input
         };
         var failer = memo[rule];
@@ -1006,8 +1021,4 @@ OMeta = (function() {
       return m;
     }
   };
-})();
-
-if(typeof exports !== "undefined") {
-  exports.OMeta = OMeta;
-}
+}));

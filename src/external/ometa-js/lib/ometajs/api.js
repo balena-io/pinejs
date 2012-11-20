@@ -55,22 +55,23 @@ function translationError(m, i, fail) {
 // Wrap javascript code in ometajs.core context
 //
 function wrapModule(code, options) {
-  var req = 'require(\'' + (options.root || ometajs.root || 'core') + '\')',
-      buf = [
-        'var OMeta;',
-        'if(typeof window !== "undefined") {',
-          'OMeta = window.OMeta;',
-        '} else {',
-          'OMeta = ', req, '.OMeta;',
-        '}',
-        'if(typeof exports === "undefined") {',
-          'exports = {};',
-        '}'
-      ];
+  var requirePath = (options.root || ometajs.root || 'core'),
+      start =
+        "(function (root, factory) {\
+          if (typeof exports === 'object') {\
+            /* CommonJS */\
+            factory(exports, require('" + requirePath + "'));\
+          } else if (typeof define === 'function' && define.amd) {\
+            /* AMD. Register as an anonymous module. */\
+            define(['exports', 'OMeta'], factory);\
+          } else {\
+            /* Browser globals - dangerous */\
+            factory(root, root.OMeta);\
+          }\
+        }(this, function (exports, OMeta) {",
+      end = "}));"
 
-  buf.push(code);
-
-  return buf.join('');
+  return start + code + end;
 };
 
 //
