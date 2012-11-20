@@ -1,4 +1,8 @@
-define(['async', 'underscore'], () ->
+define([
+	'async'
+	'underscore'
+	'cs!database-layer/db'
+], (async, _, dbModule) ->
 	exports = {}
 	db = null
 
@@ -63,25 +67,22 @@ define(['async', 'underscore'], () ->
 
 	# Setup function
 	exports.setup = (app, requirejs, sbvrUtils, isAuthed, databaseOptions) ->
-
-		requirejs(['database-layer/db'], (dbModule) ->
-			db = dbModule.connect(databaseOptions)
-			
-			db.transaction( (tx) ->
-				sbvrUtils.executeStandardModels(tx)
-				sbvrUtils.executeModel(tx, 'ui', uiModel,
-					() ->
-						console.log('Sucessfully executed ui model.')
-						uiModelLoaded(true)
-					(tx, error) ->
-						console.error('Failed to execute ui model.', error)
-				)
-				sbvrUtils.runURI('GET', '/dev/model?filter=model_type:sql;vocabulary:data', null, tx
-					(result) ->
-						isServerOnAir(true)
-					() ->
-						isServerOnAir(false)
-				)
+		db = dbModule.connect(databaseOptions)
+		
+		db.transaction( (tx) ->
+			sbvrUtils.executeStandardModels(tx)
+			sbvrUtils.executeModel(tx, 'ui', uiModel,
+				() ->
+					console.log('Sucessfully executed ui model.')
+					uiModelLoaded(true)
+				(tx, error) ->
+					console.error('Failed to execute ui model.', error)
+			)
+			sbvrUtils.runURI('GET', '/dev/model?filter=model_type:sql;vocabulary:data', null, tx
+				(result) ->
+					isServerOnAir(true)
+				() ->
+					isServerOnAir(false)
 			)
 		)
 

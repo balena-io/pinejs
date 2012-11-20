@@ -46,7 +46,7 @@ define((requirejs, exports, module) ->
 		return sum
 
 	exports.setup = (app, requirejs, sbvrUtils, isAuthed, databaseOptions) ->
-		requirejs(['database-layer/db'], (dbModule) ->
+		requirejs(['cs!database-layer/db'], (dbModule) ->
 			db = dbModule.connect(databaseOptions)
 			db.transaction( (tx) ->
 				tx.tableList(
