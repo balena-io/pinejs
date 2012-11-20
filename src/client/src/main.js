@@ -5,6 +5,7 @@ require({
 		'ometa'                    :  '../tools/requirejs-plugins/ometa',
 		'text'                     :  '../tools/requirejs-plugins/text',
 		'coffee-script'            :  '../tools/coffee-script',
+		'has'                      :  '../../tools/has',
 
 		'lib'                      :  '../lib',
 
@@ -20,7 +21,7 @@ require({
 		'jquery-xdomain'           :  '../lib/jquery-xdomain',
 		'ometa-compiler'           :  '../../external/ometa-js/lib/ometajs/ometa/parsers',
 		'ometa-core'               :  '../../external/ometa-js/lib/ometajs/core',
-		'sbvr-parser'              :  '../lib/sbvr-parser',
+		'sbvr-parser'              :  '../../common/sbvr-parser',
 		'underscore'               :  '../lib/underscore',
 		'js-beautify'              :  '../../external/beautify/beautify'
 	},

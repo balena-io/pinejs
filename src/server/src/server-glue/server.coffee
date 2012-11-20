@@ -65,6 +65,7 @@ define([
 			app.use('/client', express.static(path.join(rootPath, 'client')))
 			app.use('/common', express.static(path.join(rootPath, 'common')))
 			app.use('/external', express.static(path.join(rootPath, 'external')))
+			app.use('/tools', express.static(path.join(rootPath, 'tools')))
 			app.use((req, res, next) ->
 				origin = req.get("Origin") || "*"
 				res.header('Access-Control-Allow-Origin', origin)
