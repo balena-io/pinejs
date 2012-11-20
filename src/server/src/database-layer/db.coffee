@@ -8,6 +8,8 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 					rows:
 						length: rows?.length or 0
 						item: (i) -> rows[i]
+						forEach: (iterator, thisArg) ->
+							rows.forEach(iterator, thisArg)
 					insertId: rows[0]?.id || null
 				}
 			class Tx
@@ -58,11 +60,13 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 			
 		exports.mysql = (options) ->
 			mysql = new require('mysql')
-			result = (rows) ->
+			createResult = (rows) ->
 				return {
 					rows:
 						length: rows?.length or 0
 						item: (i) -> rows[i]
+						forEach: (iterator, thisArg) ->
+							rows.forEach(iterator, thisArg)
 					insertId: rows.insertId || null
 				}
 			class Tx
@@ -84,7 +88,7 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 									errorCallback?(thisTX, err)
 									console.log(sql, bindings, err)
 								else
-									callback?(thisTX, result(res))
+									callback?(thisTX, createResult(res))
 							finally
 								# We have finished a statement so remove it.
 								currentlyQueuedStatements--
@@ -111,12 +115,14 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 		exports.sqlite = (filepath) ->
 			sqlite3 = require('sqlite3').verbose()
 			_db = new sqlite3.Database(filepath)
-			result = (rows) ->
+			createResult = (rows) ->
 				return {
-					rows: {
+					rows:
 						length: rows?.length or 0
 						item: (i) -> rows[i]
-					}
+						forEach: (iterator, thisArg) ->
+							rows.forEach(iterator, thisArg)
+					insertId: rows.insertId || null
 				}
 			tx = {
 				executeSql: (sql, bindings, callback, errorCallback) ->
@@ -126,7 +132,7 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 							errorCallback? thisTX, err
 							console.log(sql, err)
 						else
-							callback? thisTX, result(rows)
+							callback? thisTX, createResult(rows)
 				begin: -> this.executeSql('BEGIN;')
 				end: -> this.executeSql('END;')
 				rollback: -> this.executeSql('ROLLBACK;')
@@ -144,6 +150,21 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 	else
 		exports.websql = (databaseName) ->
 			_db = openDatabase(databaseName, "1.0", "rulemotion", 2 * 1024 * 1024)
+			createResult = (result) ->
+				try
+					insertId = result.insertId
+				catch e
+					insertId = null
+					# Ignore the potential DOM exception.
+				return {
+					rows:
+						length: result.rows.length
+						item: (i) -> result.rows.item(i)
+						forEach: (iterator, thisArg) ->
+							for i in [0...result.rows.length]
+								iterator.call(thisArg, result.rows.item(i), i, result.rows)
+					insertId: insertId
+				}
 			tx = (_tx) ->
 				return {
 					executeSql: (sql, bindings, callback, errorCallback) ->
@@ -157,7 +178,7 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 							if callback?
 								callback = do(callback) ->
 									(_tx, _results) ->
-										callback(thisTX, _results)
+										callback(thisTX, createResult(_results))
 							errorCallback = do(errorCallback) ->
 								(_tx, _err) ->
 									console.log(sql, bindings, _err, stackTrace.stack)
@@ -165,8 +186,7 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 							_tx.executeSql(sql, bindings, callback, errorCallback)
 					begin: ->
 					end: ->
-					# We need to use _tx here rather than this as it does not work when we use this
-					# TODO: Investigate why it breaks with this
+					# Rollbacks in WebSQL are done by having a SQL statement error, and not having an error callback (or having one that returns false).
 					rollback: -> _tx.executeSql("DROP TABLE '__Fo0oFoo'")
 					tableList: (callback, errorCallback, extraWhereClause = '') ->
 						if extraWhereClause != ''

@@ -65,13 +65,13 @@ if(typeof DEV === 'undefined') DEV = true;
 			'js-beautify':				rootPath + 'external/beautify/beautify',
 			'qunit':					rootPath + 'external/qunit/qunit',
 			'underscore':				rootPath + 'external/underscore/underscore.min',
+			'async':					rootPath + 'external/async/async.min',
 			'inflection':				rootPath + 'external/inflection/inflection',
 			'json2':					rootPath + 'external/json2/json2',
 			'downloadify':				rootPath + 'external/downloadify',
 			'ejs':						rootPath + 'external/ejs/ejs.min',
 			
 			'sbvr-parser':				rootPath + 'common/sbvr-parser' + buildType,
-			'utils':					rootPath + 'common/utils' + buildType,
 			
 			'sbvr-frame':				rootPath + 'client/sbvr-frame' + buildType,
 			'data-frame':				rootPath + 'client/data-frame' + buildType,

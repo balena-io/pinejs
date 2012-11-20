@@ -86,6 +86,7 @@ define(['sbvr-parser/SBVRLibs', 'ometa-core'], function(SBVRLibs) {
 		AttrDatabaseAttribute :factType =
 			:attrVal
 			(	?attrVal
+				{this.attributes[factType] = attrVal}
 				{this.tables[this.GetResourceName(factType)] = 'Attribute'}
 				{this.tables[this.GetResourceName(factType[0][1])]}:baseTable
 				{this.tables[this.GetResourceName(factType[2][1])]}:attributeTable
@@ -155,14 +156,30 @@ define(['sbvr-parser/SBVRLibs', 'ometa-core'], function(SBVRLibs) {
 		Variable =
 			[	'Variable'
 				Number:bind
-				['Term' :termName]
+				['Term' :baseTermName]
+				(	// Replace this bind if it's an attribute binding.
+					{this.bindTerms[bind]}:termNames
+					?(termNames)
+					-> termNames
+				|	-> [baseTermName]
+				):termNames
 				{'var' + bind}:varAlias
+				{termNames.shift()}:termName
 				{['SelectQuery', ['Select', []], ['From', this.tables[this.GetResourceName(termName)].name, varAlias + termName]]}:query
-				ResolveConceptTypes(query, termName, varAlias)
-				(	
-					(	RulePart:whereBody
-						AddWhereClause(query, whereBody)
-					)
+				{	this.ResolveConceptTypes(query, termName, varAlias)
+					if(termNames.length > 0) {
+						var attributeName = this.tables[this.GetResourceName(baseTermName)].name;
+						for(var i=0; i < termNames.length; i++) {
+							var extraTermName = termNames[i],
+								extraTable = this.tables[this.GetResourceName(extraTermName)];
+							query.push(['From', extraTable.name, varAlias + extraTermName]);
+							this.AddWhereClause(query, ['Equals', ['ReferencedField', varAlias + termName, attributeName], ['ReferencedField', varAlias + extraTermName, attributeName]]);
+							this.ResolveConceptTypes(query, extraTermName, varAlias)
+						}
+					}
+				}
+				(	RulePart:whereBody
+					AddWhereClause(query, whereBody)
 				)?
 			]
 			(	RulePart:whereBody
@@ -243,7 +260,9 @@ define(['sbvr-parser/SBVRLibs', 'ometa-core'], function(SBVRLibs) {
 		
 		AtomicFormulation =
 			[	'AtomicFormulation'
-				['FactType' anything+:factType]
+				[	'FactType'
+					anything+:factType
+				]
 				ActualFactType(factType):actualFactType
 				FactTypeRootTerms(factType, actualFactType):rootTerms
 				(	ForeignKey(actualFactType, rootTerms)
@@ -309,12 +328,44 @@ define(['sbvr-parser/SBVRLibs', 'ometa-core'], function(SBVRLibs) {
 			]
 			-> rule,
 		
+		ProcessAtomicFormulations =
+			(	// Bit of a hack, but we only want to drill into the input if it's an array, otherwise we get infinite recursion.
+				?(_.isArray(this.input.lst))
+				[	'AtomicFormulation'
+					[	'FactType'
+						anything+:factType
+					]
+					ActualFactType(factType):actualFactType
+					?(this.attributes.hasOwnProperty(actualFactType) && this.attributes[actualFactType])
+					{null}:tableTerm
+					{	for(var i=0; i < actualFactType.length; i+=2) {
+							if(!(this.tables[this.GetResourceName(actualFactType[i][1])].primitive)) {
+								tableTerm = actualFactType[i][1];
+								break;
+							}
+						}
+					}
+					(	RoleBinding:bind
+						(	?(this.tables[this.GetResourceName(bind[0])].primitive)
+							{(this.bindTerms[bind[1]] = this.bindTerms[bind[1]] || []).push(tableTerm)}
+						)?
+					)*
+				|	ProcessAtomicFormulations
+				]
+			|	anything
+			)*,
+		
 		Process =
 			[	'Model'
-				(
-					[	'Term' TermName:termName Attributes(termName)
+				(	[	'Term' TermName:termName Attributes(termName)
 					|	'FactType' FactType:factType Attributes(factType)
-					|	'Rule' RuleBody:ruleBody ['StructuredEnglish' :ruleText]
+					|	'Rule'
+						{this.bindTerms = []}
+						&ProcessAtomicFormulations
+						RuleBody:ruleBody
+						[	'StructuredEnglish'
+							:ruleText
+						]
 						{this.linkTableBind = 0}
 						{this.rules.push(['Rule', ['StructuredEnglish', ruleText], ['Body', ruleBody]])}
 					]
@@ -374,6 +425,8 @@ define(['sbvr-parser/SBVRLibs', 'ometa-core'], function(SBVRLibs) {
 		this.terms = {}; // TODO: Is this needed?
 		this.rules = [];
 		this.linkTableBind = 0;
+		this.attributes = {};
+		this.bindTerms = [];
 	};
 
 	

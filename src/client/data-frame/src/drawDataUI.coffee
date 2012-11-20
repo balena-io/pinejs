@@ -1,4 +1,4 @@
-define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs', 'data-frame/widgets'], (ClientURIUnparser, createAsyncQueueCallback, ejs, widgets) ->
+define(['data-frame/ClientURIUnparser', 'ejs', 'data-frame/widgets', 'async'], (ClientURIUnparser, ejs, widgets) ->
 	templates = {
 		widgets: widgets
 		hiddenFormInput: ejs.compile('''
@@ -188,11 +188,9 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs',
 		topLevelTemplate: ejs.compile('''
 			<table id="terms">
 				<tbody><%
-					for(var resourceName in topLevelResources) {
-						if(!topLevelResources.hasOwnProperty(resourceName)) {
-							continue;
-						}
-						var resource = topLevelResources[resourceName]; %>
+					for(var i = 0; i < topLevelResources.length; i++) {
+						var resource = topLevelResources[i],
+							resourceName = resource.resourceName; %>
 						<tr id="tr--data--"<%= resourceName %>">
 							<td><%
 								if(resource.isExpanded) { %>
@@ -364,51 +362,48 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs',
 					for callback in updateListeners[foreignKey]
 						callback(id, instance, clientModelResults[foreignKey])
 			get: (tree, clientModel, successCallback) ->
-				
-				asyncCallback = createAsyncQueueCallback(
-					() ->
-						successCallback(foreignKeyResults, clientModelResults)
-					(errors) ->
-						console.error(errors)
+				async.forEach(clientModel.fields,
+					(field, callback) ->
+						if field[0] not in ['ForeignKey', 'ConceptType']
+							callback()
+						else
+							# Get results for all the foreign keys
+							foreignKey = field[1]
+							if !fetchedResults.hasOwnProperty(foreignKey)
+								fetchedResults[foreignKey] = []
+								if !foreignKeyResults.hasOwnProperty(foreignKey)
+									foreignKeyResults[foreignKey] = {}
+								clientModelResults[foreignKey] = {}
+								serverRequest('GET', serverAPI(tree.getVocabulary(), foreignKey), {}, null,
+									(statusCode, result, headers) ->
+										clientModelResults[foreignKey] = result.model
+										for instance in result.instances
+											instanceID = instance[result.model.idField]
+											if !foreignKeyResults[foreignKey][instanceID]
+												foreignKeyResults[foreignKey][instance[result.model.idField]] = instance
+										callbacksList = fetchedResults[foreignKey]
+										fetchedResults[foreignKey] = true
+										for otherCallback in callbacksList
+											otherCallback()
+										callback()
+									->
+										callbacksList = fetchedResults[foreignKey]
+										fetchedResults[foreignKey] = true
+										for otherCallback in callbacksList
+											otherCallback('Error fetching ' + foreignKey)
+										callback('Error fetching ' + foreignKey)
+								)
+							else if fetchedResults[foreignKey] == false
+								callback('Error fetching ' + foreignKey)
+							else if fetchedResults[foreignKey] != true
+								fetchedResults[foreignKey].push(callback)
+							else
+								callback()
+					(err) ->
+						if(err)
+							console.error(err)
 						successCallback(foreignKeyResults, clientModelResults)
 				)
-
-				# Get results for all the foreign keys
-				for field in clientModel.fields when field[0] in ['ForeignKey', 'ConceptType']
-					do(field) ->
-						foreignKey = field[1]
-						if !fetchedResults.hasOwnProperty(foreignKey)
-							fetchedResults[foreignKey] = []
-							if !foreignKeyResults.hasOwnProperty(foreignKey)
-								foreignKeyResults[foreignKey] = {}
-							clientModelResults[foreignKey] = {}
-							asyncCallback.addWork(1)
-							serverRequest('GET', serverAPI(tree.getVocabulary(), foreignKey), {}, null,
-								(statusCode, result, headers) ->
-									clientModelResults[foreignKey] = result.model
-									for instance in result.instances
-										instanceID = instance[result.model.idField]
-										if !foreignKeyResults[foreignKey][instanceID]
-											foreignKeyResults[foreignKey][instance[result.model.idField]] = instance
-									callbacksList = fetchedResults[foreignKey]
-									fetchedResults[foreignKey] = true
-									for callbacks in callbacksList
-										callbacks[0]()
-									asyncCallback.successCallback()
-								->
-									callbacksList = fetchedResults[foreignKey]
-									fetchedResults[foreignKey] = true
-									for callbacks in callbacksList
-										callbacks[1]()
-									asyncCallback.errorCallback()
-							)
-						else if fetchedResults[foreignKey] == false
-							asyncCallback.addWork(1)
-							asyncCallback.errorCallback()
-						else if fetchedResults[foreignKey] != true
-							asyncCallback.addWork(1)
-							fetchedResults[foreignKey].push([asyncCallback.successCallback, asyncCallback.errorCallback])
-				asyncCallback.endAdding()
 		}
 	
 	window.updateForeignKey = (foreignKey, id, element) ->
@@ -449,7 +444,7 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs',
 	drawData = (tree) ->
 		addResourceID = 1
 		
-		renderInstance = (ftree, even, rowCallback) ->
+		renderInstance = (ftree, even, callback) ->
 			about = ftree.getAbout()
 			currentLocation = ftree.getCurrentLocation()
 			templateVars = $.extend({}, baseTemplateVars, (if even then evenTemplateVars else oddTemplateVars), {
@@ -473,11 +468,11 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs',
 									foreignKeys: foreignKeys
 								})
 								html = templates.viewAddEditResource(templateVars)
-								rowCallback(html)
+								callback(null, html)
 							)
 						(statusCode, errors) ->
 							console.error(errors)
-							rowCallback('Errors: ' + errors)
+							callback('Errors: ' + errors)
 					)
 				when 'add'
 					serverRequest("GET", ftree.getModelURI(), {}, null,
@@ -496,11 +491,11 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs',
 									foreignKeys: foreignKeys
 								})
 								html = templates.viewAddEditResource(templateVars)
-								rowCallback(html)
+								callback(null, html)
 							)
 						(statusCode, errors) ->
 							console.error(errors)
-							rowCallback('Errors: ' + errors)
+							callback('Errors: ' + errors)
 					)
 				when "del"
 					serverRequest("GET", ftree.getModelURI(), {}, null,
@@ -511,13 +506,13 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs',
 								id: ftree.getInstanceID()
 							})
 							html = templates.deleteResource(templateVars)
-							rowCallback(html)
+							callback(null, html)
 						(statusCode, errors) ->
 							console.error(errors)
-							rowCallback('Errors: ' + errors)
+							callback('Errors: ' + errors)
 					)
 
-		renderResource = (idx, rowCallback, rootURI, even, ftree, cmod) ->
+		renderResource = (rootURI, even, ftree, cmod, callback) ->
 			currentLocation = ftree.getCurrentLocation()
 			about = ftree.getAbout()
 			resourceType = "Term"
@@ -546,180 +541,170 @@ define(['data-frame/ClientURIUnparser', 'utils/createAsyncQueueCallback', 'ejs',
 				serverRequest("GET", ftree.getServerURI(), {}, null,
 					(statusCode, result, headers) ->
 						clientModel = result.model
-						resourceCollections = []
-						resourceCollectionsCallback = createAsyncQueueCallback(
-							() ->
-								addHash = '#!/' + ftree.getChangeURI('add', clientModel)
-								templateVars = $.extend({}, baseTemplateVars, (if even then evenTemplateVars else oddTemplateVars), {
-									pid: ftree.getPid()
-									addHash: addHash
-									addURI: rootURI + addHash
-									addsHTML: addsHTML
-									factTypeCollections: factTypeCollections
-									resourceCollections: resourceCollections
-									resourceModel: clientModel
-								})
-								html = templates.resourceCollection(templateVars)
-								rowCallback(idx, html)
-							(errors) ->
-								console.error(errors)
-								rowCallback(idx, 'Resource Collections Errors: ' + errors)
-							(index, html, isResourceName) ->
-								if index != false
-									resourceCollections[index].html = html
-								return null
-						)
-						# render each child and call back
-						for instance, i in result.instances
-							do(instance, i) ->
-								instanceID = instance[clientModel.idField]
-								resourceCollections[i] =
-									isExpanded: ftree.isExpanded(about, instanceID)
-									action: ftree.getAction(about, instanceID)
-									id: instanceID
-								
-								if resourceType == "Term"
-									resourceCollections[i].resourceName = instance[clientModel.valueField]
-								else if resourceType == "FactType"
-									resourceCollectionsCallback.addWork(1)
-									foreignKeysCache.get(ftree, clientModel,
-										(foreignKeys, foreignModels) ->
-											templateVars = $.extend({}, baseTemplateVars, (if even then evenTemplateVars else oddTemplateVars), {
-												foreignKeys: foreignKeys
-												foreignModels: foreignModels
-												factType: resourceFactType
-												instance: instance
-											})
-											resourceCollections[i].resourceName = templates.factTypeName(templateVars)
-											resourceCollectionsCallback.successCallback(false)
-										(errors) ->
-											console.error(errors)
-											resourceCollectionsCallback.errorCallback(i, 'Errors: ' + errors, true)
-									)
-								
-								if resourceCollections[i].isExpanded
-									expandedTree = ftree.clone().descend(about, instanceID)
-									resourceCollections[i].closeHash = '#!/' + expandedTree.getNewURI("del")
-									resourceCollections[i].closeURI = rootURI + resourceCollections[i].deleteHash
-									resourceCollectionsCallback.addWork(1)
-									renderResource(i, resourceCollectionsCallback.successCallback, rootURI, not even, expandedTree, cmod)
-								else
-									resourceCollections[i].viewHash = '#!/' + ftree.getChangeURI('view', clientModel, instanceID)
-									resourceCollections[i].viewURI = rootURI + resourceCollections[i].viewHash
-									resourceCollections[i].editHash = '#!/' + ftree.getChangeURI('edit', clientModel, instanceID)
-									resourceCollections[i].editURI = rootURI + resourceCollections[i].editHash
-									resourceCollections[i].deleteHash = '#!/' + ftree.getChangeURI('del', clientModel, instanceID)
-									resourceCollections[i].deleteURI = rootURI + resourceCollections[i].deleteHash
-						
-						addsHTML = []
-						resourceCollectionsCallback.addWork(1)
-						addsCallback = createAsyncQueueCallback(
-							(results) ->
-								results.sort( (a, b) ->
-									a[0] - b[0]
+						async.parallel({
+							resourceCollections: (resourceCollectionsCallback) ->
+								async.map(result.instances,
+									(instance, callback) ->
+										# render each child and call back
+										instanceID = instance[clientModel.idField]
+										resourceCollection =
+											isExpanded: ftree.isExpanded(about, instanceID)
+											action: ftree.getAction(about, instanceID)
+											id: instanceID
+										
+										async.parallel([
+											(callback) ->
+												if resourceType == "Term"
+													resourceCollection.resourceName = instance[clientModel.valueField]
+													callback()
+												else if resourceType == "FactType"
+													foreignKeysCache.get(ftree, clientModel,
+														(foreignKeys, foreignModels) ->
+															templateVars = $.extend({}, baseTemplateVars, (if even then evenTemplateVars else oddTemplateVars), {
+																foreignKeys: foreignKeys
+																foreignModels: foreignModels
+																factType: resourceFactType
+																instance: instance
+															})
+															resourceCollection.resourceName = templates.factTypeName(templateVars)
+															callback()
+														(errors) ->
+															console.error(errors)
+															callback('Errors: ' + errors)
+													)
+											(callback) ->
+												if resourceCollection.isExpanded
+													expandedTree = ftree.clone().descend(about, instanceID)
+													resourceCollection.closeHash = '#!/' + expandedTree.getNewURI("del")
+													resourceCollection.closeURI = rootURI + resourceCollection.deleteHash
+													renderResource(rootURI, not even, expandedTree, cmod,
+														(err, html) -> 
+															resourceCollection.html = html
+															callback(err)
+													)
+												else
+													resourceCollection.viewHash = '#!/' + ftree.getChangeURI('view', clientModel, instanceID)
+													resourceCollection.viewURI = rootURI + resourceCollection.viewHash
+													resourceCollection.editHash = '#!/' + ftree.getChangeURI('edit', clientModel, instanceID)
+													resourceCollection.editURI = rootURI + resourceCollection.editHash
+													resourceCollection.deleteHash = '#!/' + ftree.getChangeURI('del', clientModel, instanceID)
+													resourceCollection.deleteURI = rootURI + resourceCollection.deleteHash
+													callback()
+											]
+											(err) ->
+												callback(err, resourceCollection)
+										)
+									resourceCollectionsCallback
 								)
-								for item, i in results
-									addsHTML[i] = item[1]
-								resourceCollectionsCallback.successCallback(false)
-							(errors) ->
-								console.error(errors)
-								resourceCollectionsCallback.errorCallback('Adds Errors: ' + errors)
-							(n, prod) ->
-								return [n, prod]
-						)
-						i = 0
-						for currBranch, j in currentLocation[3..]
-							if currBranch[0] == 'instance' and currBranch[1][0] == about and currBranch[1][1] == undefined
-								for currBranchType in currBranch[2] when currBranchType[0] == "add"
-									newTree = ftree.clone().descendByIndex(j + 3)
-									addsCallback.addWork(1)
-									renderResource(i++, addsCallback.successCallback, rootURI, not even, newTree, cmod)
-									break
-						addsCallback.endAdding()
-
-						factTypeCollections = []
-						resourceCollectionsCallback.addWork(1)
-						factTypeCollectionsCallback = createAsyncQueueCallback(
-							() ->
-								resourceCollectionsCallback.successCallback(false)
-							(errors) ->
-								console.error(errors)
-								resourceCollectionsCallback.errorCallback('Fact Type Collection Errors: ' + errors)
-							(index, html) ->
-								factTypeCollections[index].html = html
-								return null
-						)
-						i = 0
-						# launch a final callback to add the subcollections.
-						for mod in cmod[1..] when mod[0] == "FactType"
-							for termVerb in mod[1..] when termVerb[1] == about
-								resourceName = getIdent(mod)
-								factTypeCollections[i] = {
-									resourceName: resourceName
-									isExpanded: ftree.isExpanded(resourceName)
-								}
-								if factTypeCollections[i].isExpanded
-									expandedTree = ftree.clone().descend(resourceName)
-									factTypeCollections[i].closeHash = '#!/' + expandedTree.getNewURI("del")
-									factTypeCollections[i].closeURI = rootURI + factTypeCollections[i].closeHash
-									factTypeCollectionsCallback.addWork(1)
-									renderResource(i, factTypeCollectionsCallback.successCallback, rootURI, not even, expandedTree, cmod)
+							addsHTML: (addsHTMLCallback) ->
+								addTrees = []
+								for currBranch, j in currentLocation[3..] when currBranch[0] == 'instance' and currBranch[1][0] == about and currBranch[1][1] == undefined
+									for currBranchType in currBranch[2] when currBranchType[0] == "add"
+										addTrees.push(ftree.clone().descendByIndex(j + 3))
+										break
+								async.map(addTrees,
+									(addTree, callback) ->
+										renderResource(rootURI, not even, addTree, cmod,
+											(err, html) ->
+												callback(err, html)
+										)
+									addsHTMLCallback
+								)
+							factTypeCollections: (factTypeCollectionsCallback) ->
+								factTypeResources = []
+								# Get a list of the fact type collections to add.
+								for mod in cmod[1..] when mod[0] == "FactType"
+									for termVerb in mod[1..] when termVerb[1] == about
+										factTypeResources.push(getIdent(mod))
+								async.map(factTypeResources,
+									(resourceName, callback) ->
+										factTypeCollection = {
+											resourceName: resourceName
+											isExpanded: ftree.isExpanded(resourceName)
+										}
+										if factTypeCollection.isExpanded
+											expandedTree = ftree.clone().descend(resourceName)
+											factTypeCollection.closeHash = '#!/' + expandedTree.getNewURI("del")
+											factTypeCollection.closeURI = rootURI + factTypeCollection.closeHash
+											renderResource(rootURI, not even, expandedTree, cmod,
+												(err, html) ->
+													factTypeCollection.html = html
+													callback(null, factTypeCollection)
+											)
+										else
+											newb = [ 'collection', [ resourceName ], [ "mod" ] ]
+											factTypeCollection.expandHash = '#!/' + ftree.getNewURI("add", newb)
+											factTypeCollection.expandURI = rootURI + factTypeCollection.expandHash
+											callback(null, factTypeCollection)
+									factTypeCollectionsCallback
+								)
+							},
+							(err, results) ->
+								if err
+									console.error(errors)
+									callback('Resource Collections Errors: ' + errors)
 								else
-									newb = [ 'collection', [ resourceName ], [ "mod" ] ]
-									factTypeCollections[i].expandHash = '#!/' + ftree.getNewURI("add", newb)
-									factTypeCollections[i].expandURI = rootURI + factTypeCollections[i].expandHash
-								i++
-						factTypeCollectionsCallback.endAdding()
-						resourceCollectionsCallback.endAdding()
+									addHash = '#!/' + ftree.getChangeURI('add', clientModel)
+									templateVars = $.extend({}, baseTemplateVars, (if even then evenTemplateVars else oddTemplateVars), {
+										pid: ftree.getPid()
+										addHash: addHash
+										addURI: rootURI + addHash
+										addsHTML: results.addsHTML
+										factTypeCollections: results.factTypeCollections
+										resourceCollections: results.resourceCollections
+										resourceModel: clientModel
+									})
+									html = templates.resourceCollection(templateVars)
+									callback(null, html)
+						)
 					(statusCode, errors) ->
 						console.error(errors)
-						rowCallback(idx, 'Errors: ' + errors)
+						callback('Errors: ' + errors)
 				)
 			else if currentLocation[0] == 'instance'
-				renderInstance(ftree, even, (html) -> rowCallback(idx,html))
+				renderInstance(ftree, even, callback)
 		
 		tree = createNavigableTree(tree)
 		rootURI = location.pathname
 		serverRequest("GET", serverAPI(tree.getVocabulary()), {}, null,
 			(statusCode, clientModel, headers) ->
-				topLevelResources = {}
-				asyncCallback = createAsyncQueueCallback(
-					(results) ->
+				# SECTION: Top level resources
+				topLevelResources = []
+				for own resourceName, resource of clientModel when resource.topLevel == true
+					topLevelResources.push(resource)
+				async.map(topLevelResources,
+					(resource, callback) ->
+						resourceName = resource.resourceName
+						resource.isExpanded = tree.isExpanded(resourceName)
+						if resource.isExpanded
+							# SECTION: Expanded resource
+							expandedTree = tree.clone().descend(resourceName)
+							resource.closeHash = '#!/' + expandedTree.getNewURI("del")
+							resource.closeURI = rootURI + resource.closeHash
+							# request schema from server and store locally.
+							serverRequest('GET', '/dev/model?filter=model_type:lf;vocabulary:data', {}, null,
+								(statusCode, result) ->
+									renderResource(rootURI, true, expandedTree, result.instances[0].model_value,
+										(err, html) ->
+											resource.html = html
+											callback(err, resource)
+									)
+								-> callback(arguments)
+							)
+						else
+							newb = [ 'collection', [ resourceName ], [ "mod" ] ]
+							resource.expandHash = '#!/' + tree.getNewURI("add", newb)
+							resource.expandURI = rootURI + resource.expandHash
+							callback(null, resource)
+					(err, topLevelResources) ->
+						if err?
+							console.error(err)
 						templateVars =
 							topLevelResources: topLevelResources
 							templates: templates
 						res = templates.topLevelTemplate(templateVars)
 						$("#dataTab").html(res)
-					null
-					(resourceName, html) ->
-						if resourceName != false
-							topLevelResources[resourceName].html = html
-						return null
 				)
-
-				# SECTION: Top level resources
-				for own resourceName, resource of clientModel when resource.topLevel == true
-					asyncCallback.addWork(1)
-					topLevelResources[resourceName] = resource
-					resource.isExpanded = tree.isExpanded(resourceName)
-					if resource.isExpanded
-						# SECTION: Expanded resource
-						expandedTree = tree.clone().descend(resourceName)
-						resource.closeHash = '#!/' + expandedTree.getNewURI("del")
-						resource.closeURI = rootURI + resource.closeHash
-						# request schema from server and store locally.
-						do (resourceName, expandedTree) ->
-							serverRequest('GET', '/dev/model?filter=model_type:lf;vocabulary:data', {}, null,
-								(statusCode, result) ->
-									renderResource(resourceName, asyncCallback.successCallback, rootURI, true, expandedTree, result.instances[0].model_value)
-								asyncCallback.errorCallback
-							)
-					else
-						newb = [ 'collection', [ resourceName ], [ "mod" ] ]
-						resource.expandHash = '#!/' + tree.getNewURI("add", newb)
-						resource.expandURI = rootURI + resource.expandHash
-						asyncCallback.successCallback(false)
-				asyncCallback.endAdding()
 			(statusCode, errors) ->
 				console.error(errors)
 				$("#dataTab").html('Errors: ' + errors)

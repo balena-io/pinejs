@@ -5,7 +5,7 @@ define([
 	'cs!sbvr-compiler/AbstractSQL2SQL'
 	'ometa!sbvr-compiler/AbstractSQLRules2SQL'
 	'cs!sbvr-compiler/AbstractSQL2CLF'
-	'ometa!data-server/ServerURIParser'
+	'ometa!server-glue/ServerURIParser'
 	'cs!utils/createAsyncQueueCallback'
 	'underscore'
 ], (SBVRParser, LF2AbstractSQLPrep, LF2AbstractSQL, AbstractSQL2SQL, AbstractSQLRules2SQL, AbstractSQL2CLF, ServerURIParser, createAsyncQueueCallback, _) ->
@@ -94,7 +94,7 @@ define([
 			Rule:      It is obligatory that each conditional field is of exactly 1 conditional resource.
 
 			--Rule:      It is obligatory that each conditional resource that has a conditional type that is of "EDIT" or "DELETE", has a lock that is exclusive
-			--Rule:      It is obligatory that each conditional resource that has a lock, has a resource type that is of a resource that the lock is on.
+			Rule:      It is obligatory that each conditional resource that has a lock, has a resource type that is of a resource that the lock is on.
 			Rule:      It is obligatory that each conditional resource that has a lock, belongs to a transaction that the lock belongs to.'''
 
 	userModel = '''
@@ -131,48 +131,50 @@ define([
 			bindValues.push(value)
 		return bindValues
 
-	endTransaction = (transactionID, successCallback, failureCallback) ->
-		db.transaction ((tx) ->
+	endTransaction = (transactionID, callback) ->
+		db.transaction((tx) ->
 			placeholders = {}
-			getLockedRow = (lockID, successCallback, failureCallback) ->
+			getLockedRow = (lockID, callback) ->
 				tx.executeSql('''SELECT r."resource_type", r."resource_id"
 								FROM "resource-is_under-lock" rl
 								JOIN "resource" r ON rl."resource" = r."id"
-								WHERE "lock" = ?;''', [lockID], successCallback, failureCallback)
-			getFieldsObject = (conditionalResourceID, clientModel, successCallback, failureCallback) ->
+								WHERE "lock" = ?;''', [lockID],
+					(tx, row) -> callback(null, row)
+					(tx, err) -> callback(err)
+				)
+			getFieldsObject = (conditionalResourceID, clientModel, callback) ->
 				tx.executeSql('SELECT "field_name", "field_value" FROM "conditional_field" WHERE "conditional_resource" = ?;', [conditionalResourceID],
 					(tx, fields) ->
 						fieldsObject = {}
-						fieldsCallback = createAsyncQueueCallback(
-							() ->
-								successCallback(fieldsObject)
-							failureCallback
+						async.forEach(fields.rows,
+							(field, callback) ->
+								fieldName = field.field_name
+								fieldName = fieldName.replace(clientModel.resourceName + '.', '')
+								fieldValue = field.field_value
+								async.forEach(clientModel.fields,
+									(modelField, callback) ->
+										placeholderCallback = (placeholder, resolvedID) ->
+											if resolvedID == false
+												callback('Placeholder failed' + fieldValue)
+											else
+												fieldsObject[fieldName] = resolvedID
+												callback()
+										if modelField[1] == fieldName and modelField[0] == 'ForeignKey' and _.isNaN(Number(fieldValue))
+											if !placeholders.hasOwnProperty(fieldValue)
+												return callback('Cannot resolve placeholder' + fieldValue)
+											else if _.isArray(placeholders[fieldValue])
+												placeholders[fieldValue].push(placeholderCallback)
+											else
+												placeholderCallback(fieldValue, placeholders[fieldValue])
+										else
+											fieldsObject[fieldName] = fieldValue
+											callback()
+									callback
+								)
+							(err) ->
+								callback(err, fieldsObject)
 						)
-						createPlaceholderCallback = (fieldName) ->
-							(placeholder, resolvedID) ->
-								if resolvedID == false
-									fieldsCallback.errorCallback('Placeholder failed', fieldValue)
-								else
-									fieldsObject[fieldName] = resolvedID
-									fieldsCallback.successCallback()
-						for i in [0...fields.rows.length]
-							field = fields.rows.item(i)
-							fieldName = field.field_name
-							fieldName = fieldName.replace(clientModel.resourceName + '.', '')
-							fieldValue = field.field_value
-							for modelField in clientModel.fields when modelField[1] == fieldName and modelField[0] == 'ForeignKey' and _.isNaN(Number(fieldValue))
-								fieldsCallback.addWork(1)
-								if !placeholders.hasOwnProperty(fieldValue)
-									return failureCallback('Cannot resolve placeholder', fieldValue)
-								else 
-									placeholderCallback = createPlaceholderCallback(fieldName)
-									if _.isArray(placeholders[fieldValue])
-										placeholders[fieldValue].push(placeholderCallback)
-									else
-										placeholderCallback(fieldValue, placeholders[fieldValue])
-							fieldsObject[fieldName] = fieldValue
-						fieldsCallback.endAdding()
-					failureCallback
+					(tx, err) -> callback(err)
 				)
 			resolvePlaceholder = (placeholder, resolvedID) -> 
 				placeholderCallbacks = placeholders[placeholder]
@@ -180,103 +182,126 @@ define([
 				for placeholderCallback in placeholderCallbacks
 					placeholderCallback(placeholder, resolvedID)
 			
-			tx.executeSql('SELECT * FROM "conditional_resource" WHERE "transaction" = ?;', [transactionID], (tx, conditionalResources) ->
-				resourcesCallback = createAsyncQueueCallback(
-					() ->
-						tx.executeSql('DELETE FROM "transaction" WHERE "id" = ?;', [transactionID],
-							(tx, result) ->
-								validateDB(tx, sqlModels['data'], successCallback, failureCallback)
-							(tx, error) ->
-								failureCallback(tx, [error])
-						)
-					(errors) -> failureCallback(tx, errors)
-				)
-				do ->
-					for i in [0...conditionalResources.rows.length]
-						conditionalResource = conditionalResources.rows.item(i)
+			tx.executeSql('SELECT * FROM "conditional_resource" WHERE "transaction" = ?;', [transactionID],
+				(tx, conditionalResources) ->
+					conditionalResources.rows.forEach((conditionalResource) ->
 						placeholder = conditionalResource.placeholder
 						if placeholder? and placeholder.length > 0
 							placeholders[placeholder] = []
-				
-				# get conditional resources (if exist)
-				for i in [0...conditionalResources.rows.length]
-					conditionalResource = conditionalResources.rows.item(i)
-					do(conditionalResource) ->
-						placeholder = conditionalResource.placeholder
-						lockID = conditionalResource.lock
-						doCleanup = () ->
-							cleanupCallback = createAsyncQueueCallback(resourcesCallback.successCallback, resourcesCallback.errorCallback)
-							cleanupCallback.addWork(4)
-							cleanupCallback.endAdding()
-							tx.executeSql('DELETE FROM "conditional_field" WHERE "conditional_resource" = ?;', [conditionalResource.id], cleanupCallback.successCallback, cleanupCallback.errorCallback)
-							tx.executeSql('DELETE FROM "conditional_resource" WHERE "lock" = ?;', [lockID], cleanupCallback.successCallback, cleanupCallback.errorCallback)
-							tx.executeSql('DELETE FROM "resource-is_under-lock" WHERE "lock" = ?;', [lockID], cleanupCallback.successCallback, cleanupCallback.errorCallback)
-							tx.executeSql('DELETE FROM "lock" WHERE "id" = ?;', [lockID], cleanupCallback.successCallback, cleanupCallback.errorCallback)
+					)
+					
+					# get conditional resources (if exist)
+					async.forEach(conditionalResources.rows,
+						(conditionalResource, callback) ->
+							placeholder = conditionalResource.placeholder
+							lockID = conditionalResource.lock
+							doCleanup = () ->
+								async.parallel([
+										(callback) ->
+											tx.executeSql('DELETE FROM "conditional_field" WHERE "conditional_resource" = ?;', [conditionalResource.id],
+												-> callback()
+												(tx, err) -> callback(err)
+											)
+										(callback) ->
+											tx.executeSql('DELETE FROM "conditional_resource" WHERE "lock" = ?;', [lockID],
+												-> callback()
+												(tx, err) -> callback(err)
+											)
+										(callback) ->
+											tx.executeSql('DELETE FROM "resource-is_under-lock" WHERE "lock" = ?;', [lockID],
+												-> callback()
+												(tx, err) -> callback(err)
+											)
+										(callback) ->
+											tx.executeSql('DELETE FROM "lock" WHERE "id" = ?;', [lockID],
+												-> callback()
+												(tx, err) -> callback(err)
+											)
+									]
+									callback
+								)
 							
-						resourcesCallback.addWork(1)
-						clientModel = clientModels['data'].resources[conditionalResource.resource_type]
-						uri = '/data/' + conditionalResource.resource_type
-						requestBody = [{}]
-						switch conditionalResource.conditional_type
-							when 'DELETE'
-								getLockedRow(lockID, (tx, lockedRow) ->
-									lockedRow = lockedRow.rows.item(0)
-									uri = uri + '?filter=' + clientModel.idField + ':' + lockedRow.resource_id
-									runURI('DELETE', uri, requestBody, tx, doCleanup, resourcesCallback.errorCallback)
-								)
-							when 'EDIT'
-								getLockedRow(lockID, (tx, lockedRow) ->
-									lockedRow = lockedRow.rows.item(0)
-									uri = uri + '?filter=' + clientModel.idField + ':' + lockedRow.resource_id
-									getFieldsObject(conditionalResource.id, clientModel,
-										(fields) ->
-											runURI('PUT', uri, [fields], tx, doCleanup, resourcesCallback.errorCallback)
-										resourcesCallback.errorCallback
+							clientModel = clientModels['data'].resources[conditionalResource.resource_type]
+							uri = '/data/' + conditionalResource.resource_type
+							requestBody = [{}]
+							switch conditionalResource.conditional_type
+								when 'DELETE'
+									getLockedRow(lockID, (err, lockedRow) ->
+										if err?
+											callback(err)
+										else
+											lockedRow = lockedRow.rows.item(0)
+											uri = uri + '?filter=' + clientModel.idField + ':' + lockedRow.resource_id
+											runURI('DELETE', uri, requestBody, tx, doCleanup, -> callback(arguments))
 									)
-								)
-							when 'ADD'
-								getFieldsObject(conditionalResource.id, clientModel,
-									(fields) ->
-										runURI('POST', uri, [fields], tx,
-											(result) ->
-												resolvePlaceholder(placeholder, result.id)
-												doCleanup()
-											() ->
-												resolvePlaceholder(placeholder, false)
-												resourcesCallback.errorCallback()
+								when 'EDIT'
+									getLockedRow(lockID, (err, lockedRow) ->
+										if err?
+											callback(err)
+										else
+											lockedRow = lockedRow.rows.item(0)
+											uri = uri + '?filter=' + clientModel.idField + ':' + lockedRow.resource_id
+											getFieldsObject(conditionalResource.id, clientModel,
+												(err, fields) ->
+													if err?
+														callback(err)
+													else
+														runURI('PUT', uri, [fields], tx, doCleanup, -> callback(arguments))
+											)
+									)
+								when 'ADD'
+									getFieldsObject(conditionalResource.id, clientModel, (err, fields) ->
+										if err?
+											resolvePlaceholder(placeholder, false)
+											callback(err)
+										else
+											runURI('POST', uri, [fields], tx,
+												(result) ->
+													resolvePlaceholder(placeholder, result.id)
+													doCleanup()
+												->
+													resolvePlaceholder(placeholder, false)
+													callback(arguments)
+											)
+									)
+						(err) ->
+							if err?
+								callback(err)
+							else
+								tx.executeSql('DELETE FROM "transaction" WHERE "id" = ?;', [transactionID],
+									(tx, result) ->
+										validateDB(tx, sqlModels['data'],
+											-> callback()
+											(tx, err) -> callback(err)
 										)
-									() ->
-										resolvePlaceholder(placeholder, false)
-										resourcesCallback.errorCallback()
+									(tx, err) ->
+										callback(err)
 								)
-				resourcesCallback.endAdding()
-			)
+					)
+				)
 		)
 
 	# successCallback = (tx, sqlmod, failureCallback, result)
 	# failureCallback = (tx, errors)
 	validateDB = (tx, sqlmod, successCallback, failureCallback) ->
-		asyncCallback = createAsyncQueueCallback(
-			() ->
-				tx.end()
-				successCallback(tx)
-			(errors) ->
-				tx.rollback()
-				failureCallback(tx, errors)
-		)
-
-		asyncCallback.addWork(sqlmod.rules.length)
-		for rule in sqlmod.rules
-			do(rule) ->
+		async.forEach(sqlmod.rules,
+			(rule, callback) ->
 				tx.executeSql(rule.sql, [],
 					(tx, result) ->
 						if result.rows.item(0).result in [false, 0, '0']
-							asyncCallback.errorCallback(rule.structuredEnglish)
+							callback(rule.structuredEnglish)
 						else
-							asyncCallback.successCallback()
-					asyncCallback.errorCallback
+							callback()
+					(tx, err) -> callback(err)
 				)
-		asyncCallback.endAdding()
+			(err) ->
+				if err?
+					tx.rollback()
+					failureCallback(tx, err)
+				else
+					tx.end()
+					successCallback(tx)
+		)
 
 	# successCallback = (tx, lfModel, slfModel, abstractSqlModel, sqlModel, clientModel)
 	# failureCallback = (tx, errors)
@@ -613,10 +638,12 @@ define([
 			if _.isNaN(id)
 				res.send(404)
 			else
-				endTransaction(id, (tx) ->
-					res.send(200)
-				, (tx, errors) ->
-					res.json(errors, 404)
+				endTransaction(id, (err) ->
+					if err?
+						console.error(err)
+						res.json(err, 404)
+					else
+						res.send(200)
 				)
 		)
 		app.get('/transaction', (req, res, next) ->

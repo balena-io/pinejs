@@ -12,7 +12,7 @@ define(function() {
 			}
 			if(value == optionID) {
 				// TODO: This should come from client model.
-				return values[id].value == null ? values[id].name : values[id].value;
+				return values[optionID].value == null ? values[optionID].name : values[optionID].value;
 			}
 		}
 		return value;

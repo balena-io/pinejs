@@ -33,47 +33,6 @@ define([
 			)?
 			{this.primitives[termOrFactType] = newAttrVal}
 			-> newAttrVal,
-
-		Variable
-			^Variable:variable
-			(	{variable[2]}:term
-				// Replace the term if it's a primitive and we're processing an attribute rule.
-				?(this.processingAttributeRule && this.primitives.hasOwnProperty(term) && this.primitives[term] !== false)
-				// isPartOfAttributeRule is used as a flag to indicate whether this variable is actually part of the attribute fact type,
-				// if it is not then we shouldn't replace the term.
-				{false}:isPartOfAttributeRule
-				{[]}:newTerm
-				{	for(var i=1; i < this.processingAttributeRule.length; i+=2) {
-						if(this.IsChild(term[1], this.processingAttributeRule[i])) {
-							isPartOfAttributeRule = true;
-						}
-						else {
-							newTerm = this.processingAttributeRule[i];
-						}
-					}
-				}
-				?isPartOfAttributeRule
-				// {console.log('Switched variable term', term, 'to', newTerm)}
-				{variable[2] = newTerm}
-				SetHelped
-			)?
-			-> variable,
-			
-		AtomicFormulation =
-			&"FactType":factType
-			ActualFactType(factType.slice(1)):actualFactType
-			{['FactType'].concat(actualFactType)}:actualFactType
-			// {console.log(actualFactType.toString(), ['FactType'].concat(actualFactType).toString(), this.attributes)}
-			(	?(this.attributes.hasOwnProperty(actualFactType))
-				// {console.log('Atomic Formulation Attr', this.processingAttributeRule)}
-				(	?this.processingAttributeRule
-					^AtomicFormulation
-				|	{this.processingAttributeRule = actualFactType}
-					?false
-				)
-			|	?(!this.attributes.hasOwnProperty(actualFactType))
-				^AtomicFormulation
-			),
 		
 		UniversalQuantification
 			"Variable":v trans*:xs SetHelped
@@ -116,10 +75,8 @@ define([
 			{this.foreignKeys[factType] = necessity}
 			// We have matched a foreign key, so call SetHelped.
 			SetHelped,
-			
 		
 		Rule
-			{this.processingAttributeRule = false}
 			(	[	'ObligationFormulation'
 					[	'UniversalQuantification'
 						"Variable":v1
@@ -138,17 +95,14 @@ define([
 				// We have matched a foreign key, return an empty array to remove the rule.
 				-> null
 			|	^Rule
-			|	?this.processingAttributeRule
-				^Rule
 			)
 	}
 	
 	LF2AbstractSQLPrep.initialize = function() {
 		LFOptimiser.initialize.call(this);
-		this.foreignKeys = [];
-		this.primitives = [];
-		this.attributes = [];
-		this.processingAttributeRule = false;
+		this.foreignKeys = {};
+		this.primitives = {};
+		this.attributes = {};
 	};
 	
 	LF2AbstractSQLPrep.defaultAttributes = function(termOrVerb, attrsFound, attrs) {
