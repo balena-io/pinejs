@@ -6,9 +6,10 @@ define([
 	'ometa!sbvr-compiler/AbstractSQLRules2SQL'
 	'cs!sbvr-compiler/AbstractSQL2CLF'
 	'ometa!server-glue/ServerURIParser'
-	'cs!utils/createAsyncQueueCallback'
+	'async'
+	'cs!database-layer/db'
 	'underscore'
-], (SBVRParser, LF2AbstractSQLPrep, LF2AbstractSQL, AbstractSQL2SQL, AbstractSQLRules2SQL, AbstractSQL2CLF, ServerURIParser, createAsyncQueueCallback, _) ->
+], (SBVRParser, LF2AbstractSQLPrep, LF2AbstractSQL, AbstractSQL2SQL, AbstractSQLRules2SQL, AbstractSQL2CLF, ServerURIParser, async, dbModule, _) ->
 	exports = {}
 	db = null
 	
@@ -612,22 +613,20 @@ define([
 		)
 
 	exports.setup = (app, requirejs, databaseOptions) ->
-		requirejs(['cs!database-layer/db'], (dbModule) ->
-			db = dbModule.connect(databaseOptions)
-			AbstractSQL2SQL = AbstractSQL2SQL[databaseOptions.engine]
-			db.transaction((tx) ->
-				executeStandardModels(tx)
-				runURI('GET', '/dev/model?filter=model_type:sql;vocabulary:data', null, tx
-					(result) ->
-						for instance in result.instances
-							vocab = instance.vocabulary
-							sqlModel = instance.model_value
-							clientModel = AbstractSQL2CLF(sqlModel)
-							sqlModels[vocab] = sqlModel
-							serverURIParser.setSQLModel(vocab, sqlModel)
-							clientModels[vocab] = clientModel
-							serverURIParser.setClientModel(vocab, clientModel)
-				)
+		db = dbModule.connect(databaseOptions)
+		AbstractSQL2SQL = AbstractSQL2SQL[databaseOptions.engine]
+		db.transaction((tx) ->
+			executeStandardModels(tx)
+			runURI('GET', '/dev/model?filter=model_type:sql;vocabulary:data', null, tx
+				(result) ->
+					for instance in result.instances
+						vocab = instance.vocabulary
+						sqlModel = instance.model_value
+						clientModel = AbstractSQL2CLF(sqlModel)
+						sqlModels[vocab] = sqlModel
+						serverURIParser.setSQLModel(vocab, sqlModel)
+						clientModels[vocab] = clientModel
+						serverURIParser.setClientModel(vocab, clientModel)
 			)
 		)
 		app.get('/dev/*', parseURITree, (req, res, next) ->

@@ -10,6 +10,7 @@
 		"pg": "0.8.x",
 
 		"passport-local": "0.1.x",
-		"bcrypt": "latest"
+		"bcrypt": "latest",
+		"async": "latest"
 	}
 }
