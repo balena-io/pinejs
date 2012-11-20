@@ -71,22 +71,23 @@ define(['sbvr-parser/SBVRParser', 'data-frame/ClientURIParser', 'Prettify'], (SB
 			lfEditor.refresh()
 		else if switchVal == 'preplf'
 			$("#tabs").tabs("select", 2)
-		else if SBVR_SERVER_ENABLED and switchVal == 'server'
-			uri = location.hash.slice(9)
-			serverRequest("GET", uri, {}, null, (statusCode, result) ->
-				alert(result)
-			)
-		else if SBVR_SERVER_ENABLED and switchVal == 'sql'
-			$("#tabs").tabs("select", 3)
-			sqlEditor.refresh() # Force a refresh on switching to the tab, otherwise it wasn't appearing.
-		else if SBVR_SERVER_ENABLED and switchVal == 'data'
-			$("#tabs").tabs("select", 4)
-			drawData(URItree[1])
-		else if SBVR_SERVER_ENABLED and switchVal == 'export'
-			$("#tabs").tabs("select", 6)
-			importExportEditor.refresh()
 		else if switchVal == 'http'
 			$("#tabs").tabs("select", 5)
+		else if SBVR_SERVER_ENABLED
+			if switchVal == 'server'
+				uri = location.hash.slice(9)
+				serverRequest("GET", uri, {}, null, (statusCode, result) ->
+					alert(result)
+				)
+			else if switchVal == 'sql'
+				$("#tabs").tabs("select", 3)
+				sqlEditor.refresh() # Force a refresh on switching to the tab, otherwise it wasn't appearing.
+			else if switchVal == 'export'
+				$("#tabs").tabs("select", 6)
+				importExportEditor.refresh()
+			else
+				$("#tabs").tabs("select", 4)
+				drawData(URItree[1])
 		else
 			$("#tabs").tabs("select", 0)
 			sbvrEditor.refresh()
