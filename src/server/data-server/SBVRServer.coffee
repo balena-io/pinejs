@@ -3,7 +3,6 @@ define([
 	'cs!sbvr-compiler/AbstractSQL2CLF'
 	'ometa!data-server/ServerURIParser'
 	'utils/createAsyncQueueCallback'
-	'underscore'
 ], (AbstractSQLRules2SQL, AbstractSQL2CLF, ServerURIParser, createAsyncQueueCallback) ->
 	exports = {}
 	db = null

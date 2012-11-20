@@ -2,7 +2,7 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 	exports = {}
 	if has 'ENV_NODEJS'
 		exports.postgres = (connectString) ->
-			pg = requirejs('pg')
+			pg = require('pg')
 			createResult = (rows) ->
 				return {
 					rows:
@@ -57,7 +57,7 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 			}
 			
 		exports.mysql = (options) ->
-			mysql = new requirejs('mysql')
+			mysql = new require('mysql')
 			result = (rows) ->
 				return {
 					rows:
@@ -109,8 +109,8 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 			}
 				
 		exports.sqlite = (filepath) ->
-			sqlite3 = requirejs('sqlite3').verbose();
-			_db = new sqlite3.Database(filepath);
+			sqlite3 = require('sqlite3').verbose()
+			_db = new sqlite3.Database(filepath)
 			result = (rows) ->
 				return {
 					rows: {

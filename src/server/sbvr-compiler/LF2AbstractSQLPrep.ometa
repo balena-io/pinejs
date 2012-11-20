@@ -1,6 +1,5 @@
 define([
 	'ometa!sbvr-compiler/LFOptimiser',
-	'underscore'
 ], function(LFOptimiser) {
 	ometa LF2AbstractSQLPrep <: LFOptimiser {
 		AttrConceptType :termName =

@@ -1,4 +1,4 @@
-define(['express', 'passport', 'path', 'has'], (express, passport, path, has)->
+define(['has'], (has)->
 	if has 'ENV_NODEJS'
 		if has 'USE_MYSQL'
 			databaseOptions =
@@ -50,6 +50,8 @@ define(['express', 'passport', 'path', 'has'], (express, passport, path, has)->
 
 
 	if has 'ENV_NODEJS'
+		express = require('express')
+		passport = require('passport')
 		app = express()
 		app.configure(->
 			app.use(express.cookieParser())

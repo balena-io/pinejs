@@ -8,7 +8,7 @@ CREATE TABLE users (
 );
 ###
 
-define(['bcrypt', 'passport-local'], ->
+define(->
 	return (options, sbvrUtils, app, passport) ->
 		exports = {}
 		checkPassword = (username, password, done) ->
