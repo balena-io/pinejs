@@ -106,6 +106,16 @@ define([
 			)?
 			AddTableField(baseTable, fkTable.name, 'ForeignKey', required, null, fkTable.idField)
 			{this.tables[this.GetResourceName(factType)] = 'ForeignKey'},
+		AttrUnique :factType =
+			:required
+			GetTable(factType):baseTable
+			(	?(baseTable === 'Attribute' || baseTable === 'ForeignKey')
+				GetTable(factType[0][1]):baseTable
+			)?
+			GetTable(factType[2][1]):uniqueTable
+			GetTableFieldID(baseTable, uniqueTable.name):fieldID
+			?(fieldID !== false)
+			{baseTable.fields[fieldID][3] = 'UNIQUE'},
 		// AttrSynonym :term =
 			// :synonym {this.terms[synonym[1]] = term[1]},
 		AttrSynonymousForm :factType =

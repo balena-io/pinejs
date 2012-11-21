@@ -66,7 +66,10 @@ define([
 						validated = 'longer than 100 characters (' + value.length + ')'
 		return {validated, value}
 	
-	postgresDataType = (dataType, necessity = '', index = '') ->
+	postgresDataType = (dataType, necessity, index = '') ->
+		necessity = if necessity then ' NOT NULL' else ' NULL'
+		if index != ''
+			index = ' ' + index
 		switch dataType
 			when 'Serial'
 				return 'SERIAL ' + necessity + index
@@ -93,9 +96,12 @@ define([
 			when 'Value'
 				return 'VARCHAR(100) ' + necessity + index
 			else
-				return 'VARCHAR(100)' + necessity + index
+				return 'VARCHAR(100) ' + necessity + index
 	
-	mysqlDataType = (dataType, necessity = '', index = '') ->
+	mysqlDataType = (dataType, necessity, index = '') ->
+		necessity = if necessity then ' NOT NULL' else ' NULL'
+		if index != ''
+			index = ' ' + index
 		switch dataType
 			when 'Serial'
 				return 'INTEGER ' + necessity + index + ' AUTO_INCREMENT'
@@ -122,9 +128,12 @@ define([
 			when 'Value'
 				return 'VARCHAR(100) ' + necessity + index
 			else
-				return 'VARCHAR(100)' + necessity + index
+				return 'VARCHAR(100) ' + necessity + index
 	
-	websqlDataType = (dataType, necessity = '', index = '') ->
+	websqlDataType = (dataType, necessity, index = '') ->
+		necessity = if necessity then ' NOT NULL' else ' NULL'
+		if index != ''
+			index = ' ' + index
 		switch dataType
 			when 'Serial'
 				return 'INTEGER ' + necessity + index + ' AUTOINCREMENT'
@@ -151,7 +160,7 @@ define([
 			when 'Value'
 				return 'VARCHAR(100) ' + necessity + index
 			else
-				return 'VARCHAR(100)' + necessity + index
+				return 'VARCHAR(100) ' + necessity + index
 	
 	generate = (sqlModel, dataTypeGen, ifNotExists) ->
 		ifNotExists = if ifNotExists then 'IF NOT EXISTS ' else ''
@@ -164,9 +173,9 @@ define([
 			createSQL = 'CREATE TABLE ' + ifNotExists + '"' + table.name + '" (\n\t'
 			
 			for field in table.fields
-				createSQL += '"' + field[1] + '" ' + dataTypeGen(field[0], (if field[2] then 'NOT NULL ' else 'NULL '), field[3]) + '\n,\t'
+				createSQL += '"' + field[1] + '" ' + dataTypeGen(field[0], field[2], field[3]) + '\n,\t'
 				if field[0] in ['ForeignKey', 'ConceptType']
-					foreignKeys.push([field[1], field[3], field[4]])
+					foreignKeys.push([field[1], field[4]])
 					depends.push(field[1])
 					hasDependants[field[1]] = true
 				

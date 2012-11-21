@@ -70,10 +70,14 @@ define([
 			?(atomicForm.length == 4 && factType.length == 4)
 			ActualFactType(factType.slice(1)):actualFactType
 			{['FactType'].concat(actualFactType)}:actualFactType
-			// In the same order as the vars appear.
-			?(v1[2][1] == actualFactType[1][1] && v2[2][1] == actualFactType[3][1])
-			{this.foreignKeys[actualFactType] = required}
-			// We have matched a foreign key, so call SetHelped.
+			(	// In the same order as the vars appear.
+				?(v1[2][1] == actualFactType[1][1] && v2[2][1] == actualFactType[3][1])
+				{this.foreignKeys[actualFactType] = required}
+			|	// In reverse order
+				?(v1[2][1] == actualFactType[3][1] && v2[2][1] == actualFactType[1][1])
+				{this.uniqueKeys[actualFactType] = required}
+			)
+			// We have matched a foreign key or unique, so call SetHelped.
 			SetHelped,
 		
 		Rule
@@ -101,6 +105,7 @@ define([
 	LF2AbstractSQLPrep.initialize = function() {
 		LFOptimiser.initialize.call(this);
 		this.foreignKeys = {};
+		this.uniqueKeys = {};
 		this.primitives = {};
 		this.attributes = {};
 	};
@@ -153,6 +158,17 @@ define([
 						this.SetHelped();
 					}
 				}
+				if(this.uniqueKeys.hasOwnProperty(termOrVerb)) {
+					if(!attrsFound.hasOwnProperty('Unique')) {
+						attrs.push(['Unique', this.uniqueKeys[termOrVerb]]);
+						this.SetHelped();
+					}
+					else if(attrsFound['Unique'] != this.uniqueKeys[termOrVerb]) {
+						console.error(attrsFound['Unique'], this.uniqueKeys[termOrVerb]);
+						___MISMATCHED_UNIQUE_KEY___.die();
+					}
+				}
+				
 				// Boolean fact type
 				if(termOrVerb.length == 3) {
 					if(!this.primitives.hasOwnProperty(termOrVerb[1]) || this.primitives[termOrVerb[1]] !== false) {
