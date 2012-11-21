@@ -63,11 +63,12 @@ define(->
 				)
 
 				exports.isAuthed = (req, res, next) ->
-					console.log('wooo, checking auth')
-					if _user != false
-						next()
-					else
-						res.redirect(options.failureRedirect)
+					# For local (dev) we just assume we are authed 
+					next()
+					# if _user != false
+						# next()
+					# else
+						# res.redirect(options.failureRedirect)
 
 		return exports
 )
