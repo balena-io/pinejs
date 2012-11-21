@@ -147,6 +147,10 @@ define(['underscore', 'ometa-core'], function(_) {
 		}
 	};
 	
+	SBVRLibs.GetTable = function(termOrFactType) {
+		return this.tables[this.GetResourceName(termOrFactType)];
+	};
+	
 	SBVRLibs.GetTableField = function(table, fieldName) {
 		var fieldID = this.GetTableFieldID(table, fieldName);
 		if(fieldID === false) {

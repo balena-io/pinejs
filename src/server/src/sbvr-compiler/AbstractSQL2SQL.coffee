@@ -66,92 +66,92 @@ define([
 						validated = 'longer than 100 characters (' + value.length + ')'
 		return {validated, value}
 	
-	postgresDataType = (dataType, necessity) ->
+	postgresDataType = (dataType, necessity = '', index = '') ->
 		switch dataType
 			when 'Serial'
-				return 'SERIAL ' + necessity
+				return 'SERIAL ' + necessity + index
 			when 'Date'
-				return 'DATE ' + necessity
+				return 'DATE ' + necessity + index
 			when 'Date Time'
-				return 'TIMESTAMP ' + necessity
+				return 'TIMESTAMP ' + necessity + index
 			when 'Time'
-				return 'TIME ' + necessity
+				return 'TIME ' + necessity + index
 			when 'Interval'
-				return 'INTERVAL ' + necessity
+				return 'INTERVAL ' + necessity + index
 			when 'Real'
-				return 'REAL ' + necessity
+				return 'REAL ' + necessity + index
 			when 'Integer', 'ForeignKey', 'ConceptType'
-				return 'INTEGER ' + necessity
+				return 'INTEGER ' + necessity + index
 			when 'Short Text'
-				return 'VARCHAR(255) ' + necessity
+				return 'VARCHAR(255) ' + necessity + index
 			when 'Long Text', 'JSON'
-				return 'TEXT ' + necessity
+				return 'TEXT ' + necessity + index
 			when 'Boolean'
-				return 'INTEGER NOT NULL DEFAULT 0'
+				return 'INTEGER NOT NULL DEFAULT 0' + index
 			when 'Hashed'
-				return 'CHAR(60) ' + necessity
+				return 'CHAR(60) ' + necessity + index
 			when 'Value'
-				return 'VARCHAR(100) NOT NULL'
+				return 'VARCHAR(100) ' + necessity + index
 			else
-				return 'VARCHAR(100)'
+				return 'VARCHAR(100)' + necessity + index
 	
-	mysqlDataType = (dataType, necessity) ->
+	mysqlDataType = (dataType, necessity = '', index = '') ->
 		switch dataType
 			when 'Serial'
-				return 'INTEGER ' + necessity + ' AUTO_INCREMENT'
+				return 'INTEGER ' + necessity + index + ' AUTO_INCREMENT'
 			when 'Date'
-				return 'DATE ' + necessity
+				return 'DATE ' + necessity + index
 			when 'Date Time'
-				return 'TIMESTAMP ' + necessity
+				return 'TIMESTAMP ' + necessity + index
 			when 'Time'
-				return 'TIME ' + necessity
+				return 'TIME ' + necessity + index
 			when 'Interval'
-				return 'INTEGER ' + necessity
+				return 'INTEGER ' + necessity + index
 			when 'Real'
-				return 'REAL ' + necessity
+				return 'REAL ' + necessity + index
 			when 'Integer', 'ForeignKey', 'ConceptType'
-				return 'INTEGER ' + necessity
+				return 'INTEGER ' + necessity + index
 			when 'Short Text'
-				return 'VARCHAR(255) ' + necessity
+				return 'VARCHAR(255) ' + necessity + index
 			when 'Long Text', 'JSON'
-				return 'TEXT ' + necessity
+				return 'TEXT ' + necessity + index
 			when 'Boolean'
-				return 'INTEGER NOT NULL DEFAULT 0'
+				return 'INTEGER NOT NULL DEFAULT 0' + index
 			when 'Hashed'
-				return 'CHAR(60) ' + necessity
+				return 'CHAR(60) ' + necessity + index
 			when 'Value'
-				return 'VARCHAR(100) NOT NULL'
+				return 'VARCHAR(100) ' + necessity + index
 			else
-				return 'VARCHAR(100)'
+				return 'VARCHAR(100)' + necessity + index
 	
-	websqlDataType = (dataType, necessity) ->
+	websqlDataType = (dataType, necessity = '', index = '') ->
 		switch dataType
 			when 'Serial'
-				return 'INTEGER ' + necessity + ' AUTOINCREMENT'
+				return 'INTEGER ' + necessity + index + ' AUTOINCREMENT'
 			when 'Date'
-				return 'TEXT ' + necessity
+				return 'TEXT ' + necessity + index
 			when 'Date Time'
-				return 'TEXT ' + necessity
+				return 'TEXT ' + necessity + index
 			when 'Time'
-				return 'TEXT ' + necessity
+				return 'TEXT ' + necessity + index
 			when 'Interval'
-				return 'INTEGER ' + necessity
+				return 'INTEGER ' + necessity + index
 			when 'Real'
-				return 'REAL ' + necessity
+				return 'REAL ' + necessity + index
 			when 'Integer', 'ForeignKey', 'ConceptType'
-				return 'INTEGER ' + necessity
+				return 'INTEGER ' + necessity + index
 			when 'Short Text'
-				return 'VARCHAR(255) ' + necessity
+				return 'VARCHAR(255) ' + necessity + index
 			when 'Long Text', 'JSON'
-				return 'TEXT ' + necessity
+				return 'TEXT ' + necessity + index
 			when 'Boolean'
-				return 'INTEGER NOT NULL DEFAULT 0'
+				return 'INTEGER NOT NULL DEFAULT 0' + index
 			when 'Hashed'
-				return 'CHAR(60) ' + necessity
+				return 'CHAR(60) ' + necessity + index
 			when 'Value'
-				return 'VARCHAR(100) ' + necessity
+				return 'VARCHAR(100) ' + necessity + index
 			else
-				return 'VARCHAR(100)'
+				return 'VARCHAR(100)' + necessity + index
 	
 	generate = (sqlModel, dataTypeGen, ifNotExists) ->
 		ifNotExists = if ifNotExists then 'IF NOT EXISTS ' else ''
@@ -164,10 +164,9 @@ define([
 			createSQL = 'CREATE TABLE ' + ifNotExists + '"' + table.name + '" (\n\t'
 			
 			for field in table.fields
-				createSQL += '"' + field[1] + '" ' + dataTypeGen(field[0], field[2]) + '\n,\t'
-				
+				createSQL += '"' + field[1] + '" ' + dataTypeGen(field[0], (if field[2] then 'NOT NULL ' else 'NULL '), field[3]) + '\n,\t'
 				if field[0] in ['ForeignKey', 'ConceptType']
-					foreignKeys.push([field[1], field[3]])
+					foreignKeys.push([field[1], field[3], field[4]])
 					depends.push(field[1])
 					hasDependants[field[1]] = true
 				

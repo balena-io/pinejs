@@ -9,12 +9,13 @@ define([
 		
 		/** Terms **/
 		TermName =
-			:termName 
-			(	?(!this.tables.hasOwnProperty(this.GetResourceName(termName)))
+			:termName
+			GetResourceName(termName):resourceName
+			(	?(!this.tables.hasOwnProperty(resourceName))
 			|	{console.error('We already have a term with a name of: ' + termName)} ?(false)
 			)
 			{this.terms[termName] = termName}
-			{this.tables[this.GetResourceName(termName)] = {fields:[], primitive: false, name: null, idField: null}}
+			{this.tables[resourceName] = {fields:[], primitive: false, name: null, idField: null}}
 			-> termName,
 		Attributes :tableID =
 				end
@@ -29,86 +30,81 @@ define([
 		AttrConceptType :termName = // tableID will be same as termName for ConceptType (fact types cannot have a concept type)
 			['Term' :conceptType] {this.conceptTypes[termName] = conceptType}
 			IsPrimitive(conceptType):primitive
-			{this.tables[this.GetResourceName(conceptType)]}:conceptTable
-			{this.tables[this.GetResourceName(termName)]}:termTable
-			{['ConceptType', conceptTable.name, 'NOT NULL', conceptTable.idField]}:field
+			GetTable(conceptType):conceptTable
+			GetTable(termName):termTable
 			(	?(primitive !== false && conceptType === primitive)
-				{field[0] = primitive}
-				// Find existing name field and remove it if it exists.
+				{primitive}:dataType
+				// If the concept type is primitive then we use that as the "value" field and delete the current.
 				(	?(termTable.hasOwnProperty('valueField'))
 					GetTableFieldID(termTable, termTable.valueField):fieldID
 					?(fieldID !== false)
 					{field[1] = termTable.fields[fieldID][1]}
 					{termTable.fields.splice(fieldID, 1)}
-				|	{termTable.valueField = conceptTable.name}
-				)
-			)?
-			{termTable.fields.push(field)},
+				)?
+				{termTable.valueField = conceptTable.name}
+			|	{'ConceptType'}:dataType
+			)
+			AddTableField(termTable, conceptTable.name, dataType, true, null, conceptTable.idField),
 		AttrDatabaseIDField :tableID =
 			:idField
-			{this.tables[this.GetResourceName(tableID)]}:table
+			GetTable(tableID):table
 			(	?_.isString(table)
-			|	(	GetTableFieldID(table, idField):fieldID
-					?(fieldID !== false)
-					// If the field exists then update it.
-					{table.fields[fieldID][2] = 'PRIMARY KEY'}
-					(	?(table.fields[fieldID][0] == 'Value')
+			|	(	AddTableField(table, idField, 'Serial', true, 'PRIMARY KEY'):fieldID
+					(	?(fieldID !== false)
+						// If the field already exists then update it instead.
+						{table.fields[fieldID][2] = 'PRIMARY KEY'}
+						?(table.fields[fieldID][0] == 'Value')
 						// DIRTY HACK: If the data type is Value then change to Serial (the value field stuff needs to be done properly)
 						{table.fields[fieldID][0] = 'Serial'}
 					)?
-				|	{table.fields.push(['Serial', idField, 'PRIMARY KEY'])}
 				)
 				{table.idField = idField}
 			),
 		AttrDatabaseValueField :tableID =
 			:valueField
-			{this.tables[this.GetResourceName(tableID)]}:table
+			GetTable(tableID):table
 			(	?_.isString(table)
 			|	// Find existing name field and update it if it exists.
 				(	?(table.hasOwnProperty('valueField'))
 					GetTableFieldID(table, table.valueField):fieldID
 					?(fieldID !== false)
 					{table.fields[fieldID][1] = valueField}
-				|	GetTableFieldID(table, valueField):fieldID
-					?(fieldID !== false)
-					// If the field exists then nothing to do
-				|	// Add a name field if there isn't one already to rename.
-					{table.fields.push(['Value', valueField, 'NOT NULL'])}
+				|	// Otherwise add it
+					AddTableField(table, valueField, 'Value', true)
 				)
 				{table.valueField = valueField}
 			),
 		AttrDatabaseTableName :tableID =
 			:tableName
-			{this.tables[this.GetResourceName(tableID)]}:table
+			GetTable(tableID):table
 			(	?_.isString(table)
 			|	{table.name = tableName}
 			),
 		AttrDatabasePrimitive :termName =
 			:attrVal
-			{this.tables[this.GetResourceName(termName)].primitive = attrVal},
+			{this.GetTable(termName).primitive = attrVal},
 		AttrDatabaseAttribute :factType =
 			:attrVal
 			(	?attrVal
 				{this.attributes[factType] = attrVal}
 				{this.tables[this.GetResourceName(factType)] = 'Attribute'}
-				{this.tables[this.GetResourceName(factType[0][1])]}:baseTable
-				{this.tables[this.GetResourceName(factType[2][1])]}:attributeTable
+				GetTable(factType[0][1]):baseTable
+				GetTable(factType[2][1]):attributeTable
 				GetTableFieldID(baseTable, attributeTable.name):fieldID
 				{baseTable.fields[fieldID][0] = attributeTable.primitive}
 			)?,
 		AttrForeignKey :factType =
-			:type
-			{this.tables[this.GetResourceName(factType[0][1])]}:baseTable
-			{this.tables[this.GetResourceName(factType[2][1])]}:fkTable
-			{['ForeignKey', fkTable.name, type, fkTable.idField]}:fkField
+			:required
+			GetTable(factType[0][1]):baseTable
+			GetTable(factType[2][1]):fkTable
 			(	?(baseTable.valueField == fkTable.name
 					|| baseTable.idField == fkTable.name)
-				// If the value field for the first term matches the name of the FK term then update the value field to be a FK.
+				// If the foreign key matches the value or id fields then delete the current field before adding the new.
 				GetTableFieldID(baseTable, fkTable.name):fieldID
 				?(fieldID !== false)
-				{baseTable.fields[fieldID] = fkField}
-			|	{baseTable.fields.push(fkField)}
-			)
+				{baseTable.fields.splice(fieldID, 1)}
+			)?
+			AddTableField(baseTable, fkTable.name, 'ForeignKey', required, null, fkTable.idField)
 			{this.tables[this.GetResourceName(factType)] = 'ForeignKey'},
 		// AttrSynonym :term =
 			// :synonym {this.terms[synonym[1]] = term[1]},
@@ -118,7 +114,7 @@ define([
 		AttrTermForm :factType =
 			:term
 			{this.terms[term[1]] = factType}
-			{this.tables[this.GetResourceName(term[1])] = this.tables[this.GetResourceName(factType)]},
+			{this.tables[this.GetResourceName(term[1])] = this.GetTable(factType)},
 			
 			
 		
@@ -126,17 +122,17 @@ define([
 		FactType =
 			&((:factTypePart &(:attributes) -> factTypePart)+:factType)
 			AddFactType(factType, factType)
-			{this.GetResourceName(factType)}:resourceName
+			GetResourceName(factType):resourceName
 			(	?(factType.length == 2)
 				// Eat input
 				(:factTypePart &(:attributes))+
-				
-				{this.tables[this.GetResourceName(factType[0][1])].fields.push(['Boolean', factType[1][1]])}
+				GetTable(factType[0][1]):termTable
+				AddTableField(termTable, factType[1][1], 'Boolean', true)
 				{this.tables[resourceName] = 'BooleanAttribute'}
-			|	{this.tables[resourceName] = {fields:[], primitive: false, name: null}}
+			|	{this.tables[resourceName] = {fields:[], primitive: false, name: null}}:linkTable
 				(	['Term' :termName]
-					{this.tables[this.GetResourceName(termName)]}:fkTable
-					{this.tables[resourceName].fields.push(['ForeignKey', fkTable.name, 'NOT NULL', fkTable.idField])}
+					GetTable(termName):fkTable
+					AddTableField(linkTable, fkTable.name, 'ForeignKey', true, '', fkTable.idField)
 				|	['Verb' :verb]
 				)+
 			)
@@ -168,13 +164,13 @@ define([
 				):termNames
 				{'var' + bind}:varAlias
 				{termNames.shift()}:termName
-				{['SelectQuery', ['Select', []], ['From', this.tables[this.GetResourceName(termName)].name, varAlias + termName]]}:query
+				{['SelectQuery', ['Select', []], ['From', this.GetTable(termName).name, varAlias + termName]]}:query
 				{	this.ResolveConceptTypes(query, termName, varAlias)
 					if(termNames.length > 0) {
-						var attributeName = this.tables[this.GetResourceName(baseTermName)].name;
+						var attributeName = this.GetTable(baseTermName).name;
 						for(var i=0; i < termNames.length; i++) {
 							var extraTermName = termNames[i],
-								extraTable = this.tables[this.GetResourceName(extraTermName)];
+								extraTable = this.GetTable(extraTermName);
 							query.push(['From', extraTable.name, varAlias + extraTermName]);
 							this.AddWhereClause(query, ['Equals', ['ReferencedField', varAlias + termName, attributeName], ['ReferencedField', varAlias + extraTermName, attributeName]]);
 							this.ResolveConceptTypes(query, extraTermName, varAlias)
@@ -199,19 +195,19 @@ define([
 
 		LinkTable :actualFactType :rootTerms =
 			{'link' + this.linkTableBind++}:tableAlias
-			{['SelectQuery', ['Select', []], ['From', this.tables[this.GetResourceName(actualFactType)].name, tableAlias]]}:query
+			{['SelectQuery', ['Select', []], ['From', this.GetTable(actualFactType).name, tableAlias]]}:query
 			{0}:i
 			(	?(i < rootTerms.length)
 				RoleBinding:bind
 				{rootTerms[i]}:termName
-				{this.GetResourceName(termName)}:resourceName
+				GetResourceName(termName):resourceName
 				AddWhereClause(query, ['Equals', ['ReferencedField', tableAlias, this.tables[resourceName].name], ['ReferencedField', 'var' + bind[1] + termName, this.tables[resourceName].idField]])
 				{i++}
 			)+
 			-> ['Exists', query],
 		
 		ForeignKey :actualFactType :rootTerms =
-			?(this.tables[this.GetResourceName(actualFactType)] == 'ForeignKey')
+			?(this.GetTable(actualFactType) == 'ForeignKey')
 			(	RoleBinding:bindFrom
 				RoleBinding:bindTo
 				end
@@ -224,13 +220,13 @@ define([
 					{rootTerms[1]}:termFrom
 					{rootTerms[0]}:termTo
 				)
-				{this.tables[this.GetResourceName(termTo)]}:tableTo
+				GetTable(termTo):tableTo
 			|	___ForeignKeyMatchingFailed___.die
 			)
 			-> ['Equals', ['ReferencedField', 'var' + bindFrom[1] + termFrom, tableTo.name], ['ReferencedField', 'var' + bindTo[1] + termTo, tableTo.idField]],
 
 		BooleanAttribute :actualFactType =
-			?(this.tables[this.GetResourceName(actualFactType)] == 'BooleanAttribute')
+			?(this.GetTable(actualFactType) == 'BooleanAttribute')
 			(	RoleBinding:bindFrom
 				end
 				{actualFactType[0][1]}:termFrom
@@ -241,7 +237,7 @@ define([
 			-> ['Equals', ['ReferencedField', 'var' + bindFrom[1] + termFrom, attributeName], ['Boolean', true]],
 
 		Attribute :actualFactType :rootTerms =
-			?(this.tables[this.GetResourceName(actualFactType)] == 'Attribute')
+			?(this.GetTable(actualFactType) == 'Attribute')
 			{['SelectQuery', ['Select', []]]}:query
 			(	RoleBinding:bindReal
 				RoleBinding:bindAttr
@@ -257,7 +253,7 @@ define([
 				)
 				|	___AttributeMatchingFailed___.die
 			)
-			{this.GetResourceName(termNameAttr)}:resourceAttr
+			GetResourceName(termNameAttr):resourceAttr
 			AddWhereClause(query, ['Equals', ['ReferencedField', 'var' + bindAttr[1] + termNameReal, this.tables[resourceAttr].name], ['ReferencedField', 'var' + bindReal[1] + termNameReal, this.tables[resourceAttr].name]])
 			-> ['Exists', query],
 		
@@ -342,14 +338,14 @@ define([
 					?(this.attributes.hasOwnProperty(actualFactType) && this.attributes[actualFactType])
 					{null}:tableTerm
 					{	for(var i=0; i < actualFactType.length; i+=2) {
-							if(!(this.tables[this.GetResourceName(actualFactType[i][1])].primitive)) {
+							if(!(this.GetTable(actualFactType[i][1]).primitive)) {
 								tableTerm = actualFactType[i][1];
 								break;
 							}
 						}
 					}
 					(	RoleBinding:bind
-						(	?(this.tables[this.GetResourceName(bind[0])].primitive)
+						(	?(this.GetTable(bind[0]).primitive)
 							{(this.bindTerms[bind[1]] = this.bindTerms[bind[1]] || []).push(tableTerm)}
 						)?
 					)*
@@ -376,6 +372,15 @@ define([
 			]
 			{{}}:tables
 			-> {tables:this.tables, rules:this.rules}
+	}
+	
+	LF2AbstractSQL.AddTableField = function(table, fieldName, dataType, required, index, references) {
+		var fieldID = this.GetTableFieldID(table, fieldName);
+		if(fieldID === false) {
+			table.fields.push([dataType, fieldName, required, index, references]);
+			return fieldID;
+		}
+		return fieldID;
 	}
 	
 	LF2AbstractSQL.AddWhereClause = function(query, whereBody) {
@@ -415,7 +420,7 @@ define([
 		while(this.conceptTypes.hasOwnProperty(conceptName)) {
 			conceptName = this.conceptTypes[termName];
 			conceptAlias = varAlias + conceptName;
-			conceptTable = this.tables[this.GetResourceName(conceptName)];
+			conceptTable = this.GetTable(conceptName);
 			query.push(['From', conceptTable.name, conceptAlias]);
 			this.AddWhereClause(query, ['Equals', ['ReferencedField', parentAlias, conceptTable.name], ['ReferencedField', conceptAlias, conceptTable.idField]]);
 			parentAlias = conceptAlias;

@@ -46,33 +46,33 @@ define([
 		ForeignKey :v1 =
 			// Just a basic var
 			?(v1.length == 3)
-			(
-				[	'ExactQuantification'
+			(	[	'ExactQuantification'
 					"Cardinality":card
 					?(card[1][1] == 1)
 					"Variable":v2
 					// Just a basic var
 					?(v2.length == 3)
 					"AtomicFormulation":atomicForm
-					{'NOT NULL'}:necessity
+					{true}:required
 				]
-			|
-				[	'AtMostNQuantification'
+			|	[	'AtMostNQuantification'
 					"MaximumCardinality":card
 					?(card[1][1] == 1)
 					"Variable":v2
 					// Just a basic var
 					?(v2.length == 3)
 					"AtomicFormulation":atomicForm
-					{'NULL'}:necessity
+					{false}:required
 				]
 			)
-			// A term verb term fact type, in the same order as the vars appear.
 			{atomicForm[1]}:factType
+			// A term verb term fact type
 			?(atomicForm.length == 4 && factType.length == 4)
 			ActualFactType(factType.slice(1)):actualFactType
-			?(v1[2][1] == actualFactType[0][1] && v2[2][1] == actualFactType[2][1])
-			{this.foreignKeys[factType] = necessity}
+			{['FactType'].concat(actualFactType)}:actualFactType
+			// In the same order as the vars appear.
+			?(v1[2][1] == actualFactType[1][1] && v2[2][1] == actualFactType[3][1])
+			{this.foreignKeys[actualFactType] = required}
 			// We have matched a foreign key, so call SetHelped.
 			SetHelped,
 		
