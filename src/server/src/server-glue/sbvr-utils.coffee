@@ -605,8 +605,9 @@ define([
 		executeModel(tx, 'user', userModel,
 			() ->
 				# TODO: Remove these hardcoded users.
-				runURI('POST', '/user/user', [{'user.username': 'test', 'user.password': 'test'}], null)
-				runURI('POST', '/user/user', [{'user.username': 'test2', 'user.password': 'test2'}], null)
+				if has 'DEV'
+					runURI('POST', '/user/user', [{'user.username': 'test', 'user.password': 'test'}], null)
+					runURI('POST', '/user/user', [{'user.username': 'test2', 'user.password': 'test2'}], null)
 				console.log('Sucessfully executed user model.')
 			(tx, error) ->
 				console.error('Failed to execute user model.', error)
