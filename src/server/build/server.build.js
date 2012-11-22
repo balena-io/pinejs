@@ -2,7 +2,7 @@
 	out: 'out.js',
 	wrap: {
 		start: "(function() { var define = require('requirejs').define;",
-		end: "}());"
+		end: "}());require('requirejs')('cs!server-glue/server');"
 	},
 
 	stubModules: ['cs', 'text', 'ometa', 'ometa-compiler'],
@@ -32,6 +32,6 @@
 		underscore: 'empty:',
 		async: 'empty:'
 	},
-	name: "main",
+	name: "cs!server-glue/server",
 	exclude: ["coffee-script"]
 })
