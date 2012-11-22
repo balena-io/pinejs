@@ -3,13 +3,14 @@ require = require('requirejs')
 require({
 	config: {
 		has: {
-			ENV_NODEJS              :  true,
-			SBVR_SERVER_ENABLED     :  true,
-			EDITOR_SERVER_ENABLED   :  true,
-			BROWSER_SERVER_ENABLED  :  false,
-			USE_MYSQL               :  true,
-			USE_POSTGRES            :  false,
-			DEV                     :  true
+			ENV_NODEJS              : true,
+			SBVR_SERVER_ENABLED     : true,
+			EDITOR_SERVER_ENABLED   : true,
+			BROWSER_SERVER_ENABLED  : false,
+			USE_MYSQL               : true,
+			USE_POSTGRES            : false,
+			DEV                     : true,
+			UNDERCURRENT            : false
 		}
 	},
 	paths: {

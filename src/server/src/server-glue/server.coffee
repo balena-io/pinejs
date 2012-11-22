@@ -4,8 +4,9 @@ define([
 	'cs!passport-bcrypt/passportBCrypt'
 	'cs!data-server/SBVRServer'
 	'cs!editor-server/editorServer'
+	'cs!undercurrent/undercurrent'
 	'cs!express-emulator/express'
-], (has, sbvrUtils, passportBCrypt, sbvrServer, editorServer, express)->
+], (has, sbvrUtils, passportBCrypt, sbvrServer, editorServer, undercurrent, express)->
 	if has 'ENV_NODEJS'
 		if has 'USE_MYSQL'
 			databaseOptions =
@@ -42,6 +43,9 @@ define([
 
 		if has 'EDITOR_SERVER_ENABLED'
 			editorServer.setup(app, require, sbvrUtils, passportBCrypt.isAuthed, databaseOptions)
+
+		if has 'UNDERCURRENT'
+			undercurrent.setup(app, require, sbvrUtils, passportBCrypt.isAuthed, databaseOptions)
 
 		if has 'ENV_NODEJS'
 			app.listen(process.env.PORT or 1337, () ->
