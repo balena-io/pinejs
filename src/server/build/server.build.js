@@ -5,7 +5,7 @@
 		end: "}());"
 	},
 
-	stubModules: ['cs', 'text', 'ometa'],
+	stubModules: ['cs', 'text', 'ometa', 'ometa-compiler'],
 	mainConfigFile: '../src/main.js',
 
 	optimize: 'uglify',
