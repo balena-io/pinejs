@@ -56,7 +56,6 @@ define([
 		app = express()
 		app.configure(->
 			path = require('path')
-			rootPath = path.join(__dirname + '/../../../..')
 			app.use(express.cookieParser())
 			app.use(express.bodyParser())
 			app.use(express.session({ secret: "A pink cat jumped over a rainbow" }))
@@ -64,6 +63,7 @@ define([
 			app.use(passport.session())
 			
 			if has 'DEV'
+				rootPath = path.join(__dirname + '/../../../..')
 				app.use('/client', express.static(path.join(rootPath, 'client')))
 				app.use('/common', express.static(path.join(rootPath, 'common')))
 				app.use('/external', express.static(path.join(rootPath, 'external')))
