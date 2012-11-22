@@ -1,4 +1,5 @@
 define([
+	'has'
 	'ometa!sbvr-parser/SBVRParser'
 	'ometa!sbvr-compiler/LF2AbstractSQLPrep'
 	'ometa!sbvr-compiler/LF2AbstractSQL'
@@ -9,7 +10,7 @@ define([
 	'async'
 	'cs!database-layer/db'
 	'underscore'
-], (SBVRParser, LF2AbstractSQLPrep, LF2AbstractSQL, AbstractSQL2SQL, AbstractSQLRules2SQL, AbstractSQL2CLF, ServerURIParser, async, dbModule, _) ->
+], (has, SBVRParser, LF2AbstractSQLPrep, LF2AbstractSQL, AbstractSQL2SQL, AbstractSQLRules2SQL, AbstractSQL2CLF, ServerURIParser, async, dbModule, _) ->
 	exports = {}
 	db = null
 	
