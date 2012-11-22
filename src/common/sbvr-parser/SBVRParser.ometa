@@ -533,7 +533,7 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 			'Source:',
 			'Subject Field:'
 		];
-	if (has('SBVR_SERVER_ENABLED')) {
+	if (has('SBVR_EXTENSIONS')) {
 		allowedAttrLists = [
 			/* Custom Attributes */
 			'Database ID Field:',
