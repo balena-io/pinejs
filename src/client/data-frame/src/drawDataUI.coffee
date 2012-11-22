@@ -1,4 +1,4 @@
-define(['data-frame/ClientURIUnparser', 'ejs', 'data-frame/widgets', 'async'], (ClientURIUnparser, ejs, widgets) ->
+define(['data-frame/ClientURIUnparser', 'ejs', 'data-frame/widgets', 'async', 'data-frame/runTrans'], (ClientURIUnparser, ejs, widgets) ->
 	templates = {
 		widgets: widgets
 		hiddenFormInput: ejs.compile('''
