@@ -140,15 +140,15 @@ define(['cs!database-layer/db'], (dbModule) ->
 			sbvrUtils.runGet(req, res)
 		)
 
-		app.post('/data/*', sbvrUtils.parseURITree, (req, res, next) ->
+		app.post('/data/*', isAuthed, sbvrUtils.parseURITree, (req, res, next) ->
 			sbvrUtils.runPost(req, res)
 		)
 
-		app.put('/data/*', sbvrUtils.parseURITree, (req, res, next) ->
+		app.put('/data/*', isAuthed, sbvrUtils.parseURITree, (req, res, next) ->
 			sbvrUtils.runPut(req, res)
 		)
 
-		app.del('/data/*', sbvrUtils.parseURITree, (req, res, next) ->
+		app.del('/data/*', isAuthed, sbvrUtils.parseURITree, (req, res, next) ->
 			sbvrUtils.runDelete(req, res)
 		)
 	return exports
