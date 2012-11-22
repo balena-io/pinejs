@@ -136,8 +136,6 @@ define(['cs!database-layer/db'], (dbModule) ->
 			)
 		)
 		
-		app.use('/', 'static')
-		
 		app.get('/data/*', sbvrUtils.parseURITree, (req, res, next) ->
 			sbvrUtils.runGet(req, res)
 		)
