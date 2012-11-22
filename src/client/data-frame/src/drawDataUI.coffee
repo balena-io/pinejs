@@ -441,7 +441,7 @@ define(['data-frame/ClientURIUnparser', 'ejs', 'data-frame/widgets', 'async'], (
 		
 		'/' + vocabulary + '/' + about.replace(new RegExp(' ', 'g'), '_') + filterString
 
-	drawData = (tree) ->
+	drawData = (tree, callback) ->
 		addResourceID = 1
 		
 		renderInstance = (ftree, even, callback) ->
@@ -698,12 +698,13 @@ define(['data-frame/ClientURIUnparser', 'ejs', 'data-frame/widgets', 'async'], (
 							callback(null, resource)
 					(err, topLevelResources) ->
 						if err?
-							console.error(err)
-						templateVars =
-							topLevelResources: topLevelResources
-							templates: templates
-						res = templates.topLevelTemplate(templateVars)
-						$("#dataTab").html(res)
+							callback(err)
+						else
+							templateVars =
+								topLevelResources: topLevelResources
+								templates: templates
+							html = templates.topLevelTemplate(templateVars)
+							callback(null, html)
 				)
 			(statusCode, errors) ->
 				console.error(errors)
@@ -736,7 +737,6 @@ define(['data-frame/ClientURIUnparser', 'ejs', 'data-frame/widgets', 'async'], (
 		)
 		return false
 
-
-	window.drawData = drawData
 	window.processForm = processForm
+	return drawData
 )
