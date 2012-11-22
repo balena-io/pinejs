@@ -9,7 +9,7 @@ require({
 			BROWSER_SERVER_ENABLED  :  false,
 			USE_MYSQL               :  true,
 			USE_POSTGRES            :  false,
-			DEV                     :  false
+			DEV                     :  true
 		}
 	},
 	paths: {
@@ -35,7 +35,7 @@ require({
 		}
 	},
 	uglify: {
-		toplevel: true,
+		make_seqs: false,
 		ascii_only: true,
 		beautify: true,
 		max_line_length: 1000,
