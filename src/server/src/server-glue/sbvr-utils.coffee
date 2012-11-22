@@ -630,9 +630,10 @@ define([
 						serverURIParser.setClientModel(vocab, clientModel)
 			)
 		)
-		app.get('/dev/*', parseURITree, (req, res, next) ->
-			runGet(req, res)
-		)
+		if has 'DEV'
+			app.get('/dev/*', parseURITree, (req, res, next) ->
+				runGet(req, res)
+			)
 		app.post('/transaction/execute', (req, res, next) ->
 			id = Number(req.body.id)
 			if _.isNaN(id)
