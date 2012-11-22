@@ -33,12 +33,5 @@ require({
 		'ometa-compiler': {
 			deps: ['ometa-core']
 		}
-	},
-	uglify: {
-		make_seqs: false,
-		ascii_only: true,
-		beautify: true,
-		max_line_length: 1000,
-		no_mangle: true
-	},
+	}
 }, ['cs!server-glue/server']);

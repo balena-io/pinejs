@@ -10,9 +10,10 @@
 
 	optimize: 'uglify',
 	uglify: {
-		toplevel: true,
+		make_seqs: false,
 		ascii_only: true,
-		max_line_length: 1000,
+		beautify: true,
+		no_mangle: true
 	},
 
 	has: {
