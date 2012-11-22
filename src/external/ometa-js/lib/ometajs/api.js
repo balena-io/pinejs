@@ -55,7 +55,7 @@ function translationError(m, i, fail) {
 // Wrap javascript code in ometajs.core context
 //
 function wrapModule(code, options) {
-  var requirePath = (options.root || ometajs.root || 'core'),
+  var requirePath = (options.root || ometajs.root || 'ometa-core'),
       start =
         "(function (root, factory) {\
           if (typeof exports === 'object') {\
@@ -63,7 +63,7 @@ function wrapModule(code, options) {
             factory(exports, require('" + requirePath + "'));\
           } else if (typeof define === 'function' && define.amd) {\
             /* AMD. Register as an anonymous module. */\
-            define(['exports', 'OMeta'], factory);\
+            define(['exports', 'ometa-core'], factory);
           } else {\
             /* Browser globals - dangerous */\
             factory(root, root.OMeta);\

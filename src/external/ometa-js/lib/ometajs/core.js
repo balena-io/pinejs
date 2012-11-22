@@ -6,7 +6,7 @@
     module.exports = factory();
   } else if (typeof define === 'function' && define.amd) {
     // AMD. Register as an anonymous module.
-    define('OMeta', function () {
+    define('ometa-core', function () {
       return (root.OMeta = factory());
     });
   } else {
