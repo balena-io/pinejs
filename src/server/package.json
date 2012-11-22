@@ -12,5 +12,9 @@
 		"passport-local": "0.1.x",
 		"bcrypt": "latest",
 		"async": "latest"
+	},
+	"engines": {
+		"node": "0.8.x",
+		"npm": "1.1.x"
 	}
 }
