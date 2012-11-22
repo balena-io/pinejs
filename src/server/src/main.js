@@ -23,6 +23,7 @@ require({
 		//Libraries
 		'ometa-compiler'  :  '../../external/ometa-js/lib/ometajs/ometa/parsers',
 		'ometa-core'      :  '../../external/ometa-js/lib/ometajs/core',
+		'OMeta'           :  '../../external/ometa-js/lib/ometajs/core',
 		'sbvr-parser'     :  '../../common/sbvr-parser',
 		'utils'           :  '../../common/utils',
 		'Prettify'        :  '../../common/Prettify',
