@@ -332,8 +332,9 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 		AttrGuidanceType :currentLine =
 			matchForAny('seq', this.branches.AttrGuidanceType),
 		AttrNecessity :currentLine =
-			(	RuleBody([], [])
+			(	RuleBody([], []):lf
 				EOLTerminator
+				-> lf
 			|	toSBVREOL
 			),
 		AttrSynonym :currentLine =
