@@ -18,10 +18,10 @@ define([
 				Database Value Field: text
 			Fact type: textarea is disabled
 			Fact type: textarea has name
+				Necessity: Each textarea has exactly 1 name
+				Necessity: Each name is of exactly 1 textarea
 			Fact type: textarea has text
-			Rule:      It is obligatory that each textarea has exactly 1 name
-			Rule:      It is obligatory that each name is of exactly 1 textarea
-			Rule:      It is obligatory that each textarea has exactly 1 text'''
+				Necessity: Each textarea has exactly 1 text'''
 
 	isServerOnAir = do() ->
 		onAir = null

@@ -28,11 +28,11 @@ define([
 				Concept Type: JSON
 
 			Fact Type: model is of vocabulary
-			Rule: It is obligatory that each model is of exactly one vocabulary
+				Necessity: Each model is of exactly one vocabulary
 			Fact Type: model has model type
-			Rule: It is obligatory that each model has exactly one model type 
+				Necessity: Each model has exactly one model type 
 			Fact Type: model has model value
-			Rule: It is obligatory that each model has exactly one model value'''
+				Necessity: Each model has exactly one model value'''
 	
 	transactionModel = '''
 			Term:      Integer
@@ -52,9 +52,9 @@ define([
 			Term:      resource
 				Database Value Field: resource_id
 			Fact type: resource has resource id
-			Rule:      It is obligatory that each resource has exactly 1 resource id.
+				Necessity: Each resource has exactly 1 resource id.
 			Fact type: resource has resource type
-			Rule:      It is obligatory that each resource has exactly 1 resource type.
+				Necessity: Each resource has exactly 1 resource type.
 			
 			Term:      transaction
 				Database Value Field: id
@@ -63,7 +63,7 @@ define([
 				Database Value Field: id
 			Fact type: lock is exclusive
 			Fact type: lock belongs to transaction
-			Rule:      It is obligatory that each lock belongs to exactly 1 transaction.
+				Necessity: Each lock belongs to exactly 1 transaction.
 			Fact type: resource is under lock
 				Synonymous Form: lock is on resource
 			Rule:      It is obligatory that each resource that is under a lock that is exclusive, is under at most 1 lock.
@@ -75,25 +75,25 @@ define([
 			Term:      conditional resource
 				Database Value Field: id
 			Fact type: conditional resource belongs to transaction
-			Rule:      It is obligatory that each conditional resource belongs to exactly 1 transaction.
+				Necessity: Each conditional resource belongs to exactly 1 transaction.
 			Fact type: conditional resource has lock
-			Rule:      It is obligatory that each conditional resource has at most 1 lock.
+				Necessity: Each conditional resource has at most 1 lock.
 			Fact type: conditional resource has resource type
-			Rule:      It is obligatory that each conditional resource has exactly 1 resource type.
+				Necessity: Each conditional resource has exactly 1 resource type.
 			Fact type: conditional resource has conditional type
-			Rule:      It is obligatory that each conditional resource has exactly 1 conditional type.
+				Necessity: Each conditional resource has exactly 1 conditional type.
 			Fact type: conditional resource has placeholder
-			Rule:      It is obligatory that each conditional resource has at most 1 placeholder.
+				Necessity: Each conditional resource has at most 1 placeholder.
 			--Rule:      It is obligatory that each conditional resource that has a placeholder, has a conditional type that is of "ADD".
 
 			Term:      conditional field
 				Database Value Field: field_name
 			Fact type: conditional field has field name
-			Rule:      It is obligatory that each conditional field has exactly 1 field name.
+				Necessity: Each conditional field has exactly 1 field name.
 			Fact type: conditional field has field value
-			Rule:      It is obligatory that each conditional field has at most 1 field value.
+				Necessity: Each conditional field has at most 1 field value.
 			Fact type: conditional field is of conditional resource
-			Rule:      It is obligatory that each conditional field is of exactly 1 conditional resource.
+				Necessity: Each conditional field is of exactly 1 conditional resource.
 
 			--Rule:      It is obligatory that each conditional resource that has a conditional type that is of "EDIT" or "DELETE", has a lock that is exclusive
 			Rule:      It is obligatory that each conditional resource that has a lock, has a resource type that is of a resource that the lock is on.
@@ -110,10 +110,10 @@ define([
 			Term:      password
 				Concept Type: Hashed
 			Fact type: user has username
-			Rule:      It is obligatory that each user has exactly one username.
-			Rule:      It is obligatory that each username is of exactly one user.
+				Necessity: Each user has exactly one username.
+				Necessity: Each username is of exactly one user.
 			Fact type: user has password
-			Rule:      It is obligatory that each user has exactly one password.'''
+				Necessity: Each user has exactly one password.'''
 	
 	serverURIParser = ServerURIParser.createInstance()
 	
