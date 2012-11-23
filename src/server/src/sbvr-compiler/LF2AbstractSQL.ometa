@@ -431,6 +431,9 @@ define([
 			conceptName = this.conceptTypes[termName];
 			conceptAlias = varAlias + conceptName;
 			conceptTable = this.GetTable(conceptName);
+			if(conceptTable.primitive !== false) {
+				break;
+			}
 			query.push(['From', conceptTable.name, conceptAlias]);
 			this.AddWhereClause(query, ['Equals', ['ReferencedField', parentAlias, conceptTable.name], ['ReferencedField', conceptAlias, conceptTable.idField]]);
 			parentAlias = conceptAlias;
