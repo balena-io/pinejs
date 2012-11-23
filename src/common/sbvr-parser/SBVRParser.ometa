@@ -161,7 +161,7 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 			|	keyword("exactly") Number:n
 				-> ['ExactQuantification', ['Cardinality', n]]
 			|	keyword("no")
-				-> ['ExactQuantification', ['Cardinality', 0]]
+				-> ['ExactQuantification', ['Cardinality', ['Number', 0]]]
 			),
 
 		keyword :word :noToken =
