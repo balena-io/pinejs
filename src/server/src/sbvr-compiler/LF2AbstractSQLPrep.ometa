@@ -47,7 +47,7 @@ define([
 			{maxCard[1][1]++}
 			-> ['LogicalNegation', ['AtLeastNQuantification', ['MinimumCardinality', maxCard[1]], v].concat(xs)],
 		
-		ForeignKeyOptimisation2 :v1 =
+		CardinalityOptimisation2 :v1 =
 			// Just a basic var
 			?(v1.length == 3)
 			(	[	'ExactQuantification'
@@ -84,23 +84,23 @@ define([
 			// We have matched a foreign key or unique, so call SetHelped.
 			SetHelped,
 		
-		ForeignKeyOptimisation
+		CardinalityOptimisation
 			[	'UniversalQuantification'
 				"Variable":v1
-				ForeignKeyOptimisation2(v1)
+				CardinalityOptimisation2(v1)
 			|	'LogicalNegation'
 				[	'ExistentialQuantification'
 					"Variable":v1
 					[	'LogicalNegation'
-						ForeignKeyOptimisation2(v1)
+						CardinalityOptimisation2(v1)
 					]
 				]
 			],
 		
 		NecessityOptimisation =
-			ForeignKeyOptimisation,
+			CardinalityOptimisation,
 		ObligationOptimisation =
-			ForeignKeyOptimisation,
+			CardinalityOptimisation,
 		
 		Rule
 			(	[	'ObligationFormulation'
