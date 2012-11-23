@@ -344,9 +344,9 @@ define([
 
 	exports.deleteModel = (vocabulary) ->
 		# TODO: This should be reorganised to be async.
-		db.transaction ((sqlmod) ->
+		db.transaction(
 			(tx) ->
-				for dropStatement in sqlmod.dropSchema
+				for dropStatement in sqlModels[vocabulary].dropSchema
 					tx.executeSql(dropStatement)
 				runURI('DELETE', '/dev/model?filter=model_type:se', [{vocabulary}], tx)
 				runURI('DELETE', '/dev/model?filter=model_type:lf', [{vocabulary}], tx)
