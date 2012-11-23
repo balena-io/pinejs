@@ -337,6 +337,12 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 				-> lf
 			|	toSBVREOL
 			),
+		AttrReferenceScheme :currentLine =
+			(	Term:t
+				EOLTerminator
+				-> t
+			|	toSBVREOL
+			),
 		AttrSynonym :currentLine =
 			AddIdentifier(currentLine[0], currentLine[1]),
 		AttrSynonymousForm :currentLine =
