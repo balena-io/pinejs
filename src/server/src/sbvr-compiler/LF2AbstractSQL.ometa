@@ -273,7 +273,7 @@ define([
 					anything+:factType
 				]
 				ActualFactType(factType):actualFactType
-				FactTypeRootTerms(factType, actualFactType):rootTerms
+				FactTypeRootTerms(factType):rootTerms
 				(	ForeignKey(actualFactType, rootTerms)
 				|	BooleanAttribute(actualFactType)
 				|	Attribute(actualFactType, rootTerms)
