@@ -11,7 +11,8 @@ require({
 			USE_MYSQL               : true,
 			USE_POSTGRES            : false,
 			DEV                     : true,
-			UNDERCURRENT            : false
+			UNDERCURRENT            : false,
+			SCHEDULER               : false
 		}
 	},
 	paths: {

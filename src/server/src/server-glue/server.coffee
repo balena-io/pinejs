@@ -5,8 +5,9 @@ define([
 	'cs!data-server/SBVRServer'
 	'cs!editor-server/editorServer'
 	'cs!undercurrent/undercurrent'
+	'cs!scheduler/scheduler'
 	'cs!express-emulator/express'
-], (has, sbvrUtils, passportBCrypt, sbvrServer, editorServer, undercurrent, express)->
+], (has, sbvrUtils, passportBCrypt, sbvrServer, editorServer, undercurrent, scheduler, express)->
 	if has 'ENV_NODEJS'
 		if has 'USE_MYSQL'
 			databaseOptions =
@@ -28,7 +29,7 @@ define([
 			engine: 'websql'
 			params: 'rulemotion'
 
-			
+
 
 	setupCallback = (app) ->
 		sbvrUtils.setup(app, require, databaseOptions)
@@ -37,7 +38,7 @@ define([
 				failureRedirect: '/login.html',
 				successRedirect: '/'
 			}, sbvrUtils, app, passport)
-		
+
 		if has 'SBVR_SERVER_ENABLED'
 			sbvrServer.setup(app, require, sbvrUtils, passportBCrypt.isAuthed, databaseOptions)
 
@@ -46,6 +47,9 @@ define([
 
 		if has 'UNDERCURRENT'
 			undercurrent.setup(app, require, sbvrUtils, passportBCrypt.isAuthed, databaseOptions)
+
+		if has 'SCHEDULER'
+			scheduler.setup(app, require, sbvrUtils, passportBCrypt.isAuthed, databaseOptions)
 
 		if has 'ENV_NODEJS'
 			app.listen(process.env.PORT or 1337, () ->
@@ -65,7 +69,7 @@ define([
 			app.use(express.session({ secret: "A pink cat jumped over a rainbow" }))
 			app.use(passport.initialize())
 			app.use(passport.session())
-			
+
 			if has 'DEV'
 				rootPath = path.join(__dirname + '/../../../..')
 				app.use('/client', express.static(path.join(rootPath, 'client')))
@@ -82,7 +86,7 @@ define([
 				next()
 			)
 		)
-		
+
 		setupCallback(app)
 	else
 		if has 'BROWSER_SERVER_ENABLED'
