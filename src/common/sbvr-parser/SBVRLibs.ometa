@@ -51,7 +51,7 @@ define(['underscore', 'ometa-core'], function(_) {
 	};
 	
 	SBVRLibs.AddFactType = function(factType, realFactType) {
-		mappedFactType = [];
+		var mappedFactType = [];
 		for(var i = 0; i < realFactType.length; i++) {
 			mappedFactType[i] = realFactType[i].slice(0, 2);
 			for(var j = 0; j < factType.length; j++) {
