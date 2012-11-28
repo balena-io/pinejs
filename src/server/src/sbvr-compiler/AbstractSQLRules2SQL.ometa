@@ -272,7 +272,7 @@ define(['ometa-core'], function() {
 			[	'And'
 				RuleBody(indent)*:ruleBodies
 			]
-		->	ruleBodies.join(' AND '),
+		->	ruleBodies.join(indent + 'AND '),
 		
 		Comparison :indent =
 			[	(	'Equals'
