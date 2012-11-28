@@ -88,7 +88,11 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 		Name :factTypeSoFar =
 			FindIdentifier('Name', factTypeSoFar),
 		Term :factTypeSoFar =
-			FindIdentifier('Term', factTypeSoFar),
+			FindIdentifier('Term', factTypeSoFar):term
+			(	<digit+>:n
+				{term.push(['Number', Number(n)])}
+			)?
+			-> term,
 		FindIdentifier :identifierType :factTypeSoFar =
 			spaces
 			'\''?:quote

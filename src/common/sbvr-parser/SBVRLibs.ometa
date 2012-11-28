@@ -55,7 +55,9 @@ define(['underscore', 'ometa-core'], function(_) {
 		for(var i = 0; i < realFactType.length; i++) {
 			mappedFactType[i] = realFactType[i].slice(0, 2);
 			for(var j = 0; j < factType.length; j++) {
-				if(realFactType[i][1] == factType[j][1] && realFactType[i][2] == factType[j][2]) {
+				if(realFactType[i][1] == factType[j][1] // The term/name/verb matches
+					&& realFactType[i].length == factType[j].length // And they have the same length
+					&& (realFactType[i].length < 3 || realFactType[i][2][1] == factType[j][2][1])) { // And they have no instance number, or the instance number matches.
 					mappedFactType[i][2] = j;
 				}
 			}

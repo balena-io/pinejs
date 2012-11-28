@@ -20,7 +20,7 @@ define(['ometa!sbvr-parser/SBVRLibs', 'ometa-core'], function(SBVRLibs) {
 
 		Number
 			number:n ?{!isNaN(n)}
-			-> ['Number', parseInt(n)],
+			-> ['Number', parseInt(n, 10)],
 
 		Model
 			{[]}:xs
@@ -47,7 +47,11 @@ define(['ometa!sbvr-parser/SBVRLibs', 'ometa-core'], function(SBVRLibs) {
 			addAttributes(['FactType'].concat(factType)),
 
 		Term
-			:t addAttributes(['Term', t]),
+			:t
+			(	"Number":n
+				-> ['Term', t, n]
+			|	addAttributes(['Term', t])
+			),
 		Verb
 			:v
 			-> ['Verb', v],
