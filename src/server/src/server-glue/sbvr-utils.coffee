@@ -311,7 +311,7 @@ define([
 		try
 			lfModel = SBVRParser.matchAll(seModel, 'Process')
 		catch e
-			console.log('Error parsing model', e)
+			console.error('Error parsing model', e)
 			return failureCallback(tx, 'Error parsing model')
 		slfModel = LF2AbstractSQLPrep.match(lfModel, 'Process')
 		abstractSqlModel = LF2AbstractSQL.match(slfModel, 'Process')
