@@ -26,6 +26,7 @@
 		USE_POSTGRES			: false,
 		DEV						: false,
 		UNDERCURRENT			: false
+		SCHEDULER				: true
 	},
 
 	paths: {
