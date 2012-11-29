@@ -1,4 +1,9 @@
 require({
+	config: {
+		has: {
+			SBVR_EXTENSIONS: true
+		}
+	},
 	paths: {
 		//Developing & building tools
 		'cs'                       :  '../tools/requirejs-plugins/cs',
