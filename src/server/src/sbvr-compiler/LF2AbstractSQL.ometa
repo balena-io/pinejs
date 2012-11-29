@@ -61,7 +61,7 @@ define([
 			|	(	AddTableField(table, idField, 'Serial', true, 'PRIMARY KEY'):fieldID
 					(	?(fieldID !== false)
 						// If the field already exists then update it instead.
-						{table.fields[fieldID][2] = 'PRIMARY KEY'}
+						{table.fields[fieldID][3] = 'PRIMARY KEY'}
 						?(table.fields[fieldID][0] == 'Value')
 						// DIRTY HACK: If the data type is Value then change to Serial (the value field stuff needs to be done properly)
 						{table.fields[fieldID][0] = 'Serial'}
@@ -397,7 +397,6 @@ define([
 		var fieldID = this.GetTableFieldID(table, fieldName);
 		if(fieldID === false) {
 			table.fields.push([dataType, fieldName, required, index, references]);
-			return fieldID;
 		}
 		return fieldID;
 	}
