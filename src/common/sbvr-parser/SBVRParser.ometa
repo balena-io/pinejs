@@ -204,8 +204,12 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 
 		RuleBody :factType :bindings :parentIdentifier :parentBind =
 			(	Quantifier:quant
-				Term(factType):t createVar(t):tVar Bind(t, bindings):b {factType.push(t)}
-				(	ClosedProjection(t, b):thatLF {tVar.push(thatLF)}
+				Term(factType):t
+				createVar(t):tVar
+				Bind(t, bindings):b
+				{factType.push(t)}
+				(	ClosedProjection(t, b):thatLF
+					{tVar.push(thatLF)}
 					addComma?
 				)?
 			|	addThe
@@ -218,7 +222,8 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 				)
 				{factType.push(identifier)}
 			)
-			(	Verb(factType):v {factType.push(v)}
+			(	Verb(factType):v
+				{factType.push(v)}
 				{	if(parentIdentifier != null) {
 						factType.push(parentIdentifier);
 						bindings.push(parentBind);
@@ -267,9 +272,15 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 			"F:"|"Fact type:",
 		newFactType =
 			startFactType {[]}:factType
-			(Identifier:identifier addVerb:v {factType.push(identifier, v)})+
-			(Identifier:identifier {factType.push(identifier)})?
-			AddFactType(factType, factType) {factType.push(['Attributes'])}
+			(	Identifier:identifier
+				addVerb:v
+				{factType.push(identifier, v)}
+			)+
+			(	Identifier:identifier
+				{factType.push(identifier)}
+			)?
+			AddFactType(factType, factType)
+			{factType.push(['Attributes'])}
 			-> ['FactType'].concat(factType),
 		StartTerm =
 			(	"T:"
@@ -319,8 +330,11 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 			(	addThe?
 				// The following section is copied from RuleBody, should really be sorted properly.
 				{this.ruleVarsCount=0}
-				Term:t createVar(t):tVar Bind(t):b
-				ClosedProjection(t, b):thatLF {tVar.push(thatLF)}
+				Term:t
+				createVar(t):tVar
+				Bind(t):b
+				ClosedProjection(t, b):thatLF
+				{tVar.push(thatLF)}
 				(	?(currentLine[0] == 'FactType')
 				|	{this.conceptTypes[currentLine[1]] = t[1]}
 					{this.identifierChildren[t[1]].push(currentLine[1])}
