@@ -58,12 +58,12 @@ function wrapModule(code, options) {
   var requirePath = (options.root || ometajs.root || 'ometa-core'),
       start =
         "(function (root, factory) {\
-          if (typeof exports === 'object') {\
+          if (typeof define === 'function' && define.amd) {\
+            /* AMD. Register as an anonymous module. */\
+            define(['exports', 'ometa-core'], factory);\
+          } else if (typeof exports === 'object') {\
             /* CommonJS */\
             factory(exports, require('" + requirePath + "'));\
-          } else if (typeof define === 'function' && define.amd) {\
-            /* AMD. Register as an anonymous module. */\
-            define(['exports', 'ometa-core'], factory);
           } else {\
             /* Browser globals - dangerous */\
             factory(root, root.OMeta);\

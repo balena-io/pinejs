@@ -1,8 +1,8 @@
 (function(root, factory) {
-    if (typeof exports === "object") {
-        factory(exports, require("../core"));
-    } else if (typeof define === "function" && define.amd) {
+    if (typeof define === "function" && define.amd) {
         define([ "exports", "ometa-core" ], factory);
+    } else if (typeof exports === "object") {
+        factory(exports, require("../core"));
     } else {
         factory(root, root.OMeta);
     }
