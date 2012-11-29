@@ -8,6 +8,15 @@ define([
 	ometa LF2AbstractSQL <: SBVRLibs {
 		
 		/** Terms **/
+		Term =
+			[	'Term'
+				:name
+				[	'Number'
+					:num
+				]?
+			]
+			-> {name: name, num: num},
+		
 		TermName =
 			:termName
 			GetResourceName(termName):resourceName
@@ -140,13 +149,8 @@ define([
 				AddTableField(termTable, factType[1][1], 'Boolean', true)
 				{this.tables[resourceName] = 'BooleanAttribute'}
 			|	{this.tables[resourceName] = {fields:[], primitive: false, name: null}}:linkTable
-				(	[	'Term'
-						:termName
-						[	'Number'
-							:num
-						]?
-					]
-					GetTable(termName):fkTable
+				(	Term:term
+					GetTable(term.name):fkTable
 					AddTableField(linkTable, fkTable.name, 'ForeignKey', true, '', fkTable.idField)
 				|	['Verb' :verb]
 				)+
@@ -170,19 +174,19 @@ define([
 		Variable =
 			[	'Variable'
 				Number:bind
-				['Term' :baseTermName]
+				Term:baseTerm
 				(	// Replace this bind if it's an attribute binding.
 					{this.bindTerms[bind]}:termNames
 					?(termNames)
 					-> termNames
-				|	-> [baseTermName]
+				|	-> [baseTerm.name]
 				):termNames
 				{'var' + bind}:varAlias
 				{termNames.shift()}:termName
 				{['SelectQuery', ['Select', []], ['From', this.GetTable(termName).name, varAlias + termName]]}:query
 				{	this.ResolveConceptTypes(query, termName, varAlias)
 					if(termNames.length > 0) {
-						var attributeName = this.GetTable(baseTermName).name;
+						var attributeName = this.GetTable(baseTerm.name).name;
 						for(var i=0; i < termNames.length; i++) {
 							var extraTermName = termNames[i],
 								extraTable = this.GetTable(extraTermName);
@@ -203,10 +207,10 @@ define([
 		
 		RoleBinding =
 			[	'RoleBinding'
-				['Term' :termName]
+				Term:term
 				:bind
 			]
-			-> [termName, bind],
+			-> [term.name, bind],
 
 		LinkTable :actualFactType :rootTerms =
 			{'link' + this.linkTableBind++}:tableAlias

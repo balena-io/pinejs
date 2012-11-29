@@ -18,8 +18,9 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 			?eol,
 		Bind :identifier :bindings =
 			// Check a var exists to bind to.
-			?(this.ruleVars.hasOwnProperty(identifier[1]))
-			{['RoleBinding', identifier, this.ruleVars[identifier[1]]]}:binding
+			{this.ruleVars[identifier]}:varNumber
+			?(varNumber != null)
+			{['RoleBinding', identifier, varNumber]}:binding
 			(	?bindings
 				{bindings.push(binding)}
 			)?
@@ -182,10 +183,10 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 		addOr =
 			keyword("or"),
 		createVar :identifier :unitary =
-			{this.ruleVars[identifier[1]] = this.ruleVarsCount++}
-			-> ['Variable', ['Number', this.ruleVars[identifier[1]]], identifier],
+			{this.ruleVars[identifier] = this.ruleVarsCount++}:varNumber
+			-> ['Variable', ['Number', varNumber], identifier],
 			// TODO: Add this unitary attribute along the entire compiler chain
-			// -> ['Variable', ['Number', this.ruleVars[identifier[1]]], identifier, ['Unitary', unitary === true]],
+			// -> ['Variable', ['Number', varNumber], identifier, ['Unitary', unitary === true]],
 
 		IsAtomicFormulation :factType :bindings =
 			IsFactType(factType):realFactType
@@ -262,7 +263,7 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 			startRule
 			spaces
 			&(toEOL):ruleText
-			{this.ruleVarsCount=0}
+			{this.ruleVarsCount = 0}
 			Modifier:mod
 			RuleBody([], []):ruleLF
 			EOLTerminator
@@ -329,7 +330,7 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 		AttrDefinition :currentLine =
 			(	addThe?
 				// The following section is copied from RuleBody, should really be sorted properly.
-				{this.ruleVarsCount=0}
+				{this.ruleVarsCount = 0}
 				Term:t
 				createVar(t):tVar
 				Bind(t):b
