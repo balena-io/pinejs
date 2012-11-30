@@ -120,6 +120,16 @@ define([
 	sqlModels = {}
 	clientModels = {}
 	
+	checkForConstraintError = (err, tableName) ->
+		if (has('USE_MYSQL') and (matches = /ER_DUP_ENTRY: Duplicate entry '.*?[^\\]' for key '(.*?[^\\])'/.exec(err)) != null)
+			or (if has('USE_POSTGRES') and (matches = new RegExp('error: duplicate key value violates unique constraint "' + tableName + '_(.*?)_key"').exec(err)) != null)
+			return ['"' + matches[1] + '" must be unique']
+		else if err == 'could not execute statement (19 constraint failed)'
+			# SQLite
+			return ['Constraint failed']
+		else
+			return false
+	
 	getAndCheckBindValues = (bindings, values) ->
 		bindValues = []
 		for binding in bindings
@@ -472,7 +482,12 @@ define([
 								(tx, errors) ->
 									res.json(errors, 404)
 							)
-						() -> res.send(404)
+						(tx, err) ->
+							constraintError = checkForConstraintError(err, tree[2].resourceName)
+							if constraintError != false
+								res.json(constraintError, 404)
+							else
+								res.send(404)
 					)
 				if tx?
 					runQuery(tx)
@@ -534,7 +549,12 @@ define([
 											else
 												tx.executeSql(updateQuery.query, values,
 													(tx, result) -> doValidate(tx)
-													() -> res.send(404)
+													(tx, err) ->
+														constraintError = checkForConstraintError(err, tree[2].resourceName)
+														if constraintError != false
+															res.json(constraintError, 404)
+														else
+															res.send(404)
 												)
 										else
 											res.send(404)
