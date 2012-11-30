@@ -42,6 +42,7 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'ometa-core'], function(SBVR
 
 		ResourcePart =
 			<	(	letter
+				|	' '
 				|	'_'
 				)+
 			>:resourcePart
