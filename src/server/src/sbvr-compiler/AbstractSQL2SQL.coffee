@@ -8,7 +8,8 @@ define([
 	dataTypeValidate = (originalValue, field) ->
 		value = originalValue
 		validated = true
-		if value == null || value == ''
+		if value == null or value == ''
+			value = null
 			switch field[2]
 				when 'PRIMARY KEY', 'NOT NULL'
 					validated = 'cannot be null'
