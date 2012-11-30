@@ -10,9 +10,8 @@ define([
 		validated = true
 		if value == null or value == ''
 			value = null
-			switch field[2]
-				when 'PRIMARY KEY', 'NOT NULL'
-					validated = 'cannot be null'
+			if field[2] == true
+				validated = 'cannot be null'
 		else
 			switch field[0]
 				when 'Serial', 'Integer', 'ForeignKey', 'ConceptType'
