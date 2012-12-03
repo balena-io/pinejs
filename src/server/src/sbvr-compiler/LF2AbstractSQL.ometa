@@ -113,7 +113,7 @@ define([
 				?(fieldID !== false)
 				{baseTable.fields.splice(fieldID, 1)}
 			)?
-			AddTableField(baseTable, fkTable.name, 'ForeignKey', required, null, fkTable.idField)
+			AddTableField(baseTable, fkTable.name, 'ForeignKey', required, null, [fkTable.name, fkTable.idField])
 			{this.tables[this.GetResourceName(factType)] = 'ForeignKey'},
 		AttrUnique :factType =
 			:required
@@ -151,7 +151,7 @@ define([
 			|	{this.tables[resourceName] = {fields:[], primitive: false, name: null}}:linkTable
 				(	Term:term
 					GetTable(term.name):fkTable
-					AddTableField(linkTable, fkTable.name, 'ForeignKey', true, '', fkTable.idField)
+					AddTableField(linkTable, fkTable.name, 'ForeignKey', true, '', [fkTable.name, fkTable.idField])
 				|	['Verb' :verb]
 				)+
 			)

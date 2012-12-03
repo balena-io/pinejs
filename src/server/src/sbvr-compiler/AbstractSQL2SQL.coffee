@@ -176,12 +176,12 @@ define([
 			for field in table.fields
 				createSQL += '"' + field[1] + '" ' + dataTypeGen(field[0], field[2], field[3]) + '\n,\t'
 				if field[0] in ['ForeignKey', 'ConceptType']
-					foreignKeys.push([field[1], field[4]])
+					foreignKeys.push([field[1]].concat(field[4]))
 					depends.push(field[1])
 					hasDependants[field[1]] = true
 				
 			for foreignKey in foreignKeys
-				createSQL += 'FOREIGN KEY ("' + foreignKey[0] + '") REFERENCES "' + foreignKey[0] + '" ("' + foreignKey[1] + '")' + '\n,\t'
+				createSQL += 'FOREIGN KEY ("' + foreignKey[0] + '") REFERENCES "' + foreignKey[1] + '" ("' + foreignKey[2] + '")' + '\n,\t'
 			createSQL = createSQL[0...-2] + ');'
 			schemaDependencyMap[table.name] = {
 				resourceName: resourceName
