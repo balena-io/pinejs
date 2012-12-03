@@ -13,7 +13,7 @@ define([
 ], (has, SBVRParser, LF2AbstractSQLPrep, LF2AbstractSQL, AbstractSQL2SQL, AbstractSQLRules2SQL, AbstractSQL2CLF, ServerURIParser, async, dbModule, _) ->
 	exports = {}
 	db = null
-	
+
 	devModel = '''
 			Term:      Short Text
 			Term:      JSON
@@ -30,10 +30,10 @@ define([
 			Fact Type: model is of vocabulary
 				Necessity: Each model is of exactly one vocabulary
 			Fact Type: model has model type
-				Necessity: Each model has exactly one model type 
+				Necessity: Each model has exactly one model type
 			Fact Type: model has model value
 				Necessity: Each model has exactly one model value'''
-	
+
 	transactionModel = '''
 			Term:      Integer
 			Term:      Short Text
@@ -55,10 +55,10 @@ define([
 				Necessity: Each resource has exactly 1 resource id.
 			Fact type: resource has resource type
 				Necessity: Each resource has exactly 1 resource type.
-			
+
 			Term:      transaction
 				Database Value Field: id
-			
+
 			Term:      lock
 				Database Value Field: id
 			Fact type: lock is exclusive
@@ -114,22 +114,22 @@ define([
 				Necessity: Each username is of exactly one user.
 			Fact type: user has password
 				Necessity: Each user has exactly one password.'''
-	
+
 	serverURIParser = ServerURIParser.createInstance()
-	
+
 	sqlModels = {}
 	clientModels = {}
-	
+
 	checkForConstraintError = (err, tableName) ->
 		if (has('USE_MYSQL') and (matches = /ER_DUP_ENTRY: Duplicate entry '.*?[^\\]' for key '(.*?[^\\])'/.exec(err)) != null) or
-				(if has('USE_POSTGRES') and (matches = new RegExp('error: duplicate key value violates unique constraint "' + tableName + '_(.*?)_key"').exec(err)) != null)
+				(has('USE_POSTGRES') and (matches = new RegExp('error: duplicate key value violates unique constraint "' + tableName + '_(.*?)_key"').exec(err)) != null)
 			return ['"' + matches[1] + '" must be unique']
 		else if err == 'could not execute statement (19 constraint failed)'
 			# SQLite
 			return ['Constraint failed']
 		else
 			return false
-	
+
 	getAndCheckBindValues = (bindings, values) ->
 		bindValues = []
 		for binding in bindings
@@ -188,12 +188,12 @@ define([
 						)
 					(tx, err) -> callback(err)
 				)
-			resolvePlaceholder = (placeholder, resolvedID) -> 
+			resolvePlaceholder = (placeholder, resolvedID) ->
 				placeholderCallbacks = placeholders[placeholder]
 				placeholders[placeholder] = resolvedID
 				for placeholderCallback in placeholderCallbacks
 					placeholderCallback(placeholder, resolvedID)
-			
+
 			tx.executeSql('SELECT * FROM "conditional_resource" WHERE "transaction" = ?;', [transactionID],
 				(tx, conditionalResources) ->
 					conditionalResources.rows.forEach((conditionalResource) ->
@@ -201,7 +201,7 @@ define([
 						if placeholder? and placeholder.length > 0
 							placeholders[placeholder] = []
 					)
-					
+
 					# get conditional resources (if exist)
 					async.forEach(conditionalResources.rows,
 						(conditionalResource, callback) ->
@@ -232,7 +232,7 @@ define([
 									]
 									callback
 								)
-							
+
 							clientModel = clientModels['data'].resources[conditionalResource['resource type']]
 							uri = '/data/' + conditionalResource['resource type']
 							requestBody = [{}]
@@ -327,7 +327,7 @@ define([
 		abstractSqlModel = LF2AbstractSQL.match(slfModel, 'Process')
 		sqlModel = AbstractSQL2SQL.generate(abstractSqlModel)
 		clientModel = AbstractSQL2CLF(sqlModel)
-		
+
 		# Create tables related to terms and fact types
 		for createStatement in sqlModel.createSchema
 			tx.executeSql(createStatement)
@@ -339,7 +339,7 @@ define([
 			(tx) ->
 				sqlModels[vocab] = sqlModel
 				clientModels[vocab] = clientModel
-				
+
 				serverURIParser.setSQLModel(vocab, abstractSqlModel)
 				serverURIParser.setClientModel(vocab, clientModel)
 				runURI('PUT', '/dev/model?filter=model_type:se', [{vocabulary: vocab, 'model value': seModel}], tx)
@@ -348,7 +348,7 @@ define([
 				runURI('PUT', '/dev/model?filter=model_type:abstractsql', [{vocabulary: vocab, 'model value': abstractSqlModel}], tx)
 				runURI('PUT', '/dev/model?filter=model_type:sql', [{vocabulary: vocab, 'model value': sqlModel}], tx)
 				runURI('PUT', '/dev/model?filter=model_type:client', [{vocabulary: vocab, 'model value': clientModel}], tx)
-				
+
 				successCallback(tx, lfModel, slfModel, abstractSqlModel, sqlModel, clientModel)
 			, failureCallback)
 
@@ -381,7 +381,7 @@ define([
 				for comparison in whereClause[1..] when comparison[0] == "Equals" and comparison[1][2] in ['id', 'name']
 					return comparison[2][1]
 		return id
-	
+
 	exports.runURI = runURI = (method, uri, body = {}, tx, successCallback, failureCallback) ->
 		uri = decodeURI(uri)
 		console.log('Running URI', method, uri, body)
@@ -405,14 +405,14 @@ define([
 				runPut(req, res, tx)
 			when 'DELETE'
 				runDelete(req, res, tx)
-	
+
 	exports.runGet = runGet = (req, res, tx) ->
 		processInstance = (resourceModel, instance) ->
 			instance = _.clone(instance)
 			for field in resourceModel.fields when field[0] == 'JSON' and instance.hasOwnProperty(field[1])
 				instance[field[1]] = JSON.parse(instance[field[1]])
 			return instance
-		
+
 		tree = req.tree
 		if tree[2] == undefined
 			res.json(clientModels[tree[1][1]].resources)
@@ -450,7 +450,7 @@ define([
 				model:
 					clientModel.resources[tree[2].resourceName]
 			res.json(data)
-	
+
 	exports.runPost = runPost = (req, res, tx) ->
 		tree = req.tree
 		if tree[2] == undefined
@@ -493,14 +493,14 @@ define([
 					runQuery(tx)
 				else
 					db.transaction(runQuery)
-	
+
 	exports.runPut = runPut = (req, res, tx) ->
 		tree = req.tree
 		if tree[2] == undefined
 			res.send(404)
 		else
 			queries = AbstractSQLRules2SQL.match(tree[2].query, 'ProcessQuery')
-			
+
 			if _.isArray(queries)
 				insertQuery = queries[0]
 				updateQuery = queries[1]
@@ -508,12 +508,12 @@ define([
 				insertQuery = queries
 			values = getAndCheckBindValues(insertQuery.bindings, tree[2].values)
 			console.log(insertQuery.query, values)
-			
+
 			if !_.isArray(values)
 				res.json(values, 404)
 			else
 				vocab = tree[1][1]
-				
+
 				doValidate = (tx) ->
 					validateDB(tx, sqlModels[vocab],
 						(tx) ->
@@ -522,7 +522,7 @@ define([
 						(tx, errors) ->
 							res.json(errors, 404)
 					)
-				
+
 				id = getID(tree)
 				runQuery = (tx) ->
 					tx.begin()
@@ -564,7 +564,7 @@ define([
 					runQuery(tx)
 				else
 					db.transaction(runQuery)
-	
+
 	exports.runDelete = runDelete = (req, res, tx) ->
 		tree = req.tree
 		if tree[2] == undefined
