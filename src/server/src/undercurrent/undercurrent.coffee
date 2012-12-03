@@ -16,91 +16,91 @@ define(['cs!database-layer/db'], (dbModule) ->
 		Term:      note
 			Concept Type: Long Text
 		Fact type: dataset has note
-		Rule:      It is obligatory that each dataset has at most one note
+			Necessity: Each dataset has at most one note
 
 		Term:      product
 		Fact type: dataset is about product
-		Rule:      It is obligatory that each dataset is about exactly 1 product
+			Necessity: Each dataset is about exactly 1 product
 
 		Term:      species
 			Concept Type: Short Text
 		Fact type: product is about species
-		Rule:      It is obligatory that each product is about exactly 1 species
+			Necessity: Each product is about exactly 1 species
 
 		Term:      origin
 			Concept Type: Short Text
 		Fact type: product has origin
-		Rule:      It is obligatory that each product has at most 1 origin
+			Necessity: Each product has at most 1 origin
 
 		Term:      type
 		-- Farmed or Wild
 		Fact type: type has value
-		Rule:      It is obligatory that each type has exactly 1 value 
+			Necessity: Each type has exactly 1 value 
 		Fact type: product has type
-		Rule:      It is obligatory that each product has exactly 1 type
+			Necessity: Each product has exactly 1 type
 
 		Term:      size
 			Concept Type: Short Text
 		Fact type: product has size
-		Rule:      It is obligatory that each product has at most 1 size
+			Necessity: Each product has at most 1 size
 
-		Term:      point of trade
+		Term:      point_of_trade
 			Concept Type: Short Text
-		Fact type: product has point of trade
-		Rule:      It is obligatory that each product has exactly 1 point of trade
+		Fact type: product has point_of_trade
+			Necessity: Each product has exactly 1 point_of_trade
 
 		Term:      name
 			Concept Type: Long Text
 		Fact type: dataset has name
-		Rule:      It is obligatory that each dataset has exactly 1 name
+			Necessity: Each dataset has exactly 1 name
 
 		Term:      title
 			Concept Type: Long Text
 		Fact type: dataset has title
-		Rule:      It is obligatory that each dataset has exactly 1 title
+			Necessity: Each dataset has exactly 1 title
 
 		Term:      short title
 			Concept Type: Long Text
 		Fact type: dataset has short title
-		Rule:      It is obligatory that each dataset has exactly 1 short title
+			Necessity: Each dataset has exactly 1 short title
 
 		Term:      caption
 			Concept Type: Long Text
 		Fact type: dataset has caption
-		Rule:      It is obligatory that each dataset has exactly 1 caption
+			Necessity: Each dataset has exactly 1 caption
 
 		Term:      explanation
 			Concept Type: Long Text
 		Fact type: dataset has explanation
-		Rule:      It is obligatory that each dataset has at most 1 explanation
+			Necessity: Each dataset has at most 1 explanation
 
 		Term:      currency
 		Fact type: currency has value
-		Rule:      It is obligatory that each currency has exactly 1 value
+			Necessity: Each currency has exactly 1 value
 		Fact type: dataset is in currency
-		Rule:      It is obligatory that each dataset is in exactly 1 currency
+			Necessity: Each dataset is in exactly 1 currency
 
 		Term:      frequency
 		-- Weekly, Monthly or Seasonal
 		Fact type: frequency has value
-		Rule:      It is obligatory that each frequency has exactly 1 value 
+			Necessity: Each frequency has exactly 1 value 
 		Fact type: dataset has frequency
-		Rule:      It is obligatory that each dataset has exactly 1 frequency 
+			Necessity: Each dataset has exactly 1 frequency 
 
 		Term:      colour
 			Concept Type: Short Text
 		Fact type: dataset has colour
-		Rule:      It is obligatory that each dataset has exactly 1 colour
+			Necessity: Each dataset has exactly 1 colour
 
 		Term:      source
 		Fact Type: source is anonymous
 
 		Term:      source type
 		Fact type: source type has value
-		Rule:      It is obligatory that each source type has exactly one value
+			Necessity: Each source type has exactly one value
 
 		Fact type: source has source type
-		Rule:      It is obligatory that each source has exactly one source type
+			Necessity: Each source has exactly one source type
 
 		Fact type: dataset has source
 		Rule:      It is obligatory that each dataset has at least 1 source
@@ -110,18 +110,18 @@ define(['cs!database-layer/db'], (dbModule) ->
 		Term:      quote
 			Database Value Field: price
 		Fact type: quote belongs to dataset
-		Rule:      It is obligatory that each quote belongs to exactly one dataset
+			Necessity: Each quote belongs to exactly one dataset
 
 		-- Concept Type: Currency
 		Term:      price
 			Concept Type: Integer
 		Fact type: quote has price
-		Rule:      It is obligatory that each quote has at most 1 price
+			Necessity: Each quote has at most 1 price
 
 		Term:      date
 			Concept Type: Date
 		Fact type: quote has date
-		Rule:      It is obligatory that each quote has exactly 1 date'''
+			Necessity: Each quote has exactly 1 date'''
 
 	# Setup function
 	exports.setup = (app, requirejs, sbvrUtils, isAuthed, databaseOptions) ->
