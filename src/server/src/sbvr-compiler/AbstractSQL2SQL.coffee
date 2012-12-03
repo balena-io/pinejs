@@ -177,8 +177,8 @@ define([
 				createSQL += '"' + field[1] + '" ' + dataTypeGen(field[0], field[2], field[3]) + '\n,\t'
 				if field[0] in ['ForeignKey', 'ConceptType']
 					foreignKeys.push([field[1]].concat(field[4]))
-					depends.push(field[1])
-					hasDependants[field[1]] = true
+					depends.push(field[4][0])
+					hasDependants[field[4][0]] = true
 				
 			for foreignKey in foreignKeys
 				createSQL += 'FOREIGN KEY ("' + foreignKey[0] + '") REFERENCES "' + foreignKey[1] + '" ("' + foreignKey[2] + '")' + '\n,\t'
