@@ -684,7 +684,7 @@ define(['data-frame/ClientURIUnparser', 'ejs', 'data-frame/widgets', 'async', 'd
 							# request schema from server and store locally.
 							serverRequest('GET', '/dev/model?filter=model_type:lf;vocabulary:data', {}, null,
 								(statusCode, result) ->
-									renderResource(rootURI, true, expandedTree, result.instances[0].model_value,
+									renderResource(rootURI, true, expandedTree, result.instances[0]['model value'],
 										(err, html) ->
 											resource.html = html
 											callback(err, resource)

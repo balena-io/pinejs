@@ -148,16 +148,31 @@ define(['underscore', 'ometa-core'], function(_) {
 		if(mappedFactType === false) {
 			return false;
 		}
-		var rootTerms = [],
-			rootTermIndex = 0;
+		var schemaInfo = [],
+			schemaInfoIndex = 0,
+			usedTermNames = {};
 		for(var i=0; i < factType.length; i+=2) {
 			for(var j=0; j < mappedFactType.length; j+=2) {
 				if(mappedFactType[j][2] == i) {
-					rootTerms[rootTermIndex++] = mappedFactType[j][1];
+					schemaInfo[schemaInfoIndex++] = {
+						term: mappedFactType[j][1],
+						field: mappedFactType[j][1]
+					};
+					if(usedTermNames.hasOwnProperty(mappedFactType[j][1])) {
+						usedTermNames[mappedFactType[j][1]] = 0;
+					}
+					else {
+						usedTermNames[mappedFactType[j][1]] = null;
+					}
 				}
 			}
 		}
-		return rootTerms;
+		for(var i=0; i < schemaInfo.length; i++) {
+			if(usedTermNames[schemaInfo[i].term] != null) {
+				schemaInfo[i].field = schemaInfo[i].field + (++usedTermNames[schemaInfo[i].term]);
+			}
+		}
+		return schemaInfo;
 	};
 	
 	SBVRLibs.GetResourceName = function(termOrFactType) {

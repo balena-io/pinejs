@@ -19,7 +19,7 @@ define([
 			Term:      JSON
 
 			Term:      model
-				Database Value Field: model_value
+				Database Value Field: model value
 			Term:      vocabulary
 				Concept Type: Short Text
 			Term:      model type
@@ -50,7 +50,7 @@ define([
 				Concept type: Short Text
 
 			Term:      resource
-				Database Value Field: resource_id
+				Database Value Field: resource id
 			Fact type: resource has resource id
 				Necessity: Each resource has exactly 1 resource id.
 			Fact type: resource has resource type
@@ -87,7 +87,7 @@ define([
 			--Rule:      It is obligatory that each conditional resource that has a placeholder, has a conditional type that is of "ADD".
 
 			Term:      conditional field
-				Database Value Field: field_name
+				Database Value Field: field name
 			Fact type: conditional field has field name
 				Necessity: Each conditional field has exactly 1 field name.
 			Fact type: conditional field has field value
@@ -147,7 +147,7 @@ define([
 		db.transaction((tx) ->
 			placeholders = {}
 			getLockedRow = (lockID, callback) ->
-				tx.executeSql('''SELECT r."resource_type", r."resource_id"
+				tx.executeSql('''SELECT r."resource type", r."resource id"
 								FROM "resource-is_under-lock" rl
 								JOIN "resource" r ON rl."resource" = r."id"
 								WHERE "lock" = ?;''', [lockID],
@@ -155,14 +155,14 @@ define([
 					(tx, err) -> callback(err)
 				)
 			getFieldsObject = (conditionalResourceID, clientModel, callback) ->
-				tx.executeSql('SELECT "field_name", "field_value" FROM "conditional_field" WHERE "conditional_resource" = ?;', [conditionalResourceID],
+				tx.executeSql('SELECT "field name", "field value" FROM "conditional_field" WHERE "conditional resource" = ?;', [conditionalResourceID],
 					(tx, fields) ->
 						fieldsObject = {}
 						async.forEach(fields.rows,
 							(field, callback) ->
-								fieldName = field.field_name
+								fieldName = field['field name']
 								fieldName = fieldName.replace(clientModel.resourceName + '.', '')
-								fieldValue = field.field_value
+								fieldValue = field['field value']
 								async.forEach(clientModel.fields,
 									(modelField, callback) ->
 										placeholderCallback = (placeholder, resolvedID) ->
@@ -210,7 +210,7 @@ define([
 							doCleanup = () ->
 								async.parallel([
 										(callback) ->
-											tx.executeSql('DELETE FROM "conditional_field" WHERE "conditional_resource" = ?;', [conditionalResource.id],
+											tx.executeSql('DELETE FROM "conditional_field" WHERE "conditional resource" = ?;', [conditionalResource.id],
 												-> callback()
 												(tx, err) -> callback(err)
 											)
@@ -233,17 +233,17 @@ define([
 									callback
 								)
 							
-							clientModel = clientModels['data'].resources[conditionalResource.resource_type]
-							uri = '/data/' + conditionalResource.resource_type
+							clientModel = clientModels['data'].resources[conditionalResource['resource type']]
+							uri = '/data/' + conditionalResource['resource type']
 							requestBody = [{}]
-							switch conditionalResource.conditional_type
+							switch conditionalResource['conditional type']
 								when 'DELETE'
 									getLockedRow(lockID, (err, lockedRow) ->
 										if err?
 											callback(err)
 										else
 											lockedRow = lockedRow.rows.item(0)
-											uri = uri + '?filter=' + clientModel.idField + ':' + lockedRow.resource_id
+											uri = uri + '?filter=' + clientModel.idField + ':' + lockedRow['resource id']
 											runURI('DELETE', uri, requestBody, tx, doCleanup, -> callback(arguments))
 									)
 								when 'EDIT'
@@ -252,7 +252,7 @@ define([
 											callback(err)
 										else
 											lockedRow = lockedRow.rows.item(0)
-											uri = uri + '?filter=' + clientModel.idField + ':' + lockedRow.resource_id
+											uri = uri + '?filter=' + clientModel.idField + ':' + lockedRow['resource id']
 											getFieldsObject(conditionalResource.id, clientModel,
 												(err, fields) ->
 													if err?
@@ -342,12 +342,12 @@ define([
 				
 				serverURIParser.setSQLModel(vocab, abstractSqlModel)
 				serverURIParser.setClientModel(vocab, clientModel)
-				runURI('PUT', '/dev/model?filter=model_type:se', [{vocabulary: vocab, model_value: seModel}], tx)
-				runURI('PUT', '/dev/model?filter=model_type:lf', [{vocabulary: vocab, model_value: lfModel}], tx)
-				runURI('PUT', '/dev/model?filter=model_type:slf', [{vocabulary: vocab, model_value: slfModel}], tx)
-				runURI('PUT', '/dev/model?filter=model_type:abstractsql', [{vocabulary: vocab, model_value: abstractSqlModel}], tx)
-				runURI('PUT', '/dev/model?filter=model_type:sql', [{vocabulary: vocab, model_value: sqlModel}], tx)
-				runURI('PUT', '/dev/model?filter=model_type:client', [{vocabulary: vocab, model_value: clientModel}], tx)
+				runURI('PUT', '/dev/model?filter=model_type:se', [{vocabulary: vocab, 'model value': seModel}], tx)
+				runURI('PUT', '/dev/model?filter=model_type:lf', [{vocabulary: vocab, 'model value': lfModel}], tx)
+				runURI('PUT', '/dev/model?filter=model_type:slf', [{vocabulary: vocab, 'model value': slfModel}], tx)
+				runURI('PUT', '/dev/model?filter=model_type:abstractsql', [{vocabulary: vocab, 'model value': abstractSqlModel}], tx)
+				runURI('PUT', '/dev/model?filter=model_type:sql', [{vocabulary: vocab, 'model value': sqlModel}], tx)
+				runURI('PUT', '/dev/model?filter=model_type:client', [{vocabulary: vocab, 'model value': clientModel}], tx)
 				
 				successCallback(tx, lfModel, slfModel, abstractSqlModel, sqlModel, clientModel)
 			, failureCallback)
@@ -531,7 +531,7 @@ define([
 							SELECT 1
 							FROM "resource" r
 							JOIN "resource-is_under-lock" AS rl ON rl."resource" = r."id"
-							WHERE r."resource_type" = ?
+							WHERE r."resource type" = ?
 							AND r."id" = ?
 						) AS result;''', [tree[2].resourceName, id],
 						(tx, result) ->
@@ -643,7 +643,7 @@ define([
 				(result) ->
 					for instance in result.instances
 						vocab = instance.vocabulary
-						sqlModel = instance.model_value
+						sqlModel = instance['model value']
 						clientModel = AbstractSQL2CLF(sqlModel)
 						sqlModels[vocab] = sqlModel
 						serverURIParser.setSQLModel(vocab, sqlModel)

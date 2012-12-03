@@ -9,6 +9,7 @@ define([
 		
 		/** Terms **/
 		Term =
+			{''}:num
 			[	'Term'
 				:name
 				[	'Number'
@@ -50,10 +51,10 @@ define([
 					{field[1] = termTable.fields[fieldID][1]}
 					{termTable.fields.splice(fieldID, 1)}
 				)?
-				{termTable.valueField = conceptTable.name}
+				{termTable.valueField = conceptType}
 			|	{'ConceptType'}:dataType
 			)
-			AddTableField(termTable, conceptTable.name, dataType, true, null, conceptTable.idField),
+			AddTableField(termTable, conceptType, dataType, true, null, conceptTable.idField),
 		AttrDatabaseIDField :tableID =
 			:idField
 			GetTable(tableID):table
@@ -98,22 +99,24 @@ define([
 				{this.attributes[factType] = attrVal}
 				{this.tables[this.GetResourceName(factType)] = 'Attribute'}
 				GetTable(factType[0][1]):baseTable
-				GetTable(factType[2][1]):attributeTable
-				GetTableFieldID(baseTable, attributeTable.name):fieldID
+				{factType[2][1]}:attributeName
+				GetTable(attributeName):attributeTable
+				GetTableFieldID(baseTable, attributeName):fieldID
 				{baseTable.fields[fieldID][0] = attributeTable.primitive}
 			)?,
 		AttrForeignKey :factType =
 			:required
 			GetTable(factType[0][1]):baseTable
-			GetTable(factType[2][1]):fkTable
-			(	?(baseTable.valueField == fkTable.name
-					|| baseTable.idField == fkTable.name)
+			{factType[2][1]}:fkName
+			GetTable(fkName):fkTable
+			(	?(baseTable.valueField == fkName
+					|| baseTable.idField == fkName)
 				// If the foreign key matches the value or id fields then delete the current field before adding the new.
-				GetTableFieldID(baseTable, fkTable.name):fieldID
+				GetTableFieldID(baseTable, fkName):fieldID
 				?(fieldID !== false)
 				{baseTable.fields.splice(fieldID, 1)}
 			)?
-			AddTableField(baseTable, fkTable.name, 'ForeignKey', required, null, [fkTable.name, fkTable.idField])
+			AddTableField(baseTable, fkName, 'ForeignKey', required, null, [fkTable.name, fkTable.idField])
 			{this.tables[this.GetResourceName(factType)] = 'ForeignKey'},
 		AttrUnique :factType =
 			:required
@@ -121,8 +124,8 @@ define([
 			(	?(baseTable === 'Attribute' || baseTable === 'ForeignKey')
 				GetTable(factType[0][1]):baseTable
 			)?
-			GetTable(factType[2][1]):uniqueTable
-			GetTableFieldID(baseTable, uniqueTable.name):fieldID
+			{factType[2][1]}:uniqueField
+			GetTableFieldID(baseTable, uniqueField):fieldID
 			?(fieldID !== false)
 			{baseTable.fields[fieldID][3] = 'UNIQUE'},
 		// AttrSynonym :term =
@@ -151,7 +154,7 @@ define([
 			|	{this.tables[resourceName] = {fields:[], primitive: false, name: null}}:linkTable
 				(	Term:term
 					GetTable(term.name):fkTable
-					AddTableField(linkTable, fkTable.name, 'ForeignKey', true, '', [fkTable.name, fkTable.idField])
+					AddTableField(linkTable, term.name + term.num, 'ForeignKey', true, '', [fkTable.name, fkTable.idField])
 				|	['Verb' :verb]
 				)+
 			)
@@ -186,7 +189,7 @@ define([
 				{['SelectQuery', ['Select', []], ['From', this.GetTable(termName).name, varAlias + termName]]}:query
 				{	this.ResolveConceptTypes(query, termName, varAlias)
 					if(termNames.length > 0) {
-						var attributeName = this.GetTable(baseTerm.name).name;
+						var attributeName = baseTerm.name;
 						for(var i=0; i < termNames.length; i++) {
 							var extraTermName = termNames[i],
 								extraTable = this.GetTable(extraTermName);
@@ -218,9 +221,9 @@ define([
 			{0}:i
 			(	?(i < rootTerms.length)
 				RoleBinding:bind
-				{rootTerms[i]}:termName
-				GetResourceName(termName):resourceName
-				AddWhereClause(query, ['Equals', ['ReferencedField', tableAlias, this.tables[resourceName].name], ['ReferencedField', 'var' + bind[1] + termName, this.tables[resourceName].idField]])
+				{rootTerms[i].term}:termName
+				GetTable(termName):table
+				AddWhereClause(query, ['Equals', ['ReferencedField', tableAlias, rootTerms[i].field], ['ReferencedField', 'var' + bind[1] + termName, table.idField]])
 				{i++}
 			)+
 			-> ['Exists', query],
@@ -231,18 +234,18 @@ define([
 				RoleBinding:bindTo
 				end
 				(	?this.IsChild(bindFrom[0], actualFactType[0])
-					{rootTerms[0]}:termFrom
-					{rootTerms[1]}:termTo
+					{rootTerms[0]}:fkFrom
+					{rootTerms[1]}:fkTo
 				|	{bindTo}:temp
 					{bindFrom}:bindTo
 					{temp}:bindFrom
-					{rootTerms[1]}:termFrom
-					{rootTerms[0]}:termTo
+					{rootTerms[1]}:fkFrom
+					{rootTerms[0]}:fkTo
 				)
-				GetTable(termTo):tableTo
+				GetTable(fkTo.term):tableTo
 			|	___ForeignKeyMatchingFailed___.die
 			)
-			-> ['Equals', ['ReferencedField', 'var' + bindFrom[1] + termFrom, tableTo.name], ['ReferencedField', 'var' + bindTo[1] + termTo, tableTo.idField]],
+			-> ['Equals', ['ReferencedField', 'var' + bindFrom[1] + fkFrom.term, fkTo.field], ['ReferencedField', 'var' + bindTo[1] + fkTo.term, tableTo.idField]],
 
 		BooleanAttribute :actualFactType =
 			?(this.GetTable(actualFactType) == 'BooleanAttribute')
@@ -262,18 +265,17 @@ define([
 				RoleBinding:bindAttr
 				end
 				(	?this.IsChild(bindReal[0], actualFactType[0])
-					{rootTerms[0]}:termNameReal
-					{rootTerms[1]}:termNameAttr
+					{rootTerms[0].term}:termNameReal
+					{rootTerms[1].field}:attrField
 				|	{bindAttr}:temp
 					{bindReal}:bindAttr
 					{temp}:bindReal
-					{rootTerms[1]}:termNameReal
-					{rootTerms[0]}:termNameAttr
+					{rootTerms[1].term}:termNameReal
+					{rootTerms[0].field}:attrField
 				)
 				|	___AttributeMatchingFailed___.die
 			)
-			GetResourceName(termNameAttr):resourceAttr
-			AddWhereClause(query, ['Equals', ['ReferencedField', 'var' + bindAttr[1] + termNameReal, this.tables[resourceAttr].name], ['ReferencedField', 'var' + bindReal[1] + termNameReal, this.tables[resourceAttr].name]])
+			AddWhereClause(query, ['Equals', ['ReferencedField', 'var' + bindAttr[1] + termNameReal, attrField], ['ReferencedField', 'var' + bindReal[1] + termNameReal, attrField]])
 			-> ['Exists', query],
 		
 		AtomicFormulation =
@@ -443,7 +445,7 @@ define([
 				break;
 			}
 			query.push(['From', conceptTable.name, conceptAlias]);
-			this.AddWhereClause(query, ['Equals', ['ReferencedField', parentAlias, conceptTable.name], ['ReferencedField', conceptAlias, conceptTable.idField]]);
+			this.AddWhereClause(query, ['Equals', ['ReferencedField', parentAlias, conceptName], ['ReferencedField', conceptAlias, conceptTable.idField]]);
 			parentAlias = conceptAlias;
 		}
 	};
