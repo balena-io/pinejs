@@ -8,25 +8,27 @@ define([
 	ometa LF2AbstractSQL <: SBVRLibs {
 		
 		/** Terms **/
-		Term =
+		Identifier =
 			{''}:num
-			[	'Term'
+			[	(	'Term'
+				|	'Name'
+				):type
 				:name
 				[	'Number'
 					:num
 				]?
 			]
-			-> {name: name, num: num},
+			-> {type: type, name: name, num: num},
 		
-		TermName =
-			:termName
-			GetResourceName(termName):resourceName
+		IdentifierName =
+			:identifierName
+			GetResourceName(identifierName):resourceName
 			(	?(!this.tables.hasOwnProperty(resourceName))
-			|	{console.error('We already have a term with a name of: ' + termName)} ?(false)
+			|	{console.error('We already have an identifier with a name of: ' + identifierName)} ?(false)
 			)
-			{this.terms[termName] = termName}
+			{this.identifiers[identifierName] = identifierName}
 			{this.tables[resourceName] = {fields:[], primitive: false, name: null, idField: null}}
-			-> termName,
+			-> identifierName,
 		Attributes :tableID =
 				end
 			|	[	'Attributes'
@@ -37,24 +39,24 @@ define([
 		DefaultAttr :tableID =
 			:anything
 			{console.log('Default', tableID, anything)},
-		AttrConceptType :termName = // tableID will be same as termName for ConceptType (fact types cannot have a concept type)
-			['Term' :conceptType] {this.conceptTypes[termName] = conceptType}
+		AttrConceptType :identifierName = // tableID will be same as identifierName for ConceptType (fact types cannot have a concept type)
+			['Term' :conceptType] {this.conceptTypes[identifierName] = conceptType}
 			IsPrimitive(conceptType):primitive
 			GetTable(conceptType):conceptTable
-			GetTable(termName):termTable
+			GetTable(identifierName):identifierTable
 			(	?(primitive !== false && conceptType === primitive)
 				{primitive}:dataType
 				// If the concept type is primitive then we use that as the "value" field and delete the current.
-				(	?(termTable.hasOwnProperty('valueField'))
-					GetTableFieldID(termTable, termTable.valueField):fieldID
+				(	?(identifierTable.hasOwnProperty('valueField'))
+					GetTableFieldID(identifierTable, identifierTable.valueField):fieldID
 					?(fieldID !== false)
-					{field[1] = termTable.fields[fieldID][1]}
-					{termTable.fields.splice(fieldID, 1)}
+					{field[1] = identifierTable.fields[fieldID][1]}
+					{identifierTable.fields.splice(fieldID, 1)}
 				)?
-				{termTable.valueField = conceptType}
+				{identifierTable.valueField = conceptType}
 			|	{'ConceptType'}:dataType
 			)
-			AddTableField(termTable, conceptType, dataType, true, null, conceptTable.idField),
+			AddTableField(identifierTable, conceptType, dataType, true, null, conceptTable.idField),
 		AttrDatabaseIDField :tableID =
 			:idField
 			GetTable(tableID):table
@@ -129,13 +131,13 @@ define([
 			?(fieldID !== false)
 			{baseTable.fields[fieldID][3] = 'UNIQUE'},
 		// AttrSynonym :term =
-			// :synonym {this.terms[synonym[1]] = term[1]},
+			// :synonym {this.identifiers[synonym[1]] = term[1]},
 		AttrSynonymousForm :factType =
 			:synForm
 			AddFactType(synForm, factType),
 		AttrTermForm :factType =
 			:term
-			{this.terms[term[1]] = factType}
+			{this.identifiers[term[1]] = factType}
 			{this.tables[this.GetResourceName(term[1])] = this.GetTable(factType)},
 			
 			
@@ -151,13 +153,13 @@ define([
 				(	?(factType.length == 2)
 					// Eat input
 					(:factTypePart &(:attributes))+
-					GetTable(factType[0][1]):termTable
-					AddTableField(termTable, factType[1][1], 'Boolean', true)
+					GetTable(factType[0][1]):identifierTable
+					AddTableField(identifierTable, factType[1][1], 'Boolean', true)
 					{this.tables[resourceName] = 'BooleanAttribute'}
 				|	{this.tables[resourceName] = {fields:[], primitive: false, name: null}}:linkTable
-					(	Term:term
-						GetTable(term.name):fkTable
-						AddTableField(linkTable, term.name + term.num, 'ForeignKey', true, '', [fkTable.name, fkTable.idField])
+					(	Identifier:identifier
+						GetTable(identifier.name):fkTable
+						AddTableField(linkTable, identifier.name + identifier.num, 'ForeignKey', true, '', [fkTable.name, fkTable.idField])
 					|	['Verb' :verb]
 					)+
 				)
@@ -181,7 +183,7 @@ define([
 		Variable =
 			[	'Variable'
 				Number:bind
-				Term:baseTerm
+				Identifier:baseTerm
 				(	// Replace this bind if it's an attribute binding.
 					{this.bindTerms[bind]}:termNames
 					?(termNames)
@@ -214,10 +216,10 @@ define([
 		
 		RoleBinding =
 			[	'RoleBinding'
-				Term:term
+				Identifier:identifier
 				:bind
 			]
-			-> [term.name, bind],
+			-> [identifier, bind],
 
 		LinkTable :actualFactType :rootTerms =
 			{'link' + this.linkTableBind++}:tableAlias
@@ -237,7 +239,7 @@ define([
 			(	RoleBinding:bindFrom
 				RoleBinding:bindTo
 				end
-				(	?this.IsChild(bindFrom[0], actualFactType[0])
+				(	?this.IsChild(bindFrom[0].name, actualFactType[0])
 					{rootTerms[0]}:fkFrom
 					{rootTerms[1]}:fkTo
 				|	{bindTo}:temp
@@ -249,7 +251,16 @@ define([
 				GetTable(fkTo.term):tableTo
 			|	___ForeignKeyMatchingFailed___.die
 			)
-			-> ['Equals', ['ReferencedField', 'var' + bindFrom[1] + fkFrom.term, fkTo.field], ['ReferencedField', 'var' + bindTo[1] + fkTo.term, tableTo.idField]],
+			(	?(bindTo[0].type == 'Name')
+				{bindTo[0].name}:name
+				GetTable(name):nameTable
+				{'name-' + name + '-'}:varAlias
+				{['SelectQuery', ['Select', [[['ReferencedField', varAlias + fkTo.term, tableTo.idField]]]], ['From', nameTable.name, varAlias + name]]}:query
+				ResolveConceptTypes(query, name, varAlias, fkTo.term)
+				-> query
+			|	-> ['ReferencedField', 'var' + bindTo[1] + fkTo.term, tableTo.idField]
+			):toField
+			-> ['Equals', ['ReferencedField', 'var' + bindFrom[1] + fkFrom.term, fkTo.field], toField],
 
 		BooleanAttribute :actualFactType =
 			?(this.GetTable(actualFactType) == 'BooleanAttribute')
@@ -268,7 +279,7 @@ define([
 			(	RoleBinding:bindReal
 				RoleBinding:bindAttr
 				end
-				(	?this.IsChild(bindReal[0], actualFactType[0])
+				(	?this.IsChild(bindReal[0].name, actualFactType[0])
 					{rootTerms[0].term}:termNameReal
 					{rootTerms[1].field}:attrField
 				|	{bindAttr}:temp
@@ -370,7 +381,7 @@ define([
 						}
 					}
 					(	RoleBinding:bind
-						(	?(this.GetTable(bind[0]).primitive)
+						(	?(this.GetTable(bind[0].name).primitive)
 							{(this.bindTerms[bind[1]] = this.bindTerms[bind[1]] || []).push(tableTerm)}
 						)?
 					)*
@@ -381,7 +392,11 @@ define([
 		
 		Process =
 			[	'Model'
-				(	[	'Term' TermName:termName Attributes(termName)
+				(	[	(	'Term'
+						|	'Name'
+						)
+						 IdentifierName:identifierName
+						 Attributes(identifierName)
 					|	'FactType' FactType:factType Attributes(factType)
 					|	'Rule'
 						{this.bindTerms = []}
@@ -436,12 +451,12 @@ define([
 		}
 	};
 	
-	LF2AbstractSQL.ResolveConceptTypes = function(query, termName, varAlias) {
+	LF2AbstractSQL.ResolveConceptTypes = function(query, termName, varAlias, untilConcept) {
 		var conceptAlias,
 			parentAlias = varAlias + termName,
 			conceptName = termName,
 			conceptTable;
-		while(this.conceptTypes.hasOwnProperty(conceptName)) {
+		while(conceptName != untilConcept && this.conceptTypes.hasOwnProperty(conceptName)) {
 			conceptName = this.conceptTypes[conceptName];
 			conceptAlias = varAlias + conceptName;
 			conceptTable = this.GetTable(conceptName);
@@ -457,7 +472,7 @@ define([
 	LF2AbstractSQL.initialize = function() {
 		SBVRLibs.initialize.call(this);
 		this.tables = {};
-		this.terms = {}; // TODO: Is this needed?
+		this.identifiers = {}; // TODO: Is this needed?
 		this.rules = [];
 		this.linkTableBind = 0;
 		this.attributes = {};

@@ -132,6 +132,7 @@ define([
 			this.SetHelped();
 		}
 		switch(termOrVerb[0]) {
+			case 'Name':
 			case 'Term':
 				if(!attrsFound.hasOwnProperty('DatabaseValueField')) {
 					attrs.push(['DatabaseValueField', 'value']);

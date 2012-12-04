@@ -1,12 +1,6 @@
 define(['ometa!sbvr-parser/SBVRLibs', 'ometa-core'], function(SBVRLibs) {
 	// TODO: Make the LFValidator validate that it is actually correctly structured LF.
 	ometa LFValidator <: SBVRLibs {
-		$ :x =
-			(	token(x):a
-				-> [a] 
-			|	-> []
-			),
-
 		trans
 			[:t apply(t):a]
 			-> a,
@@ -26,6 +20,7 @@ define(['ometa!sbvr-parser/SBVRLibs', 'ometa-core'], function(SBVRLibs) {
 			{[]}:xs
 			(
 				(	"Term"
+				|	"Name"
 				|	"FactType"
 				|	"Rule"
 				):x
@@ -37,12 +32,17 @@ define(['ometa!sbvr-parser/SBVRLibs', 'ometa-core'], function(SBVRLibs) {
 
 		FactType
 			{[]}:factType
-			(	"Term":t
-				"Verb":v
-				{factType.concat([t,v])}:factType
+			(	(	"Term"
+				|	"Name"
+				):identifier
+				"Verb":verb
+				{factType.concat([identifier, verb])}:factType
 			)*
-			$('Term'):t
-			{factType.concat(t)}:factType
+			(	(	"Term"
+				|	"Name"
+				):identifier
+				{factType.push(identifier)}
+			)?
 			&(:attrs AddFactType(factType, factType))?
 			addAttributes(['FactType'].concat(factType)),
 
@@ -52,6 +52,9 @@ define(['ometa!sbvr-parser/SBVRLibs', 'ometa-core'], function(SBVRLibs) {
 				-> ['Term', t, n]
 			|	addAttributes(['Term', t])
 			),
+		Name
+			:name
+			addAttributes(['Name', name]),
 		Verb
 			:v
 			-> ['Verb', v],
@@ -164,10 +167,14 @@ define(['ometa!sbvr-parser/SBVRLibs', 'ometa-core'], function(SBVRLibs) {
 			-> ['Variable', num, term].concat(w),
 
 		RoleBinding
-			"Term":t number:n
-			-> ['RoleBinding', t, n], 
+			(	"Term"
+			|	"Name"
+			):identifier
+			number:n
+			-> ['RoleBinding', identifier, n], 
 		AtomicFormulation
-			"FactType":f "RoleBinding"*:b
+			"FactType":f
+			"RoleBinding"*:b
 			-> ['AtomicFormulation', f].concat(b)
 	}
 	

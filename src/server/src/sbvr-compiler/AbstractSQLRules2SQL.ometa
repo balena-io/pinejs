@@ -172,8 +172,10 @@ define(['ometa-core'], function() {
 						|	(	Field
 							|	ReferencedField
 							):field
-							anything:as
-							-> (field + ' AS "' + as + '"')
+							(	anything:as
+								-> (field + ' AS "' + as + '"')
+							|	-> field
+							)
 						):field
 						{fields.push(field)}
 					]
