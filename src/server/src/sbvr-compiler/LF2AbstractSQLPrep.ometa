@@ -87,6 +87,8 @@ define([
 		CardinalityOptimisation
 			[	'UniversalQuantification'
 				"Variable":v1
+				// A basic var, no ClosedProjection.
+				?(v1.length == 3)
 				CardinalityOptimisation2(v1)
 			|	'LogicalNegation'
 				[	'ExistentialQuantification'
