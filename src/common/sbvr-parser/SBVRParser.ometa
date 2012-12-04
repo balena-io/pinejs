@@ -589,31 +589,39 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 			'Enforcement Level:'
 		]
 	};
-	function getValidFactTypeParts(partType, factTypeSoFar) {
+	function getValidFactTypeParts(identifierType, factTypeSoFar) {
 		if(factTypeSoFar == null || factTypeSoFar.length == 0) {
-			if(this.identifiers.hasOwnProperty(partType)) {
-				return _.keys(this.identifiers[partType]);
+			if(this.identifiers.hasOwnProperty(identifierType)) {
+				return _.keys(this.identifiers[identifierType]);
 			}
 			else {
 				return [];
 			}
 		}
-		var factTypePart,
+		var self = this,
+			factTypePart,
 			currentLevel = this._traverseFactType(factTypeSoFar),
-			factTypeParts = [],
-			regex = removeRegex[partType];
+			factTypeParts = {},
+			followChildrenChain = function(identifier) {
+				if(self.identifiers[identifierType].hasOwnProperty(identifier)) {
+					factTypeParts[self.identifiers[identifierType][identifier]] = true;
+				}
+				for(var i = 0; i < self.identifierChildren[identifier].length; i++) {
+					followChildrenChain(self.identifierChildren[identifier][i])
+				}
+			};
 		for(factTypePart in currentLevel) {
 			if(currentLevel.hasOwnProperty(factTypePart)) {
-				if(regex.test(factTypePart)) {
-					factTypePart = factTypePart.replace(regex, '');
-					factTypeParts.push(factTypePart);
-					if(this.identifierChildren.hasOwnProperty(factTypePart)) {
-						factTypeParts = factTypeParts.concat(this.identifierChildren[factTypePart]);
-					}
+				if(removeRegex['Term'].test(factTypePart)) {
+					factTypePart = factTypePart.replace(removeRegex['Term'], '');
 				}
+				else if(removeRegex['Name'].test(factTypePart)) {
+					factTypePart = factTypePart.replace(removeRegex['Name'], '');
+				}
+				followChildrenChain(factTypePart);
 			}
 		}
-		return factTypeParts;
+		return _.keys(factTypeParts);
 	}
 	SBVRParser.reset = function() {
 		SBVRLibs.initialize.call(this);
