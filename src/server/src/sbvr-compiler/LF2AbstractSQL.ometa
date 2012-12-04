@@ -442,7 +442,7 @@ define([
 			conceptName = termName,
 			conceptTable;
 		while(this.conceptTypes.hasOwnProperty(conceptName)) {
-			conceptName = this.conceptTypes[termName];
+			conceptName = this.conceptTypes[conceptName];
 			conceptAlias = varAlias + conceptName;
 			conceptTable = this.GetTable(conceptName);
 			if(conceptTable.primitive !== false) {
