@@ -124,7 +124,8 @@ define([
 	};
 	
 	LF2AbstractSQLPrep.defaultAttributes = function(termOrVerb, attrsFound, attrs) {
-		if(!attrsFound.hasOwnProperty('DatabaseIDField')) {
+		// We don't add a DatabaseIDField to a native primitive.
+		if(!this.nativePrimitives.hasOwnProperty(termOrVerb[1][1])&& !attrsFound.hasOwnProperty('DatabaseIDField')) {
 			attrs.push(['DatabaseIDField', 'id']);
 			this.SetHelped();
 		}
@@ -148,55 +149,58 @@ define([
 				}
 			break;
 			case 'FactType':
-				if(!attrsFound.hasOwnProperty('DatabaseTableName')) {
-					var tableName = termOrVerb[1][1].replace(new RegExp(' ','g'),'_');
-					for(var i=2;i<termOrVerb.length;i++) {
-						tableName += '-' + termOrVerb[i][1].replace(new RegExp(' ','g'),'_');
-					}
-					attrs.push(['DatabaseTableName', tableName]);
-					this.SetHelped();
-				}
-				if(this.foreignKeys.hasOwnProperty(termOrVerb)) {
-					if(!attrsFound.hasOwnProperty('ForeignKey')) {
-						// console.log('Adding FK attr', this.foreignKeys[termOrVerb], termOrVerb);
-						attrs.push(['ForeignKey', this.foreignKeys[termOrVerb]]);
+				// We don't add extra attributes to a fact type starting with a native primitive.
+				if(!this.nativePrimitives.hasOwnProperty(termOrVerb[1][1])) {
+					if(!attrsFound.hasOwnProperty('DatabaseTableName')) {
+						var tableName = termOrVerb[1][1].replace(new RegExp(' ','g'),'_');
+						for(var i=2;i<termOrVerb.length;i++) {
+							tableName += '-' + termOrVerb[i][1].replace(new RegExp(' ','g'),'_');
+						}
+						attrs.push(['DatabaseTableName', tableName]);
 						this.SetHelped();
 					}
-					else if(attrsFound['ForeignKey'] != this.foreignKeys[termOrVerb]) {
-						console.error(attrsFound['ForeignKey'], this.foreignKeys[termOrVerb]);
-						___MISMATCHED_FOREIGN_KEY___.die();
-					}
-					if(!attrsFound.hasOwnProperty('DatabaseAttribute')) {
-						attrs.push(['DatabaseAttribute', false]);
-						this.SetHelped();
-					}
-				}
-				if(this.uniqueKeys.hasOwnProperty(termOrVerb)) {
-					if(!attrsFound.hasOwnProperty('Unique')) {
-						attrs.push(['Unique', this.uniqueKeys[termOrVerb]]);
-						this.SetHelped();
-					}
-					else if(attrsFound['Unique'] != this.uniqueKeys[termOrVerb]) {
-						console.error(attrsFound['Unique'], this.uniqueKeys[termOrVerb]);
-						___MISMATCHED_UNIQUE_KEY___.die();
-					}
-				}
-				
-				// Boolean fact type
-				if(termOrVerb.length == 3) {
-					if(!this.primitives.hasOwnProperty(termOrVerb[1]) || this.primitives[termOrVerb[1]] !== false) {
-						this.SetHelped();
-					}
-					// The term of a boolean fact type cannot be a primitive.
-					this.primitives[termOrVerb[1]] = false;
-				} // Tertiary or higher fact type
-				else if(termOrVerb.length > 4) {
-					// The terms in a tertiary or higher fact type cannot become attributes.
-					for(var i = 1;i < termOrVerb.length; i+=2) {
-						if(!this.attributes.hasOwnProperty(termOrVerb[i]) || this.attributes[termOrVerb[i]] !== false) {
+					if(this.foreignKeys.hasOwnProperty(termOrVerb)) {
+						if(!attrsFound.hasOwnProperty('ForeignKey')) {
+							// console.log('Adding FK attr', this.foreignKeys[termOrVerb], termOrVerb);
+							attrs.push(['ForeignKey', this.foreignKeys[termOrVerb]]);
 							this.SetHelped();
 						}
-						this.attributes[termOrVerb[i]] = false;
+						else if(attrsFound['ForeignKey'] != this.foreignKeys[termOrVerb]) {
+							console.error(attrsFound['ForeignKey'], this.foreignKeys[termOrVerb]);
+							___MISMATCHED_FOREIGN_KEY___.die();
+						}
+						if(!attrsFound.hasOwnProperty('DatabaseAttribute')) {
+							attrs.push(['DatabaseAttribute', false]);
+							this.SetHelped();
+						}
+					}
+					if(this.uniqueKeys.hasOwnProperty(termOrVerb)) {
+						if(!attrsFound.hasOwnProperty('Unique')) {
+							attrs.push(['Unique', this.uniqueKeys[termOrVerb]]);
+							this.SetHelped();
+						}
+						else if(attrsFound['Unique'] != this.uniqueKeys[termOrVerb]) {
+							console.error(attrsFound['Unique'], this.uniqueKeys[termOrVerb]);
+							___MISMATCHED_UNIQUE_KEY___.die();
+						}
+					}
+					
+					// Boolean fact type
+					if(termOrVerb.length == 3) {
+						if(!this.primitives.hasOwnProperty(termOrVerb[1]) || this.primitives[termOrVerb[1]] !== false) {
+							this.SetHelped();
+						}
+						// The term of a boolean fact type cannot be a primitive.
+						this.primitives[termOrVerb[1]] = false;
+					} // Tertiary or higher fact type
+					else if(termOrVerb.length > 4) {
+						// The terms in a tertiary or higher fact type cannot become attributes.
+						for(var i = 1;i < termOrVerb.length; i+=2) {
+							if(!this.attributes.hasOwnProperty(termOrVerb[i]) || this.attributes[termOrVerb[i]] !== false) {
+								this.SetHelped();
+							}
+							this.attributes[termOrVerb[i]] = false;
+						}
 					}
 				}
 			break;

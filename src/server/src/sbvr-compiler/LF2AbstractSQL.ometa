@@ -143,20 +143,24 @@ define([
 		/** Fact Types **/
 		FactType =
 			&((:factTypePart &(:attributes) -> factTypePart)+:factType)
-			AddFactType(factType, factType)
-			GetResourceName(factType):resourceName
-			(	?(factType.length == 2)
+			(	?(this.nativePrimitives.hasOwnProperty(factType[0][1]))
 				// Eat input
 				(:factTypePart &(:attributes))+
-				GetTable(factType[0][1]):termTable
-				AddTableField(termTable, factType[1][1], 'Boolean', true)
-				{this.tables[resourceName] = 'BooleanAttribute'}
-			|	{this.tables[resourceName] = {fields:[], primitive: false, name: null}}:linkTable
-				(	Term:term
-					GetTable(term.name):fkTable
-					AddTableField(linkTable, term.name + term.num, 'ForeignKey', true, '', [fkTable.name, fkTable.idField])
-				|	['Verb' :verb]
-				)+
+			|	AddFactType(factType, factType)
+				GetResourceName(factType):resourceName
+				(	?(factType.length == 2)
+					// Eat input
+					(:factTypePart &(:attributes))+
+					GetTable(factType[0][1]):termTable
+					AddTableField(termTable, factType[1][1], 'Boolean', true)
+					{this.tables[resourceName] = 'BooleanAttribute'}
+				|	{this.tables[resourceName] = {fields:[], primitive: false, name: null}}:linkTable
+					(	Term:term
+						GetTable(term.name):fkTable
+						AddTableField(linkTable, term.name + term.num, 'ForeignKey', true, '', [fkTable.name, fkTable.idField])
+					|	['Verb' :verb]
+					)+
+				)
 			)
 			-> factType,
 		

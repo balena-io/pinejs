@@ -1,5 +1,8 @@
 define(['underscore', 'ometa-core'], function(_) {
-	var primitives = {
+
+	ometa SBVRLibs {}
+
+	SBVRLibs.nativePrimitives = {
 		'Serial': true,
 		'Integer': true,
 		'Short Text': true,
@@ -12,8 +15,6 @@ define(['underscore', 'ometa-core'], function(_) {
 		'Hashed': true,
 		'JSON': true
 	};
-	
-	ometa SBVRLibs {}
 	
 	SBVRLibs.initialize = function() {
 		this.factTypes = {};
@@ -38,12 +39,12 @@ define(['underscore', 'ometa-core'], function(_) {
 
 	SBVRLibs.IsPrimitive = function(termName) {
 		// do {
-			if (primitives.hasOwnProperty(termName)) {
+			if (this.nativePrimitives.hasOwnProperty(termName)) {
 				return termName;
 			}
 		// } while (this.conceptTypes.hasOwnProperty(termName) && (termName = this.conceptTypes[termName]));
 		if (this.conceptTypes.hasOwnProperty(termName) && (termName = this.conceptTypes[termName])) {
-			if (primitives.hasOwnProperty(termName)) {
+			if (this.nativePrimitives.hasOwnProperty(termName)) {
 				return termName;
 			}
 		}
