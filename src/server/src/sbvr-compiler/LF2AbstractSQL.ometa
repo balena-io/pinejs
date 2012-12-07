@@ -191,7 +191,8 @@ define([
 				|	-> [baseTerm.name]
 				):termNames
 				{'var' + bind}:varAlias
-				{termNames.shift()}:termName
+				{termNames[0]}:termName
+				{termNames.slice(1)}:termNames
 				{['SelectQuery', ['Select', []], ['From', this.GetTable(termName).name, varAlias + termName]]}:query
 				{	this.ResolveConceptTypes(query, termName, varAlias)
 					if(termNames.length > 0) {
@@ -220,6 +221,39 @@ define([
 				:bind
 			]
 			-> [identifier, bind],
+
+		NativeFactType :actualFactType :rootTerms :factType =
+			?(actualFactType.length == 3)
+			?(this.nativePrimitives.hasOwnProperty(actualFactType[0][1]))
+			?(this.nativePrimitives.hasOwnProperty(actualFactType[2][1]))
+			(	RoleBinding:bindFrom
+				RoleBinding:bindTo
+				end
+			|	___NativeFactTypeMatchingFailed___.die
+			)
+			{bindFrom[0].name}:bindFromField
+			(	?(this.bindTerms[bindFrom[1]])
+				-> this.bindTerms[bindFrom[1]][0]
+			|	-> bindFromField
+			):bindFromName
+			{bindTo[0].name}:bindToField
+			(	?(this.bindTerms[bindTo[1]])
+				-> this.bindTerms[bindTo[1]][0]
+			|	-> bindToField
+			):bindToName
+			{factType[1][1].toLowerCase()}: verb
+			(	?(verb == 'is equal to')
+				-> 'Equals'
+			|	?(verb == 'is greater than')
+				-> 'GreaterThan'
+			|	?(verb == 'is greater than or equal to')
+				-> 'GreaterThanOrEqual'
+			|	?(verb == 'is less than')
+				-> 'LessThan'
+			|	?(verb == 'is less than or equal to')
+				-> 'LessThanOrEqual'
+			):comparator
+			-> [comparator, ['ReferencedField', 'var' + bindFrom[1] + bindFromName, bindFromField], ['ReferencedField', 'var' + bindTo[1] + bindToName, bindToField]],
 
 		LinkTable :actualFactType :rootTerms =
 			{'link' + this.linkTableBind++}:tableAlias
@@ -300,7 +334,8 @@ define([
 				]
 				ActualFactType(factType):actualFactType
 				FactTypeRootTerms(factType):rootTerms
-				(	ForeignKey(actualFactType, rootTerms)
+				(	NativeFactType(actualFactType, rootTerms, factType)
+				|	ForeignKey(actualFactType, rootTerms)
 				|	BooleanAttribute(actualFactType)
 				|	Attribute(actualFactType, rootTerms)
 				|	LinkTable(actualFactType, rootTerms)
