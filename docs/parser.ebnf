@@ -68,9 +68,15 @@ Definition ::=
 		ClosedProjection
 		'.'?
 	|	value
-		(	'or'
+		(	','
 			value
 		)*
+		(	(	','?
+				'or'
+				value
+			)+
+		|	no-comma-values
+		)
 
 Necessity ::=
 	RuleBody
