@@ -280,7 +280,7 @@ define([
 				-> ['ReferencedField', 'var' + bindTo.number + bindToName, bindToField]
 			):to
 			{factType[1][1].toLowerCase()}:verb
-			(	?(verb == 'is equal to')
+			(	?(verb == 'is equal to' || verb == 'equals')
 				-> 'Equals'
 			|	?(verb == 'is greater than')
 				-> 'GreaterThan'
