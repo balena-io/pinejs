@@ -12,6 +12,8 @@ RuleBody ::=
 		(	referenced-term
 		|	name
 		)
+	|	Number
+	|	'"' Text '"'
 	)
 	(	is-atomic-formulation
 	|	verb

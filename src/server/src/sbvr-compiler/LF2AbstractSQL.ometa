@@ -6,6 +6,26 @@ define([
 	var _ = require('underscore');
 
 	ometa LF2AbstractSQL <: SBVRLibs {
+		Number =
+			[	'Number'
+				number:num
+				?{!isNaN(num)}
+			]
+			-> num,
+
+		Integer
+			[	'Integer'
+				number:num
+				?{!isNaN(num)}
+			]
+			-> ['Integer', num],
+
+		Text
+			[	'Text'
+				anything:text
+			]
+			-> ['Text', text],
+				
 		
 		/** Terms **/
 		Identifier =
@@ -14,9 +34,12 @@ define([
 				|	'Name'
 				):type
 				:name
-				[	'Number'
-					:num
-				]?
+				(	// Var number
+					Number:num
+				|	// Or embedded data, which we ignore the embedded data as it is retreived from the binding instead
+					Integer
+				|	Text
+				)?
 			]
 			-> {type: type, name: name, num: num},
 		
@@ -175,11 +198,7 @@ define([
 				Number:cardinality
 			]
 			-> cardinality,
-		Number =
-			[	'Number'
-				:num ?{!isNaN(num)}
-			]
-			-> num,
+
 		Variable =
 			[	'Variable'
 				Number:bind
@@ -218,9 +237,12 @@ define([
 		RoleBinding =
 			[	'RoleBinding'
 				Identifier:identifier
-				:bind
+				(	number:number
+				|	Integer:data
+				|	Text:data
+				)
 			]
-			-> [identifier, bind],
+			-> {identifier: identifier, number:number, data: data},
 
 		NativeFactType :actualFactType :rootTerms :factType =
 			?(actualFactType.length == 3)
@@ -231,17 +253,25 @@ define([
 				end
 			|	___NativeFactTypeMatchingFailed___.die
 			)
-			{bindFrom[0].name}:bindFromField
-			(	?(this.bindTerms[bindFrom[1]])
-				-> this.bindTerms[bindFrom[1]][0]
-			|	-> bindFromField
-			):bindFromName
-			{bindTo[0].name}:bindToField
-			(	?(this.bindTerms[bindTo[1]])
-				-> this.bindTerms[bindTo[1]][0]
-			|	-> bindToField
-			):bindToName
-			{factType[1][1].toLowerCase()}: verb
+			(	?bindFrom.data
+				-> bindFrom.data
+			|	{bindFrom.identifier.name}:bindFromField
+				(	?(this.bindTerms[bindFrom.number])
+					-> this.bindTerms[bindFrom.number][0]
+				|	-> bindFromField
+				):bindFromName
+				-> ['ReferencedField', 'var' + bindFrom.number + bindFromName, bindFromField]
+			):from
+			(	?bindTo.data
+				-> bindTo.data
+			|	{bindTo.identifier.name}:bindToField
+				(	?(this.bindTerms[bindTo.number])
+					-> this.bindTerms[bindTo.number][0]
+				|	-> bindToField
+				):bindToName
+				-> ['ReferencedField', 'var' + bindTo.number + bindToName, bindToField]
+			):to
+			{factType[1][1].toLowerCase()}:verb
 			(	?(verb == 'is equal to')
 				-> 'Equals'
 			|	?(verb == 'is greater than')
@@ -253,7 +283,7 @@ define([
 			|	?(verb == 'is less than or equal to')
 				-> 'LessThanOrEqual'
 			):comparator
-			-> [comparator, ['ReferencedField', 'var' + bindFrom[1] + bindFromName, bindFromField], ['ReferencedField', 'var' + bindTo[1] + bindToName, bindToField]],
+			-> [comparator, from, to],
 
 		LinkTable :actualFactType :rootTerms =
 			{'link' + this.linkTableBind++}:tableAlias
@@ -263,7 +293,7 @@ define([
 				RoleBinding:bind
 				{rootTerms[i].term}:termName
 				GetTable(termName):table
-				AddWhereClause(query, ['Equals', ['ReferencedField', tableAlias, rootTerms[i].field], ['ReferencedField', 'var' + bind[1] + termName, table.idField]])
+				AddWhereClause(query, ['Equals', ['ReferencedField', tableAlias, rootTerms[i].field], ['ReferencedField', 'var' + bind.number + termName, table.idField]])
 				{i++}
 			)+
 			-> ['Exists', query],
@@ -273,7 +303,7 @@ define([
 			(	RoleBinding:bindFrom
 				RoleBinding:bindTo
 				end
-				(	?this.IsChild(bindFrom[0].name, actualFactType[0])
+				(	?this.IsChild(bindFrom.identifier.name, actualFactType[0])
 					{rootTerms[0]}:fkFrom
 					{rootTerms[1]}:fkTo
 				|	{bindTo}:temp
@@ -285,16 +315,16 @@ define([
 				GetTable(fkTo.term):tableTo
 			|	___ForeignKeyMatchingFailed___.die
 			)
-			(	?(bindTo[0].type == 'Name')
-				{bindTo[0].name}:name
+			(	?(bindTo.identifier.type == 'Name')
+				{bindTo.identifier.name}:name
 				GetTable(name):nameTable
 				{'name-' + name + '-'}:varAlias
 				{['SelectQuery', ['Select', [[['ReferencedField', varAlias + fkTo.term, tableTo.idField]]]], ['From', nameTable.name, varAlias + name]]}:query
 				ResolveConceptTypes(query, name, varAlias, fkTo.term)
 				-> query
-			|	-> ['ReferencedField', 'var' + bindTo[1] + fkTo.term, tableTo.idField]
+			|	-> ['ReferencedField', 'var' + bindTo.number + fkTo.term, tableTo.idField]
 			):toField
-			-> ['Equals', ['ReferencedField', 'var' + bindFrom[1] + fkFrom.term, fkTo.field], toField],
+			-> ['Equals', ['ReferencedField', 'var' + bindFrom.number + fkFrom.term, fkTo.field], toField],
 
 		BooleanAttribute :actualFactType =
 			?(this.GetTable(actualFactType) == 'BooleanAttribute')
@@ -305,7 +335,7 @@ define([
 			|	{console.error(this.input)}
 				___BooleanAttributeMatchingFailed___.die
 			)
-			-> ['Equals', ['ReferencedField', 'var' + bindFrom[1] + termFrom, attributeName], ['Boolean', true]],
+			-> ['Equals', ['ReferencedField', 'var' + bindFrom.number + termFrom, attributeName], ['Boolean', true]],
 
 		Attribute :actualFactType :rootTerms =
 			?(this.GetTable(actualFactType) == 'Attribute')
@@ -313,7 +343,7 @@ define([
 			(	RoleBinding:bindReal
 				RoleBinding:bindAttr
 				end
-				(	?this.IsChild(bindReal[0].name, actualFactType[0])
+				(	?this.IsChild(bindReal.identifier.name, actualFactType[0])
 					{rootTerms[0].term}:termNameReal
 					{rootTerms[1].field}:attrField
 				|	{bindAttr}:temp
@@ -324,7 +354,7 @@ define([
 				)
 				|	___AttributeMatchingFailed___.die
 			)
-			AddWhereClause(query, ['Equals', ['ReferencedField', 'var' + bindAttr[1] + termNameReal, attrField], ['ReferencedField', 'var' + bindReal[1] + termNameReal, attrField]])
+			AddWhereClause(query, ['Equals', ['ReferencedField', 'var' + bindAttr.number + termNameReal, attrField], ['ReferencedField', 'var' + bindReal.number + termNameReal, attrField]])
 			-> ['Exists', query],
 		
 		AtomicFormulation =
@@ -416,8 +446,8 @@ define([
 						}
 					}
 					(	RoleBinding:bind
-						(	?(this.GetTable(bind[0].name).primitive)
-							{(this.bindTerms[bind[1]] = this.bindTerms[bind[1]] || []).push(tableTerm)}
+						(	?(this.GetTable(bind.identifier.name).primitive)
+							{(this.bindTerms[bind.number] = this.bindTerms[bind.number] || []).push(tableTerm)}
 						)?
 					)*
 				|	ProcessAtomicFormulations

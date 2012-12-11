@@ -241,7 +241,9 @@ define(['ometa-core'], function() {
 			-> ('"' + binding + '"."' + field + '"'),
 		
 		Number =
-			[	'Number'
+			[	(	'Number'
+				|	'Integer'
+				)
 				:number
 			]
 			-> number,
@@ -265,9 +267,12 @@ define(['ometa-core'], function() {
 		
 		// A generic value, no idea what data type it may be..
 		Value =
-			[	'Value'
+			[	(	'Value'
+				|	'Text'
+				)
 				:value
 			]
+			// TODO: This should have quotes escaped
 			-> ("'" + value + "'"),
 		
 		And :indent =

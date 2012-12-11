@@ -37,6 +37,15 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 			|	"one"
 				-> ['Number', 1]
 			),
+		Text =
+			'"'
+			<	(	'\\' '"'
+				|	~'"'
+					anything
+				)+
+			>:text
+			'"'
+			-> text,
 		Value :stopOn =
 			spaces
 			<	(	spaces
@@ -182,11 +191,11 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 			keyword(","),
 		addOr =
 			keyword("or"),
-		createVar :identifier :unitary =
+		CreateVar :identifier =
 			{this.ruleVars[identifier] = this.ruleVarsCount++}:varNumber
 			-> ['Variable', ['Number', varNumber], identifier],
-			// TODO: Add this unitary attribute along the entire compiler chain
-			// -> ['Variable', ['Number', varNumber], identifier, ['Unitary', unitary === true]],
+		EmbedVar :identifier :data =
+			{this.ruleVars[identifier] = data},
 
 		IsAtomicFormulation :factType :bindings =
 			IsFactType(factType):realFactType
@@ -206,10 +215,10 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 		RuleBody :factType :bindings :parentIdentifier :parentBind =
 			(	Quantifier:quant
 				Term(factType):t
-				createVar(t):tVar
-				Bind(t, bindings):b
+				CreateVar(t):tVar
+				Bind(t, bindings):bind
 				{factType.push(t)}
-				(	ClosedProjection(t, b):thatLF
+				(	ClosedProjection(t, bind):thatLF
 					{tVar.push(thatLF)}
 					addComma?
 				)?
@@ -217,10 +226,27 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 				// TODO: Should be a "ReferencedTerm" or Name, rather than Identifier (which is Term or Name)
 				Identifier(factType):identifier
 				(	Bind(identifier, bindings)
-				|	createVar(identifier, true):tVar
-					// TODO: Do something with the var we create.
+				|	// Embed the var.
+					// TODO: This should only happen for "Name"'s
+					EmbedVar(identifier, identifier)
 					Bind(identifier, bindings)
 				)
+				{factType.push(identifier)}
+			|	// Embedded data
+				(	Number:number
+					-> ['Integer', number[1]]
+				|	Text:text
+					-> ['Text', text]
+				):data
+				// Is the type of embedded data allowed here?
+				IsFactTypeIdentifier('Term', factType, data[0]):factTypeIdentifier
+				?(factTypeIdentifier !== false)
+				{['Term', factTypeIdentifier, data]}:identifier
+				// Create the var so we can bind to it.
+				EmbedVar(identifier, data)
+				Bind(identifier, bindings):bind
+				// Add the data to the binding
+				{bind[2] = data}
 				{factType.push(identifier)}
 			)
 			(	Verb(factType):v
@@ -332,7 +358,7 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 				// The following section is copied from RuleBody, should really be sorted properly.
 				{this.ruleVarsCount = 0}
 				Term:t
-				createVar(t):tVar
+				CreateVar(t):tVar
 				Bind(t):b
 				ClosedProjection(t, b):thatLF
 				{tVar.push(thatLF)}

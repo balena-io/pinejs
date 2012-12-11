@@ -69,6 +69,7 @@ define([
 					{false}:required
 				]
 			)
+			end
 			{atomicForm[1]}:factType
 			// A term verb term fact type
 			?(atomicForm.length == 4 && factType.length == 4)
