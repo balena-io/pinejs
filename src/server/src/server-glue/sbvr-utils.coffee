@@ -70,7 +70,7 @@ define([
 
 			Term:      conditional type
 				Concept Type: Short Text
-				Definition: ADD or EDIT or DELETE
+				Definition: "ADD", "EDIT" or "DELETE"
 
 			Term:      conditional resource
 				Database Value Field: id

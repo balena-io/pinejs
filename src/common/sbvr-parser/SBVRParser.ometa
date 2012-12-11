@@ -37,7 +37,13 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 			|	"one"
 				-> ['Number', 1]
 			),
+
+		Integer =
+			spaces
+			<digit+>:n
+			-> ['Integer', Number(n)],
 		Text =
+			spaces
 			'"'
 			<	(	'\\' '"'
 				|	~'"'
@@ -45,14 +51,11 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 				)+
 			>:text
 			'"'
-			-> text,
-		Value :stopOn =
-			spaces
-			<	(	spaces
-					~token(stopOn)
-					letterOrDigit+
-				)+
-			>,
+			-> ['Text', text],
+		Value =
+				Integer
+			|	Text,
+		
 		toSBVREOL =
 			spaces
 			<	(	spaces
@@ -233,11 +236,7 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 				)
 				{factType.push(identifier)}
 			|	// Embedded data
-				(	Number:number
-					-> ['Integer', number[1]]
-				|	Text:text
-					-> ['Text', text]
-				):data
+				Value:data
 				// Is the type of embedded data allowed here?
 				IsFactTypeIdentifier('Term', factType, data[0]):factTypeIdentifier
 				?(factTypeIdentifier !== false)
@@ -367,12 +366,18 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 					{this.identifierChildren[t[1]].push(currentLine[1])}
 				)?
 				-> tVar
-			|	Value('or'):name
-				(	addOr clearSuggestions
-					Value('or')
-				)+:names
-				{names.unshift(name)}
-				-> ['Enum', names]
+			|	Value:value
+				(	addComma
+					Value
+				)*:values
+				(	// The or is only required if we had comma-separated values.
+					?values.length
+					(	addComma?
+						addOr
+						Value
+					)+:moreValues
+				)?
+				-> ['Enum', value.concat(values, moreValues)]
 			),
 		AttrGuidanceType :currentLine =
 			matchForAny('seq', this.branches.AttrGuidanceType),
