@@ -96,6 +96,12 @@ define(['ometa!sbvr-parser/SBVRLibs', 'ometa-core'], function(SBVRLibs) {
 			(	['Enum' :values]
 			|	trans
 			),
+		AttrNecessity :termOrFactType =
+				[	trans:x
+					"StructuredEnglish":se
+				]
+				-> [x, se]
+			|	DefaultAttr,
 		AttrSynonymousForm :factType =
 			:synForm
 			AddFactType(synForm, factType.slice(1))

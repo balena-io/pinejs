@@ -34,9 +34,11 @@ define([
 			{this.primitives[termOrFactType] = newAttrVal}
 			-> newAttrVal,
 		AttrNecessity :termOrFactType =
-				NecessityOptimisation
+				[	NecessityOptimisation
+					"StructuredEnglish"
+				]
 				-> null
-			|	DefaultAttr,
+			|	^AttrNecessity,
 		
 		UniversalQuantification
 			"Variable":v trans*:xs SetHelped
@@ -129,18 +131,18 @@ define([
 	LF2AbstractSQLPrep.defaultAttributes = function(termOrVerb, attrsFound, attrs) {
 		// We don't add a DatabaseIDField to a native primitive.
 		if(!this.nativePrimitives.hasOwnProperty(termOrVerb[1][1])&& !attrsFound.hasOwnProperty('DatabaseIDField')) {
-			attrs.push(['DatabaseIDField', 'id']);
+			attrs.splice(1, 0, ['DatabaseIDField', 'id']);
 			this.SetHelped();
 		}
 		switch(termOrVerb[0]) {
 			case 'Name':
 			case 'Term':
 				if(!attrsFound.hasOwnProperty('DatabaseValueField')) {
-					attrs.push(['DatabaseValueField', 'value']);
+					attrs.splice(1, 0, ['DatabaseValueField', 'value']);
 					this.SetHelped();
 				}
 				if(!attrsFound.hasOwnProperty('DatabaseTableName')) {
-					attrs.push(['DatabaseTableName', termOrVerb[1].replace(new RegExp(' ','g'),'_')]);
+					attrs.splice(1, 0, ['DatabaseTableName', termOrVerb[1].replace(new RegExp(' ','g'),'_')]);
 					this.SetHelped();
 				}
 				if(!attrsFound.hasOwnProperty('DatabasePrimitive')) {
@@ -148,7 +150,7 @@ define([
 						this.primitives[termOrVerb] = this.IsPrimitive(termOrVerb[1]);
 					}
 					// console.log('Adding primitive attr', this.primitives[termOrVerb], termOrVerb);
-					attrs.push(['DatabasePrimitive', this.primitives[termOrVerb]]);
+					attrs.splice(1, 0, ['DatabasePrimitive', this.primitives[termOrVerb]]);
 					this.SetHelped();
 				}
 			break;
@@ -160,27 +162,27 @@ define([
 						for(var i=2;i<termOrVerb.length;i++) {
 							tableName += '-' + termOrVerb[i][1].replace(new RegExp(' ','g'),'_');
 						}
-						attrs.push(['DatabaseTableName', tableName]);
+						attrs.splice(1, 0, ['DatabaseTableName', tableName]);
 						this.SetHelped();
 					}
 					if(this.foreignKeys.hasOwnProperty(termOrVerb)) {
+						if(!attrsFound.hasOwnProperty('DatabaseAttribute')) {
+							attrs.splice(1, 0, ['DatabaseAttribute', false]);
+							this.SetHelped();
+						}
 						if(!attrsFound.hasOwnProperty('ForeignKey')) {
 							// console.log('Adding FK attr', this.foreignKeys[termOrVerb], termOrVerb);
-							attrs.push(['ForeignKey', this.foreignKeys[termOrVerb]]);
+							attrs.splice(1, 0, ['ForeignKey', this.foreignKeys[termOrVerb]]);
 							this.SetHelped();
 						}
 						else if(attrsFound['ForeignKey'] != this.foreignKeys[termOrVerb]) {
 							console.error(attrsFound['ForeignKey'], this.foreignKeys[termOrVerb]);
 							___MISMATCHED_FOREIGN_KEY___.die();
 						}
-						if(!attrsFound.hasOwnProperty('DatabaseAttribute')) {
-							attrs.push(['DatabaseAttribute', false]);
-							this.SetHelped();
-						}
 					}
 					if(this.uniqueKeys.hasOwnProperty(termOrVerb)) {
 						if(!attrsFound.hasOwnProperty('Unique')) {
-							attrs.push(['Unique', this.uniqueKeys[termOrVerb]]);
+							attrs.splice(1, 0, ['Unique', this.uniqueKeys[termOrVerb]]);
 							this.SetHelped();
 						}
 						else if(attrsFound['Unique'] != this.uniqueKeys[termOrVerb]) {

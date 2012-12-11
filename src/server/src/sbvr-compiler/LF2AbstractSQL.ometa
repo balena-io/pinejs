@@ -73,7 +73,6 @@ define([
 				(	?(identifierTable.hasOwnProperty('valueField'))
 					GetTableFieldID(identifierTable, identifierTable.valueField):fieldID
 					?(fieldID !== false)
-					{field[1] = identifierTable.fields[fieldID][1]}
 					{identifierTable.fields.splice(fieldID, 1)}
 				)?
 				{identifierTable.valueField = conceptType}
@@ -162,8 +161,17 @@ define([
 			:term
 			{this.identifiers[term[1]] = factType}
 			{this.tables[this.GetResourceName(term[1])] = this.GetTable(factType)},
-			
-			
+		AttrNecessity :tableID =
+			{this.linkTableBind = 0}
+			{this.bindTerms = []}
+			[	&ProcessAtomicFormulations
+				RulePart:ruleBody
+				[	'StructuredEnglish'
+					:ruleText
+				]
+			]
+			{this.rules.push(['Rule', ['StructuredEnglish', ruleText], ['Body', ruleBody]])}
+			-> ruleBody,
 		
 		/** Fact Types **/
 		FactType =
@@ -464,13 +472,13 @@ define([
 						 Attributes(identifierName)
 					|	'FactType' FactType:factType Attributes(factType)
 					|	'Rule'
+						{this.linkTableBind = 0}
 						{this.bindTerms = []}
 						&ProcessAtomicFormulations
 						RuleBody:ruleBody
 						[	'StructuredEnglish'
 							:ruleText
 						]
-						{this.linkTableBind = 0}
 						{this.rules.push(['Rule', ['StructuredEnglish', ruleText], ['Body', ruleBody]])}
 					]
 				)+
