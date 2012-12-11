@@ -252,33 +252,27 @@ define([
 			]
 			-> {identifier: identifier, number:number, data: data},
 
+		NativeBinding =
+			RoleBinding:bind
+			(	?bind.data
+				-> bind.data
+			|	{bind.identifier.name}:bindField
+				(	?(this.bindTerms[bind.number])
+					-> this.bindTerms[bind.number][0]
+				|	-> bindField
+				):bindName
+				-> ['ReferencedField', 'var' + bind.number + bindName, bindField]
+			),
+
 		NativeFactType :actualFactType :rootTerms :factType =
 			?(actualFactType.length == 3)
 			?(this.nativePrimitives.hasOwnProperty(actualFactType[0][1]))
 			?(this.nativePrimitives.hasOwnProperty(actualFactType[2][1]))
-			(	RoleBinding:bindFrom
-				RoleBinding:bindTo
+			(	NativeBinding:from
+				NativeBinding:to
 				end
 			|	___NativeFactTypeMatchingFailed___.die
 			)
-			(	?bindFrom.data
-				-> bindFrom.data
-			|	{bindFrom.identifier.name}:bindFromField
-				(	?(this.bindTerms[bindFrom.number])
-					-> this.bindTerms[bindFrom.number][0]
-				|	-> bindFromField
-				):bindFromName
-				-> ['ReferencedField', 'var' + bindFrom.number + bindFromName, bindFromField]
-			):from
-			(	?bindTo.data
-				-> bindTo.data
-			|	{bindTo.identifier.name}:bindToField
-				(	?(this.bindTerms[bindTo.number])
-					-> this.bindTerms[bindTo.number][0]
-				|	-> bindToField
-				):bindToName
-				-> ['ReferencedField', 'var' + bindTo.number + bindToName, bindToField]
-			):to
 			{factType[1][1].toLowerCase()}:verb
 			(	?(verb == 'is equal to' || verb == 'equals')
 				-> 'Equals'
