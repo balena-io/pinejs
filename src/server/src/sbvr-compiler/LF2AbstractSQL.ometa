@@ -416,8 +416,11 @@ define([
 			|	Negation
 			|	Range
 			|	:x {console.error('Hit unhandled operation:', x)} ?(false)
-			):whereBody
-			-> whereBody,
+			)+:whereBody
+			(	?(whereBody.length == 1)
+				-> whereBody[0]
+			|	-> ['And'].concat(whereBody)
+			),
 		
 		RuleBody =
 			[
