@@ -94,9 +94,9 @@ define([
 
 		Exists =
 			[	'Exists'
-				Query:query
+				Comparator:comparator
 			]
-			-> ['Exists', query],
+			-> ['Exists', comparator],
 		
 		NotEquals =
 			[	'NotEquals'
@@ -153,6 +153,7 @@ define([
 			|	Field
 			|	ReferencedField
 			|	Number
+			|	Text
 			|	Boolean,
 		
 		Field =
@@ -170,10 +171,21 @@ define([
 			-> ['ReferencedField', binding, field],
 		
 		Number =
-			[	'Number'
+			[	(	'Number'
+				|	'Integer'
+				)
 				:number
 			]
 			-> ['Number', number],
+		
+		Text =
+			[	(	'Value'
+				|	'Text'
+				)
+				:text
+			]
+			-> ['Text', text],
+			
 		
 		Boolean =
 			[	'Boolean'

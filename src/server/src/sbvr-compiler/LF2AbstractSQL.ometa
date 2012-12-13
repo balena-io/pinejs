@@ -163,7 +163,6 @@ define([
 			{this.tables[this.GetResourceName(term[1])] = this.GetTable(factType)},
 		AttrNecessity :tableID =
 			{this.linkTableBind = 0}
-			{this.bindTerms = []}
 			[	&ProcessAtomicFormulations
 				RulePart:ruleBody
 				[	'StructuredEnglish'
@@ -209,38 +208,28 @@ define([
 
 		Variable =
 			[	'Variable'
-				Number:bind
-				Identifier:baseTerm
-				(	// Replace this bind if it's an attribute binding.
-					{this.bindTerms[bind]}:termNames
-					?(termNames)
-					-> termNames
-				|	-> [baseTerm.name]
-				):termNames
-				{'var' + bind}:varAlias
-				{termNames[0]}:termName
-				{termNames.slice(1)}:termNames
-				{['SelectQuery', ['Select', []], ['From', this.GetTable(termName).name, varAlias + termName]]}:query
-				{	this.ResolveConceptTypes(query, termName, varAlias)
-					if(termNames.length > 0) {
-						var attributeName = baseTerm.name;
-						for(var i=0; i < termNames.length; i++) {
-							var extraTermName = termNames[i],
-								extraTable = this.GetTable(extraTermName);
-							query.push(['From', extraTable.name, varAlias + extraTermName]);
-							this.AddWhereClause(query, ['Equals', ['ReferencedField', varAlias + termName, attributeName], ['ReferencedField', varAlias + extraTermName, attributeName]]);
-							this.ResolveConceptTypes(query, extraTermName, varAlias)
-						}
-					}
-				}
+				Number:num
+				Identifier:identifier
+				(	// Don't add this var if it's an attribute binding.
+					{this.bindAttributes[num]}:bind
+					?bind
+				|	{'var' + num}:varAlias
+					{['SelectQuery', ['Select', []], ['From', this.GetTable(identifier.name).name, varAlias + identifier.name]]}:query
+					ResolveConceptTypes(query, identifier.name, varAlias)
+				)
 				(	RulePart:whereBody
-					AddWhereClause(query, whereBody)
+					(	?query
+						AddWhereClause(query, whereBody)
+					)?
 				)?
 			]
-			(	RulePart:whereBody
-				AddWhereClause(query, whereBody)
-			)
-			-> query,
+			RulePart:whereBody2
+			(	?query
+				AddWhereClause(query, whereBody2)
+				-> query
+			|	// We ignore whereBody2, as it not useful for attributes
+				-> {identifier: identifier, tableAlias: 'var' + bind.number + bind.identifier.name, whereBody: whereBody}
+			),
 		
 		RoleBinding =
 			[	'RoleBinding'
@@ -257,8 +246,8 @@ define([
 			(	?bind.data
 				-> bind.data
 			|	{bind.identifier.name}:bindField
-				(	?(this.bindTerms[bind.number])
-					-> this.bindTerms[bind.number][0]
+				(	?(this.bindAttributes[bind.number])
+					-> this.bindAttributes[bind.number].identifier.name
 				|	-> bindField
 				):bindName
 				-> ['ReferencedField', 'var' + bind.number + bindName, bindField]
@@ -341,23 +330,23 @@ define([
 
 		Attribute :actualFactType :rootTerms =
 			?(this.GetTable(actualFactType) == 'Attribute')
-			{['SelectQuery', ['Select', []]]}:query
 			(	RoleBinding:bindReal
 				RoleBinding:bindAttr
 				end
 				(	?this.IsChild(bindReal.identifier.name, actualFactType[0])
-					{rootTerms[0].term}:termNameReal
-					{rootTerms[1].field}:attrField
 				|	{bindAttr}:temp
 					{bindReal}:bindAttr
 					{temp}:bindReal
-					{rootTerms[1].term}:termNameReal
-					{rootTerms[0].field}:attrField
 				)
 				|	___AttributeMatchingFailed___.die
 			)
-			AddWhereClause(query, ['Equals', ['ReferencedField', 'var' + bindAttr.number + termNameReal, attrField], ['ReferencedField', 'var' + bindReal.number + termNameReal, attrField]])
-			-> ['Exists', query],
+			(	{this.bindAttributes[bindAttr.number]}:bind
+				?(bind.number != bindReal.number)
+				// If we're not the first bind we make sure we match it.
+				-> ['Equals', ['ReferencedField', 'var' + bind.number + bind.identifier.name, bindAttr.identifier.name], ['ReferencedField', 'var' + bindReal.number + bindReal.identifier.name, bindAttr.identifier.name]]
+			|	// Otherwise return true = true, just so things work.
+				-> ['Equals', ['Boolean', true], ['Boolean', true]]
+			),
 		
 		AtomicFormulation =
 			[	'AtomicFormulation'
@@ -377,30 +366,96 @@ define([
 		AtLeast =
 			[	'AtLeastNQuantification'
 				Cardinality:minCard
-				Variable:query
-				{query[1][1].push(['Count', '*'])}
+				Variable:variable
 			]
-			-> ['GreaterThanOrEqual', query, ['Number', minCard]],
+			(	?(minCard == 0)
+				// At least 0? Well that's always true..
+				-> ['Boolean', true]
+			|	(	?_.isArray(variable)
+					// Variable is a query so we do a count.
+					{variable[1][1].push(['Count', '*'])}
+					-> ['GreaterThanOrEqual', variable, ['Number', minCard]]
+				|	// Otherwise we're an attribute
+					(	?(minCard > 1)
+						// And to have more than one of an attribute is impossible.
+						-> ['Boolean', false]
+					|	-> ['Exists', ['ReferencedField', variable.tableAlias, variable.identifier.name]]
+					)
+				)
+			):where
+			(	?variable.whereBody
+				-> ['And', variable.whereBody, where]
+			|	-> where
+			),
 		Exactly =
 			[	'ExactQuantification'
 				Cardinality:card
-				Variable:query
-				{query[1][1].push(['Count', '*'])}
+				Variable:variable
 			]
-			-> ['Equals', query, ['Number', card]],
+			(	?_.isArray(variable)
+				// Variable is a query so we do a count.
+				{variable[1][1].push(['Count', '*'])}
+				-> ['Equals', variable, ['Number', card]]
+			|	// Otherwise we're an attribute
+				{['Exists', ['ReferencedField', variable.tableAlias, variable.identifier.name]]}:exists
+				(	?(card == 0)
+					// Exactly 0 attributes is a non-existent (null) attribute
+					-> ['Not', exists]
+				|	?(card == 1)
+					// Exactly 1 is existent.
+					-> exists
+				|	// And anything else is impossible.
+					-> ['Boolean', false]
+				)
+			):where
+			(	?variable.whereBody
+				-> ['And', variable.whereBody, where]
+			|	-> where
+			),
 		Range =
 			[	'NumericalRangeQuantification'
 				Cardinality:minCard
 				Cardinality:maxCard
-				Variable:query
-				{query[1][1].push(['Count', '*'])}
+				Variable:variable
 			]
-			-> ['Between', query, ['Number', minCard], ['Number', maxCard]],
+			(	?_.isArray(variable)
+				// Variable is a query so we do a count.
+				{variable[1][1].push(['Count', '*'])}
+				-> ['Between', variable, ['Number', minCard], ['Number', maxCard]]
+			|	// Otherwise we're an attribute
+				{['Exists', ['ReferencedField', variable.tableAlias, variable.identifier.name]]}:exists
+				(	?(minCard == 0)
+					(	?(maxCard == 0)
+						// Between 0 and 0 is not exists.
+						-> ['Not', exists]
+						// Between 0 and 1+ is always the case for an attribute as the max is 1
+					|	-> ['Boolean', true]
+					)
+				|	?(minCard == 1)
+					// Between 1 and .. is existent.
+					-> exists
+				|	// And anything else is impossible.
+					-> ['Boolean', false]
+				)
+			):where
+			(	?variable.whereBody
+				-> ['And', variable.whereBody, where]
+			|	-> where
+			),
 		Exists =
 			[	'ExistentialQuantification'
-				Variable:query
+				Variable:variable
 			]
-			-> ['Exists', query],
+			(	?_.isArray(variable)
+				// Variable is a query so we directly check for existence.
+				-> ['Exists', variable]
+			|	// Otherwise we're an attribute so we check for the field.
+				-> ['Exists', ['ReferencedField', variable.tableAlias, variable.identifier.name]]
+			):where
+			(	?variable.whereBody
+				-> ['And', variable.whereBody, where]
+			|	-> where
+			),
 		Negation =
 			[	'LogicalNegation'
 				RulePart:whereBody
@@ -433,7 +488,11 @@ define([
 			]
 			-> rule,
 		
-		ProcessAtomicFormulations =
+		ProcessAtomicFormulations :depth =
+			{this.bindAttributes = []}
+			{this.bindAttributeDepth = []}
+			ProcessAtomicFormulationsRecurse(0),
+		ProcessAtomicFormulationsRecurse :depth =
 			(	// Bit of a hack, but we only want to drill into the input if it's an array, otherwise we get infinite recursion.
 				?(_.isArray(this.input.lst))
 				[	'AtomicFormulation'
@@ -442,20 +501,26 @@ define([
 					]
 					ActualFactType(factType):actualFactType
 					?(this.attributes.hasOwnProperty(actualFactType) && this.attributes[actualFactType])
-					{null}:tableTerm
-					{	for(var i=0; i < actualFactType.length; i+=2) {
-							if(!(this.GetTable(actualFactType[i][1]).primitive)) {
-								tableTerm = actualFactType[i][1];
+					RoleBinding*:binds
+					{null}:baseBinding
+					// Find the "base" binding
+					{	for(var i=0; i < binds.length; i++) {
+							if(!this.IsPrimitive(binds[i].identifier.name)) {
+								baseBinding = binds[i];
 								break;
 							}
 						}
 					}
-					(	RoleBinding:bind
-						(	?(this.GetTable(bind.identifier.name).primitive)
-							{(this.bindTerms[bind.number] = this.bindTerms[bind.number] || []).push(tableTerm)}
-						)?
-					)*
-				|	ProcessAtomicFormulations
+					// Use the "base" binding in the attribute binding list, but only if we are as shallow as possible.
+					{	for(var i=0; i < binds.length; i++) {
+							if(this.IsPrimitive(binds[i].identifier.name)
+									&& (this.bindAttributeDepth[binds[i].number] == null || this.bindAttributeDepth[binds[i].number] > depth)) {
+								this.bindAttributes[binds[i].number] = baseBinding;
+								break;
+							}
+						}
+					}
+				|	ProcessAtomicFormulationsRecurse(depth+1)
 				]
 			|	anything
 			)*,
@@ -470,7 +535,6 @@ define([
 					|	'FactType' FactType:factType Attributes(factType)
 					|	'Rule'
 						{this.linkTableBind = 0}
-						{this.bindTerms = []}
 						&ProcessAtomicFormulations
 						RuleBody:ruleBody
 						[	'StructuredEnglish'
@@ -546,7 +610,8 @@ define([
 		this.rules = [];
 		this.linkTableBind = 0;
 		this.attributes = {};
-		this.bindTerms = [];
+		this.bindAttributes = [];
+		this.bindAttributeDepth = [];
 	};
 
 	

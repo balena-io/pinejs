@@ -221,8 +221,9 @@ define([
 					, 'Process'
 				)
 		catch e
-			console.log(e)
-			console.log(instance.input)
+			console.error(e)
+			console.error(instance.input)
+			throw e
 		
 		ruleStatements = []
 		try
@@ -237,8 +238,9 @@ define([
 				console.log(ruleSQL)
 				ruleStatements.push({structuredEnglish: rule[1][1], sql: ruleSQL})
 		catch e
-			console.log(e)
-			console.log(instance.input)
+			console.error(e)
+			console.error(instance.input)
+			throw e
 			
 			# console.log(ruleSQL)
 			

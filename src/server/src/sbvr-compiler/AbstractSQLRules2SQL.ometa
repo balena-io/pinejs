@@ -14,21 +14,24 @@ define(['ometa-core'], function() {
 	
 		Not :indent =
 			[	'Not'
-				(	Exists(indent):ruleBody
-					-> ('NOT ' + ruleBody)
-				|	NestedIndent(indent):nestedIndent
-					RuleBody(nestedIndent):ruleBody
-					-> ('NOT (' + nestedIndent + ruleBody + indent + ')')
-				):notStatement
+				NestedIndent(indent):nestedIndent
+				RuleBody(nestedIndent):ruleBody
+				{'NOT (' + nestedIndent + ruleBody + indent + ')'}:notStatement
 			]
 			-> notStatement,
 
 		Exists :indent =
 			[	'Exists'
-				NestedIndent(indent):nestedIndent
-				SelectQuery(nestedIndent):ruleBody
+				(	// We need to create a SelectQuery differently to other comparators, so we check for it first.
+					NestedIndent(indent):nestedIndent
+					SelectQuery(nestedIndent):ruleBody
+				|	Comparator:comparator
+				)
 			]
-			-> ('EXISTS (' + nestedIndent + ruleBody + indent + ')'),
+			(	?comparator
+				-> (comparator + ' IS NOT NULL')
+			|	-> ('EXISTS (' + nestedIndent + ruleBody + indent + ')')
+			),
 		
 		ProcessQuery =
 				(	SelectQuery('\n')
@@ -265,15 +268,14 @@ define(['ometa-core'], function() {
 			{this.fieldOrderings.push([tableName, field])}
 			-> '?',
 		
-		// A generic value, no idea what data type it may be..
-		Value =
+		Text =
 			[	(	'Value'
 				|	'Text'
 				)
-				:value
+				:text
 			]
 			// TODO: This should have quotes escaped
-			-> ("'" + value + "'"),
+			-> ("'" + text + "'"),
 		
 		And :indent =
 			[	'And'
@@ -310,7 +312,7 @@ define(['ometa-core'], function() {
 			|	ReferencedField
 			|	Number
 			|	Boolean
-			|	Value
+			|	Text
 			|	Bind,
 			
 		
