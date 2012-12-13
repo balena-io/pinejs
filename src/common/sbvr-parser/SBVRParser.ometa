@@ -385,7 +385,7 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 			(	&(toEOL):ruleText
 				RuleBody([], []):lf
 				EOLTerminator
-				-> [lf, ['StructuredEnglish', ruleText]]
+				-> [lf, ['StructuredEnglish', 'It is necessary that ' + ruleText]]
 			|	toSBVREOL
 			),
 		AttrReferenceScheme :currentLine =
