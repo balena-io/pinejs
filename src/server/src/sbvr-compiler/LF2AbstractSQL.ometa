@@ -515,6 +515,7 @@ define([
 					{	for(var i=0; i < binds.length; i++) {
 							if(this.IsPrimitive(binds[i].identifier.name)
 									&& (this.bindAttributeDepth[binds[i].number] == null || this.bindAttributeDepth[binds[i].number] > depth)) {
+								this.bindAttributeDepth[binds[i].number] = depth;
 								this.bindAttributes[binds[i].number] = baseBinding;
 								break;
 							}
