@@ -13,19 +13,30 @@ define([
 			]
 			-> num,
 
-		Integer
+		Real =
+			[	'Real'
+				number:num
+				?{!isNaN(num)}
+			]
+			-> ['Real', num],
+
+		Integer =
 			[	'Integer'
 				number:num
 				?{!isNaN(num)}
 			]
 			-> ['Integer', num],
 
-		Text
+		Text =
 			[	'Text'
 				anything:text
 			]
 			-> ['Text', text],
-				
+			
+		Value =
+				Real
+			|	Integer
+			|	Text,
 		
 		/** Terms **/
 		Identifier =
@@ -37,8 +48,7 @@ define([
 				(	// Var number
 					Number:num
 				|	// Or embedded data, which we ignore the embedded data as it is retreived from the binding instead
-					Integer
-				|	Text
+					Value
 				)?
 			]
 			-> {type: type, name: name, num: num},
@@ -235,8 +245,7 @@ define([
 			[	'RoleBinding'
 				Identifier:identifier
 				(	number:number
-				|	Integer:data
-				|	Text:data
+				|	Value:data
 				)
 			]
 			-> {identifier: identifier, number:number, data: data},

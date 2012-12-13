@@ -38,6 +38,14 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 				-> ['Number', 1]
 			),
 
+		Real =
+			spaces
+			<	digit+
+				'.'
+				digit+
+			>:n
+			-> ['Real', Number(n)],
+
 		Integer =
 			spaces
 			<digit+>:n
@@ -53,7 +61,8 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 			'"'
 			-> ['Text', text],
 		Value =
-				Integer
+				Real
+			|	Integer
 			|	Text,
 		
 		toSBVREOL =

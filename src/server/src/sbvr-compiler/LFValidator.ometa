@@ -49,10 +49,9 @@ define(['ometa!sbvr-parser/SBVRLibs', 'ometa-core'], function(SBVRLibs) {
 		Term
 			:t
 			(	(	// Variable number
-					"Number":n
+					"Number"
 				|	// Or embedded data
-					"Integer"
-				|	"Text"
+					Value
 				):x
 				-> ['Term', t, x]
 			|	addAttributes(['Term', t])
@@ -177,6 +176,11 @@ define(['ometa!sbvr-parser/SBVRLibs', 'ometa-core'], function(SBVRLibs) {
 			)*:w
 			-> ['Variable', num, term].concat(w),
 
+		Real
+			number:num
+			?{!isNaN(num)}
+			-> ['Real', num],
+
 		Integer
 			number:num
 			?{!isNaN(num)}
@@ -186,13 +190,17 @@ define(['ometa!sbvr-parser/SBVRLibs', 'ometa-core'], function(SBVRLibs) {
 			anything:text
 			-> ['Text', text],
 
+		Value =
+				"Real"
+			|	"Integer"
+			|	"Text",
+
 		RoleBinding
 			(	"Term"
 			|	"Name"
 			):identifier
 			(	number
-			|	"Integer"
-			|	"Text"
+			|	Value
 			):bindIdentifier
 			-> ['RoleBinding', identifier, bindIdentifier], 
 		AtomicFormulation

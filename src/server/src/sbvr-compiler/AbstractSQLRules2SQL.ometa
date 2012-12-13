@@ -245,6 +245,7 @@ define(['ometa-core'], function() {
 		
 		Number =
 			[	(	'Number'
+				|	'Real'
 				|	'Integer'
 				)
 				:number
