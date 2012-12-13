@@ -246,11 +246,12 @@ define([
 			(	?bind.data
 				-> bind.data
 			|	{bind.identifier.name}:bindField
-				(	?(this.bindAttributes[bind.number])
-					-> this.bindAttributes[bind.number].identifier.name
-				|	-> bindField
+				(	{this.bindAttributes[bind.number]}:baseBind
+					?(baseBind)
+					-> (baseBind.number + baseBind.identifier.name)
+				|	-> (bind.number + bindField)
 				):bindName
-				-> ['ReferencedField', 'var' + bind.number + bindName, bindField]
+				-> ['ReferencedField', 'var' + bindName, bindField]
 			),
 
 		NativeFactType :actualFactType :rootTerms :factType =
@@ -340,10 +341,11 @@ define([
 				)
 				|	___AttributeMatchingFailed___.die
 			)
+			AttributeFactTypeBaseTermName(actualFactType):baseTermName
 			(	{this.bindAttributes[bindAttr.number]}:bind
 				?(bind.number != bindReal.number)
 				// If we're not the first bind we make sure we match it.
-				-> ['Equals', ['ReferencedField', 'var' + bind.number + bind.identifier.name, bindAttr.identifier.name], ['ReferencedField', 'var' + bindReal.number + bindReal.identifier.name, bindAttr.identifier.name]]
+				-> ['Equals', ['ReferencedField', 'var' + bind.number + bind.identifier.name, bindAttr.identifier.name], ['ReferencedField', 'var' + bindReal.number + baseTermName, bindAttr.identifier.name]]
 			|	// Otherwise return true = true, just so things work.
 				-> ['Equals', ['Boolean', true], ['Boolean', true]]
 			),
@@ -488,6 +490,15 @@ define([
 			]
 			-> rule,
 		
+		// Get the term name for the term an attribute is attached to in an attribute fact type
+		AttributeFactTypeBaseTermName :actualFactType =
+			{	for(var i=0; i < actualFactType.length; i+=2) {
+					if(!this.IsPrimitive(actualFactType[i][1])) {
+						return actualFactType[i][1];
+					}
+				}
+			},
+		
 		ProcessAtomicFormulations :depth =
 			{this.bindAttributes = []}
 			{this.bindAttributeDepth = []}
@@ -502,11 +513,14 @@ define([
 					ActualFactType(factType):actualFactType
 					?(this.attributes.hasOwnProperty(actualFactType) && this.attributes[actualFactType])
 					RoleBinding*:binds
+					// Find the term that has the attribute attached to it.
+					AttributeFactTypeBaseTermName(actualFactType):baseTermName
 					{null}:baseBinding
 					// Find the "base" binding
 					{	for(var i=0; i < binds.length; i++) {
 							if(!this.IsPrimitive(binds[i].identifier.name)) {
 								baseBinding = binds[i];
+								baseBinding.identifier.name = baseTermName;
 								break;
 							}
 						}
