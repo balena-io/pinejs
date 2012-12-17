@@ -33,12 +33,6 @@ define([
 			)?
 			{this.primitives[termOrFactType] = newAttrVal}
 			-> newAttrVal,
-		AttrNecessity :termOrFactType =
-				[	NecessityOptimisation
-					"StructuredEnglish"
-				]
-				-> null
-			|	^AttrNecessity,
 		
 		UniversalQuantification
 			"Variable":v trans*:xs SetHelped

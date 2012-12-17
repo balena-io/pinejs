@@ -1,4 +1,5 @@
 define(['ometa-core'], function() {
+	if(typeof USE_MYSQL === 'undefined') USE_MYSQL = false;
 	var comparisons = {
 			'Equals': ' = ',
 			'GreaterThan': ' > ',
@@ -257,7 +258,7 @@ define(['ometa-core'], function() {
 				(	true
 					-> 1
 				|	false
-					-> 2
+					-> 0
 				):bool
 			]
 			-> bool,
@@ -277,6 +278,18 @@ define(['ometa-core'], function() {
 			]
 			// TODO: This should have quotes escaped
 			-> ("'" + text + "'"),
+			
+		CharacterLength =
+			[	'CharacterLength'
+				(	ReferencedField
+				|	Field
+				|	Text
+				):text
+			]
+			(	?USE_MYSQL
+				-> ('CHAR_LENGTH(' + text + ')')
+			|	-> ('LENGTH(' + text + ')')
+			),
 		
 		And :indent =
 			[	'And'
@@ -314,7 +327,8 @@ define(['ometa-core'], function() {
 			|	Number
 			|	Boolean
 			|	Text
-			|	Bind,
+			|	Bind
+			|	CharacterLength,
 			
 		
 		RuleBody :indent =
@@ -323,7 +337,8 @@ define(['ometa-core'], function() {
 			|	Exists(indent)
 			|	Comparison(indent)
 			|	Between(indent)
-			|	And(indent),
+			|	And(indent)
+			|	Boolean,
 		
 		Process =
 			RuleBody('\n'):ruleBody

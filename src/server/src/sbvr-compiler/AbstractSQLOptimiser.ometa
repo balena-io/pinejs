@@ -71,6 +71,7 @@ define([
 			|	LessThan
 			|	LessThanOrEqual
 			|	Between
+			|	Boolean
 			),
 		
 		Where =
@@ -154,7 +155,8 @@ define([
 			|	ReferencedField
 			|	Number
 			|	Text
-			|	Boolean,
+			|	Boolean
+			|	CharacterLength,
 		
 		Field =
 			[	'Field'
@@ -194,7 +196,16 @@ define([
 				|	false
 				):bool
 			]
-			-> ['Boolean', bool]
+			-> ['Boolean', bool],
+			
+		CharacterLength =
+			[	'CharacterLength'
+				(	ReferencedField
+				|	Field
+				|	Text
+				):text
+			]
+			-> ['CharacterLength', text]
 	}
 	
 	ometa AbstractSQLOptimiser <: AbstractSQLValidator {

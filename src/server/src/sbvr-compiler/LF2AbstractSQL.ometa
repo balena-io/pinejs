@@ -172,24 +172,16 @@ define([
 			{this.identifiers[term[1]] = factType}
 			{this.tables[this.GetResourceName(term[1])] = this.GetTable(factType)},
 		AttrNecessity :tableID =
-			{this.linkTableBind = 0}
-			[	&ProcessAtomicFormulations
-				RulePart:ruleBody
-				[	'StructuredEnglish'
-					:ruleText
-				]
-			]
-			{this.rules.push(['Rule', ['StructuredEnglish', ruleText], ['Body', ruleBody]])}
-			-> ruleBody,
+			Rule,
 		
 		/** Fact Types **/
 		FactType =
 			&((:factTypePart &(:attributes) -> factTypePart)+:factType)
+			AddFactType(factType, factType)
 			(	?(this.nativePrimitives.hasOwnProperty(factType[0][1]))
 				// Eat input
 				(:factTypePart &(:attributes))+
-			|	AddFactType(factType, factType)
-				GetResourceName(factType):resourceName
+			|	GetResourceName(factType):resourceName
 				(	?(factType.length == 2)
 					// Eat input
 					(:factTypePart &(:attributes))+
@@ -238,7 +230,10 @@ define([
 				AddWhereClause(query, whereBody2)
 				-> query
 			|	// We ignore whereBody2, as it not useful for attributes
-				-> {identifier: identifier, tableAlias: 'var' + bind.number + bind.identifier.name, whereBody: whereBody}
+				(	?bind.data
+					-> {identifier: identifier, data: bind.data, whereBody: whereBody}
+				|	-> {identifier: identifier, tableAlias: 'var' + bind.number + bind.identifier.name, whereBody: whereBody}
+				)
 			),
 		
 		RoleBinding =
@@ -254,37 +249,48 @@ define([
 			RoleBinding:bind
 			(	?bind.data
 				-> bind.data
+			|	{this.bindAttributes[bind.number]}:baseBind
+				?(baseBind)
+				?baseBind.data
+				-> baseBind.data
 			|	{bind.identifier.name}:bindField
-				(	{this.bindAttributes[bind.number]}:baseBind
-					?(baseBind)
-					-> (baseBind.number + baseBind.identifier.name)
+				(	?(baseBind)
+					(	?baseBind.data
+						-> baseBind.data
+					|	-> (baseBind.number + baseBind.identifier.name)
+					)
 				|	-> (bind.number + bindField)
 				):bindName
 				-> ['ReferencedField', 'var' + bindName, bindField]
 			),
 
-		NativeFactType :actualFactType :rootTerms :factType =
+		NativeFactType :actualFactType :rootTerms =
 			?(actualFactType.length == 3)
 			?(this.nativePrimitives.hasOwnProperty(actualFactType[0][1]))
 			?(this.nativePrimitives.hasOwnProperty(actualFactType[2][1]))
 			(	NativeBinding:from
 				NativeBinding:to
 				end
+				{actualFactType[1][1].toLowerCase()}:verb
+				(	(	?(verb == 'is equal to' || verb == 'equals')
+						-> 'Equals'
+					|	?(verb == 'is greater than')
+						-> 'GreaterThan'
+					|	?(verb == 'is greater than or equal to')
+						-> 'GreaterThanOrEqual'
+					|	?(verb == 'is less than')
+						-> 'LessThan'
+					|	?(verb == 'is less than or equal to')
+						-> 'LessThanOrEqual'
+					):comparator
+					-> [comparator, from, to]
+				|	?(verb == 'has')
+					{actualFactType[2][1]}:property
+					?(property == 'Length')
+					-> ['CharacterLength', from]
+				)
 			|	___NativeFactTypeMatchingFailed___.die
-			)
-			{factType[1][1].toLowerCase()}:verb
-			(	?(verb == 'is equal to' || verb == 'equals')
-				-> 'Equals'
-			|	?(verb == 'is greater than')
-				-> 'GreaterThan'
-			|	?(verb == 'is greater than or equal to')
-				-> 'GreaterThanOrEqual'
-			|	?(verb == 'is less than')
-				-> 'LessThan'
-			|	?(verb == 'is less than or equal to')
-				-> 'LessThanOrEqual'
-			):comparator
-			-> [comparator, from, to],
+			),
 
 		LinkTable :actualFactType :rootTerms =
 			{'link' + this.linkTableBind++}:tableAlias
@@ -366,7 +372,7 @@ define([
 				]
 				ActualFactType(factType):actualFactType
 				FactTypeRootTerms(factType):rootTerms
-				(	NativeFactType(actualFactType, rootTerms, factType)
+				(	NativeFactType(actualFactType, rootTerms)
 				|	ForeignKey(actualFactType, rootTerms)
 				|	BooleanAttribute(actualFactType)
 				|	Attribute(actualFactType, rootTerms)
@@ -390,6 +396,8 @@ define([
 					(	?(minCard > 1)
 						// And to have more than one of an attribute is impossible.
 						-> ['Boolean', false]
+					|	?variable.data
+						-> ['Boolean', true]
 					|	-> ['Exists', ['ReferencedField', variable.tableAlias, variable.identifier.name]]
 					)
 				)
@@ -408,7 +416,10 @@ define([
 				{variable[1][1].push(['Count', '*'])}
 				-> ['Equals', variable, ['Number', card]]
 			|	// Otherwise we're an attribute
-				{['Exists', ['ReferencedField', variable.tableAlias, variable.identifier.name]]}:exists
+				(	?variable.data
+					-> ['Boolean', true]
+				|	-> ['Exists', ['ReferencedField', variable.tableAlias, variable.identifier.name]]
+				):exists
 				(	?(card == 0)
 					// Exactly 0 attributes is a non-existent (null) attribute
 					-> ['Not', exists]
@@ -434,7 +445,10 @@ define([
 				{variable[1][1].push(['Count', '*'])}
 				-> ['Between', variable, ['Number', minCard], ['Number', maxCard]]
 			|	// Otherwise we're an attribute
-				{['Exists', ['ReferencedField', variable.tableAlias, variable.identifier.name]]}:exists
+				(	?variable.data
+					-> ['Boolean', true]
+				|	-> ['Exists', ['ReferencedField', variable.tableAlias, variable.identifier.name]]
+				):exists
 				(	?(minCard == 0)
 					(	?(maxCard == 0)
 						// Between 0 and 0 is not exists.
@@ -461,7 +475,10 @@ define([
 				// Variable is a query so we directly check for existence.
 				-> ['Exists', variable]
 			|	// Otherwise we're an attribute so we check for the field.
-				-> ['Exists', ['ReferencedField', variable.tableAlias, variable.identifier.name]]
+				(	?variable.data
+					-> ['Boolean', true]
+				|	-> ['Exists', ['ReferencedField', variable.tableAlias, variable.identifier.name]]
+				)
 			):where
 			(	?variable.whereBody
 				-> ['And', variable.whereBody, where]
@@ -481,7 +498,9 @@ define([
 			|	Exists
 			|	Negation
 			|	Range
-			|	:x {console.error('Hit unhandled operation:', x)} ?(false)
+			|	:x
+				{console.error('Hit unhandled operation:', x)}
+				?(false)
 			)+:whereBody
 			(	?(whereBody.length == 1)
 				-> whereBody[0]
@@ -508,11 +527,12 @@ define([
 				}
 			},
 		
-		ProcessAtomicFormulations :depth =
+		ProcessAtomicFormulations =
 			{this.bindAttributes = []}
 			{this.bindAttributeDepth = []}
-			ProcessAtomicFormulationsRecurse(0),
-		ProcessAtomicFormulationsRecurse :depth =
+			&ProcessAtomicFormulationsRecurse(0, 'ProcessAtomicFormulationsAttributes')
+			&ProcessAtomicFormulationsRecurse(0, 'ProcessAtomicFormulationsNativeAttributes'),
+		ProcessAtomicFormulationsRecurse :depth :rule =
 			(	// Bit of a hack, but we only want to drill into the input if it's an array, otherwise we get infinite recursion.
 				?(_.isArray(this.input.lst))
 				[	'AtomicFormulation'
@@ -520,34 +540,65 @@ define([
 						anything+:factType
 					]
 					ActualFactType(factType):actualFactType
-					?(this.attributes.hasOwnProperty(actualFactType) && this.attributes[actualFactType])
-					RoleBinding*:binds
-					// Find the term that has the attribute attached to it.
-					AttributeFactTypeBaseTermName(actualFactType):baseTermName
-					{null}:baseBinding
-					// Find the "base" binding
-					{	for(var i=0; i < binds.length; i++) {
-							if(!this.IsPrimitive(binds[i].identifier.name)) {
-								baseBinding = binds[i];
-								baseBinding.identifier.name = baseTermName;
-								break;
-							}
-						}
-					}
-					// Use the "base" binding in the attribute binding list, but only if we are as shallow as possible.
-					{	for(var i=0; i < binds.length; i++) {
-							if(this.IsPrimitive(binds[i].identifier.name)
-									&& (this.bindAttributeDepth[binds[i].number] == null || this.bindAttributeDepth[binds[i].number] > depth)) {
-								this.bindAttributeDepth[binds[i].number] = depth;
-								this.bindAttributes[binds[i].number] = baseBinding;
-								break;
-							}
-						}
-					}
-				|	ProcessAtomicFormulationsRecurse(depth+1)
+					{this._applyWithArgs(rule, depth, actualFactType)}
+				|	ProcessAtomicFormulationsRecurse(depth+1, rule)
 				]
 			|	anything
 			)*,
+		ProcessAtomicFormulationsAttributes :depth :actualFactType =
+			?(this.attributes.hasOwnProperty(actualFactType) && this.attributes[actualFactType])
+			RoleBinding*:binds
+			// Find the term that has the attribute attached to it.
+			AttributeFactTypeBaseTermName(actualFactType):baseTermName
+			{null}:baseBinding
+			// Find the "base" binding
+			{	for(var i=0; i < binds.length; i++) {
+					if(!this.IsPrimitive(binds[i].identifier.name)) {
+						baseBinding = binds[i];
+						baseBinding.identifier.name = baseTermName;
+						break;
+					}
+				}
+			}
+			// Use the "base" binding in the attribute binding list, but only if we are as shallow as possible.
+			{	for(var i=0; i < binds.length; i++) {
+					if(this.IsPrimitive(binds[i].identifier.name)
+							&& (this.bindAttributeDepth[binds[i].number] == null || this.bindAttributeDepth[binds[i].number] > depth)) {
+						this.bindAttributeDepth[binds[i].number] = depth;
+						this.bindAttributes[binds[i].number] = baseBinding;
+						break;
+					}
+				}
+			},
+		ProcessAtomicFormulationsNativeAttributes :depth :actualFactType =
+			&(RoleBinding*:binds)
+			NativeBinding*:nativeBinds
+			{actualFactType[1][1].toLowerCase()}:verb
+			?(verb == 'has')
+			{actualFactType[0][1]}:primitive
+			{actualFactType[2][1]}:property
+			(	?(binds[0].identifier.name == property)
+				{nativeBinds[1]}:from
+				-> [binds[1], binds[0]]
+			|	{nativeBinds[0]}:from
+				-> binds
+			):binds
+			(	?(primitive == 'Text')
+				?(property == 'Length')
+				-> ['CharacterLength', from]
+			):data
+			{this.bindAttributes[binds[1].number] = {data: data}},
+		
+		Rule =
+			[	'Rule'
+				{this.linkTableBind = 0}
+				&ProcessAtomicFormulations
+				RuleBody:ruleBody
+				[	'StructuredEnglish'
+					:ruleText
+				]
+				{this.rules.push(['Rule', ['StructuredEnglish', ruleText], ['Body', ruleBody]])}
+			],
 		
 		Process =
 			[	'Model'
@@ -557,15 +608,8 @@ define([
 						 IdentifierName:identifierName
 						 Attributes(identifierName)
 					|	'FactType' FactType:factType Attributes(factType)
-					|	'Rule'
-						{this.linkTableBind = 0}
-						&ProcessAtomicFormulations
-						RuleBody:ruleBody
-						[	'StructuredEnglish'
-							:ruleText
-						]
-						{this.rules.push(['Rule', ['StructuredEnglish', ruleText], ['Body', ruleBody]])}
 					]
+				|	Rule
 				)+
 			]
 			{{}}:tables

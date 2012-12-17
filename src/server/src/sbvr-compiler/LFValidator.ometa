@@ -96,10 +96,7 @@ define(['ometa!sbvr-parser/SBVRLibs', 'ometa-core'], function(SBVRLibs) {
 			|	trans
 			),
 		AttrNecessity :termOrFactType =
-				[	trans:x
-					"StructuredEnglish":se
-				]
-				-> [x, se]
+				"Rule"
 			|	DefaultAttr,
 		AttrSynonymousForm :factType =
 			:synForm

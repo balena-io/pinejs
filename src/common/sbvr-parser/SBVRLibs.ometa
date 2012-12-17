@@ -5,15 +5,19 @@ define(['underscore', 'ometa-core'], function(_) {
 	SBVRLibs.nativePrimitives = {
 		'Serial': true,
 		'Integer': true,
-		'Short Text': true,
-		'Long Text': true,
 		'Real': true,
 		'Date': true,
 		'Date Time': true,
 		'Time': true,
 		'Interval': true,
+		'Text': true,
+		
+		'Length': true,
+		
 		'Hashed': true,
-		'JSON': true
+		'JSON': true,
+		'Short Text': true,
+		'Long Text': true
 	};
 	
 	SBVRLibs.initialize = function() {
