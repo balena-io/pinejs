@@ -102,23 +102,23 @@ define(['cs!database-layer/db'], (dbModule) ->
 			Necessity: each campaign has at most one priority.
 			Necessity: each campaign has a priority.
 		Fact Type: campaign has description
-			Necessity: each campaign has at most one description.
-			Necessity: each campaign has a description.
+			Necessity: each campaign has exactly one description.
 
 		Fact Type: campaign has format
 			Synonymous Form: format belongs to campaign
 
 		Fact Type: format overrides hours
+		Fact Type: format has limited hours
 		Fact Type: format overrides frequency counts
 		Fact Type: format overrides prioritisation
 		Fact Type: format has start time
 			Necessity: each format has at most one start time.
-			Rule: It is obligatory that each format that has a start time, overrides hours.
-			Rule: It is obligatory that each format that overrides hours, has a start time.
+			Rule: It is obligatory that each format that has a start time, has limited hours.
+			Rule: It is obligatory that each format that has limited hours, has a start time.
 		Fact Type: format has end time
 			Necessity: each format has at most one end time.
-			Rule: It is obligatory that each format that has an end time, overrides hours.
-			Rule: It is obligatory that each format that overrides hours, has a end time.
+			Rule: It is obligatory that each format that has an end time, has limited hours.
+			Rule: It is obligatory that each format that has limited hours, has an end time.
 		Fact Type: format has minimum frequency count
 			Necessity: each format has at most one minimum frequency count.
 			Rule: It is obligatory that each format that has a minimum frequency count, overrides frequency counts.
@@ -132,25 +132,22 @@ define(['cs!database-layer/db'], (dbModule) ->
 			Rule: It is obligatory that each format that has a priority, overrides prioritisation.
 			Rule: It is obligatory that each format that overrides prioritisation, has a priority.
 		Fact Type: format has description
-			Necessity: each format has a description.
+			Necessity: each format has exactly one description.
 
 		Fact Type: format has creative
 			Synonymous Form: creative belongs to format
-			Necessity: each format belongs to a campaign.
 
 		Fact Type: creative has duration
-			Necessity: each creative has at most one duration.
-			Necessity: each creative has a duration.
+			Necessity: each creative has exactly one duration.
 		Fact Type: creative is pinned
 		Fact Type: creative has description
-			Necessity: each creative has a description.
+			Necessity: each creative has exactly one description.
 
 		Fact Type: creative has slide
 			Synonymous Form: slide belongs to creative
-			Necessity: each creative has a slide.
 
 		Fact Type: slide has description
-			Necessity: each slide has a description.'''
+			Necessity: each slide has exactly one description.'''
 
 	# Setup function
 	exports.setup = (app, requirejs, sbvrUtils, isAuthed, databaseOptions) ->
