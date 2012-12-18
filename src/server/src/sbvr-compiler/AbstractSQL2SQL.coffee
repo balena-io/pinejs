@@ -36,7 +36,7 @@ define([
 						validated = 'is not a string: ' + originalValue
 					else if value.length > 255
 						validated = 'longer than 255 characters (' + value.length + ')'
-				when 'Long Text'
+				when 'Text'
 					if !_.isString(value)
 						validated = 'is not a string: ' + originalValue
 				when 'JSON'
@@ -88,7 +88,7 @@ define([
 				return 'INTEGER' + necessity + index
 			when 'Short Text'
 				return 'VARCHAR(255)' + necessity + index
-			when 'Long Text', 'JSON'
+			when 'Text', 'JSON'
 				return 'TEXT' + necessity + index
 			when 'Boolean'
 				return 'INTEGER NOT NULL DEFAULT 0' + index
@@ -120,7 +120,7 @@ define([
 				return 'INTEGER' + necessity + index
 			when 'Short Text'
 				return 'VARCHAR(255) ' + necessity + index
-			when 'Long Text', 'JSON'
+			when 'Text', 'JSON'
 				return 'TEXT' + necessity + index
 			when 'Boolean'
 				return 'INTEGER NOT NULL DEFAULT 0' + index
@@ -152,7 +152,7 @@ define([
 				return 'INTEGER' + necessity + index
 			when 'Short Text'
 				return 'VARCHAR(255) ' + necessity + index
-			when 'Long Text', 'JSON'
+			when 'Text', 'JSON'
 				return 'TEXT' + necessity + index
 			when 'Boolean'
 				return 'INTEGER NOT NULL DEFAULT 0' + index

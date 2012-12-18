@@ -2,7 +2,7 @@ define(['data-frame/widgets/text', 'data-frame/widgets/textArea', 'data-frame/wi
 	widgets = {}
 	widgets['Value'] = text
 	widgets['Short Text'] = text
-	widgets['Long Text'] = textArea
+	widgets['Text'] = textArea
 	widgets['ConceptType'] = foreignKey
 	widgets['ForeignKey'] = foreignKey
 	widgets['Integer'] = integer

@@ -8,9 +8,9 @@ define([
 
 	uiModel = '''
 			Term:      Short Text
-			Term:      Long Text
+			Term:      Text
 			Term:      text
-				Concept type: Long Text
+				Concept type: Text
 			Term:      name
 				Concept type: Short Text
 			Term:      textarea

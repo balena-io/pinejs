@@ -37,15 +37,15 @@ define([
 	transactionModel = '''
 			Term:      Integer
 			Term:      Short Text
-			Term:      Long Text
+			Term:      Text
 			Term:      resource id
 				Concept type: Integer
 			Term:      resource type
-				Concept type: Long Text
+				Concept type: Text
 			Term:      field name
-				Concept type: Long Text
+				Concept type: Text
 			Term:      field value
-				Concept type: Long Text
+				Concept type: Text
 			Term:      placeholder
 				Concept type: Short Text
 

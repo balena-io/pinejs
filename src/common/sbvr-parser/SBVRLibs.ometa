@@ -16,8 +16,7 @@ define(['underscore', 'ometa-core'], function(_) {
 		
 		'Hashed': true,
 		'JSON': true,
-		'Short Text': true,
-		'Long Text': true
+		'Short Text': true
 	};
 	
 	SBVRLibs.initialize = function() {
