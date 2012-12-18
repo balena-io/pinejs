@@ -1,4 +1,4 @@
-# Breaking dawn
+﻿# Breaking dawn
 
 ##Intro
 
@@ -16,14 +16,14 @@ The goal here, dear gentlemen, is to use the canvas platform on developing Renew
 
 Constraint            | String | Number | Boolean | Date | File
 :------------------- | :----: | :----: | :-----: | :--: | :--: 
-Length: min          | x      |        |         |      | x
-Length: exact        | x      |        |         |      | x
-Length: max          | x      |        |         |      | x
+Length: min          | ✔      |        |         |      | x
+Length: exact        | ✔      |        |         |      | x
+Length: max          | ✔      |        |         |      | x
 Precision            |        | x      |         |      |  
-Value: min           |        | x      |         | x    |  
-Value: max           |        | x      |         | x    |
+Value: min           |        | ✔      |         | x    |  
+Value: max           |        | ✔      |         | x    |
 Value: not equals    | x      | x      | x       | x    |  
-Value: in (array)    | x      | x      |         | x    |  
+Value: in (array)    | ~      | ~      |         | x    |  
 Value: not in        | x      | x      |         | x    |  
 Value: matches regex | x      |        |         |      |  
 Value: contains      | x      |        |         |      |  
