@@ -7,7 +7,7 @@ define(['cs!database-layer/db'], (dbModule) ->
 		Term: Date
 		Term: Time
 		Term: Short Text
-		Term: Long Text
+		Term: Text
 
 		Term: stream
 			Database Value Field: description
@@ -21,7 +21,7 @@ define(['cs!database-layer/db'], (dbModule) ->
 			Database Value Field: description
 
 		Term: description
-			Concept Type: Long Text
+			Concept Type: Text
 
 		Term: air time
 			Concept Type: Integer

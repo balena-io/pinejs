@@ -5,7 +5,7 @@ define(['cs!database-layer/db'], (dbModule) ->
 		Term:      Integer
 		Term:      Date
 		Term:      Short Text
-		Term:      Long Text
+		Term:      Text
 
 		Term:      value
 			Concept Type: Short Text
@@ -14,7 +14,7 @@ define(['cs!database-layer/db'], (dbModule) ->
 			Database Value Field: name
 
 		Term:      note
-			Concept Type: Long Text
+			Concept Type: Text
 		Fact type: dataset has note
 			Necessity: Each dataset has at most one note
 
@@ -50,27 +50,27 @@ define(['cs!database-layer/db'], (dbModule) ->
 			Necessity: Each product has exactly 1 point_of_trade
 
 		Term:      name
-			Concept Type: Long Text
+			Concept Type: Text
 		Fact type: dataset has name
 			Necessity: Each dataset has exactly 1 name
 
 		Term:      title
-			Concept Type: Long Text
+			Concept Type: Text
 		Fact type: dataset has title
 			Necessity: Each dataset has exactly 1 title
 
 		Term:      short title
-			Concept Type: Long Text
+			Concept Type: Text
 		Fact type: dataset has short title
 			Necessity: Each dataset has exactly 1 short title
 
 		Term:      caption
-			Concept Type: Long Text
+			Concept Type: Text
 		Fact type: dataset has caption
 			Necessity: Each dataset has exactly 1 caption
 
 		Term:      explanation
-			Concept Type: Long Text
+			Concept Type: Text
 		Fact type: dataset has explanation
 			Necessity: Each dataset has at most 1 explanation
 
