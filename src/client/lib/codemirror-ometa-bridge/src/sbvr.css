@@ -11,11 +11,11 @@ span.cm-sbvr-StartTerm {
 span.cm-sbvr-StartName {
 	color: #A22;
 }
-span.cm-sbvr-startFactType {
+span.cm-sbvr-StartFactType {
 	color: #A70;
 /* 	background-color: #EEA; */
 }
-span.cm-sbvr-startRule {
+span.cm-sbvr-StartRule {
 	color: #299;
 /* 	background-color: #BFF; */
 }
@@ -42,7 +42,7 @@ span.cm-sbvr-Verb {
 span.cm-sbvr-Modifier {
 	color: orange;
 }
-span.cm-sbvr-keyword {
+span.cm-sbvr-Keyword {
 	color: orange;
 }
 span.cm-sbvr-Number {
@@ -53,7 +53,7 @@ span.cm-sbvr-AllowedAttrs {
 	color: grey;
 }
 
-span.cm-sbvr-newComment {
+span.cm-sbvr-NewComment {
 	color: grey;
 }
 

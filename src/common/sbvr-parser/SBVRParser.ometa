@@ -145,7 +145,7 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 		
 		
 		addVerb =
-			clearSuggestions Verb(true),
+			ClearSuggestions Verb(true),
 		Verb :factTypeSoFar =
 			FindVerb(factTypeSoFar),
 		FindVerb :factTypeSoFar :verbSoFar =
@@ -166,43 +166,43 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 			IdentifierPart,
 		
 		JoiningQuantifier =
-			matchForAll('keyword',["and","at","most"]),
+			matchForAll('Keyword',["and","at","most"]),
 		
 		// Be very careful with anywhere you use quantifier as any in-place modifications of the array will be remembered in memoisation.
 		Quantifier =
-			(	keyword("each")
+			(	Keyword("each")
 				-> ['UniversalQuantification']
-			|	matchForAny('keyword',["a","an","some"])
+			|	matchForAny('Keyword',["a","an","some"])
 				-> ['ExistentialQuantification']
-			|	matchForAll('keyword',["at","most"]) Number:n
+			|	matchForAll('Keyword',["at","most"]) Number:n
 				-> ['AtMostNQuantification', ['MaximumCardinality', n]]
-			|	matchForAll('keyword',["at","least"]) Number:n
+			|	matchForAll('Keyword',["at","least"]) Number:n
 				(	JoiningQuantifier
 					Number:m
 					-> ['NumericalRangeQuantification', ['MinimumCardinality', n], ['MaximumCardinality', m]]
 				|	-> ['AtLeastNQuantification', ['MinimumCardinality', n]]
 				)
-			|	matchForAll('keyword',["more","than"]) Number:n {++n[1]}
+			|	matchForAll('Keyword',["more","than"]) Number:n {++n[1]}
 				-> ['AtLeastNQuantification', ['MinimumCardinality', n]]
-			|	keyword("exactly") Number:n
+			|	Keyword("exactly") Number:n
 				-> ['ExactQuantification', ['Cardinality', n]]
-			|	keyword("no")
+			|	Keyword("no")
 				-> ['ExactQuantification', ['Cardinality', ['Number', 0]]]
 			),
 
-		keyword :word :noToken =
+		Keyword :word :noToken =
 			(	?(noToken===true) seq(word)
 			|	?(noToken!==true) token(word)
 			),
 		
 		addThat =
-			keyword("that"),
+			Keyword("that"),
 		addThe =
-			keyword("the"),
+			Keyword("the"),
 		addComma =
-			keyword(","),
+			Keyword(","),
 		addOr =
-			keyword("or"),
+			Keyword("or"),
 		CreateVar :identifier =
 			{this.ruleVars[identifier] = this.ruleVarsCount++}:varNumber
 			-> ['Variable', ['Number', varNumber], identifier],
@@ -291,10 +291,11 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 			"that"
 			-> r,
 
-		startRule =
-			"R:"|"Rule:",
+		StartRule =
+				"R:"
+			|	"Rule:",
 		NewRule =
-			startRule
+			StartRule
 			spaces
 			&(toEOL):ruleText
 			{this.ruleVarsCount = 0}
@@ -303,10 +304,12 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 			EOLTerminator
 			{mod.length == 2 ? (mod[1][1] = ruleLF) : (mod[1] = ruleLF)}
 			-> ['Rule', mod, ['StructuredEnglish', ruleText]],
-		startFactType =
-			"F:"|"Fact type:",
-		newFactType =
-			startFactType {[]}:factType
+
+		StartFactType =
+				"F:"
+			|	"Fact type:",
+		NewFactType =
+			StartFactType {[]}:factType
 			(	Identifier:identifier
 				addVerb:v
 				{factType.push(identifier, v)}
@@ -317,6 +320,7 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 			AddFactType(factType, factType)
 			{factType.push(['Attributes'])}
 			-> ['FactType'].concat(factType),
+
 		StartTerm =
 			(	"T:"
 			|	"Term:"
@@ -331,11 +335,11 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 			(	StartTerm
 			|	StartName
 			):identifierType
-			clearSuggestions
+			ClearSuggestions
 			AddIdentifier(identifierType):identifier
 			{identifier.push(['Attributes'])}
 			-> identifier,
-		Attribute =
+		NewAttribute =
 			{this.lines[this.lines.length-1]}:currentLine
 			AllowedAttrs(currentLine[0]):attrName
 			{attrName.replace(/ /g, '')}:attrName
@@ -428,10 +432,11 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 			}
 		-> term,
 
-		startComment =
+		StartComment =
 			seq('--'),
-		newComment =
-			startComment toEOL,
+		NewComment =
+			StartComment
+			toEOL,
 		
 		EOLTerminator =
 			Terminator?
@@ -440,32 +445,33 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 			|	end
 			),
 		Terminator =
-			spaces keyword('.',true),
-		line =
+			spaces
+			Keyword('.',true),
+		Line =
 			spaces
 			(
 				(	NewIdentifier
-				|	newFactType
+				|	NewFactType
 				|	NewRule
-				|	Attribute
+				|	NewAttribute
 				):l
-				clearSuggestions
+				ClearSuggestions
 				{this.lines.push(l)}
 				-> l
-			|	newComment
+			|	NewComment
 			),
 		Process =
 			EOLSpaces?
-			line
+			Line
 			(	EOLSpaces
-				line
+				Line
 			)*
 			space*
 			end
 			-> this.lines
 	}
 
-	SBVRParser.clearSuggestions = function() {};
+	SBVRParser.ClearSuggestions = function() {};
 	/**
 		Following are "instance" variables/functions rather than shared.
 	*/
@@ -476,16 +482,16 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 	
 	SBVRParser._enableTokens = function() {
 		this.tokensEnabled = true;
-		SBVRLibs._enableTokens.call(this, ["StartTerm", "StartName", "startFactType", "startRule", "newComment", "Term", "Name", "Modifier", "Verb", "keyword", "AllowedAttrs", "AttrGuidanceType", "Number", "Value"]);
+		SBVRLibs._enableTokens.call(this, ["StartTerm", "StartName", "StartFactType", "StartRule", "NewComment", "Term", "Name", "Modifier", "Verb", "Keyword", "AllowedAttrs", "AttrGuidanceType", "Number", "Value"]);
 	};
 	SBVRParser._sideEffectingRules = [
 		'Process',
-		'line',
+		'Line',
 		'NewIdentifier',
 		'AddIdentifier',
-		'newFactType',
+		'NewFactType',
 		'AddFactType',
-		'Attribute',
+		'NewAttribute',
 		'AttrConceptType',
 		'AttrDefinition',
 		'AttrSynonym',
@@ -667,11 +673,11 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 	SBVRParser.reset = function() {
 		SBVRLibs.initialize.call(this);
 		this.branches = {
-			clearSuggestions: [], //This stops us suggesting any autocomplete before this point.
+			ClearSuggestions: [], //This stops us suggesting any autocomplete before this point.
 			StartTerm: ['Term:     '],
 			StartName: ['Name:     '],
-			startFactType: ['Fact type:'],
-			startRule: ['Rule:     '],
+			StartFactType: ['Fact type:'],
+			StartRule: ['Rule:     '],
 			Term: function(factTypeSoFar) {
 				return getValidFactTypeParts.call(this, 'Term', factTypeSoFar);
 			},
