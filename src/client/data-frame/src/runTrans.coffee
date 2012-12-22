@@ -52,19 +52,19 @@ require(['async'], () ->
 										sendData = [
 											transaction: transactionID
 											lock: null
-											resource_type: dataElement[0]
-											conditional_type: ''
+											'resource type': dataElement[0]
+											'conditional type': ''
 											placeholder: ''
 										]
 										switch dataElement[1]
 											when "del"
-												sendData[0].conditional_type = 'DELETE'
+												sendData[0]['conditional type'] = 'DELETE'
 												sendData[0].lock = dataElement[2]
 											when 'edit'
-												sendData[0].conditional_type = 'EDIT'
+												sendData[0]['conditional type'] = 'EDIT'
 												sendData[0].lock = dataElement[2]
 											when 'add'
-												sendData[0].conditional_type = 'ADD'
+												sendData[0]['conditional type'] = 'ADD'
 												sendData[0].placeholder = dataElement[2]
 										switch dataElement[1]
 											when "del"
@@ -79,9 +79,9 @@ require(['async'], () ->
 														async.forEach(fields,
 															(field, callback) ->
 																fieldData = [
-																	conditional_resource: condResource.id
-																	field_name: field.name 
-																	field_value: field.value
+																	'conditional resource': condResource.id
+																	'field name': field.name 
+																	'field value': field.value
 																]
 																serverRequest("POST", transURIs.conditionalFieldURI, {}, fieldData,
 																	-> callback()
@@ -113,7 +113,7 @@ require(['async'], () ->
 			failureCallback = -> callback(arguments)
 			o = [ 'is exclusive': true, transaction: transactionID ]
 			serverRequest("POST", transURIs.lockURI, {}, o, ((statusCode, lock, headers) ->
-				o = [ resource_id: parseInt(resourceID, 10), resource_type: resourceType]
+				o = [ 'resource id': parseInt(resourceID, 10), 'resource type': resourceType]
 				serverRequest("POST", transURIs.resourceURI, {}, o, ((statusCode, resource, headers) ->
 					o = [ resource: resource.id, lock: lock.id ]
 					serverRequest("POST", transURIs.lockResourceURI, {}, o, ((statusCode, result, headers) ->
