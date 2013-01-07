@@ -56,6 +56,15 @@ define(['cs!database-layer/db'], (dbModule) ->
 		Term: week day set
 			Concept Type: Integer
 
+		Term: width
+			Concept Type: Integer
+
+		Term: height
+			Concept Type: Integer
+
+		Term: url
+			Concept Type: Text
+
 		Fact Type: stream has description
 			Necessity: each stream has exactly one description.
 
@@ -147,7 +156,15 @@ define(['cs!database-layer/db'], (dbModule) ->
 			Synonymous Form: slide belongs to creative
 
 		Fact Type: slide has description
-			Necessity: each slide has exactly one description.'''
+			Necessity: each slide has exactly one description.
+		Fact Type: slide has width
+			Necessity: each slide has exactly one width.
+		Fact Type: slide has height
+			Necessity: each slide has exactly one height.
+		Fact Type: slide has url
+			Necessity: each slide has exactly one url.
+
+	'''
 
 	# Setup function
 	exports.setup = (app, requirejs, sbvrUtils, isAuthed, databaseOptions) ->
