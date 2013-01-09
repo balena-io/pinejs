@@ -397,7 +397,7 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 				{term[2]}:termVocab
 				?(identifierName != termName || identifierVocab != termVocab) // Do not allow a term to have itself as its concept type.
 				{this.vocabularies[identifierVocab]['ConceptTypes'][identifierName] = termName}
-				{this.vocabularies[identifierVocab]['IdentifierChildren'][termName].push([identifierName, identifierVocab])}
+				{this.vocabularies[termVocab]['IdentifierChildren'][termName].push([identifierName, identifierVocab])}
 			)
 			-> term,
 		AttrDefinition :currentLine =
