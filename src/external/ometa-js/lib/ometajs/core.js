@@ -923,8 +923,8 @@
       for (var idx = 0; idx < args.length; idx++) {
         realArgs.push(args[idx]);
       }
-      var m = objectThatDelegatesTo(this, {input: input});
-      m.initialize();
+      var m = this.createInstance();
+      m.setInput(input);
 
       return lookup(function() {
         return realArgs.length === 1 ?
@@ -947,14 +947,13 @@
       });
     },
     match: function(obj, rule, args, matchFailed) {
-      return this._genericMatch(makeListOMInputStream([obj], 0), rule, args, matchFailed);
+      return this._genericMatch([obj], rule, args, matchFailed);
     },
     matchAll: function(listyObj, rule, args, matchFailed) {
-      return this._genericMatch(makeListOMInputStream(listyObj, 0), rule, args, matchFailed);
+      return this._genericMatch(listyObj, rule, args, matchFailed);
     },
     createInstance: function() {
       var m = objectThatDelegatesTo(this);
-      m.initialize();
       m.setInput = function(listyObj) {
         return this.inputHead = this.input = makeListOMInputStream(listyObj, 0);
       };
@@ -1018,6 +1017,8 @@
           return this.input = this.inputHead = makeListOMInputStream(listyObj, 0);
         };
       };
+
+      m.initialize();
       return m;
     }
   };
