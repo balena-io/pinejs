@@ -2,7 +2,7 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 	//A parser for Semantics of Business Vocabulary and Rules (SBVR), an OMG standard.
 	//Converts from Structured English (SBVR-SE) to Logical Formulation (SBVR-LF)
 	//Specification: http://www.omg.org/spec/SBVR/1.0/
-
+	
 	ometa SBVRParser <: SBVRLibs {
 		EOL =
 			(	'\n'
@@ -160,7 +160,7 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 			):vocabularySoFar
 			// Make sure the potential identifier so far is short enough to be valid.
 			?(vocabularySoFar.length <= this.longestIdentifier['Vocabulary'])
-			(	FindIdentifierNest(vocabularySoFar)
+			(	FindVocabularyNest(vocabularySoFar)
 			|	?this.vocabularies.hasOwnProperty(vocabularySoFar)
 				-> vocabularySoFar
 			),
