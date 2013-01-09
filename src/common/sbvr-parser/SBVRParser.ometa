@@ -92,8 +92,6 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 		AddIdentifier :identifierType :baseSynonym =
 			&(IdentifierPart+):identifier
 			{identifier.join(' ')}:identifier
-			// Make sure the identifier isn't taken.
-			?(!this.identifierChildren.hasOwnProperty(identifier))
 			_AddIdentifier(identifierType, identifier, baseSynonym)
 			apply(identifierType),
 		
@@ -107,6 +105,9 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 				Term(factTypeSoFar)
 			|	Name(factTypeSoFar)
 			),
+		Vocabulary =
+			FindVocabulary:vocabulary
+			-> ['Vocabulary', vocabulary],
 		Name :factTypeSoFar =
 			FindIdentifier('Name', factTypeSoFar),
 		Term :factTypeSoFar =
@@ -123,6 +124,7 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 			|	seq(quote)
 			)
 			-> identifier,
+		
 		FindIdentifierNest :identifierType :factTypeSoFar :identifierSoFar =
 			IdentifierPart:part
 			(	?identifierSoFar
@@ -132,10 +134,37 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 			// Make sure the potential identifier so far is short enough to be valid.
 			?(identifierSoFar.length <= this.longestIdentifier[identifierType])
 			(	FindIdentifierNest(identifierType, factTypeSoFar, identifierSoFar)
-			|	IsFactTypeIdentifier(identifierType, factTypeSoFar, identifierSoFar):factTypeIdentifier
+			|	(	FindVocabulary(identifierSoFar)
+				|	-> this.currentVocabulary
+				):vocabulary
+				IsFactTypeIdentifier(vocabulary, identifierType, factTypeSoFar, identifierSoFar):factTypeIdentifier
 				?(factTypeIdentifier !== false)
-				-> [identifierType, factTypeIdentifier]
+				-> [identifierType, factTypeIdentifier, vocabulary]
 			),
+		
+		FindVocabulary :identifier =
+			spaces
+			'('?:bracket
+			FindVocabularyNest:vocabulary
+			?(!identifier || this.vocabularies[vocabulary]['IdentifierChildren'].hasOwnProperty(identifier))
+			(	?(!bracket)
+			|	seq(')')
+			)
+			-> vocabulary,
+		
+		FindVocabularyNest :vocabularySoFar =
+			IdentifierPart:part
+			(	?vocabularySoFar
+				-> (vocabularySoFar + ' ' + part)
+			|	-> part
+			):vocabularySoFar
+			// Make sure the potential identifier so far is short enough to be valid.
+			?(vocabularySoFar.length <= this.longestIdentifier['Vocabulary'])
+			(	FindIdentifierNest(vocabularySoFar)
+			|	?this.vocabularies.hasOwnProperty(vocabularySoFar)
+				-> vocabularySoFar
+			),
+
 		IdentifierPart =
 			spaces
 			<	(	letter
@@ -247,9 +276,9 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 			|	// Embedded data
 				Value:data
 				// Is the type of embedded data allowed here?
-				IsFactTypeIdentifier('Term', factType, data[0]):factTypeIdentifier
+				IsFactTypeIdentifier('Data Types', 'Term', factType, data[0]):factTypeIdentifier
 				?(factTypeIdentifier !== false)
-				{['Term', factTypeIdentifier, data]}:identifier
+				{['Term', factTypeIdentifier, 'Data Types', data]}:identifier
 				// Create the var so we can bind to it.
 				EmbedVar(identifier, data)
 				Bind(identifier, bindings):bind
@@ -321,6 +350,9 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 			{factType.push(['Attributes'])}
 			-> ['FactType'].concat(factType),
 
+		StartVocabulary =
+			"Vocabulary:"
+			-> 'Vocabulary',
 		StartTerm =
 			(	"T:"
 			|	"Term:"
@@ -332,7 +364,8 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 			)
 			-> 'Name',
 		NewIdentifier =
-			(	StartTerm
+			(	StartVocabulary
+			|	StartTerm
 			|	StartName
 			):identifierType
 			ClearSuggestions
@@ -354,15 +387,17 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 			toSBVREOL,
 		AttrConceptType :currentLine =
 			{currentLine[1]}:identifierName
-			?(!this.conceptTypes.hasOwnProperty(identifierName)) // Only allow one instance of Concept Type: attribute.
+			{currentLine[2]}:identifierVocab
+			?(!this.vocabularies[identifierVocab]['ConceptTypes'].hasOwnProperty(identifierName)) // Only allow one instance of Concept Type: attribute.
 											 // TODO: Improve this to deal with synonyms and autocomplete/highlighting.
 			// A concept type has to be a term (cannot be a name)
 			Term:term
 			(	?(currentLine[0] == 'FactType')
 			|	{term[1]}:termName
-				?(identifierName != termName) // Do not allow a term to have itself as its concept type.
-				{this.conceptTypes[identifierName] = termName}
-				{this.identifierChildren[termName].push(identifierName)}
+				{term[2]}:termVocab
+				?(identifierName != termName || identifierVocab != termVocab) // Do not allow a term to have itself as its concept type.
+				{this.vocabularies[identifierVocab]['ConceptTypes'][identifierName] = termName}
+				{this.vocabularies[identifierVocab]['IdentifierChildren'][termName].push([identifierName, identifierVocab])}
 			)
 			-> term,
 		AttrDefinition :currentLine =
@@ -375,8 +410,8 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 				ClosedProjection(t, b):thatLF
 				{tVar.push(thatLF)}
 				(	?(currentLine[0] == 'FactType')
-				|	{this.conceptTypes[currentLine[1]] = t[1]}
-					{this.identifierChildren[t[1]].push(currentLine[1])}
+				|	{this.vocabularies[currentLine[2]]['ConceptTypes'][currentLine[1]] = t[1]}
+					{this.vocabularies['IdentifierChildren'][t[1]].push([currentLine[1], currentLine[2]])}
 				)?
 				-> tVar
 			|	Value:value
@@ -482,7 +517,7 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 	
 	SBVRParser._enableTokens = function() {
 		this.tokensEnabled = true;
-		SBVRLibs._enableTokens.call(this, ["StartTerm", "StartName", "StartFactType", "StartRule", "NewComment", "Term", "Name", "Modifier", "Verb", "Keyword", "AllowedAttrs", "AttrGuidanceType", "Number", "Value"]);
+		SBVRLibs._enableTokens.call(this, ['StartVocabulary', 'StartTerm', 'StartName', 'StartFactType', 'StartRule', 'NewComment', 'Vocabulary', 'Term', 'Name', 'Modifier', 'Verb', 'Keyword', 'AllowedAttrs', 'AttrGuidanceType', 'Number', 'Value']);
 	};
 	SBVRParser._sideEffectingRules = [
 		'Process',
@@ -502,19 +537,42 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 	SBVRParser._AddIdentifier = function(identifierType, identifier, baseSynonym) {
 		if(baseSynonym == null) {
 			baseSynonym = identifier;
-			this.identifierChildren[baseSynonym] = [];
+		}
+		if(identifierType == 'Vocabulary') {
+			this.currentVocabulary = baseSynonym;
+			if(!this.vocabularies.hasOwnProperty(baseSynonym)) {
+				this.vocabularies[baseSynonym] = {
+					'Term': {},
+					'Name': {},
+					'IdentifierChildren': {},
+					'ConceptTypes': {}
+				};
+			}
+			if(!this.vocabularies.hasOwnProperty(identifier)) {
+				this.vocabularies[identifier] = this.vocabularies[baseSynonym];
+			}
 		}
 		else {
-			this.identifierChildren[baseSynonym].push(identifier);
+			var vocabulary = this.vocabularies[this.currentVocabulary];
+			// Make sure the identifier isn't taken, if it is then fail (for vocabs we allow switching back to that vocab by redeclaring).
+			if(vocabulary['IdentifierChildren'].hasOwnProperty(identifier)) {
+				this._pred(false);
+			}
+			if(baseSynonym == identifier) {
+				vocabulary['IdentifierChildren'][baseSynonym] = [];
+			}
+			else {
+				vocabulary['IdentifierChildren'][baseSynonym].push([identifier, this.currentVocabulary]);
+			}
+			vocabulary[identifierType][identifier] = baseSynonym;
 		}
-		this.identifiers[identifierType][identifier] = baseSynonym;
 		// Check for longest identifier between current and pluralised form, as the plural form may well be (and often is) longer.
 		this.longestIdentifier[identifierType] = Math.max(identifier.length, identifier.pluralize().length, this.longestIdentifier[identifierType]);
 	};
 	
 	// Returns the base synonym for this identifier.
-	SBVRParser.BaseSynonym = function(identifierType, identifier) {
-		var identifiers = this.identifiers[identifierType];
+	SBVRParser.BaseSynonym = function(vocabulary, identifierType, identifier) {
+		var identifiers = this.vocabularies[vocabulary][identifierType];
 		if(identifiers.hasOwnProperty(identifier)) {
 			return identifiers[identifier];
 		}
@@ -526,12 +584,12 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 	};
 
 	// Checks that the identifier is valid in this point of the fact type and returns the identifier as it is found in the fact type.
-	SBVRParser.IsFactTypeIdentifier = function(identifierType, factTypeSoFar, identifier) {
-		identifier = this.BaseSynonym(identifierType, identifier);
+	SBVRParser.IsFactTypeIdentifier = function(vocabulary, identifierType, factTypeSoFar, identifier) {
+		identifier = this.BaseSynonym(vocabulary, identifierType, identifier);
 		if(identifier === false) {
 			return false;
 		}
-		var identifiers = this.branches[identifierType].call(this, factTypeSoFar);
+		var identifiers = this.branches[identifierType].call(this, vocabulary, factTypeSoFar);
 		if(identifiers.indexOf(identifier) !== -1) {
 			return identifier;
 		}
@@ -584,11 +642,12 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 		return currentLevel.__valid;
 	};
 
-	var removeRegex = {
-			'Verb': new RegExp('^' + ['Verb',''].toString()),
-			'Term': new RegExp('^' + ['Term',''].toString()),
-			'Name': new RegExp('^' + ['Name',''].toString())
-		},
+	var removeRegex = new RegExp('^(?:' + 
+									[	['Term',''].toString(),
+										['Name',''].toString(),
+										['Verb',''].toString()
+									].join('|') +
+								')(.*?),(.*)$'),
 		allowedAttrLists = [
 			'Concept Type:',
 			'Definition:',
@@ -636,36 +695,40 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 			'Enforcement Level:'
 		]
 	};
-	function getValidFactTypeParts(identifierType, factTypeSoFar) {
+	function getValidFactTypeParts(vocabulary, identifierType, factTypeSoFar) {
+		var vocabularies = this.vocabularies;
 		if(factTypeSoFar == null || factTypeSoFar.length == 0) {
-			if(this.identifiers.hasOwnProperty(identifierType)) {
-				return _.keys(this.identifiers[identifierType]);
+			var identifiers = vocabularies[vocabulary][identifierType];
+			if(identifiers != null) {
+				return _.keys(identifiers);
 			}
 			else {
 				return [];
 			}
 		}
-		var self = this,
-			factTypePart,
+		var factTypePart,
 			currentLevel = this._traverseFactType(factTypeSoFar),
 			factTypeParts = {},
-			followChildrenChain = function(identifier) {
-				if(self.identifiers[identifierType].hasOwnProperty(identifier)) {
-					factTypeParts[self.identifiers[identifierType][identifier]] = true;
+			followChildrenChain = function(vocabulary, identifier) {
+				vocabulary = vocabularies[vocabulary];
+				var identifiers = vocabulary[identifierType];
+				if(identifiers.hasOwnProperty(identifier)) {
+					factTypeParts[identifiers[identifier]] = true;
 				}
-				for(var i = 0; i < self.identifierChildren[identifier].length; i++) {
-					followChildrenChain(self.identifierChildren[identifier][i])
+				for(var i = 0; i < vocabulary['IdentifierChildren'][identifier].length; i++) {
+					var child = vocabulary['IdentifierChildren'][identifier][i];
+					followChildrenChain(child[1], child[0]);
 				}
 			};
 		for(factTypePart in currentLevel) {
 			if(currentLevel.hasOwnProperty(factTypePart)) {
-				if(removeRegex['Term'].test(factTypePart)) {
-					factTypePart = factTypePart.replace(removeRegex['Term'], '');
+				var matches = removeRegex.exec(factTypePart);
+				var factTypePartVocabulary;
+				if(matches != null) {
+					factTypePart = matches[1];
+					factTypePartVocabulary = matches[2];
 				}
-				else if(removeRegex['Name'].test(factTypePart)) {
-					factTypePart = factTypePart.replace(removeRegex['Name'], '');
-				}
-				followChildrenChain(factTypePart);
+				followChildrenChain(factTypePartVocabulary, factTypePart);
 			}
 		}
 		return _.keys(factTypeParts);
@@ -674,18 +737,22 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 		SBVRLibs.initialize.call(this);
 		this.branches = {
 			ClearSuggestions: [], //This stops us suggesting any autocomplete before this point.
-			StartTerm: ['Term:     '],
-			StartName: ['Name:     '],
-			StartFactType: ['Fact type:'],
-			StartRule: ['Rule:     '],
-			Term: function(factTypeSoFar) {
-				return getValidFactTypeParts.call(this, 'Term', factTypeSoFar);
+			StartVocabulary: ['Vocabulary:'],
+			StartTerm: ['Term:      '],
+			StartName: ['Name:      '],
+			StartFactType: ['Fact type: '],
+			StartRule: ['Rule:      '],
+			Vocabulary: function(factTypeSoFar) {
+				return _.keys(this.vocabularies);
 			},
-			Name: function(factTypeSoFar) {
-				return getValidFactTypeParts.call(this, 'Name', factTypeSoFar);
+			Term: function(vocabulary, factTypeSoFar) {
+				return getValidFactTypeParts.call(this, vocabulary, 'Term', factTypeSoFar);
 			},
-			Verb: function(factTypeSoFar) {
-				return getValidFactTypeParts.call(this, 'Verb', factTypeSoFar);
+			Name: function(vocabulary, factTypeSoFar) {
+				return getValidFactTypeParts.call(this, vocabulary, 'Name', factTypeSoFar);
+			},
+			Verb: function(vocabulary, factTypeSoFar) {
+				return getValidFactTypeParts.call(this, vocabulary, 'Verb', factTypeSoFar);
 			},
 			AllowedAttrs: function(termOrFactType) {
 				if(allowedAttrLists.hasOwnProperty(termOrFactType)) {
@@ -736,18 +803,17 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 			addOr: ['or'],
 			Terminator: ['.']
 		};
-		this.identifiers = {
-			'Term': {},
-			'Name': {}
-		};
+		this.vocabularies = {};
 		this.longestIdentifier = {
+			'Vocabulary': 0,
 			'Term': 0,
 			'Name': 0
 		};
-		this.identifierChildren = {};
 		this.ruleVars = {};
 		this.ruleVarsCount = 0;
 		this.lines = ['Model'];
+		
+		this._AddIdentifier('Vocabulary', 'Default');
 	};
 
 

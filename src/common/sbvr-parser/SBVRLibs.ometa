@@ -57,20 +57,24 @@ define(['underscore', 'ometa-core'], function(_) {
 	SBVRLibs.AddFactType = function(factType, realFactType) {
 		var mappedFactType = [];
 		for(var i = 0; i < realFactType.length; i++) {
-			mappedFactType[i] = realFactType[i].slice(0, 2);
+			var realFactTypePart = realFactType[i];
+			mappedFactType[i] = realFactTypePart.slice(0, 3);
 			for(var j = 0; j < factType.length; j++) {
-				if(realFactType[i][1] == factType[j][1] // The term/name/verb matches
-					&& realFactType[i].length == factType[j].length // And they have the same length
-					&& (realFactType[i].length < 3 || realFactType[i][2][1] == factType[j][2][1])) { // And they have no instance number, or the instance number matches.
-					mappedFactType[i][2] = j;
+				var factTypePart = factType[j];
+				if(realFactTypePart[0] != 'Verb' // Not a verb
+					&& realFactTypePart[1] == factTypePart[1] // The term/name matches
+					&& realFactTypePart[2] == factTypePart[2] // The vocabulary matches
+					&& realFactTypePart.length == factTypePart.length // And they have the same length
+					&& (realFactTypePart.length < 4 || realFactTypePart[3][1] == factTypePart[3][1])) { // And they have no instance number, or the instance number matches.
+					mappedFactType[i][3] = j;
 				}
 			}
 		}
 		this._traverseFactType(factType, mappedFactType);
 		if(factType.length == 3 && (factType[1][1] == 'has' || factType[1][1] == 'is of')) {
 			mappedFactType = _.extend([], mappedFactType);
-			mappedFactType[0] = mappedFactType[0].slice(0, 2).concat(2);
-			mappedFactType[2] = mappedFactType[2].slice(0, 2).concat(0);
+			mappedFactType[0] = mappedFactType[0].slice(0, 3).concat(2);
+			mappedFactType[2] = mappedFactType[2].slice(0, 3).concat(0);
 			if(factType[1][1] == 'has') {
 				this._traverseFactType([factType[2], ['Verb', 'is of'], factType[0]], mappedFactType);
 			}
@@ -90,7 +94,7 @@ define(['underscore', 'ometa-core'], function(_) {
 				return currentLevel;
 			}
 			var finalLevel, finalLevels = {};
-			currentFactTypePart = currentFactTypePart.slice(0, 2); // Make sure we only use the first 2 parts for the key.
+			currentFactTypePart = currentFactTypePart.slice(0, 3); // Make sure we only use the first 2 parts for the key.
 			
 			if(currentLevel.hasOwnProperty(currentFactTypePart) || (create && (currentLevel[currentFactTypePart] = {})) ) {
 				finalLevel = traverseRecurse(remainingFactType[0], remainingFactType.slice(1), currentLevel[currentFactTypePart]);
@@ -131,7 +135,7 @@ define(['underscore', 'ometa-core'], function(_) {
 		}
 		var actualFactType = [];
 		for(var i = 0; i < mappedFactType.length; i++) {
-			actualFactType[i] = mappedFactType[i].slice(0, 2);
+			actualFactType[i] = mappedFactType[i].slice(0, 3);
 		}
 		return actualFactType;
 	};
@@ -157,16 +161,18 @@ define(['underscore', 'ometa-core'], function(_) {
 			usedTermNames = {};
 		for(var i=0; i < factType.length; i+=2) {
 			for(var j=0; j < mappedFactType.length; j+=2) {
-				if(mappedFactType[j][2] == i) {
+				var mappedFactTypePart = mappedFactType[j];
+				if(mappedFactTypePart[3] == i) {
 					schemaInfo[schemaInfoIndex++] = {
-						term: mappedFactType[j][1],
-						field: mappedFactType[j][1]
+						term: mappedFactTypePart[1],
+						field: mappedFactTypePart[1]
 					};
-					if(usedTermNames.hasOwnProperty(mappedFactType[j][1])) {
-						usedTermNames[mappedFactType[j][1]] = 0;
+					// TODO: Should account for vocabulary
+					if(usedTermNames.hasOwnProperty(mappedFactTypePart[1])) {
+						usedTermNames[mappedFactTypePart[1]] = 0;
 					}
 					else {
-						usedTermNames[mappedFactType[j][1]] = null;
+						usedTermNames[mappedFactTypePart[1]] = null;
 					}
 				}
 			}

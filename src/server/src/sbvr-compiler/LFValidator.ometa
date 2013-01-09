@@ -47,18 +47,20 @@ define(['ometa!sbvr-parser/SBVRLibs', 'ometa-core'], function(SBVRLibs) {
 			addAttributes(['FactType'].concat(factType)),
 
 		Term
-			:t
+			:term
+			:vocab
 			(	(	// Variable number
 					"Number"
 				|	// Or embedded data
 					Value
-				):x
-				-> ['Term', t, x]
-			|	addAttributes(['Term', t])
+				):data
+				-> ['Term', term, vocab, data]
+			|	addAttributes(['Term', term, vocab])
 			),
 		Name
 			:name
-			addAttributes(['Name', name]),
+			:vocab
+			addAttributes(['Name', name, vocab]),
 		Verb
 			:v
 			-> ['Verb', v],
@@ -90,7 +92,11 @@ define(['ometa!sbvr-parser/SBVRLibs', 'ometa-core'], function(SBVRLibs) {
 		DefaultAttr :tableID =
 			anything,
 		AttrConceptType :termName =
-			['Term' :conceptType {this.conceptTypes[termName[1]] = conceptType}],
+			[	'Term' 
+				:conceptType
+				:vocab
+				{this.conceptTypes[termName[1]] = conceptType}
+			],
 		AttrDefinition :termOrVerb =
 			(	['Enum' :values]
 			|	trans

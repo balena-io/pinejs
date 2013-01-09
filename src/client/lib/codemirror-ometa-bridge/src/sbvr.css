@@ -5,6 +5,9 @@
 	border: 1px solid #ADABB3;
 }
 
+span.cm-sbvr-StartVocabulary {
+	color: #A22;
+}
 span.cm-sbvr-StartTerm {
 	color: #A22;
 }
@@ -13,14 +16,15 @@ span.cm-sbvr-StartName {
 }
 span.cm-sbvr-StartFactType {
 	color: #A70;
-/* 	background-color: #EEA; */
 }
 span.cm-sbvr-StartRule {
 	color: #299;
-/* 	background-color: #BFF; */
 }
 
-/* Noun */
+span.cm-sbvr-Vocabulary {
+	color: #108070;
+	text-decoration: underline;
+}
 span.cm-sbvr-Term {
 	color: #108070;
 	text-decoration: underline;

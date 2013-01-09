@@ -45,6 +45,7 @@ define([
 				|	'Name'
 				):type
 				:name
+				:vocab
 				(	// Var number
 					Number:num
 				|	// Or embedded data, which we ignore the embedded data as it is retreived from the binding instead
@@ -73,7 +74,12 @@ define([
 			:anything
 			{console.log('Default', tableID, anything)},
 		AttrConceptType :identifierName = // tableID will be same as identifierName for ConceptType (fact types cannot have a concept type)
-			['Term' :conceptType] {this.conceptTypes[identifierName] = conceptType}
+			[	'Term'
+				:conceptType
+				:vocab
+			]
+			{this.conceptTypes[identifierName] = conceptType}
+
 			IsPrimitive(conceptType):primitive
 			GetTable(conceptType):conceptTable
 			GetTable(identifierName):identifierTable
@@ -606,6 +612,7 @@ define([
 						|	'Name'
 						)
 						 IdentifierName:identifierName
+						 :vocab
 						 Attributes(identifierName)
 					|	'FactType' FactType:factType Attributes(factType)
 					]
