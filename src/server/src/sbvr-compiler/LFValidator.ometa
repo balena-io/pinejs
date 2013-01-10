@@ -19,7 +19,8 @@ define(['ometa!sbvr-parser/SBVRLibs', 'ometa-core'], function(SBVRLibs) {
 		Model
 			{[]}:xs
 			(
-				(	"Term"
+				(	"Vocabulary"
+				|	"Term"
 				|	"Name"
 				|	"FactType"
 				|	"Rule"
@@ -45,6 +46,10 @@ define(['ometa!sbvr-parser/SBVRLibs', 'ometa-core'], function(SBVRLibs) {
 			)?
 			&(:attrs AddFactType(factType, factType))?
 			addAttributes(['FactType'].concat(factType)),
+
+		Vocabulary
+			:vocab
+			addAttributes(['Vocabulary', vocab]),
 
 		Term
 			:term

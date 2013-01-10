@@ -123,8 +123,10 @@ define([
 	};
 	
 	LF2AbstractSQLPrep.defaultAttributes = function(termOrFactType, attrsFound, attrs) {
-		// We don't add a DatabaseIDField to a native primitive.
-		if(!this.nativePrimitives.hasOwnProperty(termOrFactType[1][1])&& !attrsFound.hasOwnProperty('DatabaseIDField')) {
+		// We don't add a DatabaseIDField to a native primitive or vocabulary.
+		if(termOrFactType[0] != 'Vocabulary'
+			&& !this.nativePrimitives.hasOwnProperty(termOrFactType[1][1])
+			&& !attrsFound.hasOwnProperty('DatabaseIDField')) {
 			attrs.splice(1, 0, ['DatabaseIDField', 'id']);
 			this.SetHelped();
 		}
@@ -159,6 +161,16 @@ define([
 						attrs.splice(1, 0, ['DatabaseTableName', tableName]);
 						this.SetHelped();
 					}
+					if(this.uniqueKeys.hasOwnProperty(termOrFactType)) {
+						if(!attrsFound.hasOwnProperty('Unique')) {
+							attrs.splice(1, 0, ['Unique', this.uniqueKeys[termOrFactType]]);
+							this.SetHelped();
+						}
+						else if(attrsFound['Unique'] != this.uniqueKeys[termOrFactType]) {
+							console.error(attrsFound['Unique'], this.uniqueKeys[termOrFactType]);
+							___MISMATCHED_UNIQUE_KEY___.die();
+						}
+					}
 					if(this.foreignKeys.hasOwnProperty(termOrFactType)) {
 						if(!attrsFound.hasOwnProperty('DatabaseAttribute')) {
 							attrs.splice(1, 0, ['DatabaseAttribute', false]);
@@ -172,16 +184,6 @@ define([
 						else if(attrsFound['ForeignKey'] != this.foreignKeys[termOrFactType]) {
 							console.error(attrsFound['ForeignKey'], this.foreignKeys[termOrFactType]);
 							___MISMATCHED_FOREIGN_KEY___.die();
-						}
-					}
-					if(this.uniqueKeys.hasOwnProperty(termOrFactType)) {
-						if(!attrsFound.hasOwnProperty('Unique')) {
-							attrs.splice(1, 0, ['Unique', this.uniqueKeys[termOrFactType]]);
-							this.SetHelped();
-						}
-						else if(attrsFound['Unique'] != this.uniqueKeys[termOrFactType]) {
-							console.error(attrsFound['Unique'], this.uniqueKeys[termOrFactType]);
-							___MISMATCHED_UNIQUE_KEY___.die();
 						}
 					}
 					

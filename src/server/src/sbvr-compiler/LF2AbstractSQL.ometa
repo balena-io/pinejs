@@ -159,6 +159,7 @@ define([
 			AddTableField(baseTable, fkName, 'ForeignKey', required, null, [fkTable.name, fkTable.idField])
 			{this.tables[this.GetResourceName(factType)] = 'ForeignKey'},
 		AttrUnique :factType =
+			// TODO: This needs to have the dependency of coming after ForeignKey/Attribute attrs removed.
 			:required
 			GetTable(factType):baseTable
 			(	?(baseTable === 'Attribute' || baseTable === 'ForeignKey')
@@ -608,7 +609,10 @@ define([
 		
 		Process =
 			[	'Model'
-				(	[	(	'Term'
+				(	[	'Vocabulary'
+						:vocab
+						:attributes
+					|	(	'Term'
 						|	'Name'
 						)
 						 IdentifierName:identifierName
