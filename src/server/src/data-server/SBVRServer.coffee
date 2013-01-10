@@ -7,12 +7,10 @@ define([
 	db = null
 
 	uiModel = '''
-			Term:      Short Text
-			Term:      Text
 			Term:      text
-				Concept type: Text
+				Concept type: Text (Type)
 			Term:      name
-				Concept type: Short Text
+				Concept type: Short Text (Type)
 			Term:      textarea
 				--Database id Field: name
 				Database Value Field: text

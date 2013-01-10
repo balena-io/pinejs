@@ -2,19 +2,14 @@ define(['cs!database-layer/db'], (dbModule) ->
 	exports = {}
 
 	undercurrentModel = '''
-		Term:      Integer
-		Term:      Date
-		Term:      Short Text
-		Term:      Text
-
 		Term:      value
-			Concept Type: Short Text
+			Concept Type: Short Text (Type)
 
 		Term:      dataset
 			Database Value Field: name
 
 		Term:      note
-			Concept Type: Text
+			Concept Type: Text (Type)
 		Fact type: dataset has note
 			Necessity: Each dataset has at most one note
 
@@ -23,12 +18,12 @@ define(['cs!database-layer/db'], (dbModule) ->
 			Necessity: Each dataset is about exactly 1 product
 
 		Term:      species
-			Concept Type: Short Text
+			Concept Type: Short Text (Type)
 		Fact type: product is about species
 			Necessity: Each product is about exactly 1 species
 
 		Term:      origin
-			Concept Type: Short Text
+			Concept Type: Short Text (Type)
 		Fact type: product has origin
 			Necessity: Each product has at most 1 origin
 
@@ -40,37 +35,37 @@ define(['cs!database-layer/db'], (dbModule) ->
 			Necessity: Each product has exactly 1 type
 
 		Term:      size
-			Concept Type: Short Text
+			Concept Type: Short Text (Type)
 		Fact type: product has size
 			Necessity: Each product has at most 1 size
 
 		Term:      point_of_trade
-			Concept Type: Short Text
+			Concept Type: Short Text (Type)
 		Fact type: product has point_of_trade
 			Necessity: Each product has exactly 1 point_of_trade
 
 		Term:      name
-			Concept Type: Text
+			Concept Type: Text (Type)
 		Fact type: dataset has name
 			Necessity: Each dataset has exactly 1 name
 
 		Term:      title
-			Concept Type: Text
+			Concept Type: Text (Type)
 		Fact type: dataset has title
 			Necessity: Each dataset has exactly 1 title
 
 		Term:      short title
-			Concept Type: Text
+			Concept Type: Text (Type)
 		Fact type: dataset has short title
 			Necessity: Each dataset has exactly 1 short title
 
 		Term:      caption
-			Concept Type: Text
+			Concept Type: Text (Type)
 		Fact type: dataset has caption
 			Necessity: Each dataset has exactly 1 caption
 
 		Term:      explanation
-			Concept Type: Text
+			Concept Type: Text (Type)
 		Fact type: dataset has explanation
 			Necessity: Each dataset has at most 1 explanation
 
@@ -88,7 +83,7 @@ define(['cs!database-layer/db'], (dbModule) ->
 			Necessity: Each dataset has exactly 1 frequency 
 
 		Term:      colour
-			Concept Type: Short Text
+			Concept Type: Short Text (Type)
 		Fact type: dataset has colour
 			Necessity: Each dataset has exactly 1 colour
 
@@ -112,14 +107,14 @@ define(['cs!database-layer/db'], (dbModule) ->
 		Fact type: quote belongs to dataset
 			Necessity: Each quote belongs to exactly one dataset
 
-		-- Concept Type: Currency
+		-- Concept Type: Currency (Type)
 		Term:      price
-			Concept Type: Integer
+			Concept Type: Integer (Type)
 		Fact type: quote has price
 			Necessity: Each quote has at most 1 price
 
 		Term:      date
-			Concept Type: Date
+			Concept Type: Date (Type)
 		Fact type: quote has date
 			Necessity: Each quote has exactly 1 date'''
 

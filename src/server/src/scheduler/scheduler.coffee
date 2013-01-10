@@ -2,13 +2,6 @@ define(['cs!database-layer/db'], (dbModule) ->
 	exports = {}
 
 	schedulerModel = '''
-		Term: Integer
-		Term: Real
-		Term: Date
-		Term: Time
-		Term: Short Text
-		Term: Text
-
 		Term: stream
 			Database Value Field: description
 		Term: campaign
@@ -21,49 +14,49 @@ define(['cs!database-layer/db'], (dbModule) ->
 			Database Value Field: description
 
 		Term: description
-			Concept Type: Text
+			Concept Type: Text (Type)
 
 		Term: air time
-			Concept Type: Integer
+			Concept Type: Integer (Type)
 
 		Term: oversupply
-			Concept Type: Real
+			Concept Type: Real (Type)
 
 		Term: start date
-			Concept Type: Date
+			Concept Type: Date (Type)
 
 		Term: end date
-			Concept Type: Date
+			Concept Type: Date (Type)
 
 		Term: start time
-			Concept Type: Time
+			Concept Type: Time (Type)
 
 		Term: end time
-			Concept Type: Time
+			Concept Type: Time (Type)
 
 		Term: minimum frequency count
-			Concept Type: Integer
+			Concept Type: Integer (Type)
 
 		Term: maximum frequency count
-			Concept Type: Integer
+			Concept Type: Integer (Type)
 
 		Term: priority
-			Concept Type: Real
+			Concept Type: Real (Type)
 
 		Term: duration
-			Concept Type: Real
+			Concept Type: Real (Type)
 
 		Term: week day set
-			Concept Type: Integer
+			Concept Type: Integer (Type)
 
 		Term: width
-			Concept Type: Integer
+			Concept Type: Integer (Type)
 
 		Term: height
-			Concept Type: Integer
+			Concept Type: Integer (Type)
 
 		Term: url
-			Concept Type: Text
+			Concept Type: Text (Type)
 
 		Fact Type: stream has description
 			Necessity: each stream has exactly one description.

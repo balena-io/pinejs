@@ -3,6 +3,86 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 	//Converts from Structured English (SBVR-SE) to Logical Formulation (SBVR-LF)
 	//Specification: http://www.omg.org/spec/SBVR/1.0/
 	
+	var dataTypesVocabulary = "
+		Vocabulary: Type
+		Term:       Integer
+		Term:       Real
+		Term:       Text
+		Term:       Date
+		Term:       Date Time
+		Term:       Time
+		Term:       Interval
+
+		Term:       Serial
+			Concept Type: Integer
+			Note: An auto-incrementing 'Integer'.
+		Term:       JSON
+			Concept Type: Text
+			Note: A 'Text' type that will only allow valid JSON.
+		Term:       Hashed
+			Concept Type: Text
+			Note: A 'Text' type that will automatically be converted to a hash.
+
+		Term:       Length
+			Concept Type: Integer
+
+		Fact type:  Text has Length
+			Note: Length in characters
+			Necessity: Each Text has exactly one Length
+
+		Fact type:  Integer1 is greater than Integer2
+			Synonymous Form: Integer2 is less than or equal to Integer1
+		Fact type:  Integer1 is less than Integer2
+			Synonymous Form: Integer2 is greater than or equal to Integer1
+		Fact type:  Integer1 is equal to Integer2
+			Synonymous Form: Integer2 is equal to Integer1
+			Synonymous Form: Integer1 equals Integer2
+			Synonymous Form: Integer2 equals Integer1
+
+		Fact type:  Real1 is greater than Real2
+			Synonymous Form: Real2 is less than or equal to Real1
+		Fact type:  Real1 is less than Real2
+			Synonymous Form: Real2 is greater or equal to than Real1
+		Fact type:  Real1 is equal to Real2
+			Synonymous Form: Real2 is equal to Real1
+			Synonymous Form: Real1 equals Real2
+			Synonymous Form: Real2 equals Real1
+
+
+		Fact type:  Real is greater than Integer
+			Synonymous Form: Integer is less than or equal to Real
+		Fact type:  Integer is greater than Real
+			Synonymous Form: Real is less than or equal to Integer
+
+		Fact type:  Integer is less than Real
+			Synonymous Form: Real is greater than or equal to Integer
+		Fact type:  Real is less than Integer
+			Synonymous Form: Integer is greater than or equal to Real
+
+		Fact type:  Integer is equal to Real
+			Synonymous Form: Real is equal to Integer
+			Synonymous Form: Real equals Integer
+			Synonymous Form: Integer equals Real
+
+
+		Fact type:  Real1 is greater than Real2
+			Synonymous Form: Real2 is less than or equal to Real1
+		Fact type:  Real1 is less than Real2
+			Synonymous Form: Real2 is greater or equal to than Real1
+		Fact type:  Real1 is equal to Real2
+			Synonymous Form: Real2 is equal to Real1
+			Synonymous Form: Real1 equals Real2
+			Synonymous Form: Real2 equals Real1
+
+		Fact type:  Text1 is equal to Text2
+			Synonymous Form: Text2 is equal to Text1
+			Synonymous Form: Text1 equals Text2
+			Synonymous Form: Text2 equals Text1
+
+		Term:       Short Text
+			Concept Type: Text
+			--Necessity: each Short Text has a Length that is less than or equal to 255"
+
 	ometa SBVRParser <: SBVRLibs {
 		EOL =
 			(	'\n'
@@ -813,7 +893,14 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 		this.ruleVarsCount = 0;
 		this.lines = ['Model'];
 		
-		this._AddIdentifier('Vocabulary', 'Default');
+		// Process the datatypes vocabulary,
+		// this will not make use of reusing memoisations,
+		// however it will not break them for standard use as it leaves this.inputHead as it finds it.
+		var origInputHead = this.inputHead;
+		this.matchAll(dataTypesVocabulary, 'Process');
+		// And then switch to the "Default" vocabulary for normal parsing.
+		this.matchAll('Vocabulary: Default', 'Process');
+		this.inputHead = origInputHead;
 	};
 
 

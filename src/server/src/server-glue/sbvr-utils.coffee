@@ -15,17 +15,14 @@ define([
 	db = null
 
 	devModel = '''
-			Term:      Short Text
-			Term:      JSON
-
 			Term:      model
 				Database Value Field: model value
 			Term:      vocabulary
-				Concept Type: Short Text
+				Concept Type: Short Text (Type)
 			Term:      model type
-				Concept Type: Short Text
+				Concept Type: Short Text (Type)
 			Term:      model value
-				Concept Type: JSON
+				Concept Type: JSON (Type)
 
 			Fact Type: model is of vocabulary
 				Necessity: Each model is of exactly one vocabulary
@@ -35,19 +32,16 @@ define([
 				Necessity: Each model has exactly one model value'''
 
 	transactionModel = '''
-			Term:      Integer
-			Term:      Short Text
-			Term:      Text
 			Term:      resource id
-				Concept type: Integer
+				Concept type: Integer (Type)
 			Term:      resource type
-				Concept type: Text
+				Concept type: Text (Type)
 			Term:      field name
-				Concept type: Text
+				Concept type: Text (Type)
 			Term:      field value
-				Concept type: Text
+				Concept type: Text (Type)
 			Term:      placeholder
-				Concept type: Short Text
+				Concept type: Short Text (Type)
 
 			Term:      resource
 				Database Value Field: resource id
@@ -69,7 +63,7 @@ define([
 			Rule:      It is obligatory that each resource that is under a lock that is exclusive, is under at most 1 lock.
 
 			Term:      conditional type
-				Concept Type: Short Text
+				Concept Type: Short Text (Type)
 				Definition: "ADD", "EDIT" or "DELETE"
 
 			Term:      conditional resource
@@ -100,15 +94,12 @@ define([
 			Rule:      It is obligatory that each conditional resource that has a lock, belongs to a transaction that the lock belongs to.'''
 
 	userModel = '''
-			Term:      Hashed
-			Term:      Short Text
-
 			Term:      user
 				Database Value Field: username
 			Term:      username
-				Concept Type: Short Text
+				Concept Type: Short Text (Type)
 			Term:      password
-				Concept Type: Hashed
+				Concept Type: Hashed (Type)
 			Fact type: user has username
 				Necessity: Each user has exactly one username.
 				Necessity: Each username is of exactly one user.
