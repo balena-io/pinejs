@@ -33,32 +33,33 @@ define([
 
 
 	setupCallback = (app) ->
-		sbvrUtils.setup(app, require, databaseOptions)
-		passportBCrypt = passportBCrypt({
-				loginUrl: '/login',
-				failureRedirect: '/login.html',
-				successRedirect: '/'
-			}, sbvrUtils, app, passport)
+		sbvrUtils.setup(app, require, databaseOptions, (err) ->
+			passportBCrypt = passportBCrypt({
+					loginUrl: '/login',
+					failureRedirect: '/login.html',
+					successRedirect: '/'
+				}, sbvrUtils, app, passport)
 
-		if has 'SBVR_SERVER_ENABLED'
-			sbvrServer.setup(app, require, sbvrUtils, passportBCrypt.isAuthed, databaseOptions)
+			if has 'SBVR_SERVER_ENABLED'
+				sbvrServer.setup(app, require, sbvrUtils, passportBCrypt.isAuthed, databaseOptions)
 
-		if has 'EDITOR_SERVER_ENABLED'
-			editorServer.setup(app, require, sbvrUtils, passportBCrypt.isAuthed, databaseOptions)
+			if has 'EDITOR_SERVER_ENABLED'
+				editorServer.setup(app, require, sbvrUtils, passportBCrypt.isAuthed, databaseOptions)
 
-		if has 'UNDERCURRENT'
-			undercurrent.setup(app, require, sbvrUtils, passportBCrypt.isAuthed, databaseOptions)
+			if has 'UNDERCURRENT'
+				undercurrent.setup(app, require, sbvrUtils, passportBCrypt.isAuthed, databaseOptions)
 
-		if has 'SCHEDULER'
-			scheduler.setup(app, require, sbvrUtils, passportBCrypt.isAuthed, databaseOptions)
+			if has 'SCHEDULER'
+				scheduler.setup(app, require, sbvrUtils, passportBCrypt.isAuthed, databaseOptions)
 
-		if has 'IAH'
-			iah.setup(app, require, sbvrUtils, passportBCrypt.isAuthed, databaseOptions)
+			if has 'IAH'
+				iah.setup(app, require, sbvrUtils, passportBCrypt.isAuthed, databaseOptions)
 
-		if has 'ENV_NODEJS'
-			app.listen(process.env.PORT or 1337, () ->
-				console.log('Server started')
-			)
+			if has 'ENV_NODEJS'
+				app.listen(process.env.PORT or 1337, () ->
+					console.log('Server started')
+				)
+		)
 
 
 

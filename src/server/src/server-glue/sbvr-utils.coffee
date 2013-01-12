@@ -309,39 +309,64 @@ define([
 	# successCallback = (tx, lfModel, slfModel, abstractSqlModel, sqlModel, clientModel)
 	# failureCallback = (tx, errors)
 	exports.executeModel = executeModel = (tx, vocab, seModel, successCallback, failureCallback) ->
-		try
-			lfModel = SBVRParser.matchAll(seModel, 'Process')
-		catch e
-			console.error('Error parsing model', e)
-			return failureCallback(tx, 'Error parsing model')
-		slfModel = LF2AbstractSQLPrep.match(lfModel, 'Process')
-		abstractSqlModel = LF2AbstractSQL.match(slfModel, 'Process')
-		sqlModel = AbstractSQL2SQL.generate(abstractSqlModel)
-		clientModel = AbstractSQL2CLF(sqlModel)
+		models = {}
+		models[vocab] = seModel
+		executeModels(tx, models, (err) ->
+			if err?
+				failureCallback(tx, err)
+			successCallback(tx)
+		)
+	exports.executeModels = executeModels = (tx, models, callback) ->
+		validateFuncs = []
+		async.forEach(_.keys(models),
+			(vocab, callback) ->
+				seModel = models[vocab]
+				try
+					lfModel = SBVRParser.matchAll(seModel, 'Process')
+				catch e
+					console.error('Error parsing model', e)
+					return callback('Error parsing model')
+				slfModel = LF2AbstractSQLPrep.match(lfModel, 'Process')
+				abstractSqlModel = LF2AbstractSQL.match(slfModel, 'Process')
+				sqlModel = AbstractSQL2SQL.generate(abstractSqlModel)
+				clientModel = AbstractSQL2CLF(sqlModel)
 
-		# Create tables related to terms and fact types
-		for createStatement in sqlModel.createSchema
-			tx.executeSql(createStatement)
+				# Create tables related to terms and fact types
+				async.forEach(sqlModel.createSchema,
+					(createStatement, callback) ->
+						tx.executeSql(createStatement, null,
+							-> callback()
+							-> callback() # Warning: We ignore errors in the create table statements as SQLite doesn't support CREATE IF NOT EXISTS
+						)
+					(err, results) ->
+						validateFuncs.push((callback) ->
+							# Validate the [empty] model according to the rules.
+							# This may eventually lead to entering obligatory data.
+							# For the moment it blocks such models from execution.
+							validateDB(tx, sqlModel,
+								(tx) ->
+									sqlModels[vocab] = sqlModel
+									clientModels[vocab] = clientModel
 
-		# Validate the [empty] model according to the rules.
-		# This may eventually lead to entering obligatory data.
-		# For the moment it blocks such models from execution.
-		validateDB(tx, sqlModel,
-			(tx) ->
-				sqlModels[vocab] = sqlModel
-				clientModels[vocab] = clientModel
+									serverURIParser.setSQLModel(vocab, abstractSqlModel)
+									serverURIParser.setClientModel(vocab, clientModel)
+									runURI('PUT', '/dev/model?filter=model_type:se', [{vocabulary: vocab, 'model value': seModel}], tx)
+									runURI('PUT', '/dev/model?filter=model_type:lf', [{vocabulary: vocab, 'model value': lfModel}], tx)
+									runURI('PUT', '/dev/model?filter=model_type:slf', [{vocabulary: vocab, 'model value': slfModel}], tx)
+									runURI('PUT', '/dev/model?filter=model_type:abstractsql', [{vocabulary: vocab, 'model value': abstractSqlModel}], tx)
+									runURI('PUT', '/dev/model?filter=model_type:sql', [{vocabulary: vocab, 'model value': sqlModel}], tx)
+									runURI('PUT', '/dev/model?filter=model_type:client', [{vocabulary: vocab, 'model value': clientModel}], tx)
 
-				serverURIParser.setSQLModel(vocab, abstractSqlModel)
-				serverURIParser.setClientModel(vocab, clientModel)
-				runURI('PUT', '/dev/model?filter=model_type:se', [{vocabulary: vocab, 'model value': seModel}], tx)
-				runURI('PUT', '/dev/model?filter=model_type:lf', [{vocabulary: vocab, 'model value': lfModel}], tx)
-				runURI('PUT', '/dev/model?filter=model_type:slf', [{vocabulary: vocab, 'model value': slfModel}], tx)
-				runURI('PUT', '/dev/model?filter=model_type:abstractsql', [{vocabulary: vocab, 'model value': abstractSqlModel}], tx)
-				runURI('PUT', '/dev/model?filter=model_type:sql', [{vocabulary: vocab, 'model value': sqlModel}], tx)
-				runURI('PUT', '/dev/model?filter=model_type:client', [{vocabulary: vocab, 'model value': clientModel}], tx)
-
-				successCallback(tx, lfModel, slfModel, abstractSqlModel, sqlModel, clientModel)
-			, failureCallback)
+									callback()
+								, (tx, err) ->
+									callback(err)
+							)
+						)
+						callback(err)
+				)
+			(err, results) ->
+				async.parallel(validateFuncs, callback)
+		)
 
 	exports.deleteModel = (vocabulary) ->
 		# TODO: This should be reorganised to be async.
@@ -601,45 +626,45 @@ define([
 		else
 			next()
 
-	exports.executeStandardModels = executeStandardModels = (tx) ->
-		executeModel(tx, 'dev', devModel,
-			() ->
-				console.log('Sucessfully executed dev model.')
-			(tx, error) ->
-				console.error('Failed to execute dev model.', error)
-		)
-		executeModel(tx, 'transaction', transactionModel,
-			() ->
-				console.log('Sucessfully executed transaction model.')
-			(tx, error) ->
-				console.error('Failed to execute transaction model.', error)
-		)
-		executeModel(tx, 'user', userModel,
-			() ->
-				# TODO: Remove these hardcoded users.
-				if has 'DEV'
-					runURI('POST', '/user/user', [{'user.username': 'test', 'user.password': 'test'}], null)
-					runURI('POST', '/user/user', [{'user.username': 'test2', 'user.password': 'test2'}], null)
-				console.log('Sucessfully executed user model.')
-			(tx, error) ->
-				console.error('Failed to execute user model.', error)
+	exports.executeStandardModels = executeStandardModels = (tx, callback) ->
+		executeModels(tx, {
+				'dev': devModel
+				'transaction': transactionModel
+				'user': userModel
+			},
+			(err) ->
+				if err?
+					console.error('Failed to execute standard models.', err)
+				else
+					# TODO: Remove these hardcoded users.
+					if has 'DEV'
+						runURI('POST', '/user/user', [{'user.username': 'test', 'user.password': 'test'}], null)
+						runURI('POST', '/user/user', [{'user.username': 'test2', 'user.password': 'test2'}], null)
+					console.log('Sucessfully executed standard models.')
+				callback(err)
 		)
 
-	exports.setup = (app, requirejs, databaseOptions) ->
+	exports.setup = (app, requirejs, databaseOptions, callback) ->
 		db = dbModule.connect(databaseOptions)
 		AbstractSQL2SQL = AbstractSQL2SQL[databaseOptions.engine]
 		db.transaction((tx) ->
-			executeStandardModels(tx)
-			runURI('GET', '/dev/model?filter=model_type:sql;vocabulary:data', null, tx
-				(result) ->
-					for instance in result.instances
-						vocab = instance.vocabulary
-						sqlModel = instance['model value']
-						clientModel = AbstractSQL2CLF(sqlModel)
-						sqlModels[vocab] = sqlModel
-						serverURIParser.setSQLModel(vocab, sqlModel)
-						clientModels[vocab] = clientModel
-						serverURIParser.setClientModel(vocab, clientModel)
+			executeStandardModels(tx, (err) ->
+				if err?
+					console.error('Could not execute standard models')
+					process.exit()
+				runURI('GET', '/dev/model?filter=model_type:sql;vocabulary:data', null, tx
+					(result) ->
+						for instance in result.instances
+							vocab = instance.vocabulary
+							sqlModel = instance['model value']
+							clientModel = AbstractSQL2CLF(sqlModel)
+							sqlModels[vocab] = sqlModel
+							serverURIParser.setSQLModel(vocab, sqlModel)
+							clientModels[vocab] = clientModel
+							serverURIParser.setClientModel(vocab, clientModel)
+				)
+				# We only actually need to have had the standard models executed before execution continues, so we schedule it here.
+				setTimeout(callback, 0)
 			)
 		)
 		if has 'DEV'
