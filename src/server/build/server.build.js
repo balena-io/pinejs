@@ -25,8 +25,10 @@
 		USE_MYSQL				: true,
 		USE_POSTGRES			: false,
 		DEV						: false,
+
 		UNDERCURRENT			: false,
-		SCHEDULER				: false
+		SCHEDULER				: false,
+		IAH						: false
 	},
 
 	paths: {
