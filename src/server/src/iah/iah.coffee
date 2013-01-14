@@ -106,6 +106,10 @@ define(['cs!database-layer/db'], (dbModule) ->
 			)
 		)
 		
+		app.get('/dev/*', sbvrUtils.parseURITree, (req, res, next) ->
+			sbvrUtils.runGet(req, res)
+		)
+		
 		app.get('/data/*', sbvrUtils.parseURITree, (req, res, next) ->
 			sbvrUtils.runGet(req, res)
 		)
