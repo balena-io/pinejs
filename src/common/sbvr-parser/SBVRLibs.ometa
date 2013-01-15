@@ -184,16 +184,17 @@ define(['underscore', 'ometa-core'], function(_) {
 			for(var j=0; j < mappedFactType.length; j+=2) {
 				var mappedFactTypePart = mappedFactType[j];
 				if(mappedFactTypePart[3] == i) {
+					var term = mappedFactTypePart.slice(0, 3);
 					schemaInfo[schemaInfoIndex++] = {
-						term: mappedFactTypePart[1],
+						term: term,
 						field: mappedFactTypePart[1]
 					};
 					// TODO: Should account for vocabulary
-					if(usedTermNames.hasOwnProperty(mappedFactTypePart[1])) {
-						usedTermNames[mappedFactTypePart[1]] = 0;
+					if(usedTermNames.hasOwnProperty(term)) {
+						usedTermNames[term] = 0;
 					}
 					else {
-						usedTermNames[mappedFactTypePart[1]] = null;
+						usedTermNames[term] = null;
 					}
 				}
 			}

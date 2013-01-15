@@ -309,7 +309,7 @@ define([
 			{0}:i
 			(	?(i < rootTerms.length)
 				RoleBinding:bind
-				{rootTerms[i].term}:termName
+				{rootTerms[i].term[1]}:termName
 				GetTable(termName):table
 				AddWhereClause(query, ['Equals', ['ReferencedField', tableAlias, rootTerms[i].field], ['ReferencedField', 'var' + bind.number + termName, table.idField]])
 				{i++}
@@ -330,19 +330,19 @@ define([
 					{rootTerms[1]}:fkFrom
 					{rootTerms[0]}:fkTo
 				)
-				GetTable(fkTo.term):tableTo
+				GetTable(fkTo.term[1]):tableTo
 			|	___ForeignKeyMatchingFailed___.die
 			)
 			(	?(bindTo.identifier.type == 'Name')
 				{bindTo.identifier.name}:name
 				GetTable(name):nameTable
 				{'name-' + name + '-'}:varAlias
-				{['SelectQuery', ['Select', [[['ReferencedField', varAlias + fkTo.term, tableTo.idField]]]], ['From', nameTable.name, varAlias + name]]}:query
+				{['SelectQuery', ['Select', [[['ReferencedField', varAlias + fkTo.term[1], tableTo.idField]]]], ['From', nameTable.name, varAlias + name]]}:query
 				ResolveConceptTypes(query, bindTo.identifier, varAlias, fkTo.term)
 				-> query
-			|	-> ['ReferencedField', 'var' + bindTo.number + fkTo.term, tableTo.idField]
+			|	-> ['ReferencedField', 'var' + bindTo.number + fkTo.term[1], tableTo.idField]
 			):toField
-			-> ['Equals', ['ReferencedField', 'var' + bindFrom.number + fkFrom.term, fkTo.field], toField],
+			-> ['Equals', ['ReferencedField', 'var' + bindFrom.number + fkFrom.term[1], fkTo.field], toField],
 
 		BooleanAttribute :actualFactType =
 			?(this.GetTable(actualFactType) == 'BooleanAttribute')
@@ -672,13 +672,12 @@ define([
 	};
 	
 	LF2AbstractSQL.ResolveConceptTypes = function(query, identifier, varAlias, untilConcept) {
-		//TODO: untilConcept should use vocab
 		var conceptTypes,
 			conceptAlias,
 			parentAlias = varAlias + identifier.name,
 			concept = [identifier.type, identifier.name, identifier.vocab],
 			conceptTable;
-		while(concept[1] != untilConcept
+		while((untilConcept == null || concept[1] != untilConcept[1] || concept[2] != untilConcept[2])
 				&& (conceptTypes = this.vocabularies[concept[2]]['ConceptTypes'])
 				&&	conceptTypes.hasOwnProperty(concept[1])) {
 			concept = conceptTypes[concept[1]];
