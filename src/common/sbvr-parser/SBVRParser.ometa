@@ -3,7 +3,8 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 	//Converts from Structured English (SBVR-SE) to Logical Formulation (SBVR-LF)
 	//Specification: http://www.omg.org/spec/SBVR/1.0/
 	
-	var dataTypesVocabulary = "
+	var dataTypesInputHead,
+		dataTypesVocabulary = "
 		Vocabulary: Type
 		Term:       Integer
 		Term:       Real
@@ -886,7 +887,9 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 		// this will not make use of reusing memoisations,
 		// however it will not break them for standard use as it leaves this.inputHead as it finds it.
 		var origInputHead = this.inputHead;
+		this.inputHead = dataTypesInputHead;
 		this.matchAll(dataTypesVocabulary, 'Process');
+		dataTypesInputHead = this.inputHead;
 		// And then switch to the "Default" vocabulary for normal parsing.
 		this.matchAll('Vocabulary: Default', 'Process');
 		this.inputHead = origInputHead;
