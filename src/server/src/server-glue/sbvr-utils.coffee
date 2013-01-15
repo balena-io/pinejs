@@ -641,7 +641,7 @@ define([
 						runURI('POST', '/user/user', [{'user.username': 'test', 'user.password': 'test'}], null)
 						runURI('POST', '/user/user', [{'user.username': 'test2', 'user.password': 'test2'}], null)
 					console.log('Sucessfully executed standard models.')
-				callback(err)
+				callback?(err)
 		)
 
 	exports.setup = (app, requirejs, databaseOptions, callback) ->
