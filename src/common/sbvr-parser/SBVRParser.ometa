@@ -356,9 +356,9 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 			|	// Embedded data
 				Value:data
 				// Is the type of embedded data allowed here?
-				IsFactTypeIdentifier('Data Types', 'Term', factType, data[0]):factTypeIdentifier
+				IsFactTypeIdentifier('Type', 'Term', factType, data[0]):factTypeIdentifier
 				?(factTypeIdentifier !== false)
-				{['Term', factTypeIdentifier, 'Data Types', data]}:identifier
+				{['Term', factTypeIdentifier, 'Type', data]}:identifier
 				// Create the var so we can bind to it.
 				EmbedVar(identifier, data)
 				Bind(identifier, bindings):bind
