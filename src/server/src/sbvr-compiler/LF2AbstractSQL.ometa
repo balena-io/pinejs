@@ -78,7 +78,7 @@ define([
 				:conceptType
 				:vocab
 			]:term
-			{this.vocabularies[termOrFactType[2]]['ConceptTypes'][termOrFactType] = conceptType}
+			{this.vocabularies[termOrFactType[2]]['ConceptTypes'][termOrFactType] = term}
 
 			IsPrimitive(term):primitive
 			GetTable(conceptType):conceptTable
@@ -228,7 +228,7 @@ define([
 					?bind
 				|	{'var' + num}:varAlias
 					{['SelectQuery', ['Select', []], ['From', this.GetTable(identifier.name).name, varAlias + identifier.name]]}:query
-					ResolveConceptTypes(query, identifier.name, varAlias)
+					ResolveConceptTypes(query, identifier, varAlias)
 				)
 				(	RulePart:whereBody
 					(	?query
@@ -321,7 +321,7 @@ define([
 			(	RoleBinding:bindFrom
 				RoleBinding:bindTo
 				end
-				(	?this.IsChild(bindFrom.identifier.name, actualFactType[0])
+				(	?this.IsChild([bindFrom.identifier.type, bindFrom.identifier.name, bindFrom.identifier.vocab], actualFactType[0])
 					{rootTerms[0]}:fkFrom
 					{rootTerms[1]}:fkTo
 				|	{bindTo}:temp
@@ -338,7 +338,7 @@ define([
 				GetTable(name):nameTable
 				{'name-' + name + '-'}:varAlias
 				{['SelectQuery', ['Select', [[['ReferencedField', varAlias + fkTo.term, tableTo.idField]]]], ['From', nameTable.name, varAlias + name]]}:query
-				ResolveConceptTypes(query, name, varAlias, fkTo.term)
+				ResolveConceptTypes(query, bindTo.identifier, varAlias, fkTo.term)
 				-> query
 			|	-> ['ReferencedField', 'var' + bindTo.number + fkTo.term, tableTo.idField]
 			):toField
@@ -360,7 +360,7 @@ define([
 			(	RoleBinding:bindReal
 				RoleBinding:bindAttr
 				end
-				(	?this.IsChild(bindReal.identifier.name, actualFactType[0])
+				(	?this.IsChild([bindReal.identifier.type, bindReal.identifier.name, bindReal.identifier.vocab], actualFactType[0])
 				|	{bindAttr}:temp
 					{bindReal}:bindAttr
 					{temp}:bindReal
@@ -671,25 +671,24 @@ define([
 		}
 	};
 	
-	LF2AbstractSQL.ResolveConceptTypes = function(query, termName, varAlias, untilConcept) {
-		var conceptTypes = {}, vocab;
-		for(vocab in this.vocabularies) {
-			// TODO: We lump all concept types together, whereas really they should understand vocab
-			_.extend(conceptTypes, this.vocabularies[vocab]['ConceptTypes']);
-		}
-		var conceptAlias,
-			parentAlias = varAlias + termName,
-			conceptName = termName,
+	LF2AbstractSQL.ResolveConceptTypes = function(query, identifier, varAlias, untilConcept) {
+		//TODO: untilConcept should use vocab
+		var conceptTypes,
+			conceptAlias,
+			parentAlias = varAlias + identifier.name,
+			concept = [identifier.type, identifier.name, identifier.vocab],
 			conceptTable;
-		while(conceptName != untilConcept && conceptTypes.hasOwnProperty(conceptName)) {
-			conceptName = conceptTypes[conceptName];
-			conceptAlias = varAlias + conceptName;
-			conceptTable = this.GetTable(conceptName);
+		while(concept[1] != untilConcept
+				&& (conceptTypes = this.vocabularies[concept[2]]['ConceptTypes'])
+				&&	conceptTypes.hasOwnProperty(concept[1])) {
+			concept = conceptTypes[concept[1]];
+			conceptAlias = varAlias + concept[1];
+			conceptTable = this.GetTable(concept[1]);
 			if(conceptTable.primitive !== false) {
 				break;
 			}
 			query.push(['From', conceptTable.name, conceptAlias]);
-			this.AddWhereClause(query, ['Equals', ['ReferencedField', parentAlias, conceptName], ['ReferencedField', conceptAlias, conceptTable.idField]]);
+			this.AddWhereClause(query, ['Equals', ['ReferencedField', parentAlias, concept[1]], ['ReferencedField', conceptAlias, conceptTable.idField]]);
 			parentAlias = conceptAlias;
 		}
 	};

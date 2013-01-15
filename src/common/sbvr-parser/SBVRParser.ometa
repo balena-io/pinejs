@@ -468,7 +468,8 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 		AttrConceptType :currentLine =
 			{currentLine[1]}:identifierName
 			{currentLine[2]}:identifierVocab
-			?(!this.vocabularies[identifierVocab]['ConceptTypes'].hasOwnProperty(identifierName)) // Only allow one instance of Concept Type: attribute.
+			{currentLine.slice(0, 3)}:identifier
+			?(!this.vocabularies[identifierVocab]['ConceptTypes'].hasOwnProperty(identifier)) // Only allow one instance of Concept Type: attribute.
 											 // TODO: Improve this to deal with synonyms and autocomplete/highlighting.
 			// A concept type has to be a term (cannot be a name)
 			Term:term
@@ -476,7 +477,7 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 			|	{term[1]}:termName
 				{term[2]}:termVocab
 				?(identifierName != termName || identifierVocab != termVocab) // Do not allow a term to have itself as its concept type.
-				{this.vocabularies[identifierVocab]['ConceptTypes'][identifierName] = termName}
+				{this.vocabularies[identifierVocab]['ConceptTypes'][identifier] = term}
 				{this.vocabularies[termVocab]['IdentifierChildren'][termName].push([identifierName, identifierVocab])}
 			)
 			-> term,
@@ -484,14 +485,14 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 			(	addThe?
 				// The following section is copied from RuleBody, should really be sorted properly.
 				{this.ruleVarsCount = 0}
-				Term:t
-				CreateVar(t):tVar
-				Bind(t):b
-				ClosedProjection(t, b):thatLF
+				Term:term
+				CreateVar(term):tVar
+				Bind(term):b
+				ClosedProjection(term, b):thatLF
 				{tVar.push(thatLF)}
 				(	?(currentLine[0] == 'FactType')
-				|	{this.vocabularies[currentLine[2]]['ConceptTypes'][currentLine[1]] = t[1]}
-					{this.vocabularies['IdentifierChildren'][t[1]].push([currentLine[1], currentLine[2]])}
+				|	{this.vocabularies[currentLine[2]]['ConceptTypes'][currentLine.slice(0, 3)] = term}
+					{this.vocabularies['IdentifierChildren'][term[1]].push([currentLine[1], currentLine[2]])}
 				)?
 				-> tVar
 			|	Value:value

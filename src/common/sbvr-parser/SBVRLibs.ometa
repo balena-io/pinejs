@@ -49,7 +49,8 @@ define(['underscore', 'ometa-core'], function(_) {
 			}
 		// } while (this.conceptTypes.hasOwnProperty(termName) && (termName = this.conceptTypes[termName]));
 		var conceptTypes = this.vocabularies[term[2]]['ConceptTypes'];
-		if (conceptTypes.hasOwnProperty(term) && (termName = conceptTypes[term])) {
+		if (conceptTypes.hasOwnProperty(term) && (term = conceptTypes[term])) {
+			termName = term[1]
 			if (this.nativePrimitives.hasOwnProperty(termName)) {
 				return termName;
 			}
@@ -122,9 +123,10 @@ define(['underscore', 'ometa-core'], function(_) {
 			}
 			
 			if(!create && (currentFactTypePart[0] == 'Term' || currentFactTypePart[0] == 'Name')) {
-				var conceptTypes = self.vocabularies[currentFactTypePart[2]]['ConceptTypes'];
-				while( conceptTypes.hasOwnProperty(currentFactTypePart[1]) ) {
-					currentFactTypePart = ['Term', conceptTypes[currentFactTypePart[1]]];
+				var conceptTypes;
+				while( (conceptTypes = self.vocabularies[currentFactTypePart[2]]['ConceptTypes'])
+						&& conceptTypes.hasOwnProperty(currentFactTypePart) ) {
+					currentFactTypePart = conceptTypes[currentFactTypePart];
 					if( currentLevel.hasOwnProperty(currentFactTypePart) ) {
 						// We use recursion so here we go down each branch until we find the suitable one, or run out of branches.
 						finalLevel = traverseRecurse(remainingFactType[0], remainingFactType.slice(1), currentLevel[currentFactTypePart]);
@@ -160,18 +162,13 @@ define(['underscore', 'ometa-core'], function(_) {
 	};
 	
 	SBVRLibs.IsChild = function(child, parent) {
-		var conceptTypes = {}, vocab;
-		for(vocab in this.vocabularies) {
-			// TODO: We lump all concept types together, whereas really they should understand vocab
-			_.extend(conceptTypes, this.vocabularies[vocab]['ConceptTypes']);
-		}
 		// Parent should be in the form ['Term', ...], where we care about the ... bit.
-		parent = parent[1];
 		do {
-			if( child == parent ) {
+			if( child[1] == parent[1] && child[2] == parent[2] ) {
 				return true;
 			}
-		} while(conceptTypes.hasOwnProperty(child) && (child = conceptTypes[child]) );
+			conceptTypes = this.vocabularies[parent[2]]['ConceptTypes'];
+		} while( conceptTypes.hasOwnProperty(child) && (child = conceptTypes[child]) );
 		return false;
 	};
 

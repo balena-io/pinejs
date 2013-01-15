@@ -101,9 +101,9 @@ define(['ometa!sbvr-parser/SBVRLibs', 'ometa-core'], function(SBVRLibs) {
 			[	'Term' 
 				:conceptType
 				:vocab
-			]:attrVal
-			{this.vocabularies[this.currentVocabulary]['ConceptTypes'][termOrFactType] = conceptType}
-			-> attrVal,
+			]:term
+			{this.vocabularies[this.currentVocabulary]['ConceptTypes'][termOrFactType] = term}
+			-> term,
 		AttrDefinition :termOrFactType =
 			(	['Enum' :values]
 			|	trans
