@@ -52,7 +52,7 @@ define([
 					Value
 				)?
 			]
-			-> {type: type, name: name, num: num},
+			-> {type: type, name: name, num: num, vocab: vocab},
 		
 		IdentifierName =
 			:identifierName
@@ -63,26 +63,26 @@ define([
 			{this.identifiers[identifierName] = identifierName}
 			{this.tables[resourceName] = {fields:[], primitive: false, name: null, idField: null}}
 			-> identifierName,
-		Attributes :tableID =
+		Attributes :termOrFactType =
 				end
 			|	[	'Attributes'
-					(	[	:attributeName ApplyFirstExisting(['Attr' + attributeName, 'DefaultAttr'], [tableID]):attributeValue
+					(	[	:attributeName ApplyFirstExisting(['Attr' + attributeName, 'DefaultAttr'], [termOrFactType]):attributeValue
 						]
 					)*
 				],
-		DefaultAttr :tableID =
+		DefaultAttr :termOrFactType =
 			:anything
-			{console.log('Default', tableID, anything)},
-		AttrConceptType :identifierName = // tableID will be same as identifierName for ConceptType (fact types cannot have a concept type)
+			{console.log('Default', termOrFactType, anything)},
+		AttrConceptType :termOrFactType =
 			[	'Term'
 				:conceptType
 				:vocab
-			]
-			{this.conceptTypes[identifierName] = conceptType}
+			]:term
+			{this.vocabularies[termOrFactType[2]]['ConceptTypes'][termOrFactType] = conceptType}
 
-			IsPrimitive(conceptType):primitive
+			IsPrimitive(term):primitive
 			GetTable(conceptType):conceptTable
-			GetTable(identifierName):identifierTable
+			GetTable(termOrFactType[1]):identifierTable
 			(	?(primitive !== false && conceptType === primitive)
 				{primitive}:dataType
 				// If the concept type is primitive then we use that as the "value" field and delete the current.
@@ -95,8 +95,9 @@ define([
 			|	{'ConceptType'}:dataType
 			)
 			AddTableField(identifierTable, conceptType, dataType, true, null, conceptTable.idField),
-		AttrDatabaseIDField :tableID =
+		AttrDatabaseIDField :termOrFactType =
 			:idField
+			GetTableID(termOrFactType):tableID
 			GetTable(tableID):table
 			(	?_.isString(table)
 			|	(	AddTableField(table, idField, 'Serial', true, 'PRIMARY KEY'):fieldID
@@ -110,8 +111,9 @@ define([
 				)
 				{table.idField = idField}
 			),
-		AttrDatabaseValueField :tableID =
+		AttrDatabaseValueField :termOrFactType =
 			:valueField
+			GetTableID(termOrFactType):tableID
 			GetTable(tableID):table
 			(	?_.isString(table)
 			|	// Find existing name field and update it if it exists.
@@ -124,15 +126,17 @@ define([
 				)
 				{table.valueField = valueField}
 			),
-		AttrDatabaseTableName :tableID =
+		AttrDatabaseTableName :termOrFactType =
 			:tableName
+			GetTableID(termOrFactType):tableID
 			GetTable(tableID):table
 			(	?_.isString(table)
 			|	{table.name = tableName}
 			),
-		AttrDatabasePrimitive :termName =
+		AttrDatabasePrimitive :termOrFactType =
 			:attrVal
-			{this.GetTable(termName).primitive = attrVal},
+			GetTableID(termOrFactType):tableID
+			{this.GetTable(tableID).primitive = attrVal},
 		AttrDatabaseAttribute :factType =
 			:attrVal
 			(	?attrVal
@@ -528,7 +532,7 @@ define([
 		// Get the term name for the term an attribute is attached to in an attribute fact type
 		AttributeFactTypeBaseTermName :actualFactType =
 			{	for(var i=0; i < actualFactType.length; i+=2) {
-					if(!this.IsPrimitive(actualFactType[i][1])) {
+					if(!this.IsPrimitive(actualFactType[i])) {
 						return actualFactType[i][1];
 					}
 				}
@@ -560,7 +564,7 @@ define([
 			{null}:baseBinding
 			// Find the "base" binding
 			{	for(var i=0; i < binds.length; i++) {
-					if(!this.IsPrimitive(binds[i].identifier.name)) {
+					if(!this.IsPrimitive([binds[i].identifier.type, binds[i].identifier.name, binds[i].identifier.vocab])) {
 						baseBinding = binds[i];
 						baseBinding.identifier.name = baseTermName;
 						break;
@@ -569,7 +573,7 @@ define([
 			}
 			// Use the "base" binding in the attribute binding list, but only if we are as shallow as possible.
 			{	for(var i=0; i < binds.length; i++) {
-					if(this.IsPrimitive(binds[i].identifier.name)
+					if(this.IsPrimitive([binds[i].identifier.type, binds[i].identifier.name, binds[i].identifier.vocab])
 							&& (this.bindAttributeDepth[binds[i].number] == null || this.bindAttributeDepth[binds[i].number] > depth)) {
 						this.bindAttributeDepth[binds[i].number] = depth;
 						this.bindAttributes[binds[i].number] = baseBinding;
@@ -614,11 +618,14 @@ define([
 						:attributes
 					|	(	'Term'
 						|	'Name'
-						)
+						):type
 						 IdentifierName:identifierName
 						 :vocab
-						 Attributes(identifierName)
-					|	'FactType' FactType:factType Attributes(factType)
+						 AddVocabulary(vocab)
+						 Attributes([type, identifierName, vocab])
+					|	'FactType'
+						FactType:factType
+						Attributes(factType)
 					]
 				|	Rule
 				)+
@@ -665,12 +672,17 @@ define([
 	};
 	
 	LF2AbstractSQL.ResolveConceptTypes = function(query, termName, varAlias, untilConcept) {
+		var conceptTypes = {}, vocab;
+		for(vocab in this.vocabularies) {
+			// TODO: We lump all concept types together, whereas really they should understand vocab
+			_.extend(conceptTypes, this.vocabularies[vocab]['ConceptTypes']);
+		}
 		var conceptAlias,
 			parentAlias = varAlias + termName,
 			conceptName = termName,
 			conceptTable;
-		while(conceptName != untilConcept && this.conceptTypes.hasOwnProperty(conceptName)) {
-			conceptName = this.conceptTypes[conceptName];
+		while(conceptName != untilConcept && conceptTypes.hasOwnProperty(conceptName)) {
+			conceptName = conceptTypes[conceptName];
 			conceptAlias = varAlias + conceptName;
 			conceptTable = this.GetTable(conceptName);
 			if(conceptTable.primitive !== false) {

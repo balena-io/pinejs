@@ -143,7 +143,7 @@ define([
 				}
 				if(!attrsFound.hasOwnProperty('DatabasePrimitive')) {
 					if(!this.primitives.hasOwnProperty(termOrFactType)) {
-						this.primitives[termOrFactType] = this.IsPrimitive(termOrFactType[1]);
+						this.primitives[termOrFactType] = this.IsPrimitive(termOrFactType);
 					}
 					// console.log('Adding primitive attr', this.primitives[termOrFactType], termOrFactType);
 					attrs.splice(1, 0, ['DatabasePrimitive', this.primitives[termOrFactType]]);

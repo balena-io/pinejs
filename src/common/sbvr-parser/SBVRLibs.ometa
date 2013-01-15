@@ -20,8 +20,9 @@ define(['underscore', 'ometa-core'], function(_) {
 	};
 	
 	SBVRLibs.initialize = function() {
+		this.currentVocabulary = '';
+		this.vocabularies = {};
 		this.factTypes = {};
-		this.conceptTypes = {};
 	};
 	
 	SBVRLibs.ApplyFirstExisting = function(rules, ruleArgs) {
@@ -40,19 +41,36 @@ define(['underscore', 'ometa-core'], function(_) {
 		}
 	};
 
-	SBVRLibs.IsPrimitive = function(termName) {
+	SBVRLibs.IsPrimitive = function(term) {
+		var termName = term[1];
 		// do {
 			if (this.nativePrimitives.hasOwnProperty(termName)) {
 				return termName;
 			}
 		// } while (this.conceptTypes.hasOwnProperty(termName) && (termName = this.conceptTypes[termName]));
-		if (this.conceptTypes.hasOwnProperty(termName) && (termName = this.conceptTypes[termName])) {
+		var conceptTypes = this.vocabularies[term[2]]['ConceptTypes'];
+		if (conceptTypes.hasOwnProperty(term) && (termName = conceptTypes[term])) {
 			if (this.nativePrimitives.hasOwnProperty(termName)) {
 				return termName;
 			}
 		}
 		return false;
 	};
+	
+	SBVRLibs.AddVocabulary = function(vocabulary, baseSynonym) {
+		this.currentVocabulary = baseSynonym;
+		if(!this.vocabularies.hasOwnProperty(baseSynonym)) {
+			this.vocabularies[baseSynonym] = {
+				'Term': {},
+				'Name': {},
+				'IdentifierChildren': {},
+				'ConceptTypes': {}
+			};
+		}
+		if(!this.vocabularies.hasOwnProperty(vocabulary)) {
+			this.vocabularies[vocabulary] = this.vocabularies[baseSynonym];
+		}
+	}
 	
 	SBVRLibs.AddFactType = function(factType, realFactType) {
 		var mappedFactType = [];
@@ -104,8 +122,9 @@ define(['underscore', 'ometa-core'], function(_) {
 			}
 			
 			if(!create && (currentFactTypePart[0] == 'Term' || currentFactTypePart[0] == 'Name')) {
-				while( self.conceptTypes.hasOwnProperty(currentFactTypePart[1]) ) {
-					currentFactTypePart = ['Term', self.conceptTypes[currentFactTypePart[1]]];
+				var conceptTypes = self.vocabularies[currentFactTypePart[2]]['ConceptTypes'];
+				while( conceptTypes.hasOwnProperty(currentFactTypePart[1]) ) {
+					currentFactTypePart = ['Term', conceptTypes[currentFactTypePart[1]]];
 					if( currentLevel.hasOwnProperty(currentFactTypePart) ) {
 						// We use recursion so here we go down each branch until we find the suitable one, or run out of branches.
 						finalLevel = traverseRecurse(remainingFactType[0], remainingFactType.slice(1), currentLevel[currentFactTypePart]);
@@ -141,13 +160,18 @@ define(['underscore', 'ometa-core'], function(_) {
 	};
 	
 	SBVRLibs.IsChild = function(child, parent) {
+		var conceptTypes = {}, vocab;
+		for(vocab in this.vocabularies) {
+			// TODO: We lump all concept types together, whereas really they should understand vocab
+			_.extend(conceptTypes, this.vocabularies[vocab]['ConceptTypes']);
+		}
 		// Parent should be in the form ['Term', ...], where we care about the ... bit.
 		parent = parent[1];
 		do {
 			if( child == parent ) {
 				return true;
 			}
-		} while( this.conceptTypes.hasOwnProperty(child) && (child = this.conceptTypes[child]) );
+		} while(conceptTypes.hasOwnProperty(child) && (child = conceptTypes[child]) );
 		return false;
 	};
 
@@ -198,8 +222,18 @@ define(['underscore', 'ometa-core'], function(_) {
 		}
 	};
 	
-	SBVRLibs.GetTable = function(termOrFactType) {
-		return this.tables[this.GetResourceName(termOrFactType)];
+	SBVRLibs.GetTableID = function(termOrFactType) {
+		switch(termOrFactType[0]) {
+			case 'Term':
+			case 'Name':
+				return termOrFactType[1];
+			default:
+				return termOrFactType;
+		}
+	};
+	
+	SBVRLibs.GetTable = function(termNameOrFactType) {
+		return this.tables[this.GetResourceName(termNameOrFactType)];
 	};
 	
 	SBVRLibs.GetTableField = function(table, fieldName) {

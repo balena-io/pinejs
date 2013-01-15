@@ -49,6 +49,7 @@ define(['ometa!sbvr-parser/SBVRLibs', 'ometa-core'], function(SBVRLibs) {
 
 		Vocabulary
 			:vocab
+			AddVocabulary(vocab, vocab)
 			addAttributes(['Vocabulary', vocab]),
 
 		Term
@@ -77,13 +78,13 @@ define(['ometa!sbvr-parser/SBVRLibs', 'ometa-core'], function(SBVRLibs) {
 			):x
 			"StructuredEnglish":t
 			-> ['Rule', x, t],
-		addAttributes :termOrVerb =
+		addAttributes :termOrFactType =
 			(	end
 			|	{{}}:attrsFound
 				{['Attributes']}:attrs
 				[	'Attributes'
 					[	:attrName
-						ApplyFirstExisting(['Attr' + attrName, 'DefaultAttr'], [termOrVerb]):attrVal
+						ApplyFirstExisting(['Attr' + attrName, 'DefaultAttr'], [termOrFactType]):attrVal
 						(	?(attrVal != null)
 							{attrsFound[attrName] = attrVal}
 							{attrs.push([attrName, attrVal])}
@@ -91,18 +92,19 @@ define(['ometa!sbvr-parser/SBVRLibs', 'ometa-core'], function(SBVRLibs) {
 					]*
 					end
 				]
-				defaultAttributes(termOrVerb, attrsFound, attrs)
+				defaultAttributes(termOrFactType, attrsFound, attrs)
 			)
-			-> termOrVerb,
+			-> termOrFactType,
 		DefaultAttr :tableID =
 			anything,
-		AttrConceptType :termName =
+		AttrConceptType :termOrFactType =
 			[	'Term' 
 				:conceptType
 				:vocab
-				{this.conceptTypes[termName[1]] = conceptType}
-			],
-		AttrDefinition :termOrVerb =
+			]:attrVal
+			{this.vocabularies[this.currentVocabulary]['ConceptTypes'][termOrFactType] = conceptType}
+			-> attrVal,
+		AttrDefinition :termOrFactType =
 			(	['Enum' :values]
 			|	trans
 			),

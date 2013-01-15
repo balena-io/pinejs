@@ -619,18 +619,7 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 			baseSynonym = identifier;
 		}
 		if(identifierType == 'Vocabulary') {
-			this.currentVocabulary = baseSynonym;
-			if(!this.vocabularies.hasOwnProperty(baseSynonym)) {
-				this.vocabularies[baseSynonym] = {
-					'Term': {},
-					'Name': {},
-					'IdentifierChildren': {},
-					'ConceptTypes': {}
-				};
-			}
-			if(!this.vocabularies.hasOwnProperty(identifier)) {
-				this.vocabularies[identifier] = this.vocabularies[baseSynonym];
-			}
+			this.AddVocabulary(identifier, baseSynonym);
 		}
 		else {
 			var vocabulary = this.vocabularies[this.currentVocabulary];
@@ -883,7 +872,6 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 			addOr: ['or'],
 			Terminator: ['.']
 		};
-		this.vocabularies = {};
 		this.longestIdentifier = {
 			'Vocabulary': 0,
 			'Term': 0,
