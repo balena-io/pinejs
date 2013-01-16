@@ -4,7 +4,7 @@ Rule ::=
 	'.'?
 RuleBody ::=
 	(	Quantifier
-		term
+		term ('(' vocabulary ')')?
 		(	ClosedProjection
 			','?
 		)?
@@ -12,6 +12,7 @@ RuleBody ::=
 		(	referenced-term
 		|	name
 		)
+		('(' vocabulary ')')?
 	|	Number
 	|	'"' Text '"'
 	)
@@ -64,7 +65,7 @@ Attribute ::=
 
 Definition ::=
 		'the'?
-		term
+		term ('(' vocabulary ')')?
 		ClosedProjection
 		'.'?
 	|	value
