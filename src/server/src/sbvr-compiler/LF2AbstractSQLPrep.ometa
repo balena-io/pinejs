@@ -72,10 +72,10 @@ define([
 			ActualFactType(factType.slice(1)):actualFactType
 			{['FactType'].concat(actualFactType)}:actualFactType
 			(	// In the same order as the vars appear.
-				?(v1[2][1] == actualFactType[1][1] && v2[2][1] == actualFactType[3][1])
+				?(this.IdentifiersEqual(v1[2], actualFactType[1]) && this.IdentifiersEqual(v2[2], actualFactType[3]))
 				{this.foreignKeys[actualFactType] = required}
 			|	// In reverse order
-				?(v1[2][1] == actualFactType[3][1] && v2[2][1] == actualFactType[1][1])
+				?(this.IdentifiersEqual(v1[2], actualFactType[3]) && this.IdentifiersEqual(v2[2], actualFactType[1]))
 				{this.uniqueKeys[actualFactType] = required}
 			)
 			// We have matched a foreign key or unique, so call SetHelped.
