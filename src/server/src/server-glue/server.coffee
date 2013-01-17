@@ -69,6 +69,7 @@ define([
 		app = express()
 		app.configure(->
 			path = require('path')
+			app.use(express.compress())
 			app.use(express.cookieParser())
 			app.use(express.bodyParser())
 			app.use(express.session({ secret: "A pink cat jumped over a rainbow" }))
