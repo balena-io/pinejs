@@ -258,17 +258,32 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 			ClearSuggestions Verb(true),
 		Verb :factTypeSoFar =
 			FindVerb(factTypeSoFar),
-		FindVerb :factTypeSoFar :verbSoFar =
+		FindVerb :factTypeSoFar :verbSoFar :negated =
+			(	?(factTypeSoFar && !verbSoFar)
+				Keyword("isn't")
+				{'is'}:verbSoFar
+				{true}:negated
+			)?
 			VerbPart:part
 			(	?verbSoFar
 				-> (verbSoFar + ' ' + part)
 			|	-> part
 			):verbSoFar
-			(	FindVerb(factTypeSoFar, verbSoFar)
+			(	?(factTypeSoFar && verbSoFar == 'is')
+				spaces
+				Keyword('not')
+				{true}:negated
+			)?
+			(	FindVerb(factTypeSoFar, verbSoFar, negated)
 			|	(	?(factTypeSoFar===true)
 				|	?this.isVerb(factTypeSoFar, verbSoFar)
 				)
-				-> ['Verb', this._verbForm(verbSoFar)]
+				{['Verb', this._verbForm(verbSoFar)]}:verb
+				(	?negated
+					{verb.push(true)}
+				|	{verb.push(false)}
+				)
+				-> verb
 			),
 		VerbPart =
 			spaces
@@ -542,7 +557,7 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 			{
 				for(var i = 0; i < currentLine.length; i++) {
 					if(currentLine[i][0] == 'Term') {
-						var factType = [term, ['Verb', 'has'], currentLine[i]];
+						var factType = [term, ['Verb', 'has', false], currentLine[i]];
 						this.AddFactType(factType, factType);
 					}
 				}
@@ -678,7 +693,7 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 			// We found the verb.
 			return true;
 		}
-		if(currentLevel.hasOwnProperty('__valid') && currentLevel.__valid===true) {
+		if(currentLevel.hasOwnProperty('__valid')) {
 			// We have a valid fact type up to here, try a new one.
 			// TODO: Should this actually be looking if the verb before last term is valid?
 			return this.isVerb([], verb);

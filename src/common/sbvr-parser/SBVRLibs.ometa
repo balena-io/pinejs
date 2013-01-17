@@ -98,10 +98,10 @@ define(['underscore', 'ometa-core'], function(_) {
 			mappedFactType[0] = mappedFactType[0].slice(0, 3).concat(2);
 			mappedFactType[2] = mappedFactType[2].slice(0, 3).concat(0);
 			if(factType[1][1] == 'has') {
-				this._traverseFactType([factType[2], ['Verb', 'is of'], factType[0]], mappedFactType);
+				this._traverseFactType([factType[2], ['Verb', 'is of', factType[1][2]], factType[0]], mappedFactType);
 			}
 			else if(factType[1][1] == 'is of') {
-				this._traverseFactType([factType[2], ['Verb', 'has'], factType[0]], mappedFactType);
+				this._traverseFactType([factType[2], ['Verb', 'has', factType[1][2]], factType[0]], mappedFactType);
 			}
 		}
 	};
@@ -116,7 +116,13 @@ define(['underscore', 'ometa-core'], function(_) {
 				return currentLevel;
 			}
 			var finalLevel, finalLevels = {};
-			currentFactTypePart = currentFactTypePart.slice(0, 3); // Make sure we only use the first 2 parts for the key.
+			switch(currentFactTypePart[0]) {
+				case 'Verb':
+					currentFactTypePart = currentFactTypePart.slice(0, 2); // Make sure we only use the first 2 parts for verbs.
+				break;
+				default:
+					currentFactTypePart = currentFactTypePart.slice(0, 3); // Make sure we only use the first 3 parts for everything else.
+			}
 			
 			if(currentLevel.hasOwnProperty(currentFactTypePart) || (create && (currentLevel[currentFactTypePart] = {})) ) {
 				finalLevel = traverseRecurse(remainingFactType[0], remainingFactType.slice(1), currentLevel[currentFactTypePart]);
@@ -161,6 +167,8 @@ define(['underscore', 'ometa-core'], function(_) {
 		for(var i = 0; i < mappedFactType.length; i++) {
 			actualFactType[i] = mappedFactType[i].slice(0, 3);
 		}
+		// Keep the negated status the same as fact type passed in.
+		actualFactType[1][2] = factType[1][2];
 		return actualFactType;
 	};
 	

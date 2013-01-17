@@ -69,7 +69,10 @@ define(['ometa!sbvr-parser/SBVRLibs', 'ometa-core'], function(SBVRLibs) {
 			addAttributes(['Name', name, vocab]),
 		Verb
 			:v
-			-> ['Verb', v],
+			(	true
+			|	false
+			):negated
+			-> ['Verb', v, negated],
 		Rule
 			(	"ObligationFormulation"
 			|	"NecessityFormulation"

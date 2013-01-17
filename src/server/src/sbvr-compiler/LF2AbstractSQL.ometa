@@ -203,7 +203,7 @@ define([
 					(	Identifier:identifier
 						GetTable(identifier.name):fkTable
 						AddTableField(linkTable, identifier.name + identifier.num, 'ForeignKey', true, '', [fkTable.name, fkTable.idField])
-					|	['Verb' :verb]
+					|	['Verb' :verb :negated]
 					)+
 				)
 			)
@@ -350,10 +350,11 @@ define([
 				end
 				{actualFactType[0][1]}:termFrom
 				{actualFactType[1][1]}:attributeName
+				{actualFactType[1][2]}:negated
 			|	{console.error(this.input)}
 				___BooleanAttributeMatchingFailed___.die
 			)
-			-> ['Equals', ['ReferencedField', 'var' + bindFrom.number + termFrom, attributeName], ['Boolean', true]],
+			-> ['Equals', ['ReferencedField', 'var' + bindFrom.number + termFrom, attributeName], ['Boolean', !negated]],
 
 		Attribute :actualFactType :rootTerms =
 			?(this.GetTable(actualFactType) == 'Attribute')
