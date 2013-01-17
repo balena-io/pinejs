@@ -447,9 +447,24 @@ define([
 							else
 								clientModel = clientModels[tree[1][1]]
 								resourceModel = clientModel.resources[tree[2].resourceName]
+								
+								# TODO: This can probably be optimised more, but removing the process step when it isn't required is an improvement
+								processRequired = false
+								for field in resourceModel.fields when field[0] == 'JSON'
+									processRequired = true
+									break
+								instances = []
+								if processRequired
+									result.rows.forEach((instance) ->
+										instances.push(processInstance(resourceModel, instance))
+									)
+								else
+									result.rows.forEach((instance) ->
+										instances.push(instance)
+									)
+								
 								data =
-									instances:
-										(processInstance(resourceModel, result.rows.item(i)) for i in [0...result.rows.length])
+									instances: instances
 									model:
 										resourceModel
 								res.json(data)
