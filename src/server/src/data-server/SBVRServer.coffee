@@ -13,7 +13,7 @@ define([
 				Concept type: Short Text (Type)
 			Term:      textarea
 				--Database id Field: name
-				Database Value Field: text
+				Reference Scheme: text
 			Fact type: textarea is disabled
 			Fact type: textarea has name
 				Necessity: Each textarea has exactly 1 name

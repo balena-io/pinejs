@@ -755,7 +755,6 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 		allowedAttrLists = [
 			/* Custom Attributes */
 			'Database ID Field:',
-			'Database Value Field:',
 			'Database Table Name:'
 			/* End Custom */
 		].concat(allowedAttrLists);

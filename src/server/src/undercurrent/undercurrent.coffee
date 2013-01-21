@@ -2,11 +2,17 @@ define(['cs!database-layer/db'], (dbModule) ->
 	exports = {}
 
 	undercurrentModel = '''
+		Term:      name
+			Concept Type: Text (Type)
+
+		Term:      price
+			Concept Type: Integer (Type)
+
 		Term:      value
 			Concept Type: Short Text (Type)
 
 		Term:      dataset
-			Database Value Field: name
+			Reference Scheme: name
 
 		Term:      note
 			Concept Type: Text (Type)
@@ -44,8 +50,6 @@ define(['cs!database-layer/db'], (dbModule) ->
 		Fact type: product has point_of_trade
 			Necessity: Each product has exactly 1 point_of_trade
 
-		Term:      name
-			Concept Type: Text (Type)
 		Fact type: dataset has name
 			Necessity: Each dataset has exactly 1 name
 
@@ -103,13 +107,11 @@ define(['cs!database-layer/db'], (dbModule) ->
 		Fact type: dataset is showcase
 
 		Term:      quote
-			Database Value Field: price
+			Reference Scheme: price
 		Fact type: quote belongs to dataset
 			Necessity: Each quote belongs to exactly one dataset
 
 		-- Concept Type: Currency (Type)
-		Term:      price
-			Concept Type: Integer (Type)
 		Fact type: quote has price
 			Necessity: Each quote has at most 1 price
 

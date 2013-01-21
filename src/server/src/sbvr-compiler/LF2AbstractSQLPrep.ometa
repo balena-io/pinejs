@@ -133,8 +133,8 @@ define([
 		switch(termOrFactType[0]) {
 			case 'Name':
 			case 'Term':
-				if(!attrsFound.hasOwnProperty('DatabaseValueField')) {
-					attrs.splice(1, 0, ['DatabaseValueField', 'value']);
+				if(!attrsFound.hasOwnProperty('ReferenceScheme')) {
+					attrs.splice(1, 0, ['ReferenceScheme', 'id']);
 					this.SetHelped();
 				}
 				if(!attrsFound.hasOwnProperty('DatabaseTableName')) {

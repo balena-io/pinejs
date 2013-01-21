@@ -7,17 +7,6 @@ define(['cs!database-layer/db'], (dbModule) ->
 	console.log = ->
 
 	schedulerModel = '''
-		Term: stream
-			Database Value Field: description
-		Term: campaign
-			Database Value Field: description
-		Term: format
-			Database Value Field: description
-		Term: creative
-			Database Value Field: description
-		Term: slide
-			Database Value Field: description
-
 		Term: description
 			Concept Type: Text (Type)
 
@@ -62,6 +51,17 @@ define(['cs!database-layer/db'], (dbModule) ->
 
 		Term: url
 			Concept Type: Text (Type)
+
+		Term: stream
+			Reference Scheme: description
+		Term: campaign
+			Reference Scheme: description
+		Term: format
+			Reference Scheme: description
+		Term: creative
+			Reference Scheme: description
+		Term: slide
+			Reference Scheme: description
 
 		Fact Type: stream has description
 			Necessity: each stream has exactly one description.

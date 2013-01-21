@@ -15,14 +15,14 @@ define([
 	db = null
 
 	devModel = '''
+			Term:      model value
+				Concept Type: JSON (Type)
 			Term:      model
-				Database Value Field: model value
+				Reference Scheme: model value
 			Term:      vocabulary
 				Concept Type: Short Text (Type)
 			Term:      model type
 				Concept Type: Short Text (Type)
-			Term:      model value
-				Concept Type: JSON (Type)
 
 			Fact Type: model is of vocabulary
 				Necessity: Each model is of exactly one vocabulary
@@ -44,17 +44,15 @@ define([
 				Concept type: Short Text (Type)
 
 			Term:      resource
-				Database Value Field: resource id
+				Reference Scheme: resource id
 			Fact type: resource has resource id
 				Necessity: Each resource has exactly 1 resource id.
 			Fact type: resource has resource type
 				Necessity: Each resource has exactly 1 resource type.
 
 			Term:      transaction
-				Database Value Field: id
 
 			Term:      lock
-				Database Value Field: id
 			Fact type: lock is exclusive
 			Fact type: lock belongs to transaction
 				Necessity: Each lock belongs to exactly 1 transaction.
@@ -67,7 +65,6 @@ define([
 				Definition: "ADD", "EDIT" or "DELETE"
 
 			Term:      conditional resource
-				Database Value Field: id
 			Fact type: conditional resource belongs to transaction
 				Necessity: Each conditional resource belongs to exactly 1 transaction.
 			Fact type: conditional resource has lock
@@ -81,7 +78,7 @@ define([
 			--Rule:      It is obligatory that each conditional resource that has a placeholder, has a conditional type that is of "ADD".
 
 			Term:      conditional field
-				Database Value Field: field name
+				Reference Scheme: field name
 			Fact type: conditional field has field name
 				Necessity: Each conditional field has exactly 1 field name.
 			Fact type: conditional field has field value
@@ -94,12 +91,12 @@ define([
 			Rule:      It is obligatory that each conditional resource that has a lock, belongs to a transaction that the lock belongs to.'''
 
 	userModel = '''
-			Term:      user
-				Database Value Field: username
 			Term:      username
 				Concept Type: Short Text (Type)
 			Term:      password
 				Concept Type: Hashed (Type)
+			Term:      user
+				Reference Scheme: username
 			Fact type: user has username
 				Necessity: Each user has exactly one username.
 				Necessity: Each username is of exactly one user.

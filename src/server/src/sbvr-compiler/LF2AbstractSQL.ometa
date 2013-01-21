@@ -111,8 +111,12 @@ define([
 				)
 				{table.idField = idField}
 			),
-		AttrDatabaseValueField :termOrFactType =
+		AttrReferenceScheme :termOrFactType =
 			:valueField
+			(	?_.isArray(valueField)
+				-> valueField[1]
+			|	-> valueField
+			):valueField
 			GetTableID(termOrFactType):tableID
 			GetTable(tableID):table
 			(	?_.isString(table)
@@ -121,9 +125,7 @@ define([
 					GetTableFieldID(table, table.valueField):fieldID
 					?(fieldID !== false)
 					{table.fields[fieldID][1] = valueField}
-				|	// Otherwise add it
-					AddTableField(table, valueField, 'Value', true)
-				)
+				)?
 				{table.valueField = valueField}
 			),
 		AttrDatabaseTableName :termOrFactType =

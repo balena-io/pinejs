@@ -2,10 +2,13 @@ define(['cs!database-layer/db'], (dbModule) ->
 	exports = {}
 
 	iahModel = '''
+		Term:       name
+			Concept Type: Short Text (Type)
+
 		Term:       species
-			Database Value Field: name
+			Reference Scheme: name
 		Term:       genus
-			Database Value Field: name
+			Reference Scheme: name
 		Fact type:  species belongs to genus
 			Necessity: each species belongs to exactly 1 genus
 
@@ -22,9 +25,6 @@ define(['cs!database-layer/db'], (dbModule) ->
 			Necessity: each species has at most 1 habitat
 		Fact type:  species has senior synonym
 			Necessity: each species has exactly 1 senior synonym
-
-		Term:       name
-			Concept Type: Short Text (Type)
 
 		Fact type:  species has name
 			Necessity: each species has exactly 1 name
@@ -45,11 +45,11 @@ define(['cs!database-layer/db'], (dbModule) ->
 			Necessity: each image has exactly 1 image type
 
 		Term:       publication
-			Database Value Field: name
+			Reference Scheme: name
 		Fact type:  publication has name
 			Necessity: each publication has exactly 1 name
 		Term:       author
-			Database Value Field: name
+			Reference Scheme: name
 		Fact type:  author has name
 			Necessity: each author has exactly 1 name
 		Term:       year
@@ -64,7 +64,7 @@ define(['cs!database-layer/db'], (dbModule) ->
 		Fact type:  publication is in library
 
 		Term:       pathogen
-			Database Value Field: name
+			Reference Scheme: name
 		Fact type:  pathogen has name
 			Necessity: each pathogen has exactly 1 name
 		Fact type:  species is vector for pathogen
@@ -73,7 +73,7 @@ define(['cs!database-layer/db'], (dbModule) ->
 		Fact type:  vector relationship is documented in publication
 
 		Term:       host
-			Database Value Field: name
+			Reference Scheme: name
 		Fact type:  host has name
 			Necessity: each host has exactly 1 name
 		Fact type:  species feeds on host
