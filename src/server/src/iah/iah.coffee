@@ -2,6 +2,8 @@ define(['cs!database-layer/db'], (dbModule) ->
 	exports = {}
 
 	iahModel = '''
+		Term:       value
+			Concept Type: Short Text (Type)
 		Term:       name
 			Concept Type: Short Text (Type)
 
@@ -34,15 +36,22 @@ define(['cs!database-layer/db'], (dbModule) ->
 			Necessity: each genus has exactly 1 name
 			Necessity: each name is of at most 1 genus
 
-		Term:       image
-
-		Fact type:  species is documented in image
 
 		Term:       image type
 			Definition: "wing" or "other"
+		Fact type:  image type has name
+			Necessity: each image type has exactly 1 name
+			Necessity: each name is of exactly 1 image type
+
+		Term:       image
 
 		Fact type:  image has image type
 			Necessity: each image has exactly 1 image type
+
+		Fact type:  image has name
+			Necessity: each image has exactly 1 name
+
+		Fact type:  species is documented in image
 
 		Term:       publication
 			Reference Scheme: name
@@ -60,6 +69,10 @@ define(['cs!database-layer/db'], (dbModule) ->
 			Necessity: each publication was in exactly 1 year
 
 		Term:       DOI
+			Reference Scheme: value
+		Fact type:  DOI has value
+			Necessity: each DOI has exactly 1 value
+			Necessity: each value is of exactly 1 DOI
 		Fact type:  publication has DOI
 		Fact type:  publication is in library
 
@@ -81,6 +94,9 @@ define(['cs!database-layer/db'], (dbModule) ->
 		Fact type:  feeding relationship is documented in publication
 
 		Term:       region
+		Fact type:  region has name
+			Necessity: each region has exactly 1 name
+			Necessity: each name is of exactly 1 region
 		Fact type:  species lives in region
 			Term form: species residence
 		Fact type:  species residence is documented in publication
