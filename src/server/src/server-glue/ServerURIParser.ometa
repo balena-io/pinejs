@@ -327,7 +327,7 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'ometa-core'], function(SBVR
 			break;
 			case 'Attribute':
 				// The attribute is value field
-				resourceFieldName = resourceModel.valueField;
+				resourceFieldName = resourceModel.referenceScheme;
 				mapping = this.GetMapping(resourceName, resourceFieldName);
 				switch(this.currentMethod) {
 					case 'DELETE':
@@ -350,7 +350,7 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'ometa-core'], function(SBVR
 			break;
 			case 'BooleanAttribute':
 				// The attribute is value field
-				resourceFieldName = resourceModel.valueField;
+				resourceFieldName = resourceModel.referenceScheme;
 				mapping = this.GetMapping(resourceName, resourceFieldName);
 				switch(this.currentMethod) {
 					case 'GET':

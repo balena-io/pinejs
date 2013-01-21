@@ -86,12 +86,12 @@ define([
 			(	?(primitive !== false && conceptType === primitive)
 				{primitive}:dataType
 				// If the concept type is primitive then we use that as the "value" field and delete the current.
-				(	?(identifierTable.hasOwnProperty('valueField'))
-					GetTableFieldID(identifierTable, identifierTable.valueField):fieldID
+				(	?(identifierTable.hasOwnProperty('referenceScheme'))
+					GetTableFieldID(identifierTable, identifierTable.referenceScheme):fieldID
 					?(fieldID !== false)
 					{identifierTable.fields.splice(fieldID, 1)}
 				)?
-				{identifierTable.valueField = conceptType}
+				{identifierTable.referenceScheme = conceptType}
 			|	{'ConceptType'}:dataType
 			)
 			AddTableField(identifierTable, conceptType, dataType, true, null, conceptTable.idField),
@@ -104,29 +104,26 @@ define([
 					(	?(fieldID !== false)
 						// If the field already exists then update it instead.
 						{table.fields[fieldID][3] = 'PRIMARY KEY'}
-						?(table.fields[fieldID][0] == 'Value')
-						// DIRTY HACK: If the data type is Value then change to Serial (the value field stuff needs to be done properly)
-						{table.fields[fieldID][0] = 'Serial'}
 					)?
 				)
 				{table.idField = idField}
 			),
 		AttrReferenceScheme :termOrFactType =
-			:valueField
-			(	?_.isArray(valueField)
-				-> valueField[1]
-			|	-> valueField
-			):valueField
+			:referenceScheme
+			(	?_.isArray(referenceScheme)
+				-> referenceScheme[1]
+			|	-> referenceScheme
+			):referenceScheme
 			GetTableID(termOrFactType):tableID
 			GetTable(tableID):table
 			(	?_.isString(table)
 			|	// Find existing name field and update it if it exists.
-				(	?(table.hasOwnProperty('valueField'))
-					GetTableFieldID(table, table.valueField):fieldID
+				(	?(table.hasOwnProperty('referenceScheme'))
+					GetTableFieldID(table, table.referenceScheme):fieldID
 					?(fieldID !== false)
-					{table.fields[fieldID][1] = valueField}
+					{table.fields[fieldID][1] = referenceScheme}
 				)?
-				{table.valueField = valueField}
+				{table.referenceScheme = referenceScheme}
 			),
 		AttrDatabaseTableName :termOrFactType =
 			:tableName
@@ -155,9 +152,8 @@ define([
 			GetTable(factType[0][1]):baseTable
 			{factType[2][1]}:fkName
 			GetTable(fkName):fkTable
-			(	?(baseTable.valueField == fkName
-					|| baseTable.idField == fkName)
-				// If the foreign key matches the value or id fields then delete the current field before adding the new.
+			(	?(baseTable.idField == fkName)
+				// If the foreign key matches the id field then delete the current field before adding the new.
 				GetTableFieldID(baseTable, fkName):fieldID
 				?(fieldID !== false)
 				{baseTable.fields.splice(fieldID, 1)}

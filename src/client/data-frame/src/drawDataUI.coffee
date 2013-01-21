@@ -14,7 +14,7 @@ define(['data-frame/ClientURIUnparser', 'ejs', 'data-frame/widgets', 'async', 'd
 			<%
 			if(resourceField[0] !== "Serial" || action === "view") {
 				var fieldName = resourceField[1],
-					onChange = (fieldName == resourceModel.valueField ? "updateForeignKey('" + resourceModel.resourceName + "', '" + id + "', this);" : false),
+					onChange = (fieldName == resourceModel.referenceScheme ? "updateForeignKey('" + resourceModel.resourceName + "', '" + id + "', this);" : false),
 					isNullable = resourceField[2] == "NULL",
 					fieldValue = resourceInstance === false ? "" : resourceInstance[fieldName],
 					fieldIdentifier = resourceModel.resourceName + "." + fieldName;
@@ -167,9 +167,9 @@ define(['data-frame/ClientURIUnparser', 'ejs', 'data-frame/widgets', 'async', 'd
 						if(foreignKeys.hasOwnProperty(partName)) {
 							var foreignKeyInstances = foreignKeys[partName],
 								foreignKey = instance[partName],
-								valueField = foreignModels[partName].valueField;
+								referenceScheme = foreignModels[partName].referenceScheme;
 								if(foreignKeyInstances.hasOwnProperty(foreignKey)) { %>
-									<%= foreignKeyInstances[foreignKey][valueField] %><%
+									<%= foreignKeyInstances[foreignKey][referenceScheme] %><%
 								}
 								else { %>
 									Unknown (<%= foreignKey %>)<%
@@ -418,7 +418,7 @@ define(['data-frame/ClientURIUnparser', 'ejs', 'data-frame/widgets', 'async', 'd
 				selectID = selectID.replace(/\./g, '\\.')
 				foreignKeysCache.listen(foreignKey, (id, newInstance, clientModel) ->
 					console.log($('#' + selectID))
-					newValue = newInstance[clientModel.valueField]
+					newValue = newInstance[clientModel.referenceScheme]
 					$('#' + selectID).each((index) ->
 						$this = $(this)
 						option = $this.children('*[value="' + id + '"]')
@@ -481,7 +481,7 @@ define(['data-frame/ClientURIUnparser', 'ejs', 'data-frame/widgets', 'async', 'd
 								addID = '$' + addResourceID++
 								instance = {}
 								instance[result.model.idField] = addID
-								instance[result.model.valueField] = ''
+								instance[result.model.referenceScheme] = ''
 								foreignKeysCache.set(result.model.name, addID, instance)
 								templateVars = $.extend(templateVars, {
 									action: action
@@ -555,7 +555,7 @@ define(['data-frame/ClientURIUnparser', 'ejs', 'data-frame/widgets', 'async', 'd
 										async.parallel([
 											(callback) ->
 												if resourceType == "Term"
-													resourceCollection.resourceName = instance[clientModel.valueField]
+													resourceCollection.resourceName = instance[clientModel.referenceScheme]
 													callback()
 												else if resourceType == "FactType"
 													foreignKeysCache.get(ftree, clientModel,
