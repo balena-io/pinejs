@@ -1,11 +1,6 @@
 define(['cs!database-layer/db'], (dbModule) ->
 	exports = {}
 
-	error = console.error
-	log = console.log
-	console.error = ->
-	console.log = ->
-
 	schedulerModel = '''
 		Term: description
 			Concept Type: Text (Type)
@@ -171,12 +166,8 @@ define(['cs!database-layer/db'], (dbModule) ->
 		db.transaction( (tx) ->
 			sbvrUtils.executeModel(tx, 'scheduler', schedulerModel,
 				->
-					console.log = log
-					console.error = error
 					console.log('Sucessfully executed scheduler model.')
 				(tx, error) ->
-					console.log = log
-					console.error = error
 					console.error('Failed to execute scheduler model.', error)
 			)
 		)
