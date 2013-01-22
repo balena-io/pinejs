@@ -181,10 +181,15 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 		Identifier :factTypeSoFar :noAutoComplete =
 			~(<Term(factTypeSoFar)?>:term)?
 			~(<Name(factTypeSoFar)?>:name)?
-			?(!noAutoComplete || term || name)
-			(	?(term.length > name.length)
-				Term(factTypeSoFar)
-			|	Name(factTypeSoFar)
+			(	?(term || name)
+				(	?(term.length > name.length)
+					Term(factTypeSoFar)
+				|	Name(factTypeSoFar)
+				)
+			|	?(!noAutoComplete)
+				(	Term(factTypeSoFar)
+				|	Name(factTypeSoFar)
+				)
 			),
 		Vocabulary =
 			FindVocabulary:vocabulary
@@ -675,7 +680,7 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 		if(identifier === false) {
 			return false;
 		}
-		var identifiers = this.branches[identifierType].call(this, vocabulary, factTypeSoFar);
+		var identifiers = this.branches[identifierType].call(this, factTypeSoFar, vocabulary);
 		if(identifiers.indexOf(identifier) !== -1) {
 			return identifier;
 		}
@@ -783,13 +788,20 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 	function getValidFactTypeParts(vocabulary, identifierType, factTypeSoFar) {
 		var vocabularies = this.vocabularies;
 		if(factTypeSoFar == null || factTypeSoFar.length == 0) {
-			var identifiers = vocabularies[vocabulary][identifierType];
-			if(identifiers != null) {
-				return _.keys(identifiers);
+			var identifiers;
+			if(vocabulary == null) {
+				identifiers = vocabularies[this.currentVocabulary][identifierType];
+				// identifiers = {};
+				// for(vocabulary in vocabularies) {
+					// if(vocabularies.hasOwnProperty(vocabulary)) {
+						// _.extend(identifiers, vocabularies[vocabulary][identifierType]);
+					// }
+				// }
 			}
 			else {
-				return [];
+				identifiers = vocabularies[vocabulary][identifierType];
 			}
+			return _.keys(identifiers);
 		}
 		var factTypePart,
 			currentLevel = this._traverseFactType(factTypeSoFar),
@@ -830,13 +842,13 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 			Vocabulary: function(factTypeSoFar) {
 				return _.keys(this.vocabularies);
 			},
-			Term: function(vocabulary, factTypeSoFar) {
+			Term: function(factTypeSoFar, vocabulary) {
 				return getValidFactTypeParts.call(this, vocabulary, 'Term', factTypeSoFar);
 			},
-			Name: function(vocabulary, factTypeSoFar) {
+			Name: function(factTypeSoFar, vocabulary) {
 				return getValidFactTypeParts.call(this, vocabulary, 'Name', factTypeSoFar);
 			},
-			Verb: function(vocabulary, factTypeSoFar) {
+			Verb: function(factTypeSoFar, vocabulary) {
 				return getValidFactTypeParts.call(this, vocabulary, 'Verb', factTypeSoFar);
 			},
 			AllowedAttrs: function(termOrFactType) {
