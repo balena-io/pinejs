@@ -738,7 +738,7 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 										['Name',''].toString(),
 										['Verb',''].toString()
 									].join('|') +
-								')(.*?),(.*)$'),
+								')(.*?)(?:,(.*))?$'),
 		allowedAttrLists = [
 			'Concept Type:',
 			'Definition:',
@@ -823,9 +823,14 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 				var factTypePartVocabulary;
 				if(matches != null) {
 					factTypePart = matches[1];
-					factTypePartVocabulary = matches[2];
+					if(matches[2]) {
+						factTypePartVocabulary = matches[2];
+						followChildrenChain(factTypePartVocabulary, factTypePart);
+					}
+					else {
+						factTypeParts[factTypePart] = true;
+					}
 				}
-				followChildrenChain(factTypePartVocabulary, factTypePart);
 			}
 		}
 		return _.keys(factTypeParts);
