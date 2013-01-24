@@ -420,12 +420,25 @@ define([
 				runDelete(req, res, tx)
 
 	exports.runGet = runGet = (req, res, tx) ->
-		processInstance = (resourceModel, instance) ->
-			instance = _.clone(instance)
-			for field in resourceModel.fields when field[0] == 'JSON' and instance.hasOwnProperty(field[1])
-				instance[field[1]] = JSON.parse(instance[field[1]])
-			return instance
-
+		processInstances = (resourceModel, rows) ->
+			# TODO: This can probably be optimised more, but removing the process step when it isn't required is an improvement
+			processRequired = false
+			for field in resourceModel.fields when field[0] == 'JSON'
+				processRequired = true
+				break
+			instances = []
+			if processRequired
+				processInstance = (instance) ->
+					instance = _.clone(instance)
+					for field in resourceModel.fields when field[0] == 'JSON' and instance.hasOwnProperty(field[1])
+						instance[field[1]] = JSON.parse(instance[field[1]])
+					instances.push(instance)
+			else
+				processInstance = (instance) ->
+					instances.push(instance)
+			rows.forEach(processInstance)
+			return instances
+		
 		tree = req.tree
 		if tree[2] == undefined
 			res.json(clientModels[tree[1][1]].resources)
@@ -445,25 +458,9 @@ define([
 								clientModel = clientModels[tree[1][1]]
 								resourceModel = clientModel.resources[tree[2].resourceName]
 								
-								# TODO: This can probably be optimised more, but removing the process step when it isn't required is an improvement
-								processRequired = false
-								for field in resourceModel.fields when field[0] == 'JSON'
-									processRequired = true
-									break
-								instances = []
-								if processRequired
-									result.rows.forEach((instance) ->
-										instances.push(processInstance(resourceModel, instance))
-									)
-								else
-									result.rows.forEach((instance) ->
-										instances.push(instance)
-									)
-								
 								data =
-									instances: instances
-									model:
-										resourceModel
+									instances: processInstances(resourceModel, result.rows)
+									model: resourceModel
 								res.json(data)
 						() ->
 							res.send(404)
