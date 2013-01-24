@@ -105,6 +105,7 @@ define([
 
 	serverURIParser = ServerURIParser.createInstance()
 
+	seModels = {}
 	sqlModels = {}
 	clientModels = {}
 
@@ -342,6 +343,7 @@ define([
 							# For the moment it blocks such models from execution.
 							validateDB(tx, sqlModel,
 								(tx) ->
+									seModels[vocab] = seModel
 									sqlModels[vocab] = sqlModel
 									clientModels[vocab] = clientModel
 
@@ -378,6 +380,7 @@ define([
 				runURI('DELETE', '/dev/model?filter=model_type:sql', [{vocabulary}], tx)
 				runURI('DELETE', '/dev/model?filter=model_type:client', [{vocabulary}], tx)
 
+				seModels[vocabulary] = ''
 				sqlModels[vocabulary] = []
 				serverURIParser.setSQLModel(vocabulary, sqlModels[vocabulary])
 				clientModels[vocabulary] = []
@@ -394,6 +397,63 @@ define([
 				for comparison in whereClause[1..] when comparison[0] == "Equals" and comparison[1][2] in ['id', 'name']
 					return comparison[2][1]
 		return id
+
+	processInstances = (resourceModel, rows) ->
+		# TODO: This can probably be optimised more, but removing the process step when it isn't required is an improvement
+		processRequired = false
+		for field in resourceModel.fields when field[0] == 'JSON'
+			processRequired = true
+			break
+		instances = []
+		if processRequired
+			processInstance = (instance) ->
+				instance = _.clone(instance)
+				for field in resourceModel.fields when field[0] == 'JSON' and instance.hasOwnProperty(field[1])
+					instance[field[1]] = JSON.parse(instance[field[1]])
+				instances.push(instance)
+		else
+			processInstance = (instance) ->
+				instances.push(instance)
+		rows.forEach(processInstance)
+		return instances
+
+	exports.runRule = do ->
+		LF2AbstractSQLPrepHack = _.extend({}, LF2AbstractSQLPrep, {CardinalityOptimisation: () -> @_pred(false)})
+		return (vocab, rule, callback) ->
+			seModel = seModels[vocab]
+			try
+				lfModel = SBVRParser.matchAll(seModel + '\nRule: ' + rule, 'Process')
+			catch e
+				console.error('Error parsing model', e)
+				return
+			ruleLF = lfModel[lfModel.length-1]
+			lfModel = lfModel[...-1]
+			slfModel = LF2AbstractSQLPrep.match(lfModel, 'Process')
+			slfModel.push(ruleLF)
+			slfModel = LF2AbstractSQLPrepHack.match(slfModel, 'Process')
+			
+			abstractSqlModel = LF2AbstractSQL.match(slfModel, 'Process')
+			
+			ruleAbs = abstractSqlModel.rules[-1..][0]
+			# Remove the not exists
+			ruleAbs[2][1] = ruleAbs[2][1][1][1]
+			# Select all
+			ruleAbs[2][1][1][1] = '*'
+			ruleSQL = AbstractSQL2SQL.generate({tables: {}, rules: [ruleAbs]}).rules[0].sql
+			
+			db.transaction((tx) ->
+				tx.executeSql(ruleSQL, [],
+					(tx, result) ->
+						clientModel = clientModels[vocab]
+						resourceModel = clientModel.resources[ruleLF[1][1][1][2][1]]
+						data =
+							instances: processInstances(resourceModel, result.rows)
+							model: resourceModel
+						callback(null, data)
+					(tx, err) ->
+						callback(err)
+				)
+			)
 
 	exports.runURI = runURI = (method, uri, body = {}, tx, successCallback, failureCallback) ->
 		uri = decodeURI(uri)
@@ -420,25 +480,6 @@ define([
 				runDelete(req, res, tx)
 
 	exports.runGet = runGet = (req, res, tx) ->
-		processInstances = (resourceModel, rows) ->
-			# TODO: This can probably be optimised more, but removing the process step when it isn't required is an improvement
-			processRequired = false
-			for field in resourceModel.fields when field[0] == 'JSON'
-				processRequired = true
-				break
-			instances = []
-			if processRequired
-				processInstance = (instance) ->
-					instance = _.clone(instance)
-					for field in resourceModel.fields when field[0] == 'JSON' and instance.hasOwnProperty(field[1])
-						instance[field[1]] = JSON.parse(instance[field[1]])
-					instances.push(instance)
-			else
-				processInstance = (instance) ->
-					instances.push(instance)
-			rows.forEach(processInstance)
-			return instances
-		
 		tree = req.tree
 		if tree[2] == undefined
 			res.json(clientModels[tree[1][1]].resources)
@@ -661,16 +702,21 @@ define([
 				if err?
 					console.error('Could not execute standard models')
 					process.exit()
-				runURI('GET', '/dev/model?filter=model_type:sql;vocabulary:data', null, tx
-					(result) ->
-						for instance in result.instances
-							vocab = instance.vocabulary
-							sqlModel = instance['model value']
-							clientModel = AbstractSQL2CLF(sqlModel)
-							sqlModels[vocab] = sqlModel
-							serverURIParser.setSQLModel(vocab, sqlModel)
-							clientModels[vocab] = clientModel
-							serverURIParser.setClientModel(vocab, clientModel)
+				runURI('GET', '/dev/model?filter=model_type:sql;vocabulary:data', null, tx, (result) ->
+					for instance in result.instances
+						vocab = instance.vocabulary
+						sqlModel = instance['model value']
+						clientModel = AbstractSQL2CLF(sqlModel)
+						sqlModels[vocab] = sqlModel
+						serverURIParser.setSQLModel(vocab, sqlModel)
+						clientModels[vocab] = clientModel
+						serverURIParser.setClientModel(vocab, clientModel)
+				)
+				runURI('GET', '/dev/model?filter=model_type:se;vocabulary:data', null, tx, (result) ->
+					for instance in result.instances
+						vocab = instance.vocabulary
+						seModel = instance['model value']
+						seModels[vocab] = seModel
 				)
 				# We only actually need to have had the standard models executed before execution continues, so we schedule it here.
 				setTimeout(callback, 0)

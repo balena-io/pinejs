@@ -111,6 +111,15 @@ define([
 				() -> res.send(404)
 			)
 		)
+		app.post('/validate', isAuthed, uiModelLoaded, (req, res, next) ->
+			console.log(req.body)
+			sbvrUtils.runRule('data', req.body.rule, (err, results) ->
+				if err?
+					res.send(404)
+				else
+					res.json(results)
+			)
+		)
 		app.del('/cleardb', isAuthed, (req, res, next) ->
 			db.transaction (tx) ->
 				tx.tableList( (tx, result) ->

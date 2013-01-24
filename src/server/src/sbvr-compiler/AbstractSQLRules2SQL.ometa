@@ -341,8 +341,10 @@ define(['ometa-core'], function() {
 			|	Boolean,
 		
 		Process =
-			RuleBody('\n'):ruleBody
-			-> ('SELECT ' + ruleBody + ' AS "result";')
+			(	SelectQuery('\n')
+			|	RuleBody('\n'):ruleBody
+				-> ('SELECT ' + ruleBody + ' AS "result";')
+			)
 	}
 	
 	AbstractSQLRules2SQL.initialize = function() {

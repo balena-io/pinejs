@@ -29,11 +29,12 @@ define([
 		
 		Select =
 			[	'Select'
-				[
-					(
-						Count
-					)*:fields
-				]
+				(	[	(
+							Count
+						)*:fields
+					]
+				|	'*':fields
+				)
 			]
 			-> [['Select', fields]],
 		
@@ -291,13 +292,17 @@ define([
 			{this.helped = true},
 	
 		Process =
-			:boolStatement
+			:query
 			// Make sure we can at least do one valid pass.
-			BooleanStatement(boolStatement):boolStatement
+			(	BooleanStatement(query)
+			|	SelectQuery(query)
+			):query
 			(	Helped('disableMemoisation')
-				BooleanStatement(boolStatement):boolStatement
+				(	BooleanStatement(query)
+				|	SelectQuery(query)
+				):query:query
 			)*
-			-> boolStatement
+			-> query
 	}
 	
 	AbstractSQLOptimiser.initialize = function() {

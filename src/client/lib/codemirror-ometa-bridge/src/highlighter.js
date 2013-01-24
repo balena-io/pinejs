@@ -49,11 +49,12 @@ define(['codemirror'], function() {
 			};
 		CodeMirror.defineMode(modeName, function(config, mode) {
 			var tokens = [],
+				tokensOffset = 0,
 				checkForNewText = (function() {
 					var previousText = '',
 						prevLastVisibleLine = 0,
-						buildTokens = function(input) { 
-							var tokens = [];
+						buildTokens = function(input, shift) { 
+							var tokens = [], idx;
 							try {
 								do {
 									tokens[input.idx] = input.tokens;
@@ -70,7 +71,11 @@ define(['codemirror'], function() {
 							return;
 						}
 						var text = ometaEditor.getValue(),
+							prependText = '',
 							lastVisibleLine = ometaEditor.getViewport().to;
+						if(mode.hasOwnProperty('prependText')) {
+							prependText = mode.prependText();
+						}
 						// We only regenerate tokens if the text has changed, or the last visible line is further down than before.
 						if(text != previousText || (!options.disableVisibleOnlyHighlighting && lastVisibleLine > prevLastVisibleLine)) {
 							previousText = text;
@@ -90,6 +95,7 @@ define(['codemirror'], function() {
 								// Trim the text to only what is visible before parsing it.
 								text = text.slice(0, lastVisibleIndex);
 							}
+							text = prependText + text;
 							var grammar = getGrammar();
 							try {
 								grammar.matchAll(text, 'Process');
@@ -101,6 +107,7 @@ define(['codemirror'], function() {
 								// console.error(e, e.stack);
 							}
 							tokens = buildTokens(grammar.inputHead);
+							tokensOffset = prependText.length;
 						}
 					}
 				})(),
@@ -139,7 +146,7 @@ define(['codemirror'], function() {
 				
 				startState: function() {
 					return {
-						index: 0,
+						index: tokensOffset,
 						previousIndex: -1,
 						currentTokens: []
 					};
@@ -176,6 +183,12 @@ define(['codemirror'], function() {
 				// This is used by hinter to provide hints for the grammar.
 				getGrammar: function() {
 					return ometaGrammar.createInstance();
+				},
+				prependText: function() {
+					if(mode.hasOwnProperty('prependText')) {
+						return mode.prependText();
+					}
+					return '';
 				}
 			};
 		});
