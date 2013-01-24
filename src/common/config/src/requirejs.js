@@ -31,7 +31,7 @@ if(typeof DEV === 'undefined') DEV = true;
 			'jquery-ui':				rootPath + 'external/jquery-ui/css/ui-lightness/jquery-ui-1.9.0.custom',
 			'jqGrid':					rootPath + 'external/jqGrid/css/ui.jqgrid',
 			'codemirror':				rootPath + 'external/CodeMirror2/lib/codemirror',
-			'codemirror-util':			rootPath + 'external/CodeMirror2/lib/util',
+			'codemirror-hint':			rootPath + 'external/CodeMirror2/addon/hint',
 			'codemirror-theme':			rootPath + 'external/CodeMirror2/theme',
 			'qunit':					rootPath + 'external/qunit/qunit',
 			'codemirror-ometa-bridge':	rootPath + 'client/codemirror-ometa-bridge' + buildType
@@ -62,7 +62,7 @@ if(typeof DEV === 'undefined') DEV = true;
 			'ometa-core':				rootPath + 'external/ometa-js/lib/ometajs/core',
 			'ometa-compiler':			rootPath + 'external/ometa-js/lib/ometajs/ometa/parsers',
 			'codemirror':				rootPath + 'external/CodeMirror2/lib/codemirror',
-			'codemirror-util':			rootPath + 'external/CodeMirror2/lib/util',
+			'codemirror-hint':			rootPath + 'external/CodeMirror2/addon/hint',
 			'codemirror-keymap':		rootPath + 'external/CodeMirror2/keymap',
 			'codemirror-modes':			rootPath + 'external/CodeMirror2/mode',
 			'js-beautify':				rootPath + 'external/beautify/beautify',
