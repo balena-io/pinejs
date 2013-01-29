@@ -29,7 +29,7 @@ define(->
 					resourceName: resourceName
 					modelName: (part.replace(/_/g, ' ') for part in idParts).join(' ')
 					topLevel: idParts.length == 1
-					fields: [ ['ForeignKey', resourceField, 'NOT NULL', sqlFieldName] ]
+					fields: [ ['ForeignKey', resourceField, true, null, [sqlTableName, sqlFieldName]] ]
 					idField: resourceField
 					referenceScheme: resourceField
 					actions: ['view', 'add', 'delete']
