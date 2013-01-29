@@ -7,10 +7,11 @@ define([
 	'ometa!sbvr-compiler/AbstractSQLRules2SQL'
 	'cs!sbvr-compiler/AbstractSQL2CLF'
 	'ometa!server-glue/ServerURIParser'
+	'ometa!server-glue/odata-parser'
 	'async'
 	'cs!database-layer/db'
 	'underscore'
-], (has, SBVRParser, LF2AbstractSQLPrep, LF2AbstractSQL, AbstractSQL2SQL, AbstractSQLRules2SQL, AbstractSQL2CLF, ServerURIParser, async, dbModule, _) ->
+], (has, SBVRParser, LF2AbstractSQLPrep, LF2AbstractSQL, AbstractSQL2SQL, AbstractSQLRules2SQL, AbstractSQL2CLF, ServerURIParser, ODataParser, async, dbModule, _) ->
 	exports = {}
 	db = null
 
@@ -104,6 +105,7 @@ define([
 				Necessity: Each user has exactly one password.'''
 
 	serverURIParser = ServerURIParser.createInstance()
+	odataParser = ODataParser.createInstance()
 
 	seModels = {}
 	sqlModels = {}
@@ -348,7 +350,9 @@ define([
 									clientModels[vocab] = clientModel
 
 									serverURIParser.setSQLModel(vocab, abstractSqlModel)
+									odataParser.setSQLModel(vocab, abstractSqlModel)
 									serverURIParser.setClientModel(vocab, clientModel)
+									odataParser.setClientModel(vocab, clientModel)
 									runURI('PUT', '/dev/model?filter=model_type:se', [{vocabulary: vocab, 'model value': seModel}], tx)
 									runURI('PUT', '/dev/model?filter=model_type:lf', [{vocabulary: vocab, 'model value': lfModel}], tx)
 									runURI('PUT', '/dev/model?filter=model_type:slf', [{vocabulary: vocab, 'model value': slfModel}], tx)
@@ -383,20 +387,19 @@ define([
 				seModels[vocabulary] = ''
 				sqlModels[vocabulary] = []
 				serverURIParser.setSQLModel(vocabulary, sqlModels[vocabulary])
+				odataParser.setSQLModel(vocabulary, sqlModels[vocabulary])
 				clientModels[vocabulary] = []
 				serverURIParser.setClientModel(vocabulary, clientModels[vocabulary])
+				odataParser.setClientModel(vocabulary, clientModels[vocabulary])
 		)
 
 	getID = (tree) ->
-		id = 0
-		# if the id is empty, search the filters for one
-		if id is 0
-			query = tree[2].query
-			for whereClause in query when whereClause[0] == 'Where'
-				# TODO: This should use the idField from sqlModel
-				for comparison in whereClause[1..] when comparison[0] == "Equals" and comparison[1][2] in ['id', 'name']
-					return comparison[2][1]
-		return id
+		query = tree.requests[0].query
+		for whereClause in query when whereClause[0] == 'Where'
+			# TODO: This should use the idField from sqlModel
+			for comparison in whereClause[1..] when comparison[0] == "Equals" and comparison[1][2] in ['id']
+				return comparison[2][1]
+		return 0
 
 	processInstances = (resourceModel, rows) ->
 		# TODO: This can probably be optimised more, but removing the process step when it isn't required is an improvement
@@ -458,8 +461,12 @@ define([
 	exports.runURI = runURI = (method, uri, body = {}, tx, successCallback, failureCallback) ->
 		uri = decodeURI(uri)
 		console.log('Running URI', method, uri, body)
+		try
+			tree = serverURIParser.match([method, body, uri], 'Process')
+		catch e
+			tree = odataParser.match([method, body, uri], 'Process')
 		req =
-			tree: serverURIParser.match([method, body, uri], 'Process')
+			tree: tree
 			body: body
 		res =
 			send: (statusCode) ->
@@ -481,11 +488,12 @@ define([
 
 	exports.runGet = runGet = (req, res, tx) ->
 		tree = req.tree
-		if tree[2] == undefined
-			res.json(clientModels[tree[1][1]].resources)
-		else if tree[2].query?
-			{query, bindings} = AbstractSQLRules2SQL.match(tree[2].query, 'ProcessQuery')
-			values = getAndCheckBindValues(bindings, tree[2].values)
+		if tree.requests == undefined
+			res.json(clientModels[tree.vocabulary].resources)
+		else if tree.requests[0].query?
+			request = tree.requests[0]
+			{query, bindings} = AbstractSQLRules2SQL.match(request.query, 'ProcessQuery')
+			values = getAndCheckBindValues(bindings, request.values)
 			console.log(query, values)
 			if !_.isArray(values)
 				res.json(values, 404)
@@ -496,8 +504,8 @@ define([
 							if values.length > 0 && result.rows.length == 0
 								res.send(404)
 							else
-								clientModel = clientModels[tree[1][1]]
-								resourceModel = clientModel.resources[tree[2].resourceName]
+								clientModel = clientModels[tree.vocabulary]
+								resourceModel = clientModel.resources[request.resourceName]
 								
 								data =
 									instances: processInstances(resourceModel, result.rows)
@@ -511,24 +519,25 @@ define([
 				else
 					db.transaction(runQuery)
 		else
-			clientModel = clientModels[tree[1][1]]
+			clientModel = clientModels[tree.vocabulary]
 			data =
 				model:
-					clientModel.resources[tree[2].resourceName]
+					clientModel.resources[tree.requests[0].resourceName]
 			res.json(data)
 
 	exports.runPost = runPost = (req, res, tx) ->
 		tree = req.tree
-		if tree[2] == undefined
+		if tree.requests == undefined
 			res.send(404)
 		else
-			{query, bindings} = AbstractSQLRules2SQL.match(tree[2].query, 'ProcessQuery')
-			values = getAndCheckBindValues(bindings, tree[2].values)
+			request = tree.requests[0]
+			{query, bindings} = AbstractSQLRules2SQL.match(request.query, 'ProcessQuery')
+			values = getAndCheckBindValues(bindings, request.values)
 			console.log(query, values)
 			if !_.isArray(values)
 				res.json(values, 404)
 			else
-				vocab = tree[1][1]
+				vocab = tree.vocabulary
 				runQuery = (tx) ->
 					tx.begin()
 					# TODO: Check for transaction locks.
@@ -537,19 +546,19 @@ define([
 							validateDB(tx, sqlModels[vocab],
 								(tx) ->
 									tx.end()
-									insertID = if tree[2].query[0] == 'UpdateQuery' then values[0] else sqlResult.insertId
+									insertID = if request.query[0] == 'UpdateQuery' then values[0] else sqlResult.insertId
 									console.log('Insert ID: ', insertID)
 									res.json({
 											id: insertID
 										}, {
-											location: '/' + vocab + '/' + tree[2].resourceName + "?filter=" + tree[2].resourceName + ".id:" + insertID
+											location: '/' + vocab + '/' + request.resourceName + "?filter=" + request.resourceName + ".id:" + insertID
 										}, 201
 									)
 								(tx, errors) ->
 									res.json(errors, 404)
 							)
 						(tx, err) ->
-							constraintError = checkForConstraintError(err, tree[2].resourceName)
+							constraintError = checkForConstraintError(err, request.resourceName)
 							if constraintError != false
 								res.json(constraintError, 404)
 							else
@@ -562,23 +571,24 @@ define([
 
 	exports.runPut = runPut = (req, res, tx) ->
 		tree = req.tree
-		if tree[2] == undefined
+		if tree.requests == undefined
 			res.send(404)
 		else
-			queries = AbstractSQLRules2SQL.match(tree[2].query, 'ProcessQuery')
+			request = tree.requests[0]
+			queries = AbstractSQLRules2SQL.match(request.query, 'ProcessQuery')
 
 			if _.isArray(queries)
 				insertQuery = queries[0]
 				updateQuery = queries[1]
 			else
 				insertQuery = queries
-			values = getAndCheckBindValues(insertQuery.bindings, tree[2].values)
+			values = getAndCheckBindValues(insertQuery.bindings, request.values)
 			console.log(insertQuery.query, values)
 
 			if !_.isArray(values)
 				res.json(values, 404)
 			else
-				vocab = tree[1][1]
+				vocab = tree.vocabulary
 
 				doValidate = (tx) ->
 					validateDB(tx, sqlModels[vocab],
@@ -599,7 +609,7 @@ define([
 							JOIN "resource-is_under-lock" AS rl ON rl."resource" = r."id"
 							WHERE r."resource type" = ?
 							AND r."id" = ?
-						) AS result;''', [tree[2].resourceName, id],
+						) AS result;''', [request.resourceName, id],
 						(tx, result) ->
 							if result.rows.item(0).result in [false, 0, '0']
 								res.json([ "The resource is locked and cannot be edited" ], 404)
@@ -608,7 +618,7 @@ define([
 									(tx, result) -> doValidate(tx)
 									(tx) ->
 										if updateQuery?
-											values = getAndCheckBindValues(updateQuery.bindings, tree[2].values)
+											values = getAndCheckBindValues(updateQuery.bindings, request.values)
 											console.log(updateQuery.query, values)
 											if !_.isArray(values)
 												res.json(values, 404)
@@ -616,7 +626,7 @@ define([
 												tx.executeSql(updateQuery.query, values,
 													(tx, result) -> doValidate(tx)
 													(tx, err) ->
-														constraintError = checkForConstraintError(err, tree[2].resourceName)
+														constraintError = checkForConstraintError(err, request.resourceName)
 														if constraintError != false
 															res.json(constraintError, 404)
 														else
@@ -633,16 +643,17 @@ define([
 
 	exports.runDelete = runDelete = (req, res, tx) ->
 		tree = req.tree
-		if tree[2] == undefined
+		if tree.requests == undefined
 			res.send(404)
 		else
-			{query, bindings} = AbstractSQLRules2SQL.match(tree[2].query, 'ProcessQuery')
-			values = getAndCheckBindValues(bindings, tree[2].values)
+			request = tree.requests[0]
+			{query, bindings} = AbstractSQLRules2SQL.match(request.query, 'ProcessQuery')
+			values = getAndCheckBindValues(bindings, request.values)
 			console.log(query, values)
 			if !_.isArray(values)
 				res.json(values, 404)
 			else
-				vocab = tree[1][1]
+				vocab = tree.vocabulary
 				runQuery = (tx) ->
 					tx.begin()
 					tx.executeSql(query, values,
@@ -666,7 +677,10 @@ define([
 		if !req.tree?
 			try
 				uri = decodeURI(req.url)
-				req.tree = serverURIParser.match([req.method, req.body, uri], 'Process')
+				try
+					req.tree = serverURIParser.match([req.method, req.body, uri], 'Process')
+				catch e
+					req.tree = odataParser.match([req.method, req.body, uri], 'Process')
 				console.log(uri, req.tree, req.body)
 			catch e
 				console.error('Failed to parse URI tree', req.url, e.message, e.stack)
@@ -709,8 +723,10 @@ define([
 						clientModel = AbstractSQL2CLF(sqlModel)
 						sqlModels[vocab] = sqlModel
 						serverURIParser.setSQLModel(vocab, sqlModel)
+						odataParser.setSQLModel(vocab, sqlModel)
 						clientModels[vocab] = clientModel
 						serverURIParser.setClientModel(vocab, clientModel)
+						odataParser.setClientModel(vocab, clientModel)
 				)
 				runURI('GET', '/dev/model?filter=model_type:se;vocabulary:data', null, tx, (result) ->
 					for instance in result.instances

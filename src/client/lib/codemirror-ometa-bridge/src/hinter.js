@@ -119,7 +119,7 @@ define(['codemirror'], function (CodeMirror) {
 			// Hook into ctrl-space
 			if (e.keyCode == 32 && (e.ctrlKey || e.metaKey) && !e.altKey) {
 				e.stop();
-				return CodeMirror.simpleHint(instance, ometaHint);
+				return CodeMirror.showHint(instance, ometaHint);
 			}
 		};
 	};

@@ -1,22 +1,19 @@
 define(['ometa!server-glue/uri-parser', 'underscore', 'ometa-core'], function(URIParser, _) {
-	ometa ServerURIParser <: URIParser)  {
+	ometa ODataParser <: URIParser {
 		ProcessURI :body =
-			'/'?
-			{[]}:resources
-			{0}:i
-			{	for(;i<body.length;i++) {
-					this.currentBody = body[i];
-					if(i<body.length-1) {
-						this._lookahead(function() {
-							resources.push(this._apply('Resource'));
-						});
-					}
-					else {
-						resources.push(this._apply('Resource'));
-					}
-				}
-			}
-			-> resources,
+			(	'/'
+				(	end
+					?(method == 'GET')
+					// TODO:
+					-> serviceDocument
+				|	{this.newBody = []}
+					ResourceName:resourceName
+					{['Query']}:query
+					AddQueryResource(query, resourceName)
+					Modifiers(query)
+				)
+			)
+			-> [{resourceName: resourceName, query: query, values: this.newBody}],
 
 		Vocabulary =
 			<	(	~'/'
@@ -26,7 +23,6 @@ define(['ometa!server-glue/uri-parser', 'underscore', 'ometa-core'], function(UR
 
 		ResourcePart =
 			<	(	letter
-				|	' '
 				|	'_'
 				)+
 			>:resourcePart
@@ -39,36 +35,22 @@ define(['ometa!server-glue/uri-parser', 'underscore', 'ometa-core'], function(UR
 				)*
 			>,
 
-		Resource =
-			{this.newBody = []}
-			ResourceName:resourceName
-			(	(	?(this.currentMethod != 'GET')
-				|	&'?'
-				)
-				{['Query']}:query
-				AddQueryResource(query, resourceName)
-				Modifiers(query)
-				'*'?
-			)?
-			-> {resourceName: resourceName, query: query, values: this.newBody},
-
 		Comparator =
-				':'
+				seq('eq')
 				-> 'Equals'
-			|	seq('!:')
+			|	seq('ne')
 				-> 'NotEquals'
-			|	'>'
-				(	':'
-					-> 'GreaterThanOrEqual'
-				|	-> 'GreaterThan'
-				)
-			|	'<'
-				(	':'
-					-> 'LessThanOrEqual'
-				|	-> 'LessThan'
-				)
-			|	'~'
-				-> 'Like',
+			|	seq('gt')
+				-> 'GreaterThan'
+			|	seq('gte')
+				-> 'GreaterThanOrEqual'
+			|	seq('lt')
+				-> 'LessThan'
+			|	seq('lte')
+				-> 'LessThanOrEqual',
+			// OData doesn't support like
+			// |	'like'
+				// -> 'Like',
 
 		Modifiers :query =
 			'?'
@@ -84,7 +66,7 @@ define(['ometa!server-glue/uri-parser', 'underscore', 'ometa-core'], function(UR
 			)*,
 
 		Field =
-			(	ResourcePart:resourceName '.' ResourcePart:resourceFieldName
+			(	ResourcePart:resourceName '/' ResourcePart:resourceFieldName
 			|	{this.currentResource}:resourceName
 				ResourcePart:resourceFieldName
 			)
@@ -92,14 +74,16 @@ define(['ometa!server-glue/uri-parser', 'underscore', 'ometa-core'], function(UR
 			-> ['ReferencedField'].concat(mapping),
 
 		Filters :query =
-			seq('filter=')
+			seq('$filter=')
 			(	Field:field
+				' '
 				Comparator:comparator
+				' '
 				<	(	~ValueBreak
 						anything
 					)+
 				>:value
-				';'?
+				seq(' and ')?
 				{field[1]}:resourceName
 				{field[2]}:resourceFieldName
 				GetMapping(resourceName,resourceFieldName):mapping
@@ -110,35 +94,35 @@ define(['ometa!server-glue/uri-parser', 'underscore', 'ometa-core'], function(UR
 		Number = <digit+>:d -> ['Number', parseInt(d, 10)],
 
 		Limit =
-			seq('limit=')
+			seq('$top=')
 			Number:num
 			->	['Limit', num],
 
 		Offset =
-			seq('offset=')
+			seq('$skip=')
 			Number:num
 			->	['Offset', num],
 
 		Sorts =
-			seq('order=')
+			seq('$orderby=')
 			(	Field:field
-				':'
-				(	seq('ASC')
-				|	seq('DESC')
+				' '
+				(	seq('asc')
+				|	seq('desc')
 				):direction
-				';'?
+				seq(', ')?
 				-> [direction, field]
 			)+:sorts
 			->	['OrderBy'].concat(sorts),
 
 		ValueBreak =
-			(	';'
-			|	'*'
-			|	'/'
+			(	seq(' and ')
+			// |	'*'
+			// |	'/'
 			)
 	}
-	
-	ServerURIParser.type = 'Custom';
 
-	return ServerURIParser;
+	ODataParser.type = 'OData';
+
+	return ODataParser;
 });
