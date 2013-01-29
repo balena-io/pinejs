@@ -12,7 +12,7 @@ define(->
 	return (options, sbvrUtils, app, passport) ->
 		exports = {}
 		checkPassword = (username, password, done) ->
-			sbvrUtils.runURI('GET', '/user/user?filter=user.username:' + username, [{}], null,
+			sbvrUtils.runURI('GET', '/user/user?$filter=user/username eq ' + username, [{}], null,
 				(data) ->
 					console.log(data.instances)
 					hash = data.instances[0].password

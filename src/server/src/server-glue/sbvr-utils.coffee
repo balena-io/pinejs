@@ -234,7 +234,7 @@ define([
 											callback(err)
 										else
 											lockedRow = lockedRow.rows.item(0)
-											uri = uri + '?filter=' + clientModel.idField + ':' + lockedRow['resource id']
+											uri = uri + '?$filter=' + clientModel.idField + ' eq ' + lockedRow['resource id']
 											runURI('DELETE', uri, requestBody, tx, doCleanup, -> callback(arguments))
 									)
 								when 'EDIT'
@@ -243,7 +243,7 @@ define([
 											callback(err)
 										else
 											lockedRow = lockedRow.rows.item(0)
-											uri = uri + '?filter=' + clientModel.idField + ':' + lockedRow['resource id']
+											uri = uri + '?$filter=' + clientModel.idField + ' eq ' + lockedRow['resource id']
 											getFieldsObject(conditionalResource.id, clientModel,
 												(err, fields) ->
 													if err?
@@ -353,12 +353,12 @@ define([
 									odataParser.setSQLModel(vocab, abstractSqlModel)
 									serverURIParser.setClientModel(vocab, clientModel)
 									odataParser.setClientModel(vocab, clientModel)
-									runURI('PUT', '/dev/model?filter=model_type:se', [{vocabulary: vocab, 'model value': seModel}], tx)
-									runURI('PUT', '/dev/model?filter=model_type:lf', [{vocabulary: vocab, 'model value': lfModel}], tx)
-									runURI('PUT', '/dev/model?filter=model_type:slf', [{vocabulary: vocab, 'model value': slfModel}], tx)
-									runURI('PUT', '/dev/model?filter=model_type:abstractsql', [{vocabulary: vocab, 'model value': abstractSqlModel}], tx)
-									runURI('PUT', '/dev/model?filter=model_type:sql', [{vocabulary: vocab, 'model value': sqlModel}], tx)
-									runURI('PUT', '/dev/model?filter=model_type:client', [{vocabulary: vocab, 'model value': clientModel}], tx)
+									runURI('PUT', '/dev/model?$filter=model_type eq se', [{vocabulary: vocab, 'model value': seModel}], tx)
+									runURI('PUT', '/dev/model?$filter=model_type eq lf', [{vocabulary: vocab, 'model value': lfModel}], tx)
+									runURI('PUT', '/dev/model?$filter=model_type eq slf', [{vocabulary: vocab, 'model value': slfModel}], tx)
+									runURI('PUT', '/dev/model?$filter=model_type eq abstractsql', [{vocabulary: vocab, 'model value': abstractSqlModel}], tx)
+									runURI('PUT', '/dev/model?$filter=model_type eq sql', [{vocabulary: vocab, 'model value': sqlModel}], tx)
+									runURI('PUT', '/dev/model?$filter=model_type eq client', [{vocabulary: vocab, 'model value': clientModel}], tx)
 
 									callback()
 								, (tx, err) ->
@@ -377,12 +377,12 @@ define([
 			(tx) ->
 				for dropStatement in sqlModels[vocabulary].dropSchema
 					tx.executeSql(dropStatement)
-				runURI('DELETE', '/dev/model?filter=model_type:se', [{vocabulary}], tx)
-				runURI('DELETE', '/dev/model?filter=model_type:lf', [{vocabulary}], tx)
-				runURI('DELETE', '/dev/model?filter=model_type:slf', [{vocabulary}], tx)
-				runURI('DELETE', '/dev/model?filter=model_type:abstractsql', [{vocabulary}], tx)
-				runURI('DELETE', '/dev/model?filter=model_type:sql', [{vocabulary}], tx)
-				runURI('DELETE', '/dev/model?filter=model_type:client', [{vocabulary}], tx)
+				runURI('DELETE', '/dev/model?$filter=model_type eq se', [{vocabulary}], tx)
+				runURI('DELETE', '/dev/model?$filter=model_type eq lf', [{vocabulary}], tx)
+				runURI('DELETE', '/dev/model?$filter=model_type eq slf', [{vocabulary}], tx)
+				runURI('DELETE', '/dev/model?$filter=model_type eq abstractsql', [{vocabulary}], tx)
+				runURI('DELETE', '/dev/model?$filter=model_type eq sql', [{vocabulary}], tx)
+				runURI('DELETE', '/dev/model?$filter=model_type eq client', [{vocabulary}], tx)
 
 				seModels[vocabulary] = ''
 				sqlModels[vocabulary] = []
@@ -716,7 +716,7 @@ define([
 				if err?
 					console.error('Could not execute standard models')
 					process.exit()
-				runURI('GET', '/dev/model?filter=model_type:sql;vocabulary:data', null, tx, (result) ->
+				runURI('GET', '/dev/model?$filter=model_type eq sql and vocabulary eq data', null, tx, (result) ->
 					for instance in result.instances
 						vocab = instance.vocabulary
 						sqlModel = instance['model value']
@@ -728,7 +728,7 @@ define([
 						serverURIParser.setClientModel(vocab, clientModel)
 						odataParser.setClientModel(vocab, clientModel)
 				)
-				runURI('GET', '/dev/model?filter=model_type:se;vocabulary:data', null, tx, (result) ->
+				runURI('GET', '/dev/model?$filter=model_type eq se and vocabulary eq data', null, tx, (result) ->
 					for instance in result.instances
 						vocab = instance.vocabulary
 						seModel = instance['model value']

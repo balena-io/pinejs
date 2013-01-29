@@ -76,7 +76,7 @@ define([
 				(tx, error) ->
 					console.error('Failed to execute ui model.', error)
 			)
-			sbvrUtils.runURI('GET', '/dev/model?filter=model_type:sql;vocabulary:data', null, tx
+			sbvrUtils.runURI('GET', '/dev/model?$filter=model_type eq sql and vocabulary eq data', null, tx
 				(result) ->
 					isServerOnAir(true)
 				() ->
@@ -94,14 +94,14 @@ define([
 			res.send(404)
 		)
 		app.post('/execute', isAuthed, uiModelLoaded, (req, res, next) ->
-			sbvrUtils.runURI('GET', '/ui/textarea?filter=name:model_area', null, null,
+			sbvrUtils.runURI('GET', '/ui/textarea?$filter=name eq model_area', null, null,
 				(result) ->
 					seModel = result.instances[0].text
 					db.transaction((tx) ->
 						tx.begin()
 						sbvrUtils.executeModel(tx, 'data', seModel,
 							(tx, lfModel, slfModel, abstractSqlModel, sqlModel, clientModel) ->
-								sbvrUtils.runURI('PUT', '/ui/textarea-is_disabled?filter=textarea.name:model_area/', [{value: true}], tx)
+								sbvrUtils.runURI('PUT', '/ui/textarea-is_disabled?$filter=textarea/name eq model_area', [{value: true}], tx)
 								isServerOnAir(true)
 								res.send(200)
 							(tx, errors) ->
@@ -310,8 +310,8 @@ define([
 
 		app.del('/', uiModelLoaded, serverIsOnAir, (req, res, next) ->
 			# TODO: This should be done a better way?
-			sbvrUtils.runURI('DELETE', '/ui/textarea-is_disabled?filter=textarea.name:model_area/')
-			sbvrUtils.runURI('PUT', '/ui/textarea?filter=name:model_area/', [{text: ''}])
+			sbvrUtils.runURI('DELETE', '/ui/textarea-is_disabled?$filter=textarea/name eq model_area/')
+			sbvrUtils.runURI('PUT', '/ui/textarea?$filter=name eq model_area/', [{text: ''}])
 			sbvrUtils.deleteModel('data')
 			isServerOnAir(false)
 
