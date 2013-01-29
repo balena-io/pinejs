@@ -28,7 +28,8 @@
 
 		UNDERCURRENT			: false,
 		SCHEDULER				: false,
-		IAH						: false
+		IAH						: false,
+		RENEW_API				: false
 	},
 
 	paths: {

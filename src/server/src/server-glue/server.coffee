@@ -7,8 +7,9 @@ define([
 	'cs!undercurrent/undercurrent'
 	'cs!scheduler/scheduler'
 	'cs!iah/iah'
+	'cs!renew-api/renewApi'
 	'cs!express-emulator/express'
-], (has, sbvrUtils, passportBCrypt, sbvrServer, editorServer, undercurrent, scheduler, iah, express)->
+], (has, sbvrUtils, passportBCrypt, sbvrServer, editorServer, undercurrent, scheduler, iah, renewApi, express)->
 	if has 'ENV_NODEJS'
 		if has 'USE_MYSQL'
 			databaseOptions =
@@ -55,6 +56,9 @@ define([
 			if has 'IAH'
 				iah.setup(app, require, sbvrUtils, passportBCrypt.isAuthed, databaseOptions)
 
+			if has 'RENEW_API'
+				renewApi.setup(app, require, sbvrUtils, passportBCrypt.isAuthed, databaseOptions)
+
 			if has 'ENV_NODEJS'
 				app.listen(process.env.PORT or 1337, () ->
 					console.log('Server started')
@@ -84,9 +88,9 @@ define([
 				res.header('Access-Control-Allow-Credentials', 'true')
 				next()
 			)
-			
+
 			app.use(app.router)
-			
+
 			if has 'DEV'
 				rootPath = path.join(__dirname + '/../../../..')
 				app.use('/client', express.static(path.join(rootPath, 'client')))
