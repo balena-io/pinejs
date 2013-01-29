@@ -78,7 +78,7 @@ define([
 			)
 			sbvrUtils.runURI('GET', '/dev/model?$filter=model_type eq sql and vocabulary eq data', null, tx
 				(result) ->
-					isServerOnAir(true)
+					isServerOnAir(result.d.length > 0)
 				() ->
 					isServerOnAir(false)
 			)
@@ -96,18 +96,21 @@ define([
 		app.post('/execute', isAuthed, uiModelLoaded, (req, res, next) ->
 			sbvrUtils.runURI('GET', '/ui/textarea?$filter=name eq model_area', null, null,
 				(result) ->
-					seModel = result.instances[0].text
-					db.transaction((tx) ->
-						tx.begin()
-						sbvrUtils.executeModel(tx, 'data', seModel,
-							(tx, lfModel, slfModel, abstractSqlModel, sqlModel, clientModel) ->
-								sbvrUtils.runURI('PUT', '/ui/textarea-is_disabled?$filter=textarea/name eq model_area', [{value: true}], tx)
-								isServerOnAir(true)
-								res.send(200)
-							(tx, errors) ->
-								res.json(errors, 404)
+					if result.d.length > 0
+						seModel = result.d[0].text
+						db.transaction((tx) ->
+							tx.begin()
+							sbvrUtils.executeModel(tx, 'data', seModel,
+								(tx, lfModel, slfModel, abstractSqlModel, sqlModel, clientModel) ->
+									sbvrUtils.runURI('PUT', '/ui/textarea-is_disabled?$filter=textarea/name eq model_area', [{value: true}], tx)
+									isServerOnAir(true)
+									res.send(200)
+								(tx, errors) ->
+									res.json(errors, 404)
+							)
 						)
-					)
+					else
+						res.send(404)
 				() -> res.send(404)
 			)
 		)

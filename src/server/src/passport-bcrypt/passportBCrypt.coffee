@@ -13,15 +13,17 @@ define(->
 		exports = {}
 		checkPassword = (username, password, done) ->
 			sbvrUtils.runURI('GET', '/user/user?$filter=user/username eq ' + username, [{}], null,
-				(data) ->
-					console.log(data.instances)
-					hash = data.instances[0].password
-					compare(password, hash, (err, res) ->
-						if res
-							done(null, username)
-						else
-							done(null, false)
-					)
+				(result) ->
+					if result.d.length > 0
+						hash = result.d[0].password
+						compare(password, hash, (err, res) ->
+							if res
+								done(null, username)
+							else
+								done(null, false)
+						)
+					else
+						done(null, false)
 				(errors) ->
 					done(null, false)
 			)

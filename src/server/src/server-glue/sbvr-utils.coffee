@@ -420,6 +420,41 @@ define([
 		rows.forEach(processInstance)
 		return instances
 
+	processOData = (tree, request, rows) ->
+		clientModel = clientModels[tree.vocabulary]
+		resourceModel = clientModel.resources[request.resourceName]
+		# TODO: This can probably be optimised more, but removing the process step when it isn't required is an improvement
+		processRequired = false
+		for field in resourceModel.fields when field[0] == 'ForeignKey' or field[0] == 'JSON'
+			processRequired = true
+			break
+		instances = []
+		if processRequired
+			processInstance = (instance) ->
+				instance = _.clone(instance)
+				instance.__metadata =
+					uri: ''
+					type: ''
+				for field in resourceModel.fields when instance.hasOwnProperty(field[1])
+					switch field[0]
+						when 'ForeignKey'
+							instance[field[1]] =
+								__deferred:
+									uri: '/' + tree.vocabulary + '/' + field[4][0] + '?$filter=' + field[4][1] + ' eq ' + instance[field[1]]
+								value: instance[field[1]]
+						when 'JSON'
+							instance[field[1]] = JSON.parse(instance[field[1]])
+				instances.push(instance)
+		else
+			processInstance = (instance) ->
+				instance = _.clone(instance)
+				instance.__metadata =
+					uri: ''
+					type: ''
+				instances.push(instance)
+		rows.forEach(processInstance)
+		return instances
+
 	exports.runRule = do ->
 		LF2AbstractSQLPrepHack = _.extend({}, LF2AbstractSQLPrep, {CardinalityOptimisation: () -> @_pred(false)})
 		return (vocab, rule, callback) ->
@@ -501,16 +536,22 @@ define([
 				runQuery = (tx) ->
 					tx.executeSql(query, values,
 						(tx, result) ->
-							if values.length > 0 && result.rows.length == 0
-								res.send(404)
-							else
-								clientModel = clientModels[tree.vocabulary]
-								resourceModel = clientModel.resources[request.resourceName]
-								
-								data =
-									instances: processInstances(resourceModel, result.rows)
-									model: resourceModel
-								res.json(data)
+							switch tree.type
+								when 'Custom'
+									if values.length > 0 && result.rows.length == 0
+										res.send(404)
+									else
+										clientModel = clientModels[tree.vocabulary]
+										resourceModel = clientModel.resources[request.resourceName]
+										
+										data =
+											instances: processInstances(resourceModel, result.rows)
+											model: resourceModel
+										res.json(data)
+								when 'OData'
+									data =
+										d: processOData(tree, request, result.rows)
+									res.json(data)
 						() ->
 							res.send(404)
 					)
@@ -717,7 +758,7 @@ define([
 					console.error('Could not execute standard models')
 					process.exit()
 				runURI('GET', '/dev/model?$filter=model_type eq sql and vocabulary eq data', null, tx, (result) ->
-					for instance in result.instances
+					for instance in result.d
 						vocab = instance.vocabulary
 						sqlModel = instance['model value']
 						clientModel = AbstractSQL2CLF(sqlModel)
@@ -729,7 +770,7 @@ define([
 						odataParser.setClientModel(vocab, clientModel)
 				)
 				runURI('GET', '/dev/model?$filter=model_type eq se and vocabulary eq data', null, tx, (result) ->
-					for instance in result.instances
+					for instance in result.d
 						vocab = instance.vocabulary
 						seModel = instance['model value']
 						seModels[vocab] = seModel
