@@ -166,7 +166,7 @@ define(['data-frame/ClientURIUnparser', 'ejs', 'data-frame/widgets', 'async', 'd
 						// Foreign key
 						if(foreignKeys.hasOwnProperty(partName)) {
 							var foreignKeyInstances = foreignKeys[partName],
-								foreignKey = instance[partName],
+								foreignKey = instance[partName].__id,
 								referenceScheme = foreignModels[partName].referenceScheme;
 								if(foreignKeyInstances.hasOwnProperty(foreignKey)) { %>
 									<%= foreignKeyInstances[foreignKey][referenceScheme] %><%
@@ -300,9 +300,9 @@ define(['data-frame/ClientURIUnparser', 'ejs', 'data-frame/widgets', 'async', 'd
 				return serverAPI(this.getVocabulary(), this.getAbout(), false)
 			getServerURI: () ->
 				op =
-					eq: ":"
-					ne: "!:"
-					lk: "~"
+					eq: "eq"
+					ne: "ne"
+					lk: "like"
 				filters = []
 				for leaf in currentLocation[2] when leaf[0] == "filt"
 					leaf = leaf[1]
@@ -336,6 +336,13 @@ define(['data-frame/ClientURIUnparser', 'ejs', 'data-frame/widgets', 'async', 'd
 			getNewURI: (action, change) ->
 				return this.clone().modify(action, change).getURI()
 		}
+	
+	getInstanceID = (instance, clientModel) ->
+		instanceID = instance[clientModel.idField]
+		if _.isObject
+			return instanceID.__id
+		else
+			return instanceID
 	
 	foreignKeysCache = do ->
 		fetchedResults = {}
@@ -376,11 +383,11 @@ define(['data-frame/ClientURIUnparser', 'ejs', 'data-frame/widgets', 'async', 'd
 								clientModelResults[foreignKey] = {}
 								serverRequest('GET', serverAPI(tree.getVocabulary(), foreignKey), {}, null,
 									(statusCode, result, headers) ->
-										clientModelResults[foreignKey] = result.model
-										for instance in result.instances
-											instanceID = instance[result.model.idField]
+										clientModelResults[foreignKey] = result.__model
+										for instance in result.d
+											instanceID = getInstanceID(instance, result.__model)
 											if !foreignKeyResults[foreignKey][instanceID]
-												foreignKeyResults[foreignKey][instance[result.model.idField]] = instance
+												foreignKeyResults[foreignKey][instance[result.__model.idField]] = instance
 										callbacksList = fetchedResults[foreignKey]
 										fetchedResults[foreignKey] = true
 										for otherCallback in callbacksList
@@ -437,7 +444,7 @@ define(['data-frame/ClientURIUnparser', 'ejs', 'data-frame/widgets', 'async', 'd
 		else if filters.length == 0
 			filterString = '?'
 		else
-			filterString = '?filter=' + (filter[0] + filter[1] + filter[2] for filter in filters).join(';')
+			filterString = '?$filter=' + (filter[0] + ' ' + filter[1] + ' ' + filter[2] for filter in filters).join(' and ')
 		
 		'/' + vocabulary + '/' + about.replace(new RegExp(' ', 'g'), '_') + filterString
 
@@ -457,14 +464,14 @@ define(['data-frame/ClientURIUnparser', 'ejs', 'data-frame/widgets', 'async', 'd
 				when 'view', 'edit'
 					serverRequest("GET", ftree.getServerURI(), {}, null,
 						(statusCode, result, headers) ->
-							clientModel = result.model
-							instanceID = result.instances[0][clientModel.idField]
-							foreignKeysCache.get(ftree, result.model, (foreignKeys) ->
+							clientModel = result.__model
+							instanceID =getInstanceID(result.d[0], result.__model)
+							foreignKeysCache.get(ftree, result.__model, (foreignKeys) ->
 								templateVars = $.extend(templateVars, {
 									action: action
 									id: instanceID
-									resourceInstance: result.instances[0]
-									resourceModel: result.model
+									resourceInstance: result.d[0]
+									resourceModel: result.__model
 									foreignKeys: foreignKeys
 								})
 								html = templates.viewAddEditResource(templateVars)
@@ -477,17 +484,17 @@ define(['data-frame/ClientURIUnparser', 'ejs', 'data-frame/widgets', 'async', 'd
 				when 'add'
 					serverRequest("GET", ftree.getModelURI(), {}, null,
 						(statusCode, result, headers) ->
-							foreignKeysCache.get(ftree, result.model, (foreignKeys) ->
+							foreignKeysCache.get(ftree, result.__model, (foreignKeys) ->
 								addID = '$' + addResourceID++
 								instance = {}
-								instance[result.model.idField] = addID
-								instance[result.model.referenceScheme] = ''
-								foreignKeysCache.set(result.model.name, addID, instance)
+								instance[result.__model.idField] = addID
+								instance[result.__model.referenceScheme] = ''
+								foreignKeysCache.set(result.__model.name, addID, instance)
 								templateVars = $.extend(templateVars, {
 									action: action
 									id: addID
 									resourceInstance: false
-									resourceModel: result.model
+									resourceModel: result.__model
 									foreignKeys: foreignKeys
 								})
 								html = templates.viewAddEditResource(templateVars)
@@ -501,7 +508,7 @@ define(['data-frame/ClientURIUnparser', 'ejs', 'data-frame/widgets', 'async', 'd
 					serverRequest("GET", ftree.getModelURI(), {}, null,
 						(statusCode, result, headers) ->
 							templateVars = $.extend(templateVars, {
-								resourceModel: result.model
+								resourceModel: result.__model
 								action: action
 								id: ftree.getInstanceID()
 							})
@@ -540,13 +547,13 @@ define(['data-frame/ClientURIUnparser', 'ejs', 'data-frame/widgets', 'async', 'd
 			if currentLocation[0] is 'collection'
 				serverRequest("GET", ftree.getServerURI(), {}, null,
 					(statusCode, result, headers) ->
-						clientModel = result.model
+						clientModel = result.__model
 						async.parallel({
 							resourceCollections: (resourceCollectionsCallback) ->
-								async.map(result.instances,
+								async.map(result.d,
 									(instance, callback) ->
 										# render each child and call back
-										instanceID = instance[clientModel.idField]
+										instanceID = getInstanceID(instance, clientModel)
 										resourceCollection =
 											isExpanded: ftree.isExpanded(about, instanceID)
 											action: ftree.getAction(about, instanceID)
@@ -682,9 +689,9 @@ define(['data-frame/ClientURIUnparser', 'ejs', 'data-frame/widgets', 'async', 'd
 							resource.closeHash = '#!/' + expandedTree.getNewURI("del")
 							resource.closeURI = rootURI + resource.closeHash
 							# request schema from server and store locally.
-							serverRequest('GET', '/dev/model?filter=model_type:lf;vocabulary:data', {}, null,
+							serverRequest('GET', '/dev/model?$filter=model_type eq lf and vocabulary eq data', {}, null,
 								(statusCode, result) ->
-									renderResource(rootURI, true, expandedTree, result.instances[0]['model value'],
+									renderResource(rootURI, true, expandedTree, result.d[0]['model value'],
 										(err, html) ->
 											resource.html = html
 											callback(err, resource)
@@ -732,7 +739,7 @@ define(['data-frame/ClientURIUnparser', 'ejs', 'data-frame/widgets', 'async', 'd
 			inputs = $(":input:not(:submit)", form)
 			for input in inputs when input.id[...2] != "__"
 				obj[input.id] = $(input).val()
-		serverRequest(method, serverURI, {}, [obj], (statusCode, result, headers) ->
+		serverRequest(method, serverURI, {}, obj, (statusCode, result, headers) ->
 			location.hash = backURI
 		)
 		return false

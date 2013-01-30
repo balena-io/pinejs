@@ -1,18 +1,17 @@
 define(['ometa!server-glue/uri-parser', 'underscore', 'ometa-core'], function(URIParser, _) {
 	ometa ODataParser <: URIParser {
 		ProcessURI :body =
-			(	'/'
-				(	end
-					?(method == 'GET')
-					// TODO:
-					-> serviceDocument
-				|	{this.newBody = []}
-					ResourceName:resourceName
-					{['Query']}:query
-					AddQueryResource(query, resourceName)
-					Modifiers(query)
-				)
-			)
+			(	?(!_.isObject(body))
+				{{}}:body
+			)?
+			'/'
+			{this.currentBody = body}
+			{this.newBody = {}}
+			ResourceName:resourceName
+			(	{['Query']}:query
+				AddQueryResource(query, resourceName)
+				Modifiers(query)
+			)?
 			-> [{resourceName: resourceName, query: query, values: this.newBody}],
 
 		Vocabulary =

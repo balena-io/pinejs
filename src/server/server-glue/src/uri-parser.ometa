@@ -8,9 +8,6 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'ometa-core'], function(SBVR
 				):method
 				{this.currentMethod = method}
 				anything:body
-				(	?(!_.isArray(body))
-					{[{}]}:body
-				)?
 				[	// Get the vocabulary, ie the "Service Root"
 					'/' Vocabulary:vocab
 					{this.currentVocab = vocab}
@@ -137,7 +134,10 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'ometa-core'], function(SBVR
 
 	URIParser.AddBodyVar = function(query, resourceName, resourceFieldName, mapping, value) {
 		if(value === undefined) {
-			if(this.currentBody.hasOwnProperty(resourceName + '.' + resourceFieldName)) {
+			if(this.currentBody.hasOwnProperty(resourceName + '/' + resourceFieldName)) {
+				value = this.currentBody[resourceName + '/' + resourceFieldName];
+			}
+			else if(this.currentBody.hasOwnProperty(resourceName + '.' + resourceFieldName)) {
 				value = this.currentBody[resourceName + '.' + resourceFieldName];
 			}
 			else if(this.currentBody.hasOwnProperty(resourceFieldName)) {

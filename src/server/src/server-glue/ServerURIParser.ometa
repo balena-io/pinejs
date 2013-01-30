@@ -1,6 +1,9 @@
 define(['ometa!server-glue/uri-parser', 'underscore', 'ometa-core'], function(URIParser, _) {
 	ometa ServerURIParser <: URIParser)  {
 		ProcessURI :body =
+			(	?(!_.isArray(body))
+				{[{}]}:body
+			)?
 			'/'?
 			{[]}:resources
 			{0}:i
@@ -40,7 +43,7 @@ define(['ometa!server-glue/uri-parser', 'underscore', 'ometa-core'], function(UR
 			>,
 
 		Resource =
-			{this.newBody = []}
+			{this.newBody = {}}
 			ResourceName:resourceName
 			(	(	?(this.currentMethod != 'GET')
 				|	&'?'

@@ -49,23 +49,22 @@ require(['async'], () ->
 							else
 								async.forEach(data,
 									(dataElement, callback) ->
-										sendData = [
+										sendData =
 											transaction: transactionID
 											lock: null
 											'resource type': dataElement[0]
 											'conditional type': ''
 											placeholder: ''
-										]
 										switch dataElement[1]
 											when "del"
-												sendData[0]['conditional type'] = 'DELETE'
-												sendData[0].lock = dataElement[2]
+												sendData['conditional type'] = 'DELETE'
+												sendData.lock = dataElement[2]
 											when 'edit'
-												sendData[0]['conditional type'] = 'EDIT'
-												sendData[0].lock = dataElement[2]
+												sendData['conditional type'] = 'EDIT'
+												sendData.lock = dataElement[2]
 											when 'add'
-												sendData[0]['conditional type'] = 'ADD'
-												sendData[0].placeholder = dataElement[2]
+												sendData['conditional type'] = 'ADD'
+												sendData.placeholder = dataElement[2]
 										switch dataElement[1]
 											when "del"
 												serverRequest("POST", transURIs.conditionalResourceURI, {}, sendData,
@@ -78,11 +77,10 @@ require(['async'], () ->
 													(statusCode, condResource, headers) ->
 														async.forEach(fields,
 															(field, callback) ->
-																fieldData = [
+																fieldData =
 																	'conditional resource': condResource.id
 																	'field name': field.name 
 																	'field value': field.value
-																]
 																serverRequest("POST", transURIs.conditionalFieldURI, {}, fieldData,
 																	-> callback()
 																	-> callback(arguments)
@@ -111,11 +109,17 @@ require(['async'], () ->
 
 		lockResource = (resourceType, resourceID, transURIs, transactionID, callback) ->
 			failureCallback = -> callback(arguments)
-			o = [ 'is exclusive': true, transaction: transactionID ]
+			o =
+				'is exclusive': true
+				transaction: transactionID
 			serverRequest("POST", transURIs.lockURI, {}, o, ((statusCode, lock, headers) ->
-				o = [ 'resource id': parseInt(resourceID, 10), 'resource type': resourceType]
+				o =
+					'resource id': parseInt(resourceID, 10)
+					'resource type': resourceType
 				serverRequest("POST", transURIs.resourceURI, {}, o, ((statusCode, resource, headers) ->
-					o = [ resource: resource.id, lock: lock.id ]
+					o =
+						resource: resource.id
+						lock: lock.id
 					serverRequest("POST", transURIs.lockResourceURI, {}, o, ((statusCode, result, headers) ->
 						callback(null, lock.id)
 					), failureCallback)

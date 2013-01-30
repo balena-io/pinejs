@@ -36,6 +36,7 @@ define(function() {
 	};
 	return function(action, id, value, nullable, onChange, values) {
 		var html;
+		value = value.__id;
 		switch(action) {
 			case 'view':
 				return view(id, value, values);

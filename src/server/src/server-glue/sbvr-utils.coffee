@@ -1,3 +1,4 @@
+<<<<<<< HEAD:src/server/src/server-glue/sbvr-utils.coffee
 define([
 	'has'
 	'ometa!sbvr-parser/SBVRParser'
@@ -6,12 +7,11 @@ define([
 	'cs!sbvr-compiler/AbstractSQL2SQL'
 	'ometa!sbvr-compiler/AbstractSQLRules2SQL'
 	'cs!sbvr-compiler/AbstractSQL2CLF'
-	'ometa!server-glue/ServerURIParser'
 	'ometa!server-glue/odata-parser'
 	'async'
 	'cs!database-layer/db'
 	'underscore'
-], (has, SBVRParser, LF2AbstractSQLPrep, LF2AbstractSQL, AbstractSQL2SQL, AbstractSQLRules2SQL, AbstractSQL2CLF, ServerURIParser, ODataParser, async, dbModule, _) ->
+], (has, SBVRParser, LF2AbstractSQLPrep, LF2AbstractSQL, AbstractSQL2SQL, AbstractSQLRules2SQL, AbstractSQL2CLF, ODataParser, async, dbModule, _) ->
 	exports = {}
 	db = null
 
@@ -104,7 +104,6 @@ define([
 			Fact type: user has password
 				Necessity: Each user has exactly one password.'''
 
-	serverURIParser = ServerURIParser.createInstance()
 	odataParser = ODataParser.createInstance()
 
 	seModels = {}
@@ -226,7 +225,6 @@ define([
 
 							clientModel = clientModels['data'].resources[conditionalResource['resource type']]
 							uri = '/data/' + conditionalResource['resource type']
-							requestBody = [{}]
 							switch conditionalResource['conditional type']
 								when 'DELETE'
 									getLockedRow(lockID, (err, lockedRow) ->
@@ -235,7 +233,7 @@ define([
 										else
 											lockedRow = lockedRow.rows.item(0)
 											uri = uri + '?$filter=' + clientModel.idField + ' eq ' + lockedRow['resource id']
-											runURI('DELETE', uri, requestBody, tx, doCleanup, -> callback(arguments))
+											runURI('DELETE', uri, {}, tx, doCleanup, -> callback(arguments))
 									)
 								when 'EDIT'
 									getLockedRow(lockID, (err, lockedRow) ->
@@ -249,7 +247,7 @@ define([
 													if err?
 														callback(err)
 													else
-														runURI('PUT', uri, [fields], tx, doCleanup, -> callback(arguments))
+														runURI('PUT', uri, fields, tx, doCleanup, -> callback(arguments))
 											)
 									)
 								when 'ADD'
@@ -258,7 +256,7 @@ define([
 											resolvePlaceholder(placeholder, false)
 											callback(err)
 										else
-											runURI('POST', uri, [fields], tx,
+											runURI('POST', uri, fields, tx,
 												(result) ->
 													resolvePlaceholder(placeholder, result.id)
 													doCleanup()
@@ -349,16 +347,14 @@ define([
 									sqlModels[vocab] = sqlModel
 									clientModels[vocab] = clientModel
 
-									serverURIParser.setSQLModel(vocab, abstractSqlModel)
 									odataParser.setSQLModel(vocab, abstractSqlModel)
-									serverURIParser.setClientModel(vocab, clientModel)
 									odataParser.setClientModel(vocab, clientModel)
-									runURI('PUT', '/dev/model?$filter=model_type eq se', [{vocabulary: vocab, 'model value': seModel}], tx)
-									runURI('PUT', '/dev/model?$filter=model_type eq lf', [{vocabulary: vocab, 'model value': lfModel}], tx)
-									runURI('PUT', '/dev/model?$filter=model_type eq slf', [{vocabulary: vocab, 'model value': slfModel}], tx)
-									runURI('PUT', '/dev/model?$filter=model_type eq abstractsql', [{vocabulary: vocab, 'model value': abstractSqlModel}], tx)
-									runURI('PUT', '/dev/model?$filter=model_type eq sql', [{vocabulary: vocab, 'model value': sqlModel}], tx)
-									runURI('PUT', '/dev/model?$filter=model_type eq client', [{vocabulary: vocab, 'model value': clientModel}], tx)
+									runURI('PUT', '/dev/model?$filter=model_type eq se', {vocabulary: vocab, 'model value': seModel}, tx)
+									runURI('PUT', '/dev/model?$filter=model_type eq lf', {vocabulary: vocab, 'model value': lfModel}, tx)
+									runURI('PUT', '/dev/model?$filter=model_type eq slf', {vocabulary: vocab, 'model value': slfModel}, tx)
+									runURI('PUT', '/dev/model?$filter=model_type eq abstractsql', {vocabulary: vocab, 'model value': abstractSqlModel}, tx)
+									runURI('PUT', '/dev/model?$filter=model_type eq sql', {vocabulary: vocab, 'model value': sqlModel}, tx)
+									runURI('PUT', '/dev/model?$filter=model_type eq client', {vocabulary: vocab, 'model value': clientModel}, tx)
 
 									callback()
 								, (tx, err) ->
@@ -377,19 +373,17 @@ define([
 			(tx) ->
 				for dropStatement in sqlModels[vocabulary].dropSchema
 					tx.executeSql(dropStatement)
-				runURI('DELETE', '/dev/model?$filter=model_type eq se', [{vocabulary}], tx)
-				runURI('DELETE', '/dev/model?$filter=model_type eq lf', [{vocabulary}], tx)
-				runURI('DELETE', '/dev/model?$filter=model_type eq slf', [{vocabulary}], tx)
-				runURI('DELETE', '/dev/model?$filter=model_type eq abstractsql', [{vocabulary}], tx)
-				runURI('DELETE', '/dev/model?$filter=model_type eq sql', [{vocabulary}], tx)
-				runURI('DELETE', '/dev/model?$filter=model_type eq client', [{vocabulary}], tx)
+				runURI('DELETE', '/dev/model?$filter=model_type eq se', {vocabulary}, tx)
+				runURI('DELETE', '/dev/model?$filter=model_type eq lf', {vocabulary}, tx)
+				runURI('DELETE', '/dev/model?$filter=model_type eq slf', {vocabulary}, tx)
+				runURI('DELETE', '/dev/model?$filter=model_type eq abstractsql', {vocabulary}, tx)
+				runURI('DELETE', '/dev/model?$filter=model_type eq sql', {vocabulary}, tx)
+				runURI('DELETE', '/dev/model?$filter=model_type eq client', {vocabulary}, tx)
 
 				seModels[vocabulary] = ''
 				sqlModels[vocabulary] = []
-				serverURIParser.setSQLModel(vocabulary, sqlModels[vocabulary])
 				odataParser.setSQLModel(vocabulary, sqlModels[vocabulary])
 				clientModels[vocabulary] = []
-				serverURIParser.setClientModel(vocabulary, clientModels[vocabulary])
 				odataParser.setClientModel(vocabulary, clientModels[vocabulary])
 		)
 
@@ -420,9 +414,7 @@ define([
 		rows.forEach(processInstance)
 		return instances
 
-	processOData = (tree, request, rows) ->
-		clientModel = clientModels[tree.vocabulary]
-		resourceModel = clientModel.resources[request.resourceName]
+	processOData = (tree, resourceModel, rows) ->
 		# TODO: This can probably be optimised more, but removing the process step when it isn't required is an improvement
 		processRequired = false
 		for field in resourceModel.fields when field[0] == 'ForeignKey' or field[0] == 'JSON'
@@ -441,7 +433,7 @@ define([
 							instance[field[1]] =
 								__deferred:
 									uri: '/' + tree.vocabulary + '/' + field[4][0] + '?$filter=' + field[4][1] + ' eq ' + instance[field[1]]
-								value: instance[field[1]]
+								__id: instance[field[1]]
 						when 'JSON'
 							instance[field[1]] = JSON.parse(instance[field[1]])
 				instances.push(instance)
@@ -485,8 +477,9 @@ define([
 						clientModel = clientModels[vocab]
 						resourceModel = clientModel.resources[ruleLF[1][1][1][2][1]]
 						data =
-							instances: processInstances(resourceModel, result.rows)
-							model: resourceModel
+							__model: resourceModel
+							d: processOData(tree, resourceModel, result.rows)
+						res.json(data)
 						callback(null, data)
 					(tx, err) ->
 						callback(err)
@@ -496,10 +489,7 @@ define([
 	exports.runURI = runURI = (method, uri, body = {}, tx, successCallback, failureCallback) ->
 		uri = decodeURI(uri)
 		console.log('Running URI', method, uri, body)
-		try
-			tree = serverURIParser.match([method, body, uri], 'Process')
-		catch e
-			tree = odataParser.match([method, body, uri], 'Process')
+		tree = odataParser.match([method, body, uri], 'Process')
 		req =
 			tree: tree
 			body: body
@@ -536,21 +526,13 @@ define([
 				runQuery = (tx) ->
 					tx.executeSql(query, values,
 						(tx, result) ->
+							clientModel = clientModels[tree.vocabulary]
+							resourceModel = clientModel.resources[request.resourceName]
 							switch tree.type
-								when 'Custom'
-									if values.length > 0 && result.rows.length == 0
-										res.send(404)
-									else
-										clientModel = clientModels[tree.vocabulary]
-										resourceModel = clientModel.resources[request.resourceName]
-										
-										data =
-											instances: processInstances(resourceModel, result.rows)
-											model: resourceModel
-										res.json(data)
 								when 'OData'
 									data =
-										d: processOData(tree, request, result.rows)
+										__model: resourceModel
+										d: processOData(tree, resourceModel, result.rows)
 									res.json(data)
 						() ->
 							res.send(404)
@@ -562,7 +544,7 @@ define([
 		else
 			clientModel = clientModels[tree.vocabulary]
 			data =
-				model:
+				__model:
 					clientModel.resources[tree.requests[0].resourceName]
 			res.json(data)
 
@@ -592,7 +574,7 @@ define([
 									res.json({
 											id: insertID
 										}, {
-											location: '/' + vocab + '/' + request.resourceName + "?filter=" + request.resourceName + ".id:" + insertID
+											location: '/' + vocab + '/' + request.resourceName + '?$filter=' + request.resourceName + '/' + clientModels[vocab].resources[request.resourceName].idField + ' eq ' + insertID
 										}, 201
 									)
 								(tx, errors) ->
@@ -718,10 +700,7 @@ define([
 		if !req.tree?
 			try
 				uri = decodeURI(req.url)
-				try
-					req.tree = serverURIParser.match([req.method, req.body, uri], 'Process')
-				catch e
-					req.tree = odataParser.match([req.method, req.body, uri], 'Process')
+				req.tree = odataParser.match([req.method, req.body, uri], 'Process')
 				console.log(uri, req.tree, req.body)
 			catch e
 				console.error('Failed to parse URI tree', req.url, e.message, e.stack)
@@ -743,8 +722,8 @@ define([
 				else
 					# TODO: Remove these hardcoded users.
 					if has 'DEV'
-						runURI('POST', '/user/user', [{'user.username': 'test', 'user.password': 'test'}], null)
-						runURI('POST', '/user/user', [{'user.username': 'test2', 'user.password': 'test2'}], null)
+						runURI('POST', '/user/user', {'username': 'test', 'password': 'test'}, null)
+						runURI('POST', '/user/user', {'username': 'test2', 'password': 'test2'}, null)
 					console.log('Sucessfully executed standard models.')
 				callback?(err)
 		)
@@ -763,10 +742,8 @@ define([
 						sqlModel = instance['model value']
 						clientModel = AbstractSQL2CLF(sqlModel)
 						sqlModels[vocab] = sqlModel
-						serverURIParser.setSQLModel(vocab, sqlModel)
 						odataParser.setSQLModel(vocab, sqlModel)
 						clientModels[vocab] = clientModel
-						serverURIParser.setClientModel(vocab, clientModel)
 						odataParser.setClientModel(vocab, clientModel)
 				)
 				runURI('GET', '/dev/model?$filter=model_type eq se and vocabulary eq data', null, tx, (result) ->
