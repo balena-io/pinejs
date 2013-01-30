@@ -220,9 +220,16 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'ometa-core'], function(SBVR
 					case 'POST':
 						query[0] = 'UpdateQuery';
 						if(this.AddBodyVar(query, resourceName, resourceFieldName, mapping) !== undefined) {
-							query.push(['Fields', [[mapping[0], ['Bind', mapping[0], this.GetTableField(mapping)]]]]);
+							query.push(['Fields', [[mapping[1], ['Bind', mapping[0], this.GetTableField(mapping)]]]]);
 						}
 					break;
+				}
+
+				resourceFieldName = resourceModel.idField;
+				mapping = this.GetMapping(resourceName, resourceFieldName);
+				fieldName = mapping[1];
+				if(this.AddBodyVar(query, resourceName, resourceFieldName, mapping) !== undefined) {
+					this.AddWhereClause(query, ['Equals', ['ReferencedField'].concat(mapping), ['Bind', mapping[0], this.GetTableField(mapping)]]);
 				}
 			break;
 			case 'BooleanAttribute':
@@ -247,6 +254,7 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'ometa-core'], function(SBVR
 						query[0] = 'UpdateQuery';
 						query.push(['Fields', [[mapping[1], newValue]]]);
 						this.AddQueryTable(query, mapping[0]);
+
 						resourceFieldName = resourceModel.idField;
 						mapping = this.GetMapping(resourceName, resourceFieldName);
 						fieldName = mapping[1];
