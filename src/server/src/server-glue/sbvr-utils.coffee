@@ -1,4 +1,3 @@
-<<<<<<< HEAD:src/server/src/server-glue/sbvr-utils.coffee
 define([
 	'has'
 	'ometa!sbvr-parser/SBVRParser'
