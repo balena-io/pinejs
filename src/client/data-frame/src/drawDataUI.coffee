@@ -234,7 +234,7 @@ define(['data-frame/ClientURIUnparser', 'ejs', 'data-frame/widgets', 'async', 'd
 		previousLocations = []
 		currentLocation = tree
 
-		getInstanceID = (leaf) ->
+		_getInstanceID = (leaf) ->
 			if leaf[1][1]?
 				return leaf[1][1]
 			else
@@ -243,7 +243,7 @@ define(['data-frame/ClientURIUnparser', 'ejs', 'data-frame/widgets', 'async', 'd
 
 		getIndexForResource = (resourceName, resourceID) ->
 			for leaf, j in currentLocation when leaf[0] in ['collection', 'instance'] and leaf[1]?[0] == resourceName and (
-					!resourceID? or ( getInstanceID(leaf) == resourceID))
+					!resourceID? or ( _getInstanceID(leaf) == resourceID))
 				return j
 			return false
 		
@@ -263,7 +263,7 @@ define(['data-frame/ClientURIUnparser', 'ejs', 'data-frame/widgets', 'async', 'd
 		
 		return {
 			# Can get rid of?
-			getInstanceID: () -> getInstanceID(currentLocation)
+			getInstanceID: () -> _getInstanceID(currentLocation)
 			getCurrentLocation: () -> return currentLocation
 			getCurrentIndex: () -> return descendTree[descendTree.length - 1]
 			descendByIndex: (index) ->
@@ -339,7 +339,7 @@ define(['data-frame/ClientURIUnparser', 'ejs', 'data-frame/widgets', 'async', 'd
 	
 	getInstanceID = (instance, clientModel) ->
 		instanceID = instance[clientModel.idField]
-		if _.isObject
+		if _.isObject(instanceID)
 			return instanceID.__id
 		else
 			return instanceID
@@ -387,7 +387,7 @@ define(['data-frame/ClientURIUnparser', 'ejs', 'data-frame/widgets', 'async', 'd
 										for instance in result.d
 											instanceID = getInstanceID(instance, result.__model)
 											if !foreignKeyResults[foreignKey][instanceID]
-												foreignKeyResults[foreignKey][instance[result.__model.idField]] = instance
+												foreignKeyResults[foreignKey][instanceID] = instance
 										callbacksList = fetchedResults[foreignKey]
 										fetchedResults[foreignKey] = true
 										for otherCallback in callbacksList
@@ -465,7 +465,7 @@ define(['data-frame/ClientURIUnparser', 'ejs', 'data-frame/widgets', 'async', 'd
 					serverRequest("GET", ftree.getServerURI(), {}, null,
 						(statusCode, result, headers) ->
 							clientModel = result.__model
-							instanceID =getInstanceID(result.d[0], result.__model)
+							instanceID = getInstanceID(result.d[0], result.__model)
 							foreignKeysCache.get(ftree, result.__model, (foreignKeys) ->
 								templateVars = $.extend(templateVars, {
 									action: action
@@ -488,7 +488,8 @@ define(['data-frame/ClientURIUnparser', 'ejs', 'data-frame/widgets', 'async', 'd
 								addID = '$' + addResourceID++
 								instance = {}
 								instance[result.__model.idField] = addID
-								instance[result.__model.referenceScheme] = ''
+								if result.__model.idField != result.__model.referenceScheme
+									instance[result.__model.referenceScheme] = ''
 								foreignKeysCache.set(result.__model.name, addID, instance)
 								templateVars = $.extend(templateVars, {
 									action: action
