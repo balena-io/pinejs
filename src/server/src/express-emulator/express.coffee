@@ -7,7 +7,7 @@ define((requirejs, exports, module) ->
 			GET: []
 		addHandler = (handlerName, match, middleware...) ->
 			#Strip wildcard
-			match = match.replace(/[\/\*]*$/,'')
+			match = match.replace(/[\/\*]*$/,'').toLowerCase()
 			paramMatch = /:(.*)$/.exec(match)
 			paramName = (paramMatch == null ? null : paramMatch[1] )
 			handlers[handlerName].push(
