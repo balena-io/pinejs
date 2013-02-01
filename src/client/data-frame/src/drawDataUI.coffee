@@ -690,7 +690,7 @@ define(['data-frame/ClientURIUnparser', 'ejs', 'data-frame/widgets', 'async', 'd
 							resource.closeHash = '#!/' + expandedTree.getNewURI("del")
 							resource.closeURI = rootURI + resource.closeHash
 							# request schema from server and store locally.
-							serverRequest('GET', '/dev/model?$filter=model_type eq lf and vocabulary eq data', {}, null,
+							serverRequest('GET', '/dev/model?$filter=model_type eq lf and vocabulary eq ' + tree.getAbout(), {}, null,
 								(statusCode, result) ->
 									renderResource(rootURI, true, expandedTree, result.d[0]['model value'],
 										(err, html) ->
