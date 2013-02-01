@@ -1,7 +1,7 @@
 define(['data-frame/widgets/text', 'data-frame/widgets/textArea', 'data-frame/widgets/foreignKey', 'data-frame/widgets/integer', 'data-frame/widgets/boolean', 'data-frame/widgets/real'], (text, textArea, foreignKey, integer, boolean, real) ->
 	widgets = {}
 	widgets['Value'] = text
-	widgets['Short Text'] = text
+	widgets['Hashed'] = widgets['Short Text'] = text
 	widgets['Text'] = textArea
 	widgets['ConceptType'] = foreignKey
 	widgets['ForeignKey'] = foreignKey

@@ -91,18 +91,38 @@ define([
 			Rule:      It is obligatory that each conditional resource that has a lock, belongs to a transaction that the lock belongs to.'''
 
 	userModel = '''
-			Term:      username
+			Vocabulary: Auth
+
+			Term:       username
 				Concept Type: Short Text (Type)
-			Term:      password
+			Term:       password
 				Concept Type: Hashed (Type)
-			Term:      user
+			Term:       name
+				Concept Type: Short Text (Type)
+
+			Term:       permission
+				Reference Scheme: name
+			Fact type:  permission has name
+				Necessity: Each permission has exactly one name.
+				Necessity: Each name is of exactly one permission.
+
+			Term:       role
+				Reference Scheme: name
+			Fact type:  role has name
+				Necessity: Each role has exactly one name.
+				Necessity: Each name is of exactly one role.
+			Fact type:  role has permission
+
+			Term:       user
 				Reference Scheme: username
-			Fact type: user has username
+			Fact type:  user has username
 				Necessity: Each user has exactly one username.
 				Necessity: Each username is of exactly one user.
-			Fact type: user has password
-				Necessity: Each user has exactly one password.'''
-
+			Fact type:  user has password
+				Necessity: Each user has exactly one password.
+			Fact type:  user has role
+			Fact type:  user has permission'''
+	
 	odataParser = ODataParser.createInstance()
 
 	seModels = {}
@@ -490,6 +510,9 @@ define([
 		console.log('Running URI', method, uri, body)
 		tree = odataParser.match([method, body, uri], 'Process')
 		req =
+			user:
+				permissions:
+					'resource.all': true
 			tree: tree
 			body: body
 		res =
@@ -510,42 +533,144 @@ define([
 			when 'DELETE'
 				runDelete(req, res, tx)
 
+	exports.getUserPermissions = getUserPermissions = (userId, callback) ->
+		async.parallel(
+			userPermissions: (callback) ->
+				runURI('GET', '/Auth/user-has-permission?$filter=user eq ' + userId, {}, null,
+					(result) -> callback(false, result.d)
+					-> callback(true)
+				)
+			userRoles: (callback) ->
+				runURI('GET', '/Auth/user-has-role?$filter=user eq ' + userId, {}, null,
+					(result) -> callback(false, result.d)
+					-> callback(true)
+				)
+			rolePermissions: (callback) ->
+				runURI('GET', '/Auth/role-has-permission', {}, null,
+					(result) -> callback(false, result.d)
+					-> callback(true)
+				)
+			permissions: (callback) ->
+				runURI('GET', '/Auth/permission', {}, null,
+					(result) -> callback(false, result.d)
+					-> callback(true)
+				)
+			(err, result) ->
+				if err?
+					console.error('Error loading permissions')
+					callback(err)
+				else
+					permissions = {}
+					rolePermissions = {}
+					userPermissions = {}
+					for permission in result.permissions
+						permissions[permission.id] = permission.name
+					
+					for rolePermission in result.rolePermissions
+						rolePermissions[rolePermission.role.__id] ?= []
+						rolePermissions[rolePermission.role.__id].push(permissions[rolePermission.permission.__id])
+					
+					for userPermission in result.userPermissions
+						userPermissions[permissions[userPermission.permission.__id]] = true
+					
+					for userRole in result.userRoles
+						for rolePermission in rolePermissions[userRole.role.__id]
+							userPermissions[rolePermission] = true
+					callback(null, userPermissions)
+		)
+	
+	checkPermissions = do ->
+		_getGuestPermissions = do ->
+			_guestPermissions = false
+			return (callback) ->
+				if _guestPermissions != false
+					callback(null, _guestPermissions)
+				else
+					# Get guest user
+					runURI('GET', '/Auth/user?$filter=user/username eq guest', {}, null,
+						(result) ->
+							if result.d.length > 0
+								getUserPermissions(result.d[0].id, (err, permissions) ->
+									if err?
+										callback(err)
+									else
+										_guestPermissions = permissions
+										callback(null, _guestPermissions)
+								)
+						-> return callback(true)
+					)
+
+		return (req, res, action, request, callback) ->
+			if !callback?
+				callback = request
+				request = null
+			vocabulary = req.tree.vocabulary
+
+			_checkPermissions = (permissions) ->
+				if permissions.hasOwnProperty('resource.all') or
+						permissions.hasOwnProperty('resource.' + action) or
+						permissions.hasOwnProperty(vocabulary + '.all') or
+						permissions.hasOwnProperty(vocabulary + '.' + action)
+					return true
+				else if request? and (
+						permissions.hasOwnProperty(vocabulary + '.' + request.resourceName + '.all') or
+						permissions.hasOwnProperty(vocabulary + '.' + request.resourceName + '.' + action))
+					return true
+				else
+					return false
+
+			if req.user? and _checkPermissions(req.user.permissions)
+				callback()
+			else
+				_getGuestPermissions((err, permissions) ->
+					if !err and _checkPermissions(permissions)
+						callback()
+					else
+						res.send(403)
+				)
+
 	exports.runGet = runGet = (req, res, tx) ->
 		tree = req.tree
 		if tree.requests == undefined
-			res.json(clientModels[tree.vocabulary].resources)
+			checkPermissions(req, res, 'model', ->
+				res.json(clientModels[tree.vocabulary].resources)
+			)
 		else if tree.requests[0].query?
 			request = tree.requests[0]
-			{query, bindings} = AbstractSQLRules2SQL.match(request.query, 'ProcessQuery')
-			values = getAndCheckBindValues(bindings, request.values)
-			console.log(query, values)
-			if !_.isArray(values)
-				res.json(values, 404)
-			else
-				runQuery = (tx) ->
-					tx.executeSql(query, values,
-						(tx, result) ->
-							clientModel = clientModels[tree.vocabulary]
-							resourceModel = clientModel.resources[request.resourceName]
-							switch tree.type
-								when 'OData'
-									data =
-										__model: resourceModel
-										d: processOData(tree, resourceModel, result.rows)
-									res.json(data)
-						() ->
-							res.send(404)
-					)
-				if tx?
-					runQuery(tx)
+			checkPermissions(req, res, 'get', request, ->
+				{query, bindings} = AbstractSQLRules2SQL.match(request.query, 'ProcessQuery')
+				values = getAndCheckBindValues(bindings, request.values)
+				console.log(query, values)
+				if !_.isArray(values)
+					res.json(values, 404)
 				else
-					db.transaction(runQuery)
+					runQuery = (tx) ->
+						tx.executeSql(query, values,
+							(tx, result) ->
+								clientModel = clientModels[tree.vocabulary]
+								resourceModel = clientModel.resources[request.resourceName]
+								switch tree.type
+									when 'OData'
+										data =
+											__model: resourceModel
+											d: processOData(tree, resourceModel, result.rows)
+										res.json(data)
+							() ->
+								res.send(404)
+						)
+					if tx?
+						runQuery(tx)
+					else
+						db.transaction(runQuery)
+			)
 		else
-			clientModel = clientModels[tree.vocabulary]
-			data =
-				__model:
-					clientModel.resources[tree.requests[0].resourceName]
-			res.json(data)
+			checkPermissions(req, res, 'model', tree.requests[0], ->
+				clientModel = clientModels[tree.vocabulary]
+				data =
+					__model:
+						clientModel.resources[tree.requests[0].resourceName]
+				res.json(data)
+			)
 
 	exports.runPost = runPost = (req, res, tx) ->
 		tree = req.tree
@@ -553,43 +678,45 @@ define([
 			res.send(404)
 		else
 			request = tree.requests[0]
-			{query, bindings} = AbstractSQLRules2SQL.match(request.query, 'ProcessQuery')
-			values = getAndCheckBindValues(bindings, request.values)
-			console.log(query, values)
-			if !_.isArray(values)
-				res.json(values, 404)
-			else
-				vocab = tree.vocabulary
-				runQuery = (tx) ->
-					tx.begin()
-					# TODO: Check for transaction locks.
-					tx.executeSql(query, values,
-						(tx, sqlResult) ->
-							validateDB(tx, sqlModels[vocab],
-								(tx) ->
-									tx.end()
-									insertID = if request.query[0] == 'UpdateQuery' then values[0] else sqlResult.insertId
-									console.log('Insert ID: ', insertID)
-									res.json({
-											id: insertID
-										}, {
-											location: '/' + vocab + '/' + request.resourceName + '?$filter=' + request.resourceName + '/' + clientModels[vocab].resources[request.resourceName].idField + ' eq ' + insertID
-										}, 201
-									)
-								(tx, errors) ->
-									res.json(errors, 404)
-							)
-						(tx, err) ->
-							constraintError = checkForConstraintError(err, request.resourceName)
-							if constraintError != false
-								res.json(constraintError, 404)
-							else
-								res.send(404)
-					)
-				if tx?
-					runQuery(tx)
+			checkPermissions(req, res, 'set', tree.requests[0], ->
+				{query, bindings} = AbstractSQLRules2SQL.match(request.query, 'ProcessQuery')
+				values = getAndCheckBindValues(bindings, request.values)
+				console.log(query, values)
+				if !_.isArray(values)
+					res.json(values, 404)
 				else
-					db.transaction(runQuery)
+					vocab = tree.vocabulary
+					runQuery = (tx) ->
+						tx.begin()
+						# TODO: Check for transaction locks.
+						tx.executeSql(query, values,
+							(tx, sqlResult) ->
+								validateDB(tx, sqlModels[vocab],
+									(tx) ->
+										tx.end()
+										insertID = if request.query[0] == 'UpdateQuery' then values[0] else sqlResult.insertId
+										console.log('Insert ID: ', insertID)
+										res.json({
+												id: insertID
+											}, {
+												location: '/' + vocab + '/' + request.resourceName + '?$filter=' + request.resourceName + '/' + clientModels[vocab].resources[request.resourceName].idField + ' eq ' + insertID
+											}, 201
+										)
+									(tx, errors) ->
+										res.json(errors, 404)
+								)
+							(tx, err) ->
+								constraintError = checkForConstraintError(err, request.resourceName)
+								if constraintError != false
+									res.json(constraintError, 404)
+								else
+									res.send(404)
+						)
+					if tx?
+						runQuery(tx)
+					else
+						db.transaction(runQuery)
+			)
 
 	exports.runPut = runPut = (req, res, tx) ->
 		tree = req.tree
@@ -597,71 +724,73 @@ define([
 			res.send(404)
 		else
 			request = tree.requests[0]
-			queries = AbstractSQLRules2SQL.match(request.query, 'ProcessQuery')
-
-			if _.isArray(queries)
-				insertQuery = queries[0]
-				updateQuery = queries[1]
-			else
-				insertQuery = queries
-			values = getAndCheckBindValues(insertQuery.bindings, request.values)
-			console.log(insertQuery.query, values)
-
-			if !_.isArray(values)
-				res.json(values, 404)
-			else
-				vocab = tree.vocabulary
-
-				doValidate = (tx) ->
-					validateDB(tx, sqlModels[vocab],
-						(tx) ->
-							tx.end()
-							res.send(200)
-						(tx, errors) ->
-							res.json(errors, 404)
-					)
-
-				id = getID(tree)
-				runQuery = (tx) ->
-					tx.begin()
-					tx.executeSql('''
-						SELECT NOT EXISTS(
-							SELECT 1
-							FROM "resource" r
-							JOIN "resource-is_under-lock" AS rl ON rl."resource" = r."id"
-							WHERE r."resource type" = ?
-							AND r."id" = ?
-						) AS result;''', [request.resourceName, id],
-						(tx, result) ->
-							if result.rows.item(0).result in [false, 0, '0']
-								res.json([ "The resource is locked and cannot be edited" ], 404)
-							else
-								tx.executeSql(insertQuery.query, values,
-									(tx, result) -> doValidate(tx)
-									(tx) ->
-										if updateQuery?
-											values = getAndCheckBindValues(updateQuery.bindings, request.values)
-											console.log(updateQuery.query, values)
-											if !_.isArray(values)
-												res.json(values, 404)
-											else
-												tx.executeSql(updateQuery.query, values,
-													(tx, result) -> doValidate(tx)
-													(tx, err) ->
-														constraintError = checkForConstraintError(err, request.resourceName)
-														if constraintError != false
-															res.json(constraintError, 404)
-														else
-															res.send(404)
-												)
-										else
-											res.send(404)
-								)
-					)
-				if tx?
-					runQuery(tx)
+			checkPermissions(req, res, 'set', tree.requests[0], ->
+				queries = AbstractSQLRules2SQL.match(request.query, 'ProcessQuery')
+				
+				if _.isArray(queries)
+					insertQuery = queries[0]
+					updateQuery = queries[1]
 				else
-					db.transaction(runQuery)
+					insertQuery = queries
+				values = getAndCheckBindValues(insertQuery.bindings, request.values)
+				console.log(insertQuery.query, values)
+				
+				if !_.isArray(values)
+					res.json(values, 404)
+				else
+					vocab = tree.vocabulary
+					
+					doValidate = (tx) ->
+						validateDB(tx, sqlModels[vocab],
+							(tx) ->
+								tx.end()
+								res.send(200)
+							(tx, errors) ->
+								res.json(errors, 404)
+						)
+					
+					id = getID(tree)
+					runQuery = (tx) ->
+						tx.begin()
+						tx.executeSql('''
+							SELECT NOT EXISTS(
+								SELECT 1
+								FROM "resource" r
+								JOIN "resource-is_under-lock" AS rl ON rl."resource" = r."id"
+								WHERE r."resource type" = ?
+								AND r."id" = ?
+							) AS result;''', [request.resourceName, id],
+							(tx, result) ->
+								if result.rows.item(0).result in [false, 0, '0']
+									res.json([ "The resource is locked and cannot be edited" ], 404)
+								else
+									tx.executeSql(insertQuery.query, values,
+										(tx, result) -> doValidate(tx)
+										(tx) ->
+											if updateQuery?
+												values = getAndCheckBindValues(updateQuery.bindings, request.values)
+												console.log(updateQuery.query, values)
+												if !_.isArray(values)
+													res.json(values, 404)
+												else
+													tx.executeSql(updateQuery.query, values,
+														(tx, result) -> doValidate(tx)
+														(tx, err) ->
+															constraintError = checkForConstraintError(err, request.resourceName)
+															if constraintError != false
+																res.json(constraintError, 404)
+															else
+																res.send(404)
+													)
+											else
+												res.send(404)
+									)
+						)
+					if tx?
+						runQuery(tx)
+					else
+						db.transaction(runQuery)
+			)
 
 	exports.runDelete = runDelete = (req, res, tx) ->
 		tree = req.tree
@@ -669,31 +798,33 @@ define([
 			res.send(404)
 		else
 			request = tree.requests[0]
-			{query, bindings} = AbstractSQLRules2SQL.match(request.query, 'ProcessQuery')
-			values = getAndCheckBindValues(bindings, request.values)
-			console.log(query, values)
-			if !_.isArray(values)
-				res.json(values, 404)
-			else
-				vocab = tree.vocabulary
-				runQuery = (tx) ->
-					tx.begin()
-					tx.executeSql(query, values,
-						(tx, result) ->
-							validateDB(tx, sqlModels[vocab]
-								(tx) ->
-									tx.end()
-									res.send(200)
-								(tx, errors) ->
-									res.json(errors, 404)
-							)
-						() ->
-							res.send(404)
-					)
-				if tx?
-					runQuery(tx)
+			checkPermissions(req, res, 'delete', tree.requests[0], ->
+				{query, bindings} = AbstractSQLRules2SQL.match(request.query, 'ProcessQuery')
+				values = getAndCheckBindValues(bindings, request.values)
+				console.log(query, values)
+				if !_.isArray(values)
+					res.json(values, 404)
 				else
-					db.transaction(runQuery)
+					vocab = tree.vocabulary
+					runQuery = (tx) ->
+						tx.begin()
+						tx.executeSql(query, values,
+							(tx, result) ->
+								validateDB(tx, sqlModels[vocab]
+									(tx) ->
+										tx.end()
+										res.send(200)
+									(tx, errors) ->
+										res.json(errors, 404)
+								)
+							() ->
+								res.send(404)
+						)
+					if tx?
+						runQuery(tx)
+					else
+						db.transaction(runQuery)
+			)
 
 	exports.parseURITree = parseURITree = (req, res, next) ->
 		if !req.tree?
@@ -713,7 +844,7 @@ define([
 		executeModels(tx, {
 				'dev': devModel
 				'transaction': transactionModel
-				'user': userModel
+				'Auth': userModel
 			},
 			(err) ->
 				if err?
@@ -721,8 +852,23 @@ define([
 				else
 					# TODO: Remove these hardcoded users.
 					if has 'DEV'
-						runURI('POST', '/user/user', {'username': 'test', 'password': 'test'}, null)
-						runURI('POST', '/user/user', {'username': 'test2', 'password': 'test2'}, null)
+						async.parallel([
+								(callback) ->
+									runURI('POST', '/Auth/user', {'username': 'root', 'password': 'test123'}, null,
+										-> callback()
+										-> callback(true)
+									)
+								(callback) ->
+									runURI('POST', '/Auth/permission', {'name': 'resource.all'}, null,
+										-> callback()
+										-> callback(true)
+									)
+							]
+							(err) ->
+								if !err?
+									# We expect these to be the first user/permission, so they would have id 1.
+									runURI('POST', '/Auth/user-has-permission', {'user': 1, 'permission': 1}, null)
+						)
 					console.log('Sucessfully executed standard models.')
 				callback?(err)
 		)

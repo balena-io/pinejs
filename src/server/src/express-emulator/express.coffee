@@ -1,3 +1,5 @@
+window.GLOBAL_PERMISSIONS = 
+	'resource.all': true
 define((requirejs, exports, module) ->
 	app = do() ->
 		handlers =
@@ -29,6 +31,9 @@ define((requirejs, exports, module) ->
 				if !handlers[method]
 					failureCallback(404)
 				req =
+					# Have a default user for in-browser with all permissions
+					user:
+						permissions: window.GLOBAL_PERMISSIONS
 					method: method
 					body: body
 					headers: headers

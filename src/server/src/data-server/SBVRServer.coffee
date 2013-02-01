@@ -295,8 +295,14 @@ define([
 		app.get('/data/*', serverIsOnAir, sbvrUtils.parseURITree, (req, res, next) ->
 			sbvrUtils.runGet(req, res)
 		)
+		app.get('/Auth/*', serverIsOnAir, sbvrUtils.parseURITree, (req, res, next) ->
+			sbvrUtils.runGet(req, res)
+		)
 
 		app.post('/data/*', serverIsOnAir, sbvrUtils.parseURITree, (req, res, next) ->
+			sbvrUtils.runPost(req, res)
+		)
+		app.post('/Auth/*', serverIsOnAir, sbvrUtils.parseURITree, (req, res, next) ->
 			sbvrUtils.runPost(req, res)
 		)
 
@@ -306,8 +312,15 @@ define([
 		app.put('/data/*', serverIsOnAir, sbvrUtils.parseURITree, (req, res, next) ->
 			sbvrUtils.runPut(req, res)
 		)
+		app.put('/Auth/*', serverIsOnAir, sbvrUtils.parseURITree, (req, res, next) ->
+			sbvrUtils.runPut(req, res)
+		)
 
 		app.del('/data/*', serverIsOnAir, sbvrUtils.parseURITree, (req, res, next) ->
+			sbvrUtils.runDelete(req, res)
+		)
+
+		app.del('/Auth/*', serverIsOnAir, sbvrUtils.parseURITree, (req, res, next) ->
 			sbvrUtils.runDelete(req, res)
 		)
 
