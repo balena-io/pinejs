@@ -6,11 +6,10 @@ define([
 	'cs!editor-server/editorServer'
 	'cs!undercurrent/undercurrent'
 	'cs!scheduler/scheduler'
-	'cs!iah/iah'
 	'cs!renew-api/renewApi'
 	'cs!express-emulator/express'
 	'cs!config-loader/config-loader'
-], (has, sbvrUtils, passportBCrypt, sbvrServer, editorServer, undercurrent, scheduler, iah, renewApi, express, configLoader)->
+], (has, sbvrUtils, passportBCrypt, sbvrServer, editorServer, undercurrent, scheduler, renewApi, express, configLoader)->
 	if has 'ENV_NODEJS'
 		if has 'USE_MYSQL'
 			databaseOptions =
@@ -56,9 +55,6 @@ define([
 
 			if has 'SCHEDULER'
 				scheduler.setup(app, require, sbvrUtils, passportBCrypt.isAuthed, databaseOptions)
-
-			if has 'IAH'
-				iah.setup(app, require, sbvrUtils, passportBCrypt.isAuthed, databaseOptions)
 
 			if has 'RENEW_API'
 				renewApi.setup(app, require, sbvrUtils, passportBCrypt.isAuthed, databaseOptions)
