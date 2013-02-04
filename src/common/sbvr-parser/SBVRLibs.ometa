@@ -54,7 +54,7 @@ define(['underscore', 'ometa-core'], function(_) {
 		// } while (this.conceptTypes.hasOwnProperty(termName) && (termName = this.conceptTypes[termName]));
 		var conceptTypes = this.vocabularies[term[2]]['ConceptTypes'];
 		if (conceptTypes.hasOwnProperty(term) && (term = conceptTypes[term])) {
-			termName = term[1]
+			termName = term[1];
 			if (this.nativePrimitives.hasOwnProperty(termName)) {
 				return termName;
 			}
@@ -75,7 +75,7 @@ define(['underscore', 'ometa-core'], function(_) {
 		if(!this.vocabularies.hasOwnProperty(vocabulary)) {
 			this.vocabularies[vocabulary] = this.vocabularies[baseSynonym];
 		}
-	}
+	};
 	
 	SBVRLibs.AddFactType = function(factType, realFactType) {
 		var mappedFactType = [];
@@ -173,6 +173,7 @@ define(['underscore', 'ometa-core'], function(_) {
 	};
 	
 	SBVRLibs.IsChild = function(child, parent) {
+		var conceptTypes;
 		// Parent should be in the form ['Term', ...], where we care about the ... bit.
 		do {
 			if(this.IdentifiersEqual(child, parent)) {
