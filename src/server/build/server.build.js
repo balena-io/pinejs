@@ -1,5 +1,5 @@
 ({
-	out: 'out.js',
+	out: 'platform.js',
 	wrap: {
 		start: "(function() { var define = require('requirejs').define;",
 		end: "}());require('requirejs')('cs!server-glue/server');"
@@ -29,8 +29,7 @@
 		CONFIG_LOADER			: true,
 
 		UNDERCURRENT			: false,
-		SCHEDULER				: false,
-		RENEW_API				: false
+		SCHEDULER				: false
 	},
 
 	paths: {
