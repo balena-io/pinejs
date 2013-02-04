@@ -1,6 +1,6 @@
-window.GLOBAL_PERMISSIONS = 
-	'resource.all': true
 define((requirejs, exports, module) ->
+	window?.GLOBAL_PERMISSIONS = 
+		'resource.all': true
 	app = do() ->
 		handlers =
 			POST: []
