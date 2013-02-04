@@ -9,6 +9,8 @@
 		"underscore": "latest",
 		"pg": "0.8.x",
 
+		"coffee-script": "latest",
+
 		"passport-local": "0.1.x",
 		"bcrypt": "latest",
 		"async": "latest"

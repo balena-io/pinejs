@@ -9,7 +9,8 @@ define([
 	'cs!iah/iah'
 	'cs!renew-api/renewApi'
 	'cs!express-emulator/express'
-], (has, sbvrUtils, passportBCrypt, sbvrServer, editorServer, undercurrent, scheduler, iah, renewApi, express)->
+	'cs!config-loader/config-loader'
+], (has, sbvrUtils, passportBCrypt, sbvrServer, editorServer, undercurrent, scheduler, iah, renewApi, express, configLoader)->
 	if has 'ENV_NODEJS'
 		if has 'USE_MYSQL'
 			databaseOptions =
@@ -40,6 +41,9 @@ define([
 					failureRedirect: '/login.html',
 					successRedirect: '/'
 				}, sbvrUtils, app, passport)
+
+			if has 'CONFIG_LOADER'
+				configLoader.setup(app, require, sbvrUtils, passportBCrypt.isAuthed, databaseOptions)
 
 			if has 'SBVR_SERVER_ENABLED'
 				sbvrServer.setup(app, require, sbvrUtils, passportBCrypt.isAuthed, databaseOptions)

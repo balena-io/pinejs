@@ -1,0 +1,8 @@
+{
+	"models": [{
+		"modelName": "Example",
+		"modelFile": "example.sbvr",
+		"apiRoot": "example",
+		"customServerCode": "example.coffee" // Optional
+	}]
+}

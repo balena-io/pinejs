@@ -12,6 +12,8 @@ require({
 			USE_POSTGRES			: false,
 			DEV						: true,
 
+			CONFIG_LOADER			: false,
+
 			UNDERCURRENT			: false,
 			SCHEDULER				: false,
 			IAH						: false,

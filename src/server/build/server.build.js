@@ -19,12 +19,14 @@
 	has: {
 		ENV_NODEJS				: true,
 		SBVR_EXTENSIONS			: true,
-		SBVR_SERVER_ENABLED		: true,
+		SBVR_SERVER_ENABLED		: false,
 		EDITOR_SERVER_ENABLED	: false,
 		BROWSER_SERVER_ENABLED	: false,
 		USE_MYSQL				: true,
 		USE_POSTGRES			: false,
 		DEV						: false,
+
+		CONFIG_LOADER			: true,
 
 		UNDERCURRENT			: false,
 		SCHEDULER				: false,
