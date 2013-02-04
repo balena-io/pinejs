@@ -1,5 +1,4 @@
-define(['ometa-core'], function() {
-	if(typeof USE_MYSQL === 'undefined') USE_MYSQL = false;
+define(['has', 'ometa-core'], function() {
 	var comparisons = {
 			'Equals': ' = ',
 			'GreaterThan': ' > ',
@@ -286,7 +285,7 @@ define(['ometa-core'], function() {
 				|	Text
 				):text
 			]
-			(	?USE_MYSQL
+			(	?has('USE_MYSQL')
 				-> ('CHAR_LENGTH(' + text + ')')
 			|	-> ('LENGTH(' + text + ')')
 			),
