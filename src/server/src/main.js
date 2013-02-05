@@ -14,8 +14,7 @@ require({
 
 			CONFIG_LOADER			: false,
 
-			UNDERCURRENT			: false,
-			SCHEDULER				: false
+			UNDERCURRENT			: false
 		}
 	},
 	paths: {

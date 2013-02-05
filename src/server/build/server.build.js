@@ -28,8 +28,7 @@
 
 		CONFIG_LOADER			: true,
 
-		UNDERCURRENT			: false,
-		SCHEDULER				: false
+		UNDERCURRENT			: false
 	},
 
 	paths: {

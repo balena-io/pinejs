@@ -5,10 +5,9 @@ define([
 	'cs!data-server/SBVRServer'
 	'cs!editor-server/editorServer'
 	'cs!undercurrent/undercurrent'
-	'cs!scheduler/scheduler'
 	'cs!express-emulator/express'
 	'cs!config-loader/config-loader'
-], (has, sbvrUtils, passportBCrypt, sbvrServer, editorServer, undercurrent, scheduler, express, configLoader)->
+], (has, sbvrUtils, passportBCrypt, sbvrServer, editorServer, undercurrent, express, configLoader)->
 	if has 'ENV_NODEJS'
 		if has 'USE_MYSQL'
 			databaseOptions =
@@ -51,9 +50,6 @@ define([
 
 			if has 'UNDERCURRENT'
 				undercurrent.setup(app, require, sbvrUtils, passportBCrypt.isAuthed, databaseOptions)
-
-			if has 'SCHEDULER'
-				scheduler.setup(app, require, sbvrUtils, passportBCrypt.isAuthed, databaseOptions)
 
 			if has 'ENV_NODEJS'
 				app.listen(process.env.PORT or 1337, () ->
