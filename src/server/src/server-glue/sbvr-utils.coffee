@@ -121,6 +121,7 @@ define([
 			Fact type:  user has password
 				Necessity: Each user has exactly one password.
 			Fact type:  user has role
+				Note: A 'user' will inherit all the 'permissions' that the 'role' has.
 			Fact type:  user has permission'''
 	
 	odataParser = ODataParser.createInstance()

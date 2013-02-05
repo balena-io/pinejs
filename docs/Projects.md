@@ -10,7 +10,9 @@ First step in creating a project, is to have a build of the platform.
 4. Run `r.js -o server.build.js` on Linux/Mac OSX or `r.js.cmd server.build.js` on Windows.
 5. Copy platform.js into your project folder/repository.
 6. Configure your project.
-7. Run `node platform.js`
+7. Run `node platform.js` (This will create the schema including users)
+8. Setup a guest user (see Users documentation).
+9. Restart platform.
 
 ## Configuring A Project
 ### config.json
@@ -23,6 +25,21 @@ First step in creating a project, is to have a build of the platform.
 		"customServerCode": "example.coffee" // Optional: This file will be required in and the exported function `setup(app, requirejs, sbvrUtils, db)` will be called, useful if you need some custom server code for your project (can also be a .js file).
 	}]
 }
+```
+
+### Database
+You can specify your database url in an environment variable called DATABASE_URL, refer to your OS documentation on how to do this (either on a global level, or just for launching a specific project).  
+If you do not specify this environment variable however, then the defaults are as follows:  
+MySQL
+```text
+	host: 'localhost'
+	user: 'root'
+	password: '.'
+	database: 'rulemotion'
+```
+PostgresSQL:
+```text
+	postgres://postgres:.@localhost:5432/postgres
 ```
 
 ### static dir
