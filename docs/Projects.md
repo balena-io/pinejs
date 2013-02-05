@@ -6,7 +6,7 @@ First step in creating a project, is to have a build of the platform.
 1. Check out rulemotion-canvas/master
 2. Run `npm install requirejs -g`
 3. Navigate to src/server/build
-4. If using Postgres edit server.build.js to `USE_MYSQL: false` and `USE_POSTGRES: true`
+4. Edit server.build.js to enable/disable `USE_MYSQL` and `USE_POSTGRES` depending on your target database.
 4. Run `r.js -o server.build.js` on Linux/Mac OSX or `r.js.cmd server.build.js` on Windows.
 5. Copy platform.js into your project folder/repository.
 6. Configure your project.
