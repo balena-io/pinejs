@@ -52,6 +52,7 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 				transaction: (callback, errorCallback) ->
 					pg.connect(connectString, (err, client) ->
 						if err
+							console.error('Error connecting ' + err)
 							errorCallback?(err)
 						else
 							callback(new Tx(client))
@@ -108,8 +109,14 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 			return {
 				transaction: (callback, errorCallback) ->
 					_db = mysql.createConnection(options)
-					_db.query("SET sql_mode='ANSI_QUOTES';")
-					callback(new Tx(_db))
+					_db.connect((err) ->
+						if err
+							console.error('Error connecting ' + err)
+							errorCallback?(err)
+						else
+							_db.query("SET sql_mode='ANSI_QUOTES';")
+							callback(new Tx(_db))
+					)
 			}
 				
 		exports.sqlite = (filepath) ->
