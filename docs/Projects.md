@@ -29,17 +29,38 @@ This file should be located alongside your `platform.js` file, and follow the sp
 ```javascript
 {
 	"models": [{
-		"modelName": "Example", // Required: This is used in messages about whether the model passes/fails
-		"modelFile": "example.sbvr", // Required: This is the file that contains the sbvr model (extension does not matter)
-		"apiRoot": "example", // Required: The root api entry point, so you would access the api with /example/{OData URL}
-		"customServerCode": "example.coffee" // Optional: This file will be required in and the exported function `setup(app, requirejs, sbvrUtils, db)` will be called, useful if you need some custom server code for your project (can also be a .js file).
+		"modelName": "Example",
+		"modelFile": "example.sbvr",
+		"apiRoot": "example",
+		"customServerCode": "example.coffee"
 	}]
 }
 ```
 
+#### models
+##### Required: modelName
+This is a string used in messages about whether the model passes/fails.
+
+##### Required: modelFile
+This is a string pointing to the file that contains the sbvr model, relative to `platform.js` (extension does not matter)
+
+##### Required: apiRoot
+This is a string that defines the root path to access this model's API, eg. /example/{OData URL}
+
+##### Optional: customServerCode
+This is a string pointing to a file (`.coffee` or `.js`), relative to `platform.js`, that will be loaded by the server, and should export a function with the following signature:  
+`setup(app, requirejs, sbvrUtils, db)`
+
+This function will be called whilst the server starts up and can be used to add custom server code for your project.  
+app: An [express.js](http://expressjs.com/) app instance, can be used to add your own routes.  
+requirejs: The requirejs object used by the platform, can be used to include files  
+sbvrUtils: An entry point to the API internally to the server - to be documented further in future, for now the runURI function is your friend.  
+db: An object that allows direct connection to the database, which largely follows the WebSQL interface (with slight modifications) - to be documented further in future.
+
+
 ### Database
-You can specify your database url in an environment variable called DATABASE_URL, refer to your OS documentation on how to do this (either on a global level, or just for launching a specific project).  
-If you do not specify this environment variable however, then the defaults are as follows:  
+You can specify your database url in an environment variable called DATABASE_URL, refer to your OS documentation on how to do this (either on a global level for all programs, or just set it temporarily whilst launching your project).  
+If you do not specify this environment variable, then the defaults are as follows:  
 MySQL
 ```text
 	host: 'localhost'
