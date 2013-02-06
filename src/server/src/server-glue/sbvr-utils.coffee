@@ -344,10 +344,14 @@ define([
 				catch e
 					console.error('Error parsing model', e)
 					return callback('Error parsing model')
-				slfModel = LF2AbstractSQLPrep.match(lfModel, 'Process')
-				abstractSqlModel = LF2AbstractSQL.match(slfModel, 'Process')
-				sqlModel = AbstractSQL2SQL.generate(abstractSqlModel)
-				clientModel = AbstractSQL2CLF(sqlModel)
+				try
+					slfModel = LF2AbstractSQLPrep.match(lfModel, 'Process')
+					abstractSqlModel = LF2AbstractSQL.match(slfModel, 'Process')
+					sqlModel = AbstractSQL2SQL.generate(abstractSqlModel)
+					clientModel = AbstractSQL2CLF(sqlModel)
+				catch e
+					console.error('Error compiling model', e)
+					return callback('Error compiling model')
 
 				# Create tables related to terms and fact types
 				async.forEach(sqlModel.createSchema,
