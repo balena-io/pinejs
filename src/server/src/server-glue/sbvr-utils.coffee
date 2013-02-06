@@ -482,11 +482,14 @@ define([
 				return
 			ruleLF = lfModel[lfModel.length-1]
 			lfModel = lfModel[...-1]
-			slfModel = LF2AbstractSQLPrep.match(lfModel, 'Process')
-			slfModel.push(ruleLF)
-			slfModel = LF2AbstractSQLPrepHack.match(slfModel, 'Process')
-			
-			abstractSqlModel = LF2AbstractSQL.match(slfModel, 'Process')
+			try
+				slfModel = LF2AbstractSQLPrep.match(lfModel, 'Process')
+				slfModel.push(ruleLF)
+				slfModel = LF2AbstractSQLPrepHack.match(slfModel, 'Process')
+				
+				abstractSqlModel = LF2AbstractSQL.match(slfModel, 'Process')
+			catch e
+				console.error('Failed to compile rule', e)
 			
 			ruleAbs = abstractSqlModel.rules[-1..][0]
 			# Remove the not exists
@@ -513,7 +516,11 @@ define([
 	exports.runURI = runURI = (method, uri, body = {}, tx, successCallback, failureCallback) ->
 		uri = decodeURI(uri)
 		console.log('Running URI', method, uri, body)
-		tree = odataParser.match([method, body, uri], 'Process')
+		try
+			tree = odataParser.match([method, body, uri], 'Process')
+		catch e
+			console.log('Failed to match uri: ', e)
+			return
 		req =
 			user:
 				permissions:
@@ -643,7 +650,10 @@ define([
 		else if tree.requests[0].query?
 			request = tree.requests[0]
 			checkPermissions(req, res, 'get', request, ->
-				{query, bindings} = AbstractSQLRules2SQL.match(request.query, 'ProcessQuery')
+				try
+					{query, bindings} = AbstractSQLRules2SQL.match(request.query, 'ProcessQuery')
+				catch e
+					console.error('Failed to compile abstract sql: ', e)
 				values = getAndCheckBindValues(bindings, request.values)
 				console.log(query, values)
 				if !_.isArray(values)
@@ -684,7 +694,10 @@ define([
 		else
 			request = tree.requests[0]
 			checkPermissions(req, res, 'set', tree.requests[0], ->
-				{query, bindings} = AbstractSQLRules2SQL.match(request.query, 'ProcessQuery')
+				try
+					{query, bindings} = AbstractSQLRules2SQL.match(request.query, 'ProcessQuery')
+				catch e
+					console.error('Failed to compile abstract sql: ', e)
 				values = getAndCheckBindValues(bindings, request.values)
 				console.log(query, values)
 				if !_.isArray(values)
@@ -730,7 +743,10 @@ define([
 		else
 			request = tree.requests[0]
 			checkPermissions(req, res, 'set', tree.requests[0], ->
-				queries = AbstractSQLRules2SQL.match(request.query, 'ProcessQuery')
+				try
+					queries = AbstractSQLRules2SQL.match(request.query, 'ProcessQuery')
+				catch e
+					console.error('Failed to compile abstract sql: ', e)
 				
 				if _.isArray(queries)
 					insertQuery = queries[0]
@@ -804,7 +820,10 @@ define([
 		else
 			request = tree.requests[0]
 			checkPermissions(req, res, 'delete', tree.requests[0], ->
-				{query, bindings} = AbstractSQLRules2SQL.match(request.query, 'ProcessQuery')
+				try
+					{query, bindings} = AbstractSQLRules2SQL.match(request.query, 'ProcessQuery')
+				catch e
+					console.error('Failed to compile abstract sql: ', e)
 				values = getAndCheckBindValues(bindings, request.values)
 				console.log(query, values)
 				if !_.isArray(values)
