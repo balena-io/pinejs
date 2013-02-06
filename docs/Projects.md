@@ -3,19 +3,20 @@
 ## Setting Up A Project
 First step in creating a project, is to have a build of the platform.
 
-1. Check out rulemotion-canvas/master
-2. Run `npm install requirejs -g`
-3. Navigate to src/server/build
+1. Check out (or update your copy of) rulemotion-canvas/master
+2. Run `npm install requirejs -g` (this installs requirejs globally, so where you run it does not matter)
+3. Navigate to `src/server/build` within your working copy
 4. Edit server.build.js to enable/disable `USE_MYSQL` and `USE_POSTGRES` depending on your target database.
-4. Run `r.js -o server.build.js` on Linux/Mac OSX or `r.js.cmd server.build.js` on Windows.
-5. Copy platform.js into your project folder/repository.
-6. Configure your project.
+4. Run `r.js -o server.build.js` on Linux/Mac OSX or `r.js.cmd -o server.build.js` on Windows.
+5. Copy the platform.js file that was just created in `src/server/build` into your project folder/repository.
+6. [Configure your project](#configuring-a-project)
 7. Run `node platform.js` (This will create the schema including users)
 8. Setup a guest user (see Users documentation).
 9. Restart platform.
 
 ## Configuring A Project
 ### config.json
+This file should be located alongside your `platform.js` file, and follow the specification below (with comments removed)
 ```javascript
 {
 	"models": [{
