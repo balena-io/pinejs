@@ -110,7 +110,7 @@ define(['ometa!server-glue/uri-parser', 'underscore', 'ometa-core'], function(UR
 				|	seq('desc')
 				):direction
 				seq(', ')?
-				-> [direction, field]
+				-> [direction.toUpperCase(), field]
 			)+:sorts
 			->	['OrderBy'].concat(sorts),
 
