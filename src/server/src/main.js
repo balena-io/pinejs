@@ -12,9 +12,7 @@ require({
 			USE_POSTGRES			: false,
 			DEV						: true,
 
-			CONFIG_LOADER			: false,
-
-			UNDERCURRENT			: false
+			CONFIG_LOADER			: false
 		}
 	},
 	paths: {

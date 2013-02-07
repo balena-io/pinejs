@@ -26,9 +26,7 @@
 		USE_POSTGRES			: false,
 		DEV						: false,
 
-		CONFIG_LOADER			: true,
-
-		UNDERCURRENT			: false
+		CONFIG_LOADER			: true
 	},
 
 	paths: {
