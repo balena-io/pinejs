@@ -535,7 +535,7 @@ define([
 					successCallback?()
 			json: (data) ->
 				successCallback?(data)
-			setHeader: ->
+			set: ->
 		switch method
 			when 'GET'
 				runGet(req, res, tx)
@@ -643,7 +643,7 @@ define([
 				)
 
 	exports.runGet = runGet = (req, res, tx) ->
-		res.setHeader('Cache-Control', 'private')
+		res.set('Cache-Control', 'no-cache')
 		tree = req.tree
 		if tree.requests == undefined
 			checkPermissions(req, res, 'model', ->
@@ -690,7 +690,7 @@ define([
 			)
 
 	exports.runPost = runPost = (req, res, tx) ->
-		res.setHeader('Cache-Control', 'private')
+		res.set('Cache-Control', 'no-cache')
 		tree = req.tree
 		if tree.requests == undefined
 			res.send(404)
@@ -740,7 +740,7 @@ define([
 			)
 
 	exports.runPut = runPut = (req, res, tx) ->
-		res.setHeader('Cache-Control', 'private')
+		res.set('Cache-Control', 'no-cache')
 		tree = req.tree
 		if tree.requests == undefined
 			res.send(404)
@@ -818,7 +818,7 @@ define([
 			)
 
 	exports.runDelete = runDelete = (req, res, tx) ->
-		res.setHeader('Cache-Control', 'private')
+		res.set('Cache-Control', 'no-cache')
 		tree = req.tree
 		if tree.requests == undefined
 			res.send(404)
