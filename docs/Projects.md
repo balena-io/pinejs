@@ -33,6 +33,13 @@ This file should be located alongside your `platform.js` file, and follow the sp
 		"modelFile": "example.sbvr",
 		"apiRoot": "example",
 		"customServerCode": "example.coffee"
+	}],
+	"users": [{
+		"username": "guest",
+		"password": " ",
+		"permissions": [
+			"resource.all"
+		]
 	}]
 }
 ```
