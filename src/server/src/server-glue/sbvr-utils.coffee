@@ -536,8 +536,11 @@ define([
 					failureCallback?()
 				else
 					successCallback?()
-			json: (data) ->
-				successCallback?(data)
+			json: (data, statusCode) ->
+				if statusCode == 404
+					failureCallback?(data)
+				else
+					successCallback?(data)
 			set: ->
 		switch method
 			when 'GET'
