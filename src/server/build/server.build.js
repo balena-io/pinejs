@@ -15,7 +15,8 @@
 			ascii_only: true
 		},
 		compress: {
-			sequences: false
+			sequences: false,
+			unused: false // We need this off for OMeta
 		},
 		mangle: false
 	},
