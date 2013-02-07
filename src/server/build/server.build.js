@@ -8,12 +8,16 @@
 	stubModules: ['cs', 'text', 'ometa', 'ometa-compiler'],
 	mainConfigFile: '../src/main.js',
 
-	optimize: 'uglify',
-	uglify: {
-		make_seqs: false,
-		ascii_only: true,
-		beautify: true,
-		no_mangle: true
+	optimize: 'uglify2',
+	uglify2: {
+		output: {
+			beautify: true,
+			ascii_only: true
+		},
+		compress: {
+			sequences: false
+		},
+		mangle: false
 	},
 
 	has: {
