@@ -1,4 +1,4 @@
-define(['has', 'cs!database-layer/db'], (has, dbModule) ->
+define(['has', 'cs!database-layer/db', 'async'], (has, dbModule, async) ->
 	exports = {}
 
 	# Setup function
@@ -54,8 +54,44 @@ define(['has', 'cs!database-layer/db'], (has, dbModule) ->
 									code = require(__dirname + '/' + model.customServerCode).setup(app, requirejs, sbvrUtils, db)
 						)
 				
-				
-				
+				async.forEach(data.users,
+					(user, callback) ->
+						async.parallel({
+								user: (callback) ->
+									sbvrUtils.runURI('POST', '/Auth/user', {'username': user.username, 'password': user.password}, null,
+										(result) -> callback(result.id)
+										-> callback(true)
+									)
+								permissions: (callback) ->
+									async.forEach(user.permissions,
+											(permission, callback) ->
+											sbvrUtils.runURI('POST', '/Auth/permission', {'name': 'resource.all'}, null,
+												(result) -> callback(result.id)
+												-> 
+													sbvrUtils.runURI('GET', '/Auth/permission', {'name': 'resource.all'}, null,
+														(result) -> callback(null, result.d[0].id)
+														-> callback(true)
+													)
+											)
+										callback
+									)
+							}
+							(err, results) ->
+								if err
+									console.error('Failed to add users or permissions')
+								else
+									async.forEach(results.permissions,
+										(permission, callback) ->
+											sbvrUtils.runURI('POST', '/Auth/user-has-permission', {'user': result.user, 'permission': permission}, null,
+												-> callback()
+												-> callback(true)
+											)
+										(err) ->
+											if err
+												console.error('Failed to add user permissions')
+									)
+						)
+				)
 		)
 	return exports
 )
