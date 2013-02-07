@@ -1,4 +1,4 @@
-define(['codemirror'], function (CodeMirror) {
+define(['codemirror', 'codemirror-simple-hint'], function (CodeMirror) {
 	var forEach = function (o, f) {
 		if($.isArray(o))
 			for (var i = 0, e = o.length; i < e; ++i) f(o[i]);
@@ -119,7 +119,7 @@ define(['codemirror'], function (CodeMirror) {
 			// Hook into ctrl-space
 			if (e.keyCode == 32 && (e.ctrlKey || e.metaKey) && !e.altKey) {
 				e.stop();
-				return CodeMirror.showHint(instance, ometaHint);
+				return CodeMirror.simpleHint(instance, ometaHint);
 			}
 		};
 	};

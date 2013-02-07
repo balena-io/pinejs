@@ -5,7 +5,6 @@ define([
 	'codemirror'
 	'codemirror-ometa-bridge/hinter'
 	'codemirror-ometa-bridge/sbvr'
-	'codemirror-simple-hint'
 ], (Backbone, $, _, CodeMirror, ometaAutoComplete) ->
 	Backbone.View.extend(
 		setTitle: (title) ->
@@ -28,13 +27,14 @@ define([
 
 			@model.on('change:content', changeHandler)
 
+			autoCompleteKeyBinding = ometaAutoComplete()
 			sbvrEditor = CodeMirror.fromTextArea(textarea.get(0),
 				mode:
 					name: 'sbvr'
 					getOMetaEditor: -> sbvrEditor
 				onKeyEvent: =>
 					updateModel()
-					ometaAutoComplete.apply(this, arguments)
+					autoCompleteKeyBinding.apply(this, arguments)
 				lineWrapping: true
 			)
 
