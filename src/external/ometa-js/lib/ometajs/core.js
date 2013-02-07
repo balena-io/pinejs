@@ -978,6 +978,10 @@
             }
             // We will have stepped one past the divergence point, so decrement to correct.
             divergencePoint--;
+            // Step back to the start of any white space to minimise issues with keeping no longer correct memoisations
+            while(/\s/.test(listyObj.charAt(divergencePoint))) {
+              divergencePoint--;
+            }
             if(divergencePoint > 0) {
               //  If we diverge after the first character then fixup the memoisations.
               do {
