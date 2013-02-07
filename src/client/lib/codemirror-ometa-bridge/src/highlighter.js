@@ -3,7 +3,8 @@ define(['codemirror'], function() {
 		options = options || {};
 		options = {
 			disableReusingMemoizations: options.disableReusingMemoizations || false,
-			disableVisibleOnlyHighlighting: options.disableVisibleOnlyHighlighting || false
+			disableVisibleOnlyHighlighting: true // We have to disable the visible only highlighting for now due to breaking changes in codemirror 3.
+			// disableVisibleOnlyHighlighting: options.disableVisibleOnlyHighlighting || false
 		};
 		var getGrammar = (function() {
 				var grammar = ometaGrammar.createInstance();
