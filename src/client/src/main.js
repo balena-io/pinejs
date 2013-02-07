@@ -17,9 +17,9 @@ require({
 		//Libraries
 		'backbone'                 :  '../lib/backbone',
 		'bootstrap'                :  '../lib/bootstrap/bootstrap',
-		'codemirror'               :  '../lib/codemirror/codemirror',
+		'codemirror'               :  '../lib/codemirror/lib/codemirror',
 		'codemirror-ometa-bridge'  :  '../lib/codemirror-ometa-bridge/src',
-		'codemirror-simple-hint'   :  '../lib/codemirror/util/simple-hint',
+		'codemirror-simple-hint'   :  '../lib/codemirror/addon/hint/simple-hint',
 		'd3'                       :  '../lib/d3.v2',
 		'inflection'               :  '../../external/inflection/inflection',
 		'jquery'                   :  '../lib/jquery',
@@ -45,10 +45,10 @@ require({
 			deps: ['bootstrap'],
 		},
 		'codemirror-simple-hint': {
-			deps: ['codemirror', 'css!lib/codemirror/util/simple-hint']
+			deps: ['codemirror', 'css!lib/codemirror/addon/hint/simple-hint']
 		},
 		'codemirror': {
-			deps: [ 'css!lib/codemirror/codemirror'],
+			deps: [ 'css!lib/codemirror/lib/codemirror'],
 			exports: 'CodeMirror'
 		},
 		'jquery-xdomain': {
@@ -69,6 +69,9 @@ require({
 			init: function () {
 				return this._.noConflict();
 			}
+		},
+		'js-beautify': {
+			exports: 'js_beautify'
 		}
 	}
 }, ['cs!app', 'css!static/main']);

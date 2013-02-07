@@ -7,7 +7,7 @@
 /*jslint */
 /*global define, window, XMLHttpRequest, importScripts, Packages, java,
   ActiveXObject, process, require */
-define(['ometa-core', 'ometa-compiler', 'js-beautify'], function (OMeta, ometac) {
+define(['ometa-core', 'ometa-compiler', 'js-beautify'], function (OMeta, ometac, js_beautify) {
 	'use strict';
 	var fs, getXhr,
 		fetchText = function () {
