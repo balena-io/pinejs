@@ -14,7 +14,6 @@ define(['has', 'cs!database-layer/db', 'async'], (has, dbModule, async) ->
 				console.error('Error loading config.json')
 			else
 				data = JSON.parse(data)
-				console.error('data', data)
 				
 				db = dbModule.connect(databaseOptions)
 				
@@ -54,44 +53,47 @@ define(['has', 'cs!database-layer/db', 'async'], (has, dbModule, async) ->
 									code = require(__dirname + '/' + model.customServerCode).setup(app, requirejs, sbvrUtils, db)
 						)
 				
-				async.forEach(data.users,
-					(user, callback) ->
-						async.parallel({
-								user: (callback) ->
-									sbvrUtils.runURI('POST', '/Auth/user', {'username': user.username, 'password': user.password}, null,
-										(result) -> callback(result.id)
-										-> callback(true)
-									)
-								permissions: (callback) ->
-									async.forEach(user.permissions,
+				if data.users?
+					async.forEach(data.users,
+						(user, callback) ->
+							async.parallel({
+									user: (callback) ->
+										sbvrUtils.runURI('POST', '/Auth/user', {'username': user.username, 'password': user.password}, null,
+											(result) -> callback(null, result.id)
+											(err) -> callback(err or true)
+										)
+									permissions: (callback) ->
+										if !user.permissions?
+											return callback(null, [])
+										async.map(user.permissions,
 											(permission, callback) ->
-											sbvrUtils.runURI('POST', '/Auth/permission', {'name': 'resource.all'}, null,
-												(result) -> callback(result.id)
-												-> 
-													sbvrUtils.runURI('GET', '/Auth/permission', {'name': 'resource.all'}, null,
-														(result) -> callback(null, result.d[0].id)
-														-> callback(true)
-													)
-											)
-										callback
-									)
-							}
-							(err, results) ->
-								if err
-									console.error('Failed to add users or permissions')
-								else
-									async.forEach(results.permissions,
-										(permission, callback) ->
-											sbvrUtils.runURI('POST', '/Auth/user-has-permission', {'user': result.user, 'permission': permission}, null,
-												-> callback()
-												-> callback(true)
-											)
-										(err) ->
-											if err
-												console.error('Failed to add user permissions')
-									)
-						)
-				)
+												sbvrUtils.runURI('POST', '/Auth/permission', {'name': 'resource.all'}, null,
+													(result) -> callback(null, result.id)
+													-> 
+														sbvrUtils.runURI('GET', '/Auth/permission', {'name': 'resource.all'}, null,
+															(result) -> callback(null, result.d[0].id)
+															(err) -> callback(err or true)
+														)
+												)
+											callback
+										)
+								}
+								(err, results) ->
+									if err
+										console.error('Failed to add users or permissions', err)
+									else
+										async.forEach(results.permissions,
+											(permission, callback) ->
+												sbvrUtils.runURI('POST', '/Auth/user-has-permission', {'user': result.user, 'permission': permission}, null,
+													-> callback()
+													(err) -> callback(err or true)
+												)
+											(err) ->
+												if err
+													console.error('Failed to add user permissions', err)
+										)
+							)
+					)
 		)
 	return exports
 )
