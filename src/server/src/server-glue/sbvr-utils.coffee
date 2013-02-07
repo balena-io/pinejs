@@ -342,7 +342,7 @@ define([
 				try
 					lfModel = SBVRParser.matchAll(seModel, 'Process')
 				catch e
-					console.error('Error parsing model', e)
+					console.error('Error parsing model', vocab, e)
 					return callback('Error parsing model')
 				try
 					slfModel = LF2AbstractSQLPrep.match(lfModel, 'Process')
@@ -350,7 +350,7 @@ define([
 					sqlModel = AbstractSQL2SQL.generate(abstractSqlModel)
 					clientModel = AbstractSQL2CLF(sqlModel)
 				catch e
-					console.error('Error compiling model', e)
+					console.error('Error compiling model', vocab, e)
 					return callback('Error compiling model')
 
 				# Create tables related to terms and fact types
@@ -388,7 +388,10 @@ define([
 						callback(err)
 				)
 			(err, results) ->
-				async.parallel(validateFuncs, callback)
+				if err
+					callback(err)
+				else
+					async.parallel(validateFuncs, callback)
 		)
 
 	exports.deleteModel = (vocabulary) ->
@@ -478,7 +481,7 @@ define([
 			try
 				lfModel = SBVRParser.matchAll(seModel + '\nRule: ' + rule, 'Process')
 			catch e
-				console.error('Error parsing model', e)
+				console.error('Error parsing rule', rule, e)
 				return
 			ruleLF = lfModel[lfModel.length-1]
 			lfModel = lfModel[...-1]
@@ -489,7 +492,7 @@ define([
 				
 				abstractSqlModel = LF2AbstractSQL.match(slfModel, 'Process')
 			catch e
-				console.error('Failed to compile rule', e)
+				console.error('Failed to compile rule', rule, e)
 			
 			ruleAbs = abstractSqlModel.rules[-1..][0]
 			# Remove the not exists
