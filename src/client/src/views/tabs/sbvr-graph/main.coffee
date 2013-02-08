@@ -10,7 +10,11 @@ define([
 		render: ->
 			this.setTitle('Visualize')
 
-			@model.on('change:content', =>
+			rerenderRequired = true
+			@options.title.on('shown', =>
+				if rerenderRequired == false
+					return
+				rerenderRequired = false
 				@$el.empty()
 				try
 					dataset = @model.compile()
@@ -114,6 +118,9 @@ define([
 					.attr("text-anchor", "middle")
 					.attr("class", (d) -> d.type)
 					.text((d) -> d.name)
+			)
+			@model.on('change:content', =>
+				rerenderRequired = true
 			)
 	)
 )

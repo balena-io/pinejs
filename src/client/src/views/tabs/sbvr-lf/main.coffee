@@ -10,11 +10,18 @@ define([
 		render: ->
 			this.setTitle('Logical Formulation')
 
-			@model.on('change:content', =>
+			rerenderRequired = true
+			@options.title.on('shown', =>
+				if rerenderRequired == false
+					return
+				rerenderRequired = false
 				try
 					lfviz(@model.compile(), @el)
 				catch e
 					console.log(e)
+			)
+			@model.on('change:content', =>
+				rerenderRequired = true
 			)
 	)
 )

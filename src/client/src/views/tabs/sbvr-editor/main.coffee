@@ -23,7 +23,7 @@ define([
 				@model.off('change:content', changeHandler)
 				@model.set('content', sbvrEditor.getValue())
 				@model.on('change:content', changeHandler)
-			, 500)
+			, 100)
 
 			@model.on('change:content', changeHandler)
 
