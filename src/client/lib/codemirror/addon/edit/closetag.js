@@ -61,7 +61,7 @@
         throw CodeMirror.Pass;
 
       var doIndent = indentTags && indexOf(indentTags, lowerTagName) > -1;
-      var curPos = doIndent ? {line: pos.line + 1, ch: 0} : {line: pos.line, ch: pos.ch + 1};
+      var curPos = doIndent ? CodeMirror.Pos(pos.line + 1, 0) : CodeMirror.Pos(pos.line, pos.ch + 1);
       cm.replaceSelection(">" + (doIndent ? "\n\n" : "") + "</" + tagName + ">",
                           {head: curPos, anchor: curPos});
       if (doIndent) {
@@ -69,7 +69,7 @@
         cm.indentLine(pos.line + 2);
       }
       return;
-    } else if (ch == "/" && tok.type == "tag" && tok.string == "<") {
+    } else if (ch == "/" && tok.string == "<") {
       var tagName = state.context && state.context.tagName;
       if (tagName) cm.replaceSelection("/" + tagName + ">", "end");
       return;

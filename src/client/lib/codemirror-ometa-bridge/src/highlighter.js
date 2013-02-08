@@ -3,8 +3,7 @@ define(['codemirror'], function() {
 		options = options || {};
 		options = {
 			disableReusingMemoizations: options.disableReusingMemoizations || false,
-			disableVisibleOnlyHighlighting: true // We have to disable the visible only highlighting for now due to breaking changes in codemirror 3.
-			// disableVisibleOnlyHighlighting: options.disableVisibleOnlyHighlighting || false
+			disableVisibleOnlyHighlighting: options.disableVisibleOnlyHighlighting || false
 		};
 		var getGrammar = (function() {
 				var grammar = ometaGrammar.createInstance();
@@ -73,7 +72,7 @@ define(['codemirror'], function() {
 						}
 						var text = ometaEditor.getValue(),
 							prependText = '',
-							lastVisibleLine = ometaEditor.getViewport().to;
+							lastVisibleLine = ometaEditor.getViewport().to + ometaEditor.options.highlightMargin;
 						if(mode.hasOwnProperty('prependText')) {
 							prependText = mode.prependText();
 						}

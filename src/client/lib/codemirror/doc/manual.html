@@ -336,6 +336,16 @@
       always rendered, and thus the browser's text search works on it.
       This <em>will</em> have bad effects on performance of big
       documents.</dd>
+
+      <dt id="option_highlightMargin"><code>highlightMargin (integer)</code></dt>
+      <dd>Specifies the amount of lines below the viewport that are
+      processed for highlighting styles, This affects the amount of
+      processing of highlighting styles needed when scrolling. You
+      should usually leave it at its default, 500. Can be set
+      to <code>Infinity</code> to make sure the whole document is
+      always processed, and thus no highlighting processing needed
+      on scrolling, however it will cause more work on rehighlighting
+      for each edit.</dd>
     </dl>
 
     <h2 id="events">Events</h2>
@@ -411,8 +421,9 @@
     </dl>
 
     <p>Marked range handles, as returned
-    by <a href="#markText"><code>markText</code></a>, emit the
-    following event:</p>
+    by <a href="#markText"><code>markText</code></a>
+    and <a href="#setBookmark"><code>setBookmark</code></a>, emit the
+    following events:</p>
 
     <dl>
       <dt id="event_clear"><code>"clear" ()</code></dt>
@@ -649,6 +660,16 @@
       <dd>Given a line handle, returns the current position of that
       line (or <code>null</code> when it is no longer in the
       document).</dd>
+      <dt id="eachLine"><code>doc.eachLine(f) | doc.eachLine(start, end, f)</code></dt>
+      <dd>Iterate over the whole document, or if <code>start</code>
+      and <code>end</code> line numbers are given, the range
+      from <code>start</code> up to (not including) <code>end</code>,
+      and call <code>f</code> for each line, passing the line handle.
+      This is a faster way to visit a range of line handlers than
+      calling <a href="#getLineHandle"><code>getLineHandle</code></a>
+      for each of them. Note that line handles have
+      a <code>text</code> property containing the line's content (as a
+      string).</dd>
 
       <dt id="markClean"><code>doc.markClean()</code></dt>
       <dd>Set the editor content as 'clean', a flag that it will
@@ -929,16 +950,24 @@
       the <a href="#mark_replacedWith"><code>replacedWith</code></a>
       option, if any.</dd>
 
-      <dt id="setBookmark"><code>doc.setBookmark(pos, widget) → object</code></dt>
+      <dt id="setBookmark"><code>doc.setBookmark(pos, options) → object</code></dt>
       <dd>Inserts a bookmark, a handle that follows the text around it
       as it is being edited, at the given position. A bookmark has two
       methods <code>find()</code> and <code>clear()</code>. The first
       returns the current position of the bookmark, if it is still in
       the document, and the second explicitly removes the bookmark.
-      The widget argument is optional, and can be used to display a
-      DOM node at the current location of the bookmark (analogous to
-      the <a href="#mark_replacedWith"><code>replacedWith</code></a>
-      option to <code>markText</code>).</dd>
+      The options argument is optional. If given, the following
+      properties are recognized:
+      <dl>
+        <dt><code>widget</code></dt><dd>Can be used to display a DOM
+        node at the current location of the bookmark (analogous to
+        the <a href="#mark_replacedWith"><code>replacedWith</code></a>
+        option to <code>markText</code>).</dd>
+        <dt><code>insertLeft</code></dt><dd>By default, text typed
+        when the cursor is on top of the bookmark will end up to the
+        right of the bookmark. Set this option to true to make it go
+        to the left instead.</dd>
+      </dl></dd>
 
       <dt id="findMarksAt"><code>doc.findMarksAt(pos) → array</code></dt>
       <dd>Returns an array of all the bookmarks and marked ranges
@@ -1332,7 +1361,7 @@
       <dd>Can be used to run a CodeMirror mode over text without
       actually opening an editor instance.
       See <a href="../demo/runmode.html">the demo</a> for an example.
-      There alternate version of the file avaible for
+      There are alternate versions of the file avaible for
       running <a href="../addon/runmode/runmode-standalone.js">stand-alone</a>
       (without including all of CodeMirror) and
       for <a href="../addon/runmode/runmode.node.js">running under
@@ -1393,14 +1422,20 @@
       <dt id="addon_python-hint"><a href="../addon/hint/python-hint.js"><code>python-hint.js</code></a></dt>
       <dd>Defines <code>CodeMirror.pythonHint</code>, a hinter for Python code.</dd>
       <dt id="addon_match-highlighter"><a href="../addon/search/match-highlighter.js"><code>match-highlighter.js</code></a></dt>
-      <dd>Adds a <code>matchHighlight</code> method to CodeMirror
-      instances that can be called (typically from
-      a <a href="#event_cursorActivity"><code>cursorActivity</code></a>
-      handler) to highlight all instances of a currently selected word
-      with the a classname given as a first argument to the method.
-      Depends on
-      the <a href="#addon_searchcursor"><code>searchcursor</code></a>
-      add-on. Demo <a href="../demo/matchhighlighter.html">here</a>.</dd>
+      <dd>Adds a <code>highlightSelectionMatches</code> option that
+      can be enabled to highlight all instances of a currently
+      selected word.
+      Demo <a href="../demo/matchhighlighter.html">here</a>.</dd>
+      <dt id="addon_mark-selection"><a href="../addon/selection/mark-selection.js"><code>mark-selection.js</code></a></dt>
+      <dd>Causes the selected text to be marked with the CSS class
+      <code>CodeMirror-selectedtext</code> when the <code>styleSelectedText</code> option
+      is enabled. Useful to change the colour of the selection (in addition to the background),
+      like in <a href="../demo/markselection.html">this demo</a>.</dd>
+      <dt id="addon_active-line"><a href="../addon/selection/active-line.js"><code>active-line.js</code></a></dt>
+      <dd>Defines a <code>styleActiveLine</code> option that, when enabled,
+      gives the wrapper of the active line the class <code>CodeMirror-activeline</code>, 
+      and adds a background with the class <code>CodeMirror-activeline-background</code>.
+      is enabled. See the <a href="../demo/activeline.html">demo</a>.</dd>
       <dt id="addon_formatting"><a href="../addon/format/formatting.js"><code>formatting.js</code></a></dt>
       <dd>Adds <code>commentRange</code>, <code>autoIndentRange</code>,
       and <code>autoFormatRange</code> methods that, respectively,

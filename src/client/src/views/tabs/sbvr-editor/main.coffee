@@ -36,6 +36,7 @@ define([
 					updateModel()
 					autoCompleteKeyBinding.apply(this, arguments)
 				lineWrapping: true
+				highlightMargin: 0
 			)
 
 			$(window).resize(=>

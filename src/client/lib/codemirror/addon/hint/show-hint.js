@@ -1,22 +1,15 @@
 CodeMirror.showHint = function(cm, getHints, options) {
   if (!options) options = {};
   
-  function collectHints(previousToken) {
+  function collectHints(startCh, continued) {
     // We want a single cursor position.
     if (cm.somethingSelected()) return;
-
-    var token = cm.getTokenAt(cm.getCursor());
-
-    // Don't show completions if token has changed
-    if (previousToken != null &&
-        (token.start != previousToken.start || token.type != previousToken.type))
-      return;
 
     var result = getHints(cm, options);
     if (!result || !result.list.length) return;
     var completions = result.list;
     // When there is only one completion, use it directly.
-    if (!previousToken && options.completeSingle !== false && completions.length == 1) {
+    if (!continued && options.completeSingle !== false && completions.length == 1) {
       cm.replaceRange(completions[0], result.from, result.to);
       return true;
     }
@@ -37,11 +30,30 @@ CodeMirror.showHint = function(cm, getHints, options) {
 
     // If we're at the edge of the screen, then we want the menu to appear on the left of the cursor.
     var winW = window.innerWidth || Math.max(document.body.offsetWidth, document.documentElement.offsetWidth);
-    if (winW - pos.left < hints.clientWidth)
-      hints.style.left = (pos.left - sel.clientWidth) + "px";
+    var winH = window.innerHeight || Math.max(document.body.offsetHeight, document.documentElement.offsetHeight);
+    var box = hints.getBoundingClientRect();
+    var overlapX = box.right - winW, overlapY = box.bottom - winH;
+    if (overlapX > 0) {
+      if (box.right - box.left > winW) {
+        hints.style.width = (winW - 5) + "px";
+        overlapX -= (box.right - box.left) - winW;
+      }
+      hints.style.left = (pos.left - overlapX) + "px";
+    }
+    if (overlapY > 0) {
+      var height = box.bottom - box.top;
+      if (box.top - (pos.bottom - pos.top) - height > 0) {
+        overlapY = height + (pos.bottom - pos.top);
+      } else if (height > winH) {
+        hints.style.height = (winH - 5) + "px";
+        overlapY -= height - winH;
+      }
+      hints.style.top = (pos.bottom - overlapY) + "px";
+    }
 
     function changeActive(i) {
-      if (i < 0 || i >= completions.length || selectedHint == i) return;
+      i = Math.max(0, Math.min(i, completions.length - 1));
+      if (selectedHint == i) return;
       hints.childNodes[selectedHint].className = "CodeMirror-hint";
       var node = hints.childNodes[selectedHint = i];
       node.className = "CodeMirror-hint CodeMirror-hint-active";
@@ -51,9 +63,17 @@ CodeMirror.showHint = function(cm, getHints, options) {
         hints.scrollTop = node.offsetTop + node.offsetHeight - hints.clientHeight + 3;
     }
 
+    function screenAmount() {
+      return Math.floor(hints.clientHeight / hints.firstChild.offsetHeight) || 1;
+    }
+
     var ourMap = {
       Up: function() {changeActive(selectedHint - 1);},
       Down: function() {changeActive(selectedHint + 1);},
+      PageUp: function() {changeActive(selectedHint - screenAmount());},
+      PageDown: function() {changeActive(selectedHint + screenAmount());},
+      Home: function() {changeActive(0);},
+      End: function() {changeActive(completions.length - 1);},
       Enter: pick,
       Tab: pick,
       Esc: close
@@ -66,6 +86,7 @@ CodeMirror.showHint = function(cm, getHints, options) {
 
     cm.addKeyMap(ourMap);
     cm.on("cursorActivity", cursorActivity);
+    cm.on("blur", close);
     CodeMirror.on(hints, "dblclick", function(e) {
       var t = e.target || e.srcElement;
       if (t.hintId != null) {selectedHint = t.hintId; pick();}
@@ -85,15 +106,22 @@ CodeMirror.showHint = function(cm, getHints, options) {
       hints.parentNode.removeChild(hints);
       cm.removeKeyMap(ourMap);
       cm.off("cursorActivity", cursorActivity);
+      cm.off("blur", close);
     }
     function pick() {
       cm.replaceRange(completions[selectedHint], result.from, result.to);
       close();
     }
-    var once;
+    var once, lastPos = cm.getCursor(), lastLen = cm.getLine(lastPos.line).length;
     function cursorActivity() {
       clearTimeout(once);
-      once = setTimeout(function(){close(); collectHints(token);}, 70);
+
+      var pos = cm.getCursor(), len = cm.getLine(pos.line).length, start = startCh || lastPos.ch;
+      if (pos.line != lastPos.line || len - pos.ch != lastLen - lastPos.ch ||
+          pos.ch < start || cm.somethingSelected())
+        close();
+      else
+        once = setTimeout(function(){close(); collectHints(start, true);}, 70);
     }
     return true;
   }
