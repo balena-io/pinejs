@@ -22,7 +22,7 @@ define([
 					console.log(e)
 					return
 			
-				termBlacklist = ['value', 'Short Text', 'Text', 'Integer', 'Date']
+				termBlacklist = ['value', 'Short Text', 'Text', 'Integer', 'Date', 'Date Time', 'Hashed', 'Interval', 'JSON', 'Length', 'Real', 'Serial', 'Time']
 				nodes = {}
 
 				for [type,name] in dataset when type is 'Term' and name not in termBlacklist
