@@ -38,6 +38,7 @@ define([
 				lineWrapping: true
 				highlightMargin: 0
 			)
+			@model.compile = sbvrEditor.getMode().fullParse
 
 			$(window).resize(=>
 				sbvrEditor.setSize(@$el.width(), @$el.height())

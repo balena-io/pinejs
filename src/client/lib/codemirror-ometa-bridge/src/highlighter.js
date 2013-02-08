@@ -50,7 +50,33 @@ define(['codemirror'], function() {
 		CodeMirror.defineMode(modeName, function(config, mode) {
 			var tokens = [],
 				tokensOffset = 0,
-				checkForNewText = (function() {
+				parse,
+				fullParse,
+				eol = function(state, stream) {
+					if(stream && !stream.eol()) {
+						return;
+					}
+					// We check in case they deleted everything.
+					parse();
+					state.index++;
+				},
+				applyTokens = function(stream, state) {
+					var startPos = stream.pos;
+					if(stream.eatSpace()) {
+						state.index += stream.pos - startPos;
+						eol(state, stream);
+						return null;
+					}
+					var token = getNextToken(state);
+					var totalAdvanceDistance = token[0] - state.index;
+					var advanceDistance = stream.string.length - stream.pos;
+					advanceDistance = Math.min(advanceDistance, totalAdvanceDistance);
+					stream.pos += advanceDistance;
+					state.index += advanceDistance;
+					eol(state, stream);
+					return modeName + '-' + token[1];
+				};
+				(function() {
 					var previousText = '',
 						prevLastVisibleLine = 0,
 						buildTokens = function(input, shift) { 
@@ -65,19 +91,22 @@ define(['codemirror'], function() {
 							}
 							return tokens;
 						};
-					return function() {
+					parse = function(forceParseToLine) {
 						var ometaEditor = mode.getOMetaEditor();
 						if(ometaEditor == null) {
 							return;
 						}
 						var text = ometaEditor.getValue(),
-							prependText = '',
-							lastVisibleLine = ometaEditor.getViewport().to + ometaEditor.options.highlightMargin;
+							lastVisibleLine = ometaEditor.getViewport().to + ometaEditor.options.highlightMargin,
+							prependText = '';
 						if(mode.hasOwnProperty('prependText')) {
 							prependText = mode.prependText();
 						}
 						// We only regenerate tokens if the text has changed, or the last visible line is further down than before.
-						if(text != previousText || (!options.disableVisibleOnlyHighlighting && lastVisibleLine > prevLastVisibleLine)) {
+						if(forceParseToLine != null || text != previousText || (!options.disableVisibleOnlyHighlighting && lastVisibleLine > prevLastVisibleLine)) {
+							if(forceParseToLine != null) {
+								lastVisibleLine = Math.min(ometaEditor.lastLine(), forceParseToLine);
+							}
 							previousText = text;
 							if(!options.disableVisibleOnlyHighlighting) {
 								prevLastVisibleLine = lastVisibleLine;
@@ -98,7 +127,7 @@ define(['codemirror'], function() {
 							text = prependText + text;
 							var grammar = getGrammar();
 							try {
-								grammar.matchAll(text, 'Process');
+								var result = grammar.matchAll(text, 'Process');
 							}
 							catch(e) {
 								// An error here means we failed to parse the text,
@@ -108,33 +137,13 @@ define(['codemirror'], function() {
 							}
 							tokens = buildTokens(grammar.inputHead);
 							tokensOffset = prependText.length;
-						}
-					}
-				})(),
-				eol = function(state, stream) {
-					if(stream && !stream.eol()) {
-						return;
-					}
-					// We check in case they deleted everything.
-					checkForNewText();
-					state.index++;
-				},
-				applyTokens = function(stream, state) {
-					var startPos = stream.pos;
-					if(stream.eatSpace()) {
-						state.index += stream.pos - startPos;
-						eol(state, stream);
-						return null;
-					}
-					var token = getNextToken(state);
-					var totalAdvanceDistance = token[0] - state.index;
-					var advanceDistance = stream.string.length - stream.pos;
-					advanceDistance = Math.min(advanceDistance, totalAdvanceDistance);
-					stream.pos += advanceDistance;
-					state.index += advanceDistance;
-					eol(state, stream);
-					return modeName + '-' + token[1];
-				};
+							return result;
+						};
+					};
+					fullParse = function() {
+						return parse(Infinity);
+					};
+				})();
 			return {
 				copyState: function(state) {
 					return {
@@ -156,7 +165,7 @@ define(['codemirror'], function() {
 
 				token: function(stream, state) {
 					if(stream.sol()) {
-						checkForNewText();
+						parse();
 					}
 					
 					addNewTokens(state, tokens);
@@ -189,7 +198,8 @@ define(['codemirror'], function() {
 						return mode.prependText();
 					}
 					return '';
-				}
+				},
+				fullParse: fullParse
 			};
 		});
 
