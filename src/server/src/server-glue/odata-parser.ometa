@@ -5,13 +5,15 @@ define(['ometa!server-glue/uri-parser', 'underscore', 'ometa-core'], function(UR
 				{{}}:body
 			)?
 			'/'
-			{this.currentBody = body}
-			{this.newBody = {}}
-			ResourceName:resourceName
-			(	{['Query']}:query
-				AddQueryResource(query, resourceName)
-				Modifiers(query)
-			)?
+			(	{this.currentBody = body}
+				{this.newBody = {}}
+				ResourceName:resourceName
+				(	{['Query']}:query
+					AddQueryResource(query, resourceName)
+					Modifiers(query)
+				)?
+			|	seq('$metadata')
+			)
 			-> [{resourceName: resourceName, query: query, values: this.newBody}],
 
 		Vocabulary =

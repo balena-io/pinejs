@@ -6,11 +6,12 @@ define([
 	'cs!sbvr-compiler/AbstractSQL2SQL'
 	'ometa!sbvr-compiler/AbstractSQLRules2SQL'
 	'cs!sbvr-compiler/AbstractSQL2CLF'
+	'cs!sbvr-compiler/ODataMetadataGenerator'
 	'ometa!server-glue/odata-parser'
 	'async'
 	'cs!database-layer/db'
 	'underscore'
-], (has, SBVRParser, LF2AbstractSQLPrep, LF2AbstractSQL, AbstractSQL2SQL, AbstractSQLRules2SQL, AbstractSQL2CLF, ODataParser, async, dbModule, _) ->
+], (has, SBVRParser, LF2AbstractSQLPrep, LF2AbstractSQL, AbstractSQL2SQL, AbstractSQLRules2SQL, AbstractSQL2CLF, ODataMetadataGenerator, ODataParser, async, dbModule, _) ->
 	exports = {}
 	db = null
 
@@ -129,6 +130,7 @@ define([
 	seModels = {}
 	sqlModels = {}
 	clientModels = {}
+	odataMetadata = {}
 
 	checkForConstraintError = (err, tableName) ->
 		if (has('USE_MYSQL') and (matches = /ER_DUP_ENTRY: Duplicate entry '.*?[^\\]' for key '(.*?[^\\])'/.exec(err)) != null) or
@@ -349,6 +351,7 @@ define([
 					abstractSqlModel = LF2AbstractSQL.match(slfModel, 'Process')
 					sqlModel = AbstractSQL2SQL.generate(abstractSqlModel)
 					clientModel = AbstractSQL2CLF(sqlModel)
+					metadata = ODataMetadataGenerator(vocab, sqlModel)
 				catch e
 					console.error('Error compiling model', vocab, e)
 					return callback('Error compiling model')
@@ -370,6 +373,7 @@ define([
 									seModels[vocab] = seModel
 									sqlModels[vocab] = sqlModel
 									clientModels[vocab] = clientModel
+									odataMetadata[vocab] = metadata
 
 									odataParser.setSQLModel(vocab, abstractSqlModel)
 									odataParser.setClientModel(vocab, clientModel)
@@ -412,6 +416,7 @@ define([
 				odataParser.setSQLModel(vocabulary, sqlModels[vocabulary])
 				clientModels[vocabulary] = []
 				odataParser.setClientModel(vocabulary, clientModels[vocabulary])
+				odataMetadata[vocab] = ''
 		)
 
 	getID = (tree) ->
@@ -657,7 +662,10 @@ define([
 		tree = req.tree
 		if tree.requests == undefined
 			checkPermissions(req, res, 'model', ->
-				res.json(clientModels[tree.vocabulary].resources)
+				if req.path == '$metadata'
+					res.send(odataMetadata[tree.vocabulary])
+				else
+					res.json(clientModels[tree.vocabulary].resources)
 			)
 		else if tree.requests[0].query?
 			request = tree.requests[0]
@@ -929,6 +937,7 @@ define([
 						odataParser.setSQLModel(vocab, sqlModel)
 						clientModels[vocab] = clientModel
 						odataParser.setClientModel(vocab, clientModel)
+						odataMetadata[vocab] = ODataMetadataGenerator(vocab, sqlModel)
 				)
 				runURI('GET', '/dev/model?$filter=model_type eq se and vocabulary eq data', null, tx, (result) ->
 					for instance in result.d
