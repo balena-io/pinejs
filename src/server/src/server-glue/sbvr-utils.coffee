@@ -616,6 +616,8 @@ define([
 										_guestPermissions = permissions
 										callback(null, _guestPermissions)
 								)
+							else
+								callback(true)
 						-> return callback(true)
 					)
 
