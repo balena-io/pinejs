@@ -7,7 +7,7 @@
 	}],
 	"users": [{
 		"username": "guest",
-		"password": "",
+		"password": " ",
 		"permissions": [
 			"resource.all"
 		]

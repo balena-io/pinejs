@@ -84,7 +84,7 @@ define(['has', 'cs!database-layer/db', 'async'], (has, dbModule, async) ->
 									else
 										async.forEach(results.permissions,
 											(permission, callback) ->
-												sbvrUtils.runURI('POST', '/Auth/user-has-permission', {'user': result.user, 'permission': permission}, null,
+												sbvrUtils.runURI('POST', '/Auth/user-has-permission', {'user': results.user, 'permission': permission}, null,
 													-> callback()
 													(err) -> callback(err or true)
 												)
