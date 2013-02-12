@@ -5,9 +5,9 @@
 		"express": "3.x",
 		"requirejs": "2.x",
 		"passport": "latest",
-		"mysql": "2.0.0-alpha4",
+		"mysql": "2.x",
 		"underscore": "latest",
-		"pg": "0.8.x",
+		"pg": "0.12.x",
 
 		"coffee-script": "latest",
 
