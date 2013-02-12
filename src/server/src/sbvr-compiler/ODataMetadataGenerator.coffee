@@ -18,8 +18,8 @@ define(['underscore'], (_) ->
 			else
 				console.error('Could not resolve type', fieldType)
 
-	return (vocabulary, model) ->
-
+	return (vocabulary, sqlModel) ->
+		model = sqlModel.tables
 		# resourceNavigations = {}
 		associations = []
 		for key, {name: resourceName, fields, primitive} of model when !_.isString(model[key]) and !primitive
