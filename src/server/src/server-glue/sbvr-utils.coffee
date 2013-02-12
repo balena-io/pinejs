@@ -647,6 +647,8 @@ define([
 					if !err and _checkPermissions(permissions)
 						callback()
 					else
+						if err
+							console.error(err)
 						res.send(403)
 				)
 
