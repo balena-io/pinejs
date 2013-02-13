@@ -416,7 +416,7 @@ define([
 				odataParser.setSQLModel(vocabulary, sqlModels[vocabulary])
 				clientModels[vocabulary] = []
 				odataParser.setClientModel(vocabulary, clientModels[vocabulary])
-				odataMetadata[vocab] = ''
+				odataMetadata[vocabulary] = ''
 		)
 
 	getID = (tree) ->
@@ -662,10 +662,7 @@ define([
 		tree = req.tree
 		if tree.requests == undefined
 			checkPermissions(req, res, 'model', ->
-				if req.path[-9..] == '$metadata'
-					res.send(odataMetadata[tree.vocabulary])
-				else
-					res.json(clientModels[tree.vocabulary].resources)
+				res.json(clientModels[tree.vocabulary].resources)
 			)
 		else if tree.requests[0].query?
 			request = tree.requests[0]
@@ -700,11 +697,14 @@ define([
 			)
 		else
 			checkPermissions(req, res, 'model', tree.requests[0], ->
-				clientModel = clientModels[tree.vocabulary]
-				data =
-					__model:
-						clientModel.resources[tree.requests[0].resourceName]
-				res.json(data)
+				if tree.requests[0].resourceName == '$metadata'
+					res.send(odataMetadata[tree.vocabulary])
+				else
+					clientModel = clientModels[tree.vocabulary]
+					data =
+						__model:
+							clientModel.resources[tree.requests[0].resourceName]
+					res.json(data)
 			)
 
 	exports.runPost = runPost = (req, res, tx) ->

@@ -12,7 +12,7 @@ define(['ometa!server-glue/uri-parser', 'underscore', 'ometa-core'], function(UR
 					AddQueryResource(query, resourceName)
 					Modifiers(query)
 				)?
-			|	seq('$metadata')
+			|	seq('$metadata'):resourceName
 			)
 			-> [{resourceName: resourceName, query: query, values: this.newBody}],
 
