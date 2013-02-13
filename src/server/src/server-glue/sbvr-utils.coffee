@@ -662,7 +662,7 @@ define([
 		tree = req.tree
 		if tree.requests == undefined
 			checkPermissions(req, res, 'model', ->
-				if req.path == '$metadata'
+				if req.path[-9..] == '$metadata'
 					res.send(odataMetadata[tree.vocabulary])
 				else
 					res.json(clientModels[tree.vocabulary].resources)
