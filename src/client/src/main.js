@@ -14,6 +14,9 @@ require({
 
 		'lib'                      :  '../lib',
 
+		'ometa-compiler'           :  '../../external/ometa-js/lib/ometajs/ometa/parsers',
+		'js-beautify'              :  '../../external/beautify/beautify',
+
 		//Libraries
 		'backbone'                 :  '../lib/backbone',
 		'bootstrap'                :  '../lib/bootstrap/bootstrap',
@@ -24,11 +27,9 @@ require({
 		'inflection'               :  '../../external/inflection/inflection',
 		'jquery'                   :  '../lib/jquery',
 		'jquery-xdomain'           :  '../lib/jquery-xdomain',
-		'ometa-compiler'           :  '../../external/ometa-js/lib/ometajs/ometa/parsers',
 		'ometa-core'               :  '../../external/ometa-js/lib/ometajs/core',
 		'sbvr-parser'              :  '../../common/sbvr-parser',
-		'underscore'               :  '../lib/underscore',
-		'js-beautify'              :  '../../external/beautify/beautify'
+		'underscore'               :  '../lib/underscore'
 	},
 	packages: [
 		{
