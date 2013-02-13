@@ -55,7 +55,9 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 							console.error('Error connecting ' + err)
 							errorCallback?(err)
 						else
-							callback(new Tx(client))
+							tx = new Tx(client)
+							tx.end() # We end the transaction, as we may have a client from the pool which is in an aborted transaction state.
+							callback(tx)
 					)
 			}
 			
