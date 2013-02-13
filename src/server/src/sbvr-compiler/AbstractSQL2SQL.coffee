@@ -197,7 +197,7 @@ define([
 			for tableName in tableNames
 				schemaInfo = schemaDependencyMap[tableName]
 				unsolvedDependency = false
-				for dependency in schemaInfo.depends
+				for dependency in schemaInfo.depends when dependency != schemaInfo.resourceName # Self-dependencies are ok.
 					if schemaDependencyMap.hasOwnProperty(dependency)
 						unsolvedDependency = true
 						break
@@ -209,6 +209,9 @@ define([
 						dropSchemaStatements.push(schemaInfo.dropSQL)
 						console.log(schemaInfo.createSQL)
 					delete schemaDependencyMap[tableName]
+		if schemaDependencyMap.length > 0
+			console.error('Failed to resolve all schema dependencies', schemaDependencyMap)
+			throw 'Failed to resolve all schema dependencies'
 		dropSchemaStatements = dropSchemaStatements.reverse()
 		
 		try
