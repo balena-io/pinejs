@@ -5,84 +5,103 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 	
 	var dataTypesInputHead,
 		dataTypesVocabulary = "
-		Vocabulary: Type
-		Term:       Integer
-		Term:       Real
-		Term:       Text
-		Term:       Date
-		Term:       Date Time
-		Term:       Time
-		Term:       Interval
+			Vocabulary: Type
+			Term:       Integer
+			Term:       Real
+			Term:       Text
+			Term:       Date
+			Term:       Date Time
+			Term:       Time
+			Term:       Interval
 
-		Term:       Serial
-			Concept Type: Integer
-			Note: An auto-incrementing 'Integer'.
-		Term:       JSON
-			Concept Type: Text
-			Note: A 'Text' type that will only allow valid JSON.
-		Term:       Hashed
-			Concept Type: Text
-			Note: A 'Text' type that will automatically be converted to a hash.
+			Term:       Serial
+				Concept Type: Integer
+				Note: An auto-incrementing 'Integer'.
+			Term:       JSON
+				Concept Type: Text
+				Note: A 'Text' type that will only allow valid JSON.
+			Term:       Hashed
+				Concept Type: Text
+				Note: A 'Text' type that will automatically be converted to a hash.
 
-		Term:       Length
-			Concept Type: Integer
+			Term:       Length
+				Concept Type: Integer
 
-		Fact type:  Text has Length
-			Note: Length in characters
-			Necessity: Each Text has exactly one Length
+			Fact type:  Text has Length
+				Note: Length in characters
+				Necessity: Each Text has exactly one Length
 
-		Fact type:  Integer1 is greater than Integer2
-			Synonymous Form: Integer2 is less than or equal to Integer1
-		Fact type:  Integer1 is less than Integer2
-			Synonymous Form: Integer2 is greater than or equal to Integer1
-		Fact type:  Integer1 is equal to Integer2
-			Synonymous Form: Integer2 is equal to Integer1
-			Synonymous Form: Integer1 equals Integer2
-			Synonymous Form: Integer2 equals Integer1
+			Fact type:  Integer1 is greater than Integer2
+				Synonymous Form: Integer2 is less than or equal to Integer1
+			Fact type:  Integer1 is less than Integer2
+				Synonymous Form: Integer2 is greater than or equal to Integer1
+			Fact type:  Integer1 is equal to Integer2
+				Synonymous Form: Integer2 is equal to Integer1
+				Synonymous Form: Integer1 equals Integer2
+				Synonymous Form: Integer2 equals Integer1
 
-		Fact type:  Real1 is greater than Real2
-			Synonymous Form: Real2 is less than or equal to Real1
-		Fact type:  Real1 is less than Real2
-			Synonymous Form: Real2 is greater or equal to than Real1
-		Fact type:  Real1 is equal to Real2
-			Synonymous Form: Real2 is equal to Real1
-			Synonymous Form: Real1 equals Real2
-			Synonymous Form: Real2 equals Real1
-
-
-		Fact type:  Real is greater than Integer
-			Synonymous Form: Integer is less than or equal to Real
-		Fact type:  Integer is greater than Real
-			Synonymous Form: Real is less than or equal to Integer
-
-		Fact type:  Integer is less than Real
-			Synonymous Form: Real is greater than or equal to Integer
-		Fact type:  Real is less than Integer
-			Synonymous Form: Integer is greater than or equal to Real
-
-		Fact type:  Integer is equal to Real
-			Synonymous Form: Real is equal to Integer
-			Synonymous Form: Real equals Integer
-			Synonymous Form: Integer equals Real
+			Fact type:  Real1 is greater than Real2
+				Synonymous Form: Real2 is less than or equal to Real1
+			Fact type:  Real1 is less than Real2
+				Synonymous Form: Real2 is greater or equal to than Real1
+			Fact type:  Real1 is equal to Real2
+				Synonymous Form: Real2 is equal to Real1
+				Synonymous Form: Real1 equals Real2
+				Synonymous Form: Real2 equals Real1
 
 
-		Fact type:  Real1 is greater than Real2
-			Synonymous Form: Real2 is less than or equal to Real1
-		Fact type:  Real1 is less than Real2
-			Synonymous Form: Real2 is greater or equal to than Real1
-		Fact type:  Real1 is equal to Real2
-			Synonymous Form: Real2 is equal to Real1
-			Synonymous Form: Real1 equals Real2
-			Synonymous Form: Real2 equals Real1
+			Fact type:  Real is greater than Integer
+				Synonymous Form: Integer is less than or equal to Real
+			Fact type:  Integer is greater than Real
+				Synonymous Form: Real is less than or equal to Integer
 
-		Fact type:  Text1 is equal to Text2
-			Synonymous Form: Text2 is equal to Text1
-			Synonymous Form: Text1 equals Text2
-			Synonymous Form: Text2 equals Text1
+			Fact type:  Integer is less than Real
+				Synonymous Form: Real is greater than or equal to Integer
+			Fact type:  Real is less than Integer
+				Synonymous Form: Integer is greater than or equal to Real
 
-		Term:       Short Text
-			Concept Type: Text
-			--Necessity: each Short Text has a Length that is less than or equal to 255"
+			Fact type:  Integer is equal to Real
+				Synonymous Form: Real is equal to Integer
+				Synonymous Form: Real equals Integer
+				Synonymous Form: Integer equals Real
+
+
+			Fact type:  Real1 is greater than Real2
+				Synonymous Form: Real2 is less than or equal to Real1
+			Fact type:  Real1 is less than Real2
+				Synonymous Form: Real2 is greater or equal to than Real1
+			Fact type:  Real1 is equal to Real2
+				Synonymous Form: Real2 is equal to Real1
+				Synonymous Form: Real1 equals Real2
+				Synonymous Form: Real2 equals Real1
+
+			Fact type:  Text1 is equal to Text2
+				Synonymous Form: Text2 is equal to Text1
+				Synonymous Form: Text1 equals Text2
+				Synonymous Form: Text2 equals Text1
+
+			Term:       Short Text
+				Concept Type: Text
+				--Necessity: each Short Text has a Length that is less than or equal to 255.
+
+			Term:       Red Component
+				Concept Type: Integer
+			Term:       Green Component
+				Concept Type: Integer
+			Term:       Blue Component
+				Concept Type: Integer
+			Term:       Alpha Component
+				Concept Type: Integer
+			Term:       Color
+				Concept Type: Integer
+			Fact type:  Color has Red Component
+				Necessity: Each Color has exactly one Red Component
+			Fact type:  Color has Green Component
+				Necessity: Each Color has exactly one Green Component
+			Fact type:  Color has Blue Component
+				Necessity: Each Color has exactly one Blue Component
+			Fact type:  Color has Alpha Component
+				Necessity: Each Color has exactly one Alpha Component"
 
 	ometa SBVRParser <: SBVRLibs {
 		EOL =

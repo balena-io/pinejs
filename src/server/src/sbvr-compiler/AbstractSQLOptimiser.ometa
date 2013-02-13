@@ -157,7 +157,9 @@ define([
 			|	Number
 			|	Text
 			|	Boolean
-			|	CharacterLength,
+			|	CharacterLength
+			|	BitwiseAnd
+			|	BitwiseShiftRight,
 		
 		Field =
 			[	'Field'
@@ -173,6 +175,7 @@ define([
 			]
 			-> ['ReferencedField', binding, field],
 		
+		// TODO: Integer should actually be separate from number, for the case of bitwise operations that need an integral type.
 		Number =
 			[	(	'Number'
 				|	'Real'
@@ -206,7 +209,33 @@ define([
 				|	Text
 				):text
 			]
-			-> ['CharacterLength', text]
+			-> ['CharacterLength', text],
+		
+		BitwiseAnd =
+			[	'BitwiseAnd'
+				(	ReferencedField
+				|	Field
+				|	Number
+				):operand
+				(	ReferencedField
+				|	Field
+				|	Number
+				):mask
+			]
+			-> ['BitwiseAnd', operand, mask],
+		
+		BitwiseShiftRight =
+			[	'BitwiseShiftRight'
+				(	ReferencedField
+				|	Field
+				|	Number
+				):operand
+				(	ReferencedField
+				|	Field
+				|	Number
+				):shift
+			]
+			-> ['BitwiseShiftRight', operand, shift]
 	}
 	
 	ometa AbstractSQLOptimiser <: AbstractSQLValidator {

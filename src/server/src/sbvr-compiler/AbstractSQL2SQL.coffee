@@ -59,6 +59,25 @@ define([
 						bcrypt = require('bcrypt')
 						salt = bcrypt.genSaltSync()
 						value = bcrypt.hashSync(value, salt)
+				when 'Color'
+					if !_.isObject(value)
+						value = parseInt(value, 10)
+						if _.isNaN(value)
+							validated = 'is neither an integer or color object: ' + originalValue
+					else
+						value = 0
+						for own component, componentValue of originalValue
+							if _.isNaN(componentValue) or componentValue > 255
+								validated = 'has invalid component value of ' + componentValue + ' for component ' + component 
+							switch component.toLowerCase()
+								when 'r', 'red'
+									value |= componentValue >> 16
+								when 'g', 'green'
+									value |= componentValue >> 8
+								when 'b', 'blue'
+									value |= componentValue
+								when 'a', 'alpha'
+									value |= componentValue >> 24
 				else
 					if !_.isString(value)
 						validated = 'is not a string: ' + originalValue
