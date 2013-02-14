@@ -2,8 +2,8 @@ define([
 	'ometa!sbvr-compiler/AbstractSQLRules2SQL'
 	'ometa!sbvr-compiler/AbstractSQLOptimiser'
 	'ometa!Prettify'
-], (AbstractSQLRules2SQL, AbstractSQLOptimiser, Prettify) ->
-	_ = require('underscore')
+	'underscore'
+], (AbstractSQLRules2SQL, AbstractSQLOptimiser, Prettify, _) ->
 
 	dataTypeValidate = (originalValue, field) ->
 		value = originalValue
