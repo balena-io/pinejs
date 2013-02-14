@@ -5,7 +5,7 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 	
 	var dataTypesInputHead,
 		dataTypesVocabulary = "
-			Vocabulary: Type
+			Vocabulary: " + SBVRLibs.TYPE_VOCAB + "
 			Term:       Integer
 			Term:       Real
 			Term:       Text

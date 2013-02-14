@@ -123,16 +123,15 @@ define([
 	};
 	
 	LF2AbstractSQLPrep.defaultAttributes = function(termOrFactType, attrsFound, attrs) {
-		// We don't add a DatabaseIDField to a native primitive or vocabulary.
-		if(termOrFactType[0] != 'Vocabulary'
-			&& !this.nativePrimitives.hasOwnProperty(termOrFactType[1][1])
-			&& !attrsFound.hasOwnProperty('DatabaseIDField')) {
-			attrs.splice(1, 0, ['DatabaseIDField', 'id']);
-			this.SetHelped();
-		}
 		switch(termOrFactType[0]) {
 			case 'Name':
 			case 'Term':
+				// We don't add a DatabaseIDField to a primitive.
+				if(!this.IsPrimitive(termOrFactType)
+					&& !attrsFound.hasOwnProperty('DatabaseIDField')) {
+					attrs.splice(1, 0, ['DatabaseIDField', 'id']);
+					this.SetHelped();
+				}
 				if(!attrsFound.hasOwnProperty('ReferenceScheme')) {
 					attrs.splice(1, 0, ['ReferenceScheme', 'id']);
 					this.SetHelped();
@@ -151,8 +150,12 @@ define([
 				}
 			break;
 			case 'FactType':
-				// We don't add extra attributes to a fact type starting with a native primitive.
-				if(!this.nativePrimitives.hasOwnProperty(termOrFactType[1][1])) {
+				// We don't add extra attributes to a fact type starting with a primitive.
+				if(!this.IsPrimitive(termOrFactType[1])) {
+					if(!attrsFound.hasOwnProperty('DatabaseIDField')) {
+						attrs.splice(1, 0, ['DatabaseIDField', 'id']);
+						this.SetHelped();
+					}
 					if(!attrsFound.hasOwnProperty('DatabaseTableName')) {
 						var tableName = termOrFactType[1][1].replace(new RegExp(' ','g'),'_');
 						for(var i=2;i<termOrFactType.length;i++) {

@@ -2,22 +2,7 @@ define(['underscore', 'ometa-core'], function(_) {
 
 	ometa SBVRLibs {}
 
-	SBVRLibs.nativePrimitives = {
-		'Serial': true,
-		'Integer': true,
-		'Real': true,
-		'Date': true,
-		'Date Time': true,
-		'Time': true,
-		'Interval': true,
-		'Text': true,
-		
-		'Length': true,
-		
-		'Hashed': true,
-		'JSON': true,
-		'Short Text': true
-	};
+	SBVRLibs.TYPE_VOCAB = 'Type';
 	
 	SBVRLibs.initialize = function() {
 		this.currentVocabulary = '';
@@ -46,17 +31,15 @@ define(['underscore', 'ometa-core'], function(_) {
 	};
 
 	SBVRLibs.IsPrimitive = function(term) {
-		var termName = term[1];
 		// do {
-			if (this.nativePrimitives.hasOwnProperty(termName)) {
-				return termName;
+			if (term[2] == this.TYPE_VOCAB) {
+				return term[1];
 			}
 		// } while (this.conceptTypes.hasOwnProperty(termName) && (termName = this.conceptTypes[termName]));
 		var conceptTypes = this.vocabularies[term[2]]['ConceptTypes'];
 		if (conceptTypes.hasOwnProperty(term) && (term = conceptTypes[term])) {
-			termName = term[1];
-			if (this.nativePrimitives.hasOwnProperty(termName)) {
-				return termName;
+			if (term[2] == this.TYPE_VOCAB) {
+				return term[1];
 			}
 		}
 		return false;
