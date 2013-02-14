@@ -112,8 +112,6 @@ define([
 				return 'INTEGER NOT NULL DEFAULT 0' + index
 			when 'Hashed'
 				return 'CHAR(60)' + necessity + index
-			when 'Value'
-				return 'VARCHAR(100)' + necessity + index
 			else
 				return 'VARCHAR(100)' + necessity + index
 	
@@ -144,8 +142,6 @@ define([
 				return 'INTEGER NOT NULL DEFAULT 0' + index
 			when 'Hashed'
 				return 'CHAR(60)' + necessity + index
-			when 'Value'
-				return 'VARCHAR(100)' + necessity + index
 			else
 				return 'VARCHAR(100)' + necessity + index
 	
@@ -176,8 +172,6 @@ define([
 				return 'INTEGER NOT NULL DEFAULT 0' + index
 			when 'Hashed'
 				return 'CHAR(60)' + necessity + index
-			when 'Value'
-				return 'VARCHAR(100)' + necessity + index
 			else
 				return 'VARCHAR(100)' + necessity + index
 	
