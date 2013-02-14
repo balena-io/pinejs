@@ -449,7 +449,7 @@ define([
 	processOData = (tree, resourceModel, rows) ->
 		# TODO: This can probably be optimised more, but removing the process step when it isn't required is an improvement
 		processRequired = false
-		for field in resourceModel.fields when field[0] == 'ForeignKey' or field[0] == 'JSON'
+		for field in resourceModel.fields when field[0] == 'ForeignKey' or field[0] == 'JSON' or field[0] == 'Color'
 			processRequired = true
 			break
 		instances = []
@@ -468,6 +468,12 @@ define([
 								__id: instance[field[1]]
 						when 'JSON'
 							instance[field[1]] = JSON.parse(instance[field[1]])
+						when 'Color'
+							instance[field[1]] =
+								r: (instance[field[1]] >> 16) & 0xFF
+								g: (instance[field[1]] >> 8) & 0xFF
+								b: instance[field[1]] & 0xFF
+								a: (instance[field[1]] >> 24) & 0xFF
 				instances.push(instance)
 		else
 			processInstance = (instance) ->

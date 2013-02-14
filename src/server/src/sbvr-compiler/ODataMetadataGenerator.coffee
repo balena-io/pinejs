@@ -1,4 +1,5 @@
 define(['underscore'], (_) ->
+	
 	resolveFieldType = (fieldType) ->
 		switch fieldType
 			when 'Serial', 'Integer'
@@ -15,6 +16,8 @@ define(['underscore'], (_) ->
 				'Edm.String'
 			when 'Boolean'
 				'Edm.Boolean'
+			when 'Color'
+				'Self.Color'
 			else
 				console.error('Could not resolve type', fieldType)
 
@@ -42,6 +45,12 @@ define(['underscore'], (_) ->
 			<?xml version="1.0" encoding="iso-8859-1" standalone="yes"?>
 			<edmx:Edmx Version="1.0" xmlns:edmx="http://schemas.microsoft.com/ado/2007/06/edmx">
 				<edmx:DataServices xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata" m:DataServiceVersion="2.0">
+					<ComplexType Name="Color">
+						 <Property Name="r" Nullable="false" Type="Edm.Int8"/>
+						 <Property Name="g" Nullable="false" Type="Edm.Int8"/>
+						 <Property Name="b" Nullable="false" Type="Edm.Int8"/>
+						 <Property Name="a" Nullable="false" Type="Edm.Int8"/>
+					</ComplexType>
 					<Schema Namespace="#{vocabulary}" xmlns:d="http://schemas.microsoft.com/ado/2007/08/dataservices" xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata" xmlns="http://schemas.microsoft.com/ado/2007/05/edm">
 							
 					""" + (
