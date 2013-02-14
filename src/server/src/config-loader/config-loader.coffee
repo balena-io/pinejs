@@ -50,7 +50,7 @@ define(['has', 'cs!database-layer/db', 'async'], (has, dbModule, async) ->
 								)
 								
 								if model.customServerCode?
-									code = require(__dirname + '/' + model.customServerCode).setup(app, requirejs, sbvrUtils, db)
+									require(__dirname + '/' + model.customServerCode).setup(app, requirejs, sbvrUtils, db)
 						)
 				
 				if data.users?
