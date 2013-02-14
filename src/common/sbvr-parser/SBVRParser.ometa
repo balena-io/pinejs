@@ -13,6 +13,7 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'ometa-core', 'inflec
 			Term:       Date Time
 			Term:       Time
 			Term:       Interval
+			Term:       File
 
 			Term:       Serial
 				Concept Type: Integer

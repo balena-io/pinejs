@@ -79,10 +79,7 @@ define([
 								when 'a', 'alpha'
 									value |= componentValue >> 24
 				else
-					if !_.isString(value)
-						validated = 'is not a string: ' + originalValue
-					else if value.length > 100
-						validated = 'longer than 100 characters (' + value.length + ')'
+					validated = 'is an unsupported type: ' + field[0]
 		return {validated, value}
 	
 	postgresDataType = (dataType, necessity, index = '') ->
@@ -108,6 +105,8 @@ define([
 				return 'VARCHAR(255)' + necessity + index
 			when 'Text', 'JSON'
 				return 'TEXT' + necessity + index
+			when 'File'
+				return 'BYTEA' + necessity + index
 			when 'Boolean'
 				return 'INTEGER NOT NULL DEFAULT 0' + index
 			when 'Hashed'
@@ -138,6 +137,8 @@ define([
 				return 'VARCHAR(255) ' + necessity + index
 			when 'Text', 'JSON'
 				return 'TEXT' + necessity + index
+			when 'File'
+				return 'BLOB' + necessity + index
 			when 'Boolean'
 				return 'INTEGER NOT NULL DEFAULT 0' + index
 			when 'Hashed'
@@ -168,6 +169,8 @@ define([
 				return 'VARCHAR(255) ' + necessity + index
 			when 'Text', 'JSON'
 				return 'TEXT' + necessity + index
+			when 'File'
+				return 'BLOB' + necessity + index
 			when 'Boolean'
 				return 'INTEGER NOT NULL DEFAULT 0' + index
 			when 'Hashed'
