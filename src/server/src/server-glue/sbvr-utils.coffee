@@ -10,7 +10,8 @@ define([
 	'ometa!server-glue/odata-parser'
 	'async'
 	'underscore'
-], (has, SBVRParser, LF2AbstractSQLPrep, LF2AbstractSQL, AbstractSQL2SQL, AbstractSQLRules2SQL, AbstractSQL2CLF, ODataMetadataGenerator, ODataParser, async, _) ->
+	'cs!sbvr-compiler/types'
+], (has, SBVRParser, LF2AbstractSQLPrep, LF2AbstractSQL, AbstractSQL2SQL, AbstractSQLRules2SQL, AbstractSQL2CLF, ODataMetadataGenerator, ODataParser, async, _, sbvrTypes) ->
 	exports = {}
 	db = null
 
@@ -440,7 +441,7 @@ define([
 	processOData = (vocab, resourceModel, rows, callback) ->
 		# TODO: This can probably be optimised more, but removing the process step when it isn't required is an improvement
 		processRequired = false
-		for field in resourceModel.fields when field[0] == 'ForeignKey' or field[0] == 'JSON' or field[0] == 'Color'
+		for field in resourceModel.fields when field[0] == 'ForeignKey' or field[0] == 'JSON' or sbvrTypes[field[0]]?.fetchProcessing?
 			processRequired = true
 			break
 		instances = []
@@ -459,12 +460,13 @@ define([
 								__id: instance[field[1]]
 						when 'JSON'
 							instance[field[1]] = JSON.parse(instance[field[1]])
-						when 'Color'
-							instance[field[1]] =
-								r: (instance[field[1]] >> 16) & 0xFF
-								g: (instance[field[1]] >> 8) & 0xFF
-								b: instance[field[1]] & 0xFF
-								a: (instance[field[1]] >> 24) & 0xFF
+						else
+							sbvrTypes[field[0]]?.fetchProcessing?(instance[field[1]], (err, result) ->
+								if err?
+									console.error('Error with fetch processing', err)
+									throw err
+								instance[field[1]] = result
+							)
 				callback(instance)
 		else
 			processInstance = (instance, callback) ->

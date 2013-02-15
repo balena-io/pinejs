@@ -1,27 +1,33 @@
-define(['underscore'], (_) ->
-	
-	resolveFieldType = (fieldType) ->
-		switch fieldType
-			when 'Serial', 'Integer'
-				'Edm.Int64'
-			when 'Interval'
-				'Edm.Int64'
-			when 'Date', 'Date Time', 'Time'
-				'Edm.Int64'
-			when 'Real'
-				'Edm.Double'
-			when 'Short Text', 'Hashed'
-				'Edm.String'
-			when 'Text', 'JSON'
-				'Edm.String'
-			when 'Boolean'
-				'Edm.Boolean'
-			when 'Color'
-				'Self.Color'
-			else
-				console.error('Could not resolve type', fieldType)
+define(['underscore', 'cs!sbvr-compiler/types'], (_, sbvrTypes) ->
 
 	return (vocabulary, sqlModel) ->
+		complexTypes = {}
+		resolveFieldType = (fieldType) ->
+			switch fieldType
+				when 'Serial', 'Integer'
+					'Edm.Int64'
+				when 'Interval'
+					'Edm.Int64'
+				when 'Date', 'Date Time', 'Time'
+					'Edm.Int64'
+				when 'Real'
+					'Edm.Double'
+				when 'Short Text'
+					'Edm.String'
+				when 'Text', 'JSON'
+					'Edm.String'
+				when 'Boolean'
+					'Edm.Boolean'
+				else
+					if sbvrTypes[fieldType]?
+						if sbvrTypes[fieldType].types.odata.complexType?
+							complexTypes[fieldType] = sbvrTypes[fieldType].types.odata.complexType
+						sbvrTypes[fieldType].types.odata.name
+					else
+						console.error('Could not resolve type', fieldType)
+						throw 'Could not resolve type' + fieldType
+
+
 		model = sqlModel.tables
 		# resourceNavigations = {}
 		associations = []
@@ -45,12 +51,6 @@ define(['underscore'], (_) ->
 			<?xml version="1.0" encoding="iso-8859-1" standalone="yes"?>
 			<edmx:Edmx Version="1.0" xmlns:edmx="http://schemas.microsoft.com/ado/2007/06/edmx">
 				<edmx:DataServices xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata" m:DataServiceVersion="2.0">
-					<ComplexType Name="Color">
-						 <Property Name="r" Nullable="false" Type="Edm.Int8"/>
-						 <Property Name="g" Nullable="false" Type="Edm.Int8"/>
-						 <Property Name="b" Nullable="false" Type="Edm.Int8"/>
-						 <Property Name="a" Nullable="false" Type="Edm.Int8"/>
-					</ComplexType>
 					<Schema Namespace="#{vocabulary}" xmlns:d="http://schemas.microsoft.com/ado/2007/08/dataservices" xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata" xmlns="http://schemas.microsoft.com/ado/2007/05/edm">
 							
 					""" + (
@@ -96,7 +96,10 @@ define(['underscore'], (_) ->
 								# <Parameter Name="rating" Type="Edm.Int32" Mode="In" />
 							# </FunctionImport>
 						"""
-						</EntityContainer>
+						</EntityContainer>""" + (
+							for typeName, complexType of complexTypes
+								complexType
+						).join('\n') + """
 					</Schema>
 				</edmx:DataServices>
 			</edmx:Edmx>"""

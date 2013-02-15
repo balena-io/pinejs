@@ -3,7 +3,8 @@ define([
 	'ometa!sbvr-compiler/AbstractSQLOptimiser'
 	'ometa!prettify/Prettify'
 	'underscore'
-], (AbstractSQLRules2SQL, AbstractSQLOptimiser, Prettify, _) ->
+	'cs!sbvr-compiler/types'
+], (AbstractSQLRules2SQL, AbstractSQLOptimiser, Prettify, _, sbvrTypes) ->
 
 	dataTypeValidate = (originalValue, field, callback) ->
 		value = originalValue
@@ -52,44 +53,12 @@ define([
 					value = Number(value)
 					if _.isNaN(value) || (value not in [0, 1])
 						validationError = 'is not a boolean: ' + originalValue
-				when 'Hashed'
-					if !_.isString(value)
-						validationError = 'is not a string'
-					else if window? && window == (()->this)()
-						# Warning: If we're running in the browser then store unencrypted (no bcrypt module available)
-						if value.length > 60
-							validationError = 'longer than 60 characters (' + value.length + ')'
-					else
-						bcrypt = require('bcrypt')
-						bcrypt.genSalt((err, salt) ->
-							if err
-								callback(err)
-							else
-								bcrypt.hash(value, salt, callback)
-						)
-						return
-				when 'Color'
-					if !_.isObject(value)
-						value = parseInt(value, 10)
-						if _.isNaN(value)
-							validationError = 'is neither an integer or color object: ' + originalValue
-					else
-						value = 0
-						for own component, componentValue of originalValue
-							if _.isNaN(componentValue) or componentValue > 255
-								validationError = 'has invalid component value of ' + componentValue + ' for component ' + component
-								break
-							switch component.toLowerCase()
-								when 'r', 'red'
-									value |= componentValue >> 16
-								when 'g', 'green'
-									value |= componentValue >> 8
-								when 'b', 'blue'
-									value |= componentValue
-								when 'a', 'alpha'
-									value |= componentValue >> 24
 				else
-					validationError = 'is an unsupported type: ' + typeName
+					if sbvrTypes[typeName]?
+						sbvrTypes[typeName].validate(value, field[2], callback)
+						return
+					else
+						validationError = 'is an unsupported type: ' + typeName
 		callback(validationError, value)
 	
 	postgresDataType = (dataType, necessity, index = '') ->
@@ -119,9 +88,9 @@ define([
 				return 'BYTEA' + necessity + index
 			when 'Boolean'
 				return 'INTEGER NOT NULL DEFAULT 0' + index
-			when 'Hashed'
-				return 'CHAR(60)' + necessity + index
 			else
+				if sbvrTypes[dataType]?.types?.postgres?
+					return sbvrTypes[dataType].types.postgres + necessity + index
 				return 'VARCHAR(100)' + necessity + index
 	
 	mysqlDataType = (dataType, necessity, index = '') ->
@@ -151,9 +120,9 @@ define([
 				return 'BLOB' + necessity + index
 			when 'Boolean'
 				return 'INTEGER NOT NULL DEFAULT 0' + index
-			when 'Hashed'
-				return 'CHAR(60)' + necessity + index
 			else
+				if sbvrTypes[dataType]?.types?.mysql?
+					return sbvrTypes[dataType].types.mysql + necessity + index
 				return 'VARCHAR(100)' + necessity + index
 	
 	websqlDataType = (dataType, necessity, index = '') ->
@@ -183,9 +152,9 @@ define([
 				return 'BLOB' + necessity + index
 			when 'Boolean'
 				return 'INTEGER NOT NULL DEFAULT 0' + index
-			when 'Hashed'
-				return 'CHAR(60)' + necessity + index
 			else
+				if sbvrTypes[dataType]?.types?.websql?
+					return sbvrTypes[dataType].types.websql + necessity + index
 				return 'VARCHAR(100)' + necessity + index
 	
 	generate = (sqlModel, dataTypeGen, ifNotExists) ->
