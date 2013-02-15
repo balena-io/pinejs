@@ -87,10 +87,10 @@ define([
 				app.use('/tools', express.static(path.join(rootPath, 'tools')))
 			app.use('/', express.static('static'))
 		)
+	else if has 'BROWSER_SERVER_ENABLED'
+		app = express.app
 
-		setupCallback(app)
-	else
-		if has 'BROWSER_SERVER_ENABLED'
-			window?.remoteServerRequest = express.app.process
-			setupCallback(express.app)
+	setupCallback(express.app)
+	
+	return {app, sbvrUtils}
 )

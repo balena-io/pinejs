@@ -1,7 +1,7 @@
 ({
 	out: 'platform.js',
 
-	stubModules: ['cs', 'text', 'ometa', 'ometa-compiler'],
+	//stubModules: ['cs', 'text', 'ometa', 'ometa-compiler'],
 	mainConfigFile: '../src/main.js',
 
 	optimize: 'uglify2',
@@ -27,7 +27,7 @@
 		USE_POSTGRES			: false,
 		DEV						: false,
 
-		CONFIG_LOADER			: true
+		CONFIG_LOADER			: false
 	},
 
 	paths: {
@@ -36,5 +36,5 @@
 	},
 
 	name: "cs!server-glue/server",
-	exclude: ["coffee-script"]
+	exclude: ['coffee-script', 'cs', 'text', 'ometa', 'ometa-compiler'],
 })
