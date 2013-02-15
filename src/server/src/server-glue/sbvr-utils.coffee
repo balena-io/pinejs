@@ -441,7 +441,7 @@ define([
 	processOData = (vocab, resourceModel, rows, callback) ->
 		# TODO: This can probably be optimised more, but removing the process step when it isn't required is an improvement
 		processRequired = false
-		for field in resourceModel.fields when field[0] == 'ForeignKey' or field[0] == 'JSON' or sbvrTypes[field[0]]?.fetchProcessing?
+		for field in resourceModel.fields when field[0] == 'ForeignKey' or sbvrTypes[field[0]]?.fetchProcessing?
 			processRequired = true
 			break
 		instances = []
@@ -458,8 +458,6 @@ define([
 								__deferred:
 									uri: '/' + vocab + '/' + field[4][0] + '?$filter=' + field[4][1] + ' eq ' + instance[field[1]]
 								__id: instance[field[1]]
-						when 'JSON'
-							instance[field[1]] = JSON.parse(instance[field[1]])
 						else
 							sbvrTypes[field[0]]?.fetchProcessing?(instance[field[1]], (err, result) ->
 								if err?

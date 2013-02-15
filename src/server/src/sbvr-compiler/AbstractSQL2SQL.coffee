@@ -43,11 +43,6 @@ define([
 				when 'Text'
 					if !_.isString(value)
 						validationError = 'is not a string: ' + originalValue
-				when 'JSON'
-					try
-						value = JSON.stringify(value)
-					catch e
-						validationError = 'cannot be turned into JSON: ' + originalValue
 				else
 					if sbvrTypes[typeName]?
 						sbvrTypes[typeName].validate(value, field[2], callback)
@@ -77,7 +72,7 @@ define([
 				return 'INTEGER' + necessity + index
 			when 'Short Text'
 				return 'VARCHAR(255)' + necessity + index
-			when 'Text', 'JSON'
+			when 'Text'
 				return 'TEXT' + necessity + index
 			when 'File'
 				return 'BYTEA' + necessity + index
@@ -107,7 +102,7 @@ define([
 				return 'INTEGER' + necessity + index
 			when 'Short Text'
 				return 'VARCHAR(255) ' + necessity + index
-			when 'Text', 'JSON'
+			when 'Text'
 				return 'TEXT' + necessity + index
 			when 'File'
 				return 'BLOB' + necessity + index
@@ -137,7 +132,7 @@ define([
 				return 'INTEGER' + necessity + index
 			when 'Short Text'
 				return 'VARCHAR(255) ' + necessity + index
-			when 'Text', 'JSON'
+			when 'Text'
 				return 'TEXT' + necessity + index
 			when 'File'
 				return 'BLOB' + necessity + index
