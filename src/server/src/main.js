@@ -35,6 +35,9 @@ require({
 	shim: {
 		'ometa-compiler': {
 			deps: ['ometa-core']
+		},
+		'underscore': {
+			exports: '_'
 		}
 	}
 }, ['cs!server-glue/server']);
