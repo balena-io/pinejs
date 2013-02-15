@@ -16,8 +16,6 @@ define(['underscore', 'cs!sbvr-compiler/types'], (_, sbvrTypes) ->
 					'Edm.String'
 				when 'Text', 'JSON'
 					'Edm.String'
-				when 'Boolean'
-					'Edm.Boolean'
 				else
 					if sbvrTypes[fieldType]?
 						if sbvrTypes[fieldType].types.odata.complexType?

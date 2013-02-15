@@ -48,11 +48,6 @@ define([
 						value = JSON.stringify(value)
 					catch e
 						validationError = 'cannot be turned into JSON: ' + originalValue
-				when 'Boolean'
-					# We use Number rather than parseInt as it deals with booleans and will return NaN for things like "a1"
-					value = Number(value)
-					if _.isNaN(value) || (value not in [0, 1])
-						validationError = 'is not a boolean: ' + originalValue
 				else
 					if sbvrTypes[typeName]?
 						sbvrTypes[typeName].validate(value, field[2], callback)
@@ -86,8 +81,6 @@ define([
 				return 'TEXT' + necessity + index
 			when 'File'
 				return 'BYTEA' + necessity + index
-			when 'Boolean'
-				return 'INTEGER NOT NULL DEFAULT 0' + index
 			else
 				if sbvrTypes[dataType]?.types?.postgres?
 					return sbvrTypes[dataType].types.postgres + necessity + index
@@ -118,8 +111,6 @@ define([
 				return 'TEXT' + necessity + index
 			when 'File'
 				return 'BLOB' + necessity + index
-			when 'Boolean'
-				return 'INTEGER NOT NULL DEFAULT 0' + index
 			else
 				if sbvrTypes[dataType]?.types?.mysql?
 					return sbvrTypes[dataType].types.mysql + necessity + index
@@ -150,8 +141,6 @@ define([
 				return 'TEXT' + necessity + index
 			when 'File'
 				return 'BLOB' + necessity + index
-			when 'Boolean'
-				return 'INTEGER NOT NULL DEFAULT 0' + index
 			else
 				if sbvrTypes[dataType]?.types?.websql?
 					return sbvrTypes[dataType].types.websql + necessity + index
