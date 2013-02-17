@@ -33,6 +33,7 @@ header {
 
 .tab-content > div {
 	visibility: hidden;
+	overflow: auto;
 	position: absolute;
 	top: 97px;
 	left: 0;
