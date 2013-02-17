@@ -54,7 +54,7 @@ define([
 							links.push(link)
 							
 				w = @$el.width()
-				h = @$el.height()
+				h = @$el.height() - 20
 
 				tick = ->
 					path.attr("d", (d) ->
