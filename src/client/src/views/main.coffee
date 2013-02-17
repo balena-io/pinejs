@@ -10,6 +10,7 @@ define([
 	'cs!views/tabs/sbvr-lf/main'
 	'cs!views/tabs/sbvr-graph/main'
 	'cs!views/tabs/sbvr-server/main'
+	'cs!views/tabs/ddui/main'
 ], (Backbone, $, html, SessionModel, LoginView, tabViews...) ->
 	Backbone.View.extend(
 		id: 'app-main'

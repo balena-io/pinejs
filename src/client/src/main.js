@@ -29,7 +29,9 @@ require({
 		'jquery-xdomain'           :  '../lib/jquery-xdomain',
 		'ometa-core'               :  '../../external/ometa-js/lib/ometajs/core',
 		'sbvr-parser'              :  '../../common/sbvr-parser',
-		'underscore'               :  '../lib/underscore'
+		'underscore'               :  '../lib/underscore',
+		'ejs'                      :  '../lib/ejs',
+		'jquery-ui'                :  '../lib/jquery-ui'
 	},
 	packages: [
 		{
@@ -51,6 +53,9 @@ require({
 		'codemirror': {
 			deps: [ 'css!lib/codemirror/lib/codemirror'],
 			exports: 'CodeMirror'
+		},
+		'jquery-ui': {
+			deps: ['jquery']
 		},
 		'jquery-xdomain': {
 			deps: ['jquery']
