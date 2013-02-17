@@ -7652,7 +7652,32 @@ define("ometa!database-layer/SQLBinds", [ "ometa-core" ], function() {
                 transaction: transactionModel,
                 Auth: userModel
             }, function(err) {
-                null != err ? console.error("Failed to execute standard models.", err) : console.log("Sucessfully executed standard models.");
+                if (null != err) console.error("Failed to execute standard models.", err); else {
+                    async.parallel([ function(callback) {
+                        return runURI("POST", "/Auth/user", {
+                            username: "root",
+                            password: "test123"
+                        }, null, function() {
+                            return callback();
+                        }, function() {
+                            return callback(!0);
+                        });
+                    }, function(callback) {
+                        return runURI("POST", "/Auth/permission", {
+                            name: "resource.all"
+                        }, null, function() {
+                            return callback();
+                        }, function() {
+                            return callback(!0);
+                        });
+                    } ], function(err) {
+                        return null == err ? runURI("POST", "/Auth/user-has-permission", {
+                            user: 1,
+                            permission: 1
+                        }, null) : void 0;
+                    });
+                    console.log("Sucessfully executed standard models.");
+                }
                 return "function" == typeof callback ? callback(err) : void 0;
             });
         };
@@ -7696,6 +7721,9 @@ define("ometa!database-layer/SQLBinds", [ "ometa-core" ], function() {
                     });
                     return setTimeout(callback, 0);
                 });
+            });
+            app.get("/dev/*", parseURITree, function(req, res, next) {
+                return runGet(req, res);
             });
             app.post("/transaction/execute", function(req, res, next) {
                 var id;

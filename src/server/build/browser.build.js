@@ -25,7 +25,7 @@
 		BROWSER_SERVER_ENABLED	: true,
 		USE_MYSQL				: false,
 		USE_POSTGRES			: false,
-		DEV						: false,
+		DEV						: true,
 
 		CONFIG_LOADER			: false
 	},
