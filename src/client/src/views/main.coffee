@@ -12,6 +12,7 @@ define([
 	'cs!views/tabs/sbvr-server/main'
 	'cs!views/tabs/ddui/main'
 	'cs!views/tabs/db-import-export/main'
+	'cs!views/tabs/validate/main'
 ], (Backbone, $, html, SessionModel, LoginView, tabViews...) ->
 	Backbone.View.extend(
 		id: 'app-main'
