@@ -14,13 +14,18 @@ define([
 			
 			html = """
 				<button id="run-server">Run Server</button>
-				<table id='httpTable' class='textTable'>
-					<tr>
-						<td><strong>method</strong></td>
-						<td><strong>uri</strong></td>
-						<td><strong>headers</strong></td>
-						<td><strong>body</strong></td>
-					</tr>
+				<table class='textTable table table-striped'>
+					<thead>
+						<tr>
+							<th><strong>Method</strong></th>
+							<th><strong>URI</strong></th>
+							<th><strong>Headers</strong></th>
+							<th><strong>Body</strong></th>
+						</tr>
+					</thead>
+					<tbody id="httpTable">
+
+					</tbody>
 				</table>"""
 
 			@$el.html(html)
