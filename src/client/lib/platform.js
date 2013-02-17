@@ -7193,7 +7193,7 @@ define("ometa!database-layer/SQLBinds", [ "ometa-core" ], function() {
             rows.forEach(processInstance);
             return instances;
         };
-        processOData = function(tree, resourceModel, rows) {
+        processOData = function(vocab, resourceModel, rows) {
             var field, instances, processInstance, processRequired, _i, _len, _ref;
             processRequired = !1;
             _ref = resourceModel.fields;
@@ -7219,7 +7219,7 @@ define("ometa!database-layer/SQLBinds", [ "ometa-core" ], function() {
                       case "ForeignKey":
                         instance[field[1]] = {
                             __deferred: {
-                                uri: "/" + tree.vocabulary + "/" + field[4][0] + "?$filter=" + field[4][1] + " eq " + instance[field[1]]
+                                uri: "/" + vocab + "/" + field[4][0] + "?$filter=" + field[4][1] + " eq " + instance[field[1]]
                             },
                             __id: instance[field[1]]
                         };
@@ -7290,9 +7290,8 @@ define("ometa!database-layer/SQLBinds", [ "ometa-core" ], function() {
                         resourceModel = clientModel.resources[ruleLF[1][1][1][2][1]];
                         data = {
                             __model: resourceModel,
-                            d: processOData(tree, resourceModel, result.rows)
+                            d: processOData(vocab, resourceModel, result.rows)
                         };
-                        res.json(data);
                         return callback(null, data);
                     }, function(tx, err) {
                         return callback(err);
@@ -7473,7 +7472,7 @@ define("ometa!database-layer/SQLBinds", [ "ometa-core" ], function() {
                                   case "OData":
                                     data = {
                                         __model: resourceModel,
-                                        d: processOData(tree, resourceModel, result.rows)
+                                        d: processOData(tree.vocabulary, resourceModel, result.rows)
                                     };
                                     return res.json(data);
                                 }

@@ -446,7 +446,7 @@ define([
 		rows.forEach(processInstance)
 		return instances
 
-	processOData = (tree, resourceModel, rows) ->
+	processOData = (vocab, resourceModel, rows) ->
 		# TODO: This can probably be optimised more, but removing the process step when it isn't required is an improvement
 		processRequired = false
 		for field in resourceModel.fields when field[0] == 'ForeignKey' or field[0] == 'JSON' or field[0] == 'Color'
@@ -464,7 +464,7 @@ define([
 						when 'ForeignKey'
 							instance[field[1]] =
 								__deferred:
-									uri: '/' + tree.vocabulary + '/' + field[4][0] + '?$filter=' + field[4][1] + ' eq ' + instance[field[1]]
+									uri: '/' + vocab + '/' + field[4][0] + '?$filter=' + field[4][1] + ' eq ' + instance[field[1]]
 								__id: instance[field[1]]
 						when 'JSON'
 							instance[field[1]] = JSON.parse(instance[field[1]])
@@ -519,8 +519,7 @@ define([
 						resourceModel = clientModel.resources[ruleLF[1][1][1][2][1]]
 						data =
 							__model: resourceModel
-							d: processOData(tree, resourceModel, result.rows)
-						res.json(data)
+							d: processOData(vocab, resourceModel, result.rows)
 						callback(null, data)
 					(tx, err) ->
 						callback(err)
@@ -691,7 +690,7 @@ define([
 									when 'OData'
 										data =
 											__model: resourceModel
-											d: processOData(tree, resourceModel, result.rows)
+											d: processOData(tree.vocabulary, resourceModel, result.rows)
 										res.json(data)
 							() ->
 								res.send(404)
