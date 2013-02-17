@@ -1,7 +1,6 @@
 ({
 	out: 'platform.js',
 
-	//stubModules: ['cs', 'text', 'ometa', 'ometa-compiler'],
 	mainConfigFile: '../src/main.js',
 
 	optimize: 'uglify2',
