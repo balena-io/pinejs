@@ -6,32 +6,43 @@ require({
 	},
 	paths: {
 		//Developing & building tools
-		'cs'                       :  '../tools/requirejs-plugins/cs',
-		'ometa'                    :  '../tools/requirejs-plugins/ometa',
-		'text'                     :  '../tools/requirejs-plugins/text',
-		'coffee-script'            :  '../tools/coffee-script',
-		'has'                      :  '../../tools/has',
+		'cs'						: '../tools/requirejs-plugins/cs',
+		'ometa'						: '../tools/requirejs-plugins/ometa',
+		'text'						: '../tools/requirejs-plugins/text',
+		'coffee-script'				: '../tools/coffee-script',
+		'has'						: '../../tools/has',
 
-		'lib'                      :  '../lib',
+		'lib'						: '../lib',
 
-		'ometa-compiler'           :  '../../external/ometa-js/lib/ometajs/ometa/parsers',
-		'js-beautify'              :  '../../external/beautify/beautify',
+		'ometa-compiler'			: '../../external/ometa-js/lib/ometajs/ometa/parsers',
+		'js-beautify'				: '../../external/beautify/beautify',
 
 		//Libraries
-		'backbone'                 :  '../lib/backbone',
-		'bootstrap'                :  '../lib/bootstrap/bootstrap',
-		'codemirror'               :  '../lib/codemirror/lib/codemirror',
-		'codemirror-ometa-bridge'  :  '../lib/codemirror-ometa-bridge/src',
-		'codemirror-simple-hint'   :  '../lib/codemirror/addon/hint/simple-hint',
-		'd3'                       :  '../lib/d3.v2',
-		'inflection'               :  '../../external/inflection/inflection',
-		'jquery'                   :  '../lib/jquery',
-		'jquery-xdomain'           :  '../lib/jquery-xdomain',
-		'ometa-core'               :  '../../external/ometa-js/lib/ometajs/core',
-		'sbvr-parser'              :  '../../common/sbvr-parser',
-		'underscore'               :  '../lib/underscore',
-		'ejs'                      :  '../lib/ejs',
-		'jquery-ui'                :  '../lib/jquery-ui'
+		'async'						: '../../external/async/async.min',
+		'backbone'					: '../lib/backbone',
+		'bootstrap'					: '../lib/bootstrap/bootstrap',
+		'codemirror'				: '../lib/codemirror/lib/codemirror',
+		'codemirror-ometa-bridge'	: '../lib/codemirror-ometa-bridge/src',
+		'codemirror-simple-hint'	: '../lib/codemirror/addon/hint/simple-hint',
+		'd3'						: '../lib/d3.v2',
+		'inflection'				: '../../external/inflection/inflection',
+		'jquery'					: '../lib/jquery',
+		'jquery-xdomain'			: '../lib/jquery-xdomain',
+		'ometa-core'				: '../../external/ometa-js/lib/ometajs/core',
+		'sbvr-parser'				: '../../common/sbvr-parser',
+		'underscore'				: '../lib/underscore',
+		'ejs'						: '../lib/ejs',
+		'jquery-ui'					: '../lib/jquery-ui',
+		
+		// For the in-browser server
+		'config-loader'				: '../../server/src/config-loader',
+		'database-layer'			: '../../server/src/database-layer',
+		'data-server'				: '../../server/src/data-server',
+		'express-emulator'			: '../../server/src/express-emulator',
+		'passport-bcrypt'			: '../../server/src/passport-bcrypt',
+		'server-glue'				: '../../server/src/server-glue',
+		'sbvr-compiler'				: '../../server/src/sbvr-compiler',
+		'Prettify'					: '../../common/Prettify',
 	},
 	packages: [
 		{
@@ -78,6 +89,23 @@ require({
 		},
 		'js-beautify': {
 			exports: 'js_beautify'
+		},
+		'async': {
+			exports: 'async'
 		}
+	},
+
+	// For the in-browser server
+	has: {
+		ENV_NODEJS				: false,
+		SBVR_EXTENSIONS			: true,
+		SBVR_SERVER_ENABLED		: true,
+		EDITOR_SERVER_ENABLED	: false,
+		BROWSER_SERVER_ENABLED	: true,
+		USE_MYSQL				: false,
+		USE_POSTGRES			: false,
+		DEV						: true,
+
+		CONFIG_LOADER			: false
 	}
 }, ['cs!app', 'css!static/main']);
