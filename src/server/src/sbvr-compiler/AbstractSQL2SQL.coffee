@@ -19,8 +19,11 @@ define([
 					if _.isNaN(value)
 						validated = 'is not a number: ' + originalValue
 				when 'Date', 'Date Time', 'Time'
-					value = new Date(value)
+					value = Number(value)
 					if _.isNaN(value)
+						value = originalValue
+					value = new Date(value)
+					if _.isNaN(value.getTime())
 						validated = 'is not a ' + field[0] + ': ' + originalValue
 				when 'Interval'
 					value = parseInt(value, 10)
