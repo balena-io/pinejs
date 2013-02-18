@@ -3,10 +3,9 @@ define([
 	'cs!server-glue/sbvr-utils'
 	'cs!passport-bcrypt/passportBCrypt'
 	'cs!data-server/SBVRServer'
-	'cs!editor-server/editorServer'
 	'cs!express-emulator/express'
 	'cs!config-loader/config-loader'
-], (has, sbvrUtils, passportBCrypt, sbvrServer, editorServer, express, configLoader)->
+], (has, sbvrUtils, passportBCrypt, sbvrServer, express, configLoader)->
 	if has 'ENV_NODEJS'
 		if has 'USE_MYSQL'
 			databaseOptions =
@@ -43,9 +42,6 @@ define([
 
 			if has 'SBVR_SERVER_ENABLED'
 				sbvrServer.setup(app, require, sbvrUtils, passportBCrypt.isAuthed, databaseOptions)
-
-			if has 'EDITOR_SERVER_ENABLED'
-				editorServer.setup(app, require, sbvrUtils, passportBCrypt.isAuthed, databaseOptions)
 
 			if has 'ENV_NODEJS'
 				app.listen(process.env.PORT or 1337, () ->
