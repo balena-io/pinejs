@@ -86,7 +86,7 @@ define([
 	else if has 'BROWSER_SERVER_ENABLED'
 		app = express.app
 
-	setupCallback(express.app)
+	setupCallback(app)
 	
 	return {app, sbvrUtils}
 )
