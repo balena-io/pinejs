@@ -1,7 +1,18 @@
 require({
 	config: {
 		has: {
-			SBVR_EXTENSIONS: true
+			SBVR_EXTENSIONS: true,
+			
+			// For the in-browser server
+			ENV_NODEJS				: false,
+			SBVR_SERVER_ENABLED		: true,
+			EDITOR_SERVER_ENABLED	: false,
+			BROWSER_SERVER_ENABLED	: true,
+			USE_MYSQL				: false,
+			USE_POSTGRES			: false,
+			DEV						: true,
+
+			CONFIG_LOADER			: false
 		}
 	},
 	paths: {
@@ -93,19 +104,5 @@ require({
 		'async': {
 			exports: 'async'
 		}
-	},
-
-	// For the in-browser server
-	has: {
-		ENV_NODEJS				: false,
-		SBVR_EXTENSIONS			: true,
-		SBVR_SERVER_ENABLED		: true,
-		EDITOR_SERVER_ENABLED	: false,
-		BROWSER_SERVER_ENABLED	: true,
-		USE_MYSQL				: false,
-		USE_POSTGRES			: false,
-		DEV						: true,
-
-		CONFIG_LOADER			: false
 	}
 }, ['cs!app', 'css!static/main']);
