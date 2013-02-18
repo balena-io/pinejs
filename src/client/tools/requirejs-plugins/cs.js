@@ -89,6 +89,10 @@ define(['coffee-script'], function (CoffeeScript) {
 		version: '0.4.2',
 
 		load: function (name, parentRequire, load, config) {
+			if(parentRequire.toUrl(name) == 'empty:') {
+				load('');
+				return;
+			}
 			var path = parentRequire.toUrl(name + '.coffee');
 			fetchText(path, function (source) {
 
