@@ -1,4 +1,4 @@
-require(['async'], (async) ->
+define(['async'], (async) ->
 	runTrans = (rootElement) ->
 		actions = $(".action:has(#__actype[value!=view])")
 		if actions.size() > 0
