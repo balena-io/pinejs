@@ -42,7 +42,7 @@ require({
 		'passport-bcrypt'			: '../../server/src/passport-bcrypt',
 		'server-glue'				: '../../server/src/server-glue',
 		'sbvr-compiler'				: '../../server/src/sbvr-compiler',
-		'Prettify'					: '../../common/Prettify',
+		'prettify'					: '../../common/prettify'
 	},
 	packages: [
 		{

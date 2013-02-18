@@ -17,7 +17,8 @@
 	separateCSS: true,
 	modules: [
 		{
-			name: "main"
+			name: "main",
+			exclude: ["cs!server-glue/server"]
 		}
 	]
 })

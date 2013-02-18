@@ -1,7 +1,7 @@
 define([
 	'ometa!sbvr-compiler/AbstractSQLRules2SQL'
 	'ometa!sbvr-compiler/AbstractSQLOptimiser'
-	'ometa!Prettify'
+	'ometa!prettify/Prettify'
 	'underscore'
 ], (AbstractSQLRules2SQL, AbstractSQLOptimiser, Prettify, _) ->
 

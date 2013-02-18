@@ -29,7 +29,7 @@ require({
 		'OMeta'           :  '../../external/ometa-js/lib/ometajs/core',
 		'sbvr-parser'     :  '../../common/sbvr-parser',
 		'utils'           :  '../../common/utils',
-		'Prettify'        :  '../../common/Prettify',
+		'prettify'        :  '../../common/prettify',
 		'inflection'      :  '../../external/inflection/inflection',
 	},
 	shim: {

@@ -1,5 +1,5 @@
 define([
-	'ometa!Prettify',
+	'ometa!prettify/Prettify',
 	'underscore', 
 	'ometa-core'
 ], function(Prettify) {
