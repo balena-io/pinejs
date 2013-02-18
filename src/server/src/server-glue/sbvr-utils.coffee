@@ -516,7 +516,7 @@ define([
 				tx.executeSql(ruleSQL, [],
 					(tx, result) ->
 						clientModel = clientModels[vocab]
-						resourceModel = clientModel.resources[ruleLF[1][1][1][2][1]]
+						resourceModel = clientModel.resources[ruleLF[1][1][1][2][1].replace(/\ /g, '_')]
 						data =
 							__model: resourceModel
 							d: processOData(vocab, resourceModel, result.rows)
