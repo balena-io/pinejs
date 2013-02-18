@@ -1,7 +1,6 @@
 define([
 	'backbone'
-	'cs!server-glue/server'
-], (Backbone, SBVRServer) ->
+], (Backbone) ->
 	Backbone.View.extend(
 		events:
 			"click #run-server": "runServer"
@@ -30,11 +29,14 @@ define([
 
 			@$el.html(html)
 
-			window.serverRequest = (method, uri, headers = {}, body = null, successCallback=(->), failureCallback=->) ->
-				if !headers["Content-Type"]? and body?
-					headers["Content-Type"] = "application/json"
-				$("#httpTable").append "<tr class=\"server_row\"><td><strong>" + method + "</strong></td><td>" + uri + "</td><td>" + (if headers.length == 0 then "" else JSON.stringify(headers)) + "</td><td>" + JSON.stringify(body) + "</td></tr>"
-				SBVRServer.app.process(method, uri, headers, body, successCallback, failureCallback)
+			if has 'BROWSER_SERVER_ENABLED'
+				require(['cs!server-glue/server'], (Server) ->
+					window.serverRequest = (method, uri, headers = {}, body = null, successCallback=(->), failureCallback=->) ->
+						if !headers["Content-Type"]? and body?
+							headers["Content-Type"] = "application/json"
+						$("#httpTable").append "<tr class=\"server_row\"><td><strong>" + method + "</strong></td><td>" + uri + "</td><td>" + (if headers.length == 0 then "" else JSON.stringify(headers)) + "</td><td>" + JSON.stringify(body) + "</td></tr>"
+						Server.app.process(method, uri, headers, body, successCallback, failureCallback)
+				)
 
 		runServer: ->
 			serverRequest("DELETE", "/cleardb", {}, null, =>

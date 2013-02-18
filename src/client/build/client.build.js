@@ -10,15 +10,28 @@
 	optimize: 'uglify2',
 	skipDirOptimize: true,
 	uglify2: {
+		output: {
+			beautify: true,
+			ascii_only: true
+		},
 		compress: {
+			sequences: false,
 			unused: false // We need this off for OMeta
-		}
+		},
+		mangle: false
+	},
+
+	has: {
+		BROWSER_SERVER_ENABLED: false
 	},
 	separateCSS: true,
 	modules: [
 		{
-			name: "main",
-			exclude: ["cs!server-glue/server"]
+			name: "main"
 		}
-	]
+	],
+	
+	paths: {
+		"server-glue/server": "empty:"
+	}
 })
