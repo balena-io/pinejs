@@ -66,12 +66,12 @@ define([
 	exports.setup = (app, requirejs, sbvrUtils, db) ->
 		db.transaction( (tx) ->
 			sbvrUtils.executeStandardModels(tx)
-			sbvrUtils.executeModel(tx, 'ui', uiModel,
-				() ->
+			sbvrUtils.executeModel(tx, 'ui', uiModel, (err) ->
+				if err
+					console.error('Failed to execute ui model.', err)
+				else
 					console.log('Sucessfully executed ui model.')
 					uiModelLoaded(true)
-				(tx, error) ->
-					console.error('Failed to execute ui model.', error)
 			)
 			sbvrUtils.runURI('GET', '/dev/model?$filter=model_type eq sql and vocabulary eq data', null, tx
 				(result) ->
@@ -97,13 +97,13 @@ define([
 						seModel = result.d[0].text
 						db.transaction((tx) ->
 							tx.begin()
-							sbvrUtils.executeModel(tx, 'data', seModel,
-								(tx, lfModel, slfModel, abstractSqlModel, sqlModel, clientModel) ->
-									sbvrUtils.runURI('PUT', '/ui/textarea-is_disabled?$filter=textarea/name eq model_area', {value: true}, tx)
-									isServerOnAir(true)
-									res.send(200)
-								(tx, errors) ->
+							sbvrUtils.executeModel(tx, 'data', seModel, (err) ->
+								if err
 									res.json(errors, 404)
+									return
+								sbvrUtils.runURI('PUT', '/ui/textarea-is_disabled?$filter=textarea/name eq model_area', {value: true}, tx)
+								isServerOnAir(true)
+								res.send(200)
 							)
 						)
 					else
@@ -134,11 +134,11 @@ define([
 								res.send(404)
 							else
 								sbvrUtils.executeStandardModels(tx)
-								sbvrUtils.executeModel(tx, 'ui', uiModel,
-									() ->
-										console.log('Sucessfully executed ui model.')
-									(tx, error) ->
+								sbvrUtils.executeModel(tx, 'ui', uiModel, (err) ->
+									if err
 										console.log('Failed to execute ui model.', error)
+									else
+										console.log('Sucessfully executed ui model.')
 								)
 								res.send(200)
 					)

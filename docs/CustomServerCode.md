@@ -16,10 +16,8 @@ An entry point to the API internally to the server.
 #### runURI(method, uri, body = {}, tx, successCallback, failureCallback)
 This allows making an API request internally, should match a similar AJAX request to the API.
 
-#### executeModel(tx, vocab, seModel, successCallback, failureCallback)
-Executes the given model.
-##### tx
-This should be an open transaction created with db.transaction
+#### executeModel(tx, vocab, seModel, callback)
+This is an alias for executeModels for the case of a single model.
 
 #### executeModels(tx, models, callback)
 Executes the given models.

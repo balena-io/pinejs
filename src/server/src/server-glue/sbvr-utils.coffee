@@ -321,16 +321,10 @@ define([
 				callback(err)
 		)
 
-	# successCallback = (tx, lfModel, slfModel, abstractSqlModel, sqlModel, clientModel)
-	# failureCallback = (tx, errors)
-	exports.executeModel = executeModel = (tx, vocab, seModel, successCallback, failureCallback) ->
+	exports.executeModel = executeModel = (tx, vocab, seModel, callback) ->
 		models = {}
 		models[vocab] = seModel
-		executeModels(tx, models, (err) ->
-			if err?
-				failureCallback(tx, err)
-			successCallback(tx)
-		)
+		executeModels(tx, models, callback)
 	exports.executeModels = executeModels = (tx, models, callback) ->
 		validateFuncs = []
 		async.forEach(_.keys(models),

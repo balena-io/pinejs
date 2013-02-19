@@ -22,30 +22,30 @@ define(['has', 'async'], (has, async) ->
 								console.error('Unable to load ' + model.modelName + ' model from ' + model.modelFile)
 							else
 								db.transaction( (tx) ->
-									sbvrUtils.executeModel(tx, model.apiRoot, sbvrModel,
-										->
-											apiRoute = '/' + model.apiRoot + '/*'
-											app.get(apiRoute, sbvrUtils.parseURITree, (req, res, next) ->
-												sbvrUtils.runGet(req, res)
-											)
+									sbvrUtils.executeModel(tx, model.apiRoot, sbvrModel, (err) ->
+										if err
+											console.error('Failed to execute ' + model.modelName + ' model.', err)
+											return
+										apiRoute = '/' + model.apiRoot + '/*'
+										app.get(apiRoute, sbvrUtils.parseURITree, (req, res, next) ->
+											sbvrUtils.runGet(req, res)
+										)
 
-											app.post(apiRoute, sbvrUtils.parseURITree, (req, res, next) ->
-												sbvrUtils.runPost(req, res)
-											)
+										app.post(apiRoute, sbvrUtils.parseURITree, (req, res, next) ->
+											sbvrUtils.runPost(req, res)
+										)
 
-											app.put(apiRoute, sbvrUtils.parseURITree, (req, res, next) ->
-												sbvrUtils.runPut(req, res)
-											)
+										app.put(apiRoute, sbvrUtils.parseURITree, (req, res, next) ->
+											sbvrUtils.runPut(req, res)
+										)
 
-											app.del(apiRoute, sbvrUtils.parseURITree, (req, res, next) ->
-												sbvrUtils.runDelete(req, res)
-											)
-											
-											if model.customServerCode?
-												require(__dirname + '/' + model.customServerCode).setup(app, requirejs, sbvrUtils, db)
-											console.log('Sucessfully executed ' + model.modelName + ' model.')
-										(tx, error) ->
-											console.error('Failed to execute ' + model.modelName + ' model.', error)
+										app.del(apiRoute, sbvrUtils.parseURITree, (req, res, next) ->
+											sbvrUtils.runDelete(req, res)
+										)
+										
+										if model.customServerCode?
+											require(__dirname + '/' + model.customServerCode).setup(app, requirejs, sbvrUtils, db)
+										console.log('Sucessfully executed ' + model.modelName + ' model.')
 									)
 								)
 						)
