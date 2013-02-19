@@ -14,8 +14,6 @@ define(['underscore', 'cs!sbvr-compiler/types'], (_, sbvrTypes) ->
 					'Edm.Double'
 				when 'Short Text'
 					'Edm.String'
-				when 'Text'
-					'Edm.String'
 				else
 					if sbvrTypes[fieldType]?
 						if sbvrTypes[fieldType].types.odata.complexType?

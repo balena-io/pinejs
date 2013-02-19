@@ -40,9 +40,6 @@ define([
 						validationError = 'is not a string: ' + originalValue
 					else if value.length > 255
 						validationError = 'longer than 255 characters (' + value.length + ')'
-				when 'Text'
-					if !_.isString(value)
-						validationError = 'is not a string: ' + originalValue
 				else
 					if sbvrTypes[typeName]?
 						sbvrTypes[typeName].validate(value, field[2], callback)
@@ -72,8 +69,6 @@ define([
 				return 'INTEGER' + necessity + index
 			when 'Short Text'
 				return 'VARCHAR(255)' + necessity + index
-			when 'Text'
-				return 'TEXT' + necessity + index
 			else
 				if sbvrTypes[dataType]?.types?.postgres?
 					return sbvrTypes[dataType].types.postgres + necessity + index
@@ -100,8 +95,6 @@ define([
 				return 'INTEGER' + necessity + index
 			when 'Short Text'
 				return 'VARCHAR(255) ' + necessity + index
-			when 'Text'
-				return 'TEXT' + necessity + index
 			else
 				if sbvrTypes[dataType]?.types?.mysql?
 					return sbvrTypes[dataType].types.mysql + necessity + index
@@ -128,8 +121,6 @@ define([
 				return 'INTEGER' + necessity + index
 			when 'Short Text'
 				return 'VARCHAR(255) ' + necessity + index
-			when 'Text'
-				return 'TEXT' + necessity + index
 			else
 				if sbvrTypes[dataType]?.types?.websql?
 					return sbvrTypes[dataType].types.websql + necessity + index
