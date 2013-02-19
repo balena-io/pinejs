@@ -63,7 +63,7 @@ define([
 			runNext(next, req)
 
 	# Setup function
-	exports.setup = (app, requirejs, sbvrUtils, isAuthed, db) ->
+	exports.setup = (app, requirejs, sbvrUtils, db) ->
 		db.transaction( (tx) ->
 			sbvrUtils.executeStandardModels(tx)
 			sbvrUtils.executeModel(tx, 'ui', uiModel,
@@ -87,10 +87,10 @@ define([
 					res.json(onAir)
 				)
 		)
-		app.post('/update', isAuthed, serverIsOnAir, (req, res, next) ->
+		app.post('/update', sbvrUtils.checkPermissionsMiddleware('all'), serverIsOnAir, (req, res, next) ->
 			res.send(404)
 		)
-		app.post('/execute', isAuthed, uiModelLoaded, (req, res, next) ->
+		app.post('/execute', sbvrUtils.checkPermissionsMiddleware('all'), uiModelLoaded, (req, res, next) ->
 			sbvrUtils.runURI('GET', '/ui/textarea?$filter=name eq model_area', null, null,
 				(result) ->
 					if result.d.length > 0
@@ -111,7 +111,7 @@ define([
 				() -> res.send(404)
 			)
 		)
-		app.post('/validate', isAuthed, uiModelLoaded, (req, res, next) ->
+		app.post('/validate', sbvrUtils.checkPermissionsMiddleware('get'), uiModelLoaded, (req, res, next) ->
 			console.log(req.body)
 			sbvrUtils.runRule('data', req.body.rule, (err, results) ->
 				if err?
@@ -120,7 +120,7 @@ define([
 					res.json(results)
 			)
 		)
-		app.del('/cleardb', isAuthed, (req, res, next) ->
+		app.del('/cleardb', sbvrUtils.checkPermissionsMiddleware('delete'), (req, res, next) ->
 			db.transaction (tx) ->
 				tx.tableList( (tx, result) ->
 					async.forEach(result.rows,
@@ -144,7 +144,7 @@ define([
 					)
 				)
 		)
-		app.put('/importdb', isAuthed, (req, res, next) ->
+		app.put('/importdb', sbvrUtils.checkPermissionsMiddleware('set'), (req, res, next) ->
 			queries = req.body.split(";")
 			db.transaction((tx) ->
 				async.forEach(queries,
@@ -164,7 +164,7 @@ define([
 				)
 			)
 		)
-		app.get('/exportdb', isAuthed, (req, res, next) ->
+		app.get('/exportdb', sbvrUtils.checkPermissionsMiddleware('get'), (req, res, next) ->
 			if has 'ENV_NODEJS'
 				# TODO: This is postgres rather than node specific, so the check should be updated to reflect that.
 				env = process.env
@@ -217,7 +217,7 @@ define([
 					)
 				)
 		)
-		app.post('/backupdb', isAuthed, serverIsOnAir, (req, res, next) ->
+		app.post('/backupdb', sbvrUtils.checkPermissionsMiddleware('all'), serverIsOnAir, (req, res, next) ->
 			db.transaction((tx) ->
 				tx.tableList(
 					(tx, result) ->
@@ -251,7 +251,7 @@ define([
 				)
 			)
 		)
-		app.post('/restoredb', isAuthed, serverIsOnAir, (req, res, next) ->
+		app.post('/restoredb', sbvrUtils.checkPermissionsMiddleware('all'), serverIsOnAir, (req, res, next) ->
 			db.transaction((tx) ->
 				tx.tableList(
 					(tx, result) ->

@@ -40,10 +40,10 @@ define([
 				}, sbvrUtils, app, passport)
 
 			if has 'CONFIG_LOADER'
-				configLoader.setup(app, require, sbvrUtils, passportBCrypt.isAuthed, db)
+				configLoader.setup(app, require, sbvrUtils, db)
 
 			if has 'SBVR_SERVER_ENABLED'
-				sbvrServer.setup(app, require, sbvrUtils, passportBCrypt.isAuthed, db)
+				sbvrServer.setup(app, require, sbvrUtils, db)
 
 			if has 'ENV_NODEJS'
 				app.listen(process.env.PORT or 1337, () ->

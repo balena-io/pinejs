@@ -613,7 +613,7 @@ define([
 					callback(null, userPermissions)
 		)
 	
-	checkPermissions = do ->
+	exports.checkPermissions = checkPermissions = do ->
 		_getGuestPermissions = do ->
 			_guestPermissions = false
 			return (callback) ->
@@ -640,18 +640,20 @@ define([
 			if !callback?
 				callback = request
 				request = null
-			vocabulary = req.tree.vocabulary
 
 			_checkPermissions = (permissions) ->
 				if permissions.hasOwnProperty('resource.all') or
-						permissions.hasOwnProperty('resource.' + action) or
-						permissions.hasOwnProperty(vocabulary + '.all') or
-						permissions.hasOwnProperty(vocabulary + '.' + action)
+						permissions.hasOwnProperty('resource.' + action)
 					return true
-				else if request? and (
-						permissions.hasOwnProperty(vocabulary + '.' + request.resourceName + '.all') or
-						permissions.hasOwnProperty(vocabulary + '.' + request.resourceName + '.' + action))
-					return true
+				if req.tree?.vocabulary?
+					vocabulary = req.tree.vocabulary
+					if permissions.hasOwnProperty(vocabulary + '.all') or
+							permissions.hasOwnProperty(vocabulary + '.' + action)
+						return true
+					if request? and (
+							permissions.hasOwnProperty(vocabulary + '.' + request.resourceName + '.all') or
+							permissions.hasOwnProperty(vocabulary + '.' + request.resourceName + '.' + action))
+						return true
 				else
 					return false
 
@@ -666,6 +668,15 @@ define([
 							console.error(err)
 						res.send(403)
 				)
+	exports.checkPermissionsMiddleware = (action) ->
+		return (req, res, next) -> 
+			checkPermissions(req, res, action, (err) ->
+				if err
+					res.send(403)
+				else
+					next()
+			)
+
 
 	exports.runGet = runGet = (req, res, tx) ->
 		res.set('Cache-Control', 'no-cache')

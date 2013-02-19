@@ -2,7 +2,7 @@ define(['has', 'async'], (has, async) ->
 	exports = {}
 
 	# Setup function
-	exports.setup = (app, requirejs, sbvrUtils, isAuthed, db) ->
+	exports.setup = (app, requirejs, sbvrUtils, db) ->
 		if not has 'ENV_NODEJS'
 			console.error('Config loader only works in a nodejs environment.')
 			return

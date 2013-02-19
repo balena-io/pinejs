@@ -42,12 +42,6 @@ define(['async'], () ->
 			)
 
 			passport.use(new LocalStrategy(checkPassword))
-
-			exports.isAuthed = (req, res, next) ->
-				if req.isAuthenticated()
-					next()
-				else
-					res.redirect(options.failureRedirect)
 		else
 			compare = (value, hash, callback) ->
 				callback(null, value == hash)
@@ -62,14 +56,6 @@ define(['async'], () ->
 							res.redirect(options.successRedirect)
 					)
 				)
-
-				exports.isAuthed = (req, res, next) ->
-					# For local (dev) we just assume we are authed
-					next()
-					# if _user != false
-						# next()
-					# else
-						# res.redirect(options.failureRedirect)
 
 		return exports
 )
