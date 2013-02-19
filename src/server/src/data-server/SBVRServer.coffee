@@ -64,8 +64,7 @@ define([
 
 	# Setup function
 	exports.setup = (app, requirejs, sbvrUtils, db) ->
-		db.transaction( (tx) ->
-			sbvrUtils.executeStandardModels(tx)
+		setupModels = (tx) ->
 			sbvrUtils.executeModel(tx, 'ui', uiModel, (err) ->
 				if err
 					console.error('Failed to execute ui model.', err)
@@ -73,10 +72,20 @@ define([
 					console.log('Sucessfully executed ui model.')
 					uiModelLoaded(true)
 			)
-			sbvrUtils.runURI('GET', '/dev/model?$filter=model_type eq sql and vocabulary eq data', null, tx, (err, result) ->
-				isServerOnAir(!err and result.d.length > 0)
+			sbvrUtils.runURI('GET', '/dev/model?$filter=model_type eq se and vocabulary eq data', null, tx, (err, result) ->
+				if !err and result.d.length > 0
+					instance = result.d[0]
+					sbvrUtils.executeModel(tx, 'data', instance.vocabulary, instance['model value'], (err) ->
+						if err
+							isServerOnAir(false)
+						else
+							isServerOnAir(true)
+					)
+				else
+					isServerOnAir(false)
 			)
-		)
+
+		db.transaction(setupModels)
 
 		app.get('/onair',
 			(req, res, next) -> 
@@ -127,15 +136,14 @@ define([
 						(err) ->
 							if err?
 								res.send(404)
-							else
-								sbvrUtils.executeStandardModels(tx)
-								sbvrUtils.executeModel(tx, 'ui', uiModel, (err) ->
-									if err
-										console.log('Failed to execute ui model.', error)
-									else
-										console.log('Sucessfully executed ui model.')
-								)
+								return
+							sbvrUtils.executeStandardModels(tx, (err) ->
+								if err
+									res.send(503)
+									return
+								setupModels(tx)
 								res.send(200)
+							)
 					)
 				)
 		)

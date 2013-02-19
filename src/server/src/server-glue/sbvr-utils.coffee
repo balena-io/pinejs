@@ -971,27 +971,6 @@ define([
 				if err?
 					console.error('Could not execute standard models')
 					process.exit()
-				runURI('GET', '/dev/model?$filter=model_type eq sql and vocabulary eq data', null, tx, (err, result) ->
-					if err
-						return
-					for instance in result.d
-						vocab = instance.vocabulary
-						sqlModel = instance['model value']
-						clientModel = AbstractSQL2CLF(sqlModel)
-						sqlModels[vocab] = sqlModel
-						odataParser.setSQLModel(vocab, sqlModel)
-						clientModels[vocab] = clientModel
-						odataParser.setClientModel(vocab, clientModel)
-						odataMetadata[vocab] = ODataMetadataGenerator(vocab, sqlModel)
-				)
-				runURI('GET', '/dev/model?$filter=model_type eq se and vocabulary eq data', null, tx, (err, result) ->
-					if err
-						return
-					for instance in result.d
-						vocab = instance.vocabulary
-						seModel = instance['model value']
-						seModels[vocab] = seModel
-				)
 				# We only actually need to have had the standard models executed before execution continues, so we schedule it here.
 				setTimeout(callback, 0)
 			)
