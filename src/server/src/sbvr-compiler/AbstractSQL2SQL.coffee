@@ -61,8 +61,13 @@ define([
 							validationError = 'longer than 60 characters (' + value.length + ')'
 					else
 						bcrypt = require('bcrypt')
-						salt = bcrypt.genSaltSync()
-						value = bcrypt.hashSync(value, salt)
+						bcrypt.genSalt((err, salt) ->
+							if err
+								callback(err)
+							else
+								bcrypt.hash(value, salt, callback)
+						)
+						return
 				when 'Color'
 					if !_.isObject(value)
 						value = parseInt(value, 10)
