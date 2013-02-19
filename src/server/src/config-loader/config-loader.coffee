@@ -55,22 +55,27 @@ define(['has', 'async'], (has, async) ->
 						(user, callback) ->
 							async.parallel({
 									user: (callback) ->
-										sbvrUtils.runURI('POST', '/Auth/user', {'username': user.username, 'password': user.password}, null,
-											(result) -> callback(null, result.id)
-											(err) -> callback(err or true)
+										sbvrUtils.runURI('POST', '/Auth/user', {'username': user.username, 'password': user.password}, null, (err) ->
+											if err
+												callback(err)
+											else
+												callback(null, result.id)
 										)
 									permissions: (callback) ->
 										if !user.permissions?
 											return callback(null, [])
 										async.map(user.permissions,
 											(permission, callback) ->
-												sbvrUtils.runURI('POST', '/Auth/permission', {'name': 'resource.all'}, null,
-													(result) -> callback(null, result.id)
-													-> 
-														sbvrUtils.runURI('GET', '/Auth/permission', {'name': 'resource.all'}, null,
-															(result) -> callback(null, result.d[0].id)
-															(err) -> callback(err or true)
+												sbvrUtils.runURI('POST', '/Auth/permission', {'name': 'resource.all'}, null, (err) ->
+													if err
+														sbvrUtils.runURI('GET', '/Auth/permission', {'name': 'resource.all'}, null, (err) ->
+															if err
+																callback(err)
+															else
+																callback(null, result.d[0].id)
 														)
+													else
+														callback(null, result.id)
 												)
 											callback
 										)
@@ -81,10 +86,7 @@ define(['has', 'async'], (has, async) ->
 									else
 										async.forEach(results.permissions,
 											(permission, callback) ->
-												sbvrUtils.runURI('POST', '/Auth/user-has-permission', {'user': results.user, 'permission': permission}, null,
-													-> callback()
-													(err) -> callback(err or true)
-												)
+												sbvrUtils.runURI('POST', '/Auth/user-has-permission', {'user': results.user, 'permission': permission}, null, callback)
 											(err) ->
 												if err
 													console.error('Failed to add user permissions', err)

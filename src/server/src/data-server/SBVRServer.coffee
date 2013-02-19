@@ -73,11 +73,8 @@ define([
 					console.log('Sucessfully executed ui model.')
 					uiModelLoaded(true)
 			)
-			sbvrUtils.runURI('GET', '/dev/model?$filter=model_type eq sql and vocabulary eq data', null, tx
-				(result) ->
-					isServerOnAir(result.d.length > 0)
-				() ->
-					isServerOnAir(false)
+			sbvrUtils.runURI('GET', '/dev/model?$filter=model_type eq sql and vocabulary eq data', null, tx, (err, result) ->
+				isServerOnAir(!err and result.d.length > 0)
 			)
 		)
 
@@ -91,24 +88,22 @@ define([
 			res.send(404)
 		)
 		app.post('/execute', sbvrUtils.checkPermissionsMiddleware('all'), uiModelLoaded, (req, res, next) ->
-			sbvrUtils.runURI('GET', '/ui/textarea?$filter=name eq model_area', null, null,
-				(result) ->
-					if result.d.length > 0
-						seModel = result.d[0].text
-						db.transaction((tx) ->
-							tx.begin()
-							sbvrUtils.executeModel(tx, 'data', seModel, (err) ->
-								if err
-									res.json(errors, 404)
-									return
-								sbvrUtils.runURI('PUT', '/ui/textarea-is_disabled?$filter=textarea/name eq model_area', {value: true}, tx)
-								isServerOnAir(true)
-								res.send(200)
-							)
+			sbvrUtils.runURI('GET', '/ui/textarea?$filter=name eq model_area', null, null, (err, result) ->
+				if !err and result.d.length > 0
+					seModel = result.d[0].text
+					db.transaction((tx) ->
+						tx.begin()
+						sbvrUtils.executeModel(tx, 'data', seModel, (err) ->
+							if err
+								res.json(errors, 404)
+								return
+							sbvrUtils.runURI('PUT', '/ui/textarea-is_disabled?$filter=textarea/name eq model_area', {value: true}, tx)
+							isServerOnAir(true)
+							res.send(200)
 						)
-					else
-						res.send(404)
-				() -> res.send(404)
+					)
+				else
+					res.send(404)
 			)
 		)
 		app.post('/validate', sbvrUtils.checkPermissionsMiddleware('get'), uiModelLoaded, (req, res, next) ->

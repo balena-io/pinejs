@@ -13,7 +13,7 @@ The [requirejs](http://requirejs.org/) object used by the platform, can be used 
 ### sbvrUtils
 An entry point to the API internally to the server.
 
-#### runURI(method, uri, body = {}, tx, successCallback, failureCallback)
+#### runURI(method, uri, body = {}, tx, callback)
 This allows making an API request internally, should match a similar AJAX request to the API.
 
 #### executeModel(tx, vocab, seModel, callback)

@@ -2,28 +2,25 @@ define(['async'], () ->
 	return (options, sbvrUtils, app, passport) ->
 		exports = {}
 		checkPassword = (username, password, done) ->
-			sbvrUtils.runURI('GET', '/Auth/user?$filter=user/username eq ' + username, {}, null,
-				(result) ->
-					if result.d.length > 0
-						hash = result.d[0].password
-						userId = result.d[0].id
-						compare(password, hash, (err, res) ->
-							if res
-								sbvrUtils.getUserPermissions(userId, (err, permissions) ->
-									if err?
-										done(null, false)
-									else
-										done(null,
-											username: username
-											permissions: permissions
-										)
-								)
-							else
-								done(null, false)
-						)
-					else
-						done(null, false)
-				->
+			sbvrUtils.runURI('GET', '/Auth/user?$filter=user/username eq ' + username, {}, null, (err, result) ->
+				if !err and result.d.length > 0
+					hash = result.d[0].password
+					userId = result.d[0].id
+					compare(password, hash, (err, res) ->
+						if res
+							sbvrUtils.getUserPermissions(userId, (err, permissions) ->
+								if err?
+									done(null, false)
+								else
+									done(null,
+										username: username
+										permissions: permissions
+									)
+							)
+						else
+							done(null, false)
+					)
+				else
 					done(null, false)
 			)
 

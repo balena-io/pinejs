@@ -220,7 +220,10 @@ define([
 						(conditionalResource, callback) ->
 							placeholder = conditionalResource.placeholder
 							lockID = conditionalResource.lock
-							doCleanup = () ->
+							doCleanup = (err) ->
+								if err
+									callback(err)
+									return
 								async.parallel([
 										(callback) ->
 											tx.executeSql('DELETE FROM "conditional_field" WHERE "conditional resource" = ?;', [conditionalResource.id],
@@ -251,27 +254,26 @@ define([
 							switch conditionalResource['conditional type']
 								when 'DELETE'
 									getLockedRow(lockID, (err, lockedRow) ->
-										if err?
+										if err
 											callback(err)
-										else
-											lockedRow = lockedRow.rows.item(0)
-											uri = uri + '?$filter=' + clientModel.idField + ' eq ' + lockedRow['resource id']
-											runURI('DELETE', uri, {}, tx, doCleanup, -> callback(arguments))
+											return
+										lockedRow = lockedRow.rows.item(0)
+										uri = uri + '?$filter=' + clientModel.idField + ' eq ' + lockedRow['resource id']
+										runURI('DELETE', uri, {}, tx, doCleanup)
 									)
 								when 'EDIT'
 									getLockedRow(lockID, (err, lockedRow) ->
-										if err?
+										if err
 											callback(err)
-										else
-											lockedRow = lockedRow.rows.item(0)
-											uri = uri + '?$filter=' + clientModel.idField + ' eq ' + lockedRow['resource id']
-											getFieldsObject(conditionalResource.id, clientModel,
-												(err, fields) ->
-													if err?
-														callback(err)
-													else
-														runURI('PUT', uri, fields, tx, doCleanup, -> callback(arguments))
-											)
+											return
+										lockedRow = lockedRow.rows.item(0)
+										uri = uri + '?$filter=' + clientModel.idField + ' eq ' + lockedRow['resource id']
+										getFieldsObject(conditionalResource.id, clientModel, (err, fields) ->
+											if err?
+												callback(err)
+											else
+												runURI('PUT', uri, fields, tx, doCleanup)
+										)
 									)
 								when 'ADD'
 									getFieldsObject(conditionalResource.id, clientModel, (err, fields) ->
@@ -279,25 +281,25 @@ define([
 											resolvePlaceholder(placeholder, false)
 											callback(err)
 										else
-											runURI('POST', uri, fields, tx,
-												(result) ->
-													resolvePlaceholder(placeholder, result.id)
-													doCleanup()
-												->
+											runURI('POST', uri, fields, tx, (err, result) ->
+												if err
 													resolvePlaceholder(placeholder, false)
-													callback(arguments)
+													callback(err)
+													return
+												resolvePlaceholder(placeholder, result.id)
+												doCleanup()
 											)
 									)
 						(err) ->
-							if err?
+							if err
 								callback(err)
-							else
-								tx.executeSql('DELETE FROM "transaction" WHERE "id" = ?;', [transactionID],
-									(tx, result) ->
-										validateDB(tx, sqlModels['data'], callback)
-									(tx, err) ->
-										callback(err)
-								)
+								return
+							tx.executeSql('DELETE FROM "transaction" WHERE "id" = ?;', [transactionID],
+								(tx, result) ->
+									validateDB(tx, sqlModels['data'], callback)
+								(tx, err) ->
+									callback(err)
+							)
 					)
 				)
 		)
@@ -519,7 +521,7 @@ define([
 				)
 			)
 
-	exports.runURI = runURI = (method, uri, body = {}, tx, successCallback, failureCallback) ->
+	exports.runURI = runURI = (method, uri, body = {}, tx, callback) ->
 		uri = decodeURI(uri)
 		console.log('Running URI', method, uri, body)
 		try
@@ -536,14 +538,14 @@ define([
 		res =
 			send: (statusCode) ->
 				if statusCode == 404
-					failureCallback?()
+					callback?(404)
 				else
-					successCallback?()
+					callback?()
 			json: (data, statusCode) ->
 				if statusCode == 404
-					failureCallback?(data)
+					callback?(data)
 				else
-					successCallback?(data)
+					callback?(null, data)
 			set: ->
 		switch method
 			when 'GET'
@@ -558,24 +560,20 @@ define([
 	exports.getUserPermissions = getUserPermissions = (userId, callback) ->
 		async.parallel(
 			userPermissions: (callback) ->
-				runURI('GET', '/Auth/user-has-permission?$filter=user eq ' + userId, {}, null,
-					(result) -> callback(false, result.d)
-					-> callback(true)
+				runURI('GET', '/Auth/user-has-permission?$filter=user eq ' + userId, {}, null, (err, result) ->
+					callback(err, result?.d)
 				)
 			userRoles: (callback) ->
-				runURI('GET', '/Auth/user-has-role?$filter=user eq ' + userId, {}, null,
-					(result) -> callback(false, result.d)
-					-> callback(true)
+				runURI('GET', '/Auth/user-has-role?$filter=user eq ' + userId, {}, null, (err, result) ->
+					callback(err, result?.d)
 				)
 			rolePermissions: (callback) ->
-				runURI('GET', '/Auth/role-has-permission', {}, null,
-					(result) -> callback(false, result.d)
-					-> callback(true)
+				runURI('GET', '/Auth/role-has-permission', {}, null, (err, result) ->
+					callback(err, result?.d)
 				)
 			permissions: (callback) ->
-				runURI('GET', '/Auth/permission', {}, null,
-					(result) -> callback(false, result.d)
-					-> callback(true)
+				runURI('GET', '/Auth/permission', {}, null, (err, result) ->
+					callback(err, result?.d)
 				)
 			(err, result) ->
 				if err?
@@ -609,19 +607,17 @@ define([
 					callback(null, _guestPermissions)
 				else
 					# Get guest user
-					runURI('GET', '/Auth/user?$filter=user/username eq guest', {}, null,
-						(result) ->
-							if result.d.length > 0
-								getUserPermissions(result.d[0].id, (err, permissions) ->
-									if err?
-										callback(err)
-									else
-										_guestPermissions = permissions
-										callback(null, _guestPermissions)
-								)
-							else
-								callback(true)
-						-> return callback(true)
+					runURI('GET', '/Auth/user?$filter=user/username eq guest', {}, null, (err, result) ->
+						if !err and result.d.length > 0
+							getUserPermissions(result.d[0].id, (err, permissions) ->
+								if err?
+									callback(err)
+								else
+									_guestPermissions = permissions
+									callback(null, _guestPermissions)
+							)
+						else
+							callback(true)
 					)
 
 		return (req, res, actionList, request, callback) ->
@@ -956,19 +952,11 @@ define([
 					# TODO: Remove these hardcoded users.
 					if has 'DEV'
 						async.parallel([
-								(callback) ->
-									runURI('POST', '/Auth/user', {'username': 'root', 'password': 'test123'}, null,
-										-> callback()
-										-> callback(true)
-									)
-								(callback) ->
-									runURI('POST', '/Auth/permission', {'name': 'resource.all'}, null,
-										-> callback()
-										-> callback(true)
-									)
+								(callback) -> runURI('POST', '/Auth/user', {'username': 'root', 'password': 'test123'}, null, callback)
+								(callback) -> runURI('POST', '/Auth/permission', {'name': 'resource.all'}, null, callback)
 							]
 							(err) ->
-								if !err?
+								if !err
 									# We expect these to be the first user/permission, so they would have id 1.
 									runURI('POST', '/Auth/user-has-permission', {'user': 1, 'permission': 1}, null)
 						)
@@ -983,7 +971,9 @@ define([
 				if err?
 					console.error('Could not execute standard models')
 					process.exit()
-				runURI('GET', '/dev/model?$filter=model_type eq sql and vocabulary eq data', null, tx, (result) ->
+				runURI('GET', '/dev/model?$filter=model_type eq sql and vocabulary eq data', null, tx, (err, result) ->
+					if err
+						return
 					for instance in result.d
 						vocab = instance.vocabulary
 						sqlModel = instance['model value']
@@ -994,7 +984,9 @@ define([
 						odataParser.setClientModel(vocab, clientModel)
 						odataMetadata[vocab] = ODataMetadataGenerator(vocab, sqlModel)
 				)
-				runURI('GET', '/dev/model?$filter=model_type eq se and vocabulary eq data', null, tx, (result) ->
+				runURI('GET', '/dev/model?$filter=model_type eq se and vocabulary eq data', null, tx, (err, result) ->
+					if err
+						return
 					for instance in result.d
 						vocab = instance.vocabulary
 						seModel = instance['model value']
