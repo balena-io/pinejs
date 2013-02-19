@@ -90,7 +90,7 @@ This is created by a succesful call to `db.transaction`
 This runs the given SQL statement, with ? bindings replaced by the values in the bindings array.
 #### callback
 This has a signature of (tx, result)
-#### erroCallback
+#### errorCallback
 This has a signature of (tx, err)
 
 #### begin()
