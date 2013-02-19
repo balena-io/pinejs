@@ -49,6 +49,7 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 					this.executeSql("SELECT * FROM (SELECT tablename as name FROM pg_tables WHERE schemaname = 'public') t" + extraWhereClause + ";", [], callback, errorCallback)
 				dropTable: (tableName, ifExists = true, callback, errorCallback) -> this.executeSql('DROP TABLE ' + (if ifExists == true then 'IF EXISTS ' else '') + '"' + tableName + '" CASCADE;', [], callback, errorCallback)
 			return {
+				engine: 'postgres'
 				transaction: (callback, errorCallback) ->
 					pg.connect(connectString, (err, client) ->
 						if err
@@ -109,6 +110,7 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 					this.executeSql("SELECT name FROM (SELECT table_name as name FROM information_schema.tables WHERE table_schema = ?) t" + extraWhereClause + ";", [options.database], callback, errorCallback)
 				dropTable: (tableName, ifExists = true, callback, errorCallback) -> this.executeSql('DROP TABLE ' + (if ifExists == true then 'IF EXISTS ' else '') + '"' + tableName + '";', [], callback, errorCallback)
 			return {
+				engine: 'mysql'
 				transaction: (callback, errorCallback) ->
 					_db = mysql.createConnection(options)
 					_db.connect((err) ->
@@ -152,6 +154,7 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 				dropTable: (tableName, ifExists = true, callback, errorCallback) -> this.executeSql('DROP TABLE ' + (if ifExists == true then 'IF EXISTS ' else '') + '"' + tableName + '";', [], callback, errorCallback)
 			}
 			return {
+				engine: 'sqlite'
 				transaction: (callback) ->
 					_db.serialize () ->
 						callback(tx)
@@ -204,6 +207,7 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 					dropTable: (tableName, ifExists = true, callback, errorCallback) -> this.executeSql('DROP TABLE ' + (if ifExists == true then 'IF EXISTS ' else '') + '"' + tableName + '";', [], callback, errorCallback)
 				}
 			return {
+				engine: 'websql'
 				transaction: (callback) ->
 					_db.transaction( (_tx) ->
 						callback(tx(_tx))

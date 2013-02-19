@@ -9,9 +9,8 @@ define([
 	'cs!sbvr-compiler/ODataMetadataGenerator'
 	'ometa!server-glue/odata-parser'
 	'async'
-	'cs!database-layer/db'
 	'underscore'
-], (has, SBVRParser, LF2AbstractSQLPrep, LF2AbstractSQL, AbstractSQL2SQL, AbstractSQLRules2SQL, AbstractSQL2CLF, ODataMetadataGenerator, ODataParser, async, dbModule, _) ->
+], (has, SBVRParser, LF2AbstractSQLPrep, LF2AbstractSQL, AbstractSQL2SQL, AbstractSQLRules2SQL, AbstractSQL2CLF, ODataMetadataGenerator, ODataParser, async, _) ->
 	exports = {}
 	db = null
 
@@ -949,9 +948,8 @@ define([
 				callback?(err)
 		)
 
-	exports.setup = (app, requirejs, databaseOptions, callback) ->
-		db = dbModule.connect(databaseOptions)
-		AbstractSQL2SQL = AbstractSQL2SQL[databaseOptions.engine]
+	exports.setup = (app, requirejs, db, callback) ->
+		AbstractSQL2SQL = AbstractSQL2SQL[db.engine]
 		db.transaction((tx) ->
 			executeStandardModels(tx, (err) ->
 				if err?

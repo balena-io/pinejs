@@ -1,8 +1,8 @@
-define(['has', 'cs!database-layer/db', 'async'], (has, dbModule, async) ->
+define(['has', 'async'], (has, async) ->
 	exports = {}
 
 	# Setup function
-	exports.setup = (app, requirejs, sbvrUtils, isAuthed, databaseOptions) ->
+	exports.setup = (app, requirejs, sbvrUtils, isAuthed, db) ->
 		if not has 'ENV_NODEJS'
 			console.error('Config loader only works in a nodejs environment.')
 			return
@@ -14,8 +14,6 @@ define(['has', 'cs!database-layer/db', 'async'], (has, dbModule, async) ->
 				console.error('Error loading config.json')
 			else
 				data = JSON.parse(data)
-				
-				db = dbModule.connect(databaseOptions)
 				
 				for model in data.models
 					do (model) ->

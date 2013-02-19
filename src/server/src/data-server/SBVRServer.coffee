@@ -1,8 +1,7 @@
 define([
 	'async'
 	'underscore'
-	'cs!database-layer/db'
-], (async, _, dbModule) ->
+], (async, _) ->
 	exports = {}
 	db = null
 
@@ -64,9 +63,7 @@ define([
 			runNext(next, req)
 
 	# Setup function
-	exports.setup = (app, requirejs, sbvrUtils, isAuthed, databaseOptions) ->
-		db = dbModule.connect(databaseOptions)
-		
+	exports.setup = (app, requirejs, sbvrUtils, isAuthed, db) ->
 		db.transaction( (tx) ->
 			sbvrUtils.executeStandardModels(tx)
 			sbvrUtils.executeModel(tx, 'ui', uiModel,

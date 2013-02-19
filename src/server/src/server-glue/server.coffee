@@ -1,11 +1,12 @@
 define([
 	'has'
+	'cs!database-layer/db'
 	'cs!server-glue/sbvr-utils'
 	'cs!passport-bcrypt/passportBCrypt'
 	'cs!data-server/SBVRServer'
 	'cs!express-emulator/express'
 	'cs!config-loader/config-loader'
-], (has, sbvrUtils, passportBCrypt, sbvrServer, express, configLoader)->
+], (has, dbModule, sbvrUtils, passportBCrypt, sbvrServer, express, configLoader)->
 	if has 'ENV_NODEJS'
 		if has 'USE_MYSQL'
 			databaseOptions =
@@ -27,10 +28,11 @@ define([
 			engine: 'websql'
 			params: 'rulemotion'
 
+	db = dbModule.connect(databaseOptions)
 
 
 	setupCallback = (app) ->
-		sbvrUtils.setup(app, require, databaseOptions, (err) ->
+		sbvrUtils.setup(app, require, db, (err) ->
 			passportBCrypt = passportBCrypt({
 					loginUrl: '/login',
 					failureRedirect: '/login.html',
@@ -38,10 +40,10 @@ define([
 				}, sbvrUtils, app, passport)
 
 			if has 'CONFIG_LOADER'
-				configLoader.setup(app, require, sbvrUtils, passportBCrypt.isAuthed, databaseOptions)
+				configLoader.setup(app, require, sbvrUtils, passportBCrypt.isAuthed, db)
 
 			if has 'SBVR_SERVER_ENABLED'
-				sbvrServer.setup(app, require, sbvrUtils, passportBCrypt.isAuthed, databaseOptions)
+				sbvrServer.setup(app, require, sbvrUtils, passportBCrypt.isAuthed, db)
 
 			if has 'ENV_NODEJS'
 				app.listen(process.env.PORT or 1337, () ->
