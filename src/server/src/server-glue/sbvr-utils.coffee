@@ -636,26 +636,55 @@ define([
 						-> return callback(true)
 					)
 
-		return (req, res, action, request, callback) ->
+		return (req, res, actionList, request, callback) ->
 			if !callback?
 				callback = request
 				request = null
 
-			_checkPermissions = (permissions) ->
-				if permissions.hasOwnProperty('resource.all') or
-						permissions.hasOwnProperty('resource.' + action)
-					return true
-				if req.tree?.vocabulary?
-					vocabulary = req.tree.vocabulary
-					if permissions.hasOwnProperty(vocabulary + '.all') or
-							permissions.hasOwnProperty(vocabulary + '.' + action)
+			_recurseCheckPermissions = (permissionCheck) ->
+				if _.isString(permissionCheck)
+					if permissions.hasOwnProperty('resource.' + permissionCheck)
 						return true
-					if request? and (
-							permissions.hasOwnProperty(vocabulary + '.' + request.resourceName + '.all') or
-							permissions.hasOwnProperty(vocabulary + '.' + request.resourceName + '.' + action))
-						return true
-				else
+					if vocabulary?
+						if permissions.hasOwnProperty(vocabulary + '.' + permissionCheck)
+							return true
+						if request? and permissions.hasOwnProperty(vocabulary + '.' + request.resourceName + '.' + action)
+							return true
 					return false
+				else if _.isArray(permissionCheck)
+					for permission in permissionCheck
+						if not _recurseCheckPermissions(permission)
+							return false
+					return true
+				else if _.isObject(permissionCheck)
+					checkTypes = _.keys(permissionCheck)
+					if checkTypes.length > 1
+						throw 'Too many check types: ' + checkTypes
+					checkType = checkTypes[0]
+					switch checkType.toUpperCase()
+						when 'AND'
+							return _recurseCheckPermissions(permissionCheck[checkType])
+						when 'OR'
+							for permission in permissionCheck[checkType]
+								if _recurseCheckPermissions(permission)
+									return true
+							return false
+						else
+							throw 'Cannot parse required permissions logic: ' + checkType
+					return false
+				else
+					throw 'Cannot parse required permissions: ' + permissionCheck
+
+			_checkPermissions = (permissions) ->
+				if permissions.hasOwnProperty('resource.all')
+					return true
+				vocabulary = req.tree?.vocabulary
+				if vocabulary?
+					if permissions.hasOwnProperty(vocabulary + '.all')
+						return true
+					if request? and permissions.hasOwnProperty(vocabulary + '.' + request.resourceName + '.all')
+						return true
+				return _recurseCheckPermissions(actionList)
 
 			if req.user? and _checkPermissions(req.user.permissions)
 				callback()
