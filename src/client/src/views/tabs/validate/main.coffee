@@ -57,7 +57,7 @@ define([
 							callback(false, result)
 						-> callback(true)
 					)
-				(err, results) ->
+				(err, results) =>
 					if err?
 						console.error('Error validating')
 						return
@@ -109,13 +109,12 @@ define([
 									console.log(arguments)
 									callback.apply(null, arguments)
 							)
-						(err, fetchCols) ->
+						(err, fetchCols) =>
 							if err?
 								console.error('Error validating')
 								return
 							header = @$("thead tr")
 							results = @$("tbody")
-
 							header.empty()
 							results.empty()
 
