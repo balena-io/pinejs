@@ -55,15 +55,7 @@ This is a string pointing to the file that contains the sbvr model, relative to 
 This is a string that defines the root path to access this model's API, eg. /example/{OData URL}
 
 ##### Optional: customServerCode
-This is a string pointing to a file (`.coffee` or `.js`), relative to `platform.js`, that will be loaded by the server, and should export a function with the following signature:  
-`setup(app, requirejs, sbvrUtils, db)`
-
-This function will be called whilst the server starts up and can be used to add custom server code for your project.  
-app: An [express.js](http://expressjs.com/) app instance, can be used to add your own routes.  
-requirejs: The requirejs object used by the platform, can be used to include files  
-sbvrUtils: An entry point to the API internally to the server - to be documented further in future, for now the runURI function is your friend.  
-db: An object that allows direct connection to the database, which largely follows the WebSQL interface (with slight modifications) - to be documented further in future.
-
+This is a string pointing to a file (`.coffee` or `.js`), relative to `platform.js`, that will be run by the server on startup, for further documentation see [Custom Server Code documentation](https://bitbucket.org/rulemotion/rulemotion-canvas/src/master/docs/CustomServerCode.md)
 
 ### Database
 You can specify your database url in an environment variable called DATABASE_URL, refer to your OS documentation on how to do this (either on a global level for all programs, or just set it temporarily whilst launching your project).  
