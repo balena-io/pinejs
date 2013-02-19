@@ -74,8 +74,6 @@ define([
 				return 'VARCHAR(255)' + necessity + index
 			when 'Text'
 				return 'TEXT' + necessity + index
-			when 'File'
-				return 'BYTEA' + necessity + index
 			else
 				if sbvrTypes[dataType]?.types?.postgres?
 					return sbvrTypes[dataType].types.postgres + necessity + index
@@ -104,8 +102,6 @@ define([
 				return 'VARCHAR(255) ' + necessity + index
 			when 'Text'
 				return 'TEXT' + necessity + index
-			when 'File'
-				return 'BLOB' + necessity + index
 			else
 				if sbvrTypes[dataType]?.types?.mysql?
 					return sbvrTypes[dataType].types.mysql + necessity + index
@@ -134,8 +130,6 @@ define([
 				return 'VARCHAR(255) ' + necessity + index
 			when 'Text'
 				return 'TEXT' + necessity + index
-			when 'File'
-				return 'BLOB' + necessity + index
 			else
 				if sbvrTypes[dataType]?.types?.websql?
 					return sbvrTypes[dataType].types.websql + necessity + index
