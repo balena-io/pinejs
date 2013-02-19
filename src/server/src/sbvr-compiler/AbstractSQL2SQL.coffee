@@ -20,7 +20,7 @@ define([
 					value = parseInt(value, 10)
 					if _.isNaN(value)
 						validationError = 'is not a number: ' + originalValue
-				when 'Date', 'Date Time', 'Time'
+				when 'Date Time', 'Time'
 					value = Number(value)
 					if _.isNaN(value)
 						value = originalValue
@@ -55,8 +55,6 @@ define([
 		switch dataType
 			when 'Serial'
 				return 'SERIAL' + necessity + index
-			when 'Date'
-				return 'DATE' + necessity + index
 			when 'Date Time'
 				return 'TIMESTAMP' + necessity + index
 			when 'Time'
@@ -81,8 +79,6 @@ define([
 		switch dataType
 			when 'Serial'
 				return 'INTEGER' + necessity + index + ' AUTO_INCREMENT'
-			when 'Date'
-				return 'DATE' + necessity + index
 			when 'Date Time'
 				return 'TIMESTAMP' + necessity + index
 			when 'Time'
@@ -107,8 +103,6 @@ define([
 		switch dataType
 			when 'Serial'
 				return 'INTEGER' + necessity + index + ' AUTOINCREMENT'
-			when 'Date'
-				return 'TEXT' + necessity + index
 			when 'Date Time'
 				return 'TEXT' + necessity + index
 			when 'Time'

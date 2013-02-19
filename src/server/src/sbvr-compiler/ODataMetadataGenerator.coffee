@@ -8,7 +8,7 @@ define(['underscore', 'cs!sbvr-compiler/types'], (_, sbvrTypes) ->
 					'Edm.Int64'
 				when 'Interval'
 					'Edm.Int64'
-				when 'Date', 'Date Time', 'Time'
+				when 'Date Time', 'Time'
 					'Edm.Int64'
 				when 'Real'
 					'Edm.Double'
