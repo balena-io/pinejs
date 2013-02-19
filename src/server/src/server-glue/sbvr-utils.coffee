@@ -294,10 +294,7 @@ define([
 							else
 								tx.executeSql('DELETE FROM "transaction" WHERE "id" = ?;', [transactionID],
 									(tx, result) ->
-										validateDB(tx, sqlModels['data'],
-											-> callback()
-											(tx, err) -> callback(err)
-										)
+										validateDB(tx, sqlModels['data'], callback)
 									(tx, err) ->
 										callback(err)
 								)
@@ -305,9 +302,7 @@ define([
 				)
 		)
 
-	# successCallback = (tx, sqlmod, failureCallback, result)
-	# failureCallback = (tx, errors)
-	validateDB = (tx, sqlmod, successCallback, failureCallback) ->
+	validateDB = (tx, sqlmod, callback) ->
 		async.forEach(sqlmod.rules,
 			(rule, callback) ->
 				tx.executeSql(rule.sql, [],
@@ -321,10 +316,9 @@ define([
 			(err) ->
 				if err?
 					tx.rollback()
-					failureCallback(tx, err)
 				else
 					tx.end()
-					successCallback(tx)
+				callback(err)
 		)
 
 	# successCallback = (tx, lfModel, slfModel, abstractSqlModel, sqlModel, clientModel)
@@ -369,25 +363,25 @@ define([
 							# Validate the [empty] model according to the rules.
 							# This may eventually lead to entering obligatory data.
 							# For the moment it blocks such models from execution.
-							validateDB(tx, sqlModel,
-								(tx) ->
-									seModels[vocab] = seModel
-									sqlModels[vocab] = sqlModel
-									clientModels[vocab] = clientModel
-									odataMetadata[vocab] = metadata
-
-									odataParser.setSQLModel(vocab, abstractSqlModel)
-									odataParser.setClientModel(vocab, clientModel)
-									runURI('PUT', '/dev/model?$filter=model_type eq se', {vocabulary: vocab, 'model value': seModel}, tx)
-									runURI('PUT', '/dev/model?$filter=model_type eq lf', {vocabulary: vocab, 'model value': lfModel}, tx)
-									runURI('PUT', '/dev/model?$filter=model_type eq slf', {vocabulary: vocab, 'model value': slfModel}, tx)
-									runURI('PUT', '/dev/model?$filter=model_type eq abstractsql', {vocabulary: vocab, 'model value': abstractSqlModel}, tx)
-									runURI('PUT', '/dev/model?$filter=model_type eq sql', {vocabulary: vocab, 'model value': sqlModel}, tx)
-									runURI('PUT', '/dev/model?$filter=model_type eq client', {vocabulary: vocab, 'model value': clientModel}, tx)
-
-									callback()
-								, (tx, err) ->
+							validateDB(tx, sqlModel, (err) ->
+								if err
 									callback(err)
+									return
+								seModels[vocab] = seModel
+								sqlModels[vocab] = sqlModel
+								clientModels[vocab] = clientModel
+								odataMetadata[vocab] = metadata
+
+								odataParser.setSQLModel(vocab, abstractSqlModel)
+								odataParser.setClientModel(vocab, clientModel)
+								runURI('PUT', '/dev/model?$filter=model_type eq se', {vocabulary: vocab, 'model value': seModel}, tx)
+								runURI('PUT', '/dev/model?$filter=model_type eq lf', {vocabulary: vocab, 'model value': lfModel}, tx)
+								runURI('PUT', '/dev/model?$filter=model_type eq slf', {vocabulary: vocab, 'model value': slfModel}, tx)
+								runURI('PUT', '/dev/model?$filter=model_type eq abstractsql', {vocabulary: vocab, 'model value': abstractSqlModel}, tx)
+								runURI('PUT', '/dev/model?$filter=model_type eq sql', {vocabulary: vocab, 'model value': sqlModel}, tx)
+								runURI('PUT', '/dev/model?$filter=model_type eq client', {vocabulary: vocab, 'model value': clientModel}, tx)
+
+								callback()
 							)
 						)
 						callback(err)
@@ -790,19 +784,19 @@ define([
 						# TODO: Check for transaction locks.
 						tx.executeSql(query, values,
 							(tx, sqlResult) ->
-								validateDB(tx, sqlModels[vocab],
-									(tx) ->
-										tx.end()
-										insertID = if request.query[0] == 'UpdateQuery' then values[0] else sqlResult.insertId
-										console.log('Insert ID: ', insertID)
-										res.json({
-												id: insertID
-											}, {
-												location: '/' + vocab + '/' + request.resourceName + '?$filter=' + request.resourceName + '/' + clientModels[vocab].resources[request.resourceName].idField + ' eq ' + insertID
-											}, 201
-										)
-									(tx, errors) ->
+								validateDB(tx, sqlModels[vocab], (err) ->
+									if err
 										res.json(errors, 404)
+										return
+									tx.end()
+									insertID = if request.query[0] == 'UpdateQuery' then values[0] else sqlResult.insertId
+									console.log('Insert ID: ', insertID)
+									res.json({
+											id: insertID
+										}, {
+											location: '/' + vocab + '/' + request.resourceName + '?$filter=' + request.resourceName + '/' + clientModels[vocab].resources[request.resourceName].idField + ' eq ' + insertID
+										}, 201
+									)
 								)
 							(tx, err) ->
 								constraintError = checkForConstraintError(err, request.resourceName)
@@ -847,12 +841,12 @@ define([
 					vocab = tree.vocabulary
 					
 					doValidate = (tx) ->
-						validateDB(tx, sqlModels[vocab],
-							(tx) ->
+						validateDB(tx, sqlModels[vocab], (err) ->
+							if err
+								res.json(errors, 404)
+							else
 								tx.end()
 								res.send(200)
-							(tx, errors) ->
-								res.json(errors, 404)
 						)
 					
 					id = getID(tree)
@@ -924,12 +918,12 @@ define([
 						tx.begin()
 						tx.executeSql(query, values,
 							(tx, result) ->
-								validateDB(tx, sqlModels[vocab]
-									(tx) ->
+								validateDB(tx, sqlModels[vocab], (err) ->
+									if err
+										res.json(errors, 404)
+									else
 										tx.end()
 										res.send(200)
-									(tx, errors) ->
-										res.json(errors, 404)
 								)
 							() ->
 								res.send(404)
