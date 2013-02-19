@@ -142,18 +142,20 @@ define([
 		else
 			return false
 
-	getAndCheckBindValues = (bindings, values) ->
-		bindValues = []
-		for binding in bindings
-			field = binding[1]
-			fieldName = field[1]
-			referencedName = binding[0] + '.' + fieldName
-			value = if values[referencedName] == undefined then values[fieldName] else values[referencedName]
-			{validated, value} = AbstractSQL2SQL.dataTypeValidate(value, field)
-			if validated != true
-				return '"' + fieldName + '" ' + validated
-			bindValues.push(value)
-		return bindValues
+	getAndCheckBindValues = (bindings, values, callback) ->
+		async.map(bindings,
+			(binding, callback) ->
+				[tableName, field] = binding
+				fieldName = field[1]
+				referencedName = tableName + '.' + fieldName
+				value = if values[referencedName] == undefined then values[fieldName] else values[referencedName]
+				AbstractSQL2SQL.dataTypeValidate(value, field, (err, value) ->
+					if err
+						err = '"' + fieldName + '" ' + err
+					callback(err, value)
+				)
+			callback
+		)
 
 	endTransaction = (transactionID, callback) ->
 		db.transaction((tx) ->
@@ -446,7 +448,7 @@ define([
 		rows.forEach(processInstance)
 		return instances
 
-	processOData = (vocab, resourceModel, rows) ->
+	processOData = (vocab, resourceModel, rows, callback) ->
 		# TODO: This can probably be optimised more, but removing the process step when it isn't required is an improvement
 		processRequired = false
 		for field in resourceModel.fields when field[0] == 'ForeignKey' or field[0] == 'JSON' or field[0] == 'Color'
@@ -454,7 +456,7 @@ define([
 			break
 		instances = []
 		if processRequired
-			processInstance = (instance) ->
+			processInstance = (instance, callback) ->
 				instance = _.clone(instance)
 				instance.__metadata =
 					uri: ''
@@ -474,16 +476,15 @@ define([
 								g: (instance[field[1]] >> 8) & 0xFF
 								b: instance[field[1]] & 0xFF
 								a: (instance[field[1]] >> 24) & 0xFF
-				instances.push(instance)
+				callback(instance)
 		else
-			processInstance = (instance) ->
+			processInstance = (instance, callback) ->
 				instance = _.clone(instance)
 				instance.__metadata =
 					uri: ''
 					type: ''
-				instances.push(instance)
-		rows.forEach(processInstance)
-		return instances
+				callback(instance)
+		async.map(rows, processInstance, callback)
 
 	exports.runRule = do ->
 		LF2AbstractSQLPrepHack = _.extend({}, LF2AbstractSQLPrep, {CardinalityOptimisation: () -> @_pred(false)})
@@ -517,10 +518,15 @@ define([
 					(tx, result) ->
 						clientModel = clientModels[vocab]
 						resourceModel = clientModel.resources[ruleLF[1][1][1][2][1].replace(/\ /g, '_')]
-						data =
-							__model: resourceModel
-							d: processOData(vocab, resourceModel, result.rows)
-						callback(null, data)
+						processOData(vocab, resourceModel, result.rows, (err, d) ->
+							if err
+								callback(err)
+								return
+							data =
+								__model: resourceModel
+								d: d
+							callback(null, data)
+						)
 					(tx, err) ->
 						callback(err)
 				)
@@ -676,11 +682,13 @@ define([
 					{query, bindings} = AbstractSQLRules2SQL.match(request.query, 'ProcessQuery')
 				catch e
 					console.error('Failed to compile abstract sql: ', e)
-				values = getAndCheckBindValues(bindings, request.values)
-				console.log(query, values)
-				if !_.isArray(values)
-					res.json(values, 404)
-				else
+					res.send(503)
+					return
+				getAndCheckBindValues(bindings, request.values, (err, values) ->
+					console.log(query, err, values)
+					if err
+						res.json(err, 404)
+						return
 					runQuery = (tx) ->
 						tx.executeSql(query, values,
 							(tx, result) ->
@@ -688,10 +696,15 @@ define([
 								resourceModel = clientModel.resources[request.resourceName]
 								switch tree.type
 									when 'OData'
-										data =
-											__model: resourceModel
-											d: processOData(tree.vocabulary, resourceModel, result.rows)
-										res.json(data)
+										processOData(tree.vocabulary, resourceModel, result.rows, (err, d) ->
+											if err
+												res.json(err, 404)
+												return
+											data =
+												__model: resourceModel
+												d: d
+											res.json(data)
+										)
 							() ->
 								res.send(404)
 						)
@@ -699,6 +712,7 @@ define([
 						runQuery(tx)
 					else
 						db.transaction(runQuery)
+				)
 			)
 		else
 			checkPermissions(req, res, 'model', tree.requests[0], ->
@@ -724,11 +738,13 @@ define([
 					{query, bindings} = AbstractSQLRules2SQL.match(request.query, 'ProcessQuery')
 				catch e
 					console.error('Failed to compile abstract sql: ', e)
-				values = getAndCheckBindValues(bindings, request.values)
-				console.log(query, values)
-				if !_.isArray(values)
-					res.json(values, 404)
-				else
+					res.send(503)
+					return
+				getAndCheckBindValues(bindings, request.values, (err, values) ->
+					console.log(query, err, values)
+					if err
+						res.json(err, 404)
+						return
 					vocab = tree.vocabulary
 					runQuery = (tx) ->
 						tx.begin()
@@ -760,6 +776,7 @@ define([
 						runQuery(tx)
 					else
 						db.transaction(runQuery)
+				)
 			)
 
 	exports.runPut = runPut = (req, res, tx) ->
@@ -774,18 +791,20 @@ define([
 					queries = AbstractSQLRules2SQL.match(request.query, 'ProcessQuery')
 				catch e
 					console.error('Failed to compile abstract sql: ', e)
+					res.send(503)
+					return
 				
 				if _.isArray(queries)
 					insertQuery = queries[0]
 					updateQuery = queries[1]
 				else
 					insertQuery = queries
-				values = getAndCheckBindValues(insertQuery.bindings, request.values)
-				console.log(insertQuery.query, values)
 				
-				if !_.isArray(values)
-					res.json(values, 404)
-				else
+				getAndCheckBindValues(insertQuery.bindings, request.values, (err, values) ->
+					console.log(insertQuery.query, err, values)
+					if err
+						res.json(err, 404)
+						return
 					vocab = tree.vocabulary
 					
 					doValidate = (tx) ->
@@ -816,11 +835,11 @@ define([
 										(tx, result) -> doValidate(tx)
 										(tx) ->
 											if updateQuery?
-												values = getAndCheckBindValues(updateQuery.bindings, request.values)
-												console.log(updateQuery.query, values)
-												if !_.isArray(values)
-													res.json(values, 404)
-												else
+												getAndCheckBindValues(updateQuery.bindings, request.values, (err, values) ->
+													console.log(updateQuery.query, err, values)
+													if err
+														res.json(err, 404)
+														return
 													tx.executeSql(updateQuery.query, values,
 														(tx, result) -> doValidate(tx)
 														(tx, err) ->
@@ -830,6 +849,7 @@ define([
 															else
 																res.send(404)
 													)
+												)
 											else
 												res.send(404)
 									)
@@ -838,6 +858,7 @@ define([
 						runQuery(tx)
 					else
 						db.transaction(runQuery)
+				)
 			)
 
 	exports.runDelete = runDelete = (req, res, tx) ->
@@ -852,11 +873,13 @@ define([
 					{query, bindings} = AbstractSQLRules2SQL.match(request.query, 'ProcessQuery')
 				catch e
 					console.error('Failed to compile abstract sql: ', e)
-				values = getAndCheckBindValues(bindings, request.values)
-				console.log(query, values)
-				if !_.isArray(values)
-					res.json(values, 404)
-				else
+					res.send(503)
+					return
+				getAndCheckBindValues(bindings, request.values, (err, values) ->
+					console.log(query, err, values)
+					if err
+						res.json(err, 404)
+						return
 					vocab = tree.vocabulary
 					runQuery = (tx) ->
 						tx.begin()
@@ -876,6 +899,7 @@ define([
 						runQuery(tx)
 					else
 						db.transaction(runQuery)
+				)
 			)
 
 	exports.parseURITree = parseURITree = (req, res, next) ->

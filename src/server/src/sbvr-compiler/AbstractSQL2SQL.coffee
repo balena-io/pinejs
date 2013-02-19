@@ -5,59 +5,60 @@ define([
 	'underscore'
 ], (AbstractSQLRules2SQL, AbstractSQLOptimiser, Prettify, _) ->
 
-	dataTypeValidate = (originalValue, field) ->
+	dataTypeValidate = (originalValue, field, callback) ->
 		value = originalValue
-		validated = true
+		validationError = false
 		if value == null or value == ''
 			value = null
 			if field[2] == true
-				validated = 'cannot be null'
+				validationError = 'cannot be null'
 		else
-			switch field[0]
+			typeName = field[0]
+			switch typeName
 				when 'Serial', 'Integer', 'ForeignKey', 'ConceptType'
 					value = parseInt(value, 10)
 					if _.isNaN(value)
-						validated = 'is not a number: ' + originalValue
+						validationError = 'is not a number: ' + originalValue
 				when 'Date', 'Date Time', 'Time'
 					value = Number(value)
 					if _.isNaN(value)
 						value = originalValue
 					value = new Date(value)
 					if _.isNaN(value.getTime())
-						validated = 'is not a ' + field[0] + ': ' + originalValue
+						validationError = 'is not a ' + field[0] + ': ' + originalValue
 				when 'Interval'
 					value = parseInt(value, 10)
 					if _.isNaN(value)
-						validated = 'is not a number: ' + originalValue
+						validationError = 'is not a number: ' + originalValue
 				when 'Real'
 					value = parseFloat(value)
 					if _.isNaN(value)
-						validated = 'is not a number: ' + originalValue
+						validationError = 'is not a number: ' + originalValue
 				when 'Short Text'
 					if !_.isString(value)
-						validated = 'is not a string: ' + originalValue
+						validationError = 'is not a string: ' + originalValue
 					else if value.length > 255
-						validated = 'longer than 255 characters (' + value.length + ')'
+						validationError = 'longer than 255 characters (' + value.length + ')'
 				when 'Text'
 					if !_.isString(value)
-						validated = 'is not a string: ' + originalValue
+						validationError = 'is not a string: ' + originalValue
 				when 'JSON'
 					try
 						value = JSON.stringify(value)
 					catch e
-						validated = 'cannot be turned into JSON: ' + originalValue
+						validationError = 'cannot be turned into JSON: ' + originalValue
 				when 'Boolean'
 					# We use Number rather than parseInt as it deals with booleans and will return NaN for things like "a1"
 					value = Number(value)
 					if _.isNaN(value) || (value not in [0, 1])
-						validated = 'is not a boolean: ' + originalValue
+						validationError = 'is not a boolean: ' + originalValue
 				when 'Hashed'
 					if !_.isString(value)
-						validated = 'is not a string'
+						validationError = 'is not a string'
 					else if window? && window == (()->this)()
 						# Warning: If we're running in the browser then store unencrypted (no bcrypt module available)
 						if value.length > 60
-							validated = 'longer than 60 characters (' + value.length + ')'
+							validationError = 'longer than 60 characters (' + value.length + ')'
 					else
 						bcrypt = require('bcrypt')
 						salt = bcrypt.genSaltSync()
@@ -66,12 +67,13 @@ define([
 					if !_.isObject(value)
 						value = parseInt(value, 10)
 						if _.isNaN(value)
-							validated = 'is neither an integer or color object: ' + originalValue
+							validationError = 'is neither an integer or color object: ' + originalValue
 					else
 						value = 0
 						for own component, componentValue of originalValue
 							if _.isNaN(componentValue) or componentValue > 255
-								validated = 'has invalid component value of ' + componentValue + ' for component ' + component 
+								validationError = 'has invalid component value of ' + componentValue + ' for component ' + component
+								break
 							switch component.toLowerCase()
 								when 'r', 'red'
 									value |= componentValue >> 16
@@ -82,8 +84,8 @@ define([
 								when 'a', 'alpha'
 									value |= componentValue >> 24
 				else
-					validated = 'is an unsupported type: ' + field[0]
-		return {validated, value}
+					validationError = 'is an unsupported type: ' + typeName
+		callback(validationError, value)
 	
 	postgresDataType = (dataType, necessity, index = '') ->
 		necessity = if necessity then ' NOT NULL' else ' NULL'
