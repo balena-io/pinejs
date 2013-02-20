@@ -6,8 +6,6 @@ define(['underscore', 'cs!sbvr-compiler/types'], (_, sbvrTypes) ->
 			switch fieldType
 				when 'Interval'
 					'Edm.Int64'
-				when 'Time'
-					'Edm.Int64'
 				else
 					if sbvrTypes[fieldType]?
 						if sbvrTypes[fieldType].types.odata.complexType?

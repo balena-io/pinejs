@@ -20,8 +20,6 @@ define([
 				when 'ForeignKey', 'ConceptType'
 					TypeUtils.validate.integer(value, field[2], callback)
 					return
-				when 'Time'
-					TypeUtils.validate.date(value, field[2], callback)
 				when 'Interval'
 					value = parseInt(value, 10)
 					if _.isNaN(value)
@@ -39,8 +37,6 @@ define([
 		if index != ''
 			index = ' ' + index
 		switch dataType
-			when 'Time'
-				return 'TIME' + necessity + index
 			when 'Interval'
 				return 'INTERVAL' + necessity + index
 			when 'ForeignKey', 'ConceptType'
@@ -57,8 +53,6 @@ define([
 		if index != ''
 			index = ' ' + index
 		switch dataType
-			when 'Time'
-				return 'TIME' + necessity + index
 			when 'Interval'
 				return 'INTEGER' + necessity + index
 			when 'ForeignKey', 'ConceptType'
@@ -75,8 +69,6 @@ define([
 		if index != ''
 			index = ' ' + index
 		switch dataType
-			when 'Time'
-				return 'TEXT' + necessity + index
 			when 'Interval'
 				return 'INTEGER' + necessity + index
 			when 'ForeignKey', 'ConceptType'
