@@ -1,8 +1,8 @@
 define(['cs!sbvr-compiler/types/TypeUtils'], (TypeUtils) ->
 	return {
 		types:
-			postgres: 'DATE'
-			mysql: 'DATE'
+			postgres: 'TIMESTAMP'
+			mysql: 'TIMESTAMP'
 			websql: 'INTEGER'
 			odata:
 				name: 'Edm.DateTime'

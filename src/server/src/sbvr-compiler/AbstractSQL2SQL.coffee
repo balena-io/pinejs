@@ -20,13 +20,8 @@ define([
 				when 'ForeignKey', 'ConceptType'
 					TypeUtils.validate.integer(value, field[2], callback)
 					return
-				when 'Date Time', 'Time'
-					value = Number(value)
-					if _.isNaN(value)
-						value = originalValue
-					value = new Date(value)
-					if _.isNaN(value.getTime())
-						validationError = 'is not a ' + field[0] + ': ' + originalValue
+				when 'Time'
+					TypeUtils.validate.date(value, field[2], callback)
 				when 'Interval'
 					value = parseInt(value, 10)
 					if _.isNaN(value)
@@ -44,8 +39,6 @@ define([
 		if index != ''
 			index = ' ' + index
 		switch dataType
-			when 'Date Time'
-				return 'TIMESTAMP' + necessity + index
 			when 'Time'
 				return 'TIME' + necessity + index
 			when 'Interval'
@@ -64,8 +57,6 @@ define([
 		if index != ''
 			index = ' ' + index
 		switch dataType
-			when 'Date Time'
-				return 'TIMESTAMP' + necessity + index
 			when 'Time'
 				return 'TIME' + necessity + index
 			when 'Interval'
@@ -84,8 +75,6 @@ define([
 		if index != ''
 			index = ' ' + index
 		switch dataType
-			when 'Date Time'
-				return 'TEXT' + necessity + index
 			when 'Time'
 				return 'TEXT' + necessity + index
 			when 'Interval'
