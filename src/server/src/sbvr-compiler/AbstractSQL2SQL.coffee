@@ -31,10 +31,6 @@ define([
 					value = parseInt(value, 10)
 					if _.isNaN(value)
 						validationError = 'is not a number: ' + originalValue
-				when 'Real'
-					value = parseFloat(value)
-					if _.isNaN(value)
-						validationError = 'is not a number: ' + originalValue
 				when 'Short Text'
 					if !_.isString(value)
 						validationError = 'is not a string: ' + originalValue
@@ -59,8 +55,6 @@ define([
 				return 'TIME' + necessity + index
 			when 'Interval'
 				return 'INTERVAL' + necessity + index
-			when 'Real'
-				return 'REAL' + necessity + index
 			when 'ForeignKey', 'ConceptType'
 				return 'INTEGER' + necessity + index
 			when 'Short Text'
@@ -83,8 +77,6 @@ define([
 				return 'TIME' + necessity + index
 			when 'Interval'
 				return 'INTEGER' + necessity + index
-			when 'Real'
-				return 'REAL' + necessity + index
 			when 'ForeignKey', 'ConceptType'
 				return 'INTEGER' + necessity + index
 			when 'Short Text'
@@ -107,8 +99,6 @@ define([
 				return 'TEXT' + necessity + index
 			when 'Interval'
 				return 'INTEGER' + necessity + index
-			when 'Real'
-				return 'REAL' + necessity + index
 			when 'ForeignKey', 'ConceptType'
 				return 'INTEGER' + necessity + index
 			when 'Short Text'
