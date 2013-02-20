@@ -3,17 +3,13 @@ define(['underscore', 'cs!sbvr-compiler/types'], (_, sbvrTypes) ->
 	return (vocabulary, sqlModel) ->
 		complexTypes = {}
 		resolveFieldType = (fieldType) ->
-			switch fieldType
-				when 'Interval'
-					'Edm.Int64'
-				else
-					if sbvrTypes[fieldType]?
-						if sbvrTypes[fieldType].types.odata.complexType?
-							complexTypes[fieldType] = sbvrTypes[fieldType].types.odata.complexType
-						sbvrTypes[fieldType].types.odata.name
-					else
-						console.error('Could not resolve type', fieldType)
-						throw 'Could not resolve type' + fieldType
+			if sbvrTypes[fieldType]?
+				if sbvrTypes[fieldType].types.odata.complexType?
+					complexTypes[fieldType] = sbvrTypes[fieldType].types.odata.complexType
+				sbvrTypes[fieldType].types.odata.name
+			else
+				console.error('Could not resolve type', fieldType)
+				throw 'Could not resolve type' + fieldType
 
 
 		model = sqlModel.tables

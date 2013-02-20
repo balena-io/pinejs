@@ -20,10 +20,6 @@ define([
 				when 'ForeignKey', 'ConceptType'
 					TypeUtils.validate.integer(value, field[2], callback)
 					return
-				when 'Interval'
-					value = parseInt(value, 10)
-					if _.isNaN(value)
-						validationError = 'is not a number: ' + originalValue
 				else
 					if sbvrTypes[typeName]?
 						sbvrTypes[typeName].validate(value, field[2], callback)
@@ -37,8 +33,6 @@ define([
 		if index != ''
 			index = ' ' + index
 		switch dataType
-			when 'Interval'
-				return 'INTERVAL' + necessity + index
 			when 'ForeignKey', 'ConceptType'
 				return 'INTEGER' + necessity + index
 			else
@@ -53,8 +47,6 @@ define([
 		if index != ''
 			index = ' ' + index
 		switch dataType
-			when 'Interval'
-				return 'INTEGER' + necessity + index
 			when 'ForeignKey', 'ConceptType'
 				return 'INTEGER' + necessity + index
 			else
@@ -69,8 +61,6 @@ define([
 		if index != ''
 			index = ' ' + index
 		switch dataType
-			when 'Interval'
-				return 'INTEGER' + necessity + index
 			when 'ForeignKey', 'ConceptType'
 				return 'INTEGER' + necessity + index
 			else
