@@ -23,9 +23,9 @@
 
 	has: {
 		ENV_NODEJS				: true,
+		ENV_BROWSER				: false,
 		SBVR_EXTENSIONS			: true,
 		SBVR_SERVER_ENABLED		: false,
-		BROWSER_SERVER_ENABLED	: false,
 		USE_MYSQL				: true,
 		USE_POSTGRES			: false,
 		DEV						: false,

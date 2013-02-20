@@ -22,7 +22,8 @@
 	},
 
 	has: {
-		BROWSER_SERVER_ENABLED: false
+		// For the in-browser server
+		ENV_BROWSER: false
 	},
 	separateCSS: true,
 	modules: [
@@ -32,6 +33,7 @@
 	],
 	
 	paths: {
+		// For the in-browser server
 		"server-glue/server": "empty:"
 	}
 })

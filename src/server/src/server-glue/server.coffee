@@ -85,7 +85,7 @@ define([
 				app.use('/tools', express.static(path.join(rootPath, 'tools')))
 			app.use('/', express.static('static'))
 		)
-	else if has 'BROWSER_SERVER_ENABLED'
+	else if has 'ENV_BROWSER'
 		app = express.app
 
 	setupCallback(app)

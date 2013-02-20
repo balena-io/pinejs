@@ -5,8 +5,8 @@ require({
 			
 			// For the in-browser server
 			ENV_NODEJS				: false,
+			ENV_BROWSER				: true,
 			SBVR_SERVER_ENABLED		: true,
-			BROWSER_SERVER_ENABLED	: true,
 			USE_MYSQL				: false,
 			USE_POSTGRES			: false,
 			DEV						: true,

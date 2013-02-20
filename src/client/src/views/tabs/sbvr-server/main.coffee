@@ -34,7 +34,7 @@ define([
 				if !headers["Content-Type"]? and body?
 					headers["Content-Type"] = "application/json"
 				$("#httpTable").append('<tr class="server_row"><td><strong>' + method + '</strong></td><td>' + uri + '</td><td>' + (if headers.length == 0 then '' else JSON.stringify(headers)) + '</td><td>' + JSON.stringify(body) + '</td></tr>')
-				if has 'BROWSER_SERVER_ENABLED'
+				if has 'ENV_BROWSER'
 					require(['cs!server-glue/server'], (Server) ->
 						Server.app.process(method, uri, headers, body, successCallback, failureCallback)
 					)
