@@ -6,7 +6,6 @@ require({
 			// For the in-browser server
 			ENV_NODEJS				: false,
 			SBVR_SERVER_ENABLED		: true,
-			EDITOR_SERVER_ENABLED	: false,
 			BROWSER_SERVER_ENABLED	: true,
 			USE_MYSQL				: false,
 			USE_POSTGRES			: false,
