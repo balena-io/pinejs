@@ -7,68 +7,33 @@ define([
 	'cs!sbvr-compiler/types/TypeUtils'
 ], (AbstractSQLRules2SQL, AbstractSQLOptimiser, Prettify, _, sbvrTypes, TypeUtils) ->
 
-	dataTypeValidate = (originalValue, field, callback) ->
-		value = originalValue
-		validationError = false
+	dataTypeValidate = (value, field, callback) ->
+		[typeName, fieldName, required] = field
 		if value == null or value == ''
 			value = null
-			if field[2] == true
+			if required
 				validationError = 'cannot be null'
+		else if sbvrTypes[typeName]?
+			sbvrTypes[typeName].validate(value, required, callback)
+			return
+		else if typeName in ['ForeignKey', 'ConceptType']
+			TypeUtils.validate.integer(value, required, callback)
 		else
-			typeName = field[0]
-			switch typeName
-				when 'ForeignKey', 'ConceptType'
-					TypeUtils.validate.integer(value, field[2], callback)
-					return
-				else
-					if sbvrTypes[typeName]?
-						sbvrTypes[typeName].validate(value, field[2], callback)
-						return
-					else
-						validationError = 'is an unsupported type: ' + typeName
-		callback(validationError, value)
+			callback('is an unsupported type: ' + typeName)
 	
-	postgresDataType = (dataType, necessity, index = '') ->
-		necessity = if necessity then ' NOT NULL' else ' NULL'
-		if index != ''
-			index = ' ' + index
-		switch dataType
-			when 'ForeignKey', 'ConceptType'
+	dataTypeGen = (engine) ->
+		(dataType, necessity, index = '') ->
+			necessity = if necessity then ' NOT NULL' else ' NULL'
+			if index != ''
+				index = ' ' + index
+			if dataType in ['ForeignKey', 'ConceptType']
 				return 'INTEGER' + necessity + index
+			else if sbvrTypes[dataType]?.types?[engine]?
+				if _.isFunction(sbvrTypes[dataType].types[engine])
+					return sbvrTypes[dataType].types[engine](necessity, index)
+				return sbvrTypes[dataType].types[engine] + necessity + index
 			else
-				if sbvrTypes[dataType]?.types?.postgres?
-					if _.isFunction(sbvrTypes[dataType].types.postgres)
-						return sbvrTypes[dataType].types.postgres(necessity, index)
-					return sbvrTypes[dataType].types.postgres + necessity + index
-				return 'VARCHAR(100)' + necessity + index
-	
-	mysqlDataType = (dataType, necessity, index = '') ->
-		necessity = if necessity then ' NOT NULL' else ' NULL'
-		if index != ''
-			index = ' ' + index
-		switch dataType
-			when 'ForeignKey', 'ConceptType'
-				return 'INTEGER' + necessity + index
-			else
-				if sbvrTypes[dataType]?.types?.mysql?
-					if _.isFunction(sbvrTypes[dataType].types.mysql)
-						return sbvrTypes[dataType].types.mysql(necessity, index)
-					return sbvrTypes[dataType].types.mysql + necessity + index
-				return 'VARCHAR(100)' + necessity + index
-	
-	websqlDataType = (dataType, necessity, index = '') ->
-		necessity = if necessity then ' NOT NULL' else ' NULL'
-		if index != ''
-			index = ' ' + index
-		switch dataType
-			when 'ForeignKey', 'ConceptType'
-				return 'INTEGER' + necessity + index
-			else
-				if sbvrTypes[dataType]?.types?.websql?
-					if _.isFunction(sbvrTypes[dataType].types.websql)
-						return sbvrTypes[dataType].types.websql(necessity, index)
-					return sbvrTypes[dataType].types.websql + necessity + index
-				return 'VARCHAR(100)' + necessity + index
+				throw 'Unknown data type "' + dataType + '" for engine: ' + engine
 	
 	generate = (sqlModel, dataTypeGen, ifNotExists) ->
 		ifNotExists = if ifNotExists then 'IF NOT EXISTS ' else ''
@@ -159,13 +124,13 @@ define([
 
 	return {
 		websql: 
-			generate: (sqlModel) -> generate(sqlModel, websqlDataType, false)
+			generate: (sqlModel) -> generate(sqlModel, dataTypeGen('websql'), false)
 			dataTypeValidate: dataTypeValidate
 		postgres: 
-			generate: (sqlModel) -> generate(sqlModel, postgresDataType, true)
+			generate: (sqlModel) -> generate(sqlModel, dataTypeGen('postgres'), true)
 			dataTypeValidate: dataTypeValidate
 		mysql: 
-			generate: (sqlModel) -> generate(sqlModel, mysqlDataType, true)
+			generate: (sqlModel) -> generate(sqlModel, dataTypeGen('mysql'), true)
 			dataTypeValidate: dataTypeValidate
 	}
 
