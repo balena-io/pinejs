@@ -31,11 +31,6 @@ define([
 					value = parseInt(value, 10)
 					if _.isNaN(value)
 						validationError = 'is not a number: ' + originalValue
-				when 'Short Text'
-					if !_.isString(value)
-						validationError = 'is not a string: ' + originalValue
-					else if value.length > 255
-						validationError = 'longer than 255 characters (' + value.length + ')'
 				else
 					if sbvrTypes[typeName]?
 						sbvrTypes[typeName].validate(value, field[2], callback)
@@ -57,8 +52,6 @@ define([
 				return 'INTERVAL' + necessity + index
 			when 'ForeignKey', 'ConceptType'
 				return 'INTEGER' + necessity + index
-			when 'Short Text'
-				return 'VARCHAR(255)' + necessity + index
 			else
 				if sbvrTypes[dataType]?.types?.postgres?
 					if _.isFunction(sbvrTypes[dataType].types.postgres)
@@ -79,8 +72,6 @@ define([
 				return 'INTEGER' + necessity + index
 			when 'ForeignKey', 'ConceptType'
 				return 'INTEGER' + necessity + index
-			when 'Short Text'
-				return 'VARCHAR(255) ' + necessity + index
 			else
 				if sbvrTypes[dataType]?.types?.mysql?
 					if _.isFunction(sbvrTypes[dataType].types.mysql)
@@ -101,8 +92,6 @@ define([
 				return 'INTEGER' + necessity + index
 			when 'ForeignKey', 'ConceptType'
 				return 'INTEGER' + necessity + index
-			when 'Short Text'
-				return 'VARCHAR(255) ' + necessity + index
 			else
 				if sbvrTypes[dataType]?.types?.websql?
 					if _.isFunction(sbvrTypes[dataType].types.websql)

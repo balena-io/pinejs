@@ -8,10 +8,6 @@ define(['underscore', 'cs!sbvr-compiler/types'], (_, sbvrTypes) ->
 					'Edm.Int64'
 				when 'Date Time', 'Time'
 					'Edm.Int64'
-				when 'Real'
-					'Edm.Double'
-				when 'Short Text'
-					'Edm.String'
 				else
 					if sbvrTypes[fieldType]?
 						if sbvrTypes[fieldType].types.odata.complexType?

@@ -1,4 +1,4 @@
-define(['underscore'], (_) ->
+define(['cs!sbvr-compiler/types/TypeUtils'], (TypeUtils) ->
 	return {
 		types:
 			postgres: 'TEXT'
@@ -7,10 +7,6 @@ define(['underscore'], (_) ->
 			odata:
 				name: 'Edm.String'
 
-		validate: (value, required, callback) ->
-			if !_.isString(value)
-				callback('is not a string: ' + value)
-			else
-				callback(null, value)
+		validate: TypeUtils.validate.text()
 	}
 )
