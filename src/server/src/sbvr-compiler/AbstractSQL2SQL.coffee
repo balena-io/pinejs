@@ -16,7 +16,7 @@ define([
 		else
 			typeName = field[0]
 			switch typeName
-				when 'Integer', 'ForeignKey', 'ConceptType'
+				when 'ForeignKey', 'ConceptType'
 					value = parseInt(value, 10)
 					if _.isNaN(value)
 						validationError = 'is not a number: ' + originalValue
@@ -61,7 +61,7 @@ define([
 				return 'INTERVAL' + necessity + index
 			when 'Real'
 				return 'REAL' + necessity + index
-			when 'Integer', 'ForeignKey', 'ConceptType'
+			when 'ForeignKey', 'ConceptType'
 				return 'INTEGER' + necessity + index
 			when 'Short Text'
 				return 'VARCHAR(255)' + necessity + index
@@ -85,7 +85,7 @@ define([
 				return 'INTEGER' + necessity + index
 			when 'Real'
 				return 'REAL' + necessity + index
-			when 'Integer', 'ForeignKey', 'ConceptType'
+			when 'ForeignKey', 'ConceptType'
 				return 'INTEGER' + necessity + index
 			when 'Short Text'
 				return 'VARCHAR(255) ' + necessity + index
@@ -109,7 +109,7 @@ define([
 				return 'INTEGER' + necessity + index
 			when 'Real'
 				return 'REAL' + necessity + index
-			when 'Integer', 'ForeignKey', 'ConceptType'
+			when 'ForeignKey', 'ConceptType'
 				return 'INTEGER' + necessity + index
 			when 'Short Text'
 				return 'VARCHAR(255) ' + necessity + index

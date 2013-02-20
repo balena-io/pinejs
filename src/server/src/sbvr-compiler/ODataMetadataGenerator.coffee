@@ -4,8 +4,6 @@ define(['underscore', 'cs!sbvr-compiler/types'], (_, sbvrTypes) ->
 		complexTypes = {}
 		resolveFieldType = (fieldType) ->
 			switch fieldType
-				when 'Integer'
-					'Edm.Int64'
 				when 'Interval'
 					'Edm.Int64'
 				when 'Date Time', 'Time'
