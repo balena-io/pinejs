@@ -4,7 +4,8 @@ define([
 	'ometa!prettify/Prettify'
 	'underscore'
 	'cs!sbvr-compiler/types'
-], (AbstractSQLRules2SQL, AbstractSQLOptimiser, Prettify, _, sbvrTypes) ->
+	'cs!sbvr-compiler/types/TypeUtils'
+], (AbstractSQLRules2SQL, AbstractSQLOptimiser, Prettify, _, sbvrTypes, TypeUtils) ->
 
 	dataTypeValidate = (originalValue, field, callback) ->
 		value = originalValue
@@ -17,9 +18,8 @@ define([
 			typeName = field[0]
 			switch typeName
 				when 'ForeignKey', 'ConceptType'
-					value = parseInt(value, 10)
-					if _.isNaN(value)
-						validationError = 'is not a number: ' + originalValue
+					TypeUtils.validate.integer(value, field[2], callback)
+					return
 				when 'Date Time', 'Time'
 					value = Number(value)
 					if _.isNaN(value)
