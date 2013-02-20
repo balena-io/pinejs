@@ -16,7 +16,7 @@ define([
 		else
 			typeName = field[0]
 			switch typeName
-				when 'Serial', 'Integer', 'ForeignKey', 'ConceptType'
+				when 'Integer', 'ForeignKey', 'ConceptType'
 					value = parseInt(value, 10)
 					if _.isNaN(value)
 						validationError = 'is not a number: ' + originalValue
@@ -53,8 +53,6 @@ define([
 		if index != ''
 			index = ' ' + index
 		switch dataType
-			when 'Serial'
-				return 'SERIAL' + necessity + index
 			when 'Date Time'
 				return 'TIMESTAMP' + necessity + index
 			when 'Time'
@@ -69,6 +67,8 @@ define([
 				return 'VARCHAR(255)' + necessity + index
 			else
 				if sbvrTypes[dataType]?.types?.postgres?
+					if _.isFunction(sbvrTypes[dataType].types.postgres)
+						return sbvrTypes[dataType].types.postgres(necessity, index)
 					return sbvrTypes[dataType].types.postgres + necessity + index
 				return 'VARCHAR(100)' + necessity + index
 	
@@ -77,8 +77,6 @@ define([
 		if index != ''
 			index = ' ' + index
 		switch dataType
-			when 'Serial'
-				return 'INTEGER' + necessity + index + ' AUTO_INCREMENT'
 			when 'Date Time'
 				return 'TIMESTAMP' + necessity + index
 			when 'Time'
@@ -93,6 +91,8 @@ define([
 				return 'VARCHAR(255) ' + necessity + index
 			else
 				if sbvrTypes[dataType]?.types?.mysql?
+					if _.isFunction(sbvrTypes[dataType].types.mysql)
+						return sbvrTypes[dataType].types.mysql(necessity, index)
 					return sbvrTypes[dataType].types.mysql + necessity + index
 				return 'VARCHAR(100)' + necessity + index
 	
@@ -101,8 +101,6 @@ define([
 		if index != ''
 			index = ' ' + index
 		switch dataType
-			when 'Serial'
-				return 'INTEGER' + necessity + index + ' AUTOINCREMENT'
 			when 'Date Time'
 				return 'TEXT' + necessity + index
 			when 'Time'
@@ -117,6 +115,8 @@ define([
 				return 'VARCHAR(255) ' + necessity + index
 			else
 				if sbvrTypes[dataType]?.types?.websql?
+					if _.isFunction(sbvrTypes[dataType].types.websql)
+						return sbvrTypes[dataType].types.websql(necessity, index)
 					return sbvrTypes[dataType].types.websql + necessity + index
 				return 'VARCHAR(100)' + necessity + index
 	

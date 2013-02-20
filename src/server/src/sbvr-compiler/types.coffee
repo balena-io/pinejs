@@ -1,4 +1,5 @@
 define([
+	'cs!sbvr-compiler/types/Serial'
 	'cs!sbvr-compiler/types/Date'
 	'cs!sbvr-compiler/types/Text'
 	'cs!sbvr-compiler/types/Color'
@@ -6,6 +7,6 @@ define([
 	'cs!sbvr-compiler/types/Boolean'
 	'cs!sbvr-compiler/types/JSON'
 	'cs!sbvr-compiler/types/File'
-], (Date, Text, Color, Hashed, Boolean, JSON, File) ->
-	return {Date, Text, Color, Hashed, Boolean, JSON, File}
+], (Serial, Date, Text, Color, Hashed, Boolean, JSON, File) ->
+	return {Serial, Date, Text, Color, Hashed, Boolean, JSON, File}
 )
