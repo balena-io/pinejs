@@ -55,7 +55,7 @@ define(['has', 'async'], (has, async) ->
 						(user, callback) ->
 							async.parallel({
 									user: (callback) ->
-										sbvrUtils.runURI('POST', '/Auth/user', {'username': user.username, 'password': user.password}, null, (err) ->
+										sbvrUtils.runURI('POST', '/Auth/user', {'username': user.username, 'password': user.password}, null, (err, result) ->
 											if err
 												callback(err)
 											else
@@ -66,9 +66,9 @@ define(['has', 'async'], (has, async) ->
 											return callback(null, [])
 										async.map(user.permissions,
 											(permission, callback) ->
-												sbvrUtils.runURI('POST', '/Auth/permission', {'name': 'resource.all'}, null, (err) ->
+												sbvrUtils.runURI('POST', '/Auth/permission', {'name': 'resource.all'}, null, (err, result) ->
 													if err
-														sbvrUtils.runURI('GET', '/Auth/permission', {'name': 'resource.all'}, null, (err) ->
+														sbvrUtils.runURI('GET', '/Auth/permission', {'name': 'resource.all'}, null, (err, result) ->
 															if err
 																callback(err)
 															else
