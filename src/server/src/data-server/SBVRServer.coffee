@@ -1,7 +1,8 @@
 define([
 	'async'
 	'underscore'
-], (async, _) ->
+	'has'
+], (async, _, has) ->
 	exports = {}
 	db = null
 
