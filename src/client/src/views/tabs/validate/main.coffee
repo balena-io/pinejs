@@ -15,16 +15,21 @@ define([
 			this.setTitle('Validate')
 			
 			html = """
-				<div id="validate" class="btn btn-small btn-primary">Validate</div>
 				<textarea id="validateEditor" />
-				<h3>Validation Results</h3>
-				<table class="table table-bordered table-striped">
-					<thead>
-						<tr></tr>
-					</thead>
-					<tbody>
-					</tbody>
-				</table>"""
+				<div id="validate" class="btn btn-small btn-primary">Validate</div>
+				<div id="results" style="display: none">
+					<h3>Invalid items:</h3>
+					<table class="table table-bordered table-striped">
+						<thead>
+							<tr></tr>
+						</thead>
+						<tbody>
+						</tbody>
+					</table>
+				</div>
+				<div id="noresults" style="display: none">
+					<h3>No invalid items in database</h3>
+				</div>"""
 
 			@$el.html(html)
 			textarea = @$('#validateEditor')
@@ -137,26 +142,40 @@ define([
 							if err
 								console.error('Error validating', err)
 								return
-							header = @$("thead tr")
-							results = @$("tbody")
-							header.empty()
-							results.empty()
 
-							for name in colNames
-								column = $(document.createElement('th')).text(name)
-								header.append(column)
+							console.log "invalid items:", invalid.d.length, invalid.d.length == 0, invalid.d
 
-							for instance, i in invalid.d
-								for manyToManyCol in manyToManyCols[i] when manyToManyCol?
-									fkName = manyToManyCol.__model.resourceName.split('-')[2]
-									instance[fkName] = (manyToManyInstance[manyToManyCol.__model.idField] + ': ' + manyToManyInstance[fkName] for manyToManyInstance in manyToManyCol.d).join('\n')
+							results_div = @$("#results")
+							noresults_div = @$("#noresults")
 
-								row = $(document.createElement('tr'))
-								for column in colModel
-									cell = $(document.createElement('td'))
-									cell.text(instance[column.name])
-									row.append(cell)
-								results.append(row)
+							if invalid.d.length == 0
+								results_div.hide()
+								noresults_div.show()
+
+							else
+								results_div.show()
+								noresults_div.hide()
+
+								header = @$("thead tr")
+								results = @$("tbody")
+								header.empty()
+								results.empty()
+
+								for name in colNames
+									column = $(document.createElement('th')).text(name)
+									header.append(column)
+
+								for instance, i in invalid.d
+									for manyToManyCol in manyToManyCols[i] when manyToManyCol?
+										fkName = manyToManyCol.__model.resourceName.split('-')[2]
+										instance[fkName] = (manyToManyInstance[manyToManyCol.__model.idField] + ': ' + manyToManyInstance[fkName] for manyToManyInstance in manyToManyCol.d).join('\n')
+
+									row = $(document.createElement('tr'))
+									for column in colModel
+										cell = $(document.createElement('td'))
+										cell.text(instance[column.name])
+										row.append(cell)
+									results.append(row)
 					)
 			)
 	)
