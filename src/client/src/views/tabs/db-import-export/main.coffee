@@ -1,6 +1,7 @@
 define([
 	'backbone'
 	'codemirror'
+	'codemirror-modes/sql/sql'
 ], (Backbone, CodeMirror) ->
 	Backbone.View.extend(
 		events:
@@ -21,8 +22,7 @@ define([
 			@$el.html(html).append(textarea)
 			
 			@editor = CodeMirror.fromTextArea(textarea.get(0),
-				mode:
-					name: 'text/x-plsql'
+				mode: 'text/x-sql'
 				lineWrapping: true
 				highlightMargin: 0
 			)

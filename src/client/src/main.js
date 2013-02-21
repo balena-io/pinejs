@@ -32,6 +32,7 @@ require({
 		'backbone'					: '../lib/backbone',
 		'bootstrap'					: '../lib/bootstrap/bootstrap',
 		'codemirror'				: '../lib/codemirror/lib/codemirror',
+		'codemirror-modes'			: '../lib/codemirror/mode',
 		'codemirror-ometa-bridge'	: '../lib/codemirror-ometa-bridge/src',
 		'codemirror-simple-hint'	: '../lib/codemirror/addon/hint/simple-hint',
 		'd3'						: '../lib/d3.v2',
@@ -75,6 +76,7 @@ require({
 			deps: [ 'css!lib/codemirror/lib/codemirror'],
 			exports: 'CodeMirror'
 		},
+		'codemirror-modes/sql/sql': ['codemirror'],
 		'jquery-ui': {
 			deps: ['jquery']
 		},
