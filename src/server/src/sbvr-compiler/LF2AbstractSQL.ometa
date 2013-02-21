@@ -298,13 +298,13 @@ define([
 					(	?(property == 'Length')
 						-> ['CharacterLength', from]
 					|	?(property == 'Red Component')
-						['BitwiseAnd', ['BitwiseShiftRight', from, 16], 255]
+						-> ['BitwiseAnd', ['BitwiseShiftRight', from, 16], 255]
 					|	?(property == 'Green Component')
-						['BitwiseAnd', ['BitwiseShiftRight', from, 8], 255]
+						-> ['BitwiseAnd', ['BitwiseShiftRight', from, 8], 255]
 					|	?(property == 'Blue Component')
-						['BitwiseAnd', from, 255]
+						-> ['BitwiseAnd', from, 255]
 					|	?(property == 'Alpha Component')
-						['BitwiseAnd', ['BitwiseShiftRight', from, 24], 255]
+						-> ['BitwiseAnd', ['BitwiseShiftRight', from, 24], 255]
 					)
 				)
 			|	___NativeFactTypeMatchingFailed___.die
