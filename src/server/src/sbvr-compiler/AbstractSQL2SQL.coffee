@@ -10,9 +10,10 @@ define([
 	dataTypeValidate = (value, field, callback) ->
 		[typeName, fieldName, required] = field
 		if value == null or value == ''
-			value = null
 			if required
-				validationError = 'cannot be null'
+				callback('cannot be null')
+			else
+				callback(null, null)
 		else if sbvrTypes[typeName]?
 			sbvrTypes[typeName].validate(value, required, callback)
 			return
