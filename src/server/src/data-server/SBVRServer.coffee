@@ -54,7 +54,7 @@ define([
 		_nexts = []
 		runNext = (next, loaded) ->
 			if loaded == true
-				runNext = (next) -> next()
+				runNext = (next) -> next?()
 				for next in _nexts
 					setTimeout(next, 0)
 			else
