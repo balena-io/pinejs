@@ -465,14 +465,14 @@ define([
 									throw err
 								instance[field[1]] = result
 							)
-				callback(instance)
+				callback(null, instance)
 		else
 			processInstance = (instance, callback) ->
 				instance = _.clone(instance)
 				instance.__metadata =
 					uri: ''
 					type: ''
-				callback(instance)
+				callback(null, instance)
 		async.map(rows, processInstance, callback)
 
 	exports.runRule = do ->
