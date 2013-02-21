@@ -49,7 +49,7 @@ define([
 								error = JSON.parse(jqXHR.responseText)
 							catch e
 								error = jqXHR.responseText
-							failureCallback(jqXHR.status, )
+							failureCallback(jqXHR.status, error)
 
 						success: (data, textStatus, jqXHR) ->
 							rheaders = /^(.*?):[ \t]*([^\r\n]*)\r?$/mg
