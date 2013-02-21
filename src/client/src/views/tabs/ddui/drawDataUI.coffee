@@ -3,8 +3,9 @@ define([
 	'ejs'
 	'cs!./widgets'
 	'async'
+	'underscore'
 	'cs!./runTrans'
-], (ClientURIUnparser, ejs, widgets, async) ->
+], (ClientURIUnparser, ejs, widgets, async, _) ->
 	templates = {
 		widgets: widgets
 		hiddenFormInput: ejs.compile('''
