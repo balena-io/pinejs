@@ -75,7 +75,7 @@ define([
 			sbvrUtils.runURI('GET', '/dev/model?$filter=model_type eq se and vocabulary eq data', null, tx, (err, result) ->
 				if !err and result.d.length > 0
 					instance = result.d[0]
-					sbvrUtils.executeModel(tx, 'data', instance.vocabulary, instance['model value'], (err) ->
+					sbvrUtils.executeModel(tx, instance.vocabulary, instance['model value'], (err) ->
 						if err
 							isServerOnAir(false)
 						else
