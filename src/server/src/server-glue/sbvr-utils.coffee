@@ -964,7 +964,8 @@ define([
 				callback?(err)
 		)
 
-	exports.setup = (app, requirejs, db, callback) ->
+	exports.setup = (app, requirejs, _db, callback) ->
+		db = _db
 		AbstractSQL2SQL = AbstractSQL2SQL[db.engine]
 		db.transaction((tx) ->
 			executeStandardModels(tx, (err) ->
