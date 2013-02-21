@@ -33,7 +33,8 @@ define([
 
 			@$el.html(html)
 
-			window.serverRequest = (method, uri, headers = {}, body = null, successCallback=(->), failureCallback=->console.error(arguments)) ->
+			window.serverRequest = (method, uri, headers = {}, body = null, successCallback=(->), failureCallback) ->
+				failureCallback ?= -> console.error(method, uri, arguments)
 				if !headers["Content-Type"]? and body?
 					headers["Content-Type"] = "application/json"
 				$("#httpTable").append('<tr class="server_row"><td><strong>' + method + '</strong></td><td>' + uri + '</td><td>' + (if headers.length == 0 then '' else JSON.stringify(headers)) + '</td><td>' + JSON.stringify(body) + '</td></tr>')
