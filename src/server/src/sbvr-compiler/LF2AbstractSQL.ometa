@@ -680,15 +680,12 @@ define([
 	};
 	
 	LF2AbstractSQL.ResolveConceptTypes = function(query, identifier, varAlias, untilConcept) {
-		var conceptTypes,
-			conceptAlias,
+		var conceptAlias,
 			parentAlias = varAlias + identifier.name,
 			concept = [identifier.type, identifier.name, identifier.vocab],
 			conceptTable;
-		while((untilConcept == null || concept[1] != untilConcept[1] || concept[2] != untilConcept[2])
-				&& (conceptTypes = this.vocabularies[concept[2]]['ConceptTypes'])
-				&&	conceptTypes.hasOwnProperty(concept[1])) {
-			concept = conceptTypes[concept[1]];
+		while((untilConcept == null || !this.IdentifiersEqual(concept, untilConcept))
+				&& (concept = this.FollowConceptType(concept)) !== false) {
 			conceptAlias = varAlias + concept[1];
 			conceptTable = this.GetTable(concept[1]);
 			if(conceptTable.primitive !== false) {

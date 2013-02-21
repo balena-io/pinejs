@@ -30,14 +30,22 @@ define(['underscore', 'ometa-core'], function(_) {
 		return a[0] === b[0] && a[1] === b[1] && a[2] === b[2];
 	};
 
+	SBVRLibs.FollowConceptType = function(identifier) {
+		var conceptTypes = this.vocabularies[identifier[2]]['ConceptTypes'];
+		identifier = identifier.slice(0, 3);
+		if(conceptTypes.hasOwnProperty(identifier) ) {
+			return conceptTypes[identifier];
+		}
+		return false;
+	}
+
 	SBVRLibs.IsPrimitive = function(term) {
 		// do {
 			if (term[2] == this.TYPE_VOCAB) {
 				return term[1];
 			}
 		// } while (this.conceptTypes.hasOwnProperty(termName) && (termName = this.conceptTypes[termName]));
-		var conceptTypes = this.vocabularies[term[2]]['ConceptTypes'];
-		if (conceptTypes.hasOwnProperty(term) && (term = conceptTypes[term])) {
+		if( (term = this.FollowConceptType(term)) !== false ) {
 			if (term[2] == this.TYPE_VOCAB) {
 				return term[1];
 			}
@@ -115,10 +123,7 @@ define(['underscore', 'ometa-core'], function(_) {
 			}
 			
 			if(!create && (currentFactTypePart[0] == 'Term' || currentFactTypePart[0] == 'Name')) {
-				var conceptTypes;
-				while( (conceptTypes = self.vocabularies[currentFactTypePart[2]]['ConceptTypes'])
-						&& conceptTypes.hasOwnProperty(currentFactTypePart) ) {
-					currentFactTypePart = conceptTypes[currentFactTypePart];
+				while( (currentFactTypePart = self.FollowConceptType(currentFactTypePart)) !== false ) {
 					if( currentLevel.hasOwnProperty(currentFactTypePart) ) {
 						// We use recursion so here we go down each branch until we find the suitable one, or run out of branches.
 						finalLevel = traverseRecurse(remainingFactType[0], remainingFactType.slice(1), currentLevel[currentFactTypePart]);
@@ -156,14 +161,12 @@ define(['underscore', 'ometa-core'], function(_) {
 	};
 	
 	SBVRLibs.IsChild = function(child, parent) {
-		var conceptTypes;
 		// Parent should be in the form ['Term', ...], where we care about the ... bit.
 		do {
 			if(this.IdentifiersEqual(child, parent)) {
 				return true;
 			}
-			conceptTypes = this.vocabularies[parent[2]]['ConceptTypes'];
-		} while( conceptTypes.hasOwnProperty(child) && (child = conceptTypes[child]) );
+		} while( (child = this.FollowConceptType(child)) !== false );
 		return false;
 	};
 
