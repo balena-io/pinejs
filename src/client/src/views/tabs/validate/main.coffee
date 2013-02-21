@@ -102,7 +102,7 @@ define([
 												serverRequest('GET', '/data/' + model.resourceName + '?$filter=' + model.idField + ' eq ' + instance[model.modelName].__id, {}, null,
 													(statusCode, fkCol) ->
 														if fkCol.d.length > 0
-															instance[model.modelName] = fkCol.d[0][model.referenceScheme]
+															instance[model.modelName] = fkCol.d[0][model.idField] + ': ' + fkCol.d[0][model.referenceScheme]
 														callback()
 													-> callback(arguments)
 												)
