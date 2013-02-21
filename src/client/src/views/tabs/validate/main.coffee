@@ -97,21 +97,19 @@ define([
 														(statusCode, results) ->
 															if results.d.length > 0
 																instance[fkName] = results.d[0][results.__model.referenceScheme]
-															callback(false)
-														-> callback(true)
+															callback()
+														callback
 													)
 												(err) ->
 													callback(err, fetchCol)
 											)
-										-> callback(true)
+										-> callback(arguments)
 									)
-								->
-									console.log(arguments)
-									callback.apply(null, arguments)
+								callback
 							)
 						(err, fetchCols) =>
-							if err?
-								console.error('Error validating')
+							if err
+								console.error('Error validating', err)
 								return
 							header = @$("thead tr")
 							results = @$("tbody")
