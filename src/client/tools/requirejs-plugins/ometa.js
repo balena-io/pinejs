@@ -92,7 +92,26 @@ define(['ometa-core', 'ometa-compiler', 'js-beautify'], function (OMeta, ometac,
 			fetchText(path, function (source) {
 
 				var compileOMeta = function (s) {
-					var tree = ometac.BSOMetaJSParser.matchAll(s, "topLevel"),
+					var tree = ometac.BSOMetaJSParser.matchAll(s, "topLevel", undefined, function(matchingError, index) {
+							var line = 1,
+								column = 0,
+								i = 0,
+								char,
+								start;
+							for(; i < index; i++) {
+								char = source.charAt(i);
+								column++;
+								if(char == '\n') {
+									line++;
+									column = 0;
+								}
+							}
+							console.error('Error on line ' + line + ', column ' + column);
+							start = Math.max(0, index - 20);
+							console.error('Error around: ' + source.substring(start, Math.min(source.length, start + 40)));
+							console.error('Error around: ' + source.substring(index - 2, Math.min(source.length, index + 2)));
+							throw matchingError;
+						}),
 						js = ometac.BSOMetaJSTranslator.match(tree, "trans");
 					return js_beautify(js);
 				}
