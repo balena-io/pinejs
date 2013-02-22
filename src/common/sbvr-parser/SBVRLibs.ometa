@@ -139,25 +139,28 @@ define(['underscore', 'ometa-core'], function(_) {
 	};
 
 	SBVRLibs.MappedFactType = function(factType) {
-		var traverseInfo = this._traverseFactType(factType);
+		var traverseInfo = this._traverseFactType(factType),
+			mappedFactType = [];
 		if(traverseInfo===false || !traverseInfo.hasOwnProperty('__valid')) {
 			return false;
 		}
-		return traverseInfo.__valid;
+		for(var i = 0; i < traverseInfo.__valid.length; i++) {
+			mappedFactType[i] = traverseInfo.__valid[i].slice();
+		}
+		// Keep the negated status the same as fact type passed in.
+		mappedFactType[1][2] = factType[1][2];
+		return mappedFactType;
 	};
 
-	SBVRLibs.ActualFactType = function(factType) {
+	SBVRLibs.UnmappedFactType = function(factType) {
 		var mappedFactType = this.MappedFactType(factType);
 		if(mappedFactType === false) {
 			return false;
 		}
-		var actualFactType = [];
 		for(var i = 0; i < mappedFactType.length; i++) {
-			actualFactType[i] = mappedFactType[i].slice(0, 3);
+			mappedFactType[i] = mappedFactType[i].slice(0, 3);
 		}
-		// Keep the negated status the same as fact type passed in.
-		actualFactType[1][2] = factType[1][2];
-		return actualFactType;
+		return mappedFactType;
 	};
 	
 	SBVRLibs.IsChild = function(child, parent) {

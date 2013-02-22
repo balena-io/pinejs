@@ -389,7 +389,7 @@ define([
 				[	'FactType'
 					anything+:factType
 				]
-				ActualFactType(factType):actualFactType
+				MappedFactType(factType):actualFactType
 				FactTypeRootTerms(factType):rootTerms
 				(	NativeFactType(actualFactType, rootTerms)
 				|	ForeignKey(actualFactType, rootTerms)
@@ -558,7 +558,7 @@ define([
 					[	'FactType'
 						anything+:factType
 					]
-					ActualFactType(factType):actualFactType
+					UnmappedFactType(factType):actualFactType
 					{this._applyWithArgs(rule, depth, actualFactType)}
 				|	ProcessAtomicFormulationsRecurse(depth+1, rule)
 				]
