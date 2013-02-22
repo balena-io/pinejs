@@ -74,6 +74,7 @@ define((requirejs, exports, module) ->
 				else
 					res.send(404)
 			checkMethodHandlers()
+		queuedRequests = []
 		return {
 			post: (args...) -> addHandler.apply(null, ['POST'].concat(args))
 			get: (args...) -> addHandler.apply(null, ['GET'].concat(args))
@@ -85,11 +86,16 @@ define((requirejs, exports, module) ->
 				@put.apply(this, arguments)
 				@del.apply(this, arguments)
 			process: (args...) ->
-				# Run the real process function asynchronously, to match somewhat more closely to an AJAX call.
-				setTimeout(
-					-> process.apply(null, args)
-					0
-				)
+				queuedRequests.push(args)
+			enable: ->
+				@process = (args...) ->
+					# Run the real process function asynchronously, to match somewhat more closely to an AJAX call.
+					setTimeout(
+						-> process.apply(null, args)
+						0
+					)
+				for queuedRequest in queuedRequests
+					@process.apply(@, queuedRequest)
 		}
 
 	return {

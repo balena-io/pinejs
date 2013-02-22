@@ -2,9 +2,6 @@ define([
 	'backbone'
 	'has'
 ], (Backbone, has) ->
-	# Init the browser server during setup, so it has time to do all its setup before being asked to process a request.
-	if has 'ENV_BROWSER'
-		require(['cs!server-glue/server'])
 	Backbone.View.extend(
 		events:
 			"click #run-server": "runServer"

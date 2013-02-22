@@ -49,6 +49,9 @@ define([
 				app.listen(process.env.PORT or 1337, () ->
 					console.log('Server started')
 				)
+
+			if has 'ENV_BROWSER'
+				app.enable()
 		)
 
 
