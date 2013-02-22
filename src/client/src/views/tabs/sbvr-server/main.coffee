@@ -62,6 +62,11 @@ define([
 
 						type: method
 
+			serverRequest('GET', '/onAir/', {}, null, (statusCode, result) =>
+				if result
+					@model.trigger('onAir')
+			)
+
 		runServer: ->
 			serverRequest("DELETE", "/cleardb", {}, null, =>
 				serverRequest("PUT", "/ui/textarea-is_disabled?$filter=textarea/name eq model_area", {}, null, =>

@@ -88,11 +88,10 @@ define([
 
 		db.transaction(setupModels)
 
-		app.get('/onair',
-			(req, res, next) -> 
-				isServerOnAir((onAir) ->
-					res.json(onAir)
-				)
+		app.get('/onAir', (req, res, next) -> 
+			isServerOnAir((onAir) ->
+				res.json(onAir)
+			)
 		)
 		app.post('/update', sbvrUtils.checkPermissionsMiddleware('all'), serverIsOnAir, (req, res, next) ->
 			res.send(404)
