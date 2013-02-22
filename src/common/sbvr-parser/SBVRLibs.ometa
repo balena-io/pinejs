@@ -172,41 +172,6 @@ define(['underscore', 'ometa-core'], function(_) {
 		} while( (child = this.FollowConceptType(child)) !== false );
 		return false;
 	};
-
-	SBVRLibs.FactTypeRootTerms = function(factType) {
-		var mappedFactType = this.MappedFactType(factType);
-		if(mappedFactType === false) {
-			return false;
-		}
-		var schemaInfo = [],
-			schemaInfoIndex = 0,
-			usedTermNames = {};
-		for(var i=0; i < factType.length; i+=2) {
-			for(var j=0; j < mappedFactType.length; j+=2) {
-				var mappedFactTypePart = mappedFactType[j];
-				if(mappedFactTypePart[3] == i) {
-					var term = mappedFactTypePart.slice(0, 3);
-					schemaInfo[schemaInfoIndex++] = {
-						term: term,
-						field: mappedFactTypePart[1]
-					};
-					// TODO: Should account for vocabulary
-					if(usedTermNames.hasOwnProperty(term)) {
-						usedTermNames[term] = 0;
-					}
-					else {
-						usedTermNames[term] = null;
-					}
-				}
-			}
-		}
-		for(var i=0; i < schemaInfo.length; i++) {
-			if(usedTermNames[schemaInfo[i].term] != null) {
-				schemaInfo[i].field = schemaInfo[i].field + (++usedTermNames[schemaInfo[i].term]);
-			}
-		}
-		return schemaInfo;
-	};
 	
 	SBVRLibs.GetResourceName = function(termOrFactType) {
 		var i = 0, resource = [];

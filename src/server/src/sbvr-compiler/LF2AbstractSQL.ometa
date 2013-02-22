@@ -339,46 +339,54 @@ define([
 			|	___NativeFactTypeMatchingFailed___.die
 			),
 
-		LinkTable :actualFactType :rootTerms =
+		LinkTable :actualFactType =
 			{'link' + this.linkTableBind++}:tableAlias
 			{['SelectQuery', ['Select', []], ['From', this.GetTable(actualFactType).name, tableAlias]]}:query
 			{0}:i
-			(	?(i < rootTerms.length)
+			(	?(i < actualFactType.length)
 				RoleBinding:bind
-				{rootTerms[i].term[1]}:termName
+				{0}:j
+				(	?(j < actualFactType.length)
+					// Find the matching term
+					(	?(actualFactType[j][3] == i)
+						{actualFactType[j][1]}:termName
+					)?
+					{j+2}:j
+				)*
 				GetTable(termName):table
-				AddWhereClause(query, ['Equals', ['ReferencedField', tableAlias, rootTerms[i].field], ['ReferencedField', 'var' + bind.number + termName, table.idField]])
-				{i++}
+				AddWhereClause(query, ['Equals', ['ReferencedField', tableAlias, termName], ['ReferencedField', 'var' + bind.number + termName, table.idField]])
+				{i+2}:i
 			)+
 			-> ['Exists', query],
 		
-		ForeignKey :actualFactType :rootTerms =
+		ForeignKey :actualFactType =
 			?(this.GetTable(actualFactType) == 'ForeignKey')
 			(	RoleBinding:bindFrom
 				RoleBinding:bindTo
 				end
-				(	?this.IsChild([bindFrom.identifier.type, bindFrom.identifier.name, bindFrom.identifier.vocab], actualFactType[0])
-					{rootTerms[0]}:fkFrom
-					{rootTerms[1]}:fkTo
-				|	{bindTo}:temp
+				(	?(actualFactType[0][3] != 0)
+					// If the first term is not mapped to the first term (ie. reversed synonymous form), then we need to reverse the position of the attr/term to match.
+					{bindTo}:temp
 					{bindFrom}:bindTo
 					{temp}:bindFrom
-					{rootTerms[1]}:fkFrom
-					{rootTerms[0]}:fkTo
+					{actualFactType[2]}:fromTerm
+					{actualFactType[0]}:toTerm
+				|	{actualFactType[0]}:fromTerm
+					{actualFactType[2]}:toTerm
 				)
-				GetTable(fkTo.term[1]):tableTo
+				GetTable(toTerm[1]):tableTo
 			|	___ForeignKeyMatchingFailed___.die
 			)
 			(	?(bindTo.identifier.type == 'Name')
 				{bindTo.identifier.name}:name
 				GetTable(name):nameTable
 				{'name-' + name + '-'}:varAlias
-				{['SelectQuery', ['Select', [[['ReferencedField', varAlias + fkTo.term[1], tableTo.idField]]]], ['From', nameTable.name, varAlias + name]]}:query
-				ResolveConceptTypes(query, bindTo.identifier, varAlias, fkTo.term)
+				{['SelectQuery', ['Select', [[['ReferencedField', varAlias + toTerm[1], tableTo.idField]]]], ['From', nameTable.name, varAlias + name]]}:query
+				ResolveConceptTypes(query, bindTo.identifier, varAlias, toTerm)
 				-> query
-			|	-> ['ReferencedField', 'var' + bindTo.number + fkTo.term[1], tableTo.idField]
+			|	-> ['ReferencedField', 'var' + bindTo.number + toTerm[1], tableTo.idField]
 			):toField
-			-> ['Equals', ['ReferencedField', 'var' + bindFrom.number + fkFrom.term[1], fkTo.field], toField],
+			-> ['Equals', ['ReferencedField', 'var' + bindFrom.number + fromTerm[1], toTerm[1]], toField],
 
 		BooleanAttribute :actualFactType =
 			?(this.GetTable(actualFactType) == 'BooleanAttribute')
@@ -430,12 +438,11 @@ define([
 					anything+:factType
 				]
 				MappedFactType(factType):actualFactType
-				FactTypeRootTerms(factType):rootTerms
 				(	NativeFactType(actualFactType)
-				|	ForeignKey(actualFactType, rootTerms)
+				|	ForeignKey(actualFactType)
 				|	BooleanAttribute(actualFactType)
 				|	Attribute(actualFactType)
-				|	LinkTable(actualFactType, rootTerms)
+				|	LinkTable(actualFactType)
 				):whereClause
 			]
 			-> whereClause,
