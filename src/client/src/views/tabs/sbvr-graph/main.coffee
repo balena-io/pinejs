@@ -100,10 +100,12 @@ define([
 					.nodes(d3.values(nodes))
 					.links(links)
 					.size([w, h])
-					.linkDistance(15)
-					.charge(-1000)
+					.linkDistance(5)
+					.charge(-200)
 					.on("tick", tick)
 					.start()
+
+				console.log 1066
 
 				@$el.empty()
 				svg = d3.select(@el).append("svg:svg")
@@ -119,10 +121,10 @@ define([
 				rect = svg.append("svg:g").selectAll("rect")
 						.data(force.nodes())
 					.enter().append("svg:rect")
-						.attr("width", (d) ->	Math.max(d.name.length * 7, 20))
-						.attr("height", 20)
+						.attr("width", (d) ->	Math.max(d.name.length * 7, 7))
+						.attr("height", 10)
 						.attr("x", (d) -> Math.min(-1*(d.name.length * 7)/2, -10))
-						.attr("y", -10)
+						.attr("y", -5)
 						.attr("class", (d) -> d.type)
 						.call(force.drag)
 
