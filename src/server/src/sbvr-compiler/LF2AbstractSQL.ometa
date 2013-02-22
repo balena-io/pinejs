@@ -234,14 +234,22 @@ define([
 					)?
 				)?
 			]
-			RulePart:whereBody2
-			(	?query
-				AddWhereClause(query, whereBody2)
-				-> query
-			|	// We ignore whereBody2, as it not useful for attributes
-				(	?bind.data
-					-> {identifier: identifier, data: bind.data, whereBody: whereBody}
-				|	-> {identifier: identifier, tableAlias: 'var' + bind.number + bind.identifier.name, whereBody: whereBody}
+			(	NativePropertyAtomicFormulation:data
+				-> {data: data}
+			|	RulePart:whereBody2
+				(	?query
+					AddWhereClause(query, whereBody2)
+					-> query
+				|	// We ignore whereBody2, as it not useful for attributes
+					(	?bind
+						(	?bind.data
+							// Embedded data
+							-> {identifier: identifier, data: bind.data, whereBody: whereBody}
+						|	-> {identifier: identifier, tableAlias: 'var' + bind.number + bind.identifier.name, whereBody: whereBody}
+						)
+					|	// A rule directly on a primitive, this should not be being processed..
+						___PROCESSING_PRIMITIVE_RULE___.die
+					)
 				)
 			),
 		
@@ -273,7 +281,36 @@ define([
 				-> ['ReferencedField', 'var' + bindName, bindField]
 			),
 
-		NativeFactType :actualFactType :rootTerms =
+		NativeProperty :actualFactType =
+			?(this.IsPrimitive(actualFactType[0]))
+			?(this.IsPrimitive(actualFactType[2]))
+			NativeBinding:from
+			NativeBinding:to
+			end
+			(	?(actualFactType[0][3] != 0)
+				// If the first bind is not the first term (ie. reversed synonymous form), we go to -> from
+				{to}:from
+			)?
+			{actualFactType[0][1]}:primitive
+			{actualFactType[1][1].toLowerCase()}:verb
+			{actualFactType[2][1]}:property
+			?(verb == 'has')
+			(	?(primitive == 'Text')
+				?(property == 'Length')
+				-> ['CharacterLength', from]
+			|	?(primitive == 'Color')
+				(	?(property == 'Red Component')
+					-> ['BitwiseAnd', ['BitwiseShiftRight', from, 16], 255]
+				|	?(property == 'Green Component')
+					-> ['BitwiseAnd', ['BitwiseShiftRight', from, 8], 255]
+				|	?(property == 'Blue Component')
+					-> ['BitwiseAnd', from, 255]
+				|	?(property == 'Alpha Component')
+					-> ['BitwiseAnd', ['BitwiseShiftRight', from, 24], 255]
+				)
+			),
+
+		NativeFactType :actualFactType =
 			?(actualFactType.length == 3)
 			?(this.IsPrimitive(actualFactType[0]))
 			?(this.IsPrimitive(actualFactType[2]))
@@ -281,32 +318,18 @@ define([
 				NativeBinding:to
 				end
 				{actualFactType[1][1].toLowerCase()}:verb
-				(	(	?(verb == 'is equal to' || verb == 'equals')
-						-> 'Equals'
-					|	?(verb == 'is greater than')
-						-> 'GreaterThan'
-					|	?(verb == 'is greater than or equal to')
-						-> 'GreaterThanOrEqual'
-					|	?(verb == 'is less than')
-						-> 'LessThan'
-					|	?(verb == 'is less than or equal to')
-						-> 'LessThanOrEqual'
-					):comparator
-					-> [comparator, from, to]
-				|	?(verb == 'has')
-					{actualFactType[2][1]}:property
-					(	?(property == 'Length')
-						-> ['CharacterLength', from]
-					|	?(property == 'Red Component')
-						-> ['BitwiseAnd', ['BitwiseShiftRight', from, 16], 255]
-					|	?(property == 'Green Component')
-						-> ['BitwiseAnd', ['BitwiseShiftRight', from, 8], 255]
-					|	?(property == 'Blue Component')
-						-> ['BitwiseAnd', from, 255]
-					|	?(property == 'Alpha Component')
-						-> ['BitwiseAnd', ['BitwiseShiftRight', from, 24], 255]
-					)
-				)
+				(	?(verb == 'is equal to' || verb == 'equals')
+					-> 'Equals'
+				|	?(verb == 'is greater than')
+					-> 'GreaterThan'
+				|	?(verb == 'is greater than or equal to')
+					-> 'GreaterThanOrEqual'
+				|	?(verb == 'is less than')
+					-> 'LessThan'
+				|	?(verb == 'is less than or equal to')
+					-> 'LessThanOrEqual'
+				):comparator
+				-> [comparator, from, to]
 			|	___NativeFactTypeMatchingFailed___.die
 			),
 
@@ -384,6 +407,16 @@ define([
 				-> ['Equals', ['Boolean', true], ['Boolean', true]]
 			),
 		
+		NativePropertyAtomicFormulation =
+			[	'AtomicFormulation'
+				[	'FactType'
+					anything+:factType
+				]
+				MappedFactType(factType):actualFactType
+				NativeProperty(actualFactType):whereClause
+			]
+			-> whereClause,
+		
 		AtomicFormulation =
 			[	'AtomicFormulation'
 				[	'FactType'
@@ -391,7 +424,7 @@ define([
 				]
 				MappedFactType(factType):actualFactType
 				FactTypeRootTerms(factType):rootTerms
-				(	NativeFactType(actualFactType, rootTerms)
+				(	NativeFactType(actualFactType)
 				|	ForeignKey(actualFactType, rootTerms)
 				|	BooleanAttribute(actualFactType)
 				|	Attribute(actualFactType, rootTerms)
@@ -549,8 +582,9 @@ define([
 		ProcessAtomicFormulations =
 			{this.bindAttributes = []}
 			{this.bindAttributeDepth = []}
+			{this.nonPrimitiveExists = false}
 			&ProcessAtomicFormulationsRecurse(0, 'ProcessAtomicFormulationsAttributes')
-			&ProcessAtomicFormulationsRecurse(0, 'ProcessAtomicFormulationsNativeAttributes'),
+			&ProcessAtomicFormulationsRecurse(0, 'ProcessAtomicFormulationsNonPrimitive'),
 		ProcessAtomicFormulationsRecurse :depth :rule =
 			(	// Bit of a hack, but we only want to drill into the input if it's an array, otherwise we get infinite recursion.
 				?(_.isArray(this.input.lst))
@@ -564,6 +598,15 @@ define([
 				]
 			|	anything
 			)*,
+		ProcessAtomicFormulationsNonPrimitive :depth :actualFactType =
+			RoleBinding*:binds
+			{	for(var i=0; i < binds.length; i++) {
+					if(!this.IsPrimitive([binds[i].identifier.type, binds[i].identifier.name, binds[i].identifier.vocab])) {
+						this.nonPrimitiveExists = true;
+						break;
+					}
+				}
+			},
 		ProcessAtomicFormulationsAttributes :depth :actualFactType =
 			?(this.attributes.hasOwnProperty(actualFactType) && this.attributes[actualFactType])
 			RoleBinding*:binds
@@ -589,34 +632,22 @@ define([
 					}
 				}
 			},
-		ProcessAtomicFormulationsNativeAttributes :depth :actualFactType =
-			&(RoleBinding*:binds)
-			NativeBinding*:nativeBinds
-			{actualFactType[1][1].toLowerCase()}:verb
-			?(verb == 'has')
-			{actualFactType[0][1]}:primitive
-			{actualFactType[2][1]}:property
-			(	?(binds[0].identifier.name == property)
-				{nativeBinds[1]}:from
-				-> [binds[1], binds[0]]
-			|	{nativeBinds[0]}:from
-				-> binds
-			):binds
-			(	?(primitive == 'Text')
-				?(property == 'Length')
-				-> ['CharacterLength', from]
-			):data
-			{this.bindAttributes[binds[1].number] = {data: data}},
 		
 		Rule =
 			[	'Rule'
 				{this.linkTableBind = 0}
 				&ProcessAtomicFormulations
-				RuleBody:ruleBody
+				(	?this.nonPrimitiveExists
+					RuleBody:ruleBody
+				|	anything
+				)
 				[	'StructuredEnglish'
 					:ruleText
 				]
-				{this.rules.push(['Rule', ['StructuredEnglish', ruleText], ['Body', ruleBody]])}
+				(	?this.nonPrimitiveExists
+					{this.rules.push(['Rule', ['StructuredEnglish', ruleText], ['Body', ruleBody]])}
+				|	{console.warn('Ignoring rule with only primitives: ', ruleText)}
+				)
 			],
 		
 		Process =
