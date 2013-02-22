@@ -317,6 +317,12 @@ define([
 			(	NativeBinding:from
 				NativeBinding:to
 				end
+				(	?(actualFactType[0][3] != 0)
+					// If the first bind is not the first term (ie. reversed synonymous form), we go to -> from
+					{to}:temp
+					{from}:to
+					{temp}:from
+				)?
 				{actualFactType[1][1].toLowerCase()}:verb
 				(	?(verb == 'is equal to' || verb == 'equals')
 					-> 'Equals'
