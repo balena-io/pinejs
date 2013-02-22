@@ -318,7 +318,7 @@ define([
 				NativeBinding:to
 				end
 				(	?(actualFactType[0][3] != 0)
-					// If the first bind is not the first term (ie. reversed synonymous form), we go to -> from
+					// If the first term is not mapped to the first term (ie. reversed synonymous form), then we need to reverse the binds to match
 					{to}:temp
 					{from}:to
 					{temp}:from
@@ -392,16 +392,17 @@ define([
 			)
 			-> ['Equals', ['ReferencedField', 'var' + bindFrom.number + termFrom, attributeName], ['Boolean', !negated]],
 
-		Attribute :actualFactType :rootTerms =
+		Attribute :actualFactType =
 			?(this.GetTable(actualFactType) == 'Attribute')
 			(	RoleBinding:bindReal
 				RoleBinding:bindAttr
 				end
-				(	?this.IsChild([bindReal.identifier.type, bindReal.identifier.name, bindReal.identifier.vocab], actualFactType[0])
-				|	{bindAttr}:temp
+				(	?(actualFactType[0][3] != 0)
+					// If the first term is not mapped to the first term (ie. reversed synonymous form), then we need to reverse the position of the attr/term to match.
+					{bindAttr}:temp
 					{bindReal}:bindAttr
 					{temp}:bindReal
-				)
+				)?
 				|	___AttributeMatchingFailed___.die
 			)
 			AttributeFactTypeBaseTermName(actualFactType):baseTermName
@@ -433,7 +434,7 @@ define([
 				(	NativeFactType(actualFactType)
 				|	ForeignKey(actualFactType, rootTerms)
 				|	BooleanAttribute(actualFactType)
-				|	Attribute(actualFactType, rootTerms)
+				|	Attribute(actualFactType)
 				|	LinkTable(actualFactType, rootTerms)
 				):whereClause
 			]
