@@ -211,29 +211,26 @@ define([
 			]
 			-> ['CharacterLength', text],
 		
+		NumericValue =
+			(	ReferencedField
+			|	Field
+			|	Number
+			|	BitwiseAnd
+			|	BitwiseShiftRight
+			|	CharacterLength
+			),
+		
 		BitwiseAnd =
 			[	'BitwiseAnd'
-				(	ReferencedField
-				|	Field
-				|	Number
-				):operand
-				(	ReferencedField
-				|	Field
-				|	Number
-				):mask
+				NumericValue:operand
+				NumericValue:mask
 			]
 			-> ['BitwiseAnd', operand, mask],
 		
 		BitwiseShiftRight =
 			[	'BitwiseShiftRight'
-				(	ReferencedField
-				|	Field
-				|	Number
-				):operand
-				(	ReferencedField
-				|	Field
-				|	Number
-				):shift
+				NumericValue:operand
+				NumericValue:shift
 			]
 			-> ['BitwiseShiftRight', operand, shift]
 	}

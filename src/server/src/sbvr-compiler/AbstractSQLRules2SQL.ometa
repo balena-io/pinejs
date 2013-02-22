@@ -291,29 +291,26 @@ define(['has', 'ometa-core'], function() {
 			|	-> ('LENGTH(' + text + ')')
 			),
 		
+		NumericValue =
+			(	ReferencedField
+			|	Field
+			|	Number
+			|	BitwiseAnd
+			|	BitwiseShiftRight
+			|	CharacterLength
+			),
+		
 		BitwiseAnd =
 			[	'BitwiseAnd'
-				(	ReferencedField
-				|	Field
-				|	Number
-				):operand
-				(	ReferencedField
-				|	Field
-				|	Number
-				):mask
+				NumericValue:operand
+				NumericValue:mask
 			]
 			-> ('(' + operand + ' & ' + mask + ')'),
 		
 		BitwiseShiftRight =
 			[	'BitwiseShiftRight'
-				(	ReferencedField
-				|	Field
-				|	Number
-				):operand
-				(	ReferencedField
-				|	Field
-				|	Number
-				):shift
+				NumericValue:operand
+				NumericValue:shift
 			]
 			-> ('(' + operand + ' >> ' + shift + ')'),
 		
