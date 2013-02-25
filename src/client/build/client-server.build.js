@@ -18,16 +18,13 @@
 	separateCSS: true,
 	modules: [
 		{
-			name: "main"
+			name: "main",
+			include: ['cs!server-glue/server']
 		}
 	],
 	
 	has: {
-		// To disable the in-browser server
-		ENV_BROWSER: false
-	},
-	paths: {
-		// To stop the in-browser server code being compiled in
-		"server-glue/server": "empty:"
+		// To enable the in-browser server
+		ENV_BROWSER: true
 	}
 })
