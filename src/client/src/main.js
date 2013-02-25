@@ -16,10 +16,10 @@ require({
 	},
 	paths: {
 		//Developing & building tools
-		'cs'						: '../tools/requirejs-plugins/cs',
-		'ometa'						: '../tools/requirejs-plugins/ometa',
-		'text'						: '../tools/requirejs-plugins/text',
-		'coffee-script'				: '../tools/coffee-script',
+		'cs'						: '../../tools/requirejs-plugins/cs',
+		'ometa'						: '../../tools/requirejs-plugins/ometa',
+		'text'						: '../../tools/requirejs-plugins/text',
+		'coffee-script'				: '../../tools/coffee-script',
 		'has'						: '../../tools/has',
 
 		'lib'						: '../lib',
@@ -58,7 +58,7 @@ require({
 	packages: [
 		{
 			name: 'css',
-			location: '../tools/requirejs-plugins/css',
+			location: '../../tools/requirejs-plugins/css',
 			main: 'css'
 		}
 	],

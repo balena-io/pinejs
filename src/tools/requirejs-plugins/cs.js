@@ -67,7 +67,7 @@ define(['coffee-script'], function (CoffeeScript) {
 		// end browser.js adapters
 	}
 	if (typeof window === 'undefined' || window.sessionStorage === 'undefined') {
-		var sessionStorage = {
+		sessionStorage = {
 			getItem: function () {return false;},
 			setItem: function () {return false;},
 		};
@@ -88,6 +88,10 @@ define(['coffee-script'], function (CoffeeScript) {
 		version: '0.4.2',
 
 		load: function (name, parentRequire, load, config) {
+			if(parentRequire.toUrl(name) == 'empty:') {
+				load.fromText('');
+				return;
+			}
 			var path = parentRequire.toUrl(name + '.coffee');
 			fetchText(path, function (source) {
 
@@ -128,14 +132,14 @@ define(['coffee-script'], function (CoffeeScript) {
 					compiled += "\r\n//@ sourceURL=" + path;
 				}
 				/*@end@*/
-				load.fromText(name, compiled);
 
+				//Have RequireJS execute the JavaScript within
+				//the correct environment/context, and trigger the load
+				//call for this resource.
 				//Give result to load. Need to wait until the module
 				//is fully parse, which will happen after this
 				//execution.
-				parentRequire([name], function (value) {
-					load(value);
-				});
+				load.fromText(compiled);
 			});
 		}
 	};
