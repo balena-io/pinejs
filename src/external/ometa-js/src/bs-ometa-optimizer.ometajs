@@ -74,8 +74,8 @@ JumpTable.prototype.add = function(choice) {
     this.choices[c] = t
 }
 JumpTable.prototype.toTree = function() {
-  var r = ['JumpTable'], choiceKeys = Object.getOwnPropertyNames(this.choices);
-  for (var i = 0; i < choiceKeys.length; i += 1)
+  var r = ['JumpTable'], choiceKeys = Object.getOwnPropertyNames(this.choices).sort();
+  for (var i = 0; i < choiceKeys.length; i++)
     r.push([choiceKeys[i], this.choices[choiceKeys[i]]])
   return r
 }

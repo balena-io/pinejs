@@ -107,7 +107,7 @@
                 return this._pred(BSJSParser._isConstant(x));
             },
             constant: function() {
-                var c, $elf = this, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, c;
                 c = this._apply("iName");
                 this._applyWithArgs("isConstant", c);
                 return [ "name", c ];
@@ -125,13 +125,13 @@
                 return [ "name", n == "self" ? "$elf" : n ];
             },
             keyword: function() {
-                var $elf = this, k, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, k;
                 k = this._apply("iName");
                 this._applyWithArgs("isKeyword", k);
                 return [ k, k ];
             },
             hexLit: function() {
-                var $elf = this, x, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, x;
                 this._applyWithArgs("exactly", "0");
                 this._applyWithArgs("exactly", "x");
                 "0x";
@@ -143,7 +143,7 @@
                 return parseInt(x, 16);
             },
             binLit: function() {
-                var $elf = this, b, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, b;
                 this._applyWithArgs("exactly", "0");
                 this._applyWithArgs("exactly", "b");
                 "0b";
@@ -164,15 +164,15 @@
                 return parseInt(b, 2);
             },
             decLit: function() {
-                var $elf = this, f, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, f;
                 f = this._consumedBy(function() {
                     this._opt(function() {
                         return function() {
                             switch (this._apply("anything")) {
-                              case "-":
-                                return "-";
                               case "+":
                                 return "+";
+                              case "-":
+                                return "-";
                               default:
                                 throw this._fail();
                             }
@@ -201,10 +201,10 @@
                         this._opt(function() {
                             return function() {
                                 switch (this._apply("anything")) {
-                                  case "-":
-                                    return "-";
                                   case "+":
                                     return "+";
+                                  case "-":
+                                    return "-";
                                   default:
                                     throw this._fail();
                                 }
@@ -229,25 +229,10 @@
                 return [ "number", n ];
             },
             str: function() {
-                var $elf = this, cs, _fromIdx = this.input.idx, n;
+                var $elf = this, _fromIdx = this.input.idx, cs, n;
                 return this._or(function() {
                     return function() {
                         switch (this._apply("anything")) {
-                          case "'":
-                            return function() {
-                                cs = this._many(function() {
-                                    return this._or(function() {
-                                        return this._apply("escapedChar");
-                                    }, function() {
-                                        this._not(function() {
-                                            return this._applyWithArgs("exactly", "'");
-                                        });
-                                        return this._apply("char");
-                                    });
-                                });
-                                this._applyWithArgs("exactly", "'");
-                                return [ "string", cs.join("") ];
-                            }.call(this);
                           case '"':
                             return this._or(function() {
                                 return function() {
@@ -293,6 +278,21 @@
                                 this._applyWithArgs("exactly", '"');
                                 return [ "string", cs.join("") ];
                             });
+                          case "'":
+                            return function() {
+                                cs = this._many(function() {
+                                    return this._or(function() {
+                                        return this._apply("escapedChar");
+                                    }, function() {
+                                        this._not(function() {
+                                            return this._applyWithArgs("exactly", "'");
+                                        });
+                                        return this._apply("char");
+                                    });
+                                });
+                                this._applyWithArgs("exactly", "'");
+                                return [ "string", cs.join("") ];
+                            }.call(this);
                           default:
                             throw this._fail();
                         }
@@ -300,10 +300,10 @@
                 }, function() {
                     ((function() {
                         switch (this._apply("anything")) {
-                          case "`":
-                            return "`";
                           case "#":
                             return "#";
+                          case "`":
+                            return "`";
                           default:
                             throw this._fail();
                         }
@@ -313,82 +313,9 @@
                 });
             },
             special: function() {
-                var s, $elf = this, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, s;
                 s = function() {
                     switch (this._apply("anything")) {
-                      case "<":
-                        return this._or(function() {
-                            return function() {
-                                switch (this._apply("anything")) {
-                                  case "=":
-                                    return "<=";
-                                  default:
-                                    throw this._fail();
-                                }
-                            }.call(this);
-                        }, function() {
-                            return "<";
-                        });
-                      case ";":
-                        return ";";
-                      case "{":
-                        return "{";
-                      case "?":
-                        return "?";
-                      case "}":
-                        return "}";
-                      case ".":
-                        return ".";
-                      case "|":
-                        return function() {
-                            switch (this._apply("anything")) {
-                              case "|":
-                                return this._or(function() {
-                                    return function() {
-                                        switch (this._apply("anything")) {
-                                          case "=":
-                                            return "||=";
-                                          default:
-                                            throw this._fail();
-                                        }
-                                    }.call(this);
-                                }, function() {
-                                    return "||";
-                                });
-                              default:
-                                throw this._fail();
-                            }
-                        }.call(this);
-                      case ":":
-                        return ":";
-                      case "/":
-                        return this._or(function() {
-                            return function() {
-                                switch (this._apply("anything")) {
-                                  case "=":
-                                    return "/=";
-                                  default:
-                                    throw this._fail();
-                                }
-                            }.call(this);
-                        }, function() {
-                            return "/";
-                        });
-                      case "-":
-                        return this._or(function() {
-                            return function() {
-                                switch (this._apply("anything")) {
-                                  case "=":
-                                    return "-=";
-                                  case "-":
-                                    return "--";
-                                  default:
-                                    throw this._fail();
-                                }
-                            }.call(this);
-                        }, function() {
-                            return "-";
-                        });
                       case "!":
                         return this._or(function() {
                             return function() {
@@ -413,21 +340,43 @@
                         }, function() {
                             return "!";
                         });
-                      case "+":
+                      case "%":
                         return this._or(function() {
                             return function() {
                                 switch (this._apply("anything")) {
                                   case "=":
-                                    return "+=";
-                                  case "+":
-                                    return "++";
+                                    return "%=";
                                   default:
                                     throw this._fail();
                                 }
                             }.call(this);
                         }, function() {
-                            return "+";
+                            return "%";
                         });
+                      case "&":
+                        return function() {
+                            switch (this._apply("anything")) {
+                              case "&":
+                                return this._or(function() {
+                                    return function() {
+                                        switch (this._apply("anything")) {
+                                          case "=":
+                                            return "&&=";
+                                          default:
+                                            throw this._fail();
+                                        }
+                                    }.call(this);
+                                }, function() {
+                                    return "&&";
+                                });
+                              default:
+                                throw this._fail();
+                            }
+                        }.call(this);
+                      case "(":
+                        return "(";
+                      case ")":
+                        return ")";
                       case "*":
                         return this._or(function() {
                             return function() {
@@ -440,6 +389,70 @@
                             }.call(this);
                         }, function() {
                             return "*";
+                        });
+                      case "+":
+                        return this._or(function() {
+                            return function() {
+                                switch (this._apply("anything")) {
+                                  case "+":
+                                    return "++";
+                                  case "=":
+                                    return "+=";
+                                  default:
+                                    throw this._fail();
+                                }
+                            }.call(this);
+                        }, function() {
+                            return "+";
+                        });
+                      case ",":
+                        return ",";
+                      case "-":
+                        return this._or(function() {
+                            return function() {
+                                switch (this._apply("anything")) {
+                                  case "-":
+                                    return "--";
+                                  case "=":
+                                    return "-=";
+                                  default:
+                                    throw this._fail();
+                                }
+                            }.call(this);
+                        }, function() {
+                            return "-";
+                        });
+                      case ".":
+                        return ".";
+                      case "/":
+                        return this._or(function() {
+                            return function() {
+                                switch (this._apply("anything")) {
+                                  case "=":
+                                    return "/=";
+                                  default:
+                                    throw this._fail();
+                                }
+                            }.call(this);
+                        }, function() {
+                            return "/";
+                        });
+                      case ":":
+                        return ":";
+                      case ";":
+                        return ";";
+                      case "<":
+                        return this._or(function() {
+                            return function() {
+                                switch (this._apply("anything")) {
+                                  case "=":
+                                    return "<=";
+                                  default:
+                                    throw this._fail();
+                                }
+                            }.call(this);
+                        }, function() {
+                            return "<";
                         });
                       case "=":
                         return this._or(function() {
@@ -478,49 +491,36 @@
                         }, function() {
                             return ">";
                         });
+                      case "?":
+                        return "?";
+                      case "[":
+                        return "[";
                       case "]":
                         return "]";
-                      case "&":
+                      case "{":
+                        return "{";
+                      case "|":
                         return function() {
                             switch (this._apply("anything")) {
-                              case "&":
+                              case "|":
                                 return this._or(function() {
                                     return function() {
                                         switch (this._apply("anything")) {
                                           case "=":
-                                            return "&&=";
+                                            return "||=";
                                           default:
                                             throw this._fail();
                                         }
                                     }.call(this);
                                 }, function() {
-                                    return "&&";
+                                    return "||";
                                 });
                               default:
                                 throw this._fail();
                             }
                         }.call(this);
-                      case "%":
-                        return this._or(function() {
-                            return function() {
-                                switch (this._apply("anything")) {
-                                  case "=":
-                                    return "%=";
-                                  default:
-                                    throw this._fail();
-                                }
-                            }.call(this);
-                        }, function() {
-                            return "%";
-                        });
-                      case "[":
-                        return "[";
-                      case "(":
-                        return "(";
-                      case ")":
-                        return ")";
-                      case ",":
-                        return ",";
+                      case "}":
+                        return "}";
                       default:
                         throw this._fail();
                     }
@@ -545,7 +545,7 @@
                 });
             },
             toks: function() {
-                var $elf = this, ts, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, ts;
                 ts = this._many(function() {
                     return this._apply("token");
                 });
@@ -573,7 +573,7 @@
                 return this._apply("commaExpr");
             },
             commaExpr: function() {
-                var e2, $elf = this, e1, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, e1, e2;
                 return this._or(function() {
                     e1 = this._apply("commaExpr");
                     this._applyWithArgs("token", ",");
@@ -584,7 +584,7 @@
                 });
             },
             asgnExpr: function() {
-                var $elf = this, e, rhs, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, e, rhs;
                 e = this._apply("condExpr");
                 return this._or(function() {
                     this._applyWithArgs("token", "=");
@@ -624,7 +624,7 @@
                 });
             },
             condExpr: function() {
-                var $elf = this, f, e, _fromIdx = this.input.idx, t;
+                var $elf = this, _fromIdx = this.input.idx, e, f, t;
                 e = this._apply("orExpr");
                 return this._or(function() {
                     this._applyWithArgs("token", "?");
@@ -638,7 +638,7 @@
                 });
             },
             orExpr: function() {
-                var y, $elf = this, x, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, x, y;
                 return this._or(function() {
                     x = this._apply("orExpr");
                     this._applyWithArgs("token", "||");
@@ -649,7 +649,7 @@
                 });
             },
             andExpr: function() {
-                var y, $elf = this, x, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, x, y;
                 return this._or(function() {
                     x = this._apply("andExpr");
                     this._applyWithArgs("token", "&&");
@@ -660,7 +660,7 @@
                 });
             },
             eqExpr: function() {
-                var y, $elf = this, x, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, x, y;
                 return this._or(function() {
                     x = this._apply("eqExpr");
                     return this._or(function() {
@@ -685,7 +685,7 @@
                 });
             },
             relExpr: function() {
-                var y, $elf = this, x, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, x, y;
                 return this._or(function() {
                     x = this._apply("relExpr");
                     return this._or(function() {
@@ -714,7 +714,7 @@
                 });
             },
             addExpr: function() {
-                var y, $elf = this, x, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, x, y;
                 return this._or(function() {
                     x = this._apply("addExpr");
                     this._applyWithArgs("token", "+");
@@ -730,7 +730,7 @@
                 });
             },
             mulExpr: function() {
-                var y, $elf = this, x, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, x, y;
                 return this._or(function() {
                     x = this._apply("mulExpr");
                     this._applyWithArgs("token", "*");
@@ -751,7 +751,7 @@
                 });
             },
             unary: function() {
-                var $elf = this, p, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, p;
                 return this._or(function() {
                     this._applyWithArgs("token", "-");
                     p = this._apply("postfix");
@@ -789,7 +789,7 @@
                 });
             },
             postfix: function() {
-                var $elf = this, p, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, p;
                 p = this._apply("primExpr");
                 return this._or(function() {
                     this._apply("spacesNoNl");
@@ -805,7 +805,7 @@
                 });
             },
             primExpr: function() {
-                var i, $elf = this, as, p, m, f, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, as, f, i, m, p;
                 return this._or(function() {
                     p = this._apply("primExpr");
                     return this._or(function() {
@@ -850,7 +850,7 @@
                 });
             },
             primExprHd: function() {
-                var s, $elf = this, as, e, es, _fromIdx = this.input.idx, n;
+                var $elf = this, _fromIdx = this.input.idx, as, e, es, n, s;
                 return this._or(function() {
                     this._applyWithArgs("token", "(");
                     e = this._apply("expr");
@@ -890,14 +890,14 @@
                 });
             },
             json: function() {
-                var $elf = this, bs, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, bs;
                 this._applyWithArgs("token", "{");
                 bs = this._applyWithArgs("listOf", "jsonBinding", ",");
                 this._applyWithArgs("token", "}");
                 return [ "json" ].concat(bs);
             },
             jsonBinding: function() {
-                var v, $elf = this, _fromIdx = this.input.idx, n;
+                var $elf = this, _fromIdx = this.input.idx, n, v;
                 n = this._apply("jsonPropName");
                 this._applyWithArgs("token", ":");
                 v = this._apply("asgnExpr");
@@ -919,7 +919,7 @@
                 });
             },
             regExp: function() {
-                var $elf = this, x, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, x;
                 this._apply("spaces");
                 x = this._consumedBy(function() {
                     this._applyWithArgs("exactly", "/");
@@ -1005,7 +1005,7 @@
                 return this._applyWithArgs("token", "name");
             },
             funcRest: function() {
-                var $elf = this, _fromIdx = this.input.idx, fs, body;
+                var $elf = this, _fromIdx = this.input.idx, body, fs;
                 this._applyWithArgs("token", "(");
                 fs = this._applyWithArgs("listOf", "formal", ",");
                 this._applyWithArgs("token", ")");
@@ -1039,7 +1039,7 @@
                 });
             },
             binding: function() {
-                var v, $elf = this, _fromIdx = this.input.idx, n;
+                var $elf = this, _fromIdx = this.input.idx, n, v;
                 n = this._applyWithArgs("token", "name");
                 this._not(function() {
                     return this._applyWithArgs("isConstant", n);
@@ -1053,20 +1053,20 @@
                 });
             },
             block: function() {
-                var $elf = this, ss, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, ss;
                 this._applyWithArgs("token", "{");
                 ss = this._apply("srcElems");
                 this._applyWithArgs("token", "}");
                 return ss;
             },
             vars: function() {
-                var $elf = this, bs, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, bs;
                 this._applyWithArgs("token", "var");
                 bs = this._applyWithArgs("listOf", "binding", ",");
                 return [ "var" ].concat(bs);
             },
             stmt: function() {
-                var c, s, v, i, $elf = this, bs, x, cs, f, e, u, b, _fromIdx = this.input.idx, t;
+                var $elf = this, _fromIdx = this.input.idx, b, bs, c, cs, e, f, i, s, t, u, v, x;
                 return this._or(function() {
                     return this._apply("block");
                 }, function() {
@@ -1225,7 +1225,7 @@
                 });
             },
             srcElem: function() {
-                var $elf = this, f, _fromIdx = this.input.idx, n;
+                var $elf = this, _fromIdx = this.input.idx, f, n;
                 return this._or(function() {
                     this._applyWithArgs("token", "function");
                     n = this._applyWithArgs("token", "name");
@@ -1236,14 +1236,14 @@
                 });
             },
             srcElems: function() {
-                var $elf = this, ss, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, ss;
                 ss = this._many(function() {
                     return this._apply("srcElem");
                 });
                 return [ "begin" ].concat(ss);
             },
             topLevel: function() {
-                var $elf = this, r, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, r;
                 r = this._apply("srcElems");
                 this._apply("spaces");
                 this._apply("end");
@@ -1263,7 +1263,7 @@
         };
         var BSSemActionParser = exports.BSSemActionParser = BSJSParser._extend({
             curlySemAction: function() {
-                var s, $elf = this, ss, r, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, r, s, ss;
                 return this._or(function() {
                     this._applyWithArgs("token", "{");
                     r = this._apply("asgnExpr");
@@ -1294,7 +1294,7 @@
                 });
             },
             semAction: function() {
-                var $elf = this, r, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, r;
                 return this._or(function() {
                     return this._apply("curlySemAction");
                 }, function() {
@@ -1306,7 +1306,7 @@
         });
         var BSJSIdentity = exports.BSJSIdentity = OMeta._extend({
             trans: function() {
-                var $elf = this, ans, _fromIdx = this.input.idx, t;
+                var $elf = this, _fromIdx = this.input.idx, ans, t;
                 return this._or(function() {
                     this._form(function() {
                         t = this._apply("anything");
@@ -1321,7 +1321,7 @@
                 });
             },
             curlyTrans: function() {
-                var rs, $elf = this, r, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, r, rs;
                 return this._or(function() {
                     this._form(function() {
                         this._applyWithArgs("exactly", "begin");
@@ -1359,110 +1359,110 @@
                 return [ "number", n ];
             },
             string: function() {
-                var s, $elf = this, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, s;
                 s = this._apply("anything");
                 return [ "string", s ];
             },
             regExp: function() {
-                var $elf = this, x, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, x;
                 x = this._apply("anything");
                 return [ "regExp", x ];
             },
             arr: function() {
-                var $elf = this, xs, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, xs;
                 xs = this._many(function() {
                     return this._apply("trans");
                 });
                 return [ "arr" ].concat(xs);
             },
             unop: function() {
-                var op, $elf = this, x, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, op, x;
                 op = this._apply("anything");
                 x = this._apply("trans");
                 return [ "unop", op, x ];
             },
             get: function() {
-                var $elf = this, x, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, x;
                 x = this._apply("anything");
                 return [ "get", x ];
             },
             getp: function() {
-                var $elf = this, x, fd, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, fd, x;
                 fd = this._apply("trans");
                 x = this._apply("trans");
                 return [ "getp", fd, x ];
             },
             set: function() {
-                var lhs, $elf = this, rhs, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, lhs, rhs;
                 lhs = this._apply("trans");
                 rhs = this._apply("trans");
                 return [ "set", lhs, rhs ];
             },
             mset: function() {
-                var lhs, op, $elf = this, rhs, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, lhs, op, rhs;
                 lhs = this._apply("trans");
                 op = this._apply("anything");
                 rhs = this._apply("trans");
                 return [ "mset", lhs, op, rhs ];
             },
             binop: function() {
-                var y, op, $elf = this, x, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, op, x, y;
                 op = this._apply("anything");
                 x = this._apply("trans");
                 y = this._apply("trans");
                 return [ "binop", op, x, y ];
             },
             preop: function() {
-                var op, $elf = this, x, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, op, x;
                 op = this._apply("anything");
                 x = this._apply("trans");
                 return [ "preop", op, x ];
             },
             postop: function() {
-                var op, $elf = this, x, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, op, x;
                 op = this._apply("anything");
                 x = this._apply("trans");
                 return [ "postop", op, x ];
             },
             "return": function() {
-                var $elf = this, x, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, x;
                 x = this._apply("trans");
                 return [ "return", x ];
             },
             "with": function() {
-                var s, $elf = this, x, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, s, x;
                 x = this._apply("trans");
                 s = this._apply("curlyTrans");
                 return [ "with", x, s ];
             },
             "if": function() {
-                var $elf = this, cond, e, _fromIdx = this.input.idx, t;
+                var $elf = this, _fromIdx = this.input.idx, cond, e, t;
                 cond = this._apply("trans");
                 t = this._apply("curlyTrans");
                 e = this._apply("curlyTrans");
                 return [ "if", cond, t, e ];
             },
             condExpr: function() {
-                var $elf = this, cond, e, _fromIdx = this.input.idx, t;
+                var $elf = this, _fromIdx = this.input.idx, cond, e, t;
                 cond = this._apply("trans");
                 t = this._apply("trans");
                 e = this._apply("trans");
                 return [ "condExpr", cond, t, e ];
             },
             "while": function() {
-                var $elf = this, cond, _fromIdx = this.input.idx, body;
+                var $elf = this, _fromIdx = this.input.idx, body, cond;
                 cond = this._apply("trans");
                 body = this._apply("curlyTrans");
                 return [ "while", cond, body ];
             },
             doWhile: function() {
-                var $elf = this, cond, _fromIdx = this.input.idx, body;
+                var $elf = this, _fromIdx = this.input.idx, body, cond;
                 body = this._apply("curlyTrans");
                 cond = this._apply("trans");
                 return [ "doWhile", body, cond ];
             },
             "for": function() {
-                var init, $elf = this, upd, cond, _fromIdx = this.input.idx, body;
+                var $elf = this, _fromIdx = this.input.idx, body, cond, init, upd;
                 init = this._apply("trans");
                 cond = this._apply("trans");
                 upd = this._apply("trans");
@@ -1470,14 +1470,14 @@
                 return [ "for", init, cond, upd, body ];
             },
             forIn: function() {
-                var $elf = this, x, _fromIdx = this.input.idx, body, arr;
+                var $elf = this, _fromIdx = this.input.idx, arr, body, x;
                 x = this._apply("trans");
                 arr = this._apply("trans");
                 body = this._apply("curlyTrans");
                 return [ "forIn", x, arr, body ];
             },
             begin: function() {
-                var $elf = this, x, xs, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, x, xs;
                 return this._or(function() {
                     x = this._apply("trans");
                     this._apply("end");
@@ -1490,13 +1490,13 @@
                 });
             },
             func: function() {
-                var $elf = this, args, _fromIdx = this.input.idx, body;
+                var $elf = this, _fromIdx = this.input.idx, args, body;
                 args = this._apply("anything");
                 body = this._apply("curlyTrans");
                 return [ "func", args, body ];
             },
             call: function() {
-                var $elf = this, fn, args, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, args, fn;
                 fn = this._apply("trans");
                 args = this._many(function() {
                     return this._apply("trans");
@@ -1504,7 +1504,7 @@
                 return [ "call", fn ].concat(args);
             },
             send: function() {
-                var $elf = this, recv, args, _fromIdx = this.input.idx, msg;
+                var $elf = this, _fromIdx = this.input.idx, args, msg, recv;
                 msg = this._apply("anything");
                 recv = this._apply("trans");
                 args = this._many(function() {
@@ -1513,7 +1513,7 @@
                 return [ "send", msg, recv ].concat(args);
             },
             "new": function() {
-                var $elf = this, args, cls, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, args, cls;
                 cls = this._apply("anything");
                 args = this._many(function() {
                     return this._apply("trans");
@@ -1521,14 +1521,14 @@
                 return [ "new", cls ].concat(args);
             },
             "var": function() {
-                var $elf = this, vs, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, vs;
                 vs = this._many1(function() {
                     return this._apply("varItem");
                 });
                 return [ "var" ].concat(vs);
             },
             varItem: function() {
-                var v, $elf = this, _fromIdx = this.input.idx, n;
+                var $elf = this, _fromIdx = this.input.idx, n, v;
                 return this._or(function() {
                     this._form(function() {
                         n = this._apply("anything");
@@ -1543,12 +1543,12 @@
                 });
             },
             "throw": function() {
-                var $elf = this, x, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, x;
                 x = this._apply("trans");
                 return [ "throw", x ];
             },
             "try": function() {
-                var c, $elf = this, x, f, _fromIdx = this.input.idx, name;
+                var $elf = this, _fromIdx = this.input.idx, c, f, name, x;
                 x = this._apply("curlyTrans");
                 name = this._apply("anything");
                 c = this._apply("curlyTrans");
@@ -1556,7 +1556,7 @@
                 return [ "try", x, name, c, f ];
             },
             json: function() {
-                var $elf = this, props, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, props;
                 props = this._many(function() {
                     return this._apply("trans");
                 });
@@ -1569,7 +1569,7 @@
                 return [ "binding", name, val ];
             },
             "switch": function() {
-                var $elf = this, x, _fromIdx = this.input.idx, cases;
+                var $elf = this, _fromIdx = this.input.idx, cases, x;
                 x = this._apply("trans");
                 cases = this._many(function() {
                     return this._apply("trans");
@@ -1577,20 +1577,20 @@
                 return [ "switch", x ].concat(cases);
             },
             "case": function() {
-                var y, $elf = this, x, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, x, y;
                 x = this._apply("trans");
                 y = this._apply("trans");
                 return [ "case", x, y ];
             },
             "default": function() {
-                var y, $elf = this, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, y;
                 y = this._apply("trans");
                 return [ "default", y ];
             }
         });
         var BSJSTranslator = exports.BSJSTranslator = OMeta._extend({
             trans: function() {
-                var $elf = this, ans, _fromIdx = this.input.idx, t;
+                var $elf = this, _fromIdx = this.input.idx, ans, t;
                 this._form(function() {
                     t = this._apply("anything");
                     return ans = this._applyWithArgs("apply", t);
@@ -1598,7 +1598,7 @@
                 return ans;
             },
             curlyTrans: function() {
-                var rs, $elf = this, r, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, r, rs;
                 return this._or(function() {
                     this._form(function() {
                         this._applyWithArgs("exactly", "begin");
@@ -1636,110 +1636,110 @@
                 return "(" + n + ")";
             },
             string: function() {
-                var s, $elf = this, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, s;
                 s = this._apply("anything");
                 return JSON.stringify(s);
             },
             regExp: function() {
-                var $elf = this, x, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, x;
                 x = this._apply("anything");
                 return x;
             },
             arr: function() {
-                var $elf = this, xs, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, xs;
                 xs = this._many(function() {
                     return this._apply("trans");
                 });
                 return "[" + xs.join(",") + "]";
             },
             unop: function() {
-                var op, $elf = this, x, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, op, x;
                 op = this._apply("anything");
                 x = this._apply("trans");
                 return "(" + op + " " + x + ")";
             },
             getp: function() {
-                var $elf = this, x, fd, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, fd, x;
                 fd = this._apply("trans");
                 x = this._apply("trans");
                 return x + "[" + fd + "]";
             },
             get: function() {
-                var $elf = this, x, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, x;
                 x = this._apply("anything");
                 return x;
             },
             set: function() {
-                var lhs, $elf = this, rhs, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, lhs, rhs;
                 lhs = this._apply("trans");
                 rhs = this._apply("trans");
                 return "(" + lhs + "=" + rhs + ")";
             },
             mset: function() {
-                var lhs, op, $elf = this, rhs, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, lhs, op, rhs;
                 lhs = this._apply("trans");
                 op = this._apply("anything");
                 rhs = this._apply("trans");
                 return "(" + lhs + op + "=" + rhs + ")";
             },
             binop: function() {
-                var y, op, $elf = this, x, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, op, x, y;
                 op = this._apply("anything");
                 x = this._apply("trans");
                 y = this._apply("trans");
                 return "(" + x + " " + op + " " + y + ")";
             },
             preop: function() {
-                var op, $elf = this, x, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, op, x;
                 op = this._apply("anything");
                 x = this._apply("trans");
                 return op + x;
             },
             postop: function() {
-                var op, $elf = this, x, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, op, x;
                 op = this._apply("anything");
                 x = this._apply("trans");
                 return x + op;
             },
             "return": function() {
-                var $elf = this, x, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, x;
                 x = this._apply("trans");
                 return "return " + x;
             },
             "with": function() {
-                var s, $elf = this, x, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, s, x;
                 x = this._apply("trans");
                 s = this._apply("curlyTrans");
                 return "with(" + x + ")" + s;
             },
             "if": function() {
-                var $elf = this, cond, e, _fromIdx = this.input.idx, t;
+                var $elf = this, _fromIdx = this.input.idx, cond, e, t;
                 cond = this._apply("trans");
                 t = this._apply("curlyTrans");
                 e = this._apply("curlyTrans");
                 return "if(" + cond + ")" + t + "else" + e;
             },
             condExpr: function() {
-                var $elf = this, cond, e, _fromIdx = this.input.idx, t;
+                var $elf = this, _fromIdx = this.input.idx, cond, e, t;
                 cond = this._apply("trans");
                 t = this._apply("trans");
                 e = this._apply("trans");
                 return "(" + cond + "?" + t + ":" + e + ")";
             },
             "while": function() {
-                var $elf = this, cond, _fromIdx = this.input.idx, body;
+                var $elf = this, _fromIdx = this.input.idx, body, cond;
                 cond = this._apply("trans");
                 body = this._apply("curlyTrans");
                 return "while(" + cond + ")" + body;
             },
             doWhile: function() {
-                var $elf = this, cond, _fromIdx = this.input.idx, body;
+                var $elf = this, _fromIdx = this.input.idx, body, cond;
                 body = this._apply("curlyTrans");
                 cond = this._apply("trans");
                 return "do" + body + "while(" + cond + ")";
             },
             "for": function() {
-                var init, $elf = this, upd, cond, _fromIdx = this.input.idx, body;
+                var $elf = this, _fromIdx = this.input.idx, body, cond, init, upd;
                 init = this._apply("trans");
                 cond = this._apply("trans");
                 upd = this._apply("trans");
@@ -1747,14 +1747,14 @@
                 return "for(" + init + ";" + cond + ";" + upd + ")" + body;
             },
             forIn: function() {
-                var $elf = this, x, _fromIdx = this.input.idx, body, arr;
+                var $elf = this, _fromIdx = this.input.idx, arr, body, x;
                 x = this._apply("trans");
                 arr = this._apply("trans");
                 body = this._apply("curlyTrans");
                 return "for(" + x + " in " + arr + ")" + body;
             },
             begin: function() {
-                var $elf = this, x, xs, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, x, xs;
                 return this._or(function() {
                     x = this._apply("trans");
                     this._apply("end");
@@ -1778,13 +1778,13 @@
                 });
             },
             func: function() {
-                var $elf = this, args, _fromIdx = this.input.idx, body;
+                var $elf = this, _fromIdx = this.input.idx, args, body;
                 args = this._apply("anything");
                 body = this._apply("curlyTrans");
                 return "(function (" + args.join(",") + ")" + body + ")";
             },
             call: function() {
-                var $elf = this, fn, args, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, args, fn;
                 fn = this._apply("trans");
                 args = this._many(function() {
                     return this._apply("trans");
@@ -1792,7 +1792,7 @@
                 return fn + "(" + args.join(",") + ")";
             },
             send: function() {
-                var $elf = this, recv, args, _fromIdx = this.input.idx, msg;
+                var $elf = this, _fromIdx = this.input.idx, args, msg, recv;
                 msg = this._apply("anything");
                 recv = this._apply("trans");
                 args = this._many(function() {
@@ -1801,7 +1801,7 @@
                 return recv + "." + msg + "(" + args.join(",") + ")";
             },
             "new": function() {
-                var $elf = this, args, cls, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, args, cls;
                 cls = this._apply("anything");
                 args = this._many(function() {
                     return this._apply("trans");
@@ -1809,14 +1809,14 @@
                 return "new " + cls + "(" + args.join(",") + ")";
             },
             "var": function() {
-                var $elf = this, vs, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, vs;
                 vs = this._many1(function() {
                     return this._apply("varItem");
                 });
                 return "var " + vs.join(",");
             },
             varItem: function() {
-                var v, $elf = this, _fromIdx = this.input.idx, n;
+                var $elf = this, _fromIdx = this.input.idx, n, v;
                 return this._or(function() {
                     this._form(function() {
                         n = this._apply("anything");
@@ -1831,12 +1831,12 @@
                 });
             },
             "throw": function() {
-                var $elf = this, x, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, x;
                 x = this._apply("trans");
                 return "throw " + x;
             },
             "try": function() {
-                var c, $elf = this, x, f, _fromIdx = this.input.idx, name;
+                var $elf = this, _fromIdx = this.input.idx, c, f, name, x;
                 x = this._apply("curlyTrans");
                 name = this._apply("anything");
                 c = this._apply("curlyTrans");
@@ -1844,7 +1844,7 @@
                 return "try " + x + "catch(" + name + ")" + c + "finally" + f;
             },
             json: function() {
-                var $elf = this, props, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, props;
                 props = this._many(function() {
                     return this._apply("trans");
                 });
@@ -1857,7 +1857,7 @@
                 return JSON.stringify(name) + ": " + val;
             },
             "switch": function() {
-                var $elf = this, x, _fromIdx = this.input.idx, cases;
+                var $elf = this, _fromIdx = this.input.idx, cases, x;
                 x = this._apply("trans");
                 cases = this._many(function() {
                     return this._apply("trans");
@@ -1865,13 +1865,13 @@
                 return "switch(" + x + "){" + cases.join(";") + "}";
             },
             "case": function() {
-                var y, $elf = this, x, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, x, y;
                 x = this._apply("trans");
                 y = this._apply("trans");
                 return "case " + x + ": " + y;
             },
             "default": function() {
-                var y, $elf = this, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, y;
                 y = this._apply("trans");
                 return "default: " + y;
             }
@@ -1935,7 +1935,7 @@
                 });
             },
             tsString: function() {
-                var $elf = this, xs, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, xs;
                 this._applyWithArgs("exactly", "'");
                 xs = this._many(function() {
                     this._not(function() {
@@ -1947,7 +1947,7 @@
                 return xs.join("");
             },
             seqString: function() {
-                var $elf = this, xs, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, xs;
                 this._applyWithArgs("exactly", "`");
                 this._applyWithArgs("exactly", "`");
                 xs = this._many(function() {
@@ -1962,7 +1962,7 @@
                 return [ "App", "seq", JSON.stringify(xs.join("")) ];
             },
             tokenString: function() {
-                var $elf = this, xs, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, xs;
                 this._applyWithArgs("exactly", '"');
                 xs = this._many(function() {
                     this._not(function() {
@@ -1974,14 +1974,14 @@
                 return [ "App", "token", JSON.stringify(xs.join("")) ];
             },
             string: function() {
-                var $elf = this, xs, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, xs;
                 xs = this._or(function() {
                     ((function() {
                         switch (this._apply("anything")) {
-                          case "`":
-                            return "`";
                           case "#":
                             return "#";
+                          case "`":
+                            return "`";
                           default:
                             throw this._fail();
                         }
@@ -2013,7 +2013,7 @@
                 return xs;
             },
             args: function() {
-                var $elf = this, xs, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, xs;
                 return this._or(function() {
                     return function() {
                         switch (this._apply("anything")) {
@@ -2033,7 +2033,7 @@
                 });
             },
             application: function() {
-                var $elf = this, as, rule, grm, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, as, grm, rule;
                 return this._or(function() {
                     this._applyWithArgs("token", "^");
                     rule = this._apply("name");
@@ -2052,17 +2052,17 @@
                 });
             },
             hostExpr: function() {
-                var $elf = this, r, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, r;
                 r = this._applyWithArgs("foreign", BSSemActionParser, "asgnExpr");
                 return this._applyWithArgs("foreign", BSJSTranslator, "trans", r);
             },
             curlyHostExpr: function() {
-                var $elf = this, r, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, r;
                 r = this._applyWithArgs("foreign", BSSemActionParser, "curlySemAction");
                 return this._applyWithArgs("foreign", BSJSTranslator, "trans", r);
             },
             primHostExpr: function() {
-                var $elf = this, r, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, r;
                 r = this._applyWithArgs("foreign", BSSemActionParser, "semAction");
                 return this._applyWithArgs("foreign", BSJSTranslator, "trans", r);
             },
@@ -2075,7 +2075,7 @@
                 });
             },
             semAction: function() {
-                var $elf = this, x, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, x;
                 return this._or(function() {
                     x = this._apply("curlyHostExpr");
                     return [ "Act", x ];
@@ -2086,19 +2086,19 @@
                 });
             },
             arrSemAction: function() {
-                var $elf = this, x, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, x;
                 this._applyWithArgs("token", "->");
                 x = this._apply("atomicHostExpr");
                 return [ "Act", x ];
             },
             semPred: function() {
-                var $elf = this, x, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, x;
                 this._applyWithArgs("token", "?");
                 x = this._apply("atomicHostExpr");
                 return [ "Pred", x ];
             },
             expr: function() {
-                var $elf = this, x, xs, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, x, xs;
                 return this._or(function() {
                     x = this._applyWithArgs("expr5", true);
                     xs = this._many1(function() {
@@ -2118,7 +2118,7 @@
                 });
             },
             expr5: function(ne) {
-                var $elf = this, x, xs, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, x, xs;
                 return this._or(function() {
                     x = this._apply("interleavePart");
                     xs = this._many1(function() {
@@ -2131,7 +2131,7 @@
                 });
             },
             interleavePart: function() {
-                var part, $elf = this, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, part;
                 return this._or(function() {
                     this._applyWithArgs("token", "(");
                     part = this._applyWithArgs("expr4", true);
@@ -2143,7 +2143,7 @@
                 });
             },
             modedIPart: function() {
-                var part, $elf = this, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, part;
                 return this._or(function() {
                     this._form(function() {
                         this._applyWithArgs("exactly", "And");
@@ -2177,7 +2177,7 @@
                 });
             },
             expr4: function(ne) {
-                var $elf = this, xs, _fromIdx = this.input.idx, act;
+                var $elf = this, _fromIdx = this.input.idx, act, xs;
                 return this._or(function() {
                     xs = this._many(function() {
                         return this._apply("expr3");
@@ -2205,10 +2205,10 @@
                         switch (this._apply("anything")) {
                           case "*":
                             return [ "Many", x ];
-                          case "?":
-                            return [ "Opt", x ];
                           case "+":
                             return [ "Many1", x ];
+                          case "?":
+                            return [ "Opt", x ];
                           default:
                             throw this._fail();
                         }
@@ -2241,7 +2241,7 @@
                 });
             },
             expr3: function() {
-                var $elf = this, x, e, _fromIdx = this.input.idx, n;
+                var $elf = this, _fromIdx = this.input.idx, e, n, x;
                 return this._or(function() {
                     this._applyWithArgs("token", ":");
                     n = this._apply("name");
@@ -2262,7 +2262,7 @@
                 });
             },
             expr2: function() {
-                var $elf = this, x, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, x;
                 return this._or(function() {
                     this._applyWithArgs("token", "~");
                     x = this._apply("expr2");
@@ -2276,7 +2276,7 @@
                 });
             },
             expr1: function() {
-                var $elf = this, x, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, x;
                 return this._or(function() {
                     return this._apply("application");
                 }, function() {
@@ -2339,7 +2339,7 @@
                 });
             },
             rule: function() {
-                var $elf = this, x, xs, _fromIdx = this.input.idx, n;
+                var $elf = this, _fromIdx = this.input.idx, n, x, xs;
                 this._lookahead(function() {
                     return n = this._apply("ruleName");
                 });
@@ -2353,10 +2353,10 @@
                     this._applyWithArgs("token", ",");
                     return this._applyWithArgs("rulePart", n);
                 });
-                return [ "Rule", n, this["params"], Object.getOwnPropertyNames(this["locals"]), [ "Or", x ].concat(xs) ];
+                return [ "Rule", n, this["params"], Object.getOwnPropertyNames(this["locals"]).sort(), [ "Or", x ].concat(xs) ];
             },
             rulePart: function(rn) {
-                var $elf = this, p, b, _fromIdx = this.input.idx, n;
+                var $elf = this, _fromIdx = this.input.idx, b, n, p;
                 n = this._apply("ruleName");
                 this._pred(n == rn);
                 this._or(function() {
@@ -2372,7 +2372,7 @@
                 return b;
             },
             grammar: function() {
-                var rs, $elf = this, sn, exported, _fromIdx = this.input.idx, n;
+                var $elf = this, _fromIdx = this.input.idx, exported, n, rs, sn;
                 exported = this._or(function() {
                     this._applyWithArgs("keyword", "export");
                     return true;
@@ -2399,7 +2399,7 @@
         };
         var BSOMetaTranslator = exports.BSOMetaTranslator = OMeta._extend({
             App: function() {
-                var $elf = this, args, rule, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, args, rule;
                 return this._or(function() {
                     return function() {
                         switch (this._apply("anything")) {
@@ -2426,24 +2426,24 @@
                 });
             },
             Act: function() {
-                var $elf = this, expr, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, expr;
                 expr = this._apply("anything");
                 return expr;
             },
             Pred: function() {
-                var $elf = this, expr, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, expr;
                 expr = this._apply("anything");
                 return [ "this._pred(", expr, ")" ].join("");
             },
             Or: function() {
-                var $elf = this, xs, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, xs;
                 xs = this._many(function() {
                     return this._apply("transFn");
                 });
                 return [ "this._or(", xs.join(","), ")" ].join("");
             },
             XOr: function() {
-                var $elf = this, xs, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, xs;
                 xs = this._many(function() {
                     return this._apply("transFn");
                 });
@@ -2451,7 +2451,7 @@
                 return [ "this._xor(", xs.join(","), ")" ].join("");
             },
             Seq: function() {
-                var y, $elf = this, xs, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, xs, y;
                 return this._or(function() {
                     xs = this._many(function() {
                         return this._applyWithArgs("notLast", "trans");
@@ -2464,53 +2464,53 @@
                 });
             },
             And: function() {
-                var $elf = this, xs, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, xs;
                 xs = this._apply("Seq");
                 return [ "(function(){", xs, "}).call(this)" ].join("");
             },
             Opt: function() {
-                var $elf = this, x, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, x;
                 x = this._apply("transFn");
                 return [ "this._opt(", x, ")" ].join("");
             },
             Many: function() {
-                var $elf = this, x, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, x;
                 x = this._apply("transFn");
                 return [ "this._many(", x, ")" ].join("");
             },
             Many1: function() {
-                var $elf = this, x, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, x;
                 x = this._apply("transFn");
                 return [ "this._many1(", x, ")" ].join("");
             },
             Set: function() {
-                var v, $elf = this, _fromIdx = this.input.idx, n;
+                var $elf = this, _fromIdx = this.input.idx, n, v;
                 n = this._apply("anything");
                 v = this._apply("trans");
                 return [ n, "=", v ].join("");
             },
             Not: function() {
-                var $elf = this, x, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, x;
                 x = this._apply("transFn");
                 return [ "this._not(", x, ")" ].join("");
             },
             Lookahead: function() {
-                var $elf = this, x, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, x;
                 x = this._apply("transFn");
                 return [ "this._lookahead(", x, ")" ].join("");
             },
             Form: function() {
-                var $elf = this, x, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, x;
                 x = this._apply("transFn");
                 return [ "this._form(", x, ")" ].join("");
             },
             ConsBy: function() {
-                var $elf = this, x, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, x;
                 x = this._apply("transFn");
                 return [ "this._consumedBy(", x, ")" ].join("");
             },
             IdxConsBy: function() {
-                var $elf = this, x, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, x;
                 x = this._apply("transFn");
                 return [ "this._idxConsumedBy(", x, ")" ].join("");
             },
@@ -2522,14 +2522,14 @@
                 return this.jumpTableCode(cases);
             },
             Interleave: function() {
-                var $elf = this, xs, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, xs;
                 xs = this._many(function() {
                     return this._apply("intPart");
                 });
                 return [ "this._interleave(", xs.join(","), ")" ].join("");
             },
             Rule: function() {
-                var $elf = this, ls, _fromIdx = this.input.idx, name, ps, body;
+                var $elf = this, _fromIdx = this.input.idx, body, ls, name, ps;
                 name = this._apply("anything");
                 this["rName"] = name;
                 ps = this._apply("params");
@@ -2546,7 +2546,7 @@
                 return [ '\n"', name, '":function(', ps, "){", ls, body, "}" ].join("");
             },
             Grammar: function() {
-                var rules, $elf = this, exported, sName, _fromIdx = this.input.idx, name;
+                var $elf = this, _fromIdx = this.input.idx, exported, name, rules, sName;
                 exported = this._apply("anything");
                 name = this._apply("anything");
                 sName = this._apply("anything");
@@ -2558,7 +2558,7 @@
                 return [ "var ", name, exported ? "=exports." + name : "", "=", sName, "._extend({", rules.join(","), "})" ].join("");
             },
             intPart: function() {
-                var mode, part, $elf = this, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, mode, part;
                 this._form(function() {
                     mode = this._apply("anything");
                     return part = this._apply("transFn");
@@ -2566,7 +2566,7 @@
                 return JSON.stringify(mode) + "," + part;
             },
             jtCase: function() {
-                var $elf = this, x, e, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, e, x;
                 this._form(function() {
                     x = this._apply("anything");
                     return e = this._apply("trans");
@@ -2574,7 +2574,7 @@
                 return [ JSON.stringify(x), e ];
             },
             locals: function() {
-                var $elf = this, vs, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, vs;
                 return this._or(function() {
                     this._form(function() {
                         return vs = this._many1(function() {
@@ -2590,7 +2590,7 @@
                 });
             },
             params: function() {
-                var $elf = this, vs, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, vs;
                 return this._or(function() {
                     this._form(function() {
                         return vs = this._many1(function() {
@@ -2606,7 +2606,7 @@
                 });
             },
             trans: function() {
-                var $elf = this, ans, _fromIdx = this.input.idx, t;
+                var $elf = this, _fromIdx = this.input.idx, ans, t;
                 this._form(function() {
                     t = this._apply("anything");
                     return ans = this._applyWithArgs("apply", t);
@@ -2614,7 +2614,7 @@
                 return ans;
             },
             transFn: function() {
-                var $elf = this, x, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, x;
                 this._or(function() {
                     return this._form(function() {
                         this._applyWithArgs("exactly", "And");
@@ -2638,7 +2638,7 @@
         };
         var BSOMetaJSParser = exports.BSOMetaJSParser = BSJSParser._extend({
             srcElem: function() {
-                var $elf = this, r, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, r;
                 return this._or(function() {
                     this._apply("spaces");
                     r = this._applyWithArgs("foreign", BSOMetaParser, "grammar");
@@ -2655,7 +2655,7 @@
         });
         var BSOMetaJSTranslator = exports.BSOMetaJSTranslator = BSJSTranslator._extend({
             Grammar: function() {
-                var $elf = this, r, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, r;
                 r = this._many(function() {
                     return this._apply("anything");
                 });
@@ -2673,7 +2673,7 @@
                 return this._pred(this["_didSomething"]);
             },
             trans: function() {
-                var $elf = this, ans, _fromIdx = this.input.idx, t;
+                var $elf = this, _fromIdx = this.input.idx, ans, t;
                 this._form(function() {
                     t = this._apply("anything");
                     this._pred(this[t] != undefined);
@@ -2682,13 +2682,13 @@
                 return ans;
             },
             optimize: function() {
-                var $elf = this, x, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, x;
                 x = this._apply("trans");
                 this._apply("helped");
                 return x;
             },
             App: function() {
-                var $elf = this, args, rule, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, args, rule;
                 rule = this._apply("anything");
                 args = this._many(function() {
                     return this._apply("anything");
@@ -2696,84 +2696,84 @@
                 return [ "App", rule ].concat(args);
             },
             Act: function() {
-                var $elf = this, expr, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, expr;
                 expr = this._apply("anything");
                 return [ "Act", expr ];
             },
             Pred: function() {
-                var $elf = this, expr, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, expr;
                 expr = this._apply("anything");
                 return [ "Pred", expr ];
             },
             Or: function() {
-                var $elf = this, xs, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, xs;
                 xs = this._many(function() {
                     return this._apply("trans");
                 });
                 return [ "Or" ].concat(xs);
             },
             XOr: function() {
-                var $elf = this, xs, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, xs;
                 xs = this._many(function() {
                     return this._apply("trans");
                 });
                 return [ "XOr" ].concat(xs);
             },
             And: function() {
-                var $elf = this, xs, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, xs;
                 xs = this._many(function() {
                     return this._apply("trans");
                 });
                 return [ "And" ].concat(xs);
             },
             Opt: function() {
-                var $elf = this, x, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, x;
                 x = this._apply("trans");
                 return [ "Opt", x ];
             },
             Many: function() {
-                var $elf = this, x, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, x;
                 x = this._apply("trans");
                 return [ "Many", x ];
             },
             Many1: function() {
-                var $elf = this, x, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, x;
                 x = this._apply("trans");
                 return [ "Many1", x ];
             },
             Set: function() {
-                var v, $elf = this, _fromIdx = this.input.idx, n;
+                var $elf = this, _fromIdx = this.input.idx, n, v;
                 n = this._apply("anything");
                 v = this._apply("trans");
                 return [ "Set", n, v ];
             },
             Not: function() {
-                var $elf = this, x, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, x;
                 x = this._apply("trans");
                 return [ "Not", x ];
             },
             Lookahead: function() {
-                var $elf = this, x, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, x;
                 x = this._apply("trans");
                 return [ "Lookahead", x ];
             },
             Form: function() {
-                var $elf = this, x, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, x;
                 x = this._apply("trans");
                 return [ "Form", x ];
             },
             ConsBy: function() {
-                var $elf = this, x, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, x;
                 x = this._apply("trans");
                 return [ "ConsBy", x ];
             },
             IdxConsBy: function() {
-                var $elf = this, x, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, x;
                 x = this._apply("trans");
                 return [ "IdxConsBy", x ];
             },
             JumpTable: function() {
-                var c, $elf = this, e, ces, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, c, ces, e;
                 ces = this._many(function() {
                     this._form(function() {
                         c = this._apply("anything");
@@ -2784,7 +2784,7 @@
                 return [ "JumpTable" ].concat(ces);
             },
             Interleave: function() {
-                var $elf = this, xs, m, p, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, m, p, xs;
                 xs = this._many(function() {
                     this._form(function() {
                         m = this._apply("anything");
@@ -2795,7 +2795,7 @@
                 return [ "Interleave" ].concat(xs);
             },
             Rule: function() {
-                var $elf = this, ls, _fromIdx = this.input.idx, name, ps, body;
+                var $elf = this, _fromIdx = this.input.idx, body, ls, name, ps;
                 name = this._apply("anything");
                 ps = this._apply("anything");
                 ls = this._apply("anything");
@@ -2808,7 +2808,7 @@
         };
         var BSAssociativeOptimization = exports.BSAssociativeOptimization = BSNullOptimization._extend({
             And: function() {
-                var $elf = this, x, xs, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, x, xs;
                 return this._or(function() {
                     x = this._apply("trans");
                     this._apply("end");
@@ -2820,7 +2820,7 @@
                 });
             },
             Or: function() {
-                var $elf = this, x, xs, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, x, xs;
                 return this._or(function() {
                     x = this._apply("trans");
                     this._apply("end");
@@ -2832,7 +2832,7 @@
                 });
             },
             XOr: function() {
-                var $elf = this, x, xs, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, x, xs;
                 return this._or(function() {
                     x = this._apply("trans");
                     this._apply("end");
@@ -2844,7 +2844,7 @@
                 });
             },
             transInside: function(t) {
-                var $elf = this, x, xs, _fromIdx = this.input.idx, ys;
+                var $elf = this, _fromIdx = this.input.idx, x, xs, ys;
                 return this._or(function() {
                     this._form(function() {
                         this._applyWithArgs("exactly", t);
@@ -2864,7 +2864,7 @@
         });
         var BSPushDownSet = exports.BSPushDownSet = BSNullOptimization._extend({
             Set: function() {
-                var y, v, $elf = this, xs, _fromIdx = this.input.idx, n;
+                var $elf = this, _fromIdx = this.input.idx, n, v, xs, y;
                 return this._or(function() {
                     n = this._apply("anything");
                     this._form(function() {
@@ -2885,7 +2885,7 @@
         });
         var BSSeqInliner = exports.BSSeqInliner = BSNullOptimization._extend({
             App: function() {
-                var s, $elf = this, cs, args, rule, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, args, cs, rule, s;
                 return this._or(function() {
                     return function() {
                         switch (this._apply("anything")) {
@@ -2910,7 +2910,7 @@
                 });
             },
             inlineChar: function() {
-                var c, $elf = this, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, c;
                 c = this._applyWithArgs("foreign", BSOMetaParser, "eChar");
                 this._not(function() {
                     return this._apply("end");
@@ -2918,7 +2918,7 @@
                 return [ "App", "exactly", JSON.stringify(c) ];
             },
             seqString: function() {
-                var s, $elf = this, cs, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, cs, s;
                 this._lookahead(function() {
                     s = this._apply("anything");
                     return this._pred(typeof s === "string");
@@ -2962,15 +2962,15 @@
             }
         };
         JumpTable["prototype"]["toTree"] = function() {
-            var r = [ "JumpTable" ], choiceKeys = Object.getOwnPropertyNames(this["choices"]);
-            for (var i = 0; i < choiceKeys["length"]; i += 1) {
+            var r = [ "JumpTable" ], choiceKeys = Object.getOwnPropertyNames(this["choices"]).sort();
+            for (var i = 0; i < choiceKeys["length"]; i++) {
                 r.push([ choiceKeys[i], this["choices"][choiceKeys[i]] ]);
             }
             return r;
         };
         var BSJumpTableOptimization = exports.BSJumpTableOptimization = BSNullOptimization._extend({
             Or: function() {
-                var $elf = this, cs, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, cs;
                 cs = this._many(function() {
                     return this._or(function() {
                         return this._applyWithArgs("jtChoices", "Or");
@@ -2981,7 +2981,7 @@
                 return [ "Or" ].concat(cs);
             },
             XOr: function() {
-                var $elf = this, cs, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, cs;
                 cs = this._many(function() {
                     return this._or(function() {
                         return this._applyWithArgs("jtChoices", "XOr");
@@ -2992,24 +2992,13 @@
                 return [ "XOr" ].concat(cs);
             },
             quotedString: function() {
-                var c, $elf = this, cs, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, c, cs;
                 this._lookahead(function() {
                     return this._apply("string");
                 });
                 this._form(function() {
                     return function() {
                         switch (this._apply("anything")) {
-                          case "'":
-                            return function() {
-                                cs = this._many(function() {
-                                    c = this._applyWithArgs("foreign", BSOMetaParser, "eChar");
-                                    this._not(function() {
-                                        return this._apply("end");
-                                    });
-                                    return c;
-                                });
-                                return this._applyWithArgs("exactly", "'");
-                            }.call(this);
                           case '"':
                             return function() {
                                 cs = this._many(function() {
@@ -3021,6 +3010,17 @@
                                 });
                                 return this._applyWithArgs("exactly", '"');
                             }.call(this);
+                          case "'":
+                            return function() {
+                                cs = this._many(function() {
+                                    c = this._applyWithArgs("foreign", BSOMetaParser, "eChar");
+                                    this._not(function() {
+                                        return this._apply("end");
+                                    });
+                                    return c;
+                                });
+                                return this._applyWithArgs("exactly", "'");
+                            }.call(this);
                           default:
                             throw this._fail();
                         }
@@ -3029,7 +3029,7 @@
                 return cs.join("");
             },
             jtChoice: function() {
-                var rest, $elf = this, x, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, rest, x;
                 return this._or(function() {
                     this._form(function() {
                         this._applyWithArgs("exactly", "And");
@@ -3053,7 +3053,7 @@
                 });
             },
             jtChoices: function(op) {
-                var jt, c, $elf = this, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, c, jt;
                 c = this._apply("jtChoice");
                 jt = new JumpTable(op, c);
                 this._many(function() {
@@ -3066,7 +3066,7 @@
         });
         var BSOMetaOptimizer = exports.BSOMetaOptimizer = OMeta._extend({
             optimizeGrammar: function() {
-                var rs, $elf = this, sn, exported, _fromIdx = this.input.idx, n;
+                var $elf = this, _fromIdx = this.input.idx, exported, n, rs, sn;
                 this._form(function() {
                     this._applyWithArgs("exactly", "Grammar");
                     exported = this._apply("anything");
@@ -3079,7 +3079,7 @@
                 return [ "Grammar", exported, n, sn ].concat(rs);
             },
             optimizeRule: function() {
-                var $elf = this, r, _fromIdx = this.input.idx;
+                var $elf = this, _fromIdx = this.input.idx, r;
                 r = this._apply("anything");
                 this._or(function() {
                     return r = this._applyWithArgs("foreign", BSSeqInliner, "optimize", r);

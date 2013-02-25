@@ -64,7 +64,7 @@ export ometa BSOMetaParser {
                  | spaces tsString,
   rule           = &(ruleName:n) !(this.locals = {'$elf=this': true, '_fromIdx=this.input.idx': true})
                      !(this.params = [])
-                     rulePart(n):x ("," rulePart(n))*:xs               -> [#Rule, n, this.params, Object.getOwnPropertyNames(this.locals), [#Or, x].concat(xs)],
+                     rulePart(n):x ("," rulePart(n))*:xs               -> [#Rule, n, this.params, Object.getOwnPropertyNames(this.locals).sort(), [#Or, x].concat(xs)],
   rulePart :rn   = ruleName:n ?(n == rn)
                    ( param*:p "=" {this.params = this.params.concat(p)} expr:b
                    | expr:b)                                           -> b,
