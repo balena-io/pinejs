@@ -4,7 +4,7 @@ load = (filePath) ->
 	vm.runInThisContext(fs.readFileSync(filePath, 'utf8'), __filename)
 
 ometajs = require('../../../external/ometa-js/lib/ometajs.js')
-js_beautify = require('js-beautify').js_beautify
+UglifyJS = require('uglifyjs')
 
 calculateLineColInfo = (string, index) ->
 	line = 1
@@ -36,9 +36,12 @@ compileOmeta = (ometa, pretty, desc = 'OMeta') ->
 		tree = ometajs.BSOMetaJSParser.matchAll(ometa, 'topLevel', undefined, parsingError(ometa))
 		console.log('Compiling: ' + desc)
 		js = ometajs.BSOMetaJSTranslator.match(tree, 'trans', undefined, translationError)
-		if pretty == true
-			console.log('Beautifying: ' + desc)
-			js = js_beautify(js)
+		ast = UglifyJS.parse(js)
+		ast.figure_out_scope()
+		ast = ast.transform(compressor)
+		js = ast.print_to_string(
+			beautify: pretty == true
+		)
 		return js
 	catch e
 		# console.log(e)

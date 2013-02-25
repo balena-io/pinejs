@@ -23,7 +23,7 @@ require({
 		'has'				:  '../../tools/has',
 
 		'ometa-compiler'	:  '../../external/ometa-js/lib/ometajs/ometa/parsers',
-		'js-beautify'		: '../../external/beautify/beautify',
+		'uglifyjs'			: '../../external/uglifyjs/uglify',
 
 		//Libraries
 		'ometa-core'		:  '../../external/ometa-js/lib/ometajs/core',
@@ -34,8 +34,8 @@ require({
 		'inflection'		:  '../../external/inflection/inflection',
 	},
 	shim: {
-		'js-beautify': {
-			exports: 'js_beautify'
+		'uglifyjs': {
+			exports: 'UglifyJS'
 		},
 		'underscore': {
 			exports: '_'

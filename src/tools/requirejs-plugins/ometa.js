@@ -7,13 +7,17 @@
 /*jslint */
 /*global define, window, XMLHttpRequest, importScripts, Packages, java,
   ActiveXObject, process, require */
-define(['ometa-core', 'ometa-compiler', 'js-beautify'], function (OMeta, OMetaCompiler, js_beautify) {
+define(['ometa-core', 'ometa-compiler', 'uglifyjs'], function (OMeta, OMetaCompiler, UglifyJS) {
 	'use strict';
 	var fs, getXhr,
 		fetchText = function () {
 			throw new Error('Environment unsupported.');
 		},
-		buildMap = {};
+		buildMap = {},
+		compressor = UglifyJS.Compressor({
+			sequences: false,
+			unused: false // We need this off for OMeta
+		});
 
 	if (typeof process !== "undefined" &&
 			   process.versions &&
@@ -112,8 +116,14 @@ define(['ometa-core', 'ometa-compiler', 'js-beautify'], function (OMeta, OMetaCo
 							console.error('Error around: ' + source.substring(index - 2, Math.min(source.length, index + 2)));
 							throw matchingError;
 						}),
-						js = OMetaCompiler.BSOMetaJSTranslator.match(tree, "trans");
-					return js_beautify(js);
+						js = OMetaCompiler.BSOMetaJSTranslator.match(tree, "trans"),
+						ast = UglifyJS.parse(js);
+					ast.figure_out_scope();
+					ast = ast.transform(compressor);
+					js = ast.print_to_string({
+						beautify: true
+					});
+					return js;
 				}
 
 				var cached = sessionStorage.getItem(path);

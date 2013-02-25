@@ -3,6 +3,6 @@
 	"version": "0.0.1",
 	"dependencies": {
 		"nopt": "1.0.x",
-		"js-beautify": "0.2.x"
+		"uglifyjs": "2.x"
 	}
 }

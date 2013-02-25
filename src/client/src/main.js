@@ -25,7 +25,7 @@ require({
 		'lib'						: '../lib',
 
 		'ometa-compiler'			: '../../external/ometa-js/lib/ometajs/ometa/parsers',
-		'js-beautify'				: '../../external/beautify/beautify',
+		'uglifyjs'					: '../../external/uglifyjs/uglify',
 
 		//Libraries
 		'async'						: '../../external/async/async.min',
@@ -99,8 +99,8 @@ require({
 				return this._.noConflict();
 			}
 		},
-		'js-beautify': {
-			exports: 'js_beautify'
+		'uglifyjs': {
+			exports: 'UglifyJS'
 		},
 		'async': {
 			exports: 'async'

@@ -4,7 +4,7 @@
 		'cs',
 		'text',
 		'css', 'css/normalize', 'css/css',
-		'ometa', 'ometa-compiler', 'js-beautify',
+		'ometa', 'ometa-compiler', 'uglifyjs',
 		'coffee-script'],
 	mainConfigFile: '../src/main.js',
 	optimize: 'uglify2',
