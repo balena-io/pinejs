@@ -90,7 +90,7 @@ define(['coffee-script'], function (CoffeeScript) {
 
 		load: function (name, parentRequire, load, config) {
 			if(parentRequire.toUrl(name) == 'empty:') {
-				load('');
+				load.fromText('');
 				return;
 			}
 			var path = parentRequire.toUrl(name + '.coffee');
@@ -133,14 +133,14 @@ define(['coffee-script'], function (CoffeeScript) {
 					compiled += "\r\n//@ sourceURL=" + path;
 				}
 				/*@end@*/
-				load.fromText(name, compiled);
 
+				//Have RequireJS execute the JavaScript within
+				//the correct environment/context, and trigger the load
+				//call for this resource.
 				//Give result to load. Need to wait until the module
 				//is fully parse, which will happen after this
 				//execution.
-				parentRequire([name], function (value) {
-					load(value);
-				});
+				load.fromText(compiled);
 			});
 		}
 	};
