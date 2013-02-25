@@ -10,28 +10,22 @@
 	optimize: 'uglify2',
 	skipDirOptimize: true,
 	uglify2: {
-		output: {
-			beautify: true,
-			ascii_only: true
-		},
 		compress: {
-			sequences: false,
 			unused: false // We need this off for OMeta
-		},
-		mangle: false
+		}
 	},
 
-	has: {
-		// For the in-browser server
-		ENV_BROWSER: false
-	},
 	separateCSS: true,
 	modules: [
 		{
 			name: "main"
 		}
 	],
-	
+
+	has: {
+		// For the in-browser server
+		ENV_BROWSER: false
+	},
 	paths: {
 		// For the in-browser server
 		"server-glue/server": "empty:"
