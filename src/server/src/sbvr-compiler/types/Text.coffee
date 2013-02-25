@@ -7,6 +7,10 @@ define(['cs!sbvr-compiler/types/TypeUtils'], (TypeUtils) ->
 			odata:
 				name: 'Edm.String'
 
+		nativeProperties:
+			'has':
+				'Length': (from) -> ['CharacterLength', from]
+
 		validate: TypeUtils.validate.text()
 	}
 )

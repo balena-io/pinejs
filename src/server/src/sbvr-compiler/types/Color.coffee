@@ -14,6 +14,13 @@ define(['underscore'], (_) ->
 						 <Property Name="a" Nullable="false" Type="Edm.Int8"/>\
 					</ComplexType>'''
 
+		nativeProperties:
+			'has':
+				'Red Component': (from) -> ['BitwiseAnd', ['BitwiseShiftRight', from, 16], 255]
+				'Green Component': (from) -> ['BitwiseAnd', ['BitwiseShiftRight', from, 8], 255]
+				'Blue Component': (from) -> ['BitwiseShiftRight', from, 255]
+				'Alpha Component': (from) -> ['BitwiseAnd', ['BitwiseShiftRight', from, 24], 255]
+
 		fetchProcessing: (data, callback) ->
 			callback(null,
 				r: (data >> 16) & 0xFF

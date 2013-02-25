@@ -1,9 +1,9 @@
 define([
 	'ometa!sbvr-parser/SBVRLibs',
-	'ometa-core'
-], function(SBVRLibs) {
+	'underscore',
+	'cs!sbvr-compiler/types'
+], function(SBVRLibs, _, sbvrTypes) {
 	//Transformation from SBVR Logical Formulation to SQL
-	var _ = require('underscore');
 
 	ometa LF2AbstractSQL <: SBVRLibs {
 		Number =
@@ -292,23 +292,10 @@ define([
 				{to}:from
 			)?
 			{actualFactType[0][1]}:primitive
-			{actualFactType[1][1].toLowerCase()}:verb
+			{actualFactType[1][1]}:verb
 			{actualFactType[2][1]}:property
-			?(verb == 'has')
-			(	?(primitive == 'Text')
-				?(property == 'Length')
-				-> ['CharacterLength', from]
-			|	?(primitive == 'Color')
-				(	?(property == 'Red Component')
-					-> ['BitwiseAnd', ['BitwiseShiftRight', from, 16], 255]
-				|	?(property == 'Green Component')
-					-> ['BitwiseAnd', ['BitwiseShiftRight', from, 8], 255]
-				|	?(property == 'Blue Component')
-					-> ['BitwiseAnd', from, 255]
-				|	?(property == 'Alpha Component')
-					-> ['BitwiseAnd', ['BitwiseShiftRight', from, 24], 255]
-				)
-			),
+			?(sbvrTypes[primitive] && sbvrTypes[primitive][verb] && sbvrTypes[primitive][verb][property])
+			-> sbvrTypes[primitive][verb][property](from, to),
 
 		NativeFactType :actualFactType =
 			?(actualFactType.length == 3)
