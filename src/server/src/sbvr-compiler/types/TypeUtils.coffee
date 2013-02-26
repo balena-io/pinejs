@@ -34,7 +34,7 @@ define(['underscore'], (_) ->
 					processedValue = originalValue
 				processedValue = new Date(processedValue)
 				if _.isNaN(processedValue.getTime())
-					callback('is not a ' + field[0] + ': ' + originalValue)
+					callback('is not a valid date: ' + originalValue)
 				else	
 					callback(null, processedValue)
 	}
