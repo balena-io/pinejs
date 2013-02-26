@@ -9,7 +9,7 @@
   ActiveXObject, process, require */
 define(['ometa-core', 'ometa-compiler', 'uglifyjs'], function (OMeta, OMetaCompiler, UglifyJS) {
 	'use strict';
-	var fs, getXhr,
+	var fs, getXhr, sessionStorage,
 		fetchText = function () {
 			throw new Error('Environment unsupported.');
 		},
@@ -70,7 +70,10 @@ define(['ometa-core', 'ometa-compiler', 'uglifyjs'], function (OMeta, OMetaCompi
 		// end browser.js adapters
 	}
 
-	if (typeof window === 'undefined' || window.sessionStorage === 'undefined') {
+	if (typeof window !== 'undefined' && window.sessionStorage !== 'undefined') {
+		sessionStorage = window.sessionStorage;
+	}
+	else {
 		sessionStorage = {
 			getItem: function () {return false;},
 			setItem: function () {return false;},

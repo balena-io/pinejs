@@ -10,7 +10,7 @@
 
 define(['coffee-script'], function (CoffeeScript) {
 	'use strict';
-	var fs, getXhr,
+	var fs, getXhr, sessionStorage,
 		fetchText = function () {
 			throw new Error('Environment unsupported.');
 		},
@@ -66,7 +66,10 @@ define(['coffee-script'], function (CoffeeScript) {
 		};
 		// end browser.js adapters
 	}
-	if (typeof window === 'undefined' || window.sessionStorage === 'undefined') {
+	if (typeof window !== 'undefined' && window.sessionStorage !== 'undefined') {
+		sessionStorage = window.sessionStorage;
+	}
+	else {
 		sessionStorage = {
 			getItem: function () {return false;},
 			setItem: function () {return false;},
