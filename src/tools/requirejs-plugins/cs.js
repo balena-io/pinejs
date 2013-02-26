@@ -139,9 +139,6 @@ define(['coffee-script'], function (CoffeeScript) {
 				//Have RequireJS execute the JavaScript within
 				//the correct environment/context, and trigger the load
 				//call for this resource.
-				//Give result to load. Need to wait until the module
-				//is fully parse, which will happen after this
-				//execution.
 				load.fromText(compiled);
 			});
 		}

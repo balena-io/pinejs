@@ -95,6 +95,10 @@ define(['ometa-core', 'ometa-compiler', 'uglifyjs'], function (OMeta, OMetaCompi
 		version: '0.4.2',
 
 		load: function (name, parentRequire, load, config) {
+			if(parentRequire.toUrl(name) == 'empty:') {
+				load.fromText('');
+				return;
+			}
 			var path = parentRequire.toUrl(name + '.ometa');
 			fetchText(path, function (source) {
 
@@ -165,14 +169,11 @@ define(['ometa-core', 'ometa-compiler', 'uglifyjs'], function (OMeta, OMetaCompi
 					compiled += "\r\n//@ sourceURL=" + path;
 				}
 				/*@end@*/
-				load.fromText(name, compiled);
 
-				//Give result to load. Need to wait until the module
-				//is fully parse, which will happen after this
-				//execution.
-				parentRequire([name], function (value) {
-					load(value);
-				});
+				//Have RequireJS execute the JavaScript within
+				//the correct environment/context, and trigger the load
+				//call for this resource.
+				load.fromText(compiled);
 			});
 		}
 	};
