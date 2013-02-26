@@ -149,8 +149,8 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'ometa-core'], function(SBVR
 				if(sqlTable.hasOwnProperty('fields')) {
 					for(var i = 0; i < sqlTable.fields.length; i++) {
 						var sqlField = sqlTable.fields[i];
-						if(sqlField[1] == mapping[1]) {
-							if(sqlField[0] == 'Serial') {
+						if(sqlField.fieldName == mapping[1]) {
+							if(sqlField.dataType == 'Serial') {
 								this.AddQueryTable(query, mapping[0]);
 							}
 							return;

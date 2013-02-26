@@ -3,7 +3,7 @@ define(->
 
 	getField = (table, fieldName) ->
 		tableFields = table.fields
-		for tableField in tableFields when tableField[1] == fieldName
+		for tableField in tableFields when tableField.fieldName == fieldName
 			return tableField
 		return false
 	
@@ -29,7 +29,13 @@ define(->
 					resourceName: resourceName
 					modelName: (part.replace(/_/g, ' ') for part in idParts).join(' ')
 					topLevel: idParts.length == 1
-					fields: [ ['ForeignKey', resourceField, true, null, [sqlTableName, sqlFieldName]] ]
+					fields: [
+						dataType: 'ForeignKey'
+						fieldName: resourceField
+						required: true
+						index: null
+						references: [sqlTableName, sqlFieldName]
+					]
 					idField: resourceField
 					referenceScheme: resourceField
 					actions: ['view', 'add', 'delete']
@@ -63,7 +69,7 @@ define(->
 					idField: table.idField
 					referenceScheme: table.referenceScheme
 					actions: ['view', 'add', 'edit', 'delete']
-				for sqlField in table.fields
-					addMapping(resourceName, sqlField[1], table.name, sqlField[1])
+				for {fieldName} in table.fields
+					addMapping(resourceName, fieldName, table.name, fieldName)
 		return {resources, resourceToSQLMappings}
 )

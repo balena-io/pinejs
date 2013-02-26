@@ -73,9 +73,9 @@ define([
 					colModel = []
 					fkCols = []
 					
-					for [fieldType, fieldName] in invalid.__model.fields
+					for {dataType, fieldName} in invalid.__model.fields
 						resourceName = fieldName.replace(/\ /g, '_')
-						if fieldType == 'ForeignKey'
+						if dataType == 'ForeignKey'
 							colNames.push(fieldName + '(id: name)')
 							fkCols.push(models[resourceName])
 						else

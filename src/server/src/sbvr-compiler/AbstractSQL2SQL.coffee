@@ -8,19 +8,19 @@ define([
 ], (AbstractSQLRules2SQL, AbstractSQLOptimiser, Prettify, _, sbvrTypes, TypeUtils) ->
 
 	dataTypeValidate = (value, field, callback) ->
-		[typeName, fieldName, required] = field
+		{dataType, required} = field
 		if value == null or value == ''
 			if required
 				callback('cannot be null')
 			else
 				callback(null, null)
-		else if sbvrTypes[typeName]?
-			sbvrTypes[typeName].validate(value, required, callback)
+		else if sbvrTypes[dataType]?
+			sbvrTypes[dataType].validate(value, required, callback)
 			return
-		else if typeName in ['ForeignKey', 'ConceptType']
+		else if dataType in ['ForeignKey', 'ConceptType']
 			TypeUtils.validate.integer(value, required, callback)
 		else
-			callback('is an unsupported type: ' + typeName)
+			callback('is an unsupported type: ' + dataType)
 	
 	dataTypeGen = (engine) ->
 		(dataType, necessity, index = '') ->
@@ -46,12 +46,12 @@ define([
 			dropSQL = 'DROP TABLE "' + table.name + '";'
 			createSQL = 'CREATE TABLE ' + ifNotExists + '"' + table.name + '" (\n\t'
 			
-			for field in table.fields
-				createSQL += '"' + field[1] + '" ' + dataTypeGen(field[0], field[2], field[3]) + '\n,\t'
-				if field[0] in ['ForeignKey', 'ConceptType']
-					foreignKeys.push([field[1]].concat(field[4]))
-					depends.push(field[4][0])
-					hasDependants[field[4][0]] = true
+			for {dataType, fieldName, required, index, references} in table.fields
+				createSQL += '"' + fieldName + '" ' + dataTypeGen(dataType, required, index) + '\n,\t'
+				if dataType in ['ForeignKey', 'ConceptType']
+					foreignKeys.push([fieldName].concat(references))
+					depends.push(references[0])
+					hasDependants[references[0]] = true
 				
 			for foreignKey in foreignKeys
 				createSQL += 'FOREIGN KEY ("' + foreignKey[0] + '") REFERENCES "' + foreignKey[1] + '" ("' + foreignKey[2] + '")' + '\n,\t'

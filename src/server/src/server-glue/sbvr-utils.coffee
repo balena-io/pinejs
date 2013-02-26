@@ -150,7 +150,7 @@ define([
 		async.map(bindings,
 			(binding, callback) ->
 				[tableName, field] = binding
-				fieldName = field[1]
+				fieldName = field.fieldName
 				referencedName = tableName + '.' + fieldName
 				value = if values[referencedName] == undefined then values[fieldName] else values[referencedName]
 				AbstractSQL2SQL.dataTypeValidate(value, field, (err, value) ->
@@ -189,7 +189,7 @@ define([
 											else
 												fieldsObject[fieldName] = resolvedID
 												callback()
-										if modelField[1] == fieldName and modelField[0] == 'ForeignKey' and _.isNaN(Number(fieldValue))
+										if modelField.fieldName == fieldName and modelField.dataType == 'ForeignKey' and _.isNaN(Number(fieldValue))
 											if !placeholders.hasOwnProperty(fieldValue)
 												return callback('Cannot resolve placeholder' + fieldValue)
 											else if _.isArray(placeholders[fieldValue])
@@ -426,15 +426,15 @@ define([
 	processInstances = (resourceModel, rows) ->
 		# TODO: This can probably be optimised more, but removing the process step when it isn't required is an improvement
 		processRequired = false
-		for field in resourceModel.fields when field[0] == 'JSON'
+		for {dataType} in resourceModel.fields when dataType == 'JSON'
 			processRequired = true
 			break
 		instances = []
 		if processRequired
 			processInstance = (instance) ->
 				instance = _.clone(instance)
-				for field in resourceModel.fields when field[0] == 'JSON' and instance.hasOwnProperty(field[1])
-					instance[field[1]] = JSON.parse(instance[field[1]])
+				for {fieldName, dataType} in resourceModel.fields when dataType == 'JSON' and instance.hasOwnProperty(fieldName)
+					instance[fieldName] = JSON.parse(instance[fieldName])
 				instances.push(instance)
 		else
 			processInstance = (instance) ->
@@ -445,7 +445,7 @@ define([
 	processOData = (vocab, resourceModel, rows, callback) ->
 		# TODO: This can probably be optimised more, but removing the process step when it isn't required is an improvement
 		processRequired = false
-		for field in resourceModel.fields when field[0] == 'ForeignKey' or sbvrTypes[field[0]]?.fetchProcessing?
+		for {dataType} in resourceModel.fields when dataType == 'ForeignKey' or sbvrTypes[dataType]?.fetchProcessing?
 			processRequired = true
 			break
 		instances = []
@@ -455,19 +455,19 @@ define([
 				instance.__metadata =
 					uri: ''
 					type: ''
-				for field in resourceModel.fields when instance.hasOwnProperty(field[1])
-					switch field[0]
+				for {fieldName, dataType, references} in resourceModel.fields when instance.hasOwnProperty(fieldName)
+					switch dataType
 						when 'ForeignKey'
-							instance[field[1]] =
+							instance[fieldName] =
 								__deferred:
-									uri: '/' + vocab + '/' + field[4][0] + '?$filter=' + field[4][1] + ' eq ' + instance[field[1]]
-								__id: instance[field[1]]
+									uri: '/' + vocab + '/' + references[0] + '?$filter=' + references[1] + ' eq ' + instance[fieldName]
+								__id: instance[fieldName]
 						else
-							sbvrTypes[field[0]]?.fetchProcessing?(instance[field[1]], (err, result) ->
+							sbvrTypes[dataType]?.fetchProcessing?(instance[fieldName], (err, result) ->
 								if err?
 									console.error('Error with fetch processing', err)
 									throw err
-								instance[field[1]] = result
+								instance[fieldName] = result
 							)
 				callback(null, instance)
 		else

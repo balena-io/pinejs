@@ -61,7 +61,7 @@ define([
 			|	{console.error('We already have an identifier with a name of: ' + identifierName)} ?(false)
 			)
 			{this.identifiers[identifierName] = identifierName}
-			{this.tables[resourceName] = {fields:[], primitive: false, name: null, idField: null}}
+			{this.tables[resourceName] = {fields: [], primitive: false, name: null, idField: null}}
 			-> identifierName,
 		Attributes :termOrFactType =
 				end
@@ -103,7 +103,7 @@ define([
 			|	(	AddTableField(table, idField, 'Serial', true, 'PRIMARY KEY'):fieldID
 					(	?(fieldID !== false)
 						// If the field already exists then update it instead.
-						{table.fields[fieldID][3] = 'PRIMARY KEY'}
+						{table.fields[fieldID].index = 'PRIMARY KEY'}
 					)?
 				)
 				{table.idField = idField}
@@ -121,7 +121,7 @@ define([
 				(	?(table.hasOwnProperty('referenceScheme'))
 					GetTableFieldID(table, table.referenceScheme):fieldID
 					?(fieldID !== false)
-					{table.fields[fieldID][1] = referenceScheme}
+					{table.fields[fieldID].fieldName = referenceScheme}
 				)?
 				{table.referenceScheme = referenceScheme}
 			),
@@ -145,7 +145,7 @@ define([
 				{factType[2][1]}:attributeName
 				GetTable(attributeName):attributeTable
 				GetTableFieldID(baseTable, attributeName):fieldID
-				{baseTable.fields[fieldID][0] = attributeTable.primitive}
+				{baseTable.fields[fieldID].dataType = attributeTable.primitive}
 			)?,
 		AttrForeignKey :factType =
 			:required
@@ -170,7 +170,7 @@ define([
 			{factType[2][1]}:uniqueField
 			GetTableFieldID(baseTable, uniqueField):fieldID
 			?(fieldID !== false)
-			{baseTable.fields[fieldID][3] = 'UNIQUE'},
+			{baseTable.fields[fieldID].index = 'UNIQUE'},
 		// AttrSynonym :term =
 			// :synonym {this.identifiers[synonym[1]] = term[1]},
 		AttrSynonymousForm :factType =
@@ -197,7 +197,7 @@ define([
 					GetTable(factType[0][1]):identifierTable
 					AddTableField(identifierTable, factType[1][1], 'Boolean', true)
 					{this.tables[resourceName] = 'BooleanAttribute'}
-				|	{this.tables[resourceName] = {fields:[], primitive: false, name: null}}:linkTable
+				|	{this.tables[resourceName] = {fields: [], primitive: false, name: null}}:linkTable
 					(	Identifier:identifier
 						GetTable(identifier.name):fkTable
 						AddTableField(linkTable, identifier.name + identifier.num, 'ForeignKey', true, '', [fkTable.name, fkTable.idField])
@@ -675,7 +675,13 @@ define([
 	LF2AbstractSQL.AddTableField = function(table, fieldName, dataType, required, index, references) {
 		var fieldID = this.GetTableFieldID(table, fieldName);
 		if(fieldID === false) {
-			table.fields.push([dataType, fieldName, required, index, references]);
+			table.fields.push({
+				dataType: dataType,
+				fieldName: fieldName,
+				required: required,
+				index: index,
+				references: references
+			});
 		}
 		return fieldID;
 	}

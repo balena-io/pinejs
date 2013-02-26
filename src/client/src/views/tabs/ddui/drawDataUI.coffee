@@ -19,16 +19,16 @@ define([
 			''')
 		dataTypeDisplay: ejs.compile('''
 			<%
-			if(resourceField[0] !== "Serial" || action === "view") {
-				var fieldName = resourceField[1],
+			if(resourceField.dataType !== "Serial" || action === "view") {
+				var fieldName = resourceField.fieldName,
 					onChange = (fieldName == resourceModel.referenceScheme ? "updateForeignKey('" + resourceModel.resourceName + "', '" + id + "', this);" : false),
-					isNullable = resourceField[2] == "NULL",
+					isNullable = !resourceField.required,
 					fieldValue = resourceInstance === false ? "" : resourceInstance[fieldName],
 					fieldIdentifier = resourceModel.resourceName + "." + fieldName;
-				if(resourceField[0] === "ForeignKey") {
+				if(resourceField.dataType === "ForeignKey") {
 					updateOnForeignKeyChange(fieldName, fieldIdentifier);
 				} %>
-				<td><%= fieldName %>:</td><td><%- templates.widgets(resourceField[0], action, fieldIdentifier, fieldValue, isNullable, onChange, foreignKeys[fieldName]) %></td><%
+				<td><%= fieldName %>:</td><td><%- templates.widgets(resourceField.fieldName, action, fieldIdentifier, fieldValue, isNullable, onChange, foreignKeys[fieldName]) %></td><%
 			} %>
 			''')
 		viewAddEditResource: ejs.compile('''
@@ -381,12 +381,12 @@ define([
 						callback(id, instance, clientModelResults[foreignKey])
 			get: (tree, clientModel, successCallback) ->
 				async.forEach(clientModel.fields,
-					(field, callback) ->
-						if field[0] not in ['ForeignKey', 'ConceptType']
+					({fieldName, dataType}, callback) ->
+						if dataType not in ['ForeignKey', 'ConceptType']
 							callback()
 						else
 							# Get results for all the foreign keys
-							foreignKey = field[1]
+							foreignKey = fieldName
 							if !fetchedResults.hasOwnProperty(foreignKey)
 								fetchedResults[foreignKey] = []
 								if !foreignKeyResults.hasOwnProperty(foreignKey)

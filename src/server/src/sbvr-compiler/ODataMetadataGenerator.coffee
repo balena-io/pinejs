@@ -2,7 +2,7 @@ define(['underscore', 'cs!sbvr-compiler/types'], (_, sbvrTypes) ->
 
 	return (vocabulary, sqlModel) ->
 		complexTypes = {}
-		resolveFieldType = (fieldType) ->
+		resolveDataType = (fieldType) ->
 			if sbvrTypes[fieldType]?
 				if sbvrTypes[fieldType].types.odata.complexType?
 					complexTypes[fieldType] = sbvrTypes[fieldType].types.odata.complexType
@@ -16,7 +16,7 @@ define(['underscore', 'cs!sbvr-compiler/types'], (_, sbvrTypes) ->
 		# resourceNavigations = {}
 		associations = []
 		for key, {name: resourceName, fields, primitive} of model when !_.isString(model[key]) and !primitive
-			for [fieldType, fieldName, required, indexes, references], i in fields when fieldType == 'ForeignKey'
+			for {dataType, fieldName, required, references}, i in fields when dataType == 'ForeignKey'
 				[referencedResource, referencedField] = references
 				associations.push(
 					name: resourceName + referencedResource
@@ -46,11 +46,11 @@ define(['underscore', 'cs!sbvr-compiler/types'], (_, sbvrTypes) ->
 								</Key>
 								
 								""" + (
-								for [fieldType, fieldName, required, indexes, references] in fields when fieldType != 'ForeignKey'
-									fieldType = resolveFieldType(fieldType)
-									"""<Property Name="#{fieldName}" Type="#{fieldType}" Nullable="#{not required}" />"""
+								for {dataType, fieldName, required} in fields when dataType != 'ForeignKey'
+									dataType = resolveDataType(dataType)
+									"""<Property Name="#{fieldName}" Type="#{dataType}" Nullable="#{not required}" />"""
 								).join('\n') + '\n' + (
-								for [fieldType, fieldName, required, indexes, references] in fields when fieldType == 'ForeignKey'
+								for {dataType, fieldName, references} in fields when dataType == 'ForeignKey'
 									[referencedResource, referencedField] = references
 									"""<NavigationProperty Name="#{fieldName}" Relationship="#{vocabulary}.#{resourceName + referencedResource}" FromRole="#{resourceName}" ToRole="#{referencedResource}" />"""
 								).join('\n') + '\n' + """

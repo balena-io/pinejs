@@ -211,7 +211,7 @@ define(['underscore', 'ometa-core'], function(_) {
 	SBVRLibs.GetTableFieldID = function(table, fieldName) {
 		var tableFields = table.fields;
 		for(var i = 0; i < tableFields.length; i++) {
-			if(tableFields[i][1] == fieldName) {
+			if(tableFields[i].fieldName == fieldName) {
 				return i;
 			}
 		}
