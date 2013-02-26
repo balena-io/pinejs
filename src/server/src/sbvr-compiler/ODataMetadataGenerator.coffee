@@ -35,7 +35,7 @@ define(['underscore', 'cs!sbvr-compiler/types'], (_, sbvrTypes) ->
 			<?xml version="1.0" encoding="iso-8859-1" standalone="yes"?>
 			<edmx:Edmx Version="1.0" xmlns:edmx="http://schemas.microsoft.com/ado/2007/06/edmx">
 				<edmx:DataServices xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata" m:DataServiceVersion="2.0">
-					<Schema Namespace="#{vocabulary}" xmlns:d="http://schemas.microsoft.com/ado/2007/08/dataservices" xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata" xmlns="http://schemas.microsoft.com/ado/2007/05/edm">
+					<Schema Namespace="#{vocabulary}" xmlns:d="http://schemas.microsoft.com/ado/2007/08/dataservices" xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata" xmlns="http://schemas.microsoft.com/ado/2008/09/edm">
 							
 					""" + (
 						for key, {idField, name: resourceName, fields, primitive} of model when !_.isString(model[key]) and !primitive
@@ -66,7 +66,7 @@ define(['underscore', 'cs!sbvr-compiler/types'], (_, sbvrTypes) ->
 						<EntityContainer Name="#{vocabulary}Service" m:IsDefaultEntityContainer="true">
 						
 						""" + (
-							for key, {name: resourceName} of model when !_.isString(model[key]) and !primitive
+							for key, {name: resourceName, primitive} of model when !_.isString(model[key]) and !primitive
 								"""<EntitySet Name="#{resourceName}" EntityType="#{vocabulary}.#{resourceName}" />"""
 							).join('\n') + '\n' + (
 								for {name, ends} in associations
