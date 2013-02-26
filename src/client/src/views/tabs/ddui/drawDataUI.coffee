@@ -332,7 +332,11 @@ define([
 						currentLocation.splice(oldIndex, 1)
 				return this
 			getURI: () ->
-				return ClientURIUnparser.match(tree, "trans")
+				try
+					return ClientURIUnparser.match(tree, "trans")
+				catch e
+					console.error('Could not "unparse" client uri', e)
+					throw e
 			clone: () ->
 				return createNavigableTree(tree, descendTree)
 			getChangeURI: (action, resourceModel, resourceID) ->
