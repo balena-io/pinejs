@@ -740,6 +740,7 @@ define([
 		else
 			checkPermissions(req, res, 'model', tree.requests[0], ->
 				if tree.requests[0].resourceName == '$metadata'
+					res.type('xml')
 					res.send(odataMetadata[tree.vocabulary])
 				else
 					clientModel = clientModels[tree.vocabulary]
