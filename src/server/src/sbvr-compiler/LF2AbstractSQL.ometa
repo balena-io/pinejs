@@ -294,8 +294,11 @@ define([
 			{actualFactType[0][1]}:primitive
 			{actualFactType[1][1]}:verb
 			{actualFactType[2][1]}:property
-			?(sbvrTypes[primitive] && sbvrTypes[primitive][verb] && sbvrTypes[primitive][verb][property])
-			-> sbvrTypes[primitive][verb][property](from, to),
+			?(sbvrTypes[primitive] &&
+				sbvrTypes[primitive].nativeProperties &&
+				sbvrTypes[primitive].nativeProperties[verb] &&
+				sbvrTypes[primitive].nativeProperties[verb][property])
+			-> sbvrTypes[primitive].nativeProperties[verb][property](from, to),
 
 		NativeFactType :actualFactType =
 			?(actualFactType.length == 3)
@@ -310,19 +313,14 @@ define([
 					{from}:to
 					{temp}:from
 				)?
-				{actualFactType[1][1].toLowerCase()}:verb
-				(	?(verb == 'is equal to' || verb == 'equals')
-					-> 'Equals'
-				|	?(verb == 'is greater than')
-					-> 'GreaterThan'
-				|	?(verb == 'is greater than or equal to')
-					-> 'GreaterThanOrEqual'
-				|	?(verb == 'is less than')
-					-> 'LessThan'
-				|	?(verb == 'is less than or equal to')
-					-> 'LessThanOrEqual'
-				):comparator
-				-> [comparator, from, to]
+				{actualFactType[0][1]}:primitive
+				{actualFactType[1][1]}:verb
+				{actualFactType[2][1]}:secondPrimitive
+				?(sbvrTypes[primitive] &&
+					sbvrTypes[primitive].nativeFactTypes &&
+					sbvrTypes[primitive].nativeFactTypes[secondPrimitive] &&
+					sbvrTypes[primitive].nativeFactTypes[secondPrimitive][verb])
+				-> sbvrTypes[primitive].nativeFactTypes[secondPrimitive][verb](from, to)
 			|	___NativeFactTypeMatchingFailed___.die
 			),
 

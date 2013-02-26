@@ -7,6 +7,10 @@ define(['cs!sbvr-compiler/types/TypeUtils'], (TypeUtils) ->
 			odata:
 				name: 'Edm.Int64'
 
+		nativeFactTypes:
+			'Integer': TypeUtils.nativeFactTypeTemplates.comparison
+			'Real': TypeUtils.nativeFactTypeTemplates.comparison
+
 		validate: TypeUtils.validate.integer
 	}
 )

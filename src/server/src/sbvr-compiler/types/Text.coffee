@@ -11,6 +11,9 @@ define(['cs!sbvr-compiler/types/TypeUtils'], (TypeUtils) ->
 			'has':
 				'Length': (from) -> ['CharacterLength', from]
 
+		nativeFactTypes:
+			'Text': TypeUtils.nativeFactTypeTemplates.equality
+
 		validate: TypeUtils.validate.text()
 	}
 )
