@@ -7,18 +7,20 @@ define([
 	db = null
 
 	uiModel = '''
-			Term:      text
+			Vocabulary: ui
+
+			Term:       text
 				Concept type: Text (Type)
-			Term:      name
+			Term:       name
 				Concept type: Short Text (Type)
-			Term:      textarea
+			Term:       textarea
 				--Database id Field: name
 				Reference Scheme: text
-			Fact type: textarea is disabled
-			Fact type: textarea has name
+			Fact type:  textarea is disabled
+			Fact type:  textarea has name
 				Necessity: Each textarea has exactly 1 name
 				Necessity: Each name is of exactly 1 textarea
-			Fact type: textarea has text
+			Fact type:  textarea has text
 				Necessity: Each textarea has exactly 1 text'''
 
 	isServerOnAir = do() ->

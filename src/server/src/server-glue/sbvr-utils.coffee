@@ -16,13 +16,15 @@ define([
 	db = null
 
 	devModel = '''
-			Term:      model value
+			Vocabulary: dev
+
+			Term:       model value
 				Concept Type: JSON (Type)
-			Term:      model
+			Term:       model
 				Reference Scheme: model value
-			Term:      vocabulary
+			Term:       vocabulary
 				Concept Type: Short Text (Type)
-			Term:      model type
+			Term:       model type
 				Concept Type: Short Text (Type)
 
 			Fact Type: model is of vocabulary
@@ -33,63 +35,65 @@ define([
 				Necessity: Each model has exactly one model value'''
 
 	transactionModel = '''
-			Term:      resource id
+			Vocabulary: transaction
+
+			Term:       resource id
 				Concept type: Integer (Type)
-			Term:      resource type
+			Term:       resource type
 				Concept type: Text (Type)
-			Term:      field name
+			Term:       field name
 				Concept type: Text (Type)
-			Term:      field value
+			Term:       field value
 				Concept type: Text (Type)
-			Term:      placeholder
+			Term:       placeholder
 				Concept type: Short Text (Type)
 
-			Term:      resource
+			Term:       resource
 				Reference Scheme: resource id
 			Fact type: resource has resource id
 				Necessity: Each resource has exactly 1 resource id.
 			Fact type: resource has resource type
 				Necessity: Each resource has exactly 1 resource type.
 
-			Term:      transaction
+			Term:       transaction
 
-			Term:      lock
-			Fact type: lock is exclusive
-			Fact type: lock belongs to transaction
+			Term:       lock
+			Fact type:  lock is exclusive
+			Fact type:  lock belongs to transaction
 				Necessity: Each lock belongs to exactly 1 transaction.
-			Fact type: resource is under lock
+			Fact type:  resource is under lock
 				Synonymous Form: lock is on resource
-			Rule:      It is obligatory that each resource that is under a lock that is exclusive, is under at most 1 lock.
+			Rule:       It is obligatory that each resource that is under a lock that is exclusive, is under at most 1 lock.
 
-			Term:      conditional type
+			Term:       conditional type
 				Concept Type: Short Text (Type)
 				Definition: "ADD", "EDIT" or "DELETE"
 
-			Term:      conditional resource
-			Fact type: conditional resource belongs to transaction
+			Term:       conditional resource
+			Fact type:  conditional resource belongs to transaction
 				Necessity: Each conditional resource belongs to exactly 1 transaction.
-			Fact type: conditional resource has lock
+			Fact type:  conditional resource has lock
 				Necessity: Each conditional resource has at most 1 lock.
-			Fact type: conditional resource has resource type
+			Fact type:  conditional resource has resource type
 				Necessity: Each conditional resource has exactly 1 resource type.
-			Fact type: conditional resource has conditional type
+			Fact type:  conditional resource has conditional type
 				Necessity: Each conditional resource has exactly 1 conditional type.
-			Fact type: conditional resource has placeholder
+			Fact type:  conditional resource has placeholder
 				Necessity: Each conditional resource has at most 1 placeholder.
-			--Rule:      It is obligatory that each conditional resource that has a placeholder, has a conditional type that is of "ADD".
+			--Rule:       It is obligatory that each conditional resource that has a placeholder, has a conditional type that is of "ADD".
 
-			Term:      conditional field
+			Term:       conditional field
 				Reference Scheme: field name
-			Fact type: conditional field has field name
+			Fact type:  conditional field has field name
 				Necessity: Each conditional field has exactly 1 field name.
-			Fact type: conditional field has field value
+			Fact type:  conditional field has field value
 				Necessity: Each conditional field has at most 1 field value.
-			Fact type: conditional field is of conditional resource
+			Fact type:  conditional field is of conditional resource
 				Necessity: Each conditional field is of exactly 1 conditional resource.
 
-			--Rule:      It is obligatory that each conditional resource that has a conditional type that is of "EDIT" or "DELETE", has a lock that is exclusive
-			Rule:      It is obligatory that each conditional resource that has a lock, has a resource type that is of a resource that the lock is on.
-			Rule:      It is obligatory that each conditional resource that has a lock, belongs to a transaction that the lock belongs to.'''
+			--Rule:       It is obligatory that each conditional resource that has a conditional type that is of "EDIT" or "DELETE", has a lock that is exclusive
+			Rule:       It is obligatory that each conditional resource that has a lock, has a resource type that is of a resource that the lock is on.
+			Rule:       It is obligatory that each conditional resource that has a lock, belongs to a transaction that the lock belongs to.'''
 
 	userModel = '''
 			Vocabulary: Auth
