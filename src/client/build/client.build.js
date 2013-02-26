@@ -1,11 +1,11 @@
 ({
 	dir: '../out',
 	stubModules: [
-		'cs',
 		'text',
 		'css', 'css/normalize', 'css/css',
-		'ometa', 'ometa-compiler', 'uglifyjs',
-		'coffee-script'],
+		'cs', 'coffee-script',
+		'ometa', 'ometa-compiler', 'uglifyjs'
+	],
 	mainConfigFile: '../src/main.js',
 	optimize: 'uglify2',
 	skipDirOptimize: true,

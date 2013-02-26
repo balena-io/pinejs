@@ -1,6 +1,17 @@
 ({
 	out: 'platform.js',
 
+	stubModules: [
+		'text',
+		'css', 
+		'cs',
+		'ometa'
+	],
+	excludeShallow: [
+		'coffee-script',
+		'css/normalize', 'css/css',
+		'ometa-compiler', 'uglifyjs'
+	],
 	mainConfigFile: '../src/main.js',
 
 	optimize: 'uglify2',
@@ -33,6 +44,5 @@
 		async: '../node_modules/async/lib/async'
 	},
 
-	name: "cs!server-glue/server",
-	exclude: ['coffee-script', 'cs', 'text', 'ometa', 'ometa-compiler'],
+	name: 'cs!server-glue/server'
 })

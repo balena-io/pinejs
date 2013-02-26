@@ -5,7 +5,17 @@
 		end: "}());require('requirejs')('cs!server-glue/server');"
 	},
 
-	stubModules: ['cs', 'text', 'ometa', 'ometa-compiler'],
+	stubModules: [
+		'text',
+		'css', 
+		'cs',
+		'ometa'
+	],
+	excludeShallow: [
+		'coffee-script',
+		'css/normalize', 'css/css',
+		'ometa-compiler', 'uglifyjs'
+	],
 	mainConfigFile: '../src/main.js',
 
 	optimize: 'uglify2',
@@ -37,6 +47,5 @@
 		underscore: 'empty:',
 		async: 'empty:'
 	},
-	name: "cs!server-glue/server",
-	exclude: ["coffee-script"]
+	name: 'cs!server-glue/server'
 })
