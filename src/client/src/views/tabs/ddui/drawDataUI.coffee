@@ -197,12 +197,12 @@ define([
 				<tbody><%
 					for(var i = 0; i < topLevelResources.length; i++) {
 						var resource = topLevelResources[i],
-							resourceName = resource.resourceName; %>
-						<tr id="tr--data--"<%= resourceName %>">
+							modelName = resource.modelName; %>
+						<tr id="tr--data--"<%= resource.resourceName %>">
 							<td><%
 								if(resource.isExpanded) { %>
 									<div style="display:inline; background-color:#FFFFFF;">
-										<%= resourceName %>
+										<%= modelName %>
 										<a href="<%= resource.closeURI %>" onClick="dduiState('<%= resource.closeHash %>');return false">
 											<span title="Close" class="ui-icon ui-icon-circle-close"></span>
 										</a>
@@ -210,7 +210,7 @@ define([
 									<%- resource.html %><%
 								}
 								else { %>
-									<%= resourceName %>
+									<%= modelName %>
 									<a href="<%= resource.expandURI %>" onClick="dduiState('<%= resource.expandHash %>');return false">
 										<span title="See all" class="ui-icon ui-icon-search"></span>
 									</a><%
