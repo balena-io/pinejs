@@ -1,6 +1,7 @@
 ({
 	dir: '../out',
 	stubModules: [
+		'cache',
 		'text',
 		'css', 'css/normalize', 'css/css',
 		'cs', 'coffee-script',

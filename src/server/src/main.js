@@ -16,6 +16,7 @@ require({
 	},
 	paths: {
 		//Developing & building tools
+		'cache'				:  '../../tools/requirejs-plugins/cache',
 		'cs'				:  '../../tools/requirejs-plugins/cs',
 		'ometa'				:  '../../tools/requirejs-plugins/ometa',
 		'text'				:  '../../tools/requirejs-plugins/text',

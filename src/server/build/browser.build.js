@@ -38,6 +38,7 @@
 		'ometa'
 	],
 	excludeShallow: [
+		'cache',
 		'coffee-script',
 		'css/normalize', 'css/css',
 		'ometa-compiler', 'uglifyjs'
