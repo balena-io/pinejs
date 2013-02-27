@@ -16,26 +16,27 @@ if ( window.XDomainRequest ) {
 						complete( status, statusText, responses, responseHeaders );
 					}
 					xdr = new XDomainRequest();
-					xdr.open( s.type, s.url );
 					xdr.onload = function() {
 						callback( 200, "OK", { text: xdr.responseText }, "Content-Type: " + xdr.contentType );
 					};
 					xdr.onerror = function() {
 						callback( 404, "Not Found" );
 					};
-					xdr.onprogress = function() {};
 					if ( s.xdrTimeout ) {
 						xdr.ontimeout = function() {
 							callback( 0, "timeout" );
 						};
 						xdr.timeout = s.xdrTimeout;
 					}
-					xdr.contentType = 'application/json';
-					xdr.send( ( s.hasContent && options.data ) || null );
+					xdr.open( s.type, s.url );
+					// Have to wrap the send in a timeout to stop IE aborting the requests early, not sure why.
+					setTimeout(function () {
+						xdr.send( ( s.hasContent && s.data ) || null );
+					}, 0);
 				},
 				abort: function() {
 					if ( xdr ) {
-						xdr.onerror = jQuery.noop();
+						xdr.onerror = jQuery.noop;
 						xdr.abort();
 					}
 				}
