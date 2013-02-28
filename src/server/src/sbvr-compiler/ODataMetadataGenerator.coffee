@@ -17,7 +17,7 @@ define(['underscore', 'cs!sbvr-compiler/types'], (_, sbvrTypes) ->
 		associations = []
 		for key, {name: resourceName, fields, primitive} of model when !_.isString(model[key]) and !primitive
 			for {dataType, fieldName, required, references}, i in fields when dataType == 'ForeignKey'
-				[referencedResource, referencedField] = references
+				{tableName: referencedResource, fieldName: referencedField} = references
 				associations.push(
 					name: resourceName + referencedResource
 					ends: [
@@ -51,7 +51,7 @@ define(['underscore', 'cs!sbvr-compiler/types'], (_, sbvrTypes) ->
 									"""<Property Name="#{fieldName}" Type="#{dataType}" Nullable="#{not required}" />"""
 								).join('\n') + '\n' + (
 								for {dataType, fieldName, references} in fields when dataType == 'ForeignKey'
-									[referencedResource, referencedField] = references
+									{tableName: referencedResource, fieldName: referencedField} = references
 									"""<NavigationProperty Name="#{fieldName}" Relationship="#{vocabulary}.#{resourceName + referencedResource}" FromRole="#{resourceName}" ToRole="#{referencedResource}" />"""
 								).join('\n') + '\n' + """
 							</EntityType>"""

@@ -34,7 +34,9 @@ define(->
 						fieldName: resourceField
 						required: true
 						index: null
-						references: [sqlTableName, sqlFieldName]
+						references:
+							tableName: sqlTableName
+							fieldName: sqlFieldName
 					]
 					idField: resourceField
 					referenceScheme: resourceField

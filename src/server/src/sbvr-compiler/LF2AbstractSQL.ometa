@@ -158,7 +158,7 @@ define([
 				?(fieldID !== false)
 				{baseTable.fields.splice(fieldID, 1)}
 			)?
-			AddTableField(baseTable, fkName, 'ForeignKey', required, null, [fkTable.name, fkTable.idField])
+			AddTableField(baseTable, fkName, 'ForeignKey', required, null, {tableName: fkTable.name, fieldName: fkTable.idField})
 			{this.tables[this.GetResourceName(factType)] = 'ForeignKey'},
 		AttrUnique :factType =
 			// TODO: This needs to have the dependency of coming after ForeignKey/Attribute attrs removed.
@@ -200,7 +200,7 @@ define([
 				|	{this.tables[resourceName] = {fields: [], primitive: false, name: null}}:linkTable
 					(	Identifier:identifier
 						GetTable(identifier.name):fkTable
-						AddTableField(linkTable, identifier.name + identifier.num, 'ForeignKey', true, '', [fkTable.name, fkTable.idField])
+						AddTableField(linkTable, identifier.name + identifier.num, 'ForeignKey', true, '', {tableName: fkTable.name, fieldName: fkTable.idField})
 					|	['Verb' :verb :negated]
 					)+
 				)
