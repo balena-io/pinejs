@@ -354,11 +354,9 @@ define([
 					{bindTo}:temp
 					{bindFrom}:bindTo
 					{temp}:bindFrom
-					{actualFactType[2]}:fromTerm
-					{actualFactType[0]}:toTerm
-				|	{actualFactType[0]}:fromTerm
-					{actualFactType[2]}:toTerm
-				)
+				)?
+				{actualFactType[0]}:fromTerm
+				{actualFactType[2]}:toTerm
 				GetTable(toTerm[1]):tableTo
 			|	___ForeignKeyMatchingFailed___.die
 			)
