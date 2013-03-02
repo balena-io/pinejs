@@ -28,7 +28,7 @@ define([
 				if(resourceField.dataType === "ForeignKey") {
 					updateOnForeignKeyChange(fieldName, fieldIdentifier);
 				} %>
-				<td><%= fieldName %>:</td><td><%- templates.widgets(resourceField.fieldName, action, fieldIdentifier, fieldValue, isNullable, onChange, foreignKeys[fieldName]) %></td><%
+				<td><%= fieldName %>:</td><td><%- templates.widgets(resourceField.dataType, action, fieldIdentifier, fieldValue, isNullable, onChange, foreignKeys[fieldName]) %></td><%
 			} %>
 			''')
 		viewAddEditResource: ejs.compile('''
