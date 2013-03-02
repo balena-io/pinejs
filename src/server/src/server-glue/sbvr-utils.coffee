@@ -137,12 +137,16 @@ define([
 	odataMetadata = {}
 
 	checkForConstraintError = (err, tableName) ->
+		# Unique key
 		if (has('USE_MYSQL') and (matches = /ER_DUP_ENTRY: Duplicate entry '.*?[^\\]' for key '(.*?[^\\])'/.exec(err)) != null) or
 				(has('USE_POSTGRES') and (matches = new RegExp('error: duplicate key value violates unique constraint "' + tableName + '_(.*?)_key"').exec(err)) != null)
-			return ['"' + matches[1] + '" must be unique']
+			return ['"' + matches[1] + '" must be unique.']
 		else if err == 'could not execute statement (19 constraint failed)'
 			# SQLite
-			return ['Constraint failed']
+			return ['Constraint failed.']
+		# Foreign Key
+		else if has('USE_MYSQL') and (matches = /ER_ROW_IS_REFERENCED_: Cannot delete or update a parent row: a foreign key constraint fails \(".*?"\.(".*?").*/.exec(err)) != null
+			return ['Data is referenced by ' + matches[1] + '.']
 		else
 			return false
 
@@ -920,8 +924,12 @@ define([
 										tx.end()
 										res.send(200)
 								)
-							() ->
-								res.send(404)
+							(tx, err) ->
+								constraintError = checkForConstraintError(err, request.resourceName)
+								if constraintError != false
+									res.json(constraintError, 404)
+								else
+									res.send(404)
 						)
 					if tx?
 						runQuery(tx)
