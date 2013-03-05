@@ -842,7 +842,7 @@ define([
 					doValidate = (tx) ->
 						validateDB(tx, sqlModels[vocab], (err) ->
 							if err
-								res.json(errors, 404)
+								res.json(err, 404)
 							else
 								tx.end()
 								res.send(200)
