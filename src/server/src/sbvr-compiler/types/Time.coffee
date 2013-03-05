@@ -8,7 +8,8 @@ define(['cs!sbvr-compiler/types/TypeUtils'], (TypeUtils) ->
 				name: 'Edm.DateTime'
 
 		fetchProcessing: (data, callback) ->
-			callback(null, new Date(data))
+			# We append the date of the epoch so that we can parse this as a valid date.
+			callback(null, new Date('Thu, 01 Jan 1970 ' + data))
 
 		validate: TypeUtils.validate.date
 	}
