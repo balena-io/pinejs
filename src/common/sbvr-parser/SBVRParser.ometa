@@ -534,12 +534,10 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'text!sbvr-parser/Typ
 		Following are "instance" variables/functions rather than shared.
 	*/
 	SBVRParser.initialize = function() {
-		this.tokensEnabled = false;
 		this.reset();
 	};
 	
 	SBVRParser._enableTokens = function() {
-		this.tokensEnabled = true;
 		SBVRLibs._enableTokens.call(this, ['StartVocabulary', 'StartTerm', 'StartName', 'StartFactType', 'StartRule', 'NewComment', 'Vocabulary', 'Term', 'Name', 'Modifier', 'Verb', 'Keyword', 'AllowedAttrs', 'AttrGuidanceType', 'Number', 'Value']);
 	};
 	SBVRParser._sideEffectingRules = [
