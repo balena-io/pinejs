@@ -9,7 +9,8 @@ define(['has', 'async'], (has, async) ->
 		console.error('loading config.json')
 		require('coffee-script')
 		fs = require('fs')
-		fs.readFile('config.json', 'utf8', (err, data) ->
+		path = require('path')
+		fs.readFile(path.join(__dirname, 'config.json'), 'utf8', (err, data) ->
 			if err
 				console.error('Error loading config.json')
 			else
@@ -17,7 +18,7 @@ define(['has', 'async'], (has, async) ->
 				
 				for model in data.models
 					do (model) ->
-						fs.readFile(model.modelFile, 'utf8', (err, sbvrModel) ->
+						fs.readFile(path.join(__dirname, model.modelFile), 'utf8', (err, sbvrModel) ->
 							if err
 								console.error('Unable to load ' + model.modelName + ' model from ' + model.modelFile)
 							else
