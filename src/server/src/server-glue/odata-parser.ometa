@@ -82,7 +82,7 @@ define(['ometa!server-glue/uri-parser', 'underscore', 'ometa-core'], function(UR
 			)*,
 
 		Filter :query =
-				SubstringOf(query)
+				LikeFunction(query)
 			|	Comparison(query),
 		
 		Comparison :query =
@@ -96,10 +96,17 @@ define(['ometa!server-glue/uri-parser', 'underscore', 'ometa-core'], function(UR
 			>:value
 			AddWhereClause(query, [comparator, field, ['Bind', field[1], this.GetTableField(field.slice(1))]])
 			AddBodyVar(query, field[1], field[2], field.slice(1), value),
-		
 
-		SubstringOf :query =
-			seq('substringof(')
+		LikeFunction :query =
+			(	seq('substringof')
+				{true}:startWild
+				{true}:endWild
+			|	seq('startswith')
+				{true}:endWild
+			|	seq('endswith')
+				{true}:startWild
+			)
+			'('
 			(	Field
 			|	Text
 			):needle
@@ -109,7 +116,14 @@ define(['ometa!server-glue/uri-parser', 'underscore', 'ometa-core'], function(UR
 			|	Text
 			):haystack
 			seq(')')
-			{['Like', haystack, ['Concat', ['Text', '%'], needle, ['Text', '%']]]}:whereClause
+			(	?(startWild && endWild)
+				{['Concat', ['Text', '%'], needle, ['Text', '%']]}:needle
+			|	?(startWild)
+				{['Concat', ['Text', '%'], needle]}:needle
+			|	?(endWild)
+				{['Concat', needle, ['Text', '%']]}:needle
+			)?
+			{['Like', haystack, needle]}:whereClause
 			(	' '+
 				seq('eq')
 				' '+
