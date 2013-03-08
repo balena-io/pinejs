@@ -167,7 +167,8 @@ define([
 			|	Boolean
 			|	CharacterLength
 			|	BitwiseAnd
-			|	BitwiseShiftRight,
+			|	BitwiseShiftRight
+			|	Concat,
 		
 		Field =
 			[	'Field'
@@ -218,6 +219,14 @@ define([
 				):text
 			]
 			-> ['CharacterLength', text],
+		
+		Concat =
+			[	(	'Concat'
+				|	'Concatenate'
+				):name
+				Comparator+:comparators
+			]
+			-> [name].concat(comparators),
 		
 		NumericValue =
 			(	ReferencedField

@@ -292,6 +292,17 @@ define(['has', 'ometa-core'], function(has) {
 			|	-> ('LENGTH(' + text + ')')
 			),
 		
+		Concat =
+			[	(	'Concat'
+				|	'Concatenate'
+				)
+				Comparator+:comparators
+			]
+			(	?has('USE_MYSQL')
+				-> ('CONCAT(' + comparators.join(', ') + ')')
+			|	-> ('(' + comparators.join(' || ') + ')')
+			),
+		
 		NumericValue =
 			(	ReferencedField
 			|	Field
@@ -355,7 +366,8 @@ define(['has', 'ometa-core'], function(has) {
 			|	Bind
 			|	CharacterLength
 			|	BitwiseAnd
-			|	BitwiseShiftRight,
+			|	BitwiseShiftRight
+			|	Concat,
 			
 		
 		RuleBody :indent =
