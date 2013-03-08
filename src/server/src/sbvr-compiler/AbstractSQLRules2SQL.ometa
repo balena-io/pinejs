@@ -353,7 +353,9 @@ define(['has', 'ometa-core'], function(has) {
 			|	Boolean
 			|	Text
 			|	Bind
-			|	CharacterLength,
+			|	CharacterLength
+			|	BitwiseAnd
+			|	BitwiseShiftRight,
 			
 		
 		RuleBody :indent =
