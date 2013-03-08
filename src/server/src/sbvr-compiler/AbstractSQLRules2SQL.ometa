@@ -1,11 +1,12 @@
-define(['has', 'ometa-core'], function() {
+define(['has', 'ometa-core'], function(has) {
 	var comparisons = {
 			'Equals': ' = ',
 			'GreaterThan': ' > ',
 			'GreaterThanOrEqual': ' >= ',
 			'LessThan': ' < ',
 			'LessThanOrEqual': ' <= ',
-			'NotEquals': ' != '
+			'NotEquals': ' != ',
+			'Like': ' LIKE '
 		};
 	
 	ometa AbstractSQLRules2SQL {
@@ -327,6 +328,7 @@ define(['has', 'ometa-core'], function() {
 				|	'LessThan'
 				|	'LessThanOrEqual'
 				|	'NotEquals'
+				|	'Like'
 				):comparison
 				RuleBody(indent):a
 				RuleBody(indent):b

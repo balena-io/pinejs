@@ -71,6 +71,7 @@ define([
 			|	GreaterThanOrEqual
 			|	LessThan
 			|	LessThanOrEqual
+			|	Like
 			|	Between
 			|	Boolean
 			),
@@ -141,7 +142,14 @@ define([
 				Comparator:comp2
 			]
 			-> ['LessThanOrEqual', comp1, comp2],
-		
+
+		Like =
+			[	'Like'
+				Comparator:comp1
+				Comparator:comp2
+			]
+			-> ['Like', comp1, comp2],
+
 		Between =
 			[	'Between'
 				Comparator:comp1
