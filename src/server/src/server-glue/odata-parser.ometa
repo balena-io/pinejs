@@ -76,23 +76,64 @@ define(['ometa!server-glue/uri-parser', 'underscore', 'ometa-core'], function(UR
 
 		Filters :query =
 			seq('$filter=')
-			(	Field:field
-				' '
-				Comparator:comparator
-				' '
-				<	(	~ValueBreak
-						anything
-					)+
-				>:value
-				seq(' and ')?
-				{field[1]}:resourceName
-				{field[2]}:resourceFieldName
-				GetMapping(resourceName,resourceFieldName):mapping
-				AddWhereClause(query, [comparator, field, ['Bind', mapping[0], this.GetTableField(mapping)]])
-				AddBodyVar(query, resourceName, resourceFieldName, mapping, value)
-			)+,
+			Filter(query)
+			(	seq(' and ')
+				Filter(query)
+			)*,
 
-		Number = <digit+>:d -> ['Number', parseInt(d, 10)],
+		Filter :query =
+				SubstringOf(query)
+			|	Comparison(query),
+		
+		Comparison :query =
+			Field:field
+			' '+
+			Comparator:comparator
+			' '+
+			<	(	~ValueBreak
+					anything
+				)+
+			>:value
+			AddWhereClause(query, [comparator, field, ['Bind', field[1], this.GetTableField(field.slice(1))]])
+			AddBodyVar(query, field[1], field[2], field.slice(1), value),
+		
+
+		SubstringOf :query =
+			seq('substringof(')
+			(	Field
+			|	Text
+			):needle
+			','
+			' '*
+			(	Field
+			|	Text
+			):haystack
+			seq(')')
+			{['Like', haystack, ['Concat', ['Text', '%'], needle, ['Text', '%']]]}:whereClause
+			(	' '+
+				seq('eq')
+				' '+
+				(	seq('true')
+				|	seq('false')
+					{['Not', whereClause]}:whereClause 
+				)
+			)?
+			AddWhereClause(query, whereClause),
+
+		Text =
+			'\''
+			<	(	~'\''
+					(	'\\' anything
+					|	anything
+					)
+				)*
+			>:text
+			'\''
+			-> ['Text', text],
+
+		Number =
+			<digit+>:d
+			-> ['Number', parseInt(d, 10)],
 
 		Limit =
 			seq('$top=')
