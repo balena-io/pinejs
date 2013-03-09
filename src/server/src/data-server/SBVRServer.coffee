@@ -75,7 +75,7 @@ define([
 					console.log('Sucessfully executed ui model.')
 					uiModelLoaded(true)
 			)
-			sbvrUtils.runURI('GET', '/dev/model?$filter=model_type eq se and vocabulary eq data', null, tx, (err, result) ->
+			sbvrUtils.runURI('GET', "/dev/model?$filter=model_type eq 'se' and vocabulary eq 'data'", null, tx, (err, result) ->
 				if !err and result.d.length > 0
 					instance = result.d[0]
 					sbvrUtils.executeModel(tx, instance.vocabulary, instance['model value'], (err) ->
@@ -99,7 +99,7 @@ define([
 			res.send(404)
 		)
 		app.post('/execute', sbvrUtils.checkPermissionsMiddleware('all'), uiModelLoaded, (req, res, next) ->
-			sbvrUtils.runURI('GET', '/ui/textarea?$filter=name eq model_area', null, null, (err, result) ->
+			sbvrUtils.runURI('GET', "/ui/textarea?$filter=name eq 'model_area'", null, null, (err, result) ->
 				if !err and result.d.length > 0
 					seModel = result.d[0].text
 					db.transaction((tx) ->
@@ -108,7 +108,7 @@ define([
 							if err
 								res.json(errors, 404)
 								return
-							sbvrUtils.runURI('PUT', '/ui/textarea-is_disabled?$filter=textarea/name eq model_area', {value: true}, tx)
+							sbvrUtils.runURI('PUT', "/ui/textarea-is_disabled?$filter=textarea/name eq 'model_area'", {value: true}, tx)
 							isServerOnAir(true)
 							res.send(200)
 						)
@@ -328,8 +328,8 @@ define([
 
 		app.del('/', uiModelLoaded, serverIsOnAir, (req, res, next) ->
 			# TODO: This should be done a better way?
-			sbvrUtils.runURI('DELETE', '/ui/textarea-is_disabled?$filter=textarea/name eq model_area/')
-			sbvrUtils.runURI('PUT', '/ui/textarea?$filter=name eq model_area/', {text: ''})
+			sbvrUtils.runURI('DELETE', "/ui/textarea-is_disabled?$filter=textarea/name eq 'model_area'")
+			sbvrUtils.runURI('PUT', "/ui/textarea?$filter=name eq 'model_area'", {text: ''})
 			sbvrUtils.deleteModel('data')
 			isServerOnAir(false)
 

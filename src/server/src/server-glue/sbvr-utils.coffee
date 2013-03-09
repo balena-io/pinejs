@@ -379,12 +379,12 @@ define([
 
 								odataParser.setSQLModel(vocab, abstractSqlModel)
 								odataParser.setClientModel(vocab, clientModel)
-								runURI('PUT', '/dev/model?$filter=model_type eq se', {vocabulary: vocab, 'model value': seModel}, tx)
-								runURI('PUT', '/dev/model?$filter=model_type eq lf', {vocabulary: vocab, 'model value': lfModel}, tx)
-								runURI('PUT', '/dev/model?$filter=model_type eq slf', {vocabulary: vocab, 'model value': slfModel}, tx)
-								runURI('PUT', '/dev/model?$filter=model_type eq abstractsql', {vocabulary: vocab, 'model value': abstractSqlModel}, tx)
-								runURI('PUT', '/dev/model?$filter=model_type eq sql', {vocabulary: vocab, 'model value': sqlModel}, tx)
-								runURI('PUT', '/dev/model?$filter=model_type eq client', {vocabulary: vocab, 'model value': clientModel}, tx)
+								runURI('PUT', "/dev/model?$filter=model_type eq 'se'", {vocabulary: vocab, 'model value': seModel}, tx)
+								runURI('PUT', "/dev/model?$filter=model_type eq 'lf'", {vocabulary: vocab, 'model value': lfModel}, tx)
+								runURI('PUT', "/dev/model?$filter=model_type eq 'slf'", {vocabulary: vocab, 'model value': slfModel}, tx)
+								runURI('PUT', "/dev/model?$filter=model_type eq 'abstractsql'", {vocabulary: vocab, 'model value': abstractSqlModel}, tx)
+								runURI('PUT', "/dev/model?$filter=model_type eq 'sql'", {vocabulary: vocab, 'model value': sqlModel}, tx)
+								runURI('PUT', "/dev/model?$filter=model_type eq 'client'", {vocabulary: vocab, 'model value': clientModel}, tx)
 
 								callback()
 							)
@@ -404,12 +404,12 @@ define([
 			(tx) ->
 				for dropStatement in sqlModels[vocabulary].dropSchema
 					tx.executeSql(dropStatement)
-				runURI('DELETE', '/dev/model?$filter=model_type eq se', {vocabulary}, tx)
-				runURI('DELETE', '/dev/model?$filter=model_type eq lf', {vocabulary}, tx)
-				runURI('DELETE', '/dev/model?$filter=model_type eq slf', {vocabulary}, tx)
-				runURI('DELETE', '/dev/model?$filter=model_type eq abstractsql', {vocabulary}, tx)
-				runURI('DELETE', '/dev/model?$filter=model_type eq sql', {vocabulary}, tx)
-				runURI('DELETE', '/dev/model?$filter=model_type eq client', {vocabulary}, tx)
+				runURI('DELETE', "/dev/model?$filter=model_type eq 'se'", {vocabulary}, tx)
+				runURI('DELETE', "/dev/model?$filter=model_type eq 'lf'", {vocabulary}, tx)
+				runURI('DELETE', "/dev/model?$filter=model_type eq 'slf'", {vocabulary}, tx)
+				runURI('DELETE', "/dev/model?$filter=model_type eq 'abstractsql'", {vocabulary}, tx)
+				runURI('DELETE', "/dev/model?$filter=model_type eq 'sql'", {vocabulary}, tx)
+				runURI('DELETE', "/dev/model?$filter=model_type eq 'client'", {vocabulary}, tx)
 
 				seModels[vocabulary] = ''
 				sqlModels[vocabulary] = []
@@ -615,7 +615,7 @@ define([
 					callback(null, _guestPermissions)
 				else
 					# Get guest user
-					runURI('GET', '/Auth/user?$filter=user/username eq guest', {}, null, (err, result) ->
+					runURI('GET', "/Auth/user?$filter=user/username eq 'guest'", {}, null, (err, result) ->
 						if !err and result.d.length > 0
 							getUserPermissions(result.d[0].id, (err, permissions) ->
 								if err?

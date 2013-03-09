@@ -82,22 +82,26 @@ define(['ometa!server-glue/uri-parser', 'underscore', 'ometa-core'], function(UR
 			)*,
 
 		Filter :query =
-				LikeFunction(query)
-			|	Comparison(query),
+			(	LikeFunction
+			|	Comparison
+			):whereClause
+			AddWhereClause(query, whereClause),
 		
-		Comparison :query =
-			Field:field
+		Comparison =
+			(	Field
+			|	Text
+			|	Number
+			):operand1
 			' '+
 			Comparator:comparator
 			' '+
-			<	(	~ValueBreak
-					anything
-				)+
-			>:value
-			AddWhereClause(query, [comparator, field, ['Bind', field[1], this.GetTableField(field.slice(1))]])
-			AddBodyVar(query, field[1], field[2], field.slice(1), value),
+			(	Field
+			|	Text
+			|	Number
+			):operand2
+			-> [comparator, operand1, operand2],
 
-		LikeFunction :query =
+		LikeFunction =
 			(	seq('substringof')
 				{true}:startWild
 				{true}:endWild
@@ -132,7 +136,7 @@ define(['ometa!server-glue/uri-parser', 'underscore', 'ometa-core'], function(UR
 					{['Not', whereClause]}:whereClause 
 				)
 			)?
-			AddWhereClause(query, whereClause),
+			-> whereClause,
 
 		Text =
 			'\''

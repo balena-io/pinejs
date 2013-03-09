@@ -2,7 +2,7 @@ define(['async'], () ->
 	return (options, sbvrUtils, app, passport) ->
 		exports = {}
 		checkPassword = (username, password, done) ->
-			sbvrUtils.runURI('GET', '/Auth/user?$filter=user/username eq ' + username, {}, null, (err, result) ->
+			sbvrUtils.runURI('GET', "/Auth/user?$filter=user/username eq '" + username + "'", {}, null, (err, result) ->
 				if !err and result.d.length > 0
 					hash = result.d[0].password
 					userId = result.d[0].id
