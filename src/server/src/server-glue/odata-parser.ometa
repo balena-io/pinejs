@@ -88,18 +88,28 @@ define(['ometa!server-glue/uri-parser', 'underscore', 'ometa-core'], function(UR
 			AddWhereClause(query, whereClause),
 		
 		Comparison =
-			(	Field
-			|	Text
+			(	Text
 			|	Number
+			|	Length
+			|	Field
 			):operand1
 			' '+
 			Comparator:comparator
 			' '+
-			(	Field
-			|	Text
+			(	Text
 			|	Number
+			|	Length
+			|	Field
 			):operand2
 			-> [comparator, operand1, operand2],
+
+		Length =
+			seq('length(')
+			(	Field
+			|	Text
+			):text
+			')'
+			-> ['CharacterLength', text],
 
 		LikeFunction =
 			(	seq('substringof')
