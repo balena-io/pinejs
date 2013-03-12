@@ -19,6 +19,10 @@ define(->
 			resourceToSQLMappings[resourceName][resourceField] = [sqlTableName, sqlFieldName]
 		for resourceName, table of tables when table.exists != false
 			idParts = resourceName.split('-')
+			resourceName = (
+				for idPart in idParts
+					idPart.split(/[ -]/).join('_')
+			).join('__')
 			resourceToSQLMappings[resourceName] = {}
 			if _.isString(table)
 				sqlTable = tables[idParts[0]]

@@ -568,15 +568,15 @@ define([
 	exports.getUserPermissions = getUserPermissions = (userId, callback) ->
 		async.parallel(
 			userPermissions: (callback) ->
-				runURI('GET', '/Auth/user-has-permission?$filter=user eq ' + userId, {}, null, (err, result) ->
+				runURI('GET', '/Auth/user__has__permission?$filter=user eq ' + userId, {}, null, (err, result) ->
 					callback(err, result?.d)
 				)
 			userRoles: (callback) ->
-				runURI('GET', '/Auth/user-has-role?$filter=user eq ' + userId, {}, null, (err, result) ->
+				runURI('GET', '/Auth/user__has__role?$filter=user eq ' + userId, {}, null, (err, result) ->
 					callback(err, result?.d)
 				)
 			rolePermissions: (callback) ->
-				runURI('GET', '/Auth/role-has-permission', {}, null, (err, result) ->
+				runURI('GET', '/Auth/role__has__permission', {}, null, (err, result) ->
 					callback(err, result?.d)
 				)
 			permissions: (callback) ->
@@ -971,7 +971,7 @@ define([
 							(err) ->
 								if !err
 									# We expect these to be the first user/permission, so they would have id 1.
-									runURI('POST', '/Auth/user-has-permission', {'user': 1, 'permission': 1}, null)
+									runURI('POST', '/Auth/user__has__permission', {'user': 1, 'permission': 1}, null)
 						)
 					console.log('Sucessfully executed standard models.')
 				callback?(err)

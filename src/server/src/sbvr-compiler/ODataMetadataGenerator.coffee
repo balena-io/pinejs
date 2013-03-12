@@ -1,5 +1,12 @@
 define(['underscore', 'cs!sbvr-compiler/types'], (_, sbvrTypes) ->
 
+	getResourceName = (resourceName) ->
+		idParts = resourceName.split('-')
+		(
+			for idPart in idParts
+				idPart.split(/[ -]/).join('_')
+		).join('__')
+
 	return (vocabulary, sqlModel) ->
 		complexTypes = {}
 		resolveDataType = (fieldType) ->
@@ -16,6 +23,7 @@ define(['underscore', 'cs!sbvr-compiler/types'], (_, sbvrTypes) ->
 		# resourceNavigations = {}
 		associations = []
 		for key, {name: resourceName, fields, primitive} of model when !_.isString(model[key]) and !primitive
+			resourceName = getResourceName(resourceName)
 			for {dataType, fieldName, required, references}, i in fields when dataType == 'ForeignKey'
 				{tableName: referencedResource, fieldName: referencedField} = references
 				associations.push(
@@ -39,6 +47,7 @@ define(['underscore', 'cs!sbvr-compiler/types'], (_, sbvrTypes) ->
 							
 					""" + (
 						for key, {idField, name: resourceName, fields, primitive} of model when !_.isString(model[key]) and !primitive
+							resourceName = getResourceName(resourceName)
 							"""
 							<EntityType Name="#{resourceName}">
 								<Key>
@@ -57,6 +66,7 @@ define(['underscore', 'cs!sbvr-compiler/types'], (_, sbvrTypes) ->
 							</EntityType>"""
 					).join('\n\n') + (
 						for {name, ends} in associations
+							name = getResourceName(name)
 							"""<Association Name="#{name}">""" + '\n\t' + (
 								for {resourceName, cardinality} in ends
 									"""<End Role="#{resourceName}" Type="#{vocabulary}.#{resourceName}" Multiplicity="#{cardinality}" />"""
@@ -67,9 +77,11 @@ define(['underscore', 'cs!sbvr-compiler/types'], (_, sbvrTypes) ->
 						
 						""" + (
 							for key, {name: resourceName, primitive} of model when !_.isString(model[key]) and !primitive
+								resourceName = getResourceName(resourceName)
 								"""<EntitySet Name="#{resourceName}" EntityType="#{vocabulary}.#{resourceName}" />"""
 							).join('\n') + '\n' + (
 								for {name, ends} in associations
+									name = getResourceName(name)
 									"""<AssociationSet Name="#{name}" Association="#{vocabulary}.#{name}">""" + '\n\t' + (
 										for {resourceName, cardinality} in ends
 											"""<End Role="#{resourceName}" EntitySet="#{vocabulary}.#{resourceName}" />"""

@@ -88,7 +88,7 @@ define(['has', 'async'], (has, async) ->
 									else
 										async.forEach(results.permissions,
 											(permission, callback) ->
-												sbvrUtils.runURI('POST', '/Auth/user-has-permission', {'user': results.user, 'permission': permission}, null, callback)
+												sbvrUtils.runURI('POST', '/Auth/user__has__permission', {'user': results.user, 'permission': permission}, null, callback)
 											(err) ->
 												if err
 													console.error('Failed to add user permissions', err)
