@@ -26,6 +26,7 @@ define(['has', 'async'], (has, async) ->
 									sbvrUtils.executeModel(tx, model.apiRoot, sbvrModel, (err) ->
 										if err
 											console.error('Failed to execute ' + model.modelName + ' model.', err)
+											process.exit()
 											return
 										apiRoute = '/' + model.apiRoot + '/*'
 										app.get(apiRoute, sbvrUtils.parseURITree, (req, res, next) ->
