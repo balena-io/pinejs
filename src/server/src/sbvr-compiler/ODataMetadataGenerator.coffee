@@ -32,6 +32,7 @@ define(['underscore', 'cs!sbvr-compiler/types'], (_, sbvrTypes) ->
 			resourceName = getResourceName(resourceName)
 			for {dataType, fieldName, required, references}, i in fields when dataType == 'ForeignKey'
 				{tableName: referencedResource, fieldName: referencedField} = references
+				referencedResource = getResourceName(referencedResource)
 				associations.push(
 					name: resourceName + referencedResource
 					ends: [
@@ -68,6 +69,7 @@ define(['underscore', 'cs!sbvr-compiler/types'], (_, sbvrTypes) ->
 							).join('\n') + '\n' + (
 							for {dataType, fieldName, references} in fields when dataType == 'ForeignKey'
 								{tableName: referencedResource, fieldName: referencedField} = references
+								referencedResource = getResourceName(referencedResource)
 								"""<NavigationProperty Name="#{fieldName}" Relationship="#{vocabulary}.#{resourceName + referencedResource}" FromRole="#{resourceName}" ToRole="#{referencedResource}" />"""
 							).join('\n') + '\n' + """
 						</EntityType>"""
