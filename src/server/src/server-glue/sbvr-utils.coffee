@@ -579,6 +579,7 @@ define([
 				else
 					callback?(null, data)
 			set: ->
+			type: ->
 		switch method
 			when 'GET'
 				runGet(req, res, tx)
