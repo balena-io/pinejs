@@ -39,12 +39,12 @@ define((requirejs, exports, module) ->
 						[statusCode, headers] = [headers, {}]
 					# Stringify and parse to emulate passing over network.
 					obj = JSON.parse(JSON.stringify(obj))
-					if statusCode == 404
+					if statusCode >= 400
 						failureCallback(statusCode, obj, headers)
 					else
 						successCallback(statusCode, obj, headers)
 				send: (statusCode, headers) ->
-					if statusCode == 404
+					if statusCode >= 400
 						failureCallback(statusCode, null, headers)
 					else
 						successCallback(statusCode, null, headers)

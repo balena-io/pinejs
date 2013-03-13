@@ -545,12 +545,12 @@ define([
 			body: body
 		res =
 			send: (statusCode) ->
-				if statusCode == 404
-					callback?(404)
+				if statusCode >= 400
+					callback?(statusCode)
 				else
 					callback?()
 			json: (data, statusCode) ->
-				if statusCode == 404
+				if statusCode >= 400
 					callback?(data)
 				else
 					callback?(null, data)
