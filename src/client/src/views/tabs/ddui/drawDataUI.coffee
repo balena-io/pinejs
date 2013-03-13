@@ -457,7 +457,7 @@ define([
 		else
 			filterString = '?$filter=' + (filter[0] + ' ' + filter[1] + ' ' + filter[2] for filter in filters).join(' and ')
 		
-		'/' + vocabulary + '/' + about.replace(new RegExp(' ', 'g'), '_') + filterString
+		'/' + vocabulary + '/' + about.replace(/\ /g, '_').replace(/-/g, '__') + filterString
 
 	drawData = (tree, callback) ->
 		addResourceID = 1

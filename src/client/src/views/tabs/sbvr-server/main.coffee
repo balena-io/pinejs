@@ -69,7 +69,7 @@ define([
 
 		runServer: ->
 			serverRequest("DELETE", "/cleardb", {}, null, =>
-				serverRequest("PUT", "/ui/textarea-is_disabled?$filter=textarea/name eq 'model_area'", {}, null, =>
+				serverRequest("PUT", "/ui/textarea__is_disabled?$filter=textarea/name eq 'model_area'", {}, null, =>
 					serverRequest("PUT", "/ui/textarea?$filter=name eq 'model_area'", {}, {'textarea.text': @model.get('content')}, =>
 						serverRequest("POST", "/execute/", {}, null, =>
 							@model.trigger('onAir')

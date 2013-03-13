@@ -1012,10 +1012,10 @@ define([
 				conditionalResourceURI: "/transaction/conditional_resource"
 				conditionalFieldURI: "/transaction/conditional_field"
 				lockURI: "/transaction/lock"
-				transactionLockURI: "/transaction/lock-belongs_to-transaction"
+				transactionLockURI: "/transaction/lock__belongs_to__transaction"
 				resourceURI: "/transaction/resource"
-				lockResourceURI: "/transaction/resource-is_under-lock"
-				exclusiveLockURI: "/transaction/lock-is_exclusive"
+				lockResourceURI: "/transaction/resource__is_under__lock"
+				exclusiveLockURI: "/transaction/lock__is_exclusive"
 				commitTransactionURI: "/transaction/execute"
 			)
 		)
