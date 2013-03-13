@@ -660,8 +660,8 @@ define([
 							},
 							(err, results) ->
 								if err
-									console.error(errors)
-									callback('Resource Collections Errors: ' + errors)
+									console.error(err)
+									callback('Resource Collections Errors: ' + err)
 								else
 									addHash = '#!/' + ftree.getChangeURI('add', clientModel)
 									templateVars = $.extend({}, baseTemplateVars, (if even then evenTemplateVars else oddTemplateVars), {

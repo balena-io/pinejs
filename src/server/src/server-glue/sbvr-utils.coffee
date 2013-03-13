@@ -785,7 +785,7 @@ define([
 							(tx, sqlResult) ->
 								validateDB(tx, sqlModels[vocab], (err) ->
 									if err
-										res.json(errors, 404)
+										res.json(err, 404)
 										return
 									tx.end()
 									insertID = if request.query[0] == 'UpdateQuery' then values[0] else sqlResult.insertId
@@ -919,7 +919,7 @@ define([
 							(tx, result) ->
 								validateDB(tx, sqlModels[vocab], (err) ->
 									if err
-										res.json(errors, 404)
+										res.json(err, 404)
 									else
 										tx.end()
 										res.send(200)

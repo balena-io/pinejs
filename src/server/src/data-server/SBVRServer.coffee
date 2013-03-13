@@ -106,7 +106,7 @@ define([
 						tx.begin()
 						sbvrUtils.executeModel(tx, 'data', seModel, (err) ->
 							if err
-								res.json(errors, 404)
+								res.json(err, 404)
 								return
 							sbvrUtils.runURI('PUT', "/ui/textarea__is_disabled?$filter=textarea/name eq 'model_area'", {value: true}, tx)
 							isServerOnAir(true)
