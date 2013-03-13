@@ -276,11 +276,11 @@ define([
 											callback(err)
 											return
 										lockedRow = lockedRow.rows.item(0)
-										uri = uri + '?$filter=' + clientModel.idField + ' eq ' + lockedRow['resource id']
 										getFieldsObject(conditionalResource.id, clientModel, (err, fields) ->
 											if err?
 												callback(err)
 											else
+												fields[clientModel.idField] = lockedRow['resource id']
 												runURI('PUT', uri, fields, tx, doCleanup)
 										)
 									)
@@ -379,12 +379,36 @@ define([
 
 								odataParser.setSQLModel(vocab, abstractSqlModel)
 								odataParser.setClientModel(vocab, clientModel)
-								runURI('PUT', "/dev/model?$filter=model_type eq 'se'", {vocabulary: vocab, 'model value': seModel}, tx)
-								runURI('PUT', "/dev/model?$filter=model_type eq 'lf'", {vocabulary: vocab, 'model value': lfModel}, tx)
-								runURI('PUT', "/dev/model?$filter=model_type eq 'slf'", {vocabulary: vocab, 'model value': slfModel}, tx)
-								runURI('PUT', "/dev/model?$filter=model_type eq 'abstractsql'", {vocabulary: vocab, 'model value': abstractSqlModel}, tx)
-								runURI('PUT', "/dev/model?$filter=model_type eq 'sql'", {vocabulary: vocab, 'model value': sqlModel}, tx)
-								runURI('PUT', "/dev/model?$filter=model_type eq 'client'", {vocabulary: vocab, 'model value': clientModel}, tx)
+								runURI('PUT', '/dev/model', {
+									vocabulary: vocab
+									'model value': seModel
+									'model type': 'se'
+								}, tx)
+								runURI('PUT', '/dev/model', {
+									vocabulary: vocab
+									'model value': lfModel
+									'model type': 'lf'
+								}, tx)
+								runURI('PUT', '/dev/model', {
+									vocabulary: vocab
+									'model value': slfModel
+									'model type': 'slf'
+								}, tx)
+								runURI('PUT', '/dev/model', {
+									vocabulary: vocab
+									'model value': abstractSqlModel
+									'model type': 'abstractsql'
+								}, tx)
+								runURI('PUT', '/dev/model', {
+									vocabulary: vocab
+									'model value': sqlModel
+									'model type': 'sql'
+								}, tx)
+								runURI('PUT', '/dev/model', {
+									vocabulary: vocab
+									'model value': clientModel
+									'model type': 'client'
+								}, tx)
 
 								callback()
 							)

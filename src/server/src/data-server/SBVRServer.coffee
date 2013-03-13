@@ -108,7 +108,10 @@ define([
 							if err
 								res.json(err, 404)
 								return
-							sbvrUtils.runURI('PUT', "/ui/textarea__is_disabled?$filter=textarea/name eq 'model_area'", {value: true}, tx)
+							sbvrUtils.runURI('PUT', '/ui/textarea', {
+								'is disabled': true
+								name: 'model_area'
+							}, tx)
 							isServerOnAir(true)
 							res.send(200)
 						)
@@ -329,7 +332,10 @@ define([
 		app.del('/', uiModelLoaded, serverIsOnAir, (req, res, next) ->
 			# TODO: This should be done a better way?
 			sbvrUtils.runURI('DELETE', "/ui/textarea__is_disabled?$filter=textarea/name eq 'model_area'")
-			sbvrUtils.runURI('PUT', "/ui/textarea?$filter=name eq 'model_area'", {text: ''})
+			sbvrUtils.runURI('PUT', '/ui/textarea',
+				text: ''
+				name: 'model_area'
+			)
 			sbvrUtils.deleteModel('data')
 			isServerOnAir(false)
 
