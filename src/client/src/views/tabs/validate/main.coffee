@@ -104,7 +104,7 @@ define([
 									(callback) ->
 										async.map(fkCols,
 											(model, callback) ->
-												serverRequest('GET', instance[model.modelName].__deferred, {}, null,
+												serverRequest('GET', instance[model.modelName].__deferred.uri, {}, null,
 													(statusCode, fkCol) ->
 														if fkCol.d.length > 0
 															instance[model.modelName] = fkCol.d[0][model.idField] + ': ' + fkCol.d[0][model.referenceScheme]
@@ -121,7 +121,7 @@ define([
 														async.forEach(manyToManyCol.d,
 															(instance, callback) ->
 																fkName = model.resourceName.split('-')[2]
-																serverRequest('GET', instance[fkName].__deferred, {}, null,
+																serverRequest('GET', instance[fkName].__deferred.uri, {}, null,
 																	(statusCode, results) ->
 																		if results.d.length > 0
 																			instance[fkName] = results.d[0][results.__model.referenceScheme]
