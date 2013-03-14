@@ -76,10 +76,14 @@ define(['ometa!server-glue/uri-parser', 'underscore', 'ometa-core'], function(UR
 
 		Filters :query =
 			seq('$filter=')
+			'('?:bracket
 			Filter(query)
 			(	seq(' and ')
 				Filter(query)
-			)*,
+			)*
+			(	?(!bracket)
+			|	')'
+			),
 
 		Filter :query =
 			(	LikeFunction
