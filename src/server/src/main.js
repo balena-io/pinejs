@@ -18,12 +18,12 @@ require({
 		//Developing & building tools
 		'cache'				:  '../../tools/requirejs-plugins/cache',
 		'cs'				:  '../../tools/requirejs-plugins/cs',
-		'ometa'				:  '../../tools/requirejs-plugins/ometa',
+		'ometa'				:  '../../external/ometa-js/lib/requirejs-plugin/ometajs',
 		'text'				:  '../../tools/requirejs-plugins/text',
 		'coffee-script'		:  '../../tools/coffee-script',
 		'has'				:  '../../tools/has',
 
-		'ometa-compiler'	:  '../../external/ometa-js/lib/ometajs/ometa/parsers',
+		'ometa-parsers'	:  '../../external/ometa-js/lib/ometajs/ometa/parsers',
 		'uglifyjs'			: '../../external/uglifyjs/uglify',
 
 		//Libraries
