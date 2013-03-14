@@ -2,8 +2,8 @@ define([
 	'backbone'
 	'codemirror'
 	'async'
-	'codemirror-ometa-bridge/hinter'
-], (Backbone, CodeMirror, async, ometaAutoComplete) ->
+	'codemirror-ometa/hinter'
+], (Backbone, CodeMirror, async, codeMirrorOmetaHinter) ->
 	Backbone.View.extend(
 		events:
 			"click #validate": "validate"
@@ -40,7 +40,7 @@ define([
 					getOMetaEditor: () => @editor
 					prependText: () => @model.get('content') + '\nRule: '
 				}
-				onKeyEvent: ometaAutoComplete(() => @model.get('content') + '\nRule: ')
+				onKeyEvent: codeMirrorOmetaHinter(=> @model.get('content') + '\nRule: ')
 				lineWrapping: true
 			)
 

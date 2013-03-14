@@ -1,11 +1,10 @@
 requireCSS = (function() {
 	var paths = {
-		'jquery-ui'                :  'external/jquery-ui/css/ui-lightness/jquery-ui-1.9.0.custom',
-		'codemirror'               :  'external/CodeMirror2/lib/codemirror',
-		'codemirror-util'          :  'external/CodeMirror2/lib/util',
-		'codemirror-theme'         :  'external/CodeMirror2/theme',
-		'qunit'                    :  'external/qunit/qunit',
-		'codemirror-ometa-bridge'  :  '../lib/codemirror-ometa-bridge/src'
+		'jquery-ui'			: 'external/jquery-ui/css/ui-lightness/jquery-ui-1.9.0.custom',
+		'codemirror'		: 'external/CodeMirror2/lib/codemirror',
+		'codemirror-util'	: 'external/CodeMirror2/lib/util',
+		'codemirror-theme'	: 'external/CodeMirror2/theme',
+		'qunit'				: 'external/qunit/qunit'
 	};
 	return function(url) {
 		var firstPathPart = url.split('/')[0];

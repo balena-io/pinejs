@@ -3,8 +3,8 @@ define([
 	'jquery'
 	'underscore'
 	'codemirror'
-	'codemirror-ometa-bridge/hinter'
-	'codemirror-ometa-bridge/sbvr'
+	'codemirror-ometa/hinter'
+	'ometa-highlighting/sbvr'
 ], (Backbone, $, _, CodeMirror, ometaAutoComplete) ->
 	Backbone.View.extend(
 		setTitle: (title) ->
