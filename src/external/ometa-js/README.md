@@ -8,7 +8,7 @@
 
 ## Description
 
-OMetaJS is a JavaScript implementation of the OMeta, an object-oriented language
+OMetaJS is a JavaScript implementation of OMeta, an object-oriented language
 for pattern matching.
 
 This is a *node.js* module for developing and using such pattern matching
@@ -16,16 +16,10 @@ grammars.
 
 ## Installation
 
-### Installing npm (node package manager)
-
-``` bash
-$ curl http://npmjs.org/install.sh | sh
-```
-
 ### Installing ometajs
 
 ``` bash
-$ [sudo] npm install ometajs -g
+$ [sudo] npm install ometa-js -g
 ```
 
 **Note:** If you are using ometajs _programatically_ you should not install
@@ -33,7 +27,7 @@ it globally.
 
 ``` bash
 $ cd /path/to/your/project
-$ npm install ometajs
+$ npm install ometa-js
 ```
 
 ## Usage
@@ -55,7 +49,7 @@ Options:
   --root=ROOT : Path to root module (default: ometajs)
 ```
 
-`ometajs2js` will take input `*.ometajs` file and produce [CommonJS][0]
+`ometajs2js` will take input `*.ometajs` file and produce a [CommonJS][0]/AMD/Browser
 compatible javascript file.
 
 Also you may `require('*.ometajs')` files directly without compilation.
@@ -64,10 +58,12 @@ Also you may `require('*.ometajs')` files directly without compilation.
 ### Using as CommonJS module
 
 ```javascript
-var ometajs = require('ometajs');
+var ometajs = require('ometa-js');
 
 var ast = ometajs.BSJSParser.matchAll('var x = 1', 'topLevel'),
     code = ometajs.BSJSTranslator.matchAll([ast], 'trans');
+// Or:
+var code = ometajs.compile('var x = 1');
 ```
 Example
 
@@ -112,4 +108,4 @@ Here is [documented code][5].
 [2]: http://en.wikipedia.org/wiki/Abstract_syntax_tree
 [3]: http://www.tinlizzie.org/ometa/
 [4]: http://github.com/alexwarth
-[5]: http://veged.github.com/ometa-js/
+[5]: http://Page-.github.com/ometa-js/

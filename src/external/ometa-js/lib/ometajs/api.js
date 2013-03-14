@@ -1,53 +1,29 @@
 var ometajs = require('../ometajs'),
-    uglify = require('uglify-js'),
-    vm = require('vm'),
-    Module = require('module'),
-    clone = function clone(obj) {
-      var o = {};
+	uglify = require('uglify-js'),
+	vm = require('vm'),
+	Module = require('module'),
+	compressor = uglify.Compressor({
+		sequences: false,
+		unused: false // We need this off for OMeta
+	}),
+	clone = function clone(obj) {
+		var o = {};
 
-      Object.keys(obj).forEach(function(key) {
-        o[key] = obj[key];
-      });
+		Object.keys(obj).forEach(function(key) {
+			o[key] = obj[key];
+		});
 
-      return o;
-    },
-    getLineAndColumn = function(string, index) {
-      var char,
-          column = 0,
-          line = 1,
-          i = 0,
-          len;
-      string = string.slice(0, index + 1);
-      for (len = string.length; i < len; i++) {
-        column++;
-        if (string[i] == '\n') {
-          line++;
-          column = 0;
-        }
-      }
-      return {line: line, column: column, index: index};
-    };
-
-//
-// ### function compilationError(m, i)
-// #### @m {Number}
-// #### @i {Number}
-//
-function compilationError(code) {
-  return function(m, i, fail) {
-    var lineCol = getLineAndColumn(code, i);
-    throw fail._extend(lineCol);
-  };
-};
-
-//
-// ### function translationError(m, i)
-// #### @m {Number}
-// #### @i {Number}
-//
-function translationError(m, i, fail) {
-  throw fail;
-};
+		return o;
+	},
+	defaultOption = function() {
+		var args = Array.prototype.slice.call(arguments);
+		for(var i = 0; i < args.length; i++) {
+			if(args[i] != null) {
+				return args[i];
+			}
+		}
+		return null;
+	};
 
 //
 // ### function wrapModule(module)
@@ -55,67 +31,76 @@ function translationError(m, i, fail) {
 // Wrap javascript code in ometajs.core context
 //
 function wrapModule(code, options) {
-  var requirePath = (options.root || ometajs.root || 'ometa-core'),
-      start =
-        "(function (root, factory) {\
-          if (typeof define === 'function' && define.amd) {\
-            /* AMD. Register as an anonymous module. */\
-            define(['exports', 'ometa-core'], factory);\
-          } else if (typeof exports === 'object') {\
-            /* CommonJS */\
-            factory(exports, require('" + requirePath + "'));\
-          } else {\
-            /* Browser globals - dangerous */\
-            factory(root, root.OMeta);\
-          }\
-        }(this, function (exports, OMeta) {",
-      end = "}));"
+	var nodeRequirePath = defaultOption(options.nodeRequirePath, ometajs.nodeRequirePath, 'ometa-core'),
+		nodeRequireProperty = defaultOption(options.nodeRequireProperty, ometajs.nodeRequireProperty, '.core'),
+		start =
+			"(function (root, factory) {\
+				if (typeof define === 'function' && define.amd) {\
+					/* AMD. Register as an anonymous module. */\
+					define(['exports', 'ometa-core'], factory);\
+				} else if (typeof exports === 'object') {\
+					/* CommonJS */\
+					factory(exports, require(" + JSON.stringify(nodeRequirePath) + ") " + nodeRequireProperty + ");\
+				} else {\
+					/* Browser globals - dangerous */\
+					factory(root, root.OMeta);\
+				}\
+			}(this, function (exports, OMeta) {",
+		end = "}));"
 
-  return start + code + end;
+	return start + code + end;
 };
 
 //
-// ### function translateCode(code)
+// ### function compile(code)
 // #### @code {String} source code
-// Translates .ometajs code into javascript
+// Compiles ometajs code into javascript
 //
-function translateCode(code, options) {
-  options || (options = {});
-  var tree = ometajs.BSOMetaJSParser.matchAll(code, "topLevel", undefined,
-                                              compilationError(code));
+function compile(source, options) {
+	options || (options = {});
+	var tree = ometajs.BSOMetaJSParser.matchAll(source, "topLevel"),
+		js = ometajs.BSOMetaJSTranslator.match(tree, "trans"),
+		// Beautify code
+		ast;
+	if (!options.noContext) {
+		js = wrapModule(js, options);
+	}
+	ast = uglify.parse(js);
+	ast.figure_out_scope();
+	ast = ast.transform(compressor);
+	js = ast.print_to_string({
+		beautify: true
+	});
 
-  code = ometajs.BSOMetaJSTranslator.match(tree, "trans", undefined,
-                                           translationError);
-
-  // Beautify code
-  code = uglify.uglify.gen_code(uglify.parser.parse(code), { beautify: true });
-
-  if (options.noContext) return code;
-
-  return wrapModule(code, options);
+	return js;
 };
-exports.translateCode = translateCode;
+exports.compile = compile;
 
 //
 // ### function evalCode(code, filename)
 // #### @code {String} source code
 // #### @filename {String} filename for stack traces
-// Translates and evaluates ometajs code
+// Compiles and evaluates ometajs code
 //
 function evalCode(code, filename, options) {
-  options || (options = {});
-  options.noContext = true;
+	options || (options = {});
+	options.noContext = true;
 
-  code = translateCode(code, options);
-  return vm.runInNewContext('var exports = {};' + code + '\n;exports',
-                            clone(ometajs.core),
-                            filename || 'ometa');
+	code = compile(code, options);
+	return vm.runInNewContext(
+		'var exports = {};' + code + '\n;exports',
+		{OMeta: clone(ometajs.core)},
+		filename || 'ometa'
+	);
 };
 exports.evalCode = evalCode;
 
 // Allow users to `require(...)` ometa files
 require.extensions['.ometajs'] = require.extensions['.ojs'] = require.extensions['.ometa'] = function(module, filename) {
-  var code = translateCode(require('fs').readFileSync(filename).toString());
+	var code = compile(require('fs').readFileSync(filename).toString(), {
+		nodeRequirePath: __dirname + '/core',
+		nodeRequireProperty: ''
+	});
 
-  module._compile(code, filename);
+	module._compile(code, filename);
 };

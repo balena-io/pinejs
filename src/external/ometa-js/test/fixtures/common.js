@@ -1,16 +1,16 @@
 var ometajs = require('../../lib/ometajs'),
     fs = require('fs');
 
-ometajs.root = __dirname + '/../../lib/ometajs/core';
+ometajs.nodeRequirePath = __dirname + '/../../lib/ometajs/core';
 
 exports.ometajs = ometajs;
 
-exports.translate = function translate(name, options) {
+exports.compile = function compile(name, options) {
   var code = fs.readFileSync(__dirname + '/../files/' + name + '.ometajs');
-  return ometajs.translateCode(code.toString(), options);
+  return ometajs.compile(code.toString(), options);
 };
 
-exports.compile = function compile(name) {
+exports.evalCode = function evalCode(name) {
   var code = fs.readFileSync(__dirname + '/../files/' + name + '.ometajs');
   return ometajs.evalCode(code.toString());
 };

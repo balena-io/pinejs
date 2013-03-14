@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>OMetaJS With RequireJS</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<link href="../vendor/bootstrap.min.css" rel="stylesheet">
+		<link href="../vendor/codemirror.css" rel="stylesheet">
+		<link href="../../lib/codemirror-ometa/ometajs.css" rel="stylesheet">
+		<style type='text/css'>
+			.CodeMirror {
+				border: 1px solid #ADABB3;
+				
+			}
+		</style>
+		<script src="http://requirejs.org/docs/release/2.1.5/minified/require.js"></script>
+		<script type="text/javascript">
+			require({
+				paths: {
+					'cache':						'../../lib/requirejs-plugin/cache',
+					'ometajs':						'../../lib/requirejs-plugin/ometajs',
+					'ometa-core':					'../../lib/ometajs/core',
+					'ometa-parsers':				'../../lib/ometajs/ometa/parsers',
+					'uglifyjs':						'../vendor/uglify',
+
+					'codemirror-ometa-highlighter':	'../../lib/codemirror-ometa/highlighter',
+					'ometa-src':					'../../src',
+
+					//Libraries
+					'bootstrap'						: '../vendor/bootstrap.min',
+					'codemirror'					: '../vendor/codemirror',
+					'codemirror-javascript'			: '../vendor/javascript',
+					'jquery'						: '../vendor/jquery.min'
+				},
+				shim: {
+					'bootstrap': {
+						deps: ['jquery']
+					},
+					'codemirror-simple-hint': {
+						deps: ['codemirror', 'css!lib/codemirror/addon/hint/simple-hint']
+					},
+					'codemirror-javascript': ['codemirror'],
+					'codemirror': {
+						exports: 'CodeMirror'
+					},
+					'uglifyjs': {
+						exports: 'UglifyJS'
+					},
+					'async': {
+						exports: 'async'
+					},
+					'ometajs!ometa-src/bs-js-compiler': {
+						exports: 'BSJSParser'
+					},
+					'ometajs!ometa-src/bs-ometa-js-compiler': {
+						deps: ['ometajs!ometa-src/bs-js-compiler']
+					}
+				}
+			}, ['main']);
+		</script>
+	</head>
+	<body>
+		<h1>Hello, world!</h1>
+		<ul id="tabs" class="nav nav-tabs">
+			<li class="active"><a href="#ometa" data-toggle="tab">OMeta</a></li>
+			<li><a id="jsNav" href="#js" data-toggle="tab">Javascript</a></li>
+		</ul>
+		<div class="tab-content">
+			<div class="tab-pane active" id="ometa">
+				<textarea id="ometaEditor"></textarea>
+			</div>
+			<div class="tab-pane" id="js">
+				<textarea id="jsEditor"></textarea>
+			</div>
+		</div>
+		
+	</body>
+</html>
