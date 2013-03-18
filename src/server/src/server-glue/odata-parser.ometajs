@@ -86,9 +86,13 @@ define(['ometa!server-glue/uri-parser', 'underscore', 'ometa-core'], function(UR
 			),
 
 		Filter :query =
+			'('?:bracket
 			(	LikeFunction
 			|	Comparison
 			):whereClause
+			(	?(!bracket)
+			|	')'
+			)
 			AddWhereClause(query, whereClause),
 		
 		Comparison =
