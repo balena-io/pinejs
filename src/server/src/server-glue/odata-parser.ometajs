@@ -69,7 +69,7 @@ define(['ometa!server-glue/uri-parser', 'underscore', 'ometa-core'], function(UR
 		Field =
 			(	ResourcePart:resourceName '/' ResourcePart:resourceFieldName
 			|	{this.currentResource}:resourceName
-				ResourcePart:resourceFieldName
+				ResourcePart:resourceFieldName '/'?
 			)
 			GetMapping(resourceName, resourceFieldName):mapping
 			-> ['ReferencedField'].concat(mapping),
