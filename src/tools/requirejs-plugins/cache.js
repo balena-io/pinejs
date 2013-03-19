@@ -107,7 +107,7 @@ define(function () {
 						console.log("Compiling", path.split('/').pop());
 						//Run compilation.
 						try {
-							compiled = compile(source, config);
+							compiled = compile(source, config, path);
 						}
 						catch (err) {
 							err.message = "In " + path + ", " + err.message;
@@ -128,7 +128,7 @@ define(function () {
 					//sourceURL trick, so skip it if enabled.
 					/*@if (@_jscript) @else @*/
 					if (!config.isBuild) {
-						compiled += "\r\n//@ sourceURL=" + path;
+						compiled += "\n//@ sourceURL=" + path + '.js';
 					}
 					/*@end@*/
 	
