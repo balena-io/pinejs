@@ -587,7 +587,7 @@ define([
 			&ProcessAtomicFormulationsRecurse(0, 'ProcessAtomicFormulationsNonPrimitive'),
 		ProcessAtomicFormulationsRecurse :depth :rule =
 			(	// Bit of a hack, but we only want to drill into the input if it's an array, otherwise we get infinite recursion.
-				?(_.isArray(this.input.lst))
+				?(_.isArray(this.input.hd))
 				[	'AtomicFormulation'
 					[	'FactType'
 						anything+:factType
