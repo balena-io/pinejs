@@ -43,7 +43,7 @@ require({
 		'jquery-xdomain'			: '../lib/jquery-xdomain',
 		'ometa-core'				: '../../external/ometa-js/lib/ometajs/core',
 		'sbvr-parser'				: '../../common/sbvr-parser',
-		'underscore'				: '../lib/underscore',
+		'underscore'				: '../lib/lodash.underscore',
 		'ejs'						: '../lib/ejs',
 		'jquery-ui'					: '../lib/jquery-ui',
 		
