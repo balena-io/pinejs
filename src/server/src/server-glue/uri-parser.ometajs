@@ -25,7 +25,21 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'ometa-core'], function(SBVR
 			<	(	~'/'
 					anything
 				)+
-			>
+			>,
+
+
+		AddReferencedFieldTables :query =
+			(	// Bit of a hack, but we only want to drill into the input if it's an array, otherwise we get infinite recursion.
+				?(_.isArray(this.input.hd))
+				[	'ReferencedField'
+					anything:table
+					anything
+					end
+					AddQueryTable(query, table)
+				|	AddReferencedFieldTables(query)
+				]
+			|	anything
+			)*
 	}
 
 	URIParser.initialize = function() {
@@ -80,6 +94,10 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'ometa-core'], function(SBVR
 			}
 		}
 		else {
+			// A hack to make sure all referenced fields in the where clause are in the from clause of this query.
+			this._lookahead(function() {
+				this._applyWithArgs('AddReferencedFieldTables', query, whereBody);
+			});
 			for(var i=1; i < query.length; i++) {
 				if(query[i][0] == 'Where') {
 					query[i][1] = ['And', query[i][1], whereBody];
@@ -88,7 +106,7 @@ define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'ometa-core'], function(SBVR
 			}
 			query.push(['Where', whereBody]);
 		}
-		
+
 		if(query[0] == 'UpsertQuery' && whereBody[0] == 'Equals') {
 			var field, bind;
 			if(whereBody[1][0] == 'Field') {
