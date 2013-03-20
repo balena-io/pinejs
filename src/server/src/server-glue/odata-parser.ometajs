@@ -10,7 +10,14 @@ define(['ometa!server-glue/uri-parser', 'underscore', 'ometa-core'], function(UR
 				ResourceName:resourceName
 				(	{['Query']}:query
 					AddQueryResource(query, resourceName)
-					Modifiers(query)
+					(	'(' Number:value ')'
+						{this.sqlModels[this.currentVocab].tables[resourceName]}:table
+						{table.idField}:resourceFieldName
+						GetMapping(resourceName, resourceFieldName):mapping
+						AddWhereClause(query, ['Equals', ['ReferencedField'].concat(mapping), ['Bind', mapping[0], this.GetTableField(mapping)]])
+						AddBodyVar(query, resourceName, resourceFieldName, mapping, value[1])
+					)?
+					Modifiers(query)?
 				)?
 			|	seq('$metadata'):resourceName
 			)
