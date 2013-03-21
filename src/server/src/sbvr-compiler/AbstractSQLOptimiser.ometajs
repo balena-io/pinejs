@@ -327,7 +327,7 @@ define([
 				]
 			|	^Not,
 		
-		Helped =
+		Helped :disableMemoisationHack =
 			?(this.helped === true)
 			{this.helped = false},
 		
