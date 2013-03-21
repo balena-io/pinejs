@@ -97,6 +97,8 @@ define([
 					, 'Process'
 				)
 		catch e
+			console.error(rule[2][1])
+			console.error(rule)
 			console.error(e)
 			console.error(instance.input)
 			throw e
@@ -105,15 +107,16 @@ define([
 		try
 			for rule in sqlModel.rules
 				# console.log(Prettify.match(rule[2][1], 'Process'))
+				console.log(rule[1][1])
 				instance = AbstractSQLRules2SQL.createInstance()
 				ruleSQL = instance.match(
 					rule[2][1]
 					, 'Process'
 				)
-				console.log(rule[1][1])
 				console.log(ruleSQL)
 				ruleStatements.push({structuredEnglish: rule[1][1], sql: ruleSQL})
 		catch e
+			console.error(rule)
 			console.error(e)
 			console.error(instance.input)
 			throw e
