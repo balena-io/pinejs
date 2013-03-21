@@ -3,7 +3,7 @@ define([
 	'ejs'
 	'cs!./widgets'
 	'async'
-	'underscore'
+	'lodash'
 	'cs!./runTrans'
 ], (ClientURIUnparser, ejs, widgets, async, _) ->
 	templates = {

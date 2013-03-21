@@ -37,9 +37,6 @@ require({
 	shim: {
 		'uglifyjs': {
 			exports: 'UglifyJS'
-		},
-		'underscore': {
-			exports: '_'
 		}
 	}
 }, ['cs!server-glue/server']);

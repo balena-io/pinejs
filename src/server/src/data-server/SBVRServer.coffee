@@ -1,6 +1,6 @@
 define([
 	'async'
-	'underscore'
+	'lodash'
 	'has'
 ], (async, _, has) ->
 	exports = {}

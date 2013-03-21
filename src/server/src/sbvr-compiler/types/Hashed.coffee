@@ -1,4 +1,4 @@
-define(['underscore'], (_) ->
+define(['lodash'], (_) ->
 	return {
 		types:
 			postgres: 'CHAR(60)'

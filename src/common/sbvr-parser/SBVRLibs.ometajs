@@ -1,4 +1,4 @@
-define(['underscore', 'ometa-core'], function(_) {
+define(['lodash', 'ometa-core'], function(_) {
 
 	ometa SBVRLibs {}
 

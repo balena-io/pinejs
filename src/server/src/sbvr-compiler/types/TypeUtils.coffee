@@ -1,4 +1,4 @@
-define(['underscore'], (_) ->
+define(['lodash'], (_) ->
 	equality = (from, to) -> ['Equals', from, to]
 	return {
 		nativeFactTypeTemplates:

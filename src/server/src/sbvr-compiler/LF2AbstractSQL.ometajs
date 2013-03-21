@@ -1,6 +1,6 @@
 define([
 	'ometa!sbvr-parser/SBVRLibs',
-	'underscore',
+	'lodash',
 	'cs!sbvr-compiler/types'
 ], function(SBVRLibs, _, sbvrTypes) {
 	//Transformation from SBVR Logical Formulation to SQL

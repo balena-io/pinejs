@@ -2,7 +2,7 @@ define([
 	'ometa!sbvr-compiler/AbstractSQLRules2SQL'
 	'ometa!sbvr-compiler/AbstractSQLOptimiser'
 	'ometa!prettify/Prettify'
-	'underscore'
+	'lodash'
 	'cs!sbvr-compiler/types'
 	'cs!sbvr-compiler/types/TypeUtils'
 ], (AbstractSQLRules2SQL, AbstractSQLOptimiser, Prettify, _, sbvrTypes, TypeUtils) ->

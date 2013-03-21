@@ -76,7 +76,7 @@
 	},
 
 	paths: {
-		underscore: 'empty:',
+		lodash: 'empty:',
 		async: 'empty:'
 	},
 	name: 'cs!server-glue/server'

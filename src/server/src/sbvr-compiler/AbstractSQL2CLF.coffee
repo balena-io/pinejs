@@ -1,6 +1,4 @@
-define(->
-	_ = require('underscore')
-
+define(['lodash'], (_) ->
 	getField = (table, fieldName) ->
 		tableFields = table.fields
 		for tableField in tableFields when tableField.fieldName == fieldName

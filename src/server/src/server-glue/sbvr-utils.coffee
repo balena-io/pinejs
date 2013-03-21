@@ -9,7 +9,7 @@ define([
 	'cs!sbvr-compiler/ODataMetadataGenerator'
 	'ometa!server-glue/odata-parser'
 	'async'
-	'underscore'
+	'lodash'
 	'cs!sbvr-compiler/types'
 ], (has, SBVRParser, LF2AbstractSQLPrep, LF2AbstractSQL, AbstractSQL2SQL, AbstractSQLRules2SQL, AbstractSQL2CLF, ODataMetadataGenerator, ODataParser, async, _, sbvrTypes) ->
 	exports = {}

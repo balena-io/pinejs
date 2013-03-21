@@ -1,4 +1,4 @@
-define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'ometa-core'], function(SBVRLibs, _) {
+define(['ometa!sbvr-parser/SBVRLibs', 'lodash'], function(SBVRLibs, _) {
 	ometa URIParser <: SBVRLibs {
 		Process =
 			[	(	'GET'

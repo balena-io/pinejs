@@ -43,7 +43,7 @@ require({
 		'jquery-xdomain'			: '../lib/jquery-xdomain',
 		'ometa-core'				: '../../external/ometa-js/lib/ometajs/core',
 		'sbvr-parser'				: '../../common/sbvr-parser',
-		'underscore'				: '../lib/lodash.underscore',
+		'lodash'					: '../lib/lodash.compat',
 		'ejs'						: '../lib/ejs',
 		'jquery-ui'					: '../lib/jquery-ui',
 		
@@ -89,16 +89,10 @@ require({
 			exports: 'd3'
 		},
 		'backbone': {
-			deps: ['underscore', 'jquery-xdomain'],
+			deps: ['lodash', 'jquery-xdomain'],
 			exports: 'Backbone',
 			init: function () {
 				return this.Backbone.noConflict();
-			}
-		},
-		'underscore': {
-			exports: '_',
-			init: function () {
-				return this._.noConflict();
 			}
 		},
 		'uglifyjs': {

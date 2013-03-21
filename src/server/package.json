@@ -6,7 +6,7 @@
 		"requirejs": "2.x",
 		"passport": "latest",
 		"mysql": "2.x",
-		"underscore": "latest",
+		"lodash": "latest",
 		"pg": "0.12.x",
 
 		"coffee-script": "latest",

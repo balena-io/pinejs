@@ -1,4 +1,4 @@
-define(['sbvr-parser/SBVRParser', 'ometa!prettify/Prettify', 'underscore', 'sbvr-frame/SBVRModels', 'ometa-core', 'inflection'], function(SBVRParser, Prettify) {
+define(['sbvr-parser/SBVRParser', 'ometa!prettify/Prettify', 'lodash', 'sbvr-frame/SBVRModels', 'ometa-core', 'inflection'], function(SBVRParser, Prettify) {
 	ometa SBVR_LF2SE {
 		$ :x =
 				token(x):a

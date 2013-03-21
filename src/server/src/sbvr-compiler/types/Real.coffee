@@ -1,4 +1,4 @@
-define(['underscore', 'cs!sbvr-compiler/types/TypeUtils'], (_, TypeUtils) ->
+define(['lodash', 'cs!sbvr-compiler/types/TypeUtils'], (_, TypeUtils) ->
 	return {
 		types:
 			postgres: 'REAL'

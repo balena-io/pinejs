@@ -1,4 +1,4 @@
-define(['ometa!server-glue/uri-parser', 'underscore', 'ometa-core'], function(URIParser, _) {
+define(['ometa!server-glue/uri-parser', 'lodash'], function(URIParser, _) {
 	ometa ServerURIParser <: URIParser)  {
 		ProcessURI :body =
 			(	?(!_.isArray(body))

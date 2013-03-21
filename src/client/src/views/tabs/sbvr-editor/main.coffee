@@ -1,7 +1,7 @@
 define([
 	'backbone'
 	'jquery'
-	'underscore'
+	'lodash'
 	'codemirror'
 	'codemirror-ometa/hinter'
 	'ometa-highlighting/sbvr'

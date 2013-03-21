@@ -1,8 +1,8 @@
 define([
 	'ometa!prettify/Prettify',
-	'underscore', 
+	'lodash', 
 	'ometa-core'
-], function(Prettify) {
+], function(Prettify, _, OMeta) {
 	ometa AbstractSQLValidator {
 		
 		Query =

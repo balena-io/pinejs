@@ -1,4 +1,4 @@
-define(['ometa!sbvr-parser/SBVRLibs', 'underscore', 'has', 'text!sbvr-parser/Type.sbvr', 'ometa-core', 'inflection'], function(SBVRLibs, _, has, dataTypesVocabulary) {
+define(['ometa!sbvr-parser/SBVRLibs', 'lodash', 'has', 'text!sbvr-parser/Type.sbvr', 'ometa-core', 'inflection'], function(SBVRLibs, _, has, dataTypesVocabulary) {
 	//A parser for Semantics of Business Vocabulary and Rules (SBVR), an OMG standard.
 	//Converts from Structured English (SBVR-SE) to Logical Formulation (SBVR-LF)
 	//Specification: http://www.omg.org/spec/SBVR/1.0/
