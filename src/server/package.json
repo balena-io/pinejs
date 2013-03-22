@@ -9,6 +9,7 @@
 		"lodash": "latest",
 		"pg": "0.12.x",
 
+		"ometa-js": "1.0.0",
 		"coffee-script": "latest",
 
 		"passport-local": "0.1.x",

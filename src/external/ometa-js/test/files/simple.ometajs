@@ -1,3 +1,0 @@
-export ometa Simple {
-  top = [#simple] -> 'ok'
-}

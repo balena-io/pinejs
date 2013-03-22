@@ -3,7 +3,7 @@ vm = require('vm')
 load = (filePath) ->
 	vm.runInThisContext(fs.readFileSync(filePath, 'utf8'), __filename)
 
-ometajs = require('../../../external/ometa-js/lib/ometajs.js')
+ometajs = require('ometa-js')
 UglifyJS = require('uglifyjs')
 
 calculateLineColInfo = (string, index) ->

@@ -18,17 +18,17 @@ require({
 		//Developing & building tools
 		'cache'				:  '../../tools/requirejs-plugins/cache',
 		'cs'				:  '../../tools/requirejs-plugins/cs',
-		'ometa'				:  '../../external/ometa-js/lib/requirejs-plugin/ometajs',
+		'ometa'				:  '../../server/node_modules/ometa-js/lib/requirejs-plugin/ometajs',
 		'text'				:  '../../tools/requirejs-plugins/text',
 		'coffee-script'		:  '../../tools/coffee-script',
 		'has'				:  '../../tools/has',
 
-		'ometa-parsers'	:  '../../external/ometa-js/lib/ometajs/ometa/parsers',
+		'ometa-parsers'	:  '../../server/node_modules/ometa-js/lib/ometajs/ometa/parsers',
 		'uglifyjs'			: '../../external/uglifyjs/uglify',
 
 		//Libraries
-		'ometa-core'		:  '../../external/ometa-js/lib/ometajs/core',
-		'OMeta'				:  '../../external/ometa-js/lib/ometajs/core',
+		'ometa-core'		:  '../../server/node_modules/ometa-js/lib/ometajs/core',
+		'OMeta'				:  '../../server/node_modules/ometa-js/lib/ometajs/core',
 		'sbvr-parser'		:  '../../common/sbvr-parser',
 		'utils'				:  '../../common/utils',
 		'prettify'			:  '../../common/prettify',
