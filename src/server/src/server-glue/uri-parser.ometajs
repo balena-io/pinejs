@@ -60,7 +60,7 @@ define(['ometa!sbvr-parser/SBVRLibs', 'lodash'], function(SBVRLibs, _) {
 		if(resourceMapping.hasOwnProperty(resourceFieldName)) {
 			return resourceMapping[resourceFieldName];
 		}
-		resourceFieldName = resourceFieldName.replace(/ /g, '_');
+		resourceFieldName = resourceFieldName.replace(/_/g, ' ');
 		if(resourceMapping.hasOwnProperty(resourceFieldName)) {
 			return resourceMapping[resourceFieldName];
 		}

@@ -11,14 +11,14 @@ define(['ometa!server-glue/uri-parser', 'lodash'], function(URIParser, _) {
 				(	{['Query']}:query
 					AddQueryResource(query, resourceName)
 					(	'(' Number:value ')'
-						{this.sqlModels[this.currentVocab].tables[resourceName]}:table
+						{this.sqlModels[this.currentVocab].tables[resourceName.replace(new RegExp('__', 'g'), '-')]}:table
 						{table.idField}:resourceFieldName
 						GetMapping(resourceName, resourceFieldName):mapping
 						AddWhereClause(query, ['Equals', ['ReferencedField'].concat(mapping), ['Bind', mapping[0], this.GetTableField(mapping)]])
 						AddBodyVar(query, resourceName, resourceFieldName, mapping, value[1])
 					)?
 					Modifiers(query)?
-				)?
+				)?	
 			|	seq('$metadata'):resourceName
 			)
 			-> [{resourceName: resourceName, query: query, values: this.newBody}],
@@ -29,19 +29,12 @@ define(['ometa!server-glue/uri-parser', 'lodash'], function(URIParser, _) {
 				)+
 			>,
 
-		ResourcePart =
+		ResourceName =
 			<	(	letter
 				|	'_'
 				)+
-			>:resourcePart
-			-> resourcePart.replace(new RegExp('_', 'g'), ' '),
-
-		ResourceName =
-			<	ResourcePart
-				(	'-'
-					ResourcePart
-				)*
-			>,
+			>:resourceName
+			-> resourceName,
 
 		Comparator =
 				seq('eq')
@@ -74,9 +67,9 @@ define(['ometa!server-glue/uri-parser', 'lodash'], function(URIParser, _) {
 			)*,
 
 		Field =
-			(	ResourcePart:resourceName '/' ResourcePart:resourceFieldName
+			(	ResourceName:resourceName '/' ResourceName:resourceFieldName
 			|	{this.currentResource}:resourceName
-				ResourcePart:resourceFieldName '/'?
+				ResourceName:resourceFieldName '/'?
 			)
 			GetMapping(resourceName, resourceFieldName):mapping
 			-> ['ReferencedField'].concat(mapping),
