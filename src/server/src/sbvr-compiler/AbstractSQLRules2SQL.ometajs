@@ -173,6 +173,9 @@ define(['has', 'ometa-core'], function(has) {
 						(	'Count'
 							'*'
 							-> 'COUNT(*)'
+						|	:table
+							'*'
+							-> '"' + table + '".*'
 						|	(	Field
 							|	ReferencedField
 							):field
