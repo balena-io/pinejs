@@ -1,7 +1,7 @@
 {
 	"name": "server-glue",
 	"version": "0.0.1",
-	"main": "src/server/build/platform.js",
+	"main": "platform.js",
 	"scripts": {
 		"postinstall": "node install.js"
 	},

@@ -17,7 +17,7 @@ for(dependency in dependencies) {
 		}
 		dependenciesRemaining--;
 		if(dependenciesRemaining == 0) {
-			var command = 'node node_modules/requirejs/bin/r.js -o src/server/build/server.build.js';
+			var command = 'node node_modules/requirejs/bin/r.js -o src/server/build/server.build.js out=platform.js';
 			console.log(command);
 			childProcess.exec(command, {}, function(err, stdout, stderr) {
 				if(err) {
