@@ -1,27 +1,25 @@
 {
-	"name": "rulemotion-canvas",
-	"version": "0.0.1",
-	"main": "platform.js",
-	"scripts": {
-		"postinstall": "node install.js"
-	},
-	"dependencies": {
-		"express": "3.x",
-		"requirejs": "2.x",
-		"passport": "latest",
-		"mysql": "2.x",
-		"lodash": "latest",
-		"pg": "0.12.x",
-
-		"ometa-js": "1.0.0",
-		"coffee-script": "latest",
-
-		"passport-local": "0.1.x",
-		"bcrypt": "0.7.5",
-		"async": "latest"
-	},
-	"engines": {
-		"node": "0.8.x",
-		"npm": "1.1.x"
-	}
+  "name": "rulemotion-canvas",
+  "version": "0.0.11",
+  "main": "platform.js",
+  "scripts": {
+    "postinstall": "node install.js"
+  },
+  "dependencies": {
+    "express": "3.x",
+    "requirejs": "2.x",
+    "passport": "latest",
+    "mysql": "2.x",
+    "lodash": "latest",
+    "pg": "0.12.x",
+    "ometa-js": "1.0.0",
+    "coffee-script": "latest",
+    "passport-local": "0.1.x",
+    "bcrypt": "0.7.5",
+    "async": "latest"
+  },
+  "engines": {
+    "node": "0.8.x",
+    "npm": "1.1.x"
+  }
 }
