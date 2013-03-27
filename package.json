@@ -3,7 +3,7 @@
 	"version": "0.0.1",
 	"main": "src/server/build/platform.js",
 	"scripts": {
-		"postinstall": "node node_modules/requirejs/bin/r.js -o src/server/build/server.build.js"
+		"postinstall": "node install.js"
 	},
 	"dependencies": {
 		"express": "3.x",
@@ -17,7 +17,7 @@
 		"coffee-script": "latest",
 
 		"passport-local": "0.1.x",
-		"bcrypt": "latest",
+		"bcrypt": "0.7.5",
 		"async": "latest"
 	},
 	"engines": {
