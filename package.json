@@ -8,18 +8,18 @@
   "dependencies": {
     "express": "3.x",
     "requirejs": "2.x",
-    "passport": "latest",
+    "passport": "0.1.x",
     "mysql": "2.x",
-    "lodash": "latest",
-    "pg": "0.12.x",
-    "ometa-js": "1.0.0",
-    "coffee-script": "latest",
+    "lodash": "1.1.x",
+    "pg": "0.14.x",
+    "ometa-js": "1.0.x",
+    "coffee-script": "1.6.x",
     "passport-local": "0.1.x",
-    "bcrypt": "0.7.5",
-    "async": "latest"
+    "bcrypt": "0.7.x",
+    "async": "0.2.x"
   },
   "engines": {
     "node": "0.8.x",
-    "npm": "1.1.x"
+    "npm": "1.2.x"
   }
 }
