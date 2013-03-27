@@ -70,8 +70,8 @@
 	},
 
 	paths: {
-		underscore: '../node_modules/underscore/underscore',
-		async: '../node_modules/async/lib/async'
+		underscore: '../../underscore/underscore',
+		async: '../../async/lib/async'
 	},
 
 	name: 'cs!server-glue/server'

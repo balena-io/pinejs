@@ -16,14 +16,14 @@ require({
 		//Developing & building tools
 		'cache'						: '../../tools/requirejs-plugins/cache',
 		'cs'						: '../../tools/requirejs-plugins/cs',
-		'ometa'						: '../../server/node_modules/ometa-js/lib/requirejs-plugin/ometajs',
+		'ometa'						: '../../../node_modules/ometa-js/lib/requirejs-plugin/ometajs',
 		'text'						: '../../tools/requirejs-plugins/text',
 		'coffee-script'				: '../../tools/coffee-script',
 		'has'						: '../../tools/has',
 
 		'lib'						: '../lib',
 
-		'ometa-parsers'				: '../../server/node_modules/ometa-js/lib/ometajs/ometa/parsers',
+		'ometa-parsers'				: '../../../node_modules/ometa-js/lib/ometajs/ometa/parsers',
 		'uglifyjs'					: '../../external/uglifyjs/uglify',
 
 		//Libraries
@@ -33,13 +33,13 @@ require({
 		'codemirror'				: '../lib/codemirror/lib/codemirror',
 		'codemirror-modes'			: '../lib/codemirror/mode',
 		'ometa-highlighting'		: '../lib/codemirror-ometa-bridge/src',
-		'codemirror-ometa'			: '../../server/node_modules/ometa-js/lib/codemirror-ometa',
+		'codemirror-ometa'			: '../../../node_modules/ometa-js/lib/codemirror-ometa',
 		'codemirror-simple-hint'	: '../lib/codemirror/addon/hint/simple-hint',
 		'd3'						: '../lib/d3.v2',
 		'inflection'				: '../../external/inflection/inflection',
 		'jquery'					: '../lib/jquery',
 		'jquery-xdomain'			: '../lib/jquery-xdomain',
-		'ometa-core'				: '../../server/node_modules/ometa-js/lib/ometajs/core',
+		'ometa-core'				: '../../../node_modules/ometa-js/lib/ometajs/core',
 		'sbvr-parser'				: '../../common/sbvr-parser',
 		'lodash'					: '../lib/lodash.compat',
 		'ejs'						: '../lib/ejs',

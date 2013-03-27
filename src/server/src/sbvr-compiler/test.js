@@ -125,7 +125,7 @@ var prettify = function(key, value) {
 requirejs = require('requirejs');
 requirejs.config({
 	paths: {
-		'ometa-core': '../../../server/node_modules/ometa-js/lib/ometajs/core',
+		'ometa-core': '../../../../node_modules/ometa-js/lib/ometajs/core',
 		'underscore': '../../../external/underscore/underscore.min',
 		'async': '../../../external/async/async.min',
 		'Prettify': '../../../client/prettify-ometa/src/Prettify',
