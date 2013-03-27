@@ -10,7 +10,8 @@ define(['has', 'async'], (has, async) ->
 		require('coffee-script')
 		fs = require('fs')
 		path = require('path')
-		fs.readFile(path.join(__dirname, 'config.json'), 'utf8', (err, data) ->
+		root = process.argv[1] or __dirname
+		fs.readFile(path.join(root, 'config.json'), 'utf8', (err, data) ->
 			if err
 				console.error('Error loading config.json')
 			else
@@ -18,7 +19,7 @@ define(['has', 'async'], (has, async) ->
 				
 				for model in data.models
 					do (model) ->
-						fs.readFile(path.join(__dirname, model.modelFile), 'utf8', (err, sbvrModel) ->
+						fs.readFile(path.join(root, model.modelFile), 'utf8', (err, sbvrModel) ->
 							if err
 								console.error('Unable to load ' + model.modelName + ' model from ' + model.modelFile)
 							else
@@ -46,7 +47,7 @@ define(['has', 'async'], (has, async) ->
 										)
 										
 										if model.customServerCode?
-											require(__dirname + '/' + model.customServerCode).setup(app, requirejs, sbvrUtils, db)
+											require(root + '/' + model.customServerCode).setup(app, requirejs, sbvrUtils, db)
 										console.log('Sucessfully executed ' + model.modelName + ' model.')
 									)
 								)
