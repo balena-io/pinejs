@@ -1,5 +1,5 @@
 {
-	"name": "server-glue",
+	"name": "rulemotion-canvas",
 	"version": "0.0.1",
 	"main": "platform.js",
 	"scripts": {
