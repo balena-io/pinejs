@@ -12,7 +12,7 @@
 2. Navigate to `src/server/build`
 3. Run `r.js -o server.build.js` on Linux/Mac OSX or `r.js.cmd -o server.build.js` on Windows.
 4. Copy the `src/server/build/platform.js` file that was just created into your project's folder/repository.
-5. Copy `src/server/package.json` file into your project's folder/repository.
+5. Copy the `package.json` file into your project's folder/repository.
 6. Run `npm install` in your project's folder/repository.
 7. [Configure your project](#configuring-a-project)
 8. Run `node platform.js` (This will create the schema including users)
