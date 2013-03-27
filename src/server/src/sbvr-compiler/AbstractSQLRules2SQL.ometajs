@@ -290,7 +290,7 @@ define(['has', 'ometa-core'], function(has) {
 				|	Text
 				):text
 			]
-			(	?has('USE_MYSQL')
+			(	?(this.engine == 'mysql')
 				-> ('CHAR_LENGTH(' + text + ')')
 			|	-> ('LENGTH(' + text + ')')
 			),
@@ -301,7 +301,7 @@ define(['has', 'ometa-core'], function(has) {
 				)
 				Comparator+:comparators
 			]
-			(	?has('USE_MYSQL')
+			(	?(this.engine == 'mysql')
 				-> ('CONCAT(' + comparators.join(', ') + ')')
 			|	-> ('(' + comparators.join(' || ') + ')')
 			),

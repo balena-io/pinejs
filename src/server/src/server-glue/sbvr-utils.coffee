@@ -138,14 +138,14 @@ define([
 
 	checkForConstraintError = (err, tableName) ->
 		# Unique key
-		if (has('USE_MYSQL') and (matches = /ER_DUP_ENTRY: Duplicate entry '.*?[^\\]' for key '(.*?[^\\])'/.exec(err)) != null) or
-				(has('USE_POSTGRES') and (matches = new RegExp('error: duplicate key value violates unique constraint "' + tableName + '_(.*?)_key"').exec(err)) != null)
+		if (db.engine is 'mysql' and (matches = /ER_DUP_ENTRY: Duplicate entry '.*?[^\\]' for key '(.*?[^\\])'/.exec(err)) != null) or
+				(db.engine is 'postgres' and (matches = new RegExp('error: duplicate key value violates unique constraint "' + tableName + '_(.*?)_key"').exec(err)) != null)
 			return ['"' + matches[1] + '" must be unique.']
 		else if err == 'could not execute statement (19 constraint failed)'
 			# SQLite
 			return ['Constraint failed.']
 		# Foreign Key
-		else if has('USE_MYSQL') and (matches = /ER_ROW_IS_REFERENCED_: Cannot delete or update a parent row: a foreign key constraint fails \(".*?"\.(".*?").*/.exec(err)) != null
+		else if db.engine is 'mysql' and (matches = /ER_ROW_IS_REFERENCED_: Cannot delete or update a parent row: a foreign key constraint fails \(".*?"\.(".*?").*/.exec(err)) != null
 			return ['Data is referenced by ' + matches[1] + '.']
 		else
 			return false

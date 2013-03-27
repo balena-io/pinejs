@@ -214,6 +214,8 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 					)
 			}
 	exports.connect = (databaseOptions) ->
+		if !exports[databaseOptions.engine]? or databaseOptions.engine is 'connect'
+			throw 'Unsupported database engine: ' + databaseOptions.engine
 		return exports[databaseOptions.engine](databaseOptions.params)
 
 	return exports

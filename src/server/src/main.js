@@ -7,8 +7,6 @@ require({
 			ENV_BROWSER				: false,
 			SBVR_EXTENSIONS			: true,
 			SBVR_SERVER_ENABLED		: true,
-			USE_MYSQL				: true,
-			USE_POSTGRES			: false,
 			DEV						: true,
 
 			CONFIG_LOADER			: false

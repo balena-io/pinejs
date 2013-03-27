@@ -10,15 +10,14 @@
 
 1. Check out (or update your copy of) `rulemotion-canvas/master` (all paths used below will be relative to this working director unless otherwise specified)
 2. Navigate to `src/server/build`
-3. Edit server.build.js to enable/disable `USE_MYSQL` and `USE_POSTGRES` depending on your target database.
-4. Run `r.js -o server.build.js` on Linux/Mac OSX or `r.js.cmd -o server.build.js` on Windows.
-5. Copy the `src/server/build/platform.js` file that was just created into your project's folder/repository.
-6. Copy `src/server/package.json` file into your project's folder/repository.
-7. Run `npm install` in your project's folder/repository.
-8. [Configure your project](#configuring-a-project)
-9. Run `node platform.js` (This will create the schema including users)
-10. Set up a guest user (see [Users documentation](https://bitbucket.org/rulemotion/rulemotion-canvas/src/master/docs/Users.md)).
-11. Re-run `node platform.js`.
+3. Run `r.js -o server.build.js` on Linux/Mac OSX or `r.js.cmd -o server.build.js` on Windows.
+4. Copy the `src/server/build/platform.js` file that was just created into your project's folder/repository.
+5. Copy `src/server/package.json` file into your project's folder/repository.
+6. Run `npm install` in your project's folder/repository.
+7. [Configure your project](#configuring-a-project)
+8. Run `node platform.js` (This will create the schema including users)
+9. Set up a guest user (see [Users documentation](https://bitbucket.org/rulemotion/rulemotion-canvas/src/master/docs/Users.md)).
+10. Re-run `node platform.js`.
 
 ## Updating the platform
 Follow steps 1-5 of [Setting Up A Project](#setting-up-a-project) and then run `node platform.js`
