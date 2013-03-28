@@ -6,6 +6,9 @@
     "postinstall": "node install.js"
   },
   "dependencies": {
+    "odata-parser": "git+ssh://git@bitbucket.org:rulemotion/odata-parser.git",
+    "odata-to-abstract-sql": "git+ssh://git@bitbucket.org:rulemotion/odata-to-abstract-sql.git",
+
     "express": "3.x",
     "requirejs": "2.x",
     "passport": "0.1.x",

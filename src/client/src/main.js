@@ -46,6 +46,8 @@ require({
 		'jquery-ui'					: '../lib/jquery-ui',
 		
 		// For the in-browser server
+		'odata-parser'				: '../../../node_modules/odata-parser/odata-parser',
+		'odata-to-abstract-sql'		: '../../../node_modules/odata-to-abstract-sql/odata-to-abstract-sql',
 		'config-loader'				: '../../server/src/config-loader',
 		'database-layer'			: '../../server/src/database-layer',
 		'data-server'				: '../../server/src/data-server',

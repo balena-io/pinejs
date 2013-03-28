@@ -7,11 +7,12 @@ define([
 	'ometa!sbvr-compiler/AbstractSQLRules2SQL'
 	'cs!sbvr-compiler/AbstractSQL2CLF'
 	'cs!sbvr-compiler/ODataMetadataGenerator'
-	'ometa!server-glue/odata-parser'
+	'odata-parser'
+	'odata-to-abstract-sql'
 	'async'
 	'lodash'
 	'cs!sbvr-compiler/types'
-], (has, SBVRParser, LF2AbstractSQLPrep, LF2AbstractSQL, AbstractSQL2SQL, AbstractSQLRules2SQL, AbstractSQL2CLF, ODataMetadataGenerator, ODataParser, async, _, sbvrTypes) ->
+], (has, SBVRParser, LF2AbstractSQLPrep, LF2AbstractSQL, AbstractSQL2SQL, AbstractSQLRules2SQL, AbstractSQL2CLF, ODataMetadataGenerator, {ODataParser}, {OData2AbstractSQL}, async, _, sbvrTypes) ->
 	exports = {}
 	db = null
 
@@ -130,6 +131,7 @@ define([
 			Fact type:  user has permission'''
 	
 	odataParser = ODataParser.createInstance()
+	odata2AbstractSQL = {}
 
 	seModels = {}
 	sqlModels = {}
@@ -150,14 +152,17 @@ define([
 		else
 			return false
 
-	getAndCheckBindValues = (bindings, values, callback) ->
+	getAndCheckBindValues = (vocab, bindings, values, callback) ->
 		async.map(bindings,
 			(binding, callback) ->
-				[tableName, field] = binding
-				fieldName = field.fieldName
+				[tableName, fieldName] = binding
+				
 				referencedName = tableName + '.' + fieldName
-				value = if values[referencedName] == undefined then values[fieldName] else values[referencedName]
-				AbstractSQL2SQL.dataTypeValidate(value, field, (err, value) ->
+				value = values[referencedName] ? values[fieldName]
+				if value is undefined
+					callback(null, null)
+					return
+				AbstractSQL2SQL.dataTypeValidate(value, _.where(clientModels[vocab].resources[tableName].fields, {fieldName})[0], (err, value) ->
 					if err
 						err = '"' + fieldName + '" ' + err
 					callback(err, value)
@@ -377,8 +382,8 @@ define([
 								clientModels[vocab] = clientModel
 								odataMetadata[vocab] = metadata
 
-								odataParser.setSQLModel(vocab, abstractSqlModel)
-								odataParser.setClientModel(vocab, clientModel)
+								odata2AbstractSQL[vocab] = OData2AbstractSQL.createInstance()
+								odata2AbstractSQL[vocab].clientModel = clientModel
 								runURI('PUT', '/dev/model', {
 									vocabulary: vocab
 									'model value': seModel
@@ -436,10 +441,9 @@ define([
 				runURI('DELETE', "/dev/model?$filter=model_type eq 'client'", {vocabulary}, tx)
 
 				seModels[vocabulary] = ''
-				sqlModels[vocabulary] = []
-				odataParser.setSQLModel(vocabulary, sqlModels[vocabulary])
-				clientModels[vocabulary] = []
-				odataParser.setClientModel(vocabulary, clientModels[vocabulary])
+				sqlModels[vocabulary] = {}
+				clientModels[vocabulary] = {}
+				odata2AbstractSQL[vocab].clientModel = {}
 				odataMetadata[vocabulary] = ''
 		)
 
@@ -553,21 +557,43 @@ define([
 				)
 			)
 
-	exports.runURI = runURI = (method, uri, body = {}, tx, callback) ->
-		uri = decodeURI(uri)
-		console.log('Running URI', method, uri, body)
+	parseODataURI = (method, uri, body) ->
+		uri = uri.split('/')
+		vocabulary = uri[1]
+		if !vocabulary? or !odata2AbstractSQL[vocabulary]?
+			return false
+		uri = '/' + uri[2..].join('/')
 		try
-			tree = odataParser.match([method, body, uri], 'Process')
+			query = odataParser.matchAll(uri, 'Process')
+			query = odata2AbstractSQL[vocabulary].match(query, 'Process', [method])
+			
+			for [queryPartType, queryPartBody] in query
+				switch queryPartType
+					when 'Fields'
+						resourceName = queryPartBody[0][1][1]
+						break
+					when 'Select'
+						resourceName = queryPartBody[0]
+						break
+			return {
+				vocabulary
+				requests: [{
+					query
+					values: body
+					resourceName
+				}]
+			}
 		catch e
 			console.log('Failed to match uri: ', method, uri, e)
-			callback?(500)
-			return
+			return false
 
+	exports.runURI = runURI = (method, uri, body = {}, tx, callback) ->
+		console.log('Running URI', method, uri, body)
 		req =
 			user:
 				permissions:
 					'resource.all': true
-			tree: tree
+			tree: parseODataURI(method, uri, body)
 			body: body
 		res =
 			send: (statusCode) ->
@@ -742,7 +768,7 @@ define([
 					console.error('Failed to compile abstract sql: ', request.query, e)
 					res.send(503)
 					return
-				getAndCheckBindValues(bindings, request.values, (err, values) ->
+				getAndCheckBindValues(tree.vocabulary, bindings, request.values, (err, values) ->
 					console.log(query, err, values)
 					if err
 						res.json(err, 404)
@@ -799,12 +825,12 @@ define([
 					console.error('Failed to compile abstract sql: ', request.query, e)
 					res.send(503)
 					return
-				getAndCheckBindValues(bindings, request.values, (err, values) ->
+				vocab = tree.vocabulary
+				getAndCheckBindValues(vocab, bindings, request.values, (err, values) ->
 					console.log(query, err, values)
 					if err
 						res.json(err, 404)
 						return
-					vocab = tree.vocabulary
 					runQuery = (tx) ->
 						tx.begin()
 						# TODO: Check for transaction locks.
@@ -859,12 +885,12 @@ define([
 				else
 					insertQuery = queries
 				
-				getAndCheckBindValues(insertQuery.bindings, request.values, (err, values) ->
+				vocab = tree.vocabulary
+				getAndCheckBindValues(vocab, insertQuery.bindings, request.values, (err, values) ->
 					console.log(insertQuery.query, err, values)
 					if err
 						res.json(err, 404)
 						return
-					vocab = tree.vocabulary
 					
 					doValidate = (tx) ->
 						validateDB(tx, sqlModels[vocab], (err) ->
@@ -894,7 +920,7 @@ define([
 										(tx, result) -> doValidate(tx)
 										(tx) ->
 											if updateQuery?
-												getAndCheckBindValues(updateQuery.bindings, request.values, (err, values) ->
+												getAndCheckBindValues(vocab, updateQuery.bindings, request.values, (err, values) ->
 													console.log(updateQuery.query, err, values)
 													if err
 														res.json(err, 404)
@@ -934,12 +960,12 @@ define([
 					console.error('Failed to compile abstract sql: ', request.query, e)
 					res.send(503)
 					return
-				getAndCheckBindValues(bindings, request.values, (err, values) ->
+				vocab = tree.vocabulary
+				getAndCheckBindValues(vocab, bindings, request.values, (err, values) ->
 					console.log(query, err, values)
 					if err
 						res.json(err, 404)
 						return
-					vocab = tree.vocabulary
 					runQuery = (tx) ->
 						tx.begin()
 						tx.executeSql(query, values,
@@ -967,13 +993,7 @@ define([
 
 	exports.parseURITree = parseURITree = (req, res, next) ->
 		if !req.tree?
-			try
-				uri = decodeURI(req.url)
-				req.tree = odataParser.match([req.method, req.body, uri], 'Process')
-				console.log(uri, req.tree, req.body)
-			catch e
-				console.error('Failed to parse URI tree', req.url, e.message, e.stack)
-				req.tree = false
+			req.tree = parseODataURI(req.method, req.url, req.body)
 		if req.tree == false
 			next('route')
 		else
