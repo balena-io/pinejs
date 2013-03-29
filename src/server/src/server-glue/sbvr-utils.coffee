@@ -576,6 +576,7 @@ define([
 						resourceName = queryPartBody[0]
 						break
 			return {
+				type: 'OData'
 				vocabulary
 				requests: [{
 					query
