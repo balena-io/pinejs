@@ -9,7 +9,7 @@ define(['has', 'async'], (has, async) ->
 		require('coffee-script')
 		fs = require('fs')
 		path = require('path')
-		root = process.argv[1] or __dirname
+		root = process.argv[2] or __dirname
 		console.log('loading config.json')
 		fs.readFile(path.join(root, 'config.json'), 'utf8', (err, data) ->
 			if err
