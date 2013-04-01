@@ -160,7 +160,7 @@ define([
 				referencedName = tableName + '.' + fieldName
 				value = values[referencedName] ? values[fieldName]
 				if value is undefined
-					callback(null, null)
+					callback(null, db.DEFAULT_VALUE)
 					return
 				AbstractSQL2SQL.dataTypeValidate(value, _.where(clientModels[vocab].resources[tableName].fields, {fieldName})[0], (err, value) ->
 					if err

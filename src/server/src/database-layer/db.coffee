@@ -1,5 +1,16 @@
 define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 	exports = {}
+	DEFAULT_VALUE = {}
+	bindDefaultValues = (sql, bindings) ->
+		bindNo = 0
+		SQLBinds.matchAll(sql, 'parse', [->
+			if bindings[bindNo] == DEFAULT_VALUE
+				bindings.splice(bindNo, 1)
+				'DEFAULT'
+			else
+				bindNo++
+				'?'
+		])
 	if has 'ENV_NODEJS'
 		exports.postgres = (connectString) ->
 			pg = require('pg')
@@ -23,15 +34,21 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 							sql = sql.replace(/;?$/, ' RETURNING id;')
 							console.log(sql)
 						bindNo = 0
-						sql = SQLBinds.matchAll(sql, "parse", [
+						sql = SQLBinds.matchAll(sql, 'parse', [
 							->
-								initialBindNo = bindNo
-								bindString = '$' + ++bindNo
-								if Array.isArray(bindings[initialBindNo])
-									for i in bindings[initialBindNo][1..]
-										bindString += ',' + '$' + ++bindNo
+								if Array.isArray(bindings[bindNo])
+									initialBindNo = bindNo
+									bindString = (
+										for binding in bindings[initialBindNo]
+											'$' + ++bindNo
+									).join(',')
 									Array.prototype.splice.apply(bindings, [initialBindNo, 1].concat(bindings[initialBindNo]))
-								return bindString
+									return bindString
+								else if bindings[bindNo] == DEFAULT_VALUE
+									bindings.splice(bindNo, 1)
+									return 'DEFAULT'
+								else
+									return '$' + ++bindNo
 						])
 						_db.query({text: sql, values: bindings}, (err, res) ->
 							if err?
@@ -49,6 +66,7 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 					this.executeSql("SELECT * FROM (SELECT tablename as name FROM pg_tables WHERE schemaname = 'public') t" + extraWhereClause + ";", [], callback, errorCallback)
 				dropTable: (tableName, ifExists = true, callback, errorCallback) -> this.executeSql('DROP TABLE ' + (if ifExists == true then 'IF EXISTS ' else '') + '"' + tableName + '" CASCADE;', [], callback, errorCallback)
 			return {
+				DEFAULT_VALUE
 				engine: 'postgres'
 				transaction: (callback, errorCallback) ->
 					pg.connect(connectString, (err, client) ->
@@ -86,6 +104,7 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 						sql = sql.replace(/GROUP BY NULL/g, '') # HACK: Remove GROUP BY NULL for MySQL? as it does not need/accept? it.
 						sql = sql.replace(/AUTOINCREMENT/g, 'AUTO_INCREMENT') # HACK: MySQL uses AUTO_INCREMENT rather than AUTOINCREMENT.
 						sql = sql.replace(/DROP CONSTRAINT/g, 'DROP FOREIGN KEY') # HACK: MySQL uses FOREIGN KEY rather than CONSTRAINT.
+						sql = bindDefaultValues(sql, bindings)
 						_db.query(sql, bindings, (err, res, fields) ->
 							try
 								if err?
@@ -110,6 +129,7 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 					this.executeSql("SELECT name FROM (SELECT table_name as name FROM information_schema.tables WHERE table_schema = ?) t" + extraWhereClause + ";", [options.database], callback, errorCallback)
 				dropTable: (tableName, ifExists = true, callback, errorCallback) -> this.executeSql('DROP TABLE ' + (if ifExists == true then 'IF EXISTS ' else '') + '"' + tableName + '";', [], callback, errorCallback)
 			return {
+				DEFAULT_VALUE
 				engine: 'mysql'
 				transaction: (callback, errorCallback) ->
 					_db = mysql.createConnection(options)
@@ -138,6 +158,7 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 			tx = {
 				executeSql: (sql, bindings, callback, errorCallback) ->
 					thisTX = this
+					sql = bindDefaultValues(sql, bindings)
 					_db.all sql, bindings ? [], (err, rows) ->
 						if err?
 							errorCallback? thisTX, err
@@ -154,6 +175,7 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 				dropTable: (tableName, ifExists = true, callback, errorCallback) -> this.executeSql('DROP TABLE ' + (if ifExists == true then 'IF EXISTS ' else '') + '"' + tableName + '";', [], callback, errorCallback)
 			}
 			return {
+				DEFAULT_VALUE
 				engine: 'sqlite'
 				transaction: (callback) ->
 					_db.serialize () ->
@@ -195,6 +217,8 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 								(_tx, _err) ->
 									console.log(sql, bindings, _err, stackTrace.stack)
 									errorCallback?(thisTX, _err)
+							bindNo = 0
+							sql = bindDefaultValues(sql, bindings)
 							_tx.executeSql(sql, bindings, callback, errorCallback)
 					begin: ->
 					end: ->
@@ -207,6 +231,7 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 					dropTable: (tableName, ifExists = true, callback, errorCallback) -> this.executeSql('DROP TABLE ' + (if ifExists == true then 'IF EXISTS ' else '') + '"' + tableName + '";', [], callback, errorCallback)
 				}
 			return {
+				DEFAULT_VALUE
 				engine: 'websql'
 				transaction: (callback) ->
 					_db.transaction( (_tx) ->
