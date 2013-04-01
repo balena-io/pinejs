@@ -6,14 +6,14 @@ define(['has', 'async'], (has, async) ->
 		if not has 'ENV_NODEJS'
 			console.error('Config loader only works in a nodejs environment.')
 			return
-		console.error('loading config.json')
 		require('coffee-script')
 		fs = require('fs')
 		path = require('path')
 		root = process.argv[1] or __dirname
+		console.log('loading config.json')
 		fs.readFile(path.join(root, 'config.json'), 'utf8', (err, data) ->
 			if err
-				console.error('Error loading config.json')
+				console.error('Error loading config.json', err)
 			else
 				data = JSON.parse(data)
 				
@@ -21,7 +21,7 @@ define(['has', 'async'], (has, async) ->
 					do (model) ->
 						fs.readFile(path.join(root, model.modelFile), 'utf8', (err, sbvrModel) ->
 							if err
-								console.error('Unable to load ' + model.modelName + ' model from ' + model.modelFile)
+								console.error('Unable to load ' + model.modelName + ' model from ' + model.modelFile, err)
 							else
 								db.transaction( (tx) ->
 									sbvrUtils.executeModel(tx, model.apiRoot, sbvrModel, (err) ->
