@@ -200,7 +200,7 @@ define(['ometa!sbvr-parser/SBVRLibs', 'lodash'], function(SBVRLibs, _) {
 			getSelectFields = function() {
 				var mapping, resourceField, fields = [];
 				for(resourceField in resourceToSQLMappings) {
-					if(resourceToSQLMappings.hasOwnProperty(resourceField)) {
+					if(resourceToSQLMappings.hasOwnProperty(resourceField) && resourceField.charAt(0) != '_') {
 						mapping = resourceToSQLMappings[resourceField];
 						self.AddQueryTable(query, mapping[0]);
 						fields.push([['ReferencedField'].concat(mapping), resourceField]);
@@ -301,7 +301,7 @@ define(['ometa!sbvr-parser/SBVRLibs', 'lodash'], function(SBVRLibs, _) {
 						}
 						fields = [];
 						for(resourceFieldName in resourceToSQLMappings) {
-							if(resourceToSQLMappings.hasOwnProperty(resourceFieldName)) {
+							if(resourceToSQLMappings.hasOwnProperty(resourceFieldName) && resourceFieldName.charAt(0) != '_') {
 								mapping = resourceToSQLMappings[resourceFieldName];
 								if(this.AddBodyVar(query, resourceName, resourceFieldName, mapping) !== undefined) {
 									fields.push([mapping[1], ['Bind', mapping[0], this.GetTableField(mapping)] ]);

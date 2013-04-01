@@ -24,6 +24,7 @@ define(['lodash'], (_) ->
 			resourceToSQLMappings[resourceName] = {}
 			if _.isString(table)
 				sqlTable = tables[idParts[0]]
+				resourceToSQLMappings[resourceName]._name = sqlTable.name
 				sqlFieldName = sqlTable.idField
 				resourceField = sqlTableName = sqlTable.name
 				addMapping(resourceName, resourceField, sqlTableName, sqlFieldName)
@@ -65,6 +66,7 @@ define(['lodash'], (_) ->
 					else
 						throw 'Unrecognised table type'
 			else
+				resourceToSQLMappings[resourceName]._name = table.name
 				resources[resourceName] =
 					resourceName: resourceName
 					modelName: (part.replace(/_/g, ' ') for part in idParts).join(' ')
