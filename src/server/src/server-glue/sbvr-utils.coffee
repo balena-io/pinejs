@@ -658,41 +658,41 @@ define([
 				callback = request
 				request = null
 
-			_recurseCheckPermissions = (permissionCheck) ->
-				if _.isString(permissionCheck)
-					if permissions.hasOwnProperty('resource.' + permissionCheck)
-						return true
-					if vocabulary?
-						if permissions.hasOwnProperty(vocabulary + '.' + permissionCheck)
-							return true
-						if request? and permissions.hasOwnProperty(vocabulary + '.' + request.resourceName + '.' + action)
-							return true
-					return false
-				else if _.isArray(permissionCheck)
-					for permission in permissionCheck
-						if not _recurseCheckPermissions(permission)
-							return false
-					return true
-				else if _.isObject(permissionCheck)
-					checkTypes = _.keys(permissionCheck)
-					if checkTypes.length > 1
-						throw 'Too many check types: ' + checkTypes
-					checkType = checkTypes[0]
-					switch checkType.toUpperCase()
-						when 'AND'
-							return _recurseCheckPermissions(permissionCheck[checkType])
-						when 'OR'
-							for permission in permissionCheck[checkType]
-								if _recurseCheckPermissions(permission)
-									return true
-							return false
-						else
-							throw 'Cannot parse required permissions logic: ' + checkType
-					return false
-				else
-					throw 'Cannot parse required permissions: ' + permissionCheck
-
 			_checkPermissions = (permissions) ->
+				_recurseCheckPermissions = (permissionCheck) ->
+					if _.isString(permissionCheck)
+						if permissions.hasOwnProperty('resource.' + permissionCheck)
+							return true
+						if vocabulary?
+							if permissions.hasOwnProperty(vocabulary + '.' + permissionCheck)
+								return true
+							if request? and permissions.hasOwnProperty(vocabulary + '.' + request.resourceName + '.' + permissionCheck)
+								return true
+						return false
+					else if _.isArray(permissionCheck)
+						for permission in permissionCheck
+							if not _recurseCheckPermissions(permission)
+								return false
+						return true
+					else if _.isObject(permissionCheck)
+						checkTypes = _.keys(permissionCheck)
+						if checkTypes.length > 1
+							throw 'Too many check types: ' + checkTypes
+						checkType = checkTypes[0]
+						switch checkType.toUpperCase()
+							when 'AND'
+								return _recurseCheckPermissions(permissionCheck[checkType])
+							when 'OR'
+								for permission in permissionCheck[checkType]
+									if _recurseCheckPermissions(permission)
+										return true
+								return false
+							else
+								throw 'Cannot parse required permissions logic: ' + checkType
+						return false
+					else
+						throw 'Cannot parse required permissions: ' + permissionCheck
+				
 				if permissions.hasOwnProperty('resource.all')
 					return true
 				vocabulary = req.tree?.vocabulary
