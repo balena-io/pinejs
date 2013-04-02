@@ -559,8 +559,10 @@ define([
 		try
 			tree = odataParser.match([method, body, uri], 'Process')
 		catch e
-			console.log('Failed to match uri: ', e)
+			console.log('Failed to match uri: ', method, uri, e)
+			callback?(500)
 			return
+
 		req =
 			user:
 				permissions:
@@ -737,7 +739,7 @@ define([
 				try
 					{query, bindings} = AbstractSQLRules2SQL.match(request.query, 'ProcessQuery')
 				catch e
-					console.error('Failed to compile abstract sql: ', e)
+					console.error('Failed to compile abstract sql: ', request.query, e)
 					res.send(503)
 					return
 				getAndCheckBindValues(bindings, request.values, (err, values) ->
@@ -794,7 +796,7 @@ define([
 				try
 					{query, bindings} = AbstractSQLRules2SQL.match(request.query, 'ProcessQuery')
 				catch e
-					console.error('Failed to compile abstract sql: ', e)
+					console.error('Failed to compile abstract sql: ', request.query, e)
 					res.send(503)
 					return
 				getAndCheckBindValues(bindings, request.values, (err, values) ->
@@ -847,7 +849,7 @@ define([
 				try
 					queries = AbstractSQLRules2SQL.match(request.query, 'ProcessQuery')
 				catch e
-					console.error('Failed to compile abstract sql: ', e)
+					console.error('Failed to compile abstract sql: ', request.query, e)
 					res.send(503)
 					return
 				
@@ -929,7 +931,7 @@ define([
 				try
 					{query, bindings} = AbstractSQLRules2SQL.match(request.query, 'ProcessQuery')
 				catch e
-					console.error('Failed to compile abstract sql: ', e)
+					console.error('Failed to compile abstract sql: ', request.query, e)
 					res.send(503)
 					return
 				getAndCheckBindValues(bindings, request.values, (err, values) ->
