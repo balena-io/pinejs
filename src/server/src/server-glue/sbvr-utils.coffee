@@ -573,8 +573,9 @@ define([
 						resourceName = queryPartBody[0][1][1]
 						break
 					when 'Select'
-						resourceName = queryPartBody[0]
+						resourceName = queryPartBody[0][0]
 						break
+			resourceName = resourceName.replace(/-/g, '__')
 			return {
 				type: 'OData'
 				vocabulary
