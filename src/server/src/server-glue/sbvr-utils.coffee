@@ -567,15 +567,19 @@ define([
 			query = odataParser.matchAll(uri, 'Process')
 			query = odata2AbstractSQL[vocabulary].match(query, 'Process', [method])
 			
-			for [queryPartType, queryPartBody] in query
-				switch queryPartType
-					when 'Fields'
-						resourceName = queryPartBody[0][1][1]
-						break
-					when 'Select'
-						resourceName = queryPartBody[0][0]
-						break
-			resourceName = resourceName.replace(/-/g, '__')
+			if query[0] == '$metadata'
+				resourceName = query[0]
+				query = null
+			else
+				for [queryPartType, queryPartBody] in query
+					switch queryPartType
+						when 'Fields'
+							resourceName = queryPartBody[0][1][1]
+							break
+						when 'Select'
+							resourceName = queryPartBody[0][0]
+							break
+				resourceName = resourceName.replace(/-/g, '__')
 			return {
 				type: 'OData'
 				vocabulary
