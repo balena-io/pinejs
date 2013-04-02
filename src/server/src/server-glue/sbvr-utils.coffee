@@ -162,7 +162,7 @@ define([
 				if value is undefined
 					callback(null, db.DEFAULT_VALUE)
 					return
-				AbstractSQL2SQL.dataTypeValidate(value, _.where(clientModels[vocab].resources[tableName].fields, {fieldName})[0], (err, value) ->
+				AbstractSQL2SQL.dataTypeValidate(value, _.where(sqlModels[vocab].tables[tableName].fields, {fieldName})[0], (err, value) ->
 					if err
 						err = '"' + fieldName + '" ' + err
 					callback(err, value)
