@@ -565,33 +565,37 @@ define([
 		uri = '/' + uri[2..].join('/')
 		try
 			query = odataParser.matchAll(uri, 'Process')
-			query = odata2AbstractSQL[vocabulary].match(query, 'Process', [method])
-			
-			if query[0] == '$metadata'
-				resourceName = query[0]
-				query = null
-			else
-				for [queryPartType, queryPartBody] in query
-					switch queryPartType
-						when 'Fields'
-							resourceName = queryPartBody[0][1][1]
-							break
-						when 'Select'
-							resourceName = queryPartBody[0][0]
-							break
-				resourceName = resourceName.replace(/-/g, '__')
-			return {
-				type: 'OData'
-				vocabulary
-				requests: [{
-					query
-					values: body
-					resourceName
-				}]
-			}
 		catch e
-			console.log('Failed to match uri: ', method, uri, e)
+			console.log('Failed to parse uri: ', method, uri, e)
 			return false
+		try
+			query = odata2AbstractSQL[vocabulary].match(query, 'Process', [method])
+		catch e
+			console.error('Failed to translate uri: ', query, method, uri, e)
+			return false
+
+		if query[0] == '$metadata'
+			resourceName = query[0]
+			query = null
+		else
+			for [queryPartType, queryPartBody] in query
+				switch queryPartType
+					when 'Fields'
+						resourceName = queryPartBody[0][1][1]
+						break
+					when 'Select'
+						resourceName = queryPartBody[0][0]
+						break
+			resourceName = resourceName.replace(/-/g, '__')
+		return {
+			type: 'OData'
+			vocabulary
+			requests: [{
+				query
+				values: body
+				resourceName
+			}]
+		}
 
 	exports.runURI = runURI = (method, uri, body = {}, tx, callback) ->
 		console.log('Running URI', method, uri, body)
