@@ -1,11 +1,10 @@
 define([
 	'ometa!sbvr-compiler/AbstractSQLRules2SQL'
 	'ometa!sbvr-compiler/AbstractSQLOptimiser'
-	'ometa!prettify/Prettify'
 	'lodash'
 	'cs!sbvr-compiler/types'
 	'cs!sbvr-compiler/types/TypeUtils'
-], (AbstractSQLRules2SQL, AbstractSQLOptimiser, Prettify, _, sbvrTypes, TypeUtils) ->
+], (AbstractSQLRules2SQL, AbstractSQLOptimiser, _, sbvrTypes, TypeUtils) ->
 
 	dataTypeValidate = (value, field, callback) ->
 		{dataType, required} = field
@@ -106,7 +105,6 @@ define([
 		ruleStatements = []
 		try
 			for rule in sqlModel.rules
-				# console.log(Prettify.match(rule[2][1], 'Process'))
 				console.log(rule[1][1])
 				instance = AbstractSQLRules2SQL.createInstance()
 				ruleSQL = instance.match(
