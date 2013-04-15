@@ -32,7 +32,8 @@ require({
 		'prettify'				: '../../common/prettify',
 		'inflection'			: '../../external/inflection/inflection',
 		'odata-parser'			: '../../../node_modules/odata-parser/odata-parser',
-		'odata-to-abstract-sql'	: '../../../node_modules/odata-to-abstract-sql/odata-to-abstract-sql'
+		'odata-to-abstract-sql'	: '../../../node_modules/odata-to-abstract-sql/odata-to-abstract-sql',
+		'abstract-sql-compiler'	: '../../../node_modules/abstract-sql-compiler/index'
 	},
 	shim: {
 		'uglifyjs': {

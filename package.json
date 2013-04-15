@@ -8,6 +8,7 @@
   "dependencies": {
     "odata-parser": "git+ssh://git@bitbucket.org:rulemotion/odata-parser.git",
     "odata-to-abstract-sql": "git+ssh://git@bitbucket.org:rulemotion/odata-to-abstract-sql.git",
+    "abstract-sql-compiler": "git+ssh://git@bitbucket.org:rulemotion/abstract-sql-compiler.git",
 
     "express": "3.x",
     "requirejs": "2.x",

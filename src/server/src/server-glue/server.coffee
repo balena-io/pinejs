@@ -1,13 +1,12 @@
 define([
 	'has'
 	'cs!database-layer/db'
-	'ometa!sbvr-compiler/AbstractSQLRules2SQL'
 	'cs!server-glue/sbvr-utils'
 	'cs!passport-bcrypt/passportBCrypt'
 	'cs!data-server/SBVRServer'
 	'cs!express-emulator/express'
 	'cs!config-loader/config-loader'
-], (has, dbModule, AbstractSQLRules2SQL, sbvrUtils, passportBCrypt, sbvrServer, express, configLoader)->
+], (has, dbModule, sbvrUtils, passportBCrypt, sbvrServer, express, configLoader)->
 	if has 'ENV_NODEJS'
 		databaseURL = process.env.DATABASE_URL || "postgres://postgres:.@localhost:5432/postgres"
 		databaseOptions =
@@ -18,7 +17,6 @@ define([
 			engine: 'websql'
 			params: 'rulemotion'
 
-	AbstractSQLRules2SQL.engine = databaseOptions.engine
 	db = dbModule.connect(databaseOptions)
 
 

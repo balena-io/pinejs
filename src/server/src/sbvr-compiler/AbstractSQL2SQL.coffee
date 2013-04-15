@@ -1,10 +1,9 @@
 define([
-	'ometa!sbvr-compiler/AbstractSQLRules2SQL'
-	'ometa!sbvr-compiler/AbstractSQLOptimiser'
+	'abstract-sql-compiler'
 	'lodash'
 	'cs!sbvr-compiler/types'
 	'cs!sbvr-compiler/types/TypeUtils'
-], (AbstractSQLRules2SQL, AbstractSQLOptimiser, _, sbvrTypes, TypeUtils) ->
+], (AbstractSQLCompiler, _, sbvrTypes, TypeUtils) ->
 
 	dataTypeValidate = (value, field, callback) ->
 		{dataType, required} = field
@@ -20,22 +19,21 @@ define([
 			TypeUtils.validate.integer(value, required, callback)
 		else
 			callback('is an unsupported type: ' + dataType)
-	
-	dataTypeGen = (engine) ->
-		(dataType, necessity, index = '') ->
-			necessity = if necessity then ' NOT NULL' else ' NULL'
-			if index != ''
-				index = ' ' + index
-			if dataType in ['ForeignKey', 'ConceptType']
-				return 'INTEGER' + necessity + index
-			else if sbvrTypes[dataType]?.types?[engine]?
-				if _.isFunction(sbvrTypes[dataType].types[engine])
-					return sbvrTypes[dataType].types[engine](necessity, index)
-				return sbvrTypes[dataType].types[engine] + necessity + index
-			else
-				throw 'Unknown data type "' + dataType + '" for engine: ' + engine
-	
-	generate = (sqlModel, dataTypeGen, ifNotExists) ->
+
+	dataTypeGen = (engine, dataType, necessity, index = '') ->
+		necessity = if necessity then ' NOT NULL' else ' NULL'
+		if index != ''
+			index = ' ' + index
+		if dataType in ['ForeignKey', 'ConceptType']
+			return 'INTEGER' + necessity + index
+		else if sbvrTypes[dataType]?.types?[engine]?
+			if _.isFunction(sbvrTypes[dataType].types[engine])
+				return sbvrTypes[dataType].types[engine](necessity, index)
+			return sbvrTypes[dataType].types[engine] + necessity + index
+		else
+			throw 'Unknown data type "' + dataType + '" for engine: ' + engine
+
+	generate = (sqlModel, engine, ifNotExists) ->
 		ifNotExists = if ifNotExists then 'IF NOT EXISTS ' else ''
 		hasDependants = {}
 		schemaDependencyMap = {}
@@ -46,7 +44,7 @@ define([
 			createSQL = 'CREATE TABLE ' + ifNotExists + '"' + table.name + '" (\n\t'
 			
 			for {dataType, fieldName, required, index, references} in table.fields
-				createSQL += '"' + fieldName + '" ' + dataTypeGen(dataType, required, index) + '\n,\t'
+				createSQL += '"' + fieldName + '" ' + dataTypeGen(engine, dataType, required, index) + '\n,\t'
 				if dataType in ['ForeignKey', 'ConceptType']
 					foreignKeys.push({fieldName, references})
 					depends.push(references.tableName)
@@ -86,37 +84,17 @@ define([
 			console.error('Failed to resolve all schema dependencies', schemaDependencyMap)
 			throw 'Failed to resolve all schema dependencies'
 		dropSchemaStatements = dropSchemaStatements.reverse()
-		
-		try
-			# console.log('rules', sqlModel.rules)
-			for rule in sqlModel.rules
-				instance = AbstractSQLOptimiser.createInstance()
-				rule[2][1] = instance.match(
-					rule[2][1]
-					, 'Process'
-				)
-		catch e
-			console.error(rule[2][1])
-			console.error(rule)
-			console.error(e)
-			console.error(instance.input)
-			throw e
-		
+
 		ruleStatements = []
 		try
 			for rule in sqlModel.rules
 				console.log(rule[1][1])
-				instance = AbstractSQLRules2SQL.createInstance()
-				ruleSQL = instance.match(
-					rule[2][1]
-					, 'Process'
-				)
+				ruleSQL = AbstractSQLCompiler.compile(engine, rule[2][1])
 				console.log(ruleSQL)
 				ruleStatements.push({structuredEnglish: rule[1][1], sql: ruleSQL})
 		catch e
 			console.error(rule)
 			console.error(e)
-			console.error(instance.input)
 			throw e
 			
 			# console.log(ruleSQL)
@@ -126,13 +104,13 @@ define([
 
 	return {
 		websql: 
-			generate: (sqlModel) -> generate(sqlModel, dataTypeGen('websql'), false)
+			generate: (sqlModel) -> generate(sqlModel, 'websql', false)
 			dataTypeValidate: dataTypeValidate
 		postgres: 
-			generate: (sqlModel) -> generate(sqlModel, dataTypeGen('postgres'), true)
+			generate: (sqlModel) -> generate(sqlModel, 'postgres', true)
 			dataTypeValidate: dataTypeValidate
 		mysql: 
-			generate: (sqlModel) -> generate(sqlModel, dataTypeGen('mysql'), true)
+			generate: (sqlModel) -> generate(sqlModel, 'mysql', true)
 			dataTypeValidate: dataTypeValidate
 	}
 

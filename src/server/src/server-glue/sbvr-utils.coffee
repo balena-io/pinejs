@@ -4,7 +4,7 @@ define([
 	'ometa!sbvr-compiler/LF2AbstractSQLPrep'
 	'ometa!sbvr-compiler/LF2AbstractSQL'
 	'cs!sbvr-compiler/AbstractSQL2SQL'
-	'ometa!sbvr-compiler/AbstractSQLRules2SQL'
+	'abstract-sql-compiler'
 	'cs!sbvr-compiler/AbstractSQL2CLF'
 	'cs!sbvr-compiler/ODataMetadataGenerator'
 	'odata-parser'
@@ -12,7 +12,7 @@ define([
 	'async'
 	'lodash'
 	'cs!sbvr-compiler/types'
-], (has, SBVRParser, LF2AbstractSQLPrep, LF2AbstractSQL, AbstractSQL2SQL, AbstractSQLRules2SQL, AbstractSQL2CLF, ODataMetadataGenerator, {ODataParser}, {OData2AbstractSQL}, async, _, sbvrTypes) ->
+], (has, SBVRParser, LF2AbstractSQLPrep, LF2AbstractSQL, AbstractSQL2SQL, AbstractSQLCompiler, AbstractSQL2CLF, ODataMetadataGenerator, {ODataParser}, {OData2AbstractSQL}, async, _, sbvrTypes) ->
 	exports = {}
 	db = null
 
@@ -773,7 +773,7 @@ define([
 			request = tree.requests[0]
 			checkPermissions(req, res, 'get', request, ->
 				try
-					{query, bindings} = AbstractSQLRules2SQL.match(request.query, 'ProcessQuery')
+					{query, bindings} = AbstractSQLCompiler.compile(db.engine, request.query)
 				catch e
 					console.error('Failed to compile abstract sql: ', request.query, e)
 					res.send(503)
@@ -830,7 +830,7 @@ define([
 			request = tree.requests[0]
 			checkPermissions(req, res, 'set', tree.requests[0], ->
 				try
-					{query, bindings} = AbstractSQLRules2SQL.match(request.query, 'ProcessQuery')
+					{query, bindings} = AbstractSQLCompiler.compile(db.engine, request.query)
 				catch e
 					console.error('Failed to compile abstract sql: ', request.query, e)
 					res.send(503)
@@ -883,7 +883,7 @@ define([
 			request = tree.requests[0]
 			checkPermissions(req, res, 'set', tree.requests[0], ->
 				try
-					queries = AbstractSQLRules2SQL.match(request.query, 'ProcessQuery')
+					queries = AbstractSQLCompiler.compile(db.engine, request.query)
 				catch e
 					console.error('Failed to compile abstract sql: ', request.query, e)
 					res.send(503)
@@ -965,7 +965,7 @@ define([
 			request = tree.requests[0]
 			checkPermissions(req, res, 'delete', tree.requests[0], ->
 				try
-					{query, bindings} = AbstractSQLRules2SQL.match(request.query, 'ProcessQuery')
+					{query, bindings} = AbstractSQLCompiler.compile(db.engine, request.query)
 				catch e
 					console.error('Failed to compile abstract sql: ', request.query, e)
 					res.send(503)
