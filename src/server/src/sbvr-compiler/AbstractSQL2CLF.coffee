@@ -76,6 +76,6 @@ define(['lodash'], (_) ->
 					referenceScheme: table.referenceScheme
 					actions: ['view', 'add', 'edit', 'delete']
 				for {fieldName} in table.fields
-					addMapping(resourceName, fieldName, table.name, fieldName)
+					addMapping(resourceName, fieldName.replace(/\ /g, '_'), table.name, fieldName)
 		return {resources, resourceToSQLMappings}
 )
