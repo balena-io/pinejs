@@ -6,9 +6,9 @@
     "postinstall": "node install.js"
   },
   "dependencies": {
-    "odata-parser": "git+ssh://git@bitbucket.org:rulemotion/odata-parser.git",
-    "odata-to-abstract-sql": "git+ssh://git@bitbucket.org:rulemotion/odata-to-abstract-sql.git",
-    "abstract-sql-compiler": "git+ssh://git@bitbucket.org:rulemotion/abstract-sql-compiler.git",
+    "odata-parser": "git+ssh://git@bitbucket.org:rulemotion/odata-parser.git#v0.0.1",
+    "odata-to-abstract-sql": "git+ssh://git@bitbucket.org:rulemotion/odata-to-abstract-sql.git#v0.0.1",
+    "abstract-sql-compiler": "git+ssh://git@bitbucket.org:rulemotion/abstract-sql-compiler.git#v0.0.1",
 
     "express": "3.x",
     "requirejs": "2.x",
