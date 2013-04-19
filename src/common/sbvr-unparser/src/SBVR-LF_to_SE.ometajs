@@ -1,4 +1,4 @@
-define(['sbvr-parser/SBVRParser', 'ometa!prettify/Prettify', 'lodash', 'sbvr-frame/SBVRModels', 'ometa-core', 'inflection'], function(SBVRParser, Prettify) {
+define(['sbvr-parser/SBVRParser', 'lodash', 'sbvr-frame/SBVRModels', 'ometa-core', 'inflection'], function(SBVRParser) {
 	ometa SBVR_LF2SE {
 		$ :x =
 				token(x):a
@@ -135,7 +135,7 @@ define(['sbvr-parser/SBVRParser', 'ometa!prettify/Prettify', 'lodash', 'sbvr-fra
 
 	// tree = SBVRParser.matchAll(model2, "expr")
 	// tree = SBVR_LF2SE.match(tree, "trans")
-	// Prettify.match(tree, "elem")
+	// JSON.stringify(tree, null, '\t')
 
 	return SBVR_LF2SE;
 });
