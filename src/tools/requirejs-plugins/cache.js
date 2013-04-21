@@ -71,9 +71,20 @@ define(function () {
 		sessionStorage = window.sessionStorage;
 	}
 	else {
+		var db = null;
+		try {
+			db = JSON.parse(fs.readFileSync(".cache.json", "utf8"))
+		} catch (e) {
+			db = {}
+		}
 		sessionStorage = {
-			getItem: function () {return false;},
-			setItem: function () {return false;},
+			getItem: function (key) {
+				return db[key] || false;
+			},
+			setItem: function (key, value) {
+				db[key] = value;
+				fs.writeFileSync(".cache.json", JSON.stringify(db));
+			}
 		};
 	}
 

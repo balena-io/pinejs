@@ -42,3 +42,6 @@ build/config/buildinfo.properties
 /cache.properties
 node_modules
 out
+
+# Requirejs compilation cache
+.cache.json
