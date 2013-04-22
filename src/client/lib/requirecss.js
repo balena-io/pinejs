@@ -4,7 +4,6 @@ requireCSS = (function() {
 		'codemirror'		: 'external/CodeMirror2/lib/codemirror',
 		'codemirror-util'	: 'external/CodeMirror2/lib/util',
 		'codemirror-theme'	: 'external/CodeMirror2/theme',
-		'qunit'				: 'external/qunit/qunit'
 	};
 	return function(url) {
 		var firstPathPart = url.split('/')[0];
