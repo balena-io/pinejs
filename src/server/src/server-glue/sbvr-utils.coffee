@@ -349,7 +349,7 @@ define([
 				try
 					lfModel = SBVRParser.matchAll(seModel, 'Process')
 				catch e
-					console.error('Error parsing model', vocab, e)
+					console.error('Error parsing model', vocab, e, e.stack)
 					return callback('Error parsing model')
 				try
 					slfModel = LF2AbstractSQLPrep.match(lfModel, 'Process')
@@ -358,7 +358,7 @@ define([
 					clientModel = AbstractSQL2CLF(sqlModel)
 					metadata = ODataMetadataGenerator(vocab, sqlModel)
 				catch e
-					console.error('Error compiling model', vocab, e)
+					console.error('Error compiling model', vocab, e, e.stack)
 					return callback('Error compiling model')
 
 				# Create tables related to terms and fact types
@@ -518,7 +518,7 @@ define([
 			try
 				lfModel = SBVRParser.matchAll(seModel + '\nRule: ' + rule, 'Process')
 			catch e
-				console.error('Error parsing rule', rule, e)
+				console.error('Error parsing rule', rule, e, e.stack)
 				return
 			ruleLF = lfModel[lfModel.length-1]
 			lfModel = lfModel[...-1]
@@ -529,7 +529,7 @@ define([
 				
 				abstractSqlModel = LF2AbstractSQL.match(slfModel, 'Process')
 			catch e
-				console.error('Failed to compile rule', rule, e)
+				console.error('Failed to compile rule', rule, e, e.stack)
 			
 			ruleAbs = abstractSqlModel.rules[-1..][0]
 			# Remove the not exists
@@ -566,12 +566,12 @@ define([
 		try
 			query = odataParser.matchAll(uri, 'Process')
 		catch e
-			console.log('Failed to parse uri: ', method, uri, e)
+			console.log('Failed to parse uri: ', method, uri, e, e.stack)
 			return false
 		try
 			query = odata2AbstractSQL[vocabulary].match(query, 'Process', [method])
 		catch e
-			console.error('Failed to translate uri: ', query, method, uri, e)
+			console.error('Failed to translate uri: ', query, method, uri, e, e.stack)
 			return false
 
 		if query[0] == '$metadata'
@@ -775,7 +775,7 @@ define([
 				try
 					{query, bindings} = AbstractSQLCompiler.compile(db.engine, request.query)
 				catch e
-					console.error('Failed to compile abstract sql: ', request.query, e)
+					console.error('Failed to compile abstract sql: ', request.query, e, e.stack)
 					res.send(503)
 					return
 				getAndCheckBindValues(tree.vocabulary, bindings, request.values, (err, values) ->
@@ -832,7 +832,7 @@ define([
 				try
 					{query, bindings} = AbstractSQLCompiler.compile(db.engine, request.query)
 				catch e
-					console.error('Failed to compile abstract sql: ', request.query, e)
+					console.error('Failed to compile abstract sql: ', request.query, e, e.stack)
 					res.send(503)
 					return
 				vocab = tree.vocabulary
@@ -885,7 +885,7 @@ define([
 				try
 					queries = AbstractSQLCompiler.compile(db.engine, request.query)
 				catch e
-					console.error('Failed to compile abstract sql: ', request.query, e)
+					console.error('Failed to compile abstract sql: ', request.query, e, e.stack)
 					res.send(503)
 					return
 				
@@ -967,7 +967,7 @@ define([
 				try
 					{query, bindings} = AbstractSQLCompiler.compile(db.engine, request.query)
 				catch e
-					console.error('Failed to compile abstract sql: ', request.query, e)
+					console.error('Failed to compile abstract sql: ', request.query, e, e.stack)
 					res.send(503)
 					return
 				vocab = tree.vocabulary
