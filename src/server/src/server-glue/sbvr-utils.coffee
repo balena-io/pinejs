@@ -574,7 +574,7 @@ define([
 			console.error('Failed to translate uri: ', query, method, uri, e, e.stack)
 			return false
 
-		if query[0] == '$metadata'
+		if query[0] in ['$metadata', '$serviceroot']
 			resourceName = query[0]
 			query = null
 		else
