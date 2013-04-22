@@ -1,11 +1,11 @@
 define([
-	'ometa!sbvr-parser/SBVRLibs',
+	'ometa!sbvr-compiler/sbvr-compiler-libs',
 	'lodash',
 	'cs!sbvr-compiler/types'
-], function(SBVRLibs, _, sbvrTypes) {
+], function(SBVRCompilerLibs, _, sbvrTypes) {
 	//Transformation from SBVR Logical Formulation to SQL
 
-	ometa LF2AbstractSQL <: SBVRLibs {
+	ometa LF2AbstractSQL <: SBVRCompilerLibs {
 		Number =
 			[	'Number'
 				number:num
@@ -735,7 +735,7 @@ define([
 	};
 	
 	LF2AbstractSQL.initialize = function() {
-		SBVRLibs.initialize.call(this);
+		SBVRCompilerLibs.initialize.call(this);
 		this.tables = {};
 		this.identifiers = {}; // TODO: Is this needed?
 		this.rules = [];

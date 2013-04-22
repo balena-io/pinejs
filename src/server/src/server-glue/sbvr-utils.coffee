@@ -1,6 +1,6 @@
 define([
 	'has'
-	'ometa!sbvr-parser/SBVRParser'
+	'cs!extended-sbvr-parser'
 	'ometa!sbvr-compiler/LF2AbstractSQLPrep'
 	'ometa!sbvr-compiler/LF2AbstractSQL'
 	'cs!sbvr-compiler/AbstractSQL2SQL'

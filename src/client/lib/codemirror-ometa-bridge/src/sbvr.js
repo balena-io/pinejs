@@ -1,3 +1,3 @@
-define(['codemirror-ometa/highlighter', 'ometa!sbvr-parser/SBVRParser', 'css!./sbvr'], function(codeMirrorOmetaHighlighter, SBVRParser) {
+define(['codemirror-ometa/highlighter', 'cs!extended-sbvr-parser', 'css!./sbvr'], function(codeMirrorOmetaHighlighter, SBVRParser) {
 	codeMirrorOmetaHighlighter(SBVRParser, 'sbvr', 'text/sbvr');
 });

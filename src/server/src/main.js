@@ -27,14 +27,22 @@ require({
 		//Libraries
 		'ometa-core'			: '../../../node_modules/ometa-js/lib/ometajs/core',
 		'OMeta'					: '../../../node_modules/ometa-js/lib/ometajs/core',
-		'sbvr-parser'			: '../../common/sbvr-parser',
 		'utils'					: '../../common/utils',
 		'prettify'				: '../../common/prettify',
-		'inflection'			: '../../external/inflection/inflection',
 		'odata-parser'			: '../../../node_modules/odata-parser/odata-parser',
 		'odata-to-abstract-sql'	: '../../../node_modules/odata-to-abstract-sql/odata-to-abstract-sql',
 	},
 	packages: [
+		{
+			name: 'sbvr-parser',
+			location: '../../../node_modules/sbvr-parser',
+			main: 'sbvr-parser'
+		},
+		{
+			name: 'extended-sbvr-parser',
+			location: '../../common/extended-sbvr-parser',
+			main: 'extended-sbvr-parser'
+		},
 		{
 			name: 'abstract-sql-compiler',
 			location: '../../../node_modules/abstract-sql-compiler',
@@ -44,6 +52,9 @@ require({
 	shim: {
 		'uglifyjs': {
 			exports: 'UglifyJS'
+		},
+		'sbvr-parser': {
+			deps: ['sbvr-parser/sbvr-libs', 'sbvr-parser/inflection']
 		}
 	}
 }, ['cs!server-glue/server']);

@@ -36,11 +36,9 @@ require({
 		'codemirror-ometa'			: '../../../node_modules/ometa-js/lib/codemirror-ometa',
 		'codemirror-simple-hint'	: '../lib/codemirror/addon/hint/simple-hint',
 		'd3'						: '../lib/d3.v2',
-		'inflection'				: '../../external/inflection/inflection',
 		'jquery'					: '../lib/jquery',
 		'jquery-xdomain'			: '../lib/jquery-xdomain',
 		'ometa-core'				: '../../../node_modules/ometa-js/lib/ometajs/core',
-		'sbvr-parser'				: '../../common/sbvr-parser',
 		'lodash'					: '../lib/lodash.compat',
 		'ejs'						: '../lib/ejs',
 		'jquery-ui'					: '../lib/jquery-ui',
@@ -58,6 +56,16 @@ require({
 		'prettify'					: '../../common/prettify'
 	},
 	packages: [
+		{
+			name: 'sbvr-parser',
+			location: '../../../node_modules/sbvr-parser',
+			main: 'sbvr-parser'
+		},
+		{
+			name: 'extended-sbvr-parser',
+			location: '../../common/extended-sbvr-parser',
+			main: 'extended-sbvr-parser'
+		},
 		{
 			name: 'abstract-sql-compiler',
 			location: '../../../node_modules/abstract-sql-compiler',
@@ -105,6 +113,9 @@ require({
 		},
 		'async': {
 			exports: 'async'
+		},
+		'sbvr-parser': {
+			deps: ['sbvr-parser/sbvr-libs', 'sbvr-parser/inflection']
 		}
 	}
 }, ['cs!app', 'css!static/main']);

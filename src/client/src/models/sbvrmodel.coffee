@@ -1,4 +1,4 @@
-define(['cs!config', 'backbone', 'ometa!sbvr-parser/SBVRParser'], (config, Backbone, SBVRParser) ->
+define(['cs!config', 'backbone', 'cs!extended-sbvr-parser'], (config, Backbone, SBVRParser) ->
 	Backbone.Model.extend({
 		defaults:
 			id: null

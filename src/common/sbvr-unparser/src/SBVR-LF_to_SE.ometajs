@@ -1,4 +1,4 @@
-define(['sbvr-parser/SBVRParser', 'lodash', 'sbvr-frame/SBVRModels', 'ometa-core', 'inflection'], function(SBVRParser) {
+define(['lodash', 'ometa-core'], function(_) {
 	ometa SBVR_LF2SE {
 		$ :x =
 				token(x):a
