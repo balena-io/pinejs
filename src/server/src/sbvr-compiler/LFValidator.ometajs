@@ -108,7 +108,7 @@ define(['ometa!sbvr-compiler/sbvr-compiler-libs', 'ometa-core'], function(SBVRCo
 			{this.vocabularies[this.currentVocabulary]['ConceptTypes'][termOrFactType] = term}
 			-> term,
 		AttrDefinition :termOrFactType =
-			(	['Enum' :values]
+			(	['Enum' anything+:values]
 			|	trans
 			),
 		AttrNecessity :termOrFactType =
