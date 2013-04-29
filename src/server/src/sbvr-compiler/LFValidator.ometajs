@@ -1,6 +1,7 @@
-define(['ometa!sbvr-compiler/sbvr-compiler-libs', 'ometa-core'], function(SBVRCompilerLibs) {
+define(['sbvr-parser/sbvr-libs'], function(SBVRLibs) {
+	SBVRLibs = SBVRLibs.SBVRLibs;
 	// TODO: Make the LFValidator validate that it is actually correctly structured LF.
-	ometa LFValidator <: SBVRCompilerLibs {
+	ometa LFValidator <: SBVRLibs {
 		trans
 			[:t apply(t):a]
 			-> a,
@@ -223,7 +224,7 @@ define(['ometa!sbvr-compiler/sbvr-compiler-libs', 'ometa-core'], function(SBVRCo
 	}
 	
 	LFValidator.initialize = function() {
-		SBVRCompilerLibs.initialize.call(this);
+		SBVRLibs.initialize.call(this);
 	};
 
 	LFValidator.defaultAttributes = function(termOrVerb, attrsFound, attrs) {

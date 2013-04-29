@@ -1,6 +1,7 @@
 define([
+	'ometa!sbvr-compiler/sbvr-compiler-libs',
 	'ometa!sbvr-compiler/LFOptimiser'
-], function(LFOptimiser) {
+], function(SBVRCompilerLibs, LFOptimiser) {
 	ometa LF2AbstractSQLPrep <: LFOptimiser {
 		AttrConceptType :termName =
 			^AttrConceptType(termName):conceptType
@@ -115,6 +116,7 @@ define([
 	}
 	
 	LF2AbstractSQLPrep.initialize = function() {
+		_.extend(this, SBVRCompilerLibs);
 		LFOptimiser.initialize.call(this);
 		this.foreignKeys = {};
 		this.uniqueKeys = {};
