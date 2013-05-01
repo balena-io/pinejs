@@ -473,7 +473,7 @@ define([
 						when 'ForeignKey'
 							instance[fieldName] =
 								__deferred:
-									uri: '/' + vocab + '/' + references.tableName + '?$filter=' + references.fieldName + ' eq ' + instance[fieldName]
+									uri: '/' + vocab + '/' + references.tableName + '(' + instance[fieldName] + ')'
 								__id: instance[fieldName]
 						else
 							sbvrTypes[dataType]?.fetchProcessing?(instance[fieldName], (err, result) ->
