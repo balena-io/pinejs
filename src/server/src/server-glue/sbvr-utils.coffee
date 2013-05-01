@@ -455,25 +455,6 @@ define([
 				return comparison[2][1]
 		return 0
 
-	processInstances = (resourceModel, rows) ->
-		# TODO: This can probably be optimised more, but removing the process step when it isn't required is an improvement
-		processRequired = false
-		for {dataType} in resourceModel.fields when dataType == 'JSON'
-			processRequired = true
-			break
-		instances = []
-		if processRequired
-			processInstance = (instance) ->
-				instance = _.clone(instance)
-				for {fieldName, dataType} in resourceModel.fields when dataType == 'JSON' and instance.hasOwnProperty(fieldName)
-					instance[fieldName] = JSON.parse(instance[fieldName])
-				instances.push(instance)
-		else
-			processInstance = (instance) ->
-				instances.push(instance)
-		rows.forEach(processInstance)
-		return instances
-
 	processOData = (vocab, resourceModel, rows, callback) ->
 		# TODO: This can probably be optimised more, but removing the process step when it isn't required is an improvement
 		processRequired = false
