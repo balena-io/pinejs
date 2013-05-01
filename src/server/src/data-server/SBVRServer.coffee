@@ -78,7 +78,7 @@ define([
 			sbvrUtils.runURI('GET', "/dev/model?$filter=model_type eq 'se' and vocabulary eq 'data'", null, tx, (err, result) ->
 				if !err and result.d.length > 0
 					instance = result.d[0]
-					sbvrUtils.executeModel(tx, instance.vocabulary, instance['model value'], (err) ->
+					sbvrUtils.executeModel(tx, instance.vocabulary, instance.model_value, (err) ->
 						if err
 							isServerOnAir(false)
 						else
@@ -109,7 +109,7 @@ define([
 								res.json(err, 404)
 								return
 							sbvrUtils.runURI('PUT', '/ui/textarea', {
-								'is disabled': true
+								is_disabled: true
 								name: 'model_area'
 							}, tx)
 							isServerOnAir(true)

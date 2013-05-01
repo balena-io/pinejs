@@ -52,18 +52,18 @@ define(['async'], (async) ->
 										sendData =
 											transaction: transactionID
 											lock: null
-											'resource type': dataElement[0]
-											'conditional type': ''
+											resource_type: dataElement[0]
+											conditional_type: ''
 											placeholder: ''
 										switch dataElement[1]
 											when "del"
-												sendData['conditional type'] = 'DELETE'
+												sendData.conditional_type = 'DELETE'
 												sendData.lock = dataElement[2]
 											when 'edit'
-												sendData['conditional type'] = 'EDIT'
+												sendData.conditional_type = 'EDIT'
 												sendData.lock = dataElement[2]
 											when 'add'
-												sendData['conditional type'] = 'ADD'
+												sendData.conditional_type = 'ADD'
 												sendData.placeholder = dataElement[2]
 										switch dataElement[1]
 											when "del"
@@ -78,9 +78,9 @@ define(['async'], (async) ->
 														async.forEach(fields,
 															(field, callback) ->
 																fieldData =
-																	'conditional resource': condResource.id
-																	'field name': field.name 
-																	'field value': field.value
+																	conditional_resource: condResource.id
+																	field_name: field.name 
+																	field_value: field.value
 																serverRequest("POST", transURIs.conditionalFieldURI, {}, fieldData,
 																	-> callback()
 																	-> callback(arguments)
@@ -110,12 +110,12 @@ define(['async'], (async) ->
 		lockResource = (resourceType, resourceID, transURIs, transactionID, callback) ->
 			failureCallback = -> callback(arguments)
 			o =
-				'is exclusive': true
+				is_exclusive: true
 				transaction: transactionID
 			serverRequest("POST", transURIs.lockURI, {}, o, ((statusCode, lock, headers) ->
 				o =
-					'resource id': parseInt(resourceID, 10)
-					'resource type': resourceType
+					resource_id: parseInt(resourceID, 10)
+					resource_type: resourceType
 				serverRequest("POST", transURIs.resourceURI, {}, o, ((statusCode, resource, headers) ->
 					o =
 						resource: resource.id

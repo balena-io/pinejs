@@ -72,7 +72,7 @@ define([
 				serverRequest("PUT", '/ui/textarea', {}, {
 					name: 'model_area'
 					text: @model.get('content')
-					'is disabled': true
+					is_disabled: true
 				}, =>
 					serverRequest("POST", "/execute/", {}, null, =>
 						@model.trigger('onAir')

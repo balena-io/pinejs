@@ -174,7 +174,7 @@ define([
 		db.transaction((tx) ->
 			placeholders = {}
 			getLockedRow = (lockID, callback) ->
-				tx.executeSql('''SELECT r."resource type", r."resource id"
+				tx.executeSql('''SELECT r."resource type" AS "resource_type", r."resource id" AS "resource_id"
 								FROM "resource-is_under-lock" rl
 								JOIN "resource" r ON rl."resource" = r."id"
 								WHERE "lock" = ?;''', [lockID],
@@ -182,14 +182,13 @@ define([
 					(tx, err) -> callback(err)
 				)
 			getFieldsObject = (conditionalResourceID, clientModel, callback) ->
-				tx.executeSql('SELECT "field name", "field value" FROM "conditional_field" WHERE "conditional resource" = ?;', [conditionalResourceID],
+				tx.executeSql('SELECT "field name" AS "field_name", "field value" AS "field_value" FROM "conditional_field" WHERE "conditional resource" = ?;', [conditionalResourceID],
 					(tx, fields) ->
 						fieldsObject = {}
 						async.forEach(fields.rows,
 							(field, callback) ->
-								fieldName = field['field name']
-								fieldName = fieldName.replace(clientModel.resourceName + '.', '')
-								fieldValue = field['field value']
+								fieldName = field.field_name.replace(clientModel.resourceName + '.', '')
+								fieldValue = field.field_value
 								async.forEach(clientModel.fields,
 									(modelField, callback) ->
 										placeholderCallback = (placeholder, resolvedID) ->
@@ -263,16 +262,16 @@ define([
 									callback
 								)
 
-							clientModel = clientModels['data'].resources[conditionalResource['resource type']]
-							uri = '/data/' + conditionalResource['resource type']
-							switch conditionalResource['conditional type']
+							clientModel = clientModels['data'].resources[conditionalResource.resource_type]
+							uri = '/data/' + conditionalResource.resource_type
+							switch conditionalResource.conditional_type
 								when 'DELETE'
 									getLockedRow(lockID, (err, lockedRow) ->
 										if err
 											callback(err)
 											return
 										lockedRow = lockedRow.rows.item(0)
-										uri = uri + '?$filter=' + clientModel.idField + ' eq ' + lockedRow['resource id']
+										uri = uri + '?$filter=' + clientModel.idField + ' eq ' + lockedRow.resource_id
 										runURI('DELETE', uri, {}, tx, doCleanup)
 									)
 								when 'EDIT'
@@ -285,7 +284,7 @@ define([
 											if err?
 												callback(err)
 											else
-												fields[clientModel.idField] = lockedRow['resource id']
+												fields[clientModel.idField] = lockedRow.resource_id
 												runURI('PUT', uri, fields, tx, doCleanup)
 										)
 									)
@@ -386,33 +385,33 @@ define([
 								odata2AbstractSQL[vocab].clientModel = clientModel
 								runURI('PUT', '/dev/model', {
 									vocabulary: vocab
-									'model value': seModel
-									'model type': 'se'
+									model_value: seModel
+									model_type: 'se'
 								}, tx)
 								runURI('PUT', '/dev/model', {
 									vocabulary: vocab
-									'model value': lfModel
-									'model type': 'lf'
+									model_value: lfModel
+									model_type: 'lf'
 								}, tx)
 								runURI('PUT', '/dev/model', {
 									vocabulary: vocab
-									'model value': slfModel
-									'model type': 'slf'
+									model_value: slfModel
+									model_type: 'slf'
 								}, tx)
 								runURI('PUT', '/dev/model', {
 									vocabulary: vocab
-									'model value': abstractSqlModel
-									'model type': 'abstractsql'
+									model_value: abstractSqlModel
+									model_type: 'abstractsql'
 								}, tx)
 								runURI('PUT', '/dev/model', {
 									vocabulary: vocab
-									'model value': sqlModel
-									'model type': 'sql'
+									model_value: sqlModel
+									model_type: 'sql'
 								}, tx)
 								runURI('PUT', '/dev/model', {
 									vocabulary: vocab
-									'model value': clientModel
-									'model type': 'client'
+									model_value: clientModel
+									model_type: 'client'
 								}, tx)
 
 								callback()
@@ -461,35 +460,43 @@ define([
 		for {dataType} in resourceModel.fields when dataType == 'ForeignKey' or sbvrTypes[dataType]?.fetchProcessing?
 			processRequired = true
 			break
-		instances = []
+
+		spacesRegex = /\s+/g
+		replacements = {}
+		for {fieldName} in resourceModel.fields when spacesRegex.test(fieldName)
+			replacements[fieldName] = fieldName.replace(spacesRegex, '_')
+
+		defaultProcessInstance = (instance, callback) ->
+			instance = _.clone(instance)
+			for from, to of replacements
+				instance[to] = instance[from]
+				delete instance[from]
+			instance.__metadata =
+				uri: ''
+				type: ''
+			callback(null, instance)
+
 		if processRequired
 			processInstance = (instance, callback) ->
-				instance = _.clone(instance)
-				instance.__metadata =
-					uri: ''
-					type: ''
-				for {fieldName, dataType, references} in resourceModel.fields when instance.hasOwnProperty(fieldName)
-					switch dataType
-						when 'ForeignKey'
-							instance[fieldName] =
-								__deferred:
-									uri: '/' + vocab + '/' + references.tableName + '(' + instance[fieldName] + ')'
-								__id: instance[fieldName]
-						else
-							sbvrTypes[dataType]?.fetchProcessing?(instance[fieldName], (err, result) ->
-								if err?
-									console.error('Error with fetch processing', err)
-									throw err
-								instance[fieldName] = result
-							)
-				callback(null, instance)
+				defaultProcessInstance(instance, (instance) ->
+					for {fieldName, dataType, references} in resourceModel.fields when instance.hasOwnProperty(fieldName)
+						switch dataType
+							when 'ForeignKey'
+								instance[fieldName] =
+									__deferred:
+										uri: '/' + vocab + '/' + references.tableName + '(' + instance[fieldName] + ')'
+									__id: instance[fieldName]
+							else
+								sbvrTypes[dataType]?.fetchProcessing?(instance[fieldName], (err, result) ->
+									if err?
+										console.error('Error with fetch processing', err)
+										throw err
+									instance[fieldName] = result
+								)
+					callback(null, instance)
+				)
 		else
-			processInstance = (instance, callback) ->
-				instance = _.clone(instance)
-				instance.__metadata =
-					uri: ''
-					type: ''
-				callback(null, instance)
+			processInstance = defaultProcessInstance
 		async.map(rows, processInstance, callback)
 
 	exports.runRule = do ->

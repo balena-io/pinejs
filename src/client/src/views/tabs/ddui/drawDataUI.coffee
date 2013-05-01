@@ -703,7 +703,7 @@ define([
 							# request schema from server and store locally.
 							serverRequest('GET', "/dev/model?$filter=model_type eq 'lf' and vocabulary eq '" + tree.getAbout() + "'", {}, null,
 								(statusCode, result) ->
-									renderResource(rootURI, true, expandedTree, result.d[0]['model value'],
+									renderResource(rootURI, true, expandedTree, result.d[0].model_value,
 										(err, html) ->
 											resource.html = html
 											callback(err, resource)
