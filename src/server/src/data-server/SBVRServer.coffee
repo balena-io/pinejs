@@ -108,7 +108,7 @@ define([
 							if err
 								res.json(err, 404)
 								return
-							sbvrUtils.runURI('PUT', '/ui/textarea', {
+							sbvrUtils.runURI('PATCH', "/ui/textarea?$filter=name eq 'model_area'", {
 								is_disabled: true
 								name: 'model_area'
 							}, tx)
@@ -321,6 +321,26 @@ define([
 			sbvrUtils.runPut(req, res)
 		)
 
+		app.patch('/ui/*', uiModelLoaded, sbvrUtils.parseURITree, (req, res, next) ->
+			sbvrUtils.runPut(req, res)
+		)
+		app.patch('/data/*', serverIsOnAir, sbvrUtils.parseURITree, (req, res, next) ->
+			sbvrUtils.runPut(req, res)
+		)
+		app.patch('/Auth/*', serverIsOnAir, sbvrUtils.parseURITree, (req, res, next) ->
+			sbvrUtils.runPut(req, res)
+		)
+
+		app.merge('/ui/*', uiModelLoaded, sbvrUtils.parseURITree, (req, res, next) ->
+			sbvrUtils.runPut(req, res)
+		)
+		app.merge('/data/*', serverIsOnAir, sbvrUtils.parseURITree, (req, res, next) ->
+			sbvrUtils.runPut(req, res)
+		)
+		app.merge('/Auth/*', serverIsOnAir, sbvrUtils.parseURITree, (req, res, next) ->
+			sbvrUtils.runPut(req, res)
+		)
+
 		app.del('/data/*', serverIsOnAir, sbvrUtils.parseURITree, (req, res, next) ->
 			sbvrUtils.runDelete(req, res)
 		)
@@ -331,10 +351,10 @@ define([
 
 		app.del('/', uiModelLoaded, serverIsOnAir, (req, res, next) ->
 			# TODO: This should be done a better way?
-			sbvrUtils.runURI('DELETE', "/ui/textarea__is_disabled?$filter=textarea/name eq 'model_area'")
-			sbvrUtils.runURI('PUT', '/ui/textarea',
+			sbvrUtils.runURI('PATCH', "/ui/textarea?$filter=name eq 'model_area'",
 				text: ''
 				name: 'model_area'
+				is_disabled: false
 			)
 			sbvrUtils.deleteModel('data')
 			isServerOnAir(false)

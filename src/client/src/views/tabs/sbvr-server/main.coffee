@@ -68,8 +68,8 @@ define([
 			)
 
 		runServer: ->
-			serverRequest("DELETE", "/cleardb", {}, null, =>
-				serverRequest("PUT", '/ui/textarea', {}, {
+			serverRequest('DELETE', '/cleardb', {}, null, =>
+				serverRequest('PATCH', "/ui/textarea?$filter=name eq 'model_area'", {}, {
 					name: 'model_area'
 					text: @model.get('content')
 					is_disabled: true

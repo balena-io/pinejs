@@ -153,6 +153,8 @@ define([
 			return false
 
 	getAndCheckBindValues = (vocab, bindings, values, callback) ->
+		mappings = clientModels[vocab].resourceToSQLMappings
+		sqlModelTables = sqlModels[vocab].tables
 		async.map(bindings,
 			(binding, callback) ->
 				[tableName, fieldName] = binding
@@ -162,7 +164,10 @@ define([
 				if value is undefined
 					callback(null, db.DEFAULT_VALUE)
 					return
-				AbstractSQL2SQL.dataTypeValidate(value, _.where(sqlModels[vocab].tables[tableName].fields, {fieldName})[0], (err, value) ->
+				[mappedTableName, mappedFieldName] = mappings[tableName][fieldName]
+				AbstractSQL2SQL.dataTypeValidate(value, _.where(sqlModelTables[mappedTableName].fields, {
+					fieldName: mappedFieldName
+				})[0], (err, value) ->
 					if err
 						err = '"' + fieldName + '" ' + err
 					callback(err, value)
@@ -383,32 +388,33 @@ define([
 
 								odata2AbstractSQL[vocab] = OData2AbstractSQL.createInstance()
 								odata2AbstractSQL[vocab].clientModel = clientModel
-								runURI('PUT', '/dev/model', {
+								uri = (modelType) -> "/dev/model?$filter=vocabulary eq '" + vocab + "' and model_type eq '" + modelType + "'"
+								runURI('PATCH', uri('se'), {
 									vocabulary: vocab
 									model_value: seModel
 									model_type: 'se'
 								}, tx)
-								runURI('PUT', '/dev/model', {
+								runURI('PATCH', uri('lf'), {
 									vocabulary: vocab
 									model_value: lfModel
 									model_type: 'lf'
 								}, tx)
-								runURI('PUT', '/dev/model', {
+								runURI('PATCH', uri('slf'), {
 									vocabulary: vocab
 									model_value: slfModel
 									model_type: 'slf'
 								}, tx)
-								runURI('PUT', '/dev/model', {
+								runURI('PATCH', uri('abstractsql'), {
 									vocabulary: vocab
 									model_value: abstractSqlModel
 									model_type: 'abstractsql'
 								}, tx)
-								runURI('PUT', '/dev/model', {
+								runURI('PATCH', uri('sql'), {
 									vocabulary: vocab
 									model_value: sqlModel
 									model_type: 'sql'
 								}, tx)
-								runURI('PUT', '/dev/model', {
+								runURI('PATCH', uri('client'), {
 									vocabulary: vocab
 									model_value: clientModel
 									model_type: 'client'
@@ -478,21 +484,23 @@ define([
 
 		if processRequired
 			processInstance = (instance, callback) ->
-				defaultProcessInstance(instance, (instance) ->
-					for {fieldName, dataType, references} in resourceModel.fields when instance.hasOwnProperty(fieldName)
-						switch dataType
-							when 'ForeignKey'
-								instance[fieldName] =
-									__deferred:
-										uri: '/' + vocab + '/' + references.tableName + '(' + instance[fieldName] + ')'
-									__id: instance[fieldName]
-							else
-								sbvrTypes[dataType]?.fetchProcessing?(instance[fieldName], (err, result) ->
-									if err?
-										console.error('Error with fetch processing', err)
-										throw err
-									instance[fieldName] = result
-								)
+				defaultProcessInstance(instance, (err, instance) ->
+					for {fieldName, dataType, references} in resourceModel.fields
+						fieldName = fieldName.replace(/\ /g, '_')
+						if instance.hasOwnProperty(fieldName)
+							switch dataType
+								when 'ForeignKey'
+									instance[fieldName] =
+										__deferred:
+											uri: '/' + vocab + '/' + references.tableName + '(' + instance[fieldName] + ')'
+										__id: instance[fieldName]
+								else
+									sbvrTypes[dataType]?.fetchProcessing?(instance[fieldName], (err, result) ->
+										if err?
+											console.error('Error with fetch processing', err)
+											throw err
+										instance[fieldName] = result
+									)
 					callback(null, instance)
 				)
 		else
@@ -557,7 +565,7 @@ define([
 			console.log('Failed to parse uri: ', method, uri, e, e.stack)
 			return false
 		try
-			query = odata2AbstractSQL[vocabulary].match(query, 'Process', [method])
+			query = odata2AbstractSQL[vocabulary].match(query, 'Process', [method, body])
 		catch e
 			console.error('Failed to translate uri: ', query, method, uri, e, e.stack)
 			return false
@@ -611,7 +619,7 @@ define([
 				runGet(req, res, tx)
 			when 'POST'
 				runPost(req, res, tx)
-			when 'PUT'
+			when 'PUT', 'PATCH', 'MERGE'
 				runPut(req, res, tx)
 			when 'DELETE'
 				runDelete(req, res, tx)
@@ -1007,6 +1015,7 @@ define([
 				if err?
 					console.error('Failed to execute standard models.', err)
 				else
+					tx.executeSql('ALTER TABLE "model" ADD UNIQUE INDEX ("vocabulary", "model type")')
 					# TODO: Remove these hardcoded users.
 					if has 'DEV'
 						async.parallel([

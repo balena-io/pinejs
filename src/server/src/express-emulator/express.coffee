@@ -7,6 +7,8 @@ define((requirejs, exports, module) ->
 			PUT: []
 			DELETE: []
 			GET: []
+			PATCH: []
+			MERGE: []
 		addHandler = (handlerName, match, middleware...) ->
 			#Strip wildcard
 			match = match.replace(/[\/\*]*$/,'').toLowerCase()
@@ -81,6 +83,8 @@ define((requirejs, exports, module) ->
 			get: (args...) -> addHandler.apply(null, ['GET'].concat(args))
 			put: (args...) -> addHandler.apply(null, ['PUT'].concat(args))
 			del: (args...) -> addHandler.apply(null, ['DELETE'].concat(args))
+			patch: (args...) -> addHandler.apply(null, ['PATCH'].concat(args))
+			merge: (args...) -> addHandler.apply(null, ['MERGE'].concat(args))
 			all: () ->
 				@post.apply(this, arguments)
 				@get.apply(this, arguments)
