@@ -23,7 +23,7 @@ mysql: (necessity, index) ->
 	return 'INTEGER' + necessity + index + ' AUTO_INCREMENT'
 mysql: (necessity, index) ->
 	return 'INTEGER' + necessity + index + ' AUTOINCREMENT'
-``
+```
 
 
 ##### odata
@@ -105,7 +105,7 @@ nativeProperties:
 	Verb2:
 		Term3: (from) -> ...
 ```
-The `(from) -> ...``` function should return a chunk of abstract sql that can be used to fetch the property specified by this fact type, the `from` parameter is abstract sql that will refer to an instance of the term that is of this type.
+The `(from) -> ...` function should return a chunk of abstract sql that can be used to fetch the property specified by this fact type, the `from` parameter is abstract sql that will refer to an instance of the term that is of this type.
 
 Text has Length:
 ```coffee-script
