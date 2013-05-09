@@ -686,7 +686,7 @@ define([
 		tree = createNavigableTree(tree)
 		rootURI = location.pathname
 		serverRequest("GET", serverAPI(tree.getVocabulary()), {}, null,
-			(statusCode, clientModel, headers) ->
+			(statusCode, {__model: clientModel}, headers) ->
 				# SECTION: Top level resources
 				topLevelResources = []
 				for own resourceName, resource of clientModel when resource.topLevel == true

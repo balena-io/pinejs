@@ -812,8 +812,10 @@ define([
 				else
 					clientModel = clientModels[tree.vocabulary]
 					data =
-						__model:
-							clientModel.resources[tree.requests[0].resourceName]
+						if tree.requests[0].resourceName == '$serviceroot'
+							__model: clientModel.resources
+						else
+							__model: clientModel.resources[tree.requests[0].resourceName]
 					res.json(data)
 			)
 
