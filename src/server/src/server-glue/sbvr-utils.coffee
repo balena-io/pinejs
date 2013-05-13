@@ -1029,7 +1029,7 @@ define([
 									# We expect these to be the first user/permission, so they would have id 1.
 									runURI('POST', '/Auth/user__has__permission', {'user': 1, 'permission': 1}, null)
 						)
-					console.log('Sucessfully executed standard models.')
+					console.info('Sucessfully executed standard models.')
 				callback?(err)
 		)
 

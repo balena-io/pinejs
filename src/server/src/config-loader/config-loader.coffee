@@ -10,7 +10,7 @@ define(['has', 'async'], (has, async) ->
 		fs = require('fs')
 		path = require('path')
 		root = process.argv[2] or __dirname
-		console.log('loading config.json')
+		console.info('loading config.json')
 		fs.readFile(path.join(root, 'config.json'), 'utf8', (err, data) ->
 			if err
 				console.error('Error loading config.json', err)
@@ -48,7 +48,7 @@ define(['has', 'async'], (has, async) ->
 										
 										if model.customServerCode?
 											require(root + '/' + model.customServerCode).setup(app, requirejs, sbvrUtils, db)
-										console.log('Sucessfully executed ' + model.modelName + ' model.')
+										console.info('Sucessfully executed ' + model.modelName + ' model.')
 									)
 								)
 						)

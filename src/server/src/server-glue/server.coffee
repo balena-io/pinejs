@@ -6,7 +6,7 @@ define([
 	'cs!data-server/SBVRServer'
 	'cs!express-emulator/express'
 	'cs!config-loader/config-loader'
-], (has, dbModule, sbvrUtils, passportBCrypt, sbvrServer, express, configLoader)->
+], (has, dbModule, sbvrUtils, passportBCrypt, sbvrServer, express, configLoader) ->
 	if has 'ENV_NODEJS'
 		databaseURL = process.env.DATABASE_URL || "postgres://postgres:.@localhost:5432/postgres"
 		databaseOptions =
@@ -36,7 +36,7 @@ define([
 
 			if has 'ENV_NODEJS'
 				app.listen(process.env.PORT or 1337, () ->
-					console.log('Server started')
+					console.info('Server started')
 				)
 
 			if has 'ENV_BROWSER'

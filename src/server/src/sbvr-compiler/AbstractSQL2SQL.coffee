@@ -96,9 +96,7 @@ define([
 			console.error(rule)
 			console.error(e)
 			throw e
-			
-			# console.log(ruleSQL)
-			
+
 		return {tables: sqlModel.tables, createSchema: createSchemaStatements, dropSchema: dropSchemaStatements, rules: ruleStatements}
 
 

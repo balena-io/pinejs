@@ -72,7 +72,7 @@ define([
 				if err
 					console.error('Failed to execute ui model.', err)
 				else
-					console.log('Sucessfully executed ui model.')
+					console.info('Sucessfully executed ui model.')
 					uiModelLoaded(true)
 			)
 			sbvrUtils.runURI('GET', "/dev/model?$filter=model_type eq 'se' and vocabulary eq 'data'", null, tx, (err, result) ->
@@ -121,7 +121,6 @@ define([
 			)
 		)
 		app.post('/validate', sbvrUtils.checkPermissionsMiddleware('get'), uiModelLoaded, (req, res, next) ->
-			console.log(req.body)
 			sbvrUtils.runRule('data', req.body.rule, (err, results) ->
 				if err?
 					res.send(404)
@@ -179,7 +178,6 @@ define([
 				env['PGPASSWORD'] = '.'
 				req = require
 				req('child_process').exec('pg_dump --clean -U postgres -h localhost -p 5432', env: env, (error, stdout, stderr) ->
-					console.log(stdout, stderr)
 					res.json(stdout)
 				)
 			else
