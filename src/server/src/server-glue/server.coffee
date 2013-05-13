@@ -12,6 +12,9 @@ define([
 		databaseOptions =
 			engine: databaseURL[0...databaseURL.indexOf(':')]
 			params: databaseURL
+		app.configure('production', ->
+			console.log = ->
+		)
 	else
 		databaseOptions =
 			engine: 'websql'
