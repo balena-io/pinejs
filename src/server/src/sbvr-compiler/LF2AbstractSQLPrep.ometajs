@@ -49,28 +49,27 @@ define([
 			-> ['LogicalNegation', ['AtLeastNQuantification', ['MinimumCardinality', maxCard[1]], v].concat(xs)],
 		
 		CardinalityOptimisation2 :v1 =
-			// Just a basic var
+			// Just a basic first var, no ClosedProjection.
 			?(v1.length == 3)
 			(	[	'ExactQuantification'
 					"Cardinality":card
 					?(card[1][1] == 1)
 					"Variable":v2
-					// Just a basic var
-					?(v2.length == 3)
 					"AtomicFormulation":atomicForm
-					{true}:required
 				]
+				-> true
 			|	[	'AtMostNQuantification'
 					"MaximumCardinality":card
 					?(card[1][1] == 1)
 					"Variable":v2
-					// Just a basic var
-					?(v2.length == 3)
 					"AtomicFormulation":atomicForm
-					{false}:required
 				]
-			)
+				-> false
+			):required
 			end
+			// Just a basic second var, no ClosedProjection.
+			?(v2.length == 3)
+
 			{atomicForm[1]}:factType
 			// Not referenced as a term form
 			?(!this.termForms[factType])
@@ -91,8 +90,6 @@ define([
 		CardinalityOptimisation
 			[	'UniversalQuantification'
 				"Variable":v1
-				// A basic var, no ClosedProjection.
-				?(v1.length == 3)
 				CardinalityOptimisation2(v1)
 			|	'LogicalNegation'
 				[	'ExistentialQuantification'
