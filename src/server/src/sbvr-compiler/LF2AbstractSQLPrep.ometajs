@@ -34,7 +34,11 @@ define([
 			)?
 			{this.primitives[termOrFactType] = newAttrVal}
 			-> newAttrVal,
-		
+		AttrTermForm :factType =
+			{this.termForms[factType] = true}
+			anything
+		,
+
 		UniversalQuantification
 			"Variable":v trans*:xs SetHelped
 			-> ['LogicalNegation', ['ExistentialQuantification', v, ['LogicalNegation'].concat(xs)]],
@@ -68,6 +72,8 @@ define([
 			)
 			end
 			{atomicForm[1]}:factType
+			// Not referenced as a term form
+			?(!this.termForms[factType])
 			// A term verb term fact type
 			?(atomicForm.length == 4 && factType.length == 4)
 			UnmappedFactType(factType.slice(1)):actualFactType
@@ -122,6 +128,7 @@ define([
 		this.uniqueKeys = {};
 		this.primitives = {};
 		this.attributes = {};
+		this.termForms = {};
 	};
 	
 	LF2AbstractSQLPrep.defaultAttributes = function(termOrFactType, attrsFound, attrs) {
