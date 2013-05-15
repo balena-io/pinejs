@@ -671,7 +671,11 @@ define([
 	}
 	
 	LF2AbstractSQL.AddWhereClause = function(query, whereBody) {
-		// TODO: Move this to an optimisation pass?
+		// TODO: Move these to optimisation passes?
+		// Check if it's true == true
+		if (_.isEqual(whereBody, ['Equals', ['Boolean', true], ['Boolean', true]])) {
+			return;
+		}
 		// Check if it's a place where we can do a join optimisation.
 		if(whereBody[0] == 'Exists' && (
 				whereBody[1][0] == 'SelectQuery' || whereBody[1][0] == 'InsertQuery' ||
