@@ -39,7 +39,7 @@ require({
 		'jquery'					: '../lib/jquery',
 		'jquery-xdomain'			: '../lib/jquery-xdomain',
 		'ometa-core'				: '../../../node_modules/ometa-js/lib/ometajs/core',
-		'lodash'					: '../lib/lodash.compat',
+		'lodash'					: '../../../node_modules/lodash/dist/lodash.compat',
 		'ejs'						: '../lib/ejs',
 		'jquery-ui'					: '../lib/jquery-ui',
 		
