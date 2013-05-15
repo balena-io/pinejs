@@ -302,7 +302,7 @@ define([
 					-> baseBind.tableAlias
 				|	-> bind.tableAlias
 				):bindName
-				-> ['ReferencedField', 'var' + bindName, bind.identifier.name]
+				-> ['ReferencedField', bindName, bind.identifier.name]
 			),
 
 		NativeProperty :actualFactType =
