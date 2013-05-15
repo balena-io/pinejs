@@ -248,14 +248,35 @@ define([
 						(	?bind.data
 							// Embedded data
 							-> {identifier: identifier, data: bind.data, whereBody: whereBody}
-						|	-> {identifier: identifier, tableAlias: 'var' + bind.number + bind.identifier.name, whereBody: whereBody}
+						|	-> {identifier: identifier, tableAlias: bind.tableAlias, whereBody: whereBody}
 						)
 					|	// A rule directly on a primitive, this should not be being processed..
 						___PROCESSING_PRIMITIVE_RULE___.die
 					)
 				)
 			),
-		
+
+		// Return role bindings as they would be found in the actual fact type.
+		RoleBindings :actualFactType =
+			{[]}:binds
+			{0}:i
+			(	?(i < actualFactType.length)
+				RoleBinding:bind
+				{_.findIndex(actualFactType, {3: i})}:j
+				{actualFactType[j][1]}:termName
+				GetTable(termName):table
+				(	?table.primitive
+				|	-> ('var' + bind.number + termName)
+				):tableAlias
+				{bind.tableAlias = tableAlias}
+				{bind.baseIdentifierName = termName}
+				{i+2}:i
+				{binds[j/2] = bind}
+			)+
+			end
+			-> binds
+		,
+
 		RoleBinding =
 			[	'RoleBinding'
 				Identifier:identifier
@@ -263,25 +284,25 @@ define([
 				|	Value:data
 				)
 			]
-			-> {identifier: identifier, number:number, data: data},
+			-> {
+				identifier: identifier,
+				number: number,
+				data: data
+			},
 
 		NativeBinding =
 			RoleBinding:bind
 			(	?bind.data
 				-> bind.data
 			|	{this.bindAttributes[bind.number]}:baseBind
-				?(baseBind)
+				?baseBind
 				?baseBind.data
 				-> baseBind.data
-			|	{bind.identifier.name}:bindField
-				(	?(baseBind)
-					(	?baseBind.data
-						-> baseBind.data
-					|	-> (baseBind.number + baseBind.identifier.name)
-					)
-				|	-> (bind.number + bindField)
+			|	(	?baseBind
+					-> baseBind.tableAlias
+				|	-> bind.tableAlias
 				):bindName
-				-> ['ReferencedField', 'var' + bindName, bindField]
+				-> ['ReferencedField', 'var' + bindName, bind.identifier.name]
 			),
 
 		NativeProperty :actualFactType =
@@ -331,79 +352,59 @@ define([
 			{'link' + this.linkTableBind++}:tableAlias
 			{['SelectQuery', ['Select', []], ['From', this.GetTable(actualFactType).name, tableAlias]]}:query
 			{0}:i
-			(	?(i < actualFactType.length)
-				RoleBinding:bind
-				{0}:j
-				(	?(j < actualFactType.length)
-					// Find the matching term
-					(	?(actualFactType[j][3] == i)
-						{actualFactType[j][1]}:termName
-					)?
-					{j+2}:j
-				)*
-				GetTable(termName):table
-				AddWhereClause(query, ['Equals', ['ReferencedField', tableAlias, termName], ['ReferencedField', 'var' + bind.number + termName, table.idField]])
-				{i+2}:i
+			RoleBindings(actualFactType):binds
+			(	?(i < binds.length)
+				GetTable(binds[i].baseIdentifierName):table
+				(	?table.primitive
+				|	AddWhereClause(query, ['Equals', ['ReferencedField', tableAlias, binds[i].baseIdentifierName], ['ReferencedField', binds[i].tableAlias, table.idField]])
+				)
+				{i+1}:i
 			)+
 			-> ['Exists', query],
 		
 		ForeignKey :actualFactType =
 			?(this.GetTable(actualFactType) == 'ForeignKey')
-			(	RoleBinding:bindFrom
-				RoleBinding:bindTo
-				end
-				(	?(actualFactType[0][3] != 0)
-					// If the first term is not mapped to the first term (ie. reversed synonymous form), then we need to reverse the position of the attr/term to match.
-					{bindTo}:temp
-					{bindFrom}:bindTo
-					{temp}:bindFrom
-				)?
-				{actualFactType[0]}:fromTerm
-				{actualFactType[2]}:toTerm
-				GetTable(toTerm[1]):tableTo
+			(	RoleBindings(actualFactType):binds
+				?(binds.length == 2)
+				{binds[0]}:bindFrom
+				{binds[1]}:bindTo
+				GetTable(bindTo.baseIdentifierName):tableTo
 			|	___ForeignKeyMatchingFailed___.die
 			)
 			(	?(bindTo.identifier.type == 'Name')
 				{bindTo.identifier.name}:name
 				GetTable(name):nameTable
 				{'name-' + name + '-'}:varAlias
-				{['SelectQuery', ['Select', [[['ReferencedField', varAlias + toTerm[1], tableTo.idField]]]], ['From', nameTable.name, varAlias + name]]}:query
-				ResolveConceptTypes(query, bindTo.identifier, varAlias, toTerm)
+				{['SelectQuery', ['Select', [[['ReferencedField', bindTo.tableAlias, tableTo.idField]]]], ['From', nameTable.name, varAlias + name]]}:query
+				ResolveConceptTypes(query, bindTo.identifier, varAlias, bindTo.baseIdentifierName)
 				-> query
-			|	-> ['ReferencedField', 'var' + bindTo.number + toTerm[1], tableTo.idField]
+			|	-> ['ReferencedField', bindTo.tableAlias, tableTo.idField]
 			):toField
-			-> ['Equals', ['ReferencedField', 'var' + bindFrom.number + fromTerm[1], toTerm[1]], toField],
+			-> ['Equals', ['ReferencedField', bindFrom.tableAlias, bindTo.baseIdentifierName], toField],
 
 		BooleanAttribute :actualFactType =
 			?(this.GetTable(actualFactType) == 'BooleanAttribute')
-			(	RoleBinding:bindFrom
-				end
-				{actualFactType[0][1]}:termFrom
+			(	RoleBindings(actualFactType):binds
+				?(binds.length == 1)
 				{actualFactType[1][1]}:attributeName
 				{actualFactType[1][2]}:negated
 			|	{console.error(this.input)}
 				___BooleanAttributeMatchingFailed___.die
 			)
-			-> ['Equals', ['ReferencedField', 'var' + bindFrom.number + termFrom, attributeName], ['Boolean', !negated]],
+			-> ['Equals', ['ReferencedField', binds[0].tableAlias, attributeName], ['Boolean', !negated]],
 
 		Attribute :actualFactType =
 			?(this.GetTable(actualFactType) == 'Attribute')
-			(	RoleBinding:bindReal
-				RoleBinding:bindAttr
-				end
-				(	?(actualFactType[0][3] != 0)
-					// If the first term is not mapped to the first term (ie. reversed synonymous form), then we need to reverse the position of the attr/term to match.
-					{bindAttr}:temp
-					{bindReal}:bindAttr
-					{temp}:bindReal
-				)?
+			(	RoleBindings(actualFactType):binds
+				?(binds.length == 2)
+				{binds[0]}:bindReal
+				{binds[1]}:bindAttr
 				|	___AttributeMatchingFailed___.die
 			)
-			AttributeFactTypeBaseTermName(actualFactType):baseTermName
 			(	{this.bindAttributes[bindAttr.number]}:bind
 				?(bind.number != bindReal.number)
 				// If we're not the first bind we make sure we match it.
-				-> ['Equals', ['ReferencedField', 'var' + bind.number + bind.identifier.name, bindAttr.identifier.name], ['ReferencedField', 'var' + bindReal.number + baseTermName, bindAttr.identifier.name]]
+				-> ['Equals', ['ReferencedField', bind.tableAlias, bindAttr.identifier.name], ['ReferencedField', bindReal.tableAlias, bindAttr.identifier.name]]
 			|	// Otherwise return true = true, just so things work.
 				-> ['Equals', ['Boolean', true], ['Boolean', true]]
 			),
@@ -570,15 +571,6 @@ define([
 			]
 			-> rule,
 		
-		// Get the term name for the term an attribute is attached to in an attribute fact type
-		AttributeFactTypeBaseTermName :actualFactType =
-			{	for(var i=0; i < actualFactType.length; i+=2) {
-					if(!this.IsPrimitive(actualFactType[i])) {
-						return actualFactType[i][1];
-					}
-				}
-			},
-		
 		ProcessAtomicFormulations =
 			{this.bindAttributes = []}
 			{this.bindAttributeDepth = []}
@@ -592,14 +584,15 @@ define([
 					[	'FactType'
 						anything+:factType
 					]
-					UnmappedFactType(factType):actualFactType
-					{this._applyWithArgs(rule, depth, actualFactType)}
+					UnmappedFactType(factType):unmappedFactType
+					MappedFactType(factType):actualFactType
+					{this._applyWithArgs(rule, depth, unmappedFactType, actualFactType)}
 				|	ProcessAtomicFormulationsRecurse(depth+1, rule)
 				]
 			|	anything
 			)*,
-		ProcessAtomicFormulationsNonPrimitive :depth :actualFactType =
-			RoleBinding*:binds
+		ProcessAtomicFormulationsNonPrimitive :depth :unmappedFactType :actualFactType =
+			RoleBindings(actualFactType):binds
 			{	for(var i=0; i < binds.length; i++) {
 					if(!this.IsPrimitive([binds[i].identifier.type, binds[i].identifier.name, binds[i].identifier.vocab])) {
 						this.nonPrimitiveExists = true;
@@ -607,30 +600,20 @@ define([
 					}
 				}
 			},
-		ProcessAtomicFormulationsAttributes :depth :actualFactType =
-			?(this.attributes.hasOwnProperty(actualFactType) && this.attributes[actualFactType])
-			RoleBinding*:binds
-			// Find the term that has the attribute attached to it.
-			AttributeFactTypeBaseTermName(actualFactType):baseTermName
-			{null}:baseBinding
-			// Find the "base" binding
-			{	for(var i=0; i < binds.length; i++) {
-					if(!this.IsPrimitive([binds[i].identifier.type, binds[i].identifier.name, binds[i].identifier.vocab])) {
-						baseBinding = binds[i];
-						baseBinding.identifier.name = baseTermName;
-						break;
-					}
-				}
-			}
+		ProcessAtomicFormulationsAttributes :depth :unmappedFactType :actualFactType =
+			RoleBindings(actualFactType):binds
+			?(this.attributes.hasOwnProperty(unmappedFactType) && this.attributes[unmappedFactType])
+			// Find the "base" binding - the one that isn't primitive
+			{_.find(binds, function(bind) {
+				return !$elf.IsPrimitive([bind.identifier.type, bind.identifier.name, bind.identifier.vocab]);
+			})}:baseBinding
 			// Use the "base" binding in the attribute binding list, but only if we are as shallow as possible.
-			{	for(var i=0; i < binds.length; i++) {
-					if(this.IsPrimitive([binds[i].identifier.type, binds[i].identifier.name, binds[i].identifier.vocab])
-							&& (this.bindAttributeDepth[binds[i].number] == null || this.bindAttributeDepth[binds[i].number] > depth)) {
-						this.bindAttributeDepth[binds[i].number] = depth;
-						this.bindAttributes[binds[i].number] = baseBinding;
-						break;
-					}
-				}
+			{_.find(binds, function(bind) {
+				return $elf.IsPrimitive([bind.identifier.type, bind.identifier.name, bind.identifier.vocab])
+						&& ($elf.bindAttributeDepth[bind.number] == null || $elf.bindAttributeDepth[bind.number] > depth);
+			})}:attrBinding
+			{	this.bindAttributeDepth[attrBinding.number] = depth;
+				this.bindAttributes[attrBinding.number] = baseBinding;
 			},
 		
 		Rule =
