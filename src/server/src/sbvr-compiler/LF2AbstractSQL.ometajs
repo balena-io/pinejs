@@ -227,10 +227,16 @@ define([
 				(	// Don't add this var if it's an attribute binding.
 					{this.bindAttributes[num]}:bind
 					?bind
+					(	?bind.data
+						-> bind.data
+					|	-> ['ReferencedField', bind.tableAlias, identifier.name]
+					):selectBody
+					-> ['SelectQuery', ['Select', [selectBody]]]
 				|	{'var' + num}:varAlias
 					{['SelectQuery', ['Select', []], ['From', this.GetTable(identifier.name).name, varAlias + identifier.name]]}:query
 					ResolveConceptTypes(query, identifier, varAlias)
-				)
+					-> query
+				):query
 				(	RulePart:whereBody
 					(	?query
 						AddWhereClause(query, whereBody)
@@ -238,21 +244,17 @@ define([
 				)?
 			]
 			(	NativePropertyAtomicFormulation:data
-				-> {data: data}
-			|	RulePart:whereBody2
-				(	?query
+				-> data
+			|	(	RulePart:whereBody2
 					AddWhereClause(query, whereBody2)
-					-> query
-				|	// We ignore whereBody2, as it not useful for attributes
-					(	?bind
-						(	?bind.data
-							// Embedded data
-							-> {identifier: identifier, data: bind.data, whereBody: whereBody}
-						|	-> {identifier: identifier, tableAlias: bind.tableAlias, whereBody: whereBody}
-						)
-					|	// A rule directly on a primitive, this should not be being processed..
-						___PROCESSING_PRIMITIVE_RULE___.die
-					)
+				)?
+				(	?(!_.any(query, {0: 'From'}))
+					(	{_.find(query, {0: 'Where'})}:whereBody
+						?whereBody
+						{selectBody.whereBody = whereBody[1]}
+					)?
+					-> selectBody
+				|	-> query
 				)
 			),
 
@@ -349,7 +351,7 @@ define([
 			),
 
 		LinkTable :actualFactType =
-			{'link' + this.linkTableBind++}:tableAlias
+			{'link' + actualFactType}:tableAlias
 			{['SelectQuery', ['Select', []], ['From', this.GetTable(actualFactType).name, tableAlias]]}:query
 			{0}:i
 			RoleBindings(actualFactType):binds
@@ -441,17 +443,15 @@ define([
 			(	?(minCard == 0)
 				// At least 0? Well that's always true..
 				-> ['Boolean', true]
-			|	(	?_.isArray(variable)
-					// Variable is a query so we do a count.
+			|	(	?(variable[0] == 'SelectQuery' && variable[1][1].length == 0)
+					// Variable is an empty query so we do a count.
 					{variable[1][1].push(['Count', '*'])}
 					-> ['GreaterThanOrEqual', variable, ['Number', minCard]]
 				|	// Otherwise we're an attribute
 					(	?(minCard > 1)
 						// And to have more than one of an attribute is impossible.
 						-> ['Boolean', false]
-					|	?variable.data
-						-> ['Boolean', true]
-					|	-> ['Exists', ['ReferencedField', variable.tableAlias, variable.identifier.name]]
+					|	-> ['Exists', variable]
 					)
 				)
 			):where
@@ -464,15 +464,12 @@ define([
 				Cardinality:card
 				Variable:variable
 			]
-			(	?_.isArray(variable)
-				// Variable is a query so we do a count.
+			(	?(variable[0] == 'SelectQuery' && variable[1][1].length == 0)
+				// Variable is an empty query so we do a count.
 				{variable[1][1].push(['Count', '*'])}
 				-> ['Equals', variable, ['Number', card]]
 			|	// Otherwise we're an attribute
-				(	?variable.data
-					-> ['Boolean', true]
-				|	-> ['Exists', ['ReferencedField', variable.tableAlias, variable.identifier.name]]
-				):exists
+				{['Exists', variable]}:exists
 				(	?(card == 0)
 					// Exactly 0 attributes is a non-existent (null) attribute
 					-> ['Not', exists]
@@ -493,15 +490,12 @@ define([
 				Cardinality:maxCard
 				Variable:variable
 			]
-			(	?_.isArray(variable)
-				// Variable is a query so we do a count.
+			(	?(variable[0] == 'SelectQuery' && variable[1][1].length == 0)
+				// Variable is an empty query so we do a count.
 				{variable[1][1].push(['Count', '*'])}
 				-> ['Between', variable, ['Number', minCard], ['Number', maxCard]]
 			|	// Otherwise we're an attribute
-				(	?variable.data
-					-> ['Boolean', true]
-				|	-> ['Exists', ['ReferencedField', variable.tableAlias, variable.identifier.name]]
-				):exists
+				{['Exists', variable]}:exists
 				(	?(minCard == 0)
 					(	?(maxCard == 0)
 						// Between 0 and 0 is not exists.
@@ -524,15 +518,7 @@ define([
 			[	'ExistentialQuantification'
 				Variable:variable
 			]
-			(	?_.isArray(variable)
-				// Variable is a query so we directly check for existence.
-				-> ['Exists', variable]
-			|	// Otherwise we're an attribute so we check for the field.
-				(	?variable.data
-					-> ['Boolean', true]
-				|	-> ['Exists', ['ReferencedField', variable.tableAlias, variable.identifier.name]]
-				)
-			):where
+			{['Exists', variable]}:where
 			(	?variable.whereBody
 				-> ['And', variable.whereBody, where]
 			|	-> where
@@ -602,34 +588,49 @@ define([
 			},
 		ProcessAtomicFormulationsAttributes :depth :unmappedFactType :actualFactType =
 			RoleBindings(actualFactType):binds
-			?(this.attributes.hasOwnProperty(unmappedFactType) && this.attributes[unmappedFactType])
-			// Find the "base" binding - the one that isn't primitive
-			{_.find(binds, function(bind) {
-				return !$elf.IsPrimitive([bind.identifier.type, bind.identifier.name, bind.identifier.vocab]);
-			})}:baseBinding
-			// Use the "base" binding in the attribute binding list, but only if we are as shallow as possible.
-			{_.find(binds, function(bind) {
-				return $elf.IsPrimitive([bind.identifier.type, bind.identifier.name, bind.identifier.vocab])
-						&& ($elf.bindAttributeDepth[bind.number] == null || $elf.bindAttributeDepth[bind.number] > depth);
-			})}:attrBinding
-			{	this.bindAttributeDepth[attrBinding.number] = depth;
-				this.bindAttributes[attrBinding.number] = baseBinding;
-			},
+			(	?(this.attributes.hasOwnProperty(unmappedFactType) && this.attributes[unmappedFactType])
+				// Find the "base" binding - the one that isn't primitive
+				{_.find(binds, function(bind) {
+					return !$elf.IsPrimitive([bind.identifier.type, bind.identifier.name, bind.identifier.vocab]);
+				})}:baseBinding
+				// Use the "base" binding in the attribute binding list, but only if we are as shallow as possible.
+				{_.find(binds, function(bind) {
+					return $elf.IsPrimitive([bind.identifier.type, bind.identifier.name, bind.identifier.vocab])
+							&& ($elf.bindAttributeDepth[bind.number] == null || $elf.bindAttributeDepth[bind.number] > depth);
+				})}:attrBinding
+				{	this.bindAttributeDepth[attrBinding.number] = depth;
+					this.bindAttributes[attrBinding.number] = baseBinding;
+				}
+			|	// Ignore primitive only fact types.
+				?_.any(binds, function(bind) {
+					return !$elf.IsPrimitive([bind.identifier.type, bind.identifier.name, bind.identifier.vocab]);
+				})
+				{0}:i
+				(	?(i < actualFactType.length)
+					GetTable(actualFactType[i][1]):table
+					(	?table
+						?table.primitive
+						{	this.bindAttributeDepth[binds[i/2].number] = depth;
+							this.bindAttributes[binds[i/2].number] = {tableAlias: 'link' + actualFactType};
+						}
+					)?
+					{i+2}:i
+				)+
+			),
 		
 		Rule =
 			[	'Rule'
-				{this.linkTableBind = 0}
 				&ProcessAtomicFormulations
 				(	?this.nonPrimitiveExists
-					RuleBody:ruleBody
+					RuleBody
 				|	anything
-				)
+				):ruleBody
 				[	'StructuredEnglish'
 					:ruleText
 				]
 				(	?this.nonPrimitiveExists
 					{this.rules.push(['Rule', ['StructuredEnglish', ruleText], ['Body', ruleBody]])}
-				|	{console.warn('Ignoring rule with only primitives: ', ruleText)}
+				|	{console.warn('Ignoring rule with only primitives: ', ruleText, ruleBody)}
 				)
 			],
 		
@@ -726,7 +727,6 @@ define([
 		this.tables = {};
 		this.identifiers = {}; // TODO: Is this needed?
 		this.rules = [];
-		this.linkTableBind = 0;
 		this.attributes = {};
 		this.bindAttributes = [];
 		this.bindAttributeDepth = [];
