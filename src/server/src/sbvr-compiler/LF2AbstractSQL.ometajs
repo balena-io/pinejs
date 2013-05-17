@@ -229,9 +229,9 @@ define([
 					?bind
 					{_.clone(bind.binding)}:selectBody
 					-> ['SelectQuery', ['Select', [selectBody]]]
-				|	{'var' + num}:varAlias
-					{['SelectQuery', ['Select', []], ['From', this.GetTable(identifier.name).name, varAlias + identifier.name]]}:query
-					ResolveConceptTypes(query, identifier, varAlias)
+				|	{'.' + num}:varNum
+					{['SelectQuery', ['Select', []], ['From', this.GetTable(identifier.name).name, identifier.name + varNum]]}:query
+					ResolveConceptTypes(query, identifier, varNum)
 					-> query
 				):query
 				(	RulePart:whereBody
@@ -269,9 +269,7 @@ define([
 				|	?baseBind
 					-> baseBind.binding
 				|	{actualFactType[j][1]}:termName
-					GetTable(termName):table
-					{'var' + bind.number + termName}:tableAlias
-					-> ['ReferencedField', tableAlias, bind.identifier.name]
+					-> ['ReferencedField', termName + '.' + bind.number, bind.identifier.name]
 				):binding
 				{bind.binding = binding}
 				{i+2}:i
@@ -339,13 +337,13 @@ define([
 							:identifierName
 							:vocab
 							anything?:mapping
-							-> ('var' + bindNumbers.pop() + identifierName)
+							-> (identifierName + '.' + bindNumbers.pop())
 						):partAlias
 					]
 					-> partAlias
 				)*:factType
 			]
-			-> ('link-' + factType.join('-') + '-' + bindNumbers.join('-')),
+			-> factType.join('-'),
 		LinkTable :actualFactType =
 			RoleBindings(actualFactType):binds
 			LinkTableAlias(binds, actualFactType):tableAlias
@@ -710,14 +708,14 @@ define([
 		}
 	};
 	
-	LF2AbstractSQL.ResolveConceptTypes = function(query, identifier, varAlias, untilConcept) {
+	LF2AbstractSQL.ResolveConceptTypes = function(query, identifier, varNum, untilConcept) {
 		var conceptAlias,
-			parentAlias = varAlias + identifier.name,
+			parentAlias = identifier.name + varNum,
 			concept = this.ReconstructIdentifier(identifier),
 			conceptTable;
 		while((untilConcept == null || !this.IdentifiersEqual(concept, untilConcept))
 				&& (concept = this.FollowConceptType(concept)) !== false) {
-			conceptAlias = varAlias + concept[1];
+			conceptAlias = concept[1] + varNum;
 			conceptTable = this.GetTable(concept[1]);
 			if(conceptTable.primitive !== false) {
 				break;
