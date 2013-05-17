@@ -255,41 +255,35 @@ define([
 		// Return role bindings as they would be found in the actual fact type.
 		RoleBindings :actualFactType =
 			{[]}:binds
-			{0}:i
-			(	?(i < actualFactType.length)
-				RoleBinding:bind
-				{_.findIndex(actualFactType, {3: i})}:j
-				{this.bindAttributes[bind.number]}:baseBind
-				(	?bind.data
-					(	?baseBind
-						{debugger}
-						-> null
-					)?
-					-> bind.data
-				|	?baseBind
-					-> baseBind.binding
-				|	{actualFactType[j][1]}:termName
-					-> ['ReferencedField', termName + '.' + bind.number, bind.identifier.name]
-				):binding
-				{bind.binding = binding}
-				{i+2}:i
-				{binds[j/2] = bind}
-			)+
+			{	for(var i = 0; i < actualFactType.length; i += 2) {
+					var j = _.findIndex(actualFactType, {3: i});
+					// Map the bind into the position matching that of the fact type.
+					binds[j/2] = this.RoleBinding(actualFactType[j][1]);
+				}
+			}
 			end
 			-> binds
 		,
 
-		RoleBinding =
+		RoleBinding :baseTermName =
 			[	'RoleBinding'
 				Identifier:identifier
 				(	number:number
 				|	Value:data
 				)
 			]
+			{this.bindAttributes[number]}:baseBind
+			(	?data
+				-> data
+			|	?baseBind
+				-> baseBind.binding
+			|	-> ['ReferencedField', baseTermName + '.' + number, identifier.name]
+			):binding
 			-> {
 				identifier: identifier,
 				number: number,
-				data: data
+				data: data,
+				binding: binding
 			},
 
 		NativeProperty :actualFactType =
@@ -348,15 +342,14 @@ define([
 			RoleBindings(actualFactType):binds
 			LinkTableAlias(binds, actualFactType):tableAlias
 			{['SelectQuery', ['Select', []], ['From', this.GetTable(actualFactType).name, tableAlias]]}:query
-			{0}:i
-			(	?(i < binds.length)
-				{actualFactType[i*2][1]}:baseIdentifierName
-				GetTable(baseIdentifierName):table
-				(	?table.primitive
-				|	AddWhereClause(query, ['Equals', ['ReferencedField', tableAlias, baseIdentifierName], ['ReferencedField', binds[i].binding[1], table.idField]])
-				)
-				{i+1}:i
-			)+
+			{	_.each(binds, function(bind, i) {
+					var baseIdentifierName = actualFactType[i*2][1],
+						table = this.GetTable(baseIdentifierName);
+					if(!table.primitive) {
+						this.AddWhereClause(query, ['Equals', ['ReferencedField', tableAlias, baseIdentifierName], ['ReferencedField', bind.binding[1], table.idField]]);
+					}
+				}, this)
+			}
 			-> ['Exists', query],
 		
 		ForeignKey :actualFactType =
@@ -588,21 +581,21 @@ define([
 				?_.any(binds, function(bind) {
 					return !$elf.IsPrimitive($elf.ReconstructIdentifier(bind.identifier));
 				})
-				{0}:i
-				(	?(i < actualFactType.length)
-					GetTable(actualFactType[i][1]):table
-					(	?table
-						?table.primitive
-						?(this.bindAttributeDepth[binds[i/2].number] == null || this.bindAttributeDepth[binds[i/2].number] > depth)
-						LinkTableAlias(binds, actualFactType):tableAlias
-						{	this.bindAttributeDepth[binds[i/2].number] = depth;
-							this.bindAttributes[binds[i/2].number] = {
+				LinkTableAlias(binds, actualFactType):tableAlias
+				{	for(var i = 0; i < actualFactType.length; i += 2) {
+						var table = this.GetTable(actualFactType[i][1]),
+							bindNumber = binds[i/2].number;
+						if(table && table.primitive && (
+							this.bindAttributeDepth[bindNumber] == null ||
+							this.bindAttributeDepth[bindNumber] > depth
+						)) {
+							this.bindAttributeDepth[bindNumber] = depth;
+							this.bindAttributes[bindNumber] = {
 								binding: ['ReferencedField', tableAlias, actualFactType[i][1]]
 							};
 						}
-					)?
-					{i+2}:i
-				)+
+					}
+				}
 			),
 		ProcessAtomicFormulationsNativeProperties :depth :unmappedFactType :actualFactType =
 			RoleBindings(actualFactType):binds
