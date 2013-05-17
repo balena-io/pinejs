@@ -1017,7 +1017,7 @@ define([
 				if err?
 					console.error('Failed to execute standard models.', err)
 				else
-					tx.executeSql('ALTER TABLE "model" ADD UNIQUE INDEX ("vocabulary", "model type")')
+					tx.executeSql('ALTER TABLE "model" ADD CONSTRAINT model_vocab_model_type_key UNIQUE ("vocabulary", "model type");')
 					# TODO: Remove these hardcoded users.
 					if has 'DEV'
 						async.parallel([
