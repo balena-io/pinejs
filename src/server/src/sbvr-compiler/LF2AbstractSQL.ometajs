@@ -243,19 +243,16 @@ define([
 					)?
 				)?
 			]
-			(	NativePropertyAtomicFormulation:data
-				-> data
-			|	(	RulePart:whereBody2
-					AddWhereClause(query, whereBody2)
+			(	RulePart:whereBody2
+				AddWhereClause(query, whereBody2)
+			)?
+			(	?(!_.any(query, {0: 'From'}))
+				(	{_.find(query, {0: 'Where'})}:whereBody
+					?whereBody
+					{selectBody.whereBody = whereBody[1]}
 				)?
-				(	?(!_.any(query, {0: 'From'}))
-					(	{_.find(query, {0: 'Where'})}:whereBody
-						?whereBody
-						{selectBody.whereBody = whereBody[1]}
-					)?
-					-> selectBody
-				|	-> query
-				)
+				-> selectBody
+			|	-> query
 			),
 
 		// Return role bindings as they would be found in the actual fact type.
@@ -267,10 +264,19 @@ define([
 				{_.findIndex(actualFactType, {3: i})}:j
 				{actualFactType[j][1]}:termName
 				GetTable(termName):table
-				(	?table.primitive
-				|	-> ('var' + bind.number + termName)
-				):tableAlias
-				{bind.tableAlias = tableAlias}
+				{this.bindAttributes[bind.number]}:baseBind
+				(	?baseBind
+					?baseBind.data
+					{bind.data = baseBind.data}
+				|	(	?baseBind
+						-> baseBind.tableAlias
+					|	?table.primitive
+						// {debugger}
+						-> ('link' + actualFactType)
+					|	-> ('var' + bind.number + termName)
+					):tableAlias
+					{bind.tableAlias = tableAlias}
+				)
 				{bind.baseIdentifierName = termName}
 				{i+2}:i
 				{binds[j/2] = bind}
@@ -292,31 +298,11 @@ define([
 				data: data
 			},
 
-		NativeBinding =
-			RoleBinding:bind
-			(	?bind.data
-				-> bind.data
-			|	{this.bindAttributes[bind.number]}:baseBind
-				?baseBind
-				?baseBind.data
-				-> baseBind.data
-			|	(	?baseBind
-					-> baseBind.tableAlias
-				|	-> bind.tableAlias
-				):bindName
-				-> ['ReferencedField', bindName, bind.identifier.name]
-			),
-
 		NativeProperty :actualFactType =
 			?(this.IsPrimitive(actualFactType[0]))
 			?(this.IsPrimitive(actualFactType[2]))
-			NativeBinding:from
-			NativeBinding:to
-			end
-			(	?(actualFactType[0][3] != 0)
-				// If the first bind is not the first term (ie. reversed synonymous form), we go to -> from
-				{to}:from
-			)?
+			RoleBindings(actualFactType):binds
+			?(binds.length == 2)
 			{actualFactType[0][1]}:primitive
 			{actualFactType[1][1]}:verb
 			{actualFactType[2][1]}:property
@@ -324,21 +310,23 @@ define([
 				sbvrTypes[primitive].nativeProperties &&
 				sbvrTypes[primitive].nativeProperties[verb] &&
 				sbvrTypes[primitive].nativeProperties[verb][property])
-			-> sbvrTypes[primitive].nativeProperties[verb][property](from, to),
+			-> ['Equals', ['Boolean', true], ['Boolean', true]],
 
 		NativeFactType :actualFactType =
 			?(actualFactType.length == 3)
 			?(this.IsPrimitive(actualFactType[0]))
 			?(this.IsPrimitive(actualFactType[2]))
-			(	NativeBinding:from
-				NativeBinding:to
-				end
-				(	?(actualFactType[0][3] != 0)
-					// If the first term is not mapped to the first term (ie. reversed synonymous form), then we need to reverse the binds to match
-					{to}:temp
-					{from}:to
-					{temp}:from
-				)?
+			{debugger}
+			(	RoleBindings(actualFactType):binds
+				?(binds.length == 2)
+				(	?binds[0].data
+					-> binds[0].data
+				|	-> ['ReferencedField', binds[0].tableAlias, binds[0].identifier.name]
+				):from
+				(	?binds[1].data
+					-> binds[1].data
+				|	-> ['ReferencedField', binds[1].tableAlias, binds[1].identifier.name]
+				):to
 				{actualFactType[0][1]}:primitive
 				{actualFactType[1][1]}:verb
 				{actualFactType[2][1]}:secondPrimitive
@@ -411,23 +399,14 @@ define([
 				-> ['Equals', ['Boolean', true], ['Boolean', true]]
 			),
 		
-		NativePropertyAtomicFormulation =
-			[	'AtomicFormulation'
-				[	'FactType'
-					anything+:factType
-				]
-				MappedFactType(factType):actualFactType
-				NativeProperty(actualFactType):whereClause
-			]
-			-> whereClause,
-		
 		AtomicFormulation =
 			[	'AtomicFormulation'
 				[	'FactType'
 					anything+:factType
 				]
 				MappedFactType(factType):actualFactType
-				(	NativeFactType(actualFactType)
+				(	NativeProperty(actualFactType)
+				|	NativeFactType(actualFactType)
 				|	ForeignKey(actualFactType)
 				|	BooleanAttribute(actualFactType)
 				|	Attribute(actualFactType)
@@ -562,7 +541,8 @@ define([
 			{this.bindAttributeDepth = []}
 			{this.nonPrimitiveExists = false}
 			&ProcessAtomicFormulationsRecurse(0, 'ProcessAtomicFormulationsAttributes')
-			&ProcessAtomicFormulationsRecurse(0, 'ProcessAtomicFormulationsNonPrimitive'),
+			&ProcessAtomicFormulationsRecurse(0, 'ProcessAtomicFormulationsNonPrimitive')
+			&ProcessAtomicFormulationsRecurse(0, 'ProcessAtomicFormulationsNativeProperties'),
 		ProcessAtomicFormulationsRecurse :depth :rule =
 			(	// Bit of a hack, but we only want to drill into the input if it's an array, otherwise we get infinite recursion.
 				?(_.isArray(this.input.hd))
@@ -617,6 +597,32 @@ define([
 					{i+2}:i
 				)+
 			),
+		ProcessAtomicFormulationsNativeProperties :depth :unmappedFactType :actualFactType =
+			RoleBindings(actualFactType):binds
+			?_.all(binds, function(bind) {
+				return $elf.IsPrimitive([bind.identifier.type, bind.identifier.name, bind.identifier.vocab]);
+			})
+			?(binds.length == 2)
+			(	?binds[0].data
+				-> binds[0].data
+			|	-> ['ReferencedField', binds[0].tableAlias, binds[0].identifier.name]
+			):from
+			(	?binds[1].data
+				-> binds[1].data
+			|	-> ['ReferencedField', binds[1].tableAlias, binds[1].identifier.name]
+			):to
+			{actualFactType[0][1]}:primitive
+			{actualFactType[1][1]}:verb
+			{actualFactType[2][1]}:property
+			?(sbvrTypes[primitive] &&
+				sbvrTypes[primitive].nativeProperties &&
+				sbvrTypes[primitive].nativeProperties[verb] &&
+				sbvrTypes[primitive].nativeProperties[verb][property])
+			{sbvrTypes[primitive].nativeProperties[verb][property](from, to)}:data
+			{debugger}
+			{	this.bindAttributeDepth[binds[1].number] = depth;
+				this.bindAttributes[binds[1].number] = {data: data};
+			},
 		
 		Rule =
 			[	'Rule'
