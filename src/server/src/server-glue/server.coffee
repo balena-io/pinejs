@@ -12,9 +12,6 @@ define([
 		databaseOptions =
 			engine: databaseURL[0...databaseURL.indexOf(':')]
 			params: databaseURL
-		app.configure('production', ->
-			console.log = ->
-		)
 	else
 		databaseOptions =
 			engine: 'websql'
@@ -25,6 +22,9 @@ define([
 
 	setupCallback = (app) ->
 		sbvrUtils.setup(app, require, db, (err) ->
+			app.configure('production', ->
+				console.log = ->
+			)
 			passportBCrypt = passportBCrypt({
 					loginUrl: '/login',
 					failureRedirect: '/login.html',

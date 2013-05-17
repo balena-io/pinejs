@@ -101,6 +101,7 @@ define((requirejs, exports, module) ->
 					)
 				for queuedRequest in queuedRequests
 					@process.apply(@, queuedRequest)
+			configure: ->
 		}
 
 	return {
