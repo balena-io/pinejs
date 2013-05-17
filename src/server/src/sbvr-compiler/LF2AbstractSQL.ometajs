@@ -349,8 +349,8 @@ define([
 				?(binds.length == 2)
 				{binds[0]}:bindFrom
 				{binds[1]}:bindTo
-				{actualFactType[2][1]}:bindToBaseIdentifierName
-				GetTable(bindToBaseIdentifierName):tableTo
+				{actualFactType[2]}:baseToIdentifier
+				GetTable(baseToIdentifier[1]):tableTo
 			|	___ForeignKeyMatchingFailed___.die
 			)
 			(	?(bindTo.identifier.type == 'Name')
@@ -358,11 +358,11 @@ define([
 				GetTable(name):nameTable
 				{'name-' + name + '-'}:varAlias
 				{['SelectQuery', ['Select', [[['ReferencedField', bindTo.binding[1], tableTo.idField]]]], ['From', nameTable.name, varAlias + name]]}:query
-				ResolveConceptTypes(query, bindTo.identifier, varAlias, bindToBaseIdentifierName)
+				ResolveConceptTypes(query, bindTo.identifier, varAlias, baseToIdentifier)
 				-> query
 			|	-> ['ReferencedField', bindTo.binding[1], tableTo.idField]
 			):toField
-			-> ['Equals', ['ReferencedField', bindFrom.binding[1], bindToBaseIdentifierName], toField],
+			-> ['Equals', ['ReferencedField', bindFrom.binding[1], baseToIdentifier[1]], toField],
 
 		BooleanAttribute :actualFactType =
 			?(this.GetTable(actualFactType) == 'BooleanAttribute')
@@ -528,7 +528,10 @@ define([
 				RulePart:rule
 			]
 			-> rule,
-		
+
+		ReconstructIdentifier :bindIdentifier =
+			-> [bindIdentifier.type, bindIdentifier.name, bindIdentifier.vocab],
+
 		ProcessAtomicFormulations =
 			{this.bindAttributes = []}
 			{this.bindAttributeDepth = []}
@@ -553,7 +556,7 @@ define([
 		ProcessAtomicFormulationsNonPrimitive :depth :unmappedFactType :actualFactType =
 			RoleBindings(actualFactType):binds
 			{	for(var i=0; i < binds.length; i++) {
-					if(!this.IsPrimitive([binds[i].identifier.type, binds[i].identifier.name, binds[i].identifier.vocab])) {
+					if(!this.IsPrimitive(this.ReconstructIdentifier(binds[i].identifier))) {
 						this.nonPrimitiveExists = true;
 						break;
 					}
@@ -564,11 +567,11 @@ define([
 			(	?(this.attributes.hasOwnProperty(unmappedFactType) && this.attributes[unmappedFactType])
 				// Find the "base" binding - the one that isn't primitive
 				{_.find(binds, function(bind) {
-					return !$elf.IsPrimitive([bind.identifier.type, bind.identifier.name, bind.identifier.vocab]);
+					return !$elf.IsPrimitive($elf.ReconstructIdentifier(bind.identifier));
 				})}:baseBinding
 				// Use the "base" binding in the attribute binding list, but only if we are as shallow as possible.
 				{_.find(binds, function(bind) {
-					return $elf.IsPrimitive([bind.identifier.type, bind.identifier.name, bind.identifier.vocab])
+					return $elf.IsPrimitive($elf.ReconstructIdentifier(bind.identifier))
 							&& ($elf.bindAttributeDepth[bind.number] == null || $elf.bindAttributeDepth[bind.number] > depth);
 				})}:attrBinding
 				{	this.bindAttributeDepth[attrBinding.number] = depth;
@@ -576,7 +579,7 @@ define([
 				}
 			|	// Ignore primitive only fact types.
 				?_.any(binds, function(bind) {
-					return !$elf.IsPrimitive([bind.identifier.type, bind.identifier.name, bind.identifier.vocab]);
+					return !$elf.IsPrimitive($elf.ReconstructIdentifier(bind.identifier));
 				})
 				{0}:i
 				(	?(i < actualFactType.length)
@@ -597,7 +600,7 @@ define([
 		ProcessAtomicFormulationsNativeProperties :depth :unmappedFactType :actualFactType =
 			RoleBindings(actualFactType):binds
 			?_.all(binds, function(bind) {
-				return $elf.IsPrimitive([bind.identifier.type, bind.identifier.name, bind.identifier.vocab]);
+				return $elf.IsPrimitive($elf.ReconstructIdentifier(bind.identifier));
 			})
 			?(binds.length == 2)
 			{actualFactType[0][1]}:primitive
@@ -701,7 +704,7 @@ define([
 	LF2AbstractSQL.ResolveConceptTypes = function(query, identifier, varAlias, untilConcept) {
 		var conceptAlias,
 			parentAlias = varAlias + identifier.name,
-			concept = [identifier.type, identifier.name, identifier.vocab],
+			concept = this.ReconstructIdentifier(identifier),
 			conceptTable;
 		while((untilConcept == null || !this.IdentifiersEqual(concept, untilConcept))
 				&& (concept = this.FollowConceptType(concept)) !== false) {
