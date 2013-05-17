@@ -52,8 +52,7 @@ require({
 		'express-emulator'			: '../../server/src/express-emulator',
 		'passport-bcrypt'			: '../../server/src/passport-bcrypt',
 		'server-glue'				: '../../server/src/server-glue',
-		'sbvr-compiler'				: '../../server/src/sbvr-compiler',
-		'prettify'					: '../../common/prettify'
+		'sbvr-compiler'				: '../../server/src/sbvr-compiler'
 	},
 	packages: [
 		{
