@@ -270,10 +270,7 @@ define([
 					-> baseBind.binding
 				|	{actualFactType[j][1]}:termName
 					GetTable(termName):table
-					(	?table.primitive
-						-> ('link' + actualFactType)
-					|	-> ('var' + bind.number + termName)
-					):tableAlias
+					{'var' + bind.number + termName}:tableAlias
 					-> ['ReferencedField', tableAlias, bind.identifier.name]
 				):binding
 				{bind.binding = binding}
@@ -328,11 +325,32 @@ define([
 			|	___NativeFactTypeMatchingFailed___.die
 			),
 
+
+		LinkTableAlias =
+			[	(	:binding
+					-> binding.number
+				)+:bindNumbers
+			]
+			[	(	[	(	'Verb'
+							:verb
+							anything
+							-> verb
+						|	:identifierType
+							:identifierName
+							:vocab
+							anything?:mapping
+							-> ('var' + bindNumbers.pop() + identifierName)
+						):partAlias
+					]
+					-> partAlias
+				)*:factType
+			]
+			-> ('link-' + factType.join('-') + '-' + bindNumbers.join('-')),
 		LinkTable :actualFactType =
-			{'link' + actualFactType}:tableAlias
+			RoleBindings(actualFactType):binds
+			LinkTableAlias(binds, actualFactType):tableAlias
 			{['SelectQuery', ['Select', []], ['From', this.GetTable(actualFactType).name, tableAlias]]}:query
 			{0}:i
-			RoleBindings(actualFactType):binds
 			(	?(i < binds.length)
 				{actualFactType[i*2][1]}:baseIdentifierName
 				GetTable(baseIdentifierName):table
@@ -578,7 +596,7 @@ define([
 					(	?table
 						?table.primitive
 						?(this.bindAttributeDepth[binds[i/2].number] == null || this.bindAttributeDepth[binds[i/2].number] > depth)
-						{'link' + actualFactType}:tableAlias
+						LinkTableAlias(binds, actualFactType):tableAlias
 						{	this.bindAttributeDepth[binds[i/2].number] = depth;
 							this.bindAttributes[binds[i/2].number] = {
 								binding: ['ReferencedField', tableAlias, actualFactType[i][1]]
