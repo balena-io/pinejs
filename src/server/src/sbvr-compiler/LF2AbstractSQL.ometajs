@@ -353,16 +353,7 @@ define([
 				GetTable(baseToIdentifier[1]):tableTo
 			|	___ForeignKeyMatchingFailed___.die
 			)
-			(	?(bindTo.identifier.type == 'Name')
-				{bindTo.identifier.name}:name
-				GetTable(name):nameTable
-				{'name-' + name + '-'}:varAlias
-				{['SelectQuery', ['Select', [[['ReferencedField', bindTo.binding[1], tableTo.idField]]]], ['From', nameTable.name, varAlias + name]]}:query
-				ResolveConceptTypes(query, bindTo.identifier, varAlias, baseToIdentifier)
-				-> query
-			|	-> ['ReferencedField', bindTo.binding[1], tableTo.idField]
-			):toField
-			-> ['Equals', ['ReferencedField', bindFrom.binding[1], baseToIdentifier[1]], toField],
+			-> ['Equals', ['ReferencedField', bindFrom.binding[1], baseToIdentifier[1]], ['ReferencedField', bindTo.binding[1], tableTo.idField]],
 
 		BooleanAttribute :actualFactType =
 			?(this.GetTable(actualFactType) == 'BooleanAttribute')
