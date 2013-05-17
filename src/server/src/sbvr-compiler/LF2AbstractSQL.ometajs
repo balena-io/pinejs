@@ -227,10 +227,7 @@ define([
 				(	// Don't add this var if it's an attribute binding.
 					{this.bindAttributes[num]}:bind
 					?bind
-					(	?bind.data
-						-> bind.data
-					|	-> ['ReferencedField', bind.tableAlias, identifier.name]
-					):selectBody
+					{_.clone(bind.binding)}:selectBody
 					-> ['SelectQuery', ['Select', [selectBody]]]
 				|	{'var' + num}:varAlias
 					{['SelectQuery', ['Select', []], ['From', this.GetTable(identifier.name).name, varAlias + identifier.name]]}:query
@@ -262,22 +259,24 @@ define([
 			(	?(i < actualFactType.length)
 				RoleBinding:bind
 				{_.findIndex(actualFactType, {3: i})}:j
-				{actualFactType[j][1]}:termName
-				GetTable(termName):table
 				{this.bindAttributes[bind.number]}:baseBind
-				(	?baseBind
-					?baseBind.data
-					{bind.data = baseBind.data}
-				|	(	?baseBind
-						-> baseBind.tableAlias
-					|	?table.primitive
-						// {debugger}
+				(	?bind.data
+					(	?baseBind
+						{debugger}
+						-> null
+					)?
+					-> bind.data
+				|	?baseBind
+					-> baseBind.binding
+				|	{actualFactType[j][1]}:termName
+					GetTable(termName):table
+					(	?table.primitive
 						-> ('link' + actualFactType)
 					|	-> ('var' + bind.number + termName)
 					):tableAlias
-					{bind.tableAlias = tableAlias}
-				)
-				{bind.baseIdentifierName = termName}
+					-> ['ReferencedField', tableAlias, bind.identifier.name]
+				):binding
+				{bind.binding = binding}
 				{i+2}:i
 				{binds[j/2] = bind}
 			)+
@@ -316,17 +315,8 @@ define([
 			?(actualFactType.length == 3)
 			?(this.IsPrimitive(actualFactType[0]))
 			?(this.IsPrimitive(actualFactType[2]))
-			{debugger}
 			(	RoleBindings(actualFactType):binds
 				?(binds.length == 2)
-				(	?binds[0].data
-					-> binds[0].data
-				|	-> ['ReferencedField', binds[0].tableAlias, binds[0].identifier.name]
-				):from
-				(	?binds[1].data
-					-> binds[1].data
-				|	-> ['ReferencedField', binds[1].tableAlias, binds[1].identifier.name]
-				):to
 				{actualFactType[0][1]}:primitive
 				{actualFactType[1][1]}:verb
 				{actualFactType[2][1]}:secondPrimitive
@@ -334,7 +324,7 @@ define([
 					sbvrTypes[primitive].nativeFactTypes &&
 					sbvrTypes[primitive].nativeFactTypes[secondPrimitive] &&
 					sbvrTypes[primitive].nativeFactTypes[secondPrimitive][verb])
-				-> sbvrTypes[primitive].nativeFactTypes[secondPrimitive][verb](from, to)
+				-> sbvrTypes[primitive].nativeFactTypes[secondPrimitive][verb](binds[0].binding, binds[1].binding)
 			|	___NativeFactTypeMatchingFailed___.die
 			),
 
@@ -344,9 +334,10 @@ define([
 			{0}:i
 			RoleBindings(actualFactType):binds
 			(	?(i < binds.length)
-				GetTable(binds[i].baseIdentifierName):table
+				{actualFactType[i*2][1]}:baseIdentifierName
+				GetTable(baseIdentifierName):table
 				(	?table.primitive
-				|	AddWhereClause(query, ['Equals', ['ReferencedField', tableAlias, binds[i].baseIdentifierName], ['ReferencedField', binds[i].tableAlias, table.idField]])
+				|	AddWhereClause(query, ['Equals', ['ReferencedField', tableAlias, baseIdentifierName], ['ReferencedField', binds[i].binding[1], table.idField]])
 				)
 				{i+1}:i
 			)+
@@ -358,19 +349,20 @@ define([
 				?(binds.length == 2)
 				{binds[0]}:bindFrom
 				{binds[1]}:bindTo
-				GetTable(bindTo.baseIdentifierName):tableTo
+				{actualFactType[2][1]}:bindToBaseIdentifierName
+				GetTable(bindToBaseIdentifierName):tableTo
 			|	___ForeignKeyMatchingFailed___.die
 			)
 			(	?(bindTo.identifier.type == 'Name')
 				{bindTo.identifier.name}:name
 				GetTable(name):nameTable
 				{'name-' + name + '-'}:varAlias
-				{['SelectQuery', ['Select', [[['ReferencedField', bindTo.tableAlias, tableTo.idField]]]], ['From', nameTable.name, varAlias + name]]}:query
-				ResolveConceptTypes(query, bindTo.identifier, varAlias, bindTo.baseIdentifierName)
+				{['SelectQuery', ['Select', [[['ReferencedField', bindTo.binding[1], tableTo.idField]]]], ['From', nameTable.name, varAlias + name]]}:query
+				ResolveConceptTypes(query, bindTo.identifier, varAlias, bindToBaseIdentifierName)
 				-> query
-			|	-> ['ReferencedField', bindTo.tableAlias, tableTo.idField]
+			|	-> ['ReferencedField', bindTo.binding[1], tableTo.idField]
 			):toField
-			-> ['Equals', ['ReferencedField', bindFrom.tableAlias, bindTo.baseIdentifierName], toField],
+			-> ['Equals', ['ReferencedField', bindFrom.binding[1], bindToBaseIdentifierName], toField],
 
 		BooleanAttribute :actualFactType =
 			?(this.GetTable(actualFactType) == 'BooleanAttribute')
@@ -381,7 +373,7 @@ define([
 			|	{console.error(this.input)}
 				___BooleanAttributeMatchingFailed___.die
 			)
-			-> ['Equals', ['ReferencedField', binds[0].tableAlias, attributeName], ['Boolean', !negated]],
+			-> ['Equals', ['ReferencedField', binds[0].binding[1], attributeName], ['Boolean', !negated]],
 
 		Attribute :actualFactType =
 			?(this.GetTable(actualFactType) == 'Attribute')
@@ -392,9 +384,10 @@ define([
 				|	___AttributeMatchingFailed___.die
 			)
 			(	{this.bindAttributes[bindAttr.number]}:bind
-				?(bind.number != bindReal.number)
+				{bindAttr.binding = ['ReferencedField', bindReal.binding[1], bind.binding[2]]}
+				?(!_.isEqual(bindAttr.binding, bind.binding))
 				// If we're not the first bind we make sure we match it.
-				-> ['Equals', ['ReferencedField', bind.tableAlias, bindAttr.identifier.name], ['ReferencedField', bindReal.tableAlias, bindAttr.identifier.name]]
+				-> ['Equals', bindAttr.binding, bind.binding]
 			|	// Otherwise return true = true, just so things work.
 				-> ['Equals', ['Boolean', true], ['Boolean', true]]
 			),
@@ -579,7 +572,7 @@ define([
 							&& ($elf.bindAttributeDepth[bind.number] == null || $elf.bindAttributeDepth[bind.number] > depth);
 				})}:attrBinding
 				{	this.bindAttributeDepth[attrBinding.number] = depth;
-					this.bindAttributes[attrBinding.number] = baseBinding;
+					this.bindAttributes[attrBinding.number] = {binding: ['ReferencedField', baseBinding.binding[1], attrBinding.identifier.name]};
 				}
 			|	// Ignore primitive only fact types.
 				?_.any(binds, function(bind) {
@@ -590,8 +583,12 @@ define([
 					GetTable(actualFactType[i][1]):table
 					(	?table
 						?table.primitive
+						?(this.bindAttributeDepth[binds[i/2].number] == null || this.bindAttributeDepth[binds[i/2].number] > depth)
+						{'link' + actualFactType}:tableAlias
 						{	this.bindAttributeDepth[binds[i/2].number] = depth;
-							this.bindAttributes[binds[i/2].number] = {tableAlias: 'link' + actualFactType};
+							this.bindAttributes[binds[i/2].number] = {
+								binding: ['ReferencedField', tableAlias, actualFactType[i][1]]
+							};
 						}
 					)?
 					{i+2}:i
@@ -603,14 +600,6 @@ define([
 				return $elf.IsPrimitive([bind.identifier.type, bind.identifier.name, bind.identifier.vocab]);
 			})
 			?(binds.length == 2)
-			(	?binds[0].data
-				-> binds[0].data
-			|	-> ['ReferencedField', binds[0].tableAlias, binds[0].identifier.name]
-			):from
-			(	?binds[1].data
-				-> binds[1].data
-			|	-> ['ReferencedField', binds[1].tableAlias, binds[1].identifier.name]
-			):to
 			{actualFactType[0][1]}:primitive
 			{actualFactType[1][1]}:verb
 			{actualFactType[2][1]}:property
@@ -618,10 +607,9 @@ define([
 				sbvrTypes[primitive].nativeProperties &&
 				sbvrTypes[primitive].nativeProperties[verb] &&
 				sbvrTypes[primitive].nativeProperties[verb][property])
-			{sbvrTypes[primitive].nativeProperties[verb][property](from, to)}:data
-			{debugger}
+			{sbvrTypes[primitive].nativeProperties[verb][property](binds[0].binding, binds[1].binding)}:binding
 			{	this.bindAttributeDepth[binds[1].number] = depth;
-				this.bindAttributes[binds[1].number] = {data: data};
+				this.bindAttributes[binds[1].number] = {binding: binding};
 			},
 		
 		Rule =
