@@ -65,10 +65,12 @@ define(['lodash', 'cs!sbvr-compiler/types'], (_, sbvrTypes) ->
 							""" + (
 							for {dataType, fieldName, required} in fields when dataType != 'ForeignKey'
 								dataType = resolveDataType(dataType)
+								fieldName = getResourceName(fieldName)
 								"""<Property Name="#{fieldName}" Type="#{dataType}" Nullable="#{not required}" />"""
 							).join('\n') + '\n' + (
 							for {dataType, fieldName, references} in fields when dataType == 'ForeignKey'
 								{tableName: referencedResource, fieldName: referencedField} = references
+								fieldName = getResourceName(fieldName)
 								referencedResource = getResourceName(referencedResource)
 								"""<NavigationProperty Name="#{fieldName}" Relationship="#{vocabulary}.#{resourceName + referencedResource}" FromRole="#{resourceName}" ToRole="#{referencedResource}" />"""
 							).join('\n') + '\n' + """
