@@ -11,6 +11,31 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 				bindNo++
 				'?'
 		])
+
+	wrapExecuteSql = (closeCallback) ->
+		currentlyQueuedStatements = 0
+		connectionClosed = false
+		return {
+			startQuery: (callback) ->
+				->
+					if connectionClosed
+						throw 'Trying to executeSQL on a closed connection'
+					# We have queued a new statement so add it.
+					currentlyQueuedStatements++
+					callback(arguments...)
+			endQuery: (callback) ->
+				->
+					try
+						callback(arguments...)
+					finally
+						# We have finished a statement so remove it.
+						currentlyQueuedStatements--
+						# Check if there are no queued statements after the callback has had a chance to remove them and close the connection if there are none queued.
+						if currentlyQueuedStatements == 0
+							connectionClosed = true
+							closeCallback()
+		}
+
 	if has 'ENV_NODEJS'
 		exports.postgres = (connectString) ->
 			pg = require('pg')
@@ -24,9 +49,11 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 					insertId: rows[0]?.id || null
 				}
 			class Tx
-				constructor: (_db) ->
-					this.executeSql = (sql, _bindings = [], callback, errorCallback, addReturning = true) ->
-						thisTX = this
+				constructor: (_db, _close) ->
+					{startQuery, endQuery} = wrapExecuteSql -> _close()
+					thisTX = this
+
+					@executeSql = startQuery (sql, _bindings = [], callback, errorCallback, addReturning = true) ->
 						bindings = _bindings.slice(0) # Deal with the fact we may splice arrays directly into bindings
 						sql = sql.replace(/GROUP BY NULL/g, '') #HACK: Remove GROUP BY NULL for Postgres as it does not need/accept it.
 						sql = sql.replace(/INTEGER PRIMARY KEY AUTOINCREMENT/g, 'SERIAL PRIMARY KEY') #HACK: Postgres uses SERIAL data type rather than auto increment
@@ -50,7 +77,7 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 								else
 									return '$' + ++bindNo
 						])
-						_db.query({text: sql, values: bindings}, (err, res) ->
+						_db.query({text: sql, values: bindings}, endQuery (err, res) ->
 							if err?
 								errorCallback?(thisTX, err)
 								console.log(sql, bindings, err)
@@ -69,12 +96,12 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 				DEFAULT_VALUE
 				engine: 'postgres'
 				transaction: (callback, errorCallback) ->
-					pg.connect(connectString, (err, client) ->
+					pg.connect(connectString, (err, client, done) ->
 						if err
 							console.error('Error connecting ' + err)
 							errorCallback?(err)
 						else
-							tx = new Tx(client)
+							tx = new Tx(client, done)
 							tx.end() # We end the transaction, as we may have a client from the pool which is in an aborted transaction state.
 							callback(tx)
 					)
@@ -93,32 +120,21 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 				}
 			class Tx
 				constructor: (_db) ->
-					currentlyQueuedStatements = 0
-					connectionClosed = false
-					this.executeSql = (sql, bindings = [], callback, errorCallback, addReturning = true) ->
-						if connectionClosed
-							throw 'Trying to executeSQL on a closed connection'
-						# We have queued a new statement so add it.
-						currentlyQueuedStatements++
-						thisTX = this
+					{startQuery, endQuery} = wrapExecuteSql -> _db.end()
+					thisTX = this
+
+					@executeSql = startQuery (sql, bindings = [], callback, errorCallback, addReturning = true) ->
 						sql = sql.replace(/GROUP BY NULL/g, '') # HACK: Remove GROUP BY NULL for MySQL? as it does not need/accept? it.
 						sql = sql.replace(/AUTOINCREMENT/g, 'AUTO_INCREMENT') # HACK: MySQL uses AUTO_INCREMENT rather than AUTOINCREMENT.
 						sql = sql.replace(/DROP CONSTRAINT/g, 'DROP FOREIGN KEY') # HACK: MySQL uses FOREIGN KEY rather than CONSTRAINT.
 						sql = bindDefaultValues(sql, bindings)
-						_db.query(sql, bindings, (err, res, fields) ->
+						_db.query(sql, bindings, endQuery (err, res, fields) ->
 							try
 								if err?
 									errorCallback?(thisTX, err)
 									console.log(sql, bindings, err)
 								else
 									callback?(thisTX, createResult(res))
-							finally
-								# We have finished a statement so remove it.
-								currentlyQueuedStatements--
-								# Check if there are no queued statements after the callback has had a chance to remove them and close the connection if there are none queued.
-								if currentlyQueuedStatements == 0
-									connectionClosed = true
-									_db.end()
 						)
 				begin: -> this.executeSql('START TRANSACTION;')
 				end: -> this.executeSql('COMMIT;')

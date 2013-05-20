@@ -15,7 +15,7 @@
     "passport": "0.1.x",
     "mysql": "2.x",
     "lodash": "~1.2.1",
-    "pg": "0.14.x",
+    "pg": "~1.1.0",
     "ometa-js": "~1.0.3",
     "coffee-script": "1.6.x",
     "passport-local": "0.1.x",
