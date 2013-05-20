@@ -567,7 +567,7 @@ define([
 		try
 			query = odata2AbstractSQL[vocabulary].match(query, 'Process', [method, body])
 		catch e
-			console.error('Failed to translate uri: ', query, method, uri, e, e.stack)
+			console.error('Failed to translate uri: ', JSON.stringify(query, null, '\t'), method, uri, e, e.stack)
 			return false
 
 		if query[0] in ['$metadata', '$serviceroot']
