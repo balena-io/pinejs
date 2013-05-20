@@ -1,9 +1,11 @@
 define(['lodash'], (_) ->
 	getField = (table, fieldName) ->
+		fieldName = fieldName.replace(/_/g, ' ')
 		tableFields = table.fields
 		for tableField in tableFields when tableField.fieldName == fieldName
 			return tableField
-		return false
+		console.error('Cannot find field', table, fieldName)
+		throw 'Cannot find field: ' + table.name + ' : ' + fieldName
 	
 	return (sqlModel) ->
 		tables = sqlModel.tables
