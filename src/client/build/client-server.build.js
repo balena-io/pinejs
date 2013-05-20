@@ -20,10 +20,20 @@
 	modules: [
 		{
 			name: "main",
-			include: ['cs!server-glue/server']
+			include: [
+				'cs!views/tabs/sbvr-editor/main',
+				'cs!views/tabs/sbvr-lf/main',
+				'cs!views/tabs/sbvr-graph/main',
+				'cs!views/tabs/sbvr-server/main',
+				'cs!views/tabs/ddui/main',
+				'cs!views/tabs/db-import-export/main',
+				'cs!views/tabs/validate/main',
+
+				'cs!server-glue/server'
+			]
 		}
 	],
-	
+
 	has: {
 		// To enable the in-browser server
 		ENV_BROWSER: true

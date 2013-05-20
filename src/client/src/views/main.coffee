@@ -1,19 +1,11 @@
 define([
+	'has'
 	'backbone'
 	'jquery'
 	'text!templates/main.html'
 	"cs!models/session"
 	'cs!views/login'
-
-	# Tab subviews
-	'cs!views/tabs/sbvr-editor/main'
-	'cs!views/tabs/sbvr-lf/main'
-	'cs!views/tabs/sbvr-graph/main'
-	'cs!views/tabs/sbvr-server/main'
-	'cs!views/tabs/ddui/main'
-	'cs!views/tabs/db-import-export/main'
-	'cs!views/tabs/validate/main'
-], (Backbone, $, html, SessionModel, LoginView, tabViews...) ->
+], (has, Backbone, $, html, SessionModel, LoginView) ->
 	Backbone.View.extend(
 		id: 'app-main'
 
@@ -41,24 +33,41 @@ define([
 					console.error(error)
 				)
 
+			# Tab subviews
+			tabs = []
+			if has 'TAB_SBVR_EDITOR'
+				tabs.push 'cs!views/tabs/sbvr-editor/main'
+			if has 'TAB_SBVR_LF'
+				tabs.push 'cs!views/tabs/sbvr-lf/main'
+			if has 'TAB_SBVR_GRAPH'
+				tabs.push 'cs!views/tabs/sbvr-graph/main'
+			if has 'TAB_SBVR_SERVER'
+				tabs.push 'cs!views/tabs/sbvr-server/main'
+			if has 'TAB_DDUI'
+				tabs.push 'cs!views/tabs/ddui/main'
+			if has 'TAB_DB_IMPORT_EXPORT'
+				tabs.push 'cs!views/tabs/db-import-export/main'
+			if has 'TAB_VALIDATE'
+				tabs.push 'cs!views/tabs/validate/main'
+			require(tabs, (tabViews...) =>
+				for TabView, i in tabViews
+					content = $("<div id='tab#{i}' />")
+					tab = $("<li><a data-toggle='tab' href='#tab#{i}'/></li>")
+					
+					# Add tab to interface
+					$('#tabs').append(tab)
+					$('#content').append(content)
 
-			for TabView, i in tabViews
-				content = $("<div id='tab#{i}' />")
-				tab = $("<li><a data-toggle='tab' href='#tab#{i}'/></li>")
-				
-				# Add tab to interface
-				$('#tabs').append(tab)
-				$('#content').append(content)
+					# Render the tab
+					new TabView(
+						el: content
+						title: $('a', tab)
+						model: @model
+					).render()
 
-				# Render the tab
-				new TabView(
-					el: content
-					title: $('a', tab)
-					model: @model
-				).render()
-
-				# Show first tab
-				$('a', tab).tab('show') if i is 0
+					# Show first tab
+					$('a', tab).tab('show') if i is 0
+			)
 			return this
 
 		create: ->

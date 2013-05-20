@@ -1,6 +1,14 @@
 require({
 	config: {
 		has: {
+			TAB_SBVR_EDITOR			: true,
+			TAB_SBVR_LF				: true,
+			TAB_SBVR_GRAPH			: true,
+			TAB_SBVR_SERVER			: true,
+			TAB_DDUI				: true,
+			TAB_DB_IMPORT_EXPORT	: true,
+			TAB_VALIDATE			: true,
+
 			SBVR_EXTENSIONS: true,
 			
 			// For the in-browser server

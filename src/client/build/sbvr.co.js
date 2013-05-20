@@ -23,16 +23,16 @@
 			include: [
 				'cs!views/tabs/sbvr-editor/main',
 				'cs!views/tabs/sbvr-lf/main',
-				'cs!views/tabs/sbvr-graph/main',
-				'cs!views/tabs/sbvr-server/main',
-				'cs!views/tabs/ddui/main',
-				'cs!views/tabs/db-import-export/main',
-				'cs!views/tabs/validate/main'
+				'cs!views/tabs/sbvr-graph/main'
 			]
 		}
 	],
 
 	has: {
+		TAB_SBVR_SERVER: false,
+		TAB_DDUI: false,
+		TAB_DB_IMPORT_EXPORT: false,
+		TAB_VALIDATE: false,
 		// To disable the in-browser server
 		ENV_BROWSER: false
 	},
