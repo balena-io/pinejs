@@ -11,7 +11,7 @@
     "odata-to-abstract-sql": "git+ssh://git@bitbucket.org:rulemotion/odata-to-abstract-sql.git#v0.0.7",
     "abstract-sql-compiler": "git+ssh://git@bitbucket.org:rulemotion/abstract-sql-compiler.git#v0.0.5",
     "express": "3.x",
-    "requirejs": "2.x",
+    "requirejs": "~2.1.5",
     "passport": "0.1.x",
     "mysql": "2.x",
     "lodash": "~1.2.1",
