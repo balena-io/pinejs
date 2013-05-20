@@ -16,7 +16,7 @@
     "mysql": "2.x",
     "lodash": "~1.2.1",
     "pg": "0.14.x",
-    "ometa-js": "1.0.x",
+    "ometa-js": "~1.0.3",
     "coffee-script": "1.6.x",
     "passport-local": "0.1.x",
     "bcrypt": "0.7.x",

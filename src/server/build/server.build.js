@@ -45,7 +45,7 @@
 		'cache',
 		'coffee-script',
 		'css/normalize', 'css/css',
-		'ometa-parsers', 'uglifyjs'
+		'ometa-parsers', 'uglify-js'
 	],
 	preserveLicenseComments: false,
 	mainConfigFile: '../src/main.js',

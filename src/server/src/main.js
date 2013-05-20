@@ -22,7 +22,7 @@ require({
 		'has'					: '../../tools/has',
 
 		'ometa-parsers'			: '../../../node_modules/ometa-js/lib/ometajs/ometa/parsers',
-		'uglifyjs'				: '../../external/uglifyjs/uglify',
+		'uglify-js'				: '../../external/uglifyjs/uglify',
 
 		//Libraries
 		'ometa-core'			: '../../../node_modules/ometa-js/lib/ometajs/core',
@@ -50,7 +50,7 @@ require({
 		}
 	],
 	shim: {
-		'uglifyjs': {
+		'uglify-js': {
 			exports: 'UglifyJS'
 		},
 		'sbvr-parser': {
