@@ -112,9 +112,6 @@ require({
 		},
 		'async': {
 			exports: 'async'
-		},
-		'sbvr-parser': {
-			deps: ['sbvr-parser/sbvr-libs', 'sbvr-parser/inflection']
 		}
 	}
 }, ['cs!app', 'css!static/main']);
