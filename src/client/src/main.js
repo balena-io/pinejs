@@ -32,7 +32,7 @@ require({
 		'lib'						: '../lib',
 
 		'ometa-parsers'				: '../../../node_modules/ometa-js/lib/ometajs/ometa/parsers',
-		'uglifyjs'					: '../../external/uglifyjs/uglify',
+		'uglify-js'					: '../../external/uglifyjs/uglify',
 
 		//Libraries
 		'async'						: '../../external/async/async.min',
@@ -115,7 +115,7 @@ require({
 				return this.Backbone.noConflict();
 			}
 		},
-		'uglifyjs': {
+		'uglify-js': {
 			exports: 'UglifyJS'
 		},
 		'async': {
