@@ -13,7 +13,7 @@
     "express": "3.x",
     "requirejs": "~2.1.5",
     "passport": "0.1.x",
-    "mysql": "2.x",
+    "mysql": "~2.0.0-alpha8",
     "lodash": "~1.2.1",
     "pg": "~1.1.0",
     "ometa-js": "~1.0.3",

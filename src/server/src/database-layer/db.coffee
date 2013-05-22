@@ -109,6 +109,7 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 			
 		exports.mysql = (options) ->
 			mysql = new require('mysql')
+			_pool = mysql.createPool(options)
 			createResult = (rows) ->
 				return {
 					rows:
@@ -148,8 +149,7 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 				DEFAULT_VALUE
 				engine: 'mysql'
 				transaction: (callback, errorCallback) ->
-					_db = mysql.createConnection(options)
-					_db.connect((err) ->
+					_pool.getConnection((err, _db) ->
 						if err
 							console.error('Error connecting ' + err)
 							errorCallback?(err)
