@@ -42,6 +42,14 @@ define(['has', 'async'], (has, async) ->
 											sbvrUtils.runPut(req, res)
 										)
 
+										app.patch(apiRoute, sbvrUtils.parseURITree, (req, res, next) ->
+											sbvrUtils.runPut(req, res)
+										)
+
+										app.merge(apiRoute, sbvrUtils.parseURITree, (req, res, next) ->
+											sbvrUtils.runPut(req, res)
+										)
+
 										app.del(apiRoute, sbvrUtils.parseURITree, (req, res, next) ->
 											sbvrUtils.runDelete(req, res)
 										)
