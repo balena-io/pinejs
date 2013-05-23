@@ -5,22 +5,23 @@
   "scripts": {
     "postinstall": "node install.js"
   },
+  "repository": "git@bitbucket.org:rulemotion/rulemotion-canvas.git",
   "dependencies": {
     "sbvr-parser": "git+ssh://git@bitbucket.org:rulemotion/sbvr-parser.git#v0.0.6",
     "odata-parser": "git+ssh://git@bitbucket.org:rulemotion/odata-parser.git#v0.0.2",
     "odata-to-abstract-sql": "git+ssh://git@bitbucket.org:rulemotion/odata-to-abstract-sql.git#v0.0.10",
     "abstract-sql-compiler": "git+ssh://git@bitbucket.org:rulemotion/abstract-sql-compiler.git#v0.0.6",
-    "express": "3.x",
+    "express": "~3.2.5",
     "requirejs": "~2.1.5",
-    "passport": "0.1.x",
+    "passport": "~0.1.17",
     "mysql": "~2.0.0-alpha8",
     "lodash": "~1.2.1",
     "pg": "~1.1.0",
     "ometa-js": "~1.0.3",
-    "coffee-script": "1.6.x",
-    "passport-local": "0.1.x",
-    "bcrypt": "0.7.x",
-    "async": "0.2.x"
+    "coffee-script": "~1.6.2",
+    "passport-local": "~0.1.6",
+    "bcrypt": "~0.7.5",
+    "async": "~0.2.8"
   },
   "engines": {
     "node": "0.10.x",
