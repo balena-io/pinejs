@@ -483,7 +483,7 @@ define([
 				instance[to] = instance[from]
 				delete instance[from]
 			instance.__metadata =
-				uri: ''
+				uri: '/' + vocab + '/' + resourceModel.resourceName + '(' +instance[resourceModel.idField] + ')'
 				type: ''
 			callback(null, instance)
 
