@@ -467,21 +467,8 @@ define([
 			processRequired = true
 			break
 
-		spacesRegex = /\s+/g
-		fields = {}
-		replacements = {}
-		for {fieldName} in resourceModel.fields
-			fields[fieldName] = true
-			if spacesRegex.test(fieldName)
-				replacements[fieldName] = fieldName.replace(spacesRegex, '_')
-
 		defaultProcessInstance = (instance, callback) ->
 			instance = _.clone(instance)
-			for fieldName of instance when !fields[fieldName]
-				delete instance[fieldName]
-			for from, to of replacements
-				instance[to] = instance[from]
-				delete instance[from]
 			instance.__metadata =
 				uri: '/' + vocab + '/' + resourceModel.resourceName + '(' +instance[resourceModel.idField] + ')'
 				type: ''
