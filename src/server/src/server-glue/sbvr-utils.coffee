@@ -666,7 +666,7 @@ define([
 									callback(null, _guestPermissions)
 							)
 						else
-							callback(true)
+							callback('No guest permissions')
 					)
 
 		return (req, res, actionList, request, callback) ->
