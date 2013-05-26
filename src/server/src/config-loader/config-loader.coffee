@@ -77,9 +77,9 @@ define(['has', 'async'], (has, async) ->
 											return callback(null, [])
 										async.map(user.permissions,
 											(permission, callback) ->
-												sbvrUtils.runURI('POST', '/Auth/permission', {'name': 'resource.all'}, null, (err, result) ->
+												sbvrUtils.runURI('POST', '/Auth/permission', {'name': permission}, null, (err, result) ->
 													if err
-														sbvrUtils.runURI('GET', '/Auth/permission', {'name': 'resource.all'}, null, (err, result) ->
+														sbvrUtils.runURI('GET', "/Auth/permission?$filter=name eq '" + permission + "'", null, null, (err, result) ->
 															if err
 																callback(err)
 															else
