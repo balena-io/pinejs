@@ -14,7 +14,7 @@
     "sbvr-parser": "git+ssh://git@bitbucket.org:rulemotion/sbvr-parser.git#v0.0.9",
     "coffee-script": "~1.6.3",
     "ometa-js": "~1.0.4",
-    "mysql": "~2.0.0-alpha8",
+    "mysql": "~2.0.0-alpha9",
     "pg": "~2.6.2",
     "async": "~0.2.9",
     "bcrypt": "~0.7.6",

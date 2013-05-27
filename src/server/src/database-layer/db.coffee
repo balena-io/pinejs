@@ -125,6 +125,9 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 		exports.mysql = (options) ->
 			mysql = new require('mysql')
 			_pool = mysql.createPool(options)
+			_pool.on 'connection', (err, _db) ->
+				_db.query("SET sql_mode='ANSI_QUOTES';")
+
 			createResult = (rows) ->
 				return {
 					rows:
@@ -168,7 +171,6 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 							errorCallback?(err)
 						else
 							tx = new Tx(_db)
-							tx.query("SET sql_mode='ANSI_QUOTES';")
 							tx.executeSql('START TRANSACTION;')
 							callback(tx)
 					)
