@@ -55,7 +55,12 @@ define(['has', 'async'], (has, async) ->
 										)
 										
 										if model.customServerCode?
-											require(root + '/' + model.customServerCode).setup(app, requirejs, sbvrUtils, db)
+											try
+												require(root + '/' + model.customServerCode).setup(app, requirejs, sbvrUtils, db)
+											catch e
+												console.error('Error running custom server code: ' + e)
+												process.exit()
+
 										console.info('Sucessfully executed ' + model.modelName + ' model.')
 									)
 								)
