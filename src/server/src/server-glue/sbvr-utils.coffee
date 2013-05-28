@@ -157,17 +157,25 @@ define([
 		sqlModelTables = sqlModels[vocab].tables
 		async.map(bindings,
 			(binding, callback) ->
-				[tableName, fieldName] = binding
-				
-				referencedName = tableName + '.' + fieldName
-				value = values[referencedName] ? values[fieldName]
+				if _.isString(binding[1])
+					[tableName, fieldName] = binding
+
+					referencedName = tableName + '.' + fieldName
+					value = values[referencedName] ? values[fieldName]
+
+					[mappedTableName, mappedFieldName] = mappings[tableName][fieldName]
+					field = _.where(sqlModelTables[mappedTableName].fields, {
+						fieldName: mappedFieldName
+					})[0]
+				else
+					[dataType, value] = binding
+					field = {dataType}
+
 				if value is undefined
 					callback(null, db.DEFAULT_VALUE)
 					return
-				[mappedTableName, mappedFieldName] = mappings[tableName][fieldName]
-				AbstractSQL2SQL.dataTypeValidate(value, _.where(sqlModelTables[mappedTableName].fields, {
-					fieldName: mappedFieldName
-				})[0], (err, value) ->
+
+				AbstractSQL2SQL.dataTypeValidate(value, field, (err, value) ->
 					if err
 						err = '"' + fieldName + '" ' + err
 					callback(err, value)
