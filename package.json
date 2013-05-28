@@ -9,8 +9,8 @@
   "dependencies": {
     "sbvr-parser": "git+ssh://git@bitbucket.org:rulemotion/sbvr-parser.git#v0.0.6",
     "odata-parser": "git+ssh://git@bitbucket.org:rulemotion/odata-parser.git#v0.0.3",
-    "odata-to-abstract-sql": "git+ssh://git@bitbucket.org:rulemotion/odata-to-abstract-sql.git#v0.0.11",
-    "abstract-sql-compiler": "git+ssh://git@bitbucket.org:rulemotion/abstract-sql-compiler.git#v0.0.7",
+    "odata-to-abstract-sql": "git+ssh://git@bitbucket.org:rulemotion/odata-to-abstract-sql.git#v0.0.12",
+    "abstract-sql-compiler": "git+ssh://git@bitbucket.org:rulemotion/abstract-sql-compiler.git#v0.0.8",
     "express": "~3.2.5",
     "requirejs": "~2.1.5",
     "passport": "~0.1.17",

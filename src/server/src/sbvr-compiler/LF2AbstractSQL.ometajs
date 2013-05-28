@@ -230,7 +230,7 @@ define([
 					{_.clone(bind.binding)}:selectBody
 					-> ['SelectQuery', ['Select', [selectBody]]]
 				|	{'.' + num}:varNum
-					{['SelectQuery', ['Select', []], ['From', this.GetTable(identifier.name).name, identifier.name + varNum]]}:query
+					{['SelectQuery', ['Select', []], ['From', [this.GetTable(identifier.name).name, identifier.name + varNum]]]}:query
 					ResolveConceptTypes(query, identifier, varNum)
 					-> query
 				):query
@@ -341,7 +341,7 @@ define([
 		LinkTable :actualFactType =
 			RoleBindings(actualFactType):binds
 			LinkTableAlias(binds, actualFactType):tableAlias
-			{['SelectQuery', ['Select', []], ['From', this.GetTable(actualFactType).name, tableAlias]]}:query
+			{['SelectQuery', ['Select', []], ['From', [this.GetTable(actualFactType).name, tableAlias]]]}:query
 			{	_.each(binds, function(bind, i) {
 					var baseIdentifierName = actualFactType[i*2][1],
 						table = this.GetTable(baseIdentifierName);
@@ -713,7 +713,7 @@ define([
 			if(conceptTable.primitive !== false) {
 				break;
 			}
-			query.push(['From', conceptTable.name, conceptAlias]);
+			query.push(['From', [conceptTable.name, conceptAlias]]);
 			this.AddWhereClause(query, ['Equals', ['ReferencedField', parentAlias, concept[1]], ['ReferencedField', conceptAlias, conceptTable.idField]]);
 			parentAlias = conceptAlias;
 		}
