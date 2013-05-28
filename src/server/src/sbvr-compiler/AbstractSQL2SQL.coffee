@@ -93,7 +93,7 @@ define([
 				console.log(ruleSQL)
 				ruleStatements.push({structuredEnglish: rule[1][1], sql: ruleSQL})
 		catch e
-			console.error(rule)
+			console.error(JSON.stringify(rule, null, '\t'))
 			console.error(e)
 			throw e
 
