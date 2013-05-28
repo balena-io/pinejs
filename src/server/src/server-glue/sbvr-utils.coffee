@@ -567,11 +567,14 @@ define([
 
 		resourceName = query.resource
 
-		try
-			query = odata2AbstractSQL[vocabulary].match(query, 'Process', [method, body])
-		catch e
-			console.error('Failed to translate uri: ', JSON.stringify(query, null, '\t'), method, uri, e, e.stack)
-			return false
+		if resourceName in ['$metadata', '$serviceroot']
+			query = null
+		else
+			try
+				query = odata2AbstractSQL[vocabulary].match(query, 'Process', [method, body])
+			catch e
+				console.error('Failed to translate uri: ', JSON.stringify(query, null, '\t'), method, uri, e, e.stack)
+				return false
 
 		return {
 			type: 'OData'
