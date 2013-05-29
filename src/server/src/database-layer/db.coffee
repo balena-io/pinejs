@@ -51,9 +51,8 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 			class Tx
 				constructor: (_db, _close) ->
 					{startQuery, endQuery} = wrapExecuteSql -> _close()
-					thisTX = this
 
-					@executeSql = startQuery (sql, _bindings = [], callback, errorCallback, addReturning = true) ->
+					@executeSql = startQuery (sql, _bindings = [], callback, errorCallback, addReturning = true) =>
 						bindings = _bindings.slice(0) # Deal with the fact we may splice arrays directly into bindings
 						sql = sql.replace(/GROUP BY NULL/g, '') #HACK: Remove GROUP BY NULL for Postgres as it does not need/accept it.
 						sql = sql.replace(/INTEGER PRIMARY KEY AUTOINCREMENT/g, 'SERIAL PRIMARY KEY') #HACK: Postgres uses SERIAL data type rather than auto increment
@@ -77,21 +76,21 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 								else
 									return '$' + ++bindNo
 						])
-						_db.query({text: sql, values: bindings}, endQuery (err, res) ->
+						_db.query({text: sql, values: bindings}, endQuery (err, res) =>
 							if err?
-								errorCallback?(thisTX, err)
+								errorCallback?(@, err)
 								console.log(sql, bindings, err)
 							else
-								callback?(thisTX, createResult(res.rows))
+								callback?(@, createResult(res.rows))
 						)
-				begin: -> this.executeSql('BEGIN;')
-				end: -> this.executeSql('END;')
-				rollback: -> this.executeSql('ROLLBACK;')
+				begin: -> @executeSql('BEGIN;')
+				end: -> @executeSql('END;')
+				rollback: -> @executeSql('ROLLBACK;')
 				tableList: (callback, errorCallback, extraWhereClause = '') ->
 					if extraWhereClause != ''
 						extraWhereClause = ' WHERE ' + extraWhereClause
-					this.executeSql("SELECT * FROM (SELECT tablename as name FROM pg_tables WHERE schemaname = 'public') t" + extraWhereClause + ";", [], callback, errorCallback)
-				dropTable: (tableName, ifExists = true, callback, errorCallback) -> this.executeSql('DROP TABLE ' + (if ifExists == true then 'IF EXISTS ' else '') + '"' + tableName + '" CASCADE;', [], callback, errorCallback)
+					@executeSql("SELECT * FROM (SELECT tablename as name FROM pg_tables WHERE schemaname = 'public') t" + extraWhereClause + ";", [], callback, errorCallback)
+				dropTable: (tableName, ifExists = true, callback, errorCallback) -> @executeSql('DROP TABLE ' + (if ifExists == true then 'IF EXISTS ' else '') + '"' + tableName + '" CASCADE;', [], callback, errorCallback)
 			return {
 				DEFAULT_VALUE
 				engine: 'postgres'
@@ -122,28 +121,27 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 			class Tx
 				constructor: (_db) ->
 					{startQuery, endQuery} = wrapExecuteSql -> _db.end()
-					thisTX = this
 
-					@executeSql = startQuery (sql, bindings = [], callback, errorCallback, addReturning = true) ->
+					@executeSql = startQuery (sql, bindings = [], callback, errorCallback, addReturning = true) =>
 						sql = sql.replace(/GROUP BY NULL/g, '') # HACK: Remove GROUP BY NULL for MySQL? as it does not need/accept? it.
 						sql = sql.replace(/AUTOINCREMENT/g, 'AUTO_INCREMENT') # HACK: MySQL uses AUTO_INCREMENT rather than AUTOINCREMENT.
 						sql = sql.replace(/DROP CONSTRAINT/g, 'DROP FOREIGN KEY') # HACK: MySQL uses FOREIGN KEY rather than CONSTRAINT.
 						sql = bindDefaultValues(sql, bindings)
-						_db.query(sql, bindings, endQuery (err, res) ->
+						_db.query(sql, bindings, endQuery (err, res) =>
 							if err?
-								errorCallback?(thisTX, err)
+								errorCallback?(@, err)
 								console.log(sql, bindings, err)
 							else
-								callback?(thisTX, createResult(res))
+								callback?(@, createResult(res))
 						)
-				begin: -> this.executeSql('START TRANSACTION;')
-				end: -> this.executeSql('COMMIT;')
-				rollback: -> this.executeSql('ROLLBACK;')
+				begin: -> @executeSql('START TRANSACTION;')
+				end: -> @executeSql('COMMIT;')
+				rollback: -> @executeSql('ROLLBACK;')
 				tableList: (callback, errorCallback, extraWhereClause = '') ->
 					if extraWhereClause != ''
 						extraWhereClause = ' WHERE ' + extraWhereClause
-					this.executeSql("SELECT name FROM (SELECT table_name as name FROM information_schema.tables WHERE table_schema = ?) t" + extraWhereClause + ";", [options.database], callback, errorCallback)
-				dropTable: (tableName, ifExists = true, callback, errorCallback) -> this.executeSql('DROP TABLE ' + (if ifExists == true then 'IF EXISTS ' else '') + '"' + tableName + '";', [], callback, errorCallback)
+					@executeSql("SELECT name FROM (SELECT table_name as name FROM information_schema.tables WHERE table_schema = ?) t" + extraWhereClause + ";", [options.database], callback, errorCallback)
+				dropTable: (tableName, ifExists = true, callback, errorCallback) -> @executeSql('DROP TABLE ' + (if ifExists == true then 'IF EXISTS ' else '') + '"' + tableName + '";', [], callback, errorCallback)
 			return {
 				DEFAULT_VALUE
 				engine: 'mysql'
@@ -171,23 +169,22 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 					insertId: rows.insertId || null
 				}
 			tx = {
-				executeSql: (sql, bindings, callback, errorCallback) ->
-					thisTX = this
+				executeSql: (sql, bindings, callback, errorCallback) =>
 					sql = bindDefaultValues(sql, bindings)
-					_db.all sql, bindings ? [], (err, rows) ->
+					_db.all sql, bindings ? [], (err, rows) =>
 						if err?
-							errorCallback? thisTX, err
+							errorCallback?(@, err)
 							console.log(sql, err)
 						else
-							callback? thisTX, createResult(rows)
-				begin: -> this.executeSql('BEGIN;')
-				end: -> this.executeSql('END;')
-				rollback: -> this.executeSql('ROLLBACK;')
+							callback?(@, createResult(rows))
+				begin: -> @executeSql('BEGIN;')
+				end: -> @executeSql('END;')
+				rollback: -> @executeSql('ROLLBACK;')
 				tableList: (callback, errorCallback, extraWhereClause = '') ->
 					if extraWhereClause != ''
 						extraWhereClause = ' AND ' + extraWhereClause
-					this.executeSql("SELECT name, sql FROM sqlite_master WHERE type='table' AND name NOT IN ('sqlite_sequence')" + extraWhereClause + ";", [], callback, errorCallback)
-				dropTable: (tableName, ifExists = true, callback, errorCallback) -> this.executeSql('DROP TABLE ' + (if ifExists == true then 'IF EXISTS ' else '') + '"' + tableName + '";', [], callback, errorCallback)
+					@executeSql("SELECT name, sql FROM sqlite_master WHERE type='table' AND name NOT IN ('sqlite_sequence')" + extraWhereClause + ";", [], callback, errorCallback)
+				dropTable: (tableName, ifExists = true, callback, errorCallback) -> @executeSql('DROP TABLE ' + (if ifExists == true then 'IF EXISTS ' else '') + '"' + tableName + '";', [], callback, errorCallback)
 			}
 			return {
 				DEFAULT_VALUE
@@ -216,8 +213,7 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 				}
 			tx = (_tx) ->
 				return {
-					executeSql: (sql, bindings, callback, errorCallback) ->
-						thisTX = this
+					executeSql: (sql, bindings, callback, errorCallback) =>
 						try
 							# This is used so we can find the useful part of the stack trace, as WebSQL is asynchronous and starts a new stack.
 							___STACK_TRACE___.please
@@ -225,13 +221,13 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 							null
 							# Wrap the callbacks passed in with our own if necessary to pass in the wrapped tx.
 							if callback?
-								callback = do(callback) ->
-									(_tx, _results) ->
-										callback(thisTX, createResult(_results))
-							errorCallback = do(errorCallback) ->
-								(_tx, _err) ->
+								callback = do(callback) =>
+									(_tx, _results) =>
+										callback(@, createResult(_results))
+							errorCallback = do(errorCallback) =>
+								(_tx, _err) =>
 									console.log(sql, bindings, _err, stackTrace.stack)
-									errorCallback?(thisTX, _err)
+									errorCallback?(@, _err)
 							bindNo = 0
 							sql = bindDefaultValues(sql, bindings)
 							_tx.executeSql(sql, bindings, callback, errorCallback)
@@ -242,8 +238,8 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 					tableList: (callback, errorCallback, extraWhereClause = '') ->
 						if extraWhereClause != ''
 							extraWhereClause = ' AND ' + extraWhereClause
-						this.executeSql("SELECT name, sql FROM sqlite_master WHERE type='table' AND name NOT IN ('__WebKitDatabaseInfoTable__', 'sqlite_sequence')" + extraWhereClause + ";", [], callback, errorCallback)
-					dropTable: (tableName, ifExists = true, callback, errorCallback) -> this.executeSql('DROP TABLE ' + (if ifExists == true then 'IF EXISTS ' else '') + '"' + tableName + '";', [], callback, errorCallback)
+						@executeSql("SELECT name, sql FROM sqlite_master WHERE type='table' AND name NOT IN ('__WebKitDatabaseInfoTable__', 'sqlite_sequence')" + extraWhereClause + ";", [], callback, errorCallback)
+					dropTable: (tableName, ifExists = true, callback, errorCallback) -> @executeSql('DROP TABLE ' + (if ifExists == true then 'IF EXISTS ' else '') + '"' + tableName + '";', [], callback, errorCallback)
 				}
 			return {
 				DEFAULT_VALUE
