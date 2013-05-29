@@ -74,7 +74,12 @@ define(['has', 'async'], (has, async) ->
 										user: (callback) ->
 											sbvrUtils.runURI('POST', '/Auth/user', {'username': user.username, 'password': user.password}, tx, (err, result) ->
 												if err
-													callback(err)
+													sbvrUtils.runURI('GET', "/Auth/user?$filter=username eq '" + user.username + "'", null, tx, (err, result) ->
+														if err
+															callback(err)
+														else
+															callback(null, result.d[0].id)
+													)
 												else
 													callback(null, result.id)
 											)
