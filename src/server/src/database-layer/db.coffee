@@ -50,7 +50,11 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 				}
 			class Tx
 				constructor: (_db, _close) ->
-					{startQuery, endQuery} = wrapExecuteSql -> _close()
+					{startQuery, endQuery} = wrapExecuteSql =>
+						if @_transOpen is true
+							console.warn('Connection is closing, but a transaction is still in progress.')
+							@.end() # We end the transaction in progress to keep things working as best as possible.
+						_close()
 
 					@executeSql = startQuery (sql, _bindings = [], callback, errorCallback, addReturning = true) =>
 						bindings = _bindings.slice(0) # Deal with the fact we may splice arrays directly into bindings
@@ -83,9 +87,15 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 							else
 								callback?(@, createResult(res.rows))
 						)
-				begin: -> @executeSql('BEGIN;')
-				end: -> @executeSql('END;')
-				rollback: -> @executeSql('ROLLBACK;')
+				begin: ->
+					@_transOpen = true
+					@executeSql('START TRANSACTION;')
+				end: ->
+					@_transOpen = false
+					@executeSql('COMMIT;')
+				rollback: ->
+					@_transOpen = false
+					@executeSql('ROLLBACK;')
 				tableList: (callback, errorCallback, extraWhereClause = '') ->
 					if extraWhereClause != ''
 						extraWhereClause = ' WHERE ' + extraWhereClause
@@ -101,7 +111,6 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 							errorCallback?(err)
 						else
 							tx = new Tx(client, done)
-							tx.end() # We end the transaction, as we may have a client from the pool which is in an aborted transaction state.
 							callback(tx)
 					)
 			}
@@ -120,7 +129,13 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 				}
 			class Tx
 				constructor: (_db) ->
-					{startQuery, endQuery} = wrapExecuteSql -> _db.end()
+					@_transOpen = false
+					lastCallback = null
+					{startQuery, endQuery} = wrapExecuteSql =>
+						if @_transOpen is true
+							console.warn('Connection is closing, but a transaction is still in progress.')
+							@.end() # We end the transaction in progress to keep things working as best as possible.
+						_db.end()
 
 					@executeSql = startQuery (sql, bindings = [], callback, errorCallback, addReturning = true) =>
 						sql = sql.replace(/GROUP BY NULL/g, '') # HACK: Remove GROUP BY NULL for MySQL? as it does not need/accept? it.
@@ -134,9 +149,15 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 							else
 								callback?(@, createResult(res))
 						)
-				begin: -> @executeSql('START TRANSACTION;')
-				end: -> @executeSql('COMMIT;')
-				rollback: -> @executeSql('ROLLBACK;')
+				begin: ->
+					@_transOpen = true
+					@executeSql('START TRANSACTION;')
+				end: ->
+					@_transOpen = false
+					@executeSql('COMMIT;')
+				rollback: ->
+					@_transOpen = false
+					@executeSql('ROLLBACK;')
 				tableList: (callback, errorCallback, extraWhereClause = '') ->
 					if extraWhereClause != ''
 						extraWhereClause = ' WHERE ' + extraWhereClause

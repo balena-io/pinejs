@@ -841,7 +841,6 @@ define([
 									if err
 										res.json(err, 404)
 										return
-									tx.end()
 									insertID = if request.query[0] == 'UpdateQuery' then values[0] else sqlResult.insertId
 									console.log('Insert ID: ', insertID)
 									res.json({
@@ -852,6 +851,7 @@ define([
 									)
 								)
 							(tx, err) ->
+								tx.rollback()
 								constraintError = checkForConstraintError(err, request.resourceName)
 								if constraintError != false
 									res.json(constraintError, 404)
@@ -898,7 +898,6 @@ define([
 							if err
 								res.json(err, 404)
 							else
-								tx.end()
 								res.send(200)
 						)
 					
@@ -915,20 +914,22 @@ define([
 							) AS result;''', [request.resourceName, id],
 							(tx, result) ->
 								if result.rows.item(0).result in [false, 0, '0']
+									tx.rollback()
 									res.json([ "The resource is locked and cannot be edited" ], 404)
 								else
 									tx.executeSql(insertQuery.query, values,
 										(tx, result) -> doValidate(tx)
-										(tx) ->
+										(tx, err) ->
 											if updateQuery?
 												getAndCheckBindValues(vocab, updateQuery.bindings, request.values, (err, values) ->
-													console.log(updateQuery.query, err, values)
 													if err
+														tx.rollback()
 														res.json(err, 404)
 														return
 													tx.executeSql(updateQuery.query, values,
 														(tx, result) -> doValidate(tx)
 														(tx, err) ->
+															tx.rollback()
 															constraintError = checkForConstraintError(err, request.resourceName)
 															if constraintError != false
 																res.json(constraintError, 404)
@@ -937,7 +938,13 @@ define([
 													)
 												)
 											else
+												tx.rollback()
 												res.send(404)
+												constraintError = checkForConstraintError(err, request.resourceName)
+												if constraintError != false
+													res.json(constraintError, 404)
+												else
+													res.send(404)
 									)
 						)
 					if tx?
@@ -975,10 +982,10 @@ define([
 									if err
 										res.json(err, 404)
 									else
-										tx.end()
 										res.send(200)
 								)
 							(tx, err) ->
+								tx.rollback()
 								constraintError = checkForConstraintError(err, request.resourceName)
 								if constraintError != false
 									res.json(constraintError, 404)
