@@ -594,17 +594,29 @@ define([
 					'resource.all': true
 			tree: parseODataURI(method, uri, body)
 			body: body
+		if tx?
+			tx.forceOpen(true)
 		res =
 			send: (statusCode) ->
-				if statusCode >= 400
-					callback?(statusCode)
+				send = ->
+					if statusCode >= 400
+						callback?(statusCode)
+					else
+						callback?()
+				if tx?
+					tx.forceOpen false, send
 				else
-					callback?()
+					send()
 			json: (data, statusCode) ->
-				if statusCode >= 400
-					callback?(data)
+				json = ->
+					if statusCode >= 400
+						callback?(data)
+					else
+						callback?(null, data)
+				if tx?
+					tx.forceOpen false, json
 				else
-					callback?(null, data)
+					json()
 			set: ->
 			type: ->
 		switch method

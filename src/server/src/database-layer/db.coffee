@@ -15,7 +15,19 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 	wrapExecuteSql = (closeCallback) ->
 		currentlyQueuedStatements = 0
 		connectionClosed = false
+		forcedOpen = 0
 		return {
+			forceOpen: (bool, callback) ->
+				if bool is true
+					forcedOpen++
+				else if forcedOpen > 0
+					forcedOpen--
+				try
+					callback?()
+				finally
+					if forcedOpen is 0 and connectionClosed is false and currentlyQueuedStatements is 0
+						connectionClosed = true
+						closeCallback()
 			startQuery: (callback) ->
 				->
 					if connectionClosed
@@ -31,7 +43,7 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 						# We have finished a statement so remove it.
 						currentlyQueuedStatements--
 						# Check if there are no queued statements after the callback has had a chance to remove them and close the connection if there are none queued.
-						if currentlyQueuedStatements == 0
+						if forcedOpen is false and currentlyQueuedStatements is 0
 							connectionClosed = true
 							closeCallback()
 		}
@@ -50,7 +62,7 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 				}
 			class Tx
 				constructor: (_db, _close) ->
-					{startQuery, endQuery} = wrapExecuteSql =>
+					{startQuery, endQuery, @forceOpen} = wrapExecuteSql =>
 						if @_transOpen is true
 							console.warn('Connection is closing, but a transaction is still in progress.')
 							@.end() # We end the transaction in progress to keep things working as best as possible.
@@ -131,7 +143,7 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 				constructor: (_db) ->
 					@_transOpen = false
 					lastCallback = null
-					{startQuery, endQuery} = wrapExecuteSql =>
+					{startQuery, endQuery, @forceOpen} = wrapExecuteSql =>
 						if @_transOpen is true
 							console.warn('Connection is closing, but a transaction is still in progress.')
 							@.end() # We end the transaction in progress to keep things working as best as possible.
@@ -206,6 +218,9 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 						extraWhereClause = ' AND ' + extraWhereClause
 					@executeSql("SELECT name, sql FROM sqlite_master WHERE type='table' AND name NOT IN ('sqlite_sequence')" + extraWhereClause + ";", [], callback, errorCallback)
 				dropTable: (tableName, ifExists = true, callback, errorCallback) -> @executeSql('DROP TABLE ' + (if ifExists == true then 'IF EXISTS ' else '') + '"' + tableName + '";', [], callback, errorCallback)
+				forceOpen: (bool, callback) ->
+					console.warn('Force open not implemented for sqlite.')
+					callback?()
 			}
 			return {
 				DEFAULT_VALUE
@@ -261,6 +276,9 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 							extraWhereClause = ' AND ' + extraWhereClause
 						@executeSql("SELECT name, sql FROM sqlite_master WHERE type='table' AND name NOT IN ('__WebKitDatabaseInfoTable__', 'sqlite_sequence')" + extraWhereClause + ";", [], callback, errorCallback)
 					dropTable: (tableName, ifExists = true, callback, errorCallback) -> @executeSql('DROP TABLE ' + (if ifExists == true then 'IF EXISTS ' else '') + '"' + tableName + '";', [], callback, errorCallback)
+					forceOpen: (bool, callback) ->
+						console.warn('Cannot force open websql.')
+						callback?()
 				}
 			return {
 				DEFAULT_VALUE
