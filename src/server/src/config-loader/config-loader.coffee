@@ -67,48 +67,49 @@ define(['has', 'async'], (has, async) ->
 						)
 				
 				if data.users?
-					async.forEach(data.users,
-						(user, callback) ->
-							async.parallel({
-									user: (callback) ->
-										sbvrUtils.runURI('POST', '/Auth/user', {'username': user.username, 'password': user.password}, null, (err, result) ->
-											if err
-												callback(err)
-											else
-												callback(null, result.id)
-										)
-									permissions: (callback) ->
-										if !user.permissions?
-											return callback(null, [])
-										async.map(user.permissions,
-											(permission, callback) ->
-												sbvrUtils.runURI('POST', '/Auth/permission', {'name': permission}, null, (err, result) ->
-													if err
-														sbvrUtils.runURI('GET', "/Auth/permission?$filter=name eq '" + permission + "'", null, null, (err, result) ->
-															if err
-																callback(err)
-															else
-																callback(null, result.d[0].id)
-														)
-													else
-														callback(null, result.id)
-												)
-											callback
-										)
-								}
-								(err, results) ->
-									if err
-										console.error('Failed to add users or permissions', err)
-									else
-										async.forEach(results.permissions,
-											(permission, callback) ->
-												sbvrUtils.runURI('POST', '/Auth/user__has__permission', {'user': results.user, 'permission': permission}, null, callback)
-											(err) ->
+					db.transaction (tx) ->
+						async.forEach(data.users,
+							(user, callback) ->
+								async.parallel({
+										user: (callback) ->
+											sbvrUtils.runURI('POST', '/Auth/user', {'username': user.username, 'password': user.password}, tx, (err, result) ->
 												if err
-													console.error('Failed to add user permissions', err)
-										)
-							)
-					)
+													callback(err)
+												else
+													callback(null, result.id)
+											)
+										permissions: (callback) ->
+											if !user.permissions?
+												return callback(null, [])
+											async.map(user.permissions,
+												(permission, callback) ->
+													sbvrUtils.runURI('POST', '/Auth/permission', {'name': permission}, tx, (err, result) ->
+														if err
+															sbvrUtils.runURI('GET', "/Auth/permission?$filter=name eq '" + permission + "'", null, tx, (err, result) ->
+																if err
+																	callback(err)
+																else
+																	callback(null, result.d[0].id)
+															)
+														else
+															callback(null, result.id)
+													)
+												callback
+											)
+									}
+									(err, results) ->
+										if err
+											console.error('Failed to add users or permissions', err)
+										else
+											async.forEach(results.permissions,
+												(permission, callback) ->
+													sbvrUtils.runURI('POST', '/Auth/user__has__permission', {'user': results.user, 'permission': permission}, tx, callback)
+												(err) ->
+													if err
+														console.error('Failed to add user permissions', err)
+											)
+								)
+						)
 		)
 	return exports
 )
