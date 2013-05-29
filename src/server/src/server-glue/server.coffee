@@ -22,9 +22,6 @@ define([
 
 	setupCallback = (app) ->
 		sbvrUtils.setup(app, require, db, (err) ->
-			app.configure('production', ->
-				console.log = ->
-			)
 			passportBCrypt = passportBCrypt({
 					loginUrl: '/login',
 					failureRedirect: '/login.html',
@@ -52,6 +49,9 @@ define([
 		express = require('express')
 		passport = require('passport')
 		app = express()
+		app.configure('production', ->
+			console.log = ->
+		)
 		app.configure(->
 			path = require('path')
 			app.use(express.compress())
