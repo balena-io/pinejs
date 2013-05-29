@@ -129,13 +129,12 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 						sql = sql.replace(/AUTOINCREMENT/g, 'AUTO_INCREMENT') # HACK: MySQL uses AUTO_INCREMENT rather than AUTOINCREMENT.
 						sql = sql.replace(/DROP CONSTRAINT/g, 'DROP FOREIGN KEY') # HACK: MySQL uses FOREIGN KEY rather than CONSTRAINT.
 						sql = bindDefaultValues(sql, bindings)
-						_db.query(sql, bindings, endQuery (err, res, fields) ->
-							try
-								if err?
-									errorCallback?(thisTX, err)
-									console.log(sql, bindings, err)
-								else
-									callback?(thisTX, createResult(res))
+						_db.query(sql, bindings, endQuery (err, res) ->
+							if err?
+								errorCallback?(thisTX, err)
+								console.log(sql, bindings, err)
+							else
+								callback?(thisTX, createResult(res))
 						)
 				begin: -> this.executeSql('START TRANSACTION;')
 				end: -> this.executeSql('COMMIT;')
