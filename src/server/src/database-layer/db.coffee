@@ -15,17 +15,18 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 	wrapExecuteSql = (closeCallback) ->
 		currentlyQueuedStatements = 0
 		connectionClosed = false
-		forcedOpen = 0
 		return {
 			forceOpen: (bool, callback) ->
 				if bool is true
-					forcedOpen++
-				else if forcedOpen > 0
-					forcedOpen--
+					currentlyQueuedStatements++
+				else
+					currentlyQueuedStatements--
 				try
 					callback?()
 				finally
-					if forcedOpen is 0 and connectionClosed is false and currentlyQueuedStatements is 0
+					if currentlyQueuedStatements < 0
+						console.trace('currentlyQueuedStatements is less than 0!')
+					if connectionClosed is false and currentlyQueuedStatements <= 0
 						connectionClosed = true
 						closeCallback()
 			startQuery: (callback) ->
@@ -42,8 +43,10 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 					finally
 						# We have finished a statement so remove it.
 						currentlyQueuedStatements--
+						if currentlyQueuedStatements < 0
+							console.trace('currentlyQueuedStatements is less than 0!')
 						# Check if there are no queued statements after the callback has had a chance to remove them and close the connection if there are none queued.
-						if forcedOpen is false and currentlyQueuedStatements is 0
+						if currentlyQueuedStatements <= 0
 							connectionClosed = true
 							closeCallback()
 		}
