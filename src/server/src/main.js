@@ -30,7 +30,7 @@ require({
 		'utils'					: '../../common/utils',
 		'prettify'				: '../../common/prettify',
 		'odata-parser'			: '../../../node_modules/odata-parser/odata-parser',
-		'odata-to-abstract-sql'	: '../../../node_modules/odata-to-abstract-sql/odata-to-abstract-sql',
+		'odata-to-abstract-sql'	: '../../../node_modules/odata-to-abstract-sql/odata-to-abstract-sql'
 	},
 	packages: [
 		{
@@ -42,6 +42,11 @@ require({
 			name: 'extended-sbvr-parser',
 			location: '../../common/extended-sbvr-parser',
 			main: 'extended-sbvr-parser'
+		},
+		{
+			name: 'lf-to-abstract-sql',
+			location: '../../../node_modules/lf-to-abstract-sql',
+			main: 'index'
 		},
 		{
 			name: 'abstract-sql-compiler',

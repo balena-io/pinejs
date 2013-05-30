@@ -1,8 +1,7 @@
 define([
 	'has'
 	'cs!extended-sbvr-parser'
-	'ometa!sbvr-compiler/LF2AbstractSQLPrep'
-	'ometa!sbvr-compiler/LF2AbstractSQL'
+	'lf-to-abstract-sql'
 	'cs!sbvr-compiler/AbstractSQL2SQL'
 	'abstract-sql-compiler'
 	'cs!sbvr-compiler/AbstractSQL2CLF'
@@ -12,9 +11,11 @@ define([
 	'async'
 	'lodash'
 	'cs!sbvr-compiler/types'
-], (has, SBVRParser, LF2AbstractSQLPrep, LF2AbstractSQL, AbstractSQL2SQL, AbstractSQLCompiler, AbstractSQL2CLF, ODataMetadataGenerator, {ODataParser}, {OData2AbstractSQL}, async, _, sbvrTypes) ->
+], (has, SBVRParser, LF2AbstractSQL, AbstractSQL2SQL, AbstractSQLCompiler, AbstractSQL2CLF, ODataMetadataGenerator, {ODataParser}, {OData2AbstractSQL}, async, _, sbvrTypes) ->
 	exports = {}
 	db = null
+
+	LF2AbstractSQLTranslator = LF2AbstractSQL.createTranslator(sbvrTypes)
 
 	devModel = '''
 			Vocabulary: dev
@@ -364,8 +365,7 @@ define([
 					console.error('Error parsing model', vocab, e, e.stack)
 					return callback('Error parsing model')
 				try
-					slfModel = LF2AbstractSQLPrep.match(lfModel, 'Process')
-					abstractSqlModel = LF2AbstractSQL.match(slfModel, 'Process')
+					abstractSqlModel = LF2AbstractSQLTranslator(lfModel, 'Process')
 					sqlModel = AbstractSQL2SQL.generate(abstractSqlModel)
 					clientModel = AbstractSQL2CLF(sqlModel)
 					metadata = ODataMetadataGenerator(vocab, sqlModel)
@@ -406,11 +406,6 @@ define([
 									vocabulary: vocab
 									model_value: lfModel
 									model_type: 'lf'
-								}, tx)
-								runURI('PATCH', uri('slf'), {
-									vocabulary: vocab
-									model_value: slfModel
-									model_type: 'slf'
 								}, tx)
 								runURI('PATCH', uri('abstractsql'), {
 									vocabulary: vocab
@@ -508,7 +503,9 @@ define([
 		async.map(rows, processInstance, callback)
 
 	exports.runRule = do ->
-		LF2AbstractSQLPrepHack = _.extend({}, LF2AbstractSQLPrep, {CardinalityOptimisation: () -> @_pred(false)})
+		LF2AbstractSQLPrepHack = _.extend({}, LF2AbstractSQL.LF2AbstractSQLPrep, {CardinalityOptimisation: () -> @_pred(false)})
+		translator = LF2AbstractSQL.LF2AbstractSQL.createInstance()
+		translator.addTypes(sbvrTypes)
 		return (vocab, rule, callback) ->
 			seModel = seModels[vocab]
 			try
@@ -519,11 +516,12 @@ define([
 			ruleLF = lfModel[lfModel.length-1]
 			lfModel = lfModel[...-1]
 			try
-				slfModel = LF2AbstractSQLPrep.match(lfModel, 'Process')
+				slfModel = LF2AbstractSQL.LF2AbstractSQLPrep.match(lfModel, 'Process')
 				slfModel.push(ruleLF)
 				slfModel = LF2AbstractSQLPrepHack.match(slfModel, 'Process')
+
 				
-				abstractSqlModel = LF2AbstractSQL.match(slfModel, 'Process')
+				abstractSqlModel = translator.match(slfModel, 'Process')
 			catch e
 				console.error('Failed to compile rule', rule, e, e.stack)
 			

@@ -74,6 +74,11 @@ require({
 			main: 'extended-sbvr-parser'
 		},
 		{
+			name: 'lf-to-abstract-sql',
+			location: '../../../node_modules/lf-to-abstract-sql',
+			main: 'index'
+		},
+		{
 			name: 'abstract-sql-compiler',
 			location: '../../../node_modules/abstract-sql-compiler',
 			main: 'index'
