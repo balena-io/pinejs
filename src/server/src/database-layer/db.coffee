@@ -250,9 +250,9 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 								iterator.call(thisArg, result.rows.item(i), i, result.rows)
 					insertId: insertId
 				}
-			tx = (_tx) ->
-				return {
-					executeSql: (sql, bindings, callback, errorCallback) =>
+			class Tx
+				constructor: (_tx) ->
+					@executeSql = (sql, bindings, callback, errorCallback) =>
 						try
 							# This is used so we can find the useful part of the stack trace, as WebSQL is asynchronous and starts a new stack.
 							___STACK_TRACE___.please
@@ -270,25 +270,24 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 							bindNo = 0
 							sql = bindDefaultValues(sql, bindings)
 							_tx.executeSql(sql, bindings, callback, errorCallback)
-					begin: ->
-					end: ->
-					# Rollbacks in WebSQL are done by having a SQL statement error, and not having an error callback (or having one that returns false).
-					rollback: -> _tx.executeSql("DROP TABLE '__Fo0oFoo'")
-					tableList: (callback, errorCallback, extraWhereClause = '') ->
-						if extraWhereClause != ''
-							extraWhereClause = ' AND ' + extraWhereClause
-						@executeSql("SELECT name, sql FROM sqlite_master WHERE type='table' AND name NOT IN ('__WebKitDatabaseInfoTable__', 'sqlite_sequence')" + extraWhereClause + ";", [], callback, errorCallback)
-					dropTable: (tableName, ifExists = true, callback, errorCallback) -> @executeSql('DROP TABLE ' + (if ifExists == true then 'IF EXISTS ' else '') + '"' + tableName + '";', [], callback, errorCallback)
-					forceOpen: (bool, callback) ->
-						console.warn('Cannot force open websql.')
-						callback?()
-				}
+					@rollback = -> _tx.executeSql("DROP TABLE '__Fo0oFoo'")
+				begin: ->
+				end: ->
+				# Rollbacks in WebSQL are done by having a SQL statement error, and not having an error callback (or having one that returns false).
+				tableList: (callback, errorCallback, extraWhereClause = '') ->
+					if extraWhereClause != ''
+						extraWhereClause = ' AND ' + extraWhereClause
+					@executeSql("SELECT name, sql FROM sqlite_master WHERE type='table' AND name NOT IN ('__WebKitDatabaseInfoTable__', 'sqlite_sequence')" + extraWhereClause + ";", [], callback, errorCallback)
+				dropTable: (tableName, ifExists = true, callback, errorCallback) -> @executeSql('DROP TABLE ' + (if ifExists == true then 'IF EXISTS ' else '') + '"' + tableName + '";', [], callback, errorCallback)
+				forceOpen: (bool, callback) ->
+					console.warn('Cannot force open websql.')
+					callback?()
 			return {
 				DEFAULT_VALUE
 				engine: 'websql'
 				transaction: (callback) ->
 					_db.transaction( (_tx) ->
-						callback(tx(_tx))
+						callback(new Tx(_tx))
 					)
 			}
 	exports.connect = (databaseOptions) ->
