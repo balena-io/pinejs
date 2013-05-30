@@ -221,9 +221,13 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 						extraWhereClause = ' AND ' + extraWhereClause
 					@executeSql("SELECT name, sql FROM sqlite_master WHERE type='table' AND name NOT IN ('sqlite_sequence')" + extraWhereClause + ";", [], callback, errorCallback)
 				dropTable: (tableName, ifExists = true, callback, errorCallback) -> @executeSql('DROP TABLE ' + (if ifExists == true then 'IF EXISTS ' else '') + '"' + tableName + '";', [], callback, errorCallback)
-				forceOpen: (bool, callback) ->
-					console.warn('Force open not implemented for sqlite.')
-					callback?()
+				forceOpen: do ->
+					warned = false
+					(bool, callback) ->
+						if warned is false
+							warned = true
+							console.warn('Force open not implemented for sqlite.')
+						callback?()
 			}
 			return {
 				DEFAULT_VALUE
@@ -279,9 +283,13 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 						extraWhereClause = ' AND ' + extraWhereClause
 					@executeSql("SELECT name, sql FROM sqlite_master WHERE type='table' AND name NOT IN ('__WebKitDatabaseInfoTable__', 'sqlite_sequence')" + extraWhereClause + ";", [], callback, errorCallback)
 				dropTable: (tableName, ifExists = true, callback, errorCallback) -> @executeSql('DROP TABLE ' + (if ifExists == true then 'IF EXISTS ' else '') + '"' + tableName + '";', [], callback, errorCallback)
-				forceOpen: (bool, callback) ->
-					console.warn('Cannot force open websql.')
-					callback?()
+				forceOpen: do ->
+					warned = false
+					(bool, callback) ->
+						if warned is false
+							warned = true
+							console.warn('Cannot force open websql.')
+						callback?()
 			return {
 				DEFAULT_VALUE
 				engine: 'websql'
