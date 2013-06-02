@@ -749,13 +749,13 @@ define([
 					else
 						if err
 							console.error(err)
-						res.send(403)
+						res.send(401)
 				)
 	exports.checkPermissionsMiddleware = (action) ->
 		return (req, res, next) -> 
 			checkPermissions(req, res, action, (err) ->
 				if err
-					res.send(403)
+					res.send(401)
 				else
 					next()
 			)
