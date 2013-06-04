@@ -707,10 +707,7 @@ define([
 								return true
 						return false
 					else if _.isArray(permissionCheck)
-						for permission in permissionCheck
-							if not _recurseCheckPermissions(permission)
-								return false
-						return true
+						return _.all(permissionCheck, _recurseCheckPermissions)
 					else if _.isObject(permissionCheck)
 						checkTypes = _.keys(permissionCheck)
 						if checkTypes.length > 1
@@ -720,25 +717,14 @@ define([
 							when 'AND'
 								return _recurseCheckPermissions(permissionCheck[checkType])
 							when 'OR'
-								for permission in permissionCheck[checkType]
-									if _recurseCheckPermissions(permission)
-										return true
-								return false
+								return _.any(permissionCheck[checkType], _recurseCheckPermissions)
 							else
 								throw 'Cannot parse required permissions logic: ' + checkType
 						return false
 					else
 						throw 'Cannot parse required permissions: ' + permissionCheck
-				
-				if permissions.hasOwnProperty('resource.all')
-					return true
-				vocabulary = req.tree?.vocabulary
-				if vocabulary?
-					if permissions.hasOwnProperty(vocabulary + '.all')
-						return true
-					if request? and permissions.hasOwnProperty(vocabulary + '.' + request.resourceName + '.all')
-						return true
-				return _recurseCheckPermissions(actionList)
+
+				return _recurseCheckPermissions(or: ['all', actionList])
 
 			if req.user? and _checkPermissions(req.user.permissions)
 				callback()
