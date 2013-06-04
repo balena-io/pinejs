@@ -51,7 +51,7 @@ define(['lodash'], (_) ->
 						# person has age
 						# person: fk - id
 						# age: fk
-						resourceField = sqlFieldName = tables[idParts[2]].name
+						resourceField = sqlFieldName = idParts[2].replace(/_/g, ' ')
 						sqlTableName = sqlTable.name
 						addMapping(resourceName, resourceField, sqlTableName, sqlFieldName)
 						resources[resourceName].fields.push(getField(sqlTable, sqlFieldName))
