@@ -703,18 +703,41 @@ define([
 					vocabulary = null
 
 			_checkPermissions = (permissions) ->
+				permissionKeys = _.keys(permissions)
 				_recurseCheckPermissions = (permissionCheck) ->
 					if _.isString(permissionCheck)
-						if permissions.hasOwnProperty('resource.' + permissionCheck)
+						resourcePermission = 'resource.' + permissionCheck
+						if permissions.hasOwnProperty(resourcePermission)
 							return true
 						if vocabulary?
-							if permissions.hasOwnProperty(vocabulary + '.' + permissionCheck)
+							vocabularyPermission = vocabulary + '.' + permissionCheck
+							if permissions.hasOwnProperty(vocabularyPermission)
 								return true
-							if resourceName? and permissions.hasOwnProperty(vocabulary + '.' + resourceName + '.' + permissionCheck)
-								return true
+							if resourceName?
+								vocabularyResourcePermission = vocabulary + '.' + resourceName + '.' + permissionCheck
+								if permissions.hasOwnProperty(vocabularyResourcePermission)
+									return true
+
+						conditionalPermissions = _.filter permissionKeys, (permissionName) ->
+							permissionName[...resourcePermission.length] == resourcePermission or
+							(vocabularyPermission? and permissionName[...vocabularyPermission.length] == vocabularyPermission) or
+							(vocabularyResourcePermission? and permissionName[...vocabularyResourcePermission.length] == vocabularyResourcePermission)
+
+						if conditionalPermissions.length > 0
+							return conditionalPermissions
 						return false
 					else if _.isArray(permissionCheck)
-						return _.all(permissionCheck, _recurseCheckPermissions)
+						conditionalPermissions = []
+						for permission in permissionCheck
+							result = _recurseCheckPermissions(permission)
+							if result is false
+								return false
+							else if _.isArray(result)
+								conditionalPermissions = conditionalPermissions.concat(result)
+						if conditionalPermissions.length > 0
+							return conditionalPermissions
+						else
+							return true
 					else if _.isObject(permissionCheck)
 						checkTypes = _.keys(permissionCheck)
 						if checkTypes.length > 1
@@ -724,7 +747,17 @@ define([
 							when 'AND'
 								return _recurseCheckPermissions(permissionCheck[checkType])
 							when 'OR'
-								return _.any(permissionCheck[checkType], _recurseCheckPermissions)
+								conditionalPermissions = []
+								for permission in permissionCheck[checkType]
+									result = _recurseCheckPermissions(permission)
+									if result is true
+										return true
+									else if _.isArray(result)
+										conditionalPermissions = conditionalPermissions.concat(result)
+								if conditionalPermissions.length > 0
+									return conditionalPermissions
+								else
+									return false
 							else
 								throw 'Cannot parse required permissions logic: ' + checkType
 						return false
@@ -733,17 +766,24 @@ define([
 
 				return _recurseCheckPermissions(or: ['all', actionList])
 
-			if req.user? and _checkPermissions(req.user.permissions)
-				callback()
-			else
-				_getGuestPermissions((err, permissions) ->
-					if !err and _checkPermissions(permissions)
-						callback()
-					else
-						if err
-							console.error(err)
-						res.send(401)
-				)
+			if req.user?
+				allowed = _checkPermissions(req.user.permissions) or []
+				if allowed is true
+					callback([])
+					return
+			_getGuestPermissions((err, permissions) ->
+				guestAllowed = _checkPermissions(permissions) or []
+				if guestAllowed is true
+					callback([])
+					return
+				allowed = allowed.concat(guestAllowed)
+				if allowed.length > 0
+					callback(allowed)
+				else
+					if err
+						console.error(err)
+					res.send(401)
+			)
 	exports.checkPermissionsMiddleware = (action) ->
 		return (req, res, next) -> 
 			checkPermissions(req, res, action, (err) ->
