@@ -7,22 +7,26 @@
   },
   "repository": "git@bitbucket.org:rulemotion/rulemotion-canvas.git",
   "dependencies": {
-    "sbvr-parser": "git+ssh://git@bitbucket.org:rulemotion/sbvr-parser.git#v0.0.8",
+    "abstract-sql-compiler": "git+ssh://git@bitbucket.org:rulemotion/abstract-sql-compiler.git#v0.0.9",
+    "lf-to-abstract-sql": "git+ssh://git@bitbucket.org:rulemotion/lf-to-abstract-sql.git#v0.0.2",
     "odata-parser": "git+ssh://git@bitbucket.org:rulemotion/odata-parser.git#v0.0.4",
     "odata-to-abstract-sql": "git+ssh://git@bitbucket.org:rulemotion/odata-to-abstract-sql.git#v0.0.13",
-    "lf-to-abstract-sql": "git+ssh://git@bitbucket.org:rulemotion/lf-to-abstract-sql.git#v0.0.2",
-    "abstract-sql-compiler": "git+ssh://git@bitbucket.org:rulemotion/abstract-sql-compiler.git#v0.0.9",
-    "express": "~3.2.5",
-    "requirejs": "~2.1.5",
-    "passport": "~0.1.17",
-    "mysql": "~2.0.0-alpha8",
-    "lodash": "~1.2.1",
-    "pg": "~1.1.0",
-    "ometa-js": "~1.0.4",
+    "sbvr-parser": "git+ssh://git@bitbucket.org:rulemotion/sbvr-parser.git#v0.0.8",
+
     "coffee-script": "~1.6.2",
-    "passport-local": "~0.1.6",
+    "ometa-js": "~1.0.4",
+
+
+    "mysql": "~2.0.0-alpha8",
+    "pg": "~1.1.0",
+
+    "async": "~0.2.8",
     "bcrypt": "~0.7.5",
-    "async": "~0.2.8"
+    "express": "~3.2.5",
+    "lodash": "~1.2.1",
+    "passport": "~0.1.17",
+    "passport-local": "~0.1.6",
+    "requirejs": "~2.1.5"
   },
   "engines": {
     "node": "0.10.x",
