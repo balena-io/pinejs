@@ -72,11 +72,13 @@ define(['has', 'async'], (has, async) ->
 							(user, callback) ->
 								async.parallel({
 										user: (callback) ->
-											sbvrUtils.runURI('POST', '/Auth/user', {'username': user.username, 'password': user.password}, tx, (err, result) ->
-												if err
+											sbvrUtils.runURI('POST', '/Auth/user', {'username': user.username, 'password': user.password}, tx, (createErr, result) ->
+												if createErr
 													sbvrUtils.runURI('GET', "/Auth/user?$filter=username eq '" + user.username + "'", null, tx, (err, result) ->
 														if err
 															callback(err)
+														else if result.d.length is 0
+															callback('Could not create or find user "' + user.username + '": ' + createErr)
 														else
 															callback(null, result.d[0].id)
 													)
@@ -88,11 +90,13 @@ define(['has', 'async'], (has, async) ->
 												return callback(null, [])
 											async.map(user.permissions,
 												(permission, callback) ->
-													sbvrUtils.runURI('POST', '/Auth/permission', {'name': permission}, tx, (err, result) ->
-														if err
+													sbvrUtils.runURI('POST', '/Auth/permission', {'name': permission}, tx, (createErr, result) ->
+														if createErr
 															sbvrUtils.runURI('GET', "/Auth/permission?$filter=name eq '" + permission + "'", null, tx, (err, result) ->
 																if err
 																	callback(err)
+																else if result.d.length is 0
+																	callback('Could not create or find permission "' + permission + '": ' + createErr)
 																else
 																	callback(null, result.d[0].id)
 															)
