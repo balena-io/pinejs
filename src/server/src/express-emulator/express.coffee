@@ -31,6 +31,7 @@ define((requirejs, exports, module) ->
 				headers: headers
 				url: uri
 				params: {}
+				login: (user, callback) -> callback()
 			console.log(method, uri, body)
 			if uri[-1..] == '/'
 				uri = uri[0...uri.length - 1]

@@ -25,16 +25,21 @@ define(['async'], () ->
 			)
 
 		handleAuth = (req, res, user) ->
-			if req.xhr is true
-				if user is false
+			if user is false
+				if req.xhr is true
 					res.send(401)
 				else
-					res.send(200)
-			else
-				if user is false
 					res.redirect(options.failureRedirect)
-				else
-					res.redirect(options.successRedirect)
+			else
+				req.login(user, (err) ->
+					if err
+						console.error('Error creating session', err)
+						res.send(500)
+					else if req.xhr is true
+						res.send(200)
+					else
+						res.redirect(options.successRedirect)
+				)
 
 		if passport?
 			compare = require('bcrypt').compare
