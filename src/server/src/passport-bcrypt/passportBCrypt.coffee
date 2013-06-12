@@ -24,35 +24,42 @@ define(['async'], () ->
 					done(null, false)
 			)
 
+		handleAuth = (req, res, user) ->
+			if req.xhr is true
+				if user is false
+					res.send(401)
+				else
+					res.send(200)
+			else
+				if user is false
+					res.redirect(options.failureRedirect)
+				else
+					res.redirect(options.successRedirect)
+
 		if passport?
 			compare = require('bcrypt').compare
 			LocalStrategy = require('passport-local').Strategy
-			app.post(options.loginUrl, passport.authenticate('local', {failureRedirect: options.failureRedirect}), (req, res, next) ->
-				res.redirect(options.successRedirect)
-			)
-			passport.serializeUser( (user, done)  ->
-				done(null, user)
-			)
+			app.post options.loginUrl, (req, res, next) ->
+				passport.authenticate('local', (err, user) ->
+					handleAuth(req, res, user)
+				)(req, res, next)
 
-			passport.deserializeUser( (user, done) ->
+			passport.serializeUser (user, done)  ->
 				done(null, user)
-			)
+
+			passport.deserializeUser (user, done) ->
+				done(null, user)
 
 			passport.use(new LocalStrategy(checkPassword))
 		else
 			compare = (value, hash, callback) ->
 				callback(null, value == hash)
-			do() ->
+			do ->
 				_user = false
-				app.post(options.loginUrl, (req, res, next) ->
-					checkPassword(req.body.username, req.body.password, (err, user) ->
+				app.post options.loginUrl, (req, res, next) ->
+					checkPassword req.body.username, req.body.password, (err, user) ->
 						_user = user
-						if res == false
-							res.redirect(options.failureRedirect)
-						else
-							res.redirect(options.successRedirect)
-					)
-				)
+						handleAuth(req, res, user)
 
 		return exports
 )
