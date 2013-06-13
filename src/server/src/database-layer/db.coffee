@@ -77,7 +77,6 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 						sql = sql.replace(/INTEGER PRIMARY KEY AUTOINCREMENT/g, 'SERIAL PRIMARY KEY') #HACK: Postgres uses SERIAL data type rather than auto increment
 						if addReturning and /^\s*INSERT\s+INTO/i.test(sql)
 							sql = sql.replace(/;?$/, ' RETURNING id;')
-							console.log(sql)
 						bindNo = 0
 						sql = SQLBinds.matchAll(sql, 'parse', [
 							->
