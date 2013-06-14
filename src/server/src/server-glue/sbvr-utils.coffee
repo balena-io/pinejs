@@ -463,6 +463,11 @@ define([
 				return comparison[2][1]
 		return 0
 
+	remapField = (field) ->
+		remappedField = {}
+		for key, value of field
+			remappedField[key.replace(/\ /g, '_')] = value
+		return remappedField
 	processOData = (vocab, resourceModel, rows, callback) ->
 		# TODO: This can probably be optimised more, but removing the process step when it isn't required is an improvement
 		processRequired = false
@@ -483,14 +488,24 @@ define([
 					for {fieldName, dataType, references} in resourceModel.fields
 						fieldName = fieldName.replace(/\ /g, '_')
 						if instance.hasOwnProperty(fieldName)
+							field = instance[fieldName]
 							switch dataType
 								when 'ForeignKey'
-									instance[fieldName] =
-										__deferred:
-											uri: '/' + vocab + '/' + references.tableName + '(' + instance[fieldName] + ')'
-										__id: instance[fieldName]
+									try
+										field = JSON.parse(field)
+									if _.isArray(field)
+										instance[fieldName] = _.map field, (field) ->
+											field = remapField(field)
+											field.__metadata =
+												uri: '/' + vocab + '/' + references.tableName + '(' + field.id + ')'
+											return field
+									else
+										instance[fieldName] =
+											__deferred:
+												uri: '/' + vocab + '/' + references.tableName + '(' + field + ')'
+											__id: field
 								else
-									sbvrTypes[dataType]?.fetchProcessing?(instance[fieldName], (err, result) ->
+									sbvrTypes[dataType]?.fetchProcessing?(field, (err, result) ->
 										if err?
 											console.error('Error with fetch processing', err)
 											throw err
