@@ -463,58 +463,69 @@ define([
 				return comparison[2][1]
 		return 0
 
+	chainCallback = (firstCallback, chainedCallback) ->
+		(result, callback) ->
+			firstCallback result, (err, result) ->
+				if err
+					callback(err)
+				else
+					chainedCallback(result, callback)
 	remapField = (field) ->
 		remappedField = {}
 		for key, value of field
-			remappedField[key.replace(/\ /g, '_')] = value
+			remappedField[key.replace(/\ /g, '_').replace(/-/g, '__')] = value
 		return remappedField
+	checkForExpansion = (vocab, instance, fieldName) ->
+		field = instance[fieldName]
+		try
+			field = JSON.parse(field)
+		if _.isArray(field)
+			instance[fieldName] = _.map field, (expandedField) ->
+				expandedField = remapField(expandedField)
+				expandedField.__metadata =
+					uri: '/' + vocab + '/' + fieldName + '(' + expandedField.id + ')'
+				return expandedField
+		else
+			instance[fieldName] =
+				__deferred:
+					uri: '/' + vocab + '/' + fieldName + '(' + field + ')'
+				__id: field
 	processOData = (vocab, resourceModel, rows, callback) ->
-		# TODO: This can probably be optimised more, but removing the process step when it isn't required is an improvement
-		processRequired = false
-		for {dataType} in resourceModel.fields when dataType == 'ForeignKey' or sbvrTypes[dataType]?.fetchProcessing?
-			processRequired = true
-			break
-
-		defaultProcessInstance = (instance, callback) ->
-			instance = _.clone(instance)
+		processInstance = (instance, callback) ->
+			instance = remapField(instance)
 			instance.__metadata =
 				uri: '/' + vocab + '/' + resourceModel.resourceName + '(' +instance[resourceModel.idField] + ')'
 				type: ''
 			callback(null, instance)
 
-		if processRequired
-			processInstance = (instance, callback) ->
-				defaultProcessInstance(instance, (err, instance) ->
-					for {fieldName, dataType, references} in resourceModel.fields
-						fieldName = fieldName.replace(/\ /g, '_')
-						if instance.hasOwnProperty(fieldName)
-							field = instance[fieldName]
-							switch dataType
-								when 'ForeignKey'
-									try
-										field = JSON.parse(field)
-									if _.isArray(field)
-										instance[fieldName] = _.map field, (field) ->
-											field = remapField(field)
-											field.__metadata =
-												uri: '/' + vocab + '/' + references.tableName + '(' + field.id + ')'
-											return field
-									else
-										instance[fieldName] =
-											__deferred:
-												uri: '/' + vocab + '/' + references.tableName + '(' + field + ')'
-											__id: field
-								else
-									sbvrTypes[dataType]?.fetchProcessing?(field, (err, result) ->
-										if err?
-											console.error('Error with fetch processing', err)
-											throw err
-										instance[fieldName] = result
-									)
-					callback(null, instance)
-				)
-		else
-			processInstance = defaultProcessInstance
+		fieldNames = {}
+		for {fieldName, dataType} in resourceModel.fields
+			fieldNames[fieldName.replace(/\ /g, '_')] = true
+		for fieldName of rows.item(0) when !fieldNames.hasOwnProperty(fieldName)
+			processInstance = chainCallback processInstance, (instance, callback) ->
+				for fieldName of instance when fieldName[0..1] != '__' and !fieldNames.hasOwnProperty(fieldName)
+					checkForExpansion(vocab, instance, fieldName)
+				callback(null, instance)
+			break
+
+		for {fieldName, dataType} in resourceModel.fields when dataType == 'ForeignKey' or sbvrTypes[dataType]?.fetchProcessing?
+			processInstance = chainCallback processInstance, (instance, callback) ->
+				for {fieldName, dataType, references} in resourceModel.fields
+					fieldName = fieldName.replace(/\ /g, '_')
+					if instance.hasOwnProperty(fieldName)
+						switch dataType
+							when 'ForeignKey'
+								checkForExpansion(vocab, instance, fieldName)
+							else
+								sbvrTypes[dataType]?.fetchProcessing?(instance[fieldName], (err, result) ->
+									if err?
+										console.error('Error with fetch processing', err)
+										throw err
+									instance[fieldName] = result
+								)
+				callback(null, instance)
+			break
+
 		async.map(rows, processInstance, callback)
 
 	exports.runRule = do ->
