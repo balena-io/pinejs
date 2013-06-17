@@ -470,27 +470,32 @@ define([
 					callback(err)
 				else
 					chainedCallback(result, callback)
+
 	remapField = (field) ->
 		remappedField = {}
 		for key, value of field
 			remappedField[key.replace(/\ /g, '_').replace(/-/g, '__')] = value
 		return remappedField
-	checkForExpansion = (vocab, instance, fieldName) ->
+
+	checkForExpansion = (vocab, clientModel, fieldName, instance, callback) ->
 		field = instance[fieldName]
 		try
 			field = JSON.parse(field)
 		if _.isArray(field)
-			instance[fieldName] = _.map field, (expandedField) ->
-				expandedField = remapField(expandedField)
-				expandedField.__metadata =
-					uri: '/' + vocab + '/' + fieldName + '(' + expandedField.id + ')'
-				return expandedField
+			# Hack to look like a rows object
+			field.item = (i) -> @[i]
+			processOData vocab, clientModel, fieldName, field, (err, expandedField) ->
+				instance[fieldName] = expandedField
+				callback(err)
 		else
 			instance[fieldName] =
 				__deferred:
 					uri: '/' + vocab + '/' + fieldName + '(' + field + ')'
 				__id: field
-	processOData = (vocab, resourceModel, rows, callback) ->
+			callback()
+
+	processOData = (vocab, clientModel, resourceName, rows, callback) ->
+		resourceModel = clientModel[resourceName]
 		processInstance = (instance, callback) ->
 			instance = remapField(instance)
 			instance.__metadata =
@@ -501,30 +506,34 @@ define([
 		fieldNames = {}
 		for {fieldName, dataType} in resourceModel.fields
 			fieldNames[fieldName.replace(/\ /g, '_')] = true
-		for fieldName of rows.item(0) when !fieldNames.hasOwnProperty(fieldName)
+		if _.any(rows.item(0), (val, fieldName) -> !fieldNames.hasOwnProperty(fieldName))
 			processInstance = chainCallback processInstance, (instance, callback) ->
-				for fieldName of instance when fieldName[0..1] != '__' and !fieldNames.hasOwnProperty(fieldName)
-					checkForExpansion(vocab, instance, fieldName)
-				callback(null, instance)
-			break
+				processField = (fieldName, callback) ->
+					if fieldName[0..1] != '__' and !fieldNames.hasOwnProperty(fieldName)
+						checkForExpansion(vocab, clientModel, fieldName, instance, callback)
+					else
+						callback()
+				async.each(_.keys(instance), processField, (err) -> callback(err, instance))
 
-		for {fieldName, dataType} in resourceModel.fields when dataType == 'ForeignKey' or sbvrTypes[dataType]?.fetchProcessing?
+		if _.any(resourceModel.fields, ({dataType}) -> dataType == 'ForeignKey' or sbvrTypes[dataType]?.fetchProcessing?)
 			processInstance = chainCallback processInstance, (instance, callback) ->
-				for {fieldName, dataType, references} in resourceModel.fields
+				processField = ({fieldName, dataType, references}, callback) ->
 					fieldName = fieldName.replace(/\ /g, '_')
 					if instance.hasOwnProperty(fieldName)
 						switch dataType
 							when 'ForeignKey'
-								checkForExpansion(vocab, instance, fieldName)
+								checkForExpansion(vocab, clientModel, fieldName, instance, callback)
 							else
-								sbvrTypes[dataType]?.fetchProcessing?(instance[fieldName], (err, result) ->
-									if err?
-										console.error('Error with fetch processing', err)
-										throw err
-									instance[fieldName] = result
-								)
-				callback(null, instance)
-			break
+								fetchProcessing = sbvrTypes[dataType]?.fetchProcessing
+								if fetchProcessing?
+									fetchProcessing instance[fieldName], (err, result) ->
+										instance[fieldName] = result
+										callback(err)
+								else
+									callback()
+					else
+						callback()
+				async.each(resourceModel.fields, processField, (err) -> callback(err, instance))
 
 		async.map(rows, processInstance, callback)
 
@@ -561,14 +570,14 @@ define([
 			db.transaction((tx) ->
 				tx.executeSql(ruleSQL, [],
 					(tx, result) ->
-						clientModel = clientModels[vocab]
-						resourceModel = clientModel.resources[ruleLF[1][1][1][2][1].replace(/\ /g, '_')]
-						processOData(vocab, resourceModel, result.rows, (err, d) ->
+						resourceName = ruleLF[1][1][1][2][1].replace(/\ /g, '_').replace(/-/g, '__')
+						clientModel = clientModels[vocab].resources
+						processOData(vocab, clientModel, resourceName, result.rows, (err, d) ->
 							if err
 								callback(err)
 								return
 							data =
-								__model: resourceModel
+								__model: clientModel[resourceName]
 								d: d
 							callback(null, data)
 						)
@@ -797,16 +806,15 @@ define([
 					runQuery = (tx) ->
 						tx.executeSql(query, values,
 							(tx, result) ->
-								clientModel = clientModels[tree.vocabulary]
-								resourceModel = clientModel.resources[request.resourceName]
+								clientModel = clientModels[tree.vocabulary].resources
 								switch tree.type
 									when 'OData'
-										processOData(tree.vocabulary, resourceModel, result.rows, (err, d) ->
+										processOData(tree.vocabulary, clientModel, request.resourceName, result.rows, (err, d) ->
 											if err
 												res.json(err, 404)
 												return
 											data =
-												__model: resourceModel
+												__model: clientModel[request.resourceName]
 												d: d
 											res.json(data)
 										)
