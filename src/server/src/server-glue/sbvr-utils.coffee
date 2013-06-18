@@ -481,7 +481,9 @@ define([
 		field = instance[fieldName]
 		try
 			field = JSON.parse(field)
-		if _.isArray(field)
+		if !field?
+			callback()
+		else if _.isArray(field)
 			# Hack to look like a rows object
 			field.item = (i) -> @[i]
 			processOData vocab, clientModel, fieldName, field, (err, expandedField) ->
