@@ -497,6 +497,10 @@ define([
 			callback()
 
 	processOData = (vocab, clientModel, resourceName, rows, callback) ->
+		if rows.length is 0
+			callback(null, [])
+			return
+
 		resourceModel = clientModel[resourceName]
 		processInstance = (instance, callback) ->
 			instance = remapField(instance)
