@@ -52,6 +52,8 @@ define([
 				
 			for foreignKey in foreignKeys
 				createSQL += 'FOREIGN KEY ("' + foreignKey.fieldName + '") REFERENCES "' + foreignKey.references.tableName + '" ("' + foreignKey.references.fieldName + '")' + '\n,\t'
+			for index in table.indexes
+				createSQL += index.type + '("' + index.fields.join('","') + '")\n,\t'
 			createSQL = createSQL[0...-2] + ');'
 			schemaDependencyMap[table.name] = {
 				resourceName: resourceName
