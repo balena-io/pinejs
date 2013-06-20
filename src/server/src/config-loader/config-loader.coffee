@@ -11,12 +11,12 @@ define(['has', 'async'], (has, async) ->
 		path = require('path')
 		root = process.argv[2] or __dirname
 		console.info('loading config.json')
-		fs.readFile(path.join(root, 'config.json'), 'utf8', (err, data) ->
+		fs.readFile path.join(root, 'config.json'), 'utf8', (err, data) ->
 			if err
 				console.error('Error loading config.json', err)
 			else
 				data = JSON.parse(data)
-				
+
 				for model in data.models
 					do (model) ->
 						fs.readFile(path.join(root, model.modelFile), 'utf8', (err, sbvrModel) ->
@@ -65,60 +65,73 @@ define(['has', 'async'], (has, async) ->
 									)
 								)
 						)
-				
+
 				if data.users?
+					permissions = []
+					for user in data.users
+						if user.permissions?
+							permissions = permissions.concat(user.permissions)
+					permissions = _.uniq(permissions)
+
 					db.transaction (tx) ->
-						async.forEach(data.users,
-							(user, callback) ->
-								async.parallel({
-										user: (callback) ->
-											sbvrUtils.runURI('POST', '/Auth/user', {'username': user.username, 'password': user.password}, tx, (createErr, result) ->
-												if createErr
-													sbvrUtils.runURI('GET', "/Auth/user?$filter=username eq '" + user.username + "'", null, tx, (err, result) ->
-														if err
-															callback(err)
-														else if result.d.length is 0
-															callback('Could not create or find user "' + user.username + '": ' + createErr)
-														else
-															callback(null, result.d[0].id)
-													)
+						async.parallel({
+							users: (callback) ->
+								async.map(data.users,
+									(user, callback) ->
+										sbvrUtils.runURI 'POST', '/Auth/user', {'username': user.username, 'password': user.password}, tx, (createErr, result) ->
+											if !createErr
+												callback(null, result.id)
+												return
+											sbvrUtils.runURI 'GET', "/Auth/user?$filter=username eq '" + user.username + "'", null, tx, (err, result) ->
+												if err
+													callback(err)
+												else if result.d.length is 0
+													callback('Could not create or find user "' + user.username + '": ' + createErr)
 												else
-													callback(null, result.id)
-											)
-										permissions: (callback) ->
-											if !user.permissions?
-												return callback(null, [])
-											async.map(user.permissions,
-												(permission, callback) ->
-													sbvrUtils.runURI('POST', '/Auth/permission', {'name': permission}, tx, (createErr, result) ->
-														if createErr
-															sbvrUtils.runURI('GET', "/Auth/permission?$filter=name eq '" + permission + "'", null, tx, (err, result) ->
-																if err
-																	callback(err)
-																else if result.d.length is 0
-																	callback('Could not create or find permission "' + permission + '": ' + createErr)
-																else
-																	callback(null, result.d[0].id)
-															)
-														else
-															callback(null, result.id)
-													)
-												callback
-											)
-									}
-									(err, results) ->
-										if err
-											console.error('Failed to add users or permissions', err)
-										else
-											async.forEach(results.permissions,
-												(permission, callback) ->
-													sbvrUtils.runURI('POST', '/Auth/user__has__permission', {'user': results.user, 'permission': permission}, tx, callback)
-												(err) ->
-													if err
-														console.error('Failed to add user permissions', err)
-											)
+													callback(null, result.d[0].id)
+									callback
 								)
+
+							permissions: (callback) ->
+								async.map(permissions,
+									(permission, callback) ->
+										sbvrUtils.runURI 'POST', '/Auth/permission', {'name': permission}, tx, (createErr, result) ->
+											if !createErr
+												callback(null, result.id)
+												return
+											sbvrUtils.runURI 'GET', "/Auth/permission?$filter=name eq '" + permission + "'", null, tx, (err, result) ->
+												if err
+													callback(err)
+												else if result.d.length is 0
+													callback('Could not create or find permission "' + permission + '": ' + createErr)
+												else
+													callback(null, result.d[0].id)
+									(err, permissionIDs) ->
+										if err
+											callback(err)
+										else
+											callback(null, _.zipObject(permissions, permissionIDs))
+								)
+						},
+
+						(err, results) ->
+							if err
+								console.error('Failed to add users or permissions', err)
+								return
+							async.each(_.zip(results.users, data.users),
+								([userID, {permissions: userPermissions}], callback) ->
+									if !userPermissions?
+										callback()
+										return
+									async.each(userPermissions,
+										(permission, callback) ->
+											sbvrUtils.runURI('POST', '/Auth/user__has__permission', {'user': userID, 'permission': results.permissions[permission]}, tx, callback)
+										callback
+									)
+								(err) ->
+									if err
+										console.error('Failed to add user permissions', err)
+							)
 						)
-		)
 	return exports
 )
