@@ -471,12 +471,6 @@ define([
 				else
 					chainedCallback(result, callback)
 
-	remapField = (field) ->
-		remappedField = {}
-		for key, value of field
-			remappedField[key.replace(/\ /g, '_').replace(/-/g, '__')] = value
-		return remappedField
-
 	checkForExpansion = (vocab, clientModel, fieldName, instance, callback) ->
 		field = instance[fieldName]
 		try
@@ -503,9 +497,8 @@ define([
 
 		resourceModel = clientModel[resourceName]
 		processInstance = (instance, callback) ->
-			instance = remapField(instance)
 			instance.__metadata =
-				uri: '/' + vocab + '/' + resourceModel.resourceName + '(' +instance[resourceModel.idField] + ')'
+				uri: '/' + vocab + '/' + resourceModel.resourceName + '(' + instance[resourceModel.idField] + ')'
 				type: ''
 			callback(null, instance)
 
