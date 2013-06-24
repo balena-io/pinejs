@@ -162,7 +162,9 @@ define([
 					[tableName, fieldName] = binding
 
 					referencedName = tableName + '.' + fieldName
-					value = values[referencedName] ? values[fieldName]
+					value = values[referencedName]
+					if value is undefined
+						value = values[fieldName]
 
 					[mappedTableName, mappedFieldName] = mappings[tableName][fieldName]
 					field = _.where(sqlModelTables[mappedTableName].fields, {
