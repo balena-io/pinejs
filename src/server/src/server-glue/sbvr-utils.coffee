@@ -901,133 +901,135 @@ define([
 		tree = req.tree
 		if tree.requests == undefined
 			res.send(404)
-		else
-			request = tree.requests[0]
-			checkPermissions(req, res, 'set', tree.requests[0], ->
-				try
-					queries = AbstractSQLCompiler.compile(db.engine, request.query)
-				catch e
-					console.error('Failed to compile abstract sql: ', request.query, e, e.stack)
-					res.send(503)
-					return
-				
-				if _.isArray(queries)
-					insertQuery = queries[0]
-					updateQuery = queries[1]
-				else
-					insertQuery = queries
-				
-				vocab = tree.vocabulary
-				id = getID(tree)
-				runQuery = (tx) ->
-					tx.begin()
-					tx.executeSql('''
-						SELECT NOT EXISTS(
-							SELECT 1
-							FROM "resource" r
-							JOIN "resource-is_under-lock" AS rl ON rl."resource" = r."id"
-							WHERE r."resource type" = ?
-							AND r."id" = ?
-						) AS result;''', [request.resourceName, id],
-						(tx, result) ->
-							if result.rows.item(0).result in [false, 0, '0']
-								tx.rollback()
-								res.json([ "The resource is locked and cannot be edited" ], 404)
-							else
-								getAndCheckBindValues(vocab, insertQuery.bindings, request.values, (err, values) ->
-									console.log(insertQuery.query, err, values)
-									if err
-										res.json(err, 404)
-										return
+			return
 
-									doValidate = (tx) ->
-										validateDB(tx, sqlModels[vocab], (err) ->
-											if err
-												res.json(err, 404)
-											else
-												res.send(200)
-										)
-									tx.executeSql(insertQuery.query, values,
-										(tx, result) -> doValidate(tx)
-										(tx, err) ->
-											if updateQuery?
-												getAndCheckBindValues(vocab, updateQuery.bindings, request.values, (err, values) ->
-													if err
-														tx.rollback()
-														res.json(err, 404)
-														return
-													tx.executeSql(updateQuery.query, values,
-														(tx, result) -> doValidate(tx)
-														(tx, err) ->
-															tx.rollback()
-															constraintError = checkForConstraintError(err, request.resourceName)
-															if constraintError != false
-																res.json(constraintError, 404)
-															else
-																res.send(404)
-													)
-												)
-											else
-												tx.rollback()
-												res.send(404)
-												constraintError = checkForConstraintError(err, request.resourceName)
-												if constraintError != false
-													res.json(constraintError, 404)
-												else
-													res.send(404)
-									)
-								)
-					)
-				if tx?
-					runQuery(tx)
-				else
-					db.transaction(runQuery)
-			)
+		request = tree.requests[0]
+		checkPermissions(req, res, 'set', tree.requests[0], ->
+			try
+				queries = AbstractSQLCompiler.compile(db.engine, request.query)
+			catch e
+				console.error('Failed to compile abstract sql: ', request.query, e, e.stack)
+				res.send(503)
+				return
+			
+			if _.isArray(queries)
+				insertQuery = queries[0]
+				updateQuery = queries[1]
+			else
+				insertQuery = queries
+			
+			vocab = tree.vocabulary
+			id = getID(tree)
+			runQuery = (tx) ->
+				tx.begin()
+				tx.executeSql('''
+					SELECT NOT EXISTS(
+						SELECT 1
+						FROM "resource" r
+						JOIN "resource-is_under-lock" AS rl ON rl."resource" = r."id"
+						WHERE r."resource type" = ?
+						AND r."id" = ?
+					) AS result;''', [request.resourceName, id],
+					(tx, result) ->
+						if result.rows.item(0).result in [false, 0, '0']
+							tx.rollback()
+							res.json([ "The resource is locked and cannot be edited" ], 404)
+							return
 
-	exports.runDelete = runDelete = (req, res, tx) ->
-		res.set('Cache-Control', 'no-cache')
-		tree = req.tree
-		if tree.requests == undefined
-			res.send(404)
-		else
-			request = tree.requests[0]
-			checkPermissions(req, res, 'delete', tree.requests[0], ->
-				try
-					{query, bindings} = AbstractSQLCompiler.compile(db.engine, request.query)
-				catch e
-					console.error('Failed to compile abstract sql: ', request.query, e, e.stack)
-					res.send(503)
-					return
-				vocab = tree.vocabulary
-				getAndCheckBindValues(vocab, bindings, request.values, (err, values) ->
-					console.log(query, err, values)
-					if err
-						res.json(err, 404)
-						return
-					runQuery = (tx) ->
-						tx.begin()
-						tx.executeSql(query, values,
-							(tx, result) ->
+						getAndCheckBindValues(vocab, insertQuery.bindings, request.values, (err, values) ->
+							console.log(insertQuery.query, err, values)
+							if err
+								res.json(err, 404)
+								return
+
+							doValidate = (tx) ->
 								validateDB(tx, sqlModels[vocab], (err) ->
 									if err
 										res.json(err, 404)
 									else
 										res.send(200)
 								)
-							(tx, err) ->
-								tx.rollback()
-								constraintError = checkForConstraintError(err, request.resourceName)
-								if constraintError != false
-									res.json(constraintError, 404)
-								else
-									res.send(404)
+							tx.executeSql(insertQuery.query, values,
+								(tx, result) -> doValidate(tx)
+								(tx, err) ->
+									if updateQuery?
+										getAndCheckBindValues(vocab, updateQuery.bindings, request.values, (err, values) ->
+											if err
+												tx.rollback()
+												res.json(err, 404)
+												return
+											tx.executeSql(updateQuery.query, values,
+												(tx, result) -> doValidate(tx)
+												(tx, err) ->
+													tx.rollback()
+													constraintError = checkForConstraintError(err, request.resourceName)
+													if constraintError != false
+														res.json(constraintError, 404)
+													else
+														res.send(404)
+											)
+										)
+									else
+										tx.rollback()
+										res.send(404)
+										constraintError = checkForConstraintError(err, request.resourceName)
+										if constraintError != false
+											res.json(constraintError, 404)
+										else
+											res.send(404)
+							)
 						)
-					if tx?
-						runQuery(tx)
-					else
-						db.transaction(runQuery)
 				)
+			if tx?
+				runQuery(tx)
+			else
+				db.transaction(runQuery)
+		)
+
+	exports.runDelete = runDelete = (req, res, tx) ->
+		res.set('Cache-Control', 'no-cache')
+		tree = req.tree
+		if tree.requests == undefined
+			res.send(404)
+			return
+		request = tree.requests[0]
+		checkPermissions(req, res, 'delete', tree.requests[0], ->
+			try
+				{query, bindings} = AbstractSQLCompiler.compile(db.engine, request.query)
+			catch e
+				console.error('Failed to compile abstract sql: ', request.query, e, e.stack)
+				res.send(503)
+				return
+			vocab = tree.vocabulary
+			getAndCheckBindValues(vocab, bindings, request.values, (err, values) ->
+				console.log(query, err, values)
+				if err
+					res.json(err, 404)
+					return
+				runQuery = (tx) ->
+					tx.begin()
+					tx.executeSql(query, values,
+						(tx, result) ->
+							validateDB(tx, sqlModels[vocab], (err) ->
+								if err
+									res.json(err, 404)
+								else
+									res.send(200)
+							)
+						(tx, err) ->
+							tx.rollback()
+							constraintError = checkForConstraintError(err, request.resourceName)
+							if constraintError != false
+								res.json(constraintError, 404)
+							else
+								res.send(404)
+					)
+				if tx?
+					runQuery(tx)
+				else
+					db.transaction(runQuery)
 			)
+		)
 
 	exports.parseURITree = parseURITree = (req, res, next) ->
 		if !req.tree?
