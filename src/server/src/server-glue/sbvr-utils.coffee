@@ -398,32 +398,24 @@ define([
 
 								odata2AbstractSQL[vocab] = OData2AbstractSQL.createInstance()
 								odata2AbstractSQL[vocab].clientModel = clientModel
-								uri = (modelType) -> "/dev/model?$filter=vocabulary eq '" + vocab + "' and model_type eq '" + modelType + "'"
-								runURI('PATCH', uri('se'), {
-									vocabulary: vocab
-									model_value: seModel
-									model_type: 'se'
-								}, tx)
-								runURI('PATCH', uri('lf'), {
-									vocabulary: vocab
-									model_value: lfModel
-									model_type: 'lf'
-								}, tx)
-								runURI('PATCH', uri('abstractsql'), {
-									vocabulary: vocab
-									model_value: abstractSqlModel
-									model_type: 'abstractsql'
-								}, tx)
-								runURI('PATCH', uri('sql'), {
-									vocabulary: vocab
-									model_value: sqlModel
-									model_type: 'sql'
-								}, tx)
-								runURI('PATCH', uri('client'), {
-									vocabulary: vocab
-									model_value: clientModel
-									model_type: 'client'
-								}, tx)
+
+								updateModel = (modelType, model) ->
+									runURI 'GET', "/dev/model?$filter=vocabulary eq '" + vocab + "' and model_type eq '" + modelType + "'", null, tx, (err, result) ->
+										uri = '/dev/model'
+										if result?.d?.length > 0
+											uri += '(' + result.d[0].id + ')'
+										body =
+											vocabulary: vocab
+											model_value: model
+											model_type: modelType
+										runURI('PUT', uri, body, tx)
+
+								updateModel('se', seModel)
+								updateModel('lf', lfModel)
+								updateModel('abstractsql', abstractSqlModel)
+								updateModel('sql', sqlModel)
+								updateModel('client', clientModel)
+								updateModel('se', seModel)
 
 								callback()
 							)
