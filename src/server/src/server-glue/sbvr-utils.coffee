@@ -148,8 +148,9 @@ define([
 			# SQLite
 			return ['Constraint failed.']
 		# Foreign Key
-		else if db.engine is 'mysql' and (matches = /ER_ROW_IS_REFERENCED_: Cannot delete or update a parent row: a foreign key constraint fails \(".*?"\.(".*?").*/.exec(err)) != null
-			return ['Data is referenced by ' + matches[1] + '.']
+		else if (db.engine is 'mysql' and (matches = /ER_ROW_IS_REFERENCED_: Cannot delete or update a parent row: a foreign key constraint fails \(".*?"\.(".*?").*/.exec(err)) != null) or
+				(db.engine is 'postgres' and (matches = new RegExp('error: update or delete on table "' + tableName + '" violates foreign key constraint ".*?" on table "(.*?)"').exec(err)) != null)
+			return ['Data is referenced by ' + matches[1].replace(/\ /g, '_').replace(/-/g, '__') + '.']
 		else
 			return false
 
