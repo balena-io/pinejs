@@ -251,7 +251,7 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 						length: result.rows.length
 						item: (i) -> result.rows.item(i)
 						forEach: (iterator, thisArg) ->
-							for i in [0...result.rows.length]
+							for i in [0...result.rows.length] by 1
 								iterator.call(thisArg, result.rows.item(i), i, result.rows)
 					rowsAffected: result.rowsAffected 
 					insertId: insertId
