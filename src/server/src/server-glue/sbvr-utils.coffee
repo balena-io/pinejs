@@ -922,7 +922,7 @@ define([
 			id = getID(tree)
 			runQuery = (tx) ->
 				tx.begin()
-				tx.executeSql('''
+				tx.executeSql '''
 					SELECT NOT EXISTS(
 						SELECT 1
 						FROM "resource" r
@@ -936,49 +936,34 @@ define([
 							res.json([ "The resource is locked and cannot be edited" ], 404)
 							return
 
-						getAndCheckBindValues(vocab, insertQuery.bindings, request.values, (err, values) ->
-							console.log(insertQuery.query, err, values)
-							if err
-								res.json(err, 404)
-								return
+						doValidate = (tx) ->
+							validateDB tx, sqlModels[vocab], (err) ->
+								if err
+									res.json(err, 404)
+								else
+									res.send(200)
 
-							doValidate = (tx) ->
-								validateDB(tx, sqlModels[vocab], (err) ->
-									if err
-										res.json(err, 404)
-									else
-										res.send(200)
-								)
-							tx.executeSql(insertQuery.query, values,
-								(tx, result) -> doValidate(tx)
-								(tx, err) ->
-									if updateQuery?
-										getAndCheckBindValues(vocab, updateQuery.bindings, request.values, (err, values) ->
-											if err
-												tx.rollback()
-												res.json(err, 404)
-												return
-											tx.executeSql(updateQuery.query, values,
-												(tx, result) -> doValidate(tx)
-												(tx, err) ->
-													tx.rollback()
-													constraintError = checkForConstraintError(err, request.resourceName)
-													if constraintError != false
-														res.json(constraintError, 404)
-													else
-														res.send(404)
-											)
-										)
-									else
-										tx.rollback()
-										constraintError = checkForConstraintError(err, request.resourceName)
-										if constraintError != false
-											res.json(constraintError, 404)
-										else
-											res.send(404)
-							)
-						)
-				)
+						handleError = (tx, err) ->
+							tx.rollback()
+							constraintError = checkForConstraintError(err, request.resourceName)
+							if constraintError != false
+								res.json(constraintError, 404)
+							else
+								res.send(404)
+
+						runQuery = (query, errorCallback) ->
+							getAndCheckBindValues vocab, query.bindings, request.values, (err, values) ->
+								if err
+									tx.rollback()
+									res.json(err, 404)
+									return
+								tx.executeSql(query.query, values, doValidate, errorCallback)
+
+						runQuery insertQuery, (tx, err) ->
+							if updateQuery?
+								runQuery(updateQuery, handleError)
+							else
+								handleError(tx, err)
 			if tx?
 				runQuery(tx)
 			else
