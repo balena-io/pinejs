@@ -3,7 +3,7 @@ define(['cs!sbvr-compiler/types/TypeUtils'], (TypeUtils) ->
 		types:
 			postgres: 'TIME'
 			mysql: 'TIME'
-			websql: 'INTEGER'
+			websql: 'TEXT'
 			odata:
 				name: 'Edm.DateTime'
 
@@ -11,6 +11,11 @@ define(['cs!sbvr-compiler/types/TypeUtils'], (TypeUtils) ->
 			# We append the date of the epoch so that we can parse this as a valid date.
 			callback(null, new Date('Thu, 01 Jan 1970 ' + data))
 
-		validate: TypeUtils.validate.date
+		validate: (value, required, callback) ->
+			TypeUtils.validate.date value, required, (err, value) ->
+				if err
+					callback(err)
+					return
+				callback(null, value.toLocaleTimeString())
 	}
 )
