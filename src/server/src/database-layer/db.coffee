@@ -54,13 +54,14 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 	if has 'ENV_NODEJS'
 		exports.postgres = (connectString) ->
 			pg = require('pg')
-			createResult = (rows) ->
+			createResult = ({rowCount, rows}) ->
 				return {
 					rows:
 						length: rows?.length or 0
 						item: (i) -> rows[i]
 						forEach: (iterator, thisArg) ->
 							rows.forEach(iterator, thisArg)
+					rowsAffected: rowCount
 					insertId: rows[0]?.id || null
 				}
 			class Tx
@@ -99,7 +100,7 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 								errorCallback?(@, err)
 								console.log(sql, bindings, err)
 							else
-								callback?(@, createResult(res.rows))
+								callback?(@, createResult(res))
 						)
 				begin: ->
 					@_transOpen = true
@@ -139,6 +140,7 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 						item: (i) -> rows[i]
 						forEach: (iterator, thisArg) ->
 							rows.forEach(iterator, thisArg)
+					rowsAffected: rows.affectedRows
 					insertId: rows.insertId || null
 				}
 			class Tx
@@ -251,6 +253,7 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 						forEach: (iterator, thisArg) ->
 							for i in [0...result.rows.length]
 								iterator.call(thisArg, result.rows.item(i), i, result.rows)
+					rowsAffected: result.rowsAffected 
 					insertId: insertId
 				}
 			class Tx

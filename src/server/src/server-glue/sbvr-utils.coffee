@@ -961,11 +961,14 @@ define([
 											return
 										tx.executeSql(query.query, values, successCallback, handleError)
 
-						runQuery insertQuery, (tx, err) ->
-							if updateQuery?
-								runQuery(updateQuery, handleError)
-							else
-								handleError(tx, err)
+						if updateQuery?
+							runQuery updateQuery, (tx, result) ->
+								if result.rowsAffected is 0
+									runQuery(insertQuery, doValidate)
+								else
+									doValidate(tx)
+						else
+							runQuery(insertQuery, doValidate)
 			if tx?
 				runTransaction(tx)
 			else
