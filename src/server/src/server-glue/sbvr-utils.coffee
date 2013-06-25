@@ -971,7 +971,6 @@ define([
 										)
 									else
 										tx.rollback()
-										res.send(404)
 										constraintError = checkForConstraintError(err, request.resourceName)
 										if constraintError != false
 											res.json(constraintError, 404)
