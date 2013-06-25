@@ -918,36 +918,35 @@ define([
 					insertQuery = queries
 				
 				vocab = tree.vocabulary
-				getAndCheckBindValues(vocab, insertQuery.bindings, request.values, (err, values) ->
-					console.log(insertQuery.query, err, values)
-					if err
-						res.json(err, 404)
-						return
-					
-					doValidate = (tx) ->
-						validateDB(tx, sqlModels[vocab], (err) ->
-							if err
-								res.json(err, 404)
+				id = getID(tree)
+				runQuery = (tx) ->
+					tx.begin()
+					tx.executeSql('''
+						SELECT NOT EXISTS(
+							SELECT 1
+							FROM "resource" r
+							JOIN "resource-is_under-lock" AS rl ON rl."resource" = r."id"
+							WHERE r."resource type" = ?
+							AND r."id" = ?
+						) AS result;''', [request.resourceName, id],
+						(tx, result) ->
+							if result.rows.item(0).result in [false, 0, '0']
+								tx.rollback()
+								res.json([ "The resource is locked and cannot be edited" ], 404)
 							else
-								res.send(200)
-						)
-					
-					id = getID(tree)
-					runQuery = (tx) ->
-						tx.begin()
-						tx.executeSql('''
-							SELECT NOT EXISTS(
-								SELECT 1
-								FROM "resource" r
-								JOIN "resource-is_under-lock" AS rl ON rl."resource" = r."id"
-								WHERE r."resource type" = ?
-								AND r."id" = ?
-							) AS result;''', [request.resourceName, id],
-							(tx, result) ->
-								if result.rows.item(0).result in [false, 0, '0']
-									tx.rollback()
-									res.json([ "The resource is locked and cannot be edited" ], 404)
-								else
+								getAndCheckBindValues(vocab, insertQuery.bindings, request.values, (err, values) ->
+									console.log(insertQuery.query, err, values)
+									if err
+										res.json(err, 404)
+										return
+
+									doValidate = (tx) ->
+										validateDB(tx, sqlModels[vocab], (err) ->
+											if err
+												res.json(err, 404)
+											else
+												res.send(200)
+										)
 									tx.executeSql(insertQuery.query, values,
 										(tx, result) -> doValidate(tx)
 										(tx, err) ->
@@ -977,12 +976,12 @@ define([
 												else
 													res.send(404)
 									)
-						)
-					if tx?
-						runQuery(tx)
-					else
-						db.transaction(runQuery)
-				)
+								)
+					)
+				if tx?
+					runQuery(tx)
+				else
+					db.transaction(runQuery)
 			)
 
 	exports.runDelete = runDelete = (req, res, tx) ->
