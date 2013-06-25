@@ -920,7 +920,7 @@ define([
 			
 			vocab = tree.vocabulary
 			id = getID(tree)
-			runQuery = (tx) ->
+			runTransaction = (tx) ->
 				tx.begin()
 				tx.executeSql '''
 					SELECT NOT EXISTS(
@@ -951,13 +951,15 @@ define([
 							else
 								res.send(404)
 
-						runQuery = (query, errorCallback) ->
-							getAndCheckBindValues vocab, query.bindings, request.values, (err, values) ->
-								if err
-									tx.rollback()
-									res.json(err, 404)
-									return
-								tx.executeSql(query.query, values, doValidate, errorCallback)
+						runQuery = (query, successCallback) ->
+							tx.forceOpen true, ->
+								getAndCheckBindValues vocab, query.bindings, request.values, (err, values) ->
+									tx.forceOpen false, ->
+										if err
+											tx.rollback()
+											res.json(err, 404)
+											return
+										tx.executeSql(query.query, values, successCallback, handleError)
 
 						runQuery insertQuery, (tx, err) ->
 							if updateQuery?
@@ -965,9 +967,9 @@ define([
 							else
 								handleError(tx, err)
 			if tx?
-				runQuery(tx)
+				runTransaction(tx)
 			else
-				db.transaction(runQuery)
+				db.transaction(runTransaction)
 		)
 
 	exports.runDelete = runDelete = (req, res, tx) ->
