@@ -416,7 +416,6 @@ define([
 								updateModel('abstractsql', abstractSqlModel)
 								updateModel('sql', sqlModel)
 								updateModel('client', clientModel)
-								updateModel('se', seModel)
 
 								callback()
 							)
