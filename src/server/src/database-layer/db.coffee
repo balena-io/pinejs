@@ -126,6 +126,8 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 							errorCallback?(err)
 						else
 							tx = new Tx(client, done)
+							if process.env.PG_SCHEMA?
+								tx.executeSql('SET search_path TO "' + process.env.PG_SCHEMA + '"')
 							callback(tx)
 					)
 			}
