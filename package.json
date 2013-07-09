@@ -7,7 +7,7 @@
   },
   "repository": "git@bitbucket.org:rulemotion/rulemotion-canvas.git",
   "dependencies": {
-    "abstract-sql-compiler": "git+ssh://git@bitbucket.org:rulemotion/abstract-sql-compiler.git#v0.0.10",
+    "abstract-sql-compiler": "git+ssh://git@bitbucket.org:rulemotion/abstract-sql-compiler.git#v0.0.11",
     "lf-to-abstract-sql": "git+ssh://git@bitbucket.org:rulemotion/lf-to-abstract-sql.git#v0.0.3",
     "odata-parser": "git+ssh://git@bitbucket.org:rulemotion/odata-parser.git#v0.0.5",
     "odata-to-abstract-sql": "git+ssh://git@bitbucket.org:rulemotion/odata-to-abstract-sql.git#v0.0.16",
