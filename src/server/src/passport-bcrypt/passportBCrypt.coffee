@@ -13,6 +13,7 @@ define(['async'], () ->
 									done(null, false)
 								else
 									done(null,
+										id: userId
 										username: username
 										permissions: permissions
 									)
