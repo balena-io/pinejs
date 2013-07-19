@@ -31,10 +31,10 @@ define(['lodash'], (_) ->
 			date: (value, required, callback) ->
 				processedValue = Number(value)
 				if _.isNaN(processedValue)
-					processedValue = originalValue
+					processedValue = value
 				processedValue = new Date(processedValue)
 				if _.isNaN(processedValue.getTime())
-					callback('is not a valid date: ' + originalValue)
+					callback('is not a valid date: ' + value)
 				else	
 					callback(null, processedValue)
 	}
