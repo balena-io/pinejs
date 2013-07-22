@@ -1,4 +1,4 @@
-define(['async'], () ->
+define ['async'], () ->
 	return (options, sbvrUtils, app, passport) ->
 		exports = {}
 		checkPassword = (username, password, done) ->
@@ -67,5 +67,8 @@ define(['async'], () ->
 						_user = user
 						handleAuth(req, res, user)
 
+		app.get options.logoutUrl, (req, res) ->
+			req.logout()
+			res.redirect('/')
+
 		return exports
-)

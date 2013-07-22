@@ -23,8 +23,9 @@ define([
 	setupCallback = (app) ->
 		sbvrUtils.setup(app, require, db, (err) ->
 			passportBCrypt = passportBCrypt({
-					loginUrl: '/login',
-					failureRedirect: '/login.html',
+					loginUrl: '/login'
+					logoutUrl: '/logout'
+					failureRedirect: '/login.html'
 					successRedirect: '/'
 				}, sbvrUtils, app, passport)
 
