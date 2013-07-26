@@ -724,7 +724,7 @@ define([
 							(vocabularyResourcePermission? and permissionName[...vocabularyResourcePermission.length] == vocabularyResourcePermission)
 
 						if conditionalPermissions.length > 0
-							return conditionalPermissions
+							return or: conditionalPermissions
 						return false
 					else if _.isArray(permissionCheck)
 						conditionalPermissions = []
@@ -732,10 +732,10 @@ define([
 							result = _recurseCheckPermissions(permission)
 							if result is false
 								return false
-							else if _.isArray(result)
-								conditionalPermissions = conditionalPermissions.concat(result)
+							else if _.isObject(result)
+								conditionalPermissions.push(result)
 						if conditionalPermissions.length > 0
-							return conditionalPermissions
+							return and: conditionalPermissions
 						else
 							return true
 					else if _.isObject(permissionCheck)
@@ -752,10 +752,10 @@ define([
 									result = _recurseCheckPermissions(permission)
 									if result is true
 										return true
-									else if _.isArray(result)
-										conditionalPermissions = conditionalPermissions.concat(result)
+									else if _.isObject(result)
+										conditionalPermissions.push(result)
 								if conditionalPermissions.length > 0
-									return conditionalPermissions
+									return or: conditionalPermissions
 								else
 									return false
 							else
