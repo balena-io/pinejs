@@ -29,29 +29,17 @@ define(['has', 'async'], (has, async) ->
 								process.exit()
 								return
 							apiRoute = '/' + model.apiRoot + '/*'
-							app.get(apiRoute, sbvrUtils.parseURITree, (req, res, next) ->
-								sbvrUtils.runGet(req, res)
-							)
+							app.get(apiRoute, sbvrUtils.runGet)
 
-							app.post(apiRoute, sbvrUtils.parseURITree, (req, res, next) ->
-								sbvrUtils.runPost(req, res)
-							)
+							app.post(apiRoute, sbvrUtils.parseURITree, sbvrUtils.runPost)
 
-							app.put(apiRoute, sbvrUtils.parseURITree, (req, res, next) ->
-								sbvrUtils.runPut(req, res)
-							)
+							app.put(apiRoute, sbvrUtils.parseURITree, sbvrUtils.runPut)
 
-							app.patch(apiRoute, sbvrUtils.parseURITree, (req, res, next) ->
-								sbvrUtils.runPut(req, res)
-							)
+							app.patch(apiRoute, sbvrUtils.parseURITree, sbvrUtils.runPut)
 
-							app.merge(apiRoute, sbvrUtils.parseURITree, (req, res, next) ->
-								sbvrUtils.runPut(req, res)
-							)
+							app.merge(apiRoute, sbvrUtils.parseURITree, sbvrUtils.runPut)
 
-							app.del(apiRoute, sbvrUtils.parseURITree, (req, res, next) ->
-								sbvrUtils.runDelete(req, res)
-							)
+							app.del(apiRoute, sbvrUtils.parseURITree, sbvrUtils.runDelete)
 							
 							if model.customServerCode?
 								try

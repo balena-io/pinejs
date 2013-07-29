@@ -647,13 +647,13 @@ define([
 			type: ->
 		switch method
 			when 'GET'
-				runGet(req, res, tx)
+				runGet(req, res, null, tx)
 			when 'POST'
-				runPost(req, res, tx)
+				runPost(req, res, null, tx)
 			when 'PUT', 'PATCH', 'MERGE'
-				runPut(req, res, tx)
+				runPut(req, res, null, tx)
 			when 'DELETE'
-				runDelete(req, res, tx)
+				runDelete(req, res, null, tx)
 
 	exports.getUserPermissions = getUserPermissions = (userId, callback) ->
 		async.parallel(
@@ -775,7 +775,7 @@ define([
 			)
 
 
-	exports.runGet = runGet = (req, res, tx) ->
+	exports.runGet = runGet = (req, res, next, tx) ->
 		res.set('Cache-Control', 'no-cache')
 		tree = req.tree
 		if tree.requests == undefined
@@ -835,7 +835,7 @@ define([
 					res.json(data)
 			)
 
-	exports.runPost = runPost = (req, res, tx) ->
+	exports.runPost = runPost = (req, res, next, tx) ->
 		res.set('Cache-Control', 'no-cache')
 		tree = req.tree
 		if tree.requests == undefined
@@ -888,7 +888,7 @@ define([
 				)
 			)
 
-	exports.runPut = runPut = (req, res, tx) ->
+	exports.runPut = runPut = (req, res, next, tx) ->
 		res.set('Cache-Control', 'no-cache')
 		tree = req.tree
 		if tree.requests == undefined
@@ -967,7 +967,7 @@ define([
 				db.transaction(runTransaction)
 		)
 
-	exports.runDelete = runDelete = (req, res, tx) ->
+	exports.runDelete = runDelete = (req, res, next, tx) ->
 		res.set('Cache-Control', 'no-cache')
 		tree = req.tree
 		if tree.requests == undefined
@@ -1059,9 +1059,7 @@ define([
 			)
 		)
 		if has 'DEV'
-			app.get('/dev/*', parseURITree, (req, res, next) ->
-				runGet(req, res)
-			)
+			app.get('/dev/*', parseURITree, runGet)
 		app.post('/transaction/execute', (req, res, next) ->
 			id = Number(req.body.id)
 			if _.isNaN(id)
@@ -1088,18 +1086,10 @@ define([
 				commitTransactionURI: "/transaction/execute"
 			)
 		)
-		app.get('/transaction/*', parseURITree, (req, res, next) ->
-			runGet(req, res)
-		)
-		app.post('/transaction/*', parseURITree, (req, res, next) ->
-			runPost(req, res)
-		)
-		app.put('/transaction/*', parseURITree, (req, res, next) ->
-			runPut(req, res)
-		)
-		app.del('/transaction/*', parseURITree, (req, res, next) ->
-			runDelete(req, res)
-		)
+		app.get('/transaction/*', parseURITree, runGet)
+		app.post('/transaction/*', parseURITree, runPost)
+		app.put('/transaction/*', parseURITree, runPut)
+		app.del('/transaction/*', parseURITree, runDelete)
 
 	return exports
 )

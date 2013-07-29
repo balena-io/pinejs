@@ -292,60 +292,27 @@ define([
 			)
 		)
 		
-		app.get('/ui/*', uiModelLoaded, sbvrUtils.parseURITree, (req, res, next) ->
-			sbvrUtils.runGet(req, res)
-		)
-		app.get('/data/*', serverIsOnAir, sbvrUtils.parseURITree, (req, res, next) ->
-			sbvrUtils.runGet(req, res)
-		)
-		app.get('/Auth/*', serverIsOnAir, sbvrUtils.parseURITree, (req, res, next) ->
-			sbvrUtils.runGet(req, res)
-		)
+		app.get('/ui/*', uiModelLoaded, sbvrUtils.parseURITree, sbvrUtils.runGet)
+		app.get('/data/*', serverIsOnAir, sbvrUtils.parseURITree, sbvrUtils.runGet)
+		app.get('/Auth/*', serverIsOnAir, sbvrUtils.parseURITree, sbvrUtils.runGet)
 
-		app.post('/data/*', serverIsOnAir, sbvrUtils.parseURITree, (req, res, next) ->
-			sbvrUtils.runPost(req, res)
-		)
-		app.post('/Auth/*', serverIsOnAir, sbvrUtils.parseURITree, (req, res, next) ->
-			sbvrUtils.runPost(req, res)
-		)
+		app.post('/data/*', serverIsOnAir, sbvrUtils.parseURITree, sbvrUtils.runPost)
+		app.post('/Auth/*', serverIsOnAir, sbvrUtils.parseURITree, sbvrUtils.runPost)
 
-		app.put('/ui/*', uiModelLoaded, sbvrUtils.parseURITree, (req, res, next) ->
-			sbvrUtils.runPut(req, res)
-		)
-		app.put('/data/*', serverIsOnAir, sbvrUtils.parseURITree, (req, res, next) ->
-			sbvrUtils.runPut(req, res)
-		)
-		app.put('/Auth/*', serverIsOnAir, sbvrUtils.parseURITree, (req, res, next) ->
-			sbvrUtils.runPut(req, res)
-		)
+		app.put('/ui/*', uiModelLoaded, sbvrUtils.parseURITree, sbvrUtils.runPut)
+		app.put('/data/*', serverIsOnAir, sbvrUtils.parseURITree, sbvrUtils.runPut)
+		app.put('/Auth/*', serverIsOnAir, sbvrUtils.parseURITree, sbvrUtils.runPut)
 
-		app.patch('/ui/*', uiModelLoaded, sbvrUtils.parseURITree, (req, res, next) ->
-			sbvrUtils.runPut(req, res)
-		)
-		app.patch('/data/*', serverIsOnAir, sbvrUtils.parseURITree, (req, res, next) ->
-			sbvrUtils.runPut(req, res)
-		)
-		app.patch('/Auth/*', serverIsOnAir, sbvrUtils.parseURITree, (req, res, next) ->
-			sbvrUtils.runPut(req, res)
-		)
+		app.patch('/ui/*', uiModelLoaded, sbvrUtils.parseURITree, sbvrUtils.runPut)
+		app.patch('/data/*', serverIsOnAir, sbvrUtils.parseURITree, sbvrUtils.runPut)
+		app.patch('/Auth/*', serverIsOnAir, sbvrUtils.parseURITree, sbvrUtils.runPut)
 
-		app.merge('/ui/*', uiModelLoaded, sbvrUtils.parseURITree, (req, res, next) ->
-			sbvrUtils.runPut(req, res)
-		)
-		app.merge('/data/*', serverIsOnAir, sbvrUtils.parseURITree, (req, res, next) ->
-			sbvrUtils.runPut(req, res)
-		)
-		app.merge('/Auth/*', serverIsOnAir, sbvrUtils.parseURITree, (req, res, next) ->
-			sbvrUtils.runPut(req, res)
-		)
+		app.merge('/ui/*', uiModelLoaded, sbvrUtils.parseURITree, sbvrUtils.runPut)
+		app.merge('/data/*', serverIsOnAir, sbvrUtils.parseURITree, sbvrUtils.runPut)
+		app.merge('/Auth/*', serverIsOnAir, sbvrUtils.parseURITree, sbvrUtils.runPut)
 
-		app.del('/data/*', serverIsOnAir, sbvrUtils.parseURITree, (req, res, next) ->
-			sbvrUtils.runDelete(req, res)
-		)
-
-		app.del('/Auth/*', serverIsOnAir, sbvrUtils.parseURITree, (req, res, next) ->
-			sbvrUtils.runDelete(req, res)
-		)
+		app.del('/data/*', serverIsOnAir, sbvrUtils.parseURITree, sbvrUtils.runDelete)
+		app.del('/Auth/*', serverIsOnAir, sbvrUtils.parseURITree, sbvrUtils.runDelete)
 
 		app.del('/', uiModelLoaded, serverIsOnAir, (req, res, next) ->
 			# TODO: This should be done a better way?
