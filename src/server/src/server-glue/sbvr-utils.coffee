@@ -615,15 +615,20 @@ define([
 					json()
 			set: ->
 			type: ->
+
+		next = (route) ->
+			console.warn('Next called on a runURI?!', route)
+			callback(501)
+
 		switch method
 			when 'GET'
-				runGet(req, res, null, tx)
+				runGet(req, res, next, tx)
 			when 'POST'
-				runPost(req, res, null, tx)
+				runPost(req, res, next, tx)
 			when 'PUT', 'PATCH', 'MERGE'
-				runPut(req, res, null, tx)
+				runPut(req, res, next, tx)
 			when 'DELETE'
-				runDelete(req, res, null, tx)
+				runDelete(req, res, next, tx)
 
 	exports.getUserPermissions = getUserPermissions = (userId, callback) ->
 		async.parallel(
