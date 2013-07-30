@@ -292,27 +292,27 @@ define([
 			)
 		)
 		
-		app.get('/ui/*', uiModelLoaded, sbvrUtils.parseURITree, sbvrUtils.runGet)
-		app.get('/data/*', serverIsOnAir, sbvrUtils.parseURITree, sbvrUtils.runGet)
-		app.get('/Auth/*', serverIsOnAir, sbvrUtils.parseURITree, sbvrUtils.runGet)
+		app.get('/ui/*', uiModelLoaded, sbvrUtils.runGet)
+		app.get('/data/*', serverIsOnAir, sbvrUtils.runGet)
+		app.get('/Auth/*', serverIsOnAir, sbvrUtils.runGet)
 
-		app.post('/data/*', serverIsOnAir, sbvrUtils.parseURITree, sbvrUtils.runPost)
-		app.post('/Auth/*', serverIsOnAir, sbvrUtils.parseURITree, sbvrUtils.runPost)
+		app.post('/data/*', serverIsOnAir, sbvrUtils.runPost)
+		app.post('/Auth/*', serverIsOnAir, sbvrUtils.runPost)
 
-		app.put('/ui/*', uiModelLoaded, sbvrUtils.parseURITree, sbvrUtils.runPut)
-		app.put('/data/*', serverIsOnAir, sbvrUtils.parseURITree, sbvrUtils.runPut)
-		app.put('/Auth/*', serverIsOnAir, sbvrUtils.parseURITree, sbvrUtils.runPut)
+		app.put('/ui/*', uiModelLoaded, sbvrUtils.runPut)
+		app.put('/data/*', serverIsOnAir, sbvrUtils.runPut)
+		app.put('/Auth/*', serverIsOnAir, sbvrUtils.runPut)
 
-		app.patch('/ui/*', uiModelLoaded, sbvrUtils.parseURITree, sbvrUtils.runPut)
-		app.patch('/data/*', serverIsOnAir, sbvrUtils.parseURITree, sbvrUtils.runPut)
-		app.patch('/Auth/*', serverIsOnAir, sbvrUtils.parseURITree, sbvrUtils.runPut)
+		app.patch('/ui/*', uiModelLoaded, sbvrUtils.runPut)
+		app.patch('/data/*', serverIsOnAir, sbvrUtils.runPut)
+		app.patch('/Auth/*', serverIsOnAir, sbvrUtils.runPut)
 
-		app.merge('/ui/*', uiModelLoaded, sbvrUtils.parseURITree, sbvrUtils.runPut)
-		app.merge('/data/*', serverIsOnAir, sbvrUtils.parseURITree, sbvrUtils.runPut)
-		app.merge('/Auth/*', serverIsOnAir, sbvrUtils.parseURITree, sbvrUtils.runPut)
+		app.merge('/ui/*', uiModelLoaded, sbvrUtils.runPut)
+		app.merge('/data/*', serverIsOnAir, sbvrUtils.runPut)
+		app.merge('/Auth/*', serverIsOnAir, sbvrUtils.runPut)
 
-		app.del('/data/*', serverIsOnAir, sbvrUtils.parseURITree, sbvrUtils.runDelete)
-		app.del('/Auth/*', serverIsOnAir, sbvrUtils.parseURITree, sbvrUtils.runDelete)
+		app.del('/data/*', serverIsOnAir, sbvrUtils.runDelete)
+		app.del('/Auth/*', serverIsOnAir, sbvrUtils.runDelete)
 
 		app.del('/', uiModelLoaded, serverIsOnAir, (req, res, next) ->
 			# TODO: This should be done a better way?

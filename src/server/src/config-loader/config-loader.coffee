@@ -31,15 +31,15 @@ define(['has', 'async'], (has, async) ->
 							apiRoute = '/' + model.apiRoot + '/*'
 							app.get(apiRoute, sbvrUtils.runGet)
 
-							app.post(apiRoute, sbvrUtils.parseURITree, sbvrUtils.runPost)
+							app.post(apiRoute, sbvrUtils.runPost)
 
-							app.put(apiRoute, sbvrUtils.parseURITree, sbvrUtils.runPut)
+							app.put(apiRoute, sbvrUtils.runPut)
 
-							app.patch(apiRoute, sbvrUtils.parseURITree, sbvrUtils.runPut)
+							app.patch(apiRoute, sbvrUtils.runPut)
 
-							app.merge(apiRoute, sbvrUtils.parseURITree, sbvrUtils.runPut)
+							app.merge(apiRoute, sbvrUtils.runPut)
 
-							app.del(apiRoute, sbvrUtils.parseURITree, sbvrUtils.runDelete)
+							app.del(apiRoute, sbvrUtils.runDelete)
 							
 							if model.customServerCode?
 								try

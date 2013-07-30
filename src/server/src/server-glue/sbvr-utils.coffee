@@ -579,46 +579,14 @@ define([
 				)
 			)
 
-	parseODataURI = (method, uri, body) ->
-		uri = uri.split('/')
-		vocabulary = uri[1]
-		if !vocabulary? or !odata2AbstractSQL[vocabulary]?
-			return false
-		uri = '/' + uri[2..].join('/')
-		try
-			query = odataParser.matchAll(uri, 'Process')
-		catch e
-			console.log('Failed to parse uri: ', method, uri, e, e.stack)
-			return false
-
-		resourceName = query.resource
-
-		if resourceName in ['$metadata', '$serviceroot']
-			query = null
-		else
-			try
-				query = odata2AbstractSQL[vocabulary].match(query, 'Process', [method, body])
-			catch e
-				console.error('Failed to translate uri: ', JSON.stringify(query, null, '\t'), method, uri, e, e.stack)
-				return false
-
-		return {
-			type: 'OData'
-			vocabulary
-			requests: [{
-				query
-				values: body
-				resourceName
-			}]
-		}
-
 	exports.runURI = runURI = (method, uri, body = {}, tx, callback) ->
 		console.log('Running URI', method, uri, body)
 		req =
 			user:
 				permissions:
 					'resource.all': true
-			tree: parseODataURI(method, uri, body)
+			method: method
+			url: uri
 			body: body
 		if tx?
 			tx.forceOpen(true)
@@ -774,8 +742,51 @@ define([
 					next()
 			)
 
+	parseODataURI = (method, uri, body) ->
+		uri = uri.split('/')
+		vocabulary = uri[1]
+		if !vocabulary? or !odata2AbstractSQL[vocabulary]?
+			return false
+		uri = '/' + uri[2..].join('/')
+		try
+			query = odataParser.matchAll(uri, 'Process')
+		catch e
+			console.log('Failed to parse uri: ', method, uri, e, e.stack)
+			return false
 
-	exports.runGet = runGet = (req, res, next, tx) ->
+		resourceName = query.resource
+
+		if resourceName in ['$metadata', '$serviceroot']
+			query = null
+		else
+			try
+				query = odata2AbstractSQL[vocabulary].match(query, 'Process', [method, body])
+			catch e
+				console.error('Failed to translate uri: ', JSON.stringify(query, null, '\t'), method, uri, e, e.stack)
+				return false
+
+		return {
+			type: 'OData'
+			vocabulary
+			requests: [{
+				query
+				values: body
+				resourceName
+			}]
+		}
+
+	parseURITree = (callback) ->
+		(req, res, next) ->
+			if !req.tree?
+				req.tree = parseODataURI(req.method, req.url, req.body)
+			if req.tree == false
+				next('route')
+			else if callback?
+				callback(arguments...)
+			else
+				next()
+
+	exports.runGet = runGet = parseURITree (req, res, next, tx) ->
 		res.set('Cache-Control', 'no-cache')
 		tree = req.tree
 		if tree.requests == undefined
@@ -835,7 +846,7 @@ define([
 					res.json(data)
 			)
 
-	exports.runPost = runPost = (req, res, next, tx) ->
+	exports.runPost = runPost = parseURITree (req, res, next, tx) ->
 		res.set('Cache-Control', 'no-cache')
 		tree = req.tree
 		if tree.requests == undefined
@@ -888,7 +899,7 @@ define([
 				)
 			)
 
-	exports.runPut = runPut = (req, res, next, tx) ->
+	exports.runPut = runPut = parseURITree (req, res, next, tx) ->
 		res.set('Cache-Control', 'no-cache')
 		tree = req.tree
 		if tree.requests == undefined
@@ -967,7 +978,7 @@ define([
 				db.transaction(runTransaction)
 		)
 
-	exports.runDelete = runDelete = (req, res, next, tx) ->
+	exports.runDelete = runDelete = parseURITree (req, res, next, tx) ->
 		res.set('Cache-Control', 'no-cache')
 		tree = req.tree
 		if tree.requests == undefined
@@ -1012,14 +1023,6 @@ define([
 			)
 		)
 
-	exports.parseURITree = parseURITree = (req, res, next) ->
-		if !req.tree?
-			req.tree = parseODataURI(req.method, req.url, req.body)
-		if req.tree == false
-			next('route')
-		else
-			next()
-
 	exports.executeStandardModels = executeStandardModels = (tx, callback) ->
 		executeModels(tx, {
 				'dev': devModel
@@ -1059,7 +1062,7 @@ define([
 			)
 		)
 		if has 'DEV'
-			app.get('/dev/*', parseURITree, runGet)
+			app.get('/dev/*', runGet)
 		app.post('/transaction/execute', (req, res, next) ->
 			id = Number(req.body.id)
 			if _.isNaN(id)
@@ -1086,10 +1089,10 @@ define([
 				commitTransactionURI: "/transaction/execute"
 			)
 		)
-		app.get('/transaction/*', parseURITree, runGet)
-		app.post('/transaction/*', parseURITree, runPost)
-		app.put('/transaction/*', parseURITree, runPut)
-		app.del('/transaction/*', parseURITree, runDelete)
+		app.get('/transaction/*', runGet)
+		app.post('/transaction/*', runPost)
+		app.put('/transaction/*', runPut)
+		app.del('/transaction/*', runDelete)
 
 	return exports
 )
