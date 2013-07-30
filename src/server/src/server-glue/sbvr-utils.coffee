@@ -749,16 +749,17 @@ define([
 					next()
 			)
 
-	parseODataURI = (method, uri, body) ->
-		uri = uri.split('/')
-		vocabulary = uri[1]
+	parseODataURI = (req) ->
+		{method, url, body} = req
+		url = url.split('/')
+		vocabulary = url[1]
 		if !vocabulary? or !odata2AbstractSQL[vocabulary]?
 			return false
-		uri = '/' + uri[2..].join('/')
+		url = '/' + url[2..].join('/')
 		try
-			query = odataParser.matchAll(uri, 'Process')
+			query = odataParser.matchAll(url, 'Process')
 		catch e
-			console.log('Failed to parse uri: ', method, uri, e, e.stack)
+			console.log('Failed to parse url: ', method, url, e, e.stack)
 			return false
 
 		resourceName = query.resource
@@ -769,7 +770,7 @@ define([
 			try
 				query = odata2AbstractSQL[vocabulary].match(query, 'Process', [method, body])
 			catch e
-				console.error('Failed to translate uri: ', JSON.stringify(query, null, '\t'), method, uri, e, e.stack)
+				console.error('Failed to translate url: ', JSON.stringify(query, null, '\t'), method, url, e, e.stack)
 				return false
 
 		return {
@@ -785,7 +786,7 @@ define([
 	parseURITree = (callback) ->
 		(req, res, next) ->
 			if !req.tree?
-				req.tree = parseODataURI(req.method, req.url, req.body)
+				req.tree = parseODataURI(req)
 			if req.tree == false
 				next('route')
 			else if callback?
