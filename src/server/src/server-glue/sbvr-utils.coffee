@@ -797,11 +797,7 @@ define([
 	exports.runGet = runGet = parseURITree (req, res, next, tx) ->
 		res.set('Cache-Control', 'no-cache')
 		tree = req.tree
-		if tree.requests == undefined
-			checkPermissions(req, res, 'model', ->
-				res.json(clientModels[tree.vocabulary].resources)
-			)
-		else if tree.requests[0].query?
+		if tree.requests[0].query?
 			request = tree.requests[0]
 			checkPermissions(req, res, 'get', request, ->
 				try
@@ -857,65 +853,58 @@ define([
 	exports.runPost = runPost = parseURITree (req, res, next, tx) ->
 		res.set('Cache-Control', 'no-cache')
 		tree = req.tree
-		if tree.requests == undefined
-			res.send(404)
-		else
-			request = tree.requests[0]
-			checkPermissions(req, res, 'set', tree.requests[0], ->
-				try
-					{query, bindings} = AbstractSQLCompiler.compile(db.engine, request.query)
-				catch e
-					console.error('Failed to compile abstract sql: ', request.query, e, e.stack)
-					res.send(503)
+		request = tree.requests[0]
+		checkPermissions(req, res, 'set', request, ->
+			try
+				{query, bindings} = AbstractSQLCompiler.compile(db.engine, request.query)
+			catch e
+				console.error('Failed to compile abstract sql: ', request.query, e, e.stack)
+				res.send(503)
+				return
+			vocab = tree.vocabulary
+			getAndCheckBindValues(vocab, bindings, request.values, (err, values) ->
+				console.log(query, err, values)
+				if err
+					res.json(err, 404)
 					return
-				vocab = tree.vocabulary
-				getAndCheckBindValues(vocab, bindings, request.values, (err, values) ->
-					console.log(query, err, values)
-					if err
-						res.json(err, 404)
-						return
-					runQuery = (tx) ->
-						tx.begin()
-						# TODO: Check for transaction locks.
-						tx.executeSql(query, values,
-							(tx, sqlResult) ->
-								validateDB(tx, sqlModels[vocab], (err) ->
-									if err
-										res.json(err, 404)
-										return
-									insertID = if request.query[0] == 'UpdateQuery' then values[0] else sqlResult.insertId
-									console.log('Insert ID: ', insertID)
-									res.json({
-											id: insertID
-										}, {
-											location: '/' + vocab + '/' + request.resourceName + '?$filter=' + request.resourceName + '/' + clientModels[vocab].resources[request.resourceName].idField + ' eq ' + insertID
-										}, 201
-									)
+				runQuery = (tx) ->
+					tx.begin()
+					# TODO: Check for transaction locks.
+					tx.executeSql(query, values,
+						(tx, sqlResult) ->
+							validateDB(tx, sqlModels[vocab], (err) ->
+								if err
+									res.json(err, 404)
+									return
+								insertID = if request.query[0] == 'UpdateQuery' then values[0] else sqlResult.insertId
+								console.log('Insert ID: ', insertID)
+								res.json({
+										id: insertID
+									}, {
+										location: '/' + vocab + '/' + request.resourceName + '?$filter=' + request.resourceName + '/' + clientModels[vocab].resources[request.resourceName].idField + ' eq ' + insertID
+									}, 201
 								)
-							(tx, err) ->
-								tx.rollback()
-								constraintError = checkForConstraintError(err, request.resourceName)
-								if constraintError != false
-									res.json(constraintError, 404)
-								else
-									res.send(404)
-						)
-					if tx?
-						runQuery(tx)
-					else
-						db.transaction(runQuery)
-				)
+							)
+						(tx, err) ->
+							tx.rollback()
+							constraintError = checkForConstraintError(err, request.resourceName)
+							if constraintError != false
+								res.json(constraintError, 404)
+							else
+								res.send(404)
+					)
+				if tx?
+					runQuery(tx)
+				else
+					db.transaction(runQuery)
 			)
+		)
 
 	exports.runPut = runPut = parseURITree (req, res, next, tx) ->
 		res.set('Cache-Control', 'no-cache')
 		tree = req.tree
-		if tree.requests == undefined
-			res.send(404)
-			return
-
 		request = tree.requests[0]
-		checkPermissions(req, res, 'set', tree.requests[0], ->
+		checkPermissions(req, res, 'set', request, ->
 			try
 				queries = AbstractSQLCompiler.compile(db.engine, request.query)
 			catch e
@@ -989,11 +978,8 @@ define([
 	exports.runDelete = runDelete = parseURITree (req, res, next, tx) ->
 		res.set('Cache-Control', 'no-cache')
 		tree = req.tree
-		if tree.requests == undefined
-			res.send(404)
-			return
 		request = tree.requests[0]
-		checkPermissions(req, res, 'delete', tree.requests[0], ->
+		checkPermissions(req, res, 'delete', request, ->
 			try
 				{query, bindings} = AbstractSQLCompiler.compile(db.engine, request.query)
 			catch e
