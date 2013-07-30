@@ -403,9 +403,11 @@ define([
 								updateModel = (modelType, model) ->
 									runURI 'GET', "/dev/model?$filter=vocabulary eq '" + vocab + "' and model_type eq '" + modelType + "'", null, tx, (err, result) ->
 										uri = '/dev/model'
-										if result?.d?.length > 0
-											uri += '(' + result.d[0].id + ')'
+										id = result?.d?[0]?.id ? null
+										if id?
+											uri += '(' + id + ')'
 										body =
+											id: id
 											vocabulary: vocab
 											model_value: model
 											model_type: modelType
