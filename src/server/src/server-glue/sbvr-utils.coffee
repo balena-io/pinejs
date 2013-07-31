@@ -732,7 +732,7 @@ define([
 							result = _recurseCheckPermissions(permission)
 							if result is false
 								return false
-							else if _.isObject(result)
+							else if result isnt true
 								conditionalPermissions.push(result)
 						if conditionalPermissions.length > 0
 							return and: conditionalPermissions
@@ -752,7 +752,7 @@ define([
 									result = _recurseCheckPermissions(permission)
 									if result is true
 										return true
-									else if _.isObject(result)
+									else if result isnt false
 										conditionalPermissions.push(result)
 								if conditionalPermissions.length > 0
 									return or: conditionalPermissions
