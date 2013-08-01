@@ -693,10 +693,10 @@ define([
 							callback('No guest permissions')
 					)
 
-		return (req, res, actionList, request, callback) ->
+		return (req, res, actionList, resourceName, callback) ->
 			if !callback?
-				callback = request
-				request = null
+				callback = resourceName
+				resourceName = null
 
 			_checkPermissions = (permissions) ->
 				_recurseCheckPermissions = (permissionCheck) ->
@@ -706,7 +706,7 @@ define([
 						if vocabulary?
 							if permissions.hasOwnProperty(vocabulary + '.' + permissionCheck)
 								return true
-							if request? and permissions.hasOwnProperty(vocabulary + '.' + request.resourceName + '.' + permissionCheck)
+							if resourceName? and permissions.hasOwnProperty(vocabulary + '.' + resourceName + '.' + permissionCheck)
 								return true
 						return false
 					else if _.isArray(permissionCheck)
@@ -749,272 +749,288 @@ define([
 					next()
 			)
 
-	parseODataURI = (req) ->
+	parseODataURI = (req, res, callback) ->
 		{method, url, body} = req
 		url = url.split('/')
 		vocabulary = url[1]
 		if !vocabulary? or !odata2AbstractSQL[vocabulary]?
-			return false
+			callback('No such vocabulary')
+			return
 		url = '/' + url[2..].join('/')
 		try
 			query = odataParser.matchAll(url, 'Process')
 		catch e
 			console.log('Failed to parse url: ', method, url, e, e.stack)
-			return false
+			callback('Failed to parse url')
+			return
 
 		resourceName = query.resource
 
-		if resourceName in ['$metadata', '$serviceroot']
-			query = null
-		else
-			try
-				query = odata2AbstractSQL[vocabulary].match(query, 'Process', [method, body])
-			catch e
-				console.error('Failed to translate url: ', JSON.stringify(query, null, '\t'), method, url, e, e.stack)
-				return false
-
-		return {
-			type: 'OData'
-			vocabulary
-			requests: [{
-				query
-				values: body
-				resourceName
-			}]
-		}
+		permissionType =
+			if resourceName in ['$metadata', '$serviceroot']
+				query = null
+				'model'
+			else
+				switch method
+					when 'GET'
+						'get'
+					when 'PUT', 'POST', 'PATCH', 'MERGE'
+						'set'
+					when 'DELETE'
+						'delete'
+					else
+						console.warn('Unknown method for permissions type check: ', method)
+						'all'
+		checkPermissions(req, res, permissionType, resourceName, ->
+			if query?
+				try
+					query = odata2AbstractSQL[vocabulary].match(query, 'Process', [method, body])
+				catch e
+					console.error('Failed to translate url: ', JSON.stringify(query, null, '\t'), method, url, e, e.stack)
+					callback('Failed to translate url')
+					return
+			callback(null, {
+				type: 'OData'
+				vocabulary
+				requests: [{
+					query
+					values: body
+					resourceName
+				}]
+			})
+		)
 
 	parseURITree = (callback) ->
 		(req, res, next) ->
-			if !req.tree?
-				req.tree = parseODataURI(req)
-			if req.tree == false
-				next('route')
-			else if callback?
-				callback(arguments...)
+			args = arguments
+			checkTree = ->
+				if req.tree == false
+					next('route')
+				else if callback?
+					callback(args...)
+				else
+					next()
+			if req.tree?
+				checkTree()
 			else
-				next()
+				parseODataURI req, res, (err, tree) ->
+					if err?
+						req.tree = false
+					else
+						req.tree = tree
+					checkTree()
 
 	exports.runGet = runGet = parseURITree (req, res, next, tx) ->
 		res.set('Cache-Control', 'no-cache')
 		tree = req.tree
 		if tree.requests[0].query?
 			request = tree.requests[0]
-			checkPermissions(req, res, 'get', request, ->
-				try
-					{query, bindings} = AbstractSQLCompiler.compile(db.engine, request.query)
-				catch e
-					console.error('Failed to compile abstract sql: ', request.query, e, e.stack)
-					res.send(503)
-					return
-				getAndCheckBindValues(tree.vocabulary, bindings, request.values, (err, values) ->
-					console.log(query, err, values)
-					if err
-						res.json(err, 404)
-						return
-					runQuery = (tx) ->
-						tx.executeSql(query, values,
-							(tx, result) ->
-								clientModel = clientModels[tree.vocabulary].resources
-								switch tree.type
-									when 'OData'
-										processOData(tree.vocabulary, clientModel, request.resourceName, result.rows, (err, d) ->
-											if err
-												res.json(err, 404)
-												return
-											data =
-												__model: clientModel[request.resourceName]
-												d: d
-											res.json(data)
-										)
-							() ->
-								res.send(404)
-						)
-					if tx?
-						runQuery(tx)
-					else
-						db.transaction(runQuery)
-				)
-			)
-		else
-			checkPermissions(req, res, 'model', tree.requests[0], ->
-				if tree.requests[0].resourceName == '$metadata'
-					res.type('xml')
-					res.send(odataMetadata[tree.vocabulary])
-				else
-					clientModel = clientModels[tree.vocabulary]
-					data =
-						if tree.requests[0].resourceName == '$serviceroot'
-							__model: clientModel.resources
-						else
-							__model: clientModel.resources[tree.requests[0].resourceName]
-					res.json(data)
-			)
-
-	exports.runPost = runPost = parseURITree (req, res, next, tx) ->
-		res.set('Cache-Control', 'no-cache')
-		tree = req.tree
-		request = tree.requests[0]
-		checkPermissions(req, res, 'set', request, ->
 			try
 				{query, bindings} = AbstractSQLCompiler.compile(db.engine, request.query)
 			catch e
 				console.error('Failed to compile abstract sql: ', request.query, e, e.stack)
 				res.send(503)
 				return
-			vocab = tree.vocabulary
-			getAndCheckBindValues(vocab, bindings, request.values, (err, values) ->
+			getAndCheckBindValues(tree.vocabulary, bindings, request.values, (err, values) ->
 				console.log(query, err, values)
 				if err
 					res.json(err, 404)
 					return
 				runQuery = (tx) ->
-					tx.begin()
-					# TODO: Check for transaction locks.
 					tx.executeSql(query, values,
-						(tx, sqlResult) ->
-							validateDB(tx, sqlModels[vocab], (err) ->
-								if err
-									res.json(err, 404)
-									return
-								insertID = if request.query[0] == 'UpdateQuery' then values[0] else sqlResult.insertId
-								console.log('Insert ID: ', insertID)
-								res.json({
-										id: insertID
-									}, {
-										location: '/' + vocab + '/' + request.resourceName + '?$filter=' + request.resourceName + '/' + clientModels[vocab].resources[request.resourceName].idField + ' eq ' + insertID
-									}, 201
-								)
-							)
-						(tx, err) ->
-							tx.rollback()
-							constraintError = checkForConstraintError(err, request.resourceName)
-							if constraintError != false
-								res.json(constraintError, 404)
-							else
-								res.send(404)
+						(tx, result) ->
+							clientModel = clientModels[tree.vocabulary].resources
+							switch tree.type
+								when 'OData'
+									processOData(tree.vocabulary, clientModel, request.resourceName, result.rows, (err, d) ->
+										if err
+											res.json(err, 404)
+											return
+										data =
+											__model: clientModel[request.resourceName]
+											d: d
+										res.json(data)
+									)
+						() ->
+							res.send(404)
 					)
 				if tx?
 					runQuery(tx)
 				else
 					db.transaction(runQuery)
 			)
+		else
+			if tree.requests[0].resourceName == '$metadata'
+				res.type('xml')
+				res.send(odataMetadata[tree.vocabulary])
+			else
+				clientModel = clientModels[tree.vocabulary]
+				data =
+					if tree.requests[0].resourceName == '$serviceroot'
+						__model: clientModel.resources
+					else
+						__model: clientModel.resources[tree.requests[0].resourceName]
+				res.json(data)
+
+	exports.runPost = runPost = parseURITree (req, res, next, tx) ->
+		res.set('Cache-Control', 'no-cache')
+		tree = req.tree
+		request = tree.requests[0]
+		try
+			{query, bindings} = AbstractSQLCompiler.compile(db.engine, request.query)
+		catch e
+			console.error('Failed to compile abstract sql: ', request.query, e, e.stack)
+			res.send(503)
+			return
+		vocab = tree.vocabulary
+		getAndCheckBindValues(vocab, bindings, request.values, (err, values) ->
+			console.log(query, err, values)
+			if err
+				res.json(err, 404)
+				return
+			runQuery = (tx) ->
+				tx.begin()
+				# TODO: Check for transaction locks.
+				tx.executeSql(query, values,
+					(tx, sqlResult) ->
+						validateDB(tx, sqlModels[vocab], (err) ->
+							if err
+								res.json(err, 404)
+								return
+							insertID = if request.query[0] == 'UpdateQuery' then values[0] else sqlResult.insertId
+							console.log('Insert ID: ', insertID)
+							res.json({
+									id: insertID
+								}, {
+									location: '/' + vocab + '/' + request.resourceName + '?$filter=' + request.resourceName + '/' + clientModels[vocab].resources[request.resourceName].idField + ' eq ' + insertID
+								}, 201
+							)
+						)
+					(tx, err) ->
+						tx.rollback()
+						constraintError = checkForConstraintError(err, request.resourceName)
+						if constraintError != false
+							res.json(constraintError, 404)
+						else
+							res.send(404)
+				)
+			if tx?
+				runQuery(tx)
+			else
+				db.transaction(runQuery)
 		)
 
 	exports.runPut = runPut = parseURITree (req, res, next, tx) ->
 		res.set('Cache-Control', 'no-cache')
 		tree = req.tree
 		request = tree.requests[0]
-		checkPermissions(req, res, 'set', request, ->
-			try
-				queries = AbstractSQLCompiler.compile(db.engine, request.query)
-			catch e
-				console.error('Failed to compile abstract sql: ', request.query, e, e.stack)
-				res.send(503)
-				return
-			
-			if _.isArray(queries)
-				insertQuery = queries[0]
-				updateQuery = queries[1]
-			else
-				insertQuery = queries
-			
-			vocab = tree.vocabulary
-			id = getID(tree)
-			runTransaction = (tx) ->
-				tx.begin()
-				tx.executeSql '''
-					SELECT NOT EXISTS(
-						SELECT 1
-						FROM "resource" r
-						JOIN "resource-is_under-lock" AS rl ON rl."resource" = r."id"
-						WHERE r."resource type" = ?
-						AND r."id" = ?
-					) AS result;''', [request.resourceName, id],
-					(tx, result) ->
-						if result.rows.item(0).result in [false, 0, '0']
-							tx.rollback()
-							res.json([ "The resource is locked and cannot be edited" ], 404)
-							return
+		try
+			queries = AbstractSQLCompiler.compile(db.engine, request.query)
+		catch e
+			console.error('Failed to compile abstract sql: ', request.query, e, e.stack)
+			res.send(503)
+			return
+		
+		if _.isArray(queries)
+			insertQuery = queries[0]
+			updateQuery = queries[1]
+		else
+			insertQuery = queries
+		
+		vocab = tree.vocabulary
+		id = getID(tree)
+		runTransaction = (tx) ->
+			tx.begin()
+			tx.executeSql '''
+				SELECT NOT EXISTS(
+					SELECT 1
+					FROM "resource" r
+					JOIN "resource-is_under-lock" AS rl ON rl."resource" = r."id"
+					WHERE r."resource type" = ?
+					AND r."id" = ?
+				) AS result;''', [request.resourceName, id],
+				(tx, result) ->
+					if result.rows.item(0).result in [false, 0, '0']
+						tx.rollback()
+						res.json([ "The resource is locked and cannot be edited" ], 404)
+						return
 
-						doValidate = (tx) ->
-							validateDB tx, sqlModels[vocab], (err) ->
-								if err
-									res.json(err, 404)
-								else
-									res.send(200)
-
-						handleError = (tx, err) ->
-							tx.rollback()
-							constraintError = checkForConstraintError(err, request.resourceName)
-							if constraintError != false
-								res.json(constraintError, 404)
+					doValidate = (tx) ->
+						validateDB tx, sqlModels[vocab], (err) ->
+							if err
+								res.json(err, 404)
 							else
-								res.send(404)
+								res.send(200)
 
-						runQuery = (query, successCallback) ->
-							tx.forceOpen true, ->
-								getAndCheckBindValues vocab, query.bindings, request.values, (err, values) ->
-									tx.forceOpen false, ->
-										if err
-											tx.rollback()
-											res.json(err, 404)
-											return
-										tx.executeSql(query.query, values, successCallback, handleError)
-
-						if updateQuery?
-							runQuery updateQuery, (tx, result) ->
-								if result.rowsAffected is 0
-									runQuery(insertQuery, doValidate)
-								else
-									doValidate(tx)
+					handleError = (tx, err) ->
+						tx.rollback()
+						constraintError = checkForConstraintError(err, request.resourceName)
+						if constraintError != false
+							res.json(constraintError, 404)
 						else
-							runQuery(insertQuery, doValidate)
-			if tx?
-				runTransaction(tx)
-			else
-				db.transaction(runTransaction)
-		)
+							res.send(404)
+
+					runQuery = (query, successCallback) ->
+						tx.forceOpen true, ->
+							getAndCheckBindValues vocab, query.bindings, request.values, (err, values) ->
+								tx.forceOpen false, ->
+									if err
+										tx.rollback()
+										res.json(err, 404)
+										return
+									tx.executeSql(query.query, values, successCallback, handleError)
+
+					if updateQuery?
+						runQuery updateQuery, (tx, result) ->
+							if result.rowsAffected is 0
+								runQuery(insertQuery, doValidate)
+							else
+								doValidate(tx)
+					else
+						runQuery(insertQuery, doValidate)
+		if tx?
+			runTransaction(tx)
+		else
+			db.transaction(runTransaction)
 
 	exports.runDelete = runDelete = parseURITree (req, res, next, tx) ->
 		res.set('Cache-Control', 'no-cache')
 		tree = req.tree
 		request = tree.requests[0]
-		checkPermissions(req, res, 'delete', request, ->
-			try
-				{query, bindings} = AbstractSQLCompiler.compile(db.engine, request.query)
-			catch e
-				console.error('Failed to compile abstract sql: ', request.query, e, e.stack)
-				res.send(503)
+		try
+			{query, bindings} = AbstractSQLCompiler.compile(db.engine, request.query)
+		catch e
+			console.error('Failed to compile abstract sql: ', request.query, e, e.stack)
+			res.send(503)
+			return
+		vocab = tree.vocabulary
+		getAndCheckBindValues(vocab, bindings, request.values, (err, values) ->
+			console.log(query, err, values)
+			if err
+				res.json(err, 404)
 				return
-			vocab = tree.vocabulary
-			getAndCheckBindValues(vocab, bindings, request.values, (err, values) ->
-				console.log(query, err, values)
-				if err
-					res.json(err, 404)
-					return
-				runQuery = (tx) ->
-					tx.begin()
-					tx.executeSql(query, values,
-						(tx, result) ->
-							validateDB(tx, sqlModels[vocab], (err) ->
-								if err
-									res.json(err, 404)
-								else
-									res.send(200)
-							)
-						(tx, err) ->
-							tx.rollback()
-							constraintError = checkForConstraintError(err, request.resourceName)
-							if constraintError != false
-								res.json(constraintError, 404)
+			runQuery = (tx) ->
+				tx.begin()
+				tx.executeSql(query, values,
+					(tx, result) ->
+						validateDB(tx, sqlModels[vocab], (err) ->
+							if err
+								res.json(err, 404)
 							else
-								res.send(404)
-					)
-				if tx?
-					runQuery(tx)
-				else
-					db.transaction(runQuery)
-			)
+								res.send(200)
+						)
+					(tx, err) ->
+						tx.rollback()
+						constraintError = checkForConstraintError(err, request.resourceName)
+						if constraintError != false
+							res.json(constraintError, 404)
+						else
+							res.send(404)
+				)
+			if tx?
+				runQuery(tx)
+			else
+				db.transaction(runQuery)
 		)
 
 	exports.executeStandardModels = executeStandardModels = (tx, callback) ->
