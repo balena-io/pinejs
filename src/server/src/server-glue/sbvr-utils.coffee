@@ -693,10 +693,14 @@ define([
 							callback('No guest permissions')
 					)
 
-		return (req, res, actionList, resourceName, callback) ->
+		return (req, res, actionList, resourceName, vocabulary, callback) ->
 			if !callback?
-				callback = resourceName
-				resourceName = null
+				if !vocabulary?
+					callback = resourceName
+					resourceName = null
+				else
+					callback = vocabulary
+					vocabulary = null
 
 			_checkPermissions = (permissions) ->
 				_recurseCheckPermissions = (permissionCheck) ->
@@ -781,7 +785,7 @@ define([
 					else
 						console.warn('Unknown method for permissions type check: ', method)
 						'all'
-		checkPermissions(req, res, permissionType, resourceName, ->
+		checkPermissions(req, res, permissionType, resourceName, vocabulary, ->
 			if query?
 				try
 					query = odata2AbstractSQL[vocabulary].match(query, 'Process', [method, body])
