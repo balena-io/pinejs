@@ -402,6 +402,8 @@ define([
 
 								updateModel = (modelType, model) ->
 									runURI 'GET', "/dev/model?$filter=vocabulary eq '" + vocab + "' and model_type eq '" + modelType + "'", null, tx, (err, result) ->
+										if err?
+											return
 										uri = '/dev/model'
 										id = result?.d?[0]?.id ? null
 										if id?
@@ -718,13 +720,16 @@ define([
 								if permissions.hasOwnProperty(vocabularyResourcePermission)
 									return true
 
-						conditionalPermissions = _.filter permissionKeys, (permissionName) ->
-							permissionName[...resourcePermission.length] == resourcePermission or
-							(vocabularyPermission? and permissionName[...vocabularyPermission.length] == vocabularyPermission) or
-							(vocabularyResourcePermission? and permissionName[...vocabularyResourcePermission.length] == vocabularyResourcePermission)
+						conditionalPermissions = _.map permissionKeys, (permissionName) ->
+							for permission in [resourcePermission, vocabularyPermission, vocabularyResourcePermission] when permission?
+								permission = permission + '?'
+								if permissionName[...permission.length] == permission
+									return permissionName[permission.length...].replace(/\$USER\.ID/g, req.user.id ? 0)
+							return false
+						conditionalPermissions = _.filter(conditionalPermissions)
 
 						if conditionalPermissions.length > 0
-							return or: conditionalPermissions
+							return '(' + conditionalPermissions.join(' or ') + ')'
 						return false
 					else if _.isArray(permissionCheck)
 						conditionalPermissions = []
@@ -735,7 +740,7 @@ define([
 							else if result isnt true
 								conditionalPermissions.push(result)
 						if conditionalPermissions.length > 0
-							return and: conditionalPermissions
+							return '(' + conditionalPermissions.join(' and ') + ')'
 						else
 							return true
 					else if _.isObject(permissionCheck)
@@ -755,7 +760,7 @@ define([
 									else if result isnt false
 										conditionalPermissions.push(result)
 								if conditionalPermissions.length > 0
-									return or: conditionalPermissions
+									return '(' + conditionalPermissions.join(' or ') + ')'
 								else
 									return false
 							else
@@ -769,19 +774,21 @@ define([
 			if req.user?
 				allowed = _checkPermissions(req.user.permissions) or []
 				if allowed is true
-					callback([])
+					callback()
 					return
 			_getGuestPermissions((err, permissions) ->
-				guestAllowed = _checkPermissions(permissions) or []
-				if guestAllowed is true
-					callback([])
-					return
+				if err
+					console.error(err)
+				else
+					guestAllowed = _checkPermissions(permissions)
+					if guestAllowed is true
+						callback()
+						return
+				guestAllowed = guestAllowed or []
 				allowed = allowed.concat(guestAllowed)
 				if allowed.length > 0
-					callback(allowed)
+					callback(null, allowed)
 				else
-					if err
-						console.error(err)
 					res.send(401)
 			)
 	exports.checkPermissionsMiddleware = (action) ->
@@ -825,8 +832,22 @@ define([
 					else
 						console.warn('Unknown method for permissions type check: ', method)
 						'all'
-		checkPermissions(req, res, permissionType, resourceName, vocabulary, ->
-			if query?
+		checkPermissions(req, res, permissionType, resourceName, vocabulary, (err, conditionalPerms) ->
+			if !query?
+				if !conditionalPerms?
+					console.error('Conditional permissions with no query?!')
+			else
+				if conditionalPerms?
+					try
+						conditionalPerms = odataParser.matchAll('/x?$filter=' + conditionalPerms, 'Process')
+					catch e
+						console.log('Failed to parse conditional permissions: ', conditionalPerms)
+						callback('Failed to parse permissions')
+						return
+					if query.options.$filter?
+						query.options.$filter = ['and', query.options.$filter, conditionalPerms.options.$filter]
+					else
+						query.options.$filter = conditionalPerms.options.$filter
 				try
 					query = odata2AbstractSQL[vocabulary].match(query, 'Process', [method, body])
 				catch e
