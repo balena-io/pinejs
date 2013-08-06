@@ -844,6 +844,7 @@ define([
 						console.log('Failed to parse conditional permissions: ', conditionalPerms)
 						callback('Failed to parse permissions')
 						return
+					query.options ?= {}
 					if query.options.$filter?
 						query.options.$filter = ['and', query.options.$filter, conditionalPerms.options.$filter]
 					else
