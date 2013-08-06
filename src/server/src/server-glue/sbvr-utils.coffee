@@ -724,7 +724,7 @@ define([
 							for permission in [resourcePermission, vocabularyPermission, vocabularyResourcePermission] when permission?
 								permission = permission + '?'
 								if permissionName[...permission.length] == permission
-									return permissionName[permission.length...].replace(/\$USER\.ID/g, req.user.id ? 0)
+									return permissionName[permission.length...].replace(/\$USER\.ID/g, req.user?.id ? 0)
 							return false
 						conditionalPermissions = _.filter(conditionalPermissions)
 
@@ -772,10 +772,11 @@ define([
 				return _recurseCheckPermissions(or: ['all', actionList])
 
 			if req.user?
-				allowed = _checkPermissions(req.user.permissions) or []
+				allowed = _checkPermissions(req.user.permissions)
 				if allowed is true
 					callback()
 					return
+			allowed = allowed or []
 			_getGuestPermissions((err, permissions) ->
 				if err
 					console.error(err)
