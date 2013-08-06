@@ -62,7 +62,7 @@ define(['has', 'async'], (has, async) ->
 						users: (callback) ->
 							async.map(data.users,
 								(user, callback) ->
-									sbvrUtils.runURI 'GET', "/Auth/user?$filter=username eq '" + user.username + "'", null, tx, (err, result) ->
+									sbvrUtils.runURI 'GET', "/Auth/user?$filter=username eq '" + encodeURIComponent(user.username) + "'", null, tx, (err, result) ->
 										if err
 											callback(err)
 										else if result.d.length is 0
@@ -79,7 +79,7 @@ define(['has', 'async'], (has, async) ->
 						permissions: (callback) ->
 							async.map(permissions,
 								(permission, callback) ->
-									sbvrUtils.runURI 'GET', "/Auth/permission?$filter=name eq '" + permission + "'", null, tx, (err, result) ->
+									sbvrUtils.runURI 'GET', "/Auth/permission?$filter=name eq '" + encodeURIComponent(permission) + "'", null, tx, (err, result) ->
 										if err
 											callback(err)
 										else if result.d.length is 0
