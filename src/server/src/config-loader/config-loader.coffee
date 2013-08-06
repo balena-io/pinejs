@@ -83,9 +83,9 @@ define(['has', 'async'], (has, async) ->
 										if err
 											callback(err)
 										else if result.d.length is 0
-											sbvrUtils.runURI 'POST', '/Auth/permission', {'name': permission}, tx, (createErr, result) ->
+											sbvrUtils.runURI 'POST', '/Auth/permission', {'name': permission}, tx, (err, result) ->
 												if err
-													callback('Could not create or find permission "' + permission + '": ' + createErr)
+													callback('Could not create or find permission "' + permission + '": ' + err)
 												else
 													callback(null, result.id)
 										else
