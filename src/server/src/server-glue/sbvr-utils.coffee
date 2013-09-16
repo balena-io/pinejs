@@ -590,47 +590,37 @@ define [
 		return deferred.promise.nodeify(callback)
 
 	exports.getUserPermissions = getUserPermissions = (userId, callback) ->
-		async.parallel(
-			userPermissions: (callback) ->
-				runURI('GET', '/Auth/user__has__permission?$filter=user eq ' + userId, {}, null, (err, result) ->
-					callback(err, result?.d)
-				)
-			userRoles: (callback) ->
-				runURI('GET', '/Auth/user__has__role?$filter=user eq ' + userId, {}, null, (err, result) ->
-					callback(err, result?.d)
-				)
-			rolePermissions: (callback) ->
-				runURI('GET', '/Auth/role__has__permission', {}, null, (err, result) ->
-					callback(err, result?.d)
-				)
-			permissions: (callback) ->
-				runURI('GET', '/Auth/permission', {}, null, (err, result) ->
-					callback(err, result?.d)
-				)
-			(err, result) ->
-				if err?
-					console.error('Error loading permissions')
-					callback(err)
-				else
-					permissions = {}
-					rolePermissions = {}
-					userPermissions = {}
-					for permission in result.permissions
-						permissions[permission.id] = permission.name
-					
-					for rolePermission in result.rolePermissions
-						rolePermissions[rolePermission.role.__id] ?= []
-						rolePermissions[rolePermission.role.__id].push(permissions[rolePermission.permission.__id])
-					
-					for userPermission in result.userPermissions
-						userPermissions[permissions[userPermission.permission.__id]] = true
-					
-					for userRole in result.userRoles
-						for rolePermission in rolePermissions[userRole.role.__id]
-							userPermissions[rolePermission] = true
-					callback(null, userPermissions)
+		deferred = Q.defer()
+		deferred.promise.nodeify(callback)
+		Q.all([
+			runURI('GET', '/Auth/user__has__permission?$filter=user eq ' + userId, {})
+			runURI('GET', '/Auth/user__has__role?$filter=user eq ' + userId)
+			runURI('GET', '/Auth/role__has__permission')
+			runURI('GET', '/Auth/permission')
+		]).spread((userPermissions, userRoles, rolePermissions, permissions) ->
+			permissions = {}
+			rolePermissions = {}
+			userPermissions = {}
+			for permission in permissions.d
+				permissions[permission.id] = permission.name
+			
+			for rolePermission in rolePermissions.d
+				rolePermissions[rolePermission.role.__id] ?= []
+				rolePermissions[rolePermission.role.__id].push(permissions[rolePermission.permission.__id])
+			
+			for userPermission in userPermissions.d
+				userPermissions[permissions[userPermission.permission.__id]] = true
+			
+			for userRole in userRoles.d
+				for rolePermission in rolePermissions[userRole.role.__id]
+					userPermissions[rolePermission] = true
+			deferred.resolve(userPermissions)
+		).catch((err) ->
+			console.error('Error loading permissions')
+			deferred.reject(err)
 		)
-	
+		return deferred
+
 	exports.checkPermissions = checkPermissions = do ->
 		_getGuestPermissions = do ->
 			_guestPermissions = false
