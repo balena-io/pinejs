@@ -14,20 +14,19 @@ define(['has', 'async'], (has, async) ->
 		fs.readFile path.join(root, 'config.json'), 'utf8', (err, data) ->
 			if err
 				console.error('Error loading config.json', err)
-				return
+				process.exit()
 			data = JSON.parse(data)
 
 			_.each data.models, (model) ->
 				fs.readFile path.join(root, model.modelFile), 'utf8', (err, sbvrModel) ->
 					if err
 						console.error('Unable to load ' + model.modelName + ' model from ' + model.modelFile, err)
-						return
+						process.exit()
 					db.transaction (tx) ->
 						sbvrUtils.executeModel tx, model.apiRoot, sbvrModel, (err) ->
 							if err
 								console.error('Failed to execute ' + model.modelName + ' model.', err)
 								process.exit()
-								return
 							apiRoute = '/' + model.apiRoot + '/*'
 							app.get(apiRoute, sbvrUtils.runGet)
 
@@ -101,7 +100,7 @@ define(['has', 'async'], (has, async) ->
 					(err, results) ->
 						if err
 							console.error('Failed to add users or permissions', err)
-							return
+							process.exit()
 						async.each(_.zip(results.users, data.users),
 							([userID, {permissions: userPermissions}], callback) ->
 								if !userPermissions?
@@ -122,6 +121,7 @@ define(['has', 'async'], (has, async) ->
 							(err) ->
 								if err
 									console.error('Failed to add user permissions', err)
+									process.exit()
 						)
 					)
 	return exports
