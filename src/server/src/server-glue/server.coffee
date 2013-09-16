@@ -29,19 +29,22 @@ define([
 					successRedirect: '/'
 				}, sbvrUtils, app, passport)
 
-			if has 'CONFIG_LOADER'
-				configLoader.setup(app, require, sbvrUtils, db)
-
 			if has 'SBVR_SERVER_ENABLED'
 				sbvrServer.setup(app, require, sbvrUtils, db)
 
-			if has 'ENV_NODEJS'
-				app.listen(process.env.PORT or 1337, () ->
-					console.info('Server started')
-				)
+			listen = ->
+				if has 'ENV_NODEJS'
+					app.listen(process.env.PORT or 1337, () ->
+						console.info('Server started')
+					)
 
-			if has 'ENV_BROWSER'
-				app.enable()
+				if has 'ENV_BROWSER'
+					app.enable()
+
+			if has 'CONFIG_LOADER'
+				configLoader.setup(app, require, sbvrUtils, db, listen)
+			else
+				listen()
 		)
 
 
