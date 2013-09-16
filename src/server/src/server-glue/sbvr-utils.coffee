@@ -10,8 +10,9 @@ define [
 	'odata-to-abstract-sql'
 	'async'
 	'lodash'
+	'q'
 	'cs!sbvr-compiler/types'
-], (has, SBVRParser, LF2AbstractSQL, AbstractSQL2SQL, AbstractSQLCompiler, AbstractSQL2CLF, ODataMetadataGenerator, {ODataParser}, {OData2AbstractSQL}, async, _, sbvrTypes) ->
+], (has, SBVRParser, LF2AbstractSQL, AbstractSQL2SQL, AbstractSQLCompiler, AbstractSQL2CLF, ODataMetadataGenerator, {ODataParser}, {OData2AbstractSQL}, async, _, Q, sbvrTypes) ->
 	exports = {}
 	db = null
 
@@ -554,6 +555,7 @@ define [
 						callback(null, data)
 
 	exports.runURI = runURI = (method, uri, body = {}, tx, callback) ->
+		deferred = Q.defer()
 		console.log('Running URI', method, uri, body)
 		req =
 			user:
@@ -565,20 +567,20 @@ define [
 		res =
 			send: (statusCode) ->
 				if statusCode >= 400
-					callback?(statusCode)
+					deferred.reject(statusCode)
 				else
-					callback?()
+					deferred.resolve()
 			json: (data, statusCode) ->
 				if statusCode >= 400
-					callback?(data)
+					deferred.reject(data)
 				else
-					callback?(null, data)
+					deferred.resolve(data)
 			set: ->
 			type: ->
 
 		next = (route) ->
 			console.warn('Next called on a runURI?!', route)
-			callback(501)
+			deferred.reject(501)
 
 		switch method
 			when 'GET'
@@ -589,6 +591,7 @@ define [
 				runPut(req, res, next, tx)
 			when 'DELETE'
 				runDelete(req, res, next, tx)
+		return deferred.promise.nodeify(callback)
 
 	exports.getUserPermissions = getUserPermissions = (userId, callback) ->
 		async.parallel(
