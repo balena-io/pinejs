@@ -590,9 +590,7 @@ define [
 		return deferred.promise.nodeify(callback)
 
 	exports.getUserPermissions = getUserPermissions = (userId, callback) ->
-		deferred = Q.defer()
-		deferred.promise.nodeify(callback)
-		Q.all([
+		promise = Q.all([
 			runURI('GET', '/Auth/user__has__permission?$filter=user eq ' + userId, {})
 			runURI('GET', '/Auth/user__has__role?$filter=user eq ' + userId)
 			runURI('GET', '/Auth/role__has__permission')
@@ -614,12 +612,13 @@ define [
 			for userRole in userRoles.d
 				for rolePermission in rolePermissions[userRole.role.__id]
 					userPermissions[rolePermission] = true
-			deferred.resolve(userPermissions)
+			return userPermissions
 		).catch((err) ->
-			console.error('Error loading permissions')
-			deferred.reject(err)
+			console.error('Error loading permissions', err)
+			throw err
 		)
-		return deferred.promise
+		promise.nodeify(callback)
+		return promise
 
 	exports.checkPermissions = checkPermissions = do ->
 		_getGuestPermissions = do ->
