@@ -619,7 +619,7 @@ define [
 			console.error('Error loading permissions')
 			deferred.reject(err)
 		)
-		return deferred
+		return deferred.promise
 
 	exports.checkPermissions = checkPermissions = do ->
 		_getGuestPermissions = do ->
