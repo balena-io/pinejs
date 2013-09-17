@@ -596,22 +596,22 @@ define [
 			runURI('GET', '/Auth/role__has__permission')
 			runURI('GET', '/Auth/permission')
 		]).spread((userPermissions, userRoles, rolePermissions, permissions) ->
-			permissions = {}
-			rolePermissions = {}
-			userPermissions = {}
-			for permission in permissions.d
-				permissions[permission.id] = permission.name
-			
-			for rolePermission in rolePermissions.d
-				rolePermissions[rolePermission.role.__id] ?= []
-				rolePermissions[rolePermission.role.__id].push(permissions[rolePermission.permission.__id])
-			
-			for userPermission in userPermissions.d
-				userPermissions[permissions[userPermission.permission.__id]] = true
-			
+			transformObj = (args...) -> _.transform(args.concat({})...)
+
+			permissions = transformObj permissions.d, (result, permission) ->
+				result[permission.id] = permission.name
+
+			rolePermissions = transformObj rolePermissions.d, (result, rolePermission) ->
+				result[rolePermission.role.__id] ?= []
+				result[rolePermission.role.__id].push(permissions[rolePermission.permission.__id])
+
+			userPermissions = transformObj userPermissions.d, (result, userPermission) ->
+				result[permissions[userPermission.permission.__id]] = true
+
 			for userRole in userRoles.d
 				for rolePermission in rolePermissions[userRole.role.__id]
 					userPermissions[rolePermission] = true
+
 			return userPermissions
 		).catch((err) ->
 			console.error('Error loading permissions', err)
