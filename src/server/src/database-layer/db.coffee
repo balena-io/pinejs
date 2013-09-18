@@ -16,7 +16,7 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 		currentlyQueuedStatements = 0
 		connectionClosed = false
 		return {
-			forceOpen: (bool, callback) ->
+			forceOpen: (bool, callback) =>
 				if bool is true
 					currentlyQueuedStatements++
 				else
@@ -26,29 +26,40 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 				finally
 					if currentlyQueuedStatements < 0
 						console.trace('currentlyQueuedStatements is less than 0!')
-					if connectionClosed is false and currentlyQueuedStatements <= 0
-						connectionClosed = true
-						closeCallback()
+					if currentlyQueuedStatements <= 0
+						@closeConnection()
 			startQuery: (callback) ->
 				->
-					if connectionClosed
+					if connectionClosed is true
 						throw 'Trying to executeSQL on a closed connection'
 					# We have queued a new statement so add it.
 					currentlyQueuedStatements++
 					callback(arguments...)
-			endQuery: (callback) ->
-				->
+			endQuery: (callback) =>
+				=>
+					# If the connection has been closed we should not call either callback to match WebSQL.
+					if connectionClosed is true
+						return
 					try
-						callback(arguments...)
+						carryOn = callback(arguments...)
+					catch e
+						console.error('Statement callback threw an error: ', e)
+						carryOn = false
+						throw e
 					finally
 						# We have finished a statement so remove it.
 						currentlyQueuedStatements--
 						if currentlyQueuedStatements < 0
 							console.trace('currentlyQueuedStatements is less than 0!')
 						# Check if there are no queued statements after the callback has had a chance to remove them and close the connection if there are none queued.
-						if currentlyQueuedStatements <= 0
-							connectionClosed = true
-							closeCallback()
+						if currentlyQueuedStatements <= 0 or carryOn is false
+							@closeConnection()
+						# if carryOn is false
+							# TODO: Call the transaction error callback..
+			closeConnection: ->
+				if connectionClosed is false
+					connectionClosed = true
+					closeCallback()
 		}
 
 	if has 'ENV_NODEJS'
@@ -66,8 +77,8 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 				}
 			class Tx
 				constructor: (_db, _close) ->
-					{startQuery, endQuery, @forceOpen} = wrapExecuteSql =>
-						@executeSql('COMMIT;') # We end the transaction in progress and then close the connection/return to pool.
+					{startQuery, endQuery, @forceOpen, @closeConnection} = wrapExecuteSql =>
+						_db.query('COMMIT;') # We end the transaction in progress and then close the connection/return to pool.
 						_close()
 
 					@executeSql = startQuery (sql, _bindings = [], callback, errorCallback, addReturning = true) =>
@@ -92,14 +103,17 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 									return '$' + ++bindNo
 						])
 						_db.query({text: sql, values: bindings}, endQuery (err, res) =>
-							if err?
-								errorCallback?(@, err)
+							if err
+								if typeof errorCallback is 'function'
+									return errorCallback(@, err)
 								console.log(sql, bindings, err)
-							else
-								callback?(@, createResult(res))
+								return false
+							callback?(@, createResult(res))
+							return true
 						)
 				rollback: ->
 					@executeSql('ROLLBACK;')
+					@closeConnection()
 				tableList: (callback, errorCallback, extraWhereClause = '') ->
 					if extraWhereClause != ''
 						extraWhereClause = ' WHERE ' + extraWhereClause
@@ -141,21 +155,24 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 			class Tx
 				constructor: (_db) ->
 					lastCallback = null
-					{startQuery, endQuery, @forceOpen} = wrapExecuteSql =>
-						@executeSql('COMMIT;') # We end the transaction in progress and then close the connection/return to pool.
+					{startQuery, endQuery, @forceOpen, @closeConnection} = wrapExecuteSql =>
+						_db.query('COMMIT;') # We end the transaction in progress and then close the connection/return to pool.
 						_db.end()
 
 					@executeSql = startQuery (sql, bindings = [], callback, errorCallback, addReturning = true) =>
 						sql = bindDefaultValues(sql, bindings)
 						_db.query(sql, bindings, endQuery (err, res) =>
-							if err?
-								errorCallback?(@, err)
+							if err
+								if typeof errorCallback is 'function'
+									return errorCallback(@, err)
 								console.log(sql, bindings, err)
-							else
-								callback?(@, createResult(res))
+								return false
+							callback?(@, createResult(res))
+							return true
 						)
 				rollback: ->
 					@executeSql('ROLLBACK;')
+					@closeConnection()
 				tableList: (callback, errorCallback, extraWhereClause = '') ->
 					if extraWhereClause != ''
 						extraWhereClause = ' WHERE ' + extraWhereClause
@@ -254,13 +271,15 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 									(_tx, _results) =>
 										callback(@, createResult(_results))
 							errorCallback = do(errorCallback) =>
-								(_tx, _err) =>
-									console.log(sql, bindings, _err, stackTrace.stack)
-									errorCallback?(@, _err)
+								(_tx, err) =>
+									if typeof errorCallback is 'function'
+										return errorCallback(@, err)
+									console.log(sql, bindings, err, stackTrace.stack)
+									return false
 							bindNo = 0
 							sql = bindDefaultValues(sql, bindings)
 							_tx.executeSql(sql, bindings, callback, errorCallback)
-					@rollback = -> _tx.executeSql("DROP TABLE '__Fo0oFoo'")
+					@rollback = -> _tx.executeSql('RUN A FAILING STATEMENT TO ROLLBACK')
 				# Rollbacks in WebSQL are done by having a SQL statement error, and not having an error callback (or having one that returns false).
 				tableList: (callback, errorCallback, extraWhereClause = '') ->
 					if extraWhereClause != ''
