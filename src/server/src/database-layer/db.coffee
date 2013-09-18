@@ -74,8 +74,6 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 
 					@executeSql = startQuery (sql, _bindings = [], callback, errorCallback, addReturning = true) =>
 						bindings = _bindings.slice(0) # Deal with the fact we may splice arrays directly into bindings
-						sql = sql.replace(/GROUP BY NULL/g, '') #HACK: Remove GROUP BY NULL for Postgres as it does not need/accept it.
-						sql = sql.replace(/INTEGER PRIMARY KEY AUTOINCREMENT/g, 'SERIAL PRIMARY KEY') #HACK: Postgres uses SERIAL data type rather than auto increment
 						if addReturning and /^\s*INSERT\s+INTO/i.test(sql)
 							sql = sql.replace(/;?$/, ' RETURNING id;')
 						bindNo = 0
@@ -156,9 +154,6 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 						_db.end()
 
 					@executeSql = startQuery (sql, bindings = [], callback, errorCallback, addReturning = true) =>
-						sql = sql.replace(/GROUP BY NULL/g, '') # HACK: Remove GROUP BY NULL for MySQL? as it does not need/accept? it.
-						sql = sql.replace(/AUTOINCREMENT/g, 'AUTO_INCREMENT') # HACK: MySQL uses AUTO_INCREMENT rather than AUTOINCREMENT.
-						sql = sql.replace(/DROP CONSTRAINT/g, 'DROP FOREIGN KEY') # HACK: MySQL uses FOREIGN KEY rather than CONSTRAINT.
 						sql = bindDefaultValues(sql, bindings)
 						_db.query(sql, bindings, endQuery (err, res) =>
 							if err?
