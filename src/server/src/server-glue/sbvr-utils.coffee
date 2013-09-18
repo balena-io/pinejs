@@ -373,11 +373,7 @@ define [
 								odata2AbstractSQL[vocab].clientModel = clientModel
 
 								updateModel = (modelType, model, callback) ->
-									runURI 'GET', "/dev/model?$filter=vocabulary eq '" + vocab + "' and model_type eq '" + modelType + "'", null, tx, (err, result) ->
-										if err
-											callback(err)
-											return
-										method = 'POST'
+									runURI('GET', "/dev/model?$filter=vocabulary eq '" + vocab + "' and model_type eq '" + modelType + "'", null, tx).then (result) ->
 										uri = '/dev/model'
 										body =
 											vocabulary: vocab
@@ -1083,15 +1079,12 @@ define [
 					tx.executeSql('CREATE UNIQUE INDEX "uniq_model_model_type_vocab" ON "model" ("vocabulary", "model type");')
 					# TODO: Remove these hardcoded users.
 					if has 'DEV'
-						async.parallel([
-								(callback) -> runURI('POST', '/Auth/user', {'username': 'root', 'password': 'test123'}, null, callback)
-								(callback) -> runURI('POST', '/Auth/permission', {'name': 'resource.all'}, null, callback)
-							]
-							(err) ->
-								if !err
-									# We expect these to be the first user/permission, so they would have id 1.
-									runURI('POST', '/Auth/user__has__permission', {'user': 1, 'permission': 1}, null)
-						)
+						Q.all([
+							runURI('POST', '/Auth/user', {'username': 'root', 'password': 'test123'})
+							runURI('POST', '/Auth/permission', {'name': 'resource.all'})
+						]).done ->
+							# We expect these to be the first user/permission, so they would have id 1.
+							runURI('POST', '/Auth/user__has__permission', {'user': 1, 'permission': 1})
 					console.info('Sucessfully executed standard models.')
 				callback?(err)
 
