@@ -348,8 +348,6 @@ define([
 			(err) ->
 				if err?
 					tx.rollback()
-				else
-					tx.end()
 				callback(err)
 		)
 
@@ -956,7 +954,6 @@ define([
 				res.json(err, 404)
 				return
 			runQuery = (tx) ->
-				tx.begin()
 				# TODO: Check for transaction locks.
 				tx.executeSql(query, values,
 					(tx, sqlResult) ->
@@ -1007,7 +1004,6 @@ define([
 		vocab = tree.vocabulary
 		id = getID(tree)
 		runTransaction = (tx) ->
-			tx.begin()
 			tx.executeSql '''
 				SELECT NOT EXISTS(
 					SELECT 1
@@ -1077,7 +1073,6 @@ define([
 				res.json(err, 404)
 				return
 			runQuery = (tx) ->
-				tx.begin()
 				tx.executeSql(query, values,
 					(tx, result) ->
 						validateDB(tx, sqlModels[vocab], (err) ->

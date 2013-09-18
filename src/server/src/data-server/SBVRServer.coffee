@@ -103,7 +103,6 @@ define([
 				if !err and result.d.length > 0
 					seModel = result.d[0].text
 					db.transaction((tx) ->
-						tx.begin()
 						sbvrUtils.executeModel(tx, 'data', seModel, (err) ->
 							if err
 								res.json(err, 404)

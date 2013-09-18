@@ -67,9 +67,7 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 			class Tx
 				constructor: (_db, _close) ->
 					{startQuery, endQuery, @forceOpen} = wrapExecuteSql =>
-						if @_transOpen is true
-							console.warn('Connection is closing, but a transaction is still in progress.')
-							@.end() # We end the transaction in progress to keep things working as best as possible.
+						@executeSql('COMMIT;') # We end the transaction in progress and then close the connection/return to pool.
 						_close()
 
 					@executeSql = startQuery (sql, _bindings = [], callback, errorCallback, addReturning = true) =>
@@ -100,14 +98,7 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 							else
 								callback?(@, createResult(res))
 						)
-				begin: ->
-					@_transOpen = true
-					@executeSql('START TRANSACTION;')
-				end: ->
-					@_transOpen = false
-					@executeSql('COMMIT;')
 				rollback: ->
-					@_transOpen = false
 					@executeSql('ROLLBACK;')
 				tableList: (callback, errorCallback, extraWhereClause = '') ->
 					if extraWhereClause != ''
@@ -126,6 +117,7 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 							tx = new Tx(client, done)
 							if process.env.PG_SCHEMA?
 								tx.executeSql('SET search_path TO "' + process.env.PG_SCHEMA + '"')
+							tx.executeSql('START TRANSACTION;')
 							callback(tx)
 					)
 			}
@@ -145,12 +137,9 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 				}
 			class Tx
 				constructor: (_db) ->
-					@_transOpen = false
 					lastCallback = null
 					{startQuery, endQuery, @forceOpen} = wrapExecuteSql =>
-						if @_transOpen is true
-							console.warn('Connection is closing, but a transaction is still in progress.')
-							@.end() # We end the transaction in progress to keep things working as best as possible.
+						@executeSql('COMMIT;') # We end the transaction in progress and then close the connection/return to pool.
 						_db.end()
 
 					@executeSql = startQuery (sql, bindings = [], callback, errorCallback, addReturning = true) =>
@@ -162,14 +151,7 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 							else
 								callback?(@, createResult(res))
 						)
-				begin: ->
-					@_transOpen = true
-					@executeSql('START TRANSACTION;')
-				end: ->
-					@_transOpen = false
-					@executeSql('COMMIT;')
 				rollback: ->
-					@_transOpen = false
 					@executeSql('ROLLBACK;')
 				tableList: (callback, errorCallback, extraWhereClause = '') ->
 					if extraWhereClause != ''
@@ -185,12 +167,15 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 							console.error('Error connecting ' + err)
 							errorCallback?(err)
 						else
-							_db.query("SET sql_mode='ANSI_QUOTES';")
-							callback(new Tx(_db))
+							tx = new Tx(_db)
+							tx.query("SET sql_mode='ANSI_QUOTES';")
+							tx.executeSql('START TRANSACTION;')
+							callback(tx)
 					)
 			}
-				
+
 		exports.sqlite = (filepath) ->
+			console.warn('SQLite support is out of date and likely to break')
 			sqlite3 = require('sqlite3').verbose()
 			_db = new sqlite3.Database(filepath)
 			createResult = (rows) ->
@@ -274,8 +259,6 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 							sql = bindDefaultValues(sql, bindings)
 							_tx.executeSql(sql, bindings, callback, errorCallback)
 					@rollback = -> _tx.executeSql("DROP TABLE '__Fo0oFoo'")
-				begin: ->
-				end: ->
 				# Rollbacks in WebSQL are done by having a SQL statement error, and not having an error callback (or having one that returns false).
 				tableList: (callback, errorCallback, extraWhereClause = '') ->
 					if extraWhereClause != ''
