@@ -12,57 +12,57 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 				'?'
 		])
 
-	wrapExecuteSql = (closeCallback) ->
-		currentlyQueuedStatements = 0
-		connectionClosed = false
-		return {
-			forceOpen: (bool, callback) =>
-				if bool is true
-					currentlyQueuedStatements++
-				else
-					currentlyQueuedStatements--
-				try
-					callback?()
-				finally
-					if currentlyQueuedStatements < 0
-						console.trace('currentlyQueuedStatements is less than 0!')
-					if currentlyQueuedStatements <= 0
-						@closeConnection()
-			startQuery: (callback) ->
-				->
-					if connectionClosed is true
-						throw 'Trying to executeSQL on a closed connection'
-					# We have queued a new statement so add it.
-					currentlyQueuedStatements++
-					callback(arguments...)
-			endQuery: (callback) =>
-				=>
-					# If the connection has been closed we should not call either callback to match WebSQL.
-					if connectionClosed is true
-						return
-					try
-						carryOn = callback(arguments...)
-					catch e
-						console.error('Statement callback threw an error: ', e)
-						carryOn = false
-						throw e
-					finally
-						# We have finished a statement so remove it.
+	if has 'ENV_NODEJS'
+		wrapExecuteSql = (closeCallback) ->
+			currentlyQueuedStatements = 0
+			connectionClosed = false
+			return {
+				forceOpen: (bool, callback) =>
+					if bool is true
+						currentlyQueuedStatements++
+					else
 						currentlyQueuedStatements--
+					try
+						callback?()
+					finally
 						if currentlyQueuedStatements < 0
 							console.trace('currentlyQueuedStatements is less than 0!')
-						# Check if there are no queued statements after the callback has had a chance to remove them and close the connection if there are none queued.
-						if currentlyQueuedStatements <= 0 or carryOn is false
+						if currentlyQueuedStatements <= 0
 							@closeConnection()
-						# if carryOn is false
-							# TODO: Call the transaction error callback..
-			closeConnection: ->
-				if connectionClosed is false
-					connectionClosed = true
-					closeCallback()
-		}
+				startQuery: (callback) ->
+					->
+						if connectionClosed is true
+							throw 'Trying to executeSQL on a closed connection'
+						# We have queued a new statement so add it.
+						currentlyQueuedStatements++
+						callback(arguments...)
+				endQuery: (callback) =>
+					=>
+						# If the connection has been closed we should not call either callback to match WebSQL.
+						if connectionClosed is true
+							return
+						try
+							carryOn = callback(arguments...)
+						catch e
+							console.error('Statement callback threw an error: ', e)
+							carryOn = false
+							throw e
+						finally
+							# We have finished a statement so remove it.
+							currentlyQueuedStatements--
+							if currentlyQueuedStatements < 0
+								console.trace('currentlyQueuedStatements is less than 0!')
+							# Check if there are no queued statements after the callback has had a chance to remove them and close the connection if there are none queued.
+							if currentlyQueuedStatements <= 0 or carryOn is false
+								@closeConnection()
+							# if carryOn is false
+								# TODO: Call the transaction error callback..
+				closeConnection: ->
+					if connectionClosed is false
+						connectionClosed = true
+						closeCallback()
+			}
 
-	if has 'ENV_NODEJS'
 		exports.postgres = (connectString) ->
 			pg = require('pg')
 			createResult = ({rowCount, rows}) ->
