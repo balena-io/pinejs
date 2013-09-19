@@ -16,8 +16,33 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 		wrapExecuteSql = (closeCallback) ->
 			currentlyQueuedStatements = 0
 			connectionClosed = false
+			closeConnection = ->
+				if connectionClosed is false
+					connectionClosed = true
+					closeCallback()
+			createEndQueryCallback = (callback) ->
+				(err, res) ->
+					# If the connection has been closed we should not call either callback to match WebSQL.
+					if connectionClosed is true
+						return
+					try
+						carryOn = callback(err, res) 
+					catch e
+						console.error('Statement callback threw an error: ', e)
+						carryOn = false
+						throw e
+					finally
+						# We have finished a statement so remove it.
+						currentlyQueuedStatements--
+						if currentlyQueuedStatements < 0
+							console.trace('currentlyQueuedStatements is less than 0!')
+						# Check if there are no queued statements after the callback has had a chance to remove them and close the connection if there are none queued.
+						if currentlyQueuedStatements <= 0 or carryOn is false
+							closeConnection()
+						# if carryOn is false
+							# TODO: Call the transaction error callback..
 			return {
-				forceOpen: (bool, callback) =>
+				forceOpen: (bool, callback) ->
 					if bool is true
 						currentlyQueuedStatements++
 					else
@@ -28,39 +53,24 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 						if currentlyQueuedStatements < 0
 							console.trace('currentlyQueuedStatements is less than 0!')
 						if currentlyQueuedStatements <= 0
-							@closeConnection()
-				startQuery: (callback) ->
-					->
+							closeConnection()
+				startQuery: (createResult, callback) ->
+					(sql, bindings = [], successCallback, errorCallback, args...) ->
 						if connectionClosed is true
 							throw 'Trying to executeSQL on a closed connection'
 						# We have queued a new statement so add it.
 						currentlyQueuedStatements++
-						callback(arguments...)
-				endQuery: (callback) =>
-					=>
-						# If the connection has been closed we should not call either callback to match WebSQL.
-						if connectionClosed is true
-							return
-						try
-							carryOn = callback(arguments...)
-						catch e
-							console.error('Statement callback threw an error: ', e)
-							carryOn = false
-							throw e
-						finally
-							# We have finished a statement so remove it.
-							currentlyQueuedStatements--
-							if currentlyQueuedStatements < 0
-								console.trace('currentlyQueuedStatements is less than 0!')
-							# Check if there are no queued statements after the callback has had a chance to remove them and close the connection if there are none queued.
-							if currentlyQueuedStatements <= 0 or carryOn is false
-								@closeConnection()
-							# if carryOn is false
-								# TODO: Call the transaction error callback..
-				closeConnection: ->
-					if connectionClosed is false
-						connectionClosed = true
-						closeCallback()
+						sql = bindDefaultValues(sql, bindings)
+						endQueryCallback = createEndQueryCallback (err, res) =>
+							if err
+								if typeof errorCallback is 'function'
+									return errorCallback(@, err)
+								console.error(sql, bindings, err)
+								return false
+							successCallback?(@, createResult(res))
+							return true
+						callback(sql, bindings, endQueryCallback, args...)
+				closeConnection
 			}
 
 		exports.postgres = (connectString) ->
@@ -77,11 +87,11 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 				}
 			class Tx
 				constructor: (_db, _close) ->
-					{startQuery, endQuery, @forceOpen, @closeConnection} = wrapExecuteSql =>
+					{startQuery, @forceOpen, @closeConnection} = wrapExecuteSql =>
 						_db.query('COMMIT;') # We end the transaction in progress and then close the connection/return to pool.
 						_close()
 
-					@executeSql = startQuery (sql, _bindings = [], callback, errorCallback, addReturning = true) =>
+					@executeSql = startQuery createResult, (sql, _bindings, endQueryCallback, addReturning = true) ->
 						bindings = _bindings.slice(0) # Deal with the fact we may splice arrays directly into bindings
 						if addReturning and /^\s*INSERT\s+INTO/i.test(sql)
 							sql = sql.replace(/;?$/, ' RETURNING id;')
@@ -102,15 +112,7 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 								else
 									return '$' + ++bindNo
 						])
-						_db.query({text: sql, values: bindings}, endQuery (err, res) =>
-							if err
-								if typeof errorCallback is 'function'
-									return errorCallback(@, err)
-								console.log(sql, bindings, err)
-								return false
-							callback?(@, createResult(res))
-							return true
-						)
+						_db.query({text: sql, values: bindings}, endQueryCallback)
 				rollback: ->
 					@executeSql('ROLLBACK;')
 					@closeConnection()
@@ -155,21 +157,12 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 			class Tx
 				constructor: (_db) ->
 					lastCallback = null
-					{startQuery, endQuery, @forceOpen, @closeConnection} = wrapExecuteSql =>
+					{startQuery, @forceOpen, @closeConnection} = wrapExecuteSql =>
 						_db.query('COMMIT;') # We end the transaction in progress and then close the connection/return to pool.
 						_db.end()
 
-					@executeSql = startQuery (sql, bindings = [], callback, errorCallback, addReturning = true) =>
-						sql = bindDefaultValues(sql, bindings)
-						_db.query(sql, bindings, endQuery (err, res) =>
-							if err
-								if typeof errorCallback is 'function'
-									return errorCallback(@, err)
-								console.log(sql, bindings, err)
-								return false
-							callback?(@, createResult(res))
-							return true
-						)
+					@executeSql = startQuery createResult, (sql, bindings, endQueryCallback) ->
+						_db.query(sql, bindings, endQueryCallback)
 				rollback: ->
 					@executeSql('ROLLBACK;')
 					@closeConnection()
