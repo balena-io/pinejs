@@ -833,7 +833,7 @@ define([
 						'all'
 		checkPermissions(req, res, permissionType, resourceName, vocabulary, (err, conditionalPerms) ->
 			if !query?
-				if !conditionalPerms?
+				if conditionalPerms?
 					console.error('Conditional permissions with no query?!')
 			else
 				if conditionalPerms?
