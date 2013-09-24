@@ -1,4 +1,4 @@
-define(['ometa!database-layer/SQLBinds', 'has', 'lodash'], (SQLBinds, has, _) ->
+define ['ometa!database-layer/SQLBinds', 'has', 'lodash'], (SQLBinds, has, _) ->
 	exports = {}
 	DEFAULT_VALUE = {}
 	bindDefaultValues = (sql, bindings) ->
@@ -55,20 +55,18 @@ define(['ometa!database-layer/SQLBinds', 'has', 'lodash'], (SQLBinds, has, _) ->
 						if currentlyQueuedStatements <= 0
 							closeConnection()
 				startQuery: (createResult, callback) ->
-					(sql, bindings = [], successCallback, errorCallback, args...) ->
+					(sql, bindings = [], callback, args...) ->
 						if connectionClosed is true
 							throw 'Trying to executeSQL on a closed connection'
 						# We have queued a new statement so add it.
 						currentlyQueuedStatements++
 						sql = bindDefaultValues(sql, bindings)
-						endQueryCallback = createEndQueryCallback (err, res) =>
+						endQueryCallback = createEndQueryCallback (err, res) ->
 							if err
-								if typeof errorCallback is 'function'
-									return errorCallback(@, err)
-								console.error(sql, bindings, err)
-								return false
-							successCallback?(@, createResult(res))
-							return true
+								console.warn(sql, bindings, err)
+								callback?(err)
+								return
+							callback?(null, createResult(res))
 						callback(sql, bindings, endQueryCallback, args...)
 				closeConnection
 			}
@@ -118,26 +116,28 @@ define(['ometa!database-layer/SQLBinds', 'has', 'lodash'], (SQLBinds, has, _) ->
 					@closeConnection()
 				end: ->
 					@closeConnection()
-				tableList: (callback, errorCallback, extraWhereClause = '') ->
+				tableList: (extraWhereClause = '', callback) ->
+					if !callback? and typeof extraWhereClause is 'function'
+						callback = extraWhereClause
+						extraWhereClause = ''
 					if extraWhereClause != ''
 						extraWhereClause = ' WHERE ' + extraWhereClause
-					@executeSql("SELECT * FROM (SELECT tablename as name FROM pg_tables WHERE schemaname = 'public') t" + extraWhereClause + ";", [], callback, errorCallback)
-				dropTable: (tableName, ifExists = true, callback, errorCallback) -> @executeSql('DROP TABLE ' + (if ifExists == true then 'IF EXISTS ' else '') + '"' + tableName + '" CASCADE;', [], callback, errorCallback)
+					@executeSql("SELECT * FROM (SELECT tablename as name FROM pg_tables WHERE schemaname = 'public') t" + extraWhereClause + ";", [], callback)
+				dropTable: (tableName, ifExists = true, callback) ->
+					@executeSql('DROP TABLE ' + (if ifExists is true then 'IF EXISTS ' else '') + '"' + tableName + '" CASCADE;', [], callback)
 			return {
 				DEFAULT_VALUE
 				engine: 'postgres'
-				transaction: (callback, errorCallback) ->
-					pg.connect(connectString, (err, client, done) ->
+				transaction: (callback) ->
+					pg.connect connectString, (err, client, done) ->
 						if err
 							console.error('Error connecting ' + err)
-							errorCallback?(err)
-						else
-							tx = new Tx(client, done)
-							if process.env.PG_SCHEMA?
-								tx.executeSql('SET search_path TO "' + process.env.PG_SCHEMA + '"')
-							tx.executeSql('START TRANSACTION;')
-							callback(tx)
-					)
+							process.exit()
+						tx = new Tx(client, done)
+						if process.env.PG_SCHEMA?
+							tx.executeSql('SET search_path TO "' + process.env.PG_SCHEMA + '"')
+						tx.executeSql('START TRANSACTION;')
+						callback(tx)
 			}
 			
 		exports.mysql = (options) ->
@@ -158,7 +158,6 @@ define(['ometa!database-layer/SQLBinds', 'has', 'lodash'], (SQLBinds, has, _) ->
 				}
 			class Tx
 				constructor: (_db) ->
-					lastCallback = null
 					{startQuery, @forceOpen, @closeConnection} = wrapExecuteSql =>
 						_db.query('COMMIT;') # We end the transaction in progress and then close the connection/return to pool.
 						_db.end()
@@ -170,24 +169,26 @@ define(['ometa!database-layer/SQLBinds', 'has', 'lodash'], (SQLBinds, has, _) ->
 					@closeConnection()
 				end: ->
 					@closeConnection()
-				tableList: (callback, errorCallback, extraWhereClause = '') ->
+				tableList: (extraWhereClause = '', callback) ->
+					if !callback? and typeof extraWhereClause is 'function'
+						callback = extraWhereClause
+						extraWhereClause = ''
 					if extraWhereClause != ''
 						extraWhereClause = ' WHERE ' + extraWhereClause
-					@executeSql("SELECT name FROM (SELECT table_name as name FROM information_schema.tables WHERE table_schema = ?) t" + extraWhereClause + ";", [options.database], callback, errorCallback)
-				dropTable: (tableName, ifExists = true, callback, errorCallback) -> @executeSql('DROP TABLE ' + (if ifExists == true then 'IF EXISTS ' else '') + '"' + tableName + '";', [], callback, errorCallback)
+					@executeSql("SELECT name FROM (SELECT table_name as name FROM information_schema.tables WHERE table_schema = ?) t" + extraWhereClause + ";", [options.database], callback)
+				dropTable: (tableName, ifExists = true, callback) ->
+					@executeSql('DROP TABLE ' + (if ifExists is true then 'IF EXISTS ' else '') + '"' + tableName + '";', [], callback)
 			return {
 				DEFAULT_VALUE
 				engine: 'mysql'
-				transaction: (callback, errorCallback) ->
-					_pool.getConnection((err, _db) ->
+				transaction: (callback) ->
+					_pool.getConnection (err, _db) ->
 						if err
 							console.error('Error connecting ' + err)
-							errorCallback?(err)
-						else
-							tx = new Tx(_db)
-							tx.executeSql('START TRANSACTION;')
-							callback(tx)
-					)
+							process.exit()
+						tx = new Tx(_db)
+						tx.executeSql('START TRANSACTION;')
+						callback(tx)
 			}
 
 		exports.sqlite = (filepath) ->
@@ -204,22 +205,26 @@ define(['ometa!database-layer/SQLBinds', 'has', 'lodash'], (SQLBinds, has, _) ->
 					insertId: rows.insertId || null
 				}
 			tx = {
-				executeSql: (sql, bindings, callback, errorCallback) =>
+				executeSql: (sql, bindings, callback) =>
 					sql = bindDefaultValues(sql, bindings)
 					_db.all sql, bindings ? [], (err, rows) =>
-						if err?
-							errorCallback?(@, err)
-							console.log(sql, err)
-						else
-							callback?(@, createResult(rows))
+						if err
+							console.warn(sql, err)
+							callback?(err)
+							return
+						callback?(@, createResult(rows))
 				begin: -> @executeSql('BEGIN;')
 				end: -> @executeSql('END;')
 				rollback: -> @executeSql('ROLLBACK;')
-				tableList: (callback, errorCallback, extraWhereClause = '') ->
+				tableList: (extraWhereClause = '', callback) ->
+					if !callback? and typeof extraWhereClause is 'function'
+						callback = extraWhereClause
+						extraWhereClause = ''
 					if extraWhereClause != ''
 						extraWhereClause = ' AND ' + extraWhereClause
-					@executeSql("SELECT name, sql FROM sqlite_master WHERE type='table' AND name NOT IN ('sqlite_sequence')" + extraWhereClause + ";", [], callback, errorCallback)
-				dropTable: (tableName, ifExists = true, callback, errorCallback) -> @executeSql('DROP TABLE ' + (if ifExists == true then 'IF EXISTS ' else '') + '"' + tableName + '";', [], callback, errorCallback)
+					@executeSql("SELECT name, sql FROM sqlite_master WHERE type='table' AND name NOT IN ('sqlite_sequence')" + extraWhereClause + ";", [], callback)
+				dropTable: (tableName, ifExists = true, callback) ->
+					@executeSql('DROP TABLE ' + (if ifExists is true then 'IF EXISTS ' else '') + '"' + tableName + '";', [], callback)
 				forceOpen: do ->
 					warned = false
 					(bool, callback) ->
@@ -232,7 +237,7 @@ define(['ometa!database-layer/SQLBinds', 'has', 'lodash'], (SQLBinds, has, _) ->
 				DEFAULT_VALUE
 				engine: 'sqlite'
 				transaction: (callback) ->
-					_db.serialize () ->
+					_db.serialize ->
 						callback(tx)
 			}
 	else
@@ -256,36 +261,35 @@ define(['ometa!database-layer/SQLBinds', 'has', 'lodash'], (SQLBinds, has, _) ->
 				}
 			class Tx
 				constructor: (_tx) ->
-					@executeSql = (sql, bindings, callback, errorCallback) =>
+					@executeSql = (sql, bindings, callback) =>
 						try
 							# This is used so we can find the useful part of the stack trace, as WebSQL is asynchronous and starts a new stack.
 							___STACK_TRACE___.please
 						catch stackTrace
 							null
 							# Wrap the callbacks passed in with our own if necessary to pass in the wrapped tx.
-							if callback?
-								callback = do(callback) =>
-									(_tx, _results) =>
-										callback(@, createResult(_results))
-							errorCallback = do(errorCallback) =>
-								(_tx, err) =>
-									if typeof errorCallback is 'function'
-										return errorCallback(@, err)
-									console.log(sql, bindings, err, stackTrace.stack)
-									return false
-							bindNo = 0
+							successCallback = (_tx, _results) =>
+								callback?(null, createResult(_results))
+							errorCallback = (_tx, err) =>
+								callback?(err)
+								console.warn(sql, bindings, err, stackTrace.stack)
+								return false
 							sql = bindDefaultValues(sql, bindings)
-							_tx.executeSql(sql, bindings, callback, errorCallback)
+							_tx.executeSql(sql, bindings, successCallback, errorCallback)
 					@rollback = -> _tx.executeSql('RUN A FAILING STATEMENT TO ROLLBACK')
 				end: ->
 					@executeSql = ->
 						throw 'Transaction has ended.'
 				# Rollbacks in WebSQL are done by having a SQL statement error, and not having an error callback (or having one that returns false).
-				tableList: (callback, errorCallback, extraWhereClause = '') ->
+				tableList: (extraWhereClause = '', callback) ->
+					if !callback? and typeof extraWhereClause is 'function'
+						callback = extraWhereClause
+						extraWhereClause = ''
 					if extraWhereClause != ''
 						extraWhereClause = ' AND ' + extraWhereClause
-					@executeSql("SELECT name, sql FROM sqlite_master WHERE type='table' AND name NOT IN ('__WebKitDatabaseInfoTable__', 'sqlite_sequence')" + extraWhereClause + ";", [], callback, errorCallback)
-				dropTable: (tableName, ifExists = true, callback, errorCallback) -> @executeSql('DROP TABLE ' + (if ifExists == true then 'IF EXISTS ' else '') + '"' + tableName + '";', [], callback, errorCallback)
+					@executeSql("SELECT name, sql FROM sqlite_master WHERE type='table' AND name NOT IN ('__WebKitDatabaseInfoTable__', 'sqlite_sequence')" + extraWhereClause + ";", [], callback)
+				dropTable: (tableName, ifExists = true, callback) ->
+					@executeSql('DROP TABLE ' + (if ifExists is true then 'IF EXISTS ' else '') + '"' + tableName + '";', [], callback)
 				forceOpen: do ->
 					warned = false
 					(bool, callback) ->
@@ -297,14 +301,13 @@ define(['ometa!database-layer/SQLBinds', 'has', 'lodash'], (SQLBinds, has, _) ->
 				DEFAULT_VALUE
 				engine: 'websql'
 				transaction: (callback) ->
-					_db.transaction( (_tx) ->
+					_db.transaction (_tx) ->
 						callback(new Tx(_tx))
-					)
 			}
+
 	exports.connect = (databaseOptions) ->
 		if !exports[databaseOptions.engine]? or databaseOptions.engine is 'connect'
 			throw 'Unsupported database engine: ' + databaseOptions.engine
 		return exports[databaseOptions.engine](databaseOptions.params)
 
 	return exports
-)

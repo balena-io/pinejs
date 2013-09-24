@@ -1,4 +1,4 @@
-define([
+define [
 	'async'
 	'lodash'
 	'has'
@@ -119,37 +119,32 @@ define([
 					res.send(404)
 			)
 		)
-		app.post('/validate', sbvrUtils.checkPermissionsMiddleware('get'), uiModelLoaded, (req, res, next) ->
-			sbvrUtils.runRule('data', req.body.rule, (err, results) ->
-				if err?
+		app.post '/validate', sbvrUtils.checkPermissionsMiddleware('get'), uiModelLoaded, (req, res, next) ->
+			sbvrUtils.runRule 'data', req.body.rule, (err, results) ->
+				if err
 					res.send(404)
 				else
 					res.json(results)
-			)
-		)
-		app.del('/cleardb', sbvrUtils.checkPermissionsMiddleware('delete'), (req, res, next) ->
+		app.del '/cleardb', sbvrUtils.checkPermissionsMiddleware('delete'), (req, res, next) ->
 			db.transaction (tx) ->
-				tx.tableList( (tx, result) ->
+				tx.tableList (err, result) ->
+					if err
+						console.error('Error clearing db', err)
+						return
 					async.forEach(result.rows,
 						(table, callback) ->
-							tx.dropTable(table.name, null,
-								-> callback()
-								-> callback(arguments)
-							)
+							tx.dropTable(table.name, null, callback)
 						(err) ->
-							if err?
+							if err
 								res.send(404)
 								return
-							sbvrUtils.executeStandardModels(tx, (err) ->
+							sbvrUtils.executeStandardModels tx, (err) ->
 								if err
 									res.send(503)
 									return
 								setupModels(tx)
 								res.send(200)
-							)
 					)
-				)
-		)
 		app.put('/importdb', sbvrUtils.checkPermissionsMiddleware('set'), (req, res, next) ->
 			queries = req.body.split(";")
 			db.transaction((tx) ->
@@ -157,10 +152,10 @@ define([
 					(query, callback) ->
 						query = query.trim()
 						if query.length > 0
-							tx.executeSql(query, [],
-								-> callback()
-								(tx, err) -> callback([query, err])
-							)
+							tx.executeSql query, [], (err) ->
+								if err
+									err = [query, err]
+								callback(err)
 					(err) ->
 						if err?
 							console.error(err)
@@ -170,127 +165,98 @@ define([
 				)
 			)
 		)
-		app.get('/exportdb', sbvrUtils.checkPermissionsMiddleware('get'), (req, res, next) ->
+		app.get '/exportdb', sbvrUtils.checkPermissionsMiddleware('get'), (req, res, next) ->
 			if has 'ENV_NODEJS'
 				# TODO: This is postgres rather than node specific, so the check should be updated to reflect that.
 				env = process.env
 				env['PGPASSWORD'] = '.'
 				req = require
-				req('child_process').exec('pg_dump --clean -U postgres -h localhost -p 5432', env: env, (error, stdout, stderr) ->
+				req('child_process').exec 'pg_dump --clean -U postgres -h localhost -p 5432', env: env, (error, stdout, stderr) ->
 					res.json(stdout)
-				)
 			else
-				db.transaction((tx) ->
-					tx.tableList(
-						(tx, result) ->
-							exported = ''
-							async.forEach(result.rows,
-								(currRow, callback) ->
-									tableName = currRow.name
-									exported += 'DROP TABLE IF EXISTS "' + tableName + '";\n'
-									exported += currRow.sql + ";\n"
-									tx.executeSql('SELECT * FROM "' + tableName + '";', [], 
-										(tx, result) ->
-											insQuery = ''
-											result.rows.forEach((currRow) ->
-												notFirst = false
-												insQuery += 'INSERT INTO "' + tableName + '" ('
-												valQuery = ''
-												for own propName of currRow
-													if notFirst
-														insQuery += ","
-														valQuery += ","
-													else
-														notFirst = true
-													insQuery += '"' + propName + '"'
-													valQuery += "'" + currRow[propName] + "'"
-												insQuery += ") values (" + valQuery + ");\n"
-											)
-											exported += insQuery
-											callback()
-										(tx, err) -> callback(err)
-									)
-								(err) ->
-									if err?
-										console.error(err)
-										res.send(404)
-									else
-										res.json(exported)
+				db.transaction (tx) ->
+					tx.tableList "name NOT LIKE '%_buk'", (err, result) ->
+						if err
+							return
+						exported = ''
+						async.forEach(result.rows,
+							(currRow, callback) ->
+								tableName = currRow.name
+								exported += 'DROP TABLE IF EXISTS "' + tableName + '";\n'
+								exported += currRow.sql + ";\n"
+								tx.executeSql 'SELECT * FROM "' + tableName + '";', [], (result) ->
+									if err
+										callback(err)
+										return
+									insQuery = ''
+									result.rows.forEach (currRow) ->
+										notFirst = false
+										insQuery += 'INSERT INTO "' + tableName + '" ('
+										valQuery = ''
+										for own propName of currRow
+											if notFirst
+												insQuery += ","
+												valQuery += ","
+											else
+												notFirst = true
+											insQuery += '"' + propName + '"'
+											valQuery += "'" + currRow[propName] + "'"
+										insQuery += ") values (" + valQuery + ");\n"
+									exported += insQuery
+									callback()
+							(err) ->
+								if err?
+									console.error(err)
+									res.send(404)
+								else
+									res.json(exported)
+						)
+		app.post '/backupdb', sbvrUtils.checkPermissionsMiddleware('all'), serverIsOnAir, (req, res, next) ->
+			db.transaction (tx) ->
+				tx.tableList "name NOT LIKE '%_buk'", (err, result) ->
+					if err
+						console.error(err)
+						res.send(404)
+						return
+					async.forEach(result.rows,
+						(currRow, callback) ->
+							tableName = currRow.name
+							async.parallel([
+									(callback) ->
+										tx.dropTable(tableName + '_buk', true, callback)
+									(callback) ->
+										tx.executeSql('ALTER TABLE "' + tableName + '" RENAME TO "' + tableName + '_buk";', [], callback)
+								], callback
 							)
-						null
-						"name NOT LIKE '%_buk'"
+						(err) ->
+							if err?
+								console.error(err)
+								res.send(404)
+							else
+								res.send(200)
 					)
-				)
-		)
-		app.post('/backupdb', sbvrUtils.checkPermissionsMiddleware('all'), serverIsOnAir, (req, res, next) ->
-			db.transaction((tx) ->
-				tx.tableList(
-					(tx, result) ->
-						async.forEach(result.rows,
-							(currRow, callback) ->
-								tableName = currRow.name
-								async.parallel([
-										(callback) ->
-											tx.dropTable(tableName + '_buk', true,
-												-> callback()
-												(tx, err) -> callback(err)
-											)
-										(callback) ->
-											tx.executeSql('ALTER TABLE "' + tableName + '" RENAME TO "' + tableName + '_buk";', [],
-												-> callback()
-												(tx, err) -> callback(err)
-											)
-									], callback
-								)
-							(err) ->
-								if err?
-									console.error(err)
-									res.send(404)
-								else
-									res.send(200)
-						)
-					(tx, err) ->
+		app.post '/restoredb', sbvrUtils.checkPermissionsMiddleware('all'), serverIsOnAir, (req, res, next) ->
+			db.transaction (tx) ->
+				tx.tableList "name LIKE '%_buk'", (err, result) ->
+					if err
 						console.error(err)
 						res.send(404)
-					"name NOT LIKE '%_buk'"
-				)
-			)
-		)
-		app.post('/restoredb', sbvrUtils.checkPermissionsMiddleware('all'), serverIsOnAir, (req, res, next) ->
-			db.transaction((tx) ->
-				tx.tableList(
-					(tx, result) ->
-						async.forEach(result.rows,
-							(currRow, callback) ->
-								tableName = currRow.name
-								async.parallel([
-										(callback) ->
-											tx.dropTable(tableName[0...-4], true,
-												-> callback()
-												(tx, err) -> callback(err)
-											)
-										(callback) ->
-											tx.executeSql('ALTER TABLE "' + tableName + '" RENAME TO "' + tableName[0...-4] + '";', [],
-												-> callback()
-												(tx, err) -> callback(err)
-											)
-									], callback
-								)
-							(err) ->
-								if err?
-									console.error(err)
-									res.send(404)
-								else
-									res.send(200)
-						)
-					(tx, err) ->
-						console.error(err)
-						res.send(404)
-					"name LIKE '%_buk'"
-				)
-			)
-		)
-		
+						return
+					async.forEach(result.rows,
+						(currRow, callback) ->
+							tableName = currRow.name
+							async.parallel([
+								(callback) -> tx.dropTable(tableName[0...-4], true, callback)
+								(callback) -> tx.executeSql('ALTER TABLE "' + tableName + '" RENAME TO "' + tableName[0...-4] + '";', [], callback)
+							], callback)
+						(err) ->
+							if err?
+								console.error(err)
+								res.send(404)
+							else
+								res.send(200)
+					)
+
 		app.get('/ui/*', uiModelLoaded, sbvrUtils.runGet)
 		app.get('/data/*', serverIsOnAir, sbvrUtils.runGet)
 		app.get('/Auth/*', serverIsOnAir, sbvrUtils.runGet)
@@ -326,4 +292,3 @@ define([
 			res.send(200)
 		)
 	return exports
-)

@@ -1,4 +1,4 @@
-define([
+define [
 	'has'
 	'cs!extended-sbvr-parser'
 	'lf-to-abstract-sql'
@@ -179,174 +179,144 @@ define([
 					callback(null, db.DEFAULT_VALUE)
 					return
 
-				AbstractSQL2SQL.dataTypeValidate(value, field, (err, value) ->
+				AbstractSQL2SQL.dataTypeValidate value, field, (err, value) ->
 					if err
 						err = '"' + fieldName + '" ' + err
 					callback(err, value)
-				)
 			callback
 		)
 
 	endTransaction = (transactionID, callback) ->
-		db.transaction((tx) ->
+		db.transaction (tx) ->
 			placeholders = {}
 			getLockedRow = (lockID, callback) ->
 				tx.executeSql('''SELECT r."resource type" AS "resource_type", r."resource id" AS "resource_id"
 								FROM "resource-is_under-lock" rl
 								JOIN "resource" r ON rl."resource" = r."id"
-								WHERE "lock" = ?;''', [lockID],
-					(tx, row) -> callback(null, row)
-					(tx, err) -> callback(err)
-				)
+								WHERE "lock" = ?;''', [lockID], callback)
 			getFieldsObject = (conditionalResourceID, clientModel, callback) ->
-				tx.executeSql('SELECT "field name" AS "field_name", "field value" AS "field_value" FROM "conditional_field" WHERE "conditional resource" = ?;', [conditionalResourceID],
-					(tx, fields) ->
-						fieldsObject = {}
-						async.forEach(fields.rows,
-							(field, callback) ->
-								fieldName = field.field_name.replace(clientModel.resourceName + '.', '')
-								fieldValue = field.field_value
-								async.forEach(clientModel.fields,
-									(modelField, callback) ->
-										placeholderCallback = (placeholder, resolvedID) ->
-											if resolvedID == false
-												callback('Placeholder failed' + fieldValue)
-											else
-												fieldsObject[fieldName] = resolvedID
-												callback()
-										if modelField.fieldName == fieldName and modelField.dataType == 'ForeignKey' and _.isNaN(Number(fieldValue))
-											if !placeholders.hasOwnProperty(fieldValue)
-												return callback('Cannot resolve placeholder' + fieldValue)
-											else if _.isArray(placeholders[fieldValue])
-												placeholders[fieldValue].push(placeholderCallback)
-											else
-												placeholderCallback(fieldValue, placeholders[fieldValue])
+				tx.executeSql 'SELECT "field name" AS "field_name", "field value" AS "field_value" FROM "conditional_field" WHERE "conditional resource" = ?;', [conditionalResourceID], (err, fields) ->
+					if err
+						callback(err)
+						return
+					fieldsObject = {}
+					async.forEach fields.rows,
+						(field, callback) ->
+							fieldName = field.field_name.replace(clientModel.resourceName + '.', '')
+							fieldValue = field.field_value
+							async.forEach clientModel.fields,
+								(modelField, callback) ->
+									placeholderCallback = (placeholder, resolvedID) ->
+										if resolvedID == false
+											callback('Placeholder failed' + fieldValue)
 										else
-											fieldsObject[fieldName] = fieldValue
+											fieldsObject[fieldName] = resolvedID
 											callback()
-									callback
-								)
-							(err) ->
-								callback(err, fieldsObject)
-						)
-					(tx, err) -> callback(err)
-				)
+									if modelField.fieldName == fieldName and modelField.dataType == 'ForeignKey' and _.isNaN(Number(fieldValue))
+										if !placeholders.hasOwnProperty(fieldValue)
+											return callback('Cannot resolve placeholder' + fieldValue)
+										else if _.isArray(placeholders[fieldValue])
+											placeholders[fieldValue].push(placeholderCallback)
+										else
+											placeholderCallback(fieldValue, placeholders[fieldValue])
+									else
+										fieldsObject[fieldName] = fieldValue
+										callback()
+								callback
+						(err) ->
+							callback(err, fieldsObject)
 			resolvePlaceholder = (placeholder, resolvedID) ->
 				placeholderCallbacks = placeholders[placeholder]
 				placeholders[placeholder] = resolvedID
 				for placeholderCallback in placeholderCallbacks
 					placeholderCallback(placeholder, resolvedID)
 
-			tx.executeSql('SELECT * FROM "conditional_resource" WHERE "transaction" = ?;', [transactionID],
-				(tx, conditionalResources) ->
-					conditionalResources.rows.forEach((conditionalResource) ->
+			tx.executeSql 'SELECT * FROM "conditional_resource" WHERE "transaction" = ?;', [transactionID], (err, conditionalResources) ->
+				if err
+					callback(err)
+					return
+				conditionalResources.rows.forEach (conditionalResource) ->
+					placeholder = conditionalResource.placeholder
+					if placeholder? and placeholder.length > 0
+						placeholders[placeholder] = []
+
+				# get conditional resources (if exist)
+				async.forEach conditionalResources.rows,
+					(conditionalResource, callback) ->
 						placeholder = conditionalResource.placeholder
-						if placeholder? and placeholder.length > 0
-							placeholders[placeholder] = []
-					)
-
-					# get conditional resources (if exist)
-					async.forEach(conditionalResources.rows,
-						(conditionalResource, callback) ->
-							placeholder = conditionalResource.placeholder
-							lockID = conditionalResource.lock
-							doCleanup = (err) ->
-								if err
-									callback(err)
-									return
-								async.parallel([
-										(callback) ->
-											tx.executeSql('DELETE FROM "conditional_field" WHERE "conditional resource" = ?;', [conditionalResource.id],
-												-> callback()
-												(tx, err) -> callback(err)
-											)
-										(callback) ->
-											tx.executeSql('DELETE FROM "conditional_resource" WHERE "lock" = ?;', [lockID],
-												-> callback()
-												(tx, err) -> callback(err)
-											)
-										(callback) ->
-											tx.executeSql('DELETE FROM "resource-is_under-lock" WHERE "lock" = ?;', [lockID],
-												-> callback()
-												(tx, err) -> callback(err)
-											)
-										(callback) ->
-											tx.executeSql('DELETE FROM "lock" WHERE "id" = ?;', [lockID],
-												-> callback()
-												(tx, err) -> callback(err)
-											)
-									]
-									callback
-								)
-
-							clientModel = clientModels['data'].resources[conditionalResource.resource_type]
-							uri = '/data/' + conditionalResource.resource_type
-							switch conditionalResource.conditional_type
-								when 'DELETE'
-									getLockedRow(lockID, (err, lockedRow) ->
-										if err
-											callback(err)
-											return
-										lockedRow = lockedRow.rows.item(0)
-										uri = uri + '?$filter=' + clientModel.idField + ' eq ' + lockedRow.resource_id
-										runURI('DELETE', uri, {}, tx, doCleanup)
-									)
-								when 'EDIT'
-									getLockedRow(lockID, (err, lockedRow) ->
-										if err
-											callback(err)
-											return
-										lockedRow = lockedRow.rows.item(0)
-										getFieldsObject(conditionalResource.id, clientModel, (err, fields) ->
-											if err?
-												callback(err)
-											else
-												fields[clientModel.idField] = lockedRow.resource_id
-												runURI('PUT', uri, fields, tx, doCleanup)
-										)
-									)
-								when 'ADD'
-									getFieldsObject(conditionalResource.id, clientModel, (err, fields) ->
-										if err?
-											resolvePlaceholder(placeholder, false)
-											callback(err)
-										else
-											runURI('POST', uri, fields, tx, (err, result) ->
-												if err
-													resolvePlaceholder(placeholder, false)
-													callback(err)
-													return
-												resolvePlaceholder(placeholder, result.id)
-												doCleanup()
-											)
-									)
-						(err) ->
+						lockID = conditionalResource.lock
+						doCleanup = (err) ->
 							if err
 								callback(err)
 								return
-							tx.executeSql('DELETE FROM "transaction" WHERE "id" = ?;', [transactionID],
-								(tx, result) ->
-									validateDB(tx, sqlModels['data'], callback)
-								(tx, err) ->
-									callback(err)
+							async.parallel([
+									(callback) -> tx.executeSql('DELETE FROM "conditional_field" WHERE "conditional resource" = ?;', [conditionalResource.id], callback)
+									(callback) -> tx.executeSql('DELETE FROM "conditional_resource" WHERE "lock" = ?;', [lockID], callback)
+									(callback) -> tx.executeSql('DELETE FROM "resource-is_under-lock" WHERE "lock" = ?;', [lockID], callback)
+									(callback) -> tx.executeSql('DELETE FROM "lock" WHERE "id" = ?;', [lockID], callback)
+								]
+								callback
 							)
-					)
-				)
-		)
+
+						clientModel = clientModels['data'].resources[conditionalResource.resource_type]
+						uri = '/data/' + conditionalResource.resource_type
+						switch conditionalResource.conditional_type
+							when 'DELETE'
+								getLockedRow lockID, (err, lockedRow) ->
+									if err
+										callback(err)
+										return
+									lockedRow = lockedRow.rows.item(0)
+									uri = uri + '?$filter=' + clientModel.idField + ' eq ' + lockedRow.resource_id
+									runURI('DELETE', uri, {}, tx, doCleanup)
+							when 'EDIT'
+								getLockedRow lockID, (err, lockedRow) ->
+									if err
+										callback(err)
+										return
+									lockedRow = lockedRow.rows.item(0)
+									getFieldsObject conditionalResource.id, clientModel, (err, fields) ->
+										if err
+											callback(err)
+											return
+										fields[clientModel.idField] = lockedRow.resource_id
+										runURI('PUT', uri, fields, tx, doCleanup)
+							when 'ADD'
+								getFieldsObject conditionalResource.id, clientModel, (err, fields) ->
+									if err
+										resolvePlaceholder(placeholder, false)
+										callback(err)
+										return
+									runURI 'POST', uri, fields, tx, (err, result) ->
+										if err
+											resolvePlaceholder(placeholder, false)
+											callback(err)
+											return
+										resolvePlaceholder(placeholder, result.id)
+										doCleanup()
+					(err) ->
+						if err
+							callback(err)
+							return
+						tx.executeSql 'DELETE FROM "transaction" WHERE "id" = ?;', [transactionID], (err, result) ->
+							if err
+								callback(err)
+								return
+							validateDB(tx, sqlModels['data'], callback)
 
 	validateDB = (tx, sqlmod, callback) ->
 		async.forEach(sqlmod.rules,
 			(rule, callback) ->
-				tx.executeSql(rule.sql, rule.bindings,
-					(tx, result) ->
-						if result.rows.item(0).result in [false, 0, '0']
-							callback(rule.structuredEnglish)
-						else
-							callback()
-					(tx, err) -> callback(err)
-				)
+				tx.executeSql rule.sql, rule.bindings, (err, result) ->
+					if err
+						callback(err)
+						return
+					if result.rows.item(0).result in [false, 0, '0']
+						callback(rule.structuredEnglish)
+					else
+						callback()
 			(err) ->
-				if err?
+				if err
 					tx.rollback()
 				callback(err)
 		)
@@ -377,16 +347,14 @@ define([
 				# Create tables related to terms and fact types
 				async.forEach(sqlModel.createSchema,
 					(createStatement, callback) ->
-						tx.executeSql(createStatement, null,
-							-> callback()
-							-> callback() # Warning: We ignore errors in the create table statements as SQLite doesn't support CREATE IF NOT EXISTS
-						)
-					(err, results) ->
-						validateFuncs.push((callback) ->
+						tx.executeSql createStatement, null, ->
+							callback() # Warning: We ignore errors in the create table statements as SQLite doesn't support CREATE IF NOT EXISTS
+					(err) ->
+						validateFuncs.push (callback) ->
 							# Validate the [empty] model according to the rules.
 							# This may eventually lead to entering obligatory data.
 							# For the moment it blocks such models from execution.
-							validateDB(tx, sqlModel, (err) ->
+							validateDB tx, sqlModel, (err) ->
 								if err
 									callback(err)
 									return
@@ -420,11 +388,9 @@ define([
 								updateModel('client', clientModel)
 
 								callback()
-							)
-						)
 						callback(err)
 				)
-			(err, results) ->
+			(err) ->
 				if err
 					callback(err)
 				else
@@ -433,8 +399,7 @@ define([
 
 	exports.deleteModel = (vocabulary) ->
 		# TODO: This should be reorganised to be async.
-		db.transaction(
-			(tx) ->
+		db.transaction (tx) ->
 				for dropStatement in sqlModels[vocabulary].dropSchema
 					tx.executeSql(dropStatement)
 				runURI('DELETE', "/dev/model?$filter=model_type eq 'se'", {vocabulary}, tx)
@@ -449,7 +414,6 @@ define([
 				clientModels[vocabulary] = {}
 				odata2AbstractSQL[vocab].clientModel = {}
 				odataMetadata[vocabulary] = ''
-		)
 
 	getID = (tree) ->
 		query = tree.requests[0].query
@@ -562,24 +526,21 @@ define([
 			ruleAbs[2][1][1][1] = '*'
 			ruleSQL = AbstractSQL2SQL.generate({tables: {}, rules: [ruleAbs]}).rules[0].sql
 			
-			db.transaction((tx) ->
-				tx.executeSql(ruleSQL, [],
-					(tx, result) ->
-						resourceName = ruleLF[1][1][1][2][1].replace(/\ /g, '_').replace(/-/g, '__')
-						clientModel = clientModels[vocab].resources
-						processOData(vocab, clientModel, resourceName, result.rows, (err, d) ->
-							if err
-								callback(err)
-								return
-							data =
-								__model: clientModel[resourceName]
-								d: d
-							callback(null, data)
-						)
-					(tx, err) ->
+			db.transaction (tx) ->
+				tx.executeSql ruleSQL, [], (err, result) ->
+					if err
 						callback(err)
-				)
-			)
+						return
+					resourceName = ruleLF[1][1][1][2][1].replace(/\ /g, '_').replace(/-/g, '__')
+					clientModel = clientModels[vocab].resources
+					processOData vocab, clientModel, resourceName, result.rows, (err, d) ->
+						if err
+							callback(err)
+							return
+						data =
+							__model: clientModel[resourceName]
+							d: d
+						callback(null, data)
 
 	exports.runURI = runURI = (method, uri, body = {}, tx, callback) ->
 		console.log('Running URI', method, uri, body)
@@ -590,29 +551,17 @@ define([
 			method: method
 			url: uri
 			body: body
-		if tx?
-			tx.forceOpen(true)
 		res =
 			send: (statusCode) ->
-				send = ->
-					if statusCode >= 400
-						callback?(statusCode)
-					else
-						callback?()
-				if tx?
-					tx.forceOpen false, send
+				if statusCode >= 400
+					callback?(statusCode)
 				else
-					send()
+					callback?()
 			json: (data, statusCode) ->
-				json = ->
-					if statusCode >= 400
-						callback?(data)
-					else
-						callback?(null, data)
-				if tx?
-					tx.forceOpen false, json
+				if statusCode >= 400
+					callback?(data)
 				else
-					json()
+					callback?(null, data)
 			set: ->
 			type: ->
 
@@ -680,18 +629,16 @@ define([
 					callback(null, _guestPermissions)
 				else
 					# Get guest user
-					runURI('GET', "/Auth/user?$filter=user/username eq 'guest'", {}, null, (err, result) ->
+					runURI 'GET', "/Auth/user?$filter=user/username eq 'guest'", {}, null, (err, result) ->
 						if !err and result.d.length > 0
-							getUserPermissions(result.d[0].id, (err, permissions) ->
+							getUserPermissions result.d[0].id, (err, permissions) ->
 								if err?
 									callback(err)
 								else
 									_guestPermissions = permissions
 									callback(null, _guestPermissions)
-							)
 						else
 							callback('No guest permissions')
-					)
 
 		return (req, res, actionList, resourceName, vocabulary, callback) ->
 			if !callback?
@@ -775,7 +722,7 @@ define([
 					callback()
 					return
 			allowed = allowed or []
-			_getGuestPermissions((err, permissions) ->
+			_getGuestPermissions (err, permissions) ->
 				if err
 					console.error(err)
 				else
@@ -789,15 +736,13 @@ define([
 					callback(null, allowed)
 				else
 					res.send(401)
-			)
 	exports.checkPermissionsMiddleware = (action) ->
 		return (req, res, next) -> 
-			checkPermissions(req, res, action, (err) ->
+			checkPermissions req, res, action, (err) ->
 				if err
 					res.send(401)
 				else
 					next()
-			)
 
 	parseODataURI = (req, res, callback) ->
 		{method, url, body} = req
@@ -831,7 +776,7 @@ define([
 					else
 						console.warn('Unknown method for permissions type check: ', method)
 						'all'
-		checkPermissions(req, res, permissionType, resourceName, vocabulary, (err, conditionalPerms) ->
+		checkPermissions req, res, permissionType, resourceName, vocabulary, (err, conditionalPerms) ->
 			if !query?
 				if conditionalPerms?
 					console.error('Conditional permissions with no query?!')
@@ -863,7 +808,6 @@ define([
 					resourceName
 				}]
 			})
-		)
 
 	parseURITree = (callback) ->
 		(req, res, next) ->
@@ -896,34 +840,31 @@ define([
 				console.error('Failed to compile abstract sql: ', request.query, e, e.stack)
 				res.send(503)
 				return
-			getAndCheckBindValues(tree.vocabulary, bindings, request.values, (err, values) ->
+			getAndCheckBindValues tree.vocabulary, bindings, request.values, (err, values) ->
 				console.log(query, err, values)
 				if err
 					res.json(err, 404)
 					return
 				runQuery = (tx) ->
-					tx.executeSql(query, values,
-						(tx, result) ->
-							clientModel = clientModels[tree.vocabulary].resources
-							switch tree.type
-								when 'OData'
-									processOData(tree.vocabulary, clientModel, request.resourceName, result.rows, (err, d) ->
-										if err
-											res.json(err, 404)
-											return
-										data =
-											__model: clientModel[request.resourceName]
-											d: d
-										res.json(data)
-									)
-						() ->
+					tx.executeSql query, values, (err, result) ->
+						if err
 							res.send(404)
-					)
+							return
+						clientModel = clientModels[tree.vocabulary].resources
+						switch tree.type
+							when 'OData'
+								processOData tree.vocabulary, clientModel, request.resourceName, result.rows, (err, d) ->
+									if err
+										res.json(err, 404)
+										return
+									data =
+										__model: clientModel[request.resourceName]
+										d: d
+									res.json(data)
 				if tx?
 					runQuery(tx)
 				else
 					db.transaction(runQuery)
-			)
 		else
 			if tree.requests[0].resourceName == '$metadata'
 				res.type('xml')
@@ -948,41 +889,38 @@ define([
 			res.send(503)
 			return
 		vocab = tree.vocabulary
-		getAndCheckBindValues(vocab, bindings, request.values, (err, values) ->
+		getAndCheckBindValues vocab, bindings, request.values, (err, values) ->
 			console.log(query, err, values)
 			if err
 				res.json(err, 404)
 				return
 			runQuery = (tx) ->
 				# TODO: Check for transaction locks.
-				tx.executeSql(query, values,
-					(tx, sqlResult) ->
-						validateDB(tx, sqlModels[vocab], (err) ->
-							if err
-								res.json(err, 404)
-								return
-							insertID = if request.query[0] == 'UpdateQuery' then values[0] else sqlResult.insertId
-							console.log('Insert ID: ', insertID)
-							res.json({
-									id: insertID
-								}, {
-									location: '/' + vocab + '/' + request.resourceName + '?$filter=' + request.resourceName + '/' + clientModels[vocab].resources[request.resourceName].idField + ' eq ' + insertID
-								}, 201
-							)
-						)
-					(tx, err) ->
+				tx.executeSql query, values, (err, sqlResult) ->
+					if err
 						tx.rollback()
 						constraintError = checkForConstraintError(err, request.resourceName)
 						if constraintError != false
 							res.json(constraintError, 404)
 						else
 							res.send(404)
-				)
+						return
+					validateDB tx, sqlModels[vocab], (err) ->
+						if err
+							res.json(err, 404)
+							return
+						insertID = if request.query[0] == 'UpdateQuery' then values[0] else sqlResult.insertId
+						console.log('Insert ID: ', insertID)
+						res.json({
+								id: insertID
+							}, {
+								location: '/' + vocab + '/' + request.resourceName + '?$filter=' + request.resourceName + '/' + clientModels[vocab].resources[request.resourceName].idField + ' eq ' + insertID
+							}, 201
+						)
 			if tx?
 				runQuery(tx)
 			else
 				db.transaction(runQuery)
-		)
 
 	exports.runPut = runPut = parseURITree (req, res, next, tx) ->
 		res.set('Cache-Control', 'no-cache')
@@ -1011,44 +949,43 @@ define([
 					JOIN "resource-is_under-lock" AS rl ON rl."resource" = r."id"
 					WHERE r."resource type" = ?
 					AND r."id" = ?
-				) AS result;''', [request.resourceName, id],
-				(tx, result) ->
+				) AS result;''', [request.resourceName, id], (err, result) ->
+					if err
+						return
 					if result.rows.item(0).result in [false, 0, '0']
 						tx.rollback()
 						res.json([ "The resource is locked and cannot be edited" ], 404)
 						return
 
-					doValidate = (tx) ->
+					doValidate = (err) ->
+						if err
+							tx.rollback()
+							constraintError = checkForConstraintError(err, request.resourceName)
+							if constraintError != false
+								res.json(constraintError, 404)
+							else
+								res.send(404)
+							return
 						validateDB tx, sqlModels[vocab], (err) ->
 							if err
 								res.json(err, 404)
 							else
 								res.send(200)
 
-					handleError = (tx, err) ->
-						tx.rollback()
-						constraintError = checkForConstraintError(err, request.resourceName)
-						if constraintError != false
-							res.json(constraintError, 404)
-						else
-							res.send(404)
-
-					runQuery = (query, successCallback) ->
-						tx.forceOpen true, ->
-							getAndCheckBindValues vocab, query.bindings, request.values, (err, values) ->
-								tx.forceOpen false, ->
-									if err
-										tx.rollback()
-										res.json(err, 404)
-										return
-									tx.executeSql(query.query, values, successCallback, handleError)
+					runQuery = (query, callback) ->
+						getAndCheckBindValues vocab, query.bindings, request.values, (err, values) ->
+							if err
+								tx.rollback()
+								res.json(err, 404)
+								return
+							tx.executeSql(query.query, values, callback)
 
 					if updateQuery?
-						runQuery updateQuery, (tx, result) ->
-							if result.rowsAffected is 0
+						runQuery updateQuery, (err, result) ->
+							if !err and result.rowsAffected is 0
 								runQuery(insertQuery, doValidate)
 							else
-								doValidate(tx)
+								doValidate(err)
 					else
 						runQuery(insertQuery, doValidate)
 		if tx?
@@ -1067,33 +1004,30 @@ define([
 			res.send(503)
 			return
 		vocab = tree.vocabulary
-		getAndCheckBindValues(vocab, bindings, request.values, (err, values) ->
+		getAndCheckBindValues vocab, bindings, request.values, (err, values) ->
 			console.log(query, err, values)
 			if err
 				res.json(err, 404)
 				return
 			runQuery = (tx) ->
-				tx.executeSql(query, values,
-					(tx, result) ->
-						validateDB(tx, sqlModels[vocab], (err) ->
-							if err
-								res.json(err, 404)
-							else
-								res.send(200)
-						)
-					(tx, err) ->
+				tx.executeSql query, values, (err, result) ->
+					if err
 						tx.rollback()
 						constraintError = checkForConstraintError(err, request.resourceName)
 						if constraintError != false
 							res.json(constraintError, 404)
 						else
 							res.send(404)
-				)
+						return
+					validateDB tx, sqlModels[vocab], (err) ->
+						if err
+							res.json(err, 404)
+						else
+							res.send(200)
 			if tx?
 				runQuery(tx)
 			else
 				db.transaction(runQuery)
-		)
 
 	exports.executeStandardModels = executeStandardModels = (tx, callback) ->
 		executeModels(tx, {
@@ -1124,31 +1058,27 @@ define([
 	exports.setup = (app, requirejs, _db, callback) ->
 		db = _db
 		AbstractSQL2SQL = AbstractSQL2SQL[db.engine]
-		db.transaction((tx) ->
-			executeStandardModels(tx, (err) ->
+		db.transaction (tx) ->
+			executeStandardModels tx, (err) ->
 				if err?
 					console.error('Could not execute standard models')
 					process.exit()
 				# We only actually need to have had the standard models executed before execution continues, so we schedule it here.
 				setTimeout(callback, 0)
-			)
-		)
 		if has 'DEV'
 			app.get('/dev/*', runGet)
-		app.post('/transaction/execute', (req, res, next) ->
+		app.post '/transaction/execute', (req, res, next) ->
 			id = Number(req.body.id)
 			if _.isNaN(id)
 				res.send(404)
 			else
-				endTransaction(id, (err) ->
+				endTransaction id, (err) ->
 					if err?
 						console.error(err)
 						res.json(err, 404)
 					else
 						res.send(200)
-				)
-		)
-		app.get('/transaction', (req, res, next) ->
+		app.get '/transaction', (req, res, next) ->
 			res.json(
 				transactionURI: "/transaction/transaction"
 				conditionalResourceURI: "/transaction/conditional_resource"
@@ -1160,11 +1090,9 @@ define([
 				exclusiveLockURI: "/transaction/lock__is_exclusive"
 				commitTransactionURI: "/transaction/execute"
 			)
-		)
 		app.get('/transaction/*', runGet)
 		app.post('/transaction/*', runPost)
 		app.put('/transaction/*', runPut)
 		app.del('/transaction/*', runDelete)
 
 	return exports
-)
