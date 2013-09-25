@@ -116,6 +116,8 @@ define(['ometa!database-layer/SQLBinds', 'has', 'lodash'], (SQLBinds, has, _) ->
 				rollback: ->
 					@executeSql('ROLLBACK;')
 					@closeConnection()
+				end: ->
+					@closeConnection()
 				tableList: (callback, errorCallback, extraWhereClause = '') ->
 					if extraWhereClause != ''
 						extraWhereClause = ' WHERE ' + extraWhereClause
@@ -165,6 +167,8 @@ define(['ometa!database-layer/SQLBinds', 'has', 'lodash'], (SQLBinds, has, _) ->
 						_db.query(sql, bindings, endQueryCallback)
 				rollback: ->
 					@executeSql('ROLLBACK;')
+					@closeConnection()
+				end: ->
 					@closeConnection()
 				tableList: (callback, errorCallback, extraWhereClause = '') ->
 					if extraWhereClause != ''
@@ -273,6 +277,9 @@ define(['ometa!database-layer/SQLBinds', 'has', 'lodash'], (SQLBinds, has, _) ->
 							sql = bindDefaultValues(sql, bindings)
 							_tx.executeSql(sql, bindings, callback, errorCallback)
 					@rollback = -> _tx.executeSql('RUN A FAILING STATEMENT TO ROLLBACK')
+				end: ->
+					@executeSql = ->
+						throw 'Transaction has ended.'
 				# Rollbacks in WebSQL are done by having a SQL statement error, and not having an error callback (or having one that returns false).
 				tableList: (callback, errorCallback, extraWhereClause = '') ->
 					if extraWhereClause != ''
