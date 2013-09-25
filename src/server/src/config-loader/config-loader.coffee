@@ -60,59 +60,55 @@ define ['has', 'async', 'lodash', 'q'], (has, async, _, Q) ->
 				permissions = _.uniq(permissions)
 
 				db.transaction (tx) ->
-					async.parallel({
-						users: (callback) ->
-							promises = _.map data.users, (user) ->
-								return sbvrUtils.runURI('GET', "/Auth/user?$filter=username eq '" + encodeURIComponent(user.username) + "'", null, tx)
-									.then((result) ->
-										if result.d.length is 0
-											sbvrUtils.runURI('POST', '/Auth/user', {'username': user.username, 'password': user.password}, null, tx)
-											.get('id')
-										else
-											return result.d[0].id
-									).catch((err) ->
-										throw 'Could not create or find user "' + user.username + '": ' + err
-									)
-							Q.all(promises).nodeify(callback)
-
-						permissions: (callback) ->
-							promises = _.map permissions, (permission) ->
-								return sbvrUtils.runURI('GET', "/Auth/permission?$filter=name eq '" + encodeURIComponent(permission) + "'", null, tx)
-									.then((result) ->
-										if result.d.length is 0
-											sbvrUtils.runURI('POST', '/Auth/permission', {'name': permission}, null, tx)
-											.get('id')
-										else
-											return result.d[0].id
-									).catch((err) ->
-										throw 'Could not create or find permission "' + permission + '": ' + err
-									)
-							Q.all(promises).nodeify (err, permissionIDs) ->
-								if err
-									callback(err)
+					userPromises = Q.all(_.map data.users, (user) ->
+						return sbvrUtils.runURI('GET', "/Auth/user?$filter=username eq '" + encodeURIComponent(user.username) + "'", null, tx)
+							.then((result) ->
+								if result.d.length is 0
+									sbvrUtils.runURI('POST', '/Auth/user', {'username': user.username, 'password': user.password}, null, tx)
+									.get('id')
 								else
-									callback(null, _.zipObject(permissions, permissionIDs))
-					},
+									return result.d[0].id
+							).catch((err) ->
+								throw 'Could not create or find user "' + user.username + '": ' + err
+							)
+					).then((users) ->
+						_.zip(users, data.users)
+					)
+					permissionPromises = Q.all(_.map permissions, (permission) ->
+						return sbvrUtils.runURI('GET', "/Auth/permission?$filter=name eq '" + encodeURIComponent(permission) + "'", null, tx)
+							.then((result) ->
+								if result.d.length is 0
+									sbvrUtils.runURI('POST', '/Auth/permission', {'name': permission}, null, tx)
+									.get('id')
+								else
+									return result.d[0].id
+							).catch((err) ->
+								throw 'Could not create or find permission "' + permission + '": ' + err
+							)
+					).then((permissionIDs) ->
+						return _.zipObject(permissions, permissionIDs)
+					)
 
-					(err, results) ->
-						if err
-							console.error('Failed to add users or permissions', err)
-							process.exit()
-						promises = _.map _.zip(results.users, data.users), ([userID, {permissions: userPermissions}]) ->
+					Q
+					.all([userPromises, permissionPromises])
+					.spread((users, permissions) ->
+						Q.all _.map users, ([userID, {permissions: userPermissions}]) ->
 							if !userPermissions?
 								return
 							Q.all _.map userPermissions, (permission) ->
-								permissionID = results.permissions[permission]
+								permissionID = permissions[permission]
 								return sbvrUtils.runURI('GET', "/Auth/user__has__permission?$filter=user eq '" + userID + "' and permission eq '" + permissionID + "'", null, tx)
 									.then (result) ->
 										if result.d.length is 0
 											sbvrUtils.runURI('POST', '/Auth/user__has__permission', {'user': userID, 'permission': permissionID}, null, tx)
-						Q.all(promises).nodeify (err) ->
-							if err
-								console.error('Failed to add user permissions', err)
-								process.exit()
-							tx.end()
-							callback()
+					)
+					.then((err) ->
+						tx.end()
+						callback()
+					)
+					.catch((err) ->
+						console.error('Failed to add users or permissions', err)
+						process.exit()
 					)
 		], done
 	return exports
