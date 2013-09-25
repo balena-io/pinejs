@@ -67,7 +67,7 @@ define(['has', 'async', 'lodash'], (has, async, _) ->
 										if err
 											callback(err)
 										else if result.d.length is 0
-											sbvrUtils.runURI 'POST', '/Auth/user', {'username': user.username, 'password': user.password}, tx, (err, result) ->
+											sbvrUtils.runURI 'POST', '/Auth/user', {'username': user.username, 'password': user.password}, null, tx, (err, result) ->
 												if err
 													callback('Could not create or find user "' + user.username + '": ' + err)
 												else
@@ -84,7 +84,7 @@ define(['has', 'async', 'lodash'], (has, async, _) ->
 										if err
 											callback(err)
 										else if result.d.length is 0
-											sbvrUtils.runURI 'POST', '/Auth/permission', {'name': permission}, tx, (err, result) ->
+											sbvrUtils.runURI 'POST', '/Auth/permission', {'name': permission}, null, tx, (err, result) ->
 												if err
 													callback('Could not create or find permission "' + permission + '": ' + err)
 												else
@@ -115,7 +115,7 @@ define(['has', 'async', 'lodash'], (has, async, _) ->
 											if err
 												callback(err)
 											else if result.d.length is 0
-												sbvrUtils.runURI('POST', '/Auth/user__has__permission', {'user': userID, 'permission': permissionID}, tx, callback)
+												sbvrUtils.runURI('POST', '/Auth/user__has__permission', {'user': userID, 'permission': permissionID}, null, tx, callback)
 											else
 												callback()
 									callback
