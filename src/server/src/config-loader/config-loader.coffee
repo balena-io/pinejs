@@ -1,4 +1,4 @@
-define ['has', 'async', 'lodash'], (has, async, _) ->
+define ['has', 'async', 'lodash', 'q'], (has, async, _, Q) ->
 	exports = {}
 
 	# Setup function
@@ -62,9 +62,8 @@ define ['has', 'async', 'lodash'], (has, async, _) ->
 				db.transaction (tx) ->
 					async.parallel({
 						users: (callback) ->
-							async.map(data.users,
-								(user, callback) ->
-									sbvrUtils.runURI('GET', "/Auth/user?$filter=username eq '" + encodeURIComponent(user.username) + "'", null, tx)
+							promises = _.map data.users, (user) ->
+								return sbvrUtils.runURI('GET', "/Auth/user?$filter=username eq '" + encodeURIComponent(user.username) + "'", null, tx)
 									.then((result) ->
 										if result.d.length is 0
 											sbvrUtils.runURI('POST', '/Auth/user', {'username': user.username, 'password': user.password}, null, tx)
@@ -73,14 +72,12 @@ define ['has', 'async', 'lodash'], (has, async, _) ->
 											return result.d[0].id
 									).catch((err) ->
 										throw 'Could not create or find user "' + user.username + '": ' + err
-									).nodeify(callback)
-								callback
-							)
+									)
+							Q.all(promises).nodeify(callback)
 
 						permissions: (callback) ->
-							async.map(permissions,
-								(permission, callback) ->
-									sbvrUtils.runURI('GET', "/Auth/permission?$filter=name eq '" + encodeURIComponent(permission) + "'", null, tx)
+							promises = _.map permissions, (permission) ->
+								return sbvrUtils.runURI('GET', "/Auth/permission?$filter=name eq '" + encodeURIComponent(permission) + "'", null, tx)
 									.then((result) ->
 										if result.d.length is 0
 											sbvrUtils.runURI('POST', '/Auth/permission', {'name': permission}, null, tx)
@@ -89,41 +86,33 @@ define ['has', 'async', 'lodash'], (has, async, _) ->
 											return result.d[0].id
 									).catch((err) ->
 										throw 'Could not create or find permission "' + permission + '": ' + err
-									).nodeify(callback)
-								(err, permissionIDs) ->
-									if err
-										callback(err)
-									else
-										callback(null, _.zipObject(permissions, permissionIDs))
-							)
+									)
+							Q.all(promises).nodeify (err, permissionIDs) ->
+								if err
+									callback(err)
+								else
+									callback(null, _.zipObject(permissions, permissionIDs))
 					},
 
 					(err, results) ->
 						if err
 							console.error('Failed to add users or permissions', err)
 							process.exit()
-						async.each(_.zip(results.users, data.users),
-							([userID, {permissions: userPermissions}], callback) ->
-								if !userPermissions?
-									callback()
-									return
-								async.each(userPermissions,
-									(permission, callback) ->
-										permissionID = results.permissions[permission]
-										sbvrUtils.runURI('GET', "/Auth/user__has__permission?$filter=user eq '" + userID + "' and permission eq '" + permissionID + "'", null, tx)
-										.then((result) ->
-											if result.d.length is 0
-												sbvrUtils.runURI('POST', '/Auth/user__has__permission', {'user': userID, 'permission': permissionID}, null, tx)
-										).nodeify(callback)
-									callback
-								)
-							(err) ->
-								if err
-									console.error('Failed to add user permissions', err)
-									process.exit()
-								tx.end()
-								callback()
-						)
+						promises = _.map _.zip(results.users, data.users), ([userID, {permissions: userPermissions}]) ->
+							if !userPermissions?
+								return
+							Q.all _.map userPermissions, (permission) ->
+								permissionID = results.permissions[permission]
+								return sbvrUtils.runURI('GET', "/Auth/user__has__permission?$filter=user eq '" + userID + "' and permission eq '" + permissionID + "'", null, tx)
+									.then (result) ->
+										if result.d.length is 0
+											sbvrUtils.runURI('POST', '/Auth/user__has__permission', {'user': userID, 'permission': permissionID}, null, tx)
+						Q.all(promises).nodeify (err) ->
+							if err
+								console.error('Failed to add user permissions', err)
+								process.exit()
+							tx.end()
+							callback()
 					)
 		], done
 	return exports
