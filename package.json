@@ -22,7 +22,8 @@
     "lodash": "~2.0.0",
     "passport": "~0.1.17",
     "passport-local": "~0.1.6",
-    "requirejs": "~2.1.6"
+    "requirejs": "~2.1.6",
+    "q": "~0.9.7"
   },
   "engines": {
     "node": "0.10.x",

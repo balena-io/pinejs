@@ -233,6 +233,7 @@ define [
 
 			tx.executeSql 'SELECT * FROM "conditional_resource" WHERE "transaction" = ?;', [transactionID], (err, conditionalResources) ->
 				if err
+					tx.rollback()
 					callback(err)
 					return
 				conditionalResources.rows.forEach (conditionalResource) ->
@@ -296,13 +297,17 @@ define [
 										doCleanup()
 					(err) ->
 						if err
+							tx.rollback()
 							callback(err)
 							return
 						tx.executeSql 'DELETE FROM "transaction" WHERE "id" = ?;', [transactionID], (err, result) ->
 							if err
 								callback(err)
 								return
-							validateDB(tx, sqlModels['data'], callback)
+							validateDB tx, sqlModels['data'], (err) ->
+								if !err
+									tx.end()
+								callback(arguments...)
 
 	validateDB = (tx, sqlmod, callback) ->
 		async.forEach(sqlmod.rules,
@@ -366,28 +371,32 @@ define [
 								odata2AbstractSQL[vocab] = OData2AbstractSQL.createInstance()
 								odata2AbstractSQL[vocab].clientModel = clientModel
 
-								updateModel = (modelType, model) ->
+								updateModel = (modelType, model, callback) ->
 									runURI 'GET', "/dev/model?$filter=vocabulary eq '" + vocab + "' and model_type eq '" + modelType + "'", null, tx, (err, result) ->
-										if err?
+										if err
+											callback(err)
 											return
+										method = 'POST'
 										uri = '/dev/model'
-										id = result?.d?[0]?.id ? null
-										if id?
-											uri += '(' + id + ')'
 										body =
-											id: id
 											vocabulary: vocab
 											model_value: model
 											model_type: modelType
-										runURI('PUT', uri, body, tx)
+										id = result?.d?[0]?.id ? null
+										if id?
+											uri += '(' + id + ')'
+											method = 'PUT'
+											body.id = id
 
-								updateModel('se', seModel)
-								updateModel('lf', lfModel)
-								updateModel('abstractsql', abstractSqlModel)
-								updateModel('sql', sqlModel)
-								updateModel('client', clientModel)
+										runURI(method, uri, body, tx, callback)
 
-								callback()
+								async.parallel([
+									(callback) -> updateModel('se', seModel, callback)
+									(callback) -> updateModel('lf', lfModel, callback)
+									(callback) -> updateModel('abstractsql', abstractSqlModel, callback)
+									(callback) -> updateModel('sql', sqlModel, callback)
+									(callback) -> updateModel('client', clientModel, callback)
+								], callback)
 						callback(err)
 				)
 			(err) ->
@@ -400,20 +409,20 @@ define [
 	exports.deleteModel = (vocabulary) ->
 		# TODO: This should be reorganised to be async.
 		db.transaction (tx) ->
-				for dropStatement in sqlModels[vocabulary].dropSchema
-					tx.executeSql(dropStatement)
-				runURI('DELETE', "/dev/model?$filter=model_type eq 'se'", {vocabulary}, tx)
-				runURI('DELETE', "/dev/model?$filter=model_type eq 'lf'", {vocabulary}, tx)
-				runURI('DELETE', "/dev/model?$filter=model_type eq 'slf'", {vocabulary}, tx)
-				runURI('DELETE', "/dev/model?$filter=model_type eq 'abstractsql'", {vocabulary}, tx)
-				runURI('DELETE', "/dev/model?$filter=model_type eq 'sql'", {vocabulary}, tx)
-				runURI('DELETE', "/dev/model?$filter=model_type eq 'client'", {vocabulary}, tx)
+			for dropStatement in sqlModels[vocabulary].dropSchema
+				tx.executeSql(dropStatement)
+			runURI('DELETE', "/dev/model?$filter=model_type eq 'se'", {vocabulary}, tx)
+			runURI('DELETE', "/dev/model?$filter=model_type eq 'lf'", {vocabulary}, tx)
+			runURI('DELETE', "/dev/model?$filter=model_type eq 'slf'", {vocabulary}, tx)
+			runURI('DELETE', "/dev/model?$filter=model_type eq 'abstractsql'", {vocabulary}, tx)
+			runURI('DELETE', "/dev/model?$filter=model_type eq 'sql'", {vocabulary}, tx)
+			runURI('DELETE', "/dev/model?$filter=model_type eq 'client'", {vocabulary}, tx)
 
-				seModels[vocabulary] = ''
-				sqlModels[vocabulary] = {}
-				clientModels[vocabulary] = {}
-				odata2AbstractSQL[vocab].clientModel = {}
-				odataMetadata[vocabulary] = ''
+			seModels[vocabulary] = ''
+			sqlModels[vocabulary] = {}
+			clientModels[vocabulary] = {}
+			odata2AbstractSQL[vocab].clientModel = {}
+			odataMetadata[vocabulary] = ''
 
 	getID = (tree) ->
 		query = tree.requests[0].query
@@ -487,6 +496,8 @@ define [
 								if fetchProcessing?
 									fetchProcessing instance[fieldName], (err, result) ->
 										instance[fieldName] = result
+										if instance[fieldName] != result
+											throw 'wtf?'
 										callback(err)
 								else
 									callback()
@@ -848,8 +859,12 @@ define [
 				runQuery = (tx) ->
 					tx.executeSql query, values, (err, result) ->
 						if err
+							if endTrans
+								tx.rollback()
 							res.send(404)
 							return
+						if endTrans
+							tx.end()
 						clientModel = clientModels[tree.vocabulary].resources
 						switch tree.type
 							when 'OData'
@@ -861,6 +876,7 @@ define [
 										__model: clientModel[request.resourceName]
 										d: d
 									res.json(data)
+				endTrans = !tx?
 				if tx?
 					runQuery(tx)
 				else
@@ -898,7 +914,8 @@ define [
 				# TODO: Check for transaction locks.
 				tx.executeSql query, values, (err, sqlResult) ->
 					if err
-						tx.rollback()
+						if endTrans
+							tx.rollback()
 						constraintError = checkForConstraintError(err, request.resourceName)
 						if constraintError != false
 							res.json(constraintError, 404)
@@ -909,6 +926,8 @@ define [
 						if err
 							res.json(err, 404)
 							return
+						if endTrans
+							tx.end()
 						insertID = if request.query[0] == 'UpdateQuery' then values[0] else sqlResult.insertId
 						console.log('Insert ID: ', insertID)
 						res.json({
@@ -917,6 +936,7 @@ define [
 								location: '/' + vocab + '/' + request.resourceName + '?$filter=' + request.resourceName + '/' + clientModels[vocab].resources[request.resourceName].idField + ' eq ' + insertID
 							}, 201
 						)
+			endTrans = !tx?
 			if tx?
 				runQuery(tx)
 			else
@@ -951,15 +971,21 @@ define [
 					AND r."id" = ?
 				) AS result;''', [request.resourceName, id], (err, result) ->
 					if err
+						if endTrans
+							tx.rollback()
+						console.error('Unable to check resource locks', err)
+						res.send(404)
 						return
 					if result.rows.item(0).result in [false, 0, '0']
-						tx.rollback()
+						if endTrans
+							tx.rollback()
 						res.json([ "The resource is locked and cannot be edited" ], 404)
 						return
 
 					doValidate = (err) ->
 						if err
-							tx.rollback()
+							if endTrans
+								tx.rollback()
 							constraintError = checkForConstraintError(err, request.resourceName)
 							if constraintError != false
 								res.json(constraintError, 404)
@@ -970,12 +996,15 @@ define [
 							if err
 								res.json(err, 404)
 							else
+								if endTrans
+									tx.end()
 								res.send(200)
 
 					runQuery = (query, callback) ->
 						getAndCheckBindValues vocab, query.bindings, request.values, (err, values) ->
 							if err
-								tx.rollback()
+								if endTrans
+									tx.rollback()
 								res.json(err, 404)
 								return
 							tx.executeSql(query.query, values, callback)
@@ -988,6 +1017,7 @@ define [
 								doValidate(err)
 					else
 						runQuery(insertQuery, doValidate)
+		endTrans = !tx?
 		if tx?
 			runTransaction(tx)
 		else
@@ -1012,7 +1042,8 @@ define [
 			runQuery = (tx) ->
 				tx.executeSql query, values, (err, result) ->
 					if err
-						tx.rollback()
+						if endTrans
+							tx.rollback()
 						constraintError = checkForConstraintError(err, request.resourceName)
 						if constraintError != false
 							res.json(constraintError, 404)
@@ -1023,20 +1054,27 @@ define [
 						if err
 							res.json(err, 404)
 						else
+							if endTrans
+								tx.end()
 							res.send(200)
+			endTrans = !tx?
 			if tx?
 				runQuery(tx)
 			else
 				db.transaction(runQuery)
 
 	exports.executeStandardModels = executeStandardModels = (tx, callback) ->
-		executeModels(tx, {
-				'dev': devModel
+		# The dev model has to be executed first.
+		executeModel tx, 'dev', devModel, (err) ->
+			if err
+				console.error('Failed to execute standard models.', err)
+				callback?(err)
+				return
+			executeModels tx, {
 				'transaction': transactionModel
 				'Auth': userModel
-			},
-			(err) ->
-				if err?
+			}, (err) ->
+				if err
 					console.error('Failed to execute standard models.', err)
 				else
 					tx.executeSql('CREATE UNIQUE INDEX "uniq_model_model_type_vocab" ON "model" ("vocabulary", "model type");')
@@ -1053,7 +1091,6 @@ define [
 						)
 					console.info('Sucessfully executed standard models.')
 				callback?(err)
-		)
 
 	exports.setup = (app, requirejs, _db, callback) ->
 		db = _db
@@ -1063,6 +1100,7 @@ define [
 				if err?
 					console.error('Could not execute standard models')
 					process.exit()
+				tx.end()
 				# We only actually need to have had the standard models executed before execution continues, so we schedule it here.
 				setTimeout(callback, 0)
 		if has 'DEV'

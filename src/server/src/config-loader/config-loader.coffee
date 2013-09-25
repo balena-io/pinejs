@@ -1,4 +1,4 @@
-define(['has', 'async', 'lodash'], (has, async, _) ->
+define ['has', 'async', 'lodash'], (has, async, _) ->
 	exports = {}
 
 	# Setup function
@@ -25,6 +25,7 @@ define(['has', 'async', 'lodash'], (has, async, _) ->
 									if err
 										console.error('Failed to execute ' + model.modelName + ' model.', err)
 										process.exit()
+									tx.end()
 									apiRoute = '/' + model.apiRoot + '/*'
 									app.get(apiRoute, sbvrUtils.runGet)
 
@@ -124,9 +125,9 @@ define(['has', 'async', 'lodash'], (has, async, _) ->
 								if err
 									console.error('Failed to add user permissions', err)
 									process.exit()
+								tx.end()
 								callback()
 						)
 					)
 		], done
 	return exports
-)

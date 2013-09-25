@@ -68,25 +68,33 @@ define [
 	# Setup function
 	exports.setup = (app, requirejs, sbvrUtils, db) ->
 		setupModels = (tx) ->
-			sbvrUtils.executeModel(tx, 'ui', uiModel, (err) ->
-				if err
-					console.error('Failed to execute ui model.', err)
-				else
-					console.info('Sucessfully executed ui model.')
-					uiModelLoaded(true)
-			)
-			sbvrUtils.runURI('GET', "/dev/model?$filter=model_type eq 'se' and vocabulary eq 'data'", null, tx, (err, result) ->
-				if !err and result.d.length > 0
-					instance = result.d[0]
-					sbvrUtils.executeModel(tx, instance.vocabulary, instance.model_value, (err) ->
+			async.parallel [
+				(callback) ->
+					sbvrUtils.executeModel tx, 'ui', uiModel, (err) ->
 						if err
-							isServerOnAir(false)
+							console.error('Failed to execute ui model.', err)
 						else
-							isServerOnAir(true)
-					)
+							console.info('Sucessfully executed ui model.')
+							uiModelLoaded(true)
+						callback(err)
+				(callback) ->
+					sbvrUtils.runURI 'GET', "/dev/model?$filter=model_type eq 'se' and vocabulary eq 'data'", null, tx, (err, result) ->
+						if !err and result.d.length > 0
+							instance = result.d[0]
+							sbvrUtils.executeModel tx, instance.vocabulary, instance.model_value, (err) ->
+								if err
+									isServerOnAir(false)
+								else
+									isServerOnAir(true)
+								callback(err)
+						else
+							isServerOnAir(false)
+							callback(err)
+			], (err) ->
+				if err
+					tx.rollback()
 				else
-					isServerOnAir(false)
-			)
+					tx.end()
 
 		db.transaction(setupModels)
 
@@ -102,19 +110,19 @@ define [
 			sbvrUtils.runURI('GET', "/ui/textarea?$filter=name eq 'model_area'", null, null, (err, result) ->
 				if !err and result.d.length > 0
 					seModel = result.d[0].text
-					db.transaction((tx) ->
-						sbvrUtils.executeModel(tx, 'data', seModel, (err) ->
+					db.transaction (tx) ->
+						sbvrUtils.executeModel tx, 'data', seModel, (err) ->
 							if err
+								tx.rollback()
 								res.json(err, 404)
 								return
-							sbvrUtils.runURI('PATCH', "/ui/textarea?$filter=name eq 'model_area'", {
+							sbvrUtils.runURI 'PATCH', "/ui/textarea?$filter=name eq 'model_area'", {
 								is_disabled: true
 								name: 'model_area'
-							}, tx)
-							isServerOnAir(true)
-							res.send(200)
-						)
-					)
+							}, tx, (err) ->
+								isServerOnAir(true)
+								tx.end()
+								res.send(200)
 				else
 					res.send(404)
 			)
@@ -130,16 +138,20 @@ define [
 				tx.tableList (err, result) ->
 					if err
 						console.error('Error clearing db', err)
+						tx.rollback()
+						res.send(404)
 						return
 					async.forEach(result.rows,
 						(table, callback) ->
 							tx.dropTable(table.name, null, callback)
 						(err) ->
 							if err
+								tx.rollback()
 								res.send(404)
 								return
 							sbvrUtils.executeStandardModels tx, (err) ->
 								if err
+									tx.rollback()
 									res.send(503)
 									return
 								setupModels(tx)

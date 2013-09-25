@@ -1,4 +1,4 @@
-define ['ometa!database-layer/SQLBinds', 'has', 'lodash'], (SQLBinds, has, _) ->
+define ['has', 'q', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Q, _, SQLBinds) ->
 	exports = {}
 	DEFAULT_VALUE = {}
 	bindDefaultValues = (sql, bindings) ->
@@ -12,65 +12,67 @@ define ['ometa!database-layer/SQLBinds', 'has', 'lodash'], (SQLBinds, has, _) ->
 				'?'
 		])
 
-	if has 'ENV_NODEJS'
-		wrapExecuteSql = (closeCallback) ->
-			currentlyQueuedStatements = 0
-			connectionClosed = false
-			closeConnection = ->
-				if connectionClosed is false
-					connectionClosed = true
-					closeCallback()
-			createEndQueryCallback = (callback) ->
-				(err, res) ->
-					# If the connection has been closed we should not call either callback to match WebSQL.
-					if connectionClosed is true
-						return
-					try
-						carryOn = callback(err, res) 
-					catch e
-						console.error('Statement callback threw an error: ', e)
-						carryOn = false
-						throw e
-					finally
-						# We have finished a statement so remove it.
-						currentlyQueuedStatements--
-						if currentlyQueuedStatements < 0
-							console.trace('currentlyQueuedStatements is less than 0!')
-						# Check if there are no queued statements after the callback has had a chance to remove them and close the connection if there are none queued.
-						if currentlyQueuedStatements <= 0 or carryOn is false
-							closeConnection()
-						# if carryOn is false
-							# TODO: Call the transaction error callback..
-			return {
-				forceOpen: (bool, callback) ->
-					if bool is true
-						currentlyQueuedStatements++
-					else
-						currentlyQueuedStatements--
-					try
-						callback?()
-					finally
-						if currentlyQueuedStatements < 0
-							console.trace('currentlyQueuedStatements is less than 0!')
-						if currentlyQueuedStatements <= 0
-							closeConnection()
-				startQuery: (createResult, callback) ->
-					(sql, bindings = [], callback, args...) ->
-						if connectionClosed is true
-							throw 'Trying to executeSQL on a closed connection'
-						# We have queued a new statement so add it.
-						currentlyQueuedStatements++
-						sql = bindDefaultValues(sql, bindings)
-						endQueryCallback = createEndQueryCallback (err, res) ->
-							if err
-								console.warn(sql, bindings, err)
-								callback?(err)
-								return
-							callback?(null, createResult(res))
-						callback(sql, bindings, endQueryCallback, args...)
-				closeConnection
-			}
+	getStackTrace = ->
+		try
+			throw new Error()
+		catch e
+			stack = e.stack
+			for i in [0...2]
+				stack = stack.substring(stack.indexOf('\n') + 1)
+			return stack
 
+	class Tx
+		timeoutMS = 500
+		constructor: (stackTrace, executeSql, rollback, end) ->
+			automaticClose = =>
+				console.error('Transaction still open after ' + timeoutMS + 'ms without an execute call.', stackTrace)
+				@rollback()
+			automaticCloseTimeout = null
+			resetTimeout = ->
+				clearTimeout(automaticCloseTimeout)
+				automaticCloseTimeout = setTimeout(automaticClose, timeoutMS)
+			resetTimeout()
+
+			@executeSql = (sql, bindings = [], callback, args...) ->
+				resetTimeout()
+				deferred = Q.defer()
+
+				sql = bindDefaultValues(sql, bindings)
+				executeSql(sql, bindings, deferred, args...)
+
+				return deferred.promise.nodeify(callback)
+
+			@rollback = (callback) ->
+				deferred = Q.defer()
+
+				rollback(deferred)
+				closeTransaction('Transaction has been rolled back.')
+
+				return deferred.promise.nodeify(callback)
+
+			@end = (callback) ->
+				deferred = Q.defer()
+
+				end(deferred)
+				closeTransaction('Transaction has been ended.')
+
+				return deferred.promise.nodeify(callback)
+
+			closeTransaction = (message) =>
+				clearTimeout(automaticCloseTimeout)
+				stackTrace = getStackTrace()
+				deferred = Q.defer()
+				deferred.reject(message)
+				@executeSql = (sql, bindings, callback) ->
+					# console.error(message, stackTrace)
+					# console.trace()
+					return deferred.promise.nodeify(callback)
+				@rollback = @end = (sql, bindings, callback) ->
+					# console.error(message, stackTrace)
+					# console.trace()
+					return deferred.promise.nodeify(callback)
+
+	if has 'ENV_NODEJS'
 		exports.postgres = (connectString) ->
 			pg = require('pg')
 			createResult = ({rowCount, rows}) ->
@@ -83,14 +85,10 @@ define ['ometa!database-layer/SQLBinds', 'has', 'lodash'], (SQLBinds, has, _) ->
 					rowsAffected: rowCount
 					insertId: rows[0]?.id || null
 				}
-			class Tx
-				constructor: (_db, _close) ->
-					{startQuery, @forceOpen, @closeConnection} = wrapExecuteSql =>
-						_db.query('COMMIT;') # We end the transaction in progress and then close the connection/return to pool.
-						_close()
-
-					@executeSql = startQuery createResult, (sql, _bindings, endQueryCallback, addReturning = true) ->
-						bindings = _bindings.slice(0) # Deal with the fact we may splice arrays directly into bindings
+			class PostgresTx extends Tx
+				constructor: (_db, _close, _stackTrace) ->
+					executeSql = (sql, bindings, deferred, addReturning = true) ->
+						bindings = bindings.slice(0) # Deal with the fact we may splice arrays directly into bindings
 						if addReturning and /^\s*INSERT\s+INTO/i.test(sql)
 							sql = sql.replace(/;?$/, ' RETURNING id;')
 						bindNo = 0
@@ -110,12 +108,23 @@ define ['ometa!database-layer/SQLBinds', 'has', 'lodash'], (SQLBinds, has, _) ->
 								else
 									return '$' + ++bindNo
 						])
-						_db.query({text: sql, values: bindings}, endQueryCallback)
-				rollback: ->
-					@executeSql('ROLLBACK;')
-					@closeConnection()
-				end: ->
-					@closeConnection()
+						_db.query {text: sql, values: bindings}, (err, res) ->
+							if err
+								console.warn(sql, bindings, err)
+								deferred.reject(err)
+							else
+								deferred.resolve(createResult(res))
+
+					rollback = (deferred) =>
+						deferred.resolve(@executeSql('ROLLBACK;'))
+						_close()
+
+					end = (deferred) =>
+						deferred.resolve(@executeSql('COMMIT;'))
+						_close()
+
+					super(_stackTrace, executeSql, rollback, end)
+
 				tableList: (extraWhereClause = '', callback) ->
 					if !callback? and typeof extraWhereClause is 'function'
 						callback = extraWhereClause
@@ -129,17 +138,25 @@ define ['ometa!database-layer/SQLBinds', 'has', 'lodash'], (SQLBinds, has, _) ->
 				DEFAULT_VALUE
 				engine: 'postgres'
 				transaction: (callback) ->
+					stackTrace = getStackTrace()
+					deferred = Q.defer()
+
 					pg.connect connectString, (err, client, done) ->
 						if err
 							console.error('Error connecting ' + err)
 							process.exit()
-						tx = new Tx(client, done)
+						tx = new PostgresTx(client, done, stackTrace)
 						if process.env.PG_SCHEMA?
 							tx.executeSql('SET search_path TO "' + process.env.PG_SCHEMA + '"')
 						tx.executeSql('START TRANSACTION;')
-						callback(tx)
+
+						deferred.resolve(tx)
+
+					deferred.promise.then(callback).catch (err) ->
+						console.error(err, callback)
+					return deferred.promise
 			}
-			
+
 		exports.mysql = (options) ->
 			mysql = new require('mysql')
 			_pool = mysql.createPool(options)
@@ -156,19 +173,26 @@ define ['ometa!database-layer/SQLBinds', 'has', 'lodash'], (SQLBinds, has, _) ->
 					rowsAffected: rows.affectedRows
 					insertId: rows.insertId || null
 				}
-			class Tx
-				constructor: (_db) ->
-					{startQuery, @forceOpen, @closeConnection} = wrapExecuteSql =>
-						_db.query('COMMIT;') # We end the transaction in progress and then close the connection/return to pool.
+			class MySqlTx extends Tx
+				constructor: (_db, _stackTrace) ->
+					executeSql = (sql, bindings, deferred) ->
+						_db.query sql, bindings, (err, res) ->
+							if err
+								console.warn(sql, bindings, err)
+								deferred.reject(err)
+							else
+								deferred.resolve(createResult(res))
+
+					rollback = =>
+						deferred.resolve(@executeSql('ROLLBACK;'))
 						_db.end()
 
-					@executeSql = startQuery createResult, (sql, bindings, endQueryCallback) ->
-						_db.query(sql, bindings, endQueryCallback)
-				rollback: ->
-					@executeSql('ROLLBACK;')
-					@closeConnection()
-				end: ->
-					@closeConnection()
+					end = (deferred) =>
+						deferred.resolve(@executeSql('COMMIT;'))
+						_db.end()
+
+					super(_stackTrace, executeSql, rollback, end)
+
 				tableList: (extraWhereClause = '', callback) ->
 					if !callback? and typeof extraWhereClause is 'function'
 						callback = extraWhereClause
@@ -182,67 +206,25 @@ define ['ometa!database-layer/SQLBinds', 'has', 'lodash'], (SQLBinds, has, _) ->
 				DEFAULT_VALUE
 				engine: 'mysql'
 				transaction: (callback) ->
+					stackTrace = getStackTrace()
+					deferred = Q.defer()
+
 					_pool.getConnection (err, _db) ->
 						if err
 							console.error('Error connecting ' + err)
 							process.exit()
-						tx = new Tx(_db)
+						tx = new MysqlTx(_db, stackTrace)
 						tx.executeSql('START TRANSACTION;')
-						callback(tx)
-			}
 
-		exports.sqlite = (filepath) ->
-			console.warn('SQLite support is out of date and likely to break')
-			sqlite3 = require('sqlite3').verbose()
-			_db = new sqlite3.Database(filepath)
-			createResult = (rows) ->
-				return {
-					rows:
-						length: rows?.length or 0
-						item: (i) -> rows[i]
-						forEach: (iterator, thisArg) ->
-							rows.forEach(iterator, thisArg)
-					insertId: rows.insertId || null
-				}
-			tx = {
-				executeSql: (sql, bindings, callback) =>
-					sql = bindDefaultValues(sql, bindings)
-					_db.all sql, bindings ? [], (err, rows) =>
-						if err
-							console.warn(sql, err)
-							callback?(err)
-							return
-						callback?(@, createResult(rows))
-				begin: -> @executeSql('BEGIN;')
-				end: -> @executeSql('END;')
-				rollback: -> @executeSql('ROLLBACK;')
-				tableList: (extraWhereClause = '', callback) ->
-					if !callback? and typeof extraWhereClause is 'function'
-						callback = extraWhereClause
-						extraWhereClause = ''
-					if extraWhereClause != ''
-						extraWhereClause = ' AND ' + extraWhereClause
-					@executeSql("SELECT name, sql FROM sqlite_master WHERE type='table' AND name NOT IN ('sqlite_sequence')" + extraWhereClause + ";", [], callback)
-				dropTable: (tableName, ifExists = true, callback) ->
-					@executeSql('DROP TABLE ' + (if ifExists is true then 'IF EXISTS ' else '') + '"' + tableName + '";', [], callback)
-				forceOpen: do ->
-					warned = false
-					(bool, callback) ->
-						if warned is false
-							warned = true
-							console.warn('Force open not implemented for sqlite.')
-						callback?()
-			}
-			return {
-				DEFAULT_VALUE
-				engine: 'sqlite'
-				transaction: (callback) ->
-					_db.serialize ->
-						callback(tx)
+						deferred.resolve(tx)
+
+					deferred.promise.then(callback).catch (err) ->
+						console.error(err, callback)
+					return deferred.promise
 			}
 	else
 		exports.websql = (databaseName) ->
-			_db = openDatabase(databaseName, "1.0", "rulemotion", 2 * 1024 * 1024)
+			_db = openDatabase(databaseName, '1.0', 'rulemotion', 2 * 1024 * 1024)
 			createResult = (result) ->
 				try
 					insertId = result.insertId
@@ -259,50 +241,75 @@ define ['ometa!database-layer/SQLBinds', 'has', 'lodash'], (SQLBinds, has, _) ->
 					rowsAffected: result.rowsAffected 
 					insertId: insertId
 				}
-			class Tx
-				constructor: (_tx) ->
-					@executeSql = (sql, bindings, callback) =>
-						try
-							# This is used so we can find the useful part of the stack trace, as WebSQL is asynchronous and starts a new stack.
-							___STACK_TRACE___.please
-						catch stackTrace
-							null
-							# Wrap the callbacks passed in with our own if necessary to pass in the wrapped tx.
-							successCallback = (_tx, _results) =>
-								callback?(null, createResult(_results))
-							errorCallback = (_tx, err) =>
-								callback?(err)
-								console.warn(sql, bindings, err, stackTrace.stack)
-								return false
-							sql = bindDefaultValues(sql, bindings)
-							_tx.executeSql(sql, bindings, successCallback, errorCallback)
-					@rollback = -> _tx.executeSql('RUN A FAILING STATEMENT TO ROLLBACK')
-				end: ->
-					@executeSql = ->
-						throw 'Transaction has ended.'
-				# Rollbacks in WebSQL are done by having a SQL statement error, and not having an error callback (or having one that returns false).
+			
+			class WebSqlTx extends Tx
+				constructor: (_tx, _stackTrace) ->
+					running = true
+					queue = []
+					# This function is used to recurse executeSql calls and keep the transaction open,
+					# allowing us to use async calls within the API.
+					asyncRecurse = ->
+						while args = queue.pop()
+							console.debug('Running', args[0])
+							_tx.executeSql(args...)
+						if running is true
+							console.debug('Looping')
+							_tx.executeSql('SELECT 0', [], asyncRecurse)
+					asyncRecurse()
+
+					executeSql = (sql, bindings, deferred) ->
+						# This is used so we can find the useful part of the stack trace, as WebSQL is asynchronous and starts a new stack.
+						stackTrace = getStackTrace()
+
+						successCallback = (_tx, _results) =>
+							deferred.resolve(createResult(_results))
+						errorCallback = (_tx, err) =>
+							console.warn(sql, bindings, err, stackTrace)
+							deferred.reject(err)
+
+						sql = bindDefaultValues(sql, bindings)
+						queue.push([sql, bindings, successCallback, errorCallback])
+
+					rollback = (deferred) ->
+						successCallback = ->
+							deferred.resolve()
+							throw 'Rollback'
+						errorCallback = ->
+							deferred.resolve()
+							return true
+						queue = [['RUN A FAILING STATEMENT TO ROLLBACK', [], successCallback, errorCallback]]
+						running = false
+
+					end = (deferred) ->
+						deferred.resolve()
+						running = false
+
+					super(_stackTrace, executeSql, rollback, end)
+
 				tableList: (extraWhereClause = '', callback) ->
 					if !callback? and typeof extraWhereClause is 'function'
 						callback = extraWhereClause
 						extraWhereClause = ''
 					if extraWhereClause != ''
 						extraWhereClause = ' AND ' + extraWhereClause
-					@executeSql("SELECT name, sql FROM sqlite_master WHERE type='table' AND name NOT IN ('__WebKitDatabaseInfoTable__', 'sqlite_sequence')" + extraWhereClause + ";", [], callback)
+					@executeSql("SELECT name, sql FROM sqlite_master WHERE type='table' AND name NOT IN ('__WebKitDatabaseInfoTable__', 'sqlite_sequence')" + extraWhereClause + ';', [], callback)
+
 				dropTable: (tableName, ifExists = true, callback) ->
 					@executeSql('DROP TABLE ' + (if ifExists is true then 'IF EXISTS ' else '') + '"' + tableName + '";', [], callback)
-				forceOpen: do ->
-					warned = false
-					(bool, callback) ->
-						if warned is false
-							warned = true
-							console.warn('Cannot force open websql.')
-						callback?()
+
 			return {
 				DEFAULT_VALUE
 				engine: 'websql'
 				transaction: (callback) ->
+					stackTrace = getStackTrace()
+
 					_db.transaction (_tx) ->
-						callback(new Tx(_tx))
+						deferred.resolve(new WebSqlTx(_tx, stackTrace))
+
+					deferred = Q.defer()
+					deferred.promise.then(callback).catch (err) ->
+						console.error(err, callback)
+					return deferred.promise
 			}
 
 	exports.connect = (databaseOptions) ->
