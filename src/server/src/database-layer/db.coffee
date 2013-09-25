@@ -1,4 +1,4 @@
-define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
+define(['ometa!database-layer/SQLBinds', 'has', 'lodash'], (SQLBinds, has, _) ->
 	exports = {}
 	DEFAULT_VALUE = {}
 	bindDefaultValues = (sql, bindings) ->
@@ -243,10 +243,10 @@ define(["ometa!database-layer/SQLBinds", 'has'], (SQLBinds, has) ->
 				return {
 					rows:
 						length: result.rows.length
-						item: (i) -> result.rows.item(i)
+						item: (i) -> _.clone(result.rows.item(i))
 						forEach: (iterator, thisArg) ->
 							for i in [0...result.rows.length] by 1
-								iterator.call(thisArg, result.rows.item(i), i, result.rows)
+								iterator.call(thisArg, @item(i), i, result.rows)
 					rowsAffected: result.rowsAffected 
 					insertId: insertId
 				}
