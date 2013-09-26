@@ -368,6 +368,7 @@ define [
 								updateModel = (modelType, model) ->
 									runURI('GET', "/dev/model?$filter=vocabulary eq '" + vocab + "' and model_type eq '" + modelType + "'", null, tx)
 									.then((result) ->
+										method = 'POST'
 										uri = '/dev/model'
 										body =
 											vocabulary: vocab

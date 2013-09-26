@@ -82,6 +82,8 @@ define ['has', 'q', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Q, _, SQLB
 						item: (i) -> rows[i]
 						forEach: (iterator, thisArg) ->
 							rows.forEach(iterator, thisArg)
+						map: (iterator, thisArg) ->
+							rows.map(iterator, thisArg)
 					rowsAffected: rowCount
 					insertId: rows[0]?.id || null
 				}
@@ -170,6 +172,8 @@ define ['has', 'q', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Q, _, SQLB
 						item: (i) -> rows[i]
 						forEach: (iterator, thisArg) ->
 							rows.forEach(iterator, thisArg)
+						map: (iterator, thisArg) ->
+							rows.map(iterator, thisArg)
 					rowsAffected: rows.affectedRows
 					insertId: rows.insertId || null
 				}
@@ -235,7 +239,10 @@ define ['has', 'q', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Q, _, SQLB
 					rows:
 						length: result.rows.length
 						item: (i) -> _.clone(result.rows.item(i))
-						forEach: (iterator, thisArg) ->
+						forEach: (args...) ->
+							@map(args...)
+							return
+						map: (iterator, thisArg) ->
 							for i in [0...result.rows.length] by 1
 								iterator.call(thisArg, @item(i), i, result.rows)
 					rowsAffected: result.rowsAffected 

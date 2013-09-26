@@ -35,7 +35,6 @@ define([
 			serverRequest('PUT', '/importdb/', {}, @editor.getValue())
 		exportDB: ->
 			serverRequest('GET', '/exportdb/', {}, '', (statusCode, result) =>
-				console.error(statusCode, result)
 				@editor.setValue(result)
 			)
 	)

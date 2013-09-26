@@ -1,9 +1,8 @@
 define [
-	'async'
 	'lodash'
 	'has'
 	'q'
-], (async, _, has, Q) ->
+], (_, has, Q) ->
 	exports = {}
 	db = null
 	Q.longStackSupport = true
@@ -70,33 +69,35 @@ define [
 	# Setup function
 	exports.setup = (app, requirejs, sbvrUtils, db) ->
 		setupModels = (tx) ->
-			async.parallel [
-				(callback) ->
-					sbvrUtils.executeModel tx, 'ui', uiModel, (err) ->
-						if err
-							console.error('Failed to execute ui model.', err)
-						else
-							console.info('Sucessfully executed ui model.')
-							uiModelLoaded(true)
-						callback(err)
-				(callback) ->
-					sbvrUtils.runURI 'GET', "/dev/model?$filter=model_type eq 'se' and vocabulary eq 'data'", null, tx, (err, result) ->
-						if !err and result.d.length > 0
-							instance = result.d[0]
-							sbvrUtils.executeModel tx, instance.vocabulary, instance.model_value, (err) ->
-								if err
-									isServerOnAir(false)
-								else
-									isServerOnAir(true)
-								callback(err)
-						else
-							isServerOnAir(false)
-							callback(err)
-			], (err) ->
-				if err
-					tx.rollback()
-				else
-					tx.end()
+			uiModelPromise =
+				Q.nfcall(sbvrUtils.executeModel, tx, 'ui', uiModel)
+				.then(->
+					console.info('Sucessfully executed ui model.')
+					uiModelLoaded(true)
+				).catch((err) ->
+					console.error('Failed to execute ui model.', err)
+					throw err
+				)
+			dataModelPromise =
+				sbvrUtils.runURI('GET', "/dev/model?$filter=model_type eq 'se' and vocabulary eq 'data'", null, tx)
+				.then((result) ->
+					if result.d.length is 0
+						throw new Error('No SE data model found')
+					instance = result.d[0]
+					Q.nfcall(sbvrUtils.executeModel, tx, instance.vocabulary, instance.model_value)
+				)
+				.then(->
+					isServerOnAir(true)
+				).catch((err) ->
+					isServerOnAir(false)
+					throw err
+				)
+			Q.all([uiModelPromise, dataModelPromise])
+			.then(->
+				tx.end()
+			).catch(->
+				tx.rollback()
+			)
 
 		db.transaction(setupModels)
 
@@ -139,7 +140,7 @@ define [
 			db.transaction (tx) ->
 				tx.tableList()
 				.then((result) ->
-					Q.all _.map result.rows, (table) ->
+					Q.all result.rows.map (table) ->
 						tx.dropTable(table.name)
 				).then(->
 					Q.nfcall(sbvrUtils.executeStandardModels, tx)
@@ -165,6 +166,7 @@ define [
 					res.send(200)
 				).catch((err) ->
 					console.error(err)
+					tx.rollback()
 					res.send(404)
 				)
 		app.get '/exportdb', sbvrUtils.checkPermissionsMiddleware('get'), (req, res, next) ->
@@ -177,46 +179,44 @@ define [
 					res.json(stdout)
 			else
 				db.transaction (tx) ->
-					tx.tableList "name NOT LIKE '%_buk'", (err, result) ->
-						if err
-							return
+					tx.tableList("name NOT LIKE '%_buk'")
+					.then((result) ->
 						exported = ''
-						async.forEach(result.rows,
-							(currRow, callback) ->
-								tableName = currRow.name
-								exported += 'DROP TABLE IF EXISTS "' + tableName + '";\n'
-								exported += currRow.sql + ";\n"
-								tx.executeSql 'SELECT * FROM "' + tableName + '";', [], (result) ->
-									if err
-										callback(err)
-										return
-									insQuery = ''
-									result.rows.forEach (currRow) ->
-										notFirst = false
-										insQuery += 'INSERT INTO "' + tableName + '" ('
-										valQuery = ''
-										for own propName of currRow
-											if notFirst
-												insQuery += ","
-												valQuery += ","
-											else
-												notFirst = true
-											insQuery += '"' + propName + '"'
-											valQuery += "'" + currRow[propName] + "'"
-										insQuery += ") values (" + valQuery + ");\n"
-									exported += insQuery
-									callback()
-							(err) ->
-								if err?
-									console.error(err)
-									res.send(404)
-								else
-									res.json(exported)
+						Q.all(result.rows.map (table) ->
+							tableName = table.name
+							exported += 'DROP TABLE IF EXISTS "' + tableName + '";\n'
+							exported += table.sql + ";\n"
+							tx.executeSql('SELECT * FROM "' + tableName + '";')
+							.then((result) ->
+								insQuery = ''
+								result.rows.forEach (currRow) ->
+									notFirst = false
+									insQuery += 'INSERT INTO "' + tableName + '" ('
+									valQuery = ''
+									for own propName of currRow
+										if notFirst
+											insQuery += ','
+											valQuery += ','
+										else
+											notFirst = true
+										insQuery += '"' + propName + '"'
+										valQuery += "'" + currRow[propName] + "'"
+									insQuery += ") values (" + valQuery + ");\n"
+								exported += insQuery
+							)
+						).then(->
+							tx.end()
+							res.json(exported)
 						)
+					).catch((err) ->
+						console.error(err)
+						tx.rollback()
+						res.send(503)
+					)
 		app.post '/backupdb', sbvrUtils.checkPermissionsMiddleware('all'), serverIsOnAir, (req, res, next) ->
 			db.transaction (tx) ->
 				tx.tableList("name NOT LIKE '%_buk'").then((result) ->
-					Q.all _.map result.rows, (currRow) ->
+					Q.all result.rows.map (currRow) ->
 						tableName = currRow.name
 						Q.all([
 							tx.dropTable(tableName + '_buk', true)
@@ -231,7 +231,7 @@ define [
 		app.post '/restoredb', sbvrUtils.checkPermissionsMiddleware('all'), serverIsOnAir, (req, res, next) ->
 			db.transaction (tx) ->
 				tx.tableList("name LIKE '%_buk'").then((result) ->
-					Q.all _.map result.rows, (currRow) ->
+					Q.all result.rows.map (currRow) ->
 						tableName = currRow.name
 						Q.all([
 							tx.dropTable(tableName[0...-4], true)
