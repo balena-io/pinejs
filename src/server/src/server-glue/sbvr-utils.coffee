@@ -15,6 +15,7 @@ define [
 ], (has, SBVRParser, LF2AbstractSQL, AbstractSQL2SQL, AbstractSQLCompiler, AbstractSQL2CLF, ODataMetadataGenerator, {ODataParser}, {OData2AbstractSQL}, async, _, Q, sbvrTypes) ->
 	exports = {}
 	db = null
+	Q.longStackSupport = true
 
 	LF2AbstractSQLTranslator = LF2AbstractSQL.createTranslator(sbvrTypes)
 
@@ -251,14 +252,12 @@ define [
 							if err
 								callback(err)
 								return
-							async.parallel([
-									(callback) -> tx.executeSql('DELETE FROM "conditional_field" WHERE "conditional resource" = ?;', [conditionalResource.id], callback)
-									(callback) -> tx.executeSql('DELETE FROM "conditional_resource" WHERE "lock" = ?;', [lockID], callback)
-									(callback) -> tx.executeSql('DELETE FROM "resource-is_under-lock" WHERE "lock" = ?;', [lockID], callback)
-									(callback) -> tx.executeSql('DELETE FROM "lock" WHERE "id" = ?;', [lockID], callback)
-								]
-								callback
-							)
+							Q.all([
+								tx.executeSql('DELETE FROM "conditional_field" WHERE "conditional resource" = ?;', [conditionalResource.id])
+								tx.executeSql('DELETE FROM "conditional_resource" WHERE "lock" = ?;', [lockID])
+								tx.executeSql('DELETE FROM "resource-is_under-lock" WHERE "lock" = ?;', [lockID])
+								tx.executeSql('DELETE FROM "lock" WHERE "id" = ?;', [lockID])
+							]).nodeify(callback)
 
 						clientModel = clientModels['data'].resources[conditionalResource.resource_type]
 						uri = '/data/' + conditionalResource.resource_type
@@ -311,21 +310,15 @@ define [
 								callback(arguments...)
 
 	validateDB = (tx, sqlmod, callback) ->
-		async.forEach(sqlmod.rules,
-			(rule, callback) ->
-				tx.executeSql rule.sql, rule.bindings, (err, result) ->
-					if err
-						callback(err)
-						return
-					if result.rows.item(0).result in [false, 0, '0']
-						callback(rule.structuredEnglish)
-					else
-						callback()
-			(err) ->
-				if err
-					tx.rollback()
-				callback(err)
-		)
+		Q.all(_.map sqlmod.rules, (rule) ->
+			tx.executeSql(rule.sql, rule.bindings).then((result) ->
+				if result.rows.item(0).result in [false, 0, '0']
+					throw rule.structuredEnglish
+			)
+		).catch((err) ->
+			tx.rollback()
+			throw err
+		).nodeify(callback)
 
 	exports.executeModel = executeModel = (tx, vocab, seModel, callback) ->
 		models = {}
@@ -372,8 +365,9 @@ define [
 								odata2AbstractSQL[vocab] = OData2AbstractSQL.createInstance()
 								odata2AbstractSQL[vocab].clientModel = clientModel
 
-								updateModel = (modelType, model, callback) ->
-									runURI('GET', "/dev/model?$filter=vocabulary eq '" + vocab + "' and model_type eq '" + modelType + "'", null, tx).then (result) ->
+								updateModel = (modelType, model) ->
+									runURI('GET', "/dev/model?$filter=vocabulary eq '" + vocab + "' and model_type eq '" + modelType + "'", null, tx)
+									.then((result) ->
 										uri = '/dev/model'
 										body =
 											vocabulary: vocab
@@ -385,15 +379,16 @@ define [
 											method = 'PUT'
 											body.id = id
 
-										runURI(method, uri, body, tx, callback)
+										runURI(method, uri, body, tx)
+									)
 
-								async.parallel([
-									(callback) -> updateModel('se', seModel, callback)
-									(callback) -> updateModel('lf', lfModel, callback)
-									(callback) -> updateModel('abstractsql', abstractSqlModel, callback)
-									(callback) -> updateModel('sql', sqlModel, callback)
-									(callback) -> updateModel('client', clientModel, callback)
-								], callback)
+								Q.all([
+									updateModel('se', seModel)
+									updateModel('lf', lfModel)
+									updateModel('abstractsql', abstractSqlModel)
+									updateModel('sql', sqlModel)
+									updateModel('client', clientModel)
+								]).nodeify(callback)
 						callback(err)
 				)
 			(err) ->
@@ -493,8 +488,6 @@ define [
 								if fetchProcessing?
 									fetchProcessing instance[fieldName], (err, result) ->
 										instance[fieldName] = result
-										if instance[fieldName] != result
-											throw 'wtf?'
 										callback(err)
 								else
 									callback()
@@ -1071,9 +1064,12 @@ define [
 						Q.all([
 							runURI('POST', '/Auth/user', {'username': 'root', 'password': 'test123'})
 							runURI('POST', '/Auth/permission', {'name': 'resource.all'})
-						]).done ->
+						]).then(->
 							# We expect these to be the first user/permission, so they would have id 1.
 							runURI('POST', '/Auth/user__has__permission', {'user': 1, 'permission': 1})
+						).catch((err) ->
+							console.error('Unable to add dev users', err)
+						)
 					console.info('Sucessfully executed standard models.')
 				callback?(err)
 
