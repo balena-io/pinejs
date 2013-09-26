@@ -159,34 +159,30 @@ define [
 	getAndCheckBindValues = (vocab, bindings, values, callback) ->
 		mappings = clientModels[vocab].resourceToSQLMappings
 		sqlModelTables = sqlModels[vocab].tables
-		async.map(bindings,
-			(binding, callback) ->
-				if _.isString(binding[1])
-					[tableName, fieldName] = binding
+		Q.all(_.map bindings, (binding) ->
+			if _.isString(binding[1])
+				[tableName, fieldName] = binding
 
-					referencedName = tableName + '.' + fieldName
-					value = values[referencedName]
-					if value is undefined
-						value = values[fieldName]
-
-					[mappedTableName, mappedFieldName] = mappings[tableName][fieldName]
-					field = _.where(sqlModelTables[mappedTableName].fields, {
-						fieldName: mappedFieldName
-					})[0]
-				else
-					[dataType, value] = binding
-					field = {dataType}
-
+				referencedName = tableName + '.' + fieldName
+				value = values[referencedName]
 				if value is undefined
-					callback(null, db.DEFAULT_VALUE)
-					return
+					value = values[fieldName]
 
-				AbstractSQL2SQL.dataTypeValidate value, field, (err, value) ->
-					if err
-						err = '"' + fieldName + '" ' + err
-					callback(err, value)
-			callback
-		)
+				[mappedTableName, mappedFieldName] = mappings[tableName][fieldName]
+				field = _.where(sqlModelTables[mappedTableName].fields, {
+					fieldName: mappedFieldName
+				})[0]
+			else
+				[dataType, value] = binding
+				field = {dataType}
+
+			if value is undefined
+				return db.DEFAULT_VALUE
+
+			Q.nfcall(AbstractSQL2SQL.dataTypeValidate, value, field).catch((err) ->
+				throw new Error('"' + fieldName + '" ' + err)
+			)
+		).nodeify(callback)
 
 	endTransaction = (transactionID, callback) ->
 		db.transaction (tx) ->
@@ -233,81 +229,67 @@ define [
 				for placeholderCallback in placeholderCallbacks
 					placeholderCallback(placeholder, resolvedID)
 
-			tx.executeSql 'SELECT * FROM "conditional_resource" WHERE "transaction" = ?;', [transactionID], (err, conditionalResources) ->
-				if err
-					tx.rollback()
-					callback(err)
-					return
+			tx.executeSql('SELECT * FROM "conditional_resource" WHERE "transaction" = ?;', [transactionID])
+			.then((conditionalResources) ->
 				conditionalResources.rows.forEach (conditionalResource) ->
 					placeholder = conditionalResource.placeholder
 					if placeholder? and placeholder.length > 0
 						placeholders[placeholder] = []
 
 				# get conditional resources (if exist)
-				async.forEach conditionalResources.rows,
-					(conditionalResource, callback) ->
-						placeholder = conditionalResource.placeholder
-						lockID = conditionalResource.lock
-						doCleanup = (err) ->
-							if err
-								callback(err)
-								return
-							Q.all([
-								tx.executeSql('DELETE FROM "conditional_field" WHERE "conditional resource" = ?;', [conditionalResource.id])
-								tx.executeSql('DELETE FROM "conditional_resource" WHERE "lock" = ?;', [lockID])
-								tx.executeSql('DELETE FROM "resource-is_under-lock" WHERE "lock" = ?;', [lockID])
-								tx.executeSql('DELETE FROM "lock" WHERE "id" = ?;', [lockID])
-							]).nodeify(callback)
+				Q.all(conditionalResources.rows.map (conditionalResource) ->
+					placeholder = conditionalResource.placeholder
+					lockID = conditionalResource.lock
+					doCleanup = ->
+						Q.all([
+							tx.executeSql('DELETE FROM "conditional_field" WHERE "conditional resource" = ?;', [conditionalResource.id])
+							tx.executeSql('DELETE FROM "conditional_resource" WHERE "lock" = ?;', [lockID])
+							tx.executeSql('DELETE FROM "resource-is_under-lock" WHERE "lock" = ?;', [lockID])
+							tx.executeSql('DELETE FROM "lock" WHERE "id" = ?;', [lockID])
+						])
 
-						clientModel = clientModels['data'].resources[conditionalResource.resource_type]
-						uri = '/data/' + conditionalResource.resource_type
-						switch conditionalResource.conditional_type
-							when 'DELETE'
-								getLockedRow lockID, (err, lockedRow) ->
-									if err
-										callback(err)
-										return
-									lockedRow = lockedRow.rows.item(0)
-									uri = uri + '?$filter=' + clientModel.idField + ' eq ' + lockedRow.resource_id
-									runURI('DELETE', uri, {}, tx, doCleanup)
-							when 'EDIT'
-								getLockedRow lockID, (err, lockedRow) ->
-									if err
-										callback(err)
-										return
-									lockedRow = lockedRow.rows.item(0)
-									getFieldsObject conditionalResource.id, clientModel, (err, fields) ->
-										if err
-											callback(err)
-											return
-										fields[clientModel.idField] = lockedRow.resource_id
-										runURI('PUT', uri, fields, tx, doCleanup)
-							when 'ADD'
-								getFieldsObject conditionalResource.id, clientModel, (err, fields) ->
-									if err
-										resolvePlaceholder(placeholder, false)
-										callback(err)
-										return
-									runURI 'POST', uri, fields, tx, (err, result) ->
-										if err
-											resolvePlaceholder(placeholder, false)
-											callback(err)
-											return
-										resolvePlaceholder(placeholder, result.id)
-										doCleanup()
-					(err) ->
-						if err
-							tx.rollback()
-							callback(err)
-							return
-						tx.executeSql 'DELETE FROM "transaction" WHERE "id" = ?;', [transactionID], (err, result) ->
-							if err
-								callback(err)
-								return
-							validateDB tx, sqlModels['data'], (err) ->
-								if !err
-									tx.end()
-								callback(arguments...)
+					clientModel = clientModels['data'].resources[conditionalResource.resource_type]
+					uri = '/data/' + conditionalResource.resource_type
+					switch conditionalResource.conditional_type
+						when 'DELETE'
+							getLockedRow(lockID)
+							.then((lockedRow) ->
+								lockedRow = lockedRow.rows.item(0)
+								uri = uri + '?$filter=' + clientModel.idField + ' eq ' + lockedRow.resource_id
+								runURI('DELETE', uri, {}, tx)
+							)
+							.then(doCleanup)
+						when 'EDIT'
+							getLockedRow(lockID)
+							.then((lockedRow) ->
+								lockedRow = lockedRow.rows.item(0)
+								getFieldsObject(conditionalResource.id, clientModel)
+							).then((fields) ->
+								fields[clientModel.idField] = lockedRow.resource_id
+								runURI('PUT', uri, fields, tx)
+							).then(doCleanup)
+						when 'ADD'
+							getFieldsObject(conditionalResource.id, clientModel)
+							.then((fields) ->
+								runURI('POST', uri, fields, tx)
+							).then((result) ->
+								resolvePlaceholder(placeholder, result.id)
+							).then(doCleanup)
+							.catch((err) ->
+								resolvePlaceholder(placeholder, false)
+								throw err
+							)
+				)
+			).then((err) ->
+				tx.executeSql('DELETE FROM "transaction" WHERE "id" = ?;', [transactionID])
+			).then((result) ->
+				validateDB(tx, sqlModels['data'])
+			).catch((err) ->
+				tx.rollback()
+				throw err
+			).then(->
+				tx.end()
+			).nodeify(callback)
 
 	validateDB = (tx, sqlmod, callback) ->
 		Q.all(_.map sqlmod.rules, (rule) ->
@@ -315,9 +297,6 @@ define [
 				if result.rows.item(0).result in [false, 0, '0']
 					throw rule.structuredEnglish
 			)
-		).catch((err) ->
-			tx.rollback()
-			throw err
 		).nodeify(callback)
 
 	exports.executeModel = executeModel = (tx, vocab, seModel, callback) ->
@@ -353,10 +332,8 @@ define [
 							# Validate the [empty] model according to the rules.
 							# This may eventually lead to entering obligatory data.
 							# For the moment it blocks such models from execution.
-							validateDB tx, sqlModel, (err) ->
-								if err
-									callback(err)
-									return
+							validateDB(tx, sqlModel)
+							.then(->
 								seModels[vocab] = seModel
 								sqlModels[vocab] = sqlModel
 								clientModels[vocab] = clientModel
@@ -389,7 +366,8 @@ define [
 									updateModel('abstractsql', abstractSqlModel)
 									updateModel('sql', sqlModel)
 									updateModel('client', clientModel)
-								]).nodeify(callback)
+								])
+							).nodeify(callback)
 						callback(err)
 				)
 			(err) ->
@@ -833,20 +811,12 @@ define [
 				console.error('Failed to compile abstract sql: ', request.query, e, e.stack)
 				res.send(503)
 				return
-			getAndCheckBindValues tree.vocabulary, bindings, request.values, (err, values) ->
-				console.log(query, err, values)
-				if err
-					res.json(err, 404)
-					return
+			getAndCheckBindValues(tree.vocabulary, bindings, request.values)
+			.then((values) ->
+				console.log(query, values)
 				runQuery = (tx) ->
-					tx.executeSql query, values, (err, result) ->
-						if err
-							if endTrans
-								tx.rollback()
-							res.send(404)
-							return
-						if endTrans
-							tx.end()
+					tx.executeSql(query, values)
+					.then((result) ->
 						clientModel = clientModels[tree.vocabulary].resources
 						switch tree.type
 							when 'OData'
@@ -858,11 +828,22 @@ define [
 										__model: clientModel[request.resourceName]
 										d: d
 									res.json(data)
-				endTrans = !tx?
+					)
 				if tx?
 					runQuery(tx)
 				else
-					db.transaction(runQuery)
+					db.transaction().then((tx) ->
+						runQuery(tx)
+						.then(->
+							tx.end()
+						).catch((err) ->
+							tx.rollback()
+							throw err
+						)
+					)
+			).catch((err) ->
+				res.json(err, 404)
+			)
 		else
 			if tree.requests[0].resourceName == '$metadata'
 				res.type('xml')
@@ -887,29 +868,20 @@ define [
 			res.send(503)
 			return
 		vocab = tree.vocabulary
-		getAndCheckBindValues vocab, bindings, request.values, (err, values) ->
-			console.log(query, err, values)
-			if err
-				res.json(err, 404)
-				return
+		getAndCheckBindValues(vocab, bindings, request.values)
+		.then((values) ->
+			console.log(query, values)
 			runQuery = (tx) ->
 				# TODO: Check for transaction locks.
-				tx.executeSql query, values, (err, sqlResult) ->
-					if err
-						if endTrans
-							tx.rollback()
-						constraintError = checkForConstraintError(err, request.resourceName)
-						if constraintError != false
-							res.json(constraintError, 404)
-						else
-							res.send(404)
-						return
-					validateDB tx, sqlModels[vocab], (err) ->
-						if err
-							res.json(err, 404)
-							return
-						if endTrans
-							tx.end()
+				tx.executeSql(query, values)
+				.catch((err) ->
+					constraintError = checkForConstraintError(err, request.resourceName)
+					if constraintError != false
+						throw constraintError
+					throw err
+				).then((sqlResult) ->
+					validateDB(tx, sqlModels[vocab])
+					.then(->
 						insertID = if request.query[0] == 'UpdateQuery' then values[0] else sqlResult.insertId
 						console.log('Insert ID: ', insertID)
 						res.json({
@@ -918,11 +890,23 @@ define [
 								location: '/' + vocab + '/' + request.resourceName + '?$filter=' + request.resourceName + '/' + clientModels[vocab].resources[request.resourceName].idField + ' eq ' + insertID
 							}, 201
 						)
-			endTrans = !tx?
+					)
+				)
 			if tx?
 				runQuery(tx)
 			else
-				db.transaction(runQuery)
+				db.transaction().then((tx) ->
+					runQuery(tx)
+					.then(->
+						tx.end()
+					).catch((err) ->
+						tx.rollback()
+						throw err
+					)
+				)
+		).catch((err) ->
+			res.json(err, 404)
+		)
 
 	exports.runPut = runPut = parseURITree (req, res, next, tx) ->
 		res.set('Cache-Control', 'no-cache')
@@ -944,66 +928,59 @@ define [
 		vocab = tree.vocabulary
 		id = getID(tree)
 		runTransaction = (tx) ->
-			tx.executeSql '''
+			tx.executeSql('''
 				SELECT NOT EXISTS(
 					SELECT 1
 					FROM "resource" r
 					JOIN "resource-is_under-lock" AS rl ON rl."resource" = r."id"
 					WHERE r."resource type" = ?
 					AND r."id" = ?
-				) AS result;''', [request.resourceName, id], (err, result) ->
-					if err
-						if endTrans
-							tx.rollback()
-						console.error('Unable to check resource locks', err)
-						res.send(404)
-						return
-					if result.rows.item(0).result in [false, 0, '0']
-						if endTrans
-							tx.rollback()
-						res.json([ "The resource is locked and cannot be edited" ], 404)
-						return
+				) AS result;''', [request.resourceName, id])
+			.catch((err) ->
+				console.error('Unable to check resource locks', err)
+				throw new Error('Unable to check resource locks')
+			).then((result) ->
+				if result.rows.item(0).result in [false, 0, '0']
+					throw new Error('The resource is locked and cannot be edited')
 
-					doValidate = (err) ->
-						if err
-							if endTrans
-								tx.rollback()
-							constraintError = checkForConstraintError(err, request.resourceName)
-							if constraintError != false
-								res.json(constraintError, 404)
-							else
-								res.send(404)
-							return
-						validateDB tx, sqlModels[vocab], (err) ->
-							if err
-								res.json(err, 404)
-							else
-								if endTrans
-									tx.end()
-								res.send(200)
+				runQuery = (query) ->
+					getAndCheckBindValues(vocab, query.bindings, request.values)
+					.then((values) ->
+						tx.executeSql(query.query, values)
+					)
 
-					runQuery = (query, callback) ->
-						getAndCheckBindValues vocab, query.bindings, request.values, (err, values) ->
-							if err
-								if endTrans
-									tx.rollback()
-								res.json(err, 404)
-								return
-							tx.executeSql(query.query, values, callback)
-
-					if updateQuery?
-						runQuery updateQuery, (err, result) ->
-							if !err and result.rowsAffected is 0
-								runQuery(insertQuery, doValidate)
-							else
-								doValidate(err)
-					else
-						runQuery(insertQuery, doValidate)
-		endTrans = !tx?
+				if updateQuery?
+					runQuery(updateQuery)
+					.then((result) ->
+						if result.rowsAffected is 0
+							runQuery(insertQuery)
+					)
+				else
+					runQuery(insertQuery)
+			).catch((err) ->
+				constraintError = checkForConstraintError(err, request.resourceName)
+				if constraintError != false
+					throw constraintError
+				throw err
+			).then(->
+				validateDB(tx, sqlModels[vocab])
+			).then(->
+				res.send(200)
+			).catch((err) ->
+				res.json(err, 404)
+			)
 		if tx?
 			runTransaction(tx)
 		else
-			db.transaction(runTransaction)
+			db.transaction().then((tx) ->
+				runTransaction(tx)
+				.then(->
+					tx.end()
+				).catch((err) ->
+					tx.rollback()
+					throw err
+				)
+			)
 
 	exports.runDelete = runDelete = parseURITree (req, res, next, tx) ->
 		res.set('Cache-Control', 'no-cache')
@@ -1016,34 +993,36 @@ define [
 			res.send(503)
 			return
 		vocab = tree.vocabulary
-		getAndCheckBindValues vocab, bindings, request.values, (err, values) ->
-			console.log(query, err, values)
-			if err
-				res.json(err, 404)
-				return
+		getAndCheckBindValues(vocab, bindings, request.values)
+		.then((values) ->
+			console.log(query, values)
 			runQuery = (tx) ->
-				tx.executeSql query, values, (err, result) ->
-					if err
-						if endTrans
-							tx.rollback()
-						constraintError = checkForConstraintError(err, request.resourceName)
-						if constraintError != false
-							res.json(constraintError, 404)
-						else
-							res.send(404)
-						return
-					validateDB tx, sqlModels[vocab], (err) ->
-						if err
-							res.json(err, 404)
-						else
-							if endTrans
-								tx.end()
-							res.send(200)
-			endTrans = !tx?
+				tx.executeSql(query, values)
+				.catch((err) ->
+					constraintError = checkForConstraintError(err, request.resourceName)
+					if constraintError != false
+						throw constraintError
+					throw err
+				).then(->
+					validateDB(tx, sqlModels[vocab])
+				)
 			if tx?
 				runQuery(tx)
 			else
-				db.transaction(runQuery)
+				db.transaction().then((tx) ->
+					runQuery(tx)
+					.then(->
+						tx.end()
+					).catch((err) ->
+						tx.rollback()
+						throw err
+					)
+				)
+		).then(->
+			res.send(200)
+		).catch((err) ->
+			res.json(err, 404)
+		)
 
 	exports.executeStandardModels = executeStandardModels = (tx, callback) ->
 		# The dev model has to be executed first.

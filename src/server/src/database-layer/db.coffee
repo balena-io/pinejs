@@ -62,7 +62,7 @@ define ['has', 'q', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Q, _, SQLB
 				clearTimeout(automaticCloseTimeout)
 				stackTrace = getStackTrace()
 				deferred = Q.defer()
-				deferred.reject(message)
+				deferred.reject(new Error(message))
 				@executeSql = (sql, bindings, callback) ->
 					# console.error(message, stackTrace)
 					# console.trace()

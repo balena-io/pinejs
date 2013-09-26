@@ -90,12 +90,12 @@ define [
 					isServerOnAir(true)
 				).catch((err) ->
 					isServerOnAir(false)
-					throw err
 				)
 			Q.all([uiModelPromise, dataModelPromise])
 			.then(->
 				tx.end()
-			).catch(->
+			).catch((err) ->
+				console.error(err)
 				tx.rollback()
 			)
 
