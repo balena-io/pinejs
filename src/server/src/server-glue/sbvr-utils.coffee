@@ -337,7 +337,7 @@ define([
 	validateDB = (tx, sqlmod, callback) ->
 		async.forEach(sqlmod.rules,
 			(rule, callback) ->
-				tx.executeSql(rule.sql, [],
+				tx.executeSql(rule.sql, rule.bindings,
 					(tx, result) ->
 						if result.rows.item(0).result in [false, 0, '0']
 							callback(rule.structuredEnglish)
@@ -533,9 +533,7 @@ define([
 		async.map(rows, processInstance, callback)
 
 	exports.runRule = do ->
-		LF2AbstractSQLPrepHack = _.extend({}, LF2AbstractSQL.LF2AbstractSQLPrep, {CardinalityOptimisation: () -> @_pred(false)})
-		translator = LF2AbstractSQL.LF2AbstractSQL.createInstance()
-		translator.addTypes(sbvrTypes)
+		LF2AbstractSQLPrepHack = LF2AbstractSQL.LF2AbstractSQLPrep._extend({CardinalityOptimisation: -> @_pred(false)})
 		return (vocab, rule, callback) ->
 			seModel = seModels[vocab]
 			try
@@ -550,11 +548,13 @@ define([
 				slfModel.push(ruleLF)
 				slfModel = LF2AbstractSQLPrepHack.match(slfModel, 'Process')
 
-				
+				translator = LF2AbstractSQL.LF2AbstractSQL.createInstance()
+				translator.addTypes(sbvrTypes)
 				abstractSqlModel = translator.match(slfModel, 'Process')
 			catch e
 				console.error('Failed to compile rule', rule, e, e.stack)
-			
+				return
+
 			ruleAbs = abstractSqlModel.rules[-1..][0]
 			# Remove the not exists
 			ruleAbs[2][1] = ruleAbs[2][1][1][1]
