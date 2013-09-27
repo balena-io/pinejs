@@ -404,23 +404,24 @@ define [
 					chainedCallback(result, callback)
 
 	checkForExpansion = (vocab, clientModel, fieldName, instance, callback) ->
-		field = instance[fieldName]
-		try
-			field = JSON.parse(field)
-		if !field?
-			callback()
-		else if _.isArray(field)
-			# Hack to look like a rows object
-			field.item = (i) -> @[i]
-			processOData vocab, clientModel, fieldName, field, (err, expandedField) ->
-				instance[fieldName] = expandedField
-				callback(err)
-		else
-			instance[fieldName] =
-				__deferred:
-					uri: '/' + vocab + '/' + fieldName + '(' + field + ')'
-				__id: field
-			callback()
+		Q.try(->
+			return JSON.parse(instance[fieldName])
+		).catch(->
+			# If we can't JSON.parse the field then it's not one needing expansion.
+		).then((field) ->
+			if _.isArray(field)
+				# Hack to look like a rows object
+				field.item = (i) -> @[i]
+				processOData(vocab, clientModel, fieldName, field)
+			else
+				return {
+					__deferred:
+						uri: '/' + vocab + '/' + fieldName + '(' + field + ')'
+					__id: field
+				}
+		).then((expandedField) ->
+			instance[fieldName] = expandedField
+		).nodeify(callback)
 
 	processOData = (vocab, clientModel, resourceName, rows, callback) ->
 		if rows.length is 0
@@ -439,12 +440,12 @@ define [
 			fieldNames[fieldName.replace(/\ /g, '_')] = true
 		if _.any(rows.item(0), (val, fieldName) -> !fieldNames.hasOwnProperty(fieldName))
 			processInstance = chainCallback processInstance, (instance, callback) ->
-				processField = (fieldName, callback) ->
+				Q.all(_.map _.keys(instance), (fieldName) ->
 					if fieldName[0..1] != '__' and !fieldNames.hasOwnProperty(fieldName)
 						checkForExpansion(vocab, clientModel, fieldName, instance, callback)
-					else
-						callback()
-				async.each(_.keys(instance), processField, (err) -> callback(err, instance))
+				).then(->
+					return instance
+				).nodeify(callback)
 
 		if _.any(resourceModel.fields, ({dataType}) -> dataType == 'ForeignKey' or sbvrTypes[dataType]?.fetchProcessing?)
 			processInstance = chainCallback processInstance, (instance, callback) ->
@@ -457,16 +458,17 @@ define [
 							else
 								fetchProcessing = sbvrTypes[dataType]?.fetchProcessing
 								if fetchProcessing?
-									fetchProcessing instance[fieldName], (err, result) ->
+									Q.nfcall(fetchProcessing, instance[fieldName])
+									.then((result) ->
 										instance[fieldName] = result
-										callback(err)
+									).nodeify(callback)
 								else
 									callback()
 					else
 						callback()
 				async.each(resourceModel.fields, processField, (err) -> callback(err, instance))
 
-		async.map(rows, processInstance, callback)
+		Q.nfcall(async.map, rows, processInstance).nodeify(callback)
 
 	exports.runRule = do ->
 		LF2AbstractSQLPrepHack = LF2AbstractSQL.LF2AbstractSQLPrep._extend({CardinalityOptimisation: -> @_pred(false)})
@@ -511,7 +513,7 @@ define [
 			).then((result) ->
 				resourceName = ruleLF[1][1][1][2][1].replace(/\ /g, '_').replace(/-/g, '__')
 				clientModel = clientModels[vocab].resources
-				Q.nfcall(processOData, vocab, clientModel, resourceName, result.rows)
+				processOData(vocab, clientModel, resourceName, result.rows)
 			).then((d) ->
 				return {
 					__model: clientModel[resourceName]
@@ -817,14 +819,15 @@ define [
 						clientModel = clientModels[tree.vocabulary].resources
 						switch tree.type
 							when 'OData'
-								processOData tree.vocabulary, clientModel, request.resourceName, result.rows, (err, d) ->
-									if err
-										res.json(err, 404)
-										return
+								processOData(tree.vocabulary, clientModel, request.resourceName, result.rows)
+								.then((d) ->
 									data =
 										__model: clientModel[request.resourceName]
 										d: d
 									res.json(data)
+								)
+							else
+								res.send(503)
 					)
 				if tx?
 					runQuery(tx)
