@@ -70,7 +70,7 @@ define [
 	exports.setup = (app, requirejs, sbvrUtils, db) ->
 		setupModels = (tx) ->
 			uiModelPromise =
-				Q.nfcall(sbvrUtils.executeModel, tx, 'ui', uiModel)
+				sbvrUtils.executeModel(tx, 'ui', uiModel)
 				.then(->
 					console.info('Sucessfully executed ui model.')
 					uiModelLoaded(true)
@@ -84,7 +84,7 @@ define [
 					if result.d.length is 0
 						throw new Error('No SE data model found')
 					instance = result.d[0]
-					Q.nfcall(sbvrUtils.executeModel, tx, instance.vocabulary, instance.model_value)
+					sbvrUtils.executeModel(tx, instance.vocabulary, instance.model_value)
 				)
 				.then(->
 					isServerOnAir(true)
@@ -109,27 +109,34 @@ define [
 		app.post('/update', sbvrUtils.checkPermissionsMiddleware('all'), serverIsOnAir, (req, res, next) ->
 			res.send(404)
 		)
-		app.post('/execute', sbvrUtils.checkPermissionsMiddleware('all'), uiModelLoaded, (req, res, next) ->
-			sbvrUtils.runURI('GET', "/ui/textarea?$filter=name eq 'model_area'", null, null, (err, result) ->
-				if !err and result.d.length > 0
-					seModel = result.d[0].text
-					db.transaction (tx) ->
-						sbvrUtils.executeModel tx, 'data', seModel, (err) ->
-							if err
-								tx.rollback()
-								res.json(err, 404)
-								return
-							sbvrUtils.runURI 'PATCH', "/ui/textarea?$filter=name eq 'model_area'", {
-								is_disabled: true
-								name: 'model_area'
-							}, tx, (err) ->
-								isServerOnAir(true)
-								tx.end()
-								res.send(200)
-				else
-					res.send(404)
+		app.post '/execute', sbvrUtils.checkPermissionsMiddleware('all'), uiModelLoaded, (req, res, next) ->
+			sbvrUtils.runURI('GET', "/ui/textarea?$filter=name eq 'model_area'")
+			.then((result) ->
+				if result.d.length is 0
+					throw new Error('Could not find the model to execute')
+				seModel = result.d[0].text
+				db.transaction()
+				.then((tx) ->
+					sbvrUtils.executeModel(tx, 'data', seModel)
+					.then(->
+						sbvrUtils.runURI('PATCH', "/ui/textarea?$filter=name eq 'model_area'", {
+							is_disabled: true
+							name: 'model_area'
+						}, tx)
+					).then(->
+						tx.end()
+					).catch((err)
+						tx.rollback()
+						throw err
+					)
+				)
+			).then(->
+				isServerOnAir(true)
+				res.send(200)
+			).catch((err) ->
+				isServerOnAir(false)
+				res.json(err, 404)
 			)
-		)
 		app.post '/validate', sbvrUtils.checkPermissionsMiddleware('get'), uiModelLoaded, (req, res, next) ->
 			sbvrUtils.runRule 'data', req.body.rule, (err, results) ->
 				if err
@@ -143,9 +150,9 @@ define [
 					Q.all result.rows.map (table) ->
 						tx.dropTable(table.name)
 				).then(->
-					Q.nfcall(sbvrUtils.executeStandardModels, tx)
+					sbvrUtils.executeStandardModels(tx)
 				).then(->
-					setupModels(tx)
+					setupModels(tx) 
 					res.send(200)
 				).catch((err) ->
 					console.error('Error clearing db', err)

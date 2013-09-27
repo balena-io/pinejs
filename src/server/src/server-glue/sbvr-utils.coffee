@@ -302,80 +302,72 @@ define [
 	exports.executeModel = executeModel = (tx, vocab, seModel, callback) ->
 		models = {}
 		models[vocab] = seModel
-		executeModels(tx, models, callback)
+		executeModels(tx, models).nodeify(callback)
 	exports.executeModels = executeModels = (tx, models, callback) ->
 		validateFuncs = []
-		async.forEach(_.keys(models),
-			(vocab, callback) ->
-				seModel = models[vocab]
-				try
-					lfModel = SBVRParser.matchAll(seModel, 'Process')
-				catch e
-					console.error('Error parsing model', vocab, e, e.stack)
-					return callback('Error parsing model')
-				try
-					abstractSqlModel = LF2AbstractSQLTranslator(lfModel, 'Process')
-					sqlModel = AbstractSQL2SQL.generate(abstractSqlModel)
-					clientModel = AbstractSQL2CLF(sqlModel)
-					metadata = ODataMetadataGenerator(vocab, sqlModel)
-				catch e
-					console.error('Error compiling model', vocab, e, e.stack)
-					return callback('Error compiling model')
+		Q.all(_.map _.keys(models), (vocab) ->
+			seModel = models[vocab]
+			try
+				lfModel = SBVRParser.matchAll(seModel, 'Process')
+			catch e
+				console.error('Error parsing model', vocab, e, e.stack)
+				throw new Error(['Error parsing model', e])
+			try
+				abstractSqlModel = LF2AbstractSQLTranslator(lfModel, 'Process')
+				sqlModel = AbstractSQL2SQL.generate(abstractSqlModel)
+				clientModel = AbstractSQL2CLF(sqlModel)
+				metadata = ODataMetadataGenerator(vocab, sqlModel)
+			catch e
+				console.error('Error compiling model', vocab, e, e.stack)
+				throw new Error(['Error compiling model', e])
 
-				# Create tables related to terms and fact types
-				async.forEach(sqlModel.createSchema,
-					(createStatement, callback) ->
-						tx.executeSql createStatement, null, ->
-							callback() # Warning: We ignore errors in the create table statements as SQLite doesn't support CREATE IF NOT EXISTS
-					(err) ->
-						validateFuncs.push (callback) ->
-							# Validate the [empty] model according to the rules.
-							# This may eventually lead to entering obligatory data.
-							# For the moment it blocks such models from execution.
-							validateDB(tx, sqlModel)
-							.then(->
-								seModels[vocab] = seModel
-								sqlModels[vocab] = sqlModel
-								clientModels[vocab] = clientModel
-								odataMetadata[vocab] = metadata
-
-								odata2AbstractSQL[vocab] = OData2AbstractSQL.createInstance()
-								odata2AbstractSQL[vocab].clientModel = clientModel
-
-								updateModel = (modelType, model) ->
-									runURI('GET', "/dev/model?$filter=vocabulary eq '" + vocab + "' and model_type eq '" + modelType + "'", null, tx)
-									.then((result) ->
-										method = 'POST'
-										uri = '/dev/model'
-										body =
-											vocabulary: vocab
-											model_value: model
-											model_type: modelType
-										id = result?.d?[0]?.id ? null
-										if id?
-											uri += '(' + id + ')'
-											method = 'PUT'
-											body.id = id
-
-										runURI(method, uri, body, tx)
-									)
-
-								Q.all([
-									updateModel('se', seModel)
-									updateModel('lf', lfModel)
-									updateModel('abstractsql', abstractSqlModel)
-									updateModel('sql', sqlModel)
-									updateModel('client', clientModel)
-								])
-							).nodeify(callback)
-						callback(err)
+			# Create tables related to terms and fact types
+			Q.all(_.map sqlModel.createSchema, (createStatement) ->
+				tx.executeSql(createStatement)
+				.catch(->
+					# Warning: We ignore errors in the create table statements as SQLite doesn't support CREATE IF NOT EXISTS
 				)
-			(err) ->
-				if err
-					callback(err)
-				else
-					async.parallel(validateFuncs, callback)
-		)
+			).then(->
+				# Validate the [empty] model according to the rules.
+				# This may eventually lead to entering obligatory data.
+				# For the moment it blocks such models from execution.
+				validateDB(tx, sqlModel)
+			).then(->
+				seModels[vocab] = seModel
+				sqlModels[vocab] = sqlModel
+				clientModels[vocab] = clientModel
+				odataMetadata[vocab] = metadata
+
+				odata2AbstractSQL[vocab] = OData2AbstractSQL.createInstance()
+				odata2AbstractSQL[vocab].clientModel = clientModel
+
+				updateModel = (modelType, model) ->
+					runURI('GET', "/dev/model?$filter=vocabulary eq '" + vocab + "' and model_type eq '" + modelType + "'", null, tx)
+					.then((result) ->
+						method = 'POST'
+						uri = '/dev/model'
+						body =
+							vocabulary: vocab
+							model_value: model
+							model_type: modelType
+						id = result?.d?[0]?.id ? null
+						if id?
+							uri += '(' + id + ')'
+							method = 'PUT'
+							body.id = id
+
+						runURI(method, uri, body, tx)
+					)
+
+				Q.all([
+					updateModel('se', seModel)
+					updateModel('lf', lfModel)
+					updateModel('abstractsql', abstractSqlModel)
+					updateModel('sql', sqlModel)
+					updateModel('client', clientModel)
+				])
+			)
+		).nodeify(callback)
 
 	exports.deleteModel = (vocabulary) ->
 		# TODO: This should be reorganised to be async.
@@ -506,21 +498,26 @@ define [
 			ruleAbs[2][1][1][1] = '*'
 			ruleSQL = AbstractSQL2SQL.generate({tables: {}, rules: [ruleAbs]}).rules[0].sql
 			
-			db.transaction (tx) ->
-				tx.executeSql ruleSQL, [], (err, result) ->
-					if err
-						callback(err)
-						return
-					resourceName = ruleLF[1][1][1][2][1].replace(/\ /g, '_').replace(/-/g, '__')
-					clientModel = clientModels[vocab].resources
-					processOData vocab, clientModel, resourceName, result.rows, (err, d) ->
-						if err
-							callback(err)
-							return
-						data =
-							__model: clientModel[resourceName]
-							d: d
-						callback(null, data)
+			db.transaction()
+			.then((tx) ->
+				tx.executeSql(ruleSQL.query, ruleSQL.bindings)
+				.catch((err) ->
+					tx.rollback()
+					throw err
+				).then((result) ->
+					tx.end()
+					return result
+				)
+			).then((result) ->
+				resourceName = ruleLF[1][1][1][2][1].replace(/\ /g, '_').replace(/-/g, '__')
+				clientModel = clientModels[vocab].resources
+				Q.nfcall(processOData, vocab, clientModel, resourceName, result.rows)
+			).then((d) ->
+				return {
+					__model: clientModel[resourceName]
+					d: d
+				}
+			).nodeify(callback)
 
 	exports.runURI = runURI = (method, uri, body = {}, tx, callback) ->
 		deferred = Q.defer()
@@ -1026,44 +1023,46 @@ define [
 
 	exports.executeStandardModels = executeStandardModels = (tx, callback) ->
 		# The dev model has to be executed first.
-		executeModel tx, 'dev', devModel, (err) ->
-			if err
-				console.error('Failed to execute standard models.', err)
-				callback?(err)
-				return
-			executeModels tx, {
+		executeModel(tx, 'dev', devModel)
+		.then(->
+			executeModels(tx, {
 				'transaction': transactionModel
 				'Auth': userModel
-			}, (err) ->
-				if err
-					console.error('Failed to execute standard models.', err)
-				else
-					tx.executeSql('CREATE UNIQUE INDEX "uniq_model_model_type_vocab" ON "model" ("vocabulary", "model type");')
-					# TODO: Remove these hardcoded users.
-					if has 'DEV'
-						Q.all([
-							runURI('POST', '/Auth/user', {'username': 'root', 'password': 'test123'})
-							runURI('POST', '/Auth/permission', {'name': 'resource.all'})
-						]).then(->
-							# We expect these to be the first user/permission, so they would have id 1.
-							runURI('POST', '/Auth/user__has__permission', {'user': 1, 'permission': 1})
-						).catch((err) ->
-							console.error('Unable to add dev users', err)
-						)
-					console.info('Sucessfully executed standard models.')
-				callback?(err)
+			})
+		).then(->
+			tx.executeSql('CREATE UNIQUE INDEX "uniq_model_model_type_vocab" ON "model" ("vocabulary", "model type");')
+			# TODO: Remove these hardcoded users.
+			if has 'DEV'
+				Q.all([
+					runURI('POST', '/Auth/user', {'username': 'root', 'password': 'test123'})
+					runURI('POST', '/Auth/permission', {'name': 'resource.all'})
+				]).then(->
+					# We expect these to be the first user/permission, so they would have id 1.
+					runURI('POST', '/Auth/user__has__permission', {'user': 1, 'permission': 1})
+				).catch((err) ->
+					console.error('Unable to add dev users', err)
+				)
+			console.info('Sucessfully executed standard models.')
+		).catch((err) ->
+			console.error('Failed to execute standard models.', err)
+			throw err
+		).nodeify(callback)
 
 	exports.setup = (app, requirejs, _db, callback) ->
 		db = _db
 		AbstractSQL2SQL = AbstractSQL2SQL[db.engine]
-		db.transaction (tx) ->
-			executeStandardModels tx, (err) ->
-				if err?
-					console.error('Could not execute standard models')
-					process.exit()
+		db.transaction()
+		.then((tx) ->
+			executeStandardModels(tx)
+			.then(->
 				tx.end()
-				# We only actually need to have had the standard models executed before execution continues, so we schedule it here.
-				setTimeout(callback, 0)
+			).catch((err) ->
+				tx.rollback()
+				console.error('Could not execute standard models', err)
+				process.exit()
+			)
+		).nodeify(callback)
+
 		if has 'DEV'
 			app.get('/dev/*', runGet)
 		app.post '/transaction/execute', (req, res, next) ->
