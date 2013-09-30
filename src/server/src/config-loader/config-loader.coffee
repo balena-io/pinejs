@@ -1,4 +1,4 @@
-define ['has', 'async', 'lodash', 'q'], (has, async, _, Q) ->
+define ['has', 'lodash', 'q'], (has, _, Q) ->
 	exports = {}
 
 	# Setup function
@@ -12,103 +12,84 @@ define ['has', 'async', 'lodash', 'q'], (has, async, _, Q) ->
 		root = process.argv[2] or __dirname
 		console.info('loading config.json')
 		data = require path.join(root, 'config.json')
-		async.parallel [
-			(callback) ->
-				async.each data.models,
-					(model, callback) ->
-						fs.readFile path.join(root, model.modelFile), 'utf8', (err, sbvrModel) ->
-							if err
-								console.error('Unable to load ' + model.modelName + ' model from ' + model.modelFile, err)
-								process.exit()
-							db.transaction (tx) ->
-								sbvrUtils.executeModel tx, model.apiRoot, sbvrModel, (err) ->
-									if err
-										console.error('Failed to execute ' + model.modelName + ' model.', err)
-										process.exit()
-									tx.end()
-									apiRoute = '/' + model.apiRoot + '/*'
-									app.get(apiRoute, sbvrUtils.runGet)
+		db.transaction().then((tx) ->
+			modelsPromise = Q.all(_.map data.models, (model) ->
+				Q.nfcall(fs.readFile, path.join(root, model.modelFile), 'utf8')
+				.then((sbvrModel) ->
+					sbvrUtils.executeModel(tx, model.apiRoot, sbvrModel)
+				).then(->
+					apiRoute = '/' + model.apiRoot + '/*'
+					app.get(apiRoute, sbvrUtils.runGet)
 
-									app.post(apiRoute, sbvrUtils.runPost)
+					app.post(apiRoute, sbvrUtils.runPost)
 
-									app.put(apiRoute, sbvrUtils.runPut)
+					app.put(apiRoute, sbvrUtils.runPut)
 
-									app.patch(apiRoute, sbvrUtils.runPut)
+					app.patch(apiRoute, sbvrUtils.runPut)
 
-									app.merge(apiRoute, sbvrUtils.runPut)
+					app.merge(apiRoute, sbvrUtils.runPut)
 
-									app.del(apiRoute, sbvrUtils.runDelete)
-									
-									if model.customServerCode?
-										try
-											require(root + '/' + model.customServerCode).setup(app, requirejs, sbvrUtils, db)
-										catch e
-											console.error('Error running custom server code: ' + e)
-											process.exit()
+					app.del(apiRoute, sbvrUtils.runDelete)
+					
+					if model.customServerCode?
+						try
+							require(root + '/' + model.customServerCode).setup(app, requirejs, sbvrUtils, db)
+						catch e
+							throw new Error('Error running custom server code: ' + e)
+				).then(->
+					console.info('Sucessfully executed ' + model.modelName + ' model.')
+				).catch((err) ->
+					throw new Error(['Failed to execute ' + model.modelName + ' model from ' + model.modelFile, err])
+				)
+			)
 
-									console.info('Sucessfully executed ' + model.modelName + ' model.')
-									callback()
-					callback
-			(callback) ->
-				if !data.users?
-					callback()
-					return
-				permissions = []
-				for user in data.users
-					if user.permissions?
-						permissions = permissions.concat(user.permissions)
-				permissions = _.uniq(permissions)
-
-				db.transaction (tx) ->
-					userPromises = Q.all(_.map data.users, (user) ->
-						return sbvrUtils.runURI('GET', "/Auth/user?$filter=username eq '" + encodeURIComponent(user.username) + "'", null, tx)
+			if data.users?
+				permissions = {}
+				for user in data.users when user.permissions?
+					for permissionName in user.permissions
+						permissions[permissionName] ?=
+							sbvrUtils.runURI('GET', "/Auth/permission?$filter=name eq '" + encodeURIComponent(permissionName) + "'", null, tx)
 							.then((result) ->
 								if result.d.length is 0
-									sbvrUtils.runURI('POST', '/Auth/user', {'username': user.username, 'password': user.password}, null, tx)
+									sbvrUtils.runURI('POST', '/Auth/permission', {'name': permissionName}, null, tx)
 									.get('id')
 								else
 									return result.d[0].id
 							).catch((err) ->
-								throw 'Could not create or find user "' + user.username + '": ' + err
+								throw new Error('Could not create or find permission "' + permissionName + '": ' + err)
 							)
-					).then((users) ->
-						_.zip(users, data.users)
-					)
-					permissionPromises = Q.all(_.map permissions, (permission) ->
-						return sbvrUtils.runURI('GET', "/Auth/permission?$filter=name eq '" + encodeURIComponent(permission) + "'", null, tx)
-							.then((result) ->
-								if result.d.length is 0
-									sbvrUtils.runURI('POST', '/Auth/permission', {'name': permission}, null, tx)
-									.get('id')
-								else
-									return result.d[0].id
-							).catch((err) ->
-								throw 'Could not create or find permission "' + permission + '": ' + err
-							)
-					).then((permissionIDs) ->
-						return _.zipObject(permissions, permissionIDs)
-					)
 
-					Q
-					.all([userPromises, permissionPromises])
-					.spread((users, permissions) ->
-						Q.all _.map users, ([userID, {permissions: userPermissions}]) ->
-							if !userPermissions?
-								return
-							Q.all _.map userPermissions, (permission) ->
-								permissionID = permissions[permission]
-								return sbvrUtils.runURI('GET', "/Auth/user__has__permission?$filter=user eq '" + userID + "' and permission eq '" + permissionID + "'", null, tx)
-									.then (result) ->
-										if result.d.length is 0
-											sbvrUtils.runURI('POST', '/Auth/user__has__permission', {'user': userID, 'permission': permissionID}, null, tx)
+				usersPromise = Q.all(_.map data.users, (user) ->
+					sbvrUtils.runURI('GET', "/Auth/user?$filter=username eq '" + encodeURIComponent(user.username) + "'", null, tx)
+					.then((result) ->
+						if result.d.length is 0
+							sbvrUtils.runURI('POST', '/Auth/user', {'username': user.username, 'password': user.password}, null, tx)
+							.get('id')
+						else
+							return result.d[0].id
+					).then((userID) ->
+						Q.all(_.map user.permissions, (permissionName) ->
+							permissions[permissionName].then((permissionID) ->
+								sbvrUtils.runURI('GET', "/Auth/user__has__permission?$filter=user eq '" + userID + "' and permission eq '" + permissionID + "'", null, tx)
+								.then((result) ->
+									if result.d.length is 0
+										sbvrUtils.runURI('POST', '/Auth/user__has__permission', {'user': userID, 'permission': permissionID}, null, tx)
+								)
+							)
+						)
+					).catch((err) ->
+						throw new Error('Could not create or find user "' + user.username + '": ' + err)
 					)
-					.then((err) ->
-						tx.end()
-						callback()
-					)
-					.catch((err) ->
-						console.error('Failed to add users or permissions', err)
-						process.exit()
-					)
-		], done
+				)
+			Q.all([modelsPromise, usersPromise])
+			.catch((err) ->
+				tx.rollback()
+				throw err
+			).then(->
+				tx.end()
+			)
+		).catch((err) ->
+			console.error(err)
+			process.exit()
+		).nodeify(done)
 	return exports

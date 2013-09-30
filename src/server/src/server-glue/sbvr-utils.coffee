@@ -8,11 +8,10 @@ define [
 	'cs!sbvr-compiler/ODataMetadataGenerator'
 	'odata-parser'
 	'odata-to-abstract-sql'
-	'async'
 	'lodash'
 	'q'
 	'cs!sbvr-compiler/types'
-], (has, SBVRParser, LF2AbstractSQL, AbstractSQL2SQL, AbstractSQLCompiler, AbstractSQL2CLF, ODataMetadataGenerator, {ODataParser}, {OData2AbstractSQL}, async, _, Q, sbvrTypes) ->
+], (has, SBVRParser, LF2AbstractSQL, AbstractSQL2SQL, AbstractSQLCompiler, AbstractSQL2CLF, ODataMetadataGenerator, {ODataParser}, {OData2AbstractSQL}, _, Q, sbvrTypes) ->
 	exports = {}
 	db = null
 	Q.longStackSupport = true

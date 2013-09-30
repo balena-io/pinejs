@@ -1,4 +1,4 @@
-define ['async'], () ->
+define ->
 	return (options, sbvrUtils, app, passport) ->
 		exports = {}
 		checkPassword = (username, password, done) ->
