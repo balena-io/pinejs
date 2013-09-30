@@ -187,54 +187,42 @@ define [
 	endTransaction = (transactionID, callback) ->
 		db.transaction (tx) ->
 			placeholders = {}
-			getLockedRow = (lockID, callback) ->
+			getLockedRow = (lockID) ->
 				tx.executeSql('''SELECT r."resource type" AS "resource_type", r."resource id" AS "resource_id"
 								FROM "resource-is_under-lock" rl
 								JOIN "resource" r ON rl."resource" = r."id"
-								WHERE "lock" = ?;''', [lockID], callback)
-			getFieldsObject = (conditionalResourceID, clientModel, callback) ->
-				tx.executeSql 'SELECT "field name" AS "field_name", "field value" AS "field_value" FROM "conditional_field" WHERE "conditional resource" = ?;', [conditionalResourceID], (err, fields) ->
-					if err
-						callback(err)
-						return
+								WHERE "lock" = ?;''', [lockID])
+			getFieldsObject = (conditionalResourceID, clientModel) ->
+				tx.executeSql('SELECT "field name" AS "field_name", "field value" AS "field_value" FROM "conditional_field" WHERE "conditional resource" = ?;', [conditionalResourceID])
+				.then((fields) ->
 					fieldsObject = {}
-					async.forEach fields.rows,
-						(field, callback) ->
-							fieldName = field.field_name.replace(clientModel.resourceName + '.', '')
-							fieldValue = field.field_value
-							async.forEach clientModel.fields,
-								(modelField, callback) ->
-									placeholderCallback = (placeholder, resolvedID) ->
-										if resolvedID == false
-											callback('Placeholder failed' + fieldValue)
-										else
-											fieldsObject[fieldName] = resolvedID
-											callback()
-									if modelField.fieldName == fieldName and modelField.dataType == 'ForeignKey' and _.isNaN(Number(fieldValue))
-										if !placeholders.hasOwnProperty(fieldValue)
-											return callback('Cannot resolve placeholder' + fieldValue)
-										else if _.isArray(placeholders[fieldValue])
-											placeholders[fieldValue].push(placeholderCallback)
-										else
-											placeholderCallback(fieldValue, placeholders[fieldValue])
-									else
-										fieldsObject[fieldName] = fieldValue
-										callback()
-								callback
-						(err) ->
-							callback(err, fieldsObject)
-			resolvePlaceholder = (placeholder, resolvedID) ->
-				placeholderCallbacks = placeholders[placeholder]
-				placeholders[placeholder] = resolvedID
-				for placeholderCallback in placeholderCallbacks
-					placeholderCallback(placeholder, resolvedID)
+					Q.all(fields.rows.map (field) ->
+						fieldName = field.field_name.replace(clientModel.resourceName + '.', '')
+						fieldValue = field.field_value
+						modelField = _.find(clientModel.fields, {fieldName})
+						if modelField.dataType == 'ForeignKey' and _.isNaN(Number(fieldValue))
+							if !placeholders.hasOwnProperty(fieldValue)
+								throw new Error('Cannot resolve placeholder' + fieldValue)
+							else
+								placeholders[fieldValue].promise
+								.then((resolvedID) ->
+									fieldsObject[fieldName] = resolvedID
+								).catch(->
+									throw new Error('Placeholder failed' + fieldValue)
+								)
+						else
+							fieldsObject[fieldName] = fieldValue
+					).then(->
+						return fieldsObject
+					)
+				)
 
 			tx.executeSql('SELECT * FROM "conditional_resource" WHERE "transaction" = ?;', [transactionID])
 			.then((conditionalResources) ->
 				conditionalResources.rows.forEach (conditionalResource) ->
 					placeholder = conditionalResource.placeholder
 					if placeholder? and placeholder.length > 0
-						placeholders[placeholder] = []
+						placeholders[placeholder] = Q.defer()
 
 				# get conditional resources (if exist)
 				Q.all(conditionalResources.rows.map (conditionalResource) ->
@@ -273,10 +261,10 @@ define [
 							.then((fields) ->
 								runURI('POST', uri, fields, tx)
 							).then((result) ->
-								resolvePlaceholder(placeholder, result.id)
+								placeholders[placeholder].resolve(result.id)
 							).then(doCleanup)
 							.catch((err) ->
-								resolvePlaceholder(placeholder, false)
+								placeholders[placeholder].reject(err)
 								throw err
 							)
 				)
@@ -423,10 +411,9 @@ define [
 			instance[fieldName] = expandedField
 		).nodeify(callback)
 
-	processOData = (vocab, clientModel, resourceName, rows, callback) ->
+	processOData = (vocab, clientModel, resourceName, rows) ->
 		if rows.length is 0
-			callback(null, [])
-			return
+			return Q.resolve([])
 
 		resourceModel = clientModel[resourceName]
 		processInstance = (instance, callback) ->
@@ -468,7 +455,7 @@ define [
 						callback()
 				async.each(resourceModel.fields, processField, (err) -> callback(err, instance))
 
-		Q.nfcall(async.map, rows, processInstance).nodeify(callback)
+		Q.nfcall(async.map, rows, processInstance)
 
 	exports.runRule = do ->
 		LF2AbstractSQLPrepHack = LF2AbstractSQL.LF2AbstractSQLPrep._extend({CardinalityOptimisation: -> @_pred(false)})
