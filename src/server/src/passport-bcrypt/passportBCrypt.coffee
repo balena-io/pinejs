@@ -1,28 +1,30 @@
-define ->
+define ['q'], (Q) ->
 	return (options, sbvrUtils, app, passport) ->
 		exports = {}
 		checkPassword = (username, password, done) ->
-			sbvrUtils.runURI('GET', "/Auth/user?$filter=user/username eq '" + username + "'", {}, null, (err, result) ->
-				if !err and result.d.length > 0
-					hash = result.d[0].password
-					userId = result.d[0].id
-					compare(password, hash, (err, res) ->
-						if res
-							sbvrUtils.getUserPermissions(userId, (err, permissions) ->
-								if err?
-									done(null, false)
-								else
-									done(null,
-										id: userId
-										username: username
-										permissions: permissions
-									)
-							)
-						else
-							done(null, false)
+			sbvrUtils.runURI('GET', "/Auth/user?$filter=user/username eq '" + username + "'")
+			.then((result) ->
+				if result.d.length is 0
+					throw new Error('User not found')
+				hash = result.d[0].password
+				userId = result.d[0].id
+				Q.nfcall(compare, password, hash)
+				.then((res) ->
+					if !res
+						throw new Error('Passwords do not match')
+					sbvrUtils.getUserPermissions(userId)
+					.then((permissions) ->
+						return {
+							id: userId
+							username: username
+							permissions: permissions
+						}
 					)
-				else
-					done(null, false)
+				)
+			).catch(->
+				return false
+			).done((user) ->
+				done(null, user)
 			)
 
 		handleAuth = (req, res, user) ->

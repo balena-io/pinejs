@@ -1,4 +1,4 @@
-define([
+define [
 	'has'
 	'cs!database-layer/db'
 	'cs!server-glue/sbvr-utils'
@@ -83,6 +83,5 @@ define([
 		if has 'ENV_BROWSER'
 			app.enable()
 	)
-	
+
 	return {app, sbvrUtils}
-)

@@ -4,7 +4,6 @@ define [
 	'q'
 ], (_, has, Q) ->
 	exports = {}
-	db = null
 	Q.longStackSupport = true
 
 	uiModel = '''
@@ -24,61 +23,46 @@ define [
 			Fact type:  textarea has text
 				Necessity: Each textarea has exactly 1 text'''
 
-	isServerOnAir = do() ->
-		onAir = null
-		pendingCallbacks = []
-		return (funcOrVal) ->
-			if funcOrVal == true or funcOrVal == false
-				# If we are setting new value then set the onAir var
-				onAir = funcOrVal
-				# And monkey patch to just set value or call callback.
-				isServerOnAir = (funcOrVal) ->
-					if funcOrVal == true or funcOrVal == false
-						onAir = funcOrVal
-					else
-						funcOrVal(onAir)
-				# And call all the callbacks that are pending.
-				for callback in pendingCallbacks
-					callback(onAir)
-				pendingCallbacks = null
-			else
-				# If we have no value set yet then just add the func to the callback queue
-				pendingCallbacks.push(funcOrVal)
-
 	# Middleware
+	isServerOnAir = do ->
+		deferred = Q.defer()
+		promise = deferred.promise
+		(value) ->
+			if value?
+				if promise.isPending()
+					deferred.resolve(value)
+					deferred = null
+				else
+					promise = Q(value)
+			return promise
+
 	serverIsOnAir = (req, res, next) ->
-		isServerOnAir((onAir) ->
+		isServerOnAir().then((onAir) ->
 			if onAir
 				next()
 			else
 				next('route')
 		)
 	
-	uiModelLoaded = do ->
-		_nexts = []
-		runNext = (next, loaded) ->
-			if loaded == true
-				runNext = (next) -> next?()
-				for next in _nexts
-					setTimeout(next, 0)
-			else
-				_nexts.push(next)
-		(req, res, next) ->
-			runNext(next, req)
+	isUiModelLoaded = Q.defer()
+	uiModelLoaded = (req, res, next) ->
+		isUiModelLoaded.promise.then(->
+			next()
+		)
 
 	# Setup function
 	exports.setup = (app, requirejs, sbvrUtils, db) ->
 		setupModels = (tx) ->
-			uiModelPromise =
+			Q.all([
 				sbvrUtils.executeModel(tx, 'ui', uiModel)
 				.then(->
 					console.info('Sucessfully executed ui model.')
-					uiModelLoaded(true)
+					isUiModelLoaded.resolve()
 				).catch((err) ->
 					console.error('Failed to execute ui model.', err)
 					throw err
 				)
-			dataModelPromise =
+			,
 				sbvrUtils.runURI('GET', "/dev/model?$filter=model_type eq 'se' and vocabulary eq 'data'", null, tx)
 				.then((result) ->
 					if result.d.length is 0
@@ -91,18 +75,11 @@ define [
 				).catch((err) ->
 					isServerOnAir(false)
 				)
-			Q.all([uiModelPromise, dataModelPromise])
-			.then(->
-				tx.end()
-			).catch((err) ->
-				console.error(err)
-				tx.rollback()
-			)
-
-		db.transaction(setupModels)
+			])
 
 		app.get('/onAir', (req, res, next) -> 
-			isServerOnAir((onAir) ->
+			isServerOnAir()
+			.then((onAir) ->
 				res.json(onAir)
 			)
 		)
@@ -152,7 +129,9 @@ define [
 				).then(->
 					sbvrUtils.executeStandardModels(tx)
 				).then(->
-					setupModels(tx) 
+					setupModels(tx)
+				).then(->
+					tx.end()
 					res.send(200)
 				).catch((err) ->
 					console.error('Error clearing db', err)
@@ -211,10 +190,10 @@ define [
 									insQuery += ") values (" + valQuery + ");\n"
 								exported += insQuery
 							)
-						).then(->
-							tx.end()
-							res.json(exported)
 						)
+					).then(->
+						tx.end()
+						res.json(exported)
 					).catch((err) ->
 						console.error(err)
 						tx.rollback()
@@ -222,31 +201,37 @@ define [
 					)
 		app.post '/backupdb', sbvrUtils.checkPermissionsMiddleware('all'), serverIsOnAir, (req, res, next) ->
 			db.transaction (tx) ->
-				tx.tableList("name NOT LIKE '%_buk'").then((result) ->
+				tx.tableList("name NOT LIKE '%_buk'")
+				.then((result) ->
 					Q.all result.rows.map (currRow) ->
 						tableName = currRow.name
-						Q.all([
-							tx.dropTable(tableName + '_buk', true)
+						tx.dropTable(tableName + '_buk', true)
+						.then(->
 							tx.executeSql('ALTER TABLE "' + tableName + '" RENAME TO "' + tableName + '_buk";')
-						])
+						)
 				).then(->
+					tx.end()
 					res.send(200)
 				).catch((err) ->
+					tx.rollback()
 					console.error(err)
 					res.send(404)
 				)
 		app.post '/restoredb', sbvrUtils.checkPermissionsMiddleware('all'), serverIsOnAir, (req, res, next) ->
 			db.transaction (tx) ->
-				tx.tableList("name LIKE '%_buk'").then((result) ->
+				tx.tableList("name LIKE '%_buk'")
+				.then((result) ->
 					Q.all result.rows.map (currRow) ->
 						tableName = currRow.name
-						Q.all([
-							tx.dropTable(tableName[0...-4], true)
+						tx.dropTable(tableName[0...-4], true)
+						.then(->
 							tx.executeSql('ALTER TABLE "' + tableName + '" RENAME TO "' + tableName[0...-4] + '";')
-						])
+						)
 				).then(->
+					tx.end()
 					res.send(200)
 				).catch((err) ->
+					tx.rollback()
 					console.error(err)
 					res.send(404)
 				)
@@ -273,16 +258,28 @@ define [
 		app.del('/data/*', serverIsOnAir, sbvrUtils.runDelete)
 		app.del('/Auth/*', serverIsOnAir, sbvrUtils.runDelete)
 
-		app.del('/', uiModelLoaded, serverIsOnAir, (req, res, next) ->
+		app.del '/', uiModelLoaded, serverIsOnAir, (req, res, next) ->
 			# TODO: This should be done a better way?
-			sbvrUtils.runURI('PATCH', "/ui/textarea?$filter=name eq 'model_area'",
-				text: ''
-				name: 'model_area'
-				is_disabled: false
+			Q.all([
+				sbvrUtils.runURI('PATCH', "/ui/textarea?$filter=name eq 'model_area'",
+					text: ''
+					name: 'model_area'
+					is_disabled: false
+				)
+				sbvrUtils.deleteModel('data')
+			]).then(->
+				isServerOnAir(false)
+				res.send(200)
 			)
-			sbvrUtils.deleteModel('data')
-			isServerOnAir(false)
 
-			res.send(200)
+		db.transaction()
+		.then((tx) ->
+			setupModels(tx)
+			.then(->
+				tx.end()
+			).catch((err) ->
+				tx.rollback()
+				throw err
+			)
 		)
 	return exports

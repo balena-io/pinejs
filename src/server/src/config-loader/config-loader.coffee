@@ -2,7 +2,7 @@ define ['has', 'lodash', 'q'], (has, _, Q) ->
 	exports = {}
 
 	# Setup function
-	exports.setup = (app, requirejs, sbvrUtils, db, done) ->
+	exports.setup = (app, requirejs, sbvrUtils, db) ->
 		if not has 'ENV_NODEJS'
 			console.error('Config loader only works in a nodejs environment.')
 			return
@@ -33,7 +33,11 @@ define ['has', 'lodash', 'q'], (has, _, Q) ->
 					
 					if model.customServerCode?
 						try
-							require(root + '/' + model.customServerCode).setup(app, requirejs, sbvrUtils, db)
+							deferred = Q.defer()
+							promise = require(root + '/' + model.customServerCode).setup(app, requirejs, sbvrUtils, db, deferred.makeNodeResolver())
+							if Q.isPromise(promise)
+								deferred.resolve(promise)
+							return deferred.promise
 						catch e
 							throw new Error('Error running custom server code: ' + e)
 				).then(->

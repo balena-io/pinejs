@@ -360,23 +360,31 @@ define [
 			)
 		).nodeify(callback)
 
-	exports.deleteModel = (vocabulary) ->
-		# TODO: This should be reorganised to be async.
-		db.transaction (tx) ->
-			for dropStatement in sqlModels[vocabulary].dropSchema
-				tx.executeSql(dropStatement)
-			runURI('DELETE', "/dev/model?$filter=model_type eq 'se'", {vocabulary}, tx)
-			runURI('DELETE', "/dev/model?$filter=model_type eq 'lf'", {vocabulary}, tx)
-			runURI('DELETE', "/dev/model?$filter=model_type eq 'slf'", {vocabulary}, tx)
-			runURI('DELETE', "/dev/model?$filter=model_type eq 'abstractsql'", {vocabulary}, tx)
-			runURI('DELETE', "/dev/model?$filter=model_type eq 'sql'", {vocabulary}, tx)
-			runURI('DELETE', "/dev/model?$filter=model_type eq 'client'", {vocabulary}, tx)
-
-			seModels[vocabulary] = ''
-			sqlModels[vocabulary] = {}
-			clientModels[vocabulary] = {}
-			odata2AbstractSQL[vocab].clientModel = {}
-			odataMetadata[vocabulary] = ''
+	exports.deleteModel = (vocabulary, callback) ->
+		db.transaction()
+		.then((tx) ->
+			dropStatements =
+				for dropStatement in sqlModels[vocabulary].dropSchema
+					tx.executeSql(dropStatement)
+			Q.all(dropStatements.concat([
+				runURI('DELETE', "/dev/model?$filter=model_type eq 'se'", {vocabulary}, tx)
+				runURI('DELETE', "/dev/model?$filter=model_type eq 'lf'", {vocabulary}, tx)
+				runURI('DELETE', "/dev/model?$filter=model_type eq 'slf'", {vocabulary}, tx)
+				runURI('DELETE', "/dev/model?$filter=model_type eq 'abstractsql'", {vocabulary}, tx)
+				runURI('DELETE', "/dev/model?$filter=model_type eq 'sql'", {vocabulary}, tx)
+				runURI('DELETE', "/dev/model?$filter=model_type eq 'client'", {vocabulary}, tx)
+			])).then(->
+				tx.end()
+				seModels[vocabulary] = ''
+				sqlModels[vocabulary] = {}
+				clientModels[vocabulary] = {}
+				odata2AbstractSQL[vocab].clientModel = {}
+				odataMetadata[vocabulary] = ''
+			).catch((err) ->
+				tx.rollback()
+				throw err
+			)
+		).nodeify(callback)
 
 	getID = (tree) ->
 		query = tree.requests[0].query
