@@ -383,20 +383,15 @@ define [
 				return comparison[2][1]
 		return 0
 
-	chainCallback = (firstCallback, chainedCallback) ->
-		(result, callback) ->
-			firstCallback result, (err, result) ->
-				if err
-					callback(err)
-				else
-					chainedCallback(result, callback)
-
-	checkForExpansion = (vocab, clientModel, fieldName, instance, callback) ->
-		Q.try(->
-			return JSON.parse(instance[fieldName])
-		).catch(->
+	checkForExpansion = (vocab, clientModel, fieldName, instance) ->
+		try
+			field = JSON.parse(instance[fieldName])
+		catch e
 			# If we can't JSON.parse the field then it's not one needing expansion.
-		).then((field) ->
+			return Q(instance)
+
+		Q(field)
+		.then((field) ->
 			if _.isArray(field)
 				# Hack to look like a rows object
 				field.item = (i) -> @[i]
@@ -409,53 +404,57 @@ define [
 				}
 		).then((expandedField) ->
 			instance[fieldName] = expandedField
-		).nodeify(callback)
+			return instance
+		)
 
 	processOData = (vocab, clientModel, resourceName, rows) ->
 		if rows.length is 0
 			return Q.resolve([])
 
 		resourceModel = clientModel[resourceName]
-		processInstance = (instance, callback) ->
+
+		instances = rows.map (instance) ->
 			instance.__metadata =
 				uri: '/' + vocab + '/' + resourceModel.resourceName + '(' + instance[resourceModel.idField] + ')'
 				type: ''
-			callback(null, instance)
+			return Q(instance)
 
 		fieldNames = {}
 		for {fieldName, dataType} in resourceModel.fields
 			fieldNames[fieldName.replace(/\ /g, '_')] = true
 		if _.any(rows.item(0), (val, fieldName) -> !fieldNames.hasOwnProperty(fieldName))
-			processInstance = chainCallback processInstance, (instance, callback) ->
-				Q.all(_.map _.keys(instance), (fieldName) ->
-					if fieldName[0..1] != '__' and !fieldNames.hasOwnProperty(fieldName)
-						checkForExpansion(vocab, clientModel, fieldName, instance, callback)
-				).then(->
-					return instance
-				).nodeify(callback)
+			instances = _.map instances, (instance) ->
+				instance.then((instance) ->
+					Q.all(_.map _.keys(instance), (fieldName) ->
+						if fieldName[0..1] != '__' and !fieldNames.hasOwnProperty(fieldName)
+							checkForExpansion(vocab, clientModel, fieldName, instance)
+					).then(->
+						return instance
+					)
+				)
 
 		if _.any(resourceModel.fields, ({dataType}) -> dataType == 'ForeignKey' or sbvrTypes[dataType]?.fetchProcessing?)
-			processInstance = chainCallback processInstance, (instance, callback) ->
-				processField = ({fieldName, dataType, references}, callback) ->
-					fieldName = fieldName.replace(/\ /g, '_')
-					if instance.hasOwnProperty(fieldName)
-						switch dataType
-							when 'ForeignKey'
-								checkForExpansion(vocab, clientModel, fieldName, instance, callback)
-							else
-								fetchProcessing = sbvrTypes[dataType]?.fetchProcessing
-								if fetchProcessing?
-									Q.nfcall(fetchProcessing, instance[fieldName])
-									.then((result) ->
-										instance[fieldName] = result
-									).nodeify(callback)
+			instances = _.map instances, (instance) ->
+				instance.then((instance) ->
+					Q.all(_.map resourceModel.fields, ({fieldName, dataType, references}) ->
+						fieldName = fieldName.replace(/\ /g, '_')
+						if instance.hasOwnProperty(fieldName)
+							switch dataType
+								when 'ForeignKey'
+									checkForExpansion(vocab, clientModel, fieldName, instance)
 								else
-									callback()
-					else
-						callback()
-				async.each(resourceModel.fields, processField, (err) -> callback(err, instance))
+									fetchProcessing = sbvrTypes[dataType]?.fetchProcessing
+									if fetchProcessing?
+										Q.nfcall(fetchProcessing, instance[fieldName])
+										.then((result) ->
+											instance[fieldName] = result
+										)
+					).then(->
+						return instance
+					)
+				)
 
-		Q.nfcall(async.map, rows, processInstance)
+		Q.all(instances)
 
 	exports.runRule = do ->
 		LF2AbstractSQLPrepHack = LF2AbstractSQL.LF2AbstractSQLPrep._extend({CardinalityOptimisation: -> @_pred(false)})
@@ -575,8 +574,7 @@ define [
 			console.error('Error loading permissions', err)
 			throw err
 		)
-		promise.nodeify(callback)
-		return promise
+		return promise.nodeify(callback)
 
 	exports.checkPermissions = checkPermissions = do ->
 		_getGuestPermissions = do ->
@@ -701,20 +699,18 @@ define [
 				else
 					next()
 
-	parseODataURI = (req, res, callback) ->
+	parseODataURI = (req, res) -> Q.try ->
 		{method, url, body} = req
 		url = url.split('/')
 		vocabulary = url[1]
 		if !vocabulary? or !odata2AbstractSQL[vocabulary]?
-			callback('No such vocabulary')
-			return
+			throw new Error('No such vocabulary: ' + vocabulary)
 		url = '/' + url[2..].join('/')
 		try
 			query = odataParser.matchAll(url, 'Process')
 		catch e
 			console.log('Failed to parse url: ', method, url, e, e.stack)
-			callback('Failed to parse url')
-			return
+			throw new Error('Failed to parse url')
 
 		resourceName = query.resource
 
@@ -733,7 +729,8 @@ define [
 					else
 						console.warn('Unknown method for permissions type check: ', method)
 						'all'
-		checkPermissions req, res, permissionType, resourceName, vocabulary, (err, conditionalPerms) ->
+		Q.nfcall(checkPermissions, req, res, permissionType, resourceName, vocabulary)
+		.then((conditionalPerms) ->
 			if !query?
 				if conditionalPerms?
 					console.error('Conditional permissions with no query?!')
@@ -743,8 +740,7 @@ define [
 						conditionalPerms = odataParser.matchAll('/x?$filter=' + conditionalPerms, 'Process')
 					catch e
 						console.log('Failed to parse conditional permissions: ', conditionalPerms)
-						callback('Failed to parse permissions')
-						return
+						throw new Error('Failed to parse permissions')
 					query.options ?= {}
 					if query.options.$filter?
 						query.options.$filter = ['and', query.options.$filter, conditionalPerms.options.$filter]
@@ -754,9 +750,8 @@ define [
 					query = odata2AbstractSQL[vocabulary].match(query, 'Process', [method, body])
 				catch e
 					console.error('Failed to translate url: ', JSON.stringify(query, null, '\t'), method, url, e, e.stack)
-					callback('Failed to translate url')
-					return
-			callback(null, {
+					throw new Error('Failed to translate url')
+			return {
 				type: 'OData'
 				vocabulary
 				requests: [{
@@ -764,7 +759,8 @@ define [
 					values: body
 					resourceName
 				}]
-			})
+			}
+		)
 
 	parseURITree = (callback) ->
 		(req, res, next) ->
@@ -779,12 +775,13 @@ define [
 			if req.tree?
 				checkTree()
 			else
-				parseODataURI req, res, (err, tree) ->
-					if err?
-						req.tree = false
-					else
-						req.tree = tree
-					checkTree()
+				parseODataURI(req, res)
+				.then((tree) ->
+					req.tree = tree
+				)
+				.catch(->
+					req.tree = false
+				).done(checkTree)
 
 	exports.runGet = runGet = parseURITree (req, res, next, tx) ->
 		res.set('Cache-Control', 'no-cache')
