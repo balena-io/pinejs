@@ -155,7 +155,7 @@ define [
 		else
 			return false
 
-	getAndCheckBindValues = (vocab, bindings, values, callback) ->
+	getAndCheckBindValues = (vocab, bindings, values) ->
 		mappings = clientModels[vocab].resourceToSQLMappings
 		sqlModelTables = sqlModels[vocab].tables
 		Q.all(_.map bindings, (binding) ->
@@ -178,13 +178,15 @@ define [
 			if value is undefined
 				return db.DEFAULT_VALUE
 
-			Q.nfcall(AbstractSQL2SQL.dataTypeValidate, value, field).catch((err) ->
+			Q.nfcall(AbstractSQL2SQL.dataTypeValidate, value, field)
+			.catch((err) ->
 				throw new Error('"' + fieldName + '" ' + err)
 			)
-		).nodeify(callback)
+		)
 
-	endTransaction = (transactionID, callback) ->
-		db.transaction (tx) ->
+	endTransaction = (transactionID) ->
+		db.transaction()
+		.then((tx) ->
 			placeholders = {}
 			getLockedRow = (lockID) ->
 				tx.executeSql('''SELECT r."resource type" AS "resource_type", r."resource id" AS "resource_id"
@@ -276,20 +278,22 @@ define [
 				throw err
 			).then(->
 				tx.end()
-			).nodeify(callback)
+			)
+		)
 
-	validateDB = (tx, sqlmod, callback) ->
+	validateDB = (tx, sqlmod) ->
 		Q.all(_.map sqlmod.rules, (rule) ->
-			tx.executeSql(rule.sql, rule.bindings).then((result) ->
+			tx.executeSql(rule.sql, rule.bindings)
+			.then((result) ->
 				if result.rows.item(0).result in [false, 0, '0']
 					throw rule.structuredEnglish
 			)
-		).nodeify(callback)
+		)
 
 	exports.executeModel = executeModel = (tx, vocab, seModel, callback) ->
 		models = {}
 		models[vocab] = seModel
-		executeModels(tx, models).nodeify(callback)
+		executeModels(tx, models, callback)
 	exports.executeModels = executeModels = (tx, models, callback) ->
 		validateFuncs = []
 		Q.all(_.map _.keys(models), (vocab) ->
@@ -546,7 +550,7 @@ define [
 		return deferred.promise.nodeify(callback)
 
 	exports.getUserPermissions = getUserPermissions = (userId, callback) ->
-		promise = Q.all([
+		Q.all([
 			runURI('GET', '/Auth/user__has__permission?$filter=user eq ' + userId, {})
 			runURI('GET', '/Auth/user__has__role?$filter=user eq ' + userId)
 			runURI('GET', '/Auth/role__has__permission')
@@ -572,8 +576,7 @@ define [
 		).catch((err) ->
 			console.error('Error loading permissions', err)
 			throw err
-		)
-		return promise.nodeify(callback)
+		).nodeify(callback)
 
 	exports.checkPermissions = checkPermissions = do ->
 		_getGuestPermissions = do ->
@@ -777,8 +780,7 @@ define [
 				parseODataURI(req, res)
 				.then((tree) ->
 					req.tree = tree
-				)
-				.catch(->
+				).catch(->
 					req.tree = false
 				).done(checkTree)
 
@@ -1037,17 +1039,6 @@ define [
 	exports.setup = (app, requirejs, _db, callback) ->
 		db = _db
 		AbstractSQL2SQL = AbstractSQL2SQL[db.engine]
-		db.transaction()
-		.then((tx) ->
-			executeStandardModels(tx)
-			.then(->
-				tx.end()
-			).catch((err) ->
-				tx.rollback()
-				console.error('Could not execute standard models', err)
-				process.exit()
-			)
-		).nodeify(callback)
 
 		if has 'DEV'
 			app.get('/dev/*', runGet)
@@ -1056,12 +1047,13 @@ define [
 			if _.isNaN(id)
 				res.send(404)
 			else
-				endTransaction id, (err) ->
-					if err?
-						console.error(err)
-						res.json(err, 404)
-					else
-						res.send(200)
+				endTransaction(id)
+				.then(->
+					res.send(200)
+				).catch((err) ->
+					console.error(err)
+					res.json(err, 404)
+				)
 		app.get '/transaction', (req, res, next) ->
 			res.json(
 				transactionURI: "/transaction/transaction"
@@ -1078,5 +1070,17 @@ define [
 		app.post('/transaction/*', runPost)
 		app.put('/transaction/*', runPut)
 		app.del('/transaction/*', runDelete)
+
+		db.transaction()
+		.then((tx) ->
+			executeStandardModels(tx)
+			.then(->
+				tx.end()
+			).catch((err) ->
+				tx.rollback()
+				console.error('Could not execute standard models', err)
+				process.exit()
+			)
+		).nodeify(callback)
 
 	return exports

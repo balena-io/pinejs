@@ -20,35 +20,6 @@ define([
 	db = dbModule.connect(databaseOptions)
 
 
-	setupCallback = (app) ->
-		sbvrUtils.setup(app, require, db, (err) ->
-			passportBCrypt = passportBCrypt({
-					loginUrl: '/login'
-					logoutUrl: '/logout'
-					failureRedirect: '/login.html'
-					successRedirect: '/'
-				}, sbvrUtils, app, passport)
-
-			if has 'SBVR_SERVER_ENABLED'
-				sbvrServer.setup(app, require, sbvrUtils, db)
-
-			listen = ->
-				if has 'ENV_NODEJS'
-					app.listen(process.env.PORT or 1337, () ->
-						console.info('Server started')
-					)
-
-				if has 'ENV_BROWSER'
-					app.enable()
-
-			if has 'CONFIG_LOADER'
-				configLoader.setup(app, require, sbvrUtils, db, listen)
-			else
-				listen()
-		)
-
-
-
 	if has 'ENV_NODEJS'
 		express = require('express')
 		passport = require('passport')
@@ -87,7 +58,31 @@ define([
 	else if has 'ENV_BROWSER'
 		app = express.app
 
-	setupCallback(app)
+	sbvrUtils.setup(app, require, db)
+	.then(->
+		passportBCrypt = passportBCrypt({
+				loginUrl: '/login'
+				logoutUrl: '/logout'
+				failureRedirect: '/login.html'
+				successRedirect: '/'
+			}, sbvrUtils, app, passport)
+
+		promises = []
+		if has 'SBVR_SERVER_ENABLED'
+			promises.push(sbvrServer.setup(app, require, sbvrUtils, db))
+
+		if has 'CONFIG_LOADER'
+			promises.push(configLoader.setup(app, require, sbvrUtils, db))
+		Q.all(promises)
+	).then(->
+		if has 'ENV_NODEJS'
+			app.listen(process.env.PORT or 1337, () ->
+				console.info('Server started')
+			)
+
+		if has 'ENV_BROWSER'
+			app.enable()
+	)
 	
 	return {app, sbvrUtils}
 )
