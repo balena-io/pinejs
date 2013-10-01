@@ -45,16 +45,16 @@ define ['q', 'lodash'], (Q, _) ->
 					# Stringify and parse to emulate passing over network.
 					obj = JSON.parse(JSON.stringify(obj))
 					if statusCode >= 400
-						deferred.reject(statusCode, obj, headers)
+						deferred.reject([statusCode, obj, headers])
 					else
-						deferred.resolve(statusCode, obj, headers)
+						deferred.resolve([statusCode, obj, headers])
 				send: (statusCode, headers) ->
 					if statusCode >= 400
-						deferred.reject(statusCode, null, headers)
+						deferred.reject([statusCode, null, headers])
 					else
-						deferred.resolve(statusCode, null, headers)
+						deferred.resolve([statusCode, null, headers])
 				redirect: ->
-					deferred.reject(307)
+					deferred.reject([307])
 				set: ->
 				type: ->
 			next = (route) ->

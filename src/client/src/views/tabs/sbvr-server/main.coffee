@@ -33,7 +33,6 @@ define([
 
 			window.serverRequest = (method, uri, headers = {}, body = null, successCallback, failureCallback) ->
 				deferred = Q.defer()
-				failureCallback ?= -> console.error(method, uri, arguments)
 				if !headers["Content-Type"]? and body?
 					headers["Content-Type"] = "application/json"
 				$("#httpTable").append('<tr class="server_row"><td><strong>' + method + '</strong></td><td>' + uri + '</td><td>' + (if headers.length == 0 then '' else JSON.stringify(headers)) + '</td><td>' + JSON.stringify(body) + '</td></tr>')
@@ -62,10 +61,14 @@ define([
 							deferred.resolve(jqXHR.status, data, responseHeaders)
 
 						type: method
-				return deferred.promise.then(successCallback, failureCallback)
+				if successCallback?
+					deferred.promise.then((args) -> successCallback(args...))
+				if failureCallback?
+					deferred.promise.catch((args) -> failureCallback(args...))
+				return deferred.promise
 
 			serverRequest('GET', '/onAir/')
-			.then((statusCode, result) =>
+			.then(([statusCode, result]) =>
 				if result
 					@model.trigger('onAir')
 			)
