@@ -470,52 +470,54 @@ define [
 	exports.runRule = do ->
 		LF2AbstractSQLPrepHack = LF2AbstractSQL.LF2AbstractSQLPrep._extend({CardinalityOptimisation: -> @_pred(false)})
 		return (vocab, rule, callback) ->
-			seModel = seModels[vocab]
-			try
-				lfModel = SBVRParser.matchAll(seModel + '\nRule: ' + rule, 'Process')
-			catch e
-				console.error('Error parsing rule', rule, e, e.stack)
-				return
-			ruleLF = lfModel[lfModel.length-1]
-			lfModel = lfModel[...-1]
-			try
-				slfModel = LF2AbstractSQL.LF2AbstractSQLPrep.match(lfModel, 'Process')
-				slfModel.push(ruleLF)
-				slfModel = LF2AbstractSQLPrepHack.match(slfModel, 'Process')
+			Q.try(->
+				seModel = seModels[vocab]
+				try
+					lfModel = SBVRParser.matchAll(seModel + '\nRule: ' + rule, 'Process')
+				catch e
+					console.error('Error parsing rule', rule, e, e.stack)
+					throw new Error(['Error parsing rule', rule, e])
+				ruleLF = lfModel[lfModel.length-1]
+				lfModel = lfModel[...-1]
+				try
+					slfModel = LF2AbstractSQL.LF2AbstractSQLPrep.match(lfModel, 'Process')
+					slfModel.push(ruleLF)
+					slfModel = LF2AbstractSQLPrepHack.match(slfModel, 'Process')
 
-				translator = LF2AbstractSQL.LF2AbstractSQL.createInstance()
-				translator.addTypes(sbvrTypes)
-				abstractSqlModel = translator.match(slfModel, 'Process')
-			catch e
-				console.error('Failed to compile rule', rule, e, e.stack)
-				return
+					translator = LF2AbstractSQL.LF2AbstractSQL.createInstance()
+					translator.addTypes(sbvrTypes)
+					abstractSqlModel = translator.match(slfModel, 'Process')
+				catch e
+					console.error('Error compiling rule', rule, e, e.stack)
+					throw new Error(['Error compiling rule', rule, e])
 
-			ruleAbs = abstractSqlModel.rules[-1..][0]
-			# Remove the not exists
-			ruleAbs[2][1] = ruleAbs[2][1][1][1]
-			# Select all
-			ruleAbs[2][1][1][1] = '*'
-			ruleSQL = AbstractSQL2SQL.generate({tables: {}, rules: [ruleAbs]}).rules[0].sql
-			
-			db.transaction()
-			.then((tx) ->
-				tx.executeSql(ruleSQL.query, ruleSQL.bindings)
-				.catch((err) ->
-					tx.rollback()
-					throw err
+				ruleAbs = abstractSqlModel.rules[-1..][0]
+				# Remove the not exists
+				ruleAbs[2][1] = ruleAbs[2][1][1][1]
+				# Select all
+				ruleAbs[2][1][1][1] = '*'
+				ruleSQL = AbstractSQL2SQL.generate({tables: {}, rules: [ruleAbs]}).rules[0].sql
+				
+				db.transaction()
+				.then((tx) ->
+					tx.executeSql(ruleSQL.query, ruleSQL.bindings)
+					.catch((err) ->
+						tx.rollback()
+						throw err
+					).then((result) ->
+						tx.end()
+						return result
+					)
 				).then((result) ->
-					tx.end()
-					return result
+					resourceName = ruleLF[1][1][1][2][1].replace(/\ /g, '_').replace(/-/g, '__')
+					clientModel = clientModels[vocab].resources
+					processOData(vocab, clientModel, resourceName, result.rows)
+				).then((d) ->
+					return {
+						__model: clientModel[resourceName]
+						d: d
+					}
 				)
-			).then((result) ->
-				resourceName = ruleLF[1][1][1][2][1].replace(/\ /g, '_').replace(/-/g, '__')
-				clientModel = clientModels[vocab].resources
-				processOData(vocab, clientModel, resourceName, result.rows)
-			).then((d) ->
-				return {
-					__model: clientModel[resourceName]
-					d: d
-				}
 			).nodeify(callback)
 
 	exports.runURI = runURI = (method, uri, body = {}, tx, callback) ->
