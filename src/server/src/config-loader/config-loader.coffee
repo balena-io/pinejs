@@ -96,5 +96,5 @@ define ['has', 'lodash', 'q'], (has, _, Q) ->
 		).catch((err) ->
 			console.error('Error loading config', err, err.stack)
 			process.exit()
-		).nodeify(done)
+		)
 	return exports
