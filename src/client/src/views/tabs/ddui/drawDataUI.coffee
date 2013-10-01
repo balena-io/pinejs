@@ -3,9 +3,10 @@ define([
 	'ejs'
 	'cs!./widgets'
 	'async'
+	'q'
 	'lodash'
 	'cs!./runTrans'
-], (ClientURIUnparser, ejs, widgets, async, _) ->
+], (ClientURIUnparser, ejs, widgets, async, Q, _) ->
 	templates = {
 		widgets: widgets
 		hiddenFormInput: ejs.compile('''
@@ -388,35 +389,22 @@ define([
 							# Get results for all the foreign keys
 							foreignKey = fieldName
 							if !fetchedResults.hasOwnProperty(foreignKey)
-								fetchedResults[foreignKey] = []
 								if !foreignKeyResults.hasOwnProperty(foreignKey)
 									foreignKeyResults[foreignKey] = {}
 								clientModelResults[foreignKey] = {}
-								serverRequest('GET', serverAPI(tree.getVocabulary(), foreignKey), {}, null,
-									(statusCode, result, headers) ->
+								fetchedResults[foreignKey] =
+									serverRequest('GET', serverAPI(tree.getVocabulary(), foreignKey))
+									.then(([statusCode, result]) ->
 										clientModelResults[foreignKey] = result.__model
 										for instance in result.d
 											instanceID = getInstanceID(instance, result.__model)
 											if !foreignKeyResults[foreignKey][instanceID]
 												foreignKeyResults[foreignKey][instanceID] = instance
-										callbacksList = fetchedResults[foreignKey]
-										fetchedResults[foreignKey] = true
-										for otherCallback in callbacksList
-											otherCallback()
-										callback()
-									->
-										callbacksList = fetchedResults[foreignKey]
-										fetchedResults[foreignKey] = true
-										for otherCallback in callbacksList
-											otherCallback('Error fetching ' + foreignKey)
-										callback('Error fetching ' + foreignKey)
-								)
-							else if fetchedResults[foreignKey] == false
-								callback('Error fetching ' + foreignKey)
-							else if fetchedResults[foreignKey] != true
-								fetchedResults[foreignKey].push(callback)
-							else
-								callback()
+										return
+									).catch(->
+										throw new Error('Error fetching ' + foreignKey)
+									)
+							fetchedResults[foreignKey].nodeify(callback)
 					(err) ->
 						if(err)
 							console.error(err)
