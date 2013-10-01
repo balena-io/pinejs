@@ -686,7 +686,7 @@ define [
 			.then((permissions) ->
 				return _checkPermissions(permissions)
 			).catch((err) ->
-				console.error(err)
+				console.error('Error getting guest permissions', err)
 				return []
 			).then((guestAllowed) ->
 				if guestAllowed is true
@@ -709,7 +709,7 @@ define [
 					else
 						throw new Error('checkPermissionsMiddleware returned a conditional permission')
 			).catch((err) ->
-				console.error(err)
+				console.error('Error checking permissions', err)
 				res.send(503)
 			)
 
@@ -1064,7 +1064,7 @@ define [
 				.then(->
 					res.send(200)
 				).catch((err) ->
-					console.error(err)
+					console.error('Error ending transaction', err)
 					res.json(err, 404)
 				)
 		app.get '/transaction', (req, res, next) ->
