@@ -519,6 +519,11 @@ define [
 			).nodeify(callback)
 
 	exports.runURI = runURI = (method, uri, body = {}, tx, callback) ->
+		if callback? and typeof callback isnt 'function'
+			message = 'Called runURI with a non-function callback?!'
+			console.error(message)
+			console.trace()
+			return Q.reject(message)
 		deferred = Q.defer()
 		console.log('Running URI', method, uri, body)
 		req =

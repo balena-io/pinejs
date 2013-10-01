@@ -32,7 +32,7 @@ define ['has', 'lodash', 'q'], (has, _, Q) ->
 							sbvrUtils.runURI('GET', "/Auth/permission?$filter=name eq '" + encodeURIComponent(permissionName) + "'", null, tx)
 							.then((result) ->
 								if result.d.length is 0
-									sbvrUtils.runURI('POST', '/Auth/permission', {'name': permissionName}, null, tx)
+									sbvrUtils.runURI('POST', '/Auth/permission', {'name': permissionName}, tx)
 									.get('id')
 								else
 									return result.d[0].id
@@ -44,7 +44,7 @@ define ['has', 'lodash', 'q'], (has, _, Q) ->
 					sbvrUtils.runURI('GET', "/Auth/user?$filter=username eq '" + encodeURIComponent(user.username) + "'", null, tx)
 					.then((result) ->
 						if result.d.length is 0
-							sbvrUtils.runURI('POST', '/Auth/user', {'username': user.username, 'password': user.password}, null, tx)
+							sbvrUtils.runURI('POST', '/Auth/user', {'username': user.username, 'password': user.password}, tx)
 							.get('id')
 						else
 							return result.d[0].id
@@ -54,7 +54,7 @@ define ['has', 'lodash', 'q'], (has, _, Q) ->
 								sbvrUtils.runURI('GET', "/Auth/user__has__permission?$filter=user eq '" + userID + "' and permission eq '" + permissionID + "'", null, tx)
 								.then((result) ->
 									if result.d.length is 0
-										sbvrUtils.runURI('POST', '/Auth/user__has__permission', {'user': userID, 'permission': permissionID}, null, tx)
+										sbvrUtils.runURI('POST', '/Auth/user__has__permission', {'user': userID, 'permission': permissionID}, tx)
 								)
 							)
 						)
