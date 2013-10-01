@@ -1,7 +1,8 @@
-define((requirejs, exports, module) ->
+define ['q', 'lodash'], (Q, _) ->
 	window?.GLOBAL_PERMISSIONS = 
 		'resource.all': true
-	app = do() ->
+	app = do ->
+		enabled = Q.defer()
 		handlers =
 			POST: []
 			PUT: []
@@ -19,9 +20,10 @@ define((requirejs, exports, module) ->
 				paramName: paramName
 				middleware: middleware
 			)
-		process = (method, uri, headers, body = '', successCallback, failureCallback) ->
+		process = (method, uri, headers, body = '') ->
 			if !handlers[method]
-				failureCallback(404)
+				return Q.reject(404)
+			deferred = Q.defer()
 			req =
 				# Have a default user for in-browser with all permissions
 				user:
@@ -43,16 +45,16 @@ define((requirejs, exports, module) ->
 					# Stringify and parse to emulate passing over network.
 					obj = JSON.parse(JSON.stringify(obj))
 					if statusCode >= 400
-						failureCallback(statusCode, obj, headers)
+						deferred.reject(statusCode, obj, headers)
 					else
-						successCallback(statusCode, obj, headers)
+						deferred.resolve(statusCode, obj, headers)
 				send: (statusCode, headers) ->
 					if statusCode >= 400
-						failureCallback(statusCode, null, headers)
+						deferred.reject(statusCode, null, headers)
 					else
-						successCallback(statusCode, null, headers)
+						deferred.resolve(statusCode, null, headers)
 				redirect: ->
-					failureCallback(307)
+					deferred.reject(307)
 				set: ->
 				type: ->
 			next = (route) ->
@@ -65,7 +67,7 @@ define((requirejs, exports, module) ->
 			methodHandlers = handlers[method]
 			i = -1
 			j = -1
-			checkMethodHandlers = () ->
+			checkMethodHandlers = ->
 				i++
 				if i < methodHandlers.length
 					if uri[0...methodHandlers[i].match.length] == methodHandlers[i].match
@@ -78,34 +80,29 @@ define((requirejs, exports, module) ->
 				else
 					res.send(404)
 			checkMethodHandlers()
-		queuedRequests = []
+			return deferred.promise
 		return {
-			post: (args...) -> addHandler.apply(null, ['POST'].concat(args))
-			get: (args...) -> addHandler.apply(null, ['GET'].concat(args))
-			put: (args...) -> addHandler.apply(null, ['PUT'].concat(args))
-			del: (args...) -> addHandler.apply(null, ['DELETE'].concat(args))
-			patch: (args...) -> addHandler.apply(null, ['PATCH'].concat(args))
-			merge: (args...) -> addHandler.apply(null, ['MERGE'].concat(args))
-			all: () ->
-				@post.apply(this, arguments)
-				@get.apply(this, arguments)
-				@put.apply(this, arguments)
-				@del.apply(this, arguments)
+			get: _.partial(addHandler,'GET')
+			post: _.partial(addHandler,'POST')
+			put: _.partial(addHandler,'PUT')
+			del: _.partial(addHandler,'DELETE')
+			patch: _.partial(addHandler,'PATCH')
+			merge: _.partial(addHandler,'MERGE')
+			all: (args...) ->
+				@post(args...)
+				@get(args...)
+				@put(args...)
+				@del(args...)
 			process: (args...) ->
-				queuedRequests.push(args)
+				# The promise will run the real process function asynchronously once the app is enabled,
+				# which matches somewhat more closely to an AJAX call than doing it synchronously.
+				enabled.promise.then ->
+					process(args...)
 			enable: ->
-				@process = (args...) ->
-					# Run the real process function asynchronously, to match somewhat more closely to an AJAX call.
-					setTimeout(
-						-> process.apply(null, args)
-						0
-					)
-				for queuedRequest in queuedRequests
-					@process.apply(@, queuedRequest)
+				enabled.resolve()
 			configure: ->
 		}
 
 	return {
 		app: app
 	}
-)

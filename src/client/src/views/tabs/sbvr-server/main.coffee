@@ -1,7 +1,8 @@
 define([
 	'backbone'
 	'has'
-], (Backbone, has) ->
+	'q'
+], (Backbone, has, Q) ->
 	Backbone.View.extend(
 		events:
 			"click #run-server": "runServer"
@@ -30,15 +31,15 @@ define([
 
 			@$el.html(html)
 
-			window.serverRequest = (method, uri, headers = {}, body = null, successCallback=(->), failureCallback) ->
+			window.serverRequest = (method, uri, headers = {}, body = null, successCallback, failureCallback) ->
+				deferred = Q.defer()
 				failureCallback ?= -> console.error(method, uri, arguments)
 				if !headers["Content-Type"]? and body?
 					headers["Content-Type"] = "application/json"
 				$("#httpTable").append('<tr class="server_row"><td><strong>' + method + '</strong></td><td>' + uri + '</td><td>' + (if headers.length == 0 then '' else JSON.stringify(headers)) + '</td><td>' + JSON.stringify(body) + '</td></tr>')
 				if has 'ENV_BROWSER'
-					require(['cs!server-glue/server'], (Server) ->
-						Server.app.process(method, uri, headers, body, successCallback, failureCallback)
-					)
+					require ['cs!server-glue/server'], (Server) ->
+						deferred.resolve(Server.app.process(method, uri, headers, body))
 				else
 					if body != null
 						body = JSON.stringify(body)
@@ -50,7 +51,7 @@ define([
 								error = JSON.parse(jqXHR.responseText)
 							catch e
 								error = jqXHR.responseText
-							failureCallback(jqXHR.status, error)
+							deferred.reject(jqXHR.status, error)
 
 						success: (data, textStatus, jqXHR) ->
 							rheaders = /^(.*?):[ \t]*([^\r\n]*)\r?$/mg
@@ -58,27 +59,30 @@ define([
 							responseHeadersString = jqXHR.getAllResponseHeaders()
 							while match = rheaders.exec( responseHeadersString )
 								responseHeaders[ match[1].toLowerCase() ] = match[2]
-							successCallback jqXHR.status, data, responseHeaders
+							deferred.resolve(jqXHR.status, data, responseHeaders)
 
 						type: method
+				return deferred.promise.then(successCallback, failureCallback)
 
-			serverRequest('GET', '/onAir/', {}, null, (statusCode, result) =>
+			serverRequest('GET', '/onAir/')
+			.then((statusCode, result) =>
 				if result
 					@model.trigger('onAir')
 			)
 
 		runServer: ->
-			serverRequest('DELETE', '/cleardb', {}, null, =>
+			serverRequest('DELETE', '/cleardb')
+			.then(=>
 				serverRequest('PATCH', "/ui/textarea?$filter=name eq 'model_area'", {}, {
 					name: 'model_area'
 					text: @model.get('content')
 					is_disabled: true
-				}, =>
-					serverRequest("POST", "/execute/", {}, null, =>
-						@model.trigger('onAir')
-						console.log("Executing model successfull!")
-					)
-				)
+				})
+			).then(->
+				serverRequest('POST', '/execute/')
+			).done(=>
+				@model.trigger('onAir')
+				console.log("Executing model successfull!")
 			)
 	)
 )
