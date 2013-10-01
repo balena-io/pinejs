@@ -709,7 +709,7 @@ define [
 					else
 						throw new Error('checkPermissionsMiddleware returned a conditional permission')
 			).catch((err) ->
-				console.error('Error checking permissions', err)
+				console.error('Error checking permissions', err, err.stack)
 				res.send(503)
 			)
 
@@ -935,7 +935,7 @@ define [
 					AND r."id" = ?
 				) AS result;''', [request.resourceName, id])
 			.catch((err) ->
-				console.error('Unable to check resource locks', err)
+				console.error('Unable to check resource locks', err, err.stack)
 				throw new Error('Unable to check resource locks')
 			).then((result) ->
 				if result.rows.item(0).result in [false, 0, '0']
@@ -1041,11 +1041,11 @@ define [
 					# We expect these to be the first user/permission, so they would have id 1.
 					runURI('POST', '/Auth/user__has__permission', {'user': 1, 'permission': 1})
 				).catch((err) ->
-					console.error('Unable to add dev users', err)
+					console.error('Unable to add dev users', err, err.stack)
 				)
 			console.info('Sucessfully executed standard models.')
 		).catch((err) ->
-			console.error('Failed to execute standard models.', err)
+			console.error('Failed to execute standard models.', err, err.stack)
 			throw err
 		).nodeify(callback)
 
@@ -1064,7 +1064,7 @@ define [
 				.then(->
 					res.send(200)
 				).catch((err) ->
-					console.error('Error ending transaction', err)
+					console.error('Error ending transaction', err, err.stack)
 					res.json(err, 404)
 				)
 		app.get '/transaction', (req, res, next) ->
@@ -1091,7 +1091,7 @@ define [
 				tx.end()
 			).catch((err) ->
 				tx.rollback()
-				console.error('Could not execute standard models', err)
+				console.error('Could not execute standard models', err, err.stack)
 				process.exit()
 			)
 		).nodeify(callback)

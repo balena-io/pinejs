@@ -59,7 +59,7 @@ define [
 					console.info('Sucessfully executed ui model.')
 					isUiModelLoaded.resolve()
 				).catch((err) ->
-					console.error('Failed to execute ui model.', err)
+					console.error('Failed to execute ui model.', err, err.stack)
 					throw err
 				)
 			,
@@ -135,7 +135,7 @@ define [
 					tx.end()
 					res.send(200)
 				).catch((err) ->
-					console.error('Error clearing db', err)
+					console.error('Error clearing db', err, err.stack)
 					tx.rollback()
 					res.send(503)
 				)
@@ -152,7 +152,7 @@ define [
 					tx.end()
 					res.send(200)
 				).catch((err) ->
-					console.error(err)
+					console.error('Error importing db', err, err.stack)
 					tx.rollback()
 					res.send(404)
 				)
@@ -196,7 +196,7 @@ define [
 						tx.end()
 						res.json(exported)
 					).catch((err) ->
-						console.error(err)
+						console.error('Error exporting db', err, err.stack)
 						tx.rollback()
 						res.send(503)
 					)
@@ -215,7 +215,7 @@ define [
 					res.send(200)
 				).catch((err) ->
 					tx.rollback()
-					console.error(err)
+					console.error('Error backing up db', err, err.stack)
 					res.send(404)
 				)
 		app.post '/restoredb', sbvrUtils.checkPermissionsMiddleware('all'), serverIsOnAir, (req, res, next) ->
@@ -233,7 +233,7 @@ define [
 					res.send(200)
 				).catch((err) ->
 					tx.rollback()
-					console.error(err)
+					console.error('Error restoring db', err, err.stack)
 					res.send(404)
 				)
 
