@@ -18,29 +18,6 @@ define ['has', 'lodash', 'q'], (has, _, Q) ->
 				.then((sbvrModel) ->
 					sbvrUtils.executeModel(tx, model.apiRoot, sbvrModel)
 				).then(->
-					apiRoute = '/' + model.apiRoot + '/*'
-					app.get(apiRoute, sbvrUtils.runGet)
-
-					app.post(apiRoute, sbvrUtils.runPost)
-
-					app.put(apiRoute, sbvrUtils.runPut)
-
-					app.patch(apiRoute, sbvrUtils.runPut)
-
-					app.merge(apiRoute, sbvrUtils.runPut)
-
-					app.del(apiRoute, sbvrUtils.runDelete)
-					
-					if model.customServerCode?
-						try
-							deferred = Q.defer()
-							promise = require(root + '/' + model.customServerCode).setup(app, requirejs, sbvrUtils, db, deferred.makeNodeResolver())
-							if Q.isPromise(promise)
-								deferred.resolve(promise)
-							return deferred.promise
-						catch e
-							throw new Error('Error running custom server code: ' + e)
-				).then(->
 					console.info('Sucessfully executed ' + model.modelName + ' model.')
 				).catch((err) ->
 					throw new Error(['Failed to execute ' + model.modelName + ' model from ' + model.modelFile, err])
@@ -91,9 +68,33 @@ define ['has', 'lodash', 'q'], (has, _, Q) ->
 				throw err
 			).then(->
 				tx.end()
+			).then(->
+				Q.all(_.map data.models, (model) ->
+					apiRoute = '/' + model.apiRoot + '/*'
+					app.get(apiRoute, sbvrUtils.runGet)
+
+					app.post(apiRoute, sbvrUtils.runPost)
+
+					app.put(apiRoute, sbvrUtils.runPut)
+
+					app.patch(apiRoute, sbvrUtils.runPut)
+
+					app.merge(apiRoute, sbvrUtils.runPut)
+
+					app.del(apiRoute, sbvrUtils.runDelete)
+					if model.customServerCode?
+						try
+							deferred = Q.defer()
+							promise = require(root + '/' + model.customServerCode).setup(app, requirejs, sbvrUtils, db, deferred.makeNodeResolver())
+							if Q.isPromise(promise)
+								deferred.resolve(promise)
+							return deferred.promise
+						catch e
+							throw new Error('Error running custom server code: ' + e)
+				)
 			)
 		).catch((err) ->
-			console.error(err)
+			console.error('Error loading config', err)
 			process.exit()
 		).nodeify(done)
 	return exports
