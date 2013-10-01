@@ -588,29 +588,26 @@ define [
 
 	exports.checkPermissions = checkPermissions = do ->
 		_getGuestPermissions = do ->
-			_guestPermissions = false
+			# Start the guest permissions as rejected,
+			# since it will be attempted to be fetched again whenever it is rejected.
+			_guestPermissions = Q.reject()
 			return (callback) ->
-				if _guestPermissions != false
-					callback(null, _guestPermissions)
-				else
+				if _guestPermissions.isRejected()
 					# Get guest user
-					runURI 'GET', "/Auth/user?$filter=user/username eq 'guest'", {}, null, (err, result) ->
-						if !err and result.d.length > 0
-							getUserPermissions result.d[0].id, (err, permissions) ->
-								if err?
-									callback(err)
-								else
-									_guestPermissions = permissions
-									callback(null, _guestPermissions)
-						else
-							callback('No guest permissions')
+					_guestPermissions = runURI('GET', "/Auth/user?$filter=user/username eq 'guest'")
+					.then((result) ->
+						if result.d.length is 0
+							throw new Error('No guest permissions')
+						getUserPermissions(result.d[0].id)
+					)
+				_guestPermissions.nodeify(callback)
 
 		return (req, res, actionList, resourceName, vocabulary, callback) ->
 			if !callback?
-				if !vocabulary?
+				if !vocabulary? and typeof resourceName is 'function'
 					callback = resourceName
 					resourceName = null
-				else
+				else if typeof vocabulary is 'function'
 					callback = vocabulary
 					vocabulary = null
 
@@ -684,30 +681,37 @@ define [
 			if req.user?
 				allowed = _checkPermissions(req.user.permissions)
 				if allowed is true
-					callback()
-					return
-			allowed = allowed or []
-			_getGuestPermissions (err, permissions) ->
-				if err
-					console.error(err)
-				else
-					guestAllowed = _checkPermissions(permissions)
-					if guestAllowed is true
-						callback()
-						return
-				guestAllowed = guestAllowed or []
-				allowed = allowed.concat(guestAllowed)
-				if allowed.length > 0
-					callback(null, allowed)
-				else
-					res.send(401)
+					return Q(allowed).nodeify(callback)
+			_getGuestPermissions()
+			.then((permissions) ->
+				return _checkPermissions(permissions)
+			).catch((err) ->
+				console.error(err)
+				return []
+			).then((guestAllowed) ->
+				if guestAllowed is true
+					return true
+				if allowed is false
+					if guestAllowed is false
+						return false
+					return guestAllowed
+				return '(' + allowed + ' or ' + guestAllowed + ')'
+			).nodeify(callback)
 	exports.checkPermissionsMiddleware = (action) ->
 		return (req, res, next) -> 
-			checkPermissions req, res, action, (err) ->
-				if err
-					res.send(401)
-				else
-					next()
+			checkPermissions(req, res, action)
+			.then((allowed) ->
+				switch allowed
+					when false
+						res.send(401)
+					when true
+						next()
+					else
+						throw new Error('checkPermissionsMiddleware returned a conditional permission')
+			).catch((err) ->
+				console.error(err)
+				res.send(503)
+			)
 
 	parseODataURI = (req, res) -> Q.try ->
 		{method, url, body} = req
@@ -739,23 +743,24 @@ define [
 					else
 						console.warn('Unknown method for permissions type check: ', method)
 						'all'
-		Q.nfcall(checkPermissions, req, res, permissionType, resourceName, vocabulary)
+		checkPermissions(req, res, permissionType, resourceName, vocabulary)
 		.then((conditionalPerms) ->
-			if !query?
-				if conditionalPerms?
-					console.error('Conditional permissions with no query?!')
-			else
-				if conditionalPerms?
-					try
-						conditionalPerms = odataParser.matchAll('/x?$filter=' + conditionalPerms, 'Process')
-					catch e
-						console.log('Failed to parse conditional permissions: ', conditionalPerms)
-						throw new Error('Failed to parse permissions')
-					query.options ?= {}
-					if query.options.$filter?
-						query.options.$filter = ['and', query.options.$filter, conditionalPerms.options.$filter]
-					else
-						query.options.$filter = conditionalPerms.options.$filter
+			if conditionalPerms is false
+				return false
+			else if conditionalPerms isnt true
+				if !query?
+					throw new Error('Conditional permissions with no query?!')
+				try
+					conditionalPerms = odataParser.matchAll('/x?$filter=' + conditionalPerms, 'Process')
+				catch e
+					console.log('Failed to parse conditional permissions: ', conditionalPerms)
+					throw new Error('Failed to parse permissions')
+				query.options ?= {}
+				if query.options.$filter?
+					query.options.$filter = ['and', query.options.$filter, conditionalPerms.options.$filter]
+				else
+					query.options.$filter = conditionalPerms.options.$filter
+			if query?
 				try
 					query = odata2AbstractSQL[vocabulary].match(query, 'Process', [method, body])
 				catch e

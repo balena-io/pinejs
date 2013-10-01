@@ -115,11 +115,12 @@ define [
 				res.json(err, 404)
 			)
 		app.post '/validate', sbvrUtils.checkPermissionsMiddleware('get'), uiModelLoaded, (req, res, next) ->
-			sbvrUtils.runRule 'data', req.body.rule, (err, results) ->
-				if err
-					res.send(404)
-				else
-					res.json(results)
+			sbvrUtils.runRule('data', req.body.rule)
+			.then((results) ->
+				res.json(results)
+			).catch(->
+				res.send(404)
+			)
 		app.del '/cleardb', sbvrUtils.checkPermissionsMiddleware('delete'), (req, res, next) ->
 			db.transaction (tx) ->
 				tx.tableList()
