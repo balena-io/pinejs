@@ -512,11 +512,12 @@ define [
 					resourceName = ruleLF[1][1][1][2][1].replace(/\ /g, '_').replace(/-/g, '__')
 					clientModel = clientModels[vocab].resources
 					processOData(vocab, clientModel, resourceName, result.rows)
-				).then((d) ->
-					return {
-						__model: clientModel[resourceName]
-						d: d
-					}
+					.then((d) ->
+						return {
+							__model: clientModel[resourceName]
+							d: d
+						}
+					)
 				)
 			).nodeify(callback)
 
