@@ -381,34 +381,32 @@ define([
 					for callback in updateListeners[foreignKey]
 						callback(id, instance, clientModelResults[foreignKey])
 			get: (tree, clientModel, successCallback) ->
-				async.forEach(clientModel.fields,
-					({fieldName, dataType}, callback) ->
-						if dataType not in ['ForeignKey', 'ConceptType']
-							callback()
-						else
-							# Get results for all the foreign keys
-							foreignKey = fieldName
-							if !fetchedResults.hasOwnProperty(foreignKey)
-								if !foreignKeyResults.hasOwnProperty(foreignKey)
-									foreignKeyResults[foreignKey] = {}
-								clientModelResults[foreignKey] = {}
-								fetchedResults[foreignKey] =
-									serverRequest('GET', serverAPI(tree.getVocabulary(), foreignKey))
-									.then(([statusCode, result]) ->
-										clientModelResults[foreignKey] = result.__model
-										for instance in result.d
-											instanceID = getInstanceID(instance, result.__model)
-											if !foreignKeyResults[foreignKey][instanceID]
-												foreignKeyResults[foreignKey][instanceID] = instance
-										return
-									).catch(->
-										throw new Error('Error fetching ' + foreignKey)
-									)
-							fetchedResults[foreignKey].nodeify(callback)
-					(err) ->
-						if(err)
-							console.error(err)
-						successCallback(foreignKeyResults, clientModelResults)
+				Q.all(_.map clientModel.fields, ({fieldName, dataType}) ->
+					if dataType not in ['ForeignKey', 'ConceptType']
+						return
+					# Get results for all the foreign keys
+					foreignKey = fieldName
+					if !fetchedResults.hasOwnProperty(foreignKey)
+						if !foreignKeyResults.hasOwnProperty(foreignKey)
+							foreignKeyResults[foreignKey] = {}
+						clientModelResults[foreignKey] = {}
+						fetchedResults[foreignKey] =
+							serverRequest('GET', serverAPI(tree.getVocabulary(), foreignKey))
+							.then(([statusCode, result]) ->
+								clientModelResults[foreignKey] = result.__model
+								for instance in result.d
+									instanceID = getInstanceID(instance, result.__model)
+									if !foreignKeyResults[foreignKey][instanceID]
+										foreignKeyResults[foreignKey][instanceID] = instance
+								return
+							).catch(->
+								throw new Error('Error fetching ' + foreignKey)
+							)
+					return fetchedResults[foreignKey]
+				).then(->
+					successCallback(foreignKeyResults, clientModelResults)
+				).catch((err) ->
+					console.error(err)
 				)
 		}
 	
