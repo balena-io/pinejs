@@ -24,10 +24,9 @@ define [
 		express = require('express')
 		passport = require('passport')
 		app = express()
-		app.configure('production', ->
+		app.configure 'production', ->
 			console.log = ->
-		)
-		app.configure(->
+		app.configure ->
 			path = require('path')
 			app.use(express.compress())
 			app.use(express.cookieParser())
@@ -54,7 +53,6 @@ define [
 				app.use('/external', express.static(path.join(rootPath, 'external')))
 				app.use('/tools', express.static(path.join(rootPath, 'tools')))
 			app.use('/', express.static(path.join(__dirname, 'static')))
-		)
 	else if has 'ENV_BROWSER'
 		app = express.app
 
@@ -76,9 +74,8 @@ define [
 		Q.all(promises)
 	).then(->
 		if has 'ENV_NODEJS'
-			app.listen(process.env.PORT or 1337, () ->
+			app.listen process.env.PORT or 1337, ->
 				console.info('Server started')
-			)
 
 		if has 'ENV_BROWSER'
 			app.enable()
