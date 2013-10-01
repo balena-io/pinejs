@@ -118,7 +118,8 @@ define [
 			sbvrUtils.runRule('data', req.body.rule)
 			.then((results) ->
 				res.json(results)
-			).catch(->
+			).catch((err) ->
+				console.log('Error validating', err)
 				res.send(404)
 			)
 		app.del '/cleardb', sbvrUtils.checkPermissionsMiddleware('delete'), (req, res, next) ->
