@@ -1,12 +1,13 @@
 define [
 	'has'
+	'q'
 	'cs!database-layer/db'
 	'cs!server-glue/sbvr-utils'
 	'cs!passport-bcrypt/passportBCrypt'
 	'cs!data-server/SBVRServer'
 	'cs!express-emulator/express'
 	'cs!config-loader/config-loader'
-], (has, dbModule, sbvrUtils, passportBCrypt, sbvrServer, express, configLoader) ->
+], (has, Q, dbModule, sbvrUtils, passportBCrypt, sbvrServer, express, configLoader) ->
 	if has 'ENV_NODEJS'
 		databaseURL = process.env.DATABASE_URL || "postgres://postgres:.@localhost:5432/postgres"
 		databaseOptions =
@@ -79,6 +80,9 @@ define [
 
 		if has 'ENV_BROWSER'
 			app.enable()
+	).catch((err) ->
+		console.error('Error initialising server', err)
+		process.exit()
 	)
 
 	return {app, sbvrUtils}
