@@ -61,16 +61,15 @@ define ['has', 'q', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Q, _, SQLB
 			closeTransaction = (message) =>
 				clearTimeout(automaticCloseTimeout)
 				stackTrace = getStackTrace()
-				deferred = Q.defer()
-				deferred.reject(new Error(message))
+				promise = Q.reject(new Error(message))
 				@executeSql = (sql, bindings, callback) ->
 					# console.error(message, stackTrace)
 					# console.trace()
-					return deferred.promise.nodeify(callback)
+					return promise.nodeify(callback)
 				@rollback = @end = (sql, bindings, callback) ->
 					# console.error(message, stackTrace)
 					# console.trace()
-					return deferred.promise.nodeify(callback)
+					return promise.nodeify(callback)
 
 	if has 'ENV_NODEJS'
 		exports.postgres = (connectString) ->
