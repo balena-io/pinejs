@@ -102,7 +102,7 @@ define [
 						}, tx)
 					).then(->
 						tx.end()
-					).catch((err)
+					).catch((err) ->
 						tx.rollback()
 						throw err
 					)
