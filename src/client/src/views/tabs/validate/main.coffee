@@ -1,9 +1,9 @@
 define([
 	'backbone'
 	'codemirror'
-	'async'
+	'q'
 	'codemirror-ometa/hinter'
-], (Backbone, CodeMirror, async, codeMirrorOmetaHinter) ->
+], (Backbone, CodeMirror, Q, codeMirrorOmetaHinter) ->
 	Backbone.View.extend(
 		events:
 			"click #validate": "validate"
@@ -48,135 +48,110 @@ define([
 				@editor.setSize(@$el.width(), 40)
 			).resize()
 		validate: ->
-			async.parallel(
-				models: (callback) ->
-					serverRequest('GET', '/data/', {}, null,
-						(statusCode, result) ->
-							console.log(result)
-							callback(null, result)
-						-> callback(arguments)
+			Q.all([
+				serverRequest('GET', '/data/')
+				.then(([statusCode, result]) ->
+					console.log(result)
+					return result.__model
+				)
+				serverRequest('POST', '/validate/', {}, {rule: @editor.getValue()})
+				.then(([statusCode, result]) ->
+					return result
+				)
+			]).spread((models, invalid) =>
+				colNames = []
+				colResourceNames = []
+				colModel = []
+				fkCols = []
+				
+				for {dataType, fieldName} in invalid.__model.fields
+					resourceName = fieldName.replace(/\ /g, '_')
+					if dataType == 'ForeignKey'
+						colNames.push(fieldName + '(id: name)')
+						fkCols.push(models[resourceName])
+					else
+						colNames.push(fieldName)
+					colModel.push(
+						name: fieldName
 					)
-				invalid: (callback) =>
-					serverRequest('POST', '/validate/', {}, {rule: @editor.getValue()},
-						(statusCode, result) ->
-							callback(null, result)
-						-> callback(arguments)
-					)
-				(err, results) =>
-					if err
-						console.error('Error validating', err)
-						return
-					{models, invalid} = results
-					
-					colNames = []
-					colResourceNames = []
-					colModel = []
-					fkCols = []
-					
-					for {dataType, fieldName} in invalid.__model.fields
-						resourceName = fieldName.replace(/\ /g, '_')
-						if dataType == 'ForeignKey'
-							colNames.push(fieldName + '(id: name)')
-							fkCols.push(models[resourceName])
-						else
-							colNames.push(fieldName)
+					colResourceNames.push(resourceName)
+				
+				manyToManyCols = []
+				
+				resourceName = invalid.__model.resourceName
+				for own modelName, model of models
+					if (modelNameParts = model.resourceName.split('-')).length > 2 and
+							modelNameParts[0] == resourceName and
+							modelNameParts[2] not in colResourceNames
+						colNames.push(modelNameParts[2] + '(id: name)')
 						colModel.push(
-							name: fieldName
+							name: modelNameParts[2]
 						)
-						colResourceNames.push(resourceName)
-					
-					manyToManyCols = []
-					
-					resourceName = invalid.__model.resourceName
-					for own modelName, model of models
-						if (modelNameParts = model.resourceName.split('-')).length > 2 and
-								modelNameParts[0] == resourceName and
-								modelNameParts[2] not in colResourceNames
-							colNames.push(modelNameParts[2] + '(id: name)')
-							colModel.push(
-								name: modelNameParts[2]
+						manyToManyCols.push(model)
+				
+				Q.all(_.map invalid.d, (instance) ->
+					Q.all([
+						Q.all(_.map fkCols, (model) ->
+							serverRequest('GET', instance[model.modelName].__deferred.uri)
+							.then(([statusCode, fkCol]) ->
+								if fkCol.d.length > 0
+									instance[model.modelName] = fkCol.d[0][model.idField] + ': ' + fkCol.d[0][model.referenceScheme]
 							)
-							manyToManyCols.push(model)
-					
-					async.map(invalid.d,
-						(instance, callback) ->
-							async.parallel([
-									(callback) ->
-										async.map(fkCols,
-											(model, callback) ->
-												serverRequest('GET', instance[model.modelName].__deferred.uri, {}, null,
-													(statusCode, fkCol) ->
-														if fkCol.d.length > 0
-															instance[model.modelName] = fkCol.d[0][model.idField] + ': ' + fkCol.d[0][model.referenceScheme]
-														callback()
-													-> callback(arguments)
-												)
-											callback
-										)
-									(callback) ->
-										async.map(manyToManyCols,
-											(model, callback) ->
-												serverRequest('GET', '/data/' + model.resourceName + '?$filter=' + invalid.__model.resourceName + ' eq ' + instance[invalid.__model.idField], {}, null,
-													(statusCode, manyToManyCol) ->
-														async.forEach(manyToManyCol.d,
-															(instance, callback) ->
-																fkName = model.resourceName.split('-')[2]
-																serverRequest('GET', instance[fkName].__deferred.uri, {}, null,
-																	(statusCode, results) ->
-																		if results.d.length > 0
-																			instance[fkName] = results.d[0][results.__model.referenceScheme]
-																		callback()
-																	-> callback(arguments)
-																)
-															(err) ->
-																callback(err, manyToManyCol)
-														)
-													-> callback(arguments)
-												)
-											callback
-										)
-								]
-								(err, [ignoredFKs, manyToManyCols]) -> callback(err, manyToManyCols)
+						)
+						Q.all(_.map manyToManyCols, (model) ->
+							serverRequest('GET', '/data/' + model.resourceName + '?$filter=' + invalid.__model.resourceName + ' eq ' + instance[invalid.__model.idField])
+							.then(([statusCode, manyToManyCol]) ->
+								Q.all(_.map manyToManyCol.d, (instance) ->
+									fkName = model.resourceName.split('-')[2]
+									serverRequest('GET', instance[fkName].__deferred.uri)
+									.then(([statusCode, results]) ->
+										if results.d.length > 0
+											instance[fkName] = results.d[0][results.__model.referenceScheme]
+									)
+								).then(->
+									return manyToManyCol
+								)
 							)
-						(err, manyToManyCols) =>
-							if err
-								console.error('Error validating', err)
-								return
-
-							console.log "invalid items:", invalid.d.length, invalid.d.length == 0, invalid.d
-
-							results_div = @$("#results")
-							noresults_div = @$("#noresults")
-
-							if invalid.d.length == 0
-								results_div.hide()
-								noresults_div.show()
-
-							else
-								results_div.show()
-								noresults_div.hide()
-
-								header = @$("thead tr")
-								results = @$("tbody")
-								header.empty()
-								results.empty()
-
-								for name in colNames
-									column = $(document.createElement('th')).text(name)
-									header.append(column)
-
-								for instance, i in invalid.d
-									for manyToManyCol in manyToManyCols[i] when manyToManyCol?
-										fkName = manyToManyCol.__model.resourceName.split('-')[2]
-										instance[fkName] = (manyToManyInstance[manyToManyCol.__model.idField] + ': ' + manyToManyInstance[fkName] for manyToManyInstance in manyToManyCol.d).join('\n')
-
-									row = $(document.createElement('tr'))
-									for column in colModel
-										cell = $(document.createElement('td'))
-										cell.text(instance[column.name])
-										row.append(cell)
-									results.append(row)
+						)
+					]).spread((ignoredFKs, manyToManyCols) ->
+						return manyToManyCols
 					)
+				).then((manyToManyCols) =>
+					console.log "invalid items:", invalid.d.length, invalid.d.length == 0, invalid.d
+
+					results_div = @$("#results")
+					noresults_div = @$("#noresults")
+
+					if invalid.d.length == 0
+						results_div.hide()
+						noresults_div.show()
+					else
+						results_div.show()
+						noresults_div.hide()
+
+						header = @$("thead tr")
+						results = @$("tbody")
+						header.empty()
+						results.empty()
+
+						for name in colNames
+							column = $(document.createElement('th')).text(name)
+							header.append(column)
+
+						for instance, i in invalid.d
+							for manyToManyCol in manyToManyCols[i] when manyToManyCol?
+								fkName = manyToManyCol.__model.resourceName.split('-')[2]
+								instance[fkName] = (manyToManyInstance[manyToManyCol.__model.idField] + ': ' + manyToManyInstance[fkName] for manyToManyInstance in manyToManyCol.d).join('\n')
+
+							row = $(document.createElement('tr'))
+							for column in colModel
+								cell = $(document.createElement('td'))
+								cell.text(instance[column.name])
+								row.append(cell)
+							results.append(row)
+				)
+			).catch((err) ->
+				console.error('Error validating', err)
 			)
 	)
 )
