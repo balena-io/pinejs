@@ -178,7 +178,7 @@ define [
 			if value is undefined
 				return db.DEFAULT_VALUE
 
-			Q.nfcall(AbstractSQL2SQL.dataTypeValidate, value, field)
+			AbstractSQL2SQL.dataTypeValidate(value, field)
 			.catch((err) ->
 				throw new Error('"' + fieldName + '" ' + err)
 			)

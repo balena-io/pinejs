@@ -1,24 +1,32 @@
 define([
 	'abstract-sql-compiler'
 	'lodash'
+	'q'
 	'cs!sbvr-compiler/types'
 	'cs!sbvr-compiler/types/TypeUtils'
-], (AbstractSQLCompiler, _, sbvrTypes, TypeUtils) ->
+], (AbstractSQLCompiler, _, Q, sbvrTypes, TypeUtils) ->
 
 	dataTypeValidate = (value, field, callback) ->
-		{dataType, required} = field
-		if value == null or value == ''
-			if required
-				callback('cannot be null')
+		# In case one of the validation types throws an error.
+		deferred = Q.defer()
+		Q.try(->
+			{dataType, required} = field
+			if value == null or value == ''
+				if required
+					deferred.reject('cannot be null')
+				else
+					deferred.resolve(null)
+			else if sbvrTypes[dataType]?
+				sbvrTypes[dataType].validate(value, required, deferred.makeNodeResolver())
+			else if dataType in ['ForeignKey', 'ConceptType']
+				TypeUtils.validate.integer(value, required, deferred.makeNodeResolver())
 			else
-				callback(null, null)
-		else if sbvrTypes[dataType]?
-			sbvrTypes[dataType].validate(value, required, callback)
-			return
-		else if dataType in ['ForeignKey', 'ConceptType']
-			TypeUtils.validate.integer(value, required, callback)
-		else
-			callback('is an unsupported type: ' + dataType)
+				deferred.reject('is an unsupported type: ' + dataType)
+		).catch((err) ->
+			console.error('Unable to validate field', field, value, err)
+			deferred.reject('error whilst validating')
+		)
+		deferred.promise.nodeify(callback)
 
 	dataTypeGen = (engine, dataType, necessity, index = '') ->
 		necessity = if necessity then ' NOT NULL' else ' NULL'
