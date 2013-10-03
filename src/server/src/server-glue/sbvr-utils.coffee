@@ -191,15 +191,20 @@ define([
 		db.transaction((tx) ->
 			placeholders = {}
 			getLockedRow = (lockID, callback) ->
-				tx.executeSql('''SELECT r."resource type" AS "resource_type", r."resource id" AS "resource_id"
-								FROM "resource-is_under-lock" rl
-								JOIN "resource" r ON rl."resource" = r."id"
-								WHERE "lock" = ?;''', [lockID],
+				# 'GET', '/transaction/resource?$filter=resource__is_under__lock/lock eq ?'
+				tx.executeSql('''SELECT "resource"."id", "resource"."resource id" AS "resource_id", "resource"."resource type" AS "resource_type"
+								FROM "resource",
+									"resource-is_under-lock"
+								WHERE "resource"."id" = "resource-is_under-lock"."resource"
+								AND "resource-is_under-lock"."lock" = ?;''', [lockID],
 					(tx, row) -> callback(null, row)
 					(tx, err) -> callback(err)
 				)
 			getFieldsObject = (conditionalResourceID, clientModel, callback) ->
-				tx.executeSql('SELECT "field name" AS "field_name", "field value" AS "field_value" FROM "conditional_field" WHERE "conditional resource" = ?;', [conditionalResourceID],
+				# 'GET', '/transaction/conditional_field?$filter=conditional_resource eq ?'
+				tx.executeSql('''SELECT "conditional_field"."id", "conditional_field"."field name" AS "field_name", "conditional_field"."field value" AS "field_value", "conditional_field"."conditional resource" AS "conditional_resource"
+								FROM "conditional_field"
+								WHERE "conditional_field"."conditional resource" = ?;''', [conditionalResourceID],
 					(tx, fields) ->
 						fieldsObject = {}
 						async.forEach(fields.rows,
@@ -237,7 +242,10 @@ define([
 				for placeholderCallback in placeholderCallbacks
 					placeholderCallback(placeholder, resolvedID)
 
-			tx.executeSql('SELECT * FROM "conditional_resource" WHERE "transaction" = ?;', [transactionID],
+			# 'GET', '/transaction/conditional_resource?$filter=transaction eq ?'
+			tx.executeSql('''SELECT "conditional_resource"."id", "conditional_resource"."transaction", "conditional_resource"."lock", "conditional_resource"."resource type" AS "resource_type", "conditional_resource"."conditional type" AS "conditional_type", "conditional_resource"."placeholder"
+							FROM "conditional_resource"
+							WHERE "conditional_resource"."transaction" = ?;''', [transactionID],
 				(tx, conditionalResources) ->
 					conditionalResources.rows.forEach((conditionalResource) ->
 						placeholder = conditionalResource.placeholder
