@@ -1,11 +1,13 @@
-define(['async'], (async) ->
+define ['async', 'q'], (async, Q) ->
 	runTrans = (rootElement) ->
 		actions = $(".action:has(#__actype[value!=view])")
 		if actions.size() > 0
 			# get 'trans' action resource to extract the URIs
-			serverRequest("GET", '/transaction', {}, null, (statusCode, transURIs, headers) ->
+			serverRequest('GET', '/transaction')
+			.then(([statusCode, transURIs]) ->
 				# create transaction resource
-				serverRequest('POST', transURIs.transactionURI, {}, null, (statusCode, transaction, headers) ->
+				serverRequest('POST', transURIs.transactionURI)
+				.then(([statusCode, transaction, headers]) ->
 					transactionID = transaction.id
 					
 					# find and lock relevant resources (l,t-l,r-l)
@@ -67,28 +69,18 @@ define(['async'], (async) ->
 												sendData.placeholder = dataElement[2]
 										switch dataElement[1]
 											when "del"
-												serverRequest("POST", transURIs.conditionalResourceURI, {}, sendData,
-													-> callback()
-													-> callback(arguments)
-												)
+												serverRequest('POST', transURIs.conditionalResourceURI, {}, sendData).nodeify(callback)
 											when 'edit', 'add'
 												fields = dataElement[3]
-												serverRequest("POST", transURIs.conditionalResourceURI, {}, sendData,
-													(statusCode, condResource, headers) ->
-														async.forEach(fields,
-															(field, callback) ->
-																fieldData =
-																	conditional_resource: condResource.id
-																	field_name: field.name 
-																	field_value: field.value
-																serverRequest("POST", transURIs.conditionalFieldURI, {}, fieldData,
-																	-> callback()
-																	-> callback(arguments)
-																)
-															callback
-														)
-													-> callback(arguments)
-												)
+												serverRequest('POST', transURIs.conditionalResourceURI, {}, sendData)
+												.then(([statusCode, condResource]) ->
+													Q.all _.map fields, (field, callback) ->
+														fieldData =
+															conditional_resource: condResource.id
+															field_name: field.name 
+															field_value: field.value
+														serverRequest("POST", transURIs.conditionalFieldURI, {}, fieldData)
+												).nodeify(callback)
 											else
 												callback(['Unknown transaction op', dataElement[1]])
 									(err) ->
@@ -108,23 +100,25 @@ define(['async'], (async) ->
 
 
 		lockResource = (resourceType, resourceID, transURIs, transactionID, callback) ->
-			failureCallback = -> callback(arguments)
 			o =
 				is_exclusive: true
 				transaction: transactionID
-			serverRequest("POST", transURIs.lockURI, {}, o, ((statusCode, lock, headers) ->
+			lock = serverRequest('POST', transURIs.lockURI, {}, o)
+
+			o =
+				resource_id: parseInt(resourceID, 10)
+				resource_type: resourceType
+			resource = serverRequest('POST', transURIs.resourceURI, {}, o)
+
+			Q.all(lock, resource)
+			.spread(([statusCode1, lock], [statusCode2, resource]) ->
 				o =
-					resource_id: parseInt(resourceID, 10)
-					resource_type: resourceType
-				serverRequest("POST", transURIs.resourceURI, {}, o, ((statusCode, resource, headers) ->
-					o =
-						resource: resource.id
-						lock: lock.id
-					serverRequest("POST", transURIs.lockResourceURI, {}, o, ((statusCode, result, headers) ->
-						callback(null, lock.id)
-					), failureCallback)
-				), failureCallback)
-			), failureCallback)
+					resource: resource.id
+					lock: lock.id
+				serverRequest('POST', transURIs.lockResourceURI, {}, o)
+				.then(->
+					return lock.id
+				)
+			).nodeify(callback)
 
 	window?.runTrans = runTrans
-)
