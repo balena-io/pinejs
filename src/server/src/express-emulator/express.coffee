@@ -12,9 +12,14 @@ define ['q', 'lodash'], (Q, _) ->
 			MERGE: []
 		addHandler = (handlerName, match, middleware...) ->
 			#Strip wildcard
-			match = match.replace(/[\/\*]*$/,'').toLowerCase()
-			paramMatch = /:(.*)$/.exec(match)
-			paramName = (paramMatch == null ? null : paramMatch[1] )
+			match = match.toLowerCase()
+			newMatch = match.replace(/[\/\*]*$/,'')
+			if newMatch != match
+				match = newMatch
+				paramName = '*'
+			else
+				paramMatch = /:(.*)$/.exec(match)
+				paramName = if !paramMatch? then null else paramMatch[1]
 			handlers[handlerName].push(
 				match: match
 				paramName: paramName
@@ -72,9 +77,16 @@ define ['q', 'lodash'], (Q, _) ->
 				if i < methodHandlers.length
 					if uri[0...methodHandlers[i].match.length] == methodHandlers[i].match
 						j = -1
-						if methodHandlers[i].paramName != null
+						# Reset params that may have been added on previous routes that failed in middleware
+						req.params = {}
+						if methodHandlers[i].paramName?
 							req.params[methodHandlers[i].paramName] = uri[methodHandlers[i].match.length..]
-						next()
+							next()
+						else if uri.length != methodHandlers[i].match.length
+							# Not an exact match and no parameter matching
+							checkMethodHandlers()
+						else
+							next()
 					else
 						checkMethodHandlers()
 				else
