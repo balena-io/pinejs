@@ -97,7 +97,7 @@ define(['async'], (async) ->
 										else
 											serverRequest("POST", transURIs.commitTransactionURI, null, {id: transactionID},
 												(statusCode, result, headers) ->
-													location.hash = "#!/data/"
+													dduiState('#!/data/')
 												(statusCode, errors) -> 
 													console.error(statusCode, errors)
 											)
