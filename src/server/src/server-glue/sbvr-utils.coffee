@@ -827,34 +827,33 @@ define [
 			getAndCheckBindValues(tree.vocabulary, bindings, request.values)
 			.then((values) ->
 				console.log(query, values)
-				runQuery = (tx) ->
-					tx.executeSql(query, values)
-					.then((result) ->
-						clientModel = clientModels[tree.vocabulary].resources
-						switch tree.type
-							when 'OData'
-								processOData(tree.vocabulary, clientModel, request.resourceName, result.rows)
-								.then((d) ->
-									data =
-										__model: clientModel[request.resourceName]
-										d: d
-									res.json(data)
-								)
-							else
-								res.send(503)
-					)
 				if tx?
-					runQuery(tx)
+					tx.executeSql(query, values)
 				else
 					db.transaction().then((tx) ->
-						runQuery(tx)
-						.then(->
+						tx.executeSql(query, values)
+						.then((result) ->
 							tx.end()
+							return result
 						).catch((err) ->
 							tx.rollback()
 							throw err
 						)
 					)
+			)
+			.then((result) ->
+				clientModel = clientModels[tree.vocabulary].resources
+				switch tree.type
+					when 'OData'
+						processOData(tree.vocabulary, clientModel, request.resourceName, result.rows)
+						.then((d) ->
+							data =
+								__model: clientModel[request.resourceName]
+								d: d
+							res.json(data)
+						)
+					else
+						res.send(503)
 			).catch((err) ->
 				res.json(err, 404)
 			)
