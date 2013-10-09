@@ -27,6 +27,8 @@ define [
 		app = express()
 		app.configure 'production', ->
 			console.log = ->
+		app.configure 'development', ->
+			Q.longStackSupport = true
 		app.configure ->
 			path = require('path')
 			app.use(express.compress())

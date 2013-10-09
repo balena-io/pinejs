@@ -4,7 +4,6 @@ define [
 	'q'
 ], (_, has, Q) ->
 	exports = {}
-	Q.longStackSupport = true
 
 	uiModel = '''
 			Vocabulary: ui

@@ -14,7 +14,6 @@ define [
 ], (has, SBVRParser, LF2AbstractSQL, AbstractSQL2SQL, AbstractSQLCompiler, AbstractSQL2CLF, ODataMetadataGenerator, {ODataParser}, {OData2AbstractSQL}, _, Q, sbvrTypes) ->
 	exports = {}
 	db = null
-	Q.longStackSupport = true
 
 	LF2AbstractSQLTranslator = LF2AbstractSQL.createTranslator(sbvrTypes)
 
