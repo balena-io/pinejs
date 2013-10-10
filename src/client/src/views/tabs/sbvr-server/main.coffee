@@ -1,7 +1,7 @@
 define([
 	'backbone'
 	'has'
-	'q'
+	'bluebird'
 ], (Backbone, has, Q) ->
 	Backbone.View.extend(
 		events:
@@ -32,13 +32,13 @@ define([
 			@$el.html(html)
 
 			window.serverRequest = (method, uri, headers = {}, body = null, successCallback, failureCallback) ->
-				deferred = Q.defer()
+				deferred = Q.pending()
 				if !headers["Content-Type"]? and body?
 					headers["Content-Type"] = "application/json"
 				$("#httpTable").append('<tr class="server_row"><td><strong>' + method + '</strong></td><td>' + uri + '</td><td>' + (if headers.length == 0 then '' else JSON.stringify(headers)) + '</td><td>' + JSON.stringify(body) + '</td></tr>')
 				if has 'ENV_BROWSER'
 					require ['cs!server-glue/server'], (Server) ->
-						deferred.resolve(Server.app.process(method, uri, headers, body))
+						deferred.fulfill(Server.app.process(method, uri, headers, body))
 				else
 					if body != null
 						body = JSON.stringify(body)
@@ -58,7 +58,7 @@ define([
 							responseHeadersString = jqXHR.getAllResponseHeaders()
 							while match = rheaders.exec( responseHeadersString )
 								responseHeaders[ match[1].toLowerCase() ] = match[2]
-							deferred.resolve(jqXHR.status, data, responseHeaders)
+							deferred.fulfill(jqXHR.status, data, responseHeaders)
 
 						type: method
 				if successCallback?

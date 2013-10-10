@@ -1,4 +1,4 @@
-define ['has', 'q', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Q, _, SQLBinds) ->
+define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Q, _, SQLBinds) ->
 	exports = {}
 	DEFAULT_VALUE = {}
 	bindDefaultValues = (sql, bindings) ->
@@ -35,7 +35,7 @@ define ['has', 'q', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Q, _, SQLB
 
 			@executeSql = (sql, bindings = [], callback, args...) ->
 				resetTimeout()
-				deferred = Q.defer()
+				deferred = Q.pending()
 
 				sql = bindDefaultValues(sql, bindings)
 				executeSql(sql, bindings, deferred, args...)
@@ -43,7 +43,7 @@ define ['has', 'q', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Q, _, SQLB
 				return deferred.promise.nodeify(callback)
 
 			@rollback = (callback) ->
-				deferred = Q.defer()
+				deferred = Q.pending()
 
 				rollback(deferred)
 				closeTransaction('Transaction has been rolled back.')
@@ -51,7 +51,7 @@ define ['has', 'q', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Q, _, SQLB
 				return deferred.promise.nodeify(callback)
 
 			@end = (callback) ->
-				deferred = Q.defer()
+				deferred = Q.pending()
 
 				end(deferred)
 				closeTransaction('Transaction has been ended.')
@@ -61,7 +61,7 @@ define ['has', 'q', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Q, _, SQLB
 			closeTransaction = (message) =>
 				clearTimeout(automaticCloseTimeout)
 				stackTrace = getStackTrace()
-				promise = Q.reject(new Error(message))
+				promise = Q.rejected(new Error(message))
 				@executeSql = (sql, bindings, callback) ->
 					# console.error(message, stackTrace)
 					# console.trace()
@@ -114,14 +114,14 @@ define ['has', 'q', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Q, _, SQLB
 								console.warn(sql, bindings, err)
 								deferred.reject(err)
 							else
-								deferred.resolve(createResult(res))
+								deferred.fulfill(createResult(res))
 
 					rollback = (deferred) =>
-						deferred.resolve(@executeSql('ROLLBACK;'))
+						deferred.fulfill(@executeSql('ROLLBACK;'))
 						_close()
 
 					end = (deferred) =>
-						deferred.resolve(@executeSql('COMMIT;'))
+						deferred.fulfill(@executeSql('COMMIT;'))
 						_close()
 
 					super(_stackTrace, executeSql, rollback, end)
@@ -140,7 +140,7 @@ define ['has', 'q', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Q, _, SQLB
 				engine: 'postgres'
 				transaction: (callback) ->
 					stackTrace = getStackTrace()
-					deferred = Q.defer()
+					deferred = Q.pending()
 
 					pg.connect connectString, (err, client, done) ->
 						if err
@@ -151,7 +151,7 @@ define ['has', 'q', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Q, _, SQLB
 							tx.executeSql('SET search_path TO "' + process.env.PG_SCHEMA + '"')
 						tx.executeSql('START TRANSACTION;')
 
-						deferred.resolve(tx)
+						deferred.fulfill(tx)
 
 					deferred.promise.then(callback).catch (err) ->
 						console.error(err, callback)
@@ -184,14 +184,14 @@ define ['has', 'q', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Q, _, SQLB
 								console.warn(sql, bindings, err)
 								deferred.reject(err)
 							else
-								deferred.resolve(createResult(res))
+								deferred.fulfill(createResult(res))
 
 					rollback = =>
-						deferred.resolve(@executeSql('ROLLBACK;'))
+						deferred.fulfill(@executeSql('ROLLBACK;'))
 						_db.end()
 
 					end = (deferred) =>
-						deferred.resolve(@executeSql('COMMIT;'))
+						deferred.fulfill(@executeSql('COMMIT;'))
 						_db.end()
 
 					super(_stackTrace, executeSql, rollback, end)
@@ -210,7 +210,7 @@ define ['has', 'q', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Q, _, SQLB
 				engine: 'mysql'
 				transaction: (callback) ->
 					stackTrace = getStackTrace()
-					deferred = Q.defer()
+					deferred = Q.pending()
 
 					_pool.getConnection (err, _db) ->
 						if err
@@ -219,7 +219,7 @@ define ['has', 'q', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Q, _, SQLB
 						tx = new MysqlTx(_db, stackTrace)
 						tx.executeSql('START TRANSACTION;')
 
-						deferred.resolve(tx)
+						deferred.fulfill(tx)
 
 					deferred.promise.then(callback).catch (err) ->
 						console.error(err, callback)
@@ -268,7 +268,7 @@ define ['has', 'q', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Q, _, SQLB
 						stackTrace = getStackTrace()
 
 						successCallback = (_tx, _results) =>
-							deferred.resolve(createResult(_results))
+							deferred.fulfill(createResult(_results))
 						errorCallback = (_tx, err) =>
 							console.warn(sql, bindings, err, stackTrace)
 							deferred.reject(err)
@@ -278,16 +278,16 @@ define ['has', 'q', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Q, _, SQLB
 
 					rollback = (deferred) ->
 						successCallback = ->
-							deferred.resolve()
+							deferred.fulfill()
 							throw 'Rollback'
 						errorCallback = ->
-							deferred.resolve()
+							deferred.fulfill()
 							return true
 						queue = [['RUN A FAILING STATEMENT TO ROLLBACK', [], successCallback, errorCallback]]
 						running = false
 
 					end = (deferred) ->
-						deferred.resolve()
+						deferred.fulfill()
 						running = false
 
 					super(_stackTrace, executeSql, rollback, end)
@@ -310,9 +310,9 @@ define ['has', 'q', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Q, _, SQLB
 					stackTrace = getStackTrace()
 
 					_db.transaction (_tx) ->
-						deferred.resolve(new WebSqlTx(_tx, stackTrace))
+						deferred.fulfill(new WebSqlTx(_tx, stackTrace))
 
-					deferred = Q.defer()
+					deferred = Q.pending()
 					deferred.promise.then(callback).catch (err) ->
 						console.error(err, callback)
 					return deferred.promise

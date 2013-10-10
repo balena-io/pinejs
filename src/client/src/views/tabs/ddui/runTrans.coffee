@@ -1,4 +1,4 @@
-define ['async', 'q'], (async, Q) ->
+define ['async', 'bluebird'], (async, Q) ->
 	runTrans = (rootElement) ->
 		actions = $(".action:has(#__actype[value!=view])")
 		if actions.size() > 0

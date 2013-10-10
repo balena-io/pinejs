@@ -1,4 +1,4 @@
-define ['has', 'lodash', 'q'], (has, _, Q) ->
+define ['has', 'lodash', 'bluebird'], (has, _, Q) ->
 	exports = {}
 
 	# Setup function
@@ -14,7 +14,7 @@ define ['has', 'lodash', 'q'], (has, _, Q) ->
 		data = require path.join(root, 'config.json')
 		db.transaction().then((tx) ->
 			modelsPromise = Q.all(_.map data.models, (model) ->
-				Q.nfcall(fs.readFile, path.join(root, model.modelFile), 'utf8')
+				Q.promisify(fs.readFile)(path.join(root, model.modelFile), 'utf8')
 				.then((sbvrModel) ->
 					sbvrUtils.executeModel(tx, model.apiRoot, sbvrModel)
 				).then(->
@@ -84,10 +84,14 @@ define ['has', 'lodash', 'q'], (has, _, Q) ->
 					app.del(apiRoute, sbvrUtils.runDelete)
 					if model.customServerCode?
 						try
-							deferred = Q.defer()
-							promise = require(root + '/' + model.customServerCode).setup(app, requirejs, sbvrUtils, db, deferred.makeNodeResolver())
-							if Q.isPromise(promise)
-								deferred.resolve(promise)
+							deferred = Q.pending()
+							promise = require(root + '/' + model.customServerCode).setup app, requirejs, sbvrUtils, db, (err) ->
+								if err
+									deferred.reject(err)
+								else
+									deferred.fulfill()
+							if Q.is(promise)
+								deferred.fulfill(promise)
 							return deferred.promise
 						catch e
 							throw new Error('Error running custom server code: ' + e)

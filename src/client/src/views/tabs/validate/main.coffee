@@ -1,7 +1,7 @@
 define([
 	'backbone'
 	'codemirror'
-	'q'
+	'bluebird'
 	'codemirror-ometa/hinter'
 ], (Backbone, CodeMirror, Q, codeMirrorOmetaHinter) ->
 	Backbone.View.extend(

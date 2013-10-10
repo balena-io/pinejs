@@ -96,8 +96,7 @@
 
 	paths: {
 		lodash: 'empty:',
-		async: 'empty:',
-		q: 'empty:'
+		bluebird: 'empty:'
 	},
 	name: 'cs!server-glue/server'
 })

@@ -1,4 +1,4 @@
-define ['q'], (Q) ->
+define ['bluebird'], (Q) ->
 	return (options, sbvrUtils, app, passport) ->
 		exports = {}
 		checkPassword = (username, password, done) ->
@@ -8,7 +8,7 @@ define ['q'], (Q) ->
 					throw new Error('User not found')
 				hash = result.d[0].password
 				userId = result.d[0].id
-				Q.nfcall(compare, password, hash)
+				Q.promisify(compare)(password, hash)
 				.then((res) ->
 					if !res
 						throw new Error('Passwords do not match')

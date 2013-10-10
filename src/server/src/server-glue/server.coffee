@@ -1,6 +1,6 @@
 define [
 	'has'
-	'q'
+	'bluebird'
 	'cs!database-layer/db'
 	'cs!server-glue/sbvr-utils'
 	'cs!passport-bcrypt/passportBCrypt'
@@ -28,7 +28,7 @@ define [
 		app.configure 'production', ->
 			console.log = ->
 		app.configure 'development', ->
-			Q.longStackSupport = true
+			Q.longStackTraces()
 		app.configure ->
 			path = require('path')
 			app.use(express.compress())
@@ -57,6 +57,7 @@ define [
 				app.use('/tools', express.static(path.join(rootPath, 'tools')))
 			app.use('/', express.static(path.join(__dirname, 'static')))
 	else if has 'ENV_BROWSER'
+		Q.longStackTraces()
 		app = express.app
 
 	sbvrUtils.setup(app, require, db)

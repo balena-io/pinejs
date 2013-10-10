@@ -1,7 +1,7 @@
 define [
 	'lodash'
 	'has'
-	'q'
+	'bluebird'
 ], (_, has, Q) ->
 	exports = {}
 
@@ -24,15 +24,15 @@ define [
 
 	# Middleware
 	isServerOnAir = do ->
-		deferred = Q.defer()
+		deferred = Q.pending()
 		promise = deferred.promise
 		(value) ->
 			if value?
 				if promise.isPending()
-					deferred.resolve(value)
+					deferred.fulfill(value)
 					deferred = null
 				else
-					promise = Q(value)
+					promise = Q.fulfilled(value)
 			return promise
 
 	serverIsOnAir = (req, res, next) ->
@@ -43,7 +43,7 @@ define [
 				next('route')
 		)
 	
-	isUiModelLoaded = Q.defer()
+	isUiModelLoaded = Q.pending()
 	uiModelLoaded = (req, res, next) ->
 		isUiModelLoaded.promise.then(->
 			next()
@@ -56,7 +56,7 @@ define [
 				sbvrUtils.executeModel(tx, 'ui', uiModel)
 				.then(->
 					console.info('Sucessfully executed ui model.')
-					isUiModelLoaded.resolve()
+					isUiModelLoaded.fulfill()
 				).catch((err) ->
 					console.error('Failed to execute ui model.', err, err.stack)
 					throw err

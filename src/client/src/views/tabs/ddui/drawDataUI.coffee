@@ -3,7 +3,7 @@ define([
 	'ejs'
 	'cs!./widgets'
 	'async'
-	'q'
+	'bluebird'
 	'lodash'
 	'cs!./runTrans'
 ], (ClientURIUnparser, ejs, widgets, async, Q, _) ->

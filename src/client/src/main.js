@@ -52,7 +52,7 @@ require({
 		'jquery-ui'					: '../lib/jquery-ui',
 		
 		// For the in-browser server
-		'q'							: '../../../node_modules/q/q',
+		'bluebird'					: '../../../node_modules/bluebird/js/bluebird',
 		'odata-parser'				: '../../../node_modules/odata-parser/odata-parser',
 		'odata-to-abstract-sql'		: '../../../node_modules/odata-to-abstract-sql/odata-to-abstract-sql',
 		'config-loader'				: '../../server/src/config-loader',

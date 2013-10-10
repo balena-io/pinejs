@@ -9,7 +9,7 @@ define [
 	'odata-parser'
 	'odata-to-abstract-sql'
 	'lodash'
-	'q'
+	'bluebird'
 	'cs!sbvr-compiler/types'
 ], (has, SBVRParser, LF2AbstractSQL, AbstractSQL2SQL, AbstractSQLCompiler, AbstractSQL2CLF, ODataMetadataGenerator, {ODataParser}, {OData2AbstractSQL}, _, Q, sbvrTypes) ->
 	exports = {}
@@ -230,7 +230,7 @@ define [
 				conditionalResources.rows.forEach (conditionalResource) ->
 					placeholder = conditionalResource.placeholder
 					if placeholder? and placeholder.length > 0
-						placeholders[placeholder] = Q.defer()
+						placeholders[placeholder] = Q.pending()
 
 				# get conditional resources (if exist)
 				Q.all(conditionalResources.rows.map (conditionalResource) ->
@@ -269,7 +269,7 @@ define [
 							.then((fields) ->
 								runURI('POST', uri, fields, tx)
 							).then((result) ->
-								placeholders[placeholder].resolve(result.id)
+								placeholders[placeholder].fulfill(result.id)
 							).then(doCleanup)
 							.catch((err) ->
 								placeholders[placeholder].reject(err)
@@ -427,7 +427,7 @@ define [
 
 	processOData = (vocab, clientModel, resourceName, rows) ->
 		if rows.length is 0
-			return Q.resolve([])
+			return Q.fulfilled([])
 
 		resourceModel = clientModel[resourceName]
 
@@ -436,7 +436,7 @@ define [
 				uri: '/' + vocab + '/' + resourceModel.resourceName + '(' + instance[resourceModel.idField] + ')'
 				type: ''
 			return instance
-		instancesPromise = Q.resolve()
+		instancesPromise = Q.fulfilled()
 
 		expandableFields = do ->
 			fieldNames = {}
@@ -445,12 +445,10 @@ define [
 			return _.filter(_.keys(instances[0]), (fieldName) -> fieldName[0..1] != '__' and !fieldNames.hasOwnProperty(fieldName))
 		if expandableFields.length > 0
 			instances = _.map instances, (instance) ->
-				instance.then((instance) ->
-					Q.all(_.map expandableFields, (fieldName) ->
-						checkForExpansion(vocab, clientModel, fieldName, instance)
-					).then(->
-						return instance
-					)
+				Q.all(_.map expandableFields, (fieldName) ->
+					checkForExpansion(vocab, clientModel, fieldName, instance)
+				).then(->
+					return instance
 				)
 
 		processedFields = _.filter(resourceModel.fields, ({dataType}) -> sbvrTypes[dataType]?.fetchProcessing?)
@@ -460,7 +458,7 @@ define [
 					Q.all _.map processedFields, ({fieldName, dataType}) ->
 						fieldName = fieldName.replace(/\ /g, '_')
 						if instance.hasOwnProperty(fieldName)
-							Q.nfcall(sbvrTypes[dataType].fetchProcessing, instance[fieldName])
+							Q.promisify(sbvrTypes[dataType].fetchProcessing)(instance[fieldName])
 							.then((result) ->
 								instance[fieldName] = result
 								return
@@ -529,8 +527,8 @@ define [
 			message = 'Called runURI with a non-function callback?!'
 			console.error(message)
 			console.trace()
-			return Q.reject(message)
-		deferred = Q.defer()
+			return Q.rejected(message)
+		deferred = Q.pending()
 		console.log('Running URI', method, uri, body)
 		req =
 			user:
@@ -544,12 +542,12 @@ define [
 				if statusCode >= 400
 					deferred.reject(statusCode)
 				else
-					deferred.resolve()
+					deferred.fulfill()
 			json: (data, statusCode) ->
 				if statusCode >= 400
 					deferred.reject(data)
 				else
-					deferred.resolve(data)
+					deferred.fulfill(data)
 			set: ->
 			type: ->
 
@@ -601,7 +599,7 @@ define [
 		_getGuestPermissions = do ->
 			# Start the guest permissions as rejected,
 			# since it will be attempted to be fetched again whenever it is rejected.
-			_guestPermissions = Q.reject()
+			_guestPermissions = Q.rejected()
 			return (callback) ->
 				if _guestPermissions.isRejected()
 					# Get guest user
@@ -692,7 +690,7 @@ define [
 			if req.user?
 				allowed = _checkPermissions(req.user.permissions)
 				if allowed is true
-					return Q(allowed).nodeify(callback)
+					return Q.fulfilled(allowed).nodeify(callback)
 			_getGuestPermissions()
 			.then((permissions) ->
 				return _checkPermissions(permissions)
@@ -804,7 +802,8 @@ define [
 				parseODataURI(req, res)
 				.then((tree) ->
 					req.tree = tree
-				).catch(->
+				).catch((err) ->
+					console.error(err)
 					req.tree = false
 				).done(checkTree)
 

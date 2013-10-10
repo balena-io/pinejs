@@ -1,25 +1,25 @@
 define([
 	'abstract-sql-compiler'
 	'lodash'
-	'q'
+	'bluebird'
 	'cs!sbvr-compiler/types'
 	'cs!sbvr-compiler/types/TypeUtils'
 ], (AbstractSQLCompiler, _, Q, sbvrTypes, TypeUtils) ->
 
 	dataTypeValidate = (value, field, callback) ->
 		# In case one of the validation types throws an error.
-		deferred = Q.defer()
+		deferred = Q.pending()
 		Q.try(->
 			{dataType, required} = field
 			if value == null or value == ''
 				if required
 					deferred.reject('cannot be null')
 				else
-					deferred.resolve(null)
+					deferred.fulfill(null)
 			else if sbvrTypes[dataType]?
-				sbvrTypes[dataType].validate(value, required, deferred.makeNodeResolver())
+				deferred.fulfill(Q.promisify(sbvrTypes[dataType].validate)(value, required))
 			else if dataType in ['ForeignKey', 'ConceptType']
-				TypeUtils.validate.integer(value, required, deferred.makeNodeResolver())
+				deferred.fulfill(Q.promisify(TypeUtils.validate.integer)(value, required))
 			else
 				deferred.reject('is an unsupported type: ' + dataType)
 		).catch((err) ->

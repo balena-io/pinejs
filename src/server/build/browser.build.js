@@ -91,8 +91,7 @@
 	},
 
 	paths: {
-		underscore: '../../underscore/underscore',
-		async: '../../async/lib/async'
+		underscore: '../../underscore/underscore'
 	},
 
 	name: 'cs!server-glue/server'
