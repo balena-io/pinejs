@@ -402,27 +402,28 @@ define [
 		return 0
 
 	checkForExpansion = (vocab, clientModel, fieldName, instance) ->
-		try
-			field = JSON.parse(instance[fieldName])
-		catch e
-			# If we can't JSON.parse the field then it's not one needing expansion.
-			return Q(instance)
+		Q.try ->
+			try
+				field = JSON.parse(instance[fieldName])
+			catch e
+				# If we can't JSON.parse the field then it's not one needing expansion.
+				return
 
-		Q.try(->
 			if _.isArray(field)
 				# Hack to look like a rows object
 				field.item = (i) -> @[i]
 				processOData(vocab, clientModel, fieldName, field)
+				.then((expandedField) ->
+					instance[fieldName] = expandedField
+					return
+				)
 			else
-				return {
+				instance[fieldName] = {
 					__deferred:
 						uri: '/' + vocab + '/' + fieldName + '(' + field + ')'
 					__id: field
 				}
-		).then((expandedField) ->
-			instance[fieldName] = expandedField
-			return instance
-		)
+				return
 
 	processOData = (vocab, clientModel, resourceName, rows) ->
 		if rows.length is 0
@@ -465,6 +466,7 @@ define [
 										Q.nfcall(fetchProcessing, instance[fieldName])
 										.then((result) ->
 											instance[fieldName] = result
+											return
 										)
 					).then(->
 						return instance
