@@ -437,37 +437,33 @@ define [
 				type: ''
 			return Q(instance)
 
-		fieldNames = {}
-		for {fieldName, dataType} in resourceModel.fields
-			fieldNames[fieldName.replace(/\ /g, '_')] = true
-		if _.any(rows.item(0), (val, fieldName) -> !fieldNames.hasOwnProperty(fieldName))
+		expandableFields = do ->
+			fieldNames = {}
+			for {fieldName, dataType} in resourceModel.fields when dataType != 'ForeignKey'
+				fieldNames[fieldName.replace(/\ /g, '_')] = true
+			return _.filter(_.keys(rows.item(0)), (fieldName) -> fieldName[0..1] != '__' and !fieldNames.hasOwnProperty(fieldName))
+		if expandableFields.length > 0
 			instances = _.map instances, (instance) ->
 				instance.then((instance) ->
-					Q.all(_.map _.keys(instance), (fieldName) ->
-						if fieldName[0..1] != '__' and !fieldNames.hasOwnProperty(fieldName)
-							checkForExpansion(vocab, clientModel, fieldName, instance)
+					Q.all(_.map expandableFields, (fieldName) ->
+						checkForExpansion(vocab, clientModel, fieldName, instance)
 					).then(->
 						return instance
 					)
 				)
 
-		if _.any(resourceModel.fields, ({dataType}) -> dataType == 'ForeignKey' or sbvrTypes[dataType]?.fetchProcessing?)
+		processedFields = _.filter(resourceModel.fields, ({dataType}) -> sbvrTypes[dataType]?.fetchProcessing?)
+		if processedFields.length > 0
 			instances = _.map instances, (instance) ->
 				instance.then((instance) ->
-					Q.all(_.map resourceModel.fields, ({fieldName, dataType, references}) ->
+					Q.all(_.map processedFields, ({fieldName, dataType}) ->
 						fieldName = fieldName.replace(/\ /g, '_')
 						if instance.hasOwnProperty(fieldName)
-							switch dataType
-								when 'ForeignKey'
-									checkForExpansion(vocab, clientModel, fieldName, instance)
-								else
-									fetchProcessing = sbvrTypes[dataType]?.fetchProcessing
-									if fetchProcessing?
-										Q.nfcall(fetchProcessing, instance[fieldName])
-										.then((result) ->
-											instance[fieldName] = result
-											return
-										)
+							Q.nfcall(sbvrTypes[dataType]?.fetchProcessing, instance[fieldName])
+							.then((result) ->
+								instance[fieldName] = result
+								return
+							)
 					).then(->
 						return instance
 					)
