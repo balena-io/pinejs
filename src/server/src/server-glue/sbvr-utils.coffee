@@ -435,13 +435,14 @@ define [
 			instance.__metadata =
 				uri: '/' + vocab + '/' + resourceModel.resourceName + '(' + instance[resourceModel.idField] + ')'
 				type: ''
-			return Q(instance)
+			return instance
+		instancesPromise = Q.resolve()
 
 		expandableFields = do ->
 			fieldNames = {}
 			for {fieldName, dataType} in resourceModel.fields when dataType != 'ForeignKey'
 				fieldNames[fieldName.replace(/\ /g, '_')] = true
-			return _.filter(_.keys(rows.item(0)), (fieldName) -> fieldName[0..1] != '__' and !fieldNames.hasOwnProperty(fieldName))
+			return _.filter(_.keys(instances[0]), (fieldName) -> fieldName[0..1] != '__' and !fieldNames.hasOwnProperty(fieldName))
 		if expandableFields.length > 0
 			instances = _.map instances, (instance) ->
 				instance.then((instance) ->
@@ -454,22 +455,20 @@ define [
 
 		processedFields = _.filter(resourceModel.fields, ({dataType}) -> sbvrTypes[dataType]?.fetchProcessing?)
 		if processedFields.length > 0
-			instances = _.map instances, (instance) ->
-				instance.then((instance) ->
-					Q.all(_.map processedFields, ({fieldName, dataType}) ->
+			instancesPromise = instancesPromise.then ->
+				Q.all _.map instances, (instance) ->
+					Q.all _.map processedFields, ({fieldName, dataType}) ->
 						fieldName = fieldName.replace(/\ /g, '_')
 						if instance.hasOwnProperty(fieldName)
-							Q.nfcall(sbvrTypes[dataType]?.fetchProcessing, instance[fieldName])
+							Q.nfcall(sbvrTypes[dataType].fetchProcessing, instance[fieldName])
 							.then((result) ->
 								instance[fieldName] = result
 								return
 							)
-					).then(->
-						return instance
-					)
-				)
 
-		Q.all(instances)
+		instancesPromise.then(->
+			return instances
+		)
 
 	exports.runRule = do ->
 		LF2AbstractSQLPrepHack = LF2AbstractSQL.LF2AbstractSQLPrep._extend({CardinalityOptimisation: -> @_pred(false)})
