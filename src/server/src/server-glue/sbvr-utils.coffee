@@ -506,37 +506,29 @@ define([
 				type: ''
 			callback(null, instance)
 
-		fieldNames = {}
-		for {fieldName, dataType} in resourceModel.fields
-			fieldNames[fieldName.replace(/\ /g, '_')] = true
-		if _.any(rows.item(0), (val, fieldName) -> !fieldNames.hasOwnProperty(fieldName))
+		expandableFields = do ->
+			fieldNames = {}
+			for {fieldName, dataType} in resourceModel.fields when dataType != 'ForeignKey'
+				fieldNames[fieldName.replace(/\ /g, '_')] = true
+			return _.filter(_.keys(rows.item(0)), (fieldName) -> fieldName[0..1] != '__' and !fieldNames.hasOwnProperty(fieldName))
+		if expandableFields.length > 0
 			processInstance = chainCallback processInstance, (instance, callback) ->
 				processField = (fieldName, callback) ->
-					if fieldName[0..1] != '__' and !fieldNames.hasOwnProperty(fieldName)
-						checkForExpansion(vocab, clientModel, fieldName, instance, callback)
-					else
-						callback()
-				async.each(_.keys(instance), processField, (err) -> callback(err, instance))
+					checkForExpansion(vocab, clientModel, fieldName, instance, callback)
+				async.each(expandableFields, processField, (err) -> callback(err, instance))
 
-		if _.any(resourceModel.fields, ({dataType}) -> dataType == 'ForeignKey' or sbvrTypes[dataType]?.fetchProcessing?)
+		processedFields = _.filter(resourceModel.fields, ({dataType}) -> sbvrTypes[dataType]?.fetchProcessing?)
+		if processedFields.length > 0
 			processInstance = chainCallback processInstance, (instance, callback) ->
-				processField = ({fieldName, dataType, references}, callback) ->
+				processField = ({fieldName, dataType}, callback) ->
 					fieldName = fieldName.replace(/\ /g, '_')
 					if instance.hasOwnProperty(fieldName)
-						switch dataType
-							when 'ForeignKey'
-								checkForExpansion(vocab, clientModel, fieldName, instance, callback)
-							else
-								fetchProcessing = sbvrTypes[dataType]?.fetchProcessing
-								if fetchProcessing?
-									fetchProcessing instance[fieldName], (err, result) ->
-										instance[fieldName] = result
-										callback(err)
-								else
-									callback()
+						sbvrTypes[dataType].fetchProcessing instance[fieldName], (err, result) ->
+							instance[fieldName] = result
+							callback(err)
 					else
 						callback()
-				async.each(resourceModel.fields, processField, (err) -> callback(err, instance))
+				async.each(processedFields, processField, (err) -> callback(err, instance))
 
 		async.map(rows, processInstance, callback)
 
