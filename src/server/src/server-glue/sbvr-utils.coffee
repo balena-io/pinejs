@@ -408,8 +408,7 @@ define [
 			# If we can't JSON.parse the field then it's not one needing expansion.
 			return Q(instance)
 
-		Q(field)
-		.then((field) ->
+		Q.try(->
 			if _.isArray(field)
 				# Hack to look like a rows object
 				field.item = (i) -> @[i]
