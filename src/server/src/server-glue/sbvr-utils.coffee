@@ -444,11 +444,9 @@ define [
 				fieldNames[fieldName.replace(/\ /g, '_')] = true
 			return _.filter(_.keys(instances[0]), (fieldName) -> fieldName[0..1] != '__' and !fieldNames.hasOwnProperty(fieldName))
 		if expandableFields.length > 0
-			instances = _.map instances, (instance) ->
+			instancesPromise = Promise.all _.map instances, (instance) ->
 				Promise.all(_.map expandableFields, (fieldName) ->
 					checkForExpansion(vocab, clientModel, fieldName, instance)
-				).then(->
-					return instance
 				)
 
 		processedFields = _.filter(resourceModel.fields, ({dataType}) -> sbvrTypes[dataType]?.fetchProcessing?)
