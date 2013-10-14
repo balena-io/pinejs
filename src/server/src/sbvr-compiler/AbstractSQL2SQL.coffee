@@ -104,7 +104,7 @@ define([
 				ruleStatements.push({structuredEnglish: rule[1][1], sql: ruleSQL})
 		catch e
 			console.error(JSON.stringify(rule, null, '\t'))
-			console.error(e)
+			console.error(e, e.stack)
 			throw e
 
 		return {tables: sqlModel.tables, createSchema: createSchemaStatements, dropSchema: dropSchemaStatements, rules: ruleStatements}

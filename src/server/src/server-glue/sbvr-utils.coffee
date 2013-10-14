@@ -591,7 +591,7 @@ define [
 
 			return userPermissions
 		).catch((err) ->
-			console.error('Error loading permissions', err)
+			console.error('Error loading permissions', err, err.stack)
 			throw err
 		).nodeify(callback)
 
@@ -695,7 +695,7 @@ define [
 			.then((permissions) ->
 				return _checkPermissions(permissions)
 			).catch((err) ->
-				console.error('Error getting guest permissions', err)
+				console.error('Error getting guest permissions', err, err.stack)
 				return []
 			).then((guestAllowed) ->
 				if guestAllowed is true

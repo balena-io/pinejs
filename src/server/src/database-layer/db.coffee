@@ -144,7 +144,7 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Pro
 
 					pg.connect connectString, (err, client, done) ->
 						if err
-							console.error('Error connecting ' + err)
+							console.error('Error connecting', err, err.stack)
 							process.exit()
 						tx = new PostgresTx(client, done, stackTrace)
 						if process.env.PG_SCHEMA?
@@ -214,7 +214,7 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Pro
 
 					_pool.getConnection (err, _db) ->
 						if err
-							console.error('Error connecting ' + err)
+							console.error('Error connecting', err, err.stack)
 							process.exit()
 						tx = new MysqlTx(_db, stackTrace)
 						tx.executeSql('START TRANSACTION;')

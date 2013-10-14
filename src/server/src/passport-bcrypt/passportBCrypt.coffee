@@ -36,7 +36,7 @@ define ['bluebird'], (Promise) ->
 			else
 				req.login(user, (err) ->
 					if err
-						console.error('Error creating session', err)
+						console.error('Error creating session', err, err.stack)
 						res.send(500)
 					else if req.xhr is true
 						res.send(200)
