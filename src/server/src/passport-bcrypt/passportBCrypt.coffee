@@ -1,4 +1,4 @@
-define ['bluebird'], (Q) ->
+define ['bluebird'], (Promise) ->
 	return (options, sbvrUtils, app, passport) ->
 		exports = {}
 		checkPassword = (username, password, done) ->
@@ -8,7 +8,7 @@ define ['bluebird'], (Q) ->
 					throw new Error('User not found')
 				hash = result.d[0].password
 				userId = result.d[0].id
-				Q.promisify(compare)(password, hash)
+				Promise.promisify(compare)(password, hash)
 				.then((res) ->
 					if !res
 						throw new Error('Passwords do not match')

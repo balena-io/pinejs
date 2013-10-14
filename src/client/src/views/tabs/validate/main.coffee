@@ -3,7 +3,7 @@ define([
 	'codemirror'
 	'bluebird'
 	'codemirror-ometa/hinter'
-], (Backbone, CodeMirror, Q, codeMirrorOmetaHinter) ->
+], (Backbone, CodeMirror, Promise, codeMirrorOmetaHinter) ->
 	Backbone.View.extend(
 		events:
 			"click #validate": "validate"
@@ -48,7 +48,7 @@ define([
 				@editor.setSize(@$el.width(), 40)
 			).resize()
 		validate: ->
-			Q.all([
+			Promise.all([
 				serverRequest('GET', '/data/')
 				.then(([statusCode, result]) ->
 					console.log(result)
@@ -89,19 +89,19 @@ define([
 						)
 						manyToManyCols.push(model)
 				
-				Q.all(_.map invalid.d, (instance) ->
-					Q.all([
-						Q.all(_.map fkCols, (model) ->
+				Promise.all(_.map invalid.d, (instance) ->
+					Promise.all([
+						Promise.all(_.map fkCols, (model) ->
 							serverRequest('GET', instance[model.modelName].__deferred.uri)
 							.then(([statusCode, fkCol]) ->
 								if fkCol.d.length > 0
 									instance[model.modelName] = fkCol.d[0][model.idField] + ': ' + fkCol.d[0][model.referenceScheme]
 							)
 						)
-						Q.all(_.map manyToManyCols, (model) ->
+						Promise.all(_.map manyToManyCols, (model) ->
 							serverRequest('GET', '/data/' + model.resourceName + '?$filter=' + invalid.__model.resourceName + ' eq ' + instance[invalid.__model.idField])
 							.then(([statusCode, manyToManyCol]) ->
-								Q.all(_.map manyToManyCol.d, (instance) ->
+								Promise.all(_.map manyToManyCol.d, (instance) ->
 									fkName = model.resourceName.split('-')[2]
 									serverRequest('GET', instance[fkName].__deferred.uri)
 									.then(([statusCode, results]) ->

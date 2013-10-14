@@ -11,7 +11,7 @@ define [
 	'lodash'
 	'bluebird'
 	'cs!sbvr-compiler/types'
-], (has, SBVRParser, LF2AbstractSQL, AbstractSQL2SQL, AbstractSQLCompiler, AbstractSQL2CLF, ODataMetadataGenerator, {ODataParser}, {OData2AbstractSQL}, _, Q, sbvrTypes) ->
+], (has, SBVRParser, LF2AbstractSQL, AbstractSQL2SQL, AbstractSQLCompiler, AbstractSQL2CLF, ODataMetadataGenerator, {ODataParser}, {OData2AbstractSQL}, _, Promise, sbvrTypes) ->
 	exports = {}
 	db = null
 
@@ -157,7 +157,7 @@ define [
 	getAndCheckBindValues = (vocab, bindings, values) ->
 		mappings = clientModels[vocab].resourceToSQLMappings
 		sqlModelTables = sqlModels[vocab].tables
-		Q.all(_.map bindings, (binding) ->
+		Promise.all(_.map bindings, (binding) ->
 			if _.isString(binding[1])
 				[tableName, fieldName] = binding
 
@@ -201,7 +201,7 @@ define [
 								WHERE "conditional_field"."conditional resource" = ?;''', [conditionalResourceID])
 				.then((fields) ->
 					fieldsObject = {}
-					Q.all(fields.rows.map (field) ->
+					Promise.all(fields.rows.map (field) ->
 						fieldName = field.field_name.replace(clientModel.resourceName + '.', '')
 						fieldValue = field.field_value
 						modelField = _.find(clientModel.fields, {fieldName})
@@ -230,14 +230,14 @@ define [
 				conditionalResources.rows.forEach (conditionalResource) ->
 					placeholder = conditionalResource.placeholder
 					if placeholder? and placeholder.length > 0
-						placeholders[placeholder] = Q.pending()
+						placeholders[placeholder] = Promise.pending()
 
 				# get conditional resources (if exist)
-				Q.all(conditionalResources.rows.map (conditionalResource) ->
+				Promise.all(conditionalResources.rows.map (conditionalResource) ->
 					placeholder = conditionalResource.placeholder
 					lockID = conditionalResource.lock
 					doCleanup = ->
-						Q.all([
+						Promise.all([
 							tx.executeSql('DELETE FROM "conditional_field" WHERE "conditional resource" = ?;', [conditionalResource.id])
 							tx.executeSql('DELETE FROM "conditional_resource" WHERE "lock" = ?;', [lockID])
 							tx.executeSql('DELETE FROM "resource-is_under-lock" WHERE "lock" = ?;', [lockID])
@@ -289,7 +289,7 @@ define [
 		)
 
 	validateDB = (tx, sqlmod) ->
-		Q.all(_.map sqlmod.rules, (rule) ->
+		Promise.all(_.map sqlmod.rules, (rule) ->
 			tx.executeSql(rule.sql, rule.bindings)
 			.then((result) ->
 				if result.rows.item(0).result in [false, 0, '0']
@@ -303,7 +303,7 @@ define [
 		executeModels(tx, models, callback)
 	exports.executeModels = executeModels = (tx, models, callback) ->
 		validateFuncs = []
-		Q.all(_.map _.keys(models), (vocab) ->
+		Promise.all(_.map _.keys(models), (vocab) ->
 			seModel = models[vocab]
 			try
 				lfModel = SBVRParser.matchAll(seModel, 'Process')
@@ -320,7 +320,7 @@ define [
 				throw new Error(['Error compiling model', e])
 
 			# Create tables related to terms and fact types
-			Q.all(_.map sqlModel.createSchema, (createStatement) ->
+			Promise.all(_.map sqlModel.createSchema, (createStatement) ->
 				tx.executeSql(createStatement)
 				.catch(->
 					# Warning: We ignore errors in the create table statements as SQLite doesn't support CREATE IF NOT EXISTS
@@ -357,7 +357,7 @@ define [
 						runURI(method, uri, body, tx)
 					)
 
-				Q.all([
+				Promise.all([
 					updateModel('se', seModel)
 					updateModel('lf', lfModel)
 					updateModel('abstractsql', abstractSqlModel)
@@ -373,7 +373,7 @@ define [
 			dropStatements =
 				for dropStatement in sqlModels[vocabulary].dropSchema
 					tx.executeSql(dropStatement)
-			Q.all(dropStatements.concat([
+			Promise.all(dropStatements.concat([
 				runURI('DELETE', "/dev/model?$filter=model_type eq 'se'", {vocabulary}, tx)
 				runURI('DELETE', "/dev/model?$filter=model_type eq 'lf'", {vocabulary}, tx)
 				runURI('DELETE', "/dev/model?$filter=model_type eq 'slf'", {vocabulary}, tx)
@@ -402,7 +402,7 @@ define [
 		return 0
 
 	checkForExpansion = (vocab, clientModel, fieldName, instance) ->
-		Q.try ->
+		Promise.try ->
 			try
 				field = JSON.parse(instance[fieldName])
 			catch e
@@ -427,7 +427,7 @@ define [
 
 	processOData = (vocab, clientModel, resourceName, rows) ->
 		if rows.length is 0
-			return Q.fulfilled([])
+			return Promise.fulfilled([])
 
 		resourceModel = clientModel[resourceName]
 
@@ -436,7 +436,7 @@ define [
 				uri: '/' + vocab + '/' + resourceModel.resourceName + '(' + instance[resourceModel.idField] + ')'
 				type: ''
 			return instance
-		instancesPromise = Q.fulfilled()
+		instancesPromise = Promise.fulfilled()
 
 		expandableFields = do ->
 			fieldNames = {}
@@ -445,7 +445,7 @@ define [
 			return _.filter(_.keys(instances[0]), (fieldName) -> fieldName[0..1] != '__' and !fieldNames.hasOwnProperty(fieldName))
 		if expandableFields.length > 0
 			instances = _.map instances, (instance) ->
-				Q.all(_.map expandableFields, (fieldName) ->
+				Promise.all(_.map expandableFields, (fieldName) ->
 					checkForExpansion(vocab, clientModel, fieldName, instance)
 				).then(->
 					return instance
@@ -454,11 +454,11 @@ define [
 		processedFields = _.filter(resourceModel.fields, ({dataType}) -> sbvrTypes[dataType]?.fetchProcessing?)
 		if processedFields.length > 0
 			instancesPromise = instancesPromise.then ->
-				Q.all _.map instances, (instance) ->
-					Q.all _.map processedFields, ({fieldName, dataType}) ->
+				Promise.all _.map instances, (instance) ->
+					Promise.all _.map processedFields, ({fieldName, dataType}) ->
 						fieldName = fieldName.replace(/\ /g, '_')
 						if instance.hasOwnProperty(fieldName)
-							Q.promisify(sbvrTypes[dataType].fetchProcessing)(instance[fieldName])
+							Promise.promisify(sbvrTypes[dataType].fetchProcessing)(instance[fieldName])
 							.then((result) ->
 								instance[fieldName] = result
 								return
@@ -471,7 +471,7 @@ define [
 	exports.runRule = do ->
 		LF2AbstractSQLPrepHack = LF2AbstractSQL.LF2AbstractSQLPrep._extend({CardinalityOptimisation: -> @_pred(false)})
 		return (vocab, rule, callback) ->
-			Q.try(->
+			Promise.try(->
 				seModel = seModels[vocab]
 				try
 					lfModel = SBVRParser.matchAll(seModel + '\nRule: ' + rule, 'Process')
@@ -527,8 +527,8 @@ define [
 			message = 'Called runURI with a non-function callback?!'
 			console.error(message)
 			console.trace()
-			return Q.rejected(message)
-		deferred = Q.pending()
+			return Promise.rejected(message)
+		deferred = Promise.pending()
 		console.log('Running URI', method, uri, body)
 		req =
 			user:
@@ -567,7 +567,7 @@ define [
 		return deferred.promise.nodeify(callback)
 
 	exports.getUserPermissions = getUserPermissions = (userId, callback) ->
-		Q.all([
+		Promise.all([
 			runURI('GET', '/Auth/user__has__permission?$filter=user eq ' + userId, {})
 			runURI('GET', '/Auth/user__has__role?$filter=user eq ' + userId)
 			runURI('GET', '/Auth/role__has__permission')
@@ -599,7 +599,7 @@ define [
 		_getGuestPermissions = do ->
 			# Start the guest permissions as rejected,
 			# since it will be attempted to be fetched again whenever it is rejected.
-			_guestPermissions = Q.rejected()
+			_guestPermissions = Promise.rejected()
 			return (callback) ->
 				if _guestPermissions.isRejected()
 					# Get guest user
@@ -690,7 +690,7 @@ define [
 			if req.user?
 				allowed = _checkPermissions(req.user.permissions)
 				if allowed is true
-					return Q.fulfilled(allowed).nodeify(callback)
+					return Promise.fulfilled(allowed).nodeify(callback)
 			_getGuestPermissions()
 			.then((permissions) ->
 				return _checkPermissions(permissions)
@@ -722,7 +722,7 @@ define [
 				res.send(503)
 			)
 
-	parseODataURI = (req, res) -> Q.try ->
+	parseODataURI = (req, res) -> Promise.try ->
 		{method, url, body} = req
 		url = url.split('/')
 		vocabulary = url[1]
@@ -1043,7 +1043,7 @@ define [
 			tx.executeSql('CREATE UNIQUE INDEX "uniq_model_model_type_vocab" ON "model" ("vocabulary", "model type");')
 			# TODO: Remove these hardcoded users.
 			if has 'DEV'
-				Q.all([
+				Promise.all([
 					runURI('POST', '/Auth/user', {'username': 'root', 'password': 'test123'})
 					runURI('POST', '/Auth/permission', {'name': 'resource.all'})
 				]).then(->

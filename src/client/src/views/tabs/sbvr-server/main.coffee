@@ -2,7 +2,7 @@ define([
 	'backbone'
 	'has'
 	'bluebird'
-], (Backbone, has, Q) ->
+], (Backbone, has, Promise) ->
 	Backbone.View.extend(
 		events:
 			"click #run-server": "runServer"
@@ -32,7 +32,7 @@ define([
 			@$el.html(html)
 
 			window.serverRequest = (method, uri, headers = {}, body = null, successCallback, failureCallback) ->
-				deferred = Q.pending()
+				deferred = Promise.pending()
 				if !headers["Content-Type"]? and body?
 					headers["Content-Type"] = "application/json"
 				$("#httpTable").append('<tr class="server_row"><td><strong>' + method + '</strong></td><td>' + uri + '</td><td>' + (if headers.length == 0 then '' else JSON.stringify(headers)) + '</td><td>' + JSON.stringify(body) + '</td></tr>')

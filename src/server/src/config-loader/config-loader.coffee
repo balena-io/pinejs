@@ -1,4 +1,4 @@
-define ['has', 'lodash', 'bluebird'], (has, _, Q) ->
+define ['has', 'lodash', 'bluebird'], (has, _, Promise) ->
 	exports = {}
 
 	# Setup function
@@ -13,8 +13,8 @@ define ['has', 'lodash', 'bluebird'], (has, _, Q) ->
 		console.info('loading config.json')
 		data = require path.join(root, 'config.json')
 		db.transaction().then((tx) ->
-			modelsPromise = Q.all(_.map data.models, (model) ->
-				Q.promisify(fs.readFile)(path.join(root, model.modelFile), 'utf8')
+			modelsPromise = Promise.all(_.map data.models, (model) ->
+				Promise.promisify(fs.readFile)(path.join(root, model.modelFile), 'utf8')
 				.then((sbvrModel) ->
 					sbvrUtils.executeModel(tx, model.apiRoot, sbvrModel)
 				).then(->
@@ -40,7 +40,7 @@ define ['has', 'lodash', 'bluebird'], (has, _, Q) ->
 								throw new Error('Could not create or find permission "' + permissionName + '": ' + err)
 							)
 
-				usersPromise = Q.all(_.map data.users, (user) ->
+				usersPromise = Promise.all(_.map data.users, (user) ->
 					sbvrUtils.runURI('GET', "/Auth/user?$filter=username eq '" + encodeURIComponent(user.username) + "'", null, tx)
 					.then((result) ->
 						if result.d.length is 0
@@ -49,7 +49,7 @@ define ['has', 'lodash', 'bluebird'], (has, _, Q) ->
 						else
 							return result.d[0].id
 					).then((userID) ->
-						Q.all(_.map user.permissions, (permissionName) ->
+						Promise.all(_.map user.permissions, (permissionName) ->
 							permissions[permissionName].then((permissionID) ->
 								sbvrUtils.runURI('GET', "/Auth/user__has__permission?$filter=user eq '" + userID + "' and permission eq '" + permissionID + "'", null, tx)
 								.then((result) ->
@@ -62,14 +62,14 @@ define ['has', 'lodash', 'bluebird'], (has, _, Q) ->
 						throw new Error('Could not create or find user "' + user.username + '": ' + err)
 					)
 				)
-			Q.all([modelsPromise, usersPromise])
+			Promise.all([modelsPromise, usersPromise])
 			.catch((err) ->
 				tx.rollback()
 				throw err
 			).then(->
 				tx.end()
 			).then(->
-				Q.all(_.map data.models, (model) ->
+				Promise.all(_.map data.models, (model) ->
 					apiRoute = '/' + model.apiRoot + '/*'
 					app.get(apiRoute, sbvrUtils.runGet)
 
@@ -84,13 +84,13 @@ define ['has', 'lodash', 'bluebird'], (has, _, Q) ->
 					app.del(apiRoute, sbvrUtils.runDelete)
 					if model.customServerCode?
 						try
-							deferred = Q.pending()
+							deferred = Promise.pending()
 							promise = require(root + '/' + model.customServerCode).setup app, requirejs, sbvrUtils, db, (err) ->
 								if err
 									deferred.reject(err)
 								else
 									deferred.fulfill()
-							if Q.is(promise)
+							if Promise.is(promise)
 								deferred.fulfill(promise)
 							return deferred.promise
 						catch e

@@ -4,12 +4,12 @@ define([
 	'bluebird'
 	'cs!sbvr-compiler/types'
 	'cs!sbvr-compiler/types/TypeUtils'
-], (AbstractSQLCompiler, _, Q, sbvrTypes, TypeUtils) ->
+], (AbstractSQLCompiler, _, Promise, sbvrTypes, TypeUtils) ->
 
 	dataTypeValidate = (value, field, callback) ->
 		# In case one of the validation types throws an error.
-		deferred = Q.pending()
-		Q.try(->
+		deferred = Promise.pending()
+		Promise.try(->
 			{dataType, required} = field
 			if value == null or value == ''
 				if required
@@ -17,9 +17,9 @@ define([
 				else
 					deferred.fulfill(null)
 			else if sbvrTypes[dataType]?
-				deferred.fulfill(Q.promisify(sbvrTypes[dataType].validate)(value, required))
+				deferred.fulfill(Promise.promisify(sbvrTypes[dataType].validate)(value, required))
 			else if dataType in ['ForeignKey', 'ConceptType']
-				deferred.fulfill(Q.promisify(TypeUtils.validate.integer)(value, required))
+				deferred.fulfill(Promise.promisify(TypeUtils.validate.integer)(value, required))
 			else
 				deferred.reject('is an unsupported type: ' + dataType)
 		).catch((err) ->

@@ -1,8 +1,8 @@
-define ['bluebird', 'lodash'], (Q, _) ->
+define ['bluebird', 'lodash'], (Promise, _) ->
 	window?.GLOBAL_PERMISSIONS = 
 		'resource.all': true
 	app = do ->
-		enabled = Q.pending()
+		enabled = Promise.pending()
 		handlers =
 			POST: []
 			PUT: []
@@ -27,8 +27,8 @@ define ['bluebird', 'lodash'], (Q, _) ->
 			)
 		process = (method, uri, headers, body = '') ->
 			if !handlers[method]
-				return Q.rejected(404)
-			deferred = Q.pending()
+				return Promise.rejected(404)
+			deferred = Promise.pending()
 			req =
 				# Have a default user for in-browser with all permissions
 				user:

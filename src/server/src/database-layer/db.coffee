@@ -1,4 +1,4 @@
-define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Q, _, SQLBinds) ->
+define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Promise, _, SQLBinds) ->
 	exports = {}
 	DEFAULT_VALUE = {}
 	bindDefaultValues = (sql, bindings) ->
@@ -35,7 +35,7 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Q, 
 
 			@executeSql = (sql, bindings = [], callback, args...) ->
 				resetTimeout()
-				deferred = Q.pending()
+				deferred = Promise.pending()
 
 				sql = bindDefaultValues(sql, bindings)
 				executeSql(sql, bindings, deferred, args...)
@@ -43,7 +43,7 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Q, 
 				return deferred.promise.nodeify(callback)
 
 			@rollback = (callback) ->
-				deferred = Q.pending()
+				deferred = Promise.pending()
 
 				rollback(deferred)
 				closeTransaction('Transaction has been rolled back.')
@@ -51,7 +51,7 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Q, 
 				return deferred.promise.nodeify(callback)
 
 			@end = (callback) ->
-				deferred = Q.pending()
+				deferred = Promise.pending()
 
 				end(deferred)
 				closeTransaction('Transaction has been ended.')
@@ -61,7 +61,7 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Q, 
 			closeTransaction = (message) =>
 				clearTimeout(automaticCloseTimeout)
 				stackTrace = getStackTrace()
-				promise = Q.rejected(new Error(message))
+				promise = Promise.rejected(new Error(message))
 				@executeSql = (sql, bindings, callback) ->
 					# console.error(message, stackTrace)
 					# console.trace()
@@ -140,7 +140,7 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Q, 
 				engine: 'postgres'
 				transaction: (callback) ->
 					stackTrace = getStackTrace()
-					deferred = Q.pending()
+					deferred = Promise.pending()
 
 					pg.connect connectString, (err, client, done) ->
 						if err
@@ -210,7 +210,7 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Q, 
 				engine: 'mysql'
 				transaction: (callback) ->
 					stackTrace = getStackTrace()
-					deferred = Q.pending()
+					deferred = Promise.pending()
 
 					_pool.getConnection (err, _db) ->
 						if err
@@ -312,7 +312,7 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Q, 
 					_db.transaction (_tx) ->
 						deferred.fulfill(new WebSqlTx(_tx, stackTrace))
 
-					deferred = Q.pending()
+					deferred = Promise.pending()
 					deferred.promise.then(callback).catch (err) ->
 						console.error(err, callback)
 					return deferred.promise

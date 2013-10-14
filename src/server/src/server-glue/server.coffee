@@ -7,7 +7,7 @@ define [
 	'cs!data-server/SBVRServer'
 	'cs!express-emulator/express'
 	'cs!config-loader/config-loader'
-], (has, Q, dbModule, sbvrUtils, passportBCrypt, sbvrServer, express, configLoader) ->
+], (has, Promise, dbModule, sbvrUtils, passportBCrypt, sbvrServer, express, configLoader) ->
 	if has 'ENV_NODEJS'
 		databaseURL = process.env.DATABASE_URL || "postgres://postgres:.@localhost:5432/postgres"
 		databaseOptions =
@@ -28,7 +28,7 @@ define [
 		app.configure 'production', ->
 			console.log = ->
 		app.configure 'development', ->
-			Q.longStackTraces()
+			Promise.longStackTraces()
 		app.configure ->
 			path = require('path')
 			app.use(express.compress())
@@ -57,7 +57,7 @@ define [
 				app.use('/tools', express.static(path.join(rootPath, 'tools')))
 			app.use('/', express.static(path.join(__dirname, 'static')))
 	else if has 'ENV_BROWSER'
-		Q.longStackTraces()
+		Promise.longStackTraces()
 		app = express.app
 
 	sbvrUtils.setup(app, require, db)
@@ -75,7 +75,7 @@ define [
 
 		if has 'CONFIG_LOADER'
 			promises.push(configLoader.setup(app, require, sbvrUtils, db))
-		Q.all(promises)
+		Promise.all(promises)
 	).then(->
 		if has 'ENV_NODEJS'
 			app.listen process.env.PORT or 1337, ->

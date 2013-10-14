@@ -6,7 +6,7 @@ define([
 	'bluebird'
 	'lodash'
 	'cs!./runTrans'
-], (ClientURIUnparser, ejs, widgets, async, Q, _) ->
+], (ClientURIUnparser, ejs, widgets, async, Promise, _) ->
 	templates = {
 		widgets: widgets
 		hiddenFormInput: ejs.compile('''
@@ -381,7 +381,7 @@ define([
 					for callback in updateListeners[foreignKey]
 						callback(id, instance, clientModelResults[foreignKey])
 			get: (tree, clientModel, successCallback) ->
-				Q.all(_.map clientModel.fields, ({fieldName, dataType}) ->
+				Promise.all(_.map clientModel.fields, ({fieldName, dataType}) ->
 					if dataType not in ['ForeignKey', 'ConceptType']
 						return
 					# Get results for all the foreign keys

@@ -1,4 +1,4 @@
-define ['async', 'bluebird'], (async, Q) ->
+define ['async', 'bluebird'], (async, Promise) ->
 	runTrans = (rootElement) ->
 		actions = $(".action:has(#__actype[value!=view])")
 		if actions.size() > 0
@@ -74,7 +74,7 @@ define ['async', 'bluebird'], (async, Q) ->
 												fields = dataElement[3]
 												serverRequest('POST', transURIs.conditionalResourceURI, {}, sendData)
 												.then(([statusCode, condResource]) ->
-													Q.all _.map fields, (field, callback) ->
+													Promise.all _.map fields, (field, callback) ->
 														fieldData =
 															conditional_resource: condResource.id
 															field_name: field.name 
@@ -110,7 +110,7 @@ define ['async', 'bluebird'], (async, Q) ->
 				resource_type: resourceType
 			resource = serverRequest('POST', transURIs.resourceURI, {}, o)
 
-			Q.all(lock, resource)
+			Promise.all(lock, resource)
 			.spread(([statusCode1, lock], [statusCode2, resource]) ->
 				o =
 					resource: resource.id

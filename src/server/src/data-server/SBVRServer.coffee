@@ -2,7 +2,7 @@ define [
 	'lodash'
 	'has'
 	'bluebird'
-], (_, has, Q) ->
+], (_, has, Promise) ->
 	exports = {}
 
 	uiModel = '''
@@ -24,7 +24,7 @@ define [
 
 	# Middleware
 	isServerOnAir = do ->
-		deferred = Q.pending()
+		deferred = Promise.pending()
 		promise = deferred.promise
 		(value) ->
 			if value?
@@ -32,7 +32,7 @@ define [
 					deferred.fulfill(value)
 					deferred = null
 				else
-					promise = Q.fulfilled(value)
+					promise = Promise.fulfilled(value)
 			return promise
 
 	serverIsOnAir = (req, res, next) ->
@@ -43,7 +43,7 @@ define [
 				next('route')
 		)
 	
-	isUiModelLoaded = Q.pending()
+	isUiModelLoaded = Promise.pending()
 	uiModelLoaded = (req, res, next) ->
 		isUiModelLoaded.promise.then(->
 			next()
@@ -52,7 +52,7 @@ define [
 	# Setup function
 	exports.setup = (app, requirejs, sbvrUtils, db) ->
 		setupModels = (tx) ->
-			Q.all([
+			Promise.all([
 				sbvrUtils.executeModel(tx, 'ui', uiModel)
 				.then(->
 					console.info('Sucessfully executed ui model.')
@@ -125,7 +125,7 @@ define [
 			db.transaction (tx) ->
 				tx.tableList()
 				.then((result) ->
-					Q.all result.rows.map (table) ->
+					Promise.all result.rows.map (table) ->
 						tx.dropTable(table.name)
 				).then(->
 					sbvrUtils.executeStandardModels(tx)
@@ -142,7 +142,7 @@ define [
 		app.put '/importdb', sbvrUtils.checkPermissionsMiddleware('set'), (req, res, next) ->
 			queries = req.body.split(";")
 			db.transaction (tx) ->
-				Q.all(_.map queries, (query) ->
+				Promise.all(_.map queries, (query) ->
 					query = query.trim()
 					if query.length > 0
 						tx.executeSql(query).catch((err) ->
@@ -169,7 +169,7 @@ define [
 					tx.tableList("name NOT LIKE '%_buk'")
 					.then((result) ->
 						exported = ''
-						Q.all(result.rows.map (table) ->
+						Promise.all(result.rows.map (table) ->
 							tableName = table.name
 							exported += 'DROP TABLE IF EXISTS "' + tableName + '";\n'
 							exported += table.sql + ";\n"
@@ -204,7 +204,7 @@ define [
 			db.transaction (tx) ->
 				tx.tableList("name NOT LIKE '%_buk'")
 				.then((result) ->
-					Q.all result.rows.map (currRow) ->
+					Promise.all result.rows.map (currRow) ->
 						tableName = currRow.name
 						tx.dropTable(tableName + '_buk', true)
 						.then(->
@@ -222,7 +222,7 @@ define [
 			db.transaction (tx) ->
 				tx.tableList("name LIKE '%_buk'")
 				.then((result) ->
-					Q.all result.rows.map (currRow) ->
+					Promise.all result.rows.map (currRow) ->
 						tableName = currRow.name
 						tx.dropTable(tableName[0...-4], true)
 						.then(->
@@ -261,7 +261,7 @@ define [
 
 		app.del '/', uiModelLoaded, serverIsOnAir, (req, res, next) ->
 			# TODO: This should be done a better way?
-			Q.all([
+			Promise.all([
 				sbvrUtils.runURI('PATCH', "/ui/textarea?$filter=name eq 'model_area'",
 					text: ''
 					name: 'model_area'
