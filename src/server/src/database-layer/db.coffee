@@ -22,7 +22,7 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Pro
 			return stack
 
 	class Tx
-		timeoutMS = 500
+		timeoutMS = 1000
 		constructor: (stackTrace, executeSql, rollback, end) ->
 			automaticClose = =>
 				console.error('Transaction still open after ' + timeoutMS + 'ms without an execute call.', stackTrace)
