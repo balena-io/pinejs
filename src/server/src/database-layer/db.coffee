@@ -177,7 +177,7 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Pro
 					insertId: rows.insertId || null
 				}
 			class MySqlTx extends Tx
-				constructor: (_db, _stackTrace) ->
+				constructor: (_db, _close, _stackTrace) ->
 					executeSql = (sql, bindings, deferred) ->
 						_db.query sql, bindings, (err, res) ->
 							if err
@@ -188,11 +188,11 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Pro
 
 					rollback = (deferred) =>
 						deferred.fulfill(@executeSql('ROLLBACK;'))
-						_db.end()
+						_close()
 
 					end = (deferred) =>
 						deferred.fulfill(@executeSql('COMMIT;'))
-						_db.end()
+						_close()
 
 					super(_stackTrace, executeSql, rollback, end)
 
@@ -216,7 +216,9 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Pro
 						if err
 							console.error('Error connecting', err, err.stack)
 							process.exit()
-						tx = new MySqlTx(_db, stackTrace)
+						_close = ->
+							_db.release()
+						tx = new MySqlTx(_db, _close, stackTrace)
 						tx.executeSql('START TRANSACTION;')
 
 						deferred.fulfill(tx)
