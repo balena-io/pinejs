@@ -161,7 +161,7 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Pro
 		exports.mysql = (options) ->
 			mysql = new require('mysql')
 			_pool = mysql.createPool(options)
-			_pool.on 'connection', (err, _db) ->
+			_pool.on 'connection', (_db) ->
 				_db.query("SET sql_mode='ANSI_QUOTES';")
 
 			createResult = (rows) ->
@@ -186,7 +186,7 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Pro
 							else
 								deferred.fulfill(createResult(res))
 
-					rollback = =>
+					rollback = (deferred) =>
 						deferred.fulfill(@executeSql('ROLLBACK;'))
 						_db.end()
 
@@ -216,7 +216,7 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Pro
 						if err
 							console.error('Error connecting', err, err.stack)
 							process.exit()
-						tx = new MysqlTx(_db, stackTrace)
+						tx = new MySqlTx(_db, stackTrace)
 						tx.executeSql('START TRANSACTION;')
 
 						deferred.fulfill(tx)
