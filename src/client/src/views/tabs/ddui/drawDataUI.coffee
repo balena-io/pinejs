@@ -6,7 +6,8 @@ define([
 	'bluebird'
 	'lodash'
 	'cs!./runTrans'
-], (ClientURIUnparser, ejs, widgets, async, Promise, _) ->
+	'cs!server-request'
+], (ClientURIUnparser, ejs, widgets, async, Promise, _, serverRequest) ->
 	templates = {
 		widgets: widgets
 		hiddenFormInput: ejs.compile('''

@@ -1,4 +1,4 @@
-define ['async', 'bluebird'], (async, Promise) ->
+define ['async', 'bluebird', 'cs!server-request'], (async, Promise, serverRequest) ->
 	runTrans = (rootElement) ->
 		actions = $(".action:has(#__actype[value!=view])")
 		if actions.size() > 0

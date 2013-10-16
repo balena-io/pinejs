@@ -1,8 +1,9 @@
 define([
 	'backbone'
+	'cs!server-request'
 	'codemirror'
 	'codemirror-modes/sql/sql'
-], (Backbone, CodeMirror) ->
+], (Backbone, serverRequest, CodeMirror) ->
 	Backbone.View.extend(
 		events:
 			"click #bidb": "importDB"

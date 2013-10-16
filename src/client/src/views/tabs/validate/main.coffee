@@ -3,7 +3,8 @@ define([
 	'codemirror'
 	'bluebird'
 	'codemirror-ometa/hinter'
-], (Backbone, CodeMirror, Promise, codeMirrorOmetaHinter) ->
+	'cs!server-request'
+], (Backbone, CodeMirror, Promise, codeMirrorOmetaHinter, serverRequest) ->
 	Backbone.View.extend(
 		events:
 			"click #validate": "validate"
