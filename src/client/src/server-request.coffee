@@ -21,7 +21,7 @@ define([
 						error = JSON.parse(jqXHR.responseText)
 					catch e
 						error = jqXHR.responseText
-					deferred.reject(jqXHR.status, error)
+					deferred.reject([jqXHR.status, error])
 
 				success: (data, textStatus, jqXHR) ->
 					rheaders = /^(.*?):[ \t]*([^\r\n]*)\r?$/mg
@@ -29,7 +29,7 @@ define([
 					responseHeadersString = jqXHR.getAllResponseHeaders()
 					while match = rheaders.exec( responseHeadersString )
 						responseHeaders[ match[1].toLowerCase() ] = match[2]
-					deferred.fulfill(jqXHR.status, data, responseHeaders)
+					deferred.fulfill([jqXHR.status, data, responseHeaders])
 
 				type: method
 		if successCallback?
