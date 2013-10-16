@@ -5,8 +5,8 @@ define([
 	'async'
 	'bluebird'
 	'lodash'
-	'cs!./runTrans'
 	'cs!server-request'
+	'cs!./runTrans'
 ], (ClientURIUnparser, ejs, widgets, async, Promise, _, serverRequest) ->
 	templates = {
 		widgets: widgets
