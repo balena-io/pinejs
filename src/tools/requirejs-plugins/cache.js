@@ -1,11 +1,5 @@
-/**
- * @license cs 0.4.2 Copyright (c) 2010-2011, The Dojo Foundation All Rights Reserved.
- * Available via the MIT or new BSD license.
- * see: http://github.com/jrburke/require-cs for details
- */
-
 /*jslint */
-/*global define, window, XMLHttpRequest, importScripts, Packages, java,
+/*global define, window, XMLHttpRequest, importScripts,
 	ActiveXObject, process, require */
 
 define(function () {
@@ -28,7 +22,7 @@ define(function () {
 		// Browser action
 		getXhr = function () {
 			//Would love to dump the ActiveX crap in here. Need IE 6 to die first.
-			var xhr, i, progId;
+			var xhr, i, progId, progIds;
 			if (typeof XMLHttpRequest !== "undefined") {
 				return new XMLHttpRequest();
 			} else {
@@ -39,7 +33,7 @@ define(function () {
 					} catch (e) {}
 
 					if (xhr) {
-						progIds = [progId];	// so faster next time
+						progIds = [progId]; // so faster next time
 						break;
 					}
 				}
@@ -55,7 +49,7 @@ define(function () {
 		fetchText = function (url, callback) {
 			var xhr = getXhr();
 			xhr.open('GET', url, true);
-			xhr.onreadystatechange = function (evt) {
+			xhr.onreadystatechange = function () {
 				//Do not explicitly handle errors, those should be
 				//visible via console output in the browser.
 				if (xhr.readyState === 4) {
@@ -73,9 +67,9 @@ define(function () {
 	else {
 		var db = null;
 		try {
-			db = JSON.parse(fs.readFileSync(".cache.json", "utf8"))
+			db = JSON.parse(fs.readFileSync(".cache.json", "utf8"));
 		} catch (e) {
-			db = {}
+			db = {};
 		}
 		sessionStorage = {
 			getItem: function (key) {
@@ -110,7 +104,7 @@ define(function () {
 					if (cached) {
 						cached = JSON.parse(cached);
 					} else {
-						cached = {}
+						cached = {};
 					}
 	
 					var compiled = cached.compiled;
@@ -118,35 +112,44 @@ define(function () {
 						console.log("Compiling", path.split('/').pop());
 						//Run compilation.
 						try {
-							compiled = compile(source, config, path);
+							compiled = compile(source, config, path, parentRequire, finishLoading);
 						}
 						catch (err) {
-							err.message = "In " + path + ", " + err.message;
-							throw(err);
+							finishLoading(err);
+						}
+					}
+					if(typeof compiled === 'string') {
+						finishLoading(null, compiled);
+					}
+
+					function finishLoading(err, compiled) {
+						if(err) {
+							load.error("In " + path + ", " + err);
+							return;
 						}
 						sessionStorage.setItem(path, JSON.stringify({
 							compiled: compiled,
 							source: source
 						}));
-					}
-	
-					//Hold on to the transformed text if a build.
-					if (config.isBuild) {
-						buildMap[name] = compiled;
-					}
-	
-					//IE with conditional comments on cannot handle the
-					//sourceURL trick, so skip it if enabled.
-					/*@if (@_jscript) @else @*/
-					if (!config.isBuild) {
-						compiled += "\n//@ sourceURL=" + path + '.js';
-					}
-					/*@end@*/
-	
-					//Have RequireJS execute the JavaScript within
-					//the correct environment/context, and trigger the load
-					//call for this resource.
-					load.fromText(compiled);
+
+						//Hold on to the transformed text if a build.
+						if (config.isBuild) {
+							buildMap[name] = compiled;
+						}
+		
+						//IE with conditional comments on cannot handle the
+						//sourceURL trick, so skip it if enabled.
+						/*@if (@_jscript) @else @*/
+						if (!config.isBuild) {
+							compiled += "\n//@ sourceURL=" + path + '.js';
+						}
+						/*@end@*/
+		
+						//Have RequireJS execute the JavaScript within
+						//the correct environment/context, and trigger the load
+						//call for this resource.
+						load.fromText(compiled);
+					};
 				});
 			}
 		};
