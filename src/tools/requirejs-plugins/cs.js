@@ -19,5 +19,5 @@ define(['cache', 'coffee-script'], function (cache, CoffeeScript) {
 	}
 	return cache(compile, function(name, parentRequire) {
 		return parentRequire.toUrl(name + '.coffee');
-	});
+	}, CoffeeScript.VERSION);
 });

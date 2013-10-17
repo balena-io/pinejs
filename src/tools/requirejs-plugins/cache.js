@@ -82,7 +82,7 @@ define(function () {
 		};
 	}
 
-	return function(compile, resolvePath) {
+	return function(compile, resolvePath, version) {
 		return {
 			write: function (pluginName, name, write) {
 				if (buildMap.hasOwnProperty(name)) {
@@ -91,7 +91,7 @@ define(function () {
 				}
 			},
 	
-			version: '0.4.2',
+			version: version,
 	
 			load: function (name, parentRequire, load, config) {
 				if(parentRequire.toUrl(name) == 'empty:') {
@@ -108,7 +108,7 @@ define(function () {
 					}
 	
 					var compiled = cached.compiled;
-					if (cached.source !== source) {
+					if (cached.source !== source || cached.version !== version || version === false) {
 						console.log("Compiling", path.split('/').pop());
 						//Run compilation.
 						try {
@@ -128,6 +128,7 @@ define(function () {
 							return;
 						}
 						sessionStorage.setItem(path, JSON.stringify({
+							version: version,
 							compiled: compiled,
 							source: source
 						}));
