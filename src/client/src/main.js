@@ -36,7 +36,7 @@ require({
 
 		//Libraries
 		'async'						: '../../../node_modules/async/lib/async',
-		'backbone'					: '../lib/backbone',
+		'backbone'					: '../lib/backbone/backbone',
 		'bootstrap'					: '../lib/bootstrap/bootstrap',
 		'codemirror'				: '../lib/codemirror/lib/codemirror',
 		'codemirror-modes'			: '../lib/codemirror/mode',
