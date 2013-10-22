@@ -44,7 +44,7 @@ require({
 		'codemirror-ometa'			: '../../../node_modules/ometa-js/lib/codemirror-ometa',
 		'codemirror-simple-hint'	: '../lib/codemirror/addon/hint/simple-hint',
 		'd3'						: '../lib/d3.v2',
-		'jquery'					: '../lib/jquery',
+		'jquery'					: '../lib/jquery/jquery',
 		'jquery-xdomain'			: '../lib/jquery-xdomain',
 		'ometa-core'				: '../../../node_modules/ometa-js/lib/ometajs/core',
 		'lodash'					: '../../../node_modules/lodash/dist/lodash.compat',

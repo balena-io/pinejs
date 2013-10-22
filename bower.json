@@ -13,6 +13,7 @@
     "tests"
   ],
   "dependencies": {
-    "require-cs": "resin-io/require-cs"
+    "require-cs": "resin-io/require-cs",
+    "jquery": "~1.10.2"
   }
 }
