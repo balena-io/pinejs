@@ -14,6 +14,7 @@
   ],
   "dependencies": {
     "require-cs": "resin-io/require-cs",
-    "jquery": "~1.10.2"
+    "jquery": "~1.10.2",
+    "jquery-ui": "~1.10.3"
   }
 }

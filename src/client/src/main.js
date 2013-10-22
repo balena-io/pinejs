@@ -49,7 +49,7 @@ require({
 		'ometa-core'				: '../../../node_modules/ometa-js/lib/ometajs/core',
 		'lodash'					: '../../../node_modules/lodash/dist/lodash.compat',
 		'ejs'						: '../lib/ejs',
-		'jquery-ui'					: '../lib/jquery-ui',
+		'jquery-ui'					: '../lib/jquery-ui/ui/jquery-ui',
 		
 		// For the in-browser server
 		'bluebird'					: '../../../node_modules/bluebird/js/bluebird',
