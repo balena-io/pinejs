@@ -16,6 +16,7 @@
     "require-cs": "resin-io/require-cs",
     "jquery": "~1.10.2",
     "jquery-ui": "~1.10.3",
-    "backbone": "~1.0.0"
+    "backbone": "~1.0.0",
+    "requirejs": "~2.1.9"
   }
 }
