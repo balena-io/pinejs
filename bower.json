@@ -20,6 +20,7 @@
     "requirejs": "~2.1.9",
     "d3": "~3.3.8",
     "ejs": "~0.8.4",
-    "bootstrap": "2.3.2"
+    "bootstrap": "2.3.2",
+    "coffee-script": "~1.6.3"
   }
 }
