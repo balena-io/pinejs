@@ -48,7 +48,7 @@ require({
 		'jquery-xdomain'			: '../lib/jquery-xdomain',
 		'ometa-core'				: '../../../node_modules/ometa-js/lib/ometajs/core',
 		'lodash'					: '../../../node_modules/lodash/dist/lodash.compat',
-		'ejs'						: '../lib/ejs',
+		'ejs'						: '../lib/ejs/ejs',
 		'jquery-ui'					: '../lib/jquery-ui/ui/jquery-ui',
 		
 		// For the in-browser server
@@ -105,6 +105,9 @@ require({
 			exports: 'CodeMirror'
 		},
 		'codemirror-modes/sql/sql': ['codemirror'],
+		'ejs': {
+			exports: 'ejs'
+		},
 		'jquery-ui': {
 			deps: ['jquery']
 		},
