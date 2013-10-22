@@ -37,7 +37,7 @@ require({
 		//Libraries
 		'async'						: '../../../node_modules/async/lib/async',
 		'backbone'					: '../lib/backbone/backbone',
-		'bootstrap'					: '../lib/bootstrap/bootstrap',
+		'bootstrap'					: '../lib/bootstrap/docs/assets/js/bootstrap',
 		'codemirror'				: '../lib/codemirror/lib/codemirror',
 		'codemirror-modes'			: '../lib/codemirror/mode',
 		'ometa-highlighting'		: '../lib/codemirror-ometa-bridge/src',
@@ -92,7 +92,7 @@ require({
 	],
 	shim: {
 		'bootstrap': {
-			deps: ['jquery', 'css!lib/bootstrap/bootstrap']
+			deps: ['jquery', 'css!lib/bootstrap/docs/assets/css/bootstrap']
 		},
 		'css!static/main': {
 			deps: ['bootstrap'],
