@@ -45,3 +45,4 @@ out
 
 # Requirejs compilation cache
 .cache.json
+/src/client/lib
