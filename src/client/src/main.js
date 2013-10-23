@@ -40,7 +40,6 @@ require({
 		'bootstrap'					: '../lib/bootstrap/docs/assets/js/bootstrap',
 		'codemirror'				: '../lib/codemirror/lib/codemirror',
 		'codemirror-modes'			: '../lib/codemirror/mode',
-		'ometa-highlighting'		: '../lib/codemirror-ometa-bridge/src',
 		'codemirror-ometa'			: '../../../node_modules/ometa-js/lib/codemirror-ometa',
 		'codemirror-simple-hint'	: '../lib/codemirror/addon/hint/simple-hint',
 		'd3'						: '../lib/d3/d3',
