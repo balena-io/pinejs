@@ -27,7 +27,7 @@ define ['has', 'lodash', 'bluebird'], (has, _, Promise) ->
 			if data.users?
 				permissions = {}
 				for user in data.users when user.permissions?
-					for permissionName in user.permissions
+					_.each user.permissions, (permissionName) ->
 						permissions[permissionName] ?=
 							sbvrUtils.runURI('GET', "/Auth/permission?$filter=name eq '" + encodeURIComponent(permissionName) + "'", null, tx)
 							.then((result) ->
