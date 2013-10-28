@@ -1,19 +1,22 @@
 define(['ometa-core'], function() {
 	ometa SQLBinds {
-		skipToEnd :quote
-			= (
-				~({found==quote})
-				(
-					~({prev==quote||prev=='\\'}) seq(quote):found
-					| anything:prev
+		skipToEnd :quote =
+			(	(	seq(quote)
+				|	'\\'
 				)
-			)*:text
-			-> text.join(''),
-		parse :nextBind
-			= (
-				('\''|'"'):quote skipToEnd(quote):text -> [quote, text].join('')
-				| '?' -> nextBind()
-				| anything
+				seq(quote)
+			|	~seq(quote)
+				anything
+			)*,
+		parse :nextBind =
+			(
+				<	('\''|'"'):quote
+					skipToEnd(quote)
+					seq(quote)
+				>
+			|	'?'
+				-> nextBind()
+			|	anything
 			)*:sql
 			-> sql.join('')
 	}
