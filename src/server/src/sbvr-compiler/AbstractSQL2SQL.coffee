@@ -88,7 +88,7 @@ define([
 							console.warn("We're adding a primitive table??", schemaInfo.resourceName)
 						createSchemaStatements.push(schemaInfo.createSQL)
 						dropSchemaStatements.push(schemaInfo.dropSQL)
-						console.log(schemaInfo.createSQL)
+						# console.log(schemaInfo.createSQL)
 					delete schemaDependencyMap[tableName]
 		if schemaDependencyMap.length > 0
 			console.error('Failed to resolve all schema dependencies', schemaDependencyMap)
@@ -98,9 +98,9 @@ define([
 		ruleStatements = []
 		try
 			for rule in sqlModel.rules
-				console.log(rule[1][1])
+				# console.log(rule[1][1])
 				ruleSQL = AbstractSQLCompiler.compile(engine, rule[2][1])
-				console.log(ruleSQL)
+				# console.log(ruleSQL)
 				ruleStatements.push({structuredEnglish: rule[1][1], sql: ruleSQL})
 		catch e
 			console.error(JSON.stringify(rule, null, '\t'))
