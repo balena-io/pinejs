@@ -8,25 +8,18 @@ define([
 
 	dataTypeValidate = (value, field, callback) ->
 		# In case one of the validation types throws an error.
-		deferred = Promise.pending()
-		Promise.try(->
-			{dataType, required} = field
-			if value == null or value == ''
-				if required
-					deferred.reject('cannot be null')
-				else
-					deferred.fulfill(null)
-			else if sbvrTypes[dataType]?
-				deferred.fulfill(Promise.promisify(sbvrTypes[dataType].validate)(value, required))
-			else if dataType in ['ForeignKey', 'ConceptType']
-				deferred.fulfill(Promise.promisify(TypeUtils.validate.integer)(value, required))
+		{dataType, required} = field
+		if value == null or value == ''
+			if required
+				Promise.rejected('cannot be null')
 			else
-				deferred.reject('is an unsupported type: ' + dataType)
-		).catch((err) ->
-			console.error('Unable to validate field', field, value, err)
-			deferred.reject('error whilst validating')
-		)
-		deferred.promise.nodeify(callback)
+				Promise.fulfilled(null)
+		else if sbvrTypes[dataType]?
+			Promise.promisify(sbvrTypes[dataType].validate)(value, required)
+		else if dataType in ['ForeignKey', 'ConceptType']
+			Promise.promisify(TypeUtils.validate.integer)(value, required)
+		else
+			Promise.rejected('is an unsupported type: ' + dataType)
 
 	dataTypeGen = (engine, dataType, necessity, index = '') ->
 		necessity = if necessity then ' NOT NULL' else ' NULL'
