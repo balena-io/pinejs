@@ -527,7 +527,7 @@ define [
 			console.trace()
 			return Promise.rejected(message)
 		deferred = Promise.pending()
-		console.log('Running URI', method, uri, body)
+		console.log('Running', method, uri)
 		req =
 			user:
 				permissions:
