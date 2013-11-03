@@ -8,7 +8,7 @@
 
 ## Setting Up A Project
 
-1. Check out (or update your copy of) `rulemotion-canvas/master` (all paths used below will be relative to this working director unless otherwise specified)
+1. Check out (or update your copy of) `rulemotion-canvas/master` (all paths used below will be relative to this working directory unless otherwise specified)
 2. Navigate to `src/server/build`
 3. Run `r.js -o server.build.js` on Linux/Mac OSX or `r.js.cmd -o server.build.js` on Windows.
 4. Copy the `src/server/build/platform.js` file that was just created into your project's folder/repository.
