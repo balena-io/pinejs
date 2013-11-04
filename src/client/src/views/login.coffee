@@ -40,9 +40,11 @@ define [
 		register: ->
 			email = @$('#inputEmail').val()
 			password = @$('#inputPassword').val()
+			passwordConfirm = @$('#inputPasswordConfirm')
 			user = new UserModel(
 				email: email
 				password: password
+				password2: passwordConfirm
 			).save().done(=>
 				@login()
 			)
