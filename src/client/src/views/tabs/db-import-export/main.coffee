@@ -13,7 +13,7 @@ define [
 			@options.title.text(title)
 
 		render: ->
-			this.setTitle('Import/Export DB')
+			@setTitle('Import/Export DB')
 			
 			html = """
 				<div id="bidb" class="btn btn-small btn-primary">Import DB</div>

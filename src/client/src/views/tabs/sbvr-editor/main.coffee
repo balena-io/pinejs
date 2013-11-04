@@ -11,7 +11,7 @@ define [
 			@options.title.text(title)
 
 		render: ->
-			this.setTitle('Edit')
+			@setTitle('Edit')
 
 			textarea = $('<textarea />')
 			@$el.empty().append(textarea)

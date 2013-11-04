@@ -13,7 +13,7 @@ define [
 			@options.title.text(title)
 
 		render: ->
-			this.setTitle('Validate')
+			@setTitle('Validate')
 			
 			html = """
 				<textarea id="validateEditor" />

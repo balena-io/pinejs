@@ -306,7 +306,7 @@ define [
 			getVocabulary: () ->
 				return tree[1][0]
 			getModelURI: () ->
-				return serverAPI(this.getVocabulary(), this.getAbout(), false)
+				return serverAPI(@getVocabulary(), @getAbout(), false)
 			getServerURI: () ->
 				op =
 					eq: "eq"
@@ -317,9 +317,9 @@ define [
 					leaf = leaf[1]
 					if leaf[1][0] == undefined
 						# The resource name - not currently used in filter
-						leaf[1] = this.getAbout()
+						leaf[1] = @getAbout()
 					filters.push([leaf[2], op[leaf[0]], leaf[3]])
-				return serverAPI(this.getVocabulary(), this.getAbout(), filters)
+				return serverAPI(@getVocabulary(), @getAbout(), filters)
 			isExpanded: (resourceName, resourceID) -> getIndexForResource(resourceName, resourceID) != false
 			descend: (resourceName, resourceID) ->
 				index = getIndexForResource(resourceName, resourceID)
@@ -345,9 +345,9 @@ define [
 				mods = [ 'mod', [ action ] ]
 				if resourceID?
 					mods.push(['filt', ['eq', [], resourceModel.idField, resourceID]])
-				return this.getNewURI("add", [ 'instance', [resourceModel.resourceName], mods ])
+				return @getNewURI("add", [ 'instance', [resourceModel.resourceName], mods ])
 			getNewURI: (action, change) ->
-				return this.clone().modify(action, change).getURI()
+				return @clone().modify(action, change).getURI()
 		}
 	
 	getInstanceID = (instance, clientModel) ->
@@ -369,7 +369,7 @@ define [
 				else
 					instance = {}
 				instance[fieldName] = fieldValue
-				this.set(foreignKey, id, instance)
+				@set(foreignKey, id, instance)
 			listen: (foreignKey, callback) ->
 				if !updateListeners[foreignKey]
 					updateListeners[foreignKey] = []

@@ -8,7 +8,7 @@ define [
 			@options.title.text(title)
 
 		render: ->
-			this.setTitle('Visualize')
+			@setTitle('Visualize')
 
 			rerenderRequired = true
 			@options.title.on('shown', =>

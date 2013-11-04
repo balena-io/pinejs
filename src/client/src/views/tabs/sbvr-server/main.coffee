@@ -11,7 +11,7 @@ define [
 			@options.title.text(title)
 
 		render: ->
-			this.setTitle('Server')
+			@setTitle('Server')
 			
 			html = """
 				<button id="run-server">Run Server</button>

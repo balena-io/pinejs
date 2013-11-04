@@ -13,7 +13,7 @@ define [
 				return 'Password values do not match'
 		idAttribute: 'email'
 		toJson: -> {
-			email: this.get('email')
-			password: this.get('password')
+			email: @get('email')
+			password: @get('password')
 		}
 	})

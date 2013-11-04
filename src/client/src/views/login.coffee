@@ -16,7 +16,7 @@ define [
 
 		render: ->
 			@$el.html('<div class="modal hide fade" id="loginModal" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">')
-			this.showLogin()
+			@showLogin()
 			@$('#loginModal').modal('show')
 			return this
 
@@ -28,9 +28,9 @@ define [
 				password
 			}).save().done((data) =>
 				localStorage.setItem('sid', data.id)
-				this.$('#loginModal').modal('hide').on('hidden', =>
+				@$('#loginModal').modal('hide').on('hidden', =>
 					console.log this
-					this.trigger('login', email)
+					@trigger('login', email)
 				)
 			).fail((error) ->
 				console.error(error)

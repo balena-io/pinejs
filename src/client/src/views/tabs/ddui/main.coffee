@@ -11,7 +11,7 @@ define [
 			@options.title.text(title)
 
 		render: ->
-			this.setTitle('Data Editor')
+			@setTitle('Data Editor')
 
 			window.dduiState = (state) =>
 				drawDataUI(ClientURIParser.matchAll(state, "expr")[1], (err, html) =>

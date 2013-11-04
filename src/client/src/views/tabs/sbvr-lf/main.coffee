@@ -8,7 +8,7 @@ define [
 			@options.title.text(title)
 
 		render: ->
-			this.setTitle('Logical Formulation')
+			@setTitle('Logical Formulation')
 
 			rerenderRequired = true
 			@options.title.on('shown', =>

@@ -97,7 +97,7 @@ define [
 			)
 
 		login: ->
-			this.$('#modal').remove()
+			@$('#modal').remove()
 			el = $('<div id="modal"/>')
 			@$el.append(el)
 			loginView = new LoginView({el})
