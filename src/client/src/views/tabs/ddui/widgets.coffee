@@ -12,7 +12,7 @@ define ['./widgets/text', './widgets/textArea', './widgets/foreignKey', './widge
 		if value != ''
 			return value
 		return '&lt;auto&gt;'
-	widgets['JSON'] = widgets['Interval'] = widgets['Date'] = widgets['Date Time'] = widgets['Time'] = () ->
+	widgets['JSON'] = widgets['Interval'] = widgets['Date'] = widgets['Date Time'] = widgets['Time'] = ->
 		return 'TODO'
 	
 	return (widgetType, action, id, value, nullable, onChange, foreignKeys = {}) ->

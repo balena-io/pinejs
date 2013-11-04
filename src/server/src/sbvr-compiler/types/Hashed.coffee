@@ -10,7 +10,7 @@ define ['lodash'], (_) ->
 		validate: (value, required, callback) ->
 			if !_.isString(value)
 				callback('is not a string')
-			else if window? && window == (()->this)()
+			else if window? && window == (->this)()
 				# Warning: If we're running in the browser then store unencrypted (no bcrypt module available)
 				if value.length > 60
 					callback('longer than 60 characters (' + value.length + ')')

@@ -38,8 +38,8 @@ define [
 			@editor = CodeMirror.fromTextArea(textarea.get(0),
 				mode: {
 					name: 'sbvr'
-					getOMetaEditor: () => @editor
-					prependText: () => @model.get('content') + '\nRule: '
+					getOMetaEditor: => @editor
+					prependText: => @model.get('content') + '\nRule: '
 				}
 				onKeyEvent: codeMirrorOmetaHinter(=> @model.get('content') + '\nRule: ')
 				lineWrapping: true

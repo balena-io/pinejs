@@ -61,7 +61,7 @@ compileOmetaFile = (ometaFilePath, jsFilePath, pretty, callback) ->
 					callback(true)
 				else
 					console.log('Writing: ' + ometaFilePath)
-					fs.writeFile(jsFilePath, js, () ->
+					fs.writeFile(jsFilePath, js, ->
 						console.log('Finished: ' + ometaFilePath)
 						callback(false)
 					)

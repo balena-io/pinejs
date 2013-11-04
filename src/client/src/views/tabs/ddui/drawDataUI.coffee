@@ -256,7 +256,7 @@ define [
 				return j
 			return false
 		
-		ascend = () ->
+		ascend = ->
 			currentLocation = previousLocations.pop()
 			return descendTree.pop()
 		
@@ -272,13 +272,13 @@ define [
 		
 		return {
 			# Can get rid of?
-			getInstanceID: () -> _getInstanceID(currentLocation)
-			getCurrentLocation: () -> return currentLocation
-			getCurrentIndex: () -> return descendTree[descendTree.length - 1]
+			getInstanceID: -> _getInstanceID(currentLocation)
+			getCurrentLocation: -> return currentLocation
+			getCurrentIndex: -> return descendTree[descendTree.length - 1]
 			descendByIndex: (index) ->
 				descendByIndex(index)
 				return this
-			getAbout: () ->
+			getAbout: ->
 				if currentLocation[1]?[0]?
 					currentLocation[1][0]
 				else
@@ -292,7 +292,7 @@ define [
 				for currBranchType in currBranch[2][1..] when currBranchType[0] in ['view', 'add', 'edit', 'del']
 					return currBranchType[0]
 				return 'view'
-			getPid: () ->
+			getPid: ->
 				pidTree = tree
 				pid = pidTree[1][0]
 				for index in descendTree
@@ -303,11 +303,11 @@ define [
 						pid += "--" + pidTree[1][1]
 				return pid
 			# Needed
-			getVocabulary: () ->
+			getVocabulary: ->
 				return tree[1][0]
-			getModelURI: () ->
+			getModelURI: ->
 				return serverAPI(@getVocabulary(), @getAbout(), false)
-			getServerURI: () ->
+			getServerURI: ->
 				op =
 					eq: "eq"
 					ne: "ne"
@@ -333,13 +333,13 @@ define [
 						oldIndex = ascend()
 						currentLocation.splice(oldIndex, 1)
 				return this
-			getURI: () ->
+			getURI: ->
 				try
 					return ClientURIUnparser.match(tree, "trans")
 				catch e
 					console.error('Could not "unparse" client uri', e)
 					throw e
-			clone: () ->
+			clone: ->
 				return createNavigableTree(tree, descendTree)
 			getChangeURI: (action, resourceModel, resourceID) ->
 				mods = [ 'mod', [ action ] ]
