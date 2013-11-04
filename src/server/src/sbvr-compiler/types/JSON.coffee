@@ -1,4 +1,4 @@
-define(['lodash'], (_) ->
+define ['lodash'], (_) ->
 	return {
 		types:
 			postgres: 'TEXT'
@@ -20,4 +20,3 @@ define(['lodash'], (_) ->
 				console.error(e)
 				callback('cannot be turned into JSON: ' + originalValue)
 	}
-)

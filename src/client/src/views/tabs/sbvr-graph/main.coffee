@@ -1,4 +1,4 @@
-define([
+define [
 	'backbone'
 	'd3'
 	'css!./graph'
@@ -145,4 +145,3 @@ define([
 				rerenderRequired = true
 			)
 	)
-)

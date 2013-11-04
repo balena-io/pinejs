@@ -1,4 +1,4 @@
-define([
+define [
 	'ometa!./ClientURIUnparser'
 	'ejs'
 	'cs!./widgets'
@@ -745,4 +745,3 @@ define([
 
 	window.processForm = processForm
 	return drawData
-)

@@ -1,4 +1,4 @@
-define(['lodash'], (_) ->
+define ['lodash'], (_) ->
 	equality = (from, to) -> ['Equals', from, to]
 	return {
 		nativeFactTypeTemplates:
@@ -38,4 +38,3 @@ define(['lodash'], (_) ->
 				else	
 					callback(null, processedValue)
 	}
-)

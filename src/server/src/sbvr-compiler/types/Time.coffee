@@ -1,4 +1,4 @@
-define(['cs!sbvr-compiler/types/TypeUtils'], (TypeUtils) ->
+define ['cs!sbvr-compiler/types/TypeUtils'], (TypeUtils) ->
 	return {
 		types:
 			postgres: 'TIME'
@@ -18,4 +18,3 @@ define(['cs!sbvr-compiler/types/TypeUtils'], (TypeUtils) ->
 					return
 				callback(null, value.toLocaleTimeString())
 	}
-)

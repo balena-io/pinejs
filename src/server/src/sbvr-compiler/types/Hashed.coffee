@@ -1,4 +1,4 @@
-define(['lodash'], (_) ->
+define ['lodash'], (_) ->
 	return {
 		types:
 			postgres: 'CHAR(60)'
@@ -23,4 +23,3 @@ define(['lodash'], (_) ->
 						bcrypt.hash(value, salt, callback)
 				)
 	}
-)

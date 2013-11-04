@@ -1,4 +1,4 @@
-define([
+define [
 	'cs!config'
 	'backbone'
 ], (config, Backbone) ->
@@ -11,4 +11,3 @@ define([
 			if not attributes.password?
 				return 'Password must be specified'
 	})
-)

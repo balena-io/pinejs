@@ -1,4 +1,4 @@
-define([
+define [
 	'has'
 	'backbone'
 	'jquery'
@@ -122,4 +122,3 @@ define([
 		closeAlert: ->
 			@$('#publishSuccess').fadeOut()
 	)
-)

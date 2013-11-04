@@ -1,4 +1,4 @@
-define([
+define [
 	'backbone'
 	'codemirror'
 	'bluebird'
@@ -155,5 +155,3 @@ define([
 				console.error('Error validating', err)
 			)
 	)
-)
-

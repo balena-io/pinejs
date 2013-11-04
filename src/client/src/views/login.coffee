@@ -1,4 +1,4 @@
-define([
+define [
 	'backbone'
 	'cs!models/session'
 	'cs!models/user'
@@ -62,4 +62,3 @@ define([
 					$passwordConfirm[0].setCustomValidity?('')
 			)
 	)
-)

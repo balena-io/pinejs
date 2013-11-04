@@ -1,4 +1,4 @@
-define([
+define [
 	'cs!sbvr-compiler/types/Serial'
 	'cs!sbvr-compiler/types/Integer'
 	'cs!sbvr-compiler/types/Real'
@@ -15,4 +15,3 @@ define([
 	'cs!sbvr-compiler/types/File'
 ], (Serial, Integer, Real, Date, DateTime, Time, Interval, Text, ShortText, Color, Hashed, Boolean, JSON, File) ->
 	return {Serial, Integer, Real, Date, 'Date Time': DateTime, Time, Interval, Text, 'Short Text': ShortText, Color, Hashed, Boolean, JSON, File}
-)

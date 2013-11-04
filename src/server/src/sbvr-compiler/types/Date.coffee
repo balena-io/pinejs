@@ -1,4 +1,4 @@
-define(['cs!sbvr-compiler/types/TypeUtils'], (TypeUtils) ->
+define ['cs!sbvr-compiler/types/TypeUtils'], (TypeUtils) ->
 	return {
 		types:
 			postgres: 'DATE'
@@ -12,4 +12,3 @@ define(['cs!sbvr-compiler/types/TypeUtils'], (TypeUtils) ->
 
 		validate: TypeUtils.validate.date
 	}
-)

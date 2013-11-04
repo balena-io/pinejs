@@ -1,4 +1,4 @@
-define([
+define [
 	'abstract-sql-compiler'
 	'lodash'
 	'bluebird'
@@ -114,25 +114,3 @@ define([
 			generate: (sqlModel) -> generate(sqlModel, 'mysql', true)
 			dataTypeValidate: dataTypeValidate
 	}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-)
-
-
-

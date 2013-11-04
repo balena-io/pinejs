@@ -1,4 +1,4 @@
-define([
+define [
 	'cs!config'
 	'backbone'
 ], (config, Backbone) ->
@@ -17,4 +17,3 @@ define([
 			password: this.get('password')
 		}
 	})
-)

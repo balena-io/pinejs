@@ -1,4 +1,4 @@
-define(['cs!config', 'backbone', 'cs!extended-sbvr-parser'], (config, Backbone, SBVRParser) ->
+define ['cs!config', 'backbone', 'cs!extended-sbvr-parser'], (config, Backbone, SBVRParser) ->
 	Backbone.Model.extend({
 		defaults:
 			id: null
@@ -11,4 +11,3 @@ define(['cs!config', 'backbone', 'cs!extended-sbvr-parser'], (config, Backbone, 
 				return sbvrParser.matchAll(@get('content'), 'Process')
 		urlRoot: config.apiServer + 'v1/models'
 	})
-)

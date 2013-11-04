@@ -1,4 +1,4 @@
-define(['jquery', './jquery.json2html'], ->
+define ['jquery', './jquery.json2html'], ->
 	COLLAPSED_SYMBOL = '&#x25B8;'
 	EXPANDED_SYMBOL = '&#x25BE;'
 	LEAF_SYMBOL = '&bull;'
@@ -135,4 +135,3 @@ define(['jquery', './jquery.json2html'], ->
 		return null
 
 	return lfViz
-)

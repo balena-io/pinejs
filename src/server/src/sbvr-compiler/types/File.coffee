@@ -1,4 +1,4 @@
-define(->
+define ->
 	return {
 		types:
 			postgres: 'BYTEA'
@@ -7,4 +7,3 @@ define(->
 			odata:
 				name: 'Edm.String' # TODO: What should this really be?
 	}
-)

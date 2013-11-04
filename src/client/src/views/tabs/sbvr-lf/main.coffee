@@ -1,4 +1,4 @@
-define([
+define [
 	'backbone'
 	'cs!./lfviz'
 	'css!./style'
@@ -24,4 +24,3 @@ define([
 				rerenderRequired = true
 			)
 	)
-)

@@ -1,4 +1,4 @@
-define([
+define [
 	'backbone'
 	'cs!server-request'
 	'codemirror'
@@ -39,4 +39,3 @@ define([
 				@editor.setValue(result)
 			)
 	)
-)

@@ -1,4 +1,4 @@
-define(['lodash', 'cs!sbvr-compiler/types/TypeUtils'], (_, TypeUtils) ->
+define ['lodash', 'cs!sbvr-compiler/types/TypeUtils'], (_, TypeUtils) ->
 	return {
 		types:
 			postgres: 'REAL'
@@ -18,4 +18,3 @@ define(['lodash', 'cs!sbvr-compiler/types/TypeUtils'], (_, TypeUtils) ->
 			else
 				callback(null, processedValue)
 	}
-)

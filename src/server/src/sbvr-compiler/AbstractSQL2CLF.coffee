@@ -1,4 +1,4 @@
-define(['lodash'], (_) ->
+define ['lodash'], (_) ->
 	getField = (table, fieldName) ->
 		fieldName = fieldName.replace(/_/g, ' ')
 		tableFields = table.fields
@@ -80,4 +80,3 @@ define(['lodash'], (_) ->
 				for {fieldName} in table.fields
 					addMapping(resourceName, fieldName.replace(/\ /g, '_'), table.name, fieldName)
 		return {resources, resourceToSQLMappings}
-)

@@ -1,4 +1,4 @@
-define([
+define [
 	'backbone'
 	'ometa!./ClientURIParser'
 	'cs!./drawDataUI'
@@ -23,4 +23,3 @@ define([
 
 			dduiState('#!/data')
 	)
-)

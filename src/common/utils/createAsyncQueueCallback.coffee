@@ -1,4 +1,4 @@
-define( ->
+define  ->
 	return (successCallback, errorCallback, successCollectFunc = ((arg) -> return arg), errorCollectFunc = (() -> return Array.prototype.slice.call(arguments))) ->
 		totalQueries = 0
 		queriesFinished = 0
@@ -36,4 +36,3 @@ define( ->
 				queriesFinished++
 				checkFinished()
 		}
-)

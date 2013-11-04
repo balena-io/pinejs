@@ -1,4 +1,4 @@
-define([
+define [
 	'backbone'
 	'cs!models/sbvrmodel'
 	'jquery'
@@ -49,4 +49,3 @@ define([
 	app = new Router()
 	Backbone.history.start()
 	return app
-)

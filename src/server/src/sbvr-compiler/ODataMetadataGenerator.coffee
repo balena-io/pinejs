@@ -1,4 +1,4 @@
-define(['lodash', 'cs!sbvr-compiler/types'], (_, sbvrTypes) ->
+define ['lodash', 'cs!sbvr-compiler/types'], (_, sbvrTypes) ->
 
 	getResourceName = (resourceName) ->
 		idParts = resourceName.split('-')
@@ -110,4 +110,3 @@ define(['lodash', 'cs!sbvr-compiler/types'], (_, sbvrTypes) ->
 					</Schema>
 				</edmx:DataServices>
 			</edmx:Edmx>"""
-)

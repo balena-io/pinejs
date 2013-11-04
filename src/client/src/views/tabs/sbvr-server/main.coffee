@@ -1,4 +1,4 @@
-define([
+define [
 	'backbone'
 	'has'
 	'cs!server-request'
@@ -52,4 +52,3 @@ define([
 				console.log("Executing model successfull!")
 			)
 	)
-)

@@ -1,4 +1,4 @@
-define([
+define [
 	'backbone'
 	'jquery'
 	'lodash'
@@ -46,4 +46,3 @@ define([
 
 			sbvrEditor.focus()
 	)
-)

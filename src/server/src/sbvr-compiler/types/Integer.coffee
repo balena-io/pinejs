@@ -1,4 +1,4 @@
-define(['cs!sbvr-compiler/types/TypeUtils'], (TypeUtils) ->
+define ['cs!sbvr-compiler/types/TypeUtils'], (TypeUtils) ->
 	return {
 		types:
 			postgres: 'INTEGER'
@@ -13,4 +13,3 @@ define(['cs!sbvr-compiler/types/TypeUtils'], (TypeUtils) ->
 
 		validate: TypeUtils.validate.integer
 	}
-)

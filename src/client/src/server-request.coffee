@@ -1,4 +1,4 @@
-define([
+define [
 	'has'
 	'bluebird'
 ], (has, Promise) ->
@@ -37,4 +37,3 @@ define([
 		if failureCallback?
 			deferred.promise.catch((args) -> failureCallback(args...))
 		return deferred.promise
-)

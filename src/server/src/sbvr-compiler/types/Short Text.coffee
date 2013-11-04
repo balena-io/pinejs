@@ -1,4 +1,4 @@
-define(['cs!sbvr-compiler/types/TypeUtils'], (TypeUtils) ->
+define ['cs!sbvr-compiler/types/TypeUtils'], (TypeUtils) ->
 	return {
 		types:
 			postgres: 'VARCHAR(255)'
@@ -9,4 +9,3 @@ define(['cs!sbvr-compiler/types/TypeUtils'], (TypeUtils) ->
 
 		validate: TypeUtils.validate.text(255)
 	}
-)

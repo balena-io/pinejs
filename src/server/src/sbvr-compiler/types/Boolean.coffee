@@ -1,4 +1,4 @@
-define(['lodash'], (_) ->
+define ['lodash'], (_) ->
 	return {
 		types:
 			postgres: 'INTEGER DEFAULT 0'
@@ -18,4 +18,3 @@ define(['lodash'], (_) ->
 			else
 				callback(null, value)
 	}
-)
