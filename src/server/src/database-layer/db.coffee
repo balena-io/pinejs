@@ -49,7 +49,9 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Pro
 
 				sql = bindDefaultValues(sql, bindings)
 				executeSql(sql, bindings, deferred, args...)
-				deferred.promise.finally(pendingExecutes.decrement)
+				deferred.promise.finally ->
+					# We wrap the decrement so that we play nicely if the pendingExecutes have been cancelled.
+					pendingExecutes.decrement()
 
 				return deferred.promise.nodeify(callback)
 
