@@ -14,18 +14,18 @@
     "async": "~0.2.9",
     "bcrypt": "~0.7.6",
     "express": "~3.4.0",
-    "lodash": "~2.0.0",
+    "lodash": "~2.2.1",
     "passport": "~0.1.17",
     "passport-local": "~0.1.6",
     "requirejs": "~2.1.6",
     "bluebird": "~0.9.8-0"
   },
   "devDependencies": {
-    "abstract-sql-compiler": "git+ssh://git@bitbucket.org:rulemotion/abstract-sql-compiler.git#v0.0.14",
-    "lf-to-abstract-sql": "git+ssh://git@bitbucket.org:rulemotion/lf-to-abstract-sql.git#v0.0.4",
-    "odata-parser": "git+ssh://git@bitbucket.org:rulemotion/odata-parser.git#v0.0.5",
-    "odata-to-abstract-sql": "git+ssh://git@bitbucket.org:rulemotion/odata-to-abstract-sql.git#v0.0.18",
-    "sbvr-parser": "git+ssh://git@bitbucket.org:rulemotion/sbvr-parser.git#v0.0.9"
+    "abstract-sql-compiler": "git+ssh://git@bitbucket.org:rulemotion/abstract-sql-compiler.git#v0.0.15",
+    "lf-to-abstract-sql": "git+ssh://git@bitbucket.org:rulemotion/lf-to-abstract-sql.git#v0.0.5",
+    "odata-parser": "git+ssh://git@bitbucket.org:rulemotion/odata-parser.git#v0.0.6",
+    "odata-to-abstract-sql": "git+ssh://git@bitbucket.org:rulemotion/odata-to-abstract-sql.git#v0.0.19",
+    "sbvr-parser": "git+ssh://git@bitbucket.org:rulemotion/sbvr-parser.git#v0.0.10"
   },
   "engines": {
     "node": "0.10.x",
