@@ -71,14 +71,14 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Pro
 
 			closeTransaction = (message) =>
 				pendingExecutes.cancel()
-				stackTrace = getStackTrace()
+				# _stackTrace = getStackTrace()
 				promise = Promise.rejected(new Error(message))
 				@executeSql = (sql, bindings, callback) ->
-					# console.error(message, stackTrace)
+					# console.error(message, _stackTrace)
 					# console.trace()
 					return promise.nodeify(callback)
 				@rollback = @end = (sql, bindings, callback) ->
-					# console.error(message, stackTrace)
+					# console.error(message, _stackTrace)
 					# console.trace()
 					return promise.nodeify(callback)
 
