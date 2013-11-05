@@ -27,18 +27,29 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Pro
 			automaticClose = =>
 				console.error('Transaction still open after ' + timeoutMS + 'ms without an execute call.', stackTrace)
 				@rollback()
-			automaticCloseTimeout = null
-			resetTimeout = ->
-				clearTimeout(automaticCloseTimeout)
+			pendingExecutes = do ->
 				automaticCloseTimeout = setTimeout(automaticClose, timeoutMS)
-			resetTimeout()
+				pending = 0
+				return {
+					increment: ->
+						pending++
+						clearTimeout(automaticCloseTimeout)
+					decrement: ->
+						pending--
+						if pending is 0
+							automaticCloseTimeout = setTimeout(automaticClose, timeoutMS)
+					cancel: ->
+						@increment = @decrement = ->
+						clearTimeout(automaticCloseTimeout)
+				}
 
 			@executeSql = (sql, bindings = [], callback, args...) ->
-				resetTimeout()
+				pendingExecutes.increment()
 				deferred = Promise.pending()
 
 				sql = bindDefaultValues(sql, bindings)
 				executeSql(sql, bindings, deferred, args...)
+				deferred.promise.finally(pendingExecutes.decrement)
 
 				return deferred.promise.nodeify(callback)
 
@@ -59,7 +70,7 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Pro
 				return deferred.promise.nodeify(callback)
 
 			closeTransaction = (message) =>
-				clearTimeout(automaticCloseTimeout)
+				pendingExecutes.cancel()
 				stackTrace = getStackTrace()
 				promise = Promise.rejected(new Error(message))
 				@executeSql = (sql, bindings, callback) ->
