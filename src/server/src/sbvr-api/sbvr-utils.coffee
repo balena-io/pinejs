@@ -455,9 +455,9 @@ define [
 
 	exports.getUserPermissions = getUserPermissions = (userId, callback) ->
 		Promise.all([
-			runURI('GET', '/Auth/user__has__permission?$filter=user eq ' + userId, {})
-			runURI('GET', '/Auth/user__has__role?$filter=user eq ' + userId)
-			runURI('GET', '/Auth/role__has__permission')
+			runURI('GET', '/Auth/user__has__permission?$select=permission&$filter=user eq ' + userId, {})
+			runURI('GET', '/Auth/user__has__role?$select=role&$filter=user eq ' + userId)
+			runURI('GET', '/Auth/role__has__permission?$select=role,permission')
 			runURI('GET', '/Auth/permission')
 		]).spread((userPermissions, userRoles, rolePermissions, permissions) ->
 			transformObj = (args...) -> _.transform(args.concat({})...)
