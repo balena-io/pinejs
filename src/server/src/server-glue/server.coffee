@@ -2,7 +2,7 @@ define [
 	'has'
 	'bluebird'
 	'cs!database-layer/db'
-	'cs!server-glue/sbvr-utils'
+	'cs!sbvr-api/sbvr-utils'
 	'cs!passport-bcrypt/passportBCrypt'
 	'cs!data-server/SBVRServer'
 	'cs!express-emulator/express'
