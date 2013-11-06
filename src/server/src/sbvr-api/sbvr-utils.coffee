@@ -77,15 +77,15 @@ define [
 		.then((tx) ->
 			placeholders = {}
 			getLockedRow = (lockID) ->
-				# 'GET', '/transaction/resource?$filter=resource__is_under__lock/lock eq ?'
-				tx.executeSql('''SELECT "resource"."id", "resource"."resource id" AS "resource_id", "resource"."resource type" AS "resource_type"
+				# 'GET', '/transaction/resource?$select=resource_id&$filter=resource__is_under__lock/lock eq ?'
+				tx.executeSql('''SELECT "resource"."resource id" AS "resource_id"
 								FROM "resource",
 									"resource-is_under-lock"
 								WHERE "resource"."id" = "resource-is_under-lock"."resource"
 								AND "resource-is_under-lock"."lock" = ?;''', [lockID])
 			getFieldsObject = (conditionalResourceID, clientModel) ->
-				# 'GET', '/transaction/conditional_field?$filter=conditional_resource eq ?'
-				tx.executeSql('''SELECT "conditional_field"."id", "conditional_field"."field name" AS "field_name", "conditional_field"."field value" AS "field_value", "conditional_field"."conditional resource" AS "conditional_resource"
+				# 'GET', '/transaction/conditional_field?$select=field_name,field_value&$filter=conditional_resource eq ?'
+				tx.executeSql('''SELECT "conditional_field"."field name" AS "field_name", "conditional_field"."field value" AS "field_value"
 								FROM "conditional_field"
 								WHERE "conditional_field"."conditional resource" = ?;''', [conditionalResourceID])
 				.then((fields) ->
