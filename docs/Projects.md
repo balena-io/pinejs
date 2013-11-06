@@ -16,7 +16,7 @@
 6. Run `npm install` in your project's folder/repository.
 7. [Configure your project](#configuring-a-project)
 8. Run `node platform.js` (This will create the schema including users)
-9. Set up a guest user (see [Users documentation](https://bitbucket.org/rulemotion/rulemotion-canvas/src/master/docs/Users.md)).
+9. Set up a guest user (see [Users documentation](./Users.md)).
 10. Re-run `node platform.js`.
 
 ## Updating the platform
@@ -54,7 +54,7 @@ This is a string pointing to the file that contains the sbvr model, relative to 
 This is a string that defines the root path to access this model's API, eg. /example/{OData URL}
 
 ##### Optional: customServerCode
-This is a string pointing to a file (`.coffee` or `.js`), relative to `platform.js`, that will be run by the server on startup, for further documentation see [Custom Server Code documentation](https://bitbucket.org/rulemotion/rulemotion-canvas/src/master/docs/CustomServerCode.md)
+This is a string pointing to a file (`.coffee` or `.js`), relative to `platform.js`, that will be run by the server on startup, for further documentation see [Custom Server Code documentation](./CustomServerCode.md)
 
 ### Database
 You can specify your database url in an environment variable called DATABASE_URL, refer to your OS documentation on how to do this (either on a global level for all programs, or just set it temporarily whilst launching your project).  
