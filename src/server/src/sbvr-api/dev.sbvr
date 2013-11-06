@@ -1,0 +1,17 @@
+Vocabulary: dev
+
+Term:       model value
+	Concept Type: JSON (Type)
+Term:       model
+	Reference Scheme: model value
+Term:       vocabulary
+	Concept Type: Short Text (Type)
+Term:       model type
+	Concept Type: Short Text (Type)
+
+Fact Type: model is of vocabulary
+	Necessity: Each model is of exactly one vocabulary
+Fact Type: model has model type
+	Necessity: Each model has exactly one model type
+Fact Type: model has model value
+	Necessity: Each model has exactly one model value

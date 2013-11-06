@@ -1,0 +1,32 @@
+Vocabulary: Auth
+
+Term:       username
+	Concept Type: Short Text (Type)
+Term:       password
+	Concept Type: Hashed (Type)
+Term:       name
+	Concept Type: Short Text (Type)
+
+Term:       permission
+	Reference Scheme: name
+Fact type:  permission has name
+	Necessity: Each permission has exactly one name.
+	Necessity: Each name is of exactly one permission.
+
+Term:       role
+	Reference Scheme: name
+Fact type:  role has name
+	Necessity: Each role has exactly one name.
+	Necessity: Each name is of exactly one role.
+Fact type:  role has permission
+
+Term:       user
+	Reference Scheme: username
+Fact type:  user has username
+	Necessity: Each user has exactly one username.
+	Necessity: Each username is of exactly one user.
+Fact type:  user has password
+	Necessity: Each user has exactly one password.
+Fact type:  user has role
+	Note: A 'user' will inherit all the 'permissions' that the 'role' has.
+Fact type:  user has permission

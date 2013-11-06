@@ -11,126 +11,15 @@ define [
 	'lodash'
 	'bluebird'
 	'cs!sbvr-compiler/types'
-], (has, SBVRParser, LF2AbstractSQL, AbstractSQL2SQL, AbstractSQLCompiler, AbstractSQL2CLF, ODataMetadataGenerator, {ODataParser}, {OData2AbstractSQL}, _, Promise, sbvrTypes) ->
+	'text!sbvr-api/dev.sbvr'
+	'text!sbvr-api/transaction.sbvr'
+	'text!sbvr-api/user.sbvr'
+], (has, SBVRParser, LF2AbstractSQL, AbstractSQL2SQL, AbstractSQLCompiler, AbstractSQL2CLF, ODataMetadataGenerator, {ODataParser}, {OData2AbstractSQL}, _, Promise, sbvrTypes, devModel, transactionModel, userModel) ->
 	exports = {}
 	db = null
 
 	LF2AbstractSQLTranslator = LF2AbstractSQL.createTranslator(sbvrTypes)
 
-	devModel = '''
-			Vocabulary: dev
-
-			Term:       model value
-				Concept Type: JSON (Type)
-			Term:       model
-				Reference Scheme: model value
-			Term:       vocabulary
-				Concept Type: Short Text (Type)
-			Term:       model type
-				Concept Type: Short Text (Type)
-
-			Fact Type: model is of vocabulary
-				Necessity: Each model is of exactly one vocabulary
-			Fact Type: model has model type
-				Necessity: Each model has exactly one model type
-			Fact Type: model has model value
-				Necessity: Each model has exactly one model value'''
-
-	transactionModel = '''
-			Vocabulary: transaction
-
-			Term:       resource id
-				Concept type: Integer (Type)
-			Term:       resource type
-				Concept type: Text (Type)
-			Term:       field name
-				Concept type: Text (Type)
-			Term:       field value
-				Concept type: Text (Type)
-			Term:       placeholder
-				Concept type: Short Text (Type)
-
-			Term:       resource
-				Reference Scheme: resource id
-			Fact type: resource has resource id
-				Necessity: Each resource has exactly 1 resource id.
-			Fact type: resource has resource type
-				Necessity: Each resource has exactly 1 resource type.
-
-			Term:       transaction
-
-			Term:       lock
-			Fact type:  lock is exclusive
-			Fact type:  lock belongs to transaction
-				Necessity: Each lock belongs to exactly 1 transaction.
-			Fact type:  resource is under lock
-				Synonymous Form: lock is on resource
-			Rule:       It is obligatory that each resource that is under a lock that is exclusive, is under at most 1 lock.
-
-			Term:       conditional type
-				Concept Type: Short Text (Type)
-				Definition: "ADD", "EDIT" or "DELETE"
-
-			Term:       conditional resource
-			Fact type:  conditional resource belongs to transaction
-				Necessity: Each conditional resource belongs to exactly 1 transaction.
-			Fact type:  conditional resource has lock
-				Necessity: Each conditional resource has at most 1 lock.
-			Fact type:  conditional resource has resource type
-				Necessity: Each conditional resource has exactly 1 resource type.
-			Fact type:  conditional resource has conditional type
-				Necessity: Each conditional resource has exactly 1 conditional type.
-			Fact type:  conditional resource has placeholder
-				Necessity: Each conditional resource has at most 1 placeholder.
-			--Rule:       It is obligatory that each conditional resource that has a placeholder, has a conditional type that is of "ADD".
-
-			Term:       conditional field
-				Reference Scheme: field name
-			Fact type:  conditional field has field name
-				Necessity: Each conditional field has exactly 1 field name.
-			Fact type:  conditional field has field value
-				Necessity: Each conditional field has at most 1 field value.
-			Fact type:  conditional field is of conditional resource
-				Necessity: Each conditional field is of exactly 1 conditional resource.
-
-			--Rule:       It is obligatory that each conditional resource that has a conditional type that is of "EDIT" or "DELETE", has a lock that is exclusive
-			Rule:       It is obligatory that each conditional resource that has a lock, has a resource type that is of a resource that the lock is on.
-			Rule:       It is obligatory that each conditional resource that has a lock, belongs to a transaction that the lock belongs to.'''
-
-	userModel = '''
-			Vocabulary: Auth
-
-			Term:       username
-				Concept Type: Short Text (Type)
-			Term:       password
-				Concept Type: Hashed (Type)
-			Term:       name
-				Concept Type: Short Text (Type)
-
-			Term:       permission
-				Reference Scheme: name
-			Fact type:  permission has name
-				Necessity: Each permission has exactly one name.
-				Necessity: Each name is of exactly one permission.
-
-			Term:       role
-				Reference Scheme: name
-			Fact type:  role has name
-				Necessity: Each role has exactly one name.
-				Necessity: Each name is of exactly one role.
-			Fact type:  role has permission
-
-			Term:       user
-				Reference Scheme: username
-			Fact type:  user has username
-				Necessity: Each user has exactly one username.
-				Necessity: Each username is of exactly one user.
-			Fact type:  user has password
-				Necessity: Each user has exactly one password.
-			Fact type:  user has role
-				Note: A 'user' will inherit all the 'permissions' that the 'role' has.
-			Fact type:  user has permission'''
-	
 	odataParser = ODataParser.createInstance()
 	odata2AbstractSQL = {}
 
