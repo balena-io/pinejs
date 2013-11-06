@@ -191,7 +191,6 @@ define [
 		models[vocab] = seModel
 		executeModels(tx, models, callback)
 	exports.executeModels = executeModels = (tx, models, callback) ->
-		validateFuncs = []
 		Promise.all(_.map _.keys(models), (vocab) ->
 			seModel = models[vocab]
 			try
