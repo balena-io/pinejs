@@ -3,7 +3,7 @@
 ## Definition
 
 ### SBVR
-The SBVR definition for types can be found at: `/src/common/sbvr-parser/Type.sbvr`
+The SBVR definition for types can be found at [/src/common/extended-sbvr-parser/Type.sbvr](../src/common/extended-sbvr-parser/Type.sbvr)
 
 ### The Rest
 "The Rest" can be found at: `/src/server/src/sbvr-compiler/types`  
