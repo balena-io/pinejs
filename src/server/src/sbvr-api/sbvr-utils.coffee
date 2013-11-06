@@ -228,7 +228,7 @@ define [
 				odata2AbstractSQL[vocab].clientModel = clientModel
 
 				updateModel = (modelType, model) ->
-					runURI('GET', "/dev/model?$filter=vocabulary eq '" + vocab + "' and model_type eq '" + modelType + "'", null, tx)
+					runURI('GET', "/dev/model?$select=id&$filter=vocabulary eq '" + vocab + "' and model_type eq '" + modelType + "'", null, tx)
 					.then((result) ->
 						method = 'POST'
 						uri = '/dev/model'
@@ -489,7 +489,7 @@ define [
 			return (callback) ->
 				if _guestPermissions.isRejected()
 					# Get guest user
-					_guestPermissions = runURI('GET', "/Auth/user?$filter=user/username eq 'guest'")
+					_guestPermissions = runURI('GET', "/Auth/user?$select=id&$filter=user/username eq 'guest'")
 					.then((result) ->
 						if result.d.length is 0
 							throw new Error('No guest permissions')
