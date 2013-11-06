@@ -149,9 +149,10 @@ define [
 							.then((lockedRow) ->
 								lockedRow = lockedRow.rows.item(0)
 								getFieldsObject(conditionalResource.id, clientModel)
-							).then((fields) ->
-								fields[clientModel.idField] = lockedRow.resource_id
-								runURI('PUT', uri, fields, tx)
+								.then((fields) ->
+									fields[clientModel.idField] = lockedRow.resource_id
+									runURI('PUT', uri, fields, tx)
+								)
 							).then(doCleanup)
 						when 'ADD'
 							getFieldsObject(conditionalResource.id, clientModel)
