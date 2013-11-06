@@ -13,14 +13,14 @@ The [requirejs](http://requirejs.org/) object used by the platform, can be used 
 ### sbvrUtils
 An entry point to the API internally to the server.
 
-#### runURI(method, uri, body = {}, tx, callback)
-This allows making an API request internally, should match a similar AJAX request to the API.
+#### runURI(method, uri, body = {}, tx[, callback])
+This allows making an API request internally, should match a similar AJAX request to the API, returns a promise.
 
-#### executeModel(tx, vocab, seModel, callback)
+#### executeModel(tx, vocab, seModel[, callback])
 This is an alias for executeModels for the case of a single model.
 
-#### executeModels(tx, models, callback)
-Executes the given models.
+#### executeModels(tx, models[, callback])
+Executes the given models and returns a promise.
 ##### tx
 This should be an open transaction created with db.transaction
 ##### models
@@ -28,11 +28,15 @@ This is an object where the keys are the vocabulary names and the values are the
 ##### callback
 This is an (err, result) callback.
 
-#### deleteModel(vocabulary)
-Deletes the given vocabulary.
+#### deleteModel(vocabulary[, callback])
+Deletes the given vocabulary and returns a promise.
+##### vocabulary
+The name of the vocabulary to delete.
+##### callback
+This is an (err, result) callback.
 
-#### runRule(vocab, rule, callback)
-Runs the given rule text against the vocabulary and returns any violators.
+#### runRule(vocab, rule[, callback])
+Runs the given rule text against the vocabulary and returns a promise that resolves to any violators.
 ##### vocab
 The vocabulary to run the rule against
 ##### rule
@@ -41,10 +45,10 @@ This is a rule text, eg. Each pilot can fly at least 1 plane
 This is an (err, result) callback.
 
 
-#### getUserPermissions(userId, callback)
-This returns the user permissions for the given userId
+#### getUserPermissions(userId[, callback])
+This returns a promise that resolves to the user permissions for the given userId
 
-#### checkPermissions(req, res, permissionCheck, request, callback)
+#### checkPermissions(req, res, permissionCheck, request[, callback])
 This checks that the currently logged in (or guest) user has the required permissions
 
 #### checkPermissionsMiddleware(permissionCheck)
@@ -65,56 +69,50 @@ Processes a DELETE request, will use the given transaction if supplied.
 #### parseURITree(req, res, next)
 This is an express middleware that will require the URI to parse as a valid platform OData request.
 
-#### executeStandardModels(tx, callback)
-This executes the built in models (dev, transaction, Auth)
+#### executeStandardModels(tx[, callback])
+This executes the built in models (dev, transaction, Auth) and returns a promise that resolves upon completion.
 
-#### setup(app, requirejs, db, callback)
+#### setup(app, requirejs, db[, callback])
 This is called by the server, you should never need to use this.
 
 ### db
-An object that allows direct connection to the database, which largely follows the WebSQL interface.
+An object that allows direct connection to the database, which is similar to the WebSQL interface but allows asynchronous actions.
 
 #### engine
 A lowercase string that denotes the current database engine in use (possible values are currently: postgres, mysql, websql, and sqlite)
 
-#### transaction(callback, errorCallback)
+#### transaction([callback])
+Returns a promise that will provide a "tx" object.
 ##### callback
-This callback is called on success, with a "tx" object.
-##### errorCallback
-This callback is called on failure, with an error.
+This callback is called with a "tx" object.
 
 ### tx
-This is created by a succesful call to `db.transaction`
+This is created by a succesful call to `db.transaction`.
 
-#### executeSql(sql, bindings, callback, errorCallback)
-This runs the given SQL statement, with ? bindings replaced by the values in the bindings array.
+#### executeSql(sql, bindings[, callback])
+This runs the given SQL statement, with ? bindings replaced by the values in the bindings array and returns a promise.
 #### callback
-This has a signature of (tx, result)
-#### errorCallback
-This has a signature of (tx, err)
-
-#### begin()
-This begins a transaction
+This has a signature of (err, result)
 
 #### end()
-This ends a transaction
+This ends/commits a transaction.
 
 #### rollback()
-This rolls back a transaction
+This rolls back a transaction.
 
-#### tableList(callback, errorCallback, extraWhereClause = '')
-This returns a list of tables, the extraWhereClause can reference a "name" which will be the table's name.
+#### tableList(extraWhereClause = ''[, callback])
+This returns a promise that resolves to a list of tables, the extraWhereClause can reference a "name" which will be the table's name.
 #### callback
-This has a signature of (tx, result)
-#### errorCallback
-This has a signature of (tx, err)
+This has a signature of (err, result)
 
-#### dropTable(tableName, ifExists = true, callback, errorCallback)
-This will drop the given table.
+#### dropTable(tableName, ifExists = true[, callback])
+This will drop the given table, returning a promise.
+#### tableName
+The name of the table to drop.
+#### ifExists
+Whether to use an "IF EXISTS" clause or not.
 #### callback
-This has a signature of (tx, result)
-#### errorCallback
-This has a signature of (tx, err)
+This has a signature of (err, result)
 
 ### result
 #### rows
@@ -125,6 +123,10 @@ This number of rows returned
 Fetch the item at the given index
 ##### forEach(iterator, thisArg)
 This acts like a standard Array.forEach call, to allow easier iteration of the rows.
+##### map(iterator, thisArg)
+This acts like a standard Array.map call, to allow easier iteration of the rows.
 
+#### rowsAffected
+The number of rows affected by the statement.
 #### insertId
 This id of the first row inserted, if any.
