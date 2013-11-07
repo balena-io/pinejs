@@ -47,8 +47,7 @@ define [
 				})
 			).then(->
 				serverRequest('POST', '/execute/')
-			).done(=>
+			).done =>
 				@model.trigger('onAir')
 				console.log("Executing model successfull!")
-			)
 	)

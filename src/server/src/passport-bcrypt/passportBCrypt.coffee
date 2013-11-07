@@ -23,9 +23,8 @@ define ['bluebird'], (Promise) ->
 				)
 			).catch(->
 				return false
-			).done((user) ->
+			).done (user) ->
 				done(null, user)
-			)
 
 		handleAuth = (req, res, user) ->
 			if user is false

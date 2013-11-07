@@ -45,9 +45,8 @@ define [
 				email: email
 				password: password
 				passwordConfirm: passwordConfirm
-			).save().done(=>
+			).save().done =>
 				@login()
-			)
 			return false
 
 		showLogin: ->
