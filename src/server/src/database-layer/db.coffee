@@ -36,8 +36,12 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Pro
 						clearTimeout(automaticCloseTimeout)
 					decrement: ->
 						pending--
+						# We only ever want one timeout running at a time, hence not using <=
 						if pending is 0
 							automaticCloseTimeout = setTimeout(automaticClose, timeoutMS)
+						else if pending < 0
+							console.warn('Pending transactions is less than 0, wtf?')
+							pending = 0
 					cancel: ->
 						@increment = @decrement = ->
 						clearTimeout(automaticCloseTimeout)
