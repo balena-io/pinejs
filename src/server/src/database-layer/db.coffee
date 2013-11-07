@@ -43,6 +43,7 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Pro
 							console.warn('Pending transactions is less than 0, wtf?')
 							pending = 0
 					cancel: ->
+						# Make @increment and @decrement into no-ops if we've cancelled pending statements (so the timeout is not retriggered).
 						@increment = @decrement = ->
 						clearTimeout(automaticCloseTimeout)
 				}
