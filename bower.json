@@ -22,6 +22,6 @@
     "ejs": "~0.8.4",
     "bootstrap": "2.3.2",
     "coffee-script": "~1.6.3",
-    "bluebird": "petkaantonov/bluebird#v0.9.8-0"
+    "bluebird": "petkaantonov/bluebird#~v0.9.8-0"
   }
 }
