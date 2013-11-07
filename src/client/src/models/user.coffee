@@ -9,7 +9,7 @@ define [
 				return 'E-mail address must be specified'
 			if not attributes.password?
 				return 'Password must be specified'
-			if attributes.password isnt attributes.password2
+			if attributes.password isnt attributes.passwordConfirm
 				return 'Password values do not match'
 		idAttribute: 'email'
 		toJson: -> {

@@ -44,7 +44,7 @@ define [
 			user = new UserModel(
 				email: email
 				password: password
-				password2: passwordConfirm
+				passwordConfirm: passwordConfirm
 			).save().done(=>
 				@login()
 			)
