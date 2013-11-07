@@ -78,16 +78,13 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Pro
 
 			closeTransaction = (message) =>
 				pendingExecutes.cancel()
-				# _stackTrace = getStackTrace()
-				promise = Promise.rejected(new Error(message))
+				rejectionValue = new Error(message)
+				# We return a new rejected promise on each call so that bluebird can handle
+				# logging errors if the rejection is not handled (but only if it is not handled)
 				@executeSql = (sql, bindings, callback) ->
-					# console.error(message, _stackTrace)
-					# console.trace()
-					return promise.nodeify(callback)
+					return Promise.rejected(rejectionValue).nodeify(callback)
 				@rollback = @end = (sql, bindings, callback) ->
-					# console.error(message, _stackTrace)
-					# console.trace()
-					return promise.nodeify(callback)
+					return Promise.rejected(rejectionValue).nodeify(callback)
 
 	if has 'ENV_NODEJS'
 		exports.postgres = (connectString) ->
