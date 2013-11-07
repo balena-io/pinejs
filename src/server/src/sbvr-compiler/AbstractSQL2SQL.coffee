@@ -96,7 +96,7 @@ define [
 				# console.log(ruleSQL)
 				ruleStatements.push({structuredEnglish: rule[1][1], sql: ruleSQL})
 		catch e
-			console.error(JSON.stringify(rule, null, '\t'))
+			console.error('Failed to compile the rule', JSON.stringify(rule, null, '\t'))
 			console.error(e, e.stack)
 			throw e
 
