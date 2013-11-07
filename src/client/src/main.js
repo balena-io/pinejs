@@ -35,7 +35,7 @@ require({
 		'uglify-js'					: '../../external/uglifyjs/uglify',
 
 		//Libraries
-		'async'						: '../../../node_modules/async/lib/async',
+		'async'						: '../lib/async/lib/async',
 		'backbone'					: '../lib/backbone/backbone',
 		'bootstrap'					: '../lib/bootstrap/docs/assets/js/bootstrap',
 		'codemirror'				: '../lib/codemirror/lib/codemirror',
@@ -126,9 +126,6 @@ require({
 		},
 		'uglify-js': {
 			exports: 'UglifyJS'
-		},
-		'async': {
-			exports: 'async'
 		}
 	}
 }, ['cs!app', 'css!static/main']);
