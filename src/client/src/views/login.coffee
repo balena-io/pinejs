@@ -26,7 +26,7 @@ define [
 			session = new SessionModel({
 				email
 				password
-			}).save().done
+			}).save().done(
 				(data) =>
 					localStorage.setItem('sid', data.id)
 					@$('#loginModal').modal('hide').on('hidden', =>
@@ -35,6 +35,7 @@ define [
 					)
 				(error) ->
 					console.error(error)
+			)
 			return false
 
 		register: ->

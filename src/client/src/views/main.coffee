@@ -24,7 +24,7 @@ define [
 			if sid?
 				session = new SessionModel({
 					key: localStorage.getItem("sid")
-				}).fetch().done
+				}).fetch().done(
 					(data) =>
 						@$("#login-group").hide(0)
 						@$("#user-email").text(data.email)
@@ -32,6 +32,7 @@ define [
 					(error) ->
 						localStorage.removeItem("sid")
 						console.error(error)
+				)
 
 			# Tab subviews
 			tabs = []
