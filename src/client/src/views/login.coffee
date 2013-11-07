@@ -26,15 +26,15 @@ define [
 			session = new SessionModel({
 				email
 				password
-			}).save().done((data) =>
-				localStorage.setItem('sid', data.id)
-				@$('#loginModal').modal('hide').on('hidden', =>
-					console.log this
-					@trigger('login', email)
-				)
-			).fail((error) ->
-				console.error(error)
-			)
+			}).save().done
+				(data) =>
+					localStorage.setItem('sid', data.id)
+					@$('#loginModal').modal('hide').on('hidden', =>
+						console.log this
+						@trigger('login', email)
+					)
+				(error) ->
+					console.error(error)
 			return false
 
 		register: ->
