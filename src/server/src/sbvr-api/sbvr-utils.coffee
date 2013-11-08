@@ -405,7 +405,7 @@ define [
 			).nodeify(callback)
 
 	exports.runURI = runURI = (method, uri, body = {}, tx, callback) ->
-		if callback? and typeof callback isnt 'function'
+		if callback? and !_.isFunction(callback)
 			message = 'Called runURI with a non-function callback?!'
 			console.error(message)
 			console.trace()
@@ -495,10 +495,10 @@ define [
 
 		return (req, res, actionList, resourceName, vocabulary, callback) ->
 			if !callback?
-				if !vocabulary? and typeof resourceName is 'function'
+				if !vocabulary? and _.isFunction(resourceName)
 					callback = resourceName
 					resourceName = null
-				else if typeof vocabulary is 'function'
+				else if _.isFunction(vocabulary)
 					callback = vocabulary
 					vocabulary = null
 

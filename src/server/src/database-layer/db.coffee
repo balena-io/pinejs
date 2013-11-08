@@ -144,7 +144,7 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Pro
 					super(_stackTrace, executeSql, rollback, end)
 
 				tableList: (extraWhereClause = '', callback) ->
-					if !callback? and typeof extraWhereClause is 'function'
+					if !callback? and _.isFunction(extraWhereClause)
 						callback = extraWhereClause
 						extraWhereClause = ''
 					if extraWhereClause != ''
@@ -214,7 +214,7 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Pro
 					super(_stackTrace, executeSql, rollback, end)
 
 				tableList: (extraWhereClause = '', callback) ->
-					if !callback? and typeof extraWhereClause is 'function'
+					if !callback? and _.isFunction(extraWhereClause)
 						callback = extraWhereClause
 						extraWhereClause = ''
 					if extraWhereClause != ''
@@ -312,7 +312,7 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Pro
 					super(_stackTrace, executeSql, rollback, end)
 
 				tableList: (extraWhereClause = '', callback) ->
-					if !callback? and typeof extraWhereClause is 'function'
+					if !callback? and _.isFunction(extraWhereClause)
 						callback = extraWhereClause
 						extraWhereClause = ''
 					if extraWhereClause != ''
