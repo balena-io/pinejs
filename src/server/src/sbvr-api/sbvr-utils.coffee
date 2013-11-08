@@ -260,7 +260,7 @@ define [
 		db.transaction()
 		.then((tx) ->
 			dropStatements =
-				for dropStatement in sqlModels[vocabulary].dropSchema
+				_.map sqlModels[vocabulary].dropSchema, (dropStatement) ->
 					tx.executeSql(dropStatement)
 			Promise.all(dropStatements.concat([
 				runURI('DELETE', "/dev/model?$filter=model_type eq 'se'", {vocabulary}, tx)
