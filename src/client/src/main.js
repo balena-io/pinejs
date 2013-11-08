@@ -32,7 +32,7 @@ require({
 		'lib'						: '../lib',
 
 		'ometa-parsers'				: '../../../node_modules/ometa-js/lib/ometajs/ometa/parsers',
-		'uglify-js'					: '../../external/uglifyjs/uglify',
+		'uglify-js'					: '../../client/lib/uglifyjs/uglify',
 
 		//Libraries
 		'async'						: '../lib/async/lib/async',
