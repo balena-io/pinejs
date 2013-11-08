@@ -32,9 +32,13 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Pro
 				pending = 0
 				return {
 					increment: ->
+						if pending is false
+							return
 						pending++
 						clearTimeout(automaticCloseTimeout)
 					decrement: ->
+						if pending is false
+							return
 						pending--
 						# We only ever want one timeout running at a time, hence not using <=
 						if pending is 0
@@ -43,8 +47,8 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Pro
 							console.warn('Pending transactions is less than 0, wtf?')
 							pending = 0
 					cancel: ->
-						# Make @increment and @decrement into no-ops if we've cancelled pending statements (so the timeout is not retriggered).
-						@increment = @decrement = ->
+						# Set pending to false to cancel all pending.
+						pending = false
 						clearTimeout(automaticCloseTimeout)
 				}
 
@@ -54,9 +58,7 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Pro
 
 				sql = bindDefaultValues(sql, bindings)
 				executeSql(sql, bindings, deferred, args...)
-				deferred.promise.finally ->
-					# We wrap the decrement so that we play nicely if the pendingExecutes have been cancelled.
-					pendingExecutes.decrement()
+				deferred.promise.finally(pendingExecutes.decrement)
 
 				return deferred.promise.nodeify(callback)
 
