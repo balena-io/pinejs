@@ -263,12 +263,7 @@ define [
 				_.map sqlModels[vocabulary]?.dropSchema, (dropStatement) ->
 					tx.executeSql(dropStatement)
 			Promise.all(dropStatements.concat([
-				runURI('DELETE', "/dev/model?$filter=model_type eq 'se'", {vocabulary}, tx)
-				runURI('DELETE', "/dev/model?$filter=model_type eq 'lf'", {vocabulary}, tx)
-				runURI('DELETE', "/dev/model?$filter=model_type eq 'slf'", {vocabulary}, tx)
-				runURI('DELETE', "/dev/model?$filter=model_type eq 'abstractsql'", {vocabulary}, tx)
-				runURI('DELETE', "/dev/model?$filter=model_type eq 'sql'", {vocabulary}, tx)
-				runURI('DELETE', "/dev/model?$filter=model_type eq 'client'", {vocabulary}, tx)
+				runURI('DELETE', "/dev/model?$filter=vocabulary eq '" + encodeURIComponent(vocabulary) + "'", null, tx)
 			])).then(->
 				tx.end()
 				delete seModels[vocabulary]
