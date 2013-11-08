@@ -260,7 +260,6 @@ define [
 		app.del('/Auth/*', serverIsOnAir, sbvrUtils.runDelete)
 
 		app.del '/', uiModelLoaded, serverIsOnAir, (req, res, next) ->
-			# TODO: This should be done a better way?
 			Promise.all([
 				sbvrUtils.runURI('PATCH', "/ui/textarea?$filter=name eq 'model_area'",
 					text: ''
