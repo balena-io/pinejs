@@ -260,7 +260,7 @@ define [
 		db.transaction()
 		.then((tx) ->
 			dropStatements =
-				_.map sqlModels[vocabulary].dropSchema, (dropStatement) ->
+				_.map sqlModels[vocabulary]?.dropSchema, (dropStatement) ->
 					tx.executeSql(dropStatement)
 			Promise.all(dropStatements.concat([
 				runURI('DELETE', "/dev/model?$filter=model_type eq 'se'", {vocabulary}, tx)
@@ -271,11 +271,11 @@ define [
 				runURI('DELETE', "/dev/model?$filter=model_type eq 'client'", {vocabulary}, tx)
 			])).then(->
 				tx.end()
-				seModels[vocabulary] = ''
-				sqlModels[vocabulary] = {}
-				clientModels[vocabulary] = {}
-				odata2AbstractSQL[vocab].clientModel = {}
-				odataMetadata[vocabulary] = ''
+				delete seModels[vocabulary]
+				delete sqlModels[vocabulary]
+				delete clientModels[vocabulary]
+				delete odataMetadata[vocabulary]
+				delete odata2AbstractSQL[vocabulary]
 			).catch((err) ->
 				tx.rollback()
 				throw err
