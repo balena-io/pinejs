@@ -28,7 +28,7 @@ define ['lodash', 'cs!sbvr-compiler/types'], (_, sbvrTypes) ->
 		model = sqlModel.tables
 		# resourceNavigations = {}
 		associations = []
-		forEachUniqueTable(model, (key, {name: resourceName, fields}) ->
+		forEachUniqueTable model, (key, {name: resourceName, fields}) ->
 			resourceName = getResourceName(resourceName)
 			for {dataType, fieldName, required, references}, i in fields when dataType == 'ForeignKey'
 				{tableName: referencedResource, fieldName: referencedField} = references
@@ -45,7 +45,6 @@ define ['lodash', 'cs!sbvr-compiler/types'], (_, sbvrTypes) ->
 					# name: fieldName
 				# )
 				# resourceNavigations[referencedResource] ?= []
-		)
 
 		return """
 			<?xml version="1.0" encoding="iso-8859-1" standalone="yes"?>

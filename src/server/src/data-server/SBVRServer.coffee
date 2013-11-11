@@ -76,15 +76,15 @@ define [
 				)
 			])
 
-		app.get('/onAir', (req, res, next) -> 
+		app.get '/onAir', (req, res, next) -> 
 			isServerOnAir()
 			.then((onAir) ->
 				res.json(onAir)
 			)
-		)
-		app.post('/update', sbvrUtils.checkPermissionsMiddleware('all'), serverIsOnAir, (req, res, next) ->
+
+		app.post '/update', sbvrUtils.checkPermissionsMiddleware('all'), serverIsOnAir, (req, res, next) ->
 			res.send(404)
-		)
+
 		app.post '/execute', sbvrUtils.checkPermissionsMiddleware('all'), uiModelLoaded, (req, res, next) ->
 			sbvrUtils.runURI('GET', "/ui/textarea?$filter=name eq 'model_area'")
 			.then((result) ->

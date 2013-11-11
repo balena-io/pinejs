@@ -27,21 +27,19 @@ define ['async', 'bluebird', 'cs!server-request'], (async, Promise, serverReques
 											value: $(input).val()
 										)
 									if action == 'edit'
-										lockResource(resourceType, resourceID, transURIs, transactionID, (err, lockID) ->
+										lockResource resourceType, resourceID, transURIs, transactionID, (err, lockID) ->
 											if err?
 												callback(err)
 											else
 												callback(null, [resourceType, action, lockID, fields])
-										)
 									else
 										callback(null, [resourceType, action, resourceID, fields])
 								when 'del'
-									lockResource(resourceType, resourceID, transURIs, transactionID, (err, lockID) ->
+									lockResource resourceType, resourceID, transURIs, transactionID, (err, lockID) ->
 										if err?
 											callback(err)
 										else
 											callback(null, [resourceType, action, lockID])
-									)
 								else
 									callback(['Unknown transaction action', action])
 						(err, data) ->

@@ -29,10 +29,9 @@ define [
 			}).save().done(
 				(data) =>
 					localStorage.setItem('sid', data.id)
-					@$('#loginModal').modal('hide').on('hidden', =>
+					@$('#loginModal').modal('hide').on 'hidden', =>
 						console.log this
 						@trigger('login', email)
-					)
 				(error) ->
 					console.error(error)
 			)
@@ -57,10 +56,9 @@ define [
 			@$('#loginModal').html(registerHtml)
 			$password = @$('#inputPassword')
 			$passwordConfirm = @$('#inputPasswordConfirm')
-			$passwordConfirm.keyup(->
+			$passwordConfirm.keyup ->
 				if $password.val() isnt $passwordConfirm.val()
 					$passwordConfirm[0].setCustomValidity?("Passwords don't match")
 				else
 					$passwordConfirm[0].setCustomValidity?('')
-			)
 	)

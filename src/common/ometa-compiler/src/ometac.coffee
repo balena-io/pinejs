@@ -49,22 +49,20 @@ compileOmeta = (ometa, pretty, desc = 'OMeta') ->
 
 compileOmetaFile = (ometaFilePath, jsFilePath, pretty, callback) ->
 	console.log('Reading: ' + ometaFilePath)
-	fs.readFile(ometaFilePath, 'utf8', do (ometaFilePath) ->
-		(err, data) ->
-			if err
-				console.log(err)
+	fs.readFile(ometaFilePath, 'utf8', (err, data) ->
+		if err
+			console.log(err)
+			callback(true)
+		else
+			ometa = data.replace(/\r\n/g, '\n')
+			js = compileOmeta(ometa, pretty, ometaFilePath)
+			if js == false
 				callback(true)
 			else
-				ometa = data.replace(/\r\n/g, '\n')
-				js = compileOmeta(ometa, pretty, ometaFilePath)
-				if js == false
-					callback(true)
-				else
-					console.log('Writing: ' + ometaFilePath)
-					fs.writeFile(jsFilePath, js, ->
-						console.log('Finished: ' + ometaFilePath)
-						callback(false)
-					)
+				console.log('Writing: ' + ometaFilePath)
+				fs.writeFile jsFilePath, js, ->
+					console.log('Finished: ' + ometaFilePath)
+					callback(false)
 	)
 
 
@@ -83,9 +81,8 @@ if process.argv[1] == __filename
 		doCompile(filePath)
 		if parsed.watch
 			do (filePath) ->
-				fs.watch(filePath).on('change', (event, filename) ->
+				fs.watch(filePath).on 'change', (event, filename) ->
 					doCompile(filePath)
-				)
 		
 
 

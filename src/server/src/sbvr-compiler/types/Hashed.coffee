@@ -21,10 +21,9 @@ define ['lodash'], (_) ->
 					callback(null, value)
 			else
 				bcrypt = require('bcrypt')
-				bcrypt.genSalt((err, salt) ->
+				bcrypt.genSalt (err, salt) ->
 					if err
 						callback(err)
 					else
 						bcrypt.hash(value, salt, callback)
-				)
 	}

@@ -11,7 +11,7 @@ define [
 			@setTitle('Logical Formulation')
 
 			rerenderRequired = true
-			@options.title.on('shown', =>
+			@options.title.on 'shown', =>
 				if rerenderRequired == false
 					return
 				rerenderRequired = false
@@ -19,8 +19,7 @@ define [
 					lfviz(@model.compile(), @el)
 				catch e
 					console.log(e)
-			)
-			@model.on('change:content', =>
+
+			@model.on 'change:content', =>
 				rerenderRequired = true
-			)
 	)

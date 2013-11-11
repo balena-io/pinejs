@@ -33,7 +33,7 @@ define ['bluebird'], (Promise) ->
 				else
 					res.redirect(options.failureRedirect)
 			else
-				req.login(user, (err) ->
+				req.login user, (err) ->
 					if err
 						console.error('Error creating session', err, err.stack)
 						res.send(500)
@@ -41,7 +41,6 @@ define ['bluebird'], (Promise) ->
 						res.send(200)
 					else
 						res.redirect(options.successRedirect)
-				)
 
 		if passport?
 			compare = require('bcrypt').compare

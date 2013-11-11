@@ -11,7 +11,7 @@ define [
 			@setTitle('Visualize')
 
 			rerenderRequired = true
-			@options.title.on('shown', =>
+			@options.title.on 'shown', =>
 				if rerenderRequired == false
 					return
 				rerenderRequired = false
@@ -77,24 +77,21 @@ define [
 				h = @$el.height() - 20
 
 				tick = ->
-					path.attr("d", (d) ->
+					path.attr "d", (d) ->
 						dx = d.target.x - d.source.x
 						dy = d.target.y - d.source.y
 						return "M" + d.source.x + "," + d.source.y + "A" + 0 + "," + 0 + " 0 0,1 " + d.target.x + "," + d.target.y
-					)
 
-					rect.attr("transform", (d) ->
+					rect.attr "transform", (d) ->
 						xoffset = d3.select(this).attr("width")/2
 						yoffset = d3.select(this).attr("height")/2
 
 						d.x = Math.max(xoffset, Math.min(w - xoffset, d.x))
 						d.y = Math.max(yoffset, Math.min(h - yoffset, d.y))
 						return "translate(" + d.x + "," + d.y + ")"
-					)
 					
-					text.attr("transform", (d) ->
+					text.attr "transform", (d) ->
 						return "translate(" + d.x + "," + d.y + ")"
-					)
 
 				force = d3.layout.force()
 					.nodes(d3.values(nodes))
@@ -140,8 +137,7 @@ define [
 					.attr("text-anchor", "middle")
 					.attr("class", (d) -> d.type)
 					.text((d) -> d.name)
-			)
-			@model.on('change:content', =>
+
+			@model.on 'change:content', =>
 				rerenderRequired = true
-			)
 	)

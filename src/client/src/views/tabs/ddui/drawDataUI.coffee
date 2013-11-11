@@ -421,10 +421,10 @@ define [
 			if !selectIDsAdded[selectID]
 				selectIDsAdded[selectID] = true
 				selectID = selectID.replace(/\./g, '\\.')
-				foreignKeysCache.listen(foreignKey, (id, newInstance, clientModel) ->
+				foreignKeysCache.listen foreignKey, (id, newInstance, clientModel) ->
 					console.log($('#' + selectID))
 					newValue = newInstance[clientModel.referenceScheme]
-					$('#' + selectID).each((index) ->
+					$('#' + selectID).each (index) ->
 						$this = $(this)
 						option = $this.children('*[value="' + id + '"]')
 						if option.size() == 0
@@ -432,8 +432,6 @@ define [
 							$this.prepend($('<option value="' + id + '">' + newValue + '</option>'))
 						else
 							option.text(newValue)
-					)
-				)
 
 	serverAPI = (vocabulary, about = '', filters = []) ->
 		# render filters
@@ -464,7 +462,7 @@ define [
 						(statusCode, result, headers) ->
 							clientModel = result.__model
 							instanceID = getInstanceID(result.d[0], result.__model)
-							foreignKeysCache.get(ftree, result.__model, (foreignKeys) ->
+							foreignKeysCache.get ftree, result.__model, (foreignKeys) ->
 								templateVars = $.extend(templateVars, {
 									action: action
 									id: instanceID
@@ -474,7 +472,6 @@ define [
 								})
 								html = templates.viewAddEditResource(templateVars)
 								callback(null, html)
-							)
 						(statusCode, errors) ->
 							console.error(errors)
 							callback('Errors: ' + errors)
@@ -482,7 +479,7 @@ define [
 				when 'add'
 					serverRequest("GET", ftree.getModelURI(), {}, null,
 						(statusCode, result, headers) ->
-							foreignKeysCache.get(ftree, result.__model, (foreignKeys) ->
+							foreignKeysCache.get ftree, result.__model, (foreignKeys) ->
 								addID = '$' + addResourceID++
 								instance = {}
 								instance[result.__model.idField] = addID
@@ -498,7 +495,6 @@ define [
 								})
 								html = templates.viewAddEditResource(templateVars)
 								callback(null, html)
-							)
 						(statusCode, errors) ->
 							console.error(errors)
 							callback('Errors: ' + errors)
@@ -564,7 +560,7 @@ define [
 													resourceCollection.resourceName = instance[clientModel.referenceScheme]
 													callback()
 												else if resourceType == "FactType"
-													foreignKeysCache.get(ftree, clientModel, (foreignKeys, foreignModels) ->
+													foreignKeysCache.get ftree, clientModel, (foreignKeys, foreignModels) ->
 														templateVars = $.extend({}, baseTemplateVars, (if even then evenTemplateVars else oddTemplateVars), {
 															foreignKeys: foreignKeys
 															foreignModels: foreignModels
@@ -573,17 +569,14 @@ define [
 														})
 														resourceCollection.resourceName = templates.factTypeName(templateVars)
 														callback()
-													)
 											(callback) ->
 												if resourceCollection.isExpanded
 													expandedTree = ftree.clone().descend(about, instanceID)
 													resourceCollection.closeHash = '#!/' + expandedTree.getNewURI("del")
 													resourceCollection.closeURI = rootURI + resourceCollection.deleteHash
-													renderResource(rootURI, not even, expandedTree, cmod,
-														(err, html) -> 
-															resourceCollection.html = html
-															callback(err)
-													)
+													renderResource rootURI, not even, expandedTree, cmod, (err, html) -> 
+														resourceCollection.html = html
+														callback(err)
 												else
 													resourceCollection.viewHash = '#!/' + ftree.getChangeURI('view', clientModel, instanceID)
 													resourceCollection.viewURI = rootURI + resourceCollection.viewHash
@@ -606,10 +599,8 @@ define [
 										break
 								async.map(addTrees,
 									(addTree, callback) ->
-										renderResource(rootURI, not even, addTree, cmod,
-											(err, html) ->
-												callback(err, html)
-										)
+										renderResource rootURI, not even, addTree, cmod, (err, html) ->
+											callback(err, html)
 									addsHTMLCallback
 								)
 							factTypeCollections: (factTypeCollectionsCallback) ->
@@ -628,11 +619,9 @@ define [
 											expandedTree = ftree.clone().descend(resourceName)
 											factTypeCollection.closeHash = '#!/' + expandedTree.getNewURI("del")
 											factTypeCollection.closeURI = rootURI + factTypeCollection.closeHash
-											renderResource(rootURI, not even, expandedTree, cmod,
-												(err, html) ->
-													factTypeCollection.html = html
-													callback(null, factTypeCollection)
-											)
+											renderResource rootURI, not even, expandedTree, cmod, (err, html) ->
+												factTypeCollection.html = html
+												callback(null, factTypeCollection)
 										else
 											newb = [ 'collection', [ resourceName ], [ "mod" ] ]
 											factTypeCollection.expandHash = '#!/' + ftree.getNewURI("add", newb)
@@ -686,11 +675,9 @@ define [
 							# request schema from server and store locally.
 							serverRequest('GET', "/dev/model?$filter=model_type eq 'lf' and vocabulary eq '" + tree.getAbout() + "'", {}, null,
 								(statusCode, result) ->
-									renderResource(rootURI, true, expandedTree, result.d[0].model_value,
-										(err, html) ->
-											resource.html = html
-											callback(err, resource)
-									)
+									renderResource rootURI, true, expandedTree, result.d[0].model_value, (err, html) ->
+										resource.html = html
+										callback(err, resource)
 								-> callback(arguments)
 							)
 						else
@@ -734,9 +721,8 @@ define [
 			inputs = $(":input:not(:submit)", form)
 			for input in inputs when input.id[...2] != "__"
 				obj[input.id] = $(input).val()
-		serverRequest(method, serverURI, {}, obj, (statusCode, result, headers) ->
+		serverRequest method, serverURI, {}, obj, (statusCode, result, headers) ->
 			dduiState(backURI)
-		)
 		return false
 
 	window.processForm = processForm

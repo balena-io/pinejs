@@ -50,7 +50,7 @@ define [
 				tabs.push 'cs!views/tabs/db-import-export/main'
 			if has 'TAB_VALIDATE'
 				tabs.push 'cs!views/tabs/validate/main'
-			require(tabs, (tabViews...) =>
+			require tabs, (tabViews...) =>
 				for TabView, i in tabViews
 					content = $("<div id='tab#{i}' />")
 					tab = $("<li><a data-toggle='tab' href='#tab#{i}'/></li>")
@@ -68,7 +68,6 @@ define [
 
 					# Show first tab
 					$('a', tab).tab('show') if i is 0
-			)
 			return this
 
 		create: ->
@@ -103,11 +102,10 @@ define [
 			@$el.append(el)
 			loginView = new LoginView({el})
 			loginView.render()
-			loginView.on("login", (email) =>
+			loginView.on "login", (email) =>
 				@$("#login-group").hide(0)
 				@$("#user-group").show(0)
 				@$("#user-email").text(email)
-			)
 
 		logout: ->
 			session = new SessionModel({
