@@ -30,7 +30,6 @@ define [
 				(data) =>
 					localStorage.setItem('sid', data.id)
 					@$('#loginModal').modal('hide').on 'hidden', =>
-						console.log this
 						@trigger('login', email)
 				(error) ->
 					console.error(error)

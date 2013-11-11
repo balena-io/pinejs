@@ -118,8 +118,6 @@ define [
 						return manyToManyCols
 					)
 				).then((manyToManyCols) =>
-					console.log "invalid items:", invalid.d.length, invalid.d.length == 0, invalid.d
-
 					results_div = @$("#results")
 					noresults_div = @$("#noresults")
 

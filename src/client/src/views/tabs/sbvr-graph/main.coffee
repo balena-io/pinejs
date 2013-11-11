@@ -102,8 +102,6 @@ define [
 					.on("tick", tick)
 					.start()
 
-				console.log 1066
-
 				@$el.empty()
 				svg = d3.select(@el).append("svg:svg")
 					.attr("width", w)
