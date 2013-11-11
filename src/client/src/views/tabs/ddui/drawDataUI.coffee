@@ -564,19 +564,15 @@ define [
 													resourceCollection.resourceName = instance[clientModel.referenceScheme]
 													callback()
 												else if resourceType == "FactType"
-													foreignKeysCache.get(ftree, clientModel,
-														(foreignKeys, foreignModels) ->
-															templateVars = $.extend({}, baseTemplateVars, (if even then evenTemplateVars else oddTemplateVars), {
-																foreignKeys: foreignKeys
-																foreignModels: foreignModels
-																factType: resourceFactType
-																instance: instance
-															})
-															resourceCollection.resourceName = templates.factTypeName(templateVars)
-															callback()
-														(errors) ->
-															console.error(errors)
-															callback('Errors: ' + errors)
+													foreignKeysCache.get(ftree, clientModel, (foreignKeys, foreignModels) ->
+														templateVars = $.extend({}, baseTemplateVars, (if even then evenTemplateVars else oddTemplateVars), {
+															foreignKeys: foreignKeys
+															foreignModels: foreignModels
+															factType: resourceFactType
+															instance: instance
+														})
+														resourceCollection.resourceName = templates.factTypeName(templateVars)
+														callback()
 													)
 											(callback) ->
 												if resourceCollection.isExpanded
