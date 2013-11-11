@@ -449,9 +449,18 @@ define [
 		return deferred.promise.nodeify(callback)
 
 	exports.getUserPermissions = getUserPermissions = (userId, callback) ->
+		if _.isNumber(userId)
+			# We have a user id
+			userPerms = runURI('GET', '/Auth/user__has__permission?$select=permission&$filter=user eq ' + userId)
+			userRole = runURI('GET', '/Auth/user__has__role?$select=role&$filter=user eq ' + userId)
+		else
+			# We have an API key
+			userPerms = runURI('GET', "/Auth/api_key__has__permission?$select=permission&$filter=api_key/key eq '" + userId + "'")
+			userRole = runURI('GET', "/Auth/api_key__has__role?$select=role&$filter=api_key/key eq '" + userId + "'")
+
 		Promise.all([
-			runURI('GET', '/Auth/user__has__permission?$select=permission&$filter=user eq ' + userId, {})
-			runURI('GET', '/Auth/user__has__role?$select=role&$filter=user eq ' + userId)
+			userPerms
+			userRole
 			runURI('GET', '/Auth/role__has__permission?$select=role,permission')
 			runURI('GET', '/Auth/permission')
 		]).spread((userPermissions, userRoles, rolePermissions, permissions) ->
@@ -493,14 +502,18 @@ define [
 					)
 				_guestPermissions.nodeify(callback)
 
-		return (req, res, actionList, resourceName, vocabulary, callback) ->
+		return (req, res, actionList, resourceName, vocabulary, apiKey, callback) ->
 			if !callback?
-				if !vocabulary? and _.isFunction(resourceName)
-					callback = resourceName
-					resourceName = null
-				else if _.isFunction(vocabulary)
-					callback = vocabulary
-					vocabulary = null
+				if !apiKey?
+					if !vocabulary? and _.isFunction(resourceName)
+						callback = resourceName
+						resourceName = null
+					else if _.isFunction(vocabulary)
+						callback = vocabulary
+						vocabulary = null
+				else if typeof apiKey is 'function'
+					callback = apiKey
+					apiKey = null
 
 			_checkPermissions = (permissions) ->
 				permissionKeys = _.keys(permissions)
@@ -577,6 +590,19 @@ define [
 				console.error('Error checking user permissions', req.user, err, err.stack)
 				return false
 			).then((allowed) ->
+				if !apiKey? or allowed is true
+					return allowed
+				getUserPermissions(apiKey)
+				.then((apiKeyPermissions) ->
+					return _checkPermissions(apiKeyPermissions)
+				).catch((err) ->
+					console.error('Error checking api key permissions', apiKey, err, err.stack)
+				).then((apiKeyAllowed) ->
+					if allowed is false or apiKeyAllowed is true
+						return apiKeyAllowed
+					return '(' + allowed + ' or ' + apiKeyAllowed + ')'
+				)
+			).then((allowed) ->
 				if allowed is true
 					return allowed
 				_getGuestPermissions()
@@ -621,6 +647,7 @@ define [
 			throw new Error('Failed to parse url')
 
 		resourceName = query.resource
+		apiKey = query.options?.apikey
 
 		permissionType =
 			if resourceName in ['$metadata', '$serviceroot']
@@ -637,7 +664,7 @@ define [
 					else
 						console.warn('Unknown method for permissions type check: ', method)
 						'all'
-		checkPermissions(req, res, permissionType, resourceName, vocabulary)
+		checkPermissions(req, res, permissionType, resourceName, vocabulary, apiKey)
 		.then((conditionalPerms) ->
 			if conditionalPerms is false
 				return false
@@ -929,10 +956,18 @@ define [
 			# TODO: Remove these hardcoded users.
 			if has 'DEV'
 				Promise.all([
+					runURI('POST', '/Auth/user', {'username': 'guest', 'password': ' '})
 					runURI('POST', '/Auth/user', {'username': 'test', 'password': 'test'})
 					runURI('POST', '/Auth/permission', {'name': 'resource.all'})
-				]).spread((user, permission) ->
-					runURI('POST', '/Auth/user__has__permission', {'user': user.id, 'permission': permission.id})
+				]).spread((guest, user, permission) ->
+					Promise.all([
+						runURI('POST', '/Auth/user__has__permission', {'user': guest.id, 'permission': permission.id})
+						runURI('POST', '/Auth/user__has__permission', {'user': user.id, 'permission': permission.id})
+						runURI('POST', '/Auth/api_key', {'user': user.id, 'key': 'test'})
+						.then((apiKey) ->
+							runURI('POST', '/Auth/api_key__has__permission', {'api_key': apiKey.id, 'permission': permission.id})
+						)
+					])
 				).catch((err) ->
 					console.error('Unable to add dev users', err, err.stack)
 				)

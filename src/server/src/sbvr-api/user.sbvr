@@ -6,6 +6,8 @@ Term:       password
 	Concept Type: Hashed (Type)
 Term:       name
 	Concept Type: Short Text (Type)
+Term:       key
+	Concept Type: Short Text (Type)
 
 Term:       permission
 	Reference Scheme: name
@@ -30,3 +32,14 @@ Fact type:  user has password
 Fact type:  user has role
 	Note: A 'user' will inherit all the 'permissions' that the 'role' has.
 Fact type:  user has permission
+
+Term:       api key
+	Reference Scheme: key
+Fact type:  api key has key
+	Necessity: each api key has exactly one key
+	Necessity: each key is of exactly one api key
+Fact type:  api key has role
+	Note: An 'api key' will inherit all the 'permissions' that the 'role' has.
+Fact type:  api key has permission
+Fact type:  api key is of user
+	Necessity: each api key is of exactly one user
