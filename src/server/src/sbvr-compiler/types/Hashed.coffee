@@ -17,6 +17,8 @@ define ['lodash'], (_) ->
 				# Warning: If we're running in the browser then store unencrypted (no bcrypt module available)
 				if value.length > 60
 					callback('longer than 60 characters (' + value.length + ')')
+				else
+					callback(null, value)
 			else
 				bcrypt = require('bcrypt')
 				bcrypt.genSalt((err, salt) ->
