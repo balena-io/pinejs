@@ -569,24 +569,27 @@ define [
 
 				return _recurseCheckPermissions(or: ['all', actionList])
 
-			if req.user?
-				allowed = _checkPermissions(req.user.permissions)
-				if allowed is true
-					return Promise.fulfilled(allowed).nodeify(callback)
-			_getGuestPermissions()
-			.then((permissions) ->
-				return _checkPermissions(permissions)
+			Promise.try(->
+				if req.user?
+					return _checkPermissions(req.user.permissions)
+				return false
 			).catch((err) ->
-				console.error('Error getting guest permissions', err, err.stack)
-				return []
-			).then((guestAllowed) ->
-				if guestAllowed is true
-					return true
-				if allowed is false
-					if guestAllowed is false
-						return false
-					return guestAllowed
-				return '(' + allowed + ' or ' + guestAllowed + ')'
+				console.error('Error checking user permissions', req.user, err, err.stack)
+				return false
+			).then((allowed) ->
+				if allowed is true
+					return allowed
+				_getGuestPermissions()
+				.then((permissions) ->
+					return _checkPermissions(permissions)
+				).catch((err) ->
+					console.error('Error checking guest permissions', err, err.stack)
+					return false
+				).then((guestAllowed) ->
+					if allowed is false or guestAllowed is true
+						return guestAllowed
+					return '(' + allowed + ' or ' + guestAllowed + ')'
+				)
 			).nodeify(callback)
 	exports.checkPermissionsMiddleware = (action) ->
 		return (req, res, next) -> 
