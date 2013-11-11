@@ -449,14 +449,16 @@ define [
 		return deferred.promise.nodeify(callback)
 
 	exports.getUserPermissions = getUserPermissions = (userId, callback) ->
-		if _.isNumber(userId)
+		if _.isFinite(userId)
 			# We have a user id
 			userPerms = runURI('GET', '/Auth/user__has__permission?$select=permission&$filter=user eq ' + userId)
 			userRole = runURI('GET', '/Auth/user__has__role?$select=role&$filter=user eq ' + userId)
-		else
+		else if _.isString(userId)
 			# We have an API key
 			userPerms = runURI('GET', "/Auth/api_key__has__permission?$select=permission&$filter=api_key/key eq '" + userId + "'")
 			userRole = runURI('GET', "/Auth/api_key__has__role?$select=role&$filter=api_key/key eq '" + userId + "'")
+		else
+			return Promise.rejected(new Error('User ID either has to be a numeric id or an api key string, got: ' + typeof userId))
 
 		Promise.all([
 			userPerms
