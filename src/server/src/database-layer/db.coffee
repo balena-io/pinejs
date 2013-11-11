@@ -44,7 +44,7 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Pro
 						if pending is 0
 							automaticCloseTimeout = setTimeout(automaticClose, timeoutMS)
 						else if pending < 0
-							console.warn('Pending transactions is less than 0, wtf?')
+							console.error('Pending transactions is less than 0, wtf?')
 							pending = 0
 					cancel: ->
 						# Set pending to false to cancel all pending.
