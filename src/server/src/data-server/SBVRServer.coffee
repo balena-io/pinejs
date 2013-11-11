@@ -42,7 +42,7 @@ define [
 			else
 				next('route')
 		)
-	
+
 	isUiModelLoaded = Promise.pending()
 	uiModelLoaded = (req, res, next) ->
 		isUiModelLoaded.promise.then(->
@@ -76,7 +76,7 @@ define [
 				)
 			])
 
-		app.get '/onAir', (req, res, next) -> 
+		app.get '/onAir', (req, res, next) ->
 			isServerOnAir()
 			.then((onAir) ->
 				res.json(onAir)

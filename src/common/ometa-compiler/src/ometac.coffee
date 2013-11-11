@@ -71,7 +71,7 @@ if process.argv[1] == __filename
 	knownOpts =
 		'pretty': Boolean
 		'watch': Boolean
-	shortHands = 
+	shortHands =
 		'-p': ['--pretty']
 		'-w': ['--watch']
 	parsed = nopt(knownOpts, shortHands, process.argv, 2)
@@ -83,7 +83,7 @@ if process.argv[1] == __filename
 			do (filePath) ->
 				fs.watch(filePath).on 'change', (event, filename) ->
 					doCompile(filePath)
-		
+
 
 
 exports?.compileOmetaFile = compileOmetaFile

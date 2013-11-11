@@ -1,5 +1,5 @@
 define ['bluebird', 'lodash'], (Promise, _) ->
-	window?.GLOBAL_PERMISSIONS = 
+	window?.GLOBAL_PERMISSIONS =
 		'resource.all': true
 	app = do ->
 		enabled = Promise.pending()
@@ -68,7 +68,7 @@ define ['bluebird', 'lodash'], (Promise, _) ->
 					checkMethodHandlers()
 				else
 					methodHandlers[i].middleware[j](req, res, next)
-			
+
 			methodHandlers = handlers[method]
 			i = -1
 			j = -1

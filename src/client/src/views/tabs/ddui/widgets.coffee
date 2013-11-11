@@ -14,7 +14,7 @@ define ['./widgets/text', './widgets/textArea', './widgets/foreignKey', './widge
 		return '&lt;auto&gt;'
 	widgets['JSON'] = widgets['Interval'] = widgets['Date'] = widgets['Date Time'] = widgets['Time'] = ->
 		return 'TODO'
-	
+
 	return (widgetType, action, id, value, nullable, onChange, foreignKeys = {}) ->
 		if widgets.hasOwnProperty(widgetType)
 			onChange = if onChange then ' onChange="' + onChange + '"' else ''

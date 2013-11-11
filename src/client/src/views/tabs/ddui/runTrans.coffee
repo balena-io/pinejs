@@ -9,7 +9,7 @@ define ['async', 'bluebird', 'cs!server-request'], (async, Promise, serverReques
 				serverRequest('POST', transURIs.transactionURI)
 				.then(([statusCode, transaction, headers]) ->
 					transactionID = transaction.id
-					
+
 					# find and lock relevant resources (l,t-l,r-l)
 					async.map(actions.toArray(),
 						(instance, callback) ->
@@ -75,7 +75,7 @@ define ['async', 'bluebird', 'cs!server-request'], (async, Promise, serverReques
 													Promise.all _.map fields, (field, callback) ->
 														fieldData =
 															conditional_resource: condResource.id
-															field_name: field.name 
+															field_name: field.name
 															field_value: field.value
 														serverRequest("POST", transURIs.conditionalFieldURI, {}, fieldData)
 												).nodeify(callback)
@@ -88,7 +88,7 @@ define ['async', 'bluebird', 'cs!server-request'], (async, Promise, serverReques
 											serverRequest("POST", transURIs.commitTransactionURI, null, {id: transactionID},
 												(statusCode, result, headers) ->
 													dduiState('#!/data/')
-												(statusCode, errors) -> 
+												(statusCode, errors) ->
 													console.error(statusCode, errors)
 											)
 								)

@@ -12,7 +12,7 @@ define [
 
 		render: ->
 			@setTitle('Server')
-			
+
 			html = """
 				<button id="run-server">Run Server</button>
 				<table class='textTable table table-striped'>

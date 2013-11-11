@@ -380,7 +380,7 @@ define [
 				# Select all
 				ruleAbs[2][1][1][1] = '*'
 				ruleSQL = AbstractSQL2SQL.generate({tables: {}, rules: [ruleAbs]}).rules[0].sql
-				
+
 				db.transaction()
 				.then((tx) ->
 					tx.executeSql(ruleSQL.query, ruleSQL.bindings)
@@ -618,7 +618,7 @@ define [
 				)
 			).nodeify(callback)
 	exports.checkPermissionsMiddleware = (action) ->
-		return (req, res, next) -> 
+		return (req, res, next) ->
 			checkPermissions(req, res, action)
 			.then((allowed) ->
 				switch allowed
@@ -837,13 +837,13 @@ define [
 			console.error('Failed to compile abstract sql: ', request.query, e, e.stack)
 			res.send(503)
 			return
-		
+
 		if _.isArray(queries)
 			insertQuery = queries[0]
 			updateQuery = queries[1]
 		else
 			insertQuery = queries
-		
+
 		vocab = tree.vocabulary
 		id = getID(tree)
 		runTransaction = (tx) ->

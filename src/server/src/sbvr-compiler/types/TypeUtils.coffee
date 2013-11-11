@@ -35,6 +35,6 @@ define ['lodash'], (_) ->
 				processedValue = new Date(processedValue)
 				if _.isNaN(processedValue.getTime())
 					callback('is not a valid date: ' + value)
-				else	
+				else
 					callback(null, processedValue)
 	}

@@ -14,7 +14,7 @@ define [
 
 		render: ->
 			@setTitle('Validate')
-			
+
 			html = """
 				<textarea id="validateEditor" />
 				<div id="validate" class="btn btn-small btn-primary">Validate</div>
@@ -34,7 +34,7 @@ define [
 
 			@$el.html(html)
 			textarea = @$('#validateEditor')
-			
+
 			@editor = CodeMirror.fromTextArea(textarea.get(0),
 				mode: {
 					name: 'sbvr'
@@ -64,7 +64,7 @@ define [
 				colResourceNames = []
 				colModel = []
 				fkCols = []
-				
+
 				for {dataType, fieldName} in invalid.__model.fields
 					resourceName = fieldName.replace(/\ /g, '_')
 					if dataType == 'ForeignKey'
@@ -76,9 +76,9 @@ define [
 						name: fieldName
 					)
 					colResourceNames.push(resourceName)
-				
+
 				manyToManyCols = []
-				
+
 				resourceName = invalid.__model.resourceName
 				for own modelName, model of models
 					if (modelNameParts = model.resourceName.split('-')).length > 2 and
@@ -89,7 +89,7 @@ define [
 							name: modelNameParts[2]
 						)
 						manyToManyCols.push(model)
-				
+
 				Promise.all(_.map invalid.d, (instance) ->
 					Promise.all([
 						Promise.all(_.map fkCols, (model) ->

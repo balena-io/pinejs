@@ -263,10 +263,10 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Pro
 						map: (iterator, thisArg) ->
 							for i in [0...result.rows.length] by 1
 								iterator.call(thisArg, @item(i), i, result.rows)
-					rowsAffected: result.rowsAffected 
+					rowsAffected: result.rowsAffected
 					insertId: insertId
 				}
-			
+
 			class WebSqlTx extends Tx
 				constructor: (_tx, _stackTrace) ->
 					running = true

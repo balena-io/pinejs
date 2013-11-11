@@ -43,14 +43,14 @@ define [
 			depends = []
 			dropSQL = 'DROP TABLE "' + table.name + '";'
 			createSQL = 'CREATE TABLE ' + ifNotExists + '"' + table.name + '" (\n\t'
-			
+
 			for {dataType, fieldName, required, index, references} in table.fields
 				createSQL += '"' + fieldName + '" ' + dataTypeGen(engine, dataType, required, index) + '\n,\t'
 				if dataType in ['ForeignKey', 'ConceptType']
 					foreignKeys.push({fieldName, references})
 					depends.push(references.tableName)
 					hasDependants[references.tableName] = true
-				
+
 			for foreignKey in foreignKeys
 				createSQL += 'FOREIGN KEY ("' + foreignKey.fieldName + '") REFERENCES "' + foreignKey.references.tableName + '" ("' + foreignKey.references.fieldName + '")' + '\n,\t'
 			for index in table.indexes
@@ -104,13 +104,13 @@ define [
 
 
 	return {
-		websql: 
+		websql:
 			generate: (sqlModel) -> generate(sqlModel, 'websql', false)
 			dataTypeValidate: dataTypeValidate
-		postgres: 
+		postgres:
 			generate: (sqlModel) -> generate(sqlModel, 'postgres', true)
 			dataTypeValidate: dataTypeValidate
-		mysql: 
+		mysql:
 			generate: (sqlModel) -> generate(sqlModel, 'mysql', true)
 			dataTypeValidate: dataTypeValidate
 	}

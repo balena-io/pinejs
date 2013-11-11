@@ -14,14 +14,14 @@ define [
 
 		render: ->
 			@setTitle('Import/Export DB')
-			
+
 			html = """
 				<div id="bidb" class="btn btn-small btn-primary">Import DB</div>
 				<div id="bedb" class="btn btn-small">Export DB</div><br />"""
 
 			textarea = $('<textarea />')
 			@$el.html(html).append(textarea)
-			
+
 			@editor = CodeMirror.fromTextArea(textarea.get(0),
 				mode: 'text/x-sql'
 				lineWrapping: true

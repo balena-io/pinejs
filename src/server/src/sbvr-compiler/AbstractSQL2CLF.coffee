@@ -6,7 +6,7 @@ define ['lodash'], (_) ->
 			return tableField
 		console.error('Cannot find field', table, fieldName)
 		throw 'Cannot find field: ' + table.name + ' : ' + fieldName
-	
+
 	return (sqlModel) ->
 		tables = sqlModel.tables
 		resources = {}

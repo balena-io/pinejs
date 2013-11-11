@@ -21,7 +21,7 @@ define [
 				catch e
 					console.log(e)
 					return
-			
+
 				termBlacklist = [
 					'Alpha Component'
 					'Blue Component'
@@ -57,7 +57,7 @@ define [
 
 							link = {source: sourceNode, target: verbNode}
 							links.push(link)
-							
+
 						when 4 # binary
 							break if contents[0][1] in termBlacklist
 							break if contents[2][1] in termBlacklist
@@ -67,12 +67,12 @@ define [
 							# define the verbNode
 							verbNode = nodes[[sourceNode.name, contents[1][1], targetNode.name].join('-')] = {name: contents[1][1], type: "Verb"}
 							break if targetNode in termBlacklist
-							
+
 							link = {source: sourceNode, target: verbNode}
 							links.push(link)
 							link = {source: verbNode, target: targetNode}
 							links.push(link)
-							
+
 				w = @$el.width()
 				h = @$el.height() - 20
 
@@ -89,7 +89,7 @@ define [
 						d.x = Math.max(xoffset, Math.min(w - xoffset, d.x))
 						d.y = Math.max(yoffset, Math.min(h - yoffset, d.y))
 						return "translate(" + d.x + "," + d.y + ")"
-					
+
 					text.attr "transform", (d) ->
 						return "translate(" + d.x + "," + d.y + ")"
 

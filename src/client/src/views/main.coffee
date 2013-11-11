@@ -54,7 +54,7 @@ define [
 				for TabView, i in tabViews
 					content = $("<div id='tab#{i}' />")
 					tab = $("<li><a data-toggle='tab' href='#tab#{i}'/></li>")
-					
+
 					# Add tab to interface
 					$('#tabs').append(tab)
 					$('#content').append(content)
@@ -81,7 +81,7 @@ define [
 				success: =>
 					# Get the slug of the created model
 					slug = @model.get('slug')
-					
+
 					# Change the url
 					require('cs!app').navigate(slug)
 

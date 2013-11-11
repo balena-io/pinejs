@@ -4,7 +4,7 @@ define [
 	'jquery'
 	'cs!views/main'
 ], (Backbone, SBVRModel, $, MainView) ->
-	
+
 	$.ajaxSetup({
 		xhrFields: {
 			withCredentials: true

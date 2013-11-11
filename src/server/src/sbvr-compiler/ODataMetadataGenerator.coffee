@@ -51,7 +51,7 @@ define ['lodash', 'cs!sbvr-compiler/types'], (_, sbvrTypes) ->
 			<edmx:Edmx Version="1.0" xmlns:edmx="http://schemas.microsoft.com/ado/2007/06/edmx">
 				<edmx:DataServices xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata" m:DataServiceVersion="2.0">
 					<Schema Namespace="#{vocabulary}" xmlns:d="http://schemas.microsoft.com/ado/2007/08/dataservices" xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata" xmlns="http://schemas.microsoft.com/ado/2008/09/edm">
-							
+
 					""" +
 					forEachUniqueTable(model, (key, {idField, name: resourceName, fields}) ->
 						resourceName = getResourceName(resourceName)
@@ -60,7 +60,7 @@ define ['lodash', 'cs!sbvr-compiler/types'], (_, sbvrTypes) ->
 							<Key>
 								<PropertyRef Name="#{idField}" />
 							</Key>
-							
+
 							""" + (
 							for {dataType, fieldName, required} in fields when dataType != 'ForeignKey'
 								dataType = resolveDataType(dataType)
@@ -84,7 +84,7 @@ define ['lodash', 'cs!sbvr-compiler/types'], (_, sbvrTypes) ->
 							"""</Association>"""
 					).join('\n') + """
 						<EntityContainer Name="#{vocabulary}Service" m:IsDefaultEntityContainer="true">
-						
+
 						""" +
 							forEachUniqueTable(model, (key, {name: resourceName}) ->
 								resourceName = getResourceName(resourceName)

@@ -235,11 +235,11 @@ define [
 	oddTemplateVars =
 		backgroundColour: '#EEEEEE'
 		altBackgroundColour: '#FFFFFF'
-	
+
 	createNavigableTree = (tree, descendTree = []) ->
 		tree = $.extend(true, [], tree)
 		descendTree = $.extend(true, [], descendTree)
-		
+
 		previousLocations = []
 		currentLocation = tree
 
@@ -255,21 +255,21 @@ define [
 					!resourceID? or ( _getInstanceID(leaf) == resourceID))
 				return j
 			return false
-		
+
 		ascend = ->
 			currentLocation = previousLocations.pop()
 			return descendTree.pop()
-		
+
 		descendByIndex = (index) ->
 			descendTree.push(index)
 			previousLocations.push(currentLocation)
 			currentLocation = currentLocation[index]
-		
+
 		# Descend to correct level
 		for index in descendTree
 			previousLocations.push(currentLocation)
 			currentLocation = currentLocation[index]
-		
+
 		return {
 			# Can get rid of?
 			getInstanceID: -> _getInstanceID(currentLocation)
@@ -349,14 +349,14 @@ define [
 			getNewURI: (action, change) ->
 				return @clone().modify(action, change).getURI()
 		}
-	
+
 	getInstanceID = (instance, clientModel) ->
 		instanceID = instance[clientModel.idField]
 		if _.isObject(instanceID)
 			return instanceID.__id
 		else
 			return instanceID
-	
+
 	foreignKeysCache = do ->
 		fetchedResults = {}
 		foreignKeyResults = {}
@@ -410,7 +410,7 @@ define [
 					console.error(err)
 				)
 		}
-	
+
 	window.updateForeignKey = (foreignKey, id, element) ->
 		element = $(element)
 		fieldName = element.attr('id')
@@ -441,12 +441,12 @@ define [
 			filterString = '?'
 		else
 			filterString = '?$filter=' + (filter[0] + ' ' + filter[1] + ' ' + filter[2] for filter in filters).join(' and ')
-		
+
 		'/' + vocabulary + '/' + about.replace(/\ /g, '_').replace(/-/g, '__') + filterString
 
 	drawData = (tree, callback) ->
 		addResourceID = 1
-		
+
 		renderInstance = (ftree, even, callback) ->
 			about = ftree.getAbout()
 			currentLocation = ftree.getCurrentLocation()
@@ -532,7 +532,7 @@ define [
 						return ident.join('-')
 					else
 						return ''
-			
+
 			# is the thing we're talking about a term or a fact type?
 			for mod in cmod[1..] when getIdent(mod) == about
 				resourceType = mod[0]
@@ -553,7 +553,7 @@ define [
 											isExpanded: ftree.isExpanded(about, instanceID)
 											action: ftree.getAction(about, instanceID)
 											id: instanceID
-										
+
 										async.parallel([
 											(callback) ->
 												if resourceType == "Term"
@@ -574,7 +574,7 @@ define [
 													expandedTree = ftree.clone().descend(about, instanceID)
 													resourceCollection.closeHash = '#!/' + expandedTree.getNewURI("del")
 													resourceCollection.closeURI = rootURI + resourceCollection.deleteHash
-													renderResource rootURI, not even, expandedTree, cmod, (err, html) -> 
+													renderResource rootURI, not even, expandedTree, cmod, (err, html) ->
 														resourceCollection.html = html
 														callback(err)
 												else
@@ -654,7 +654,7 @@ define [
 				)
 			else if currentLocation[0] == 'instance'
 				renderInstance(ftree, even, callback)
-		
+
 		tree = createNavigableTree(tree)
 		rootURI = location.pathname
 		serverRequest("GET", serverAPI(tree.getVocabulary()), {}, null,

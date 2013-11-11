@@ -15,7 +15,7 @@ define [
 
 			textarea = $('<textarea />')
 			@$el.empty().append(textarea)
-			
+
 			changeHandler = =>
 				sbvrEditor.setValue(@model.get('content'))
 
