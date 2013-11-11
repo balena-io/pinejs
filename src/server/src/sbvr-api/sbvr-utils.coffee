@@ -953,6 +953,9 @@ define [
 			})
 		).then(->
 			tx.executeSql('CREATE UNIQUE INDEX "uniq_model_model_type_vocab" ON "model" ("vocabulary", "model type");')
+			.catch(->
+				# Ignore errors creating the index, sadly not all databases we use support IF NOT EXISTS.
+			)
 			# TODO: Remove these hardcoded users.
 			if has 'DEV'
 				Promise.all([
