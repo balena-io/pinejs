@@ -511,7 +511,7 @@ define [
 					else if _.isFunction(vocabulary)
 						callback = vocabulary
 						vocabulary = null
-				else if typeof apiKey is 'function'
+				else if _.isFunction(apiKey)
 					callback = apiKey
 					apiKey = null
 
