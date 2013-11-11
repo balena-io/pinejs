@@ -929,11 +929,10 @@ define [
 			# TODO: Remove these hardcoded users.
 			if has 'DEV'
 				Promise.all([
-					runURI('POST', '/Auth/user', {'username': 'root', 'password': 'test123'})
+					runURI('POST', '/Auth/user', {'username': 'test', 'password': 'test'})
 					runURI('POST', '/Auth/permission', {'name': 'resource.all'})
-				]).then(->
-					# We expect these to be the first user/permission, so they would have id 1.
-					runURI('POST', '/Auth/user__has__permission', {'user': 1, 'permission': 1})
+				]).spread((user, permission) ->
+					runURI('POST', '/Auth/user__has__permission', {'user': user.id, 'permission': permission.id})
 				).catch((err) ->
 					console.error('Unable to add dev users', err, err.stack)
 				)
