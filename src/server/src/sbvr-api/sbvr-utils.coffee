@@ -355,6 +355,8 @@ define [
 
 	exports.runRule = do ->
 		LF2AbstractSQLPrepHack = LF2AbstractSQL.LF2AbstractSQLPrep._extend({CardinalityOptimisation: -> @_pred(false)})
+		translator = LF2AbstractSQL.LF2AbstractSQL.createInstance()
+		translator.addTypes(sbvrTypes)
 		return (vocab, rule, callback) ->
 			Promise.try(->
 				seModel = seModels[vocab]
@@ -370,8 +372,7 @@ define [
 					slfModel.push(ruleLF)
 					slfModel = LF2AbstractSQLPrepHack.match(slfModel, 'Process')
 
-					translator = LF2AbstractSQL.LF2AbstractSQL.createInstance()
-					translator.addTypes(sbvrTypes)
+					translator.reset()
 					abstractSqlModel = translator.match(slfModel, 'Process')
 				catch e
 					console.error('Error compiling rule', rule, e, e.stack)
