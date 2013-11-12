@@ -278,10 +278,11 @@ define [
 		).nodeify(callback)
 
 	getID = (tree) ->
-		query = tree.requests[0].query
+		request = tree.requests[0]
+		query = request.query
+		idField = sqlModels[tree.vocabulary].tables[request.resourceName].idField
 		for whereClause in query when whereClause[0] == 'Where'
-			# TODO: This should use the idField from sqlModel
-			for comparison in whereClause[1..] when comparison[0] == "Equals" and comparison[1][2] in ['id']
+			for comparison in whereClause[1..] when comparison[0] == "Equals" and comparison[1][2] == idField
 				return comparison[2][1]
 		return 0
 
