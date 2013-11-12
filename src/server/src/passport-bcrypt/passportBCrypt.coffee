@@ -8,7 +8,7 @@ define ['bluebird'], (Promise) ->
 					throw new Error('User not found')
 				hash = result.d[0].password
 				userId = result.d[0].id
-				Promise.promisify(compare)(password, hash)
+				compare(password, hash)
 				.then((res) ->
 					if !res
 						throw new Error('Passwords do not match')
@@ -43,7 +43,7 @@ define ['bluebird'], (Promise) ->
 						res.redirect(options.successRedirect)
 
 		if passport?
-			compare = require('bcrypt').compare
+			compare = Promise.promisify(require('bcrypt').compare)
 			LocalStrategy = require('passport-local').Strategy
 			app.post options.loginUrl, (req, res, next) ->
 				passport.authenticate('local', (err, user) ->
@@ -58,8 +58,8 @@ define ['bluebird'], (Promise) ->
 
 			passport.use(new LocalStrategy(checkPassword))
 		else
-			compare = (value, hash, callback) ->
-				callback(null, value == hash)
+			compare = (value, hash) ->
+				Promise.fulfilled(value == hash)
 			do ->
 				_user = false
 				app.post options.loginUrl, (req, res, next) ->
