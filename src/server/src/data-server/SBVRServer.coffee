@@ -140,7 +140,7 @@ define [
 					res.send(503)
 				)
 		app.put '/importdb', sbvrUtils.checkPermissionsMiddleware('set'), (req, res, next) ->
-			queries = req.body.split(";")
+			queries = req.body.split(';')
 			db.transaction (tx) ->
 				Promise.all(_.map queries, (query) ->
 					query = query.trim()
@@ -172,7 +172,7 @@ define [
 						Promise.all(result.rows.map (table) ->
 							tableName = table.name
 							exported += 'DROP TABLE IF EXISTS "' + tableName + '";\n'
-							exported += table.sql + ";\n"
+							exported += table.sql + ';\n'
 							tx.executeSql('SELECT * FROM "' + tableName + '";')
 							.then((result) ->
 								insQuery = ''
@@ -188,7 +188,7 @@ define [
 											notFirst = true
 										insQuery += '"' + propName + '"'
 										valQuery += "'" + currRow[propName] + "'"
-									insQuery += ") values (" + valQuery + ");\n"
+									insQuery += ') values (' + valQuery + ');\n'
 								exported += insQuery
 							)
 						)

@@ -1001,15 +1001,15 @@ define [
 				)
 		app.get '/transaction', (req, res, next) ->
 			res.json(
-				transactionURI: "/transaction/transaction"
-				conditionalResourceURI: "/transaction/conditional_resource"
-				conditionalFieldURI: "/transaction/conditional_field"
-				lockURI: "/transaction/lock"
-				transactionLockURI: "/transaction/lock__belongs_to__transaction"
-				resourceURI: "/transaction/resource"
-				lockResourceURI: "/transaction/resource__is_under__lock"
-				exclusiveLockURI: "/transaction/lock__is_exclusive"
-				commitTransactionURI: "/transaction/execute"
+				transactionURI: '/transaction/transaction'
+				conditionalResourceURI: '/transaction/conditional_resource'
+				conditionalFieldURI: '/transaction/conditional_field'
+				lockURI: '/transaction/lock'
+				transactionLockURI: '/transaction/lock__belongs_to__transaction'
+				resourceURI: '/transaction/resource'
+				lockResourceURI: '/transaction/resource__is_under__lock'
+				exclusiveLockURI: '/transaction/lock__is_exclusive'
+				commitTransactionURI: '/transaction/execute'
 			)
 		app.get('/transaction/*', runGet)
 		app.post('/transaction/*', runPost)

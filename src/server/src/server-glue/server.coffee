@@ -9,7 +9,7 @@ define [
 	'cs!config-loader/config-loader'
 ], (has, Promise, dbModule, sbvrUtils, passportBCrypt, sbvrServer, express, configLoader) ->
 	if has 'ENV_NODEJS'
-		databaseURL = process.env.DATABASE_URL || "postgres://postgres:.@localhost:5432/postgres"
+		databaseURL = process.env.DATABASE_URL || 'postgres://postgres:.@localhost:5432/postgres'
 		databaseOptions =
 			engine: databaseURL[0...databaseURL.indexOf(':')]
 			params: databaseURL
@@ -34,12 +34,12 @@ define [
 			app.use(express.compress())
 			app.use(express.cookieParser())
 			app.use(express.bodyParser())
-			app.use(express.session({ secret: "A pink cat jumped over a rainbow" }))
+			app.use(express.session({ secret: 'A pink cat jumped over a rainbow' }))
 			app.use(passport.initialize())
 			app.use(passport.session())
 
 			app.use (req, res, next) ->
-				origin = req.get("Origin") || "*"
+				origin = req.get('Origin') || '*'
 				res.header('Access-Control-Allow-Origin', origin)
 				res.header('Access-Control-Allow-Methods', 'GET, PUT, POST, DELETE, OPTIONS, HEAD')
 				res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Application-Record-Count, MaxDataServiceVersion, X-Requested-With')

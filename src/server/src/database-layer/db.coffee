@@ -219,7 +219,7 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Pro
 						extraWhereClause = ''
 					if extraWhereClause != ''
 						extraWhereClause = ' WHERE ' + extraWhereClause
-					@executeSql("SELECT name FROM (SELECT table_name as name FROM information_schema.tables WHERE table_schema = ?) t" + extraWhereClause + ";", [options.database], callback)
+					@executeSql('SELECT name FROM (SELECT table_name as name FROM information_schema.tables WHERE table_schema = ?) t' + extraWhereClause + ';', [options.database], callback)
 				dropTable: (tableName, ifExists = true, callback) ->
 					@executeSql('DROP TABLE ' + (if ifExists is true then 'IF EXISTS ' else '') + '"' + tableName + '";', [], callback)
 			return {
