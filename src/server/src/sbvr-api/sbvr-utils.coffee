@@ -515,6 +515,8 @@ define [
 		# If not all optional arguments are specified, and the last one specified is a function then it is taken to be the callback.
 		# req, res, actionList[, resourceName, vocabulary, apiKey, callback]
 		return (args...) ->
+			# callbackArg needs to be the index of the last optional index
+			# and then if the callback is a function it should be used and nullified so that it isn't used for another arg
 			callbackArg = Math.max(3, Math.min(6, args.length - 1))
 			if _.isFunction(args[callbackArg])
 				callback = args[callbackArg]
