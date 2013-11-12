@@ -7,14 +7,14 @@ define ['has', 'lodash', 'bluebird'], (has, _, Promise) ->
 			console.error('Config loader only works in a nodejs environment.')
 			return
 		require('coffee-script')
-		fs = require('fs')
+		readFile = Promise.promisify(require('fs').readFile)
 		path = require('path')
 		root = process.argv[2] or __dirname
 		console.info('loading config.json')
 		data = require path.join(root, 'config.json')
 		db.transaction().then((tx) ->
 			modelsPromise = Promise.all(_.map data.models, (model) ->
-				Promise.promisify(fs.readFile)(path.join(root, model.modelFile), 'utf8')
+				readFile(path.join(root, model.modelFile), 'utf8')
 				.then((sbvrModel) ->
 					sbvrUtils.executeModel(tx, model.apiRoot, sbvrModel)
 				).then(->
