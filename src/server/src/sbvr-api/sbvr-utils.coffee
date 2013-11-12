@@ -20,7 +20,7 @@ define [
 
 	fetchProcessing = _.transform sbvrTypes, (result, {fetchProcessing}, type) ->
 		if fetchProcessing?
-			result[type] = fetchProcessing
+			result[type] = Promise.promisify(fetchProcessing)
 
 	LF2AbstractSQLTranslator = LF2AbstractSQL.createTranslator(sbvrTypes)
 
@@ -347,7 +347,7 @@ define [
 					Promise.all _.map processedFields, ({fieldName, dataType}) ->
 						fieldName = fieldName.replace(/\ /g, '_')
 						if instance.hasOwnProperty(fieldName)
-							Promise.promisify(fetchProcessing[dataType])(instance[fieldName])
+							fetchProcessing[dataType](instance[fieldName])
 							.then((result) ->
 								instance[fieldName] = result
 								return
