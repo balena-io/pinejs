@@ -279,11 +279,13 @@ define [
 
 	getID = (tree) ->
 		request = tree.requests[0]
-		query = request.query
 		idField = sqlModels[tree.vocabulary].tables[request.resourceName].idField
-		for whereClause in query when whereClause[0] == 'Where'
-			for comparison in whereClause[1..] when comparison[0] == "Equals" and comparison[1][2] == idField
-				return comparison[2][1]
+		for whereClause in request.query when whereClause[0] == 'Where'
+			for comparison in whereClause[1..] when comparison[0] == 'Equals'
+				if comparison[1][2] == idField
+					return comparison[2][1]
+				if comparison[2][2] == idField
+					return comparison[1][1]
 		return 0
 
 	checkForExpansion = (vocab, clientModel, fieldName, instance) ->
