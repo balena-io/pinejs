@@ -6,6 +6,9 @@ define [
 	'cs!sbvr-compiler/types/TypeUtils'
 ], (AbstractSQLCompiler, _, Promise, sbvrTypes, TypeUtils) ->
 	validateInteger = Promise.promisify(TypeUtils.validate.integer)
+	validateTypes = _.transform sbvrTypes, (result, {validate}, type) ->
+		if validate?
+			result[type] = Promise.promisify(validate)
 
 	dataTypeValidate = (value, field, callback) ->
 		# In case one of the validation types throws an error.
@@ -15,8 +18,8 @@ define [
 				Promise.rejected('cannot be null')
 			else
 				Promise.fulfilled(null)
-		else if sbvrTypes[dataType]?
-			Promise.promisify(sbvrTypes[dataType].validate)(value, required)
+		else if validateTypes[dataType]?
+			validateTypes[dataType](value, required)
 		else if dataType in ['ForeignKey', 'ConceptType']
 			validateInteger(value, required)
 		else
