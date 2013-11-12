@@ -229,7 +229,7 @@ define [
 				odata2AbstractSQL[vocab].clientModel = clientModel
 
 				updateModel = (modelType, model) ->
-					runURI('GET', "/dev/model?$select=id&$filter=vocabulary eq '" + vocab + "' and model_type eq '" + modelType + "'", null, tx)
+					runURI('GET', "/dev/model?$select=id&$filter=vocabulary eq '" + encodeURIComponent(vocab) + "' and model_type eq '" + encodeURIComponent(modelType) + "'", null, tx)
 					.then((result) ->
 						method = 'POST'
 						uri = '/dev/model'
@@ -458,8 +458,8 @@ define [
 			userRole = runURI('GET', '/Auth/user__has__role?$select=role&$filter=user eq ' + userId)
 		else if _.isString(userId)
 			# We have an API key
-			userPerms = runURI('GET', "/Auth/api_key__has__permission?$select=permission&$filter=api_key/key eq '" + userId + "'")
-			userRole = runURI('GET', "/Auth/api_key__has__role?$select=role&$filter=api_key/key eq '" + userId + "'")
+			userPerms = runURI('GET', "/Auth/api_key__has__permission?$select=permission&$filter=api_key/key eq '" + encodeURIComponent(userId) + "'")
+			userRole = runURI('GET', "/Auth/api_key__has__role?$select=role&$filter=api_key/key eq '" + encodeURIComponent(userId) + "'")
 		else
 			return Promise.rejected(new Error('User ID either has to be a numeric id or an api key string, got: ' + typeof userId))
 

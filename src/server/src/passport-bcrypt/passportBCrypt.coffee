@@ -2,7 +2,7 @@ define ['bluebird'], (Promise) ->
 	return (options, sbvrUtils, app, passport) ->
 		exports = {}
 		checkPassword = (username, password, done) ->
-			sbvrUtils.runURI('GET', "/Auth/user?$filter=user/username eq '" + username + "'")
+			sbvrUtils.runURI('GET', "/Auth/user?$filter=user/username eq '" + encodeURIComponent(username) + "'")
 			.then((result) ->
 				if result.d.length is 0
 					throw new Error('User not found')
