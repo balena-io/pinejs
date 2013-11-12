@@ -18,6 +18,10 @@ define [
 	exports = {}
 	db = null
 
+	fetchProcessing = _.transform sbvrTypes, (result, {fetchProcessing}, type) ->
+		if fetchProcessing?
+			result[type] = fetchProcessing
+
 	LF2AbstractSQLTranslator = LF2AbstractSQL.createTranslator(sbvrTypes)
 
 	odataParser = ODataParser.createInstance()
@@ -336,14 +340,14 @@ define [
 					checkForExpansion(vocab, clientModel, fieldName, instance)
 				)
 
-		processedFields = _.filter(resourceModel.fields, ({dataType}) -> sbvrTypes[dataType]?.fetchProcessing?)
+		processedFields = _.filter(resourceModel.fields, ({dataType}) -> fetchProcessing[dataType]?)
 		if processedFields.length > 0
 			instancesPromise = instancesPromise.then ->
 				Promise.all _.map instances, (instance) ->
 					Promise.all _.map processedFields, ({fieldName, dataType}) ->
 						fieldName = fieldName.replace(/\ /g, '_')
 						if instance.hasOwnProperty(fieldName)
-							Promise.promisify(sbvrTypes[dataType].fetchProcessing)(instance[fieldName])
+							Promise.promisify(fetchProcessing[dataType])(instance[fieldName])
 							.then((result) ->
 								instance[fieldName] = result
 								return
