@@ -504,18 +504,14 @@ define [
 					)
 				_guestPermissions.nodeify(callback)
 
-		return (req, res, actionList, resourceName, vocabulary, apiKey, callback) ->
-			if !callback?
-				if !apiKey?
-					if !vocabulary? and _.isFunction(resourceName)
-						callback = resourceName
-						resourceName = null
-					else if _.isFunction(vocabulary)
-						callback = vocabulary
-						vocabulary = null
-				else if _.isFunction(apiKey)
-					callback = apiKey
-					apiKey = null
+		# If not all optional arguments are specified, and the last one specified is a function then it is taken to be the callback.
+		# req, res, actionList[, resourceName, vocabulary, apiKey, callback]
+		return (args...) ->
+			callbackArg = Math.max(3, Math.min(6, args.length - 1))
+			if _.isFunction(args[callbackArg])
+				callback = args[callbackArg]
+				args[callbackArg] = null
+			[req, res, actionList, resourceName, vocabulary, apiKey] = args
 
 			_checkPermissions = (permissions) ->
 				permissionKeys = _.keys(permissions)
