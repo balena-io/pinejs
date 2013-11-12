@@ -713,7 +713,7 @@ define [
 				.then((tree) ->
 					req.tree = tree
 				).catch((err) ->
-					console.error(err)
+					console.error('Error parsing OData URI', err, err.stack)
 					req.tree = false
 				).done(checkTree)
 
