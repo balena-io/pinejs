@@ -382,7 +382,7 @@ define [
 					for callback in updateListeners[foreignKey]
 						callback(id, instance, clientModelResults[foreignKey])
 			get: (tree, clientModel, successCallback) ->
-				Promise.all(_.map clientModel.fields, ({fieldName, dataType}) ->
+				Promise.map(clientModel.fields, ({fieldName, dataType}) ->
 					if dataType not in ['ForeignKey', 'ConceptType']
 						return
 					# Get results for all the foreign keys

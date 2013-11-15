@@ -13,7 +13,7 @@ define ['has', 'lodash', 'bluebird'], (has, _, Promise) ->
 		console.info('loading config.json')
 		data = require path.join(root, 'config.json')
 		db.transaction().then((tx) ->
-			modelsPromise = Promise.all(_.map data.models, (model) ->
+			modelsPromise = Promise.map data.models, (model) ->
 				readFile(path.join(root, model.modelFile), 'utf8')
 				.then((sbvrModel) ->
 					sbvrUtils.executeModel(tx, model.apiRoot, sbvrModel)
@@ -22,7 +22,6 @@ define ['has', 'lodash', 'bluebird'], (has, _, Promise) ->
 				).catch((err) ->
 					throw new Error(['Failed to execute ' + model.modelName + ' model from ' + model.modelFile, err])
 				)
-			)
 
 			if data.users?
 				permissions = {}
@@ -40,7 +39,7 @@ define ['has', 'lodash', 'bluebird'], (has, _, Promise) ->
 								throw new Error('Could not create or find permission "' + permissionName + '": ' + err)
 							)
 
-				usersPromise = Promise.all(_.map data.users, (user) ->
+				usersPromise = Promise.map data.users, (user) ->
 					sbvrUtils.runURI('GET', "/Auth/user?$filter=username eq '" + encodeURIComponent(user.username) + "'", null, tx)
 					.then((result) ->
 						if result.d.length is 0
@@ -49,7 +48,7 @@ define ['has', 'lodash', 'bluebird'], (has, _, Promise) ->
 						else
 							return result.d[0].id
 					).then((userID) ->
-						Promise.all(_.map user.permissions, (permissionName) ->
+						Promise.map user.permissions, (permissionName) ->
 							permissions[permissionName].then((permissionID) ->
 								sbvrUtils.runURI('GET', "/Auth/user__has__permission?$filter=user eq '" + userID + "' and permission eq '" + permissionID + "'", null, tx)
 								.then((result) ->
@@ -57,11 +56,9 @@ define ['has', 'lodash', 'bluebird'], (has, _, Promise) ->
 										sbvrUtils.runURI('POST', '/Auth/user__has__permission', {'user': userID, 'permission': permissionID}, tx)
 								)
 							)
-						)
 					).catch((err) ->
 						throw new Error('Could not create or find user "' + user.username + '": ' + err)
 					)
-				)
 			Promise.all([modelsPromise, usersPromise])
 			.catch((err) ->
 				tx.rollback()
@@ -69,7 +66,7 @@ define ['has', 'lodash', 'bluebird'], (has, _, Promise) ->
 			).then(->
 				tx.end()
 			).then(->
-				Promise.all(_.map data.models, (model) ->
+				Promise.map data.models, (model) ->
 					apiRoute = '/' + model.apiRoot + '/*'
 					app.get(apiRoute, sbvrUtils.runGet)
 
@@ -96,7 +93,6 @@ define ['has', 'lodash', 'bluebird'], (has, _, Promise) ->
 						catch e
 							throw new Error('Error running custom server code: ' + e)
 				)
-			)
 		).catch((err) ->
 			console.error('Error loading config', err, err.stack)
 			process.exit()

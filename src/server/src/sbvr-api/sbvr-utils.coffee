@@ -50,7 +50,7 @@ define [
 	getAndCheckBindValues = (vocab, bindings, values) ->
 		mappings = clientModels[vocab].resourceToSQLMappings
 		sqlModelTables = sqlModels[vocab].tables
-		Promise.all(_.map bindings, (binding) ->
+		Promise.map(bindings, (binding) ->
 			if _.isString(binding[1])
 				[tableName, fieldName] = binding
 
@@ -183,7 +183,7 @@ define [
 		)
 
 	validateDB = (tx, sqlmod) ->
-		Promise.all(_.map sqlmod.rules, (rule) ->
+		Promise.map(sqlmod.rules, (rule) ->
 			tx.executeSql(rule.sql, rule.bindings)
 			.then((result) ->
 				if result.rows.item(0).result in [false, 0, '0']
@@ -196,7 +196,7 @@ define [
 		models[vocab] = seModel
 		executeModels(tx, models, callback)
 	exports.executeModels = executeModels = (tx, models, callback) ->
-		Promise.all(_.map _.keys(models), (vocab) ->
+		Promise.map(_.keys(models), (vocab) ->
 			seModel = models[vocab]
 			try
 				lfModel = SBVRParser.matchAll(seModel, 'Process')
@@ -213,7 +213,7 @@ define [
 				throw new Error(['Error compiling model', e])
 
 			# Create tables related to terms and fact types
-			Promise.all(_.map sqlModel.createSchema, (createStatement) ->
+			Promise.map(sqlModel.createSchema, (createStatement) ->
 				tx.executeSql(createStatement)
 				.catch(->
 					# Warning: We ignore errors in the create table statements as SQLite doesn't support CREATE IF NOT EXISTS
@@ -335,16 +335,15 @@ define [
 				fieldNames[fieldName.replace(/\ /g, '_')] = true
 			return _.filter(_.keys(instances[0]), (fieldName) -> fieldName[0..1] != '__' and !fieldNames.hasOwnProperty(fieldName))
 		if expandableFields.length > 0
-			instancesPromise = Promise.all _.map instances, (instance) ->
-				Promise.all(_.map expandableFields, (fieldName) ->
+			instancesPromise = Promise.map instances, (instance) ->
+				Promise.map expandableFields, (fieldName) ->
 					checkForExpansion(vocab, clientModel, fieldName, instance)
-				)
 
 		processedFields = _.filter(resourceModel.fields, ({dataType}) -> fetchProcessing[dataType]?)
 		if processedFields.length > 0
 			instancesPromise = instancesPromise.then ->
-				Promise.all _.map instances, (instance) ->
-					Promise.all _.map processedFields, ({fieldName, dataType}) ->
+				Promise.map instances, (instance) ->
+					Promise.map processedFields, ({fieldName, dataType}) ->
 						fieldName = fieldName.replace(/\ /g, '_')
 						if instance.hasOwnProperty(fieldName)
 							fetchProcessing[dataType](instance[fieldName])

@@ -142,7 +142,7 @@ define [
 		app.put '/importdb', sbvrUtils.checkPermissionsMiddleware('set'), (req, res, next) ->
 			queries = req.body.split(';')
 			db.transaction (tx) ->
-				Promise.all(_.map queries, (query) ->
+				Promise.map(queries, (query) ->
 					query = query.trim()
 					if query.length > 0
 						tx.executeSql(query).catch((err) ->

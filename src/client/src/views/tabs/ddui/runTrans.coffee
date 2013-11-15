@@ -72,7 +72,7 @@ define ['async', 'bluebird', 'cs!server-request'], (async, Promise, serverReques
 												fields = dataElement[3]
 												serverRequest('POST', transURIs.conditionalResourceURI, {}, sendData)
 												.then(([statusCode, condResource]) ->
-													Promise.all _.map fields, (field, callback) ->
+													Promise.map fields, (field, callback) ->
 														fieldData =
 															conditional_resource: condResource.id
 															field_name: field.name

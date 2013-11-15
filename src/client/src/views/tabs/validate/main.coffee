@@ -90,19 +90,19 @@ define [
 						)
 						manyToManyCols.push(model)
 
-				Promise.all(_.map invalid.d, (instance) ->
+				Promise.map(invalid.d, (instance) ->
 					Promise.all([
-						Promise.all(_.map fkCols, (model) ->
+						Promise.map(fkCols, (model) ->
 							serverRequest('GET', instance[model.modelName].__deferred.uri)
 							.then(([statusCode, fkCol]) ->
 								if fkCol.d.length > 0
 									instance[model.modelName] = fkCol.d[0][model.idField] + ': ' + fkCol.d[0][model.referenceScheme]
 							)
 						)
-						Promise.all(_.map manyToManyCols, (model) ->
+						Promise.map(manyToManyCols, (model) ->
 							serverRequest('GET', '/data/' + model.resourceName + '?$filter=' + invalid.__model.resourceName + ' eq ' + instance[invalid.__model.idField])
 							.then(([statusCode, manyToManyCol]) ->
-								Promise.all(_.map manyToManyCol.d, (instance) ->
+								Promise.map(manyToManyCol.d, (instance) ->
 									fkName = model.resourceName.split('-')[2]
 									serverRequest('GET', instance[fkName].__deferred.uri)
 									.then(([statusCode, results]) ->
