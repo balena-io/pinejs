@@ -1,8 +1,5 @@
 Canvas TODO:
 	Milestone 1: SBVR Editor
-		Highlighting & Autocompletion with OMeta parser
-		Component division (editor - platform)
-		File loading & Saving
 		Chrome App
 
 	Milestone 2: (Black Swan)
@@ -19,72 +16,7 @@ Canvas TODO:
 					with cached request
 				Update success should direct to return to pending request
 				Pending request should be noted in UI with [continue] link.
-				
-		
-		Renaming:
-			SBVRwithSails -> Mondat
-			standalone.html -> index.html
-			'my first db' -> 'mondat' //or something app-specific?
-			
-		BackURIs
-		
-		Add-Transactions
-			Requires proper querying?!
 
-		Client:
-			keep client_onAir_ in memmory, not localStorage to avoid interference between sessions.
-	
-		Server:
-			Move localStorage to a database table. 
-				Can't rely on localStorage in the server. Also, first step towards multi-project.
-			check: do locks still lock resources? (probably not according to gc bug)
-		
-		Protocol:
-			JSON.stringify all responses (esp. the models)
-			Send custom failure headers also (not just success)
-			Have default headers (200 OK / 404 Not Found?)
-			
-		Bugs:
-			Cmod bug - fixes with reload, odd little thing.
-				Replicate
-		
 	Milestone 3: (IAH)
-		Server-side. (Node.js?)
 		Logical operators (and/or)
 		Attributes
-		Datatypes
-		User Access
-		Optimized schema
-
-Done:
-	Client:
-		bug: When loading the page on the data editor, and returning to the model, the editor doesn't highlight.
-		UI:
-			bug: delete panel has no button
-	Server:
-		bug: fix garbage collection for transactions.
-		bug: Transaction barf. Why?
-		->> Code org: Break out DB validation into its own function..
-			-->>> must make execute() into an async-friendly function, which may allow halving it also.
-				--->>>> standardize arguments of success/failureCallback, and create proxies for client call.
-		++ validateDB reorg
-		
-	Parser:
-		bug: can't parse rules that end with a space. Should accept spaces or fullstop at the end of a rule.
-			(esp. bad since autocomplete adds a space)
-			
-	Open Source Release
-		Apply Apache 2.0
-		
---
-
-Transaction Notes
-
-add a locked resource? SLock on the collection then posting on the CR of the coll which produces an XLOCKED resource?
-slock collection? lock resource with ID 0
-
-how do I work with conditional representations? 'lock {that is exclusive} has conditional representation'
-'Conditional Representation' has fields 'fieldname' and 'fieldvalue' and 'lock_id'
-POST .. no new id. gets stored in conditionals with a special (negative) id to be replaced with another on commit.
-PUT .. empty all previous fields and add new fields to CR
-DELETE .. empty all previous fields and add special field to CR'__delete':true
