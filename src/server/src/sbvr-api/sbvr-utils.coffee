@@ -8,15 +8,14 @@ define [
 	'cs!sbvr-compiler/AbstractSQL2CLF'
 	'cs!sbvr-compiler/ODataMetadataGenerator'
 	'cs!sbvr-api/permissions'
-	'odata-parser'
-	'odata-to-abstract-sql'
+	'cs!sbvr-api/uri-parser'
 	'lodash'
 	'bluebird'
 	'cs!sbvr-compiler/types'
 	'text!sbvr-api/dev.sbvr'
 	'text!sbvr-api/transaction.sbvr'
 	'text!sbvr-api/user.sbvr'
-], (exports, has, SBVRParser, LF2AbstractSQL, AbstractSQL2SQL, AbstractSQLCompiler, AbstractSQL2CLF, ODataMetadataGenerator, permissions, {ODataParser}, {OData2AbstractSQL}, _, Promise, sbvrTypes, devModel, transactionModel, userModel) ->
+], (exports, has, SBVRParser, LF2AbstractSQL, AbstractSQL2SQL, AbstractSQLCompiler, AbstractSQL2CLF, ODataMetadataGenerator, permissions, uriParser, _, Promise, sbvrTypes, devModel, transactionModel, userModel) ->
 	exports = {}
 	db = null
 
@@ -27,9 +26,6 @@ define [
 			result[type] = Promise.promisify(fetchProcessing)
 
 	LF2AbstractSQLTranslator = LF2AbstractSQL.createTranslator(sbvrTypes)
-
-	odataParser = ODataParser.createInstance()
-	odata2AbstractSQL = {}
 
 	seModels = {}
 	sqlModels = {}
@@ -233,8 +229,7 @@ define [
 				clientModels[vocab] = clientModel
 				odataMetadata[vocab] = metadata
 
-				odata2AbstractSQL[vocab] = OData2AbstractSQL.createInstance()
-				odata2AbstractSQL[vocab].clientModel = clientModel
+				uriParser.addClientModel(vocab, clientModel)
 
 				updateModel = (modelType, model) ->
 					runURI('GET', "/dev/model?$select=id&$filter=vocabulary eq '" + encodeURIComponent(vocab) + "' and model_type eq '" + encodeURIComponent(modelType) + "'", null, tx)
@@ -278,7 +273,7 @@ define [
 				delete sqlModels[vocabulary]
 				delete clientModels[vocabulary]
 				delete odataMetadata[vocabulary]
-				delete odata2AbstractSQL[vocabulary]
+				uriParser.deleteClientModel(vocabulary)
 			).catch((err) ->
 				tx.rollback()
 				throw err
@@ -459,93 +454,7 @@ define [
 				runDelete(req, res, next, tx)
 		return deferred.promise.nodeify(callback)
 
-	parseODataURI = (req, res) -> Promise.try ->
-		{method, url, body} = req
-		url = url.split('/')
-		vocabulary = url[1]
-		if !vocabulary? or !odata2AbstractSQL[vocabulary]?
-			throw new Error('No such vocabulary: ' + vocabulary)
-		url = '/' + url[2..].join('/')
-		try
-			query = odataParser.matchAll(url, 'Process')
-		catch e
-			console.log('Failed to parse url: ', method, url, e, e.stack)
-			throw new Error('Failed to parse url')
-
-		resourceName = query.resource
-		apiKey = query.options?.apikey
-
-		permissionType =
-			if resourceName in ['$metadata', '$serviceroot']
-				query = null
-				'model'
-			else
-				switch method
-					when 'GET'
-						'get'
-					when 'PUT', 'POST', 'PATCH', 'MERGE'
-						'set'
-					when 'DELETE'
-						'delete'
-					else
-						console.warn('Unknown method for permissions type check: ', method)
-						'all'
-		permissions.checkPermissions(req, res, permissionType, resourceName, vocabulary, apiKey)
-		.then((conditionalPerms) ->
-			if conditionalPerms is false
-				return false
-			else if conditionalPerms isnt true
-				if !query?
-					throw new Error('Conditional permissions with no query?!')
-				try
-					conditionalPerms = odataParser.matchAll('/x?$filter=' + conditionalPerms, 'Process')
-				catch e
-					console.log('Failed to parse conditional permissions: ', conditionalPerms)
-					throw new Error('Failed to parse permissions')
-				query.options ?= {}
-				if query.options.$filter?
-					query.options.$filter = ['and', query.options.$filter, conditionalPerms.options.$filter]
-				else
-					query.options.$filter = conditionalPerms.options.$filter
-			if query?
-				try
-					query = odata2AbstractSQL[vocabulary].match(query, 'Process', [method, body])
-				catch e
-					console.error('Failed to translate url: ', JSON.stringify(query, null, '\t'), method, url, e, e.stack)
-					throw new Error('Failed to translate url')
-			return {
-				type: 'OData'
-				vocabulary
-				requests: [{
-					query
-					values: body
-					resourceName
-				}]
-			}
-		)
-
-	parseURITree = (callback) ->
-		(req, res, next) ->
-			args = arguments
-			checkTree = ->
-				if req.tree == false
-					next('route')
-				else if callback?
-					callback(args...)
-				else
-					next()
-			if req.tree?
-				checkTree()
-			else
-				parseODataURI(req, res)
-				.then((tree) ->
-					req.tree = tree
-				).catch((err) ->
-					console.error('Error parsing OData URI', err, err.stack)
-					req.tree = false
-				).done(checkTree)
-
-	exports.runGet = runGet = parseURITree (req, res, next, tx) ->
+	exports.runGet = runGet = uriParser.parseURITree (req, res, next, tx) ->
 		res.set('Cache-Control', 'no-cache')
 		tree = req.tree
 		if tree.requests[0].query?
@@ -602,7 +511,7 @@ define [
 						__model: clientModel.resources[tree.requests[0].resourceName]
 				res.json(data)
 
-	exports.runPost = runPost = parseURITree (req, res, next, tx) ->
+	exports.runPost = runPost = uriParser.parseURITree (req, res, next, tx) ->
 		res.set('Cache-Control', 'no-cache')
 		tree = req.tree
 		request = tree.requests[0]
@@ -653,7 +562,7 @@ define [
 			res.json(err, 404)
 		)
 
-	exports.runPut = runPut = parseURITree (req, res, next, tx) ->
+	exports.runPut = runPut = uriParser.parseURITree (req, res, next, tx) ->
 		res.set('Cache-Control', 'no-cache')
 		tree = req.tree
 		request = tree.requests[0]
@@ -727,7 +636,7 @@ define [
 				)
 			)
 
-	exports.runDelete = runDelete = parseURITree (req, res, next, tx) ->
+	exports.runDelete = runDelete = uriParser.parseURITree (req, res, next, tx) ->
 		res.set('Cache-Control', 'no-cache')
 		tree = req.tree
 		request = tree.requests[0]
