@@ -458,38 +458,26 @@ define [
 	exports.getUserPermissions = getUserPermissions = (userId, callback) ->
 		if _.isFinite(userId)
 			# We have a user id
-			userPerms = runURI('GET', '/Auth/user__has__permission?$select=permission&$filter=user eq ' + userId)
-			userRole = runURI('GET', '/Auth/user__has__role?$select=role&$filter=user eq ' + userId)
+			userPerms = runURI('GET', '/Auth/permission?$select=name&$filter=user__has__permission/user eq ' + userId)
+			userRole = runURI('GET', '/Auth/permission?$select=name&$filter=role__has__permission/role/user__has__role/user eq ' + userId)
 		else if _.isString(userId)
 			# We have an API key
-			userPerms = runURI('GET', "/Auth/api_key__has__permission?$select=permission&$filter=api_key/key eq '" + encodeURIComponent(userId) + "'")
-			userRole = runURI('GET', "/Auth/api_key__has__role?$select=role&$filter=api_key/key eq '" + encodeURIComponent(userId) + "'")
+			userPerms = runURI('GET', "/Auth/permission?$select=name&$filter=api_key__has__permission/api_key/key eq '" + encodeURIComponent(userId) + "'")
+			userRole = runURI('GET', "/Auth/permission?$select=name&$filter=role__has__permission/role/api_key__has__role/api_key/key eq '" + encodeURIComponent(userId) + "'")
 		else
 			return Promise.rejected(new Error('User ID either has to be a numeric id or an api key string, got: ' + typeof userId))
 
 		Promise.all([
 			userPerms
 			userRole
-			runURI('GET', '/Auth/role__has__permission?$select=role,permission')
-			runURI('GET', '/Auth/permission')
-		]).spread((userPermissions, userRoles, rolePermissions, permissions) ->
-			transformObj = (args...) -> _.transform(args.concat({})...)
+		]).spread((userPermissions, rolePermissions) ->
+			allPermissions = []
+			for permission in userPermissions.d
+				allPermissions.push(permission.name)
+			for permission in rolePermissions.d
+				allPermissions.push(permission.name)
 
-			permissions = transformObj permissions.d, (result, permission) ->
-				result[permission.id] = permission.name
-
-			rolePermissions = transformObj rolePermissions.d, (result, rolePermission) ->
-				result[rolePermission.role.__id] ?= []
-				result[rolePermission.role.__id].push(permissions[rolePermission.permission.__id])
-
-			userPermissions = transformObj userPermissions.d, (result, userPermission) ->
-				result[permissions[userPermission.permission.__id]] = true
-
-			for userRole in userRoles.d
-				for rolePermission in rolePermissions[userRole.role.__id]
-					userPermissions[rolePermission] = true
-
-			return userPermissions
+			return _.unique(allPermissions)
 		).catch((err) ->
 			console.error('Error loading permissions', err, err.stack)
 			throw err
