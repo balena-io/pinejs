@@ -33,19 +33,30 @@ define [
 	odataMetadata = {}
 
 	checkForConstraintError = (err, tableName) ->
-		# Unique key
-		if (db.engine is 'mysql' and (matches = /ER_DUP_ENTRY: Duplicate entry '.*?[^\\]' for key '(.*?[^\\])'/.exec(err)) != null) or
-				(db.engine is 'postgres' and (matches = new RegExp('error: duplicate key value violates unique constraint "' + tableName + '_(.*?)_key"').exec(err)) != null)
-			return ['"' + matches[1] + '" must be unique.']
-		else if err == 'could not execute statement (19 constraint failed)'
-			# SQLite
-			return ['Constraint failed.']
-		# Foreign Key
-		else if (db.engine is 'mysql' and (matches = /ER_ROW_IS_REFERENCED_: Cannot delete or update a parent row: a foreign key constraint fails \(".*?"\.(".*?").*/.exec(err)) != null) or
-				(db.engine is 'postgres' and (matches = new RegExp('error: update or delete on table "' + tableName + '" violates foreign key constraint ".*?" on table "(.*?)"').exec(err)) != null)
-			return ['Data is referenced by ' + matches[1].replace(/\ /g, '_').replace(/-/g, '__') + '.']
-		else
+		if db.engine not in ['postgres', 'mysql']
+			if err == 'could not execute statement (19 constraint failed)'
+				# SQLite
+				return ['Constraint failed.']
 			return false
+
+		# Unique key
+		switch db.engine
+			when 'mysql'
+				matches = /ER_DUP_ENTRY: Duplicate entry '.*?[^\\]' for key '(.*?[^\\])'/.exec(err)
+			when 'postgres'
+				matches = new RegExp('error: duplicate key value violates unique constraint "' + tableName + '_(.*?)_key"').exec(err)
+		if matches?
+			return ['"' + matches[1] + '" must be unique.']
+
+		# Foreign Key
+		switch db.engine
+			when 'mysql'
+				matches = /ER_ROW_IS_REFERENCED_: Cannot delete or update a parent row: a foreign key constraint fails \(".*?"\.(".*?").*/.exec(err)
+			when 'postgres'
+				matches = new RegExp('error: update or delete on table "' + tableName + '" violates foreign key constraint ".*?" on table "(.*?)"').exec(err)
+		if matches?
+			return ['Data is referenced by ' + matches[1].replace(/\ /g, '_').replace(/-/g, '__') + '.']
+		return false
 
 	getAndCheckBindValues = (vocab, bindings, values) ->
 		mappings = clientModels[vocab].resourceToSQLMappings
