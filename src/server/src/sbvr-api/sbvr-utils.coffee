@@ -71,9 +71,9 @@ define [
 					value = values[fieldName]
 
 				[mappedTableName, mappedFieldName] = mappings[tableName][fieldName]
-				field = _.where(sqlModelTables[mappedTableName].fields, {
+				field = _.find(sqlModelTables[mappedTableName].fields, {
 					fieldName: mappedFieldName
-				})[0]
+				})
 			else
 				[dataType, value] = binding
 				field = {dataType}
