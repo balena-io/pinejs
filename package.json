@@ -8,23 +8,23 @@
   "repository": "git@bitbucket.org:rulemotion/rulemotion-canvas.git",
   "dependencies": {
     "coffee-script": "~1.6.3",
-    "ometa-js": "~1.0.4",
+    "ometa-js": "~1.1.0",
     "mysql": "~2.0.0-alpha9",
     "pg": "~2.8.2",
     "bcrypt": "~0.7.6",
     "express": "~3.4.0",
-    "lodash": "~2.2.1",
+    "lodash": "~2.3.0",
     "passport": "~0.1.17",
     "passport-local": "~0.1.6",
     "requirejs": "~2.1.6",
     "bluebird": "~0.9.8-0"
   },
   "devDependencies": {
-    "abstract-sql-compiler": "git+ssh://git@bitbucket.org:rulemotion/abstract-sql-compiler.git#v0.0.15",
-    "lf-to-abstract-sql": "git+ssh://git@bitbucket.org:rulemotion/lf-to-abstract-sql.git#v0.0.5",
-    "odata-parser": "git+ssh://git@bitbucket.org:rulemotion/odata-parser.git#v0.0.6",
-    "odata-to-abstract-sql": "git+ssh://git@bitbucket.org:rulemotion/odata-to-abstract-sql.git#v0.0.20",
-    "sbvr-parser": "git+ssh://git@bitbucket.org:rulemotion/sbvr-parser.git#v0.0.10"
+    "abstract-sql-compiler": "git+ssh://git@bitbucket.org:rulemotion/abstract-sql-compiler.git#v0.0.16",
+    "lf-to-abstract-sql": "git+ssh://git@bitbucket.org:rulemotion/lf-to-abstract-sql.git#v0.0.6",
+    "odata-parser": "git+ssh://git@bitbucket.org:rulemotion/odata-parser.git#v0.0.7",
+    "odata-to-abstract-sql": "git+ssh://git@bitbucket.org:rulemotion/odata-to-abstract-sql.git#v0.0.21",
+    "sbvr-parser": "git+ssh://git@bitbucket.org:rulemotion/sbvr-parser.git#v0.0.11"
   },
   "engines": {
     "node": "~0.10.21"
