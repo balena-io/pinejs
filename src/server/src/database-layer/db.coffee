@@ -250,12 +250,11 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Pro
 	else
 		exports.websql = (databaseName) ->
 			_db = openDatabase(databaseName, '1.0', 'rulemotion', 2 * 1024 * 1024)
-			createResult = (result) ->
+			getInsertId = (result) ->
+				# Ignore the potential DOM exception.
 				try
-					insertId = result.insertId
-				catch e
-					insertId = null
-					# Ignore the potential DOM exception.
+					return result.insertId
+			createResult = (result) ->
 				return {
 					rows:
 						length: result.rows.length
@@ -267,7 +266,7 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Pro
 							for i in [0...result.rows.length] by 1
 								iterator.call(thisArg, @item(i), i, result.rows)
 					rowsAffected: result.rowsAffected
-					insertId: insertId
+					insertId: getInsertId()
 				}
 
 			class WebSqlTx extends Tx
