@@ -25,3 +25,10 @@ All users (including ones who are not logged in) automatically gain any permissi
 
 ### Model
 The SBVR model for users can be found at [/src/server/src/sbvr-api/user.sbvr](../src/server/src/sbvr-api/user.sbvr)
+
+### Exposing the OData API
+To expose the user model over the OData API use the following in the custom server code:
+```javascript
+app.get('/Auth/*', sbvrUtils.runGet)
+```
+This will allow you to access the user model under the `/Auth` entry point as you would any other model, eg `GET /Auth/user`
