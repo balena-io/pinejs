@@ -12,14 +12,17 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Pro
 				'?'
 		])
 
-	getStackTrace = ->
+	getError = ->
 		try
 			throw new Error()
 		catch e
-			stack = e.stack
-			for i in [0...2]
-				stack = stack.substring(stack.indexOf('\n') + 1)
-			return stack
+			return e
+	getStackTrace = ->
+		e = getError()
+		stack = e.stack
+		for i in [0...2]
+			stack = stack.substring(stack.indexOf('\n') + 1)
+		return stack
 
 	class Tx
 		timeoutMS = 1000
