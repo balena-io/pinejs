@@ -32,3 +32,5 @@ To expose the user model over the OData API use the following in the custom serv
 app.get('/Auth/*', sbvrUtils.runGet)
 ```
 This will allow you to access the user model under the `/Auth` entry point as you would any other model, eg `GET /Auth/user`
+
+Alternatively you can copy the user model vocab into your SBVR file, which will expose it under the same entry point as your vocabulary, the benefit to this is that you can add custom attributes for the user vocab to your vocab and have them be accessible via the API.
