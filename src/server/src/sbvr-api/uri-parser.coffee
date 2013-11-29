@@ -14,7 +14,7 @@ define [
 		vocabulary = url[1]
 		if !vocabulary? or !odata2AbstractSQL[vocabulary]?
 			throw new Error('No such vocabulary: ' + vocabulary)
-		url = '/' + url[2..].join('/')
+		url = '/' + url[2...].join('/')
 		try
 			query = odataParser.matchAll(url, 'Process')
 		catch e
