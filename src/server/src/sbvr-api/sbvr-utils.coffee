@@ -21,9 +21,9 @@ define [
 
 	_.extend(exports, permissions)
 
-	fetchProcessing = _.transform sbvrTypes, (result, {fetchProcessing}, type) ->
+	fetchProcessing = _.mapValues sbvrTypes, ({fetchProcessing}) ->
 		if fetchProcessing?
-			result[type] = Promise.promisify(fetchProcessing)
+			Promise.promisify(fetchProcessing)
 
 	LF2AbstractSQLTranslator = LF2AbstractSQL.createTranslator(sbvrTypes)
 
