@@ -131,7 +131,6 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Pro
 						])
 						_db.query {text: sql, values: bindings}, (err, res) ->
 							if err
-								console.warn(sql, bindings, err)
 								deferred.reject(err)
 							else
 								deferred.fulfill(createResult(res))
@@ -201,7 +200,6 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Pro
 					executeSql = (sql, bindings, deferred) ->
 						_db.query sql, bindings, (err, res) ->
 							if err
-								console.warn(sql, bindings, err)
 								deferred.reject(err)
 							else
 								deferred.fulfill(createResult(res))
@@ -291,7 +289,6 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Pro
 						successCallback = (_tx, _results) =>
 							deferred.fulfill(createResult(_results))
 						errorCallback = (_tx, err) =>
-							console.warn(sql, bindings, err, stackTrace)
 							deferred.reject(err)
 
 						sql = bindDefaultValues(sql, bindings)
