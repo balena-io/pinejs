@@ -13,7 +13,7 @@
     "pg": "~2.8.2",
     "bcrypt": "~0.7.6",
     "express": "~3.4.0",
-    "lodash": "~2.3.0",
+    "lodash": "~2.4.1",
     "passport": "~0.1.17",
     "passport-local": "~0.1.6",
     "requirejs": "~2.1.6",
