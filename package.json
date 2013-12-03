@@ -17,7 +17,7 @@
     "passport": "~0.1.17",
     "passport-local": "~0.1.6",
     "requirejs": "~2.1.6",
-    "bluebird": "~0.9.8-0"
+    "bluebird": "~0.11.5-0"
   },
   "devDependencies": {
     "abstract-sql-compiler": "git+ssh://git@bitbucket.org:rulemotion/abstract-sql-compiler.git#v0.0.16",
