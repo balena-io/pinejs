@@ -23,7 +23,7 @@
     "abstract-sql-compiler": "git+ssh://git@bitbucket.org:rulemotion/abstract-sql-compiler.git#v0.0.16",
     "lf-to-abstract-sql": "git+ssh://git@bitbucket.org:rulemotion/lf-to-abstract-sql.git#v0.0.6",
     "odata-parser": "git+ssh://git@bitbucket.org:rulemotion/odata-parser.git#v0.0.7",
-    "odata-to-abstract-sql": "git+ssh://git@bitbucket.org:rulemotion/odata-to-abstract-sql.git#v0.0.21",
+    "odata-to-abstract-sql": "git+ssh://git@bitbucket.org:rulemotion/odata-to-abstract-sql.git#v0.0.22",
     "sbvr-parser": "git+ssh://git@bitbucket.org:rulemotion/sbvr-parser.git#v0.0.11"
   },
   "engines": {
