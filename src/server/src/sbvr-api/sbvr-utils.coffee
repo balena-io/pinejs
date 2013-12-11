@@ -16,7 +16,6 @@ define [
 	'text!sbvr-api/transaction.sbvr'
 	'text!sbvr-api/user.sbvr'
 ], (exports, has, SBVRParser, LF2AbstractSQL, AbstractSQL2SQL, AbstractSQLCompiler, AbstractSQL2CLF, ODataMetadataGenerator, permissions, uriParser, _, Promise, sbvrTypes, devModel, transactionModel, userModel) ->
-	exports = {}
 	db = null
 
 	_.extend(exports, permissions)
