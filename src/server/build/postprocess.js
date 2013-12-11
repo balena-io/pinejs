@@ -1,5 +1,5 @@
 module.exports = function(text) {
-	var buildDir = this.baseUrl + '../build',
+	var buildDir = '.',
 		hasConfig = JSON.stringify(this.has, null, '\t'),
 		childProcess = require('child_process');
 	childProcess.exec('npm list --json', function(err, stdout, stderr) {
