@@ -1,27 +1,8 @@
 define ['bluebird'], (Promise) ->
 	return (options, sbvrUtils, app, passport) ->
-		exports = {}
 		checkPassword = (username, password, done) ->
-			sbvrUtils.runURI('GET', "/Auth/user?$filter=user/username eq '" + encodeURIComponent(username) + "'")
-			.then((result) ->
-				if result.d.length is 0
-					throw new Error('User not found')
-				hash = result.d[0].password
-				userId = result.d[0].id
-				compare(password, hash)
-				.then((res) ->
-					if !res
-						throw new Error('Passwords do not match')
-					sbvrUtils.getUserPermissions(userId)
-					.then((permissions) ->
-						return {
-							id: userId
-							username: username
-							permissions: permissions
-						}
-					)
-				)
-			).catch(->
+			sbvrUtils.checkPassword
+			.catch(->
 				return false
 			).done (user) ->
 				done(null, user)
@@ -71,4 +52,4 @@ define ['bluebird'], (Promise) ->
 			req.logout()
 			res.redirect('/')
 
-		return exports
+		return

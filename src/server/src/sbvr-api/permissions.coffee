@@ -5,6 +5,28 @@ define [
 	'cs!sbvr-api/sbvr-utils'
 ], (exports, _, Promise, sbvrUtils) ->
 
+	exports.checkPassword = (username, password, callback) ->
+		sbvrUtils.runURI('GET', "/Auth/user?$filter=user/username eq '" + encodeURIComponent(username) + "'")
+		.then((result) ->
+			if result.d.length is 0
+				throw new Error('User not found')
+			hash = result.d[0].password
+			userId = result.d[0].id
+			compare(password, hash)
+			.then((res) ->
+				if !res
+					throw new Error('Passwords do not match')
+				getUserPermissions(userId)
+				.then((permissions) ->
+					return {
+						id: userId
+						username: username
+						permissions: permissions
+					}
+				)
+			)
+		).nodeify(callback)
+
 	exports.getUserPermissions = getUserPermissions = (userId, callback) ->
 		if _.isFinite(userId)
 			# We have a user id
