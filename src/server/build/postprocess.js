@@ -13,7 +13,7 @@ module.exports = function(text) {
 			if(installedPackages[packageName]) {
 				var installedFrom = installedPackages[packageName].from.replace(packageName + '@', '');
 				if(installedFrom != dependencies[packageName]) {
-					console.error('Installed dependencies do not match package.json, installed: "' + installedFrom + '", expected: "' + dependencies[packageName] + '", please npm install.')
+					console.error('Installed dependencies for "' + packageName + '" do not match package.json, installed: "' + installedFrom + '", expected: "' + dependencies[packageName] + '", please npm install.')
 					process.exit(1);
 				}
 			}
