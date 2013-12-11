@@ -9,18 +9,22 @@ module.exports = function(text) {
 		}
 		var installedPackages = JSON.parse(stdout).dependencies;
 		var dependencies = require(buildDir + '/../../../package.json').dependencies;
+		var depMismatch = false;
 		for(var packageName in dependencies) {
 			if(installedPackages[packageName]) {
 				var installedFrom = installedPackages[packageName].from.replace(packageName + '@', '');
 				if(installedFrom != dependencies[packageName]) {
 					console.error('Installed dependencies for "' + packageName + '" do not match package.json, installed: "' + installedFrom + '", expected: "' + dependencies[packageName] + '", please npm install.')
-					process.exit(1);
+					depMismatch = true;
 				}
 			}
 			else {
 				console.error(packageName + ' is not installed, please npm install.');
-				process.exit(1);
+				depMismatch = true;
 			}
+		}
+		if(depMismatch) {
+			process.exit(1);
 		}
 		childProcess.exec('git describe --tags', {
 			cwd: buildDir
