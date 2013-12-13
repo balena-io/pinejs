@@ -4,6 +4,45 @@ define [
 	'bluebird'
 	'cs!sbvr-api/sbvr-utils'
 ], (exports, _, Promise, sbvrUtils) ->
+	nestedCheck = (check, stringCallback) ->
+		if _.isString(check)
+			stringCallback(check)
+		else if _.isArray(check)
+			results = []
+			for subcheck in check
+				result = nestedCheck(subcheck, stringCallback)
+				if result is false
+					return false
+				else if result isnt true
+					results.push(result)
+			if results.length > 0
+				return '(' + results.join(' and ') + ')'
+			else
+				return true
+		else if _.isObject(check)
+			checkTypes = _.keys(check)
+			if checkTypes.length > 1
+				throw 'More than one check type: ' + checkTypes
+			checkType = checkTypes[0]
+			switch checkType.toUpperCase()
+				when 'AND'
+					return nestedCheck(check[checkType], stringCallback)
+				when 'OR'
+					results = []
+					for subcheck in check[checkType]
+						result = nestedCheck(subcheck, stringCallback)
+						if result is true
+							return true
+						else if result isnt false
+							results.push(result)
+					if results.length > 0
+						return '(' + results.join(' or ') + ')'
+					else
+						return false
+				else
+					throw 'Cannot parse required checking logic: ' + checkType
+		else
+			throw 'Cannot parse required checks: ' + check
 
 	exports.checkPassword = (username, password, callback) ->
 		sbvrUtils.runURI('GET', "/Auth/user?$filter=user/username eq '" + encodeURIComponent(username) + "'")
@@ -84,70 +123,31 @@ define [
 
 			_checkPermissions = (permissions) ->
 				permissionKeys = _.keys(permissions)
-				_recurseCheckPermissions = (permissionCheck) ->
-					if _.isString(permissionCheck)
-						resourcePermission = 'resource.' + permissionCheck
-						if permissions.hasOwnProperty(resourcePermission)
+				checkObject = or: ['all', actionList]
+				return nestedCheck checkObject, (permissionCheck) ->
+					resourcePermission = 'resource.' + permissionCheck
+					if permissions.hasOwnProperty(resourcePermission)
+						return true
+					if vocabulary?
+						vocabularyPermission = vocabulary + '.' + permissionCheck
+						if permissions.hasOwnProperty(vocabularyPermission)
 							return true
-						if vocabulary?
-							vocabularyPermission = vocabulary + '.' + permissionCheck
-							if permissions.hasOwnProperty(vocabularyPermission)
+						if resourceName?
+							vocabularyResourcePermission = vocabulary + '.' + resourceName + '.' + permissionCheck
+							if permissions.hasOwnProperty(vocabularyResourcePermission)
 								return true
-							if resourceName?
-								vocabularyResourcePermission = vocabulary + '.' + resourceName + '.' + permissionCheck
-								if permissions.hasOwnProperty(vocabularyResourcePermission)
-									return true
 
-						conditionalPermissions = _.map permissionKeys, (permissionName) ->
-							for permission in [resourcePermission, vocabularyPermission, vocabularyResourcePermission] when permission?
-								permission = permission + '?'
-								if permissionName[...permission.length] == permission
-									return permissionName[permission.length...].replace(/\$USER\.ID/g, req.user?.id ? 0)
-							return false
-						conditionalPermissions = _.filter(conditionalPermissions)
-
-						if conditionalPermissions.length > 0
-							return '(' + conditionalPermissions.join(' or ') + ')'
+					conditionalPermissions = _.map permissionKeys, (permissionName) ->
+						for permission in [resourcePermission, vocabularyPermission, vocabularyResourcePermission] when permission?
+							permission = permission + '?'
+							if permissionName[...permission.length] == permission
+								return permissionName[permission.length...].replace(/\$USER\.ID/g, req.user?.id ? 0)
 						return false
-					else if _.isArray(permissionCheck)
-						conditionalPermissions = []
-						for permission in permissionCheck
-							result = _recurseCheckPermissions(permission)
-							if result is false
-								return false
-							else if result isnt true
-								conditionalPermissions.push(result)
-						if conditionalPermissions.length > 0
-							return '(' + conditionalPermissions.join(' and ') + ')'
-						else
-							return true
-					else if _.isObject(permissionCheck)
-						checkTypes = _.keys(permissionCheck)
-						if checkTypes.length > 1
-							throw 'Too many check types: ' + checkTypes
-						checkType = checkTypes[0]
-						switch checkType.toUpperCase()
-							when 'AND'
-								return _recurseCheckPermissions(permissionCheck[checkType])
-							when 'OR'
-								conditionalPermissions = []
-								for permission in permissionCheck[checkType]
-									result = _recurseCheckPermissions(permission)
-									if result is true
-										return true
-									else if result isnt false
-										conditionalPermissions.push(result)
-								if conditionalPermissions.length > 0
-									return '(' + conditionalPermissions.join(' or ') + ')'
-								else
-									return false
-							else
-								throw 'Cannot parse required permissions logic: ' + checkType
-						return false
-					else
-						throw 'Cannot parse required permissions: ' + permissionCheck
+					conditionalPermissions = _.filter(conditionalPermissions)
 
-				return _recurseCheckPermissions(or: ['all', actionList])
+					if conditionalPermissions.length > 0
+						return '(' + conditionalPermissions.join(' or ') + ')'
+					return false
 
 			Promise.try(->
 				if req.user?
