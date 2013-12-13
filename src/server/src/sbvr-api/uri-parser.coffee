@@ -75,12 +75,11 @@ define [
 
 	exports.parseURITree = (callback) ->
 		(req, res, next) ->
-			args = arguments
 			checkTree = ->
 				if req.tree == false
 					next('route')
 				else if callback?
-					callback(args...)
+					callback(req, res, next)
 				else
 					next()
 			if req.tree?
