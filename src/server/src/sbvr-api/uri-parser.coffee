@@ -92,22 +92,20 @@ define [
 
 	exports.parseURITree = (callback) ->
 		(req, res, next) ->
-			checkTree = ->
-				if req.tree == false
-					next('route')
+			checkTree = (tree) ->
+				req.tree = tree
+				if tree is false
+					res.send(401)
 				else if callback?
 					callback(req, res, next)
 				else
 					next()
 			if req.tree?
-				checkTree()
+				checkTree(req.tree)
 			else
-				parseODataURI(req, res)
-				.then((tree) ->
-					req.tree = tree
-				).catch((err) ->
+				parseODataURI(req, res).catch((err) ->
 					console.error('Error parsing OData URI', err, err.stack)
-					req.tree = false
+					return false
 				).done(checkTree)
 
 	exports.addClientModel = (vocab, clientModel) ->
