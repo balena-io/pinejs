@@ -435,6 +435,7 @@ define [
 			method: method
 			url: uri
 			body: body
+			tx: tx
 		res =
 			send: (statusCode) ->
 				if statusCode >= 400
@@ -455,16 +456,16 @@ define [
 
 		switch method
 			when 'GET'
-				runGet(req, res, next, tx)
+				runGet(req, res, next)
 			when 'POST'
-				runPost(req, res, next, tx)
+				runPost(req, res, next)
 			when 'PUT', 'PATCH', 'MERGE'
-				runPut(req, res, next, tx)
+				runPut(req, res, next)
 			when 'DELETE'
-				runDelete(req, res, next, tx)
+				runDelete(req, res, next)
 		return deferred.promise.nodeify(callback)
 
-	exports.runGet = runGet = uriParser.parseURITree (req, res, next, tx) ->
+	exports.runGet = runGet = uriParser.parseURITree (req, res, next) ->
 		res.set('Cache-Control', 'no-cache')
 		tree = req.tree
 		if tree.requests[0].query?
@@ -478,8 +479,8 @@ define [
 			getAndCheckBindValues(tree.vocabulary, bindings, request.values)
 			.then((values) ->
 				console.log(query, values)
-				if tx?
-					tx.executeSql(query, values)
+				if req.tx?
+					req.tx.executeSql(query, values)
 				else
 					db.transaction().then((tx) ->
 						tx.executeSql(query, values)
@@ -521,7 +522,7 @@ define [
 						__model: clientModel.resources[tree.requests[0].resourceName]
 				res.json(data)
 
-	exports.runPost = runPost = uriParser.parseURITree (req, res, next, tx) ->
+	exports.runPost = runPost = uriParser.parseURITree (req, res, next) ->
 		res.set('Cache-Control', 'no-cache')
 		tree = req.tree
 		request = tree.requests[0]
@@ -556,8 +557,8 @@ define [
 						)
 					)
 				)
-			if tx?
-				runQuery(tx)
+			if req.tx?
+				runQuery(req.tx)
 			else
 				db.transaction().then((tx) ->
 					runQuery(tx)
@@ -572,7 +573,7 @@ define [
 			res.json(err, 404)
 		)
 
-	exports.runPut = runPut = uriParser.parseURITree (req, res, next, tx) ->
+	exports.runPut = runPut = uriParser.parseURITree (req, res, next) ->
 		res.set('Cache-Control', 'no-cache')
 		tree = req.tree
 		request = tree.requests[0]
@@ -633,8 +634,8 @@ define [
 			).catch((err) ->
 				res.json(err, 404)
 			)
-		if tx?
-			runTransaction(tx)
+		if req.tx?
+			runTransaction(req.tx)
 		else
 			db.transaction().then((tx) ->
 				runTransaction(tx)
@@ -646,7 +647,7 @@ define [
 				)
 			)
 
-	exports.runDelete = runDelete = uriParser.parseURITree (req, res, next, tx) ->
+	exports.runDelete = runDelete = uriParser.parseURITree (req, res, next) ->
 		res.set('Cache-Control', 'no-cache')
 		tree = req.tree
 		request = tree.requests[0]
@@ -670,8 +671,8 @@ define [
 				).then(->
 					validateDB(tx, sqlModels[vocab])
 				)
-			if tx?
-				runQuery(tx)
+			if req.tx?
+				runQuery(req.tx)
 			else
 				db.transaction().then((tx) ->
 					runQuery(tx)
