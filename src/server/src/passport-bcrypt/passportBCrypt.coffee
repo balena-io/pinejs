@@ -1,7 +1,7 @@
 define ['bluebird'], (Promise) ->
 	return (options, sbvrUtils, app, passport) ->
 		checkPassword = (username, password, done) ->
-			sbvrUtils.checkPassword
+			sbvrUtils.checkPassword()
 			.catch(->
 				return false
 			).done (user) ->
