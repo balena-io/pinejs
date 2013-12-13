@@ -4,7 +4,7 @@ define [
 	'bluebird'
 	'cs!sbvr-api/sbvr-utils'
 ], (exports, _, Promise, sbvrUtils) ->
-	nestedCheck = (check, stringCallback) ->
+	exports.nestedCheck = nestedCheck = (check, stringCallback) ->
 		if _.isString(check)
 			stringCallback(check)
 		else if _.isArray(check)
@@ -16,7 +16,7 @@ define [
 				else if result isnt true
 					results.push(result)
 			if results.length > 0
-				return '(' + results.join(' and ') + ')'
+				return and: results
 			else
 				return true
 		else if _.isObject(check)
@@ -36,7 +36,7 @@ define [
 						else if result isnt false
 							results.push(result)
 					if results.length > 0
-						return '(' + results.join(' or ') + ')'
+						return or: results
 					else
 						return false
 				else
@@ -146,7 +146,7 @@ define [
 					conditionalPermissions = _.filter(conditionalPermissions)
 
 					if conditionalPermissions.length > 0
-						return '(' + conditionalPermissions.join(' or ') + ')'
+						return or: conditionalPermissions.join(' or ')
 					return false
 
 			Promise.try(->
@@ -167,7 +167,7 @@ define [
 				).then((apiKeyAllowed) ->
 					if allowed is false or apiKeyAllowed is true
 						return apiKeyAllowed
-					return '(' + allowed + ' or ' + apiKeyAllowed + ')'
+					return or: [allowed, apiKeyAllowed]
 				)
 			).then((allowed) ->
 				if allowed is true
@@ -181,7 +181,7 @@ define [
 				).then((guestAllowed) ->
 					if allowed is false or guestAllowed is true
 						return guestAllowed
-					return '(' + allowed + ' or ' + guestAllowed + ')'
+					return or: [allowed, guestAllowed]
 				)
 			).nodeify(callback)
 

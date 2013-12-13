@@ -46,16 +46,33 @@ define [
 			else if conditionalPerms isnt true
 				if !query?
 					throw new Error('Conditional permissions with no query?!')
-				try
-					conditionalPerms = odataParser.matchAll('/x?$filter=' + conditionalPerms, 'Process')
-				catch e
-					console.log('Failed to parse conditional permissions: ', conditionalPerms)
-					throw new Error('Failed to parse permissions')
-				query.options ?= {}
-				if query.options.$filter?
-					query.options.$filter = ['and', query.options.$filter, conditionalPerms.options.$filter]
-				else
-					query.options.$filter = conditionalPerms.options.$filter
+				permissionFilters = permissions.nestedCheck conditionalPerms, (permissionCheck) ->
+					try
+						conditionalPerms = odataParser.matchAll('/x?$filter=' + conditionalPerms, 'Process')
+						return conditionalPerms.options.$filter
+					catch e
+						console.warn('Failed to parse conditional permissions: ', conditionalPerms)
+						return false
+				if permissionFilters is false
+					return false
+				else if permissionFilters isnt true
+					collapse = (obj) ->
+						_(obj)
+						.pairs()
+						.flatten()
+						.map((v) ->
+							if _.isObject(v)
+								collapse(v)
+							else
+								v
+						).value()
+					permissionFilters = collapse(permissionFilters)
+					query.options ?= {}
+					if query.options.$filter?
+						query.options.$filter = ['and', query.options.$filter, permissionFilters]
+					else
+						query.options.$filter = permissionFilters
+
 			if query?
 				try
 					query = odata2AbstractSQL[vocabulary].match(query, 'Process', [method, body])
