@@ -16,7 +16,7 @@ define [
 				else if result isnt true
 					results.push(result)
 			if results.length is 1
-				return result[0]
+				return results[0]
 			else if results.length > 1
 				return results
 			else
@@ -38,7 +38,7 @@ define [
 						else if result isnt false
 							results.push(result)
 					if results.length is 1
-						return result[0]
+						return results[0]
 					else if results.length > 1
 						return or: results
 					else
