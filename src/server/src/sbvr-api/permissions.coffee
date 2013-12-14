@@ -146,6 +146,7 @@ define [
 							if permissionName[...permission.length] == permission
 								return permissionName[permission.length...].replace(/\$USER\.ID/g, req.user?.id ? 0)
 						return false
+					# Remove the false elements.
 					conditionalPermissions = _.filter(conditionalPermissions)
 
 					if conditionalPermissions.length is 1
