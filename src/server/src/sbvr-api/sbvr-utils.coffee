@@ -431,8 +431,9 @@ define [
 		console.log('Running', method, uri)
 		req =
 			user:
-				permissions:
-					'resource.all': true
+				permissions: [
+					'resource.all'
+				]
 			method: method
 			url: uri
 			body: body

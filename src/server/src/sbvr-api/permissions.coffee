@@ -122,22 +122,21 @@ define [
 			[req, res, actionList, resourceName, vocabulary, apiKey] = args
 
 			_checkPermissions = (permissions) ->
-				permissionKeys = _.keys(permissions)
 				checkObject = or: ['all', actionList]
 				return nestedCheck checkObject, (permissionCheck) ->
 					resourcePermission = 'resource.' + permissionCheck
-					if permissions.hasOwnProperty(resourcePermission)
+					if _.contains(permissions, resourcePermission)
 						return true
 					if vocabulary?
 						vocabularyPermission = vocabulary + '.' + permissionCheck
-						if permissions.hasOwnProperty(vocabularyPermission)
+						if _.contains(permissions, vocabularyPermission)
 							return true
 						if resourceName?
 							vocabularyResourcePermission = vocabulary + '.' + resourceName + '.' + permissionCheck
-							if permissions.hasOwnProperty(vocabularyResourcePermission)
+							if _.contains(permissions, vocabularyResourcePermission)
 								return true
 
-					conditionalPermissions = _.map permissionKeys, (permissionName) ->
+					conditionalPermissions = _.map permissions, (permissionName) ->
 						for permission in [resourcePermission, vocabularyPermission, vocabularyResourcePermission] when permission?
 							permission = permission + '?'
 							if permissionName[...permission.length] == permission
