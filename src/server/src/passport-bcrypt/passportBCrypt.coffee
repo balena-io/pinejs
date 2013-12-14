@@ -24,7 +24,6 @@ define ['bluebird'], (Promise) ->
 						res.redirect(options.successRedirect)
 
 		if passport?
-			compare = Promise.promisify(require('bcrypt').compare)
 			LocalStrategy = require('passport-local').Strategy
 			app.post options.loginUrl, (req, res, next) ->
 				passport.authenticate('local', (err, user) ->
@@ -39,8 +38,6 @@ define ['bluebird'], (Promise) ->
 
 			passport.use(new LocalStrategy(checkPassword))
 		else
-			compare = (value, hash) ->
-				Promise.fulfilled(value == hash)
 			do ->
 				_user = false
 				app.post options.loginUrl, (req, res, next) ->

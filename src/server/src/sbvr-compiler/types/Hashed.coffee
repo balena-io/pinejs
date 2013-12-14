@@ -1,4 +1,10 @@
 define ['has', 'lodash'], (has, _) ->
+	compare =
+		if has 'ENV_NODEJS'
+			Promise.promisify(require('bcrypt').compare)
+		else
+			(value, hash) ->
+				Promise.fulfilled(value == hash)
 	return {
 		types:
 			postgres: 'CHAR(60)'
@@ -23,4 +29,6 @@ define ['has', 'lodash'], (has, _) ->
 						callback(err)
 					else
 						bcrypt.hash(value, salt, callback)
+
+		compare: compare
 	}
