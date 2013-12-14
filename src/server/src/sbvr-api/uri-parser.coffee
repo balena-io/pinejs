@@ -49,23 +49,27 @@ define [
 				permissionFilters = permissions.nestedCheck conditionalPerms, (permissionCheck) ->
 					try
 						permissionCheck = odataParser.matchAll('/x?$filter=' + permissionCheck, 'Process')
-						return permissionCheck.options.$filter
+						# We use an object with filter key to avoid collapsing our filters later.
+						return filter: permissionCheck.options.$filter
 					catch e
 						console.warn('Failed to parse conditional permissions: ', permissionCheck)
 						return false
 				if permissionFilters is false
 					return false
 				else if permissionFilters isnt true
-					collapse = (obj) ->
-						_(obj)
-						.pairs()
-						.flatten()
-						.map((v) ->
-							if _.isObject(v)
-								collapse(v)
+					collapse = (v) ->
+						if _.isObject(v)
+							if v.hasOwnProperty('filter')
+								v.filter
 							else
-								v
-						).value()
+								_(v)
+								.pairs()
+								.flatten()
+								.map(collapse)
+								.value()
+						else
+							v
+
 					permissionFilters = collapse(permissionFilters)
 					query.options ?= {}
 					if query.options.$filter?
