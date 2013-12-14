@@ -1,4 +1,4 @@
-define ['has', 'lodash'], (has, _) ->
+define ['has', 'lodash', 'bluebird'], (has, _, Promise) ->
 	compare =
 		if has 'ENV_NODEJS'
 			Promise.promisify(require('bcrypt').compare)
