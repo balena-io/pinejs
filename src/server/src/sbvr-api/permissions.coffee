@@ -24,7 +24,7 @@ define [
 		else if _.isObject(check)
 			checkTypes = _.keys(check)
 			if checkTypes.length > 1
-				throw 'More than one check type: ' + checkTypes
+				throw new Error('More than one check type: ' + checkTypes)
 			checkType = checkTypes[0]
 			switch checkType.toUpperCase()
 				when 'AND'
@@ -44,9 +44,9 @@ define [
 					else
 						return false
 				else
-					throw 'Cannot parse required checking logic: ' + checkType
+					throw new Error('Cannot parse required checking logic: ' + checkType)
 		else
-			throw 'Cannot parse required checks: ' + check
+			throw new Error('Cannot parse required checks: ' + check)
 
 	exports.checkPassword = (username, password, callback) ->
 		sbvrUtils.runURI('GET', "/Auth/user?$filter=user/username eq '" + encodeURIComponent(username) + "'")
