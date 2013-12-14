@@ -145,7 +145,7 @@ define [
 					conditionalPermissions = _.filter(conditionalPermissions)
 
 					if conditionalPermissions.length > 0
-						return or: conditionalPermissions.join(' or ')
+						return or: conditionalPermissions
 					return false
 
 			Promise.try(->
