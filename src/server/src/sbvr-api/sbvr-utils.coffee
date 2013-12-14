@@ -19,6 +19,7 @@ define [
 	db = null
 
 	_.extend(exports, permissions)
+	exports.sbvrTypes = sbvrTypes
 
 	fetchProcessing = _.mapValues sbvrTypes, ({fetchProcessing}) ->
 		if fetchProcessing?

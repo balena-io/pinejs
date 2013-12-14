@@ -51,7 +51,7 @@ define [
 				throw new Error('User not found')
 			hash = result.d[0].password
 			userId = result.d[0].id
-			compare(password, hash)
+			sbvrUtils.sbvrTypes.Hashed.compare(password, hash)
 			.then((res) ->
 				if !res
 					throw new Error('Passwords do not match')
