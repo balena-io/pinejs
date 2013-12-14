@@ -15,8 +15,10 @@ define [
 					return false
 				else if result isnt true
 					results.push(result)
-			if results.length > 0
-				return and: results
+			if results.length is 1
+				return result[0]
+			else if results.length > 1
+				return results
 			else
 				return true
 		else if _.isObject(check)
@@ -35,7 +37,9 @@ define [
 							return true
 						else if result isnt false
 							results.push(result)
-					if results.length > 0
+					if results.length is 1
+						return result[0]
+					else if results.length > 1
 						return or: results
 					else
 						return false
@@ -144,7 +148,9 @@ define [
 						return false
 					conditionalPermissions = _.filter(conditionalPermissions)
 
-					if conditionalPermissions.length > 0
+					if conditionalPermissions.length is 1
+						return conditionalPermissions[0]
+					else if conditionalPermissions.length > 1
 						return or: conditionalPermissions
 					return false
 
