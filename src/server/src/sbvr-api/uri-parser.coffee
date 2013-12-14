@@ -48,10 +48,10 @@ define [
 					throw new Error('Conditional permissions with no query?!')
 				permissionFilters = permissions.nestedCheck conditionalPerms, (permissionCheck) ->
 					try
-						conditionalPerms = odataParser.matchAll('/x?$filter=' + conditionalPerms, 'Process')
-						return conditionalPerms.options.$filter
+						permissionCheck = odataParser.matchAll('/x?$filter=' + permissionCheck, 'Process')
+						return permissionCheck.options.$filter
 					catch e
-						console.warn('Failed to parse conditional permissions: ', conditionalPerms)
+						console.warn('Failed to parse conditional permissions: ', permissionCheck)
 						return false
 				if permissionFilters is false
 					return false
