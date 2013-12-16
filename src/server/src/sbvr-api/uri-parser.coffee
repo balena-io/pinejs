@@ -107,10 +107,10 @@ define [
 			if req.tree?
 				checkTree(req.tree)
 			else
-				parseODataURI(req, res).catch((err) ->
+				parseODataURI(req, res)
+				.done checkTree, (err) ->
 					console.error('Error parsing OData URI', err, err.stack)
-					return false
-				).done(checkTree)
+					next('route')
 
 	exports.addClientModel = (vocab, clientModel) ->
 		odata2AbstractSQL[vocab] = OData2AbstractSQL.createInstance()
