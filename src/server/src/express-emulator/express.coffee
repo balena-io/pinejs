@@ -1,6 +1,7 @@
 define ['bluebird', 'lodash'], (Promise, _) ->
-	window?.GLOBAL_PERMISSIONS =
-		'resource.all': true
+	window?.GLOBAL_PERMISSIONS = [
+		'resource.all'
+	]
 	app = do ->
 		enabled = Promise.pending()
 		handlers =
