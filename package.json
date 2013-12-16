@@ -1,6 +1,6 @@
 {
   "name": "rulemotion-canvas",
-  "version": "0.2.17",
+  "version": "0.2.18",
   "main": "platform.js",
   "scripts": {
     "postinstall": "node install.js"
