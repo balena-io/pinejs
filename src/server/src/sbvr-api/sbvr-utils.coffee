@@ -318,7 +318,7 @@ define [
 					instance[fieldName] = expandedField
 					return
 				)
-			else
+			else if field?
 				instance[fieldName] = {
 					__deferred:
 						uri: '/' + vocab + '/' + fieldName + '(' + field + ')'
