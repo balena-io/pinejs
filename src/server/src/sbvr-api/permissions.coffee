@@ -49,7 +49,7 @@ define [
 			throw new Error('Cannot parse required checks: ' + check)
 
 	exports.checkPassword = (username, password, callback) ->
-		sbvrUtils.runURI('GET', "/Auth/user?$filter=user/username eq '" + encodeURIComponent(username) + "'")
+		sbvrUtils.runURI('GET', "/Auth/user?$select=id,password&$filter=user/username eq '" + encodeURIComponent(username) + "'")
 		.then((result) ->
 			if result.d.length is 0
 				throw new Error('User not found')

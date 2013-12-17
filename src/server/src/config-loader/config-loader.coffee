@@ -28,7 +28,7 @@ define ['has', 'lodash', 'bluebird'], (has, _, Promise) ->
 				for user in data.users when user.permissions?
 					_.each user.permissions, (permissionName) ->
 						permissions[permissionName] ?=
-							sbvrUtils.runURI('GET', "/Auth/permission?$filter=name eq '" + encodeURIComponent(permissionName) + "'", null, tx)
+							sbvrUtils.runURI('GET', "/Auth/permission?$select=id&$filter=name eq '" + encodeURIComponent(permissionName) + "'", null, tx)
 							.then((result) ->
 								if result.d.length is 0
 									sbvrUtils.runURI('POST', '/Auth/permission', {'name': permissionName}, tx)
@@ -40,7 +40,7 @@ define ['has', 'lodash', 'bluebird'], (has, _, Promise) ->
 							)
 
 				usersPromise = Promise.map data.users, (user) ->
-					sbvrUtils.runURI('GET', "/Auth/user?$filter=username eq '" + encodeURIComponent(user.username) + "'", null, tx)
+					sbvrUtils.runURI('GET', "/Auth/user?$select=id&$filter=username eq '" + encodeURIComponent(user.username) + "'", null, tx)
 					.then((result) ->
 						if result.d.length is 0
 							sbvrUtils.runURI('POST', '/Auth/user', {'username': user.username, 'password': user.password}, tx)
@@ -50,7 +50,7 @@ define ['has', 'lodash', 'bluebird'], (has, _, Promise) ->
 					).then((userID) ->
 						Promise.map user.permissions, (permissionName) ->
 							permissions[permissionName].then((permissionID) ->
-								sbvrUtils.runURI('GET', "/Auth/user__has__permission?$filter=user eq '" + userID + "' and permission eq '" + permissionID + "'", null, tx)
+								sbvrUtils.runURI('GET', "/Auth/user__has__permission?$select=id&$filter=user eq '" + userID + "' and permission eq '" + permissionID + "'", null, tx)
 								.then((result) ->
 									if result.d.length is 0
 										sbvrUtils.runURI('POST', '/Auth/user__has__permission', {'user': userID, 'permission': permissionID}, tx)

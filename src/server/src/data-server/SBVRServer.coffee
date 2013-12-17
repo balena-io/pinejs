@@ -62,7 +62,7 @@ define [
 					throw err
 				)
 			,
-				sbvrUtils.runURI('GET', "/dev/model?$filter=model_type eq 'se' and vocabulary eq 'data'", null, tx)
+				sbvrUtils.runURI('GET', "/dev/model?$select=vocabulary,model_value&$filter=model_type eq 'se' and vocabulary eq 'data'", null, tx)
 				.then((result) ->
 					if result.d.length is 0
 						throw new Error('No SE data model found')
@@ -86,7 +86,7 @@ define [
 			res.send(404)
 
 		app.post '/execute', sbvrUtils.checkPermissionsMiddleware('all'), uiModelLoaded, (req, res, next) ->
-			sbvrUtils.runURI('GET', "/ui/textarea?$filter=name eq 'model_area'")
+			sbvrUtils.runURI('GET', "/ui/textarea?$select=text&$filter=name eq 'model_area'")
 			.then((result) ->
 				if result.d.length is 0
 					throw new Error('Could not find the model to execute')
