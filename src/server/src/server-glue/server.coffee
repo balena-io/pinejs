@@ -3,11 +3,11 @@ define [
 	'bluebird'
 	'cs!database-layer/db'
 	'cs!sbvr-api/sbvr-utils'
-	'cs!passport-bcrypt/passportBCrypt'
+	'cs!passport-bcrypt/passport-setup'
 	'cs!data-server/SBVRServer'
 	'cs!express-emulator/express'
 	'cs!config-loader/config-loader'
-], (has, Promise, dbModule, sbvrUtils, passportBCrypt, sbvrServer, express, configLoader) ->
+], (has, Promise, dbModule, sbvrUtils, passportSetup, sbvrServer, express, configLoader) ->
 	if has 'ENV_NODEJS'
 		databaseURL = process.env.DATABASE_URL || 'postgres://postgres:.@localhost:5432/postgres'
 		databaseOptions =
@@ -60,13 +60,7 @@ define [
 
 	sbvrUtils.setup(app, require, db)
 	.then(->
-		passportBCrypt = passportBCrypt({
-				loginUrl: '/login'
-				logoutUrl: '/logout'
-				failureRedirect: '/login.html'
-				successRedirect: '/'
-			}, sbvrUtils, app, passport)
-
+		passportSetup.setup(app, require, sbvrUtils, db)
 		promises = []
 		if has 'SBVR_SERVER_ENABLED'
 			promises.push(sbvrServer.setup(app, require, sbvrUtils, db))
