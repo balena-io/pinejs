@@ -4,11 +4,11 @@ define [
 	'bluebird'
 	'cs!database-layer/db'
 	'cs!sbvr-api/sbvr-utils'
-	'cs!passport-platform/passport-setup'
+	'cs!passport-platform/passport-platform'
 	'cs!data-server/SBVRServer'
 	'cs!express-emulator/express'
 	'cs!config-loader/config-loader'
-], (requirejs, has, Promise, dbModule, sbvrUtils, passportSetup, sbvrServer, express, configLoader) ->
+], (requirejs, has, Promise, dbModule, sbvrUtils, passportPlatform, sbvrServer, express, configLoader) ->
 	if has 'ENV_NODEJS'
 		databaseURL = process.env.DATABASE_URL || 'postgres://postgres:.@localhost:5432/postgres'
 		databaseOptions =
@@ -61,7 +61,7 @@ define [
 
 	sbvrUtils.setup(app, requirejs, db)
 	.then(->
-		passportSetup.setup(app, require, sbvrUtils, db)
+		passportPlatform.setup(app, require, sbvrUtils, db)
 		configLoader = configLoader.setup(app, requirejs)
 
 		promises = []
