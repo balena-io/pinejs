@@ -81,25 +81,31 @@ define [
 							catch e
 								throw new Error('Error running custom server code: ' + e)
 
-		if not has 'ENV_NODEJS'
-			console.error('Config loader only works in a nodejs environment.')
-			return
-		require('coffee-script')
-		readFile = Promise.promisify(require('fs').readFile)
-		path = require('path')
-		root = process.argv[2] or __dirname
-		console.info('loading config.json')
-		config = require path.join(root, 'config.json')
-		Promise.map config.models, (model) ->
-			readFile(path.join(root, model.modelFile), 'utf8')
-			.then (sbvrModel) ->
-				model.modelText = sbvrModel
-				if model.customServerCode?
-					model.customServerCode = root + '/' + model.customServerCode
-		.then ->
-			loadConfig(config)
-		.catch (err) ->
-			console.error('Error loading config', err, err.stack)
-			process.exit()
+		loadNodeConfig = ->
+			if not has 'ENV_NODEJS'
+				console.error('Can only load a node config in a nodejs environment.')
+				return
+			require('coffee-script')
+			readFile = Promise.promisify(require('fs').readFile)
+			path = require('path')
+			root = process.argv[2] or __dirname
+			console.info('loading config.json')
+			config = require path.join(root, 'config.json')
+			Promise.map config.models, (model) ->
+				readFile(path.join(root, model.modelFile), 'utf8')
+				.then (sbvrModel) ->
+					model.modelText = sbvrModel
+					if model.customServerCode?
+						model.customServerCode = root + '/' + model.customServerCode
+			.then ->
+				loadConfig(config)
+			.catch (err) ->
+				console.error('Error loading config', err, err.stack)
+				process.exit()
+
+		return {
+			loadConfig
+			loadNodeConfig
+		}
 
 	return exports
