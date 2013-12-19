@@ -10,11 +10,12 @@ define [
 		loadConfig = (data) ->
 			sbvrUtils.db.transaction().then (tx) ->
 				modelsPromise = Promise.map data.models, (model) ->
-					sbvrUtils.executeModel(tx, model.apiRoot, model.modelText)
-					.then ->
-						console.info('Sucessfully executed ' + model.modelName + ' model.')
-					.catch (err) ->
-						throw new Error(['Failed to execute ' + model.modelName + ' model from ' + model.modelFile, err])
+					if model.modelText?
+						sbvrUtils.executeModel(tx, model.apiRoot, model.modelText)
+						.then ->
+							console.info('Sucessfully executed ' + model.modelName + ' model.')
+						.catch (err) ->
+							throw new Error(['Failed to execute ' + model.modelName + ' model from ' + model.modelFile, err])
 
 				if data.users?
 					permissions = {}
@@ -55,18 +56,20 @@ define [
 				.then ->
 					tx.end()
 					Promise.map data.models, (model) ->
-						apiRoute = '/' + model.apiRoot + '/*'
-						app.get(apiRoute, sbvrUtils.runGet)
+						if model.modelText?
+							apiRoute = '/' + model.apiRoot + '/*'
+							app.get(apiRoute, sbvrUtils.runGet)
 
-						app.post(apiRoute, sbvrUtils.runPost)
+							app.post(apiRoute, sbvrUtils.runPost)
 
-						app.put(apiRoute, sbvrUtils.runPut)
+							app.put(apiRoute, sbvrUtils.runPut)
 
-						app.patch(apiRoute, sbvrUtils.runPut)
+							app.patch(apiRoute, sbvrUtils.runPut)
 
-						app.merge(apiRoute, sbvrUtils.runPut)
+							app.merge(apiRoute, sbvrUtils.runPut)
 
-						app.del(apiRoute, sbvrUtils.runDelete)
+							app.del(apiRoute, sbvrUtils.runDelete)
+
 						if model.customServerCode?
 							try
 								customCode = requirejs(model.customServerCode)
