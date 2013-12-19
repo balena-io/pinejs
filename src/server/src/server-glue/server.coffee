@@ -61,10 +61,12 @@ define [
 
 	sbvrUtils.setup(app, requirejs, db)
 	.then(->
-		passportPlatform.setup(app, require, sbvrUtils, db)
 		configLoader = configLoader.setup(app, requirejs)
 
 		promises = []
+
+		promises.push(configLoader.loadConfig(passportPlatform.config))
+
 		if has 'SBVR_SERVER_ENABLED'
 			promises.push(configLoader.loadConfig(sbvrServer.config))
 

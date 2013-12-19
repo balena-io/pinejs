@@ -54,6 +54,10 @@ define [
 			res.redirect('/')
 		return
 
+	exports.config =
+		models: [
+			customServerCode: 'cs!passport-platform/passport-platform'
+		]
 	exports.setup = (app, requirejs, sbvrUtils) ->
 		if has 'ENV_NODEJS'
 			passport = require('passport')
@@ -65,5 +69,6 @@ define [
 			failureRedirect: '/login.html'
 			successRedirect: '/'
 		}, sbvrUtils, app, passport)
+		return Promise.resolve()
 
 	return exports
