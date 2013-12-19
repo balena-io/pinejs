@@ -1,8 +1,14 @@
-define ['exports', 'has', 'lodash', 'bluebird'], (exports, has, _, Promise) ->
+define [
+	'exports'
+	'has'
+	'lodash'
+	'bluebird'
+	'cs!sbvr-api/sbvr-utils'
+], (exports, has, _, Promise, sbvrUtils) ->
 	# Setup function
-	exports.setup = (app, requirejs, sbvrUtils, db) ->
+	exports.setup = (app, requirejs) ->
 		loadConfig = (data) ->
-			db.transaction().then (tx) ->
+			sbvrUtils.db.transaction().then (tx) ->
 				modelsPromise = Promise.map data.models, (model) ->
 					sbvrUtils.executeModel(tx, model.apiRoot, model.modelText)
 					.then ->
@@ -64,7 +70,7 @@ define ['exports', 'has', 'lodash', 'bluebird'], (exports, has, _, Promise) ->
 						if model.customServerCode?
 							try
 								deferred = Promise.pending()
-								promise = require(model.customServerCode).setup app, requirejs, sbvrUtils, db, (err) ->
+								promise = require(model.customServerCode).setup app, requirejs, sbvrUtils, sbvrUtils.db, (err) ->
 									if err
 										deferred.reject(err)
 									else

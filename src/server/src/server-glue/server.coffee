@@ -66,7 +66,7 @@ define [
 			promises.push(sbvrServer.setup(app, require, sbvrUtils, db))
 
 		if has 'CONFIG_LOADER'
-			promises.push(configLoader.setup(app, require, sbvrUtils, db))
+			promises.push(configLoader.setup(app, require))
 		Promise.all(promises)
 	).then(->
 		if has 'ENV_NODEJS'
