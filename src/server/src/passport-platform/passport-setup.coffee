@@ -1,12 +1,12 @@
 define [
 	'exports'
 	'has'
-	'cs!passport-bcrypt/passportBCrypt'
-], (exports, has, passportBCrypt) ->
+	'cs!passport-platform/passport-platform'
+], (exports, has, passportPlatform) ->
 	exports.setup = (app, requirejs, sbvrUtils, db) ->
 		if has 'ENV_NODEJS'
 			passport = require('passport')
-		passportBCrypt = passportBCrypt({
+		passportPlatform({
 				loginUrl: '/login'
 				logoutUrl: '/logout'
 				failureRedirect: '/login.html'

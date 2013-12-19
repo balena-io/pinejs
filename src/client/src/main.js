@@ -58,7 +58,7 @@ require({
 		'database-layer'			: '../../server/src/database-layer',
 		'data-server'				: '../../server/src/data-server',
 		'express-emulator'			: '../../server/src/express-emulator',
-		'passport-bcrypt'			: '../../server/src/passport-bcrypt',
+		'passport-platform'			: '../../server/src/passport-platform',
 		'server-glue'				: '../../server/src/server-glue',
 		'sbvr-api'					: '../../server/src/sbvr-api',
 		'sbvr-compiler'				: '../../server/src/sbvr-compiler'

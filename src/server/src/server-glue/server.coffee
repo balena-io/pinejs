@@ -4,7 +4,7 @@ define [
 	'bluebird'
 	'cs!database-layer/db'
 	'cs!sbvr-api/sbvr-utils'
-	'cs!passport-bcrypt/passport-setup'
+	'cs!passport-platform/passport-setup'
 	'cs!data-server/SBVRServer'
 	'cs!express-emulator/express'
 	'cs!config-loader/config-loader'
