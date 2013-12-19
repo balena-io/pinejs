@@ -61,14 +61,16 @@ define [
 	sbvrUtils.setup(app, require, db)
 	.then(->
 		passportSetup.setup(app, require, sbvrUtils, db)
+		configLoader = configLoader.setup(app, require)
+
 		promises = []
 		if has 'SBVR_SERVER_ENABLED'
-			promises.push(sbvrServer.setup(app, require, sbvrUtils, db))
+			promises.push(configLoader.loadConfig(sbvrServer.config))
 
 		if has 'CONFIG_LOADER'
-			configLoader = configLoader.setup(app, require)
 			if has 'ENV_NODEJS'
 				promises.push(configLoader.loadNodeConfig())
+
 		Promise.all(promises)
 	).then(->
 		if has 'ENV_NODEJS'

@@ -43,38 +43,28 @@ define [
 				next('route')
 		)
 
-	isUiModelLoaded = Promise.pending()
-	uiModelLoaded = (req, res, next) ->
-		isUiModelLoaded.promise.then(->
-			next()
-		)
-
 	# Setup function
+	exports.config =
+		models: [
+			modelName: 'ui',
+			modelText: uiModel
+			apiRoot: 'ui'
+			customServerCode: 'cs!data-server/SBVRServer'
+		]
 	exports.setup = (app, requirejs, sbvrUtils, db) ->
 		setupModels = (tx) ->
-			Promise.all([
-				sbvrUtils.executeModel(tx, 'ui', uiModel)
-				.then(->
-					console.info('Sucessfully executed ui model.')
-					isUiModelLoaded.fulfill()
-				).catch((err) ->
-					console.error('Failed to execute ui model.', err, err.stack)
-					throw err
-				)
-			,
-				sbvrUtils.runURI('GET', "/dev/model?$select=vocabulary,model_value&$filter=model_type eq 'se' and vocabulary eq 'data'", null, tx)
-				.then((result) ->
-					if result.d.length is 0
-						throw new Error('No SE data model found')
-					instance = result.d[0]
-					sbvrUtils.executeModel(tx, instance.vocabulary, instance.model_value)
-				)
-				.then(->
-					isServerOnAir(true)
-				).catch((err) ->
-					isServerOnAir(false)
-				)
-			])
+			sbvrUtils.runURI('GET', "/dev/model?$select=vocabulary,model_value&$filter=model_type eq 'se' and vocabulary eq 'data'", null, tx)
+			.then((result) ->
+				if result.d.length is 0
+					throw new Error('No SE data model found')
+				instance = result.d[0]
+				sbvrUtils.executeModel(tx, instance.vocabulary, instance.model_value)
+			)
+			.then(->
+				isServerOnAir(true)
+			).catch((err) ->
+				isServerOnAir(false)
+			)
 
 		app.get '/onAir', (req, res, next) ->
 			isServerOnAir()
@@ -85,7 +75,7 @@ define [
 		app.post '/update', sbvrUtils.checkPermissionsMiddleware('all'), serverIsOnAir, (req, res, next) ->
 			res.send(404)
 
-		app.post '/execute', sbvrUtils.checkPermissionsMiddleware('all'), uiModelLoaded, (req, res, next) ->
+		app.post '/execute', sbvrUtils.checkPermissionsMiddleware('all'), (req, res, next) ->
 			sbvrUtils.runURI('GET', "/ui/textarea?$select=text&$filter=name eq 'model_area'")
 			.then((result) ->
 				if result.d.length is 0
@@ -113,7 +103,7 @@ define [
 				isServerOnAir(false)
 				res.json(err, 404)
 			)
-		app.post '/validate', sbvrUtils.checkPermissionsMiddleware('get'), uiModelLoaded, (req, res, next) ->
+		app.post '/validate', sbvrUtils.checkPermissionsMiddleware('get'), (req, res, next) ->
 			sbvrUtils.runRule('data', req.body.rule)
 			.then((results) ->
 				res.json(results)
@@ -129,6 +119,10 @@ define [
 						tx.dropTable(table.name)
 				).then(->
 					sbvrUtils.executeStandardModels(tx)
+				).then(->
+					# TODO: HACK: This is usually done by config-loader and should be done there
+					# In general cleardb is very destructive and should really go through a full "reboot" procedure to set everything up again.
+					sbvrUtils.executeModel(tx, 'ui', uiModel)
 				).then(->
 					setupModels(tx)
 				).then(->
@@ -237,29 +231,26 @@ define [
 					res.send(404)
 				)
 
-		app.get('/ui/*', uiModelLoaded, sbvrUtils.runGet)
 		app.get('/data/*', serverIsOnAir, sbvrUtils.runGet)
 		app.get('/Auth/*', serverIsOnAir, sbvrUtils.runGet)
 
 		app.post('/data/*', serverIsOnAir, sbvrUtils.runPost)
 		app.post('/Auth/*', serverIsOnAir, sbvrUtils.runPost)
 
-		app.put('/ui/*', uiModelLoaded, sbvrUtils.runPut)
 		app.put('/data/*', serverIsOnAir, sbvrUtils.runPut)
 		app.put('/Auth/*', serverIsOnAir, sbvrUtils.runPut)
 
-		app.patch('/ui/*', uiModelLoaded, sbvrUtils.runPut)
 		app.patch('/data/*', serverIsOnAir, sbvrUtils.runPut)
 		app.patch('/Auth/*', serverIsOnAir, sbvrUtils.runPut)
 
-		app.merge('/ui/*', uiModelLoaded, sbvrUtils.runPut)
+		app.merge('/ui/*', sbvrUtils.runPut)
 		app.merge('/data/*', serverIsOnAir, sbvrUtils.runPut)
 		app.merge('/Auth/*', serverIsOnAir, sbvrUtils.runPut)
 
 		app.del('/data/*', serverIsOnAir, sbvrUtils.runDelete)
 		app.del('/Auth/*', serverIsOnAir, sbvrUtils.runDelete)
 
-		app.del '/', uiModelLoaded, serverIsOnAir, (req, res, next) ->
+		app.del '/', serverIsOnAir, (req, res, next) ->
 			Promise.all([
 				sbvrUtils.runURI('PATCH', "/ui/textarea?$filter=name eq 'model_area'",
 					text: ''
