@@ -59,6 +59,7 @@ require({
 		'data-server'				: '../../server/src/data-server',
 		'express-emulator'			: '../../server/src/express-emulator',
 		'passport-platform'			: '../../server/src/passport-platform',
+		'platform-session-store'	: '../../server/src/platform-session-store',
 		'server-glue'				: '../../server/src/server-glue',
 		'sbvr-api'					: '../../server/src/sbvr-api',
 		'sbvr-compiler'				: '../../server/src/sbvr-compiler'

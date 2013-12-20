@@ -5,10 +5,11 @@ define [
 	'cs!database-layer/db'
 	'cs!sbvr-api/sbvr-utils'
 	'cs!passport-platform/passport-platform'
+	'cs!platform-session-store/platform-session-store'
 	'cs!data-server/SBVRServer'
 	'cs!express-emulator/express'
 	'cs!config-loader/config-loader'
-], (requirejs, has, Promise, dbModule, sbvrUtils, passportPlatform, sbvrServer, express, configLoader) ->
+], (requirejs, has, Promise, dbModule, sbvrUtils, passportPlatform, PlatformSessionStore, sbvrServer, express, configLoader) ->
 	if has 'ENV_NODEJS'
 		databaseURL = process.env.DATABASE_URL || 'postgres://postgres:.@localhost:5432/postgres'
 		databaseOptions =
@@ -35,7 +36,10 @@ define [
 			app.use(express.compress())
 			app.use(express.cookieParser())
 			app.use(express.bodyParser())
-			app.use(express.session({ secret: 'A pink cat jumped over a rainbow' }))
+			app.use(express.session(
+				secret: 'A pink cat jumped over a rainbow'
+				store: new PlatformSessionStore()
+			))
 			app.use(passport.initialize())
 			app.use(passport.session())
 
@@ -70,8 +74,9 @@ define [
 		if has 'SBVR_SERVER_ENABLED'
 			promises.push(configLoader.loadConfig(sbvrServer.config))
 
-		if has 'CONFIG_LOADER'
-			if has 'ENV_NODEJS'
+		if has 'ENV_NODEJS'
+			promises.push(configLoader.loadConfig(PlatformSessionStore.config))
+			if has 'CONFIG_LOADER'
 				promises.push(configLoader.loadNodeConfig())
 
 		Promise.all(promises)
