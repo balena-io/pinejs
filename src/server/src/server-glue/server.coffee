@@ -34,6 +34,14 @@ define [
 		app.configure ->
 			path = require('path')
 			app.use(express.compress())
+
+			if has 'DEV'
+				rootPath = path.join(__dirname, '/../../../..')
+				app.use('/client', express.static(path.join(rootPath, 'client')))
+				app.use('/common', express.static(path.join(rootPath, 'common')))
+				app.use('/tools', express.static(path.join(rootPath, 'tools')))
+			app.use('/', express.static(path.join(__dirname, 'static')))
+
 			app.use(express.cookieParser())
 			app.use(express.bodyParser())
 			app.use(express.session(
@@ -52,13 +60,6 @@ define [
 				next()
 
 			app.use(app.router)
-
-			if has 'DEV'
-				rootPath = path.join(__dirname, '/../../../..')
-				app.use('/client', express.static(path.join(rootPath, 'client')))
-				app.use('/common', express.static(path.join(rootPath, 'common')))
-				app.use('/tools', express.static(path.join(rootPath, 'tools')))
-			app.use('/', express.static(path.join(__dirname, 'static')))
 	else if has 'ENV_BROWSER'
 		Promise.longStackTraces()
 		app = express.app
