@@ -602,7 +602,7 @@ define [
 					FROM "resource" r
 					JOIN "resource-is_under-lock" AS rl ON rl."resource" = r."id"
 					WHERE r."resource type" = ?
-					AND r."id" = ?
+					AND r."resource id" = ?
 				) AS result;''', [request.resourceName, id])
 			.catch((err) ->
 				console.error('Unable to check resource locks', err, err.stack)
