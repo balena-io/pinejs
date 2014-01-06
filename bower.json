@@ -22,7 +22,7 @@
     "ejs": "~0.8.4",
     "bootstrap": "2.3.2",
     "coffee-script": "~1.6.3",
-    "bluebird": "petkaantonov/bluebird#~v0.11.5-0",
+    "bluebird": "petkaantonov/bluebird#~v0.11.6-0",
     "async": "caolan/async#c99537ae4837f12e918959c8bd1e70e6b1730f6e"
   }
 }
