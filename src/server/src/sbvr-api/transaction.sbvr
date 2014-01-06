@@ -1,7 +1,7 @@
 Vocabulary: transaction
 
 Term:       resource id
-	Concept type: Integer (Type)
+	Concept type: Text (Type)
 Term:       resource type
 	Concept type: Text (Type)
 Term:       field name
