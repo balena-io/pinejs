@@ -539,9 +539,10 @@ define [
 		getAndCheckBindValues(vocab, bindings, request.values)
 		.then((values) ->
 			console.log(query, values)
+			idField = clientModels[vocab].resources[request.resourceName].idField
 			runQuery = (tx) ->
 				# TODO: Check for transaction locks.
-				tx.executeSql(query, values)
+				tx.executeSql(query, values, null, idField)
 				.catch((err) ->
 					constraintError = checkForConstraintError(err, request.resourceName)
 					if constraintError != false
@@ -555,7 +556,7 @@ define [
 						res.json({
 								id: insertID
 							}, {
-								location: '/' + vocab + '/' + request.resourceName + '?$filter=' + request.resourceName + '/' + clientModels[vocab].resources[request.resourceName].idField + ' eq ' + insertID
+								location: '/' + vocab + '/' + request.resourceName + '?$filter=' + request.resourceName + '/' + idField + ' eq ' + insertID
 							}, 201
 						)
 					)

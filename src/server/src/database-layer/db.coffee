@@ -108,10 +108,10 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Pro
 				}
 			class PostgresTx extends Tx
 				constructor: (_db, _close, _stackTrace) ->
-					executeSql = (sql, bindings, deferred, addReturning = true) ->
+					executeSql = (sql, bindings, deferred, addReturning = false) ->
 						bindings = bindings.slice(0) # Deal with the fact we may splice arrays directly into bindings
 						if addReturning and /^\s*INSERT\s+INTO/i.test(sql)
-							sql = sql.replace(/;?$/, ' RETURNING id;')
+							sql = sql.replace(/;?$/, ' RETURNING "' + addReturning + '";')
 						bindNo = 0
 						sql = SQLBinds.matchAll(sql, 'parse', [
 							->
