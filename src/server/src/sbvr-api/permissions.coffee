@@ -144,6 +144,7 @@ define [
 						for permission in [resourcePermission, vocabularyPermission, vocabularyResourcePermission] when permission?
 							permission = permission + '?'
 							if permissionName[...permission.length] == permission
+								# TODO: Should get the linked user for an API key.
 								return permissionName[permission.length...].replace(/\$USER\.ID/g, req.user?.id ? 0)
 						return false
 					# Remove the false elements.
