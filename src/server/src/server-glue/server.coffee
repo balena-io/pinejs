@@ -1,4 +1,5 @@
 define [
+	'require'
 	'has'
 	'bluebird'
 	'cs!database-layer/db'
@@ -7,7 +8,7 @@ define [
 	'cs!data-server/SBVRServer'
 	'cs!express-emulator/express'
 	'cs!config-loader/config-loader'
-], (has, Promise, dbModule, sbvrUtils, passportSetup, sbvrServer, express, configLoader) ->
+], (requirejs, has, Promise, dbModule, sbvrUtils, passportSetup, sbvrServer, express, configLoader) ->
 	if has 'ENV_NODEJS'
 		databaseURL = process.env.DATABASE_URL || 'postgres://postgres:.@localhost:5432/postgres'
 		databaseOptions =
@@ -58,10 +59,10 @@ define [
 		Promise.longStackTraces()
 		app = express.app
 
-	sbvrUtils.setup(app, require, db)
+	sbvrUtils.setup(app, requirejs, db)
 	.then(->
 		passportSetup.setup(app, require, sbvrUtils, db)
-		configLoader = configLoader.setup(app, require)
+		configLoader = configLoader.setup(app, requirejs)
 
 		promises = []
 		if has 'SBVR_SERVER_ENABLED'

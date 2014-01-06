@@ -69,8 +69,15 @@ define [
 						app.del(apiRoute, sbvrUtils.runDelete)
 						if model.customServerCode?
 							try
+								customCode = requirejs(model.customServerCode)
+							catch e
+								try
+									customCode = require(model.customServerCode)
+								catch ee
+									throw new Error('Error loading custom server code: ' + e + ee)
+							try
 								deferred = Promise.pending()
-								promise = require(model.customServerCode).setup app, requirejs, sbvrUtils, sbvrUtils.db, (err) ->
+								promise = customCode.setup app, requirejs, sbvrUtils, sbvrUtils.db, (err) ->
 									if err
 										deferred.reject(err)
 									else
