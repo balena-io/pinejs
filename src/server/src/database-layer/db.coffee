@@ -264,7 +264,7 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Pro
 							for i in [0...result.rows.length] by 1
 								iterator.call(thisArg, @item(i), i, result.rows)
 					rowsAffected: result.rowsAffected
-					insertId: getInsertId()
+					insertId: getInsertId(result)
 				}
 
 			class WebSqlTx extends Tx
