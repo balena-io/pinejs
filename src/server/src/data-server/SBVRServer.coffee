@@ -122,6 +122,7 @@ define [
 				).then(->
 					# TODO: HACK: This is usually done by config-loader and should be done there
 					# In general cleardb is very destructive and should really go through a full "reboot" procedure to set everything up again.
+					console.warn('DEL /cleardb is very destructive and should really be followed by a full restart/reload.')
 					sbvrUtils.executeModel(tx, 'ui', uiModel)
 				).then(->
 					setupModels(tx)
