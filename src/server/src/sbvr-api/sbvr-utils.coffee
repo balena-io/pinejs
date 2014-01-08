@@ -327,6 +327,14 @@ define [
 				}
 				return
 
+	odataResourceURI = (vocab, resourceName, id) ->
+		id =
+			if _.isString(id)
+				"'" + encodeURIComponent(id) + "'"
+			else
+				id
+		return '/' + vocab + '/' + resourceName + '(' + id + ')'
+
 	processOData = (vocab, clientModel, resourceName, rows) ->
 		if rows.length is 0
 			return Promise.fulfilled([])
@@ -335,7 +343,7 @@ define [
 
 		instances = rows.map (instance) ->
 			instance.__metadata =
-				uri: '/' + vocab + '/' + resourceModel.resourceName + '(' + instance[resourceModel.idField] + ')'
+				uri: odataResourceURI(vocab, resourceModel.resourceName, + instance[resourceModel.idField])
 				type: ''
 			return instance
 		instancesPromise = Promise.fulfilled()
@@ -556,7 +564,7 @@ define [
 						res.json({
 								id: insertID
 							}, {
-								location: '/' + vocab + '/' + request.resourceName + '?$filter=' + request.resourceName + '/' + idField + ' eq ' + insertID
+								location: odataResourceURI(vocab, request.resourceName, insertID)
 							}, 201
 						)
 					)
