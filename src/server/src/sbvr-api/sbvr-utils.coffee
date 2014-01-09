@@ -739,7 +739,7 @@ define [
 		).nodeify(callback)
 
 	exports.setup = (app, requirejs, _db, callback) ->
-		db = _db
+		exports.db = db = _db
 		AbstractSQL2SQL = AbstractSQL2SQL[db.engine]
 
 		if has 'DEV'

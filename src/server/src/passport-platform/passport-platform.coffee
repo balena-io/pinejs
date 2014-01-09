@@ -1,5 +1,9 @@
-define ['bluebird'], (Promise) ->
-	return (options, sbvrUtils, app, passport) ->
+define [
+	'exports'
+	'has'
+	'bluebird'
+], (exports, has, Promise) ->
+	passportPlatform = (options, sbvrUtils, app, passport) ->
 		checkPassword = (username, password, done) ->
 			sbvrUtils.checkPassword(username, password)
 			.catch(->
@@ -48,5 +52,23 @@ define ['bluebird'], (Promise) ->
 		app.get options.logoutUrl, (req, res) ->
 			req.logout()
 			res.redirect('/')
-
 		return
+
+	exports.config =
+		models: [
+			customServerCode: 'cs!passport-platform/passport-platform'
+		]
+	exports.setup = (app, requirejs, sbvrUtils) ->
+		if has 'ENV_NODEJS'
+			passport = require('passport')
+			app.use(passport.initialize())
+			app.use(passport.session())
+		passportPlatform({
+			loginUrl: '/login'
+			logoutUrl: '/logout'
+			failureRedirect: '/login.html'
+			successRedirect: '/'
+		}, sbvrUtils, app, passport)
+		return Promise.resolve()
+
+	return exports

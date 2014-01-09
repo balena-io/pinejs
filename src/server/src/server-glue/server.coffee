@@ -1,13 +1,15 @@
 define [
+	'require'
 	'has'
 	'bluebird'
 	'cs!database-layer/db'
 	'cs!sbvr-api/sbvr-utils'
-	'cs!passport-bcrypt/passportBCrypt'
+	'cs!passport-platform/passport-platform'
+	'cs!platform-session-store/platform-session-store'
 	'cs!data-server/SBVRServer'
 	'cs!express-emulator/express'
 	'cs!config-loader/config-loader'
-], (has, Promise, dbModule, sbvrUtils, passportBCrypt, sbvrServer, express, configLoader) ->
+], (requirejs, has, Promise, dbModule, sbvrUtils, passportPlatform, PlatformSessionStore, sbvrServer, express, configLoader) ->
 	if has 'ENV_NODEJS'
 		databaseURL = process.env.DATABASE_URL || 'postgres://postgres:.@localhost:5432/postgres'
 		databaseOptions =
@@ -32,9 +34,20 @@ define [
 		app.configure ->
 			path = require('path')
 			app.use(express.compress())
+
+			if has 'DEV'
+				rootPath = path.join(__dirname, '/../../../..')
+				app.use('/client', express.static(path.join(rootPath, 'client')))
+				app.use('/common', express.static(path.join(rootPath, 'common')))
+				app.use('/tools', express.static(path.join(rootPath, 'tools')))
+			app.use('/', express.static(path.join(__dirname, 'static')))
+
 			app.use(express.cookieParser())
 			app.use(express.bodyParser())
-			app.use(express.session({ secret: 'A pink cat jumped over a rainbow' }))
+			app.use(express.session(
+				secret: 'A pink cat jumped over a rainbow'
+				store: new PlatformSessionStore()
+			))
 			app.use(passport.initialize())
 			app.use(passport.session())
 
@@ -47,32 +60,26 @@ define [
 				next()
 
 			app.use(app.router)
-
-			if has 'DEV'
-				rootPath = path.join(__dirname, '/../../../..')
-				app.use('/client', express.static(path.join(rootPath, 'client')))
-				app.use('/common', express.static(path.join(rootPath, 'common')))
-				app.use('/tools', express.static(path.join(rootPath, 'tools')))
-			app.use('/', express.static(path.join(__dirname, 'static')))
 	else if has 'ENV_BROWSER'
 		Promise.longStackTraces()
 		app = express.app
 
-	sbvrUtils.setup(app, require, db)
+	sbvrUtils.setup(app, requirejs, db)
 	.then(->
-		passportBCrypt = passportBCrypt({
-				loginUrl: '/login'
-				logoutUrl: '/logout'
-				failureRedirect: '/login.html'
-				successRedirect: '/'
-			}, sbvrUtils, app, passport)
+		configLoader = configLoader.setup(app, requirejs)
 
 		promises = []
-		if has 'SBVR_SERVER_ENABLED'
-			promises.push(sbvrServer.setup(app, require, sbvrUtils, db))
 
-		if has 'CONFIG_LOADER'
-			promises.push(configLoader.setup(app, require, sbvrUtils, db))
+		promises.push(configLoader.loadConfig(passportPlatform.config))
+
+		if has 'SBVR_SERVER_ENABLED'
+			promises.push(configLoader.loadConfig(sbvrServer.config))
+
+		if has 'ENV_NODEJS'
+			promises.push(configLoader.loadConfig(PlatformSessionStore.config))
+			if has 'CONFIG_LOADER'
+				promises.push(configLoader.loadNodeConfig())
+
 		Promise.all(promises)
 	).then(->
 		if has 'ENV_NODEJS'
