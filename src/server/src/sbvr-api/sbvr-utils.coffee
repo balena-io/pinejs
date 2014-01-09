@@ -407,17 +407,8 @@ define [
 				ruleAbs[2][1][1][1] = '*'
 				ruleSQL = AbstractSQL2SQL.generate({tables: {}, rules: [ruleAbs]}).rules[0].sql
 
-				db.transaction()
-				.then((tx) ->
-					tx.executeSql(ruleSQL.query, ruleSQL.bindings)
-					.catch((err) ->
-						tx.rollback()
-						throw err
-					).then((result) ->
-						tx.end()
-						return result
-					)
-				).then((result) ->
+				db.executeSql(ruleSQL.query, ruleSQL.bindings)
+				.then((result) ->
 					resourceName = ruleLF[1][1][1][2][1].replace(/\ /g, '_').replace(/-/g, '__')
 					clientModel = clientModels[vocab].resources
 					processOData(vocab, clientModel, resourceName, result.rows)
@@ -493,16 +484,7 @@ define [
 				if req.tx?
 					req.tx.executeSql(query, values)
 				else
-					db.transaction().then((tx) ->
-						tx.executeSql(query, values)
-						.then((result) ->
-							tx.end()
-							return result
-						).catch((err) ->
-							tx.rollback()
-							throw err
-						)
-					)
+					db.executeSql(query, values)
 			)
 			.then((result) ->
 				clientModel = clientModels[tree.vocabulary].resources
