@@ -12,6 +12,17 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Pro
 				'?'
 		])
 
+	atomicExecuteSql = (sql, bindings, callback) ->
+		@transaction()
+		.then (tx) ->
+			result = tx.executeSql(sql, bindings)
+			result.done(
+				-> tx.end()
+				-> tx.rollback()
+			)
+			return result
+		.nodeify(callback)
+
 	getError = ->
 		try
 			throw new Error()
@@ -157,6 +168,7 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Pro
 			return {
 				DEFAULT_VALUE
 				engine: 'postgres'
+				executeSql: atomicExecuteSql
 				transaction: (callback) ->
 					stackTrace = getStackTrace()
 					deferred = Promise.pending()
@@ -226,6 +238,7 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Pro
 			return {
 				DEFAULT_VALUE
 				engine: 'mysql'
+				executeSql: atomicExecuteSql
 				transaction: (callback) ->
 					stackTrace = getStackTrace()
 					deferred = Promise.pending()
@@ -324,6 +337,7 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Pro
 			return {
 				DEFAULT_VALUE
 				engine: 'websql'
+				executeSql: atomicExecuteSql
 				transaction: (callback) ->
 					stackTrace = getStackTrace()
 
