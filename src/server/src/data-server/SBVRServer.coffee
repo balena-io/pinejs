@@ -52,17 +52,26 @@ define [
 			customServerCode: 'cs!data-server/SBVRServer'
 		]
 	exports.setup = (app, requirejs, sbvrUtils, db) ->
+		{PlatformAPI} = sbvrUtils
 		setupModels = (tx) ->
-			sbvrUtils.runURI('GET', "/ui/textarea?$select=id&$filter=name eq 'model_area'", null, tx)
-			.then((result) ->
+			PlatformAPI::get(
+				url: "/ui/textarea?$select=id&$filter=name eq 'model_area'"
+				tx: tx
+			).then((result) ->
 				if result.d.length is 0
 					# Add a model_area entry if it doesn't already exist.
-					sbvrUtils.runURI('POST', '/ui/textarea', {
-						name: 'model_area'
-						text: ' '
-					}, tx)
+					PlatformAPI::post(
+						url: '/ui/textarea'
+						body:
+							name: 'model_area'
+							text: ' '
+						tx: tx
+					)
 			).then(->
-				sbvrUtils.runURI('GET', "/dev/model?$select=vocabulary,model_value&$filter=model_type eq 'se' and vocabulary eq 'data'", null, tx)
+				PlatformAPI::get(
+					url: "/dev/model?$select=vocabulary,model_value&$filter=model_type eq 'se' and vocabulary eq 'data'"
+					tx: tx
+				)
 			).then((result) ->
 				if result.d.length is 0
 					throw new Error('No SE data model found')
@@ -85,7 +94,7 @@ define [
 			res.send(404)
 
 		app.post '/execute', sbvrUtils.checkPermissionsMiddleware('all'), (req, res, next) ->
-			sbvrUtils.runURI('GET', "/ui/textarea?$select=text&$filter=name eq 'model_area'")
+			PlatformAPI::get(url: "/ui/textarea?$select=text&$filter=name eq 'model_area'")
 			.then((result) ->
 				if result.d.length is 0
 					throw new Error('Could not find the model to execute')
@@ -94,9 +103,12 @@ define [
 				.then((tx) ->
 					sbvrUtils.executeModel(tx, 'data', seModel)
 					.then(->
-						sbvrUtils.runURI('PATCH', "/ui/textarea?$filter=name eq 'model_area'", {
-							is_disabled: true
-						}, tx)
+						PlatformAPI::patch(
+							url: "/ui/textarea?$filter=name eq 'model_area'"
+							body:
+								is_disabled: true
+							tx: tx
+						)
 					).then(->
 						tx.end()
 					).catch((err) ->
@@ -261,10 +273,12 @@ define [
 
 		app.del '/', serverIsOnAir, (req, res, next) ->
 			Promise.all([
-				sbvrUtils.runURI('PATCH', "/ui/textarea?$filter=name eq 'model_area'",
-					text: ''
-					name: 'model_area'
-					is_disabled: false
+				PlatformAPI::patch(
+					url: "/ui/textarea?$filter=name eq 'model_area'"
+					body:
+						text: ''
+						name: 'model_area'
+						is_disabled: false
 				)
 				sbvrUtils.deleteModel('data')
 			]).then(->
