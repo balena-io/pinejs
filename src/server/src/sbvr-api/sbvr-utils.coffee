@@ -9,13 +9,14 @@ define [
 	'cs!sbvr-compiler/ODataMetadataGenerator'
 	'cs!sbvr-api/permissions'
 	'cs!sbvr-api/uri-parser'
+	'resin-platform-api'
 	'lodash'
 	'bluebird'
 	'cs!sbvr-compiler/types'
 	'text!sbvr-api/dev.sbvr'
 	'text!sbvr-api/transaction.sbvr'
 	'text!sbvr-api/user.sbvr'
-], (exports, has, SBVRParser, LF2AbstractSQL, AbstractSQL2SQL, AbstractSQLCompiler, AbstractSQL2CLF, ODataMetadataGenerator, permissions, uriParser, _, Promise, sbvrTypes, devModel, transactionModel, userModel) ->
+], (exports, has, SBVRParser, LF2AbstractSQL, AbstractSQL2SQL, AbstractSQLCompiler, AbstractSQL2CLF, ODataMetadataGenerator, permissions, uriParser, resinPlatformAPI, _, Promise, sbvrTypes, devModel, transactionModel, userModel) ->
 	db = null
 
 	_.extend(exports, permissions)
@@ -429,6 +430,11 @@ define [
 					)
 				)
 			).nodeify(callback)
+
+	exports.PlatformAPI =
+		class PlatformAPI extends resinPlatformAPI(_)
+			request: ({method, url, body, tx}) ->
+				return runURI(method, url, body, tx)
 
 	exports.runURI = runURI = (method, uri, body = {}, tx, callback) ->
 		if callback? and !_.isFunction(callback)

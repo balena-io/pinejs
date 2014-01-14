@@ -52,6 +52,11 @@ require({
 			name: 'abstract-sql-compiler',
 			location: '../../../node_modules/abstract-sql-compiler',
 			main: 'index'
+		},
+		{
+			name: 'resin-platform-api',
+			location: '../../../node_modules/resin-platform-api',
+			main: 'canvas'
 		}
 	],
 	shim: {
