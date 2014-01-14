@@ -33,11 +33,11 @@ define [
 	class PlatformSessionStore extends require('express').session.Store
 		constructor: ->
 		get: (sid, callback) ->
-			PlatformAPI::get(url: "/session/session('" + sid + "')?$select=data")
+			PlatformAPI::get("session/session('" + sid + "')?$select=data")
 			.then (session) ->
-				if session.d.length is 0
+				if session.length is 0
 					return null
-				return session.d[0].data
+				return session[0].data
 			.nodeify(callback)
 
 		set: (sid, data, callback) ->
@@ -46,30 +46,30 @@ define [
 				data: data
 				expiry_time: data?.cookie?.expires ? null
 			PlatformAPI::put(
-				url: "/session/session('" + sid + "')"
+				url: "session/session('" + sid + "')"
 				body: body
 			).nodeify(callback)
 
 		destroy: (sid, callback) ->
-			PlatformAPI::delete(url: "/session/session('" + sid + "')")
+			PlatformAPI::delete("/session/session('" + sid + "')")
 			.nodeify(callback)
 
 		all: (callback) ->
-			PlatformAPI::get(url: '/session/session?$select=session_id&$filter=expiry_time gte ' + Date.now())
+			PlatformAPI::get('session/session?$select=session_id&$filter=expiry_time gte ' + Date.now())
 			.then (sessions) ->
-				_.map(sessions.d, 'session_id')
+				_.map(sessions, 'session_id')
 			.nodeify(callback)
 
 		clear: (callback) ->
 			# TODO: Use a truncate
-			PlatformAPI::delete(url: '/session/session')
+			PlatformAPI::delete('session/session')
 			.nodeify(callback)
 
 		length: (callback) ->
 			# TODO: Use a proper count
-			PlatformAPI::get(url: '/session/session$select=session_id&$filter=expiry_time gte ' + Date.now())
+			PlatformAPI::get('session/session$select=session_id&$filter=expiry_time gte ' + Date.now())
 			.then (sessions) ->
-				sessions.d.length
+				sessions.length
 			.nodeify(callback)
 	PlatformSessionStore.config =
 		models: [

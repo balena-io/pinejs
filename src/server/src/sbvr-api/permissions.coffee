@@ -49,12 +49,12 @@ define [
 			throw new Error('Cannot parse required checks: ' + check)
 
 	exports.checkPassword = (username, password, callback) ->
-		sbvrUtils.PlatformAPI::get(url: "/Auth/user?$select=id,password&$filter=user/username eq '" + encodeURIComponent(username) + "'")
+		sbvrUtils.PlatformAPI::get("Auth/user?$select=id,password&$filter=user/username eq '" + encodeURIComponent(username) + "'")
 		.then((result) ->
-			if result.d.length is 0
+			if result.length is 0
 				throw new Error('User not found')
-			hash = result.d[0].password
-			userId = result.d[0].id
+			hash = result[0].password
+			userId = result[0].id
 			sbvrUtils.sbvrTypes.Hashed.compare(password, hash)
 			.then((res) ->
 				if !res
@@ -73,12 +73,12 @@ define [
 	exports.getUserPermissions = getUserPermissions = (userId, callback) ->
 		if _.isFinite(userId)
 			# We have a user id
-			userPerms = sbvrUtils.PlatformAPI::get(url: '/Auth/permission?$select=name&$filter=user__has__permission/user eq ' + userId)
-			userRole = sbvrUtils.PlatformAPI::get(url: '/Auth/permission?$select=name&$filter=role__has__permission/role/user__has__role/user eq ' + userId)
+			userPerms = sbvrUtils.PlatformAPI::get('Auth/permission?$select=name&$filter=user__has__permission/user eq ' + userId)
+			userRole = sbvrUtils.PlatformAPI::get('Auth/permission?$select=name&$filter=role__has__permission/role/user__has__role/user eq ' + userId)
 		else if _.isString(userId)
 			# We have an API key
-			userPerms = sbvrUtils.PlatformAPI::get(url: "/Auth/permission?$select=name&$filter=api_key__has__permission/api_key/key eq '" + encodeURIComponent(userId) + "'")
-			userRole = sbvrUtils.PlatformAPI::get(url: "/Auth/permission?$select=name&$filter=role__has__permission/role/api_key__has__role/api_key/key eq '" + encodeURIComponent(userId) + "'")
+			userPerms = sbvrUtils.PlatformAPI::get("Auth/permission?$select=name&$filter=api_key__has__permission/api_key/key eq '" + encodeURIComponent(userId) + "'")
+			userRole = sbvrUtils.PlatformAPI::get("Auth/permission?$select=name&$filter=role__has__permission/role/api_key__has__role/api_key/key eq '" + encodeURIComponent(userId) + "'")
 		else
 			return Promise.rejected(new Error('User ID either has to be a numeric id or an api key string, got: ' + typeof userId))
 
@@ -87,9 +87,9 @@ define [
 			userRole
 		]).spread((userPermissions, rolePermissions) ->
 			allPermissions = []
-			for permission in userPermissions.d
+			for permission in userPermissions
 				allPermissions.push(permission.name)
-			for permission in rolePermissions.d
+			for permission in rolePermissions
 				allPermissions.push(permission.name)
 
 			return _.unique(allPermissions)
@@ -106,11 +106,11 @@ define [
 			return (callback) ->
 				if !_guestPermissions? or _guestPermissions.isRejected()
 					# Get guest user
-					_guestPermissions = sbvrUtils.PlatformAPI::get(url: "/Auth/user?$select=id&$filter=user/username eq 'guest'")
+					_guestPermissions = sbvrUtils.PlatformAPI::get("Auth/user?$select=id&$filter=user/username eq 'guest'")
 					.then((result) ->
-						if result.d.length is 0
+						if result.length is 0
 							throw new Error('No guest permissions')
-						getUserPermissions(result.d[0].id)
+						getUserPermissions(result[0].id)
 					)
 				_guestPermissions.nodeify(callback)
 

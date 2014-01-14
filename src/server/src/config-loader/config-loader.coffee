@@ -24,47 +24,47 @@ define [
 						_.each user.permissions, (permissionName) ->
 							permissions[permissionName] ?=
 								PlatformAPI::get(
-									url: "/Auth/permission?$select=id&$filter=name eq '" + encodeURIComponent(permissionName) + "'"
+									url: "Auth/permission?$select=id&$filter=name eq '" + encodeURIComponent(permissionName) + "'"
 									tx: tx
 								).then (result) ->
-									if result.d.length is 0
+									if result.length is 0
 										PlatformAPI::post(
-											url: '/Auth/permission'
+											url: 'Auth/permission'
 											body:
 												name: permissionName
 											tx: tx
 										).get('id')
 									else
-										return result.d[0].id
+										return result[0].id
 								.catch (err) ->
 									throw new Error('Could not create or find permission "' + permissionName + '": ' + err)
 
 					usersPromise = Promise.map data.users, (user) ->
 						PlatformAPI::get(
-							url: "/Auth/user?$select=id&$filter=username eq '" + encodeURIComponent(user.username) + "'"
+							url: "Auth/user?$select=id&$filter=username eq '" + encodeURIComponent(user.username) + "'"
 							tx: tx
 						).then (result) ->
-							if result.d.length is 0
+							if result.length is 0
 								PlatformAPI::post(
-									url: '/Auth/user'
+									url: 'Auth/user'
 									body:
 										username: user.username
 										password: user.password
 									tx: tx
 								).get('id')
 							else
-								return result.d[0].id
+								return result[0].id
 						.then (userID) ->
 							if user.permissions?
 								Promise.map user.permissions, (permissionName) ->
 									permissions[permissionName].then (permissionID) ->
 										PlatformAPI::get(
-											url: "/Auth/user__has__permission?$select=id&$filter=user eq '" + userID + "' and permission eq '" + permissionID + "'"
+											url: "Auth/user__has__permission?$select=id&$filter=user eq '" + userID + "' and permission eq '" + permissionID + "'"
 											tx: tx
 										).then (result) ->
-											if result.d.length is 0
+											if result.length is 0
 												PlatformAPI::post(
-													url: '/Auth/user__has__permission'
+													url: 'Auth/user__has__permission'
 													body:
 														user: userID
 														permission: permissionID

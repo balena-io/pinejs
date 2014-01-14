@@ -150,7 +150,7 @@ define [
 						])
 
 					clientModel = clientModels['data'].resources[conditionalResource.resource_type]
-					url = '/data/' + conditionalResource.resource_type
+					url = 'data/' + conditionalResource.resource_type
 					switch conditionalResource.conditional_type
 						when 'DELETE'
 							getLockedRow(lockID)
@@ -245,7 +245,7 @@ define [
 
 				updateModel = (modelType, model) ->
 					PlatformAPI::get(
-						url: "/dev/model?$select=id&$filter=vocabulary eq '" + encodeURIComponent(vocab) + "' and model_type eq '" + encodeURIComponent(modelType) + "'"
+						url: "dev/model?$select=id&$filter=vocabulary eq '" + encodeURIComponent(vocab) + "' and model_type eq '" + encodeURIComponent(modelType) + "'"
 						tx: tx
 					)
 					.then((result) ->
@@ -255,7 +255,7 @@ define [
 							vocabulary: vocab
 							model_value: model
 							model_type: modelType
-						id = result?.d?[0]?.id
+						id = result[0]?.id
 						if id?
 							uri += '(' + id + ')'
 							method = 'PUT'
@@ -282,7 +282,7 @@ define [
 					tx.executeSql(dropStatement)
 			Promise.all(dropStatements.concat([
 				PlatformAPI::delete(
-					url: "/dev/model?$filter=vocabulary eq '" + encodeURIComponent(vocabulary) + "'"
+					url: "dev/model?$filter=vocabulary eq '" + encodeURIComponent(vocabulary) + "'"
 					tx: tx
 				)
 			])).then(->
@@ -463,8 +463,8 @@ define [
 			).nodeify(callback)
 
 	exports.PlatformAPI =
-		class PlatformAPI extends resinPlatformAPI(_)
-			request: ({method, url, body, tx}) ->
+		class PlatformAPI extends resinPlatformAPI(_, Promise)
+			_request: ({method, url, body, tx}) ->
 				return runURI(method, url, body, tx)
 
 	exports.runURI = runURI = (method, uri, body = {}, tx, callback) ->
@@ -746,44 +746,44 @@ define [
 			if has 'DEV'
 				Promise.all([
 					PlatformAPI::post(
-						url: '/Auth/user'
+						url: 'Auth/user'
 						body: 
 							username: 'guest'
 							password: ' '
 					)
 					PlatformAPI::post(
-						url: '/Auth/user'
+						url: 'Auth/user'
 						body:
 							username: 'test'
 							password: 'test'
 					)
 					PlatformAPI::post(
-						url: '/Auth/permission'
+						url: 'Auth/permission'
 						body:
 							name: 'resource.all'
 					)
 				]).spread((guest, user, permission) ->
 					Promise.all([
 						PlatformAPI::post(
-							url: '/Auth/user__has__permission'
+							url: 'Auth/user__has__permission'
 							body:
 								user: guest.id
 								permission: permission.id
 						)
 						PlatformAPI::post(
-							url: '/Auth/user__has__permission'
+							url: 'Auth/user__has__permission'
 							body:
 								user: user.id
 								permission: permission.id
 						)
 						PlatformAPI::post(
-							url: '/Auth/api_key'
+							url: 'Auth/api_key'
 							body:
 								user: user.id
 								key: 'test'
 						).then((apiKey) ->
 							PlatformAPI::post(
-								url: '/Auth/api_key__has__permission'
+								url: 'Auth/api_key__has__permission'
 								body:
 									api_key: apiKey.id
 									permission: permission.id
