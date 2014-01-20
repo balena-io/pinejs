@@ -44,6 +44,7 @@ define [
 
 			app.use(express.cookieParser())
 			app.use(express.bodyParser())
+			app.use(express.methodOverride())
 			app.use(express.session(
 				secret: 'A pink cat jumped over a rainbow'
 				store: new PlatformSessionStore()
