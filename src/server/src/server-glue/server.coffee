@@ -54,7 +54,7 @@ define [
 			app.use (req, res, next) ->
 				origin = req.get('Origin') || '*'
 				res.header('Access-Control-Allow-Origin', origin)
-				res.header('Access-Control-Allow-Methods', 'GET, PUT, POST, DELETE, OPTIONS, HEAD')
+				res.header('Access-Control-Allow-Methods', 'GET, PUT, POST, PATCH, DELETE, OPTIONS, HEAD')
 				res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Application-Record-Count, MaxDataServiceVersion, X-Requested-With')
 				res.header('Access-Control-Allow-Credentials', 'true')
 				next()
