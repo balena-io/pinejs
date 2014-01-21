@@ -53,8 +53,17 @@ define [
 		]
 	exports.setup = (app, requirejs, sbvrUtils, db) ->
 		setupModels = (tx) ->
-			sbvrUtils.runURI('GET', "/dev/model?$select=vocabulary,model_value&$filter=model_type eq 'se' and vocabulary eq 'data'", null, tx)
+			sbvrUtils.runURI('GET', "/ui/textarea?$select=id&$filter=name eq 'model_area'", null, tx)
 			.then((result) ->
+				if result.d.length is 0
+					# Add a model_area entry if it doesn't already exist.
+					sbvrUtils.runURI('POST', '/ui/textarea', {
+						name: 'model_area'
+						text: ' '
+					}, tx)
+			).then(->
+				sbvrUtils.runURI('GET', "/dev/model?$select=vocabulary,model_value&$filter=model_type eq 'se' and vocabulary eq 'data'", null, tx)
+			).then((result) ->
 				if result.d.length is 0
 					throw new Error('No SE data model found')
 				instance = result.d[0]
@@ -87,7 +96,6 @@ define [
 					.then(->
 						sbvrUtils.runURI('PATCH', "/ui/textarea?$filter=name eq 'model_area'", {
 							is_disabled: true
-							name: 'model_area'
 						}, tx)
 					).then(->
 						tx.end()

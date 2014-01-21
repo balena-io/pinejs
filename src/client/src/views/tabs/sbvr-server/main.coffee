@@ -41,7 +41,6 @@ define [
 			serverRequest('DELETE', '/cleardb')
 			.then(=>
 				serverRequest('PATCH', "/ui/textarea?$filter=name eq 'model_area'", {}, {
-					name: 'model_area'
 					text: @model.get('content')
 					is_disabled: true
 				})
