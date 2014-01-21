@@ -126,6 +126,8 @@ define [
 			[req, res, actionList, resourceName, vocabulary, apiKey] = args
 
 			_checkPermissions = (permissions, userID) ->
+				if !userID?
+					throw new Error('User ID cannot be null for _checkPermissions.')
 				checkObject = or: ['all', actionList]
 				return nestedCheck checkObject, (permissionCheck) ->
 					resourcePermission = 'resource.' + permissionCheck
