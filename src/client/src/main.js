@@ -86,6 +86,11 @@ require({
 			main: 'index'
 		},
 		{
+			name: 'resin-platform-api',
+			location: '../../../node_modules/resin-platform-api',
+			main: 'canvas'
+		},
+		{
 			name: 'css',
 			location: '../../tools/requirejs-plugins/css',
 			main: 'css'

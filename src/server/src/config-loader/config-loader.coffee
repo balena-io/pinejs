@@ -5,6 +5,7 @@ define [
 	'bluebird'
 	'cs!sbvr-api/sbvr-utils'
 ], (exports, has, _, Promise, sbvrUtils) ->
+	{PlatformAPI} = sbvrUtils
 	# Setup function
 	exports.setup = (app, requirejs) ->
 		loadConfig = (data) ->
@@ -22,31 +23,52 @@ define [
 					for user in data.users when user.permissions?
 						_.each user.permissions, (permissionName) ->
 							permissions[permissionName] ?=
-								sbvrUtils.runURI('GET', "/Auth/permission?$select=id&$filter=name eq '" + encodeURIComponent(permissionName) + "'", null, tx)
-								.then (result) ->
+								PlatformAPI::get(
+									url: "/Auth/permission?$select=id&$filter=name eq '" + encodeURIComponent(permissionName) + "'"
+									tx: tx
+								).then (result) ->
 									if result.d.length is 0
-										sbvrUtils.runURI('POST', '/Auth/permission', {'name': permissionName}, tx)
-										.get('id')
+										PlatformAPI::post(
+											url: '/Auth/permission'
+											body:
+												name: permissionName
+											tx: tx
+										).get('id')
 									else
 										return result.d[0].id
 								.catch (err) ->
 									throw new Error('Could not create or find permission "' + permissionName + '": ' + err)
 
 					usersPromise = Promise.map data.users, (user) ->
-						sbvrUtils.runURI('GET', "/Auth/user?$select=id&$filter=username eq '" + encodeURIComponent(user.username) + "'", null, tx)
-						.then (result) ->
+						PlatformAPI::get(
+							url: "/Auth/user?$select=id&$filter=username eq '" + encodeURIComponent(user.username) + "'"
+							tx: tx
+						).then (result) ->
 							if result.d.length is 0
-								sbvrUtils.runURI('POST', '/Auth/user', {'username': user.username, 'password': user.password}, tx)
-								.get('id')
+								PlatformAPI::post(
+									url: '/Auth/user'
+									body:
+										username: user.username
+										password: user.password
+									tx: tx
+								).get('id')
 							else
 								return result.d[0].id
 						.then (userID) ->
 							Promise.map user.permissions, (permissionName) ->
 								permissions[permissionName].then (permissionID) ->
-									sbvrUtils.runURI('GET', "/Auth/user__has__permission?$select=id&$filter=user eq '" + userID + "' and permission eq '" + permissionID + "'", null, tx)
-									.then (result) ->
+									PlatformAPI::get(
+										url: "/Auth/user__has__permission?$select=id&$filter=user eq '" + userID + "' and permission eq '" + permissionID + "'"
+										tx: tx
+									).then (result) ->
 										if result.d.length is 0
-											sbvrUtils.runURI('POST', '/Auth/user__has__permission', {'user': userID, 'permission': permissionID}, tx)
+											PlatformAPI::post(
+												url: '/Auth/user__has__permission'
+												body:
+													user: userID
+													permission: permissionID
+												tx: tx
+											)
 						.catch (err) ->
 							throw new Error('Could not create or find user "' + user.username + '": ' + err)
 				Promise.all([modelsPromise, usersPromise])

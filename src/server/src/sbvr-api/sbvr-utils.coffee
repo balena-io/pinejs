@@ -9,13 +9,14 @@ define [
 	'cs!sbvr-compiler/ODataMetadataGenerator'
 	'cs!sbvr-api/permissions'
 	'cs!sbvr-api/uri-parser'
+	'resin-platform-api'
 	'lodash'
 	'bluebird'
 	'cs!sbvr-compiler/types'
 	'text!sbvr-api/dev.sbvr'
 	'text!sbvr-api/transaction.sbvr'
 	'text!sbvr-api/user.sbvr'
-], (exports, has, SBVRParser, LF2AbstractSQL, AbstractSQL2SQL, AbstractSQLCompiler, AbstractSQL2CLF, ODataMetadataGenerator, permissions, uriParser, _, Promise, sbvrTypes, devModel, transactionModel, userModel) ->
+], (exports, has, SBVRParser, LF2AbstractSQL, AbstractSQL2SQL, AbstractSQLCompiler, AbstractSQL2CLF, ODataMetadataGenerator, permissions, uriParser, resinPlatformAPI, _, Promise, sbvrTypes, devModel, transactionModel, userModel) ->
 	db = null
 
 	_.extend(exports, permissions)
@@ -149,14 +150,14 @@ define [
 						])
 
 					clientModel = clientModels['data'].resources[conditionalResource.resource_type]
-					uri = '/data/' + conditionalResource.resource_type
+					url = '/data/' + conditionalResource.resource_type
 					switch conditionalResource.conditional_type
 						when 'DELETE'
 							getLockedRow(lockID)
 							.then((lockedRow) ->
 								lockedRow = lockedRow.rows.item(0)
-								uri = uri + '?$filter=' + clientModel.idField + ' eq ' + lockedRow.resource_id
-								runURI('DELETE', uri, {}, tx)
+								url = url + '?$filter=' + clientModel.idField + ' eq ' + lockedRow.resource_id
+								PlatformAPI::delete({url, tx})
 							)
 							.then(doCleanup)
 						when 'EDIT'
@@ -164,15 +165,15 @@ define [
 							.then((lockedRow) ->
 								lockedRow = lockedRow.rows.item(0)
 								getFieldsObject(conditionalResource.id, clientModel)
-								.then((fields) ->
-									fields[clientModel.idField] = lockedRow.resource_id
-									runURI('PUT', uri, fields, tx)
+								.then((body) ->
+									body[clientModel.idField] = lockedRow.resource_id
+									PlatformAPI::put({url, body, tx})
 								)
 							).then(doCleanup)
 						when 'ADD'
 							getFieldsObject(conditionalResource.id, clientModel)
-							.then((fields) ->
-								runURI('POST', uri, fields, tx)
+							.then((body) ->
+								PlatformAPI::post({url, body, tx})
 							).then((result) ->
 								placeholders[placeholder].fulfill(result.id)
 							).then(doCleanup)
@@ -243,7 +244,10 @@ define [
 				uriParser.addClientModel(vocab, clientModel)
 
 				updateModel = (modelType, model) ->
-					runURI('GET', "/dev/model?$select=id&$filter=vocabulary eq '" + encodeURIComponent(vocab) + "' and model_type eq '" + encodeURIComponent(modelType) + "'", null, tx)
+					PlatformAPI::get(
+						url: "/dev/model?$select=id&$filter=vocabulary eq '" + encodeURIComponent(vocab) + "' and model_type eq '" + encodeURIComponent(modelType) + "'"
+						tx: tx
+					)
 					.then((result) ->
 						method = 'POST'
 						uri = '/dev/model'
@@ -277,7 +281,10 @@ define [
 				_.map sqlModels[vocabulary]?.dropSchema, (dropStatement) ->
 					tx.executeSql(dropStatement)
 			Promise.all(dropStatements.concat([
-				runURI('DELETE', "/dev/model?$filter=vocabulary eq '" + encodeURIComponent(vocabulary) + "'", null, tx)
+				PlatformAPI::delete(
+					url: "/dev/model?$filter=vocabulary eq '" + encodeURIComponent(vocabulary) + "'"
+					tx: tx
+				)
 			])).then(->
 				tx.end()
 				delete seModels[vocabulary]
@@ -420,6 +427,11 @@ define [
 					)
 				)
 			).nodeify(callback)
+
+	exports.PlatformAPI =
+		class PlatformAPI extends resinPlatformAPI(_)
+			request: ({method, url, body, tx}) ->
+				return runURI(method, url, body, tx)
 
 	exports.runURI = runURI = (method, uri, body = {}, tx, callback) ->
 		if callback? and !_.isFunction(callback)
@@ -699,16 +711,49 @@ define [
 			# TODO: Remove these hardcoded users.
 			if has 'DEV'
 				Promise.all([
-					runURI('POST', '/Auth/user', {'username': 'guest', 'password': ' '})
-					runURI('POST', '/Auth/user', {'username': 'test', 'password': 'test'})
-					runURI('POST', '/Auth/permission', {'name': 'resource.all'})
+					PlatformAPI::post(
+						url: '/Auth/user'
+						body: 
+							username: 'guest'
+							password: ' '
+					)
+					PlatformAPI::post(
+						url: '/Auth/user'
+						body:
+							username: 'test'
+							password: 'test'
+					)
+					PlatformAPI::post(
+						url: '/Auth/permission'
+						body:
+							name: 'resource.all'
+					)
 				]).spread((guest, user, permission) ->
 					Promise.all([
-						runURI('POST', '/Auth/user__has__permission', {'user': guest.id, 'permission': permission.id})
-						runURI('POST', '/Auth/user__has__permission', {'user': user.id, 'permission': permission.id})
-						runURI('POST', '/Auth/api_key', {'user': user.id, 'key': 'test'})
-						.then((apiKey) ->
-							runURI('POST', '/Auth/api_key__has__permission', {'api_key': apiKey.id, 'permission': permission.id})
+						PlatformAPI::post(
+							url: '/Auth/user__has__permission'
+							body:
+								user: guest.id
+								permission: permission.id
+						)
+						PlatformAPI::post(
+							url: '/Auth/user__has__permission'
+							body:
+								user: user.id
+								permission: permission.id
+						)
+						PlatformAPI::post(
+							url: '/Auth/api_key'
+							body:
+								user: user.id
+								key: 'test'
+						).then((apiKey) ->
+							PlatformAPI::post(
+								url: '/Auth/api_key__has__permission'
+								body:
+									api_key: apiKey.id
+									permission: permission.id
+							)
 						)
 					])
 				).catch((err) ->
