@@ -81,6 +81,11 @@ An object that allows direct connection to the database, which is similar to the
 #### engine
 A lowercase string that denotes the current database engine in use (possible values are currently: postgres, mysql, websql, and sqlite)
 
+#### executeSql(sql, bindings[, callback])
+This runs the given SQL statement in a transaction of it's own, with ? bindings replaced by the values in the bindings array and returns a promise.
+#### callback
+This has a signature of (err, result)
+
 #### transaction([callback])
 Returns a promise that will provide a "tx" object.
 ##### callback
@@ -90,7 +95,7 @@ This callback is called with a "tx" object.
 This is created by a succesful call to `db.transaction`.
 
 #### executeSql(sql, bindings[, callback])
-This runs the given SQL statement, with ? bindings replaced by the values in the bindings array and returns a promise.
+This runs the given SQL statement in the context of the transaction it is called on, with ? bindings replaced by the values in the bindings array and returns a promise.
 #### callback
 This has a signature of (err, result)
 
