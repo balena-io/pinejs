@@ -161,6 +161,7 @@ define [
 						return or: conditionalPermissions
 					return false
 
+			# We default to a user id of 0 (the guest user) if not logged in.
 			userID = req.user?.id ? 0
 			apiKeyUserID = false
 
