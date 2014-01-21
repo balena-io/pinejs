@@ -144,6 +144,7 @@ define [
 
 					conditionalPermissions = _.map permissions, (permissionName) ->
 						for permission in [resourcePermission, vocabularyPermission, vocabularyResourcePermission] when permission?
+							# Check if there are any matching permissions that contain a condition (condition indicated by a ? directly after the permission name).
 							permission = permission + '?'
 							if permissionName[...permission.length] == permission
 								condition = permissionName[permission.length...]
