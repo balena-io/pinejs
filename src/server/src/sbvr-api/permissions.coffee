@@ -125,7 +125,9 @@ define [
 				args[callbackArg] = null
 			[req, res, actionList, resourceName, vocabulary, apiKey] = args
 
-			_checkPermissions = (permissions) ->
+			_checkPermissions = (permissions, userID) ->
+				if !userID?
+					throw new Error('User ID cannot be null for _checkPermissions.')
 				checkObject = or: ['all', actionList]
 				return nestedCheck checkObject, (permissionCheck) ->
 					resourcePermission = 'resource.' + permissionCheck
@@ -142,10 +144,13 @@ define [
 
 					conditionalPermissions = _.map permissions, (permissionName) ->
 						for permission in [resourcePermission, vocabularyPermission, vocabularyResourcePermission] when permission?
+							# Check if there are any matching permissions that contain a condition (condition indicated by a ? directly after the permission name).
 							permission = permission + '?'
 							if permissionName[...permission.length] == permission
-								# TODO: Should get the linked user for an API key.
-								return permissionName[permission.length...].replace(/\$USER\.ID/g, req.user?.id ? 0)
+								condition = permissionName[permission.length...]
+								if _.isArray(userID)
+									return _.map userID, (id) -> condition.replace(/\$USER\.ID/g, userID)
+								return condition.replace(/\$USER\.ID/g, userID)
 						return false
 					# Remove the false elements.
 					conditionalPermissions = _.filter(conditionalPermissions)
@@ -156,9 +161,13 @@ define [
 						return or: conditionalPermissions
 					return false
 
+			# We default to a user id of 0 (the guest user) if not logged in.
+			userID = req.user?.id ? 0
+			apiKeyUserID = false
+
 			Promise.try(->
 				if req.user?
-					return _checkPermissions(req.user.permissions)
+					return _checkPermissions(req.user.permissions, userID)
 				return false
 			).catch((err) ->
 				console.error('Error checking user permissions', req.user, err, err.stack)
@@ -166,9 +175,15 @@ define [
 			).then((allowed) ->
 				if !apiKey? or allowed is true
 					return allowed
-				getUserPermissions(apiKey)
-				.then((apiKeyPermissions) ->
-					return _checkPermissions(apiKeyPermissions)
+				Promise.all([
+					getUserPermissions(apiKey)
+					sbvrUtils.runURI('GET', "/Auth/api_key?$select=id&$expand=user&$filter=key eq '" + encodeURIComponent(apiKey) + "'")
+				])
+				.spread((apiKeyPermissions, user) ->
+					if user.d.length is 0
+						throw new Error('API key is not linked to a user?!')
+					apiKeyUserID = user.d[0].id
+					return _checkPermissions(apiKeyPermissions, apiKeyUserID)
 				).catch((err) ->
 					console.error('Error checking api key permissions', apiKey, err, err.stack)
 				).then((apiKeyAllowed) ->
@@ -181,7 +196,12 @@ define [
 					return allowed
 				_getGuestPermissions()
 				.then((permissions) ->
-					return _checkPermissions(permissions)
+					userIDs =
+						if apiKeyUserID isnt false
+							[userID, apiKeyUserID]
+						else
+							userID
+					return _checkPermissions(permissions, userIDs)
 				).catch((err) ->
 					console.error('Error checking guest permissions', err, err.stack)
 					return false
