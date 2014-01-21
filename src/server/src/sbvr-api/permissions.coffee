@@ -147,7 +147,6 @@ define [
 							permission = permission + '?'
 							if permissionName[...permission.length] == permission
 								condition = permissionName[permission.length...]
-								# TODO: Should get the linked user for an API key.
 								if _.isArray(userID)
 									return _.map userID, (id) -> condition.replace(/\$USER\.ID/g, userID)
 								return condition.replace(/\$USER\.ID/g, userID)
