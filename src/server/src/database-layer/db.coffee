@@ -16,11 +16,13 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Pro
 		@transaction()
 		.then (tx) ->
 			result = tx.executeSql(sql, bindings)
-			result.done(
-				-> tx.end()
-				-> tx.rollback()
-			)
-			return result
+			# Use finally so that we do not modify the return of the result and will still trigger bluebird's possibly unhandled exception when relevant.
+			return result.finally ->
+				# It is ok to use synchronous inspection of the promise here since this block will only be run once the promise is resolved.
+				if result.isRejected()
+					tx.rollback()
+				else
+					tx.end()
 		.nodeify(callback)
 
 	getError = ->
