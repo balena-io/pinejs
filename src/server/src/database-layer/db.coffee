@@ -12,6 +12,19 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Pro
 				'?'
 		])
 
+	atomicExecuteSql = (sql, bindings, callback) ->
+		@transaction()
+		.then (tx) ->
+			result = tx.executeSql(sql, bindings)
+			# Use finally so that we do not modify the return of the result and will still trigger bluebird's possibly unhandled exception when relevant.
+			return result.finally ->
+				# It is ok to use synchronous inspection of the promise here since this block will only be run once the promise is resolved.
+				if result.isRejected()
+					tx.rollback()
+				else
+					tx.end()
+		.nodeify(callback)
+
 	getError = ->
 		try
 			throw new Error()
@@ -158,6 +171,7 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Pro
 			return {
 				DEFAULT_VALUE
 				engine: 'postgres'
+				executeSql: atomicExecuteSql
 				transaction: (callback) ->
 					stackTrace = getStackTrace()
 					deferred = Promise.pending()
@@ -227,6 +241,7 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Pro
 			return {
 				DEFAULT_VALUE
 				engine: 'mysql'
+				executeSql: atomicExecuteSql
 				transaction: (callback) ->
 					stackTrace = getStackTrace()
 					deferred = Promise.pending()
@@ -325,6 +340,7 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Pro
 			return {
 				DEFAULT_VALUE
 				engine: 'websql'
+				executeSql: atomicExecuteSql
 				transaction: (callback) ->
 					stackTrace = getStackTrace()
 
