@@ -177,7 +177,7 @@ define [
 					return allowed
 				Promise.all([
 					getUserPermissions(apiKey)
-					sbvrUtils.runURI('GET', "/Auth/api_key?$select=id&$expand=user&$filter=key eq '" + encodeURIComponent(apiKey) + "'")
+					sbvrUtils.PlatformAPI::get(url: "/Auth/api_key?$select=id&$expand=user&$filter=key eq '" + encodeURIComponent(apiKey) + "'")
 				])
 				.spread((apiKeyPermissions, user) ->
 					if user.d.length is 0
