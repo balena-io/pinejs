@@ -255,7 +255,7 @@ define [
 							vocabulary: vocab
 							model_value: model
 							model_type: modelType
-						id = result?.d?[0]?.id ? null
+						id = result?.d?[0]?.id
 						if id?
 							uri += '(' + id + ')'
 							method = 'PUT'
