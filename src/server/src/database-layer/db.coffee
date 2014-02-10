@@ -75,9 +75,8 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Pro
 
 				sql = bindDefaultValues(sql, bindings)
 				executeSql(sql, bindings, deferred, args...)
-				deferred.promise.finally(pendingExecutes.decrement)
 
-				return deferred.promise.nodeify(callback)
+				return deferred.promise.finally(pendingExecutes.decrement).nodeify(callback)
 
 			@rollback = (callback) ->
 				deferred = Promise.pending()
