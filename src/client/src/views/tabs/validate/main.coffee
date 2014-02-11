@@ -18,8 +18,7 @@ define [
 			html = """
 				<textarea id="validateEditor" />
 				<div id="validate" class="btn btn-small btn-primary">Validate</div>
-				<div id="validateloading" style="display: none">Loading...</div>
-				<div id="validateerror" style="display: none"></div>
+				<div id="validatemessage" class="alert" style="display:none"></div>
 				<div id="results" style="display: none">
 					<h3>Invalid items:</h3>
 					<table class="table table-bordered table-striped">
@@ -29,9 +28,6 @@ define [
 						<tbody>
 						</tbody>
 					</table>
-				</div>
-				<div id="noresults" style="display: none">
-					<h3>No invalid items in database</h3>
 				</div>"""
 
 			@$el.html(html)
@@ -52,13 +48,12 @@ define [
 			).resize()
 		validate: ->
 			resultsDiv = @$("#results")
-			noResultsDiv = @$("#noresults")
-			validateErrorDiv = @$("#validateerror")
-			validateLoadingDiv = @$("#validateloading")
+			messageBox = @$("#validatemessage")
 			resultsDiv.hide()
-			noResultsDiv.hide()
-			validateErrorDiv.hide()
-			validateLoadingDiv.show()
+			messageBox.show()
+			messageBox.toggleClass('alert-error alert-success', false)
+			messageBox.toggleClass('alert-info', true)
+			messageBox.text('Loading...')
 			Promise.all([
 				serverRequest('GET', '/data/')
 				.then(([statusCode, result]) ->
@@ -128,10 +123,14 @@ define [
 						return manyToManyCols
 					)
 				).then((manyToManyCols) =>
-					validateLoadingDiv.hide()
 					if invalid.d.length == 0
-						noResultsDiv.show()
+						messageBox.toggleClass('alert-error alert-info', false)
+						messageBox.toggleClass('alert-success', true)
+						messageBox.text('No invalid items in database')
 					else
+						messageBox.toggleClass('alert-success alert-info', false)
+						messageBox.toggleClass('alert-error', true)
+						messageBox.text('Invalid items found')
 						resultsDiv.show()
 
 						header = @$("thead tr")
@@ -156,9 +155,9 @@ define [
 							results.append(row)
 				)
 			).catch((err) ->
-				validateLoadingDiv.hide()
-				validateErrorDiv.text('Error validating')
-				validateErrorDiv.show()
+				messageBox.toggleClass('alert-success alert-info', false)
+				messageBox.toggleClass('alert-error', true)
+				messageBox.text('Error validating')
 				console.error('Error validating', err)
 			)
 	)
