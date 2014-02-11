@@ -18,6 +18,8 @@ define [
 			html = """
 				<textarea id="validateEditor" />
 				<div id="validate" class="btn btn-small btn-primary">Validate</div>
+				<div id="validateloading" style="display: none">Loading...</div>
+				<div id="validateerror" style="display: none"></div>
 				<div id="results" style="display: none">
 					<h3>Invalid items:</h3>
 					<table class="table table-bordered table-striped">
@@ -49,6 +51,14 @@ define [
 				@editor.setSize(@$el.width(), 40)
 			).resize()
 		validate: ->
+			resultsDiv = @$("#results")
+			noResultsDiv = @$("#noresults")
+			validateErrorDiv = @$("#validateerror")
+			validateLoadingDiv = @$("#validateloading")
+			resultsDiv.hide()
+			noResultsDiv.hide()
+			validateErrorDiv.hide()
+			validateLoadingDiv.show()
 			Promise.all([
 				serverRequest('GET', '/data/')
 				.then(([statusCode, result]) ->
@@ -118,15 +128,11 @@ define [
 						return manyToManyCols
 					)
 				).then((manyToManyCols) =>
-					results_div = @$("#results")
-					noresults_div = @$("#noresults")
-
+					validateLoadingDiv.hide()
 					if invalid.d.length == 0
-						results_div.hide()
-						noresults_div.show()
+						noResultsDiv.show()
 					else
-						results_div.show()
-						noresults_div.hide()
+						resultsDiv.show()
 
 						header = @$("thead tr")
 						results = @$("tbody")
@@ -150,6 +156,9 @@ define [
 							results.append(row)
 				)
 			).catch((err) ->
+				validateLoadingDiv.hide()
+				validateErrorDiv.text('Error validating')
+				validateErrorDiv.show()
 				console.error('Error validating', err)
 			)
 	)
