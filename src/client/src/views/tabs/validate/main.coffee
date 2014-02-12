@@ -98,11 +98,13 @@ define [
 				Promise.map(invalid.d, (instance) ->
 					Promise.all([
 						Promise.map(fkCols, (model) ->
-							serverRequest('GET', instance[model.modelName].__deferred.uri)
-							.then(([statusCode, fkCol]) ->
-								if fkCol.d.length > 0
-									instance[model.modelName] = fkCol.d[0][model.idField] + ': ' + fkCol.d[0][model.referenceScheme.replace(/\ /g, '_')]
-							)
+							deferredField = instance[model.modelName]
+							if deferredField?
+								serverRequest('GET', deferredField.__deferred.uri)
+								.then(([statusCode, fkCol]) ->
+									if fkCol.d.length > 0
+										instance[model.modelName] = fkCol.d[0][model.idField] + ': ' + fkCol.d[0][model.referenceScheme.replace(/\ /g, '_')]
+								)
 						)
 						Promise.map(manyToManyCols, (model) ->
 							serverRequest('GET', '/data/' + model.resourceName + '?$filter=' + invalid.__model.resourceName + ' eq ' + instance[invalid.__model.idField])
@@ -153,6 +155,7 @@ define [
 								cell.text(instance[column.name.replace(/\ /g, '_')])
 								row.append(cell)
 							results.append(row)
+					return
 				)
 			).catch((err) ->
 				messageBox.toggleClass('alert-success alert-info', false)
