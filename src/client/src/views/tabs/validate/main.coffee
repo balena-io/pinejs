@@ -104,6 +104,8 @@ define [
 								.then(([statusCode, fkCol]) ->
 									if fkCol.d.length > 0
 										instance[model.modelName] = fkCol.d[0][model.idField] + ': ' + fkCol.d[0][model.referenceScheme.replace(/\ /g, '_')]
+									else
+										instance[model.modelName] = deferredField.__id + ' - Not Found'
 								)
 						)
 						Promise.map(manyToManyCols, (model) ->
