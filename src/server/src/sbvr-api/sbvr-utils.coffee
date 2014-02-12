@@ -441,7 +441,12 @@ define [
 					resourceName = resourceName.replace(/\ /g, '_').replace(/-/g, '__')
 					clientModel = clientModels[vocab].resources[resourceName]
 					ids = result.rows.map (row) -> clientModel.idField + ' eq ' + row[clientModel.idField]
-					runURI('GET', '/' + vocab + '/' + clientModel.resourceName + '?$filter=' + ids.join(' or '))
+					filter =
+						if ids.length > 0
+							ids.join(' or ')
+						else
+							'0 eq 1'
+					runURI('GET', '/' + vocab + '/' + clientModel.resourceName + '?$filter=' + filter)
 				)
 			).nodeify(callback)
 
