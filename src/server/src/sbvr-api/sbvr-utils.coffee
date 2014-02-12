@@ -408,10 +408,27 @@ define [
 					throw new Error(['Error compiling rule', rule, e])
 
 				ruleAbs = abstractSqlModel.rules[-1..][0]
-				# Remove the not exists
-				ruleAbs[2][1] = ruleAbs[2][1][1][1]
+				if ruleAbs[2][1][0] == 'Not' and ruleAbs[2][1][1][0] == 'Exists' and ruleAbs[2][1][1][1][0] == 'SelectQuery'
+					# Remove the not exists
+					ruleAbs[2][1] = ruleAbs[2][1][1][1]
+				else if ruleAbs[2][1][0] == 'Exists' and ruleAbs[2][1][1][0] == 'SelectQuery'
+					# Remove the exists
+					ruleAbs[2][1] = ruleAbs[2][1][1]
+					# And add a not to the where clauses
+					ruleAbs[2][1] = _.map ruleAbs[2][1], (queryPart) ->
+						if queryPart[0] != 'Where'
+							return queryPart
+						if queryPart.length > 2
+							throw new Error('Unsupported rule formulation')
+						return ['Where', ['Not', queryPart[1]]]
+				else
+					throw new Error('Unsupported rule formulation')
+
 				# Select all
-				ruleAbs[2][1][1][1] = '*'
+				ruleAbs[2][1] = _.map ruleAbs[2][1], (queryPart) ->
+						if queryPart[0] != 'Select'
+							return queryPart
+						return ['Select', '*']
 				ruleSQL = AbstractSQL2SQL.generate({tables: {}, rules: [ruleAbs]}).rules[0].sql
 
 				db.executeSql(ruleSQL.query, ruleSQL.bindings)
