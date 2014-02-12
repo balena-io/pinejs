@@ -440,7 +440,9 @@ define [
 							ruleLF[1][1][1][2][1]
 					resourceName = resourceName.replace(/\ /g, '_').replace(/-/g, '__')
 					clientModel = clientModels[vocab].resources[resourceName]
-					ids = result.rows.map (row) -> clientModel.idField + ' eq ' + row[clientModel.idField]
+					ids = result.rows.map (row) -> row[clientModel.idField]
+					ids = _.unique(ids)
+					ids = _.map ids, (id) -> clientModel.idField + ' eq ' + id
 					filter =
 						if ids.length > 0
 							ids.join(' or ')
