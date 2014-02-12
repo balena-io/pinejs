@@ -433,7 +433,12 @@ define [
 
 				db.executeSql(ruleSQL.query, ruleSQL.bindings)
 				.then((result) ->
-					resourceName = ruleLF[1][1][1][2][1].replace(/\ /g, '_').replace(/-/g, '__')
+					resourceName =
+						if ruleLF[1][1][0] == 'LogicalNegation'
+							ruleLF[1][1][1][1][2][1]
+						else
+							ruleLF[1][1][1][2][1]
+					resourceName = resourceName.replace(/\ /g, '_').replace(/-/g, '__')
 					clientModel = clientModels[vocab].resources[resourceName]
 					ids = result.rows.map (row) -> clientModel.idField + ' eq ' + row[clientModel.idField]
 					runURI('GET', '/' + vocab + '/' + clientModel.resourceName + '?$filter=' + ids.join(' or '))
