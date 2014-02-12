@@ -101,7 +101,7 @@ define [
 							serverRequest('GET', instance[model.modelName].__deferred.uri)
 							.then(([statusCode, fkCol]) ->
 								if fkCol.d.length > 0
-									instance[model.modelName] = fkCol.d[0][model.idField] + ': ' + fkCol.d[0][model.referenceScheme]
+									instance[model.modelName] = fkCol.d[0][model.idField] + ': ' + fkCol.d[0][model.referenceScheme.replace(/\ /g, '_')]
 							)
 						)
 						Promise.map(manyToManyCols, (model) ->
@@ -112,7 +112,7 @@ define [
 									serverRequest('GET', instance[fkName].__deferred.uri)
 									.then(([statusCode, results]) ->
 										if results.d.length > 0
-											instance[fkName] = results.d[0][results.__model.referenceScheme]
+											instance[fkName] = results.d[0][results.__model.referenceScheme.replace(/\ /g, '_')]
 									)
 								).then(->
 									return manyToManyCol
@@ -150,7 +150,7 @@ define [
 							row = $(document.createElement('tr'))
 							for column in colModel
 								cell = $(document.createElement('td'))
-								cell.text(instance[column.name])
+								cell.text(instance[column.name.replace(/\ /g, '_')])
 								row.append(cell)
 							results.append(row)
 				)

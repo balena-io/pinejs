@@ -417,14 +417,9 @@ define [
 				db.executeSql(ruleSQL.query, ruleSQL.bindings)
 				.then((result) ->
 					resourceName = ruleLF[1][1][1][2][1].replace(/\ /g, '_').replace(/-/g, '__')
-					clientModel = clientModels[vocab].resources
-					processOData(vocab, clientModel, resourceName, result.rows)
-					.then((d) ->
-						return {
-							__model: clientModel[resourceName]
-							d: d
-						}
-					)
+					clientModel = clientModels[vocab].resources[resourceName]
+					ids = result.rows.map (row) -> 'id eq ' + row[clientModel.idField]
+					runURI('GET', '/' + vocab + '/' + clientModel.resourceName + '?$filter=' + ids.join(' or '))
 				)
 			).nodeify(callback)
 
