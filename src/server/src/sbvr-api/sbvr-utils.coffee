@@ -435,7 +435,7 @@ define [
 				.then((result) ->
 					resourceName = ruleLF[1][1][1][2][1].replace(/\ /g, '_').replace(/-/g, '__')
 					clientModel = clientModels[vocab].resources[resourceName]
-					ids = result.rows.map (row) -> 'id eq ' + row[clientModel.idField]
+					ids = result.rows.map (row) -> clientModel.idField + ' eq ' + row[clientModel.idField]
 					runURI('GET', '/' + vocab + '/' + clientModel.resourceName + '?$filter=' + ids.join(' or '))
 				)
 			).nodeify(callback)
