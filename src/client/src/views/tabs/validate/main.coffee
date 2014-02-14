@@ -1,10 +1,19 @@
 define [
 	'backbone'
+	'lodash'
 	'codemirror'
 	'bluebird'
 	'codemirror-ometa/hinter'
 	'cs!server-request'
-], (Backbone, CodeMirror, Promise, codeMirrorOmetaHinter, serverRequest) ->
+], (Backbone, _, CodeMirror, Promise, codeMirrorOmetaHinter, serverRequest) ->
+
+	displayMessage = do ->
+		messageTypes = ['info', 'error', 'success']
+		(messageBox, type, message) ->
+			for messageType in messageTypes
+				messageBox.toggleClass('alert-' + messageType, messageType is type)
+			messageBox.text(message)
+
 	Backbone.View.extend(
 		events:
 			"click #validate": "validate"
@@ -51,9 +60,7 @@ define [
 			messageBox = @$("#validatemessage")
 			resultsDiv.hide()
 			messageBox.show()
-			messageBox.toggleClass('alert-error alert-success', false)
-			messageBox.toggleClass('alert-info', true)
-			messageBox.text('Loading...')
+			displayMessage(messageBox, 'info', 'Loading...')
 			Promise.all([
 				serverRequest('GET', '/data/')
 				.then(([statusCode, result]) ->
@@ -128,13 +135,9 @@ define [
 					)
 				).then((manyToManyCols) =>
 					if invalid.d.length == 0
-						messageBox.toggleClass('alert-error alert-info', false)
-						messageBox.toggleClass('alert-success', true)
-						messageBox.text('No invalid items in database')
+						displayMessage(messageBox, 'success', 'No invalid items in database')
 					else
-						messageBox.toggleClass('alert-success alert-info', false)
-						messageBox.toggleClass('alert-error', true)
-						messageBox.text('Invalid items found')
+						displayMessage(messageBox, 'error', 'Invalid items found')
 						resultsDiv.show()
 
 						header = @$("thead tr")
