@@ -7,6 +7,18 @@ define [
 	'cs!server-request'
 ], (Backbone, _, CodeMirror, Promise, codeMirrorOmetaHinter, serverRequest) ->
 
+	noneFoundMessages =
+		NecessityFormulation: ['success', 'No invalid items in database']
+		ObligationFormulation: ['success', 'No invalid items in database']
+		PossibilityFormulation: ['error', 'No confirming instances in database']
+		PermissibilityFormulation: ['error', 'No confirming instances in database']
+
+	someFoundMessages =
+		NecessityFormulation: ['error', 'Invalid items found']
+		ObligationFormulation: ['error', 'Invalid items found']
+		PossibilityFormulation: ['success', 'Confirming instances found']
+		PermissibilityFormulation: ['success', 'Confirming instances found']
+
 	displayMessage = do ->
 		messageTypes = ['info', 'error', 'success']
 		(messageBox, type, message) ->
@@ -135,9 +147,9 @@ define [
 					)
 				).then((manyToManyCols) =>
 					if invalid.d.length == 0
-						displayMessage(messageBox, 'success', 'No invalid items in database')
+						displayMessage(messageBox, noneFoundMessages[invalid.__formulationType]...)
 					else
-						displayMessage(messageBox, 'error', 'Invalid items found')
+						displayMessage(messageBox, someFoundMessages[invalid.__formulationType]...)
 						resultsDiv.show()
 
 						header = @$("thead tr")

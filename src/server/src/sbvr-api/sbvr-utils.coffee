@@ -407,37 +407,44 @@ define [
 					console.error('Error compiling rule', rule, e, e.stack)
 					throw new Error(['Error compiling rule', rule, e])
 
+				formulationType = ruleLF[1][0]
+				resourceName =
+					if ruleLF[1][1][0] == 'LogicalNegation'
+						ruleLF[1][1][1][1][2][1]
+					else
+						ruleLF[1][1][1][2][1]
+
+				fetchingViolators = false
 				ruleAbs = abstractSqlModel.rules[-1..][0]
 				if ruleAbs[2][1][0] == 'Not' and ruleAbs[2][1][1][0] == 'Exists' and ruleAbs[2][1][1][1][0] == 'SelectQuery'
 					# Remove the not exists
 					ruleAbs[2][1] = ruleAbs[2][1][1][1]
+					fetchingViolators = true
 				else if ruleAbs[2][1][0] == 'Exists' and ruleAbs[2][1][1][0] == 'SelectQuery'
 					# Remove the exists
 					ruleAbs[2][1] = ruleAbs[2][1][1]
-					# And add a not to the where clauses
+				else
+					throw new Error('Unsupported rule formulation')
+
+				wantNonViolators = formulationType in ['PossibilityFormulation', 'PermissibilityFormulation']
+				if wantNonViolators == fetchingViolators
+					# What we want is the opposite of what we're getting, so add a not to the where clauses
 					ruleAbs[2][1] = _.map ruleAbs[2][1], (queryPart) ->
 						if queryPart[0] != 'Where'
 							return queryPart
 						if queryPart.length > 2
 							throw new Error('Unsupported rule formulation')
 						return ['Where', ['Not', queryPart[1]]]
-				else
-					throw new Error('Unsupported rule formulation')
 
 				# Select all
 				ruleAbs[2][1] = _.map ruleAbs[2][1], (queryPart) ->
-						if queryPart[0] != 'Select'
-							return queryPart
-						return ['Select', '*']
+					if queryPart[0] != 'Select'
+						return queryPart
+					return ['Select', '*']
 				ruleSQL = AbstractSQL2SQL.generate({tables: {}, rules: [ruleAbs]}).rules[0].sql
 
 				db.executeSql(ruleSQL.query, ruleSQL.bindings)
 				.then((result) ->
-					resourceName =
-						if ruleLF[1][1][0] == 'LogicalNegation'
-							ruleLF[1][1][1][1][2][1]
-						else
-							ruleLF[1][1][1][2][1]
 					resourceName = resourceName.replace(/\ /g, '_').replace(/-/g, '__')
 					clientModel = clientModels[vocab].resources[resourceName]
 					ids = result.rows.map (row) -> row[clientModel.idField]
@@ -449,6 +456,9 @@ define [
 						else
 							'0 eq 1'
 					runURI('GET', '/' + vocab + '/' + clientModel.resourceName + '?$filter=' + filter)
+					.then (result) ->
+						result.__formulationType = formulationType
+						return result
 				)
 			).nodeify(callback)
 
