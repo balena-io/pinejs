@@ -9,7 +9,7 @@
   "dependencies": {
     "coffee-script": "~1.6.3",
     "ometa-js": "~1.1.0",
-    "mysql": "~2.0.0-alpha9",
+    "mysql": "~2.1.0",
     "pg": "~2.8.2",
     "bcrypt": "~0.7.6",
     "express": "~3.4.0",
