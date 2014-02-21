@@ -55,20 +55,21 @@ define [
 							else
 								return result.d[0].id
 						.then (userID) ->
-							Promise.map user.permissions, (permissionName) ->
-								permissions[permissionName].then (permissionID) ->
-									PlatformAPI::get(
-										url: "/Auth/user__has__permission?$select=id&$filter=user eq '" + userID + "' and permission eq '" + permissionID + "'"
-										tx: tx
-									).then (result) ->
-										if result.d.length is 0
-											PlatformAPI::post(
-												url: '/Auth/user__has__permission'
-												body:
-													user: userID
-													permission: permissionID
-												tx: tx
-											)
+							if user.permissions?
+								Promise.map user.permissions, (permissionName) ->
+									permissions[permissionName].then (permissionID) ->
+										PlatformAPI::get(
+											url: "/Auth/user__has__permission?$select=id&$filter=user eq '" + userID + "' and permission eq '" + permissionID + "'"
+											tx: tx
+										).then (result) ->
+											if result.d.length is 0
+												PlatformAPI::post(
+													url: '/Auth/user__has__permission'
+													body:
+														user: userID
+														permission: permissionID
+													tx: tx
+												)
 						.catch (err) ->
 							throw new Error('Could not create or find user "' + user.username + '": ' + err)
 				Promise.all([modelsPromise, usersPromise])
