@@ -100,11 +100,11 @@ define [
 
 	exports.checkPermissions = checkPermissions = do ->
 		_getGuestPermissions = do ->
-			# Start the guest permissions as rejected,
-			# since it will be attempted to be fetched again whenever it is rejected.
-			_guestPermissions = Promise.rejected()
+			# Start the guest permissions as null, having it as a reject promise either
+			# causes an issue with an unhandled rejection, or with enabling long stack traces.
+			_guestPermissions = null
 			return (callback) ->
-				if _guestPermissions.isRejected()
+				if !_guestPermissions? or _guestPermissions.isRejected()
 					# Get guest user
 					_guestPermissions = sbvrUtils.PlatformAPI::get(url: "/Auth/user?$select=id&$filter=user/username eq 'guest'")
 					.then((result) ->
