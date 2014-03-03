@@ -12,7 +12,7 @@ define [
 		Vocabulary: session
 
 		Term:       session id
-			Concept Type: Text (Type)
+			Concept Type: Short Text (Type)
 		Term:       data
 			Concept Type: JSON (Type)
 		Term:       expiry time
