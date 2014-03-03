@@ -21,7 +21,7 @@
     "d3": "~3.3.8",
     "ejs": "~0.8.4",
     "bootstrap": "2.3.2",
-    "coffee-script": "~1.6.3",
+    "coffee-script": "~1.7.1",
     "bluebird": "~1.0.4",
     "async": "caolan/async#c99537ae4837f12e918959c8bd1e70e6b1730f6e"
   }

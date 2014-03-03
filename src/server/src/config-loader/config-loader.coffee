@@ -118,7 +118,8 @@ define [
 			if not has 'ENV_NODEJS'
 				console.error('Can only load a node config in a nodejs environment.')
 				return
-			require('coffee-script')
+			try # Try to register the coffee-script loader - ignore if it fails though, since that probably just means it is not available/needed.
+				require('coffee-script/register')
 			readFile = Promise.promisify(require('fs').readFile)
 			path = require('path')
 			root = process.argv[2] or __dirname
