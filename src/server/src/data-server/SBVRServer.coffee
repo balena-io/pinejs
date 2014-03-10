@@ -53,15 +53,19 @@ define [
 		]
 	exports.setup = (app, requirejs, sbvrUtils, db) ->
 		{PlatformAPI} = sbvrUtils
+		uiAPI = new PlatformAPI('/ui/')
 		setupModels = (tx) ->
-			PlatformAPI::get(
-				url: "ui/textarea?$select=id&$filter=name eq 'model_area'"
+			uiAPI.get(
+				resource: 'textarea'
+				options:
+					select: 'id'
+					filter: "name eq 'model_area'"
 				tx: tx
 			).then((result) ->
 				if result.length is 0
 					# Add a model_area entry if it doesn't already exist.
-					PlatformAPI::post(
-						url: 'ui/textarea'
+					uiAPI.post(
+						resource: 'textarea'
 						body:
 							name: 'model_area'
 							text: ' '
@@ -94,8 +98,12 @@ define [
 			res.send(404)
 
 		app.post '/execute', sbvrUtils.checkPermissionsMiddleware('all'), (req, res, next) ->
-			PlatformAPI::get("ui/textarea?$select=text&$filter=name eq 'model_area'")
-			.then((result) ->
+			uiAPI.get(
+				resource: 'textarea'
+				options:
+					select: 'text'
+					filter: "name eq 'model_area'"
+			).then((result) ->
 				if result.length is 0
 					throw new Error('Could not find the model to execute')
 				seModel = result[0].text
@@ -103,8 +111,10 @@ define [
 				.then((tx) ->
 					sbvrUtils.executeModel(tx, 'data', seModel)
 					.then(->
-						PlatformAPI::patch(
-							url: "ui/textarea?$filter=name eq 'model_area'"
+						uiAPI.patch(
+							resource: 'textarea'
+							options:
+								filter: "name eq 'model_area'"
 							body:
 								is_disabled: true
 							tx: tx
@@ -276,8 +286,10 @@ define [
 
 		app.del '/', serverIsOnAir, (req, res, next) ->
 			Promise.all([
-				PlatformAPI::patch(
-					url: "ui/textarea?$filter=name eq 'model_area'"
+				uiAPI.patch(
+					resource: 'textarea'
+					options:
+						filter: "name eq 'model_area'"
 					body:
 						text: ''
 						name: 'model_area'
