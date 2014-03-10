@@ -6,6 +6,7 @@ define [
 	'cs!sbvr-api/sbvr-utils'
 ], (exports, has, _, Promise, sbvrUtils) ->
 	{PlatformAPI} = sbvrUtils
+	authAPI = new PlatformAPI('/Auth/')
 	# Setup function
 	exports.setup = (app, requirejs) ->
 		loadConfig = (data) ->
@@ -23,13 +24,16 @@ define [
 					for user in data.users when user.permissions?
 						_.each user.permissions, (permissionName) ->
 							permissions[permissionName] ?=
-								PlatformAPI::get(
-									url: "Auth/permission?$select=id&$filter=name eq '" + encodeURIComponent(permissionName) + "'"
+								authAPI.get(
+									resource: 'permission'
+									options:
+										select: 'id'
+										filter: "name eq '" + encodeURIComponent(permissionName) + "'"
 									tx: tx
 								).then (result) ->
 									if result.length is 0
-										PlatformAPI::post(
-											url: 'Auth/permission'
+										authAPI.post(
+											resource: 'permission'
 											body:
 												name: permissionName
 											tx: tx
@@ -40,13 +44,16 @@ define [
 									throw new Error('Could not create or find permission "' + permissionName + '": ' + err)
 
 					usersPromise = Promise.map data.users, (user) ->
-						PlatformAPI::get(
-							url: "Auth/user?$select=id&$filter=username eq '" + encodeURIComponent(user.username) + "'"
+						authAPI.get(
+							resource: 'user'
+							options:
+								select: 'id'
+								filter: "username eq '" + encodeURIComponent(user.username) + "'"
 							tx: tx
 						).then (result) ->
 							if result.length is 0
-								PlatformAPI::post(
-									url: 'Auth/user'
+								authAPI.post(
+									resource: 'user'
 									body:
 										username: user.username
 										password: user.password
@@ -58,13 +65,16 @@ define [
 							if user.permissions?
 								Promise.map user.permissions, (permissionName) ->
 									permissions[permissionName].then (permissionID) ->
-										PlatformAPI::get(
-											url: "Auth/user__has__permission?$select=id&$filter=user eq '" + userID + "' and permission eq '" + permissionID + "'"
+										authAPI.get(
+											resource: 'user__has__permission'
+											options:
+												select: 'id'
+												filter: "user eq '" + userID + "' and permission eq '" + permissionID + "'"
 											tx: tx
 										).then (result) ->
 											if result.length is 0
-												PlatformAPI::post(
-													url: 'Auth/user__has__permission'
+												authAPI.post(
+													resource: 'user__has__permission'
 													body:
 														user: userID
 														permission: permissionID
