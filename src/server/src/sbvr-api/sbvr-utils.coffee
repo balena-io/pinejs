@@ -744,46 +744,47 @@ define [
 			)
 			# TODO: Remove these hardcoded users.
 			if has 'DEV'
+				authAPI = new PlatformAPI('/Auth/')
 				Promise.all([
-					PlatformAPI::post(
-						url: 'Auth/user'
+					authAPI.post(
+						resource: 'user'
 						body: 
 							username: 'guest'
 							password: ' '
 					)
-					PlatformAPI::post(
-						url: 'Auth/user'
+					authAPI.post(
+						resource: 'user'
 						body:
 							username: 'test'
 							password: 'test'
 					)
-					PlatformAPI::post(
-						url: 'Auth/permission'
+					authAPI.post(
+						resource: 'permission'
 						body:
 							name: 'resource.all'
 					)
 				]).spread((guest, user, permission) ->
 					Promise.all([
-						PlatformAPI::post(
-							url: 'Auth/user__has__permission'
+						authAPI.post(
+							resource: 'user__has__permission'
 							body:
 								user: guest.id
 								permission: permission.id
 						)
-						PlatformAPI::post(
-							url: 'Auth/user__has__permission'
+						authAPI.post(
+							resource: 'user__has__permission'
 							body:
 								user: user.id
 								permission: permission.id
 						)
-						PlatformAPI::post(
-							url: 'Auth/api_key'
+						authAPI.post(
+							resource: 'api_key'
 							body:
 								user: user.id
 								key: 'test'
 						).then((apiKey) ->
-							PlatformAPI::post(
-								url: 'Auth/api_key__has__permission'
+							authAPI.post(
+								resource: 'api_key__has__permission'
 								body:
 									api_key: apiKey.id
 									permission: permission.id
