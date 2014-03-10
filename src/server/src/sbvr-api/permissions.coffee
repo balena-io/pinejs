@@ -1,9 +1,15 @@
 define [
+	'require'
 	'exports'
 	'lodash'
 	'bluebird'
 	'cs!sbvr-api/sbvr-utils'
-], (exports, _, Promise, sbvrUtils) ->
+], (require, exports, _, Promise, sbvrUtils) ->
+	authAPI = null
+	# Due to the circular dependency we can't immediately access the sbvr-utils properties, so putting it in a timeout to run ASAP after this module returns.
+	# TODO: Find a better way of achieving this with requirejs
+	setTimeout -> authAPI = new require('cs!sbvr-api/sbvr-utils').PlatformAPI('/Auth/')
+
 	exports.nestedCheck = nestedCheck = (check, stringCallback) ->
 		if _.isString(check)
 			stringCallback(check)
@@ -49,8 +55,12 @@ define [
 			throw new Error('Cannot parse required checks: ' + check)
 
 	exports.checkPassword = (username, password, callback) ->
-		sbvrUtils.PlatformAPI::get("Auth/user?$select=id,password&$filter=user/username eq '" + encodeURIComponent(username) + "'")
-		.then((result) ->
+		authAPI.get(
+			resource: 'user'
+			options:
+				select: ['id', 'password']
+				filter: "user/username eq '" + encodeURIComponent(username) + "'"
+		).then((result) ->
 			if result.length is 0
 				throw new Error('User not found')
 			hash = result[0].password
@@ -73,15 +83,27 @@ define [
 	exports.getUserPermissions = getUserPermissions = (userId, callback) ->
 		if _.isFinite(userId)
 			# We have a user id
-			userPerms = sbvrUtils.PlatformAPI::get('Auth/permission?$select=name&$filter=user__has__permission/user eq ' + userId)
-			userRole = sbvrUtils.PlatformAPI::get('Auth/permission?$select=name&$filter=role__has__permission/role/user__has__role/user eq ' + userId)
+			userPermsFilter = 'user__has__permission/user eq ' + userId
+			userRoleFilter = 'role__has__permission/role/user__has__role/user eq ' + userId
 		else if _.isString(userId)
 			# We have an API key
-			userPerms = sbvrUtils.PlatformAPI::get("Auth/permission?$select=name&$filter=api_key__has__permission/api_key/key eq '" + encodeURIComponent(userId) + "'")
-			userRole = sbvrUtils.PlatformAPI::get("Auth/permission?$select=name&$filter=role__has__permission/role/api_key__has__role/api_key/key eq '" + encodeURIComponent(userId) + "'")
+			userPermsFilter = "api_key__has__permission/api_key/key eq '" + encodeURIComponent(userId) + "'"
+			userRoleFilter = "role__has__permission/role/api_key__has__role/api_key/key eq '" + encodeURIComponent(userId) + "'"
 		else
 			return Promise.rejected(new Error('User ID either has to be a numeric id or an api key string, got: ' + typeof userId))
 
+		userPerms = authAPI.get(
+			resource: 'permission'
+			options:
+				select: 'name'
+				filter: userPermsFilter
+		)
+		userRole = authAPI.get(
+			resource: 'permission'
+			options:
+				select: 'name'
+				filter: userRoleFilter
+		)
 		Promise.all([
 			userPerms
 			userRole
@@ -106,8 +128,12 @@ define [
 			return (callback) ->
 				if !_guestPermissions? or _guestPermissions.isRejected()
 					# Get guest user
-					_guestPermissions = sbvrUtils.PlatformAPI::get("Auth/user?$select=id&$filter=user/username eq 'guest'")
-					.then((result) ->
+					_guestPermissions = authAPI.get(
+						resource: 'user'
+						options:
+							select: 'id'
+							filter: "username eq 'guest'"
+					).then((result) ->
 						if result.length is 0
 							throw new Error('No guest permissions')
 						getUserPermissions(result[0].id)
@@ -177,7 +203,13 @@ define [
 					return allowed
 				Promise.all([
 					getUserPermissions(apiKey)
-					sbvrUtils.PlatformAPI::get(url: "/Auth/api_key?$select=id&$expand=user&$filter=key eq '" + encodeURIComponent(apiKey) + "'")
+					authAPI.get(
+						resource: 'api_key'
+						options:
+							select: 'id'
+							expand: 'user'
+							filter: "key eq '" + encodeURIComponent(apiKey) + "'"
+					)
 				])
 				.spread((apiKeyPermissions, user) ->
 					if user.d.length is 0

@@ -847,4 +847,4 @@ define [
 			)
 		).nodeify(callback)
 
-	return exports
+	return
