@@ -73,7 +73,11 @@ define [
 					)
 			).then(->
 				PlatformAPI::get(
-					url: "dev/model?$select=vocabulary,model_value&$filter=model_type eq 'se' and vocabulary eq 'data'"
+					apiPrefix: '/dev/'
+					resource: 'model'
+					options:
+						select: ['vocabulary','model_value']
+						filter: "model_type eq 'se' and vocabulary eq 'data'"
 					tx: tx
 				)
 			).then((result) ->

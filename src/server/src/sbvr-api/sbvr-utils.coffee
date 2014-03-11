@@ -245,7 +245,11 @@ define [
 
 				updateModel = (modelType, model) ->
 					PlatformAPI::get(
-						url: "dev/model?$select=id&$filter=vocabulary eq '" + encodeURIComponent(vocab) + "' and model_type eq '" + encodeURIComponent(modelType) + "'"
+						apiPrefix: '/dev/'
+						resource: 'model'
+						options:
+							select: 'id'
+							filter: "vocabulary eq '" + encodeURIComponent(vocab) + "' and model_type eq '" + encodeURIComponent(modelType) + "'"
 						tx: tx
 					)
 					.then((result) ->
@@ -282,7 +286,10 @@ define [
 					tx.executeSql(dropStatement)
 			Promise.all(dropStatements.concat([
 				PlatformAPI::delete(
-					url: "dev/model?$filter=vocabulary eq '" + encodeURIComponent(vocabulary) + "'"
+					apiPrefix: '/dev/'
+					resource: 'model'
+					options:
+						filter: "vocabulary eq '" + encodeURIComponent(vocabulary) + "'"
 					tx: tx
 				)
 			])).then(->
