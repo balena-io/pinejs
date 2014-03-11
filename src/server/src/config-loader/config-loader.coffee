@@ -5,8 +5,7 @@ define [
 	'bluebird'
 	'cs!sbvr-api/sbvr-utils'
 ], (exports, has, _, Promise, sbvrUtils) ->
-	{PlatformAPI} = sbvrUtils
-	authAPI = new PlatformAPI('/Auth/')
+	authAPI = new sbvrUtils.PlatformAPI('/Auth/')
 	# Setup function
 	exports.setup = (app, requirejs) ->
 		loadConfig = (data) ->
@@ -28,7 +27,8 @@ define [
 									resource: 'permission'
 									options:
 										select: 'id'
-										filter: "name eq '" + encodeURIComponent(permissionName) + "'"
+										filter:
+											name: permissionName
 									tx: tx
 								).then (result) ->
 									if result.length is 0
@@ -48,7 +48,8 @@ define [
 							resource: 'user'
 							options:
 								select: 'id'
-								filter: "username eq '" + encodeURIComponent(user.username) + "'"
+								filter:
+									username: user.username
 							tx: tx
 						).then (result) ->
 							if result.length is 0
@@ -69,7 +70,9 @@ define [
 											resource: 'user__has__permission'
 											options:
 												select: 'id'
-												filter: "user eq '" + userID + "' and permission eq '" + permissionID + "'"
+												filter:
+													user: userID
+													permission: permissionID
 											tx: tx
 										).then (result) ->
 											if result.length is 0

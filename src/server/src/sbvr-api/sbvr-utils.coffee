@@ -249,7 +249,9 @@ define [
 						resource: 'model'
 						options:
 							select: 'id'
-							filter: "vocabulary eq '" + encodeURIComponent(vocab) + "' and model_type eq '" + encodeURIComponent(modelType) + "'"
+							filter:
+								vocabulary: vocab
+								model_type: modelType
 						tx: tx
 					)
 					.then((result) ->
@@ -289,7 +291,8 @@ define [
 					apiPrefix: '/dev/'
 					resource: 'model'
 					options:
-						filter: "vocabulary eq '" + encodeURIComponent(vocabulary) + "'"
+						filter:
+							vocabulary: vocabulary
 					tx: tx
 				)
 			])).then(->

@@ -59,7 +59,8 @@ define [
 				resource: 'textarea'
 				options:
 					select: 'id'
-					filter: "name eq 'model_area'"
+					filter:
+						name: 'model_area'
 				tx: tx
 			).then((result) ->
 				if result.length is 0
@@ -77,7 +78,9 @@ define [
 					resource: 'model'
 					options:
 						select: ['vocabulary','model_value']
-						filter: "model_type eq 'se' and vocabulary eq 'data'"
+						filter: 
+							model_type: 'se'
+							vocabulary: 'data'
 					tx: tx
 				)
 			).then((result) ->
@@ -106,7 +109,8 @@ define [
 				resource: 'textarea'
 				options:
 					select: 'text'
-					filter: "name eq 'model_area'"
+					filter:
+						name: 'model_area'
 			).then((result) ->
 				if result.length is 0
 					throw new Error('Could not find the model to execute')
@@ -118,7 +122,8 @@ define [
 						uiAPI.patch(
 							resource: 'textarea'
 							options:
-								filter: "name eq 'model_area'"
+								filter:
+									name: 'model_area'
 							body:
 								is_disabled: true
 							tx: tx
@@ -293,7 +298,8 @@ define [
 				uiAPI.patch(
 					resource: 'textarea'
 					options:
-						filter: "name eq 'model_area'"
+						filter:
+							name: 'model_area'
 					body:
 						text: ''
 						name: 'model_area'

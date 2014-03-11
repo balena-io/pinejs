@@ -59,7 +59,8 @@ define [
 			resource: 'user'
 			options:
 				select: ['id', 'password']
-				filter: "user/username eq '" + encodeURIComponent(username) + "'"
+				filter:
+					username: username
 		).then((result) ->
 			if result.length is 0
 				throw new Error('User not found')
@@ -83,12 +84,12 @@ define [
 	exports.getUserPermissions = getUserPermissions = (userId, callback) ->
 		if _.isFinite(userId)
 			# We have a user id
-			userPermsFilter = 'user__has__permission/user eq ' + userId
-			userRoleFilter = 'role__has__permission/role/user__has__role/user eq ' + userId
+			userPermsFilter = 'user__has__permission/user': userId
+			userRoleFilter = 'role__has__permission/role/user__has__role/user': userId
 		else if _.isString(userId)
 			# We have an API key
-			userPermsFilter = "api_key__has__permission/api_key/key eq '" + encodeURIComponent(userId) + "'"
-			userRoleFilter = "role__has__permission/role/api_key__has__role/api_key/key eq '" + encodeURIComponent(userId) + "'"
+			userPermsFilter = 'api_key__has__permission/api_key/key': userId
+			userRoleFilter = 'role__has__permission/role/api_key__has__role/api_key/key': userId
 		else
 			return Promise.rejected(new Error('User ID either has to be a numeric id or an api key string, got: ' + typeof userId))
 
@@ -132,7 +133,8 @@ define [
 						resource: 'user'
 						options:
 							select: 'id'
-							filter: "username eq 'guest'"
+							filter:
+								username: 'guest'
 					).then((result) ->
 						if result.length is 0
 							throw new Error('No guest permissions')
@@ -208,7 +210,8 @@ define [
 						options:
 							select: 'id'
 							expand: 'user'
-							filter: "key eq '" + encodeURIComponent(apiKey) + "'"
+							filter: 
+								key: apiKey
 					)
 				])
 				.spread((apiKeyPermissions, user) ->
