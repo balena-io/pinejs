@@ -5,10 +5,6 @@ define [
 	'bluebird'
 	'cs!sbvr-api/sbvr-utils'
 ], (require, exports, _, Promise, sbvrUtils) ->
-	authAPI = null
-	# Due to the circular dependency we can't immediately access the sbvr-utils properties, so putting it in a timeout to run ASAP after this module returns.
-	# TODO: Find a better way of achieving this with requirejs
-	setTimeout -> authAPI = new require('cs!sbvr-api/sbvr-utils').PlatformAPI('/Auth/')
 
 	exports.nestedCheck = nestedCheck = (check, stringCallback) ->
 		if _.isString(check)
@@ -55,7 +51,7 @@ define [
 			throw new Error('Cannot parse required checks: ' + check)
 
 	exports.checkPassword = (username, password, callback) ->
-		authAPI.get(
+		sbvrUtils.api.Auth.get(
 			resource: 'user'
 			options:
 				select: ['id', 'password']
@@ -93,13 +89,13 @@ define [
 		else
 			return Promise.rejected(new Error('User ID either has to be a numeric id or an api key string, got: ' + typeof userId))
 
-		userPerms = authAPI.get(
+		userPerms = sbvrUtils.api.Auth.get(
 			resource: 'permission'
 			options:
 				select: 'name'
 				filter: userPermsFilter
 		)
-		userRole = authAPI.get(
+		userRole = sbvrUtils.api.Auth.get(
 			resource: 'permission'
 			options:
 				select: 'name'
@@ -129,7 +125,7 @@ define [
 			return (callback) ->
 				if !_guestPermissions? or _guestPermissions.isRejected()
 					# Get guest user
-					_guestPermissions = authAPI.get(
+					_guestPermissions = sbvrUtils.api.Auth.get(
 						resource: 'user'
 						options:
 							select: 'id'
@@ -205,7 +201,7 @@ define [
 					return allowed
 				Promise.all([
 					getUserPermissions(apiKey)
-					authAPI.get(
+					sbvrUtils.api.Auth.get(
 						resource: 'api_key'
 						options:
 							select: 'id'

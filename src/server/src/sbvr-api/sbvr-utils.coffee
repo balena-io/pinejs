@@ -276,7 +276,8 @@ define [
 					updateModel('abstractsql', abstractSqlModel)
 					updateModel('sql', sqlModel)
 					updateModel('client', clientModel)
-				])
+				]).then ->
+					api[vocab] = new PlatformAPI('/' + vocab + '/')
 			)
 		).nodeify(callback)
 
@@ -302,6 +303,7 @@ define [
 				delete clientModels[vocabulary]
 				delete odataMetadata[vocabulary]
 				uriParser.deleteClientModel(vocabulary)
+				delete api[vocab]
 			).catch((err) ->
 				tx.rollback()
 				throw err
@@ -476,6 +478,8 @@ define [
 		class PlatformAPI extends resinPlatformAPI(_, Promise)
 			_request: ({method, url, body, tx}) ->
 				return runURI(method, url, body, tx)
+
+	exports.api = api = {}
 
 	exports.runURI = runURI = (method, uri, body = {}, tx, callback) ->
 		if callback? and !_.isFunction(callback)
