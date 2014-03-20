@@ -6,7 +6,7 @@ define [
 ], (exports, has, _, sbvrUtils) ->
 	if not has 'ENV_NODEJS'
 		return
-	sessionAPI = new sbvrUtils.PlatformAPI('/Auth/')
+	sessionAPI = new sbvrUtils.PlatformAPI('/session/')
 
 	sessionModel = '''
 		Vocabulary: session
