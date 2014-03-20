@@ -39,9 +39,7 @@ define [
 				options:
 					select: 'data'
 			).then (session) ->
-				if session.length is 0
-					return null
-				return session[0].data
+				return session?.data
 			.nodeify(callback)
 
 		set: (sid, data, callback) ->
