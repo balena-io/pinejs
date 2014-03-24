@@ -9,15 +9,17 @@
 ## Setting Up A Project
 
 1. Check out (or update your copy of) `rulemotion-canvas/master` (all paths used below will be relative to this working directory unless otherwise specified)
-2. Navigate to `src/server/build`
-3. Run `r.js -o server.build.js` on Linux/Mac OSX or `r.js.cmd -o server.build.js` on Windows.
-4. Copy the `src/server/build/platform.js` file that was just created into your project's folder/repository.
-5. Copy the `package.json` file into your project's folder/repository.
-6. Run `npm install` in your project's folder/repository.
-7. [Configure your project](#configuring-a-project)
-8. Run `node platform.js` (This will create the schema including users)
-9. Set up a guest user (see [Users documentation](./Users.md)).
-10. Re-run `node platform.js`.
+2. Run `bower install` in the root of root rulemotion-canvas.
+3. Run `npm install` in the root of root rulemotion-canvas.
+4. Navigate to `src/server/build`
+5. Run `r.js -o server.build.js` on Linux/Mac OSX or `r.js.cmd -o server.build.js` on Windows.
+6. Copy the `src/server/build/platform.js` file that was just created into your project's folder/repository.
+7. Copy the `package.json` file into your project's folder/repository.
+8. Run `npm install` in your project's folder/repository.
+9. [Configure your project](#configuring-a-project)
+10. Run `node platform.js` (This will create the schema including users)
+11. Set up a guest user (see [Users documentation](./Users.md)).
+12. Re-run `node platform.js`.
 
 ## Updating the platform
 Follow steps 1-5 of [Setting Up A Project](#setting-up-a-project) and then run `node platform.js`
