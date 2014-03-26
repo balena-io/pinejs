@@ -150,7 +150,7 @@ define [
 						])
 
 					clientModel = clientModels['data'].resources[conditionalResource.resource_type]
-					url = '/data/' + conditionalResource.resource_type
+					url = 'data/' + conditionalResource.resource_type
 					switch conditionalResource.conditional_type
 						when 'DELETE'
 							getLockedRow(lockID)
@@ -245,7 +245,13 @@ define [
 
 				updateModel = (modelType, model) ->
 					PlatformAPI::get(
-						url: "/dev/model?$select=id&$filter=vocabulary eq '" + encodeURIComponent(vocab) + "' and model_type eq '" + encodeURIComponent(modelType) + "'"
+						apiPrefix: '/dev/'
+						resource: 'model'
+						options:
+							select: 'id'
+							filter:
+								vocabulary: vocab
+								model_type: modelType
 						tx: tx
 					)
 					.then((result) ->
@@ -255,7 +261,7 @@ define [
 							vocabulary: vocab
 							model_value: model
 							model_type: modelType
-						id = result?.d?[0]?.id
+						id = result[0]?.id
 						if id?
 							uri += '(' + id + ')'
 							method = 'PUT'
@@ -270,7 +276,8 @@ define [
 					updateModel('abstractsql', abstractSqlModel)
 					updateModel('sql', sqlModel)
 					updateModel('client', clientModel)
-				])
+				]).then ->
+					api[vocab] = new PlatformAPI('/' + vocab + '/')
 			)
 		).nodeify(callback)
 
@@ -282,7 +289,11 @@ define [
 					tx.executeSql(dropStatement)
 			Promise.all(dropStatements.concat([
 				PlatformAPI::delete(
-					url: "/dev/model?$filter=vocabulary eq '" + encodeURIComponent(vocabulary) + "'"
+					apiPrefix: '/dev/'
+					resource: 'model'
+					options:
+						filter:
+							vocabulary: vocabulary
 					tx: tx
 				)
 			])).then(->
@@ -292,6 +303,7 @@ define [
 				delete clientModels[vocabulary]
 				delete odataMetadata[vocabulary]
 				uriParser.deleteClientModel(vocabulary)
+				delete api[vocab]
 			).catch((err) ->
 				tx.rollback()
 				throw err
@@ -463,9 +475,11 @@ define [
 			).nodeify(callback)
 
 	exports.PlatformAPI =
-		class PlatformAPI extends resinPlatformAPI(_)
-			request: ({method, url, body, tx}) ->
+		class PlatformAPI extends resinPlatformAPI(_, Promise)
+			_request: ({method, url, body, tx}) ->
 				return runURI(method, url, body, tx)
+
+	exports.api = api = {}
 
 	exports.runURI = runURI = (method, uri, body = {}, tx, callback) ->
 		if callback? and !_.isFunction(callback)
@@ -744,46 +758,47 @@ define [
 			)
 			# TODO: Remove these hardcoded users.
 			if has 'DEV'
+				authAPI = new PlatformAPI('/Auth/')
 				Promise.all([
-					PlatformAPI::post(
-						url: '/Auth/user'
+					authAPI.post(
+						resource: 'user'
 						body: 
 							username: 'guest'
 							password: ' '
 					)
-					PlatformAPI::post(
-						url: '/Auth/user'
+					authAPI.post(
+						resource: 'user'
 						body:
 							username: 'test'
 							password: 'test'
 					)
-					PlatformAPI::post(
-						url: '/Auth/permission'
+					authAPI.post(
+						resource: 'permission'
 						body:
 							name: 'resource.all'
 					)
 				]).spread((guest, user, permission) ->
 					Promise.all([
-						PlatformAPI::post(
-							url: '/Auth/user__has__permission'
+						authAPI.post(
+							resource: 'user__has__permission'
 							body:
 								user: guest.id
 								permission: permission.id
 						)
-						PlatformAPI::post(
-							url: '/Auth/user__has__permission'
+						authAPI.post(
+							resource: 'user__has__permission'
 							body:
 								user: user.id
 								permission: permission.id
 						)
-						PlatformAPI::post(
-							url: '/Auth/api_key'
+						authAPI.post(
+							resource: 'api_key'
 							body:
 								user: user.id
 								key: 'test'
 						).then((apiKey) ->
-							PlatformAPI::post(
-								url: '/Auth/api_key__has__permission'
+							authAPI.post(
+								resource: 'api_key__has__permission'
 								body:
 									api_key: apiKey.id
 									permission: permission.id
@@ -846,4 +861,4 @@ define [
 			)
 		).nodeify(callback)
 
-	return exports
+	return

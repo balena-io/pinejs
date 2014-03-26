@@ -6,7 +6,7 @@ define [
 ], (exports, has, _, sbvrUtils) ->
 	if not has 'ENV_NODEJS'
 		return
-	{PlatformAPI} = sbvrUtils
+	sessionAPI = new sbvrUtils.PlatformAPI('/session/')
 
 	sessionModel = '''
 		Vocabulary: session
@@ -33,11 +33,13 @@ define [
 	class PlatformSessionStore extends require('express').session.Store
 		constructor: ->
 		get: (sid, callback) ->
-			PlatformAPI::get(url: "/session/session('" + sid + "')?$select=data")
-			.then (session) ->
-				if session.d.length is 0
-					return null
-				return session.d[0].data
+			sessionAPI.get(
+				resource: 'session'
+				id: sid 
+				options:
+					select: 'data'
+			).then (session) ->
+				return session?.data
 			.nodeify(callback)
 
 		set: (sid, data, callback) ->
@@ -45,31 +47,43 @@ define [
 				session_id: sid
 				data: data
 				expiry_time: data?.cookie?.expires ? null
-			PlatformAPI::put(
-				url: "/session/session('" + sid + "')"
+			sessionAPI.put(
+				resource: 'session'
+				id: sid
 				body: body
 			).nodeify(callback)
 
 		destroy: (sid, callback) ->
-			PlatformAPI::delete(url: "/session/session('" + sid + "')")
-			.nodeify(callback)
+			sessionAPI.delete(
+				resource: 'session'
+				id: sid
+			).nodeify(callback)
 
 		all: (callback) ->
-			PlatformAPI::get(url: '/session/session?$select=session_id&$filter=expiry_time gte ' + Date.now())
-			.then (sessions) ->
-				_.map(sessions.d, 'session_id')
+			sessionAPI.get(
+				resource: 'session'
+				options:
+					select: 'session_id'
+					filter: 'expiry_time gte ' + Date.now()
+			).then (sessions) ->
+				_.map(sessions, 'session_id')
 			.nodeify(callback)
 
 		clear: (callback) ->
 			# TODO: Use a truncate
-			PlatformAPI::delete(url: '/session/session')
-			.nodeify(callback)
+			sessionAPI.delete(
+				resource: 'session'
+			).nodeify(callback)
 
 		length: (callback) ->
 			# TODO: Use a proper count
-			PlatformAPI::get(url: '/session/session$select=session_id&$filter=expiry_time gte ' + Date.now())
-			.then (sessions) ->
-				sessions.d.length
+			sessionAPI.get(
+				resource: 'session'
+				options:
+					select: 'session_id'
+					filter: 'expiry_time gte ' + Date.now()
+			).then (sessions) ->
+				sessions.length
 			.nodeify(callback)
 	PlatformSessionStore.config =
 		models: [

@@ -5,7 +5,7 @@ define [
 	'bluebird'
 	'cs!sbvr-api/sbvr-utils'
 ], (exports, has, _, Promise, sbvrUtils) ->
-	{PlatformAPI} = sbvrUtils
+	authAPI = new sbvrUtils.PlatformAPI('/Auth/')
 	# Setup function
 	exports.setup = (app, requirejs) ->
 		loadConfig = (data) ->
@@ -23,48 +23,61 @@ define [
 					for user in data.users when user.permissions?
 						_.each user.permissions, (permissionName) ->
 							permissions[permissionName] ?=
-								PlatformAPI::get(
-									url: "/Auth/permission?$select=id&$filter=name eq '" + encodeURIComponent(permissionName) + "'"
+								authAPI.get(
+									resource: 'permission'
+									options:
+										select: 'id'
+										filter:
+											name: permissionName
 									tx: tx
 								).then (result) ->
-									if result.d.length is 0
-										PlatformAPI::post(
-											url: '/Auth/permission'
+									if result.length is 0
+										authAPI.post(
+											resource: 'permission'
 											body:
 												name: permissionName
 											tx: tx
 										).get('id')
 									else
-										return result.d[0].id
+										return result[0].id
 								.catch (err) ->
 									throw new Error('Could not create or find permission "' + permissionName + '": ' + err)
 
 					usersPromise = Promise.map data.users, (user) ->
-						PlatformAPI::get(
-							url: "/Auth/user?$select=id&$filter=username eq '" + encodeURIComponent(user.username) + "'"
+						authAPI.get(
+							resource: 'user'
+							options:
+								select: 'id'
+								filter:
+									username: user.username
 							tx: tx
 						).then (result) ->
-							if result.d.length is 0
-								PlatformAPI::post(
-									url: '/Auth/user'
+							if result.length is 0
+								authAPI.post(
+									resource: 'user'
 									body:
 										username: user.username
 										password: user.password
 									tx: tx
 								).get('id')
 							else
-								return result.d[0].id
+								return result[0].id
 						.then (userID) ->
 							if user.permissions?
 								Promise.map user.permissions, (permissionName) ->
 									permissions[permissionName].then (permissionID) ->
-										PlatformAPI::get(
-											url: "/Auth/user__has__permission?$select=id&$filter=user eq '" + userID + "' and permission eq '" + permissionID + "'"
+										authAPI.get(
+											resource: 'user__has__permission'
+											options:
+												select: 'id'
+												filter:
+													user: userID
+													permission: permissionID
 											tx: tx
 										).then (result) ->
-											if result.d.length is 0
-												PlatformAPI::post(
-													url: '/Auth/user__has__permission'
+											if result.length is 0
+												authAPI.post(
+													resource: 'user__has__permission'
 													body:
 														user: userID
 														permission: permissionID
