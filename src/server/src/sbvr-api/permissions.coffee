@@ -173,7 +173,7 @@ define [
 							if permissionName[...permission.length] == permission
 								condition = permissionName[permission.length...]
 								if _.isArray(userID)
-									return _.map userID, (id) -> condition.replace(/\$USER\.ID/g, userID)
+									return _.map userID, (id) -> condition.replace(/\$USER\.ID/g, id)
 								return condition.replace(/\$USER\.ID/g, userID)
 						return false
 					# Remove the false elements.
