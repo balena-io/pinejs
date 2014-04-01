@@ -20,8 +20,12 @@ Used for setting records of a resource
 #### delete
 Used for deleting records of a resource
 
+### Special Variables
+#### $USER.ID
+This is replaced by the id of the currently logged in user (or 0 if not logged in), or the user who owns the API key in user.
+
 ## Default/Guest User Permissions
-All users (including ones who are not logged in) automatically gain any permissions assigned to the account named 'guest'.  You can create this user by inserting into the database tables following the model below.
+All users (including ones who are not logged in) automatically gain any permissions assigned to the account named 'guest'.  You can create this user in the [config.json](./Projects.md) or by inserting into the database tables following the model below.
 
 ### Model
 The SBVR model for users can be found at [/src/server/src/sbvr-api/user.sbvr](../src/server/src/sbvr-api/user.sbvr)
