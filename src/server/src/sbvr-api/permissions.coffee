@@ -1,10 +1,9 @@
 define [
-	'require'
 	'exports'
 	'lodash'
 	'bluebird'
 	'cs!sbvr-api/sbvr-utils'
-], (require, exports, _, Promise, sbvrUtils) ->
+], (exports, _, Promise, sbvrUtils) ->
 
 	exports.nestedCheck = nestedCheck = (check, stringCallback) ->
 		if _.isString(check)
