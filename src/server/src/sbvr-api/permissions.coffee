@@ -202,18 +202,17 @@ define [
 				Promise.all([
 					getUserPermissions(apiKey)
 					sbvrUtils.api.Auth.get(
-						resource: 'api_key'
+						resource: 'user'
 						options:
 							select: 'id'
-							expand: 'user'
 							filter: 
-								key: apiKey
+								'api_key/key': apiKey
 					)
 				])
 				.spread((apiKeyPermissions, user) ->
-					if user.length is 0 or !user[0].user?
+					if user.length is 0
 						throw new Error('API key is not linked to a user?!')
-					apiKeyUserID = user[0].user[0].id
+					apiKeyUserID = user[0].id
 					return _checkPermissions(apiKeyPermissions, apiKeyUserID)
 				).catch((err) ->
 					console.error('Error checking api key permissions', apiKey, err, err.stack)
