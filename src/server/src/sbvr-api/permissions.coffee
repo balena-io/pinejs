@@ -173,7 +173,7 @@ define [
 							if permissionName[...permission.length] == permission
 								condition = permissionName[permission.length...]
 								if _.isArray(userID)
-									return _.map userID, (id) -> condition.replace(/\$USER\.ID/g, userID)
+									return _.map userID, (id) -> condition.replace(/\$USER\.ID/g, id)
 								return condition.replace(/\$USER\.ID/g, userID)
 						return false
 					# Remove the false elements.
@@ -202,18 +202,17 @@ define [
 				Promise.all([
 					getUserPermissions(apiKey)
 					sbvrUtils.api.Auth.get(
-						resource: 'api_key'
+						resource: 'user'
 						options:
 							select: 'id'
-							expand: 'user'
 							filter: 
-								key: apiKey
+								'api_key/key': apiKey
 					)
 				])
 				.spread((apiKeyPermissions, user) ->
-					if user.d.length is 0
+					if user.length is 0
 						throw new Error('API key is not linked to a user?!')
-					apiKeyUserID = user.d[0].id
+					apiKeyUserID = user[0].id
 					return _checkPermissions(apiKeyPermissions, apiKeyUserID)
 				).catch((err) ->
 					console.error('Error checking api key permissions', apiKey, err, err.stack)
