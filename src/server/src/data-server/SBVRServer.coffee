@@ -51,8 +51,8 @@ define [
 			customServerCode: 'cs!data-server/SBVRServer'
 		]
 	exports.setup = (app, requirejs, sbvrUtils, db) ->
-		{PlatformAPI} = sbvrUtils
-		uiAPI = new PlatformAPI('/ui/')
+		uiAPI = sbvrUtils.api.ui
+		devAPI = sbvrUtils.api.dev
 		setupModels = (tx) ->
 			uiAPI.get(
 				resource: 'textarea'
@@ -72,8 +72,7 @@ define [
 						tx: tx
 					)
 			.then ->
-				PlatformAPI::get(
-					apiPrefix: '/dev/'
+				devAPI.get(
 					resource: 'model'
 					options:
 						select: ['vocabulary','model_value']

@@ -1,12 +1,10 @@
 define [
-	'exports'
 	'has'
 	'lodash'
-	'cs!sbvr-api/sbvr-utils'
-], (exports, has, _, sbvrUtils) ->
+], (has, _) ->
 	if not has 'ENV_NODEJS'
 		return
-	sessionAPI = new sbvrUtils.PlatformAPI('/session/')
+	sessionAPI = null
 
 	sessionModel = '''
 		Vocabulary: session
@@ -91,4 +89,6 @@ define [
 			modelText: sessionModel
 			apiRoot: 'session'
 		]
+	PlatformSessionStore.setup = (app, requirejs, sbvrUtils) ->
+		sessionAPI = sbvrUtils.api.session
 	return PlatformSessionStore
