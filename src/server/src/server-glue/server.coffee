@@ -66,7 +66,7 @@ define [
 		app = express.app
 
 	sbvrUtils.setup(app, requirejs, db)
-	.then(->
+	.then ->
 		configLoader = configLoader.setup(app, requirejs)
 
 		promises = []
@@ -82,16 +82,15 @@ define [
 				promises.push(configLoader.loadNodeConfig())
 
 		Promise.all(promises)
-	).then(->
+	.then ->
 		if has 'ENV_NODEJS'
 			app.listen process.env.PORT or 1337, ->
 				console.info('Server started')
 
 		if has 'ENV_BROWSER'
 			app.enable()
-	).catch((err) ->
+	.catch (err) ->
 		console.error('Error initialising server', err)
 		process.exit()
-	)
 
 	return {app, sbvrUtils}
