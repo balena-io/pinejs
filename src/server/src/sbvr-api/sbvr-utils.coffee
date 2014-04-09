@@ -190,13 +190,12 @@ define [
 				if result.rows.item(0).result in [false, 0, '0']
 					throw rule.structuredEnglish
 
-	exports.executeModel = executeModel = (tx, vocab, seModel, callback) ->
-		models = {}
-		models[vocab] = seModel
-		executeModels(tx, models, callback)
+	exports.executeModel = executeModel = (tx, model, callback) ->
+		executeModels(tx, [model], callback)
 	exports.executeModels = executeModels = (tx, models, callback) ->
-		Promise.map _.keys(models), (vocab) ->
-			seModel = models[vocab]
+		Promise.map models, (model) ->
+			seModel = model.modelText
+			vocab = model.apiRoot
 			try
 				lfModel = SBVRParser.matchAll(seModel, 'Process')
 			catch e
@@ -708,12 +707,18 @@ define [
 
 	exports.executeStandardModels = executeStandardModels = (tx, callback) ->
 		# The dev model has to be executed first.
-		executeModel(tx, 'dev', devModel)
+		executeModel(tx,
+			apiRoot: 'dev'
+			modelText: devModel
+		)
 		.then ->
-			executeModels(tx, {
-				'transaction': transactionModel
-				'Auth': userModel
-			})
+			executeModels(tx, [
+				apiRoot: 'transaction'
+				modelText: transactionModel
+			,
+				apiRoot: 'Auth'
+				modelText: userModel
+			])
 		.then ->
 			tx.executeSql('CREATE UNIQUE INDEX "uniq_model_model_type_vocab" ON "model" ("vocabulary", "model type");')
 			.catch ->
