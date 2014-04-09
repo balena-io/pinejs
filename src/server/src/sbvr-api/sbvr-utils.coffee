@@ -193,11 +193,13 @@ define [
 	exports.executeModel = executeModel = (tx, model, callback) ->
 		seModel = model.modelText
 		vocab = model.apiRoot
+
 		try
 			lfModel = SBVRParser.matchAll(seModel, 'Process')
 		catch e
 			console.error('Error parsing model', vocab, e, e.stack)
 			throw new Error(['Error parsing model', e])
+
 		try
 			abstractSqlModel = LF2AbstractSQLTranslator(lfModel, 'Process')
 			sqlModel = AbstractSQL2SQL.generate(abstractSqlModel)
@@ -260,6 +262,7 @@ define [
 			]).then ->
 				api[vocab] = new PlatformAPI('/' + vocab + '/')
 		.nodeify(callback)
+
 	exports.executeModels = executeModels = (tx, models, callback) ->
 		Promise.map models, (model) ->
 			executeModel(tx, model)
@@ -381,13 +384,16 @@ define [
 		return (vocab, rule, callback) ->
 			Promise.try ->
 				seModel = seModels[vocab]
+
 				try
 					lfModel = SBVRParser.matchAll(seModel + '\nRule: ' + rule, 'Process')
 				catch e
 					console.error('Error parsing rule', rule, e, e.stack)
 					throw new Error(['Error parsing rule', rule, e])
+
 				ruleLF = lfModel[lfModel.length-1]
 				lfModel = lfModel[...-1]
+
 				try
 					slfModel = LF2AbstractSQL.LF2AbstractSQLPrep.match(lfModel, 'Process')
 					slfModel.push(ruleLF)
@@ -511,12 +517,14 @@ define [
 		tree = req.tree
 		if tree.requests[0].query?
 			request = tree.requests[0]
+
 			try
 				{query, bindings} = AbstractSQLCompiler.compile(db.engine, request.query)
 			catch e
 				console.error('Failed to compile abstract sql: ', request.query, e, e.stack)
 				res.send(503)
 				return
+
 			getAndCheckBindValues(tree.vocabulary, bindings, request.values)
 			.then (values) ->
 				console.log(query, values)
@@ -556,12 +564,14 @@ define [
 		res.set('Cache-Control', 'no-cache')
 		tree = req.tree
 		request = tree.requests[0]
+
 		try
 			{query, bindings} = AbstractSQLCompiler.compile(db.engine, request.query)
 		catch e
 			console.error('Failed to compile abstract sql: ', request.query, e, e.stack)
 			res.send(503)
 			return
+
 		vocab = tree.vocabulary
 		getAndCheckBindValues(vocab, bindings, request.values)
 		.then (values) ->
@@ -603,6 +613,7 @@ define [
 		res.set('Cache-Control', 'no-cache')
 		tree = req.tree
 		request = tree.requests[0]
+
 		try
 			queries = AbstractSQLCompiler.compile(db.engine, request.query)
 		catch e
@@ -672,12 +683,14 @@ define [
 		res.set('Cache-Control', 'no-cache')
 		tree = req.tree
 		request = tree.requests[0]
+
 		try
 			{query, bindings} = AbstractSQLCompiler.compile(db.engine, request.query)
 		catch e
 			console.error('Failed to compile abstract sql: ', request.query, e, e.stack)
 			res.send(503)
 			return
+
 		vocab = tree.vocabulary
 		getAndCheckBindValues(vocab, bindings, request.values)
 		.then (values) ->
