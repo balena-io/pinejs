@@ -191,77 +191,78 @@ define [
 					throw rule.structuredEnglish
 
 	exports.executeModel = executeModel = (tx, model, callback) ->
-		executeModels(tx, [model], callback)
+		seModel = model.modelText
+		vocab = model.apiRoot
+		try
+			lfModel = SBVRParser.matchAll(seModel, 'Process')
+		catch e
+			console.error('Error parsing model', vocab, e, e.stack)
+			throw new Error(['Error parsing model', e])
+		try
+			abstractSqlModel = LF2AbstractSQLTranslator(lfModel, 'Process')
+			sqlModel = AbstractSQL2SQL.generate(abstractSqlModel)
+			clientModel = AbstractSQL2CLF(sqlModel)
+			metadata = ODataMetadataGenerator(vocab, sqlModel)
+		catch e
+			console.error('Error compiling model', vocab, e, e.stack)
+			throw new Error(['Error compiling model', e])
+
+		# Create tables related to terms and fact types
+		Promise.map sqlModel.createSchema, (createStatement) ->
+			tx.executeSql(createStatement)
+			.catch ->
+				# Warning: We ignore errors in the create table statements as SQLite doesn't support CREATE IF NOT EXISTS
+		.then ->
+			# Validate the [empty] model according to the rules.
+			# This may eventually lead to entering obligatory data.
+			# For the moment it blocks such models from execution.
+			validateDB(tx, sqlModel)
+		.then ->
+			seModels[vocab] = seModel
+			sqlModels[vocab] = sqlModel
+			clientModels[vocab] = clientModel
+			odataMetadata[vocab] = metadata
+
+			uriParser.addClientModel(vocab, clientModel)
+
+			updateModel = (modelType, model) ->
+				PlatformAPI::get(
+					apiPrefix: '/dev/'
+					resource: 'model'
+					options:
+						select: 'id'
+						filter:
+							vocabulary: vocab
+							model_type: modelType
+					tx: tx
+				)
+				.then (result) ->
+					method = 'POST'
+					uri = '/dev/model'
+					body =
+						vocabulary: vocab
+						model_value: model
+						model_type: modelType
+					id = result[0]?.id
+					if id?
+						uri += '(' + id + ')'
+						method = 'PUT'
+						body.id = id
+
+					runURI(method, uri, body, tx)
+
+			Promise.all([
+				updateModel('se', seModel)
+				updateModel('lf', lfModel)
+				updateModel('abstractsql', abstractSqlModel)
+				updateModel('sql', sqlModel)
+				updateModel('client', clientModel)
+			]).then ->
+				api[vocab] = new PlatformAPI('/' + vocab + '/')
+		.nodeify(callback)
 	exports.executeModels = executeModels = (tx, models, callback) ->
 		Promise.map models, (model) ->
-			seModel = model.modelText
-			vocab = model.apiRoot
-			try
-				lfModel = SBVRParser.matchAll(seModel, 'Process')
-			catch e
-				console.error('Error parsing model', vocab, e, e.stack)
-				throw new Error(['Error parsing model', e])
-			try
-				abstractSqlModel = LF2AbstractSQLTranslator(lfModel, 'Process')
-				sqlModel = AbstractSQL2SQL.generate(abstractSqlModel)
-				clientModel = AbstractSQL2CLF(sqlModel)
-				metadata = ODataMetadataGenerator(vocab, sqlModel)
-			catch e
-				console.error('Error compiling model', vocab, e, e.stack)
-				throw new Error(['Error compiling model', e])
-
-			# Create tables related to terms and fact types
-			Promise.map sqlModel.createSchema, (createStatement) ->
-				tx.executeSql(createStatement)
-				.catch ->
-					# Warning: We ignore errors in the create table statements as SQLite doesn't support CREATE IF NOT EXISTS
-			.then ->
-				# Validate the [empty] model according to the rules.
-				# This may eventually lead to entering obligatory data.
-				# For the moment it blocks such models from execution.
-				validateDB(tx, sqlModel)
-			.then ->
-				seModels[vocab] = seModel
-				sqlModels[vocab] = sqlModel
-				clientModels[vocab] = clientModel
-				odataMetadata[vocab] = metadata
-
-				uriParser.addClientModel(vocab, clientModel)
-
-				updateModel = (modelType, model) ->
-					PlatformAPI::get(
-						apiPrefix: '/dev/'
-						resource: 'model'
-						options:
-							select: 'id'
-							filter:
-								vocabulary: vocab
-								model_type: modelType
-						tx: tx
-					)
-					.then (result) ->
-						method = 'POST'
-						uri = '/dev/model'
-						body =
-							vocabulary: vocab
-							model_value: model
-							model_type: modelType
-						id = result[0]?.id
-						if id?
-							uri += '(' + id + ')'
-							method = 'PUT'
-							body.id = id
-
-						runURI(method, uri, body, tx)
-
-				Promise.all([
-					updateModel('se', seModel)
-					updateModel('lf', lfModel)
-					updateModel('abstractsql', abstractSqlModel)
-					updateModel('sql', sqlModel)
-					updateModel('client', clientModel)
-				]).then ->
-					api[vocab] = new PlatformAPI('/' + vocab + '/')
+			executeModel(tx, model)
 		.nodeify(callback)
 
 	exports.deleteModel = (vocabulary, callback) ->
