@@ -56,25 +56,23 @@ define [
 				select: ['id', 'password']
 				filter:
 					username: username
-		).then((result) ->
+		).then (result) ->
 			if result.length is 0
 				throw new Error('User not found')
 			hash = result[0].password
 			userId = result[0].id
 			sbvrUtils.sbvrTypes.Hashed.compare(password, hash)
-			.then((res) ->
+			.then (res) ->
 				if !res
 					throw new Error('Passwords do not match')
 				getUserPermissions(userId)
-				.then((permissions) ->
+				.then (permissions) ->
 					return {
 						id: userId
 						username: username
 						permissions: permissions
 					}
-				)
-			)
-		).nodeify(callback)
+		.nodeify(callback)
 
 	exports.getUserPermissions = getUserPermissions = (userId, callback) ->
 		if _.isFinite(userId)
@@ -103,7 +101,7 @@ define [
 		Promise.all([
 			userPerms
 			userRole
-		]).spread((userPermissions, rolePermissions) ->
+		]).spread (userPermissions, rolePermissions) ->
 			allPermissions = []
 			for permission in userPermissions
 				allPermissions.push(permission.name)
@@ -111,10 +109,10 @@ define [
 				allPermissions.push(permission.name)
 
 			return _.unique(allPermissions)
-		).catch((err) ->
+		.catch (err) ->
 			console.error('Error loading permissions', err, err.stack)
 			throw err
-		).nodeify(callback)
+		.nodeify(callback)
 
 	exports.checkPermissions = checkPermissions = do ->
 		_getGuestPermissions = do ->
@@ -130,11 +128,10 @@ define [
 							select: 'id'
 							filter:
 								username: 'guest'
-					).then((result) ->
+					).then (result) ->
 						if result.length is 0
 							throw new Error('No guest permissions')
 						getUserPermissions(result[0].id)
-					)
 				_guestPermissions.nodeify(callback)
 
 		# If not all optional arguments are specified, and the last one specified is a function then it is taken to be the callback.
@@ -188,14 +185,14 @@ define [
 			userID = req.user?.id ? 0
 			apiKeyUserID = false
 
-			Promise.try(->
+			Promise.try ->
 				if req.user?
 					return _checkPermissions(req.user.permissions, userID)
 				return false
-			).catch((err) ->
+			.catch (err) ->
 				console.error('Error checking user permissions', req.user, err, err.stack)
 				return false
-			).then((allowed) ->
+			.then (allowed) ->
 				if !apiKey? or allowed is true
 					return allowed
 				Promise.all([
@@ -208,43 +205,41 @@ define [
 								'api_key/key': apiKey
 					)
 				])
-				.spread((apiKeyPermissions, user) ->
+				.spread (apiKeyPermissions, user) ->
 					if user.length is 0
 						throw new Error('API key is not linked to a user?!')
 					apiKeyUserID = user[0].id
 					return _checkPermissions(apiKeyPermissions, apiKeyUserID)
-				).catch((err) ->
+				.catch (err) ->
 					console.error('Error checking api key permissions', apiKey, err, err.stack)
-				).then((apiKeyAllowed) ->
+				.then (apiKeyAllowed) ->
 					if allowed is false or apiKeyAllowed is true
 						return apiKeyAllowed
 					return or: [allowed, apiKeyAllowed]
-				)
-			).then((allowed) ->
+			.then (allowed) ->
 				if allowed is true
 					return allowed
 				_getGuestPermissions()
-				.then((permissions) ->
+				.then (permissions) ->
 					userIDs =
 						if apiKeyUserID isnt false
 							[userID, apiKeyUserID]
 						else
 							userID
 					return _checkPermissions(permissions, userIDs)
-				).catch((err) ->
+				.catch (err) ->
 					console.error('Error checking guest permissions', err, err.stack)
 					return false
-				).then((guestAllowed) ->
+				.then (guestAllowed) ->
 					if allowed is false or guestAllowed is true
 						return guestAllowed
 					return or: [allowed, guestAllowed]
-				)
-			).nodeify(callback)
+			.nodeify(callback)
 
 	exports.checkPermissionsMiddleware = (action) ->
 		return (req, res, next) ->
 			checkPermissions(req, res, action)
-			.then((allowed) ->
+			.then (allowed) ->
 				switch allowed
 					when false
 						res.send(401)
@@ -252,9 +247,8 @@ define [
 						next()
 					else
 						throw new Error('checkPermissionsMiddleware returned a conditional permission')
-			).catch((err) ->
+			.catch (err) ->
 				console.error('Error checking permissions', err, err.stack)
 				res.send(503)
-			)
 
 	return exports

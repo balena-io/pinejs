@@ -36,12 +36,11 @@ define [
 			return promise
 
 	serverIsOnAir = (req, res, next) ->
-		isServerOnAir().then((onAir) ->
+		isServerOnAir().then (onAir) ->
 			if onAir
 				next()
 			else
 				next('route')
-		)
 
 	# Setup function
 	exports.config =
@@ -62,7 +61,7 @@ define [
 					filter:
 						name: 'model_area'
 				tx: tx
-			).then((result) ->
+			).then (result) ->
 				if result.length is 0
 					# Add a model_area entry if it doesn't already exist.
 					uiAPI.post(
@@ -72,7 +71,7 @@ define [
 							text: ' '
 						tx: tx
 					)
-			).then(->
+			.then ->
 				PlatformAPI::get(
 					apiPrefix: '/dev/'
 					resource: 'model'
@@ -83,23 +82,20 @@ define [
 							vocabulary: 'data'
 					tx: tx
 				)
-			).then((result) ->
+			.then (result) ->
 				if result.length is 0
 					throw new Error('No SE data model found')
 				instance = result[0]
 				sbvrUtils.executeModel(tx, instance.vocabulary, instance.model_value)
-			)
-			.then(->
+			.then ->
 				isServerOnAir(true)
-			).catch((err) ->
+			.catch (err) ->
 				isServerOnAir(false)
-			)
 
 		app.get '/onAir', (req, res, next) ->
 			isServerOnAir()
-			.then((onAir) ->
+			.then (onAir) ->
 				res.json(onAir)
-			)
 
 		app.post '/update', sbvrUtils.checkPermissionsMiddleware('all'), serverIsOnAir, (req, res, next) ->
 			res.send(404)
@@ -111,14 +107,14 @@ define [
 					select: 'text'
 					filter:
 						name: 'model_area'
-			).then((result) ->
+			).then (result) ->
 				if result.length is 0
 					throw new Error('Could not find the model to execute')
 				seModel = result[0].text
 				db.transaction()
-				.then((tx) ->
+				.then (tx) ->
 					sbvrUtils.executeModel(tx, 'data', seModel)
-					.then(->
+					.then ->
 						uiAPI.patch(
 							resource: 'textarea'
 							options:
@@ -128,51 +124,46 @@ define [
 								is_disabled: true
 							tx: tx
 						)
-					).then(->
+					.then ->
 						tx.end()
-					).catch((err) ->
+					.catch (err) ->
 						tx.rollback()
 						throw err
-					)
-				)
-			).then(->
+			.then ->
 				isServerOnAir(true)
 				res.send(200)
-			).catch((err) ->
+			.catch (err) ->
 				isServerOnAir(false)
 				res.json(err, 404)
-			)
 		app.post '/validate', sbvrUtils.checkPermissionsMiddleware('get'), (req, res, next) ->
 			sbvrUtils.runRule('data', req.body.rule)
-			.then((results) ->
+			.then (results) ->
 				res.json(results)
-			).catch((err) ->
+			.catch (err) ->
 				console.log('Error validating', err)
 				res.send(404)
-			)
 		app.del '/cleardb', sbvrUtils.checkPermissionsMiddleware('delete'), (req, res, next) ->
 			db.transaction (tx) ->
 				tx.tableList()
-				.then((result) ->
+				.then (result) ->
 					Promise.all result.rows.map (table) ->
 						tx.dropTable(table.name)
-				).then(->
+				.then ->
 					sbvrUtils.executeStandardModels(tx)
-				).then(->
+				.then ->
 					# TODO: HACK: This is usually done by config-loader and should be done there
 					# In general cleardb is very destructive and should really go through a full "reboot" procedure to set everything up again.
 					console.warn('DEL /cleardb is very destructive and should really be followed by a full restart/reload.')
 					sbvrUtils.executeModel(tx, 'ui', uiModel)
-				).then(->
+				.then ->
 					setupModels(tx)
-				).then(->
+				.then ->
 					tx.end()
 					res.send(200)
-				).catch((err) ->
+				.catch (err) ->
 					console.error('Error clearing db', err, err.stack)
 					tx.rollback()
 					res.send(503)
-				)
 		app.put '/importdb', sbvrUtils.checkPermissionsMiddleware('set'), (req, res, next) ->
 			queries = req.body.split(';')
 			db.transaction (tx) ->
@@ -185,14 +176,13 @@ define [
 								throw [query, err]
 							)
 					null
-				).then(->
+				).then ->
 					tx.end()
 					res.send(200)
-				).catch((err) ->
+				.catch (err) ->
 					console.error('Error importing db', err, err.stack)
 					tx.rollback()
 					res.send(404)
-				)
 		app.get '/exportdb', sbvrUtils.checkPermissionsMiddleware('get'), (req, res, next) ->
 			if has 'ENV_NODEJS'
 				# TODO: This is postgres rather than node specific, so the check should be updated to reflect that.
@@ -204,14 +194,14 @@ define [
 			else
 				db.transaction (tx) ->
 					tx.tableList("name NOT LIKE '%_buk'")
-					.then((result) ->
+					.then (result) ->
 						exported = ''
-						Promise.all(result.rows.map (table) ->
+						Promise.all result.rows.map (table) ->
 							tableName = table.name
 							exported += 'DROP TABLE IF EXISTS "' + tableName + '";\n'
 							exported += table.sql + ';\n'
 							tx.executeSql('SELECT * FROM "' + tableName + '";')
-							.then((result) ->
+							.then (result) ->
 								insQuery = ''
 								result.rows.forEach (currRow) ->
 									notFirst = false
@@ -227,52 +217,45 @@ define [
 										valQuery += "'" + currRow[propName] + "'"
 									insQuery += ') values (' + valQuery + ');\n'
 								exported += insQuery
-							)
-						)
-					).then(->
+					.then ->
 						tx.end()
 						res.json(exported)
-					).catch((err) ->
+					.catch (err) ->
 						console.error('Error exporting db', err, err.stack)
 						tx.rollback()
 						res.send(503)
-					)
 		app.post '/backupdb', sbvrUtils.checkPermissionsMiddleware('all'), serverIsOnAir, (req, res, next) ->
 			db.transaction (tx) ->
 				tx.tableList("name NOT LIKE '%_buk'")
-				.then((result) ->
+				.then (result) ->
 					Promise.all result.rows.map (currRow) ->
 						tableName = currRow.name
 						tx.dropTable(tableName + '_buk', true)
-						.then(->
+						.then ->
 							tx.executeSql('ALTER TABLE "' + tableName + '" RENAME TO "' + tableName + '_buk";')
-						)
-				).then(->
+				.then ->
 					tx.end()
 					res.send(200)
-				).catch((err) ->
+				.catch (err) ->
 					tx.rollback()
 					console.error('Error backing up db', err, err.stack)
 					res.send(404)
-				)
 		app.post '/restoredb', sbvrUtils.checkPermissionsMiddleware('all'), serverIsOnAir, (req, res, next) ->
 			db.transaction (tx) ->
 				tx.tableList("name LIKE '%_buk'")
-				.then((result) ->
+				.then (result) ->
 					Promise.all result.rows.map (currRow) ->
 						tableName = currRow.name
 						tx.dropTable(tableName[0...-4], true)
-						.then(->
+						.then ->
 							tx.executeSql('ALTER TABLE "' + tableName + '" RENAME TO "' + tableName[0...-4] + '";')
-						)
-				).then(->
+				.then ->
 					tx.end()
 					res.send(200)
-				).catch((err) ->
+				.catch (err) ->
 					tx.rollback()
 					console.error('Error restoring db', err, err.stack)
 					res.send(404)
-				)
 
 		app.get('/data/*', serverIsOnAir, sbvrUtils.runGet)
 		app.get('/Auth/*', serverIsOnAir, sbvrUtils.runGet)
@@ -306,19 +289,16 @@ define [
 						is_disabled: false
 				)
 				sbvrUtils.deleteModel('data')
-			]).then(->
+			]).then ->
 				isServerOnAir(false)
 				res.send(200)
-			)
 
 		db.transaction()
-		.then((tx) ->
+		.then (tx) ->
 			setupModels(tx)
-			.then(->
+			.then ->
 				tx.end()
-			).catch((err) ->
+			.catch (err) ->
 				tx.rollback()
 				throw err
-			)
-		)
 	return exports

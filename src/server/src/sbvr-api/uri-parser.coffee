@@ -40,7 +40,7 @@ define [
 						console.warn('Unknown method for permissions type check: ', method)
 						'all'
 		permissions.checkPermissions(req, res, permissionType, resourceName, vocabulary, apiKey)
-		.then((conditionalPerms) ->
+		.then (conditionalPerms) ->
 			if conditionalPerms is false
 				return false
 			else if conditionalPerms isnt true
@@ -92,7 +92,6 @@ define [
 					resourceName
 				}]
 			}
-		)
 
 	exports.parseURITree = (callback) ->
 		(req, res, next) ->

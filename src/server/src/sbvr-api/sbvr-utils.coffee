@@ -62,7 +62,7 @@ define [
 	getAndCheckBindValues = (vocab, bindings, values) ->
 		mappings = clientModels[vocab].resourceToSQLMappings
 		sqlModelTables = sqlModels[vocab].tables
-		Promise.map(bindings, (binding) ->
+		Promise.map bindings, (binding) ->
 			if _.isString(binding[1])
 				[tableName, fieldName] = binding
 
@@ -83,14 +83,12 @@ define [
 				return db.DEFAULT_VALUE
 
 			AbstractSQL2SQL.dataTypeValidate(value, field)
-			.catch((err) ->
+			.catch (err) ->
 				throw new Error('"' + fieldName + '" ' + err)
-			)
-		)
 
 	endTransaction = (transactionID) ->
 		db.transaction()
-		.then((tx) ->
+		.then (tx) ->
 			placeholders = {}
 			getLockedRow = (lockID) ->
 				# 'GET', '/transaction/resource?$select=resource_id&$filter=resource__is_under__lock/lock eq ?'
@@ -104,9 +102,9 @@ define [
 				tx.executeSql('''SELECT "conditional_field"."field name" AS "field_name", "conditional_field"."field value" AS "field_value"
 								FROM "conditional_field"
 								WHERE "conditional_field"."conditional resource" = ?;''', [conditionalResourceID])
-				.then((fields) ->
+				.then (fields) ->
 					fieldsObject = {}
-					Promise.all(fields.rows.map (field) ->
+					Promise.all fields.rows.map (field) ->
 						fieldName = field.field_name.replace(clientModel.resourceName + '.', '')
 						fieldValue = field.field_value
 						modelField = _.find(clientModel.fields, {fieldName})
@@ -115,30 +113,27 @@ define [
 								throw new Error('Cannot resolve placeholder' + fieldValue)
 							else
 								placeholders[fieldValue].promise
-								.then((resolvedID) ->
+								.then (resolvedID) ->
 									fieldsObject[fieldName] = resolvedID
-								).catch(->
+								.catch ->
 									throw new Error('Placeholder failed' + fieldValue)
-								)
 						else
 							fieldsObject[fieldName] = fieldValue
-					).then(->
+					.then ->
 						return fieldsObject
-					)
-				)
 
 			# 'GET', '/transaction/conditional_resource?$filter=transaction eq ?'
 			tx.executeSql('''SELECT "conditional_resource"."id", "conditional_resource"."transaction", "conditional_resource"."lock", "conditional_resource"."resource type" AS "resource_type", "conditional_resource"."conditional type" AS "conditional_type", "conditional_resource"."placeholder"
 							FROM "conditional_resource"
 							WHERE "conditional_resource"."transaction" = ?;''', [transactionID])
-			.then((conditionalResources) ->
+			.then (conditionalResources) ->
 				conditionalResources.rows.forEach (conditionalResource) ->
 					placeholder = conditionalResource.placeholder
 					if placeholder? and placeholder.length > 0
 						placeholders[placeholder] = Promise.pending()
 
 				# get conditional resources (if exist)
-				Promise.all(conditionalResources.rows.map (conditionalResource) ->
+				Promise.all conditionalResources.rows.map (conditionalResource) ->
 					placeholder = conditionalResource.placeholder
 					lockID = conditionalResource.lock
 					doCleanup = ->
@@ -154,61 +149,53 @@ define [
 					switch conditionalResource.conditional_type
 						when 'DELETE'
 							getLockedRow(lockID)
-							.then((lockedRow) ->
+							.then (lockedRow) ->
 								lockedRow = lockedRow.rows.item(0)
 								url = url + '?$filter=' + clientModel.idField + ' eq ' + lockedRow.resource_id
 								PlatformAPI::delete({url, tx})
-							)
 							.then(doCleanup)
 						when 'EDIT'
 							getLockedRow(lockID)
-							.then((lockedRow) ->
+							.then (lockedRow) ->
 								lockedRow = lockedRow.rows.item(0)
 								getFieldsObject(conditionalResource.id, clientModel)
-								.then((body) ->
+								.then (body) ->
 									body[clientModel.idField] = lockedRow.resource_id
 									PlatformAPI::put({url, body, tx})
-								)
-							).then(doCleanup)
+							.then(doCleanup)
 						when 'ADD'
 							getFieldsObject(conditionalResource.id, clientModel)
-							.then((body) ->
+							.then (body) ->
 								PlatformAPI::post({url, body, tx})
-							).then((result) ->
+							.then (result) ->
 								placeholders[placeholder].fulfill(result.id)
-							).then(doCleanup)
-							.catch((err) ->
+							.then(doCleanup)
+							.catch (err) ->
 								placeholders[placeholder].reject(err)
 								throw err
-							)
-				)
-			).then((err) ->
+			.then (err) ->
 				tx.executeSql('DELETE FROM "transaction" WHERE "id" = ?;', [transactionID])
-			).then((result) ->
+			.then (result) ->
 				validateDB(tx, sqlModels['data'])
-			).catch((err) ->
+			.catch (err) ->
 				tx.rollback()
 				throw err
-			).then(->
+			.then ->
 				tx.end()
-			)
-		)
 
 	validateDB = (tx, sqlmod) ->
-		Promise.map(sqlmod.rules, (rule) ->
+		Promise.map sqlmod.rules, (rule) ->
 			tx.executeSql(rule.sql, rule.bindings)
-			.then((result) ->
+			.then (result) ->
 				if result.rows.item(0).result in [false, 0, '0']
 					throw rule.structuredEnglish
-			)
-		)
 
 	exports.executeModel = executeModel = (tx, vocab, seModel, callback) ->
 		models = {}
 		models[vocab] = seModel
 		executeModels(tx, models, callback)
 	exports.executeModels = executeModels = (tx, models, callback) ->
-		Promise.map(_.keys(models), (vocab) ->
+		Promise.map _.keys(models), (vocab) ->
 			seModel = models[vocab]
 			try
 				lfModel = SBVRParser.matchAll(seModel, 'Process')
@@ -225,17 +212,16 @@ define [
 				throw new Error(['Error compiling model', e])
 
 			# Create tables related to terms and fact types
-			Promise.map(sqlModel.createSchema, (createStatement) ->
+			Promise.map sqlModel.createSchema, (createStatement) ->
 				tx.executeSql(createStatement)
-				.catch(->
+				.catch ->
 					# Warning: We ignore errors in the create table statements as SQLite doesn't support CREATE IF NOT EXISTS
-				)
-			).then(->
+			.then ->
 				# Validate the [empty] model according to the rules.
 				# This may eventually lead to entering obligatory data.
 				# For the moment it blocks such models from execution.
 				validateDB(tx, sqlModel)
-			).then(->
+			.then ->
 				seModels[vocab] = seModel
 				sqlModels[vocab] = sqlModel
 				clientModels[vocab] = clientModel
@@ -254,7 +240,7 @@ define [
 								model_type: modelType
 						tx: tx
 					)
-					.then((result) ->
+					.then (result) ->
 						method = 'POST'
 						uri = '/dev/model'
 						body =
@@ -268,7 +254,6 @@ define [
 							body.id = id
 
 						runURI(method, uri, body, tx)
-					)
 
 				Promise.all([
 					updateModel('se', seModel)
@@ -278,12 +263,11 @@ define [
 					updateModel('client', clientModel)
 				]).then ->
 					api[vocab] = new PlatformAPI('/' + vocab + '/')
-			)
-		).nodeify(callback)
+		.nodeify(callback)
 
 	exports.deleteModel = (vocabulary, callback) ->
 		db.transaction()
-		.then((tx) ->
+		.then (tx) ->
 			dropStatements =
 				_.map sqlModels[vocabulary]?.dropSchema, (dropStatement) ->
 					tx.executeSql(dropStatement)
@@ -296,7 +280,7 @@ define [
 							vocabulary: vocabulary
 					tx: tx
 				)
-			])).then(->
+			])).then ->
 				tx.end()
 				delete seModels[vocabulary]
 				delete sqlModels[vocabulary]
@@ -304,11 +288,10 @@ define [
 				delete odataMetadata[vocabulary]
 				uriParser.deleteClientModel(vocabulary)
 				delete api[vocab]
-			).catch((err) ->
+			.catch (err) ->
 				tx.rollback()
 				throw err
-			)
-		).nodeify(callback)
+		.nodeify(callback)
 
 	getID = (tree) ->
 		request = tree.requests[0]
@@ -334,10 +317,9 @@ define [
 				# Hack to look like a rows object
 				field.item = rowsObjectHack
 				processOData(vocab, clientModel, fieldName, field)
-				.then((expandedField) ->
+				.then (expandedField) ->
 					instance[fieldName] = expandedField
 					return
-				)
 			else if field?
 				instance[fieldName] = {
 					__deferred:
@@ -385,21 +367,19 @@ define [
 						fieldName = fieldName.replace(/\ /g, '_')
 						if instance.hasOwnProperty(fieldName)
 							fetchProcessing[dataType](instance[fieldName])
-							.then((result) ->
+							.then (result) ->
 								instance[fieldName] = result
 								return
-							)
 
-		instancesPromise.then(->
+		instancesPromise.then ->
 			return instances
-		)
 
 	exports.runRule = do ->
 		LF2AbstractSQLPrepHack = LF2AbstractSQL.LF2AbstractSQLPrep._extend({CardinalityOptimisation: -> @_pred(false)})
 		translator = LF2AbstractSQL.LF2AbstractSQL.createInstance()
 		translator.addTypes(sbvrTypes)
 		return (vocab, rule, callback) ->
-			Promise.try(->
+			Promise.try ->
 				seModel = seModels[vocab]
 				try
 					lfModel = SBVRParser.matchAll(seModel + '\nRule: ' + rule, 'Process')
@@ -456,7 +436,7 @@ define [
 				ruleSQL = AbstractSQL2SQL.generate({tables: {}, rules: [ruleAbs]}).rules[0].sql
 
 				db.executeSql(ruleSQL.query, ruleSQL.bindings)
-				.then((result) ->
+				.then (result) ->
 					resourceName = resourceName.replace(/\ /g, '_').replace(/-/g, '__')
 					clientModel = clientModels[vocab].resources[resourceName]
 					ids = result.rows.map (row) -> row[clientModel.idField]
@@ -471,8 +451,7 @@ define [
 					.then (result) ->
 						result.__formulationType = formulationType
 						return result
-				)
-			).nodeify(callback)
+			.nodeify(callback)
 
 	exports.PlatformAPI =
 		class PlatformAPI extends resinPlatformAPI(_, Promise)
@@ -539,14 +518,13 @@ define [
 				res.send(503)
 				return
 			getAndCheckBindValues(tree.vocabulary, bindings, request.values)
-			.then((values) ->
+			.then (values) ->
 				console.log(query, values)
 				if req.tx?
 					req.tx.executeSql(query, values)
 				else
 					db.executeSql(query, values)
-			)
-			.then((result) ->
+			.then (result) ->
 				clientModel = clientModels[tree.vocabulary].resources
 				switch tree.type
 					when 'OData'
@@ -559,9 +537,8 @@ define [
 						)
 					else
 						res.send(503)
-			).catch((err) ->
+			.catch (err) ->
 				res.json(err, 404)
-			)
 		else
 			if tree.requests[0].resourceName == '$metadata'
 				res.type('xml')
@@ -587,20 +564,20 @@ define [
 			return
 		vocab = tree.vocabulary
 		getAndCheckBindValues(vocab, bindings, request.values)
-		.then((values) ->
+		.then (values) ->
 			console.log(query, values)
 			idField = clientModels[vocab].resources[request.resourceName].idField
 			runQuery = (tx) ->
 				# TODO: Check for transaction locks.
 				tx.executeSql(query, values, null, idField)
-				.catch((err) ->
+				.catch (err) ->
 					constraintError = checkForConstraintError(err, request.resourceName)
 					if constraintError != false
 						throw constraintError
 					throw err
-				).then((sqlResult) ->
+				.then (sqlResult) ->
 					validateDB(tx, sqlModels[vocab])
-					.then(->
+					.then ->
 						insertID = if request.query[0] == 'UpdateQuery' then values[0] else sqlResult.insertId
 						console.log('Insert ID: ', insertID)
 						res.json({
@@ -609,23 +586,18 @@ define [
 								location: odataResourceURI(vocab, request.resourceName, insertID)
 							}, 201
 						)
-					)
-				)
 			if req.tx?
 				runQuery(req.tx)
 			else
-				db.transaction().then((tx) ->
+				db.transaction().then (tx) ->
 					runQuery(tx)
-					.then(->
+					.then ->
 						tx.end()
-					).catch((err) ->
+					.catch (err) ->
 						tx.rollback()
 						throw err
-					)
-				)
-		).catch((err) ->
+		.catch (err) ->
 			res.json(err, 404)
-		)
 
 	exports.runPut = runPut = uriParser.parseURITree (req, res, next) ->
 		res.set('Cache-Control', 'no-cache')
@@ -655,51 +627,46 @@ define [
 					WHERE r."resource type" = ?
 					AND r."resource id" = ?
 				) AS result;''', [request.resourceName, id])
-			.catch((err) ->
+			.catch (err) ->
 				console.error('Unable to check resource locks', err, err.stack)
 				throw new Error('Unable to check resource locks')
-			).then((result) ->
+			.then (result) ->
 				if result.rows.item(0).result in [false, 0, '0']
 					throw new Error('The resource is locked and cannot be edited')
 
 				runQuery = (query) ->
 					getAndCheckBindValues(vocab, query.bindings, request.values)
-					.then((values) ->
+					.then (values) ->
 						tx.executeSql(query.query, values)
-					)
 
 				if updateQuery?
 					runQuery(updateQuery)
-					.then((result) ->
+					.then (result) ->
 						if result.rowsAffected is 0
 							runQuery(insertQuery)
-					)
 				else
 					runQuery(insertQuery)
-			).catch((err) ->
+			.catch (err) ->
 				constraintError = checkForConstraintError(err, request.resourceName)
 				if constraintError != false
 					throw constraintError
 				throw err
-			).then(->
+			.then ->
 				validateDB(tx, sqlModels[vocab])
-			).then(->
+			.then ->
 				res.send(200)
-			).catch((err) ->
+			.catch (err) ->
 				res.json(err, 404)
-			)
 		if req.tx?
 			runTransaction(req.tx)
 		else
-			db.transaction().then((tx) ->
+			db.transaction().then (tx) ->
 				runTransaction(tx)
-				.then(->
+				.then ->
 					tx.end()
-				).catch((err) ->
+				.catch (err) ->
 					tx.rollback()
 					throw err
-				)
-			)
 
 	exports.runDelete = runDelete = uriParser.parseURITree (req, res, next) ->
 		res.set('Cache-Control', 'no-cache')
@@ -713,49 +680,44 @@ define [
 			return
 		vocab = tree.vocabulary
 		getAndCheckBindValues(vocab, bindings, request.values)
-		.then((values) ->
+		.then (values) ->
 			console.log(query, values)
 			runQuery = (tx) ->
 				tx.executeSql(query, values)
-				.catch((err) ->
+				.catch (err) ->
 					constraintError = checkForConstraintError(err, request.resourceName)
 					if constraintError != false
 						throw constraintError
 					throw err
-				).then(->
+				.then ->
 					validateDB(tx, sqlModels[vocab])
-				)
 			if req.tx?
 				runQuery(req.tx)
 			else
-				db.transaction().then((tx) ->
+				db.transaction().then (tx) ->
 					runQuery(tx)
-					.then(->
+					.then ->
 						tx.end()
-					).catch((err) ->
+					.catch (err) ->
 						tx.rollback()
 						throw err
-					)
-				)
-		).then(->
+		.then ->
 			res.send(200)
-		).catch((err) ->
+		.catch (err) ->
 			res.json(err, 404)
-		)
 
 	exports.executeStandardModels = executeStandardModels = (tx, callback) ->
 		# The dev model has to be executed first.
 		executeModel(tx, 'dev', devModel)
-		.then(->
+		.then ->
 			executeModels(tx, {
 				'transaction': transactionModel
 				'Auth': userModel
 			})
-		).then(->
+		.then ->
 			tx.executeSql('CREATE UNIQUE INDEX "uniq_model_model_type_vocab" ON "model" ("vocabulary", "model type");')
-			.catch(->
+			.catch ->
 				# Ignore errors creating the index, sadly not all databases we use support IF NOT EXISTS.
-			)
 			# TODO: Remove these hardcoded users.
 			if has 'DEV'
 				authAPI = new PlatformAPI('/Auth/')
@@ -777,7 +739,7 @@ define [
 						body:
 							name: 'resource.all'
 					)
-				]).spread((guest, user, permission) ->
+				]).spread (guest, user, permission) ->
 					Promise.all([
 						authAPI.post(
 							resource: 'user__has__permission'
@@ -796,23 +758,21 @@ define [
 							body:
 								user: user.id
 								key: 'test'
-						).then((apiKey) ->
+						).then (apiKey) ->
 							authAPI.post(
 								resource: 'api_key__has__permission'
 								body:
 									api_key: apiKey.id
 									permission: permission.id
 							)
-						)
 					])
-				).catch((err) ->
+				.catch (err) ->
 					console.error('Unable to add dev users', err, err.stack)
-				)
 			console.info('Sucessfully executed standard models.')
-		).catch((err) ->
+		.catch (err) ->
 			console.error('Failed to execute standard models.', err, err.stack)
 			throw err
-		).nodeify(callback)
+		.nodeify(callback)
 
 	exports.setup = (app, requirejs, _db, callback) ->
 		exports.db = db = _db
@@ -826,12 +786,11 @@ define [
 				res.send(404)
 			else
 				endTransaction(id)
-				.then(->
+				.then ->
 					res.send(200)
-				).catch((err) ->
+				.catch (err) ->
 					console.error('Error ending transaction', err, err.stack)
 					res.json(err, 404)
-				)
 		app.get '/transaction', (req, res, next) ->
 			res.json(
 				transactionURI: '/transaction/transaction'
@@ -850,15 +809,14 @@ define [
 		app.del('/transaction/*', runDelete)
 
 		db.transaction()
-		.then((tx) ->
+		.then (tx) ->
 			executeStandardModels(tx)
-			.then(->
+			.then ->
 				tx.end()
-			).catch((err) ->
+			.catch (err) ->
 				tx.rollback()
 				console.error('Could not execute standard models', err, err.stack)
 				process.exit()
-			)
-		).nodeify(callback)
+		.nodeify(callback)
 
 	return
