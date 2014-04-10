@@ -192,51 +192,65 @@ define [
 					throw rule.structuredEnglish
 
 	exports.executeModel = executeModel = (tx, model, callback) ->
-		seModel = model.modelText
-		vocab = model.apiRoot
+		executeModels(tx, [model], callback)
 
-		try
-			lfModel = SBVRParser.matchAll(seModel, 'Process')
-		catch e
-			console.error('Error parsing model', vocab, e, e.stack)
-			throw new Error(['Error parsing model', e])
+	exports.executeModels = executeModels = (tx, models, callback) ->
+		Promise.map models, (model) ->
+			seModel = model.modelText
+			vocab = model.apiRoot
 
-		try
-			abstractSqlModel = LF2AbstractSQLTranslator(lfModel, 'Process')
-			sqlModel = AbstractSQL2SQL.generate(abstractSqlModel)
-			clientModel = AbstractSQL2CLF(sqlModel)
-			metadata = ODataMetadataGenerator(vocab, sqlModel)
-		catch e
-			console.error('Error compiling model', vocab, e, e.stack)
-			throw new Error(['Error compiling model', e])
+			try
+				lfModel = SBVRParser.matchAll(seModel, 'Process')
+			catch e
+				console.error('Error parsing model', vocab, e, e.stack)
+				throw new Error(['Error parsing model', e])
 
-		# Create tables related to terms and fact types
-		Promise.map sqlModel.createSchema, (createStatement) ->
-			tx.executeSql(createStatement)
-			.catch ->
-				# Warning: We ignore errors in the create table statements as SQLite doesn't support CREATE IF NOT EXISTS
-		.then ->
-			# Validate the [empty] model according to the rules.
-			# This may eventually lead to entering obligatory data.
-			# For the moment it blocks such models from execution.
-			validateDB(tx, sqlModel)
-		.then ->
-			seModels[vocab] = seModel
-			sqlModels[vocab] = sqlModel
-			clientModels[vocab] = clientModel
-			odataMetadata[vocab] = metadata
+			try
+				abstractSqlModel = LF2AbstractSQLTranslator(lfModel, 'Process')
+				sqlModel = AbstractSQL2SQL.generate(abstractSqlModel)
+				clientModel = AbstractSQL2CLF(sqlModel)
+				metadata = ODataMetadataGenerator(vocab, sqlModel)
+			catch e
+				console.error('Error compiling model', vocab, e, e.stack)
+				throw new Error(['Error compiling model', e])
 
-			uriParser.addClientModel(vocab, clientModel)
+			# Create tables related to terms and fact types
+			Promise.map sqlModel.createSchema, (createStatement) ->
+				tx.executeSql(createStatement)
+				.catch ->
+					# Warning: We ignore errors in the create table statements as SQLite doesn't support CREATE IF NOT EXISTS
+			.then ->
+				# Validate the [empty] model according to the rules.
+				# This may eventually lead to entering obligatory data.
+				# For the moment it blocks such models from execution.
+				validateDB(tx, sqlModel)
+			.then ->
+				seModels[vocab] = seModel
+				sqlModels[vocab] = sqlModel
+				clientModels[vocab] = clientModel
+				odataMetadata[vocab] = metadata
 
-			api[vocab] = new PlatformAPI('/' + vocab + '/')
+				uriParser.addClientModel(vocab, clientModel)
 
-			updateModel = (modelType, model) ->
+				api[vocab] = new PlatformAPI('/' + vocab + '/')
+
+				return {
+					vocab: vocab
+					se: seModel
+					lf: lfModel
+					abstractsql: abstractSqlModel
+					sql: sqlModel
+					client: clientModel
+				}
+		# Only update the dev models once all models have finished executing.
+		.map (model) ->
+			updateModel = (modelType, modelText) ->
 				api.dev.get(
 					resource: 'model'
 					options:
 						select: 'id'
 						filter:
-							vocabulary: vocab
+							vocabulary: model.vocab
 							model_type: modelType
 					tx: tx
 				)
@@ -244,8 +258,8 @@ define [
 					method = 'POST'
 					uri = '/dev/model'
 					body =
-						vocabulary: vocab
-						model_value: model
+						vocabulary: model.vocab
+						model_value: modelText
 						model_type: modelType
 					id = result[0]?.id
 					if id?
@@ -256,20 +270,16 @@ define [
 					runURI(method, uri, body, tx)
 
 			Promise.all([
-				updateModel('se', seModel)
-				updateModel('lf', lfModel)
-				updateModel('abstractsql', abstractSqlModel)
-				updateModel('sql', sqlModel)
-				updateModel('client', clientModel)
+				updateModel('se', model.se)
+				updateModel('lf', model.lf)
+				updateModel('abstractsql', model.abstractsql)
+				updateModel('sql', model.sql)
+				updateModel('client', model.client)
 			])
-			.catch (err) ->
-				cleanupModel()
-				throw err
-		.nodeify(callback)
-
-	exports.executeModels = executeModels = (tx, models, callback) ->
-		Promise.map models, (model) ->
-			executeModel(tx, model)
+		.catch (err) ->
+			Promise.map models, (model) ->
+				cleanupModel(model.apiRoot)
+			throw err
 		.nodeify(callback)
 
 	cleanupModel = (vocab) ->
