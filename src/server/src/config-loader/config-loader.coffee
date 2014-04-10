@@ -12,7 +12,7 @@ define [
 			sbvrUtils.db.transaction().then (tx) ->
 				modelsPromise = Promise.map data.models, (model) ->
 					if model.modelText?
-						sbvrUtils.executeModel(tx, model.apiRoot, model.modelText)
+						sbvrUtils.executeModel(tx, model)
 						.then ->
 							console.info('Sucessfully executed ' + model.modelName + ' model.')
 						.catch (err) ->

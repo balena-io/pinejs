@@ -86,7 +86,10 @@ define [
 				if result.length is 0
 					throw new Error('No SE data model found')
 				instance = result[0]
-				sbvrUtils.executeModel(tx, instance.vocabulary, instance.model_value)
+				sbvrUtils.executeModel(tx,
+					apiRoot: instance.vocabulary
+					modelText: instance.model_value
+				)
 			.then ->
 				isServerOnAir(true)
 			.catch (err) ->
@@ -110,10 +113,13 @@ define [
 			).then (result) ->
 				if result.length is 0
 					throw new Error('Could not find the model to execute')
-				seModel = result[0].text
+				modelText = result[0].text
 				db.transaction()
 				.then (tx) ->
-					sbvrUtils.executeModel(tx, 'data', seModel)
+					sbvrUtils.executeModel(tx,
+						apiRoot: 'data'
+						modelText: modelText
+					)
 					.then ->
 						uiAPI.patch(
 							resource: 'textarea'
@@ -154,7 +160,7 @@ define [
 					# TODO: HACK: This is usually done by config-loader and should be done there
 					# In general cleardb is very destructive and should really go through a full "reboot" procedure to set everything up again.
 					console.warn('DEL /cleardb is very destructive and should really be followed by a full restart/reload.')
-					sbvrUtils.executeModel(tx, 'ui', uiModel)
+					sbvrUtils.executeModels(tx, exports.config.models)
 				.then ->
 					setupModels(tx)
 				.then ->

@@ -190,79 +190,82 @@ define [
 				if result.rows.item(0).result in [false, 0, '0']
 					throw rule.structuredEnglish
 
-	exports.executeModel = executeModel = (tx, vocab, seModel, callback) ->
-		models = {}
-		models[vocab] = seModel
-		executeModels(tx, models, callback)
-	exports.executeModels = executeModels = (tx, models, callback) ->
-		Promise.map _.keys(models), (vocab) ->
-			seModel = models[vocab]
-			try
-				lfModel = SBVRParser.matchAll(seModel, 'Process')
-			catch e
-				console.error('Error parsing model', vocab, e, e.stack)
-				throw new Error(['Error parsing model', e])
-			try
-				abstractSqlModel = LF2AbstractSQLTranslator(lfModel, 'Process')
-				sqlModel = AbstractSQL2SQL.generate(abstractSqlModel)
-				clientModel = AbstractSQL2CLF(sqlModel)
-				metadata = ODataMetadataGenerator(vocab, sqlModel)
-			catch e
-				console.error('Error compiling model', vocab, e, e.stack)
-				throw new Error(['Error compiling model', e])
+	exports.executeModel = executeModel = (tx, model, callback) ->
+		seModel = model.modelText
+		vocab = model.apiRoot
 
-			# Create tables related to terms and fact types
-			Promise.map sqlModel.createSchema, (createStatement) ->
-				tx.executeSql(createStatement)
-				.catch ->
-					# Warning: We ignore errors in the create table statements as SQLite doesn't support CREATE IF NOT EXISTS
-			.then ->
-				# Validate the [empty] model according to the rules.
-				# This may eventually lead to entering obligatory data.
-				# For the moment it blocks such models from execution.
-				validateDB(tx, sqlModel)
-			.then ->
-				seModels[vocab] = seModel
-				sqlModels[vocab] = sqlModel
-				clientModels[vocab] = clientModel
-				odataMetadata[vocab] = metadata
+		try
+			lfModel = SBVRParser.matchAll(seModel, 'Process')
+		catch e
+			console.error('Error parsing model', vocab, e, e.stack)
+			throw new Error(['Error parsing model', e])
 
-				uriParser.addClientModel(vocab, clientModel)
+		try
+			abstractSqlModel = LF2AbstractSQLTranslator(lfModel, 'Process')
+			sqlModel = AbstractSQL2SQL.generate(abstractSqlModel)
+			clientModel = AbstractSQL2CLF(sqlModel)
+			metadata = ODataMetadataGenerator(vocab, sqlModel)
+		catch e
+			console.error('Error compiling model', vocab, e, e.stack)
+			throw new Error(['Error compiling model', e])
 
-				updateModel = (modelType, model) ->
-					PlatformAPI::get(
-						apiPrefix: '/dev/'
-						resource: 'model'
-						options:
-							select: 'id'
-							filter:
-								vocabulary: vocab
-								model_type: modelType
-						tx: tx
-					)
-					.then (result) ->
-						method = 'POST'
-						uri = '/dev/model'
-						body =
+		# Create tables related to terms and fact types
+		Promise.map sqlModel.createSchema, (createStatement) ->
+			tx.executeSql(createStatement)
+			.catch ->
+				# Warning: We ignore errors in the create table statements as SQLite doesn't support CREATE IF NOT EXISTS
+		.then ->
+			# Validate the [empty] model according to the rules.
+			# This may eventually lead to entering obligatory data.
+			# For the moment it blocks such models from execution.
+			validateDB(tx, sqlModel)
+		.then ->
+			seModels[vocab] = seModel
+			sqlModels[vocab] = sqlModel
+			clientModels[vocab] = clientModel
+			odataMetadata[vocab] = metadata
+
+			uriParser.addClientModel(vocab, clientModel)
+
+			updateModel = (modelType, model) ->
+				PlatformAPI::get(
+					apiPrefix: '/dev/'
+					resource: 'model'
+					options:
+						select: 'id'
+						filter:
 							vocabulary: vocab
-							model_value: model
 							model_type: modelType
-						id = result[0]?.id
-						if id?
-							uri += '(' + id + ')'
-							method = 'PUT'
-							body.id = id
+					tx: tx
+				)
+				.then (result) ->
+					method = 'POST'
+					uri = '/dev/model'
+					body =
+						vocabulary: vocab
+						model_value: model
+						model_type: modelType
+					id = result[0]?.id
+					if id?
+						uri += '(' + id + ')'
+						method = 'PUT'
+						body.id = id
 
-						runURI(method, uri, body, tx)
+					runURI(method, uri, body, tx)
 
-				Promise.all([
-					updateModel('se', seModel)
-					updateModel('lf', lfModel)
-					updateModel('abstractsql', abstractSqlModel)
-					updateModel('sql', sqlModel)
-					updateModel('client', clientModel)
-				]).then ->
-					api[vocab] = new PlatformAPI('/' + vocab + '/')
+			Promise.all([
+				updateModel('se', seModel)
+				updateModel('lf', lfModel)
+				updateModel('abstractsql', abstractSqlModel)
+				updateModel('sql', sqlModel)
+				updateModel('client', clientModel)
+			]).then ->
+				api[vocab] = new PlatformAPI('/' + vocab + '/')
+		.nodeify(callback)
+
+	exports.executeModels = executeModels = (tx, models, callback) ->
+		Promise.map models, (model) ->
+			executeModel(tx, model)
 		.nodeify(callback)
 
 	exports.deleteModel = (vocabulary, callback) ->
@@ -381,13 +384,16 @@ define [
 		return (vocab, rule, callback) ->
 			Promise.try ->
 				seModel = seModels[vocab]
+
 				try
 					lfModel = SBVRParser.matchAll(seModel + '\nRule: ' + rule, 'Process')
 				catch e
 					console.error('Error parsing rule', rule, e, e.stack)
 					throw new Error(['Error parsing rule', rule, e])
+
 				ruleLF = lfModel[lfModel.length-1]
 				lfModel = lfModel[...-1]
+
 				try
 					slfModel = LF2AbstractSQL.LF2AbstractSQLPrep.match(lfModel, 'Process')
 					slfModel.push(ruleLF)
@@ -511,12 +517,14 @@ define [
 		tree = req.tree
 		if tree.requests[0].query?
 			request = tree.requests[0]
+
 			try
 				{query, bindings} = AbstractSQLCompiler.compile(db.engine, request.query)
 			catch e
 				console.error('Failed to compile abstract sql: ', request.query, e, e.stack)
 				res.send(503)
 				return
+
 			getAndCheckBindValues(tree.vocabulary, bindings, request.values)
 			.then (values) ->
 				console.log(query, values)
@@ -556,12 +564,14 @@ define [
 		res.set('Cache-Control', 'no-cache')
 		tree = req.tree
 		request = tree.requests[0]
+
 		try
 			{query, bindings} = AbstractSQLCompiler.compile(db.engine, request.query)
 		catch e
 			console.error('Failed to compile abstract sql: ', request.query, e, e.stack)
 			res.send(503)
 			return
+
 		vocab = tree.vocabulary
 		getAndCheckBindValues(vocab, bindings, request.values)
 		.then (values) ->
@@ -603,6 +613,7 @@ define [
 		res.set('Cache-Control', 'no-cache')
 		tree = req.tree
 		request = tree.requests[0]
+
 		try
 			queries = AbstractSQLCompiler.compile(db.engine, request.query)
 		catch e
@@ -672,12 +683,14 @@ define [
 		res.set('Cache-Control', 'no-cache')
 		tree = req.tree
 		request = tree.requests[0]
+
 		try
 			{query, bindings} = AbstractSQLCompiler.compile(db.engine, request.query)
 		catch e
 			console.error('Failed to compile abstract sql: ', request.query, e, e.stack)
 			res.send(503)
 			return
+
 		vocab = tree.vocabulary
 		getAndCheckBindValues(vocab, bindings, request.values)
 		.then (values) ->
@@ -708,12 +721,18 @@ define [
 
 	exports.executeStandardModels = executeStandardModels = (tx, callback) ->
 		# The dev model has to be executed first.
-		executeModel(tx, 'dev', devModel)
+		executeModel(tx,
+			apiRoot: 'dev'
+			modelText: devModel
+		)
 		.then ->
-			executeModels(tx, {
-				'transaction': transactionModel
-				'Auth': userModel
-			})
+			executeModels(tx, [
+				apiRoot: 'transaction'
+				modelText: transactionModel
+			,
+				apiRoot: 'Auth'
+				modelText: userModel
+			])
 		.then ->
 			tx.executeSql('CREATE UNIQUE INDEX "uniq_model_model_type_vocab" ON "model" ("vocabulary", "model type");')
 			.catch ->
