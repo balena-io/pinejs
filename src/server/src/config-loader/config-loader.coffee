@@ -5,9 +5,9 @@ define [
 	'bluebird'
 	'cs!sbvr-api/sbvr-utils'
 ], (exports, has, _, Promise, sbvrUtils) ->
-	authAPI = new sbvrUtils.PlatformAPI('/Auth/')
 	# Setup function
 	exports.setup = (app, requirejs) ->
+		authAPI = sbvrUtils.api.Auth
 		loadConfig = (data) ->
 			sbvrUtils.db.transaction().then (tx) ->
 				modelsPromise = Promise.map data.models, (model) ->

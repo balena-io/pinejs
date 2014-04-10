@@ -275,8 +275,7 @@ define [
 				_.map sqlModels[vocabulary]?.dropSchema, (dropStatement) ->
 					tx.executeSql(dropStatement)
 			Promise.all(dropStatements.concat([
-				PlatformAPI::delete(
-					apiPrefix: '/dev/'
+				api.dev.delete(
 					resource: 'model'
 					options:
 						filter:
@@ -739,7 +738,7 @@ define [
 				# Ignore errors creating the index, sadly not all databases we use support IF NOT EXISTS.
 			# TODO: Remove these hardcoded users.
 			if has 'DEV'
-				authAPI = new PlatformAPI('/Auth/')
+				authAPI = api.Auth
 				Promise.all([
 					authAPI.post(
 						resource: 'user'
