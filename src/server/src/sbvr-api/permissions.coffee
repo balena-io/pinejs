@@ -50,7 +50,8 @@ define [
 			throw new Error('Cannot parse required checks: ' + check)
 
 	exports.checkPassword = (username, password, callback) ->
-		sbvrUtils.api.Auth.get(
+		authApi = sbvrUtils.api.Auth
+		authApi.get(
 			resource: 'user'
 			options:
 				select: ['id', 'password']
@@ -86,13 +87,14 @@ define [
 		else
 			return Promise.rejected(new Error('User ID either has to be a numeric id or an api key string, got: ' + typeof userId))
 
-		userPerms = sbvrUtils.api.Auth.get(
+		authApi = sbvrUtils.api.Auth
+		userPerms = authApi.get(
 			resource: 'permission'
 			options:
 				select: 'name'
 				filter: userPermsFilter
 		)
-		userRole = sbvrUtils.api.Auth.get(
+		userRole = authApi.get(
 			resource: 'permission'
 			options:
 				select: 'name'
@@ -110,7 +112,7 @@ define [
 
 			return _.unique(allPermissions)
 		.catch (err) ->
-			console.error('Error loading permissions', err, err.stack)
+			authApi.logger.error('Error loading permissions', err, err.stack)
 			throw err
 		.nodeify(callback)
 
@@ -144,6 +146,9 @@ define [
 				callback = args[callbackArg]
 				args[callbackArg] = null
 			[req, res, actionList, resourceName, vocabulary, apiKey] = args
+
+			# sbvrUtils may be undefined at a very early point of running, however if it is then almost all of this code will be shortcircuited (since it will be a resource.all user)
+			authApi = sbvrUtils?.api.Auth
 
 			_checkPermissions = (permissions, userID) ->
 				if !userID?
@@ -190,14 +195,14 @@ define [
 					return _checkPermissions(req.user.permissions, userID)
 				return false
 			.catch (err) ->
-				console.error('Error checking user permissions', req.user, err, err.stack)
+				authApi.logger.error('Error checking user permissions', req.user, err, err.stack)
 				return false
 			.then (allowed) ->
 				if !apiKey? or allowed is true
 					return allowed
 				Promise.all([
 					getUserPermissions(apiKey)
-					sbvrUtils.api.Auth.get(
+					authApi.get(
 						resource: 'user'
 						options:
 							select: 'id'
@@ -211,7 +216,7 @@ define [
 					apiKeyUserID = user[0].id
 					return _checkPermissions(apiKeyPermissions, apiKeyUserID)
 				.catch (err) ->
-					console.error('Error checking api key permissions', apiKey, err, err.stack)
+					authApi.logger.error('Error checking api key permissions', apiKey, err, err.stack)
 				.then (apiKeyAllowed) ->
 					if allowed is false or apiKeyAllowed is true
 						return apiKeyAllowed
@@ -228,7 +233,7 @@ define [
 							userID
 					return _checkPermissions(permissions, userIDs)
 				.catch (err) ->
-					console.error('Error checking guest permissions', err, err.stack)
+					authApi.logger.error('Error checking guest permissions', err, err.stack)
 					return false
 				.then (guestAllowed) ->
 					if allowed is false or guestAllowed is true
@@ -248,7 +253,7 @@ define [
 					else
 						throw new Error('checkPermissionsMiddleware returned a conditional permission')
 			.catch (err) ->
-				console.error('Error checking permissions', err, err.stack)
+				sbvrUtils.api.Auth.logger.error('Error checking permissions', err, err.stack)
 				res.send(503)
 
 	return exports

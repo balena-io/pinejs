@@ -233,6 +233,12 @@ define [
 				uriParser.addClientModel(vocab, clientModel)
 
 				api[vocab] = new PlatformAPI('/' + vocab + '/')
+				api[vocab].logger = {}
+				for key, value of console
+					if _.isFunction(value)
+						api[vocab].logger[key] = _.bind(value, console, vocab + ':')
+					else
+						api[vocab].logger[key] = value
 
 				return {
 					vocab: vocab
@@ -400,11 +406,12 @@ define [
 		return (vocab, rule, callback) ->
 			Promise.try ->
 				seModel = seModels[vocab]
+				{logger} = api[vocab]
 
 				try
 					lfModel = SBVRParser.matchAll(seModel + '\nRule: ' + rule, 'Process')
 				catch e
-					console.error('Error parsing rule', rule, e, e.stack)
+					logger.error('Error parsing rule', rule, e, e.stack)
 					throw new Error(['Error parsing rule', rule, e])
 
 				ruleLF = lfModel[lfModel.length-1]
@@ -418,7 +425,7 @@ define [
 					translator.reset()
 					abstractSqlModel = translator.match(slfModel, 'Process')
 				catch e
-					console.error('Error compiling rule', rule, e, e.stack)
+					logger.error('Error compiling rule', rule, e, e.stack)
 					throw new Error(['Error compiling rule', rule, e])
 
 				formulationType = ruleLF[1][0]
@@ -533,17 +540,18 @@ define [
 		tree = req.tree
 		if tree.requests[0].query?
 			request = tree.requests[0]
+			{logger} = api[tree.vocabulary]
 
 			try
 				{query, bindings} = AbstractSQLCompiler.compile(db.engine, request.query)
 			catch e
-				console.error('Failed to compile abstract sql: ', request.query, e, e.stack)
+				logger.error('Failed to compile abstract sql: ', request.query, e, e.stack)
 				res.send(500)
 				return
 
 			getAndCheckBindValues(tree.vocabulary, bindings, request.values)
 			.then (values) ->
-				console.log(query, values)
+				logger.log(query, values)
 				if req.tx?
 					req.tx.executeSql(query, values)
 				else
@@ -562,7 +570,7 @@ define [
 					else
 						res.send(500)
 			.catch db.DatabaseError, (err) ->
-				console.error(err, err.stack)
+				logger.error(err, err.stack)
 				res.send(500)
 			.catch (err) ->
 				res.json(err, 404)
@@ -583,18 +591,19 @@ define [
 		res.set('Cache-Control', 'no-cache')
 		tree = req.tree
 		request = tree.requests[0]
+		{logger} = api[tree.vocabulary]
 
 		try
 			{query, bindings} = AbstractSQLCompiler.compile(db.engine, request.query)
 		catch e
-			console.error('Failed to compile abstract sql: ', request.query, e, e.stack)
+			logger.error('Failed to compile abstract sql: ', request.query, e, e.stack)
 			res.send(500)
 			return
 
 		vocab = tree.vocabulary
 		getAndCheckBindValues(vocab, bindings, request.values)
 		.then (values) ->
-			console.log(query, values)
+			logger.log(query, values)
 			idField = clientModels[vocab].resources[request.resourceName].idField
 			runQuery = (tx) ->
 				# TODO: Check for transaction locks.
@@ -603,7 +612,7 @@ define [
 					validateDB(tx, sqlModels[vocab])
 					.then ->
 						insertID = if request.query[0] == 'UpdateQuery' then values[0] else sqlResult.insertId
-						console.log('Insert ID: ', insertID)
+						logger.log('Insert ID: ', insertID)
 						res.json({
 								id: insertID
 							}, {
@@ -624,7 +633,7 @@ define [
 			constraintError = checkForConstraintError(err, request.resourceName)
 			if constraintError != false
 				throw constraintError
-			console.error(err, err.stack)
+			logger.error(err, err.stack)
 			res.send(500)
 		.catch (err) ->
 			res.json(err, 404)
@@ -633,11 +642,12 @@ define [
 		res.set('Cache-Control', 'no-cache')
 		tree = req.tree
 		request = tree.requests[0]
+		{logger} = api[tree.vocabulary]
 
 		try
 			queries = AbstractSQLCompiler.compile(db.engine, request.query)
 		catch e
-			console.error('Failed to compile abstract sql: ', request.query, e, e.stack)
+			logger.error('Failed to compile abstract sql: ', request.query, e, e.stack)
 			res.send(500)
 			return
 
@@ -659,7 +669,7 @@ define [
 					AND r."resource id" = ?
 				) AS result;''', [request.resourceName, id])
 			.catch (err) ->
-				console.error('Unable to check resource locks', err, err.stack)
+				logger.error('Unable to check resource locks', err, err.stack)
 				throw new Error('Unable to check resource locks')
 			.then (result) ->
 				if result.rows.item(0).result in [false, 0, '0']
@@ -696,7 +706,7 @@ define [
 			constraintError = checkForConstraintError(err, request.resourceName)
 			if constraintError != false
 				throw constraintError
-			console.error(err, err.stack)
+			logger.error(err, err.stack)
 			res.send(500)
 		.catch (err) ->
 			res.json(err, 404)
@@ -705,18 +715,19 @@ define [
 		res.set('Cache-Control', 'no-cache')
 		tree = req.tree
 		request = tree.requests[0]
+		{logger} = api[tree.vocabulary]
 
 		try
 			{query, bindings} = AbstractSQLCompiler.compile(db.engine, request.query)
 		catch e
-			console.error('Failed to compile abstract sql: ', request.query, e, e.stack)
+			logger.error('Failed to compile abstract sql: ', request.query, e, e.stack)
 			res.send(500)
 			return
 
 		vocab = tree.vocabulary
 		getAndCheckBindValues(vocab, bindings, request.values)
 		.then (values) ->
-			console.log(query, values)
+			logger.log(query, values)
 			runQuery = (tx) ->
 				tx.executeSql(query, values)
 				.then ->
@@ -737,7 +748,7 @@ define [
 			constraintError = checkForConstraintError(err, request.resourceName)
 			if constraintError != false
 				throw constraintError
-			console.error(err, err.stack)
+			logger.error(err, err.stack)
 			res.send(500)
 		.catch (err) ->
 			res.json(err, 404)
@@ -809,7 +820,7 @@ define [
 							)
 					])
 				.catch (err) ->
-					console.error('Unable to add dev users', err, err.stack)
+					authAPI.logger.error('Unable to add dev users', err, err.stack)
 			console.info('Sucessfully executed standard models.')
 		.catch (err) ->
 			console.error('Failed to execute standard models.', err, err.stack)
