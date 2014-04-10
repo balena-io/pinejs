@@ -236,7 +236,10 @@ define [
 				api[vocab].logger = {}
 				for key, value of console
 					if _.isFunction(value)
-						api[vocab].logger[key] = _.bind(value, console, vocab + ':')
+						if model.logging?[key] ? model.logging?.default ? true
+							api[vocab].logger[key] = _.bind(value, console, vocab + ':')
+						else
+							api[vocab].logger[key] = ->
 					else
 						api[vocab].logger[key] = value
 
