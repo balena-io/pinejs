@@ -228,9 +228,10 @@ define [
 
 			uriParser.addClientModel(vocab, clientModel)
 
+			api[vocab] = new PlatformAPI('/' + vocab + '/')
+
 			updateModel = (modelType, model) ->
-				PlatformAPI::get(
-					apiPrefix: '/dev/'
+				api.dev.get(
 					resource: 'model'
 					options:
 						select: 'id'
@@ -260,14 +261,24 @@ define [
 				updateModel('abstractsql', abstractSqlModel)
 				updateModel('sql', sqlModel)
 				updateModel('client', clientModel)
-			]).then ->
-				api[vocab] = new PlatformAPI('/' + vocab + '/')
+			])
+			.catch (err) ->
+				cleanupModel()
+				throw err
 		.nodeify(callback)
 
 	exports.executeModels = executeModels = (tx, models, callback) ->
 		Promise.map models, (model) ->
 			executeModel(tx, model)
 		.nodeify(callback)
+
+	cleanupModel = (vocab) ->
+		delete seModels[vocab]
+		delete sqlModels[vocab]
+		delete clientModels[vocab]
+		delete odataMetadata[vocab]
+		uriParser.deleteClientModel(vocab)
+		delete api[vocab]
 
 	exports.deleteModel = (vocabulary, callback) ->
 		db.transaction()
@@ -285,12 +296,7 @@ define [
 				)
 			])).then ->
 				tx.end()
-				delete seModels[vocabulary]
-				delete sqlModels[vocabulary]
-				delete clientModels[vocabulary]
-				delete odataMetadata[vocabulary]
-				uriParser.deleteClientModel(vocabulary)
-				delete api[vocab]
+				cleanupModel(vocabulary)
 			.catch (err) ->
 				tx.rollback()
 				throw err
