@@ -492,51 +492,56 @@ define [
 
 	exports.api = api = {}
 
-	exports.runURI = runURI = (method, uri, body = {}, tx, callback) ->
-		if callback? and !_.isFunction(callback)
-			message = 'Called runURI with a non-function callback?!'
-			console.error(message)
-			console.trace()
-			return Promise.rejected(message)
-		deferred = Promise.pending()
-		console.log('Running', method, uri)
-		req =
-			user:
-				permissions: [
-					'resource.all'
-				]
-			method: method
-			url: uri
-			body: body
-			tx: tx
-		res =
-			send: (statusCode) ->
-				if statusCode >= 400
-					deferred.reject(statusCode)
-				else
-					deferred.fulfill()
-			json: (data, statusCode) ->
-				if statusCode >= 400
-					deferred.reject(data)
-				else
-					deferred.fulfill(data)
-			set: ->
-			type: ->
+	exports.runURI = runURI = do ->
+		forwardRequest = uriParser.parseURITree (req, res, next) ->
+			api[req.tree.vocabulary].logger.log('Running', req.method, req.url)
+			switch req.method
+				when 'GET'
+					runGet(req, res, next)
+				when 'POST'
+					runPost(req, res, next)
+				when 'PUT', 'PATCH', 'MERGE'
+					runPut(req, res, next)
+				when 'DELETE'
+					runDelete(req, res, next)
 
-		next = (route) ->
-			console.warn('Next called on a runURI?!', route)
-			deferred.reject(500)
+		(method, uri, body = {}, tx, callback) ->
+			if callback? and !_.isFunction(callback)
+				message = 'Called runURI with a non-function callback?!'
+				console.error(message)
+				console.trace()
+				return Promise.rejected(message)
+			deferred = Promise.pending()
+			req =
+				user:
+					permissions: [
+						'resource.all'
+					]
+				method: method
+				url: uri
+				body: body
+				tx: tx
+			res =
+				send: (statusCode) ->
+					if statusCode >= 400
+						deferred.reject(statusCode)
+					else
+						deferred.fulfill()
+				json: (data, statusCode) ->
+					if statusCode >= 400
+						deferred.reject(data)
+					else
+						deferred.fulfill(data)
+				set: ->
+				type: ->
 
-		switch method
-			when 'GET'
-				runGet(req, res, next)
-			when 'POST'
-				runPost(req, res, next)
-			when 'PUT', 'PATCH', 'MERGE'
-				runPut(req, res, next)
-			when 'DELETE'
-				runDelete(req, res, next)
-		return deferred.promise.nodeify(callback)
+			next = (route) ->
+				console.warn('Next called on a runURI?!', method, uri, route)
+				deferred.reject(500)
+
+			forwardRequest(req, res, next)
+
+			return deferred.promise.nodeify(callback)
 
 	exports.runGet = runGet = uriParser.parseURITree (req, res, next) ->
 		res.set('Cache-Control', 'no-cache')
