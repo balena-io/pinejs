@@ -79,20 +79,16 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Pro
 				return deferred.promise.finally(pendingExecutes.decrement).nodeify(callback)
 
 			@rollback = (callback) ->
-				deferred = Promise.pending()
-
-				rollback(deferred)
+				promise = rollback()
 				closeTransaction('Transaction has been rolled back.')
 
-				return deferred.promise.nodeify(callback)
+				return promise.nodeify(callback)
 
 			@end = (callback) ->
-				deferred = Promise.pending()
-
-				end(deferred)
+				promise = end()
 				closeTransaction('Transaction has been ended.')
 
-				return deferred.promise.nodeify(callback)
+				return promise.nodeify(callback)
 
 			closeTransaction = (message) =>
 				pendingExecutes.cancel()
@@ -101,7 +97,7 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Pro
 				# logging errors if the rejection is not handled (but only if it is not handled)
 				@executeSql = (sql, bindings, callback) ->
 					return Promise.rejected(rejectionValue).nodeify(callback)
-				@rollback = @end = (sql, bindings, callback) ->
+				@rollback = @end = (callback) ->
 					return Promise.rejected(rejectionValue).nodeify(callback)
 
 	if has 'ENV_NODEJS'
@@ -148,13 +144,15 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Pro
 							else
 								deferred.fulfill(createResult(res))
 
-					rollback = (deferred) =>
-						deferred.fulfill(@executeSql('ROLLBACK;'))
+					rollback = =>
+						promise = @executeSql('ROLLBACK;')
 						_close()
+						return promise
 
-					end = (deferred) =>
-						deferred.fulfill(@executeSql('COMMIT;'))
+					end = =>
+						promise = @executeSql('COMMIT;')
 						_close()
+						return promise
 
 					super(_stackTrace, executeSql, rollback, end)
 
@@ -218,13 +216,15 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Pro
 							else
 								deferred.fulfill(createResult(res))
 
-					rollback = (deferred) =>
-						deferred.fulfill(@executeSql('ROLLBACK;'))
+					rollback = =>
+						promise = @executeSql('ROLLBACK;')
 						_close()
+						return promise
 
-					end = (deferred) =>
-						deferred.fulfill(@executeSql('COMMIT;'))
+					end = =>
+						promise = @executeSql('COMMIT;')
 						_close()
+						return promise
 
 					super(_stackTrace, executeSql, rollback, end)
 
@@ -309,7 +309,8 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Pro
 						sql = bindDefaultValues(sql, bindings)
 						queue.push([sql, bindings, successCallback, errorCallback])
 
-					rollback = (deferred) ->
+					rollback = ->
+						deferred = Promise.pending()
 						successCallback = ->
 							deferred.fulfill()
 							throw 'Rollback'
@@ -318,10 +319,11 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Pro
 							return true
 						queue = [['RUN A FAILING STATEMENT TO ROLLBACK', [], successCallback, errorCallback]]
 						running = false
+						return deferred.promise
 
-					end = (deferred) ->
-						deferred.fulfill()
+					end = ->
 						running = false
+						return Promise.fulfilled()
 
 					super(_stackTrace, executeSql, rollback, end)
 
