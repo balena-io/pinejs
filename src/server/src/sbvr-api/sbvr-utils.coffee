@@ -664,20 +664,21 @@ define [
 				throw err
 			.then ->
 				validateDB(tx, sqlModels[vocab])
-			.then ->
-				res.send(200)
-			.catch (err) ->
-				res.json(err, 404)
-		if req.tx?
-			runTransaction(req.tx)
-		else
-			db.transaction().then (tx) ->
-				runTransaction(tx)
-				.then ->
-					tx.end()
-				.catch (err) ->
-					tx.rollback()
-					throw err
+		trans =
+			if req.tx?
+				runTransaction(req.tx)
+			else
+				db.transaction().then (tx) ->
+					runTransaction(tx)
+					.then ->
+						tx.end()
+					.catch (err) ->
+						tx.rollback()
+						throw err
+		trans.then ->
+			res.send(200)
+		.catch (err) ->
+			res.json(err, 404)
 
 	exports.runDelete = runDelete = uriParser.parseURITree (req, res, next) ->
 		res.set('Cache-Control', 'no-cache')
