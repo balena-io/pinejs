@@ -498,7 +498,7 @@ define [
 
 		next = (route) ->
 			console.warn('Next called on a runURI?!', route)
-			deferred.reject(501)
+			deferred.reject(500)
 
 		switch method
 			when 'GET'
@@ -521,7 +521,7 @@ define [
 				{query, bindings} = AbstractSQLCompiler.compile(db.engine, request.query)
 			catch e
 				console.error('Failed to compile abstract sql: ', request.query, e, e.stack)
-				res.send(503)
+				res.send(500)
 				return
 
 			getAndCheckBindValues(tree.vocabulary, bindings, request.values)
@@ -543,7 +543,7 @@ define [
 							res.json(data)
 						)
 					else
-						res.send(503)
+						res.send(500)
 			.catch (err) ->
 				res.json(err, 404)
 		else
@@ -568,7 +568,7 @@ define [
 			{query, bindings} = AbstractSQLCompiler.compile(db.engine, request.query)
 		catch e
 			console.error('Failed to compile abstract sql: ', request.query, e, e.stack)
-			res.send(503)
+			res.send(500)
 			return
 
 		vocab = tree.vocabulary
@@ -617,7 +617,7 @@ define [
 			queries = AbstractSQLCompiler.compile(db.engine, request.query)
 		catch e
 			console.error('Failed to compile abstract sql: ', request.query, e, e.stack)
-			res.send(503)
+			res.send(500)
 			return
 
 		if _.isArray(queries)
@@ -687,7 +687,7 @@ define [
 			{query, bindings} = AbstractSQLCompiler.compile(db.engine, request.query)
 		catch e
 			console.error('Failed to compile abstract sql: ', request.query, e, e.stack)
-			res.send(503)
+			res.send(500)
 			return
 
 		vocab = tree.vocabulary
