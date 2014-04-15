@@ -545,6 +545,9 @@ define [
 						)
 					else
 						res.send(500)
+			.catch db.DatabaseError, (err) ->
+				console.error(err)
+				res.send(500)
 			.catch (err) ->
 				res.json(err, 404)
 		else
@@ -580,11 +583,6 @@ define [
 			runQuery = (tx) ->
 				# TODO: Check for transaction locks.
 				tx.executeSql(query, values, null, idField)
-				.catch (err) ->
-					constraintError = checkForConstraintError(err, request.resourceName)
-					if constraintError != false
-						throw constraintError
-					throw err
 				.then (sqlResult) ->
 					validateDB(tx, sqlModels[vocab])
 					.then ->
@@ -606,6 +604,12 @@ define [
 					.catch (err) ->
 						tx.rollback()
 						throw err
+		.catch db.DatabaseError, (err) ->
+			constraintError = checkForConstraintError(err, request.resourceName)
+			if constraintError != false
+				throw constraintError
+			console.error(err)
+			res.send(500)
 		.catch (err) ->
 			res.json(err, 404)
 
@@ -657,11 +661,6 @@ define [
 							runQuery(insertQuery)
 				else
 					runQuery(insertQuery)
-			.catch (err) ->
-				constraintError = checkForConstraintError(err, request.resourceName)
-				if constraintError != false
-					throw constraintError
-				throw err
 			.then ->
 				validateDB(tx, sqlModels[vocab])
 		trans =
@@ -677,6 +676,12 @@ define [
 						throw err
 		trans.then ->
 			res.send(200)
+		.catch db.DatabaseError, (err) ->
+			constraintError = checkForConstraintError(err, request.resourceName)
+			if constraintError != false
+				throw constraintError
+			console.error(err)
+			res.send(500)
 		.catch (err) ->
 			res.json(err, 404)
 
@@ -698,11 +703,6 @@ define [
 			console.log(query, values)
 			runQuery = (tx) ->
 				tx.executeSql(query, values)
-				.catch (err) ->
-					constraintError = checkForConstraintError(err, request.resourceName)
-					if constraintError != false
-						throw constraintError
-					throw err
 				.then ->
 					validateDB(tx, sqlModels[vocab])
 			if req.tx?
@@ -717,6 +717,12 @@ define [
 						throw err
 		.then ->
 			res.send(200)
+		.catch db.DatabaseError, (err) ->
+			constraintError = checkForConstraintError(err, request.resourceName)
+			if constraintError != false
+				throw constraintError
+			console.error(err)
+			res.send(500)
 		.catch (err) ->
 			res.json(err, 404)
 
