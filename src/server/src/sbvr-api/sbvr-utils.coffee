@@ -546,7 +546,7 @@ define [
 					else
 						res.send(500)
 			.catch db.DatabaseError, (err) ->
-				console.error(err)
+				console.error(err, err.stack)
 				res.send(500)
 			.catch (err) ->
 				res.json(err, 404)
@@ -608,7 +608,7 @@ define [
 			constraintError = checkForConstraintError(err, request.resourceName)
 			if constraintError != false
 				throw constraintError
-			console.error(err)
+			console.error(err, err.stack)
 			res.send(500)
 		.catch (err) ->
 			res.json(err, 404)
@@ -680,7 +680,7 @@ define [
 			constraintError = checkForConstraintError(err, request.resourceName)
 			if constraintError != false
 				throw constraintError
-			console.error(err)
+			console.error(err, err.stack)
 			res.send(500)
 		.catch (err) ->
 			res.json(err, 404)
@@ -721,7 +721,7 @@ define [
 			constraintError = checkForConstraintError(err, request.resourceName)
 			if constraintError != false
 				throw constraintError
-			console.error(err)
+			console.error(err, err.stack)
 			res.send(500)
 		.catch (err) ->
 			res.json(err, 404)
