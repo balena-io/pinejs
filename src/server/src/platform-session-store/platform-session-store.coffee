@@ -89,6 +89,7 @@ define [
 			modelText: sessionModel
 			apiRoot: 'session'
 		]
-	PlatformSessionStore.setup = (app, requirejs, sbvrUtils) ->
+	PlatformSessionStore.setup = (app, requirejs, sbvrUtils, db, callback) ->
 		sessionAPI = sbvrUtils.api.session
+		callback()
 	return PlatformSessionStore
