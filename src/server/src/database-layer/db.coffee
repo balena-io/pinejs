@@ -1,5 +1,12 @@
-define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Promise, _, SQLBinds) ->
+define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds', 'cs!custom-error/custom-error'], (has, Promise, _, SQLBinds, CustomError) ->
 	exports = {}
+	class DatabaseError extends CustomError
+		constructor: (message) ->
+			if message.constructor.name is 'SQLError'
+				@code = message.code
+				message = message.message
+			super(message)
+
 	DEFAULT_VALUE = {}
 	bindDefaultValues = (sql, bindings) ->
 		bindNo = 0
@@ -69,7 +76,11 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Pro
 				sql = bindDefaultValues(sql, bindings)
 				executeSql(sql, bindings, deferred, args...)
 
-				return deferred.promise.finally(pendingExecutes.decrement).nodeify(callback)
+				return deferred.promise.finally(pendingExecutes.decrement)
+					.catch (err) ->
+						# Wrap the error so we can catch it easier later
+						throw new DatabaseError(err)
+					.nodeify(callback)
 
 			@rollback = (callback) ->
 				promise = rollback()
@@ -160,6 +171,7 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Pro
 					@executeSql('DROP TABLE ' + (if ifExists is true then 'IF EXISTS ' else '') + '"' + tableName + '" CASCADE;', [], callback)
 			return {
 				DEFAULT_VALUE
+				DatabaseError
 				engine: 'postgres'
 				executeSql: atomicExecuteSql
 				transaction: (callback) ->
@@ -232,6 +244,7 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Pro
 					@executeSql('DROP TABLE ' + (if ifExists is true then 'IF EXISTS ' else '') + '"' + tableName + '";', [], callback)
 			return {
 				DEFAULT_VALUE
+				DatabaseError
 				engine: 'mysql'
 				executeSql: atomicExecuteSql
 				transaction: (callback) ->
@@ -333,6 +346,7 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Pro
 
 			return {
 				DEFAULT_VALUE
+				DatabaseError
 				engine: 'websql'
 				executeSql: atomicExecuteSql
 				transaction: (callback) ->
