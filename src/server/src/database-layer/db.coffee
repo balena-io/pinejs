@@ -25,18 +25,11 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds'], (has, Pro
 					tx.end()
 		.nodeify(callback)
 
-	getError = ->
-		try
-			throw new Error()
-		catch e
-			return e
 	getStackTrace = ->
-		e = getError()
+		e = new Error()
 		stack = e.stack
-		# Remove the `getError` and `getStackTrace` lines from the stack trace - they aren't useful for reporting the location.
-		for i in [0...2]
-			stack = stack.substring(stack.indexOf('\n') + 1)
-		return stack
+		# Remove the `getStackTrace` lines from the stack trace - it isn't useful for reporting the location.
+		return stack.substring(stack.indexOf('\n') + 1)
 
 	class Tx
 		timeoutMS = 1000
