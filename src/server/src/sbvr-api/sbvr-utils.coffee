@@ -35,7 +35,8 @@ define [
 
 	checkForConstraintError = (err, tableName) ->
 		if db.engine not in ['postgres', 'mysql']
-			if err == 'could not execute statement (19 constraint failed)'
+			# Code 6 is a constraint error
+			if err.code == 6
 				# SQLite
 				return ['Constraint failed.']
 			return false
