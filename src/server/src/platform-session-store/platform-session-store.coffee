@@ -88,6 +88,10 @@ define [
 			modelName: 'session',
 			modelText: sessionModel
 			apiRoot: 'session'
+			logging:
+				default: false
+				error: true
+			customServerCode: 'cs!platform-session-store/platform-session-store'
 		]
 	PlatformSessionStore.setup = (app, requirejs, sbvrUtils, db, callback) ->
 		sessionAPI = sbvrUtils.api.session

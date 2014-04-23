@@ -192,50 +192,74 @@ define [
 					throw rule.structuredEnglish
 
 	exports.executeModel = executeModel = (tx, model, callback) ->
-		seModel = model.modelText
-		vocab = model.apiRoot
+		executeModels(tx, [model], callback)
 
-		try
-			lfModel = SBVRParser.matchAll(seModel, 'Process')
-		catch e
-			console.error('Error parsing model', vocab, e, e.stack)
-			throw new Error(['Error parsing model', e])
+	exports.executeModels = executeModels = (tx, models, callback) ->
+		Promise.map models, (model) ->
+			seModel = model.modelText
+			vocab = model.apiRoot
 
-		try
-			abstractSqlModel = LF2AbstractSQLTranslator(lfModel, 'Process')
-			sqlModel = AbstractSQL2SQL.generate(abstractSqlModel)
-			clientModel = AbstractSQL2CLF(sqlModel)
-			metadata = ODataMetadataGenerator(vocab, sqlModel)
-		catch e
-			console.error('Error compiling model', vocab, e, e.stack)
-			throw new Error(['Error compiling model', e])
+			try
+				lfModel = SBVRParser.matchAll(seModel, 'Process')
+			catch e
+				console.error('Error parsing model', vocab, e, e.stack)
+				throw new Error(['Error parsing model', e])
 
-		# Create tables related to terms and fact types
-		Promise.map sqlModel.createSchema, (createStatement) ->
-			tx.executeSql(createStatement)
-			.catch ->
-				# Warning: We ignore errors in the create table statements as SQLite doesn't support CREATE IF NOT EXISTS
-		.then ->
-			# Validate the [empty] model according to the rules.
-			# This may eventually lead to entering obligatory data.
-			# For the moment it blocks such models from execution.
-			validateDB(tx, sqlModel)
-		.then ->
-			seModels[vocab] = seModel
-			sqlModels[vocab] = sqlModel
-			clientModels[vocab] = clientModel
-			odataMetadata[vocab] = metadata
+			try
+				abstractSqlModel = LF2AbstractSQLTranslator(lfModel, 'Process')
+				sqlModel = AbstractSQL2SQL.generate(abstractSqlModel)
+				clientModel = AbstractSQL2CLF(sqlModel)
+				metadata = ODataMetadataGenerator(vocab, sqlModel)
+			catch e
+				console.error('Error compiling model', vocab, e, e.stack)
+				throw new Error(['Error compiling model', e])
 
-			uriParser.addClientModel(vocab, clientModel)
+			# Create tables related to terms and fact types
+			Promise.map sqlModel.createSchema, (createStatement) ->
+				tx.executeSql(createStatement)
+				.catch ->
+					# Warning: We ignore errors in the create table statements as SQLite doesn't support CREATE IF NOT EXISTS
+			.then ->
+				# Validate the [empty] model according to the rules.
+				# This may eventually lead to entering obligatory data.
+				# For the moment it blocks such models from execution.
+				validateDB(tx, sqlModel)
+			.then ->
+				seModels[vocab] = seModel
+				sqlModels[vocab] = sqlModel
+				clientModels[vocab] = clientModel
+				odataMetadata[vocab] = metadata
 
-			updateModel = (modelType, model) ->
-				PlatformAPI::get(
-					apiPrefix: '/dev/'
+				uriParser.addClientModel(vocab, clientModel)
+
+				api[vocab] = new PlatformAPI('/' + vocab + '/')
+				api[vocab].logger = {}
+				for key, value of console
+					if _.isFunction(value)
+						if model.logging?[key] ? model.logging?.default ? true
+							api[vocab].logger[key] = _.bind(value, console, vocab + ':')
+						else
+							api[vocab].logger[key] = ->
+					else
+						api[vocab].logger[key] = value
+
+				return {
+					vocab: vocab
+					se: seModel
+					lf: lfModel
+					abstractsql: abstractSqlModel
+					sql: sqlModel
+					client: clientModel
+				}
+		# Only update the dev models once all models have finished executing.
+		.map (model) ->
+			updateModel = (modelType, modelText) ->
+				api.dev.get(
 					resource: 'model'
 					options:
 						select: 'id'
 						filter:
-							vocabulary: vocab
+							vocabulary: model.vocab
 							model_type: modelType
 					tx: tx
 				)
@@ -243,8 +267,8 @@ define [
 					method = 'POST'
 					uri = '/dev/model'
 					body =
-						vocabulary: vocab
-						model_value: model
+						vocabulary: model.vocab
+						model_value: modelText
 						model_type: modelType
 					id = result[0]?.id
 					if id?
@@ -255,19 +279,25 @@ define [
 					runURI(method, uri, body, tx)
 
 			Promise.all([
-				updateModel('se', seModel)
-				updateModel('lf', lfModel)
-				updateModel('abstractsql', abstractSqlModel)
-				updateModel('sql', sqlModel)
-				updateModel('client', clientModel)
-			]).then ->
-				api[vocab] = new PlatformAPI('/' + vocab + '/')
+				updateModel('se', model.se)
+				updateModel('lf', model.lf)
+				updateModel('abstractsql', model.abstractsql)
+				updateModel('sql', model.sql)
+				updateModel('client', model.client)
+			])
+		.catch (err) ->
+			Promise.map models, (model) ->
+				cleanupModel(model.apiRoot)
+			throw err
 		.nodeify(callback)
 
-	exports.executeModels = executeModels = (tx, models, callback) ->
-		Promise.map models, (model) ->
-			executeModel(tx, model)
-		.nodeify(callback)
+	cleanupModel = (vocab) ->
+		delete seModels[vocab]
+		delete sqlModels[vocab]
+		delete clientModels[vocab]
+		delete odataMetadata[vocab]
+		uriParser.deleteClientModel(vocab)
+		delete api[vocab]
 
 	exports.deleteModel = (vocabulary, callback) ->
 		db.transaction()
@@ -285,12 +315,7 @@ define [
 				)
 			])).then ->
 				tx.end()
-				delete seModels[vocabulary]
-				delete sqlModels[vocabulary]
-				delete clientModels[vocabulary]
-				delete odataMetadata[vocabulary]
-				uriParser.deleteClientModel(vocabulary)
-				delete api[vocab]
+				cleanupModel(vocabulary)
 			.catch (err) ->
 				tx.rollback()
 				throw err
@@ -384,11 +409,12 @@ define [
 		return (vocab, rule, callback) ->
 			Promise.try ->
 				seModel = seModels[vocab]
+				{logger} = api[vocab]
 
 				try
 					lfModel = SBVRParser.matchAll(seModel + '\nRule: ' + rule, 'Process')
 				catch e
-					console.error('Error parsing rule', rule, e, e.stack)
+					logger.error('Error parsing rule', rule, e, e.stack)
 					throw new Error(['Error parsing rule', rule, e])
 
 				ruleLF = lfModel[lfModel.length-1]
@@ -402,7 +428,7 @@ define [
 					translator.reset()
 					abstractSqlModel = translator.match(slfModel, 'Process')
 				catch e
-					console.error('Error compiling rule', rule, e, e.stack)
+					logger.error('Error compiling rule', rule, e, e.stack)
 					throw new Error(['Error compiling rule', rule, e])
 
 				formulationType = ruleLF[1][0]
@@ -466,68 +492,74 @@ define [
 
 	exports.api = api = {}
 
-	exports.runURI = runURI = (method, uri, body = {}, tx, callback) ->
-		if callback? and !_.isFunction(callback)
-			message = 'Called runURI with a non-function callback?!'
-			console.error(message)
-			console.trace()
-			return Promise.rejected(message)
-		deferred = Promise.pending()
-		console.log('Running', method, uri)
-		req =
-			user:
-				permissions: [
-					'resource.all'
-				]
-			method: method
-			url: uri
-			body: body
-			tx: tx
-		res =
-			send: (statusCode) ->
-				if statusCode >= 400
-					deferred.reject(statusCode)
-				else
-					deferred.fulfill()
-			json: (data, statusCode) ->
-				if statusCode >= 400
-					deferred.reject(data)
-				else
-					deferred.fulfill(data)
-			set: ->
-			type: ->
+	exports.runURI = runURI = do ->
+		forwardRequest = uriParser.parseURITree (req, res, next) ->
+			api[req.tree.vocabulary].logger.log('Running', req.method, req.url)
+			switch req.method
+				when 'GET'
+					runGet(req, res, next)
+				when 'POST'
+					runPost(req, res, next)
+				when 'PUT', 'PATCH', 'MERGE'
+					runPut(req, res, next)
+				when 'DELETE'
+					runDelete(req, res, next)
 
-		next = (route) ->
-			console.warn('Next called on a runURI?!', route)
-			deferred.reject(500)
+		(method, uri, body = {}, tx, callback) ->
+			if callback? and !_.isFunction(callback)
+				message = 'Called runURI with a non-function callback?!'
+				console.error(message)
+				console.trace()
+				return Promise.rejected(message)
+			deferred = Promise.pending()
+			req =
+				user:
+					permissions: [
+						'resource.all'
+					]
+				method: method
+				url: uri
+				body: body
+				tx: tx
+			res =
+				send: (statusCode) ->
+					if statusCode >= 400
+						deferred.reject(statusCode)
+					else
+						deferred.fulfill()
+				json: (data, statusCode) ->
+					if statusCode >= 400
+						deferred.reject(data)
+					else
+						deferred.fulfill(data)
+				set: ->
+				type: ->
 
-		switch method
-			when 'GET'
-				runGet(req, res, next)
-			when 'POST'
-				runPost(req, res, next)
-			when 'PUT', 'PATCH', 'MERGE'
-				runPut(req, res, next)
-			when 'DELETE'
-				runDelete(req, res, next)
-		return deferred.promise.nodeify(callback)
+			next = (route) ->
+				console.warn('Next called on a runURI?!', method, uri, route)
+				deferred.reject(500)
+
+			forwardRequest(req, res, next)
+
+			return deferred.promise.nodeify(callback)
 
 	exports.runGet = runGet = uriParser.parseURITree (req, res, next) ->
 		res.set('Cache-Control', 'no-cache')
 		tree = req.tree
 		if tree.requests[0].query?
 			request = tree.requests[0]
+			{logger} = api[tree.vocabulary]
 
 			try
 				{query, bindings} = AbstractSQLCompiler.compile(db.engine, request.query)
 			catch e
-				console.error('Failed to compile abstract sql: ', request.query, e, e.stack)
+				logger.error('Failed to compile abstract sql: ', request.query, e, e.stack)
 				res.send(500)
 				return
 
 			getAndCheckBindValues(tree.vocabulary, bindings, request.values)
 			.then (values) ->
-				console.log(query, values)
+				logger.log(query, values)
 				if req.tx?
 					req.tx.executeSql(query, values)
 				else
@@ -546,7 +578,7 @@ define [
 					else
 						res.send(500)
 			.catch db.DatabaseError, (err) ->
-				console.error(err, err.stack)
+				logger.error(err, err.stack)
 				res.send(500)
 			.catch (err) ->
 				res.json(err, 404)
@@ -567,18 +599,19 @@ define [
 		res.set('Cache-Control', 'no-cache')
 		tree = req.tree
 		request = tree.requests[0]
+		{logger} = api[tree.vocabulary]
 
 		try
 			{query, bindings} = AbstractSQLCompiler.compile(db.engine, request.query)
 		catch e
-			console.error('Failed to compile abstract sql: ', request.query, e, e.stack)
+			logger.error('Failed to compile abstract sql: ', request.query, e, e.stack)
 			res.send(500)
 			return
 
 		vocab = tree.vocabulary
 		getAndCheckBindValues(vocab, bindings, request.values)
 		.then (values) ->
-			console.log(query, values)
+			logger.log(query, values)
 			idField = clientModels[vocab].resources[request.resourceName].idField
 			runQuery = (tx) ->
 				# TODO: Check for transaction locks.
@@ -587,7 +620,7 @@ define [
 					validateDB(tx, sqlModels[vocab])
 					.then ->
 						insertID = if request.query[0] == 'UpdateQuery' then values[0] else sqlResult.insertId
-						console.log('Insert ID: ', insertID)
+						logger.log('Insert ID: ', insertID)
 						res.json({
 								id: insertID
 							}, {
@@ -608,7 +641,7 @@ define [
 			constraintError = checkForConstraintError(err, request.resourceName)
 			if constraintError != false
 				throw constraintError
-			console.error(err, err.stack)
+			logger.error(err, err.stack)
 			res.send(500)
 		.catch (err) ->
 			res.json(err, 404)
@@ -617,11 +650,12 @@ define [
 		res.set('Cache-Control', 'no-cache')
 		tree = req.tree
 		request = tree.requests[0]
+		{logger} = api[tree.vocabulary]
 
 		try
 			queries = AbstractSQLCompiler.compile(db.engine, request.query)
 		catch e
-			console.error('Failed to compile abstract sql: ', request.query, e, e.stack)
+			logger.error('Failed to compile abstract sql: ', request.query, e, e.stack)
 			res.send(500)
 			return
 
@@ -643,7 +677,7 @@ define [
 					AND r."resource id" = ?
 				) AS result;''', [request.resourceName, id])
 			.catch (err) ->
-				console.error('Unable to check resource locks', err, err.stack)
+				logger.error('Unable to check resource locks', err, err.stack)
 				throw new Error('Unable to check resource locks')
 			.then (result) ->
 				if result.rows.item(0).result in [false, 0, '0']
@@ -680,7 +714,7 @@ define [
 			constraintError = checkForConstraintError(err, request.resourceName)
 			if constraintError != false
 				throw constraintError
-			console.error(err, err.stack)
+			logger.error(err, err.stack)
 			res.send(500)
 		.catch (err) ->
 			res.json(err, 404)
@@ -689,18 +723,19 @@ define [
 		res.set('Cache-Control', 'no-cache')
 		tree = req.tree
 		request = tree.requests[0]
+		{logger} = api[tree.vocabulary]
 
 		try
 			{query, bindings} = AbstractSQLCompiler.compile(db.engine, request.query)
 		catch e
-			console.error('Failed to compile abstract sql: ', request.query, e, e.stack)
+			logger.error('Failed to compile abstract sql: ', request.query, e, e.stack)
 			res.send(500)
 			return
 
 		vocab = tree.vocabulary
 		getAndCheckBindValues(vocab, bindings, request.values)
 		.then (values) ->
-			console.log(query, values)
+			logger.log(query, values)
 			runQuery = (tx) ->
 				tx.executeSql(query, values)
 				.then ->
@@ -721,7 +756,7 @@ define [
 			constraintError = checkForConstraintError(err, request.resourceName)
 			if constraintError != false
 				throw constraintError
-			console.error(err, err.stack)
+			logger.error(err, err.stack)
 			res.send(500)
 		.catch (err) ->
 			res.json(err, 404)
@@ -793,7 +828,7 @@ define [
 							)
 					])
 				.catch (err) ->
-					console.error('Unable to add dev users', err, err.stack)
+					authAPI.logger.error('Unable to add dev users', err, err.stack)
 			console.info('Sucessfully executed standard models.')
 		.catch (err) ->
 			console.error('Failed to execute standard models.', err, err.stack)

@@ -33,7 +33,12 @@ This file should be located alongside your `platform.js` file, and follow the sp
 		"modelName": "Example",
 		"modelFile": "example.sbvr",
 		"apiRoot": "example",
-		"customServerCode": "example.coffee"
+		"customServerCode": "example.coffee",
+		"logging": {
+			"log": false,
+			"error": true,
+			"default": false
+		}
 	}],
 	"users": [{
 		"username": "guest",
@@ -57,6 +62,9 @@ This is a string that defines the root path to access this model's API, eg. /exa
 
 ##### Optional: customServerCode
 This is a string pointing to a file (`.coffee` or `.js`), relative to `platform.js`, that will be run by the server on startup, for further documentation see [Custom Server Code documentation](./CustomServerCode.md)
+
+##### Optional: logging
+This is an object of true/false values for whether calls to console[key] should be output, with the special "default" value being used for any unspecified keys (defaults to true).
 
 ### Database
 You can specify your database url in an environment variable called DATABASE_URL, refer to your OS documentation on how to do this (either on a global level for all programs, or just set it temporarily whilst launching your project).  
