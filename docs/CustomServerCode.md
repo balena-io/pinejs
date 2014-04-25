@@ -16,7 +16,7 @@ An entry point to the API internally to the server.
 #### runURI(method, uri, body = {}, tx[, callback])
 This allows making an API request internally, should match a similar AJAX request to the API, returns a promise.
 
-#### executeModel(tx, vocab, seModel[, callback])
+#### executeModel(tx, model[, callback])
 This is an alias for executeModels for the case of a single model.
 
 #### executeModels(tx, models[, callback])
@@ -24,7 +24,7 @@ Executes the given models and returns a promise.
 ##### tx
 This should be an open transaction created with db.transaction
 ##### models
-This is an object where the keys are the vocabulary names and the values are the models.
+This is an array which contains model objects, matching the model object of the config.json file.
 ##### callback
 This is an (err, result) callback.
 
