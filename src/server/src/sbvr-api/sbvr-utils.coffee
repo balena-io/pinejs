@@ -46,7 +46,10 @@ define [
 			when 'mysql'
 				matches = /ER_DUP_ENTRY: Duplicate entry '.*?[^\\]' for key '(.*?[^\\])'/.exec(err)
 			when 'postgres'
-				matches = new RegExp('error: duplicate key value violates unique constraint "' + tableName + '_(.*?)_key"').exec(err)
+				if err.code is '23505'
+					matches = new RegExp('"' + tableName + '_(.*?)_key"').exec(err)
+					# Make sure matches exists, since we know it's the right error type.
+					matches ?= ' ?'
 		if matches?
 			return ['"' + matches[1] + '" must be unique.']
 
@@ -55,7 +58,10 @@ define [
 			when 'mysql'
 				matches = /ER_ROW_IS_REFERENCED_: Cannot delete or update a parent row: a foreign key constraint fails \(".*?"\.(".*?").*/.exec(err)
 			when 'postgres'
-				matches = new RegExp('error: update or delete on table "' + tableName + '" violates foreign key constraint ".*?" on table "(.*?)"').exec(err)
+				if err.code is '23503'
+					matches = new RegExp('"' + tableName + '" violates foreign key constraint ".*?" on table "(.*?)"').exec(err)
+					# Make sure matches exists, since we know it's the right error type.
+					matches ?= ' ?'
 		if matches?
 			return ['Data is referenced by ' + matches[1].replace(/\ /g, '_').replace(/-/g, '__') + '.']
 		return false
