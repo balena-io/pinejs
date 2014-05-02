@@ -39,7 +39,7 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds', 'cs!custom
 		return stack.substring(stack.indexOf('\n') + 1)
 
 	class Tx
-		timeoutMS = 1000
+		timeoutMS = process.env.TRANSACTION_TIMEOUT_MS ? 5000
 		constructor: (stackTrace, executeSql, rollback, end) ->
 			automaticClose = =>
 				console.error('Transaction still open after ' + timeoutMS + 'ms without an execute call.', stackTrace)
