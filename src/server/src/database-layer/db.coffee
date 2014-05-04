@@ -42,6 +42,8 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds', 'cs!custom
 		timeoutMS = 5000
 		if has('ENV_NODEJS') and process.env.TRANSACTION_TIMEOUT_MS?
 			timeoutMS = process.env.TRANSACTION_TIMEOUT_MS
+			if !_.isNumber(timeoutMS) or timeoutMS <= 0
+				throw new Error('If TRANSACTION_TIMEOUT_MS is set it must be a positive number.')
 		constructor: (stackTrace, executeSql, rollback, end) ->
 			automaticClose = =>
 				console.error('Transaction still open after ' + timeoutMS + 'ms without an execute call.', stackTrace)
