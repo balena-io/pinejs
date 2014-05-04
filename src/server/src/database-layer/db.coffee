@@ -2,8 +2,11 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds', 'cs!custom
 	exports = {}
 	class DatabaseError extends CustomError
 		constructor: (message) ->
-			if message.constructor.name is 'SQLError'
+			# If the message has a code then use that as our code.
+			if message?.code?
 				@code = message.code
+			# If this is a SQLError we have to handle it specially (since it's not an instance of Error)
+			if message.constructor.name is 'SQLError'
 				message = message.message
 			super(message)
 

@@ -33,32 +33,41 @@ define [
 	clientModels = {}
 	odataMetadata = {}
 
-	checkForConstraintError = (err, tableName) ->
-		if db.engine not in ['postgres', 'mysql']
-			# Code 6 is a constraint error
-			if err.code == 6
-				# SQLite
-				return ['Constraint failed.']
+	checkForConstraintError = do ->
+		WEBSQL_CONSTRAINT_ERR = 6
+		PG_UNIQUE_VIOLATION = '23505'
+		PG_FOREIGN_KEY_VIOLATION = '23503'
+		(err, tableName) ->
+			if db.engine not in ['postgres', 'mysql']
+				if err.code is WEBSQL_CONSTRAINT_ERR
+					# SQLite
+					return ['Constraint failed.']
+				return false
+
+			# Unique key
+			switch db.engine
+				when 'mysql'
+					matches = /ER_DUP_ENTRY: Duplicate entry '.*?[^\\]' for key '(.*?[^\\])'/.exec(err)
+				when 'postgres'
+					if err.code is PG_UNIQUE_VIOLATION
+						matches = new RegExp('"' + tableName + '_(.*?)_key"').exec(err)
+						# Make sure matches exists, since we know it's the right error type.
+						matches ?= ' ?'
+			if matches?
+				return ['"' + matches[1] + '" must be unique.']
+
+			# Foreign Key
+			switch db.engine
+				when 'mysql'
+					matches = /ER_ROW_IS_REFERENCED_: Cannot delete or update a parent row: a foreign key constraint fails \(".*?"\.(".*?").*/.exec(err)
+				when 'postgres'
+					if err.code is PG_FOREIGN_KEY_VIOLATION
+						matches = new RegExp('"' + tableName + '" violates foreign key constraint ".*?" on table "(.*?)"').exec(err)
+						# Make sure matches exists, since we know it's the right error type.
+						matches ?= ' ?'
+			if matches?
+				return ['Data is referenced by ' + matches[1].replace(/\ /g, '_').replace(/-/g, '__') + '.']
 			return false
-
-		# Unique key
-		switch db.engine
-			when 'mysql'
-				matches = /ER_DUP_ENTRY: Duplicate entry '.*?[^\\]' for key '(.*?[^\\])'/.exec(err)
-			when 'postgres'
-				matches = new RegExp('error: duplicate key value violates unique constraint "' + tableName + '_(.*?)_key"').exec(err)
-		if matches?
-			return ['"' + matches[1] + '" must be unique.']
-
-		# Foreign Key
-		switch db.engine
-			when 'mysql'
-				matches = /ER_ROW_IS_REFERENCED_: Cannot delete or update a parent row: a foreign key constraint fails \(".*?"\.(".*?").*/.exec(err)
-			when 'postgres'
-				matches = new RegExp('error: update or delete on table "' + tableName + '" violates foreign key constraint ".*?" on table "(.*?)"').exec(err)
-		if matches?
-			return ['Data is referenced by ' + matches[1].replace(/\ /g, '_').replace(/-/g, '__') + '.']
-		return false
 
 	getAndCheckBindValues = (vocab, bindings, values) ->
 		mappings = clientModels[vocab].resourceToSQLMappings
