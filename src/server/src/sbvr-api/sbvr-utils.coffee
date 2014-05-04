@@ -569,12 +569,11 @@ define [
 				switch tree.type
 					when 'OData'
 						processOData(tree.vocabulary, clientModel, request.resourceName, result.rows)
-						.then((d) ->
+						.then (d) ->
 							data =
 								__model: clientModel[request.resourceName]
 								d: d
 							res.json(data)
-						)
 					else
 						res.send(500)
 			.catch db.DatabaseError, (err) ->
