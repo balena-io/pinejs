@@ -2,6 +2,7 @@ v0.2.28
 
 * Add support for a TRANSACTION_TIMEOUT_MS env var, that specifies how long before a transaction is automatically closed (via a rollback).
 * Use error codes to detect the error type for postgresql, this makes the checking much more resilient.
+* Updated bluebird to ~1.2.4
 
 v0.2.27
 
