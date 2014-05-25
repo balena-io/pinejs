@@ -36,7 +36,6 @@ define [
 					updateModel()
 					autoCompleteKeyBinding.apply(this, arguments)
 				lineWrapping: true
-				highlightMargin: 0
 			)
 			@model.compile = sbvrEditor.getMode().fullParse
 

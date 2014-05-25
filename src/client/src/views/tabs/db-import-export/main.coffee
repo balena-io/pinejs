@@ -26,7 +26,6 @@ define [
 			@editor = CodeMirror.fromTextArea(textarea.get(0),
 				mode: 'text/x-sql'
 				lineWrapping: true
-				highlightMargin: 0
 			)
 
 			$(window).resize(=>
