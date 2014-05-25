@@ -1,3 +1,8 @@
+v0.2.29
+
+* Update ometa-js to ~1.2.1 and use the line by line highlight option, which removes the need for the custom codemirror change.
+* Load codemirror from bower now that a custom change is no longer needed.
+
 v0.2.28
 
 * Add support for a TRANSACTION_TIMEOUT_MS env var, that specifies how long before a transaction is automatically closed (via a rollback).
