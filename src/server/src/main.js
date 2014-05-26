@@ -17,7 +17,7 @@ require({
 		'cache'					: '../../client/lib/require-cache/cache',
 		'cs'					: '../../client/lib/require-cs/cs',
 		'ometa'					: '../../../node_modules/ometa-js/lib/requirejs-plugin/ometajs',
-		'text'					: '../../tools/requirejs-plugins/text',
+		'text'					: '../../client/lib/requirejs-text/text',
 		'coffee-script'			: '../../client/lib/coffee-script/extras/coffee-script',
 		'has'					: '../../tools/has',
 
