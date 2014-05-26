@@ -41,7 +41,7 @@ require({
 		'codemirror'				: '../lib/codemirror/lib/codemirror',
 		'codemirror-modes'			: '../lib/codemirror/mode',
 		'codemirror-ometa'			: '../../../node_modules/ometa-js/lib/codemirror-ometa',
-		'codemirror-simple-hint'	: '../lib/codemirror/addon/hint/simple-hint',
+		'codemirror-show-hint'		: '../lib/codemirror/addon/hint/show-hint',
 		'd3'						: '../lib/d3/d3',
 		'jquery'					: '../lib/jquery/jquery',
 		'jquery-xdomain'			: '../lib/jquery-xdomain',
@@ -104,8 +104,8 @@ require({
 		'css!static/main': {
 			deps: ['bootstrap'],
 		},
-		'codemirror-simple-hint': {
-			deps: ['codemirror', 'css!lib/codemirror/addon/hint/simple-hint']
+		'codemirror-show-hint': {
+			deps: ['codemirror', 'css!lib/codemirror/addon/hint/show-hint']
 		},
 		'codemirror': {
 			deps: [ 'css!lib/codemirror/lib/codemirror'],

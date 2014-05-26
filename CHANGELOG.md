@@ -1,7 +1,7 @@
 v0.2.29
 
-* Update ometa-js to ~1.2.1 and use the line by line highlight option, which removes the need for the custom codemirror change.
-* Load codemirror from bower now that a custom change is no longer needed.
+* Update ometa-js to ~1.2.2 and use the new line by line highlight option, which removes the need for the custom codemirror change. Also includes a switch to the newer hinting module.
+* Update codemirror to v3.24.0 and load it from bower now that a custom change is no longer needed.
 
 v0.2.28
 
