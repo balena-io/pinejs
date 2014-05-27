@@ -2,7 +2,7 @@ define [
 	'backbone'
 	'cs!server-request'
 	'codemirror'
-	'codemirror-modes/sql/sql'
+	'codemirror/mode/sql/sql'
 ], (Backbone, serverRequest, CodeMirror) ->
 	Backbone.View.extend(
 		events:

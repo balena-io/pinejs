@@ -32,11 +32,11 @@ define [
 				mode:
 					name: 'sbvr'
 					getOMetaEditor: -> sbvrEditor
-				onKeyEvent: =>
-					updateModel()
-					autoCompleteKeyBinding.apply(this, arguments)
 				lineWrapping: true
 			)
+			sbvrEditor.on 'keypress', ->
+				updateModel()
+				autoCompleteKeyBinding.apply(@, arguments)
 			@model.compile = sbvrEditor.getMode().fullParse
 
 			$(window).resize(=>
