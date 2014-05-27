@@ -22,7 +22,7 @@ require({
 		'has'					: '../../tools/has',
 
 		'ometa-parsers'			: '../../../node_modules/ometa-js/lib/ometajs/ometa/parsers',
-		'uglify-js'				: '../../client/lib/uglifyjs/uglify',
+		'uglify-js'				: '../../../node_modules/ometa-js/examples/vendor/uglify',
 
 		//Libraries
 		'ometa-core'			: '../../../node_modules/ometa-js/lib/ometajs/core',
