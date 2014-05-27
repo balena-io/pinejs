@@ -8,7 +8,7 @@
   "repository": "git@bitbucket.org:rulemotion/rulemotion-canvas.git",
   "dependencies": {
     "coffee-script": "~1.7.1",
-    "ometa-js": "~1.3.0",
+    "ometa-js": "~1.3.2",
     "mysql": "~2.1.0",
     "pg": "~2.8.2",
     "bcrypt": "~0.7.6",

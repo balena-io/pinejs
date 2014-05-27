@@ -34,9 +34,10 @@ define [
 					getOMetaEditor: -> sbvrEditor
 				lineWrapping: true
 			)
-			sbvrEditor.on 'keypress', ->
-				updateModel()
-				autoCompleteKeyBinding.apply(@, arguments)
+			sbvrEditor.on('keypress', updateModel)
+			sbvrEditor.addKeyMap(
+				'Ctrl-Space': autoCompleteKeyBinding
+			)
 			@model.compile = sbvrEditor.getMode().fullParse
 
 			$(window).resize(=>
