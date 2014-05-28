@@ -33,6 +33,7 @@ define [
 	clientModels = {}
 	odataMetadata = {}
 
+	# TODO: Clean this up and move it into the db module.
 	checkForConstraintError = do ->
 		WEBSQL_CONSTRAINT_ERR = 6
 		PG_UNIQUE_VIOLATION = '23505'
@@ -51,8 +52,9 @@ define [
 				when 'postgres'
 					if err.code is PG_UNIQUE_VIOLATION
 						matches = new RegExp('"' + tableName + '_(.*?)_key"').exec(err)
-						# Make sure matches exists, since we know it's the right error type.
-						matches ?= ' ?'
+						# We know it's the right error type, so if matches exists just return a generic error message, since we have failed to get the info for a more specific one.
+						if !matches?
+							return ['Unique key constraint violated']
 			if matches?
 				return ['"' + matches[1] + '" must be unique.']
 
@@ -63,8 +65,10 @@ define [
 				when 'postgres'
 					if err.code is PG_FOREIGN_KEY_VIOLATION
 						matches = new RegExp('"' + tableName + '" violates foreign key constraint ".*?" on table "(.*?)"').exec(err)
-						# Make sure matches exists, since we know it's the right error type.
-						matches ?= ' ?'
+						matches ?= new RegExp('"' + tableName + '" violates foreign key constraint "' + tableName + '_(.*?)_fkey"').exec(err)
+						# We know it's the right error type, so if matches exists just return a generic error message, since we have failed to get the info for a more specific one.
+						if !matches?
+							return ['Foreign key constraint violated']
 			if matches?
 				return ['Data is referenced by ' + matches[1].replace(/\ /g, '_').replace(/-/g, '__') + '.']
 			return false
