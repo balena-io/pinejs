@@ -222,9 +222,9 @@ define [
 										valQuery += "'" + currRow[propName] + "'"
 									insQuery += ') values (' + valQuery + ');\n'
 								exported += insQuery
-					.then ->
-						tx.end()
-						res.json(exported)
+						.then ->
+							tx.end()
+							res.json(exported)
 					.catch (err) ->
 						console.error('Error exporting db', err, err.stack)
 						tx.rollback()
