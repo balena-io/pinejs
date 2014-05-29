@@ -38,10 +38,7 @@ require({
 		'async'						: '../lib/async/lib/async',
 		'backbone'					: '../lib/backbone/backbone',
 		'bootstrap'					: '../lib/bootstrap/docs/assets/js/bootstrap',
-		'codemirror'				: '../lib/codemirror/lib/codemirror',
-		'codemirror-modes'			: '../lib/codemirror/mode',
 		'codemirror-ometa'			: '../../../node_modules/ometa-js/lib/codemirror-ometa',
-		'codemirror-simple-hint'	: '../lib/codemirror/addon/hint/simple-hint',
 		'd3'						: '../lib/d3/d3',
 		'jquery'					: '../lib/jquery/jquery',
 		'jquery-xdomain'			: '../lib/jquery-xdomain',
@@ -95,6 +92,11 @@ require({
 			name: 'css',
 			location: '../../client/lib/require-css',
 			main: 'css'
+		},
+		{
+			name: 'codemirror',
+			location: '../lib/codemirror',
+			main: 'lib/codemirror'
 		}
 	],
 	shim: {
@@ -104,14 +106,12 @@ require({
 		'css!static/main': {
 			deps: ['bootstrap'],
 		},
-		'codemirror-simple-hint': {
-			deps: ['codemirror', 'css!lib/codemirror/addon/hint/simple-hint']
+		'codemirror/addon/hint/show-hint': {
+			deps: ['css!lib/codemirror/addon/hint/show-hint']
 		},
 		'codemirror': {
-			deps: [ 'css!lib/codemirror/lib/codemirror'],
-			exports: 'CodeMirror'
+			deps: [ 'css!lib/codemirror/lib/codemirror']
 		},
-		'codemirror-modes/sql/sql': ['codemirror'],
 		'ejs': {
 			exports: 'ejs'
 		},

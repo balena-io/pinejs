@@ -32,11 +32,11 @@ define [
 				mode:
 					name: 'sbvr'
 					getOMetaEditor: -> sbvrEditor
-				onKeyEvent: =>
-					updateModel()
-					autoCompleteKeyBinding.apply(this, arguments)
 				lineWrapping: true
-				highlightMargin: 0
+			)
+			sbvrEditor.on('keypress', updateModel)
+			sbvrEditor.addKeyMap(
+				'Ctrl-Space': autoCompleteKeyBinding
 			)
 			@model.compile = sbvrEditor.getMode().fullParse
 

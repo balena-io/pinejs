@@ -1,9 +1,10 @@
 define [
 	'backbone'
+	'lodash'
 	'cs!server-request'
 	'codemirror'
-	'codemirror-modes/sql/sql'
-], (Backbone, serverRequest, CodeMirror) ->
+	'codemirror/addon/hint/sql-hint'
+], (Backbone, _, serverRequest, CodeMirror) ->
 	Backbone.View.extend(
 		events:
 			"click #bidb": "importDB"
@@ -26,7 +27,10 @@ define [
 			@editor = CodeMirror.fromTextArea(textarea.get(0),
 				mode: 'text/x-sql'
 				lineWrapping: true
-				highlightMargin: 0
+			)
+
+			@editor.addKeyMap(
+				'Ctrl-Space': _.bind(@editor.showHint, @editor)
 			)
 
 			$(window).resize(=>
