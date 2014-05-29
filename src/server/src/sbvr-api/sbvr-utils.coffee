@@ -186,15 +186,15 @@ define [
 			.then (err) ->
 				tx.executeSql('DELETE FROM "transaction" WHERE "id" = ?;', [transactionID])
 			.then (result) ->
-				validateDB(tx, sqlModels['data'])
+				validateDB(tx, 'data')
 			.catch (err) ->
 				tx.rollback()
 				throw err
 			.then ->
 				tx.end()
 
-	validateDB = (tx, sqlmod) ->
-		Promise.map sqlmod.rules, (rule) ->
+	validateDB = (tx, modelName) ->
+		Promise.map sqlModels[modelName].rules, (rule) ->
 			tx.executeSql(rule.sql, rule.bindings)
 			.then (result) ->
 				if result.rows.item(0).result in [false, 0, '0']
@@ -229,11 +229,6 @@ define [
 				.catch ->
 					# Warning: We ignore errors in the create table statements as SQLite doesn't support CREATE IF NOT EXISTS
 			.then ->
-				# Validate the [empty] model according to the rules.
-				# This may eventually lead to entering obligatory data.
-				# For the moment it blocks such models from execution.
-				validateDB(tx, sqlModel)
-			.then ->
 				seModels[vocab] = seModel
 				sqlModels[vocab] = sqlModel
 				clientModels[vocab] = clientModel
@@ -241,6 +236,11 @@ define [
 
 				uriParser.addClientModel(vocab, clientModel)
 
+				# Validate the [empty] model according to the rules.
+				# This may eventually lead to entering obligatory data.
+				# For the moment it blocks such models from execution.
+				validateDB(tx, vocab)
+			.then ->
 				api[vocab] = new PlatformAPI('/' + vocab + '/')
 				api[vocab].logger = {}
 				for key, value of console
@@ -625,7 +625,7 @@ define [
 				# TODO: Check for transaction locks.
 				tx.executeSql(query, values, null, idField)
 				.then (sqlResult) ->
-					validateDB(tx, sqlModels[vocab])
+					validateDB(tx, vocab)
 					.then ->
 						insertID = if request.query[0] == 'UpdateQuery' then values[0] else sqlResult.insertId
 						logger.log('Insert ID: ', insertID)
@@ -704,7 +704,7 @@ define [
 				else
 					runQuery(insertQuery)
 			.then ->
-				validateDB(tx, sqlModels[vocab])
+				validateDB(tx, vocab)
 		trans =
 			if req.tx?
 				runTransaction(req.tx)
@@ -747,7 +747,7 @@ define [
 			runQuery = (tx) ->
 				tx.executeSql(query, values)
 				.then ->
-					validateDB(tx, sqlModels[vocab])
+					validateDB(tx, vocab)
 			if req.tx?
 				runQuery(req.tx)
 			else
