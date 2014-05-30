@@ -8,6 +8,7 @@ define [
 	'cs!sbvr-compiler/AbstractSQL2CLF'
 	'cs!sbvr-compiler/ODataMetadataGenerator'
 	'cs!sbvr-api/permissions'
+	'cs!sbvr-api/transactions'
 	'cs!sbvr-api/uri-parser'
 	'resin-platform-api'
 	'lodash'
@@ -16,7 +17,7 @@ define [
 	'text!sbvr-api/dev.sbvr'
 	'text!sbvr-api/transaction.sbvr'
 	'text!sbvr-api/user.sbvr'
-], (exports, has, SBVRParser, LF2AbstractSQL, AbstractSQL2SQL, AbstractSQLCompiler, AbstractSQL2CLF, ODataMetadataGenerator, permissions, uriParser, resinPlatformAPI, _, Promise, sbvrTypes, devModel, transactionModel, userModel) ->
+], (exports, has, SBVRParser, LF2AbstractSQL, AbstractSQL2SQL, AbstractSQLCompiler, AbstractSQL2CLF, ODataMetadataGenerator, permissions, transactions, uriParser, resinPlatformAPI, _, Promise, sbvrTypes, devModel, transactionModel, userModel) ->
 	db = null
 
 	_.extend(exports, permissions)
@@ -100,105 +101,10 @@ define [
 			.catch (err) ->
 				throw new Error('"' + fieldName + '" ' + err)
 
-	endTransaction = (transactionID) ->
-		db.transaction()
-		.then (tx) ->
-			placeholders = {}
-			getLockedRow = (lockID) ->
-				# 'GET', '/transaction/resource?$select=resource_id&$filter=resource__is_under__lock/lock eq ?'
-				tx.executeSql('''SELECT "resource"."resource id" AS "resource_id"
-								FROM "resource",
-									"resource-is_under-lock"
-								WHERE "resource"."id" = "resource-is_under-lock"."resource"
-								AND "resource-is_under-lock"."lock" = ?;''', [lockID])
-			getFieldsObject = (conditionalResourceID, clientModel) ->
-				# 'GET', '/transaction/conditional_field?$select=field_name,field_value&$filter=conditional_resource eq ?'
-				tx.executeSql('''SELECT "conditional_field"."field name" AS "field_name", "conditional_field"."field value" AS "field_value"
-								FROM "conditional_field"
-								WHERE "conditional_field"."conditional resource" = ?;''', [conditionalResourceID])
-				.then (fields) ->
-					fieldsObject = {}
-					Promise.all fields.rows.map (field) ->
-						fieldName = field.field_name.replace(clientModel.resourceName + '.', '')
-						fieldValue = field.field_value
-						modelField = _.find(clientModel.fields, {fieldName})
-						if modelField.dataType == 'ForeignKey' and _.isNaN(Number(fieldValue))
-							if !placeholders.hasOwnProperty(fieldValue)
-								throw new Error('Cannot resolve placeholder' + fieldValue)
-							else
-								placeholders[fieldValue].promise
-								.then (resolvedID) ->
-									fieldsObject[fieldName] = resolvedID
-								.catch ->
-									throw new Error('Placeholder failed' + fieldValue)
-						else
-							fieldsObject[fieldName] = fieldValue
-					.then ->
-						return fieldsObject
 
-			# 'GET', '/transaction/conditional_resource?$filter=transaction eq ?'
-			tx.executeSql('''SELECT "conditional_resource"."id", "conditional_resource"."transaction", "conditional_resource"."lock", "conditional_resource"."resource type" AS "resource_type", "conditional_resource"."conditional type" AS "conditional_type", "conditional_resource"."placeholder"
-							FROM "conditional_resource"
-							WHERE "conditional_resource"."transaction" = ?;''', [transactionID])
-			.then (conditionalResources) ->
-				conditionalResources.rows.forEach (conditionalResource) ->
-					placeholder = conditionalResource.placeholder
-					if placeholder? and placeholder.length > 0
-						placeholders[placeholder] = Promise.pending()
-
-				# get conditional resources (if exist)
-				Promise.all conditionalResources.rows.map (conditionalResource) ->
-					placeholder = conditionalResource.placeholder
-					lockID = conditionalResource.lock
-					doCleanup = ->
-						Promise.all([
-							tx.executeSql('DELETE FROM "conditional_field" WHERE "conditional resource" = ?;', [conditionalResource.id])
-							tx.executeSql('DELETE FROM "conditional_resource" WHERE "lock" = ?;', [lockID])
-							tx.executeSql('DELETE FROM "resource-is_under-lock" WHERE "lock" = ?;', [lockID])
-							tx.executeSql('DELETE FROM "lock" WHERE "id" = ?;', [lockID])
-						])
-
-					clientModel = clientModels['data'].resources[conditionalResource.resource_type]
-					url = 'data/' + conditionalResource.resource_type
-					switch conditionalResource.conditional_type
-						when 'DELETE'
-							getLockedRow(lockID)
-							.then (lockedRow) ->
-								lockedRow = lockedRow.rows.item(0)
-								url = url + '?$filter=' + clientModel.idField + ' eq ' + lockedRow.resource_id
-								PlatformAPI::delete({url, tx})
-							.then(doCleanup)
-						when 'EDIT'
-							getLockedRow(lockID)
-							.then (lockedRow) ->
-								lockedRow = lockedRow.rows.item(0)
-								getFieldsObject(conditionalResource.id, clientModel)
-								.then (body) ->
-									body[clientModel.idField] = lockedRow.resource_id
-									PlatformAPI::put({url, body, tx})
-							.then(doCleanup)
-						when 'ADD'
-							getFieldsObject(conditionalResource.id, clientModel)
-							.then (body) ->
-								PlatformAPI::post({url, body, tx})
-							.then (result) ->
-								placeholders[placeholder].fulfill(result.id)
-							.then(doCleanup)
-							.catch (err) ->
-								placeholders[placeholder].reject(err)
-								throw err
-			.then (err) ->
-				tx.executeSql('DELETE FROM "transaction" WHERE "id" = ?;', [transactionID])
-			.then (result) ->
-				validateDB(tx, sqlModels['data'])
-			.catch (err) ->
-				tx.rollback()
-				throw err
-			.then ->
-				tx.end()
-
-	validateDB = (tx, sqlmod) ->
-		Promise.map sqlmod.rules, (rule) ->
+	# TODO: Standardise on the validateModel name
+	exports.validateModel = validateDB = (tx, modelName) ->
+		Promise.map sqlModels[modelName].rules, (rule) ->
 			tx.executeSql(rule.sql, rule.bindings)
 			.then (result) ->
 				if result.rows.item(0).result in [false, 0, '0']
@@ -233,11 +139,6 @@ define [
 				.catch ->
 					# Warning: We ignore errors in the create table statements as SQLite doesn't support CREATE IF NOT EXISTS
 			.then ->
-				# Validate the [empty] model according to the rules.
-				# This may eventually lead to entering obligatory data.
-				# For the moment it blocks such models from execution.
-				validateDB(tx, sqlModel)
-			.then ->
 				seModels[vocab] = seModel
 				sqlModels[vocab] = sqlModel
 				clientModels[vocab] = clientModel
@@ -245,6 +146,11 @@ define [
 
 				uriParser.addClientModel(vocab, clientModel)
 
+				# Validate the [empty] model according to the rules.
+				# This may eventually lead to entering obligatory data.
+				# For the moment it blocks such models from execution.
+				validateDB(tx, vocab)
+			.then ->
 				api[vocab] = new PlatformAPI('/' + vocab + '/')
 				api[vocab].logger = {}
 				for key, value of console
@@ -334,9 +240,8 @@ define [
 				throw err
 		.nodeify(callback)
 
-	getID = (tree) ->
-		request = tree.requests[0]
-		idField = sqlModels[tree.vocabulary].tables[request.resourceName].idField
+	exports.getID = (vocab, request) ->
+		idField = sqlModels[vocab].tables[request.resourceName].idField
 		for whereClause in request.query when whereClause[0] == 'Where'
 			for comparison in whereClause[1..] when comparison[0] == 'Equals'
 				if comparison[1][2] == idField
@@ -629,7 +534,7 @@ define [
 				# TODO: Check for transaction locks.
 				tx.executeSql(query, values, null, idField)
 				.then (sqlResult) ->
-					validateDB(tx, sqlModels[vocab])
+					validateDB(tx, vocab)
 					.then ->
 						insertID = if request.query[0] == 'UpdateQuery' then values[0] else sqlResult.insertId
 						logger.log('Insert ID: ', insertID)
@@ -662,7 +567,8 @@ define [
 		res.set('Cache-Control', 'no-cache')
 		tree = req.tree
 		request = tree.requests[0]
-		{logger} = api[tree.vocabulary]
+		vocab = tree.vocabulary
+		{logger} = api[vocab]
 
 		try
 			queries = AbstractSQLCompiler.compile(db.engine, request.query)
@@ -677,24 +583,9 @@ define [
 		else
 			insertQuery = queries
 
-		vocab = tree.vocabulary
-		id = getID(tree)
 		runTransaction = (tx) ->
-			tx.executeSql('''
-				SELECT NOT EXISTS(
-					SELECT 1
-					FROM "resource" r
-					JOIN "resource-is_under-lock" AS rl ON rl."resource" = r."id"
-					WHERE r."resource type" = ?
-					AND r."resource id" = ?
-				) AS result;''', [request.resourceName, id])
-			.catch (err) ->
-				logger.error('Unable to check resource locks', err, err.stack)
-				throw new Error('Unable to check resource locks')
-			.then (result) ->
-				if result.rows.item(0).result in [false, 0, '0']
-					throw new Error('The resource is locked and cannot be edited')
-
+			transactions.check(tx, vocab, request)
+			.then ->
 				runQuery = (query) ->
 					getAndCheckBindValues(vocab, query.bindings, request.values)
 					.then (values) ->
@@ -708,7 +599,7 @@ define [
 				else
 					runQuery(insertQuery)
 			.then ->
-				validateDB(tx, sqlModels[vocab])
+				validateDB(tx, vocab)
 		trans =
 			if req.tx?
 				runTransaction(req.tx)
@@ -751,7 +642,7 @@ define [
 			runQuery = (tx) ->
 				tx.executeSql(query, values)
 				.then ->
-					validateDB(tx, sqlModels[vocab])
+					validateDB(tx, vocab)
 			if req.tx?
 				runQuery(req.tx)
 			else
@@ -853,33 +744,8 @@ define [
 
 		if has 'DEV'
 			app.get('/dev/*', runGet)
-		app.post '/transaction/execute', (req, res, next) ->
-			id = Number(req.body.id)
-			if _.isNaN(id)
-				res.send(404)
-			else
-				endTransaction(id)
-				.then ->
-					res.send(200)
-				.catch (err) ->
-					console.error('Error ending transaction', err, err.stack)
-					res.json(err, 404)
-		app.get '/transaction', (req, res, next) ->
-			res.json(
-				transactionURI: '/transaction/transaction'
-				conditionalResourceURI: '/transaction/conditional_resource'
-				conditionalFieldURI: '/transaction/conditional_field'
-				lockURI: '/transaction/lock'
-				transactionLockURI: '/transaction/lock__belongs_to__transaction'
-				resourceURI: '/transaction/resource'
-				lockResourceURI: '/transaction/resource__is_under__lock'
-				exclusiveLockURI: '/transaction/lock__is_exclusive'
-				commitTransactionURI: '/transaction/execute'
-			)
-		app.get('/transaction/*', runGet)
-		app.post('/transaction/*', runPost)
-		app.put('/transaction/*', runPut)
-		app.del('/transaction/*', runDelete)
+
+		transactions.setup(app)
 
 		db.transaction()
 		.then (tx) ->
