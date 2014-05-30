@@ -496,8 +496,8 @@ define [
 
 	exports.PlatformAPI =
 		class PlatformAPI extends resinPlatformAPI(_, Promise)
-			_request: ({method, url, body, tx}) ->
-				return runURI(method, url, body, tx)
+			_request: ({method, url, body, tx, req}) ->
+				return runURI(method, url, body, tx, req)
 
 	exports.api = api = {}
 
@@ -514,18 +514,24 @@ define [
 				when 'DELETE'
 					runDelete(req, res, next)
 
-		(method, uri, body = {}, tx, callback) ->
+		# We default to full permissions if no req object is passed in
+		(method, uri, body = {}, tx, req, callback) ->
 			if callback? and !_.isFunction(callback)
 				message = 'Called runURI with a non-function callback?!'
 				console.error(message)
 				console.trace()
 				return Promise.rejected(message)
+
+			if _.isObject(req)
+				user = req.user
+			else
+				if req?
+					console.warn('Non-object req passed to runURI?', req, new Error().stack)
+				user = permissions: ['resource.all']
+
 			deferred = Promise.pending()
 			req =
-				user:
-					permissions: [
-						'resource.all'
-					]
+				user: user
 				method: method
 				url: uri
 				body: body
