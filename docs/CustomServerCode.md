@@ -13,8 +13,20 @@ The [requirejs](http://requirejs.org/) object used by the platform, can be used 
 ### sbvrUtils
 An entry point to the API internally to the server.
 
-#### runURI(method, uri, body = {}, tx[, callback])
-This allows making an API request internally, should match a similar AJAX request to the API, returns a promise.
+#### runURI(method, uri, body = {}[, tx, req, callback])
+This allows making an API request internally that should match the result of making an equivalent http request to the API, and returns a promise.
+The request will be run with full privileges unless the `req` object is provided to instruct using a specified user.
+##### tx
+If provided, this should be an open transaction created with db.transaction, which will be used for running any database statements related to this API call.
+##### req
+If provided, this should be an an object
+When provided the `users` property of this object will be used for permission checks (if null/undefined then it will default to the guest user).
+
+#### class PlatformAPI
+This is a subclass of the resin-platform-api class, which supports the additional special `req` and `tx` properties on the query objects.  The functionality of these properties match their counterparts on runURI.
+
+#### api
+This is an object containing keys of the api root and values that are an instance of PlatformApi for that api.  The PlatformAPI instance also contains an additional `logger` property, which matches the interface of `console`, but which understands provided logging levels.
 
 #### executeModel(tx, model[, callback])
 This is an alias for executeModels for the case of a single model.
