@@ -1,6 +1,6 @@
 {
   "name": "rulemotion-canvas",
-  "version": "0.2.28",
+  "version": "0.2.29",
   "authors": [
     "Page <page@rulemotion.com>"
   ],
@@ -25,7 +25,7 @@
     "bluebird": "~1.2.4",
     "async": "caolan/async#c99537ae4837f12e918959c8bd1e70e6b1730f6e",
     "require-css": "~0.1.2",
-    "requirejs-text": "~2.0.12"
+    "requirejs-text": "~2.0.12",
     "codemirror": "4.2.0"
   }
 }
