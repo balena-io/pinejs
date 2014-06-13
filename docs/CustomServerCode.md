@@ -72,6 +72,17 @@ This is a middleware that will handle an OData request for GET/PUT/POST/PATCH/ME
 #### executeStandardModels(tx[, callback])
 This executes the built in models (dev, transaction, Auth) and returns a promise that resolves upon completion.
 
+#### addHook(method, apiRoot, resourceName, callbacks)
+This runs adds a callback to be run when the specified hookpoint is triggered.
+##### method
+This can be one of GET/PUT/POST/PATCH/DELETE (also MERGE as an alias for PATCH)
+##### apiRoot
+The apiRoot to hook into, eg. Auth
+##### resourceName
+The name of the resource under the apiRoot to hook into, eg user
+##### callbacks
+An object containing a key of the hook point and a value of the callback to call. See [Hooks documentation](./Hooks.md) for more
+
 #### setup(app, requirejs, db[, callback])
 This is called by the server, you should never need to use this.
 

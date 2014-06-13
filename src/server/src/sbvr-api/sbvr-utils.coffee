@@ -35,6 +35,16 @@ define [
 	clientModels = {}
 	odataMetadata = {}
 
+	apiHooks =
+		GET: {}
+		PUT: {}
+		POST: {}
+		PATCH: {}
+		DELETE: {}
+
+	# Share hooks between merge and patch since they are the same operation, just MERGE was the OData intermediary until the HTTP spec added PATCH.
+	apiHooks.MERGE = apiHooks.PATCH
+
 	class SqlCompilationError extends CustomError
 
 	# TODO: Clean this up and move it into the db module.
@@ -470,6 +480,10 @@ define [
 			# Then for each request add/check the relevant permissions, translate to abstract sql, and then compile the abstract sql.
 			Promise.map requests, (request) ->
 				uriParser.addPermissions(req, request)
+				.tap (request) ->
+					req.hooks = apiHooks[request.method][request.vocabulary]?[request.resourceName] ? {}
+					Promise.map req.hooks.POSTPARSE ? [], (hook) ->
+						hook({req, request})
 				.then(uriParser.translateUri)
 				.then (request) ->
 					if request.abstractSqlQuery?
@@ -700,6 +714,25 @@ define [
 			console.error('Failed to execute standard models.', err, err.stack)
 			throw err
 		.nodeify(callback)
+
+	exports.addHook = (method, apiRoot, resourceName, callbacks) ->
+		methodHooks = apiHooks[method]
+		if !methodHooks?
+			throw new Error('Unsupported method: ' + method)
+		if !clientModels[apiRoot]?
+			throw new Error('Unknown api root: ' + apiRoot)
+		if !clientModels[apiRoot].resources[resourceName]?
+			throw new Error('Unknown resource for api root: ' + resourceName + ', ' + apiRoot)
+
+		for callbackType, callback of callbacks when callbackType not in ['POSTPARSE']
+			throw new Error('Unknown callback type: ' + callbackType)
+
+		apiRootHooks = methodHooks[apiRoot] ?= {}
+		resourceHooks = apiRootHooks[resourceName] ?= {}
+
+		for callbackType, callback of callbacks
+			resourceHooks[callbackType] ?= []
+			resourceHooks[callbackType].push(callback)
 
 	exports.setup = (app, requirejs, _db, callback) ->
 		exports.db = db = _db
