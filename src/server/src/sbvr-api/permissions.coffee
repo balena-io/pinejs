@@ -75,34 +75,23 @@ define [
 					}
 		.nodeify(callback)
 
-	exports.getUserPermissions = getUserPermissions = (userId, callback) ->
-		if _.isFinite(userId)
-			# We have a user id
-			userPermsFilter = 'user__has__permission/user': userId
-			userRoleFilter = 'role__has__permission/role/user__has__role/user': userId
-		else if _.isString(userId)
-			# We have an API key
-			userPermsFilter = 'api_key__has__permission/api_key/key': userId
-			userRoleFilter = 'role__has__permission/role/api_key__has__role/api_key/key': userId
-		else
-			return Promise.rejected(new Error('User ID either has to be a numeric id or an api key string, got: ' + typeof userId))
-
+	getPermissions = (permsFilter, roleFilter, callback) ->
 		authApi = sbvrUtils.api.Auth
 		userPerms = authApi.get(
 			resource: 'permission'
 			options:
 				select: 'name'
-				filter: userPermsFilter
+				filter: permsFilter
 		)
-		userRole = authApi.get(
+		rolePerms = authApi.get(
 			resource: 'permission'
 			options:
 				select: 'name'
-				filter: userRoleFilter
+				filter: roleFilter
 		)
 		Promise.all([
 			userPerms
-			userRole
+			rolePerms
 		]).spread (userPermissions, rolePermissions) ->
 			allPermissions = []
 			for permission in userPermissions
@@ -115,6 +104,23 @@ define [
 			authApi.logger.error('Error loading permissions', err, err.stack)
 			throw err
 		.nodeify(callback)
+
+	exports.getUserPermissions = getUserPermissions = (userId, callback) ->
+		if _.isFinite(userId)
+			permsFilter = 'user__has__permission/user': userId
+			roleFilter = 'role__has__permission/role/user__has__role/user': userId
+			return getPermissions(permsFilter, roleFilter, callback)
+		else
+			return Promise.rejected(new Error('User ID either has to be a numeric id, got: ' + typeof userId))
+
+	exports.getApiKeyPermissions = getApiKeyPermissions = (apiKey, callback) ->
+		if _.isString(apiKey)
+			permsFilter = 'api_key__has__permission/api_key/key': apiKey
+			roleFilter = 'role__has__permission/role/api_key__has__role/api_key/key': apiKey
+			return getPermissions(permsFilter, roleFilter, callback)
+		else
+			return Promise.rejected(new Error('API key has to be a string, got: ' + typeof apiKey))
+
 
 	exports.checkPermissions = checkPermissions = do ->
 		_getGuestPermissions = do ->
@@ -201,7 +207,7 @@ define [
 				if !apiKey? or allowed is true
 					return allowed
 				Promise.all([
-					getUserPermissions(apiKey)
+					getApiKeyPermissions(apiKey)
 					authApi.get(
 						resource: 'user'
 						options:
