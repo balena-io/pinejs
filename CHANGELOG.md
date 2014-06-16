@@ -5,8 +5,9 @@ v0.3.0
 	* Fixes an error being logged when trying to get hints for the verb part of a new fact type
 	* Fixes rule-like definitions for terms and names
 * Fix an issue where api keys that looked like valid user ids were treated as a user id.
-* Replaced `runGet`, `runPost`, `runPut`, and `runDelete` with a new middleware list called `handleODataRequest` that can be used in their place.
+* Replaced `runGet`, `runPost`, `runPut`, and `runDelete` with a new middleware called `handleODataRequest` that can be used in their place.
 * Updated bluebird to v2.1.3
+* The `checkPermissions` function had its `res` argument removed.
 
 v0.2.29
 

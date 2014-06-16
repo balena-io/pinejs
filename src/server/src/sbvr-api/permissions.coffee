@@ -143,7 +143,7 @@ define [
 				_guestPermissions.nodeify(callback)
 
 		# If not all optional arguments are specified, and the last one specified is a function then it is taken to be the callback.
-		# req, res, actionList[, resourceName, vocabulary, apiKey, callback]
+		# req, actionList[, resourceName, vocabulary, apiKey, callback]
 		return (args...) ->
 			# callbackArg needs to be the index of the last optional index
 			# and then if the callback is a function it should be used and nullified so that it isn't used for another arg
@@ -151,7 +151,7 @@ define [
 			if _.isFunction(args[callbackArg])
 				callback = args[callbackArg]
 				args[callbackArg] = null
-			[req, res, actionList, resourceName, vocabulary, apiKey] = args
+			[req, actionList, resourceName, vocabulary, apiKey] = args
 
 			# sbvrUtils may be undefined at a very early point of running, however if it is then almost all of this code will be shortcircuited (since it will be a resource.all user)
 			authApi = sbvrUtils?.api.Auth
@@ -249,7 +249,7 @@ define [
 
 	exports.checkPermissionsMiddleware = (action) ->
 		return (req, res, next) ->
-			checkPermissions(req, res, action)
+			checkPermissions(req, action)
 			.then (allowed) ->
 				switch allowed
 					when false

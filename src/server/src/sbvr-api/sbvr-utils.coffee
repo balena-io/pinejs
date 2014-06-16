@@ -454,71 +454,69 @@ define [
 				console.warn('Next called on a runURI?!', method, uri, route)
 				reject(500)
 
-			currentMiddlewareIndex = 0
-			ourNext = (route) ->
-				if route is 'route'
-					next('route')
-				else if currentMiddlewareIndex < handleODataRequest.length
-					handleODataRequest[currentMiddlewareIndex++](req, res, ourNext)
-				else
-					next()
-			ourNext()
+			handleODataRequest(req, res, next)
 		.nodeify(callback)
 
-	exports.handleODataRequest = handleODataRequest = do ->
-		checkValidApiRoot = (req, res, next) ->
-			url = req.url.split('/')
-			apiRoot = url[1]
-			if !apiRoot? or !clientModels[apiRoot]?
-				return next('route')
-			api[apiRoot].logger.log('Parsing', req.method, req.url)
-			return next()
+	exports.handleODataRequest = handleODataRequest = (req, res, next) ->
+		url = req.url.split('/')
+		apiRoot = url[1]
+		if !apiRoot? or !clientModels[apiRoot]?
+			return next('route')
 
-		handleRequest = (req, res, next) ->
+		api[apiRoot].logger.log('Parsing', req.method, req.url)
+		# Parse the OData requests
+		uriParser.parseODataURI(req)
+		.then (requests) ->
+			# Then for each request add/check the relevant permissions, translate to abstract sql, and then compile the abstract sql.
+			Promise.map requests, (request) ->
+				uriParser.addPermissions(req, request)
+				.then(uriParser.translateUri)
+				.then (request) ->
+					if request.query?
+						try
+							request.sqlQuery = AbstractSQLCompiler.compile(db.engine, request.query)
+						catch err
+							logger.error('Failed to compile abstract sql: ', request.query, err, err.stack)
+							throw new SqlCompilationError(err)
+					return request
+		# Then handle forwarding the request to the correct method handler.
+		.then (requests) ->
+			# Use the first request (and only, since we don't support multiple requests in one yet)
+			request = requests[0]
+			{logger} = api[request.vocabulary]
+
 			res.set('Cache-Control', 'no-cache')
-			tree = req.tree
-			{logger} = api[tree.vocabulary]
 			logger.log('Running', req.method, req.url)
-			
-			request = tree.requests[0]
-			Promise.try ->
-				if request.query?
-					request.sqlQuery = AbstractSQLCompiler.compile(db.engine, request.query)
-			.catch (err) ->
-				throw new SqlCompilationError(err)
-			.then ->
+
+			promise =
 				switch req.method
 					when 'GET'
-						runGet(req, res)
+						runGet(req, res, request)
 					when 'POST'
-						runPost(req, res)
+						runPost(req, res, request)
 					when 'PUT', 'PATCH', 'MERGE'
-						runPut(req, res)
+						runPut(req, res, request)
 					when 'DELETE'
-						runDelete(req, res)
+						runDelete(req, res, request)
+			promise
 			.catch db.DatabaseError, (err) ->
 				constraintError = checkForConstraintError(err, request.resourceName)
 				if constraintError != false
 					throw constraintError
 				logger.error(err, err.stack)
 				res.send(500)
-			.catch SqlCompilationError, (err) ->
-				logger.error('Failed to compile abstract sql: ', request.query, err, err.stack)
-				res.send(500)
 			.catch EvalError, RangeError, ReferenceError, SyntaxError, TypeError, URIError, (err) ->
 				logger.error(err, err.stack)
 				res.send(500)
-			.catch (err) ->
-				# If the err is an error object then use its message instead - it should be more readable!
-				if err instanceof Error
-					err = err.message
-				res.json(err, 404)
-
-		return [
-			checkValidApiRoot
-			uriParser.parseURITree
-			handleRequest
-		]
+		.catch uriParser.PermissionError, (err) ->
+			res.send(401)
+		.catch SqlCompilationError, uriParser.TranslationError, uriParser.ParsingError, (err) ->
+			res.send(500)
+		.catch (err) ->
+			# If the err is an error object then use its message instead - it should be more readable!
+			if err instanceof Error
+				err = err.message
+			res.json(err, 404)
 
 	# This is a helper method to handle using a passed in req.tx when available, or otherwise creating a new tx and cleaning up after we're done.
 	runTransaction = (tx, callback) ->
@@ -546,10 +544,8 @@ define [
 			sqlQuery.values = values
 			tx.executeSql(sqlQuery.query, values, null, addReturning)
 
-	runGet = (req, res) ->
-		tree = req.tree
-		request = tree.requests[0]
-		vocab = tree.vocabulary
+	runGet = (req, res, request) ->
+		vocab = request.vocabulary
 
 		if request.sqlQuery?
 			runTransaction req.tx, (tx) ->
@@ -576,10 +572,8 @@ define [
 				res.json(data)
 			return Promise.resolve()
 
-	runPost = (req, res, next) ->
-		tree = req.tree
-		request = tree.requests[0]
-		vocab = tree.vocabulary
+	runPost = (req, res, request) ->
+		vocab = request.vocabulary
 
 		idField = clientModels[vocab].resources[request.resourceName].idField
 		runTransaction req.tx, (tx) ->
@@ -602,10 +596,8 @@ define [
 				}, 201
 			)
 
-	runPut = (req, res, next) ->
-		tree = req.tree
-		request = tree.requests[0]
-		vocab = tree.vocabulary
+	runPut = (req, res, request) ->
+		vocab = request.vocabulary
 
 		runTransaction req.tx, (tx) ->
 			transactions.check(tx, vocab, request)
@@ -625,10 +617,8 @@ define [
 		.then ->
 			res.send(200)
 
-	runDelete = (req, res, next) ->
-		tree = req.tree
-		request = tree.requests[0]
-		vocab = tree.vocabulary
+	runDelete = (req, res, request) ->
+		vocab = request.vocabulary
 
 		runTransaction req.tx, (tx) ->
 			runQuery(tx, vocab, request)

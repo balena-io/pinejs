@@ -60,17 +60,14 @@ This is an (err, result) callback.
 #### getUserPermissions(userId[, callback])
 This returns a promise that resolves to the user permissions for the given userId
 
-#### checkPermissions(req, res, permissionCheck, request[, callback])
+#### checkPermissions(req, permissionCheck, request[, callback])
 This checks that the currently logged in (or guest) user has the required permissions
 
 #### checkPermissionsMiddleware(permissionCheck)
 This generates a middleware that will run the given permissionCheck
 
 #### handleODataRequest
-This is an array of middleware that will handle an OData request for GET/PUT/POST/PATCH/MERGE/DELETE
-
-#### parseURITree(req, res, next)
-This is an express middleware that will require the URI to parse as a valid platform OData request.
+This is a middleware that will handle an OData request for GET/PUT/POST/PATCH/MERGE/DELETE
 
 #### executeStandardModels(tx[, callback])
 This executes the built in models (dev, transaction, Auth) and returns a promise that resolves upon completion.
