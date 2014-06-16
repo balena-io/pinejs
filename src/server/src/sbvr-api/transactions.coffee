@@ -151,9 +151,6 @@ define [
 				exclusiveLockURI: '/transaction/lock__is_exclusive'
 				commitTransactionURI: '/transaction/execute'
 			)
-		app.get('/transaction/*', sbvrUtils.runGet)
-		app.post('/transaction/*', sbvrUtils.runPost)
-		app.put('/transaction/*', sbvrUtils.runPut)
-		app.del('/transaction/*', sbvrUtils.runDelete)
+		app.all('/transaction/*', sbvrUtils.handleODataRequest)
 
 	return exports

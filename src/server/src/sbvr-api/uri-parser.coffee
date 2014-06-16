@@ -93,23 +93,20 @@ define [
 				}]
 			}
 
-	exports.parseURITree = (callback) ->
-		(req, res, next) ->
-			checkTree = (tree) ->
-				req.tree = tree
-				if tree is false
-					res.send(401)
-				else if callback?
-					callback(req, res, next)
-				else
-					next()
-			if req.tree?
-				checkTree(req.tree)
+	exports.parseURITree = (req, res, next) ->
+		checkTree = (tree) ->
+			req.tree = tree
+			if tree is false
+				res.send(401)
 			else
-				parseODataURI(req, res)
-				.done checkTree, (err) ->
-					console.error('Error parsing OData URI', err, err.stack)
-					next('route')
+				next()
+		if req.tree?
+			checkTree(req.tree)
+		else
+			parseODataURI(req, res)
+			.done checkTree, (err) ->
+				console.error('Error parsing OData URI', err, err.stack)
+				next('route')
 
 	exports.addClientModel = (vocab, clientModel) ->
 		odata2AbstractSQL[vocab] = OData2AbstractSQL.createInstance()

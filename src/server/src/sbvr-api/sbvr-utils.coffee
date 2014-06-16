@@ -411,17 +411,16 @@ define [
 	exports.api = api = {}
 
 	exports.runURI = runURI = do ->
-		forwardRequest = uriParser.parseURITree (req, res, next) ->
-			api[req.tree.vocabulary].logger.log('Running', req.method, req.url)
-			switch req.method
-				when 'GET'
-					runGet(req, res, next)
-				when 'POST'
-					runPost(req, res, next)
-				when 'PUT', 'PATCH', 'MERGE'
-					runPut(req, res, next)
-				when 'DELETE'
-					runDelete(req, res, next)
+		forwardRequest = (req, res, next) ->
+			currentMiddlewareIndex = 0
+			ourNext = (route) ->
+				if route is 'route'
+					next('route')
+				else if currentMiddlewareIndex < handleODataRequest.length
+					handleODataRequest[currentMiddlewareIndex++](req, res, ourNext)
+				else
+					next()
+			ourNext()
 
 		# We default to full permissions if no req object is passed in
 		(method, uri, body = {}, tx, req, callback) ->
@@ -467,7 +466,34 @@ define [
 
 			return deferred.promise.nodeify(callback)
 
-	exports.runGet = runGet = uriParser.parseURITree (req, res, next) ->
+	exports.handleODataRequest = handleODataRequest = [
+		# First check for a valid api root
+		(req, res, next) ->
+			url = req.url.split('/')
+			apiRoot = url[1]
+			if !apiRoot? or !clientModels[apiRoot]?
+				return next('route')
+			api[apiRoot].logger.log('Parsing', req.method, req.url)
+			return next()
+
+		# Then parse the uri tree
+		uriParser.parseURITree
+
+		# Then forward it to the correct method
+		(req, res, next) ->
+			api[req.tree.vocabulary].logger.log('Running', req.method, req.url)
+			switch req.method
+				when 'GET'
+					runGet(req, res, next)
+				when 'POST'
+					runPost(req, res, next)
+				when 'PUT', 'PATCH', 'MERGE'
+					runPut(req, res, next)
+				when 'DELETE'
+					runDelete(req, res, next)
+	]
+
+	runGet = (req, res, next) ->
 		res.set('Cache-Control', 'no-cache')
 		tree = req.tree
 		if tree.requests[0].query?
@@ -518,7 +544,7 @@ define [
 						__model: clientModel.resources[tree.requests[0].resourceName]
 				res.json(data)
 
-	exports.runPost = runPost = uriParser.parseURITree (req, res, next) ->
+	runPost = (req, res, next) ->
 		res.set('Cache-Control', 'no-cache')
 		tree = req.tree
 		request = tree.requests[0]
@@ -569,7 +595,7 @@ define [
 		.catch (err) ->
 			res.json(err, 404)
 
-	exports.runPut = runPut = uriParser.parseURITree (req, res, next) ->
+	runPut = (req, res, next) ->
 		res.set('Cache-Control', 'no-cache')
 		tree = req.tree
 		request = tree.requests[0]
@@ -628,7 +654,7 @@ define [
 		.catch (err) ->
 			res.json(err, 404)
 
-	exports.runDelete = runDelete = uriParser.parseURITree (req, res, next) ->
+	runDelete = (req, res, next) ->
 		res.set('Cache-Control', 'no-cache')
 		tree = req.tree
 		request = tree.requests[0]
@@ -749,7 +775,7 @@ define [
 		AbstractSQL2SQL = AbstractSQL2SQL[db.engine]
 
 		if has 'DEV'
-			app.get('/dev/*', runGet)
+			app.get('/dev/*', handleODataRequest)
 
 		transactions.setup(app, requirejs, exports)
 
