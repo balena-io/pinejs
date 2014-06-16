@@ -751,7 +751,7 @@ define [
 		if has 'DEV'
 			app.get('/dev/*', runGet)
 
-		transactions.setup(app)
+		transactions.setup(app, requirejs, exports)
 
 		db.transaction()
 		.then (tx) ->
