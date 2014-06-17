@@ -13,11 +13,12 @@ define [
 	'resin-platform-api'
 	'lodash'
 	'bluebird'
+	'cs!custom-error/custom-error'
 	'cs!sbvr-compiler/types'
 	'text!sbvr-api/dev.sbvr'
 	'text!sbvr-api/transaction.sbvr'
 	'text!sbvr-api/user.sbvr'
-], (exports, has, SBVRParser, LF2AbstractSQL, AbstractSQL2SQL, AbstractSQLCompiler, AbstractSQL2CLF, ODataMetadataGenerator, permissions, transactions, uriParser, resinPlatformAPI, _, Promise, sbvrTypes, devModel, transactionModel, userModel) ->
+], (exports, has, SBVRParser, LF2AbstractSQL, AbstractSQL2SQL, AbstractSQLCompiler, AbstractSQL2CLF, ODataMetadataGenerator, permissions, transactions, uriParser, resinPlatformAPI, _, Promise, CustomError, sbvrTypes, devModel, transactionModel, userModel) ->
 	db = null
 
 	_.extend(exports, permissions)
@@ -33,6 +34,8 @@ define [
 	sqlModels = {}
 	clientModels = {}
 	odataMetadata = {}
+
+	class SqlCompilationError extends CustomError
 
 	# TODO: Clean this up and move it into the db module.
 	checkForConstraintError = do ->
@@ -500,20 +503,18 @@ define [
 			request = tree.requests[0]
 			{logger} = api[tree.vocabulary]
 
-			try
-				{query, bindings} = AbstractSQLCompiler.compile(db.engine, request.query)
-			catch e
-				logger.error('Failed to compile abstract sql: ', request.query, e, e.stack)
-				res.send(500)
-				return
-
-			getAndCheckBindValues(tree.vocabulary, bindings, request.values)
-			.then (values) ->
-				logger.log(query, values)
-				if req.tx?
-					req.tx.executeSql(query, values)
-				else
-					db.executeSql(query, values)
+			Promise.try ->
+				AbstractSQLCompiler.compile(db.engine, request.query)
+			.catch (err) ->
+				throw new SqlCompilationError(err)
+			.then ({query, bindings}) ->
+				getAndCheckBindValues(tree.vocabulary, bindings, request.values)
+				.then (values) ->
+					logger.log(query, values)
+					if req.tx?
+						req.tx.executeSql(query, values)
+					else
+						db.executeSql(query, values)
 			.then (result) ->
 				clientModel = clientModels[tree.vocabulary].resources
 				switch tree.type
@@ -528,6 +529,9 @@ define [
 						res.send(500)
 			.catch db.DatabaseError, (err) ->
 				logger.error(err, err.stack)
+				res.send(500)
+			.catch SqlCompilationError, (err) ->
+				logger.error('Failed to compile abstract sql: ', request.query, err, err.stack)
 				res.send(500)
 			.catch (err) ->
 				res.json(err, 404)
@@ -550,47 +554,49 @@ define [
 		request = tree.requests[0]
 		{logger} = api[tree.vocabulary]
 
-		try
-			{query, bindings} = AbstractSQLCompiler.compile(db.engine, request.query)
-		catch e
-			logger.error('Failed to compile abstract sql: ', request.query, e, e.stack)
-			res.send(500)
-			return
-
 		vocab = tree.vocabulary
-		getAndCheckBindValues(vocab, bindings, request.values)
-		.then (values) ->
-			logger.log(query, values)
-			idField = clientModels[vocab].resources[request.resourceName].idField
-			runQuery = (tx) ->
-				# TODO: Check for transaction locks.
-				tx.executeSql(query, values, null, idField)
-				.then (sqlResult) ->
-					validateDB(tx, vocab)
-					.then ->
-						insertID = if request.query[0] == 'UpdateQuery' then values[0] else sqlResult.insertId
-						logger.log('Insert ID: ', insertID)
-						res.json({
-								id: insertID
-							}, {
-								location: odataResourceURI(vocab, request.resourceName, insertID)
-							}, 201
-						)
-			if req.tx?
-				runQuery(req.tx)
-			else
-				db.transaction().then (tx) ->
-					runQuery(tx)
-					.then ->
-						tx.end()
-					.catch (err) ->
-						tx.rollback()
-						throw err
+
+		Promise.try ->
+			AbstractSQLCompiler.compile(db.engine, request.query)
+		.catch (err) ->
+			throw new SqlCompilationError(err)
+		.then ({query, bindings}) ->
+			getAndCheckBindValues(vocab, bindings, request.values)
+			.then (values) ->
+				logger.log(query, values)
+				idField = clientModels[vocab].resources[request.resourceName].idField
+				runQuery = (tx) ->
+					# TODO: Check for transaction locks.
+					tx.executeSql(query, values, null, idField)
+					.then (sqlResult) ->
+						validateDB(tx, vocab)
+						.then ->
+							insertID = if request.query[0] == 'UpdateQuery' then values[0] else sqlResult.insertId
+							logger.log('Insert ID: ', insertID)
+							res.json({
+									id: insertID
+								}, {
+									location: odataResourceURI(vocab, request.resourceName, insertID)
+								}, 201
+							)
+				if req.tx?
+					runQuery(req.tx)
+				else
+					db.transaction().then (tx) ->
+						runQuery(tx)
+						.then ->
+							tx.end()
+						.catch (err) ->
+							tx.rollback()
+							throw err
 		.catch db.DatabaseError, (err) ->
 			constraintError = checkForConstraintError(err, request.resourceName)
 			if constraintError != false
 				throw constraintError
 			logger.error(err, err.stack)
+			res.send(500)
+		.catch SqlCompilationError, (err) ->
+			logger.error('Failed to compile abstract sql: ', request.query, err, err.stack)
 			res.send(500)
 		.catch (err) ->
 			res.json(err, 404)
@@ -602,84 +608,40 @@ define [
 		vocab = tree.vocabulary
 		{logger} = api[vocab]
 
-		try
-			queries = AbstractSQLCompiler.compile(db.engine, request.query)
-		catch e
-			logger.error('Failed to compile abstract sql: ', request.query, e, e.stack)
-			res.send(500)
-			return
-
-		if _.isArray(queries)
-			insertQuery = queries[0]
-			updateQuery = queries[1]
-		else
-			insertQuery = queries
-
-		runTransaction = (tx) ->
-			transactions.check(tx, vocab, request)
-			.then ->
-				runQuery = (query) ->
-					getAndCheckBindValues(vocab, query.bindings, request.values)
-					.then (values) ->
-						tx.executeSql(query.query, values)
-
-				if updateQuery?
-					runQuery(updateQuery)
-					.then (result) ->
-						if result.rowsAffected is 0
-							runQuery(insertQuery)
-				else
-					runQuery(insertQuery)
-			.then ->
-				validateDB(tx, vocab)
-		trans =
-			if req.tx?
-				runTransaction(req.tx)
-			else
-				db.transaction().then (tx) ->
-					runTransaction(tx)
-					.then ->
-						tx.end()
-					.catch (err) ->
-						tx.rollback()
-						throw err
-		trans.then ->
-			res.send(200)
-		.catch db.DatabaseError, (err) ->
-			constraintError = checkForConstraintError(err, request.resourceName)
-			if constraintError != false
-				throw constraintError
-			logger.error(err, err.stack)
-			res.send(500)
+		Promise.try ->
+			AbstractSQLCompiler.compile(db.engine, request.query)
 		.catch (err) ->
-			res.json(err, 404)
+			throw new SqlCompilationError(err)
+		.then (queries) ->
 
-	runDelete = (req, res, next) ->
-		res.set('Cache-Control', 'no-cache')
-		tree = req.tree
-		request = tree.requests[0]
-		{logger} = api[tree.vocabulary]
-
-		try
-			{query, bindings} = AbstractSQLCompiler.compile(db.engine, request.query)
-		catch e
-			logger.error('Failed to compile abstract sql: ', request.query, e, e.stack)
-			res.send(500)
-			return
-
-		vocab = tree.vocabulary
-		getAndCheckBindValues(vocab, bindings, request.values)
-		.then (values) ->
-			logger.log(query, values)
-			runQuery = (tx) ->
-				tx.executeSql(query, values)
+			if _.isArray(queries)
+				insertQuery = queries[0]
+				updateQuery = queries[1]
+			else
+				insertQuery = queries
+	
+			runTransaction = (tx) ->
+				transactions.check(tx, vocab, request)
+				.then ->
+					runQuery = (query) ->
+						getAndCheckBindValues(vocab, query.bindings, request.values)
+						.then (values) ->
+							tx.executeSql(query.query, values)
+	
+					if updateQuery?
+						runQuery(updateQuery)
+						.then (result) ->
+							if result.rowsAffected is 0
+								runQuery(insertQuery)
+					else
+						runQuery(insertQuery)
 				.then ->
 					validateDB(tx, vocab)
 			if req.tx?
-				runQuery(req.tx)
+				return runTransaction(req.tx)
 			else
-				db.transaction().then (tx) ->
-					runQuery(tx)
+				return db.transaction().then (tx) ->
+					runTransaction(tx)
 					.then ->
 						tx.end()
 					.catch (err) ->
@@ -692,6 +654,53 @@ define [
 			if constraintError != false
 				throw constraintError
 			logger.error(err, err.stack)
+			res.send(500)
+		.catch SqlCompilationError, (err) ->
+			logger.error('Failed to compile abstract sql: ', request.query, err, err.stack)
+			res.send(500)
+		.catch (err) ->
+			res.json(err, 404)
+
+	runDelete = (req, res, next) ->
+		res.set('Cache-Control', 'no-cache')
+		tree = req.tree
+		request = tree.requests[0]
+		{logger} = api[tree.vocabulary]
+
+		vocab = tree.vocabulary
+
+		Promise.try ->
+			AbstractSQLCompiler.compile(db.engine, request.query)
+		.catch (err) ->
+			throw new SqlCompilationError(err)
+		.then ({query, bindings}) ->
+			getAndCheckBindValues(vocab, bindings, request.values)
+			.then (values) ->
+				logger.log(query, values)
+				runQuery = (tx) ->
+					tx.executeSql(query, values)
+					.then ->
+						validateDB(tx, vocab)
+				if req.tx?
+					runQuery(req.tx)
+				else
+					db.transaction().then (tx) ->
+						runQuery(tx)
+						.then ->
+							tx.end()
+						.catch (err) ->
+							tx.rollback()
+							throw err
+		.then ->
+			res.send(200)
+		.catch db.DatabaseError, (err) ->
+			constraintError = checkForConstraintError(err, request.resourceName)
+			if constraintError != false
+				throw constraintError
+			logger.error(err, err.stack)
+			res.send(500)
+		.catch SqlCompilationError, (err) ->
+			logger.error('Failed to compile abstract sql: ', request.query, err, err.stack)
 			res.send(500)
 		.catch (err) ->
 			res.json(err, 404)
