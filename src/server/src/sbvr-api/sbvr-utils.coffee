@@ -517,6 +517,21 @@ define [
 				res.json(err, 404)
 	]
 
+	# This is a helper method to handle using a passed in req.tx when available, or otherwise creating a new tx and cleaning up after we're done.
+	runTransaction = (tx, callback) ->
+		if tx?
+			# If an existing tx was passed in then use it.
+			callback(tx)
+		else
+			# Otherwise create a new transaction and handle tidying it up.
+			db.transaction().then (tx) ->
+				callback(tx)
+				.tap ->
+					tx.end()
+				.catch (err) ->
+					tx.rollback()
+					throw err
+
 	runGet = (req, res) ->
 		tree = req.tree
 		request = tree.requests[0]
@@ -528,10 +543,8 @@ define [
 			getAndCheckBindValues(vocab, bindings, request.values)
 			.then (values) ->
 				logger.log(query, values)
-				if req.tx?
-					req.tx.executeSql(query, values)
-				else
-					db.executeSql(query, values)
+				runTransaction req.tx, (tx) ->
+					tx.executeSql(query, values)
 			.then (result) ->
 				clientModel = clientModels[vocab].resources
 				switch tree.type
@@ -569,7 +582,7 @@ define [
 		.then (values) ->
 			logger.log(query, values)
 			idField = clientModels[vocab].resources[request.resourceName].idField
-			runQuery = (tx) ->
+			runTransaction req.tx, (tx) ->
 				# TODO: Check for transaction locks.
 				tx.executeSql(query, values, null, idField)
 				.then (sqlResult) ->
@@ -583,16 +596,6 @@ define [
 								location: odataResourceURI(vocab, request.resourceName, insertID)
 							}, 201
 						)
-			if req.tx?
-				runQuery(req.tx)
-			else
-				db.transaction().then (tx) ->
-					runQuery(tx)
-					.then ->
-						tx.end()
-					.catch (err) ->
-						tx.rollback()
-						throw err
 
 	runPut = (req, res, next) ->
 		tree = req.tree
@@ -605,7 +608,7 @@ define [
 		else
 			insertQuery = request.sqlQuery
 
-		runTransaction = (tx) ->
+		runTransaction req.tx, (tx) ->
 			transactions.check(tx, vocab, request)
 			.then ->
 				runQuery = (query) ->
@@ -622,18 +625,7 @@ define [
 					runQuery(insertQuery)
 			.then ->
 				validateDB(tx, vocab)
-		tx =
-			if req.tx?
-				runTransaction(req.tx)
-			else
-				db.transaction().then (tx) ->
-					runTransaction(tx)
-					.then ->
-						tx.end()
-					.catch (err) ->
-						tx.rollback()
-						throw err
-		tx.then ->
+		.then ->
 			res.send(200)
 
 	runDelete = (req, res, next) ->
@@ -646,20 +638,10 @@ define [
 		getAndCheckBindValues(vocab, bindings, request.values)
 		.then (values) ->
 			logger.log(query, values)
-			runQuery = (tx) ->
+			runTransaction req.tx, (tx) ->
 				tx.executeSql(query, values)
 				.then ->
 					validateDB(tx, vocab)
-			if req.tx?
-				runQuery(req.tx)
-			else
-				db.transaction().then (tx) ->
-					runQuery(tx)
-					.then ->
-						tx.end()
-					.catch (err) ->
-						tx.rollback()
-						throw err
 		.then ->
 			res.send(200)
 
