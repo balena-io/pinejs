@@ -8,6 +8,8 @@ define [
 	odataParser = ODataParser.createInstance()
 	odata2AbstractSQL = {}
 
+	metadataEndpoints = ['$metadata', '$serviceroot']
+
 	parseODataURI = (req, res) -> Promise.try ->
 		{method, url, body} = req
 		url = url.split('/')
@@ -24,8 +26,10 @@ define [
 		resourceName = query.resource
 		apiKey = query.options?.apikey
 
+		isMetadataEndpoint = resourceName in metadataEndpoints
+
 		permissionType =
-			if resourceName in ['$metadata', '$serviceroot']
+			if isMetadataEndpoint
 				query = null
 				'model'
 			else
@@ -44,8 +48,8 @@ define [
 			if conditionalPerms is false
 				return false
 			else if conditionalPerms isnt true
-				if !query?
-					throw new Error('Conditional permissions with no query?!')
+				if isMetadataEndpoint
+					throw new Error('Conditional permissions on a metadata endpoint?!')
 				permissionFilters = permissions.nestedCheck conditionalPerms, (permissionCheck) ->
 					try
 						permissionCheck = odataParser.matchAll('/x?$filter=' + permissionCheck, 'Process')
@@ -77,20 +81,23 @@ define [
 					else
 						query.options.$filter = permissionFilters
 
-			if query?
+			if !isMetadataEndpoint
 				try
 					query = odata2AbstractSQL[vocabulary].match(query, 'Process', [method, body])
 				catch e
 					console.error('Failed to translate url: ', JSON.stringify(query, null, '\t'), method, url, e, e.stack)
 					throw new Error('Failed to translate url')
+				request =
+					query: query
+					values: body
+					resourceName: resourceName
+			else
+				request =
+					resourceName: resourceName
 			return {
 				type: 'OData'
 				vocabulary
-				requests: [{
-					query
-					values: body
-					resourceName
-				}]
+				requests: [request]
 			}
 
 	exports.parseURITree = (req, res, next) ->

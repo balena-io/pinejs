@@ -485,18 +485,25 @@ define [
 		# Then forward it to the correct method
 		(req, res, next) ->
 			res.set('Cache-Control', 'no-cache')
-			api[req.tree.vocabulary].logger.log('Running', req.method, req.url)
-			promise =
+			tree = req.tree
+			api[tree.vocabulary].logger.log('Running', req.method, req.url)
+			
+			request = tree.requests[0]
+			Promise.try ->
+				if request.query?
+					request.sqlQuery = AbstractSQLCompiler.compile(db.engine, request.query)
+			.catch (err) ->
+				throw new SqlCompilationError(err)
+			.then ->
 				switch req.method
 					when 'GET'
-						runGet(req, res, next)
+						runGet(req, res)
 					when 'POST'
-						runPost(req, res, next)
+						runPost(req, res)
 					when 'PUT', 'PATCH', 'MERGE'
-						runPut(req, res, next)
+						runPut(req, res)
 					when 'DELETE'
-						runDelete(req, res, next)
-			promise
+						runDelete(req, res)
 			.catch db.DatabaseError, (err) ->
 				constraintError = checkForConstraintError(err, request.resourceName)
 				if constraintError != false
@@ -510,29 +517,26 @@ define [
 				res.json(err, 404)
 	]
 
-	runGet = (req, res, next) ->
+	runGet = (req, res) ->
 		tree = req.tree
-		if tree.requests[0].query?
-			request = tree.requests[0]
-			{logger} = api[tree.vocabulary]
+		request = tree.requests[0]
+		vocab = tree.vocabulary
+		{logger} = api[vocab]
 
-			Promise.try ->
-				AbstractSQLCompiler.compile(db.engine, request.query)
-			.catch (err) ->
-				throw new SqlCompilationError(err)
-			.then ({query, bindings}) ->
-				getAndCheckBindValues(tree.vocabulary, bindings, request.values)
-				.then (values) ->
-					logger.log(query, values)
-					if req.tx?
-						req.tx.executeSql(query, values)
-					else
-						db.executeSql(query, values)
+		if request.sqlQuery?
+			{query, bindings} = request.sqlQuery
+			getAndCheckBindValues(vocab, bindings, request.values)
+			.then (values) ->
+				logger.log(query, values)
+				if req.tx?
+					req.tx.executeSql(query, values)
+				else
+					db.executeSql(query, values)
 			.then (result) ->
-				clientModel = clientModels[tree.vocabulary].resources
+				clientModel = clientModels[vocab].resources
 				switch tree.type
 					when 'OData'
-						processOData(tree.vocabulary, clientModel, request.resourceName, result.rows)
+						processOData(vocab, clientModel, request.resourceName, result.rows)
 						.then (d) ->
 							data =
 								__model: clientModel[request.resourceName]
@@ -541,59 +545,54 @@ define [
 					else
 						res.send(500)
 		else
-			if tree.requests[0].resourceName == '$metadata'
+			if request.resourceName == '$metadata'
 				res.type('xml')
-				res.send(odataMetadata[tree.vocabulary])
+				res.send(odataMetadata[vocab])
 			else
-				clientModel = clientModels[tree.vocabulary]
+				clientModel = clientModels[vocab]
 				data =
-					if tree.requests[0].resourceName == '$serviceroot'
+					if request.resourceName == '$serviceroot'
 						__model: clientModel.resources
 					else
-						__model: clientModel.resources[tree.requests[0].resourceName]
+						__model: clientModel.resources[request.resourceName]
 				res.json(data)
 			return Promise.resolved()
 
 	runPost = (req, res, next) ->
 		tree = req.tree
 		request = tree.requests[0]
-		{logger} = api[tree.vocabulary]
-
 		vocab = tree.vocabulary
+		{logger} = api[vocab]
 
-		Promise.try ->
-			AbstractSQLCompiler.compile(db.engine, request.query)
-		.catch (err) ->
-			throw new SqlCompilationError(err)
-		.then ({query, bindings}) ->
-			getAndCheckBindValues(vocab, bindings, request.values)
-			.then (values) ->
-				logger.log(query, values)
-				idField = clientModels[vocab].resources[request.resourceName].idField
-				runQuery = (tx) ->
-					# TODO: Check for transaction locks.
-					tx.executeSql(query, values, null, idField)
-					.then (sqlResult) ->
-						validateDB(tx, vocab)
-						.then ->
-							insertID = if request.query[0] == 'UpdateQuery' then values[0] else sqlResult.insertId
-							logger.log('Insert ID: ', insertID)
-							res.json({
-									id: insertID
-								}, {
-									location: odataResourceURI(vocab, request.resourceName, insertID)
-								}, 201
-							)
-				if req.tx?
-					runQuery(req.tx)
-				else
-					db.transaction().then (tx) ->
-						runQuery(tx)
-						.then ->
-							tx.end()
-						.catch (err) ->
-							tx.rollback()
-							throw err
+		{query, bindings} = request.sqlQuery
+		getAndCheckBindValues(vocab, bindings, request.values)
+		.then (values) ->
+			logger.log(query, values)
+			idField = clientModels[vocab].resources[request.resourceName].idField
+			runQuery = (tx) ->
+				# TODO: Check for transaction locks.
+				tx.executeSql(query, values, null, idField)
+				.then (sqlResult) ->
+					validateDB(tx, vocab)
+					.then ->
+						insertID = if request.query[0] == 'UpdateQuery' then values[0] else sqlResult.insertId
+						logger.log('Insert ID: ', insertID)
+						res.json({
+								id: insertID
+							}, {
+								location: odataResourceURI(vocab, request.resourceName, insertID)
+							}, 201
+						)
+			if req.tx?
+				runQuery(req.tx)
+			else
+				db.transaction().then (tx) ->
+					runQuery(tx)
+					.then ->
+						tx.end()
+					.catch (err) ->
+						tx.rollback()
+						throw err
 
 	runPut = (req, res, next) ->
 		tree = req.tree
@@ -601,77 +600,66 @@ define [
 		vocab = tree.vocabulary
 		{logger} = api[vocab]
 
-		Promise.try ->
-			AbstractSQLCompiler.compile(db.engine, request.query)
-		.catch (err) ->
-			throw new SqlCompilationError(err)
-		.then (queries) ->
+		if _.isArray(request.sqlQuery)
+			[insertQuery, updateQuery] = request.sqlQuery
+		else
+			insertQuery = request.sqlQuery
 
-			if _.isArray(queries)
-				insertQuery = queries[0]
-				updateQuery = queries[1]
-			else
-				insertQuery = queries
-	
-			runTransaction = (tx) ->
-				transactions.check(tx, vocab, request)
-				.then ->
-					runQuery = (query) ->
-						getAndCheckBindValues(vocab, query.bindings, request.values)
-						.then (values) ->
-							tx.executeSql(query.query, values)
-	
-					if updateQuery?
-						runQuery(updateQuery)
-						.then (result) ->
-							if result.rowsAffected is 0
-								runQuery(insertQuery)
-					else
-						runQuery(insertQuery)
-				.then ->
-					validateDB(tx, vocab)
+		runTransaction = (tx) ->
+			transactions.check(tx, vocab, request)
+			.then ->
+				runQuery = (query) ->
+					getAndCheckBindValues(vocab, query.bindings, request.values)
+					.then (values) ->
+						tx.executeSql(query.query, values)
+
+				if updateQuery?
+					runQuery(updateQuery)
+					.then (result) ->
+						if result.rowsAffected is 0
+							runQuery(insertQuery)
+				else
+					runQuery(insertQuery)
+			.then ->
+				validateDB(tx, vocab)
+		tx =
 			if req.tx?
-				return runTransaction(req.tx)
+				runTransaction(req.tx)
 			else
-				return db.transaction().then (tx) ->
+				db.transaction().then (tx) ->
 					runTransaction(tx)
 					.then ->
 						tx.end()
 					.catch (err) ->
 						tx.rollback()
 						throw err
-		.then ->
+		tx.then ->
 			res.send(200)
 
 	runDelete = (req, res, next) ->
 		tree = req.tree
 		request = tree.requests[0]
-		{logger} = api[tree.vocabulary]
-
 		vocab = tree.vocabulary
+		{logger} = api[vocab]
 
-		Promise.try ->
-			AbstractSQLCompiler.compile(db.engine, request.query)
-		.catch (err) ->
-			throw new SqlCompilationError(err)
-		.then ({query, bindings}) ->
-			getAndCheckBindValues(vocab, bindings, request.values)
-			.then (values) ->
-				logger.log(query, values)
-				runQuery = (tx) ->
-					tx.executeSql(query, values)
+		{query, bindings} = request.sqlQuery
+		getAndCheckBindValues(vocab, bindings, request.values)
+		.then (values) ->
+			logger.log(query, values)
+			runQuery = (tx) ->
+				tx.executeSql(query, values)
+				.then ->
+					validateDB(tx, vocab)
+			if req.tx?
+				runQuery(req.tx)
+			else
+				db.transaction().then (tx) ->
+					runQuery(tx)
 					.then ->
-						validateDB(tx, vocab)
-				if req.tx?
-					runQuery(req.tx)
-				else
-					db.transaction().then (tx) ->
-						runQuery(tx)
-						.then ->
-							tx.end()
-						.catch (err) ->
-							tx.rollback()
-							throw err
+						tx.end()
+					.catch (err) ->
+						tx.rollback()
+						throw err
 		.then ->
 			res.send(200)
 
