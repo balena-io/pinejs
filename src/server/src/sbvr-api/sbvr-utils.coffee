@@ -484,6 +484,7 @@ define [
 
 		# Then forward it to the correct method
 		(req, res, next) ->
+			res.set('Cache-Control', 'no-cache')
 			api[req.tree.vocabulary].logger.log('Running', req.method, req.url)
 			switch req.method
 				when 'GET'
@@ -497,7 +498,6 @@ define [
 	]
 
 	runGet = (req, res, next) ->
-		res.set('Cache-Control', 'no-cache')
 		tree = req.tree
 		if tree.requests[0].query?
 			request = tree.requests[0]
@@ -549,7 +549,6 @@ define [
 				res.json(data)
 
 	runPost = (req, res, next) ->
-		res.set('Cache-Control', 'no-cache')
 		tree = req.tree
 		request = tree.requests[0]
 		{logger} = api[tree.vocabulary]
@@ -602,7 +601,6 @@ define [
 			res.json(err, 404)
 
 	runPut = (req, res, next) ->
-		res.set('Cache-Control', 'no-cache')
 		tree = req.tree
 		request = tree.requests[0]
 		vocab = tree.vocabulary
@@ -662,7 +660,6 @@ define [
 			res.json(err, 404)
 
 	runDelete = (req, res, next) ->
-		res.set('Cache-Control', 'no-cache')
 		tree = req.tree
 		request = tree.requests[0]
 		{logger} = api[tree.vocabulary]
