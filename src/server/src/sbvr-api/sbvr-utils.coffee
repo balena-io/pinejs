@@ -532,19 +532,25 @@ define [
 					tx.rollback()
 					throw err
 
+	# This is a helper function that will check and add the bind values to the SQL query and then run it.
+	runQuery = (tx, vocab, request, queryIndex, addReturning) ->
+		{values, sqlQuery} = request
+		if queryIndex?
+			sqlQuery = sqlQuery[queryIndex]
+		getAndCheckBindValues(vocab, sqlQuery.bindings, values)
+		.then (values) ->
+			api[vocab].logger.log(sqlQuery.query, values)
+			sqlQuery.values = values
+			tx.executeSql(sqlQuery.query, values, null, addReturning)
+
 	runGet = (req, res) ->
 		tree = req.tree
 		request = tree.requests[0]
 		vocab = tree.vocabulary
-		{logger} = api[vocab]
 
 		if request.sqlQuery?
-			{query, bindings} = request.sqlQuery
-			getAndCheckBindValues(vocab, bindings, request.values)
-			.then (values) ->
-				logger.log(query, values)
-				runTransaction req.tx, (tx) ->
-					tx.executeSql(query, values)
+			runTransaction req.tx, (tx) ->
+				runQuery(tx, vocab, request)
 			.then (result) ->
 				clientModel = clientModels[vocab].resources
 				switch tree.type
@@ -575,54 +581,40 @@ define [
 		tree = req.tree
 		request = tree.requests[0]
 		vocab = tree.vocabulary
-		{logger} = api[vocab]
 
-		{query, bindings} = request.sqlQuery
-		getAndCheckBindValues(vocab, bindings, request.values)
-		.then (values) ->
-			logger.log(query, values)
-			idField = clientModels[vocab].resources[request.resourceName].idField
-			runTransaction req.tx, (tx) ->
-				# TODO: Check for transaction locks.
-				tx.executeSql(query, values, null, idField)
-				.then (sqlResult) ->
-					validateDB(tx, vocab)
-					.then ->
-						insertID = if request.query[0] == 'UpdateQuery' then values[0] else sqlResult.insertId
-						logger.log('Insert ID: ', insertID)
-						res.json({
-								id: insertID
-							}, {
-								location: odataResourceURI(vocab, request.resourceName, insertID)
-							}, 201
-						)
+		idField = clientModels[vocab].resources[request.resourceName].idField
+		runTransaction req.tx, (tx) ->
+			# TODO: Check for transaction locks.
+			runQuery(tx, vocab, request, null, idField)
+			.then (sqlResult) ->
+				validateDB(tx, vocab)
+				.then ->
+					insertID = if request.query[0] == 'UpdateQuery' then request.sqlQuery.values[0] else sqlResult.insertId
+					api[vocab].logger.log('Insert ID: ', insertID)
+					res.json({
+							id: insertID
+						}, {
+							location: odataResourceURI(vocab, request.resourceName, insertID)
+						}, 201
+					)
 
 	runPut = (req, res, next) ->
 		tree = req.tree
 		request = tree.requests[0]
 		vocab = tree.vocabulary
-		{logger} = api[vocab]
-
-		if _.isArray(request.sqlQuery)
-			[insertQuery, updateQuery] = request.sqlQuery
-		else
-			insertQuery = request.sqlQuery
 
 		runTransaction req.tx, (tx) ->
 			transactions.check(tx, vocab, request)
 			.then ->
-				runQuery = (query) ->
-					getAndCheckBindValues(vocab, query.bindings, request.values)
-					.then (values) ->
-						tx.executeSql(query.query, values)
-
-				if updateQuery?
-					runQuery(updateQuery)
+				if _.isArray(request.sqlQuery)
+					# Run the update query first
+					runQuery(tx, vocab, request, 1)
 					.then (result) ->
 						if result.rowsAffected is 0
-							runQuery(insertQuery)
+							# Then run the insert query if nothing was updated
+							runQuery(tx, vocab, request, 0)
 				else
-					runQuery(insertQuery)
+					runQuery(tx, vocab, request)
 			.then ->
 				validateDB(tx, vocab)
 		.then ->
@@ -632,16 +624,11 @@ define [
 		tree = req.tree
 		request = tree.requests[0]
 		vocab = tree.vocabulary
-		{logger} = api[vocab]
 
-		{query, bindings} = request.sqlQuery
-		getAndCheckBindValues(vocab, bindings, request.values)
-		.then (values) ->
-			logger.log(query, values)
-			runTransaction req.tx, (tx) ->
-				tx.executeSql(query, values)
-				.then ->
-					validateDB(tx, vocab)
+		runTransaction req.tx, (tx) ->
+			runQuery(tx, vocab, request.sqlQuery, request)
+			.then ->
+				validateDB(tx, vocab)
 		.then ->
 			res.send(200)
 
