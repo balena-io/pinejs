@@ -486,15 +486,28 @@ define [
 		(req, res, next) ->
 			res.set('Cache-Control', 'no-cache')
 			api[req.tree.vocabulary].logger.log('Running', req.method, req.url)
-			switch req.method
-				when 'GET'
-					runGet(req, res, next)
-				when 'POST'
-					runPost(req, res, next)
-				when 'PUT', 'PATCH', 'MERGE'
-					runPut(req, res, next)
-				when 'DELETE'
-					runDelete(req, res, next)
+			promise =
+				switch req.method
+					when 'GET'
+						runGet(req, res, next)
+					when 'POST'
+						runPost(req, res, next)
+					when 'PUT', 'PATCH', 'MERGE'
+						runPut(req, res, next)
+					when 'DELETE'
+						runDelete(req, res, next)
+			promise
+			.catch db.DatabaseError, (err) ->
+				constraintError = checkForConstraintError(err, request.resourceName)
+				if constraintError != false
+					throw constraintError
+				logger.error(err, err.stack)
+				res.send(500)
+			.catch SqlCompilationError, (err) ->
+				logger.error('Failed to compile abstract sql: ', request.query, err, err.stack)
+				res.send(500)
+			.catch (err) ->
+				res.json(err, 404)
 	]
 
 	runGet = (req, res, next) ->
@@ -527,14 +540,6 @@ define [
 							res.json(data)
 					else
 						res.send(500)
-			.catch db.DatabaseError, (err) ->
-				logger.error(err, err.stack)
-				res.send(500)
-			.catch SqlCompilationError, (err) ->
-				logger.error('Failed to compile abstract sql: ', request.query, err, err.stack)
-				res.send(500)
-			.catch (err) ->
-				res.json(err, 404)
 		else
 			if tree.requests[0].resourceName == '$metadata'
 				res.type('xml')
@@ -547,6 +552,7 @@ define [
 					else
 						__model: clientModel.resources[tree.requests[0].resourceName]
 				res.json(data)
+			return Promise.resolved()
 
 	runPost = (req, res, next) ->
 		tree = req.tree
@@ -588,17 +594,6 @@ define [
 						.catch (err) ->
 							tx.rollback()
 							throw err
-		.catch db.DatabaseError, (err) ->
-			constraintError = checkForConstraintError(err, request.resourceName)
-			if constraintError != false
-				throw constraintError
-			logger.error(err, err.stack)
-			res.send(500)
-		.catch SqlCompilationError, (err) ->
-			logger.error('Failed to compile abstract sql: ', request.query, err, err.stack)
-			res.send(500)
-		.catch (err) ->
-			res.json(err, 404)
 
 	runPut = (req, res, next) ->
 		tree = req.tree
@@ -647,17 +642,6 @@ define [
 						throw err
 		.then ->
 			res.send(200)
-		.catch db.DatabaseError, (err) ->
-			constraintError = checkForConstraintError(err, request.resourceName)
-			if constraintError != false
-				throw constraintError
-			logger.error(err, err.stack)
-			res.send(500)
-		.catch SqlCompilationError, (err) ->
-			logger.error('Failed to compile abstract sql: ', request.query, err, err.stack)
-			res.send(500)
-		.catch (err) ->
-			res.json(err, 404)
 
 	runDelete = (req, res, next) ->
 		tree = req.tree
@@ -690,17 +674,6 @@ define [
 							throw err
 		.then ->
 			res.send(200)
-		.catch db.DatabaseError, (err) ->
-			constraintError = checkForConstraintError(err, request.resourceName)
-			if constraintError != false
-				throw constraintError
-			logger.error(err, err.stack)
-			res.send(500)
-		.catch SqlCompilationError, (err) ->
-			logger.error('Failed to compile abstract sql: ', request.query, err, err.stack)
-			res.send(500)
-		.catch (err) ->
-			res.json(err, 404)
 
 	exports.executeStandardModels = executeStandardModels = (tx, callback) ->
 		# The dev model has to be executed first.
