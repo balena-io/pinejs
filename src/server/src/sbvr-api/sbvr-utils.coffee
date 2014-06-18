@@ -413,8 +413,47 @@ define [
 
 	exports.api = api = {}
 
-	exports.runURI = runURI = do ->
-		forwardRequest = (req, res, next) ->
+	# We default to full permissions if no req object is passed in
+	exports.runURI = runURI =  (method, uri, body = {}, tx, req, callback) ->
+		if callback? and !_.isFunction(callback)
+			message = 'Called runURI with a non-function callback?!'
+			console.error(message)
+			console.trace()
+			return Promise.rejected(message)
+
+		if _.isObject(req)
+			user = req.user
+		else
+			if req?
+				console.warn('Non-object req passed to runURI?', req, new Error().stack)
+			user = permissions: ['resource.all']
+
+		req =
+			user: user
+			method: method
+			url: uri
+			body: body
+			tx: tx
+
+		return new Promise (resolve, reject) ->
+			res =
+				send: (statusCode) ->
+					if statusCode >= 400
+						reject(statusCode)
+					else
+						resolve()
+				json: (data, statusCode) ->
+					if statusCode >= 400
+						reject(data)
+					else
+						resolve(data)
+				set: ->
+				type: ->
+
+			next = (route) ->
+				console.warn('Next called on a runURI?!', method, uri, route)
+				reject(500)
+
 			currentMiddlewareIndex = 0
 			ourNext = (route) ->
 				if route is 'route'
@@ -424,50 +463,7 @@ define [
 				else
 					next()
 			ourNext()
-
-		# We default to full permissions if no req object is passed in
-		(method, uri, body = {}, tx, req, callback) ->
-			if callback? and !_.isFunction(callback)
-				message = 'Called runURI with a non-function callback?!'
-				console.error(message)
-				console.trace()
-				return Promise.rejected(message)
-
-			if _.isObject(req)
-				user = req.user
-			else
-				if req?
-					console.warn('Non-object req passed to runURI?', req, new Error().stack)
-				user = permissions: ['resource.all']
-
-			deferred = Promise.pending()
-			req =
-				user: user
-				method: method
-				url: uri
-				body: body
-				tx: tx
-			res =
-				send: (statusCode) ->
-					if statusCode >= 400
-						deferred.reject(statusCode)
-					else
-						deferred.fulfill()
-				json: (data, statusCode) ->
-					if statusCode >= 400
-						deferred.reject(data)
-					else
-						deferred.fulfill(data)
-				set: ->
-				type: ->
-
-			next = (route) ->
-				console.warn('Next called on a runURI?!', method, uri, route)
-				deferred.reject(500)
-
-			forwardRequest(req, res, next)
-
-			return deferred.promise.nodeify(callback)
+		.nodeify(callback)
 
 	exports.handleODataRequest = handleODataRequest = [
 		# First check for a valid api root
