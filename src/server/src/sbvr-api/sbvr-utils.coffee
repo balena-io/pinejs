@@ -417,8 +417,7 @@ define [
 	exports.runURI = runURI =  (method, uri, body = {}, tx, req, callback) ->
 		if callback? and !_.isFunction(callback)
 			message = 'Called runURI with a non-function callback?!'
-			console.error(message)
-			console.trace()
+			console.trace(message)
 			return Promise.rejected(message)
 
 		if _.isObject(req)
