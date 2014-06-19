@@ -464,9 +464,8 @@ define [
 			ourNext()
 		.nodeify(callback)
 
-	exports.handleODataRequest = handleODataRequest = [
-		# First check for a valid api root
-		(req, res, next) ->
+	exports.handleODataRequest = handleODataRequest = do ->
+		checkValidApiRoot = (req, res, next) ->
 			url = req.url.split('/')
 			apiRoot = url[1]
 			if !apiRoot? or !clientModels[apiRoot]?
@@ -474,11 +473,7 @@ define [
 			api[apiRoot].logger.log('Parsing', req.method, req.url)
 			return next()
 
-		# Then parse the uri tree
-		uriParser.parseURITree
-
-		# Then forward it to the correct method
-		(req, res, next) ->
+		handleRequest = (req, res, next) ->
 			res.set('Cache-Control', 'no-cache')
 			tree = req.tree
 			api[tree.vocabulary].logger.log('Running', req.method, req.url)
@@ -510,7 +505,12 @@ define [
 				res.send(500)
 			.catch (err) ->
 				res.json(err, 404)
-	]
+
+		return [
+			checkValidApiRoot
+			uriParser.parseURITree
+			handleRequest
+		]
 
 	# This is a helper method to handle using a passed in req.tx when available, or otherwise creating a new tx and cleaning up after we're done.
 	runTransaction = (tx, callback) ->
