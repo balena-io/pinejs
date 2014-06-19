@@ -13,11 +13,12 @@ define [
 	'resin-platform-api'
 	'lodash'
 	'bluebird'
+	'cs!custom-error/custom-error'
 	'cs!sbvr-compiler/types'
 	'text!sbvr-api/dev.sbvr'
 	'text!sbvr-api/transaction.sbvr'
 	'text!sbvr-api/user.sbvr'
-], (exports, has, SBVRParser, LF2AbstractSQL, AbstractSQL2SQL, AbstractSQLCompiler, AbstractSQL2CLF, ODataMetadataGenerator, permissions, transactions, uriParser, resinPlatformAPI, _, Promise, sbvrTypes, devModel, transactionModel, userModel) ->
+], (exports, has, SBVRParser, LF2AbstractSQL, AbstractSQL2SQL, AbstractSQLCompiler, AbstractSQL2CLF, ODataMetadataGenerator, permissions, transactions, uriParser, resinPlatformAPI, _, Promise, CustomError, sbvrTypes, devModel, transactionModel, userModel) ->
 	db = null
 
 	_.extend(exports, permissions)
@@ -33,6 +34,8 @@ define [
 	sqlModels = {}
 	clientModels = {}
 	odataMetadata = {}
+
+	class SqlCompilationError extends CustomError
 
 	# TODO: Clean this up and move it into the db module.
 	checkForConstraintError = do ->
@@ -410,89 +413,144 @@ define [
 
 	exports.api = api = {}
 
-	exports.runURI = runURI = do ->
-		forwardRequest = uriParser.parseURITree (req, res, next) ->
-			api[req.tree.vocabulary].logger.log('Running', req.method, req.url)
-			switch req.method
-				when 'GET'
-					runGet(req, res, next)
-				when 'POST'
-					runPost(req, res, next)
-				when 'PUT', 'PATCH', 'MERGE'
-					runPut(req, res, next)
-				when 'DELETE'
-					runDelete(req, res, next)
+	# We default to full permissions if no req object is passed in
+	exports.runURI = runURI =  (method, uri, body = {}, tx, req, callback) ->
+		if callback? and !_.isFunction(callback)
+			message = 'Called runURI with a non-function callback?!'
+			console.trace(message)
+			return Promise.rejected(message)
 
-		# We default to full permissions if no req object is passed in
-		(method, uri, body = {}, tx, req, callback) ->
-			if callback? and !_.isFunction(callback)
-				message = 'Called runURI with a non-function callback?!'
-				console.error(message)
-				console.trace()
-				return Promise.rejected(message)
+		if _.isObject(req)
+			user = req.user
+		else
+			if req?
+				console.warn('Non-object req passed to runURI?', req, new Error().stack)
+			user = permissions: ['resource.all']
 
-			if _.isObject(req)
-				user = req.user
-			else
-				if req?
-					console.warn('Non-object req passed to runURI?', req, new Error().stack)
-				user = permissions: ['resource.all']
+		req =
+			user: user
+			method: method
+			url: uri
+			body: body
+			tx: tx
 
-			deferred = Promise.pending()
-			req =
-				user: user
-				method: method
-				url: uri
-				body: body
-				tx: tx
+		return new Promise (resolve, reject) ->
 			res =
 				send: (statusCode) ->
 					if statusCode >= 400
-						deferred.reject(statusCode)
+						reject(statusCode)
 					else
-						deferred.fulfill()
+						resolve()
 				json: (data, statusCode) ->
 					if statusCode >= 400
-						deferred.reject(data)
+						reject(data)
 					else
-						deferred.fulfill(data)
+						resolve(data)
 				set: ->
 				type: ->
 
 			next = (route) ->
 				console.warn('Next called on a runURI?!', method, uri, route)
-				deferred.reject(500)
+				reject(500)
 
-			forwardRequest(req, res, next)
-
-			return deferred.promise.nodeify(callback)
-
-	exports.runGet = runGet = uriParser.parseURITree (req, res, next) ->
-		res.set('Cache-Control', 'no-cache')
-		tree = req.tree
-		if tree.requests[0].query?
-			request = tree.requests[0]
-			{logger} = api[tree.vocabulary]
-
-			try
-				{query, bindings} = AbstractSQLCompiler.compile(db.engine, request.query)
-			catch e
-				logger.error('Failed to compile abstract sql: ', request.query, e, e.stack)
-				res.send(500)
-				return
-
-			getAndCheckBindValues(tree.vocabulary, bindings, request.values)
-			.then (values) ->
-				logger.log(query, values)
-				if req.tx?
-					req.tx.executeSql(query, values)
+			currentMiddlewareIndex = 0
+			ourNext = (route) ->
+				if route is 'route'
+					next('route')
+				else if currentMiddlewareIndex < handleODataRequest.length
+					handleODataRequest[currentMiddlewareIndex++](req, res, ourNext)
 				else
-					db.executeSql(query, values)
+					next()
+			ourNext()
+		.nodeify(callback)
+
+	exports.handleODataRequest = handleODataRequest = do ->
+		checkValidApiRoot = (req, res, next) ->
+			url = req.url.split('/')
+			apiRoot = url[1]
+			if !apiRoot? or !clientModels[apiRoot]?
+				return next('route')
+			api[apiRoot].logger.log('Parsing', req.method, req.url)
+			return next()
+
+		handleRequest = (req, res, next) ->
+			res.set('Cache-Control', 'no-cache')
+			tree = req.tree
+			api[tree.vocabulary].logger.log('Running', req.method, req.url)
+			
+			request = tree.requests[0]
+			Promise.try ->
+				if request.query?
+					request.sqlQuery = AbstractSQLCompiler.compile(db.engine, request.query)
+			.catch (err) ->
+				throw new SqlCompilationError(err)
+			.then ->
+				switch req.method
+					when 'GET'
+						runGet(req, res)
+					when 'POST'
+						runPost(req, res)
+					when 'PUT', 'PATCH', 'MERGE'
+						runPut(req, res)
+					when 'DELETE'
+						runDelete(req, res)
+			.catch db.DatabaseError, (err) ->
+				constraintError = checkForConstraintError(err, request.resourceName)
+				if constraintError != false
+					throw constraintError
+				logger.error(err, err.stack)
+				res.send(500)
+			.catch SqlCompilationError, (err) ->
+				logger.error('Failed to compile abstract sql: ', request.query, err, err.stack)
+				res.send(500)
+			.catch (err) ->
+				res.json(err, 404)
+
+		return [
+			checkValidApiRoot
+			uriParser.parseURITree
+			handleRequest
+		]
+
+	# This is a helper method to handle using a passed in req.tx when available, or otherwise creating a new tx and cleaning up after we're done.
+	runTransaction = (tx, callback) ->
+		if tx?
+			# If an existing tx was passed in then use it.
+			callback(tx)
+		else
+			# Otherwise create a new transaction and handle tidying it up.
+			db.transaction().then (tx) ->
+				callback(tx)
+				.tap ->
+					tx.end()
+				.catch (err) ->
+					tx.rollback()
+					throw err
+
+	# This is a helper function that will check and add the bind values to the SQL query and then run it.
+	runQuery = (tx, vocab, request, queryIndex, addReturning) ->
+		{values, sqlQuery} = request
+		if queryIndex?
+			sqlQuery = sqlQuery[queryIndex]
+		getAndCheckBindValues(vocab, sqlQuery.bindings, values)
+		.then (values) ->
+			api[vocab].logger.log(sqlQuery.query, values)
+			sqlQuery.values = values
+			tx.executeSql(sqlQuery.query, values, null, addReturning)
+
+	runGet = (req, res) ->
+		tree = req.tree
+		request = tree.requests[0]
+		vocab = tree.vocabulary
+
+		if request.sqlQuery?
+			runTransaction req.tx, (tx) ->
+				runQuery(tx, vocab, request)
 			.then (result) ->
-				clientModel = clientModels[tree.vocabulary].resources
+				clientModel = clientModels[vocab].resources
 				switch tree.type
 					when 'OData'
-						processOData(tree.vocabulary, clientModel, request.resourceName, result.rows)
+						processOData(vocab, clientModel, request.resourceName, result.rows)
 						.then (d) ->
 							data =
 								__model: clientModel[request.resourceName]
@@ -500,175 +558,74 @@ define [
 							res.json(data)
 					else
 						res.send(500)
-			.catch db.DatabaseError, (err) ->
-				logger.error(err, err.stack)
-				res.send(500)
-			.catch (err) ->
-				res.json(err, 404)
 		else
-			if tree.requests[0].resourceName == '$metadata'
+			if request.resourceName == '$metadata'
 				res.type('xml')
-				res.send(odataMetadata[tree.vocabulary])
+				res.send(odataMetadata[vocab])
 			else
-				clientModel = clientModels[tree.vocabulary]
+				clientModel = clientModels[vocab]
 				data =
-					if tree.requests[0].resourceName == '$serviceroot'
+					if request.resourceName == '$serviceroot'
 						__model: clientModel.resources
 					else
-						__model: clientModel.resources[tree.requests[0].resourceName]
+						__model: clientModel.resources[request.resourceName]
 				res.json(data)
+			return Promise.resolved()
 
-	exports.runPost = runPost = uriParser.parseURITree (req, res, next) ->
-		res.set('Cache-Control', 'no-cache')
-		tree = req.tree
-		request = tree.requests[0]
-		{logger} = api[tree.vocabulary]
-
-		try
-			{query, bindings} = AbstractSQLCompiler.compile(db.engine, request.query)
-		catch e
-			logger.error('Failed to compile abstract sql: ', request.query, e, e.stack)
-			res.send(500)
-			return
-
-		vocab = tree.vocabulary
-		getAndCheckBindValues(vocab, bindings, request.values)
-		.then (values) ->
-			logger.log(query, values)
-			idField = clientModels[vocab].resources[request.resourceName].idField
-			runQuery = (tx) ->
-				# TODO: Check for transaction locks.
-				tx.executeSql(query, values, null, idField)
-				.then (sqlResult) ->
-					validateDB(tx, vocab)
-					.then ->
-						insertID = if request.query[0] == 'UpdateQuery' then values[0] else sqlResult.insertId
-						logger.log('Insert ID: ', insertID)
-						res.json({
-								id: insertID
-							}, {
-								location: odataResourceURI(vocab, request.resourceName, insertID)
-							}, 201
-						)
-			if req.tx?
-				runQuery(req.tx)
-			else
-				db.transaction().then (tx) ->
-					runQuery(tx)
-					.then ->
-						tx.end()
-					.catch (err) ->
-						tx.rollback()
-						throw err
-		.catch db.DatabaseError, (err) ->
-			constraintError = checkForConstraintError(err, request.resourceName)
-			if constraintError != false
-				throw constraintError
-			logger.error(err, err.stack)
-			res.send(500)
-		.catch (err) ->
-			res.json(err, 404)
-
-	exports.runPut = runPut = uriParser.parseURITree (req, res, next) ->
-		res.set('Cache-Control', 'no-cache')
+	runPost = (req, res, next) ->
 		tree = req.tree
 		request = tree.requests[0]
 		vocab = tree.vocabulary
-		{logger} = api[vocab]
 
-		try
-			queries = AbstractSQLCompiler.compile(db.engine, request.query)
-		catch e
-			logger.error('Failed to compile abstract sql: ', request.query, e, e.stack)
-			res.send(500)
-			return
+		idField = clientModels[vocab].resources[request.resourceName].idField
+		runTransaction req.tx, (tx) ->
+			# TODO: Check for transaction locks.
+			runQuery(tx, vocab, request, null, idField)
+			.then (sqlResult) ->
+				validateDB(tx, vocab)
+				.then ->
+					insertID = if request.query[0] == 'UpdateQuery' then request.sqlQuery.values[0] else sqlResult.insertId
+					api[vocab].logger.log('Insert ID: ', insertID)
+					res.json({
+							id: insertID
+						}, {
+							location: odataResourceURI(vocab, request.resourceName, insertID)
+						}, 201
+					)
 
-		if _.isArray(queries)
-			insertQuery = queries[0]
-			updateQuery = queries[1]
-		else
-			insertQuery = queries
+	runPut = (req, res, next) ->
+		tree = req.tree
+		request = tree.requests[0]
+		vocab = tree.vocabulary
 
-		runTransaction = (tx) ->
+		runTransaction req.tx, (tx) ->
 			transactions.check(tx, vocab, request)
 			.then ->
-				runQuery = (query) ->
-					getAndCheckBindValues(vocab, query.bindings, request.values)
-					.then (values) ->
-						tx.executeSql(query.query, values)
-
-				if updateQuery?
-					runQuery(updateQuery)
+				if _.isArray(request.sqlQuery)
+					# Run the update query first
+					runQuery(tx, vocab, request, 1)
 					.then (result) ->
 						if result.rowsAffected is 0
-							runQuery(insertQuery)
+							# Then run the insert query if nothing was updated
+							runQuery(tx, vocab, request, 0)
 				else
-					runQuery(insertQuery)
+					runQuery(tx, vocab, request)
 			.then ->
 				validateDB(tx, vocab)
-		trans =
-			if req.tx?
-				runTransaction(req.tx)
-			else
-				db.transaction().then (tx) ->
-					runTransaction(tx)
-					.then ->
-						tx.end()
-					.catch (err) ->
-						tx.rollback()
-						throw err
-		trans.then ->
-			res.send(200)
-		.catch db.DatabaseError, (err) ->
-			constraintError = checkForConstraintError(err, request.resourceName)
-			if constraintError != false
-				throw constraintError
-			logger.error(err, err.stack)
-			res.send(500)
-		.catch (err) ->
-			res.json(err, 404)
-
-	exports.runDelete = runDelete = uriParser.parseURITree (req, res, next) ->
-		res.set('Cache-Control', 'no-cache')
-		tree = req.tree
-		request = tree.requests[0]
-		{logger} = api[tree.vocabulary]
-
-		try
-			{query, bindings} = AbstractSQLCompiler.compile(db.engine, request.query)
-		catch e
-			logger.error('Failed to compile abstract sql: ', request.query, e, e.stack)
-			res.send(500)
-			return
-
-		vocab = tree.vocabulary
-		getAndCheckBindValues(vocab, bindings, request.values)
-		.then (values) ->
-			logger.log(query, values)
-			runQuery = (tx) ->
-				tx.executeSql(query, values)
-				.then ->
-					validateDB(tx, vocab)
-			if req.tx?
-				runQuery(req.tx)
-			else
-				db.transaction().then (tx) ->
-					runQuery(tx)
-					.then ->
-						tx.end()
-					.catch (err) ->
-						tx.rollback()
-						throw err
 		.then ->
 			res.send(200)
-		.catch db.DatabaseError, (err) ->
-			constraintError = checkForConstraintError(err, request.resourceName)
-			if constraintError != false
-				throw constraintError
-			logger.error(err, err.stack)
-			res.send(500)
-		.catch (err) ->
-			res.json(err, 404)
+
+	runDelete = (req, res, next) ->
+		tree = req.tree
+		request = tree.requests[0]
+		vocab = tree.vocabulary
+
+		runTransaction req.tx, (tx) ->
+			runQuery(tx, vocab, request.sqlQuery, request)
+			.then ->
+				validateDB(tx, vocab)
+		.then ->
+			res.send(200)
 
 	exports.executeStandardModels = executeStandardModels = (tx, callback) ->
 		# The dev model has to be executed first.
@@ -749,9 +706,9 @@ define [
 		AbstractSQL2SQL = AbstractSQL2SQL[db.engine]
 
 		if has 'DEV'
-			app.get('/dev/*', runGet)
+			app.get('/dev/*', handleODataRequest)
 
-		transactions.setup(app)
+		transactions.setup(app, requirejs, exports)
 
 		db.transaction()
 		.then (tx) ->

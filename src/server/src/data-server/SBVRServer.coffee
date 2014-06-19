@@ -262,24 +262,10 @@ define [
 					console.error('Error restoring db', err, err.stack)
 					res.send(404)
 
-		app.get('/data/*', serverIsOnAir, sbvrUtils.runGet)
-		app.get('/Auth/*', serverIsOnAir, sbvrUtils.runGet)
+		app.all('/data/*', serverIsOnAir, sbvrUtils.handleODataRequest)
+		app.get('/Auth/*', serverIsOnAir, sbvrUtils.handleODataRequest)
+		app.merge('/ui/*', sbvrUtils.handleODataRequest)
 
-		app.post('/data/*', serverIsOnAir, sbvrUtils.runPost)
-		app.post('/Auth/*', serverIsOnAir, sbvrUtils.runPost)
-
-		app.put('/data/*', serverIsOnAir, sbvrUtils.runPut)
-		app.put('/Auth/*', serverIsOnAir, sbvrUtils.runPut)
-
-		app.patch('/data/*', serverIsOnAir, sbvrUtils.runPut)
-		app.patch('/Auth/*', serverIsOnAir, sbvrUtils.runPut)
-
-		app.merge('/ui/*', sbvrUtils.runPut)
-		app.merge('/data/*', serverIsOnAir, sbvrUtils.runPut)
-		app.merge('/Auth/*', serverIsOnAir, sbvrUtils.runPut)
-
-		app.del('/data/*', serverIsOnAir, sbvrUtils.runDelete)
-		app.del('/Auth/*', serverIsOnAir, sbvrUtils.runDelete)
 
 		app.del '/', serverIsOnAir, (req, res, next) ->
 			Promise.all([

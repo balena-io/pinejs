@@ -66,17 +66,8 @@ This checks that the currently logged in (or guest) user has the required permis
 #### checkPermissionsMiddleware(permissionCheck)
 This generates a middleware that will run the given permissionCheck
 
-#### runGet(req, res, tx)
-Processes a GET request, will use the given transaction if supplied.
-
-#### runPost(req, res, tx)
-Processes a POST request, will use the given transaction if supplied.
-
-#### runPut(req, res, tx)
-Processes a PUT request, will use the given transaction if supplied.
-
-#### runDelete(req, res, tx)
-Processes a DELETE request, will use the given transaction if supplied.
+#### handleODataRequest
+This is an array of middleware that will handle an OData request for GET/PUT/POST/PATCH/MERGE/DELETE
 
 #### parseURITree(req, res, next)
 This is an express middleware that will require the URI to parse as a valid platform OData request.

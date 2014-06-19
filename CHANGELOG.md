@@ -5,6 +5,7 @@ v0.3.0
 	* Fixes an error being logged when trying to get hints for the verb part of a new fact type
 	* Fixes rule-like definitions for terms and names
 * Fix an issue where api keys that looked like valid user ids were treated as a user id.
+* Replaced `runGet`, `runPost`, `runPut`, and `runDelete` with a new middleware list called `handleODataRequest` that can be used in their place.
 
 v0.2.29
 
