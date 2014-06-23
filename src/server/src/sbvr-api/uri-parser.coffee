@@ -24,7 +24,7 @@ define [
 			throw new ParsingError('No such api root: ' + apiRoot)
 		url = '/' + url[2...].join('/')
 		try
-			query = odataParser.matchAll(url, 'Process')
+			odataQuery = odataParser.matchAll(url, 'Process')
 		catch e
 			console.log('Failed to parse url: ', method, url, e, e.stack)
 			throw new ParsingError('Failed to parse url')
@@ -32,13 +32,13 @@ define [
 		return [{
 			method
 			vocabulary: apiRoot
-			resourceName: query.resource
-			query
+			resourceName: odataQuery.resource
+			odataQuery
 			values: body
 		}]
 
-	exports.addPermissions = (req, {method, vocabulary, resourceName, query, values}) ->
-		apiKey = query.options?.apikey
+	exports.addPermissions = (req, {method, vocabulary, resourceName, odataQuery, values}) ->
+		apiKey = odataQuery.options?.apikey
 
 		isMetadataEndpoint = resourceName in metadataEndpoints
 
@@ -88,33 +88,34 @@ define [
 							v
 
 					permissionFilters = collapse(permissionFilters)
-					query.options ?= {}
-					if query.options.$filter?
-						query.options.$filter = ['and', query.options.$filter, permissionFilters]
+					odataQuery.options ?= {}
+					if odataQuery.options.$filter?
+						odataQuery.options.$filter = ['and', odataQuery.options.$filter, permissionFilters]
 					else
-						query.options.$filter = permissionFilters
+						odataQuery.options.$filter = permissionFilters
 
 			return {
 				method
 				vocabulary
 				resourceName
-				query
+				odataQuery
 				values
 			}
 
-	exports.translateUri = ({method, vocabulary, resourceName, query, values}) ->
+	exports.translateUri = ({method, vocabulary, resourceName, odataQuery, values}) ->
 		isMetadataEndpoint = resourceName in metadataEndpoints
 		if !isMetadataEndpoint
 			try
-				query = odata2AbstractSQL[vocabulary].match(query, 'Process', [method, values])
+				abstractSqlQuery = odata2AbstractSQL[vocabulary].match(odataQuery, 'Process', [method, values])
 			catch e
-				console.error('Failed to translate url: ', JSON.stringify(query, null, '\t'), method, url, e, e.stack)
+				console.error('Failed to translate url: ', JSON.stringify(abstractSqlQuery, null, '\t'), method, url, e, e.stack)
 				throw new TranslationError('Failed to translate url')
 			return {
 				method
 				vocabulary
 				resourceName
-				query
+				odataQuery
+				abstractSqlQuery
 				values
 			}
 		return {

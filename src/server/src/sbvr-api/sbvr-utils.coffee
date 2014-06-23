@@ -246,7 +246,7 @@ define [
 
 	exports.getID = (vocab, request) ->
 		idField = sqlModels[vocab].tables[request.resourceName].idField
-		for whereClause in request.query when whereClause[0] == 'Where'
+		for whereClause in request.abstractSqlQuery when whereClause[0] == 'Where'
 			for comparison in whereClause[1..] when comparison[0] == 'Equals'
 				if comparison[1][2] == idField
 					return comparison[2][1]
@@ -472,11 +472,11 @@ define [
 				uriParser.addPermissions(req, request)
 				.then(uriParser.translateUri)
 				.then (request) ->
-					if request.query?
+					if request.abstractSqlQuery?
 						try
-							request.sqlQuery = AbstractSQLCompiler.compile(db.engine, request.query)
+							request.sqlQuery = AbstractSQLCompiler.compile(db.engine, request.abstractSqlQuery)
 						catch err
-							logger.error('Failed to compile abstract sql: ', request.query, err, err.stack)
+							logger.error('Failed to compile abstract sql: ', request.abstractSqlQuery, err, err.stack)
 							throw new SqlCompilationError(err)
 					return request
 		# Then handle forwarding the request to the correct method handler.
@@ -583,7 +583,7 @@ define [
 				validateDB(tx, vocab)
 				.then ->
 					# Return the inserted/updated id.
-					if request.query[0] == 'UpdateQuery'
+					if request.abstractSqlQuery[0] == 'UpdateQuery'
 						request.sqlQuery.values[0]
 					else
 						sqlResult.insertId
