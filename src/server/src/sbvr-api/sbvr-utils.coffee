@@ -534,13 +534,13 @@ define [
 					throw err
 
 	# This is a helper function that will check and add the bind values to the SQL query and then run it.
-	runQuery = (tx, vocab, request, queryIndex, addReturning) ->
-		{values, sqlQuery} = request
+	runQuery = (tx, request, queryIndex, addReturning) ->
+		{values, sqlQuery, vocabulary} = request
 		if queryIndex?
 			sqlQuery = sqlQuery[queryIndex]
-		getAndCheckBindValues(vocab, sqlQuery.bindings, values)
+		getAndCheckBindValues(vocabulary, sqlQuery.bindings, values)
 		.then (values) ->
-			api[vocab].logger.log(sqlQuery.query, values)
+			api[vocabulary].logger.log(sqlQuery.query, values)
 			sqlQuery.values = values
 			tx.executeSql(sqlQuery.query, values, null, addReturning)
 
@@ -549,7 +549,7 @@ define [
 
 		if request.sqlQuery?
 			runTransaction req.tx, (tx) ->
-				runQuery(tx, vocab, request)
+				runQuery(tx, request)
 			.then (result) ->
 				clientModel = clientModels[vocab].resources
 				processOData(vocab, clientModel, request.resourceName, result.rows)
@@ -578,7 +578,7 @@ define [
 		idField = clientModels[vocab].resources[request.resourceName].idField
 		runTransaction req.tx, (tx) ->
 			# TODO: Check for transaction locks.
-			runQuery(tx, vocab, request, null, idField)
+			runQuery(tx, request, null, idField)
 			.then (sqlResult) ->
 				validateDB(tx, vocab)
 				.then ->
@@ -605,13 +605,13 @@ define [
 				# If request.sqlQuery is an array it means it's an UPSERT, ie two queries: [InsertQuery, UpdateQuery]
 				if _.isArray(request.sqlQuery)
 					# Run the update query first
-					runQuery(tx, vocab, request, 1)
+					runQuery(tx, request, 1)
 					.then (result) ->
 						if result.rowsAffected is 0
 							# Then run the insert query if nothing was updated
-							runQuery(tx, vocab, request, 0)
+							runQuery(tx, request, 0)
 				else
-					runQuery(tx, vocab, request)
+					runQuery(tx, request)
 			.then ->
 				validateDB(tx, vocab)
 		.then ->
@@ -621,7 +621,7 @@ define [
 		vocab = request.vocabulary
 
 		runTransaction req.tx, (tx) ->
-			runQuery(tx, vocab, request)
+			runQuery(tx, request)
 			.then ->
 				validateDB(tx, vocab)
 		.then ->
