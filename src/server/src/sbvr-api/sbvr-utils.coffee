@@ -621,7 +621,7 @@ define [
 		vocab = tree.vocabulary
 
 		runTransaction req.tx, (tx) ->
-			runQuery(tx, vocab, request.sqlQuery, request)
+			runQuery(tx, vocab, request)
 			.then ->
 				validateDB(tx, vocab)
 		.then ->
