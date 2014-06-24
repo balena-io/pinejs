@@ -476,7 +476,8 @@ define [
 		handleRequest = (req, res, next) ->
 			res.set('Cache-Control', 'no-cache')
 			tree = req.tree
-			api[tree.vocabulary].logger.log('Running', req.method, req.url)
+			{logger} = api[tree.vocabulary]
+			logger.log('Running', req.method, req.url)
 			
 			request = tree.requests[0]
 			Promise.try ->
