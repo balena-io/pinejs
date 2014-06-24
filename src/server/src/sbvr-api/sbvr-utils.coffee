@@ -504,6 +504,9 @@ define [
 			.catch SqlCompilationError, (err) ->
 				logger.error('Failed to compile abstract sql: ', request.query, err, err.stack)
 				res.send(500)
+			.catch EvalError, RangeError, ReferenceError, SyntaxError, TypeError, URIError, (err) ->
+				logger.error(err, err.stack)
+				res.send(500)
 			.catch (err) ->
 				# If the err is an error object then use its message instead - it should be more readable!
 				if err instanceof Error
