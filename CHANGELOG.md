@@ -10,6 +10,7 @@ v0.3.0
 * The `checkPermissions` function had its `res` argument removed.
 * Added API hooks facilities via `sbvrUtils.addHook` with the following hook points:
 	* POSTPARSE
+	* PRERUN
 	* POSTRUN
 
 v0.2.29

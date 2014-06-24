@@ -5,6 +5,7 @@ Also, any promises that are returned will be waited on before continuing with pr
 ## Hook points
 * POSTPARSE({req, request})
 	The `request` object for POSTPARSE is lacking the `abstractSqlQuery` and `sqlQuery` entries.
+* PRERUN({req, request, tx})
 * POSTRUN({req, request, result, tx})
 
 ## Arguments

@@ -4,14 +4,55 @@ HTTP -> +SBVR-Utils: HTTP Request
 SBVR-Utils -> SBVR-Utils: <<Parse Request>>
 
 
+SBVR-Utils -> +Database: Start transaction
+Database --> SBVR-Utils: Transaction object
+
+SBVR-Utils -> SBVR-Utils: Run PRERUN hooks.
+
 alt GET
-	SBVR-Utils -> SBVR-Utils: runGet(req, res, request, result)
+	SBVR-Utils -> +SBVR-Utils: runGet(req, res, request, result)
 	opt If query
-		SBVR-Utils -> +Database: Start transaction
-		Database --> SBVR-Utils: Transaction object
 		SBVR-Utils -> SBVR-Utils: <<Run Query (Select)>>
-		SBVR-Utils -> SBVR-Utils: Run POSTRUN hooks.
-		Database -> -SBVR-Utils: End transaction
+		SBVR-Utils --> -SBVR-Utils: Database result
+	end
+
+else POST
+	SBVR-Utils -> +SBVR-Utils: runPost(req, res, request, result)
+	SBVR-Utils -> SBVR-Utils: <<Run Query (Insert /Update)>>
+	SBVR-Utils -> SBVR-Utils: <<Validate Database>>
+	SBVR-Utils --> -SBVR-Utils: Inserted/Updated ID
+
+else PUT/PATCH/MERGE
+	SBVR-Utils -> +SBVR-Utils: runPut(req, res, request, result)
+	alt UPSERT
+		SBVR-Utils -> SBVR-Utils: <<Run Query (Update)>>
+		opt If nothing updated
+			SBVR-Utils -> SBVR-Utils: <<Run Query (Insert)>>
+		end
+	else UPDATE
+		SBVR-Utils -> SBVR-Utils: <<Run Query (Update)>>
+	end
+	SBVR-Utils -> SBVR-Utils: <<Validate Database>>
+	SBVR-Utils --> -SBVR-Utils: null
+
+else DELETE
+	SBVR-Utils -> +SBVR-Utils: runPost(req, res, request, result)
+	SBVR-Utils -> SBVR-Utils: <<Run Query (Delete)>>
+	SBVR-Utils -> SBVR-Utils: <<Validate Database>>
+	SBVR-Utils --> -SBVR-Utils: null
+end
+
+SBVR-Utils -> SBVR-Utils: Run POSTRUN hooks.
+
+SBVR-Utils -> Database: End transaction
+Database -> -SBVR-Utils:
+destroy Database
+
+
+
+alt GET
+	SBVR-Utils -> SBVR-Utils: respondGet(req, res, request, result)
+	alt If query
 		SBVR-Utils -> SBVR-Utils: <<Process OData Response>>
 		SBVR-Utils --> HTTP: 200, OData JSON
 	else $metadata
@@ -23,44 +64,15 @@ alt GET
 	end
 
 else POST
-	SBVR-Utils -> SBVR-Utils: runPost(req, res, request, result)
-	SBVR-Utils -> +Database: Start transaction
-	Database --> SBVR-Utils: Transaction object
-	SBVR-Utils -> SBVR-Utils: <<Run Query (Insert /Update)>>
-	SBVR-Utils -> SBVR-Utils: <<Validate Database>>
-	SBVR-Utils -> SBVR-Utils: Run POSTRUN hooks.
-	SBVR-Utils -> Database: End transaction
-	Database -> -SBVR-Utils:
+	SBVR-Utils -> SBVR-Utils: respondPost(req, res, request, result)
 	SBVR-Utils --> HTTP: 201, {id: Inserted/Updated ID}
 
 else PUT/PATCH/MERGE
-	SBVR-Utils -> SBVR-Utils: runPut(req, res, request, result)
-	SBVR-Utils -> +Database: Start transaction
-	Database --> SBVR-Utils: Transaction object
-	alt UPSERT
-		SBVR-Utils -> SBVR-Utils: <<Run Query (Update)>>
-		opt If nothing updated
-			SBVR-Utils -> SBVR-Utils: <<Run Query (Insert)>>
-		end
-	else UPDATE
-		SBVR-Utils -> SBVR-Utils: <<Run Query (Update)>>
-	end
-	SBVR-Utils -> SBVR-Utils: <<Validate Database>>
-	SBVR-Utils -> SBVR-Utils: Run POSTRUN hooks.
-	SBVR-Utils -> Database: End transaction
-	Database -> -SBVR-Utils:
+	SBVR-Utils -> SBVR-Utils: respondPut(req, res, request, result)
 	SBVR-Utils --> HTTP: 200
 
 else DELETE
-	SBVR-Utils -> SBVR-Utils: runPost(req, res, request, result)
-	SBVR-Utils -> +Database: Start transaction
-	Database --> SBVR-Utils: Transaction object
-	SBVR-Utils -> SBVR-Utils: <<Run Query (Delete)>>
-	SBVR-Utils -> SBVR-Utils: <<Validate Database>>
-	SBVR-Utils -> SBVR-Utils: Run POSTRUN hooks.
-	SBVR-Utils -> Database: End transaction
-	Database -> -SBVR-Utils:
+	SBVR-Utils -> SBVR-Utils: respondDelete(req, res, request, result)
 	SBVR-Utils --> HTTP: 200
 end
-
 deactivate SBVR-Utils
