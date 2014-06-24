@@ -4,6 +4,8 @@ In order to to roll back the transaction you can either throw an error, or retur
 Also, any promises that are returned will be waited on before continuing with processing the request.
 ## Hook points
 * POSTPARSE({req, request})
+	The `request` object for POSTPARSE is lacking the `abstractSqlQuery` and `sqlQuery` entries.
+* POSTRUN({req, request, result, tx})
 
 ## Arguments
 ### req
@@ -25,5 +27,19 @@ The API root that the request is for, eg Auth
 The resource that the request relates to, eg user
 #### odataQuery
 The OData OMeta structure.
+#### abstractSqlQuery
+The Abstract SQL OMeta structure.
+#### sqlQuery
+The SQL OMeta structure.
 #### values
 The "body" of the request.
+
+### result
+This is the result from running the transaction.
+
+* GET - A database result object with the unprocessed rows that have been queried.
+* POST - The inserted/updated id.
+* PUT/PATCH/MERGE/DELETE - null
+
+### tx
+The database transaction object, so that you can run queries in the same transaction or make API calls that use the same transaction.

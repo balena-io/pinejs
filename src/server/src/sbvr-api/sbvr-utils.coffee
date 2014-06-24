@@ -533,14 +533,19 @@ define [
 			res.json(err, 404)
 
 	# This is a helper method to handle using a passed in req.tx when available, or otherwise creating a new tx and cleaning up after we're done.
-	runTransaction = (tx, callback) ->
-		if tx?
-			# If an existing tx was passed in then use it.
+	runTransaction = (req, request, callback) ->
+		runCallback = (tx) ->
 			callback(tx)
+			.tap (result) ->
+				Promise.map req.hooks.POSTRUN ? [], (hook) ->
+					hook({req, request, result, tx})
+		if req.tx?
+			# If an existing tx was passed in then use it.
+			runCallback(req.tx)
 		else
 			# Otherwise create a new transaction and handle tidying it up.
 			db.transaction().then (tx) ->
-				callback(tx)
+				runCallback(tx)
 				.tap ->
 					tx.end()
 				.catch (err) ->
@@ -562,7 +567,7 @@ define [
 		vocab = request.vocabulary
 
 		if request.sqlQuery?
-			runTransaction req.tx, (tx) ->
+			runTransaction req, request, (tx) ->
 				runQuery(tx, request)
 			.then (result) ->
 				clientModel = clientModels[vocab].resources
@@ -590,7 +595,7 @@ define [
 		vocab = request.vocabulary
 
 		idField = clientModels[vocab].resources[request.resourceName].idField
-		runTransaction req.tx, (tx) ->
+		runTransaction req, request, (tx) ->
 			# TODO: Check for transaction locks.
 			runQuery(tx, request, null, idField)
 			.then (sqlResult) ->
@@ -613,7 +618,7 @@ define [
 	runPut = (req, res, request) ->
 		vocab = request.vocabulary
 
-		runTransaction req.tx, (tx) ->
+		runTransaction req, request, (tx) ->
 			transactions.check(tx, request)
 			.then ->
 				# If request.sqlQuery is an array it means it's an UPSERT, ie two queries: [InsertQuery, UpdateQuery]
@@ -634,7 +639,7 @@ define [
 	runDelete = (req, res, request) ->
 		vocab = request.vocabulary
 
-		runTransaction req.tx, (tx) ->
+		runTransaction req, request, (tx) ->
 			runQuery(tx, request)
 			.then ->
 				validateDB(tx, vocab)
@@ -724,7 +729,7 @@ define [
 		if !clientModels[apiRoot].resources[resourceName]?
 			throw new Error('Unknown resource for api root: ' + resourceName + ', ' + apiRoot)
 
-		for callbackType, callback of callbacks when callbackType not in ['POSTPARSE']
+		for callbackType, callback of callbacks when callbackType not in ['POSTPARSE', 'POSTRUN']
 			throw new Error('Unknown callback type: ' + callbackType)
 
 		apiRootHooks = methodHooks[apiRoot] ?= {}
