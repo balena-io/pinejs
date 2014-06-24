@@ -505,6 +505,9 @@ define [
 				logger.error('Failed to compile abstract sql: ', request.query, err, err.stack)
 				res.send(500)
 			.catch (err) ->
+				# If the err is an error object then use its message instead - it should be more readable!
+				if err instanceof Error
+					err = err.message
 				res.json(err, 404)
 
 		return [
