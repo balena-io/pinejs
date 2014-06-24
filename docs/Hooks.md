@@ -34,6 +34,8 @@ The Abstract SQL OMeta structure.
 The SQL OMeta structure.
 #### values
 The "body" of the request.
+#### custom
+This is an empty object, you may store whatever you like here and have it available in later hooks.
 
 ### result
 This is the result from running the transaction.
