@@ -548,16 +548,12 @@ define [
 				runQuery(tx, vocab, request)
 			.then (result) ->
 				clientModel = clientModels[vocab].resources
-				switch tree.type
-					when 'OData'
-						processOData(vocab, clientModel, request.resourceName, result.rows)
-						.then (d) ->
-							data =
-								__model: clientModel[request.resourceName]
-								d: d
-							res.json(data)
-					else
-						res.send(500)
+				processOData(vocab, clientModel, request.resourceName, result.rows)
+				.then (d) ->
+					res.json(
+						__model: clientModel[request.resourceName]
+						d: d
+					)
 		else
 			if request.resourceName == '$metadata'
 				res.type('xml')
