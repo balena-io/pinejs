@@ -590,7 +590,7 @@ define [
 					else
 						sqlResult.insertId
 		.then (insertID) ->
-			api[vocab].logger.log('Insert ID: ', insertID)
+			api[vocab].logger.log('Insert ID: ', request.resourceName, insertID)
 			res.json({
 					id: insertID
 				}, {
