@@ -587,14 +587,19 @@ define [
 			.then (sqlResult) ->
 				validateDB(tx, vocab)
 				.then ->
-					insertID = if request.query[0] == 'UpdateQuery' then request.sqlQuery.values[0] else sqlResult.insertId
-					api[vocab].logger.log('Insert ID: ', insertID)
-					res.json({
-							id: insertID
-						}, {
-							location: odataResourceURI(vocab, request.resourceName, insertID)
-						}, 201
-					)
+					# Return the inserted/updated id.
+					if request.query[0] == 'UpdateQuery'
+						request.sqlQuery.values[0]
+					else
+						sqlResult.insertId
+		.then (insertID) ->
+			api[vocab].logger.log('Insert ID: ', request.resourceName, insertID)
+			res.json({
+					id: insertID
+				}, {
+					location: odataResourceURI(vocab, request.resourceName, insertID)
+				}, 201
+			)
 
 	runPut = (req, res, next) ->
 		tree = req.tree
