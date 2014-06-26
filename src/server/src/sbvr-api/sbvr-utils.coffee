@@ -573,7 +573,7 @@ define [
 					else
 						__model: clientModel.resources[request.resourceName]
 				res.json(data)
-			return Promise.resolved()
+			return Promise.resolve()
 
 	runPost = (req, res, next) ->
 		tree = req.tree
