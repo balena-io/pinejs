@@ -610,6 +610,7 @@ define [
 		runTransaction req.tx, (tx) ->
 			transactions.check(tx, vocab, request)
 			.then ->
+				# If request.sqlQuery is an array it means it's an UPSERT, ie two queries: [InsertQuery, UpdateQuery]
 				if _.isArray(request.sqlQuery)
 					# Run the update query first
 					runQuery(tx, vocab, request, 1)
