@@ -6,6 +6,7 @@ v0.3.0
 	* Fixes rule-like definitions for terms and names
 * Fix an issue where api keys that looked like valid user ids were treated as a user id.
 * Replaced `runGet`, `runPost`, `runPut`, and `runDelete` with a new middleware list called `handleODataRequest` that can be used in their place.
+* Updated bluebird to v2.1.3
 
 v0.2.29
 

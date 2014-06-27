@@ -137,7 +137,8 @@ define [
 				throw new Error(['Error compiling model', e])
 
 			# Create tables related to terms and fact types
-			Promise.map sqlModel.createSchema, (createStatement) ->
+			# Use `Promise.all _.map` in order to force sequential ordering, since the order the CREATE TABLE statements are run matters (eg. for foreign keys).
+			Promise.all _.map sqlModel.createSchema, (createStatement) ->
 				tx.executeSql(createStatement)
 				.catch ->
 					# Warning: We ignore errors in the create table statements as SQLite doesn't support CREATE IF NOT EXISTS
