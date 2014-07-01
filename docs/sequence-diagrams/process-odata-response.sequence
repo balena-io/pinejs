@@ -1,0 +1,27 @@
+title Process OData Response
+
+* -> SBVR-Utils: Database result
+
+loop Rows
+	SBVR-Utils -> SBVR-Utils: Add OData metadata
+end
+
+
+loop Expandable Rows
+	SBVR-Utils -> ExpandFields: Expand fields
+	opt If JSON
+		alt If array
+			ExpandFields -> SBVR-Utils: <<Process OData Response>>
+			SBVR-Utils --> ExpandFields: OData Response
+		else
+			ExpandFields -> ExpandFields: Add deferred metadata
+		end
+	end
+	ExpandFields --> SBVR-Utils: Expanded fields
+end
+
+loop Rows Requiring Processing
+	SBVR-Utils -> SBVR-Utils: Apply datatype fetch processing
+end
+
+SBVR-Utils --> *: OData Response

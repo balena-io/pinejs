@@ -1,0 +1,62 @@
+title Run Request
+
+HTTP -> +SBVR-Utils: HTTP Request
+SBVR-Utils -> SBVR-Utils: <<Parse Request>>
+
+
+alt GET
+	SBVR-Utils -> SBVR-Utils: runGet(req, res, request, result)
+	opt If query
+		SBVR-Utils -> +Database: Start transaction
+		Database --> SBVR-Utils: Transaction object
+		SBVR-Utils -> SBVR-Utils: <<Run Query (Select)>>
+		Database -> -SBVR-Utils:
+		SBVR-Utils -> SBVR-Utils: <<Process OData Response>>
+		SBVR-Utils --> HTTP: 200, OData JSON
+	else $metadata
+		SBVR-Utils --> HTTP: 200, OData $metadata XML
+	else $serviceroot
+		SBVR-Utils --> HTTP: 200, Client model resources
+	else
+		SBVR-Utils --> HTTP: 200, Client model for given resource
+	end
+
+else POST
+	SBVR-Utils -> SBVR-Utils: runPost(req, res, request, result)
+	SBVR-Utils -> +Database: Start transaction
+	Database --> SBVR-Utils: Transaction object
+	SBVR-Utils -> SBVR-Utils: <<Run Query (Insert /Update)>>
+	SBVR-Utils -> SBVR-Utils: <<Validate Database>>
+	SBVR-Utils -> Database: End transaction
+	Database -> -SBVR-Utils:
+	SBVR-Utils --> HTTP: 201, {id: Inserted/Updated ID}
+
+else PUT/PATCH/MERGE
+	SBVR-Utils -> SBVR-Utils: runPut(req, res, request, result)
+	SBVR-Utils -> +Database: Start transaction
+	Database --> SBVR-Utils: Transaction object
+	alt UPSERT
+		SBVR-Utils -> SBVR-Utils: <<Run Query (Update)>>
+		opt If nothing updated
+			SBVR-Utils -> SBVR-Utils: <<Run Query (Insert)>>
+		end
+	else UPDATE
+		SBVR-Utils -> SBVR-Utils: <<Run Query (Update)>>
+	end
+	SBVR-Utils -> SBVR-Utils: <<Validate Database>>
+	SBVR-Utils -> Database: End transaction
+	Database -> -SBVR-Utils:
+	SBVR-Utils --> HTTP: 200
+
+else DELETE
+	SBVR-Utils -> SBVR-Utils: runPost(req, res, request, result)
+	SBVR-Utils -> +Database: Start transaction
+	Database --> SBVR-Utils: Transaction object
+	SBVR-Utils -> SBVR-Utils: <<Run Query (Delete)>>
+	SBVR-Utils -> SBVR-Utils: <<Validate Database>>
+	SBVR-Utils -> Database: End transaction
+	Database -> -SBVR-Utils:
+	SBVR-Utils --> HTTP: 200
+end
+
+deactivate SBVR-Utils

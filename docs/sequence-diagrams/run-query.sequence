@@ -1,0 +1,13 @@
+title Run Query
+
+* -> SBVR-Utils: Query + Bind Values
+
+loop Check Bind Values
+	SBVR-Utils -> AbstractSQL2SQL: Validate/transform bind value datatype
+	AbstractSQL2SQL --> SBVR-Utils: Validated bind value
+end
+
+SBVR-Utils -> Database: Run query
+Database --> SBVR-Utils: Query result
+
+SBVR-Utils --> *: Query result

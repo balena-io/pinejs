@@ -1,0 +1,23 @@
+title Parse Request
+
+* -> SBVR-Utils: HTTP Request
+
+SBVR-Utils -> SBVR-Utils: Check valid API root
+
+SBVR-Utils -> +URI-Parser: Parse URI
+URI-Parser -> +OData-Parser: URI
+OData-Parser --> -URI-Parser: OData request structure
+
+URI-Parser -> +Permissions: Check permissions.
+Permissions --> -URI-Parser: Conditional permissions list
+URI-Parser -> URI-Parser: Add conditional permissions to OData request structure
+
+URI-Parser -> +OData2AbstractSQL: OData request structure
+OData2AbstractSQL --> -URI-Parser: Abstract SQL structure.
+
+URI-Parser --> -SBVR-Utils: "Request" object.
+
+SBVR-Utils -> +AbstractSQLCompiler: Abstract SQL structure
+AbstractSQLCompiler --> -SBVR-Utils: SQL structure.
+
+SBVR-Utils --> *: "Request" object
