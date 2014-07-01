@@ -1,0 +1,12 @@
+title Validate Database
+
+* -> SBVR-Utils: Model
+
+loop Model Rules
+	SBVR-Utils -> Database: Execute Rule
+	Database --> SBVR-Utils: True/False
+	opt If False
+		SBVR-Utils --> *: Return error
+	end
+end
+SBVR-Utils --> *: Return success
