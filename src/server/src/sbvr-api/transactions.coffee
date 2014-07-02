@@ -109,7 +109,8 @@ define [
 					if result.rows.item(0).result in [false, 0, '0']
 						throw rule.structuredEnglish
 
-		exports.check = (tx, vocab, request) ->
+		exports.check = (tx, request) ->
+			vocab = request.vocabulary
 			{logger} = sbvrUtils.api[vocab]
 			id = sbvrUtils.getID(vocab, request)
 			tx.executeSql('''

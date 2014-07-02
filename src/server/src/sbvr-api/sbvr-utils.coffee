@@ -246,7 +246,7 @@ define [
 
 	exports.getID = (vocab, request) ->
 		idField = sqlModels[vocab].tables[request.resourceName].idField
-		for whereClause in request.query when whereClause[0] == 'Where'
+		for whereClause in request.abstractSqlQuery when whereClause[0] == 'Where'
 			for comparison in whereClause[1..] when comparison[0] == 'Equals'
 				if comparison[1][2] == idField
 					return comparison[2][1]
@@ -454,71 +454,69 @@ define [
 				console.warn('Next called on a runURI?!', method, uri, route)
 				reject(500)
 
-			currentMiddlewareIndex = 0
-			ourNext = (route) ->
-				if route is 'route'
-					next('route')
-				else if currentMiddlewareIndex < handleODataRequest.length
-					handleODataRequest[currentMiddlewareIndex++](req, res, ourNext)
-				else
-					next()
-			ourNext()
+			handleODataRequest(req, res, next)
 		.nodeify(callback)
 
-	exports.handleODataRequest = handleODataRequest = do ->
-		checkValidApiRoot = (req, res, next) ->
-			url = req.url.split('/')
-			apiRoot = url[1]
-			if !apiRoot? or !clientModels[apiRoot]?
-				return next('route')
-			api[apiRoot].logger.log('Parsing', req.method, req.url)
-			return next()
+	exports.handleODataRequest = handleODataRequest = (req, res, next) ->
+		url = req.url.split('/')
+		apiRoot = url[1]
+		if !apiRoot? or !clientModels[apiRoot]?
+			return next('route')
 
-		handleRequest = (req, res, next) ->
+		api[apiRoot].logger.log('Parsing', req.method, req.url)
+		# Parse the OData requests
+		uriParser.parseODataURI(req)
+		.then (requests) ->
+			# Then for each request add/check the relevant permissions, translate to abstract sql, and then compile the abstract sql.
+			Promise.map requests, (request) ->
+				uriParser.addPermissions(req, request)
+				.then(uriParser.translateUri)
+				.then (request) ->
+					if request.abstractSqlQuery?
+						try
+							request.sqlQuery = AbstractSQLCompiler.compile(db.engine, request.abstractSqlQuery)
+						catch err
+							logger.error('Failed to compile abstract sql: ', request.abstractSqlQuery, err, err.stack)
+							throw new SqlCompilationError(err)
+					return request
+		# Then handle forwarding the request to the correct method handler.
+		.then (requests) ->
+			# Use the first request (and only, since we don't support multiple requests in one yet)
+			request = requests[0]
+			{logger} = api[request.vocabulary]
+
 			res.set('Cache-Control', 'no-cache')
-			tree = req.tree
-			{logger} = api[tree.vocabulary]
 			logger.log('Running', req.method, req.url)
-			
-			request = tree.requests[0]
-			Promise.try ->
-				if request.query?
-					request.sqlQuery = AbstractSQLCompiler.compile(db.engine, request.query)
-			.catch (err) ->
-				throw new SqlCompilationError(err)
-			.then ->
+
+			promise =
 				switch req.method
 					when 'GET'
-						runGet(req, res)
+						runGet(req, res, request)
 					when 'POST'
-						runPost(req, res)
+						runPost(req, res, request)
 					when 'PUT', 'PATCH', 'MERGE'
-						runPut(req, res)
+						runPut(req, res, request)
 					when 'DELETE'
-						runDelete(req, res)
+						runDelete(req, res, request)
+			promise
 			.catch db.DatabaseError, (err) ->
 				constraintError = checkForConstraintError(err, request.resourceName)
 				if constraintError != false
 					throw constraintError
 				logger.error(err, err.stack)
 				res.send(500)
-			.catch SqlCompilationError, (err) ->
-				logger.error('Failed to compile abstract sql: ', request.query, err, err.stack)
-				res.send(500)
 			.catch EvalError, RangeError, ReferenceError, SyntaxError, TypeError, URIError, (err) ->
 				logger.error(err, err.stack)
 				res.send(500)
-			.catch (err) ->
-				# If the err is an error object then use its message instead - it should be more readable!
-				if err instanceof Error
-					err = err.message
-				res.json(err, 404)
-
-		return [
-			checkValidApiRoot
-			uriParser.parseURITree
-			handleRequest
-		]
+		.catch uriParser.PermissionError, (err) ->
+			res.send(401)
+		.catch SqlCompilationError, uriParser.TranslationError, uriParser.ParsingError, (err) ->
+			res.send(500)
+		.catch (err) ->
+			# If the err is an error object then use its message instead - it should be more readable!
+			if err instanceof Error
+				err = err.message
+			res.json(err, 404)
 
 	# This is a helper method to handle using a passed in req.tx when available, or otherwise creating a new tx and cleaning up after we're done.
 	runTransaction = (tx, callback) ->
@@ -536,24 +534,22 @@ define [
 					throw err
 
 	# This is a helper function that will check and add the bind values to the SQL query and then run it.
-	runQuery = (tx, vocab, request, queryIndex, addReturning) ->
-		{values, sqlQuery} = request
+	runQuery = (tx, request, queryIndex, addReturning) ->
+		{values, sqlQuery, vocabulary} = request
 		if queryIndex?
 			sqlQuery = sqlQuery[queryIndex]
-		getAndCheckBindValues(vocab, sqlQuery.bindings, values)
+		getAndCheckBindValues(vocabulary, sqlQuery.bindings, values)
 		.then (values) ->
-			api[vocab].logger.log(sqlQuery.query, values)
+			api[vocabulary].logger.log(sqlQuery.query, values)
 			sqlQuery.values = values
 			tx.executeSql(sqlQuery.query, values, null, addReturning)
 
-	runGet = (req, res) ->
-		tree = req.tree
-		request = tree.requests[0]
-		vocab = tree.vocabulary
+	runGet = (req, res, request) ->
+		vocab = request.vocabulary
 
 		if request.sqlQuery?
 			runTransaction req.tx, (tx) ->
-				runQuery(tx, vocab, request)
+				runQuery(tx, request)
 			.then (result) ->
 				clientModel = clientModels[vocab].resources
 				processOData(vocab, clientModel, request.resourceName, result.rows)
@@ -576,20 +572,18 @@ define [
 				res.json(data)
 			return Promise.resolve()
 
-	runPost = (req, res, next) ->
-		tree = req.tree
-		request = tree.requests[0]
-		vocab = tree.vocabulary
+	runPost = (req, res, request) ->
+		vocab = request.vocabulary
 
 		idField = clientModels[vocab].resources[request.resourceName].idField
 		runTransaction req.tx, (tx) ->
 			# TODO: Check for transaction locks.
-			runQuery(tx, vocab, request, null, idField)
+			runQuery(tx, request, null, idField)
 			.then (sqlResult) ->
 				validateDB(tx, vocab)
 				.then ->
 					# Return the inserted/updated id.
-					if request.query[0] == 'UpdateQuery'
+					if request.abstractSqlQuery[0] == 'UpdateQuery'
 						request.sqlQuery.values[0]
 					else
 						sqlResult.insertId
@@ -602,36 +596,32 @@ define [
 				}, 201
 			)
 
-	runPut = (req, res, next) ->
-		tree = req.tree
-		request = tree.requests[0]
-		vocab = tree.vocabulary
+	runPut = (req, res, request) ->
+		vocab = request.vocabulary
 
 		runTransaction req.tx, (tx) ->
-			transactions.check(tx, vocab, request)
+			transactions.check(tx, request)
 			.then ->
 				# If request.sqlQuery is an array it means it's an UPSERT, ie two queries: [InsertQuery, UpdateQuery]
 				if _.isArray(request.sqlQuery)
 					# Run the update query first
-					runQuery(tx, vocab, request, 1)
+					runQuery(tx, request, 1)
 					.then (result) ->
 						if result.rowsAffected is 0
 							# Then run the insert query if nothing was updated
-							runQuery(tx, vocab, request, 0)
+							runQuery(tx, request, 0)
 				else
-					runQuery(tx, vocab, request)
+					runQuery(tx, request)
 			.then ->
 				validateDB(tx, vocab)
 		.then ->
 			res.send(200)
 
-	runDelete = (req, res, next) ->
-		tree = req.tree
-		request = tree.requests[0]
-		vocab = tree.vocabulary
+	runDelete = (req, res, request) ->
+		vocab = request.vocabulary
 
 		runTransaction req.tx, (tx) ->
-			runQuery(tx, vocab, request)
+			runQuery(tx, request)
 			.then ->
 				validateDB(tx, vocab)
 		.then ->
