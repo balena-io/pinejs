@@ -46,3 +46,5 @@ This is the result from running the transaction.
 
 ### tx
 The database transaction object, so that you can run queries in the same transaction or make API calls that use the same transaction.
+
+See [tx](./CustomServerCode.md#markdown-header-tx_2)
