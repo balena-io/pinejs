@@ -35,6 +35,16 @@ define [
 	clientModels = {}
 	odataMetadata = {}
 
+	apiHooks =
+		GET: {}
+		PUT: {}
+		POST: {}
+		PATCH: {}
+		DELETE: {}
+
+	# Share hooks between merge and patch since they are the same operation, just MERGE was the OData intermediary until the HTTP spec added PATCH.
+	apiHooks.MERGE = apiHooks.PATCH
+
 	class SqlCompilationError extends CustomError
 
 	# TODO: Clean this up and move it into the db module.
@@ -470,6 +480,10 @@ define [
 			# Then for each request add/check the relevant permissions, translate to abstract sql, and then compile the abstract sql.
 			Promise.map requests, (request) ->
 				uriParser.addPermissions(req, request)
+				.tap (request) ->
+					req.hooks = apiHooks[request.method][request.vocabulary]?[request.resourceName] ? {}
+					Promise.map req.hooks.POSTPARSE ? [], (hook) ->
+						hook({req, request})
 				.then(uriParser.translateUri)
 				.then (request) ->
 					if request.abstractSqlQuery?
@@ -488,17 +502,29 @@ define [
 			res.set('Cache-Control', 'no-cache')
 			logger.log('Running', req.method, req.url)
 
-			promise =
+			runTransaction req, request, (tx) ->
+				Promise.map req.hooks.PRERUN ? [], (hook) ->
+					hook({req, request, tx})
+				.then ->
+					switch req.method
+						when 'GET'
+							runGet(req, res, request, tx)
+						when 'POST'
+							runPost(req, res, request, tx)
+						when 'PUT', 'PATCH', 'MERGE'
+							runPut(req, res, request, tx)
+						when 'DELETE'
+							runDelete(req, res, request, tx)
+			.then (result) ->
 				switch req.method
 					when 'GET'
-						runGet(req, res, request)
+						respondGet(req, res, request, result)
 					when 'POST'
-						runPost(req, res, request)
+						respondPost(req, res, request, result)
 					when 'PUT', 'PATCH', 'MERGE'
-						runPut(req, res, request)
+						respondPut(req, res, request, result)
 					when 'DELETE'
-						runDelete(req, res, request)
-			promise
+						respondDelete(req, res, request, result)
 			.catch db.DatabaseError, (err) ->
 				constraintError = checkForConstraintError(err, request.resourceName)
 				if constraintError != false
@@ -519,14 +545,19 @@ define [
 			res.json(err, 404)
 
 	# This is a helper method to handle using a passed in req.tx when available, or otherwise creating a new tx and cleaning up after we're done.
-	runTransaction = (tx, callback) ->
-		if tx?
-			# If an existing tx was passed in then use it.
+	runTransaction = (req, request, callback) ->
+		runCallback = (tx) ->
 			callback(tx)
+			.tap (result) ->
+				Promise.map req.hooks.POSTRUN ? [], (hook) ->
+					hook({req, request, result, tx})
+		if req.tx?
+			# If an existing tx was passed in then use it.
+			runCallback(req.tx)
 		else
 			# Otherwise create a new transaction and handle tidying it up.
 			db.transaction().then (tx) ->
-				callback(tx)
+				runCallback(tx)
 				.tap ->
 					tx.end()
 				.catch (err) ->
@@ -544,20 +575,21 @@ define [
 			sqlQuery.values = values
 			tx.executeSql(sqlQuery.query, values, null, addReturning)
 
-	runGet = (req, res, request) ->
+	runGet = (req, res, request, tx) ->
 		vocab = request.vocabulary
-
 		if request.sqlQuery?
-			runTransaction req.tx, (tx) ->
-				runQuery(tx, request)
-			.then (result) ->
-				clientModel = clientModels[vocab].resources
-				processOData(vocab, clientModel, request.resourceName, result.rows)
-				.then (d) ->
-					res.json(
-						__model: clientModel[request.resourceName]
-						d: d
-					)
+			runQuery(tx, request)
+
+	respondGet = (req, res, request, result) ->
+		vocab = request.vocabulary
+		if request.sqlQuery?
+			clientModel = clientModels[vocab].resources
+			processOData(vocab, clientModel, request.resourceName, result.rows)
+			.then (d) ->
+				res.json(
+					__model: clientModel[request.resourceName]
+					d: d
+				)
 		else
 			if request.resourceName == '$metadata'
 				res.type('xml')
@@ -572,60 +604,59 @@ define [
 				res.json(data)
 			return Promise.resolve()
 
-	runPost = (req, res, request) ->
+	runPost = (req, res, request, tx) ->
 		vocab = request.vocabulary
 
 		idField = clientModels[vocab].resources[request.resourceName].idField
-		runTransaction req.tx, (tx) ->
-			# TODO: Check for transaction locks.
-			runQuery(tx, request, null, idField)
-			.then (sqlResult) ->
-				validateDB(tx, vocab)
-				.then ->
-					# Return the inserted/updated id.
-					if request.abstractSqlQuery[0] == 'UpdateQuery'
-						request.sqlQuery.values[0]
-					else
-						sqlResult.insertId
-		.then (insertID) ->
-			api[vocab].logger.log('Insert ID: ', request.resourceName, insertID)
-			res.json({
-					id: insertID
-				}, {
-					location: odataResourceURI(vocab, request.resourceName, insertID)
-				}, 201
-			)
 
-	runPut = (req, res, request) ->
-		vocab = request.vocabulary
-
-		runTransaction req.tx, (tx) ->
-			transactions.check(tx, request)
+		# TODO: Check for transaction locks.
+		runQuery(tx, request, null, idField)
+		.then (sqlResult) ->
+			validateDB(tx, vocab)
 			.then ->
-				# If request.sqlQuery is an array it means it's an UPSERT, ie two queries: [InsertQuery, UpdateQuery]
-				if _.isArray(request.sqlQuery)
-					# Run the update query first
-					runQuery(tx, request, 1)
-					.then (result) ->
-						if result.rowsAffected is 0
-							# Then run the insert query if nothing was updated
-							runQuery(tx, request, 0)
+				# Return the inserted/updated id.
+				if request.abstractSqlQuery[0] == 'UpdateQuery'
+					request.sqlQuery.values[0]
 				else
-					runQuery(tx, request)
-			.then ->
-				validateDB(tx, vocab)
-		.then ->
-			res.send(200)
+					sqlResult.insertId
 
-	runDelete = (req, res, request) ->
+	respondPost = (req, res, request, result) ->
+		vocab = request.vocabulary
+		api[vocab].logger.log('Insert ID: ', request.resourceName, result)
+		res.json({
+				id: result
+			}, {
+				location: odataResourceURI(vocab, request.resourceName, result)
+			}, 201
+		)
+
+	runPut = (req, res, request, tx) ->
 		vocab = request.vocabulary
 
-		runTransaction req.tx, (tx) ->
-			runQuery(tx, request)
-			.then ->
-				validateDB(tx, vocab)
+		transactions.check(tx, request)
 		.then ->
-			res.send(200)
+			# If request.sqlQuery is an array it means it's an UPSERT, ie two queries: [InsertQuery, UpdateQuery]
+			if _.isArray(request.sqlQuery)
+				# Run the update query first
+				runQuery(tx, request, 1)
+				.then (result) ->
+					if result.rowsAffected is 0
+						# Then run the insert query if nothing was updated
+						runQuery(tx, request, 0)
+			else
+				runQuery(tx, request)
+		.then ->
+			validateDB(tx, vocab)
+
+	respondPut = respondDelete = (req, res) ->
+		res.send(200)
+
+	runDelete = (req, res, request, tx) ->
+		vocab = request.vocabulary
+
+		runQuery(tx, request)
+		.then ->
+			validateDB(tx, vocab)
 
 	exports.executeStandardModels = executeStandardModels = (tx, callback) ->
 		# The dev model has to be executed first.
@@ -700,6 +731,25 @@ define [
 			console.error('Failed to execute standard models.', err, err.stack)
 			throw err
 		.nodeify(callback)
+
+	exports.addHook = (method, apiRoot, resourceName, callbacks) ->
+		methodHooks = apiHooks[method]
+		if !methodHooks?
+			throw new Error('Unsupported method: ' + method)
+		if !clientModels[apiRoot]?
+			throw new Error('Unknown api root: ' + apiRoot)
+		if !clientModels[apiRoot].resources[resourceName]?
+			throw new Error('Unknown resource for api root: ' + resourceName + ', ' + apiRoot)
+
+		for callbackType, callback of callbacks when callbackType not in ['POSTPARSE', 'PRERUN', 'POSTRUN']
+			throw new Error('Unknown callback type: ' + callbackType)
+
+		apiRootHooks = methodHooks[apiRoot] ?= {}
+		resourceHooks = apiRootHooks[resourceName] ?= {}
+
+		for callbackType, callback of callbacks
+			resourceHooks[callbackType] ?= []
+			resourceHooks[callbackType].push(callback)
 
 	exports.setup = (app, requirejs, _db, callback) ->
 		exports.db = db = _db

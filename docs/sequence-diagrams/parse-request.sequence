@@ -15,6 +15,8 @@ Permissions --> -URI-Parser: Conditional permissions list
 URI-Parser -> URI-Parser: Add conditional permissions
 URI-Parser --> -SBVR-Utils: "Request" object.
 
+SBVR-Utils -> SBVR-Utils: Run POSTPARSE hooks.
+
 SBVR-Utils -> +URI-Parser: Translate request
 URI-Parser -> +OData2AbstractSQL: OData request structure
 OData2AbstractSQL --> -URI-Parser: Abstract SQL structure.

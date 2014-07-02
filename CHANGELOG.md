@@ -8,6 +8,10 @@ v0.3.0
 * Replaced `runGet`, `runPost`, `runPut`, and `runDelete` with a new middleware called `handleODataRequest` that can be used in their place.
 * Updated bluebird to v2.1.3
 * The `checkPermissions` function had its `res` argument removed.
+* Added API hooks facilities via `sbvrUtils.addHook` with the following hook points:
+	* POSTPARSE
+	* PRERUN
+	* POSTRUN
 
 v0.2.29
 

@@ -35,9 +35,10 @@ define [
 			resourceName: odataQuery.resource
 			odataQuery
 			values: body
+			custom: {}
 		}]
 
-	exports.addPermissions = (req, {method, vocabulary, resourceName, odataQuery, values}) ->
+	exports.addPermissions = (req, {method, vocabulary, resourceName, odataQuery, values, custom}) ->
 		apiKey = odataQuery.options?.apikey
 
 		isMetadataEndpoint = resourceName in metadataEndpoints
@@ -100,9 +101,10 @@ define [
 				resourceName
 				odataQuery
 				values
+				custom
 			}
 
-	exports.translateUri = ({method, vocabulary, resourceName, odataQuery, values}) ->
+	exports.translateUri = ({method, vocabulary, resourceName, odataQuery, values, custom}) ->
 		isMetadataEndpoint = resourceName in metadataEndpoints
 		if !isMetadataEndpoint
 			try
@@ -117,11 +119,13 @@ define [
 				odataQuery
 				abstractSqlQuery
 				values
+				custom
 			}
 		return {
 			method
 			vocabulary
 			resourceName
+			custom
 		}
 
 	exports.addClientModel = (vocab, clientModel) ->
