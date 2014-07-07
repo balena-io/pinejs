@@ -110,7 +110,7 @@ define [
 			try
 				abstractSqlQuery = odata2AbstractSQL[vocabulary].match(odataQuery, 'Process', [method, values])
 			catch e
-				console.error('Failed to translate url: ', JSON.stringify(abstractSqlQuery, null, '\t'), method, url, e, e.stack)
+				console.error('Failed to translate url: ', JSON.stringify(odataQuery, null, '\t'), method, e, e.stack)
 				throw new TranslationError('Failed to translate url')
 			return {
 				method
