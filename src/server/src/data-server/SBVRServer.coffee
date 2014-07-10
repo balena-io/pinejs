@@ -265,6 +265,7 @@ define [
 		app.all('/data/*', serverIsOnAir, sbvrUtils.handleODataRequest)
 		app.get('/Auth/*', serverIsOnAir, sbvrUtils.handleODataRequest)
 		app.merge('/ui/*', sbvrUtils.handleODataRequest)
+		app.patch('/ui/*', sbvrUtils.handleODataRequest)
 
 
 		app.del '/', serverIsOnAir, (req, res, next) ->
