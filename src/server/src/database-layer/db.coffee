@@ -12,6 +12,9 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds', 'cs!custom
 
 	DEFAULT_VALUE = {}
 	bindDefaultValues = (sql, bindings) ->
+		if !_.any(bindings, (binding) -> binding is DEFAULT_VALUE)
+			# We don't have to do any work if none of the bindings match DEFAULT_VALUE
+			return sql
 		bindNo = 0
 		SQLBinds.matchAll(sql, 'parse', [->
 			if bindings[bindNo] == DEFAULT_VALUE
