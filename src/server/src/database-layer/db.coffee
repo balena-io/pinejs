@@ -129,23 +129,27 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds', 'cs!custom
 						bindings = bindings.slice(0) # Deal with the fact we may splice arrays directly into bindings
 						if addReturning and /^\s*INSERT\s+INTO/i.test(sql)
 							sql = sql.replace(/;?$/, ' RETURNING "' + addReturning + '";')
-						bindNo = 0
-						sql = SQLBinds.matchAll(sql, 'Parse', [
-							->
-								if Array.isArray(bindings[bindNo])
-									initialBindNo = bindNo
-									bindString = (
-										for binding in bindings[initialBindNo]
-											'$' + ++bindNo
-									).join(',')
-									Array.prototype.splice.apply(bindings, [initialBindNo, 1].concat(bindings[initialBindNo]))
-									return bindString
-								else if bindings[bindNo] == DEFAULT_VALUE
-									bindings.splice(bindNo, 1)
-									return 'DEFAULT'
-								else
-									return '$' + ++bindNo
-						])
+
+						# We only need to perform the bind replacements if there is at least one binding!
+						if _.contains(sql, '?')
+							bindNo = 0
+							sql = SQLBinds.matchAll(sql, 'Parse', [
+								->
+									if Array.isArray(bindings[bindNo])
+										initialBindNo = bindNo
+										bindString = (
+											for binding in bindings[initialBindNo]
+												'$' + ++bindNo
+										).join(',')
+										Array.prototype.splice.apply(bindings, [initialBindNo, 1].concat(bindings[initialBindNo]))
+										return bindString
+									else if bindings[bindNo] == DEFAULT_VALUE
+										bindings.splice(bindNo, 1)
+										return 'DEFAULT'
+									else
+										return '$' + ++bindNo
+							])
+
 						_db.query {text: sql, values: bindings}, (err, res) ->
 							if err
 								deferred.reject(err)

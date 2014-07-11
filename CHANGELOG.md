@@ -5,6 +5,7 @@ v0.3.1
 * Improved performance of SQL queries when we do not need to bind any default values.
 * Improve performance of creating a transaction.
 * Improve performance of all PostgreSQL queries and any SQL queries that bind default values.
+* Improve the performance of PostgreSQL queries when there are no binds in the SQL.
 
 v0.3.0
 
