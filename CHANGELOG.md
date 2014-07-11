@@ -1,6 +1,7 @@
 v0.3.1
 
 * Updated pg to v3.3.0
+* Update bluebird to v2.2.1
 
 v0.3.0
 
