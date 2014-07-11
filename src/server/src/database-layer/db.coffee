@@ -38,21 +38,15 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds', 'cs!custom
 					tx.end()
 		.nodeify(callback)
 
-	getStackTrace = ->
-		e = new Error()
-		stack = e.stack
-		# Remove the `getStackTrace` lines from the stack trace - it isn't useful for reporting the location.
-		return stack.substring(stack.indexOf('\n') + 1)
-
 	class Tx
 		timeoutMS = 5000
 		if has('ENV_NODEJS') and process.env.TRANSACTION_TIMEOUT_MS?
 			timeoutMS = process.env.TRANSACTION_TIMEOUT_MS
 			if !_.isNumber(timeoutMS) or timeoutMS <= 0
 				throw new Error('If TRANSACTION_TIMEOUT_MS is set it must be a positive number.')
-		constructor: (stackTrace, executeSql, rollback, end) ->
+		constructor: (stackTraceErr, executeSql, rollback, end) ->
 			automaticClose = =>
-				console.error('Transaction still open after ' + timeoutMS + 'ms without an execute call.', stackTrace)
+				console.error('Transaction still open after ' + timeoutMS + 'ms without an execute call.', stackTraceErr.stack)
 				@rollback()
 			pendingExecutes = do ->
 				automaticCloseTimeout = setTimeout(automaticClose, timeoutMS)
@@ -130,7 +124,7 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds', 'cs!custom
 					insertId: rows[0]?.id || null
 				}
 			class PostgresTx extends Tx
-				constructor: (_db, _close, _stackTrace) ->
+				constructor: (_db, _close, _stackTraceErr) ->
 					executeSql = (sql, bindings, deferred, addReturning = false) ->
 						bindings = bindings.slice(0) # Deal with the fact we may splice arrays directly into bindings
 						if addReturning and /^\s*INSERT\s+INTO/i.test(sql)
@@ -168,7 +162,7 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds', 'cs!custom
 						_close()
 						return promise
 
-					super(_stackTrace, executeSql, rollback, end)
+					super(_stackTraceErr, executeSql, rollback, end)
 
 				tableList: (extraWhereClause = '', callback) ->
 					if !callback? and _.isFunction(extraWhereClause)
@@ -185,14 +179,14 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds', 'cs!custom
 				engine: 'postgres'
 				executeSql: atomicExecuteSql
 				transaction: (callback) ->
-					stackTrace = getStackTrace()
+					stackTraceErr = new Error()
 					deferred = Promise.pending()
 
 					pg.connect connectString, (err, client, done) ->
 						if err
 							console.error('Error connecting', err, err.stack)
 							process.exit()
-						tx = new PostgresTx(client, done, stackTrace)
+						tx = new PostgresTx(client, done, stackTraceErr)
 						if process.env.PG_SCHEMA?
 							tx.executeSql('SET search_path TO "' + process.env.PG_SCHEMA + '"')
 						tx.executeSql('START TRANSACTION;')
@@ -223,7 +217,7 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds', 'cs!custom
 					insertId: rows.insertId || null
 				}
 			class MySqlTx extends Tx
-				constructor: (_db, _close, _stackTrace) ->
+				constructor: (_db, _close, _stackTraceErr) ->
 					executeSql = (sql, bindings, deferred) ->
 						_db.query sql, bindings, (err, res) ->
 							if err
@@ -241,7 +235,7 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds', 'cs!custom
 						_close()
 						return promise
 
-					super(_stackTrace, executeSql, rollback, end)
+					super(_stackTraceErr, executeSql, rollback, end)
 
 				tableList: (extraWhereClause = '', callback) ->
 					if !callback? and _.isFunction(extraWhereClause)
@@ -258,7 +252,7 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds', 'cs!custom
 				engine: 'mysql'
 				executeSql: atomicExecuteSql
 				transaction: (callback) ->
-					stackTrace = getStackTrace()
+					stackTraceErr = new Error()
 					deferred = Promise.pending()
 
 					_pool.getConnection (err, _db) ->
@@ -267,7 +261,7 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds', 'cs!custom
 							process.exit()
 						_close = ->
 							_db.release()
-						tx = new MySqlTx(_db, _close, stackTrace)
+						tx = new MySqlTx(_db, _close, stackTraceErr)
 						tx.executeSql('START TRANSACTION;')
 
 						deferred.fulfill(tx)
@@ -299,7 +293,7 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds', 'cs!custom
 				}
 
 			class WebSqlTx extends Tx
-				constructor: (_tx, _stackTrace) ->
+				constructor: (_tx, _stackTraceErr) ->
 					running = true
 					queue = []
 					# This function is used to recurse executeSql calls and keep the transaction open,
@@ -315,7 +309,7 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds', 'cs!custom
 
 					executeSql = (sql, bindings, deferred) ->
 						# This is used so we can find the useful part of the stack trace, as WebSQL is asynchronous and starts a new stack.
-						stackTrace = getStackTrace()
+						stackTraceErr = new Error()
 
 						successCallback = (_tx, _results) =>
 							deferred.fulfill(createResult(_results))
@@ -341,7 +335,7 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds', 'cs!custom
 						running = false
 						return Promise.fulfilled()
 
-					super(_stackTrace, executeSql, rollback, end)
+					super(_stackTraceErr, executeSql, rollback, end)
 
 				tableList: (extraWhereClause = '', callback) ->
 					if !callback? and _.isFunction(extraWhereClause)
@@ -360,10 +354,10 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds', 'cs!custom
 				engine: 'websql'
 				executeSql: atomicExecuteSql
 				transaction: (callback) ->
-					stackTrace = getStackTrace()
+					stackTraceErr = new Error()
 
 					_db.transaction (_tx) ->
-						deferred.fulfill(new WebSqlTx(_tx, stackTrace))
+						deferred.fulfill(new WebSqlTx(_tx, stackTraceErr))
 
 					deferred = Promise.pending()
 					deferred.promise.then(callback).catch (err) ->

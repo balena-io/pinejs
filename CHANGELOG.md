@@ -3,6 +3,7 @@ v0.3.1
 * Updated pg to v3.3.0
 * Update bluebird to v2.2.1
 * Improved performance of SQL queries when we do not need to bind any default values.
+* Improve performance of creating a transaction.
 
 v0.3.0
 
