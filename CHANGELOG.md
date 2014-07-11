@@ -1,3 +1,7 @@
+v0.3.1
+
+* Updated pg to v3.3.0
+
 v0.3.0
 
 * Change runURI signature from `(method, uri, body = {}, tx, callback) ->` to `(method, uri, body = {}, tx, req, callback) ->`, where if `req` is an object then it will have its `user` property used for permission checking rather than using the default of full permissions if it's not an object.
