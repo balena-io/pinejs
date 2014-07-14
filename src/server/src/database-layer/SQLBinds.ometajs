@@ -1,18 +1,28 @@
 define(['ometa-core'], function() {
 	ometa SQLBinds {
-		skipToEnd :quote =
-			(	(	seq(quote)
+		// We store the quote character on the object and use it from there
+		// so that we can make use of memoisations (passing a parameter disables memoisations)
+		StartQuote =
+			('\''|'"'):quote
+			{this.quoteChar = quote},
+
+		QuoteChar =
+			seq(this.quoteChar),
+
+		SkipToEnd =
+			(	(	QuoteChar
 				|	'\\'
 				)
-				seq(quote)
-			|	~seq(quote)
+				QuoteChar
+			|	~QuoteChar
 				anything
 			)*,
-		parse :nextBind =
+
+		Parse :nextBind =
 			(
-				<	('\''|'"'):quote
-					skipToEnd(quote)
-					seq(quote)
+				<	StartQuote
+					SkipToEnd
+					QuoteChar
 				>
 			|	'?'
 				-> nextBind()
@@ -20,5 +30,9 @@ define(['ometa-core'], function() {
 			)*:sql
 			-> sql.join('')
 	}
+	
+	SQLBinds.initialize = function() {
+		this.quoteChar = '';
+	};
 	return SQLBinds;
 });

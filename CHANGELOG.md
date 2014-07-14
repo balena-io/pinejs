@@ -4,6 +4,7 @@ v0.3.1
 * Update bluebird to v2.2.1
 * Improved performance of SQL queries when we do not need to bind any default values.
 * Improve performance of creating a transaction.
+* Improve performance of all PostgreSQL queries and any SQL queries that bind default values.
 
 v0.3.0
 

@@ -16,7 +16,7 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds', 'cs!custom
 			# We don't have to do any work if none of the bindings match DEFAULT_VALUE
 			return sql
 		bindNo = 0
-		SQLBinds.matchAll(sql, 'parse', [->
+		SQLBinds.matchAll(sql, 'Parse', [->
 			if bindings[bindNo] == DEFAULT_VALUE
 				bindings.splice(bindNo, 1)
 				'DEFAULT'
@@ -130,7 +130,7 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds', 'cs!custom
 						if addReturning and /^\s*INSERT\s+INTO/i.test(sql)
 							sql = sql.replace(/;?$/, ' RETURNING "' + addReturning + '";')
 						bindNo = 0
-						sql = SQLBinds.matchAll(sql, 'parse', [
+						sql = SQLBinds.matchAll(sql, 'Parse', [
 							->
 								if Array.isArray(bindings[bindNo])
 									initialBindNo = bindNo
