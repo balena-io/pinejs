@@ -17,6 +17,7 @@ v0.3.0
 	* POSTPARSE
 	* PRERUN
 	* POSTRUN
+* In the case of trying to respond to a request with an `Error` instance, we instead send the `message` property instead, as it's generally much more useful.
 
 v0.2.29
 
