@@ -1,3 +1,8 @@
+v0.3.2
+
+* Add API hooks entry for OPTIONS
+* Fixed an error when handleODataRequest was called from a method it did not recognise for API hooks.
+
 v0.3.1
 
 * Updated pg to v3.3.0

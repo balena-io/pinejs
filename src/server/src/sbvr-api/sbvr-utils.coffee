@@ -41,6 +41,7 @@ define [
 		POST: {}
 		PATCH: {}
 		DELETE: {}
+		OPTIONS: {}
 
 	# Share hooks between merge and patch since they are the same operation, just MERGE was the OData intermediary until the HTTP spec added PATCH.
 	apiHooks.MERGE = apiHooks.PATCH
@@ -481,7 +482,7 @@ define [
 			Promise.map requests, (request) ->
 				uriParser.addPermissions(req, request)
 				.tap (request) ->
-					req.hooks = apiHooks[request.method][request.vocabulary]?[request.resourceName] ? {}
+					req.hooks = apiHooks[request.method]?[request.vocabulary]?[request.resourceName] ? {}
 					Promise.map req.hooks.POSTPARSE ? [], (hook) ->
 						hook({req, request})
 				.then(uriParser.translateUri)
