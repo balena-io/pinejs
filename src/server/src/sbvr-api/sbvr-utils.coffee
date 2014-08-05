@@ -21,7 +21,6 @@ define [
 ], (exports, has, SBVRParser, LF2AbstractSQL, AbstractSQL2SQL, AbstractSQLCompiler, AbstractSQL2CLF, ODataMetadataGenerator, permissions, transactions, uriParser, resinPlatformAPI, _, Promise, CustomError, sbvrTypes, devModel, transactionModel, userModel) ->
 	db = null
 
-	_.extend(exports, permissions)
 	exports.sbvrTypes = sbvrTypes
 
 	fetchProcessing = _.mapValues sbvrTypes, ({fetchProcessing}) ->
@@ -758,6 +757,8 @@ define [
 		if has 'DEV'
 			app.get('/dev/*', handleODataRequest)
 
+		permissions.setup(app, requirejs, exports)
+		_.extend(exports, permissions)
 		transactions.setup(app, requirejs, exports)
 
 		db.transaction()
