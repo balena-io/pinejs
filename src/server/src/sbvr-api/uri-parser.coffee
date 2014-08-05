@@ -41,7 +41,7 @@ define [
 	exports.addPermissions = (req, {method, vocabulary, resourceName, odataQuery, values, custom}) ->
 		apiKey = odataQuery.options?.apikey
 
-		isMetadataEndpoint = resourceName in metadataEndpoints
+		isMetadataEndpoint = resourceName in metadataEndpoints or method is 'OPTIONS'
 
 		permissionType =
 			if isMetadataEndpoint
@@ -105,7 +105,7 @@ define [
 			}
 
 	exports.translateUri = ({method, vocabulary, resourceName, odataQuery, values, custom}) ->
-		isMetadataEndpoint = resourceName in metadataEndpoints
+		isMetadataEndpoint = resourceName in metadataEndpoints or method is 'OPTIONS'
 		if !isMetadataEndpoint
 			try
 				abstractSqlQuery = odata2AbstractSQL[vocabulary].match(odataQuery, 'Process', [method, values])

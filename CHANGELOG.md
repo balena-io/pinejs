@@ -3,6 +3,7 @@ v0.3.2
 * Add API hooks entry for OPTIONS
 * Fixed an error when handleODataRequest was called from a method it did not recognise for API hooks.
 * Properly send a 405 for unsupported methods.
+* Handle responding to an OPTIONS request, and use the model permission for it (since it's a metadata request)
 
 v0.3.1
 

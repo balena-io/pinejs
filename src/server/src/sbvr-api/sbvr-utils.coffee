@@ -527,6 +527,8 @@ define [
 						respondPut(req, res, request, result)
 					when 'DELETE'
 						respondDelete(req, res, request, result)
+					when 'OPTIONS'
+						respondOptions(req, res, request, result)
 					else
 						throw new UnsupportedMethodError()
 			.catch db.DatabaseError, (err) ->
@@ -654,7 +656,7 @@ define [
 		.then ->
 			validateDB(tx, vocab)
 
-	respondPut = respondDelete = (req, res) ->
+	respondPut = respondDelete = respondOptions = (req, res) ->
 		res.send(200)
 
 	runDelete = (req, res, request, tx) ->
