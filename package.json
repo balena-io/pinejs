@@ -9,6 +9,7 @@
   "dependencies": {
     "bcrypt": "~0.7.6",
     "bluebird": "~2.2.1",
+    "bluebird-lru-cache": "~0.1.0",
     "coffee-script": "~1.7.1",
     "express": "~3.4.0",
     "lodash": "~2.4.1",

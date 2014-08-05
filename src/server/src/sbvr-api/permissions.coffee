@@ -1,8 +1,18 @@
 define [
 	'exports'
+	'has'
 	'lodash'
 	'bluebird'
-], (exports, _, Promise) ->
+], (exports, has, _, Promise) ->
+
+	if has 'ENV_NODEJS'
+		BluebirdLRU = require 'bluebird-lru-cache'
+	else
+		# A very basic, always refetch, implementation for the case of running in-browser.
+		class BluebirdLRU
+			constructor: ({fetchFn}) ->
+				@get = fetchFn
+
 	exports.nestedCheck = nestedCheck = (check, stringCallback) ->
 		if _.isString(check)
 			stringCallback(check)
@@ -113,14 +123,22 @@ define [
 			else
 				return Promise.rejected(new Error('User ID either has to be a numeric id, got: ' + typeof userId))
 
-		exports.getApiKeyPermissions = getApiKeyPermissions = (apiKey, callback) ->
-			if _.isString(apiKey)
-				permsFilter = 'api_key__has__permission/api_key/key': apiKey
-				roleFilter = 'role__has__permission/role/api_key__has__role/api_key/key': apiKey
-				return getPermissions(permsFilter, roleFilter, callback)
-			else
-				return Promise.rejected(new Error('API key has to be a string, got: ' + typeof apiKey))
-
+		exports.getApiKeyPermissions = getApiKeyPermissions = do ->
+			# TODO: Allow the max/maxAge settings to be easily customised.
+			cache = new BluebirdLRU
+				max: 50
+				maxAge: 5 * 60 * 1000
+				fetchFn: (apiKey) ->
+					permsFilter = 'api_key__has__permission/api_key/key': apiKey
+					roleFilter = 'role__has__permission/role/api_key__has__role/api_key/key': apiKey
+					return getPermissions(permsFilter, roleFilter)
+			(apiKey, callback) ->
+				promise =
+					if _.isString(apiKey)
+						cache.get(apiKey)
+					else
+						Promise.rejected(new Error('API key has to be a string, got: ' + typeof apiKey))
+				return promise.nodeify(callback)
 
 		exports.checkPermissions = checkPermissions = do ->
 			_getGuestPermissions = do ->
