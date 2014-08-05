@@ -46,6 +46,7 @@ define [
 	# Share hooks between merge and patch since they are the same operation, just MERGE was the OData intermediary until the HTTP spec added PATCH.
 	apiHooks.MERGE = apiHooks.PATCH
 
+	class UnsupportedMethodError extends CustomError
 	class SqlCompilationError extends CustomError
 
 	# TODO: Clean this up and move it into the db module.
@@ -526,6 +527,8 @@ define [
 						respondPut(req, res, request, result)
 					when 'DELETE'
 						respondDelete(req, res, request, result)
+					else
+						throw new UnsupportedMethodError()
 			.catch db.DatabaseError, (err) ->
 				constraintError = checkForConstraintError(err, request.resourceName)
 				if constraintError != false
@@ -539,6 +542,8 @@ define [
 			res.send(401)
 		.catch SqlCompilationError, uriParser.TranslationError, uriParser.ParsingError, (err) ->
 			res.send(500)
+		.catch UnsupportedMethodError, (err) ->
+			res.send(405)
 		.catch (err) ->
 			# If the err is an error object then use its message instead - it should be more readable!
 			if err instanceof Error

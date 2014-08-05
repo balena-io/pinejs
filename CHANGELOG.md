@@ -2,6 +2,7 @@ v0.3.2
 
 * Add API hooks entry for OPTIONS
 * Fixed an error when handleODataRequest was called from a method it did not recognise for API hooks.
+* Properly send a 405 for unsupported methods.
 
 v0.3.1
 
