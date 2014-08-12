@@ -30,7 +30,8 @@ require({
 		'utils'					: '../../common/utils',
 		'prettify'				: '../../common/prettify',
 		'odata-parser'			: '../../../node_modules/odata-parser/odata-parser',
-		'odata-to-abstract-sql'	: '../../../node_modules/odata-to-abstract-sql/odata-to-abstract-sql'
+		'odata-to-abstract-sql'	: '../../../node_modules/odata-to-abstract-sql/odata-to-abstract-sql',
+		'typed-error'			: '../../../node_modules/typed-error/src/typed-error'
 	},
 	packages: [
 		{

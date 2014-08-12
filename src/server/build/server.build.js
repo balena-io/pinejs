@@ -47,7 +47,8 @@
 
 	paths: {
 		lodash: 'empty:',
-		bluebird: 'empty:'
+		bluebird: 'empty:',
+		'typed-error': 'empty:'
 	},
 	name: 'cs!server-glue/server'
 })

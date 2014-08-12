@@ -1,6 +1,6 @@
-define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds', 'cs!custom-error/custom-error'], (has, Promise, _, SQLBinds, CustomError) ->
+define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds', 'typed-error'], (has, Promise, _, SQLBinds, TypedError) ->
 	exports = {}
-	class DatabaseError extends CustomError
+	class DatabaseError extends TypedError
 		constructor: (message) ->
 			# If the message has a code then use that as our code.
 			if message?.code?

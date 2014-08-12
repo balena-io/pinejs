@@ -4,12 +4,12 @@ define [
 	'odata-to-abstract-sql'
 	'bluebird'
 	'cs!sbvr-api/permissions'
-	'cs!custom-error/custom-error'
-], (exports, {ODataParser}, {OData2AbstractSQL}, Promise, permissions, CustomError) ->
+	'typed-error'
+], (exports, {ODataParser}, {OData2AbstractSQL}, Promise, permissions, TypedError) ->
 
-	exports.PermissionError = class PermissionError extends CustomError
-	exports.TranslationError = class TranslationError extends CustomError
-	exports.ParsingError = class ParsingError extends CustomError
+	exports.PermissionError = class PermissionError extends TypedError
+	exports.TranslationError = class TranslationError extends TypedError
+	exports.ParsingError = class ParsingError extends TypedError
 
 	odataParser = ODataParser.createInstance()
 	odata2AbstractSQL = {}
