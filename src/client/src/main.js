@@ -52,7 +52,7 @@ require({
 		'odata-parser'				: '../../../node_modules/odata-parser/odata-parser',
 		'odata-to-abstract-sql'		: '../../../node_modules/odata-to-abstract-sql/odata-to-abstract-sql',
 		'config-loader'				: '../../server/src/config-loader',
-		'custom-error'				: '../../server/src/custom-error',
+		'typed-error'				: '../../../node_modules/typed-error/src/typed-error',
 		'database-layer'			: '../../server/src/database-layer',
 		'data-server'				: '../../server/src/data-server',
 		'express-emulator'			: '../../server/src/express-emulator',

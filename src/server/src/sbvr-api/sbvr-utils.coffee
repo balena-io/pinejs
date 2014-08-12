@@ -13,12 +13,12 @@ define [
 	'resin-platform-api'
 	'lodash'
 	'bluebird'
-	'cs!custom-error/custom-error'
+	'typed-error'
 	'cs!sbvr-compiler/types'
 	'text!sbvr-api/dev.sbvr'
 	'text!sbvr-api/transaction.sbvr'
 	'text!sbvr-api/user.sbvr'
-], (exports, has, SBVRParser, LF2AbstractSQL, AbstractSQL2SQL, AbstractSQLCompiler, AbstractSQL2CLF, ODataMetadataGenerator, permissions, transactions, uriParser, resinPlatformAPI, _, Promise, CustomError, sbvrTypes, devModel, transactionModel, userModel) ->
+], (exports, has, SBVRParser, LF2AbstractSQL, AbstractSQL2SQL, AbstractSQLCompiler, AbstractSQL2CLF, ODataMetadataGenerator, permissions, transactions, uriParser, resinPlatformAPI, _, Promise, TypedError, sbvrTypes, devModel, transactionModel, userModel) ->
 	db = null
 
 	_.extend(exports, permissions)
@@ -46,8 +46,8 @@ define [
 	# Share hooks between merge and patch since they are the same operation, just MERGE was the OData intermediary until the HTTP spec added PATCH.
 	apiHooks.MERGE = apiHooks.PATCH
 
-	class UnsupportedMethodError extends CustomError
-	class SqlCompilationError extends CustomError
+	class UnsupportedMethodError extends TypedError
+	class SqlCompilationError extends TypedError
 
 	# TODO: Clean this up and move it into the db module.
 	checkForConstraintError = do ->
