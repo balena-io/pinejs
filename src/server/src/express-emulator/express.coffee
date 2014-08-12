@@ -11,6 +11,7 @@ define ['bluebird', 'lodash'], (Promise, _) ->
 			GET: []
 			PATCH: []
 			MERGE: []
+			OPTIONS: []
 		addHandler = (handlerName, match, middleware...) ->
 			#Strip wildcard
 			match = match.toLowerCase()
@@ -102,6 +103,7 @@ define ['bluebird', 'lodash'], (Promise, _) ->
 			del: _.partial(addHandler,'DELETE')
 			patch: _.partial(addHandler,'PATCH')
 			merge: _.partial(addHandler,'MERGE')
+			options: _.partial(addHandler,'OPTIONS')
 			all: (args...) ->
 				@post(args...)
 				@get(args...)
