@@ -1,6 +1,7 @@
 v0.3.3
 
 * Changed config-loader to return 200 for any OPTIONS requests on the API endpoints it sets up.
+* Added an LRU cache for API key permissions - improves performance for repeated requests using the same API key.
 
 v0.3.2
 
