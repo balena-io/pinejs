@@ -34,7 +34,7 @@ define [
 					getOMetaEditor: -> sbvrEditor
 				lineWrapping: true
 			)
-			sbvrEditor.on('keypress', updateModel)
+			sbvrEditor.on('change', updateModel)
 			sbvrEditor.addKeyMap(
 				'Ctrl-Space': autoCompleteKeyBinding
 			)
