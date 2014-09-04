@@ -96,8 +96,13 @@ define [
 		ruleStatements = []
 		try
 			for rule in sqlModel.rules
-				ruleSQL = AbstractSQLCompiler.compile(engine, rule[2][1])
-				ruleStatements.push({structuredEnglish: rule[1][1], sql: ruleSQL})
+				ruleBody = _.find(rule, 0: 'Body')[1]
+				ruleSE = _.find(rule, 0: 'StructuredEnglish')[1]
+				ruleSQL = AbstractSQLCompiler.compile(engine, ruleBody)
+				ruleStatements.push(
+					structuredEnglish: ruleSE
+					sql: ruleSQL
+				)
 				if has 'DEV'
 					console.log(rule[1][1])
 					console.log(ruleSQL)

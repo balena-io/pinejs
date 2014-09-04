@@ -373,20 +373,21 @@ define [
 
 				fetchingViolators = false
 				ruleAbs = abstractSqlModel.rules[-1..][0]
-				if ruleAbs[2][1][0] == 'Not' and ruleAbs[2][1][1][0] == 'Exists' and ruleAbs[2][1][1][1][0] == 'SelectQuery'
+				ruleBody = _.find(ruleAbs, 0: 'Body')
+				if ruleBody[1][0] == 'Not' and ruleBody[1][1][0] == 'Exists' and ruleBody[1][1][1][0] == 'SelectQuery'
 					# Remove the not exists
-					ruleAbs[2][1] = ruleAbs[2][1][1][1]
+					ruleBody[1] = ruleBody[1][1][1]
 					fetchingViolators = true
-				else if ruleAbs[2][1][0] == 'Exists' and ruleAbs[2][1][1][0] == 'SelectQuery'
+				else if ruleBody[1][0] == 'Exists' and ruleBody[1][1][0] == 'SelectQuery'
 					# Remove the exists
-					ruleAbs[2][1] = ruleAbs[2][1][1]
+					ruleBody[1] = ruleBody[1][1]
 				else
 					throw new Error('Unsupported rule formulation')
 
 				wantNonViolators = formulationType in ['PossibilityFormulation', 'PermissibilityFormulation']
 				if wantNonViolators == fetchingViolators
 					# What we want is the opposite of what we're getting, so add a not to the where clauses
-					ruleAbs[2][1] = _.map ruleAbs[2][1], (queryPart) ->
+					ruleBody[1] = _.map ruleBody[1], (queryPart) ->
 						if queryPart[0] != 'Where'
 							return queryPart
 						if queryPart.length > 2
@@ -394,7 +395,7 @@ define [
 						return ['Where', ['Not', queryPart[1]]]
 
 				# Select all
-				ruleAbs[2][1] = _.map ruleAbs[2][1], (queryPart) ->
+				ruleBody[1] = _.map ruleBody[1], (queryPart) ->
 					if queryPart[0] != 'Select'
 						return queryPart
 					return ['Select', '*']
