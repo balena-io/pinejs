@@ -14,7 +14,7 @@ define [
 	'lodash'
 	'bluebird'
 	'typed-error'
-	'cs!sbvr-compiler/types'
+	'sbvr-types'
 	'text!sbvr-api/dev.sbvr'
 	'text!sbvr-api/transaction.sbvr'
 	'text!sbvr-api/user.sbvr'

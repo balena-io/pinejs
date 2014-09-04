@@ -3,10 +3,9 @@ define [
 	'abstract-sql-compiler'
 	'lodash'
 	'bluebird'
-	'cs!sbvr-compiler/types'
-	'cs!sbvr-compiler/types/TypeUtils'
-], (has, AbstractSQLCompiler, _, Promise, sbvrTypes, TypeUtils) ->
-	validateInteger = Promise.promisify(TypeUtils.validate.integer)
+	'sbvr-types'
+], (has, AbstractSQLCompiler, _, Promise, sbvrTypes) ->
+	validateInteger = Promise.promisify(sbvrTypes.Integer.validate)
 	validateTypes = _.mapValues sbvrTypes, ({validate}) ->
 		if validate?
 			Promise.promisify(validate)

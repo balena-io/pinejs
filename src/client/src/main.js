@@ -69,6 +69,11 @@ require({
 			main: 'sbvr-parser'
 		},
 		{
+			name: 'sbvr-types',
+			location: '../../../node_modules/sbvr-types',
+			main: 'bin/types'
+		},
+		{
 			name: 'extended-sbvr-parser',
 			location: '../../common/extended-sbvr-parser',
 			main: 'extended-sbvr-parser'
