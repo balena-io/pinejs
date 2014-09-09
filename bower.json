@@ -24,7 +24,7 @@
     "coffee-script": "~1.7.1",
     "bluebird": "~2.2.2",
     "async": "caolan/async#c99537ae4837f12e918959c8bd1e70e6b1730f6e",
-    "require-css": "~0.1.2",
+    "require-css": "~0.1.4",
     "requirejs-text": "~2.0.12",
     "codemirror": "4.2.0"
   }
