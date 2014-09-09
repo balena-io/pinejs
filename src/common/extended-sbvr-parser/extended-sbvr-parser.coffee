@@ -1,4 +1,4 @@
-define ['has', 'sbvr-parser', 'text!extended-sbvr-parser/Type.sbvr'], (has, {SBVRParser}, Types) ->
+define ['has', 'sbvr-parser', 'text!sbvr-types/Type.sbvr'], (has, {SBVRParser}, Types) ->
 	return SBVRParser._extend
 		initialize: ->
 			SBVRParser.initialize.call(@)
