@@ -629,13 +629,13 @@ define [
 
 	respondPost = (req, res, request, result) ->
 		vocab = request.vocabulary
-		api[vocab].logger.log('Insert ID: ', request.resourceName, result)
-		res.json({
-				id: result
-			}, {
-				location: odataResourceURI(vocab, request.resourceName, result)
-			}, 201
-		)
+		id = result
+		location = odataResourceURI(vocab, request.resourceName, id)
+		api[vocab].logger.log('Insert ID: ', request.resourceName, id)
+		runURI('GET', location)
+		.then (result) ->
+			res.set('Location', location)
+			res.json(result, 201)
 
 	runPut = (req, res, request, tx) ->
 		vocab = request.vocabulary
