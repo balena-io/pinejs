@@ -635,7 +635,7 @@ define [
 		runURI('GET', location)
 		.then (result) ->
 			res.set('Location', location)
-			res.json(result, 201)
+			res.json(result.d[ 0 ], 201)
 
 	runPut = (req, res, request, tx) ->
 		vocab = request.vocabulary
