@@ -3,36 +3,24 @@ define [
 	'has'
 	'bluebird'
 ], (exports, has, Promise) ->
-	passportPlatform = (options, sbvrUtils, app, passport) ->
-		checkPassword = (username, password, done) ->
+	exports.config =
+		models: [
+			customServerCode: 'cs!passport-platform/passport-platform'
+		]
+	exports.setup = (app, requirejs, sbvrUtils) ->
+		exports.checkPassword = checkPassword = (username, password, done) ->
 			sbvrUtils.checkPassword(username, password)
-			.catch(->
+			.catch ->
 				return false
-			).done (user) ->
+			.then (user) ->
 				done(null, user)
 
-		handleAuth = (req, res, user) ->
-			if user is false
-				if req.xhr is true
-					res.send(401)
-				else
-					res.redirect(options.failureRedirect)
-			else
-				req.login user, (err) ->
-					if err
-						console.error('Error creating session', err, err.stack)
-						res.send(500)
-					else if req.xhr is true
-						res.send(200)
-					else
-						res.redirect(options.successRedirect)
+		if has 'ENV_NODEJS'
+			passport = require('passport')
+			app.use(passport.initialize())
+			app.use(passport.session())
 
-		if passport?
 			LocalStrategy = require('passport-local').Strategy
-			app.post options.loginUrl, (req, res, next) ->
-				passport.authenticate('local', (err, user) ->
-					handleAuth(req, res, user)
-				)(req, res, next)
 
 			passport.serializeUser (user, done)  ->
 				done(null, user)
@@ -41,34 +29,38 @@ define [
 				done(null, user)
 
 			passport.use(new LocalStrategy(checkPassword))
+
+			exports.login = (fn) ->
+				(req, res, next) ->
+					passport.authenticate('local', (err, user) ->
+						if err or !user
+							fn(err, user, req, res, next)
+							return
+						req.login user, (err) ->
+							fn(err, user, req, res, next)
+					)(req, res, next)
+
+			exports.logout = (req, res, next) ->
+				req.logout()
+				next()
 		else
 			do ->
 				_user = false
-				app.post options.loginUrl, (req, res, next) ->
-					checkPassword req.body.username, req.body.password, (err, user) ->
-						_user = user
-						handleAuth(req, res, user)
+				app.use (req, res, next) ->
+					if _user isnt false
+						req.user = _user
 
-		app.get options.logoutUrl, (req, res) ->
-			req.logout()
-			res.redirect('/')
-		return
+				exports.login = (fn) ->
+					(req, res, next) ->
+						checkPassword req.body.username, req.body.password, (err, user) ->
+							if user
+								_user = user
+							fn(err, user, req, res, next)
 
-	exports.config =
-		models: [
-			customServerCode: 'cs!passport-platform/passport-platform'
-		]
-	exports.setup = (app, requirejs, sbvrUtils) ->
-		if has 'ENV_NODEJS'
-			passport = require('passport')
-			app.use(passport.initialize())
-			app.use(passport.session())
-		passportPlatform({
-			loginUrl: '/login'
-			logoutUrl: '/logout'
-			failureRedirect: '/login.html'
-			successRedirect: '/'
-		}, sbvrUtils, app, passport)
+				exports.logout = (req, res, next) ->
+					req.user = null
+					_user = false
+					next()
 		return Promise.resolve()
 
 	return exports

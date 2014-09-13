@@ -5,6 +5,8 @@ define ['bluebird', 'lodash'], (Promise, _) ->
 	app = do ->
 		enabled = Promise.pending()
 		handlers =
+			# USE is a list of middleware to run before any request.
+			USE: []
 			POST: []
 			PUT: []
 			DELETE: []
@@ -72,7 +74,7 @@ define ['bluebird', 'lodash'], (Promise, _) ->
 				else
 					methodHandlers[i].middleware[j](req, res, next)
 
-			methodHandlers = handlers[method]
+			methodHandlers = handlers.USE.concat(handlers[method])
 			i = -1
 			j = -1
 			checkMethodHandlers = ->
@@ -97,13 +99,14 @@ define ['bluebird', 'lodash'], (Promise, _) ->
 			checkMethodHandlers()
 			return deferred.promise
 		return {
-			get: _.partial(addHandler,'GET')
-			post: _.partial(addHandler,'POST')
-			put: _.partial(addHandler,'PUT')
-			del: _.partial(addHandler,'DELETE')
-			patch: _.partial(addHandler,'PATCH')
-			merge: _.partial(addHandler,'MERGE')
-			options: _.partial(addHandler,'OPTIONS')
+			use: _.partial(addHandler, 'USE', '/*')
+			get: _.partial(addHandler, 'GET')
+			post: _.partial(addHandler, 'POST')
+			put: _.partial(addHandler, 'PUT')
+			del: _.partial(addHandler, 'DELETE')
+			patch: _.partial(addHandler, 'PATCH')
+			merge: _.partial(addHandler, 'MERGE')
+			options: _.partial(addHandler, 'OPTIONS')
 			all: (args...) ->
 				@post(args...)
 				@get(args...)

@@ -1,3 +1,7 @@
+v0.3.4
+
+* Enable disabling the default platform login/logout handling with the `DISABLE_DEFAULT_AUTH` env var.
+
 v0.3.3
 
 * Changed config-loader to return 200 for any OPTIONS requests on the API endpoints it sets up.
