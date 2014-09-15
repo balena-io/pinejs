@@ -4,7 +4,7 @@
 	},
 	wrap: {
 		start: "(function() { var define = require('requirejs').define;",
-		end: "}());require('requirejs')('cs!server-glue/server');"
+		end: "}());module.exports = require('requirejs')('cs!server-glue/server');"
 	},
 
 	stubModules: [
