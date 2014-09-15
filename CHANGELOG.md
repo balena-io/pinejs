@@ -1,13 +1,13 @@
 v0.3.4
 
 * Enable disabling the default platform login/logout handling with the `DISABLE_DEFAULT_AUTH` env var.
+* POST requests now include the whole entity in the response.
+* Expose `{ app, sbvrUtils }` on the built `platform.js`, meaning you can require it in order to get access to these objects.
 
 v0.3.3
 
 * Changed config-loader to return 200 for any OPTIONS requests on the API endpoints it sets up.
 * Added an LRU cache for API key permissions - improves performance for repeated requests using the same API key.
-* POST requests now include the whole entity in the response.
-* Expose `{ app, sbvrUtils }` on the built `platform.js`, meaning you can require it in order to get access to these objects.
 
 v0.3.2
 
