@@ -1,3 +1,5 @@
+var semver = require('semver');
+
 module.exports = function(text) {
 	var buildDir = '.',
 		hasConfig = JSON.stringify(this.has, null, '\t'),
@@ -12,9 +14,10 @@ module.exports = function(text) {
 		var depMismatch = false;
 		for(var packageName in dependencies) {
 			if(installedPackages[packageName]) {
-				var installedFrom = installedPackages[packageName].from.replace(packageName + '@', '');
-				if(installedFrom != dependencies[packageName]) {
-					console.error('Installed dependencies for "' + packageName + '" do not match package.json, installed: "' + installedFrom + '", expected: "' + dependencies[packageName] + '", please npm install.')
+				var installedVersion = installedPackages[packageName].version;
+
+				if(!semver.satisfies(installedVersion, dependencies[packageName])) {
+					console.error('Installed dependencies for "' + packageName + '" do not match package.json, installed: "' + installedVersion + '", expected: "' + dependencies[packageName] + '", please npm install.')
 					depMismatch = true;
 				}
 			}
