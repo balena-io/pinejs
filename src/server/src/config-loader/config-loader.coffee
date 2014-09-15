@@ -105,6 +105,10 @@ define [
 									customCode = require(model.customServerCode)
 								catch ee
 									throw new Error('Error loading custom server code: ' + e + ee)
+
+							if !_.isFunction(customCode.setup)
+								return
+
 							try
 								deferred = Promise.pending()
 								promise = customCode.setup app, requirejs, sbvrUtils, sbvrUtils.db, (err) ->
@@ -112,8 +116,10 @@ define [
 										deferred.reject(err)
 									else
 										deferred.fulfill()
+
 								if Promise.is(promise)
 									deferred.fulfill(promise)
+
 								return deferred.promise
 							catch e
 								throw new Error('Error running custom server code: ' + e)
