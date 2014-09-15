@@ -71,7 +71,27 @@ define [
 
 		promises = []
 
-		promises.push(configLoader.loadConfig(passportPlatform.config))
+		promises.push(
+			configLoader.loadConfig(passportPlatform.config)
+			.then ->
+				if !process?.env.DISABLE_DEFAULT_AUTH
+					app.post '/login', passportPlatform.login (err, user, req, res, next) ->
+						if err
+							console.error('Error logging in', err, err.stack)
+							res.send(500)
+						else if user is false
+							if req.xhr is true
+								res.send(401)
+							else
+								res.redirect('/login.html')
+						else
+							if req.xhr is true
+								res.send(200)
+							else
+								res.redirect('/')
+					app.get '/logout', passportPlatform.logout, (req, res, next) ->
+						res.redirect('/')
+		)
 
 		if has 'SBVR_SERVER_ENABLED'
 			promises.push(configLoader.loadConfig(sbvrServer.config))
