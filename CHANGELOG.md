@@ -1,3 +1,6 @@
+v0.3.5
+* Custom code modules no longer have to define a setup() method
+
 v0.3.4
 
 * Enable disabling the default platform login/logout handling with the `DISABLE_DEFAULT_AUTH` env var.

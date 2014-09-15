@@ -1,8 +1,10 @@
 # Custom Server Code
 ## Setup
-Custom server code should be provided in either Javascript or CoffeeScript format, and should export a function with the following signature:  
+Custom server code should be provided in either Javascript or CoffeeScript format.
+The module may export a function with the following signature:
 `setup(app, requirejs, sbvrUtils, db)`  
-This function will be called whilst the server starts up and can be used to add custom server code for your project.
+If provided this function will be called whilst the server starts up and can be used to add custom server code for your project.
+This function can return a promise, which the server will wait upon if you need to initialize something before the server listens.
 
 ### app
 This is an [express.js](http://expressjs.com/) app instance, and can be used to add your own routes.  
