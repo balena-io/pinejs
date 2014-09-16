@@ -632,7 +632,7 @@ define [
 		id = result
 		location = odataResourceURI(vocab, request.resourceName, id)
 		api[vocab].logger.log('Insert ID: ', request.resourceName, id)
-		runURI('GET', location)
+		runURI('GET', location, null, req.tx, req)
 		.then (result) ->
 			res.set('Location', location)
 			res.json(result.d[ 0 ], 201)

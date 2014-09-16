@@ -1,4 +1,9 @@
+v0.3.6
+
+* Fix internal POST requests that are run within a passed in transaction, introduced in v0.3.4.
+
 v0.3.5
+
 * Custom code modules no longer have to define a setup() method
 
 v0.3.4
