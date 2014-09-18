@@ -1,10 +1,8 @@
-v0.3.8
+v0.3.7
 
 * Adds a new 'module' build type, which allows you to:
 	* Configure your own express application
 	* Use the platform as a library, rather than having your app loaded as custom code
-
-v0.3.7
 
 * Added support for `and`/`or` within SBVR rules.
 * Fix bower requirejs to v2.1.9 as later versions break the platform client-side (due to shim dependencies not working correctly)
