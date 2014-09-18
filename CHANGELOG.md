@@ -1,3 +1,9 @@
+v0.3.8
+
+* Adds a new 'module' build type, which allows you to:
+	* Configure your own express application
+	* Use the platform as a library, rather than having your app loaded as custom code
+
 v0.3.7
 
 * Added support for `and`/`or` within SBVR rules.
