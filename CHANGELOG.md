@@ -1,3 +1,7 @@
+v0.3.7
+
+* Added support for `and`/`or` within SBVR rules.
+
 v0.3.6
 
 * Fix internal POST requests that are run within a passed in transaction, introduced in v0.3.4.
