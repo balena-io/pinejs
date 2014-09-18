@@ -17,7 +17,7 @@
     "jquery": "~1.10.2",
     "jquery-ui": "~1.10.3",
     "backbone": "~1.0.0",
-    "requirejs": "~2.1.9",
+    "requirejs": "2.1.9",
     "d3": "~3.3.8",
     "ejs": "~0.8.4",
     "bootstrap": "2.3.2",

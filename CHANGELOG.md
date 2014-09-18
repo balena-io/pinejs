@@ -1,6 +1,7 @@
 v0.3.7
 
 * Added support for `and`/`or` within SBVR rules.
+* Fix bower requirejs to v2.1.9 as later versions break the platform client-side (due to shim dependencies not working correctly)
 
 v0.3.6
 
