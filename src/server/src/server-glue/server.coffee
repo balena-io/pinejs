@@ -8,8 +8,8 @@ define [
 	'cs!platform-session-store/platform-session-store'
 	'cs!data-server/SBVRServer'
 	'cs!express-emulator/express'
-	'cs!config-loader/config-loader'
-], (requirejs, has, Promise, dbModule, sbvrUtils, passportPlatform, PlatformSessionStore, sbvrServer, express, configLoader) ->
+	'cs!server-glue/module'
+], (requirejs, has, Promise, dbModule, sbvrUtils, passportPlatform, PlatformSessionStore, sbvrServer, express, Platform) ->
 	if has 'ENV_NODEJS'
 		databaseURL = process.env.DATABASE_URL || 'postgres://postgres:.@localhost:5432/postgres'
 		databaseOptions =
@@ -21,7 +21,6 @@ define [
 			params: 'rulemotion'
 
 	db = dbModule.connect(databaseOptions)
-
 
 	if has 'ENV_NODEJS'
 		express = require('express')
@@ -65,14 +64,10 @@ define [
 		Promise.longStackTraces()
 		app = express.app
 
-	sbvrUtils.setup(app, requirejs, db)
-	.then ->
-		configLoader = configLoader.setup(app, requirejs)
-
-		promises = []
-
-		promises.push(
-			configLoader.loadConfig(passportPlatform.config)
+	Platform.init(app)
+	.then (configLoader) ->
+		configLoader
+			.loadConfig(passportPlatform.config)
 			.then ->
 				if !process?.env.DISABLE_DEFAULT_AUTH
 					app.post '/login', passportPlatform.login (err, user, req, res, next) ->
@@ -89,19 +84,9 @@ define [
 								res.send(200)
 							else
 								res.redirect('/')
+
 					app.get '/logout', passportPlatform.logout, (req, res, next) ->
 						res.redirect('/')
-		)
-
-		if has 'SBVR_SERVER_ENABLED'
-			promises.push(configLoader.loadConfig(sbvrServer.config))
-
-		if has 'ENV_NODEJS'
-			promises.push(configLoader.loadConfig(PlatformSessionStore.config))
-			if has 'CONFIG_LOADER'
-				promises.push(configLoader.loadNodeConfig())
-
-		Promise.all(promises)
 	.then ->
 		if has 'ENV_NODEJS'
 			app.listen process.env.PORT or 1337, ->

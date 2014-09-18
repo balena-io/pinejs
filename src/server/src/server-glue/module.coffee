@@ -29,7 +29,7 @@ define [
 			if has 'CONFIG_LOADER'
 				promises.push(configLoader.loadNodeConfig(config))
 
-			Promise.all(promises)
+			Promise.all(promises).return(configLoader)
 		.catch (err) ->
 			console.error('Error initialising server', err)
 			process.exit()
