@@ -15,7 +15,7 @@ define [
 
 	db = dbModule.connect(databaseOptions)
 
-	init = (app) ->
+	init = (app, config) ->
 		sbvrUtils.setup(app, requirejs, db)
 		.then ->
 			configLoader = configLoader.setup(app, requirejs)
@@ -27,7 +27,7 @@ define [
 			promises.push(configLoader.loadConfig(PlatformSessionStore.config))
 
 			if has 'CONFIG_LOADER'
-				promises.push(configLoader.loadNodeConfig())
+				promises.push(configLoader.loadNodeConfig(config))
 
 			Promise.all(promises)
 		.catch (err) ->

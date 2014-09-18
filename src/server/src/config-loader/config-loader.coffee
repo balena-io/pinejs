@@ -124,17 +124,28 @@ define [
 							catch e
 								throw new Error('Error running custom server code: ' + e)
 
-		loadNodeConfig = ->
+		loadNodeConfig = (config) ->
 			if not has 'ENV_NODEJS'
 				console.error('Can only load a node config in a nodejs environment.')
 				return
+
 			try # Try to register the coffee-script loader - ignore if it fails though, since that probably just means it is not available/needed.
 				require('coffee-script/register')
+
 			readFile = Promise.promisify(require('fs').readFile)
 			path = require('path')
-			root = process.argv[2] or __dirname
+
 			console.info('loading config.json')
-			config = require path.join(root, 'config.json')
+			switch typeof config
+				when "undefined"
+					root = process.argv[2] or __dirname
+					config = require path.join(root, 'config.json')
+				when "string"
+					root = path.dirname(require.resolve config)
+					config = require config
+				when "object"
+					root = process.cwd()
+
 			Promise.map config.models, (model) ->
 				readFile(path.join(root, model.modelFile), 'utf8')
 				.then (sbvrModel) ->
