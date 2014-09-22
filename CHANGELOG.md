@@ -1,3 +1,7 @@
+v0.3.8
+
+* PlatformSessionStore is now exported from module build
+
 v0.3.7
 
 * Adds a new 'module' build type, which allows you to:

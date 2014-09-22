@@ -6,7 +6,8 @@ define [
 	'cs!sbvr-api/sbvr-utils'
 	'cs!data-server/SBVRServer'
 	'cs!config-loader/config-loader'
-], (requirejs, has, Promise, dbModule, sbvrUtils, sbvrServer, configLoader) ->
+	'cs!platform-session-store/platform-session-store'
+], (requirejs, has, Promise, dbModule, sbvrUtils, sbvrServer, configLoader, PlatformSessionStore) ->
 	databaseURL = process.env.DATABASE_URL || 'postgres://postgres:.@localhost:5432/postgres'
 	databaseOptions =
 		engine: databaseURL[0...databaseURL.indexOf(':')]
@@ -27,4 +28,4 @@ define [
 			console.error('Error initialising server', err)
 			process.exit()
 
-	return {init, sbvrUtils}
+	return {init, sbvrUtils, SessionStore: PlatformSessionStore}
