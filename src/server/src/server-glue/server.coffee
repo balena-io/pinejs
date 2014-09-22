@@ -2,14 +2,12 @@ define [
 	'require'
 	'has'
 	'bluebird'
-	'cs!database-layer/db'
 	'cs!sbvr-api/sbvr-utils'
 	'cs!passport-platform/passport-platform'
 	'cs!platform-session-store/platform-session-store'
-	'cs!data-server/SBVRServer'
 	'cs!express-emulator/express'
-	'cs!config-loader/config-loader'
-], (requirejs, has, Promise, dbModule, sbvrUtils, passportPlatform, PlatformSessionStore, sbvrServer, express, configLoader) ->
+	'cs!server-glue/module'
+], (requirejs, has, Promise, sbvrUtils, passportPlatform, PlatformSessionStore, express, Platform) ->
 	if has 'ENV_NODEJS'
 		databaseURL = process.env.DATABASE_URL || 'postgres://postgres:.@localhost:5432/postgres'
 		databaseOptions =
@@ -19,9 +17,6 @@ define [
 		databaseOptions =
 			engine: 'websql'
 			params: 'rulemotion'
-
-	db = dbModule.connect(databaseOptions)
-
 
 	if has 'ENV_NODEJS'
 		express = require('express')
@@ -65,43 +60,31 @@ define [
 		Promise.longStackTraces()
 		app = express.app
 
-	sbvrUtils.setup(app, requirejs, db)
-	.then ->
-		configLoader = configLoader.setup(app, requirejs)
-
-		promises = []
-
-		promises.push(
+	Platform.init(app)
+	.then (configLoader) ->
+		Promise.all [
 			configLoader.loadConfig(passportPlatform.config)
-			.then ->
-				if !process?.env.DISABLE_DEFAULT_AUTH
-					app.post '/login', passportPlatform.login (err, user, req, res, next) ->
-						if err
-							console.error('Error logging in', err, err.stack)
-							res.send(500)
-						else if user is false
-							if req.xhr is true
-								res.send(401)
-							else
-								res.redirect('/login.html')
-						else
-							if req.xhr is true
-								res.send(200)
-							else
-								res.redirect('/')
-					app.get '/logout', passportPlatform.logout, (req, res, next) ->
+			configLoader.loadConfig(PlatformSessionStore.config)
+		]
+	.then ->
+		if !process?.env.DISABLE_DEFAULT_AUTH
+			app.post '/login', passportPlatform.login (err, user, req, res, next) ->
+				if err
+					console.error('Error logging in', err, err.stack)
+					res.send(500)
+				else if user is false
+					if req.xhr is true
+						res.send(401)
+					else
+						res.redirect('/login.html')
+				else
+					if req.xhr is true
+						res.send(200)
+					else
 						res.redirect('/')
-		)
 
-		if has 'SBVR_SERVER_ENABLED'
-			promises.push(configLoader.loadConfig(sbvrServer.config))
-
-		if has 'ENV_NODEJS'
-			promises.push(configLoader.loadConfig(PlatformSessionStore.config))
-			if has 'CONFIG_LOADER'
-				promises.push(configLoader.loadNodeConfig())
-
-		Promise.all(promises)
+			app.get '/logout', passportPlatform.logout, (req, res, next) ->
+				res.redirect('/')
 	.then ->
 		if has 'ENV_NODEJS'
 			app.listen process.env.PORT or 1337, ->
