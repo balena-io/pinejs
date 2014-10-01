@@ -673,6 +673,8 @@ define [
 		executeModel(tx,
 			apiRoot: 'dev'
 			modelText: devModel
+			logging:
+				log: false
 		)
 		.then ->
 			executeModels(tx, [
