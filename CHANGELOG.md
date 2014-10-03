@@ -1,5 +1,7 @@
 v0.3.9
 
+* SQL queries are only logged when debugging
+* Dev model .log output is now suppressed
 * TRANSACTION_TIMEOUT_MS environment variable can be used again
 
 v0.3.8
