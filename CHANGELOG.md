@@ -1,3 +1,7 @@
+v0.3.9
+
+* TRANSACTION_TIMEOUT_MS environment variable can be used again
+
 v0.3.8
 
 * PlatformSessionStore is now exported from module build
