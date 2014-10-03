@@ -579,7 +579,9 @@ define [
 			sqlQuery = sqlQuery[queryIndex]
 		getAndCheckBindValues(vocabulary, sqlQuery.bindings, values)
 		.then (values) ->
-			api[vocabulary].logger.log(sqlQuery.query, values)
+			if has('DEV') or process.env.DEBUG
+				api[vocabulary].logger.log(sqlQuery.query, values)
+
 			sqlQuery.values = values
 			tx.executeSql(sqlQuery.query, values, null, addReturning)
 
@@ -671,6 +673,8 @@ define [
 		executeModel(tx,
 			apiRoot: 'dev'
 			modelText: devModel
+			logging:
+				log: false
 		)
 		.then ->
 			executeModels(tx, [
