@@ -9,16 +9,6 @@ define [
 	'cs!server-glue/module'
 ], (requirejs, has, Promise, sbvrUtils, passportPlatform, PlatformSessionStore, express, Platform) ->
 	if has 'ENV_NODEJS'
-		databaseURL = process.env.DATABASE_URL || 'postgres://postgres:.@localhost:5432/postgres'
-		databaseOptions =
-			engine: databaseURL[0...databaseURL.indexOf(':')]
-			params: databaseURL
-	else
-		databaseOptions =
-			engine: 'websql'
-			params: 'rulemotion'
-
-	if has 'ENV_NODEJS'
 		express = require('express')
 		passport = require('passport')
 		app = express()
@@ -64,7 +54,7 @@ define [
 	.then (configLoader) ->
 		Promise.all [
 			configLoader.loadConfig(passportPlatform.config)
-			configLoader.loadConfig(PlatformSessionStore.config)
+			configLoader.loadConfig(PlatformSessionStore.config) if has 'ENV_NODEJS'
 		]
 	.then ->
 		if !process?.env.DISABLE_DEFAULT_AUTH
