@@ -1,27 +1,28 @@
-define [ 'bluebird' ], (Promise) ->
+define [ 'bluebird', 'typed-error' ], (Promise, TypedError) ->
+	MigrationError: class MigrationError extends TypedError
+
 	setup: (@db, @migrationsApi, @devApi) ->
 		@logger = @migrationsApi.logger
 
 	run: (model) ->
 		modelName = model.apiRoot
-		console.log "Running migrations for", modelName
 
     # migrations only run if the model has been executed before,
 		# to make changes that can't be automatically applied
-
 		@checkModelAlreadyExists(modelName)
 		.then (exists) =>
-			return if not exists
+			if not exists
+				@logger.info "First time model has executed, skipping migrations"
+				return @setExecutedMigrations(modelName, _.keys(model.migrations))
 
 			@getExecutedMigrations(modelName)
 			.then (executedMigrations) =>
-				@filterPendingMigrations(model.migrations, executedMigrations)
-			.then (pendingMigrations) =>
+				pendingMigrations = @filterAndSortPendingMigrations(model.migrations, executedMigrations)
 				return if not _.any(pendingMigrations)
+
 				@executeMigrations(pendingMigrations)
-		.then (newMigrationCount) =>
-			return unless newMigrationCount > 0
-			@setExecutedMigrations(modelName, _.keys(model.migrations))
+				.then (newlyExecutedMigrations) =>
+					@setExecutedMigrations(modelName, [ executedMigrations..., newlyExecutedMigrations... ])
 
 	checkModelAlreadyExists: (modelName) ->
 		@devApi.get
@@ -54,21 +55,31 @@ define [ 'bluebird' ], (Promise) ->
 				model_name: modelName
 				executed_migrations: JSON.stringify(executedMigrations)
 
-	filterPendingMigrations: (migrations, executedMigrations) ->
-		_.reject migrations, (migration, key) ->
-			_.contains(executedMigrations, key)
+	# turns {"key1": migration, "key3": migration, "key2": migration}
+	# into  [["key1", migration], ["key2", migration], ["key3", migration]]
+	filterAndSortPendingMigrations: (migrations, executedMigrations) ->
+		_(migrations)
+			.pairs().sortBy(_.first)
+			.reject ([ key, migration ]) ->
+				_.contains(executedMigrations, key)
+			.value()
 
 	executeMigrations: (migrations=[]) ->
-		@db.transaction().then (tx) ->
-			Promise.all _.map migrations, (migration) ->
+		@db.transaction()
+		.tap (tx) =>
+			Promise.all _.map migrations, ([ key, migration ]) =>
+				@logger.info "Running migration %j", key
+
 				switch typeof migration
 					when 'function'
 						migration(tx)
 					when 'string'
 						tx.executeSql(migration)
-			.then ->
-				tx.end()
-			.return(migrations.length)
-			.catch ->
-				tx.rollback()
+			.catch (err) =>
+				tx.rollback().then =>
+					@logger.error "Error while executing migrations, rolled back"
+					throw new MigrationError(err)
+		.then (tx) ->
+			tx.end()
+		.return(_.map(migrations, _.first)) # return migration keys
 
