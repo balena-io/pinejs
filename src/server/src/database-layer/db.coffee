@@ -44,7 +44,7 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds', 'typed-err
 			if _.isNaN(timeoutMS) or timeoutMS <= 0
 				throw new Error("Invalid valid for TRANSACTION_TIMEOUT_MS: " + process.env.TRANSACTION_TIMEOUT_MS)
 		else
-			timeoutMS = 5000
+			timeoutMS = 10000
 
 		constructor: (stackTraceErr, executeSql, rollback, end) ->
 			automaticClose = =>
