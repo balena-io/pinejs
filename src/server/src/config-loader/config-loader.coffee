@@ -4,7 +4,8 @@ define [
 	'lodash'
 	'bluebird'
 	'cs!sbvr-api/sbvr-utils'
-], (exports, has, _, Promise, sbvrUtils) ->
+	'cs!migrator/migrator'
+], (exports, has, _, Promise, sbvrUtils, migrator) ->
 	# Setup function
 	exports.setup = (app, requirejs) ->
 		authAPI = sbvrUtils.api.Auth
@@ -132,8 +133,9 @@ define [
 			try # Try to register the coffee-script loader - ignore if it fails though, since that probably just means it is not available/needed.
 				require('coffee-script/register')
 
-			readFile = Promise.promisify(require('fs').readFile)
+			fs = require('fs')
 			path = require('path')
+			readFile = Promise.promisify(fs.readFile)
 
 			console.info('Loading application config')
 			switch typeof config
@@ -148,10 +150,30 @@ define [
 
 			Promise.map config.models, (model) ->
 				readFile(path.join(root, model.modelFile), 'utf8')
-				.then (sbvrModel) ->
-					model.modelText = sbvrModel
+				.then (modelText) ->
+					model.modelText = modelText
 					if model.customServerCode?
 						model.customServerCode = root + '/' + model.customServerCode
+				.then ->
+					model.migrations ||= {}
+
+					if model.migrationsPath
+						migrationsPath = path.join(root, model.migrationsPath)
+						delete model.migrationsPath
+
+						for filename in fs.readdirSync(migrationsPath)
+							filePath = path.join(migrationsPath, filename)
+							migrationKey = filename.split('-')[0]
+
+							switch path.extname(filename)
+								when '.coffee', '.js'
+									fn = require(filePath)
+									model.migrations[migrationKey] = fn
+								when '.sql'
+									sql = fs.readFileSync(filePath).toString()
+									model.migrations[migrationKey] = sql
+								else
+									console.error("Unrecognised migration file extension, skipping: #{path.extname filename}")
 			.then ->
 				loadConfig(config)
 			.catch (err) ->
