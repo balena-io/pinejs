@@ -8,10 +8,16 @@ define [
 	'cs!config-loader/config-loader'
 	'cs!platform-session-store/platform-session-store'
 ], (requirejs, has, Promise, dbModule, sbvrUtils, sbvrServer, configLoader, PlatformSessionStore) ->
-	databaseURL = process.env.DATABASE_URL || 'postgres://postgres:.@localhost:5432/postgres'
-	databaseOptions =
-		engine: databaseURL[0...databaseURL.indexOf(':')]
-		params: databaseURL
+
+	if has 'ENV_NODEJS'
+		databaseURL = process.env.DATABASE_URL || 'postgres://postgres:.@localhost:5432/postgres'
+		databaseOptions =
+			engine: databaseURL[...databaseURL.indexOf(':')]
+			params: databaseURL
+	else
+		databaseOptions =
+			engine: 'websql'
+			params: 'rulemotion'
 
 	db = dbModule.connect(databaseOptions)
 
