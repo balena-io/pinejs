@@ -1,3 +1,10 @@
+v0.3.10
+
+* Update sbvr-types to v0.0.2, fixes issues with:
+	* Saying max length of a string is 255 even if it is actually another value.
+	* Sending a colour object to the api.
+	* Sending an invalid JSON string to a JSON field.
+
 v0.3.9
 
 * SQL queries are only logged when debugging
