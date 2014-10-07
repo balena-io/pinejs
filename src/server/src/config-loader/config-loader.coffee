@@ -16,7 +16,7 @@ define [
 						.then ->
 							console.info('Sucessfully executed ' + model.modelName + ' model.')
 						.catch (err) ->
-							throw new Error(['Failed to execute ' + model.modelName + ' model from ' + model.modelFile, err])
+							throw new Error(['Failed to execute ' + model.modelName + ' model from ' + model.modelFile, err, err.stack])
 
 				if data.users?
 					permissions = {}
