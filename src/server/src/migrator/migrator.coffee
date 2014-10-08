@@ -24,11 +24,13 @@ define [ 'bluebird', 'typed-error' ], (Promise, TypedError) ->
 				.then (newlyExecutedMigrations) =>
 					@setExecutedMigrations(modelName, [ executedMigrations..., newlyExecutedMigrations... ])
 
+	# this call takes *five seconds*, please optimise the platform API
 	checkModelAlreadyExists: (modelName) ->
 		@devApi.get
 			resource: 'model'
 			options:
-				select: 'id'
+				select: [ 'vocabulary' ]
+				top: '1'
 				filter:
 					vocabulary: modelName
 		.then (results) ->
