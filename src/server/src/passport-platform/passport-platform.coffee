@@ -49,6 +49,7 @@ define [
 				app.use (req, res, next) ->
 					if _user isnt false
 						req.user = _user
+					next()
 
 				login = (fn) ->
 					(req, res, next) ->
