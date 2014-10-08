@@ -1,3 +1,7 @@
+v0.4.0
+
+* __model is no longer sent on GET requests to a resource.
+
 v0.3.11
 
 * Update resin-platform-api to v0.2.5
