@@ -4,6 +4,7 @@ v0.3.10
 	* Saying max length of a string is 255 even if it is actually another value.
 	* Sending a colour object to the api.
 	* Sending an invalid JSON string to a JSON field.
+* Add a __resourceName property in the response to running a rule, so you know what resource you are dealing with.
 
 v0.3.9
 
