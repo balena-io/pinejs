@@ -40,10 +40,7 @@ define [ 'bluebird', 'typed-error', 'text!migrator/migrations.sbvr' ], (Promise,
 			options:
 				select: [ 'executed_migrations' ]
 		.then (data) ->
-			if data?.executed_migrations
-				JSON.parse(data.executed_migrations)
-			else
-				[]
+			data?.executed_migrations || []
 
 	setExecutedMigrations: (modelName, executedMigrations) ->
 		@migrationsApi.put
@@ -51,7 +48,7 @@ define [ 'bluebird', 'typed-error', 'text!migrator/migrations.sbvr' ], (Promise,
 			id: modelName
 			body:
 				model_name: modelName
-				executed_migrations: JSON.stringify(executedMigrations)
+				executed_migrations: executedMigrations
 
 	# turns {"key1": migration, "key3": migration, "key2": migration}
 	# into  [["key1", migration], ["key2", migration], ["key3", migration]]
