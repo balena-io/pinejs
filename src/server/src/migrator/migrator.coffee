@@ -1,7 +1,10 @@
-define [ 'bluebird', 'typed-error', 'text!migrator/migrations.sbvr' ], (Promise, TypedError, modelText) ->
+define [ 'lodash', 'bluebird', 'typed-error', 'text!migrator/migrations.sbvr' ], (_, Promise, TypedError, modelText) ->
 	MigrationError: class MigrationError extends TypedError
 
 	run: (model) ->
+		if not _.any(model.migrations)
+			return Promise.fulfilled()
+
 		modelName = model.apiRoot
 
 		# migrations only run if the model has been executed before,
