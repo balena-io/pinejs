@@ -28,7 +28,7 @@ define [
 
 			Promise.all([
 				configLoader.loadConfig(sbvrServer.config) if has 'SBVR_SERVER_ENABLED'
-				configLoader.loadNodeConfig(config) if has 'CONFIG_LOADER'
+				configLoader.loadApplicationConfig(config) if has 'CONFIG_LOADER'
 			]).return(configLoader)
 		.catch (err) ->
 			console.error('Error initialising server', err)
