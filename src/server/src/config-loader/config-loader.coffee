@@ -136,6 +136,7 @@ define [
 			fs = require('fs')
 			path = require('path')
 			readFile = Promise.promisify(fs.readFile)
+			readdir = Promise.promisify(fs.readdir)
 
 			console.info('Loading application config')
 			switch typeof config
@@ -161,7 +162,8 @@ define [
 						migrationsPath = path.join(root, model.migrationsPath)
 						delete model.migrationsPath
 
-						for filename in fs.readdirSync(migrationsPath)
+						readdir(migrationsPath)
+						.map (filename) ->
 							filePath = path.join(migrationsPath, filename)
 							migrationKey = filename.split('-')[0]
 
@@ -170,8 +172,9 @@ define [
 									fn = require(filePath)
 									model.migrations[migrationKey] = fn
 								when '.sql'
-									sql = fs.readFileSync(filePath).toString()
-									model.migrations[migrationKey] = sql
+									readFile(filePath)
+									.then (sqlBuffer) ->
+										model.migrations[migrationKey] = sqlBuffer.toString()
 								else
 									console.error("Unrecognised migration file extension, skipping: #{path.extname filename}")
 			.then ->
