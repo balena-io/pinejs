@@ -56,6 +56,7 @@ require({
 		'database-layer'			: '../../server/src/database-layer',
 		'data-server'				: '../../server/src/data-server',
 		'express-emulator'			: '../../server/src/express-emulator',
+		'migrator'					: '../../server/src/migrator',
 		'passport-platform'			: '../../server/src/passport-platform',
 		'platform-session-store'	: '../../server/src/platform-session-store',
 		'server-glue'				: '../../server/src/server-glue',
