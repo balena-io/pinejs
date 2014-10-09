@@ -790,6 +790,9 @@ define [
 				tx.rollback()
 				console.error('Could not execute standard models', err, err.stack)
 				process.exit()
+		.then ->
+			db.executeSql('CREATE UNIQUE INDEX "uniq_model_model_type_vocab" ON "model" ("vocabulary", "model type");')
+			.catch -> # we can't use IF NOT EXISTS on all dbs, so we have to ignore the error raised if this index already exists
 		.nodeify(callback)
 
 	return
