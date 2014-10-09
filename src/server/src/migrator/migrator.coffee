@@ -4,7 +4,7 @@ define [ 'bluebird', 'typed-error', 'text!migrator/migrations.sbvr' ], (Promise,
 	run: (model) ->
 		modelName = model.apiRoot
 
-    # migrations only run if the model has been executed before,
+		# migrations only run if the model has been executed before,
 		# to make changes that can't be automatically applied
 		@checkModelAlreadyExists(modelName)
 		.then (exists) =>
