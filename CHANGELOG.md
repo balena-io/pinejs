@@ -2,6 +2,10 @@ v0.3.11
 
 * Update resin-platform-api to v0.2.5
 
+* Add support for running migrations before a model executes:
+	* Can specify `migrations` or a `migrationsPath` in config.json
+	* Migrations which haven't been executed will run in order before the model is executed
+
 v0.3.10
 
 * Added a PRERESPOND hook for manipulating the response to OData queries
