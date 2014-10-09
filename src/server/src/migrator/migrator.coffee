@@ -1,8 +1,5 @@
-define [ 'bluebird', 'typed-error' ], (Promise, TypedError) ->
+define [ 'bluebird', 'typed-error', 'text!migrator/migrations.sbvr' ], (Promise, TypedError, modelText) ->
 	MigrationError: class MigrationError extends TypedError
-
-	setup: (@db, @migrationsApi, @devApi) ->
-		@logger = @migrationsApi.logger
 
 	run: (model) ->
 		modelName = model.apiRoot
@@ -26,7 +23,7 @@ define [ 'bluebird', 'typed-error' ], (Promise, TypedError) ->
 
 	# this call takes *five seconds*, please optimise the platform API
 	checkModelAlreadyExists: (modelName) ->
-		@devApi.get
+		@sbvrUtils.api.dev.get
 			resource: 'model'
 			options:
 				select: [ 'vocabulary' ]
@@ -84,4 +81,18 @@ define [ 'bluebird', 'typed-error' ], (Promise, TypedError) ->
 		.then (tx) ->
 			tx.end()
 		.return(_.map(migrations, _.first)) # return migration keys
+
+	config:
+		models: [
+			modelName: 'migrations'
+			apiRoot: 'migrations'
+			modelText: modelText
+			customServerCode: 'cs!migrator/migrator'
+		]
+
+	setup: (app, requirejs, @sbvrUtils, @db, callback) ->
+		@migrationsApi = @sbvrUtils.api.migrations
+		@logger = @migrationsApi.logger
+
+		callback()
 

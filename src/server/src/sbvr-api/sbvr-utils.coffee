@@ -19,8 +19,7 @@ define [
 	'text!sbvr-api/dev.sbvr'
 	'text!sbvr-api/transaction.sbvr'
 	'text!sbvr-api/user.sbvr'
-	'text!sbvr-api/migrations.sbvr'
-], (exports, has, SBVRParser, LF2AbstractSQL, AbstractSQL2SQL, AbstractSQLCompiler, AbstractSQL2CLF, ODataMetadataGenerator, permissions, transactions, uriParser, migrator, resinPlatformAPI, _, Promise, TypedError, sbvrTypes, devModel, transactionModel, userModel, migrationsModel) ->
+], (exports, has, SBVRParser, LF2AbstractSQL, AbstractSQL2SQL, AbstractSQLCompiler, AbstractSQL2CLF, ODataMetadataGenerator, permissions, transactions, uriParser, migrator, resinPlatformAPI, _, Promise, TypedError, sbvrTypes, devModel, transactionModel, userModel) ->
 	db = null
 
 	exports.sbvrTypes = sbvrTypes
@@ -692,7 +691,6 @@ define [
 		# dev, migration models must run first
 		executeModels(tx, [
 			{ apiRoot: 'dev', modelText: devModel, logging: { log: false } }
-			{ apiRoot: 'migrations', modelText: migrationsModel }
 		])
 		.then ->
 			executeModels(tx, [
@@ -791,16 +789,14 @@ define [
 		transactions.setup(app, requirejs, exports)
 
 		db.transaction()
-		.then (tx) ->
+		.tap (tx) ->
 			executeStandardModels(tx)
-			.then ->
-				tx.end()
-			.catch (err) ->
-				tx.rollback()
-				console.error('Could not execute standard models', err, err.stack)
-				process.exit()
-		.then ->
-			migrator.setup(exports.db, api.migrations, api.dev)
+		.then (tx) ->
+			tx.end()
+		.catch (err) ->
+			tx.rollback()
+			console.error('Could not execute standard models', err, err.stack)
+			process.exit()
 		.nodeify(callback)
 
 	return

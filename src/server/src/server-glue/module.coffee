@@ -6,8 +6,9 @@ define [
 	'cs!sbvr-api/sbvr-utils'
 	'cs!data-server/SBVRServer'
 	'cs!config-loader/config-loader'
+	'cs!migrator/migrator'
 	'cs!platform-session-store/platform-session-store'
-], (requirejs, has, Promise, dbModule, sbvrUtils, sbvrServer, configLoader, PlatformSessionStore) ->
+], (requirejs, has, Promise, dbModule, sbvrUtils, sbvrServer, configLoader, migrator, PlatformSessionStore) ->
 
 	if has 'ENV_NODEJS'
 		databaseURL = process.env.DATABASE_URL || 'postgres://postgres:.@localhost:5432/postgres'
@@ -25,7 +26,9 @@ define [
 		sbvrUtils.setup(app, requirejs, db)
 		.then ->
 			configLoader = configLoader.setup(app, requirejs)
-
+			configLoader.loadConfig(migrator.config)
+			.return(configLoader)
+		.then (configLoader) ->
 			Promise.all([
 				configLoader.loadConfig(sbvrServer.config) if has 'SBVR_SERVER_ENABLED'
 				configLoader.loadApplicationConfig(config) if has 'CONFIG_LOADER'
