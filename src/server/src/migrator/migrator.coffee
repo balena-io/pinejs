@@ -58,10 +58,10 @@ define [ 'bluebird', 'typed-error', 'text!migrator/migrations.sbvr' ], (Promise,
 	# into  [["key1", migration], ["key2", migration], ["key3", migration]]
 	filterAndSortPendingMigrations: (migrations, executedMigrations) ->
 		_(migrations)
-			.pairs().sortBy(_.first)
-			.reject ([ key, migration ]) ->
-				_.contains(executedMigrations, key)
-			.value()
+		.omit(executedMigrations)
+		.pairs()
+		.sortBy(_.first)
+		.value()
 
 	executeMigrations: (migrations=[]) ->
 		@db.transaction()
