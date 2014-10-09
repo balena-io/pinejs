@@ -21,7 +21,7 @@ define [ 'bluebird', 'typed-error', 'text!migrator/migrations.sbvr' ], (Promise,
 				.then (newlyExecutedMigrations) =>
 					@setExecutedMigrations(modelName, [ executedMigrations..., newlyExecutedMigrations... ])
 
-	# this call takes *five seconds*, please optimise the platform API
+	# this call sometimes takes *five seconds*, please optimise the platform API
 	checkModelAlreadyExists: (modelName) ->
 		@sbvrUtils.api.dev.get
 			resource: 'model'

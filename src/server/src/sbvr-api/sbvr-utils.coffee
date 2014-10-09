@@ -688,7 +688,7 @@ define [
 			validateDB(tx, vocab)
 
 	exports.executeStandardModels = executeStandardModels = (tx, callback) ->
-		# dev, migration models must run first
+		# dev model must run first
 		executeModels(tx, [
 			{ apiRoot: 'dev', modelText: devModel, logging: { log: false } }
 		])
