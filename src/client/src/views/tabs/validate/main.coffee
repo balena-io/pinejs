@@ -76,24 +76,24 @@ define [
 			Promise.all([
 				serverRequest('GET', '/data/')
 				.then(([statusCode, result]) ->
-					console.log(result)
 					return result.__model
 				)
 				serverRequest('POST', '/validate/', {}, {rule: @editor.getValue()})
 				.then(([statusCode, result]) ->
 					return result
 				)
-			]).spread((models, invalid) =>
+			]).spread((clientModel, invalid) =>
 				colNames = []
 				colResourceNames = []
 				colModel = []
 				fkCols = []
 
-				for {dataType, fieldName} in invalid.__model.fields
+				resourceModel = clientModel[invalid.__resourceName]
+				for {dataType, fieldName} in resourceModel.fields
 					resourceName = fieldName.replace(/\ /g, '_')
 					if dataType == 'ForeignKey'
 						colNames.push(fieldName + '(id: name)')
-						fkCols.push(models[resourceName])
+						fkCols.push(clientModel[resourceName])
 					else
 						colNames.push(fieldName)
 					colModel.push(
@@ -103,8 +103,8 @@ define [
 
 				manyToManyCols = []
 
-				resourceName = invalid.__model.resourceName
-				for own modelName, model of models
+				resourceName = resourceModel.resourceName
+				for own modelName, model of clientModel
 					if (modelNameParts = model.resourceName.split('-')).length > 2 and
 							modelNameParts[0] == resourceName and
 							modelNameParts[2] not in colResourceNames
@@ -128,16 +128,17 @@ define [
 								)
 						)
 						Promise.map(manyToManyCols, (model) ->
-							serverRequest('GET', '/data/' + model.resourceName + '?$filter=' + invalid.__model.resourceName + ' eq ' + instance[invalid.__model.idField])
+							serverRequest('GET', '/data/' + model.resourceName + '?$filter=' + resourceModel.resourceName + ' eq ' + instance[resourceModel.idField])
 							.then(([statusCode, manyToManyCol]) ->
 								Promise.map(manyToManyCol.d, (instance) ->
 									fkName = model.resourceName.split('-')[2]
 									serverRequest('GET', instance[fkName].__deferred.uri)
 									.then(([statusCode, results]) ->
 										if results.d.length > 0
-											instance[fkName] = results.d[0][results.__model.referenceScheme.replace(/\ /g, '_')]
+											instance[fkName] = results.d[0][clientModel[fkName].referenceScheme.replace(/\ /g, '_')]
 									)
 								).then(->
+									manyToManyCol.__model = model
 									return manyToManyCol
 								)
 							)

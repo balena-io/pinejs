@@ -416,6 +416,7 @@ define [
 					runURI('GET', '/' + vocab + '/' + clientModel.resourceName + '?$filter=' + filter)
 					.then (result) ->
 						result.__formulationType = formulationType
+						result.__resourceName = resourceName
 						return result
 			.nodeify(callback)
 
