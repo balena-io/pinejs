@@ -135,7 +135,7 @@ define [
 			readFile = Promise.promisify(require('fs').readFile)
 			path = require('path')
 
-			console.info('loading config.json')
+			console.info('Loading application config')
 			switch typeof config
 				when "undefined"
 					root = process.argv[2] or __dirname
