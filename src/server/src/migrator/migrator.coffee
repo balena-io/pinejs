@@ -67,7 +67,7 @@ define [ 'bluebird', 'typed-error', 'text!migrator/migrations.sbvr' ], (Promise,
 		@db.transaction()
 		.tap (tx) =>
 			Promise.all _.map migrations, ([ key, migration ]) =>
-				@logger.info "Running migration %j", key
+				@logger.info "Running migration #{JSON.stringify key}"
 
 				switch typeof migration
 					when 'function'
