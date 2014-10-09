@@ -475,7 +475,9 @@ define [
 		if !apiRoot? or !clientModels[apiRoot]?
 			return next('route')
 
-		api[apiRoot].logger.log('Parsing', req.method, req.url)
+		if has('DEV') or process.env.DEBUG
+			api[apiRoot].logger.log('Parsing', req.method, req.url)
+
 		# Parse the OData requests
 		uriParser.parseODataURI(req)
 		.then (requests) ->
