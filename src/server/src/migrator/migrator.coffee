@@ -66,14 +66,7 @@ define [ 'bluebird', 'typed-error', 'text!migrator/migrations.sbvr' ], (Promise,
 	executeMigrations: (migrations=[]) ->
 		@db.transaction()
 		.tap (tx) =>
-			Promise.all _.map migrations, ([ key, migration ]) =>
-				@logger.info "Running migration #{JSON.stringify key}"
-
-				switch typeof migration
-					when 'function'
-						migration(tx)
-					when 'string'
-						tx.executeSql(migration)
+			Promise.map(migrations, @executeMigration.bind(this, tx), concurrency: 1)
 			.catch (err) =>
 				tx.rollback().then =>
 					@logger.error "Error while executing migrations, rolled back"
@@ -81,6 +74,15 @@ define [ 'bluebird', 'typed-error', 'text!migrator/migrations.sbvr' ], (Promise,
 		.then (tx) ->
 			tx.end()
 		.return(_.map(migrations, _.first)) # return migration keys
+
+	executeMigration: (tx, [ key, migration ]) ->
+		@logger.info "Running migration #{JSON.stringify key}"
+
+		switch typeof migration
+			when 'function'
+				migration(tx, @sbvrUtils)
+			when 'string'
+				tx.executeSql(migration)
 
 	config:
 		models: [
