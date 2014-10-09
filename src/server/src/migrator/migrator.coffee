@@ -36,11 +36,10 @@ define [ 'bluebird', 'typed-error', 'text!migrator/migrations.sbvr' ], (Promise,
 	getExecutedMigrations: (modelName) ->
 		@migrationsApi.get
 			resource: 'migration'
+			id: modelName
 			options:
 				select: [ 'executed_migrations' ]
-				filter:
-					model_name: modelName
-		.get(0).then (data) ->
+		.then (data) ->
 			if data?.executed_migrations
 				JSON.parse(data.executed_migrations)
 			else
