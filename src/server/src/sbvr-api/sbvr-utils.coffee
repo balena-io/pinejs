@@ -785,14 +785,14 @@ define [
 		transactions.setup(app, requirejs, exports)
 
 		db.transaction()
-		.tap (tx) ->
-			executeStandardModels(tx)
 		.then (tx) ->
-			tx.end()
-		.catch (err) ->
-			tx.rollback()
-			console.error('Could not execute standard models', err, err.stack)
-			process.exit()
+			executeStandardModels(tx)
+			.then ->
+				tx.end()
+			.catch (err) ->
+				tx.rollback()
+				console.error('Could not execute standard models', err, err.stack)
+				process.exit()
 		.nodeify(callback)
 
 	return
