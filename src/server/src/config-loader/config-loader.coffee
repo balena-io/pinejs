@@ -133,10 +133,8 @@ define [
 			try # Try to register the coffee-script loader - ignore if it fails though, since that probably just means it is not available/needed.
 				require('coffee-script/register')
 
-			fs = require('fs')
+			fs = Promise.promisifyAll(require('fs'))
 			path = require('path')
-			readFile = Promise.promisify(fs.readFile)
-			readdir = Promise.promisify(fs.readdir)
 
 			console.info('Loading application config')
 			switch typeof config
@@ -150,7 +148,7 @@ define [
 					root = process.cwd()
 
 			Promise.map config.models, (model) ->
-				readFile(path.join(root, model.modelFile), 'utf8')
+				fs.readFileAsync(path.join(root, model.modelFile), 'utf8')
 				.then (modelText) ->
 					model.modelText = modelText
 					if model.customServerCode?
@@ -162,7 +160,7 @@ define [
 						migrationsPath = path.join(root, model.migrationsPath)
 						delete model.migrationsPath
 
-						readdir(migrationsPath)
+						fs.readdirAsync(migrationsPath)
 						.map (filename) ->
 							filePath = path.join(migrationsPath, filename)
 							migrationKey = filename.split('-')[0]
@@ -172,7 +170,7 @@ define [
 									fn = require(filePath)
 									model.migrations[migrationKey] = fn
 								when '.sql'
-									readFile(filePath)
+									fs.readFileAsync(filePath)
 									.then (sqlBuffer) ->
 										model.migrations[migrationKey] = sqlBuffer.toString()
 								else
