@@ -24,7 +24,6 @@ define [ 'lodash', 'bluebird', 'typed-error', 'text!migrator/migrations.sbvr' ],
 				.then (newlyExecutedMigrations) =>
 					@setExecutedMigrations(modelName, [ executedMigrations..., newlyExecutedMigrations... ])
 
-	# this call sometimes takes *five seconds*, please optimise the platform API
 	checkModelAlreadyExists: (modelName) ->
 		@sbvrUtils.api.dev.get
 			resource: 'model'
