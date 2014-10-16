@@ -1,5 +1,7 @@
 v0.3.10
 
+* Added a PRERESPOND hook for manipulating the response to OData queries
+
 * Update sbvr-types to v0.0.2, fixes issues with:
 	* Saying max length of a string is 255 even if it is actually another value.
 	* Sending a colour object to the api.

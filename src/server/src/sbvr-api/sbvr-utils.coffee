@@ -233,6 +233,11 @@ define [
 		uriParser.deleteClientModel(vocab)
 		delete api[vocab]
 
+	runHook = (hookName, args) ->
+		hooks = args.req.hooks[hookName] || []
+		Promise.map hooks, (hook) ->
+			hook(args)
+
 	exports.deleteModel = (vocabulary, callback) ->
 		db.transaction()
 		.then (tx) ->
@@ -487,8 +492,7 @@ define [
 				uriParser.addPermissions(req, request)
 				.tap (request) ->
 					req.hooks = apiHooks[request.method]?[request.vocabulary]?[request.resourceName] ? {}
-					Promise.map req.hooks.POSTPARSE ? [], (hook) ->
-						hook({req, request})
+					runHook('POSTPARSE', {req, request})
 				.then(uriParser.translateUri)
 				.then (request) ->
 					if request.abstractSqlQuery?
@@ -508,8 +512,7 @@ define [
 			logger.log('Running', req.method, req.url)
 
 			runTransaction req, request, (tx) ->
-				Promise.map req.hooks.PRERUN ? [], (hook) ->
-					hook({req, request, tx})
+				runHook('PRERUN', {req, request, tx})
 				.then ->
 					switch req.method
 						when 'GET'
@@ -560,8 +563,7 @@ define [
 		runCallback = (tx) ->
 			callback(tx)
 			.tap (result) ->
-				Promise.map req.hooks.POSTRUN ? [], (hook) ->
-					hook({req, request, result, tx})
+				runHook('POSTRUN', {req, request, result, tx})
 		if req.tx?
 			# If an existing tx was passed in then use it.
 			runCallback(req.tx)
@@ -599,10 +601,12 @@ define [
 			clientModel = clientModels[vocab].resources
 			processOData(vocab, clientModel, request.resourceName, result.rows)
 			.then (d) ->
-				res.json(
-					__model: clientModel[request.resourceName]
-					d: d
-				)
+				runHook('PRERESPOND', {req, res, request, result, data: d})
+				.then ->
+					res.json(
+						__model: clientModel[request.resourceName]
+						d: d
+					)
 		else
 			if request.resourceName == '$metadata'
 				res.type('xml')
@@ -640,8 +644,10 @@ define [
 		api[vocab].logger.log('Insert ID: ', request.resourceName, id)
 		runURI('GET', location, null, req.tx, req)
 		.then (result) ->
-			res.set('Location', location)
-			res.json(result.d[ 0 ], 201)
+			runHook('PRERESPOND', {req, res, request, result})
+			.then ->
+				res.set('Location', location)
+				res.json(result.d[ 0 ], 201)
 
 	runPut = (req, res, request, tx) ->
 		vocab = request.vocabulary
@@ -661,8 +667,10 @@ define [
 		.then ->
 			validateDB(tx, vocab)
 
-	respondPut = respondDelete = respondOptions = (req, res) ->
-		res.send(200)
+	respondPut = respondDelete = respondOptions = (req, res, request) ->
+		runHook('PRERESPOND', {req, res, request})
+		.then ->
+			res.send(200)
 
 	runDelete = (req, res, request, tx) ->
 		vocab = request.vocabulary
@@ -756,7 +764,7 @@ define [
 		if !clientModels[apiRoot].resources[resourceName]?
 			throw new Error('Unknown resource for api root: ' + resourceName + ', ' + apiRoot)
 
-		for callbackType, callback of callbacks when callbackType not in ['POSTPARSE', 'PRERUN', 'POSTRUN']
+		for callbackType, callback of callbacks when callbackType not in ['POSTPARSE', 'PRERUN', 'POSTRUN', 'PRERESPOND']
 			throw new Error('Unknown callback type: ' + callbackType)
 
 		apiRootHooks = methodHooks[apiRoot] ?= {}
