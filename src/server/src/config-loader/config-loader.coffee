@@ -126,7 +126,7 @@ define [
 
 		loadApplicationConfig = (config) ->
 			if not has 'ENV_NODEJS'
-				console.error('Can only load a application config in a nodejs environment.')
+				console.error('Can only load application config in a nodejs environment.')
 				return
 
 			try # Try to register the coffee-script loader - ignore if it fails though, since that probably just means it is not available/needed.
