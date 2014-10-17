@@ -505,7 +505,9 @@ define [
 			{logger} = api[request.vocabulary]
 
 			res.set('Cache-Control', 'no-cache')
-			logger.log('Running', req.method, req.url)
+
+			if has('DEV') or process.env.DEBUG
+				logger.log('Running', req.method, req.url)
 
 			runTransaction req, request, (tx) ->
 				Promise.map req.hooks.PRERUN ? [], (hook) ->
