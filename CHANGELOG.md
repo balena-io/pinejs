@@ -6,7 +6,7 @@ v0.3.10
 	* Sending an invalid JSON string to a JSON field.
 * Add a __resourceName property in the response to running a rule, so you know what resource you are dealing with.
 
-* Suppress the "Parsing", "Running" messages when handling OData requests
+* Built-in web server now logs all requests it receives - not just OData requests
 
 v0.3.9
 
