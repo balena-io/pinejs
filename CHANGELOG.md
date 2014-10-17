@@ -10,6 +10,8 @@ v0.3.10
 
 * Increase default transaction timeout from 5s to 10s
 
+* configLoader.loadNodeConfig has been renamed to configLoader.loadApplicationConfig
+
 v0.3.9
 
 * SQL queries are only logged when debugging

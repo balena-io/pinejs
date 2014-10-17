@@ -124,9 +124,9 @@ define [
 							catch e
 								throw new Error('Error running custom server code: ' + e)
 
-		loadNodeConfig = (config) ->
+		loadApplicationConfig = (config) ->
 			if not has 'ENV_NODEJS'
-				console.error('Can only load a node config in a nodejs environment.')
+				console.error('Can only load application config in a nodejs environment.')
 				return
 
 			try # Try to register the coffee-script loader - ignore if it fails though, since that probably just means it is not available/needed.
@@ -135,7 +135,7 @@ define [
 			readFile = Promise.promisify(require('fs').readFile)
 			path = require('path')
 
-			console.info('loading config.json')
+			console.info('Loading application config')
 			switch typeof config
 				when "undefined"
 					root = process.argv[2] or __dirname
@@ -155,12 +155,13 @@ define [
 			.then ->
 				loadConfig(config)
 			.catch (err) ->
-				console.error('Error loading config', err, err.stack)
+				console.error('Error loading application config', err, err.stack)
 				process.exit()
 
 		return {
 			loadConfig
-			loadNodeConfig
+			loadApplicationConfig
+			loadNodeConfig: loadApplicationConfig # for backwards compatibility
 		}
 
 	return exports
