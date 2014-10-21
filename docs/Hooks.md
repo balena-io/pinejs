@@ -7,6 +7,8 @@ Also, any promises that are returned will be waited on before continuing with pr
 	The `request` object for POSTPARSE is lacking the `abstractSqlQuery` and `sqlQuery` entries.
 * PRERUN({req, request, tx})
 * POSTRUN({req, request, result, tx})
+* PRERESPOND({req, res, request, result, data})
+	The `data` object for PRERESPOND is only present for GET requests
 
 ## Arguments
 ### req
@@ -43,6 +45,9 @@ This is the result from running the transaction.
 * GET - A database result object with the unprocessed rows that have been queried.
 * POST - The inserted/updated id.
 * PUT/PATCH/MERGE/DELETE - null
+
+### data
+* GET - This is the result after being processed into a JSON OData response (i.e. the 'd' field).
 
 ### tx
 The database transaction object, so that you can run queries in the same transaction or make API calls that use the same transaction.
