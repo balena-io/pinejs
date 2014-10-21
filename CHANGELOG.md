@@ -1,3 +1,7 @@
+v0.3.11
+
+* Update resin-platform-api to v0.2.5
+
 v0.3.10
 
 * Added a PRERESPOND hook for manipulating the response to OData queries

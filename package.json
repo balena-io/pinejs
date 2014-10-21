@@ -29,7 +29,7 @@
     "sbvr-parser": "git+ssh://git@bitbucket.org:rulemotion/sbvr-parser.git#v0.0.15",
     "sbvr-types": "git+ssh://git@bitbucket.org:rulemotion/sbvr-types.git#v0.0.2",
     "semver": "^3.0.1",
-    "resin-platform-api": "git+ssh://git@bitbucket.org:rulemotion/resin-platform-api.git#v0.2.3"
+    "resin-platform-api": "git+ssh://git@bitbucket.org:rulemotion/resin-platform-api.git#v0.2.5"
   },
   "engines": {
     "node": "~0.10.21"
