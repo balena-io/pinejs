@@ -686,13 +686,19 @@ define [
 
 	exports.executeStandardModels = executeStandardModels = (tx, callback) ->
 		# dev model must run first
-		executeModels(tx, [
-			{ apiRoot: 'dev', modelText: devModel, logging: { log: false } }
-		])
+		executeModel(tx,
+			apiRoot: 'dev'
+			modelText: devModel
+			logging:
+				log: false
+		)
 		.then ->
 			executeModels(tx, [
-				{ apiRoot: 'transaction', modelText: transactionModel }
-				{ apiRoot: 'Auth', modelText: userModel, logging: { log: false } }
+				apiRoot: 'transaction'
+				modelText: transactionModel
+			,
+				apiRoot: 'Auth'
+				modelText: userModel
 			])
 		.then ->
 			# TODO: Remove these hardcoded users.
