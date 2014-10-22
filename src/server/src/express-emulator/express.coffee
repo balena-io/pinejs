@@ -35,6 +35,10 @@ define ['bluebird', 'lodash'], (Promise, _) ->
 				return Promise.rejected(404)
 			deferred = Promise.pending()
 			req =
+				param: (paramName) ->
+					# This should also look in route params and query params if/when they're supported..
+					# TODO: We *must* support query params at the least for the sake of internal apikey permissioned requests.. maybe?
+					return req.body[paramName]
 				# Have a default user for in-browser with all permissions
 				user:
 					permissions: window.GLOBAL_PERMISSIONS

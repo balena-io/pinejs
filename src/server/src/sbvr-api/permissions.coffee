@@ -140,6 +140,28 @@ define [
 						Promise.rejected(new Error('API key has to be a string, got: ' + typeof apiKey))
 				return promise.nodeify(callback)
 
+		exports.customApiKeyMiddleware = customApiKeyMiddleware = (paramName = 'apikey') ->
+			return (req, res, next) ->
+				Promise.try ->
+					apiKey = req.param(paramName)
+					if !apiKey? or req.apiKey?
+						return
+					getApiKeyPermissions(apiKey)
+					.catch (err) ->
+						console.warn('Error with API key:', err)
+						# Ignore errors getting the api key and just use an empty permissions object
+						return []
+					.then (permissions) ->
+						req.apiKey =
+							key: apiKey
+							permissions: permissions
+				.then ->
+					next?()
+					return
+
+		# A default api key middleware for convenience
+		exports.apiKeyMiddleware = customApiKeyMiddleware()
+
 		exports.checkPermissions = checkPermissions = do ->
 			_getGuestPermissions = do ->
 				# Start the guest permissions as null, having it as a reject promise either
@@ -169,7 +191,7 @@ define [
 				if _.isFunction(args[callbackArg])
 					callback = args[callbackArg]
 					args[callbackArg] = null
-				[req, actionList, resourceName, vocabulary, apiKey] = args
+				[req, actionList, resourceName, vocabulary] = args
 
 				authApi = sbvrUtils.api.Auth
 
@@ -221,25 +243,23 @@ define [
 					authApi.logger.error('Error checking user permissions', req.user, err, err.stack)
 					return false
 				.then (allowed) ->
-					if !apiKey? or allowed is true
+					apiKeyPermissions = req.apiKey?.permissions
+					if allowed is true or !apiKeyPermissions? or apiKeyPermissions.length is 0
 						return allowed
-					Promise.all([
-						getApiKeyPermissions(apiKey)
-						authApi.get(
-							resource: 'user'
-							options:
-								select: 'id'
-								filter: 
-									'api_key/key': apiKey
-						)
-					])
-					.spread (apiKeyPermissions, user) ->
+					authApi.get(
+						resource: 'user'
+						options:
+							select: 'id'
+							filter: 
+								'api_key/key': req.apiKey.key
+					)
+					.then (user) ->
 						if user.length is 0
 							throw new Error('API key is not linked to a user?!')
 						apiKeyUserID = user[0].id
 						return _checkPermissions(apiKeyPermissions, apiKeyUserID)
 					.catch (err) ->
-						authApi.logger.error('Error checking api key permissions', apiKey, err, err.stack)
+						authApi.logger.error('Error checking api key permissions', req.apiKey.key, err, err.stack)
 					.then (apiKeyAllowed) ->
 						if allowed is false or apiKeyAllowed is true
 							return apiKeyAllowed

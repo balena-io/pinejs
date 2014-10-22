@@ -39,8 +39,6 @@ define [
 		}]
 
 	exports.addPermissions = (req, {method, vocabulary, resourceName, odataQuery, values, custom}) ->
-		apiKey = odataQuery.options?.apikey
-
 		isMetadataEndpoint = resourceName in metadataEndpoints or method is 'OPTIONS'
 
 		permissionType =
@@ -57,7 +55,7 @@ define [
 					else
 						console.warn('Unknown method for permissions type check: ', method)
 						'all'
-		permissions.checkPermissions(req, permissionType, resourceName, vocabulary, apiKey)
+		permissions.checkPermissions(req, permissionType, resourceName, vocabulary)
 		.then (conditionalPerms) ->
 			if conditionalPerms is false
 				throw new PermissionError()

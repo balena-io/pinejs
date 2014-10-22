@@ -441,13 +441,19 @@ define [
 
 		if _.isObject(req)
 			user = req.user
+			apiKey = req.apiKey
 		else
 			if req?
 				console.warn('Non-object req passed to runURI?', req, new Error().stack)
 			user = permissions: ['resource.all']
 
 		req =
+			param: (paramName) ->
+				# This should also look in route params and query params if/when they're supported..
+				# TODO: We *must* support query params at the least for the sake of internal apikey permissioned requests.. maybe?
+				return req.body[paramName]
 			user: user
+			apiKey: apiKey
 			method: method
 			url: uri
 			body: body
@@ -486,6 +492,9 @@ define [
 
 		# Parse the OData requests
 		uriParser.parseODataURI(req)
+		.tap ->
+			# Make sure req.apiKey is set if we have an apikey in the request.
+			permissions.apiKeyMiddleware(req)
 		.then (requests) ->
 			# Then for each request add/check the relevant permissions, translate to abstract sql, and then compile the abstract sql.
 			Promise.map requests, (request) ->

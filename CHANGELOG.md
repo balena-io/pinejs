@@ -1,6 +1,7 @@
 v0.3.11
 
 * Update resin-platform-api to v0.2.5
+* Add an `sbvrUtils.apiKeyMiddleware` connect middleware that can be used to fetch the permissions of an api key on the request and add them to `req.apiKey`.
 
 v0.3.10
 

@@ -16,13 +16,14 @@ The [requirejs](http://requirejs.org/) object used by the platform, can be used 
 An entry point to the API internally to the server.
 
 #### runURI(method, uri, body = {}[, tx, req, callback])
-This allows making an API request internally that should match the result of making an equivalent http request to the API, and returns a promise.
+This allows making an API request internally that should match the result of making an equivalent http request to the API, and returns a promise.<br/>
 The request will be run with full privileges unless the `req` object is provided to instruct using a specified user.
 ##### tx
 If provided, this should be an open transaction created with db.transaction, which will be used for running any database statements related to this API call.
 ##### req
-If provided, this should be an an object
-When provided the `users` property of this object will be used for permission checks (if null/undefined then it will default to the guest user).
+If provided, this should be an an object.<br/>
+When provided the `users` and `apiKey` properties of this object will be used for permission checks (if they are null/undefined then it will default to guest user permissions).
+
 
 #### class PlatformAPI
 This is a subclass of the resin-platform-api class, which supports the additional special `req` and `tx` properties on the query objects.  The functionality of these properties match their counterparts on runURI.
@@ -61,6 +62,16 @@ This is an (err, result) callback.
 
 #### getUserPermissions(userId[, callback])
 This returns a promise that resolves to the user permissions for the given userId
+
+#### getApiKeyPermissions(apiKey[, callback])
+This returns a promise that resolves to the api key permissions for the given apiKey
+
+#### apiKeyMiddleware(req, res, next)
+This is a default `customApiKeyMiddleware`, which is useful to avoid having to create your own default one.
+
+#### customApiKeyMiddleware(paramName = 'apiKey')
+This is a function that will return a middleware that checks for a `paramName` using `req.params(paramName)` and adds a `req.apiKey` entry `{ key, permissions }`.<br/>
+The middleware can also be called directly and will return a Promise that signifies completion.
 
 #### checkPermissions(req, permissionCheck, request[, callback])
 This checks that the currently logged in (or guest) user has the required permissions
