@@ -1,7 +1,7 @@
 define [ 'lodash', 'bluebird', 'typed-error', 'text!migrator/migrations.sbvr' ], (_, Promise, TypedError, modelText) ->
 	MigrationError: class MigrationError extends TypedError
 
-	run: (model) ->
+	run: (tx, model) ->
 		if not _.any(model.migrations)
 			return Promise.fulfilled()
 
@@ -9,24 +9,25 @@ define [ 'lodash', 'bluebird', 'typed-error', 'text!migrator/migrations.sbvr' ],
 
 		# migrations only run if the model has been executed before,
 		# to make changes that can't be automatically applied
-		@checkModelAlreadyExists(modelName)
+		@checkModelAlreadyExists(tx, modelName)
 		.then (exists) =>
 			if not exists
 				@logger.info "First time model has executed, skipping migrations"
-				return @setExecutedMigrations(modelName, _.keys(model.migrations))
+				return @setExecutedMigrations(tx, modelName, _.keys(model.migrations))
 
-			@getExecutedMigrations(modelName)
+			@getExecutedMigrations(tx, modelName)
 			.then (executedMigrations) =>
 				pendingMigrations = @filterAndSortPendingMigrations(model.migrations, executedMigrations)
 				return if not _.any(pendingMigrations)
 
-				@executeMigrations(pendingMigrations)
+				@executeMigrations(tx, pendingMigrations)
 				.then (newlyExecutedMigrations) =>
-					@setExecutedMigrations(modelName, [ executedMigrations..., newlyExecutedMigrations... ])
+					@setExecutedMigrations(tx, modelName, [ executedMigrations..., newlyExecutedMigrations... ])
 
-	checkModelAlreadyExists: (modelName) ->
+	checkModelAlreadyExists: (tx, modelName) ->
 		@sbvrUtils.api.dev.get
 			resource: 'model'
+			tx: tx
 			options:
 				select: [ 'vocabulary' ]
 				top: '1'
@@ -35,19 +36,21 @@ define [ 'lodash', 'bluebird', 'typed-error', 'text!migrator/migrations.sbvr' ],
 		.then (results) ->
 			_.any(results)
 
-	getExecutedMigrations: (modelName) ->
+	getExecutedMigrations: (tx, modelName) ->
 		@migrationsApi.get
 			resource: 'migration'
 			id: modelName
+			tx: tx
 			options:
 				select: [ 'executed_migrations' ]
 		.then (data) ->
 			data?.executed_migrations || []
 
-	setExecutedMigrations: (modelName, executedMigrations) ->
+	setExecutedMigrations: (tx, modelName, executedMigrations) ->
 		@migrationsApi.put
 			resource: 'migration'
 			id: modelName
+			tx: tx
 			body:
 				model_name: modelName
 				executed_migrations: executedMigrations
@@ -61,16 +64,11 @@ define [ 'lodash', 'bluebird', 'typed-error', 'text!migrator/migrations.sbvr' ],
 		.sortBy(_.first)
 		.value()
 
-	executeMigrations: (migrations=[]) ->
-		@db.transaction()
-		.tap (tx) =>
-			Promise.map(migrations, @executeMigration.bind(this, tx), concurrency: 1)
-			.catch (err) =>
-				tx.rollback().then =>
-					@logger.error "Error while executing migrations, rolled back"
-					throw new MigrationError(err)
-		.then (tx) ->
-			tx.end()
+	executeMigrations: (tx, migrations=[]) ->
+		Promise.map(migrations, @executeMigration.bind(this, tx), concurrency: 1)
+		.catch (err) =>
+			@logger.error "Error while executing migrations, rolled back"
+			throw new MigrationError(err)
 		.return(_.map(migrations, _.first)) # return migration keys
 
 	executeMigration: (tx, [ key, migration ]) ->
@@ -90,7 +88,7 @@ define [ 'lodash', 'bluebird', 'typed-error', 'text!migrator/migrations.sbvr' ],
 			customServerCode: 'cs!migrator/migrator'
 		]
 
-	setup: (app, requirejs, @sbvrUtils, @db, callback) ->
+	setup: (app, requirejs, @sbvrUtils, db, callback) ->
 		@migrationsApi = @sbvrUtils.api.migrations
 		@logger = @migrationsApi.logger
 

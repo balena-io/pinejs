@@ -133,7 +133,7 @@ define [
 			seModel = model.modelText
 			vocab = model.apiRoot
 
-			migrator.run(model).then ->
+			migrator.run(tx, model).then ->
 				try
 					lfModel = SBVRParser.matchAll(seModel, 'Process')
 				catch e
