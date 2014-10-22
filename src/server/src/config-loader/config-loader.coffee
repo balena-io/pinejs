@@ -4,7 +4,8 @@ define [
 	'lodash'
 	'bluebird'
 	'cs!sbvr-api/sbvr-utils'
-], (exports, has, _, Promise, sbvrUtils) ->
+	'cs!migrator/migrator'
+], (exports, has, _, Promise, sbvrUtils, migrator) ->
 	# Setup function
 	exports.setup = (app, requirejs) ->
 		authAPI = sbvrUtils.api.Auth
@@ -16,7 +17,7 @@ define [
 						.then ->
 							console.info('Sucessfully executed ' + model.modelName + ' model.')
 						.catch (err) ->
-							throw new Error(['Failed to execute ' + model.modelName + ' model from ' + model.modelFile, err])
+							throw new Error(['Failed to execute ' + model.modelName + ' model from ' + model.modelFile, err, err.stack])
 
 				if data.users?
 					permissions = {}
@@ -132,7 +133,7 @@ define [
 			try # Try to register the coffee-script loader - ignore if it fails though, since that probably just means it is not available/needed.
 				require('coffee-script/register')
 
-			readFile = Promise.promisify(require('fs').readFile)
+			fs = Promise.promisifyAll(require('fs'))
 			path = require('path')
 
 			console.info('Loading application config')
@@ -147,11 +148,33 @@ define [
 					root = process.cwd()
 
 			Promise.map config.models, (model) ->
-				readFile(path.join(root, model.modelFile), 'utf8')
-				.then (sbvrModel) ->
-					model.modelText = sbvrModel
+				fs.readFileAsync(path.join(root, model.modelFile), 'utf8')
+				.then (modelText) ->
+					model.modelText = modelText
 					if model.customServerCode?
 						model.customServerCode = root + '/' + model.customServerCode
+				.then ->
+					model.migrations ||= {}
+
+					if model.migrationsPath
+						migrationsPath = path.join(root, model.migrationsPath)
+						delete model.migrationsPath
+
+						fs.readdirAsync(migrationsPath)
+						.map (filename) ->
+							filePath = path.join(migrationsPath, filename)
+							migrationKey = filename.split('-')[0]
+
+							switch path.extname(filename)
+								when '.coffee', '.js'
+									fn = require(filePath)
+									model.migrations[migrationKey] = fn
+								when '.sql'
+									fs.readFileAsync(filePath)
+									.then (sqlBuffer) ->
+										model.migrations[migrationKey] = sqlBuffer.toString()
+								else
+									console.error("Unrecognised migration file extension, skipping: #{path.extname filename}")
 			.then ->
 				loadConfig(config)
 			.catch (err) ->

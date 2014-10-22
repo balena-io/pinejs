@@ -1,0 +1,14 @@
+Vocabulary: migrations
+
+Term:       model name
+	Concept Type: Short Text (Type)
+Term:       executed migrations
+	Concept Type: JSON (Type)
+
+Term:       migration
+	Reference Scheme:   model name
+	Database ID Field:  model name
+Fact Type:  migration has model name
+	Necessity: each migration has exactly one model name
+Fact Type:  migration has executed migrations
+	Necessity: each migration has exactly one executed migrations

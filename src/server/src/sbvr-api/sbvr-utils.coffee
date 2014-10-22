@@ -10,6 +10,7 @@ define [
 	'cs!sbvr-api/permissions'
 	'cs!sbvr-api/transactions'
 	'cs!sbvr-api/uri-parser'
+	'cs!migrator/migrator'
 	'resin-platform-api'
 	'lodash'
 	'bluebird'
@@ -18,7 +19,7 @@ define [
 	'text!sbvr-api/dev.sbvr'
 	'text!sbvr-api/transaction.sbvr'
 	'text!sbvr-api/user.sbvr'
-], (exports, has, SBVRParser, LF2AbstractSQL, AbstractSQL2SQL, AbstractSQLCompiler, AbstractSQL2CLF, ODataMetadataGenerator, permissions, transactions, uriParser, resinPlatformAPI, _, Promise, TypedError, sbvrTypes, devModel, transactionModel, userModel) ->
+], (exports, has, SBVRParser, LF2AbstractSQL, AbstractSQL2SQL, AbstractSQLCompiler, AbstractSQL2CLF, ODataMetadataGenerator, permissions, transactions, uriParser, migrator, resinPlatformAPI, _, Promise, TypedError, sbvrTypes, devModel, transactionModel, userModel) ->
 	db = null
 
 	exports.sbvrTypes = sbvrTypes
@@ -132,59 +133,61 @@ define [
 			seModel = model.modelText
 			vocab = model.apiRoot
 
-			try
-				lfModel = SBVRParser.matchAll(seModel, 'Process')
-			catch e
-				console.error('Error parsing model', vocab, e, e.stack)
-				throw new Error(['Error parsing model', e])
+			migrator.run(tx, model).then ->
+				try
+					lfModel = SBVRParser.matchAll(seModel, 'Process')
+				catch e
+					console.error('Error parsing model', vocab, e, e.stack)
+					throw new Error(['Error parsing model', e])
 
-			try
-				abstractSqlModel = LF2AbstractSQLTranslator(lfModel, 'Process')
-				sqlModel = AbstractSQL2SQL.generate(abstractSqlModel)
-				clientModel = AbstractSQL2CLF(sqlModel)
-				metadata = ODataMetadataGenerator(vocab, sqlModel)
-			catch e
-				console.error('Error compiling model', vocab, e, e.stack)
-				throw new Error(['Error compiling model', e])
+				try
+					abstractSqlModel = LF2AbstractSQLTranslator(lfModel, 'Process')
+					sqlModel = AbstractSQL2SQL.generate(abstractSqlModel)
+					clientModel = AbstractSQL2CLF(sqlModel)
+					metadata = ODataMetadataGenerator(vocab, sqlModel)
+				catch e
+					console.error('Error compiling model', vocab, e, e.stack)
+					throw new Error(['Error compiling model', e])
 
-			# Create tables related to terms and fact types
-			# Use `Promise.all _.map` in order to force sequential ordering, since the order the CREATE TABLE statements are run matters (eg. for foreign keys).
-			Promise.all _.map sqlModel.createSchema, (createStatement) ->
-				tx.executeSql(createStatement)
-				.catch ->
-					# Warning: We ignore errors in the create table statements as SQLite doesn't support CREATE IF NOT EXISTS
-			.then ->
-				seModels[vocab] = seModel
-				sqlModels[vocab] = sqlModel
-				clientModels[vocab] = clientModel
-				odataMetadata[vocab] = metadata
+				# Create tables related to terms and fact types
+				# Use `Promise.reduce` to run statements sequentially, as the order of the CREATE TABLE statements matters (eg. for foreign keys).
+				Promise.reduce sqlModel.createSchema, (arr, createStatement) ->
+					tx.executeSql(createStatement)
+					.catch ->
+						# Warning: We ignore errors in the create table statements as SQLite doesn't support CREATE IF NOT EXISTS
+				, []
+				.then ->
+					seModels[vocab] = seModel
+					sqlModels[vocab] = sqlModel
+					clientModels[vocab] = clientModel
+					odataMetadata[vocab] = metadata
 
-				uriParser.addClientModel(vocab, clientModel)
+					uriParser.addClientModel(vocab, clientModel)
 
-				# Validate the [empty] model according to the rules.
-				# This may eventually lead to entering obligatory data.
-				# For the moment it blocks such models from execution.
-				validateDB(tx, vocab)
-			.then ->
-				api[vocab] = new PlatformAPI('/' + vocab + '/')
-				api[vocab].logger = {}
-				for key, value of console
-					if _.isFunction(value)
-						if model.logging?[key] ? model.logging?.default ? true
-							api[vocab].logger[key] = _.bind(value, console, vocab + ':')
+					# Validate the [empty] model according to the rules.
+					# This may eventually lead to entering obligatory data.
+					# For the moment it blocks such models from execution.
+					validateDB(tx, vocab)
+				.then ->
+					api[vocab] = new PlatformAPI('/' + vocab + '/')
+					api[vocab].logger = {}
+					for key, value of console
+						if _.isFunction(value)
+							if model.logging?[key] ? model.logging?.default ? true
+								api[vocab].logger[key] = _.bind(value, console, vocab + ':')
+							else
+								api[vocab].logger[key] = ->
 						else
-							api[vocab].logger[key] = ->
-					else
-						api[vocab].logger[key] = value
+							api[vocab].logger[key] = value
 
-				return {
-					vocab: vocab
-					se: seModel
-					lf: lfModel
-					abstractsql: abstractSqlModel
-					sql: sqlModel
-					client: clientModel
-				}
+					return {
+						vocab: vocab
+						se: seModel
+						lf: lfModel
+						abstractsql: abstractSqlModel
+						sql: sqlModel
+						client: clientModel
+					}
 		# Only update the dev models once all models have finished executing.
 		.map (model) ->
 			updateModel = (modelType, modelText) ->
@@ -691,7 +694,7 @@ define [
 			validateDB(tx, vocab)
 
 	exports.executeStandardModels = executeStandardModels = (tx, callback) ->
-		# The dev model has to be executed first.
+		# dev model must run first
 		executeModel(tx,
 			apiRoot: 'dev'
 			modelText: devModel
@@ -707,9 +710,6 @@ define [
 				modelText: userModel
 			])
 		.then ->
-			tx.executeSql('CREATE UNIQUE INDEX "uniq_model_model_type_vocab" ON "model" ("vocabulary", "model type");')
-			.catch ->
-				# Ignore errors creating the index, sadly not all databases we use support IF NOT EXISTS.
 			# TODO: Remove these hardcoded users.
 			if has 'DEV'
 				authAPI = api.Auth
@@ -805,6 +805,9 @@ define [
 				tx.rollback()
 				console.error('Could not execute standard models', err, err.stack)
 				process.exit()
+		.then ->
+			db.executeSql('CREATE UNIQUE INDEX "uniq_model_model_type_vocab" ON "model" ("vocabulary", "model type");')
+			.catch -> # we can't use IF NOT EXISTS on all dbs, so we have to ignore the error raised if this index already exists
 		.nodeify(callback)
 
 	return
