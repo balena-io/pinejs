@@ -1,6 +1,7 @@
 v0.4.0
 
 * __model is no longer sent on GET requests to a resource.
+* `ConfigLoader.loadNodeConfig` has been removed (use `ConfigLoader.loadApplicationConfig` instead)
 
 v0.3.11
 
