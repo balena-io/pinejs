@@ -617,10 +617,7 @@ define [
 			.then (d) ->
 				runHook('PRERESPOND', {req, res, request, result, data: d})
 				.then ->
-					res.json(
-						__model: clientModel[request.resourceName]
-						d: d
-					)
+					res.json({d})
 		else
 			if request.resourceName == '$metadata'
 				res.type('xml')
