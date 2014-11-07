@@ -184,7 +184,6 @@ define [
 		return {
 			loadConfig
 			loadApplicationConfig
-			loadNodeConfig: loadApplicationConfig # for backwards compatibility
 		}
 
 	return exports
