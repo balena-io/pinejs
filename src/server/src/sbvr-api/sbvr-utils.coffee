@@ -279,8 +279,8 @@ define [
 			try
 				field = JSON.parse(instance[fieldName])
 			catch e
-				# If we can't JSON.parse the field then it's not one needing expansion.
-				return
+				# If we can't JSON.parse the field then we use it directly.
+				field = instance[fieldName]
 
 			if _.isArray(field)
 				# Hack to look like a rows object
