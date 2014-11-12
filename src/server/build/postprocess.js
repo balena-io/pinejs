@@ -1,5 +1,26 @@
 var semver = require('semver');
 
+function testDependencies(installedPackages, dependencies) {
+	var depsOk = true;
+	for(var packageName in dependencies) {
+		if(installedPackages[packageName]) {
+			var installedVersion = installedPackages[packageName].version;
+			// Trim the `git+ssh://git@bitbucket.org:rulemotion/abstract-sql-compiler.git#v` part from our git dependencies
+			var expectedVersion = dependencies[packageName].replace(/.*\.git#v/, '')
+
+			if(!semver.satisfies(installedVersion, expectedVersion)) {
+				console.error('Installed dependencies for "' + packageName + '" do not match package.json, installed: "' + installedVersion + '", expected: "' + expectedVersion + '", please npm install.')
+				depsOk = false;
+			}
+		}
+		else {
+			console.error(packageName + ' is not installed, please npm install.');
+			depsOk = false;
+		}
+	}
+	return depsOk;
+}
+
 module.exports = function(text) {
 	var buildDir = '.',
 		hasConfig = JSON.stringify(this.has, null, '\t'),
@@ -10,23 +31,12 @@ module.exports = function(text) {
 			throw err;
 		}
 		var installedPackages = JSON.parse(stdout).dependencies;
-		var dependencies = require(buildDir + '/../../../package.json').dependencies;
-		var depMismatch = false;
-		for(var packageName in dependencies) {
-			if(installedPackages[packageName]) {
-				var installedVersion = installedPackages[packageName].version;
+		var pkg = require(buildDir + '/../../../package.json');
+		var depsOk = testDependencies(installedPackages, pkg.dependencies);
+		var devDepsOk = testDependencies(installedPackages, pkg.devDependencies);
 
-				if(!semver.satisfies(installedVersion, dependencies[packageName])) {
-					console.error('Installed dependencies for "' + packageName + '" do not match package.json, installed: "' + installedVersion + '", expected: "' + dependencies[packageName] + '", please npm install.')
-					depMismatch = true;
-				}
-			}
-			else {
-				console.error(packageName + ' is not installed, please npm install.');
-				depMismatch = true;
-			}
-		}
-		if(depMismatch) {
+		if(!depsOk || !devDepsOk) {
+			console.error('Please fix dependency errors and try again');
 			process.exit(1);
 		}
 		childProcess.exec('git describe --tags', {
