@@ -3,11 +3,11 @@ define [
 	'has'
 	'bluebird'
 	'cs!sbvr-api/sbvr-utils'
-	'cs!passport-platform/passport-platform'
-	'cs!platform-session-store/platform-session-store'
+	'cs!passport-pinejs/passport-pinejs'
+	'cs!pinejs-session-store/pinejs-session-store'
 	'cs!express-emulator/express'
 	'cs!server-glue/module'
-], (requirejs, has, Promise, sbvrUtils, passportPlatform, PlatformSessionStore, express, Platform) ->
+], (requirejs, has, Promise, sbvrUtils, passportPinejs, PinejsSessionStore, express, Pinejs) ->
 	if has 'ENV_NODEJS'
 		express = require('express')
 		passport = require('passport')
@@ -32,7 +32,7 @@ define [
 			app.use(express.methodOverride())
 			app.use(express.session(
 				secret: 'A pink cat jumped over a rainbow'
-				store: new PlatformSessionStore()
+				store: new PinejsSessionStore()
 			))
 			app.use(passport.initialize())
 			app.use(passport.session())
@@ -54,15 +54,15 @@ define [
 		Promise.longStackTraces()
 		app = express.app
 
-	Platform.init(app)
+	Pinejs.init(app)
 	.then (configLoader) ->
 		Promise.all [
-			configLoader.loadConfig(passportPlatform.config)
-			configLoader.loadConfig(PlatformSessionStore.config) if has 'ENV_NODEJS'
+			configLoader.loadConfig(passportPinejs.config)
+			configLoader.loadConfig(PinejsSessionStore.config) if has 'ENV_NODEJS'
 		]
 	.then ->
 		if !process?.env.DISABLE_DEFAULT_AUTH
-			app.post '/login', passportPlatform.login (err, user, req, res, next) ->
+			app.post '/login', passportPinejs.login (err, user, req, res, next) ->
 				if err
 					console.error('Error logging in', err, err.stack)
 					res.send(500)
@@ -77,7 +77,7 @@ define [
 					else
 						res.redirect('/')
 
-			app.get '/logout', passportPlatform.logout, (req, res, next) ->
+			app.get '/logout', passportPinejs.logout, (req, res, next) ->
 				res.redirect('/')
 	.then ->
 		if has 'ENV_NODEJS'

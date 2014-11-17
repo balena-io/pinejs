@@ -10,7 +10,7 @@ This function can return a promise, which the server will wait upon if you need 
 This is an [express.js](http://expressjs.com/) app instance, and can be used to add your own routes.  
 
 ### requirejs
-The [requirejs](http://requirejs.org/) object used by the platform, can be used to include files.  
+The [requirejs](http://requirejs.org/) object used by pinejs, can be used to include files.  
 
 ### sbvrUtils
 An entry point to the API internally to the server.
@@ -25,11 +25,11 @@ If provided, this should be an an object.<br/>
 When provided the `users` and `apiKey` properties of this object will be used for permission checks (if they are null/undefined then it will default to guest user permissions).
 
 
-#### class PlatformAPI
+#### class PinejsClient
 This is a subclass of the resin-platform-api class, which supports the additional special `req` and `tx` properties on the query objects.  The functionality of these properties match their counterparts on runURI.
 
 #### api
-This is an object containing keys of the api root and values that are an instance of PlatformApi for that api.  The PlatformAPI instance also contains an additional `logger` property, which matches the interface of `console`, but which understands provided logging levels.
+This is an object containing keys of the api root and values that are an instance of PinejsClient for that api.  The PinejsClient instance also contains an additional `logger` property, which matches the interface of `console`, but which understands provided logging levels.
 
 #### executeModel(tx, model[, callback])
 This is an alias for executeModels for the case of a single model.

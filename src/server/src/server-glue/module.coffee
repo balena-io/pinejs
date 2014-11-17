@@ -7,8 +7,8 @@ define [
 	'cs!data-server/SBVRServer'
 	'cs!config-loader/config-loader'
 	'cs!migrator/migrator'
-	'cs!platform-session-store/platform-session-store'
-], (requirejs, has, Promise, dbModule, sbvrUtils, sbvrServer, configLoader, migrator, PlatformSessionStore) ->
+	'cs!pinejs-session-store/pinejs-session-store'
+], (requirejs, has, Promise, dbModule, sbvrUtils, sbvrServer, configLoader, migrator, PinejsSessionStore) ->
 
 	if has 'ENV_NODEJS'
 		databaseURL = process.env.DATABASE_URL || 'postgres://postgres:.@localhost:5432/postgres'
@@ -37,4 +37,4 @@ define [
 			console.error('Error initialising server', err)
 			process.exit()
 
-	return {init, sbvrUtils, SessionStore: PlatformSessionStore}
+	return {init, sbvrUtils, SessionStore: PinejsSessionStore}

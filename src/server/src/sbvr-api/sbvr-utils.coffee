@@ -19,7 +19,7 @@ define [
 	'text!sbvr-api/dev.sbvr'
 	'text!sbvr-api/transaction.sbvr'
 	'text!sbvr-api/user.sbvr'
-], (exports, has, SBVRParser, LF2AbstractSQL, AbstractSQL2SQL, AbstractSQLCompiler, AbstractSQL2CLF, ODataMetadataGenerator, permissions, transactions, uriParser, migrator, resinPlatformAPI, _, Promise, TypedError, sbvrTypes, devModel, transactionModel, userModel) ->
+], (exports, has, SBVRParser, LF2AbstractSQL, AbstractSQL2SQL, AbstractSQLCompiler, AbstractSQL2CLF, ODataMetadataGenerator, permissions, transactions, uriParser, migrator, PinejsClientCore, _, Promise, TypedError, sbvrTypes, devModel, transactionModel, userModel) ->
 	db = null
 
 	exports.sbvrTypes = sbvrTypes
@@ -169,7 +169,7 @@ define [
 					# For the moment it blocks such models from execution.
 					validateDB(tx, vocab)
 				.then ->
-					api[vocab] = new PlatformAPI('/' + vocab + '/')
+					api[vocab] = new PinejsClient('/' + vocab + '/')
 					api[vocab].logger = {}
 					for key, value of console
 						if _.isFunction(value)
@@ -428,8 +428,8 @@ define [
 						return result
 			.nodeify(callback)
 
-	exports.PlatformAPI =
-		class PlatformAPI extends resinPlatformAPI(_, Promise)
+	exports.PinejsClient =
+		class PinejsClient extends PinejsClientCore(_, Promise)
 			_request: ({method, url, body, tx, req}) ->
 				return runURI(method, url, body, tx, req)
 

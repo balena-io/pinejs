@@ -33,7 +33,7 @@ function checkDependency(i) {
 }
 
 function cleanup() {
-	var command = 'node node_modules/requirejs/bin/r.js -o src/server/build/server.build.js out=platform.js';
+	var command = 'node node_modules/requirejs/bin/r.js -o src/server/build/server.build.js out=pine.js';
 	console.log(command);
 	childProcess.exec(command, {}, function(err, stdout, stderr) {
 		if(err) {

@@ -70,7 +70,7 @@ define [
 								.then (lockedRow) ->
 									lockedRow = lockedRow.rows.item(0)
 									url = url + '?$filter=' + clientModel.idField + ' eq ' + lockedRow.resource_id
-									sbvrUtils.PlatformAPI::delete({url, tx})
+									sbvrUtils.PinejsClient::delete({url, tx})
 								.then(doCleanup)
 							when 'EDIT'
 								getLockedRow(lockID)
@@ -79,12 +79,12 @@ define [
 									getFieldsObject(conditionalResource.id, clientModel)
 									.then (body) ->
 										body[clientModel.idField] = lockedRow.resource_id
-										sbvrUtils.PlatformAPI::put({url, body, tx})
+										sbvrUtils.PinejsClient::put({url, body, tx})
 								.then(doCleanup)
 							when 'ADD'
 								getFieldsObject(conditionalResource.id, clientModel)
 								.then (body) ->
-									sbvrUtils.PlatformAPI::post({url, body, tx})
+									sbvrUtils.PinejsClient::post({url, body, tx})
 								.then (result) ->
 									placeholders[placeholder].fulfill(result.id)
 								.then(doCleanup)

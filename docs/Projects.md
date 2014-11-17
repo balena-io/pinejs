@@ -8,25 +8,25 @@
 
 ## Setting Up A Project
 
-1. Check out (or update your copy of) `rulemotion-canvas/master` (all paths used below will be relative to this working directory unless otherwise specified)
-2. Run `bower install` in the root of root rulemotion-canvas.
-3. Run `npm install` in the root of root rulemotion-canvas.
+1. Check out (or update your copy of) `pinejs/master` (all paths used below will be relative to this working directory unless otherwise specified)
+2. Run `bower install` in the root of pinejs.
+3. Run `npm install` in the root of pinejs.
 4. Navigate to `src/server/build`
 5. Run `r.js -o server.build.js` on Linux/Mac OSX or `r.js.cmd -o server.build.js` on Windows.
-6. Copy the `src/server/build/platform.js` file that was just created into your project's folder/repository.
+6. Copy the `src/server/build/pine.js` file that was just created into your project's folder/repository.
 7. Copy the `package.json` file into your project's folder/repository.
 8. Run `npm install` in your project's folder/repository.
 9. [Configure your project](#configuring-a-project)
-10. Run `node platform.js` (This will create the schema including users)
+10. Run `node pine.js` (This will create the schema including users)
 11. Set up a guest user (see [Users documentation](./Users.md)).
-12. Re-run `node platform.js`.
+12. Re-run `node pine.js`.
 
-## Updating the platform
-Follow steps 1-5 of [Setting Up A Project](#setting-up-a-project) and then run `node platform.js`
+## Updating pinejs
+Follow steps 1-5 of [Setting Up A Project](#setting-up-a-project) and then run `node pine.js`
 
 ## Configuring A Project
 ### config.json
-This file should be located alongside your `platform.js` file, and follow the specification below (with comments removed)
+This file should be located alongside your `pine.js` file, and follow the specification below (with comments removed)
 ```javascript
 {
 	"models": [{
@@ -55,13 +55,13 @@ This file should be located alongside your `platform.js` file, and follow the sp
 This is a string used in messages about whether the model passes/fails.
 
 ##### Required: modelFile
-This is a string pointing to the file that contains the sbvr model, relative to `platform.js` (extension does not matter)
+This is a string pointing to the file that contains the sbvr model, relative to `pine.js` (extension does not matter)
 
 ##### Required: apiRoot
 This is a string that defines the root path to access this model's API, eg. /example/{OData URL}
 
 ##### Optional: customServerCode
-This is a string pointing to a file (`.coffee` or `.js`), relative to `platform.js`, that will be run by the server on startup, for further documentation see [Custom Server Code documentation](./CustomServerCode.md)
+This is a string pointing to a file (`.coffee` or `.js`), relative to `pine.js`, that will be run by the server on startup, for further documentation see [Custom Server Code documentation](./CustomServerCode.md)
 
 ##### Optional: logging
 This is an object of true/false values for whether calls to console[key] should be output, with the special "default" value being used for any unspecified keys (defaults to true).
@@ -82,4 +82,4 @@ PostgresSQL:
 ```
 
 ### static dir
-Any files placed in a dir named static in the same folder as `platform.js` will be served as static files.
+Any files placed in a dir named static in the same folder as `pine.js` will be served as static files.
