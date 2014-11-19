@@ -1,5 +1,6 @@
 v0.4.0
 
+* All instances of `platform`/`rulemotion-canvas` have been renamed to `pinejs`
 * __model is no longer sent on GET requests to a resource.
 * `ConfigLoader.loadNodeConfig` has been removed (use `ConfigLoader.loadApplicationConfig` instead)
 * Correctly process expanded results again (an update to `node-pg` made the `JSON.parse` unnecessary and hence fail).

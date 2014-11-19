@@ -1,11 +1,11 @@
 {
-  "name": "rulemotion-canvas",
+  "name": "pinejs",
   "version": "0.3.11",
-  "main": "platform.js",
+  "main": "pine.js",
   "scripts": {
     "postinstall": "node install.js"
   },
-  "repository": "git@bitbucket.org:rulemotion/rulemotion-canvas.git",
+  "repository": "git@bitbucket.org:rulemotion/pinejs.git",
   "dependencies": {
     "bcrypt": "~0.7.6",
     "bluebird": "~2.2.1",

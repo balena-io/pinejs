@@ -57,7 +57,7 @@ module.exports = function(text) {
 				text = '// Build: ' + stdout.trim() + workingDirChangeSignifier + '\n' +
 						'/* has: ' + hasConfig + ' */\n' +
 					text;
-				require('fs').writeFile(buildDir + '/platform.js', text, function(err) {
+				require('fs').writeFile(buildDir + '/pine.js', text, function(err) {
 					if(err) {
 						console.error(err);
 						throw err;

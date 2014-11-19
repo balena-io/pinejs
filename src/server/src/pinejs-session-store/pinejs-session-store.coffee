@@ -28,7 +28,7 @@ define [
 		Fact type:  session has expiry time
 			Necessity: Each session has at most 1 expiry time'''
 
-	class PlatformSessionStore extends require('express').session.Store
+	class PinejsSessionStore extends require('express').session.Store
 		constructor: ->
 		get: (sid, callback) ->
 			sessionAPI.get(
@@ -83,7 +83,7 @@ define [
 			).then (sessions) ->
 				sessions.length
 			.nodeify(callback)
-	PlatformSessionStore.config =
+	PinejsSessionStore.config =
 		models: [
 			modelName: 'session',
 			modelText: sessionModel
@@ -91,9 +91,9 @@ define [
 			logging:
 				default: false
 				error: true
-			customServerCode: 'cs!platform-session-store/platform-session-store'
+			customServerCode: 'cs!pinejs-session-store/pinejs-session-store'
 		]
-	PlatformSessionStore.setup = (app, requirejs, sbvrUtils, db, callback) ->
+	PinejsSessionStore.setup = (app, requirejs, sbvrUtils, db, callback) ->
 		sessionAPI = sbvrUtils.api.session
 		callback()
-	return PlatformSessionStore
+	return PinejsSessionStore
