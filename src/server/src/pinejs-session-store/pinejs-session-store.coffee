@@ -62,7 +62,7 @@ define [
 				resource: 'session'
 				options:
 					select: 'session_id'
-					filter: 'expiry_time gte ' + Date.now()
+					filter: expiry_time: $ge: Date.now()
 			).then (sessions) ->
 				_.map(sessions, 'session_id')
 			.nodeify(callback)
@@ -79,7 +79,7 @@ define [
 				resource: 'session'
 				options:
 					select: 'session_id'
-					filter: 'expiry_time gte ' + Date.now()
+					filter: expiry_time: $ge: Date.now()
 			).then (sessions) ->
 				sessions.length
 			.nodeify(callback)

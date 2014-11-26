@@ -97,8 +97,9 @@ define [
 				resource: 'permission'
 				options:
 					select: 'name'
-					filter: roleFilter
+					filter: role__has__permission: role: roleFilter
 			)
+			# TODO: Combine these into one api call.
 			Promise.all([
 				userPerms
 				rolePerms
@@ -117,8 +118,8 @@ define [
 
 		exports.getUserPermissions = getUserPermissions = (userId, callback) ->
 			if _.isFinite(userId)
-				permsFilter = 'user__has__permission/user': userId
-				roleFilter = 'role__has__permission/role/user__has__role/user': userId
+				permsFilter = user__has__permission: user: userId
+				roleFilter = user__has__role: user: userId
 				return getPermissions(permsFilter, roleFilter, callback)
 			else
 				return Promise.rejected(new Error('User ID either has to be a numeric id, got: ' + typeof userId))
@@ -129,8 +130,8 @@ define [
 				max: 50
 				maxAge: 5 * 60 * 1000
 				fetchFn: (apiKey) ->
-					permsFilter = 'api_key__has__permission/api_key/key': apiKey
-					roleFilter = 'role__has__permission/role/api_key__has__role/api_key/key': apiKey
+					permsFilter = api_key__has__permission: api_key: key: apiKey
+					roleFilter = api_key__has__role: api_key: key: apiKey
 					return getPermissions(permsFilter, roleFilter)
 			(apiKey, callback) ->
 				promise =
@@ -251,7 +252,8 @@ define [
 						options:
 							select: 'id'
 							filter: 
-								'api_key/key': req.apiKey.key
+								api_key:
+									key: req.apiKey.key
 					)
 					.then (user) ->
 						if user.length is 0

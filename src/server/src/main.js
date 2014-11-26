@@ -60,9 +60,9 @@ require({
 			main: 'index'
 		},
 		{
-			name: 'resin-platform-api',
-			location: '../../../node_modules/resin-platform-api',
-			main: 'canvas'
+			name: 'pinejs-client-js',
+			location: '../../../node_modules/pinejs-client-js',
+			main: 'core'
 		}
 	],
 	shim: {

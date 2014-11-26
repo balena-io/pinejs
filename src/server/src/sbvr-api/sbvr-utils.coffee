@@ -11,7 +11,7 @@ define [
 	'cs!sbvr-api/transactions'
 	'cs!sbvr-api/uri-parser'
 	'cs!migrator/migrator'
-	'resin-platform-api'
+	'pinejs-client-js'
 	'lodash'
 	'bluebird'
 	'typed-error'
