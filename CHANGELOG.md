@@ -5,6 +5,7 @@ v0.4.0
 * `ConfigLoader.loadNodeConfig` has been removed (use `ConfigLoader.loadApplicationConfig` instead)
 * Correctly process expanded results again (an update to `node-pg` made the `JSON.parse` unnecessary and hence fail).
 * Update to pinejs-client-js v0.3.0, this adds greatly enhanced filter support.
+* Support has been added for filters on POST requests.
 
 v0.3.11
 
