@@ -22,10 +22,10 @@
     "typed-error": "~0.1.0"
   },
   "devDependencies": {
-    "abstract-sql-compiler": "git+ssh://git@bitbucket.org:rulemotion/abstract-sql-compiler.git#v0.1.0",
+    "abstract-sql-compiler": "git+ssh://git@bitbucket.org:rulemotion/abstract-sql-compiler.git#v0.1.1",
     "lf-to-abstract-sql": "git+ssh://git@bitbucket.org:rulemotion/lf-to-abstract-sql.git#v0.0.8",
     "odata-parser": "git+ssh://git@bitbucket.org:rulemotion/odata-parser.git#v0.0.9",
-    "odata-to-abstract-sql": "git+ssh://git@bitbucket.org:rulemotion/odata-to-abstract-sql.git#v0.1.0",
+    "odata-to-abstract-sql": "git+ssh://git@bitbucket.org:rulemotion/odata-to-abstract-sql.git#v0.1.1",
     "pinejs-client-js": "git+ssh://git@bitbucket.org:rulemotion/pinejs-client-js.git#v0.3.0",
     "sbvr-parser": "git+ssh://git@bitbucket.org:rulemotion/sbvr-parser.git#v0.0.15",
     "sbvr-types": "git+ssh://git@bitbucket.org:rulemotion/sbvr-types.git#v0.0.2",
