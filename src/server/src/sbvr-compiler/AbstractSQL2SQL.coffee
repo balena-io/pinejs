@@ -5,7 +5,6 @@ define [
 	'bluebird'
 	'sbvr-types'
 ], (has, AbstractSQLCompiler, _, Promise, sbvrTypes) ->
-	validateInteger = Promise.promisify(sbvrTypes.Integer.validate)
 	validateTypes = _.mapValues sbvrTypes, ({validate}) ->
 		if validate?
 			Promise.promisify(validate)
@@ -20,8 +19,6 @@ define [
 				Promise.fulfilled(null)
 		else if validateTypes[dataType]?
 			validateTypes[dataType](value, required)
-		else if dataType in ['ForeignKey', 'ConceptType']
-			validateInteger(value, required)
 		else
 			Promise.rejected('is an unsupported type: ' + dataType)
 
@@ -29,9 +26,7 @@ define [
 		necessity = if necessity then ' NOT NULL' else ' NULL'
 		if index != ''
 			index = ' ' + index
-		if dataType in ['ForeignKey', 'ConceptType']
-			return 'INTEGER' + necessity + index
-		else if sbvrTypes[dataType]?.types?[engine]?
+		if sbvrTypes[dataType]?.types?[engine]?
 			if _.isFunction(sbvrTypes[dataType].types[engine])
 				return sbvrTypes[dataType].types[engine](necessity, index)
 			return sbvrTypes[dataType].types[engine] + necessity + index
