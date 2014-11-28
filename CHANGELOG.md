@@ -1,3 +1,7 @@
+v0.4.1
+
+* Update odata-to-abstract-sql and abstract-sql-compiler to add support for CASTing bind vars to the correct type when necessary (avoids issues in cases where implicit casts failed)
+
 v0.4.0
 
 * All instances of `platform`/`rulemotion-canvas` have been renamed to `pinejs`
