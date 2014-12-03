@@ -4,6 +4,7 @@ v0.4.2
 * Update bluebird to ~2.3.11
 * Update bluebird-lru-cache to ~0.1.2
 * Update coffee-script to ~1.8.0
+* Updated odata-to-abstract-sql and abstract-sql-compiler to add support for $filter on PUT requests and enhanced security.
 
 v0.4.1
 

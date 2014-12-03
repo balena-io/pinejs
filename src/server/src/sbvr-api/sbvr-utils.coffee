@@ -93,8 +93,8 @@ define [
 		mappings = clientModels[vocab].resourceToSQLMappings
 		sqlModelTables = sqlModels[vocab].tables
 		Promise.map bindings, (binding) ->
-			if _.isString(binding[1])
-				[tableName, fieldName] = binding
+			if binding[0] is 'Bind'
+				[tableName, fieldName] = binding[1]
 
 				referencedName = tableName + '.' + fieldName
 				value = values[referencedName]
