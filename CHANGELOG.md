@@ -5,6 +5,7 @@ v0.4.2
 * Update bluebird-lru-cache to ~0.1.2
 * Update coffee-script to ~1.8.0
 * Updated odata-to-abstract-sql and abstract-sql-compiler to add support for $filter on PUT requests and enhanced security.
+* Update lf-to-abstract-sql to add support for setting foreign keys nullable in a term form.
 
 v0.4.1
 
