@@ -1,3 +1,10 @@
+v0.4.2
+
+* Update bcrypt to ~0.8.0
+* Update bluebird to ~2.3.11
+* Update bluebird-lru-cache to ~0.1.2
+* Update coffee-script to ~1.8.0
+
 v0.4.1
 
 * Update odata-to-abstract-sql and abstract-sql-compiler to add support for CASTing bind vars to the correct type when necessary (avoids issues in cases where implicit casts failed)
