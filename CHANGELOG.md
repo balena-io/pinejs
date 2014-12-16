@@ -1,3 +1,7 @@
+v0.4.3
+
+* Update odata-parser and odata-to-abstract-sql to add support for true/false/null in OData filters.
+
 v0.4.2
 
 * Update bcrypt to ~0.8.0
