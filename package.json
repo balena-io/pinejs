@@ -1,6 +1,6 @@
 {
   "name": "pinejs",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "main": "pine.js",
   "scripts": {
     "postinstall": "node install.js"
