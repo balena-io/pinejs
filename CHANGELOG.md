@@ -1,3 +1,7 @@
+v0.4.4
+
+* Update pinejs-client-js to v0.3.1 which supports true/false/null filters, making them easier to use.
+
 v0.4.3
 
 * Update odata-parser and odata-to-abstract-sql to add support for true/false/null in OData filters.
