@@ -8,7 +8,7 @@
   "repository": "git@bitbucket.org:rulemotion/pinejs.git",
   "dependencies": {
     "bcrypt": "~0.8.0",
-    "bluebird": "~2.3.11",
+    "bluebird": "^2.6.0",
     "bluebird-lru-cache": "~0.1.2",
     "coffee-script": "~1.8.0",
     "express": "~3.4.0",
