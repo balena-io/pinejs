@@ -1,5 +1,6 @@
 v0.4.4
 
+* Fix a `"Cannot parse required checks: false"` error that could happen with permission checking if api key or guest permissions returned `false`.
 * Update pinejs-client-js to v0.3.1 which supports true/false/null filters, making them easier to use.
 
 v0.4.3

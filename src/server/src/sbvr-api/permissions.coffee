@@ -16,6 +16,8 @@ define [
 	exports.nestedCheck = nestedCheck = (check, stringCallback) ->
 		if _.isString(check)
 			stringCallback(check)
+		else if _.isBoolean(check)
+			return check
 		else if _.isArray(check)
 			results = []
 			for subcheck in check
@@ -263,8 +265,8 @@ define [
 					.catch (err) ->
 						authApi.logger.error('Error checking api key permissions', req.apiKey.key, err, err.stack)
 					.then (apiKeyAllowed) ->
-						if allowed is false or apiKeyAllowed is true
-							return apiKeyAllowed
+						if apiKeyAllowed is true
+							return true
 						return or: [allowed, apiKeyAllowed]
 				.then (allowed) ->
 					if allowed is true
@@ -281,9 +283,10 @@ define [
 						authApi.logger.error('Error checking guest permissions', err, err.stack)
 						return false
 					.then (guestAllowed) ->
-						if allowed is false or guestAllowed is true
-							return guestAllowed
 						return or: [allowed, guestAllowed]
+				.then (permissions) ->
+					# Pass through the nestedCheck with no changes to strings, this optimises any ors/ands that can be.
+					nestedCheck(permissions, _.identity)
 				.nodeify(callback)
 
 		exports.checkPermissionsMiddleware = (action) ->
