@@ -511,7 +511,7 @@ define [
 						try
 							request.sqlQuery = AbstractSQLCompiler.compile(db.engine, request.abstractSqlQuery)
 						catch err
-							logger.error('Failed to compile abstract sql: ', request.abstractSqlQuery, err, err.stack)
+							api[apiRoot].logger.error('Failed to compile abstract sql: ', request.abstractSqlQuery, err, err.stack)
 							throw new SqlCompilationError(err)
 					return request
 		# Then handle forwarding the request to the correct method handler.
