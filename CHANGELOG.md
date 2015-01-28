@@ -1,3 +1,6 @@
+v0.4.5
+* Fix a `ReferenceError: logger is not defined` when compiling abstract sql fails.
+
 v0.4.4
 
 * Fix a `"Cannot parse required checks: false"` error that could happen with permission checking if api key or guest permissions returned `false`.
