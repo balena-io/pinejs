@@ -1,5 +1,6 @@
 v0.4.5
 * Fix a `ReferenceError: logger is not defined` when compiling abstract sql fails.
+* Update abstract-sql-compiler to v0.2.1 which properly supports null comparisons.
 
 v0.4.4
 
