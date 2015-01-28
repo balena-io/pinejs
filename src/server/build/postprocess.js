@@ -21,7 +21,7 @@ function testDependencies(installedPackages, dependencies) {
 	return depsOk;
 }
 
-module.exports = function(text) {
+module.exports = function(text, buildType) {
 	var buildDir = '.',
 		hasConfig = JSON.stringify(this.has, null, '\t'),
 		childProcess = require('child_process');
@@ -50,7 +50,7 @@ module.exports = function(text) {
 			text = '// Build: ' + version + '\n' +
 				'/* has: ' + hasConfig + ' */\n' +
 				text;
-			require('fs').writeFile(buildDir + '/pine-' + version + '.js', text, function(err) {
+			require('fs').writeFile(buildDir + '/pine-' + buildType + '-' + version + '.js', text, function(err) {
 				if(err) {
 					console.error(err);
 					throw err;
