@@ -45,11 +45,19 @@ define [
 				]
 				nodes = {}
 
-				for [type,name] in dataset when type is 'Term' and name not in termBlacklist
+				# Standard terms
+				for [type, name] in dataset when type is 'Term' and name not in termBlacklist
 					nodes[name] = {name, type}
 
+				# Term form terms
+				for [type, ..., attrs] in dataset when type is 'FactType'
+					for [type, term] in attrs[1...] when type is 'TermForm'
+						[type, name] = term
+						if name not in termBlacklist
+							nodes[term[1]] = {name, type}
+
 				links = []
-				for [type,contents...] in dataset when type is 'FactType'
+				for [type, contents...] in dataset when type is 'FactType'
 					switch contents.length
 						when 3 # unary
 							sourceNode = nodes[contents[0][1]]
