@@ -46,10 +46,11 @@ module.exports = function(text) {
 				console.error(err);
 				throw err;
 			}
-			text = '// Build: ' + stdout.trim() + '\n' +
+			var version = stdout.trim();
+			text = '// Build: ' + version + '\n' +
 				'/* has: ' + hasConfig + ' */\n' +
 				text;
-			require('fs').writeFile(buildDir + '/pine.js', text, function(err) {
+			require('fs').writeFile(buildDir + '/pine-' + version + '.js', text, function(err) {
 				if(err) {
 					console.error(err);
 					throw err;
