@@ -2,6 +2,7 @@ v0.4.5
 * Fix a `ReferenceError: logger is not defined` when compiling abstract sql fails.
 * Update abstract-sql-compiler to v0.2.1 which properly supports null comparisons.
 * Fix visualisation of vocabularies containing term forms.
+* Fix visualisation links not appearing if you go to the LF tab first.
 
 v0.4.4
 
