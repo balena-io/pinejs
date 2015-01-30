@@ -38,7 +38,9 @@ define [
 			sbvrEditor.addKeyMap(
 				'Ctrl-Space': autoCompleteKeyBinding
 			)
-			@model.compile = sbvrEditor.getMode().fullParse
+			@model.compile = ->
+				# We return a clone of the LF to safeguard against naughty modifications.
+				_.cloneDeep(sbvrEditor.getMode().fullParse())
 
 			$(window).resize(=>
 				sbvrEditor.setSize(@$el.width(), @$el.height())
