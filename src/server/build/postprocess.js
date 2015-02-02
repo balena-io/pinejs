@@ -21,7 +21,7 @@ function testDependencies(installedPackages, dependencies) {
 	return depsOk;
 }
 
-module.exports = function(text) {
+module.exports = function(text, buildType) {
 	var buildDir = '.',
 		hasConfig = JSON.stringify(this.has, null, '\t'),
 		childProcess = require('child_process');
@@ -39,30 +39,22 @@ module.exports = function(text) {
 			console.error('Please fix dependency errors and try again');
 			process.exit(1);
 		}
-		childProcess.exec('git describe --tags', {
+		childProcess.exec('git describe --tags --dirty', {
 			cwd: buildDir
 		}, function(err, stdout, stderr) {
 			if(err) {
 				console.error(err);
 				throw err;
 			}
-			childProcess.exec('git diff --exit-code', {
-				cwd: buildDir
-			}, function(err) {
-				var workingDirChangeSignifier = '';
+			var version = stdout.trim();
+			text = '// Build: ' + version + '\n' +
+				'/* has: ' + hasConfig + ' */\n' +
+				text;
+			require('fs').writeFile(buildDir + '/pine-' + buildType + '-' + version + '.js', text, function(err) {
 				if(err) {
-					// There are working dir changes.
-					workingDirChangeSignifier = '+';
+					console.error(err);
+					throw err;
 				}
-				text = '// Build: ' + stdout.trim() + workingDirChangeSignifier + '\n' +
-						'/* has: ' + hasConfig + ' */\n' +
-					text;
-				require('fs').writeFile(buildDir + '/pine.js', text, function(err) {
-					if(err) {
-						console.error(err);
-						throw err;
-					}
-				});
 			});
 		});
 	});

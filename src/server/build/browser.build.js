@@ -1,6 +1,6 @@
 ({
 	out: function(text) {
-		nodeRequire(this.baseUrl + '../build/postprocess.js').call(this, text);
+		nodeRequire(this.baseUrl + '../build/postprocess.js').call(this, text, 'browser');
 	},
 
 	stubModules: [
