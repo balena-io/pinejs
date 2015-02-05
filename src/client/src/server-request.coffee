@@ -1,7 +1,8 @@
 define [
 	'has'
 	'bluebird'
-], (has, Promise) ->
+	'jquery'
+], (has, Promise, $) ->
 	return (method, uri, headers = {}, body, successCallback, failureCallback) ->
 		deferred = Promise.pending()
 		if !headers["Content-Type"]? and body?

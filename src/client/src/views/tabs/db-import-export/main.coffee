@@ -2,9 +2,10 @@ define [
 	'backbone'
 	'lodash'
 	'cs!server-request'
+	'jquery'
 	'codemirror'
 	'codemirror/addon/hint/sql-hint'
-], (Backbone, _, serverRequest, CodeMirror) ->
+], (Backbone, _, serverRequest, $, CodeMirror) ->
 	Backbone.View.extend(
 		events:
 			"click #bidb": "importDB"

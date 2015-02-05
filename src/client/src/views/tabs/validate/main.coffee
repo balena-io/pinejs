@@ -5,7 +5,8 @@ define [
 	'bluebird'
 	'codemirror-ometa/hinter'
 	'cs!server-request'
-], (Backbone, _, CodeMirror, Promise, codeMirrorOmetaHinter, serverRequest) ->
+	'jquery'
+], (Backbone, _, CodeMirror, Promise, codeMirrorOmetaHinter, serverRequest, $) ->
 
 	noneFoundMessages =
 		NecessityFormulation: ['success', 'No invalid items in database']
