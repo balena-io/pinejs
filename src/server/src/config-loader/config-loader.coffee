@@ -99,13 +99,13 @@ define [
 							app.all(apiRoute, sbvrUtils.handleODataRequest)
 
 						if model.customServerCode?
-							try
-								customCode = requirejs(model.customServerCode)
-							catch e
+							if _.isObject(model.customServerCode)
+								customCode = model.customServerCode
+							else
 								try
 									customCode = require(model.customServerCode)
-								catch ee
-									throw new Error('Error loading custom server code: ' + e + ee)
+								catch e
+									throw new Error('Error loading custom server code: ' + e)
 
 							if !_.isFunction(customCode.setup)
 								return

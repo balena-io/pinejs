@@ -5,7 +5,7 @@ define [
 ], (exports, has, Promise) ->
 	exports.config =
 		models: [
-			customServerCode: 'cs!passport-pinejs/passport-pinejs'
+			customServerCode: exports
 		]
 	exports.setup = (app, requirejs, sbvrUtils) ->
 		exports.checkPassword = checkPassword = (username, password, done) ->

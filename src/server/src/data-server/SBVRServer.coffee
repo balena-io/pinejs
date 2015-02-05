@@ -48,7 +48,7 @@ define [
 			modelName: 'ui',
 			modelText: uiModel
 			apiRoot: 'ui'
-			customServerCode: 'cs!data-server/SBVRServer'
+			customServerCode: exports
 		]
 	exports.setup = (app, requirejs, sbvrUtils, db) ->
 		uiAPI = sbvrUtils.api.ui
