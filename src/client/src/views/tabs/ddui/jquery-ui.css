@@ -458,5 +458,5 @@ body .ui-tooltip { border-width:2px; }
 .ui-widget-shadow { margin: -5px 0 0 -5px; padding: 5px; background: #000000 url(images/ui-bg_flat_10_000000_40x100.png) 50% 50% repeat-x; opacity: .2;filter:Alpha(Opacity=20); -moz-border-radius: 5px; -khtml-border-radius: 5px; -webkit-border-radius: 5px; border-radius: 5px; }
 
 .ui-icon {
-	display: inline-block; !important
+	display: inline-block !important;
 }
