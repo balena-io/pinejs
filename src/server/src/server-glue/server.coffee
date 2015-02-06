@@ -1,5 +1,4 @@
 define [
-	'require'
 	'has'
 	'bluebird'
 	'cs!sbvr-api/sbvr-utils'
@@ -7,7 +6,7 @@ define [
 	'cs!pinejs-session-store/pinejs-session-store'
 	'cs!express-emulator/express'
 	'cs!server-glue/module'
-], (requirejs, has, Promise, sbvrUtils, passportPinejs, PinejsSessionStore, express, Pinejs) ->
+], (has, Promise, sbvrUtils, passportPinejs, PinejsSessionStore, express, Pinejs) ->
 	if has 'ENV_NODEJS'
 		express = require('express')
 		passport = require('passport')

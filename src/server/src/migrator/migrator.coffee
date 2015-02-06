@@ -94,7 +94,7 @@ define [
 			customServerCode: exports
 		]
 
-	exports.setup = (app, requirejs, @sbvrUtils, db, callback) ->
+	exports.setup = (app, @sbvrUtils, db, callback) ->
 		@migrationsApi = @sbvrUtils.api.migrations
 		@logger = @migrationsApi.logger
 

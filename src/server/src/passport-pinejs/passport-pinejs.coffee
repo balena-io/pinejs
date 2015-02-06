@@ -7,7 +7,7 @@ define [
 		models: [
 			customServerCode: exports
 		]
-	exports.setup = (app, requirejs, sbvrUtils) ->
+	exports.setup = (app, sbvrUtils) ->
 		exports.checkPassword = checkPassword = (username, password, done) ->
 			sbvrUtils.checkPassword(username, password)
 			.catch ->

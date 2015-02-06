@@ -1,5 +1,4 @@
 define [
-	'require'
 	'has'
 	'bluebird'
 	'cs!database-layer/db'
@@ -8,7 +7,7 @@ define [
 	'cs!config-loader/config-loader'
 	'cs!migrator/migrator'
 	'cs!pinejs-session-store/pinejs-session-store'
-], (requirejs, has, Promise, dbModule, sbvrUtils, sbvrServer, configLoader, migrator, PinejsSessionStore) ->
+], (has, Promise, dbModule, sbvrUtils, sbvrServer, configLoader, migrator, PinejsSessionStore) ->
 
 	if has 'ENV_NODEJS'
 		databaseURL = process.env.DATABASE_URL || 'postgres://postgres:.@localhost:5432/postgres'
@@ -23,9 +22,9 @@ define [
 	db = dbModule.connect(databaseOptions)
 
 	init = (app, config) ->
-		sbvrUtils.setup(app, requirejs, db)
+		sbvrUtils.setup(app, db)
 		.then ->
-			configLoader = configLoader.setup(app, requirejs)
+			configLoader = configLoader.setup(app)
 			configLoader.loadConfig(migrator.config)
 			.return(configLoader)
 		.then (configLoader) ->

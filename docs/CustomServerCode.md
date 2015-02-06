@@ -2,15 +2,12 @@
 ## Setup
 Custom server code should be provided in either Javascript or CoffeeScript format.
 The module may export a function with the following signature:
-`setup(app, requirejs, sbvrUtils, db)`  
+`setup(app, sbvrUtils, db)`  
 If provided this function will be called whilst the server starts up and can be used to add custom server code for your project.
 This function can return a promise, which the server will wait upon if you need to initialize something before the server listens.
 
 ### app
 This is an [express.js](http://expressjs.com/) app instance, and can be used to add your own routes.  
-
-### requirejs
-The [requirejs](http://requirejs.org/) object used by pinejs, can be used to include files.  
 
 ### sbvrUtils
 An entry point to the API internally to the server.
@@ -96,7 +93,7 @@ The name of the resource under the apiRoot to hook into, eg user
 ##### callbacks
 An object containing a key of the hook point and a value of the callback to call. See [Hooks documentation](./Hooks.md) for more
 
-#### setup(app, requirejs, db[, callback])
+#### setup(app, db[, callback])
 This is called by the server, you should never need to use this.
 
 ### db

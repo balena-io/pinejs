@@ -50,7 +50,7 @@ define [
 			apiRoot: 'ui'
 			customServerCode: exports
 		]
-	exports.setup = (app, requirejs, sbvrUtils, db) ->
+	exports.setup = (app, sbvrUtils, db) ->
 		uiAPI = sbvrUtils.api.ui
 		devAPI = sbvrUtils.api.dev
 		setupModels = (tx) ->
