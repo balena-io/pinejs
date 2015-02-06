@@ -1,3 +1,8 @@
+v0.5.0
+
+* Config loader will directly use the customServerCode entry if it is an object.
+* Config loader no longer tries to use requirejs to load the custom server code - it only uses require now.
+
 v0.4.5
 
 * Fix a `ReferenceError: logger is not defined` when compiling abstract sql fails.

@@ -91,7 +91,7 @@ define [
 			logging:
 				default: false
 				error: true
-			customServerCode: 'cs!pinejs-session-store/pinejs-session-store'
+			customServerCode: PinejsSessionStore
 		]
 	PinejsSessionStore.setup = (app, requirejs, sbvrUtils, db, callback) ->
 		sessionAPI = sbvrUtils.api.session
