@@ -1,4 +1,4 @@
-define(['ometa-core'], function() {
+define(['ometa-core'], function(OMeta) {
 	ometa SQLBinds {
 		// We store the quote character on the object and use it from there
 		// so that we can make use of memoisations (passing a parameter disables memoisations)

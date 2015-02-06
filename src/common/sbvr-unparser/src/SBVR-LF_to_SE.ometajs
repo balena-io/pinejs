@@ -1,4 +1,4 @@
-define(['lodash', 'ometa-core'], function(_) {
+define(['lodash', 'ometa-core'], function(_, OMeta) {
 	ometa SBVR_LF2SE {
 		$ :x =
 				token(x):a
