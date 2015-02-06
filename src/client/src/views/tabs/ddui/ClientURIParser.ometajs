@@ -1,4 +1,4 @@
-define(['ometa-core'], function() {
+define(['ometa-core'], function(OMeta) {
 	/*
 		frag = fragment
 		frbd = fragment body
