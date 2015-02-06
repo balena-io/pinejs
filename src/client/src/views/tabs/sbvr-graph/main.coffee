@@ -20,6 +20,8 @@ define [
 					dataset = @model.compile()
 				catch e
 					console.log(e)
+
+				if !dataset
 					return
 
 				termBlacklist = [
