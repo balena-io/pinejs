@@ -204,7 +204,7 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds', 'typed-err
 			}
 
 		exports.mysql = (options) ->
-			mysql = new require('mysql')
+			mysql = require('mysql')
 			_pool = mysql.createPool(options)
 			_pool.on 'connection', (_db) ->
 				_db.query("SET sql_mode='ANSI_QUOTES';")
