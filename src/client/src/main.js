@@ -37,6 +37,7 @@ require({
 		//Libraries
 		'async'						: '../lib/async/lib/async',
 		'backbone'					: '../lib/backbone/backbone',
+		'bcryptjs'					: '../lib/bcryptjs/dist/bcrypt',
 		'bootstrap'					: '../lib/bootstrap/docs/assets/js/bootstrap',
 		'codemirror-ometa'			: '../../../node_modules/ometa-js/lib/codemirror-ometa',
 		'd3'						: '../lib/d3/d3',
@@ -108,6 +109,9 @@ require({
 	shim: {
 		'bootstrap': {
 			deps: ['jquery', 'css!lib/bootstrap/docs/assets/css/bootstrap']
+		},
+		'sbvr-types': {
+			deps: ['bcryptjs']
 		},
 		'css!static/main': {
 			deps: ['bootstrap'],
