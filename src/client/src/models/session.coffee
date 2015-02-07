@@ -1,5 +1,5 @@
 define [
-	'cs!config'
+	'config'
 	'backbone'
 ], (config, Backbone) ->
 	Backbone.Model.extend({

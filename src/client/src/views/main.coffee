@@ -1,11 +1,10 @@
 define [
-	'has'
 	'backbone'
 	'jquery'
-	'text!templates/main.html'
-	"cs!models/session"
-	'cs!views/login'
-], (has, Backbone, $, html, SessionModel, LoginView) ->
+	'templates/main.html'
+	'models/session.coffee'
+	'views/login.coffee'
+], (Backbone, $, html, SessionModel, LoginView) ->
 	Backbone.View.extend(
 		id: 'app-main'
 
@@ -36,38 +35,37 @@ define [
 
 			# Tab subviews
 			tabs = []
-			if has 'TAB_SBVR_EDITOR'
-				tabs.push 'cs!views/tabs/sbvr-editor/main'
-			if has 'TAB_SBVR_LF'
-				tabs.push 'cs!views/tabs/sbvr-lf/main'
-			if has 'TAB_SBVR_GRAPH'
-				tabs.push 'cs!views/tabs/sbvr-graph/main'
-			if has 'TAB_SBVR_SERVER'
-				tabs.push 'cs!views/tabs/sbvr-server/main'
-			if has 'TAB_DDUI'
-				tabs.push 'cs!views/tabs/ddui/main'
-			if has 'TAB_DB_IMPORT_EXPORT'
-				tabs.push 'cs!views/tabs/db-import-export/main'
-			if has 'TAB_VALIDATE'
-				tabs.push 'cs!views/tabs/validate/main'
-			require tabs, (tabViews...) =>
-				for TabView, i in tabViews
-					content = $("<div id='tab#{i}' />")
-					tab = $("<li><a data-toggle='tab' href='#tab#{i}'/></li>")
+			if TAB_SBVR_EDITOR
+				tabs.push require 'views/tabs/sbvr-editor/main.coffee'
+			if TAB_SBVR_LF
+				tabs.push require 'views/tabs/sbvr-lf/main.coffee'
+			if TAB_SBVR_GRAPH
+				tabs.push require 'views/tabs/sbvr-graph/main.coffee'
+			if TAB_SBVR_SERVER
+				tabs.push require 'views/tabs/sbvr-server/main.coffee'
+			if TAB_DDUI
+				tabs.push require 'views/tabs/ddui/main.coffee'
+			if TAB_DB_IMPORT_EXPORT
+				tabs.push require 'views/tabs/db-import-export/main.coffee'
+			if TAB_VALIDATE
+				tabs.push require 'views/tabs/validate/main.coffee'
+			for TabView, i in tabs
+				content = $("<div id='tab#{i}' />")
+				tab = $("<li><a data-toggle='tab' href='#tab#{i}'/></li>")
 
-					# Add tab to interface
-					$('#tabs').append(tab)
-					$('#content').append(content)
+				# Add tab to interface
+				$('#tabs').append(tab)
+				$('#content').append(content)
 
-					# Render the tab
-					new TabView(
-						el: content
-						title: $('a', tab)
-						model: @model
-					).render()
+				# Render the tab
+				new TabView(
+					el: content
+					title: $('a', tab)
+					model: @model
+				).render()
 
-					# Show first tab
-					$('a', tab).tab('show') if i is 0
+				# Show first tab
+				$('a', tab).tab('show') if i is 0
 			return this
 
 		create: ->
@@ -83,7 +81,7 @@ define [
 					slug = @model.get('slug')
 
 					# Change the url
-					require('cs!app').navigate(slug)
+					require('../app.coffee').navigate(slug)
 
 					# Alert the successful creation
 					@$('#publishSuccess a').attr('href', '#' + slug).text('sbvr.co/#/' + slug)

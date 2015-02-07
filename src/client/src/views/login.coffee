@@ -1,9 +1,9 @@
 define [
 	'backbone'
-	'cs!models/session'
-	'cs!models/user'
-	'text!templates/login.html'
-	'text!templates/register.html'
+	'models/session.coffee'
+	'models/user.coffee'
+	'templates/login.html'
+	'templates/register.html'
 ], (Backbone, SessionModel, UserModel, loginHtml, registerHtml) ->
 	Backbone.View.extend(
 		id: 'app-main'

@@ -3,7 +3,7 @@ define [
 	'lodash'
 	'bluebird'
 	'typed-error'
-	'text!migrator/migrations.sbvr'
+	'migrator/migrations.sbvr'
 ], (exports, _, Promise, TypedError, modelText) ->
 	exports.MigrationError = class MigrationError extends TypedError
 

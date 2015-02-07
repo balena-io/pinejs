@@ -4,7 +4,7 @@ define [
 	'codemirror'
 	'bluebird'
 	'codemirror-ometa/hinter'
-	'cs!server-request'
+	'server-request'
 	'jquery'
 ], (Backbone, _, CodeMirror, Promise, codeMirrorOmetaHinter, serverRequest, $) ->
 

@@ -1,13 +1,13 @@
 define [
-	'ometa!./ClientURIUnparser'
+	'./ClientURIUnparser.ometajs'
 	'ejs'
-	'cs!./widgets'
+	'./widgets.coffee'
 	'async'
 	'bluebird'
 	'lodash'
-	'cs!server-request'
+	'server-request'
 	'jquery'
-	'cs!./runTrans'
+	'./runTrans.coffee'
 ], (ClientURIUnparser, ejs, widgets, async, Promise, _, serverRequest, $) ->
 	templates = {
 		widgets: widgets

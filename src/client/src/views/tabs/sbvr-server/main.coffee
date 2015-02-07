@@ -1,8 +1,7 @@
 define [
 	'backbone'
-	'has'
-	'cs!server-request'
-], (Backbone, has, serverRequest) ->
+	'server-request'
+], (Backbone, serverRequest) ->
 	Backbone.View.extend(
 		events:
 			"click #run-server": "runServer"

@@ -3,7 +3,7 @@ define [
 	'odata-parser'
 	'odata-to-abstract-sql'
 	'bluebird'
-	'cs!sbvr-api/permissions'
+	'sbvr-api/permissions.coffee'
 	'typed-error'
 ], (exports, {ODataParser}, {OData2AbstractSQL}, Promise, permissions, TypedError) ->
 

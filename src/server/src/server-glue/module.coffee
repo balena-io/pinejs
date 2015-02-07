@@ -1,15 +1,14 @@
 define [
-	'has'
 	'bluebird'
-	'cs!database-layer/db'
-	'cs!sbvr-api/sbvr-utils'
-	'cs!data-server/SBVRServer'
-	'cs!config-loader/config-loader'
-	'cs!migrator/migrator'
-	'cs!pinejs-session-store/pinejs-session-store'
-], (has, Promise, dbModule, sbvrUtils, sbvrServer, configLoader, migrator, PinejsSessionStore) ->
+	'database-layer/db.coffee'
+	'sbvr-api/sbvr-utils.coffee'
+	'data-server/SBVRServer.coffee'
+	'config-loader/config-loader.coffee'
+	'migrator/migrator.coffee'
+	'pinejs-session-store/pinejs-session-store.coffee'
+], (Promise, dbModule, sbvrUtils, sbvrServer, configLoader, migrator, PinejsSessionStore) ->
 
-	if has 'ENV_NODEJS'
+	if ENV_NODEJS
 		databaseURL = process.env.DATABASE_URL || 'postgres://postgres:.@localhost:5432/postgres'
 		databaseOptions =
 			engine: databaseURL[...databaseURL.indexOf(':')]
@@ -29,8 +28,8 @@ define [
 			.return(configLoader)
 		.then (configLoader) ->
 			Promise.all([
-				configLoader.loadConfig(sbvrServer.config) if has 'SBVR_SERVER_ENABLED'
-				configLoader.loadApplicationConfig(config) if has 'CONFIG_LOADER'
+				configLoader.loadConfig(sbvrServer.config) if SBVR_SERVER_ENABLED
+				configLoader.loadApplicationConfig(config) if CONFIG_LOADER
 			]).return(configLoader)
 		.catch (err) ->
 			console.error('Error initialising server', err)

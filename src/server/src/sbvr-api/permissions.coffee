@@ -1,11 +1,10 @@
 define [
 	'exports'
-	'has'
 	'lodash'
 	'bluebird'
-], (exports, has, _, Promise) ->
+], (exports, _, Promise) ->
 
-	if has 'ENV_NODEJS'
+	if ENV_NODEJS
 		BluebirdLRU = require 'bluebird-lru-cache'
 	else
 		# A very basic, always refetch, implementation for the case of running in-browser.

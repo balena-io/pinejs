@@ -1,10 +1,9 @@
 define [
-	'has'
 	'abstract-sql-compiler'
 	'lodash'
 	'bluebird'
 	'sbvr-types'
-], (has, AbstractSQLCompiler, _, Promise, sbvrTypes) ->
+], (AbstractSQLCompiler, _, Promise, sbvrTypes) ->
 	validateTypes = _.mapValues sbvrTypes, ({validate}) ->
 		if validate?
 			Promise.promisify(validate)
@@ -80,7 +79,7 @@ define [
 							console.warn("We're adding a primitive table??", schemaInfo.resourceName)
 						createSchemaStatements.push(schemaInfo.createSQL)
 						dropSchemaStatements.push(schemaInfo.dropSQL)
-						if has 'DEV'
+						if DEV
 							console.log(schemaInfo.createSQL)
 					delete schemaDependencyMap[tableName]
 		if schemaDependencyMap.length > 0
@@ -98,7 +97,7 @@ define [
 					structuredEnglish: ruleSE
 					sql: ruleSQL
 				)
-				if has 'DEV'
+				if DEV
 					console.log(rule[1][1])
 					console.log(ruleSQL)
 		catch e

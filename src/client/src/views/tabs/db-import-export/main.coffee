@@ -1,7 +1,7 @@
 define [
 	'backbone'
 	'lodash'
-	'cs!server-request'
+	'server-request'
 	'jquery'
 	'codemirror'
 	'codemirror/addon/hint/sql-hint'

@@ -1,8 +1,7 @@
 define [
-	'has'
 	'lodash'
-], (has, _) ->
-	if not has 'ENV_NODEJS'
+], (_) ->
+	if not ENV_NODEJS
 		return
 	sessionAPI = null
 

@@ -1,11 +1,10 @@
 define [
 	'exports'
-	'has'
 	'lodash'
 	'bluebird'
-	'cs!sbvr-api/sbvr-utils'
-	'cs!migrator/migrator'
-], (exports, has, _, Promise, sbvrUtils, migrator) ->
+	'sbvr-api/sbvr-utils.coffee'
+	'migrator/migrator.coffee'
+], (exports, _, Promise, sbvrUtils, migrator) ->
 	# Setup function
 	exports.setup = (app) ->
 		authAPI = sbvrUtils.api.Auth
@@ -103,7 +102,7 @@ define [
 								customCode = model.customServerCode
 							else
 								try
-									customCode = require(model.customServerCode)
+									customCode = nodeRequire(model.customServerCode)
 								catch e
 									throw new Error('Error loading custom server code: ' + e)
 
@@ -126,7 +125,7 @@ define [
 								throw new Error('Error running custom server code: ' + e)
 
 		loadApplicationConfig = (config) ->
-			if not has 'ENV_NODEJS'
+			if not ENV_NODEJS
 				console.error('Can only load application config in a nodejs environment.')
 				return
 
@@ -140,10 +139,10 @@ define [
 			switch typeof config
 				when "undefined"
 					root = process.argv[2] or __dirname
-					config = require path.join(root, 'config.json')
+					config = nodeRequire path.join(root, 'config.json')
 				when "string"
-					root = path.dirname(require.resolve config)
-					config = require config
+					root = path.dirname(nodeRequire.resolve config)
+					config = nodeRequire config
 				when "object"
 					root = process.cwd()
 
@@ -167,7 +166,7 @@ define [
 
 							switch path.extname(filename)
 								when '.coffee', '.js'
-									fn = require(filePath)
+									fn = nodeRequire(filePath)
 									model.migrations[migrationKey] = fn
 								when '.sql'
 									fs.readFileAsync(filePath)

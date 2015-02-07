@@ -11,15 +11,14 @@
 1. Check out (or update your copy of) `pinejs/master` (all paths used below will be relative to this working directory unless otherwise specified)
 2. Run `bower install` in the root of pinejs.
 3. Run `npm install` in the root of pinejs.
-4. Navigate to `src/server/build`
-5. Run `r.js -o server.build.js` on Linux/Mac OSX or `r.js.cmd -o server.build.js` on Windows.
-6. Copy the `src/server/build/pine.js` file that was just created into your project's folder/repository.
-7. Copy the `package.json` file into your project's folder/repository.
-8. Run `npm install` in your project's folder/repository.
-9. [Configure your project](#configuring-a-project)
-10. Run `node pine.js` (This will create the schema including users)
-11. Set up a guest user (see [Users documentation](./Users.md)).
-12. Re-run `node pine.js`.
+4. Run `./node_modules/.bin/grunt $TYPE` -o server.build.js` on Linux/Mac OSX or `node_modules\.bin\grunt $TYPE` on Windows, where $TYPE is `server` or `module`
+5. Copy the `out/pine-$TYPE-$VERSION.js` file that was just created into your project's folder/repository.
+6. Copy the `package.json` file into your project's folder/repository.
+7. Run `npm install` in your project's folder/repository.
+8. [Configure your project](#configuring-a-project)
+9. Run `node pine.js` (This will create the schema including users)
+10. Set up a guest user (see [Users documentation](./Users.md)).
+11. Re-run `node pine.js`.
 
 ## Updating pinejs
 Follow steps 1-5 of [Setting Up A Project](#setting-up-a-project) and then run `node pine.js`

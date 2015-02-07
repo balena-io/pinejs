@@ -1,10 +1,10 @@
 define [
 	'backbone'
-	'ometa!./ClientURIParser'
-	'cs!./drawDataUI'
+	'./ClientURIParser.ometajs'
+	'./drawDataUI.coffee'
 	'jquery-ui'
-	'cs!views/tabs/sbvr-server/main'
-	'css!./jquery-ui'
+	'views/tabs/sbvr-server/main.coffee'
+	'./jquery-ui.css'
 ], (Backbone, ClientURIParser, drawDataUI) ->
 	Backbone.View.extend(
 		setTitle: (title) ->
