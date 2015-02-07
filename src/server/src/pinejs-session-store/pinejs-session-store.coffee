@@ -93,7 +93,7 @@ define [
 				error: true
 			customServerCode: PinejsSessionStore
 		]
-	PinejsSessionStore.setup = (app, requirejs, sbvrUtils, db, callback) ->
+	PinejsSessionStore.setup = (app, sbvrUtils, db, callback) ->
 		sessionAPI = sbvrUtils.api.session
 		callback()
 	return PinejsSessionStore

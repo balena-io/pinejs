@@ -782,16 +782,16 @@ define [
 			resourceHooks[callbackType] ?= []
 			resourceHooks[callbackType].push(callback)
 
-	exports.setup = (app, requirejs, _db, callback) ->
+	exports.setup = (app, _db, callback) ->
 		exports.db = db = _db
 		AbstractSQL2SQL = AbstractSQL2SQL[db.engine]
 
 		if has 'DEV'
 			app.get('/dev/*', handleODataRequest)
 
-		permissions.setup(app, requirejs, exports)
+		permissions.setup(app, exports)
 		_.extend(exports, permissions)
-		transactions.setup(app, requirejs, exports)
+		transactions.setup(app, exports)
 
 		db.transaction()
 		.then (tx) ->

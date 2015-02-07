@@ -59,7 +59,7 @@ define [
 		else
 			throw new Error('Cannot parse required checks: ' + check)
 
-	exports.setup = (app, requirejs, sbvrUtils) ->
+	exports.setup = (app, sbvrUtils) ->
 
 		exports.checkPassword = (username, password, callback) ->
 			authApi = sbvrUtils.api.Auth

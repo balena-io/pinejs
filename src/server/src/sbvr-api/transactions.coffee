@@ -3,7 +3,7 @@ define [
 	'lodash'
 	'bluebird'
 ], (exports, _, Promise) ->
-	exports.setup = (app, requirejs, sbvrUtils) ->
+	exports.setup = (app, sbvrUtils) ->
 		endTransaction = (transactionID) ->
 			sbvrUtils.db.transaction()
 			.then (tx) ->

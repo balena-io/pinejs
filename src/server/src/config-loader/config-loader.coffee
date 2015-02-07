@@ -7,7 +7,7 @@ define [
 	'cs!migrator/migrator'
 ], (exports, has, _, Promise, sbvrUtils, migrator) ->
 	# Setup function
-	exports.setup = (app, requirejs) ->
+	exports.setup = (app) ->
 		authAPI = sbvrUtils.api.Auth
 		loadConfig = (data) ->
 			sbvrUtils.db.transaction().then (tx) ->
@@ -112,7 +112,7 @@ define [
 
 							try
 								deferred = Promise.pending()
-								promise = customCode.setup app, requirejs, sbvrUtils, sbvrUtils.db, (err) ->
+								promise = customCode.setup app, sbvrUtils, sbvrUtils.db, (err) ->
 									if err
 										deferred.reject(err)
 									else
