@@ -1,8 +1,6 @@
-define [
-	'lodash'
-], (_) ->
-	if not ENV_NODEJS
-		return
+_ = require 'lodash'
+
+if ENV_NODEJS
 	sessionAPI = null
 
 	sessionModel = '''
@@ -95,4 +93,5 @@ define [
 	PinejsSessionStore.setup = (app, sbvrUtils, db, callback) ->
 		sessionAPI = sbvrUtils.api.session
 		callback()
-	return PinejsSessionStore
+
+	module.exports = PinejsSessionStore
