@@ -11,7 +11,10 @@ serverConfigs =
 	'module': require './src/server/build/module.coffee'
 	'server': require './src/server/build/server.coffee'
 
+clientDevConfigs = {}
 for task, config of clientConfigs
+	clientDevConfigs[task] = _.clone(config)
+	clientDevConfigs[task].plugins = _.clone(config.plugins)
 	config.plugins = config.plugins.concat(
 		new webpack.optimize.UglifyJsPlugin(
 			compress:
@@ -120,6 +123,11 @@ module.exports = (grunt) ->
 					]
 
 		webpack: _.extend({}, clientConfigs, serverConfigs)
+		"webpack-dev-server": 
+			_.mapValues clientDevConfigs, (config) ->
+				keepAlive: true
+				contentBase: 'src/client/src/'
+				webpack: config
 
 	grunt.loadNpmTasks('grunt-check-dependencies')
 	grunt.loadNpmTasks('grunt-contrib-clean')
