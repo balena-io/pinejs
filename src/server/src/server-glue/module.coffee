@@ -1,3 +1,16 @@
+if !nodeRequire?
+	# If nodeRequire doesn't exist then we're being run directly,
+	# and have to set up some stuff that webpack would otherwise deal with.
+
+	# Alias require as nodeRequire for the config-loader hack.
+	global.nodeRequire = require
+	# Register a .sbvr loader
+	fs = require 'fs'
+	nodeRequire.extensions['.sbvr'] = (module, filename) ->
+		module.exports = fs.readFileSync(filename, encoding: 'utf8')
+	# Register the .ometajs loader
+	nodeRequire('ometa-js')
+
 Promise = require 'bluebird'
 dbModule = require '../database-layer/db.coffee'
 sbvrUtils = require '../sbvr-api/sbvr-utils.coffee'

@@ -18,6 +18,7 @@ v0.5.0
 * Moved express, mysql, passport, passport-local, and pg to optional dependencies, as they are indeed optional.
 * Fixed certain combinations of permission filters failing to translate.
 * Added support for loading config.json via absolute paths
+* Added support for loading pinejs via npm
 
 v0.4.5
 

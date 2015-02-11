@@ -1,8 +1,10 @@
+Pinejs = require './module.coffee'
+
 Promise = require 'bluebird'
 sbvrUtils = require '../sbvr-api/sbvr-utils.coffee'
 passportPinejs = require '../passport-pinejs/passport-pinejs.coffee'
 PinejsSessionStore = require '../pinejs-session-store/pinejs-session-store.coffee'
-Pinejs = require './module.coffee'
+
 express = require 'express'
 
 app = express()
