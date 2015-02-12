@@ -1,7 +1,7 @@
 define [
 	'backbone'
-	'cs!./lfviz'
-	'css!./style'
+	'./lfviz.coffee'
+	'./style.css'
 ], (Backbone, lfviz) ->
 	Backbone.View.extend(
 		setTitle: (title) ->

@@ -1,8 +1,9 @@
 define [
 	'backbone'
-	'cs!models/sbvrmodel'
+	'models/sbvrmodel.coffee'
 	'jquery'
-	'cs!views/main'
+	'views/main.coffee'
+	'bootstrap'
 ], (Backbone, SBVRModel, $, MainView) ->
 
 	$.ajaxSetup({

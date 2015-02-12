@@ -1,8 +1,7 @@
 define [
 	'lodash'
-	'has'
 	'bluebird'
-], (_, has, Promise) ->
+], (_, Promise) ->
 	exports = {}
 
 	uiModel = '''
@@ -189,12 +188,11 @@ define [
 					tx.rollback()
 					res.send(404)
 		app.get '/exportdb', sbvrUtils.checkPermissionsMiddleware('get'), (req, res, next) ->
-			if has 'ENV_NODEJS'
+			if ENV_NODEJS
 				# TODO: This is postgres rather than node specific, so the check should be updated to reflect that.
 				env = process.env
 				env['PGPASSWORD'] = '.'
-				req = require
-				req('child_process').exec 'pg_dump --clean -U postgres -h localhost -p 5432', env: env, (error, stdout, stderr) ->
+				require('child_process').exec 'pg_dump --clean -U postgres -h localhost -p 5432', env: env, (error, stdout, stderr) ->
 					res.json(stdout)
 			else
 				db.transaction (tx) ->

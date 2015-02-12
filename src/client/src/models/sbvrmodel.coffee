@@ -1,4 +1,4 @@
-define ['cs!config', 'backbone', 'cs!extended-sbvr-parser'], (config, Backbone, SBVRParser) ->
+define ['config', 'backbone', 'extended-sbvr-parser'], (config, Backbone, SBVRParser) ->
 	Backbone.Model.extend({
 		defaults:
 			id: null

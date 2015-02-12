@@ -13,19 +13,15 @@
     "tests"
   ],
   "dependencies": {
-    "require-cs": "resin-io/require-cs",
     "jquery": "~1.10.2",
     "jquery-ui": "~1.10.3",
     "backbone": "~1.0.0",
-    "requirejs": "2.1.9",
     "d3": "~3.3.8",
     "ejs": "~0.8.4",
     "bootstrap": "2.3.2",
     "coffee-script": "~1.7.1",
     "bluebird": "~2.2.2",
     "async": "caolan/async#c99537ae4837f12e918959c8bd1e70e6b1730f6e",
-    "require-css": "~0.1.4",
-    "requirejs-text": "~2.0.12",
     "codemirror": "4.2.0",
     "bcryptjs": "~2.1.0"
   }

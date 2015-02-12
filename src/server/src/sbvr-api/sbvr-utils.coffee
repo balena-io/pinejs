@@ -1,25 +1,24 @@
 define [
 	'exports'
-	'has'
-	'cs!extended-sbvr-parser'
+	'extended-sbvr-parser'
 	'lf-to-abstract-sql'
-	'cs!sbvr-compiler/AbstractSQL2SQL'
+	'sbvr-compiler/AbstractSQL2SQL.coffee'
 	'abstract-sql-compiler'
-	'cs!sbvr-compiler/AbstractSQL2CLF'
-	'cs!sbvr-compiler/ODataMetadataGenerator'
-	'cs!sbvr-api/permissions'
-	'cs!sbvr-api/transactions'
-	'cs!sbvr-api/uri-parser'
-	'cs!migrator/migrator'
+	'sbvr-compiler/AbstractSQL2CLF.coffee'
+	'sbvr-compiler/ODataMetadataGenerator.coffee'
+	'sbvr-api/permissions.coffee'
+	'sbvr-api/transactions.coffee'
+	'sbvr-api/uri-parser.coffee'
+	'migrator/migrator.coffee'
 	'pinejs-client-js'
 	'lodash'
 	'bluebird'
 	'typed-error'
 	'sbvr-types'
-	'text!sbvr-api/dev.sbvr'
-	'text!sbvr-api/transaction.sbvr'
-	'text!sbvr-api/user.sbvr'
-], (exports, has, SBVRParser, LF2AbstractSQL, AbstractSQL2SQL, AbstractSQLCompiler, AbstractSQL2CLF, ODataMetadataGenerator, permissions, transactions, uriParser, migrator, PinejsClientCore, _, Promise, TypedError, sbvrTypes, devModel, transactionModel, userModel) ->
+	'sbvr-api/dev.sbvr'
+	'sbvr-api/transaction.sbvr'
+	'sbvr-api/user.sbvr'
+], (exports, SBVRParser, LF2AbstractSQL, AbstractSQL2SQL, AbstractSQLCompiler, AbstractSQL2CLF, ODataMetadataGenerator, permissions, transactions, uriParser, migrator, PinejsClientCore, _, Promise, TypedError, sbvrTypes, devModel, transactionModel, userModel) ->
 	db = null
 
 	exports.sbvrTypes = sbvrTypes
@@ -490,7 +489,7 @@ define [
 		if !apiRoot? or !clientModels[apiRoot]?
 			return next('route')
 
-		if has('DEV') or process.env.DEBUG
+		if DEV or process.env.DEBUG
 			api[apiRoot].logger.log('Parsing', req.method, req.url)
 
 		# Parse the OData requests
@@ -522,7 +521,7 @@ define [
 
 			res.set('Cache-Control', 'no-cache')
 
-			if has('DEV') or process.env.DEBUG
+			if DEV or process.env.DEBUG
 				logger.log('Running', req.method, req.url)
 
 			runTransaction req, request, (tx) ->
@@ -598,7 +597,7 @@ define [
 			sqlQuery = sqlQuery[queryIndex]
 		getAndCheckBindValues(vocabulary, sqlQuery.bindings, values)
 		.then (values) ->
-			if has('DEV') or process.env.DEBUG
+			if DEV or process.env.DEBUG
 				api[vocabulary].logger.log(sqlQuery.query, values)
 
 			sqlQuery.values = values
@@ -708,7 +707,7 @@ define [
 			])
 		.then ->
 			# TODO: Remove these hardcoded users.
-			if has 'DEV'
+			if DEV
 				authAPI = api.Auth
 				Promise.all([
 					authAPI.post(
@@ -786,7 +785,7 @@ define [
 		exports.db = db = _db
 		AbstractSQL2SQL = AbstractSQL2SQL[db.engine]
 
-		if has 'DEV'
+		if DEV
 			app.get('/dev/*', handleODataRequest)
 
 		permissions.setup(app, exports)

@@ -1,7 +1,7 @@
 define [
 	'backbone'
 	'd3'
-	'css!./graph'
+	'./graph.css'
 ], (Backbone, d3) ->
 	Backbone.View.extend(
 		setTitle: (title) ->

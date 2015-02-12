@@ -1,4 +1,9 @@
-define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds', 'typed-error'], (has, Promise, _, SQLBinds, TypedError) ->
+define [
+	'bluebird'
+	'lodash'
+	'database-layer/SQLBinds.ometajs'
+	'typed-error'
+], (Promise, _, SQLBinds, TypedError) ->
 	exports = {}
 	class DatabaseError extends TypedError
 		constructor: (message) ->
@@ -39,7 +44,7 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds', 'typed-err
 		.nodeify(callback)
 
 	class Tx
-		if has('ENV_NODEJS') and process.env.TRANSACTION_TIMEOUT_MS
+		if ENV_NODEJS and process.env.TRANSACTION_TIMEOUT_MS
 			timeoutMS = parseInt(process.env.TRANSACTION_TIMEOUT_MS)
 			if _.isNaN(timeoutMS) or timeoutMS <= 0
 				throw new Error("Invalid valid for TRANSACTION_TIMEOUT_MS: " + process.env.TRANSACTION_TIMEOUT_MS)
@@ -110,7 +115,7 @@ define ['has', 'bluebird', 'lodash', 'ometa!database-layer/SQLBinds', 'typed-err
 				@rollback = @end = (callback) ->
 					return Promise.rejected(rejectionValue).nodeify(callback)
 
-	if has 'ENV_NODEJS'
+	if ENV_NODEJS
 		exports.postgres = (connectString) ->
 			pg = require('pg')
 			createResult = ({rowCount, rows}) ->

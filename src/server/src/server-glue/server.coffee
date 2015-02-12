@@ -1,13 +1,12 @@
 define [
-	'has'
 	'bluebird'
-	'cs!sbvr-api/sbvr-utils'
-	'cs!passport-pinejs/passport-pinejs'
-	'cs!pinejs-session-store/pinejs-session-store'
-	'cs!express-emulator/express'
-	'cs!server-glue/module'
-], (has, Promise, sbvrUtils, passportPinejs, PinejsSessionStore, express, Pinejs) ->
-	if has 'ENV_NODEJS'
+	'sbvr-api/sbvr-utils.coffee'
+	'passport-pinejs/passport-pinejs.coffee'
+	'pinejs-session-store/pinejs-session-store.coffee'
+	'express-emulator/express.coffee'
+	'./module.coffee'
+], (Promise, sbvrUtils, passportPinejs, PinejsSessionStore, express, Pinejs) ->
+	if ENV_NODEJS
 		express = require('express')
 		passport = require('passport')
 		app = express()
@@ -19,7 +18,7 @@ define [
 			path = require('path')
 			app.use(express.compress())
 
-			if has 'DEV'
+			if DEV
 				rootPath = path.join(__dirname, '/../../../..')
 				app.use('/client', express.static(path.join(rootPath, 'client')))
 				app.use('/common', express.static(path.join(rootPath, 'common')))
@@ -49,7 +48,7 @@ define [
 				next()
 
 			app.use(app.router)
-	else if has 'ENV_BROWSER'
+	else if ENV_BROWSER
 		Promise.longStackTraces()
 		app = express.app
 
@@ -57,7 +56,7 @@ define [
 	.then (configLoader) ->
 		Promise.all [
 			configLoader.loadConfig(passportPinejs.config)
-			configLoader.loadConfig(PinejsSessionStore.config) if has 'ENV_NODEJS'
+			configLoader.loadConfig(PinejsSessionStore.config) if ENV_NODEJS
 		]
 	.then ->
 		if !process?.env.DISABLE_DEFAULT_AUTH
@@ -79,11 +78,11 @@ define [
 			app.get '/logout', passportPinejs.logout, (req, res, next) ->
 				res.redirect('/')
 	.then ->
-		if has 'ENV_NODEJS'
+		if ENV_NODEJS
 			app.listen process.env.PORT or 1337, ->
 				console.info('Server started')
 
-		if has 'ENV_BROWSER'
+		if ENV_BROWSER
 			app.enable()
 	.catch (err) ->
 		console.error('Error initialising server', err)

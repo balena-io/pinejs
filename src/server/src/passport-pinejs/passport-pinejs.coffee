@@ -1,8 +1,7 @@
 define [
 	'exports'
-	'has'
 	'bluebird'
-], (exports, has, Promise) ->
+], (exports, Promise) ->
 	exports.config =
 		models: [
 			customServerCode: exports
@@ -15,7 +14,7 @@ define [
 			.then (user) ->
 				done(null, user)
 
-		if has 'ENV_NODEJS'
+		if ENV_NODEJS
 			passport = require('passport')
 			app.use(passport.initialize())
 			app.use(passport.session())

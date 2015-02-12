@@ -1,7 +1,7 @@
 define [
 	'async'
 	'bluebird'
-	'cs!server-request'
+	'server-request'
 	'jquery'
 ], (async, Promise, serverRequest, $) ->
 	runTrans = (rootElement) ->
