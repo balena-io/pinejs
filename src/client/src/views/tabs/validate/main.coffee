@@ -1,12 +1,11 @@
 define [
 	'backbone'
-	'lodash'
 	'codemirror'
 	'bluebird'
 	'codemirror-ometa/hinter'
 	'server-request'
 	'jquery'
-], (Backbone, _, CodeMirror, Promise, codeMirrorOmetaHinter, serverRequest, $) ->
+], (Backbone, CodeMirror, Promise, codeMirrorOmetaHinter, serverRequest, $) ->
 
 	noneFoundMessages =
 		NecessityFormulation: ['success', 'No invalid items in database']

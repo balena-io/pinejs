@@ -6,6 +6,7 @@ v0.5.0
 * Added support for falling back to bcryptjs if bcrypt isn't available (eg in the browser)
 * Added support for $expand options (eg $expand=resource($filter=id eq 1))
 * Added support for "It is forbidden that.." in the sbvr parser.
+* Updated lodash to ^3.0.0
 
 v0.4.5
 

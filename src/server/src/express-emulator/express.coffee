@@ -28,7 +28,7 @@ define ['bluebird', 'lodash'], (Promise, _) ->
 				match: match
 				paramName: paramName
 				# Flatten middleware list to handle arrays of middleware in the arg list.
-				middleware: _.flatten(middleware)
+				middleware: _.flattenDeep(middleware)
 			)
 		process = (method, uri, headers, body = '') ->
 			if !handlers[method]

@@ -1,7 +1,6 @@
 define [
-	'lodash'
 	'bluebird'
-], (_, Promise) ->
+], (Promise) ->
 	exports = {}
 
 	uiModel = '''
