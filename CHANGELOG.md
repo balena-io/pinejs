@@ -2,8 +2,10 @@ v0.5.0
 
 * Config loader will directly use the customServerCode entry if it is an object.
 * Config loader no longer tries to use requirejs to load the custom server code - it only uses require now.
-* Update sbvr-types to v0.1.0 and abstract-sql-compiler to v0.3.0 so that sbvr-types can fallback to bcryptjs if bcrypt isn't available (eg in the browser)
 * Removed the requirejs param from the custom code setup function.
+* Added support for falling back to bcryptjs if bcrypt isn't available (eg in the browser)
+* Added support for $expand options (eg $expand=resource($filter=id eq 1))
+* Added support for "It is forbidden that.." in the sbvr parser.
 
 v0.4.5
 
