@@ -113,6 +113,18 @@ class Tx
 			@rollback = @end = (callback) ->
 				return Promise.rejected(rejectionValue).nodeify(callback)
 
+createTransaction = (createFunc) ->
+	(callback) ->
+		stackTraceErr = new Error()
+
+		promise = new Promise (resolve, reject) ->
+			createFunc(resolve, reject, stackTraceErr)
+
+		if callback?
+			promise.then(callback).catch (err) ->
+				console.error(err, callback)
+		return promise
+
 if ENV_NODEJS
 	exports.postgres = (connectString) ->
 		pg = require('pg')
@@ -186,10 +198,7 @@ if ENV_NODEJS
 			DatabaseError
 			engine: 'postgres'
 			executeSql: atomicExecuteSql
-			transaction: (callback) ->
-				stackTraceErr = new Error()
-				deferred = Promise.pending()
-
+			transaction: createTransaction (resolve, reject, stackTraceErr) ->
 				pg.connect connectString, (err, client, done) ->
 					if err
 						console.error('Error connecting', err, err.stack)
@@ -199,11 +208,7 @@ if ENV_NODEJS
 						tx.executeSql('SET search_path TO "' + process.env.PG_SCHEMA + '"')
 					tx.executeSql('START TRANSACTION;')
 
-					deferred.fulfill(tx)
-
-				deferred.promise.then(callback).catch (err) ->
-					console.error(err, callback)
-				return deferred.promise
+					resolve(tx)
 		}
 
 	exports.mysql = (options) ->
@@ -259,10 +264,7 @@ if ENV_NODEJS
 			DatabaseError
 			engine: 'mysql'
 			executeSql: atomicExecuteSql
-			transaction: (callback) ->
-				stackTraceErr = new Error()
-				deferred = Promise.pending()
-
+			transaction: createTransaction (resolve, reject, stackTraceErr) ->
 				_pool.getConnection (err, _db) ->
 					if err
 						console.error('Error connecting', err, err.stack)
@@ -272,11 +274,7 @@ if ENV_NODEJS
 					tx = new MySqlTx(_db, _close, stackTraceErr)
 					tx.executeSql('START TRANSACTION;')
 
-					deferred.fulfill(tx)
-
-				deferred.promise.then(callback).catch (err) ->
-					console.error(err, callback)
-				return deferred.promise
+					resolve(tx)
 		}
 else
 	exports.websql = (databaseName) ->
@@ -361,16 +359,9 @@ else
 			DatabaseError
 			engine: 'websql'
 			executeSql: atomicExecuteSql
-			transaction: (callback) ->
-				stackTraceErr = new Error()
-
+			transaction: createTransaction (resolve, reject, stackTraceErr) ->
 				_db.transaction (_tx) ->
-					deferred.fulfill(new WebSqlTx(_tx, stackTraceErr))
-
-				deferred = Promise.pending()
-				deferred.promise.then(callback).catch (err) ->
-					console.error(err, callback)
-				return deferred.promise
+					resolve(new WebSqlTx(_tx, stackTraceErr))
 		}
 
 exports.connect = (databaseOptions) ->
