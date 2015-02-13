@@ -8,6 +8,7 @@ v0.5.0
 * Added support for "It is forbidden that.." in the sbvr parser.
 * Updated lodash to ^3.0.0
 * Updated coffee-script to ~1.9.0
+* Updated postgres to ^4.0.0
 
 v0.4.5
 
