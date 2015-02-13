@@ -1,103 +1,99 @@
-define [
-	'exports'
-	'lodash'
-	'bluebird'
-	'typed-error'
-	'migrator/migrations.sbvr'
-], (exports, _, Promise, TypedError, modelText) ->
-	exports.MigrationError = class MigrationError extends TypedError
+_ = require 'lodash'
+Promise = require 'bluebird'
+TypedError = require 'typed-error'
+modelText = require './migrations.sbvr'
 
-	exports.run = (tx, model) ->
-		if not _.any(model.migrations)
-			return Promise.fulfilled()
+exports.MigrationError = class MigrationError extends TypedError
 
-		modelName = model.apiRoot
+exports.run = (tx, model) ->
+	if not _.any(model.migrations)
+		return Promise.fulfilled()
 
-		# migrations only run if the model has been executed before,
-		# to make changes that can't be automatically applied
-		@checkModelAlreadyExists(tx, modelName)
-		.then (exists) =>
-			if not exists
-				@logger.info "First time model has executed, skipping migrations"
-				return @setExecutedMigrations(tx, modelName, _.keys(model.migrations))
+	modelName = model.apiRoot
 
-			@getExecutedMigrations(tx, modelName)
-			.then (executedMigrations) =>
-				pendingMigrations = @filterAndSortPendingMigrations(model.migrations, executedMigrations)
-				return if not _.any(pendingMigrations)
+	# migrations only run if the model has been executed before,
+	# to make changes that can't be automatically applied
+	@checkModelAlreadyExists(tx, modelName)
+	.then (exists) =>
+		if not exists
+			@logger.info "First time model has executed, skipping migrations"
+			return @setExecutedMigrations(tx, modelName, _.keys(model.migrations))
 
-				@executeMigrations(tx, pendingMigrations)
-				.then (newlyExecutedMigrations) =>
-					@setExecutedMigrations(tx, modelName, [ executedMigrations..., newlyExecutedMigrations... ])
+		@getExecutedMigrations(tx, modelName)
+		.then (executedMigrations) =>
+			pendingMigrations = @filterAndSortPendingMigrations(model.migrations, executedMigrations)
+			return if not _.any(pendingMigrations)
 
-	exports.checkModelAlreadyExists = (tx, modelName) ->
-		@sbvrUtils.api.dev.get
-			resource: 'model'
-			tx: tx
-			options:
-				select: [ 'vocabulary' ]
-				top: '1'
-				filter:
-					vocabulary: modelName
-		.then (results) ->
-			_.any(results)
+			@executeMigrations(tx, pendingMigrations)
+			.then (newlyExecutedMigrations) =>
+				@setExecutedMigrations(tx, modelName, [ executedMigrations..., newlyExecutedMigrations... ])
 
-	exports.getExecutedMigrations = (tx, modelName) ->
-		@migrationsApi.get
-			resource: 'migration'
-			id: modelName
-			tx: tx
-			options:
-				select: [ 'executed_migrations' ]
-		.then (data) ->
-			data?.executed_migrations || []
+exports.checkModelAlreadyExists = (tx, modelName) ->
+	@sbvrUtils.api.dev.get
+		resource: 'model'
+		tx: tx
+		options:
+			select: [ 'vocabulary' ]
+			top: '1'
+			filter:
+				vocabulary: modelName
+	.then (results) ->
+		_.any(results)
 
-	exports.setExecutedMigrations = (tx, modelName, executedMigrations) ->
-		@migrationsApi.put
-			resource: 'migration'
-			id: modelName
-			tx: tx
-			body:
-				model_name: modelName
-				executed_migrations: executedMigrations
+exports.getExecutedMigrations = (tx, modelName) ->
+	@migrationsApi.get
+		resource: 'migration'
+		id: modelName
+		tx: tx
+		options:
+			select: [ 'executed_migrations' ]
+	.then (data) ->
+		data?.executed_migrations || []
 
-		# turns {"key1": migration, "key3": migration, "key2": migration}
-		# into  [["key1", migration], ["key2", migration], ["key3", migration]]
-	exports.filterAndSortPendingMigrations = (migrations, executedMigrations) ->
-		_(migrations)
-		.omit(executedMigrations)
-		.pairs()
-		.sortBy(_.first)
-		.value()
+exports.setExecutedMigrations = (tx, modelName, executedMigrations) ->
+	@migrationsApi.put
+		resource: 'migration'
+		id: modelName
+		tx: tx
+		body:
+			model_name: modelName
+			executed_migrations: executedMigrations
 
-	exports.executeMigrations = (tx, migrations=[]) ->
-		Promise.map(migrations, @executeMigration.bind(this, tx), concurrency: 1)
-		.catch (err) =>
-			@logger.error "Error while executing migrations, rolled back"
-			throw new MigrationError(err)
-		.return(_.map(migrations, _.first)) # return migration keys
+	# turns {"key1": migration, "key3": migration, "key2": migration}
+	# into  [["key1", migration], ["key2", migration], ["key3", migration]]
+exports.filterAndSortPendingMigrations = (migrations, executedMigrations) ->
+	_(migrations)
+	.omit(executedMigrations)
+	.pairs()
+	.sortBy(_.first)
+	.value()
 
-	exports.executeMigration = (tx, [ key, migration ]) ->
-		@logger.info "Running migration #{JSON.stringify key}"
+exports.executeMigrations = (tx, migrations=[]) ->
+	Promise.map(migrations, @executeMigration.bind(this, tx), concurrency: 1)
+	.catch (err) =>
+		@logger.error "Error while executing migrations, rolled back"
+		throw new MigrationError(err)
+	.return(_.map(migrations, _.first)) # return migration keys
 
-		switch typeof migration
-			when 'function'
-				migration(tx, @sbvrUtils)
-			when 'string'
-				tx.executeSql(migration)
+exports.executeMigration = (tx, [ key, migration ]) ->
+	@logger.info "Running migration #{JSON.stringify key}"
 
-	exports.config =
-		models: [
-			modelName: 'migrations'
-			apiRoot: 'migrations'
-			modelText: modelText
-			customServerCode: exports
-		]
+	switch typeof migration
+		when 'function'
+			migration(tx, @sbvrUtils)
+		when 'string'
+			tx.executeSql(migration)
 
-	exports.setup = (app, @sbvrUtils, db, callback) ->
-		@migrationsApi = @sbvrUtils.api.migrations
-		@logger = @migrationsApi.logger
+exports.config =
+	models: [
+		modelName: 'migrations'
+		apiRoot: 'migrations'
+		modelText: modelText
+		customServerCode: exports
+	]
 
-		callback()
+exports.setup = (app, @sbvrUtils, db, callback) ->
+	@migrationsApi = @sbvrUtils.api.migrations
+	@logger = @migrationsApi.logger
 
-	return exports
+	callback()
