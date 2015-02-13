@@ -77,7 +77,7 @@ exports.addPermissions = (req, {method, vocabulary, resourceName, odataQuery, va
 						else
 							_(v)
 							.pairs()
-							.flatten()
+							.flattenDeep()
 							.map(collapse)
 							.value()
 					else
