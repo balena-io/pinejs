@@ -19,7 +19,7 @@
     "passport": "~0.1.18",
     "passport-local": "~0.1.6",
     "pinejs-client-js": "git+ssh://git@bitbucket.org:rulemotion/pinejs-client-js.git#v0.3.4",
-    "pg": "~3.3.0",
+    "pg": "^4.0.0",
     "sbvr-parser": "git+ssh://git@bitbucket.org:rulemotion/sbvr-parser.git#v0.0.17",
     "sbvr-types": "git+ssh://git@bitbucket.org:rulemotion/sbvr-types.git#v0.1.1",
     "typed-error": "~0.1.0"
