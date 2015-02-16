@@ -1,13 +1,6 @@
 _ = require 'lodash'
 Promise = require 'bluebird'
-
-if ENV_NODEJS
-	BluebirdLRU = require 'bluebird-lru-cache'
-else
-	# A very basic, always refetch, implementation for the case of running in-browser.
-	class BluebirdLRU
-		constructor: ({fetchFn}) ->
-			@get = fetchFn
+BluebirdLRU = require 'bluebird-lru-cache'
 
 exports.nestedCheck = nestedCheck = (check, stringCallback) ->
 	if _.isString(check)
