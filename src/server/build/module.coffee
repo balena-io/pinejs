@@ -6,7 +6,6 @@ config.entry += '/src/server/src/server-glue/module.coffee'
 config.plugins = config.plugins.concat(
 	new webpack.DefinePlugin(
 		ENV_NODEJS: true
-		ENV_BROWSER: false
 		SBVR_EXTENSIONS: true
 		SBVR_SERVER_ENABLED: false
 		DEV: false
