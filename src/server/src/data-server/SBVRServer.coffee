@@ -184,45 +184,38 @@ exports.setup = (app, sbvrUtils, db) ->
 				tx.rollback()
 				res.send(404)
 	app.get '/exportdb', sbvrUtils.checkPermissionsMiddleware('get'), (req, res, next) ->
-		if ENV_NODEJS
-			# TODO: This is postgres rather than node specific, so the check should be updated to reflect that.
-			env = process.env
-			env['PGPASSWORD'] = '.'
-			require('child_process').exec 'pg_dump --clean -U postgres -h localhost -p 5432', env: env, (error, stdout, stderr) ->
-				res.json(stdout)
-		else
-			db.transaction (tx) ->
-				tx.tableList("name NOT LIKE '%_buk'")
-				.then (result) ->
-					exported = ''
-					Promise.all result.rows.map (table) ->
-						tableName = table.name
-						exported += 'DROP TABLE IF EXISTS "' + tableName + '";\n'
-						exported += table.sql + ';\n'
-						tx.executeSql('SELECT * FROM "' + tableName + '";')
-						.then (result) ->
-							insQuery = ''
-							result.rows.forEach (currRow) ->
-								notFirst = false
-								insQuery += 'INSERT INTO "' + tableName + '" ('
-								valQuery = ''
-								for own propName of currRow
-									if notFirst
-										insQuery += ','
-										valQuery += ','
-									else
-										notFirst = true
-									insQuery += '"' + propName + '"'
-									valQuery += "'" + currRow[propName] + "'"
-								insQuery += ') values (' + valQuery + ');\n'
-							exported += insQuery
-					.then ->
-						tx.end()
-						res.json(exported)
-				.catch (err) ->
-					console.error('Error exporting db', err, err.stack)
-					tx.rollback()
-					res.send(503)
+		db.transaction (tx) ->
+			tx.tableList("name NOT LIKE '%_buk'")
+			.then (result) ->
+				exported = ''
+				Promise.all result.rows.map (table) ->
+					tableName = table.name
+					exported += 'DROP TABLE IF EXISTS "' + tableName + '";\n'
+					exported += table.sql + ';\n'
+					tx.executeSql('SELECT * FROM "' + tableName + '";')
+					.then (result) ->
+						insQuery = ''
+						result.rows.forEach (currRow) ->
+							notFirst = false
+							insQuery += 'INSERT INTO "' + tableName + '" ('
+							valQuery = ''
+							for own propName of currRow
+								if notFirst
+									insQuery += ','
+									valQuery += ','
+								else
+									notFirst = true
+								insQuery += '"' + propName + '"'
+								valQuery += "'" + currRow[propName] + "'"
+							insQuery += ') values (' + valQuery + ');\n'
+						exported += insQuery
+				.then ->
+					tx.end()
+					res.json(exported)
+			.catch (err) ->
+				console.error('Error exporting db', err, err.stack)
+				tx.rollback()
+				res.send(503)
 	app.post '/backupdb', sbvrUtils.checkPermissionsMiddleware('all'), serverIsOnAir, (req, res, next) ->
 		db.transaction (tx) ->
 			tx.tableList("name NOT LIKE '%_buk'")
