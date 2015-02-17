@@ -4,6 +4,8 @@ define ['bluebird', 'lodash'], (Promise, _) ->
 	]
 	app = do ->
 		enabled = Promise.pending()
+		appVars =
+			env: 'development'
 		handlers =
 			# USE is a list of middleware to run before any request.
 			USE: []
@@ -104,7 +106,11 @@ define ['bluebird', 'lodash'], (Promise, _) ->
 			return deferred.promise
 		return {
 			use: _.partial(addHandler, 'USE', '/*')
-			get: _.partial(addHandler, 'GET')
+			get: (name, ..., callback) ->
+				if _.isFunction(callback)
+					addHandler('GET', arguments...)
+				else
+					return appVars[name]
 			post: _.partial(addHandler, 'POST')
 			put: _.partial(addHandler, 'PUT')
 			del: _.partial(addHandler, 'DELETE')
@@ -125,7 +131,14 @@ define ['bluebird', 'lodash'], (Promise, _) ->
 				enabled.fulfill()
 				if _.isFunction(callback)
 					enabled.promise.then(callback)
-			configure: ->
+			set: (name, value) ->
+				appVars[name] = value
+			configure: (env, callback) ->
+				if _.isFunction(env)
+					return env()
+				else
+					if app.get('env') is env
+						callback()
 		}
 
 	express = ->
