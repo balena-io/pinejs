@@ -13,11 +13,13 @@ module.exports =
 	resolve:
 		root: [path.join(root, '/src/client/lib')]
 		alias:
-			'fs': 'null-loader'
-			'bcrypt': 'bcryptjs'
-			'module': 'null-loader'
 			'coffee-script/register': 'null-loader'
+			'fs': 'null-loader'
+			'module': 'null-loader'
+			'mysql': 'null-loader'
+			'pg': 'null-loader'
 
+			'bcrypt': 'bcryptjs'
 			'express': root + '/src/server/src/express-emulator/express.coffee'
 			'underscore': 'lodash'
 
