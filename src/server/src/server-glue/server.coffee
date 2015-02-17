@@ -3,9 +3,9 @@ sbvrUtils = require '../sbvr-api/sbvr-utils.coffee'
 passportPinejs = require '../passport-pinejs/passport-pinejs.coffee'
 PinejsSessionStore = require '../pinejs-session-store/pinejs-session-store.coffee'
 Pinejs = require './module.coffee'
+express = require 'express'
 
 if ENV_NODEJS
-	express = require('express')
 	passport = require('passport')
 	app = express()
 	app.configure 'production', ->
@@ -47,7 +47,6 @@ if ENV_NODEJS
 
 		app.use(app.router)
 else if ENV_BROWSER
-	express = require '../express-emulator/express.coffee'
 	Promise.longStackTraces()
 	app = express.app
 

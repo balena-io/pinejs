@@ -1,4 +1,5 @@
 _ = require 'lodash'
+express = require 'express'
 
 if ENV_NODEJS
 	sessionAPI = null
@@ -25,7 +26,7 @@ if ENV_NODEJS
 		Fact type:  session has expiry time
 			Necessity: Each session has at most 1 expiry time'''
 
-	class PinejsSessionStore extends require('express').session.Store
+	class PinejsSessionStore extends express.session.Store
 		constructor: ->
 		get: (sid, callback) ->
 			sessionAPI.get(

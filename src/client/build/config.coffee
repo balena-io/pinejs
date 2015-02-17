@@ -13,12 +13,12 @@ module.exports =
 	resolve:
 		root: [path.join(root, '/src/client/lib')]
 		alias:
-			'express': 'null-loader'
 			'fs': 'null-loader'
 			'bcrypt': 'bcryptjs'
 			'module': 'null-loader'
 			'coffee-script/register': 'null-loader'
 
+			'express': root + '/src/server/src/express-emulator/express.coffee'
 			'underscore': 'lodash'
 
 			'bootstrap': 'bootstrap/docs/assets/js/bootstrap'
@@ -41,7 +41,6 @@ module.exports =
 			'config-loader': root + '/src/server/src/config-loader'
 			'data-server': root + '/src/server/src/data-server'
 			'database-layer': root + '/src/server/src/database-layer'
-			'express-emulator': root + '/src/server/src/express-emulator'
 			'migrator': root + '/src/server/src/migrator'
 			'pinejs-session-store': root + '/src/server/src/pinejs-session-store'
 			'passport-pinejs': root + '/src/server/src/passport-pinejs'
