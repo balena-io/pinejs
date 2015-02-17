@@ -121,8 +121,10 @@ define ['bluebird', 'lodash'], (Promise, _) ->
 				# which matches somewhat more closely to an AJAX call than doing it synchronously.
 				enabled.promise.then ->
 					process(args...)
-			enable: ->
+			listen: (..., callback) ->
 				enabled.fulfill()
+				if _.isFunction(callback)
+					enabled.promise.then(callback)
 			configure: ->
 		}
 

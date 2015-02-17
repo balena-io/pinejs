@@ -77,12 +77,8 @@ Pinejs.init(app)
 		app.get '/logout', passportPinejs.logout, (req, res, next) ->
 			res.redirect('/')
 .then ->
-	if ENV_NODEJS
-		app.listen process.env.PORT or 1337, ->
-			console.info('Server started')
-
-	if ENV_BROWSER
-		app.enable()
+	app.listen process.env.PORT or 1337, ->
+		console.info('Server started')
 .catch (err) ->
 	console.error('Error initialising server', err)
 	process.exit()
