@@ -42,7 +42,7 @@ atomicExecuteSql = (sql, bindings, callback) ->
 	.nodeify(callback)
 
 class Tx
-	if ENV_NODEJS and process.env.TRANSACTION_TIMEOUT_MS
+	if process.env.TRANSACTION_TIMEOUT_MS
 		timeoutMS = parseInt(process.env.TRANSACTION_TIMEOUT_MS)
 		if _.isNaN(timeoutMS) or timeoutMS <= 0
 			throw new Error("Invalid valid for TRANSACTION_TIMEOUT_MS: " + process.env.TRANSACTION_TIMEOUT_MS)
