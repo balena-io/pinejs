@@ -6,15 +6,15 @@ configLoader = require '../config-loader/config-loader.coffee'
 migrator = require '../migrator/migrator.coffee'
 PinejsSessionStore = require '../pinejs-session-store/pinejs-session-store.coffee'
 
-if ENV_NODEJS
+if dbModule.websql?
+	databaseOptions =
+		engine: 'websql'
+		params: 'rulemotion'
+else 
 	databaseURL = process.env.DATABASE_URL || 'postgres://postgres:.@localhost:5432/postgres'
 	databaseOptions =
 		engine: databaseURL[...databaseURL.indexOf(':')]
 		params: databaseURL
-else
-	databaseOptions =
-		engine: 'websql'
-		params: 'rulemotion'
 
 db = dbModule.connect(databaseOptions)
 
