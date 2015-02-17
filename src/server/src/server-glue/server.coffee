@@ -53,7 +53,7 @@ Pinejs.init(app)
 .then (configLoader) ->
 	Promise.all [
 		configLoader.loadConfig(passportPinejs.config)
-		configLoader.loadConfig(PinejsSessionStore.config) if ENV_NODEJS
+		configLoader.loadConfig(PinejsSessionStore.config)
 	]
 .then ->
 	if !process?.env.DISABLE_DEFAULT_AUTH
