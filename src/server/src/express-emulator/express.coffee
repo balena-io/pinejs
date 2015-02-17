@@ -128,6 +128,6 @@ define ['bluebird', 'lodash'], (Promise, _) ->
 			configure: ->
 		}
 
-	return {
-		app: app
-	}
+	# Return a function to mimic `app = express()`
+	return ->
+		return app

@@ -5,9 +5,9 @@ PinejsSessionStore = require '../pinejs-session-store/pinejs-session-store.coffe
 Pinejs = require './module.coffee'
 express = require 'express'
 
+app = express()
 if ENV_NODEJS
 	passport = require('passport')
-	app = express()
 	app.configure 'production', ->
 		console.log = ->
 	app.configure 'development', ->
@@ -48,7 +48,6 @@ if ENV_NODEJS
 		app.use(app.router)
 else if ENV_BROWSER
 	Promise.longStackTraces()
-	app = express.app
 
 Pinejs.init(app)
 .then (configLoader) ->
