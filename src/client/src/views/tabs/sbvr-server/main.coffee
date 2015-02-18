@@ -4,7 +4,8 @@ define [
 ], (Backbone, serverRequest) ->
 	Backbone.View.extend(
 		events:
-			"click #run-server": "runServer"
+			'click #run-request': 'runRequest'
+			'click #run-server': 'runServer'
 
 		setTitle: (title) ->
 			@options.title.text(title)
@@ -13,7 +14,9 @@ define [
 			@setTitle('Server')
 
 			html = """
+				<input id="request" class="input-block-level" placeholder="/data/resource?$filter=a eq 'b'" />
 				<button id="run-server">Run Server</button>
+				<button id="run-request">Run Request</button>
 				<table class='textTable table table-striped'>
 					<thead>
 						<tr>
@@ -21,6 +24,7 @@ define [
 							<th><strong>URI</strong></th>
 							<th><strong>Headers</strong></th>
 							<th><strong>Body</strong></th>
+							<th><strong>Result</strong></th>
 						</tr>
 					</thead>
 					<tbody id="httpTable">
@@ -35,6 +39,10 @@ define [
 				if result
 					@model.trigger('onAir')
 			)
+
+		runRequest: ->
+			request = @$("#request").val()
+			serverRequest('GET', request)
 
 		runServer: ->
 			serverRequest('DELETE', '/cleardb')
