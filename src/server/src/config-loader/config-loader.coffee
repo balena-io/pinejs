@@ -123,10 +123,6 @@ exports.setup = (app) ->
 							throw new Error('Error running custom server code: ' + e)
 
 	loadApplicationConfig = (config) ->
-		if not ENV_NODEJS
-			console.error('Can only load application config in a nodejs environment.')
-			return
-
 		try # Try to register the coffee-script loader - ignore if it fails though, since that probably just means it is not available/needed.
 			require('coffee-script/register')
 

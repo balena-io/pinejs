@@ -42,7 +42,7 @@ atomicExecuteSql = (sql, bindings, callback) ->
 	.nodeify(callback)
 
 class Tx
-	if ENV_NODEJS and process.env.TRANSACTION_TIMEOUT_MS
+	if process.env.TRANSACTION_TIMEOUT_MS
 		timeoutMS = parseInt(process.env.TRANSACTION_TIMEOUT_MS)
 		if _.isNaN(timeoutMS) or timeoutMS <= 0
 			throw new Error("Invalid valid for TRANSACTION_TIMEOUT_MS: " + process.env.TRANSACTION_TIMEOUT_MS)
@@ -125,9 +125,10 @@ createTransaction = (createFunc) ->
 				console.error(err, callback)
 		return promise
 
-if ENV_NODEJS
+try
+	pg = require('pg')
+if pg?
 	exports.postgres = (connectString) ->
-		pg = require('pg')
 		createResult = ({rowCount, rows}) ->
 			return {
 				rows:
@@ -211,8 +212,10 @@ if ENV_NODEJS
 					resolve(tx)
 		}
 
+try
+	mysql = require('mysql')
+if mysql?
 	exports.mysql = (options) ->
-		mysql = require('mysql')
 		_pool = mysql.createPool(options)
 		_pool.on 'connection', (_db) ->
 			_db.query("SET sql_mode='ANSI_QUOTES';")
@@ -276,7 +279,8 @@ if ENV_NODEJS
 
 					resolve(tx)
 		}
-else
+
+if openDatabase?
 	exports.websql = (databaseName) ->
 		_db = openDatabase(databaseName, '1.0', 'rulemotion', 2 * 1024 * 1024)
 		getInsertId = (result) ->
