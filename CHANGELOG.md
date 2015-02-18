@@ -9,6 +9,7 @@ v0.5.0
 * Updated lodash to ^3.0.0
 * Updated coffee-script to ~1.9.0
 * Updated postgres to ^4.0.0
+* Fixed issues with auto incrementing fields on mysql/websql.
 
 v0.4.5
 

@@ -4,7 +4,7 @@
   "main": "pine.js",
   "repository": "git@bitbucket.org:rulemotion/pinejs.git",
   "dependencies": {
-    "abstract-sql-compiler": "git+ssh://git@bitbucket.org:rulemotion/abstract-sql-compiler.git#v0.3.1",
+    "abstract-sql-compiler": "git+ssh://git@bitbucket.org:rulemotion/abstract-sql-compiler.git#v0.3.2",
     "bcrypt": "~0.8.0",
     "bluebird": "^2.6.0",
     "bluebird-lru-cache": "~0.1.3",
