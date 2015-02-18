@@ -11,6 +11,7 @@ v0.5.0
 * Updated postgres to ^4.0.0
 * Updated mysql to ^2.1.0
 * Fixed issues with auto incrementing fields on mysql/websql.
+* Permission filters are now applied to `$expand`s as well.
 
 v0.4.5
 
