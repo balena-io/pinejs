@@ -2,11 +2,29 @@ define [
 	'bluebird'
 	'jquery'
 ], (Promise, $) ->
+	requestId = 0
 	return (method, uri, headers = {}, body, successCallback, failureCallback) ->
 		deferred = Promise.pending()
 		if !headers["Content-Type"]? and body?
 			headers["Content-Type"] = "application/json"
-		$("#httpTable").append('<tr class="server_row"><td><strong>' + method + '</strong></td><td>' + uri + '</td><td>' + (if headers.length == 0 then '' else JSON.stringify(headers)) + '</td><td>' + JSON.stringify(body) + '</td></tr>')
+		currentId = requestId++
+		$("#httpTable").append('<tr class="server_row"><td><strong>' + method + '</strong></td><td>' + uri + '</td><td>' + (if headers.length == 0 then '' else JSON.stringify(headers)) + '</td><td>' + JSON.stringify(body) + '</td><td id="result' + currentId + '"></td></tr>')
+		displayResult = (result) ->
+			text = JSON.stringify(result, null, 4)
+			resultCell = $('#result' + currentId)
+			if text.split('\n').length > 30
+				resultCell.html("""
+					<a data-toggle="collapse" data-target="#pre#{currentId}"">
+						Toggle Result
+					</a>
+					<div id="pre#{currentId}" class="collapse">
+						<pre></pre>
+					</div>
+				""")
+			else
+				resultCell.html('<pre></pre>')
+			$('pre', resultCell).text(text)
+		deferred.promise.then(displayResult, displayResult)
 		if ENV_BROWSER
 			require ['server-glue'], (Server) ->
 				deferred.fulfill(Server.app.process(method, uri, headers, body))
