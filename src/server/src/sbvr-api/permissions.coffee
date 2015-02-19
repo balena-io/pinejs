@@ -95,12 +95,8 @@ exports.setup = (app, sbvrUtils) ->
 			userPerms
 			rolePerms
 		]).spread (userPermissions, rolePermissions) ->
-			allPermissions = []
-			for permission in userPermissions
-				allPermissions.push(permission.name)
-			for permission in rolePermissions
-				allPermissions.push(permission.name)
-
+			allPermissions = _.map(userPermissions, 'name')
+			allPermissions = allPermissions.concat(_.map(rolePermissions, 'name'))
 			return _.unique(allPermissions)
 		.catch (err) ->
 			authApi.logger.error('Error loading permissions', err, err.stack)

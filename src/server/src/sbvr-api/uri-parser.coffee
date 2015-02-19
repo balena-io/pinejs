@@ -35,30 +35,12 @@ exports.parseODataURI = (req) -> Promise.try ->
 		custom: {}
 	}]
 
-exports.addPermissions = (req, {method, vocabulary, resourceName, odataQuery, values, custom}) ->
-	isMetadataEndpoint = resourceName in metadataEndpoints or method is 'OPTIONS'
-
-	permissionType =
-		if isMetadataEndpoint
-			'model'
-		else
-			switch method
-				when 'GET'
-					'get'
-				when 'PUT', 'POST', 'PATCH', 'MERGE'
-					'set'
-				when 'DELETE'
-					'delete'
-				else
-					console.warn('Unknown method for permissions type check: ', method)
-					'all'
+addPermissions = (req, permissionType, vocabulary, resourceName, odataQuery) ->
 	permissions.checkPermissions(req, permissionType, resourceName, vocabulary)
 	.then (conditionalPerms) ->
 		if conditionalPerms is false
 			throw new PermissionError()
 		if conditionalPerms isnt true
-			if isMetadataEndpoint
-				throw new PermissionError('Conditional permissions on a metadata endpoint?!')
 			permissionFilters = permissions.nestedCheck conditionalPerms, (permissionCheck) ->
 				try
 					permissionCheck = odataParser.matchAll('/x?$filter=' + permissionCheck, 'Process')
@@ -67,6 +49,7 @@ exports.addPermissions = (req, {method, vocabulary, resourceName, odataQuery, va
 				catch e
 					console.warn('Failed to parse conditional permissions: ', permissionCheck)
 					throw new ParsingError(e)
+
 			if permissionFilters is false
 				throw new PermissionError()
 			if permissionFilters isnt true
@@ -90,14 +73,39 @@ exports.addPermissions = (req, {method, vocabulary, resourceName, odataQuery, va
 				else
 					odataQuery.options.$filter = permissionFilters
 
-		return {
-			method
-			vocabulary
-			resourceName
-			odataQuery
-			values
-			custom
-		}
+		if odataQuery.options?.$expand?.properties?
+			# Make sure any relevant permission filters are also applied to expands.
+			Promise.map odataQuery.options.$expand.properties, (expand) ->
+				# Always use get for the $expands
+				addPermissions(req, 'get', vocabulary, expand.name, expand)
+
+exports.addPermissions = (req, {method, vocabulary, resourceName, odataQuery, values, custom}) ->
+	isMetadataEndpoint = resourceName in metadataEndpoints or method is 'OPTIONS'
+
+	permissionType =
+		if isMetadataEndpoint
+			'model'
+		else
+			switch method
+				when 'GET'
+					'get'
+				when 'PUT', 'POST', 'PATCH', 'MERGE'
+					'set'
+				when 'DELETE'
+					'delete'
+				else
+					console.warn('Unknown method for permissions type check: ', method)
+					'all'
+
+	addPermissions(req, permissionType, vocabulary, odataQuery.resource, odataQuery)
+	.return {
+		method
+		vocabulary
+		resourceName
+		odataQuery
+		values
+		custom
+	}
 
 exports.translateUri = ({method, vocabulary, resourceName, odataQuery, values, custom}) ->
 	isMetadataEndpoint = resourceName in metadataEndpoints or method is 'OPTIONS'
