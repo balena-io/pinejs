@@ -12,8 +12,6 @@ config.plugins = config.plugins.concat(
 		TAB_DB_IMPORT_EXPORT: true
 		TAB_VALIDATE: true
 
-		SBVR_EXTENSIONS: true
-
 		# For the in-browser server
 		ENV_NODEJS: false
 		ENV_BROWSER: true
