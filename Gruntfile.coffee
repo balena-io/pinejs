@@ -43,7 +43,7 @@ module.exports = (grunt) ->
 			this:
 				options:
 					packageManager: 'npm'
-					onlySpecified: false # This complains about .bin
+					onlySpecified: true
 
 
 		concat:
