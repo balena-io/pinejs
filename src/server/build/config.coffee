@@ -17,19 +17,26 @@ module.exports =
 		global: false
 		Buffer: false
 	externals: [
-		bluebird: true
 		bcrypt: true
 		bcryptjs: true
+		bluebird: true
+		'body-parser': true
 		child_process: true
 		'coffee-script': true
 		'coffee-script/register': true
+		compression: true
+		'cookie-parser': true
 		express: true
+		'express-session': true
 		fs: true
 		lodash: true
+		'method-override': true
+		multer: true
 		mysql: true
 		passport: true
 		'passport-local': true
 		pg: true
+		'serve-static': true
 		'typed-error': true
 	]
 	resolve:

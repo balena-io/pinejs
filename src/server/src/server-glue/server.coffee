@@ -6,26 +6,38 @@ Pinejs = require './module.coffee'
 express = require 'express'
 
 app = express()
-app.configure 'production', ->
-	console.log = ->
-app.configure 'development', ->
-	Promise.longStackTraces()
+switch app.get('env')
+	when 'production'
+		console.log = ->
+	when 'development'
+		Promise.longStackTraces()
+
 if ENV_NODEJS
-	passport = require('passport')
-	path = require('path')
-	app.use(express.compress())
+	passport = require 'passport'
+	path = require 'path'
+	compression = require 'compression'
+	serveStatic = require 'serve-static'
+	cookieParser = require 'cookie-parser'
+	bodyParser = require 'body-parser'
+	multer = require 'multer'
+	methodOverride = require 'method-override'
+	expressSession = require 'express-session'
+
+	app.use(compression())
 
 	if DEV
 		rootPath = path.join(__dirname, '/../../../..')
-		app.use('/client', express.static(path.join(rootPath, 'client')))
-		app.use('/common', express.static(path.join(rootPath, 'common')))
-		app.use('/tools', express.static(path.join(rootPath, 'tools')))
-	app.use('/', express.static(path.join(__dirname, 'static')))
+		app.use('/client', serveStatic(path.join(rootPath, 'client')))
+		app.use('/common', serveStatic(path.join(rootPath, 'common')))
+		app.use('/tools', serveStatic(path.join(rootPath, 'tools')))
+	root = process.argv[2] or __dirname
+	app.use('/', serveStatic(path.join(root, 'static')))
 
-	app.use(express.cookieParser())
-	app.use(express.bodyParser())
-	app.use(express.methodOverride())
-	app.use(express.session(
+	app.use(cookieParser())
+	app.use(bodyParser())
+	app.use(multer())
+	app.use(methodOverride())
+	app.use(expressSession(
 		secret: 'A pink cat jumped over a rainbow'
 		store: new PinejsSessionStore()
 	))
@@ -43,8 +55,6 @@ if ENV_NODEJS
 	app.use (req, res, next) ->
 		console.log('%s %s', req.method, req.url)
 		next()
-
-	app.use(app.router)
 
 Pinejs.init(app)
 .then (configLoader) ->
