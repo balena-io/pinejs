@@ -38,8 +38,9 @@ exports.setup = (app) ->
 									).get('id')
 								else
 									return result[0].id
-							.catch (err) ->
-								throw new Error('Could not create or find permission "' + permissionName + '": ' + err)
+							.catch (e) ->
+								e.message = 'Could not create or find permission "' + permissionName + '": ' + e.message
+								throw e
 
 				usersPromise = Promise.map data.users, (user) ->
 					authAPI.get(
@@ -81,8 +82,9 @@ exports.setup = (app) ->
 													permission: permissionID
 												tx: tx
 											)
-					.catch (err) ->
-						throw new Error('Could not create or find user "' + user.username + '": ' + err)
+					.catch (e) ->
+						e.message = 'Could not create or find user "' + user.username + '": ' + e.message
+						throw e
 			Promise.all([modelsPromise, usersPromise])
 			.catch (err) ->
 				tx.rollback()
@@ -102,7 +104,8 @@ exports.setup = (app) ->
 							try
 								customCode = nodeRequire(model.customServerCode)
 							catch e
-								throw new Error('Error loading custom server code: ' + e)
+								e.message = 'Error loading custom server code: ' + e.message
+								throw e
 
 						if !_.isFunction(customCode.setup)
 							return
@@ -120,7 +123,8 @@ exports.setup = (app) ->
 
 							return deferred.promise
 						catch e
-							throw new Error('Error running custom server code: ' + e)
+							e.message = 'Error running custom server code: ' + e.message
+							throw e
 
 	loadApplicationConfig = (config) ->
 		try # Try to register the coffee-script loader - ignore if it fails though, since that probably just means it is not available/needed.

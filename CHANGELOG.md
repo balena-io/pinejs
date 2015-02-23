@@ -12,6 +12,7 @@ v0.5.0
 * Updated mysql to ^2.1.0
 * Fixed issues with auto incrementing fields on mysql/websql.
 * Permission filters are now applied to `$expand`s as well.
+* Improved error messages, particularly for config.json users/custom code loading errors.
 
 v0.4.5
 

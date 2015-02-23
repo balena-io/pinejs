@@ -75,7 +75,7 @@ Pinejs.init(app)
 	app.listen process.env.PORT or 1337, ->
 		console.info('Server started')
 .catch (err) ->
-	console.error('Error initialising server', err)
+	console.error('Error initialising server', err, err.stack)
 	process.exit()
 
 module.exports = {app, sbvrUtils}

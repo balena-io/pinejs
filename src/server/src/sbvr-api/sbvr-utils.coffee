@@ -113,8 +113,9 @@ getAndCheckBindValues = (vocab, bindings, values) ->
 			return db.DEFAULT_VALUE
 
 		AbstractSQL2SQL.dataTypeValidate(value, field)
-		.catch (err) ->
-			throw new Error('"' + fieldName + '" ' + err)
+		.catch (e) ->
+			e.message = '"' + fieldName + '" ' + e.message
+			throw e
 
 
 # TODO: Standardise on the validateModel name
