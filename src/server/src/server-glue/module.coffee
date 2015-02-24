@@ -10,8 +10,16 @@ if dbModule.websql?
 	databaseOptions =
 		engine: 'websql'
 		params: 'rulemotion'
-else 
-	databaseURL = process.env.DATABASE_URL || 'postgres://postgres:.@localhost:5432/postgres'
+else
+	databaseURL =
+		if process.env.DATABASE_URL
+			process.env.DATABASE_URL
+		else if dbModule.postgres?
+			'postgres://postgres:.@localhost:5432/postgres'
+		else if dbModule.mysql?
+			'mysql://mysql:.@localhost:3306'
+		else
+			throw new Error('No supported database options available')
 	databaseOptions =
 		engine: databaseURL[...databaseURL.indexOf(':')]
 		params: databaseURL
