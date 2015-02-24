@@ -13,7 +13,7 @@ v0.5.0
 * Fixed issues with auto incrementing fields on mysql/websql.
 * Permission filters are now applied to `$expand`s as well.
 * Improved error messages, particularly for config.json users/custom code loading errors.
-* Moved express, mysql, and pg to optional dependencies, as they are indeed optional.
+* Moved express, mysql, passport, passport-local, and pg to optional dependencies, as they are indeed optional.
 
 v0.4.5
 
