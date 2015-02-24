@@ -1,5 +1,5 @@
 _ = require 'lodash'
-express = require 'express'
+expressSession = require 'express-session'
 
 sessionAPI = null
 
@@ -25,7 +25,7 @@ sessionModel = '''
 	Fact type:  session has expiry time
 		Necessity: Each session has at most 1 expiry time'''
 
-class PinejsSessionStore extends express.session.Store
+class PinejsSessionStore extends expressSession.Store
 	constructor: ->
 	get: (sid, callback) ->
 		sessionAPI.get(
