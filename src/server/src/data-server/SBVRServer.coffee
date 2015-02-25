@@ -46,36 +46,34 @@ exports.config =
 		customServerCode: exports
 	]
 exports.setup = (app, sbvrUtils, db) ->
-	uiAPI = sbvrUtils.api.ui
-	devAPI = sbvrUtils.api.dev
+	uiApi = sbvrUtils.api.ui
+	devApi = sbvrUtils.api.dev
 	setupModels = (tx) ->
-		uiAPI.get(
+		uiApiTx = uiApi.clone
+			passthrough: { tx }
+		uiApiTx.get
 			resource: 'textarea'
 			options:
 				select: 'id'
 				filter:
 					name: 'model_area'
-			tx: tx
-		).then (result) ->
+		.then (result) ->
 			if result.length is 0
 				# Add a model_area entry if it doesn't already exist.
-				uiAPI.post(
+				uiApiTx.post
 					resource: 'textarea'
 					body:
 						name: 'model_area'
 						text: ' '
-					tx: tx
-				)
 		.then ->
-			devAPI.get(
+			devApi.get
 				resource: 'model'
 				options:
 					select: ['vocabulary','model_value']
 					filter: 
 						model_type: 'se'
 						vocabulary: 'data'
-				tx: tx
-			)
+				passthrough: { tx }
 		.then (result) ->
 			if result.length is 0
 				throw new Error('No SE data model found')
@@ -98,13 +96,13 @@ exports.setup = (app, sbvrUtils, db) ->
 		res.send(404)
 
 	app.post '/execute', sbvrUtils.checkPermissionsMiddleware('all'), (req, res, next) ->
-		uiAPI.get(
+		uiApi.get
 			resource: 'textarea'
 			options:
 				select: 'text'
 				filter:
 					name: 'model_area'
-		).then (result) ->
+		.then (result) ->
 			if result.length is 0
 				throw new Error('Could not find the model to execute')
 			modelText = result[0].text
@@ -115,15 +113,14 @@ exports.setup = (app, sbvrUtils, db) ->
 					modelText: modelText
 				)
 				.then ->
-					uiAPI.patch(
+					uiApi.patch
 						resource: 'textarea'
 						options:
 							filter:
 								name: 'model_area'
 						body:
 							is_disabled: true
-						tx: tx
-					)
+						passthrough: { tx }
 				.then ->
 					tx.end()
 				.catch (err) ->

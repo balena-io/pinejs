@@ -192,15 +192,14 @@ exports.executeModels = executeModels = (tx, models, callback) ->
 	# Only update the dev models once all models have finished executing.
 	.map (model) ->
 		updateModel = (modelType, modelText) ->
-			api.dev.get(
+			api.dev.get
 				resource: 'model'
 				options:
 					select: 'id'
 					filter:
 						vocabulary: model.vocab
 						model_type: modelType
-				tx: tx
-			)
+				passthrough: { tx }
 			.then (result) ->
 				method = 'POST'
 				uri = '/dev/model'
@@ -249,13 +248,12 @@ exports.deleteModel = (vocabulary, callback) ->
 			_.map sqlModels[vocabulary]?.dropSchema, (dropStatement) ->
 				tx.executeSql(dropStatement)
 		Promise.all(dropStatements.concat([
-			api.dev.delete(
+			api.dev.delete
 				resource: 'model'
 				options:
 					filter:
 						vocabulary: vocabulary
-				tx: tx
-			)
+				passthrough: { tx }
 		])).then ->
 			tx.end()
 			cleanupModel(vocabulary)

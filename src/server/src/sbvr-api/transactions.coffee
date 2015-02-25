@@ -60,6 +60,8 @@ exports.setup = (app, sbvrUtils) ->
 							tx.executeSql('DELETE FROM "lock" WHERE "id" = ?;', [lockID])
 						])
 
+					passthrough = { tx }
+
 					clientModel = clientModels['data'].resources[conditionalResource.resource_type]
 					url = 'data/' + conditionalResource.resource_type
 					switch conditionalResource.conditional_type
@@ -68,7 +70,7 @@ exports.setup = (app, sbvrUtils) ->
 							.then (lockedRow) ->
 								lockedRow = lockedRow.rows.item(0)
 								url = url + '?$filter=' + clientModel.idField + ' eq ' + lockedRow.resource_id
-								sbvrUtils.PinejsClient::delete({url, tx})
+								sbvrUtils.PinejsClient::delete({url, passthrough})
 							.then(doCleanup)
 						when 'EDIT'
 							getLockedRow(lockID)
@@ -77,12 +79,12 @@ exports.setup = (app, sbvrUtils) ->
 								getFieldsObject(conditionalResource.id, clientModel)
 								.then (body) ->
 									body[clientModel.idField] = lockedRow.resource_id
-									sbvrUtils.PinejsClient::put({url, body, tx})
+									sbvrUtils.PinejsClient::put({url, body, passthrough})
 							.then(doCleanup)
 						when 'ADD'
 							getFieldsObject(conditionalResource.id, clientModel)
 							.then (body) ->
-								sbvrUtils.PinejsClient::post({url, body, tx})
+								sbvrUtils.PinejsClient::post({url, body, passthrough})
 							.then (result) ->
 								placeholders[placeholder].fulfill(result.id)
 							.then(doCleanup)
