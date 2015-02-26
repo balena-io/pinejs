@@ -118,8 +118,7 @@ getAndCheckBindValues = (vocab, bindings, values) ->
 			throw e
 
 
-# TODO: Standardise on the validateModel name
-exports.validateModel = validateDB = (tx, modelName) ->
+exports.validateModel = validateModel = (tx, modelName) ->
 	Promise.map sqlModels[modelName].rules, (rule) ->
 		tx.executeSql(rule.sql, rule.bindings)
 		.then (result) ->
@@ -168,7 +167,7 @@ exports.executeModels = executeModels = (tx, models, callback) ->
 				# Validate the [empty] model according to the rules.
 				# This may eventually lead to entering obligatory data.
 				# For the moment it blocks such models from execution.
-				validateDB(tx, vocab)
+				validateModel(tx, vocab)
 			.then ->
 				api[vocab] = new PinejsClient('/' + vocab + '/')
 				api[vocab].logger = {}
@@ -641,7 +640,7 @@ runPost = (req, res, request, tx) ->
 	# TODO: Check for transaction locks.
 	runQuery(tx, request, null, idField)
 	.then (sqlResult) ->
-		validateDB(tx, vocab)
+		validateModel(tx, vocab)
 		.then ->
 			# Return the inserted/updated id.
 			if request.abstractSqlQuery[0] == 'UpdateQuery'
@@ -677,7 +676,7 @@ runPut = (req, res, request, tx) ->
 		else
 			runQuery(tx, request)
 	.then ->
-		validateDB(tx, vocab)
+		validateModel(tx, vocab)
 
 respondPut = respondDelete = respondOptions = (req, res, request) ->
 	runHook('PRERESPOND', {req, res, request})
@@ -689,7 +688,7 @@ runDelete = (req, res, request, tx) ->
 
 	runQuery(tx, request)
 	.then ->
-		validateDB(tx, vocab)
+		validateModel(tx, vocab)
 
 exports.executeStandardModels = executeStandardModels = (tx, callback) ->
 	# dev model must run first
