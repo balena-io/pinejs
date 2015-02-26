@@ -100,7 +100,7 @@ exports.setup = (app, sbvrUtils) ->
 			.then ->
 				tx.end()
 
-	validateDB = (tx, sqlmod) ->
+	validateModel = (tx, sqlmod) ->
 		Promise.map sqlmod.rules, (rule) ->
 			tx.executeSql(rule.sql, rule.bindings)
 			.then (result) ->
