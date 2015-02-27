@@ -16,6 +16,7 @@ v0.5.0
 * Permission filters are now applied to `$expand`s as well.
 * Improved error messages, particularly for config.json users/custom code loading errors.
 * Moved express, mysql, passport, passport-local, and pg to optional dependencies, as they are indeed optional.
+* Fixed certain combinations of permission filters failing to translate.
 
 v0.4.5
 
