@@ -14,11 +14,11 @@ exports.nestedCheck = nestedCheck = (check, stringCallback) ->
 			if result is false
 				return false
 			else if result isnt true
-				results.push(result)
+				results = results.concat(result)
 		if results.length is 1
 			return results[0]
 		else if results.length > 1
-			return results
+			return _.unique(results)
 		else
 			return true
 	else if _.isObject(check)
@@ -36,11 +36,11 @@ exports.nestedCheck = nestedCheck = (check, stringCallback) ->
 					if result is true
 						return true
 					else if result isnt false
-						results.push(result)
+						results = results.concat(result)
 				if results.length is 1
 					return results[0]
 				else if results.length > 1
-					return or: results
+					return _.unique(results)
 				else
 					return false
 			else

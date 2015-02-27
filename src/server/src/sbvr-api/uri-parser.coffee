@@ -54,7 +54,9 @@ addPermissions = (req, permissionType, vocabulary, resourceName, odataQuery) ->
 				throw new PermissionError()
 			if permissionFilters isnt true
 				collapse = (v) ->
-					if _.isObject(v)
+					if _.isArray(v)
+						collapse(or: v)
+					else if _.isObject(v)
 						if v.hasOwnProperty('filter')
 							v.filter
 						else
