@@ -5,7 +5,6 @@ migrator = require '../migrator/migrator.coffee'
 
 # Setup function
 exports.setup = (app) ->
-	authAPI = sbvrUtils.api.Auth
 	loadConfig = (data) ->
 		sbvrUtils.db.transaction().then (tx) ->
 			modelsPromise = Promise.map data.models, (model) ->
@@ -16,26 +15,27 @@ exports.setup = (app) ->
 					.catch (err) ->
 						throw new Error(['Failed to execute ' + model.modelName + ' model from ' + model.modelFile, err, err.stack])
 
+			authApiTx = sbvrUtils.api.Auth.clone
+				passthrough: { tx }
+
 			if data.users?
 				permissions = {}
 				for user in data.users when user.permissions?
 					_.each user.permissions, (permissionName) ->
 						permissions[permissionName] ?=
-							authAPI.get(
+							authApiTx.get
 								resource: 'permission'
 								options:
 									select: 'id'
 									filter:
 										name: permissionName
-								tx: tx
-							).then (result) ->
+							.then (result) ->
 								if result.length is 0
-									authAPI.post(
+									authApiTx.post
 										resource: 'permission'
 										body:
 											name: permissionName
-										tx: tx
-									).get('id')
+									.get('id')
 								else
 									return result[0].id
 							.catch (e) ->
@@ -43,45 +43,40 @@ exports.setup = (app) ->
 								throw e
 
 				usersPromise = Promise.map data.users, (user) ->
-					authAPI.get(
+					authApiTx.get
 						resource: 'user'
 						options:
 							select: 'id'
 							filter:
 								username: user.username
-						tx: tx
-					).then (result) ->
+					.then (result) ->
 						if result.length is 0
-							authAPI.post(
+							authApiTx.post
 								resource: 'user'
 								body:
 									username: user.username
 									password: user.password
-								tx: tx
-							).get('id')
+							.get('id')
 						else
 							return result[0].id
 					.then (userID) ->
 						if user.permissions?
 							Promise.map user.permissions, (permissionName) ->
 								permissions[permissionName].then (permissionID) ->
-									authAPI.get(
+									authApiTx.get
 										resource: 'user__has__permission'
 										options:
 											select: 'id'
 											filter:
 												user: userID
 												permission: permissionID
-										tx: tx
-									).then (result) ->
+									.then (result) ->
 										if result.length is 0
-											authAPI.post(
+											authApiTx.post
 												resource: 'user__has__permission'
 												body:
 													user: userID
 													permission: permissionID
-												tx: tx
-											)
 					.catch (e) ->
 						e.message = 'Could not create or find user "' + user.username + '": ' + e.message
 						throw e
