@@ -15,7 +15,7 @@
     "odata-parser": "git+ssh://git@bitbucket.org:rulemotion/odata-parser.git#v0.1.1",
     "odata-to-abstract-sql": "git+ssh://git@bitbucket.org:rulemotion/odata-to-abstract-sql.git#v0.2.3",
     "ometa-js": "~1.3.2",
-    "pinejs-client-js": "git+ssh://git@bitbucket.org:rulemotion/pinejs-client-js.git#v0.4.0",
+    "pinejs-client": "^1.0.0",
     "sbvr-parser": "git+ssh://git@bitbucket.org:rulemotion/sbvr-parser.git#v0.0.17",
     "sbvr-types": "git+ssh://git@bitbucket.org:rulemotion/sbvr-types.git#v0.1.1",
     "typed-error": "~0.1.0"
