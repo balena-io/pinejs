@@ -16,6 +16,8 @@ module.exports =
 		process: false
 		global: false
 		Buffer: false
+		__dirname: false
+		__filename: false
 	externals: [
 		bcrypt: true
 		bcryptjs: true
