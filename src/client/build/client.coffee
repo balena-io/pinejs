@@ -15,10 +15,10 @@ config.plugins = config.plugins.concat(
 		# For the in-browser server
 		ENV_NODEJS: false
 		ENV_BROWSER: false
-		SBVR_SERVER_ENABLED: false
 		DEV: true
 
-		CONFIG_LOADER: false
+		'process.env.CONFIG_LOADER_DISABLED': true
+		'process.env.SBVR_SERVER_ENABLED': false
 	)
 )
 

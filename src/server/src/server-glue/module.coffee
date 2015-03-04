@@ -34,8 +34,8 @@ init = (app, config) ->
 		.return(configLoader)
 	.then (configLoader) ->
 		Promise.all([
-			configLoader.loadConfig(sbvrServer.config) if SBVR_SERVER_ENABLED
-			configLoader.loadApplicationConfig(config) if CONFIG_LOADER
+			configLoader.loadConfig(sbvrServer.config) if process.env.SBVR_SERVER_ENABLED
+			configLoader.loadApplicationConfig(config) if !process.env.CONFIG_LOADER_DISABLED
 		]).return(configLoader)
 	.catch (err) ->
 		console.error('Error initialising server', err)
