@@ -14,7 +14,7 @@ config.plugins = config.plugins.concat(
 
 		# For the in-browser server
 		'process.browser': true
-		ENV_BROWSER: true
+		BROWSER_SERVER: true
 
 		'process.env.CONFIG_LOADER_DISABLED': true
 		'process.env.DEBUG': true
