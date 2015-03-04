@@ -37,6 +37,7 @@ module.exports =
 		mysql: true
 		passport: true
 		'passport-local': true
+		'pinejs-client/core': true
 		pg: true
 		'serve-static': true
 		'typed-error': true
