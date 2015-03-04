@@ -78,7 +78,7 @@ generate = (sqlModel, engine, ifNotExists) ->
 						console.warn("We're adding a primitive table??", schemaInfo.resourceName)
 					createSchemaStatements.push(schemaInfo.createSQL)
 					dropSchemaStatements.push(schemaInfo.dropSQL)
-					if DEV
+					if process.env.DEBUG
 						console.log(schemaInfo.createSQL)
 				delete schemaDependencyMap[tableName]
 	if schemaDependencyMap.length > 0
@@ -96,7 +96,7 @@ generate = (sqlModel, engine, ifNotExists) ->
 				structuredEnglish: ruleSE
 				sql: ruleSQL
 			)
-			if DEV
+			if process.env.DEBUG
 				console.log(rule[1][1])
 				console.log(ruleSQL)
 	catch e
