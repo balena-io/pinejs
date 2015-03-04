@@ -12,7 +12,7 @@ switch app.get('env')
 	when 'development'
 		Promise.longStackTraces()
 
-if ENV_NODEJS
+if !process.browser
 	passport = require 'passport'
 	path = require 'path'
 	compression = require 'compression'
@@ -25,11 +25,6 @@ if ENV_NODEJS
 
 	app.use(compression())
 
-	if DEV
-		rootPath = path.join(__dirname, '/../../../..')
-		app.use('/client', serveStatic(path.join(rootPath, 'client')))
-		app.use('/common', serveStatic(path.join(rootPath, 'common')))
-		app.use('/tools', serveStatic(path.join(rootPath, 'tools')))
 	root = process.argv[2] or __dirname
 	app.use('/', serveStatic(path.join(root, 'static')))
 

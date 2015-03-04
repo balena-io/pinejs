@@ -488,7 +488,7 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 	if !apiRoot? or !clientModels[apiRoot]?
 		return next('route')
 
-	if DEV or process.env.DEBUG
+	if process.env.DEBUG
 		api[apiRoot].logger.log('Parsing', req.method, req.url)
 
 	# Parse the OData requests
@@ -520,7 +520,7 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 
 		res.set('Cache-Control', 'no-cache')
 
-		if DEV or process.env.DEBUG
+		if process.env.DEBUG
 			logger.log('Running', req.method, req.url)
 
 		runTransaction req, request, (tx) ->
@@ -596,7 +596,7 @@ runQuery = (tx, request, queryIndex, addReturning) ->
 		sqlQuery = sqlQuery[queryIndex]
 	getAndCheckBindValues(vocabulary, sqlQuery.bindings, values)
 	.then (values) ->
-		if DEV or process.env.DEBUG
+		if process.env.DEBUG
 			api[vocabulary].logger.log(sqlQuery.query, values)
 
 		sqlQuery.values = values
@@ -705,56 +705,6 @@ exports.executeStandardModels = executeStandardModels = (tx, callback) ->
 			modelText: userModel
 		])
 	.then ->
-		# TODO: Remove these hardcoded users.
-		if DEV
-			authAPI = api.Auth
-			Promise.all([
-				authAPI.post(
-					resource: 'user'
-					body: 
-						username: 'guest'
-						password: ' '
-				)
-				authAPI.post(
-					resource: 'user'
-					body:
-						username: 'test'
-						password: 'test'
-				)
-				authAPI.post(
-					resource: 'permission'
-					body:
-						name: 'resource.all'
-				)
-			]).spread (guest, user, permission) ->
-				Promise.all([
-					authAPI.post(
-						resource: 'user__has__permission'
-						body:
-							user: guest.id
-							permission: permission.id
-					)
-					authAPI.post(
-						resource: 'user__has__permission'
-						body:
-							user: user.id
-							permission: permission.id
-					)
-					authAPI.post(
-						resource: 'api_key'
-						body:
-							user: user.id
-							key: 'test'
-					).then (apiKey) ->
-						authAPI.post(
-							resource: 'api_key__has__permission'
-							body:
-								api_key: apiKey.id
-								permission: permission.id
-						)
-				])
-			.catch (err) ->
-				authAPI.logger.error('Unable to add dev users', err, err.stack)
 		console.info('Sucessfully executed standard models.')
 	.catch (err) ->
 		console.error('Failed to execute standard models.', err, err.stack)
@@ -783,9 +733,6 @@ exports.addHook = (method, apiRoot, resourceName, callbacks) ->
 exports.setup = (app, _db, callback) ->
 	exports.db = db = _db
 	AbstractSQL2SQL = AbstractSQL2SQL[db.engine]
-
-	if DEV
-		app.get('/dev/*', handleODataRequest)
 
 	permissions.setup(app, exports)
 	_.extend(exports, permissions)

@@ -25,7 +25,7 @@ define [
 				resultCell.html('<pre></pre>')
 			$('pre', resultCell).text(text)
 		deferred.promise.then(displayResult, displayResult)
-		if ENV_BROWSER
+		if BROWSER_SERVER
 			require ['server-glue'], (Server) ->
 				deferred.fulfill(Server.app.process(method, uri, headers, body))
 		else

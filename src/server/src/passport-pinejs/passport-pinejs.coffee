@@ -12,7 +12,7 @@ exports.setup = (app, sbvrUtils) ->
 		.then (user) ->
 			done(null, user)
 
-	if ENV_NODEJS
+	if !process.browser
 		passport = require('passport')
 		app.use(passport.initialize())
 		app.use(passport.session())
