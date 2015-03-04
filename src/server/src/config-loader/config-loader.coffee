@@ -2,6 +2,7 @@ _ = require 'lodash'
 Promise = require 'bluebird'
 sbvrUtils = require '../sbvr-api/sbvr-utils.coffee'
 migrator = require '../migrator/migrator.coffee'
+fs = Promise.promisifyAll(require('fs'))
 
 # Setup function
 exports.setup = (app) ->
@@ -121,21 +122,25 @@ exports.setup = (app) ->
 							e.message = 'Error running custom server code: ' + e.message
 							throw e
 
+	loadJSON = (path) ->
+		console.info('Loading JSON:', path)
+		json = fs.readFileSync(path, 'utf8')
+		return JSON.parse(json)
+
 	loadApplicationConfig = (config) ->
 		try # Try to register the coffee-script loader - ignore if it fails though, since that probably just means it is not available/needed.
 			require('coffee-script/register')
 
-		fs = Promise.promisifyAll(require('fs'))
 		path = require('path')
 
 		console.info('Loading application config')
 		switch typeof config
 			when "undefined"
 				root = process.argv[2] or __dirname
-				config = nodeRequire path.join(root, 'config.json')
+				config = loadJSON(path.join(root, 'config.json'))
 			when "string"
-				root = path.dirname(nodeRequire.resolve config)
-				config = nodeRequire config
+				root = path.dirname(config)
+				config = loadJSON(config)
 			when "object"
 				root = process.cwd()
 
