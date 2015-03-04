@@ -13,7 +13,7 @@ config.plugins = config.plugins.concat(
 		TAB_VALIDATE: true
 
 		# For the in-browser server
-		ENV_NODEJS: false
+		'process.browser': true
 		ENV_BROWSER: false
 
 		'process.env.CONFIG_LOADER_DISABLED': true

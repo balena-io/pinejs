@@ -12,7 +12,7 @@ switch app.get('env')
 	when 'development'
 		Promise.longStackTraces()
 
-if ENV_NODEJS
+if !process.browser
 	passport = require 'passport'
 	path = require 'path'
 	compression = require 'compression'
