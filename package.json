@@ -1,7 +1,7 @@
 {
   "name": "pinejs",
   "version": "0.4.5",
-  "main": "pine.js",
+  "main": "src/server/src/server-glue/module.coffee",
   "repository": "git@bitbucket.org:rulemotion/pinejs.git",
   "dependencies": {
     "abstract-sql-compiler": "git+ssh://git@bitbucket.org:rulemotion/abstract-sql-compiler.git#v0.3.2",
