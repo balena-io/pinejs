@@ -1,3 +1,5 @@
+* Update odata-to-abstract-sql to v0.2.4
+
 v0.5.0
 
 * Config loader will directly use the customServerCode entry if it is an object.
