@@ -1,6 +1,6 @@
 {
   "name": "pinejs",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "main": "src/server/src/server-glue/module.coffee",
   "repository": "git@bitbucket.org:rulemotion/pinejs.git",
   "dependencies": {
