@@ -1,3 +1,5 @@
+v0.5.2
+
 * Updated sbvr-types to v0.1.2
 
 v0.5.1
