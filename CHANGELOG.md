@@ -1,4 +1,5 @@
 * Expose the initialisation promise from server.coffee so that it is possible to wait on it.
+* Fix in-browser server.
 
 v0.5.2
 
