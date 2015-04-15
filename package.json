@@ -21,7 +21,7 @@
   },
   "devDependencies": {
     "coffee-loader": "^0.7.2",
-    "css-loader": "^0.9.1",
+    "css-loader": "^0.10.1",
     "exports-loader": "^0.6.2",
     "extract-text-webpack-plugin": "^0.5.0",
     "file-loader": "^0.8.1",
@@ -41,7 +41,7 @@
     "null-loader": "^0.1.0",
     "ometa-loader": "0.0.1",
     "raw-loader": "^0.5.1",
-    "style-loader": "^0.9.0",
+    "style-loader": "^0.10.2",
     "umd-require-webpack-plugin": "0.0.1",
     "url-loader": "^0.5.5",
     "webpack": "^1.5.3",
