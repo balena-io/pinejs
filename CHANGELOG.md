@@ -1,3 +1,5 @@
+* Updated package.json to specify that nodejs 0.12 is also supported.
+
 v0.5.3
 
 * Update passport to ^0.2.1 and passport-local to ^1.0.0
