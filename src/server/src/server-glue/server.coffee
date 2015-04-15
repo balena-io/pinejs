@@ -53,7 +53,7 @@ if !process.browser
 		console.log('%s %s', req.method, req.url)
 		next()
 
-Pinejs.init(app)
+initialised = Pinejs.init(app)
 .then (configLoader) ->
 	Promise.all [
 		configLoader.loadConfig(passportPinejs.config)
@@ -85,4 +85,4 @@ Pinejs.init(app)
 	console.error('Error initialising server', err, err.stack)
 	process.exit()
 
-module.exports = {app, sbvrUtils}
+module.exports = { initialised, app, sbvrUtils }
