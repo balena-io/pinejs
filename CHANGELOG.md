@@ -1,3 +1,5 @@
+* Expose the initialisation promise from server.coffee so that it is possible to wait on it.
+
 v0.5.2
 
 * Updated sbvr-types to v0.1.2
