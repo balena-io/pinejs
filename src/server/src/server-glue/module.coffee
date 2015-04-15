@@ -1,4 +1,4 @@
-if !nodeRequire?
+if !process.browser and !nodeRequire?
 	# If nodeRequire doesn't exist then we're being run directly,
 	# and have to set up some stuff that webpack would otherwise deal with.
 
