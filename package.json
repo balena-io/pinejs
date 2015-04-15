@@ -56,8 +56,8 @@
     "method-override": "^2.3.1",
     "mysql": "^2.1.0",
     "multer": "^0.1.7",
-    "passport": "~0.1.18",
-    "passport-local": "~0.1.6",
+    "passport": "^0.2.1",
+    "passport-local": "^1.0.0",
     "pg": "^4.0.0",
     "serve-static": "^1.9.1"
   },
