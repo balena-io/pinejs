@@ -1,3 +1,5 @@
+v0.5.3
+
 * Update passport to ^0.2.1 and passport-local to ^1.0.0
 * Expose the initialisation promise from server.coffee so that it is possible to wait on it.
 * Fix in-browser server.
