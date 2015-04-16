@@ -133,21 +133,48 @@ exports.setup = (app, sbvrUtils) ->
 					Promise.rejected(new Error('API key has to be a string, got: ' + typeof apiKey))
 			return promise.nodeify(callback)
 
-	exports.customApiKeyMiddleware = customApiKeyMiddleware = (paramName = 'apikey') ->
+	checkApiKey = (req, apiKey) ->
+		Promise.try ->
+			if !apiKey? or req.apiKey?
+				return
+			getApiKeyPermissions(apiKey)
+			.catch (err) ->
+				console.warn('Error with API key:', err)
+				# Ignore errors getting the api key and just use an empty permissions object
+				return []
+			.then (permissions) ->
+				req.apiKey =
+					key: apiKey
+					permissions: permissions
+
+	exports.customAuthorizationMiddleware = customAuthorizationMiddleware = (expectedScheme = 'Bearer') ->
+		expectedScheme = expectedScheme.toLowerCase()
 		return (req, res, next) ->
 			Promise.try ->
-				apiKey = req.param(paramName)
-				if !apiKey? or req.apiKey?
+				auth = req.header('Authorization')
+				if !auth
 					return
-				getApiKeyPermissions(apiKey)
-				.catch (err) ->
-					console.warn('Error with API key:', err)
-					# Ignore errors getting the api key and just use an empty permissions object
-					return []
-				.then (permissions) ->
-					req.apiKey =
-						key: apiKey
-						permissions: permissions
+
+				parts = auth.split(' ')
+				if parts.length isnt 2
+					return
+
+				[ scheme, apiKey ] = parts
+				if scheme.toLowerCase() isnt expectedScheme
+					return
+
+				checkApiKey(req, apiKey)
+			.then ->
+				next?()
+				return
+
+	# A default bearer middleware for convenience
+	exports.authorizationMiddleware = customAuthorizationMiddleware()
+
+	exports.customApiKeyMiddleware = customApiKeyMiddleware = (paramName = 'apikey') ->
+		return (req, res, next) ->
+			apiKey = req.param(paramName)
+			checkApiKey(req, apiKey)
 			.then ->
 				next?()
 				return
