@@ -1,7 +1,7 @@
 _ = require 'lodash'
 Promise = require 'bluebird'
-AbstractSQLCompiler = require 'abstract-sql-compiler'
-sbvrTypes = require 'sbvr-types'
+AbstractSQLCompiler = require '@resin/abstract-sql-compiler'
+sbvrTypes = require '@resin/sbvr-types'
 
 validateTypes = _.mapValues sbvrTypes, ({validate}) ->
 	if validate?

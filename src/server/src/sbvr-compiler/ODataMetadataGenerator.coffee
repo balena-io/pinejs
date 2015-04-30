@@ -1,5 +1,5 @@
 _ = require 'lodash'
-sbvrTypes = require 'sbvr-types'
+sbvrTypes = require '@resin/sbvr-types'
 
 getResourceName = (resourceName) ->
 	idParts = resourceName.split('-')

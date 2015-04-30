@@ -1,5 +1,5 @@
-{SBVRParser} = require 'sbvr-parser'
-Types = require 'sbvr-types/Type.sbvr'
+{SBVRParser} = require '@resin/sbvr-parser'
+Types = require '@resin/sbvr-types/Type.sbvr'
 
 module.exports = SBVRParser._extend
 	initialize: ->

@@ -1,10 +1,10 @@
 _ = require 'lodash'
 Promise = require 'bluebird'
 TypedError = require 'typed-error'
-LF2AbstractSQL = require 'lf-to-abstract-sql'
-AbstractSQLCompiler = require 'abstract-sql-compiler'
+LF2AbstractSQL = require '@resin/lf-to-abstract-sql'
+AbstractSQLCompiler = require '@resin/abstract-sql-compiler'
 PinejsClientCore = require 'pinejs-client/core'
-sbvrTypes = require 'sbvr-types'
+sbvrTypes = require '@resin/sbvr-types'
 
 SBVRParser = require '../../../common/extended-sbvr-parser/extended-sbvr-parser.coffee'
 
