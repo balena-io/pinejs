@@ -1,3 +1,5 @@
+v0.5.4
+
 * Switched to using npm private packages rather than private git repo links.
 * Updated package.json to specify that nodejs 0.12 is also supported.
 
