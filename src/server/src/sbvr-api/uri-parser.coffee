@@ -1,7 +1,7 @@
 Promise = require 'bluebird'
 TypedError = require 'typed-error'
-{ODataParser} = require 'odata-parser'
-{OData2AbstractSQL} = require 'odata-to-abstract-sql'
+{ODataParser} = require '@resin/odata-parser'
+{OData2AbstractSQL} = require '@resin/odata-to-abstract-sql'
 permissions = require './permissions.coffee'
 
 exports.PermissionError = class PermissionError extends TypedError

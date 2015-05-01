@@ -43,8 +43,8 @@ module.exports = (grunt) ->
 			this:
 				options:
 					packageManager: 'npm'
-					onlySpecified: true
-
+					# TODO: Enable when grunt-check-dependencies works correct with scoped packages.
+					# onlySpecified: true
 
 		concat:
 			_.mapValues serverConfigs, (config, task) ->
