@@ -45,13 +45,13 @@ init = (app, config) ->
 		configLoader = configLoader.setup(app)
 		configLoader.loadConfig(migrator.config)
 		.return(configLoader)
-	.then (configLoader) ->
+	.tap (configLoader) ->
 		Promise.all([
 			configLoader.loadConfig(sbvrServer.config) if process.env.SBVR_SERVER_ENABLED
 			configLoader.loadApplicationConfig(config) if !process.env.CONFIG_LOADER_DISABLED
-		]).return(configLoader)
+		])
 	.catch (err) ->
-		console.error('Error initialising server', err)
+		console.error('Error initialising server', err, err.stack)
 		process.exit()
 
 module.exports = {init, sbvrUtils, SessionStore: PinejsSessionStore}
