@@ -2,6 +2,11 @@ _ = require 'lodash'
 Promise = require 'bluebird'
 BluebirdLRU = require 'bluebird-lru-cache'
 
+# Traverses all values in `check`, actions for the following data types:
+# string: Calls `stringCallback` and uses the value returned instead
+# boolean: Used as-is
+# array: Treated as an AND of all elements
+# object: Must have only one key of either `AND` or `OR`, with an array value that will be treated according to the key.
 exports.nestedCheck = nestedCheck = (check, stringCallback) ->
 	if _.isString(check)
 		stringCallback(check)

@@ -1,3 +1,5 @@
+* Add the following additional permissions: read, create, update.  These can be used for finer grained permission and also to allow specifying permissions via the CRUD names.
+
 v0.5.4
 
 * Switched to using npm private packages rather than private git repo links.
