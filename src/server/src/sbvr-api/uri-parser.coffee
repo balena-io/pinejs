@@ -90,9 +90,16 @@ exports.addPermissions = (req, {method, vocabulary, resourceName, odataQuery, va
 		else
 			switch method
 				when 'GET'
-					'get'
-				when 'PUT', 'POST', 'PATCH', 'MERGE'
-					'set'
+					or: ['get', 'read']
+				when 'PUT'
+					or: [
+						'set'
+						and: ['create', 'update']
+					]
+				when 'POST'
+					or: ['set', 'create']
+				when 'PATCH', 'MERGE'
+					or: ['set', 'update']
 				when 'DELETE'
 					'delete'
 				else
