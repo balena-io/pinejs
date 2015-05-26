@@ -67,7 +67,14 @@ This returns a promise that resolves to the api key permissions for the given ap
 This is a default `customApiKeyMiddleware`, which is useful to avoid having to create your own default one.
 
 #### customApiKeyMiddleware(paramName = 'apiKey')
-This is a function that will return a middleware that checks for a `paramName` using `req.params(paramName)` and adds a `req.apiKey` entry `{ key, permissions }`.<br/>
+This is a function that will return a middleware that checks for a `paramName` using `req.params(paramName)` containing a valid api key and adds a `req.apiKey` entry `{ key, permissions }`.<br/>
+The middleware can also be called directly and will return a Promise that signifies completion.
+
+#### authorizationMiddleware(req, res, next)
+This is a default `customAuthorizationMiddleware`, which is useful to avoid having to create your own default one.
+
+#### customAuthorizationMiddleware(expectedScheme = 'Bearer')
+This is a function that will return a middleware that checks the `Authorization` header for a `scheme` that matches the `expectedScheme` and a token matching a valid api key and adds a `req.apiKey` entry `{ key, permissions }`.<br/>
 The middleware can also be called directly and will return a Promise that signifies completion.
 
 #### checkPermissions(req, permissionCheck, request[, callback])
