@@ -236,6 +236,9 @@ cleanupModel = (vocab) ->
 	delete api[vocab]
 
 runHook = (hookName, args) ->
+	Object.defineProperty args, 'api',
+		get: _.once ->
+			return api[args.request.vocabulary].clone(passthrough: _.pick(args, 'req', 'tx'))
 	hooks = args.req.hooks[hookName] || []
 	Promise.map hooks, (hook) ->
 		hook(args)
@@ -502,7 +505,7 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 			uriParser.addPermissions(req, request)
 			.tap (request) ->
 				req.hooks = apiHooks[request.method]?[request.vocabulary]?[request.resourceName] ? {}
-				runHook('POSTPARSE', {req, request})
+				runHook('POSTPARSE', {req, request, tx: req.tx})
 			.then(uriParser.translateUri)
 			.then (request) ->
 				if request.abstractSqlQuery?
@@ -613,7 +616,7 @@ respondGet = (req, res, request, result) ->
 		clientModel = clientModels[vocab].resources
 		processOData(vocab, clientModel, request.resourceName, result.rows)
 		.then (d) ->
-			runHook('PRERESPOND', {req, res, request, result, data: d})
+			runHook('PRERESPOND', {req, res, request, result, data: d, tx: req.tx})
 			.then ->
 				res.json({d})
 	else
@@ -653,7 +656,7 @@ respondPost = (req, res, request, result) ->
 	api[vocab].logger.log('Insert ID: ', request.resourceName, id)
 	runURI('GET', location, null, req.tx, req)
 	.then (result) ->
-		runHook('PRERESPOND', {req, res, request, result})
+		runHook('PRERESPOND', {req, res, request, result, tx: req.tx})
 		.then ->
 			res.set('Location', location)
 			res.json(result.d[ 0 ], 201)
@@ -677,7 +680,7 @@ runPut = (req, res, request, tx) ->
 		validateModel(tx, vocab)
 
 respondPut = respondDelete = respondOptions = (req, res, request) ->
-	runHook('PRERESPOND', {req, res, request})
+	runHook('PRERESPOND', {req, res, request, tx: req.tx})
 	.then ->
 		res.send(200)
 

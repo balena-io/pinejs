@@ -3,12 +3,14 @@ The hooks are adding using `sbvrUtils.addHook`.
 In order to to roll back the transaction you can either throw an error, or return a rejected promise.
 Also, any promises that are returned will be waited on before continuing with processing the request.
 ## Hook points
-* POSTPARSE({req, request})
-	The `request` object for POSTPARSE is lacking the `abstractSqlQuery` and `sqlQuery` entries.
-* PRERUN({req, request, tx})
-* POSTRUN({req, request, result, tx})
-* PRERESPOND({req, res, request, result, data})
-	The `data` object for PRERESPOND is only present for GET requests
+* POSTPARSE({req, request, api[, tx]})
+	* The `request` object for POSTPARSE is lacking the `abstractSqlQuery` and `sqlQuery` entries.
+	* The `tx` object will only be available if running in the context of an internal request with a provided transaction.
+* PRERUN({req, request, api, tx})
+* POSTRUN({req, request, result, api, tx})
+* PRERESPOND({req, res, request, api, result, data[, tx]})
+	* The `data` object for PRERESPOND is only present for GET requests
+	* The `tx` object will only be available if running in the context of an internal request with a provided transaction.
 
 ## Arguments
 ### req
@@ -51,5 +53,9 @@ This is the result from running the transaction.
 
 ### tx
 The database transaction object, so that you can run queries in the same transaction or make API calls that use the same transaction.
+
+### api
+An instance of pinejs-client for the current api, using the permissions and transaction of the current request.
+In the case of not being in a transaction, ie in cases where the `tx` argument is null, any requests via this object will be run in their own, separate, transaction.
 
 See [tx](./CustomServerCode.md#markdown-header-tx_2)
