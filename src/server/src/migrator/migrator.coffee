@@ -31,12 +31,14 @@ exports.run = (tx, model) ->
 exports.checkModelAlreadyExists = (tx, modelName) ->
 	@sbvrUtils.api.dev.get
 		resource: 'model'
+		passthrough:
+			tx: tx
+			req: @sbvrUtils.rootRead
 		options:
 			select: [ 'vocabulary' ]
 			top: '1'
 			filter:
 				vocabulary: modelName
-		passthrough: { tx }
 	.then (results) ->
 		_.any(results)
 
@@ -44,7 +46,9 @@ exports.getExecutedMigrations = (tx, modelName) ->
 	@migrationsApi.get
 		resource: 'migration'
 		id: modelName
-		passthrough: { tx }
+		passthrough:
+			tx: tx
+			req: @sbvrUtils.rootRead
 		options:
 			select: [ 'executed_migrations' ]
 	.then (data) ->
@@ -54,7 +58,9 @@ exports.setExecutedMigrations = (tx, modelName, executedMigrations) ->
 	@migrationsApi.put
 		resource: 'migration'
 		id: modelName
-		passthrough: { tx }
+		passthrough:
+			tx: tx
+			req: @sbvrUtils.root
 		body:
 			model_name: modelName
 			executed_migrations: executedMigrations

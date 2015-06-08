@@ -17,7 +17,9 @@ exports.setup = (app) ->
 						throw new Error(['Failed to execute ' + model.modelName + ' model from ' + model.modelFile, err, err.stack])
 
 			authApiTx = sbvrUtils.api.Auth.clone
-				passthrough: { tx }
+				passthrough:
+					tx: tx
+					req: sbvrUtils.root
 
 			if data.users?
 				permissions = {}

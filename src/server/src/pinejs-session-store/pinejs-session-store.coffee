@@ -2,6 +2,7 @@ _ = require 'lodash'
 expressSession = require 'express-session'
 
 sessionAPI = null
+sbvrUtils = null
 
 sessionModel = '''
 	Vocabulary: session
@@ -28,12 +29,13 @@ sessionModel = '''
 class PinejsSessionStore extends expressSession.Store
 	constructor: ->
 	get: (sid, callback) ->
-		sessionAPI.get(
+		sessionAPI.get
 			resource: 'session'
 			id: sid 
+			passthrough: req: sbvrUtils.rootRead
 			options:
 				select: 'data'
-		).then (session) ->
+		.then (session) ->
 			return session?.data
 		.nodeify(callback)
 
@@ -42,42 +44,47 @@ class PinejsSessionStore extends expressSession.Store
 			session_id: sid
 			data: data
 			expiry_time: data?.cookie?.expires ? null
-		sessionAPI.put(
+		sessionAPI.put
 			resource: 'session'
 			id: sid
+			passthrough: req: sbvrUtils.root
 			body: body
-		).nodeify(callback)
+		.nodeify(callback)
 
 	destroy: (sid, callback) ->
-		sessionAPI.delete(
+		sessionAPI.delete
 			resource: 'session'
 			id: sid
-		).nodeify(callback)
+			passthrough: req: sbvrUtils.root
+		.nodeify(callback)
 
 	all: (callback) ->
-		sessionAPI.get(
+		sessionAPI.get
 			resource: 'session'
+			passthrough: req: sbvrUtils.root
 			options:
 				select: 'session_id'
 				filter: expiry_time: $ge: Date.now()
-		).then (sessions) ->
+		.then (sessions) ->
 			_.map(sessions, 'session_id')
 		.nodeify(callback)
 
 	clear: (callback) ->
 		# TODO: Use a truncate
-		sessionAPI.delete(
+		sessionAPI.delete
 			resource: 'session'
-		).nodeify(callback)
+			passthrough: req: sbvrUtils.root
+		.nodeify(callback)
 
 	length: (callback) ->
 		# TODO: Use a proper count
-		sessionAPI.get(
+		sessionAPI.get
 			resource: 'session'
+			passthrough: req: sbvrUtils.rootRead
 			options:
 				select: 'session_id'
 				filter: expiry_time: $ge: Date.now()
-		).then (sessions) ->
+		.then (sessions) ->
 			sessions.length
 		.nodeify(callback)
 PinejsSessionStore.config =
@@ -91,6 +98,7 @@ PinejsSessionStore.config =
 		customServerCode: PinejsSessionStore
 	]
 PinejsSessionStore.setup = (app, sbvrUtils, db, callback) ->
+	sbvrUtils = sbvrUtils
 	sessionAPI = sbvrUtils.api.session
 	callback()
 
