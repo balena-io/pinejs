@@ -1,3 +1,5 @@
+* Pass an `api` instance to hooks, which is bound to the same user and transaction scope as the original request.
+
 v0.5.5
 
 * Added `authorizationMiddleware` and `customAuthorizationMiddleware` middlewares which allow supporting the passing api keys via an `Authorization` header.
