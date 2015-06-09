@@ -1,3 +1,5 @@
+v0.5.6
+
 * Pass an `api` instance to hooks, which is bound to the same user and transaction scope as the original request.
 
 v0.5.5
