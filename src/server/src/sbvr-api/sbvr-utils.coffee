@@ -193,12 +193,14 @@ exports.executeModels = executeModels = (tx, models, callback) ->
 		updateModel = (modelType, modelText) ->
 			api.dev.get
 				resource: 'model'
+				passthrough:
+					tx: tx
+					req: permissions.rootRead
 				options:
 					select: 'id'
 					filter:
 						vocabulary: model.vocab
 						model_type: modelType
-				passthrough: { tx }
 			.then (result) ->
 				method = 'POST'
 				uri = '/dev/model'
@@ -212,7 +214,7 @@ exports.executeModels = executeModels = (tx, models, callback) ->
 					method = 'PUT'
 					body.id = id
 
-				runURI(method, uri, body, tx)
+				runURI(method, uri, body, tx, permissions.root)
 
 		Promise.all([
 			updateModel('se', model.se)
@@ -252,10 +254,12 @@ exports.deleteModel = (vocabulary, callback) ->
 		Promise.all(dropStatements.concat([
 			api.dev.delete
 				resource: 'model'
+				passthrough:
+					tx: tx
+					req: permissions.root
 				options:
 					filter:
 						vocabulary: vocabulary
-				passthrough: { tx }
 		])).then ->
 			tx.end()
 			cleanupModel(vocabulary)
@@ -422,7 +426,7 @@ exports.runRule = do ->
 						ids.join(' or ')
 					else
 						'0 eq 1'
-				runURI('GET', '/' + vocab + '/' + clientModel.resourceName + '?$filter=' + filter)
+				runURI('GET', '/' + vocab + '/' + clientModel.resourceName + '?$filter=' + filter, null, null, permissions.rootRead)
 				.then (result) ->
 					result.__formulationType = formulationType
 					result.__resourceName = resourceName
@@ -449,7 +453,7 @@ exports.runURI = runURI =  (method, uri, body = {}, tx, req, callback) ->
 	else
 		if req?
 			console.warn('Non-object req passed to runURI?', req, new Error().stack)
-		user = permissions: ['resource.all']
+		user = permissions: []
 
 	req =
 		param: (paramName) ->

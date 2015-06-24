@@ -2,6 +2,9 @@ _ = require 'lodash'
 Promise = require 'bluebird'
 BluebirdLRU = require 'bluebird-lru-cache'
 
+exports.root = user: permissions: [ 'resource.all' ]
+exports.rootRead = rootRead = user: permissions: [ 'resource.get' ]
+
 # Traverses all values in `check`, actions for the following data types:
 # string: Calls `stringCallback` and uses the value returned instead
 # boolean: Used as-is
@@ -57,13 +60,14 @@ exports.setup = (app, sbvrUtils) ->
 
 	exports.checkPassword = (username, password, callback) ->
 		authApi = sbvrUtils.api.Auth
-		authApi.get(
+		authApi.get
 			resource: 'user'
+			passthrough: req: rootRead
 			options:
 				select: ['id', 'password']
 				filter:
 					username: username
-		).then (result) ->
+		.then (result) ->
 			if result.length is 0
 				throw new Error('User not found')
 			hash = result[0].password
@@ -83,23 +87,20 @@ exports.setup = (app, sbvrUtils) ->
 
 	getPermissions = (permsFilter, roleFilter, callback) ->
 		authApi = sbvrUtils.api.Auth
-		userPerms = authApi.get(
+		userPerms = authApi.get
 			resource: 'permission'
+			passthrough: req: rootRead
 			options:
 				select: 'name'
 				filter: permsFilter
-		)
-		rolePerms = authApi.get(
+		rolePerms = authApi.get
 			resource: 'permission'
+			passthrough: req: rootRead
 			options:
 				select: 'name'
 				filter: role__has__permission: role: roleFilter
-		)
 		# TODO: Combine these into one api call.
-		Promise.all([
-			userPerms
-			rolePerms
-		]).spread (userPermissions, rolePermissions) ->
+		Promise.join userPerms, rolePerms, (userPermissions, rolePermissions) ->
 			allPermissions = _.map(userPermissions, 'name')
 			allPermissions = allPermissions.concat(_.map(rolePermissions, 'name'))
 			return _.unique(allPermissions)
@@ -190,13 +191,14 @@ exports.setup = (app, sbvrUtils) ->
 			return (callback) ->
 				if !_guestPermissions? or _guestPermissions.isRejected()
 					# Get guest user
-					_guestPermissions = sbvrUtils.api.Auth.get(
+					_guestPermissions = sbvrUtils.api.Auth.get
 						resource: 'user'
+						passthrough: req: rootRead
 						options:
 							select: 'id'
 							filter:
 								username: 'guest'
-					).then (result) ->
+					.then (result) ->
 						if result.length is 0
 							throw new Error('No guest permissions')
 						getUserPermissions(result[0].id)
@@ -266,14 +268,14 @@ exports.setup = (app, sbvrUtils) ->
 				apiKeyPermissions = req.apiKey?.permissions
 				if allowed is true or !apiKeyPermissions? or apiKeyPermissions.length is 0
 					return allowed
-				authApi.get(
+				authApi.get
 					resource: 'user'
+					passthrough: req: rootRead
 					options:
 						select: 'id'
 						filter: 
 							api_key:
 								key: req.apiKey.key
-				)
 				.then (user) ->
 					if user.length is 0
 						throw new Error('API key is not linked to a user?!')

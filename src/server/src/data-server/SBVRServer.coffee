@@ -50,7 +50,9 @@ exports.setup = (app, sbvrUtils, db) ->
 	devApi = sbvrUtils.api.dev
 	setupModels = (tx) ->
 		uiApiTx = uiApi.clone
-			passthrough: { tx }
+			passthrough:
+				tx: tx
+				req: sbvrUtils.root
 		uiApiTx.get
 			resource: 'textarea'
 			options:
@@ -68,12 +70,14 @@ exports.setup = (app, sbvrUtils, db) ->
 		.then ->
 			devApi.get
 				resource: 'model'
+				passthrough:
+					tx: tx
+					req: sbvrUtils.rootRead
 				options:
 					select: ['vocabulary','model_value']
 					filter: 
 						model_type: 'se'
 						vocabulary: 'data'
-				passthrough: { tx }
 		.then (result) ->
 			if result.length is 0
 				throw new Error('No SE data model found')
@@ -98,6 +102,7 @@ exports.setup = (app, sbvrUtils, db) ->
 	app.post '/execute', sbvrUtils.checkPermissionsMiddleware('all'), (req, res, next) ->
 		uiApi.get
 			resource: 'textarea'
+			passthrough: req: sbvrUtils.rootRead
 			options:
 				select: 'text'
 				filter:
@@ -115,12 +120,14 @@ exports.setup = (app, sbvrUtils, db) ->
 				.then ->
 					uiApi.patch
 						resource: 'textarea'
+						passthrough:
+							tx: tx
+							req: sbvrUtils.root
 						options:
 							filter:
 								name: 'model_area'
 						body:
 							is_disabled: true
-						passthrough: { tx }
 				.then ->
 					tx.end()
 				.catch (err) ->
@@ -254,8 +261,9 @@ exports.setup = (app, sbvrUtils, db) ->
 
 	app.del '/', serverIsOnAir, (req, res, next) ->
 		Promise.all([
-			uiAPI.patch(
+			uiAPI.patch
 				resource: 'textarea'
+				passthrough: req: sbvrUtils.root
 				options:
 					filter:
 						name: 'model_area'
@@ -263,7 +271,6 @@ exports.setup = (app, sbvrUtils, db) ->
 					text: ''
 					name: 'model_area'
 					is_disabled: false
-			)
 			sbvrUtils.deleteModel('data')
 		]).then ->
 			isServerOnAir(false)
