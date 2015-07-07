@@ -11,7 +11,7 @@
     "express-session": "^1.10.3",
     "@resin/lf-to-abstract-sql": "~0.0.13",
     "lodash": "^3.0.0",
-    "@resin/odata-parser": "~0.1.2",
+    "@resin/odata-parser": "~0.1.3",
     "@resin/odata-to-abstract-sql": "~0.2.5",
     "ometa-js": "~1.3.2",
     "pinejs-client": "^1.0.0",
