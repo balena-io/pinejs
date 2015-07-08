@@ -1,3 +1,5 @@
+* Updated abstract-sql-compiler and switched to using it for schema generation.
+
 v0.6.0
 
 * Removed the default root permissions for internal requests, you must now explicitly specify them.

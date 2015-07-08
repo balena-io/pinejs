@@ -9,7 +9,6 @@ sbvrTypes = require '@resin/sbvr-types'
 SBVRParser = require '../../../common/extended-sbvr-parser/extended-sbvr-parser.coffee'
 
 migrator = require '../migrator/migrator.coffee'
-AbstractSQL2SQL = require '../sbvr-compiler/AbstractSQL2SQL.coffee'
 AbstractSQL2CLF = require '../sbvr-compiler/AbstractSQL2CLF.coffee'
 ODataMetadataGenerator = require '../sbvr-compiler/ODataMetadataGenerator.coffee'
 
@@ -112,7 +111,7 @@ getAndCheckBindValues = (vocab, bindings, values) ->
 		if value is undefined
 			return db.DEFAULT_VALUE
 
-		AbstractSQL2SQL.dataTypeValidate(value, field)
+		AbstractSQLCompiler.dataTypeValidate(value, field)
 		.catch (e) ->
 			e.message = '"' + fieldName + '" ' + e.message
 			throw e
@@ -142,7 +141,7 @@ exports.executeModels = executeModels = (tx, models, callback) ->
 
 			try
 				abstractSqlModel = LF2AbstractSQLTranslator(lfModel, 'Process')
-				sqlModel = AbstractSQL2SQL.generate(abstractSqlModel)
+				sqlModel = AbstractSQLCompiler.compileSchema(abstractSqlModel)
 				clientModel = AbstractSQL2CLF(sqlModel)
 				metadata = ODataMetadataGenerator(vocab, sqlModel)
 			catch e
@@ -412,7 +411,7 @@ exports.runRule = do ->
 				if queryPart[0] != 'Select'
 					return queryPart
 				return ['Select', '*']
-			ruleSQL = AbstractSQL2SQL.generate({tables: {}, rules: [ruleAbs]}).rules[0].sql
+			ruleSQL = AbstractSQLCompiler.compileRule(ruleBody)
 
 			db.executeSql(ruleSQL.query, ruleSQL.bindings)
 			.then (result) ->
@@ -514,7 +513,7 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 			.then (request) ->
 				if request.abstractSqlQuery?
 					try
-						request.sqlQuery = AbstractSQLCompiler.compile(db.engine, request.abstractSqlQuery)
+						request.sqlQuery = AbstractSQLCompiler.compileRule(request.abstractSqlQuery)
 					catch err
 						api[apiRoot].logger.error('Failed to compile abstract sql: ', request.abstractSqlQuery, err, err.stack)
 						throw new SqlCompilationError(err)
@@ -739,7 +738,7 @@ exports.addHook = (method, apiRoot, resourceName, callbacks) ->
 
 exports.setup = (app, _db, callback) ->
 	exports.db = db = _db
-	AbstractSQL2SQL = AbstractSQL2SQL[db.engine]
+	AbstractSQLCompiler = AbstractSQLCompiler[db.engine]
 
 	permissions.setup(app, exports)
 	_.extend(exports, permissions)
