@@ -1,3 +1,5 @@
+v0.6.1
+
 * Updated abstract-sql-compiler and switched to using it for schema generation.
 
 v0.6.0
