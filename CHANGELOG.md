@@ -1,3 +1,5 @@
+* Now returns 201 with `{ id }` instead of 401 when creating a resource without permission to read it.
+
 v0.6.1
 
 * Updated abstract-sql-compiler and switched to using it for schema generation.

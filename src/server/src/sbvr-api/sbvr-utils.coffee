@@ -658,11 +658,14 @@ respondPost = (req, res, request, result) ->
 	location = odataResourceURI(vocab, request.resourceName, id)
 	api[vocab].logger.log('Insert ID: ', request.resourceName, id)
 	runURI('GET', location, null, req.tx, req)
+	.catch ->
+		# If we failed to fetch the created resource then just return the id.
+		return d: [{ id }]
 	.then (result) ->
 		runHook('PRERESPOND', {req, res, request, result, tx: req.tx})
 		.then ->
 			res.set('Location', location)
-			res.json(result.d[ 0 ], 201)
+			res.json(result.d[0], 201)
 
 runPut = (req, res, request, tx) ->
 	vocab = request.vocabulary
