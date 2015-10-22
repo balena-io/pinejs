@@ -1,3 +1,7 @@
+v0.6.3
+
+* Update odata-to-abstract-sql to ~0.2.6 to guarantee the $expand($expand) fix is available.
+
 v0.6.2
 
 * Now returns 201 with `{ id }` instead of 401 when creating a resource without permission to read it.
