@@ -1,3 +1,5 @@
+* Added bower to the local dependencies.
+
 v0.6.3
 
 * Update odata-to-abstract-sql to ~0.2.6 to guarantee the $expand($expand) fix is available.
