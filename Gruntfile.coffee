@@ -43,7 +43,7 @@ module.exports = (grunt) ->
 			this:
 				options:
 					packageManager: 'npm'
-					# TODO: Enable when grunt-check-dependencies works correct with scoped packages.
+					# TODO: Enable when grunt-check-dependencies works correctly with deduped packages.
 					# onlySpecified: true
 
 		concat:
