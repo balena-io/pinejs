@@ -1,3 +1,4 @@
+* Updated odata-to-abstract-sql to ~0.3.0 and abstract-sql-compiler to ~0.4.2.
 * Added bower to the local dependencies.
 
 v0.6.3
