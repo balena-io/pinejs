@@ -513,10 +513,10 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 	.then (requests) ->
 		# Then for each request add/check the relevant permissions, translate to abstract sql, and then compile the abstract sql.
 		Promise.map requests, (request) ->
-			uriParser.addPermissions(req, request)
-			.tap (request) ->
-				req.hooks = getHooks(request)
-				runHook('POSTPARSE', {req, request, tx: req.tx})
+			req.hooks = getHooks(request)
+			runHook('POSTPARSE', {req, request, tx: req.tx})
+			.then ->
+				uriParser.addPermissions(req, request)
 			.then(uriParser.translateUri)
 			.then (request) ->
 				if request.abstractSqlQuery?
