@@ -1,3 +1,5 @@
+* Updated to bluebird 3.
+
 v0.6.4
 
 * Updated odata-to-abstract-sql to ~0.3.0 and abstract-sql-compiler to ~0.4.2.
