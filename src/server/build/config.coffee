@@ -22,6 +22,7 @@ module.exports =
 		bcrypt: true
 		bcryptjs: true
 		bluebird: true
+		'bluebird-lru-cache': true
 		'body-parser': true
 		child_process: true
 		'coffee-script': true
