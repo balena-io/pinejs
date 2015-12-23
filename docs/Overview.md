@@ -62,8 +62,15 @@ Note that you must have PostgreSQL up and running before attempting to build
 from source and then must run `bower install` before `npm install`. At the time
 of writing `npm install` generates `pine.js` for you as a post-install hook.
 
-In order to ensure you have the correct dependencies installed, you need to copy
-the dependencies from [package.json][package.json] into your project.
+Pine.js used to be copied to other projects as a single built file. This is no longer
+required, since it is a proper npm module. So, if you want to start a project with Pine.js
+you just need to include it as a dependency in your package.json:
+
+```
+"dependencies": {
+    "@resin/pinejs": "~0.6.3",
+```
+
 
 ## Example Application
 
