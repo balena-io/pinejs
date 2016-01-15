@@ -70,8 +70,8 @@ exports.setExecutedMigrations = (tx, modelName, executedMigrations) ->
 exports.filterAndSortPendingMigrations = (migrations, executedMigrations) ->
 	_(migrations)
 	.omit(executedMigrations)
-	.pairs()
-	.sortBy(_.first)
+	.toPairs()
+	.sortBy(_.head)
 	.value()
 
 exports.executeMigrations = (tx, migrations=[]) ->
@@ -79,7 +79,7 @@ exports.executeMigrations = (tx, migrations=[]) ->
 	.catch (err) =>
 		@logger.error "Error while executing migrations, rolled back"
 		throw new MigrationError(err)
-	.return(_.map(migrations, _.first)) # return migration keys
+	.return(_.map(migrations, _.head)) # return migration keys
 
 exports.executeMigration = (tx, [ key, migration ]) ->
 	@logger.info "Running migration #{JSON.stringify key}"
