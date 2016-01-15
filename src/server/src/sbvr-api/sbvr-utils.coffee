@@ -236,6 +236,14 @@ cleanupModel = (vocab) ->
 	uriParser.deleteClientModel(vocab)
 	delete api[vocab]
 
+getHooks = (request) ->
+	vocabHooks = apiHooks[request.method]?[request.vocabulary]
+	if not vocabHooks?
+		return {}
+	return _.merge {}, vocabHooks[request.resourceName], vocabHooks['all'], (a, b) ->
+		if _.isArray(a)
+			return a.concat(b)
+
 runHook = (hookName, args) ->
 	Object.defineProperty args, 'api',
 		get: _.once ->
@@ -505,10 +513,10 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 	.then (requests) ->
 		# Then for each request add/check the relevant permissions, translate to abstract sql, and then compile the abstract sql.
 		Promise.map requests, (request) ->
-			uriParser.addPermissions(req, request)
-			.tap (request) ->
-				req.hooks = apiHooks[request.method]?[request.vocabulary]?[request.resourceName] ? {}
-				runHook('POSTPARSE', {req, request, tx: req.tx})
+			req.hooks = getHooks(request)
+			runHook('POSTPARSE', {req, request, tx: req.tx})
+			.then ->
+				uriParser.addPermissions(req, request)
 			.then(uriParser.translateUri)
 			.then (request) ->
 				if request.abstractSqlQuery?

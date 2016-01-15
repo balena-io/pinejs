@@ -1,3 +1,5 @@
+* Changed the 'POSTPARSE' hook to run immediately after the uri parsing, before any permissions are added.
+* Added support for hooks on the 'all' resource, which will be run for any resource.
 * Updated to bluebird 3.
 
 v0.6.4
