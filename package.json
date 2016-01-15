@@ -4,7 +4,7 @@
   "main": "src/server/src/server-glue/module.coffee",
   "repository": "git@bitbucket.org:rulemotion/pinejs.git",
   "dependencies": {
-    "@resin/abstract-sql-compiler": "^1.0.0",
+    "@resin/abstract-sql-compiler": "^1.0.1",
     "bluebird": "^3.0.6",
     "bluebird-lru-cache": "^1.0.0",
     "coffee-script": "~1.10.0",
