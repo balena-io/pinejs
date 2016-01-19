@@ -1,3 +1,6 @@
+V1.0.0
+
+* Updated to lodash 4
 * Updated pinejs-client to ^2.1.1 to make sure the escaping fix is included.
 * The OData functions `startswith` and `endswith` are now correctly `(haystack, needle)` instead of `(needle, haystack)`
 * Changed the 'POSTPARSE' hook to run immediately after the uri parsing, before any permissions are added.
