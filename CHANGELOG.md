@@ -1,3 +1,4 @@
+* The OData functions `startswith` and `endswith` are now correctly `(haystack, needle)` instead of `(needle, haystack)`
 * Changed the 'POSTPARSE' hook to run immediately after the uri parsing, before any permissions are added.
 * Added support for hooks on the 'all' resource, which will be run for any resource.
 * Updated to bluebird 3.
