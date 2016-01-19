@@ -61,7 +61,7 @@ addPermissions = (req, permissionType, vocabulary, resourceName, odataQuery) ->
 							v.filter
 						else
 							_(v)
-							.pairs()
+							.toPairs()
 							.flattenDeep()
 							.map(collapse)
 							.value()
