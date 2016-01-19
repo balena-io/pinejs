@@ -14,7 +14,7 @@
     "@resin/odata-parser": "~0.1.3",
     "@resin/odata-to-abstract-sql": "~0.3.0",
     "ometa-js": "~1.3.2",
-    "pinejs-client": "^2.0.0",
+    "pinejs-client": "^2.1.1",
     "@resin/sbvr-parser": "~0.0.18",
     "@resin/sbvr-types": "^1.0.0",
     "typed-error": "~0.1.0"
