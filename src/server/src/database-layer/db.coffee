@@ -15,7 +15,7 @@ class DatabaseError extends TypedError
 
 DEFAULT_VALUE = {}
 bindDefaultValues = (sql, bindings) ->
-	if !_.any(bindings, (binding) -> binding is DEFAULT_VALUE)
+	if !_.some(bindings, (binding) -> binding is DEFAULT_VALUE)
 		# We don't have to do any work if none of the bindings match DEFAULT_VALUE
 		return sql
 	bindNo = 0
@@ -149,7 +149,7 @@ if pg?
 						sql = sql.replace(/;?$/, ' RETURNING "' + addReturning + '";')
 
 					# We only need to perform the bind replacements if there is at least one binding!
-					if _.contains(sql, '?')
+					if _.includes(sql, '?')
 						bindNo = 0
 						sql = SQLBinds.matchAll(sql, 'Parse', [ ->
 							if Array.isArray(bindings[bindNo])

@@ -6,7 +6,7 @@ modelText = require './migrations.sbvr'
 exports.MigrationError = class MigrationError extends TypedError
 
 exports.run = (tx, model) ->
-	if not _.any(model.migrations)
+	if not _.some(model.migrations)
 		return Promise.fulfilled()
 
 	modelName = model.apiRoot
@@ -22,7 +22,7 @@ exports.run = (tx, model) ->
 		@getExecutedMigrations(tx, modelName)
 		.then (executedMigrations) =>
 			pendingMigrations = @filterAndSortPendingMigrations(model.migrations, executedMigrations)
-			return if not _.any(pendingMigrations)
+			return if not _.some(pendingMigrations)
 
 			@executeMigrations(tx, pendingMigrations)
 			.then (newlyExecutedMigrations) =>
@@ -40,7 +40,7 @@ exports.checkModelAlreadyExists = (tx, modelName) ->
 			filter:
 				vocabulary: modelName
 	.then (results) ->
-		_.any(results)
+		_.some(results)
 
 exports.getExecutedMigrations = (tx, modelName) ->
 	@migrationsApi.get

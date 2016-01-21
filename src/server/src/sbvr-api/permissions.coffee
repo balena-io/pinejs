@@ -26,7 +26,7 @@ exports.nestedCheck = nestedCheck = (check, stringCallback) ->
 		if results.length is 1
 			return results[0]
 		else if results.length > 1
-			return _.unique(results)
+			return _.uniq(results)
 		else
 			return true
 	else if _.isObject(check)
@@ -48,7 +48,7 @@ exports.nestedCheck = nestedCheck = (check, stringCallback) ->
 				if results.length is 1
 					return results[0]
 				else if results.length > 1
-					return _.unique(results)
+					return _.uniq(results)
 				else
 					return false
 			else
@@ -103,7 +103,7 @@ exports.setup = (app, sbvrUtils) ->
 		Promise.join userPerms, rolePerms, (userPermissions, rolePermissions) ->
 			allPermissions = _.map(userPermissions, 'name')
 			allPermissions = allPermissions.concat(_.map(rolePermissions, 'name'))
-			return _.unique(allPermissions)
+			return _.uniq(allPermissions)
 		.catch (err) ->
 			authApi.logger.error('Error loading permissions', err, err.stack)
 			throw err
@@ -223,15 +223,15 @@ exports.setup = (app, sbvrUtils) ->
 				checkObject = or: ['all', actionList]
 				return nestedCheck checkObject, (permissionCheck) ->
 					resourcePermission = 'resource.' + permissionCheck
-					if _.contains(permissions, resourcePermission)
+					if _.includes(permissions, resourcePermission)
 						return true
 					if vocabulary?
 						vocabularyPermission = vocabulary + '.' + permissionCheck
-						if _.contains(permissions, vocabularyPermission)
+						if _.includes(permissions, vocabularyPermission)
 							return true
 						if resourceName?
 							vocabularyResourcePermission = vocabulary + '.' + resourceName + '.' + permissionCheck
-							if _.contains(permissions, vocabularyResourcePermission)
+							if _.includes(permissions, vocabularyResourcePermission)
 								return true
 
 					conditionalPermissions = _.map permissions, (permissionName) ->
