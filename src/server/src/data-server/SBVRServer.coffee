@@ -19,13 +19,14 @@ uiModel = '''
 
 # Middleware
 isServerOnAir = do ->
-	deferred = Promise.pending()
-	promise = deferred.promise
+	resolve = null
+	promise = new Promise (_resolve) ->
+		resolve = _resolve
 	(value) ->
 		if value?
 			if promise.isPending()
-				deferred.fulfill(value)
-				deferred = null
+				resolve(value)
+				resolve = null
 			else
 				promise = Promise.fulfilled(value)
 		return promise

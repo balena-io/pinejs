@@ -3,7 +3,9 @@ define ['bluebird', 'lodash'], (Promise, _) ->
 		'resource.all'
 	]
 	app = do ->
-		enabled = Promise.pending()
+		enabled = {}
+		enabled.promise = new Promise (resolve) ->
+			enabled.resolve = resolve
 		appVars =
 			env: 'development'
 		handlers =
@@ -35,7 +37,6 @@ define ['bluebird', 'lodash'], (Promise, _) ->
 		process = (method, uri, headers, body = '') ->
 			if !handlers[method]
 				return Promise.rejected(404)
-			deferred = Promise.pending()
 			req =
 				param: (paramName) ->
 					# This should also look in route params and query params if/when they're supported..
@@ -54,56 +55,56 @@ define ['bluebird', 'lodash'], (Promise, _) ->
 			if uri[-1..] == '/'
 				uri = uri[0...uri.length - 1]
 			uri = uri.toLowerCase()
-			res =
-				json: (obj, headers = 200, statusCode) ->
-					if typeof headers == 'number' and !statusCode?
-						[statusCode, headers] = [headers, {}]
-					# Stringify and parse to emulate passing over network.
-					obj = JSON.parse(JSON.stringify(obj))
-					if statusCode >= 400
-						deferred.reject([statusCode, obj, headers])
-					else
-						deferred.fulfill([statusCode, obj, headers])
-				send: (statusCode, headers) ->
-					if statusCode >= 400
-						deferred.reject([statusCode, null, headers])
-					else
-						deferred.fulfill([statusCode, null, headers])
-				redirect: ->
-					deferred.reject([307])
-				set: ->
-				type: ->
-			next = (route) ->
-				j++
-				if route == 'route' or j >= methodHandlers[i].middleware.length
-					checkMethodHandlers()
-				else
-					methodHandlers[i].middleware[j](req, res, next)
-
-			methodHandlers = handlers.USE.concat(handlers[method])
-			i = -1
-			j = -1
-			checkMethodHandlers = ->
-				i++
-				if i < methodHandlers.length
-					if uri[0...methodHandlers[i].match.length] == methodHandlers[i].match
-						j = -1
-						# Reset params that may have been added on previous routes that failed in middleware
-						req.params = {}
-						if methodHandlers[i].paramName?
-							req.params[methodHandlers[i].paramName] = uri[methodHandlers[i].match.length..]
-							next()
-						else if uri.length != methodHandlers[i].match.length
-							# Not an exact match and no parameter matching
-							checkMethodHandlers()
+			new Promise (resolve, reject) ->
+				res =
+					json: (obj, headers = 200, statusCode) ->
+						if typeof headers == 'number' and !statusCode?
+							[statusCode, headers] = [headers, {}]
+						# Stringify and parse to emulate passing over network.
+						obj = JSON.parse(JSON.stringify(obj))
+						if statusCode >= 400
+							reject([statusCode, obj, headers])
 						else
-							next()
-					else
+							resolve([statusCode, obj, headers])
+					send: (statusCode, headers) ->
+						if statusCode >= 400
+							reject([statusCode, null, headers])
+						else
+							resolve([statusCode, null, headers])
+					redirect: ->
+						reject([307])
+					set: ->
+					type: ->
+				next = (route) ->
+					j++
+					if route == 'route' or j >= methodHandlers[i].middleware.length
 						checkMethodHandlers()
-				else
-					res.send(404)
-			checkMethodHandlers()
-			return deferred.promise
+					else
+						methodHandlers[i].middleware[j](req, res, next)
+
+				methodHandlers = handlers.USE.concat(handlers[method])
+				i = -1
+				j = -1
+				checkMethodHandlers = ->
+					i++
+					if i < methodHandlers.length
+						if uri[0...methodHandlers[i].match.length] == methodHandlers[i].match
+							j = -1
+							# Reset params that may have been added on previous routes that failed in middleware
+							req.params = {}
+							if methodHandlers[i].paramName?
+								req.params[methodHandlers[i].paramName] = uri[methodHandlers[i].match.length..]
+								next()
+							else if uri.length != methodHandlers[i].match.length
+								# Not an exact match and no parameter matching
+								checkMethodHandlers()
+							else
+								next()
+						else
+							checkMethodHandlers()
+					else
+						res.send(404)
+				checkMethodHandlers()
 		return {
 			use: _.partial(addHandler, 'USE', '/*')
 			get: (name, ..., callback) ->
@@ -128,7 +129,7 @@ define ['bluebird', 'lodash'], (Promise, _) ->
 				enabled.promise.then ->
 					process(args...)
 			listen: (..., callback) ->
-				enabled.fulfill()
+				enabled.resolve()
 				if _.isFunction(callback)
 					enabled.promise.then(callback)
 			set: (name, value) ->
