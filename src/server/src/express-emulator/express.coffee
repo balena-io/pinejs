@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 Promise = require 'bluebird'
 _ = require 'lodash'
 window?.GLOBAL_PERMISSIONS = [
@@ -106,7 +105,7 @@ app = do ->
 							# Not an exact match and no parameter matching
 							checkMethodHandlers()
 						else
-							checkMethodHandlers()
+							next()
 					else
 						checkMethodHandlers()
 				else

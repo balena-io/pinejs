@@ -8,6 +8,7 @@ _ = require 'lodash'
 exports.PermissionError = class PermissionError extends TypedError
 exports.TranslationError = class TranslationError extends TypedError
 exports.ParsingError = class ParsingError extends TypedError
+exports.BadRequestError = class BadRequestError extends TypedError
 
 odataParser = ODataParser.createInstance()
 odata2AbstractSQL = {}
@@ -36,6 +37,8 @@ exports.parseODataURI = (req) -> Promise.try ->
 		odataQuery = odataParser.matchAll(url, 'Process')
 	catch e
 		console.log('Failed to parse url: ', method, url, e, e.stack)
+		if e instanceof SyntaxError
+			throw new BadRequestError('Malformed url')
 		throw new ParsingError('Failed to parse url')
 
 	return [{
