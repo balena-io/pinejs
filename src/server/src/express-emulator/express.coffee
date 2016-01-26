@@ -75,16 +75,17 @@ define ['bluebird', 'lodash'], (Promise, _) ->
 						reject([307])
 					set: ->
 					type: ->
+
+				methodHandlers = handlers.USE.concat(handlers[method])
+				i = -1
+				j = -1
+
 				next = (route) ->
 					j++
 					if route == 'route' or j >= methodHandlers[i].middleware.length
 						checkMethodHandlers()
 					else
 						methodHandlers[i].middleware[j](req, res, next)
-
-				methodHandlers = handlers.USE.concat(handlers[method])
-				i = -1
-				j = -1
 				checkMethodHandlers = ->
 					i++
 					if i < methodHandlers.length
