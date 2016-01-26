@@ -1,4 +1,4 @@
-V1.0.2
+V1.0.3
 
 * Updated to lodash 4
 * Updated pinejs-client to ^2.1.1 to make sure the escaping fix is included.
