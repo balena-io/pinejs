@@ -4,7 +4,6 @@ define [
 ], (Promise, $) ->
 	requestId = 0
 	return (method, uri, headers = {}, body, successCallback, failureCallback) ->
-		deferred = Promise.pending()
 		if !headers["Content-Type"]? and body?
 			headers["Content-Type"] = "application/json"
 		currentId = requestId++
@@ -24,34 +23,35 @@ define [
 			else
 				resultCell.html('<pre></pre>')
 			$('pre', resultCell).text(text)
-		deferred.promise.then(displayResult, displayResult)
-		if BROWSER_SERVER
-			require ['server-glue'], (Server) ->
-				deferred.fulfill(Server.app.process(method, uri, headers, body))
-		else
-			if body?
-				body = JSON.stringify(body)
-			$.ajax uri,
-				headers: headers
-				data: body
-				error: (jqXHR, textStatus, errorThrown) ->
-					try
-						error = JSON.parse(jqXHR.responseText)
-					catch e
-						error = jqXHR.responseText
-					deferred.reject([jqXHR.status, error])
+		promise = new Promise (resolve, reject) ->
+			if BROWSER_SERVER
+				require ['server-glue'], (Server) ->
+					resolve(Server.app.process(method, uri, headers, body))
+			else
+				if body?
+					body = JSON.stringify(body)
+				$.ajax uri,
+					headers: headers
+					data: body
+					error: (jqXHR, textStatus, errorThrown) ->
+						try
+							error = JSON.parse(jqXHR.responseText)
+						catch e
+							error = jqXHR.responseText
+						reject([jqXHR.status, error])
 
-				success: (data, textStatus, jqXHR) ->
-					rheaders = /^(.*?):[ \t]*([^\r\n]*)\r?$/mg
-					responseHeaders = {}
-					responseHeadersString = jqXHR.getAllResponseHeaders()
-					while match = rheaders.exec( responseHeadersString )
-						responseHeaders[ match[1].toLowerCase() ] = match[2]
-					deferred.fulfill([jqXHR.status, data, responseHeaders])
+					success: (data, textStatus, jqXHR) ->
+						rheaders = /^(.*?):[ \t]*([^\r\n]*)\r?$/mg
+						responseHeaders = {}
+						responseHeadersString = jqXHR.getAllResponseHeaders()
+						while match = rheaders.exec( responseHeadersString )
+							responseHeaders[ match[1].toLowerCase() ] = match[2]
+						resolve([jqXHR.status, data, responseHeaders])
 
-				type: method
+					type: method
+		promise.then(displayResult, displayResult)
 		if successCallback?
-			deferred.promise.then((args) -> successCallback(args...))
+			promise.spread(successCallback)
 		if failureCallback?
-			deferred.promise.catch((args) -> failureCallback(args...))
-		return deferred.promise
+			promise.catch((args) -> failureCallback(args...))
+		return promise

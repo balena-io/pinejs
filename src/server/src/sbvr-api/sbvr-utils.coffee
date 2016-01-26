@@ -734,7 +734,7 @@ exports.addHook = (method, apiRoot, resourceName, callbacks) ->
 		throw new Error('Unsupported method: ' + method)
 	if !clientModels[apiRoot]?
 		throw new Error('Unknown api root: ' + apiRoot)
-	if !clientModels[apiRoot].resources[resourceName]?
+	if resourceName isnt 'all' and !clientModels[apiRoot].resources[resourceName]?
 		throw new Error('Unknown resource for api root: ' + resourceName + ', ' + apiRoot)
 
 	for callbackType, callback of callbacks when callbackType not in ['POSTPARSE', 'PRERUN', 'POSTRUN', 'PRERESPOND']

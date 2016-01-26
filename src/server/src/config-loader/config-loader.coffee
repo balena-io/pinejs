@@ -109,17 +109,15 @@ exports.setup = (app) ->
 							return
 
 						try
-							deferred = Promise.pending()
-							promise = customCode.setup app, sbvrUtils, sbvrUtils.db, (err) ->
-								if err
-									deferred.reject(err)
-								else
-									deferred.fulfill()
+							new Promise (resolve, reject) ->
+								promise = customCode.setup app, sbvrUtils, sbvrUtils.db, (err) ->
+									if err
+										reject(err)
+									else
+										resolve()
 
-							if Promise.is(promise)
-								deferred.fulfill(promise)
-
-							return deferred.promise
+								if Promise.is(promise)
+									resolve(promise)
 						catch e
 							e.message = 'Error running custom server code: ' + e.message
 							throw e

@@ -46,7 +46,10 @@ exports.setup = (app, sbvrUtils) ->
 				conditionalResources.rows.forEach (conditionalResource) ->
 					placeholder = conditionalResource.placeholder
 					if placeholder? and placeholder.length > 0
-						placeholders[placeholder] = Promise.pending()
+						placeholders[placeholder] = {}
+						placeholders[placeholder].promise = new Promise (resolve, reject) ->
+							placeholders[placeholder].resolve = resolve
+							placeholders[placeholder].reject = reject
 
 				# get conditional resources (if exist)
 				Promise.all conditionalResources.rows.map (conditionalResource) ->
@@ -86,7 +89,7 @@ exports.setup = (app, sbvrUtils) ->
 							.then (body) ->
 								sbvrUtils.PinejsClient::post({url, body, passthrough})
 							.then (result) ->
-								placeholders[placeholder].fulfill(result.id)
+								placeholders[placeholder].resolve(result.id)
 							.then(doCleanup)
 							.catch (err) ->
 								placeholders[placeholder].reject(err)

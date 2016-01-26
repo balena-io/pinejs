@@ -3,6 +3,7 @@ TypedError = require 'typed-error'
 {ODataParser} = require '@resin/odata-parser'
 {OData2AbstractSQL} = require '@resin/odata-to-abstract-sql'
 permissions = require './permissions.coffee'
+_ = require 'lodash'
 
 exports.PermissionError = class PermissionError extends TypedError
 exports.TranslationError = class TranslationError extends TypedError

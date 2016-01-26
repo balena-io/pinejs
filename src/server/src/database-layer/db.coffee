@@ -80,16 +80,15 @@ class Tx
 
 		@executeSql = (sql, bindings = [], callback, args...) ->
 			pendingExecutes.increment()
-			deferred = Promise.pending()
 
 			sql = bindDefaultValues(sql, bindings)
-			executeSql(sql, bindings, deferred, args...)
 
-			return deferred.promise.finally(pendingExecutes.decrement)
-				.catch (err) ->
-					# Wrap the error so we can catch it easier later
-					throw new DatabaseError(err)
-				.nodeify(callback)
+			executeSql(sql, bindings, args...)
+			.finally(pendingExecutes.decrement)
+			.catch (err) ->
+				# Wrap the error so we can catch it easier later
+				throw new DatabaseError(err)
+			.nodeify(callback)
 
 		@rollback = (callback) ->
 			promise = rollback()
@@ -121,7 +120,7 @@ createTransaction = (createFunc) ->
 			createFunc(resolve, reject, stackTraceErr)
 
 		if callback?
-			promise.then(callback).catch (err) ->
+			promise.tap(callback).catch (err) ->
 				console.error(err, callback)
 		return promise
 
@@ -143,7 +142,7 @@ if pg?
 			}
 		class PostgresTx extends Tx
 			constructor: (_db, _close, _stackTraceErr) ->
-				executeSql = (sql, bindings, deferred, addReturning = false) ->
+				executeSql = (sql, bindings, addReturning = false) ->
 					bindings = bindings.slice(0) # Deal with the fact we may splice arrays directly into bindings
 					if addReturning and /^\s*INSERT\s+INTO/i.test(sql)
 						sql = sql.replace(/;?$/, ' RETURNING "' + addReturning + '";')
@@ -167,11 +166,9 @@ if pg?
 								return '$' + ++bindNo
 						])
 
-					_db.query {text: sql, values: bindings}, (err, res) ->
-						if err
-							deferred.reject(err)
-						else
-							deferred.fulfill(createResult(res))
+					Promise.fromCallback (callback) ->
+						_db.query({ text: sql, values: bindings }, callback)
+					.then(createResult)
 
 				rollback = =>
 					promise = @executeSql('ROLLBACK;')
@@ -234,12 +231,10 @@ if mysql?
 			}
 		class MySqlTx extends Tx
 			constructor: (_db, _close, _stackTraceErr) ->
-				executeSql = (sql, bindings, deferred) ->
-					_db.query sql, bindings, (err, res) ->
-						if err
-							deferred.reject(err)
-						else
-							deferred.fulfill(createResult(res))
+				executeSql = (sql, bindings) ->
+					Promise.fromCallback (callback) ->
+						_db.query(sql, bindings, callback)
+					.then(createResult)
 
 				rollback = =>
 					promise = @executeSql('ROLLBACK;')
@@ -317,29 +312,28 @@ if openDatabase?
 						_tx.executeSql('SELECT 0', [], asyncRecurse)
 				asyncRecurse()
 
-				executeSql = (sql, bindings, deferred) ->
-					# This is used so we can find the useful part of the stack trace, as WebSQL is asynchronous and starts a new stack.
-					stackTraceErr = new Error()
+				executeSql = (sql, bindings) ->
+					new Promise (resolve, reject) ->
+						sql = bindDefaultValues(sql, bindings)
 
-					successCallback = (_tx, _results) =>
-						deferred.fulfill(createResult(_results))
-					errorCallback = (_tx, err) =>
-						deferred.reject(err)
+						successCallback = (_tx, _results) ->
+							resolve(_results)
+						errorCallback = (_tx, err) ->
+							reject(err)
 
-					sql = bindDefaultValues(sql, bindings)
-					queue.push([sql, bindings, successCallback, errorCallback])
+						queue.push([sql, bindings, successCallback, errorCallback])
+					.then(createResult)
 
 				rollback = ->
-					deferred = Promise.pending()
-					successCallback = ->
-						deferred.fulfill()
-						throw 'Rollback'
-					errorCallback = ->
-						deferred.fulfill()
-						return true
-					queue = [['RUN A FAILING STATEMENT TO ROLLBACK', [], successCallback, errorCallback]]
-					running = false
-					return deferred.promise
+					new Promise (resolve) ->
+						successCallback = ->
+							resolve()
+							throw 'Rollback'
+						errorCallback = ->
+							resolve()
+							return true
+						queue = [['RUN A FAILING STATEMENT TO ROLLBACK', [], successCallback, errorCallback]]
+						running = false
 
 				end = ->
 					running = false
