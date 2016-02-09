@@ -1,3 +1,5 @@
+* Fixed `read` permission for $expands.
+
 V1.0.3
 
 * Updated to lodash 4
