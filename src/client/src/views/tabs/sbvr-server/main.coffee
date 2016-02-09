@@ -3,6 +3,8 @@ define [
 	'server-request'
 ], (Backbone, serverRequest) ->
 	Backbone.View.extend(
+		initialize: (@options) ->
+
 		events:
 			'click #run-request': 'runRequest'
 			'click #run-server': 'runServer'

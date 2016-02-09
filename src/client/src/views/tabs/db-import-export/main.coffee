@@ -7,6 +7,8 @@ define [
 	'codemirror/addon/hint/sql-hint'
 ], (Backbone, _, serverRequest, $, CodeMirror) ->
 	Backbone.View.extend(
+		initialize: (@options) ->
+
 		events:
 			"click #bidb": "importDB"
 			"click #bedb": "exportDB"

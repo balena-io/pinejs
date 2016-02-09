@@ -27,6 +27,8 @@ define [
 			messageBox.text(message)
 
 	Backbone.View.extend(
+		initialize: (@options) ->
+
 		events:
 			"click #validate": "validate"
 

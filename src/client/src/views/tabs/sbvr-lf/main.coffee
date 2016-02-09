@@ -4,6 +4,8 @@ define [
 	'./style.css'
 ], (Backbone, lfviz) ->
 	Backbone.View.extend(
+		initialize: (@options) ->
+
 		setTitle: (title) ->
 			@options.title.text(title)
 
