@@ -83,6 +83,7 @@ addPermissions = (req, permissionType, vocabulary, resourceName, odataQuery) ->
 				addPermissions(req, 'get', vocabulary, expand.name, expand)
 
 exports.addPermissions = (req, {method, vocabulary, resourceName, odataQuery, values, custom}) ->
+	method = method.toUpperCase()
 	isMetadataEndpoint = resourceName in metadataEndpoints or method is 'OPTIONS'
 
 	permissionType =
