@@ -240,7 +240,7 @@ getHooks = (request) ->
 	vocabHooks = apiHooks[request.method]?[request.vocabulary]
 	if not vocabHooks?
 		return {}
-	return _.merge {}, vocabHooks[request.resourceName], vocabHooks['all'], (a, b) ->
+	return _.mergeWith {}, vocabHooks[request.resourceName], vocabHooks['all'], (a, b) ->
 		if _.isArray(a)
 			return a.concat(b)
 

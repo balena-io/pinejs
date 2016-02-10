@@ -1,5 +1,6 @@
-v1.0.4
+v1.0.5
 
+* Fixed 'all' hooks overriding resource hooks.
 * Fixed `read` permission for $expands.
 
 v1.0.3
