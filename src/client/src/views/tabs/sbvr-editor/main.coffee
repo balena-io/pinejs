@@ -7,6 +7,8 @@ define [
 	'ometa-highlighting/sbvr'
 ], (Backbone, $, _, CodeMirror, ometaAutoComplete) ->
 	Backbone.View.extend(
+		initialize: (@options) ->
+
 		setTitle: (title) ->
 			@options.title.text(title)
 

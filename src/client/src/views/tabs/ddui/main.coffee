@@ -7,6 +7,8 @@ define [
 	'./jquery-ui.css'
 ], (Backbone, ClientURIParser, drawDataUI) ->
 	Backbone.View.extend(
+		initialize: (@options) ->
+
 		setTitle: (title) ->
 			@options.title.text(title)
 

@@ -49,6 +49,7 @@ module.exports =
 			'server-glue': root + '/src/server/src/server-glue/server.coffee'
 			'sbvr-api': root + '/src/server/src/sbvr-api'
 			'sbvr-compiler': root + '/src/server/src/sbvr-compiler'
+			'@resin/sbvr-types$': '@resin/sbvr-types/bin/types.js'
 	plugins: [
 		new UMDRequirePlugin()
 		new webpack.ResolverPlugin(
