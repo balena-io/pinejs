@@ -13,6 +13,17 @@ odataParser = ODataParser.createInstance()
 odata2AbstractSQL = {}
 
 metadataEndpoints = ['$metadata', '$serviceroot']
+methodPermissions =
+	GET: or: ['get', 'read']
+	PUT:
+		or: [
+			'set'
+			and: ['create', 'update']
+		]
+	POST: or: ['set', 'create']
+	PATCH: or: ['set', 'update']
+	MERGE: or: ['set', 'update']
+	DELETE: 'delete'
 
 exports.parseODataURI = (req) -> Promise.try ->
 	{method, url, body} = req
@@ -80,7 +91,7 @@ addPermissions = (req, permissionType, vocabulary, resourceName, odataQuery) ->
 			# Make sure any relevant permission filters are also applied to expands.
 			Promise.map odataQuery.options.$expand.properties, (expand) ->
 				# Always use get for the $expands
-				addPermissions(req, 'get', vocabulary, expand.name, expand)
+				addPermissions(req, methodPermissions.GET, vocabulary, expand.name, expand)
 
 exports.addPermissions = (req, {method, vocabulary, resourceName, odataQuery, values, custom}) ->
 	method = method.toUpperCase()
@@ -89,24 +100,11 @@ exports.addPermissions = (req, {method, vocabulary, resourceName, odataQuery, va
 	permissionType =
 		if isMetadataEndpoint
 			'model'
+		else if methodPermissions[method]?
+			methodPermissions[method]
 		else
-			switch method
-				when 'GET'
-					or: ['get', 'read']
-				when 'PUT'
-					or: [
-						'set'
-						and: ['create', 'update']
-					]
-				when 'POST'
-					or: ['set', 'create']
-				when 'PATCH', 'MERGE'
-					or: ['set', 'update']
-				when 'DELETE'
-					'delete'
-				else
-					console.warn('Unknown method for permissions type check: ', method)
-					'all'
+			console.warn('Unknown method for permissions type check: ', method)
+			'all'
 
 	addPermissions(req, permissionType, vocabulary, odataQuery.resource, odataQuery)
 	.return {
