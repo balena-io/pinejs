@@ -1,3 +1,5 @@
+* Added express 4 compatibility.
+
 v1.0.5
 
 * Fixed 'all' hooks overriding resource hooks.
