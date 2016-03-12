@@ -463,25 +463,31 @@ exports.runURI = runURI =  (method, uri, body = {}, tx, req, callback) ->
 		user = permissions: []
 
 	req =
+		# TODO: Remove in major version removing expressjs 3 compat.
 		param: (paramName) ->
-			# This should also look in route params and query params if/when they're supported..
-			# TODO: We *must* support query params at the least for the sake of internal apikey permissioned requests.. maybe?
 			return req.body[paramName]
 		user: user
 		apiKey: apiKey
 		method: method
 		url: uri
 		body: body
+		params: {}
+		query: {}
 		tx: tx
 
 	return new Promise (resolve, reject) ->
 		res =
-			send: (statusCode) ->
+			statusCode: 200
+			status: (@statusCode) ->
+				return @
+			sendStatus: (statusCode) ->
 				if statusCode >= 400
 					reject(statusCode)
 				else
 					resolve()
-			json: (data, statusCode) ->
+			send: (statusCode = @statusCode) ->
+				@sendStatus(statusCode)
+			json: (data, statusCode = @statusCode) ->
 				if statusCode >= 400
 					reject(data)
 				else
@@ -582,7 +588,7 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 		# If the err is an error object then use its message instead - it should be more readable!
 		if err instanceof Error
 			err = err.message
-		res.json(err, 404)
+		res.status(404).json(err)
 
 # This is a helper method to handle using a passed in req.tx when available, or otherwise creating a new tx and cleaning up after we're done.
 runTransaction = (req, request, callback) ->
@@ -673,7 +679,7 @@ respondPost = (req, res, request, result) ->
 		runHook('PRERESPOND', {req, res, request, result, tx: req.tx})
 		.then ->
 			res.set('Location', location)
-			res.json(result.d[0], 201)
+			res.status(201).json(result.d[0])
 
 runPut = (req, res, request, tx) ->
 	vocab = request.vocabulary

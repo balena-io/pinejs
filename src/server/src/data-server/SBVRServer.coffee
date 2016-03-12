@@ -139,7 +139,7 @@ exports.setup = (app, sbvrUtils, db) ->
 			res.send(200)
 		.catch (err) ->
 			isServerOnAir(false)
-			res.json(err, 404)
+			res.status(404).json(err)
 	app.post '/validate', sbvrUtils.checkPermissionsMiddleware('get'), (req, res, next) ->
 		sbvrUtils.runRule('data', req.body.rule)
 		.then (results) ->
@@ -147,7 +147,7 @@ exports.setup = (app, sbvrUtils, db) ->
 		.catch (err) ->
 			console.log('Error validating', err)
 			res.send(404)
-	app.del '/cleardb', sbvrUtils.checkPermissionsMiddleware('delete'), (req, res, next) ->
+	app.delete '/cleardb', sbvrUtils.checkPermissionsMiddleware('delete'), (req, res, next) ->
 		db.transaction (tx) ->
 			tx.tableList()
 			.then (result) ->
@@ -260,7 +260,7 @@ exports.setup = (app, sbvrUtils, db) ->
 	app.patch('/ui/*', sbvrUtils.handleODataRequest)
 
 
-	app.del '/', serverIsOnAir, (req, res, next) ->
+	app.delete '/', serverIsOnAir, (req, res, next) ->
 		Promise.all([
 			uiAPI.patch
 				resource: 'textarea'

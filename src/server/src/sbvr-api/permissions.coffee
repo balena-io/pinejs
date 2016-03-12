@@ -174,7 +174,7 @@ exports.setup = (app, sbvrUtils) ->
 
 	exports.customApiKeyMiddleware = customApiKeyMiddleware = (paramName = 'apikey') ->
 		return (req, res, next) ->
-			apiKey = req.param(paramName)
+			apiKey = req.params[paramName] ? req.body[paramName] ? req.query[paramName]
 			checkApiKey(req, apiKey)
 			.then ->
 				next?()

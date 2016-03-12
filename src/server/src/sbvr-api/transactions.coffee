@@ -142,7 +142,7 @@ exports.setup = (app, sbvrUtils) ->
 				res.send(200)
 			.catch (err) ->
 				console.error('Error ending transaction', err, err.stack)
-				res.json(err, 404)
+				res.status(404).json(err)
 	app.get '/transaction', (req, res, next) ->
 		res.json(
 			transactionURI: '/transaction/transaction'
