@@ -1,3 +1,5 @@
+v1.1.0
+
 * Added express 4 compatibility.
 
 v1.0.5
