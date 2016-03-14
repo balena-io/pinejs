@@ -98,7 +98,12 @@ exports.setup = (app, sbvrUtils) ->
 			passthrough: req: rootRead
 			options:
 				select: 'name'
-				filter: role__has__permission: role: roleFilter
+				filter:
+					role__has__permission: $any:
+						$alias: 'rhp'
+						$expr: 'rhp': role: $any:
+							$alias: 'r'
+							$expr: roleFilter
 		# TODO: Combine these into one api call.
 		Promise.join userPerms, rolePerms, (userPermissions, rolePermissions) ->
 			allPermissions = _.map(userPermissions, 'name')
@@ -111,8 +116,12 @@ exports.setup = (app, sbvrUtils) ->
 
 	exports.getUserPermissions = getUserPermissions = (userId, callback) ->
 		if _.isFinite(userId)
-			permsFilter = user__has__permission: user: userId
-			roleFilter = user__has__role: user: userId
+			permsFilter = user__has__permission: $any:
+				$alias: 'uhp'
+				$expr: uhp: user: userId
+			roleFilter = r: user__has__role: $any:
+				$alias: 'uhr'
+				$expr: uhr: user: userId
 			return getPermissions(permsFilter, roleFilter, callback)
 		else
 			return Promise.rejected(new Error('User ID either has to be a numeric id, got: ' + typeof userId))
@@ -123,8 +132,16 @@ exports.setup = (app, sbvrUtils) ->
 			max: 50
 			maxAge: 5 * 60 * 1000
 			fetchFn: (apiKey) ->
-				permsFilter = api_key__has__permission: api_key: key: apiKey
-				roleFilter = api_key__has__role: api_key: key: apiKey
+				permsFilter = api_key__has__permission: $any:
+					$alias: 'khp'
+					$expr: khp: api_key: $any:
+						$alias: 'k'
+						$expr: k: key: apiKey
+				roleFilter = r: api_key__has__role: $any:
+					$alias: 'khr'
+					$expr: khr: api_key: $any:
+						$alias: 'k'
+						$expr: k: key: apiKey
 				return getPermissions(permsFilter, roleFilter)
 		(apiKey, callback) ->
 			promise =
@@ -275,7 +292,9 @@ exports.setup = (app, sbvrUtils) ->
 						select: 'id'
 						filter: 
 							api_key:
-								key: req.apiKey.key
+								$any:
+									$alias: 'k'
+									$expr: k: key: req.apiKey.key
 				.then (user) ->
 					if user.length is 0
 						throw new Error('API key is not linked to a user?!')
