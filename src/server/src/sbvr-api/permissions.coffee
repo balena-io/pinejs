@@ -85,30 +85,15 @@ exports.setup = (app, sbvrUtils) ->
 					}
 		.nodeify(callback)
 
-	getPermissions = (permsFilter, roleFilter, callback) ->
+	getPermissions = (permsFilter, callback) ->
 		authApi = sbvrUtils.api.Auth
-		userPerms = authApi.get
+		authApi.get
 			resource: 'permission'
 			passthrough: req: rootRead
 			options:
 				select: 'name'
 				filter: permsFilter
-		rolePerms = authApi.get
-			resource: 'permission'
-			passthrough: req: rootRead
-			options:
-				select: 'name'
-				filter:
-					role__has__permission: $any:
-						$alias: 'rhp'
-						$expr: 'rhp': role: $any:
-							$alias: 'r'
-							$expr: roleFilter
-		# TODO: Combine these into one api call.
-		Promise.join userPerms, rolePerms, (userPermissions, rolePermissions) ->
-			allPermissions = _.map(userPermissions, 'name')
-			allPermissions = allPermissions.concat(_.map(rolePermissions, 'name'))
-			return _.uniq(allPermissions)
+		.map (permission) -> permission.name
 		.catch (err) ->
 			authApi.logger.error('Error loading permissions', err, err.stack)
 			throw err
@@ -116,13 +101,18 @@ exports.setup = (app, sbvrUtils) ->
 
 	exports.getUserPermissions = getUserPermissions = (userId, callback) ->
 		if _.isFinite(userId)
-			permsFilter = user__has__permission: $any:
-				$alias: 'uhp'
-				$expr: uhp: user: userId
-			roleFilter = r: user__has__role: $any:
-				$alias: 'uhr'
-				$expr: uhr: user: userId
-			return getPermissions(permsFilter, roleFilter, callback)
+			permsFilter = $or:
+				user__has__permission: $any:
+					$alias: 'uhp'
+					$expr: uhp: user: userId
+				role__has__permission: $any:
+					$alias: 'rhp'
+					$expr: 'rhp': role: $any:
+						$alias: 'r'
+						$expr: r: user__has__role: $any:
+							$alias: 'uhr'
+							$expr: uhr: user: userId
+			return getPermissions(permsFilter, callback)
 		else
 			return Promise.rejected(new Error('User ID either has to be a numeric id, got: ' + typeof userId))
 
@@ -132,17 +122,22 @@ exports.setup = (app, sbvrUtils) ->
 			max: 50
 			maxAge: 5 * 60 * 1000
 			fetchFn: (apiKey) ->
-				permsFilter = api_key__has__permission: $any:
-					$alias: 'khp'
-					$expr: khp: api_key: $any:
-						$alias: 'k'
-						$expr: k: key: apiKey
-				roleFilter = r: api_key__has__role: $any:
-					$alias: 'khr'
-					$expr: khr: api_key: $any:
-						$alias: 'k'
-						$expr: k: key: apiKey
-				return getPermissions(permsFilter, roleFilter)
+				permsFilter = $or:
+					api_key__has__permission: $any:
+						$alias: 'khp'
+						$expr: khp: api_key: $any:
+							$alias: 'k'
+							$expr: k: key: apiKey
+					role__has__permission: $any:
+						$alias: 'rhp'
+						$expr: 'rhp': role: $any:
+							$alias: 'r'
+							$expr: r: api_key__has__role: $any:
+								$alias: 'khr'
+								$expr: khr: api_key: $any:
+									$alias: 'k'
+									$expr: k: key: apiKey
+				return getPermissions(permsFilter)
 		(apiKey, callback) ->
 			promise =
 				if _.isString(apiKey)
