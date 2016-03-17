@@ -1,3 +1,5 @@
+* Updated to pinejs-client ^2.3.1 and remove deprecated uses of it.
+
 v1.1.0
 
 * Added express 4 compatibility.
