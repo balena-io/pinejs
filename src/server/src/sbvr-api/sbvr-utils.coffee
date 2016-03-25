@@ -9,7 +9,7 @@ sbvrTypes = require '@resin/sbvr-types'
 SBVRParser = require '../../../common/extended-sbvr-parser/extended-sbvr-parser.coffee'
 
 migrator = require '../migrator/migrator.coffee'
-AbstractSQL2CLF = require '../sbvr-compiler/AbstractSQL2CLF.coffee'
+AbstractSQL2CLF = require '@resin/abstract-sql-to-odata-schema'
 ODataMetadataGenerator = require '../sbvr-compiler/ODataMetadataGenerator.coffee'
 
 devModel = require './dev.sbvr'

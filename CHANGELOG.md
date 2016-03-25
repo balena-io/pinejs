@@ -1,3 +1,5 @@
+* Separated out the OData schema generation.
+
 v1.2.0
 
 * Updated to pinejs-client ^2.3.1 and remove deprecated uses of it.
