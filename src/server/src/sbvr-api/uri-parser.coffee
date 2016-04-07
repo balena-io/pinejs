@@ -73,9 +73,9 @@ addPermissions = (req, permissionType, vocabulary, resourceName, odataQuery) ->
 		if conditionalPerms isnt true
 			permissionFilters = permissions.nestedCheck conditionalPerms, (permissionCheck) ->
 				try
-					permissionCheck = odataParser.matchAll('/x?$filter=' + permissionCheck, 'Process')
+					permissionCheck = odataParser.matchAll(permissionCheck, 'FilterByExpression')
 					# We use an object with filter key to avoid collapsing our filters later.
-					return filter: permissionCheck.options.$filter
+					return filter: permissionCheck
 				catch e
 					console.warn('Failed to parse conditional permissions: ', permissionCheck)
 					throw new ParsingError(e)
