@@ -47,6 +47,21 @@ exports.parseODataURI = (req) -> Promise.try ->
 		custom: {}
 	}]
 
+collapsePermissionFilters = (v) ->
+	if _.isArray(v)
+		collapsePermissionFilters(or: v)
+	else if _.isObject(v)
+		if v.hasOwnProperty('filter')
+			v.filter
+		else
+			_(v)
+			.toPairs()
+			.flattenDeep()
+			.map(collapsePermissionFilters)
+			.value()
+	else
+		v
+
 addPermissions = (req, permissionType, vocabulary, resourceName, odataQuery) ->
 	permissions.checkPermissions(req, permissionType, resourceName, vocabulary)
 	.then (conditionalPerms) ->
@@ -65,22 +80,7 @@ addPermissions = (req, permissionType, vocabulary, resourceName, odataQuery) ->
 			if permissionFilters is false
 				throw new PermissionError()
 			if permissionFilters isnt true
-				collapse = (v) ->
-					if _.isArray(v)
-						collapse(or: v)
-					else if _.isObject(v)
-						if v.hasOwnProperty('filter')
-							v.filter
-						else
-							_(v)
-							.toPairs()
-							.flattenDeep()
-							.map(collapse)
-							.value()
-					else
-						v
-
-				permissionFilters = collapse(permissionFilters)
+				permissionFilters = collapsePermissionFilters(permissionFilters)
 				odataQuery.options ?= {}
 				if odataQuery.options.$filter?
 					odataQuery.options.$filter = ['and', odataQuery.options.$filter, permissionFilters]

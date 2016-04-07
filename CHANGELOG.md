@@ -1,3 +1,4 @@
+* Avoid recreating the collapse function.
 * Separated out the OData schema generation.
 
 v1.2.0
