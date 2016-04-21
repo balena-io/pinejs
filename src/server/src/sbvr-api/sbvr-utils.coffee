@@ -578,6 +578,8 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 		.catch EvalError, RangeError, ReferenceError, SyntaxError, TypeError, URIError, (err) ->
 			logger.error(err, err.stack)
 			res.send(500)
+	.catch uriParser.BadRequestError, ->
+		res.send(400)
 	.catch uriParser.PermissionError, (err) ->
 		res.send(401)
 	.catch SqlCompilationError, uriParser.TranslationError, uriParser.ParsingError, (err) ->
