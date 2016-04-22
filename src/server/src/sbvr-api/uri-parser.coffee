@@ -4,6 +4,7 @@ TypedError = require 'typed-error'
 {OData2AbstractSQL} = require '@resin/odata-to-abstract-sql'
 permissions = require './permissions.coffee'
 _ = require 'lodash'
+memoize = require 'memoizee'
 
 exports.PermissionError = class PermissionError extends TypedError
 exports.TranslationError = class TranslationError extends TypedError
@@ -65,6 +66,8 @@ collapsePermissionFilters = (v) ->
 	else
 		v
 
+parsePermissions = memoize(_.bind(odataParser.matchAll, odataParser, _, 'FilterByExpression'), { length: 1, primitive: true })
+
 addPermissions = (req, permissionType, vocabulary, resourceName, odataQuery) ->
 	permissions.checkPermissions(req, permissionType, resourceName, vocabulary)
 	.then (conditionalPerms) ->
@@ -73,7 +76,7 @@ addPermissions = (req, permissionType, vocabulary, resourceName, odataQuery) ->
 		if conditionalPerms isnt true
 			permissionFilters = permissions.nestedCheck conditionalPerms, (permissionCheck) ->
 				try
-					permissionCheck = odataParser.matchAll(permissionCheck, 'FilterByExpression')
+					permissionCheck = parsePermissions(permissionCheck)
 					# We use an object with filter key to avoid collapsing our filters later.
 					return filter: permissionCheck
 				catch e
