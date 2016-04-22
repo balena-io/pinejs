@@ -1,3 +1,4 @@
+* Simplified permission filter checking.
 * Respond with 400 Bad Request to malformed odata queries.
 * Avoid recreating the collapse function.
 * Separated out the OData schema generation.
