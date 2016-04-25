@@ -1,3 +1,4 @@
+* Added memoisation for permission filter generating.
 * Simplified permission filter checking.
 * Respond with 400 Bad Request to malformed odata queries.
 * Avoid recreating the collapse function.

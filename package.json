@@ -16,6 +16,7 @@
     "coffee-script": "~1.10.0",
     "express-session": "^1.10.3",
     "lodash": "^4.0.0",
+    "memoizee": "^0.3.10",
     "ometa-js": "^1.4.0",
     "pinejs-client": "^2.3.1",
     "typed-error": "~0.1.0"
