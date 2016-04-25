@@ -4,11 +4,11 @@
   "main": "src/server/src/server-glue/module.coffee",
   "repository": "git@bitbucket.org:rulemotion/pinejs.git",
   "dependencies": {
-    "@resin/abstract-sql-compiler": "^1.0.1",
+    "@resin/abstract-sql-compiler": "^1.2.0",
     "@resin/abstract-sql-to-odata-schema": "^1.0.0",
     "@resin/lf-to-abstract-sql": "~0.0.14",
-    "@resin/odata-parser": "~0.1.5",
-    "@resin/odata-to-abstract-sql": "~0.3.0",
+    "@resin/odata-parser": "~0.1.8",
+    "@resin/odata-to-abstract-sql": "~0.3.3",
     "@resin/sbvr-parser": "~0.0.18",
     "@resin/sbvr-types": "^1.0.0",
     "bluebird": "^3.0.6",
@@ -17,7 +17,7 @@
     "express-session": "^1.10.3",
     "lodash": "^4.0.0",
     "memoizee": "^0.3.10",
-    "ometa-js": "^1.4.0",
+    "ometa-js": "^1.4.2",
     "pinejs-client": "^2.3.1",
     "typed-error": "~0.1.0"
   },

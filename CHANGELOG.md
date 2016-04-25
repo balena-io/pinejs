@@ -1,3 +1,4 @@
+* Updated odata-parser, odata-to-abstract-sql, and abstract-sql-compiler to add support for date/time functions and some bugfixes.
 * Added memoisation for permission filter generating.
 * Simplified permission filter checking.
 * Respond with 400 Bad Request to malformed odata queries.
