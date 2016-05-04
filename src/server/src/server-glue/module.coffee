@@ -15,6 +15,7 @@ Promise = require 'bluebird'
 dbModule = require '../database-layer/db.coffee'
 sbvrUtils = require '../sbvr-api/sbvr-utils.coffee'
 sbvrServer = require '../data-server/SBVRServer.coffee'
+transactions = require '../sbvr-api/transactions.coffee'
 configLoader = require '../config-loader/config-loader.coffee'
 migrator = require '../migrator/migrator.coffee'
 PinejsSessionStore = require '../pinejs-session-store/pinejs-session-store.coffee'
@@ -48,6 +49,7 @@ init = (app, config) ->
 	.tap (configLoader) ->
 		Promise.all([
 			configLoader.loadConfig(sbvrServer.config) if process.env.SBVR_SERVER_ENABLED
+			configLoader.loadConfig(transactions.config).then(-> transactions.addModelHooks('data')) if process.env.SBVR_SERVER_ENABLED
 			configLoader.loadApplicationConfig(config) if !process.env.CONFIG_LOADER_DISABLED
 		])
 	.catch (err) ->
