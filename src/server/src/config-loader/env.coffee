@@ -1,4 +1,4 @@
 exports.apiKeys = 
 	permissionsCache:
-		max: 50
+		max: 500
 		maxAge: 5 * 60 * 1000
