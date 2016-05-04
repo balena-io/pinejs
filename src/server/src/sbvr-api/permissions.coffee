@@ -1,6 +1,7 @@
 _ = require 'lodash'
 Promise = require 'bluebird'
 BluebirdLRU = require 'bluebird-lru-cache'
+env = require '../config-loader/env.coffee'
 
 exports.root = user: permissions: [ 'resource.all' ]
 exports.rootRead = rootRead = user: permissions: [ 'resource.get' ]
@@ -117,10 +118,9 @@ exports.setup = (app, sbvrUtils) ->
 			return Promise.rejected(new Error('User ID either has to be a numeric id, got: ' + typeof userId))
 
 	exports.getApiKeyPermissions = getApiKeyPermissions = do ->
-		# TODO: Allow the max/maxAge settings to be easily customised.
 		cache = new BluebirdLRU
-			max: 50
-			maxAge: 5 * 60 * 1000
+			max: env.apiKeys.permissionsCache.max
+			maxAge: env.apiKeys.permissionsCache.maxAge
 			fetchFn: (apiKey) ->
 				permsFilter = $or:
 					api_key__has__permission: $any:

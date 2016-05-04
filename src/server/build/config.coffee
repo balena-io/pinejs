@@ -49,7 +49,6 @@ module.exports =
 
 			'extended-sbvr-parser': root + '/src/common/extended-sbvr-parser/extended-sbvr-parser.coffee'
 
-			'config-loader': root + '/src/server/src/config-loader'
 			'data-server': root + '/src/server/src/data-server'
 			'database-layer': root + '/src/server/src/database-layer'
 			'express-emulator': root + '/src/server/src/express-emulator'
