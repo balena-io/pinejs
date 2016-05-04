@@ -1,3 +1,5 @@
+* Separated out the api key permissions cache settings so they can be overridden if need be.
+
 v1.3.0
 
 * Updated odata-parser, odata-to-abstract-sql, and abstract-sql-compiler to add support for date/time functions and some bugfixes.
