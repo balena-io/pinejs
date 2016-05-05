@@ -652,7 +652,6 @@ runPost = (req, res, request, tx) ->
 
 	idField = clientModels[vocab].resources[request.resourceName].idField
 
-	# TODO: Check for transaction locks.
 	runQuery(tx, request, null, idField)
 	.then (sqlResult) ->
 		validateModel(tx, vocab)
