@@ -1,4 +1,11 @@
-define ['./widgets/text', './widgets/textArea', './widgets/foreignKey', './widgets/integer', './widgets/boolean', './widgets/real'], (text, textArea, foreignKey, integer, boolean, real) ->
+define [
+	'./widgets/text'
+	'./widgets/textArea'
+	'./widgets/foreignKey'
+	'./widgets/integer'
+	'./widgets/boolean'
+	'./widgets/real'
+], (text, textArea, foreignKey, integer, boolean, real) ->
 	widgets = {}
 	widgets['Value'] = text
 	widgets['Hashed'] = widgets['Short Text'] = text

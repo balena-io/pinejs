@@ -5,7 +5,7 @@ define [
 	'jquery'
 ], (async, Promise, serverRequest, $) ->
 	runTrans = (rootElement) ->
-		actions = $(".action:has(#__actype[value!=view])")
+		actions = $('.action:has(#__actype[value!=view])')
 		if actions.size() > 0
 			# get 'trans' action resource to extract the URIs
 			serverRequest('GET', '/transaction')
@@ -19,14 +19,14 @@ define [
 					async.map(actions.toArray(),
 						(instance, callback) ->
 							$this = $(instance)
-							action = $this.children("#__actype").val()
-							resourceType = $this.children("#__type").val()
-							resourceID = $this.children("#__id").val()
+							action = $this.children('#__actype').val()
+							resourceType = $this.children('#__type').val()
+							resourceID = $this.children('#__id').val()
 							switch action
 								when 'edit', 'add'
-									inputs = $(":input:not(:submit)", $this)
+									inputs = $(':input:not(:submit)', $this)
 									fields = []
-									for input in inputs when input.id[0...2] != "__"
+									for input in inputs when input.id[0...2] != '__'
 										fields.push(
 											name: input.id
 											value: $(input).val()
@@ -61,7 +61,7 @@ define [
 											conditional_type: ''
 											placeholder: ''
 										switch dataElement[1]
-											when "del"
+											when 'del'
 												sendData.conditional_type = 'DELETE'
 												sendData.lock = dataElement[2]
 											when 'edit'
@@ -71,7 +71,7 @@ define [
 												sendData.conditional_type = 'ADD'
 												sendData.placeholder = dataElement[2]
 										switch dataElement[1]
-											when "del"
+											when 'del'
 												serverRequest('POST', transURIs.conditionalResourceURI, {}, sendData).nodeify(callback)
 											when 'edit', 'add'
 												fields = dataElement[3]
@@ -82,7 +82,7 @@ define [
 															conditional_resource: condResource.id
 															field_name: field.name
 															field_value: field.value
-														serverRequest("POST", transURIs.conditionalFieldURI, {}, fieldData)
+														serverRequest('POST', transURIs.conditionalFieldURI, {}, fieldData)
 												).nodeify(callback)
 											else
 												callback(['Unknown transaction op', dataElement[1]])
@@ -90,7 +90,7 @@ define [
 										if err?
 											console.error(err)
 										else
-											serverRequest("POST", transURIs.commitTransactionURI, null, {id: transactionID},
+											serverRequest('POST', transURIs.commitTransactionURI, null, { id: transactionID },
 												(statusCode, result, headers) ->
 													dduiState('#!/data/')
 												(statusCode, errors) ->

@@ -22,7 +22,7 @@ app = do ->
 	addHandler = (handlerName, match, middleware...) ->
 		#Strip wildcard
 		match = match.toLowerCase()
-		newMatch = match.replace(/[\/\*]*$/,'')
+		newMatch = match.replace(/[\/\*]*$/, '')
 		if newMatch != match
 			match = newMatch
 			paramName = '*'
@@ -57,7 +57,7 @@ app = do ->
 			res =
 				statusCode: 200
 				status: (@statusCode) ->
-					return @
+					return this
 				json: (obj) ->
 					# Stringify and parse to emulate passing over network.
 					obj = JSON.parse(JSON.stringify(obj))

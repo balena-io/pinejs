@@ -75,8 +75,8 @@ exports.setup = (app, sbvrUtils, db) ->
 					tx: tx
 					req: sbvrUtils.rootRead
 				options:
-					select: ['vocabulary','model_value']
-					filter: 
+					select: ['vocabulary', 'model_value']
+					filter:
 						model_type: 'se'
 						vocabulary: 'data'
 		.then (result) ->

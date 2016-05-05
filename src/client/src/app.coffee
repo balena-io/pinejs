@@ -14,8 +14,8 @@ define [
 
 	Router = Backbone.Router.extend(
 		routes:
-			''       :  'main'
-			':slug'  :  'loadModel'
+			'': 'main'
+			':slug': 'loadModel'
 
 		main: ->
 			el = $('<div />')
@@ -33,7 +33,7 @@ define [
 
 			# Load the model identified by slug and
 			# set its contents to newModel
-			new SBVRModel({id: slug}).fetch(
+			new SBVRModel({ id: slug }).fetch(
 				success: (model) ->
 					newModel.set('content', model.get('content'))
 			)

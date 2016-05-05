@@ -54,4 +54,4 @@ init = (app, config) ->
 		console.error('Error initialising server', err, err.stack)
 		process.exit()
 
-module.exports = {init, sbvrUtils, SessionStore: PinejsSessionStore}
+module.exports = { init, sbvrUtils, SessionStore: PinejsSessionStore }

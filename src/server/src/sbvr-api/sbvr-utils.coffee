@@ -23,7 +23,7 @@ db = null
 
 exports.sbvrTypes = sbvrTypes
 
-fetchProcessing = _.mapValues sbvrTypes, ({fetchProcessing}) ->
+fetchProcessing = _.mapValues sbvrTypes, ({ fetchProcessing }) ->
 	if fetchProcessing?
 		Promise.promisify(fetchProcessing)
 
@@ -106,7 +106,7 @@ getAndCheckBindValues = (vocab, bindings, values) ->
 			})
 		else
 			[dataType, value] = binding
-			field = {dataType}
+			field = { dataType }
 
 		if value is undefined
 			return db.DEFAULT_VALUE
@@ -325,14 +325,14 @@ processOData = (vocab, clientModel, resourceName, rows) ->
 
 	instances = rows.map (instance) ->
 		instance.__metadata =
-			uri: odataResourceURI(vocab, resourceModel.resourceName, + instance[resourceModel.idField])
+			uri: odataResourceURI(vocab, resourceModel.resourceName, +instance[resourceModel.idField])
 			type: ''
 		return instance
 	instancesPromise = Promise.fulfilled()
 
 	expandableFields = do ->
 		fieldNames = {}
-		for {fieldName, dataType} in resourceModel.fields when dataType != 'ForeignKey'
+		for { fieldName, dataType } in resourceModel.fields when dataType != 'ForeignKey'
 			fieldNames[fieldName.replace(/\ /g, '_')] = true
 		return _.filter(_.keys(instances[0]), (fieldName) -> fieldName[0..1] != '__' and !fieldNames.hasOwnProperty(fieldName))
 	if expandableFields.length > 0
@@ -340,11 +340,11 @@ processOData = (vocab, clientModel, resourceName, rows) ->
 			Promise.map expandableFields, (fieldName) ->
 				checkForExpansion(vocab, clientModel, fieldName, instance)
 
-	processedFields = _.filter(resourceModel.fields, ({dataType}) -> fetchProcessing[dataType]?)
+	processedFields = _.filter(resourceModel.fields, ({ dataType }) -> fetchProcessing[dataType]?)
 	if processedFields.length > 0
 		instancesPromise = instancesPromise.then ->
 			Promise.map instances, (instance) ->
-				Promise.map processedFields, ({fieldName, dataType}) ->
+				Promise.map processedFields, ({ fieldName, dataType }) ->
 					fieldName = fieldName.replace(/\ /g, '_')
 					if instance.hasOwnProperty(fieldName)
 						fetchProcessing[dataType](instance[fieldName])
@@ -356,13 +356,13 @@ processOData = (vocab, clientModel, resourceName, rows) ->
 		return instances
 
 exports.runRule = do ->
-	LF2AbstractSQLPrepHack = LF2AbstractSQL.LF2AbstractSQLPrep._extend({CardinalityOptimisation: -> @_pred(false)})
+	LF2AbstractSQLPrepHack = LF2AbstractSQL.LF2AbstractSQLPrep._extend({ CardinalityOptimisation: -> @_pred(false) })
 	translator = LF2AbstractSQL.LF2AbstractSQL.createInstance()
 	translator.addTypes(sbvrTypes)
 	return (vocab, rule, callback) ->
 		Promise.try ->
 			seModel = seModels[vocab]
-			{logger} = api[vocab]
+			{ logger } = api[vocab]
 
 			try
 				lfModel = SBVRParser.matchAll(seModel + '\nRule: ' + rule, 'Process')
@@ -370,7 +370,7 @@ exports.runRule = do ->
 				logger.error('Error parsing rule', rule, e, e.stack)
 				throw new Error(['Error parsing rule', rule, e])
 
-			ruleLF = lfModel[lfModel.length-1]
+			ruleLF = lfModel[lfModel.length - 1]
 			lfModel = lfModel[...-1]
 
 			try
@@ -442,7 +442,7 @@ exports.runRule = do ->
 
 exports.PinejsClient =
 	class PinejsClient extends PinejsClientCore(_, Promise)
-		_request: ({method, url, body, tx, req}) ->
+		_request: ({ method, url, body, tx, req }) ->
 			return runURI(method, url, body, tx, req)
 
 exports.api = api = {}
@@ -479,7 +479,7 @@ exports.runURI = runURI =  (method, uri, body = {}, tx, req, callback) ->
 		res =
 			statusCode: 200
 			status: (@statusCode) ->
-				return @
+				return this
 			sendStatus: (statusCode) ->
 				if statusCode >= 400
 					reject(statusCode)
@@ -520,7 +520,7 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 		# Then for each request add/check the relevant permissions, translate to abstract sql, and then compile the abstract sql.
 		Promise.map requests, (request) ->
 			req.hooks = getHooks(request)
-			runHook('POSTPARSE', {req, request, tx: req.tx})
+			runHook('POSTPARSE', { req, request, tx: req.tx })
 			.then ->
 				uriParser.addPermissions(req, request)
 			.then(uriParser.translateUri)
@@ -536,7 +536,7 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 	.then (requests) ->
 		# Use the first request (and only, since we don't support multiple requests in one yet)
 		request = requests[0]
-		{logger} = api[request.vocabulary]
+		{ logger } = api[request.vocabulary]
 
 		res.set('Cache-Control', 'no-cache')
 
@@ -544,7 +544,7 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 			logger.log('Running', req.method, req.url)
 
 		runTransaction req, request, (tx) ->
-			runHook('PRERUN', {req, request, tx})
+			runHook('PRERUN', { req, request, tx })
 			.then ->
 				switch req.method
 					when 'GET'
@@ -597,7 +597,7 @@ runTransaction = (req, request, callback) ->
 	runCallback = (tx) ->
 		callback(tx)
 		.tap (result) ->
-			runHook('POSTRUN', {req, request, result, tx})
+			runHook('POSTRUN', { req, request, result, tx })
 	if req.tx?
 		# If an existing tx was passed in then use it.
 		runCallback(req.tx)
@@ -613,7 +613,7 @@ runTransaction = (req, request, callback) ->
 
 # This is a helper function that will check and add the bind values to the SQL query and then run it.
 runQuery = (tx, request, queryIndex, addReturning) ->
-	{values, sqlQuery, vocabulary} = request
+	{ values, sqlQuery, vocabulary } = request
 	if queryIndex?
 		sqlQuery = sqlQuery[queryIndex]
 	getAndCheckBindValues(vocabulary, sqlQuery.bindings, values)
@@ -635,9 +635,9 @@ respondGet = (req, res, request, result) ->
 		clientModel = clientModels[vocab].resources
 		processOData(vocab, clientModel, request.resourceName, result.rows)
 		.then (d) ->
-			runHook('PRERESPOND', {req, res, request, result, data: d, tx: req.tx})
+			runHook('PRERESPOND', { req, res, request, result, data: d, tx: req.tx })
 			.then ->
-				res.json({d})
+				res.json({ d })
 	else
 		if request.resourceName == '$metadata'
 			res.type('xml')
@@ -678,7 +678,7 @@ respondPost = (req, res, request, result) ->
 		# If we failed to fetch the created resource then just return the id.
 		return d: [{ id }]
 	.then (result) ->
-		runHook('PRERESPOND', {req, res, request, result, tx: req.tx})
+		runHook('PRERESPOND', { req, res, request, result, tx: req.tx })
 		.then ->
 			res.set('Location', location)
 			res.status(201).json(result.d[0])
@@ -702,7 +702,7 @@ runPut = (req, res, request, tx) ->
 		validateModel(tx, vocab)
 
 respondPut = respondDelete = respondOptions = (req, res, request) ->
-	runHook('PRERESPOND', {req, res, request, tx: req.tx})
+	runHook('PRERESPOND', { req, res, request, tx: req.tx })
 	.then ->
 		res.send(200)
 

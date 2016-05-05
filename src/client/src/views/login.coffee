@@ -9,10 +9,10 @@ define [
 		id: 'app-main'
 
 		events:
-			'submit  #loginForm'      :  'login'
-			'click   a.showRegister'  :  'showRegister'
-			'submit  #registerForm'   :  'register'
-			'click   a.showLogin'     :  'showLogin'
+			'submit  #loginForm': 'login'
+			'click   a.showRegister': 'showRegister'
+			'submit  #registerForm': 'register'
+			'click   a.showLogin': 'showLogin'
 
 		render: ->
 			@$el.html('<div class="modal hide fade" id="loginModal" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">')

@@ -1,6 +1,6 @@
 _ = require 'lodash'
 Promise = require 'bluebird'
-{SQLBinds} = require './SQLBinds.ometajs'
+{ SQLBinds } = require './SQLBinds.ometajs'
 TypedError = require 'typed-error'
 
 class DatabaseError extends TypedError
@@ -19,7 +19,7 @@ bindDefaultValues = (sql, bindings) ->
 		# We don't have to do any work if none of the bindings match DEFAULT_VALUE
 		return sql
 	bindNo = 0
-	SQLBinds.matchAll(sql, 'Parse', [->
+	SQLBinds.matchAll(sql, 'Parse', [ ->
 		if bindings[bindNo] == DEFAULT_VALUE
 			bindings.splice(bindNo, 1)
 			'DEFAULT'
@@ -45,7 +45,7 @@ class Tx
 	if process.env.TRANSACTION_TIMEOUT_MS
 		timeoutMS = parseInt(process.env.TRANSACTION_TIMEOUT_MS)
 		if _.isNaN(timeoutMS) or timeoutMS <= 0
-			throw new Error("Invalid valid for TRANSACTION_TIMEOUT_MS: " + process.env.TRANSACTION_TIMEOUT_MS)
+			throw new Error("Invalid valid for TRANSACTION_TIMEOUT_MS: #{process.env.TRANSACTION_TIMEOUT_MS}")
 	else
 		timeoutMS = 10000
 
@@ -128,7 +128,7 @@ try
 	pg = require('pg')
 if pg?
 	exports.postgres = (connectString) ->
-		createResult = ({rowCount, rows}) ->
+		createResult = ({ rowCount, rows }) ->
 			return {
 				rows:
 					length: rows?.length or 0
@@ -187,8 +187,8 @@ if pg?
 					callback = extraWhereClause
 					extraWhereClause = ''
 				if extraWhereClause != ''
-					extraWhereClause = ' WHERE ' + extraWhereClause
-				@executeSql("SELECT * FROM (SELECT tablename as name FROM pg_tables WHERE schemaname = 'public') t" + extraWhereClause + ";", [], callback)
+					extraWhereClause = 'WHERE ' + extraWhereClause
+				@executeSql("SELECT * FROM (SELECT tablename as name FROM pg_tables WHERE schemaname = 'public') t #{extraWhereClause};", [], callback)
 			dropTable: (tableName, ifExists = true, callback) ->
 				@executeSql('DROP TABLE ' + (if ifExists is true then 'IF EXISTS ' else '') + '"' + tableName + '" CASCADE;', [], callback)
 		return {
