@@ -51,7 +51,10 @@ module.exports = (vocabulary, sqlModel) ->
 		<?xml version="1.0" encoding="iso-8859-1" standalone="yes"?>
 		<edmx:Edmx Version="1.0" xmlns:edmx="http://schemas.microsoft.com/ado/2007/06/edmx">
 			<edmx:DataServices xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata" m:DataServiceVersion="2.0">
-				<Schema Namespace="#{vocabulary}" xmlns:d="http://schemas.microsoft.com/ado/2007/08/dataservices" xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata" xmlns="http://schemas.microsoft.com/ado/2008/09/edm">
+				<Schema Namespace="#{vocabulary}"
+					xmlns:d="http://schemas.microsoft.com/ado/2007/08/dataservices"
+					xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata"
+					xmlns="http://schemas.microsoft.com/ado/2008/09/edm">
 
 				""" +
 				forEachUniqueTable(model, (key, { idField, name: resourceName, fields }) ->

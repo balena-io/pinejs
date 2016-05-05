@@ -20,7 +20,15 @@ define [
 					if err
 						console.error(err)
 					else
-						@$el.html('<div id="dataTab" aria-labelledby="ui-id-9" class="ui-tabs-panel ui-widget-content ui-corner-bottom" role="tabpanel" style="display: block;" aria-expanded="true" aria-hidden="false">' + html + '</div>')
+						@$el.html("""
+							<div id="dataTab"
+								aria-labelledby="ui-id-9"
+								class="ui-tabs-panel ui-widget-content ui-corner-bottom"
+								role="tabpanel"
+								style="display: block;"
+								aria-expanded="true"
+								aria-hidden="false">#{html}</div>
+							""")
 
 			dduiState('#!/data')
 	)

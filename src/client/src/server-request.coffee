@@ -7,7 +7,15 @@ define [
 		if !headers['Content-Type']? and body?
 			headers['Content-Type'] = 'application/json'
 		currentId = requestId++
-		$('#httpTable').append('<tr class="server_row"><td><strong>' + method + '</strong></td><td>' + uri + '</td><td>' + (if headers.length == 0 then '' else JSON.stringify(headers)) + '</td><td>' + JSON.stringify(body) + '</td><td id="result' + currentId + '"></td></tr>')
+		$('#httpTable').append("""
+			<tr class="server_row">
+				<td><strong>#{method}</strong></td>
+				<td>#{uri}</td>
+				<td>#{if headers.length == 0 then '' else JSON.stringify(headers)}</td>
+				<td>#{JSON.stringify(body)}</td>
+				<td id="result#{currentId}"></td>
+			</tr>
+		""")
 		displayResult = (result) ->
 			text = JSON.stringify(result, null, 4)
 			resultCell = $('#result' + currentId)

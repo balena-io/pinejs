@@ -128,13 +128,19 @@ define [
 									else { %>
 										<%- resourceCollection.resourceName %><%
 										if(resourceModel.actions.indexOf("view") !== -1) { %>
-											<a href="<%= resourceCollection.viewURI %>" onClick="dduiState('<%= resourceCollection.viewHash %>');return false"><span title="View" class="ui-icon ui-icon-search"></span></a><%
+											<a href="<%= resourceCollection.viewURI %>"
+												onClick="dduiState('<%= resourceCollection.viewHash %>');return false"
+											><span title="View" class="ui-icon ui-icon-search"></span></a><%
 										}
 										if(resourceModel.actions.indexOf("edit") !== -1) { %>
-											<a href="<%= resourceCollection.editURI %>" onClick="dduiState('<%= resourceCollection.editHash %>');return false"><span title="Edit" class="ui-icon ui-icon-pencil"></span></a><%
+											<a href="<%= resourceCollection.editURI %>"
+												onClick="dduiState('<%= resourceCollection.editHash %>');return false"
+											><span title="Edit" class="ui-icon ui-icon-pencil"></span></a><%
 										}
 										if(resourceModel.actions.indexOf("delete") !== -1) { %>
-											<a href="<%= resourceCollection.deleteURI %>" onClick="dduiState('<%= resourceCollection.deleteHash %>');return false"><span title="Delete" class="ui-icon ui-icon-trash"></span></a><%
+											<a href="<%= resourceCollection.deleteURI %>"
+												onClick="dduiState('<%= resourceCollection.deleteHash %>');return false"
+											><span title="Delete" class="ui-icon ui-icon-trash"></span></a><%
 										}
 									} %>
 								</td>
