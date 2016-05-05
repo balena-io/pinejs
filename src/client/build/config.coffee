@@ -59,7 +59,7 @@ module.exports =
 			'window.jQuery': 'jquery'
 		)
 		new webpack.optimize.DedupePlugin()
-		new ExtractTextPlugin('main.css', 
+		new ExtractTextPlugin('main.css',
 			allChunks: true
 		)
 		new webpack.optimize.LimitChunkCountPlugin(maxChunks: 1)

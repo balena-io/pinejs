@@ -31,7 +31,7 @@ class PinejsSessionStore extends expressSession.Store
 	get: (sid, callback) ->
 		sessionAPI.get
 			resource: 'session'
-			id: sid 
+			id: sid
 			passthrough: req: sbvrUtils.rootRead
 			options:
 				select: 'data'

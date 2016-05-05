@@ -22,6 +22,6 @@ define [
 				catch e
 					console.log(e)
 
-			@model.on 'change:content', =>
+			@model.on 'change:content', ->
 				rerenderRequired = true
 	)

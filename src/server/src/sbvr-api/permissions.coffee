@@ -285,7 +285,7 @@ exports.setup = (app, sbvrUtils) ->
 					passthrough: req: rootRead
 					options:
 						select: 'id'
-						filter: 
+						filter:
 							api_key:
 								$any:
 									$alias: 'k'

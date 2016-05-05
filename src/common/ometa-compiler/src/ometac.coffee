@@ -14,7 +14,7 @@ calculateLineColInfo = (string, index) ->
 		if char == '\n'
 			line++
 			column = 0
-	return {line, column}
+	return { line, column }
 	console.log('Line:', line)
 	console.log('Col:', column)
 
@@ -23,7 +23,7 @@ translationError = (m, i) ->
 	throw fail
 parsingError = (ometa) ->
 	(m, i) ->
-		{line, column} = calculateLineColInfo(ometa, i)
+		{ line, column } = calculateLineColInfo(ometa, i)
 		start = Math.max(0, i - 20)
 		console.log('Error on line ' + line + ', column ' + column)
 		console.log('Error around: ' + ometa.substring(start, Math.min(ometa.length, start + 40)))

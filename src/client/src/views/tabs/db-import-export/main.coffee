@@ -10,8 +10,8 @@ define [
 		initialize: (@options) ->
 
 		events:
-			"click #bidb": "importDB"
-			"click #bedb": "exportDB"
+			'click #bidb': 'importDB'
+			'click #bedb': 'exportDB'
 
 		setTitle: (title) ->
 			@options.title.text(title)
@@ -19,10 +19,10 @@ define [
 		render: ->
 			@setTitle('Import/Export DB')
 
-			html = """
+			html = '''
 				<div id="bidb" class="btn btn-small btn-primary">Import DB</div>
 				<div id="bedb" class="btn btn-small">Export DB</div>
-				<div id="importexportmessage" class="alert" style="display:none"></div>"""
+				<div id="importexportmessage" class="alert" style="display:none"></div>'''
 
 			textarea = $('<textarea />')
 			@$el.html(html).append(textarea)

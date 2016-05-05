@@ -1,7 +1,7 @@
 Promise = require 'bluebird'
 TypedError = require 'typed-error'
-{ODataParser} = require '@resin/odata-parser'
-{OData2AbstractSQL} = require '@resin/odata-to-abstract-sql'
+{ ODataParser } = require '@resin/odata-parser'
+{ OData2AbstractSQL } = require '@resin/odata-to-abstract-sql'
 permissions = require './permissions.coffee'
 _ = require 'lodash'
 memoize = require 'memoizee'
@@ -28,7 +28,7 @@ methodPermissions =
 	DELETE: 'delete'
 
 exports.parseODataURI = (req) -> Promise.try ->
-	{method, url, body} = req
+	{ method, url, body } = req
 	url = url.split('/')
 	apiRoot = url[1]
 	if !apiRoot? or !odata2AbstractSQL[apiRoot]?
@@ -99,7 +99,7 @@ addPermissions = (req, permissionType, vocabulary, resourceName, odataQuery) ->
 				# Always use get for the $expands
 				addPermissions(req, methodPermissions.GET, vocabulary, expand.name, expand)
 
-exports.addPermissions = (req, {method, vocabulary, resourceName, odataQuery, values, custom}) ->
+exports.addPermissions = (req, { method, vocabulary, resourceName, odataQuery, values, custom }) ->
 	method = method.toUpperCase()
 	isMetadataEndpoint = resourceName in metadataEndpoints or method is 'OPTIONS'
 
@@ -122,7 +122,7 @@ exports.addPermissions = (req, {method, vocabulary, resourceName, odataQuery, va
 		custom
 	}
 
-exports.translateUri = ({method, vocabulary, resourceName, odataQuery, values, custom}) ->
+exports.translateUri = ({ method, vocabulary, resourceName, odataQuery, values, custom }) ->
 	isMetadataEndpoint = resourceName in metadataEndpoints or method is 'OPTIONS'
 	if !isMetadataEndpoint
 		try

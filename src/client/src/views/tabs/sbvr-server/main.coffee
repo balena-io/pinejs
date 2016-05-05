@@ -43,7 +43,7 @@ define [
 			)
 
 		runRequest: ->
-			request = @$("#request").val()
+			request = @$('#request').val()
 			serverRequest('GET', request)
 
 		runServer: ->
@@ -57,5 +57,5 @@ define [
 				serverRequest('POST', '/execute/')
 			).done =>
 				@model.trigger('onAir')
-				console.log("Executing model successfull!")
+				console.log('Executing model successfull!')
 	)

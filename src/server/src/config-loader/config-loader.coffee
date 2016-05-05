@@ -135,13 +135,13 @@ exports.setup = (app) ->
 
 		console.info('Loading application config')
 		switch typeof config
-			when "undefined"
+			when 'undefined'
 				root = process.argv[2] or __dirname
 				config = loadJSON(path.join(root, 'config.json'))
-			when "string"
+			when 'string'
 				root = path.dirname(config)
 				config = loadJSON(config)
-			when "object"
+			when 'object'
 				root = process.cwd()
 
 		Promise.map config.models, (model) ->

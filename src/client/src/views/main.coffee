@@ -9,27 +9,27 @@ define [
 		id: 'app-main'
 
 		events:
-			'click  #new-model-button'      :  'create'
-			'click  #publish-model-button'  :  'publish'
-			'click  #login-button'          :  'login'
-			'click  #logout-button'         :  'logout'
-			'click  #publishSuccess .close' :  'closeAlert'
-			'click  #publishSuccess a'      :  'closeAlert'
+			'click  #new-model-button': 'create'
+			'click  #publish-model-button': 'publish'
+			'click  #login-button': 'login'
+			'click  #logout-button': 'logout'
+			'click  #publishSuccess .close': 'closeAlert'
+			'click  #publishSuccess a': 'closeAlert'
 
 		render: ->
 			@$el.html(html)
-			$userGroup = @$("#user-group").hide(0)
-			sid = localStorage.getItem("sid")
+			$userGroup = @$('#user-group').hide(0)
+			sid = localStorage.getItem('sid')
 			if sid?
 				session = new SessionModel({
-					key: localStorage.getItem("sid")
+					key: localStorage.getItem('sid')
 				}).fetch().done(
 					(data) =>
-						@$("#login-group").hide(0)
-						@$("#user-email").text(data.email)
+						@$('#login-group').hide(0)
+						@$('#user-email').text(data.email)
 						$userGroup.show(0)
 					(error) ->
-						localStorage.removeItem("sid")
+						localStorage.removeItem('sid')
 						console.error(error)
 				)
 
@@ -98,22 +98,22 @@ define [
 			@$('#modal').remove()
 			el = $('<div id="modal"/>')
 			@$el.append(el)
-			loginView = new LoginView({el})
+			loginView = new LoginView({ el })
 			loginView.render()
-			loginView.on "login", (email) =>
-				@$("#login-group").hide(0)
-				@$("#user-group").show(0)
-				@$("#user-email").text(email)
+			loginView.on 'login', (email) =>
+				@$('#login-group').hide(0)
+				@$('#user-group').show(0)
+				@$('#user-email').text(email)
 
 		logout: ->
 			session = new SessionModel({
-				key: localStorage.getItem("sid")
+				key: localStorage.getItem('sid')
 			}).destroy().fail((error) ->
 				console.error(error)
 			).always(=>
-				@$("#user-group").hide(0)
-				@$("#login-group").show(0)
-				localStorage.removeItem("sid")
+				@$('#user-group').hide(0)
+				@$('#login-group').show(0)
+				localStorage.removeItem('sid')
 			)
 
 		closeAlert: ->

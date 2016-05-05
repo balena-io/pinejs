@@ -23,7 +23,7 @@ exports.setup = (app, sbvrUtils) ->
 					Promise.all fields.rows.map (field) ->
 						fieldName = field.field_name.replace(clientModel.resourceName + '.', '')
 						fieldValue = field.field_value
-						modelField = _.find(clientModel.fields, {fieldName})
+						modelField = _.find(clientModel.fields, { fieldName })
 						if modelField.dataType == 'ForeignKey' and _.isNaN(Number(fieldValue))
 							if !placeholders.hasOwnProperty(fieldValue)
 								throw new Error('Cannot resolve placeholder' + fieldValue)
@@ -73,7 +73,7 @@ exports.setup = (app, sbvrUtils) ->
 							.then (lockedRow) ->
 								lockedRow = lockedRow.rows.item(0)
 								url = url + '?$filter=' + clientModel.idField + ' eq ' + lockedRow.resource_id
-								sbvrUtils.PinejsClient::delete({url, passthrough})
+								sbvrUtils.PinejsClient::delete({ url, passthrough })
 							.then(doCleanup)
 						when 'EDIT'
 							getLockedRow(lockID)
@@ -82,12 +82,12 @@ exports.setup = (app, sbvrUtils) ->
 								getFieldsObject(conditionalResource.id, clientModel)
 								.then (body) ->
 									body[clientModel.idField] = lockedRow.resource_id
-									sbvrUtils.PinejsClient::put({url, body, passthrough})
+									sbvrUtils.PinejsClient::put({ url, body, passthrough })
 							.then(doCleanup)
 						when 'ADD'
 							getFieldsObject(conditionalResource.id, clientModel)
 							.then (body) ->
-								sbvrUtils.PinejsClient::post({url, body, passthrough})
+								sbvrUtils.PinejsClient::post({ url, body, passthrough })
 							.then (result) ->
 								placeholders[placeholder].resolve(result.id)
 							.then(doCleanup)
@@ -114,7 +114,7 @@ exports.setup = (app, sbvrUtils) ->
 
 	exports.check = (tx, request) ->
 		vocab = request.vocabulary
-		{logger} = sbvrUtils.api[vocab]
+		{ logger } = sbvrUtils.api[vocab]
 		id = sbvrUtils.getID(vocab, request)
 		tx.executeSql('''
 			SELECT NOT EXISTS(

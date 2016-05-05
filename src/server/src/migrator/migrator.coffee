@@ -16,7 +16,7 @@ exports.run = (tx, model) ->
 	@checkModelAlreadyExists(tx, modelName)
 	.then (exists) =>
 		if not exists
-			@logger.info "First time model has executed, skipping migrations"
+			@logger.info('First time model has executed, skipping migrations')
 			return @setExecutedMigrations(tx, modelName, _.keys(model.migrations))
 
 		@getExecutedMigrations(tx, modelName)
@@ -74,10 +74,10 @@ exports.filterAndSortPendingMigrations = (migrations, executedMigrations) ->
 	.sortBy(_.head)
 	.value()
 
-exports.executeMigrations = (tx, migrations=[]) ->
+exports.executeMigrations = (tx, migrations = []) ->
 	Promise.map(migrations, @executeMigration.bind(this, tx), concurrency: 1)
 	.catch (err) =>
-		@logger.error "Error while executing migrations, rolled back"
+		@logger.error('Error while executing migrations, rolled back')
 		throw new MigrationError(err)
 	.return(_.map(migrations, _.head)) # return migration keys
 

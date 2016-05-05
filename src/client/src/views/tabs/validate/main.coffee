@@ -30,7 +30,7 @@ define [
 		initialize: (@options) ->
 
 		events:
-			"click #validate": "validate"
+			'click #validate': 'validate'
 
 		setTitle: (title) ->
 			@options.title.text(title)
@@ -38,7 +38,7 @@ define [
 		render: ->
 			@setTitle('Validate')
 
-			html = """
+			html = '''
 				<textarea id="validateEditor" />
 				<div id="validate" class="btn btn-small btn-primary">Validate</div>
 				<div id="validatemessage" class="alert" style="display:none"></div>
@@ -51,7 +51,7 @@ define [
 						<tbody>
 						</tbody>
 					</table>
-				</div>"""
+				</div>'''
 
 			@$el.html(html)
 			textarea = @$('#validateEditor')
@@ -70,8 +70,8 @@ define [
 				@editor.setSize(@$el.width(), 40)
 			).resize()
 		validate: ->
-			resultsDiv = @$("#results")
-			messageBox = @$("#validatemessage")
+			resultsDiv = @$('#results')
+			messageBox = @$('#validatemessage')
 			resultsDiv.hide()
 			messageBox.show()
 			displayMessage(messageBox, 'info', 'Loading...')
@@ -80,7 +80,7 @@ define [
 				.then(([statusCode, result]) ->
 					return result.__model
 				)
-				serverRequest('POST', '/validate/', {}, {rule: @editor.getValue()})
+				serverRequest('POST', '/validate/', {}, { rule: @editor.getValue() })
 				.then(([statusCode, result]) ->
 					return result
 				)
@@ -91,7 +91,7 @@ define [
 				fkCols = []
 
 				resourceModel = clientModel[invalid.__resourceName]
-				for {dataType, fieldName} in resourceModel.fields
+				for { dataType, fieldName } in resourceModel.fields
 					resourceName = fieldName.replace(/\ /g, '_')
 					if dataType == 'ForeignKey'
 						colNames.push(fieldName + '(id: name)')
@@ -155,8 +155,8 @@ define [
 						displayMessage(messageBox, someFoundMessages[invalid.__formulationType]...)
 						resultsDiv.show()
 
-						header = @$("thead tr")
-						results = @$("tbody")
+						header = @$('thead tr')
+						results = @$('tbody')
 						header.empty()
 						results.empty()
 
