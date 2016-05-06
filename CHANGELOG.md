@@ -1,3 +1,4 @@
+* Switched to throwing specific errors for unique/foreign key/general constraint errors, rather than always just a generic database error.
 * Converted cases of throwing strings into throwing error objects.
 * Separated out the api key permissions cache settings so they can be overridden if need be.
 

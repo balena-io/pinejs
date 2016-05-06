@@ -49,44 +49,32 @@ class UnsupportedMethodError extends TypedError
 class SqlCompilationError extends TypedError
 
 # TODO: Clean this up and move it into the db module.
-checkForConstraintError = do ->
-	WEBSQL_CONSTRAINT_ERR = 6
-	PG_UNIQUE_VIOLATION = '23505'
-	PG_FOREIGN_KEY_VIOLATION = '23503'
-	(err, tableName) ->
-		if db.engine not in ['postgres', 'mysql']
-			if err.code is WEBSQL_CONSTRAINT_ERR
-				# SQLite
-				return ['Constraint failed.']
-			return false
-
-		# Unique key
-		switch db.engine
-			when 'mysql'
-				matches = /ER_DUP_ENTRY: Duplicate entry '.*?[^\\]' for key '(.*?[^\\])'/.exec(err)
-			when 'postgres'
-				if err.code is PG_UNIQUE_VIOLATION
+prettifyConstraintError = (err, tableName) ->
+	if err instanceof db.ConstraintError
+		if err instanceof db.UniqueConstraintError
+			switch db.engine
+				when 'mysql'
+					matches = /ER_DUP_ENTRY: Duplicate entry '.*?[^\\]' for key '(.*?[^\\])'/.exec(err)
+				when 'postgres'
 					matches = new RegExp('"' + tableName + '_(.*?)_key"').exec(err)
 					# We know it's the right error type, so if matches exists just return a generic error message, since we have failed to get the info for a more specific one.
 					if !matches?
-						return ['Unique key constraint violated']
-		if matches?
-			return ['"' + matches[1] + '" must be unique.']
+						throw new db.UniqueConstraintError('Unique key constraint violated')
+			throw new db.UniqueConstraintError('Data is referenced by ' + matches[1].replace(/\ /g, '_').replace(/-/g, '__') + '.')
 
-		# Foreign Key
-		switch db.engine
-			when 'mysql'
-				matches = /ER_ROW_IS_REFERENCED_: Cannot delete or update a parent row: a foreign key constraint fails \(".*?"\.(".*?").*/.exec(err)
-			when 'postgres'
-				if err.code is PG_FOREIGN_KEY_VIOLATION
+		if err instanceof db.ForeignKeyConstraintError
+			switch db.engine
+				when 'mysql'
+					matches = /ER_ROW_IS_REFERENCED_: Cannot delete or update a parent row: a foreign key constraint fails \(".*?"\.(".*?").*/.exec(err)
+				when 'postgres'
 					matches = new RegExp('"' + tableName + '" violates foreign key constraint ".*?" on table "(.*?)"').exec(err)
 					matches ?= new RegExp('"' + tableName + '" violates foreign key constraint "' + tableName + '_(.*?)_fkey"').exec(err)
 					# We know it's the right error type, so if matches exists just return a generic error message, since we have failed to get the info for a more specific one.
 					if !matches?
-						return ['Foreign key constraint violated']
-		if matches?
-			return ['Data is referenced by ' + matches[1].replace(/\ /g, '_').replace(/-/g, '__') + '.']
-		return false
+						throw new db.ForeignKeyConstraintError('Foreign key constraint violated')
+			throw new db.ForeignKeyConstraintError('Data is referenced by ' + matches[1].replace(/\ /g, '_').replace(/-/g, '__') + '.')
+
+		throw err
 
 getAndCheckBindValues = (vocab, bindings, values) ->
 	mappings = clientModels[vocab].resourceToSQLMappings
@@ -570,9 +558,7 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 				else
 					throw new UnsupportedMethodError()
 		.catch db.DatabaseError, (err) ->
-			constraintError = checkForConstraintError(err, request.resourceName)
-			if constraintError != false
-				throw constraintError
+			prettifyConstraintError(err, request.resourceName)
 			logger.error(err, err.stack)
 			res.send(500)
 		.catch EvalError, RangeError, ReferenceError, SyntaxError, TypeError, URIError, (err) ->
