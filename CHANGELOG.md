@@ -1,3 +1,4 @@
+* Dropped expressjs3 compatibility, fixing deprecated notices on expressjs4.
 * Added expiry date fields onto the permissions system.
 
 v1.4.2

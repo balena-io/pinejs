@@ -92,7 +92,7 @@ exports.setup = (app) ->
 				Promise.map data.models, (model) ->
 					if model.modelText?
 						apiRoute = '/' + model.apiRoot + '/*'
-						app.options(apiRoute, (req, res) -> res.send(200))
+						app.options(apiRoute, (req, res) -> res.sendStatus(200))
 						app.all(apiRoute, sbvrUtils.handleODataRequest)
 
 					if model.customServerCode?

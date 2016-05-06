@@ -468,9 +468,6 @@ exports.runURI = runURI =  (method, uri, body = {}, tx, req, callback) ->
 		user = permissions: []
 
 	req =
-		# TODO: Remove in major version removing expressjs 3 compat.
-		param: (paramName) ->
-			return req.body[paramName]
 		user: user
 		apiKey: apiKey
 		method: method
@@ -582,18 +579,18 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 		.catch db.DatabaseError, (err) ->
 			prettifyConstraintError(err, request.resourceName)
 			logger.error(err, err.stack)
-			res.send(500)
+			res.sendStatus(500)
 		.catch EvalError, RangeError, ReferenceError, SyntaxError, TypeError, URIError, (err) ->
 			logger.error(err, err.stack)
-			res.send(500)
+			res.sendStatus(500)
 	.catch uriParser.BadRequestError, ->
-		res.send(400)
+		res.sendStatus(400)
 	.catch permissions.PermissionError, (err) ->
-		res.send(401)
+		res.sendStatus(401)
 	.catch SqlCompilationError, uriParser.TranslationError, uriParser.ParsingError, permissions.PermissionParsingError, (err) ->
-		res.send(500)
+		res.sendStatus(500)
 	.catch UnsupportedMethodError, (err) ->
-		res.send(405)
+		res.sendStatus(405)
 	.catch (err) ->
 		# If the err is an error object then use its message instead - it should be more readable!
 		if err instanceof Error
@@ -709,7 +706,7 @@ runPut = (req, res, request, tx) ->
 respondPut = respondDelete = respondOptions = (req, res, request) ->
 	runHook('PRERESPOND', { req, res, request, tx: req.tx })
 	.then ->
-		res.send(200)
+		res.sendStatus(200)
 
 runDelete = (req, res, request, tx) ->
 	vocab = request.vocabulary

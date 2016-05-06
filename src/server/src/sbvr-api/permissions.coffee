@@ -386,14 +386,14 @@ exports.setup = (app, sbvrUtils) ->
 			.then (allowed) ->
 				switch allowed
 					when false
-						res.send(401)
+						res.sendStatus(401)
 					when true
 						next()
 					else
 						throw new Error('checkPermissionsMiddleware returned a conditional permission')
 			.catch (err) ->
 				sbvrUtils.api.Auth.logger.error('Error checking permissions', err, err.stack)
-				res.send(503)
+				res.sendStatus(503)
 
 	addPermissions = do ->
 		_addPermissions = (req, permissionType, vocabulary, resourceName, odataQuery) ->

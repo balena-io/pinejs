@@ -64,15 +64,15 @@ initialised = Pinejs.init(app)
 		app.post '/login', passportPinejs.login (err, user, req, res, next) ->
 			if err
 				console.error('Error logging in', err, err.stack)
-				res.send(500)
+				res.sendStatus(500)
 			else if user is false
 				if req.xhr is true
-					res.send(401)
+					res.sendStatus(401)
 				else
 					res.redirect('/login.html')
 			else
 				if req.xhr is true
-					res.send(200)
+					res.sendStatus(200)
 				else
 					res.redirect('/')
 
