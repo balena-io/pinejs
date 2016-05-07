@@ -23,7 +23,7 @@ module.exports = (vocabulary, sqlModel) ->
 			sbvrTypes[fieldType].types.odata.name
 		else
 			console.error('Could not resolve type', fieldType)
-			throw 'Could not resolve type' + fieldType
+			throw new Error('Could not resolve type' + fieldType)
 
 
 	model = sqlModel.tables

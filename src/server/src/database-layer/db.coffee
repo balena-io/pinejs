@@ -328,7 +328,7 @@ if openDatabase?
 					new Promise (resolve) ->
 						successCallback = ->
 							resolve()
-							throw 'Rollback'
+							throw new Error('Rollback')
 						errorCallback = ->
 							resolve()
 							return true
@@ -364,5 +364,5 @@ if openDatabase?
 
 exports.connect = (databaseOptions) ->
 	if !exports[databaseOptions.engine]? or databaseOptions.engine is 'connect'
-		throw 'Unsupported database engine: ' + databaseOptions.engine
+		throw new Error('Unsupported database engine: ' + databaseOptions.engine)
 	return exports[databaseOptions.engine](databaseOptions.params)

@@ -1,3 +1,4 @@
+* Converted cases of throwing strings into throwing error objects.
 * Separated out the api key permissions cache settings so they can be overridden if need be.
 
 v1.3.0

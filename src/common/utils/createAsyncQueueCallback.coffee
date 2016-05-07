@@ -15,11 +15,11 @@ define  ->
 		return {
 			addWork: (amount = 1) ->
 				if(endedAdding)
-					throw 'You cannot add after ending adding'
+					throw new Error('You cannot add after ending adding')
 				totalQueries += amount
 			endAdding: ->
 				if(endedAdding)
-					throw 'You cannot end adding twice'
+					throw new Error('You cannot end adding twice')
 				endedAdding = true
 				checkFinished()
 			successCallback: ->
