@@ -107,13 +107,26 @@ exports.setup = (app, sbvrUtils) ->
 		POSTPARSE: ({ req, request }) ->
 			addPermissions(req, request)
 
+	sbvrUtils.addHook 'POST', 'Auth', 'user',
+		POSTPARSE: ({ request, api }) ->
+			api.post
+				resource: 'actor'
+			.then (result) ->
+				request.values.actor = result.id
+
+	sbvrUtils.addHook 'DELETE', 'Auth', 'user',
+		POSTRUN: ({ request, api }) ->
+			api.delete
+				resource: 'actor'
+				id: request.values.actor
+
 	exports.checkPassword = (username, password, callback) ->
 		authApi = sbvrUtils.api.Auth
 		authApi.get
 			resource: 'user'
 			passthrough: req: rootRead
 			options:
-				select: ['id', 'password']
+				select: ['id', 'actor', 'password']
 				filter:
 					username: username
 		.then (result) ->
@@ -121,6 +134,7 @@ exports.setup = (app, sbvrUtils) ->
 				throw new Error('User not found')
 			hash = result[0].password
 			userId = result[0].id
+			actorId = result[0].actor
 			sbvrUtils.sbvrTypes.Hashed.compare(password, hash)
 			.then (res) ->
 				if !res
@@ -129,6 +143,7 @@ exports.setup = (app, sbvrUtils) ->
 				.then (permissions) ->
 					return {
 						id: userId
+						actor: actorId
 						username: username
 						permissions: permissions
 					}
@@ -287,9 +302,9 @@ exports.setup = (app, sbvrUtils) ->
 
 			authApi = sbvrUtils.api.Auth
 
-			_checkPermissions = (permissions, userID) ->
-				if !userID?
-					throw new Error('User ID cannot be null for _checkPermissions.')
+			_checkPermissions = (permissions, actorID) ->
+				if !actorID?
+					throw new Error('Actor ID cannot be null for _checkPermissions.')
 				checkObject = or: ['all', actionList]
 				return nestedCheck checkObject, (permissionCheck) ->
 					resourcePermission = 'resource.' + permissionCheck
@@ -310,9 +325,9 @@ exports.setup = (app, sbvrUtils) ->
 							permission = permission + '?'
 							if permissionName[...permission.length] == permission
 								condition = permissionName[permission.length...]
-								if _.isArray(userID)
-									return _.map userID, (id) -> condition.replace(/\$USER\.ID/g, id)
-								return condition.replace(/\$USER\.ID/g, userID)
+								if _.isArray(actorID)
+									return _.map actorID, (id) -> condition.replace(/\$ACTOR\.ID/g, id)
+								return condition.replace(/\$ACTOR\.ID/g, actorID)
 						return false
 					# Remove the false elements.
 					conditionalPermissions = _.filter(conditionalPermissions)
@@ -324,12 +339,12 @@ exports.setup = (app, sbvrUtils) ->
 					return false
 
 			# We default to a user id of 0 (the guest user) if not logged in.
-			userID = req.user?.id ? 0
-			apiKeyUserID = false
+			actorID = req.user?.actor ? 0
+			apiKeyActorID = false
 
 			Promise.try ->
 				if req.user?
-					return _checkPermissions(req.user.permissions, userID)
+					return _checkPermissions(req.user.permissions, actorID)
 				return false
 			.catch (err) ->
 				authApi.logger.error('Error checking user permissions', req.user, err, err.stack)
@@ -339,20 +354,16 @@ exports.setup = (app, sbvrUtils) ->
 				if allowed is true or !apiKeyPermissions? or apiKeyPermissions.length is 0
 					return allowed
 				authApi.get
-					resource: 'user'
+					resource: 'api_key'
 					passthrough: req: rootRead
 					options:
-						select: 'id'
-						filter:
-							api_key:
-								$any:
-									$alias: 'k'
-									$expr: k: key: req.apiKey.key
-				.then (user) ->
-					if user.length is 0
-						throw new Error('API key is not linked to a user?!')
-					apiKeyUserID = user[0].id
-					return _checkPermissions(apiKeyPermissions, apiKeyUserID)
+						select: 'actor'
+						filter: key: req.apiKey.key
+				.then (apiKeys) ->
+					if apiKeys.length is 0
+						throw new Error('API key is not linked to a actor?!')
+					apiKeyActorID = apiKeys[0].actor
+					return _checkPermissions(apiKeyPermissions, apiKeyActorID)
 				.catch (err) ->
 					authApi.logger.error('Error checking api key permissions', req.apiKey.key, err, err.stack)
 				.then (apiKeyAllowed) ->
@@ -364,12 +375,12 @@ exports.setup = (app, sbvrUtils) ->
 					return allowed
 				_getGuestPermissions()
 				.then (permissions) ->
-					userIDs =
-						if apiKeyUserID isnt false
-							[userID, apiKeyUserID]
+					actorIDs =
+						if apiKeyActorID isnt false
+							[actorID, apiKeyActorID]
 						else
-							userID
-					return _checkPermissions(permissions, userIDs)
+							actorID
+					return _checkPermissions(permissions, actorIDs)
 				.catch (err) ->
 					authApi.logger.error('Error checking guest permissions', err, err.stack)
 					return false

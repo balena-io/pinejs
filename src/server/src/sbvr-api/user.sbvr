@@ -24,8 +24,11 @@ Fact type:  role has name
 	Necessity: Each name is of exactly one role.
 Fact type:  role has permission
 
+Term:       actor
+
 Term:       user
 	Reference Scheme: username
+	Concept Type: actor
 Fact type:  user has username
 	Necessity: Each user has exactly one username.
 	Necessity: Each username is of exactly one user.
@@ -49,5 +52,5 @@ Fact type:  api key has key
 Fact type:  api key has role
 	Note: An 'api key' will inherit all the 'permissions' that the 'role' has.
 Fact type:  api key has permission
-Fact type:  api key is of user
-	Necessity: each api key is of exactly one user
+Fact type:  api key is of actor
+	Necessity: each api key is of exactly one actor
