@@ -9,9 +9,15 @@ class DatabaseError extends TypedError
 		if message?.code?
 			@code = message.code
 		# If this is a SQLError we have to handle it specially (since it's not an instance of Error)
-		if message.constructor.name is 'SQLError'
+		if message?.constructor.name is 'SQLError'
 			message = message.message
 		super(message)
+
+class ConstraintError extends DatabaseError
+class UniqueConstraintError extends ConstraintError
+class ForeignKeyConstraintError extends ConstraintError
+
+NotADatabaseError = (err) -> not (err instanceof DatabaseError)
 
 DEFAULT_VALUE = {}
 bindDefaultValues = (sql, bindings) ->
@@ -27,6 +33,14 @@ bindDefaultValues = (sql, bindings) ->
 			bindNo++
 			'?'
 	])
+
+alwaysExport = {
+	DEFAULT_VALUE
+	DatabaseError
+	ConstraintError
+	UniqueConstraintError
+	ForeignKeyConstraintError
+}
 
 atomicExecuteSql = (sql, bindings, callback) ->
 	@transaction()
@@ -85,7 +99,7 @@ class Tx
 
 			executeSql(sql, bindings, args...)
 			.finally(pendingExecutes.decrement)
-			.catch (err) ->
+			.catch NotADatabaseError, (err) ->
 				# Wrap the error so we can catch it easier later
 				throw new DatabaseError(err)
 			.nodeify(callback)
@@ -128,6 +142,9 @@ try
 	pg = require('pg')
 if pg?
 	exports.postgres = (connectString) ->
+		PG_UNIQUE_VIOLATION = '23505'
+		PG_FOREIGN_KEY_VIOLATION = '23503'
+
 		createResult = ({ rowCount, rows }) ->
 			return {
 				rows:
@@ -168,6 +185,10 @@ if pg?
 
 					Promise.fromCallback (callback) ->
 						_db.query({ text: sql, values: bindings }, callback)
+					.catch code: PG_UNIQUE_VIOLATION, (err) ->
+						throw new UniqueConstraintError(err)
+					.catch code: PG_FOREIGN_KEY_VIOLATION, (err) ->
+						throw new ForeignKeyConstraintError(err)
 					.then(createResult)
 
 				rollback = =>
@@ -191,9 +212,7 @@ if pg?
 				@executeSql("SELECT * FROM (SELECT tablename as name FROM pg_tables WHERE schemaname = 'public') t #{extraWhereClause};", [], callback)
 			dropTable: (tableName, ifExists = true, callback) ->
 				@executeSql('DROP TABLE ' + (if ifExists is true then 'IF EXISTS ' else '') + '"' + tableName + '" CASCADE;', [], callback)
-		return {
-			DEFAULT_VALUE
-			DatabaseError
+		return _.extend({
 			engine: 'postgres'
 			executeSql: atomicExecuteSql
 			transaction: createTransaction (resolve, reject, stackTraceErr) ->
@@ -207,12 +226,14 @@ if pg?
 					tx.executeSql('START TRANSACTION;')
 
 					resolve(tx)
-		}
+		}, alwaysExport)
 
 try
 	mysql = require('mysql')
 if mysql?
 	exports.mysql = (options) ->
+		MYSQL_UNIQUE_VIOLATION = 'ER_DUP_ENTRY'
+		MYSQL_FOREIGN_KEY_VIOLATION = 'ER_ROW_IS_REFERENCED'
 		_pool = mysql.createPool(options)
 		_pool.on 'connection', (_db) ->
 			_db.query("SET sql_mode='ANSI_QUOTES';")
@@ -234,6 +255,10 @@ if mysql?
 				executeSql = (sql, bindings) ->
 					Promise.fromCallback (callback) ->
 						_db.query(sql, bindings, callback)
+					.catch code: MYSQL_UNIQUE_VIOLATION, (err) ->
+						throw new UniqueConstraintError(err)
+					.catch code: MYSQL_FOREIGN_KEY_VIOLATION, (err) ->
+						throw new ForeignKeyConstraintError(err)
 					.then(createResult)
 
 				rollback = =>
@@ -257,9 +282,7 @@ if mysql?
 				@executeSql('SELECT name FROM (SELECT table_name as name FROM information_schema.tables WHERE table_schema = ?) t' + extraWhereClause + ';', [options.database], callback)
 			dropTable: (tableName, ifExists = true, callback) ->
 				@executeSql('DROP TABLE ' + (if ifExists is true then 'IF EXISTS ' else '') + '"' + tableName + '";', [], callback)
-		return {
-			DEFAULT_VALUE
-			DatabaseError
+		return _.extend({
 			engine: 'mysql'
 			executeSql: atomicExecuteSql
 			transaction: createTransaction (resolve, reject, stackTraceErr) ->
@@ -273,10 +296,12 @@ if mysql?
 					tx.executeSql('START TRANSACTION;')
 
 					resolve(tx)
-		}
+		}, alwaysExport)
 
 if openDatabase?
 	exports.websql = (databaseName) ->
+		WEBSQL_CONSTRAINT_ERR = 6
+
 		_db = openDatabase(databaseName, '1.0', 'rulemotion', 2 * 1024 * 1024)
 		getInsertId = (result) ->
 			# Ignore the potential DOM exception.
@@ -322,6 +347,8 @@ if openDatabase?
 							reject(err)
 
 						queue.push([sql, bindings, successCallback, errorCallback])
+					.catch code: WEBSQL_CONSTRAINT_ERR, ->
+						throw new ConstraintError('Constraint failed.')
 					.then(createResult)
 
 				rollback = ->
@@ -352,15 +379,13 @@ if openDatabase?
 			dropTable: (tableName, ifExists = true, callback) ->
 				@executeSql('DROP TABLE ' + (if ifExists is true then 'IF EXISTS ' else '') + '"' + tableName + '";', [], callback)
 
-		return {
-			DEFAULT_VALUE
-			DatabaseError
+		return _.extend({
 			engine: 'websql'
 			executeSql: atomicExecuteSql
 			transaction: createTransaction (resolve, reject, stackTraceErr) ->
 				_db.transaction (_tx) ->
 					resolve(new WebSqlTx(_tx, stackTraceErr))
-		}
+		}, alwaysExport)
 
 exports.connect = (databaseOptions) ->
 	if !exports[databaseOptions.engine]? or databaseOptions.engine is 'connect'
