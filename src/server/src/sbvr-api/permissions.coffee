@@ -2,9 +2,30 @@ _ = require 'lodash'
 Promise = require 'bluebird'
 BluebirdLRU = require 'bluebird-lru-cache'
 env = require '../config-loader/env.coffee'
+userModel = require './user.sbvr'
+{ metadataEndpoints } = require './uri-parser.coffee'
+{ ODataParser } = require '@resin/odata-parser'
+memoize = require 'memoizee'
+TypedError = require 'typed-error'
 
+exports.PermissionError = class PermissionError extends TypedError
 exports.root = user: permissions: [ 'resource.all' ]
 exports.rootRead = rootRead = user: permissions: [ 'resource.get' ]
+methodPermissions =
+	methodPermissions =
+		GET: or: ['get', 'read']
+		PUT:
+			or: [
+				'set'
+				and: ['create', 'update']
+			]
+		POST: or: ['set', 'create']
+		PATCH: or: ['set', 'update']
+		MERGE: or: ['set', 'update']
+		DELETE: 'delete'
+
+odataParser = ODataParser.createInstance()
+parsePermissions = memoize(_.bind(odataParser.matchAll, odataParser, _, 'FilterByExpression'), { length: 1, primitive: true })
 
 # Traverses all values in `check`, actions for the following data types:
 # string: Calls `stringCallback` and uses the value returned instead
@@ -57,7 +78,33 @@ exports.nestedCheck = nestedCheck = (check, stringCallback) ->
 	else
 		throw new Error('Cannot parse required checks: ' + check)
 
+collapsePermissionFilters = (v) ->
+	if _.isArray(v)
+		collapsePermissionFilters(or: v)
+	else if _.isObject(v)
+		if v.hasOwnProperty('filter')
+			v.filter
+		else
+			_(v)
+			.toPairs()
+			.flattenDeep()
+			.map(collapsePermissionFilters)
+			.value()
+	else
+		v
+
+exports.config =
+	models: [
+		apiRoot: 'Auth'
+		modelText: userModel
+		customServerCode: exports
+	]
 exports.setup = (app, sbvrUtils) ->
+	sbvrUtils.addHook 'all', 'all', 'all',
+		POSTPARSE: ({ req, request }) ->
+			apiKeyMiddleware(req)
+			.then ->
+				addPermissions(req, request)
 
 	exports.checkPassword = (username, password, callback) ->
 		authApi = sbvrUtils.api.Auth
@@ -193,7 +240,7 @@ exports.setup = (app, sbvrUtils) ->
 				return
 
 	# A default api key middleware for convenience
-	exports.apiKeyMiddleware = customApiKeyMiddleware()
+	exports.apiKeyMiddleware = apiKeyMiddleware = customApiKeyMiddleware()
 
 	exports.checkPermissions = checkPermissions = do ->
 		_getGuestPermissions = do ->
@@ -336,3 +383,50 @@ exports.setup = (app, sbvrUtils) ->
 			.catch (err) ->
 				sbvrUtils.api.Auth.logger.error('Error checking permissions', err, err.stack)
 				res.send(503)
+
+	addPermissions = do ->
+		_addPermissions = (req, permissionType, vocabulary, resourceName, odataQuery) ->
+			checkPermissions(req, permissionType, resourceName, vocabulary)
+			.then (conditionalPerms) ->
+				if conditionalPerms is false
+					throw new PermissionError()
+				if conditionalPerms isnt true
+					permissionFilters = nestedCheck conditionalPerms, (permissionCheck) ->
+						try
+							permissionCheck = parsePermissions(permissionCheck)
+							# We use an object with filter key to avoid collapsing our filters later.
+							return filter: permissionCheck
+						catch e
+							console.warn('Failed to parse conditional permissions: ', permissionCheck)
+							throw new ParsingError(e)
+
+					if permissionFilters is false
+						throw new PermissionError()
+					if permissionFilters isnt true
+						permissionFilters = collapsePermissionFilters(permissionFilters)
+						odataQuery.options ?= {}
+						if odataQuery.options.$filter?
+							odataQuery.options.$filter = ['and', odataQuery.options.$filter, permissionFilters]
+						else
+							odataQuery.options.$filter = permissionFilters
+
+				if odataQuery.options?.$expand?.properties?
+					# Make sure any relevant permission filters are also applied to expands.
+					Promise.map odataQuery.options.$expand.properties, (expand) ->
+						# Always use get for the $expands
+						_addPermissions(req, methodPermissions.GET, vocabulary, expand.name, expand)
+
+		return (req, { method, vocabulary, resourceName, odataQuery, values, custom }) ->
+			method = method.toUpperCase()
+			isMetadataEndpoint = resourceName in metadataEndpoints or method is 'OPTIONS'
+
+			permissionType =
+				if isMetadataEndpoint
+					'model'
+				else if methodPermissions[method]?
+					methodPermissions[method]
+				else
+					console.warn('Unknown method for permissions type check: ', method)
+					'all'
+
+			_addPermissions(req, permissionType, vocabulary, odataQuery.resource, odataQuery)

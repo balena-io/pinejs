@@ -14,7 +14,6 @@ ODataMetadataGenerator = require '../sbvr-compiler/ODataMetadataGenerator.coffee
 
 devModel = require './dev.sbvr'
 transactionModel = require './transaction.sbvr'
-userModel = require './user.sbvr'
 permissions = require './permissions.coffee'
 transactions = require './transactions.coffee'
 uriParser = require './uri-parser.coffee'
@@ -517,16 +516,12 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 
 	# Parse the OData requests
 	uriParser.parseODataURI(req)
-	.tap ->
-		# Make sure req.apiKey is set if we have an apikey in the request.
-		permissions.apiKeyMiddleware(req)
 	.then (requests) ->
 		# Then for each request add/check the relevant permissions, translate to abstract sql, and then compile the abstract sql.
 		Promise.map requests, (request) ->
 			req.hooks = getHooks(request)
 			runHook('POSTPARSE', { req, request, tx: req.tx })
-			.then ->
-				uriParser.addPermissions(req, request)
+			.return(request)
 			.then(uriParser.translateUri)
 			.then (request) ->
 				if request.abstractSqlQuery?
@@ -582,7 +577,7 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 			res.send(500)
 	.catch uriParser.BadRequestError, ->
 		res.send(400)
-	.catch uriParser.PermissionError, (err) ->
+	.catch permissions.PermissionError, (err) ->
 		res.send(401)
 	.catch SqlCompilationError, uriParser.TranslationError, uriParser.ParsingError, (err) ->
 		res.send(500)
@@ -727,10 +722,7 @@ exports.executeStandardModels = executeStandardModels = (tx, callback) ->
 		executeModels(tx, [
 			apiRoot: 'transaction'
 			modelText: transactionModel
-		,
-			apiRoot: 'Auth'
-			modelText: userModel
-		])
+		].concat(permissions.config.models))
 	.then ->
 		console.info('Sucessfully executed standard models.')
 	.catch (err) ->
@@ -761,14 +753,14 @@ exports.setup = (app, _db, callback) ->
 	exports.db = db = _db
 	AbstractSQLCompiler = AbstractSQLCompiler[db.engine]
 
-	permissions.setup(app, exports)
-	_.extend(exports, permissions)
 	transactions.setup(app, exports)
 
 	db.transaction()
 	.then (tx) ->
 		executeStandardModels(tx)
 		.then ->
+			permissions.setup(app, exports)
+			_.extend(exports, permissions)
 			tx.end()
 		.catch (err) ->
 			tx.rollback()
