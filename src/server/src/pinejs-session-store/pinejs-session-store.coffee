@@ -1,5 +1,6 @@
 _ = require 'lodash'
 expressSession = require 'express-session'
+permissions = require '../sbvr-api/permissions.coffee'
 
 sessionAPI = null
 sbvrUtils = null
@@ -32,7 +33,7 @@ class PinejsSessionStore extends expressSession.Store
 		sessionAPI.get
 			resource: 'session'
 			id: sid
-			passthrough: req: sbvrUtils.rootRead
+			passthrough: req: permissions.rootRead
 			options:
 				select: 'data'
 		.then (session) ->
@@ -47,7 +48,7 @@ class PinejsSessionStore extends expressSession.Store
 		sessionAPI.put
 			resource: 'session'
 			id: sid
-			passthrough: req: sbvrUtils.root
+			passthrough: req: permissions.root
 			body: body
 		.nodeify(callback)
 
@@ -55,13 +56,13 @@ class PinejsSessionStore extends expressSession.Store
 		sessionAPI.delete
 			resource: 'session'
 			id: sid
-			passthrough: req: sbvrUtils.root
+			passthrough: req: permissions.root
 		.nodeify(callback)
 
 	all: (callback) ->
 		sessionAPI.get
 			resource: 'session'
-			passthrough: req: sbvrUtils.root
+			passthrough: req: permissions.root
 			options:
 				select: 'session_id'
 				filter: expiry_time: $ge: Date.now()
@@ -73,14 +74,14 @@ class PinejsSessionStore extends expressSession.Store
 		# TODO: Use a truncate
 		sessionAPI.delete
 			resource: 'session'
-			passthrough: req: sbvrUtils.root
+			passthrough: req: permissions.root
 		.nodeify(callback)
 
 	length: (callback) ->
 		# TODO: Use a proper count
 		sessionAPI.get
 			resource: 'session'
-			passthrough: req: sbvrUtils.rootRead
+			passthrough: req: permissions.rootRead
 			options:
 				select: 'session_id'
 				filter: expiry_time: $ge: Date.now()
