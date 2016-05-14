@@ -35,6 +35,7 @@ clientModels = {}
 odataMetadata = {}
 
 apiHooks =
+	all: {}
 	GET: {}
 	PUT: {}
 	POST: {}
@@ -224,13 +225,28 @@ cleanupModel = (vocab) ->
 	uriParser.deleteClientModel(vocab)
 	delete api[vocab]
 
-getHooks = (request) ->
-	vocabHooks = apiHooks[request.method]?[request.vocabulary]
-	if not vocabHooks?
-		return {}
-	return _.mergeWith {}, vocabHooks[request.resourceName], vocabHooks['all'], (a, b) ->
-		if _.isArray(a)
-			return a.concat(b)
+getHooks = do ->
+	mergeHooks = (a, b) ->
+		_.mergeWith {}, a, b, (a, b) ->
+			if _.isArray(a)
+				return a.concat(b)
+	getResourceHooks = (vocabHooks, request) ->
+		return {} if !vocabHooks?
+		mergeHooks(
+			vocabHooks[request.resourceName]
+			vocabHooks['all']
+		)
+	getVocabHooks = (methodHooks, request) ->
+		return {} if !methodHooks?
+		mergeHooks(
+			getResourceHooks(methodHooks[request.vocabulary], request)
+			getResourceHooks(methodHooks['all'], request)
+		)
+	return getMethodHooks = (request) ->
+		mergeHooks(
+			getVocabHooks(apiHooks[request.method], request)
+			getVocabHooks(apiHooks['all'], request)
+		)
 
 runHook = (hookName, args) ->
 	Object.defineProperty args, 'api',
@@ -726,7 +742,7 @@ exports.addHook = (method, apiRoot, resourceName, callbacks) ->
 	methodHooks = apiHooks[method]
 	if !methodHooks?
 		throw new Error('Unsupported method: ' + method)
-	if !clientModels[apiRoot]?
+	if apiRoot isnt 'all' and !clientModels[apiRoot]?
 		throw new Error('Unknown api root: ' + apiRoot)
 	if resourceName isnt 'all' and !clientModels[apiRoot].resources[resourceName]?
 		throw new Error('Unknown resource for api root: ' + resourceName + ', ' + apiRoot)
