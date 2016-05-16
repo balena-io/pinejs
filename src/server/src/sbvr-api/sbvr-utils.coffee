@@ -13,9 +13,7 @@ AbstractSQL2CLF = require '@resin/abstract-sql-to-odata-schema'
 ODataMetadataGenerator = require '../sbvr-compiler/ODataMetadataGenerator.coffee'
 
 devModel = require './dev.sbvr'
-transactionModel = require './transaction.sbvr'
 permissions = require './permissions.coffee'
-transactions = require './transactions.coffee'
 uriParser = require './uri-parser.coffee'
 
 db = null
@@ -654,7 +652,6 @@ runPost = (req, res, request, tx) ->
 
 	idField = clientModels[vocab].resources[request.resourceName].idField
 
-	# TODO: Check for transaction locks.
 	runQuery(tx, request, null, idField)
 	.then (sqlResult) ->
 		validateModel(tx, vocab)
@@ -683,8 +680,7 @@ respondPost = (req, res, request, result) ->
 runPut = (req, res, request, tx) ->
 	vocab = request.vocabulary
 
-	transactions.check(tx, request)
-	.then ->
+	Promise.try ->
 		# If request.sqlQuery is an array it means it's an UPSERT, ie two queries: [InsertQuery, UpdateQuery]
 		if _.isArray(request.sqlQuery)
 			# Run the update query first
@@ -719,10 +715,7 @@ exports.executeStandardModels = executeStandardModels = (tx, callback) ->
 			log: false
 	)
 	.then ->
-		executeModels(tx, [
-			apiRoot: 'transaction'
-			modelText: transactionModel
-		].concat(permissions.config.models))
+		executeModels(tx, permissions.config.models)
 	.then ->
 		console.info('Sucessfully executed standard models.')
 	.catch (err) ->
@@ -752,8 +745,6 @@ exports.addHook = (method, apiRoot, resourceName, callbacks) ->
 exports.setup = (app, _db, callback) ->
 	exports.db = db = _db
 	AbstractSQLCompiler = AbstractSQLCompiler[db.engine]
-
-	transactions.setup(app, exports)
 
 	db.transaction()
 	.then (tx) ->
