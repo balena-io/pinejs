@@ -2,6 +2,7 @@ _ = require 'lodash'
 Promise = require 'bluebird'
 TypedError = require 'typed-error'
 modelText = require './migrations.sbvr'
+permissions = require '../sbvr-api/permissions.coffee'
 
 exports.MigrationError = class MigrationError extends TypedError
 
@@ -33,7 +34,7 @@ exports.checkModelAlreadyExists = (tx, modelName) ->
 		resource: 'model'
 		passthrough:
 			tx: tx
-			req: @sbvrUtils.rootRead
+			req: permissions.rootRead
 		options:
 			select: [ 'vocabulary' ]
 			top: '1'
@@ -48,7 +49,7 @@ exports.getExecutedMigrations = (tx, modelName) ->
 		id: modelName
 		passthrough:
 			tx: tx
-			req: @sbvrUtils.rootRead
+			req: permissions.rootRead
 		options:
 			select: [ 'executed_migrations' ]
 	.then (data) ->
@@ -60,7 +61,7 @@ exports.setExecutedMigrations = (tx, modelName, executedMigrations) ->
 		id: modelName
 		passthrough:
 			tx: tx
-			req: @sbvrUtils.root
+			req: permissions.root
 		body:
 			model_name: modelName
 			executed_migrations: executedMigrations

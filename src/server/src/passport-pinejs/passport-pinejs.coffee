@@ -1,4 +1,5 @@
 Promise = require 'bluebird'
+permissions = require '../sbvr-api/permissions.coffee'
 
 exports.config =
 	models: [
@@ -6,7 +7,7 @@ exports.config =
 	]
 exports.setup = (app, sbvrUtils) ->
 	exports.checkPassword = checkPassword = (username, password, done) ->
-		sbvrUtils.checkPassword(username, password)
+		permissions.checkPassword(username, password)
 		.catch ->
 			return false
 		.then (user) ->

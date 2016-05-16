@@ -1,6 +1,7 @@
 _ = require 'lodash'
 Promise = require 'bluebird'
 sbvrUtils = require '../sbvr-api/sbvr-utils.coffee'
+permissions = require '../sbvr-api/permissions.coffee'
 migrator = require '../migrator/migrator.coffee'
 fs = Promise.promisifyAll(require('fs'))
 
@@ -19,7 +20,7 @@ exports.setup = (app) ->
 			authApiTx = sbvrUtils.api.Auth.clone
 				passthrough:
 					tx: tx
-					req: sbvrUtils.root
+					req: permissions.root
 
 			if data.users?
 				permissions = {}

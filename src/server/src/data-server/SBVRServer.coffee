@@ -1,4 +1,5 @@
 Promise = require 'bluebird'
+permissions = require '../sbvr-api/permissions.coffee'
 
 uiModel = '''
 		Vocabulary: ui
@@ -53,7 +54,7 @@ exports.setup = (app, sbvrUtils, db) ->
 		uiApiTx = uiApi.clone
 			passthrough:
 				tx: tx
-				req: sbvrUtils.root
+				req: permissions.root
 		uiApiTx.get
 			resource: 'textarea'
 			options:
@@ -73,7 +74,7 @@ exports.setup = (app, sbvrUtils, db) ->
 				resource: 'model'
 				passthrough:
 					tx: tx
-					req: sbvrUtils.rootRead
+					req: permissions.rootRead
 				options:
 					select: ['vocabulary', 'model_value']
 					filter:
@@ -97,13 +98,13 @@ exports.setup = (app, sbvrUtils, db) ->
 		.then (onAir) ->
 			res.json(onAir)
 
-	app.post '/update', sbvrUtils.checkPermissionsMiddleware('all'), serverIsOnAir, (req, res, next) ->
+	app.post '/update', permissions.checkPermissionsMiddleware('all'), serverIsOnAir, (req, res, next) ->
 		res.send(404)
 
-	app.post '/execute', sbvrUtils.checkPermissionsMiddleware('all'), (req, res, next) ->
+	app.post '/execute', permissions.checkPermissionsMiddleware('all'), (req, res, next) ->
 		uiApi.get
 			resource: 'textarea'
-			passthrough: req: sbvrUtils.rootRead
+			passthrough: req: permissions.rootRead
 			options:
 				select: 'text'
 				filter:
@@ -123,7 +124,7 @@ exports.setup = (app, sbvrUtils, db) ->
 						resource: 'textarea'
 						passthrough:
 							tx: tx
-							req: sbvrUtils.root
+							req: permissions.root
 						options:
 							filter:
 								name: 'model_area'
@@ -140,14 +141,14 @@ exports.setup = (app, sbvrUtils, db) ->
 		.catch (err) ->
 			isServerOnAir(false)
 			res.status(404).json(err)
-	app.post '/validate', sbvrUtils.checkPermissionsMiddleware('get'), (req, res, next) ->
+	app.post '/validate', permissions.checkPermissionsMiddleware('get'), (req, res, next) ->
 		sbvrUtils.runRule('data', req.body.rule)
 		.then (results) ->
 			res.json(results)
 		.catch (err) ->
 			console.log('Error validating', err)
 			res.send(404)
-	app.delete '/cleardb', sbvrUtils.checkPermissionsMiddleware('delete'), (req, res, next) ->
+	app.delete '/cleardb', permissions.checkPermissionsMiddleware('delete'), (req, res, next) ->
 		db.transaction (tx) ->
 			tx.tableList()
 			.then (result) ->
@@ -169,7 +170,7 @@ exports.setup = (app, sbvrUtils, db) ->
 				console.error('Error clearing db', err, err.stack)
 				tx.rollback()
 				res.send(503)
-	app.put '/importdb', sbvrUtils.checkPermissionsMiddleware('set'), (req, res, next) ->
+	app.put '/importdb', permissions.checkPermissionsMiddleware('set'), (req, res, next) ->
 		queries = req.body.split(';')
 		db.transaction (tx) ->
 			Promise.reduce(
@@ -188,7 +189,7 @@ exports.setup = (app, sbvrUtils, db) ->
 				console.error('Error importing db', err, err.stack)
 				tx.rollback()
 				res.send(404)
-	app.get '/exportdb', sbvrUtils.checkPermissionsMiddleware('get'), (req, res, next) ->
+	app.get '/exportdb', permissions.checkPermissionsMiddleware('get'), (req, res, next) ->
 		db.transaction (tx) ->
 			tx.tableList("name NOT LIKE '%_buk'")
 			.then (result) ->
@@ -221,7 +222,7 @@ exports.setup = (app, sbvrUtils, db) ->
 				console.error('Error exporting db', err, err.stack)
 				tx.rollback()
 				res.send(503)
-	app.post '/backupdb', sbvrUtils.checkPermissionsMiddleware('all'), serverIsOnAir, (req, res, next) ->
+	app.post '/backupdb', permissions.checkPermissionsMiddleware('all'), serverIsOnAir, (req, res, next) ->
 		db.transaction (tx) ->
 			tx.tableList("name NOT LIKE '%_buk'")
 			.then (result) ->
@@ -237,7 +238,7 @@ exports.setup = (app, sbvrUtils, db) ->
 				tx.rollback()
 				console.error('Error backing up db', err, err.stack)
 				res.send(404)
-	app.post '/restoredb', sbvrUtils.checkPermissionsMiddleware('all'), serverIsOnAir, (req, res, next) ->
+	app.post '/restoredb', permissions.checkPermissionsMiddleware('all'), serverIsOnAir, (req, res, next) ->
 		db.transaction (tx) ->
 			tx.tableList("name LIKE '%_buk'")
 			.then (result) ->
@@ -264,7 +265,7 @@ exports.setup = (app, sbvrUtils, db) ->
 		Promise.all([
 			uiAPI.patch
 				resource: 'textarea'
-				passthrough: req: sbvrUtils.root
+				passthrough: req: permissions.root
 				options:
 					filter:
 						name: 'model_area'

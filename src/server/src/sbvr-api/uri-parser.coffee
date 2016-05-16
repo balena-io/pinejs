@@ -2,11 +2,8 @@ Promise = require 'bluebird'
 TypedError = require 'typed-error'
 { ODataParser } = require '@resin/odata-parser'
 { OData2AbstractSQL } = require '@resin/odata-to-abstract-sql'
-permissions = require './permissions.coffee'
 _ = require 'lodash'
-memoize = require 'memoizee'
 
-exports.PermissionError = class PermissionError extends TypedError
 exports.TranslationError = class TranslationError extends TypedError
 exports.ParsingError = class ParsingError extends TypedError
 exports.BadRequestError = class BadRequestError extends TypedError
@@ -14,18 +11,7 @@ exports.BadRequestError = class BadRequestError extends TypedError
 odataParser = ODataParser.createInstance()
 odata2AbstractSQL = {}
 
-metadataEndpoints = ['$metadata', '$serviceroot']
-methodPermissions =
-	GET: or: ['get', 'read']
-	PUT:
-		or: [
-			'set'
-			and: ['create', 'update']
-		]
-	POST: or: ['set', 'create']
-	PATCH: or: ['set', 'update']
-	MERGE: or: ['set', 'update']
-	DELETE: 'delete'
+exports.metadataEndpoints = metadataEndpoints = ['$metadata', '$serviceroot']
 
 exports.parseODataURI = (req) -> Promise.try ->
 	{ method, url, body } = req
@@ -50,77 +36,6 @@ exports.parseODataURI = (req) -> Promise.try ->
 		values: body
 		custom: {}
 	}]
-
-collapsePermissionFilters = (v) ->
-	if _.isArray(v)
-		collapsePermissionFilters(or: v)
-	else if _.isObject(v)
-		if v.hasOwnProperty('filter')
-			v.filter
-		else
-			_(v)
-			.toPairs()
-			.flattenDeep()
-			.map(collapsePermissionFilters)
-			.value()
-	else
-		v
-
-parsePermissions = memoize(_.bind(odataParser.matchAll, odataParser, _, 'FilterByExpression'), { length: 1, primitive: true })
-
-addPermissions = (req, permissionType, vocabulary, resourceName, odataQuery) ->
-	permissions.checkPermissions(req, permissionType, resourceName, vocabulary)
-	.then (conditionalPerms) ->
-		if conditionalPerms is false
-			throw new PermissionError()
-		if conditionalPerms isnt true
-			permissionFilters = permissions.nestedCheck conditionalPerms, (permissionCheck) ->
-				try
-					permissionCheck = parsePermissions(permissionCheck)
-					# We use an object with filter key to avoid collapsing our filters later.
-					return filter: permissionCheck
-				catch e
-					console.warn('Failed to parse conditional permissions: ', permissionCheck)
-					throw new ParsingError(e)
-
-			if permissionFilters is false
-				throw new PermissionError()
-			if permissionFilters isnt true
-				permissionFilters = collapsePermissionFilters(permissionFilters)
-				odataQuery.options ?= {}
-				if odataQuery.options.$filter?
-					odataQuery.options.$filter = ['and', odataQuery.options.$filter, permissionFilters]
-				else
-					odataQuery.options.$filter = permissionFilters
-
-		if odataQuery.options?.$expand?.properties?
-			# Make sure any relevant permission filters are also applied to expands.
-			Promise.map odataQuery.options.$expand.properties, (expand) ->
-				# Always use get for the $expands
-				addPermissions(req, methodPermissions.GET, vocabulary, expand.name, expand)
-
-exports.addPermissions = (req, { method, vocabulary, resourceName, odataQuery, values, custom }) ->
-	method = method.toUpperCase()
-	isMetadataEndpoint = resourceName in metadataEndpoints or method is 'OPTIONS'
-
-	permissionType =
-		if isMetadataEndpoint
-			'model'
-		else if methodPermissions[method]?
-			methodPermissions[method]
-		else
-			console.warn('Unknown method for permissions type check: ', method)
-			'all'
-
-	addPermissions(req, permissionType, vocabulary, odataQuery.resource, odataQuery)
-	.return {
-		method
-		vocabulary
-		resourceName
-		odataQuery
-		values
-		custom
-	}
 
 exports.translateUri = ({ method, vocabulary, resourceName, odataQuery, values, custom }) ->
 	isMetadataEndpoint = resourceName in metadataEndpoints or method is 'OPTIONS'
