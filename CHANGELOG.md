@@ -1,3 +1,5 @@
+v1.4.0
+
 * Isolated the http transactions code purely into a module so it is optional.
 * Separated permissions into a mostly isolated module, using proper hooks instead of hardcoded hooks.
 * Added support for 'all' hooks on the api and method levels.
