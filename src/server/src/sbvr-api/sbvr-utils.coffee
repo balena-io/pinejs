@@ -229,6 +229,10 @@ getHooks = do ->
 				return a.concat(b)
 	getResourceHooks = (vocabHooks, request) ->
 		return {} if !vocabHooks?
+		# When getting the hooks list for the sake of PREPARSE hooks
+		# we don't know the resourceName we'll be acting on yet
+		if !request.resourceName?
+			return vocabHooks['all']
 		mergeHooks(
 			vocabHooks[request.resourceName]
 			vocabHooks['all']
@@ -512,11 +516,20 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 	if process.env.DEBUG
 		api[apiRoot].logger.log('Parsing', req.method, req.url)
 
-	# Parse the OData requests
-	uriParser.parseODataURI(req)
+	# Get the hooks for the current method/vocabulary as we know it, 
+	# in order to run PREPARSE hooks, before parsing gets us more info
+	req.hooks = getHooks(
+		method: req.method
+		vocabulary: apiRoot
+	)
+	runHook('PREPARSE', { req, tx: req.tx })
+	.then ->
+		# Parse the OData requests
+		uriParser.parseODataURI(req)
 	.then (requests) ->
 		# Then for each request add/check the relevant permissions, translate to abstract sql, and then compile the abstract sql.
 		Promise.map requests, (request) ->
+			# Get the full hooks list now that we can
 			req.hooks = getHooks(request)
 			runHook('POSTPARSE', { req, request, tx: req.tx })
 			.return(request)
@@ -732,7 +745,7 @@ exports.addHook = (method, apiRoot, resourceName, callbacks) ->
 	if resourceName isnt 'all' and !clientModels[apiRoot].resources[resourceName]?
 		throw new Error('Unknown resource for api root: ' + resourceName + ', ' + apiRoot)
 
-	for callbackType, callback of callbacks when callbackType not in ['POSTPARSE', 'PRERUN', 'POSTRUN', 'PRERESPOND']
+	for callbackType, callback of callbacks when callbackType not in ['PREPARSE', 'POSTPARSE', 'PRERUN', 'POSTRUN', 'PRERESPOND']
 		throw new Error('Unknown callback type: ' + callbackType)
 
 	apiRootHooks = methodHooks[apiRoot] ?= {}

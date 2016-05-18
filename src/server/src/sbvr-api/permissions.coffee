@@ -101,10 +101,10 @@ exports.config =
 	]
 exports.setup = (app, sbvrUtils) ->
 	sbvrUtils.addHook 'all', 'all', 'all',
-		POSTPARSE: ({ req, request }) ->
+		PREPARSE: ({ req }) ->
 			apiKeyMiddleware(req)
-			.then ->
-				addPermissions(req, request)
+		POSTPARSE: ({ req, request }) ->
+			addPermissions(req, request)
 
 	exports.checkPassword = (username, password, callback) ->
 		authApi = sbvrUtils.api.Auth
