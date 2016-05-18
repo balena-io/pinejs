@@ -1,3 +1,5 @@
+v1.4.1
+
 * Added PREPARSE hooks and use them in the permissions module in order to be backwards compatible with the behavior in <1.4.0
 
 v1.4.0
