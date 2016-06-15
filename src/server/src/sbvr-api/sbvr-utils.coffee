@@ -334,6 +334,12 @@ processOData = (vocab, clientModel, resourceName, rows) ->
 			uri: odataResourceURI(vocab, resourceModel.resourceName, +instance[resourceModel.idField])
 			type: ''
 		return instance
+
+	# Fulfill promise if only count result present
+	if instances.length is 1 and instances[0].count?
+		count=parseInt(instances[0].count, 10)
+		return Promise.fulfilled(count)
+
 	instancesPromise = Promise.fulfilled()
 
 	expandableFields = do ->
