@@ -8,6 +8,8 @@ Term:       name
 	Concept Type: Short Text (Type)
 Term:       key
 	Concept Type: Short Text (Type)
+Term:       expiry date
+	Concept Type: Date Time (Type)
 
 Term:       permission
 	Reference Scheme: name
@@ -31,7 +33,13 @@ Fact type:  user has password
 	Necessity: Each user has exactly one password.
 Fact type:  user has role
 	Note: A 'user' will inherit all the 'permissions' that the 'role' has.
+	Term Form: user role
+	Fact type: user role has expiry date
+		Necessity: Each user role has at most one expiry date.
 Fact type:  user has permission
+	Term Form: user permission
+	Fact type: user permission has expiry date
+		Necessity: Each user permission has at most one expiry date.
 
 Term:       api key
 	Reference Scheme: key
