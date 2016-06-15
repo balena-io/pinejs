@@ -123,7 +123,7 @@ module.exports = (grunt) ->
 					]
 
 		webpack: _.extend({}, clientConfigs, serverConfigs)
-		"webpack-dev-server": 
+		'webpack-dev-server':
 			_.mapValues clientDevConfigs, (config) ->
 				keepAlive: true
 				contentBase: 'src/client/src/'

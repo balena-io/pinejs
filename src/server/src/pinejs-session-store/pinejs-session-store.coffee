@@ -3,7 +3,6 @@ expressSession = require 'express-session'
 permissions = require '../sbvr-api/permissions.coffee'
 
 sessionAPI = null
-sbvrUtils = null
 
 sessionModel = '''
 	Vocabulary: session
@@ -99,7 +98,6 @@ PinejsSessionStore.config =
 		customServerCode: PinejsSessionStore
 	]
 PinejsSessionStore.setup = (app, sbvrUtils, db, callback) ->
-	sbvrUtils = sbvrUtils
 	sessionAPI = sbvrUtils.api.session
 	callback()
 

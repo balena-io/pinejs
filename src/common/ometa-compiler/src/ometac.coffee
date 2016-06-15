@@ -1,7 +1,4 @@
 fs = require('fs')
-vm = require('vm')
-load = (filePath) ->
-	vm.runInThisContext(fs.readFileSync(filePath, 'utf8'), __filename)
 
 ometajs = require('ometa-js')
 UglifyJS = require('uglifyjs')
@@ -15,8 +12,6 @@ calculateLineColInfo = (string, index) ->
 			line++
 			column = 0
 	return { line, column }
-	console.log('Line:', line)
-	console.log('Col:', column)
 
 translationError = (m, i) ->
 	console.log('Translation error - please report this!')
@@ -43,8 +38,7 @@ compileOmeta = (ometa, pretty, desc = 'OMeta') ->
 			beautify: pretty == true
 		)
 		return js
-	catch e
-		# console.log(e)
+	catch
 		return false
 
 compileOmetaFile = (ometaFilePath, jsFilePath, pretty, callback) ->
