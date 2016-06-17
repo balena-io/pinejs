@@ -90,8 +90,6 @@ define [
 
 				tick = ->
 					path.attr 'd', (d) ->
-						dx = d.target.x - d.source.x
-						dy = d.target.y - d.source.y
 						return 'M' + d.source.x + ',' + d.source.y + 'A' + 0 + ',' + 0 + ' 0 0,1 ' + d.target.x + ',' + d.target.y
 
 					rect.attr 'transform', (d) ->

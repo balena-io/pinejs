@@ -135,27 +135,28 @@ exports.setup = (app, sbvrUtils) ->
 				.then ->
 					tx.end()
 
-	app.post '/transaction/execute', (req, res, next) ->
-		id = Number(req.body.id)
-		if _.isNaN(id)
-			res.send(404)
-		else
-			endTransaction(id)
-			.then ->
-				res.send(200)
-			.catch (err) ->
-				console.error('Error ending transaction', err, err.stack)
-				res.status(404).json(err)
-	app.get '/transaction', (req, res, next) ->
-		res.json(
-			transactionURI: '/transaction/transaction'
-			conditionalResourceURI: '/transaction/conditional_resource'
-			conditionalFieldURI: '/transaction/conditional_field'
-			lockURI: '/transaction/lock'
-			transactionLockURI: '/transaction/lock__belongs_to__transaction'
-			resourceURI: '/transaction/resource'
-			lockResourceURI: '/transaction/resource__is_under__lock'
-			exclusiveLockURI: '/transaction/lock__is_exclusive'
-			commitTransactionURI: '/transaction/execute'
-		)
-	app.all('/transaction/*', sbvrUtils.handleODataRequest)
+		# TODO: these really should be specific to the model - currently they will only work for the first model added
+		app.post '/transaction/execute', (req, res, next) ->
+			id = Number(req.body.id)
+			if _.isNaN(id)
+				res.send(404)
+			else
+				endTransaction(id)
+				.then ->
+					res.send(200)
+				.catch (err) ->
+					console.error('Error ending transaction', err, err.stack)
+					res.status(404).json(err)
+		app.get '/transaction', (req, res, next) ->
+			res.json(
+				transactionURI: '/transaction/transaction'
+				conditionalResourceURI: '/transaction/conditional_resource'
+				conditionalFieldURI: '/transaction/conditional_field'
+				lockURI: '/transaction/lock'
+				transactionLockURI: '/transaction/lock__belongs_to__transaction'
+				resourceURI: '/transaction/resource'
+				lockResourceURI: '/transaction/resource__is_under__lock'
+				exclusiveLockURI: '/transaction/lock__is_exclusive'
+				commitTransactionURI: '/transaction/execute'
+			)
+		app.all('/transaction/*', sbvrUtils.handleODataRequest)

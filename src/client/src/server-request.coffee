@@ -44,7 +44,7 @@ define [
 					error: (jqXHR, textStatus, errorThrown) ->
 						try
 							error = JSON.parse(jqXHR.responseText)
-						catch e
+						catch
 							error = jqXHR.responseText
 						reject([jqXHR.status, error])
 

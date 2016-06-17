@@ -2,7 +2,6 @@ Promise = require 'bluebird'
 TypedError = require 'typed-error'
 { ODataParser } = require '@resin/odata-parser'
 { OData2AbstractSQL } = require '@resin/odata-to-abstract-sql'
-_ = require 'lodash'
 
 exports.TranslationError = class TranslationError extends TypedError
 exports.ParsingError = class ParsingError extends TypedError

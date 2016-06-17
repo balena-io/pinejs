@@ -27,12 +27,11 @@ module.exports = (vocabulary, sqlModel) ->
 
 
 	model = sqlModel.tables
-	# resourceNavigations = {}
 	associations = []
 	forEachUniqueTable model, (key, { name: resourceName, fields }) ->
 		resourceName = getResourceName(resourceName)
-		for { dataType, fieldName, required, references }, i in fields when dataType == 'ForeignKey'
-			{ tableName: referencedResource, fieldName: referencedField } = references
+		for { dataType, required, references }, i in fields when dataType == 'ForeignKey'
+			{ tableName: referencedResource } = references
 			referencedResource = getResourceName(referencedResource)
 			associations.push(
 				name: resourceName + referencedResource
@@ -41,11 +40,6 @@ module.exports = (vocabulary, sqlModel) ->
 					{ resourceName: referencedResource, cardinality: '*' }
 				]
 			)
-			# resourceNavigations[resourceName] ?= []
-			# resourceNavigations[resourceName].push(
-				# name: fieldName
-			# )
-			# resourceNavigations[referencedResource] ?= []
 
 	return """
 		<?xml version="1.0" encoding="iso-8859-1" standalone="yes"?>
@@ -72,7 +66,7 @@ module.exports = (vocabulary, sqlModel) ->
 							"""<Property Name="#{fieldName}" Type="#{dataType}" Nullable="#{not required}" />"""
 						).join('\n') + '\n' + (
 						for { dataType, fieldName, references } in fields when dataType == 'ForeignKey'
-							{ tableName: referencedResource, fieldName: referencedField } = references
+							{ tableName: referencedResource } = references
 							fieldName = getResourceName(fieldName)
 							referencedResource = getResourceName(referencedResource)
 							"""<NavigationProperty Name="#{fieldName}" Relationship="#{vocabulary}.#{resourceName + referencedResource}" FromRole="#{resourceName}" ToRole="#{referencedResource}" />"""

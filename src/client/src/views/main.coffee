@@ -21,7 +21,7 @@ define [
 			$userGroup = @$('#user-group').hide(0)
 			sid = localStorage.getItem('sid')
 			if sid?
-				session = new SessionModel({
+				new SessionModel({
 					key: localStorage.getItem('sid')
 				}).fetch().done(
 					(data) =>
@@ -106,7 +106,7 @@ define [
 				@$('#user-email').text(email)
 
 		logout: ->
-			session = new SessionModel({
+			new SessionModel({
 				key: localStorage.getItem('sid')
 			}).destroy().fail((error) ->
 				console.error(error)

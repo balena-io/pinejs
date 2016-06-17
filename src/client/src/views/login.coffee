@@ -23,7 +23,7 @@ define [
 		login: ->
 			email = @$('#inputEmail').val()
 			password = @$('#inputPassword').val()
-			session = new SessionModel({
+			new SessionModel({
 				email
 				password
 			}).save().done(
@@ -40,7 +40,7 @@ define [
 			email = @$('#inputEmail').val()
 			password = @$('#inputPassword').val()
 			passwordConfirm = @$('#inputPasswordConfirm')
-			user = new UserModel(
+			new UserModel(
 				email: email
 				password: password
 				passwordConfirm: passwordConfirm

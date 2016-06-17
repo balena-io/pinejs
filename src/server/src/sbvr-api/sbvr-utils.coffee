@@ -295,7 +295,7 @@ checkForExpansion = do ->
 	Promise.method (vocab, clientModel, fieldName, instance) ->
 		try
 			field = JSON.parse(instance[fieldName])
-		catch e
+		catch
 			# If we can't JSON.parse the field then we use it directly.
 			field = instance[fieldName]
 
@@ -516,7 +516,7 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 	if process.env.DEBUG
 		api[apiRoot].logger.log('Parsing', req.method, req.url)
 
-	# Get the hooks for the current method/vocabulary as we know it, 
+	# Get the hooks for the current method/vocabulary as we know it,
 	# in order to run PREPARSE hooks, before parsing gets us more info
 	req.hooks = getHooks(
 		method: req.method
@@ -633,7 +633,6 @@ runQuery = (tx, request, queryIndex, addReturning) ->
 		tx.executeSql(sqlQuery.query, values, null, addReturning)
 
 runGet = (req, res, request, tx) ->
-	vocab = request.vocabulary
 	if request.sqlQuery?
 		runQuery(tx, request)
 

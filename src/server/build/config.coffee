@@ -1,7 +1,6 @@
 path = require 'path'
 webpack = require 'webpack'
 UMDRequirePlugin = require 'umd-require-webpack-plugin'
-ExtractTextPlugin = require 'extract-text-webpack-plugin'
 root = path.join(__dirname + '/../../..')
 
 module.exports =

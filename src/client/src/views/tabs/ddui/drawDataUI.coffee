@@ -471,8 +471,6 @@ define [
 				addResourceID = 1
 
 				renderInstance = (ftree, even, callback) ->
-					about = ftree.getAbout()
-					currentLocation = ftree.getCurrentLocation()
 					templateVars = $.extend({}, baseTemplateVars, (if even then evenTemplateVars else oddTemplateVars), {
 						serverURI: ftree.getServerURI()
 						backURI: '#!/' + ftree.getNewURI('del')
