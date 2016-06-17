@@ -1,3 +1,5 @@
+v1.4.2
+
 * Updated minimum odata-to-abstract-sql to v0.3.4 in order to bring in support for self-referencing resources (eg application depends on application)
 
 v1.4.1
