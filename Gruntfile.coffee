@@ -69,8 +69,9 @@ module.exports = (grunt) ->
 					dest: 'out/static'
 				]
 
-		'git-describe':
-			this: {}
+		gitinfo:
+			commands:
+				describe: ['describe', '--tags', '--always', '--long', '--dirty']
 
 		htmlmin:
 			client:
@@ -135,13 +136,14 @@ module.exports = (grunt) ->
 	grunt.loadNpmTasks('grunt-contrib-copy')
 	grunt.loadNpmTasks('grunt-contrib-htmlmin')
 	grunt.loadNpmTasks('grunt-contrib-imagemin')
-	grunt.loadNpmTasks('grunt-git-describe')
+	grunt.loadNpmTasks('grunt-gitinfo')
 	grunt.loadNpmTasks('grunt-rename')
 	grunt.loadNpmTasks('grunt-text-replace')
 	grunt.loadNpmTasks('grunt-webpack')
 
-	grunt.event.once 'git-describe', ([version]) ->
-		grunt.option('version', version)
+	grunt.registerTask 'version', ->
+		grunt.task.requires('gitinfo:describe')
+		grunt.option('version', grunt.config.get('gitinfo.describe'))
 
 	for task of clientConfigs
 		grunt.registerTask task, [
@@ -155,7 +157,8 @@ module.exports = (grunt) ->
 		grunt.registerTask task, [
 			'checkDependencies'
 			'webpack:' + task
-			'git-describe'
+			'gitinfo:describe'
+			'version'
 			'replace:pine.js'
 			"replace:#{task}"
 			"concat:#{task}"
