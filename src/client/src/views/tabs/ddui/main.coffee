@@ -30,5 +30,5 @@ define [
 								aria-hidden="false">#{html}</div>
 							""")
 
-			dduiState('#!/data')
+			window.dduiState('#!/data')
 	)

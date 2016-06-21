@@ -728,7 +728,7 @@ define [
 			for input in inputs when input.id[...2] != '__'
 				obj[input.id] = $(input).val()
 		serverRequest method, serverURI, {}, obj, ->
-			dduiState(backURI)
+			window.dduiState(backURI)
 		return false
 
 	window.processForm = processForm
