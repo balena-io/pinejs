@@ -263,7 +263,7 @@ exports.setup = (app, sbvrUtils, db) ->
 
 	app.delete '/', serverIsOnAir, (req, res, next) ->
 		Promise.all([
-			uiAPI.patch
+			uiApi.patch
 				resource: 'textarea'
 				passthrough: req: permissions.root
 				options:

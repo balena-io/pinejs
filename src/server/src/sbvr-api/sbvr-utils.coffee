@@ -590,7 +590,7 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 		res.send(400)
 	.catch permissions.PermissionError, (err) ->
 		res.send(401)
-	.catch SqlCompilationError, uriParser.TranslationError, uriParser.ParsingError, (err) ->
+	.catch SqlCompilationError, uriParser.TranslationError, uriParser.ParsingError, permissions.PermissionParsingError, (err) ->
 		res.send(500)
 	.catch UnsupportedMethodError, (err) ->
 		res.send(405)

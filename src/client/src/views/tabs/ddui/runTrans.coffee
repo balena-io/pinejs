@@ -92,7 +92,7 @@ define [
 										else
 											serverRequest('POST', transURIs.commitTransactionURI, null, { id: transactionID },
 												(statusCode, result, headers) ->
-													dduiState('#!/data/')
+													window.dduiState('#!/data/')
 												(statusCode, errors) ->
 													console.error(statusCode, errors)
 											)

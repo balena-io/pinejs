@@ -9,6 +9,7 @@ memoize = require 'memoizee'
 TypedError = require 'typed-error'
 
 exports.PermissionError = class PermissionError extends TypedError
+exports.PermissionParsingError = class PermissionParsingError extends TypedError
 exports.root = user: permissions: [ 'resource.all' ]
 exports.rootRead = rootRead = user: permissions: [ 'resource.get' ]
 methodPermissions =
@@ -398,7 +399,7 @@ exports.setup = (app, sbvrUtils) ->
 							return filter: permissionCheck
 						catch e
 							console.warn('Failed to parse conditional permissions: ', permissionCheck)
-							throw new ParsingError(e)
+							throw new PermissionParsingError(e)
 
 					if permissionFilters is false
 						throw new PermissionError()
