@@ -130,16 +130,7 @@ module.exports = (grunt) ->
 				contentBase: 'src/client/src/'
 				webpack: config
 
-	grunt.loadNpmTasks('grunt-check-dependencies')
-	grunt.loadNpmTasks('grunt-contrib-clean')
-	grunt.loadNpmTasks('grunt-contrib-concat')
-	grunt.loadNpmTasks('grunt-contrib-copy')
-	grunt.loadNpmTasks('grunt-contrib-htmlmin')
-	grunt.loadNpmTasks('grunt-contrib-imagemin')
-	grunt.loadNpmTasks('grunt-gitinfo')
-	grunt.loadNpmTasks('grunt-rename')
-	grunt.loadNpmTasks('grunt-text-replace')
-	grunt.loadNpmTasks('grunt-webpack')
+	require('load-grunt-tasks')(grunt)
 
 	grunt.registerTask 'version', ->
 		grunt.task.requires('gitinfo:describe')

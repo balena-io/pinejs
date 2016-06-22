@@ -45,6 +45,7 @@
     "grunt-text-replace": "^0.4.0",
     "grunt-webpack": "^1.0.8",
     "imports-loader": "^0.6.3",
+    "load-grunt-tasks": "^3.5.0",
     "null-loader": "^0.1.0",
     "ometa-loader": "0.0.1",
     "raw-loader": "^0.5.1",
