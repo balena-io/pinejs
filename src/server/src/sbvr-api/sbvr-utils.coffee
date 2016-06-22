@@ -327,6 +327,11 @@ processOData = (vocab, clientModel, resourceName, rows) ->
 	if rows.length is 0
 		return Promise.fulfilled([])
 
+	if rows.length is 1
+		if rows.item(0).$count?
+			count = parseInt(rows.item(0).$count, 10)
+			return Promise.fulfilled(count)
+
 	resourceModel = clientModel[resourceName]
 
 	instances = rows.map (instance) ->
@@ -334,11 +339,6 @@ processOData = (vocab, clientModel, resourceName, rows) ->
 			uri: odataResourceURI(vocab, resourceModel.resourceName, +instance[resourceModel.idField])
 			type: ''
 		return instance
-
-	# Fulfill promise if only count result present
-	if instances.length is 1 and instances[0].count?
-		count=parseInt(instances[0].count, 10)
-		return Promise.fulfilled(count)
 
 	instancesPromise = Promise.fulfilled()
 
