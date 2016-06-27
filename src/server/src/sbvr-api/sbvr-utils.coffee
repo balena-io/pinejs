@@ -499,7 +499,7 @@ exports.runURI = runURI =  (method, uri, body = {}, tx, req, callback) ->
 
 		next = (route) ->
 			console.warn('Next called on a runURI?!', method, uri, route)
-			reject(500)
+			res.sendStatus(500)
 
 		handleODataRequest(req, res, next)
 	.nodeify(callback)
