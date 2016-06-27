@@ -1,3 +1,4 @@
+* Updated to abstract-sql-compiler 2.0.0, meaning empty strings are no longer treated as null.
 * Dropped expressjs3 compatibility, fixing deprecated notices on expressjs4.
 * Added expiry date fields onto the permissions system.
 
