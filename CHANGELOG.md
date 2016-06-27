@@ -1,3 +1,4 @@
+* Switched to adding users/permissions after a model and it's migrations are run, this makes it much easier to migrate permissions.
 * Added a concept of actors and switched the permission filter `$USER.ID` magic to be `$ACTOR.ID`
 * Updated to abstract-sql-compiler 2.0.0, meaning empty strings are no longer treated as null.
 * Dropped expressjs3 compatibility, fixing deprecated notices on expressjs4.

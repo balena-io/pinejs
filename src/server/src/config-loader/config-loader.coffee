@@ -7,83 +7,84 @@ fs = Promise.promisifyAll(require('fs'))
 # Setup function
 exports.setup = (app) ->
 	loadConfig = (data) ->
-		sbvrUtils.db.transaction().then (tx) ->
-			modelsPromise = Promise.map data.models, (model) ->
+		sbvrUtils.db.transaction()
+		.then (tx) ->
+			Promise.map data.models, (model) ->
 				if model.modelText?
 					sbvrUtils.executeModel(tx, model)
 					.then ->
 						console.info('Sucessfully executed ' + model.modelName + ' model.')
 					.catch (err) ->
 						throw new Error(['Failed to execute ' + model.modelName + ' model from ' + model.modelFile, err, err.stack])
+			.then ->
+				authApiTx = sbvrUtils.api.Auth.clone
+					passthrough:
+						tx: tx
+						req: permissions.root
 
-			authApiTx = sbvrUtils.api.Auth.clone
-				passthrough:
-					tx: tx
-					req: permissions.root
-
-			if data.users?
-				permissions = {}
-				for user in data.users when user.permissions?
-					_.each user.permissions, (permissionName) ->
-						permissions[permissionName] ?=
-							authApiTx.get
-								resource: 'permission'
-								options:
-									select: 'id'
-									filter:
-										name: permissionName
-							.then (result) ->
-								if result.length is 0
-									authApiTx.post
-										resource: 'permission'
-										body:
+				if data.users?
+					permissions = {}
+					for user in data.users when user.permissions?
+						_.each user.permissions, (permissionName) ->
+							permissions[permissionName] ?=
+								authApiTx.get
+									resource: 'permission'
+									options:
+										select: 'id'
+										filter:
 											name: permissionName
-									.get('id')
-								else
-									return result[0].id
-							.catch (e) ->
-								e.message = 'Could not create or find permission "' + permissionName + '": ' + e.message
-								throw e
+								.then (result) ->
+									if result.length is 0
+										authApiTx.post
+											resource: 'permission'
+											body:
+												name: permissionName
+										.get('id')
+									else
+										return result[0].id
+								.catch (e) ->
+									e.message = 'Could not create or find permission "' + permissionName + '": ' + e.message
+									throw e
 
-				usersPromise = Promise.map data.users, (user) ->
-					authApiTx.get
-						resource: 'user'
-						options:
-							select: 'id'
-							filter:
-								username: user.username
-					.then (result) ->
-						if result.length is 0
-							authApiTx.post
-								resource: 'user'
-								body:
+					Promise.map data.users, (user) ->
+						authApiTx.get
+							resource: 'user'
+							options:
+								select: 'id'
+								filter:
 									username: user.username
-									password: user.password
-							.get('id')
-						else
-							return result[0].id
-					.then (userID) ->
-						if user.permissions?
-							Promise.map user.permissions, (permissionName) ->
-								permissions[permissionName].then (permissionID) ->
-									authApiTx.get
-										resource: 'user__has__permission'
-										options:
-											select: 'id'
-											filter:
-												user: userID
-												permission: permissionID
-									.then (result) ->
-										if result.length is 0
-											authApiTx.post
-												resource: 'user__has__permission'
-												body:
+						.then (result) ->
+							if result.length is 0
+								authApiTx.post
+									resource: 'user'
+									body:
+										username: user.username
+										password: user.password
+								.get('id')
+							else
+								return result[0].id
+						.then (userID) ->
+							if user.permissions?
+								Promise.map user.permissions, (permissionName) ->
+									permissions[permissionName]
+									.then (permissionID) ->
+										authApiTx.get
+											resource: 'user__has__permission'
+											options:
+												select: 'id'
+												filter:
 													user: userID
 													permission: permissionID
-					.catch (e) ->
-						e.message = 'Could not create or find user "' + user.username + '": ' + e.message
-						throw e
-			Promise.all([modelsPromise, usersPromise])
+										.then (result) ->
+											if result.length is 0
+												authApiTx.post
+													resource: 'user__has__permission'
+													body:
+														user: userID
+														permission: permissionID
+						.catch (e) ->
+							e.message = 'Could not create or find user "' + user.username + '": ' + e.message
+							throw e
 			.catch (err) ->
 				tx.rollback()
 				throw err
