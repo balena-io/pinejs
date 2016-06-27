@@ -139,11 +139,11 @@ exports.setup = (app, sbvrUtils) ->
 		app.post '/transaction/execute', (req, res, next) ->
 			id = Number(req.body.id)
 			if _.isNaN(id)
-				res.send(404)
+				res.sendStatus(404)
 			else
 				endTransaction(id)
 				.then ->
-					res.send(200)
+					res.sendStatus(200)
 				.catch (err) ->
 					console.error('Error ending transaction', err, err.stack)
 					res.status(404).json(err)

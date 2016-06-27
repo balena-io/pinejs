@@ -99,7 +99,7 @@ exports.setup = (app, sbvrUtils, db) ->
 			res.json(onAir)
 
 	app.post '/update', permissions.checkPermissionsMiddleware('all'), serverIsOnAir, (req, res, next) ->
-		res.send(404)
+		res.sendStatus(404)
 
 	app.post '/execute', permissions.checkPermissionsMiddleware('all'), (req, res, next) ->
 		uiApi.get
@@ -137,7 +137,7 @@ exports.setup = (app, sbvrUtils, db) ->
 					throw err
 		.then ->
 			isServerOnAir(true)
-			res.send(200)
+			res.sendStatus(200)
 		.catch (err) ->
 			isServerOnAir(false)
 			res.status(404).json(err)
@@ -147,7 +147,7 @@ exports.setup = (app, sbvrUtils, db) ->
 			res.json(results)
 		.catch (err) ->
 			console.log('Error validating', err)
-			res.send(404)
+			res.sendStatus(404)
 	app.delete '/cleardb', permissions.checkPermissionsMiddleware('delete'), (req, res, next) ->
 		db.transaction (tx) ->
 			tx.tableList()
@@ -165,11 +165,11 @@ exports.setup = (app, sbvrUtils, db) ->
 				setupModels(tx)
 			.then ->
 				tx.end()
-				res.send(200)
+				res.sendStatus(200)
 			.catch (err) ->
 				console.error('Error clearing db', err, err.stack)
 				tx.rollback()
-				res.send(503)
+				res.sendStatus(503)
 	app.put '/importdb', permissions.checkPermissionsMiddleware('set'), (req, res, next) ->
 		queries = req.body.split(';')
 		db.transaction (tx) ->
@@ -184,11 +184,11 @@ exports.setup = (app, sbvrUtils, db) ->
 				null
 			).then ->
 				tx.end()
-				res.send(200)
+				res.sendStatus(200)
 			.catch (err) ->
 				console.error('Error importing db', err, err.stack)
 				tx.rollback()
-				res.send(404)
+				res.sendStatus(404)
 	app.get '/exportdb', permissions.checkPermissionsMiddleware('get'), (req, res, next) ->
 		db.transaction (tx) ->
 			tx.tableList("name NOT LIKE '%_buk'")
@@ -221,7 +221,7 @@ exports.setup = (app, sbvrUtils, db) ->
 			.catch (err) ->
 				console.error('Error exporting db', err, err.stack)
 				tx.rollback()
-				res.send(503)
+				res.sendStatus(503)
 	app.post '/backupdb', permissions.checkPermissionsMiddleware('all'), serverIsOnAir, (req, res, next) ->
 		db.transaction (tx) ->
 			tx.tableList("name NOT LIKE '%_buk'")
@@ -233,11 +233,11 @@ exports.setup = (app, sbvrUtils, db) ->
 						tx.executeSql('ALTER TABLE "' + tableName + '" RENAME TO "' + tableName + '_buk";')
 			.then ->
 				tx.end()
-				res.send(200)
+				res.sendStatus(200)
 			.catch (err) ->
 				tx.rollback()
 				console.error('Error backing up db', err, err.stack)
-				res.send(404)
+				res.sendStatus(404)
 	app.post '/restoredb', permissions.checkPermissionsMiddleware('all'), serverIsOnAir, (req, res, next) ->
 		db.transaction (tx) ->
 			tx.tableList("name LIKE '%_buk'")
@@ -249,11 +249,11 @@ exports.setup = (app, sbvrUtils, db) ->
 						tx.executeSql('ALTER TABLE "' + tableName + '" RENAME TO "' + tableName[0...-4] + '";')
 			.then ->
 				tx.end()
-				res.send(200)
+				res.sendStatus(200)
 			.catch (err) ->
 				tx.rollback()
 				console.error('Error restoring db', err, err.stack)
-				res.send(404)
+				res.sendStatus(404)
 
 	app.all('/data/*', serverIsOnAir, sbvrUtils.handleODataRequest)
 	app.get('/Auth/*', serverIsOnAir, sbvrUtils.handleODataRequest)
@@ -276,7 +276,7 @@ exports.setup = (app, sbvrUtils, db) ->
 			sbvrUtils.deleteModel('data')
 		]).then ->
 			isServerOnAir(false)
-			res.send(200)
+			res.sendStatus(200)
 
 	db.transaction()
 	.then (tx) ->
