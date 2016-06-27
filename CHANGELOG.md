@@ -1,3 +1,5 @@
+v2.0.0
+
 * Return a 400 error when a request ends fails SBVR model validation (previously 404).
 * Switched to adding users/permissions after a model and it's migrations are run, this makes it much easier to migrate permissions.
 * Added a concept of actors and switched the permission filter `$USER.ID` magic to be `$ACTOR.ID`
