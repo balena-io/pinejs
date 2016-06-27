@@ -153,14 +153,24 @@ exports.setup = (app, sbvrUtils) ->
 			permsFilter = $or:
 				user__has__permission: $any:
 					$alias: 'uhp'
-					$expr: uhp: user: userId
+					$expr:
+						uhp: user: userId
+						$or: [
+							uhp: expiry_date: null
+						,	uhp: expiry_date: $gt: $now: null
+						]
 				role__has__permission: $any:
 					$alias: 'rhp'
-					$expr: 'rhp': role: $any:
+					$expr: rhp: role: $any:
 						$alias: 'r'
 						$expr: r: user__has__role: $any:
 							$alias: 'uhr'
-							$expr: uhr: user: userId
+							$expr:
+								uhr: user: userId
+								$or: [
+									uhr: expiry_date: null
+								,	uhr: expiry_date: $gt: $now: null
+								]
 			return getPermissions(permsFilter, callback)
 		else
 			return Promise.rejected(new Error('User ID either has to be a numeric id, got: ' + typeof userId))
