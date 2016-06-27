@@ -45,6 +45,7 @@ apiHooks.MERGE = apiHooks.PATCH
 
 class UnsupportedMethodError extends TypedError
 class SqlCompilationError extends TypedError
+class SbvrValidationError extends TypedError
 
 # TODO: Clean this up and move it into the db module.
 prettifyConstraintError = (err, tableName) ->
@@ -108,7 +109,7 @@ exports.validateModel = validateModel = (tx, modelName) ->
 		tx.executeSql(rule.sql, rule.bindings)
 		.then (result) ->
 			if result.rows.item(0).result in [false, 0, '0']
-				throw rule.structuredEnglish
+				throw new SbvrValidationError(rule.structuredEnglish)
 
 exports.executeModel = executeModel = (tx, model, callback) ->
 	executeModels(tx, [model], callback)
@@ -583,6 +584,8 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 		.catch EvalError, RangeError, ReferenceError, SyntaxError, TypeError, URIError, (err) ->
 			logger.error(err, err.stack)
 			res.sendStatus(500)
+	.catch SbvrValidationError, (err) ->
+		res.status(400).send(err.message)
 	.catch uriParser.BadRequestError, ->
 		res.sendStatus(400)
 	.catch permissions.PermissionError, (err) ->
