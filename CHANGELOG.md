@@ -1,4 +1,8 @@
 * Fixed invalid permission filters not being rejected.
+* Return result for $count
+* Updated to abstract-sql-compiler 2.1.0
+* Updated to odata-parser 0.1.10
+* Updated to odata-to-abstract-sql 0.3.5
 
 v2.0.0
 
