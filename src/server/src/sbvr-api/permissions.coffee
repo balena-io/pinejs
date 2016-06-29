@@ -26,7 +26,11 @@ methodPermissions =
 		DELETE: 'delete'
 
 odataParser = ODataParser.createInstance()
-parsePermissions = memoize(_.bind(odataParser.matchAll, odataParser, _, 'FilterByExpression'), { length: 1, primitive: true })
+parsePermissions = memoize(
+	(filter) ->
+		odataParser.matchAll(['FilterByExpression', filter], 'ProcessRule')
+	primitive: true
+)
 
 # Traverses all values in `check`, actions for the following data types:
 # string: Calls `stringCallback` and uses the value returned instead

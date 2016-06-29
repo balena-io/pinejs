@@ -1,3 +1,5 @@
+* Fixed invalid permission filters not being rejected.
+
 v2.0.0
 
 * Return a 400 error when a request ends fails SBVR model validation (previously 404).
