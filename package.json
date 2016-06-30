@@ -8,11 +8,11 @@
     "lint": "resin-lint src Gruntfile.coffee"
   },
   "dependencies": {
-    "@resin/abstract-sql-compiler": "^2.0.0",
+    "@resin/abstract-sql-compiler": "^2.1.0",
     "@resin/abstract-sql-to-odata-schema": "^1.0.0",
     "@resin/lf-to-abstract-sql": "~0.0.17",
     "@resin/odata-parser": "~0.1.10",
-    "@resin/odata-to-abstract-sql": "~0.3.4",
+    "@resin/odata-to-abstract-sql": "~0.3.5",
     "@resin/sbvr-parser": "~0.0.18",
     "@resin/sbvr-types": "^1.0.0",
     "bluebird": "^3.0.6",
