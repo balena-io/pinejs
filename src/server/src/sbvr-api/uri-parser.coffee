@@ -62,7 +62,7 @@ exports.translateUri = ({ method, vocabulary, resourceName, odataQuery, values, 
 
 exports.addClientModel = (vocab, clientModel) ->
 	odata2AbstractSQL[vocab] = OData2AbstractSQL.createInstance()
-	odata2AbstractSQL[vocab].clientModel = clientModel
+	odata2AbstractSQL[vocab].setClientModel(clientModel)
 
 exports.deleteClientModel = (vocab, clientModel) ->
 	delete odata2AbstractSQL[vocab]
