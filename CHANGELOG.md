@@ -1,3 +1,5 @@
+v2.1.0
+
 * Updated odata-to-abstract-sql and switch to using `setClientModel` to have it shorten aliases when necessary.
 * Fixed invalid permission filters not being rejected.
 * Return result for $count
