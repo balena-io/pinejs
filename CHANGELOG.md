@@ -1,3 +1,5 @@
+v1.4.3
+
 * Updated odata-to-abstract-sql and switch to using `setClientModel` to have it shorten aliases when necessary.
 
 v1.4.2
