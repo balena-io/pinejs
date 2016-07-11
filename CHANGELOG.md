@@ -1,3 +1,5 @@
+* Fixed the 2.0-add-actors migrations
+
 v2.1.0
 
 * Updated odata-to-abstract-sql and switch to using `setClientModel` to have it shorten aliases when necessary.
