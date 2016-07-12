@@ -1,3 +1,4 @@
+* Fixed getting api key actor ids
 * Fixed the 2.0-add-actors migrations
 
 v2.1.0

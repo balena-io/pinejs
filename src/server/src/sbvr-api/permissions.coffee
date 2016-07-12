@@ -366,7 +366,7 @@ exports.setup = (app, sbvrUtils) ->
 				.then (apiKeys) ->
 					if apiKeys.length is 0
 						throw new Error('API key is not linked to a actor?!')
-					apiKeyActorID = apiKeys[0].actor
+					apiKeyActorID = apiKeys[0].actor.__id
 					return _checkPermissions(apiKeyPermissions, apiKeyActorID)
 				.catch (err) ->
 					authApi.logger.error('Error checking api key permissions', req.apiKey.key, err, err.stack)
