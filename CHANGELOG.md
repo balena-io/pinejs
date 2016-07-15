@@ -1,3 +1,5 @@
+* Updated sbvr-parser and lf-to-abstract-sql to add support for concept types on term form fact types.
+
 v2.1.1
 
 * Fixed getting api key actor ids
