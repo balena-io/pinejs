@@ -29,6 +29,14 @@ The following papers are also helpful in understanding the main concept of Pine.
 * [An SBVR to SQL Compiler](http://ceur-ws.org/Vol-649/paper7.pdf)
 * [Generating SQL Queries from SBVR Rules](http://link.springer.com/chapter/10.1007%2F978-3-642-16289-3_12)
 
+The documentation inside /docs folder also provide a great overview of the main concepts of Pine.js, in particular:
+
+* /docs/Migrations: provides information regarding sql queries or Javascript functions that are executed prior to pinejs executing a given SBVR model.
+* /docs/Hooks: functions that you can implement in order to execute custom code when API calls are requested.
+* /docs/Projects: provides information regarding creating and configuring a project.
+* /docs/Types: types definitions and declarations in various systems.
+* /docs/sequence-diagrams: provide a great overview of how the main processes are executed, including OData request parsing, response processing, etc.
+
 One can experiment with `pine.js`, its main dependencies and the above tools inside the development environment of resin.
 
 For a starter's introduction to Pine.js Models and OData API, please refer [here](https://resinio.atlassian.net/wiki/display/RES/Pine.js%2C+Models+and+OData+API).
