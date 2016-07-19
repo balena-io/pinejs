@@ -37,6 +37,6 @@ The documentation inside /docs folder also provide a great overview of the main 
 * /docs/Types: types definitions and declarations in various systems.
 * /docs/sequence-diagrams: provide a great overview of how the main processes are executed, including OData request parsing, response processing, etc.
 
-One can experiment with `pine.js`, its main dependencies and the above tools inside the development environment of resin.
+One can experiment with Pine.js, its main dependencies and the above tools inside the development environment of resin.
 
 For a starter's introduction to Pine.js Models and OData API, please refer [here](https://resinio.atlassian.net/wiki/display/RES/Pine.js%2C+Models+and+OData+API).
