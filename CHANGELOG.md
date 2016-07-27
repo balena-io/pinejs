@@ -1,3 +1,5 @@
+* Use multer middleware function
+
 v2.2.0
 
 * Updated sbvr-parser and lf-to-abstract-sql to add support for concept types on term form fact types.
