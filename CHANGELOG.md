@@ -1,4 +1,4 @@
-* Use multer middleware function
+* Fix use of multer in server builds
 
 v2.2.0
 
