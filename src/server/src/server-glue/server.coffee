@@ -32,7 +32,7 @@ if !process.browser
 
 	app.use(cookieParser())
 	app.use(bodyParser())
-	app.use(multer())
+	app.use(multer().any())
 	app.use(methodOverride())
 	app.use(expressSession(
 		secret: 'A pink cat jumped over a rainbow'
