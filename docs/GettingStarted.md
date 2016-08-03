@@ -6,7 +6,7 @@ This guide assumes that you have already read the main [README](https://github.c
 
 Let's create a new Pine.js application. We will see that by defining our model rules in SBVR format, Pine.js will create the database schema and will provide out of the box an OData API, ready to use to interact with our database and resources.
 
-To begin with, you'll need to install PostgreSQL on your system, and configure a database and a user with read/write/metadata permissions on the database. In this guide,  we will use `example` as the database name and `exampler` as the user name. Open your favorite terminal and type the following commands:
+To begin with, you'll need to install PostgreSQL on your system, and configure a database and a user with read/write/metadata permissions on the database. In this guide, we will use `example` as the database name and `exampler` as the user name. Open your favorite terminal and type the following commands:
 
 ```
 $ createuser -W exampler
@@ -75,7 +75,7 @@ Term: name
 Term: note
 	  Concept Type: Text (Type)
 
-Term: devtype
+Term: type
 	  Concept Type: Short Text (Type)
 
 Term: device
@@ -86,11 +86,11 @@ Fact Type: device has name
 Fact Type: device has note
 	 Necessity: each device has at most one note.
 
-Fact Type: device has devtype
-	 Necessity: each device has exactly one devtype.
+Fact Type: device has type
+	 Necessity: each device has exactly one type.
 ```
 
-In this model we are defining an entity called `device`, this entity has some attributes such as `name`, `note` and `devtype`, along with some constraints, ensuring that a device must have exactly one device type, and at most one name and one note. The `Vocabulary` declaration is a convenient way for partitioning parts of larger sbvr files.
+In this model we are defining an entity called `device`, this entity has some attributes such as `name`, `note` and `type`, along with some constraints, ensuring that a device must have exactly one device type, and at most one name and one note. The `Vocabulary` declaration is a convenient way for partitioning parts of larger sbvr files.
  
 Now, let's create a small main file for our application that will call the Pine.js server. Let's install some basic dependencies:
 
@@ -191,13 +191,13 @@ We will use cURL to make these requests, so open up another terminal window and 
 First of all we need to create a device, to do so type the following in the new window:
 
 ```
-$ curl -X POST -d name=testdevice -d note=testnote -d devtype=raspberry http://localhost:1337/example/device
+$ curl -X POST -d name=testdevice -d note=testnote -d type=raspberry http://localhost:1337/example/device
 ```
 
 If the creation succeeds the server will respond with an object representing the new entity, in this case it will look something like this:
 
-```
-{"id":1,"name":"testdevice","note":"testnote","devtype":"raspberry","__metadata":{"uri":"/example/device(2)","type":""}}
+```json
+{"id":1,"name":"testdevice","note":"testnote","type":"raspberry","__metadata":{"uri":"/example/device(2)","type":""}}
 ```
 
 Aside from `__metadata` which is used internally, the properties of this object match the attributes of the `device` table; if you go and take a look at that table again, you will find the new entry inserted with these attributes.
@@ -226,12 +226,12 @@ $ curl -PUT -d name=testdevice -d note=updatednote  http://localhost:1337/exampl
 Internal Server Error
 ```
 
-What went wrong here? Pine.js is simply preventing us from violating the constraints we had previously defined. One of these was that each device has exactly one devtype, but in the request we are forgot about this; luckily Pine.js can catch this kind of mistakes and will reject the update.
+What went wrong here? Pine.js is simply preventing us from violating the constraints we had previously defined. One of these was that each device has exactly one type, but in the request we are forgot about this; luckily Pine.js can catch this kind of mistakes and will reject the update.
 
 To correctly modify the device we can try:
 
 ```
-$ curl -PUT -d name=testdevice -d note=updatednote -d devtype=raspberry http://localhost:1337/example/device(1)
+$ curl -PUT -d name=testdevice -d note=updatednote -d type=raspberry http://localhost:1337/example/device(1)
 ```
 
 You can now try to delete this entity to restore the database to it’s initial state. Recall from the OData specification that this can be done by performing a DELETE request at the endpoint represented by the entity we intend to delete.

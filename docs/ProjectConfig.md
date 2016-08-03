@@ -1,6 +1,6 @@
 # Configuring A Project
 
-The project configuration is places inside `config.json` that provides all the necessary information to Pine.js regarding the models, the API, and the users. This file should follow a specification based on the example shown below:
+The project configuration is placed inside `config.json` that provides all the necessary information to Pine.js regarding the models, the API, and the users. This file should follow a specification based on the example shown below:
 
 ```
 {
@@ -31,7 +31,7 @@ The `models` object contains the following fields:
 * `modelName` - This field is required. The string value is used in messages about whether the model passes/fails.
 * `modelFile` - This field is required. It is pointing to the file that contains the sbvr model. In this example, it's the `example.sbvr` inside the same directory.
 * `apiRoot` - This field is required. It defines the root path to access the model's API. In this example, it's `/example/{OData URL}`.
-* `customeServerCode` - This field is optional and it's a string pointing to a file (`.coffee` or `.js`) that will be run by the server on startup.
+* `customServerCode` - This field is optional and it's a string pointing to a file (`.coffee` or `.js`) that will be run by the server on startup.
 * `logging` - This field is optional. This is an object of `true`/`false` values for whether calls to console[key] should be output, with the special `default` value being used for any unspecified keys (defaults to `true`). 
 
 ## User System & Permissions
@@ -45,7 +45,10 @@ Permissions currently work by having a name which defines what the permission co
 
 * `model` - Used for accessing the model alone for a resource
 * `get` - Used for getting records of a resource (model is included when fetching records)
-* `set` - Used for setting records of a resource
+* `read` - Same as `get`
+* `create` - Used for creating records of a resource
+* `update` - Used for updating records of a resource
+* `set` - Used for setting records of a resource. Action `set` is actually `create` + `update`
 * `delete` - Used to deleting records of a resource
 
 ### Special Variables
@@ -76,7 +79,7 @@ If you do not specify this environment variable, then the defaults are as follow
  
 MySQL:
 
-```
+```coffee
 	host: 'localhost'
 	user: 'root'
 	password: '.'
@@ -85,6 +88,6 @@ MySQL:
 
 PostgresSQL:
 
-```
+```coffee
 	postgres://postgres:.@localhost:5432/postgres
 ```

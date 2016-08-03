@@ -7,7 +7,7 @@ The basic components of SBVR are as follows:
 
 * Terms - these are the atomic elements of your data model, defined via `Term: [Term Name]`. Generally speaking, these map to tables in a relational database, or attributes of other tables.
 * Fact Types - these define *relations* between different terms and properties of those terms, e.g. `Fact type: pilot can fly plane` or `Fact type: pilot is experienced` - these *somewhat* map to fields and foreign keys in a relational database.
-* Rules - these define *logical constraints* on the data model's term and is the most powerful aspect of SBVR and Pine.js itself. Rules map loosely to constraints in a relational database. E.g. `Rule: It is obligatory that each pilot can fly at least 1 plane`. The expressive capability of SBVR rules is much more than simple SQL DDL, and has the full power of First Order Logic.
+* Rules - these define *logical constraints* on the data model and is the most powerful aspect of SBVR and Pine.js itself. Rules map loosely to constraints in a relational database, but extend them to constraints that can traverse tables and generally be far more powerful than a database constraint. E.g. `Rule: It is obligatory that each pilot can fly at least 1 plane`. The expressive capability of SBVR rules is much more than simple SQL DDL, and has the full power of First Order Logic.
 
 In order to get an idea of how SBVR works, visit the [sbvr lab](http://www.sbvr.co/), and for more details, check out the [SBVR spec](http://www.omg.org/spec/SBVR/).
 
