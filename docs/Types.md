@@ -3,20 +3,18 @@
 ## Definition
 
 ### SBVR
-The SBVR definition for types can be found at [/src/common/extended-sbvr-parser/Type.sbvr](../src/common/extended-sbvr-parser/Type.sbvr)
+The SBVR definition for types can be found at [resin-io-modules/sbvr-types/Type.sbvr](https://github.com/resin-io-modules/sbvr-types/blob/master/Type.sbvr)
 
 ### The Rest
-"The Rest" can be found at: `/src/server/src/sbvr-compiler/types`  
-For a new type you should add a module to the types folder and hook it up in `/src/server/src/sbvr-compiler/types.coffee`
+"The Rest" can be found at: [resin-io-modules/sbvr-types/src/types](https://github.com/resin-io-modules/sbvr-types/tree/master/src/types)
 
-The module should return a single object, which has the following format:
+For a new type you should add a module to the types folder. The module should return a single object, which has the following format:
 
 #### types
-A types object, which specifies how the type is declared in various systems.  
-This contains:
+A types object, which specifies how the type is declared in various systems. This contains:
 
-##### postgres/mysql/websql
-These can either be a string (which will have the necessity and index appended to it), or a function (necessity, index), which returns the type as a string.
+* postgres/mysql/websql - These can either be a string (which will have the necessity and index appended to it), or a function (necessity, index), which returns the type as a string.
+
 ```coffee-script
 postgres: 'Serial'
 mysql: (necessity, index) ->
@@ -24,11 +22,7 @@ mysql: (necessity, index) ->
 mysql: (necessity, index) ->
 	return 'INTEGER' + necessity + index + ' AUTOINCREMENT'
 ```
-
-
-##### odata
-This is an object that must contain a "name" property, which is a string specifying the name of the OData type.  
-It may also contain a "complexType" property, which is a string that specifies an OData ComplexType
+* odata - This is an object that must contain a "name" property, which is a string specifying the name of the OData type. It may also contain a "complexType" property, which is a string that specifies an OData ComplexType
 
 ```coffee-script
 odata:
@@ -46,13 +40,13 @@ odata:
 		</ComplexType>'''
 ```
 
-#### validate
-This is a function (value, required, callback(err, data)) that must be provided, and which should validate that incoming data is valid for this type.  
-`value` is the value that has been received as part of the request.  
-`required` specifies whether this value is required (true: NOT NULL, false: NULL).  
-`callback` should be called with the first parameter as an error explaining why the data is invalid, or if it valid, null, with the second parameter being the valid, processed data.
+* validate - This is a function (value, required, callback(err, data)) that must be provided, and which should validate that incoming data is valid for this type.
+	* `value` is the value that has been received as part of the request.
+	*  `required` specifies whether this value is required (true: NOT NULL, false: NULL).  
+	*  `callback` should be called with the first parameter as an error explaining why the data is invalid, or if it valid, null, with the second parameter being the valid, processed data.
 
 An example of validating a `Color` type, we accept either a number that specifies the `Color`, or an object {'r' or 'red', 'g' or 'green', 'b' or 'blue', 'a' or 'alpha'}, and return an integer that represents the `Color`.
+
 ```coffee-script
 validate: (value, required, callback) ->
 	if !_.isObject(value)
@@ -81,9 +75,8 @@ validate: (value, required, callback) ->
 	callback(null, processedValue)
 ```
 
-#### fetchProcessing
-This is a function (data, callback(err, data)) that may be specified to process the data after fetching from the database and before sending to the client.  
-If specified this function should call the callback passing either an error message as the first param, or null as the first param and the modified data as the second.
+* fetchProcessing - This is a function (data, callback(err, data)) that may be specified to process the data after fetching from the database and before sending to the client. If specified this function should call the callback passing either an error message as the first param, or null as the first param and the modified data as the second.
+* 
 ```coffee-script
 fetchProcessing: (data, callback) ->
 	callback(null,
@@ -94,9 +87,9 @@ fetchProcessing: (data, callback) ->
 	)
 ```
 
-#### nativeProperties
-This is an object that may be specified to define "native" properties of the type.  
+* nativeProperties - This is an object that may be specified to define "native" properties of the type.  
 If specified it should match the format:
+
 ```coffee-script
 nativeProperties:
 	Verb:
@@ -105,9 +98,11 @@ nativeProperties:
 	Verb2:
 		Term3: (from) -> ...
 ```
+
 The `(from) -> ...` function should return a chunk of abstract sql that can be used to fetch the property specified by this fact type, the `from` parameter is abstract sql that will refer to an instance of the term that is of this type.
 
 Text has Length:
+
 ```coffee-script
 	nativeProperties:
 		'has':
@@ -115,6 +110,7 @@ Text has Length:
 ```
 
 For the various properties of Color:
+
 ```coffee-script
 nativeProperties:
 	'has':
@@ -124,9 +120,8 @@ nativeProperties:
 		'Alpha Component': (from) -> ['BitwiseAnd', ['BitwiseShiftRight', from, 24], 255]
 ```
 
-#### nativeFactTypes
-This is an object that may be specified to define "native" fact types of the type.  
-If specified it should match the format:
+* nativeFactTypes - This is an object that may be specified to define "native" fact types of the type. If specified it should match the format:
+
 ```coffee-script
 nativeFactTypes:
 	'Term':
@@ -135,6 +130,7 @@ nativeFactTypes:
 	'Term2':
 		'Verb3': (from, to) -> ...
 ```
+
 The `(from, to) -> ...` function should return a chunk of abstract sql that can be used to resolve this fact type.  
 The `from` parameter is abstract sql that will refer to an instance of the term that is of this type.  
 The `to`  parameter is abstract sql that will refer to an instance of the term that is of the type specified by the property name.  
@@ -142,6 +138,7 @@ The `to`  parameter is abstract sql that will refer to an instance of the term t
 Note: The reasoning the ordering of this is `SecondTerm -> Verb`, rather than `Verb -> SecondTerm` is that it allows declaring all the links between two terms much easier (as you will see in the examples)
 
 A selection of the the native fact types for Integer (in the actual file much more DRY is practiced):
+
 ```coffee-script
 nativeFactTypes:
 	'Integer':
