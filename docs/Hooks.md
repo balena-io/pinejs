@@ -4,10 +4,14 @@ Hooks are functions that you can implement in order to execute custom code when 
 In order to to roll back the transaction you can either throw an error, or return a rejected promise. Also, any promises that are returned will be waited on before continuing with processing the request.
 
 ## Hook points
-* `POSTPARSE({req, request, api[, tx]})` - runs right after the OData URI is parsed into a tree and before it gets converted to any SQL.  The `request` object for POSTPARSE is lacking the `abstractSqlQuery` and `sqlQuery` entries. The `tx` object will only be available if running in the context of an internal request with a provided transaction.
+* `POSTPARSE({req, request, api[, tx]})` - runs right after the OData URI is parsed into a tree and before it gets converted to any SQL.  
+	* The `request` object for POSTPARSE is lacking the `abstractSqlQuery` and `sqlQuery` entries. 
+	* The `tx` object will only be available if running in the context of an internal request with a provided transaction.
 * `PRERUN({req, request, api, tx})` - runs right before the main body/SQL elements run, which also happens to be after compiling to SQL has happened.
 * `POSTRUN({req, request, result, api, tx})` - runs after the main body/SQL statements have run.
-* `PRERESPOND({req, res, request, api, result, data[, tx]})` - runs right before we send the response to the API caller, which can be an internal or an external caller. It contains the data in OData response format. The `data` object for PRERESPOND is only present for GET requests. The `tx` object will only be available if running in the context of an internal request with a provided transaction.
+* `PRERESPOND({req, res, request, api, result, data[, tx]})` - runs right before we send the response to the API caller, which can be an internal or an external caller. It contains the data in OData response format. 
+	* The `data` object for PRERESPOND is only present for GET requests. 
+	* The `tx` object will only be available if running in the context of an internal request with a provided transaction.
 
 ## Arguments
 

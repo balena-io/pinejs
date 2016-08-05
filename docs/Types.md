@@ -42,8 +42,8 @@ odata:
 
 * validate - This is a function (value, required, callback(err, data)) that must be provided, and which should validate that incoming data is valid for this type.
 	* `value` is the value that has been received as part of the request.
-	*  `required` specifies whether this value is required (true: NOT NULL, false: NULL).  
-	*  `callback` should be called with the first parameter as an error explaining why the data is invalid, or if it valid, null, with the second parameter being the valid, processed data.
+	* `required` specifies whether this value is required (true: NOT NULL, false: NULL).  
+	* `callback` should be called with the first parameter as an error explaining why the data is invalid, or if it valid, null, with the second parameter being the valid, processed data.
 
 An example of validating a `Color` type, we accept either a number that specifies the `Color`, or an object {'r' or 'red', 'g' or 'green', 'b' or 'blue', 'a' or 'alpha'}, and return an integer that represents the `Color`.
 
@@ -76,7 +76,7 @@ validate: (value, required, callback) ->
 ```
 
 * fetchProcessing - This is a function (data, callback(err, data)) that may be specified to process the data after fetching from the database and before sending to the client. If specified this function should call the callback passing either an error message as the first param, or null as the first param and the modified data as the second.
-* 
+
 ```coffee-script
 fetchProcessing: (data, callback) ->
 	callback(null,
