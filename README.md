@@ -43,7 +43,7 @@ The documentation inside /docs folder also provide a great overview of the main 
 * /docs/Hooks: functions that you can implement in order to execute custom code when API calls are requested.
 * /docs/Projects: provides information regarding creating and configuring a project.
 * /docs/Types: types definitions and declarations in various systems.
-* /docs/sequence-diagrams: provide a great overview of how the main processes are executed, including OData request parsing, response processing, etc.
+* /docs/sequence-diagrams: provide a great overview of how the main processes are executed, including OData request parsing, response processing, etc. (The sequence diagrams can be depicted in [websequencediagrams.com](https://www.websequencediagrams.com))
 
 One can experiment with Pine.js, its main dependencies and the above tools inside the development environment of resin.
 
