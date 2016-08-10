@@ -53,7 +53,7 @@ Permissions currently work by having a name which defines what the permission co
 
 ### Special Variables
 
-* `$USER.ID` - This is replaced by the `id` of the currently logged in user (or `0` if not logged in), or the user who owns the API key in user.
+* `$ACTOR.ID` - This is replaced by the `id` of the currently logged in user (or `0` if not logged in), or the user who owns the API key in user.
 
 ### Default/Guest User Permissions
 All users (including ones who are not logged in) automatically gain any permissions assigned to the account named "guest". You can create this user in the `config.json` as shown in the example above.

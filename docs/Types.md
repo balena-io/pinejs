@@ -19,7 +19,7 @@ A types object, which specifies how the type is declared in various systems. Thi
 postgres: 'Serial'
 mysql: (necessity, index) ->
 	return 'INTEGER' + necessity + index + ' AUTO_INCREMENT'
-mysql: (necessity, index) ->
+websql: (necessity, index) ->
 	return 'INTEGER' + necessity + index + ' AUTOINCREMENT'
 ```
 * odata - This is an object that must contain a "name" property, which is a string specifying the name of the OData type. It may also contain a "complexType" property, which is a string that specifies an OData ComplexType

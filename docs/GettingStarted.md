@@ -220,9 +220,9 @@ To modify the device we just created: the OData specification tells us that to d
 Lets try this:
 
 ```
-$ curl -PUT -d name=testdevice -d note=updatednote  http://localhost:1337/example/device(1)
-```
-```
+$ curl -PUT -d name=testdevice -d note=updatednote http://localhost:1337/example/device(1)
+
+***
 Internal Server Error
 ```
 
