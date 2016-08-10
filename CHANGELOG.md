@@ -1,4 +1,5 @@
 * Fix use of multer in server builds
+* Update documentation
 
 v2.2.0
 
