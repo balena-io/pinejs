@@ -30,6 +30,8 @@ $ npm login
 $ npm install --save @resin/pinejs
 ```
 
+(In case you are using resin's development enviroment you do not have to `npm login`).
+
 The above commands will log you in to npm to access the scoped package Pine.js (in case you do not use our development environment) and then will install it as a dependency for your application, i.e. it will create the node_modules directory that amongst others will contain Pine.js, and will update the corresponding record in your `package.json` file.
 
 Let's see what your directory looks like now:
