@@ -190,7 +190,7 @@ Now that the server is up and running we are able to create, delete or update en
 
 We will use cURL to make these requests, so open up another terminal window and place it side by side to the one running the server.
 
-First of all we need to create a device, to do so type the following in the new window:
+First of all we need to create a device. To do so type the following in the new window:
 
 ```
 $ curl -X POST -d name=testdevice -d note=testnote -d type=raspberry http://localhost:1337/example/device
