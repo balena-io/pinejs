@@ -222,7 +222,7 @@ To modify the device we just created: the OData specification tells us that to d
 Lets try this:
 
 ```
-$ curl -PUT -d name=testdevice -d note=updatednote http://localhost:1337/example/device(1)
+$ curl -X PUT -d name=testdevice -d note=updatednote http://localhost:1337/example/device(1)
 
 ***
 Internal Server Error
@@ -233,7 +233,7 @@ What went wrong here? Pine.js is simply preventing us from violating the constra
 To correctly modify the device we can try:
 
 ```
-$ curl -PUT -d name=testdevice -d note=updatednote -d type=raspberry http://localhost:1337/example/device(1)
+$ curl -X PUT -d name=testdevice -d note=updatednote -d type=raspberry http://localhost:1337/example/device(1)
 ```
 
 You can now try to delete this entity to restore the database to it’s initial state. Recall from the OData specification that this can be done by performing a DELETE request at the endpoint represented by the entity we intend to delete.
