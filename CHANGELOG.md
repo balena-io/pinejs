@@ -1,3 +1,4 @@
+* Updated memoizee
 * Updated dev dependencies.
 * Update documentation
 * Fix use of multer in server builds
