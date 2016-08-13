@@ -34,6 +34,8 @@ When a model executes and there are pending migrations, pinejs will first create
 
 In the event of an error, the transaction will roll back before bubbling.
 
+You will notice that migrations are executed in the beginning and in case of a successful execution you will see `Successfully executed migrations model` in your standard output.
+
 ### SQL
 
 SQL migrations will run with `executeSql` inside the transaction
