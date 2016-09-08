@@ -1,3 +1,4 @@
+* Updated pg to ^6.0.0 and use an explicit pool.
 * Updated memoizee
 * Updated dev dependencies.
 * Update documentation

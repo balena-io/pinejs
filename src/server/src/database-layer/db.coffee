@@ -140,10 +140,20 @@ createTransaction = (createFunc) ->
 
 try
 	pg = require('pg')
+	ConnectionParameters = require('pg/lib/connection-parameters')
 if pg?
 	exports.postgres = (connectString) ->
 		PG_UNIQUE_VIOLATION = '23505'
 		PG_FOREIGN_KEY_VIOLATION = '23503'
+
+		config = new ConnectionParameters(connectString)
+		# Use bluebird for our pool promises
+		config.Promise = Promise
+		# Inherit the same defaults we used to, for backwards compatibility
+		config.max = pg.defaults.poolSize
+		config.idleTimeoutMillis = pg.defaults.poolIdleTimeout;
+		config.log = pg.defaults.poolLog
+		pool = new pg.Pool(config)
 
 		createResult = ({ rowCount, rows }) ->
 			return {
@@ -216,7 +226,7 @@ if pg?
 			engine: 'postgres'
 			executeSql: atomicExecuteSql
 			transaction: createTransaction (resolve, reject, stackTraceErr) ->
-				pg.connect connectString, (err, client, done) ->
+				pool.connect (err, client, done) ->
 					if err
 						console.error('Error connecting', err, err.stack)
 						process.exit()
