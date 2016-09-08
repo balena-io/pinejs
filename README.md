@@ -39,11 +39,11 @@ The following papers are also helpful in understanding the main concept of Pine.
 
 The documentation inside /docs folder also provide a great overview of the main concepts of Pine.js, in particular:
 
-* /docs/Migrations: provides information regarding sql queries or Javascript functions that are executed prior to pinejs executing a given SBVR model.
-* /docs/Hooks: functions that you can implement in order to execute custom code when API calls are requested.
-* /docs/Projects: provides information regarding creating and configuring a project.
-* /docs/Types: types definitions and declarations in various systems.
-* /docs/sequence-diagrams: provide a great overview of how the main processes are executed, including OData request parsing, response processing, etc. (The sequence diagrams can be depicted in [websequencediagrams.com](https://www.websequencediagrams.com))
+* [docs/Migrations.md](docs/Migrations.md): provides information regarding sql queries or Javascript functions that are executed prior to pinejs executing a given SBVR model.
+* [docs/Hooks.md](docs/Hooks.md): functions that you can implement in order to execute custom code when API calls are requested.
+* [docs/ProjectConfig.md](docs/ProjectConfig.md): provides information regarding creating and configuring a project.
+* [docs/Types.md](docs/Types.md): types definitions and declarations in various systems.
+* [docs/sequence-diagrams/](docs/sequence-diagrams): provide a great overview of how the main processes are executed, including OData request parsing, response processing, etc. (The sequence diagrams can be depicted in [websequencediagrams.com](https://www.websequencediagrams.com))
 
 One can experiment with Pine.js, its main dependencies and the above tools inside the development environment of resin.
 
