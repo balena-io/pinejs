@@ -1,6 +1,6 @@
 _ = require 'lodash'
 Promise = require 'bluebird'
-{ SQLBinds } = require './SQLBinds.ometajs'
+sqlBinds = require './sql-binds'
 TypedError = require 'typed-error'
 
 class DatabaseError extends TypedError
@@ -25,14 +25,13 @@ bindDefaultValues = (sql, bindings) ->
 		# We don't have to do any work if none of the bindings match DEFAULT_VALUE
 		return sql
 	bindNo = 0
-	SQLBinds.matchAll(sql, 'Parse', [ ->
+	sqlBinds sql, ->
 		if bindings[bindNo] == DEFAULT_VALUE
 			bindings.splice(bindNo, 1)
 			'DEFAULT'
 		else
 			bindNo++
 			'?'
-	])
 
 alwaysExport = {
 	DEFAULT_VALUE
@@ -177,7 +176,7 @@ if pg?
 					# We only need to perform the bind replacements if there is at least one binding!
 					if _.includes(sql, '?')
 						bindNo = 0
-						sql = SQLBinds.matchAll(sql, 'Parse', [ ->
+						sql = sqlBinds sql, ->
 							if Array.isArray(bindings[bindNo])
 								initialBindNo = bindNo
 								bindString = (
@@ -191,7 +190,6 @@ if pg?
 								return 'DEFAULT'
 							else
 								return '$' + ++bindNo
-						])
 
 					Promise.fromCallback (callback) ->
 						_db.query({ text: sql, values: bindings }, callback)
