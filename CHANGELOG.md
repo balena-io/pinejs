@@ -1,3 +1,4 @@
+* Used webpack's resolve.extensions to remove the need for adding .coffee to require calls.
 * Updated pg to ^6.0.0 and use an explicit pool.
 * Updated memoizee
 * Updated dev dependencies.

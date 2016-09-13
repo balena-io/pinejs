@@ -1,6 +1,6 @@
 _ = require 'lodash'
 expressSession = require 'express-session'
-permissions = require '../sbvr-api/permissions.coffee'
+permissions = require '../sbvr-api/permissions'
 
 sessionAPI = null
 

@@ -1,13 +1,13 @@
 define [
 	'./ClientURIUnparser.ometajs'
 	'ejs'
-	'./widgets.coffee'
+	'./widgets'
 	'async'
 	'bluebird'
 	'lodash'
 	'server-request'
 	'jquery'
-	'./runTrans.coffee'
+	'./runTrans'
 ], (ClientURIUnparser, ejs, widgets, async, Promise, _, serverRequest, $) ->
 	templates = {
 		widgets: widgets

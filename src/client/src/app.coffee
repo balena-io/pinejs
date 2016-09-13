@@ -1,8 +1,8 @@
 define [
 	'backbone'
-	'models/sbvrmodel.coffee'
+	'models/sbvrmodel'
 	'jquery'
-	'views/main.coffee'
+	'views/main'
 	'bootstrap'
 ], (Backbone, SBVRModel, $, MainView) ->
 

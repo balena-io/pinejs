@@ -2,7 +2,7 @@ webpack = require 'webpack'
 _ = require 'lodash'
 config = _.clone require './config'
 
-config.entry += '/src/server/src/server-glue/server.coffee'
+config.entry += '/src/server/src/server-glue/server'
 config.plugins = config.plugins.concat(
 	new webpack.DefinePlugin(
 		'process.browser': true

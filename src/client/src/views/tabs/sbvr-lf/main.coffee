@@ -1,6 +1,6 @@
 define [
 	'backbone'
-	'./lfviz.coffee'
+	'./lfviz'
 	'./style.css'
 ], (Backbone, lfviz) ->
 	Backbone.View.extend(

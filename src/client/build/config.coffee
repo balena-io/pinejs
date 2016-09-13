@@ -20,7 +20,7 @@ module.exports =
 			'pg': 'null-loader'
 
 			'bcrypt': 'bcryptjs'
-			'express': root + '/src/server/src/express-emulator/express.coffee'
+			'express': root + '/src/server/src/express-emulator/express'
 			'underscore': 'lodash'
 
 			'bootstrap': 'bootstrap/docs/assets/js/bootstrap'
@@ -33,22 +33,27 @@ module.exports =
 			'templates': root + '/src/client/src/templates'
 			'models': root + '/src/client/src/models'
 			'views': root + '/src/client/src/views'
-			'config': root + '/src/client/src/config.coffee'
+			'config': root + '/src/client/src/config'
 
 			'ometa-highlighting': root + '/src/client/src/ometa-highlighting'
-			'server-request': root + '/src/client/src/server-request.coffee'
+			'server-request': root + '/src/client/src/server-request'
 
-			'extended-sbvr-parser': root + '/src/common/extended-sbvr-parser/extended-sbvr-parser.coffee'
+			'extended-sbvr-parser': root + '/src/common/extended-sbvr-parser/extended-sbvr-parser'
 
 			'data-server': root + '/src/server/src/data-server'
 			'database-layer': root + '/src/server/src/database-layer'
 			'migrator': root + '/src/server/src/migrator'
 			'pinejs-session-store': root + '/src/server/src/pinejs-session-store'
 			'passport-pinejs': root + '/src/server/src/passport-pinejs'
-			'server-glue': root + '/src/server/src/server-glue/server.coffee'
+			'server-glue': root + '/src/server/src/server-glue/server'
 			'sbvr-api': root + '/src/server/src/sbvr-api'
 			'sbvr-compiler': root + '/src/server/src/sbvr-compiler'
 			'@resin/sbvr-types$': '@resin/sbvr-types/bin/types.js'
+		extensions: [
+			''
+			'.js'
+			'.coffee'
+		]
 	plugins: [
 		new UMDRequirePlugin()
 		new webpack.ResolverPlugin(
