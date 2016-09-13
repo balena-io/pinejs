@@ -13,7 +13,7 @@
     "@resin/lf-to-abstract-sql": "~0.0.18",
     "@resin/odata-parser": "~0.1.10",
     "@resin/odata-to-abstract-sql": "~0.3.6",
-    "@resin/sbvr-parser": "~0.0.24",
+    "@resin/sbvr-parser": "~0.0.25",
     "@resin/sbvr-types": "^1.0.0",
     "bluebird": "^3.0.6",
     "bluebird-lru-cache": "^1.0.0",
@@ -28,7 +28,7 @@
   "devDependencies": {
     "bower": "^1.6.8",
     "coffee-loader": "^0.7.2",
-    "css-loader": "^0.23.0",
+    "css-loader": "^0.25.0",
     "exports-loader": "^0.6.2",
     "extract-text-webpack-plugin": "^1.0.1",
     "file-loader": "^0.9.0",
