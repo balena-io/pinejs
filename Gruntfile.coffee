@@ -2,14 +2,14 @@ webpack = require 'webpack'
 _ = require 'lodash'
 
 clientConfigs =
-	'client': require './src/client/build/client.coffee'
-	'client-server': require './src/client/build/client-server.coffee'
-	'ddui': require './src/client/build/ddui.coffee'
-	'sbvr.co': require './src/client/build/sbvr.co.coffee'
+	'client': require './src/client/build/client'
+	'client-server': require './src/client/build/client-server'
+	'ddui': require './src/client/build/ddui'
+	'sbvr.co': require './src/client/build/sbvr.co'
 serverConfigs =
-	'browser': require './src/server/build/browser.coffee'
-	'module': require './src/server/build/module.coffee'
-	'server': require './src/server/build/server.coffee'
+	'browser': require './src/server/build/browser'
+	'module': require './src/server/build/module'
+	'server': require './src/server/build/server'
 
 clientDevConfigs = {}
 for task, config of clientConfigs

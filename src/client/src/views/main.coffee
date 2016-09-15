@@ -2,8 +2,8 @@ define [
 	'backbone'
 	'jquery'
 	'templates/main.html'
-	'models/session.coffee'
-	'views/login.coffee'
+	'models/session'
+	'views/login'
 ], (Backbone, $, html, SessionModel, LoginView) ->
 	Backbone.View.extend(
 		id: 'app-main'
@@ -36,19 +36,19 @@ define [
 			# Tab subviews
 			tabs = []
 			if TAB_SBVR_EDITOR
-				tabs.push require 'views/tabs/sbvr-editor/main.coffee'
+				tabs.push require 'views/tabs/sbvr-editor/main'
 			if TAB_SBVR_LF
-				tabs.push require 'views/tabs/sbvr-lf/main.coffee'
+				tabs.push require 'views/tabs/sbvr-lf/main'
 			if TAB_SBVR_GRAPH
-				tabs.push require 'views/tabs/sbvr-graph/main.coffee'
+				tabs.push require 'views/tabs/sbvr-graph/main'
 			if TAB_SBVR_SERVER
-				tabs.push require 'views/tabs/sbvr-server/main.coffee'
+				tabs.push require 'views/tabs/sbvr-server/main'
 			if TAB_DDUI
-				tabs.push require 'views/tabs/ddui/main.coffee'
+				tabs.push require 'views/tabs/ddui/main'
 			if TAB_DB_IMPORT_EXPORT
-				tabs.push require 'views/tabs/db-import-export/main.coffee'
+				tabs.push require 'views/tabs/db-import-export/main'
 			if TAB_VALIDATE
-				tabs.push require 'views/tabs/validate/main.coffee'
+				tabs.push require 'views/tabs/validate/main'
 			for TabView, i in tabs
 				content = $("<div id='tab#{i}' />")
 				tab = $("<li><a data-toggle='tab' href='#tab#{i}'/></li>")
@@ -81,7 +81,7 @@ define [
 					slug = @model.get('slug')
 
 					# Change the url
-					require('../app.coffee').navigate(slug)
+					require('../app').navigate(slug)
 
 					# Alert the successful creation
 					@$('#publishSuccess a').attr('href', '#' + slug).text('sbvr.co/#/' + slug)

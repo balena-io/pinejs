@@ -12,13 +12,13 @@ if !process.browser and !nodeRequire?
 	nodeRequire('ometa-js')
 
 Promise = require 'bluebird'
-dbModule = require '../database-layer/db.coffee'
-sbvrUtils = require '../sbvr-api/sbvr-utils.coffee'
-sbvrServer = require '../data-server/SBVRServer.coffee'
-transactions = require '../http-transactions/transactions.coffee'
-configLoader = require '../config-loader/config-loader.coffee'
-migrator = require '../migrator/migrator.coffee'
-PinejsSessionStore = require '../pinejs-session-store/pinejs-session-store.coffee'
+dbModule = require '../database-layer/db'
+sbvrUtils = require '../sbvr-api/sbvr-utils'
+sbvrServer = require '../data-server/SBVRServer'
+transactions = require '../http-transactions/transactions'
+configLoader = require '../config-loader/config-loader'
+migrator = require '../migrator/migrator'
+PinejsSessionStore = require '../pinejs-session-store/pinejs-session-store'
 
 if dbModule.websql?
 	databaseOptions =

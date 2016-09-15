@@ -1,7 +1,7 @@
 _ = require 'lodash'
 Promise = require 'bluebird'
-sbvrUtils = require '../sbvr-api/sbvr-utils.coffee'
-permissions = require '../sbvr-api/permissions.coffee'
+sbvrUtils = require '../sbvr-api/sbvr-utils'
+permissions = require '../sbvr-api/permissions'
 fs = Promise.promisifyAll(require('fs'))
 
 # Setup function

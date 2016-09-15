@@ -46,7 +46,7 @@ module.exports =
 		alias:
 			'ometa-core': 'ometa-js/lib/ometajs/core'
 
-			'extended-sbvr-parser': root + '/src/common/extended-sbvr-parser/extended-sbvr-parser.coffee'
+			'extended-sbvr-parser': root + '/src/common/extended-sbvr-parser/extended-sbvr-parser'
 
 			'data-server': root + '/src/server/src/data-server'
 			'database-layer': root + '/src/server/src/database-layer'
@@ -57,6 +57,11 @@ module.exports =
 			'server-glue': root + '/src/server/src/server-glue'
 			'sbvr-api': root + '/src/server/src/sbvr-api'
 			'sbvr-compiler': root + '/src/server/src/sbvr-compiler'
+		extensions: [
+			''
+			'.js'
+			'.coffee'
+		]
 	plugins: [
 		new UMDRequirePlugin()
 		new webpack.optimize.DedupePlugin()

@@ -6,15 +6,15 @@ AbstractSQLCompiler = require '@resin/abstract-sql-compiler'
 PinejsClientCore = require 'pinejs-client/core'
 sbvrTypes = require '@resin/sbvr-types'
 
-SBVRParser = require '../../../common/extended-sbvr-parser/extended-sbvr-parser.coffee'
+SBVRParser = require '../../../common/extended-sbvr-parser/extended-sbvr-parser'
 
-migrator = require '../migrator/migrator.coffee'
+migrator = require '../migrator/migrator'
 AbstractSQL2CLF = require '@resin/abstract-sql-to-odata-schema'
-ODataMetadataGenerator = require '../sbvr-compiler/ODataMetadataGenerator.coffee'
+ODataMetadataGenerator = require '../sbvr-compiler/ODataMetadataGenerator'
 
 devModel = require './dev.sbvr'
-permissions = require './permissions.coffee'
-uriParser = require './uri-parser.coffee'
+permissions = require './permissions'
+uriParser = require './uri-parser'
 
 db = null
 

@@ -1,9 +1,9 @@
 define [
 	'backbone'
 	'./ClientURIParser.ometajs'
-	'./drawDataUI.coffee'
+	'./drawDataUI'
 	'jquery-ui'
-	'views/tabs/sbvr-server/main.coffee'
+	'views/tabs/sbvr-server/main'
 	'./jquery-ui.css'
 ], (Backbone, ClientURIParser, drawDataUI) ->
 	Backbone.View.extend(

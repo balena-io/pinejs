@@ -2,7 +2,7 @@ _ = require 'lodash'
 Promise = require 'bluebird'
 TypedError = require 'typed-error'
 modelText = require './migrations.sbvr'
-permissions = require '../sbvr-api/permissions.coffee'
+permissions = require '../sbvr-api/permissions'
 
 exports.MigrationError = class MigrationError extends TypedError
 

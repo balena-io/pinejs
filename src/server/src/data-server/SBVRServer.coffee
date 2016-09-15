@@ -1,5 +1,5 @@
 Promise = require 'bluebird'
-permissions = require '../sbvr-api/permissions.coffee'
+permissions = require '../sbvr-api/permissions'
 
 uiModel = '''
 		Vocabulary: ui

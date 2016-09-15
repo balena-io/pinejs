@@ -1,7 +1,7 @@
 define [
 	'backbone'
-	'models/session.coffee'
-	'models/user.coffee'
+	'models/session'
+	'models/user'
 	'templates/login.html'
 	'templates/register.html'
 ], (Backbone, SessionModel, UserModel, loginHtml, registerHtml) ->
