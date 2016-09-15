@@ -591,8 +591,14 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 		# Parse the OData requests
 		uriParser.parseODataURI(req)
 	.then (requests) ->
-		# Then for each request add/check the relevant permissions, translate to abstract sql, and then compile the abstract sql.
+		console.log('POSTPARSE (pre hook)')
+		console.log(requests)
+		# Then for each request add/check the relevant permissions, translate to
+		# abstract sql, and then compile the abstract sql. This can be done in parallel
+		# for all the requests
 		Promise.map requests, (request) ->
+			# Is it necessary to wrap this in a Promise.try?
+
 			# Get the full hooks list now that we can
 			req.hooks = getHooks(request)
 			runHook('POSTPARSE', { req, request, tx: req.tx })
@@ -606,30 +612,38 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 						api[apiRoot].logger.error('Failed to compile abstract sql: ', request.abstractSqlQuery, err, err.stack)
 						throw new SqlCompilationError(err)
 				return request
+
 	# Then handle forwarding the request to the correct method handler.
 	.then (requests) ->
-		# Use the first request (and only, since we don't support multiple requests in one yet)
-		request = requests[0]
-		{ logger } = api[request.vocabulary]
 
-		res.set('Cache-Control', 'no-cache')
+		# Run the transactions in the recieved order
+		Promise.mapSeries requests, (request) ->
+			{ logger } = api[request.vocabulary]
 
-		if process.env.DEBUG
-			logger.log('Running', req.method, req.url)
+			if process.env.DEBUG
+				logger.log('Running', req.method, req.url)
 
-		runTransaction req, request, (tx) ->
-			runHook('PRERUN', { req, request, tx })
-			.then ->
-				switch req.method
-					when 'GET'
-						runGet(req, res, request, tx)
-					when 'POST'
-						runPost(req, res, request, tx)
-					when 'PUT', 'PATCH', 'MERGE'
-						runPut(req, res, request, tx)
-					when 'DELETE'
-						runDelete(req, res, request, tx)
-		.then (result) ->
+			runTransaction req, request, (tx) ->
+				runHook('PRERUN', { req, request, tx })
+				.then ->
+					switch req.method
+						when 'GET'
+							runGet(req, res, request, tx)
+						when 'POST'
+							runPost(req, res, request, tx)
+						when 'PUT', 'PATCH', 'MERGE'
+							runPut(req, res, request, tx)
+						when 'DELETE'
+							runDelete(req, res, request, tx)
+		.then (results) ->
+			# console.log('results', results)
+
+			# Respond pretending just the first request was recieved
+			# respond functions should be modified to incrementally build up a response
+			request = requests[0]
+			result = results[0]
+
+			res.set('Cache-Control', 'no-cache')
 			switch req.method
 				when 'GET'
 					respondGet(req, res, request, result)
@@ -643,12 +657,13 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 					respondOptions(req, res, request, result)
 				else
 					throw new UnsupportedMethodError()
+
 		.catch db.DatabaseError, (err) ->
-			prettifyConstraintError(err, request.resourceName)
-			logger.error(err, err.stack)
+			prettifyConstraintError(err, requests[0].resourceName)
+			console.error(err, err.stack)
 			res.sendStatus(500)
 		.catch EvalError, RangeError, ReferenceError, SyntaxError, TypeError, URIError, (err) ->
-			logger.error(err, err.stack)
+			console.error(err, err.stack)
 			res.sendStatus(500)
 	.catch SbvrValidationError, (err) ->
 		res.status(400).send(err.message)
