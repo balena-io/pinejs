@@ -1,3 +1,5 @@
+v2.3.0
+
 * Converted sql binds parsing from ometa to coffeescript, it reduces my test case (matching production usage) from ~1300ms to ~100ms
 * Used webpack's resolve.extensions to remove the need for adding .coffee to require calls.
 * Updated pg to ^6.0.0 and use an explicit pool.
