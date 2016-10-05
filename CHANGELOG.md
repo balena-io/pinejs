@@ -1,3 +1,5 @@
+* Allow passing userId as a numeric string to `getUserPermissions`.
+
 v2.3.0
 
 * Converted sql binds parsing from ometa to coffeescript, it reduces my test case (matching production usage) from ~1300ms to ~100ms

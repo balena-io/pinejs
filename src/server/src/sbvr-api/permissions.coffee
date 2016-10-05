@@ -168,31 +168,32 @@ exports.setup = (app, sbvrUtils) ->
 		.nodeify(callback)
 
 	exports.getUserPermissions = getUserPermissions = (userId, callback) ->
-		if _.isFinite(userId)
-			permsFilter = $or:
-				user__has__permission: $any:
-					$alias: 'uhp'
-					$expr:
-						uhp: user: userId
-						$or: [
-							uhp: expiry_date: null
-						,	uhp: expiry_date: $gt: $now: null
-						]
-				role__has__permission: $any:
-					$alias: 'rhp'
-					$expr: rhp: role: $any:
-						$alias: 'r'
-						$expr: r: user__has__role: $any:
-							$alias: 'uhr'
-							$expr:
-								uhr: user: userId
-								$or: [
-									uhr: expiry_date: null
-								,	uhr: expiry_date: $gt: $now: null
-								]
-			return getPermissions(permsFilter, callback)
-		else
-			return Promise.rejected(new Error('User ID either has to be a numeric id, got: ' + typeof userId))
+		if _.isString(userId)
+			userId = _.parseInt(userId)
+		if !_.isFinite(userId)
+			return Promise.rejected(new Error('User ID has to be numeric, got: ' + typeof userId))
+		permsFilter = $or:
+			user__has__permission: $any:
+				$alias: 'uhp'
+				$expr:
+					uhp: user: userId
+					$or: [
+						uhp: expiry_date: null
+					,	uhp: expiry_date: $gt: $now: null
+					]
+			role__has__permission: $any:
+				$alias: 'rhp'
+				$expr: rhp: role: $any:
+					$alias: 'r'
+					$expr: r: user__has__role: $any:
+						$alias: 'uhr'
+						$expr:
+							uhr: user: userId
+							$or: [
+								uhr: expiry_date: null
+							,	uhr: expiry_date: $gt: $now: null
+							]
+		return getPermissions(permsFilter, callback)
 
 	exports.getApiKeyPermissions = getApiKeyPermissions = do ->
 		cache = new BluebirdLRU
