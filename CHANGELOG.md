@@ -1,3 +1,5 @@
+v2.3.1
+
 * Allow passing userId as a numeric string to `getUserPermissions`.
 
 v2.3.0
