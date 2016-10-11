@@ -36,7 +36,7 @@ exports.parseODataURI = (req) ->
 	# URL $batch relative to service root.
 	body = if req.batch?.length > 0 then req.batch else [{method: method, url: url, data: body}]
 
-	Promise.map body, (b) -> Promise.try ->
+	Promise.map body, (b) ->
 		b.url = b.url.split('/')
 		apiRoot = b.url[1]
 		if !apiRoot? or !odata2AbstractSQL[apiRoot]?

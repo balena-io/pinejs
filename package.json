@@ -23,6 +23,7 @@
     "express-session": "^1.10.3",
     "lodash": "^4.0.0",
     "memoizee": "^0.4.1",
+    "mimemessage": "^1.0.4",
     "ometa-js": "^1.4.2",
     "pinejs-client": "^4.0.0",
     "typed-error": "~0.1.0"

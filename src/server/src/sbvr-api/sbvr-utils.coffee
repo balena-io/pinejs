@@ -6,7 +6,8 @@ AbstractSQLCompiler = require '@resin/abstract-sql-compiler'
 PinejsClientCore = require 'pinejs-client/core'
 sbvrTypes = require '@resin/sbvr-types'
 
-SBVRParser = require '../../../common/extended-sbvr-parser/extended-sbvr-parser'
+mimemessage = require 'mimemessage'
+SBVRParser = require '../../../common/extended-sbvr-parser/extended-sbvr-parser.coffee'
 
 migrator = require '../migrator/migrator'
 AbstractSQL2CLF = require '@resin/abstract-sql-to-odata-schema'
@@ -561,6 +562,13 @@ exports.runURI = runURI =  (method, uri, body = {}, tx, req, custom, callback) -
 					reject(data)
 				else
 					resolve(data)
+			sendMulti: (data, statusCode = @statusCode) ->
+				msg = mimemessage.factory {contentType: 'multipart/mixed', body: []}
+
+				msg.body = data.map (d) ->
+					mimemessage.factory d
+				@set('content-type', msg.header('content-type'))
+				resolve(msg.toString({noHeaders: true}))
 			set: ->
 			type: ->
 
@@ -591,14 +599,11 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 		# Parse the OData requests
 		uriParser.parseODataURI(req)
 	.then (requests) ->
-		console.log('POSTPARSE (pre hook)')
-		console.log(requests)
+		# console.log('POSTPARSE (pre hook)')
 		# Then for each request add/check the relevant permissions, translate to
 		# abstract sql, and then compile the abstract sql. This can be done in parallel
 		# for all the requests
 		Promise.map requests, (request) ->
-			# Is it necessary to wrap this in a Promise.try?
-
 			# Get the full hooks list now that we can
 			req.hooks = getHooks(request)
 			runHook('POSTPARSE', { req, request, tx: req.tx })
@@ -626,7 +631,7 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 			runTransaction req, request, (tx) ->
 				runHook('PRERUN', { req, request, tx })
 				.then ->
-					switch req.method
+					switch request.method
 						when 'GET'
 							runGet(req, res, request, tx)
 						when 'POST'
@@ -636,35 +641,46 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 						when 'DELETE'
 							runDelete(req, res, request, tx)
 		.then (results) ->
-			# console.log('results', results)
-
-			# Respond pretending just the first request was recieved
-			# respond functions should be modified to incrementally build up a response
-			request = requests[0]
-			result = results[0]
-
 			res.set('Cache-Control', 'no-cache')
-			switch req.method
-				when 'GET'
-					respondGet(req, res, request, result)
-				when 'POST'
-					respondPost(req, res, request, result)
-				when 'PUT', 'PATCH', 'MERGE'
-					respondPut(req, res, request, result)
-				when 'DELETE'
-					respondDelete(req, res, request, result)
-				when 'OPTIONS'
-					respondOptions(req, res, request, result)
-				else
-					throw new UnsupportedMethodError()
+			data = _.zipWith requests, results, (request, result) -> {request: request, result: result}
+			Promise.map data, (d) ->
+				request = d.request
+				result = d.result
 
-		.catch db.DatabaseError, (err) ->
-			prettifyConstraintError(err, requests[0].resourceName)
-			console.error(err, err.stack)
-			res.sendStatus(500)
-		.catch EvalError, RangeError, ReferenceError, SyntaxError, TypeError, URIError, (err) ->
-			console.error(err, err.stack)
-			res.sendStatus(500)
+				switch request.method
+					when 'GET'
+						respondGet(req, res, request, result)
+					when 'POST'
+						respondPost(req, res, request, result)
+					when 'PUT', 'PATCH', 'MERGE'
+						respondPut(req, res, request, result)
+					when 'DELETE'
+						respondDelete(req, res, request, result)
+					when 'OPTIONS'
+						respondOptions(req, res, request, result)
+					else
+						throw new UnsupportedMethodError()
+
+			.then (responses) ->
+				# If we are dealing with a single request unpack the response and respond normally
+				if responses.length == 1
+					response = responses[0]
+					for r of response
+						if r == 'body' then continue
+						if r == 'status' then res.status(response[r])
+						else res.set(r, response[r])
+					if _.isUndefined(response.body) then res.send() else res.json(response.body)
+				# Otherwise its a multipart request and we reply with the appropriate multipart response
+				else res.sendMulti(responses)
+
+			.catch db.DatabaseError, (err) ->
+				prettifyConstraintError(err, request.resourceName)
+				logger.error(err, err.stack)
+				res.sendStatus(500)
+			.catch EvalError, RangeError, ReferenceError, SyntaxError, TypeError, URIError, (err) ->
+				logger.error(err, err.stack)
+				res.sendStatus(500)
+
 	.catch SbvrValidationError, (err) ->
 		res.status(400).send(err.message)
 	.catch uriParser.BadRequestError, ->
@@ -725,11 +741,13 @@ respondGet = (req, res, request, result) ->
 		.then (d) ->
 			runHook('PRERESPOND', { req, res, request, result, data: d, tx: req.tx })
 			.then ->
-				res.json({ d })
+				# res.json({ d })
+				{ body: { d }, 'contentType': 'application/json' }
 	else
 		if request.resourceName == '$metadata'
-			res.type('xml')
-			res.send(odataMetadata[vocab])
+			# res.type('xml')
+			# res.send(odataMetadata[vocab])
+			return { 'contentType': 'xml', body: odataMetadata[vocab] }
 		else
 			clientModel = clientModels[vocab]
 			data =
@@ -737,8 +755,8 @@ respondGet = (req, res, request, result) ->
 					__model: clientModel.resources
 				else
 					__model: clientModel.resources[request.resourceName]
-			res.json(data)
-		return Promise.resolve()
+			# res.json(data)
+			return { body: data, 'contentType': 'application/json' }
 
 runPost = (req, res, request, tx) ->
 	vocab = request.vocabulary
@@ -763,12 +781,13 @@ respondPost = (req, res, request, result) ->
 	runURI('GET', location, null, req.tx, req)
 	.catch ->
 		# If we failed to fetch the created resource then just return the id.
-		return d: [{ id }]
+		return {body: {d: [{ id }]}, 'contentType': 'application/json'}
 	.then (result) ->
 		runHook('PRERESPOND', { req, res, request, result, tx: req.tx })
 		.then ->
-			res.set('Location', location)
-			res.status(201).json(result.d[0])
+			# res.set('Location', location)
+			# res.status(201).json(result.d[0])
+			{Location: location, status: 201, body: result.d[0], 'contentType': 'application/json'}
 
 runPut = (req, res, request, tx) ->
 	vocab = request.vocabulary
@@ -790,7 +809,8 @@ runPut = (req, res, request, tx) ->
 respondPut = respondDelete = respondOptions = (req, res, request) ->
 	runHook('PRERESPOND', { req, res, request, tx: req.tx })
 	.then ->
-		res.sendStatus(200)
+		# res.sendStatus(200)
+		{status: 200}
 
 runDelete = (req, res, request, tx) ->
 	vocab = request.vocabulary
@@ -838,7 +858,6 @@ exports.addHook = (method, apiRoot, resourceName, callbacks) ->
 exports.setup = (app, _db, callback) ->
 	exports.db = db = _db
 	AbstractSQLCompiler = AbstractSQLCompiler[db.engine]
-
 	db.transaction()
 	.then (tx) ->
 		executeStandardModels(tx)
