@@ -16,6 +16,13 @@ devModel = require './dev.sbvr'
 permissions = require './permissions'
 uriParser = require './uri-parser'
 
+memoize = require 'memoizee'
+memoizedCompileRule = memoize(
+	(abstractSqlQuery) ->
+		AbstractSQLCompiler.compileRule(abstractSqlQuery)
+	primitive: true
+)
+
 db = null
 
 exports.sbvrTypes = sbvrTypes
@@ -75,22 +82,31 @@ prettifyConstraintError = (err, tableName) ->
 
 		throw err
 
-getAndCheckBindValues = (vocab, bindings, values) ->
+getAndCheckBindValues = (vocab, odataBinds, bindings, values) ->
 	mappings = clientModels[vocab].resourceToSQLMappings
 	sqlModelTables = sqlModels[vocab].tables
 	Promise.map bindings, (binding) ->
 		if binding[0] is 'Bind'
-			[tableName, fieldName] = binding[1]
+			if _.isArray(binding[1])
+				[tableName, fieldName] = binding[1]
 
-			referencedName = tableName + '.' + fieldName
-			value = values[referencedName]
-			if value is undefined
-				value = values[fieldName]
+				referencedName = tableName + '.' + fieldName
+				value = values[referencedName]
+				if value is undefined
+					value = values[fieldName]
 
-			[mappedTableName, mappedFieldName] = mappings[tableName][fieldName]
-			field = _.find(sqlModelTables[mappedTableName].fields, {
-				fieldName: mappedFieldName
-			})
+				[mappedTableName, mappedFieldName] = mappings[tableName][fieldName]
+				field = _.find(sqlModelTables[mappedTableName].fields, {
+					fieldName: mappedFieldName
+				})
+			else if _.isInteger(binding[1])
+				if binding[1] >= odataBinds.length
+					console.error("Invalid binding number '#{binding[1]}' for binds: ", odataBinds)
+					throw new Error('Invalid binding')
+				[dataType, value] = odataBinds[binding[1]]
+				field = { dataType }
+			else
+				throw new Error("Unknown binding: #{binding}")
 		else
 			[dataType, value] = binding
 			field = { dataType }
@@ -541,7 +557,7 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 			.then (request) ->
 				if request.abstractSqlQuery?
 					try
-						request.sqlQuery = AbstractSQLCompiler.compileRule(request.abstractSqlQuery)
+						request.sqlQuery = memoizedCompileRule(request.abstractSqlQuery)
 					catch err
 						api[apiRoot].logger.error('Failed to compile abstract sql: ', request.abstractSqlQuery, err, err.stack)
 						throw new SqlCompilationError(err)
@@ -627,10 +643,10 @@ runTransaction = (req, request, callback) ->
 
 # This is a helper function that will check and add the bind values to the SQL query and then run it.
 runQuery = (tx, request, queryIndex, addReturning) ->
-	{ values, sqlQuery, vocabulary } = request
+	{ values, odataBinds, sqlQuery, vocabulary } = request
 	if queryIndex?
 		sqlQuery = sqlQuery[queryIndex]
-	getAndCheckBindValues(vocabulary, sqlQuery.bindings, values)
+	getAndCheckBindValues(vocabulary, odataBinds, sqlQuery.bindings, values)
 	.then (values) ->
 		if process.env.DEBUG
 			api[vocabulary].logger.log(sqlQuery.query, values)

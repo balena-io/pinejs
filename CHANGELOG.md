@@ -1,3 +1,5 @@
+* Update to odata-parser/odata-to-abstract-sql/abstract-sql-compiler versions with support for odata binds and use it to memoise the abstract sql compilation step (test case went from ~8.4s warm to ~4.3s warm).
+
 v2.3.1
 
 * Allow passing userId as a numeric string to `getUserPermissions`.

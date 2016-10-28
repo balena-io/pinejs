@@ -5,7 +5,6 @@ env = require '../config-loader/env'
 userModel = require './user.sbvr'
 { metadataEndpoints } = require './uri-parser'
 { ODataParser } = require '@resin/odata-parser'
-memoize = require 'memoizee'
 TypedError = require 'typed-error'
 
 exports.PermissionError = class PermissionError extends TypedError
@@ -25,12 +24,12 @@ methodPermissions =
 		MERGE: or: ['set', 'update']
 		DELETE: 'delete'
 
-odataParser = ODataParser.createInstance()
-parsePermissions = memoize(
-	(filter) ->
+parsePermissions = do ->
+	odataParser = ODataParser.createInstance()
+	(filter, odataBinds) ->
+		# Continue from the existing binds as part of the partial parse pass we do.
+		odataParser.binds = odataBinds
 		odataParser.matchAll(['FilterByExpression', filter], 'ProcessRule')
-	primitive: true
-)
 
 # Traverses all values in `check`, actions for the following data types:
 # string: Calls `stringCallback` and uses the value returned instead
@@ -412,7 +411,7 @@ exports.setup = (app, sbvrUtils) ->
 				res.sendStatus(503)
 
 	addPermissions = do ->
-		_addPermissions = (req, permissionType, vocabulary, resourceName, odataQuery) ->
+		_addPermissions = (req, permissionType, vocabulary, resourceName, odataQuery, odataBinds) ->
 			checkPermissions(req, permissionType, resourceName, vocabulary)
 			.then (conditionalPerms) ->
 				if conditionalPerms is false
@@ -420,7 +419,7 @@ exports.setup = (app, sbvrUtils) ->
 				if conditionalPerms isnt true
 					permissionFilters = nestedCheck conditionalPerms, (permissionCheck) ->
 						try
-							permissionCheck = parsePermissions(permissionCheck)
+							permissionCheck = parsePermissions(permissionCheck, odataBinds)
 							# We use an object with filter key to avoid collapsing our filters later.
 							return filter: permissionCheck
 						catch e
@@ -443,7 +442,7 @@ exports.setup = (app, sbvrUtils) ->
 						# Always use get for the $expands
 						_addPermissions(req, methodPermissions.GET, vocabulary, expand.name, expand)
 
-		return (req, { method, vocabulary, resourceName, odataQuery, values, custom }) ->
+		return (req, { method, vocabulary, resourceName, odataQuery, odataBinds, values, custom }) ->
 			method = method.toUpperCase()
 			isMetadataEndpoint = resourceName in metadataEndpoints or method is 'OPTIONS'
 
@@ -456,4 +455,4 @@ exports.setup = (app, sbvrUtils) ->
 					console.warn('Unknown method for permissions type check: ', method)
 					'all'
 
-			_addPermissions(req, permissionType, vocabulary, odataQuery.resource, odataQuery)
+			_addPermissions(req, permissionType, vocabulary, odataQuery.resource, odataQuery, odataBinds)
