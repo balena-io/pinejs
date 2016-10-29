@@ -20,7 +20,7 @@ exports.parseODataURI = (req) -> Promise.try ->
 		throw new ParsingError('No such api root: ' + apiRoot)
 	url = '/' + url[2...].join('/')
 	try
-		odataQuery = odataParser.matchAll(url, 'Process')
+		odata = odataParser.matchAll(url, 'Process')
 	catch e
 		console.log('Failed to parse url: ', method, url, e, e.stack)
 		if e instanceof SyntaxError
@@ -30,13 +30,14 @@ exports.parseODataURI = (req) -> Promise.try ->
 	return [{
 		method
 		vocabulary: apiRoot
-		resourceName: odataQuery.resource
-		odataQuery
+		resourceName: odata.tree.resource
+		odataBinds: odata.binds
+		odataQuery: odata.tree
 		values: body
 		custom: {}
 	}]
 
-exports.translateUri = ({ method, vocabulary, resourceName, odataQuery, values, custom }) ->
+exports.translateUri = ({ method, vocabulary, resourceName, odataBinds, odataQuery, values, custom }) ->
 	isMetadataEndpoint = resourceName in metadataEndpoints or method is 'OPTIONS'
 	if !isMetadataEndpoint
 		try
@@ -48,6 +49,7 @@ exports.translateUri = ({ method, vocabulary, resourceName, odataQuery, values, 
 			method
 			vocabulary
 			resourceName
+			odataBinds
 			odataQuery
 			abstractSqlQuery
 			values
