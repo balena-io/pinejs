@@ -95,6 +95,9 @@ getAndCheckBindValues = (vocab, odataBinds, bindings, values) ->
 				if value is undefined
 					value = values[fieldName]
 
+				if _.isObject(value) and value.bind?
+					[dataType, value] = odataBinds[value.bind]
+
 				[mappedTableName, mappedFieldName] = mappings[tableName][fieldName]
 				field = _.find(sqlModelTables[mappedTableName].fields, {
 					fieldName: mappedFieldName
