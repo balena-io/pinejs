@@ -440,7 +440,7 @@ exports.setup = (app, sbvrUtils) ->
 					# Make sure any relevant permission filters are also applied to expands.
 					Promise.map odataQuery.options.$expand.properties, (expand) ->
 						# Always use get for the $expands
-						_addPermissions(req, methodPermissions.GET, vocabulary, expand.name, expand)
+						_addPermissions(req, methodPermissions.GET, vocabulary, expand.name, expand, odataBinds)
 
 		return (req, { method, vocabulary, resourceName, odataQuery, odataBinds, values, custom }) ->
 			method = method.toUpperCase()
