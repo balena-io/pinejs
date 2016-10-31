@@ -82,6 +82,11 @@ prettifyConstraintError = (err, tableName) ->
 
 		throw err
 
+exports.resolveOdataBind = resolveOdataBind = (odataBinds, value) ->
+	if _.isObject(value) and value.bind?
+		[dataType, value] = odataBinds[value.bind]
+	return value
+
 getAndCheckBindValues = (vocab, odataBinds, bindings, values) ->
 	mappings = clientModels[vocab].resourceToSQLMappings
 	sqlModelTables = sqlModels[vocab].tables
@@ -94,6 +99,8 @@ getAndCheckBindValues = (vocab, odataBinds, bindings, values) ->
 				value = values[referencedName]
 				if value is undefined
 					value = values[fieldName]
+
+				value = resolveOdataBind(odataBinds, value)
 
 				[mappedTableName, mappedFieldName] = mappings[tableName][fieldName]
 				field = _.find(sqlModelTables[mappedTableName].fields, {
