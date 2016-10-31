@@ -1,3 +1,4 @@
+* Reimplemented memoisation of the permissions partial parse which was removed in the bind vars update. (test case went from ~2.9s warm to ~2.6s warm)
 * Updated odata-to-abstract-sql and added memoisation of the translate step. (test case went from ~3.2s warm to ~2.9s warm)
 * Update to odata-parser/odata-to-abstract-sql/abstract-sql-compiler versions with support for odata binds and use it to memoise the abstract sql compilation step (test case went from ~8.4s warm to ~4.3s warm).
 
