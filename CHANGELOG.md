@@ -1,5 +1,4 @@
-v2.4.0
-
+* Updated odata-to-abstract-sql and added memoisation of the translate step. (test case went from ~3.2s warm to ~2.9s warm)
 * Update to odata-parser/odata-to-abstract-sql/abstract-sql-compiler versions with support for odata binds and use it to memoise the abstract sql compilation step (test case went from ~8.4s warm to ~4.3s warm).
 
 v2.3.1

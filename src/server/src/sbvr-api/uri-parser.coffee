@@ -2,6 +2,8 @@ Promise = require 'bluebird'
 TypedError = require 'typed-error'
 { ODataParser } = require '@resin/odata-parser'
 { OData2AbstractSQL } = require '@resin/odata-to-abstract-sql'
+memoize = require 'memoizee'
+_ = require 'lodash'
 
 exports.TranslationError = class TranslationError extends TypedError
 exports.ParsingError = class ParsingError extends TypedError
@@ -9,6 +11,21 @@ exports.BadRequestError = class BadRequestError extends TypedError
 
 odataParser = ODataParser.createInstance()
 odata2AbstractSQL = {}
+
+memoizedOdata2AbstractSQL = do ->
+	_memoizedOdata2AbstractSQL = memoize(
+		(vocabulary, odataQuery, method, bodyKeys) ->
+			try
+				return odata2AbstractSQL[vocabulary].match(odataQuery, 'Process', [method, bodyKeys])
+			catch e
+				console.error('Failed to translate url: ', JSON.stringify(odataQuery, null, '\t'), method, e, e.stack)
+				throw new TranslationError('Failed to translate url')
+		normalizer: JSON.stringify
+	)
+	return (vocabulary, odataQuery, method, body) ->
+		{ tree, extraBodyVars} = _memoizedOdata2AbstractSQL(vocabulary, odataQuery, method, _.keys(body).sort())
+		_.assign(body, extraBodyVars)
+		return tree
 
 exports.metadataEndpoints = metadataEndpoints = ['$metadata', '$serviceroot']
 
@@ -40,11 +57,7 @@ exports.parseODataURI = (req) -> Promise.try ->
 exports.translateUri = ({ method, vocabulary, resourceName, odataBinds, odataQuery, values, custom }) ->
 	isMetadataEndpoint = resourceName in metadataEndpoints or method is 'OPTIONS'
 	if !isMetadataEndpoint
-		try
-			abstractSqlQuery = odata2AbstractSQL[vocabulary].match(odataQuery, 'Process', [method, values])
-		catch e
-			console.error('Failed to translate url: ', JSON.stringify(odataQuery, null, '\t'), method, e, e.stack)
-			throw new TranslationError('Failed to translate url')
+		abstractSqlQuery = memoizedOdata2AbstractSQL(vocabulary, odataQuery, method, values)
 		return {
 			method
 			vocabulary
