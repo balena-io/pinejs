@@ -5,6 +5,7 @@ env = require '../config-loader/env'
 userModel = require './user.sbvr'
 { metadataEndpoints } = require './uri-parser'
 { ODataParser } = require '@resin/odata-parser'
+memoize = require 'memoizee'
 TypedError = require 'typed-error'
 
 exports.PermissionError = class PermissionError extends TypedError
@@ -26,10 +27,24 @@ methodPermissions =
 
 parsePermissions = do ->
 	odataParser = ODataParser.createInstance()
-	(filter, odataBinds) ->
-		# Continue from the existing binds as part of the partial parse pass we do.
-		odataParser.binds = odataBinds
-		odataParser.matchAll(['FilterByExpression', filter], 'ProcessRule')
+	_parsePermissions = memoize(
+		(filter, bindsLength) ->
+			# Continue with the same length of binds as before for the partial pass step,
+			# except we don't care what those binds actually are)
+			odataParser.binds = new Array(bindsLength)
+			tree = odataParser.matchAll(['FilterByExpression', filter], 'ProcessRule')
+			return {
+				tree
+				extraBinds: odataParser.binds.slice(bindsLength)
+			}
+		primitive: true
+	)
+
+	return (filter, odataBinds) ->
+		{ tree, extraBinds } = _parsePermissions(filter, odataBinds.length)
+		# Add the extra binds we parsed onto our existing list of binds vars.
+		odataBinds.push(extraBinds...)
+		return tree
 
 # Traverses all values in `check`, actions for the following data types:
 # string: Calls `stringCallback` and uses the value returned instead
