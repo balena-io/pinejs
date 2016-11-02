@@ -12,7 +12,7 @@
     "@resin/abstract-sql-to-odata-schema": "^1.0.0",
     "@resin/lf-to-abstract-sql": "~0.0.18",
     "@resin/odata-parser": "~0.2.0",
-    "@resin/odata-to-abstract-sql": "~0.3.7",
+    "@resin/odata-to-abstract-sql": "~0.4.0",
     "@resin/sbvr-parser": "~0.0.25",
     "@resin/sbvr-types": "^1.0.0",
     "bluebird": "^3.0.6",
