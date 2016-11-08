@@ -1,3 +1,6 @@
+* Removed the try/catch in uri parsing, allowing v8 optimisation
+* Improved error messages when uri parsing fails
+
 v3.0.0
 
 * Reimplemented memoisation of the permissions partial parse which was removed in the bind vars update. (test case went from ~2.9s warm to ~2.6s warm)
