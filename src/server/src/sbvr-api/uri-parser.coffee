@@ -29,30 +29,31 @@ memoizedOdata2AbstractSQL = do ->
 
 exports.metadataEndpoints = metadataEndpoints = ['$metadata', '$serviceroot']
 
-exports.parseODataURI = (req) -> Promise.try ->
-	{ method, url, body } = req
-	url = url.split('/')
-	apiRoot = url[1]
-	if !apiRoot? or !odata2AbstractSQL[apiRoot]?
-		throw new ParsingError("No such api root: '#{apiRoot}'")
-	url = '/' + url[2...].join('/')
-	try
+notParsingError = (e) -> not (e instanceof ParsingError)
+exports.parseODataURI = (req) ->
+	Promise.try ->
+		{ method, url, body } = req
+		url = url.split('/')
+		apiRoot = url[1]
+		if !apiRoot? or !odata2AbstractSQL[apiRoot]?
+			throw new ParsingError("No such api root: '#{apiRoot}'")
+		url = '/' + url[2...].join('/')
 		odata = odataParser.matchAll(url, 'Process')
-	catch e
-		console.log('Failed to parse url: ', method, url, e, e.stack)
-		if e instanceof SyntaxError
-			throw new BadRequestError("Malformed url: '#{url}'")
-		throw new ParsingError("Failed to parse url: '#{url}'")
 
-	return [{
-		method
-		vocabulary: apiRoot
-		resourceName: odata.tree.resource
-		odataBinds: odata.binds
-		odataQuery: odata.tree
-		values: body
-		custom: {}
-	}]
+		return [{
+			method
+			vocabulary: apiRoot
+			resourceName: odata.tree.resource
+			odataBinds: odata.binds
+			odataQuery: odata.tree
+			values: body
+			custom: {}
+		}]
+	.catch SyntaxError, ->
+		throw new BadRequestError("Malformed url: '#{url}'")
+	.catch notParsingError, (e) ->
+		console.error('Failed to parse url: ', method, url, e, e.stack)
+		throw new ParsingError("Failed to parse url: '#{url}'")
 
 exports.translateUri = ({ method, vocabulary, resourceName, odataBinds, odataQuery, values, custom }) ->
 	isMetadataEndpoint = resourceName in metadataEndpoints or method is 'OPTIONS'

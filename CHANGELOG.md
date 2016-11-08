@@ -1,3 +1,4 @@
+* Removed the try/catch in uri parsing, allowing v8 optimisation
 * Improved error messages when uri parsing fails
 
 v3.0.0
