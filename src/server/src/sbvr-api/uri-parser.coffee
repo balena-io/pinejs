@@ -34,15 +34,15 @@ exports.parseODataURI = (req) -> Promise.try ->
 	url = url.split('/')
 	apiRoot = url[1]
 	if !apiRoot? or !odata2AbstractSQL[apiRoot]?
-		throw new ParsingError('No such api root: ' + apiRoot)
+		throw new ParsingError("No such api root: '#{apiRoot}'")
 	url = '/' + url[2...].join('/')
 	try
 		odata = odataParser.matchAll(url, 'Process')
 	catch e
 		console.log('Failed to parse url: ', method, url, e, e.stack)
 		if e instanceof SyntaxError
-			throw new BadRequestError('Malformed url')
-		throw new ParsingError('Failed to parse url')
+			throw new BadRequestError("Malformed url: '#{url}'")
+		throw new ParsingError("Failed to parse url: '#{url}'")
 
 	return [{
 		method
