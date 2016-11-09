@@ -346,57 +346,64 @@ odataResourceURI = (vocab, resourceName, id) ->
 			id
 	return '/' + vocab + '/' + resourceName + '(' + id + ')'
 
-processOData = (vocab, clientModel, resourceName, rows) ->
-	if rows.length is 0
-		return Promise.fulfilled([])
+processOData = do ->
+	getForeignFields = (resourceModel) ->
+		if !resourceModel.foreignFields?
+			resourceModel.foreignFields = {}
+			for { fieldName, dataType } in resourceModel.fields when dataType is 'ForeignKey'
+				resourceModel.foreignFields[fieldName.replace(/\ /g, '_')] = true
+		return resourceModel.foreignFields
+	getFetchProcessingFields = (resourceModel) ->
+		return resourceModel.fetchProcessingFields ?=
+			_(resourceModel.fields)
+			.filter(({ dataType }) -> fetchProcessing[dataType]?)
+			.map ({ fieldName, dataType }) ->
+				return [
+					fieldName.replace(/\ /g, '_')
+					fetchProcessing[dataType]
+				]
+			.fromPairs()
+			.value()
 
-	if rows.length is 1
-		if rows.item(0).$count?
-			count = parseInt(rows.item(0).$count, 10)
-			return Promise.fulfilled(count)
+	return (vocab, clientModel, resourceName, rows) ->
+		if rows.length is 0
+			return Promise.fulfilled([])
 
-	resourceModel = clientModel[resourceName]
+		if rows.length is 1
+			if rows.item(0).$count?
+				count = parseInt(rows.item(0).$count, 10)
+				return Promise.fulfilled(count)
 
-	instances = rows.map (instance) ->
-		instance.__metadata =
-			uri: odataResourceURI(vocab, resourceModel.resourceName, +instance[resourceModel.idField])
-			type: ''
-		return instance
+		resourceModel = clientModel[resourceName]
 
-	instancesPromise = Promise.fulfilled()
+		instances = rows.map (instance) ->
+			instance.__metadata =
+				uri: odataResourceURI(vocab, resourceModel.resourceName, +instance[resourceModel.idField])
+				type: ''
+			return instance
 
-	if !resourceModel.foreignFields?
-		resourceModel.foreignFields = {}
-		for { fieldName, dataType } in resourceModel.fields when dataType is 'ForeignKey'
-			resourceModel.foreignFields[fieldName.replace(/\ /g, '_')] = true
-	expandableFields = _.filter(_.keys(instances[0]), (fieldName) -> fieldName[0..1] != '__' and resourceModel.foreignFields.hasOwnProperty(fieldName))
-	if expandableFields.length > 0
-		instancesPromise = Promise.map instances, (instance) ->
-			Promise.map expandableFields, (fieldName) ->
-				checkForExpansion(vocab, clientModel, fieldName, instance)
+		instancesPromise = Promise.fulfilled()
 
-	resourceModel.fetchProcessingFields ?=
-		_(resourceModel.fields)
-		.filter(({ dataType }) -> fetchProcessing[dataType]?)
-		.map ({ fieldName, dataType }) ->
-			return [
-				fieldName.replace(/\ /g, '_')
-				fetchProcessing[dataType]
-			]
-		.fromPairs()
-		.value()
-	processedFields = _.filter(_.keys(instances[0]), (fieldName) -> fieldName[0..1] != '__' and resourceModel.fetchProcessingFields.hasOwnProperty(fieldName))
-	if processedFields.length > 0
-		instancesPromise = instancesPromise.then ->
-			Promise.map instances, (instance) ->
-				Promise.map processedFields, (resourceName) ->
-					resourceModel.fetchProcessingFields[resourceName](instance[resourceName])
-					.then (result) ->
-						instance[resourceName] = result
-						return
+		foreignFields = getForeignFields(resourceModel)
+		expandableFields = _.filter(_.keys(instances[0]), (fieldName) -> fieldName[0..1] != '__' and foreignFields.hasOwnProperty(fieldName))
+		if expandableFields.length > 0
+			instancesPromise = Promise.map instances, (instance) ->
+				Promise.map expandableFields, (fieldName) ->
+					checkForExpansion(vocab, clientModel, fieldName, instance)
 
-	instancesPromise.then ->
-		return instances
+		fetchProcessingFields = getFetchProcessingFields(resourceModel)
+		processedFields = _.filter(_.keys(instances[0]), (fieldName) -> fieldName[0..1] != '__' and fetchProcessingFields.hasOwnProperty(fieldName))
+		if processedFields.length > 0
+			instancesPromise = instancesPromise.then ->
+				Promise.map instances, (instance) ->
+					Promise.map processedFields, (resourceName) ->
+						fetchProcessingFields[resourceName](instance[resourceName])
+						.then (result) ->
+							instance[resourceName] = result
+							return
+
+		instancesPromise.then ->
+			return instances
 
 exports.runRule = do ->
 	LF2AbstractSQLPrepHack = LF2AbstractSQL.LF2AbstractSQLPrep._extend({ CardinalityOptimisation: -> @_pred(false) })
