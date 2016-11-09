@@ -365,21 +365,21 @@ processOData = (vocab, clientModel, resourceName, rows) ->
 
 	instancesPromise = Promise.fulfilled()
 
-	expandableFields = do ->
-		fieldNames = {}
-		for { fieldName, dataType } in resourceModel.fields when dataType != 'ForeignKey'
-			fieldNames[fieldName.replace(/\ /g, '_')] = true
-		return _.filter(_.keys(instances[0]), (fieldName) -> fieldName[0..1] != '__' and !fieldNames.hasOwnProperty(fieldName))
+	if !resourceModel.foreignFields?
+		resourceModel.foreignFields = {}
+		for { fieldName, dataType } in resourceModel.fields when dataType is 'ForeignKey'
+			resourceModel.foreignFields[fieldName.replace(/\ /g, '_')] = true
+	expandableFields = _.filter(_.keys(instances[0]), (fieldName) -> fieldName[0..1] != '__' and resourceModel.foreignFields.hasOwnProperty(fieldName))
 	if expandableFields.length > 0
 		instancesPromise = Promise.map instances, (instance) ->
 			Promise.map expandableFields, (fieldName) ->
 				checkForExpansion(vocab, clientModel, fieldName, instance)
 
-	processedFields = _.filter(resourceModel.fields, ({ dataType }) -> fetchProcessing[dataType]?)
-	if processedFields.length > 0
+	resourceModel.fetchProcessingFields ?= _.filter(resourceModel.fields, ({ dataType }) -> fetchProcessing[dataType]?)
+	if resourceModel.processedFields.length > 0
 		instancesPromise = instancesPromise.then ->
 			Promise.map instances, (instance) ->
-				Promise.map processedFields, ({ fieldName, dataType }) ->
+				Promise.map resourceModel.processedFields, ({ fieldName, dataType }) ->
 					fieldName = fieldName.replace(/\ /g, '_')
 					if instance.hasOwnProperty(fieldName)
 						fetchProcessing[dataType](instance[fieldName])
