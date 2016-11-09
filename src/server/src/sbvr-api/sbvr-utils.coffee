@@ -375,17 +375,25 @@ processOData = (vocab, clientModel, resourceName, rows) ->
 			Promise.map expandableFields, (fieldName) ->
 				checkForExpansion(vocab, clientModel, fieldName, instance)
 
-	resourceModel.fetchProcessingFields ?= _.filter(resourceModel.fields, ({ dataType }) -> fetchProcessing[dataType]?)
-	if resourceModel.processedFields.length > 0
+	resourceModel.fetchProcessingFields ?=
+		_(resourceModel.fields)
+		.filter(({ dataType }) -> fetchProcessing[dataType]?)
+		.map ({ fieldName, dataType }) ->
+			return [
+				fieldName.replace(/\ /g, '_')
+				fetchProcessing[dataType]
+			]
+		.fromPairs()
+		.value()
+	processedFields = _.filter(_.keys(instances[0]), (fieldName) -> fieldName[0..1] != '__' and resourceModel.fetchProcessingFields.hasOwnProperty(fieldName))
+	if processedFields.length > 0
 		instancesPromise = instancesPromise.then ->
 			Promise.map instances, (instance) ->
-				Promise.map resourceModel.processedFields, ({ fieldName, dataType }) ->
-					fieldName = fieldName.replace(/\ /g, '_')
-					if instance.hasOwnProperty(fieldName)
-						fetchProcessing[dataType](instance[fieldName])
-						.then (result) ->
-							instance[fieldName] = result
-							return
+				Promise.map processedFields, (resourceName) ->
+					resourceModel.fetchProcessingFields[resourceName](instance[resourceName])
+					.then (result) ->
+						instance[resourceName] = result
+						return
 
 	instancesPromise.then ->
 		return instances
