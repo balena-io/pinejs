@@ -1,3 +1,5 @@
+* Skip attempting to apply field processing if there are no fields needing it.
+* Added caching for the lists of expandable fields and fields requiring processing.
 * Removed the try/catch in uri parsing, allowing v8 optimisation
 * Improved error messages when uri parsing fails
 
