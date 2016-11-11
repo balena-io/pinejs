@@ -13,17 +13,16 @@ exports.PermissionParsingError = class PermissionParsingError extends TypedError
 exports.root = user: permissions: [ 'resource.all' ]
 exports.rootRead = rootRead = user: permissions: [ 'resource.get' ]
 methodPermissions =
-	methodPermissions =
-		GET: or: ['get', 'read']
-		PUT:
-			or: [
-				'set'
-				and: ['create', 'update']
-			]
-		POST: or: ['set', 'create']
-		PATCH: or: ['set', 'update']
-		MERGE: or: ['set', 'update']
-		DELETE: 'delete'
+	GET: or: ['get', 'read']
+	PUT:
+		or: [
+			'set'
+			and: ['create', 'update']
+		]
+	POST: or: ['set', 'create']
+	PATCH: or: ['set', 'update']
+	MERGE: or: ['set', 'update']
+	DELETE: 'delete'
 
 parsePermissions = do ->
 	odataParser = ODataParser.createInstance()
