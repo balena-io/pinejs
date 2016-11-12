@@ -14,6 +14,7 @@ module.exports =
 		root: [path.join(root, '/src/client/lib')]
 		alias:
 			'coffee-script/register': 'null-loader'
+			'ts-node/register': 'null-loader'
 			'fs': 'null-loader'
 			'module': 'null-loader'
 			'mysql': 'null-loader'
@@ -53,6 +54,7 @@ module.exports =
 			''
 			'.js'
 			'.coffee'
+			'.ts'
 		]
 	plugins: [
 		new UMDRequirePlugin()
@@ -86,4 +88,5 @@ module.exports =
 			{ test: /\.png$/, loader: 'url-loader?limit=100000&mimetype=image/png' }
 			{ test: /\.jpg$/, loader: 'url-loader?limit=100000&mimetype=image/jpg' }
 			{ test: /\.coffee$/, loader: 'coffee-loader' }
+			{ test: /\.ts$/, loader: "ts-loader" }
 		]

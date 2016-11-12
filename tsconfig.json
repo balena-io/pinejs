@@ -1,0 +1,18 @@
+{
+	"compilerOptions": {
+		"module": "commonjs",
+		"noImplicitAny": true,
+		"noUnusedParameters": true,
+		"noUnusedLocals": true,
+		"outDir": "out/",
+		"preserveConstEnums": true,
+		"removeComments": true,
+		"rootDir": "src",
+		"sourceMap": true,
+		"strictNullChecks": true
+	},
+	"include": [
+		"src/common/**/*.ts",
+		"src/server/**/*.ts"
+	]
+}

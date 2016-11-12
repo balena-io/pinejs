@@ -134,6 +134,9 @@ exports.setup = (app) ->
 				# Try to register the coffee-script loader if it doesn't exist
 				# We ignore if it fails though, since that probably just means it is not available/needed.
 				require('coffee-script/register')
+		if !require.extensions['.ts']?
+			try
+				require('ts-node/register')
 
 		path = require('path')
 

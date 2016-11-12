@@ -1,3 +1,5 @@
+* Added support for typescript within pinejs.
+
 v3.5.2
 
 * Use a proper $count in pinejs-session-store.
