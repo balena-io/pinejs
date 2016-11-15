@@ -1,4 +1,6 @@
-* Fixed a bug with expanding foreign keys where the foreign key attribute was on the other resource.
+v3.1.1
+
+* Fixed expanding foreign keys where the foreign key attribute was on the other resource.
 
 v3.1.0
 
