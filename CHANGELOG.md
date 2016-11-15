@@ -1,3 +1,5 @@
+* Fixed a bug with expanding foreign keys where the foreign key attribute was on the other resource.
+
 v3.1.0
 
 * Skip attempting to apply field processing if there are no fields needing it.

@@ -347,12 +347,12 @@ odataResourceURI = (vocab, resourceName, id) ->
 	return '/' + vocab + '/' + resourceName + '(' + id + ')'
 
 processOData = do ->
-	getForeignFields = (resourceModel) ->
-		if !resourceModel.foreignFields?
-			resourceModel.foreignFields = {}
-			for { fieldName, dataType } in resourceModel.fields when dataType is 'ForeignKey'
-				resourceModel.foreignFields[fieldName.replace(/\ /g, '_')] = true
-		return resourceModel.foreignFields
+	getLocalFields = (resourceModel) ->
+		if !resourceModel.localFields?
+			resourceModel.localFields = {}
+			for { fieldName, dataType } in resourceModel.fields when dataType isnt 'ForeignKey'
+				resourceModel.localFields[fieldName.replace(/\ /g, '_')] = true
+		return resourceModel.localFields
 	getFetchProcessingFields = (resourceModel) ->
 		return resourceModel.fetchProcessingFields ?=
 			_(resourceModel.fields)
@@ -384,8 +384,10 @@ processOData = do ->
 
 		instancesPromise = Promise.fulfilled()
 
-		foreignFields = getForeignFields(resourceModel)
-		expandableFields = _.filter(_.keys(instances[0]), (fieldName) -> fieldName[0..1] != '__' and foreignFields.hasOwnProperty(fieldName))
+		localFields = getLocalFields(resourceModel)
+		# We check that it's not a local field, rather than that it is a foreign key because of the case where the foreign key is on the other resource
+		# and hence not known to this resource
+		expandableFields = _.filter(_.keys(instances[0]), (fieldName) -> fieldName[0..1] != '__' and !localFields.hasOwnProperty(fieldName))
 		if expandableFields.length > 0
 			instancesPromise = Promise.map instances, (instance) ->
 				Promise.map expandableFields, (fieldName) ->
