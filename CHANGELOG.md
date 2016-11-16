@@ -1,3 +1,4 @@
+* Converted src/server/src/server-glue/module.coffee to typescript.
 * Added support for typescript within pinejs.
 
 v3.5.2
