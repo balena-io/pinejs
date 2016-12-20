@@ -4,7 +4,7 @@ TypedError = require 'typed-error'
 { OData2AbstractSQL } = require '@resin/odata-to-abstract-sql'
 memoize = require 'memoizee'
 _ = require 'lodash'
-
+utils = require './utils'
 exports.TranslationError = class TranslationError extends TypedError
 exports.ParsingError = class ParsingError extends TypedError
 exports.BadRequestError = class BadRequestError extends TypedError
@@ -23,32 +23,37 @@ memoizedOdata2AbstractSQL = do ->
 		normalizer: JSON.stringify
 	)
 	return (vocabulary, odataQuery, method, body) ->
-		{ tree, extraBodyVars} = _memoizedOdata2AbstractSQL(vocabulary, odataQuery, method, _.keys(body).sort())
+		{ tree, extraBodyVars } = _memoizedOdata2AbstractSQL(vocabulary, odataQuery, method, _.keys(body).sort())
 		_.assign(body, extraBodyVars)
 		return tree
 
 exports.metadataEndpoints = metadataEndpoints = ['$metadata', '$serviceroot']
 
-
 exports.parseODataURI = (req) ->
 	{ method, url, body } = req
   # batch requests should be identified by POST requests located at
 	# URL $batch relative to service root.
-	body = if req.batch?.length > 0 then req.batch else [{method: method, url: url, data: body}]
 
-	Promise.map body, (b) ->
-		b.url = b.url.split('/')
-		apiRoot = b.url[1]
-		if !apiRoot? or !odata2AbstractSQL[apiRoot]?
-			throw new ParsingError('No such api root: ' + apiRoot)
-		b.url = '/' + b.url[2...].join('/')
-		try
-			odataQuery = odataParser.matchAll(b.url, 'Process')
-		catch e
-			console.log('Failed to parse url: ', b.method, b.url, e, e.stack)
-			if e instanceof SyntaxError
-				throw new BadRequestError('Malformed url')
-			throw new ParsingError('Failed to parse url')
+	body = if req.batch?.length > 0 then req.batch else [{ method: method, url: url, data: body }]
+	utils.settleMap(body, parseOData)
+	.catch SyntaxError, ->
+		throw new BadRequestError("Malformed url: '#{url}'")
+	.catch notParsingError, notBadRequestError, (e) ->
+		console.error('Failed to parse url: ', method, url, e, e.stack)
+		throw new ParsingError("Failed to parse url: '#{url}'")
+
+parseOData = (b) ->
+	if b._isChangeSet
+		env = new Map()
+		# We sort the CS set once, we must assure that requests which reference
+		# other requests in the changeset are placed last. Once they are sorted
+		# Map will guarantee retrival of results in insertion order
+		sortedCS = _.sortBy b.changeSet, (el) -> !(el.url[0] == '/')
+		Promise.reduce(sortedCS, parseODataCs, env)
+		.then (env) -> Array.from(env.values())
+	else
+		{ url, apiRoot } = splitApiRoot(b.url)
+		odata = odataParser.matchAll(url, 'Process')
 
 		return {
 			method: b.method
@@ -57,9 +62,55 @@ exports.parseODataURI = (req) ->
 			odataQuery
 			values: b.data
 			custom: {}
+			_defer: false
 		}
 
-exports.translateUri = ({ method, vocabulary, resourceName, odataBinds, odataQuery, values, custom }) ->
+parseODataCs = (env, b) ->
+	cId = mustExtractHeader(b, 'content-id')
+
+	if (b.url[0] == '/')
+		{ url, apiRoot } = splitApiRoot(b.url)
+		odata = odataParser.matchAll(url, 'Process')
+		defer = false
+	else
+		url = b.url
+		odata = odataParser.matchAll(url, 'Process')
+		[tag, id] = odata.tree.resource
+		# Use reference to collect information
+		apiRoot = env.get(id).vocabulary
+		# Update reference with actual resourceName
+		odata.tree.resource = env.get(id).resourceName
+		defer = true
+
+	parseResult = {
+		method: b.method
+		vocabulary: apiRoot
+		resourceName: odata.tree.resource
+		odataBinds: odata.binds
+		odataQuery: odata.tree
+		values: b.data
+		custom: {}
+		id: cId
+		_defer: defer
+	}
+	env.set(cId, parseResult)
+	return env
+
+splitApiRoot = (url) ->
+	url = url.split('/')
+	apiRoot = url[1]
+	if !apiRoot? or !odata2AbstractSQL[apiRoot]?
+		throw new ParsingError('No such api root: ' + apiRoot)
+	url = '/' + url[2...].join('/')
+	return { url: url, apiRoot: apiRoot }
+
+mustExtractHeader = (body, header) ->
+	h = body.headers[header]?[0]
+	if _.isUndefined h
+		throw new BadRequestError(header + ' must be specified in ' + body)
+	return h
+
+exports.translateUri = ({ method, vocabulary, resourceName, odataBinds, odataQuery, values, custom, id, _defer }) ->
 	isMetadataEndpoint = resourceName in metadataEndpoints or method is 'OPTIONS'
 	if !isMetadataEndpoint
 		abstractSqlQuery = memoizedOdata2AbstractSQL(vocabulary, odataQuery, method, values)
@@ -72,6 +123,8 @@ exports.translateUri = ({ method, vocabulary, resourceName, odataBinds, odataQue
 			abstractSqlQuery
 			values
 			custom
+			id
+			_defer
 		}
 	return {
 		method
