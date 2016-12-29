@@ -16,7 +16,7 @@ devModel = require './dev.sbvr'
 permissions = require './permissions'
 uriParser = require './uri-parser'
 
-utils = require './utils'
+controlFlow = require './control-flow'
 memoize = require 'memoizee'
 memoizedCompileRule = memoize(
 	(abstractSqlQuery) ->
@@ -54,7 +54,7 @@ apiHooks.MERGE = apiHooks.PATCH
 class UnsupportedMethodError extends TypedError
 class SqlCompilationError extends TypedError
 class SbvrValidationError extends TypedError
-class InternalResponseError extends TypedError
+class InternalRequestError extends TypedError
 
 # TODO: Clean this up and move it into the db module.
 prettifyConstraintError = (err, tableName) ->
@@ -67,8 +67,8 @@ prettifyConstraintError = (err, tableName) ->
 					matches = new RegExp('"' + tableName + '_(.*?)_key"').exec(err)
 					# We know it's the right error type, so if matches exists just return a generic error message, since we have failed to get the info for a more specific one.
 					if !matches?
-						throw new db.UniqueConstraintError('Unique key constraint violated')
-			throw new db.UniqueConstraintError('"' + matches[1] + '" must be unique'.replace(/-/g, '__') + '.')
+						return new db.UniqueConstraintError('Unique key constraint violated')
+			return new db.UniqueConstraintError('Data is referenced by ' + matches[1].replace(/\ /g, '_').replace(/-/g, '__') + '.')
 
 		if err instanceof db.ForeignKeyConstraintError
 			switch db.engine
@@ -79,10 +79,10 @@ prettifyConstraintError = (err, tableName) ->
 					matches ?= new RegExp('"' + tableName + '" violates foreign key constraint "' + tableName + '_(.*?)_fkey"').exec(err)
 					# We know it's the right error type, so if matches exists just return a generic error message, since we have failed to get the info for a more specific one.
 					if !matches?
-						throw new db.ForeignKeyConstraintError('Foreign key constraint violated')
-			throw new db.ForeignKeyConstraintError('Data is referenced by ' + matches[1].replace(/\ /g, '_').replace(/-/g, '__') + '.')
+						return new db.ForeignKeyConstraintError('Foreign key constraint violated')
+			return new db.ForeignKeyConstraintError('Data is referenced by ' + matches[1].replace(/\ /g, '_').replace(/-/g, '__') + '.')
 
-		throw err
+		return err
 
 exports.resolveOdataBind = resolveOdataBind = (odataBinds, value) ->
 	if _.isObject(value) and value.bind?
@@ -581,6 +581,7 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 	if process.env.DEBUG
 		api[apiRoot].logger.log('Parsing', req.method, req.url)
 
+	{ mapPar, mapSeries } = controlFlow.getMappingFn(req.headers)
 	# Get the hooks for the current method/vocabulary as we know it,
 	# in order to run PREPARSE hooks, before parsing gets us more info
 	req.hooks = getHooks(
@@ -589,69 +590,72 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 	)
 	runHook('PREPARSE', { req, tx: req.tx })
 	.then ->
+		{ method, url, body } = req
+
+		# Check if it is a single request or a batch
+		body = if req.batch?.length > 0 then req.batch else [{ method: method, url: url, data: body }]
 		# Parse the OData requests
-		uriParser.parseODataURI(req)
-	.then (requests) ->
-		# Then for each request add/check the relevant permissions, translate to
-		# abstract sql, and then compile the abstract sql. This can be done in parallel
-		# for all the requests
-		utils.settleMapSeries requests, utils.liftPE (request) ->
-			# Get the full hooks list now that we can
-			req.hooks = getHooks(request)
-			runHook('POSTPARSE', { req, request, tx: req.tx })
-			.return(request)
-			.then(uriParser.translateUri)
+		mapSeries body, (bodypart) ->
+			uriParser.parseOData(bodypart)
+			.then controlFlow.liftP (request) ->
+				# Get the full hooks list now that we can
+				req.hooks = getHooks(request)
+				# Add/check the relevant permissions
+				runHook('POSTPARSE', { req, request, tx: req.tx })
+				.return(request)
+				.then (uriParser.translateUri)
+				.then (request) ->
+					# We defer compilation of abstrct sql queries with references to other requests
+					if request.abstractSqlQuery? && !request._defer
+						try
+							request.sqlQuery = memoizedCompileRule(request.abstractSqlQuery)
+						catch err
+							api[apiRoot].logger.error('Failed to compile abstract sql: ', request.abstractSqlQuery, err, err.stack)
+							throw new SqlCompilationError(err)
+					return request
+
 			.then (request) ->
-				# We defer compilation of abstrct sql queries with references to other requests
-				if request.abstractSqlQuery? && !request._defer
-					try
-						request.sqlQuery = memoizedCompileRule(request.abstractSqlQuery)
-					catch err
-						api[apiRoot].logger.error('Failed to compile abstract sql: ', request.abstractSqlQuery, err, err.stack)
-						throw new SqlCompilationError(err)
-				return request
-	# Then handle forwarding the request to the correct method handler.
-	.then (requests) ->
-		# Run the transactions in the received order
-		utils.settleMapSeries requests, utils.liftE (request) ->
-			runTransaction req, request, (tx) ->
-				if _.isArray request
-					env = new Map()
-					Promise.reduce(request, (runChangeSet req, res, tx), env)
-					.then (env) -> Array.from(env.values())
-				else
-					runRequest(req, res, tx, request)
+				# Run the request in its own transaction
+				runTransaction req, request, (tx) ->
+					if _.isArray request
+						env = new Map()
+						Promise.reduce(request, runChangeSet(req, res, tx), env)
+						.then (env) -> Array.from(env.values())
+					else
+						runRequest(req, res, tx, request)
+				# Pack request and result together before returning them
+				.then (result) ->
+					pack = (request, result) -> { request, result }
+					if _.isArray request
+						return _.zipWith(request, result, pack)
+					else
+						return pack(request, result)
+	.then (results) ->
+		mapSeries(results, controlFlow.liftP(_.partial(prepareResponse, req, res)))
+	.then (responses) ->
+		res.set('Cache-Control', 'no-cache')
+		# If we are dealing with a single request unpack the response and respond normally
+		if responses.length == 1
 
-		.then (results) ->
-			res.set('Cache-Control', 'no-cache')
-			pack = (request, result) -> { request, result }
-			data = _.zipWith requests, results, pack
-			utils.settleMapSeries data, (d) ->
-				if (_.isArray d.request) and (_.isArray d.result)
-					cs = _.zipWith(d.request, d.result, pack)
-					Promise.map(cs, _.partial(prepareResponse, req, res))
-				else prepareResponse(req, res, d)
+			response = responses[0]
+			if response.status then res.status(response.status)
+			_.forEach response.headers, (headerValue, headerName) ->
+				res.set(headerName, headerValue)
 
-		.then (responses) ->
-			# If we are dealing with a single request unpack the response and respond normally
-			if responses.length == 1
-				response = responses[0]
-
-				for r of response
-					if r == 'body' then continue
-					if r == 'status' then res.status(response[r])
-					else res.set(r, response[r])
-				if _.isUndefined(response.body) then res.send() else res.json(response.body)
-			# Otherwise its a multipart request and we reply with the appropriate multipart response
+			if _.isUndefined(response.body)
+				res.sendStatus(response.status)
 			else
-				res.status(200)
-				res.sendMulti(responses)
-		# If an error bubbles here it must have happened in the last then block
-		# We just respond with 500 as there is probably not much we can do to recover
-		.catch (e) ->
-			res.sendStatus(500)
+				res.json(response.body)
+		# Otherwise its a multipart request and we reply with the appropriate multipart response
+		else
+			res.status(200).sendMulti(responses)
+	# If an error bubbles here it must have happened in the last then block
+	# We just respond with 500 as there is probably not much we can do to recover
+	.catch (e) ->
+		console.error('An error occured while constructing the response', e, e.stack)
+		res.sendStatus(500)
 
-# Rethrow the error to allow usage of the nice catch syntax
+# Reject the error to use the nice catch syntax
 constructError = (e) ->
 	Promise.reject(e)
 	.catch SbvrValidationError, (err) ->
@@ -660,7 +664,7 @@ constructError = (e) ->
 		{ status: 400 }
 	.catch permissions.PermissionError, (err) ->
 		{ status: 401 }
-	.catch SqlCompilationError, uriParser.TranslationError, uriParser.ParsingError, permissions.PermissionParsingError, db.DatabaseError, InternalResponseError, (err) ->
+	.catch SqlCompilationError, uriParser.TranslationError, uriParser.ParsingError, permissions.PermissionParsingError, db.DatabaseError, InternalRequestError, (err) ->
 		{ status: 500 }
 	.catch UnsupportedMethodError, (err) ->
 		{ status: 405 }
@@ -676,6 +680,7 @@ runRequest = (req, res, tx, request) ->
 	if process.env.DEBUG
 		logger.log('Running', req.method, req.url)
 
+	# Forward each request to the correct method handler
 	runHook('PRERUN', { req, request, tx })
 	.then ->
 		switch request.method
@@ -687,6 +692,13 @@ runRequest = (req, res, tx, request) ->
 				runPut(req, res, request, tx)
 			when 'DELETE'
 				runDelete(req, res, request, tx)
+	.catch db.DatabaseError, (err) ->
+		err = prettifyConstraintError(err, request.resourceName)
+		logger.error(err, err.stack)
+		constructError(err)
+	.catch EvalError, RangeError, ReferenceError, SyntaxError, TypeError, URIError, (err) ->
+		logger.error(err, err.stack)
+		constructError(new InternalRequestError())
 
 runChangeSet = (req, res, tx) ->
 	(env, request) ->
@@ -695,15 +707,25 @@ runChangeSet = (req, res, tx) ->
 		.then (result) ->
 			env.set(request.id, result)
 			return env
+# Requests inside a changeset may refer to resources created inside the
+# changeset, the generation of the sql query for those requests must be
+# deferred untill the request they reference is run and returns an insert ID.
+# This function compiles the sql query of a request which has been deferred
+updateBinds = (env, request) ->
+	if request._defer
+		request.odataBinds = _.map request.odataBinds, ([tag, id]) ->
+			if tag == 'ContentReference'
+				['Real', env.get(id)]
+			else
+				[tag, id]
+		request.sqlQuery = memoizedCompileRule(request.abstractSqlQuery)
+	return request
 
 prepareResponse = (req, res, pair) ->
-	{ request, result } = pair
-	#  We are can not be sure logger will always be defined.
-	#  If there was an error before we could determine the vocabulary we fallback to console for error reporting
-	{ logger } = api[request.vocabulary] ? console
-
-	if _.isError result
-		return constructError(result)
+	if _.isError pair
+		return constructError(pair)
+	else
+		{ request, result } = pair
 
 	Promise.try ->
 		switch request.method
@@ -719,27 +741,6 @@ prepareResponse = (req, res, pair) ->
 				respondOptions(req, res, request, result)
 			else
 				throw new UnsupportedMethodError()
-	.catch db.DatabaseError, (err) ->
-		prettifyConstraintError(err, request.resourceName)
-		logger.error(err, err.stack)
-		constructError(err)
-	.catch EvalError, RangeError, ReferenceError, SyntaxError, TypeError, URIError, (err) ->
-		logger.error(err, err.stack)
-		constructError(new InternalResponseError())
-		
-# Requests inside a changeset may refer to resources created inside the
-# changeset, the generation of the sql query for those requests must be
-# deferred untill the request they reference is run and returns an insert ID.
-# This function compiles the sql query of a request which has been deferred
-updateBinds = (env, request) ->
-	if request._defer
-		request.odataBinds = _.map request.odataBinds, ([tag, id]) ->
-			if tag == 'Ref'
-				['Real', env.get(id)]
-			else
-				[tag, id]
-		request.sqlQuery = memoizedCompileRule(request.abstractSqlQuery)
-	return request
 
 # This is a helper method to handle using a passed in req.tx when available, or otherwise creating a new tx and cleaning up after we're done.
 runTransaction = (req, request, callback) ->
@@ -785,12 +786,10 @@ respondGet = (req, res, request, result) ->
 		.then (d) ->
 			runHook('PRERESPOND', { req, res, request, result, data: d, tx: req.tx })
 			.then ->
-				{ body: { d }, 'contentType': 'application/json' }
+				{ body: { d }, headers: { contentType: 'application/json' } }
 	else
 		if request.resourceName == '$metadata'
-			# res.type('xml')
-			# res.send(odataMetadata[vocab])
-			return { 'contentType': 'xml', body: odataMetadata[vocab] }
+			return { body: odataMetadata[vocab], headers: { contentType: 'xml' } }
 		else
 			clientModel = clientModels[vocab]
 			data =
@@ -798,7 +797,8 @@ respondGet = (req, res, request, result) ->
 					__model: clientModel.resources
 				else
 					__model: clientModel.resources[request.resourceName]
-			return { body: data, 'contentType': 'application/json' }
+			return { body: data, headers: { contentType: 'application/json' } }
+		return Promise.resolve()
 
 runPost = (req, res, request, tx) ->
 	vocab = request.vocabulary
@@ -823,13 +823,16 @@ respondPost = (req, res, request, result) ->
 	runURI('GET', location, null, req.tx, req)
 	.catch ->
 		# If we failed to fetch the created resource then just return the id.
-		return { body: { d: [{ id }] }, 'contentType': 'application/json' }
+		return d: [{ id }]
 	.then (result) ->
 		runHook('PRERESPOND', { req, res, request, result, tx: req.tx })
 		.then ->
-			# res.set('Location', location)
-			# res.status(201).json(result.d[0])
-			{ Location: location, status: 201, body: result.d[0], 'contentType': 'application/json' }
+			status: 201
+			body: result.d[0]
+			headers:
+				contentType: 'application/json'
+				Location: location
+
 
 runPut = (req, res, request, tx) ->
 	vocab = request.vocabulary
