@@ -1,3 +1,5 @@
+v3.2.0
+
 * Updated lf-to-abstract-sql to v0.0.19 to include the concept types optimisation.
 
 v3.1.1
