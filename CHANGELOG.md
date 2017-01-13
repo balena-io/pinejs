@@ -1,3 +1,5 @@
+* Updated lf-to-abstract-sql to v0.0.19 to include the concept types optimisation.
+
 v3.1.1
 
 * Fixed expanding foreign keys where the foreign key attribute was on the other resource.
