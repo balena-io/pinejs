@@ -1,3 +1,7 @@
+* Updated coffee-script to ~1.12.2
+* Updated pinejs-client to ^3.0.0
+* Updated dev/bower dependencies
+
 v3.2.0
 
 * Updated lf-to-abstract-sql to v0.0.19 to include the concept types optimisation.
