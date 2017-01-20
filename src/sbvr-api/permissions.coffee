@@ -186,7 +186,7 @@ exports.setup = (app, sbvrUtils) ->
 		if !_.isFinite(userId)
 			return Promise.rejected(new Error('User ID has to be numeric, got: ' + typeof userId))
 		permsFilter = $or:
-			user__has__permission: $any:
+			is_of__user: $any:
 				$alias: 'uhp'
 				$expr:
 					uhp: user: userId
@@ -194,11 +194,11 @@ exports.setup = (app, sbvrUtils) ->
 						uhp: expiry_date: null
 					,	uhp: expiry_date: $gt: $now: null
 					]
-			role__has__permission: $any:
+			is_of__role: $any:
 				$alias: 'rhp'
 				$expr: rhp: role: $any:
 					$alias: 'r'
-					$expr: r: user__has__role: $any:
+					$expr: r: is_of__user: $any:
 						$alias: 'uhr'
 						$expr:
 							uhr: user: userId
@@ -214,16 +214,16 @@ exports.setup = (app, sbvrUtils) ->
 			maxAge: env.apiKeys.permissionsCache.maxAge
 			fetchFn: (apiKey) ->
 				permsFilter = $or:
-					api_key__has__permission: $any:
+					is_of__api_key: $any:
 						$alias: 'khp'
 						$expr: khp: api_key: $any:
 							$alias: 'k'
 							$expr: k: key: apiKey
-					role__has__permission: $any:
+					is_of__role: $any:
 						$alias: 'rhp'
 						$expr: 'rhp': role: $any:
 							$alias: 'r'
-							$expr: r: api_key__has__role: $any:
+							$expr: r: is_of__api_key: $any:
 								$alias: 'khr'
 								$expr: khr: api_key: $any:
 									$alias: 'k'
@@ -375,12 +375,12 @@ exports.setup = (app, sbvrUtils) ->
 					resource: 'api_key'
 					passthrough: req: rootRead
 					options:
-						select: 'actor'
+						select: 'is_of__actor'
 						filter: key: req.apiKey.key
 				.then (apiKeys) ->
 					if apiKeys.length is 0
 						throw new Error('API key is not linked to a actor?!')
-					apiKeyActorID = apiKeys[0].actor.__id
+					apiKeyActorID = apiKeys[0].is_of__actor.__id
 					return _checkPermissions(apiKeyPermissions, apiKeyActorID)
 				.catch (err) ->
 					authApi.logger.error('Error checking api key permissions', req.apiKey.key, err, err.stack)
@@ -455,7 +455,8 @@ exports.setup = (app, sbvrUtils) ->
 					# Mapping in serial to make sure binds are always added in the same order/location to aid cache hits
 					Promise.each odataQuery.options.$expand.properties, (expand) ->
 						# Always use get for the $expands
-						_addPermissions(req, methodPermissions.GET, vocabulary, expand.name, expand, odataBinds)
+						expandResourceName = sbvrUtils.resolveNavigationResource(vocabulary, resourceName, expand.name)
+						_addPermissions(req, methodPermissions.GET, vocabulary, expandResourceName, expand, odataBinds)
 
 		return (req, { method, vocabulary, resourceName, odataQuery, odataBinds, values, custom }) ->
 			method = method.toUpperCase()

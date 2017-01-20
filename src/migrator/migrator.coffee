@@ -36,12 +36,11 @@ exports.checkModelAlreadyExists = (tx, modelName) ->
 			tx: tx
 			req: permissions.rootRead
 		options:
-			select: [ 'vocabulary' ]
+			select: [ 'is_of__vocabulary' ]
 			top: 1
 			filter:
-				vocabulary: modelName
-	.then (results) ->
-		_.some(results)
+				is_of__vocabulary: modelName
+	.then(_.some)
 
 exports.getExecutedMigrations = (tx, modelName) ->
 	@migrationsApi.get

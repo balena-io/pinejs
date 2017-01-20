@@ -19,7 +19,7 @@ exports.setup = (app, sbvrUtils) ->
 				SELECT NOT EXISTS(
 					SELECT 1
 					FROM "resource" r
-					JOIN "resource-is_under-lock" AS rl ON rl."resource" = r."id"
+					JOIN "resource-is under-lock" AS rl ON rl."resource" = r."id"
 					WHERE r."resource type" = ?
 					AND r."resource id" = ?
 				) AS result;''', [request.resourceName, id]
@@ -39,14 +39,14 @@ exports.setup = (app, sbvrUtils) ->
 					# 'GET', '/transaction/resource?$select=resource_id&$filter=resource__is_under__lock/lock eq ?'
 					tx.executeSql('''SELECT "resource"."resource id" AS "resource_id"
 									FROM "resource",
-										"resource-is_under-lock"
-									WHERE "resource"."id" = "resource-is_under-lock"."resource"
-									AND "resource-is_under-lock"."lock" = ?;''', [lockID])
+										"resource-is under-lock"
+									WHERE "resource"."id" = "resource-is under-lock"."resource"
+									AND "resource-is under-lock"."lock" = ?;''', [lockID])
 				getFieldsObject = (conditionalResourceID, clientModel) ->
 					# 'GET', '/transaction/conditional_field?$select=field_name,field_value&$filter=conditional_resource eq ?'
-					tx.executeSql('''SELECT "conditional_field"."field name" AS "field_name", "conditional_field"."field value" AS "field_value"
-									FROM "conditional_field"
-									WHERE "conditional_field"."conditional resource" = ?;''', [conditionalResourceID])
+					tx.executeSql('''SELECT "conditional field"."field name" AS "field_name", "conditional field"."field value" AS "field_value"
+									FROM "conditional field"
+									WHERE "conditional field"."conditional resource" = ?;''', [conditionalResourceID])
 					.then (fields) ->
 						fieldsObject = {}
 						Promise.all fields.rows.map (field) ->
@@ -69,9 +69,9 @@ exports.setup = (app, sbvrUtils) ->
 
 				# 'GET', '/transaction/conditional_resource?$select=id,lock,resource_type,conditional_type,placeholder&$filter=transaction eq ?'
 				tx.executeSql('''
-					SELECT "conditional_resource"."id", "conditional_resource"."lock", "conditional_resource"."resource type" AS "resource_type", "conditional_resource"."conditional type" AS "conditional_type", "conditional_resource"."placeholder"
-					FROM "conditional_resource"
-					WHERE "conditional_resource"."transaction" = ?;
+					SELECT "conditional resource"."id", "conditional resource"."lock", "conditional resource"."resource type" AS "resource_type", "conditional resource"."conditional type" AS "conditional_type", "conditional resource"."placeholder"
+					FROM "conditional resource"
+					WHERE "conditional resource"."transaction" = ?;
 				''', [transactionID])
 				.then (conditionalResources) ->
 					conditionalResources.rows.forEach (conditionalResource) ->
@@ -88,9 +88,9 @@ exports.setup = (app, sbvrUtils) ->
 						lockID = conditionalResource.lock
 						doCleanup = ->
 							Promise.all([
-								tx.executeSql('DELETE FROM "conditional_field" WHERE "conditional resource" = ?;', [conditionalResource.id])
-								tx.executeSql('DELETE FROM "conditional_resource" WHERE "lock" = ?;', [lockID])
-								tx.executeSql('DELETE FROM "resource-is_under-lock" WHERE "lock" = ?;', [lockID])
+								tx.executeSql('DELETE FROM "conditional field" WHERE "conditional resource" = ?;', [conditionalResource.id])
+								tx.executeSql('DELETE FROM "conditional resource" WHERE "lock" = ?;', [lockID])
+								tx.executeSql('DELETE FROM "resource-is under-lock" WHERE "lock" = ?;', [lockID])
 								tx.executeSql('DELETE FROM "lock" WHERE "id" = ?;', [lockID])
 							])
 
