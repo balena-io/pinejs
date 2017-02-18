@@ -66,7 +66,7 @@ prettifyConstraintError = (err, tableName) ->
 					# We know it's the right error type, so if matches exists just return a generic error message, since we have failed to get the info for a more specific one.
 					if !matches?
 						throw new db.UniqueConstraintError('Unique key constraint violated')
-			throw new db.UniqueConstraintError('Data is referenced by ' + matches[1].replace(/\ /g, '_').replace(/-/g, '__') + '.')
+			throw new db.UniqueConstraintError('"' + matches[1] + '" must be unique.'.replace(/-/g, '__') + '.')
 
 		if err instanceof db.ForeignKeyConstraintError
 			switch db.engine
