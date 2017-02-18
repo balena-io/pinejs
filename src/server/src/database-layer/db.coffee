@@ -150,7 +150,7 @@ if pg?
 		config.Promise = Promise
 		# Inherit the same defaults we used to, for backwards compatibility
 		config.max = pg.defaults.poolSize
-		config.idleTimeoutMillis = pg.defaults.poolIdleTimeout;
+		config.idleTimeoutMillis = pg.defaults.poolIdleTimeout
 		config.log = pg.defaults.poolLog
 		pool = new pg.Pool(config)
 
