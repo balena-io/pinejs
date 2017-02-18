@@ -1,3 +1,5 @@
+v3.3.0
+
 * Fixed unique constraint violation error message.
 * Updated coffee-script to ~1.12.2
 * Updated pinejs-client to ^3.0.0
