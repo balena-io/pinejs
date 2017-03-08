@@ -65,10 +65,10 @@ prettifyConstraintError = (err, tableName) ->
 					matches = /ER_DUP_ENTRY: Duplicate entry '.*?[^\\]' for key '(.*?[^\\])'/.exec(err)
 				when 'postgres'
 					matches = new RegExp('"' + tableName + '_(.*?)_key"').exec(err)
-					# We know it's the right error type, so if matches exists just return a generic error message, since we have failed to get the info for a more specific one.
+					# We know it's the right error type, so if matches exists just throw a generic error message, since we have failed to get the info for a more specific one.
 					if !matches?
-						return new db.UniqueConstraintError('Unique key constraint violated')
-			return new db.UniqueConstraintError('Data is referenced by ' + matches[1].replace(/\ /g, '_').replace(/-/g, '__') + '.')
+						throw new db.UniqueConstraintError('Unique key constraint violated')
+			throw new db.UniqueConstraintError('"' + matches[1] + '" must be unique.'.replace(/-/g, '__') + '.')
 
 		if err instanceof db.ForeignKeyConstraintError
 			switch db.engine
@@ -77,12 +77,12 @@ prettifyConstraintError = (err, tableName) ->
 				when 'postgres'
 					matches = new RegExp('"' + tableName + '" violates foreign key constraint ".*?" on table "(.*?)"').exec(err)
 					matches ?= new RegExp('"' + tableName + '" violates foreign key constraint "' + tableName + '_(.*?)_fkey"').exec(err)
-					# We know it's the right error type, so if matches exists just return a generic error message, since we have failed to get the info for a more specific one.
+					# We know it's the right error type, so if matches exists just throw a generic error message, since we have failed to get the info for a more specific one.
 					if !matches?
-						return new db.ForeignKeyConstraintError('Foreign key constraint violated')
-			return new db.ForeignKeyConstraintError('Data is referenced by ' + matches[1].replace(/\ /g, '_').replace(/-/g, '__') + '.')
+						throw new db.ForeignKeyConstraintError('Foreign key constraint violated')
+			throw new db.ForeignKeyConstraintError('Data is referenced by ' + matches[1].replace(/\ /g, '_').replace(/-/g, '__') + '.')
 
-		return err
+		throw err
 
 exports.resolveOdataBind = resolveOdataBind = (odataBinds, value) ->
 	if _.isObject(value) and value.bind?
@@ -564,6 +564,7 @@ exports.runURI = runURI =  (method, uri, body = {}, tx, req, custom, callback) -
 				else
 					resolve(data)
 			set: ->
+			type: ->
 
 		next = (route) ->
 			console.warn('Next called on a runURI?!', method, uri, route)
@@ -623,15 +624,12 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 						.then (env) -> Array.from(env.values())
 					else
 						runRequest(req, res, tx, request)
-				# Pack request and result together before returning them
-				.then (result) ->
-					pack = (request, result) -> { request, result }
-					if _.isArray request
-						return _.zipWith(request, result, pack)
-					else
-						return pack(request, result)
 	.then (results) ->
-		mapSeries(results, controlFlow.liftP(_.partial(prepareResponse, req, res)))
+		mapSeries results, (result) ->
+			if _.isError(result)
+				return constructError(result)
+			else
+				return result
 	.then (responses) ->
 		res.set('Cache-Control', 'no-cache')
 		# If we are dealing with a single request unpack the response and respond normally
@@ -664,7 +662,7 @@ constructError = (e) ->
 		{ status: 400 }
 	.catch permissions.PermissionError, (err) ->
 		{ status: 401 }
-	.catch SqlCompilationError, uriParser.TranslationError, uriParser.ParsingError, permissions.PermissionParsingError, db.DatabaseError, InternalRequestError, (err) ->
+	.catch SqlCompilationError, uriParser.TranslationError, uriParser.ParsingError, permissions.PermissionParsingError, InternalRequestError, (err) ->
 		{ status: 500 }
 	.catch UnsupportedMethodError, (err) ->
 		{ status: 405 }
@@ -679,7 +677,6 @@ runRequest = (req, res, tx, request) ->
 
 	if process.env.DEBUG
 		logger.log('Running', req.method, req.url)
-
 	# Forward each request to the correct method handler
 	runHook('PRERUN', { req, request, tx })
 	.then ->
@@ -693,12 +690,16 @@ runRequest = (req, res, tx, request) ->
 			when 'DELETE'
 				runDelete(req, res, request, tx)
 	.catch db.DatabaseError, (err) ->
-		err = prettifyConstraintError(err, request.resourceName)
+		prettifyConstraintError(err, request.resourceName)
 		logger.error(err, err.stack)
-		constructError(err)
+		throw err
 	.catch EvalError, RangeError, ReferenceError, SyntaxError, TypeError, URIError, (err) ->
 		logger.error(err, err.stack)
-		constructError(new InternalRequestError())
+		throw new InternalRequestError()
+	.tap (result) ->
+		runHook('POSTRUN', { req, request, result, tx })
+	.then (result) ->
+		prepareResponse(req, res, request, result, tx)
 
 runChangeSet = (req, res, tx) ->
 	(env, request) ->
@@ -707,6 +708,7 @@ runChangeSet = (req, res, tx) ->
 		.then (result) ->
 			env.set(request.id, result)
 			return env
+
 # Requests inside a changeset may refer to resources created inside the
 # changeset, the generation of the sql query for those requests must be
 # deferred untill the request they reference is run and returns an insert ID.
@@ -715,30 +717,29 @@ updateBinds = (env, request) ->
 	if request._defer
 		request.odataBinds = _.map request.odataBinds, ([tag, id]) ->
 			if tag == 'ContentReference'
-				['Real', env.get(id)]
+				ref = env.get(id)
+				if _.isUndefined(ref?.body?.id)
+					throw uriParser.BadRequestError('Reference to a non existing resource in Changeset')
+				else
+					uriParser.parseId(ref.body.id)
 			else
 				[tag, id]
 		request.sqlQuery = memoizedCompileRule(request.abstractSqlQuery)
 	return request
 
-prepareResponse = (req, res, pair) ->
-	if _.isError pair
-		return constructError(pair)
-	else
-		{ request, result } = pair
-
+prepareResponse = (req, res, request, result, tx) ->
 	Promise.try ->
 		switch request.method
 			when 'GET'
-				respondGet(req, res, request, result)
+				respondGet(req, res, request, result, tx)
 			when 'POST'
-				respondPost(req, res, request, result)
+				respondPost(req, res, request, result, tx)
 			when 'PUT', 'PATCH', 'MERGE'
-				respondPut(req, res, request, result)
+				respondPut(req, res, request, result, tx)
 			when 'DELETE'
-				respondDelete(req, res, request, result)
+				respondDelete(req, res, request, result, tx)
 			when 'OPTIONS'
-				respondOptions(req, res, request, result)
+				respondOptions(req, res, request, result, tx)
 			else
 				throw new UnsupportedMethodError()
 
@@ -746,8 +747,6 @@ prepareResponse = (req, res, pair) ->
 runTransaction = (req, request, callback) ->
 	runCallback = (tx) ->
 		callback(tx)
-		.tap (result) ->
-			runHook('POSTRUN', { req, request, result, tx })
 	if req.tx?
 		# If an existing tx was passed in then use it.
 		runCallback(req.tx)
@@ -778,13 +777,13 @@ runGet = (req, res, request, tx) ->
 	if request.sqlQuery?
 		runQuery(tx, request)
 
-respondGet = (req, res, request, result) ->
+respondGet = (req, res, request, result, tx) ->
 	vocab = request.vocabulary
 	if request.sqlQuery?
 		clientModel = clientModels[vocab].resources
 		processOData(vocab, clientModel, request.resourceName, result.rows)
 		.then (d) ->
-			runHook('PRERESPOND', { req, res, request, result, data: d, tx: req.tx })
+			runHook('PRERESPOND', { req, res, request, result, data: d, tx: tx })
 			.then ->
 				{ body: { d }, headers: { contentType: 'application/json' } }
 	else
@@ -815,17 +814,17 @@ runPost = (req, res, request, tx) ->
 			else
 				sqlResult.insertId
 
-respondPost = (req, res, request, result) ->
+respondPost = (req, res, request, result, tx) ->
 	vocab = request.vocabulary
 	id = result
 	location = odataResourceURI(vocab, request.resourceName, id)
 	api[vocab].logger.log('Insert ID: ', request.resourceName, id)
-	runURI('GET', location, null, req.tx, req)
+	runURI('GET', location, null, tx, req)
 	.catch ->
 		# If we failed to fetch the created resource then just return the id.
 		return d: [{ id }]
 	.then (result) ->
-		runHook('PRERESPOND', { req, res, request, result, tx: req.tx })
+		runHook('PRERESPOND', { req, res, request, result, tx: tx })
 		.then ->
 			status: 201
 			body: result.d[0]
@@ -851,8 +850,8 @@ runPut = (req, res, request, tx) ->
 	.then ->
 		validateModel(tx, vocab, request)
 
-respondPut = respondDelete = respondOptions = (req, res, request) ->
-	runHook('PRERESPOND', { req, res, request, tx: req.tx })
+respondPut = respondDelete = respondOptions = (req, res, request, tx) ->
+	runHook('PRERESPOND', { req, res, request, tx: tx })
 	.then ->
 		{ status: 200 }
 

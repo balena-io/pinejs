@@ -12,6 +12,11 @@ exports.BadRequestError = class BadRequestError extends TypedError
 odataParser = ODataParser.createInstance()
 odata2AbstractSQL = {}
 
+# Converts a value to its string representation and tries to parse is as an
+# OData bind
+exports.parseId = (b) ->
+	ODataParser.matchAll(String(b), 'ExternalKeyBind')
+
 memoizedOdata2AbstractSQL = do ->
 	_memoizedOdata2AbstractSQL = memoize(
 		(vocabulary, odataQuery, method, bodyKeys) ->

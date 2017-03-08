@@ -11,17 +11,9 @@ exports.liftP = liftP = (fn) ->
 		else
 			Promise.resolve(a).then(fn)
 
-# Lifts f to ignore errors
-exports.liftE = liftE = (fn) ->
-	(a) ->
-		if _.isError a then a else fn(a)
-
 # Compose two functions, f can expect any number of arguments
 compose = (f, g) ->
 	(a...) -> g(f(a...))
-
-# Map this function over every changeset while letting errors through
-exports.liftPE = liftPE = compose(liftE, liftP)
 
 # The settle- versions of
 settleMap = (a, fn) ->
