@@ -2,6 +2,8 @@
 
 ## Definition
 
+Types have two main benefits: they define a concrete way to represent a term in the database, this concrete knowledge about the type of a term also allows us to write more complex rules about it. By adding a set of fixed `nativeFactTypes` and `nativeProperties` to a type `a` we gain the possibility to refer to them, and define even more complex rules for any term which has `a` as its `Concept Type`.
+
 ### SBVR
 The SBVR definition for types can be found at [resin-io-modules/sbvr-types/Type.sbvr](https://github.com/resin-io-modules/sbvr-types/blob/master/Type.sbvr)
 
