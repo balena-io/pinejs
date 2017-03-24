@@ -1,3 +1,5 @@
+v3.3.1
+
 * Fixed a typo in unique constraint violation error message.
 
 v3.3.0
