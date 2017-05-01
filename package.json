@@ -17,7 +17,7 @@
     "@resin/odata-to-abstract-sql": "~0.4.0",
     "@resin/sbvr-parser": "~0.0.25",
     "@resin/sbvr-types": "^1.0.0",
-    "bluebird": "^3.0.6",
+    "bluebird": "^3.5.0",
     "bluebird-lru-cache": "^1.0.0",
     "coffee-script": "~1.12.2",
     "express-session": "^1.10.3",

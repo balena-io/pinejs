@@ -40,9 +40,8 @@ mapTill = (a, fn) ->
 		runF(p)
 		.then (result) ->
 			results.push(result)
-		.catch (err) ->
+		.tapCatch (err) ->
 			results.push(err)
-			throw err
 	.return(results)
 	.catchReturn(results)
 
