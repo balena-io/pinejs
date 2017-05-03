@@ -11,22 +11,17 @@ exports.liftP = liftP = (fn) ->
 		else
 			Promise.resolve(a).then(fn)
 
-# Compose two functions, f can expect any number of arguments
-compose = (f, g) ->
-	(a...) -> g(f(a...))
-
 # The settle- versions of
 settleMap = (a, fn) ->
 	runF = Promise.method(fn)
-	Promise.map(a, compose(runF, wrap))
+	Promise.map(a, _.flow(runF, wrap))
 
 settleMapSeries = (a, fn) ->
-  runF = Promise.method(fn)
-  Promise.mapSeries(a, compose(runF, wrap))
+	runF = Promise.method(fn)
+	Promise.mapSeries(a, _.flow(runF, wrap))
 
 # Wrap a promise with reflection. This promise will always succeed, either
 # with the value or the error of the promise it is wrapping
-# wrap :: P b  -> P c
 wrap = (p) ->
 	p.then(_.identity, _.identity)
 

@@ -606,7 +606,7 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 				.return(request)
 				.then (uriParser.translateUri)
 				.then (request) ->
-					# We defer compilation of abstrct sql queries with references to other requests
+					# We defer compilation of abstract sql queries with references to other requests
 					if request.abstractSqlQuery? && !request._defer
 						try
 							request.sqlQuery = memoizedCompileRule(request.abstractSqlQuery)
@@ -633,14 +633,14 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 	.then (responses) ->
 		res.set('Cache-Control', 'no-cache')
 		# If we are dealing with a single request unpack the response and respond normally
-		if responses.length == 1
+		if not req.batch?.length > 0
 
 			response = responses[0]
 			if response.status then res.status(response.status)
 			_.forEach response.headers, (headerValue, headerName) ->
 				res.set(headerName, headerValue)
 
-			if _.isUndefined(response.body)
+			if not response.body
 				res.sendStatus(response.status)
 			else
 				res.json(response.body)
@@ -706,6 +706,7 @@ runChangeSet = (req, res, tx) ->
 		request = updateBinds(env, request)
 		runRequest(req, res, tx, request)
 		.then (result) ->
+			result.headers['Content-Id'] = request.id
 			env.set(request.id, result)
 			return env
 
@@ -853,7 +854,8 @@ runPut = (req, res, request, tx) ->
 respondPut = respondDelete = respondOptions = (req, res, request, tx) ->
 	runHook('PRERESPOND', { req, res, request, tx: tx })
 	.then ->
-		{ status: 200 }
+		status: 200
+		headers: {}
 
 runDelete = (req, res, request, tx) ->
 	vocab = request.vocabulary
