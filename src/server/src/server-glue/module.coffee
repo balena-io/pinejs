@@ -22,8 +22,6 @@ if !process.browser
 Promise = require 'bluebird'
 dbModule = require '../database-layer/db'
 sbvrUtils = require '../sbvr-api/sbvr-utils'
-sbvrServer = require '../data-server/SBVRServer'
-transactions = require '../http-transactions/transactions'
 configLoader = require '../config-loader/config-loader'
 migrator = require '../migrator/migrator'
 PinejsSessionStore = require '../pinejs-session-store/pinejs-session-store'
@@ -55,11 +53,20 @@ init = (app, config) ->
 		configLoader.loadConfig(migrator.config)
 		.return(configLoader)
 	.tap (configLoader) ->
-		Promise.all([
-			configLoader.loadConfig(sbvrServer.config) if process.env.SBVR_SERVER_ENABLED
-			configLoader.loadConfig(transactions.config).then(-> transactions.addModelHooks('data')) if process.env.SBVR_SERVER_ENABLED
-			configLoader.loadApplicationConfig(config) if !process.env.CONFIG_LOADER_DISABLED
-		])
+		promises = []
+
+		if process.env.SBVR_SERVER_ENABLED
+			sbvrServer = require '../data-server/SBVRServer'
+			promises.push configLoader.loadConfig(sbvrServer.config)
+
+		if process.env.SBVR_SERVER_ENABLED
+			transactions = require '../http-transactions/transactions'
+			promises.push configLoader.loadConfig(transactions.config).then(-> transactions.addModelHooks('data'))
+
+		if !process.env.CONFIG_LOADER_DISABLED
+			promises.push configLoader.loadApplicationConfig(config)
+
+		Promise.all(promises)
 	.catch (err) ->
 		console.error('Error initialising server', err, err.stack)
 		process.exit()
