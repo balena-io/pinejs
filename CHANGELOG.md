@@ -1,3 +1,4 @@
+* Avoid even loading the SBVRServer and http-transactions code in the cases where they're disabled
 * Always register the .sbvr and .ometajs handlers when running in nodejs
 
 v3.3.1
