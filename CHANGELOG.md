@@ -1,3 +1,5 @@
+* Always register the .sbvr and .ometajs handlers when running in nodejs
+
 v3.3.1
 
 * Fixed a typo in unique constraint violation error message.
