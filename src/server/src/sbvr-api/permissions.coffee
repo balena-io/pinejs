@@ -452,7 +452,8 @@ exports.setup = (app, sbvrUtils) ->
 
 				if odataQuery.options?.$expand?.properties?
 					# Make sure any relevant permission filters are also applied to expands.
-					Promise.map odataQuery.options.$expand.properties, (expand) ->
+					# Mapping in serial to make sure binds are always added in the same order/location to aid cache hits
+					Promise.each odataQuery.options.$expand.properties, (expand) ->
 						# Always use get for the $expands
 						_addPermissions(req, methodPermissions.GET, vocabulary, expand.name, expand, odataBinds)
 
