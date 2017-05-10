@@ -129,8 +129,11 @@ exports.setup = (app) ->
 		return JSON.parse(json)
 
 	loadApplicationConfig = (config) ->
-		try # Try to register the coffee-script loader - ignore if it fails though, since that probably just means it is not available/needed.
-			require('coffee-script/register')
+		if !require.extensions['.coffee']?
+			try
+				# Try to register the coffee-script loader if it doesn't exist
+				# We ignore if it fails though, since that probably just means it is not available/needed.
+				require('coffee-script/register')
 
 		path = require('path')
 

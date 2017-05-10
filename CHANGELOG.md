@@ -1,3 +1,5 @@
+* Don't try to register the coffee-script loader if one already exists, it allows for using custom coffee-script loaders.
+
 v3.4.0
 
 * Map permissions in serial to make sure binds are always added in the same order/location to aid cache hits.
