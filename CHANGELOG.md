@@ -1,3 +1,5 @@
+v3.4.0
+
 * Map permissions in serial to make sure binds are always added in the same order/location to aid cache hits.
 * Avoid even loading the SBVRServer and http-transactions code in the cases where they're disabled
 * Always register the .sbvr and .ometajs handlers when running in nodejs
