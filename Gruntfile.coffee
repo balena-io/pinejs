@@ -68,6 +68,15 @@ module.exports = (grunt) ->
 					src: '**'
 					dest: 'out/static'
 				]
+			prepublish:
+				files: [
+					expand: true
+					cwd: 'src'
+					src: [ 'common/**', 'server/**' ]
+					dest: 'out/'
+					filter: (filename) ->
+						not _.endsWith(filename, '.coffee')
+				]
 
 		gitinfo:
 			commands:
@@ -130,6 +139,17 @@ module.exports = (grunt) ->
 				contentBase: 'src/client/src/'
 				webpack: config
 
+		coffee:
+			prepublish:
+				options:
+					sourceMap: true
+					header: true
+				expand: true
+				cwd: 'src'
+				src: [ 'common/**/*.coffee', 'server/**/*.coffee' ]
+				dest: 'out'
+				ext: '.js'
+
 	require('load-grunt-tasks')(grunt)
 
 	grunt.registerTask 'version', ->
@@ -156,3 +176,10 @@ module.exports = (grunt) ->
 			"rename:#{task}"
 			"rename:#{task}.map"
 		]
+
+	grunt.registerTask 'prepublish', [
+		'checkDependencies'
+		'clean'
+		'copy:prepublish'
+		'coffee:prepublish'
+	]
