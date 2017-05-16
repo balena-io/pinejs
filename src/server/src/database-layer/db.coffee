@@ -227,7 +227,7 @@ if pg?
 				pool.connect (err, client, done) ->
 					if err
 						console.error('Error connecting', err, err.stack)
-						process.exit()
+						process.exit(1)
 					tx = new PostgresTx(client, done, stackTraceErr)
 					if process.env.PG_SCHEMA?
 						tx.executeSql('SET search_path TO "' + process.env.PG_SCHEMA + '"')
@@ -297,7 +297,7 @@ if mysql?
 				_pool.getConnection (err, _db) ->
 					if err
 						console.error('Error connecting', err, err.stack)
-						process.exit()
+						process.exit(1)
 					_close = ->
 						_db.release()
 					tx = new MySqlTx(_db, _close, stackTraceErr)

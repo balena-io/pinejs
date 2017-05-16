@@ -180,7 +180,7 @@ exports.setup = (app) ->
 			loadConfig(config)
 		.catch (err) ->
 			console.error('Error loading application config', err, err.stack)
-			process.exit()
+			process.exit(1)
 
 	return {
 		loadConfig

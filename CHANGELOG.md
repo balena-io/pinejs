@@ -1,3 +1,4 @@
+* Use `process.exit(1)` when exiting abnormally
 * Don't try to register the coffee-script loader if one already exists, it allows for using custom coffee-script loaders.
 
 v3.4.0
