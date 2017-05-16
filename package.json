@@ -38,7 +38,7 @@
     "grunt-check-dependencies": "^1.0.0",
     "grunt-cli": "^1.0.0",
     "grunt-contrib-clean": "^1.0.0",
-    "grunt-contrib-coffee": "^1.0.0",
+    "grunt-contrib-coffee": "git+https://github.com/gruntjs/grunt-contrib-coffee.git#72e1818410c6c0371e4b5c5441c6993a4e61e869",
     "grunt-contrib-concat": "^1.0.0",
     "grunt-contrib-copy": "^1.0.0",
     "grunt-contrib-htmlmin": "^2.0.0",
