@@ -69,6 +69,6 @@ init = (app, config) ->
 		Promise.all(promises)
 	.catch (err) ->
 		console.error('Error initialising server', err, err.stack)
-		process.exit()
+		process.exit(1)
 
 module.exports = { init, sbvrUtils, SessionStore: PinejsSessionStore }

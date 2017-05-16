@@ -83,6 +83,6 @@ initialised = Pinejs.init(app)
 		console.info('Server started')
 .catch (err) ->
 	console.error('Error initialising server', err, err.stack)
-	process.exit()
+	process.exit(1)
 
 module.exports = { initialised, app, sbvrUtils }
