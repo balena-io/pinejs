@@ -1,3 +1,5 @@
+v3.5.0
+
 * Compile all of the common/server coffee-script at prepublish time, so that it doesn't need to be compiled by dependents.
 * Use `process.exit(1)` when exiting abnormally
 * Don't try to register the coffee-script loader if one already exists, it allows for using custom coffee-script loaders.
