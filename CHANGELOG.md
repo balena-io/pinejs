@@ -1,3 +1,7 @@
+v3.5.1
+
+* Add a .npmignore to make sure the output folder isn't ignored on publishing.
+
 v3.5.0
 
 * Compile all of the common/server coffee-script at prepublish time, so that it doesn't need to be compiled by dependents.
