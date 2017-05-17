@@ -1,3 +1,5 @@
+* Update to jquery-ui ^1.12.1 and rely on the `main` in package.json for resolution so it can stay up to date.
+
 v3.5.1
 
 * Add a .npmignore to make sure the output folder isn't ignored on publishing.

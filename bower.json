@@ -14,7 +14,7 @@
   ],
   "dependencies": {
     "jquery": "^1.10.2",
-    "jquery-ui": "^1.10.3",
+    "jquery-ui": "^1.12.1",
     "backbone": "^1.2.3",
     "d3": "^3.3.8",
     "ejs": "^0.8.4",
