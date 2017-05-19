@@ -1,3 +1,4 @@
+* Use null-loader for pg/lib/connection-parameters in browser builds to avoid a webpack warning.
 * Update to jquery-ui ^1.12.1 and rely on the `main` in package.json for resolution so it can stay up to date.
 
 v3.5.1

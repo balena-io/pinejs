@@ -17,6 +17,7 @@ module.exports =
 			'fs': 'null-loader'
 			'module': 'null-loader'
 			'mysql': 'null-loader'
+			'pg/lib/connection-parameters': 'null-loader'
 			'pg': 'null-loader'
 
 			'bcrypt': 'bcryptjs'
