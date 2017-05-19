@@ -27,7 +27,6 @@ module.exports =
 			'codemirror$': 'codemirror/lib/codemirror'
 			'codemirror-ometa': 'ometa-js/lib/codemirror-ometa'
 			'ejs': 'ejs/ejs'
-			'jquery-ui': 'jquery-ui/ui/jquery-ui'
 			'ometa-core': 'ometa-js/lib/ometajs/core'
 
 			'templates': root + '/src/client/src/templates'
