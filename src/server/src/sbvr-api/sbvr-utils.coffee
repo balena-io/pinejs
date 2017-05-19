@@ -220,7 +220,7 @@ exports.executeModels = executeModels = (tx, models, callback) ->
 				id = result[0]?.id
 				if id?
 					uri += '(' + id + ')'
-					method = 'PUT'
+					method = 'PATCH'
 					body.id = id
 
 				runURI(method, uri, body, tx, permissions.root)
