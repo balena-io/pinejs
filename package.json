@@ -1,12 +1,12 @@
 {
   "name": "@resin/pinejs",
   "version": "3.5.2",
-  "main": "out/server/src/server-glue/module",
+  "main": "out/server-glue/module",
   "repository": "git@bitbucket.org:rulemotion/pinejs.git",
   "scripts": {
     "prepublish": "require-npm4-to-publish",
     "prepublishOnly": "grunt prepublish",
-    "dev-server": "grunt webpack-dev-server:client-server",
+    "webpack-browser": "grunt webpack:browser",
     "lint": "resin-lint src Gruntfile.coffee"
   },
   "dependencies": {
@@ -40,7 +40,6 @@
     "@types/node": "^6.0.73",
     "@types/passport": "^0.3.3",
     "@types/passport-local": "^1.0.30",
-    "bower": "^1.6.8",
     "coffee-loader": "^0.7.2",
     "css-loader": "^0.26.1",
     "exports-loader": "^0.6.2",

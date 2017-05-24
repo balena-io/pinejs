@@ -12,7 +12,6 @@
 		"strictNullChecks": true
 	},
 	"include": [
-		"src/common/**/*.ts",
-		"src/server/**/*.ts"
+		"src/**/*.ts"
 	]
 }

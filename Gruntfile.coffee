@@ -1,26 +1,10 @@
 webpack = require 'webpack'
 _ = require 'lodash'
 
-clientConfigs =
-	'client': require './src/client/build/client'
-	'client-server': require './src/client/build/client-server'
-	'ddui': require './src/client/build/ddui'
-	'sbvr.co': require './src/client/build/sbvr.co'
 serverConfigs =
-	'browser': require './src/server/build/browser'
-	'module': require './src/server/build/module'
-	'server': require './src/server/build/server'
-
-clientDevConfigs = {}
-for task, config of clientConfigs
-	clientDevConfigs[task] = _.clone(config)
-	clientDevConfigs[task].plugins = _.clone(config.plugins)
-	config.plugins = config.plugins.concat(
-		new webpack.optimize.UglifyJsPlugin(
-			compress:
-				unused: false # We need this off for OMeta
-		)
-	)
+	'browser': require './build/browser'
+	'module': require './build/module'
+	'server': require './build/server'
 
 for task, config of serverConfigs
 	config.plugins.push(
@@ -61,18 +45,11 @@ module.exports = (grunt) ->
 				}
 
 		copy:
-			client:
-				files: [
-					expand: true
-					cwd: 'src/client/src/static'
-					src: '**'
-					dest: 'out/static'
-				]
 			prepublish:
 				files: [
 					expand: true
 					cwd: 'src'
-					src: [ 'common/**', 'server/**' ]
+					src: [ '**' ]
 					dest: 'out/'
 					filter: (filename) ->
 						not _.endsWith(filename, '.coffee') and not _.endsWith(filename, '.ts')
@@ -81,28 +58,6 @@ module.exports = (grunt) ->
 		gitinfo:
 			commands:
 				describe: ['describe', '--tags', '--always', '--long', '--dirty']
-
-		htmlmin:
-			client:
-				options:
-					removeComments: true
-					removeCommentsFromCDATA: true
-					collapseWhitespace: false
-				files: [
-					src: 'src/client/src/index.html'
-					dest: 'out/index.html'
-				]
-
-		imagemin:
-			client:
-				options:
-					optimizationLevel: 3
-				files: [
-					expand: true
-					cwd: 'out/static/'
-					src: '*'
-					dest: 'out/static/'
-				]
 
 		rename: do ->
 			renames = {}
@@ -132,12 +87,7 @@ module.exports = (grunt) ->
 						to: "sourceMappingURL=pine-#{task}-<%= grunt.option('version') %>.js.map"
 					]
 
-		webpack: _.extend({}, clientConfigs, serverConfigs)
-		'webpack-dev-server':
-			_.mapValues clientDevConfigs, (config) ->
-				keepAlive: true
-				contentBase: 'src/client/src/'
-				webpack: config
+		webpack: serverConfigs
 
 		coffee:
 			prepublish:
@@ -146,7 +96,7 @@ module.exports = (grunt) ->
 					header: true
 				expand: true
 				cwd: 'src'
-				src: [ 'common/**/*.coffee', 'server/**/*.coffee' ]
+				src: [ '**/*.coffee' ]
 				dest: 'out'
 				ext: '.js'
 
@@ -161,13 +111,6 @@ module.exports = (grunt) ->
 		grunt.task.requires('gitinfo:describe')
 		grunt.option('version', grunt.config.get('gitinfo.describe'))
 
-	for task of clientConfigs
-		grunt.registerTask task, [
-			'copy:client'
-			'imagemin:client'
-			'htmlmin:client'
-			'webpack:' + task
-		]
 
 	for task of serverConfigs
 		grunt.registerTask task, [
