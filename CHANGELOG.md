@@ -1,3 +1,4 @@
+* Converted src/server/src/passport-pinejs/passport-pinejs.coffee to typescript.
 * Converted src/server/src/server-glue/module.coffee to typescript.
 * Added support for typescript within pinejs.
 
