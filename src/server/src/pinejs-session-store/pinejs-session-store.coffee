@@ -77,15 +77,12 @@ class PinejsSessionStore extends expressSession.Store
 		.nodeify(callback)
 
 	length: (callback) ->
-		# TODO: Use a proper count
 		sessionAPI.get
-			resource: 'session'
+			resource: 'session/$count'
 			passthrough: req: permissions.rootRead
 			options:
 				select: 'session_id'
 				filter: expiry_time: $ge: Date.now()
-		.then (sessions) ->
-			sessions.length
 		.nodeify(callback)
 PinejsSessionStore.config =
 	models: [
