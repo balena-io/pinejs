@@ -1,3 +1,5 @@
+v3.5.2
+
 * Use a proper $count in pinejs-session-store.
 * Use PATCH rather than PUT to update models to avoid issues with db layers that don't support `SET x = DEFAULT`
 * Use null-loader for pg/lib/connection-parameters in browser builds to avoid a webpack warning.
