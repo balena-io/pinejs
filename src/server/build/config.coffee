@@ -26,6 +26,7 @@ module.exports =
 		child_process: true
 		'coffee-script': true
 		'coffee-script/register': true
+		'ts-node/register': true
 		compression: true
 		'cookie-parser': true
 		express: true
@@ -61,6 +62,7 @@ module.exports =
 			''
 			'.js'
 			'.coffee'
+			'.ts'
 		]
 	plugins: [
 		new UMDRequirePlugin()
@@ -72,4 +74,5 @@ module.exports =
 			{ test: /\.(sbvr)$/, loader: 'raw-loader' }
 			{ test: /\.ometa(js)?$/, loader: 'ometa-loader' }
 			{ test: /\.coffee$/, loader: 'coffee-loader' }
+			{ test: /\.ts$/, loader: "ts-loader" }
 		]

@@ -75,7 +75,7 @@ module.exports = (grunt) ->
 					src: [ 'common/**', 'server/**' ]
 					dest: 'out/'
 					filter: (filename) ->
-						not _.endsWith(filename, '.coffee')
+						not _.endsWith(filename, '.coffee') and not _.endsWith(filename, '.ts')
 				]
 
 		gitinfo:
@@ -150,6 +150,11 @@ module.exports = (grunt) ->
 				dest: 'out'
 				ext: '.js'
 
+		ts:
+			prepublish:
+				tsconfig: true
+				expand: true
+
 	require('load-grunt-tasks')(grunt)
 
 	grunt.registerTask 'version', ->
@@ -182,4 +187,5 @@ module.exports = (grunt) ->
 		'clean'
 		'copy:prepublish'
 		'coffee:prepublish'
+		'ts:prepublish'
 	]

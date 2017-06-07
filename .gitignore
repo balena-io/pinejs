@@ -49,3 +49,5 @@ out
 
 # built platform.js file
 /src/server/build/platform.js
+.baseDir.ts
+/.tscache
