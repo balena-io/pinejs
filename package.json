@@ -10,7 +10,7 @@
     "lint": "resin-lint src Gruntfile.coffee"
   },
   "dependencies": {
-    "@resin/abstract-sql-compiler": "^2.2.0",
+    "@resin/abstract-sql-compiler": "^2.3.1",
     "@resin/abstract-sql-to-odata-schema": "^1.0.0",
     "@resin/lf-to-abstract-sql": "~0.0.19",
     "@resin/odata-parser": "~0.2.0",
