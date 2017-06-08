@@ -37,7 +37,7 @@ exports.checkModelAlreadyExists = (tx, modelName) ->
 			req: permissions.rootRead
 		options:
 			select: [ 'vocabulary' ]
-			top: '1'
+			top: 1
 			filter:
 				vocabulary: modelName
 	.then (results) ->
