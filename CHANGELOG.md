@@ -1,3 +1,5 @@
+* Added the ability to pass a custom properties object through the internal api that will be available as `req.custom` in any hooks.
+
 v3.5.2
 
 * Use a proper $count in pinejs-session-store.
