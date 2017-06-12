@@ -513,13 +513,13 @@ exports.runRule = do ->
 
 exports.PinejsClient =
 	class PinejsClient extends PinejsClientCore(_, Promise)
-		_request: ({ method, url, body, tx, req }) ->
-			return runURI(method, url, body, tx, req)
+		_request: ({ method, url, body, tx, req, custom }) ->
+			return runURI(method, url, body, tx, req, custom)
 
 exports.api = api = {}
 
 # We default to full permissions if no req object is passed in
-exports.runURI = runURI =  (method, uri, body = {}, tx, req, callback) ->
+exports.runURI = runURI =  (method, uri, body = {}, tx, req, custom, callback) ->
 	if callback? and !_.isFunction(callback)
 		message = 'Called runURI with a non-function callback?!'
 		console.trace(message)
@@ -534,6 +534,7 @@ exports.runURI = runURI =  (method, uri, body = {}, tx, req, callback) ->
 		user = permissions: []
 
 	req =
+		custom: custom
 		user: user
 		apiKey: apiKey
 		method: method
