@@ -10,6 +10,8 @@ Term:       key
 	Concept Type: Short Text (Type)
 Term:       expiry date
 	Concept Type: Date Time (Type)
+Term:       description
+	Concept Type: Text (Type)
 
 Term:       permission
 	Reference Scheme: name
@@ -54,3 +56,7 @@ Fact type:  api key has role
 Fact type:  api key has permission
 Fact type:  api key is of actor
 	Necessity: each api key is of exactly one actor
+Fact type:  api key has name
+	Necessity: Each api key has at most one name.
+Fact type:  api key has description
+	Necessity: Each api key has at most one description.
