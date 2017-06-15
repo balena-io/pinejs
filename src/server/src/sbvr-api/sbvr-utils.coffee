@@ -16,6 +16,7 @@ devModel = require './dev.sbvr'
 permissions = require './permissions'
 uriParser = require './uri-parser'
 
+controlFlow = require './control-flow'
 memoize = require 'memoizee'
 memoizedCompileRule = memoize(
 	(abstractSqlQuery) ->
@@ -53,6 +54,7 @@ apiHooks.MERGE = apiHooks.PATCH
 class UnsupportedMethodError extends TypedError
 class SqlCompilationError extends TypedError
 class SbvrValidationError extends TypedError
+class InternalRequestError extends TypedError
 
 # TODO: Clean this up and move it into the db module.
 prettifyConstraintError = (err, tableName) ->
@@ -63,10 +65,10 @@ prettifyConstraintError = (err, tableName) ->
 					matches = /ER_DUP_ENTRY: Duplicate entry '.*?[^\\]' for key '(.*?[^\\])'/.exec(err)
 				when 'postgres'
 					matches = new RegExp('"' + tableName + '_(.*?)_key"').exec(err)
-					# We know it's the right error type, so if matches exists just return a generic error message, since we have failed to get the info for a more specific one.
+					# We know it's the right error type, so if matches exists just throw a generic error message, since we have failed to get the info for a more specific one.
 					if !matches?
 						throw new db.UniqueConstraintError('Unique key constraint violated')
-			throw new db.UniqueConstraintError('"' + matches[1] + '" must be unique'.replace(/-/g, '__') + '.')
+			throw new db.UniqueConstraintError('"' + matches[1] + '" must be unique.'.replace(/-/g, '__') + '.')
 
 		if err instanceof db.ForeignKeyConstraintError
 			switch db.engine
@@ -75,7 +77,7 @@ prettifyConstraintError = (err, tableName) ->
 				when 'postgres'
 					matches = new RegExp('"' + tableName + '" violates foreign key constraint ".*?" on table "(.*?)"').exec(err)
 					matches ?= new RegExp('"' + tableName + '" violates foreign key constraint "' + tableName + '_(.*?)_fkey"').exec(err)
-					# We know it's the right error type, so if matches exists just return a generic error message, since we have failed to get the info for a more specific one.
+					# We know it's the right error type, so if matches exists just throw a generic error message, since we have failed to get the info for a more specific one.
 					if !matches?
 						throw new db.ForeignKeyConstraintError('Foreign key constraint violated')
 			throw new db.ForeignKeyConstraintError('Data is referenced by ' + matches[1].replace(/\ /g, '_').replace(/-/g, '__') + '.')
@@ -580,6 +582,7 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 	if process.env.DEBUG
 		api[apiRoot].logger.log('Parsing', req.method, req.url)
 
+	{ mapPar, mapSeries } = controlFlow.getMappingFn(req.headers)
 	# Get the hooks for the current method/vocabulary as we know it,
 	# in order to run PREPARSE hooks, before parsing gets us more info
 	req.hooks = getHooks(
@@ -588,90 +591,163 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 	)
 	runHook('PREPARSE', { req, tx: req.tx })
 	.then ->
+		{ method, url, body } = req
+
+		# Check if it is a single request or a batch
+		body = if req.batch?.length > 0 then req.batch else [{ method: method, url: url, data: body }]
 		# Parse the OData requests
-		uriParser.parseODataURI(req)
-	.then (requests) ->
-		# Then for each request add/check the relevant permissions, translate to abstract sql, and then compile the abstract sql.
-		Promise.map requests, (request) ->
-			# Get the full hooks list now that we can
-			req.hooks = getHooks(request)
-			runHook('POSTPARSE', { req, request, tx: req.tx })
-			.return(request)
-			.then(uriParser.translateUri)
+		mapSeries body, (bodypart) ->
+			uriParser.parseOData(bodypart)
+			.then controlFlow.liftP (request) ->
+				# Get the full hooks list now that we can
+				req.hooks = getHooks(request)
+				# Add/check the relevant permissions
+				runHook('POSTPARSE', { req, request, tx: req.tx })
+				.return(request)
+				.then (uriParser.translateUri)
+				.then (request) ->
+					# We defer compilation of abstract sql queries with references to other requests
+					if request.abstractSqlQuery? && !request._defer
+						try
+							request.sqlQuery = memoizedCompileRule(request.abstractSqlQuery)
+						catch err
+							api[apiRoot].logger.error('Failed to compile abstract sql: ', request.abstractSqlQuery, err, err.stack)
+							throw new SqlCompilationError(err)
+					return request
+
 			.then (request) ->
-				if request.abstractSqlQuery?
-					try
-						request.sqlQuery = memoizedCompileRule(request.abstractSqlQuery)
-					catch err
-						api[apiRoot].logger.error('Failed to compile abstract sql: ', request.abstractSqlQuery, err, err.stack)
-						throw new SqlCompilationError(err)
-				return request
-	# Then handle forwarding the request to the correct method handler.
-	.then (requests) ->
-		# Use the first request (and only, since we don't support multiple requests in one yet)
-		request = requests[0]
-		{ logger } = api[request.vocabulary]
-
+				# Run the request in its own transaction
+				runTransaction req, request, (tx) ->
+					if _.isArray request
+						env = new Map()
+						Promise.reduce(request, runChangeSet(req, res, tx), env)
+						.then (env) -> Array.from(env.values())
+					else
+						runRequest(req, res, tx, request)
+	.then (results) ->
+		mapSeries results, (result) ->
+			if _.isError(result)
+				return constructError(result)
+			else
+				return result
+	.then (responses) ->
 		res.set('Cache-Control', 'no-cache')
+		# If we are dealing with a single request unpack the response and respond normally
+		if not req.batch?.length > 0
 
-		if process.env.DEBUG
-			logger.log('Running', req.method, req.url)
+			response = responses[0]
+			if response.status then res.status(response.status)
+			_.forEach response.headers, (headerValue, headerName) ->
+				res.set(headerName, headerValue)
 
-		runTransaction req, request, (tx) ->
-			runHook('PRERUN', { req, request, tx })
-			.then ->
-				switch req.method
-					when 'GET'
-						runGet(req, res, request, tx)
-					when 'POST'
-						runPost(req, res, request, tx)
-					when 'PUT', 'PATCH', 'MERGE'
-						runPut(req, res, request, tx)
-					when 'DELETE'
-						runDelete(req, res, request, tx)
-		.then (result) ->
-			switch req.method
-				when 'GET'
-					respondGet(req, res, request, result)
-				when 'POST'
-					respondPost(req, res, request, result)
-				when 'PUT', 'PATCH', 'MERGE'
-					respondPut(req, res, request, result)
-				when 'DELETE'
-					respondDelete(req, res, request, result)
-				when 'OPTIONS'
-					respondOptions(req, res, request, result)
-				else
-					throw new UnsupportedMethodError()
-		.catch db.DatabaseError, (err) ->
-			prettifyConstraintError(err, request.resourceName)
-			logger.error(err, err.stack)
-			res.sendStatus(500)
-		.catch EvalError, RangeError, ReferenceError, SyntaxError, TypeError, URIError, (err) ->
-			logger.error(err, err.stack)
-			res.sendStatus(500)
-	.catch SbvrValidationError, (err) ->
-		res.status(400).send(err.message)
-	.catch uriParser.BadRequestError, ->
-		res.sendStatus(400)
-	.catch permissions.PermissionError, (err) ->
-		res.sendStatus(401)
-	.catch SqlCompilationError, uriParser.TranslationError, uriParser.ParsingError, permissions.PermissionParsingError, (err) ->
+			if not response.body
+				res.sendStatus(response.status)
+			else
+				res.json(response.body)
+		# Otherwise its a multipart request and we reply with the appropriate multipart response
+		else
+			res.status(200).sendMulti(responses)
+	# If an error bubbles here it must have happened in the last then block
+	# We just respond with 500 as there is probably not much we can do to recover
+	.catch (e) ->
+		console.error('An error occured while constructing the response', e, e.stack)
 		res.sendStatus(500)
+
+# Reject the error to use the nice catch syntax
+constructError = (e) ->
+	Promise.reject(e)
+	.catch SbvrValidationError, (err) ->
+		{ status: 400, body: err.message }
+	.catch uriParser.BadRequestError, ->
+		{ status: 400 }
+	.catch permissions.PermissionError, (err) ->
+		{ status: 401 }
+	.catch SqlCompilationError, uriParser.TranslationError, uriParser.ParsingError, permissions.PermissionParsingError, InternalRequestError, (err) ->
+		{ status: 500 }
 	.catch UnsupportedMethodError, (err) ->
-		res.sendStatus(405)
-	.catch (err) ->
+		{ status: 405 }
+	.catch e, (err) ->
 		# If the err is an error object then use its message instead - it should be more readable!
-		if err instanceof Error
+		if _.isError err
 			err = err.message
-		res.status(404).json(err)
+		{ status: 404, body: err }
+
+runRequest = (req, res, tx, request) ->
+	{ logger } = api[request.vocabulary]
+
+	if process.env.DEBUG
+		logger.log('Running', req.method, req.url)
+	# Forward each request to the correct method handler
+	runHook('PRERUN', { req, request, tx })
+	.then ->
+		switch request.method
+			when 'GET'
+				runGet(req, res, request, tx)
+			when 'POST'
+				runPost(req, res, request, tx)
+			when 'PUT', 'PATCH', 'MERGE'
+				runPut(req, res, request, tx)
+			when 'DELETE'
+				runDelete(req, res, request, tx)
+	.catch db.DatabaseError, (err) ->
+		prettifyConstraintError(err, request.resourceName)
+		logger.error(err, err.stack)
+		throw err
+	.catch EvalError, RangeError, ReferenceError, SyntaxError, TypeError, URIError, (err) ->
+		logger.error(err, err.stack)
+		throw new InternalRequestError()
+	.tap (result) ->
+		runHook('POSTRUN', { req, request, result, tx })
+	.then (result) ->
+		prepareResponse(req, res, request, result, tx)
+
+runChangeSet = (req, res, tx) ->
+	(env, request) ->
+		request = updateBinds(env, request)
+		runRequest(req, res, tx, request)
+		.then (result) ->
+			result.headers['Content-Id'] = request.id
+			env.set(request.id, result)
+			return env
+
+# Requests inside a changeset may refer to resources created inside the
+# changeset, the generation of the sql query for those requests must be
+# deferred untill the request they reference is run and returns an insert ID.
+# This function compiles the sql query of a request which has been deferred
+updateBinds = (env, request) ->
+	if request._defer
+		request.odataBinds = _.map request.odataBinds, ([tag, id]) ->
+			if tag == 'ContentReference'
+				ref = env.get(id)
+				if _.isUndefined(ref?.body?.id)
+					throw uriParser.BadRequestError('Reference to a non existing resource in Changeset')
+				else
+					uriParser.parseId(ref.body.id)
+			else
+				[tag, id]
+		request.sqlQuery = memoizedCompileRule(request.abstractSqlQuery)
+	return request
+
+prepareResponse = (req, res, request, result, tx) ->
+	Promise.try ->
+		switch request.method
+			when 'GET'
+				respondGet(req, res, request, result, tx)
+			when 'POST'
+				respondPost(req, res, request, result, tx)
+			when 'PUT', 'PATCH', 'MERGE'
+				respondPut(req, res, request, result, tx)
+			when 'DELETE'
+				respondDelete(req, res, request, result, tx)
+			when 'OPTIONS'
+				respondOptions(req, res, request, result, tx)
+			else
+				throw new UnsupportedMethodError()
 
 # This is a helper method to handle using a passed in req.tx when available, or otherwise creating a new tx and cleaning up after we're done.
 runTransaction = (req, request, callback) ->
 	runCallback = (tx) ->
 		callback(tx)
-		.tap (result) ->
-			runHook('POSTRUN', { req, request, result, tx })
 	if req.tx?
 		# If an existing tx was passed in then use it.
 		runCallback(req.tx)
@@ -702,19 +778,18 @@ runGet = (req, res, request, tx) ->
 	if request.sqlQuery?
 		runQuery(tx, request)
 
-respondGet = (req, res, request, result) ->
+respondGet = (req, res, request, result, tx) ->
 	vocab = request.vocabulary
 	if request.sqlQuery?
 		clientModel = clientModels[vocab].resources
 		processOData(vocab, clientModel, request.resourceName, result.rows)
 		.then (d) ->
-			runHook('PRERESPOND', { req, res, request, result, data: d, tx: req.tx })
+			runHook('PRERESPOND', { req, res, request, result, data: d, tx: tx })
 			.then ->
-				res.json({ d })
+				{ body: { d }, headers: { contentType: 'application/json' } }
 	else
 		if request.resourceName == '$metadata'
-			res.type('xml')
-			res.send(odataMetadata[vocab])
+			return { body: odataMetadata[vocab], headers: { contentType: 'xml' } }
 		else
 			clientModel = clientModels[vocab]
 			data =
@@ -722,7 +797,7 @@ respondGet = (req, res, request, result) ->
 					__model: clientModel.resources
 				else
 					__model: clientModel.resources[request.resourceName]
-			res.json(data)
+			return { body: data, headers: { contentType: 'application/json' } }
 		return Promise.resolve()
 
 runPost = (req, res, request, tx) ->
@@ -740,20 +815,24 @@ runPost = (req, res, request, tx) ->
 			else
 				sqlResult.insertId
 
-respondPost = (req, res, request, result) ->
+respondPost = (req, res, request, result, tx) ->
 	vocab = request.vocabulary
 	id = result
 	location = odataResourceURI(vocab, request.resourceName, id)
 	api[vocab].logger.log('Insert ID: ', request.resourceName, id)
-	runURI('GET', location, null, req.tx, req)
+	runURI('GET', location, null, tx, req)
 	.catch ->
 		# If we failed to fetch the created resource then just return the id.
 		return d: [{ id }]
 	.then (result) ->
-		runHook('PRERESPOND', { req, res, request, result, tx: req.tx })
+		runHook('PRERESPOND', { req, res, request, result, tx: tx })
 		.then ->
-			res.set('Location', location)
-			res.status(201).json(result.d[0])
+			status: 201
+			body: result.d[0]
+			headers:
+				contentType: 'application/json'
+				Location: location
+
 
 runPut = (req, res, request, tx) ->
 	vocab = request.vocabulary
@@ -772,10 +851,11 @@ runPut = (req, res, request, tx) ->
 	.then ->
 		validateModel(tx, vocab, request)
 
-respondPut = respondDelete = respondOptions = (req, res, request) ->
-	runHook('PRERESPOND', { req, res, request, tx: req.tx })
+respondPut = respondDelete = respondOptions = (req, res, request, tx) ->
+	runHook('PRERESPOND', { req, res, request, tx: tx })
 	.then ->
-		res.sendStatus(200)
+		status: 200
+		headers: {}
 
 runDelete = (req, res, request, tx) ->
 	vocab = request.vocabulary
@@ -823,7 +903,6 @@ exports.addHook = (method, apiRoot, resourceName, callbacks) ->
 exports.setup = (app, _db, callback) ->
 	exports.db = db = _db
 	AbstractSQLCompiler = AbstractSQLCompiler[db.engine]
-
 	db.transaction()
 	.then (tx) ->
 		executeStandardModels(tx)
