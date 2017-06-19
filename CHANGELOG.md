@@ -1,3 +1,5 @@
+* Separated out the client
+* Added OData batch support
 * Added the ability to pass a custom properties object through the internal api that will be available as `req.custom` in any hooks.
 * Only run rules if a field they query has been attempted to be changed.
 * Updated pinejs-client to ^4.0.0
