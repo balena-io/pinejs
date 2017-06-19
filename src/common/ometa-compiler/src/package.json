@@ -1,9 +1,0 @@
-{
-	"name": "OMetac",
-	"version": "0.0.1",
-	"dependencies": {
-		"nopt": "1.0.x",
-		"uglifyjs": "2.x",
-		"ometa-js": "1.x"
-	}
-}

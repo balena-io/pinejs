@@ -1,7 +1,7 @@
 path = require 'path'
 webpack = require 'webpack'
 UMDRequirePlugin = require 'umd-require-webpack-plugin'
-root = path.join(__dirname + '/../../..')
+root = path.dirname(__dirname)
 
 module.exports =
 	devtool: 'source-map'
@@ -17,7 +17,7 @@ module.exports =
 		Buffer: false
 		__dirname: false
 		__filename: false
-	externals: [
+	externals:
 		bcrypt: true
 		bcryptjs: true
 		bluebird: true
@@ -42,22 +42,10 @@ module.exports =
 		pg: true
 		'serve-static': true
 		'typed-error': true
-	]
+
 	resolve:
 		alias:
 			'ometa-core': 'ometa-js/lib/ometajs/core'
-
-			'extended-sbvr-parser': root + '/src/common/extended-sbvr-parser/extended-sbvr-parser'
-
-			'data-server': root + '/src/server/src/data-server'
-			'database-layer': root + '/src/server/src/database-layer'
-			'express-emulator': root + '/src/server/src/express-emulator'
-			'migrator': root + '/src/server/src/migrator'
-			'pinejs-session-store': root + '/src/server/src/pinejs-session-store'
-			'passport-pinejs': root + '/src/server/src/passport-pinejs'
-			'server-glue': root + '/src/server/src/server-glue'
-			'sbvr-api': root + '/src/server/src/sbvr-api'
-			'sbvr-compiler': root + '/src/server/src/sbvr-compiler'
 		extensions: [
 			''
 			'.js'
