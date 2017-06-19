@@ -1,7 +1,7 @@
 path = require 'path'
 webpack = require 'webpack'
 UMDRequirePlugin = require 'umd-require-webpack-plugin'
-root = path.join(__dirname + '/..')
+root = path.dirname(__dirname)
 
 module.exports =
 	devtool: 'source-map'
@@ -42,7 +42,7 @@ module.exports =
 		pg: true
 		'serve-static': true
 		'typed-error': true
-	
+
 	resolve:
 		alias:
 			'ometa-core': 'ometa-js/lib/ometajs/core'
