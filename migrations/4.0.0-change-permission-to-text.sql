@@ -1,0 +1,2 @@
+ALTER TABLE "permission"
+	ALTER COLUMN "name" TYPE TEXT;

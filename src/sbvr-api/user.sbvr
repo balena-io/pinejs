@@ -5,7 +5,7 @@ Term:       username
 Term:       password
 	Concept Type: Hashed (Type)
 Term:       name
-	Concept Type: Short Text (Type)
+	Concept Type: Text (Type)
 Term:       key
 	Concept Type: Short Text (Type)
 Term:       expiry date

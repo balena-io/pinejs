@@ -1,3 +1,4 @@
+* Changed permission name to text, to allow unlimited length permissions
 * Separated out the client
 * Added OData batch support
 * Added the ability to pass a custom properties object through the internal api that will be available as `req.custom` in any hooks.
