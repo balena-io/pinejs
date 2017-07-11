@@ -43,11 +43,5 @@ build/config/buildinfo.properties
 node_modules
 out
 
-# Requirejs compilation cache
-.cache.json
-/src/client/lib
-
-# built platform.js file
-/src/server/build/platform.js
 .baseDir.ts
 /.tscache
