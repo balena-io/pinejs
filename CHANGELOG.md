@@ -1,3 +1,5 @@
+v4.0.0
+
 * Changed permission name to text, to allow unlimited length permissions
 * Separated out the client
 * Added OData batch support
