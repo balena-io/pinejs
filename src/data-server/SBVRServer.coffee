@@ -76,16 +76,16 @@ exports.setup = (app, sbvrUtils, db) ->
 					tx: tx
 					req: permissions.rootRead
 				options:
-					select: ['vocabulary', 'model_value']
+					select: ['is_of__vocabulary', 'model_value']
 					filter:
 						model_type: 'se'
-						vocabulary: 'data'
+						is_of__vocabulary: 'data'
 		.then (result) ->
 			if result.length is 0
 				throw new Error('No SE data model found')
 			instance = result[0]
 			sbvrUtils.executeModel(tx,
-				apiRoot: instance.vocabulary
+				apiRoot: instance.is_of__vocabulary
 				modelText: instance.model_value
 			)
 		.then ->

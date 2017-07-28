@@ -1,3 +1,13 @@
+* Updated sbvr-parser to ^0.1.0
+* Updated lf-to-abstract-sql to ^1.0.0
+	* Breaking: verbs are now included in field names (except for `has`), eg `pilot can fly plane` now creates a field called `can fly-plane` instead of `plane`, allowing multiple relationships between two terms
+	* Adds relationship and synonym info to the generated abstract sql for odata-to-abstract-sql to use
+* Updated odata-to-abstract-sql to ^1.0.0, which supports lf-to-abstract-sql v1.0.0
+	* Breaking: table names now use ` ` rather than `_` within terms and verbs and `-` between them (matching the way fields are named)
+	* Breaking: requires verbs to specify the relationship between two terms, eg `pilot/plane` becomes `pilot/can_fly__plane`
+	* Adds support for synonym and synonymous form usage, which makes it possible to specify the direction of a relationship for self-referential fields.
+* Removed abstract-sql-to-odata-schema as it is no longer needed, since the abstract-sql now has all the info necessary.
+
 v4.0.0
 
 * Changed permission name to text, to allow unlimited length permissions

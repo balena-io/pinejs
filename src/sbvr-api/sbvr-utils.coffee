@@ -5,11 +5,11 @@ LF2AbstractSQL = require '@resin/lf-to-abstract-sql'
 AbstractSQLCompiler = require '@resin/abstract-sql-compiler'
 PinejsClientCore = require 'pinejs-client/core'
 sbvrTypes = require '@resin/sbvr-types'
+{ sqlNameToODataName, odataNameToSqlName } = require '@resin/odata-to-abstract-sql'
 
 SBVRParser = require '../extended-sbvr-parser/extended-sbvr-parser'
 
 migrator = require '../migrator/migrator'
-AbstractSQL2CLF = require '@resin/abstract-sql-to-odata-schema'
 ODataMetadataGenerator = require '../sbvr-compiler/ODataMetadataGenerator'
 
 devModel = require './dev.sbvr'
@@ -35,8 +35,8 @@ fetchProcessing = _.mapValues sbvrTypes, ({ fetchProcessing }) ->
 LF2AbstractSQLTranslator = LF2AbstractSQL.createTranslator(sbvrTypes)
 
 seModels = {}
+abstractSqlModels = {}
 sqlModels = {}
-clientModels = {}
 odataMetadata = {}
 
 apiHooks =
@@ -56,6 +56,24 @@ class SqlCompilationError extends TypedError
 class SbvrValidationError extends TypedError
 class InternalRequestError extends TypedError
 
+resolveSynonym = ({ vocabulary, resourceName }) ->
+	sqlName = odataNameToSqlName(resourceName)
+	return _(sqlName)
+		.split('-')
+		.map (resourceName) ->
+			abstractSqlModels[vocabulary].synonyms[resourceName] ? resourceName
+		.join('-')
+
+exports.resolveNavigationResource = resolveNavigationResource = (vocabulary, resourceName, navigationName) ->
+	navigation = _(odataNameToSqlName(navigationName))
+		.split('-')
+		.flatMap (resourceName) ->
+			resolveSynonym({ vocabulary, resourceName }).split('-')
+		.join('.')
+	resourceName = resolveSynonym({ vocabulary, resourceName })
+	mapping = _.get(abstractSqlModels[vocabulary].relationships[resourceName], navigation).$
+	return sqlNameToODataName(mapping[1][0])
+
 # TODO: Clean this up and move it into the db module.
 prettifyConstraintError = (err, tableName) ->
 	if err instanceof db.ConstraintError
@@ -68,7 +86,7 @@ prettifyConstraintError = (err, tableName) ->
 					# We know it's the right error type, so if matches exists just throw a generic error message, since we have failed to get the info for a more specific one.
 					if !matches?
 						throw new db.UniqueConstraintError('Unique key constraint violated')
-			throw new db.UniqueConstraintError('"' + matches[1] + '" must be unique.'.replace(/-/g, '__') + '.')
+			throw new db.UniqueConstraintError('"' + sqlNameToODataName(matches[1]) + '" must be unique.')
 
 		if err instanceof db.ForeignKeyConstraintError
 			switch db.engine
@@ -80,7 +98,7 @@ prettifyConstraintError = (err, tableName) ->
 					# We know it's the right error type, so if matches exists just throw a generic error message, since we have failed to get the info for a more specific one.
 					if !matches?
 						throw new db.ForeignKeyConstraintError('Foreign key constraint violated')
-			throw new db.ForeignKeyConstraintError('Data is referenced by ' + matches[1].replace(/\ /g, '_').replace(/-/g, '__') + '.')
+			throw new db.ForeignKeyConstraintError('Data is referenced by ' + sqlNameToODataName(matches[1]) + '.')
 
 		throw err
 
@@ -90,7 +108,6 @@ exports.resolveOdataBind = resolveOdataBind = (odataBinds, value) ->
 	return value
 
 getAndCheckBindValues = (vocab, odataBinds, bindings, values) ->
-	mappings = clientModels[vocab].resourceToSQLMappings
 	sqlModelTables = sqlModels[vocab].tables
 	Promise.map bindings, (binding) ->
 		if binding[0] is 'Bind'
@@ -104,9 +121,10 @@ getAndCheckBindValues = (vocab, odataBinds, bindings, values) ->
 
 				value = resolveOdataBind(odataBinds, value)
 
-				[mappedTableName, mappedFieldName] = mappings[tableName][fieldName]
-				field = _.find(sqlModelTables[mappedTableName].fields, {
-					fieldName: mappedFieldName
+				sqlTableName = odataNameToSqlName(tableName)
+				sqlFieldName = odataNameToSqlName(fieldName)
+				field = _.find(sqlModelTables[sqlTableName].fields, {
+					fieldName: sqlFieldName
 				})
 			else if _.isInteger(binding[1])
 				if binding[1] >= odataBinds.length
@@ -173,7 +191,6 @@ exports.executeModels = executeModels = (tx, models, callback) ->
 			try
 				abstractSqlModel = LF2AbstractSQLTranslator(lfModel, 'Process')
 				sqlModel = AbstractSQLCompiler.compileSchema(abstractSqlModel)
-				clientModel = AbstractSQL2CLF(sqlModel)
 				metadata = ODataMetadataGenerator(vocab, sqlModel)
 			catch e
 				console.error('Error compiling model', vocab, e, e.stack)
@@ -181,18 +198,19 @@ exports.executeModels = executeModels = (tx, models, callback) ->
 
 			# Create tables related to terms and fact types
 			# Use `Promise.reduce` to run statements sequentially, as the order of the CREATE TABLE statements matters (eg. for foreign keys).
-			Promise.reduce sqlModel.createSchema, (arr, createStatement) ->
-				tx.executeSql(createStatement)
-				.catch ->
-					# Warning: We ignore errors in the create table statements as SQLite doesn't support CREATE IF NOT EXISTS
-			, []
+			Promise.each sqlModel.createSchema, (createStatement) ->
+				promise = tx.executeSql(createStatement)
+				if db.engine is 'websql'
+					promise.catch (err) ->
+						console.warn("Ignoring errors in the create table statements for websql as it doesn't support CREATE IF NOT EXISTS", err)
+				return promise
 			.then ->
 				seModels[vocab] = seModel
+				abstractSqlModels[vocab] = abstractSqlModel
 				sqlModels[vocab] = sqlModel
-				clientModels[vocab] = clientModel
 				odataMetadata[vocab] = metadata
 
-				uriParser.addClientModel(vocab, clientModel)
+				uriParser.addClientModel(vocab, abstractSqlModel)
 
 				# Validate the [empty] model according to the rules.
 				# This may eventually lead to entering obligatory data.
@@ -216,7 +234,6 @@ exports.executeModels = executeModels = (tx, models, callback) ->
 					lf: lfModel
 					abstractsql: abstractSqlModel
 					sql: sqlModel
-					client: clientModel
 				}
 	# Only update the dev models once all models have finished executing.
 	.map (model) ->
@@ -229,13 +246,13 @@ exports.executeModels = executeModels = (tx, models, callback) ->
 				options:
 					select: 'id'
 					filter:
-						vocabulary: model.vocab
+						is_of__vocabulary: model.vocab
 						model_type: modelType
 			.then (result) ->
 				method = 'POST'
 				uri = '/dev/model'
 				body =
-					vocabulary: model.vocab
+					is_of__vocabulary: model.vocab
 					model_value: modelText
 					model_type: modelType
 				id = result[0]?.id
@@ -251,7 +268,6 @@ exports.executeModels = executeModels = (tx, models, callback) ->
 			updateModel('lf', model.lf)
 			updateModel('abstractsql', model.abstractsql)
 			updateModel('sql', model.sql)
-			updateModel('client', model.client)
 		])
 	.catch (err) ->
 		Promise.map models, (model) ->
@@ -261,8 +277,8 @@ exports.executeModels = executeModels = (tx, models, callback) ->
 
 cleanupModel = (vocab) ->
 	delete seModels[vocab]
+	delete abstractSqlModels[vocab]
 	delete sqlModels[vocab]
-	delete clientModels[vocab]
 	delete odataMetadata[vocab]
 	uriParser.deleteClientModel(vocab)
 	delete api[vocab]
@@ -272,21 +288,23 @@ getHooks = do ->
 		_.mergeWith {}, a, b, (a, b) ->
 			if _.isArray(a)
 				return a.concat(b)
-	getResourceHooks = (vocabHooks, request) ->
+	getResourceHooks = (vocabHooks, resourceName) ->
 		return {} if !vocabHooks?
 		# When getting the hooks list for the sake of PREPARSE hooks
 		# we don't know the resourceName we'll be acting on yet
-		if !request.resourceName?
+		if !resourceName?
 			return vocabHooks['all']
 		mergeHooks(
-			vocabHooks[request.resourceName]
+			vocabHooks[resourceName]
 			vocabHooks['all']
 		)
 	getVocabHooks = (methodHooks, request) ->
 		return {} if !methodHooks?
+		if request.resourceName?
+			resourceName = resolveSynonym(request)
 		mergeHooks(
-			getResourceHooks(methodHooks[request.vocabulary], request)
-			getResourceHooks(methodHooks['all'], request)
+			getResourceHooks(methodHooks[request.vocabulary], resourceName)
+			getResourceHooks(methodHooks['all'], resourceName)
 		)
 	return getMethodHooks = (request) ->
 		mergeHooks(
@@ -316,7 +334,7 @@ exports.deleteModel = (vocabulary, callback) ->
 					req: permissions.root
 				options:
 					filter:
-						vocabulary: vocabulary
+						is_of__vocabulary: vocabulary
 		])).then ->
 			tx.end()
 			cleanupModel(vocabulary)
@@ -337,7 +355,7 @@ exports.getID = (vocab, request) ->
 
 checkForExpansion = do ->
 	rowsObjectHack = (i) -> @[i]
-	Promise.method (vocab, clientModel, fieldName, instance) ->
+	Promise.method (vocab, abstractSqlModel, parentResourceName, fieldName, instance) ->
 		try
 			field = JSON.parse(instance[fieldName])
 		catch
@@ -347,14 +365,17 @@ checkForExpansion = do ->
 		if _.isArray(field)
 			# Hack to look like a rows object
 			field.item = rowsObjectHack
-			processOData(vocab, clientModel, fieldName, field)
+			mappingResourceName = resolveNavigationResource(vocab, parentResourceName, fieldName)
+			processOData(vocab, abstractSqlModel, mappingResourceName, field)
 			.then (expandedField) ->
+				console.log('expand expandedField', parentResourceName, fieldName, expandedField)
 				instance[fieldName] = expandedField
 				return
 		else if field?
+			mappingResourceName = resolveNavigationResource(vocab, parentResourceName, fieldName)
 			instance[fieldName] = {
 				__deferred:
-					uri: '/' + vocab + '/' + fieldName + '(' + field + ')'
+					uri: '/' + vocab + '/' + mappingResourceName + '(' + field + ')'
 				__id: field
 			}
 			return
@@ -368,25 +389,27 @@ odataResourceURI = (vocab, resourceName, id) ->
 	return '/' + vocab + '/' + resourceName + '(' + id + ')'
 
 processOData = do ->
-	getLocalFields = (resourceModel) ->
-		if !resourceModel.localFields?
-			resourceModel.localFields = {}
-			for { fieldName, dataType } in resourceModel.fields when dataType isnt 'ForeignKey'
-				resourceModel.localFields[fieldName.replace(/\ /g, '_')] = true
-		return resourceModel.localFields
-	getFetchProcessingFields = (resourceModel) ->
-		return resourceModel.fetchProcessingFields ?=
-			_(resourceModel.fields)
+	getLocalFields = (table) ->
+		if !table.localFields?
+			table.localFields = {}
+			for { fieldName, dataType } in table.fields when dataType isnt 'ForeignKey'
+				odataName = sqlNameToODataName(fieldName)
+				table.localFields[odataName] = true
+		return table.localFields
+	getFetchProcessingFields = (table) ->
+		return table.fetchProcessingFields ?=
+			_(table.fields)
 			.filter(({ dataType }) -> fetchProcessing[dataType]?)
 			.map ({ fieldName, dataType }) ->
+				odataName = sqlNameToODataName(fieldName)
 				return [
-					fieldName.replace(/\ /g, '_')
+					odataName
 					fetchProcessing[dataType]
 				]
 			.fromPairs()
 			.value()
 
-	return (vocab, clientModel, resourceName, rows) ->
+	return (vocab, abstractSqlModel, resourceName, rows) ->
 		if rows.length is 0
 			return Promise.fulfilled([])
 
@@ -395,26 +418,29 @@ processOData = do ->
 				count = parseInt(rows.item(0).$count, 10)
 				return Promise.fulfilled(count)
 
-		resourceModel = clientModel[resourceName]
+		sqlResourceName = resolveSynonym({ vocabulary: vocab, resourceName })
+		table = abstractSqlModel.tables[sqlResourceName]
 
+		odataIdField = sqlNameToODataName(table.idField)
 		instances = rows.map (instance) ->
 			instance.__metadata =
-				uri: odataResourceURI(vocab, resourceModel.resourceName, +instance[resourceModel.idField])
+				# TODO: This should support non-number id fields
+				uri: odataResourceURI(vocab, resourceName, +instance[odataIdField])
 				type: ''
 			return instance
 
 		instancesPromise = Promise.fulfilled()
 
-		localFields = getLocalFields(resourceModel)
+		localFields = getLocalFields(table)
 		# We check that it's not a local field, rather than that it is a foreign key because of the case where the foreign key is on the other resource
 		# and hence not known to this resource
 		expandableFields = _.filter(_.keys(instances[0]), (fieldName) -> fieldName[0..1] != '__' and !localFields.hasOwnProperty(fieldName))
 		if expandableFields.length > 0
 			instancesPromise = Promise.map instances, (instance) ->
 				Promise.map expandableFields, (fieldName) ->
-					checkForExpansion(vocab, clientModel, fieldName, instance)
+					checkForExpansion(vocab, abstractSqlModel, sqlResourceName, fieldName, instance)
 
-		fetchProcessingFields = getFetchProcessingFields(resourceModel)
+		fetchProcessingFields = getFetchProcessingFields(table)
 		processedFields = _.filter(_.keys(instances[0]), (fieldName) -> fieldName[0..1] != '__' and fetchProcessingFields.hasOwnProperty(fieldName))
 		if processedFields.length > 0
 			instancesPromise = instancesPromise.then ->
@@ -496,17 +522,17 @@ exports.runRule = do ->
 
 			db.executeSql(ruleSQL.query, ruleSQL.bindings)
 			.then (result) ->
-				resourceName = resourceName.replace(/\ /g, '_').replace(/-/g, '__')
-				clientModel = clientModels[vocab].resources[resourceName]
-				ids = result.rows.map (row) -> row[clientModel.idField]
+				table = abstractSqlModels[vocab].tables[resourceName]
+				odataIdField = sqlNameToODataName(table.idField)
+				ids = result.rows.map (row) -> row[table.idField]
 				ids = _.uniq(ids)
-				ids = _.map ids, (id) -> clientModel.idField + ' eq ' + id
+				ids = _.map ids, (id) -> odataIdField + ' eq ' + id
 				filter =
 					if ids.length > 0
 						ids.join(' or ')
 					else
 						'0 eq 1'
-				runURI('GET', '/' + vocab + '/' + clientModel.resourceName + '?$filter=' + filter, null, null, permissions.rootRead)
+				runURI('GET', '/' + vocab + '/' + sqlNameToODataName(table.resourceName) + '?$filter=' + filter, null, null, permissions.rootRead)
 				.then (result) ->
 					result.__formulationType = formulationType
 					result.__resourceName = resourceName
@@ -546,6 +572,7 @@ exports.runURI = runURI =  (method, uri, body = {}, tx, req, custom, callback) -
 		query: {}
 		tx: tx
 
+	x = new Error('Uri from..')
 	return new Promise (resolve, reject) ->
 		res =
 			statusCode: 200
@@ -571,12 +598,14 @@ exports.runURI = runURI =  (method, uri, body = {}, tx, req, custom, callback) -
 			res.sendStatus(500)
 
 		handleODataRequest(req, res, next)
+	.tapCatch (err) ->
+		console.log('Error from....', x)
 	.nodeify(callback)
 
 exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 	url = req.url.split('/')
 	apiRoot = url[1]
-	if !apiRoot? or !clientModels[apiRoot]?
+	if !apiRoot? or !abstractSqlModels[apiRoot]?
 		return next('route')
 
 	if process.env.DEBUG
@@ -667,6 +696,7 @@ constructError = (e) ->
 	.catch UnsupportedMethodError, (err) ->
 		{ status: 405 }
 	.catch e, (err) ->
+		console.error(err)
 		# If the err is an error object then use its message instead - it should be more readable!
 		if _.isError err
 			err = err.message
@@ -781,8 +811,7 @@ runGet = (req, res, request, tx) ->
 respondGet = (req, res, request, result, tx) ->
 	vocab = request.vocabulary
 	if request.sqlQuery?
-		clientModel = clientModels[vocab].resources
-		processOData(vocab, clientModel, request.resourceName, result.rows)
+		processOData(vocab, abstractSqlModels[vocab], request.resourceName, result.rows)
 		.then (d) ->
 			runHook('PRERESPOND', { req, res, request, result, data: d, tx: tx })
 			.then ->
@@ -791,19 +820,15 @@ respondGet = (req, res, request, result, tx) ->
 		if request.resourceName == '$metadata'
 			return { body: odataMetadata[vocab], headers: { contentType: 'xml' } }
 		else
-			clientModel = clientModels[vocab]
-			data =
-				if request.resourceName == '$serviceroot'
-					__model: clientModel.resources
-				else
-					__model: clientModel.resources[request.resourceName]
-			return { body: data, headers: { contentType: 'application/json' } }
-		return Promise.resolve()
+			# TODO: request.resourceName can be '$serviceroot' or a resource and we should return an odata xml document based on that
+			return {
+				status: 404
+			}
 
 runPost = (req, res, request, tx) ->
 	vocab = request.vocabulary
 
-	idField = clientModels[vocab].resources[request.resourceName].idField
+	idField = abstractSqlModels[vocab].tables[resolveSynonym(request)].idField
 
 	runQuery(tx, request, null, idField)
 	.then (sqlResult) ->
@@ -885,10 +910,14 @@ exports.addHook = (method, apiRoot, resourceName, callbacks) ->
 	methodHooks = apiHooks[method]
 	if !methodHooks?
 		throw new Error('Unsupported method: ' + method)
-	if apiRoot isnt 'all' and !clientModels[apiRoot]?
+	if apiRoot isnt 'all' and !abstractSqlModels[apiRoot]?
 		throw new Error('Unknown api root: ' + apiRoot)
-	if resourceName isnt 'all' and !clientModels[apiRoot].resources[resourceName]?
-		throw new Error('Unknown resource for api root: ' + resourceName + ', ' + apiRoot)
+	if resourceName isnt 'all'
+		origResourceName = resourceName
+		resourceName = resolveSynonym({ vocabulary: apiRoot, resourceName })
+		if !abstractSqlModels[apiRoot].tables[resourceName]?
+			throw new Error('Unknown resource for api root: ' + origResourceName + ', ' + apiRoot)
+
 
 	for callbackType, callback of callbacks when callbackType not in ['PREPARSE', 'POSTPARSE', 'PRERUN', 'POSTRUN', 'PRERESPOND']
 		throw new Error('Unknown callback type: ' + callbackType)
@@ -915,6 +944,6 @@ exports.setup = (app, _db, callback) ->
 			console.error('Could not execute standard models', err, err.stack)
 			process.exit(1)
 	.then ->
-		db.executeSql('CREATE UNIQUE INDEX "uniq_model_model_type_vocab" ON "model" ("vocabulary", "model type");')
+		db.executeSql('CREATE UNIQUE INDEX "uniq_model_model_type_vocab" ON "model" ("is_of__vocabulary", "model type");')
 		.catch -> # we can't use IF NOT EXISTS on all dbs, so we have to ignore the error raised if this index already exists
 	.nodeify(callback)
