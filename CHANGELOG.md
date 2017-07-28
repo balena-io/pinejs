@@ -1,3 +1,4 @@
+* Converted sql-binds to typescript
 * Updated sbvr-parser to ^0.1.0
 * Updated lf-to-abstract-sql to ^1.0.0
 	* Breaking: verbs are now included in field names (except for `has`), eg `pilot can fly plane` now creates a field called `can fly-plane` instead of `plane`, allowing multiple relationships between two terms
