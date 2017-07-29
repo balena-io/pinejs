@@ -24,7 +24,7 @@ if (!process.browser) {
 }
 
 import * as Promise from 'bluebird'
-const dbModule = require('../database-layer/db')
+import * as dbModule from '../database-layer/db'
 const configLoader = require('../config-loader/config-loader')
 const migrator = require('../migrator/migrator')
 
@@ -35,7 +35,7 @@ let databaseOptions: {
 	engine: string,
 	params: string,
 }
-if (dbModule.websql != null) {
+if (dbModule.engines.websql != null) {
 	databaseOptions = {
 		engine: 'websql',
 		params: 'rulemotion',
@@ -44,9 +44,9 @@ if (dbModule.websql != null) {
 	let databaseURL: string
 	if (process.env.DATABASE_URL) {
 		databaseURL = process.env.DATABASE_URL
-	} else if (dbModule.postgres != null) {
+	} else if (dbModule.engines.postgres != null) {
 		databaseURL = 'postgres://postgres:.@localhost:5432/postgres'
-	} else if (dbModule.mysql == null) {
+	} else if (dbModule.engines.mysql == null) {
 		databaseURL = 'mysql://mysql:.@localhost:3306'
 	} else {
 		throw new Error('No supported database options available')
