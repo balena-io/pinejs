@@ -71,7 +71,6 @@ exports.parseOData = (b) ->
 
 parseODataChangeset = (env, b) ->
 	contentId = mustExtractHeader(b, 'content-id')
-
 	if env.has(contentId)
 		throw new BadRequestError('Content-Id must be unique inside a changeset')
 
@@ -116,7 +115,9 @@ splitApiRoot = (url) ->
 	return { url: url, apiRoot: apiRoot }
 
 mustExtractHeader = (body, header) ->
-	h = body.headers[header]?[0]
+	h = body.headers?[header]
+	if _.isArray h
+		h = h[0]
 	if _.isUndefined h
 		throw new BadRequestError("#{header} must be specified")
 	return h

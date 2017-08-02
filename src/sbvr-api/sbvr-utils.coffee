@@ -17,6 +17,7 @@ permissions = require './permissions'
 uriParser = require './uri-parser'
 
 controlFlow = require './control-flow'
+
 memoize = require 'memoizee'
 memoizedCompileRule = memoize(
 	(abstractSqlQuery) ->
@@ -261,7 +262,7 @@ exports.executeModels = executeModels = (tx, models, callback) ->
 					method = 'PATCH'
 					body.id = id
 
-				runURI(method, uri, body, tx, permissions.root)
+				runURI(method, uri, body, [], tx, permissions.root)
 
 		Promise.all([
 			updateModel('se', model.se)
@@ -532,7 +533,7 @@ exports.runRule = do ->
 						ids.join(' or ')
 					else
 						'0 eq 1'
-				runURI('GET', '/' + vocab + '/' + sqlNameToODataName(table.resourceName) + '?$filter=' + filter, null, null, permissions.rootRead)
+				runURI('GET', '/' + vocab + '/' + sqlNameToODataName(table.resourceName) + '?$filter=' + filter, null, [], null, permissions.rootRead)
 				.then (result) ->
 					result.__formulationType = formulationType
 					result.__resourceName = resourceName
@@ -541,13 +542,36 @@ exports.runRule = do ->
 
 exports.PinejsClient =
 	class PinejsClient extends PinejsClientCore(_, Promise)
-		_request: ({ method, url, body, tx, req, custom }) ->
-			return runURI(method, url, body, tx, req, custom)
+		batch: (data) ->
+			config =
+				method: 'POST'
+				url: @apiPrefix + '$batch'
+				batch: _.map data, batchify
+			return @_request(config)
+		_request: ({ method, url, body, batch, tx, req, custom }) ->
+			return runURI(method, url, body, batch, tx, req, custom)
+
+batchify = (req) ->
+	if _.isArray(req)
+		return { _isChangeSet: true, changeSet: _.map(req, batchify) }
+	else
+		return {
+			_isChangeSet: false
+			url: req.url
+			method: req.method
+			data: req.body
+			headers: formatHeaders(_.omit(req, ['url', 'method', 'body']))
+		}
+
+
+formatHeaders = (obj) ->
+	_.transform obj, (result, val, key) ->
+		result[key.toLowerCase()] = _.toString(val)
 
 exports.api = api = {}
 
 # We default to full permissions if no req object is passed in
-exports.runURI = runURI =  (method, uri, body = {}, tx, req, custom, callback) ->
+exports.runURI = runURI = (method, uri, body = {}, batch, tx, req, custom, callback) ->
 	if callback? and !_.isFunction(callback)
 		message = 'Called runURI with a non-function callback?!'
 		console.trace(message)
@@ -568,6 +592,7 @@ exports.runURI = runURI =  (method, uri, body = {}, tx, req, custom, callback) -
 		method: method
 		url: uri
 		body: body
+		batch: batch
 		params: {}
 		query: {}
 		tx: tx
@@ -585,6 +610,11 @@ exports.runURI = runURI =  (method, uri, body = {}, tx, req, custom, callback) -
 					resolve()
 			send: (statusCode = @statusCode) ->
 				@sendStatus(statusCode)
+			sendMulti: (data, statusCode = @statusCode) ->
+				if statusCode >= 400
+					reject(data)
+				else
+					resolve(data)
 			json: (data, statusCode = @statusCode) ->
 				if statusCode >= 400
 					reject(data)
@@ -621,7 +651,6 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 	runHook('PREPARSE', { req, tx: req.tx })
 	.then ->
 		{ method, url, body } = req
-
 		# Check if it is a single request or a batch
 		body = if req.batch?.length > 0 then req.batch else [{ method: method, url: url, data: body }]
 		# Parse the OData requests
@@ -845,7 +874,7 @@ respondPost = (req, res, request, result, tx) ->
 	id = result
 	location = odataResourceURI(vocab, request.resourceName, id)
 	api[vocab].logger.log('Insert ID: ', request.resourceName, id)
-	runURI('GET', location, null, tx, req)
+	runURI('GET', location, null, [], tx, req)
 	.catch ->
 		# If we failed to fetch the created resource then just return the id.
 		return d: [{ id }]
