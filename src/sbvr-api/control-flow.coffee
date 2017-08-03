@@ -12,10 +12,6 @@ exports.liftP = liftP = (fn) ->
 			Promise.resolve(a).then(fn)
 
 # The settle- versions of
-settleMap = (a, fn) ->
-	runF = Promise.method(fn)
-	Promise.map(a, _.flow(runF, wrap))
-
 settleMapSeries = (a, fn) ->
 	runF = Promise.method(fn)
 	Promise.mapSeries(a, _.flow(runF, wrap))
@@ -44,6 +40,6 @@ mapTill = (a, fn) ->
 # semantics specified by the Prefer: header.
 exports.getMappingFn = (headers) ->
 	if headers?.prefer == 'odata.continue-on-error'
-		return { mapPar: settleMap, mapSeries: settleMapSeries }
+		return settleMapSeries
 	else
-		return { mapPar: mapTill, mapSeries: mapTill }
+		return mapTill
