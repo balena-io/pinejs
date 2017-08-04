@@ -12,7 +12,7 @@
   "dependencies": {
     "@resin/abstract-sql-compiler": "^2.3.1",
     "@resin/lf-to-abstract-sql": "^1.0.0",
-    "@resin/odata-parser": "~0.2.0",
+    "@resin/odata-parser": "^0.2.1",
     "@resin/odata-to-abstract-sql": "^1.0.0",
     "@resin/sbvr-parser": "^0.1.0",
     "@resin/sbvr-types": "^1.0.0",
@@ -22,8 +22,9 @@
     "express-session": "^1.10.3",
     "lodash": "^4.0.0",
     "memoizee": "^0.4.1",
+    "mimemessage": "^1.0.4",
     "ometa-js": "^1.4.2",
-    "pinejs-client": "^4.0.0",
+    "pinejs-client": "4.0.0",
     "typed-error": "~0.1.0"
   },
   "devDependencies": {
