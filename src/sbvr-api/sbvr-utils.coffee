@@ -572,7 +572,6 @@ exports.runURI = runURI =  (method, uri, body = {}, tx, req, custom, callback) -
 		query: {}
 		tx: tx
 
-	x = new Error('Uri from..')
 	return new Promise (resolve, reject) ->
 		res =
 			statusCode: 200
@@ -598,8 +597,6 @@ exports.runURI = runURI =  (method, uri, body = {}, tx, req, custom, callback) -
 			res.sendStatus(500)
 
 		handleODataRequest(req, res, next)
-	.tapCatch (err) ->
-		console.log('Error from....', x)
 	.nodeify(callback)
 
 exports.handleODataRequest = handleODataRequest = (req, res, next) ->
@@ -611,7 +608,7 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 	if process.env.DEBUG
 		api[apiRoot].logger.log('Parsing', req.method, req.url)
 
-	{ mapPar, mapSeries } = controlFlow.getMappingFn(req.headers)
+	mapSeries = controlFlow.getMappingFn(req.headers)
 	# Get the hooks for the current method/vocabulary as we know it,
 	# in order to run PREPARSE hooks, before parsing gets us more info
 	req.hooks = getHooks(
@@ -662,7 +659,7 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 	.then (responses) ->
 		res.set('Cache-Control', 'no-cache')
 		# If we are dealing with a single request unpack the response and respond normally
-		if not req.batch?.length > 0
+		if not (req.batch?.length > 0)
 
 			response = responses[0]
 			if response.status then res.status(response.status)
@@ -670,7 +667,7 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 				res.set(headerName, headerValue)
 
 			if not response.body
-				res.sendStatus(response.status)
+				res.send()
 			else
 				res.json(response.body)
 		# Otherwise its a multipart request and we reply with the appropriate multipart response
@@ -876,13 +873,13 @@ runPut = (req, res, request, tx) ->
 	.then ->
 		validateModel(tx, vocab, request)
 
-respondPut = respondDelete = respondOptions = (req, res, request, tx) ->
+respondPut = respondDelete = respondOptions = (req, res, request, result, tx) ->
 	runHook('PRERESPOND', { req, res, request, tx: tx })
 	.then ->
 		status: 200
 		headers: {}
 
-runDelete = (req, res, request, tx) ->
+runDelete = (req, res, request, result, tx) ->
 	vocab = request.vocabulary
 
 	runQuery(tx, request)
