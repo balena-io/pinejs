@@ -180,7 +180,10 @@ exports.setup = (app, sbvrUtils) ->
 			throw err
 		.nodeify(callback)
 
-	exports.getUserPermissions = getUserPermissions = (userId, callback) ->
+	exports.getUserPermissions = getUserPermissions = (userId, roles, callback) ->
+		if typeof roles is 'function'
+			callback = roles
+			roles = null
 		if _.isString(userId)
 			userId = _.parseInt(userId)
 		if !_.isFinite(userId)
@@ -206,6 +209,14 @@ exports.setup = (app, sbvrUtils) ->
 								uhr: expiry_date: null
 							,	uhr: expiry_date: $gt: $now: null
 							]
+		if roles?
+			innerFilter = _.get(permsFilter, '$or.is_of__role.$any.$expr.rhp.role.$any.$expr')
+			newFilter =
+				$and: [
+					innerFilter,
+					r: name: $in: roles
+			]
+			_.set(permsFilter, '$or.is_of__role.$any.$expr.rhp.role.$any.$expr', newFilter)
 		return getPermissions(permsFilter, callback)
 
 	exports.getApiKeyPermissions = getApiKeyPermissions = do ->
