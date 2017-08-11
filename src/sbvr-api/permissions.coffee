@@ -181,13 +181,30 @@ exports.setup = (app, sbvrUtils) ->
 		.nodeify(callback)
 
 	exports.getUserPermissions = getUserPermissions = (userId, roles, callback) ->
-		if typeof roles is 'function'
+		if _.isFunction(roles)
 			callback = roles
 			roles = null
 		if _.isString(userId)
 			userId = _.parseInt(userId)
 		if !_.isFinite(userId)
 			return Promise.rejected(new Error('User ID has to be numeric, got: ' + typeof userId))
+
+		roleFilter = 
+					r: is_of__user: $any:
+						$alias: 'uhr'
+						$expr:
+							uhr: user: userId
+							$or: [
+								uhr: expiry_date: null
+							,	uhr: expiry_date: $gt: $now: null
+							]
+
+		if roles?
+			roleFilter = $and: [
+					roleFilter,
+					r: name: $in: roles
+			]
+
 		permsFilter = $or:
 			is_of__user: $any:
 				$alias: 'uhp'
@@ -201,22 +218,8 @@ exports.setup = (app, sbvrUtils) ->
 				$alias: 'rhp'
 				$expr: rhp: role: $any:
 					$alias: 'r'
-					$expr: r: is_of__user: $any:
-						$alias: 'uhr'
-						$expr:
-							uhr: user: userId
-							$or: [
-								uhr: expiry_date: null
-							,	uhr: expiry_date: $gt: $now: null
-							]
-		if roles?
-			innerFilter = _.get(permsFilter, '$or.is_of__role.$any.$expr.rhp.role.$any.$expr')
-			newFilter =
-				$and: [
-					innerFilter,
-					r: name: $in: roles
-			]
-			_.set(permsFilter, '$or.is_of__role.$any.$expr.rhp.role.$any.$expr', newFilter)
+					$expr: roleFilter
+		
 		return getPermissions(permsFilter, callback)
 
 	exports.getApiKeyPermissions = getApiKeyPermissions = do ->
