@@ -878,7 +878,7 @@ respondPut = respondDelete = respondOptions = (req, res, request, result, tx) ->
 		status: 200
 		headers: {}
 
-runDelete = (req, res, request, result, tx) ->
+runDelete = (req, res, request, tx) ->
 	vocab = request.vocabulary
 
 	runQuery(tx, request)
