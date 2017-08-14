@@ -368,7 +368,6 @@ checkForExpansion = do ->
 			mappingResourceName = resolveNavigationResource(vocab, parentResourceName, fieldName)
 			processOData(vocab, abstractSqlModel, mappingResourceName, field)
 			.then (expandedField) ->
-				console.log('expand expandedField', parentResourceName, fieldName, expandedField)
 				instance[fieldName] = expandedField
 				return
 		else if field?
