@@ -368,7 +368,6 @@ checkForExpansion = do ->
 			mappingResourceName = resolveNavigationResource(vocab, parentResourceName, fieldName)
 			processOData(vocab, abstractSqlModel, mappingResourceName, field)
 			.then (expandedField) ->
-				console.log('expand expandedField', parentResourceName, fieldName, expandedField)
 				instance[fieldName] = expandedField
 				return
 		else if field?
@@ -661,15 +660,20 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 		# If we are dealing with a single request unpack the response and respond normally
 		if not (req.batch?.length > 0)
 
-			response = responses[0]
-			if response.status then res.status(response.status)
-			_.forEach response.headers, (headerValue, headerName) ->
+			[{ body, headers, status }] = responses
+			_.forEach headers, (headerValue, headerName) ->
 				res.set(headerName, headerValue)
 
-			if not response.body
-				res.send()
+			if not body
+				if status?
+					res.sendStatus(status)
+				else
+					console.error('No status or body set', req.url, responses)
+					res.sendStatus(500)
 			else
-				res.json(response.body)
+				if status?
+					res.status(status)
+				res.json(body)
 		# Otherwise its a multipart request and we reply with the appropriate multipart response
 		else
 			res.status(200).sendMulti(responses)
@@ -879,7 +883,7 @@ respondPut = respondDelete = respondOptions = (req, res, request, result, tx) ->
 		status: 200
 		headers: {}
 
-runDelete = (req, res, request, result, tx) ->
+runDelete = (req, res, request, tx) ->
 	vocab = request.vocabulary
 
 	runQuery(tx, request)
