@@ -1,3 +1,5 @@
+v5.0.0
+
 * Converted sql-binds to typescript
 * Updated sbvr-parser to ^0.1.0
 * Updated lf-to-abstract-sql to ^1.0.0
