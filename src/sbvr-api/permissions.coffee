@@ -425,9 +425,50 @@ exports.setup = (app, sbvrUtils) ->
 				res.sendStatus(503)
 
 	addPermissions = do ->
+		lambdas = {}
+
+		collectAdditionalResources = (odataQuery) ->
+			resources = collectExpand(odataQuery)
+			resources = resources.concat(collectFilter(odataQuery))
+			return _.uniqBy(_.compact(_.flattenDeep(resources)), 'name')
+
+		collectFilter = (odataQuery) ->
+			if odataQuery.options?.$filter?
+				return descendFilters(odataQuery.options.$filter)
+			else return []
+
+		collectExpand = (odataQuery) ->
+			if odataQuery.options?.$expand?.properties?
+				return odataQuery.options.$expand.properties
+			else return []
+
+		descendFilters = (filter) ->
+			if _.isArray(filter)
+				return _.map(filter, descendFilters)
+			else if _.isObject(filter)
+				if filter.name?
+					if filter.lambda?
+						lambdas[filter.lambda.identifier] = filter.name
+						return {
+							name: filter.name
+							options:
+								$filter: filter.lambda.expression
+						}
+					else if filter.property?
+						if lambdas[filter.name]
+							return descendFilters(filter.property)
+						else
+							return {
+								name: filter.name
+								options:
+									$filter: filter.property
+							}
+				return []
+
 		_addPermissions = (req, permissionType, vocabulary, resourceName, odataQuery, odataBinds) ->
 			checkPermissions(req, permissionType, resourceName, vocabulary)
 			.then (conditionalPerms) ->
+				resources = collectAdditionalResources(odataQuery)
 				if conditionalPerms is false
 					throw new PermissionError()
 				if conditionalPerms isnt true
@@ -450,13 +491,12 @@ exports.setup = (app, sbvrUtils) ->
 						else
 							odataQuery.options.$filter = permissionFilters
 
-				if odataQuery.options?.$expand?.properties?
-					# Make sure any relevant permission filters are also applied to expands.
-					# Mapping in serial to make sure binds are always added in the same order/location to aid cache hits
-					Promise.each odataQuery.options.$expand.properties, (expand) ->
-						# Always use get for the $expands
-						expandResourceName = sbvrUtils.resolveNavigationResource(vocabulary, resourceName, expand.name)
-						_addPermissions(req, methodPermissions.GET, vocabulary, expandResourceName, expand, odataBinds)
+				# Make sure any relevant permission filters are also applied to any additional resources involved in the query.
+				# Mapping in serial to make sure binds are always added in the same order/location to aid cache hits
+				Promise.each resources, (resource) ->
+					collectedResourceName = sbvrUtils.resolveNavigationResource(vocabulary, resourceName, resource.name)
+					# Always use get for the collected resources
+					_addPermissions(req, methodPermissions.GET, vocabulary, collectedResourceName, resource, odataBinds)
 
 		return (req, { method, vocabulary, resourceName, odataQuery, odataBinds, values, custom }) ->
 			method = method.toUpperCase()
