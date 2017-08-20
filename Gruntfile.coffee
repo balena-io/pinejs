@@ -105,6 +105,11 @@ module.exports = (grunt) ->
 				tsconfig: true
 				expand: true
 
+		watch:
+			scripts:
+				files: ['src/**/*']
+				tasks: ['recompile']
+
 	require('load-grunt-tasks')(grunt)
 
 	grunt.registerTask 'version', ->
@@ -131,4 +136,10 @@ module.exports = (grunt) ->
 		'copy:prepublish'
 		'coffee:prepublish'
 		'ts:prepublish'
+	]
+
+	grunt.registerTask 'recompile', [
+		'newer:copy:prepublish'
+		'newer:coffee:prepublish'
+		'newer:ts:prepublish'
 	]
