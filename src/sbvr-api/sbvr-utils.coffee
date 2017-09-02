@@ -131,7 +131,7 @@ getAndCheckBindValues = (vocab, odataBinds, bindings, values) ->
 isRuleAffected = do ->
 	checkModifiedFields = (referencedFields, modifiedFields) ->
 		refs = referencedFields[modifiedFields.table]
-		return not refs? or _.intersection(refs, modifiedFields.fields).length is 0
+		return not refs? or _.intersection(refs, modifiedFields.fields).length > 0
 
 	return (rule, request) ->
 		if not rule.referencedFields? or not request?.abstractSqlQuery?
@@ -204,9 +204,11 @@ exports.executeModels = executeModels = (tx, models, callback) ->
 				for key, value of console
 					if _.isFunction(value)
 						if model.logging?[key] ? model.logging?.default ? true
-							api[vocab].logger[key] = _.bind(value, console, vocab + ':')
+							api[vocab].logger[key] = do (key) ->
+								return ->
+									console[key](vocab + ':', arguments...)
 						else
-							api[vocab].logger[key] = ->
+							api[vocab].logger[key] = _.noop
 					else
 						api[vocab].logger[key] = value
 
