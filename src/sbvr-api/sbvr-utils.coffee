@@ -146,8 +146,42 @@ getAndCheckBindValues = (vocab, odataBinds, bindings, values) ->
 			e.message = '"' + fieldName + '" ' + e.message
 			throw e
 
+isRuleAffected = do ->
+	checkModifiedFields = (referencedFields, modifiedFields) ->
+		refs = referencedFields[modifiedFields.table]
+		# If there are no referenced fields of the modified table then the rule is not affected
+		if not refs?
+			return false
+		# If there are no specific fields modified then any can be affected and so the rule can be affected
+		if not modifiedFields.fields?
+			console.warn("Could not determine the fields that were modified for table '#{modifiedFields.table}'")
+			return true
+		# Otherwise check if there are any matching fields to see if the rule is affected
+		return _.intersection(refs, modifiedFields.fields).length > 0
+
+	return (rule, request) ->
+		# If there is no abstract sql query then nothing was modified
+		if not request?.abstractSqlQuery?
+			return false
+		# If for some reason there are no referenced fields known for the rule then we just assume it may have been modified
+		if not rule.referencedFields?
+			return true
+		modifiedFields = AbstractSQLCompiler.getModifiedFields(request.abstractSqlQuery)
+		# If we can't get any modified fields we assume the rule may have been modified
+		if not modifiedFields?
+			console.warn("Could not determine the modified table/fields info for '#{request.method}' to #{request.vocabulary}", request.abstractSqlQuery)
+			return true
+		if _.isArray(modifiedFields)
+			return _.any(modifiedFields, _.partial(checkModifiedFields, rule.referencedFields))
+		return checkModifiedFields(rule.referencedFields, modifiedFields)
+
+
 exports.validateModel = validateModel = (tx, modelName, request) ->
 	Promise.map sqlModels[modelName].rules, (rule) ->
+		if not isRuleAffected(rule, request)
+			# If none of the fields intersect we don't need to run the rule! :D
+			return
+
 		getAndCheckBindValues(modelName, null, rule.bindings, null)
 		.then (values) ->
 			tx.executeSql(rule.sql, values)
