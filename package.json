@@ -1,6 +1,6 @@
 {
   "name": "@resin/pinejs",
-  "version": "5.0.2",
+  "version": "5.0.3",
   "main": "out/server-glue/module",
   "repository": "git@bitbucket.org:rulemotion/pinejs.git",
   "scripts": {
