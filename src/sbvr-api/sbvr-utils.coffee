@@ -128,28 +128,8 @@ getAndCheckBindValues = (vocab, odataBinds, bindings, values) ->
 			e.message = '"' + fieldName + '" ' + e.message
 			throw e
 
-isRuleAffected = do ->
-	checkModifiedFields = (referencedFields, modifiedFields) ->
-		refs = referencedFields[modifiedFields.table]
-		return not refs? or _.intersection(refs, modifiedFields.fields).length > 0
-
-	return (rule, request) ->
-		if not rule.referencedFields? or not request?.abstractSqlQuery?
-			return false
-		modifiedFields = AbstractSQLCompiler.getModifiedFields(request.abstractSqlQuery)
-		if not modifiedFields?
-			return false
-		if _.isArray(modifiedFields)
-			return _.any(modifiedFields, _.partial(checkModifiedFields, rule.referencedFields))
-		return checkModifiedFields(rule.referencedFields, modifiedFields)
-
-
 exports.validateModel = validateModel = (tx, modelName, request) ->
 	Promise.map sqlModels[modelName].rules, (rule) ->
-		if not isRuleAffected(rule, request)
-			# If none of the fields intersect we don't need to run the rule! :D
-			return
-
 		tx.executeSql(rule.sql, rule.bindings)
 		.then (result) ->
 			if result.rows.item(0).result in [false, 0, '0']
