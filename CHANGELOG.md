@@ -1,3 +1,7 @@
+v4.0.1
+
+* Fix check for matching fields when deciding if a rule needs to run.
+
 v4.0.0
 
 * Changed permission name to text, to allow unlimited length permissions
