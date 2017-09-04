@@ -1,3 +1,7 @@
+v4.0.2
+
+* Disable affected rule optimisation to guarantee all relevant rules are always run, guaranteeing the database cannot enter an invalid state
+
 v4.0.1
 
 * Fix check for matching fields when deciding if a rule needs to run.
