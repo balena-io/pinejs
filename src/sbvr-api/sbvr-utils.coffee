@@ -149,7 +149,7 @@ getAndCheckBindValues = (vocab, odataBinds, bindings, values) ->
 isRuleAffected = do ->
 	checkModifiedFields = (referencedFields, modifiedFields) ->
 		refs = referencedFields[modifiedFields.table]
-		return not refs? or _.intersection(refs, modifiedFields.fields).length is 0
+		return not refs? or _.intersection(refs, modifiedFields.fields).length > 0
 
 	return (rule, request) ->
 		if not rule.referencedFields? or not request?.abstractSqlQuery?
@@ -222,9 +222,11 @@ exports.executeModels = executeModels = (tx, models, callback) ->
 				for key, value of console
 					if _.isFunction(value)
 						if model.logging?[key] ? model.logging?.default ? true
-							api[vocab].logger[key] = _.bind(value, console, vocab + ':')
+							api[vocab].logger[key] = do (key) ->
+								return ->
+									console[key](vocab + ':', arguments...)
 						else
-							api[vocab].logger[key] = ->
+							api[vocab].logger[key] = _.noop
 					else
 						api[vocab].logger[key] = value
 
@@ -945,6 +947,6 @@ exports.setup = (app, _db, callback) ->
 			console.error('Could not execute standard models', err, err.stack)
 			process.exit(1)
 	.then ->
-		db.executeSql('CREATE UNIQUE INDEX "uniq_model_model_type_vocab" ON "model" ("is_of__vocabulary", "model type");')
+		db.executeSql('CREATE UNIQUE INDEX "uniq_model_model_type_vocab" ON "model" ("is of-vocabulary", "model type");')
 		.catch -> # we can't use IF NOT EXISTS on all dbs, so we have to ignore the error raised if this index already exists
 	.nodeify(callback)
