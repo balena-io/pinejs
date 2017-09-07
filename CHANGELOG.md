@@ -1,3 +1,7 @@
+v4.0.3
+
+* Added permission check on resources involved in OData filters
+
 v4.0.2
 
 * Disable affected rule optimisation to guarantee all relevant rules are always run, guaranteeing the database cannot enter an invalid state
