@@ -148,7 +148,9 @@ getAndCheckBindValues = (vocab, odataBinds, bindings, values) ->
 
 exports.validateModel = validateModel = (tx, modelName, request) ->
 	Promise.map sqlModels[modelName].rules, (rule) ->
-		tx.executeSql(rule.sql, rule.bindings)
+		getAndCheckBindValues(modelName, null, rule.bindings, null)
+		.then (values) ->
+			tx.executeSql(rule.sql, values)
 		.then (result) ->
 			if result.rows.item(0).result in [false, 0, '0']
 				throw new SbvrValidationError(rule.structuredEnglish)
@@ -499,9 +501,10 @@ exports.runRule = do ->
 				if queryPart[0] != 'Select'
 					return queryPart
 				return ['Select', '*']
-			ruleSQL = AbstractSQLCompiler.compileRule(ruleBody)
-
-			db.executeSql(ruleSQL.query, ruleSQL.bindings)
+			rule = AbstractSQLCompiler.compileRule(ruleBody)
+			getAndCheckBindValues(vocab, null, rule.bindings, null)
+			.then (values) ->
+				db.executeSql(rule.query, values)
 			.then (result) ->
 				table = abstractSqlModels[vocab].tables[resourceName]
 				odataIdField = sqlNameToODataName(table.idField)
