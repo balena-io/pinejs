@@ -75,7 +75,7 @@ exports.filterAndSortPendingMigrations = (migrations, executedMigrations) ->
 	.value()
 
 exports.executeMigrations = (tx, migrations = []) ->
-	Promise.map(migrations, @executeMigration.bind(this, tx), concurrency: 1)
+	Promise.mapSeries(migrations, @executeMigration.bind(this, tx))
 	.catch (err) =>
 		@logger.error('Error while executing migrations, rolled back')
 		throw new MigrationError(err)
