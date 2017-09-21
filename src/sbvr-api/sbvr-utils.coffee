@@ -152,9 +152,8 @@ isRuleAffected = do ->
 		# If there are no referenced fields of the modified table then the rule is not affected
 		if not refs?
 			return false
-		# If there are no specific fields modified then any can be affected and so the rule can be affected
+		# If there are no specific fields listed then that means they were all modified (ie insert/delete) and so the rule can be affected
 		if not modifiedFields.fields?
-			console.warn("Could not determine the fields that were modified for table '#{modifiedFields.table}'")
 			return true
 		# Otherwise check if there are any matching fields to see if the rule is affected
 		return _.intersection(refs, modifiedFields.fields).length > 0
