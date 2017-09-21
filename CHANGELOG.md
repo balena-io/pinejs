@@ -1,3 +1,7 @@
+v4.0.4
+
+* Rework the checking if a rule is affected to be clearer about the reasoning for each case and fix a couple of cases
+
 v4.0.3
 
 * Added permission check on resources involved in OData filters
