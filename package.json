@@ -1,6 +1,6 @@
 {
   "name": "@resin/pinejs",
-  "version": "5.1.5",
+  "version": "5.2.0",
   "main": "out/server-glue/module",
   "repository": "git@bitbucket.org:rulemotion/pinejs.git",
   "scripts": {
@@ -24,7 +24,7 @@
     "memoizee": "^0.4.1",
     "ometa-js": "^1.4.2",
     "pinejs-client": "^4.0.0",
-    "typed-error": "~0.1.0"
+    "typed-error": "^2.0.0"
   },
   "devDependencies": {
     "@types/bluebird": "^3.5.3",
@@ -36,9 +36,12 @@
     "@types/lodash": "^4.14.64",
     "@types/method-override": "0.0.29",
     "@types/multer": "0.0.33",
+    "@types/mysql": "^0.0.34",
     "@types/node": "^6.0.73",
     "@types/passport": "^0.3.3",
     "@types/passport-local": "^1.0.30",
+    "@types/pg": "^6.1.43",
+    "@types/websql": "^0.0.27",
     "coffee-loader": "^0.7.2",
     "extract-text-webpack-plugin": "^1.0.1",
     "grunt": "^1.0.0",
