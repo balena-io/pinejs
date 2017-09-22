@@ -21,7 +21,7 @@ Next you'll need to install Pine.js as a dependency of your application. Go to a
 $ npm init
 ```
 
-Feel free to enter any information you like for your application when prompted, like application name, version, description, etc. The above command will initialize your application by creating the `package.json` file. 
+Feel free to enter any information you like for your application when prompted, like application name, version, description, etc. The above command will initialize your application by creating the `package.json` file.
 
 Currently, Pine.js constitutes an internal framework of resin, and thus lying in a private repository. In order to install it as a dependency for your application you will have either to use resin's development environment, or to contact our Operations Manager, in order to give you the necessary credentials to grab it from npm. Assuming you have those credentials, type in your command prompt inside your application directory:
 
@@ -93,13 +93,13 @@ Fact Type: device has type
 ```
 
 In this model we are defining an entity called `device`, this entity has some attributes such as `name`, `note` and `type`, along with some constraints, ensuring that a device must have exactly one device type, and at most one name and one note. The `Vocabulary` declaration is a convenient way for partitioning parts of larger sbvr files.
- 
+
 Now, let's create a small main file for our application that will call the Pine.js server. Let's install some basic dependencies:
 
 ```
 $ npm install --save coffee-script
 $ npm install --save express
-$ npm install --save body-parser 
+$ npm install --save body-parser
 ```
 
 And inside your `src` folder, create a file `app.coffee` with the following content:
@@ -180,7 +180,7 @@ Assuming postgreSQL is running, execute the following command, replacing `[your_
 $ DATABASE_URL=postgres://exampler:[your_password]@localhost:5432/example npm start
 ```
 
-Pine.js will connect to the `example` database and it will create the database schema and the associated API endpoints. Once the server is up, use your favourite tool, such as pgAdmin, to connect to the database and take a look inside. Among the other things, you will find that Pine.js has created a table called `device`, which will contain the devices we earlier specified in the model. By inspecting the structure of this table, you can see that the constraints specified in sbvr model get directly translated to constraints in the underlying database. 
+Pine.js will connect to the `example` database and it will create the database schema and the associated API endpoints. Once the server is up, use your favourite tool, such as pgAdmin, to connect to the database and take a look inside. Among the other things, you will find that Pine.js has created a table called `device`, which will contain the devices we earlier specified in the model. By inspecting the structure of this table, you can see that the constraints specified in sbvr model get directly translated to constraints in the underlying database.
 
 Pine.js also generates users and permissions; the database will contain a `guest` user with access to all resources, these entities are created internally by Pine.js from the config file we provided.
 
@@ -218,7 +218,7 @@ $ curl -X GET http://localhost:1337/example/device(1)
 
 The above cURL request will return the single entity with `id=1`.
 
-To modify the device we just created: the OData specification tells us that to do so we can make a `PUT` request to the endpoint that represents the entity. 
+To modify the device we just created: the OData specification tells us that to do so we can make a `PUT` request to the endpoint that represents the entity.
 Lets try this:
 
 ```
@@ -239,5 +239,6 @@ $ curl -X PUT -d name=testdevice -d note=updatednote -d type=raspberry http://lo
 You can now try to delete this entity to restore the database to it’s initial state. Recall from the OData specification that this can be done by performing a DELETE request at the endpoint represented by the entity we intend to delete.
 
 ### Where to go from here:
+* Follow the [advanced usage guide](./AdvancedUsage.md) that builds on top of this example to add some custom validation via hooks
 * Learn about migrations that you can execute prior to Pine.js executing a given sbvr model: [Migrations.md](https://github.com/resin-io/pinejs/blob/master/docs/Migrations.md)
 * Learn about [Hooks](https://github.com/resin-io/pinejs/blob/master/docs/Hooks.md) that you can implement in order to execute custom code when API calls are requested.
