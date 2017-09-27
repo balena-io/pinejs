@@ -69,9 +69,12 @@ exports.resolveNavigationResource = resolveNavigationResource = (vocabulary, res
 		.split('-')
 		.flatMap (resourceName) ->
 			resolveSynonym({ vocabulary, resourceName }).split('-')
-		.join('.')
+		.concat('$')
+		.value()
 	resourceName = resolveSynonym({ vocabulary, resourceName })
-	mapping = _.get(abstractSqlModels[vocabulary].relationships[resourceName], navigation).$
+	mapping = _.get(abstractSqlModels[vocabulary].relationships[resourceName], navigation)
+	if !mapping?
+		throw new Error("Cannot navigate from '#{resourceName}' to '#{navigationName}'")
 	return sqlNameToODataName(mapping[1][0])
 
 # TODO: Clean this up and move it into the db module.
