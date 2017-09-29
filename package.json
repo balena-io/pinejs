@@ -2,7 +2,8 @@
   "name": "@resin/pinejs",
   "version": "5.2.9",
   "main": "out/server-glue/module",
-  "repository": "git@bitbucket.org:rulemotion/pinejs.git",
+  "repository": "git@github.com:resin-io/pinejs.git",
+  "license": "Apache-2.0",
   "scripts": {
     "prepublish": "require-npm4-to-publish",
     "prepublishOnly": "npm test",
