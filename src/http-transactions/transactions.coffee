@@ -69,7 +69,8 @@ exports.setup = (app, sbvrUtils) ->
 
 				# 'GET', '/transaction/conditional_resource?$select=id,lock,resource_type,conditional_type,placeholder&$filter=transaction eq ?'
 				tx.executeSql('''
-					SELECT "conditional resource"."id", "conditional resource"."lock", "conditional resource"."resource type" AS "resource_type", "conditional resource"."conditional type" AS "conditional_type", "conditional resource"."placeholder"
+					SELECT "conditional resource"."id", "conditional resource"."lock", "conditional resource"."resource type" AS "resource_type",
+					"conditional resource"."conditional type" AS "conditional_type", "conditional resource"."placeholder"
 					FROM "conditional resource"
 					WHERE "conditional resource"."transaction" = ?;
 				''', [transactionID])

@@ -30,7 +30,7 @@ module.exports = (vocabulary, sqlModel) ->
 	associations = []
 	forEachUniqueTable model, (key, { name: resourceName, fields }) ->
 		resourceName = getResourceName(resourceName)
-		for { dataType, required, references }, i in fields when dataType == 'ForeignKey'
+		for { dataType, required, references } in fields when dataType == 'ForeignKey'
 			{ tableName: referencedResource } = references
 			referencedResource = getResourceName(referencedResource)
 			associations.push(
@@ -65,11 +65,11 @@ module.exports = (vocabulary, sqlModel) ->
 							fieldName = getResourceName(fieldName)
 							"""<Property Name="#{fieldName}" Type="#{dataType}" Nullable="#{not required}" />"""
 						).join('\n') + '\n' + (
-						for { dataType, fieldName, references } in fields when dataType == 'ForeignKey'
-							{ tableName: referencedResource } = references
-							fieldName = getResourceName(fieldName)
-							referencedResource = getResourceName(referencedResource)
-							"""<NavigationProperty Name="#{fieldName}" Relationship="#{vocabulary}.#{resourceName + referencedResource}" FromRole="#{resourceName}" ToRole="#{referencedResource}" />"""
+							for { dataType, fieldName, references } in fields when dataType == 'ForeignKey'
+								{ tableName: referencedResource } = references
+								fieldName = getResourceName(fieldName)
+								referencedResource = getResourceName(referencedResource)
+								"""<NavigationProperty Name="#{fieldName}" Relationship="#{vocabulary}.#{resourceName + referencedResource}" FromRole="#{resourceName}" ToRole="#{referencedResource}" />"""
 						).join('\n') + '\n' + '''
 					</EntityType>'''
 				).join('\n\n') + (
@@ -100,7 +100,8 @@ module.exports = (vocabulary, sqlModel) ->
 							# <Parameter Name="rating" Type="Edm.Int32" Mode="In" />
 						# </FunctionImport>
 					'''
-					</EntityContainer>''' + (
+					</EntityContainer>''' +
+					(
 						for typeName, complexType of complexTypes
 							complexType
 					).join('\n') + '''

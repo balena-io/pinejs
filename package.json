@@ -1,13 +1,15 @@
 {
   "name": "@resin/pinejs",
-  "version": "5.2.7",
+  "version": "5.2.8",
   "main": "out/server-glue/module",
   "repository": "git@bitbucket.org:rulemotion/pinejs.git",
   "scripts": {
     "prepublish": "require-npm4-to-publish",
-    "prepublishOnly": "grunt prepublish",
+    "prepublishOnly": "npm test",
+    "build": "grunt prepublish",
     "webpack-browser": "grunt webpack:browser",
-    "lint": "resin-lint src Gruntfile.coffee"
+    "lint": "resin-lint src Gruntfile.coffee",
+    "test": "npm run lint && npm run build"
   },
   "dependencies": {
     "@resin/abstract-sql-compiler": "^3.0.0",
