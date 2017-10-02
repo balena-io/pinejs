@@ -71,8 +71,8 @@ exports.resolveNavigationResource = resolveNavigationResource = (vocabulary, res
 			resolveSynonym({ vocabulary, resourceName }).split('-')
 		.concat('$')
 		.value()
-	resourceName = resolveSynonym({ vocabulary, resourceName })
-	mapping = _.get(abstractSqlModels[vocabulary].relationships[resourceName], navigation)
+	resolvedResourceName = resolveSynonym({ vocabulary, resourceName })
+	mapping = _.get(abstractSqlModels[vocabulary].relationships[resolvedResourceName], navigation)
 	if !mapping?
 		throw new Error("Cannot navigate from '#{resourceName}' to '#{navigationName}'")
 	return sqlNameToODataName(mapping[1][0])
