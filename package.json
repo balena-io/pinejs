@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@resin/abstract-sql-compiler": "^3.0.0",
-    "@resin/lf-to-abstract-sql": "^1.0.1",
+    "@resin/lf-to-abstract-sql": "^1.0.3",
     "@resin/odata-parser": "~0.2.0",
     "@resin/odata-to-abstract-sql": "^1.0.0",
     "@resin/sbvr-parser": "^0.1.0",
