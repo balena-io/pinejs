@@ -31,7 +31,7 @@ memoizedOdata2AbstractSQL = do ->
 		# Sort the body keys to improve cache hits
 		{ tree, extraBodyVars } = _memoizedOdata2AbstractSQL(vocabulary, odataQuery, method, _.keys(body).sort())
 		_.assign(body, extraBodyVars)
-		return tree
+		return _.cloneDeep(tree)
 
 exports.metadataEndpoints = metadataEndpoints = ['$metadata', '$serviceroot']
 
