@@ -1,9 +1,10 @@
 import * as _ from 'lodash'
 import * as Promise from 'bluebird'
 
-// lifts f to map over the changeSet if present
-export const liftP = <T, U>(fn: (v: T) => U | Promise<U>) => {
-	return ((a: T | T[]) => {
+// TODO: We force the return type here to merge `Promise<U> | Promise<U[]>` into `Promise<U | U[]>,
+// which is equivalent for our uses but fixes issues where typing were being rejected
+export const liftP = <T, U>(fn: (v: T) => U | Promise<U>): (a: T | T[]) => Promise<U | U[]> => {
+	return (a: T | T[]) => {
 		if (_.isArray(a)) {
 			// This must not be a settle as if any operation fails in a cs
 			// we want to discard the whole
@@ -11,9 +12,7 @@ export const liftP = <T, U>(fn: (v: T) => U | Promise<U>) => {
 		} else {
 			return Promise.resolve(a).then(fn)
 		}
-	// TODO: We cast here to merge `Promise<U> | Promise<U[]>` into `Promise<U | U[]>,
-	// which is equivalent for our uses but fixes issues where typing was being rejected
-	}) as ((a: T | T[]) => Promise<U | U[]>)
+	}
 }
 
 interface MappingFunction {
