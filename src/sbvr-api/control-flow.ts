@@ -6,7 +6,7 @@ import * as Promise from 'bluebird'
 export const liftP = <T, U>(fn: (v: T) => U | Promise<U>): (a: T | T[]) => Promise<U | U[]> => {
 	return (a: T | T[]) => {
 		if (_.isArray(a)) {
-			// This must not be a settle as if any operation fails in a cs
+			// This must not be a settle as if any operation fails in a changeset
 			// we want to discard the whole
 			return Promise.mapSeries(a, fn)
 		} else {
@@ -19,7 +19,7 @@ interface MappingFunction {
 	<T, U>(a: T[], fn: (v: T) => U | Promise<U>): Promise<Array<U | Error>>
 }
 
-// The settle- versions of
+// The settle version of `Promise.mapSeries`
 const settleMapSeries: MappingFunction = (a, fn) => {
 	const runF = Promise.method(fn)
 	return Promise.mapSeries(a, _.flow(runF, wrap))
