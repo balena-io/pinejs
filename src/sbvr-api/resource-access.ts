@@ -29,7 +29,7 @@ interface PermissionHolder {
 
 function manipulatePermissions(originalPermissions: string[], resource: string, action: string): string[] {
 	const targetActionPermissions = `resin.${resource}.${action}`;
-	let permissionsInQuestion: string[] = [];
+	const permissionsInQuestion: string[] = [];
 	originalPermissions.forEach((permission: string) => {
 		if(_.startsWith(permission, targetActionPermissions)) {
 			const rewrittenPermission = `resin.${resource}.read` + permission.slice(targetActionPermissions.length);
