@@ -559,6 +559,11 @@ exports.runRule = do ->
 					return result
 		.nodeify(callback)
 
+exports.getAPIClient = (vocab) ->
+	if !vocab? or !abstractSqlModels[vocab]?
+		return
+	return api[vocab]
+
 exports.PinejsClient =
 	class PinejsClient extends PinejsClientCore(_, Promise)
 		_request: ({ method, url, body, tx, req, custom }) ->
