@@ -33,7 +33,7 @@ memoizedOdata2AbstractSQL = do ->
 		_.assign(body, extraBodyVars)
 		return _.cloneDeep(tree)
 
-exports.metadataEndpoints = metadataEndpoints = ['$metadata', '$serviceroot']
+exports.metadataEndpoints = metadataEndpoints = ['$metadata', '$serviceroot', '$canAccess']
 
 notBadRequestOrParsingError = (e) ->
 	not ((e instanceof BadRequestError) or (e instanceof ParsingError))

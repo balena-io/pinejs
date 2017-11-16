@@ -3,18 +3,10 @@ import * as _ from 'lodash'
 import * as Promise from 'bluebird'
 import TypedError = require('typed-error')
 import { AnyObject } from 'pinejs-client/core';
+const { BadRequestError } = require('./uri-parser');
 import PinejsClient = require('pinejs-client');
 
-class BadInputError extends TypedError {}
 class UnauthorizedError extends TypedError {}
-
-const sbvrUtils = require('./sbvr-utils');
-
-const getAPIClient: GetAPIClient = sbvrUtils.getAPIClient as GetAPIClient
-
-interface GetAPIClient {
-	(vocab: string): PinejsClient
-}
 
 interface Authenticator {
 	apiKey?: PermissionHolder
@@ -41,18 +33,18 @@ function manipulatePermissions(originalPermissions: string[], resource: string, 
 
 function validateParameters(resource: string, action: string, id: number): void {
 	const RESOURCE_VALIDATOR = /^[a-z][a-z_]+[a-z]$/g
-	const ACTION_VALIDATOR = /^[a-z]+$/g
+	const ACTION_VALIDATOR = /^[a-z\-]+$/g
 
 	if (!RESOURCE_VALIDATOR.test(resource)) {
-		throw new BadInputError('Invalid resource parameter');
+		throw new BadRequestError('Invalid resource parameter');
 	}
 
 	if (!ACTION_VALIDATOR.test(action)) {
-		throw new BadInputError('Invalid resource parameter');
+		throw new BadRequestError('Invalid resource parameter');
 	}
 
 	if (_.isNaN(id) || id < 1) {
-		throw new BadInputError('Invalid id value');
+		throw new BadRequestError('Invalid id value');
 	}
 }
 
@@ -114,40 +106,45 @@ export function checkAccessForResource(user: PermissionHolder, api: PinejsClient
 	});
 }
 
-export function canAccessV1Request(req: express.Request, res: express.Response, next: express.NextFunction): void {
-	const url = req.url.split('/')
-	const apiRoot = url[1]
-	const api = getAPIClient(apiRoot);
-	if (api == null)
-		return next('route')
-
-	Promise.try( () => {
-		const resource: string = _.get(req.body, 'resource');
-		const action: string = _.get(req.body, 'action');
-		const idString: string = _.get(req.body, 'id');
-
-		if (resource === undefined || action === undefined || idString === undefined) {
-			throw new BadInputError('Missing parameters');
+export function canAccessV1Request(api: PinejsClient, req: express.Request, res: express.Response, _next: express.NextFunction): void {
+	Promise.try(() => {
+		if (api == null) {
+			throw new BadRequestError('API not found for api Root.?!');
 		}
 
-		const id: number = parseInt(idString);
+		const resource = _.get(req.body, 'resource');
+		const action = _.get(req.body, 'action');
+		const idString = _.get(req.body, 'id');
+
+		if (!_.isString(resource)) {
+			throw new BadRequestError('Invalid resource parameter');
+		}
+
+		if (!_.isString(action)) {
+			throw new BadRequestError('Invalid action parameter');
+		}
+
+		let id = -1;
+		if( _.isString(idString)) {
+			id = parseInt(idString);
+		} else if (_.isNumber(idString)) {
+			id = idString;
+		} else {
+			throw new BadRequestError('Bad type for id parameter');
+		}
 
 		return checkAccessForResourceWithRequest(req, api, resource, action, id);
 	})
 	.then( () => {
 		res.sendStatus(200);
 	})
-	.catch( (err) => {
-		if (err instanceof UnauthorizedError) {
-			res.sendStatus(401);
-			return;
-		}
-
-		if (err instanceof BadInputError) {
-			res.sendStatus(400);
-			return;
-		}
-
+	.catch(UnauthorizedError, (_err) => {
+		res.sendStatus(401);
+	})
+	.catch(BadRequestError, (_err) => {
+		res.sendStatus(400);
+	})
+	.catch((_err) => {
 		res.sendStatus(500);
-	});
+	})
 }

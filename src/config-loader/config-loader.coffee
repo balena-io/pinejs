@@ -2,7 +2,6 @@ _ = require 'lodash'
 Promise = require 'bluebird'
 sbvrUtils = require '../sbvr-api/sbvr-utils'
 permissions = require '../sbvr-api/permissions'
-resourceaccess = require '../sbvr-api/resource-access'
 fs = Promise.promisifyAll(require('fs'))
 
 # Setup function
@@ -94,7 +93,6 @@ exports.setup = (app) ->
 				Promise.map data.models, (model) ->
 					if model.modelText?
 						apiRoute = '/' + model.apiRoot + '/*'
-						app.post('/' + model.apiRoot + '/([\$])canAccess', sbvrUtils.authorizationMiddleware, resourceaccess.canAccessV1Request)
 						app.options(apiRoute, (req, res) -> res.sendStatus(200))
 						app.all(apiRoute, sbvrUtils.handleODataRequest)
 
