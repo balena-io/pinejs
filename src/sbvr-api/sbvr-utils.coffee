@@ -633,7 +633,6 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 	# value of apiRoot is an actual apiRoot. Otherwise this might allow users
 	# to build a regex from their provided input.
 	if req.method == 'POST' && api[apiRoot] != null && new RegExp(apiRoot + '\/\\$canAccess$').test(req.url)
-		api[apiRoot].logger.log('Running custom $canAccess endpoint')
 		return exports.authorizationMiddleware(req, res)
 		.then ->
 			resourceAccess.canAccessV1Request(api[apiRoot], req, res, next)
