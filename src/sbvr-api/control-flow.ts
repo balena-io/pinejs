@@ -25,10 +25,18 @@ const settleMapSeries: MappingFunction = (a, fn) => {
 	return Promise.mapSeries(a, _.flow(runF, wrap))
 }
 
+// This is used to guarantee that we convert a `.catch` result into an error, so that later code checking `_.isError` will work as expected
+const ensureError = (err: any): Error => {
+	if (_.isError(err)) {
+		return err
+	}
+	return new Error(err)
+}
+
 // Wrap a promise with reflection. This promise will always succeed, either
 // with the value or the error of the promise it is wrapping
 const wrap = <T>(p: Promise<T>) => {
-	return p.then(_.identity as (value: T) => T, _.identity as (value: Error) => Error)
+	return p.then(_.identity as (value: T) => T, ensureError)
 }
 
 // Maps fn over collection and returns an array of Promises. If any promise in the
@@ -42,7 +50,7 @@ const mapTill: MappingFunction = <T, U>(a: T[], fn: (v: T) => U) => {
 		.then((result) => {
 			results.push(result)
 		}).tapCatch((err) => {
-			results.push(err)
+			results.push(ensureError(err))
 		})
 	})
 	.return(results)
