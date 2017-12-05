@@ -168,7 +168,8 @@ isRuleAffected = do ->
 		# If for some reason there are no referenced fields known for the rule then we just assume it may have been modified
 		if not rule.referencedFields?
 			return true
-		modifiedFields = AbstractSQLCompiler.getModifiedFields(request.abstractSqlQuery)
+		modifiedFields = request.modifiedFields
+
 		# If we can't get any modified fields we assume the rule may have been modified
 		if not modifiedFields?
 			console.warn("Could not determine the modified table/fields info for '#{request.method}' to #{request.vocabulary}", request.abstractSqlQuery)
@@ -179,6 +180,8 @@ isRuleAffected = do ->
 
 
 exports.validateModel = validateModel = (tx, modelName, request) ->
+	if request?._deferValidation
+		return Promise.resolve()
 	Promise.map sqlModels[modelName].rules, (rule) ->
 		if not isRuleAffected(rule, request)
 			# If none of the fields intersect we don't need to run the rule! :D
@@ -659,15 +662,25 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 						catch err
 							api[apiRoot].logger.error('Failed to compile abstract sql: ', request.abstractSqlQuery, err, err.stack)
 							throw new SqlCompilationError(err)
+						request.modifiedFields = AbstractSQLCompiler.getModifiedFields(request.abstractSqlQuery)
 					return request
 
 			.then (request) ->
 				# Run the request in its own transaction
 				runTransaction req, request, (tx) ->
 					if _.isArray request
-						env = new Map()
+						env =
+							results: new Map()
+							validations: new Map()
 						Promise.reduce(request, runChangeSet(req, res, tx), env)
-						.then (env) -> Array.from(env.values())
+						.tap (env) ->
+							validations = Array.from(env.validations.values())
+							Promise.map validation, (requestToValidate) ->
+								# We run validation rules now that the changeset has finished executing.
+								# Fields that were modified by subsequent queries have been removed from the modifiedFilters of each request.
+								validateModel(tx, requestToValidate.vocabulary, requestToValidate)
+						.then (env) ->
+							Array.from(env.results.values())
 					else
 						runRequest(req, res, tx, request)
 	.then (results) ->
@@ -756,10 +769,16 @@ runRequest = (req, res, tx, request) ->
 runChangeSet = (req, res, tx) ->
 	(env, request) ->
 		request = updateBinds(env, request)
+		# We store a clone of the request so that we can validate it at a later step
+		requestForValidation = _.clone(request)
+		# We want to defer running validation rules to once the changeset has commited.
+		request._deferValidation = true
 		runRequest(req, res, tx, request)
 		.then (result) ->
 			result.headers['Content-Id'] = request.id
-			env.set(request.id, result)
+			# Update the environment so we can retrieve the result and validation information
+			env.results.set(request.id, result)
+			env.validation.set(request.id, requestForValidation)
 			return env
 
 # Requests inside a changeset may refer to resources created inside the
@@ -768,17 +787,36 @@ runChangeSet = (req, res, tx) ->
 # This function compiles the sql query of a request which has been deferred
 updateBinds = (env, request) ->
 	if request._defer
+		modifiedFields = AbstractSQLCompiler.getModifiedFields(request.abstractSqlQuery)
 		request.odataBinds = _.map request.odataBinds, ([tag, id]) ->
 			if tag == 'ContentReference'
-				ref = env.get(id)
-				if _.isUndefined(ref?.body?.id)
+				result = env.results.get(id)
+				validation = env.validation.get(id)
+				if _.isUndefined(result?.body?.id) or _.isUndefined(validation?.modifiedFields)
 					throw uriParser.BadRequestError('Reference to a non existing resource in Changeset')
 				else
-					uriParser.parseId(ref.body.id)
+					# We also have to invalidate the affected fields on the referenced query
+					validation.modifiedFields = invalidate(validation.modifiedFields, modifiedFields)
+					env.validation.set(id, validation)
+					uriParser.parseId(result.body.id)
 			else
 				[tag, id]
 		request.sqlQuery = memoizedCompileRule(request.abstractSqlQuery)
+		request.modifiedFields = modifiedFields
 	return request
+
+
+# Removes from oldFields every field appearing in newFields
+invalidate = (oldFields, newFields) ->
+	return oldFields if _.isUndefined(newFields)
+	return _.map(oldFields, _.partial(invalidate, _, newFields)) if _.isArray(oldFields)
+	return _.reduce(newFields, invalidate, oldFields) if _.isArray(newFields)
+
+	return oldFields if oldFields.table != newFields.table
+	return {
+		table: oldFields.table
+		fields: _.difference(oldFields.fields, newFields.fields)
+	}
 
 prepareResponse = (req, res, request, result, tx) ->
 	Promise.try ->
