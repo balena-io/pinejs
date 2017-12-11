@@ -25,6 +25,8 @@ if (!process.browser) {
 
 import * as Promise from 'bluebird'
 import * as dbModule from '../database-layer/db'
+// TODO: replace with the return type of `configLoader.setup`
+type ConfigLoader = any
 const configLoader = require('../config-loader/config-loader')
 const migrator = require('../migrator/migrator')
 
@@ -59,7 +61,7 @@ if (dbModule.engines.websql != null) {
 
 const db = dbModule.connect(databaseOptions)
 
-export const init = (app: _express.Application, config?: any) =>
+export const init = (app: _express.Application, config?: any): Promise<ConfigLoader> =>
 	(sbvrUtils.setup(app, db) as Promise<any>)
 	.then(() => {
 		const cfgLoader = configLoader.setup(app)
