@@ -15,6 +15,7 @@ ODataMetadataGenerator = require '../sbvr-compiler/ODataMetadataGenerator'
 devModel = require './dev.sbvr'
 permissions = require './permissions'
 uriParser = require './uri-parser'
+resourceAccess = require './resource-access'
 
 controlFlow = require './control-flow'
 memoize = require 'memoizee'
@@ -627,6 +628,14 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 
 	if process.env.DEBUG
 		api[apiRoot].logger.log('Parsing', req.method, req.url)
+
+	# api[apiRoot] != null should be in there to ensure that the user provided
+	# value of apiRoot is an actual apiRoot. Otherwise this might allow users
+	# to build a regex from their provided input.
+	if req.method == 'POST' && api[apiRoot] != null && new RegExp(apiRoot + '\/\\$canAccess$').test(req.url)
+		return exports.authorizationMiddleware(req, res)
+		.then ->
+			resourceAccess.canAccessV1Request(api[apiRoot], req, res, next)
 
 	mapSeries = controlFlow.getMappingFn(req.headers)
 	# Get the hooks for the current method/vocabulary as we know it,
