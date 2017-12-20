@@ -344,6 +344,7 @@ runHook = (hookName, args) ->
 		get: _.once ->
 			return api[args.request.vocabulary].clone(passthrough: _.pick(args, 'req', 'tx'))
 	hooks = args.req.hooks[hookName] || []
+	hooks = hooks.concat(args.request?.hooks?[hookName] || [])
 	Promise.map hooks, (hook) ->
 		hook(args)
 
@@ -670,7 +671,7 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 			uriParser.parseOData(bodypart)
 			.then controlFlow.liftP (request) ->
 				# Get the full hooks list now that we can
-				req.hooks = getHooks(request)
+				request.hooks = getHooks(request)
 				# Add/check the relevant permissions
 				runHook('POSTPARSE', { req, request, tx: req.tx })
 				.return(request)
