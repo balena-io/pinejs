@@ -478,7 +478,7 @@ exports.setup = (app, sbvrUtils) ->
 							return fakeQuery
 				return []
 
-		_addPermissions = (req, permissionType, vocabulary, resourceName, odataQuery, odataBinds) ->
+		_addPermissions = (req, permissionType, vocabulary, resourceName, odataQuery, odataBinds, abstractSqlModel) ->
 			checkPermissions(req, permissionType, resourceName, vocabulary)
 			.then (conditionalPerms) ->
 				resources = collectAdditionalResources(odataQuery)
@@ -507,11 +507,17 @@ exports.setup = (app, sbvrUtils) ->
 				# Make sure any relevant permission filters are also applied to any additional resources involved in the query.
 				# Mapping in serial to make sure binds are always added in the same order/location to aid cache hits
 				Promise.each resources, (resource) ->
-					collectedResourceName = sbvrUtils.resolveNavigationResource(vocabulary, resourceName, resource.name)
+					collectedResourceName = sbvrUtils.resolveNavigationResource({
+						vocabulary
+						resourceName
+						abstractSqlModel
+					}, resource.name)
 					# Always use get for the collected resources
-					_addPermissions(req, methodPermissions.GET, vocabulary, collectedResourceName, resource, odataBinds)
+					_addPermissions(req, methodPermissions.GET, vocabulary, collectedResourceName, resource, odataBinds, abstractSqlModel)
 
-		return (req, { method, vocabulary, resourceName, odataQuery, odataBinds, values, custom }) ->
+		return (req, request) ->
+			{ method, vocabulary, resourceName, odataQuery, odataBinds } = request
+			abstractSqlModel = sbvrUtils.getAbstractSqlModel(request)
 			method = method.toUpperCase()
 			isMetadataEndpoint = resourceName in metadataEndpoints or method is 'OPTIONS'
 
@@ -524,4 +530,4 @@ exports.setup = (app, sbvrUtils) ->
 					console.warn('Unknown method for permissions type check: ', method)
 					'all'
 
-			_addPermissions(req, permissionType, vocabulary, odataQuery.resource, odataQuery, odataBinds)
+			_addPermissions(req, permissionType, vocabulary, odataQuery.resource, odataQuery, odataBinds, abstractSqlModel)
