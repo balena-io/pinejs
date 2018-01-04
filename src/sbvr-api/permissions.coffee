@@ -122,6 +122,8 @@ exports.setup = (app, sbvrUtils) ->
 		PREPARSE: ({ req }) ->
 			apiKeyMiddleware(req)
 		POSTPARSE: ({ req, request }) ->
+			# If the abstract sql query is already generated then adding permissions will do nothing
+			return if request.abstractSqlQuery?
 			addPermissions(req, request)
 
 	sbvrUtils.addHook 'POST', 'Auth', 'user',
