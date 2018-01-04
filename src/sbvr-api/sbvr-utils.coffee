@@ -75,6 +75,8 @@ exports.resolveNavigationResource = resolveNavigationResource = (vocabulary, res
 	mapping = _.get(abstractSqlModels[vocabulary].relationships[resolvedResourceName], navigation)
 	if !mapping?
 		throw new Error("Cannot navigate from '#{resourceName}' to '#{navigationName}'")
+	if mapping.length < 2
+		throw new Error("'#{resourceName}' to '#{navigationName}' is a field not a navigation")
 	return sqlNameToODataName(mapping[1][0])
 
 # TODO: Clean this up and move it into the db module.
