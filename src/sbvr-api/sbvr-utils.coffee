@@ -581,6 +581,11 @@ exports.runURI = runURI =  (method, uri, body = {}, tx, req, custom, callback) -
 			console.warn('Non-object req passed to runURI?', req, new Error().stack)
 		user = permissions: []
 
+	# Remove undefined values from the body, as normally they would be removed by the JSON conversion
+	_.each body, (v, k) ->
+		if v is undefined
+			delete body[k]
+
 	req =
 		custom: custom
 		user: user
