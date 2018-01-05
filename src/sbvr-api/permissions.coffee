@@ -433,7 +433,7 @@ exports.setup = (app, sbvrUtils) ->
 		collectAdditionalResources = (odataQuery) ->
 			resources = collectExpand(odataQuery)
 			resources = resources.concat(collectFilter(odataQuery))
-			return _.uniqBy(_.compact(_.flattenDeep(resources)), 'name')
+			return _.compact(_.flattenDeep(resources))
 
 		collectFilter = (odataQuery) ->
 			if odataQuery.options?.$filter?
@@ -447,25 +447,20 @@ exports.setup = (app, sbvrUtils) ->
 
 		descendFilters = (filter) ->
 			if _.isArray(filter)
-				return _.map(filter, descendFilters)
+				return filter.map(descendFilters)
 			else if _.isObject(filter)
 				if filter.name?
 					if filter.lambda?
 						lambdas[filter.lambda.identifier] = filter.name
-						return {
-							name: filter.name
-							options:
-								$filter: filter.lambda.expression
-						}
+						filter.options = $filter: filter.lambda.expression
+						return filter
 					else if filter.property?
 						if lambdas[filter.name]
 							return descendFilters(filter.property)
 						else
-							return {
-								name: filter.name
-								options:
-									$filter: filter.property
-							}
+							filter.options = $filter: filter.property
+							delete filter.property
+							return filter
 				return []
 
 		_addPermissions = (req, permissionType, vocabulary, resourceName, odataQuery, odataBinds) ->
