@@ -56,27 +56,32 @@ class SqlCompilationError extends TypedError
 class SbvrValidationError extends TypedError
 class InternalRequestError extends TypedError
 
-resolveSynonym = ({ vocabulary, resourceName }) ->
-	sqlName = odataNameToSqlName(resourceName)
+resolveSynonym = (request) ->
+	abstractSqlModel = getAbstractSqlModel(request)
+	sqlName = odataNameToSqlName(request.resourceName)
 	return _(sqlName)
 		.split('-')
 		.map (resourceName) ->
-			abstractSqlModels[vocabulary].synonyms[resourceName] ? resourceName
+			abstractSqlModel.synonyms[resourceName] ? resourceName
 		.join('-')
 
-exports.resolveNavigationResource = resolveNavigationResource = (vocabulary, resourceName, navigationName) ->
+exports.resolveNavigationResource = resolveNavigationResource = (request, navigationName) ->
 	navigation = _(odataNameToSqlName(navigationName))
 		.split('-')
 		.flatMap (resourceName) ->
-			resolveSynonym({ vocabulary, resourceName }).split('-')
+			resolveSynonym({
+				resourceName
+				vocabulary: request.vocabulary
+				abstractSqlModel: request.abstractSqlModel
+			}).split('-')
 		.concat('$')
 		.value()
-	resolvedResourceName = resolveSynonym({ vocabulary, resourceName })
-	mapping = _.get(abstractSqlModels[vocabulary].relationships[resolvedResourceName], navigation)
+	resolvedResourceName = resolveSynonym(request)
+	mapping = _.get(getAbstractSqlModel(request).relationships[resolvedResourceName], navigation)
 	if !mapping?
-		throw new Error("Cannot navigate from '#{resourceName}' to '#{navigationName}'")
+		throw new Error("Cannot navigate from '#{request.resourceName}' to '#{navigationName}'")
 	if mapping.length < 2
-		throw new Error("'#{resourceName}' to '#{navigationName}' is a field not a navigation")
+		throw new Error("'#{request.resourceName}' to '#{navigationName}' is a field not a navigation")
 	return sqlNameToODataName(mapping[1][0])
 
 # TODO: Clean this up and move it into the db module.
@@ -387,13 +392,21 @@ checkForExpansion = do ->
 		if _.isArray(field)
 			# Hack to look like a rows object
 			field.item = rowsObjectHack
-			mappingResourceName = resolveNavigationResource(vocab, parentResourceName, fieldName)
+			mappingResourceName = resolveNavigationResource({
+				abstractSqlModel
+				vocabulary: vocab
+				resourceName: parentResourceName
+			}, fieldName)
 			processOData(vocab, abstractSqlModel, mappingResourceName, field)
 			.then (expandedField) ->
 				instance[fieldName] = expandedField
 				return
 		else if field?
-			mappingResourceName = resolveNavigationResource(vocab, parentResourceName, fieldName)
+			mappingResourceName = resolveNavigationResource({
+				abstractSqlModel
+				vocabulary: vocab
+				resourceName: parentResourceName
+			}, fieldName)
 			instance[fieldName] = {
 				__deferred:
 					uri: '/' + vocab + '/' + mappingResourceName + '(' + field + ')'
@@ -439,7 +452,7 @@ processOData = do ->
 				count = parseInt(rows.item(0).$count, 10)
 				return Promise.fulfilled(count)
 
-		sqlResourceName = resolveSynonym({ vocabulary: vocab, resourceName })
+		sqlResourceName = resolveSynonym({ abstractSqlModel, vocabulary: vocab, resourceName })
 		table = abstractSqlModel.tables[sqlResourceName]
 
 		odataIdField = sqlNameToODataName(table.idField)
@@ -625,6 +638,10 @@ exports.runURI = runURI =  (method, uri, body = {}, tx, req, custom, callback) -
 
 		handleODataRequest(req, res, next)
 	.nodeify(callback)
+
+exports.getAbstractSqlModel = getAbstractSqlModel = (request) ->
+	request.abstractSqlModel ?= abstractSqlModels[request.vocabulary]
+	return request.abstractSqlModel
 
 exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 	url = req.url.split('/')
@@ -840,7 +857,7 @@ runGet = (req, res, request, tx) ->
 respondGet = (req, res, request, result, tx) ->
 	vocab = request.vocabulary
 	if request.sqlQuery?
-		processOData(vocab, abstractSqlModels[vocab], request.resourceName, result.rows)
+		processOData(vocab, getAbstractSqlModel(request), request.resourceName, result.rows)
 		.then (d) ->
 			runHook('PRERESPOND', { req, res, request, result, data: d, tx: tx })
 			.then ->
@@ -857,7 +874,7 @@ respondGet = (req, res, request, result, tx) ->
 runPost = (req, res, request, tx) ->
 	vocab = request.vocabulary
 
-	idField = abstractSqlModels[vocab].tables[resolveSynonym(request)].idField
+	idField = getAbstractSqlModel(request).tables[resolveSynonym(request)].idField
 
 	runQuery(tx, request, null, idField)
 	.then (sqlResult) ->
