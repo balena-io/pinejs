@@ -429,7 +429,7 @@ exports.setup = (app, sbvrUtils) ->
 				sbvrUtils.api.Auth.logger.error('Error checking permissions', err, err.stack)
 				res.sendStatus(503)
 
-	addPermissions = do ->
+	exports.addPermissions = addPermissions = do ->
 		lambdas = {}
 
 		collectAdditionalResources = (odataQuery) ->
