@@ -52,6 +52,11 @@ exports.parseOData = (b) ->
 			{ url, apiRoot } = splitApiRoot(b.url)
 			odata = odataParser.matchAll(url, 'Process')
 
+			# if we parse a canAccess action rewrite the resource to ensure we
+			# do not run the resource hooks
+			if odata.tree.property?.resource == 'canAccess'
+				odata.tree.resource = odata.tree.resource + '#' + odata.tree.property.resource
+
 			return {
 				method: b.method
 				vocabulary: apiRoot
@@ -104,6 +109,7 @@ parseODataChangeset = (env, b) ->
 		id: contentId
 		_defer: defer
 	}
+
 	env.set(contentId, parseResult)
 	return env
 

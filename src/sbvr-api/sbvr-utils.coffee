@@ -56,7 +56,7 @@ class SqlCompilationError extends TypedError
 class SbvrValidationError extends TypedError
 class InternalRequestError extends TypedError
 
-resolveSynonym = (request) ->
+exports.resolveSynonym = resolveSynonym = (request) ->
 	abstractSqlModel = getAbstractSqlModel(request)
 	sqlName = odataNameToSqlName(request.resourceName)
 	return _(sqlName)

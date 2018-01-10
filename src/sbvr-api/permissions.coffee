@@ -3,10 +3,11 @@ Promise = require 'bluebird'
 BluebirdLRU = require 'bluebird-lru-cache'
 env = require '../config-loader/env'
 userModel = require './user.sbvr'
-{ metadataEndpoints } = require './uri-parser'
+{ metadataEndpoints, BadRequestError, resolveSynonym } = require './uri-parser'
 { ODataParser } = require '@resin/odata-parser'
 memoize = require 'memoizee'
 TypedError = require 'typed-error'
+sbvrUtils = require './sbvr-utils'
 
 exports.PermissionError = class PermissionError extends TypedError
 exports.PermissionParsingError = class PermissionParsingError extends TypedError
@@ -124,7 +125,41 @@ exports.setup = (app, sbvrUtils) ->
 		POSTPARSE: ({ req, request }) ->
 			# If the abstract sql query is already generated then adding permissions will do nothing
 			return if request.abstractSqlQuery?
+			if (request.method == 'POST' and request.odataQuery.property?.resource == 'canAccess')
+				if !request.odataQuery.key?
+					throw new BadRequestError()
+				{ action, method } = request.values
+				if method? and action?
+					throw new BadRequestError()
+				else if method? and methodPermissions[method]?
+					request.permissionType = methodPermissions[method]
+				else if action?
+					request.permissionType = action
+				else
+					throw new BadRequestError()
+				abstractSqlModel = sbvrUtils.getAbstractSqlModel(request)
+				request.resourceName = request.resourceName.slice(0, -'#canAccess'.length)
+				resourceName = sbvrUtils.resolveSynonym(request)
+				resourceTable = abstractSqlModel.tables[resourceName]
+				if !resourceTable?
+					throw new Error('Unknown resource: ' + request.resourceName)
+				idField = resourceTable.idField
+				request.odataQuery.options = { '$select': { 'properties': [ { 'name': idField } ] }, $top: 1 }
+				request.odataQuery.resource = request.resourceName
+				delete request.odataQuery.property
+				request.method = 'GET'
+				request.custom.isAction = 'canAccess'
 			addPermissions(req, request)
+		PRERESPOND: ({ request, data }) ->
+			if (request.custom.isAction == 'canAccess')
+				if (_.isEmpty(data))
+					# If the caller does not have any permissions to access the
+					# resource pine will throw a PermissionError. To have the
+					# same behavior for the case that the user has permissions
+					# to access the resource, but not this instance we also
+					# throw a PermissionError if the result is empty.
+					throw new PermissionError()
+
 
 	sbvrUtils.addHook 'POST', 'Auth', 'user',
 		POSTPARSE: ({ request, api }) ->
@@ -319,7 +354,6 @@ exports.setup = (app, sbvrUtils) ->
 				callback = args[callbackArg]
 				args[callbackArg] = null
 			[req, actionList, resourceName, vocabulary] = args
-
 			authApi = sbvrUtils.api.Auth
 
 			_checkPermissions = (permissions, actorID) ->
@@ -516,12 +550,12 @@ exports.setup = (app, sbvrUtils) ->
 					_addPermissions(req, methodPermissions.GET, vocabulary, collectedResourceName, resource, odataBinds, abstractSqlModel)
 
 		return (req, request) ->
-			{ method, vocabulary, resourceName, odataQuery, odataBinds } = request
+			{ method, vocabulary, resourceName, odataQuery, odataBinds, permissionType } = request
 			abstractSqlModel = sbvrUtils.getAbstractSqlModel(request)
 			method = method.toUpperCase()
 			isMetadataEndpoint = resourceName in metadataEndpoints or method is 'OPTIONS'
 
-			permissionType =
+			permissionType ?=
 				if isMetadataEndpoint
 					'model'
 				else if methodPermissions[method]?
