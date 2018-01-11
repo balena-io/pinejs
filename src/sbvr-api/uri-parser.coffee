@@ -144,12 +144,14 @@ exports.translateUri = (request) ->
 			values
 			custom
 			id
+			hooks
 			_defer
 		}
 	return {
 		method
 		vocabulary
 		resourceName
+		hooks
 		custom
 	}
 
