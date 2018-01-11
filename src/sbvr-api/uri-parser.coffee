@@ -130,7 +130,7 @@ mustExtractHeader = (body, header) ->
 exports.translateUri = (request) ->
 	if request.abstractSqlQuery?
 		return request
-	{ method, vocabulary, resourceName, odataBinds, odataQuery, values, custom, id, _defer } = request
+	{ method, vocabulary, resourceName, odataBinds, odataQuery, values, custom, id, hooks, _defer } = request
 	isMetadataEndpoint = resourceName in metadataEndpoints or method is 'OPTIONS'
 	if !isMetadataEndpoint
 		abstractSqlQuery = memoizedOdata2AbstractSQL(vocabulary, odataQuery, method, values)
