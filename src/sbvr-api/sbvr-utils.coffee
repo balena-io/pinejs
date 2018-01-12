@@ -670,7 +670,9 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 		mapSeries body, (bodypart) ->
 			uriParser.parseOData(bodypart)
 			.then controlFlow.liftP (request) ->
-				# Get the full hooks list now that we can
+				# Get the full hooks list now that we can. We clear the hooks on
+				# the global req to avoid duplication
+				req.hooks = {}
 				request.hooks = getHooks(request)
 				# Add/check the relevant permissions
 				runHook('POSTPARSE', { req, request, tx: req.tx })
