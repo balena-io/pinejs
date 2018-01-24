@@ -467,15 +467,7 @@ exports.setup = (app, sbvrUtils) ->
 						if lambdas[filter.name]
 							return descendFilters(filter.property)
 						else
-							fakeQuery =
-								name: filter.name
-								options: {}
-							Object.defineProperty fakeQuery.options, '$filter',
-								get: ->
-									return filter.property
-								set: (newValue) ->
-									filter.property = newValue
-							return fakeQuery
+							return []
 				return []
 
 		_addPermissions = (req, permissionType, vocabulary, resourceName, odataQuery, odataBinds) ->
