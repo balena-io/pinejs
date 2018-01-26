@@ -15,6 +15,19 @@ ODataMetadataGenerator = require '../sbvr-compiler/ODataMetadataGenerator'
 devModel = require './dev.sbvr'
 permissions = require './permissions'
 uriParser = require './uri-parser'
+errors = require './errors'
+_.assign(exports, errors)
+{
+	BadRequestError
+	InternalRequestError
+	ParsingError
+	PermissionError
+	PermissionParsingError
+	SbvrValidationError
+	SqlCompilationError
+	TranslationError
+	UnsupportedMethodError
+} = errors
 
 controlFlow = require './control-flow'
 memoize = require 'memoizee'
@@ -50,11 +63,6 @@ apiHooks =
 
 # Share hooks between merge and patch since they are the same operation, just MERGE was the OData intermediary until the HTTP spec added PATCH.
 apiHooks.MERGE = apiHooks.PATCH
-
-class UnsupportedMethodError extends TypedError
-class SqlCompilationError extends TypedError
-class SbvrValidationError extends TypedError
-class InternalRequestError extends TypedError
 
 exports.resolveSynonym = resolveSynonym = (request) ->
 	abstractSqlModel = getAbstractSqlModel(request)
@@ -734,11 +742,11 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 # Reject the error to use the nice catch syntax
 constructError = (e) ->
 	Promise.reject(e)
-	.catch SbvrValidationError, uriParser.BadRequestError, (err) ->
+	.catch SbvrValidationError, BadRequestError, (err) ->
 		{ status: 400, body: err.message }
-	.catch permissions.PermissionError, (err) ->
+	.catch PermissionError, (err) ->
 		{ status: 401, body: err.message }
-	.catch SqlCompilationError, uriParser.TranslationError, uriParser.ParsingError, permissions.PermissionParsingError, InternalRequestError, (err) ->
+	.catch SqlCompilationError, TranslationError, ParsingError, PermissionParsingError, InternalRequestError, (err) ->
 		{ status: 500 }
 	.catch UnsupportedMethodError, (err) ->
 		{ status: 405, body: err.message }
@@ -797,7 +805,7 @@ updateBinds = (env, request) ->
 			if tag == 'ContentReference'
 				ref = env.get(id)
 				if _.isUndefined(ref?.body?.id)
-					throw uriParser.BadRequestError('Reference to a non existing resource in Changeset')
+					throw BadRequestError('Reference to a non existing resource in Changeset')
 				else
 					uriParser.parseId(ref.body.id)
 			else
