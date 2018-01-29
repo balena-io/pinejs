@@ -734,16 +734,14 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 # Reject the error to use the nice catch syntax
 constructError = (e) ->
 	Promise.reject(e)
-	.catch SbvrValidationError, (err) ->
+	.catch SbvrValidationError, uriParser.BadRequestError, (err) ->
 		{ status: 400, body: err.message }
-	.catch uriParser.BadRequestError, ->
-		{ status: 400 }
 	.catch permissions.PermissionError, (err) ->
-		{ status: 401 }
+		{ status: 401, body: err.message }
 	.catch SqlCompilationError, uriParser.TranslationError, uriParser.ParsingError, permissions.PermissionParsingError, InternalRequestError, (err) ->
 		{ status: 500 }
 	.catch UnsupportedMethodError, (err) ->
-		{ status: 405 }
+		{ status: 405, body: err.message }
 	.catch e, (err) ->
 		console.error(err)
 		# If the err is an error object then use its message instead - it should be more readable!
