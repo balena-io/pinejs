@@ -4,10 +4,11 @@ TypedError = require 'typed-error'
 { OData2AbstractSQL } = require '@resin/odata-to-abstract-sql'
 memoize = require 'memoizee'
 _ = require 'lodash'
+{ BadRequestError, ParsingError, TranslationError } = require './errors'
 
-exports.TranslationError = class TranslationError extends TypedError
-exports.ParsingError = class ParsingError extends TypedError
-exports.BadRequestError = class BadRequestError extends TypedError
+exports.BadRequestError = BadRequestError
+exports.ParsingError = ParsingError
+exports.TranslationError = TranslationError
 
 odataParser = ODataParser.createInstance()
 odata2AbstractSQL = {}

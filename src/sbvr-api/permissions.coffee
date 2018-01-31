@@ -3,14 +3,15 @@ Promise = require 'bluebird'
 BluebirdLRU = require 'bluebird-lru-cache'
 env = require '../config-loader/env'
 userModel = require './user.sbvr'
-{ metadataEndpoints, BadRequestError, resolveSynonym } = require './uri-parser'
+{ metadataEndpoints, resolveSynonym } = require './uri-parser'
+{ BadRequestError, PermissionError, PermissionParsingError } = require './errors'
 { ODataParser } = require '@resin/odata-parser'
 memoize = require 'memoizee'
 TypedError = require 'typed-error'
 sbvrUtils = require './sbvr-utils'
 
-exports.PermissionError = class PermissionError extends TypedError
-exports.PermissionParsingError = class PermissionParsingError extends TypedError
+exports.PermissionError = PermissionError
+exports.PermissionParsingError = PermissionParsingError
 exports.root = user: permissions: [ 'resource.all' ]
 exports.rootRead = rootRead = user: permissions: [ 'resource.get' ]
 methodPermissions =
