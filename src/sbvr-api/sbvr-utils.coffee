@@ -698,7 +698,7 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 
 			.then (request) ->
 				# Run the request in its own transaction
-				runTransaction req, request, (tx) ->
+				runTransaction req, (tx) ->
 					if _.isArray request
 						env = new Map()
 						Promise.reduce(request, runChangeSet(req, res, tx), env)
@@ -830,21 +830,19 @@ prepareResponse = (req, res, request, result, tx) ->
 				throw new UnsupportedMethodError()
 
 # This is a helper method to handle using a passed in req.tx when available, or otherwise creating a new tx and cleaning up after we're done.
-runTransaction = (req, request, callback) ->
-	runCallback = (tx) ->
-		callback(tx)
+runTransaction = (req, callback) ->
 	if req.tx?
 		# If an existing tx was passed in then use it.
-		runCallback(req.tx)
+		callback(req.tx)
 	else
 		# Otherwise create a new transaction and handle tidying it up.
-		db.transaction().then (tx) ->
-			runCallback(tx)
+		db.transaction()
+		.then (tx) ->
+			callback(tx)
 			.tap ->
 				tx.end()
-			.catch (err) ->
+			.tapCatch ->
 				tx.rollback()
-				throw err
 
 # This is a helper function that will check and add the bind values to the SQL query and then run it.
 runQuery = (tx, request, queryIndex, addReturning) ->
