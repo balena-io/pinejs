@@ -898,10 +898,13 @@ respondPost = (req, res, request, result, tx) ->
 	id = result
 	location = odataResourceURI(vocab, request.resourceName, id)
 	api[vocab].logger.log('Insert ID: ', request.resourceName, id)
-	runURI('GET', location, null, tx, req)
-	.catch ->
+	Promise.try ->
+		onlyId = d: [{ id }]
+		if _.get(request, [ 'odataQuery', 'options', 'returnResource' ]) in [ '0', 'false' ]
+			return onlyId
+		runURI('GET', location, null, tx, req)
 		# If we failed to fetch the created resource then just return the id.
-		return d: [{ id }]
+		.catchReturn(onlyId)
 	.then (result) ->
 		runHook('PRERESPOND', { req, res, request, result, tx: tx })
 		.then ->
