@@ -275,6 +275,26 @@ exports.setup = (app, sbvrUtils) ->
 					Promise.rejected(new Error('API key has to be a string, got: ' + typeof apiKey))
 			return promise.nodeify(callback)
 
+	getApiKeyActorId = memoize(
+		(apiKey) ->
+			sbvrUtils.api.Auth.get
+				resource: 'api_key'
+				passthrough: req: rootRead
+				options:
+					select: 'is_of__actor'
+					filter: key: apiKey
+			.then (apiKeys) ->
+				if apiKeys.length is 0
+					throw new Error('Could not find the api key')
+				apiKeyActorID = apiKeys[0].is_of__actor.__id
+				if !apiKeyActorID?
+					throw new Error('API key is not linked to a actor?!')
+				return apiKeyActorID
+		primitive: true
+		promise: true
+		maxAge: env.apiKeys.permissionsCache.maxAge
+	)
+
 	checkApiKey = (req, apiKey) ->
 		Promise.try ->
 			if !apiKey? or req.apiKey?
@@ -408,18 +428,8 @@ exports.setup = (app, sbvrUtils) ->
 				apiKeyPermissions = req.apiKey?.permissions
 				if allowed is true or !apiKeyPermissions? or apiKeyPermissions.length is 0
 					return allowed
-				authApi.get
-					resource: 'api_key'
-					passthrough: req: rootRead
-					options:
-						select: 'is_of__actor'
-						filter: key: req.apiKey.key
-				.then (apiKeys) ->
-					if apiKeys.length is 0
-						throw new Error('Could not find the api key')
-					apiKeyActorID = apiKeys[0].is_of__actor.__id
-					if !apiKeyActorID?
-						throw new Error('API key is not linked to a actor?!')
+				getApiKeyActorId(req.apiKey.key)
+				.then (apiKeyActorID) ->
 					return _checkPermissions(apiKeyPermissions, apiKeyActorID)
 				.catch (err) ->
 					authApi.logger.error('Error checking api key permissions', req.apiKey.key, err, err.stack)
