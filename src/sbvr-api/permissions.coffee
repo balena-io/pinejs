@@ -1,6 +1,5 @@
 _ = require 'lodash'
 Promise = require 'bluebird'
-BluebirdLRU = require 'bluebird-lru-cache'
 env = require '../config-loader/env'
 userModel = require './user.sbvr'
 { metadataEndpoints, resolveSynonym } = require './uri-parser'
@@ -247,10 +246,8 @@ exports.setup = (app, sbvrUtils) ->
 		return getPermissions(permsFilter, callback)
 
 	exports.getApiKeyPermissions = getApiKeyPermissions = do ->
-		cache = new BluebirdLRU
-			max: env.apiKeys.permissionsCache.max
-			maxAge: env.apiKeys.permissionsCache.maxAge
-			fetchFn: (apiKey) ->
+		_getApiKeyPermissions = memoize(
+			(apiKey) ->
 				permsFilter = $or:
 					is_of__api_key: $any:
 						$alias: 'khp'
@@ -267,10 +264,14 @@ exports.setup = (app, sbvrUtils) ->
 									$alias: 'k'
 									$expr: k: key: apiKey
 				return getPermissions(permsFilter)
-		(apiKey, callback) ->
+			primitive: true
+			max: env.apiKeys.permissionsCache.max
+			maxAge: env.apiKeys.permissionsCache.maxAge
+		)
+		return (apiKey, callback) ->
 			promise =
 				if _.isString(apiKey)
-					cache.get(apiKey)
+					_getApiKeyPermissions(apiKey)
 				else
 					Promise.rejected(new Error('API key has to be a string, got: ' + typeof apiKey))
 			return promise.nodeify(callback)
