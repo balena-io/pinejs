@@ -11,3 +11,4 @@ export class InternalRequestError extends TypedError {}
 export class TranslationError extends TypedError {}
 export class ParsingError extends TypedError {}
 export class BadRequestError extends TypedError {}
+export class ForbiddenError extends TypedError {}
