@@ -27,6 +27,7 @@ _.assign(exports, errors)
 	SqlCompilationError
 	TranslationError
 	UnsupportedMethodError
+	ForbiddenError
 } = errors
 
 controlFlow = require './control-flow'
@@ -750,6 +751,8 @@ constructError = (e) ->
 		{ status: 500 }
 	.catch UnsupportedMethodError, (err) ->
 		{ status: 405, body: err.message }
+	.catch ForbiddenError, (err) ->
+		{ status: 403, body: err.message }
 	.catch e, (err) ->
 		console.error(err)
 		# If the err is an error object then use its message instead - it should be more readable!
