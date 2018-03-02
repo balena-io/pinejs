@@ -334,19 +334,27 @@ getHooks = do ->
 			vocabHooks[resourceName]
 			vocabHooks['all']
 		)
-	getVocabHooks = (methodHooks, request) ->
+	getVocabHooks = (methodHooks, vocabulary, resourceName) ->
 		return {} if !methodHooks?
-		if request.resourceName?
-			resourceName = resolveSynonym(request)
 		mergeHooks(
-			getResourceHooks(methodHooks[request.vocabulary], resourceName)
+			getResourceHooks(methodHooks[vocabulary], resourceName)
 			getResourceHooks(methodHooks['all'], resourceName)
 		)
-	return getMethodHooks = (request) ->
-		mergeHooks(
-			getVocabHooks(apiHooks[request.method], request)
-			getVocabHooks(apiHooks['all'], request)
-		)
+	getMethodHooks = memoize(
+		(method, vocabulary, resourceName) ->
+			mergeHooks(
+				getVocabHooks(apiHooks[method], vocabulary, resourceName)
+				getVocabHooks(apiHooks['all'], vocabulary, resourceName)
+			)
+		primitive: true
+	)
+
+	_getHooks = (request) ->
+		if request.resourceName?
+			resourceName = resolveSynonym(request)
+		getMethodHooks(request.method, request.vocabulary, resourceName)
+	_getHooks.clear = -> getMethodHooks.clear()
+	return _getHooks
 
 runHook = (hookName, args) ->
 	Object.defineProperty args, 'api',
@@ -987,6 +995,9 @@ exports.addHook = (method, apiRoot, resourceName, callbacks) ->
 	for callbackType, callback of callbacks
 		resourceHooks[callbackType] ?= []
 		resourceHooks[callbackType].push(callback)
+
+	getHooks.clear()
+	return
 
 exports.setup = (app, _db, callback) ->
 	exports.db = db = _db
