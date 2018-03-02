@@ -209,8 +209,10 @@ exports.setup = (app, sbvrUtils) ->
 			resource: 'permission'
 			passthrough: req: rootRead
 			options:
-				select: 'name'
-				filter: permsFilter
+				$select: 'name'
+				$filter: permsFilter
+				# We orderby to increase the hit rate for the `_checkPermissions` memoisation
+				$orderby: name: 'asc'
 		.map (permission) -> permission.name
 		.catch (err) ->
 			authApi.logger.error('Error loading permissions', err, err.stack)
@@ -366,19 +368,8 @@ exports.setup = (app, sbvrUtils) ->
 						getUserPermissions(result[0].id)
 				_guestPermissions.nodeify(callback)
 
-		# If not all optional arguments are specified, and the last one specified is a function then it is taken to be the callback.
-		# req, actionList[, resourceName, vocabulary, apiKey, callback]
-		return (args...) ->
-			# callbackArg needs to be the index of the last optional index
-			# and then if the callback is a function it should be used and nullified so that it isn't used for another arg
-			callbackArg = Math.max(3, Math.min(6, args.length - 1))
-			if _.isFunction(args[callbackArg])
-				callback = args[callbackArg]
-				args[callbackArg] = null
-			[req, actionList, resourceName, vocabulary] = args
-			authApi = sbvrUtils.api.Auth
-
-			_checkPermissions = (permissions, actorID) ->
+		_checkPermissions = memoize(
+			(permissions, actorID, actionList, resourceName, vocabulary) ->
 				if !actorID?
 					throw new Error('Actor ID cannot be null for _checkPermissions.')
 				checkObject = or: ['all', actionList]
@@ -413,6 +404,20 @@ exports.setup = (app, sbvrUtils) ->
 					else if conditionalPermissions.length > 1
 						return or: conditionalPermissions
 					return false
+			primitive: true
+		)
+
+		# If not all optional arguments are specified, and the last one specified is a function then it is taken to be the callback.
+		# req, actionList[, resourceName, vocabulary, apiKey, callback]
+		return (args...) ->
+			# callbackArg needs to be the index of the last optional index
+			# and then if the callback is a function it should be used and nullified so that it isn't used for another arg
+			callbackArg = Math.max(3, Math.min(6, args.length - 1))
+			if _.isFunction(args[callbackArg])
+				callback = args[callbackArg]
+				args[callbackArg] = null
+			[req, actionList, resourceName, vocabulary] = args
+			authApi = sbvrUtils.api.Auth
 
 			# We default to a user id of 0 (the guest user) if not logged in.
 			actorID = req.user?.actor ? 0
@@ -420,7 +425,7 @@ exports.setup = (app, sbvrUtils) ->
 
 			Promise.try ->
 				if req.user?
-					return _checkPermissions(req.user.permissions, actorID)
+					return _checkPermissions(req.user.permissions, actorID, actionList, resourceName, vocabulary)
 				return false
 			.catch (err) ->
 				authApi.logger.error('Error checking user permissions', req.user, err, err.stack)
@@ -431,7 +436,7 @@ exports.setup = (app, sbvrUtils) ->
 					return allowed
 				getApiKeyActorId(req.apiKey.key)
 				.then (apiKeyActorID) ->
-					return _checkPermissions(apiKeyPermissions, apiKeyActorID)
+					return _checkPermissions(apiKeyPermissions, apiKeyActorID, actionList, resourceName, vocabulary)
 				.catch (err) ->
 					authApi.logger.error('Error checking api key permissions', req.apiKey.key, err, err.stack)
 					return false
@@ -449,7 +454,7 @@ exports.setup = (app, sbvrUtils) ->
 							[actorID, apiKeyActorID]
 						else
 							actorID
-					return _checkPermissions(permissions, actorIDs)
+					return _checkPermissions(permissions, actorIDs, actionList, resourceName, vocabulary)
 				.catch (err) ->
 					authApi.logger.error('Error checking guest permissions', err, err.stack)
 					return false
