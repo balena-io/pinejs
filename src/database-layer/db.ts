@@ -1,6 +1,7 @@
 /// <references types="websql"/>
 import * as _mysql from 'mysql'
 import * as _pg from 'pg'
+import * as _pgConnectionString from 'pg-connection-string'
 
 import * as _ from 'lodash'
 import * as Promise from 'bluebird'
@@ -273,12 +274,18 @@ try {
 } catch (e) {}
 if (maybePg != null) {
 	const pg = maybePg
-	const ConnectionParameters = require('pg/lib/connection-parameters')
 	engines.postgres = (connectString: string | object): Database => {
 		const PG_UNIQUE_VIOLATION = '23505'
 		const PG_FOREIGN_KEY_VIOLATION = '23503'
 
-		const config: _pg.PoolConfig = new ConnectionParameters(connectString)
+		let config: _pg.PoolConfig
+		if (_.isString(connectString)) {
+			const pgConnectionString: typeof _pgConnectionString = require('pg-connection-string')
+			// We have to cast because of the use of null vs undefined
+			config = pgConnectionString.parse(connectString) as _pg.PoolConfig
+		} else {
+			config = connectString
+		}
 		// Use bluebird for our pool promises
 		config.Promise = Promise
 		// Inherit the same defaults we used to, for backwards compatibility
@@ -308,7 +315,7 @@ if (maybePg != null) {
 			}
 		}
 		class PostgresTx extends Tx {
-			constructor(db: _pg.Client, close: CloseTransactionFn, stackTraceErr?: Error) {
+			constructor(db: _pg.PoolClient, close: CloseTransactionFn, stackTraceErr?: Error) {
 				const executeSql: InternalExecuteSql = (sql, bindings, addReturning = false) => {
 					bindings = bindings.slice(0) // Deal with the fact we may splice arrays directly into bindings
 					if (addReturning && /^\s*INSERT\s+INTO/i.test(sql)) {
