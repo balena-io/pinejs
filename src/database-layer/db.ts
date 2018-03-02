@@ -257,6 +257,12 @@ if (maybePg != null) {
 		config.idleTimeoutMillis = pg.defaults.poolIdleTimeout
 		config.log = pg.defaults.poolLog
 		const pool = new pg.Pool(config)
+		const { PG_SCHEMA } = process.env
+		if (PG_SCHEMA != null ) {
+			pool.on('connect', (client) => {
+				client.query({ text: `SET search_path TO "${PG_SCHEMA}"` })
+			})
+		}
 
 		const createResult = ({ rowCount, rows }: { rowCount: number, rows: Array<{id?: number}> }): Result => {
 			return {
@@ -351,9 +357,6 @@ if (maybePg != null) {
 						process.exit(1)
 					}
 					const tx = new PostgresTx(client, done, stackTraceErr)
-					if (process.env.PG_SCHEMA != null ) {
-						tx.executeSql('SET search_path TO "' + process.env.PG_SCHEMA + '"')
-					}
 					tx.executeSql('START TRANSACTION;')
 
 					resolve(tx)
