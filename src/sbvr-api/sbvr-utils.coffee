@@ -1,6 +1,5 @@
 _ = require 'lodash'
 Promise = require 'bluebird'
-TypedError = require 'typed-error'
 LF2AbstractSQL = require '@resin/lf-to-abstract-sql'
 AbstractSQLCompiler = require '@resin/abstract-sql-compiler'
 PinejsClientCore = require 'pinejs-client/core'
