@@ -405,6 +405,7 @@ exports.setup = (app, sbvrUtils) ->
 						return or: conditionalPermissions
 					return false
 			primitive: true
+			normalizer: JSON.stringify
 		)
 
 		# If not all optional arguments are specified, and the last one specified is a function then it is taken to be the callback.
