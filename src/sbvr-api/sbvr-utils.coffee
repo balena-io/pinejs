@@ -38,6 +38,8 @@ memoizedCompileRule = memoize(
 	primitive: true
 )
 
+{ DEBUG } = process.env
+
 db = null
 
 exports.sbvrTypes = sbvrTypes
@@ -667,7 +669,7 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 	if !apiRoot? or !abstractSqlModels[apiRoot]?
 		return next('route')
 
-	if process.env.DEBUG
+	if DEBUG
 		api[apiRoot].logger.log('Parsing', req.method, req.url)
 
 	mapSeries = controlFlow.getMappingFn(req.headers)
@@ -771,7 +773,7 @@ constructError = (e) ->
 runRequest = (req, res, tx, request) ->
 	{ logger } = api[request.vocabulary]
 
-	if process.env.DEBUG
+	if DEBUG
 		logger.log('Running', req.method, req.url)
 	# Forward each request to the correct method handler
 	runHook('PRERUN', { req, request, tx })
@@ -862,7 +864,7 @@ runQuery = (tx, request, queryIndex, addReturning) ->
 		sqlQuery = sqlQuery[queryIndex]
 	getAndCheckBindValues(vocabulary, odataBinds, sqlQuery.bindings, values)
 	.then (values) ->
-		if process.env.DEBUG
+		if DEBUG
 			api[vocabulary].logger.log(sqlQuery.query, values)
 
 		sqlQuery.values = values

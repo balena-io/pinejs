@@ -7,6 +7,8 @@ import * as Promise from 'bluebird'
 import sqlBinds = require('./sql-binds')
 import TypedError = require('typed-error')
 
+const { DEBUG } = process.env
+
 interface CodedError extends Error {
 	code: number | string
 	constructor: Function
@@ -15,7 +17,7 @@ interface CodedError extends Error {
 type CreateTransactionFn = (
 	resolve: (thenableOrResult: Tx | PromiseLike<Tx>) => void,
 	reject: (error?: any) => void,
-	stackTraceErr: Error,
+	stackTraceErr?: Error,
 ) => Promise<Tx> | void
 type CloseTransactionFn = () => void
 interface Row {
@@ -127,14 +129,44 @@ if (process.env.TRANSACTION_TIMEOUT_MS) {
 } else {
 	timeoutMS = 10000
 }
+
+type RejectedFunctions = (message: string) => {
+	executeSql: Tx['executeSql'],
+	rollback: Tx['rollback'],
+}
+const getRejectedFunctions: RejectedFunctions = DEBUG ? (message) => {
+	// In debug mode we create the error here to give the stack trace of where we first closed the transaction,
+	// but it adds significant overhead for a production environment
+	const rejectionValue = new Error(message)
+	return {
+		executeSql: (_sql, _bindings, callback) =>
+			// We return a new rejected promise on each call so that bluebird can handle
+			// logging errors if the rejection is not handled (but only if it is not handled)
+			Promise.reject(rejectionValue).nodeify(callback),
+		rollback: (callback) =>
+			Promise.reject(rejectionValue).nodeify(callback),
+	}
+} : (message) => {
+	return {
+		executeSql: (_sql, _bindings, callback) =>
+			Promise.reject(new Error(message)).nodeify(callback),
+		rollback: (callback) =>
+			Promise.reject(new Error(message)).nodeify(callback),
+	}
+}
+
+
 export abstract class Tx {
 	public executeSql: (sql: Sql, bindings?: Bindings, callback?: Callback<Result>, ...args: any[]) => Promise<Result>
 	public rollback: (callback?: Callback<void>) => Promise<void>
 	public end: (callback?: Callback<void>) => Promise<void>
 
-	constructor(stackTraceErr: Error, executeSql: InternalExecuteSql, rollback: InternalRollback, commit: InternalCommit) {
+	constructor(executeSql: InternalExecuteSql, rollback: InternalRollback, commit: InternalCommit, stackTraceErr?: Error) {
 		const automaticClose = () => {
-			console.error('Transaction still open after ' + timeoutMS + 'ms without an execute call.', stackTraceErr.stack)
+			console.error('Transaction still open after ' + timeoutMS + 'ms without an execute call.')
+			if (stackTraceErr) {
+				console.error(stackTraceErr.stack)
+			}
 			this.rollback()
 		}
 		let automaticCloseTimeout = setTimeout(automaticClose, timeoutMS)
@@ -196,15 +228,9 @@ export abstract class Tx {
 
 		const closeTransaction = (message: string) => {
 			pendingExecutes.cancel()
-			const rejectionValue = new Error(message)
-			// We return a new rejected promise on each call so that bluebird can handle
-			// logging errors if the rejection is not handled (but only if it is not handled)
-			this.executeSql = (_sql, _bindings, callback) => {
-				return Promise.reject(rejectionValue).nodeify(callback)
-			}
-			this.rollback = this.end = (callback) => {
-				return Promise.reject(rejectionValue).nodeify(callback)
-			}
+			const { executeSql, rollback } = getRejectedFunctions(message)
+			this.executeSql = executeSql
+			this.rollback = this.end = rollback
 		}
 	}
 
@@ -223,7 +249,10 @@ export abstract class Tx {
 
 const createTransaction = (createFunc: CreateTransactionFn) => {
 	return (callback?: (tx: Tx) => void) => {
-		const stackTraceErr = new Error()
+		let stackTraceErr: Error | undefined
+		if (DEBUG) {
+			stackTraceErr = new Error()
+		}
 
 		const promise = new Promise<Tx>((resolve, reject) => {
 			return createFunc(resolve, reject, stackTraceErr)
@@ -279,7 +308,7 @@ if (maybePg != null) {
 			}
 		}
 		class PostgresTx extends Tx {
-			constructor(db: _pg.Client, close: CloseTransactionFn, stackTraceErr: Error) {
+			constructor(db: _pg.Client, close: CloseTransactionFn, stackTraceErr?: Error) {
 				const executeSql: InternalExecuteSql = (sql, bindings, addReturning = false) => {
 					bindings = bindings.slice(0) // Deal with the fact we may splice arrays directly into bindings
 					if (addReturning && /^\s*INSERT\s+INTO/i.test(sql)) {
@@ -326,7 +355,7 @@ if (maybePg != null) {
 					return promise.return()
 				}
 
-				super(stackTraceErr, executeSql, rollback, commit)
+				super(executeSql, rollback, commit, stackTraceErr)
 			}
 
 			public tableList(extraWhereClause: string | Callback<Result> = '', callback?: Callback<Result>) {
@@ -399,7 +428,7 @@ if (maybeMysql != null) {
 			}
 		}
 		class MySqlTx extends Tx {
-			constructor(db: _mysql.IConnection, close: CloseTransactionFn, stackTraceErr: Error) {
+			constructor(db: _mysql.IConnection, close: CloseTransactionFn, stackTraceErr?: Error) {
 				const executeSql: InternalExecuteSql = (sql, bindings) => {
 					return Promise.fromCallback((callback) => {
 						db.query(sql, bindings, callback)
@@ -423,7 +452,7 @@ if (maybeMysql != null) {
 					return promise.return()
 				}
 
-				super(stackTraceErr, executeSql, rollback, commit)
+				super(executeSql, rollback, commit, stackTraceErr)
 			}
 
 			public tableList(extraWhereClause: string | Callback<Result> = '', callback?: Callback<Result>) {
@@ -509,7 +538,7 @@ if (typeof window !== 'undefined' && window.openDatabase != null) {
 		}
 
 		class WebSqlTx extends Tx {
-			constructor(tx: SQLTransaction, stackTraceErr: Error) {
+			constructor(tx: SQLTransaction, stackTraceErr?: Error) {
 				let running = true
 				let queue: AsyncQuery[] = []
 				// This function is used to recurse executeSql calls and keep the transaction open,
@@ -565,7 +594,7 @@ if (typeof window !== 'undefined' && window.openDatabase != null) {
 					return Promise.resolve()
 				}
 
-				super(stackTraceErr, executeSql, rollback, commit)
+				super(executeSql, rollback, commit, stackTraceErr)
 			}
 
 			public tableList(extraWhereClause: string | Callback<Result> = '', callback?: Callback<Result>) {
