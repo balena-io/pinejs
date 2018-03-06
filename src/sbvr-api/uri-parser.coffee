@@ -9,13 +9,30 @@ exports.BadRequestError = BadRequestError
 exports.ParsingError = ParsingError
 exports.TranslationError = TranslationError
 
-odataParser = ODataParser.createInstance()
 odata2AbstractSQL = {}
 
 # Converts a value to its string representation and tries to parse is as an
 # OData bind
 exports.parseId = (b) ->
 	ODataParser.matchAll(String(b), 'ExternalKeyBind')
+
+memoizedParseOdata = do ->
+	odataParser = ODataParser.createInstance()
+	parseOdata = (url) ->
+		odataParser.matchAll(url, 'Process')
+	_memoizedParseOdata = memoize(
+		parseOdata
+		primitive: true
+	)
+	return (url) ->
+		if _.includes(url, '$')
+			# If we're doing a complex url then skip caching due to # of permutations
+			return parseOdata(url)
+		else
+			# Else if it's simple we can easily skip the parsing as we know we'll get a high % hit rate
+			# We deep clone to avoid mutations polluting the cache
+			return _.cloneDeep(_memoizedParseOdata(url))
+
 
 memoizedOdata2AbstractSQL = do ->
 	_memoizedOdata2AbstractSQL = memoize(
@@ -50,7 +67,7 @@ exports.parseOData = (b) ->
 			.then (env) -> Array.from(env.values())
 		else
 			{ url, apiRoot } = splitApiRoot(b.url)
-			odata = odataParser.matchAll(url, 'Process')
+			odata = memoizedParseOdata(url)
 
 			# if we parse a canAccess action rewrite the resource to ensure we
 			# do not run the resource hooks
@@ -82,11 +99,11 @@ parseODataChangeset = (env, b) ->
 
 	if b.url[0] == '/'
 		{ url, apiRoot } = splitApiRoot(b.url)
-		odata = odataParser.matchAll(url, 'Process')
+		odata = memoizedParseOdata(url)
 		defer = false
 	else
 		url = b.url
-		odata = odataParser.matchAll(url, 'Process')
+		odata = memoizedParseOdata(url)
 		{ bind } = odata.tree.resource
 		[ tag, id ] = odata.binds[bind]
 		# Use reference to collect information
