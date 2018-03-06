@@ -2,12 +2,10 @@ _ = require 'lodash'
 Promise = require 'bluebird'
 env = require '../config-loader/env'
 userModel = require './user.sbvr'
-{ metadataEndpoints, resolveSynonym } = require './uri-parser'
+{ metadataEndpoints } = require './uri-parser'
 { BadRequestError, PermissionError, PermissionParsingError } = require './errors'
 { ODataParser } = require '@resin/odata-parser'
 memoize = require 'memoizee'
-TypedError = require 'typed-error'
-sbvrUtils = require './sbvr-utils'
 
 exports.PermissionError = PermissionError
 exports.PermissionParsingError = PermissionParsingError

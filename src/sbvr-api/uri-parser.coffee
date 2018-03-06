@@ -1,5 +1,4 @@
 Promise = require 'bluebird'
-TypedError = require 'typed-error'
 { ODataParser } = require '@resin/odata-parser'
 { OData2AbstractSQL } = require '@resin/odata-to-abstract-sql'
 memoize = require 'memoizee'
