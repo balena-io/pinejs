@@ -366,45 +366,41 @@ exports.setup = (app, sbvrUtils) ->
 						getUserPermissions(result[0].id)
 				_guestPermissions.nodeify(callback)
 
-		_checkPermissions = memoize(
-			(permissions, actorID, actionList, resourceName, vocabulary) ->
-				if !actorID?
-					throw new Error('Actor ID cannot be null for _checkPermissions.')
-				checkObject = or: ['all', actionList]
-				return nestedCheck checkObject, (permissionCheck) ->
-					resourcePermission = 'resource.' + permissionCheck
-					if _.includes(permissions, resourcePermission)
+		_checkPermissions = (permissions, actorID, actionList, resourceName, vocabulary) ->
+			if !actorID?
+				throw new Error('Actor ID cannot be null for _checkPermissions.')
+			checkObject = or: ['all', actionList]
+			return nestedCheck checkObject, (permissionCheck) ->
+				resourcePermission = 'resource.' + permissionCheck
+				if _.includes(permissions, resourcePermission)
+					return true
+				if vocabulary?
+					vocabularyPermission = vocabulary + '.' + permissionCheck
+					if _.includes(permissions, vocabularyPermission)
 						return true
-					if vocabulary?
-						vocabularyPermission = vocabulary + '.' + permissionCheck
-						if _.includes(permissions, vocabularyPermission)
+					if resourceName?
+						vocabularyResourcePermission = vocabulary + '.' + resourceName + '.' + permissionCheck
+						if _.includes(permissions, vocabularyResourcePermission)
 							return true
-						if resourceName?
-							vocabularyResourcePermission = vocabulary + '.' + resourceName + '.' + permissionCheck
-							if _.includes(permissions, vocabularyResourcePermission)
-								return true
 
-					conditionalPermissions = _.map permissions, (permissionName) ->
-						for permission in [resourcePermission, vocabularyPermission, vocabularyResourcePermission] when permission?
-							# Check if there are any matching permissions that contain a condition (condition indicated by a ? directly after the permission name).
-							permission = permission + '?'
-							if permissionName[...permission.length] == permission
-								condition = permissionName[permission.length...]
-								if _.isArray(actorID)
-									return _.map actorID, (id) -> condition.replace(/\$ACTOR\.ID/g, id)
-								return condition.replace(/\$ACTOR\.ID/g, actorID)
-						return false
-					# Remove the false elements.
-					conditionalPermissions = _.filter(conditionalPermissions)
-
-					if conditionalPermissions.length is 1
-						return conditionalPermissions[0]
-					else if conditionalPermissions.length > 1
-						return or: conditionalPermissions
+				conditionalPermissions = _.map permissions, (permissionName) ->
+					for permission in [resourcePermission, vocabularyPermission, vocabularyResourcePermission] when permission?
+						# Check if there are any matching permissions that contain a condition (condition indicated by a ? directly after the permission name).
+						permission = permission + '?'
+						if permissionName[...permission.length] == permission
+							condition = permissionName[permission.length...]
+							if _.isArray(actorID)
+								return _.map actorID, (id) -> condition.replace(/\$ACTOR\.ID/g, id)
+							return condition.replace(/\$ACTOR\.ID/g, actorID)
 					return false
-			primitive: true
-			normalizer: JSON.stringify
-		)
+				# Remove the false elements.
+				conditionalPermissions = _.filter(conditionalPermissions)
+
+				if conditionalPermissions.length is 1
+					return conditionalPermissions[0]
+				else if conditionalPermissions.length > 1
+					return or: conditionalPermissions
+				return false
 
 		# If not all optional arguments are specified, and the last one specified is a function then it is taken to be the callback.
 		# req, actionList[, resourceName, vocabulary, apiKey, callback]
