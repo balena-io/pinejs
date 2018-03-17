@@ -258,12 +258,7 @@ const createTransaction = (createFunc: CreateTransactionFn) => {
 			return createFunc(resolve, reject, stackTraceErr)
 		})
 
-		if (callback != null ) {
-			promise.tap(callback).catch((err) => {
-				console.error(err, callback)
-			})
-		}
-		return promise
+		return promise.asCallback(callback)
 	}
 }
 
@@ -379,11 +374,12 @@ if (maybePg != null) {
 		return _.extend({
 			engine: 'postgres',
 			executeSql: atomicExecuteSql,
-			transaction: createTransaction((resolve, _reject, stackTraceErr) => {
+			transaction: createTransaction((resolve, reject, stackTraceErr) => {
 				pool.connect((err, client, done) => {
 					if (err) {
 						console.error('Error connecting', err, err.stack)
-						process.exit(1)
+						reject(err)
+						return
 					}
 					const tx = new PostgresTx(client, done, stackTraceErr)
 					tx.executeSql('START TRANSACTION;')
@@ -477,11 +473,12 @@ if (maybeMysql != null) {
 		return _.extend({
 			engine: 'mysql',
 			executeSql: atomicExecuteSql,
-			transaction: createTransaction((resolve, _reject, stackTraceErr) => {
+			transaction: createTransaction((resolve, reject, stackTraceErr) => {
 				pool.getConnection((err, db) => {
 					if (err) {
 						console.error('Error connecting', err, err.stack)
-						process.exit(1)
+						reject(err)
+						return
 					}
 					const close = () => {
 						db.release()
