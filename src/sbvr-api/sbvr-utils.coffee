@@ -357,12 +357,11 @@ getHooks = do ->
 	_getHooks.clear = -> getMethodHooks.clear()
 	return _getHooks
 
-runHook = (hookName, args) ->
+runHooks = (hookName, args) ->
 	Object.defineProperty args, 'api',
 		get: _.once ->
 			return api[args.request.vocabulary].clone(passthrough: _.pick(args, 'req', 'tx'))
-	hooks = args.req.hooks[hookName] || []
-	hooks = hooks.concat(args.request?.hooks?[hookName] || [])
+	hooks = args.request?.hooks?[hookName] || []
 	Promise.map hooks, (hook) ->
 		hook(args)
 
@@ -662,6 +661,13 @@ exports.getAbstractSqlModel = getAbstractSqlModel = (request) ->
 	request.abstractSqlModel ?= abstractSqlModels[request.vocabulary]
 	return request.abstractSqlModel
 
+cloneReq = (req, odata) ->
+	req.method = odata.method
+	req.url = odata.url
+	# set values back on odata body
+	req.body = odata.values
+	_.cloneDeep(req)
+
 exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 	url = req.url.split('/')
 	apiRoot = url[1]
@@ -674,11 +680,12 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 	mapSeries = controlFlow.getMappingFn(req.headers)
 	# Get the hooks for the current method/vocabulary as we know it,
 	# in order to run PREPARSE hooks, before parsing gets us more info
-	req.hooks = getHooks(
+	request = {}
+	request.hooks = getHooks(
 		method: req.method
 		vocabulary: apiRoot
 	)
-	runHook('PREPARSE', { req, tx: req.tx })
+	runHooks('PREPARSE', { req, request, tx: req.tx })
 	.then ->
 		{ method, url, body } = req
 
@@ -688,12 +695,11 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 		mapSeries body, (bodypart) ->
 			uriParser.parseOData(bodypart)
 			.then controlFlow.liftP (request) ->
-				# Get the full hooks list now that we can. We clear the hooks on
-				# the global req to avoid duplication
-				req.hooks = {}
+				req = cloneReq(req, request)
+				# Get the full hooks list now that we can, we overwrite the previous list to avoid duplication
 				request.hooks = getHooks(request)
 				# Add/check the relevant permissions
-				runHook('POSTPARSE', { req, request, tx: req.tx })
+				runHooks('POSTPARSE', { req, request, tx: req.tx })
 				.return(request)
 				.then (uriParser.translateUri)
 				.then (request) ->
@@ -704,16 +710,16 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 						catch err
 							api[apiRoot].logger.error('Failed to compile abstract sql: ', request.abstractSqlQuery, err, err.stack)
 							throw new SqlCompilationError(err)
-					return request
-
-			.then (request) ->
+					return { req, request }
+			.then (requestEnv) ->
 				# Run the request in its own transaction
-				runTransaction req, (tx) ->
-					if _.isArray request
+				runTransactionInEnv requestEnv, (tx) ->
+					if _.isArray requestEnv
 						env = new Map()
-						Promise.reduce(request, runChangeSet(req, res, tx), env)
+						Promise.reduce(requestEnv, runChangeSet(res, tx), env)
 						.then (env) -> Array.from(env.values())
 					else
+						{ req, request } = requestEnv
 						runRequest(req, res, tx, request)
 	.then (results) ->
 		mapSeries results, (result) ->
@@ -775,7 +781,7 @@ runRequest = (req, res, tx, request) ->
 	if DEBUG
 		logger.log('Running', req.method, req.url)
 	# Forward each request to the correct method handler
-	runHook('PRERUN', { req, request, tx })
+	runHooks('PRERUN', { req, request, tx })
 	.then ->
 		switch request.method
 			when 'GET'
@@ -794,18 +800,19 @@ runRequest = (req, res, tx, request) ->
 		logger.error(err, err.stack)
 		throw new InternalRequestError()
 	.tap (result) ->
-		runHook('POSTRUN', { req, request, result, tx })
+		runHooks('POSTRUN', { req, request, result, tx })
 	.then (result) ->
 		prepareResponse(req, res, request, result, tx)
 
-runChangeSet = (req, res, tx) ->
-	(env, request) ->
-		request = updateBinds(env, request)
+runChangeSet = (res, tx) ->
+	(csEnv, requestEnv) ->
+		{ req, request } = requestEnv
+		request = updateBinds(csEnv, request)
 		runRequest(req, res, tx, request)
 		.then (result) ->
 			result.headers['Content-Id'] = request.id
-			env.set(request.id, result)
-			return env
+			csEnv.set(request.id, result)
+			return csEnv
 
 # Requests inside a changeset may refer to resources created inside the
 # changeset, the generation of the sql query for those requests must be
@@ -856,6 +863,20 @@ runTransaction = (req, callback) ->
 			.tapCatch ->
 				tx.rollback()
 
+runTransactionInEnv = (env, callback) ->
+	if not _.isArray(env)
+		runTransaction(env.req, callback)
+	else
+		db.transaction()
+		.then (tx) ->
+			_.map env, ({ req, request }) ->
+				req.tx = tx
+			callback(tx)
+			.tap ->
+				tx.end()
+			.tapCatch ->
+				tx.rollback()
+
 # This is a helper function that will check and add the bind values to the SQL query and then run it.
 runQuery = (tx, request, queryIndex, addReturning) ->
 	{ values, odataBinds, sqlQuery, vocabulary } = request
@@ -878,7 +899,7 @@ respondGet = (req, res, request, result, tx) ->
 	if request.sqlQuery?
 		processOData(vocab, getAbstractSqlModel(request), request.resourceName, result.rows)
 		.then (d) ->
-			runHook('PRERESPOND', { req, res, request, result, data: d, tx: tx })
+			runHooks('PRERESPOND', { req, res, request, result, data: d, tx: tx })
 			.then ->
 				{ body: { d }, headers: { contentType: 'application/json' } }
 	else
@@ -918,7 +939,7 @@ respondPost = (req, res, request, result, tx) ->
 		# If we failed to fetch the created resource then just return the id.
 		.catchReturn(onlyId)
 	.then (result) ->
-		runHook('PRERESPOND', { req, res, request, result, tx: tx })
+		runHooks('PRERESPOND', { req, res, request, result, tx: tx })
 		.then ->
 			status: 201
 			body: result.d[0]
@@ -945,7 +966,7 @@ runPut = (req, res, request, tx) ->
 		validateModel(tx, vocab, request)
 
 respondPut = respondDelete = respondOptions = (req, res, request, result, tx) ->
-	runHook('PRERESPOND', { req, res, request, tx: tx })
+	runHooks('PRERESPOND', { req, res, request, tx: tx })
 	.then ->
 		status: 200
 		headers: {}
