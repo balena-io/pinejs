@@ -14,11 +14,7 @@ interface CodedError extends Error {
 	constructor: Function
 }
 
-type CreateTransactionFn = (
-	resolve: (thenableOrResult: Tx | PromiseLike<Tx>) => void,
-	reject: (error?: any) => void,
-	stackTraceErr?: Error,
-) => Promise<Tx> | void
+type CreateTransactionFn = (stackTraceErr?: Error) => Promise<Tx>
 type CloseTransactionFn = () => void
 interface Row {
 	[fieldName: string]: any
@@ -247,18 +243,15 @@ export abstract class Tx {
 	}
 }
 
+const getStackTraceErr: (() => Error | undefined) = DEBUG ? () => undefined : () => new Error()
+
 const createTransaction = (createFunc: CreateTransactionFn) => {
 	return (callback?: (tx: Tx) => void) => {
-		let stackTraceErr: Error | undefined
-		if (DEBUG) {
-			stackTraceErr = new Error()
-		}
-
-		const promise = new Promise<Tx>((resolve, reject) => {
-			return createFunc(resolve, reject, stackTraceErr)
-		})
-
-		return promise.asCallback(callback)
+		const stackTraceErr = getStackTraceErr()
+		return createFunc(stackTraceErr)
+			.tapCatch((err) => {
+				console.error('Error connecting', err, err.stack)
+			}).asCallback(callback)
 	}
 }
 
@@ -287,6 +280,7 @@ if (maybePg != null) {
 				client.query({ text: `SET search_path TO "${PG_SCHEMA}"` })
 			})
 		}
+		const connect = Promise.promisify(pool.connect, { context: pool })
 
 		const createResult = ({ rowCount, rows }: { rowCount: number, rows: Array<{id?: number}> }): Result => {
 			return {
@@ -374,19 +368,14 @@ if (maybePg != null) {
 		return _.extend({
 			engine: 'postgres',
 			executeSql: atomicExecuteSql,
-			transaction: createTransaction((resolve, reject, stackTraceErr) => {
-				pool.connect((err, client, done) => {
-					if (err) {
-						console.error('Error connecting', err, err.stack)
-						reject(err)
-						return
-					}
-					const tx = new PostgresTx(client, done, stackTraceErr)
+			transaction: createTransaction((stackTraceErr) =>
+				connect()
+				.then((client) => {
+					const tx = new PostgresTx(client, client.release, stackTraceErr)
 					tx.executeSql('START TRANSACTION;')
-
-					resolve(tx)
+					return tx
 				})
-			}),
+			),
 		}, alwaysExport)
 	}
 }
@@ -404,6 +393,7 @@ if (maybeMysql != null) {
 		pool.on('connection', (db) => {
 			db.query("SET sql_mode='ANSI_QUOTES';")
 		})
+		const connect = Promise.promisify(pool.getConnection, { context: pool })
 
 		interface MysqlRowArray extends Array<{}> {
 			affectedRows: number
@@ -473,22 +463,15 @@ if (maybeMysql != null) {
 		return _.extend({
 			engine: 'mysql',
 			executeSql: atomicExecuteSql,
-			transaction: createTransaction((resolve, reject, stackTraceErr) => {
-				pool.getConnection((err, db) => {
-					if (err) {
-						console.error('Error connecting', err, err.stack)
-						reject(err)
-						return
-					}
-					const close = () => {
-						db.release()
-					}
-					const tx = new MySqlTx(db, close, stackTraceErr)
+			transaction: createTransaction((stackTraceErr) =>
+				connect()
+				.then((client) => {
+					const close = () => client.release()
+					const tx = new MySqlTx(client, close, stackTraceErr)
 					tx.executeSql('START TRANSACTION;')
-
-					resolve(tx)
+					return tx
 				})
-			}),
+			),
 		}, alwaysExport)
 	}
 }
@@ -618,11 +601,13 @@ if (typeof window !== 'undefined' && window.openDatabase != null) {
 		return _.extend({
 			engine: 'websql',
 			executeSql: atomicExecuteSql,
-			transaction: createTransaction((resolve, _reject, stackTraceErr) => {
-				db.transaction((tx) => {
-					resolve(new WebSqlTx(tx, stackTraceErr))
+			transaction: createTransaction((stackTraceErr) =>
+				new Promise((resolve) => {
+					db.transaction((tx) => {
+						resolve(new WebSqlTx(tx, stackTraceErr))
+					})
 				})
-			}),
+			),
 		}, alwaysExport)
 	}
 }
