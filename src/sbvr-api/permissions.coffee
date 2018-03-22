@@ -26,23 +26,26 @@ methodPermissions =
 parsePermissions = do ->
 	odataParser = ODataParser.createInstance()
 	_parsePermissions = memoize(
-		(filter, bindsLength) ->
-			# Continue with the same length of binds as before for the partial pass step,
-			# except we don't care what those binds actually are)
-			odataParser.binds = new Array(bindsLength)
+		(filter) ->
+			# Reset binds
+			odataParser.binds = []
 			tree = odataParser.matchAll(['FilterByExpression', filter], 'ProcessRule')
 			return {
 				tree
-				extraBinds: odataParser.binds.slice(bindsLength)
+				extraBinds: odataParser.binds
 			}
 		primitive: true
 	)
 
 	return (filter, odataBinds) ->
-		{ tree, extraBinds } = _parsePermissions(filter, odataBinds.length)
+		{ tree, extraBinds } = _parsePermissions(filter)
 		# Add the extra binds we parsed onto our existing list of binds vars.
+		bindsLength = odataBinds.length
 		odataBinds.push(extraBinds...)
-		return tree
+		# Clone the tree so the cached version can't be mutated and at the same time fix the bind numbers
+		return _.cloneDeepWith tree, (value) ->
+			if value?.bind?
+				return { bind: value.bind + bindsLength }
 
 # Traverses all values in `check`, actions for the following data types:
 # string: Calls `stringCallback` and uses the value returned instead
