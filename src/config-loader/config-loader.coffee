@@ -7,8 +7,7 @@ fs = Promise.promisifyAll(require('fs'))
 # Setup function
 exports.setup = (app) ->
 	loadConfig = (data) ->
-		sbvrUtils.db.transaction()
-		.then (tx) ->
+		sbvrUtils.db.transaction (tx) ->
 			Promise.map data.models, (model) ->
 				if model.modelText?
 					sbvrUtils.executeModel(tx, model)
@@ -83,43 +82,39 @@ exports.setup = (app) ->
 														permission: permissionID
 						.tapCatch (e) ->
 							e.message = 'Could not create or find user "' + user.username + '": ' + e.message
-			.tapCatch ->
-				tx.rollback()
-				return
-			.then ->
-				tx.end()
-				Promise.map data.models, (model) ->
-					if model.modelText?
-						apiRoute = '/' + model.apiRoot + '/*'
-						app.options(apiRoute, (req, res) -> res.sendStatus(200))
-						app.all(apiRoute, sbvrUtils.handleODataRequest)
+		.then ->
+			Promise.map data.models, (model) ->
+				if model.modelText?
+					apiRoute = '/' + model.apiRoot + '/*'
+					app.options(apiRoute, (req, res) -> res.sendStatus(200))
+					app.all(apiRoute, sbvrUtils.handleODataRequest)
 
-					if model.customServerCode?
-						if _.isObject(model.customServerCode)
-							customCode = model.customServerCode
-						else
-							try
-								customCode = nodeRequire(model.customServerCode)
-							catch e
-								e.message = 'Error loading custom server code: ' + e.message
-								throw e
-
-						if !_.isFunction(customCode.setup)
-							return
-
+				if model.customServerCode?
+					if _.isObject(model.customServerCode)
+						customCode = model.customServerCode
+					else
 						try
-							new Promise (resolve, reject) ->
-								promise = customCode.setup app, sbvrUtils, sbvrUtils.db, (err) ->
-									if err
-										reject(err)
-									else
-										resolve()
-
-								if Promise.is(promise)
-									resolve(promise)
+							customCode = nodeRequire(model.customServerCode)
 						catch e
-							e.message = 'Error running custom server code: ' + e.message
+							e.message = 'Error loading custom server code: ' + e.message
 							throw e
+
+					if !_.isFunction(customCode.setup)
+						return
+
+					try
+						new Promise (resolve, reject) ->
+							promise = customCode.setup app, sbvrUtils, sbvrUtils.db, (err) ->
+								if err
+									reject(err)
+								else
+									resolve()
+
+							if Promise.is(promise)
+								resolve(promise)
+					catch e
+						e.message = 'Error running custom server code: ' + e.message
+						throw e
 
 	loadJSON = (path) ->
 		console.info('Loading JSON:', path)

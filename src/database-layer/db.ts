@@ -99,21 +99,9 @@ export const engines: {
 } = {}
 
 const atomicExecuteSql = function(this: Database, sql: Sql, bindings?: Bindings, callback?: Callback<Result>) {
-	return this.transaction()
-	.then((tx) => {
-		const result = tx.executeSql(sql, bindings)
-		// Use finally so that we do not modify the return of the result and
-		// to still trigger bluebird's possibly unhandled exception when relevant.
-		return result.finally(() => {
-			// It is ok to use synchronous inspection of the promise here since
-			// this block will only be run once the promise is resolved.
-			if (result.isRejected()) {
-				return tx.rollback()
-			} else {
-				return tx.end()
-			}
-		})
-	}).nodeify(callback)
+	return this.transaction((tx) =>
+		tx.executeSql(sql, bindings)
+	).nodeify(callback)
 }
 
 let timeoutMS: number
@@ -244,13 +232,39 @@ export abstract class Tx {
 const getStackTraceErr: (() => Error | undefined) = DEBUG ? () => new Error() : (_.noop as () => undefined)
 
 const createTransaction = (createFunc: CreateTransactionFn) => {
-	return (callback?: (tx: Tx) => void) => {
+	function transaction<T>(fn: (tx: Tx) => Promise<T> | T): Promise<T>
+	function transaction(): Promise<Tx>
+	function transaction<T>(fn?: (tx: Tx) => Promise<T> | T): Promise<T> | Promise<Tx> {
 		const stackTraceErr = getStackTraceErr()
-		return createFunc(stackTraceErr)
-			.tapCatch((err) => {
-				console.error('Error connecting', err, err.stack)
-			}).asCallback(callback)
+		// Create a new promise in order to be able to get access to cancellation, to let us
+		// return the client to the pool if the promise was cancelled whilst we were waiting
+		return new Promise<Tx | T>((resolve, reject, onCancel) => {
+			if (onCancel) {
+				onCancel(() => {
+					// Rollback the promise on cancel
+					promise.call('rollback')
+				})
+			}
+			let promise = createFunc(stackTraceErr)
+			if (fn) {
+				promise.tap((tx) =>
+					Promise.try<T>(() => fn(tx))
+					.tap(() =>
+						tx.end()
+					).tapCatch(() =>
+						tx.rollback()
+					)
+					.then(resolve)
+					.catch(reject)
+				)
+			} else {
+				promise
+				.then(resolve)
+				.catch(reject)
+			}
+		}) as Promise<Tx> | Promise<T>
 	}
+	return transaction
 }
 
 let maybePg: typeof _pg | undefined

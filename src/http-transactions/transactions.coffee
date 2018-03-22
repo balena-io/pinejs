@@ -32,8 +32,7 @@ exports.setup = (app, sbvrUtils) ->
 					throw new Error('The resource is locked and cannot be edited')
 
 		endTransaction = (transactionID) ->
-			sbvrUtils.db.transaction()
-			.then (tx) ->
+			sbvrUtils.db.transaction (tx) ->
 				placeholders = {}
 				getLockedRow = (lockID) ->
 					# 'GET', '/transaction/resource?$select=resource_id&$filter=resource__is_under__lock/lock eq ?'
@@ -130,11 +129,6 @@ exports.setup = (app, sbvrUtils) ->
 					tx.executeSql('DELETE FROM "transaction" WHERE "id" = ?;', [transactionID])
 				.then (result) ->
 					sbvrUtils.validateModel(tx, modelName)
-				.tapCatch ->
-					tx.rollback()
-					return
-				.then ->
-					tx.end()
 
 		# TODO: these really should be specific to the model - currently they will only work for the first model added
 		app.post '/transaction/execute', (req, res, next) ->
