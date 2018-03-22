@@ -390,8 +390,7 @@ runHooks = Promise.method (hookName, args) ->
 		hook.run(args)
 
 exports.deleteModel = (vocabulary, callback) ->
-	db.transaction()
-	.then (tx) ->
+	db.transaction (tx) ->
 		dropStatements =
 			_.map sqlModels[vocabulary]?.dropSchema, (dropStatement) ->
 				tx.executeSql(dropStatement)
@@ -404,12 +403,9 @@ exports.deleteModel = (vocabulary, callback) ->
 				options:
 					$filter:
 						is_of__vocabulary: vocabulary
-		])).then ->
-			tx.end()
-			cleanupModel(vocabulary)
-		.tapCatch ->
-			tx.rollback()
-			return
+		]))
+	.then ->
+		cleanupModel(vocabulary)
 	.nodeify(callback)
 
 exports.getID = (vocab, request) ->
@@ -879,13 +875,7 @@ runTransaction = (req, callback) ->
 		callback(req.tx)
 	else
 		# Otherwise create a new transaction and handle tidying it up.
-		db.transaction()
-		.then (tx) ->
-			callback(tx)
-			.tap ->
-				tx.end()
-			.tapCatch ->
-				tx.rollback()
+		db.transaction(callback)
 
 # This is a helper function that will check and add the bind values to the SQL query and then run it.
 runQuery = (tx, request, queryIndex, addReturning) ->
@@ -1052,17 +1042,14 @@ addHook = (method, apiRoot, resourceName, hooks) ->
 exports.setup = (app, _db, callback) ->
 	exports.db = db = _db
 	AbstractSQLCompiler = AbstractSQLCompiler[db.engine]
-	db.transaction()
-	.then (tx) ->
+	db.transaction (tx) ->
 		executeStandardModels(tx)
 		.then ->
 			permissions.setup(app, exports)
 			_.extend(exports, permissions)
-			tx.end()
-		.catch (err) ->
-			tx.rollback()
-			console.error('Could not execute standard models', err, err.stack)
-			process.exit(1)
+	.catch (err) ->
+		console.error('Could not execute standard models', err, err.stack)
+		process.exit(1)
 	.then ->
 		db.executeSql('CREATE UNIQUE INDEX "uniq_model_model_type_vocab" ON "model" ("is of-vocabulary", "model type");')
 		.catch -> # we can't use IF NOT EXISTS on all dbs, so we have to ignore the error raised if this index already exists
