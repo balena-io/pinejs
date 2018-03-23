@@ -348,6 +348,10 @@ getHooks = do ->
 			getResourceHooks(methodHooks[vocabulary], resourceName)
 			getResourceHooks(methodHooks['all'], resourceName)
 		)
+	instantiateHooks = (hooks) ->
+		_.mapValues hooks, (typeHooks) ->
+			_.map typeHooks, (hook) ->
+				new Hook(hook)
 	getMethodHooks = memoize(
 		(method, vocabulary, resourceName) ->
 			mergeHooks(
@@ -360,7 +364,13 @@ getHooks = do ->
 	_getHooks = (request) ->
 		if request.resourceName?
 			resourceName = resolveSynonym(request)
-		getMethodHooks(request.method, request.vocabulary, resourceName)
+		instantiateHooks(
+			getMethodHooks(
+				request.method
+				request.vocabulary
+				resourceName
+			)
+		)
 	_getHooks.clear = -> getMethodHooks.clear()
 	return _getHooks
 
@@ -374,7 +384,13 @@ runHook = Promise.method (hookName, args) ->
 		get: _.once ->
 			return api[args.request.vocabulary].clone(passthrough: _.pick(args, 'req', 'tx'))
 	Promise.map hooks, (hook) ->
-		hook(args)
+		hook.run(args)
+
+# The execution order of rollback actions is unspecified
+undoHooks = (request) ->
+	Promise.map _.flatMap(request.hooks, _.identity), (hook) ->
+		if hook.executed
+			hook.rollback()
 
 exports.deleteModel = (vocabulary, callback) ->
 	db.transaction (tx) ->
@@ -981,7 +997,15 @@ exports.executeStandardModels = executeStandardModels = (tx, callback) ->
 		console.error('Failed to execute standard models.', err, err.stack)
 	.nodeify(callback)
 
-exports.addHook = (method, apiRoot, resourceName, callbacks) ->
+exports.addHook = (method, apiRoot, resourceName, hooks) ->
+	pureHooks = _.mapValues hooks, (hook) ->
+		{
+			HOOK: hook
+			ROLLBACK: _.noop
+		}
+	exports.addSideEffectHook(method, apiRoot, resourceName, pureHooks)
+
+exports.addSideEffectHook = (method, apiRoot, resourceName, hooks) ->
 	methodHooks = apiHooks[method]
 	if !methodHooks?
 		throw new Error('Unsupported method: ' + method)
@@ -994,18 +1018,19 @@ exports.addHook = (method, apiRoot, resourceName, callbacks) ->
 			throw new Error('Unknown resource for api root: ' + origResourceName + ', ' + apiRoot)
 
 
-	for callbackType, callback of callbacks when callbackType not in ['PREPARSE', 'POSTPARSE', 'PRERUN', 'POSTRUN', 'PRERESPOND']
-		throw new Error('Unknown callback type: ' + callbackType)
+	for hookType, hook of hooks when hookType not in ['PREPARSE', 'POSTPARSE', 'PRERUN', 'POSTRUN', 'PRERESPOND']
+		throw new Error('Unknown callback type: ' + hookType)
 
 	apiRootHooks = methodHooks[apiRoot] ?= {}
 	resourceHooks = apiRootHooks[resourceName] ?= {}
 
-	for callbackType, callback of callbacks
-		resourceHooks[callbackType] ?= []
-		resourceHooks[callbackType].push(callback)
+	for hookType, hook of hooks
+		resourceHooks[hookType] ?= []
+		resourceHooks[hookType].push(hook)
 
 	getHooks.clear()
 	return
+
 
 exports.setup = (app, _db, callback) ->
 	exports.db = db = _db
