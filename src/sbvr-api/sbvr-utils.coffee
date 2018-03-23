@@ -340,6 +340,10 @@ getHooks = do ->
 			getResourceHooks(methodHooks[vocabulary], resourceName)
 			getResourceHooks(methodHooks['all'], resourceName)
 		)
+	instantiateHooks = (hooks) ->
+		_.mapValues hooks, (typeHooks) ->
+			_.map typeHooks, (hook) ->
+				new Hook(hook)
 	getMethodHooks = memoize(
 		(method, vocabulary, resourceName) ->
 			mergeHooks(
@@ -352,9 +356,51 @@ getHooks = do ->
 	_getHooks = (request) ->
 		if request.resourceName?
 			resourceName = resolveSynonym(request)
-		getMethodHooks(request.method, request.vocabulary, resourceName)
+		instantiateHooks(
+			getMethodHooks(
+				request.method
+				request.vocabulary
+				resourceName
+			)
+		)
 	_getHooks.clear = -> getMethodHooks.clear()
 	return _getHooks
+
+class Hook
+	constructor: (opts) ->
+		@hookFn = opts.HOOK
+		@rollbackFn = opts.ROLLBACK
+		@rollbackArgs = []
+		@executed = false
+
+	setArgument: (arg) ->
+		if @rollbackArgs.length < @rollbackFn.length
+			@rollbackArgs.push(arg)
+		else
+			throw new Error('Too many arguments supplied to rollback function')
+
+	run: (args...) ->
+		Promise.try =>
+			@hookFn(args...)
+		.tap =>
+			if @rollbackArgs.length != @rollbackFn.length
+				throw new Error('registerRollback not supplied enough arguments')
+			@executed = true
+		# If we detect that some rollbacks are registered but the rollback function is not saturated, we add the missing number of arguments as null.
+		# The ROLLBACK function should take care of checking and performing the correct number of rollback actions.
+		.tapCatch =>
+			if not _.isEmpty(@rollbackArgs)
+				missingArgs = @rollbackFn.length - @rollbackArgs.length
+				for i in _.range(missingArgs)
+					@rollbackArgs.push(null)
+				@rollback()
+
+	registerRollback: (args...) ->
+		for arg in args
+			@setArgument(arg)
+
+	rollback: Promise.method ->
+		@rollbackFn(@rollbackArgs...)
 
 runHooks = (hookName, args) ->
 	Object.defineProperty args, 'api',
@@ -362,7 +408,13 @@ runHooks = (hookName, args) ->
 			return api[args.request.vocabulary].clone(passthrough: _.pick(args, 'req', 'tx'))
 	hooks = args.request?.hooks?[hookName] || []
 	Promise.map hooks, (hook) ->
-		hook(args)
+		hook.run(args)
+
+# The execution order of rollback actions is unspecified
+undoHooks = (request) ->
+	Promise.map _.flatMap(request.hooks, _.identity), (hook) ->
+		if hook.executed
+			hook.rollback()
 
 exports.deleteModel = (vocabulary, callback) ->
 	db.transaction()
@@ -660,6 +712,11 @@ exports.getAbstractSqlModel = getAbstractSqlModel = (request) ->
 	request.abstractSqlModel ?= abstractSqlModels[request.vocabulary]
 	return request.abstractSqlModel
 
+prepareEnv = (httpReq, odata) ->
+	if _.isArray(odata)
+		_.map(odata, _.partial(cloneReq, httpReq))
+	else cloneReq(httpReq, odata)
+
 cloneReq = (httpReq, odata) ->
 	req =
 		method: odata.method
@@ -673,7 +730,14 @@ cloneReq = (httpReq, odata) ->
 		tx: httpReq.tx
 		ip: httpReq.ip
 
-	return req
+	return { req: req, request: odata }
+
+rollbackRequestHooks = (requestEnv) ->
+	undoReq = ({ request }) ->
+		undoHooks(request)
+	if _.isArray(requestEnv)
+		Promise.each(requestEnv, undoReq)
+	else undoReq(requestEnv)
 
 exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 	url = req.url.split('/')
@@ -701,33 +765,38 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 		# Parse the OData requests
 		mapSeries body, (bodypart) ->
 			uriParser.parseOData(bodypart)
-			.then controlFlow.liftP (request) ->
-				req = cloneReq(req, request)
-				# Get the full hooks list now that we can, we overwrite the previous list to avoid duplication
-				request.hooks = getHooks(request)
-				# Add/check the relevant permissions
-				runHooks('POSTPARSE', { req, request, tx: req.tx })
-				.return(request)
-				.then (uriParser.translateUri)
-				.then (request) ->
-					# We defer compilation of abstract sql queries with references to other requests
-					if request.abstractSqlQuery? && !request._defer
-						try
-							request.sqlQuery = memoizedCompileRule(request.abstractSqlQuery)
-						catch err
-							api[apiRoot].logger.error('Failed to compile abstract sql: ', request.abstractSqlQuery, err, err.stack)
-							throw new SqlCompilationError(err)
-					return { req, request }
-			.then (requestEnv) ->
-				# Run the request in its own transaction
-				runTransactionInEnv requestEnv, (tx) ->
-					if _.isArray requestEnv
-						env = new Map()
-						Promise.reduce(requestEnv, runChangeSet(res, tx), env)
-						.then (env) -> Array.from(env.values())
-					else
-						{ req, request } = requestEnv
-						runRequest(req, res, tx, request)
+			.then (odata) ->
+				requestEnv = prepareEnv(req, odata)
+				Promise.resolve(requestEnv)
+				.then controlFlow.liftP (requestEnv) ->
+					{ req, request } = requestEnv
+					# Get the full hooks list now that we can, we overwrite the previous list to avoid duplication
+					request.hooks = getHooks(request)
+					# Add/check the relevant permissions
+					runHooks('POSTPARSE', { req, request, tx: req.tx })
+					.return(request)
+					.then (uriParser.translateUri)
+					.then (request) ->
+						# We defer compilation of abstract sql queries with references to other requests
+						if request.abstractSqlQuery? && !request._defer
+							try
+								request.sqlQuery = memoizedCompileRule(request.abstractSqlQuery)
+							catch err
+								api[apiRoot].logger.error('Failed to compile abstract sql: ', request.abstractSqlQuery, err, err.stack)
+								throw new SqlCompilationError(err)
+						return { req, request }
+				.then (requestEnv) ->
+					# Run the request in its own transaction
+					runTransactionInEnv requestEnv, (tx) ->
+						if _.isArray requestEnv
+							env = new Map()
+							Promise.reduce(requestEnv, runChangeSet(res, tx), env)
+							.then (env) -> Array.from(env.values())
+						else
+							{ req, request } = requestEnv
+							runRequest(req, res, tx, request)
+				.tapCatch ->
+					rollbackRequestHooks(requestEnv)
 	.then (results) ->
 		mapSeries results, (result) ->
 			if _.isError(result)
@@ -876,7 +945,7 @@ runTransactionInEnv = (env, callback) ->
 	else
 		db.transaction()
 		.then (tx) ->
-			_.map env, ({ req, request }) ->
+			_.each env, ({ req, request }) ->
 				req.tx = tx
 			callback(tx)
 			.tap ->
@@ -1002,7 +1071,15 @@ exports.executeStandardModels = executeStandardModels = (tx, callback) ->
 		throw err
 	.nodeify(callback)
 
-exports.addHook = (method, apiRoot, resourceName, callbacks) ->
+exports.addHook = (method, apiRoot, resourceName, hooks) ->
+	pureHooks = _.mapValues hooks, (hook) ->
+		{
+			HOOK: hook
+			ROLLBACK: _.noop
+		}
+	exports.addSideEffectHook(method, apiRoot, resourceName, pureHooks)
+
+exports.addSideEffectHook = (method, apiRoot, resourceName, hooks) ->
 	methodHooks = apiHooks[method]
 	if !methodHooks?
 		throw new Error('Unsupported method: ' + method)
@@ -1015,18 +1092,19 @@ exports.addHook = (method, apiRoot, resourceName, callbacks) ->
 			throw new Error('Unknown resource for api root: ' + origResourceName + ', ' + apiRoot)
 
 
-	for callbackType, callback of callbacks when callbackType not in ['PREPARSE', 'POSTPARSE', 'PRERUN', 'POSTRUN', 'PRERESPOND']
-		throw new Error('Unknown callback type: ' + callbackType)
+	for hookType, hook of hooks when hookType not in ['PREPARSE', 'POSTPARSE', 'PRERUN', 'POSTRUN', 'PRERESPOND']
+		throw new Error('Unknown callback type: ' + hookType)
 
 	apiRootHooks = methodHooks[apiRoot] ?= {}
 	resourceHooks = apiRootHooks[resourceName] ?= {}
 
-	for callbackType, callback of callbacks
-		resourceHooks[callbackType] ?= []
-		resourceHooks[callbackType].push(callback)
+	for hookType, hook of hooks
+		resourceHooks[hookType] ?= []
+		resourceHooks[hookType].push(hook)
 
 	getHooks.clear()
 	return
+
 
 exports.setup = (app, _db, callback) ->
 	exports.db = db = _db
