@@ -15,6 +15,7 @@ devModel = require './dev.sbvr'
 permissions = require './permissions'
 uriParser = require './uri-parser'
 errors = require './errors'
+{ rollbackRequestHooks, instantiateHooks } = require './hooks'
 _.assign(exports, errors)
 {
 	BadRequestError
@@ -366,11 +367,17 @@ getHooks = do ->
 	_getHooks = (request) ->
 		if request.resourceName?
 			resourceName = resolveSynonym(request)
-		getMethodHooks(request.method, request.vocabulary, resourceName)
+		instantiateHooks(
+			getMethodHooks(
+				request.method
+				request.vocabulary
+				resourceName
+			)
+		)
 	_getHooks.clear = -> getMethodHooks.clear()
 	return _getHooks
 
-runHook = Promise.method (hookName, args) ->
+runHooks = Promise.method (hookName, args) ->
 	hooks = args.req.hooks[hookName] || []
 	requestHooks = args.request?.hooks?[hookName]
 	if requestHooks?
@@ -380,7 +387,7 @@ runHook = Promise.method (hookName, args) ->
 		get: _.once ->
 			return api[args.request.vocabulary].clone(passthrough: _.pick(args, 'req', 'tx'))
 	Promise.map hooks, (hook) ->
-		hook(args)
+		hook.run(args)
 
 exports.deleteModel = (vocabulary, callback) ->
 	db.transaction()
@@ -692,7 +699,7 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 		method: req.method
 		vocabulary: apiRoot
 	)
-	runHook('PREPARSE', { req, tx: req.tx })
+	runHooks('PREPARSE', { req, tx: req.tx })
 	.then ->
 		{ method, url, body } = req
 
@@ -707,7 +714,7 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 				req.hooks = {}
 				request.hooks = getHooks(request)
 				# Add/check the relevant permissions
-				runHook('POSTPARSE', { req, request, tx: req.tx })
+				runHooks('POSTPARSE', { req, request, tx: req.tx })
 				.return(request)
 				.then (uriParser.translateUri)
 				.then (request) ->
@@ -718,6 +725,8 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 							api[apiRoot].logger.error('Failed to compile abstract sql: ', request.abstractSqlQuery, err, err.stack)
 							throw new SqlCompilationError(err)
 					return request
+				.tapCatch ->
+					rollbackRequestHooks(request)
 
 			.then (request) ->
 				# Run the request in its own transaction
@@ -728,6 +737,8 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 						.then (env) -> Array.from(env.values())
 					else
 						runRequest(req, res, tx, request)
+				.tapCatch ->
+					rollbackRequestHooks(request)
 	.then (results) ->
 		mapSeries results, (result) ->
 			if _.isError(result)
@@ -788,7 +799,7 @@ runRequest = (req, res, tx, request) ->
 	if DEBUG
 		logger.log('Running', req.method, req.url)
 	# Forward each request to the correct method handler
-	runHook('PRERUN', { req, request, tx })
+	runHooks('PRERUN', { req, request, tx })
 	.then ->
 		switch request.method
 			when 'GET'
@@ -809,7 +820,7 @@ runRequest = (req, res, tx, request) ->
 		logger.error(err, err.stack)
 		throw new InternalRequestError()
 	.tap (result) ->
-		runHook('POSTRUN', { req, request, result, tx })
+		runHooks('POSTRUN', { req, request, result, tx })
 	.then (result) ->
 		prepareResponse(req, res, request, result, tx)
 
@@ -892,7 +903,7 @@ respondGet = (req, res, request, result, tx) ->
 	if request.sqlQuery?
 		processOData(vocab, getAbstractSqlModel(request), request.resourceName, result.rows)
 		.then (d) ->
-			runHook('PRERESPOND', { req, res, request, result, data: d, tx: tx })
+			runHooks('PRERESPOND', { req, res, request, result, data: d, tx: tx })
 			.then ->
 				{ body: { d }, headers: { contentType: 'application/json' } }
 	else
@@ -932,7 +943,7 @@ respondPost = (req, res, request, result, tx) ->
 		# If we failed to fetch the created resource then just return the id.
 		.catchReturn(onlyId)
 	.then (result) ->
-		runHook('PRERESPOND', { req, res, request, result, tx: tx })
+		runHooks('PRERESPOND', { req, res, request, result, tx: tx })
 		.then ->
 			status: 201
 			body: result.d[0]
@@ -959,7 +970,7 @@ runPut = (req, res, request, tx) ->
 		validateModel(tx, vocab, request)
 
 respondPut = respondDelete = respondOptions = (req, res, request, result, tx) ->
-	runHook('PRERESPOND', { req, res, request, tx: tx })
+	runHooks('PRERESPOND', { req, res, request, tx: tx })
 	.then ->
 		status: 200
 		headers: {}
@@ -987,7 +998,25 @@ exports.executeStandardModels = executeStandardModels = (tx, callback) ->
 		console.error('Failed to execute standard models.', err, err.stack)
 	.nodeify(callback)
 
-exports.addHook = (method, apiRoot, resourceName, callbacks) ->
+
+exports.addSideEffectHook = (method, apiRoot, resourceName, hooks) ->
+	sideEffectHook = _.mapValues hooks, (hook) ->
+		{
+			HOOK: hook
+			effects: true
+		}
+	addHook(method, apiRoot, resourceName, sideEffectHook)
+
+
+exports.addPureHook = (method, apiRoot, resourceName, hooks) ->
+	pureHooks = _.mapValues hooks, (hook) ->
+		{
+			HOOK: hook
+			effects: false
+		}
+	addHook(method, apiRoot, resourceName, pureHooks)
+
+addHook = (method, apiRoot, resourceName, hooks) ->
 	methodHooks = apiHooks[method]
 	if !methodHooks?
 		throw new Error('Unsupported method: ' + method)
@@ -1000,18 +1029,19 @@ exports.addHook = (method, apiRoot, resourceName, callbacks) ->
 			throw new Error('Unknown resource for api root: ' + origResourceName + ', ' + apiRoot)
 
 
-	for callbackType, callback of callbacks when callbackType not in ['PREPARSE', 'POSTPARSE', 'PRERUN', 'POSTRUN', 'PRERESPOND']
-		throw new Error('Unknown callback type: ' + callbackType)
+	for hookType, hook of hooks when hookType not in ['PREPARSE', 'POSTPARSE', 'PRERUN', 'POSTRUN', 'PRERESPOND']
+		throw new Error('Unknown callback type: ' + hookType)
 
 	apiRootHooks = methodHooks[apiRoot] ?= {}
 	resourceHooks = apiRootHooks[resourceName] ?= {}
 
-	for callbackType, callback of callbacks
-		resourceHooks[callbackType] ?= []
-		resourceHooks[callbackType].push(callback)
+	for hookType, hook of hooks
+		resourceHooks[hookType] ?= []
+		resourceHooks[hookType].push(hook)
 
 	getHooks.clear()
 	return
+
 
 exports.setup = (app, _db, callback) ->
 	exports.db = db = _db
