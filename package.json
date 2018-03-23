@@ -8,7 +8,7 @@
   "scripts": {
     "prepublish": "require-npm4-to-publish",
     "prepublishOnly": "npm test",
-    "build": "grunt prepublish",
+    "build": "grunt build",
     "webpack-browser": "grunt webpack:browser",
     "lint": "resin-lint src Gruntfile.coffee",
     "test": "npm run lint && npm run build"
