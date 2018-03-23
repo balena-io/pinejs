@@ -1,16 +1,60 @@
 # Hooks
-Hooks are functions that you can implement in order to execute custom code when API calls are requested. The methods that are supported are `GET`, `POST`, `PUT`, `PATCH`. The sbvrUtils module of Pine.js is the mechanism that supports hooks addition. In particular, using `sbvrUtils.addHook`.
+Hooks are functions that you can implement in order to execute custom code when API calls are requested. The methods that are supported are `GET`, `POST`, `PUT`, `PATCH`. The sbvrUtils module of Pine.js is the mechanism that supports hooks addition. There are two kind of hooks that can be defined: side-effect hooks and pure hooks. These are respectively defined using `sbvrUtils.addSideEffectHook` and `sbvrUtils.addHook`.
+The difference between these two functions is in the arguments they take to construct the respective hook. To define a pure hook we only need to specify the phase and the hook function to run in that phase, you can read more about the phases and the signatures in the next section, but an example of a simple hook might be
+```coffee
+sbvrUtils.addHook 'method'. 'vocabulary', 'resource',
+	POSTRUN: ({ req, request, tx }) ->
+		#Hook logic
+```
 
-In order to to roll back the transaction you can either throw an error, or return a rejected promise. Also, any promises that are returned will be waited on before continuing with processing the request.
+Hooks will have access to a `tx` object representing the transaction of the current request, in order to to roll back the transaction you can either throw an error, or return a rejected promise.  Also, any promises that are returned will be waited on before continuing with processing the request.
+However, some hooks might need to perform actions against external resources, such as HTTP calls to different services or other forms of side-effectful action. To undo these action we can not rely on the `tx` object and must take to setup the appropriate rollback logic, should the request error out; remember this can also happen at a later time than the hook runs, e.g. we can perform some `PRERUN` action, only to realise the request fails when we later attempt to run it, because of some database constraint.
 
-## Hook points
+To deal with these cases we can define a side-effect hook, the signature is only slightly different:
+```coffee
+sbvrUtils.addHook 'method'. 'vocabulary', 'resource',
+	POSTRUN:
+		RUN: ({ req, request, registerRollback }) ->
+			#Hook logic
+		ROLLBACK: (arg1, arg2) ->
+			#Rollback logic
+```
+
+The hook will now be passed the `registerRollback` function which can be used to store any information we need to perform the rollback (e.g. the ID of a resource we must delete). We can use registerRollback to supply these arguments, which will be later passed to the supplied `ROLLBACK` function if we need to undo the side-effects of the hook.
+`registerRollback` may be called once with all the arguments we intend to supply, or multiple times by passing each argument as soon as it becomes available. The arguments will be passed to the `ROLLBACK` function in the order they have been received.
+
+We can take advantage of this by writing the `ROLLBACK` function so that we can perform partial rollback of our side-effects, as such:
+```coffee
+PHASE:
+	RUN: ({ ..., registerRollback }) ->
+		createResource(1)
+		.then (id1) ->
+			registerRollback(id1)
+			# Additional logic
+			createResource(2)
+			.then (id2) ->
+				registerRollback(id2)
+			.catch (err) ->
+				# No need to delete resource 1 here
+
+	ROLLBACK: (id1, id2) ->
+		deleteResource(id1)
+		.then ->
+			return if arg2 is null
+			deleteResource(id2)
+```
+Pine.js will detect if we have called `registerRollback` at least once in our hook; in case of failure, it will attempt to run the `ROLLBACK` action by filling in the missing arguments as `null`.
+This simplifies the hook logic if we have multiple side-effects that we might want to undo. Instead of writing multiple `.catch` functions, we can defer all that logic to `ROLLBACK`, where an argument will be non-null, only if the corresponding action was executed successfully.
+
+
+## Hook phases
 * `POSTPARSE({req, request, api[, tx]})` - runs right after the OData URI is parsed into a tree and before it gets converted to any SQL.  
-	* The `request` object for POSTPARSE is lacking the `abstractSqlQuery` and `sqlQuery` entries. 
+	* The `request` object for POSTPARSE is lacking the `abstractSqlQuery` and `sqlQuery` entries.
 	* The `tx` object will only be available if running in the context of an internal request with a provided transaction.
 * `PRERUN({req, request, api, tx})` - runs right before the main body/SQL elements run, which also happens to be after compiling to SQL has happened.
 * `POSTRUN({req, request, result, api, tx})` - runs after the main body/SQL statements have run.
-* `PRERESPOND({req, res, request, api, result, data[, tx]})` - runs right before we send the response to the API caller, which can be an internal or an external caller. It contains the data in OData response format. 
-	* The `data` object for PRERESPOND is only present for GET requests. 
+* `PRERESPOND({req, res, request, api, result, data[, tx]})` - runs right before we send the response to the API caller, which can be an internal or an external caller. It contains the data in OData response format.
+	* The `data` object for PRERESPOND is only present for GET requests.
 	* The `tx` object will only be available if running in the context of an internal request with a provided transaction.
 
 ## Arguments
@@ -51,5 +95,8 @@ The database transaction object, so that you can run queries in the same transac
 ### api
 An instance of pinejs-client for the current api, using the permissions and transaction of the current request.
 In the case of not being in a transaction, ie in cases where the `tx` argument is null, any requests via this object will be run in their own, separate, transaction.
+
+### registerRollback
+An argument only supplied for side-effect hooks. Used to store the necessary information to undo a hooks side effects.
 
 See [tx](./CustomServerCode.md#markdown-header-tx_2)
