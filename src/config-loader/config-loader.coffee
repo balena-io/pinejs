@@ -42,9 +42,8 @@ exports.setup = (app) ->
 										.get('id')
 									else
 										return result[0].id
-								.catch (e) ->
+								.tapCatch (e) ->
 									e.message = 'Could not create or find permission "' + permissionName + '": ' + e.message
-									throw e
 
 					Promise.map data.users, (user) ->
 						authApiTx.get
@@ -82,12 +81,11 @@ exports.setup = (app) ->
 													body:
 														user: userID
 														permission: permissionID
-						.catch (e) ->
+						.tapCatch (e) ->
 							e.message = 'Could not create or find user "' + user.username + '": ' + e.message
-							throw e
-			.catch (err) ->
+			.tapCatch ->
 				tx.rollback()
-				throw err
+				return
 			.then ->
 				tx.end()
 				Promise.map data.models, (model) ->

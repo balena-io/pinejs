@@ -123,16 +123,16 @@ exports.setup = (app, sbvrUtils) ->
 								.then (result) ->
 									placeholders[placeholder].resolve(result.id)
 								.then(doCleanup)
-								.catch (err) ->
+								.tapCatch (err) ->
 									placeholders[placeholder].reject(err)
-									throw err
+									return
 				.then (err) ->
 					tx.executeSql('DELETE FROM "transaction" WHERE "id" = ?;', [transactionID])
 				.then (result) ->
 					sbvrUtils.validateModel(tx, modelName)
-				.catch (err) ->
+				.tapCatch ->
 					tx.rollback()
-					throw err
+					return
 				.then ->
 					tx.end()
 

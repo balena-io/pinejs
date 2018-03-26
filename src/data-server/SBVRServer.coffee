@@ -132,9 +132,9 @@ exports.setup = (app, sbvrUtils, db) ->
 							is_disabled: true
 				.then ->
 					tx.end()
-				.catch (err) ->
+				.tapCatch ->
 					tx.rollback()
-					throw err
+					return
 		.then ->
 			isServerOnAir(true)
 			res.sendStatus(200)
@@ -283,6 +283,6 @@ exports.setup = (app, sbvrUtils, db) ->
 		setupModels(tx)
 		.then ->
 			tx.end()
-		.catch (err) ->
+		.tapCatch ->
 			tx.rollback()
-			throw err
+			return

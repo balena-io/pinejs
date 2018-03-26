@@ -162,9 +162,8 @@ getAndCheckBindValues = (vocab, odataBinds, bindings, values) ->
 			return db.DEFAULT_VALUE
 
 		AbstractSQLCompiler.dataTypeValidate(value, field)
-		.catch (e) ->
+		.tapCatch (e) ->
 			e.message = '"' + fieldName + '" ' + e.message
-			throw e
 
 isRuleAffected = do ->
 	checkModifiedFields = (referencedFields, modifiedFields) ->
@@ -306,10 +305,10 @@ exports.executeModels = executeModels = (tx, models, callback) ->
 			updateModel('abstractsql', model.abstractsql)
 			updateModel('sql', model.sql)
 		])
-	.catch (err) ->
+	.tapCatch ->
 		Promise.map models, (model) ->
 			cleanupModel(model.apiRoot)
-		throw err
+		return
 	.nodeify(callback)
 
 cleanupModel = (vocab) ->
@@ -384,9 +383,9 @@ exports.deleteModel = (vocabulary, callback) ->
 		])).then ->
 			tx.end()
 			cleanupModel(vocabulary)
-		.catch (err) ->
+		.tapCatch ->
 			tx.rollback()
-			throw err
+			return
 	.nodeify(callback)
 
 exports.getID = (vocab, request) ->
@@ -786,10 +785,9 @@ runRequest = (req, res, tx, request) ->
 				runPut(req, res, request, tx)
 			when 'DELETE'
 				runDelete(req, res, request, tx)
-	.catch db.DatabaseError, (err) ->
+	.tapCatch db.DatabaseError, (err) ->
 		prettifyConstraintError(err, request.resourceName)
 		logger.error(err, err.stack)
-		throw err
 	.catch EvalError, RangeError, ReferenceError, SyntaxError, TypeError, URIError, (err) ->
 		logger.error(err, err.stack)
 		throw new InternalRequestError()
@@ -969,9 +967,8 @@ exports.executeStandardModels = executeStandardModels = (tx, callback) ->
 		executeModels(tx, permissions.config.models)
 	.then ->
 		console.info('Sucessfully executed standard models.')
-	.catch (err) ->
+	.tapCatch (err) ->
 		console.error('Failed to execute standard models.', err, err.stack)
-		throw err
 	.nodeify(callback)
 
 exports.addHook = (method, apiRoot, resourceName, callbacks) ->
