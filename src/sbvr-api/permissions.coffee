@@ -215,9 +215,8 @@ exports.setup = (app, sbvrUtils) ->
 				# We orderby to increase the hit rate for the `_checkPermissions` memoisation
 				$orderby: name: 'asc'
 		.map (permission) -> permission.name
-		.catch (err) ->
+		.tapCatch (err) ->
 			authApi.logger.error('Error loading permissions', err, err.stack)
-			throw err
 		.nodeify(callback)
 
 	exports.getUserPermissions = getUserPermissions = (userId, callback) ->
