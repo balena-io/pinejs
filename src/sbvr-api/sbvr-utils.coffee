@@ -785,9 +785,12 @@ runRequest = (req, res, tx, request) ->
 				runPut(req, res, request, tx)
 			when 'DELETE'
 				runDelete(req, res, request, tx)
-	.tapCatch db.DatabaseError, (err) ->
+	.catch db.DatabaseError, (err) ->
+		# This cannot be a `.tapCatch` because for some reason throwing a db.UniqueConstraintError doesn't override
+		# the error, when usually throwing an error does.
 		prettifyConstraintError(err, request.resourceName)
 		logger.error(err, err.stack)
+		throw err
 	.catch EvalError, RangeError, ReferenceError, SyntaxError, TypeError, URIError, (err) ->
 		logger.error(err, err.stack)
 		throw new InternalRequestError()
