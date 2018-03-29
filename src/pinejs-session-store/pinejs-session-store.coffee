@@ -34,7 +34,7 @@ class PinejsSessionStore extends expressSession.Store
 			id: sid
 			passthrough: req: permissions.rootRead
 			options:
-				select: 'data'
+				$select: 'data'
 		.then (session) ->
 			return session?.data
 		.nodeify(callback)
@@ -63,8 +63,8 @@ class PinejsSessionStore extends expressSession.Store
 			resource: 'session'
 			passthrough: req: permissions.root
 			options:
-				select: 'session_id'
-				filter: expiry_time: $ge: Date.now()
+				$select: 'session_id'
+				$filter: expiry_time: $ge: Date.now()
 		.then (sessions) ->
 			_.map(sessions, 'session_id')
 		.nodeify(callback)
@@ -81,8 +81,8 @@ class PinejsSessionStore extends expressSession.Store
 			resource: 'session/$count'
 			passthrough: req: permissions.rootRead
 			options:
-				select: 'session_id'
-				filter: expiry_time: $ge: Date.now()
+				$select: 'session_id'
+				$filter: expiry_time: $ge: Date.now()
 		.nodeify(callback)
 PinejsSessionStore.config =
 	models: [
