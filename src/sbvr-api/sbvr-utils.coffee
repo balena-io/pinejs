@@ -6,7 +6,7 @@ Promise.config(
 
 LF2AbstractSQL = require '@resin/lf-to-abstract-sql'
 AbstractSQLCompiler = require '@resin/abstract-sql-compiler'
-PinejsClientCore = require 'pinejs-client/core'
+{ PinejsClientCoreFactory } = require 'pinejs-client-core'
 sbvrTypes = require '@resin/sbvr-types'
 { sqlNameToODataName, odataNameToSqlName } = require '@resin/odata-to-abstract-sql'
 
@@ -596,7 +596,7 @@ exports.runRule = do ->
 		.nodeify(callback)
 
 exports.PinejsClient =
-	class PinejsClient extends PinejsClientCore(_, Promise)
+	class PinejsClient extends PinejsClientCoreFactory(Promise)
 		_request: ({ method, url, body, tx, req, custom }) ->
 			return runURI(method, url, body, tx, req, custom)
 
