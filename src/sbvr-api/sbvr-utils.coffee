@@ -99,24 +99,28 @@ exports.resolveNavigationResource = resolveNavigationResource = (request, naviga
 	return sqlNameToODataName(mapping[1][0])
 
 # TODO: Clean this up and move it into the db module.
-prettifyConstraintError = (err, tableName) ->
+prettifyConstraintError = (err, resourceName) ->
 	if err instanceof db.ConstraintError
 		if err instanceof db.UniqueConstraintError
 			switch db.engine
 				when 'mysql'
 					matches = /ER_DUP_ENTRY: Duplicate entry '.*?[^\\]' for key '(.*?[^\\])'/.exec(err)
+					throw new db.UniqueConstraintError('"' + sqlNameToODataName(matches[1]) + '" must be unique.')
 				when 'postgres'
+					tableName = odataNameToSqlName(resourceName)
 					matches = new RegExp('"' + tableName + '_(.*?)_key"').exec(err)
 					# We know it's the right error type, so if matches exists just throw a generic error message, since we have failed to get the info for a more specific one.
 					if !matches?
 						throw new db.UniqueConstraintError('Unique key constraint violated')
-			throw new db.UniqueConstraintError('"' + sqlNameToODataName(matches[1]) + '" must be unique.')
+					columns = matches[1].split('_')
+					throw new db.UniqueConstraintError('"' + columns.map(sqlNameToODataName).join('" and "') + '" must be unique.')
 
 		if err instanceof db.ForeignKeyConstraintError
 			switch db.engine
 				when 'mysql'
 					matches = /ER_ROW_IS_REFERENCED_: Cannot delete or update a parent row: a foreign key constraint fails \(".*?"\.(".*?").*/.exec(err)
 				when 'postgres'
+					tableName = odataNameToSqlName(resourceName)
 					matches = new RegExp('"' + tableName + '" violates foreign key constraint ".*?" on table "(.*?)"').exec(err)
 					matches ?= new RegExp('"' + tableName + '" violates foreign key constraint "' + tableName + '_(.*?)_fkey"').exec(err)
 					# We know it's the right error type, so if matches exists just throw a generic error message, since we have failed to get the info for a more specific one.
