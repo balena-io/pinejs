@@ -30,8 +30,8 @@ exports.setup = (app) ->
 								authApiTx.get
 									resource: 'permission'
 									options:
-										select: 'id'
-										filter:
+										$select: 'id'
+										$filter:
 											name: permissionName
 								.then (result) ->
 									if result.length is 0
@@ -49,8 +49,8 @@ exports.setup = (app) ->
 						authApiTx.get
 							resource: 'user'
 							options:
-								select: 'id'
-								filter:
+								$select: 'id'
+								$filter:
 									username: user.username
 						.then (result) ->
 							if result.length is 0
@@ -70,8 +70,8 @@ exports.setup = (app) ->
 										authApiTx.get
 											resource: 'user__has__permission'
 											options:
-												select: 'id'
-												filter:
+												$select: 'id'
+												$filter:
 													user: userID
 													permission: permissionID
 										.then (result) ->
