@@ -36,9 +36,9 @@ exports.checkModelAlreadyExists = (tx, modelName) ->
 			tx: tx
 			req: permissions.rootRead
 		options:
-			select: [ 'is_of__vocabulary' ]
-			top: 1
-			filter:
+			$select: 'is_of__vocabulary'
+			$top: 1
+			$filter:
 				is_of__vocabulary: modelName
 	.then(_.some)
 
@@ -50,7 +50,7 @@ exports.getExecutedMigrations = (tx, modelName) ->
 			tx: tx
 			req: permissions.rootRead
 		options:
-			select: [ 'executed_migrations' ]
+			$select: 'executed_migrations'
 	.then (data) ->
 		data?.executed_migrations || []
 

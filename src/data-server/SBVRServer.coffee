@@ -58,8 +58,8 @@ exports.setup = (app, sbvrUtils, db) ->
 		uiApiTx.get
 			resource: 'textarea'
 			options:
-				select: 'id'
-				filter:
+				$select: 'id'
+				$filter:
 					name: 'model_area'
 		.then (result) ->
 			if result.length is 0
@@ -76,8 +76,8 @@ exports.setup = (app, sbvrUtils, db) ->
 					tx: tx
 					req: permissions.rootRead
 				options:
-					select: ['is_of__vocabulary', 'model_value']
-					filter:
+					$select: ['is_of__vocabulary', 'model_value']
+					$filter:
 						model_type: 'se'
 						is_of__vocabulary: 'data'
 		.then (result) ->
@@ -106,8 +106,8 @@ exports.setup = (app, sbvrUtils, db) ->
 			resource: 'textarea'
 			passthrough: req: permissions.rootRead
 			options:
-				select: 'text'
-				filter:
+				$select: 'text'
+				$filter:
 					name: 'model_area'
 		.then (result) ->
 			if result.length is 0
@@ -126,7 +126,7 @@ exports.setup = (app, sbvrUtils, db) ->
 							tx: tx
 							req: permissions.root
 						options:
-							filter:
+							$filter:
 								name: 'model_area'
 						body:
 							is_disabled: true
@@ -267,7 +267,7 @@ exports.setup = (app, sbvrUtils, db) ->
 				resource: 'textarea'
 				passthrough: req: permissions.root
 				options:
-					filter:
+					$filter:
 						name: 'model_area'
 				body:
 					text: ''

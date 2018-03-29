@@ -181,8 +181,8 @@ exports.setup = (app, sbvrUtils) ->
 			resource: 'user'
 			passthrough: req: rootRead
 			options:
-				select: ['id', 'actor', 'password']
-				filter:
+				$select: ['id', 'actor', 'password']
+				$filter:
 					username: username
 		.then (result) ->
 			if result.length is 0
@@ -284,8 +284,8 @@ exports.setup = (app, sbvrUtils) ->
 				resource: 'api_key'
 				passthrough: req: rootRead
 				options:
-					select: 'is_of__actor'
-					filter: key: apiKey
+					$select: 'is_of__actor'
+					$filter: key: apiKey
 			.then (apiKeys) ->
 				if apiKeys.length is 0
 					throw new Error('Could not find the api key')
@@ -359,8 +359,8 @@ exports.setup = (app, sbvrUtils) ->
 						resource: 'user'
 						passthrough: req: rootRead
 						options:
-							select: 'id'
-							filter:
+							$select: 'id'
+							$filter:
 								username: 'guest'
 					.then (result) ->
 						if result.length is 0
