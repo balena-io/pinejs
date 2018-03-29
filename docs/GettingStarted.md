@@ -23,16 +23,11 @@ $ npm init
 
 Feel free to enter any information you like for your application when prompted, like application name, version, description, etc. The above command will initialize your application by creating the `package.json` file.
 
-Currently, Pine.js constitutes an internal framework of resin, and thus lying in a private repository. In order to install it as a dependency for your application you will have either to use resin's development environment, or to contact our Operations Manager, in order to give you the necessary credentials to grab it from npm. Assuming you have those credentials, type in your command prompt inside your application directory:
-
 ```
-$ npm login
 $ npm install --save @resin/pinejs
 ```
 
-(In case you are using resin's development enviroment you do not have to `npm login`).
-
-The above commands will log you in to npm to access the scoped package Pine.js (in case you do not use our development environment) and then will install it as a dependency for your application, i.e. it will create the node_modules directory that amongst others will contain Pine.js, and will update the corresponding record in your `package.json` file.
+The above commands will install pinejs as a dependency for your application, i.e. it will create the node_modules directory that amongst others will contain Pine.js, and will update the corresponding record in your `package.json` file.
 
 Let's see what your directory looks like now:
 
@@ -137,7 +132,7 @@ $ tree -L 3
 .
 ├── node_modules
 │   ├── @resin
-│   │   └── pinejs  
+│   │   └── pinejs
 │   ├── body-parser
 │   │   ├── HISTORY.md
 │   │   ├── LICENSE
