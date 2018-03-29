@@ -43,7 +43,7 @@
     "lodash": "^4.0.0",
     "memoizee": "^0.4.1",
     "ometa-js": "^1.4.2",
-    "pinejs-client": "^4.3.2",
+    "pinejs-client-core": "^5.0.0",
     "typed-error": "^2.0.0"
   },
   "devDependencies": {

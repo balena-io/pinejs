@@ -38,7 +38,7 @@ exports.setup = (app) ->
 											resource: 'permission'
 											body:
 												name: permissionName
-											customOptions: { returnResource: false }
+											options: { returnResource: false }
 										.get('id')
 									else
 										return result[0].id
@@ -59,7 +59,7 @@ exports.setup = (app) ->
 									body:
 										username: user.username
 										password: user.password
-									customOptions: { returnResource: false }
+									options: { returnResource: false }
 								.get('id')
 							else
 								return result[0].id
@@ -82,7 +82,7 @@ exports.setup = (app) ->
 													body:
 														user: userID
 														permission: permissionID
-													customOptions: { returnResource: false }
+													options: { returnResource: false }
 						.tapCatch (e) ->
 							e.message = 'Could not create or find user "' + user.username + '": ' + e.message
 		.then ->
