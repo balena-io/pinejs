@@ -92,7 +92,7 @@ validate = (request, api) ->
     api.get
       resource: request.resourceName
       options:
-        filter:
+        $filter:
           name: request.values.name
           devtype: request.values.devtype
     .then (result) ->
@@ -117,7 +117,7 @@ exports.setup = (app, sbvrUtils, db, callback) ->
     api.get
       resource: request.resourceName
       options:
-        filter:
+        $filter:
           name: request.values.name
           devtype: request.values.devtype
     .then (result) ->

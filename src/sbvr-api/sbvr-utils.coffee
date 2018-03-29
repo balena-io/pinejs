@@ -280,8 +280,8 @@ exports.executeModels = executeModels = (tx, models, callback) ->
 					tx: tx
 					req: permissions.rootRead
 				options:
-					select: 'id'
-					filter:
+					$select: 'id'
+					$filter:
 						is_of__vocabulary: model.vocab
 						model_type: modelType
 			.then (result) ->
@@ -378,7 +378,7 @@ exports.deleteModel = (vocabulary, callback) ->
 					tx: tx
 					req: permissions.root
 				options:
-					filter:
+					$filter:
 						is_of__vocabulary: vocabulary
 		])).then ->
 			tx.end()
