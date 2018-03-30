@@ -934,14 +934,16 @@ runPost = (req, res, request, tx) ->
 	idField = getAbstractSqlModel(request).tables[resolveSynonym(request)].idField
 
 	runQuery(tx, request, null, idField)
-	.then (sqlResult) ->
+	.tap (sqlResult) ->
+		if sqlResult.rowsAffected is 0
+			throw new PermissionError()
 		validateModel(tx, vocab, request)
-		.then ->
-			# Return the inserted/updated id.
-			if request.abstractSqlQuery[0] == 'UpdateQuery'
-				request.sqlQuery.values[0]
-			else
-				sqlResult.insertId
+	.then (sqlResult) ->
+		# Return the inserted/updated id.
+		if request.abstractSqlQuery[0] == 'UpdateQuery'
+			request.sqlQuery.values[0]
+		else
+			sqlResult.insertId
 
 respondPost = (req, res, request, result, tx) ->
 	vocab = request.vocabulary
