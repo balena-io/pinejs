@@ -343,7 +343,9 @@ getHooks = do ->
 	instantiateHooks = (hooks) ->
 		_.mapValues hooks, (typeHooks) ->
 			_.map typeHooks, (hook) ->
-				new Hook(hook)
+				if hook.effects
+					new SideEffectHook(hook.HOOK)
+				else new Hook(hook)
 	getMethodHooks = memoize(
 		(method, vocabulary, resourceName) ->
 			mergeHooks(
@@ -367,40 +369,26 @@ getHooks = do ->
 	return _getHooks
 
 class Hook
-	constructor: (opts) ->
-		@hookFn = opts.HOOK
-		@rollbackFn = opts.ROLLBACK
-		@rollbackArgs = []
+	constructor: (hookFn) ->
+		@hookFn = hookFn
 		@executed = false
-
-	setArgument: (arg) ->
-		if @rollbackArgs.length < @rollbackFn.length
-			@rollbackArgs.push(arg)
-		else
-			throw new Error('Too many arguments supplied to rollback function')
 
 	run: (args...) ->
 		Promise.try =>
 			@hookFn(args...)
 		.tap =>
-			if @rollbackArgs.length != @rollbackFn.length
-				throw new Error('registerRollback not supplied enough arguments')
 			@executed = true
-		# If we detect that some rollbacks are registered but the rollback function is not saturated, we add the missing number of arguments as null.
-		# The ROLLBACK function should take care of checking and performing the correct number of rollback actions.
-		.tapCatch =>
-			if not _.isEmpty(@rollbackArgs)
-				missingArgs = @rollbackFn.length - @rollbackArgs.length
-				for i in _.range(missingArgs)
-					@rollbackArgs.push(null)
-				@rollback()
 
-	registerRollback: (args...) ->
-		for arg in args
-			@setArgument(arg)
+class SideEffectHook extends Hook
+	constructor: (hookFn) ->
+		@rollbackFns = []
+		super(hookFn)
 
-	rollback: Promise.method ->
-		@rollbackFn(@rollbackArgs...)
+	registerRollback: (fn) ->
+		@rollbackFns.push(Promise.method(fn))
+
+	rollback: ->
+		Promise.each(@rollbackFns, (fn) -> fn())
 
 runHooks = (hookName, args) ->
 	Object.defineProperty args, 'api',
@@ -412,8 +400,8 @@ runHooks = (hookName, args) ->
 
 # The execution order of rollback actions is unspecified
 undoHooks = (request) ->
-	Promise.map _.flatMap(request.hooks, _.identity), (hook) ->
-		if hook.executed
+	Promise.map _.flatten(_.values(request.hooks)), (hook) ->
+		if hook instanceof SideEffectHook and hook.executed
 			hook.rollback()
 
 exports.deleteModel = (vocabulary, callback) ->
@@ -1071,15 +1059,16 @@ exports.executeStandardModels = executeStandardModels = (tx, callback) ->
 		throw err
 	.nodeify(callback)
 
-exports.addHook = (method, apiRoot, resourceName, hooks) ->
-	pureHooks = _.mapValues hooks, (hook) ->
-		{
-			HOOK: hook
-			ROLLBACK: _.noop
-		}
-	exports.addSideEffectHook(method, apiRoot, resourceName, pureHooks)
 
 exports.addSideEffectHook = (method, apiRoot, resourceName, hooks) ->
+	sideEffectHook = _.mapValues hooks, (hook) ->
+		{
+			HOOK: hook
+			effects: true
+		}
+	exports.addHook(method, apiRoot, resourceName, sideEffectHook)
+
+exports.addHook = (method, apiRoot, resourceName, hooks) ->
 	methodHooks = apiHooks[method]
 	if !methodHooks?
 		throw new Error('Unsupported method: ' + method)

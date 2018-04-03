@@ -1,50 +1,25 @@
 # Hooks
 Hooks are functions that you can implement in order to execute custom code when API calls are requested. The methods that are supported are `GET`, `POST`, `PUT`, `PATCH`. The sbvrUtils module of Pine.js is the mechanism that supports hooks addition. There are two kind of hooks that can be defined: side-effect hooks and pure hooks. These are respectively defined using `sbvrUtils.addSideEffectHook` and `sbvrUtils.addHook`.
-The difference between these two functions is in the arguments they take to construct the respective hook. To define a pure hook we only need to specify the phase and the hook function to run in that phase, you can read more about the phases and the signatures in the next section, but an example of a simple hook might be
-```coffee
-sbvrUtils.addHook 'method'. 'vocabulary', 'resource',
-	POSTRUN: ({ req, request, tx }) ->
-		#Hook logic
-```
 
 Hooks will have access to a `tx` object representing the transaction of the current request, in order to to roll back the transaction you can either throw an error, or return a rejected promise.  Also, any promises that are returned will be waited on before continuing with processing the request.
-However, some hooks might need to perform actions against external resources, such as HTTP calls to different services or other forms of side-effectful action. To undo these action we can not rely on the `tx` object and must take to setup the appropriate rollback logic, should the request error out; remember this can also happen at a later time than the hook runs, e.g. we can perform some `PRERUN` action, only to realise the request fails when we later attempt to run it, because of some database constraint.
+However, some hooks might need to perform actions against external resources, such as HTTP calls to different services or other forms of side-effectful actions. To undo these actions we can not rely on the `tx` object, instead we need to make sure we setup the appropriate rollback logic should the request error out. Remember this can also happen at a later time than the hook runs, e.g. we can perform some `PRERUN` action, only to realise the request fails when we later attempt to run it, because of some database constraint.
 
-To deal with these cases we can define a side-effect hook, the signature is only slightly different:
+To deal with these cases we can define a side-effect hook.
+The hook will now have access to a `registerRollback` function defined on the hook itself, which can be used to store any action we need to perform the undo the effects of our hook (e.g. delete an external resource that was created). We can use `registerRollback` to register any number of actions; these will be later ran if we need to undo the side-effects of the hook.
+
+The following example of a side-effect hook will create two external resources and register the appropriate rollback actions.
+
 ```coffee
-sbvrUtils.addHook 'method'. 'vocabulary', 'resource',
-	POSTRUN:
-		RUN: ({ req, request, registerRollback }) ->
-			#Hook logic
-		ROLLBACK: (arg1, arg2) ->
-			#Rollback logic
-```
-
-The hook will now be passed the `registerRollback` function which can be used to store any information we need to perform the rollback (e.g. the ID of a resource we must delete). We can use registerRollback to supply these arguments, which will be later passed to the supplied `ROLLBACK` function if we need to undo the side-effects of the hook.
-`registerRollback` may be called once with all the arguments we intend to supply, or multiple times by passing each argument as soon as it becomes available. The arguments will be passed to the `ROLLBACK` function in the order they have been received.
-
-We can take advantage of this by writing the `ROLLBACK` function so that we can perform partial rollback of our side-effects, as such:
-```coffee
-PHASE:
-	HOOK: ({ ..., registerRollback }) ->
+addSideEffectHook :
+	PHASE: () ->
 		createExternalResource(1)
-		.then (id1) ->
-			registerRollback(id1)
+		.then (id1) =>
+			@registerRollback(-> deleteExternalResource(id1))
 			# Additional logic
 			createExternalResource(2)
-			.then (id2) ->
-				registerRollback(id2)
-			.catch (err) ->
-				# No need to delete resource 1 here
-
-	ROLLBACK: (id1, id2) ->
-		deleteExternalResource(id1)
-		.then ->
-			return if arg2 is null
-			deleteExternalResource(id2)
+			.then (id2) =>
+				@registerRollback(-> deleteExternalResource(id2))
 ```
-Pine.js will detect if we have called `registerRollback` at least once in our hook; in case of failure, it will attempt to run the `ROLLBACK` action by filling in the missing arguments as `null`.
-This simplifies the hook logic if we have multiple side-effects that we might want to undo. Instead of writing multiple `.catch` functions, we can defer all that logic to `ROLLBACK`, where an argument will be non-null, only if the corresponding action was executed successfully.
 
 
 ## Hook phases
