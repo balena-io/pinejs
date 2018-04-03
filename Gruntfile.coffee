@@ -21,7 +21,11 @@ for task, config of serverConfigs
 
 module.exports = (grunt) ->
 	grunt.initConfig
-		clean: ['out']
+		clean:
+			default:
+				src: [ "<%= grunt.option('target') %>" ]
+				options:
+					force: true
 
 		checkDependencies:
 			this:
@@ -45,12 +49,12 @@ module.exports = (grunt) ->
 				}
 
 		copy:
-			prepublish:
+			default:
 				files: [
 					expand: true
 					cwd: 'src'
 					src: [ '**' ]
-					dest: 'out/'
+					dest: "<%= grunt.option('target') %>"
 					filter: (filename) ->
 						not _.endsWith(filename, '.coffee') and not _.endsWith(filename, '.ts')
 				]
@@ -90,22 +94,27 @@ module.exports = (grunt) ->
 		webpack: serverConfigs
 
 		coffee:
-			prepublish:
+			default:
 				options:
 					sourceMap: true
 					header: true
 				expand: true
 				cwd: 'src'
 				src: [ '**/*.coffee' ]
-				dest: 'out'
+				dest: "<%= grunt.option('target') %>"
 				ext: '.js'
 
 		ts:
-			prepublish:
+			default:
 				tsconfig: true
-				expand: true
+				options:
+					additionalFlags: "--outDir <%= grunt.option('target') %>"
+
 
 	require('load-grunt-tasks')(grunt)
+
+	if not grunt.option('target')
+		grunt.option('target', 'out/')
 
 	grunt.registerTask 'version', ->
 		grunt.task.requires('gitinfo:describe')
@@ -125,10 +134,10 @@ module.exports = (grunt) ->
 			"rename:#{task}.map"
 		]
 
-	grunt.registerTask 'prepublish', [
-		'checkDependencies'
+	grunt.registerTask 'build', [
 		'clean'
-		'copy:prepublish'
-		'coffee:prepublish'
-		'ts:prepublish'
+		'checkDependencies'
+		'coffee'
+		'ts'
+		'copy'
 	]
