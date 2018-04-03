@@ -351,7 +351,9 @@ getHooks = do ->
 	instantiateHooks = (hooks) ->
 		_.mapValues hooks, (typeHooks) ->
 			_.map typeHooks, (hook) ->
-				new Hook(hook)
+				if hook.effects
+					new SideEffectHook(hook.HOOK)
+				else new Hook(hook)
 	getMethodHooks = memoize(
 		(method, vocabulary, resourceName) ->
 			mergeHooks(
@@ -388,8 +390,8 @@ runHook = Promise.method (hookName, args) ->
 
 # The execution order of rollback actions is unspecified
 undoHooks = (request) ->
-	Promise.map _.flatMap(request.hooks, _.identity), (hook) ->
-		if hook.executed
+	Promise.map _.flatten(_.values(request.hooks)), (hook) ->
+		if hook instanceof SideEffectHook and hook.executed
 			hook.rollback()
 
 exports.deleteModel = (vocabulary, callback) ->
@@ -997,15 +999,16 @@ exports.executeStandardModels = executeStandardModels = (tx, callback) ->
 		console.error('Failed to execute standard models.', err, err.stack)
 	.nodeify(callback)
 
-exports.addHook = (method, apiRoot, resourceName, hooks) ->
-	pureHooks = _.mapValues hooks, (hook) ->
-		{
-			HOOK: hook
-			ROLLBACK: _.noop
-		}
-	exports.addSideEffectHook(method, apiRoot, resourceName, pureHooks)
 
 exports.addSideEffectHook = (method, apiRoot, resourceName, hooks) ->
+	sideEffectHook = _.mapValues hooks, (hook) ->
+		{
+			HOOK: hook
+			effects: true
+		}
+	exports.addHook(method, apiRoot, resourceName, sideEffectHook)
+
+exports.addHook = (method, apiRoot, resourceName, hooks) ->
 	methodHooks = apiHooks[method]
 	if !methodHooks?
 		throw new Error('Unsupported method: ' + method)
