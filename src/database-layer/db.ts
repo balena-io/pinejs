@@ -198,8 +198,6 @@ export abstract class Tx {
 		this.executeSql = (sql, bindings = [], callback, ...args) => {
 			pendingExecutes.increment()
 
-			sql = bindDefaultValues(sql, bindings)
-
 			return executeSql(sql, bindings, ...args)
 				.finally(pendingExecutes.decrement)
 				.catch(NotADatabaseError, (err: CodedError) => {
@@ -417,6 +415,7 @@ if (maybeMysql != null) {
 			constructor(db: _mysql.IConnection, close: CloseTransactionFn, stackTraceErr?: Error) {
 				const executeSql: InternalExecuteSql = (sql, bindings) => {
 					return Promise.fromCallback((callback) => {
+						sql = bindDefaultValues(sql, bindings)
 						db.query(sql, bindings, callback)
 					}).catch({ code: MYSQL_UNIQUE_VIOLATION }, (err) => {
 						// We know that the type is an IError for mysql, but typescript doesn't like the catch obj sugar
