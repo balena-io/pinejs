@@ -243,7 +243,7 @@ export abstract class Tx {
 	}
 }
 
-const getStackTraceErr: (() => Error | undefined) = DEBUG ? () => undefined : () => new Error()
+const getStackTraceErr: (() => Error | undefined) = DEBUG ? () => new Error() : (_.noop as () => undefined)
 
 const createTransaction = (createFunc: CreateTransactionFn) => {
 	return (callback?: (tx: Tx) => void) => {
