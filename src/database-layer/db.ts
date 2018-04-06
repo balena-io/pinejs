@@ -58,26 +58,7 @@ class ForeignKeyConstraintError extends ConstraintError {}
 
 const NotADatabaseError = (err: any) => !(err instanceof DatabaseError)
 
-const DEFAULT_VALUE = {}
-const bindDefaultValues = (sql: Sql, bindings: Bindings) => {
-	if (!_.some(bindings, (binding) => binding === DEFAULT_VALUE)) {
-		// We don't have to do any work if none of the bindings match DEFAULT_VALUE
-		return sql
-	}
-	let bindNo = 0
-	return sqlBinds(sql, () => {
-		if (bindings[bindNo] === DEFAULT_VALUE) {
-			bindings.splice(bindNo, 1)
-			return 'DEFAULT'
-		} else {
-			bindNo++
-			return '?'
-		}
-	})
-}
-
 const alwaysExport = {
-	DEFAULT_VALUE,
 	DatabaseError,
 	ConstraintError,
 	UniqueConstraintError,
@@ -313,9 +294,6 @@ if (maybePg != null) {
 								const bindString = _.map(bindings[initialBindNo], () => '$' + ++bindNo).join(',')
 								Array.prototype.splice.apply(bindings, [initialBindNo, 1].concat(bindings[initialBindNo]))
 								return bindString
-							} else if (bindings[bindNo] === DEFAULT_VALUE) {
-								bindings.splice(bindNo, 1)
-								return 'DEFAULT'
 							} else {
 								return '$' + ++bindNo
 							}
@@ -410,7 +388,6 @@ if (maybeMysql != null) {
 			constructor(db: _mysql.IConnection, close: CloseTransactionFn, stackTraceErr?: Error) {
 				const executeSql: InternalExecuteSql = (sql, bindings) => {
 					return Promise.fromCallback((callback) => {
-						sql = bindDefaultValues(sql, bindings)
 						db.query(sql, bindings, callback)
 					}).catch({ code: MYSQL_UNIQUE_VIOLATION }, (err) => {
 						// We know that the type is an IError for mysql, but typescript doesn't like the catch obj sugar
@@ -524,8 +501,6 @@ if (typeof window !== 'undefined' && window.openDatabase != null) {
 
 				const executeSql = (sql: Sql, bindings: Bindings) => {
 					return new Promise((resolve, reject) => {
-						const boundSql = bindDefaultValues(sql, bindings)
-
 						const successCallback: SQLStatementCallback = (_tx, results) => {
 							resolve(results)
 						}
@@ -534,7 +509,7 @@ if (typeof window !== 'undefined' && window.openDatabase != null) {
 							return false
 						}
 
-						queue.push([boundSql, bindings, successCallback, errorCallback])
+						queue.push([sql, bindings, successCallback, errorCallback])
 					}).catch({ code: WEBSQL_CONSTRAINT_ERR }, () => {
 						throw new ConstraintError('Constraint failed.')
 					}).then(createResult)
