@@ -176,7 +176,7 @@ getAndCheckBindValues = (vocab, odataBinds, bindings, values) ->
 			field = { dataType }
 
 		if value is undefined
-			return db.DEFAULT_VALUE
+			throw new Error("Bind value cannot be undefined: #{binding}")
 
 		AbstractSQLCompiler.dataTypeValidate(value, field)
 		.tapCatch (e) ->
