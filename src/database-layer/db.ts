@@ -293,7 +293,7 @@ if (maybePg != null) {
 					map: (iterator, thisArg) => rows.map(iterator, thisArg),
 				},
 				rowsAffected: rowCount,
-				insertId: _.get(rows, '0.id'),
+				insertId: _.get(rows, [ 0, 'id' ]),
 			}
 		}
 		class PostgresTx extends Tx {
