@@ -76,6 +76,7 @@ exports.parseOData = (b) ->
 
 			return {
 				method: b.method
+				url: b.url
 				vocabulary: apiRoot
 				resourceName: odata.tree.resource
 				odataBinds: odata.binds
@@ -117,6 +118,7 @@ parseODataChangeset = (env, b) ->
 
 	parseResult = {
 		method: b.method
+		url: b.url
 		vocabulary: apiRoot
 		resourceName: odata.tree.resource
 		odataBinds: odata.binds
@@ -147,12 +149,13 @@ mustExtractHeader = (body, header) ->
 exports.translateUri = (request) ->
 	if request.abstractSqlQuery?
 		return request
-	{ method, vocabulary, resourceName, odataBinds, odataQuery, values, custom, id, hooks, _defer } = request
+	{ method, url, vocabulary, resourceName, odataBinds, odataQuery, values, custom, id, hooks, _defer } = request
 	isMetadataEndpoint = resourceName in metadataEndpoints or method is 'OPTIONS'
 	if !isMetadataEndpoint
 		abstractSqlQuery = memoizedOdata2AbstractSQL(vocabulary, odataQuery, method, values)
 		return {
 			method
+			url
 			vocabulary
 			resourceName
 			odataBinds
@@ -166,6 +169,7 @@ exports.translateUri = (request) ->
 		}
 	return {
 		method
+		url
 		vocabulary
 		resourceName
 		hooks
