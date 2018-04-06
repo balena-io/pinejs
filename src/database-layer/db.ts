@@ -20,12 +20,7 @@ interface Row {
 	[fieldName: string]: any
 }
 interface Result {
-	rows: {
-		length: number
-		item: (i: number) => Row
-		forEach: (fn: (value: Row, index: number) => void, thisArg?: any) => void
-		map: <T>(iterator: (value: Row, index: number) => T, thisArg?: any) => T[]
-	}
+	rows: Array<Row>
 	rowsAffected: number
 	insertId?: number
 }
@@ -315,16 +310,9 @@ if (maybePg != null) {
 		}
 		const connect = Promise.promisify(pool.connect, { context: pool })
 
-		const createResult = ({ rowCount, rows }: { rowCount: number, rows: Array<{id?: number}> }): Result => {
+		const createResult = ({ rowCount, rows }: { rowCount: number, rows: Array<Row> }): Result => {
 			return {
-				rows: {
-					length: _.get(rows, 'length', 0),
-					item: (i) => rows[i],
-					forEach: (iterator, thisArg) => {
-						rows.forEach(iterator, thisArg)
-					},
-					map: (iterator, thisArg) => rows.map(iterator, thisArg),
-				},
+				rows,
 				rowsAffected: rowCount,
 				insertId: _.get(rows, [ 0, 'id' ]),
 			}
@@ -428,20 +416,13 @@ if (maybeMysql != null) {
 		})
 		const connect = Promise.promisify(pool.getConnection, { context: pool })
 
-		interface MysqlRowArray extends Array<{}> {
+		interface MysqlRowArray extends Array<Row> {
 			affectedRows: number
 			insertId?: number
 		}
 		const createResult = (rows: MysqlRowArray): Result => {
 			return {
-				rows: {
-					length: (rows != null ? rows.length : 0) || 0,
-					item: (i) => rows[i],
-					forEach: (iterator, thisArg) => {
-						rows.forEach(iterator, thisArg)
-					},
-					map: (iterator, thisArg) => rows.map(iterator, thisArg),
-				},
+				rows,
 				rowsAffected: rows.affectedRows,
 				insertId: rows.insertId,
 			}
@@ -533,19 +514,11 @@ if (typeof window !== 'undefined' && window.openDatabase != null) {
 			} catch (e) {}
 		}
 		const createResult = (result: WebSqlResult): Result => {
+			const rows = _.times(result.rows.length, (i) => {
+				return result.rows.item(i)
+			})
 			return {
-				rows: {
-					length: result.rows.length,
-					item: (i) => _.clone(result.rows.item(i)),
-					forEach: (iterator, thisArg) => {
-						this.map(iterator, thisArg)
-					},
-					map: (iterator, thisArg) => {
-						return _.times(result.rows.length, (i) => {
-							return iterator.call(thisArg, this.item(i), i, result.rows)
-						})
-					},
-				},
+				rows: rows,
 				rowsAffected: result.rowsAffected,
 				insertId: getInsertId(result),
 			}
