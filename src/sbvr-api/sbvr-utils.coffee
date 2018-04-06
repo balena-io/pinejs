@@ -376,7 +376,7 @@ class Hook
 	run: (args...) ->
 		Promise.try =>
 			@hookFn(args...)
-		.tap =>
+		.finally =>
 			@executed = true
 
 class SideEffectHook extends Hook
