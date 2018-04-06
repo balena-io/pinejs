@@ -280,7 +280,6 @@ if (maybePg != null) {
 		class PostgresTx extends Tx {
 			constructor(db: _pg.Client, close: CloseTransactionFn, stackTraceErr?: Error) {
 				const executeSql: InternalExecuteSql = (sql, bindings, addReturning = false) => {
-					bindings = bindings.slice(0) // Deal with the fact we may splice arrays directly into bindings
 					if (addReturning && /^\s*INSERT\s+INTO/i.test(sql)) {
 						sql = sql.replace(/;?$/, ' RETURNING "' + addReturning + '";')
 					}
@@ -288,16 +287,7 @@ if (maybePg != null) {
 					// We only need to perform the bind replacements if there is at least one binding!
 					if (_.includes(sql, '?')) {
 						let bindNo = 0
-						sql = sqlBinds(sql, () => {
-							if (Array.isArray(bindings[bindNo])) {
-								const initialBindNo = bindNo
-								const bindString = _.map(bindings[initialBindNo], () => '$' + ++bindNo).join(',')
-								Array.prototype.splice.apply(bindings, [initialBindNo, 1].concat(bindings[initialBindNo]))
-								return bindString
-							} else {
-								return '$' + ++bindNo
-							}
-						})
+						sql = sqlBinds(sql, () => '$' + ++bindNo)
 					}
 
 					return Promise.fromCallback((callback) => {
