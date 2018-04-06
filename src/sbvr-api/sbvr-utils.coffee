@@ -356,12 +356,15 @@ getHooks = do ->
 	_getHooks.clear = -> getMethodHooks.clear()
 	return _getHooks
 
-runHook = (hookName, args) ->
+runHook = Promise.method (hookName, args) ->
+	hooks = args.req.hooks[hookName] || []
+	requestHooks = args.request?.hooks?[hookName]
+	if requestHooks?
+		hooks = hooks.concat(requestHooks)
+	return if hooks.length is 0
 	Object.defineProperty args, 'api',
 		get: _.once ->
 			return api[args.request.vocabulary].clone(passthrough: _.pick(args, 'req', 'tx'))
-	hooks = args.req.hooks[hookName] || []
-	hooks = hooks.concat(args.request?.hooks?[hookName] || [])
 	Promise.map hooks, (hook) ->
 		hook(args)
 
