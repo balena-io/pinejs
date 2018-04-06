@@ -212,7 +212,7 @@ exports.validateModel = validateModel = (tx, modelName, request) ->
 		.then (values) ->
 			tx.executeSql(rule.sql, values)
 		.then (result) ->
-			if result.rows.item(0).result in [false, 0, '0']
+			if result.rows[0].result in [false, 0, '0']
 				throw new SbvrValidationError(rule.structuredEnglish)
 
 exports.executeModel = executeModel = (tx, model, callback) ->
@@ -406,7 +406,6 @@ exports.getID = (vocab, request) ->
 	return 0
 
 checkForExpansion = do ->
-	rowsObjectHack = (i) -> @[i]
 	Promise.method (vocab, abstractSqlModel, parentResourceName, fieldName, instance) ->
 		try
 			field = JSON.parse(instance[fieldName])
@@ -415,8 +414,6 @@ checkForExpansion = do ->
 			field = instance[fieldName]
 
 		if _.isArray(field)
-			# Hack to look like a rows object
-			field.item = rowsObjectHack
 			mappingResourceName = resolveNavigationResource({
 				abstractSqlModel
 				vocabulary: vocab
@@ -473,8 +470,8 @@ processOData = do ->
 			return Promise.fulfilled([])
 
 		if rows.length is 1
-			if rows.item(0).$count?
-				count = parseInt(rows.item(0).$count, 10)
+			if rows[0].$count?
+				count = parseInt(rows[0].$count, 10)
 				return Promise.fulfilled(count)
 
 		sqlResourceName = resolveSynonym({ abstractSqlModel, vocabulary: vocab, resourceName })

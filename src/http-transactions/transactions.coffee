@@ -28,7 +28,7 @@ exports.setup = (app, sbvrUtils) ->
 				logger.error('Unable to check resource locks', err, err.stack)
 				throw new Error('Unable to check resource locks')
 			.then (result) ->
-				if result.rows.item(0).result in [false, 0, '0']
+				if result.rows[0].result in [false, 0, '0']
 					throw new Error('The resource is locked and cannot be edited')
 
 		endTransaction = (transactionID) ->
@@ -102,14 +102,14 @@ exports.setup = (app, sbvrUtils) ->
 							when 'DELETE'
 								getLockedRow(lockID)
 								.then (lockedRow) ->
-									lockedRow = lockedRow.rows.item(0)
+									lockedRow = lockedRow.rows[0]
 									url = url + '?$filter=' + clientModel.idField + ' eq ' + lockedRow.resource_id
 									sbvrUtils.PinejsClient::delete({ url, passthrough })
 								.then(doCleanup)
 							when 'EDIT'
 								getLockedRow(lockID)
 								.then (lockedRow) ->
-									lockedRow = lockedRow.rows.item(0)
+									lockedRow = lockedRow.rows[0]
 									getFieldsObject(conditionalResource.id, clientModel)
 									.then (body) ->
 										body[clientModel.idField] = lockedRow.resource_id
