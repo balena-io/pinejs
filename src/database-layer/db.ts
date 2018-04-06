@@ -4,7 +4,6 @@ import * as _pg from 'pg'
 
 import * as _ from 'lodash'
 import * as Promise from 'bluebird'
-import sqlBinds = require('./sql-binds')
 import TypedError = require('typed-error')
 
 const { DEBUG } = process.env
@@ -303,12 +302,6 @@ if (maybePg != null) {
 				const executeSql: InternalExecuteSql = (sql, bindings, addReturning = false) => {
 					if (addReturning && /^\s*INSERT\s+INTO/i.test(sql)) {
 						sql = sql.replace(/;?$/, ' RETURNING "' + addReturning + '";')
-					}
-
-					// We only need to perform the bind replacements if there is at least one binding!
-					if (_.includes(sql, '?')) {
-						let bindNo = 0
-						sql = sqlBinds(sql, () => '$' + ++bindNo)
 					}
 
 					return Promise.fromCallback((callback) => {

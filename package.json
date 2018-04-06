@@ -14,7 +14,7 @@
     "test": "npm run lint && npm run build"
   },
   "dependencies": {
-    "@resin/abstract-sql-compiler": "^3.3.0",
+    "@resin/abstract-sql-compiler": "^4.0.0",
     "@resin/lf-to-abstract-sql": "^1.0.4",
     "@resin/odata-parser": "^0.2.5",
     "@resin/odata-to-abstract-sql": "^1.1.1",
