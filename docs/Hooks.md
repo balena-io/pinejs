@@ -10,7 +10,7 @@ The hook will now have access to a `registerRollback` function defined on the ho
 The following example of a side-effect hook will create two external resources and register the appropriate rollback actions.
 
 ```coffee
-addSideEffectHook :
+addSideEffectHook 'method', 'vocabulary', 'resource',
 	PHASE: () ->
 		createExternalResource(1)
 		.then (id1) =>
@@ -70,8 +70,5 @@ The database transaction object, so that you can run queries in the same transac
 ### api
 An instance of pinejs-client for the current api, using the permissions and transaction of the current request.
 In the case of not being in a transaction, ie in cases where the `tx` argument is null, any requests via this object will be run in their own, separate, transaction.
-
-### registerRollback
-An argument only supplied for side-effect hooks. Used to store the necessary information to undo a hooks side effects.
 
 See [tx](./CustomServerCode.md#markdown-header-tx_2)
