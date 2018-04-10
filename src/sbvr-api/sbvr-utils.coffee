@@ -382,12 +382,20 @@ class Hook
 class SideEffectHook extends Hook
 	constructor: (hookFn) ->
 		@rollbackFns = []
+		@rolledBack = false
 		super(hookFn)
 
 	registerRollback: (fn) ->
-		@rollbackFns.push(Promise.method(fn))
+		runFn = Promise.method(fn)
+		if @rolledBack
+			runFn()
+		else
+			@rollbackFns.push(runFn)
 
 	rollback: ->
+		# set rolledBack to true straight away, so that if any rollback action
+		# is registered after the rollback call, we will immediately execute it
+		@rolledBack = true
 		Promise.each(@rollbackFns, (fn) -> fn())
 
 runHooks = (hookName, args) ->
