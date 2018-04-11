@@ -13,6 +13,7 @@ ODataMetadataGenerator = require '../sbvr-compiler/ODataMetadataGenerator'
 
 devModel = require './dev.sbvr'
 permissions = require './permissions'
+translations = require '../translations'
 uriParser = require './uri-parser'
 errors = require './errors'
 _.assign(exports, errors)
@@ -32,10 +33,15 @@ _.assign(exports, errors)
 controlFlow = require './control-flow'
 memoize = require 'memoizee'
 memoizedCompileRule = memoize(
-	(abstractSqlQuery) ->
-		AbstractSQLCompiler.compileRule(abstractSqlQuery)
+	(abstractSqlQuery, vocabulary) ->
+		AbstractSQLCompiler.compileRule(abstractSqlQuery, vocabulary)
 	primitive: true
 )
+compileAbstractSqlQuery = (abstractSqlQuery, vocabulary) ->
+	console.log('got', vocabulary)
+	vocab = if translationModels[vocabulary] then vocabulary else null
+	console.log('obtained', vocab)
+	memoizedCompileRule(abstractSqlQuery, vocab)
 
 { DEBUG } = process.env
 
@@ -53,6 +59,7 @@ seModels = {}
 abstractSqlModels = {}
 sqlModels = {}
 odataMetadata = {}
+translationModels = {}
 
 apiHooks =
 	all: {}
@@ -207,6 +214,86 @@ exports.validateModel = validateModel = (tx, modelName, request) ->
 			if result.rows.item(0).result in [false, 0, '0']
 				throw new SbvrValidationError(rule.structuredEnglish)
 
+parseModel = (vocab, seModel) ->
+	Promise.try ->
+		SBVRParser.matchAll(seModel, 'Process')
+	.catch (e) ->
+		console.error('Error parsing model', vocab, e, e.stack)
+		throw new Error(['Error parsing model', e])
+
+compileModel = (vocab, { seModel, lfModel }) ->
+	Promise.try ->
+		abstractSqlModel = LF2AbstractSQLTranslator(lfModel, 'Process')
+		sqlModel = AbstractSQLCompiler.compileSchema(abstractSqlModel)
+		metadata = ODataMetadataGenerator(vocab, sqlModel)
+
+		return {
+			seModel
+			lfModel
+			abstractSqlModel
+			sqlModel
+			metadata
+		}
+	.catch (e) ->
+		console.error('Error compiling model', vocab, e, e.stack)
+		throw new Error(['Error compiling model', e])
+
+processModel = (vocab, seModel) ->
+	parseModel(vocab, seModel)
+	.then (lfModel) ->
+		console.log('calling compile')
+		compileModel(vocab, { seModel, lfModel })
+
+instantiateModel = (vocab, seModel, abstractSqlModel, sqlModel, metadata) ->
+	seModels[vocab] = seModel
+	abstractSqlModels[vocab] = abstractSqlModel
+	sqlModels[vocab] = sqlModel
+	odataMetadata[vocab] = metadata
+
+setApiEndpoint = (vocab, model) ->
+	api[vocab] = new PinejsClient('/' + vocab + '/')
+	api[vocab].logger = {}
+	for key, value of console
+		if _.isFunction(value)
+			if model.logging?[key] ? model.logging?.default ? true
+				api[vocab].logger[key] = do (key) ->
+					return ->
+						console[key](vocab + ':', arguments...)
+			else
+				api[vocab].logger[key] = _.noop
+		else
+			api[vocab].logger[key] = value
+
+exports.addTranslationModel = addTranslationModel = (tx, model, callback) ->
+	seModel = model.modelText
+	vocab = model.apiRoot
+	processModel(vocab, seModel)
+	.then ({ lfModel, abstractSqlModel, sqlModel, metadata }) ->
+		instantiateModel(vocab, seModel, abstractSqlModel, sqlModel, metadata)
+		translationModels[vocab] = true
+
+
+		uriParser.addClientModel(vocab, abstractSqlModel)
+		translations.createNamespace(tx, vocab)
+		.then ->
+			console.log('About to create')
+			# console.log(model)
+			# add "create schema if not exists vocab" here
+			Promise.each _.values(sqlModel.tables), (table) ->
+				translations.createView(tx, table, model)
+		.then ->
+			setApiEndpoint(vocab, model)
+
+			return {
+				vocab: vocab
+				se: seModel
+				lf: lfModel
+				abstractsql: abstractSqlModel
+				sql: sqlModel
+			}
+	.tapCatch (e) ->
+		console.error('Got, error', model.apiRoot, e)
+
 exports.executeModel = executeModel = (tx, model, callback) ->
 	executeModels(tx, [model], callback)
 
@@ -215,21 +302,10 @@ exports.executeModels = executeModels = (tx, models, callback) ->
 		seModel = model.modelText
 		vocab = model.apiRoot
 
-		migrator.run(tx, model).then ->
-			try
-				lfModel = SBVRParser.matchAll(seModel, 'Process')
-			catch e
-				console.error('Error parsing model', vocab, e, e.stack)
-				throw new Error(['Error parsing model', e])
-
-			try
-				abstractSqlModel = LF2AbstractSQLTranslator(lfModel, 'Process')
-				sqlModel = AbstractSQLCompiler.compileSchema(abstractSqlModel)
-				metadata = ODataMetadataGenerator(vocab, sqlModel)
-			catch e
-				console.error('Error compiling model', vocab, e, e.stack)
-				throw new Error(['Error compiling model', e])
-
+		migrator.run(tx, model)
+		.then ->
+			processModel(vocab, seModel)
+		.then ({ lfModel, abstractSqlModel, sqlModel, metadata }) ->
 			# Create tables related to terms and fact types
 			# Use `Promise.reduce` to run statements sequentially, as the order of the CREATE TABLE statements matters (eg. for foreign keys).
 			Promise.each sqlModel.createSchema, (createStatement) ->
@@ -239,11 +315,7 @@ exports.executeModels = executeModels = (tx, models, callback) ->
 						console.warn("Ignoring errors in the create table statements for websql as it doesn't support CREATE IF NOT EXISTS", err)
 				return promise
 			.then ->
-				seModels[vocab] = seModel
-				abstractSqlModels[vocab] = abstractSqlModel
-				sqlModels[vocab] = sqlModel
-				odataMetadata[vocab] = metadata
-
+				instantiateModel(vocab, seModel, abstractSqlModel, sqlModel, metadata)
 				uriParser.addClientModel(vocab, abstractSqlModel)
 
 				# Validate the [empty] model according to the rules.
@@ -251,18 +323,7 @@ exports.executeModels = executeModels = (tx, models, callback) ->
 				# For the moment it blocks such models from execution.
 				validateModel(tx, vocab)
 			.then ->
-				api[vocab] = new PinejsClient('/' + vocab + '/')
-				api[vocab].logger = {}
-				for key, value of console
-					if _.isFunction(value)
-						if model.logging?[key] ? model.logging?.default ? true
-							api[vocab].logger[key] = do (key) ->
-								return ->
-									console[key](vocab + ':', arguments...)
-						else
-							api[vocab].logger[key] = _.noop
-					else
-						api[vocab].logger[key] = value
+				setApiEndpoint(vocab, model)
 
 				return {
 					vocab: vocab
@@ -690,25 +751,31 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 		mapSeries body, (bodypart) ->
 			uriParser.parseOData(bodypart)
 			.then controlFlow.liftP (request) ->
+				# console.log('postparse', request)
+
 				# Get the full hooks list now that we can. We clear the hooks on
 				# the global req to avoid duplication
 				req.hooks = {}
 				request.hooks = getHooks(request)
+				# console.log('before postparse', request)
 				# Add/check the relevant permissions
 				runHook('POSTPARSE', { req, request, tx: req.tx })
 				.return(request)
 				.then (uriParser.translateUri)
 				.then (request) ->
+					# console.log('postparse', request)
+
 					# We defer compilation of abstract sql queries with references to other requests
 					if request.abstractSqlQuery? && !request._defer
 						try
-							request.sqlQuery = memoizedCompileRule(request.abstractSqlQuery)
+							request.sqlQuery = compileAbstractSqlQuery(request.abstractSqlQuery, request.vocabulary)
 						catch err
 							api[apiRoot].logger.error('Failed to compile abstract sql: ', request.abstractSqlQuery, err, err.stack)
 							throw new SqlCompilationError(err)
 					return request
 
 			.then (request) ->
+				console.log('request', request)
 				# Run the request in its own transaction
 				runTransaction req, (tx) ->
 					if _.isArray request
@@ -718,6 +785,7 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 					else
 						runRequest(req, res, tx, request)
 	.then (results) ->
+		# console.log('results', results)
 		mapSeries results, (result) ->
 			if _.isError(result)
 				return constructError(result)
@@ -826,7 +894,7 @@ updateBinds = (env, request) ->
 					uriParser.parseId(ref.body.id)
 			else
 				[tag, id]
-		request.sqlQuery = memoizedCompileRule(request.abstractSqlQuery)
+		request.sqlQuery = compileAbstractSqlQuery(request.abstractSqlQuery, request.vocabulary)
 	return request
 
 prepareResponse = (req, res, request, result, tx) ->
@@ -875,6 +943,7 @@ runQuery = (tx, request, queryIndex, addReturning) ->
 
 runGet = (req, res, request, tx) ->
 	if request.sqlQuery?
+		console.log('Running get: ', request.sqlQuery)
 		runQuery(tx, request)
 
 respondGet = (req, res, request, result, tx) ->
@@ -898,9 +967,10 @@ runPost = (req, res, request, tx) ->
 	vocab = request.vocabulary
 
 	idField = getAbstractSqlModel(request).tables[resolveSynonym(request)].idField
-
+	console.log('Got idField', idField)
 	runQuery(tx, request, null, idField)
 	.then (sqlResult) ->
+		console.log('Got', sqlResult)
 		validateModel(tx, vocab, request)
 		.then ->
 			# Return the inserted/updated id.
@@ -912,7 +982,11 @@ runPost = (req, res, request, tx) ->
 respondPost = (req, res, request, result, tx) ->
 	vocab = request.vocabulary
 	id = result
+	console.log('Got id', id)
+
 	location = odataResourceURI(vocab, request.resourceName, id)
+	console.log('Got location', location)
+
 	api[vocab].logger.log('Insert ID: ', request.resourceName, id)
 	Promise.try ->
 		onlyId = d: [{ id }]
