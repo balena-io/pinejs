@@ -378,7 +378,7 @@ getHooks = do ->
 	_getHooks.clear = -> getMethodHooks.clear()
 	return _getHooks
 
-runHook = Promise.method (hookName, args) ->
+runHooks = Promise.method (hookName, args) ->
 	hooks = args.req.hooks[hookName] || []
 	requestHooks = args.request?.hooks?[hookName]
 	if requestHooks?
@@ -702,22 +702,22 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 	res.on 'close', ->
 		handlePromise.cancel()
 
-	handlePromise = runHooks('PREPARSE', { req, request, tx: req.tx })
+	handlePromise = runHooks('PREPARSE', { req, tx: req.tx })
 	.then ->
 		{ method, url, body } = req
 
 		# Check if it is a single request or a batch
 		body = if req.batch?.length > 0 then req.batch else [{ method: method, url: url, data: body }]
 		# Parse the OData requests
-		mapSeries body, (bodypart) ->
-			uriParser.parseOData(bodypart)
+		mapSeries body, (request) ->
+			uriParser.parseOData(request)
 			.then controlFlow.liftP (request) ->
 				# Get the full hooks list now that we can. We clear the hooks on
 				# the global req to avoid duplication
 				req.hooks = {}
 				request.hooks = getHooks(request)
 				# Add/check the relevant permissions
-				runHook('POSTPARSE', { req, request, tx: req.tx })
+				runHooks('POSTPARSE', { req, request, tx: req.tx })
 				.return(request)
 				.then (uriParser.translateUri)
 				.then (request) ->
@@ -729,6 +729,8 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 							api[apiRoot].logger.error('Failed to compile abstract sql: ', request.abstractSqlQuery, err, err.stack)
 							throw new SqlCompilationError(err)
 					return request
+				.tapCatch ->
+					rollbackRequestHooks(request)
 
 			.then (request) ->
 				# Run the request in its own transaction
@@ -739,6 +741,8 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 						.then (env) -> Array.from(env.values())
 					else
 						runRequest(req, res, tx, request)
+				.tapCatch ->
+					rollbackRequestHooks(request)
 	.then (results) ->
 		mapSeries results, (result) ->
 			if _.isError(result)
@@ -799,7 +803,7 @@ runRequest = (req, res, tx, request) ->
 	if DEBUG
 		logger.log('Running', req.method, req.url)
 	# Forward each request to the correct method handler
-	runHook('PRERUN', { req, request, tx })
+	runHooks('PRERUN', { req, request, tx })
 	.then ->
 		switch request.method
 			when 'GET'
@@ -820,7 +824,7 @@ runRequest = (req, res, tx, request) ->
 		logger.error(err, err.stack)
 		throw new InternalRequestError()
 	.tap (result) ->
-		runHook('POSTRUN', { req, request, result, tx })
+		runHooks('POSTRUN', { req, request, result, tx })
 	.then (result) ->
 		prepareResponse(req, res, request, result, tx)
 
@@ -898,7 +902,7 @@ respondGet = (req, res, request, result, tx) ->
 	if request.sqlQuery?
 		processOData(vocab, getAbstractSqlModel(request), request.resourceName, result.rows)
 		.then (d) ->
-			runHook('PRERESPOND', { req, res, request, result, data: d, tx: tx })
+			runHooks('PRERESPOND', { req, res, request, result, data: d, tx: tx })
 			.then ->
 				{ body: { d }, headers: { contentType: 'application/json' } }
 	else
@@ -940,7 +944,7 @@ respondPost = (req, res, request, result, tx) ->
 		# If we failed to fetch the created resource then just return the id.
 		.catchReturn(onlyId)
 	.then (result) ->
-		runHook('PRERESPOND', { req, res, request, result, tx: tx })
+		runHooks('PRERESPOND', { req, res, request, result, tx: tx })
 		.then ->
 			status: 201
 			body: result.d[0]
@@ -967,7 +971,7 @@ runPut = (req, res, request, tx) ->
 		validateModel(tx, vocab, request)
 
 respondPut = respondDelete = respondOptions = (req, res, request, result, tx) ->
-	runHook('PRERESPOND', { req, res, request, tx: tx })
+	runHooks('PRERESPOND', { req, res, request, tx: tx })
 	.then ->
 		status: 200
 		headers: {}

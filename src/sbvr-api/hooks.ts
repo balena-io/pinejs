@@ -3,10 +3,6 @@ import * as Promise from 'bluebird'
 import * as controlFlow from './control-flow'
 
 type RollbackAction = () => any
-interface RequestEnv {
-	req: {}
-	request: {}
-}
 
 class Hook {
 	hookFn: Function
@@ -58,14 +54,12 @@ const undoHooks = function (request: any) {
 	})
 }
 
-exports.rollbackRequestHooks = function (requestEnv: RequestEnv) {
-	const undoReq = function ({ request }: RequestEnv) {
-		return undoHooks(request)
+exports.rollbackRequestHooks = function (request: any) {
+	if (_.isArray(request)) {
+		return controlFlow.settleMapSeries(request, undoHooks)
+	} else {
+		undoHooks(request)
 	}
-	if (_.isArray(requestEnv))
-		return controlFlow.settleMapSeries(requestEnv, undoReq)
-	else
-		return undoReq(requestEnv)
 }
 
 exports.Hook = Hook
