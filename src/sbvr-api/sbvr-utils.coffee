@@ -709,8 +709,8 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 		# Check if it is a single request or a batch
 		body = if req.batch?.length > 0 then req.batch else [{ method: method, url: url, data: body }]
 		# Parse the OData requests
-		mapSeries body, (request) ->
-			uriParser.parseOData(request)
+		mapSeries body, (bodypart) ->
+			uriParser.parseOData(bodypart)
 			.then controlFlow.liftP (request) ->
 				# Get the full hooks list now that we can. We clear the hooks on
 				# the global req to avoid duplication

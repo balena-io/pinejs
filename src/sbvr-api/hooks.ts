@@ -29,10 +29,11 @@ class SideEffectHook extends Hook {
 	}
 
 	registerRollback(fn: RollbackAction) {
-		if (this.rolledBack)
+		if (this.rolledBack) {
 			Promise.try(fn)
-		else
+		} else {
 			this.rollbackFns.push(fn)
+		}
 		return
 	}
 
@@ -48,9 +49,11 @@ class SideEffectHook extends Hook {
 // The execution order of rollback actions is unspecified
 const undoHooks = function (request: any) {
 	return controlFlow.settleMapSeries(_.flatten(_.values(request.hooks)), function(hook) {
-		if (hook instanceof SideEffectHook)
+		if (hook instanceof SideEffectHook) {
 			return hook.rollback()
-		else return Promise.resolve() as Promise<any>
+		} else {
+			return Promise.resolve() as Promise<any>
+		}
 	})
 }
 
@@ -58,7 +61,7 @@ exports.rollbackRequestHooks = function (request: any) {
 	if (_.isArray(request)) {
 		return controlFlow.settleMapSeries(request, undoHooks)
 	} else {
-		undoHooks(request)
+		return undoHooks(request)
 	}
 }
 
