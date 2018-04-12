@@ -702,7 +702,7 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 	res.on 'close', ->
 		handlePromise.cancel()
 
-	handlePromise = runHook('PREPARSE', { req, tx: req.tx })
+	handlePromise = runHooks('PREPARSE', { req, request, tx: req.tx })
 	.then ->
 		{ method, url, body } = req
 
