@@ -19,6 +19,7 @@ devModel = require './dev.sbvr'
 permissions = require './permissions'
 uriParser = require './uri-parser'
 errors = require './errors'
+{ Hook, SideEffectHook, rollbackRequestHooks } = require './hooks'
 _.assign(exports, errors)
 {
 	BadRequestError
@@ -353,7 +354,8 @@ getHooks = do ->
 			_.map typeHooks, (hook) ->
 				if hook.effects
 					new SideEffectHook(hook.HOOK)
-				else new Hook(hook)
+				else
+					new Hook(hook)
 	getMethodHooks = memoize(
 		(method, vocabulary, resourceName) ->
 			mergeHooks(
@@ -387,12 +389,6 @@ runHook = Promise.method (hookName, args) ->
 			return api[args.request.vocabulary].clone(passthrough: _.pick(args, 'req', 'tx'))
 	Promise.map hooks, (hook) ->
 		hook.run(args)
-
-# The execution order of rollback actions is unspecified
-undoHooks = (request) ->
-	Promise.map _.flatten(_.values(request.hooks)), (hook) ->
-		if hook instanceof SideEffectHook and hook.executed
-			hook.rollback()
 
 exports.deleteModel = (vocabulary, callback) ->
 	db.transaction (tx) ->
