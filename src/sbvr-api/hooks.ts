@@ -4,8 +4,8 @@ import * as controlFlow from './control-flow'
 
 type RollbackAction = () => any
 
-class Hook {
-	hookFn: Function
+export class Hook {
+	private hookFn: Function
 
 	constructor(hookFn: Function) {
 		this.hookFn = hookFn
@@ -18,14 +18,12 @@ class Hook {
 	}
 }
 
-class SideEffectHook extends Hook {
-	rollbackFns: RollbackAction[]
-	rolledBack: boolean
+export class SideEffectHook extends Hook {
+	private rollbackFns: RollbackAction[] = []
+	private rolledBack: boolean = false
 
-	constructor(hookFn: Function) {
+	constructor(hookFn: () => any) {
 		super(hookFn)
-		this.rollbackFns = []
-		this.rolledBack = false
 	}
 
 	registerRollback(fn: RollbackAction) {
@@ -34,25 +32,22 @@ class SideEffectHook extends Hook {
 		} else {
 			this.rollbackFns.push(fn)
 		}
-		return
 	}
 
 	rollback() {
 		// set rolledBack to true straight away, so that if any rollback action
 		// is registered after the rollback call, we will immediately execute it
 		this.rolledBack = true
-		return controlFlow.settleMapSeries(this.rollbackFns, _.attempt)
+		return controlFlow.settleMapSeries(this.rollbackFns, _.attempt).return()
 	}
 }
 
 
 // The execution order of rollback actions is unspecified
 const undoHooks = function (request: any) {
-	return controlFlow.settleMapSeries(_.flatten(_.values(request.hooks)), function(hook) {
+	return controlFlow.settleMapSeries(_.flatten(_.values(request.hooks)), (hook) => {
 		if (hook instanceof SideEffectHook) {
 			return hook.rollback()
-		} else {
-			return Promise.resolve() as Promise<any>
 		}
 	})
 }
@@ -64,6 +59,3 @@ exports.rollbackRequestHooks = function (request: any) {
 		return undoHooks(request)
 	}
 }
-
-exports.Hook = Hook
-exports.SideEffectHook = SideEffectHook
