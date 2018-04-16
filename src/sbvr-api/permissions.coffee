@@ -166,6 +166,7 @@ exports.setup = (app, sbvrUtils) ->
 		POSTPARSE: ({ request, api }) ->
 			api.post
 				resource: 'actor'
+				customOptions: { returnResource: false }
 			.then (result) ->
 				request.values.actor = result.id
 
