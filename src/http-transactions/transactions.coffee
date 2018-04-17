@@ -11,7 +11,7 @@ exports.config =
 exports.setup = (app, sbvrUtils) ->
 	exports.addModelHooks = (modelName) ->
 		# TODO: Add checks on POST/PATCH requests as well.
-		sbvrUtils.addHook 'PUT', modelName, 'all', ({ tx, request }) ->
+		sbvrUtils.addPureHook 'PUT', modelName, 'all', ({ tx, request }) ->
 			vocab = request.vocabulary
 			{ logger } = sbvrUtils.api[vocab]
 			id = sbvrUtils.getID(vocab, request)

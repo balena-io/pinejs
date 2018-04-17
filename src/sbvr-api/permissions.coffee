@@ -120,7 +120,7 @@ exports.config =
 		customServerCode: exports
 	]
 exports.setup = (app, sbvrUtils) ->
-	sbvrUtils.addHook 'all', 'all', 'all',
+	sbvrUtils.addPureHook 'all', 'all', 'all',
 		PREPARSE: ({ req }) ->
 			apiKeyMiddleware(req)
 		POSTPARSE: ({ req, request }) ->
@@ -162,14 +162,14 @@ exports.setup = (app, sbvrUtils) ->
 					throw new PermissionError()
 
 
-	sbvrUtils.addHook 'POST', 'Auth', 'user',
+	sbvrUtils.addPureHook 'POST', 'Auth', 'user',
 		POSTPARSE: ({ request, api }) ->
 			api.post
 				resource: 'actor'
 			.then (result) ->
 				request.values.actor = result.id
 
-	sbvrUtils.addHook 'DELETE', 'Auth', 'user',
+	sbvrUtils.addPureHook 'DELETE', 'Auth', 'user',
 		POSTRUN: ({ request, api }) ->
 			api.delete
 				resource: 'actor'

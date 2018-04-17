@@ -1,13 +1,17 @@
 import * as _ from 'lodash'
 import * as Promise from 'bluebird'
-import * as controlFlow from './control-flow'
+import { settleMapSeries } from './control-flow'
 
 type RollbackAction = () => any
-
+type HookFn = () => any
+type HookBluePrint = {
+	HOOK: HookFn
+	effects: boolean
+}
 export class Hook {
 	private hookFn: Function
 
-	constructor(hookFn: Function) {
+	constructor(hookFn: HookFn) {
 		this.hookFn = hookFn
 	}
 
@@ -22,7 +26,7 @@ export class SideEffectHook extends Hook {
 	private rollbackFns: RollbackAction[] = []
 	private rolledBack: boolean = false
 
-	constructor(hookFn: () => any) {
+	constructor(hookFn: HookFn) {
 		super(hookFn)
 	}
 
@@ -38,24 +42,36 @@ export class SideEffectHook extends Hook {
 		// set rolledBack to true straight away, so that if any rollback action
 		// is registered after the rollback call, we will immediately execute it
 		this.rolledBack = true
-		return controlFlow.settleMapSeries(this.rollbackFns, _.attempt).return()
+		return settleMapSeries(this.rollbackFns, _.attempt).return()
 	}
 }
 
 
 // The execution order of rollback actions is unspecified
 const undoHooks = function (request: any) {
-	return controlFlow.settleMapSeries(_.flatten(_.values(request.hooks)), (hook) => {
+	return settleMapSeries(_.flatten(_.values(request.hooks)), (hook) => {
 		if (hook instanceof SideEffectHook) {
 			return hook.rollback()
 		}
 	})
 }
 
-exports.rollbackRequestHooks = function (request: any) {
+export const rollbackRequestHooks = function (request: any) {
 	if (_.isArray(request)) {
-		return controlFlow.settleMapSeries(request, undoHooks)
+		return settleMapSeries(request, undoHooks)
 	} else {
 		return undoHooks(request)
 	}
+}
+
+export const instantiateHooks = function (hooks: any) {
+	return _.mapValues(hooks, (typeHooks) => {
+		return _.map(typeHooks, (hook: HookBluePrint) => {
+			if (hook.effects) {
+				return new SideEffectHook(hook.HOOK)
+			} else {
+				return new Hook(hook.HOOK)
+			}
+		})
+	})
 }

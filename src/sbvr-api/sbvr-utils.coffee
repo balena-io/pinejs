@@ -19,7 +19,7 @@ devModel = require './dev.sbvr'
 permissions = require './permissions'
 uriParser = require './uri-parser'
 errors = require './errors'
-{ Hook, SideEffectHook, rollbackRequestHooks } = require './hooks'
+{ Hook, SideEffectHook, rollbackRequestHooks, instantiateHooks } = require './hooks'
 _.assign(exports, errors)
 {
 	BadRequestError
@@ -349,13 +349,6 @@ getHooks = do ->
 			getResourceHooks(methodHooks[vocabulary], resourceName)
 			getResourceHooks(methodHooks['all'], resourceName)
 		)
-	instantiateHooks = (hooks) ->
-		_.mapValues hooks, (typeHooks) ->
-			_.map typeHooks, (hook) ->
-				if hook.effects
-					new SideEffectHook(hook.HOOK)
-				else
-					new Hook(hook)
 	getMethodHooks = memoize(
 		(method, vocabulary, resourceName) ->
 			mergeHooks(
@@ -1006,9 +999,18 @@ exports.addSideEffectHook = (method, apiRoot, resourceName, hooks) ->
 			HOOK: hook
 			effects: true
 		}
-	exports.addHook(method, apiRoot, resourceName, sideEffectHook)
+	addHook(method, apiRoot, resourceName, sideEffectHook)
 
-exports.addHook = (method, apiRoot, resourceName, hooks) ->
+
+exports.addPureHook = (method, apiRoot, resourceName, hooks) ->
+	pureHooks = _.mapValues hooks, (hook) ->
+		{
+			HOOK: hook
+			effects: false
+		}
+	addHook(method, apiRoot, resourceName, pureHooks)
+
+addHook = (method, apiRoot, resourceName, hooks) ->
 	methodHooks = apiHooks[method]
 	if !methodHooks?
 		throw new Error('Unsupported method: ' + method)
