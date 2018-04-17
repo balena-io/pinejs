@@ -296,6 +296,8 @@ exports.executeModels = executeModels = (tx, models, callback) ->
 					uri += '(' + id + ')'
 					method = 'PATCH'
 					body.id = id
+				else
+					uri += '?returnResource=false'
 
 				runURI(method, uri, body, tx, permissions.root)
 
