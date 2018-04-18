@@ -2,18 +2,16 @@ import * as _ from 'lodash'
 import * as Promise from 'bluebird'
 import { settleMapSeries } from './control-flow'
 
-type RollbackAction = () => any
-type HookFn = () => any
+type RollbackAction = () => void | Promise<void>
+type HookFn = (...args: any[]) => any
 type HookBluePrint = {
 	HOOK: HookFn
 	effects: boolean
 }
 export class Hook {
-	private hookFn: Function
-
-	constructor(hookFn: HookFn) {
-		this.hookFn = hookFn
-	}
+	constructor(
+		private hookFn: HookFn
+	) {}
 
 	run(...args: any[]) {
 		return Promise.try(() => {
@@ -42,7 +40,7 @@ export class SideEffectHook extends Hook {
 		// set rolledBack to true straight away, so that if any rollback action
 		// is registered after the rollback call, we will immediately execute it
 		this.rolledBack = true
-		return settleMapSeries(this.rollbackFns, _.attempt).return()
+		return settleMapSeries(this.rollbackFns, (fn) => fn()).return()
 	}
 }
 
