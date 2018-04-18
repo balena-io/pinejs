@@ -24,7 +24,6 @@ interface Result {
 	insertId?: number
 }
 
-type Callback<T> = (err: Error, result: T) => void
 type Sql = string
 type Bindings = any[]
 
@@ -70,10 +69,10 @@ export const engines: {
 	[engine: string]: (connectString: string | object) => Database
 } = {}
 
-const atomicExecuteSql = function(this: Database, sql: Sql, bindings?: Bindings, callback?: Callback<Result>) {
+const atomicExecuteSql = function(this: Database, sql: Sql, bindings?: Bindings) {
 	return this.transaction((tx) =>
 		tx.executeSql(sql, bindings)
-	).nodeify(callback)
+	)
 }
 
 const tryFn = (fn: () => any) => {
@@ -99,19 +98,18 @@ const getRejectedFunctions: RejectedFunctions = DEBUG ? (message) => {
 	// but it adds significant overhead for a production environment
 	const rejectionValue = new Error(message)
 	return {
-		executeSql: (_sql, _bindings, callback) =>
+		executeSql: () =>
 			// We return a new rejected promise on each call so that bluebird can handle
 			// logging errors if the rejection is not handled (but only if it is not handled)
-			Promise.reject(rejectionValue).nodeify(callback),
-		rollback: (callback) =>
-			Promise.reject(rejectionValue).nodeify(callback),
+			Promise.reject(rejectionValue),
+		rollback: () =>
+			Promise.reject(rejectionValue),
 	}
 } : (message) => {
+	const rejectFn = () => Promise.reject(new Error(message))
 	return {
-		executeSql: (_sql, _bindings, callback) =>
-			Promise.reject(new Error(message)).nodeify(callback),
-		rollback: (callback) =>
-			Promise.reject(new Error(message)).nodeify(callback),
+		executeSql: rejectFn,
+		rollback: rejectFn,
 	}
 }
 
@@ -165,7 +163,7 @@ export abstract class Tx {
 		this.executeSql = executeSql
 		this.rollback = this.end = rollback
 	}
-	public executeSql(sql: Sql, bindings: Bindings = [], callback?: Callback<Result>, ...args: any[]): Promise<Result> {
+	public executeSql(sql: Sql, bindings: Bindings = [], ...args: any[]): Promise<Result> {
 		this.incrementPending()
 
 		return this._executeSql(sql, bindings, ...args)
@@ -173,23 +171,23 @@ export abstract class Tx {
 			.catch(NotADatabaseError, (err: CodedError) => {
 				// Wrap the error so we can catch it easier later
 				throw new DatabaseError(err)
-			}).nodeify(callback)
+			})
 	}
-	public rollback(callback?: Callback<void>): Promise<void> {
+	public rollback(): Promise<void> {
 		const promise = this._rollback().finally(() => {
 			this.listeners.rollback.forEach(tryFn)
 		})
 		this.closeTransaction('Transaction has been rolled back.')
 
-		return promise.nodeify(callback)
+		return promise
 	}
-	public end(callback?: Callback<void>): Promise<void> {
+	public end(): Promise<void> {
 		const promise = this._commit().then(() => {
 			this.listeners.end.forEach(tryFn)
 		})
 		this.closeTransaction('Transaction has been ended.')
 
-		return promise.nodeify(callback)
+		return promise
 	}
 
 	private listeners: {
@@ -209,8 +207,8 @@ export abstract class Tx {
 	protected abstract _rollback(): Promise<void>
 	protected abstract _commit(): Promise<void>
 
-	public abstract tableList(extraWhereClause?: string | Callback<Result>, callback?: Callback<Result>): Promise<Result>
-	public dropTable(tableName: string, ifExists = true, callback?: Callback<Result>) {
+	public abstract tableList(extraWhereClause?: string): Promise<Result>
+	public dropTable(tableName: string, ifExists = true) {
 		if (!_.isString(tableName)) {
 			return Promise.reject(new TypeError('"tableName" must be a string'))
 		}
@@ -218,7 +216,7 @@ export abstract class Tx {
 			return Promise.reject(new TypeError('"tableName" cannot include double quotes'))
 		}
 		const ifExistsStr = (ifExists === true) ? ' IF EXISTS' : ''
-		return this.executeSql(`DROP TABLE${ifExistsStr} "${tableName}";`, [], callback)
+		return this.executeSql(`DROP TABLE${ifExistsStr} "${tableName}";`)
 	}
 }
 
@@ -330,11 +328,7 @@ if (maybePg != null) {
 				return promise.return()
 			}
 
-			public tableList(extraWhereClause: string | Callback<Result> = '', callback?: Callback<Result>) {
-				if (callback == null  && _.isFunction(extraWhereClause)) {
-					callback = extraWhereClause
-					extraWhereClause = ''
-				}
+			public tableList(extraWhereClause: string = '') {
 				if (extraWhereClause !== '') {
 					extraWhereClause = 'WHERE ' + extraWhereClause
 				}
@@ -345,7 +339,7 @@ if (maybePg != null) {
 						FROM pg_tables
 						WHERE schemaname = 'public'
 					) t ${extraWhereClause};
-				`, [], callback)
+				`)
 			}
 		}
 		return _.extend({
@@ -421,11 +415,7 @@ if (maybeMysql != null) {
 				return promise.return()
 			}
 
-			public tableList(extraWhereClause: string | Callback<Result> = '', callback?: Callback<Result>) {
-				if (callback == null  && _.isFunction(extraWhereClause)) {
-					callback = extraWhereClause
-					extraWhereClause = ''
-				}
+			public tableList(extraWhereClause: string = '') {
 				if (extraWhereClause !== '') {
 					extraWhereClause = ' WHERE ' + extraWhereClause
 				}
@@ -436,7 +426,7 @@ if (maybeMysql != null) {
 						FROM information_schema.tables
 						WHERE table_schema = ?
 					) t ${extraWhereClause};
-				`, [options.database], callback)
+				`, [options.database])
 			}
 		}
 
@@ -551,11 +541,7 @@ if (typeof window !== 'undefined' && window.openDatabase != null) {
 				return Promise.resolve()
 			}
 
-			public tableList(extraWhereClause: string | Callback<Result> = '', callback?: Callback<Result>) {
-				if (callback == null  && _.isFunction(extraWhereClause)) {
-					callback = extraWhereClause
-					extraWhereClause = ''
-				}
+			public tableList(extraWhereClause: string = '') {
 				if (extraWhereClause !== '') {
 					extraWhereClause = ' AND ' + extraWhereClause
 				}
@@ -568,7 +554,7 @@ if (typeof window !== 'undefined' && window.openDatabase != null) {
 						'sqlite_sequence'
 					)
 					${extraWhereClause};
-				`, [], callback)
+				`)
 			}
 		}
 

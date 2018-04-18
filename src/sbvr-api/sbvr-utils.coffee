@@ -902,7 +902,7 @@ runQuery = (tx, request, queryIndex, addReturning) ->
 			api[vocabulary].logger.log(sqlQuery.query, values)
 
 		sqlQuery.values = values
-		tx.executeSql(sqlQuery.query, values, null, addReturning)
+		tx.executeSql(sqlQuery.query, values, addReturning)
 
 runGet = (req, res, request, tx) ->
 	if request.sqlQuery?
