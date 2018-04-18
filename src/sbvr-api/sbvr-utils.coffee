@@ -33,15 +33,10 @@ _.assign(exports, errors)
 controlFlow = require './control-flow'
 memoize = require 'memoizee'
 memoizedCompileRule = memoize(
-	(abstractSqlQuery, vocabulary) ->
-		AbstractSQLCompiler.compileRule(abstractSqlQuery, vocabulary)
+	(abstractSqlQuery) ->
+		AbstractSQLCompiler.compileRule(abstractSqlQuery)
 	primitive: true
 )
-compileAbstractSqlQuery = (abstractSqlQuery, vocabulary) ->
-	console.log('got', vocabulary)
-	vocab = if translationModels[vocabulary] then vocabulary else null
-	console.log('obtained', vocab)
-	memoizedCompileRule(abstractSqlQuery, vocab)
 
 { DEBUG } = process.env
 
@@ -241,7 +236,6 @@ compileModel = (vocab, { seModel, lfModel }) ->
 processModel = (vocab, seModel) ->
 	parseModel(vocab, seModel)
 	.then (lfModel) ->
-		console.log('calling compile')
 		compileModel(vocab, { seModel, lfModel })
 
 instantiateModel = (vocab, seModel, abstractSqlModel, sqlModel, metadata) ->
@@ -265,32 +259,21 @@ setApiEndpoint = (vocab, model) ->
 			api[vocab].logger[key] = value
 
 exports.addTranslationModel = addTranslationModel = (tx, model, callback) ->
+	console.log('got model', model)
 	seModel = model.modelText
 	vocab = model.apiRoot
+	target = model.target
 	processModel(vocab, seModel)
 	.then ({ lfModel, abstractSqlModel, sqlModel, metadata }) ->
 		instantiateModel(vocab, seModel, abstractSqlModel, sqlModel, metadata)
-		translationModels[vocab] = true
-
+		translationModels[vocab] = translations.generateTranslations(
+			vocab,
+			target,
+			model.mappings)
 
 		uriParser.addClientModel(vocab, abstractSqlModel)
-		translations.createNamespace(tx, vocab)
-		.then ->
-			console.log('About to create')
-			# console.log(model)
-			# add "create schema if not exists vocab" here
-			Promise.each _.values(sqlModel.tables), (table) ->
-				translations.createView(tx, table, model)
-		.then ->
-			setApiEndpoint(vocab, model)
-
-			return {
-				vocab: vocab
-				se: seModel
-				lf: lfModel
-				abstractsql: abstractSqlModel
-				sql: sqlModel
-			}
+		setApiEndpoint(vocab, model)
+		# setup translation hooks?
 	.tapCatch (e) ->
 		console.error('Got, error', model.apiRoot, e)
 
@@ -725,6 +708,23 @@ exports.getAbstractSqlModel = getAbstractSqlModel = (request) ->
 	request.abstractSqlModel ?= abstractSqlModels[request.vocabulary]
 	return request.abstractSqlModel
 
+
+translateOData = (odata) ->
+	{ odataQuery, resource, options, values, vocabulary, custom } = odata
+	return odata if not translationModels[vocabulary]
+	{ requestMappingsFns, requestBodyMappings } = translationModels[vocabulary]
+	abstractSqlModel = abstractSqlModels[vocabulary]
+	requestMappingsFns.start?(odataQuery.resource, odataQuery)
+	odata.options = _.map options, (value, optionName) ->
+		return if not _.startsWith(optionName, '$')
+		translations.rewriteODataOptions(requestMappingsFns, resource, [value], _.assign({
+			$optionName: optionName
+		}, custom), abstractSqlModel)
+	_.each requestBodyMappings[resource], (mappingFn, from) ->
+		if body.hasOwnProperty(from)
+			mappingFn(values, from, custom)
+	return odata
+
 exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 	url = req.url.split('/')
 	apiRoot = url[1]
@@ -750,9 +750,10 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 		# Parse the OData requests
 		mapSeries body, (bodypart) ->
 			uriParser.parseOData(bodypart)
-			.then controlFlow.liftP (request) ->
-				# console.log('postparse', request)
-
+			.then (odata) ->
+				translateOData(odata)
+			.then (request) ->
+				console.log('request', request)
 				# Get the full hooks list now that we can. We clear the hooks on
 				# the global req to avoid duplication
 				req.hooks = {}
@@ -763,12 +764,14 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 				.return(request)
 				.then (uriParser.translateUri)
 				.then (request) ->
+					translations.applyVersions(request)
+				.then (request) ->
 					# console.log('postparse', request)
 
 					# We defer compilation of abstract sql queries with references to other requests
 					if request.abstractSqlQuery? && !request._defer
 						try
-							request.sqlQuery = compileAbstractSqlQuery(request.abstractSqlQuery, request.vocabulary)
+							request.sqlQuery = memoizedCompileRule(request.abstractSqlQuery)
 						catch err
 							api[apiRoot].logger.error('Failed to compile abstract sql: ', request.abstractSqlQuery, err, err.stack)
 							throw new SqlCompilationError(err)
@@ -894,7 +897,7 @@ updateBinds = (env, request) ->
 					uriParser.parseId(ref.body.id)
 			else
 				[tag, id]
-		request.sqlQuery = compileAbstractSqlQuery(request.abstractSqlQuery, request.vocabulary)
+		request.sqlQuery = memoizedCompileRule(request.abstractSqlQuery)
 	return request
 
 prepareResponse = (req, res, request, result, tx) ->
