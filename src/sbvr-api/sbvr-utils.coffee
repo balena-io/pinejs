@@ -701,8 +701,7 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 				.return(request)
 				.then (uriParser.translateUri)
 				.then (request) ->
-					# We defer compilation of abstract sql queries with references to other requests
-					if request.abstractSqlQuery? && !request._defer
+					if request.abstractSqlQuery?
 						try
 							request.sqlQuery = memoizedCompileRule(request.abstractSqlQuery)
 						catch err
@@ -828,7 +827,6 @@ updateBinds = (env, request) ->
 					uriParser.parseId(ref.body.id)
 			else
 				[tag, id]
-		request.sqlQuery = memoizedCompileRule(request.abstractSqlQuery)
 	return request
 
 prepareResponse = (req, res, request, result, tx) ->
