@@ -9,6 +9,7 @@ AbstractSQLCompiler = require '@resin/abstract-sql-compiler'
 { PinejsClientCoreFactory } = require 'pinejs-client-core'
 sbvrTypes = require '@resin/sbvr-types'
 { sqlNameToODataName, odataNameToSqlName } = require '@resin/odata-to-abstract-sql'
+deepFreeze = require 'deep-freeze'
 
 SBVRParser = require '../extended-sbvr-parser/extended-sbvr-parser'
 
@@ -39,7 +40,14 @@ memoize = require 'memoizee'
 memoizeWeak = require 'memoizee/weak'
 memoizedCompileRule = memoize(
 	(abstractSqlQuery) ->
-		AbstractSQLCompiler.compileRule(abstractSqlQuery)
+		sqlQuery = AbstractSQLCompiler.compileRule(abstractSqlQuery)
+		modifiedFields = AbstractSQLCompiler.getModifiedFields(abstractSqlQuery)
+		if modifiedFields?
+			deepFreeze(modifiedFields)
+		return {
+			sqlQuery
+			modifiedFields
+		}
 	primitive: true
 )
 
@@ -201,7 +209,7 @@ isRuleAffected = do ->
 		# If for some reason there are no referenced fields known for the rule then we just assume it may have been modified
 		if not rule.referencedFields?
 			return true
-		modifiedFields = AbstractSQLCompiler.getModifiedFields(request.abstractSqlQuery)
+		{ modifiedFields } = request
 		# If we can't get any modified fields we assume the rule may have been modified
 		if not modifiedFields?
 			console.warn("Could not determine the modified table/fields info for '#{request.method}' to #{request.vocabulary}", request.abstractSqlQuery)
@@ -734,7 +742,9 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 				.then (request) ->
 					if request.abstractSqlQuery?
 						try
-							request.sqlQuery = memoizedCompileRule(request.abstractSqlQuery)
+							{ sqlQuery, modifiedFields } = memoizedCompileRule(request.abstractSqlQuery)
+							request.sqlQuery = sqlQuery
+							request.modifiedFields = modifiedFields
 						catch err
 							api[apiRoot].logger.error('Failed to compile abstract sql: ', request.abstractSqlQuery, err, err.stack)
 							throw new SqlCompilationError(err)
