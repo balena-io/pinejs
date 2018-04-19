@@ -695,11 +695,15 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 	mapSeries = controlFlow.getMappingFn(req.headers)
 	# Get the hooks for the current method/vocabulary as we know it,
 	# in order to run PREPARSE hooks, before parsing gets us more info
-	req.hooks = getHooks(
+	req.hooks = reqHooks = getHooks(
 		method: req.method
 		vocabulary: apiRoot
 	)
-	runHooks('PREPARSE', { req, tx: req.tx })
+
+	req.tx?.on 'rollback', ->
+		rollbackRequestHooks(reqHooks)
+
+	handlePromise = runHooks('PREPARSE', { req, tx: req.tx })
 	.then ->
 		{ method, url, body } = req
 
@@ -726,19 +730,21 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 							throw new SqlCompilationError(err)
 					return request
 				.tapCatch ->
+					rollbackRequestHooks(reqHooks)
 					rollbackRequestHooks(request)
 
 			.then (request) ->
 				# Run the request in its own transaction
 				runTransaction req, (tx) ->
+					tx.on 'rollback', ->
+						rollbackRequestHooks(reqHooks)
+						rollbackRequestHooks(request)
 					if _.isArray request
 						env = new Map()
 						Promise.reduce(request, runChangeSet(req, res, tx), env)
 						.then (env) -> Array.from(env.values())
 					else
 						runRequest(req, res, tx, request)
-				.tapCatch ->
-					rollbackRequestHooks(request)
 	.then (results) ->
 		mapSeries results, (result) ->
 			if _.isError(result)
