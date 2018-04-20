@@ -13,9 +13,10 @@ ODataMetadataGenerator = require '../sbvr-compiler/ODataMetadataGenerator'
 
 devModel = require './dev.sbvr'
 permissions = require './permissions'
-translations = require '../translations'
+translationUtils = require '../translations/translations'
 uriParser = require './uri-parser'
 errors = require './errors'
+stringify = require 'json-stringify-pretty-compact'
 _.assign(exports, errors)
 {
 	BadRequestError
@@ -266,10 +267,12 @@ exports.addTranslationModel = addTranslationModel = (tx, model, callback) ->
 	processModel(vocab, seModel)
 	.then ({ lfModel, abstractSqlModel, sqlModel, metadata }) ->
 		instantiateModel(vocab, seModel, abstractSqlModel, sqlModel, metadata)
-		translationModels[vocab] = translations.generateTranslations(
+		#register translation here model.setup
+		translationModels[vocab] = translationUtils.generateTranslations(
 			vocab,
 			target,
-			model.mappings)
+			model.mappings
+		)
 
 		uriParser.addClientModel(vocab, abstractSqlModel)
 		setApiEndpoint(vocab, model)
@@ -686,7 +689,7 @@ exports.runURI = runURI =  (method, uri, body = {}, tx, req, custom, callback) -
 				if statusCode >= 400
 					reject(statusCode)
 				else
-					resolve()
+					resolve(statusCode)
 			send: (statusCode = @statusCode) ->
 				@sendStatus(statusCode)
 			json: (data, statusCode = @statusCode) ->
@@ -711,19 +714,62 @@ exports.getAbstractSqlModel = getAbstractSqlModel = (request) ->
 
 translateOData = (odata) ->
 	{ odataQuery, resource, options, values, vocabulary, custom } = odata
-	return odata if not translationModels[vocabulary]
+	if not translationModels[vocabulary]
+		console.log('Not a translation')
+		return odata
 	{ requestMappingsFns, requestBodyMappings } = translationModels[vocabulary]
 	abstractSqlModel = abstractSqlModels[vocabulary]
-	requestMappingsFns.start?(odataQuery.resource, odataQuery)
+	console.log('Before translation: ', stringify(odataQuery))
+	console.log('Before translation: ', stringify(custom))
+	requestMappingsFns.start?(resource, odataQuery)
 	odata.options = _.map options, (value, optionName) ->
 		return if not _.startsWith(optionName, '$')
-		translations.rewriteODataOptions(requestMappingsFns, resource, [value], _.assign({
+		translationUtils.rewriteODataOptions(requestMappingsFns, resource, [value], _.assign({
 			$optionName: optionName
 		}, custom), abstractSqlModel)
 	_.each requestBodyMappings[resource], (mappingFn, from) ->
 		if body.hasOwnProperty(from)
 			mappingFn(values, from, custom)
+	console.log('After translation: ', stringify(odataQuery))
+	console.log('After translation: ', stringify(custom))
 	return odata
+
+exports.handleTranslation = handleTranslation = (req, res, next) ->
+	url = req.url.split('/')
+	apiRoot = url[1]
+	if !apiRoot? or !abstractSqlModels[apiRoot]?
+		return next('route')
+
+	if DEBUG
+		api[apiRoot].logger.log('Parsing', req.method, req.url)
+
+	mapSeries = controlFlow.getMappingFn(req.headers)
+	# Get the hooks for the current method/vocabulary as we know it,
+	# in order to run PREPARSE hooks, before parsing gets us more info
+	req.hooks = getHooks(
+		method: req.method
+		vocabulary: apiRoot
+	)
+	runHook('PREPARSE', { req, tx: req.tx })
+	.then ->
+		{ method, url, body } = req
+		# Check if it is a single request or a batch
+		body = if req.batch?.length > 0 then req.batch else [{ method: method, url: url, data: body }]
+		# Parse the OData requests
+		mapSeries body, (bodypart) ->
+			uriParser.parseOData(bodypart)
+			.then (odata) ->
+				translateOData(odata)
+			.then (odata) ->
+				console.log('translate odata', odata)
+				res.send(500)
+	# figure out translation orderings
+	# apply all translations
+	# runURI
+
+exports.loadTranslations = (translations) ->
+	Promise.each translations, (translation) ->
+		translation.setup(exports.translations)
 
 exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 	url = req.url.split('/')
@@ -750,10 +796,7 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 		# Parse the OData requests
 		mapSeries body, (bodypart) ->
 			uriParser.parseOData(bodypart)
-			.then (odata) ->
-				translateOData(odata)
-			.then (request) ->
-				console.log('request', request)
+			.then controlFlow.liftP (request) ->
 				# Get the full hooks list now that we can. We clear the hooks on
 				# the global req to avoid duplication
 				req.hooks = {}
@@ -763,8 +806,6 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 				runHook('POSTPARSE', { req, request, tx: req.tx })
 				.return(request)
 				.then (uriParser.translateUri)
-				.then (request) ->
-					translations.applyVersions(request)
 				.then (request) ->
 					# console.log('postparse', request)
 
@@ -778,7 +819,7 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 					return request
 
 			.then (request) ->
-				console.log('request', request)
+				console.log('permissions', req.user.permissions)
 				# Run the request in its own transaction
 				runTransaction req, (tx) ->
 					if _.isArray request
@@ -799,19 +840,19 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 		# If we are dealing with a single request unpack the response and respond normally
 		if not (req.batch?.length > 0)
 
-			[{ body, headers, status }] = responses
+			[{ body, headers, statusCode }] = responses
 			_.forEach headers, (headerValue, headerName) ->
 				res.set(headerName, headerValue)
 
 			if not body
-				if status?
-					res.sendStatus(status)
+				if statusCode?
+					res.sendStatus(statusCode)
 				else
 					console.error('No status or body set', req.url, responses)
 					res.sendStatus(500)
 			else
-				if status?
-					res.status(status)
+				if statusCode?
+					res.status(statusCode)
 				res.json(body)
 		# Otherwise its a multipart request and we reply with the appropriate multipart response
 		else
@@ -826,21 +867,21 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 constructError = (e) ->
 	Promise.reject(e)
 	.catch SbvrValidationError, BadRequestError, (err) ->
-		{ status: 400, body: err.message }
+		{ statusCode: 400, body: err.message }
 	.catch PermissionError, (err) ->
-		{ status: 401, body: err.message }
+		{ statusCode: 401, body: err.message }
 	.catch SqlCompilationError, TranslationError, ParsingError, PermissionParsingError, InternalRequestError, (err) ->
-		{ status: 500 }
+		{ statusCode: 500 }
 	.catch UnsupportedMethodError, (err) ->
-		{ status: 405, body: err.message }
+		{ statusCode: 405, body: err.message }
 	.catch ForbiddenError, (err) ->
-		{ status: 403, body: err.message }
+		{ statusCode: 403, body: err.message }
 	.catch e, (err) ->
 		console.error(err)
 		# If the err is an error object then use its message instead - it should be more readable!
 		if _.isError err
 			err = err.message
-		{ status: 404, body: err }
+		{ statusCode: 404, body: err }
 
 runRequest = (req, res, tx, request) ->
 	{ logger } = api[request.vocabulary]
@@ -963,17 +1004,15 @@ respondGet = (req, res, request, result, tx) ->
 		else
 			# TODO: request.resourceName can be '$serviceroot' or a resource and we should return an odata xml document based on that
 			return {
-				status: 404
+				statusCode: 404
 			}
 
 runPost = (req, res, request, tx) ->
 	vocab = request.vocabulary
 
 	idField = getAbstractSqlModel(request).tables[resolveSynonym(request)].idField
-	console.log('Got idField', idField)
 	runQuery(tx, request, null, idField)
 	.then (sqlResult) ->
-		console.log('Got', sqlResult)
 		validateModel(tx, vocab, request)
 		.then ->
 			# Return the inserted/updated id.
@@ -985,10 +1024,8 @@ runPost = (req, res, request, tx) ->
 respondPost = (req, res, request, result, tx) ->
 	vocab = request.vocabulary
 	id = result
-	console.log('Got id', id)
 
 	location = odataResourceURI(vocab, request.resourceName, id)
-	console.log('Got location', location)
 
 	api[vocab].logger.log('Insert ID: ', request.resourceName, id)
 	Promise.try ->
@@ -1001,7 +1038,7 @@ respondPost = (req, res, request, result, tx) ->
 	.then (result) ->
 		runHook('PRERESPOND', { req, res, request, result, tx: tx })
 		.then ->
-			status: 201
+			statusCode: 201
 			body: result.d[0]
 			headers:
 				contentType: 'application/json'
@@ -1028,7 +1065,7 @@ runPut = (req, res, request, tx) ->
 respondPut = respondDelete = respondOptions = (req, res, request, result, tx) ->
 	runHook('PRERESPOND', { req, res, request, tx: tx })
 	.then ->
-		status: 200
+		statusCode: 200
 		headers: {}
 
 runDelete = (req, res, request, tx) ->

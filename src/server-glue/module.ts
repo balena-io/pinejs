@@ -61,13 +61,14 @@ if (dbModule.engines.websql != null) {
 
 const db = dbModule.connect(databaseOptions)
 
-export const init = (app: _express.Application, config?: any): Promise<ConfigLoader> =>
+export const init = (app: _express.Application, config?: any, middleware?: any): Promise<ConfigLoader> =>
 	(sbvrUtils.setup(app, db) as Promise<any>)
 	.then(() => {
 		const cfgLoader = configLoader.setup(app)
 		return cfgLoader.loadConfig(migrator.config)
 		.return(cfgLoader)
 	}).tap((cfgLoader) => {
+
 		const promises: Promise<void>[] = []
 		if (process.env.SBVR_SERVER_ENABLED) {
 			const sbvrServer = require('../data-server/SBVRServer')
@@ -82,7 +83,12 @@ export const init = (app: _express.Application, config?: any): Promise<ConfigLoa
 			promises.push(cfgLoader.loadApplicationConfig(config))
 		}
 		return Promise.all(promises)
-	}).catch((err) => {
+	}).then(() => {
+		const translationUtils = require('../translations/translations')
+		translationUtils.setup(app, sbvrUtils, middleware)
+		sbvrUtils.translations = translationUtils
+	})
+	.catch((err) => {
 		console.error('Error initialising server', err, err.stack)
 		process.exit(1)
 	})

@@ -146,11 +146,3 @@ exports.rewriteODataOptions = rewriteODataOptions = (requestMappingFns, resource
 		data.splice(i, 1)
 	if data.length is 0
 		requestMappingFns.empty()
-
-rewriteMappings = (resourceMappings, cb) ->
-	_.mapValues resourceMappings, (resourceMapping, key) ->
-		return resourceMapping if key[0] is '$'
-		_.mapValues resourceMapping, (mapping) ->
-			if _.isFunction(mapping)
-				return mapping
-			return cb(mapping)

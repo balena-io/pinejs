@@ -90,7 +90,7 @@ exports.setup = (app) ->
 				tx.end()
 				Promise.map data.models, (model) ->
 					if model.modelText?
-						registerModelRoutes(app, model)
+						registerModelRoutes(app, model, sbvrUtils.handleODataRequest)
 					if model.customServerCode?
 						if _.isObject(model.customServerCode)
 							customCode = model.customServerCode
@@ -125,7 +125,6 @@ exports.setup = (app) ->
 				if model.modelText?
 					sbvrUtils.addTranslationModel(tx, model)
 					.then ->
-						registerModelRoutes(app, model)
 						console.info('Sucessfully executed ' + model.modelName + ' translation.')
 					.catch (err) ->
 						throw new Error(['Failed to execute ' + model.modelName + ' translation from ' + model.modelFile, err, err.stack])
@@ -134,10 +133,10 @@ exports.setup = (app) ->
 			.catch ->
 				tx.rollback()
 
-	registerModelRoutes = (app, model) ->
+	registerModelRoutes = (app, model, callback) ->
 		apiRoute = '/' + model.apiRoot + '/*'
 		app.options(apiRoute, (req, res) -> res.sendStatus(200))
-		app.all(apiRoute, sbvrUtils.handleODataRequest)
+		app.all(apiRoute, callback)
 
 	loadJSON = (path) ->
 		console.info('Loading JSON:', path)
@@ -197,15 +196,15 @@ exports.setup = (app) ->
 								console.error("Unrecognised migration file extension, skipping: #{path.extname filename}")
 		.then ->
 			loadConfig(config)
-		.then ->
-			Promise.map config.translations, (model) ->
-				fs.readFileAsync(path.join(root, model.modelFile), 'utf8')
-				.then (modelText) ->
-					model.modelText = modelText
-					if model.mappingsFile
-						model.mappings = nodeRequire(path.resolve(root, model.mappingsFile)).mappings
-		.then ->
-			loadTranslation(config)
+		# .then ->
+		# 	Promise.map config.translations, (model) ->
+		# 		fs.readFileAsync(path.join(root, model.modelFile), 'utf8')
+		# 		.then (modelText) ->
+		# 			model.modelText = modelText
+		# 			if model.mappingsFile
+		# 				model.mappings = nodeRequire(path.resolve(root, model.mappingsFile)).mappings
+		# .then ->
+		# 	loadTranslation(config)
 		.catch (err) ->
 			console.error('Error loading application config', err, err.stack)
 			process.exit(1)
