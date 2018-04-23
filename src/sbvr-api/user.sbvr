@@ -7,7 +7,7 @@ Term:       password
 Term:       name
 	Concept Type: Text (Type)
 Term:       key
-	Concept Type: Short Text (Type)
+	Concept Type: SHA (Type)
 Term:       expiry date
 	Concept Type: Date Time (Type)
 Term:       description

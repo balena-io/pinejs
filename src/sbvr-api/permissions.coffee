@@ -7,6 +7,15 @@ userModel = require './user.sbvr'
 { ODataParser } = require '@resin/odata-parser'
 memoize = require 'memoizee'
 
+try
+	crypto = require('crypto')
+	hashFactory = ->
+		crypto.createHash('sha256')
+catch
+	shajs = require('sha.js')
+	hashFactory = ->
+		shajs('sha256')
+
 exports.PermissionError = PermissionError
 exports.PermissionParsingError = PermissionParsingError
 exports.root = user: permissions: [ 'resource.all' ]
@@ -46,6 +55,12 @@ parsePermissions = do ->
 		return _.cloneDeepWith tree, (value) ->
 			if value?.bind?
 				return { bind: value.bind + bindsLength }
+
+exports.hashApiKey = hashApiKey = (apiKey) ->
+	hash = hashFactory()
+	hash.update(apiKey)
+	hashValue = hash.digest('hex')
+	"SHA256:HEX:#{hashValue}"
 
 # Traverses all values in `check`, actions for the following data types:
 # string: Calls `stringCallback` and uses the value returned instead
@@ -305,12 +320,13 @@ exports.setup = (app, sbvrUtils) ->
 	exports.getApiKeyPermissions = getApiKeyPermissions = do ->
 		_getApiKeyPermissions = memoize(
 			(apiKey) ->
+				hashedApiKey = hashApiKey(apiKey)
 				permsFilter = $or:
 					is_of__api_key: $any:
 						$alias: 'khp'
 						$expr: khp: api_key: $any:
 							$alias: 'k'
-							$expr: k: key: apiKey
+							$expr: k: key: hashedApiKey
 					is_of__role: $any:
 						$alias: 'rhp'
 						$expr: 'rhp': role: $any:
@@ -319,7 +335,7 @@ exports.setup = (app, sbvrUtils) ->
 								$alias: 'khr'
 								$expr: khr: api_key: $any:
 									$alias: 'k'
-									$expr: k: key: apiKey
+									$expr: k: key: hashedApiKey
 				return getPermissions(permsFilter)
 			primitive: true
 			max: env.apiKeys.permissionsCache.max
@@ -335,12 +351,13 @@ exports.setup = (app, sbvrUtils) ->
 
 	getApiKeyActorId = memoize(
 		(apiKey) ->
+			hashedApiKey = hashApiKey(apiKey)
 			sbvrUtils.api.Auth.get
 				resource: 'api_key'
 				passthrough: req: rootRead
 				options:
 					$select: 'is_of__actor'
-					$filter: key: apiKey
+					$filter: key: hashedApiKey
 			.then (apiKeys) ->
 				if apiKeys.length is 0
 					throw new Error('Could not find the api key')
