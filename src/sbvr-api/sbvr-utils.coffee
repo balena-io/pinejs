@@ -212,34 +212,51 @@ exports.validateModel = validateModel = (tx, modelName, request) ->
 			if result.rows.item(0).result in [false, 0, '0']
 				throw new SbvrValidationError(rule.structuredEnglish)
 
-parseModel = (vocab, seModel) ->
-	Promise.try ->
-		SBVRParser.matchAll(seModel, 'Process')
-	.catch (e) ->
+exports.parseModel = parseModel = (vocab, seModel) ->
+	try
+		lfModel = SBVRParser.matchAll(seModel, 'Process')
+	catch e
 		console.error('Error parsing model', vocab, e, e.stack)
 		throw new Error(['Error parsing model', e])
 
-compileModel = (vocab, { seModel, lfModel }) ->
-	Promise.try ->
+	return lfModel
+
+exports.generateAbstractSqlModel = generateAbstractSqlModel = (vocab, lfModel ) ->
+	try
 		abstractSqlModel = LF2AbstractSQLTranslator(lfModel, 'Process')
+	catch e
+		console.error('Error generating abstract sql model', vocab, e, e.stack)
+		throw new Error(['Error generating abstract sql model', e])
+
+	return abstractSqlModel
+
+exports.generateSqlModel = generateSqlModel = (vocab, abstractSqlModel) ->
+	try
 		sqlModel = AbstractSQLCompiler.compileSchema(abstractSqlModel)
 		metadata = ODataMetadataGenerator(vocab, sqlModel)
+	catch e
+		console.error('Error generating sql model', vocab, e, e.stack)
+		throw new Error(['Error generating sql model', e])
 
-		return {
-			seModel
-			lfModel
-			abstractSqlModel
-			sqlModel
-			metadata
-		}
-	.catch (e) ->
-		console.error('Error compiling model', vocab, e, e.stack)
-		throw new Error(['Error compiling model', e])
+	return {
+		sqlModel
+		metadata
+	}
 
-processModel = (vocab, seModel) ->
-	parseModel(vocab, seModel)
-	.then (lfModel) ->
-		compileModel(vocab, { seModel, lfModel })
+exports.processModel = processModel = (vocab, seModel) ->
+	lfModel = parseModel(vocab, seModel)
+	# console.log('got lf', lfModel)
+	abstractSqlModel = generateAbstractSqlModel(vocab, lfModel)
+	# console.log('got abs', abstractSqlModel)
+	{ sqlModel, metadata } = generateSqlModel(vocab, abstractSqlModel)
+	# console.log('got sql', sqlModel)
+
+	return {
+		lfModel
+		abstractSqlModel
+		sqlModel
+		metadata
+	}
 
 instantiateModel = (vocab, seModel, abstractSqlModel, sqlModel, metadata) ->
 	seModels[vocab] = seModel
@@ -262,25 +279,20 @@ setApiEndpoint = (vocab, model) ->
 			api[vocab].logger[key] = value
 
 exports.addTranslationModel = addTranslationModel = (tx, model, callback) ->
-	console.log('got model', model)
 	seModel = model.modelText
 	vocab = model.apiRoot
 	target = model.target
-	processModel(vocab, seModel)
-	.then ({ lfModel, abstractSqlModel, sqlModel, metadata }) ->
-		instantiateModel(vocab, seModel, abstractSqlModel, sqlModel, metadata)
-		#register translation here model.setup
-		translationModels[vocab] = translationUtils.generateTranslations(
-			vocab,
-			target,
-			model.mappings
-		)
+	{ lfModel, abstractSqlModel, sqlModel, metadata } = processModel(vocab, seModel)
+	instantiateModel(vocab, seModel, abstractSqlModel, sqlModel, metadata)
+	#register translation here model.setup
+	translationModels[vocab] = translationUtils.generateTranslations(
+		vocab,
+		target,
+		model.mappings
+	)
+	uriParser.addClientModel(vocab, abstractSqlModel)
+	setApiEndpoint(vocab, model)
 
-		uriParser.addClientModel(vocab, abstractSqlModel)
-		setApiEndpoint(vocab, model)
-		# setup translation hooks?
-	.tapCatch (e) ->
-		console.error('Got, error', model.apiRoot, e)
 
 exports.executeModel = executeModel = (tx, model, callback) ->
 	executeModels(tx, [model], callback)
@@ -292,8 +304,7 @@ exports.executeModels = executeModels = (tx, models, callback) ->
 
 		migrator.run(tx, model)
 		.then ->
-			processModel(vocab, seModel)
-		.then ({ lfModel, abstractSqlModel, sqlModel, metadata }) ->
+			{ lfModel, abstractSqlModel, sqlModel, metadata } = processModel(vocab, seModel)
 			# Create tables related to terms and fact types
 			# Use `Promise.reduce` to run statements sequentially, as the order of the CREATE TABLE statements matters (eg. for foreign keys).
 			Promise.each sqlModel.createSchema, (createStatement) ->
@@ -771,7 +782,7 @@ exports.getAbstractSqlModel = getAbstractSqlModel = (request) ->
 
 exports.loadTranslations = (translations) ->
 	Promise.each translations, (translation) ->
-		translation.setup(exports.translations)
+		translation.setup(exports, exports.translations)
 
 exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 	url = req.url.split('/')

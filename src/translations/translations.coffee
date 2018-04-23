@@ -5,6 +5,7 @@ TypedError = require('typed-error')
 stringify = require 'json-stringify-pretty-compact'
 util = require 'util'
 permissions = require '../sbvr-api/permissions'
+uriParser = require '../sbvr-api/uri-parser'
 
 translateError = (err) ->
 	if err instanceof Error
@@ -15,6 +16,7 @@ translateError = (err) ->
 	return '' + err
 
 exports.setup = (app, sbvrUtils, apiKeyMiddleware) ->
+
 	forwardRequests = (app, fromVersion, toVersion, interceptFn) ->
 		fromRegex = new RegExp("^/#{_.escapeRegExp(fromVersion)}", 'i')
 		fromRoute = "/#{fromVersion}/*"
@@ -368,8 +370,6 @@ exports.setup = (app, sbvrUtils, apiKeyMiddleware) ->
 			forwardRequests(fromVersion, toVersion, interceptFn)
 
 	exports.customRequestBuild = customRequestBuild = (req, url) ->
-		uriParser = require('@resin/pinejs/out/sbvr-api/uri-parser')
-		permissions = require('@resin/pinejs/out/sbvr-api/permissions')
 
 		uriParser.parseOData({ method: 'GET', url, data: {} })
 		.tap (request) ->
