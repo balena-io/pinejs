@@ -118,21 +118,6 @@ exports.setup = (app) ->
 							e.message = 'Error running custom server code: ' + e.message
 							throw e
 
-	loadTranslation = (data) ->
-		sbvrUtils.db.transaction()
-		.then (tx) ->
-			Promise.each data.translations, (model) ->
-				if model.modelText?
-					sbvrUtils.addTranslationModel(tx, model)
-					.then ->
-						console.info('Sucessfully executed ' + model.modelName + ' translation.')
-					.catch (err) ->
-						throw new Error(['Failed to execute ' + model.modelName + ' translation from ' + model.modelFile, err, err.stack])
-			.tap ->
-				tx.end()
-			.catch ->
-				tx.rollback()
-
 	registerModelRoutes = (app, model, callback) ->
 		apiRoute = '/' + model.apiRoot + '/*'
 		app.options(apiRoute, (req, res) -> res.sendStatus(200))
@@ -196,15 +181,6 @@ exports.setup = (app) ->
 								console.error("Unrecognised migration file extension, skipping: #{path.extname filename}")
 		.then ->
 			loadConfig(config)
-		# .then ->
-		# 	Promise.map config.translations, (model) ->
-		# 		fs.readFileAsync(path.join(root, model.modelFile), 'utf8')
-		# 		.then (modelText) ->
-		# 			model.modelText = modelText
-		# 			if model.mappingsFile
-		# 				model.mappings = nodeRequire(path.resolve(root, model.mappingsFile)).mappings
-		# .then ->
-		# 	loadTranslation(config)
 		.catch (err) ->
 			console.error('Error loading application config', err, err.stack)
 			process.exit(1)
