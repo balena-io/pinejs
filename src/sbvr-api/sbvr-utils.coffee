@@ -248,6 +248,10 @@ exports.executeModels = executeModels = (tx, models, callback) ->
 				return promise
 			.then ->
 				seModels[vocab] = seModel
+				_.each(abstractSqlModel.tables, (table) ->
+					getLocalFields(table)
+					getFetchProcessingFields(table)
+				)
 				abstractSqlModels[vocab] = abstractSqlModel
 				sqlModels[vocab] = sqlModel
 				odataMetadata[vocab] = metadata
@@ -453,71 +457,69 @@ odataResourceURI = (vocab, resourceName, id) ->
 			id
 	return '/' + vocab + '/' + resourceName + '(' + id + ')'
 
-processOData = do ->
-	getLocalFields = (table) ->
-		if !table.localFields?
-			table.localFields = {}
-			for { fieldName, dataType } in table.fields when dataType isnt 'ForeignKey'
-				odataName = sqlNameToODataName(fieldName)
-				table.localFields[odataName] = true
-		return table.localFields
-	getFetchProcessingFields = (table) ->
-		return table.fetchProcessingFields ?=
-			_(table.fields)
-			.filter(({ dataType }) -> fetchProcessing[dataType]?)
-			.map ({ fieldName, dataType }) ->
-				odataName = sqlNameToODataName(fieldName)
-				return [
-					odataName
-					fetchProcessing[dataType]
-				]
-			.fromPairs()
-			.value()
+getLocalFields = (table) ->
+	if !table.localFields?
+		table.localFields = {}
+		for { fieldName, dataType } in table.fields when dataType isnt 'ForeignKey'
+			odataName = sqlNameToODataName(fieldName)
+			table.localFields[odataName] = true
+	return table.localFields
+getFetchProcessingFields = (table) ->
+	return table.fetchProcessingFields ?=
+		_(table.fields)
+		.filter(({ dataType }) -> fetchProcessing[dataType]?)
+		.map ({ fieldName, dataType }) ->
+			odataName = sqlNameToODataName(fieldName)
+			return [
+				odataName
+				fetchProcessing[dataType]
+			]
+		.fromPairs()
+		.value()
+processOData = (vocab, abstractSqlModel, resourceName, rows) ->
+	if rows.length is 0
+		return Promise.fulfilled([])
 
-	return (vocab, abstractSqlModel, resourceName, rows) ->
-		if rows.length is 0
-			return Promise.fulfilled([])
+	if rows.length is 1
+		if rows.item(0).$count?
+			count = parseInt(rows.item(0).$count, 10)
+			return Promise.fulfilled(count)
 
-		if rows.length is 1
-			if rows.item(0).$count?
-				count = parseInt(rows.item(0).$count, 10)
-				return Promise.fulfilled(count)
+	sqlResourceName = resolveSynonym({ abstractSqlModel, vocabulary: vocab, resourceName })
+	table = abstractSqlModel.tables[sqlResourceName]
 
-		sqlResourceName = resolveSynonym({ abstractSqlModel, vocabulary: vocab, resourceName })
-		table = abstractSqlModel.tables[sqlResourceName]
+	odataIdField = sqlNameToODataName(table.idField)
+	instances = rows.map (instance) ->
+		instance.__metadata =
+			# TODO: This should support non-number id fields
+			uri: odataResourceURI(vocab, resourceName, +instance[odataIdField])
+			type: ''
+		return instance
 
-		odataIdField = sqlNameToODataName(table.idField)
-		instances = rows.map (instance) ->
-			instance.__metadata =
-				# TODO: This should support non-number id fields
-				uri: odataResourceURI(vocab, resourceName, +instance[odataIdField])
-				type: ''
-			return instance
+	instancesPromise = Promise.fulfilled()
 
-		instancesPromise = Promise.fulfilled()
+	localFields = getLocalFields(table)
+	# We check that it's not a local field, rather than that it is a foreign key because of the case where the foreign key is on the other resource
+	# and hence not known to this resource
+	expandableFields = _.filter(_.keys(instances[0]), (fieldName) -> fieldName[0..1] != '__' and !localFields.hasOwnProperty(fieldName))
+	if expandableFields.length > 0
+		instancesPromise = Promise.map instances, (instance) ->
+			Promise.map expandableFields, (fieldName) ->
+				checkForExpansion(vocab, abstractSqlModel, sqlResourceName, fieldName, instance)
 
-		localFields = getLocalFields(table)
-		# We check that it's not a local field, rather than that it is a foreign key because of the case where the foreign key is on the other resource
-		# and hence not known to this resource
-		expandableFields = _.filter(_.keys(instances[0]), (fieldName) -> fieldName[0..1] != '__' and !localFields.hasOwnProperty(fieldName))
-		if expandableFields.length > 0
-			instancesPromise = Promise.map instances, (instance) ->
-				Promise.map expandableFields, (fieldName) ->
-					checkForExpansion(vocab, abstractSqlModel, sqlResourceName, fieldName, instance)
+	fetchProcessingFields = getFetchProcessingFields(table)
+	processedFields = _.filter(_.keys(instances[0]), (fieldName) -> fieldName[0..1] != '__' and fetchProcessingFields.hasOwnProperty(fieldName))
+	if processedFields.length > 0
+		instancesPromise = instancesPromise.then ->
+			Promise.map instances, (instance) ->
+				Promise.map processedFields, (resourceName) ->
+					fetchProcessingFields[resourceName](instance[resourceName])
+					.then (result) ->
+						instance[resourceName] = result
+						return
 
-		fetchProcessingFields = getFetchProcessingFields(table)
-		processedFields = _.filter(_.keys(instances[0]), (fieldName) -> fieldName[0..1] != '__' and fetchProcessingFields.hasOwnProperty(fieldName))
-		if processedFields.length > 0
-			instancesPromise = instancesPromise.then ->
-				Promise.map instances, (instance) ->
-					Promise.map processedFields, (resourceName) ->
-						fetchProcessingFields[resourceName](instance[resourceName])
-						.then (result) ->
-							instance[resourceName] = result
-							return
-
-		instancesPromise.then ->
-			return instances
+	instancesPromise.then ->
+		return instances
 
 exports.runRule = do ->
 	LF2AbstractSQLPrepHack = LF2AbstractSQL.LF2AbstractSQLPrep._extend({ CardinalityOptimisation: -> @_pred(false) })
