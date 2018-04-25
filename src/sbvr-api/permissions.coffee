@@ -5,16 +5,8 @@ userModel = require './user.sbvr'
 { metadataEndpoints } = require './uri-parser'
 { BadRequestError, PermissionError, PermissionParsingError } = require './errors'
 { ODataParser } = require '@resin/odata-parser'
+sbvrTypes = require '@resin/sbvr-types'
 memoize = require 'memoizee'
-
-try
-	crypto = require('crypto')
-	hashFactory = ->
-		crypto.createHash('sha256')
-catch
-	shajs = require('sha.js')
-	hashFactory = ->
-		shajs('sha256')
 
 exports.PermissionError = PermissionError
 exports.PermissionParsingError = PermissionParsingError
@@ -56,11 +48,7 @@ parsePermissions = do ->
 			if value?.bind?
 				return { bind: value.bind + bindsLength }
 
-exports.hashApiKey = hashApiKey = (apiKey) ->
-	hash = hashFactory()
-	hash.update(apiKey)
-	hashValue = hash.digest('hex')
-	"SHA256:HEX:#{hashValue}"
+exports.hashApiKey = hashApiKey = sbvrTypes.SHA256.validateSync
 
 # Traverses all values in `check`, actions for the following data types:
 # string: Calls `stringCallback` and uses the value returned instead
