@@ -31,8 +31,7 @@ module.exports = (vocabulary, sqlModel) ->
 	forEachUniqueTable model, (key, { name: resourceName, fields }) ->
 		resourceName = getResourceName(resourceName)
 		for { dataType, required, references } in fields when dataType == 'ForeignKey'
-			{ tableName: referencedResource } = references
-			referencedResource = getResourceName(referencedResource)
+			{ resourceName: referencedResource } = references
 			associations.push(
 				name: resourceName + referencedResource
 				ends: [
@@ -68,7 +67,6 @@ module.exports = (vocabulary, sqlModel) ->
 							for { dataType, fieldName, references } in fields when dataType == 'ForeignKey'
 								{ tableName: referencedResource } = references
 								fieldName = getResourceName(fieldName)
-								referencedResource = getResourceName(referencedResource)
 								"""<NavigationProperty Name="#{fieldName}" Relationship="#{vocabulary}.#{resourceName + referencedResource}" FromRole="#{resourceName}" ToRole="#{referencedResource}" />"""
 						).join('\n') + '\n' + '''
 					</EntityType>'''

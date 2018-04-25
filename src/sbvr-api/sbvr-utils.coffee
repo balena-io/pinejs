@@ -113,7 +113,7 @@ exports.resolveNavigationResource = resolveNavigationResource = (request, naviga
 		throw new Error("Cannot navigate from '#{request.resourceName}' to '#{navigationName}'")
 	if mapping.length < 2
 		throw new Error("'#{request.resourceName}' to '#{navigationName}' is a field not a navigation")
-	return sqlNameToODataName(mapping[1][0])
+	return sqlNameToODataName(request.abstractSqlModel.tables[mapping[1][0]].name)
 
 # TODO: Clean this up and move it into the db module.
 prettifyConstraintError = (err, resourceName) ->
