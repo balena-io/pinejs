@@ -42,6 +42,8 @@ memoizedCompileRule = memoize(
 
 db = null
 
+exports.hashApiKey = permissions.hashApiKey
+
 exports.sbvrTypes = sbvrTypes
 
 fetchProcessing = _.mapValues sbvrTypes, ({ fetchProcessing }) ->

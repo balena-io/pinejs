@@ -5,6 +5,7 @@ userModel = require './user.sbvr'
 { metadataEndpoints } = require './uri-parser'
 { BadRequestError, PermissionError, PermissionParsingError } = require './errors'
 { ODataParser } = require '@resin/odata-parser'
+sbvrTypes = require '@resin/sbvr-types'
 memoize = require 'memoizee'
 
 exports.PermissionError = PermissionError
@@ -46,6 +47,8 @@ parsePermissions = do ->
 		return _.cloneDeepWith tree, (value) ->
 			if value?.bind?
 				return { bind: value.bind + bindsLength }
+
+exports.hashApiKey = hashApiKey = sbvrTypes.SHA.validateSync
 
 # Traverses all values in `check`, actions for the following data types:
 # string: Calls `stringCallback` and uses the value returned instead
@@ -305,12 +308,13 @@ exports.setup = (app, sbvrUtils) ->
 	exports.getApiKeyPermissions = getApiKeyPermissions = do ->
 		_getApiKeyPermissions = memoize(
 			(apiKey) ->
+				hashedApiKey = hashApiKey(apiKey)
 				permsFilter = $or:
 					is_of__api_key: $any:
 						$alias: 'khp'
 						$expr: khp: api_key: $any:
 							$alias: 'k'
-							$expr: k: key: apiKey
+							$expr: k: key: hashedApiKey
 					is_of__role: $any:
 						$alias: 'rhp'
 						$expr: 'rhp': role: $any:
@@ -319,7 +323,7 @@ exports.setup = (app, sbvrUtils) ->
 								$alias: 'khr'
 								$expr: khr: api_key: $any:
 									$alias: 'k'
-									$expr: k: key: apiKey
+									$expr: k: key: hashedApiKey
 				return getPermissions(permsFilter)
 			primitive: true
 			max: env.apiKeys.permissionsCache.max
@@ -335,12 +339,13 @@ exports.setup = (app, sbvrUtils) ->
 
 	getApiKeyActorId = memoize(
 		(apiKey) ->
+			hashedApiKey = hashApiKey(apiKey)
 			sbvrUtils.api.Auth.get
 				resource: 'api_key'
 				passthrough: req: rootRead
 				options:
 					$select: 'is_of__actor'
-					$filter: key: apiKey
+					$filter: key: hashedApiKey
 			.then (apiKeys) ->
 				if apiKeys.length is 0
 					throw new Error('Could not find the api key')
