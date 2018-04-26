@@ -423,16 +423,7 @@ exports.setup = (app, sbvrUtils) ->
 						getUserPermissions(result[0].id)
 				return _guestPermissions
 
-		# If not all optional arguments are specified, and the last one specified is a function then it is taken to be the callback.
-		# req, actionList[, resourceName, vocabulary, apiKey, callback]
-		return (args...) ->
-			# callbackArg needs to be the index of the last optional index
-			# and then if the callback is a function it should be used and nullified so that it isn't used for another arg
-			callbackArg = Math.max(3, Math.min(6, args.length - 1))
-			if _.isFunction(args[callbackArg])
-				callback = args[callbackArg]
-				args[callbackArg] = null
-			[req, actionList, resourceName, vocabulary] = args
+		return (req, actionList, resourceName, vocabulary) ->
 			authApi = sbvrUtils.api.Auth
 
 			# We default to a user id of 0 (the guest user) if not logged in.
@@ -479,7 +470,6 @@ exports.setup = (app, sbvrUtils) ->
 			.then (permissions) ->
 				# Pass through the nestedCheck with no changes to strings, this optimises any ors/ands that can be.
 				nestedCheck(permissions, _.identity)
-			.nodeify(callback)
 
 	exports.checkPermissionsMiddleware = (action) ->
 		return (req, res, next) ->
