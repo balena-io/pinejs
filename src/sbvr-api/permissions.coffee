@@ -48,7 +48,7 @@ parsePermissions = do ->
 			if value?.bind?
 				return { bind: value.bind + bindsLength }
 
-exports.hashApiKey = hashApiKey = sbvrTypes.SHA256.validateSync
+exports.hashApiKey = hashApiKey = sbvrTypes.SHA.validateSync
 
 # Traverses all values in `check`, actions for the following data types:
 # string: Calls `stringCallback` and uses the value returned instead
