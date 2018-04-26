@@ -407,7 +407,7 @@ exports.setup = (app, sbvrUtils) ->
 			# Start the guest permissions as null, having it as a reject promise either
 			# causes an issue with an unhandled rejection, or with enabling long stack traces.
 			_guestPermissions = null
-			return (callback) ->
+			return ->
 				if !_guestPermissions? or _guestPermissions.isRejected()
 					# Get guest user
 					_guestPermissions = sbvrUtils.api.Auth.get
@@ -421,7 +421,7 @@ exports.setup = (app, sbvrUtils) ->
 						if result.length is 0
 							throw new Error('No guest permissions')
 						getUserPermissions(result[0].id)
-				_guestPermissions.nodeify(callback)
+				return _guestPermissions
 
 		# If not all optional arguments are specified, and the last one specified is a function then it is taken to be the callback.
 		# req, actionList[, resourceName, vocabulary, apiKey, callback]
