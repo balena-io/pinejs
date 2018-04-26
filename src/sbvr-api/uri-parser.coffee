@@ -8,6 +8,7 @@ _ = require 'lodash'
 deepFreeze = require 'deep-freeze'
 env = require '../config-loader/env'
 permissions = require './permissions'
+sbvrUtils = require './sbvr-utils'
 
 exports.BadRequestError = BadRequestError
 exports.ParsingError = ParsingError

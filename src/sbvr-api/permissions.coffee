@@ -157,9 +157,7 @@ getPermissionsLookup = memoize(
 	max: env.cache.permissionsLookup.max
 )
 
-checkPermissions = (permissions, actionList, vocabulary, resourceName) ->
-	permissionsLookup = getPermissionsLookup(permissions)
-
+checkPermissions = (permissionsLookup, actionList, vocabulary, resourceName) ->
 	checkObject = or: ['all', actionList]
 	return nestedCheck checkObject, (permissionCheck) ->
 		resourcePermission = permissionsLookup['resource.' + permissionCheck]
@@ -184,10 +182,10 @@ checkPermissions = (permissions, actionList, vocabulary, resourceName) ->
 			return or: conditionalPermissions
 		return false
 
-generateConstrainedAbstractSql = (permissions, actionList, vocabulary, resourceName) ->
+generateConstrainedAbstractSql = (permissionsLookup, actionList, vocabulary, resourceName) ->
 	uriParser = require('./uri-parser')
 
-	conditionalPerms = checkPermissions(permissions, actionList, vocabulary, resourceName)
+	conditionalPerms = checkPermissions(permissionsLookup, actionList, vocabulary, resourceName)
 	if conditionalPerms is false
 		throw new PermissionError()
 	if conditionalPerms is true
@@ -257,7 +255,7 @@ deepFreezeExceptDefinition = (obj) ->
 	return
 
 memoizedGetConstrainedModel = memoizeWeak(
-	(abstractSqlModel, permissions, vocabulary) ->
+	(abstractSqlModel, permissionsLookup, vocabulary) ->
 		abstractSqlModel = _.cloneDeep(abstractSqlModel)
 		addRelationshipBypasses(abstractSqlModel.relationships)
 		_.each abstractSqlModel.synonyms, (canonicalForm, synonym) ->
@@ -270,10 +268,11 @@ memoizedGetConstrainedModel = memoizeWeak(
 			onceGetter table, 'definition', ->
 				# For $filter on eg a DELETE you need read permissions on the sub-resources,
 				# you only need delete permissions on the resource being deleted
-				generateConstrainedAbstractSql(permissions, methodPermissions.GET, vocabulary, sqlNameToODataName(table.name))
+				generateConstrainedAbstractSql(permissionsLookup, methodPermissions.GET, vocabulary, sqlNameToODataName(table.name))
 		deepFreezeExceptDefinition(abstractSqlModel)
 		return abstractSqlModel
-	primitive: true
+	normalizer: (abstractSqlModel, args) ->
+		return JSON.stringify(args)
 )
 
 exports.config =
@@ -513,8 +512,8 @@ exports.setup = (app, sbvrUtils) ->
 
 	exports.checkPermissions = (req, actionList, resourceName, vocabulary) ->
 		getReqPermissions(req)
-		.then (permissions) ->
-			checkPermissions(permissions, actionList, vocabulary, resourceName)
+		.then (permissionsLookup) ->
+			checkPermissions(permissionsLookup, actionList, vocabulary, resourceName)
 
 	exports.checkPermissionsMiddleware = (action) ->
 		return (req, res, next) ->
@@ -565,7 +564,8 @@ exports.setup = (app, sbvrUtils) ->
 					permissions = _.map(guestPermissions.concat(req.user?.permissions ? []), (permission) -> permission.replace(/\$ACTOR\.ID/g, actorID))
 					if apiKeyActorID?
 						permissions = permissions.concat(_.map(guestPermissions.concat(req.apiKey?.permissions ? []), (permission) -> permission.replace(/\$ACTOR\.ID/g, apiKeyActorID)))
-					return _.uniq(permissions)
+					permissions = _.uniq(permissions)
+					return getPermissionsLookup(permissions)
 			)
 
 	resolveSubRequest = (request, lambda, propertyName, v) ->
@@ -618,8 +618,8 @@ exports.setup = (app, sbvrUtils) ->
 		tree = memoizedRewriteODataOptions(abstractSqlModel, vocabulary, resourceName, filter, tree)
 		return rewriteBinds({ tree, extraBinds }, odataBinds)
 
-	addODataPermissions = (permissions, permissionType, vocabulary, resourceName, odataQuery, odataBinds, abstractSqlModel) ->
-		conditionalPerms = checkPermissions(permissions, permissionType, vocabulary, resourceName)
+	addODataPermissions = (permissionsLookup, permissionType, vocabulary, resourceName, odataQuery, odataBinds, abstractSqlModel) ->
+		conditionalPerms = checkPermissions(permissionsLookup, permissionType, vocabulary, resourceName)
 
 		if conditionalPerms is false
 			throw new PermissionError()
@@ -662,18 +662,18 @@ exports.setup = (app, sbvrUtils) ->
 
 		# This bypasses in the root cases, needed for fetching guest permissions to work, it can almost certainly be done better though
 		permissions = (req.user?.permissions || []).concat(req.apiKey?.permissions || [])
-		if permissions.length > 0 and checkPermissions(permissions, permissionType, vocabulary) is true
+		if permissions.length > 0 and checkPermissions(getPermissionsLookup(permissions), permissionType, vocabulary) is true
 			# We have unconditional permission to access the vocab so there's no need to intercept anything
 			return
 		getReqPermissions(req)
-		.then (permissions) ->
+		.then (permissionsLookup) ->
 			# Update the request's abstract sql model to use the constrained version
-			request.abstractSqlModel = abstractSqlModel = memoizedGetConstrainedModel(abstractSqlModel, permissions, vocabulary)
+			request.abstractSqlModel = abstractSqlModel = memoizedGetConstrainedModel(abstractSqlModel, permissionsLookup, vocabulary)
 
-			if method in [ 'PUT', 'POST', 'PATCH', 'DELETE' ]
+			if !_.isEqual(permissionType, methodPermissions.GET)
 				sqlName = sbvrUtils.resolveSynonym(request)
 				odataQuery.resource = "#{sqlName}$bypass"
-				addODataPermissions(permissions, permissionType, vocabulary, resourceName, odataQuery, odataBinds, abstractSqlModel)
+				addODataPermissions(permissionsLookup, permissionType, vocabulary, resourceName, odataQuery, odataBinds, abstractSqlModel)
 
 
 
