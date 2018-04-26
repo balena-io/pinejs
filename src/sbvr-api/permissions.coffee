@@ -2,7 +2,7 @@ _ = require 'lodash'
 Promise = require 'bluebird'
 env = require '../config-loader/env'
 userModel = require './user.sbvr'
-{ metadataEndpoints } = require './uri-parser'
+{ metadataEndpoints, memoizedParseOdata } = require './uri-parser'
 { BadRequestError, PermissionError, PermissionParsingError } = require './errors'
 { ODataParser } = require '@resin/odata-parser'
 memoize = require 'memoizee'
@@ -194,8 +194,7 @@ generateConstrainedAbstractSql = (permissions, actionList, vocabulary, resourceN
 		# If we have full access then no need to provide a constrained definition
 		return false
 
-	odataParser = ODataParser.createInstance()
-	odata = odataParser.matchAll("/#{resourceName}", 'Process')
+	odata = memoizedParseOdata("/#{resourceName}")
 
 	permissionFilters = nestedCheck conditionalPerms, (permissionCheck) ->
 		try

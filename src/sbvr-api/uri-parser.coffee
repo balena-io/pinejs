@@ -18,7 +18,7 @@ exports.TranslationError = TranslationError
 exports.parseId = (b) ->
 	ODataParser.matchAll(String(b), 'ExternalKeyBind')
 
-memoizedParseOdata = do ->
+exports.memoizedParseOdata = memoizedParseOdata = do ->
 	odataParser = ODataParser.createInstance()
 	parseOdata = (url) ->
 		odataParser.matchAll(url, 'Process')
