@@ -31,6 +31,7 @@ _.assign(exports, errors)
 
 controlFlow = require './control-flow'
 memoize = require 'memoizee'
+memoizeWeak = require 'memoizee/weak'
 memoizedCompileRule = memoize(
 	(abstractSqlQuery) ->
 		AbstractSQLCompiler.compileRule(abstractSqlQuery)
@@ -66,14 +67,21 @@ apiHooks =
 # Share hooks between merge and patch since they are the same operation, just MERGE was the OData intermediary until the HTTP spec added PATCH.
 apiHooks.MERGE = apiHooks.PATCH
 
+memoizedResolvedSynonym = memoizeWeak(
+	(abstractSqlModel, resourceName) ->
+		sqlName = odataNameToSqlName(resourceName)
+		return _(sqlName)
+			.split('-')
+			.map (resourceName) ->
+				abstractSqlModel.synonyms[resourceName] ? resourceName
+			.join('-')
+		return abstractSqlModel
+	primitive: true
+)
+
 exports.resolveSynonym = resolveSynonym = (request) ->
 	abstractSqlModel = getAbstractSqlModel(request)
-	sqlName = odataNameToSqlName(request.resourceName)
-	return _(sqlName)
-		.split('-')
-		.map (resourceName) ->
-			abstractSqlModel.synonyms[resourceName] ? resourceName
-		.join('-')
+	return memoizedResolvedSynonym(abstractSqlModel, request.resourceName)
 
 exports.resolveNavigationResource = resolveNavigationResource = (request, navigationName) ->
 	navigation = _(odataNameToSqlName(navigationName))
