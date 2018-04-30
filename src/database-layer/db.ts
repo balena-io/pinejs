@@ -8,30 +8,30 @@ import TypedError = require('typed-error')
 
 const { DEBUG } = process.env
 
-interface CodedError extends Error {
+export interface CodedError extends Error {
 	code: number | string
 	constructor: Function
 }
 
 type CreateTransactionFn = (stackTraceErr?: Error) => Promise<Tx>
 type CloseTransactionFn = () => void
-interface Row {
+export interface Row {
 	[fieldName: string]: any
 }
-interface Result {
+export interface Result {
 	rows: Array<Row>
 	rowsAffected: number
 	insertId?: number
 }
 
-type Sql = string
-type Bindings = any[]
+export type Sql = string
+export type Bindings = any[]
 
 const isSqlError = (value: any): value is SQLError => {
 	return value != null && value.constructor != null && value.constructor.name === 'SQLError'
 }
 
-class DatabaseError extends TypedError {
+export class DatabaseError extends TypedError {
 	public code: number | string
 	constructor(message?: string | CodedError | SQLError) {
 		if (isSqlError(message)) {
@@ -47,9 +47,9 @@ class DatabaseError extends TypedError {
 	}
 }
 
-class ConstraintError extends DatabaseError {}
-class UniqueConstraintError extends ConstraintError {}
-class ForeignKeyConstraintError extends ConstraintError {}
+export class ConstraintError extends DatabaseError {}
+export class UniqueConstraintError extends ConstraintError {}
+export class ForeignKeyConstraintError extends ConstraintError {}
 
 const NotADatabaseError = (err: any) => !(err instanceof DatabaseError)
 
@@ -59,9 +59,13 @@ const alwaysExport = {
 	UniqueConstraintError,
 	ForeignKeyConstraintError,
 }
-export type Database = typeof alwaysExport & {
+export type Database = {
+	DatabaseError: typeof DatabaseError,
+	ConstraintError: typeof ConstraintError,
+	UniqueConstraintError: typeof UniqueConstraintError,
+	ForeignKeyConstraintError: typeof ForeignKeyConstraintError,
 	engine: string
-	executeSql: typeof atomicExecuteSql
+	executeSql: (this: Database, sql: Sql, bindings?: Bindings) => Promise<Tx>
 	transaction: (callback?: ((tx: Tx) => void)) => Promise<Tx>
 }
 
@@ -69,7 +73,7 @@ export const engines: {
 	[engine: string]: (connectString: string | object) => Database
 } = {}
 
-const atomicExecuteSql = function(this: Database, sql: Sql, bindings?: Bindings) {
+const atomicExecuteSql: Database['executeSql'] = function(sql, bindings) {
 	return this.transaction((tx) =>
 		tx.executeSql(sql, bindings)
 	)

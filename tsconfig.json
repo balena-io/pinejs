@@ -10,7 +10,8 @@
 		"rootDir": "src",
 		"sourceMap": true,
 		"strictNullChecks": true,
-		"target": "es2015"
+		"target": "es2015",
+		"declaration": true
 	},
 	"include": [
 		"src/**/*.ts",
