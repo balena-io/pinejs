@@ -174,7 +174,7 @@ exports.config =
 		customServerCode: exports
 	]
 exports.setup = (app, sbvrUtils) ->
-	sbvrUtils.addHook 'all', 'all', 'all',
+	sbvrUtils.addPureHook 'all', 'all', 'all',
 		PREPARSE: ({ req }) ->
 			apiKeyMiddleware(req)
 		POSTPARSE: ({ req, request }) ->
@@ -216,15 +216,15 @@ exports.setup = (app, sbvrUtils) ->
 					throw new PermissionError()
 
 
-	sbvrUtils.addHook 'POST', 'Auth', 'user',
+	sbvrUtils.addPureHook 'POST', 'Auth', 'user',
 		POSTPARSE: ({ request, api }) ->
 			api.post
 				resource: 'actor'
-				customOptions: { returnResource: false }
+				options: { returnResource: false }
 			.then (result) ->
 				request.values.actor = result.id
 
-	sbvrUtils.addHook 'DELETE', 'Auth', 'user',
+	sbvrUtils.addPureHook 'DELETE', 'Auth', 'user',
 		POSTRUN: ({ request, api }) ->
 			api.delete
 				resource: 'actor'
@@ -407,7 +407,7 @@ exports.setup = (app, sbvrUtils) ->
 			# Start the guest permissions as null, having it as a reject promise either
 			# causes an issue with an unhandled rejection, or with enabling long stack traces.
 			_guestPermissions = null
-			return (callback) ->
+			return ->
 				if !_guestPermissions? or _guestPermissions.isRejected()
 					# Get guest user
 					_guestPermissions = sbvrUtils.api.Auth.get
@@ -421,18 +421,9 @@ exports.setup = (app, sbvrUtils) ->
 						if result.length is 0
 							throw new Error('No guest permissions')
 						getUserPermissions(result[0].id)
-				_guestPermissions.nodeify(callback)
+				return _guestPermissions
 
-		# If not all optional arguments are specified, and the last one specified is a function then it is taken to be the callback.
-		# req, actionList[, resourceName, vocabulary, apiKey, callback]
-		return (args...) ->
-			# callbackArg needs to be the index of the last optional index
-			# and then if the callback is a function it should be used and nullified so that it isn't used for another arg
-			callbackArg = Math.max(3, Math.min(6, args.length - 1))
-			if _.isFunction(args[callbackArg])
-				callback = args[callbackArg]
-				args[callbackArg] = null
-			[req, actionList, resourceName, vocabulary] = args
+		return (req, actionList, resourceName, vocabulary) ->
 			authApi = sbvrUtils.api.Auth
 
 			# We default to a user id of 0 (the guest user) if not logged in.
@@ -479,7 +470,6 @@ exports.setup = (app, sbvrUtils) ->
 			.then (permissions) ->
 				# Pass through the nestedCheck with no changes to strings, this optimises any ors/ands that can be.
 				nestedCheck(permissions, _.identity)
-			.nodeify(callback)
 
 	exports.checkPermissionsMiddleware = (action) ->
 		return (req, res, next) ->

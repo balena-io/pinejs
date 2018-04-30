@@ -4,6 +4,7 @@ Promise = require 'bluebird'
 memoize = require 'memoizee'
 _ = require 'lodash'
 { BadRequestError, ParsingError, TranslationError } = require './errors'
+deepFreeze = require 'deep-freeze'
 
 exports.BadRequestError = BadRequestError
 exports.ParsingError = ParsingError
@@ -38,7 +39,10 @@ memoizedOdata2AbstractSQL = do ->
 	_memoizedOdata2AbstractSQL = memoize(
 		(vocabulary, odataQuery, method, bodyKeys) ->
 			try
-				return odata2AbstractSQL[vocabulary].match(odataQuery, 'Process', [method, bodyKeys])
+				abstractSql = odata2AbstractSQL[vocabulary].match(odataQuery, 'Process', [method, bodyKeys])
+				# We deep freeze to prevent mutations, which would pollute the cache
+				deepFreeze(abstractSql)
+				return abstractSql
 			catch e
 				console.error('Failed to translate url: ', JSON.stringify(odataQuery, null, '\t'), method, e, e.stack)
 				throw new TranslationError('Failed to translate url')
@@ -48,7 +52,7 @@ memoizedOdata2AbstractSQL = do ->
 		# Sort the body keys to improve cache hits
 		{ tree, extraBodyVars } = _memoizedOdata2AbstractSQL(vocabulary, odataQuery, method, _.keys(body).sort())
 		_.assign(body, extraBodyVars)
-		return _.cloneDeep(tree)
+		return tree
 
 exports.metadataEndpoints = metadataEndpoints = ['$metadata', '$serviceroot']
 

@@ -4,7 +4,6 @@ import * as _pg from 'pg'
 
 import * as _ from 'lodash'
 import * as Promise from 'bluebird'
-import sqlBinds = require('./sql-binds')
 import TypedError = require('typed-error')
 
 const { DEBUG } = process.env
@@ -20,22 +19,13 @@ interface Row {
 	[fieldName: string]: any
 }
 interface Result {
-	rows: {
-		length: number
-		item: (i: number) => Row
-		forEach: (fn: (value: Row, index: number) => void, thisArg?: any) => void
-		map: <T>(iterator: (value: Row, index: number) => T, thisArg?: any) => T[]
-	}
+	rows: Array<Row>
 	rowsAffected: number
 	insertId?: number
 }
 
-type Callback<T> = (err: Error, result: T) => void
 type Sql = string
 type Bindings = any[]
-type InternalExecuteSql = (sql: Sql, bindings: Bindings, addReturning?: false | string) => Promise<Result>
-type InternalRollback = () => Promise<void>
-type InternalCommit = () => Promise<void>
 
 const isSqlError = (value: any): value is SQLError => {
 	return value != null && value.constructor != null && value.constructor.name === 'SQLError'
@@ -63,26 +53,7 @@ class ForeignKeyConstraintError extends ConstraintError {}
 
 const NotADatabaseError = (err: any) => !(err instanceof DatabaseError)
 
-const DEFAULT_VALUE = {}
-const bindDefaultValues = (sql: Sql, bindings: Bindings) => {
-	if (!_.some(bindings, (binding) => binding === DEFAULT_VALUE)) {
-		// We don't have to do any work if none of the bindings match DEFAULT_VALUE
-		return sql
-	}
-	let bindNo = 0
-	return sqlBinds(sql, () => {
-		if (bindings[bindNo] === DEFAULT_VALUE) {
-			bindings.splice(bindNo, 1)
-			return 'DEFAULT'
-		} else {
-			bindNo++
-			return '?'
-		}
-	})
-}
-
 const alwaysExport = {
-	DEFAULT_VALUE,
 	DatabaseError,
 	ConstraintError,
 	UniqueConstraintError,
@@ -98,22 +69,14 @@ export const engines: {
 	[engine: string]: (connectString: string | object) => Database
 } = {}
 
-const atomicExecuteSql = function(this: Database, sql: Sql, bindings?: Bindings, callback?: Callback<Result>) {
-	return this.transaction()
-	.then((tx) => {
-		const result = tx.executeSql(sql, bindings)
-		// Use finally so that we do not modify the return of the result and
-		// to still trigger bluebird's possibly unhandled exception when relevant.
-		return result.finally(() => {
-			// It is ok to use synchronous inspection of the promise here since
-			// this block will only be run once the promise is resolved.
-			if (result.isRejected()) {
-				return tx.rollback()
-			} else {
-				return tx.end()
-			}
-		})
-	}).nodeify(callback)
+const atomicExecuteSql = function(this: Database, sql: Sql, bindings?: Bindings) {
+	return this.transaction((tx) =>
+		tx.executeSql(sql, bindings)
+	)
+}
+
+const tryFn = (fn: () => any) => {
+	Promise.try(fn)
 }
 
 let timeoutMS: number
@@ -135,101 +98,117 @@ const getRejectedFunctions: RejectedFunctions = DEBUG ? (message) => {
 	// but it adds significant overhead for a production environment
 	const rejectionValue = new Error(message)
 	return {
-		executeSql: (_sql, _bindings, callback) =>
+		executeSql: () =>
 			// We return a new rejected promise on each call so that bluebird can handle
 			// logging errors if the rejection is not handled (but only if it is not handled)
-			Promise.reject(rejectionValue).nodeify(callback),
-		rollback: (callback) =>
-			Promise.reject(rejectionValue).nodeify(callback),
+			Promise.reject(rejectionValue),
+		rollback: () =>
+			Promise.reject(rejectionValue),
 	}
 } : (message) => {
+	const rejectFn = () => Promise.reject(new Error(message))
 	return {
-		executeSql: (_sql, _bindings, callback) =>
-			Promise.reject(new Error(message)).nodeify(callback),
-		rollback: (callback) =>
-			Promise.reject(new Error(message)).nodeify(callback),
+		executeSql: rejectFn,
+		rollback: rejectFn,
 	}
 }
 
 
 export abstract class Tx {
-	public executeSql: (sql: Sql, bindings?: Bindings, callback?: Callback<Result>, ...args: any[]) => Promise<Result>
-	public rollback: (callback?: Callback<void>) => Promise<void>
-	public end: (callback?: Callback<void>) => Promise<void>
+	private automaticCloseTimeout: ReturnType<typeof setTimeout>
+	private automaticClose: () => void
 
-	constructor(executeSql: InternalExecuteSql, rollback: InternalRollback, commit: InternalCommit, stackTraceErr?: Error) {
-		const automaticClose = () => {
+	constructor(
+		stackTraceErr?: Error
+	) {
+		this.automaticClose = () => {
 			console.error('Transaction still open after ' + timeoutMS + 'ms without an execute call.')
 			if (stackTraceErr) {
 				console.error(stackTraceErr.stack)
 			}
 			this.rollback()
 		}
-		let automaticCloseTimeout = setTimeout(automaticClose, timeoutMS)
-		let pending: false | number = 0
-		const pendingExecutes = {
-			increment: () => {
-				if (pending === false) {
-					return
-				}
-				pending++
-				clearTimeout(automaticCloseTimeout)
-			},
-			decrement: () => {
-				if (pending === false) {
-					return
-				}
-				pending--
-				// We only ever want one timeout running at a time, hence not using <=
-				if (pending === 0) {
-					automaticCloseTimeout = setTimeout(automaticClose, timeoutMS)
-				} else if (pending < 0) {
-					console.error('Pending transactions is less than 0, wtf?')
-					pending = 0
-				}
-			},
-			cancel: () => {
-				// Set pending to false to cancel all pending.
-				pending = false
-				clearTimeout(automaticCloseTimeout)
-			},
+		this.automaticCloseTimeout = setTimeout(this.automaticClose, timeoutMS)
+	}
+	private pending: false | number = 0
+	private incrementPending() {
+		if (this.pending === false) {
+			return
 		}
-
-		this.executeSql = (sql, bindings = [], callback, ...args) => {
-			pendingExecutes.increment()
-
-			return executeSql(sql, bindings, ...args)
-				.finally(pendingExecutes.decrement)
-				.catch(NotADatabaseError, (err: CodedError) => {
-					// Wrap the error so we can catch it easier later
-					throw new DatabaseError(err)
-				}).nodeify(callback)
+		this.pending++
+		clearTimeout(this.automaticCloseTimeout)
+	}
+	private decrementPending() {
+		if (this.pending === false) {
+			return
 		}
-
-		this.rollback = (callback) => {
-			const promise = rollback()
-			closeTransaction('Transaction has been rolled back.')
-
-			return promise.nodeify(callback)
-		}
-
-		this.end = (callback) => {
-			const promise = commit()
-			closeTransaction('Transaction has been ended.')
-
-			return promise.nodeify(callback)
-		}
-
-		const closeTransaction = (message: string) => {
-			pendingExecutes.cancel()
-			const { executeSql, rollback } = getRejectedFunctions(message)
-			this.executeSql = executeSql
-			this.rollback = this.end = rollback
+		this.pending--
+		// We only ever want one timeout running at a time, hence not using <=
+		if (this.pending === 0) {
+			this.automaticCloseTimeout = setTimeout(this.automaticClose, timeoutMS)
+		} else if (this.pending < 0) {
+			console.error('Pending transactions is less than 0, wtf?')
+			this.pending = 0
 		}
 	}
+	cancelPending() {
+		// Set pending to false to cancel all pending.
+		this.pending = false
+		clearTimeout(this.automaticCloseTimeout)
+	}
 
-	public abstract tableList(extraWhereClause?: string | Callback<Result>, callback?: Callback<Result>): Promise<Result>
-	public dropTable(tableName: string, ifExists = true, callback?: Callback<Result>) {
+	private closeTransaction(message: string): void {
+		this.cancelPending()
+		const { executeSql, rollback } = getRejectedFunctions(message)
+		this.executeSql = executeSql
+		this.rollback = this.end = rollback
+	}
+	public executeSql(sql: Sql, bindings: Bindings = [], ...args: any[]): Promise<Result> {
+		this.incrementPending()
+
+		return this._executeSql(sql, bindings, ...args)
+			.finally(() => this.decrementPending())
+			.catch(NotADatabaseError, (err: CodedError) => {
+				// Wrap the error so we can catch it easier later
+				throw new DatabaseError(err)
+			})
+	}
+	public rollback(): Promise<void> {
+		const promise = this._rollback().finally(() => {
+			this.listeners.rollback.forEach(tryFn)
+		})
+		this.closeTransaction('Transaction has been rolled back.')
+
+		return promise
+	}
+	public end(): Promise<void> {
+		const promise = this._commit().then(() => {
+			this.listeners.end.forEach(tryFn)
+		})
+		this.closeTransaction('Transaction has been ended.')
+
+		return promise
+	}
+
+	private listeners: {
+		end: Array<() => void>,
+		rollback: Array<() => void>,
+	} = {
+		end: [],
+		rollback: [],
+	}
+	public on(name: 'end', fn: () => void): void
+	public on(name: 'rollback', fn: () => void): void
+	public on(name: keyof Tx['listeners'], fn: () => void): void {
+		this.listeners[name].push(fn)
+	}
+
+	protected abstract _executeSql(sql: Sql, bindings: Bindings, addReturning?: false | string): Promise<Result>
+	protected abstract _rollback(): Promise<void>
+	protected abstract _commit(): Promise<void>
+
+	public abstract tableList(extraWhereClause?: string): Promise<Result>
+	public dropTable(tableName: string, ifExists = true) {
 		if (!_.isString(tableName)) {
 			return Promise.reject(new TypeError('"tableName" must be a string'))
 		}
@@ -237,20 +216,46 @@ export abstract class Tx {
 			return Promise.reject(new TypeError('"tableName" cannot include double quotes'))
 		}
 		const ifExistsStr = (ifExists === true) ? ' IF EXISTS' : ''
-		return this.executeSql(`DROP TABLE${ifExistsStr} "${tableName}";`, [], callback)
+		return this.executeSql(`DROP TABLE${ifExistsStr} "${tableName}";`)
 	}
 }
 
 const getStackTraceErr: (() => Error | undefined) = DEBUG ? () => new Error() : (_.noop as () => undefined)
 
 const createTransaction = (createFunc: CreateTransactionFn) => {
-	return (callback?: (tx: Tx) => void) => {
+	function transaction<T>(fn: (tx: Tx) => Promise<T> | T): Promise<T>
+	function transaction(): Promise<Tx>
+	function transaction<T>(fn?: (tx: Tx) => Promise<T> | T): Promise<T> | Promise<Tx> {
 		const stackTraceErr = getStackTraceErr()
-		return createFunc(stackTraceErr)
-			.tapCatch((err) => {
-				console.error('Error connecting', err, err.stack)
-			}).asCallback(callback)
+		// Create a new promise in order to be able to get access to cancellation, to let us
+		// return the client to the pool if the promise was cancelled whilst we were waiting
+		return new Promise<Tx | T>((resolve, reject, onCancel) => {
+			if (onCancel) {
+				onCancel(() => {
+					// Rollback the promise on cancel
+					promise.call('rollback')
+				})
+			}
+			let promise = createFunc(stackTraceErr)
+			if (fn) {
+				promise.tap((tx) =>
+					Promise.try<T>(() => fn(tx))
+					.tap(() =>
+						tx.end()
+					).tapCatch(() =>
+						tx.rollback()
+					)
+					.then(resolve)
+					.catch(reject)
+				)
+			} else {
+				promise
+				.then(resolve)
+				.catch(reject)
+			}
+		}) as Promise<Tx> | Promise<T>
 	}
+	return transaction
 }
 
 let maybePg: typeof _pg | undefined
@@ -280,76 +285,50 @@ if (maybePg != null) {
 		}
 		const connect = Promise.promisify(pool.connect, { context: pool })
 
-		const createResult = ({ rowCount, rows }: { rowCount: number, rows: Array<{id?: number}> }): Result => {
+		const createResult = ({ rowCount, rows }: { rowCount: number, rows: Array<Row> }): Result => {
 			return {
-				rows: {
-					length: _.get(rows, 'length', 0),
-					item: (i) => rows[i],
-					forEach: (iterator, thisArg) => {
-						rows.forEach(iterator, thisArg)
-					},
-					map: (iterator, thisArg) => rows.map(iterator, thisArg),
-				},
+				rows,
 				rowsAffected: rowCount,
 				insertId: _.get(rows, [ 0, 'id' ]),
 			}
 		}
 		class PostgresTx extends Tx {
-			constructor(db: _pg.Client, close: CloseTransactionFn, stackTraceErr?: Error) {
-				const executeSql: InternalExecuteSql = (sql, bindings, addReturning = false) => {
-					bindings = bindings.slice(0) // Deal with the fact we may splice arrays directly into bindings
-					if (addReturning && /^\s*INSERT\s+INTO/i.test(sql)) {
-						sql = sql.replace(/;?$/, ' RETURNING "' + addReturning + '";')
-					}
-
-					// We only need to perform the bind replacements if there is at least one binding!
-					if (_.includes(sql, '?')) {
-						let bindNo = 0
-						sql = sqlBinds(sql, () => {
-							if (Array.isArray(bindings[bindNo])) {
-								const initialBindNo = bindNo
-								const bindString = _.map(bindings[initialBindNo], () => '$' + ++bindNo).join(',')
-								Array.prototype.splice.apply(bindings, [initialBindNo, 1].concat(bindings[initialBindNo]))
-								return bindString
-							} else if (bindings[bindNo] === DEFAULT_VALUE) {
-								bindings.splice(bindNo, 1)
-								return 'DEFAULT'
-							} else {
-								return '$' + ++bindNo
-							}
-						})
-					}
-
-					return Promise.fromCallback((callback) => {
-						db.query({ text: sql, values: bindings }, callback)
-					}).catch({ code: PG_UNIQUE_VIOLATION }, (err) => {
-						// We know that the type is an Error for pg, but typescript doesn't like the catch obj sugar
-						throw new UniqueConstraintError(err as any as CodedError)
-					}).catch({ code: PG_FOREIGN_KEY_VIOLATION }, (err) => {
-						throw new ForeignKeyConstraintError(err as any as CodedError)
-					}).then(createResult)
-				}
-
-				const rollback: InternalRollback = () => {
-					const promise = this.executeSql('ROLLBACK;')
-					close()
-					return promise.return()
-				}
-
-				const commit: InternalCommit = () => {
-					const promise = this.executeSql('COMMIT;')
-					close()
-					return promise.return()
-				}
-
-				super(executeSql, rollback, commit, stackTraceErr)
+			constructor(
+				private db: _pg.Client,
+				private close: CloseTransactionFn,
+				stackTraceErr?: Error
+			) {
+				super(stackTraceErr)
 			}
 
-			public tableList(extraWhereClause: string | Callback<Result> = '', callback?: Callback<Result>) {
-				if (callback == null  && _.isFunction(extraWhereClause)) {
-					callback = extraWhereClause
-					extraWhereClause = ''
+			protected _executeSql(sql: Sql, bindings: Bindings, addReturning: false | string = false) {
+				if (addReturning && /^\s*INSERT\s+INTO/i.test(sql)) {
+					sql = sql.replace(/;?$/, ' RETURNING "' + addReturning + '";')
 				}
+
+				return Promise.fromCallback((callback) => {
+					this.db.query({ text: sql, values: bindings }, callback)
+				}).catch({ code: PG_UNIQUE_VIOLATION }, (err) => {
+					// We know that the type is an Error for pg, but typescript doesn't like the catch obj sugar
+					throw new UniqueConstraintError(err as any as CodedError)
+				}).catch({ code: PG_FOREIGN_KEY_VIOLATION }, (err) => {
+					throw new ForeignKeyConstraintError(err as any as CodedError)
+				}).then(createResult)
+			}
+
+			protected _rollback() {
+				const promise = this.executeSql('ROLLBACK;')
+				this.close()
+				return promise.return()
+			}
+
+			protected _commit() {
+				const promise = this.executeSql('COMMIT;')
+				this.close()
+				return promise.return()
+			}
+
+			public tableList(extraWhereClause: string = '') {
 				if (extraWhereClause !== '') {
 					extraWhereClause = 'WHERE ' + extraWhereClause
 				}
@@ -360,7 +339,7 @@ if (maybePg != null) {
 						FROM pg_tables
 						WHERE schemaname = 'public'
 					) t ${extraWhereClause};
-				`, [], callback)
+				`)
 			}
 		}
 		return _.extend({
@@ -393,58 +372,50 @@ if (maybeMysql != null) {
 		})
 		const connect = Promise.promisify(pool.getConnection, { context: pool })
 
-		interface MysqlRowArray extends Array<{}> {
+		interface MysqlRowArray extends Array<Row> {
 			affectedRows: number
 			insertId?: number
 		}
 		const createResult = (rows: MysqlRowArray): Result => {
 			return {
-				rows: {
-					length: (rows != null ? rows.length : 0) || 0,
-					item: (i) => rows[i],
-					forEach: (iterator, thisArg) => {
-						rows.forEach(iterator, thisArg)
-					},
-					map: (iterator, thisArg) => rows.map(iterator, thisArg),
-				},
+				rows,
 				rowsAffected: rows.affectedRows,
 				insertId: rows.insertId,
 			}
 		}
 		class MySqlTx extends Tx {
-			constructor(db: _mysql.IConnection, close: CloseTransactionFn, stackTraceErr?: Error) {
-				const executeSql: InternalExecuteSql = (sql, bindings) => {
-					return Promise.fromCallback((callback) => {
-						sql = bindDefaultValues(sql, bindings)
-						db.query(sql, bindings, callback)
-					}).catch({ code: MYSQL_UNIQUE_VIOLATION }, (err) => {
-						// We know that the type is an IError for mysql, but typescript doesn't like the catch obj sugar
-						throw new UniqueConstraintError(err as _mysql.IError)
-					}).catch({ code: MYSQL_FOREIGN_KEY_VIOLATION }, (err) => {
-						throw new ForeignKeyConstraintError(err as _mysql.IError)
-					}).then(createResult)
-				}
-
-				const rollback: InternalRollback = () => {
-					const promise = this.executeSql('ROLLBACK;')
-					close()
-					return promise.return()
-				}
-
-				const commit: InternalCommit = () => {
-					const promise = this.executeSql('COMMIT;')
-					close()
-					return promise.return()
-				}
-
-				super(executeSql, rollback, commit, stackTraceErr)
+			constructor(
+				private db: _mysql.IConnection,
+				private close: CloseTransactionFn,
+				stackTraceErr?: Error
+			) {
+				super(stackTraceErr)
 			}
 
-			public tableList(extraWhereClause: string | Callback<Result> = '', callback?: Callback<Result>) {
-				if (callback == null  && _.isFunction(extraWhereClause)) {
-					callback = extraWhereClause
-					extraWhereClause = ''
-				}
+			protected _executeSql(sql: Sql, bindings: Bindings) {
+				return Promise.fromCallback((callback) => {
+					this.db.query(sql, bindings, callback)
+				}).catch({ code: MYSQL_UNIQUE_VIOLATION }, (err) => {
+					// We know that the type is an IError for mysql, but typescript doesn't like the catch obj sugar
+					throw new UniqueConstraintError(err as _mysql.IError)
+				}).catch({ code: MYSQL_FOREIGN_KEY_VIOLATION }, (err) => {
+					throw new ForeignKeyConstraintError(err as _mysql.IError)
+				}).then(createResult)
+			}
+
+			protected _rollback() {
+				const promise = this.executeSql('ROLLBACK;')
+				this.close()
+				return promise.return()
+			}
+
+			protected _commit() {
+				const promise = this.executeSql('COMMIT;')
+				this.close()
+				return promise.return()
+			}
+
+			public tableList(extraWhereClause: string = '') {
 				if (extraWhereClause !== '') {
 					extraWhereClause = ' WHERE ' + extraWhereClause
 				}
@@ -455,7 +426,7 @@ if (maybeMysql != null) {
 						FROM information_schema.tables
 						WHERE table_schema = ?
 					) t ${extraWhereClause};
-				`, [options.database], callback)
+				`, [options.database])
 			}
 		}
 
@@ -498,89 +469,79 @@ if (typeof window !== 'undefined' && window.openDatabase != null) {
 			} catch (e) {}
 		}
 		const createResult = (result: WebSqlResult): Result => {
+			const rows = _.times(result.rows.length, (i) => {
+				return result.rows.item(i)
+			})
 			return {
-				rows: {
-					length: result.rows.length,
-					item: (i) => _.clone(result.rows.item(i)),
-					forEach: (iterator, thisArg) => {
-						this.map(iterator, thisArg)
-					},
-					map: (iterator, thisArg) => {
-						return _.times(result.rows.length, (i) => {
-							return iterator.call(thisArg, this.item(i), i, result.rows)
-						})
-					},
-				},
+				rows: rows,
 				rowsAffected: result.rowsAffected,
 				insertId: getInsertId(result),
 			}
 		}
 
 		class WebSqlTx extends Tx {
-			constructor(tx: SQLTransaction, stackTraceErr?: Error) {
-				let running = true
-				let queue: AsyncQuery[] = []
-				// This function is used to recurse executeSql calls and keep the transaction open,
-				// allowing us to use async calls within the API.
-				const asyncRecurse = () => {
-					let args: AsyncQuery | undefined
-					while (args = queue.pop()) {
-						console.debug('Running', args[0])
-						tx.executeSql(args[0], args[1], args[2], args[3])
-					}
-					if (running) {
-						console.debug('Looping')
-						tx.executeSql('SELECT 0', [], asyncRecurse)
-					}
-				}
-				asyncRecurse()
+			private running = true
+			private queue: AsyncQuery[] = []
+			constructor(
+				private tx: SQLTransaction,
+				stackTraceErr?: Error
+			) {
+				super(stackTraceErr)
 
-				const executeSql = (sql: Sql, bindings: Bindings) => {
-					return new Promise((resolve, reject) => {
-						const boundSql = bindDefaultValues(sql, bindings)
-
-						const successCallback: SQLStatementCallback = (_tx, results) => {
-							resolve(results)
-						}
-						const errorCallback: SQLStatementErrorCallback = (_tx, err) => {
-							reject(err)
-							return false
-						}
-
-						queue.push([boundSql, bindings, successCallback, errorCallback])
-					}).catch({ code: WEBSQL_CONSTRAINT_ERR }, () => {
-						throw new ConstraintError('Constraint failed.')
-					}).then(createResult)
-				}
-
-				const rollback: InternalRollback = () => {
-					return new Promise((resolve) => {
-						const successCallback: SQLStatementCallback = () => {
-							resolve()
-							throw new Error('Rollback')
-						}
-						const errorCallback: SQLStatementErrorCallback = () => {
-							resolve()
-							return true
-						}
-						queue = [['RUN A FAILING STATEMENT TO ROLLBACK', [], successCallback, errorCallback]]
-						running = false
-					})
-				}
-
-				const commit: InternalCommit = () => {
-					running = false
-					return Promise.resolve()
-				}
-
-				super(executeSql, rollback, commit, stackTraceErr)
+				this.asyncRecurse()
 			}
 
-			public tableList(extraWhereClause: string | Callback<Result> = '', callback?: Callback<Result>) {
-				if (callback == null  && _.isFunction(extraWhereClause)) {
-					callback = extraWhereClause
-					extraWhereClause = ''
+			// This function is used to recurse executeSql calls and keep the transaction open,
+			// allowing us to use async calls within the API.
+			private asyncRecurse = () => {
+				let args: AsyncQuery | undefined
+				while (args = this.queue.pop()) {
+					console.debug('Running', args[0])
+					this.tx.executeSql(args[0], args[1], args[2], args[3])
 				}
+				if (this.running) {
+					console.debug('Looping')
+					this.tx.executeSql('SELECT 0', [], this.asyncRecurse)
+				}
+			}
+
+			protected _executeSql(sql: Sql, bindings: Bindings) {
+				return new Promise((resolve, reject) => {
+					const successCallback: SQLStatementCallback = (_tx, results) => {
+						resolve(results)
+					}
+					const errorCallback: SQLStatementErrorCallback = (_tx, err) => {
+						reject(err)
+						return false
+					}
+
+					this.queue.push([sql, bindings, successCallback, errorCallback])
+				}).catch({ code: WEBSQL_CONSTRAINT_ERR }, () => {
+					throw new ConstraintError('Constraint failed.')
+				}).then(createResult)
+			}
+
+			protected _rollback(): Promise<void> {
+				return new Promise((resolve) => {
+					const successCallback: SQLStatementCallback = () => {
+						resolve()
+						throw new Error('Rollback')
+					}
+					const errorCallback: SQLStatementErrorCallback = () => {
+						resolve()
+						return true
+					}
+					this.queue = [['RUN A FAILING STATEMENT TO ROLLBACK', [], successCallback, errorCallback]]
+					this.running = false
+				})
+			}
+
+			protected _commit() {
+				this.running = false
+				return Promise.resolve()
+			}
+
+			public tableList(extraWhereClause: string = '') {
 				if (extraWhereClause !== '') {
 					extraWhereClause = ' AND ' + extraWhereClause
 				}
@@ -593,7 +554,7 @@ if (typeof window !== 'undefined' && window.openDatabase != null) {
 						'sqlite_sequence'
 					)
 					${extraWhereClause};
-				`, [], callback)
+				`)
 			}
 		}
 

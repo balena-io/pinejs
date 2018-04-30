@@ -1,10 +1,15 @@
 _ = require 'lodash'
 Promise = require 'bluebird'
+Promise.config(
+	cancellation: true
+)
+
 LF2AbstractSQL = require '@resin/lf-to-abstract-sql'
 AbstractSQLCompiler = require '@resin/abstract-sql-compiler'
-PinejsClientCore = require 'pinejs-client/core'
+{ PinejsClientCoreFactory } = require 'pinejs-client-core'
 sbvrTypes = require '@resin/sbvr-types'
 { sqlNameToODataName, odataNameToSqlName } = require '@resin/odata-to-abstract-sql'
+deepFreeze = require 'deep-freeze'
 
 SBVRParser = require '../extended-sbvr-parser/extended-sbvr-parser'
 
@@ -15,6 +20,7 @@ devModel = require './dev.sbvr'
 permissions = require './permissions'
 uriParser = require './uri-parser'
 errors = require './errors'
+{ rollbackRequestHooks, instantiateHooks } = require './hooks'
 _.assign(exports, errors)
 {
 	BadRequestError
@@ -34,7 +40,14 @@ memoize = require 'memoizee'
 memoizeWeak = require 'memoizee/weak'
 memoizedCompileRule = memoize(
 	(abstractSqlQuery) ->
-		AbstractSQLCompiler.compileRule(abstractSqlQuery)
+		sqlQuery = AbstractSQLCompiler.compileRule(abstractSqlQuery)
+		modifiedFields = AbstractSQLCompiler.getModifiedFields(abstractSqlQuery)
+		if modifiedFields?
+			deepFreeze(modifiedFields)
+		return {
+			sqlQuery
+			modifiedFields
+		}
 	primitive: true
 )
 
@@ -100,27 +113,31 @@ exports.resolveNavigationResource = resolveNavigationResource = (request, naviga
 		throw new Error("Cannot navigate from '#{request.resourceName}' to '#{navigationName}'")
 	if mapping.length < 2
 		throw new Error("'#{request.resourceName}' to '#{navigationName}' is a field not a navigation")
-	return sqlNameToODataName(mapping[1][0])
+	return sqlNameToODataName(request.abstractSqlModel.tables[mapping[1][0]].name)
 
 # TODO: Clean this up and move it into the db module.
-prettifyConstraintError = (err, tableName) ->
+prettifyConstraintError = (err, resourceName) ->
 	if err instanceof db.ConstraintError
 		if err instanceof db.UniqueConstraintError
 			switch db.engine
 				when 'mysql'
 					matches = /ER_DUP_ENTRY: Duplicate entry '.*?[^\\]' for key '(.*?[^\\])'/.exec(err)
+					throw new db.UniqueConstraintError('"' + sqlNameToODataName(matches[1]) + '" must be unique.')
 				when 'postgres'
+					tableName = odataNameToSqlName(resourceName)
 					matches = new RegExp('"' + tableName + '_(.*?)_key"').exec(err)
 					# We know it's the right error type, so if matches exists just throw a generic error message, since we have failed to get the info for a more specific one.
 					if !matches?
 						throw new db.UniqueConstraintError('Unique key constraint violated')
-			throw new db.UniqueConstraintError('"' + sqlNameToODataName(matches[1]) + '" must be unique.')
+					columns = matches[1].split('_')
+					throw new db.UniqueConstraintError('"' + columns.map(sqlNameToODataName).join('" and "') + '" must be unique.')
 
 		if err instanceof db.ForeignKeyConstraintError
 			switch db.engine
 				when 'mysql'
 					matches = /ER_ROW_IS_REFERENCED_: Cannot delete or update a parent row: a foreign key constraint fails \(".*?"\.(".*?").*/.exec(err)
 				when 'postgres'
+					tableName = odataNameToSqlName(resourceName)
 					matches = new RegExp('"' + tableName + '" violates foreign key constraint ".*?" on table "(.*?)"').exec(err)
 					matches ?= new RegExp('"' + tableName + '" violates foreign key constraint "' + tableName + '_(.*?)_fkey"').exec(err)
 					# We know it's the right error type, so if matches exists just throw a generic error message, since we have failed to get the info for a more specific one.
@@ -167,7 +184,7 @@ getAndCheckBindValues = (vocab, odataBinds, bindings, values) ->
 			field = { dataType }
 
 		if value is undefined
-			return db.DEFAULT_VALUE
+			throw new Error("Bind value cannot be undefined: #{binding}")
 
 		AbstractSQLCompiler.dataTypeValidate(value, field)
 		.tapCatch (e) ->
@@ -192,7 +209,7 @@ isRuleAffected = do ->
 		# If for some reason there are no referenced fields known for the rule then we just assume it may have been modified
 		if not rule.referencedFields?
 			return true
-		modifiedFields = AbstractSQLCompiler.getModifiedFields(request.abstractSqlQuery)
+		{ modifiedFields } = request
 		# If we can't get any modified fields we assume the rule may have been modified
 		if not modifiedFields?
 			console.warn("Could not determine the modified table/fields info for '#{request.method}' to #{request.vocabulary}", request.abstractSqlQuery)
@@ -212,7 +229,7 @@ exports.validateModel = validateModel = (tx, modelName, request) ->
 		.then (values) ->
 			tx.executeSql(rule.sql, values)
 		.then (result) ->
-			if result.rows.item(0).result in [false, 0, '0']
+			if result.rows[0].result in [false, 0, '0']
 				throw new SbvrValidationError(rule.structuredEnglish)
 
 exports.executeModel = executeModel = (tx, model, callback) ->
@@ -366,11 +383,17 @@ getHooks = do ->
 	_getHooks = (request) ->
 		if request.resourceName?
 			resourceName = resolveSynonym(request)
-		getMethodHooks(request.method, request.vocabulary, resourceName)
+		instantiateHooks(
+			getMethodHooks(
+				request.method
+				request.vocabulary
+				resourceName
+			)
+		)
 	_getHooks.clear = -> getMethodHooks.clear()
 	return _getHooks
 
-runHook = Promise.method (hookName, args) ->
+runHooks = Promise.method (hookName, args) ->
 	hooks = args.req.hooks[hookName] || []
 	requestHooks = args.request?.hooks?[hookName]
 	if requestHooks?
@@ -380,11 +403,10 @@ runHook = Promise.method (hookName, args) ->
 		get: _.once ->
 			return api[args.request.vocabulary].clone(passthrough: _.pick(args, 'req', 'tx'))
 	Promise.map hooks, (hook) ->
-		hook(args)
+		hook.run(args)
 
 exports.deleteModel = (vocabulary, callback) ->
-	db.transaction()
-	.then (tx) ->
+	db.transaction (tx) ->
 		dropStatements =
 			_.map sqlModels[vocabulary]?.dropSchema, (dropStatement) ->
 				tx.executeSql(dropStatement)
@@ -397,12 +419,9 @@ exports.deleteModel = (vocabulary, callback) ->
 				options:
 					$filter:
 						is_of__vocabulary: vocabulary
-		])).then ->
-			tx.end()
-			cleanupModel(vocabulary)
-		.tapCatch ->
-			tx.rollback()
-			return
+		]))
+	.then ->
+		cleanupModel(vocabulary)
 	.nodeify(callback)
 
 exports.getID = (vocab, request) ->
@@ -416,7 +435,6 @@ exports.getID = (vocab, request) ->
 	return 0
 
 checkForExpansion = do ->
-	rowsObjectHack = (i) -> @[i]
 	Promise.method (vocab, abstractSqlModel, parentResourceName, fieldName, instance) ->
 		try
 			field = JSON.parse(instance[fieldName])
@@ -425,8 +443,6 @@ checkForExpansion = do ->
 			field = instance[fieldName]
 
 		if _.isArray(field)
-			# Hack to look like a rows object
-			field.item = rowsObjectHack
 			mappingResourceName = resolveNavigationResource({
 				abstractSqlModel
 				vocabulary: vocab
@@ -481,8 +497,8 @@ processOData = (vocab, abstractSqlModel, resourceName, rows) ->
 		return Promise.fulfilled([])
 
 	if rows.length is 1
-		if rows.item(0).$count?
-			count = parseInt(rows.item(0).$count, 10)
+		if rows[0].$count?
+			count = parseInt(rows[0].$count, 10)
 			return Promise.fulfilled(count)
 
 	sqlResourceName = resolveSynonym({ abstractSqlModel, vocabulary: vocab, resourceName })
@@ -608,7 +624,7 @@ exports.runRule = do ->
 		.nodeify(callback)
 
 exports.PinejsClient =
-	class PinejsClient extends PinejsClientCore(_, Promise)
+	class PinejsClient extends PinejsClientCoreFactory(Promise)
 		_request: ({ method, url, body, tx, req, custom }) ->
 			return runURI(method, url, body, tx, req, custom)
 
@@ -635,6 +651,7 @@ exports.runURI = runURI =  (method, uri, body = {}, tx, req, custom, callback) -
 			delete body[k]
 
 	req =
+		on: _.noop
 		custom: custom
 		user: user
 		apiKey: apiKey
@@ -647,6 +664,7 @@ exports.runURI = runURI =  (method, uri, body = {}, tx, req, custom, callback) -
 
 	return new Promise (resolve, reject) ->
 		res =
+			on: _.noop
 			statusCode: 200
 			status: (@statusCode) ->
 				return this
@@ -662,8 +680,8 @@ exports.runURI = runURI =  (method, uri, body = {}, tx, req, custom, callback) -
 					reject(data)
 				else
 					resolve(data)
-			set: ->
-			type: ->
+			set: _.noop
+			type: _.noop
 
 		next = (route) ->
 			console.warn('Next called on a runURI?!', method, uri, route)
@@ -688,11 +706,22 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 	mapSeries = controlFlow.getMappingFn(req.headers)
 	# Get the hooks for the current method/vocabulary as we know it,
 	# in order to run PREPARSE hooks, before parsing gets us more info
-	req.hooks = getHooks(
+	req.hooks = reqHooks = getHooks(
 		method: req.method
 		vocabulary: apiRoot
 	)
-	runHook('PREPARSE', { req, tx: req.tx })
+
+	req.on 'close', ->
+		handlePromise.cancel()
+		rollbackRequestHooks(reqHooks)
+	res.on 'close', ->
+		handlePromise.cancel()
+		rollbackRequestHooks(reqHooks)
+
+	req.tx?.on 'rollback', ->
+		rollbackRequestHooks(reqHooks)
+
+	handlePromise = runHooks('PREPARSE', { req, tx: req.tx })
 	.then ->
 		{ method, url, body } = req
 
@@ -707,21 +736,29 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 				req.hooks = {}
 				request.hooks = getHooks(request)
 				# Add/check the relevant permissions
-				runHook('POSTPARSE', { req, request, tx: req.tx })
+				runHooks('POSTPARSE', { req, request, tx: req.tx })
 				.return(request)
 				.then (uriParser.translateUri)
 				.then (request) ->
 					if request.abstractSqlQuery?
 						try
-							request.sqlQuery = memoizedCompileRule(request.abstractSqlQuery)
+							{ sqlQuery, modifiedFields } = memoizedCompileRule(request.abstractSqlQuery)
+							request.sqlQuery = sqlQuery
+							request.modifiedFields = modifiedFields
 						catch err
 							api[apiRoot].logger.error('Failed to compile abstract sql: ', request.abstractSqlQuery, err, err.stack)
 							throw new SqlCompilationError(err)
 					return request
+				.tapCatch ->
+					rollbackRequestHooks(reqHooks)
+					rollbackRequestHooks(request)
 
 			.then (request) ->
 				# Run the request in its own transaction
 				runTransaction req, (tx) ->
+					tx.on 'rollback', ->
+						rollbackRequestHooks(reqHooks)
+						rollbackRequestHooks(request)
 					if _.isArray request
 						env = new Map()
 						Promise.reduce(request, runChangeSet(req, res, tx), env)
@@ -788,7 +825,7 @@ runRequest = (req, res, tx, request) ->
 	if DEBUG
 		logger.log('Running', req.method, req.url)
 	# Forward each request to the correct method handler
-	runHook('PRERUN', { req, request, tx })
+	runHooks('PRERUN', { req, request, tx })
 	.then ->
 		switch request.method
 			when 'GET'
@@ -809,7 +846,7 @@ runRequest = (req, res, tx, request) ->
 		logger.error(err, err.stack)
 		throw new InternalRequestError()
 	.tap (result) ->
-		runHook('POSTRUN', { req, request, result, tx })
+		runHooks('POSTRUN', { req, request, result, tx })
 	.then (result) ->
 		prepareResponse(req, res, request, result, tx)
 
@@ -862,13 +899,7 @@ runTransaction = (req, callback) ->
 		callback(req.tx)
 	else
 		# Otherwise create a new transaction and handle tidying it up.
-		db.transaction()
-		.then (tx) ->
-			callback(tx)
-			.tap ->
-				tx.end()
-			.tapCatch ->
-				tx.rollback()
+		db.transaction(callback)
 
 # This is a helper function that will check and add the bind values to the SQL query and then run it.
 runQuery = (tx, request, queryIndex, addReturning) ->
@@ -881,7 +912,7 @@ runQuery = (tx, request, queryIndex, addReturning) ->
 			api[vocabulary].logger.log(sqlQuery.query, values)
 
 		sqlQuery.values = values
-		tx.executeSql(sqlQuery.query, values, null, addReturning)
+		tx.executeSql(sqlQuery.query, values, addReturning)
 
 runGet = (req, res, request, tx) ->
 	if request.sqlQuery?
@@ -892,7 +923,7 @@ respondGet = (req, res, request, result, tx) ->
 	if request.sqlQuery?
 		processOData(vocab, getAbstractSqlModel(request), request.resourceName, result.rows)
 		.then (d) ->
-			runHook('PRERESPOND', { req, res, request, result, data: d, tx: tx })
+			runHooks('PRERESPOND', { req, res, request, result, data: d, tx: tx })
 			.then ->
 				{ body: { d }, headers: { contentType: 'application/json' } }
 	else
@@ -910,14 +941,16 @@ runPost = (req, res, request, tx) ->
 	idField = getAbstractSqlModel(request).tables[resolveSynonym(request)].idField
 
 	runQuery(tx, request, null, idField)
-	.then (sqlResult) ->
+	.tap (sqlResult) ->
+		if sqlResult.rowsAffected is 0
+			throw new PermissionError()
 		validateModel(tx, vocab, request)
-		.then ->
-			# Return the inserted/updated id.
-			if request.abstractSqlQuery[0] == 'UpdateQuery'
-				request.sqlQuery.values[0]
-			else
-				sqlResult.insertId
+	.then (sqlResult) ->
+		# Return the inserted/updated id.
+		if request.abstractSqlQuery[0] == 'UpdateQuery'
+			request.sqlQuery.values[0]
+		else
+			sqlResult.insertId
 
 respondPost = (req, res, request, result, tx) ->
 	vocab = request.vocabulary
@@ -932,7 +965,7 @@ respondPost = (req, res, request, result, tx) ->
 		# If we failed to fetch the created resource then just return the id.
 		.catchReturn(onlyId)
 	.then (result) ->
-		runHook('PRERESPOND', { req, res, request, result, tx: tx })
+		runHooks('PRERESPOND', { req, res, request, result, tx: tx })
 		.then ->
 			status: 201
 			body: result.d[0]
@@ -959,7 +992,7 @@ runPut = (req, res, request, tx) ->
 		validateModel(tx, vocab, request)
 
 respondPut = respondDelete = respondOptions = (req, res, request, result, tx) ->
-	runHook('PRERESPOND', { req, res, request, tx: tx })
+	runHooks('PRERESPOND', { req, res, request, tx: tx })
 	.then ->
 		status: 200
 		headers: {}
@@ -987,7 +1020,25 @@ exports.executeStandardModels = executeStandardModels = (tx, callback) ->
 		console.error('Failed to execute standard models.', err, err.stack)
 	.nodeify(callback)
 
-exports.addHook = (method, apiRoot, resourceName, callbacks) ->
+
+exports.addSideEffectHook = (method, apiRoot, resourceName, hooks) ->
+	sideEffectHook = _.mapValues hooks, (hook) ->
+		{
+			HOOK: hook
+			effects: true
+		}
+	addHook(method, apiRoot, resourceName, sideEffectHook)
+
+
+exports.addPureHook = (method, apiRoot, resourceName, hooks) ->
+	pureHooks = _.mapValues hooks, (hook) ->
+		{
+			HOOK: hook
+			effects: false
+		}
+	addHook(method, apiRoot, resourceName, pureHooks)
+
+addHook = (method, apiRoot, resourceName, hooks) ->
 	methodHooks = apiHooks[method]
 	if !methodHooks?
 		throw new Error('Unsupported method: ' + method)
@@ -1000,33 +1051,31 @@ exports.addHook = (method, apiRoot, resourceName, callbacks) ->
 			throw new Error('Unknown resource for api root: ' + origResourceName + ', ' + apiRoot)
 
 
-	for callbackType, callback of callbacks when callbackType not in ['PREPARSE', 'POSTPARSE', 'PRERUN', 'POSTRUN', 'PRERESPOND']
-		throw new Error('Unknown callback type: ' + callbackType)
+	for hookType, hook of hooks when hookType not in ['PREPARSE', 'POSTPARSE', 'PRERUN', 'POSTRUN', 'PRERESPOND']
+		throw new Error('Unknown callback type: ' + hookType)
 
 	apiRootHooks = methodHooks[apiRoot] ?= {}
 	resourceHooks = apiRootHooks[resourceName] ?= {}
 
-	for callbackType, callback of callbacks
-		resourceHooks[callbackType] ?= []
-		resourceHooks[callbackType].push(callback)
+	for hookType, hook of hooks
+		resourceHooks[hookType] ?= []
+		resourceHooks[hookType].push(hook)
 
 	getHooks.clear()
 	return
 
+
 exports.setup = (app, _db, callback) ->
 	exports.db = db = _db
 	AbstractSQLCompiler = AbstractSQLCompiler[db.engine]
-	db.transaction()
-	.then (tx) ->
+	db.transaction (tx) ->
 		executeStandardModels(tx)
 		.then ->
 			permissions.setup(app, exports)
 			_.extend(exports, permissions)
-			tx.end()
-		.catch (err) ->
-			tx.rollback()
-			console.error('Could not execute standard models', err, err.stack)
-			process.exit(1)
+	.catch (err) ->
+		console.error('Could not execute standard models', err, err.stack)
+		process.exit(1)
 	.then ->
 		db.executeSql('CREATE UNIQUE INDEX "uniq_model_model_type_vocab" ON "model" ("is of-vocabulary", "model type");')
 		.catch -> # we can't use IF NOT EXISTS on all dbs, so we have to ignore the error raised if this index already exists

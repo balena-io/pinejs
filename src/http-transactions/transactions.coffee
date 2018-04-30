@@ -11,7 +11,7 @@ exports.config =
 exports.setup = (app, sbvrUtils) ->
 	exports.addModelHooks = (modelName) ->
 		# TODO: Add checks on POST/PATCH requests as well.
-		sbvrUtils.addHook 'PUT', modelName, 'all', ({ tx, request }) ->
+		sbvrUtils.addPureHook 'PUT', modelName, 'all', ({ tx, request }) ->
 			vocab = request.vocabulary
 			{ logger } = sbvrUtils.api[vocab]
 			id = sbvrUtils.getID(vocab, request)
@@ -28,12 +28,11 @@ exports.setup = (app, sbvrUtils) ->
 				logger.error('Unable to check resource locks', err, err.stack)
 				throw new Error('Unable to check resource locks')
 			.then (result) ->
-				if result.rows.item(0).result in [false, 0, '0']
+				if result.rows[0].result in [false, 0, '0']
 					throw new Error('The resource is locked and cannot be edited')
 
 		endTransaction = (transactionID) ->
-			sbvrUtils.db.transaction()
-			.then (tx) ->
+			sbvrUtils.db.transaction (tx) ->
 				placeholders = {}
 				getLockedRow = (lockID) ->
 					# 'GET', '/transaction/resource?$select=resource_id&$filter=resource__is_under__lock/lock eq ?'
@@ -103,14 +102,14 @@ exports.setup = (app, sbvrUtils) ->
 							when 'DELETE'
 								getLockedRow(lockID)
 								.then (lockedRow) ->
-									lockedRow = lockedRow.rows.item(0)
+									lockedRow = lockedRow.rows[0]
 									url = url + '?$filter=' + clientModel.idField + ' eq ' + lockedRow.resource_id
 									sbvrUtils.PinejsClient::delete({ url, passthrough })
 								.then(doCleanup)
 							when 'EDIT'
 								getLockedRow(lockID)
 								.then (lockedRow) ->
-									lockedRow = lockedRow.rows.item(0)
+									lockedRow = lockedRow.rows[0]
 									getFieldsObject(conditionalResource.id, clientModel)
 									.then (body) ->
 										body[clientModel.idField] = lockedRow.resource_id
@@ -130,11 +129,6 @@ exports.setup = (app, sbvrUtils) ->
 					tx.executeSql('DELETE FROM "transaction" WHERE "id" = ?;', [transactionID])
 				.then (result) ->
 					sbvrUtils.validateModel(tx, modelName)
-				.tapCatch ->
-					tx.rollback()
-					return
-				.then ->
-					tx.end()
 
 		# TODO: these really should be specific to the model - currently they will only work for the first model added
 		app.post '/transaction/execute', (req, res, next) ->

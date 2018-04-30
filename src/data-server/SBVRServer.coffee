@@ -113,8 +113,7 @@ exports.setup = (app, sbvrUtils, db) ->
 			if result.length is 0
 				throw new Error('Could not find the model to execute')
 			modelText = result[0].text
-			db.transaction()
-			.then (tx) ->
+			db.transaction (tx) ->
 				sbvrUtils.executeModel(tx,
 					apiRoot: 'data'
 					modelText: modelText
@@ -130,11 +129,6 @@ exports.setup = (app, sbvrUtils, db) ->
 								name: 'model_area'
 						body:
 							is_disabled: true
-				.then ->
-					tx.end()
-				.tapCatch ->
-					tx.rollback()
-					return
 		.then ->
 			isServerOnAir(true)
 			res.sendStatus(200)
@@ -163,13 +157,11 @@ exports.setup = (app, sbvrUtils, db) ->
 				sbvrUtils.executeModels(tx, exports.config.models)
 			.then ->
 				setupModels(tx)
-			.then ->
-				tx.end()
-				res.sendStatus(200)
-			.catch (err) ->
-				console.error('Error clearing db', err, err.stack)
-				tx.rollback()
-				res.sendStatus(503)
+		.then ->
+			res.sendStatus(200)
+		.catch (err) ->
+			console.error('Error clearing db', err, err.stack)
+			res.sendStatus(503)
 	app.put '/importdb', permissions.checkPermissionsMiddleware('set'), (req, res, next) ->
 		queries = req.body.split(';')
 		db.transaction (tx) ->
@@ -182,13 +174,12 @@ exports.setup = (app, sbvrUtils, db) ->
 							throw [query, err]
 						)
 				null
-			).then ->
-				tx.end()
-				res.sendStatus(200)
-			.catch (err) ->
-				console.error('Error importing db', err, err.stack)
-				tx.rollback()
-				res.sendStatus(404)
+			)
+		.then ->
+			res.sendStatus(200)
+		.catch (err) ->
+			console.error('Error importing db', err, err.stack)
+			res.sendStatus(404)
 	app.get '/exportdb', permissions.checkPermissionsMiddleware('get'), (req, res, next) ->
 		db.transaction (tx) ->
 			tx.tableList("name NOT LIKE '%_buk'")
@@ -215,13 +206,12 @@ exports.setup = (app, sbvrUtils, db) ->
 								valQuery += "'" + currRow[propName] + "'"
 							insQuery += ') values (' + valQuery + ');\n'
 						exported += insQuery
-				.then ->
-					tx.end()
-					res.json(exported)
-			.catch (err) ->
-				console.error('Error exporting db', err, err.stack)
-				tx.rollback()
-				res.sendStatus(503)
+				.return(exported)
+		.then (exported) ->
+			res.json(exported)
+		.catch (err) ->
+			console.error('Error exporting db', err, err.stack)
+			res.sendStatus(503)
 	app.post '/backupdb', permissions.checkPermissionsMiddleware('all'), serverIsOnAir, (req, res, next) ->
 		db.transaction (tx) ->
 			tx.tableList("name NOT LIKE '%_buk'")
@@ -231,13 +221,11 @@ exports.setup = (app, sbvrUtils, db) ->
 					tx.dropTable(tableName + '_buk', true)
 					.then ->
 						tx.executeSql('ALTER TABLE "' + tableName + '" RENAME TO "' + tableName + '_buk";')
-			.then ->
-				tx.end()
-				res.sendStatus(200)
-			.catch (err) ->
-				tx.rollback()
-				console.error('Error backing up db', err, err.stack)
-				res.sendStatus(404)
+		.then ->
+			res.sendStatus(200)
+		.catch (err) ->
+			console.error('Error backing up db', err, err.stack)
+			res.sendStatus(404)
 	app.post '/restoredb', permissions.checkPermissionsMiddleware('all'), serverIsOnAir, (req, res, next) ->
 		db.transaction (tx) ->
 			tx.tableList("name LIKE '%_buk'")
@@ -247,13 +235,11 @@ exports.setup = (app, sbvrUtils, db) ->
 					tx.dropTable(tableName[0...-4], true)
 					.then ->
 						tx.executeSql('ALTER TABLE "' + tableName + '" RENAME TO "' + tableName[0...-4] + '";')
-			.then ->
-				tx.end()
-				res.sendStatus(200)
-			.catch (err) ->
-				tx.rollback()
-				console.error('Error restoring db', err, err.stack)
-				res.sendStatus(404)
+		.then ->
+			res.sendStatus(200)
+		.catch (err) ->
+			console.error('Error restoring db', err, err.stack)
+			res.sendStatus(404)
 
 	app.all('/data/*', serverIsOnAir, sbvrUtils.handleODataRequest)
 	app.get('/Auth/*', serverIsOnAir, sbvrUtils.handleODataRequest)
@@ -278,11 +264,4 @@ exports.setup = (app, sbvrUtils, db) ->
 			isServerOnAir(false)
 			res.sendStatus(200)
 
-	db.transaction()
-	.then (tx) ->
-		setupModels(tx)
-		.then ->
-			tx.end()
-		.tapCatch ->
-			tx.rollback()
-			return
+	db.transaction(setupModels)

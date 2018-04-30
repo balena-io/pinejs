@@ -20,7 +20,7 @@ interface MappingFunction {
 }
 
 // The settle version of `Promise.mapSeries`
-const settleMapSeries: MappingFunction = (a, fn) => {
+export const settleMapSeries: MappingFunction = (a, fn) => {
 	const runF = Promise.method(fn)
 	return Promise.mapSeries(a, _.flow(runF, wrap))
 }
