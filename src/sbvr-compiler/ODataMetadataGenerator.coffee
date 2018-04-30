@@ -106,3 +106,5 @@ module.exports = (vocabulary, sqlModel) ->
 				</Schema>
 			</edmx:DataServices>
 		</edmx:Edmx>'''
+
+module.exports.version = require('../../package.json').version
