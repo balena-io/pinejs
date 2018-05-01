@@ -15,7 +15,7 @@ export const liftP = <T, U>(fn: (v: T) => U | Promise<U>): (a: T | T[]) => Promi
 	}
 }
 
-interface MappingFunction {
+export interface MappingFunction {
 	<T, U>(a: T[], fn: (v: T) => U | Promise<U>): Promise<Array<U | Error>>
 }
 

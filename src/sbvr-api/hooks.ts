@@ -2,8 +2,8 @@ import * as _ from 'lodash'
 import * as Promise from 'bluebird'
 import { settleMapSeries } from './control-flow'
 
-type RollbackAction = () => void | Promise<void>
-type HookFn = (...args: any[]) => any
+export type RollbackAction = () => void | Promise<void>
+export type HookFn = (...args: any[]) => any
 type HookBluePrint = {
 	HOOK: HookFn
 	effects: boolean
