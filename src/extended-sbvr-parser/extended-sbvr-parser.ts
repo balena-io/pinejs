@@ -10,3 +10,4 @@ module.exports = SBVRParser._extend({
 		return this
 	}
 })
+module.exports.version = require('@resin/sbvr-parser/package.json').version + '+' + require('../../package.json').version

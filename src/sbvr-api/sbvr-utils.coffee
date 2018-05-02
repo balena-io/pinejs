@@ -4,8 +4,11 @@ Promise.config(
 	cancellation: true
 )
 
+{ cachedCompile } = require('./cached-compile')
+
 LF2AbstractSQL = require '@resin/lf-to-abstract-sql'
 AbstractSQLCompiler = require '@resin/abstract-sql-compiler'
+AbstractSQLCompilerVersion = require('@resin/abstract-sql-compiler/package.json').version
 { PinejsClientCoreFactory } = require 'pinejs-client-core'
 sbvrTypes = require '@resin/sbvr-types'
 { sqlNameToODataName, odataNameToSqlName } = require '@resin/odata-to-abstract-sql'
@@ -62,6 +65,7 @@ fetchProcessing = _.mapValues sbvrTypes, ({ fetchProcessing }) ->
 		Promise.promisify(fetchProcessing)
 
 LF2AbstractSQLTranslator = LF2AbstractSQL.createTranslator(sbvrTypes)
+LF2AbstractSQLTranslatorVersion = require('@resin/lf-to-abstract-sql/package.json').version + '+' + require('@resin/sbvr-types/package.json').version
 
 seModels = {}
 abstractSqlModels = {}
@@ -232,6 +236,37 @@ exports.validateModel = validateModel = (tx, modelName, request) ->
 			if result.rows[0].result in [false, 0, '0']
 				throw new SbvrValidationError(rule.structuredEnglish)
 
+exports.generateLfModel = generateLfModel = (seModel) ->
+	return cachedCompile 'lfModel', SBVRParser.version, seModel, ->
+		SBVRParser.matchAll(seModel, 'Process')
+
+exports.generateAbstractSqlModel = generateAbstractSqlModel = (lfModel) ->
+	return cachedCompile 'abstractSqlModel', LF2AbstractSQLTranslatorVersion, lfModel, ->
+		LF2AbstractSQLTranslator(lfModel, 'Process')
+
+generateModels = (vocab, seModel) ->
+	try
+		lfModel = generateLfModel(seModel)
+	catch e
+		console.error("Error parsing model '#{vocab}':", e)
+		throw new Error("Error parsing model '#{vocab}': " + e)
+
+	try
+		abstractSqlModel = generateAbstractSqlModel(lfModel)
+	catch e
+		console.error("Error translating model '#{vocab}':", e)
+		throw new Error("Error translating model '#{vocab}': " + e)
+
+	try
+		sqlModel = cachedCompile 'sqlModel', AbstractSQLCompilerVersion + '+' + db.engine, abstractSqlModel, ->
+			AbstractSQLCompiler.compileSchema(abstractSqlModel)
+		metadata = cachedCompile 'metadata', ODataMetadataGenerator.version, { vocab, sqlModel }, ->
+			ODataMetadataGenerator(vocab, sqlModel)
+	catch e
+		console.error("Error compiling model '#{vocab}':", e)
+		throw new Error("Error compiling model '#{vocab}': " + e)
+	return { lfModel, abstractSqlModel, sqlModel, metadata }
+
 exports.executeModel = executeModel = (tx, model, callback) ->
 	executeModels(tx, [model], callback)
 
@@ -240,20 +275,9 @@ exports.executeModels = executeModels = (tx, models, callback) ->
 		seModel = model.modelText
 		vocab = model.apiRoot
 
-		migrator.run(tx, model).then ->
-			try
-				lfModel = SBVRParser.matchAll(seModel, 'Process')
-			catch e
-				console.error('Error parsing model', vocab, e, e.stack)
-				throw new Error(['Error parsing model', e])
-
-			try
-				abstractSqlModel = LF2AbstractSQLTranslator(lfModel, 'Process')
-				sqlModel = AbstractSQLCompiler.compileSchema(abstractSqlModel)
-				metadata = ODataMetadataGenerator(vocab, sqlModel)
-			catch e
-				console.error('Error compiling model', vocab, e, e.stack)
-				throw new Error(['Error compiling model', e])
+		migrator.run(tx, model)
+		.then ->
+			{ lfModel, abstractSqlModel, sqlModel, metadata } = generateModels(vocab, seModel)
 
 			# Create tables related to terms and fact types
 			# Use `Promise.reduce` to run statements sequentially, as the order of the CREATE TABLE statements matters (eg. for foreign keys).
