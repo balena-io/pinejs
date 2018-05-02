@@ -18,9 +18,6 @@ if (!process.browser) {
 	const fs = require('fs')
 	nodeRequire.extensions['.sbvr'] = (module: NodeModule, filename: string) =>
 		module.exports = fs.readFileSync(filename, { encoding: 'utf8' })
-
-	// Register the .ometajs loader
-	nodeRequire('ometa-js')
 }
 
 import * as Promise from 'bluebird'
