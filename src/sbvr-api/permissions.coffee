@@ -35,6 +35,7 @@ parsePermissions = do ->
 				extraBinds: odataParser.binds
 			}
 		primitive: true
+		max: env.cache.parsePermissions.max
 	)
 
 	return (filter, odataBinds) ->
