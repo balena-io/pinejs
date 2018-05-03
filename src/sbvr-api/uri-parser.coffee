@@ -48,6 +48,7 @@ memoizedOdata2AbstractSQL = do ->
 				console.error('Failed to translate url: ', JSON.stringify(odataQuery, null, '\t'), method, e, e.stack)
 				throw new TranslationError('Failed to translate url')
 		normalizer: JSON.stringify
+		max: env.cache.odataToAbstractSql.max
 	)
 	return (vocabulary, odataQuery, method, body) ->
 		# Sort the body keys to improve cache hits

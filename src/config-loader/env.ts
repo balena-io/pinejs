@@ -15,4 +15,7 @@ export const cache = {
 	parseOData: {
 		max: 100000
 	},
+	odataToAbstractSql: {
+		max: 10000
+	},
 }
