@@ -11,5 +11,8 @@ export const cache = {
 	},
 	parsePermissions: {
 		max: 100000
-	}
+	},
+	parseOData: {
+		max: 100000
+	},
 }

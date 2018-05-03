@@ -24,6 +24,7 @@ memoizedParseOdata = do ->
 	_memoizedParseOdata = memoize(
 		parseOdata
 		primitive: true
+		max: env.cache.parseOData.max
 	)
 	return (url) ->
 		if _.includes(url, '$')
