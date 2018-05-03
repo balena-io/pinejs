@@ -15,7 +15,7 @@
   "dependencies": {
     "@resin/abstract-sql-compiler": "^5.0.1",
     "@resin/lf-to-abstract-sql": "^2.0.1",
-    "@resin/odata-parser": "^0.2.6",
+    "@resin/odata-parser": "^0.2.8",
     "@resin/odata-to-abstract-sql": "^2.1.0",
     "@resin/sbvr-parser": "^0.1.2",
     "@resin/sbvr-types": "^1.4.1",
@@ -48,7 +48,6 @@
   },
   "devDependencies": {
     "coffee-loader": "^0.7.2",
-    "extract-text-webpack-plugin": "^1.0.1",
     "grunt": "^1.0.0",
     "grunt-check-dependencies": "^1.0.0",
     "grunt-cli": "^1.0.0",
@@ -56,11 +55,8 @@
     "grunt-contrib-coffee": "git+https://github.com/gruntjs/grunt-contrib-coffee.git#72e1818410c6c0371e4b5c5441c6993a4e61e869",
     "grunt-contrib-concat": "^1.0.0",
     "grunt-contrib-copy": "^1.0.0",
-    "grunt-contrib-htmlmin": "^2.0.0",
-    "grunt-contrib-imagemin": "^1.0.0",
     "grunt-gitinfo": "^0.1.8",
     "grunt-rename": "^0.1.4",
-    "grunt-text-replace": "^0.4.0",
     "grunt-ts": "^6.0.0-beta.19",
     "grunt-webpack": "^1.0.8",
     "load-grunt-tasks": "^3.5.0",
