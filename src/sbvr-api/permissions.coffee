@@ -126,6 +126,7 @@ getPermissionsLookup = memoize(
 				permissionsLookup[target].push(condition)
 		return permissionsLookup
 	primitive: true
+	max: env.cache.permissionsLookup.max
 )
 
 _checkPermissions = (permissions, actorID, actionList, resourceName, vocabulary) ->
