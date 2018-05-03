@@ -18,4 +18,7 @@ export const cache = {
 	odataToAbstractSql: {
 		max: 10000
 	},
+	abstractSqlCompiler: {
+		max: 10000
+	},
 }
