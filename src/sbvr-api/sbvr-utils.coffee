@@ -36,6 +36,7 @@ _.assign(exports, errors)
 	TranslationError
 	UnsupportedMethodError
 	ForbiddenError
+	PayloadError
 } = errors
 
 controlFlow = require './control-flow'
@@ -823,19 +824,22 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 		console.error('An error occured while constructing the response', e, e.stack)
 		res.sendStatus(500)
 
+getErrorResponseBody = (e) ->
+	return e.payload or e.message
+
 # Reject the error to use the nice catch syntax
 constructError = (e) ->
 	Promise.reject(e)
 	.catch SbvrValidationError, BadRequestError, (err) ->
-		{ status: 400, body: err.message }
+		{ status: 400, body: getErrorResponseBody(err) }
 	.catch PermissionError, (err) ->
-		{ status: 401, body: err.message }
+		{ status: 401, body: getErrorResponseBody(err) }
 	.catch SqlCompilationError, TranslationError, ParsingError, PermissionParsingError, InternalRequestError, (err) ->
 		{ status: 500 }
 	.catch UnsupportedMethodError, (err) ->
-		{ status: 405, body: err.message }
+		{ status: 405, body: getErrorResponseBody(err) }
 	.catch ForbiddenError, (err) ->
-		{ status: 403, body: err.message }
+		{ status: 403, body: getErrorResponseBody(err) }
 	.catch e, (err) ->
 		console.error(err)
 		# If the err is an error object then use its message instead - it should be more readable!
