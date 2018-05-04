@@ -52,6 +52,7 @@ memoizedCompileRule = memoize(
 			modifiedFields
 		}
 	primitive: true
+	max: env.cache.abstractSqlCompiler.max
 )
 
 { DEBUG } = process.env

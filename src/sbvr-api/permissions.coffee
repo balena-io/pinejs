@@ -35,6 +35,7 @@ parsePermissions = do ->
 				extraBinds: odataParser.binds
 			}
 		primitive: true
+		max: env.cache.parsePermissions.max
 	)
 
 	return (filter, odataBinds) ->
@@ -126,6 +127,7 @@ getPermissionsLookup = memoize(
 				permissionsLookup[target].push(condition)
 		return permissionsLookup
 	primitive: true
+	max: env.cache.permissionsLookup.max
 )
 
 _checkPermissions = (permissions, actorID, actionList, resourceName, vocabulary) ->
