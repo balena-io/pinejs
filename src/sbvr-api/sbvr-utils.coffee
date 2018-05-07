@@ -13,6 +13,7 @@ AbstractSQLCompilerVersion = require('@resin/abstract-sql-compiler/package.json'
 sbvrTypes = require '@resin/sbvr-types'
 { sqlNameToODataName, odataNameToSqlName } = require '@resin/odata-to-abstract-sql'
 deepFreeze = require 'deep-freeze'
+env = require '../config-loader/env'
 
 SBVRParser = require '../extended-sbvr-parser/extended-sbvr-parser'
 

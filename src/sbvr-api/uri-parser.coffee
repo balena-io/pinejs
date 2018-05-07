@@ -5,6 +5,7 @@ memoize = require 'memoizee'
 _ = require 'lodash'
 { BadRequestError, ParsingError, TranslationError } = require './errors'
 deepFreeze = require 'deep-freeze'
+env = require '../config-loader/env'
 
 exports.BadRequestError = BadRequestError
 exports.ParsingError = ParsingError
@@ -64,13 +65,13 @@ notBadRequestOrParsingError = (e) ->
 exports.parseOData = (b) ->
 	Promise.try ->
 		if b._isChangeSet
-			env = new Map()
+			csReferences = new Map()
 			# We sort the CS set once, we must assure that requests which reference
 			# other requests in the changeset are placed last. Once they are sorted
 			# Map will guarantee retrival of results in insertion order
 			sortedCS = _.sortBy b.changeSet, (el) -> !(el.url[0] == '/')
-			Promise.reduce(sortedCS, parseODataChangeset, env)
-			.then (env) -> Array.from(env.values())
+			Promise.reduce(sortedCS, parseODataChangeset, csReferences)
+			.then (csReferences) -> Array.from(csReferences.values())
 		else
 			{ url, apiRoot } = splitApiRoot(b.url)
 			odata = memoizedParseOdata(url)
@@ -97,10 +98,10 @@ exports.parseOData = (b) ->
 		throw new ParsingError("Failed to parse url: '#{b.url}'")
 
 
-parseODataChangeset = (env, b) ->
+parseODataChangeset = (csReferences, b) ->
 	contentId = mustExtractHeader(b, 'content-id')
 
-	if env.has(contentId)
+	if csReferences.has(contentId)
 		throw new BadRequestError('Content-Id must be unique inside a changeset')
 
 	if b.url[0] == '/'
@@ -113,7 +114,7 @@ parseODataChangeset = (env, b) ->
 		{ bind } = odata.tree.resource
 		[ tag, id ] = odata.binds[bind]
 		# Use reference to collect information
-		ref = env.get(id)
+		ref = csReferences.get(id)
 		if _.isUndefined(ref)
 			throw new BadRequestError('Content-Id refers to a non existent resource')
 		apiRoot = ref.vocabulary
@@ -133,8 +134,8 @@ parseODataChangeset = (env, b) ->
 		_defer: defer
 	}
 
-	env.set(contentId, parseResult)
-	return env
+	csReferences.set(contentId, parseResult)
+	return csReferences
 
 splitApiRoot = (url) ->
 	url = url.split('/')
