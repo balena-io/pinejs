@@ -27,7 +27,6 @@ errors = require './errors'
 { rollbackRequestHooks, instantiateHooks } = require './hooks'
 _.assign(exports, errors)
 {
-	BadRequestError
 	InternalRequestError
 	ParsingError
 	PermissionError
@@ -36,7 +35,8 @@ _.assign(exports, errors)
 	SqlCompilationError
 	TranslationError
 	UnsupportedMethodError
-	ForbiddenError
+	BadRequestError
+	HttpError
 } = errors
 
 controlFlow = require './control-flow'
@@ -828,16 +828,16 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 # Reject the error to use the nice catch syntax
 constructError = (e) ->
 	Promise.reject(e)
-	.catch SbvrValidationError, BadRequestError, (err) ->
+	.catch SbvrValidationError, (err) ->
 		{ status: 400, body: err.message }
 	.catch PermissionError, (err) ->
 		{ status: 401, body: err.message }
-	.catch SqlCompilationError, TranslationError, ParsingError, PermissionParsingError, InternalRequestError, (err) ->
+	.catch SqlCompilationError, TranslationError, ParsingError, PermissionParsingError, (err) ->
 		{ status: 500 }
 	.catch UnsupportedMethodError, (err) ->
 		{ status: 405, body: err.message }
-	.catch ForbiddenError, (err) ->
-		{ status: 403, body: err.message }
+	.catch HttpError, (err) ->
+		{ status: err.status, body: err.getResponseBody() }
 	.catch e, (err) ->
 		console.error(err)
 		# If the err is an error object then use its message instead - it should be more readable!
