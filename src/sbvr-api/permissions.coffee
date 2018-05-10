@@ -115,7 +115,16 @@ collapsePermissionFilters = (v) ->
 		v
 
 getPermissionsLookup = memoize(
-	(permissions) ->
+	(permissions, actorID) ->
+		permissions =
+			if _.isArray(actorID)
+				_.flatMap actorID, (id) ->
+					_.map permissions, (permission) ->
+						permission.replace(/\$ACTOR\.ID/g, id)
+			else
+				_.map permissions, (permission) ->
+					permission.replace(/\$ACTOR\.ID/g, actorID)
+
 		permissionsLookup = {}
 		for permission in permissions
 			[ target, condition ] = permission.split('?')
@@ -134,16 +143,7 @@ _checkPermissions = (permissions, actorID, actionList, resourceName, vocabulary)
 	if !actorID?
 		throw new Error('Actor ID cannot be null for _checkPermissions.')
 
-	permissions =
-		if _.isArray(actorID)
-			_.flatMap actorID, (id) ->
-				_.map permissions, (permission) ->
-					permission.replace(/\$ACTOR\.ID/g, id)
-		else
-			_.map permissions, (permission) ->
-				permission.replace(/\$ACTOR\.ID/g, actorID)
-
-	permissionsLookup = getPermissionsLookup(permissions)
+	permissionsLookup = getPermissionsLookup(permissions, actorID)
 
 	checkObject = or: ['all', actionList]
 	return nestedCheck checkObject, (permissionCheck) ->
