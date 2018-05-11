@@ -179,7 +179,13 @@ getAndCheckBindValues = (vocab, odataBinds, bindings, values) ->
 				})
 			else if _.isInteger(binding[1])
 				if binding[1] >= odataBinds.length
-					console.error("Invalid binding number '#{binding[1]}' for binds: ", odataBinds)
+					console.error("Invalid binding '#{binding[1]}' for binds: ", odataBinds)
+					throw new Error('Invalid binding')
+				[dataType, value] = odataBinds[binding[1]]
+				field = { dataType }
+			else if _.isString(binding[1])
+				if !odataBinds.hasOwnProperty(binding[1])
+					console.error("Invalid binding '#{binding[1]}' for binds: ", odataBinds)
 					throw new Error('Invalid binding')
 				[dataType, value] = odataBinds[binding[1]]
 				field = { dataType }
