@@ -7,7 +7,7 @@ export const apiKeys = {
 
 export const cache = {
 	permissionsLookup: {
-		max: 10000
+		max: 5000
 	},
 	parsePermissions: {
 		max: 100000
