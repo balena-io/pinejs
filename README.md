@@ -47,7 +47,6 @@ The documentation inside /docs folder also provide a great overview of the main 
 
 One can experiment with Pine.js, its main dependencies and the above tools inside the development environment of resin.
 
-For a starter's introduction to Pine.js Models and OData API, please refer [here](https://resinio.atlassian.net/wiki/display/RES/Pine.js%2C+Models+and+OData+API).
 
 ### Where to go from here:
 Start by creating your very first application with Pine.js. Jump to the [Getting Started guide](https://github.com/resin-io/pinejs/blob/master/docs/GettingStarted.md).
