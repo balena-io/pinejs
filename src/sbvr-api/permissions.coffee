@@ -46,7 +46,8 @@ rewriteBinds = ({ tree, extraBinds }, odataBinds) ->
 	odataBinds.push(extraBinds...)
 	# Clone the tree so the cached version can't be mutated and at the same time fix the bind numbers
 	return _.cloneDeepWith tree, (value) ->
-		if value?.bind?
+		bind = value?.bind
+		if _.isInteger(bind)
 			return { bind: value.bind + bindsLength }
 
 parsePermissions = (filter, odataBinds) ->
@@ -133,15 +134,14 @@ addRelationshipBypasses = (relationships) ->
 		addRelationshipBypasses(relationship)
 
 getPermissionsLookup = memoize(
-	(permissions, actorID) ->
-		permissions =
-			if _.isArray(actorID)
-				_.flatMap actorID, (id) ->
-					_.map permissions, (permission) ->
-						permission.replace(/\$ACTOR\.ID/g, id)
-			else
-				_.map permissions, (permission) ->
-					permission.replace(/\$ACTOR\.ID/g, actorID)
+	(permissions, numActors = 1) ->
+		if numActors > 1
+			permissions = _.flatten _.times numActors, (index) ->
+				if index == 0
+					return permissions
+				replacement = "@__ACTOR_ID#{index}"
+				return _.map permissions, (permission) ->
+					permission.replace(/@__ACTOR_ID/g, replacement)
 
 		permissionsLookup = {}
 		for permission in permissions
@@ -551,7 +551,7 @@ exports.setup = (app, sbvrUtils) ->
 						getUserPermissions(result[0].id)
 				return _guestPermissions
 
-		return (req) ->
+		return (req, odataBinds = {}) ->
 			Promise.join(
 				_getGuestPermissions()
 				Promise.try ->
@@ -561,11 +561,15 @@ exports.setup = (app, sbvrUtils) ->
 					# We default to a user id of 0 (the guest user) if not logged in.
 					actorID = req.user?.actor ? 0
 
-					permissions = _.map(guestPermissions.concat(req.user?.permissions ? []), (permission) -> permission.replace(/\$ACTOR\.ID/g, actorID))
-					if apiKeyActorID?
-						permissions = permissions.concat(_.map(guestPermissions.concat(req.apiKey?.permissions ? []), (permission) -> permission.replace(/\$ACTOR\.ID/g, apiKeyActorID)))
+					permissions = guestPermissions.concat(req.user?.permissions ? []).concat(req.apiKey?.permissions ? [])
 					permissions = _.uniq(permissions)
-					return getPermissionsLookup(permissions)
+
+					numActors = 1
+					odataBinds['@__ACTOR_ID'] = [ 'Real', actorID ]
+					if apiKeyActorID?
+						numActors = 2
+						odataBinds['@__ACTOR_ID1'] = [ 'Real', apiKeyActorID ]
+					return getPermissionsLookup(permissions, numActors)
 			)
 
 	resolveSubRequest = (request, lambda, propertyName, v) ->
@@ -665,7 +669,7 @@ exports.setup = (app, sbvrUtils) ->
 		if permissions.length > 0 and checkPermissions(getPermissionsLookup(permissions), permissionType, vocabulary) is true
 			# We have unconditional permission to access the vocab so there's no need to intercept anything
 			return
-		getReqPermissions(req)
+		getReqPermissions(req, odataBinds)
 		.then (permissionsLookup) ->
 			# Update the request's abstract sql model to use the constrained version
 			request.abstractSqlModel = abstractSqlModel = memoizedGetConstrainedModel(abstractSqlModel, permissionsLookup, vocabulary)
