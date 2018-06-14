@@ -9,6 +9,9 @@ memoize = require 'memoizee'
 memoizeWeak = require 'memoizee/weak'
 { sqlNameToODataName } = require '@resin/odata-to-abstract-sql'
 
+DEFAULT_ACTOR_BIND = '@__ACTOR_ID'
+DEFAULT_ACTOR_BIND_REGEX = new RegExp(_.escapeRegExp(DEFAULT_ACTOR_BIND), 'g')
+
 exports.PermissionError = PermissionError
 exports.PermissionParsingError = PermissionParsingError
 exports.root = user: permissions: [ 'resource.all' ]
@@ -134,15 +137,7 @@ addRelationshipBypasses = (relationships) ->
 		addRelationshipBypasses(relationship)
 
 getPermissionsLookup = memoize(
-	(permissions, numActors = 1) ->
-		if numActors > 1
-			permissions = _.flatten _.times numActors, (index) ->
-				if index == 0
-					return permissions
-				replacement = "@__ACTOR_ID#{index}"
-				return _.map permissions, (permission) ->
-					permission.replace(/@__ACTOR_ID/g, replacement)
-
+	(permissions) ->
 		permissionsLookup = {}
 		for permission in permissions
 			[ target, condition ] = permission.split('?')
@@ -558,18 +553,30 @@ exports.setup = (app, sbvrUtils) ->
 					if req.apiKey?.permissions?.length > 0
 						getApiKeyActorId(req.apiKey.key)
 				(guestPermissions, apiKeyActorID) ->
-					# We default to a user id of 0 (the guest user) if not logged in.
-					actorID = req.user?.actor ? 0
+					if _.some(guestPermissions, (p) -> DEFAULT_ACTOR_BIND_REGEX.test(p))
+						throw new Error('Guest permissions cannot reference actors')
 
-					permissions = guestPermissions.concat(req.user?.permissions ? []).concat(req.apiKey?.permissions ? [])
+					permissions = guestPermissions
+
+					actorIndex = 0
+					addActorPermissions = (actorId, actorPermissions) ->
+						actorBind = DEFAULT_ACTOR_BIND
+						if actorIndex > 0
+							actorBind += actorIndex
+							actorPermissions = _.map actorPermissions, (actorPermission) ->
+								actorPermission.replace(DEFAULT_ACTOR_BIND_REGEX, actorBind)
+						odataBinds[actorBind] = [ 'Real', actorId ]
+						actorIndex++
+						permissions = permissions.concat(actorPermissions)
+
+					if req.user?.permissions?
+						addActorPermissions(req.user.actor, req.user.permissions)
+					if req.apiKey?.permissions?
+						addActorPermissions(apiKeyActorID, req.apiKey.permissions)
+
 					permissions = _.uniq(permissions)
 
-					numActors = 1
-					odataBinds['@__ACTOR_ID'] = [ 'Real', actorID ]
-					if apiKeyActorID?
-						numActors = 2
-						odataBinds['@__ACTOR_ID1'] = [ 'Real', apiKeyActorID ]
-					return getPermissionsLookup(permissions, numActors)
+					return getPermissionsLookup(permissions)
 			)
 
 	resolveSubRequest = (request, lambda, propertyName, v) ->
