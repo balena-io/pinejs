@@ -19,3 +19,8 @@ export const cache = {
 		maxAge: 5 * 60 * 1000,
 	},
 }
+
+export const db = {
+	poolSize: 50,
+	idleTimeoutMillis: 30000,
+}

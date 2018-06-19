@@ -1,10 +1,12 @@
 /// <references types="websql"/>
 import * as _mysql from 'mysql'
 import * as _pg from 'pg'
+import * as _pgConnectionString from 'pg-connection-string'
 
 import * as _ from 'lodash'
 import * as Promise from 'bluebird'
 import TypedError = require('typed-error')
+import * as env from '../config-loader/env'
 
 const { DEBUG } = process.env
 
@@ -268,18 +270,22 @@ try {
 } catch (e) {}
 if (maybePg != null) {
 	const pg = maybePg
-	const ConnectionParameters = require('pg/lib/connection-parameters')
 	engines.postgres = (connectString: string | object): Database => {
 		const PG_UNIQUE_VIOLATION = '23505'
 		const PG_FOREIGN_KEY_VIOLATION = '23503'
 
-		const config: _pg.PoolConfig = new ConnectionParameters(connectString)
+		let config: _pg.PoolConfig
+		if (_.isString(connectString)) {
+			const pgConnectionString: typeof _pgConnectionString = require('pg-connection-string')
+			// We have to cast because of the use of null vs undefined
+			config = pgConnectionString.parse(connectString) as _pg.PoolConfig
+		} else {
+			config = connectString
+		}
 		// Use bluebird for our pool promises
 		config.Promise = Promise
-		// Inherit the same defaults we used to, for backwards compatibility
-		config.max = pg.defaults.poolSize
-		config.idleTimeoutMillis = pg.defaults.poolIdleTimeout
-		config.log = pg.defaults.poolLog
+		config.max = env.db.poolSize
+		config.idleTimeoutMillis = env.db.idleTimeoutMillis
 		const pool = new pg.Pool(config)
 		const { PG_SCHEMA } = process.env
 		if (PG_SCHEMA != null ) {
