@@ -425,8 +425,8 @@ exports.setup = (app, sbvrUtils) ->
 									$expr: k: key: apiKey
 				return getPermissions(permsFilter)
 			primitive: true
-			max: env.apiKeys.permissionsCache.max
-			maxAge: env.apiKeys.permissionsCache.maxAge
+			max: env.cache.apiKeys.max
+			maxAge: env.cache.apiKeys.maxAge
 		)
 		return (apiKey, callback) ->
 			promise =
@@ -453,7 +453,7 @@ exports.setup = (app, sbvrUtils) ->
 				return apiKeyActorID
 		primitive: true
 		promise: true
-		maxAge: env.apiKeys.permissionsCache.maxAge
+		maxAge: env.cache.apiKeys.maxAge
 	)
 
 	checkApiKey = (req, apiKey) ->
