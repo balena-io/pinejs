@@ -182,14 +182,16 @@ export abstract class Tx {
 	public rollback(): Promise<void> {
 		const promise = this._rollback().finally(() => {
 			this.listeners.rollback.forEach(tryFn)
+			return null
 		})
 		this.closeTransaction('Transaction has been rolled back.')
 
 		return promise
 	}
 	public end(): Promise<void> {
-		const promise = this._commit().then(() => {
+		const promise = this._commit().tap(() => {
 			this.listeners.end.forEach(tryFn)
+			return null
 		})
 		this.closeTransaction('Transaction has been ended.')
 
