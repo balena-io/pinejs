@@ -42,7 +42,7 @@ _.assign(exports, errors)
 controlFlow = require './control-flow'
 memoize = require 'memoizee'
 memoizeWeak = require 'memoizee/weak'
-memoizedCompileRule = memoize(
+memoizedCompileRule = memoizeWeak(
 	(abstractSqlQuery) ->
 		sqlQuery = AbstractSQLCompiler.compileRule(abstractSqlQuery)
 		modifiedFields = AbstractSQLCompiler.getModifiedFields(abstractSqlQuery)
@@ -52,7 +52,6 @@ memoizedCompileRule = memoize(
 			sqlQuery
 			modifiedFields
 		}
-	primitive: true
 	max: env.cache.abstractSqlCompiler.max
 )
 
@@ -301,11 +300,10 @@ exports.executeModels = executeModels = (tx, models, callback) ->
 					getLocalFields(table)
 					getFetchProcessingFields(table)
 				)
+				deepFreeze(abstractSqlModel)
 				abstractSqlModels[vocab] = abstractSqlModel
 				sqlModels[vocab] = sqlModel
 				odataMetadata[vocab] = metadata
-
-				uriParser.addClientModel(vocab, abstractSqlModel)
 
 				# Validate the [empty] model according to the rules.
 				# This may eventually lead to entering obligatory data.
@@ -379,7 +377,6 @@ cleanupModel = (vocab) ->
 	delete abstractSqlModels[vocab]
 	delete sqlModels[vocab]
 	delete odataMetadata[vocab]
-	uriParser.deleteClientModel(vocab)
 	delete api[vocab]
 
 getHooks = do ->

@@ -2,10 +2,15 @@ _ = require 'lodash'
 Promise = require 'bluebird'
 env = require '../config-loader/env'
 userModel = require './user.sbvr'
-{ metadataEndpoints } = require './uri-parser'
+{ metadataEndpoints, memoizedParseOdata } = require './uri-parser'
 { BadRequestError, PermissionError, PermissionParsingError } = require './errors'
 { ODataParser } = require '@resin/odata-parser'
 memoize = require 'memoizee'
+memoizeWeak = require 'memoizee/weak'
+{ sqlNameToODataName } = require '@resin/odata-to-abstract-sql'
+
+DEFAULT_ACTOR_BIND = '@__ACTOR_ID'
+DEFAULT_ACTOR_BIND_REGEX = new RegExp(_.escapeRegExp(DEFAULT_ACTOR_BIND), 'g')
 
 exports.PermissionError = PermissionError
 exports.PermissionParsingError = PermissionParsingError
@@ -23,9 +28,9 @@ methodPermissions =
 	MERGE: or: ['set', 'update']
 	DELETE: 'delete'
 
-parsePermissions = do ->
+_parsePermissions = do ->
 	odataParser = ODataParser.createInstance()
-	_parsePermissions = memoize(
+	return memoize(
 		(filter) ->
 			# Reset binds
 			odataParser.binds = []
@@ -38,15 +43,19 @@ parsePermissions = do ->
 		max: env.cache.parsePermissions.max
 	)
 
-	return (filter, odataBinds) ->
-		{ tree, extraBinds } = _parsePermissions(filter)
-		# Add the extra binds we parsed onto our existing list of binds vars.
-		bindsLength = odataBinds.length
-		odataBinds.push(extraBinds...)
-		# Clone the tree so the cached version can't be mutated and at the same time fix the bind numbers
-		return _.cloneDeepWith tree, (value) ->
-			if value?.bind?
-				return { bind: value.bind + bindsLength }
+rewriteBinds = ({ tree, extraBinds }, odataBinds) ->
+	# Add the extra binds we parsed onto our existing list of binds vars.
+	bindsLength = odataBinds.length
+	odataBinds.push(extraBinds...)
+	# Clone the tree so the cached version can't be mutated and at the same time fix the bind numbers
+	return _.cloneDeepWith tree, (value) ->
+		bind = value?.bind
+		if _.isInteger(bind)
+			return { bind: value.bind + bindsLength }
+
+parsePermissions = (filter, odataBinds) ->
+	odata = _parsePermissions(filter)
+	rewriteBinds(odata, odataBinds)
 
 # Traverses all values in `check`, actions for the following data types:
 # string: Calls `stringCallback` and uses the value returned instead
@@ -114,17 +123,21 @@ collapsePermissionFilters = (v) ->
 	else
 		v
 
-getPermissionsLookup = memoize(
-	(permissions, actorID) ->
-		permissions =
-			if _.isArray(actorID)
-				_.flatMap actorID, (id) ->
-					_.map permissions, (permission) ->
-						permission.replace(/\$ACTOR\.ID/g, id)
-			else
-				_.map permissions, (permission) ->
-					permission.replace(/\$ACTOR\.ID/g, actorID)
+addRelationshipBypasses = (relationships) ->
+	_.each relationships, (relationship, key) ->
+		return if key is '$'
 
+		mapping = relationship.$
+		if mapping? and mapping.length is 2
+			mapping = _.cloneDeep(mapping)
+			mapping[1][0] = "#{mapping[1][0]}$bypass"
+			relationships["#{key}$bypass"] = {
+				$: mapping
+			}
+		addRelationshipBypasses(relationship)
+
+getPermissionsLookup = memoize(
+	(permissions) ->
 		permissionsLookup = {}
 		for permission in permissions
 			[ target, condition ] = permission.split('?')
@@ -139,12 +152,7 @@ getPermissionsLookup = memoize(
 	max: env.cache.permissionsLookup.max
 )
 
-_checkPermissions = (permissions, actorID, actionList, resourceName, vocabulary) ->
-	if !actorID?
-		throw new Error('Actor ID cannot be null for _checkPermissions.')
-
-	permissionsLookup = getPermissionsLookup(permissions, actorID)
-
+checkPermissions = (permissionsLookup, actionList, vocabulary, resourceName) ->
 	checkObject = or: ['all', actionList]
 	return nestedCheck checkObject, (permissionCheck) ->
 		resourcePermission = permissionsLookup['resource.' + permissionCheck]
@@ -160,7 +168,7 @@ _checkPermissions = (permissions, actorID, actionList, resourceName, vocabulary)
 					return true
 
 		conditionalPermissions = [].concat(resourcePermission, vocabularyPermission, vocabularyResourcePermission)
-		# Remove the false and undefined elements.
+		# Remove the undefined elements.
 		conditionalPermissions = _.filter(conditionalPermissions)
 
 		if conditionalPermissions.length is 1
@@ -168,6 +176,99 @@ _checkPermissions = (permissions, actorID, actionList, resourceName, vocabulary)
 		else if conditionalPermissions.length > 1
 			return or: conditionalPermissions
 		return false
+
+generateConstrainedAbstractSql = (permissionsLookup, actionList, vocabulary, resourceName) ->
+	uriParser = require('./uri-parser')
+
+	conditionalPerms = checkPermissions(permissionsLookup, actionList, vocabulary, resourceName)
+	if conditionalPerms is false
+		throw new PermissionError()
+	if conditionalPerms is true
+		# If we have full access then no need to provide a constrained definition
+		return false
+
+	odata = memoizedParseOdata("/#{resourceName}")
+
+	permissionFilters = nestedCheck conditionalPerms, (permissionCheck) ->
+		try
+			permissionCheck = parsePermissions(permissionCheck, odata.binds)
+			# We use an object with filter key to avoid collapsing our filters later.
+			return filter: permissionCheck
+		catch e
+			console.warn('Failed to parse conditional permissions: ', permissionCheck)
+			throw new PermissionParsingError(e)
+
+	permissionFilters = collapsePermissionFilters(permissionFilters)
+	_.set(odata, [ 'tree', 'options', '$filter' ], permissionFilters)
+
+	{ odataBinds, abstractSqlQuery } = uriParser.translateUri({
+		method: 'GET',
+		resourceName,
+		vocabulary,
+		odataBinds: odata.binds,
+		odataQuery: odata.tree,
+		values: {}
+	})
+	abstractSqlQuery = _.clone(abstractSqlQuery)
+	# Remove aliases from the top level select
+	selectIndex = _.findIndex(abstractSqlQuery, 0: 'Select')
+	select = abstractSqlQuery[selectIndex] = _.clone(abstractSqlQuery[selectIndex])
+	select[1] = _.map select[1], (selectField) ->
+		if selectField.length is 2 and _.isArray(selectField[0])
+			return selectField[0]
+		return selectField
+
+	return { extraBinds: odataBinds, abstractSqlQuery }
+
+# Call the function once and either return the same result or throw the same error on subsequent calls
+onceGetter = (obj, propName, fn) ->
+	thrownErr = undefined
+	Object.defineProperty obj, propName,
+		enumerable: true
+		configurable: true
+		get: ->
+			if thrownErr?
+				throw thrownErr
+			try
+				result = fn()
+				fn = undefined
+				delete this[propName]
+				this[propName] = result
+			catch thrownErr
+				throw thrownErr
+
+deepFreezeExceptDefinition = (obj) ->
+	Object.freeze(obj)
+
+	Object.getOwnPropertyNames(obj).forEach (prop) ->
+		# We skip the definition because we know it's a property we've defined that will throw an error in some cases
+		if prop isnt 'definition' and
+		obj.hasOwnProperty(prop) and
+		obj[prop] isnt null and
+		(typeof obj[prop] not in [ 'object', 'function' ])
+			deepFreezeExceptDefinition(obj)
+	return
+
+memoizedGetConstrainedModel = memoizeWeak(
+	(abstractSqlModel, permissionsLookup, vocabulary) ->
+		abstractSqlModel = _.cloneDeep(abstractSqlModel)
+		addRelationshipBypasses(abstractSqlModel.relationships)
+		_.each abstractSqlModel.synonyms, (canonicalForm, synonym) ->
+			abstractSqlModel.synonyms["#{synonym}$bypass"] = "#{canonicalForm}$bypass"
+		addRelationshipBypasses(abstractSqlModel.relationships)
+		_.each abstractSqlModel.relationships, (relationship, key) ->
+			abstractSqlModel.relationships["#{key}$bypass"] = relationship
+		_.each abstractSqlModel.tables, (table) ->
+			abstractSqlModel.tables["#{table.resourceName}$bypass"] = _.clone(table)
+			onceGetter table, 'definition', ->
+				# For $filter on eg a DELETE you need read permissions on the sub-resources,
+				# you only need delete permissions on the resource being deleted
+				generateConstrainedAbstractSql(permissionsLookup, methodPermissions.GET, vocabulary, sqlNameToODataName(table.name))
+		deepFreezeExceptDefinition(abstractSqlModel)
+		return abstractSqlModel
+	normalizer: (abstractSqlModel, args) ->
+		return JSON.stringify(args)
+)
 
 exports.config =
 	models: [
@@ -324,8 +425,8 @@ exports.setup = (app, sbvrUtils) ->
 									$expr: k: key: apiKey
 				return getPermissions(permsFilter)
 			primitive: true
-			max: env.apiKeys.permissionsCache.max
-			maxAge: env.apiKeys.permissionsCache.maxAge
+			max: env.cache.apiKeys.max
+			maxAge: env.cache.apiKeys.maxAge
 		)
 		return (apiKey, callback) ->
 			promise =
@@ -352,7 +453,7 @@ exports.setup = (app, sbvrUtils) ->
 				return apiKeyActorID
 		primitive: true
 		promise: true
-		maxAge: env.apiKeys.permissionsCache.maxAge
+		maxAge: env.cache.apiKeys.maxAge
 	)
 
 	checkApiKey = (req, apiKey) ->
@@ -404,7 +505,27 @@ exports.setup = (app, sbvrUtils) ->
 	# A default api key middleware for convenience
 	exports.apiKeyMiddleware = apiKeyMiddleware = customApiKeyMiddleware()
 
-	exports.checkPermissions = checkPermissions = do ->
+	exports.checkPermissions = (req, actionList, resourceName, vocabulary) ->
+		getReqPermissions(req)
+		.then (permissionsLookup) ->
+			checkPermissions(permissionsLookup, actionList, vocabulary, resourceName)
+
+	exports.checkPermissionsMiddleware = (action) ->
+		return (req, res, next) ->
+			exports.checkPermissions(req, action)
+			.then (allowed) ->
+				switch allowed
+					when false
+						res.sendStatus(401)
+					when true
+						next()
+					else
+						throw new Error('checkPermissionsMiddleware returned a conditional permission')
+			.catch (err) ->
+				sbvrUtils.api.Auth.logger.error('Error checking permissions', err, err.stack)
+				res.sendStatus(503)
+
+	getReqPermissions = do ->
 		_getGuestPermissions = do ->
 			# Start the guest permissions as null, having it as a reject promise either
 			# causes an issue with an unhandled rejection, or with enabling long stack traces.
@@ -425,160 +546,145 @@ exports.setup = (app, sbvrUtils) ->
 						getUserPermissions(result[0].id)
 				return _guestPermissions
 
-		return (req, actionList, resourceName, vocabulary) ->
-			authApi = sbvrUtils.api.Auth
-
-			# We default to a user id of 0 (the guest user) if not logged in.
-			actorID = req.user?.actor ? 0
-			apiKeyActorID = false
-
-			Promise.try ->
-				if req.user?
-					return _checkPermissions(req.user.permissions, actorID, actionList, resourceName, vocabulary)
-				return false
-			.catch (err) ->
-				authApi.logger.error('Error checking user permissions', req.user, err, err.stack)
-				return false
-			.then (allowed) ->
-				apiKeyPermissions = req.apiKey?.permissions
-				if allowed is true or !apiKeyPermissions? or apiKeyPermissions.length is 0
-					return allowed
-				getApiKeyActorId(req.apiKey.key)
-				.then (apiKeyActorID) ->
-					return _checkPermissions(apiKeyPermissions, apiKeyActorID, actionList, resourceName, vocabulary)
-				.catch (err) ->
-					authApi.logger.error('Error checking api key permissions', req.apiKey.key, err, err.stack)
-					return false
-				.then (apiKeyAllowed) ->
-					if apiKeyAllowed is true
-						return true
-					return or: [allowed, apiKeyAllowed]
-			.then (allowed) ->
-				if allowed is true
-					return allowed
+		return (req, odataBinds = {}) ->
+			Promise.join(
 				_getGuestPermissions()
-				.then (permissions) ->
-					actorIDs =
-						if apiKeyActorID isnt false
-							[actorID, apiKeyActorID]
-						else
-							actorID
-					return _checkPermissions(permissions, actorIDs, actionList, resourceName, vocabulary)
-				.catch (err) ->
-					authApi.logger.error('Error checking guest permissions', err, err.stack)
-					return false
-				.then (guestAllowed) ->
-					return or: [allowed, guestAllowed]
-			.then (permissions) ->
-				# Pass through the nestedCheck with no changes to strings, this optimises any ors/ands that can be.
-				nestedCheck(permissions, _.identity)
+				Promise.try ->
+					if req.apiKey?.permissions?.length > 0
+						getApiKeyActorId(req.apiKey.key)
+				(guestPermissions, apiKeyActorID) ->
+					if _.some(guestPermissions, (p) -> DEFAULT_ACTOR_BIND_REGEX.test(p))
+						throw new Error('Guest permissions cannot reference actors')
 
-	exports.checkPermissionsMiddleware = (action) ->
-		return (req, res, next) ->
-			checkPermissions(req, action)
-			.then (allowed) ->
-				switch allowed
-					when false
-						res.sendStatus(401)
-					when true
-						next()
+					permissions = guestPermissions
+
+					actorIndex = 0
+					addActorPermissions = (actorId, actorPermissions) ->
+						actorBind = DEFAULT_ACTOR_BIND
+						if actorIndex > 0
+							actorBind += actorIndex
+							actorPermissions = _.map actorPermissions, (actorPermission) ->
+								actorPermission.replace(DEFAULT_ACTOR_BIND_REGEX, actorBind)
+						odataBinds[actorBind] = [ 'Real', actorId ]
+						actorIndex++
+						permissions = permissions.concat(actorPermissions)
+
+					if req.user?.permissions?
+						addActorPermissions(req.user.actor, req.user.permissions)
+					if req.apiKey?.permissions?
+						addActorPermissions(apiKeyActorID, req.apiKey.permissions)
+
+					permissions = _.uniq(permissions)
+
+					return getPermissionsLookup(permissions)
+			)
+
+	resolveSubRequest = (request, lambda, propertyName, v) ->
+		if !lambda[propertyName]?
+			v.name = "#{propertyName}$bypass"
+		newResourceName = lambda[propertyName] ? sbvrUtils.resolveNavigationResource(request, propertyName)
+		return {
+			abstractSqlModel: request.abstractSqlModel
+			vocabulary: request.vocabulary
+			resourceName: newResourceName
+		}
+
+	memoizedRewriteODataOptions = do ->
+		rewriteODataOptions = (request, data, lambda = {}) ->
+			_.each data, (v, k) ->
+				if _.isArray(v)
+					rewriteODataOptions(request, v, lambda)
+				else if _.isObject(v)
+					propertyName = v.name
+					if propertyName?
+						if v.lambda?
+							newLambda = _.clone(lambda)
+							newLambda[v.lambda.identifier] = sbvrUtils.resolveNavigationResource(request, propertyName)
+							# TODO: This should actually use the top level resource context,
+							# however odata-to-abstract-sql is bugged so we use the lambda context to match that bug for now
+							subRequest = resolveSubRequest(request, lambda, propertyName, v)
+							rewriteODataOptions(subRequest, v, newLambda)
+						else if v.options?
+							_.each v.options, (option, optionName) ->
+								subRequest = resolveSubRequest(request, lambda, propertyName, v)
+								rewriteODataOptions(subRequest, option, lambda)
+						else if v.property?
+							subRequest = resolveSubRequest(request, lambda, propertyName, v)
+							rewriteODataOptions(subRequest, v, lambda)
+						else
+							rewriteODataOptions(request, v, lambda)
 					else
-						throw new Error('checkPermissionsMiddleware returned a conditional permission')
-			.catch (err) ->
-				sbvrUtils.api.Auth.logger.error('Error checking permissions', err, err.stack)
-				res.sendStatus(503)
+						rewriteODataOptions(request, v, lambda)
+		return memoizeWeak(
+			(abstractSqlModel, vocabulary, resourceName, filter, tree) ->
+				tree = _.cloneDeep(tree)
+				rewriteODataOptions({ abstractSqlModel, vocabulary, resourceName }, [tree])
+				return tree
+			normalizer: (abstractSqlModel, [ vocabulary, resourceName, filter ]) ->
+				filter + vocabulary + resourceName
+		)
 
-	exports.addPermissions = addPermissions = do ->
-		lambdas = {}
+	parseRewrittenPermissions = (abstractSqlModel, vocabulary, resourceName, filter, odataBinds) ->
+		{ tree, extraBinds } = _parsePermissions(filter)
+		tree = memoizedRewriteODataOptions(abstractSqlModel, vocabulary, resourceName, filter, tree)
+		return rewriteBinds({ tree, extraBinds }, odataBinds)
 
-		collectAdditionalResources = (odataQuery) ->
-			resources = collectExpand(odataQuery)
-			resources = resources.concat(collectFilter(odataQuery))
-			return _.compact(_.flattenDeep(resources))
+	addODataPermissions = (permissionsLookup, permissionType, vocabulary, resourceName, odataQuery, odataBinds, abstractSqlModel) ->
+		conditionalPerms = checkPermissions(permissionsLookup, permissionType, vocabulary, resourceName)
 
-		collectFilter = (odataQuery) ->
-			if odataQuery.options?.$filter?
-				return descendFilters(odataQuery.options.$filter)
-			else return []
+		if conditionalPerms is false
+			throw new PermissionError()
+		if conditionalPerms isnt true
+			permissionFilters = nestedCheck conditionalPerms, (permissionCheck) ->
+				try
+					permissionCheck = parseRewrittenPermissions(abstractSqlModel, vocabulary, resourceName, permissionCheck, odataBinds)
+					# We use an object with filter key to avoid collapsing our filters later.
+					return filter: permissionCheck
+				catch e
+					console.warn('Failed to parse conditional permissions: ', permissionCheck)
+					throw new PermissionParsingError(e)
 
-		collectExpand = (odataQuery) ->
-			if odataQuery.options?.$expand?.properties?
-				return odataQuery.options.$expand.properties
-			else return []
-
-		descendFilters = (filter) ->
-			if _.isArray(filter)
-				return _.map(filter, descendFilters)
-			else if _.isObject(filter)
-				if filter.name?
-					if filter.lambda?
-						lambdas[filter.lambda.identifier] = filter.name
-						fakeQuery =
-							name: filter.name
-							options: {}
-						Object.defineProperty fakeQuery.options, '$filter',
-							get: ->
-								return filter.lambda.expression
-							set: (newValue) ->
-								filter.lambda.expression = newValue
-						return fakeQuery
-					else if filter.property?
-						if lambdas[filter.name]
-							return descendFilters(filter.property)
-						else
-							return []
-				return []
-
-		_addPermissions = (req, permissionType, vocabulary, resourceName, odataQuery, odataBinds, abstractSqlModel) ->
-			checkPermissions(req, permissionType, resourceName, vocabulary)
-			.then (conditionalPerms) ->
-				resources = collectAdditionalResources(odataQuery)
-				if conditionalPerms is false
-					throw new PermissionError()
-				if conditionalPerms isnt true
-					permissionFilters = nestedCheck conditionalPerms, (permissionCheck) ->
-						try
-							permissionCheck = parsePermissions(permissionCheck, odataBinds)
-							# We use an object with filter key to avoid collapsing our filters later.
-							return filter: permissionCheck
-						catch e
-							console.warn('Failed to parse conditional permissions: ', permissionCheck)
-							throw new PermissionParsingError(e)
-
-					if permissionFilters is false
-						throw new PermissionError()
-					if permissionFilters isnt true
-						permissionFilters = collapsePermissionFilters(permissionFilters)
-						odataQuery.options ?= {}
-						if odataQuery.options.$filter?
-							odataQuery.options.$filter = ['and', odataQuery.options.$filter, permissionFilters]
-						else
-							odataQuery.options.$filter = permissionFilters
-
-				# Make sure any relevant permission filters are also applied to any additional resources involved in the query.
-				# Mapping in serial to make sure binds are always added in the same order/location to aid cache hits
-				Promise.each resources, (resource) ->
-					collectedResourceName = sbvrUtils.resolveNavigationResource({
-						vocabulary
-						resourceName
-						abstractSqlModel
-					}, resource.name)
-					# Always use get for the collected resources
-					_addPermissions(req, methodPermissions.GET, vocabulary, collectedResourceName, resource, odataBinds, abstractSqlModel)
-
-		return (req, request) ->
-			{ method, vocabulary, resourceName, odataQuery, odataBinds, permissionType } = request
-			abstractSqlModel = sbvrUtils.getAbstractSqlModel(request)
-			method = method.toUpperCase()
-			isMetadataEndpoint = resourceName in metadataEndpoints or method is 'OPTIONS'
-
-			permissionType ?=
-				if isMetadataEndpoint
-					'model'
-				else if methodPermissions[method]?
-					methodPermissions[method]
+			if permissionFilters is false
+				throw new PermissionError()
+			if permissionFilters isnt true
+				permissionFilters = collapsePermissionFilters(permissionFilters)
+				odataQuery.options ?= {}
+				if odataQuery.options.$filter?
+					odataQuery.options.$filter = ['and', odataQuery.options.$filter, permissionFilters]
 				else
-					console.warn('Unknown method for permissions type check: ', method)
-					'all'
+					odataQuery.options.$filter = permissionFilters
 
-			_addPermissions(req, permissionType, vocabulary, odataQuery.resource, odataQuery, odataBinds, abstractSqlModel)
+
+
+	exports.addPermissions = addPermissions = (req, request) ->
+		{ method, vocabulary, resourceName, permissionType, odataQuery, odataBinds } = request
+		abstractSqlModel = sbvrUtils.getAbstractSqlModel(request)
+		method = method.toUpperCase()
+		isMetadataEndpoint = resourceName in metadataEndpoints or method is 'OPTIONS'
+
+		permissionType ?=
+			if isMetadataEndpoint
+				'model'
+			else if methodPermissions[method]?
+				methodPermissions[method]
+			else
+				console.warn('Unknown method for permissions type check: ', method)
+				'all'
+
+		# This bypasses in the root cases, needed for fetching guest permissions to work, it can almost certainly be done better though
+		permissions = (req.user?.permissions || []).concat(req.apiKey?.permissions || [])
+		if permissions.length > 0 and checkPermissions(getPermissionsLookup(permissions), permissionType, vocabulary) is true
+			# We have unconditional permission to access the vocab so there's no need to intercept anything
+			return
+		getReqPermissions(req, odataBinds)
+		.then (permissionsLookup) ->
+			# Update the request's abstract sql model to use the constrained version
+			request.abstractSqlModel = abstractSqlModel = memoizedGetConstrainedModel(abstractSqlModel, permissionsLookup, vocabulary)
+
+			if !_.isEqual(permissionType, methodPermissions.GET)
+				sqlName = sbvrUtils.resolveSynonym(request)
+				odataQuery.resource = "#{sqlName}$bypass"
+				addODataPermissions(permissionsLookup, permissionType, vocabulary, resourceName, odataQuery, odataBinds, abstractSqlModel)
+
+
+
