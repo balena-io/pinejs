@@ -22,7 +22,13 @@ exports.parseId = (b) ->
 exports.memoizedParseOdata = memoizedParseOdata = do ->
 	odataParser = ODataParser.createInstance()
 	parseOdata = (url) ->
-		odataParser.matchAll(url, 'Process')
+		odata = odataParser.matchAll(url, 'Process')
+		# if we parse a canAccess action rewrite the resource to ensure we
+		# do not run the resource hooks
+		if odata.tree.property?.resource == 'canAccess'
+			odata.tree.resource = odata.tree.resource + '#' + odata.tree.property.resource
+		return odata
+
 	_memoizedParseOdata = memoize(
 		parseOdata
 		primitive: true
@@ -91,13 +97,9 @@ exports.parseOData = (b) ->
 			{ url, apiRoot } = splitApiRoot(b.url)
 			odata = memoizedParseOdata(url)
 
-			# if we parse a canAccess action rewrite the resource to ensure we
-			# do not run the resource hooks
-			if odata.tree.property?.resource == 'canAccess'
-				odata.tree.resource = odata.tree.resource + '#' + odata.tree.property.resource
-
 			return {
 				method: b.method
+				url
 				vocabulary: apiRoot
 				resourceName: odata.tree.resource
 				odataBinds: odata.binds
@@ -139,6 +141,7 @@ parseODataChangeset = (csReferences, b) ->
 
 	parseResult = {
 		method: b.method
+		url
 		vocabulary: apiRoot
 		resourceName: odata.tree.resource
 		odataBinds: odata.binds
