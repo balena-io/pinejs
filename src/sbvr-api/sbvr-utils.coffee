@@ -55,6 +55,17 @@ memoizedCompileRule = memoizeWeak(
 	max: env.cache.abstractSqlCompiler.max
 )
 
+compileRequest = (request) ->
+	if request.abstractSqlQuery?
+		try
+			{ sqlQuery, modifiedFields } = memoizedCompileRule(request.abstractSqlQuery)
+			request.sqlQuery = sqlQuery
+			request.modifiedFields = modifiedFields
+		catch err
+			api[request.vocabulary].logger.error('Failed to compile abstract sql: ', request.abstractSqlQuery, err, err.stack)
+			throw new SqlCompilationError(err)
+	return request
+
 { DEBUG } = process.env
 
 db = null
@@ -723,6 +734,49 @@ exports.getAbstractSqlModel = getAbstractSqlModel = (request) ->
 	request.abstractSqlModel ?= abstractSqlModels[request.vocabulary]
 	return request.abstractSqlModel
 
+exports.getAffectedIds = Promise.method ({ req, request, tx }) ->
+	if request.method is 'GET'
+		# GET requests don't affect anything so passing one to this method is a mistake
+		throw new Error('Cannot call `getAffectedIds` with a GET request')
+	# We reparse to make sure we get a clean odataQuery, without permissions already added
+	# And we use the request's url rather than the req for things like batch where the req url is ../$batch
+	uriParser.parseOData({
+		method: request.method
+		url: "/#{request.vocabulary}#{request.url}"
+	})
+	.then (request) ->
+		abstractSqlModel = getAbstractSqlModel(request)
+		resourceName = resolveSynonym(request)
+		resourceTable = abstractSqlModel.tables[resourceName]
+		if !resourceTable?
+			throw new Error('Unknown resource: ' + request.resourceName)
+		{ idField } = resourceTable
+
+		_.set(request.odataQuery, [ 'options', '$select' ], {
+			properties: [
+				{ name: idField }
+			]
+		})
+
+		# Delete any $expand that might exist as they're ignored on non-GETs but we're converting this request to a GET
+		delete request.odataQuery.options.$expand
+
+		permissions.addPermissions(req, request)
+
+		request.method = 'GET'
+
+		request = uriParser.translateUri(request)
+		request = compileRequest(request)
+
+		doRunQuery = (tx) ->
+			runQuery(tx, request)
+			.then (result) ->
+				_.map(result.rows, idField)
+		if tx?
+			doRunQuery(tx)
+		else
+			runTransaction(req, doRunQuery)
+
 exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 	url = req.url.split('/')
 	apiRoot = url[1]
@@ -767,17 +821,8 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 				# Add/check the relevant permissions
 				runHooks('POSTPARSE', { req, request, tx: req.tx })
 				.return(request)
-				.then (uriParser.translateUri)
-				.then (request) ->
-					if request.abstractSqlQuery?
-						try
-							{ sqlQuery, modifiedFields } = memoizedCompileRule(request.abstractSqlQuery)
-							request.sqlQuery = sqlQuery
-							request.modifiedFields = modifiedFields
-						catch err
-							api[apiRoot].logger.error('Failed to compile abstract sql: ', request.abstractSqlQuery, err, err.stack)
-							throw new SqlCompilationError(err)
-					return request
+				.then(uriParser.translateUri)
+				.then(compileRequest)
 				.tapCatch ->
 					rollbackRequestHooks(reqHooks)
 					rollbackRequestHooks(request)
