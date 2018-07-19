@@ -762,20 +762,21 @@ exports.getAffectedIds = Promise.method ({ req, request, tx }) ->
 		delete request.odataQuery.options.$expand
 
 		permissions.addPermissions(req, request)
+		.then ->
 
-		request.method = 'GET'
+			request.method = 'GET'
 
-		request = uriParser.translateUri(request)
-		request = compileRequest(request)
+			request = uriParser.translateUri(request)
+			request = compileRequest(request)
 
-		doRunQuery = (tx) ->
-			runQuery(tx, request)
-			.then (result) ->
-				_.map(result.rows, idField)
-		if tx?
-			doRunQuery(tx)
-		else
-			runTransaction(req, doRunQuery)
+			doRunQuery = (tx) ->
+				runQuery(tx, request)
+				.then (result) ->
+					_.map(result.rows, idField)
+			if tx?
+				doRunQuery(tx)
+			else
+				runTransaction(req, doRunQuery)
 
 exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 	url = req.url.split('/')
