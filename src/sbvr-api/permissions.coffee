@@ -656,7 +656,7 @@ exports.setup = (app, sbvrUtils) ->
 
 
 
-	exports.addPermissions = addPermissions = (req, request) ->
+	exports.addPermissions = addPermissions = Promise.method (req, request) ->
 		{ method, vocabulary, resourceName, permissionType, odataQuery, odataBinds } = request
 		abstractSqlModel = sbvrUtils.getAbstractSqlModel(request)
 		method = method.toUpperCase()
