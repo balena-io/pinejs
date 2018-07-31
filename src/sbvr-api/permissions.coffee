@@ -446,7 +446,7 @@ exports.setup = (app, sbvrUtils) ->
 					$filter: key: apiKey
 			.then (apiKeys) ->
 				if apiKeys.length is 0
-					throw new Error('Could not find the api key')
+					throw new PermissionError()
 				apiKeyActorID = apiKeys[0].is_of__actor.__id
 				if !apiKeyActorID?
 					throw new Error('API key is not linked to a actor?!')
