@@ -56,7 +56,7 @@ module.exports = (grunt) ->
 					src: [ '**' ]
 					dest: "<%= grunt.option('target') %>"
 					filter: (filename) ->
-						not _.endsWith(filename, '.coffee') and not _.endsWith(filename, '.ts')
+						_.endsWith(filename, '.d.ts') or (not _.endsWith(filename, '.coffee') and not _.endsWith(filename, '.ts'))
 				]
 
 		gitinfo:

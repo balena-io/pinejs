@@ -1,6 +1,6 @@
 {
   "name": "@resin/pinejs",
-  "version": "8.1.4",
+  "version": "8.1.5",
   "main": "out/server-glue/module",
   "repository": "git@github.com:resin-io/pinejs.git",
   "license": "Apache-2.0",
@@ -13,7 +13,7 @@
     "test": "npm run lint && npm run build"
   },
   "dependencies": {
-    "@resin/abstract-sql-compiler": "^5.3.0",
+    "@resin/abstract-sql-compiler": "^5.3.2",
     "@resin/lf-to-abstract-sql": "^2.0.5",
     "@resin/odata-parser": "^0.3.5",
     "@resin/odata-to-abstract-sql": "^2.2.1",
@@ -58,7 +58,7 @@
     "grunt-contrib-copy": "^1.0.0",
     "grunt-gitinfo": "^0.1.8",
     "grunt-rename": "^0.1.4",
-    "grunt-ts": "^6.0.0-beta.19",
+    "grunt-ts": "^6.0.0-beta.21",
     "grunt-webpack": "^1.0.8",
     "load-grunt-tasks": "^3.5.0",
     "ometa-loader": "0.0.1",
