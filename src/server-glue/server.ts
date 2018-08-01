@@ -13,7 +13,8 @@ import * as Pinejs from './module'
 import * as Promise from 'bluebird'
 import * as passportPinejs from '../passport-pinejs/passport-pinejs'
 
-export const sbvrUtils = require('../sbvr-api/sbvr-utils')
+import * as sbvrUtils from '../sbvr-api/sbvr-utils'
+export { sbvrUtils }
 export const PinejsSessionStore = require('../pinejs-session-store/pinejs-session-store')
 
 import * as express from 'express'
