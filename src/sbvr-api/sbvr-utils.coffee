@@ -875,24 +875,23 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 		res.sendStatus(500)
 
 # Reject the error to use the nice catch syntax
-constructError = (e) ->
-	Promise.reject(e)
-	.catch SbvrValidationError, (err) ->
-		{ status: 400, body: err.message }
-	.catch PermissionError, (err) ->
-		{ status: 401, body: err.message }
-	.catch SqlCompilationError, TranslationError, ParsingError, PermissionParsingError, (err) ->
-		{ status: 500 }
-	.catch UnsupportedMethodError, (err) ->
-		{ status: 405, body: err.message }
-	.catch HttpError, (err) ->
-		{ status: err.status, body: err.getResponseBody() }
-	.catch e, (err) ->
+constructError = (err) ->
+	if err instanceof SbvrValidationError
+		return { status: 400, body: err.message }
+	else if err instanceof PermissionError
+		return { status: 401, body: err.message }
+	else if err instanceof SqlCompilationError or err instanceof TranslationError or err instanceof ParsingError or err instanceof PermissionParsingError
+		return { status: 500 }
+	else if err instanceof UnsupportedMethodError
+		return { status: 405, body: err.message }
+	else if err instanceof HttpError
+		return { status: err.status, body: err.getResponseBody() }
+	else
 		console.error(err)
 		# If the err is an error object then use its message instead - it should be more readable!
 		if _.isError err
 			err = err.message
-		{ status: 404, body: err }
+		return { status: 404, body: err }
 
 runRequest = (req, res, tx, request) ->
 	{ logger } = api[request.vocabulary]
