@@ -526,25 +526,21 @@ exports.setup = (app, sbvrUtils) ->
 				res.sendStatus(503)
 
 	getReqPermissions = do ->
-		_getGuestPermissions = do ->
-			# Start the guest permissions as null, having it as a reject promise either
-			# causes an issue with an unhandled rejection, or with enabling long stack traces.
-			_guestPermissions = null
-			return ->
-				if !_guestPermissions? or _guestPermissions.isRejected()
-					# Get guest user
-					_guestPermissions = sbvrUtils.api.Auth.get
-						resource: 'user'
-						passthrough: req: rootRead
-						options:
-							$select: 'id'
-							$filter:
-								username: 'guest'
-					.then (result) ->
-						if result.length is 0
-							throw new Error('No guest permissions')
-						getUserPermissions(result[0].id)
-				return _guestPermissions
+		_getGuestPermissions = memoize(
+			->
+				# Get guest user
+				sbvrUtils.api.Auth.get
+					resource: 'user'
+					passthrough: req: rootRead
+					options:
+						$select: 'id'
+						$filter:
+							username: 'guest'
+				.then (result) ->
+					if result.length is 0
+						throw new Error('No guest permissions')
+					getUserPermissions(result[0].id)
+		)
 
 		return (req, odataBinds = {}) ->
 			Promise.join(

@@ -42,7 +42,7 @@
     "deep-freeze": "0.0.1",
     "express-session": "^1.10.3",
     "lodash": "^4.0.0",
-    "memoizee": "^0.4.1",
+    "memoizee": "^0.4.13",
     "ometa-js": "^1.5.2",
     "pinejs-client-core": "^5.2.0",
     "typed-error": "^2.0.0"
