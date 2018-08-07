@@ -540,6 +540,7 @@ exports.setup = (app, sbvrUtils) ->
 					if result.length is 0
 						throw new Error('No guest permissions')
 					getUserPermissions(result[0].id)
+			promise: true
 		)
 
 		return (req, odataBinds = {}) ->
