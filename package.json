@@ -1,6 +1,6 @@
 {
   "name": "@resin/pinejs",
-  "version": "8.1.7",
+  "version": "8.1.8",
   "main": "out/server-glue/module",
   "repository": "git@github.com:resin-io/pinejs.git",
   "license": "Apache-2.0",
@@ -44,7 +44,7 @@
     "lodash": "^4.0.0",
     "memoizee": "^0.4.13",
     "ometa-js": "^1.5.2",
-    "pinejs-client-core": "^5.2.0",
+    "pinejs-client-core": "^5.3.0",
     "typed-error": "^2.0.0"
   },
   "devDependencies": {
@@ -66,7 +66,7 @@
     "require-npm4-to-publish": "^1.0.0",
     "resin-lint": "^1.5.7",
     "ts-loader": "^2.0.3",
-    "typescript": "^2.9.2",
+    "typescript": "^3.0.1",
     "umd-require-webpack-plugin": "0.0.1",
     "webpack": "^1.5.3",
     "webpack-dev-server": "^1.7.0"
