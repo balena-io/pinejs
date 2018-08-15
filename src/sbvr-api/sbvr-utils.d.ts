@@ -7,7 +7,7 @@ import { FieldType } from '../../node_modules/@types/mysql';
 export * from './errors';
 export * from './permissions';
 
-interface PinejsClient extends PinejsClientCoreFactory.PinejsClientCore<
+export interface PinejsClient extends PinejsClientCoreFactory.PinejsClientCore<
 	PinejsClient,
 	Promise<{}>,
 	Promise<number | PinejsClientCoreFactory.AnyObject | PinejsClientCoreFactory.AnyObject[]>
@@ -23,26 +23,29 @@ interface User {
 	permissions?: string[];
 }
 
+interface HookReq {
+	user: User,
+	method: string,
+	url: string,
+	body: AnyObject
+}
 
-type HookArgs = {
-	req: {
-		user: User,
-		method: string,
-		url: string,
-		body: AnyObject
-	},
-	request: {
-		method: string,
-		vocabulary: string,
-		resourceName: string,
-		odataQuery: any,
-		abstractSqlQuery: AbstractSqlQuery,
-		values: AnyObject,
-		custom: AnyObject
-	},
+interface HookRequest {
+	method: string,
+	vocabulary: string,
+	resourceName: string,
+	odataQuery: any,
+	abstractSqlQuery: AbstractSqlQuery,
+	values: AnyObject,
+	custom: AnyObject
+}
+
+interface HookArgs {
+	req: HookReq,
+	request: HookRequest,
 	api: PinejsClient,
 	tx?: Tx
-};
+}
 
 interface Hooks {
 	PREPARSE?: (options: HookArgs) => Promise<any> | undefined;
@@ -59,6 +62,11 @@ interface Hooks {
 
 export const db: Database
 
+export const api: {
+	[ apiName: string ]: PinejsClient
+}
+
+export function getAffectedIds(args: { req: HookReq, request: HookRequest, tx: Tx }): Promise<number[]>
 export function addPureHook(method: string, vocabulary: string, resource: string, hooks: Hooks): void;
 export function addSideEffectHook(method: string, vocabulary: string, resource: string, hooks: Hooks): void;
 export function setup(app: Application, db: Database, callback?: (err?: Error) => void): Promise<void>;
