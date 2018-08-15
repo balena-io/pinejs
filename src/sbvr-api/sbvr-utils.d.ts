@@ -62,6 +62,10 @@ interface Hooks {
 
 export const db: Database
 
+export const api: {
+	[ apiName: string ]: PinejsClient
+}
+
 export function getAffectedIds(args: { req: HookReq, request: HookRequest, tx: Tx }): Promise<number[]>
 export function addPureHook(method: string, vocabulary: string, resource: string, hooks: Hooks): void;
 export function addSideEffectHook(method: string, vocabulary: string, resource: string, hooks: Hooks): void;
