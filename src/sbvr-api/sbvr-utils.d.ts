@@ -7,7 +7,7 @@ import { FieldType } from '../../node_modules/@types/mysql';
 export * from './errors';
 export * from './permissions';
 
-interface PinejsClient extends PinejsClientCoreFactory.PinejsClientCore<
+export interface PinejsClient extends PinejsClientCoreFactory.PinejsClientCore<
 	PinejsClient,
 	Promise<{}>,
 	Promise<number | PinejsClientCoreFactory.AnyObject | PinejsClientCoreFactory.AnyObject[]>
