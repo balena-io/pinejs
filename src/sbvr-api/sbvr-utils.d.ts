@@ -66,8 +66,12 @@ export interface Hooks {
 
 export const db: Database
 
+export type LoggingClient = PinejsClient & {
+	logger: Console
+}
+
 export const api: {
-	[ apiName: string ]: PinejsClient
+	[ apiName: string ]: LoggingClient
 }
 
 export function resolveOdataBind(odataBinds: OdataBinds, value: any): any
