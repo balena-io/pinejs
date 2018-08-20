@@ -14,23 +14,23 @@ export interface PinejsClient extends PinejsClientCoreFactory.PinejsClientCore<
 > {}
 
 
-type AnyObject = {
+export type AnyObject = {
 	[key: string]: any;
 }
 
-interface User {
+export interface User {
 	id: number;
 	permissions?: string[];
 }
 
-interface HookReq {
+export interface HookReq {
 	user: User,
 	method: string,
 	url: string,
 	body: AnyObject
 }
 
-interface HookRequest {
+export interface HookRequest {
 	method: string,
 	vocabulary: string,
 	resourceName: string,
@@ -40,14 +40,14 @@ interface HookRequest {
 	custom: AnyObject
 }
 
-interface HookArgs {
+export interface HookArgs {
 	req: HookReq,
 	request: HookRequest,
 	api: PinejsClient,
 	tx?: Tx
 }
 
-interface Hooks {
+export interface Hooks {
 	PREPARSE?: (options: HookArgs) => Promise<any> | undefined;
 	POSTPARSE?: (options: HookArgs) => Promise<any> | undefined;
 	PRERUN?: (options: HookArgs & { tx: Tx }) => Promise<any> | undefined;
