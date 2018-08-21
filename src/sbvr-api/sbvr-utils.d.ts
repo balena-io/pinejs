@@ -13,6 +13,9 @@ export interface PinejsClient extends PinejsClientCoreFactory.PinejsClientCore<
 	Promise<number | PinejsClientCoreFactory.AnyObject | PinejsClientCoreFactory.AnyObject[]>
 > {}
 
+export interface OdataBinds extends Array<any> {
+	[ key: string ]: any
+}
 
 export type AnyObject = {
 	[key: string]: any;
@@ -35,6 +38,7 @@ export interface HookRequest {
 	vocabulary: string,
 	resourceName: string,
 	odataQuery: any,
+	odataBinds: OdataBinds,
 	abstractSqlQuery: AbstractSqlQuery,
 	values: AnyObject,
 	custom: AnyObject
@@ -48,16 +52,16 @@ export interface HookArgs {
 }
 
 export interface Hooks {
-	PREPARSE?: (options: HookArgs) => Promise<any> | undefined;
-	POSTPARSE?: (options: HookArgs) => Promise<any> | undefined;
-	PRERUN?: (options: HookArgs & { tx: Tx }) => Promise<any> | undefined;
-	POSTRUN?: (options: HookArgs & { tx: Tx, result: any }) => Promise<any> | undefined;
+	PREPARSE?: (options: HookArgs) => Promise<any> | void;
+	POSTPARSE?: (options: HookArgs) => Promise<any> | void;
+	PRERUN?: (options: HookArgs & { tx: Tx }) => Promise<any> | void;
+	POSTRUN?: (options: HookArgs & { tx: Tx, result: any }) => Promise<any> | void;
 	PRERESPOND?: (options: HookArgs & {
 		tx: Tx,
 		result: any,
 		res: any,
 		data?: any
-	}) => Promise<any> | undefined;
+	}) => Promise<any> | void;
 }
 
 export const db: Database
@@ -66,6 +70,7 @@ export const api: {
 	[ apiName: string ]: PinejsClient
 }
 
+export function resolveOdataBind(odataBinds: OdataBinds, value: any): any
 export function getAffectedIds(args: { req: HookReq, request: HookRequest, tx: Tx }): Promise<number[]>
 export function addPureHook(method: string, vocabulary: string, resource: string, hooks: Hooks): void;
 export function addSideEffectHook(method: string, vocabulary: string, resource: string, hooks: Hooks): void;
