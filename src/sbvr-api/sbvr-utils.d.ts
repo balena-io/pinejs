@@ -30,17 +30,25 @@ export type AnyObject = {
 	[key: string]: any;
 }
 
-export interface User {
-	id: number;
+interface Actor {
 	permissions?: string[];
+}
+
+export interface User extends Actor {
+	id: number;
+}
+
+export interface ApiKey extends Actor {
+	key: string;
 }
 
 export interface HookReq {
 	user?: User,
-	apiKey?: User,
+	apiKey?: ApiKey,
 	method: string,
 	url: string,
-	body: AnyObject
+	body: AnyObject,
+	custom?: AnyObject
 }
 
 export interface HookRequest {
