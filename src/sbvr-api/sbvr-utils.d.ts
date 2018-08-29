@@ -7,11 +7,20 @@ import { FieldType } from '../../node_modules/@types/mysql';
 export * from './errors';
 export * from './permissions';
 
+export type Passthrough = AnyObject & {
+	req?: {
+		user?: User,
+	},
+	tx?: Tx,
+}
+
 export interface PinejsClient extends PinejsClientCoreFactory.PinejsClientCore<
 	PinejsClient,
 	Promise<{}>,
 	Promise<PinejsClientCoreFactory.PromiseResultTypes>
-> {}
+> {
+	passthrough: Passthrough
+}
 
 export interface OdataBinds extends Array<any> {
 	[ key: string ]: any
