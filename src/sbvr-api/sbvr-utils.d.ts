@@ -7,6 +7,12 @@ import { FieldType } from '../../node_modules/@types/mysql';
 export * from './errors';
 export * from './permissions';
 
+export const sbvrTypes: {
+	Hashed: {
+		compare: (str: string, hash: string) => Promise<boolean>
+	}
+}
+
 export type Passthrough = AnyObject & {
 	req?: {
 		user?: User,
