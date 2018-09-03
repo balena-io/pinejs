@@ -36,7 +36,7 @@ export type AnyObject = {
 	[key: string]: any;
 }
 
-interface Actor {
+export interface Actor {
 	permissions?: string[];
 }
 
