@@ -62,7 +62,7 @@ compileRequest = (request) ->
 			request.sqlQuery = sqlQuery
 			request.modifiedFields = modifiedFields
 		catch err
-			api[request.vocabulary].logger.error('Failed to compile abstract sql: ', request.abstractSqlQuery, err, err.stack)
+			api[request.vocabulary].logger.error('Failed to compile abstract sql: ', request.abstractSqlQuery, err)
 			throw new SqlCompilationError(err)
 	return request
 
@@ -914,10 +914,12 @@ runRequest = (req, res, tx, request) ->
 		# This cannot be a `.tapCatch` because for some reason throwing a db.UniqueConstraintError doesn't override
 		# the error, when usually throwing an error does.
 		prettifyConstraintError(err, request.resourceName)
-		logger.error(err, err.stack)
+		logger.error(err)
+		# Override the error message so we don't leak any internal db info
+		err.message = 'Database error'
 		throw err
 	.catch EvalError, RangeError, ReferenceError, SyntaxError, TypeError, URIError, (err) ->
-		logger.error(err, err.stack)
+		logger.error(err)
 		throw new InternalRequestError()
 	.tap (result) ->
 		runHooks('POSTRUN', { req, request, result, tx })
@@ -1091,7 +1093,7 @@ exports.executeStandardModels = executeStandardModels = (tx, callback) ->
 	.then ->
 		console.info('Sucessfully executed standard models.')
 	.tapCatch (err) ->
-		console.error('Failed to execute standard models.', err, err.stack)
+		console.error('Failed to execute standard models.', err)
 	.nodeify(callback)
 
 
@@ -1148,7 +1150,7 @@ exports.setup = (app, _db, callback) ->
 			permissions.setup(app, exports)
 			_.extend(exports, permissions)
 	.catch (err) ->
-		console.error('Could not execute standard models', err, err.stack)
+		console.error('Could not execute standard models', err)
 		process.exit(1)
 	.then ->
 		db.executeSql('CREATE UNIQUE INDEX "uniq_model_model_type_vocab" ON "model" ("is of-vocabulary", "model type");')
