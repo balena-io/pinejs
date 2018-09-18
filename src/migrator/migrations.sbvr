@@ -1,14 +1,23 @@
 Vocabulary: migrations
 
-Term:       model name
+Term: model name
 	Concept Type: Short Text (Type)
-Term:       executed migrations
+Term: executed migrations
 	Concept Type: JSON (Type)
+Term: lock time
+	Concept Type: Date Time (Type)
 
-Term:       migration
-	Reference Scheme:   model name
-	Database ID Field:  model name
-Fact Type:  migration has model name
+Term: migration
+	Reference Scheme: model name
+	Database ID Field: model name
+Fact Type: migration has model name
 	Necessity: each migration has exactly one model name
-Fact Type:  migration has executed migrations
+Fact Type: migration has executed migrations
 	Necessity: each migration has exactly one executed migrations
+
+Term: migration lock
+	Reference Scheme: model name
+	Database ID Field: model name
+
+Fact Type: migration lock has model name
+	Necessity: each migration lock has exactly one model name
