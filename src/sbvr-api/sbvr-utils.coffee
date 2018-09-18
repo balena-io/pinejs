@@ -306,6 +306,8 @@ exports.executeModels = executeModels = (tx, models, callback) ->
 						console.warn("Ignoring errors in the create table statements for websql as it doesn't support CREATE IF NOT EXISTS", err)
 				return promise
 			.then ->
+				migrator.postRun(tx, model)
+			.then ->
 				seModels[vocab] = seModel
 				_.each(abstractSqlModel.tables, (table) ->
 					getLocalFields(table)
