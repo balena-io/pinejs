@@ -24,3 +24,9 @@ export const db = {
 	poolSize: 50,
 	idleTimeoutMillis: 30000,
 }
+
+export const migrator = {
+	lockTimeout: 5 * 60 * 1000,
+	// Used to delay the failure on lock taking, to avoid spam taking
+	lockFailDelay: 20 * 1000,
+}

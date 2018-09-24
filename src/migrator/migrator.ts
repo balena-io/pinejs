@@ -4,6 +4,7 @@ import TypedError = require('typed-error')
 const modelText: string = require('./migrations.sbvr')
 import { Tx } from '../database-layer/db'
 import * as sbvrUtils from '../sbvr-api/sbvr-utils'
+import { migrator as migratorEnv } from '../config-loader/env'
 
 type SbvrUtils = typeof sbvrUtils
 
@@ -29,26 +30,29 @@ export const run = (tx: Tx, model: Model): Promise<void> => {
 
 	// migrations only run if the model has been executed before,
 	// to make changes that can't be automatically applied
-	return checkModelAlreadyExists(tx, modelName)
-	.then((exists) => {
-		if (!exists) {
-			sbvrUtils.api.migrations.logger.info('First time model has executed, skipping migrations')
-			return setExecutedMigrations(tx, modelName, _.keys(model.migrations))
-		}
+	return Promise.using(lockMigrations(tx, modelName), () =>
+		checkModelAlreadyExists(tx, modelName)
+		.then((exists) => {
+			if (!exists) {
+				sbvrUtils.api.migrations.logger.info('First time model has executed, skipping migrations')
 
-		return getExecutedMigrations(tx, modelName)
-		.then((executedMigrations) => {
-			const pendingMigrations = filterAndSortPendingMigrations(model.migrations, executedMigrations)
-			if (!_.some(pendingMigrations)) {
-				return
+				return setExecutedMigrations(tx, modelName, _.keys(model.migrations))
 			}
 
-			return executeMigrations(tx, pendingMigrations)
-			.then((newlyExecutedMigrations) =>
-				setExecutedMigrations(tx, modelName, [ ...executedMigrations, ...newlyExecutedMigrations ])
-			)
+			return getExecutedMigrations(tx, modelName)
+			.then((executedMigrations) => {
+				const pendingMigrations = filterAndSortPendingMigrations(model.migrations, executedMigrations)
+				if (!_.some(pendingMigrations)) {
+					return
+				}
+
+				return executeMigrations(tx, pendingMigrations)
+				.then((newlyExecutedMigrations) =>
+					setExecutedMigrations(tx, modelName, [ ...executedMigrations, ...newlyExecutedMigrations ])
+				)
+			})
 		})
-	})
+	)
 }
 
 export const checkModelAlreadyExists = (tx: Tx, modelName: string): Promise<boolean> =>
@@ -108,6 +112,48 @@ export const filterAndSortPendingMigrations = (migrations: Model['migrations'], 
 	.toPairs()
 	.sortBy(([ migrationKey ]) => migrationKey)
 	.value()
+
+const lockMigrations = (tx: Tx, modelName: string): Promise.Disposer<void> =>
+	sbvrUtils.api.migrations.delete({
+		resource: 'migration_lock',
+		id: modelName,
+		passthrough: {
+			tx,
+			req: sbvrUtils.root,
+		},
+		options: {
+			$filter: {
+				created_at: {
+					$lt: new Date(Date.now() - migratorEnv.lockTimeout)
+				}
+			}
+		}
+	}).then(() =>
+		sbvrUtils.api.migrations.post({
+			resource: 'migration_lock',
+			passthrough: {
+				tx,
+				req: sbvrUtils.root,
+			},
+			options: { returnResult: false },
+			body: {
+				model_name: modelName,
+			},
+		})
+	).tapCatch(() =>
+		Promise.delay(migratorEnv.lockFailDelay)
+	).return()
+	.disposer(() => {
+		return sbvrUtils.api.migrations.delete({
+			resource: 'migration_lock',
+			id: modelName,
+			passthrough: {
+				tx,
+				req: sbvrUtils.root,
+			},
+		}).return()
+	})
+
 
 export const executeMigrations = (tx: Tx, migrations: Array<MigrationTuple> = []): Promise<string[]> =>
 	Promise.mapSeries(migrations, executeMigration.bind(null, tx))

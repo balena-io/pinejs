@@ -14,9 +14,9 @@
   },
   "dependencies": {
     "@resin/abstract-sql-compiler": "^5.3.3",
-    "@resin/lf-to-abstract-sql": "^2.0.6",
+    "@resin/lf-to-abstract-sql": "^2.0.7",
     "@resin/odata-parser": "^0.3.6",
-    "@resin/odata-to-abstract-sql": "^2.2.3",
+    "@resin/odata-to-abstract-sql": "^2.2.5",
     "@resin/sbvr-parser": "^0.1.4",
     "@resin/sbvr-types": "^1.4.2",
     "@types/bluebird": "^3.5.24",
@@ -40,10 +40,10 @@
     "coffee-script": "~1.12.2",
     "deep-freeze": "0.0.1",
     "express-session": "^1.10.3",
-    "lodash": "^4.0.0",
+    "lodash": "^4.17.11",
     "memoizee": "^0.4.14",
     "ometa-js": "^1.5.3",
-    "pinejs-client-core": "^5.3.3",
+    "pinejs-client-core": "^5.3.4",
     "typed-error": "^2.0.0"
   },
   "devDependencies": {
