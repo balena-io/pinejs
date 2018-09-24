@@ -6,7 +6,8 @@
   "license": "Apache-2.0",
   "scripts": {
     "prepublish": "require-npm4-to-publish",
-    "prepublishOnly": "npm test",
+    "prepublishOnly": "npm run lint",
+    "prepare": "npm run build",
     "build": "grunt build",
     "webpack-browser": "grunt webpack:browser",
     "lint": "resin-lint src Gruntfile.coffee",
