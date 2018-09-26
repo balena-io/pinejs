@@ -1,9 +1,10 @@
 import * as Promise from 'bluebird'
 import { Application } from 'express'
-import { AbstractSqlQuery } from '@resin/abstract-sql-compiler';
+import { AbstractSqlQuery, AbstractSqlModel } from '@resin/abstract-sql-compiler';
 import { Database, Tx } from '../database-layer/db';
 import { PinejsClientCoreFactory } from 'pinejs-client-core';
 import { FieldType } from '../../node_modules/@types/mysql';
+import { ODataRequest } from './uri-parser';
 export * from './errors';
 export * from './permissions';
 
@@ -100,6 +101,8 @@ export const api: {
 	[ apiName: string ]: LoggingClient
 }
 
+
+export function getAbstractSqlModel(request: ODataRequest): AbstractSqlModel
 export function resolveOdataBind(odataBinds: OdataBinds, value: any): any
 export function getAffectedIds(args: { req: HookReq, request: HookRequest, tx: Tx }): Promise<number[]>
 export function addPureHook(method: string, vocabulary: string, resource: string, hooks: Hooks): void;
