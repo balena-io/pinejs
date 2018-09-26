@@ -1,10 +1,12 @@
 import * as Promise from 'bluebird'
-import { Application } from 'express'
+import { Application, RequestHandler } from 'express'
 import { AbstractSqlQuery, AbstractSqlModel } from '@resin/abstract-sql-compiler';
 import { Database, Tx } from '../database-layer/db';
 import { PinejsClientCoreFactory } from 'pinejs-client-core';
 import { FieldType } from '../../node_modules/@types/mysql';
 import { ODataRequest } from './uri-parser';
+import { Model } from '../config-loader/config-loader';
+
 export * from './errors';
 export * from './permissions';
 
@@ -102,6 +104,9 @@ export const api: {
 }
 
 
+export function executeModel(tx: Tx, model: Model): Promise<void>
+export function executeModels(tx: Tx, models: Model[]): Promise<void>
+export const handleODataRequest: RequestHandler
 export function getAbstractSqlModel(request: ODataRequest): AbstractSqlModel
 export function resolveOdataBind(odataBinds: OdataBinds, value: any): any
 export function getAffectedIds(args: { req: HookReq, request: HookRequest, tx: Tx }): Promise<number[]>

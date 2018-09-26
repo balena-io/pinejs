@@ -22,10 +22,8 @@ if (!process.browser) {
 
 import * as Promise from 'bluebird'
 import * as dbModule from '../database-layer/db'
-// TODO: replace with the return type of `configLoader.setup`
-type ConfigLoader = any
-const configLoader = require('../config-loader/config-loader')
-const migrator = require('../migrator/migrator')
+import * as configLoader from '../config-loader/config-loader'
+import * as migrator from '../migrator/migrator'
 
 import * as sbvrUtils from '../sbvr-api/sbvr-utils'
 export { sbvrUtils }
@@ -59,13 +57,13 @@ if (dbModule.engines.websql != null) {
 
 const db = dbModule.connect(databaseOptions)
 
-export const init = (app: _express.Application, config?: any): Promise<ConfigLoader> =>
+export const init = (app: _express.Application, config?: string | configLoader.Config): Promise<ReturnType<typeof configLoader.setup>> =>
 	sbvrUtils.setup(app, db)
-	.then(() => {
-		const cfgLoader = configLoader.setup(app)
-		return cfgLoader.loadConfig(migrator.config)
-		.return(cfgLoader)
-	}).tap((cfgLoader) => {
+	.then(() =>
+		configLoader.setup(app)
+	).tap((cfgLoader) =>
+		cfgLoader.loadConfig(migrator.config)
+	).tap((cfgLoader) => {
 		const promises: Promise<void>[] = []
 		if (process.env.SBVR_SERVER_ENABLED) {
 			const sbvrServer = require('../data-server/SBVRServer')
@@ -83,4 +81,5 @@ export const init = (app: _express.Application, config?: any): Promise<ConfigLoa
 	}).catch((err) => {
 		console.error('Error initialising server', err, err.stack)
 		process.exit(1)
+		throw new Error('Unreachable')
 	})
