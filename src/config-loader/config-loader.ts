@@ -27,6 +27,8 @@ export interface Model {
 	migrations?: {
 		[index: string]: string
 	}
+	initSqlPath?: string
+	initSql?: string
 	customServerCode?: string | {
 		setup: SetupFunction
 	}
@@ -45,20 +47,7 @@ export interface Config {
 export const setup = (app: _express.Application) => {
 	const loadConfig = (data: Config): Promise<void> =>
 		sbvrUtils.db.transaction((tx) =>
-			Promise.map(data.models, (model) => {
-				if (model.modelText != null) {
-					return sbvrUtils.executeModel(tx, model).then(() => {
-						console.info('Successfully executed ' + model.modelName + ' model.')
-					}).catch((err) => {
-						const message = `Failed to execute ${model.modelName} model from ${model.modelFile}`
-						if (_.isError(err)) {
-							err.message = message
-							throw err
-						}
-						throw new Error(message)
-					})
-				}
-			}).then(() => {
+			Promise.try(() => {
 				const authApiTx = sbvrUtils.api.Auth.clone({
 					passthrough: {
 						tx,
@@ -159,6 +148,21 @@ export const setup = (app: _express.Application) => {
 							e.message = `Could not create or find user "${user.username}": ${e.message}`
 						})
 					}).return()
+				}
+			})
+			.return(data.models)
+			.map((model) => {
+				if (model.modelText != null) {
+					return sbvrUtils.executeModel(tx, model).then(() => {
+						console.info('Successfully executed ' + model.modelName + ' model.')
+					}).catch((err) => {
+						const message = `Failed to execute ${model.modelName} model from ${model.modelFile}`
+						if (_.isError(err)) {
+							err.message = message
+							throw err
+						}
+						throw new Error(message)
+					})
 				}
 			}).then(() =>
 				Promise.map(data.models, (model) => {
@@ -281,6 +285,15 @@ export const setup = (app: _express.Application) => {
 								console.error(`Unrecognised migration file extension, skipping: ${path.extname(filename)}`)
 						}
 					}).return()
+				}
+			})
+			.then(() => {
+				if (model.initSqlPath) {
+					const initSqlPath = path.join(root, model.initSqlPath)
+					return readFileAsync(initSqlPath, 'utf8')
+					.then((initSql) => {
+						model.initSql = initSql
+					})
 				}
 			})
 		).then(() =>

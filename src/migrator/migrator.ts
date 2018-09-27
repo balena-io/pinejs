@@ -5,13 +5,11 @@ const modelText: string = require('./migrations.sbvr')
 import { Tx } from '../database-layer/db'
 import * as sbvrUtils from '../sbvr-api/sbvr-utils'
 import { migrator as migratorEnv } from '../config-loader/env'
+import { Model } from '../config-loader/config-loader';
+
+type ApiRootModel = Model & { apiRoot: string }
 
 type SbvrUtils = typeof sbvrUtils
-
-interface Model {
-	apiRoot: string;
-	migrations: Array<Migration>;
-}
 
 type MigrationTuple = [ string, Migration ]
 
@@ -21,7 +19,26 @@ export type Migration = string | MigrationFn
 
 export class MigrationError extends TypedError {}
 
-export const run = (tx: Tx, model: Model): Promise<void> => {
+export const postRun = (tx: Tx, model: ApiRootModel): Promise<void> => {
+	const { initSql } = model
+	if (initSql == null) {
+		return Promise.resolve()
+	}
+
+	const modelName = model.apiRoot
+
+	return Promise.using(lockMigrations(tx, modelName), () =>
+		checkModelAlreadyExists(tx, modelName)
+		.then((exists) => {
+			if (!exists) {
+				sbvrUtils.api.migrations.logger.info('First time executing, running init script')
+				return tx.executeSql(initSql).return()
+			}
+		})
+	)
+}
+
+export const run = (tx: Tx, model: ApiRootModel): Promise<void> => {
 	if (!_.some(model.migrations)) {
 		return Promise.resolve()
 	}
