@@ -26,7 +26,11 @@ import * as env from '../config-loader/env'
 import * as sbvrUtils from './sbvr-utils'
 
 type SupportedMethod = "GET" | "PUT" | "POST" | "PATCH" | "MERGE" | "DELETE" | "OPTIONS"
-type ODataQuery = any[]
+type ODataQuery = sbvrUtils.AnyObject
+
+export interface OdataBinds extends Array<any> {
+	[ key: string ]: any
+}
 
 export interface UnparsedRequest {
 	method: string
@@ -41,17 +45,15 @@ export interface ODataRequest {
 	method: SupportedMethod
 	url: string
 	odataQuery: ODataQuery
-	odataBinds: any[]
-	values: any[]
+	odataBinds: OdataBinds
+	values: sbvrUtils.AnyObject
 	abstractSqlQuery?: _AbstractSQLCompiler.AbstractSqlQuery | _AbstractSQLCompiler.AbstractSqlQuery[]
 	sqlQuery?: _AbstractSQLCompiler.SqlResult | _AbstractSQLCompiler.SqlResult[]
 	resourceName: string
 	vocabulary: string
 	_defer?: boolean
 	id?: number
-	custom?: {
-		[ key: string ]: any
-	}
+	custom: sbvrUtils.AnyObject
 }
 
 // Converts a value to its string representation and tries to parse is as an

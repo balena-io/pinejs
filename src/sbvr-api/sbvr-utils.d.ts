@@ -10,6 +10,8 @@ import { Model } from '../config-loader/config-loader';
 export * from './errors';
 export * from './permissions';
 
+export { OdataBinds } from './uri-parser'
+
 export const sbvrTypes: {
 	Hashed: {
 		compare: (str: string, hash: string) => Promise<boolean>
@@ -29,10 +31,6 @@ export interface PinejsClient extends PinejsClientCoreFactory.PinejsClientCore<
 	Promise<PinejsClientCoreFactory.PromiseResultTypes>
 > {
 	passthrough: Passthrough
-}
-
-export interface OdataBinds extends Array<any> {
-	[ key: string ]: any
 }
 
 export type AnyObject = {
@@ -60,16 +58,7 @@ export interface HookReq {
 	custom?: AnyObject
 }
 
-export interface HookRequest {
-	method: string,
-	vocabulary: string,
-	resourceName: string,
-	odataQuery: any,
-	odataBinds: OdataBinds,
-	abstractSqlQuery: AbstractSqlQuery,
-	values: AnyObject,
-	custom: AnyObject
-}
+export type HookRequest = ODataRequest
 
 export interface HookArgs {
 	req: HookReq,
