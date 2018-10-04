@@ -43,6 +43,7 @@ export interface Actor {
 
 export interface User extends Actor {
 	id: number;
+	actor: number;
 }
 
 export interface ApiKey extends Actor {
@@ -67,7 +68,7 @@ export interface HookArgs {
 	tx?: Tx
 }
 
-type HookResponse = Promise<any> | null | void
+export type HookResponse = Promise<any> | null | void
 
 export interface Hooks {
 	PREPARSE?: (options: HookArgs) => HookResponse
@@ -92,6 +93,10 @@ export const api: {
 	[ apiName: string ]: LoggingClient
 }
 
+type LFModel = Array<LFModel | string>
+
+export function generateLfModel(seModel: string): LFModel
+export function generateAbstractSqlModel(lfModel: LFModel): AbstractSqlModel
 
 export function executeModel(tx: Tx, model: Model): Promise<void>
 export function executeModels(tx: Tx, models: Model[]): Promise<void>
