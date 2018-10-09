@@ -72,10 +72,6 @@ db = null
 
 exports.sbvrTypes = sbvrTypes
 
-fetchProcessing = _.mapValues sbvrTypes, ({ fetchProcessing }) ->
-	if fetchProcessing?
-		Promise.promisify(fetchProcessing)
-
 LF2AbstractSQLTranslator = LF2AbstractSQL.createTranslator(sbvrTypes)
 LF2AbstractSQLTranslatorVersion = require('@resin/lf-to-abstract-sql/package.json').version + '+' + require('@resin/sbvr-types/package.json').version
 
@@ -525,12 +521,12 @@ getLocalFields = (table) ->
 getFetchProcessingFields = (table) ->
 	return table.fetchProcessingFields ?=
 		_(table.fields)
-		.filter(({ dataType }) -> fetchProcessing[dataType]?)
+		.filter(({ dataType }) -> sbvrTypes[dataType]?.fetchProcessing?)
 		.map ({ fieldName, dataType }) ->
 			odataName = sqlNameToODataName(fieldName)
 			return [
 				odataName
-				fetchProcessing[dataType]
+				sbvrTypes[dataType].fetchProcessing
 			]
 		.fromPairs()
 		.value()
