@@ -27,6 +27,7 @@ errors = require './errors'
 { rollbackRequestHooks, instantiateHooks } = require './hooks'
 _.assign(exports, errors)
 {
+	statusCodeToError
 	InternalRequestError
 	ParsingError
 	PermissionError
@@ -708,14 +709,22 @@ exports.runURI = runURI =  (method, uri, body = {}, tx, req, custom, callback) -
 				return this
 			sendStatus: (statusCode) ->
 				if statusCode >= 400
-					reject(statusCode)
+					ErrorClass = statusCodeToError[statusCode]
+					if ErrorClass?
+						reject(new ErrorClass())
+					else
+						reject(new HttpError(statusCode))
 				else
 					resolve()
 			send: (statusCode = @statusCode) ->
 				@sendStatus(statusCode)
 			json: (data, statusCode = @statusCode) ->
 				if statusCode >= 400
-					reject(data)
+					ErrorClass = statusCodeToError[statusCode]
+					if ErrorClass?
+						reject(new ErrorClass(data))
+					else
+						reject(new HttpError(statusCode, data))
 				else
 					resolve(data)
 			set: _.noop
