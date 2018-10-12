@@ -27,6 +27,7 @@ errors = require './errors'
 { rollbackRequestHooks, instantiateHooks } = require './hooks'
 _.assign(exports, errors)
 {
+	statusCodeToError
 	InternalRequestError
 	ParsingError
 	PermissionError
@@ -71,10 +72,6 @@ compileRequest = (request) ->
 db = null
 
 exports.sbvrTypes = sbvrTypes
-
-fetchProcessing = _.mapValues sbvrTypes, ({ fetchProcessing }) ->
-	if fetchProcessing?
-		Promise.promisify(fetchProcessing)
 
 LF2AbstractSQLTranslator = LF2AbstractSQL.createTranslator(sbvrTypes)
 LF2AbstractSQLTranslatorVersion = require('@resin/lf-to-abstract-sql/package.json').version + '+' + require('@resin/sbvr-types/package.json').version
@@ -525,12 +522,12 @@ getLocalFields = (table) ->
 getFetchProcessingFields = (table) ->
 	return table.fetchProcessingFields ?=
 		_(table.fields)
-		.filter(({ dataType }) -> fetchProcessing[dataType]?)
+		.filter(({ dataType }) -> sbvrTypes[dataType]?.fetchProcessing?)
 		.map ({ fieldName, dataType }) ->
 			odataName = sqlNameToODataName(fieldName)
 			return [
 				odataName
-				fetchProcessing[dataType]
+				sbvrTypes[dataType].fetchProcessing
 			]
 		.fromPairs()
 		.value()
@@ -712,14 +709,22 @@ exports.runURI = runURI =  (method, uri, body = {}, tx, req, custom, callback) -
 				return this
 			sendStatus: (statusCode) ->
 				if statusCode >= 400
-					reject(statusCode)
+					ErrorClass = statusCodeToError[statusCode]
+					if ErrorClass?
+						reject(new ErrorClass())
+					else
+						reject(new HttpError(statusCode))
 				else
 					resolve()
 			send: (statusCode = @statusCode) ->
 				@sendStatus(statusCode)
 			json: (data, statusCode = @statusCode) ->
 				if statusCode >= 400
-					reject(data)
+					ErrorClass = statusCodeToError[statusCode]
+					if ErrorClass?
+						reject(new ErrorClass(data))
+					else
+						reject(new HttpError(statusCode, data))
 				else
 					resolve(data)
 			set: _.noop
