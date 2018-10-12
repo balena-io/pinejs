@@ -234,7 +234,7 @@ export const setup = (app: _express.Application) => {
 		let root: string
 		let configObj: Config
 		if (config == null) {
-			root = process.argv[2] || __dirname
+			root = path.resolve(process.argv[2]) || __dirname
 			configObj = loadJSON(path.join(root, 'config.json'))
 		} else if (_.isString(config)) {
 			root = path.dirname(config)
