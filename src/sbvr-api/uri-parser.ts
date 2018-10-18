@@ -2,19 +2,7 @@ import * as _AbstractSQLCompiler from '@resin/abstract-sql-compiler'
 
 import * as Promise from 'bluebird'
 const { ODataParser } = require('@resin/odata-parser')
-interface OData2AbstractSQLInstance {
-	match: (abstractSQL: ODataQuery, rule: 'Process', args: [SupportedMethod, string[], number]) => {
-		tree: _AbstractSQLCompiler.AbstractSqlQuery,
-		extraBodyVars: {},
-		extraBindVars: any[],
-	}
-	setClientModel: (abstractSqlModel: _AbstractSQLCompiler.AbstractSqlModel) => void
-}
-const { OData2AbstractSQL }: {
-	OData2AbstractSQL: {
-		createInstance: () => OData2AbstractSQLInstance
-	}
-} = require('@resin/odata-to-abstract-sql')
+import { OData2AbstractSQL, ODataQuery, ODataBinds, SupportedMethod } from '@resin/odata-to-abstract-sql'
 import * as memoize from 'memoizee'
 import memoizeWeak = require('memoizee/weak')
 import * as _ from 'lodash'
@@ -24,13 +12,9 @@ import { BadRequestError, ParsingError, TranslationError, PermissionError } from
 import * as deepFreeze from 'deep-freeze'
 import * as env from '../config-loader/env'
 import * as sbvrUtils from './sbvr-utils'
+import { Tx } from '../database-layer/db';
 
-type SupportedMethod = "GET" | "PUT" | "POST" | "PATCH" | "MERGE" | "DELETE" | "OPTIONS"
-type ODataQuery = sbvrUtils.AnyObject
-
-export interface OdataBinds extends Array<any> {
-	[ key: string ]: any
-}
+export type OdataBinds = ODataBinds
 
 export interface UnparsedRequest {
 	method: string
@@ -47,6 +31,7 @@ export interface ODataRequest {
 	odataQuery: ODataQuery
 	odataBinds: OdataBinds
 	values: sbvrUtils.AnyObject
+	abstractSqlModel?: _AbstractSQLCompiler.AbstractSqlModel
 	abstractSqlQuery?: _AbstractSQLCompiler.AbstractSqlQuery | _AbstractSQLCompiler.AbstractSqlQuery[]
 	sqlQuery?: _AbstractSQLCompiler.SqlResult | _AbstractSQLCompiler.SqlResult[]
 	resourceName: string
@@ -54,6 +39,7 @@ export interface ODataRequest {
 	_defer?: boolean
 	id?: number
 	custom: sbvrUtils.AnyObject
+	tx?: Tx
 }
 
 // Converts a value to its string representation and tries to parse is as an

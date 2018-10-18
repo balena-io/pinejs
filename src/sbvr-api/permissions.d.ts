@@ -1,9 +1,15 @@
 import * as Promise from 'bluebird'
 import * as sbvrUtils from './sbvr-utils'
 import * as express from 'express'
+import { ODataRequest } from './uri-parser';
 
-export const root: { user: sbvrUtils.User }
-export const rootRead: { user: sbvrUtils.User }
+export type PermissionReq = {
+	user?: sbvrUtils.User
+	apiKey?: sbvrUtils.ApiKey
+}
+
+export const root: PermissionReq
+export const rootRead: PermissionReq
 
 
 export function checkPassword(username: string, password: string): Promise<{
@@ -16,3 +22,4 @@ export function getApiKeyPermissions(apiKey: string, callback?: (err: Error | un
 export function getUserPermissions(userId: number, callback?: (err: Error | undefined, permissions: string[]) => void): Promise<string[]>;
 export function apiKeyMiddleware(req: sbvrUtils.HookReq | express.Request, res?: express.Response, next?: express.NextFunction): Promise<void>;
 export function authorizationMiddleware(req: express.Request, res?: express.Response, next?: express.NextFunction): Promise<void>;
+export function addPermissions(req: PermissionReq, res?: ODataRequest): Promise<void>;
