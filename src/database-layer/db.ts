@@ -78,7 +78,7 @@ export type Database = {
 }
 
 // metrics attaches event listeners to this 
-export const dbMetricsEvents = new Events();
+export const dbMetricsEvents = new EventEmitter();
 
 export const engines: {
 	[engine: string]: (connectString: string | object) => Database
