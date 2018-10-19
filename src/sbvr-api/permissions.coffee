@@ -9,6 +9,8 @@ memoize = require 'memoizee'
 memoizeWeak = require 'memoizee/weak'
 { sqlNameToODataName } = require '@resin/odata-to-abstract-sql'
 
+# metrics-TODO: instrument permissions cache
+
 DEFAULT_ACTOR_BIND = '@__ACTOR_ID'
 DEFAULT_ACTOR_BIND_REGEX = new RegExp(_.escapeRegExp(DEFAULT_ACTOR_BIND), 'g')
 

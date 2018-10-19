@@ -4,6 +4,8 @@ Promise.config(
 	cancellation: true
 )
 
+# metrics-TODO: instrument OData->SQL cache (may not be in this file?)
+
 { cachedCompile } = require('./cached-compile')
 
 LF2AbstractSQL = require '@resin/lf-to-abstract-sql'
