@@ -8,7 +8,7 @@ import * as fs from 'fs'
 const readFileAsync = Promise.promisify(fs.readFile) as any as (filename: string, encoding: string) => Promise<string>
 const readdirAsync = Promise.promisify(fs.readdir)
 
-import { dbQueryCallbacks, Database }from '../database-layer/db'
+import { Database }from '../database-layer/db'
 import * as sbvrUtils from '../sbvr-api/sbvr-utils'
 import * as permissions from '../sbvr-api/permissions'
 import * as metrics from '../metrics';
@@ -51,7 +51,7 @@ export const setup = (app: _express.Application) => {
 	const loadConfig = (data: Config): Promise<void> => {
 		// if metrics object supplied in config, attach metrics
 		if (data.metrics) {
-			attachMetrics(data.metrics, app);
+			metrics.attachMetrics(data.metrics, app);
 		}
 		// open db transaction for building configured models / users into DB
 		return sbvrUtils.db.transaction((tx) =>
