@@ -69,6 +69,12 @@ if (!process.browser) {
 		console.log('%s %s', req.method, req.url)
 		next()
 	})
+
+	const { dbLatBuckets, reqLatBuckets, } = getMetricHistBuckets();
+	const dbLatencyBuckets = getDBLatencyBuckets();
+	app.use(expressPrometheus({
+		includeMethod: true, buckets: requestlatencyBuckets
+	}));
 }
 
 export const initialised = Pinejs.init(app)

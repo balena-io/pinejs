@@ -77,6 +77,9 @@ export type Database = {
 	transaction: TransactionFn
 }
 
+// metrics attaches event listeners to this 
+export const dbMetricsEvents = new Events();
+
 export const engines: {
 	[engine: string]: (connectString: string | object) => Database
 } = {}
@@ -177,9 +180,17 @@ export abstract class Tx {
 	}
 	public executeSql(sql: Sql, bindings: Bindings = [], ...args: any[]): Promise<Result> {
 		this.incrementPending()
-
+		dbMetricsEvents.emit('dbQueueSaturation', 
+			this.pending / env.db.poolSize);
+		let t0 = new Date().getTime();
 		return this._executeSql(sql, bindings, ...args)
-			.finally(() => this.decrementPending())
+			.finally(() => {
+				this.decrementPending()
+				dbMetricsEvents.emit('queryComplete', { 
+					time: new Date().getTime() - t0,
+					query: sql 
+				});
+			})
 			.catch(NotADatabaseError, (err: CodedError) => {
 				// Wrap the error so we can catch it easier later
 				throw new DatabaseError(err)
