@@ -8,6 +8,8 @@ import * as Promise from 'bluebird'
 import TypedError = require('typed-error')
 import * as env from '../config-loader/env'
 
+import { metricsEventEmitter } from '../server-glue/module';
+
 const { DEBUG } = process.env
 
 export interface CodedError extends Error {
@@ -76,9 +78,6 @@ export type Database = {
 	executeSql: (this: Database, sql: Sql, bindings?: Bindings) => Promise<Result>
 	transaction: TransactionFn
 }
-
-// metrics attaches event listeners to this 
-export const dbMetricsEvents = new EventEmitter();
 
 export const engines: {
 	[engine: string]: (connectString: string | object) => Database
@@ -180,13 +179,13 @@ export abstract class Tx {
 	}
 	public executeSql(sql: Sql, bindings: Bindings = [], ...args: any[]): Promise<Result> {
 		this.incrementPending()
-		dbMetricsEvents.emit('dbQueueSaturation', 
-			this.pending / env.db.poolSize);
+		metricsEventEmitter.emit('dbQueueSaturation', 
+			+this.pending / env.db.poolSize);
 		let t0 = new Date().getTime();
 		return this._executeSql(sql, bindings, ...args)
 			.finally(() => {
 				this.decrementPending()
-				dbMetricsEvents.emit('queryComplete', { 
+				metricsEventEmitter.emit('queryComplete', { 
 					time: new Date().getTime() - t0,
 					query: sql 
 				});

@@ -20,6 +20,7 @@ if (!process.browser) {
 		module.exports = fs.readFileSync(filename, { encoding: 'utf8' })
 }
 
+import { EventEmitter } from 'events';
 import * as Promise from 'bluebird'
 import * as dbModule from '../database-layer/db'
 import * as configLoader from '../config-loader/config-loader'
@@ -56,6 +57,8 @@ if (dbModule.engines.websql != null) {
 }
 
 const db = dbModule.connect(databaseOptions)
+
+export const metricsEventEmitter = new EventEmitter();
 
 export const init = (app: _express.Application, config?: string | configLoader.Config): Promise<ReturnType<typeof configLoader.setup>> =>
 	sbvrUtils.setup(app, db)

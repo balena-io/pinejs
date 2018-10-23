@@ -11,7 +11,6 @@ const readdirAsync = Promise.promisify(fs.readdir)
 import { Database }from '../database-layer/db'
 import * as sbvrUtils from '../sbvr-api/sbvr-utils'
 import * as permissions from '../sbvr-api/permissions'
-import * as metrics from '../metrics';
 
 export interface SetupFunction {
 	(app: _express.Application, sbvrUtilsInstance: typeof sbvrUtils, db: Database, done?: (err?: any) => void): Promise<void>;
@@ -39,22 +38,15 @@ export interface User {
 	password: string
 	permissions: string[]
 }
-
 export interface Config {
 	models: Model[]
 	users?: User[]
-	metrics?: metrics.MetricsSpec
 }
 
 // Setup function
 export const setup = (app: _express.Application) => {
-	const loadConfig = (data: Config): Promise<void> => {
-		// if metrics object supplied in config, attach metrics
-		if (data.metrics) {
-			metrics.attachMetrics(data.metrics, app);
-		}
-		// open db transaction for building configured models / users into DB
-		return sbvrUtils.db.transaction((tx) =>
+	const loadConfig = (data: Config): Promise<void> =>
+		sbvrUtils.db.transaction((tx) =>
 			Promise.try(() => {
 				const authApiTx = sbvrUtils.api.Auth.clone({
 					passthrough: {
@@ -216,7 +208,6 @@ export const setup = (app: _express.Application) => {
 				})
 			)
 		).return()
-	};
 
 
 	const loadJSON = (path: string): Config => {
