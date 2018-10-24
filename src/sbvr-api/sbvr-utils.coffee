@@ -22,10 +22,11 @@ ODataMetadataGenerator = require '../sbvr-compiler/ODataMetadataGenerator'
 
 devModel = require './dev.sbvr'
 permissions = require './permissions'
+_.extend(exports, permissions)
 uriParser = require './uri-parser'
 errors = require './errors'
-{ rollbackRequestHooks, instantiateHooks } = require './hooks'
 _.assign(exports, errors)
+{ rollbackRequestHooks, instantiateHooks } = require './hooks'
 {
 	statusCodeToError
 	InternalRequestError
@@ -101,7 +102,6 @@ memoizedResolvedSynonym = memoizeWeak(
 			.map (resourceName) ->
 				abstractSqlModel.synonyms[resourceName] ? resourceName
 			.join('-')
-		return abstractSqlModel
 	primitive: true
 )
 
@@ -110,23 +110,24 @@ exports.resolveSynonym = resolveSynonym = (request) ->
 	return memoizedResolvedSynonym(abstractSqlModel, request.resourceName)
 
 exports.resolveNavigationResource = resolveNavigationResource = (request, navigationName) ->
+	abstractSqlModel = getAbstractSqlModel(request)
 	navigation = _(odataNameToSqlName(navigationName))
 		.split('-')
 		.flatMap (resourceName) ->
 			resolveSynonym({
 				resourceName
 				vocabulary: request.vocabulary
-				abstractSqlModel: request.abstractSqlModel
+				abstractSqlModel
 			}).split('-')
 		.concat('$')
 		.value()
 	resolvedResourceName = resolveSynonym(request)
-	mapping = _.get(getAbstractSqlModel(request).relationships[resolvedResourceName], navigation)
+	mapping = _.get(abstractSqlModel.relationships[resolvedResourceName], navigation)
 	if !mapping?
 		throw new Error("Cannot navigate from '#{request.resourceName}' to '#{navigationName}'")
 	if mapping.length < 2
 		throw new Error("'#{request.resourceName}' to '#{navigationName}' is a field not a navigation")
-	return sqlNameToODataName(request.abstractSqlModel.tables[mapping[1][0]].name)
+	return sqlNameToODataName(abstractSqlModel.tables[mapping[1][0]].name)
 
 # TODO: Clean this up and move it into the db module.
 prettifyConstraintError = (err, resourceName) ->
@@ -1168,8 +1169,7 @@ exports.setup = (app, _db, callback) ->
 	db.transaction (tx) ->
 		executeStandardModels(tx)
 		.then ->
-			permissions.setup(app, exports)
-			_.extend(exports, permissions)
+			permissions.setup()
 	.catch (err) ->
 		console.error('Could not execute standard models', err)
 		process.exit(1)
