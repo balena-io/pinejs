@@ -1039,7 +1039,8 @@ respondPost = (req, res, request, result, tx) ->
 	vocab = request.vocabulary
 	id = result
 	location = odataResourceURI(vocab, request.resourceName, id)
-	api[vocab].logger.log('Insert ID: ', request.resourceName, id)
+	if DEBUG
+		api[vocab].logger.log('Insert ID: ', request.resourceName, id)
 	Promise.try ->
 		onlyId = d: [{ id }]
 		if _.get(request, [ 'odataQuery', 'options', 'returnResource' ]) in [ '0', 'false' ]
