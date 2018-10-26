@@ -473,36 +473,35 @@ exports.getID = (vocab, request) ->
 				return comparison[1][1]
 	return 0
 
-checkForExpansion = do ->
-	Promise.method (vocab, abstractSqlModel, parentResourceName, fieldName, instance) ->
-		try
-			field = JSON.parse(instance[fieldName])
-		catch
-			# If we can't JSON.parse the field then we use it directly.
-			field = instance[fieldName]
+checkForExpansion = Promise.method (vocab, abstractSqlModel, parentResourceName, fieldName, instance) ->
+	try
+		field = JSON.parse(instance[fieldName])
+	catch
+		# If we can't JSON.parse the field then we use it directly.
+		field = instance[fieldName]
 
-		if _.isArray(field)
-			mappingResourceName = resolveNavigationResource({
-				abstractSqlModel
-				vocabulary: vocab
-				resourceName: parentResourceName
-			}, fieldName)
-			processOData(vocab, abstractSqlModel, mappingResourceName, field)
-			.then (expandedField) ->
-				instance[fieldName] = expandedField
-				return
-		else if field?
-			mappingResourceName = resolveNavigationResource({
-				abstractSqlModel
-				vocabulary: vocab
-				resourceName: parentResourceName
-			}, fieldName)
-			instance[fieldName] = {
-				__deferred:
-					uri: '/' + vocab + '/' + mappingResourceName + '(' + field + ')'
-				__id: field
-			}
+	if _.isArray(field)
+		mappingResourceName = resolveNavigationResource({
+			abstractSqlModel
+			vocabulary: vocab
+			resourceName: parentResourceName
+		}, fieldName)
+		processOData(vocab, abstractSqlModel, mappingResourceName, field)
+		.then (expandedField) ->
+			instance[fieldName] = expandedField
 			return
+	else if field?
+		mappingResourceName = resolveNavigationResource({
+			abstractSqlModel
+			vocabulary: vocab
+			resourceName: parentResourceName
+		}, fieldName)
+		instance[fieldName] = {
+			__deferred:
+				uri: '/' + vocab + '/' + mappingResourceName + '(' + field + ')'
+			__id: field
+		}
+		return
 
 odataResourceURI = (vocab, resourceName, id) ->
 	id =
