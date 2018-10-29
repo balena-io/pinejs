@@ -4,7 +4,7 @@ env = require '../config-loader/env'
 userModel = require './user.sbvr'
 { metadataEndpoints, memoizedParseOdata } = require './uri-parser'
 { BadRequestError, PermissionError, PermissionParsingError } = require './errors'
-{ ODataParser } = require '@resin/odata-parser'
+ODataParser = require '@resin/odata-parser'
 memoize = require 'memoizee'
 memoizeWeak = require 'memoizee/weak'
 { sqlNameToODataName } = require '@resin/odata-to-abstract-sql'
@@ -29,15 +29,12 @@ methodPermissions =
 	DELETE: 'delete'
 
 _parsePermissions = do ->
-	odataParser = ODataParser.createInstance()
 	return memoize(
 		(filter) ->
-			# Reset binds
-			odataParser.binds = []
-			tree = odataParser.matchAll(['FilterByExpression', filter], 'ProcessRule')
+			{ tree, binds } = ODataParser.parse(filter, { startRule: 'ProcessRule', rule: 'FilterByExpression' })
 			return {
 				tree
-				extraBinds: odataParser.binds
+				extraBinds: binds
 			}
 		primitive: true
 		max: env.cache.parsePermissions.max
