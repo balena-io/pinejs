@@ -179,14 +179,14 @@ export abstract class Tx {
 	}
 	public executeSql(sql: Sql, bindings: Bindings = [], ...args: any[]): Promise<Result> {
 		this.incrementPending()
-		metricsEventEmitter.emit('dbQueueSaturation', 
+		metricsEventEmitter.emit('db_pool_queue_saturation', 
 			+this.pending / env.db.poolSize);
 		let t0 = new Date().getTime();
 		return this._executeSql(sql, bindings, ...args)
 			.finally(() => {
 				this.decrementPending()
-				metricsEventEmitter.emit('queryComplete', { 
-					time: new Date().getTime() - t0,
+				metricsEventEmitter.emit('db_query_latency', { 
+					time: (new Date().getTime() - t0)/1000,
 					query: sql 
 				});
 			})
