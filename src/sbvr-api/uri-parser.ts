@@ -1,7 +1,8 @@
 import * as _AbstractSQLCompiler from '@resin/abstract-sql-compiler'
 
 import * as Promise from 'bluebird'
-const { ODataParser } = require('@resin/odata-parser')
+const ODataParser = require('@resin/odata-parser')
+export const SyntaxError = ODataParser.SyntaxError
 import { OData2AbstractSQL, ODataQuery, ODataBinds, SupportedMethod } from '@resin/odata-to-abstract-sql'
 import * as memoize from 'memoizee'
 import memoizeWeak = require('memoizee/weak')
@@ -45,13 +46,13 @@ export interface ODataRequest {
 // Converts a value to its string representation and tries to parse is as an
 // OData bind
 export const parseId = (b: any) => {
-	return ODataParser.matchAll(String(b), 'ExternalKeyBind')
+	const { tree, binds } = ODataParser.parse(String(b), { startRule: 'ProcessRule', rule: 'KeyBind' })
+	return binds[tree.bind]
 }
 
 export const memoizedParseOdata = (() => {
-	const odataParser = ODataParser.createInstance()
 	const parseOdata = (url: string) => {
-		const odata = odataParser.matchAll(url, 'Process')
+		const odata = ODataParser.parse(url)
 		// if we parse a canAccess action rewrite the resource to ensure we
 		// do not run the resource hooks
 		if (odata.tree.property != null && odata.tree.property.resource == 'canAccess') {
@@ -151,7 +152,7 @@ export const parseOData = (b: UnparsedRequest) => {
 				_defer: false,
 			}
 		}
-	}).catch(SyntaxError, () => {
+	}).catch(ODataParser.SyntaxError, () => {
 		throw new BadRequestError(`Malformed url: '${b.url}'`)
 	}).catch(notBadRequestOrParsingError, (e) => {
 		console.error('Failed to parse url: ', b.method, b.url, e, e.stack)

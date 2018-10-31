@@ -924,7 +924,7 @@ runRequest = (req, res, tx, request) ->
 		# Override the error message so we don't leak any internal db info
 		err.message = 'Database error'
 		throw err
-	.catch EvalError, RangeError, ReferenceError, SyntaxError, TypeError, URIError, (err) ->
+	.catch uriParser.SyntaxError, EvalError, RangeError, ReferenceError, SyntaxError, TypeError, URIError, (err) ->
 		logger.error(err)
 		throw new InternalRequestError()
 	.tap (result) ->
