@@ -39,7 +39,7 @@
     "@types/pg": "^6.1.47",
     "@types/websql": "0.0.27",
     "bluebird": "^3.5.2",
-    "coffee-script": "~1.12.2",
+    "coffeescript": "~1.12.2",
     "deep-freeze": "0.0.1",
     "express-session": "^1.10.3",
     "lodash": "^4.17.11",
