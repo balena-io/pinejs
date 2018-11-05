@@ -7,6 +7,7 @@ config.entry = root + '/src/server-glue/server'
 
 # Disable node express and load express-emulator instead
 config.externals.express = false
+config.resolve.alias ?= {}
 config.resolve.alias.express = root + '/src/express-emulator/express'
 
 config.plugins = config.plugins.concat(

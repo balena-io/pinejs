@@ -43,8 +43,6 @@ module.exports =
 		'typed-error': true
 
 	resolve:
-		alias:
-			'ometa-core': 'ometa-js/lib/ometajs/core'
 		extensions: [
 			''
 			'.js'
