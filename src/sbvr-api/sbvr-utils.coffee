@@ -669,7 +669,8 @@ exports.PinejsClient =
 exports.api = api = {}
 
 # We default to full permissions if no req object is passed in
-exports.runURI = runURI =  (method, uri, body = {}, tx, req, custom, callback) ->
+exports.runURI = runURI =  (method, uri, body, tx, req, custom, callback) ->
+	body ?= {}
 	if callback? and !_.isFunction(callback)
 		message = 'Called runURI with a non-function callback?!'
 		console.trace(message)
@@ -715,9 +716,11 @@ exports.runURI = runURI =  (method, uri, body = {}, tx, req, custom, callback) -
 						reject(new HttpError(statusCode))
 				else
 					resolve()
-			send: (statusCode = @statusCode) ->
+			send: (statusCode) ->
+				statusCode ?= @statusCode
 				@sendStatus(statusCode)
-			json: (data, statusCode = @statusCode) ->
+			json: (data, statusCode) ->
+				statusCode ?= @statusCode
 				if statusCode >= 400
 					ErrorClass = statusCodeToError[statusCode]
 					if ErrorClass?

@@ -467,7 +467,8 @@ exports.setup = (app, sbvrUtils) ->
 					key: apiKey
 					permissions: permissions
 
-	exports.customAuthorizationMiddleware = customAuthorizationMiddleware = (expectedScheme = 'Bearer') ->
+	exports.customAuthorizationMiddleware = customAuthorizationMiddleware = (expectedScheme) ->
+		expectedScheme ?= 'Bearer'
 		expectedScheme = expectedScheme.toLowerCase()
 		return (req, res, next) ->
 			Promise.try ->
@@ -491,7 +492,8 @@ exports.setup = (app, sbvrUtils) ->
 	# A default bearer middleware for convenience
 	exports.authorizationMiddleware = customAuthorizationMiddleware()
 
-	exports.customApiKeyMiddleware = customApiKeyMiddleware = (paramName = 'apikey') ->
+	exports.customApiKeyMiddleware = customApiKeyMiddleware = (paramName) ->
+		paramName ?= 'apikey'
 		return (req, res, next) ->
 			apiKey = req.params[paramName] ? req.body[paramName] ? req.query[paramName]
 			checkApiKey(req, apiKey)

@@ -34,7 +34,8 @@ define ['bluebird', 'lodash'], (Promise, _) ->
 				# Flatten middleware list to handle arrays of middleware in the arg list.
 				middleware: _.flattenDeep(middleware)
 			)
-		process = (method, uri, headers, body = '') ->
+		process = (method, uri, headers, body) ->
+			body ?= ''
 			if !handlers[method]
 				return Promise.rejected(404)
 			req =
@@ -70,7 +71,8 @@ define ['bluebird', 'lodash'], (Promise, _) ->
 							reject([@statusCode, data, null])
 						else
 							resolve([@statusCode, data, null])
-					sendStatus: (statusCode = @statusCode) ->
+					sendStatus: (statusCode) ->
+						statusCode ?= @statusCode
 						if statusCode >= 400
 							reject([statusCode, null, null])
 						else
@@ -112,7 +114,8 @@ define ['bluebird', 'lodash'], (Promise, _) ->
 				checkMethodHandlers()
 		return {
 			use: _.partial(addHandler, 'USE', '/*')
-			get: (name, ..., callback) ->
+			get: (name) ->
+				callback = arguments[arguments.length - 1]
 				if _.isFunction(callback)
 					addHandler('GET', arguments...)
 				else
@@ -133,7 +136,8 @@ define ['bluebird', 'lodash'], (Promise, _) ->
 				# which matches somewhat more closely to an AJAX call than doing it synchronously.
 				enabled.promise.then ->
 					process(args...)
-			listen: (..., callback) ->
+			listen: ->
+				callback = arguments[arguments.length - 1]
 				enabled.resolve()
 				if _.isFunction(callback)
 					enabled.promise.then(callback)
