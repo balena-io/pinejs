@@ -92,7 +92,7 @@ In this model we are defining an entity called `device`, this entity has some at
 Now, let's create a small main file for our application that will call the Pine.js server. Let's install some basic dependencies:
 
 ```
-$ npm install --save coffee-script
+$ npm install --save coffeescript
 $ npm install --save express
 $ npm install --save body-parser
 ```
@@ -141,7 +141,7 @@ $ tree -L 3
 │   │   ├── lib
 │   │   ├── node_modules
 │   │   └── package.json
-│   ├── coffee-script
+│   ├── coffeescript
 │   │   ├── CNAME
 │   │   ├── CONTRIBUTING.md
 │   │   ├── LICENSE

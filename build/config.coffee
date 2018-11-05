@@ -23,8 +23,8 @@ module.exports =
 		bluebird: true
 		'body-parser': true
 		child_process: true
-		'coffee-script': true
-		'coffee-script/register': true
+		'coffeescript': true
+		'coffeescript/register': true
 		'ts-node/register': true
 		compression: true
 		'cookie-parser': true

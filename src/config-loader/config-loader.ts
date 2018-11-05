@@ -219,9 +219,9 @@ export const setup = (app: _express.Application) => {
 	const loadApplicationConfig = (config?: string | Config) => {
 		if (require.extensions['.coffee'] == null) {
 			try {
-				// Try to register the coffee-script loader if it doesn't exist
+				// Try to register the coffeescript loader if it doesn't exist
 				// We ignore if it fails though, since that probably just means it is not available/needed.
-				require('coffee-script/register')
+				require('coffeescript/register')
 			} catch (e) {}
 		}
 		if (require.extensions['.ts'] == null ) {
