@@ -1,5 +1,6 @@
 webpack = require 'webpack'
 _ = require 'lodash'
+UglifyJsPlugin = require 'uglifyjs-webpack-plugin'
 
 serverConfigs =
 	'browser': require './build/browser'
@@ -8,14 +9,15 @@ serverConfigs =
 
 for task, config of serverConfigs
 	config.plugins.push(
-		new webpack.optimize.UglifyJsPlugin(
-			output:
-				beautify: true
-				ascii_only: true
-			compress:
-				sequences: false
-				unused: false # We need this off for OMeta
-			mangle: false
+		new UglifyJsPlugin(
+			uglifyOptions:
+				output:
+					beautify: true
+					ascii_only: true
+				compress:
+					sequences: false
+					unused: false # We need this off for OMeta
+				mangle: false
 		)
 	)
 

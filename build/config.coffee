@@ -56,8 +56,8 @@ module.exports =
 	]
 	module:
 		loaders: [
-			{ test: /\.(sbvr)$/, loader: 'raw-loader' }
-			{ test: /\.ometa(js)?$/, loader: 'ometa-loader' }
+			{ test: /\.sbvr$/, loader: 'raw-loader' }
 			{ test: /\.coffee$/, loader: 'coffee-loader' }
-			{ test: /\.ts$/, loader: "ts-loader" }
+			{ test: /\.ts$/, loader: 'ts-loader' }
+			{ test: /\.json$/, loader: 'json-loader' }
 		]
