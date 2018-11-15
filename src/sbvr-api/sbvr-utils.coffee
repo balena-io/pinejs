@@ -474,11 +474,15 @@ exports.getID = (vocab, request) ->
 	return 0
 
 checkForExpansion = Promise.method (vocab, abstractSqlModel, parentResourceName, fieldName, instance) ->
-	try
-		field = JSON.parse(instance[fieldName])
-	catch
-		# If we can't JSON.parse the field then we use it directly.
-		field = instance[fieldName]
+	field = instance[fieldName]
+	if !field?
+		return
+
+	if _.isString(field)
+		try
+			field = JSON.parse(field)
+		catch
+			# If we can't JSON.parse the field then we use it directly.
 
 	if _.isArray(field)
 		mappingResourceName = resolveNavigationResource({
@@ -490,7 +494,7 @@ checkForExpansion = Promise.method (vocab, abstractSqlModel, parentResourceName,
 		.then (expandedField) ->
 			instance[fieldName] = expandedField
 			return
-	else if field?
+	else
 		mappingResourceName = resolveNavigationResource({
 			abstractSqlModel
 			vocabulary: vocab
