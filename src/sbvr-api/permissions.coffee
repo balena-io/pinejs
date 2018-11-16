@@ -246,26 +246,30 @@ deepFreezeExceptDefinition = (obj) ->
 			deepFreezeExceptDefinition(obj)
 	return
 
-memoizedGetConstrainedModel = memoizeWeak(
-	(abstractSqlModel, permissionsLookup, vocabulary) ->
-		abstractSqlModel = _.cloneDeep(abstractSqlModel)
-		addRelationshipBypasses(abstractSqlModel.relationships)
-		_.each abstractSqlModel.synonyms, (canonicalForm, synonym) ->
-			abstractSqlModel.synonyms["#{synonym}$bypass"] = "#{canonicalForm}$bypass"
-		addRelationshipBypasses(abstractSqlModel.relationships)
-		_.each abstractSqlModel.relationships, (relationship, key) ->
-			abstractSqlModel.relationships["#{key}$bypass"] = relationship
-		_.each abstractSqlModel.tables, (table) ->
-			abstractSqlModel.tables["#{table.resourceName}$bypass"] = _.clone(table)
-			onceGetter table, 'definition', ->
-				# For $filter on eg a DELETE you need read permissions on the sub-resources,
-				# you only need delete permissions on the resource being deleted
-				generateConstrainedAbstractSql(permissionsLookup, methodPermissions.GET, vocabulary, sqlNameToODataName(table.name))
-		deepFreezeExceptDefinition(abstractSqlModel)
-		return abstractSqlModel
-	normalizer: (abstractSqlModel, args) ->
-		return JSON.stringify(args)
+getBoundConstrainedMemoizer = memoizeWeak(
+	(abstractSqlModel) ->
+		return memoizeWeak(
+			(permissionsLookup, vocabulary) ->
+				constrainedAbstractSqlModel = _.cloneDeep(abstractSqlModel)
+				addRelationshipBypasses(constrainedAbstractSqlModel.relationships)
+				_.each constrainedAbstractSqlModel.synonyms, (canonicalForm, synonym) ->
+					constrainedAbstractSqlModel.synonyms["#{synonym}$bypass"] = "#{canonicalForm}$bypass"
+				addRelationshipBypasses(constrainedAbstractSqlModel.relationships)
+				_.each constrainedAbstractSqlModel.relationships, (relationship, key) ->
+					constrainedAbstractSqlModel.relationships["#{key}$bypass"] = relationship
+				_.each constrainedAbstractSqlModel.tables, (table) ->
+					constrainedAbstractSqlModel.tables["#{table.resourceName}$bypass"] = _.clone(table)
+					onceGetter table, 'definition', ->
+						# For $filter on eg a DELETE you need read permissions on the sub-resources,
+						# you only need delete permissions on the resource being deleted
+						generateConstrainedAbstractSql(permissionsLookup, methodPermissions.GET, vocabulary, sqlNameToODataName(table.name))
+				deepFreezeExceptDefinition(constrainedAbstractSqlModel)
+				return constrainedAbstractSqlModel
+			primitive: true
+		)
 )
+memoizedGetConstrainedModel = (abstractSqlModel, permissionsLookup, vocabulary) ->
+	getBoundConstrainedMemoizer(abstractSqlModel)(permissionsLookup, vocabulary)
 
 exports.config =
 	models: [
