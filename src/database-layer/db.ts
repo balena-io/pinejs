@@ -2,11 +2,13 @@
 import * as _mysql from 'mysql'
 import * as _pg from 'pg'
 import * as _pgConnectionString from 'pg-connection-string'
-
+import { EventEmitter } from 'events';
 import * as _ from 'lodash'
 import * as Promise from 'bluebird'
 import TypedError = require('typed-error')
 import * as env from '../config-loader/env'
+
+export const metricsEmitter = new EventEmitter();
 
 const { DEBUG } = process.env
 
@@ -184,8 +186,16 @@ export abstract class Tx {
 	public executeSql(sql: Sql, bindings: Bindings = [], ...args: any[]): Promise<Result> {
 		this.incrementPending()
 
+		let t0 = Date.now();
 		return this._executeSql(sql, bindings, ...args)
-			.finally(() => this.decrementPending())
+			.finally(() => {
+				this.decrementPending()
+				const queryTime = (Date.now() - t0) / 1000;
+				metricsEmitter.emit('db_query_time', { 
+					queryTime: queryTime,
+					queryType: sql.substr(0, sql.indexOf(' '))
+				});
+			})
 			.catch(wrapDatabaseError)
 	}
 	public rollback(): Promise<void> {

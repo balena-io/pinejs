@@ -22,6 +22,7 @@ if (!process.browser) {
 
 import * as Promise from 'bluebird'
 import * as dbModule from '../database-layer/db'
+export { dbModule }
 import * as configLoader from '../config-loader/config-loader'
 import * as migrator from '../migrator/migrator'
 
