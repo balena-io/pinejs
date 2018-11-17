@@ -14,10 +14,10 @@
     "test": "npm run lint && npm run build"
   },
   "dependencies": {
-    "@resin/abstract-sql-compiler": "^6.1.2",
+    "@resin/abstract-sql-compiler": "^6.2.1",
     "@resin/lf-to-abstract-sql": "^2.1.0",
     "@resin/odata-parser": "^1.0.0",
-    "@resin/odata-to-abstract-sql": "^2.4.2",
+    "@resin/odata-to-abstract-sql": "^2.4.3",
     "@resin/sbvr-parser": "^0.2.1",
     "@resin/sbvr-types": "^2.0.0",
     "@types/bluebird": "^3.5.24",
