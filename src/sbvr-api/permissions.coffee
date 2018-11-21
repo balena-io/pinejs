@@ -208,9 +208,11 @@ generateConstrainedAbstractSql = (permissionsLookup, actionList, vocabulary, res
 	})
 	abstractSqlQuery = _.clone(abstractSqlQuery)
 	# Remove aliases from the top level select
-	selectIndex = _.findIndex(abstractSqlQuery, 0: 'Select')
+	selectIndex = _.findIndex(abstractSqlQuery, (v) -> v[0] == 'Select')
 	select = abstractSqlQuery[selectIndex] = _.clone(abstractSqlQuery[selectIndex])
 	select[1] = _.map select[1], (selectField) ->
+		if selectField[0] == 'Alias'
+			return selectField[1]
 		if selectField.length is 2 and _.isArray(selectField[0])
 			return selectField[0]
 		return selectField
