@@ -164,9 +164,8 @@ checkPermissions = (permissionsLookup, actionList, vocabulary, resourceName) ->
 				if vocabularyResourcePermission is true
 					return true
 
-		conditionalPermissions = [].concat(resourcePermission, vocabularyPermission, vocabularyResourcePermission)
-		# Remove the undefined elements.
-		conditionalPermissions = _.filter(conditionalPermissions)
+		# Get the unique permission set, ignoring undefined sets.
+		conditionalPermissions = _.union(resourcePermission, vocabularyPermission, vocabularyResourcePermission)
 
 		if conditionalPermissions.length is 1
 			return conditionalPermissions[0]
@@ -545,6 +544,7 @@ exports.setup = (app, sbvrUtils) ->
 					if result.length is 0
 						throw new Error('No guest permissions')
 					getUserPermissions(result[0].id)
+				.then(_.uniq)
 			promise: true
 		)
 
