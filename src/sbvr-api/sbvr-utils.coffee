@@ -923,17 +923,25 @@ runRequest = (req, res, tx, request) ->
 				runPut(req, res, request, tx)
 			when 'DELETE'
 				runDelete(req, res, request, tx)
-	.catch db.DatabaseError, (err) ->
-		# This cannot be a `.tapCatch` because for some reason throwing a db.UniqueConstraintError doesn't override
-		# the error, when usually throwing an error does.
-		prettifyConstraintError(err, request.resourceName)
-		logger.error(err)
-		# Override the error message so we don't leak any internal db info
-		err.message = 'Database error'
+	.catch (err) ->
+		if err instanceof db.DatabaseError
+			# This cannot be a `.tapCatch` because for some reason throwing a db.UniqueConstraintError doesn't override
+			# the error, when usually throwing an error does.
+			prettifyConstraintError(err, request.resourceName)
+			logger.error(err)
+			# Override the error message so we don't leak any internal db info
+			err.message = 'Database error'
+			throw err
+		if err instanceof uriParser.SyntaxError ||
+				err instanceof EvalError ||
+				err instanceof RangeError ||
+				err instanceof ReferenceError ||
+				err instanceof SyntaxError ||
+				err instanceof TypeError ||
+				err instanceof URIError
+			logger.error(err)
+			throw new InternalRequestError()
 		throw err
-	.catch uriParser.SyntaxError, EvalError, RangeError, ReferenceError, SyntaxError, TypeError, URIError, (err) ->
-		logger.error(err)
-		throw new InternalRequestError()
 	.tap (result) ->
 		runHooks('POSTRUN', { req, request, result, tx })
 	.then (result) ->

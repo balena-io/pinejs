@@ -53,7 +53,13 @@ export class ConstraintError extends DatabaseError {}
 export class UniqueConstraintError extends ConstraintError {}
 export class ForeignKeyConstraintError extends ConstraintError {}
 
-const NotADatabaseError = (err: any) => !(err instanceof DatabaseError)
+const wrapDatabaseError = (err: CodedError) => {
+	if (!(err instanceof DatabaseError)) {
+		// Wrap the error so we can catch it easier later
+		throw new DatabaseError(err)
+	}
+	throw err
+}
 
 const alwaysExport = {
 	DatabaseError,
@@ -180,10 +186,7 @@ export abstract class Tx {
 
 		return this._executeSql(sql, bindings, ...args)
 			.finally(() => this.decrementPending())
-			.catch(NotADatabaseError, (err: CodedError) => {
-				// Wrap the error so we can catch it easier later
-				throw new DatabaseError(err)
-			})
+			.catch(wrapDatabaseError)
 	}
 	public rollback(): Promise<void> {
 		const promise = this._rollback().finally(() => {
@@ -300,6 +303,16 @@ if (maybePg != null) {
 		}
 		const connect = Promise.promisify(pool.connect, { context: pool })
 
+		const checkPgErrCode = (err: CodedError) => {
+			if (err.code === PG_UNIQUE_VIOLATION) {
+				throw new UniqueConstraintError(err)
+			}
+			if (err.code === PG_FOREIGN_KEY_VIOLATION) {
+				throw new ForeignKeyConstraintError(err)
+			}
+			throw err
+		}
+
 		const createResult = ({ rowCount, rows }: { rowCount: number, rows: Array<Row> }): Result => {
 			return {
 				rows,
@@ -323,12 +336,8 @@ if (maybePg != null) {
 
 				return Promise.fromCallback((callback) => {
 					this.db.query({ text: sql, values: bindings }, callback)
-				}).catch({ code: PG_UNIQUE_VIOLATION }, (err) => {
-					// We know that the type is an Error for pg, but typescript doesn't like the catch obj sugar
-					throw new UniqueConstraintError(err as any as CodedError)
-				}).catch({ code: PG_FOREIGN_KEY_VIOLATION }, (err) => {
-					throw new ForeignKeyConstraintError(err as any as CodedError)
-				}).then(createResult)
+				}).catch(checkPgErrCode)
+				.then(createResult)
 			}
 
 			protected _rollback() {

@@ -122,10 +122,6 @@ const memoizedOdata2AbstractSQL = (() => {
 
 export const metadataEndpoints = [ '$metadata', '$serviceroot' ]
 
-const notBadRequestOrParsingError = (e: Error) => {
-	return !((e instanceof BadRequestError) || (e instanceof ParsingError))
-}
-
 export const parseOData = (b: UnparsedRequest) => {
 	return Promise.try<ODataRequest | ODataRequest[]>(() => {
 		if (b._isChangeSet && b.changeSet != null) {
@@ -152,11 +148,15 @@ export const parseOData = (b: UnparsedRequest) => {
 				_defer: false,
 			}
 		}
-	}).catch(ODataParser.SyntaxError, () => {
-		throw new BadRequestError(`Malformed url: '${b.url}'`)
-	}).catch(notBadRequestOrParsingError, (e) => {
-		console.error('Failed to parse url: ', b.method, b.url, e, e.stack)
-		throw new ParsingError(`Failed to parse url: '${b.url}'`)
+	}).catch((err) => {
+		if (err instanceof ODataParser.SyntaxError) {
+			throw new BadRequestError(`Malformed url: '${b.url}'`)
+		}
+		if (!(err instanceof BadRequestError || err instanceof ParsingError)) {
+			console.error('Failed to parse url: ', b.method, b.url, err)
+			throw new ParsingError(`Failed to parse url: '${b.url}'`)
+		}
+		throw err
 	})
 }
 
