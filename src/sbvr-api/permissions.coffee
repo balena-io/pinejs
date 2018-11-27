@@ -252,7 +252,6 @@ getBoundConstrainedMemoizer = memoizeWeak(
 		return memoizeWeak(
 			(permissionsLookup, vocabulary) ->
 				constrainedAbstractSqlModel = _.cloneDeep(abstractSqlModel)
-				addRelationshipBypasses(constrainedAbstractSqlModel.relationships)
 				_.each constrainedAbstractSqlModel.synonyms, (canonicalForm, synonym) ->
 					constrainedAbstractSqlModel.synonyms["#{synonym}$bypass"] = "#{canonicalForm}$bypass"
 				addRelationshipBypasses(constrainedAbstractSqlModel.relationships)
