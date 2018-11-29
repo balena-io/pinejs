@@ -192,7 +192,9 @@ export abstract class Tx {
 			})
 			.catch(NotADatabaseError, (err: CodedError) => {
 				// Wrap the error so we can catch it easier later
-				throw new DatabaseError(err)
+				const dbErr = new DatabaseError(err);
+				metricsEmitter.emit('db_error', dbErr);
+				throw dbErr;
 			})
 	}
 	public rollback(): Promise<void> {
