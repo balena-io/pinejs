@@ -56,6 +56,7 @@ export class UniqueConstraintError extends ConstraintError {}
 export class ForeignKeyConstraintError extends ConstraintError {}
 
 const wrapDatabaseError = (err: CodedError) => {
+	metricsEmitter.emit('db_error', err);
 	if (!(err instanceof DatabaseError)) {
 		// Wrap the error so we can catch it easier later
 		throw new DatabaseError(err)
