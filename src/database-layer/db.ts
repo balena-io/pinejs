@@ -3,7 +3,6 @@ import * as _mysql from 'mysql'
 import * as _pg from 'pg'
 import * as _pgConnectionString from 'pg-connection-string'
 import * as EventEmitter from 'eventemitter3';
-
 import * as _ from 'lodash'
 import * as Promise from 'bluebird'
 import TypedError = require('typed-error')
