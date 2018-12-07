@@ -17,7 +17,7 @@
     "@resin/abstract-sql-compiler": "^6.3.4",
     "@resin/lf-to-abstract-sql": "^2.1.0",
     "@resin/odata-parser": "^1.0.1",
-    "@resin/odata-to-abstract-sql": "^2.4.3",
+    "@resin/odata-to-abstract-sql": "^3.0.0",
     "@resin/sbvr-parser": "^0.2.1",
     "@resin/sbvr-types": "^2.0.0",
     "@types/bluebird": "^3.5.24",

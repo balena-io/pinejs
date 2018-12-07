@@ -80,9 +80,7 @@ export const memoizedParseOdata = (() => {
 
 const memoizedGetOData2AbstractSQL = memoizeWeak(
 	(abstractSqlModel: _AbstractSQLCompiler.AbstractSqlModel) => {
-		const odata2AbstractSQL = OData2AbstractSQL.createInstance()
-		odata2AbstractSQL.setClientModel(abstractSqlModel)
-		return odata2AbstractSQL
+		return new OData2AbstractSQL(abstractSqlModel)
 	}
 )
 
@@ -91,7 +89,7 @@ const memoizedOdata2AbstractSQL = (() => {
 		(abstractSqlModel: _AbstractSQLCompiler.AbstractSqlModel, odataQuery: ODataQuery, method: SupportedMethod, bodyKeys: string[], existingBindVarsLength: number) => {
 			try {
 				const odata2AbstractSQL = memoizedGetOData2AbstractSQL(abstractSqlModel)
-				const abstractSql = odata2AbstractSQL.match(odataQuery, 'Process', [method, bodyKeys, existingBindVarsLength])
+				const abstractSql = odata2AbstractSQL.match(odataQuery, method, bodyKeys, existingBindVarsLength)
 				// We deep freeze to prevent mutations, which would pollute the cache
 				deepFreeze(abstractSql)
 				return abstractSql
