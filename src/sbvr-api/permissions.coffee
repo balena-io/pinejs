@@ -259,10 +259,11 @@ getBoundConstrainedMemoizer = memoizeWeak(
 					constrainedAbstractSqlModel.relationships["#{key}$bypass"] = relationship
 				_.each constrainedAbstractSqlModel.tables, (table, resourceName) ->
 					constrainedAbstractSqlModel.tables["#{resourceName}$bypass"] = _.clone(table)
-					onceGetter table, 'definition', ->
-						# For $filter on eg a DELETE you need read permissions on the sub-resources,
-						# you only need delete permissions on the resource being deleted
-						generateConstrainedAbstractSql(permissionsLookup, methodPermissions.GET, vocabulary, sqlNameToODataName(table.name))
+					if !table.definition
+						onceGetter table, 'definition', ->
+							# For $filter on eg a DELETE you need read permissions on the sub-resources,
+							# you only need delete permissions on the resource being deleted
+							generateConstrainedAbstractSql(permissionsLookup, methodPermissions.GET, vocabulary, sqlNameToODataName(table.name))
 				deepFreezeExceptDefinition(constrainedAbstractSqlModel)
 				return constrainedAbstractSqlModel
 			primitive: true
