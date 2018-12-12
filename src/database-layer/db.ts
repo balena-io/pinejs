@@ -191,9 +191,21 @@ export abstract class Tx {
 		return this._executeSql(sql, bindings, ...args)
 			.finally(() => {
 				this.decrementPending()
-				const queryTime = (Date.now() - t0) / 1000;
+				const queryTime = Date.now() - t0;
 				metricsEmitter.emit('db_query_time', { 
 					queryTime: queryTime,
+					// metrics-TODO: statistics on query types (SELECT, INSERT)
+					// themselves should be gathered by postgres, while at this 
+					// scope in pine, we should report the overall query time as 
+					// being associated with an HTTP method on the given model 
+					// (eg. [PUT, Device])
+					//
+					// metrics-TODO: evaluate whether a request to a model can,
+					// with hooks, make multiple DB queries in such a way that
+					// it would be a statistically significant difference in the
+					// "query time" metric if we were to report them individually
+					// by attaching here, vs. aggregating all query times for a
+					// given request as one figure.
 					queryType: sql.substr(0, sql.indexOf(' '))
 				});
 			})
