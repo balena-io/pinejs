@@ -206,6 +206,10 @@ export abstract class Tx {
 					// "query time" metric if we were to report them individually
 					// by attaching here, vs. aggregating all query times for a
 					// given request as one figure.
+					//
+					// Grab the first word of the query and regard that as the
+					// "query type" (to be improved in line with the above 
+					// TODO's)
 					queryType: sql.substr(0, sql.indexOf(' '))
 				});
 			})
