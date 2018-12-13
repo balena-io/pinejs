@@ -2,11 +2,13 @@
 import * as _mysql from 'mysql'
 import * as _pg from 'pg'
 import * as _pgConnectionString from 'pg-connection-string'
-
+import * as EventEmitter from 'eventemitter3';
 import * as _ from 'lodash'
 import * as Promise from 'bluebird'
 import TypedError = require('typed-error')
 import * as env from '../config-loader/env'
+
+export const metrics = new EventEmitter();
 
 const { DEBUG } = process.env
 
@@ -54,6 +56,7 @@ export class UniqueConstraintError extends ConstraintError {}
 export class ForeignKeyConstraintError extends ConstraintError {}
 
 const wrapDatabaseError = (err: CodedError) => {
+	metrics.emit('db_error', err);
 	if (!(err instanceof DatabaseError)) {
 		// Wrap the error so we can catch it easier later
 		throw new DatabaseError(err)
@@ -184,8 +187,32 @@ export abstract class Tx {
 	public executeSql(sql: Sql, bindings: Bindings = [], ...args: any[]): Promise<Result> {
 		this.incrementPending()
 
+		let t0 = Date.now();
 		return this._executeSql(sql, bindings, ...args)
-			.finally(() => this.decrementPending())
+			.finally(() => {
+				this.decrementPending()
+				const queryTime = Date.now() - t0;
+				metrics.emit('db_query_time', { 
+					queryTime: queryTime,
+					// metrics-TODO: statistics on query types (SELECT, INSERT)
+					// themselves should be gathered by postgres, while at this 
+					// scope in pine, we should report the overall query time as 
+					// being associated with an HTTP method on the given model 
+					// (eg. [PUT, Device])
+					//
+					// metrics-TODO: evaluate whether a request to a model can,
+					// with hooks, make multiple DB queries in such a way that
+					// it would be a statistically significant difference in the
+					// "query time" metric if we were to report them individually
+					// by attaching here, vs. aggregating all query times for a
+					// given request as one figure.
+					//
+					// Grab the first word of the query and regard that as the
+					// "query type" (to be improved in line with the above 
+					// TODO's)
+					queryType: sql.substr(0, sql.indexOf(' '))
+				});
+			})
 			.catch(wrapDatabaseError)
 	}
 	public rollback(): Promise<void> {
