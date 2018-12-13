@@ -1,4 +1,5 @@
 import * as _express from 'express'
+import * as _expressWs from 'express-ws'
 
 import * as _ from 'lodash'
 import * as Promise from 'bluebird'
@@ -44,7 +45,7 @@ export interface Config {
 }
 
 // Setup function
-export const setup = (app: _express.Application) => {
+export const setup = (app: _expressWs.Application) => {
 	const loadConfig = (data: Config): Promise<void> =>
 		sbvrUtils.db.transaction((tx) =>
 			Promise.try(() => {
@@ -153,6 +154,7 @@ export const setup = (app: _express.Application) => {
 			.return(data.models)
 			.map((model) => {
 				if (model.modelText != null) {
+					console.info('Successfully executed ' + JSON.stringify(model) + ' model.')
 					return sbvrUtils.executeModel(tx, model).then(() => {
 						console.info('Successfully executed ' + model.modelName + ' model.')
 					}).catch((err) => {
@@ -168,8 +170,11 @@ export const setup = (app: _express.Application) => {
 				Promise.map(data.models, (model) => {
 					if (model.modelText != null) {
 						const apiRoute = `/${model.apiRoot}/*`
+						console.error(`Registering route: ${apiRoute}`)
 						app.options(apiRoute, (_req, res) => res.sendStatus(200))
 						app.all(apiRoute, sbvrUtils.handleODataRequest)
+						console.error(`Registering ws route: ${apiRoute}`)
+						app.ws(`/ws${apiRoute}`, sbvrUtils.handleODataWSRequest)
 					}
 
 					if (model.customServerCode != null) {

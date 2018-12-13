@@ -1,4 +1,5 @@
 import * as _express from 'express'
+import * as _expressWs from 'express-ws'
 
 if (!process.browser) {
 	if (typeof nodeRequire === 'undefined' || nodeRequire == null) {
@@ -57,7 +58,7 @@ if (dbModule.engines.websql != null) {
 
 const db = dbModule.connect(databaseOptions)
 
-export const init = (app: _express.Application, config?: string | configLoader.Config): Promise<ReturnType<typeof configLoader.setup>> =>
+export const init = (app: _expressWs.Application, config?: string | configLoader.Config): Promise<ReturnType<typeof configLoader.setup>> =>
 	sbvrUtils.setup(app, db)
 	.then(() =>
 		configLoader.setup(app)
@@ -78,6 +79,9 @@ export const init = (app: _express.Application, config?: string | configLoader.C
 			promises.push(cfgLoader.loadApplicationConfig(config))
 		}
 		return Promise.all(promises)
+	}).tap(() => {
+		console.error('Setting up DB triggers')
+		return sbvrUtils.setupDBTriggers(db)
 	}).catch((err) => {
 		console.error('Error initialising server', err, err.stack)
 		process.exit(1)

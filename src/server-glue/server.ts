@@ -18,8 +18,10 @@ export { sbvrUtils }
 export const PinejsSessionStore = require('../pinejs-session-store/pinejs-session-store')
 
 import * as express from 'express'
+import * as expressWS from 'express-ws'
 
-const app = express()
+const app = expressWS(express()).app
+
 
 switch(app.get('env')) {
 	case 'production':

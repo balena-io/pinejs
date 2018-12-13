@@ -42,12 +42,15 @@
     "coffeescript": "^2.3.2",
     "deep-freeze": "0.0.1",
     "express-session": "^1.10.3",
+    "express-ws": "^4.0.0",
+    "json-normalize": "^1.1.2",
     "lodash": "^4.17.11",
     "memoizee": "^0.4.14",
     "pinejs-client-core": "^5.3.5",
     "typed-error": "^2.0.0"
   },
   "devDependencies": {
+    "@types/express-ws": "^3.0.0",
     "coffee-loader": "^0.9.0",
     "grunt": "^1.0.3",
     "grunt-check-dependencies": "^1.0.0",

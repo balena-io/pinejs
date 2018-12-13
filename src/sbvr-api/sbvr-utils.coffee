@@ -14,6 +14,8 @@ sbvrTypes = require '@resin/sbvr-types'
 { sqlNameToODataName, odataNameToSqlName } = require '@resin/odata-to-abstract-sql'
 deepFreeze = require 'deep-freeze'
 env = require '../config-loader/env'
+triggers = require '../database-layer/livequery/trigger'
+{ md5 } = require 'json-normalize'
 
 SBVRParser = require '../extended-sbvr-parser/extended-sbvr-parser'
 
@@ -791,6 +793,271 @@ exports.getAffectedIds = Promise.method ({ req, request, tx }) ->
 			else
 				runTransaction(req, doRunQuery)
 
+prepareQuery = (query, table, bindVariableIndex) ->
+	whereNode = _.find(query, (v) -> v[0] == 'Where')
+	# recursive search the where tree for `From` nodes, each of these nodes is a query for a subtable
+	if whereNode
+		# TODO: find bind vars number
+		whereNode[1] = ['And', whereNode[1], ["Equals", ["ReferencedField", table, "id"], ["Bind",bindVariableIndex]]]
+	else
+		query.push(['Where', ["Equals", ["ReferencedField", table, "id"], ["Bind",bindVariableIndex]]])
+
+findFilterTables = (store, fullQuery, path, bindVariableIndex) ->
+	subQuery = _.get(fullQuery, path)
+	if not _.isArray(subQuery)
+		return
+	console.error("===> Checking subquery #{JSON.stringify(subQuery)}")
+	fromIdx = _.findIndex(subQuery, (v) -> v[0] == 'From')
+	console.error("===> Found from Index #{fromIdx}")
+	if fromIdx >= 0
+		fromNode = _.get(fullQuery, _.concat(path, fromIdx))
+		console.error("===> Found from Node #{JSON.stringify(fromNode)}")
+	if fromNode
+		if _.isString(fromNode[1])
+			tableName = fromNode[1]
+			aliasName = fromNode[1]
+			console.error("Found table: #{tableName} as #{aliasName}")
+		else if _.isArray(fromNode[1]) and fromNode[1].length == 2
+			tableName = fromNode[1][0]
+			aliasName = fromNode[1][1]
+			console.error("Found table: #{tableName} as #{aliasName}")
+
+		if tableName? and aliasName?
+			if not store[tableName]?
+				store[tableName] = []
+			cloneQuery = _.cloneDeep(fullQuery)
+			cloneSubQuery = _.get(cloneQuery, path)
+			prepareQuery(cloneSubQuery, aliasName, bindVariableIndex)
+			store[tableName].push(cloneQuery)
+	_.forEach subQuery, (v,k) ->
+		console.error("===> Checking subpath #{k}")
+		findFilterTables(store, fullQuery, _.concat(path, k), bindVariableIndex)
+
+
+exports.handleODataWSRequest = (ws, req, next) ->
+	regex = /\/ws(\/.*)\/.websocket(.*)/gm
+	Promise.try ->
+		m = regex.exec(req.url)
+		if m == null
+			console.error("Invalid url")
+			return
+		req.url = "#{m[1]}#{m[2]}"
+		url = req.url.split('/')
+		apiRoot = url[1]
+		modelMainTable = url[2].split('?')[0]
+
+		console.error("===> Got WS request for #{req.url}")
+		if !abstractSqlModels[apiRoot]?
+			console.error("no abstract SQL model for #{apiRoot}")
+
+		if !apiRoot? or !abstractSqlModels[apiRoot]?
+			console.error("API root is not available")
+			ws.close(404)
+			ws.terminate()
+			return
+		
+		if req.method != 'GET'
+			console.error("req method is not GET")
+			ws.close(400)
+			return
+
+
+		#console.error("===> Mapping headers")
+		mapSeries = controlFlow.getMappingFn(req.headers)
+		# Get the hooks for the current method/vocabulary as we know it,
+		# in order to run PREPARSE hooks, before parsing gets us more info
+		req.hooks = reqHooks = getHooks(
+			method: req.method
+			vocabulary: apiRoot
+		)
+
+		req.on 'close', ->
+			handlePromise.cancel()
+			rollbackRequestHooks(reqHooks)
+		ws.on 'close', ->
+			handlePromise.cancel()
+			rollbackRequestHooks(reqHooks)
+
+		req.tx?.on 'rollback', ->
+			rollbackRequestHooks(reqHooks)
+
+		#console.error("===> starting hooks")
+		handlePromise = runHooks('PREPARSE', { req, tx: req.tx })
+		.then ->
+			{ method, url, body } = req
+
+			# Check if it is a single request or a batch
+			body = if req.batch?.length > 0 then req.batch else [{ method: method, url: url, data: body }]
+			# Parse the OData requests
+			mapSeries body, (bodypart) ->
+				console.error("running #{url}")
+				uriParser.parseOData(bodypart)
+				.then controlFlow.liftP (request) ->
+					console.error("===> Prepared Request .... #{JSON.stringify(request)}")
+					# Get the full hooks list now that we can. We clear the hooks on
+					# the global req to avoid duplication
+					req.hooks = {}
+					request.hooks = getHooks(request)
+					# Add/check the relevant permissions
+					runHooks('POSTPARSE', { req, request, tx: req.tx })
+					.return(request)
+					.then(uriParser.translateUri)
+				.then (request) ->
+					#console.error("===> Running request .... #{JSON.stringify(request)}")
+					# Run the request in its own transaction
+
+					augmentOptions = {
+						abstractSqlQuery: {},
+						odataBinds:  _.cloneDeep(request.odataBinds),
+						bindVariableIndex: 0
+					}
+
+					if augmentOptions.odataBinds
+						augmentOptions.bindVariableIndex = augmentOptions.odataBinds.length
+					else
+						augmentOptions.odataBinds = []
+
+					fromPath = _.findIndex(request.abstractSqlQuery, (v) -> v[0] == 'Where')
+
+					console.error("===> AST #{request.abstractSqlQuery}")
+					console.error("===> Generating prepared Queries from #{fromPath}")
+					# recursive search the where tree for `From` nodes, each of these nodes is a query for a subtable
+					augmentOptions.abstractSqlQuery[modelMainTable] = []
+					augmentOptions.abstractSqlQuery[modelMainTable].push(_.cloneDeep(request.abstractSqlQuery))
+					prepareQuery(augmentOptions.abstractSqlQuery[modelMainTable][0], modelMainTable, augmentOptions.bindVariableIndex)
+					findFilterTables(augmentOptions.abstractSqlQuery, request.abstractSqlQuery, [fromPath], augmentOptions.bindVariableIndex)
+
+					console.error("===> Abstract table store #{JSON.stringify(augmentOptions.abstractSqlQuery)}")
+
+					resultCache = []
+					dataCache = {}
+					updateFn = (tRequest, options) ->
+						# Manipulate the abstract SQL Query
+						#
+						#
+						if options?.payload?.table == modelMainTable and options?.payload?.old? and not options?.payload?.new?
+							# oldid was deleted
+							if _.sortedIndexOf(resultCache, options.payload.old) >= 0
+								_.pull resultCache, options.payload.old
+								ws.send(JSON.stringify({
+									r: [
+										{
+											id: options.payload.old
+										}
+									]
+								}))
+								return
+
+						executeQuery = (ttRequest, mResponses) ->
+							if options?.odataBinds?
+								ttRequest.odataBinds = options.odataBinds
+
+							if options?.payload?.new?
+								ttRequest.odataBinds.push(["Real", options.payload.new])
+
+							#console.error("===> Compiling request .... #{JSON.stringify(ttRequest)}")
+							ttRequest = compileRequest(ttRequest)
+							#console.error("===> Compiled request .... #{JSON.stringify(ttRequest)}")
+							runTransaction req, (tx) ->
+								tx.on 'rollback', ->
+									rollbackRequestHooks(reqHooks)
+									rollbackRequestHooks(ttRequest)
+								if _.isArray ttRequest
+									env = new Map()
+									Promise.reduce(request, runChangeSet(req, res, tx), env)
+									.then (env) -> Array.from(env.values())
+								else
+									runRequest(req, null, tx, ttRequest)
+							.then (responses) ->
+								console.error("Got results #{JSON.stringify(responses)}")
+								mResponses.push(responses)
+						
+						if options?.abstractSqlQuery?
+							queries = options.abstractSqlQuery[options.payload.table]
+						else
+							queries = [ tRequest.abstractSqlQuery ]
+						
+						mResponses = []
+						Promise.each queries, (query) -> 
+							ttRequest = _.cloneDeep(tRequest)
+							ttRequest.abstractSqlQuery = query
+							executeQuery(ttRequest, mResponses)
+						.then ->
+							#console.error("Got results #{JSON.stringify(mResponses)}")
+							data = []
+							_.forEach mResponses, (responses) ->
+								#console.error("Got results #{JSON.stringify(responses)}")
+								{ body, headers, status } = responses
+								if body?.d?
+									data = _.uniq(_.concat(data, body.d))
+								#_.forEach headers, (headerValue, headerName) ->
+									#	res.set(headerName, headerValue)
+									#if not body
+										#if status?
+										#	res.sendStatus(status)
+										#else
+										#	console.error('No status or body set', req.url, responses)
+										#	res.sendStatus(500)
+									#else
+									#if status?
+										#	res.status(status)
+							resultIds = _.reduce(data, (r, d) ->
+								r[id] = md5(d)
+							, {})
+
+
+							if options?.payload?.table == modelMainTable and options?.payload?.old? and options?.payload?.new?
+								# an update happened
+								if _.sortedIndexOf(resultCache, options.payload.old) >= 0 and _.indexOf(resultIds, options.payload.old) < 0
+									# oldid was in result set, but the element fell out of the result set now
+									ws.send(JSON.stringify({
+										r: [
+											{
+												id: options.payload.old
+											}
+										]
+									}))
+							if not _.isEmpty(body?.d)
+								resultCache = _.sortedUniq(_.sortBy(_.concat resultCache, resultIds))
+								console.error("Current result cache #{JSON.stringify(resultCache)}")
+								ws.send(JSON.stringify(body))
+						.tapCatch (e) ->
+							console.error("Request failed!", e)
+							rollbackRequestHooks(reqHooks)
+							rollbackRequestHooks(tRequest)
+					updateFn(_.cloneDeep(request))
+					exports.db.connect()
+					.then (client) ->
+						ws.on 'close', () ->
+							client.end()
+
+						_.forEach augmentOptions.abstractSqlQuery, (v,k) ->
+							console.error("Listening for changes for #{k}")
+							listen = triggers.listenChange(k)
+							client.query(listen)
+
+						client.on 'notification', (msg) ->
+							console.error("Got change event: !#{msg.payload}")
+							payload = JSON.parse(msg.payload)
+							opts = _.cloneDeep(augmentOptions)
+							opts.payload = payload
+							console.error("Got change event: #{JSON.stringify(payload)}")
+							updateFn(_.cloneDeep(request)) # add opts
+			# Otherwise its a multipart request and we reply with the appropriate multipart response
+			#else
+			#	res.status(200).sendMulti(responses)
+		# If an error bubbles here it must have happened in the last then block
+		# We just respond with 500 as there is probably not much we can do to recover
+		.catch (e) ->
+			console.error('An error occured while constructing the response', e, e.stack)
+			ws.close(500)
+
+	.catch (e) ->
+		console.error('A WS error', e, e.stack)
+
+
+
+
 exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 	url = req.url.split('/')
 	apiRoot = url[1]
@@ -1170,3 +1437,17 @@ exports.setup = (app, _db, callback) ->
 		db.executeSql('CREATE UNIQUE INDEX "uniq_model_model_type_vocab" ON "model" ("is of-vocabulary", "model type");')
 		.catch -> # we can't use IF NOT EXISTS on all dbs, so we have to ignore the error raised if this index already exists
 	.nodeify(callback)
+
+exports.setupDBTriggers = (_db) ->
+	db.transaction (tx) ->
+		setupScript = triggers.triggerFunctionSetup()
+		console.log("Running:\n#{setupScript}")
+		tx.executeSql(setupScript)
+		.then ->
+			promises = []
+			_.forEach sqlModels, (v, key) ->
+				_.forEach v.tables, (t, k) ->
+					triggerScript = triggers.triggerTableSetup(k)
+					console.log("  Setting up triggers for table #{k}\n#{triggerScript}")
+					promises.push(tx.executeSql(triggerScript))
+			return promises

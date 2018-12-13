@@ -1,5 +1,6 @@
 import * as Promise from 'bluebird'
 import { Application, RequestHandler } from 'express'
+import { WebsocketRequestHandler } from 'express-ws'
 import { AbstractSqlQuery, AbstractSqlModel } from '@resin/abstract-sql-compiler';
 import { Database, Tx } from '../database-layer/db';
 import { PinejsClientCoreFactory } from 'pinejs-client-core';
@@ -101,9 +102,11 @@ export function generateAbstractSqlModel(lfModel: LFModel): AbstractSqlModel
 export function executeModel(tx: Tx, model: Model): Promise<void>
 export function executeModels(tx: Tx, models: Model[]): Promise<void>
 export const handleODataRequest: RequestHandler
+export const handleODataWSRequest: WebsocketRequestHandler
 export function getAbstractSqlModel(request: ODataRequest): AbstractSqlModel
 export function resolveOdataBind(odataBinds: OdataBinds, value: any): any
 export function getAffectedIds(args: { req: HookReq, request: HookRequest, tx: Tx }): Promise<number[]>
 export function addPureHook(method: string, vocabulary: string, resource: string, hooks: Hooks): void;
 export function addSideEffectHook(method: string, vocabulary: string, resource: string, hooks: Hooks): void;
 export function setup(app: Application, db: Database, callback?: (err?: Error) => void): Promise<void>;
+export function setupDBTriggers(db: Database): Promise<void>

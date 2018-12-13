@@ -74,6 +74,7 @@ export type Database = {
 	ForeignKeyConstraintError: typeof ForeignKeyConstraintError,
 	engine: string
 	executeSql: (this: Database, sql: Sql, bindings?: Bindings) => Promise<Result>
+	connect: () => Promise<any>
 	transaction: TransactionFn
 }
 
@@ -360,6 +361,7 @@ if (maybePg != null) {
 		return _.extend({
 			engine: 'postgres',
 			executeSql: atomicExecuteSql,
+			connect,
 			transaction: createTransaction((stackTraceErr) =>
 				connect()
 				.then((client) => {
@@ -448,6 +450,7 @@ if (maybeMysql != null) {
 		return _.extend({
 			engine: 'mysql',
 			executeSql: atomicExecuteSql,
+			connect,
 			transaction: createTransaction((stackTraceErr) =>
 				connect()
 				.then((client) => {
@@ -576,6 +579,9 @@ if (typeof window !== 'undefined' && window.openDatabase != null) {
 		return _.extend({
 			engine: 'websql',
 			executeSql: atomicExecuteSql,
+			connect: () => {
+				throw new Error('Not supported')
+			},
 			transaction: createTransaction((stackTraceErr) =>
 				new Promise((resolve) => {
 					db.transaction((tx) => {
