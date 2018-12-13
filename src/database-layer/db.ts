@@ -8,7 +8,7 @@ import * as Promise from 'bluebird'
 import TypedError = require('typed-error')
 import * as env from '../config-loader/env'
 
-export const metricsEmitter = new EventEmitter();
+export const metrics = new EventEmitter();
 
 const { DEBUG } = process.env
 
