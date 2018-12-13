@@ -56,7 +56,7 @@ export class UniqueConstraintError extends ConstraintError {}
 export class ForeignKeyConstraintError extends ConstraintError {}
 
 const wrapDatabaseError = (err: CodedError) => {
-	metricsEmitter.emit('db_error', err);
+	metrics.emit('db_error', err);
 	if (!(err instanceof DatabaseError)) {
 		// Wrap the error so we can catch it easier later
 		throw new DatabaseError(err)
@@ -192,7 +192,7 @@ export abstract class Tx {
 			.finally(() => {
 				this.decrementPending()
 				const queryTime = Date.now() - t0;
-				metricsEmitter.emit('db_query_time', { 
+				metrics.emit('db_query_time', { 
 					queryTime: queryTime,
 					// metrics-TODO: statistics on query types (SELECT, INSERT)
 					// themselves should be gathered by postgres, while at this 
