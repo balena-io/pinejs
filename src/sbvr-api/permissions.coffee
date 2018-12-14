@@ -247,6 +247,12 @@ deepFreezeExceptDefinition = (obj) ->
 			deepFreezeExceptDefinition(obj)
 	return
 
+createBypassDefinition = (abstractSql) ->
+	_.cloneDeepWith abstractSql, (abstractSql) ->
+		if _.isArray(abstractSql) and abstractSql[0] == 'Resource' and !abstractSql[1].endsWith('$bypass')
+			return [ 'Resource', "#{abstractSql[1]}$bypass" ]
+
+
 getBoundConstrainedMemoizer = memoizeWeak(
 	(abstractSqlModel) ->
 		return memoizeWeak(
@@ -259,7 +265,11 @@ getBoundConstrainedMemoizer = memoizeWeak(
 					constrainedAbstractSqlModel.relationships["#{key}$bypass"] = relationship
 				_.each constrainedAbstractSqlModel.tables, (table, resourceName) ->
 					constrainedAbstractSqlModel.tables["#{resourceName}$bypass"] = _.clone(table)
-					if !table.definition
+					if table.definition
+						# If the table is definition based then just make the bypass version match but pointing to the equivalent bypassed resources
+						constrainedAbstractSqlModel.tables["#{resourceName}$bypass"].definition = createBypassDefinition(table.definition)
+					else
+						# Otherwise constrain the non-bypass table
 						onceGetter table, 'definition', ->
 							# For $filter on eg a DELETE you need read permissions on the sub-resources,
 							# you only need delete permissions on the resource being deleted
