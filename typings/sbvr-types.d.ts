@@ -12,6 +12,7 @@ declare module '@resin/sbvr-types' {
 					complexType?: string;
 				};
 			};
+			fetchProcessing?: (field: any) => Promise<any>;
 		};
 	};
 	export = sbvrTypes;

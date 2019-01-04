@@ -14,6 +14,7 @@ const readdirAsync = Promise.promisify(fs.readdir);
 import { Database } from '../database-layer/db';
 import * as sbvrUtils from '../sbvr-api/sbvr-utils';
 import * as permissions from '../sbvr-api/permissions';
+import { RequiredField } from '../sbvr-api/common-types';
 
 export interface SetupFunction {
 	(
@@ -192,9 +193,12 @@ export const setup = (app: _express.Application) => {
 				})
 					.return(data.models)
 					.map(model => {
-						if (model.modelText != null) {
+						if (model.modelText != null && model.apiRoot != null) {
 							return sbvrUtils
-								.executeModel(tx, model)
+								.executeModel(tx, model as RequiredField<
+									Model,
+									'apiRoot' | 'modelText'
+								>)
 								.then(() => {
 									console.info(
 										'Successfully executed ' + model.modelName + ' model.',
@@ -214,7 +218,7 @@ export const setup = (app: _express.Application) => {
 					})
 					.then(() =>
 						Promise.map(data.models, model => {
-							if (model.modelText != null) {
+							if (model.modelText != null && model.apiRoot != null) {
 								const apiRoute = `/${model.apiRoot}/*`;
 								app.options(apiRoute, (_req, res) => res.sendStatus(200));
 								app.all(apiRoute, sbvrUtils.handleODataRequest);
