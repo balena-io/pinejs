@@ -965,29 +965,28 @@ updateBinds = (env, request) ->
 		request.odataBinds = _.map request.odataBinds, ([tag, id]) ->
 			if tag == 'ContentReference'
 				ref = env.get(id)
-				if _.isUndefined(ref?.body?.id)
-					throw BadRequestError('Reference to a non existing resource in Changeset')
+				if ref?.body?.id is undefined
+					throw new BadRequestError('Reference to a non existing resource in Changeset')
 				else
 					uriParser.parseId(ref.body.id)
 			else
 				[tag, id]
 	return request
 
-prepareResponse = (req, res, request, result, tx) ->
-	Promise.try ->
-		switch request.method
-			when 'GET'
-				respondGet(req, res, request, result, tx)
-			when 'POST'
-				respondPost(req, res, request, result, tx)
-			when 'PUT', 'PATCH', 'MERGE'
-				respondPut(req, res, request, result, tx)
-			when 'DELETE'
-				respondDelete(req, res, request, result, tx)
-			when 'OPTIONS'
-				respondOptions(req, res, request, result, tx)
-			else
-				throw new UnsupportedMethodError()
+prepareResponse = Promise.method (req, res, request, result, tx) ->
+	switch request.method
+		when 'GET'
+			respondGet(req, res, request, result, tx)
+		when 'POST'
+			respondPost(req, res, request, result, tx)
+		when 'PUT', 'PATCH', 'MERGE'
+			respondPut(req, res, request, result, tx)
+		when 'DELETE'
+			respondDelete(req, res, request, result, tx)
+		when 'OPTIONS'
+			respondOptions(req, res, request, result, tx)
+		else
+			throw new UnsupportedMethodError()
 
 # This is a helper method to handle using a passed in req.tx when available, or otherwise creating a new tx and cleaning up after we're done.
 runTransaction = (req, callback) ->
