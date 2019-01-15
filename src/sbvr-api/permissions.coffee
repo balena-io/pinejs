@@ -389,11 +389,31 @@ exports.setup = (app, sbvrUtils) ->
 			authApi.logger.error('Error loading permissions', err, err.stack)
 		.nodeify(callback)
 
-	exports.getUserPermissions = getUserPermissions = (userId, callback) ->
+	exports.getUserPermissions = getUserPermissions = (userId, roles, callback) ->
+		if _.isFunction(roles)
+			callback = roles
+			roles = null
 		if _.isString(userId)
 			userId = _.parseInt(userId)
 		if !_.isFinite(userId)
 			return Promise.rejected(new Error('User ID has to be numeric, got: ' + typeof userId))
+
+		roleFilter = 
+					r: is_of__user: $any:
+						$alias: 'uhr'
+						$expr:
+							uhr: user: userId
+							$or: [
+								uhr: expiry_date: null
+							,	uhr: expiry_date: $gt: $now: null
+							]
+
+		if roles?
+			roleFilter = $and: [
+					roleFilter,
+					r: name: $in: roles
+			]
+
 		permsFilter = $or:
 			is_of__user: $any:
 				$alias: 'uhp'
@@ -407,14 +427,8 @@ exports.setup = (app, sbvrUtils) ->
 				$alias: 'rhp'
 				$expr: rhp: role: $any:
 					$alias: 'r'
-					$expr: r: is_of__user: $any:
-						$alias: 'uhr'
-						$expr:
-							uhr: user: userId
-							$or: [
-								uhr: expiry_date: null
-							,	uhr: expiry_date: $gt: $now: null
-							]
+					$expr: roleFilter
+		
 		return getPermissions(permsFilter, callback)
 
 	exports.getApiKeyPermissions = getApiKeyPermissions = do ->
