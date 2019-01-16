@@ -1,13 +1,15 @@
-const { SBVRParser } = require('@resin/sbvr-parser')
-const Types = require('@resin/sbvr-types/Type.sbvr')
+import { SBVRParser } from '@resin/sbvr-parser'
+const Types: string = require('@resin/sbvr-types/Type.sbvr')
+import { version as sbvrParserVersion } from '@resin/sbvr-parser/package.json'
+const { version }: { version: string } = require('@resin/sbvr-parser/package.json')
 
-module.exports = SBVRParser._extend({
+export = SBVRParser._extend({
 	initialize() {
 		SBVRParser.initialize.call(this)
 		this.AddCustomAttribute('Database ID Field:')
 		this.AddCustomAttribute('Database Table Name:')
 		this.AddBuiltInVocab(Types)
 		return this
-	}
+	},
+	version: sbvrParserVersion + '+' + version
 })
-module.exports.version = require('@resin/sbvr-parser/package.json').version + '+' + require('../../package.json').version

@@ -110,7 +110,7 @@ module.exports = (grunt) ->
 			default:
 				tsconfig: true
 				options:
-					additionalFlags: "--outDir <%= grunt.option('target') %>"
+					additionalFlags: "--outDir <%= grunt.option('target') %> --resolveJsonModule"
 
 
 	require('load-grunt-tasks')(grunt)
