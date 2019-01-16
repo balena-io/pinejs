@@ -55,6 +55,8 @@ export interface HookReq {
 	apiKey?: ApiKey,
 	method: string,
 	url: string,
+	query: AnyObject,
+	params: AnyObject,
 	body: AnyObject,
 	custom?: AnyObject
 }
@@ -101,7 +103,9 @@ export function generateAbstractSqlModel(lfModel: LFModel): AbstractSqlModel
 export function executeModel(tx: Tx, model: Model): Promise<void>
 export function executeModels(tx: Tx, models: Model[]): Promise<void>
 export const handleODataRequest: RequestHandler
-export function getAbstractSqlModel(request: ODataRequest): AbstractSqlModel
+export function getAbstractSqlModel(request: Pick<ODataRequest, 'vocabulary'>): AbstractSqlModel
+export function resolveSynonym(request: Pick<ODataRequest, 'resourceName' | 'vocabulary'>): string
+export function resolveNavigationResource(request: Pick<ODataRequest, 'resourceName' | 'vocabulary'>, navigationName: string): string
 export function resolveOdataBind(odataBinds: OdataBinds, value: any): any
 export function getAffectedIds(args: { req: HookReq, request: HookRequest, tx: Tx }): Promise<number[]>
 export function addPureHook(method: string, vocabulary: string, resource: string, hooks: Hooks): void;

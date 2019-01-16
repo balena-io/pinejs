@@ -1,7 +1,7 @@
 import * as _AbstractSQLCompiler from '@resin/abstract-sql-compiler'
 
 import * as Promise from 'bluebird'
-const ODataParser = require('@resin/odata-parser')
+import * as ODataParser from '@resin/odata-parser'
 export const SyntaxError = ODataParser.SyntaxError
 import { OData2AbstractSQL, ODataQuery, ODataBinds, SupportedMethod } from '@resin/odata-to-abstract-sql'
 import * as memoize from 'memoizee'
@@ -107,7 +107,7 @@ const memoizedOdata2AbstractSQL = (() => {
 			max: env.cache.odataToAbstractSql.max
 		}
 	)
-	return (request: ODataRequest) => {
+	return (request: Pick<ODataRequest, 'method' | 'odataQuery' | 'odataBinds' | 'values' | 'vocabulary'>) => {
 		const { method, odataQuery, odataBinds, values } = request
 		const abstractSqlModel = sbvrUtils.getAbstractSqlModel(request)
 		// Sort the body keys to improve cache hits
@@ -224,7 +224,7 @@ const mustExtractHeader = (body: { headers?: { [header: string]: string } }, hea
 	return h
 }
 
-export const translateUri = (request: ODataRequest): ODataRequest => {
+export const translateUri = <T extends Pick<ODataRequest, 'method' | 'odataQuery' | 'odataBinds' | 'values' | 'vocabulary' | 'resourceName'>>(request: T & { abstractSqlQuery?: ReturnType<typeof memoizedOdata2AbstractSQL>}): typeof request => {
 	if (request.abstractSqlQuery != null) {
 		return request
 	}
