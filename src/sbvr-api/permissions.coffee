@@ -28,17 +28,16 @@ methodPermissions =
 	MERGE: or: ['set', 'update']
 	DELETE: 'delete'
 
-_parsePermissions = do ->
-	return memoize(
-		(filter) ->
-			{ tree, binds } = ODataParser.parse(filter, { startRule: 'ProcessRule', rule: 'FilterByExpression' })
-			return {
-				tree
-				extraBinds: binds
-			}
-		primitive: true
-		max: env.cache.parsePermissions.max
-	)
+_parsePermissions = memoize(
+	(filter) ->
+		{ tree, binds } = ODataParser.parse(filter, { startRule: 'ProcessRule', rule: 'FilterByExpression' })
+		return {
+			tree
+			extraBinds: binds
+		}
+	primitive: true
+	max: env.cache.parsePermissions.max
+)
 
 rewriteBinds = ({ tree, extraBinds }, odataBinds) ->
 	# Add the extra binds we parsed onto our existing list of binds vars.
@@ -374,7 +373,7 @@ exports.setup = (app, sbvrUtils) ->
 					}
 		.nodeify(callback)
 
-	getPermissions = (permsFilter, callback) ->
+	getPermissions = (permsFilter) ->
 		authApi = sbvrUtils.api.Auth
 		authApi.get
 			resource: 'permission'
@@ -387,7 +386,6 @@ exports.setup = (app, sbvrUtils) ->
 		.map (permission) -> permission.name
 		.tapCatch (err) ->
 			authApi.logger.error('Error loading permissions', err, err.stack)
-		.nodeify(callback)
 
 	exports.getUserPermissions = getUserPermissions = (userId, callback) ->
 		if _.isString(userId)
@@ -415,7 +413,7 @@ exports.setup = (app, sbvrUtils) ->
 								uhr: expiry_date: null
 							,	uhr: expiry_date: $gt: $now: null
 							]
-		return getPermissions(permsFilter, callback)
+		return getPermissions(permsFilter, callback).nodeify(callback)
 
 	exports.getApiKeyPermissions = getApiKeyPermissions = do ->
 		_getApiKeyPermissions = memoize(
