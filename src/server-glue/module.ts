@@ -1,4 +1,5 @@
 import * as _express from 'express'
+import * as _fs from 'fs'
 
 if (!process.browser) {
 	if (typeof nodeRequire === 'undefined' || nodeRequire == null) {
@@ -15,7 +16,8 @@ if (!process.browser) {
 		global.nodeRequire = require
 	}
 	// Register a .sbvr loader
-	const fs = require('fs')
+	// tslint:disable-next-line:no-var-requires
+	const fs: typeof _fs = require('fs')
 	nodeRequire.extensions['.sbvr'] = (module: NodeModule, filename: string) =>
 		module.exports = fs.readFileSync(filename, { encoding: 'utf8' })
 }
@@ -27,8 +29,8 @@ import * as configLoader from '../config-loader/config-loader'
 import * as migrator from '../migrator/migrator'
 
 import * as sbvrUtils from '../sbvr-api/sbvr-utils'
-export { sbvrUtils }
-export const SessionStore = require('../pinejs-session-store/pinejs-session-store')
+import PinejsSessionStore = require('../pinejs-session-store/pinejs-session-store')
+export { sbvrUtils, PinejsSessionStore }
 
 let databaseOptions: {
 	engine: string,

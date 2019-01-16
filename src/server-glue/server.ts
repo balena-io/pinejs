@@ -14,8 +14,8 @@ import * as Promise from 'bluebird'
 import * as passportPinejs from '../passport-pinejs/passport-pinejs'
 
 import * as sbvrUtils from '../sbvr-api/sbvr-utils'
-export { sbvrUtils }
-export const PinejsSessionStore = require('../pinejs-session-store/pinejs-session-store')
+import PinejsSessionStore = require('../pinejs-session-store/pinejs-session-store')
+export { sbvrUtils, PinejsSessionStore }
 
 import * as express from 'express'
 
@@ -30,6 +30,7 @@ switch(app.get('env')) {
 }
 
 if (!process.browser) {
+	// tslint:disable:no-var-requires
 	const passport: typeof _passport = require('passport')
 	const path: typeof _path = require('path')
 	const compression: typeof _compression = require('compression')
@@ -39,6 +40,7 @@ if (!process.browser) {
 	const multer: typeof _multer = require('multer')
 	const methodOverride: typeof _methodOverride = require('method-override')
 	const expressSession: typeof _expressSession = require('express-session')
+	// tslint:enable:no-var-requires
 
 	app.use(compression())
 

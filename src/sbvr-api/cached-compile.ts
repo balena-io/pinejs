@@ -11,6 +11,7 @@ let cache: null | {
 } = null
 let fs: undefined | typeof _fs
 try {
+	// tslint:disable-next-line:no-var-requires
 	fs = require('fs')
 } catch (e) {}
 

@@ -192,12 +192,12 @@ export abstract class Tx {
 			.finally(() => {
 				this.decrementPending()
 				const queryTime = Date.now() - t0;
-				metrics.emit('db_query_time', { 
+				metrics.emit('db_query_time', {
 					queryTime: queryTime,
 					// metrics-TODO: statistics on query types (SELECT, INSERT)
-					// themselves should be gathered by postgres, while at this 
-					// scope in pine, we should report the overall query time as 
-					// being associated with an HTTP method on the given model 
+					// themselves should be gathered by postgres, while at this
+					// scope in pine, we should report the overall query time as
+					// being associated with an HTTP method on the given model
 					// (eg. [PUT, Device])
 					//
 					// metrics-TODO: evaluate whether a request to a model can,
@@ -208,7 +208,7 @@ export abstract class Tx {
 					// given request as one figure.
 					//
 					// Grab the first word of the query and regard that as the
-					// "query type" (to be improved in line with the above 
+					// "query type" (to be improved in line with the above
 					// TODO's)
 					queryType: sql.substr(0, sql.indexOf(' '))
 				});
@@ -301,6 +301,7 @@ const createTransaction = (createFunc: CreateTransactionFn): TransactionFn => {
 
 let maybePg: typeof _pg | undefined
 try {
+	// tslint:disable-next-line:no-var-requires
 	maybePg = require('pg')
 } catch (e) {}
 if (maybePg != null) {
@@ -410,6 +411,7 @@ if (maybePg != null) {
 
 let maybeMysql: typeof _mysql | undefined
 try {
+	// tslint:disable-next-line:no-var-requires
 	maybeMysql = require('mysql')
 } catch (e) {}
 if (maybeMysql != null) {
