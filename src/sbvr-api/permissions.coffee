@@ -58,6 +58,8 @@ parsePermissions = (filter, odataBinds) ->
 # boolean: Used as-is
 # array: Treated as an AND of all elements
 # object: Must have only one key of either `AND` or `OR`, with an array value that will be treated according to the key.
+isAnd = (x) -> _.isObject(x) && 'and' of x
+isOr = (x) -> _.isObject(x) && 'or' of x
 exports.nestedCheck = nestedCheck = (check, stringCallback) ->
 	if _.isString(check)
 		stringCallback(check)
@@ -67,14 +69,19 @@ exports.nestedCheck = nestedCheck = (check, stringCallback) ->
 		results = []
 		for subcheck in check
 			result = nestedCheck(subcheck, stringCallback)
-			if result is false
-				return false
-			else if result isnt true
-				results = results.concat(result)
+			if _.isBoolean(result)
+				if result is false
+					return false
+			else if isAnd(result)
+				results = results.concat(result.and)
+			else
+				results.push(result)
 		if results.length is 1
 			return results[0]
 		else if results.length > 1
-			return _.uniq(results)
+			return {
+				and: _.uniq(results)
+			}
 		else
 			return true
 	else if _.isObject(check)
@@ -89,14 +96,19 @@ exports.nestedCheck = nestedCheck = (check, stringCallback) ->
 				results = []
 				for subcheck in check[checkType]
 					result = nestedCheck(subcheck, stringCallback)
-					if result is true
-						return true
-					else if result isnt false
-						results = results.concat(result)
+					if _.isBoolean(result)
+						if result is true
+							return true
+					else if isOr(result)
+						results = results.concat(result.or)
+					else
+						results.push(result)
 				if results.length is 1
 					return results[0]
 				else if results.length > 1
-					return _.uniq(results)
+					return {
+						or: _.uniq(results)
+					}
 				else
 					return false
 			else
