@@ -32,6 +32,9 @@ export interface Model {
 	customServerCode?: string | {
 		setup: SetupFunction
 	}
+	logging?: {
+		[key in keyof Console | 'default']?: boolean
+	}
 }
 export interface User {
 	username: string
