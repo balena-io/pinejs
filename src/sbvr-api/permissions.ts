@@ -179,9 +179,11 @@ export function nestedCheck<I, O>(
 ): boolean | Exclude<I, string> | O | MappedNestedCheck<typeof check, I, O> {
 	if (_.isString(check)) {
 		return stringCallback(check);
-	} else if (_.isBoolean(check)) {
+	}
+	if (_.isBoolean(check)) {
 		return check;
-	} else if (_.isArray(check)) {
+	}
+	if (_.isArray(check)) {
 		let results: any[] = [];
 		for (const subcheck of check) {
 			const result = nestedCheck(subcheck, stringCallback);
@@ -197,14 +199,15 @@ export function nestedCheck<I, O>(
 		}
 		if (results.length === 1) {
 			return results[0];
-		} else if (results.length > 1) {
+		}
+		if (results.length > 1) {
 			return {
 				and: _.uniq(results),
 			};
-		} else {
-			return true;
 		}
-	} else if (_.isObject(check)) {
+		return true;
+	}
+	if (_.isObject(check)) {
 		const checkTypes = _.keys(check);
 		if (checkTypes.length > 1) {
 			throw new Error('More than one check type: ' + checkTypes);
@@ -231,19 +234,18 @@ export function nestedCheck<I, O>(
 				}
 				if (results.length === 1) {
 					return results[0];
-				} else if (results.length > 1) {
+				}
+				if (results.length > 1) {
 					return {
 						or: _.uniq(results),
 					};
-				} else {
-					return false;
 				}
+				return false;
 			default:
 				throw new Error('Cannot parse required checking logic: ' + checkType);
 		}
-	} else {
-		throw new Error('Cannot parse required checks: ' + check);
 	}
+	throw new Error('Cannot parse required checks: ' + check);
 }
 
 const collapsePermissionFilters = <T>(
@@ -251,19 +253,18 @@ const collapsePermissionFilters = <T>(
 ): T | [string, T] => {
 	if (_.isArray(v)) {
 		return collapsePermissionFilters({ or: v });
-	} else if (typeof v === 'object') {
+	}
+	if (typeof v === 'object') {
 		if ('filter' in v) {
 			return v.filter;
-		} else {
-			return _(v)
-				.toPairs()
-				.flattenDeep()
-				.map(collapsePermissionFilters)
-				.value() as [string, T];
 		}
-	} else {
-		return v;
+		return _(v)
+			.toPairs()
+			.flattenDeep()
+			.map(collapsePermissionFilters)
+			.value() as [string, T];
 	}
+	return v;
 };
 
 const addRelationshipBypasses = (relationships: Relationship) => {
@@ -359,7 +360,8 @@ const $checkPermissions = (
 
 			if (conditionalPermissions.length === 1) {
 				return conditionalPermissions[0];
-			} else if (conditionalPermissions.length > 1) {
+			}
+			if (conditionalPermissions.length > 1) {
 				return {
 					or: conditionalPermissions,
 				};
@@ -774,11 +776,10 @@ export const getApiKeyPermissions = (
 	callback?: (err: Error | undefined, permissions: string[]) => void,
 ): Promise<string[]> =>
 	Promise.try(() => {
-		if (_.isString(apiKey)) {
-			return $getApiKeyPermissions(apiKey);
-		} else {
+		if (!_.isString(apiKey)) {
 			throw new Error('API key has to be a string, got: ' + typeof apiKey);
 		}
+		return $getApiKeyPermissions(apiKey);
 	}).nodeify(callback);
 
 const getApiKeyActorId = memoize(
