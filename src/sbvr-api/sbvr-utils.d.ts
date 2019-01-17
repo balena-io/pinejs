@@ -6,6 +6,7 @@ import { PinejsClientCoreFactory } from 'pinejs-client-core';
 import { FieldType } from '../../node_modules/@types/mysql';
 import { ODataRequest } from './uri-parser';
 import { Model } from '../config-loader/config-loader';
+import { LFModel } from '@resin/sbvr-parser';
 
 export * from './errors';
 export * from './permissions';
@@ -94,8 +95,6 @@ export type LoggingClient = PinejsClient & {
 export const api: {
 	[ apiName: string ]: LoggingClient
 }
-
-type LFModel = Array<LFModel | string>
 
 export function generateLfModel(seModel: string): LFModel
 export function generateAbstractSqlModel(lfModel: LFModel): AbstractSqlModel
