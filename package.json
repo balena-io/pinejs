@@ -10,8 +10,9 @@
     "prepare": "npm run build",
     "build": "grunt build",
     "webpack-browser": "grunt webpack:browser",
-    "lint": "resin-lint src Gruntfile.coffee",
-    "test": "npm run lint && npm run build"
+    "lint": "resin-lint src Gruntfile.coffee && resin-lint --typescript src",
+    "test": "npm run lint && npm run build",
+    "prettify": "prettier --config ./node_modules/resin-lint/config/.prettierrc --write \"{src,test,typings}/**/*.ts\""
   },
   "dependencies": {
     "@resin/abstract-sql-compiler": "^6.3.4",
@@ -20,7 +21,7 @@
     "@resin/odata-to-abstract-sql": "^3.0.0",
     "@resin/sbvr-parser": "^0.2.1",
     "@resin/sbvr-types": "^2.0.0",
-    "@types/bluebird": "^3.5.24",
+    "@types/bluebird": "^3.5.25",
     "@types/body-parser": "1.17.0",
     "@types/compression": "0.0.36",
     "@types/cookie-parser": "1.4.1",
@@ -43,9 +44,12 @@
     "deep-freeze": "0.0.1",
     "eventemitter3": "^3.1.0",
     "express-session": "^1.10.3",
+    "husky": "^1.3.1",
+    "lint-staged": "^8.1.0",
     "lodash": "^4.17.11",
     "memoizee": "^0.4.14",
     "pinejs-client-core": "^5.3.5",
+    "prettier": "^1.15.3",
     "typed-error": "^2.0.0"
   },
   "devDependencies": {
@@ -92,5 +96,10 @@
   "engines": {
     "node": ">=4.0.0",
     "npm": ">=3.0.0"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
   }
 }

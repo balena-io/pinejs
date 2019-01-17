@@ -1,6 +1,6 @@
-import * as _ from 'lodash'
-import { Store } from 'express-session'
-import * as permissions from '../sbvr-api/permissions'
+import * as _ from 'lodash';
+import { Store } from 'express-session';
+import * as permissions from '../sbvr-api/permissions';
 import { api, AnyObject } from '../sbvr-api/sbvr-utils';
 import { Config } from '../config-loader/config-loader';
 
@@ -25,109 +25,119 @@ const sessionModel = `
 		Necessity: Each session id is of exactly 1 session
 	Fact type:  session has expiry time
 		Necessity: Each session has at most 1 expiry time
-`
+`;
 
 export = class PinejsSessionStore extends Store {
 	get = ((sid, callback) => {
-		api.session.get({
-			resource: 'session',
-			id: sid,
-			passthrough: {
-				req: permissions.rootRead
-			},
-			options: {
-				$select: 'data'
-			}
-		}).then((session: AnyObject) => {
-			if (session != null) {
-				return session.data
-			}
-		}).nodeify(callback)
-	}) as Store['get']
+		api.session
+			.get({
+				resource: 'session',
+				id: sid,
+				passthrough: {
+					req: permissions.rootRead,
+				},
+				options: {
+					$select: 'data',
+				},
+			})
+			.then((session: AnyObject) => {
+				if (session != null) {
+					return session.data;
+				}
+			})
+			.nodeify(callback);
+	}) as Store['get'];
 
 	set = ((sid, data, callback) => {
 		const body = {
 			session_id: sid,
 			data: data,
-			expiry_time: _.get(data, [ 'cookie', 'expires' ], null),
-		}
-		api.session.put({
-			resource: 'session',
-			id: sid,
-			passthrough: {
-				req: permissions.root
-			},
-			body,
-		})
-		.nodeify(callback)
-	}) as Store['set']
+			expiry_time: _.get(data, ['cookie', 'expires'], null),
+		};
+		api.session
+			.put({
+				resource: 'session',
+				id: sid,
+				passthrough: {
+					req: permissions.root,
+				},
+				body,
+			})
+			.nodeify(callback);
+	}) as Store['set'];
 
 	destroy = ((sid, callback) => {
-		api.session.delete({
-			resource: 'session',
-			id: sid,
-			passthrough: {
-				req: permissions.root
-			}
-		})
-		.nodeify(callback)
-	}) as Store['destroy']
+		api.session
+			.delete({
+				resource: 'session',
+				id: sid,
+				passthrough: {
+					req: permissions.root,
+				},
+			})
+			.nodeify(callback);
+	}) as Store['destroy'];
 
-	all = ((callback) => {
-		api.session.get({
-			resource: 'session',
-			passthrough: {
-				req: permissions.root
-			},
-			options: {
-				$select: 'session_id',
-				$filter: {
-					expiry_time: { $ge: Date.now() }
-				}
-			}
-		}).then((sessions: AnyObject[]) =>
-			_.map(sessions, 'session_id')
-		).nodeify(callback)
-	}) as Store['all']
+	all = (callback => {
+		api.session
+			.get({
+				resource: 'session',
+				passthrough: {
+					req: permissions.root,
+				},
+				options: {
+					$select: 'session_id',
+					$filter: {
+						expiry_time: { $ge: Date.now() },
+					},
+				},
+			})
+			.then((sessions: AnyObject[]) => _.map(sessions, 'session_id'))
+			.nodeify(callback);
+	}) as Store['all'];
 
-	clear = ((callback) => {
+	clear = (callback => {
 		// TODO: Use a truncate
-		api.session.delete({
-			resource: 'session',
-			passthrough: {
-				req: permissions.root
-			}
-		})
-		.nodeify(callback)
-	}) as Store['clear']
+		api.session
+			.delete({
+				resource: 'session',
+				passthrough: {
+					req: permissions.root,
+				},
+			})
+			.nodeify(callback);
+	}) as Store['clear'];
 
-	length = ((callback) => {
-		api.session.get({
-			resource: 'session/$count',
-			passthrough: {
-				req: permissions.rootRead
-			},
-			options: {
-				$select: 'session_id',
-				$filter: {
-					expiry_time: {
-						$ge: Date.now()
-					}
-				}
-			}
-		})
-		.nodeify(callback)
-	}) as Store['length']
+	length = (callback => {
+		api.session
+			.get({
+				resource: 'session/$count',
+				passthrough: {
+					req: permissions.rootRead,
+				},
+				options: {
+					$select: 'session_id',
+					$filter: {
+						expiry_time: {
+							$ge: Date.now(),
+						},
+					},
+				},
+			})
+			.nodeify(callback);
+	}) as Store['length'];
 
 	static config: Config = {
-		models: [{
-			modelName: 'session',
-			modelText: sessionModel,
-			apiRoot: 'session',
-			logging: {
-				default: false,
-				error: true,
+		models: [
+			{
+				modelName: 'session',
+				modelText: sessionModel,
+				apiRoot: 'session',
+				logging: {
+					default: false,
+					error: true,
+				},
 			},
-		}]
-	}
-}
+		],
+	};
+};

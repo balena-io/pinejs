@@ -1,4 +1,3 @@
-webpack = require 'webpack'
 _ = require 'lodash'
 UglifyJsPlugin = require 'uglifyjs-webpack-plugin'
 
