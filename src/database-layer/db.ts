@@ -7,6 +7,7 @@ import * as _ from 'lodash';
 import * as Promise from 'bluebird';
 import TypedError = require('typed-error');
 import * as env from '../config-loader/env';
+import { Engines } from '@resin/abstract-sql-compiler';
 
 export const metrics = new EventEmitter();
 
@@ -85,7 +86,7 @@ export type Database = {
 	ConstraintError: typeof ConstraintError;
 	UniqueConstraintError: typeof UniqueConstraintError;
 	ForeignKeyConstraintError: typeof ForeignKeyConstraintError;
-	engine: string;
+	engine: Engines;
 	executeSql: (
 		this: Database,
 		sql: Sql,
@@ -428,7 +429,7 @@ if (maybePg != null) {
 		}
 		return _.extend(
 			{
-				engine: 'postgres',
+				engine: Engines.postgres,
 				executeSql: atomicExecuteSql,
 				transaction: createTransaction(stackTraceErr =>
 					connect().then(client => {
@@ -525,7 +526,7 @@ if (maybeMysql != null) {
 
 		return _.extend(
 			{
-				engine: 'mysql',
+				engine: Engines.mysql,
 				executeSql: atomicExecuteSql,
 				transaction: createTransaction(stackTraceErr =>
 					connect().then(client => {
@@ -669,7 +670,7 @@ if (typeof window !== 'undefined' && window.openDatabase != null) {
 
 		return _.extend(
 			{
-				engine: 'websql',
+				engine: Engines.websql,
 				executeSql: atomicExecuteSql,
 				transaction: createTransaction(
 					stackTraceErr =>
