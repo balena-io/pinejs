@@ -289,7 +289,7 @@ export abstract class Tx {
 	}
 }
 
-const getStackTraceErr: (() => Error | undefined) = DEBUG
+const getStackTraceErr: () => Error | undefined = DEBUG
 	? () => new Error()
 	: (_.noop as () => undefined);
 
