@@ -24,13 +24,14 @@ import * as deepFreeze from 'deep-freeze';
 import * as env from '../config-loader/env';
 import * as sbvrUtils from './sbvr-utils';
 import { Tx } from '../database-layer/db';
+import { InstantiatedHooks } from './hooks';
 
 export type OdataBinds = ODataBinds;
 
 export interface UnparsedRequest {
 	method: string;
 	url: string;
-	data: any;
+	data?: any;
 	headers?: { [header: string]: string };
 	changeSet?: UnparsedRequest[];
 	_isChangeSet?: boolean;
@@ -43,9 +44,7 @@ export interface ODataRequest {
 	odataBinds: OdataBinds;
 	values: sbvrUtils.AnyObject;
 	abstractSqlModel?: _AbstractSQLCompiler.AbstractSqlModel;
-	abstractSqlQuery?:
-		| _AbstractSQLCompiler.AbstractSqlQuery
-		| _AbstractSQLCompiler.AbstractSqlQuery[];
+	abstractSqlQuery?: _AbstractSQLCompiler.AbstractSqlQuery;
 	sqlQuery?: _AbstractSQLCompiler.SqlResult | _AbstractSQLCompiler.SqlResult[];
 	resourceName: string;
 	vocabulary: string;
@@ -53,6 +52,10 @@ export interface ODataRequest {
 	id?: number;
 	custom: sbvrUtils.AnyObject;
 	tx?: Tx;
+	modifiedFields?: ReturnType<
+		_AbstractSQLCompiler.EngineInstance['getModifiedFields']
+	>;
+	hooks?: InstantiatedHooks<sbvrUtils.Hooks>;
 }
 
 // Converts a value to its string representation and tries to parse is as an
@@ -182,7 +185,18 @@ const memoizedOdata2AbstractSQL = (() => {
 
 export const metadataEndpoints = ['$metadata', '$serviceroot'];
 
-export const parseOData = (b: UnparsedRequest) => {
+export function parseOData(
+	b: UnparsedRequest & { _isChangeSet?: false },
+): Promise<ODataRequest>;
+export function parseOData(
+	b: UnparsedRequest & { _isChangeSet: true },
+): Promise<ODataRequest[]>;
+export function parseOData(
+	b: UnparsedRequest,
+): Promise<ODataRequest | ODataRequest[]>;
+export function parseOData(
+	b: UnparsedRequest,
+): Promise<ODataRequest | ODataRequest[]> {
 	return Promise.try<ODataRequest | ODataRequest[]>(() => {
 		if (b._isChangeSet && b.changeSet != null) {
 			const csReferences = new Map<ODataRequest['id'], ODataRequest>();
@@ -219,7 +233,7 @@ export const parseOData = (b: UnparsedRequest) => {
 		}
 		throw err;
 	});
-};
+}
 
 const parseODataChangeset = (
 	csReferences: Map<ODataRequest['id'], ODataRequest>,

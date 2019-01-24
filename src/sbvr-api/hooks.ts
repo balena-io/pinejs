@@ -4,10 +4,12 @@ import { settleMapSeries } from './control-flow';
 
 export type RollbackAction = () => void | Promise<void>;
 export type HookFn = (...args: any[]) => any;
-type HookBluePrint = {
+export type HookBlueprint = {
 	HOOK: HookFn;
 	effects: boolean;
 };
+export type InstantiatedHooks<T extends object> = { [key in keyof T]: Hook[] };
+
 export class Hook {
 	constructor(private hookFn: HookFn) {}
 
@@ -47,15 +49,30 @@ export class SideEffectHook extends Hook {
 }
 
 // The execution order of rollback actions is unspecified
-const undoHooks = function(request: any) {
-	return settleMapSeries(_.flatten(_.values(request.hooks)), hook => {
-		if (hook instanceof SideEffectHook) {
-			return hook.rollback();
+const undoHooks = Promise.method(
+	(request: { hooks?: InstantiatedHooks<object> }) => {
+		if (request.hooks == null) {
+			return [];
 		}
-	});
-};
+		return settleMapSeries(
+			_(request.hooks)
+				.flatMap()
+				.compact()
+				.value(),
+			hook => {
+				if (hook instanceof SideEffectHook) {
+					return hook.rollback();
+				}
+			},
+		);
+	},
+);
 
-export const rollbackRequestHooks = function(request: any) {
+export const rollbackRequestHooks = (
+	request:
+		| { hooks?: InstantiatedHooks<object> }
+		| Array<{ hooks?: InstantiatedHooks<object> }>,
+) => {
 	if (_.isArray(request)) {
 		return settleMapSeries(request, undoHooks);
 	} else {
@@ -63,14 +80,17 @@ export const rollbackRequestHooks = function(request: any) {
 	}
 };
 
-export const instantiateHooks = function(hooks: any) {
-	return _.mapValues(hooks, typeHooks => {
-		return _.map(typeHooks, (hook: HookBluePrint) => {
+export const instantiateHooks = <
+	T extends { [key in keyof T]: HookBlueprint[] }
+>(
+	hooks: T,
+) =>
+	_.mapValues(hooks, typeHooks => {
+		return _.map(typeHooks, (hook: HookBlueprint) => {
 			if (hook.effects) {
 				return new SideEffectHook(hook.HOOK);
 			} else {
 				return new Hook(hook.HOOK);
 			}
 		});
-	});
-};
+	}) as InstantiatedHooks<T>;

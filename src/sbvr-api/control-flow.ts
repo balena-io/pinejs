@@ -1,12 +1,15 @@
 import * as _ from 'lodash';
 import * as Promise from 'bluebird';
+import { Resolvable } from './common-types';
 
-// TODO: We force the return type here to merge `Promise<U> | Promise<U[]>` into `Promise<U | U[]>,
-// which is equivalent for our uses but fixes issues where typing were being rejected
-export const liftP = <T, U>(
-	fn: (v: T) => U | Promise<U>,
-): ((a: T | T[]) => Promise<U | U[]>) => {
-	return (a: T | T[]) => {
+interface LiftedFn<T, U> {
+	(a: T[]): Promise<U[]>;
+	(a: T): Promise<U>;
+	(a: T | T[]): Promise<U[]> | Promise<U>;
+}
+
+export const liftP = <T, U>(fn: (v: T) => U | Promise<U>): LiftedFn<T, U> => {
+	return ((a: T | T[]) => {
 		if (_.isArray(a)) {
 			// This must not be a settle as if any operation fails in a changeset
 			// we want to discard the whole
@@ -14,11 +17,11 @@ export const liftP = <T, U>(
 		} else {
 			return Promise.resolve(a).then(fn);
 		}
-	};
+	}) as LiftedFn<T, U>;
 };
 
 export interface MappingFunction {
-	<T, U>(a: T[], fn: (v: T) => U | Promise<U>): Promise<Array<U | Error>>;
+	<T, U>(a: T[], fn: (v: T) => Resolvable<U>): Promise<Array<U | Error>>;
 }
 
 // The settle version of `Promise.mapSeries`
@@ -50,9 +53,12 @@ const wrap = <T>(p: Promise<T>) => {
 // Maps fn over collection and returns an array of Promises. If any promise in the
 // collection is rejected it returns an array with the error, along with all the
 // promises that were fulfilled up to that point
-const mapTill: MappingFunction = <T, U>(a: T[], fn: (v: T) => U) => {
+const mapTill: MappingFunction = <T, U>(
+	a: T[],
+	fn: (v: T) => Resolvable<U>,
+) => {
 	const runF = Promise.method(fn);
-	const results: Array<U | any> = [];
+	const results: Array<U | Error> = [];
 	return Promise.each(a, p => {
 		return runF(p)
 			.then(result => {
@@ -68,7 +74,10 @@ const mapTill: MappingFunction = <T, U>(a: T[], fn: (v: T) => U) => {
 
 // Used to obtain the appropriate mapping function depending on the
 // semantics specified by the Prefer: header.
-export const getMappingFn = (headers?: { prefer: string }): MappingFunction => {
+export const getMappingFn = (headers?: {
+	prefer?: string | string[];
+	[key: string]: string | string[] | undefined;
+}): MappingFunction => {
 	if (headers != null && headers.prefer == 'odata.continue-on-error') {
 		return settleMapSeries;
 	} else {
