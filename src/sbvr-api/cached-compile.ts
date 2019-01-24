@@ -25,12 +25,12 @@ const saveCache = _.debounce(() => {
 	}
 }, 5000);
 
-export const cachedCompile = (
+export const cachedCompile = <T>(
 	name: string,
 	version: string,
 	src: any,
-	fn: () => any,
-) => {
+	fn: () => T,
+): T => {
 	if (cache == null) {
 		if (fs != null) {
 			try {
