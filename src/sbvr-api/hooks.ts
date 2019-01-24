@@ -49,35 +49,23 @@ export class SideEffectHook extends Hook {
 }
 
 // The execution order of rollback actions is unspecified
-const undoHooks = Promise.method(
-	(request: { hooks?: InstantiatedHooks<object> }) => {
-		if (request.hooks == null) {
-			return [];
-		}
-		return settleMapSeries(
-			_(request.hooks)
-				.flatMap()
-				.compact()
-				.value(),
-			hook => {
-				if (hook instanceof SideEffectHook) {
-					return hook.rollback();
-				}
-			},
-		);
-	},
-);
-
 export const rollbackRequestHooks = (
-	request:
-		| { hooks?: InstantiatedHooks<object> }
-		| Array<{ hooks?: InstantiatedHooks<object> }>,
+	hooks: InstantiatedHooks<object> | undefined,
 ) => {
-	if (_.isArray(request)) {
-		return settleMapSeries(request, undoHooks);
-	} else {
-		return undoHooks(request);
+	if (hooks == null) {
+		return;
 	}
+	settleMapSeries(
+		_(hooks)
+			.flatMap()
+			.compact()
+			.value(),
+		hook => {
+			if (hook instanceof SideEffectHook) {
+				return hook.rollback();
+			}
+		},
+	);
 };
 
 export const instantiateHooks = <
