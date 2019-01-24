@@ -10,7 +10,7 @@
     "prepare": "npm run build",
     "build": "grunt build",
     "webpack-browser": "grunt webpack:browser",
-    "lint": "resin-lint src Gruntfile.coffee && resin-lint --typescript src",
+    "lint": "resin-lint src && resin-lint --typescript src build Gruntfile.ts",
     "test": "npm run lint && npm run build",
     "prettify": "prettier --config ./node_modules/resin-lint/config/.prettierrc --write \"{src,test,typings}/**/*.ts\""
   },
@@ -38,6 +38,7 @@
     "@types/passport-local": "1.0.33",
     "@types/passport-strategy": "^0.2.35",
     "@types/pg": "^6.1.47",
+    "@types/uglifyjs-webpack-plugin": "^1.1.0",
     "@types/websql": "0.0.27",
     "bluebird": "^3.5.3",
     "coffeescript": "^2.3.2",
@@ -53,6 +54,8 @@
     "typed-error": "^2.0.0"
   },
   "devDependencies": {
+    "@types/grunt": "^0.4.24",
+    "@types/webpack": "^1.12.36",
     "coffee-loader": "^0.9.0",
     "grunt": "^1.0.3",
     "grunt-check-dependencies": "^1.0.0",
@@ -91,7 +94,7 @@
     "pg": "^6.0.0",
     "pg-connection-string": "^2.0.0",
     "serve-static": "^1.9.1",
-    "ts-node": "^3.0.4"
+    "ts-node": "^8.0.1"
   },
   "engines": {
     "node": ">=4.0.0",
