@@ -1,5 +1,6 @@
 import * as path from 'path';
 import * as webpack from 'webpack';
+import { RequiredField } from '../src/sbvr-api/common-types';
 const root = path.dirname(__dirname);
 
 export = {
@@ -58,4 +59,7 @@ export = {
 			{ test: /\.json$/, loader: 'json-loader' },
 		],
 	},
-} as webpack.Configuration;
+} as RequiredField<
+	webpack.Configuration,
+	'plugins' | 'resolve' | 'externals'
+> & { externals: webpack.ExternalsObjectElement };
