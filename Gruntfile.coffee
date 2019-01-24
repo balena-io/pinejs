@@ -1,3 +1,5 @@
+require('ts-node/register/transpile-only')
+
 _ = require 'lodash'
 UglifyJsPlugin = require 'uglifyjs-webpack-plugin'
 

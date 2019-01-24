@@ -283,7 +283,7 @@ export const setup = (app: _express.Application) => {
 		}
 		if (require.extensions['.ts'] == null) {
 			try {
-				require('ts-node/register');
+				require('ts-node/register/transpile-only');
 			} catch (e) {}
 		}
 
