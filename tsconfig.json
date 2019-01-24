@@ -15,6 +15,7 @@
 		"resolveJsonModule": true
 	},
 	"include": [
+		"Gruntfile.ts",
 		"build/**/*.ts",
 		"src/**/*.ts",
 		"typings/**/*.d.ts"
