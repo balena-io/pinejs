@@ -2,14 +2,8 @@ import * as _ from 'lodash';
 import * as Promise from 'bluebird';
 import { Resolvable } from './common-types';
 
-interface LiftedFn<T, U> {
-	(a: T[]): Promise<U[]>;
-	(a: T): Promise<U>;
-	(a: T | T[]): Promise<U[]> | Promise<U>;
-}
-
-export const liftP = <T, U>(fn: (v: T) => U | Promise<U>): LiftedFn<T, U> => {
-	return ((a: T | T[]) => {
+export const liftP = <T, U>(fn: (v: T) => U | Promise<U>) => {
+	return (a: T | T[]): Promise<U[] | U> => {
 		if (_.isArray(a)) {
 			// This must not be a settle as if any operation fails in a changeset
 			// we want to discard the whole
@@ -17,7 +11,7 @@ export const liftP = <T, U>(fn: (v: T) => U | Promise<U>): LiftedFn<T, U> => {
 		} else {
 			return Promise.resolve(a).then(fn);
 		}
-	}) as LiftedFn<T, U>;
+	};
 };
 
 export interface MappingFunction {

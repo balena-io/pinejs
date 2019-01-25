@@ -840,14 +840,19 @@ exports.handleODataRequest = handleODataRequest = (req, res, next) ->
 				.then(compileRequest)
 				.tapCatch ->
 					rollbackRequestHooks(reqHooks)
-					rollbackRequestHooks(request)
+					rollbackRequestHooks(request.hooks)
 
 			.then (request) ->
 				# Run the request in its own transaction
 				runTransaction req, (tx) ->
 					tx.on 'rollback', ->
 						rollbackRequestHooks(reqHooks)
-						rollbackRequestHooks(request)
+						if _.isArray(request)
+							request.map ({ hooks }) ->
+								rollbackRequestHooks(hooks)
+						else
+							rollbackRequestHooks(request.hooks)
+
 					if _.isArray request
 						env = new Map()
 						Promise.reduce(request, runChangeSet(req, res, tx), env)
