@@ -7,6 +7,7 @@
 		"outDir": "out/",
 		"preserveConstEnums": true,
 		"removeComments": true,
+		"rootDir": "src",
 		"sourceMap": true,
 		"strictNullChecks": true,
 		"target": "es2015",
@@ -15,8 +16,6 @@
 		"resolveJsonModule": true
 	},
 	"include": [
-		"Gruntfile.ts",
-		"build/**/*.ts",
 		"src/**/*.ts",
 		"typings/**/*.d.ts"
 	]
