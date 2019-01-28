@@ -1,0 +1,1430 @@
+- version: 10.3.5
+  date: 2019-01-25T00:00:00.000Z
+  commits:
+    - subject: 'Re-add `rootDir` that was accidentally removed [Pagan Gazzard]'
+- version: 10.3.4
+  date: 2019-01-24T00:00:00.000Z
+  commits:
+    - subject: 'Fix rolling back req hooks [Pagan Gazzard]'
+- version: 10.3.3
+  date: 2019-01-24T00:00:00.000Z
+  commits:
+    - subject: 'Improve uri-parser typings [Pagan Gazzard]'
+    - subject: 'Improve hooks typings [Pagan Gazzard]'
+    - subject: 'Improve cached-compile typings [Pagan Gazzard]'
+    - subject: 'Improve control-flow typings [Pagan Gazzard]'
+- version: 10.3.2
+  date: 2019-01-24T00:00:00.000Z
+  commits:
+    - subject: 'Convert gruntfile to typescript [Pagan Gazzard]'
+    - subject: 'Convert build/server to typescript [Pagan Gazzard]'
+    - subject: 'Convert build/module to typescript [Pagan Gazzard]'
+    - subject: 'Convert build/browser to typescript [Pagan Gazzard]'
+    - subject: 'Convert build/config to typescript [Pagan Gazzard]'
+- version: 10.3.1
+  date: 2019-01-23T00:00:00.000Z
+  commits:
+    - subject: 'Convert odata-metadata-generator to typescript [Pagan Gazzard]'
+- version: 10.3.0
+  date: 2019-01-22T00:00:00.000Z
+  commits:
+    - subject: 'Convert permissions to typescript [Pagan Gazzard]'
+- version: 10.2.3
+  date: 2019-01-18T00:00:00.000Z
+  commits:
+    - subject: >-
+        Use the Engines enum for engines names to guarantee consistency [Pagan
+        Gazzard]
+- version: 10.2.2
+  date: 2019-01-17T00:00:00.000Z
+  commits:
+    - subject: 'Add prettier and a precommit hook [Pagan Gazzard]'
+- version: 10.2.1
+  date: 2019-01-16T00:00:00.000Z
+  commits:
+    - subject: >-
+        Add types for sbvr-parser and use es6 exports for extended-sbvr-parser
+        [Pagan Gazzard]
+- version: 10.2.0
+  date: 2019-01-16T00:00:00.000Z
+  commits:
+    - subject: 'Convert pinejs-session-store to typescript [Pagan Gazzard]'
+- version: 10.1.4
+  date: 2019-01-16T00:00:00.000Z
+  commits:
+    - subject: 'Add typings for odata-parser [Pagan Gazzard]'
+- version: 10.1.3
+  date: 2019-01-16T00:00:00.000Z
+  commits:
+    - subject: 'Fix nestedCheck and/or merging [Pagan Gazzard]'
+- version: 10.1.2
+  date: 2019-01-16T00:00:00.000Z
+  commits:
+    - subject: 'Minor code cleanup in the permissions module [Pagan Gazzard]'
+- version: 10.1.1
+  date: 2019-01-04T00:00:00.000Z
+  commits:
+    - subject: 'Use Promise.method instead of Promise.try [Pagan Gazzard]'
+- version: 10.1.0
+  date: 2018-12-14T00:00:00.000Z
+  commits:
+    - subject: >-
+        Make the $bypass version of definition based tables bypass permissions
+        [Pagan Gazzard]
+- version: 10.0.1
+  date: 2018-12-13T00:00:00.000Z
+  commits:
+    - subject: >-
+        Of course, chaning the variable to `metrics` means we have to update it
+        everywhere [dt-rush]
+    - subject: 'Renamed metricsEmitter to metrics [dt-rush]'
+    - subject: 'Small comment about query type [dt-rush]'
+    - subject: 'Using more efficient event emitter `eventemitter3` [dt-rush]'
+    - subject: 'Added db query time metric via event emitter on db module [dt-rush]'
+    - subject: >-
+        Query times report in ms, two metrics-TODO added for future improvements
+        [dt-rush]
+    - subject: 'Using more efficient event emitter `eventemitter3` [dt-rush]'
+    - subject: 'Send db error metrics [dt-rush]'
+    - subject: 'Added db query time metric via event emitter on db module [dt-rush]'
+- version: 10.0.0
+  date: 2018-12-07T00:00:00.000Z
+  commits:
+    - subject: 'Update to odata-to-abstract-sql v3.0.0 [Pagan Gazzard]'
+- version: 9.1.12
+  date: 2018-12-07T00:00:00.000Z
+  commits:
+    - subject: >-
+        Don't override existing definitions when generating the constrained sql
+        [Pagan Gazzard]
+    - subject: 'Use the table key when aliasing for the constrained key [Pagan Gazzard]'
+- version: 9.1.11
+  date: 2018-11-27T00:00:00.000Z
+  commits:
+    - subject: >-
+        Avoid unnecessary duplicated call to `addRelationshipBypasses` [Pagan
+        Gazzard]
+- version: 9.1.10
+  date: 2018-11-26T00:00:00.000Z
+  commits:
+    - subject: 'Merge concat and uniq into union for `checkPermissions` [Pagan Gazzard]'
+- version: 9.1.9
+  date: 2018-11-26T00:00:00.000Z
+  commits:
+    - subject: 'Avoid bluebird catch sugar for performance [Pagan Gazzard]'
+- version: 9.1.8
+  date: 2018-11-21T00:00:00.000Z
+  commits:
+    - subject: 'Support stripping explicit alias nodes [Pagan Gazzard]'
+- version: 9.1.7
+  date: 2018-11-17T00:00:00.000Z
+  commits:
+    - subject: 'Optimise `memoizedGetConstrainedModel` [Pagan Gazzard]'
+- version: 9.1.6
+  date: 2018-11-15T00:00:00.000Z
+  commits:
+    - subject: 'Optimise `checkForExpansion` [Pagan Gazzard]'
+- version: 9.1.5
+  date: 2018-11-05T00:00:00.000Z
+  commits:
+    - subject: 'Fix webpack builds [Pagan Gazzard]'
+- version: 9.1.4
+  date: 2018-11-05T00:00:00.000Z
+  commits:
+    - subject: 'Remove unused ometa-js dependency [Pagan Gazzard]'
+- version: 9.1.3
+  date: 2018-11-05T00:00:00.000Z
+  commits:
+    - subject: 'Update to coffeescript 2 [Pagan Gazzard]'
+- version: v9.1.2
+  date: 2018-11-05T00:00:00.000Z
+  commits:
+    - subject: 'Switch to `coffeescript` instead of `coffee-script` [Pagan Gazzard]'
+- version: v9.1.1
+  date: 2018-11-03T00:00:00.000Z
+  commits:
+    - subject: 'Update dependencies [Pagan Gazzard]'
+- version: v9.1.0
+  date: 2018-10-31T00:00:00.000Z
+  commits:
+    - subject: >-
+        Update odata-parser to 1.0.0 to switch to the pegjs version [Pagan
+        Gazzard]
+- version: v9.0.3
+  date: 2018-10-24T00:00:00.000Z
+  commits:
+    - subject: 'Remove unnecessary `do` block [Pagan Gazzard]'
+- version: v9.0.2
+  date: 2018-10-24T00:00:00.000Z
+  commits:
+    - subject: 'Move the insert id logging behind the DEBUG flag [Pagan Gazzard]'
+- version: v9.0.1
+  date: 2018-10-18T00:00:00.000Z
+  commits:
+    - subject: 'Improve typings [Pagan Gazzard]'
+- version: v9.0.0
+  date: 2018-10-12T00:00:00.000Z
+  commits:
+    - subject: >-
+        Reject internal requests with errors instead of numbers/strings [Pagan
+        Gazzard]
+    - subject: >-
+        Update abstract-sql-compiler to 6.x and sbvr-types to 2.x [Pagan
+        Gazzard]
+- version: v8.4.2
+  date: 2018-10-04T00:00:00.000Z
+  commits:
+    - subject: 'Resolve the root argument as an absolute path [Pagan Gazzard]'
+- version: v8.4.1
+  date: 2018-09-27T00:00:00.000Z
+  commits:
+    - subject: 'Merge hook/odata request types as they''re the same [Pagan Gazzard]'
+- version: v8.4.0
+  date: 2018-09-27T00:00:00.000Z
+  commits:
+    - subject: >-
+        Add `initSqlPath`/`initSql` which are run only on first model execution
+        [Pagan Gazzard]
+- version: v8.3.4
+  date: 2018-09-26T00:00:00.000Z
+  commits:
+    - subject: 'Convert config-loader to typescript [Pagan Gazzard]'
+- version: v8.3.3
+  date: 2018-09-26T00:00:00.000Z
+  commits:
+    - subject: 'Convert uri-parser to typescript [Pagan Gazzard]'
+- version: v8.3.2
+  date: 2018-09-26T00:00:00.000Z
+  commits:
+    - subject: >-
+        Skip typescript lib checking, fixing git install in some ts projects
+        [Pagan Gazzard]
+- version: v8.3.1
+  date: 2018-09-25T00:00:00.000Z
+  commits:
+    - subject: >-
+        Add a prepare script so it is possible to install via git [Pagan
+        Gazzard]
+- version: v8.3.0
+  date: 2018-09-24T00:00:00.000Z
+  commits:
+    - subject: >-
+        Add a migrations lock so only one pinejs instance will run migrations
+        [Pagan Gazzard]
+- version: v8.2.8
+  date: 2018-09-07T00:00:00.000Z
+  commits:
+    - subject: 'Update dependencies [Pagan Gazzard]'
+- version: v8.2.7
+  date: 2018-09-06T00:00:00.000Z
+  commits:
+    - subject: >-
+        Use a default message for any database errors not explicitly rewritten
+        [Pagan Gazzard]
+- version: v8.2.6
+  date: 2018-09-04T00:00:00.000Z
+  commits:
+    - subject: 'Expose actor type and add getApiKeyPermissions typing [Pagan Gazzard]'
+- version: v8.2.5
+  date: 2018-08-31T00:00:00.000Z
+  commits:
+    - subject: 'Add typing for hash comparisons [Pagan Gazzard]'
+- version: v8.2.4
+  date: 2018-08-29T00:00:00.000Z
+  commits:
+    - subject: 'More type improvements #199 [Pagan Gazzard]'
+- version: v8.2.3
+  date: 2018-08-29T00:00:00.000Z
+  commits:
+    - subject: 'More typing improvements #198 [Pagan Gazzard]'
+- version: v8.2.2
+  date: 2018-08-28T00:00:00.000Z
+  commits:
+    - subject: 'Improve typings #197 [Pagan Gazzard]'
+- version: v8.2.1
+  date: 2018-08-24T00:00:00.000Z
+  commits:
+    - subject: 'Improve/fix db-layer types #196 [Pagan Gazzard]'
+- version: v8.2.0
+  date: 2018-08-21T00:00:00.000Z
+  commits:
+    - subject: 'Convert the migrator to typescript #194 [Pagan Gazzard]'
+- version: v8.1.12
+  date: 2018-08-21T00:00:00.000Z
+  commits:
+    - subject: 'Add types for `resolveOdataBind` and `odataBinds` #195 [Pagan Gazzard]'
+- version: v8.1.11
+  date: 2018-08-20T00:00:00.000Z
+  commits:
+    - subject: >-
+        Export all the interfaces so they can be used downstream #193 [Pagan
+        Gazzard]
+- version: v8.1.10
+  date: 2018-08-15T00:00:00.000Z
+  commits:
+    - subject: 'Add a type for the exported `api` const #192 [Pagan Gazzard]'
+    - subject: 'Export the PinejsClient interface #192 [Pagan Gazzard]'
+    - subject: 'Add a type definition for `getAffectedIds` #192 [Pagan Gazzard]'
+- version: v8.1.9
+  date: 2018-08-15T00:00:00.000Z
+  commits:
+    - subject: 'Update dependencies #191 [Pagan Gazzard]'
+- version: v8.1.8
+  date: 2018-08-09T00:00:00.000Z
+  commits:
+    - subject: 'Update to typescript 3 #190 [Pagan Gazzard]'
+- version: v8.1.7
+  date: 2018-08-07T00:00:00.000Z
+  commits:
+    - subject: 'Fix missing `promise: true` for memoisation #189 [Pagan Gazzard]'
+- version: v8.1.6
+  date: 2018-08-07T00:00:00.000Z
+  commits:
+    - subject: >-
+        Switch to using memoizee for our guest permissions cache #187 [Pagan
+        Gazzard]
+- version: v8.1.5
+  date: 2018-08-01T00:00:00.000Z
+  commits:
+    - subject: 'Improve the typings we expose #186 [Pagan Gazzard]'
+- version: v8.1.4
+  date: 2018-08-01T00:00:00.000Z
+  commits:
+    - subject: >-
+        Throw a PermissionError on a missing apikey to return 401 instead of 404
+        #184 [Pagan Gazzard]
+- version: v8.1.3
+  date: 2018-08-01T00:00:00.000Z
+  commits:
+    - subject: >-
+        Improve `constructError` performance by avoiding unnecessary sugar work
+        #185 [Pagan Gazzard]
+- version: v8.1.2
+  date: 2018-07-20T00:00:00.000Z
+  commits:
+    - subject: >-
+        Fix `addPermissions` sometimes returning undefined rather than a
+        promise. #183 [Pagan Gazzard]
+- version: v8.1.1
+  date: 2018-07-19T00:00:00.000Z
+  commits:
+    - subject: 'Fix adding permissions for `getAffectedIds` #182 [Pagan Gazzard]'
+- version: v8.1.0
+  date: 2018-07-11T00:00:00.000Z
+  commits:
+    - subject: >-
+        Add `getAffectedIds` which can be used to get a list of ids a request
+        will affect. #181 [Pagan Gazzard]
+- version: v8.0.1
+  date: 2018-06-25T00:00:00.000Z
+  commits:
+    - subject: >-
+        Fix a promise was not returned from handler warning when using
+        end/rollback listeners. #180 [Pagan Gazzard]
+- version: v8.0.0
+  date: 2018-06-24T00:00:00.000Z
+  commits:
+    - subject: 'Move pg settings to env.ts #179 [Pagan Gazzard]'
+    - subject: 'Standardise the api key cache settings location. #179 [Pagan Gazzard]'
+    - subject: >-
+        Only apply the user's actor to user permissions and api key actor to api
+        key permissions, and block actor ids for guests completely. #179 [Pagan
+        Gazzard]
+    - subject: >-
+        Switch from `$ACTOR.ID` to the more standard `@__ACTOR_ID` for the actor
+        id parameter. #179 [Pagan Gazzard]
+    - subject: >-
+        Reduce the number of calls to `getPermissionsLookup` by passing around
+        the already fetched permissions lookup object. #179 [Pagan Gazzard]
+    - subject: >-
+        Reuse the odata parsing memoisation between the uri-parser and
+        permissions checking #179 [Pagan Gazzard]
+    - subject: 'Memoize the rewriting of odata options #179 [Pagan Gazzard]'
+    - subject: >-
+        Convert permissions to being applied at the SQL level via definitions
+        where possible, rather than via merging OData filters. #179 [Pagan
+        Gazzard]
+- version: v7.4.0
+  date: 2018-06-08T00:00:00.000Z
+  commits:
+    - subject: 'Add support for string bind keys #178 [Pagan Gazzard]'
+- version: v7.3.4
+  date: 2018-06-07T00:00:00.000Z
+  commits:
+    - subject: 'Removed broken link for clarity #177 [Rich Bayliss]'
+- version: v7.3.3
+  date: 2018-05-18T00:00:00.000Z
+  commits:
+    - subject: 'Update dependencies. #176 [Pagan Gazzard]'
+- version: v7.3.2
+  date: 2018-05-17T00:00:00.000Z
+  commits:
+    - subject: >-
+        Reduce the default max size for permissions lookup to 5000 #175 [Pagan
+        Gazzard]
+- version: v7.3.1
+  date: 2018-05-10T00:00:00.000Z
+  commits:
+    - subject: >-
+        Memoize the replacement of `$ACTOR.ID` as part of getting the
+        permissions lookup object. #174 [Pagan Gazzard]
+- version: v7.3.0
+  date: 2018-05-08T00:00:00.000Z
+  commits:
+    - subject: >-
+        Add typed errors for the primary http response statuses #172 [Thodoris
+        Greasidis]
+- version: v7.2.1
+  date: 2018-05-07T00:00:00.000Z
+  commits:
+    - subject: 'Fix missing env requires. #173 [Pagan Gazzard]'
+- version: v7.2.0
+  date: 2018-05-04T00:00:00.000Z
+  commits:
+    - subject: >-
+        Add a setting for max cache entries for the odata to abstract sql cache,
+        and default to 10000. #170 [Pagan Gazzard]
+    - subject: >-
+        Add a setting for max cache entries for the odata to abstract sql cache,
+        and default to 10000. #170 [Pagan Gazzard]
+    - subject: >-
+        Add a setting for max cache entries for the odata parsing cache, and
+        default to 100000. #170 [Pagan Gazzard]
+    - subject: >-
+        Add a setting for max cache entries for the parsing permissions cache,
+        and default to 100000. #170 [Pagan Gazzard]
+    - subject: >-
+        Add a setting for max cache entries for the permissions lookup cache,
+        and default to 10000. #170 [Pagan Gazzard]
+    - subject: >-
+        Increase the default max apiKey permissions cached to 10000 #170 [Pagan
+        Gazzard]
+    - subject: 'Convert env.coffee to typescript #170 [Pagan Gazzard]'
+- version: v7.1.2
+  date: 2018-05-03T00:00:00.000Z
+  commits:
+    - subject: 'Remove unused dependencies #169 [Pagan Gazzard]'
+- version: v7.1.1
+  date: 2018-05-02T00:00:00.000Z
+  commits:
+    - subject: >-
+        Remove ometajs loader registration, since we use a separate build step
+        now. #166 [Pagan Gazzard]
+- version: v7.1.0
+  date: 2018-05-02T00:00:00.000Z
+  commits:
+    - subject: >-
+        Add a model compilation cache to improve startup times. #167 [Pagan
+        Gazzard]
+- version: v7.0.2
+  date: 2018-05-01T00:00:00.000Z
+  commits:
+    - subject: >-
+        Switch types to using generated declaration files, this solves issues
+        where the global typings we use are unavailable for dependent typescript
+        projects. #165 [Pagan Gazzard]
+- version: v7.0.1
+  date: 2018-04-30T00:00:00.000Z
+  commits:
+    - subject: 'Add node 10 to the test matrix. #163 [Pagan Gazzard]'
+- version: v7.0.0
+  date: 2018-04-30T00:00:00.000Z
+  commits:
+    - subject: >-
+        Remove the callback interface from `checkPermissions`, which greatly
+        simplifies the code. #149 [Pagan Gazzard]
+    - subject: >-
+        Remove unused callback interface for `_getGuestPermissions` #149 [Pagan
+        Gazzard]
+    - subject: >-
+        Update the abstract-sql chain to a version that uses the resource name
+        for references files rather than the table name #149 [Pagan Gazzard]
+    - subject: >-
+        Cache the modified fields as part of the abstractSqlQuery compilation
+        #149 [Pagan Gazzard]
+    - subject: >-
+        Remove the database-layer callback interface, simplifying the code. #149
+        [Pagan Gazzard]
+    - subject: >-
+        Convert most of the database layer to using prototype functions rather
+        than bound functions #149 [Pagan Gazzard]
+    - subject: >-
+        Use `Object.freeze` to prevent mutating the cached abstract sql which
+        allows us to skip a costly Object.freeze #149 [Pagan Gazzard]
+    - subject: >-
+        Update to abstract-sql-compiler which now generates native postgres
+        bindings. #149 [Pagan Gazzard]
+    - subject: >-
+        Remove special handling for arrays in the pg layer, node-pg support
+        array binds now. #149 [Pagan Gazzard]
+    - subject: >-
+        Remove the ability to use `undefined` to generate a default value, as
+        undefined can't exist in tthe JSON body anyway. #149 [Pagan Gazzard]
+    - subject: >-
+        Change the `rows` property of a db result from a websql-like format to a
+        standard array. #149 [Pagan Gazzard]
+    - subject: >-
+        Generate es2015 output, dropping support for node 4. #149 [Pagan
+        Gazzard]
+    - subject: >-
+        Return a 401 when a POST fails to create any resources. #149 [Pagan
+        Gazzard]
+    - subject: >-
+        Fix prettifying db errors, making the thrown constraint errors a bit
+        nicer again. #149 [Pagan Gazzard]
+    - subject: 'Update to pinejs-client-core 5.x #149 [Pagan Gazzard]'
+    - subject: >-
+        Cancel any ongoing work when the request/response is closed. #149 [Pagan
+        Gazzard]
+    - subject: >-
+        Change `db.transaction` to take a fn that after completing will
+        automatically close/rollback the transaction, handling cancellation
+        nicely #149 [Pagan Gazzard]
+    - subject: >-
+        Add rollback function for hooks that perform side-effects. #149
+        [Giovanni Garufi]
+- version: v6.10.9
+  date: 2018-04-26T00:00:00.000Z
+  commits:
+    - subject: >-
+        Generate a lookup object for permissions and use it to speed up checking
+        permissions. #161 [Pagan Gazzard]
+- version: v6.10.8
+  date: 2018-04-26T00:00:00.000Z
+  commits:
+    - subject: >-
+        Generate local and fetch processing fields caches as part of executing
+        the model, avoiding the need to generate them on the fly later. #160
+        [Pagan Gazzard]
+- version: v6.10.7
+  date: 2018-04-26T00:00:00.000Z
+  commits:
+    - subject: >-
+        Memoize resolveSynonym as it's called very regularly #162 [Pagan
+        Gazzard]
+- version: v6.10.6
+  date: 2018-04-19T00:00:00.000Z
+  commits:
+    - subject: >-
+        Remove the delayed sql compilation for batch requests with content
+        references as only the execution needs to be delayed. #157 [Pagan
+        Gazzard]
+- version: v6.10.5
+  date: 2018-04-17T00:00:00.000Z
+  commits:
+    - subject: >-
+        Avoid fetching the full response on internal POSTs where possible #156
+        [Pagan Gazzard]
+- version: v6.10.4
+  date: 2018-04-06T00:00:00.000Z
+  commits:
+    - subject: >-
+        Avoid the work of defining a property if there are no hooks that will
+        use it. #153 [Pagan Gazzard]
+- version: v6.10.3
+  date: 2018-04-06T00:00:00.000Z
+  commits:
+    - subject: >-
+        Avoid running `bindDefaultValues` for postgres since the postgres bind
+        handling already handles it #152 [Pagan Gazzard]
+- version: v6.10.2
+  date: 2018-04-06T00:00:00.000Z
+  commits:
+    - subject: >-
+        Switch to using the array form for _.get, improving performance in a hot
+        function. #151 [Pagan Gazzard]
+- version: v6.10.1
+  date: 2018-04-05T00:00:00.000Z
+  commits:
+    - subject: >-
+        Fix getStackTrace to respect the DEBUG setting correctly, and use _.noop
+        for the noop version. #150 [Pagan Gazzard]
+- version: v6.10.0
+  date: 2018-04-03T00:00:00.000Z
+  commits:
+    - subject: >-
+        Add grunt command to build and copy out folder to target directory. #143
+        [Giovanni Garufi]
+- version: v6.9.7
+  date: 2018-03-29T00:00:00.000Z
+  commits:
+    - subject: >-
+        Add the $ prefix to all pinejs-client options since the automatic
+        prefixing is deprecated #148 [Pagan Gazzard]
+- version: v6.9.6
+  date: 2018-03-29T00:00:00.000Z
+  commits:
+    - subject: >-
+        Remove references to pinejs being private from the docs as it's been
+        public for a while #146 [Pagan Gazzard]
+- version: v6.9.5
+  date: 2018-03-29T00:00:00.000Z
+  commits:
+    - subject: 'Fix rethrowing a nicer db error. #147 [Pagan Gazzard]'
+- version: v6.9.4
+  date: 2018-03-28T00:00:00.000Z
+  commits:
+    - subject: >-
+        Switch to using `tapCatch` instead of manually rethrowing where possible
+        #144 [Pagan Gazzard]
+- version: v6.9.3
+  date: 2018-03-22T00:00:00.000Z
+  commits:
+    - subject: 'Simplify creating transactions #141 [Pagan Gazzard]'
+- version: v6.9.2
+  date: 2018-03-22T00:00:00.000Z
+  commits:
+    - subject: >-
+        Avoid memoising the bind length in parsePermissions, allowing a higher
+        cache hit rate and lower memory usage. #140 [Pagan Gazzard]
+- version: v6.9.1
+  date: 2018-03-19T00:00:00.000Z
+  commits:
+    - subject: >-
+        Return a rejected promise rather than killing the process when failing
+        to connect. #138 [Pagan Gazzard]
+- version: v6.9.0
+  date: 2018-03-14T00:00:00.000Z
+  commits:
+    - subject: >-
+        Update @resin/odata-parser, @resin/odata-to-abstract-sql,
+        @resin/sbvr-types, and pinejs-client #137 [Pagan Gazzard]
+- version: v6.8.1
+  date: 2018-03-13T00:00:00.000Z
+  commits:
+    - subject: >-
+        Remove _getPermissions cache as it had far too many combinations. #136
+        [Pagan Gazzard]
+- version: v6.8.0
+  date: 2018-03-06T00:00:00.000Z
+  commits:
+    - subject: 'Memoise basic odata queries. #135 [Pagan Gazzard]'
+- version: v6.7.1
+  date: 2018-03-06T00:00:00.000Z
+  commits:
+    - subject: 'Fix some lint errors. #134 [Pagan Gazzard]'
+- version: v6.7.0
+  date: 2018-03-03T00:00:00.000Z
+  commits:
+    - subject: >-
+        Only create errors for nice stack traces in debug mode due to the
+        overhead it causes #130 [Pagan Gazzard]
+- version: v6.6.3
+  date: 2018-03-03T00:00:00.000Z
+  commits:
+    - subject: 'Fix permissions memoisation #133 [Pagan Gazzard]'
+- version: v6.6.2
+  date: 2018-03-02T00:00:00.000Z
+  commits:
+    - subject: >-
+        Memoise checking the permissions that apply to the current request #128
+        [Pagan Gazzard]
+- version: v6.6.1
+  date: 2018-03-02T00:00:00.000Z
+  commits:
+    - subject: 'Memoise getting hooks for the request #126 [Pagan Gazzard]'
+- version: v6.6.0
+  date: 2018-03-02T00:00:00.000Z
+  commits:
+    - subject: >-
+        Add a forbidden error type that results in a 403 http error code #132
+        [Andreas Fitzek]
+- version: v6.5.1
+  date: 2018-03-02T00:00:00.000Z
+  commits:
+    - subject: >-
+        Move search path setting to be run once in a pool hook on client
+        creation, rather than for each transaction #127 [Pagan Gazzard]
+- version: v6.5.0
+  date: 2018-02-22T00:00:00.000Z
+  commits:
+    - subject: >-
+        Add a `returnResource` option to POST requests, which when set will
+        return only the id in the response and save fetching the entire result
+        #123 [Pagan Gazzard]
+- version: v6.4.3
+  date: 2018-02-22T00:00:00.000Z
+  commits:
+    - subject: >-
+        Switch to using memoizee instead of bluebird-lru-cache #122 [Pagan
+        Gazzard]
+- version: v6.4.2
+  date: 2018-02-22T00:00:00.000Z
+  commits:
+    - subject: >-
+        Cache the api key's actor id along with its permissions, meaning we
+        don't have to continually refetch it. #121 [Pagan Gazzard]
+- version: v6.4.1
+  date: 2018-02-09T00:00:00.000Z
+  commits:
+    - subject: 'Simplify `runTransaction` #120 [Pagan Gazzard]'
+- version: v6.4.0
+  date: 2018-01-31T00:00:00.000Z
+  commits:
+    - subject: 'Export sbvr-api errors #119 [Thodoris Greasidis]'
+- version: v6.3.4
+  date: 2018-01-29T00:00:00.000Z
+  commits:
+    - subject: >-
+        Propagate the error message of BadRequestErrors #118 [Thodoris
+        Greasidis]
+- version: v6.3.3
+  date: 2018-01-24T00:00:00.000Z
+  commits:
+    - subject: >-
+        Fix backwards incompatible change introduced by #109 #114 [Pagan
+        Gazzard]
+- version: v6.3.2
+  date: 2018-01-12T00:00:00.000Z
+  commits:
+    - subject: >-
+        Delete hooks from the external req object after setting them on the
+        internal request. This prevents hooks by being collected twice in
+        runHook #112 [Giovanni Garufi]
+- version: v6.3.1
+  date: 2018-01-11T00:00:00.000Z
+  commits:
+    - subject: 'Fix missing argument in translateUri function #110 [Giovanni Garufi]'
+- version: v6.3.0
+  date: 2018-01-11T00:00:00.000Z
+  commits:
+    - subject: >-
+        Save request specific hooks on the request object so they don't get
+        mixed up in batch requests. #101 [Giovanni Garufi]
+- version: v6.2.0
+  date: 2018-01-10T00:00:00.000Z
+  commits:
+    - subject: 'Add generic `canAccess` action for every resource #98 [Andreas Fitzek]'
+- version: v6.1.0
+  date: 2018-01-09T00:00:00.000Z
+  commits:
+    - subject: >-
+        Expose `permissions.addPermissions` so it is possible to add permissions
+        directly #102 [Pagan Gazzard]
+- version: v6.0.0
+  date: 2018-01-09T00:00:00.000Z
+  commits:
+    - subject: >-
+        Store the abstract SQL model for a request on the request object, and
+        use it when resolving navigations and synonyms. #106 [Pagan Gazzard]
+- version: v5.3.2
+  date: 2018-01-09T00:00:00.000Z
+  commits:
+    - subject: >-
+        Use get/set properties to define a passthrough for the fake filter
+        objects to the real ones so that permissions are applied correctly. #109
+        [Pagan Gazzard]
+- version: v5.3.1
+  date: 2018-01-05T00:00:00.000Z
+  commits:
+    - subject: 'Update dependencies #107 [Pagan Gazzard]'
+- version: v5.3.0
+  date: 2018-01-04T00:00:00.000Z
+  commits:
+    - subject: >-
+        Allow hooks to generate a custom abstractSqlQuery that will be used
+        instead of generating our own. #105 [Pagan Gazzard]
+- version: v5.2.19
+  date: 2018-01-04T00:00:00.000Z
+  commits:
+    - subject: >-
+        Improve error message when resolving a navigation resource fails because
+        we find a direct field rather than a navigation #104 [Pagan Gazzard]
+- version: v5.2.18
+  date: 2018-01-04T00:00:00.000Z
+  commits:
+    - subject: >-
+        Remove undefined values from the body of internal requests to match what
+        happens during an external/http request #103 [Pagan Gazzard]
+- version: v5.2.17
+  date: 2017-12-11T00:00:00.000Z
+  commits:
+    - subject: 'Publish the available typings #97 [Pagan Gazzard]'
+- version: v5.2.16
+  date: 2017-11-29T00:00:00.000Z
+  commits:
+    - subject: 'Set up circleci auto-publishing #96 [Pagan Gazzard]'
+- version: v5.2.15
+  date: 2017-11-26T00:00:00.000Z
+  commits:
+    - subject: >-
+        Improve error message when api key permission checking fails, and just
+        use no permissions for that case rather than rejecting the entire check.
+        #95 [Pagan Gazzard]
+- version: v5.2.14
+  date: 2017-11-20T00:00:00.000Z
+  commits:
+    - subject: >-
+        Guarantee that any error returned from the settle functions is an error
+        object, this fixes later code that checks if an error was returned by
+        using `_.isError` #94 [Pagan Gazzard]
+- version: v5.2.13
+  date: 2017-10-25T00:00:00.000Z
+  commits:
+    - subject: 'Convert control-flow to typescript #83 [Pagan Gazzard]'
+- version: v5.2.12
+  date: 2017-10-20T00:00:00.000Z
+  commits:
+    - subject: 'Add a circle.yml to test on CircleCI #90 [Pablo Carranza Velez]'
+- version: v5.2.11
+  date: 2017-10-19T00:00:00.000Z
+  commits:
+    - subject: >-
+        Clone the abstract sql tree before returning to ensure hooks cannot
+        mutate and pollute the cache #88 [Pagan Gazzard]
+- version: v5.2.10
+  date: 2017-10-11T00:00:00.000Z
+  commits:
+    - subject: >-
+        Added Apache-2.0 license and updated repository link in package.json #81
+        [Giovanni Garufi]
+- version: v5.2.9
+  date: 2017-10-09T00:00:00.000Z
+  commits:
+    - subject: 'Update lf-to-abstract-sql to ^1.0.3 to include fixes #87 [Pagan Gazzard]'
+- version: v5.2.8
+  date: 2017-10-02T00:00:00.000Z
+  commits:
+    - subject: >-
+        Added test and build scripts to package.json, making it easier to build
+        pinejs #86 [Pagan Gazzard]
+- version: v5.2.7
+  date: 2017-10-02T00:00:00.000Z
+  commits:
+    - subject: >-
+        Improve the error message when failing to resolve a navigation by using
+        the name the user provided rather than the resolved name #84 [Pagan
+        Gazzard]
+- version: v5.2.6
+  date: 2017-09-27T00:00:00.000Z
+  commits:
+    - subject: 'Update typescript to ^2.5.3 #80 [Giovanni Garufi]'
+- version: v5.2.5
+  date: 2017-09-27T00:00:00.000Z
+  commits:
+    - subject: >-
+        Improve error message when trying to resolve an invalid navigation #79
+        [Pagan Gazzard]
+- version: v5.2.4
+  date: 2017-09-25T00:00:00.000Z
+  commits:
+    - subject: >-
+        Fix error where we used a fat arrow function but we needed standard
+        function semantics. #78 [Pagan Gazzard]
+- version: v5.2.3
+  date: 2017-09-25T00:00:00.000Z
+  commits:
+    - subject: 'Convert extended-sbvr-parser to typescript #77 [Pagan Gazzard]'
+- version: v5.2.2
+  date: 2017-09-22T00:00:00.000Z
+  commits:
+    - subject: 'Added Advanced Usage guide and improved docs #28 [Giovanni Garufi]'
+- version: v5.2.1
+  date: 2017-09-22T00:00:00.000Z
+  commits:
+    - subject: >-
+        Added permission check on resource involved in OData filters #63
+        [Giovanni Garufi]
+- version: v5.2.0
+  date: 2017-09-22T00:00:00.000Z
+  commits:
+    - subject: 'Convert db to typescript #57 [Pagan Gazzard]'
+- version: v5.1.5
+  date: 2017-09-21T00:00:00.000Z
+  commits:
+    - subject: 'Remove an unnecessary warning #76 [Pagan Gazzard]'
+- version: v5.1.4
+  date: 2017-09-21T00:00:00.000Z
+  commits:
+    - subject: 'Add some missing migration steps #75 [Pagan Gazzard]'
+- version: v5.1.3
+  date: 2017-09-20T00:00:00.000Z
+  commits:
+    - subject: >-
+        Rework the checking if a rule is affected to be clearer about the
+        reasoning for each case and fix a couple #67 [Pagan Gazzard]
+- version: v5.1.2
+  date: 2017-09-20T00:00:00.000Z
+  commits:
+    - subject: 'Use Promise.mapSeries to run migrations #74 [Cameron Diver]'
+- version: v5.1.1
+  date: 2017-09-20T00:00:00.000Z
+  commits:
+    - subject: >-
+        Update lf-to-abstract-sql to guarantee including the negation fix. #73
+        [Pagan Gazzard]
+- version: v5.1.0
+  date: 2017-09-19T00:00:00.000Z
+  commits:
+    - subject: >-
+        Fixed rule validation that would fail with unbound values #71 [Akis
+        Kesoglou]
+- version: v5.0.3
+  date: 2017-09-04T00:00:00.000Z
+  commits:
+    - subject: >-
+        Disable affected rule optimisation to guarantee all relevant rules are
+        always run, guaranteeing the database cannot enter an invalid state #68
+        [Pagan Gazzard]
+- version: v5.0.2
+  date: 2017-09-04T00:00:00.000Z
+  commits:
+    - subject: >-
+        Fix check for matching fields when deciding if a rule needs to run. #66
+        [Pagan Gazzard]
+- version: v5.0.1
+  date: 2017-08-31T00:00:00.000Z
+  commits:
+    - subject: 'Added versionist #65 [Giovanni Garufi]'
+- version: v5.0.0
+  commits:
+    - subject: Converted sql-binds to typescript
+    - subject: Updated sbvr-parser to ^0.1.0
+    - subject: Updated lf-to-abstract-sql to ^1.0.0
+    - subject: >-
+        Breaking: verbs are now included in field names (except for `has`), eg
+        `pilot can fly plane` now creates a field called `can fly-plane` instead
+        of `plane`, allowing multiple relationships between two terms
+    - subject: >-
+        Adds relationship and synonym info to the generated abstract sql for
+        odata-to-abstract-sql to use
+    - subject: >-
+        Updated odata-to-abstract-sql to ^1.0.0, which supports
+        lf-to-abstract-sql v1.0.0
+    - subject: >-
+        Breaking: table names now use ` ` rather than `_` within terms and verbs
+        and `-` between them (matching the way fields are named)
+    - subject: >-
+        Breaking: requires verbs to specify the relationship between two terms,
+        eg `pilot/plane` becomes `pilot/can_fly__plane`
+    - subject: >-
+        Adds support for synonym and synonymous form usage, which makes it
+        possible to specify the direction of a relationship for self-referential
+        fields.
+    - subject: >-
+        Removed abstract-sql-to-odata-schema as it is no longer needed, since
+        the abstract-sql now has all the info necessary.
+- version: v4.0.0
+  commits:
+    - subject: 'Changed permission name to text, to allow unlimited length permissions'
+    - subject: Separated out the client
+    - subject: Added OData batch support
+    - subject: >-
+        Added the ability to pass a custom properties object through the
+        internal api that will be available as `req.custom` in any hooks.
+    - subject: Only run rules if a field they query has been attempted to be changed.
+    - subject: Updated pinejs-client to ^4.0.0
+    - subject: Converted src/server/src/server-glue/server.coffee to typescript.
+    - subject: >-
+        Converted src/server/src/passport-pinejs/passport-pinejs.coffee to
+        typescript.
+    - subject: Converted src/server/src/server-glue/module.coffee to typescript.
+    - subject: Added support for typescript within pinejs.
+- version: v3.5.2
+  commits:
+    - subject: Use a proper $count in pinejs-session-store.
+    - subject: >-
+        Use PATCH rather than PUT to update models to avoid issues with db
+        layers that don't support `SET x = DEFAULT`
+    - subject: >-
+        Use null-loader for pg/lib/connection-parameters in browser builds to
+        avoid a webpack warning.
+    - subject: >-
+        Update to jquery-ui ^1.12.1 and rely on the `main` in package.json for
+        resolution so it can stay up to date.
+- version: v3.5.1
+  commits:
+    - subject: >-
+        Add a .npmignore to make sure the output folder isn't ignored on
+        publishing.
+- version: v3.5.0
+  commits:
+    - subject: >-
+        Compile all of the common/server coffee-script at prepublish time, so
+        that it doesn't need to be compiled by dependents.
+    - subject: Use `process.exit(1)` when exiting abnormally
+    - subject: >-
+        Don't try to register the coffee-script loader if one already exists, it
+        allows for using custom coffee-script loaders.
+- version: v3.4.0
+  commits:
+    - subject: >-
+        Map permissions in serial to make sure binds are always added in the
+        same order/location to aid cache hits.
+    - subject: >-
+        Avoid even loading the SBVRServer and http-transactions code in the
+        cases where they're disabled
+    - subject: Always register the .sbvr and .ometajs handlers when running in nodejs
+- version: v3.3.1
+  commits:
+    - subject: Fixed a typo in unique constraint violation error message.
+- version: v3.3.0
+  commits:
+    - subject: Fixed unique constraint violation error message.
+    - subject: Updated coffee-script to ~1.12.2
+    - subject: Updated pinejs-client to ^3.0.0
+    - subject: Updated dev/bower dependencies
+- version: v3.2.0
+  commits:
+    - subject: >-
+        Updated lf-to-abstract-sql to v0.0.19 to include the concept types
+        optimisation.
+- version: v3.1.1
+  commits:
+    - subject: >-
+        Fixed expanding foreign keys where the foreign key attribute was on the
+        other resource.
+- version: v3.1.0
+  commits:
+    - subject: >-
+        Skip attempting to apply field processing if there are no fields needing
+        it.
+    - subject: >-
+        Added caching for the lists of expandable fields and fields requiring
+        processing.
+    - subject: 'Removed the try/catch in uri parsing, allowing v8 optimisation'
+    - subject: Improved error messages when uri parsing fails
+- version: v3.0.0
+  commits:
+    - subject: >-
+        Reimplemented memoisation of the permissions partial parse which was
+        removed in the bind vars update. (test case went from ~2.9s warm to
+        ~2.6s warm)
+    - subject: >-
+        Updated odata-to-abstract-sql and added memoisation of the translate
+        step. (test case went from ~3.2s warm to ~2.9s warm)
+    - subject: >-
+        Update to odata-parser/odata-to-abstract-sql/abstract-sql-compiler
+        versions with support for odata binds and use it to memoise the abstract
+        sql compilation step (test case went from ~8.4s warm to ~4.3s warm).
+- version: v2.3.1
+  commits:
+    - subject: Allow passing userId as a numeric string to `getUserPermissions`.
+- version: v2.3.0
+  commits:
+    - subject: >-
+        Converted sql binds parsing from ometa to coffeescript, it reduces my
+        test case (matching production usage) from ~1300ms to ~100ms
+    - subject: >-
+        Used webpack's resolve.extensions to remove the need for adding .coffee
+        to require calls.
+    - subject: Updated pg to ^6.0.0 and use an explicit pool.
+    - subject: Updated memoizee
+    - subject: Updated dev dependencies.
+    - subject: Update documentation
+    - subject: Fix use of multer in server builds
+- version: v2.2.0
+  commits:
+    - subject: >-
+        Updated sbvr-parser and lf-to-abstract-sql to add support for concept
+        types on term form fact types.
+- version: v2.1.1
+  commits:
+    - subject: Fixed getting api key actor ids
+    - subject: Fixed the 2.0-add-actors migrations
+- version: v2.1.0
+  commits:
+    - subject: >-
+        Updated odata-to-abstract-sql and switch to using `setClientModel` to
+        have it shorten aliases when necessary.
+    - subject: Fixed invalid permission filters not being rejected.
+    - subject: Return result for $count
+    - subject: Updated to abstract-sql-compiler 2.1.0
+    - subject: Updated to odata-parser 0.1.10
+    - subject: Updated to odata-to-abstract-sql 0.3.5
+- version: v2.0.0
+  commits:
+    - subject: >-
+        Return a 400 error when a request ends fails SBVR model validation
+        (previously 404).
+    - subject: >-
+        Switched to adding users/permissions after a model and it's migrations
+        are run, this makes it much easier to migrate permissions.
+    - subject: >-
+        Added a concept of actors and switched the permission filter `$USER.ID`
+        magic to be `$ACTOR.ID`
+    - subject: >-
+        Updated to abstract-sql-compiler 2.0.0, meaning empty strings are no
+        longer treated as null.
+    - subject: >-
+        Dropped expressjs3 compatibility, fixing deprecated notices on
+        expressjs4.
+    - subject: Added expiry date fields onto the permissions system.
+- version: v1.4.2
+  commits:
+    - subject: >-
+        Updated minimum odata-to-abstract-sql to v0.3.4 in order to bring in
+        support for self-referencing resources (eg application depends on
+        application)
+- version: v1.4.1
+  commits:
+    - subject: >-
+        Added PREPARSE hooks and use them in the permissions module in order to
+        be backwards compatible with the behavior in <1.4.0
+- version: v1.4.0
+  commits:
+    - subject: >-
+        Isolated the http transactions code purely into a module so it is
+        optional.
+    - subject: >-
+        Separated permissions into a mostly isolated module, using proper hooks
+        instead of hardcoded hooks.
+    - subject: Added support for 'all' hooks on the api and method levels.
+    - subject: >-
+        Switched to throwing specific errors for unique/foreign key/general
+        constraint errors, rather than always just a generic database error.
+    - subject: Converted cases of throwing strings into throwing error objects.
+    - subject: >-
+        Separated out the api key permissions cache settings so they can be
+        overridden if need be.
+- version: v1.3.0
+  commits:
+    - subject: >-
+        Updated odata-parser, odata-to-abstract-sql, and abstract-sql-compiler
+        to add support for date/time functions and some bugfixes.
+    - subject: Added memoisation for permission filter generating.
+    - subject: Simplified permission filter checking.
+    - subject: Respond with 400 Bad Request to malformed odata queries.
+    - subject: Avoid recreating the collapse function.
+    - subject: Separated out the OData schema generation.
+- version: v1.2.0
+  commits:
+    - subject: Updated to pinejs-client ^2.3.1 and remove deprecated uses of it.
+- version: v1.1.0
+  commits:
+    - subject: Added express 4 compatibility.
+- version: v1.0.5
+  commits:
+    - subject: Fixed 'all' hooks overriding resource hooks.
+    - subject: Fixed `read` permission for $expands.
+- version: v1.0.3
+  commits:
+    - subject: Updated to lodash 4
+    - subject: >-
+        Updated pinejs-client to ^2.1.1 to make sure the escaping fix is
+        included.
+    - subject: >-
+        The OData functions `startswith` and `endswith` are now correctly
+        `(haystack, needle)` instead of `(needle, haystack)`
+    - subject: >-
+        Changed the 'POSTPARSE' hook to run immediately after the uri parsing,
+        before any permissions are added.
+    - subject: >-
+        Added support for hooks on the 'all' resource, which will be run for any
+        resource.
+    - subject: Updated to bluebird 3.
+- version: v0.6.4
+  commits:
+    - subject: >-
+        Updated odata-to-abstract-sql to ~0.3.0 and abstract-sql-compiler to
+        ~0.4.2.
+    - subject: Added bower to the local dependencies.
+- version: v0.6.3
+  commits:
+    - subject: >-
+        Update odata-to-abstract-sql to ~0.2.6 to guarantee the $expand($expand)
+        fix is available.
+- version: v0.6.2
+  commits:
+    - subject: >-
+        Now returns 201 with `{ id }` instead of 401 when creating a resource
+        without permission to read it.
+- version: v0.6.1
+  commits:
+    - subject: >-
+        Updated abstract-sql-compiler and switched to using it for schema
+        generation.
+- version: v0.6.0
+  commits:
+    - subject: >-
+        Removed the default root permissions for internal requests, you must now
+        explicitly specify them.
+- version: v0.5.6
+  commits:
+    - subject: >-
+        Pass an `api` instance to hooks, which is bound to the same user and
+        transaction scope as the original request.
+- version: v0.5.5
+  commits:
+    - subject: >-
+        Added `authorizationMiddleware` and `customAuthorizationMiddleware`
+        middlewares which allow supporting the passing api keys via an
+        `Authorization` header.
+    - subject: >-
+        Add the following additional permissions: read, create, update.  These
+        can be used for finer grained permission and also to allow specifying
+        permissions via the CRUD names.
+- version: v0.5.4
+  commits:
+    - subject: >-
+        Switched to using npm private packages rather than private git repo
+        links.
+    - subject: Updated package.json to specify that nodejs 0.12 is also supported.
+- version: v0.5.3
+  commits:
+    - subject: Update passport to ^0.2.1 and passport-local to ^1.0.0
+    - subject: >-
+        Expose the initialisation promise from server.coffee so that it is
+        possible to wait on it.
+    - subject: Fix in-browser server.
+- version: v0.5.2
+  commits:
+    - subject: Updated sbvr-types to v0.1.2
+- version: v0.5.1
+  commits:
+    - subject: Updated odata-to-abstract-sql to v0.2.4
+- version: v0.5.0
+  commits:
+    - subject: >-
+        Config loader will directly use the customServerCode entry if it is an
+        object.
+    - subject: >-
+        Config loader no longer tries to use requirejs to load the custom server
+        code - it only uses require now.
+    - subject: Removed the requirejs param from the custom code setup function.
+    - subject: >-
+        Added support for falling back to bcryptjs if bcrypt isn't available (eg
+        in the browser)
+    - subject: Added support for $expand options (eg $expand=resource($filter=id eq 1))
+    - subject: Added support for "It is forbidden that.." in the sbvr parser.
+    - subject: Updated lodash to ^3.0.0
+    - subject: Updated coffee-script to ~1.9.0
+    - subject: Updated postgres to ^4.0.0
+    - subject: Updated mysql to ^2.1.0
+    - subject: Updated express to ^4.11.2
+    - subject: Updated pinejs-client to ^1.0.0
+    - subject: Fixed issues with auto incrementing fields on mysql/websql.
+    - subject: Permission filters are now applied to `$expand`s as well.
+    - subject: >-
+        Improved error messages, particularly for config.json users/custom code
+        loading errors.
+    - subject: >-
+        Moved express, mysql, passport, passport-local, and pg to optional
+        dependencies, as they are indeed optional.
+    - subject: Fixed certain combinations of permission filters failing to translate.
+    - subject: Added support for loading config.json via absolute paths
+    - subject: Added support for loading pinejs via npm
+- version: v0.4.5
+  commits:
+    - subject: >-
+        Fix a `ReferenceError: logger is not defined` when compiling abstract
+        sql fails.
+    - subject: >-
+        Update abstract-sql-compiler to v0.2.1 which properly supports null
+        comparisons.
+    - subject: Fix visualisation of vocabularies containing term forms.
+    - subject: Fix visualisation links not appearing if you go to the LF tab first.
+- version: v0.4.4
+  commits:
+    - subject: >-
+        Fix a `"Cannot parse required checks: false"` error that could happen
+        with permission checking if api key or guest permissions returned
+        `false`.
+    - subject: >-
+        Update pinejs-client-js to v0.3.1 which supports true/false/null
+        filters, making them easier to use.
+- version: v0.4.3
+  commits:
+    - subject: >-
+        Update odata-parser and odata-to-abstract-sql to add support for
+        true/false/null in OData filters.
+- version: v0.4.2
+  commits:
+    - subject: Update bcrypt to ~0.8.0
+    - subject: Update bluebird to ~2.3.11
+    - subject: Update bluebird-lru-cache to ~0.1.2
+    - subject: Update coffee-script to ~1.8.0
+    - subject: >-
+        Updated odata-to-abstract-sql and abstract-sql-compiler to add support
+        for $filter on PUT requests and enhanced security.
+    - subject: >-
+        Update lf-to-abstract-sql to add support for setting foreign keys
+        nullable in a term form.
+- version: v0.4.1
+  commits:
+    - subject: >-
+        Update odata-to-abstract-sql and abstract-sql-compiler to add support
+        for CASTing bind vars to the correct type when necessary (avoids issues
+        in cases where implicit casts failed)
+- version: v0.4.0
+  commits:
+    - subject: >-
+        All instances of `platform`/`rulemotion-canvas` have been renamed to
+        `pinejs`
+    - subject: __model is no longer sent on GET requests to a resource.
+    - subject: >-
+        `ConfigLoader.loadNodeConfig` has been removed (use
+        `ConfigLoader.loadApplicationConfig` instead)
+    - subject: >-
+        Correctly process expanded results again (an update to `node-pg` made
+        the `JSON.parse` unnecessary and hence fail).
+    - subject: >-
+        Update to pinejs-client-js v0.3.0, this adds greatly enhanced filter
+        support.
+    - subject: Support has been added for filters on POST requests.
+- version: v0.3.11
+  commits:
+    - subject: Update resin-platform-api to v0.2.5
+    - subject: >-
+        Add an `sbvrUtils.apiKeyMiddleware` connect middleware that can be used
+        to fetch the permissions of an api key on the request and add them to
+        `req.apiKey`.
+    - subject: 'Add support for running migrations before a model executes:'
+    - subject: Can specify `migrations` or a `migrationsPath` in config.json
+    - subject: >-
+        Migrations which haven't been executed will run in order before the
+        model is executed
+- version: v0.3.10
+  commits:
+    - subject: Added a PRERESPOND hook for manipulating the response to OData queries
+    - subject: 'Update sbvr-types to v0.0.2, fixes issues with:'
+    - subject: >-
+        Saying max length of a string is 255 even if it is actually another
+        value.
+    - subject: Sending a colour object to the api.
+    - subject: Sending an invalid JSON string to a JSON field.
+    - subject: >-
+        Add a __resourceName property in the response to running a rule, so you
+        know what resource you are dealing with.
+    - subject: >-
+        Built-in web server now logs all requests it receives - not just OData
+        requests
+    - subject: Increase default transaction timeout from 5s to 10s
+    - subject: >-
+        configLoader.loadNodeConfig has been renamed to
+        configLoader.loadApplicationConfig
+- version: v0.3.9
+  commits:
+    - subject: SQL queries are only logged when debugging
+    - subject: Dev model .log output is now suppressed
+    - subject: TRANSACTION_TIMEOUT_MS environment variable can be used again
+- version: v0.3.8
+  commits:
+    - subject: PlatformSessionStore is now exported from module build
+- version: v0.3.7
+  commits:
+    - subject: 'Adds a new ''module'' build type, which allows you to:'
+    - subject: Configure your own express application
+    - subject: >-
+        Use the platform as a library, rather than having your app loaded as
+        custom code
+    - subject: Added support for `and`/`or` within SBVR rules.
+    - subject: >-
+        Fix bower requirejs to v2.1.9 as later versions break the platform
+        client-side (due to shim dependencies not working correctly)
+- version: v0.3.6
+  commits:
+    - subject: >-
+        Fix internal POST requests that are run within a passed in transaction,
+        introduced in v0.3.4.
+- version: v0.3.5
+  commits:
+    - subject: Custom code modules no longer have to define a setup() method
+- version: v0.3.4
+  commits:
+    - subject: >-
+        Enable disabling the default platform login/logout handling with the
+        `DISABLE_DEFAULT_AUTH` env var.
+    - subject: POST requests now include the whole entity in the response.
+    - subject: >-
+        Expose `{ app, sbvrUtils }` on the built `platform.js`, meaning you can
+        require it in order to get access to these objects.
+- version: v0.3.3
+  commits:
+    - subject: >-
+        Changed config-loader to return 200 for any OPTIONS requests on the API
+        endpoints it sets up.
+    - subject: >-
+        Added an LRU cache for API key permissions - improves performance for
+        repeated requests using the same API key.
+- version: v0.3.2
+  commits:
+    - subject: Add API hooks entry for OPTIONS
+    - subject: >-
+        Fixed an error when handleODataRequest was called from a method it did
+        not recognise for API hooks.
+    - subject: Properly send a 405 for unsupported methods.
+    - subject: >-
+        Handle responding to an OPTIONS request, and use the model permission
+        for it (since it's a metadata request)
+- version: v0.3.1
+  commits:
+    - subject: Updated pg to v3.3.0
+    - subject: Update bluebird to v2.2.1
+    - subject: >-
+        Improved performance of SQL queries when we do not need to bind any
+        default values.
+    - subject: Improve performance of creating a transaction.
+    - subject: >-
+        Improve performance of all PostgreSQL queries and any SQL queries that
+        bind default values.
+    - subject: >-
+        Improve the performance of PostgreSQL queries when there are no binds in
+        the SQL.
+- version: v0.3.0
+  commits:
+    - subject: >-
+        Change runURI signature from `(method, uri, body = {}, tx, callback) ->`
+        to `(method, uri, body = {}, tx, req, callback) ->`, where if `req` is
+        an object then it will have its `user` property used for permission
+        checking rather than using the default of full permissions if it's not
+        an object.
+    - subject: Update sbvr-parser to v0.0.12
+    - subject: >-
+        Fixes an error being logged when trying to get hints for the verb part
+        of a new fact type
+    - subject: Fixes rule-like definitions for terms and names
+    - subject: >-
+        Fix an issue where api keys that looked like valid user ids were treated
+        as a user id.
+    - subject: >-
+        Replaced `runGet`, `runPost`, `runPut`, and `runDelete` with a new
+        middleware called `handleODataRequest` that can be used in their place.
+    - subject: Updated bluebird to v2.1.3
+    - subject: The `checkPermissions` function had its `res` argument removed.
+    - subject: >-
+        Added API hooks facilities via `sbvrUtils.addHook` with the following
+        hook points:
+    - subject: POSTPARSE
+    - subject: PRERUN
+    - subject: POSTRUN
+    - subject: >-
+        In the case of trying to respond to a request with an `Error` instance,
+        we instead send the `message` property instead, as it's generally much
+        more useful.
+- version: v0.2.29
+  commits:
+    - subject: >-
+        Update ometa-js to ~1.3.0 and use the new line by line highlight option,
+        which removes the need for the custom codemirror change and also updates
+        to work with the latest codemirror (including a switch to the newer
+        hinting module).
+    - subject: >-
+        Update codemirror to v4.2.0 and load it from bower now that a custom
+        change is no longer needed.
+    - subject: Use a SQL hinter for the database import/export tab.
+    - subject: >-
+        Improve generic error messages returned for foreign/unique key
+        violations in cases where detailed info cannot be obtained.
+- version: v0.2.28
+  commits:
+    - subject: >-
+        Add support for a TRANSACTION_TIMEOUT_MS env var, that specifies how
+        long before a transaction is automatically closed (via a rollback).
+    - subject: >-
+        Use error codes to detect the error type for postgresql, this makes the
+        checking much more resilient.
+    - subject: Updated bluebird to ~1.2.4
+- version: v0.2.27
+  commits:
+    - subject: >-
+        sbvrUtils.executeModel and sbvrUtils.executeModels now expect a model
+        object, rather than vocabulary name/sbvr text.
+    - subject: Improved constraint failure checks for WebSQL.
+    - subject: '500 errors are now used correctly, rather than incorrect 50x variants.'
+    - subject: PUT requests are now correctly rolled back on a rule violation
+    - subject: >-
+        Database errors (that are not related to constraints) now return a 500
+        and no longer leak the error to the client.
+    - subject: Logging levels can now be configured on a per-model basis.
+    - subject: Session model requests now only log errors.
