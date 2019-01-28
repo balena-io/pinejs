@@ -1,4 +1,14 @@
 - commits:
+    - subject: Fix require path
+      hash: 2fe828d6ca8834d0aa81fdc28e1bc006d06aa673
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+  version: 10.3.8
+  date: 2019-01-28T13:48:14.684Z
+- commits:
     - subject: Update `odata-to-abstract-sql` to pick up improved typings
       hash: c2c21b0b3894ec6915b28d60a276ce46e808902e
       body: ''
