@@ -24,7 +24,13 @@ import {
 	Definition,
 } from '@resin/odata-to-abstract-sql';
 import * as express from 'express';
-import { AbstractSqlModel, Relationship } from '@resin/abstract-sql-compiler';
+import {
+	AbstractSqlModel,
+	Relationship,
+	SelectNode,
+	AbstractSqlType,
+	AliasNode,
+} from '@resin/abstract-sql-compiler';
 import { HookReq, User, ApiKey, AnyObject } from './sbvr-utils';
 import * as sbvrUtils from '../sbvr-api/sbvr-utils';
 import * as uriParser from './uri-parser';
@@ -426,16 +432,19 @@ const generateConstrainedAbstractSql = (
 	const selectIndex = _.findIndex(abstractSqlQuery, v => v[0] === 'Select');
 	const select = (abstractSqlQuery[selectIndex] = _.clone(
 		abstractSqlQuery[selectIndex],
-	));
-	select[1] = _.map(select[1], selectField => {
-		if (selectField[0] === 'Alias') {
-			return selectField[1];
-		}
-		if (selectField.length === 2 && _.isArray(selectField[0])) {
-			return selectField[0];
-		}
-		return selectField;
-	});
+	)) as SelectNode;
+	select[1] = _.map(
+		select[1],
+		(selectField): AbstractSqlType => {
+			if (selectField[0] === 'Alias') {
+				return (selectField as AliasNode<any>)[1];
+			}
+			if (selectField.length === 2 && _.isArray(selectField[0])) {
+				return selectField[0];
+			}
+			return selectField;
+		},
+	);
 
 	return { extraBinds: odataBinds, abstractSqlQuery };
 };
