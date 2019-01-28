@@ -18,7 +18,7 @@ env = require '../config-loader/env'
 SBVRParser = require '../extended-sbvr-parser/extended-sbvr-parser'
 
 migrator = require '../migrator/migrator'
-ODataMetadataGenerator = require '../sbvr-compiler/ODataMetadataGenerator'
+ODataMetadataGenerator = require '../sbvr-compiler/odata-metadata-generator'
 
 devModel = require './dev.sbvr'
 permissions = require './permissions'
