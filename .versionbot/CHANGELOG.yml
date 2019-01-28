@@ -1,3 +1,15 @@
+- commits:
+    - subject: Add parsable representation of changelog
+      hash: 12085ea91f543014c6532e78238f905bbfafd227
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Giovanni Garufi <giovanni@balena.io>
+        signed-off-by: Giovanni Garufi <giovanni@balena.io>
+      author: Giovanni Garufi
+  version: 10.3.6
+  date: 2019-01-28T10:33:36.191Z
 - version: 10.3.5
   date: 2019-01-25T00:00:00.000Z
   commits:
