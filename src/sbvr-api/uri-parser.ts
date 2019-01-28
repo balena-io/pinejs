@@ -319,7 +319,7 @@ export const translateUri = <
 	>
 >(
 	request: T & {
-		abstractSqlQuery?: ReturnType<typeof memoizedOdata2AbstractSQL>;
+		abstractSqlQuery?: ODataRequest['abstractSqlQuery'];
 	},
 ): typeof request => {
 	if (request.abstractSqlQuery != null) {
