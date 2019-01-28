@@ -1,4 +1,14 @@
 - commits:
+    - subject: Update `odata-to-abstract-sql` to pick up improved typings
+      hash: c2c21b0b3894ec6915b28d60a276ce46e808902e
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+  version: 10.3.7
+  date: 2019-01-28T13:04:45.120Z
+- commits:
     - subject: Add parsable representation of changelog
       hash: 12085ea91f543014c6532e78238f905bbfafd227
       body: ''
