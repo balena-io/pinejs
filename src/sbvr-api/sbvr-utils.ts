@@ -791,7 +791,7 @@ const runHooks = Promise.method(
 			res?: _express.Response;
 			tx?: _db.Tx;
 			result?: any;
-			data?: { d: number | any[] };
+			data?: number | any[];
 		},
 	) => {
 		const { request, req, tx } = args;
@@ -1809,7 +1809,7 @@ const respondGet = (
 				res,
 				request,
 				result,
-				data: { d },
+				data: d,
 				tx: tx,
 			}).then(() => {
 				return { body: { d }, headers: { contentType: 'application/json' } };
