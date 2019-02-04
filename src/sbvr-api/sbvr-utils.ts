@@ -210,7 +210,8 @@ const apiHooks = {
 	OPTIONS: {} as MethodHooks,
 };
 
-// Share hooks between merge and patch since they are the same operation, just MERGE was the OData intermediary until the HTTP spec added PATCH.
+// Share hooks between merge and patch since they are the same operation,
+// just MERGE was the OData intermediary until the HTTP spec added PATCH.
 apiHooks.MERGE = apiHooks.PATCH;
 
 export interface Actor {
@@ -357,7 +358,8 @@ const prettifyConstraintError = (
 					}
 					break;
 			}
-			// We know it's the right error type, so if no matches exists just throw a generic error message, since we have failed to get the info for a more specific one.
+			// We know it's the right error type, so if no matches exists just throw a generic error message,
+			// since we have failed to get the info for a more specific one.
 			if (matches == null) {
 				throw new db.ForeignKeyConstraintError(
 					'Foreign key constraint violated',
