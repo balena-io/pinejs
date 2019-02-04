@@ -612,7 +612,7 @@ export const checkPassword = (
 				});
 			});
 		})
-		.nodeify(callback);
+		.asCallback(callback);
 };
 
 const getPermissions = (
@@ -710,7 +710,7 @@ export const getUserPermissions = (
 			},
 		},
 	};
-	return getPermissions(permsFilter).nodeify(callback);
+	return getPermissions(permsFilter).asCallback(callback);
 };
 
 const $getApiKeyPermissions = memoize(
@@ -789,7 +789,7 @@ export const getApiKeyPermissions = (
 			throw new Error('API key has to be a string, got: ' + typeof apiKey);
 		}
 		return $getApiKeyPermissions(apiKey);
-	}).nodeify(callback);
+	}).asCallback(callback);
 
 const getApiKeyActorId = memoize(
 	(apiKey: string) =>

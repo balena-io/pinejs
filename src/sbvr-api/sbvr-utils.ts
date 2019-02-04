@@ -711,7 +711,7 @@ export const executeModels = (
 		})
 		.tapCatch(() => Promise.map(models, ({ apiRoot }) => cleanupModel(apiRoot)))
 		.return()
-		.nodeify(callback);
+		.asCallback(callback);
 
 const cleanupModel = (vocab: string) => {
 	delete seModels[vocab];
@@ -844,7 +844,7 @@ export const deleteModel = (
 			);
 		})
 		.then(() => cleanupModel(vocabulary))
-		.nodeify(callback);
+		.asCallback(callback);
 };
 
 const isWhereNode = (
@@ -1195,7 +1195,7 @@ export const runRule = (() => {
 						return result;
 					});
 				});
-		}).nodeify(callback);
+		}).asCallback(callback);
 	};
 })();
 
@@ -1350,7 +1350,7 @@ export const runURI = (
 		};
 
 		handleODataRequest(emulatedReq, res, next);
-	}).nodeify(callback);
+	}).asCallback(callback);
 };
 
 export const getAbstractSqlModel = (
@@ -1968,7 +1968,7 @@ export const executeStandardModels = (
 		.tapCatch((err: Error) => {
 			console.error('Failed to execute standard models.', err);
 		})
-		.nodeify(callback);
+		.asCallback(callback);
 };
 
 export const addSideEffectHook = (
@@ -2080,5 +2080,5 @@ export const setup = (
 					.catch(_.noop), // we can't use IF NOT EXISTS on all dbs, so we have to ignore the error raised if this index already exists
 		)
 		.return()
-		.nodeify(callback);
+		.asCallback(callback);
 };

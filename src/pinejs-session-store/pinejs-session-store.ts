@@ -45,7 +45,7 @@ export = class PinejsSessionStore extends Store {
 					return session.data;
 				}
 			})
-			.nodeify(callback);
+			.asCallback(callback);
 	}) as Store['get'];
 
 	set = ((sid, data, callback) => {
@@ -63,7 +63,7 @@ export = class PinejsSessionStore extends Store {
 				},
 				body,
 			})
-			.nodeify(callback);
+			.asCallback(callback);
 	}) as Store['set'];
 
 	destroy = ((sid, callback) => {
@@ -75,7 +75,7 @@ export = class PinejsSessionStore extends Store {
 					req: permissions.root,
 				},
 			})
-			.nodeify(callback);
+			.asCallback(callback);
 	}) as Store['destroy'];
 
 	all = (callback => {
@@ -93,7 +93,7 @@ export = class PinejsSessionStore extends Store {
 				},
 			})
 			.then((sessions: AnyObject[]) => _.map(sessions, 'session_id'))
-			.nodeify(callback);
+			.asCallback(callback);
 	}) as Store['all'];
 
 	clear = (callback => {
@@ -105,7 +105,7 @@ export = class PinejsSessionStore extends Store {
 					req: permissions.root,
 				},
 			})
-			.nodeify(callback);
+			.asCallback(callback);
 	}) as Store['clear'];
 
 	length = (callback => {
@@ -124,7 +124,7 @@ export = class PinejsSessionStore extends Store {
 					},
 				},
 			})
-			.nodeify(callback);
+			.asCallback(callback);
 	}) as Store['length'];
 
 	static config: Config = {
