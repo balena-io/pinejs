@@ -25,17 +25,6 @@ import * as LF2AbstractSQL from '@resin/lf-to-abstract-sql';
 import * as AbstractSQLCompiler from '@resin/abstract-sql-compiler';
 import { version as AbstractSQLCompilerVersion } from '@resin/abstract-sql-compiler/package.json';
 
-declare module '@resin/abstract-sql-compiler' {
-	interface AbstractSqlTable {
-		fetchProcessingFields?: {
-			[field: string]: (field: any) => Promise<any>;
-		};
-		localFields?: {
-			[odataName: string]: true;
-		};
-	}
-}
-
 import { PinejsClientCoreFactory } from 'pinejs-client-core';
 import * as sbvrTypes from '@resin/sbvr-types';
 import {
@@ -97,6 +86,7 @@ import {
 	isRuleAffected,
 } from './abstract-sql';
 export { resolveOdataBind } from './abstract-sql';
+import * as odataResponse from './odata-response';
 
 const LF2AbstractSQLTranslator = LF2AbstractSQL.createTranslator(sbvrTypes);
 const LF2AbstractSQLTranslatorVersion = `${LF2AbstractSQLVersion}+${sbvrTypesVersion}`;
@@ -470,10 +460,7 @@ export const executeModels = (
 				.then(() => migrator.postRun(tx, model))
 				.then(() => {
 					seModels[vocab] = seModel;
-					_.each(abstractSqlModel.tables, table => {
-						getLocalFields(table);
-						getFetchProcessingFields(table);
-					});
+					odataResponse.prepareModel(abstractSqlModel);
 					deepFreeze(abstractSqlModel);
 					abstractSqlModels[vocab] = abstractSqlModel;
 					sqlModels[vocab] = sqlModel;
@@ -718,189 +705,6 @@ export const getID = (vocab: string, request: uriParser.ODataRequest) => {
 		}
 	}
 	return 0;
-};
-
-const checkForExpansion = Promise.method(
-	(
-		vocab: string,
-		abstractSqlModel: AbstractSQLCompiler.AbstractSqlModel,
-		parentResourceName: string,
-		fieldName: string,
-		instance: _db.Row,
-	) => {
-		let field = instance[fieldName];
-		if (field == null) {
-			return;
-		}
-
-		if (_.isString(field)) {
-			try {
-				field = JSON.parse(field);
-			} catch (_e) {
-				// If we can't JSON.parse the field then we use it directly.
-			}
-		}
-
-		if (_.isArray(field)) {
-			const mappingResourceName = resolveNavigationResource(
-				{
-					abstractSqlModel,
-					vocabulary: vocab,
-					resourceName: parentResourceName,
-				},
-				fieldName,
-			);
-			return processOData(
-				vocab,
-				abstractSqlModel,
-				mappingResourceName,
-				field,
-			).then(expandedField => {
-				instance[fieldName] = expandedField;
-			});
-		} else {
-			const mappingResourceName = resolveNavigationResource(
-				{
-					abstractSqlModel,
-					vocabulary: vocab,
-					resourceName: parentResourceName,
-				},
-				fieldName,
-			);
-			instance[fieldName] = {
-				__deferred: {
-					uri: '/' + vocab + '/' + mappingResourceName + '(' + field + ')',
-				},
-				__id: field,
-			};
-		}
-	},
-);
-
-const odataResourceURI = (
-	vocab: string,
-	resourceName: string,
-	id: string | number,
-) => {
-	if (_.isString(id)) {
-		id = "'" + encodeURIComponent(id) + "'";
-	}
-	return '/' + vocab + '/' + resourceName + '(' + id + ')';
-};
-
-const getLocalFields = (table: AbstractSQLCompiler.AbstractSqlTable) => {
-	if (table.localFields == null) {
-		table.localFields = {};
-		for (const { fieldName, dataType } of table.fields) {
-			if (dataType !== 'ForeignKey') {
-				const odataName = sqlNameToODataName(fieldName);
-				table.localFields[odataName] = true;
-			}
-		}
-	}
-	return table.localFields;
-};
-const getFetchProcessingFields = (
-	table: AbstractSQLCompiler.AbstractSqlTable,
-) => {
-	if (table.fetchProcessingFields == null) {
-		table.fetchProcessingFields = _(table.fields)
-			.filter(
-				({ dataType }) =>
-					sbvrTypes[dataType] != null &&
-					sbvrTypes[dataType].fetchProcessing != null,
-			)
-			.map(({ fieldName, dataType }) => {
-				const odataName = sqlNameToODataName(fieldName);
-				return [odataName, sbvrTypes[dataType].fetchProcessing];
-			})
-			.fromPairs()
-			.value();
-	}
-	return table.fetchProcessingFields!;
-};
-const processOData = (
-	vocab: string,
-	abstractSqlModel: AbstractSQLCompiler.AbstractSqlModel,
-	resourceName: string,
-	rows: _db.Result['rows'],
-): Promise<number | _db.Row[]> => {
-	if (rows.length === 0) {
-		return Promise.resolve([]);
-	}
-
-	if (rows.length === 1) {
-		if (rows[0].$count != null) {
-			const count = parseInt(rows[0].$count, 10);
-			return Promise.resolve(count);
-		}
-	}
-
-	const sqlResourceName = resolveSynonym({
-		abstractSqlModel,
-		vocabulary: vocab,
-		resourceName,
-	});
-	const table = abstractSqlModel.tables[sqlResourceName];
-
-	const odataIdField = sqlNameToODataName(table.idField);
-	const instances = rows.map(instance => {
-		instance.__metadata = {
-			// TODO: This should support non-number id fields
-			uri: odataResourceURI(vocab, resourceName, +instance[odataIdField]),
-			type: '',
-		};
-		return instance;
-	});
-
-	let instancesPromise = Promise.resolve();
-
-	const localFields = getLocalFields(table);
-	// We check that it's not a local field, rather than that it is a foreign key because of the case where the foreign key is on the other resource
-	// and hence not known to this resource
-	const expandableFields = _.filter(
-		_.keys(instances[0]),
-		fieldName =>
-			!_.startsWith(fieldName, '__') && !localFields.hasOwnProperty(fieldName),
-	);
-	if (expandableFields.length > 0) {
-		instancesPromise = Promise.map(instances, instance =>
-			Promise.map(expandableFields, fieldName =>
-				checkForExpansion(
-					vocab,
-					abstractSqlModel,
-					sqlResourceName,
-					fieldName,
-					instance,
-				),
-			),
-		).return();
-	}
-
-	const fetchProcessingFields = getFetchProcessingFields(table);
-	const processedFields = _.filter(
-		_.keys(instances[0]),
-		fieldName =>
-			!_.startsWith(fieldName, '__') &&
-			fetchProcessingFields.hasOwnProperty(fieldName),
-	);
-	if (processedFields.length > 0) {
-		instancesPromise = instancesPromise
-			.then(() => {
-				return Promise.map(instances, instance => {
-					return Promise.map(processedFields, resourceName => {
-						return fetchProcessingFields[resourceName](
-							instance[resourceName],
-						).then(result => {
-							instance[resourceName] = result;
-						});
-					});
-				});
-			})
-			.return();
-	}
-
-	return instancesPromise.return(instances);
 };
 
 export const runRule = (() => {
@@ -1652,23 +1456,25 @@ const respondGet = (
 ) => {
 	const vocab = request.vocabulary;
 	if (request.sqlQuery != null) {
-		return processOData(
-			vocab,
-			getAbstractSqlModel(request),
-			request.resourceName,
-			result.rows,
-		).then(d => {
-			return runHooks('PRERESPOND', {
-				req,
-				res,
-				request,
-				result,
-				data: d,
-				tx: tx,
-			}).then(() => {
-				return { body: { d }, headers: { contentType: 'application/json' } };
+		return odataResponse
+			.process(
+				vocab,
+				getAbstractSqlModel(request),
+				request.resourceName,
+				result.rows,
+			)
+			.then(d => {
+				return runHooks('PRERESPOND', {
+					req,
+					res,
+					request,
+					result,
+					data: d,
+					tx: tx,
+				}).then(() => {
+					return { body: { d }, headers: { contentType: 'application/json' } };
+				});
 			});
-		});
 	} else {
 		if (request.resourceName === '$metadata') {
 			return Promise.resolve({
@@ -1713,7 +1519,7 @@ const respondPost = (
 	tx: _db.Tx,
 ) => {
 	const vocab = request.vocabulary;
-	const location = odataResourceURI(vocab, request.resourceName, id);
+	const location = odataResponse.resourceURI(vocab, request.resourceName, id);
 	if (DEBUG) {
 		api[vocab].logger.log('Insert ID: ', request.resourceName, id);
 	}
