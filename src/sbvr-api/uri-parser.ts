@@ -56,6 +56,7 @@ export interface ODataRequest {
 		_AbstractSQLCompiler.EngineInstance['getModifiedFields']
 	>;
 	hooks?: InstantiatedHooks<sbvrUtils.Hooks>;
+	engine?: _AbstractSQLCompiler.Engines;
 }
 
 // Converts a value to its string representation and tries to parse is as an

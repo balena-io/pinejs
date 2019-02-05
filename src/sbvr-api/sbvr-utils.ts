@@ -25,8 +25,6 @@ import * as LF2AbstractSQL from '@resin/lf-to-abstract-sql';
 import * as AbstractSQLCompiler from '@resin/abstract-sql-compiler';
 import { version as AbstractSQLCompilerVersion } from '@resin/abstract-sql-compiler/package.json';
 
-let abstractSQLCompiler: typeof AbstractSQLCompiler[AbstractSQLCompiler.Engines];
-
 declare module '@resin/abstract-sql-compiler' {
 	interface AbstractSqlTable {
 		fetchProcessingFields?: {
@@ -43,11 +41,9 @@ import * as sbvrTypes from '@resin/sbvr-types';
 import {
 	sqlNameToODataName,
 	odataNameToSqlName,
-	ODataBinds,
 	SupportedMethod,
 } from '@resin/odata-to-abstract-sql';
 import deepFreeze = require('deep-freeze');
-import * as env from '../config-loader/env';
 
 import SBVRParser = require('../extended-sbvr-parser/extended-sbvr-parser');
 
@@ -83,42 +79,6 @@ import {
 import * as controlFlow from './control-flow';
 import * as memoize from 'memoizee';
 import memoizeWeak = require('memoizee/weak');
-const memoizedCompileRule = memoizeWeak(
-	(abstractSqlQuery: AbstractSQLCompiler.AbstractSqlQuery) => {
-		const sqlQuery = abstractSQLCompiler.compileRule(abstractSqlQuery);
-		const modifiedFields = abstractSQLCompiler.getModifiedFields(
-			abstractSqlQuery,
-		);
-		if (modifiedFields != null) {
-			deepFreeze(modifiedFields);
-		}
-		return {
-			sqlQuery,
-			modifiedFields,
-		};
-	},
-	{ max: env.cache.abstractSqlCompiler.max },
-);
-
-const compileRequest = (request: uriParser.ODataRequest) => {
-	if (request.abstractSqlQuery != null) {
-		try {
-			const { sqlQuery, modifiedFields } = memoizedCompileRule(
-				request.abstractSqlQuery,
-			);
-			request.sqlQuery = sqlQuery;
-			request.modifiedFields = modifiedFields;
-		} catch (err) {
-			api[request.vocabulary].logger.error(
-				'Failed to compile abstract sql: ',
-				request.abstractSqlQuery,
-				err,
-			);
-			throw new SqlCompilationError(err);
-		}
-	}
-	return request;
-};
 
 const { DEBUG } = process.env;
 
@@ -131,6 +91,13 @@ import { version as sbvrTypesVersion } from '@resin/lf-to-abstract-sql/package.j
 import { AnyObject } from './sbvr-utils';
 import { Model } from '../config-loader/config-loader';
 import { RequiredField, OptionalField, Resolvable } from './common-types';
+import {
+	getAndCheckBindValues,
+	compileRequest,
+	isRuleAffected,
+} from './abstract-sql';
+export { resolveOdataBind } from './abstract-sql';
+
 const LF2AbstractSQLTranslator = LF2AbstractSQL.createTranslator(sbvrTypes);
 const LF2AbstractSQLTranslatorVersion = `${LF2AbstractSQLVersion}+${sbvrTypesVersion}`;
 
@@ -374,138 +341,6 @@ const prettifyConstraintError = (
 	}
 };
 
-export const resolveOdataBind = (odataBinds: ODataBinds, value: any) => {
-	if (_.isObject(value) && value.bind != null) {
-		[, value] = odataBinds[value.bind];
-	}
-	return value;
-};
-
-const getAndCheckBindValues = (
-	vocab: string,
-	odataBinds: ODataBinds = [],
-	bindings: AbstractSQLCompiler.Binding[],
-	values: AnyObject = {},
-) => {
-	const sqlModelTables = sqlModels[vocab].tables;
-	return Promise.map(bindings, binding => {
-		let fieldName: string;
-		let field: { dataType: string };
-		let value: any;
-		if (binding[0] === 'Bind') {
-			const bindValue = binding[1];
-			if (_.isArray(bindValue)) {
-				let tableName;
-				[tableName, fieldName] = bindValue;
-
-				const referencedName = tableName + '.' + fieldName;
-				value = values[referencedName];
-				if (value === undefined) {
-					value = values[fieldName];
-				}
-
-				value = resolveOdataBind(odataBinds, value);
-
-				const sqlTableName = odataNameToSqlName(tableName);
-				const sqlFieldName = odataNameToSqlName(fieldName);
-				let maybeField = _.find(sqlModelTables[sqlTableName].fields, {
-					fieldName: sqlFieldName,
-				});
-				if (maybeField == null) {
-					throw new Error(`Could not find field '${fieldName}'`);
-				}
-				field = maybeField;
-			} else if (_.isInteger(bindValue)) {
-				if (bindValue >= odataBinds.length) {
-					console.error(
-						`Invalid binding number '${bindValue}' for binds: `,
-						odataBinds,
-					);
-					throw new Error('Invalid binding');
-				}
-				let dataType;
-				[dataType, value] = odataBinds[bindValue];
-				field = { dataType };
-			} else if (_.isString(bindValue)) {
-				if (!odataBinds.hasOwnProperty(bindValue)) {
-					console.error(
-						`Invalid binding '${bindValue}' for binds: `,
-						odataBinds,
-					);
-					throw new Error('Invalid binding');
-				}
-				let dataType;
-				[dataType, value] = odataBinds[bindValue];
-				field = { dataType };
-			} else {
-				throw new Error(`Unknown binding: ${binding}`);
-			}
-		} else {
-			let dataType;
-			[dataType, value] = binding;
-			field = { dataType };
-		}
-
-		if (value === undefined) {
-			throw new Error(`Bind value cannot be undefined: ${binding}`);
-		}
-
-		return abstractSQLCompiler
-			.dataTypeValidate(value, field)
-			.tapCatch((e: Error) => {
-				e.message = '"' + fieldName + '" ' + e.message;
-			});
-	});
-};
-
-const checkModifiedFields = (
-	referencedFields: AbstractSQLCompiler.ReferencedFields,
-	modifiedFields: AbstractSQLCompiler.ModifiedFields,
-) => {
-	const refs = referencedFields[modifiedFields.table];
-	// If there are no referenced fields of the modified table then the rule is not affected
-	if (refs == null) {
-		return false;
-	}
-	// If there are no specific fields listed then that means they were all modified (ie insert/delete) and so the rule can be affected
-	if (modifiedFields.fields == null) {
-		return true;
-	}
-	// Otherwise check if there are any matching fields to see if the rule is affected
-	return _.intersection(refs, modifiedFields.fields).length > 0;
-};
-const isRuleAffected = (
-	rule: AbstractSQLCompiler.SqlRule,
-	request?: uriParser.ODataRequest,
-) => {
-	// If there is no abstract sql query then nothing was modified
-	if (request == null || request.abstractSqlQuery == null) {
-		return false;
-	}
-	// If for some reason there are no referenced fields known for the rule then we just assume it may have been modified
-	if (rule.referencedFields == null) {
-		return true;
-	}
-	const { modifiedFields } = request;
-	// If we can't get any modified fields we assume the rule may have been modified
-	if (modifiedFields == null) {
-		console.warn(
-			`Could not determine the modified table/fields info for '${
-				request.method
-			}' to ${request.vocabulary}`,
-			request.abstractSqlQuery,
-		);
-		return true;
-	}
-	if (_.isArray(modifiedFields)) {
-		return _.some(
-			modifiedFields,
-			_.partial(checkModifiedFields, rule.referencedFields),
-		);
-	}
-	return checkModifiedFields(rule.referencedFields, modifiedFields);
-};
-
 export const validateModel = (
 	tx: _db.Tx,
 	modelName: string,
@@ -517,7 +352,15 @@ export const validateModel = (
 			return;
 		}
 
-		return getAndCheckBindValues(modelName, undefined, rule.bindings, undefined)
+		return getAndCheckBindValues(
+			{
+				vocabulary: modelName,
+				odataBinds: [],
+				values: {},
+				engine: db.engine,
+			},
+			rule.bindings,
+		)
 			.then(values => tx.executeSql(rule.sql, values))
 			.then(result => {
 				const v = result.rows[0].result;
@@ -560,14 +403,14 @@ const generateModels = (vocab: string, seModel: string) => {
 		throw new Error(`Error translating model '${vocab}': ` + e);
 	}
 
-	let sqlModel: ReturnType<typeof abstractSQLCompiler.compileSchema>;
+	let sqlModel: ReturnType<AbstractSQLCompiler.EngineInstance['compileSchema']>;
 	let metadata: ReturnType<typeof ODataMetadataGenerator>;
 	try {
 		sqlModel = cachedCompile(
 			'sqlModel',
 			AbstractSQLCompilerVersion + '+' + db.engine,
 			abstractSqlModel,
-			() => abstractSQLCompiler.compileSchema(abstractSqlModel),
+			() => AbstractSQLCompiler[db.engine].compileSchema(abstractSqlModel),
 		);
 		metadata = cachedCompile(
 			'metadata',
@@ -1155,15 +998,18 @@ export const runRule = (() => {
 				}
 				return ['Select', '*'];
 			});
-			const compiledRule = abstractSQLCompiler.compileRule(ruleBody);
+			const compiledRule = AbstractSQLCompiler[db.engine].compileRule(ruleBody);
 			if (_.isArray(compiledRule)) {
 				throw new Error('Unexpected query generated');
 			}
 			return getAndCheckBindValues(
-				vocab,
-				undefined,
+				{
+					vocabulary: vocab,
+					odataBinds: [],
+					values: {},
+					engine: db.engine,
+				},
 				compiledRule.bindings,
-				undefined,
 			)
 				.then(values => {
 					return db.executeSql(compiledRule.query, values);
@@ -1386,6 +1232,7 @@ export const getAffectedIds = Promise.method(
 				url: `/${request.vocabulary}${request.url}`,
 			})
 			.then(request => {
+				request.engine = db.engine;
 				const abstractSqlModel = getAbstractSqlModel(request);
 				const resourceName = resolveSynonym(request);
 				const resourceTable = abstractSqlModel.tables[resourceName];
@@ -1470,6 +1317,7 @@ export const handleODataRequest: _express.Handler = (req, res, next) => {
 					.parseOData(requestPart)
 					.then(
 						controlFlow.liftP(request => {
+							request.engine = db.engine;
 							// Get the full hooks list now that we can. We clear the hooks on
 							// the global req to avoid duplication
 							req.hooks = {};
@@ -1748,11 +1596,16 @@ const runQuery = (
 	queryIndex?: number,
 	addReturning?: string,
 ): Promise<_db.Result> => {
-	const { values, odataBinds, vocabulary } = request;
+	const { vocabulary } = request;
 	let { sqlQuery } = request;
 	if (sqlQuery == null) {
 		return Promise.reject(
 			new InternalRequestError('No SQL query available to run'),
+		);
+	}
+	if (request.engine == null) {
+		return Promise.reject(
+			new InternalRequestError('No database engine specified'),
 		);
 	}
 	if (_.isArray(sqlQuery)) {
@@ -1767,15 +1620,16 @@ const runQuery = (
 	}
 
 	const { query, bindings } = sqlQuery;
-	return getAndCheckBindValues(vocabulary, odataBinds, bindings, values).then(
-		values => {
-			if (DEBUG) {
-				api[vocabulary].logger.log(query, values);
-			}
+	return getAndCheckBindValues(
+		request as RequiredField<typeof request, 'engine'>,
+		bindings,
+	).then(values => {
+		if (DEBUG) {
+			api[vocabulary].logger.log(query, values);
+		}
 
-			return tx.executeSql(query, values, addReturning);
-		},
-	);
+		return tx.executeSql(query, values, addReturning);
+	});
 };
 
 const runGet = (
@@ -2062,7 +1916,6 @@ export const setup = (
 	callback?: (err?: Error) => void,
 ): Promise<void> => {
 	exports.db = db = _db;
-	abstractSQLCompiler = AbstractSQLCompiler[db.engine];
 	return db
 		.transaction(tx =>
 			executeStandardModels(tx).then(() => {
