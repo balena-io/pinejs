@@ -90,17 +90,16 @@ import * as odataResponse from './odata-response';
 const LF2AbstractSQLTranslator = LF2AbstractSQL.createTranslator(sbvrTypes);
 const LF2AbstractSQLTranslatorVersion = `${LF2AbstractSQLVersion}+${sbvrTypesVersion}`;
 
-const seModels: {
-	[vocabulary: string]: string;
-} = {};
-const abstractSqlModels: {
-	[vocabulary: string]: AbstractSQLCompiler.AbstractSqlModel;
-} = {};
-const sqlModels: {
-	[vocabulary: string]: AbstractSQLCompiler.SqlModel;
-} = {};
-const odataMetadata: {
-	[vocabulary: string]: {};
+interface CompiledModel {
+	vocab: string;
+	se: string;
+	lf: LFModel;
+	abstractSql: AbstractSQLCompiler.AbstractSqlModel;
+	sql: AbstractSQLCompiler.SqlModel;
+	odataMetadata: ReturnType<typeof ODataMetadataGenerator>;
+}
+const models: {
+	[vocabulary: string]: CompiledModel;
 } = {};
 
 export interface HookReq {
@@ -188,7 +187,7 @@ interface Response {
 	headers?: {
 		[headerName: string]: any;
 	};
-	body?: AnyObject;
+	body?: AnyObject | string;
 }
 
 const memoizedResolvedSynonym = memoizeWeak(
@@ -335,7 +334,7 @@ export const validateModel = (
 	modelName: string,
 	request?: uriParser.ODataRequest,
 ) => {
-	return Promise.map(sqlModels[modelName].rules, rule => {
+	return Promise.map(models[modelName].sql.rules, rule => {
 		if (!isRuleAffected(rule, request)) {
 			// If none of the fields intersect we don't need to run the rule! :D
 			return;
@@ -375,43 +374,48 @@ export const generateAbstractSqlModel = (
 		() => LF2AbstractSQLTranslator(lfModel, 'Process'),
 	);
 
-const generateModels = (vocab: string, seModel: string) => {
-	let lfModel;
+const generateModels = (
+	model: RequiredField<Model, 'apiRoot' | 'modelText'>,
+): CompiledModel => {
+	const { apiRoot: vocab, modelText: se } = model;
+
+	let lf;
 	try {
-		lfModel = generateLfModel(seModel);
+		lf = generateLfModel(se);
 	} catch (e) {
 		console.error(`Error parsing model '${vocab}':`, e);
 		throw new Error(`Error parsing model '${vocab}': ` + e);
 	}
 
-	let abstractSqlModel: ReturnType<typeof generateAbstractSqlModel>;
+	let abstractSql: ReturnType<typeof generateAbstractSqlModel>;
 	try {
-		abstractSqlModel = generateAbstractSqlModel(lfModel);
+		abstractSql = generateAbstractSqlModel(lf);
 	} catch (e) {
 		console.error(`Error translating model '${vocab}':`, e);
 		throw new Error(`Error translating model '${vocab}': ` + e);
 	}
 
-	let sqlModel: ReturnType<AbstractSQLCompiler.EngineInstance['compileSchema']>;
-	let metadata: ReturnType<typeof ODataMetadataGenerator>;
+	let sql: ReturnType<AbstractSQLCompiler.EngineInstance['compileSchema']>;
+	let odataMetadata: ReturnType<typeof ODataMetadataGenerator>;
 	try {
-		sqlModel = cachedCompile(
+		sql = cachedCompile(
 			'sqlModel',
 			AbstractSQLCompilerVersion + '+' + db.engine,
-			abstractSqlModel,
-			() => AbstractSQLCompiler[db.engine].compileSchema(abstractSqlModel),
+			abstractSql,
+			() => AbstractSQLCompiler[db.engine].compileSchema(abstractSql),
 		);
-		metadata = cachedCompile(
+		odataMetadata = cachedCompile(
 			'metadata',
 			ODataMetadataGenerator.version,
-			{ vocab, sqlModel },
-			() => ODataMetadataGenerator(vocab, sqlModel),
+			{ vocab: vocab, sqlModel: sql },
+			() => ODataMetadataGenerator(vocab, sql),
 		);
 	} catch (e) {
 		console.error(`Error compiling model '${vocab}':`, e);
 		throw new Error(`Error compiling model '${vocab}': ` + e);
 	}
-	return { lfModel, abstractSqlModel, sqlModel, metadata };
+
+	return { vocab, se, lf, abstractSql, sql, odataMetadata };
 };
 
 export const executeModel = (
@@ -420,31 +424,20 @@ export const executeModel = (
 	callback?: (err?: Error) => void,
 ): Promise<void> => executeModels(tx, [model], callback);
 
-interface CompiledModel {
-	vocab: string;
-	se: string;
-	lf: LFModel;
-	abstractsql: AbstractSQLCompiler.AbstractSqlModel;
-	sql: AbstractSQLCompiler.SqlModel;
-}
 export const executeModels = (
 	tx: _db.Tx,
-	models: Array<RequiredField<Model, 'apiRoot' | 'modelText'>>,
+	execModels: Array<RequiredField<Model, 'apiRoot' | 'modelText'>>,
 	callback?: (err?: Error) => void,
 ): Promise<void> =>
-	Promise.map(models, model => {
-		const seModel = model.modelText;
-		const vocab = model.apiRoot;
+	Promise.map(execModels, model => {
+		const { apiRoot } = model;
 
 		return migrator.run(tx, model).then(() => {
-			const { lfModel, abstractSqlModel, sqlModel, metadata } = generateModels(
-				vocab,
-				seModel,
-			);
+			const compiledModel = generateModels(model);
 
 			// Create tables related to terms and fact types
-			// Use `Promise.reduce` to run statements sequentially, as the order of the CREATE TABLE statements matters (eg. for foreign keys).
-			return Promise.each(sqlModel.createSchema, createStatement => {
+			// Use `Promise.each` to run statements sequentially, as the order of the CREATE TABLE statements matters (eg. for foreign keys).
+			return Promise.each(compiledModel.sql.createSchema, createStatement => {
 				const promise = tx.executeSql(createStatement);
 				if (db.engine === 'websql') {
 					promise.catch(err => {
@@ -458,45 +451,33 @@ export const executeModels = (
 			})
 				.then(() => migrator.postRun(tx, model))
 				.then(() => {
-					seModels[vocab] = seModel;
-					odataResponse.prepareModel(abstractSqlModel);
-					deepFreeze(abstractSqlModel);
-					abstractSqlModels[vocab] = abstractSqlModel;
-					sqlModels[vocab] = sqlModel;
-					odataMetadata[vocab] = metadata;
+					odataResponse.prepareModel(compiledModel.abstractSql);
+					deepFreeze(compiledModel.abstractSql);
+					models[apiRoot] = compiledModel;
 
 					// Validate the [empty] model according to the rules.
 					// This may eventually lead to entering obligatory data.
 					// For the moment it blocks such models from execution.
-					return validateModel(tx, vocab);
+					return validateModel(tx, apiRoot);
 				})
-				.then(
-					(): CompiledModel => {
-						// TODO: Can we do this without the cast?
-						api[vocab] = new PinejsClient('/' + vocab + '/') as LoggingClient;
-						api[vocab].logger = _.cloneDeep(console);
-						if (model.logging != null) {
-							const defaultSetting = _.get(model.logging, 'default', true);
-							for (const k in model.logging) {
-								const key = k as keyof Console;
-								if (
-									_.isFunction(api[vocab].logger[key]) &&
-									!_.get(model.logging, [key], defaultSetting)
-								) {
-									api[vocab].logger[key] = _.noop;
-								}
+				.then(() => {
+					// TODO: Can we do this without the cast?
+					api[apiRoot] = new PinejsClient('/' + apiRoot + '/') as LoggingClient;
+					api[apiRoot].logger = _.cloneDeep(console);
+					if (model.logging != null) {
+						const defaultSetting = _.get(model.logging, 'default', true);
+						for (const k in model.logging) {
+							const key = k as keyof Console;
+							if (
+								_.isFunction(api[apiRoot].logger[key]) &&
+								!_.get(model.logging, [key], defaultSetting)
+							) {
+								api[apiRoot].logger[key] = _.noop;
 							}
 						}
-
-						return {
-							vocab,
-							se: seModel,
-							lf: lfModel,
-							abstractsql: abstractSqlModel,
-							sql: sqlModel,
-						};
-					},
-				);
+					}
+				})
+				.return(compiledModel);
 		});
 		// Only update the dev models once all models have finished executing.
 	})
@@ -538,17 +519,19 @@ export const executeModels = (
 					});
 			};
 
-			return Promise.map(['se', 'lf', 'abstractsql', 'sql'], updateModel);
+			return Promise.map(
+				['se', 'lf', 'abstractSql', 'sql', 'odataMetadata'],
+				updateModel,
+			);
 		})
-		.tapCatch(() => Promise.map(models, ({ apiRoot }) => cleanupModel(apiRoot)))
+		.tapCatch(() =>
+			Promise.map(execModels, ({ apiRoot }) => cleanupModel(apiRoot)),
+		)
 		.return()
 		.asCallback(callback);
 
 const cleanupModel = (vocab: string) => {
-	delete seModels[vocab];
-	delete abstractSqlModels[vocab];
-	delete sqlModels[vocab];
-	delete odataMetadata[vocab];
+	delete models[vocab];
 	delete api[vocab];
 };
 
@@ -653,7 +636,7 @@ export const deleteModel = (
 	return db
 		.transaction(tx => {
 			const dropStatements: Array<Promise<any>> = _.map(
-				_.get(sqlModels, [vocabulary, 'dropSchema']),
+				models[vocabulary].sql.dropSchema,
 				(dropStatement: string) => tx.executeSql(dropStatement),
 			);
 			return Promise.all(
@@ -687,7 +670,7 @@ export const getID = (vocab: string, request: uriParser.ODataRequest) => {
 	if (request.abstractSqlQuery == null) {
 		throw new Error('Can only get the id if an abstractSqlQuery is provided');
 	}
-	const { idField } = sqlModels[vocab].tables[request.resourceName];
+	const { idField } = models[vocab].sql.tables[request.resourceName];
 	for (const whereClause of request.abstractSqlQuery) {
 		if (isWhereNode(whereClause)) {
 			for (const comparison of whereClause.slice(1)) {
@@ -715,7 +698,7 @@ export const runRule = (() => {
 	translator.addTypes(sbvrTypes);
 	return (vocab: string, rule: string, callback?: (err?: Error) => void) => {
 		return Promise.try(() => {
-			const seModel = seModels[vocab];
+			const seModel = models[vocab].se;
 			const { logger } = api[vocab];
 			let lfModel: LFModel;
 			let slfModel: LFModel;
@@ -817,7 +800,7 @@ export const runRule = (() => {
 					return db.executeSql(compiledRule.query, values);
 				})
 				.then(result => {
-					const table = abstractSqlModels[vocab].tables[resourceName];
+					const table = models[vocab].abstractSql.tables[resourceName];
 					const odataIdField = sqlNameToODataName(table.idField);
 					let ids = result.rows.map(row => row[table.idField]);
 					ids = _.uniq(ids);
@@ -1007,7 +990,7 @@ export const getAbstractSqlModel = (
 	request: Pick<uriParser.ODataRequest, 'vocabulary' | 'abstractSqlModel'>,
 ): AbstractSQLCompiler.AbstractSqlModel => {
 	if (request.abstractSqlModel == null) {
-		request.abstractSqlModel = abstractSqlModels[request.vocabulary];
+		request.abstractSqlModel = models[request.vocabulary].abstractSql;
 	}
 	return request.abstractSqlModel;
 };
@@ -1070,7 +1053,7 @@ export const getAffectedIds = Promise.method(
 
 export const handleODataRequest: _express.Handler = (req, res, next) => {
 	const [, apiRoot] = req.url.split('/');
-	if (apiRoot == null || abstractSqlModels[apiRoot] == null) {
+	if (apiRoot == null || models[apiRoot] == null) {
 		return next('route');
 	}
 
@@ -1341,7 +1324,12 @@ const updateBinds = (
 		request.odataBinds = _.map(request.odataBinds, ([tag, id]) => {
 			if (tag == 'ContentReference') {
 				const ref = env.get(id);
-				if (ref == null || ref.body == null || ref.body.id === undefined) {
+				if (
+					ref == null ||
+					ref.body == null ||
+					_.isString(ref.body) ||
+					ref.body.id === undefined
+				) {
 					throw new BadRequestError(
 						'Reference to a non existing resource in Changeset',
 					);
@@ -1453,7 +1441,7 @@ const respondGet = (
 	request: uriParser.ODataRequest,
 	result: any,
 	tx: _db.Tx,
-) => {
+): Promise<Response> => {
 	const vocab = request.vocabulary;
 	if (request.sqlQuery != null) {
 		return odataResponse
@@ -1478,7 +1466,7 @@ const respondGet = (
 	} else {
 		if (request.resourceName === '$metadata') {
 			return Promise.resolve({
-				body: odataMetadata[vocab],
+				body: models[vocab].odataMetadata,
 				headers: { contentType: 'xml' },
 			});
 		} else {
@@ -1517,7 +1505,7 @@ const respondPost = (
 	request: uriParser.ODataRequest,
 	id: number,
 	tx: _db.Tx,
-) => {
+): Promise<Response> => {
 	const vocab = request.vocabulary;
 	const location = odataResponse.resourceURI(vocab, request.resourceName, id);
 	if (DEBUG) {
@@ -1591,7 +1579,7 @@ const respondPut = (
 	request: uriParser.ODataRequest,
 	_result: any,
 	tx: _db.Tx,
-) => {
+): Promise<Response> => {
 	return runHooks('PRERESPOND', request.hooks, {
 		req,
 		res,
@@ -1688,13 +1676,13 @@ const addHook = (
 	if (methodHooks == null) {
 		throw new Error('Unsupported method: ' + method);
 	}
-	if (apiRoot !== 'all' && abstractSqlModels[apiRoot] == null) {
+	if (apiRoot !== 'all' && models[apiRoot] == null) {
 		throw new Error('Unknown api root: ' + apiRoot);
 	}
 	if (resourceName !== 'all') {
 		const origResourceName = resourceName;
 		resourceName = resolveSynonym({ vocabulary: apiRoot, resourceName });
-		if (abstractSqlModels[apiRoot].tables[resourceName] == null) {
+		if (models[apiRoot].abstractSql.tables[resourceName] == null) {
 			throw new Error(
 				'Unknown resource for api root: ' + origResourceName + ', ' + apiRoot,
 			);
