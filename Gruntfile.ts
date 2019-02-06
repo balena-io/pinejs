@@ -14,7 +14,7 @@ const serverConfigs = {
 };
 
 _.each(serverConfigs, config => {
-	config.plugins.push(new UglifyJsPlugin({
+	config.plugins.push((new UglifyJsPlugin({
 		sourceMap: true,
 		uglifyOptions: {
 			output: {
@@ -28,7 +28,7 @@ _.each(serverConfigs, config => {
 			},
 			mangle: false,
 		},
-	}) as Plugin);
+	}) as any) as Plugin);
 });
 
 export = (grunt: typeof _grunt) => {
