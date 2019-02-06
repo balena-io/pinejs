@@ -4,7 +4,6 @@ import * as _express from 'express';
 declare global {
 	namespace Express {
 		export interface Request {
-			hooks?: InstantiatedHooks<Hooks>;
 			tx?: _db.Tx;
 			batch?: uriParser.UnparsedRequest[];
 		}
@@ -615,6 +614,7 @@ getHooks.clear = () => getMethodHooks.clear();
 const runHooks = Promise.method(
 	(
 		hookName: keyof Hooks,
+		hooksList: InstantiatedHooks<Hooks> | undefined,
 		args: {
 			request?: uriParser.ODataRequest;
 			req: _express.Request;
@@ -624,16 +624,14 @@ const runHooks = Promise.method(
 			data?: number | any[];
 		},
 	) => {
-		const { request, req, tx } = args;
-		let hooks = (req.hooks && req.hooks[hookName]) || [];
-		const requestHooks =
-			request && request.hooks ? request.hooks[hookName] : null;
-		if (requestHooks != null) {
-			hooks = hooks.concat(requestHooks);
-		}
-		if (hooks.length === 0) {
+		if (hooksList == null) {
 			return;
 		}
+		const hooks = hooksList[hookName];
+		if (hooks == null || hooks.length === 0) {
+			return;
+		}
+		const { request, req, tx } = args;
 		if (request != null) {
 			const { vocabulary } = request;
 			Object.defineProperty(args, 'api', {
@@ -1083,10 +1081,10 @@ export const handleODataRequest: _express.Handler = (req, res, next) => {
 	const mapSeries = controlFlow.getMappingFn(req.headers);
 	// Get the hooks for the current method/vocabulary as we know it,
 	// in order to run PREPARSE hooks, before parsing gets us more info
-	const reqHooks = (req.hooks = getHooks({
+	const reqHooks = getHooks({
 		method: req.method as SupportedMethod,
 		vocabulary: apiRoot,
-	}));
+	});
 
 	req.on('close', () => {
 		handlePromise.cancel();
@@ -1103,7 +1101,7 @@ export const handleODataRequest: _express.Handler = (req, res, next) => {
 		});
 	}
 
-	const handlePromise = runHooks('PREPARSE', { req, tx: req.tx })
+	const handlePromise = runHooks('PREPARSE', reqHooks, { req, tx: req.tx })
 		.then(() => {
 			const { method, url, body } = req;
 
@@ -1122,12 +1120,14 @@ export const handleODataRequest: _express.Handler = (req, res, next) => {
 					.then(
 						controlFlow.liftP(request => {
 							request.engine = db.engine;
-							// Get the full hooks list now that we can. We clear the hooks on
-							// the global req to avoid duplication
-							req.hooks = {};
+							// Get the full hooks list now that we can.
 							request.hooks = getHooks(request);
 							// Add/check the relevant permissions
-							return runHooks('POSTPARSE', { req, request, tx: req.tx })
+							return runHooks('POSTPARSE', request.hooks, {
+								req,
+								request,
+								tx: req.tx,
+							})
 								.return(request)
 								.then(uriParser.translateUri)
 								.then(compileRequest)
@@ -1258,7 +1258,7 @@ const runRequest = (
 		logger.log('Running', req.method, req.url);
 	}
 	// Forward each request to the correct method handler
-	return runHooks('PRERUN', { req, request, tx })
+	return runHooks('PRERUN', request.hooks, { req, request, tx })
 		.then(
 			(): Resolvable<_db.Result | number | undefined> => {
 				switch (request.method) {
@@ -1300,7 +1300,7 @@ const runRequest = (
 			throw err;
 		})
 		.tap(result => {
-			return runHooks('POSTRUN', { req, request, result, tx });
+			return runHooks('POSTRUN', request.hooks, { req, request, result, tx });
 		})
 		.then(result => {
 			return prepareResponse(req, res, request, result, tx);
@@ -1464,7 +1464,7 @@ const respondGet = (
 				result.rows,
 			)
 			.then(d => {
-				return runHooks('PRERESPOND', {
+				return runHooks('PRERESPOND', request.hooks, {
 					req,
 					res,
 					request,
@@ -1539,7 +1539,13 @@ const respondPost = (
 				.catchReturn(onlyId)
 		);
 	}).then((result: AnyObject) => {
-		return runHooks('PRERESPOND', { req, res, request, result, tx }).return({
+		return runHooks('PRERESPOND', request.hooks, {
+			req,
+			res,
+			request,
+			result,
+			tx,
+		}).return({
 			status: 201,
 			body: result.d[0],
 			headers: {
@@ -1586,7 +1592,12 @@ const respondPut = (
 	_result: any,
 	tx: _db.Tx,
 ) => {
-	return runHooks('PRERESPOND', { req, res, request, tx: tx }).return({
+	return runHooks('PRERESPOND', request.hooks, {
+		req,
+		res,
+		request,
+		tx: tx,
+	}).return({
 		status: 200,
 		headers: {},
 	});
