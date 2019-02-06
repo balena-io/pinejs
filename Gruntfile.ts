@@ -5,7 +5,6 @@ import * as UglifyJsPlugin from 'uglifyjs-webpack-plugin';
 import * as browserConfig from './build/browser';
 import * as moduleConfig from './build/module';
 import * as serverConfig from './build/server';
-import { Plugin } from 'webpack';
 
 const serverConfigs = {
 	browser: browserConfig,
@@ -14,21 +13,25 @@ const serverConfigs = {
 };
 
 _.each(serverConfigs, config => {
-	config.plugins.push((new UglifyJsPlugin({
-		sourceMap: true,
-		uglifyOptions: {
-			output: {
-				beautify: true,
-				ascii_only: true,
-			},
-			compress: {
-				warnings: true,
-				sequences: false,
-				unused: false, // We need this off for OMeta
-			},
-			mangle: false,
-		},
-	}) as any) as Plugin);
+	config.optimization = {
+		minimizer: [
+			new UglifyJsPlugin({
+				sourceMap: true,
+				uglifyOptions: {
+					output: {
+						beautify: true,
+						ascii_only: true,
+					},
+					compress: {
+						warnings: true,
+						sequences: false,
+						unused: false, // We need this off for OMeta
+					},
+					mangle: false,
+				},
+			}),
+		],
+	};
 });
 
 export = (grunt: typeof _grunt) => {
