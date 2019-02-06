@@ -4,6 +4,7 @@ import { RequiredField } from '../src/sbvr-api/common-types';
 const root = path.dirname(__dirname);
 
 export = {
+	mode: 'production',
 	devtool: 'source-map',
 	entry: root,
 	output: {

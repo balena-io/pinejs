@@ -1,7 +1,7 @@
 import * as _grunt from 'grunt';
 
 import * as _ from 'lodash';
-import * as UglifyJsPlugin from 'uglifyjs-webpack-plugin';
+import * as TerserPlugin from 'terser-webpack-plugin';
 import * as browserConfig from './build/browser';
 import * as moduleConfig from './build/module';
 import * as serverConfig from './build/server';
@@ -15,9 +15,11 @@ const serverConfigs = {
 _.each(serverConfigs, config => {
 	config.optimization = {
 		minimizer: [
-			new UglifyJsPlugin({
+			new TerserPlugin({
+				cache: true,
+				parallel: true,
 				sourceMap: true,
-				uglifyOptions: {
+				terserOptions: {
 					output: {
 						beautify: true,
 						ascii_only: true,
