@@ -1,7 +1,7 @@
 import * as _grunt from 'grunt';
 
 import * as _ from 'lodash';
-import * as UglifyJsPlugin from 'uglifyjs-webpack-plugin';
+import * as TerserPlugin from 'terser-webpack-plugin';
 import * as browserConfig from './build/browser';
 import * as moduleConfig from './build/module';
 import * as serverConfig from './build/server';
@@ -13,21 +13,27 @@ const serverConfigs = {
 };
 
 _.each(serverConfigs, config => {
-	config.plugins.push(
-		new UglifyJsPlugin({
-			uglifyOptions: {
-				output: {
-					beautify: true,
-					ascii_only: true,
+	config.optimization = {
+		minimizer: [
+			new TerserPlugin({
+				cache: true,
+				parallel: true,
+				sourceMap: true,
+				terserOptions: {
+					output: {
+						beautify: true,
+						ascii_only: true,
+					},
+					compress: {
+						warnings: true,
+						sequences: false,
+						unused: false, // We need this off for OMeta
+					},
+					mangle: false,
 				},
-				compress: {
-					sequences: false,
-					unused: false, // We need this off for OMeta
-				},
-				mangle: false,
-			},
-		}),
-	);
+			}),
+		],
+	};
 });
 
 export = (grunt: typeof _grunt) => {

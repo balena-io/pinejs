@@ -4,6 +4,7 @@ import { RequiredField } from '../src/sbvr-api/common-types';
 const root = path.dirname(__dirname);
 
 export = {
+	mode: 'production',
 	devtool: 'source-map',
 	entry: root,
 	output: {
@@ -45,18 +46,14 @@ export = {
 		'typed-error': true,
 	},
 	resolve: {
-		extensions: ['', '.js', '.coffee', '.ts'],
+		extensions: ['.js', '.coffee', '.ts'],
 	},
-	plugins: [
-		new webpack.optimize.DedupePlugin(),
-		new webpack.optimize.LimitChunkCountPlugin({ maxChunks: 1 }),
-	],
+	plugins: [new webpack.optimize.LimitChunkCountPlugin({ maxChunks: 1 })],
 	module: {
-		loaders: [
-			{ test: /\.sbvr$/, loader: 'raw-loader' },
-			{ test: /\.coffee$/, loader: 'coffee-loader' },
-			{ test: /\.ts$/, loader: 'ts-loader' },
-			{ test: /\.json$/, loader: 'json-loader' },
+		rules: [
+			{ test: /\.sbvr$/, use: 'raw-loader' },
+			{ test: /\.coffee$/, use: 'coffee-loader' },
+			{ test: /\.ts$/, use: 'ts-loader' },
 		],
 	},
 } as RequiredField<
