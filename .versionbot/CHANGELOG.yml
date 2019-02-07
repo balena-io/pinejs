@@ -1,4 +1,28 @@
 - commits:
+    - subject: Update to webpack 4
+      hash: 63d1cadce0268543ae776a584b436af9d6d61089
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+    - subject: Update to webpack 3
+      hash: 4ac40018aefed3501c3a899c71cb0c2c8bca707e
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+    - subject: Update to webpack 2
+      hash: 0aece0cdff78e3bd13f8c85742ddd1b96608f3c8
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+  version: 10.5.0
+  date: 2019-02-07T11:57:56.605Z
+- commits:
     - subject: Switch to a single module level models lookup instead of multiple
       hash: b57d83132e8a6567ac5f093b316b652ddf348ae8
       body: ''
