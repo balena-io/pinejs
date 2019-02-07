@@ -1,4 +1,21 @@
 - commits:
+    - subject: Switch to a single module level models lookup instead of multiple
+      hash: b57d83132e8a6567ac5f093b316b652ddf348ae8
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+    - subject: Drop unnecessary req.hooks usage
+      hash: 72d6e9e7511c5d09ffa44adc054edaf6f4a639de
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+  version: 10.4.4
+  date: 2019-02-06T13:42:33.021Z
+- commits:
     - subject: Extract odata response related functions from sbvr-utils
       hash: 41f4f7608669ab52e2b946630c05ff3f13c550d2
       body: ''
