@@ -1,4 +1,14 @@
 - commits:
+    - subject: Correctly propagate transaction creation errors in `db.transaction(fn)`
+      hash: 94292ad5ba8a90edd23f2fc9472288326e277b74
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+  version: 10.5.1
+  date: 2019-02-25T12:53:55.971Z
+- commits:
     - subject: Update to webpack 4
       hash: 63d1cadce0268543ae776a584b436af9d6d61089
       body: ''
