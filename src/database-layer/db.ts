@@ -307,13 +307,14 @@ const createTransaction = (createFunc: CreateTransactionFn): TransactionFn => {
 			}
 			const promise = createFunc(stackTraceErr);
 			if (fn) {
-				promise.tap(tx =>
-					Promise.try<T>(() => fn(tx))
-						.tap(() => tx.end())
-						.tapCatch(() => tx.rollback())
-						.then(resolve)
-						.catch(reject),
-				);
+				promise
+					.tap(tx =>
+						Promise.try<T>(() => fn(tx))
+							.tap(() => tx.end())
+							.tapCatch(() => tx.rollback())
+							.then(resolve),
+					)
+					.catch(reject);
 			} else {
 				promise.then(resolve).catch(reject);
 			}
