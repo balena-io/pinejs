@@ -971,9 +971,6 @@ const checkApiKey = Promise.method((req: PermissionReq, apiKey: string) => {
 });
 
 export const customAuthorizationMiddleware = (expectedScheme = 'Bearer') => {
-	if (expectedScheme == null) {
-		expectedScheme = 'Bearer';
-	}
 	expectedScheme = expectedScheme.toLowerCase();
 	return (
 		req: express.Request,

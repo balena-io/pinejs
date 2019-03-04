@@ -915,10 +915,6 @@ export const runURI = (
 	req?: permissions.PermissionReq,
 	custom?: AnyObject,
 ): Promise<PinejsClientCoreFactory.PromiseResultTypes> => {
-	if (body == null) {
-		body = {};
-	}
-
 	let user: User | undefined;
 	let apiKey: ApiKey | undefined;
 
