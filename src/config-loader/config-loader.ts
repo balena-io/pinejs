@@ -23,19 +23,6 @@ export interface SetupFunction {
 		app: _express.Application,
 		sbvrUtilsInstance: typeof sbvrUtils,
 		db: Database,
-		done?: (err?: any) => void,
-	): PromiseLike<void>;
-	(
-		app: _express.Application,
-		sbvrUtilsInstance: typeof sbvrUtils,
-		db: Database,
-		done: (err?: any) => void,
-	): void;
-	(
-		app: _express.Application,
-		sbvrUtilsInstance: typeof sbvrUtils,
-		db: Database,
-		done?: (err?: any) => void,
 	): Resolvable<void>;
 }
 
@@ -239,24 +226,7 @@ export const setup = (app: _express.Application) => {
 									return;
 								}
 
-								return new Promise<void>((resolve, reject) => {
-									const promise = customCode(
-										app,
-										sbvrUtils,
-										sbvrUtils.db,
-										err => {
-											if (err) {
-												reject(err);
-											} else {
-												resolve();
-											}
-										},
-									);
-
-									if (Promise.is(promise)) {
-										resolve(promise);
-									}
-								});
+								return customCode(app, sbvrUtils, sbvrUtils.db);
 							}
 						}),
 					),

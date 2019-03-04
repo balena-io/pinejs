@@ -449,13 +449,11 @@ export const generateModels = (
 export const executeModel = (
 	tx: _db.Tx,
 	model: ExecutableModel,
-	callback?: (err?: Error) => void,
-): Promise<void> => executeModels(tx, [model], callback);
+): Promise<void> => executeModels(tx, [model]);
 
 export const executeModels = (
 	tx: _db.Tx,
 	execModels: ExecutableModel[],
-	callback?: (err?: Error) => void,
 ): Promise<void> =>
 	Promise.map(execModels, model => {
 		const { apiRoot } = model;
@@ -570,8 +568,7 @@ export const executeModels = (
 		.tapCatch(() =>
 			Promise.map(execModels, ({ apiRoot }) => cleanupModel(apiRoot)),
 		)
-		.return()
-		.asCallback(callback);
+		.return();
 
 const cleanupModel = (vocab: string) => {
 	delete models[vocab];
@@ -671,10 +668,7 @@ const runHooks = Promise.method(
 	},
 );
 
-export const deleteModel = (
-	vocabulary: string,
-	callback?: (err?: Error) => void,
-) => {
+export const deleteModel = (vocabulary: string) => {
 	return db
 		.transaction(tx => {
 			const dropStatements: Array<Promise<any>> = _.map(
@@ -698,8 +692,7 @@ export const deleteModel = (
 				]),
 			);
 		})
-		.then(() => cleanupModel(vocabulary))
-		.asCallback(callback);
+		.then(() => cleanupModel(vocabulary));
 };
 
 const isWhereNode = (
@@ -738,7 +731,7 @@ export const runRule = (() => {
 	});
 	const translator = LF2AbstractSQL.LF2AbstractSQL.createInstance();
 	translator.addTypes(sbvrTypes);
-	return (vocab: string, rule: string, callback?: (err?: Error) => void) => {
+	return (vocab: string, rule: string) => {
 		return Promise.try(() => {
 			const seModel = models[vocab].se;
 			const { logger } = api[vocab];
@@ -870,7 +863,7 @@ export const runRule = (() => {
 						return result;
 					});
 				});
-		}).asCallback(callback);
+		});
 	};
 })();
 
@@ -921,18 +914,9 @@ export const runURI = (
 	tx?: _db.Tx,
 	req?: permissions.PermissionReq,
 	custom?: AnyObject,
-	callback?: (
-		err?: Error,
-		result?: PinejsClientCoreFactory.PromiseResultTypes,
-	) => void,
 ): Promise<PinejsClientCoreFactory.PromiseResultTypes> => {
 	if (body == null) {
 		body = {};
-	}
-	if (callback != null && !_.isFunction(callback)) {
-		const message = 'Called runURI with a non-function callback?!';
-		console.trace(message);
-		return Promise.reject(message);
 	}
 
 	let user: User | undefined;
@@ -1027,7 +1011,7 @@ export const runURI = (
 
 			handleODataRequest(emulatedReq, res, next);
 		},
-	).asCallback(callback);
+	);
 };
 
 export const getAbstractSqlModel = (
@@ -1659,10 +1643,7 @@ const runDelete = (
 		.return(undefined);
 };
 
-export const executeStandardModels = (
-	tx: _db.Tx,
-	callback?: (err?: Error) => void,
-): Promise<void> => {
+export const executeStandardModels = (tx: _db.Tx): Promise<void> => {
 	// dev model must run first
 	return executeModel(tx, {
 		apiRoot: 'dev',
@@ -1679,8 +1660,7 @@ export const executeStandardModels = (
 		})
 		.tapCatch((err: Error) => {
 			console.error('Failed to execute standard models.', err);
-		})
-		.asCallback(callback);
+		});
 };
 
 export const addSideEffectHook = (
@@ -1768,10 +1748,9 @@ const addHook = (
 
 export const setup = (
 	_app: _express.Application,
-	_db: _db.Database,
-	callback?: (err?: Error) => void,
+	$db: _db.Database,
 ): Promise<void> => {
-	exports.db = db = _db;
+	exports.db = db = $db;
 	return db
 		.transaction(tx =>
 			executeStandardModels(tx).then(() => {
@@ -1790,6 +1769,5 @@ export const setup = (
 					)
 					.catch(_.noop), // we can't use IF NOT EXISTS on all dbs, so we have to ignore the error raised if this index already exists
 		)
-		.return()
-		.asCallback(callback);
+		.return();
 };
