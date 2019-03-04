@@ -1208,8 +1208,34 @@ export const config = {
 			apiRoot: 'Auth',
 			modelText: userModel,
 			customServerCode: exports,
+			migrations: {
+				'11.0.0-modified-at': `
+					ALTER TABLE "actor"
+					ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
+
+					ALTER TABLE "api key"
+					ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
+					ALTER TABLE "api key-has-permission"
+					ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
+					ALTER TABLE "api key-has-role"
+					ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
+
+					ALTER TABLE "permission"
+					ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
+
+					ALTER TABLE "role"
+					ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
+
+					ALTER TABLE "user"
+					ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
+					ALTER TABLE "user-has-role"
+					ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
+					ALTER TABLE "user-has-permission"
+					ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
+				`,
+			},
 		},
-	],
+	] as sbvrUtils.ExecutableModel[],
 };
 export const setup = () => {
 	sbvrUtils.addPureHook('all', 'all', 'all', {

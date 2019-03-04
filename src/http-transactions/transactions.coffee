@@ -7,6 +7,22 @@ exports.config =
 		apiRoot: 'transaction'
 		modelText: transactionModel
 		customServerCode: exports
+		migrations: {
+			'11.0.0-modified-at': '''
+				ALTER TABLE "conditional field"
+				ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
+				ALTER TABLE "conditional resource"
+				ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
+				ALTER TABLE "lock"
+				ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
+				ALTER TABLE "resource"
+				ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
+				ALTER TABLE "resource-is under-lock"
+				ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
+				ALTER TABLE "transaction"
+				ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
+			'''
+		}
 	]
 exports.setup = (app, sbvrUtils) ->
 	exports.addModelHooks = (modelName) ->

@@ -1647,6 +1647,12 @@ export const executeStandardModels = (tx: _db.Tx): Promise<void> => {
 		logging: {
 			log: false,
 		},
+		migrations: {
+			'11.0.0-modified-at': `
+				ALTER TABLE "model"
+				ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
+			`,
+		},
 	})
 		.then(() => {
 			return executeModels(tx, permissions.config.models);

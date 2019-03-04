@@ -103,18 +103,23 @@ export const run = (tx: Tx, model: ApiRootModel): Promise<void> => {
 };
 
 const checkModelAlreadyExists = (tx: Tx, modelName: string): Promise<boolean> =>
-	tx
-		.executeSql(
-			binds`
+	tx.tableList("name = 'migration'").then(result => {
+		if (result.rows.length === 0) {
+			return false;
+		}
+		return tx
+			.executeSql(
+				binds`
 SELECT 1
 FROM "model"
 WHERE "model"."is of-vocabulary" = ${1}
 LIMIT 1`,
-			[modelName],
-		)
-		.then(({ rows }) => {
-			return rows.length > 0;
-		});
+				[modelName],
+			)
+			.then(({ rows }) => {
+				return rows.length > 0;
+			});
+	});
 
 const getExecutedMigrations = (tx: Tx, modelName: string): Promise<string[]> =>
 	tx
@@ -245,6 +250,12 @@ export const config: Config = {
 			modelName: 'migrations',
 			apiRoot: 'migrations',
 			modelText: modelText,
+			migrations: {
+				'11.0.0-modified-at': `
+					ALTER TABLE "migration"
+					ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
+				`,
+			},
 		},
 	],
 };

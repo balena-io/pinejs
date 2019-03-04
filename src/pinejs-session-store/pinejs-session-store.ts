@@ -137,6 +137,12 @@ export = class PinejsSessionStore extends Store {
 					default: false,
 					error: true,
 				},
+				migrations: {
+					'11.0.0-modified-at': `
+						ALTER TABLE "session"
+						ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
+					`,
+				},
 			},
 		],
 	};
