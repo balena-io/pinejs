@@ -23,6 +23,7 @@ export const cache = {
 export const db = {
 	poolSize: 50,
 	idleTimeoutMillis: 30000,
+	connectionTimeoutMillis: 30000,
 };
 
 export const migrator = {
