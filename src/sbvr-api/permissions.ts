@@ -634,7 +634,10 @@ const getPermissions = (
 				},
 			},
 		})
-		.map(permission => permission.name)
+		.then(
+			(permissions: AnyObject[]): string[] =>
+				permissions.map(permission => permission.name),
+		)
 		.tapCatch(err => {
 			authApi.logger.error('Error loading permissions', err, err.stack);
 		});
