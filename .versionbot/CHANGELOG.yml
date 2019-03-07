@@ -1,4 +1,14 @@
 - commits:
+    - subject: Use `?` to check for complex urls as it's more accurate than `$`
+      hash: caba6f227ffc2dae266fe26bc6f9218a9a2d3a83
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+  version: 10.5.3
+  date: 2019-03-07T13:20:39.360Z
+- commits:
     - subject: Fix for latest bluebird typings
       hash: a9fec6a09d78f42b0d0c9bc5c2c619540d12f451
       body: ''
