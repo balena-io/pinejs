@@ -1,4 +1,5 @@
 /// <references types="websql"/>
+import * as _events from 'events';
 import * as _mysql from 'mysql';
 import * as _pg from 'pg';
 import * as _pgConnectionString from 'pg-connection-string';
@@ -328,6 +329,29 @@ try {
 	maybePg = require('pg');
 } catch (e) {}
 if (maybePg != null) {
+	// We have these custom pg types because we pass bluebird as the promise provider
+	// so the returned promises are bluebird promises and we rely on that
+	interface BluebirdPoolClient extends _events.EventEmitter {
+		query(queryConfig: _pg.QueryConfig): Promise<_pg.QueryResult>;
+		query(
+			queryTextOrConfig: _pg.QueryConfig,
+			values?: any[],
+		): Promise<_pg.QueryResult>;
+		release(err?: Error): void;
+	}
+	interface BluebirdPool extends _events.EventEmitter {
+		connect(): Promise<BluebirdPoolClient>;
+
+		on(
+			event: 'error',
+			listener: (err: Error, client: BluebirdPoolClient) => void,
+		): this;
+		on(
+			event: 'connect' | 'acquire' | 'remove',
+			listener: (client: BluebirdPoolClient) => void,
+		): this;
+	}
+
 	const pg = maybePg;
 	engines.postgres = (connectString: string | object): Database => {
 		const PG_UNIQUE_VIOLATION = '23505';
@@ -345,14 +369,14 @@ if (maybePg != null) {
 		config.Promise = Promise;
 		config.max = env.db.poolSize;
 		config.idleTimeoutMillis = env.db.idleTimeoutMillis;
-		const pool = new pg.Pool(config);
+		config.connectionTimeoutMillis = env.db.connectionTimeoutMillis;
+		const pool = (new pg.Pool(config) as any) as BluebirdPool;
 		const { PG_SCHEMA } = process.env;
 		if (PG_SCHEMA != null) {
 			pool.on('connect', client => {
 				client.query({ text: `SET search_path TO "${PG_SCHEMA}"` });
 			});
 		}
-		const connect = Promise.promisify(pool.connect, { context: pool });
 
 		const checkPgErrCode = (err: CodedError) => {
 			if (err.code === PG_UNIQUE_VIOLATION) {
@@ -378,11 +402,7 @@ if (maybePg != null) {
 			};
 		};
 		class PostgresTx extends Tx {
-			constructor(
-				private db: _pg.Client,
-				private close: CloseTransactionFn,
-				stackTraceErr?: Error,
-			) {
+			constructor(private db: BluebirdPoolClient, stackTraceErr?: Error) {
 				super(stackTraceErr);
 			}
 
@@ -395,23 +415,33 @@ if (maybePg != null) {
 					sql = sql.replace(/;?$/, ' RETURNING "' + addReturning + '";');
 				}
 
-				return Promise.fromCallback(callback => {
-					this.db.query({ text: sql, values: bindings }, callback);
-				})
+				return this.db
+					.query({
+						text: sql,
+						values: bindings,
+					})
 					.catch(checkPgErrCode)
 					.then(createResult);
 			}
 
 			protected _rollback() {
-				const promise = this.executeSql('ROLLBACK;');
-				this.close();
-				return promise.return();
+				return this.executeSql('ROLLBACK;')
+					.then(() => {
+						this.db.release();
+					})
+					.tapCatch(err => {
+						this.db.release(err);
+					});
 			}
 
 			protected _commit() {
-				const promise = this.executeSql('COMMIT;');
-				this.close();
-				return promise.return();
+				return this.executeSql('COMMIT;')
+					.then(() => {
+						this.db.release();
+					})
+					.tapCatch(err => {
+						this.db.release(err);
+					});
 			}
 
 			public tableList(extraWhereClause: string = '') {
@@ -433,8 +463,8 @@ if (maybePg != null) {
 				engine: Engines.postgres,
 				executeSql: atomicExecuteSql,
 				transaction: createTransaction(stackTraceErr =>
-					connect().then(client => {
-						const tx = new PostgresTx(client, client.release, stackTraceErr);
+					pool.connect().then(client => {
+						const tx = new PostgresTx(client, stackTraceErr);
 						tx.executeSql('START TRANSACTION;');
 						return tx;
 					}),
