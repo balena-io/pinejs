@@ -89,7 +89,7 @@ export const memoizedParseOdata = (() => {
 		max: env.cache.parseOData.max,
 	});
 	return (url: string) => {
-		if (_.includes(url, '$')) {
+		if (_.includes(url, '?')) {
 			// If we're doing a complex url then skip caching due to # of permutations
 			return parseOdata(url);
 		} else {
