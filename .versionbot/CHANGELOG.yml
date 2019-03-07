@@ -1,4 +1,14 @@
 - commits:
+    - subject: Update pg to ^7.8.1
+      hash: 4c61b59d18fadebcf4e659012b0c6234afff77ba
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+  version: 10.6.0
+  date: 2019-03-07T13:35:37.468Z
+- commits:
     - subject: Use `?` to check for complex urls as it's more accurate than `$`
       hash: caba6f227ffc2dae266fe26bc6f9218a9a2d3a83
       body: ''
