@@ -1,4 +1,14 @@
 - commits:
+    - subject: Fix for latest bluebird typings
+      hash: a9fec6a09d78f42b0d0c9bc5c2c619540d12f451
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+  version: 10.5.2
+  date: 2019-03-07T10:05:31.636Z
+- commits:
     - subject: Correctly propagate transaction creation errors in `db.transaction(fn)`
       hash: 94292ad5ba8a90edd23f2fc9472288326e277b74
       body: ''
