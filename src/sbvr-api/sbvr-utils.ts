@@ -16,7 +16,7 @@ Promise.config({
 	cancellation: true,
 });
 
-import TypedError = require('typed-error');
+import { TypedError } from 'typed-error';
 import { cachedCompile } from './cached-compile';
 
 type LFModel = any[];

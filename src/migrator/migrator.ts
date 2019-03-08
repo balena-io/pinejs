@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 import * as Promise from 'bluebird';
-import TypedError = require('typed-error');
+import { TypedError } from 'typed-error';
 // tslint:disable-next-line:no-var-requires
 const modelText: string = require('./migrations.sbvr');
 import { Tx } from '../database-layer/db';

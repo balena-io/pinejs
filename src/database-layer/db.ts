@@ -6,7 +6,7 @@ import * as _pgConnectionString from 'pg-connection-string';
 import * as EventEmitter from 'eventemitter3';
 import * as _ from 'lodash';
 import * as Promise from 'bluebird';
-import TypedError = require('typed-error');
+import { TypedError } from 'typed-error';
 import * as env from '../config-loader/env';
 import { Engines } from '@resin/abstract-sql-compiler';
 import { Resolvable } from '../sbvr-api/common-types';

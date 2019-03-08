@@ -55,7 +55,7 @@
     "lodash": "^4.17.15",
     "memoizee": "^0.4.14",
     "pinejs-client-core": "^5.6.0",
-    "typed-error": "^2.0.0"
+    "typed-error": "^3.2.0"
   },
   "devDependencies": {
     "@types/grunt": "^0.4.24",
