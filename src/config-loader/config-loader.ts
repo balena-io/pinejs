@@ -9,7 +9,9 @@ const readFileAsync = (Promise.promisify(fs.readFile) as any) as (
 	filename: string,
 	encoding: string,
 ) => Promise<string>;
-const readdirAsync = Promise.promisify(fs.readdir);
+const readdirAsync = Promise.promisify(fs.readdir) as (
+	path: string,
+) => Promise<string[]>;
 
 import { Database } from '../database-layer/db';
 import * as sbvrUtils from '../sbvr-api/sbvr-utils';

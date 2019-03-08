@@ -15,12 +15,6 @@ buildSteps: &buildSteps
         - ./node-*
 
 jobs:
-  node-6:
-    docker:
-      - image: circleci/node:6
-    working_directory: ~/node-6
-    steps: *buildSteps
-
   node-8:
     docker:
       - image: circleci/node:8
@@ -61,11 +55,6 @@ workflows:
   version: 2
   build:
     jobs:
-      - node-6:
-          # Run for all tags (required to allow the deploy to trigger on version tags)
-          filters:
-            tags:
-              only: /.*/
       - node-8:
           # Run for all tags (required to allow the deploy to trigger on version tags)
           filters:
@@ -84,7 +73,6 @@ workflows:
       - deploy:
           # Deploy passing builds if they're tagged with a version
           requires:
-            - node-6
             - node-8
             - node-10
             - node-12
