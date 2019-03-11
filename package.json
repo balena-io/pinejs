@@ -18,12 +18,12 @@
     "prettify": "prettier --config ./node_modules/resin-lint/config/.prettierrc --write \"{build,src,test,typings}/**/*.ts\" Gruntfile.ts"
   },
   "dependencies": {
-    "@resin/abstract-sql-compiler": "^6.3.6",
+    "@resin/abstract-sql-compiler": "^6.4.0",
     "@resin/lf-to-abstract-sql": "^2.1.0",
     "@resin/odata-parser": "^1.0.1",
     "@resin/odata-to-abstract-sql": "^3.0.1",
     "@resin/sbvr-parser": "^0.2.1",
-    "@resin/sbvr-types": "^2.0.0",
+    "@resin/sbvr-types": "^2.0.2",
     "@types/bluebird": "^3.5.25",
     "@types/body-parser": "1.17.0",
     "@types/compression": "0.0.36",
@@ -50,7 +50,6 @@
     "lodash": "^4.17.11",
     "memoizee": "^0.4.14",
     "pinejs-client-core": "^5.3.6",
-    "prettier": "^1.16.4",
     "typed-error": "^2.0.0"
   },
   "devDependencies": {
@@ -73,6 +72,7 @@
     "husky": "^1.3.1",
     "lint-staged": "^8.1.5",
     "load-grunt-tasks": "^4.0.0",
+    "prettier": "^1.16.4",
     "raw-loader": "^1.0.0",
     "require-npm4-to-publish": "^1.0.0",
     "resin-lint": "^2.0.1",
