@@ -1,4 +1,14 @@
 - commits:
+    - subject: Update to sbvr-types 2.0.2
+      hash: eb95ffb605f81639abb0b0a96598d9db554b7502
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+  version: 10.6.1
+  date: 2019-03-11T14:07:30.291Z
+- commits:
     - subject: Update pg to ^7.8.1
       hash: 4c61b59d18fadebcf4e659012b0c6234afff77ba
       body: ''
