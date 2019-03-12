@@ -1,4 +1,14 @@
 - commits:
+    - subject: Use definitions for all permission types
+      hash: 884046f8ba4f2d15465451a2135e53c625e02728
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+  version: 10.7.0
+  date: 2019-03-12T15:40:11.523Z
+- commits:
     - subject: Update to sbvr-types 2.0.2
       hash: eb95ffb605f81639abb0b0a96598d9db554b7502
       body: ''
