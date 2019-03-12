@@ -91,11 +91,12 @@ type MappedNestedCheck<
 	? NestedCheckArray<MappedType<I, O>>
 	: Exclude<I, string> | O;
 
-const GETPermissions = {
-	or: ['get', 'read'],
-};
-const methodPermissions: { [method in SupportedMethod]?: PermissionCheck } = {
-	GET: GETPermissions,
+const methodPermissions: {
+	[method in Exclude<SupportedMethod, 'OPTIONS'>]: PermissionCheck
+} & { OPTIONS?: PermissionCheck } = {
+	GET: {
+		or: ['get', 'read'],
+	},
 	PUT: {
 		or: [
 			'set',
@@ -273,7 +274,10 @@ const collapsePermissionFilters = <T>(
 	return v;
 };
 
-const addRelationshipBypasses = (relationships: Relationship) => {
+const namespaceRelationships = (
+	relationships: Relationship,
+	alias: string,
+): void => {
 	_.each(relationships, (relationship: Relationship, key) => {
 		if (key === '$') {
 			return;
@@ -282,12 +286,12 @@ const addRelationshipBypasses = (relationships: Relationship) => {
 		let mapping = relationship.$;
 		if (mapping != null && mapping.length === 2) {
 			mapping = _.cloneDeep(mapping);
-			mapping[1][0] = `${mapping[1][0]}$bypass`;
-			relationships[`${key}$bypass`] = {
+			mapping[1][0] = `${mapping[1][0]}$${alias}`;
+			relationships[`${key}$${alias}`] = {
 				$: mapping,
 			};
 		}
-		addRelationshipBypasses(relationship);
+		namespaceRelationships(relationship, alias);
 	});
 };
 
@@ -505,53 +509,131 @@ const createBypassDefinition = (definition: Definition) =>
 		}
 	});
 
+const getAlias = (name: string) => {
+	// TODO-MAJOR: Change $bypass to $permissionbypass or similar
+	if (name.endsWith('$bypass')) {
+		return 'bypass';
+	}
+	const [, permissionsJSON] = name.split('permissions');
+	if (!permissionsJSON) {
+		return;
+	}
+	return `permissions${permissionsJSON}`;
+};
+const stringifiedGetPermissions = JSON.stringify(methodPermissions.GET);
 const getBoundConstrainedMemoizer = memoizeWeak(
 	(abstractSqlModel: AbstractSqlModel) =>
 		memoizeWeak(
 			(permissionsLookup: PermissionLookup, vocabulary: string) => {
 				const constrainedAbstractSqlModel = _.cloneDeep(abstractSqlModel);
-				_.each(
+
+				const origSynonyms = Object.keys(constrainedAbstractSqlModel.synonyms);
+				constrainedAbstractSqlModel.synonyms = new Proxy(
 					constrainedAbstractSqlModel.synonyms,
-					(canonicalForm, synonym) => {
-						constrainedAbstractSqlModel.synonyms[
-							`${synonym}$bypass`
-						] = `${canonicalForm}$bypass`;
+					{
+						get: (synonyms, permissionSynonym: string) => {
+							if (synonyms[permissionSynonym]) {
+								return synonyms[permissionSynonym];
+							}
+							const alias = getAlias(permissionSynonym);
+							if (!alias) {
+								return;
+							}
+							origSynonyms.forEach((canonicalForm, synonym) => {
+								synonyms[`${synonym}$${alias}`] = `${canonicalForm}$${alias}`;
+							});
+							return synonyms[permissionSynonym];
+						},
 					},
 				);
-				addRelationshipBypasses(
-					constrainedAbstractSqlModel.relationships as Relationship,
-				);
-				_.each(
+
+				const origRelationships = Object.keys(
 					constrainedAbstractSqlModel.relationships,
-					(relationship, key) => {
-						constrainedAbstractSqlModel.relationships[
-							`${key}$bypass`
-						] = relationship;
+				);
+				constrainedAbstractSqlModel.relationships = new Proxy(
+					constrainedAbstractSqlModel.relationships,
+					{
+						get: (relationships, permissionResourceName: string) => {
+							if (relationships[permissionResourceName]) {
+								return relationships[permissionResourceName];
+							}
+							const alias = getAlias(permissionResourceName);
+							if (!alias) {
+								return;
+							}
+							for (const relationship of origRelationships) {
+								relationships[`${relationship}$${alias}`] =
+									relationships[relationship];
+								namespaceRelationships(relationships[relationship], alias);
+							}
+							return relationships[permissionResourceName];
+						},
 					},
 				);
+
 				_.each(constrainedAbstractSqlModel.tables, (table, resourceName) => {
+					const bypassResourceName = `${resourceName}$bypass`;
+					constrainedAbstractSqlModel.tables[bypassResourceName] = _.clone(
+						table,
+					);
 					constrainedAbstractSqlModel.tables[
-						`${resourceName}$bypass`
-					] = _.clone(table);
+						bypassResourceName
+					].resourceName = bypassResourceName;
 					if (table.definition) {
 						// If the table is definition based then just make the bypass version match but pointing to the equivalent bypassed resources
 						constrainedAbstractSqlModel.tables[
-							`${resourceName}$bypass`
+							bypassResourceName
 						].definition = createBypassDefinition(table.definition);
 					} else {
 						// Otherwise constrain the non-bypass table
-						onceGetter(table, 'definition', () =>
-							// For $filter on eg a DELETE you need read permissions on the sub-resources,
-							// you only need delete permissions on the resource being deleted
-							generateConstrainedAbstractSql(
-								permissionsLookup,
-								GETPermissions,
-								vocabulary,
-								sqlNameToODataName(table.name),
-							),
+						onceGetter(
+							table,
+							'definition',
+							() =>
+								// For $filter on eg a DELETE you need read permissions on the sub-resources,
+								// you only need delete permissions on the resource being deleted
+								constrainedAbstractSqlModel.tables[
+									`${resourceName}$permissions${stringifiedGetPermissions}`
+								].definition,
 						);
 					}
 				});
+				constrainedAbstractSqlModel.tables = new Proxy(
+					constrainedAbstractSqlModel.tables,
+					{
+						get: (tables, permissionResourceName: string) => {
+							if (tables[permissionResourceName]) {
+								return tables[permissionResourceName];
+							}
+							const [
+								resourceName,
+								permissionsJSON,
+							] = permissionResourceName.split('$permissions');
+							if (!permissionsJSON) {
+								return;
+							}
+							const permissions = JSON.parse(permissionsJSON);
+
+							const table = tables[`${resourceName}$bypass`];
+
+							const permissionsTable = (tables[
+								permissionResourceName
+							] = _.clone(table));
+							permissionsTable.resourceName = permissionResourceName;
+							onceGetter(permissionsTable, 'definition', () =>
+								// For $filter on eg a DELETE you need read permissions on the sub-resources,
+								// you only need delete permissions on the resource being deleted
+								generateConstrainedAbstractSql(
+									permissionsLookup,
+									permissions,
+									vocabulary,
+									sqlNameToODataName(permissionsTable.name),
+								),
+							);
+							return permissionsTable;
+						},
+					},
+				);
 				deepFreezeExceptDefinition(constrainedAbstractSqlModel);
 				return constrainedAbstractSqlModel;
 			},
@@ -1092,101 +1174,6 @@ const rewriteODataOptions = (
 	});
 };
 
-const memoizedRewriteODataOptions = memoizeWeak(
-	(
-		abstractSqlModel: AbstractSqlModel,
-		vocabulary: string,
-		resourceName: string,
-		_filter: string,
-		tree: ODataQuery,
-	) => {
-		tree = _.cloneDeep(tree);
-		rewriteODataOptions({ abstractSqlModel, vocabulary, resourceName }, [tree]);
-		return tree;
-	},
-	{
-		normalizer: (_abstractSqlModel, [vocabulary, resourceName, filter]) =>
-			filter + vocabulary + resourceName,
-	},
-);
-
-const parseRewrittenPermissions = (
-	abstractSqlModel: AbstractSqlModel,
-	vocabulary: string,
-	resourceName: string,
-	filter: string,
-	odataBinds: ODataBinds,
-) => {
-	let { tree, extraBinds } = $parsePermissions(filter);
-	tree = memoizedRewriteODataOptions(
-		abstractSqlModel,
-		vocabulary,
-		resourceName,
-		filter,
-		tree,
-	);
-	return rewriteBinds({ tree, extraBinds }, odataBinds);
-};
-
-const addODataPermissions = (
-	permissionsLookup: PermissionLookup,
-	permissionType: PermissionCheck,
-	vocabulary: string,
-	resourceName: string,
-	odataQuery: ODataQuery,
-	odataBinds: ODataBinds,
-	abstractSqlModel: AbstractSqlModel,
-) => {
-	const conditionalPerms = $checkPermissions(
-		permissionsLookup,
-		permissionType,
-		vocabulary,
-		resourceName,
-	);
-
-	if (conditionalPerms === false) {
-		throw new PermissionError();
-	}
-	if (conditionalPerms !== true) {
-		const permissionFilters = nestedCheck(conditionalPerms, permissionCheck => {
-			try {
-				// We use an object with filter key to avoid collapsing our filters later.
-				return {
-					filter: parseRewrittenPermissions(
-						abstractSqlModel,
-						vocabulary,
-						resourceName,
-						permissionCheck,
-						odataBinds,
-					),
-				};
-			} catch (e) {
-				console.warn(
-					'Failed to parse conditional permissions: ',
-					permissionCheck,
-				);
-				throw new PermissionParsingError(e);
-			}
-		});
-
-		const collapsedPermissionFilters = collapsePermissionFilters(
-			permissionFilters,
-		);
-		if (odataQuery.options == null) {
-			odataQuery.options = {};
-		}
-		if (odataQuery.options.$filter != null) {
-			odataQuery.options.$filter = [
-				'and',
-				odataQuery.options.$filter,
-				collapsedPermissionFilters,
-			];
-		} else {
-			odataQuery.options.$filter = collapsedPermissionFilters;
-		}
-	}
-};
-
 export const addPermissions = Promise.method(
 	(
 		req: PermissionReq,
@@ -1240,16 +1227,9 @@ export const addPermissions = Promise.method(
 
 			if (!_.isEqual(permissionType, methodPermissions.GET)) {
 				const sqlName = sbvrUtils.resolveSynonym(request);
-				odataQuery.resource = `${sqlName}$bypass`;
-				return addODataPermissions(
-					permissionsLookup,
+				odataQuery.resource = `${sqlName}$permissions${JSON.stringify(
 					permissionType,
-					vocabulary,
-					resourceName,
-					odataQuery,
-					odataBinds,
-					abstractSqlModel,
-				);
+				)}`;
 			}
 		});
 	},
