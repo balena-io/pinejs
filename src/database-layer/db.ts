@@ -94,6 +94,7 @@ export type Database = {
 		bindings?: Bindings,
 	) => Promise<Result>;
 	transaction: TransactionFn;
+	readTransaction?: TransactionFn;
 };
 
 export const engines: {
@@ -458,20 +459,26 @@ if (maybePg != null) {
 				`);
 			}
 		}
-		return _.extend(
-			{
-				engine: Engines.postgres,
-				executeSql: atomicExecuteSql,
-				transaction: createTransaction(stackTraceErr =>
-					pool.connect().then(client => {
-						const tx = new PostgresTx(client, stackTraceErr);
-						tx.executeSql('START TRANSACTION;');
-						return tx;
-					}),
-				),
-			},
-			alwaysExport,
-		);
+		return {
+			engine: Engines.postgres,
+			executeSql: atomicExecuteSql,
+			transaction: createTransaction(stackTraceErr =>
+				pool.connect().then(client => {
+					const tx = new PostgresTx(client, stackTraceErr);
+					tx.executeSql('START TRANSACTION;');
+					return tx;
+				}),
+			),
+			readTransaction: createTransaction(stackTraceErr =>
+				pool.connect().then(client => {
+					const tx = new PostgresTx(client, stackTraceErr);
+					tx.executeSql('START TRANSACTION;');
+					tx.executeSql('SET TRANSACTION READ ONLY;');
+					return tx;
+				}),
+			),
+			...alwaysExport,
+		};
 	};
 }
 
@@ -555,21 +562,28 @@ if (maybeMysql != null) {
 			}
 		}
 
-		return _.extend(
-			{
-				engine: Engines.mysql,
-				executeSql: atomicExecuteSql,
-				transaction: createTransaction(stackTraceErr =>
-					connect().then(client => {
-						const close = () => client.release();
-						const tx = new MySqlTx(client, close, stackTraceErr);
-						tx.executeSql('START TRANSACTION;');
-						return tx;
-					}),
-				),
-			},
-			alwaysExport,
-		);
+		return {
+			engine: Engines.mysql,
+			executeSql: atomicExecuteSql,
+			transaction: createTransaction(stackTraceErr =>
+				connect().then(client => {
+					const close = () => client.release();
+					const tx = new MySqlTx(client, close, stackTraceErr);
+					tx.executeSql('START TRANSACTION;');
+					return tx;
+				}),
+			),
+			readTransaction: createTransaction(stackTraceErr =>
+				connect().then(client => {
+					const close = () => client.release();
+					const tx = new MySqlTx(client, close, stackTraceErr);
+					tx.executeSql('SET TRANSACTION READ ONLY;');
+					tx.executeSql('START TRANSACTION;');
+					return tx;
+				}),
+			),
+			...alwaysExport,
+		};
 	};
 }
 
@@ -699,21 +713,19 @@ if (typeof window !== 'undefined' && window.openDatabase != null) {
 			}
 		}
 
-		return _.extend(
-			{
-				engine: Engines.websql,
-				executeSql: atomicExecuteSql,
-				transaction: createTransaction(
-					stackTraceErr =>
-						new Promise(resolve => {
-							db.transaction(tx => {
-								resolve(new WebSqlTx(tx, stackTraceErr));
-							});
-						}),
-				),
-			},
-			alwaysExport,
-		);
+		return {
+			engine: Engines.websql,
+			executeSql: atomicExecuteSql,
+			transaction: createTransaction(
+				stackTraceErr =>
+					new Promise(resolve => {
+						db.transaction(tx => {
+							resolve(new WebSqlTx(tx, stackTraceErr));
+						});
+					}),
+			),
+			...alwaysExport,
+		};
 	};
 }
 
