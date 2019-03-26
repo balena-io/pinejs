@@ -1,4 +1,14 @@
 - commits:
+    - subject: Add support for read-only transactions for postgres/mysql backends
+      hash: 5b1009511895bcc9cdb6693ee5770b8315aa9d89
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+  version: 10.8.0
+  date: 2019-03-25T20:47:53.526Z
+- commits:
     - subject: Use definitions for all permission types
       hash: 884046f8ba4f2d15465451a2135e53c625e02728
       body: ''
