@@ -1,4 +1,14 @@
 - commits:
+    - subject: Add an error handler to the pg pool
+      hash: e8aafee5cd9fb93893bd42c8eeef172b89c501a1
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+  version: 10.8.1
+  date: 2019-04-01T16:16:32.673Z
+- commits:
     - subject: Add support for read-only transactions for postgres/mysql backends
       hash: 5b1009511895bcc9cdb6693ee5770b8315aa9d89
       body: ''
