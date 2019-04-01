@@ -377,6 +377,9 @@ if (maybePg != null) {
 			pool.on('connect', client => {
 				client.query({ text: `SET search_path TO "${PG_SCHEMA}"` });
 			});
+			pool.on('error', err => {
+				console.error('Pool error:', err);
+			});
 		}
 
 		const checkPgErrCode = (err: CodedError) => {
