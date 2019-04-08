@@ -378,7 +378,7 @@ if (maybePg != null) {
 				client.query({ text: `SET search_path TO "${PG_SCHEMA}"` });
 			});
 			pool.on('error', err => {
-				console.error('Pool error:', err);
+				console.error('Pool error:', err.message);
 			});
 		}
 
