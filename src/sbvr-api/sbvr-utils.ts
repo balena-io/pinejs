@@ -55,6 +55,9 @@ import {
 	MethodNotAllowedError,
 	BadRequestError,
 	HttpError,
+	UnauthorizedError,
+	NotFoundError,
+	ConflictError,
 } from './errors';
 export * from './errors';
 import {
@@ -955,6 +958,7 @@ export const runURI = (
 	return new Promise<PinejsClientCoreFactory.PromiseResultTypes>(
 		(resolve, reject) => {
 			const res: _express.Response = {
+				__internalPinejs: true,
 				on: _.noop,
 				statusCode: 200,
 				status(statusCode: number) {
@@ -981,6 +985,10 @@ export const runURI = (
 					this.sendStatus(statusCode);
 				},
 				json(data: any, statusCode: number) {
+					if (_.isError(data)) {
+						reject(data);
+						return;
+					}
 					if (statusCode == null) {
 						statusCode = this.statusCode;
 					}
@@ -1175,9 +1183,9 @@ export const handleODataRequest: _express.Handler = (req, res, next) => {
 			);
 		})
 		.then(results =>
-			mapSeries(results, result => {
+			results.map(result => {
 				if (_.isError(result)) {
-					return constructError(result);
+					return convertToHttpError(result);
 				} else {
 					return result;
 				}
@@ -1187,7 +1195,18 @@ export const handleODataRequest: _express.Handler = (req, res, next) => {
 			res.set('Cache-Control', 'no-cache');
 			// If we are dealing with a single request unpack the response and respond normally
 			if (req.batch == null || req.batch.length === 0) {
-				const [{ body, headers, status }] = responses as Response[];
+				let [response] = responses;
+				if (_.isError(response)) {
+					if ((res as AnyObject).__internalPinejs === true) {
+						return res.json(response);
+					} else {
+						response = {
+							status: response.status,
+							body: response.getResponseBody(),
+						};
+					}
+				}
+				const { body, headers, status } = response as Response;
 				if (status) {
 					res.status(status);
 				}
@@ -1211,7 +1230,18 @@ export const handleODataRequest: _express.Handler = (req, res, next) => {
 
 				// Otherwise its a multipart request and we reply with the appropriate multipart response
 			} else {
-				(res.status(200) as any).sendMulti(responses);
+				(res.status(200) as any).sendMulti(
+					responses.map(response => {
+						if (_.isError(response)) {
+							return {
+								status: response.status,
+								body: response.getResponseBody(),
+							};
+						} else {
+							return response;
+						}
+					}),
+				);
 			}
 		})
 		.catch((e: Error) => {
@@ -1224,32 +1254,30 @@ export const handleODataRequest: _express.Handler = (req, res, next) => {
 };
 
 // Reject the error to use the nice catch syntax
-const constructError = (
-	err: any,
-): { status: number; body?: string | AnyObject } => {
+const convertToHttpError = (err: any): HttpError => {
+	if (err instanceof HttpError) {
+		return err;
+	}
 	if (err instanceof SbvrValidationError) {
-		return { status: 400, body: err.message };
-	} else if (err instanceof PermissionError)
-		return { status: 401, body: err.message };
-	else if (
+		return new BadRequestError(err);
+	}
+	if (err instanceof PermissionError) {
+		return new UnauthorizedError(err);
+	}
+	if (err instanceof db.ConstraintError) {
+		return new ConflictError(err);
+	}
+	if (
 		err instanceof SqlCompilationError ||
 		err instanceof TranslationError ||
 		err instanceof ParsingError ||
 		err instanceof PermissionParsingError
 	) {
-		return { status: 500 };
-	} else if (err instanceof HttpError) {
-		return { status: err.status, body: err.getResponseBody() };
-	} else if (err instanceof db.ConstraintError) {
-		return { status: 409, body: err.message };
-	} else {
-		console.error(err);
-		// If the err is an error object then use its message instead - it should be more readable!
-		if (_.isError(err)) {
-			err = err.message;
-		}
-		return { status: 404, body: err };
+		return new InternalRequestError();
 	}
+
+	console.error('Unexpected response error type', err);
+	return new NotFoundError(err);
 };
 
 const runRequest = (
