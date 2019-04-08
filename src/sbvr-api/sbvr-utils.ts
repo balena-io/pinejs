@@ -52,7 +52,7 @@ import {
 	SbvrValidationError,
 	SqlCompilationError,
 	TranslationError,
-	UnsupportedMethodError,
+	MethodNotAllowedError,
 	BadRequestError,
 	HttpError,
 } from './errors';
@@ -1238,8 +1238,6 @@ const constructError = (
 		err instanceof PermissionParsingError
 	) {
 		return { status: 500 };
-	} else if (err instanceof UnsupportedMethodError) {
-		return { status: 405, body: err.message };
 	} else if (err instanceof HttpError) {
 		return { status: err.status, body: err.getResponseBody() };
 	} else if (err instanceof db.ConstraintError) {
@@ -1388,7 +1386,7 @@ const prepareResponse = (
 		case 'OPTIONS':
 			return respondOptions(req, res, request, result, tx);
 		default:
-			return Promise.reject(new UnsupportedMethodError());
+			return Promise.reject(new MethodNotAllowedError());
 	}
 };
 
