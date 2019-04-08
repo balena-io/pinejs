@@ -1,4 +1,14 @@
 - commits:
+    - subject: Only print the error message on pool errors
+      hash: fbbf41813a0f7cd747c78d4308535c23aed0763b
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+  version: 10.8.2
+  date: 2019-04-06T23:54:58.136Z
+- commits:
     - subject: Add an error handler to the pg pool
       hash: e8aafee5cd9fb93893bd42c8eeef172b89c501a1
       body: ''
