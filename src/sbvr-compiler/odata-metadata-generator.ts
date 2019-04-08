@@ -1,6 +1,9 @@
 import * as _ from 'lodash';
 import * as sbvrTypes from '@resin/sbvr-types';
-import { SqlModel, AbstractSqlTable } from '@resin/abstract-sql-compiler';
+import {
+	AbstractSqlTable,
+	AbstractSqlModel,
+} from '@resin/abstract-sql-compiler';
 
 // tslint:disable-next-line:no-var-requires
 const { version }: { version: string } = require('../../package.json');
@@ -12,7 +15,7 @@ const getResourceName = (resourceName: string): string =>
 		.join('__');
 
 const forEachUniqueTable = <T>(
-	model: SqlModel['tables'],
+	model: AbstractSqlModel['tables'],
 	callback: (tableName: string, table: AbstractSqlTable) => T,
 ): T[] => {
 	const usedTableNames: _.Dictionary<true> = {};
@@ -28,7 +31,10 @@ const forEachUniqueTable = <T>(
 	return result;
 };
 
-const odataMetadataGenerator = (vocabulary: string, sqlModel: SqlModel) => {
+const odataMetadataGenerator = (
+	vocabulary: string,
+	abstractSqlModel: AbstractSqlModel,
+) => {
 	const complexTypes: _.Dictionary<string> = {};
 	const resolveDataType = (fieldType: string): string => {
 		if (sbvrTypes[fieldType] == null) {
@@ -42,7 +48,7 @@ const odataMetadataGenerator = (vocabulary: string, sqlModel: SqlModel) => {
 		return sbvrTypes[fieldType].types.odata.name;
 	};
 
-	const model = sqlModel.tables;
+	const model = abstractSqlModel.tables;
 	const associations: Array<{
 		name: string;
 		ends: Array<{
