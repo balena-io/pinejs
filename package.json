@@ -78,10 +78,10 @@
     "resin-lint": "^2.0.1",
     "terser-webpack-plugin": "^1.2.3",
     "ts-loader": "^5.3.3",
-    "typescript": "^3.4.1",
+    "typescript": "^3.4.3",
     "umd-require-webpack-plugin": "0.0.1",
     "webpack": "^4.29.6",
-    "webpack-dev-server": "^3.2.1"
+    "webpack-dev-server": "^3.3.1"
   },
   "optionalDependencies": {
     "bcrypt": "^3.0.1",
