@@ -14,7 +14,7 @@ const readdirAsync = Promise.promisify(fs.readdir);
 import { Database } from '../database-layer/db';
 import * as sbvrUtils from '../sbvr-api/sbvr-utils';
 import * as permissions from '../sbvr-api/permissions';
-import { RequiredField } from '../sbvr-api/common-types';
+import { RequiredField, Resolvable } from '../sbvr-api/common-types';
 
 export interface SetupFunction {
 	(
@@ -271,10 +271,9 @@ export const setup = (app: _express.Application) => {
 			)
 			.return();
 
-	const loadJSON = (path: string): Config => {
-		console.info('Loading JSON:', path);
-		const json = fs.readFileSync(path, 'utf8');
-		return JSON.parse(json);
+	const loadConfigFile = (path: string): Promise<Config> => {
+		console.info('Loading config:', path);
+		return Promise.resolve(import(path));
 	};
 
 	const loadApplicationConfig = (config?: string | Config) => {
@@ -293,80 +292,82 @@ export const setup = (app: _express.Application) => {
 
 		console.info('Loading application config');
 		let root: string;
-		let configObj: Config;
+		let configPromise: Resolvable<Config>;
 		if (config == null) {
 			root = path.resolve(process.argv[2]) || __dirname;
-			configObj = loadJSON(path.join(root, 'config.json'));
+			configPromise = loadConfigFile(path.join(root, 'config.json'));
 		} else if (_.isString(config)) {
 			root = path.dirname(config);
-			configObj = loadJSON(config);
+			configPromise = loadConfigFile(config);
 		} else if (_.isObject(config)) {
 			root = process.cwd();
-			configObj = config;
+			configPromise = config;
 		} else {
 			return Promise.reject(
 				new Error(`Invalid type for config '${typeof config}'`),
 			);
 		}
 
-		return Promise.map(configObj.models, model =>
-			Promise.try<string | undefined>(() => {
-				if (model.modelFile != null) {
-					return readFileAsync(path.join(root, model.modelFile), 'utf8');
-				}
-				return model.modelText;
-			})
-				.then(modelText => {
-					model.modelText = modelText;
-					if (model.customServerCode != null) {
-						model.customServerCode = root + '/' + model.customServerCode;
-					}
-				})
-				.then(() => {
-					if (model.migrations == null) {
-						model.migrations = {};
-					}
-					const migrations = model.migrations;
+		return Promise.resolve(configPromise)
+			.then(configObj =>
+				Promise.map(configObj.models, model =>
+					Promise.try<string | undefined>(() => {
+						if (model.modelFile != null) {
+							return readFileAsync(path.join(root, model.modelFile), 'utf8');
+						}
+						return model.modelText;
+					})
+						.then(modelText => {
+							model.modelText = modelText;
+							if (model.customServerCode != null) {
+								model.customServerCode = root + '/' + model.customServerCode;
+							}
+						})
+						.then(() => {
+							if (model.migrations == null) {
+								model.migrations = {};
+							}
+							const migrations = model.migrations;
 
-					if (model.migrationsPath) {
-						const migrationsPath = path.join(root, model.migrationsPath);
-						delete model.migrationsPath;
+							if (model.migrationsPath) {
+								const migrationsPath = path.join(root, model.migrationsPath);
+								delete model.migrationsPath;
 
-						return readdirAsync(migrationsPath)
-							.map(filename => {
-								const filePath = path.join(migrationsPath, filename);
-								const migrationKey = filename.split('-')[0];
+								return readdirAsync(migrationsPath)
+									.map(filename => {
+										const filePath = path.join(migrationsPath, filename);
+										const migrationKey = filename.split('-')[0];
 
-								switch (path.extname(filename)) {
-									case '.coffee':
-									case '.js':
-										migrations[migrationKey] = nodeRequire(filePath);
-										break;
-									case '.sql':
-										return readFileAsync(filePath, 'utf8').then(sql => {
-											migrations[migrationKey] = sql;
-										});
-									default:
-										console.error(
-											`Unrecognised migration file extension, skipping: ${path.extname(
-												filename,
-											)}`,
-										);
-								}
-							})
-							.return();
-					}
-				})
-				.then(() => {
-					if (model.initSqlPath) {
-						const initSqlPath = path.join(root, model.initSqlPath);
-						return readFileAsync(initSqlPath, 'utf8').then(initSql => {
-							model.initSql = initSql;
-						});
-					}
-				}),
-		)
-			.then(() => loadConfig(configObj))
+										switch (path.extname(filename)) {
+											case '.coffee':
+											case '.js':
+												migrations[migrationKey] = nodeRequire(filePath);
+												break;
+											case '.sql':
+												return readFileAsync(filePath, 'utf8').then(sql => {
+													migrations[migrationKey] = sql;
+												});
+											default:
+												console.error(
+													`Unrecognised migration file extension, skipping: ${path.extname(
+														filename,
+													)}`,
+												);
+										}
+									})
+									.return();
+							}
+						})
+						.then(() => {
+							if (model.initSqlPath) {
+								const initSqlPath = path.join(root, model.initSqlPath);
+								return readFileAsync(initSqlPath, 'utf8').then(initSql => {
+									model.initSql = initSql;
+								});
+							}
+						}),
+				).then(() => loadConfig(configObj)),
+			)
 			.catch(err => {
 				console.error('Error loading application config', err, err.stack);
 				process.exit(1);
