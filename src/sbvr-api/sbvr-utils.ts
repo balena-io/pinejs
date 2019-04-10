@@ -90,10 +90,14 @@ import * as odataResponse from './odata-response';
 const LF2AbstractSQLTranslator = LF2AbstractSQL.createTranslator(sbvrTypes);
 const LF2AbstractSQLTranslatorVersion = `${LF2AbstractSQLVersion}+${sbvrTypesVersion}`;
 
+export type ExecutableModel =
+	| RequiredField<Model, 'apiRoot' | 'modelText'>
+	| RequiredField<Model, 'apiRoot' | 'abstractSql'>;
+
 interface CompiledModel {
 	vocab: string;
-	se: string;
-	lf: LFModel;
+	se?: string;
+	lf?: LFModel;
 	abstractSql: AbstractSQLCompiler.AbstractSqlModel;
 	sql: AbstractSQLCompiler.SqlModel;
 	odataMetadata: ReturnType<typeof ODataMetadataGenerator>;
@@ -374,26 +378,27 @@ export const generateAbstractSqlModel = (
 		() => LF2AbstractSQLTranslator(lfModel, 'Process'),
 	);
 
-const generateModels = (
-	model: RequiredField<Model, 'apiRoot' | 'modelText'>,
-): CompiledModel => {
+const generateModels = (model: ExecutableModel): CompiledModel => {
 	const { apiRoot: vocab, modelText: se } = model;
+	let { abstractSql: maybeAbstractSql } = model;
 
-	let lf;
-	try {
-		lf = generateLfModel(se);
-	} catch (e) {
-		console.error(`Error parsing model '${vocab}':`, e);
-		throw new Error(`Error parsing model '${vocab}': ` + e);
-	}
+	let lf: ReturnType<typeof generateLfModel> | undefined;
+	if (se) {
+		try {
+			lf = generateLfModel(se);
+		} catch (e) {
+			console.error(`Error parsing model '${vocab}':`, e);
+			throw new Error(`Error parsing model '${vocab}': ` + e);
+		}
 
-	let abstractSql: ReturnType<typeof generateAbstractSqlModel>;
-	try {
-		abstractSql = generateAbstractSqlModel(lf);
-	} catch (e) {
-		console.error(`Error translating model '${vocab}':`, e);
-		throw new Error(`Error translating model '${vocab}': ` + e);
+		try {
+			maybeAbstractSql = generateAbstractSqlModel(lf);
+		} catch (e) {
+			console.error(`Error translating model '${vocab}':`, e);
+			throw new Error(`Error translating model '${vocab}': ` + e);
+		}
 	}
+	const abstractSql = maybeAbstractSql!;
 
 	let sql: ReturnType<AbstractSQLCompiler.EngineInstance['compileSchema']>;
 	let odataMetadata: ReturnType<typeof ODataMetadataGenerator>;
@@ -420,13 +425,13 @@ const generateModels = (
 
 export const executeModel = (
 	tx: _db.Tx,
-	model: RequiredField<Model, 'apiRoot' | 'modelText'>,
+	model: ExecutableModel,
 	callback?: (err?: Error) => void,
 ): Promise<void> => executeModels(tx, [model], callback);
 
 export const executeModels = (
 	tx: _db.Tx,
-	execModels: Array<RequiredField<Model, 'apiRoot' | 'modelText'>>,
+	execModels: ExecutableModel[],
 	callback?: (err?: Error) => void,
 ): Promise<void> =>
 	Promise.map(execModels, model => {
@@ -483,6 +488,21 @@ export const executeModels = (
 	})
 		.map((model: CompiledModel) => {
 			const updateModel = (modelType: keyof CompiledModel) => {
+				if (model[modelType] == null) {
+					return api.dev.delete({
+						resource: 'model',
+						passthrough: {
+							tx,
+							req: permissions.root,
+						},
+						options: {
+							$filter: {
+								is_of__vocabulary: model.vocab,
+								model_type: modelType,
+							},
+						},
+					});
+				}
 				return api.dev
 					.get({
 						resource: 'model',
@@ -670,7 +690,7 @@ export const getID = (vocab: string, request: uriParser.ODataRequest) => {
 	if (request.abstractSqlQuery == null) {
 		throw new Error('Can only get the id if an abstractSqlQuery is provided');
 	}
-	const { idField } = models[vocab].sql.tables[request.resourceName];
+	const { idField } = models[vocab].abstractSql.tables[request.resourceName];
 	for (const whereClause of request.abstractSqlQuery) {
 		if (isWhereNode(whereClause)) {
 			for (const comparison of whereClause.slice(1)) {
@@ -1093,7 +1113,7 @@ export const handleODataRequest: _express.Handler = (req, res, next) => {
 			if (req.batch != null && req.batch.length > 0) {
 				requests = req.batch;
 			} else {
-				requests = [{ method: method, url: url, data: body }];
+				requests = [{ method, url, data: body }];
 			}
 
 			// Parse the OData requests

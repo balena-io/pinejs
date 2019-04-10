@@ -14,7 +14,8 @@ const readdirAsync = Promise.promisify(fs.readdir);
 import { Database } from '../database-layer/db';
 import * as sbvrUtils from '../sbvr-api/sbvr-utils';
 import * as permissions from '../sbvr-api/permissions';
-import { RequiredField, Resolvable } from '../sbvr-api/common-types';
+import { Resolvable } from '../sbvr-api/common-types';
+import { AbstractSqlModel } from '@resin/abstract-sql-compiler';
 
 export interface SetupFunction {
 	(
@@ -42,6 +43,7 @@ export interface Model {
 	modelName?: string;
 	modelFile?: string;
 	modelText?: string;
+	abstractSql?: AbstractSqlModel;
 	migrationsPath?: string;
 	migrations?: {
 		[index: string]: string;
@@ -192,38 +194,35 @@ export const setup = (app: _express.Application) => {
 					}
 				})
 					.return(data.models)
-					.map(model => {
-						if (model.modelText != null && model.apiRoot != null) {
-							return sbvrUtils
-								.executeModel(tx, model as RequiredField<
-									Model,
-									'apiRoot' | 'modelText'
-								>)
-								.then(() => {
-									console.info(
-										'Successfully executed ' + model.modelName + ' model.',
-									);
-								})
-								.catch(err => {
-									const message = `Failed to execute ${
-										model.modelName
-									} model from ${model.modelFile}`;
-									if (_.isError(err)) {
-										err.message = message;
-										throw err;
-									}
-									throw new Error(message);
-								});
-						}
-					})
-					.then(() =>
-						Promise.map(data.models, model => {
-							if (model.modelText != null && model.apiRoot != null) {
-								const apiRoute = `/${model.apiRoot}/*`;
-								app.options(apiRoute, (_req, res) => res.sendStatus(200));
-								app.all(apiRoute, sbvrUtils.handleODataRequest);
-							}
+					.map(model =>
+						Promise.try(() => {
+							if (
+								(model.abstractSql != null || model.modelText != null) &&
+								model.apiRoot != null
+							) {
+								return sbvrUtils
+									.executeModel(tx, model as sbvrUtils.ExecutableModel)
+									.then(() => {
+										const apiRoute = `/${model.apiRoot}/*`;
+										app.options(apiRoute, (_req, res) => res.sendStatus(200));
+										app.all(apiRoute, sbvrUtils.handleODataRequest);
 
+										console.info(
+											'Successfully executed ' + model.modelName + ' model.',
+										);
+									})
+									.catch(err => {
+										const message = `Failed to execute ${
+											model.modelName
+										} model from ${model.modelFile}`;
+										if (_.isError(err)) {
+											err.message = message;
+											throw err;
+										}
+										throw new Error(message);
+									});
+							}
+						}).then(() => {
 							if (model.customServerCode != null) {
 								let customCode: SetupFunction;
 								if (_.isString(model.customServerCode)) {
