@@ -1,4 +1,14 @@
 - commits:
+    - subject: Allow any importable config file type rather than just JSON
+      hash: 45d65e9827208566f58ca92a5f31568b7c02370a
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+  version: 10.9.0
+  date: 2019-04-10T19:24:11.308Z
+- commits:
     - subject: Only print the error message on pool errors
       hash: fbbf41813a0f7cd747c78d4308535c23aed0763b
       body: ''
