@@ -307,20 +307,26 @@ export const setup = (app: _express.Application) => {
 				new Error(`Invalid type for config '${typeof config}'`),
 			);
 		}
+		const resolvePath = (s: string): string => {
+			if (path.isAbsolute(s)) {
+				return s;
+			}
+			return path.join(root, s);
+		};
 
 		return Promise.resolve(configPromise)
 			.then(configObj =>
 				Promise.map(configObj.models, model =>
 					Promise.try<string | undefined>(() => {
 						if (model.modelFile != null) {
-							return readFileAsync(path.join(root, model.modelFile), 'utf8');
+							return readFileAsync(resolvePath(model.modelFile), 'utf8');
 						}
 						return model.modelText;
 					})
 						.then(modelText => {
 							model.modelText = modelText;
-							if (model.customServerCode != null) {
-								model.customServerCode = root + '/' + model.customServerCode;
+							if (_.isString(model.customServerCode)) {
+								model.customServerCode = resolvePath(model.customServerCode);
 							}
 						})
 						.then(() => {
@@ -330,7 +336,7 @@ export const setup = (app: _express.Application) => {
 							const migrations = model.migrations;
 
 							if (model.migrationsPath) {
-								const migrationsPath = path.join(root, model.migrationsPath);
+								const migrationsPath = resolvePath(model.migrationsPath);
 								delete model.migrationsPath;
 
 								return readdirAsync(migrationsPath)
@@ -360,7 +366,7 @@ export const setup = (app: _express.Application) => {
 						})
 						.then(() => {
 							if (model.initSqlPath) {
-								const initSqlPath = path.join(root, model.initSqlPath);
+								const initSqlPath = resolvePath(model.initSqlPath);
 								return readFileAsync(initSqlPath, 'utf8').then(initSql => {
 									model.initSql = initSql;
 								});
