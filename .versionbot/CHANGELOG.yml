@@ -1,4 +1,14 @@
 - commits:
+    - subject: Allow specifying absolute paths in the config
+      hash: 0bbb65185c6e08a0731e8c7d1885eb885288f07a
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+  version: 10.10.0
+  date: 2019-04-10T21:09:00.122Z
+- commits:
     - subject: Allow any importable config file type rather than just JSON
       hash: 45d65e9827208566f58ca92a5f31568b7c02370a
       body: ''
