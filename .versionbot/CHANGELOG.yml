@@ -1,4 +1,14 @@
 - commits:
+    - subject: Allow specifying the abstract sql directly in the config
+      hash: a40de40171b7ae5d6861160facc1f01d6ca18675
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+  version: 10.11.0
+  date: 2019-04-11T15:48:10.566Z
+- commits:
     - subject: Allow specifying absolute paths in the config
       hash: 0bbb65185c6e08a0731e8c7d1885eb885288f07a
       body: ''
