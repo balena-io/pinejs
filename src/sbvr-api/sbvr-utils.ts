@@ -400,20 +400,20 @@ const generateModels = (model: ExecutableModel): CompiledModel => {
 	}
 	const abstractSql = maybeAbstractSql!;
 
+	const odataMetadata = cachedCompile(
+		'metadata',
+		ODataMetadataGenerator.version,
+		{ vocab: vocab, abstractSqlModel: abstractSql },
+		() => ODataMetadataGenerator(vocab, abstractSql),
+	);
+
 	let sql: ReturnType<AbstractSQLCompiler.EngineInstance['compileSchema']>;
-	let odataMetadata: ReturnType<typeof ODataMetadataGenerator>;
 	try {
 		sql = cachedCompile(
 			'sqlModel',
 			AbstractSQLCompilerVersion + '+' + db.engine,
 			abstractSql,
 			() => AbstractSQLCompiler[db.engine].compileSchema(abstractSql),
-		);
-		odataMetadata = cachedCompile(
-			'metadata',
-			ODataMetadataGenerator.version,
-			{ vocab: vocab, sqlModel: sql },
-			() => ODataMetadataGenerator(vocab, sql),
 		);
 	} catch (e) {
 		console.error(`Error compiling model '${vocab}':`, e);
