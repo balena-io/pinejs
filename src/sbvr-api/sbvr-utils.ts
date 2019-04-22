@@ -337,7 +337,7 @@ export const validateModel = (
 	tx: _db.Tx,
 	modelName: string,
 	request?: uriParser.ODataRequest,
-) => {
+): Promise<void> => {
 	return Promise.map(models[modelName].sql.rules, rule => {
 		if (!isRuleAffected(rule, request)) {
 			// If none of the fields intersect we don't need to run the rule! :D
@@ -360,7 +360,7 @@ export const validateModel = (
 					throw new SbvrValidationError(rule.structuredEnglish);
 				}
 			});
-	});
+	}).return();
 };
 
 export const generateLfModel = (seModel: string): LFModel =>
@@ -1506,8 +1506,9 @@ const runPost = (
 ) => {
 	const vocab = request.vocabulary;
 
-	const idField = getAbstractSqlModel(request).tables[resolveSynonym(request)]
-		.idField;
+	const { idField } = getAbstractSqlModel(request).tables[
+		resolveSynonym(request)
+	];
 
 	return runQuery(tx, request, undefined, idField)
 		.tap(sqlResult => {
@@ -1569,7 +1570,7 @@ const runPut = (
 	_res: _express.Response,
 	request: uriParser.ODataRequest,
 	tx: _db.Tx,
-) => {
+): Promise<undefined> => {
 	const vocab = request.vocabulary;
 
 	return Promise.try(() => {
@@ -1587,8 +1588,10 @@ const runPut = (
 			return runQuery(tx, request);
 		}
 	})
-		.then(() => {
-			return validateModel(tx, vocab, request);
+		.then(({ rowsAffected }) => {
+			if (rowsAffected > 0) {
+				return validateModel(tx, vocab, request);
+			}
 		})
 		.return(undefined);
 };
@@ -1622,8 +1625,10 @@ const runDelete = (
 	const vocab = request.vocabulary;
 
 	return runQuery(tx, request)
-		.then(() => {
-			return validateModel(tx, vocab, request);
+		.then(({ rowsAffected }) => {
+			if (rowsAffected > 0) {
+				return validateModel(tx, vocab, request);
+			}
 		})
 		.return(undefined);
 };
