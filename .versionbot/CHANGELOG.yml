@@ -1,4 +1,14 @@
 - commits:
+    - subject: Only validate the model if the query affected at least 1 row
+      hash: 8bfd0a1f1cd45a837957f210979ec910e0e46261
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+  version: 10.11.2
+  date: 2019-04-22T13:42:40.543Z
+- commits:
     - subject: Switch odata-metadata-generator to using an abstract sql model
       hash: 9cf5c16b50f7371552cb8876dd5ca724cccdf911
       body: ''
