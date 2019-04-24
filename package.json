@@ -1,5 +1,5 @@
 {
-  "name": "@resin/pinejs",
+  "name": "@balena.io/pinejs",
   "version": "10.11.2",
   "main": "out/server-glue/module",
   "repository": "git@github.com:resin-io/pinejs.git",
