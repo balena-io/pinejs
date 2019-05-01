@@ -55,7 +55,7 @@ export const compileRequest = (request: ODataRequest) => {
 };
 
 export const resolveOdataBind = (odataBinds: ODataBinds, value: any) => {
-	if (_.isObject(value) && value.bind != null) {
+	if (typeof value === 'object' && value.bind != null) {
 		[, value] = odataBinds[value.bind];
 	}
 	return value;
