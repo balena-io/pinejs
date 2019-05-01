@@ -36,7 +36,7 @@ import deepFreeze = require('deep-freeze');
 import SBVRParser = require('../extended-sbvr-parser/extended-sbvr-parser');
 
 import * as migrator from '../migrator/migrator';
-import ODataMetadataGenerator = require('../sbvr-compiler/odata-metadata-generator');
+import ODataMetadataGenerator = require('../odata-metadata/odata-metadata-generator');
 
 // tslint:disable-next-line:no-var-requires
 const devModel = require('./dev.sbvr');
