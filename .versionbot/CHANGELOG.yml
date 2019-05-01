@@ -1,4 +1,14 @@
 - commits:
+    - subject: 'Update @types/lodash, avoiding `_.isObject` where necessary'
+      hash: 77a281beef4e9b82c6070dba3027ddd606e4c08b
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+  version: 10.11.3
+  date: 2019-05-01T11:07:54.197Z
+- commits:
     - subject: Only validate the model if the query affected at least 1 row
       hash: 8bfd0a1f1cd45a837957f210979ec910e0e46261
       body: ''
