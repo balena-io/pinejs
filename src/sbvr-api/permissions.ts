@@ -167,7 +167,8 @@ const parsePermissions = (
 // object: Must have only one key of either `AND` or `OR`, with an array value that will be treated according to the key.
 const isAnd = <T>(x: any): x is NestedCheckAnd<T> =>
 	_.isObject(x) && 'and' in x;
-const isOr = <T>(x: any): x is NestedCheckOr<T> => _.isObject(x) && 'or' in x;
+const isOr = <T>(x: any): x is NestedCheckOr<T> =>
+	typeof x === 'object' && 'or' in x;
 export function nestedCheck<I, O>(
 	check: string,
 	stringCallback: (s: string) => O,
@@ -214,7 +215,7 @@ export function nestedCheck<I, O>(
 		}
 		return true;
 	}
-	if (_.isObject(check)) {
+	if (typeof check === 'object') {
 		const checkTypes = _.keys(check);
 		if (checkTypes.length > 1) {
 			throw new Error('More than one check type: ' + checkTypes);
@@ -1128,7 +1129,7 @@ const rewriteODataOptions = (
 	_.each(data, (v: any) => {
 		if (_.isArray(v)) {
 			rewriteODataOptions(request, v, lambda);
-		} else if (_.isObject(v)) {
+		} else if (typeof v === 'object') {
 			const propertyName = v.name;
 			if (propertyName != null) {
 				if (v.lambda != null) {
