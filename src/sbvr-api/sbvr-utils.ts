@@ -36,7 +36,7 @@ import deepFreeze = require('deep-freeze');
 import SBVRParser = require('../extended-sbvr-parser/extended-sbvr-parser');
 
 import * as migrator from '../migrator/migrator';
-import ODataMetadataGenerator = require('../sbvr-compiler/odata-metadata-generator');
+import ODataMetadataGenerator = require('../odata-metadata/odata-metadata-generator');
 
 // tslint:disable-next-line:no-var-requires
 const devModel = require('./dev.sbvr');
@@ -378,7 +378,10 @@ export const generateAbstractSqlModel = (
 		() => LF2AbstractSQLTranslator(lfModel, 'Process'),
 	);
 
-const generateModels = (model: ExecutableModel): CompiledModel => {
+export const generateModels = (
+	model: ExecutableModel,
+	targetDatabaseEngine: AbstractSQLCompiler.Engines,
+): CompiledModel => {
 	const { apiRoot: vocab, modelText: se } = model;
 	let { abstractSql: maybeAbstractSql } = model;
 
@@ -411,9 +414,10 @@ const generateModels = (model: ExecutableModel): CompiledModel => {
 	try {
 		sql = cachedCompile(
 			'sqlModel',
-			AbstractSQLCompilerVersion + '+' + db.engine,
+			AbstractSQLCompilerVersion + '+' + targetDatabaseEngine,
 			abstractSql,
-			() => AbstractSQLCompiler[db.engine].compileSchema(abstractSql),
+			() =>
+				AbstractSQLCompiler[targetDatabaseEngine].compileSchema(abstractSql),
 		);
 	} catch (e) {
 		console.error(`Error compiling model '${vocab}':`, e);
@@ -438,7 +442,7 @@ export const executeModels = (
 		const { apiRoot } = model;
 
 		return migrator.run(tx, model).then(() => {
-			const compiledModel = generateModels(model);
+			const compiledModel = generateModels(model, db.engine);
 
 			// Create tables related to terms and fact types
 			// Use `Promise.each` to run statements sequentially, as the order of the CREATE TABLE statements matters (eg. for foreign keys).

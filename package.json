@@ -4,6 +4,9 @@
   "main": "out/server-glue/module",
   "repository": "git@github.com:resin-io/pinejs.git",
   "license": "Apache-2.0",
+  "bin": {
+    "sbvr-compiler": "./bin/sbvr-compiler.js"
+  },
   "scripts": {
     "prepublish": "require-npm4-to-publish",
     "prepublishOnly": "npm run lint",
@@ -44,6 +47,7 @@
     "@types/websql": "0.0.27",
     "bluebird": "^3.5.3",
     "coffeescript": "^2.4.0",
+    "commander": "^2.20.0",
     "deep-freeze": "0.0.1",
     "eventemitter3": "^3.1.2",
     "express-session": "^1.15.6",
