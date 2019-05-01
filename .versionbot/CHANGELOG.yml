@@ -1,4 +1,23 @@
 - commits:
+    - subject: Expose sbvr-compiler as a bin script
+      hash: e6718ffe901b4d711f47493ff907ee1fe2f947e0
+      body: |
+        This means that it will now match the module dependencies of the
+        installed pinejs
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+    - subject: Move odata-metadata-generator into odata-metadata directory
+      hash: d414696ff13c9d9f2183f44eda434d0da8d26f01
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+  version: 10.12.0
+  date: 2019-05-01T13:08:20.878Z
+- commits:
     - subject: 'Update @types/lodash, avoiding `_.isObject` where necessary'
       hash: 77a281beef4e9b82c6070dba3027ddd606e4c08b
       body: ''
