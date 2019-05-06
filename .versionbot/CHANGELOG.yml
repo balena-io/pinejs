@@ -1,4 +1,16 @@
 - commits:
+    - subject: Expose odata-compiler as a bin script
+      hash: cf86826e0d6653c456057d4de8d849d00ffc023f
+      body: |
+        This means that it will now match the module dependencies of the
+        installed pinejs
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+  version: 10.13.0
+  date: 2019-05-06T17:33:54.911Z
+- commits:
     - subject: Expose sbvr-compiler as a bin script
       hash: e6718ffe901b4d711f47493ff907ee1fe2f947e0
       body: |
