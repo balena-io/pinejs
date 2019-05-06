@@ -165,7 +165,12 @@ const memoizedOdata2AbstractSQL = (() => {
 	return (
 		request: Pick<
 			ODataRequest,
-			'method' | 'odataQuery' | 'odataBinds' | 'values' | 'vocabulary'
+			| 'method'
+			| 'odataQuery'
+			| 'odataBinds'
+			| 'values'
+			| 'vocabulary'
+			| 'abstractSqlModel'
 		>,
 	) => {
 		const { method, odataQuery, odataBinds, values } = request;
@@ -317,6 +322,7 @@ export const translateUri = <
 		| 'values'
 		| 'vocabulary'
 		| 'resourceName'
+		| 'abstractSqlModel'
 	>
 >(
 	request: T & {

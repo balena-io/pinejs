@@ -5,6 +5,7 @@
   "repository": "git@github.com:resin-io/pinejs.git",
   "license": "Apache-2.0",
   "bin": {
+    "odata-compiler": "./bin/odata-compiler.js",
     "sbvr-compiler": "./bin/sbvr-compiler.js"
   },
   "scripts": {
@@ -74,7 +75,7 @@
     "grunt-ts": "^6.0.0-beta.22",
     "grunt-webpack": "^3.1.3",
     "husky": "^1.3.1",
-    "lint-staged": "^8.1.5",
+    "lint-staged": "^8.1.6",
     "load-grunt-tasks": "^4.0.0",
     "prettier": "^1.16.4",
     "raw-loader": "^1.0.0",
@@ -104,8 +105,8 @@
     "ts-node": "^8.0.1"
   },
   "engines": {
-    "node": ">=4.0.0",
-    "npm": ">=3.0.0"
+    "node": ">=6.0.0",
+    "npm": ">=5.0.0"
   },
   "husky": {
     "hooks": {
