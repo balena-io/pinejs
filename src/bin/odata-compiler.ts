@@ -7,26 +7,65 @@ import * as _uriParser from '../sbvr-api/uri-parser';
 
 import * as program from 'commander';
 import * as fs from 'fs';
+import * as path from 'path';
 import '../server-glue/sbvr-loader';
+import { SqlResult, AbstractSqlModel } from '@resin/abstract-sql-compiler';
+import { Model } from '../config-loader/config-loader';
 
 // tslint:disable:no-var-requires
 const { version } = JSON.parse(
 	fs.readFileSync(require.resolve('../../package.json'), 'utf8'),
 );
 
-const getSE = (inputFile: string) => fs.readFileSync(inputFile, 'utf8');
-
-const generateAbstractSqlModel = (sbvrFile: string) => {
+const generateAbstractSqlModel = (modelFile: string): AbstractSqlModel => {
+	let fileContents: string | Model | AbstractSqlModel;
+	try {
+		fileContents = require(path.resolve(modelFile));
+	} catch {
+		fileContents = fs.readFileSync(require.resolve(modelFile), 'utf8');
+	}
+	let seModel: string;
+	if (fileContents == null) {
+		throw new Error('Invalid model file');
+	}
+	if (typeof fileContents === 'string') {
+		seModel = fileContents;
+	} else if (typeof fileContents === 'object') {
+		if ('abstractSql' in fileContents && fileContents.abstractSql != null) {
+			return fileContents.abstractSql as AbstractSqlModel;
+		} else if ('modelText' in fileContents && fileContents.modelText != null) {
+			seModel = fileContents.modelText;
+		} else if ('modelFile' in fileContents && fileContents.modelFile != null) {
+			seModel = fs.readFileSync(
+				require.resolve(fileContents.modelFile),
+				'utf8',
+			);
+		} else if ('tables' in fileContents && fileContents.tables != null) {
+			return fileContents as AbstractSqlModel;
+		} else {
+			throw new Error('Unrecognised config file');
+		}
+	} else {
+		throw new Error('Unrecognised config file');
+	}
 	const {
 		generateLfModel,
 		generateAbstractSqlModel,
 	} = require('../sbvr-api/sbvr-utils') as typeof _sbvrUtils;
-	const seModel = getSE(sbvrFile);
-	const lfModel = generateLfModel(seModel);
+	let lfModel;
+	try {
+		lfModel = generateLfModel(seModel);
+	} catch (e) {
+		throw new Error(
+			`Got '${
+				e.message
+			}' whilst trying to parse the model file as sbvr, if you're using a transpiled language for the model file you will need to either transpile in advance or run via its loader`,
+		);
+	}
 	return generateAbstractSqlModel(lfModel);
 };
 
-const generateAbstractSqlQuery = (sbvrFile: string, odata: string) => {
+const generateAbstractSqlQuery = (modelFile: string, odata: string) => {
 	const {
 		memoizedParseOdata,
 		translateUri,
@@ -41,7 +80,7 @@ const generateAbstractSqlQuery = (sbvrFile: string, odata: string) => {
 		odataBinds: odataAST.binds,
 		values: {},
 		vocabulary: '',
-		abstractSqlModel: generateAbstractSqlModel(sbvrFile),
+		abstractSqlModel: generateAbstractSqlModel(modelFile),
 		custom: {},
 	});
 };
@@ -60,11 +99,11 @@ const parseOData = (odata: string, outputFile?: string) => {
 };
 
 const translateOData = (
-	sbvrFile: string,
+	modelFile: string,
 	odata: string,
 	outputFile?: string,
 ) => {
-	const request = generateAbstractSqlQuery(sbvrFile, odata);
+	const request = generateAbstractSqlQuery(modelFile, odata);
 	const json = JSON.stringify(request.abstractSqlQuery, null, 2);
 	if (outputFile) {
 		fs.writeFileSync(outputFile, json);
@@ -73,17 +112,37 @@ const translateOData = (
 	}
 };
 
-const compileOData = (sbvrFile: string, odata: string, outputFile?: string) => {
-	const translatedRequest = generateAbstractSqlQuery(sbvrFile, odata);
+const formatSqlQuery = (sqlQuery: SqlResult | SqlResult[]): string => {
+	if (Array.isArray(sqlQuery)) {
+		return sqlQuery.map(formatSqlQuery).join('\n');
+	} else {
+		return `\
+Query: ${sqlQuery.query}
+Bindings: ${JSON.stringify(sqlQuery.bindings, null, 2)}
+`;
+	}
+};
+
+const compileOData = (
+	modelFile: string,
+	odata: string,
+	outputFile?: string,
+) => {
+	const translatedRequest = generateAbstractSqlQuery(modelFile, odata);
 	const {
 		compileRequest,
 	} = require('../sbvr-api/abstract-sql') as typeof _abstractSql;
 	const compiledRequest = compileRequest(translatedRequest);
-	const json = JSON.stringify(compiledRequest.sqlQuery, null, 2);
-	if (outputFile) {
-		fs.writeFileSync(outputFile, json);
+	let output;
+	if (program.json) {
+		output = JSON.stringify(compiledRequest.sqlQuery, null, 2);
 	} else {
-		console.log(json);
+		output = formatSqlQuery(compiledRequest.sqlQuery!);
+	}
+	if (outputFile) {
+		fs.writeFileSync(outputFile, output);
+	} else {
+		console.log(output);
 	}
 };
 
@@ -94,7 +153,8 @@ program
 		'The target database engine (postgres|websql|mysql), default: postgres',
 		/postgres|websql|mysql/,
 		'postgres',
-	);
+	)
+	.option('--json', 'Force json output, default: false');
 
 program
 	.command('parse <input-url> [output-file]')
@@ -102,13 +162,13 @@ program
 	.action(parseOData);
 
 program
-	.command('translate <sbvr-file> <input-url> [output-file]')
+	.command('translate <model-file> <input-url> [output-file]')
 	.description('translate the input OData URL into abstract SQL')
 	.action(translateOData);
 
 program
-	.command('compile <sbvr-file> <input-url> [output-file]')
-	.description('compile the input SBVR file into SQL')
+	.command('compile <model-file> <input-url> [output-file]')
+	.description('translate the input OData URL into abstract SQL')
 	.action(compileOData);
 
 program
