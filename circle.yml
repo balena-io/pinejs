@@ -33,6 +33,12 @@ jobs:
     working_directory: ~/node-10
     steps: *buildSteps
 
+  node-12:
+    docker:
+      - image: circleci/node:12
+    working_directory: ~/node-12
+    steps: *buildSteps
+
   deploy:
     # For this to work NPM_TOKEN must be set for the account used for publishing
     docker:
@@ -70,12 +76,18 @@ workflows:
           filters:
             tags:
               only: /.*/
+      - node-12:
+          # Run for all tags (required to allow the deploy to trigger on version tags)
+          filters:
+            tags:
+              only: /.*/
       - deploy:
           # Deploy passing builds if they're tagged with a version
           requires:
             - node-6
             - node-8
             - node-10
+            - node-12
           filters:
             tags:
               only: /^v\d+\.\d+\.\d+$/
