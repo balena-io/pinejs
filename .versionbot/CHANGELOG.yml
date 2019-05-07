@@ -1,4 +1,14 @@
 - commits:
+    - subject: Add node 12 to the circle tests
+      hash: 7ae335dce37abf005daaa2e43239ed26ae2519de
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+  version: 10.13.1
+  date: 2019-05-06T21:37:25.704Z
+- commits:
     - subject: Expose odata-compiler as a bin script
       hash: cf86826e0d6653c456057d4de8d849d00ffc023f
       body: |
