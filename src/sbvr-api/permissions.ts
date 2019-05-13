@@ -34,7 +34,6 @@ import {
 import { HookReq, User, ApiKey, AnyObject } from './sbvr-utils';
 import * as sbvrUtils from '../sbvr-api/sbvr-utils';
 import * as uriParser from './uri-parser';
-import { PinejsClientCoreFactory } from 'pinejs-client-core';
 
 const DEFAULT_ACTOR_BIND = '@__ACTOR_ID';
 const DEFAULT_ACTOR_BIND_REGEX = new RegExp(
@@ -650,6 +649,20 @@ const memoizedGetConstrainedModel = (
 ) =>
 	getBoundConstrainedMemoizer(abstractSqlModel)(permissionsLookup, vocabulary);
 
+const getCheckPasswordQuery = _.once(() =>
+	sbvrUtils.api.Auth.prepare<{ username: string }>({
+		resource: 'user',
+		passthrough: {
+			req: rootRead,
+		},
+		options: {
+			$select: ['id', 'actor', 'password'],
+			$filter: {
+				username: { '@': 'username' },
+			},
+		},
+	}),
+);
 export const checkPassword = (
 	username: string,
 	password: string,
@@ -659,21 +672,10 @@ export const checkPassword = (
 	actor: number;
 	username: string;
 	permissions: string[];
-}> => {
-	const authApi = sbvrUtils.api.Auth;
-	return authApi
-		.get({
-			resource: 'user',
-			passthrough: {
-				req: rootRead,
-			},
-			options: {
-				$select: ['id', 'actor', 'password'],
-				$filter: {
-					username,
-				},
-			},
-		})
+}> =>
+	getCheckPasswordQuery()({
+		username,
+	})
 		.then((result: AnyObject[]) => {
 			if (result.length === 0) {
 				throw new Error('User not found');
@@ -696,36 +698,80 @@ export const checkPassword = (
 			});
 		})
 		.asCallback(callback);
-};
 
-const getPermissions = (
-	permsFilter: PinejsClientCoreFactory.Filter,
-): Promise<string[]> => {
-	const authApi = sbvrUtils.api.Auth;
-	return authApi
-		.get({
-			resource: 'permission',
-			passthrough: {
-				req: rootRead,
-			},
-			options: {
-				$select: 'name',
-				$filter: permsFilter,
-				// We orderby to increase the hit rate for the `_checkPermissions` memoisation
-				$orderby: {
-					name: 'asc',
+const getUserPermissionsQuery = _.once(() =>
+	sbvrUtils.api.Auth.prepare<{ userId: number }>({
+		resource: 'permission',
+		passthrough: {
+			req: rootRead,
+		},
+		options: {
+			$select: 'name',
+			$filter: {
+				$or: {
+					is_of__user: {
+						$any: {
+							$alias: 'uhp',
+							$expr: {
+								uhp: { user: { '@': 'userId' } },
+								$or: [
+									{
+										uhp: { expiry_date: null },
+									},
+									{
+										uhp: {
+											expiry_date: { $gt: { $now: null } },
+										},
+									},
+								],
+							},
+						},
+					},
+					is_of__role: {
+						$any: {
+							$alias: 'rhp',
+							$expr: {
+								rhp: {
+									role: {
+										$any: {
+											$alias: 'r',
+											$expr: {
+												r: {
+													is_of__user: {
+														$any: {
+															$alias: 'uhr',
+															$expr: {
+																uhr: { user: { '@': 'userId' } },
+																$or: [
+																	{
+																		uhr: { expiry_date: null },
+																	},
+																	{
+																		uhr: {
+																			expiry_date: { $gt: { $now: null } },
+																		},
+																	},
+																],
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
 				},
 			},
-		})
-		.then(
-			(permissions: AnyObject[]): string[] =>
-				permissions.map(permission => permission.name),
-		)
-		.tapCatch(err => {
-			authApi.logger.error('Error loading permissions', err, err.stack);
-		});
-};
-
+			// We orderby to increase the hit rate for the `_checkPermissions` memoisation
+			$orderby: {
+				name: 'asc',
+			},
+		},
+	}),
+);
 export const getUserPermissions = (
 	userId: number,
 	callback?: (err: Error | undefined, permissions: string[]) => void,
@@ -738,53 +784,37 @@ export const getUserPermissions = (
 			new Error('User ID has to be numeric, got: ' + typeof userId),
 		);
 	}
-	const permsFilter = {
-		$or: {
-			is_of__user: {
-				$any: {
-					$alias: 'uhp',
-					$expr: {
-						uhp: { user: userId },
-						$or: [
-							{
-								uhp: { expiry_date: null },
-							},
-							{
-								uhp: {
-									expiry_date: { $gt: { $now: null } },
-								},
-							},
-						],
-					},
-				},
-			},
-			is_of__role: {
-				$any: {
-					$alias: 'rhp',
-					$expr: {
-						rhp: {
-							role: {
-								$any: {
-									$alias: 'r',
-									$expr: {
-										r: {
-											is_of__user: {
-												$any: {
-													$alias: 'uhr',
-													$expr: {
-														uhr: { user: userId },
-														$or: [
-															{
-																uhr: { expiry_date: null },
-															},
-															{
-																uhr: {
-																	expiry_date: { $gt: { $now: null } },
-																},
-															},
-														],
-													},
-												},
+	return getUserPermissionsQuery()({ userId })
+		.then(
+			(permissions: AnyObject[]): string[] =>
+				permissions.map(permission => permission.name),
+		)
+		.tapCatch(err => {
+			sbvrUtils.api.Auth.logger.error('Error loading user permissions', err);
+		})
+		.asCallback(callback);
+};
+
+const getApiKeyPermissionsQuery = _.once(() =>
+	sbvrUtils.api.Auth.prepare<{ apiKey: string }>({
+		resource: 'permission',
+		passthrough: {
+			req: rootRead,
+		},
+		options: {
+			$select: 'name',
+			$filter: {
+				$or: {
+					is_of__api_key: {
+						$any: {
+							$alias: 'khp',
+							$expr: {
+								khp: {
+									api_key: {
+										$any: {
+											$alias: 'k',
+											$expr: {
+												k: { key: { '@': 'apiKey' } },
 											},
 										},
 									},
@@ -792,54 +822,27 @@ export const getUserPermissions = (
 							},
 						},
 					},
-				},
-			},
-		},
-	};
-	return getPermissions(permsFilter).asCallback(callback);
-};
-
-const $getApiKeyPermissions = memoize(
-	(apiKey: string) => {
-		const permsFilter = {
-			$or: {
-				is_of__api_key: {
-					$any: {
-						$alias: 'khp',
-						$expr: {
-							khp: {
-								api_key: {
-									$any: {
-										$alias: 'k',
-										$expr: {
-											k: { key: apiKey },
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-				is_of__role: {
-					$any: {
-						$alias: 'rhp',
-						$expr: {
-							rhp: {
-								role: {
-									$any: {
-										$alias: 'r',
-										$expr: {
-											r: {
-												is_of__api_key: {
-													$any: {
-														$alias: 'khr',
-														$expr: {
-															khr: {
-																api_key: {
-																	$any: {
-																		$alias: 'k',
-																		$expr: {
-																			k: { key: apiKey },
+					is_of__role: {
+						$any: {
+							$alias: 'rhp',
+							$expr: {
+								rhp: {
+									role: {
+										$any: {
+											$alias: 'r',
+											$expr: {
+												r: {
+													is_of__api_key: {
+														$any: {
+															$alias: 'khr',
+															$expr: {
+																khr: {
+																	api_key: {
+																		$any: {
+																			$alias: 'k',
+																			$expr: {
+																				k: { key: { '@': 'apiKey' } },
+																			},
 																		},
 																	},
 																},
@@ -856,9 +859,26 @@ const $getApiKeyPermissions = memoize(
 					},
 				},
 			},
-		};
-		return getPermissions(permsFilter);
-	},
+			// We orderby to increase the hit rate for the `_checkPermissions` memoisation
+			$orderby: {
+				name: 'asc',
+			},
+		},
+	}),
+);
+const $getApiKeyPermissions = memoize(
+	(apiKey: string) =>
+		getApiKeyPermissionsQuery()({ apiKey })
+			.then(
+				(permissions: AnyObject[]): string[] =>
+					permissions.map(permission => permission.name),
+			)
+			.tapCatch(err => {
+				sbvrUtils.api.Auth.logger.error(
+					'Error loading api key permissions',
+					err,
+				);
+			}),
 	{
 		primitive: true,
 		max: env.cache.apiKeys.max,
@@ -877,19 +897,24 @@ export const getApiKeyPermissions = (
 		return $getApiKeyPermissions(apiKey);
 	}).asCallback(callback);
 
+const getApiKeyActorIdQuery = _.once(() =>
+	sbvrUtils.api.Auth.prepare<{ apiKey: string }>({
+		resource: 'api_key',
+		passthrough: {
+			req: rootRead,
+		},
+		options: {
+			$select: 'is_of__actor',
+			$filter: {
+				key: { '@': 'apiKey' },
+			},
+		},
+	}),
+);
 const getApiKeyActorId = memoize(
 	(apiKey: string) =>
-		sbvrUtils.api.Auth.get({
-			resource: 'api_key',
-			passthrough: {
-				req: rootRead,
-			},
-			options: {
-				$select: 'is_of__actor',
-				$filter: {
-					key: apiKey,
-				},
-			},
+		getApiKeyActorIdQuery()({
+			apiKey,
 		}).then((apiKeys: AnyObject[]) => {
 			if (apiKeys.length === 0) {
 				throw new PermissionError();
