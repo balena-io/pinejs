@@ -1,4 +1,14 @@
 - commits:
+    - subject: Fix possible null error when using a parameter alias with no value
+      hash: ee0cb996e27a2234eb62608152230074a614cc4e
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+  version: 10.13.3
+  date: 2019-05-14T11:01:52.288Z
+- commits:
     - subject: Add repo.yml for nested changelogs
       hash: 02a34373d90f29b5ec06f9ae9823d87207fbb577
       body: ''
