@@ -16,6 +16,7 @@ import * as sbvrUtils from '../sbvr-api/sbvr-utils';
 import * as permissions from '../sbvr-api/permissions';
 import { Resolvable } from '../sbvr-api/common-types';
 import { AbstractSqlModel } from '@resin/abstract-sql-compiler';
+import { Migration } from '../migrator/migrator';
 
 export interface SetupFunction {
 	(
@@ -46,7 +47,7 @@ export interface Model {
 	abstractSql?: AbstractSqlModel;
 	migrationsPath?: string;
 	migrations?: {
-		[index: string]: string;
+		[index: string]: Migration;
 	};
 	initSqlPath?: string;
 	initSql?: string;
