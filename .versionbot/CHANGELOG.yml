@@ -1,4 +1,238 @@
 - commits:
+    - subject: Update pinejs-client-core and make use of prepared queries
+      hash: f61469c74fcba879bffb1e5e677805480e16e614
+      body: |
+        Update abstract-sql-compiler from 6.4.0 to 6.4.2
+        Update odata-parser from 1.0.1 to 1.0.3
+        Update odata-to-abstract-sql from 3.1.1 to 3.1.2
+        Update pinejs-client-core from 5.3.6 to 5.5.1
+        Update sbvr-parser from 0.2.1 to 0.2.2
+        Update sbvr-types from 2.0.2 to 2.0.3
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Add .versionbot/CHANGELOG.yml for downstream changelogs
+              hash: d871880a00c86b8eeec37489cf1d62a3688aabcc
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: odata-parser-1.0.3
+          date: 2019-05-08T14:25:13.528Z
+        - commits:
+            - author: Pagan Gazzard
+              body: ''
+              footers:
+                change-type: patch
+              hash: 70ac83b0059a99d1d42e986f0a42fb7120c35ee8
+              subject: Update dependencies
+          date: '2019-04-15T06:51:46Z'
+          version: odata-parser-1.0.2
+        - commits:
+            - subject: Update and fix lodash typings
+              hash: 2bf073bbff3a94d66c31e07d98c3e298f5132b2c
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+            - subject: Update husky/mocha dev dependencies
+              hash: 29f7d52185186bdb1171fdf27a923eb38887d009
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: abstract-sql-compiler-6.4.2
+          date: 2019-05-09T21:32:48.414Z
+        - commits:
+            - subject: Fix typescript compilation
+              hash: a3733e5c348687d74dd290538c6a7f3f3a4a4bb0
+              body: |
+                Update odata-parser from 1.0.1 to 1.0.3
+                Update odata-to-abstract-sql from 3.0.0 to 3.0.1
+                Update sbvr-parser from 0.2.1 to 0.2.2
+                Update sbvr-types from 2.0.0 to 2.0.3
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested:
+                - commits:
+                    - subject: Add .versionbot/CHANGELOG.yml for downstream changelogs
+                      hash: 45c5843b204def5a727b8ba8dfafb2a2347f50f3
+                      body: ''
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                  version: sbvr-parser-0.2.2
+                  date: 2019-05-08T14:23:57.847Z
+            - subject: Add node 12 tests
+              hash: 094c059eb3c5fd6f3502c53e40ed4b90197ed5c2
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+            - subject: Add repo.yml for upstream changelogs
+              hash: 3f4bffe3a107a4b6fd30c15bf1e70c79e68e226e
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+            - subject: Add .versionbot/CHANGELOG.yml for downstream changelogs
+              hash: 5e4ab1569e5e7f7648d4c14df8d3bf9f834a4828
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: abstract-sql-compiler-6.4.1
+          date: 2019-05-08T16:45:44.728Z
+        - commits:
+            - subject: Fix downstream declaration creation errors due to `Dictionary`
+              hash: a8a39edff8cc7e1d05fb9b67037718970e94296c
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: pinejs-client-js-5.5.1
+          date: 2019-05-15T13:32:13.920Z
+        - commits:
+            - subject: Add a prepare method that prepares a query into a function
+              hash: eb7eccca7d90c453710575ebdf3adb9ef56835a7
+              body: ''
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+          version: pinejs-client-js-5.5.0
+          date: 2019-05-15T11:51:46.450Z
+        - commits:
+            - subject: Add CODEOWNERS
+              hash: e01174008f812e0c24ec1036aa1f9ff0bc716e85
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+                Signed-off-by: Gergely Imreh <gergely@balena.io>
+                signed-off-by: Gergely Imreh <gergely@balena.io>
+              author: Gergely Imreh
+          version: pinejs-client-js-5.4.1
+          date: 2019-05-10T10:14:00.677Z
+        - commits:
+            - subject: Add support for parameter aliases in resource ids
+              hash: a4e6a640a3ced56bcd3ef7bf22770338e089a90d
+              body: ''
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+          version: pinejs-client-js-5.4.0
+          date: 2019-05-10T09:57:46.863Z
+        - commits:
+            - subject: Deduplicate transformation of GET results
+              hash: dd856e24072f652684adf63af97408ee0ba7389c
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: pinejs-client-js-5.3.10
+          date: 2019-05-10T09:44:09.422Z
+        - commits:
+            - subject: >-
+                Simplify how we expose types, which means `subscribe` is now
+                exposed
+              hash: f81e0cc59e75e0f9ffc71d9f122b9cfab9c05165
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: pinejs-client-js-5.3.9
+          date: 2019-05-10T08:57:16.276Z
+        - commits:
+            - subject: Add automatic formatting via prettier
+              hash: a345d32f295acfa8ed4e5b815c24e1e7fdb335f2
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: pinejs-client-js-5.3.8
+          date: 2019-05-09T17:38:43.260Z
+        - commits:
+            - subject: 'Remove node 4 build, add node 12'
+              hash: 8d549277d80746feadbdd8a6bba37eb076270440
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+            - subject: Add .versionbot/CHANGELOG.yml for downstream changelogs
+              hash: 067bedf65e86a902b7334ed6e5f117d6ac41afde
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: pinejs-client-js-5.3.7
+          date: 2019-05-08T15:41:50.201Z
+        - commits:
+            - subject: Add node 12 tests
+              hash: a6cc208654a36228a35fb8d8886e62bccc3c9fa4
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+            - subject: Add repo.yml for upstream changelogs
+              hash: e50ca4f49d80b3e89d37f7d8bf6607b0f797c7ae
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+            - subject: Add .versionbot/CHANGELOG.yml for downstream changelogs
+              hash: 9d68e94757f2f9498dedf3d6f085ce77ea70652a
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: odata-to-abstract-sql-3.1.2
+          date: 2019-05-08T15:52:48.099Z
+        - commits:
+            - subject: Add .versionbot/CHANGELOG.yml for downstream changelogs
+              hash: cc2e3e23030521788c127b5750abf3c65645a710
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: sbvr-types-2.0.3
+          date: 2019-05-08T14:29:46.824Z
+        - commits:
+            - subject: Add .versionbot/CHANGELOG.yml for downstream changelogs
+              hash: 45c5843b204def5a727b8ba8dfafb2a2347f50f3
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: sbvr-parser-0.2.2
+          date: 2019-05-08T14:23:57.847Z
+  version: 10.14.0
+  date: 2019-05-15T14:12:22.538Z
+- commits:
     - subject: Fix possible null error when using a parameter alias with no value
       hash: ee0cb996e27a2234eb62608152230074a614cc4e
       body: ''
