@@ -1,4 +1,14 @@
 - commits:
+    - subject: Remove unused functions
+      hash: b1169955cf7aa7e99ccb30394ff452580d23be9d
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+  version: 10.14.1
+  date: 2019-05-20T14:00:56.580Z
+- commits:
     - subject: Update pinejs-client-core and make use of prepared queries
       hash: f61469c74fcba879bffb1e5e677805480e16e614
       body: |
