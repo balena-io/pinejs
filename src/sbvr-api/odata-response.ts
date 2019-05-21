@@ -142,8 +142,7 @@ export const process = (
 	const odataIdField = sqlNameToODataName(table.idField);
 	const instances = rows.map(instance => {
 		instance.__metadata = {
-			// TODO: This should support non-number id fields
-			uri: resourceURI(vocab, resourceName, +instance[odataIdField]),
+			uri: resourceURI(vocab, resourceName, instance[odataIdField]),
 			type: '',
 		};
 		return instance;
