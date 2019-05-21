@@ -85,8 +85,8 @@
     "ts-loader": "^5.4.5",
     "typescript": "^3.4.5",
     "umd-require-webpack-plugin": "0.0.1",
-    "webpack": "^4.31.0",
-    "webpack-dev-server": "^3.3.1"
+    "webpack": "^4.32.0",
+    "webpack-dev-server": "^3.4.1"
   },
   "optionalDependencies": {
     "bcrypt": "^3.0.1",

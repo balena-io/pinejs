@@ -2,6 +2,7 @@ import * as Promise from 'bluebird';
 import * as _ from 'lodash';
 
 import * as env from '../config-loader/env';
+import * as memoize from 'memoizee';
 import memoizeWeak = require('memoizee/weak');
 import { ODataBinds, odataNameToSqlName } from '@resin/odata-to-abstract-sql';
 import { SqlCompilationError } from './errors';
@@ -10,25 +11,28 @@ import { ODataRequest } from './uri-parser';
 import * as sbvrUtils from './sbvr-utils';
 import * as AbstractSQLCompiler from '@resin/abstract-sql-compiler';
 
-const getMemoizedCompileRule = (engine: AbstractSQLCompiler.Engines) =>
-	memoizeWeak(
-		(abstractSqlQuery: AbstractSQLCompiler.AbstractSqlQuery) => {
-			const sqlQuery = AbstractSQLCompiler[engine].compileRule(
-				abstractSqlQuery,
-			);
-			const modifiedFields = AbstractSQLCompiler[engine].getModifiedFields(
-				abstractSqlQuery,
-			);
-			if (modifiedFields != null) {
-				deepFreeze(modifiedFields);
-			}
-			return {
-				sqlQuery,
-				modifiedFields,
-			};
-		},
-		{ max: env.cache.abstractSqlCompiler.max },
-	);
+const getMemoizedCompileRule = memoize(
+	(engine: AbstractSQLCompiler.Engines) =>
+		memoizeWeak(
+			(abstractSqlQuery: AbstractSQLCompiler.AbstractSqlQuery) => {
+				const sqlQuery = AbstractSQLCompiler[engine].compileRule(
+					abstractSqlQuery,
+				);
+				const modifiedFields = AbstractSQLCompiler[engine].getModifiedFields(
+					abstractSqlQuery,
+				);
+				if (modifiedFields != null) {
+					deepFreeze(modifiedFields);
+				}
+				return {
+					sqlQuery,
+					modifiedFields,
+				};
+			},
+			{ max: env.cache.abstractSqlCompiler.max },
+		),
+	{ primitive: true },
+);
 
 export const compileRequest = (request: ODataRequest) => {
 	if (request.abstractSqlQuery != null) {
