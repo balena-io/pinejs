@@ -198,13 +198,17 @@ const memoizedResolvedSynonym = memoizeWeak(
 	(
 		abstractSqlModel: AbstractSQLCompiler.AbstractSqlModel,
 		resourceName: string,
-	) => {
+	): string => {
 		const sqlName = odataNameToSqlName(resourceName);
 		return _(sqlName)
 			.split('-')
-			.map(resourceName =>
-				_.get(abstractSqlModel, ['synonyms', resourceName], resourceName),
-			)
+			.map(resourceName => {
+				const synonym = abstractSqlModel.synonyms[resourceName];
+				if (synonym != null) {
+					return synonym;
+				}
+				return resourceName;
+			})
 			.join('-');
 	},
 	{ primitive: true },
@@ -220,6 +224,41 @@ export const resolveSynonym = (
 	return memoizedResolvedSynonym(abstractSqlModel, request.resourceName);
 };
 
+const memoizedResolveNavigationResource = memoizeWeak(
+	(
+		abstractSqlModel: AbstractSQLCompiler.AbstractSqlModel,
+		resourceName: string,
+		navigationName: string,
+	): string => {
+		const navigation = _(odataNameToSqlName(navigationName))
+			.split('-')
+			.flatMap(resourceName =>
+				memoizedResolvedSynonym(abstractSqlModel, resourceName).split('-'),
+			)
+			.concat('$')
+			.value();
+		const resolvedResourceName = memoizedResolvedSynonym(
+			abstractSqlModel,
+			resourceName,
+		);
+		const mapping = _.get(
+			abstractSqlModel.relationships[resolvedResourceName],
+			navigation,
+		) as undefined | AbstractSQLCompiler.RelationshipMapping;
+		if (mapping == null) {
+			throw new Error(
+				`Cannot navigate from '${resourceName}' to '${navigationName}'`,
+			);
+		}
+		if (mapping.length < 2) {
+			throw new Error(
+				`'${resourceName}' to '${navigationName}' is a field not a navigation`,
+			);
+		}
+		return sqlNameToODataName(abstractSqlModel.tables[mapping[1][0]].name);
+	},
+	{ primitive: true },
+);
 export const resolveNavigationResource = (
 	request: Pick<
 		uriParser.ODataRequest,
@@ -228,35 +267,11 @@ export const resolveNavigationResource = (
 	navigationName: string,
 ): string => {
 	const abstractSqlModel = getAbstractSqlModel(request);
-	const navigation = _(odataNameToSqlName(navigationName))
-		.split('-')
-		.flatMap(resourceName =>
-			resolveSynonym({
-				resourceName,
-				vocabulary: request.vocabulary,
-				abstractSqlModel,
-			}).split('-'),
-		)
-		.concat('$')
-		.value();
-	const resolvedResourceName = resolveSynonym(request);
-	const mapping = _.get(
-		abstractSqlModel.relationships[resolvedResourceName],
-		navigation,
-	) as undefined | AbstractSQLCompiler.RelationshipMapping;
-	if (mapping == null) {
-		throw new Error(
-			`Cannot navigate from '${request.resourceName}' to '${navigationName}'`,
-		);
-	}
-	if (mapping.length < 2) {
-		throw new Error(
-			`'${
-				request.resourceName
-			}' to '${navigationName}' is a field not a navigation`,
-		);
-	}
-	return sqlNameToODataName(abstractSqlModel.tables[mapping[1][0]].name);
+	return memoizedResolveNavigationResource(
+		abstractSqlModel,
+		request.resourceName,
+		navigationName,
+	);
 };
 
 // TODO: Clean this up and move it into the db module.
