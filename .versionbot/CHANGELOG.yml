@@ -1,4 +1,14 @@
 - commits:
+    - subject: Memoize `resolveNavigationResource`
+      hash: c1a388b54f88fd54b280cb43de66e87fc6b86931
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+  version: 10.14.3
+  date: 2019-05-21T17:05:43.515Z
+- commits:
     - subject: Fix `getMemoizedCompileRule` not correctly memoizing
       hash: 0ad02ecdd3c58aa712f3d266d497a41aa0a8fa07
       body: ''
