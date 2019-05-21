@@ -1,4 +1,14 @@
 - commits:
+    - subject: Fix `getMemoizedCompileRule` not correctly memoizing
+      hash: 0ad02ecdd3c58aa712f3d266d497a41aa0a8fa07
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+  version: 10.14.2
+  date: 2019-05-21T15:42:09.079Z
+- commits:
     - subject: Remove unused functions
       hash: b1169955cf7aa7e99ccb30394ff452580d23be9d
       body: ''
