@@ -1,4 +1,14 @@
 - commits:
+    - subject: Add basic support for non-number fields in __metadata.uri
+      hash: f9bdec3381a7e9b574b4c261484c897d8bbe271e
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+  version: 10.15.0
+  date: 2019-05-21T17:56:14.354Z
+- commits:
     - subject: Memoize `resolveNavigationResource`
       hash: c1a388b54f88fd54b280cb43de66e87fc6b86931
       body: ''
