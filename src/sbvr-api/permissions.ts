@@ -22,6 +22,7 @@ import {
 	ODataQuery,
 	SupportedMethod,
 	Definition,
+	odataNameToSqlName,
 } from '@resin/odata-to-abstract-sql';
 import * as express from 'express';
 import {
@@ -449,7 +450,16 @@ const generateConstrainedAbstractSql = (
 		select[1],
 		(selectField): AbstractSqlType => {
 			if (selectField[0] === 'Alias') {
-				return (selectField as AliasNode<any>)[1];
+				const maybeField = (selectField as AliasNode<any>)[1];
+				const fieldType = maybeField[0];
+				if (fieldType === 'ReferencedField' || fieldType === 'Field') {
+					return maybeField;
+				}
+				return [
+					'Alias',
+					maybeField,
+					odataNameToSqlName((selectField as AliasNode<any>)[2]),
+				];
 			}
 			if (selectField.length === 2 && _.isArray(selectField[0])) {
 				return selectField[0];
