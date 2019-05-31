@@ -1,4 +1,47 @@
 - commits:
+    - subject: Update dependencies
+      hash: 05d5980ffd624d26c8ca4854d491da1550eda409
+      body: |
+        Update abstract-sql-compiler from 6.4.2 to 6.5.0
+        Update odata-parser from 1.0.3 to 1.0.4
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Fix adding parameter alias to the options object
+              hash: 247af0df0b4f3d6879d4415bced14fdf17beef76
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: odata-parser-1.0.4
+          date: 2019-05-27T16:09:15.294Z
+        - commits:
+            - subject: Add support for computed fields
+              hash: df53a1545b851da0ac188edac7cca6d34f1000f7
+              body: ''
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+          version: abstract-sql-compiler-6.5.0
+          date: 2019-05-30T19:27:09.123Z
+        - commits:
+            - subject: Add tests for `getReferencedFields`
+              hash: ae56c039a943bda5d7b75927be4ed3c9c5402261
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: abstract-sql-compiler-6.4.3
+          date: 2019-05-30T14:55:18.212Z
+  version: 10.15.1
+  date: 2019-05-31T11:15:41.894Z
+- commits:
     - subject: Add basic support for non-number fields in __metadata.uri
       hash: f9bdec3381a7e9b574b4c261484c897d8bbe271e
       body: ''
