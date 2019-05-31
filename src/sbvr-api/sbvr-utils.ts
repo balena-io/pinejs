@@ -969,60 +969,62 @@ export const runURI = (
 		tx,
 	} as any;
 
-	return new Promise((resolve, reject) => {
-		const res: _express.Response = {
-			on: _.noop,
-			statusCode: 200,
-			status(statusCode: number) {
-				this.statusCode = statusCode;
-				return this;
-			},
-			sendStatus: (statusCode: number) => {
-				if (statusCode >= 400) {
-					const ErrorClass =
-						statusCodeToError[statusCode as keyof typeof statusCodeToError];
-					if (ErrorClass != null) {
-						reject(new ErrorClass());
+	return new Promise<PinejsClientCoreFactory.PromiseResultTypes>(
+		(resolve, reject) => {
+			const res: _express.Response = {
+				on: _.noop,
+				statusCode: 200,
+				status(statusCode: number) {
+					this.statusCode = statusCode;
+					return this;
+				},
+				sendStatus: (statusCode: number) => {
+					if (statusCode >= 400) {
+						const ErrorClass =
+							statusCodeToError[statusCode as keyof typeof statusCodeToError];
+						if (ErrorClass != null) {
+							reject(new ErrorClass());
+						} else {
+							reject(new HttpError(statusCode));
+						}
 					} else {
-						reject(new HttpError(statusCode));
+						resolve();
 					}
-				} else {
-					resolve();
-				}
-			},
-			send(statusCode: number) {
-				if (statusCode == null) {
-					statusCode = this.statusCode;
-				}
-				this.sendStatus(statusCode);
-			},
-			json(data: any, statusCode: number) {
-				if (statusCode == null) {
-					statusCode = this.statusCode;
-				}
-				if (statusCode >= 400) {
-					const ErrorClass =
-						statusCodeToError[statusCode as keyof typeof statusCodeToError];
-					if (ErrorClass != null) {
-						reject(new ErrorClass(data));
+				},
+				send(statusCode: number) {
+					if (statusCode == null) {
+						statusCode = this.statusCode;
+					}
+					this.sendStatus(statusCode);
+				},
+				json(data: any, statusCode: number) {
+					if (statusCode == null) {
+						statusCode = this.statusCode;
+					}
+					if (statusCode >= 400) {
+						const ErrorClass =
+							statusCodeToError[statusCode as keyof typeof statusCodeToError];
+						if (ErrorClass != null) {
+							reject(new ErrorClass(data));
+						} else {
+							reject(new HttpError(statusCode, data));
+						}
 					} else {
-						reject(new HttpError(statusCode, data));
+						resolve(data);
 					}
-				} else {
-					resolve(data);
-				}
-			},
-			set: _.noop,
-			type: _.noop,
-		} as any;
+				},
+				set: _.noop,
+				type: _.noop,
+			} as any;
 
-		const next = (route?: string) => {
-			console.warn('Next called on a runURI?!', method, uri, route);
-			res.sendStatus(500);
-		};
+			const next = (route?: string) => {
+				console.warn('Next called on a runURI?!', method, uri, route);
+				res.sendStatus(500);
+			};
 
-		handleODataRequest(emulatedReq, res, next);
-	}).asCallback(callback);
+			handleODataRequest(emulatedReq, res, next);
+		},
+	).asCallback(callback);
 };
 
 export const getAbstractSqlModel = (
