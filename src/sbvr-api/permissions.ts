@@ -255,9 +255,13 @@ export function nestedCheck<I, O>(
 	throw new Error('Cannot parse required checks: ' + check);
 }
 
+interface CollapsedFilter<T> extends Array<string | T | CollapsedFilter<T>> {
+	0: string;
+}
+
 const collapsePermissionFilters = <T>(
 	v: NestedCheck<{ filter: T }>,
-): T | [string, T] => {
+): T | CollapsedFilter<T> => {
 	if (_.isArray(v)) {
 		return collapsePermissionFilters({ or: v });
 	}
@@ -265,11 +269,15 @@ const collapsePermissionFilters = <T>(
 		if ('filter' in v) {
 			return v.filter;
 		}
-		return _(v)
-			.toPairs()
-			.flattenDeep()
-			.map(collapsePermissionFilters)
-			.value() as [string, T];
+		if ('and' in v) {
+			return ['and', ...v.and.map(collapsePermissionFilters)];
+		}
+		if ('or' in v) {
+			return ['or', ...v.or.map(collapsePermissionFilters)];
+		}
+		throw new Error(
+			'Permission filter objects must have `filter` or `and` or `or` keys',
+		);
 	}
 	return v;
 };

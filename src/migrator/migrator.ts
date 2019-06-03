@@ -44,7 +44,8 @@ export const postRun = (tx: Tx, model: ApiRootModel): Promise<void> => {
 };
 
 export const run = (tx: Tx, model: ApiRootModel): Promise<void> => {
-	if (!_.some(model.migrations)) {
+	const { migrations } = model;
+	if (migrations == null || !_.some(migrations)) {
 		return Promise.resolve();
 	}
 
@@ -59,12 +60,12 @@ export const run = (tx: Tx, model: ApiRootModel): Promise<void> => {
 					'First time model has executed, skipping migrations',
 				);
 
-				return setExecutedMigrations(tx, modelName, _.keys(model.migrations));
+				return setExecutedMigrations(tx, modelName, _.keys(migrations));
 			}
 
 			return getExecutedMigrations(tx, modelName).then(executedMigrations => {
 				const pendingMigrations = filterAndSortPendingMigrations(
-					model.migrations,
+					migrations,
 					executedMigrations,
 				);
 				if (!_.some(pendingMigrations)) {
@@ -151,11 +152,10 @@ export const setExecutedMigrations = (
 // turns {"key1": migration, "key3": migration, "key2": migration}
 // into  [["key1", migration], ["key2", migration], ["key3", migration]]
 export const filterAndSortPendingMigrations = (
-	migrations: Model['migrations'],
+	migrations: NonNullable<Model['migrations']>,
 	executedMigrations: string[],
 ): Array<MigrationTuple> =>
-	_(migrations)
-		.omit(executedMigrations)
+	(_(migrations).omit(executedMigrations) as _.Object<typeof migrations>)
 		.toPairs()
 		.sortBy(([migrationKey]) => migrationKey)
 		.value();
