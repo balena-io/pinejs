@@ -1,4 +1,14 @@
 - commits:
+    - subject: Update lodash types
+      hash: 1133502ed0e34e26a4323f7bad4ddd2888bd500e
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+  version: 10.15.2
+  date: 2019-06-03T15:42:09.752Z
+- commits:
     - subject: Update dependencies
       hash: 05d5980ffd624d26c8ca4854d491da1550eda409
       body: |
