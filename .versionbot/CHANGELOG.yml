@@ -1,4 +1,172 @@
 - commits:
+    - subject: Update the alias instead of stripping for non-field nodes
+      hash: d2e2fc24e6f869743fd17276ccc4b8d0ba70f87b
+      body: |
+        Update abstract-sql-compiler from 6.5.0 to 6.6.0
+        Update odata-to-abstract-sql from 3.1.2 to 3.2.0
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Add support for computed fields
+              hash: b38a49327120bcb5106b5a21eb20a1a5586e4c30
+              body: ''
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+          version: odata-to-abstract-sql-3.2.0
+          date: 2019-05-31T15:00:10.618Z
+        - commits:
+            - subject: Unify the handling of adding fields with or without a $select
+              hash: 1aa3c17e24e3aeb76e02a39c46a58a9b9e72b5bb
+              body: |
+                Update abstract-sql-compiler from 6.4.0 to 6.5.0
+                Update odata-parser from 1.0.2 to 1.0.4
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested:
+                - commits:
+                    - subject: Fix adding parameter alias to the options object
+                      hash: 247af0df0b4f3d6879d4415bced14fdf17beef76
+                      body: ''
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                  version: odata-parser-1.0.4
+                  date: 2019-05-27T16:09:15.294Z
+                - commits:
+                    - subject: Add .versionbot/CHANGELOG.yml for downstream changelogs
+                      hash: d871880a00c86b8eeec37489cf1d62a3688aabcc
+                      body: ''
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                  version: odata-parser-1.0.3
+                  date: 2019-05-08T14:25:13.528Z
+                - commits:
+                    - subject: Add support for computed fields
+                      hash: df53a1545b851da0ac188edac7cca6d34f1000f7
+                      body: ''
+                      footer:
+                        Change-type: minor
+                        change-type: minor
+                      author: Pagan Gazzard
+                  version: abstract-sql-compiler-6.5.0
+                  date: 2019-05-30T19:27:09.123Z
+                - commits:
+                    - subject: Add tests for `getReferencedFields`
+                      hash: ae56c039a943bda5d7b75927be4ed3c9c5402261
+                      body: ''
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                  version: abstract-sql-compiler-6.4.3
+                  date: 2019-05-30T14:55:18.212Z
+                - commits:
+                    - subject: Update and fix lodash typings
+                      hash: 2bf073bbff3a94d66c31e07d98c3e298f5132b2c
+                      body: ''
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                    - subject: Update husky/mocha dev dependencies
+                      hash: 29f7d52185186bdb1171fdf27a923eb38887d009
+                      body: ''
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                  version: abstract-sql-compiler-6.4.2
+                  date: 2019-05-09T21:32:48.414Z
+                - commits:
+                    - subject: Fix typescript compilation
+                      hash: a3733e5c348687d74dd290538c6a7f3f3a4a4bb0
+                      body: |
+                        Update odata-parser from 1.0.1 to 1.0.3
+                        Update odata-to-abstract-sql from 3.0.0 to 3.0.1
+                        Update sbvr-parser from 0.2.1 to 0.2.2
+                        Update sbvr-types from 2.0.0 to 2.0.3
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                      nested:
+                        - commits:
+                            - subject: >-
+                                Add .versionbot/CHANGELOG.yml for downstream
+                                changelogs
+                              hash: 45c5843b204def5a727b8ba8dfafb2a2347f50f3
+                              body: ''
+                              footer:
+                                Change-type: patch
+                                change-type: patch
+                              author: Pagan Gazzard
+                          version: sbvr-parser-0.2.2
+                          date: 2019-05-08T14:23:57.847Z
+                    - subject: Add node 12 tests
+                      hash: 094c059eb3c5fd6f3502c53e40ed4b90197ed5c2
+                      body: ''
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                    - subject: Add repo.yml for upstream changelogs
+                      hash: 3f4bffe3a107a4b6fd30c15bf1e70c79e68e226e
+                      body: ''
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                    - subject: Add .versionbot/CHANGELOG.yml for downstream changelogs
+                      hash: 5e4ab1569e5e7f7648d4c14df8d3bf9f834a4828
+                      body: ''
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                  version: abstract-sql-compiler-6.4.1
+                  date: 2019-05-08T16:45:44.728Z
+          version: odata-to-abstract-sql-3.1.3
+          date: 2019-05-31T14:38:35.255Z
+        - commits:
+            - subject: Improve aliased from handling in `getReferencedFields`
+              hash: dcfff55b813d38434208a9e07c818d1d32f521ef
+              body: >
+                We do this by using basic scope info to prune aliased table
+                references
+
+                which also allows us to handle aliased select queries in the
+                from
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+          version: abstract-sql-compiler-6.6.0
+          date: 2019-06-03T12:33:58.507Z
+        - commits:
+            - subject: >-
+                Use an abstract-sql-optimiser prepass to simplify
+                getReferencedFields
+              hash: 6fc850fc820d691c823ad698d8d499cf55126cf4
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: abstract-sql-compiler-6.5.1
+          date: 2019-06-03T12:14:07.176Z
+  version: 10.15.3
+  date: 2019-06-03T16:40:42.817Z
+- commits:
     - subject: Update lodash types
       hash: 1133502ed0e34e26a4323f7bad4ddd2888bd500e
       body: ''
