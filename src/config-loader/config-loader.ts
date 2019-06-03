@@ -24,7 +24,7 @@ export interface SetupFunction {
 		sbvrUtilsInstance: typeof sbvrUtils,
 		db: Database,
 		done?: (err?: any) => void,
-	): Promise<void>;
+	): PromiseLike<void>;
 	(
 		app: _express.Application,
 		sbvrUtilsInstance: typeof sbvrUtils,
@@ -36,7 +36,7 @@ export interface SetupFunction {
 		sbvrUtilsInstance: typeof sbvrUtils,
 		db: Database,
 		done?: (err?: any) => void,
-	): Promise<void> | void;
+	): Resolvable<void>;
 }
 
 export interface Model {

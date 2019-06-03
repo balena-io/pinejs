@@ -125,7 +125,7 @@ export type HookArgs = {
 	api: PinejsClient;
 	tx?: _db.Tx;
 };
-export type HookResponse = Promise<any> | null | void;
+export type HookResponse = PromiseLike<any> | null | void;
 export type HookRequest = uriParser.ODataRequest;
 
 export interface Hooks {

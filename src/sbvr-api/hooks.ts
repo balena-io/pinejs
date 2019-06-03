@@ -1,8 +1,9 @@
 import * as _ from 'lodash';
 import * as Promise from 'bluebird';
 import { settleMapSeries } from './control-flow';
+import { Resolvable } from './common-types';
 
-export type RollbackAction = () => void | Promise<void>;
+export type RollbackAction = () => Resolvable<void>;
 export type HookFn = (...args: any[]) => any;
 export type HookBlueprint = {
 	HOOK: HookFn;
