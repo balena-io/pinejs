@@ -1098,7 +1098,7 @@ export const handleODataRequest: _express.Handler = (req, res, next) => {
 		return next('route');
 	}
 
-	if (process.env.DEBUG) {
+	if (DEBUG) {
 		api[apiRoot].logger.log('Parsing', req.method, req.url);
 	}
 
@@ -1278,7 +1278,7 @@ const runRequest = (
 ): Promise<Response> => {
 	const { logger } = api[request.vocabulary];
 
-	if (process.env.DEBUG) {
+	if (DEBUG) {
 		logger.log('Running', req.method, req.url);
 	}
 	// Forward each request to the correct method handler
