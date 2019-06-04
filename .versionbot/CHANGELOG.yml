@@ -1,4 +1,14 @@
 - commits:
+    - subject: Use `PromiseLike` to be more accepting with promise returning functions
+      hash: f6a502d89956788baeab066d9a054f77a73e2923
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+  version: 10.15.4
+  date: 2019-06-03T20:54:56.739Z
+- commits:
     - subject: Update the alias instead of stripping for non-field nodes
       hash: d2e2fc24e6f869743fd17276ccc4b8d0ba70f87b
       body: |
