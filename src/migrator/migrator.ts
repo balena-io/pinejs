@@ -7,6 +7,7 @@ import { Tx } from '../database-layer/db';
 import * as sbvrUtils from '../sbvr-api/sbvr-utils';
 import { migrator as migratorEnv } from '../config-loader/env';
 import { Model } from '../config-loader/config-loader';
+import { Resolvable } from '../sbvr-api/common-types';
 
 type ApiRootModel = Model & { apiRoot: string };
 
@@ -14,10 +15,7 @@ type SbvrUtils = typeof sbvrUtils;
 
 type MigrationTuple = [string, Migration];
 
-export type MigrationFn = (
-	tx: Tx,
-	sbvrUtils: SbvrUtils,
-) => Promise<void> | void;
+export type MigrationFn = (tx: Tx, sbvrUtils: SbvrUtils) => Resolvable<void>;
 
 export type Migration = string | MigrationFn;
 

@@ -9,6 +9,7 @@ import * as Promise from 'bluebird';
 import TypedError = require('typed-error');
 import * as env from '../config-loader/env';
 import { Engines } from '@resin/abstract-sql-compiler';
+import { Resolvable } from '../sbvr-api/common-types';
 
 export const metrics = new EventEmitter();
 
@@ -78,7 +79,7 @@ const alwaysExport = {
 };
 
 interface TransactionFn {
-	<T>(fn: (tx: Tx) => Promise<T> | T): Promise<T>;
+	<T>(fn: (tx: Tx) => Resolvable<T>): Promise<T>;
 	(): Promise<Tx>;
 }
 
@@ -296,7 +297,7 @@ const getStackTraceErr: () => Error | undefined = DEBUG
 	: (_.noop as () => undefined);
 
 const createTransaction = (createFunc: CreateTransactionFn): TransactionFn => {
-	return <T>(fn?: (tx: Tx) => Promise<T> | T): Promise<T> | Promise<Tx> => {
+	return <T>(fn?: (tx: Tx) => Resolvable<T>): Promise<T> | Promise<Tx> => {
 		const stackTraceErr = getStackTraceErr();
 		// Create a new promise in order to be able to get access to cancellation, to let us
 		// return the client to the pool if the promise was cancelled whilst we were waiting

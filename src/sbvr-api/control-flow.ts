@@ -2,7 +2,7 @@ import * as _ from 'lodash';
 import * as Promise from 'bluebird';
 import { Resolvable } from './common-types';
 
-export const liftP = <T, U>(fn: (v: T) => U | Promise<U>) => {
+export const liftP = <T, U>(fn: (v: T) => Resolvable<U>) => {
 	return (a: T | T[]): Promise<U[] | U> => {
 		if (_.isArray(a)) {
 			// This must not be a settle as if any operation fails in a changeset
