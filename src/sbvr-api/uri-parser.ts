@@ -2,7 +2,12 @@ import * as _AbstractSQLCompiler from '@resin/abstract-sql-compiler';
 
 import * as Promise from 'bluebird';
 import * as ODataParser from '@resin/odata-parser';
-import { ODataBinds, ODataQuery, SupportedMethod } from '@resin/odata-parser';
+import {
+	ODataBinds,
+	ODataQuery,
+	SupportedMethod,
+	ODataOptions,
+} from '@resin/odata-parser';
 export const SyntaxError = ODataParser.SyntaxError;
 import { OData2AbstractSQL } from '@resin/odata-to-abstract-sql';
 import * as memoize from 'memoizee';
@@ -158,6 +163,7 @@ const memoizedOdata2AbstractSQL = (() => {
 			max: env.cache.odataToAbstractSql.max,
 		},
 	);
+
 	return (
 		request: Pick<
 			ODataRequest,
@@ -169,14 +175,34 @@ const memoizedOdata2AbstractSQL = (() => {
 			| 'abstractSqlModel'
 		>,
 	) => {
-		const { method, odataQuery, odataBinds, values } = request;
+		const { method, odataBinds, values } = request;
+		let { odataQuery } = request;
 		const abstractSqlModel = sbvrUtils.getAbstractSqlModel(request);
 		// Sort the body keys to improve cache hits
+		const sortedBody = _.keys(values).sort();
+		// Remove unused options for odata-to-abstract-sql to improve cache hits
+		if (odataQuery.options) {
+			odataQuery = {
+				...odataQuery,
+				options: _.pick(
+					odataQuery.options,
+					'$select',
+					'$filter',
+					'$expand',
+					'$orderby',
+					'$top',
+					'$skip',
+					'$count',
+					'$inlinecount',
+					'$format',
+				) as ODataOptions,
+			};
+		}
 		const { tree, extraBodyVars, extraBindVars } = memoizedOdata2AbstractSQL(
 			abstractSqlModel,
 			odataQuery,
 			method,
-			_.keys(values).sort(),
+			sortedBody,
 			odataBinds.length,
 		);
 		_.assign(values, extraBodyVars);
