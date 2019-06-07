@@ -119,9 +119,7 @@ export const setup = (app: _express.Application) => {
 										}
 									})
 									.tapCatch(e => {
-										e.message = `Could not create or find permission "${permissionName}": ${
-											e.message
-										}`;
+										e.message = `Could not create or find permission "${permissionName}": ${e.message}`;
 									});
 							});
 						});
@@ -187,9 +185,7 @@ export const setup = (app: _express.Application) => {
 									}
 								})
 								.tapCatch(e => {
-									e.message = `Could not create or find user "${
-										user.username
-									}": ${e.message}`;
+									e.message = `Could not create or find user "${user.username}": ${e.message}`;
 								});
 						}).return();
 					}
@@ -213,9 +209,7 @@ export const setup = (app: _express.Application) => {
 										);
 									})
 									.catch(err => {
-										const message = `Failed to execute ${
-											model.modelName
-										} model from ${model.modelFile}`;
+										const message = `Failed to execute ${model.modelName} model from ${model.modelFile}`;
 										if (_.isError(err)) {
 											err.message = message;
 											throw err;
@@ -230,9 +224,7 @@ export const setup = (app: _express.Application) => {
 									try {
 										customCode = nodeRequire(model.customServerCode).setup;
 									} catch (e) {
-										e.message = `Error loading custom server code: '${
-											e.message
-										}'`;
+										e.message = `Error loading custom server code: '${e.message}'`;
 										throw e;
 									}
 								} else if (_.isObject(model.customServerCode)) {

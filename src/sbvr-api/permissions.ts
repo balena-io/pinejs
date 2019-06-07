@@ -14,13 +14,11 @@ import {
 	PermissionParsingError,
 } from './errors';
 import * as ODataParser from '@resin/odata-parser';
+import { ODataBinds, ODataQuery, SupportedMethod } from '@resin/odata-parser';
 import * as memoize from 'memoizee';
 import memoizeWeak = require('memoizee/weak');
 import {
 	sqlNameToODataName,
-	ODataBinds,
-	ODataQuery,
-	SupportedMethod,
 	Definition,
 	odataNameToSqlName,
 } from '@resin/odata-to-abstract-sql';
@@ -92,7 +90,7 @@ type MappedNestedCheck<
 	: Exclude<I, string> | O;
 
 const methodPermissions: {
-	[method in Exclude<SupportedMethod, 'OPTIONS'>]: PermissionCheck
+	[method in Exclude<SupportedMethod, 'OPTIONS'>]: PermissionCheck;
 } & { OPTIONS?: PermissionCheck } = {
 	GET: {
 		or: ['get', 'read'],
@@ -341,53 +339,52 @@ const $checkPermissions = (
 	const checkObject: PermissionCheck = {
 		or: ['all', actionList],
 	};
-	return nestedCheck(
-		checkObject,
-		(permissionCheck): boolean | string | NestedCheckOr<string> => {
-			const resourcePermission =
-				permissionsLookup['resource.' + permissionCheck];
-			let vocabularyPermission: string[] | undefined;
-			let vocabularyResourcePermission: string[] | undefined;
-			if (resourcePermission === true) {
+	return nestedCheck(checkObject, (permissionCheck):
+		| boolean
+		| string
+		| NestedCheckOr<string> => {
+		const resourcePermission = permissionsLookup['resource.' + permissionCheck];
+		let vocabularyPermission: string[] | undefined;
+		let vocabularyResourcePermission: string[] | undefined;
+		if (resourcePermission === true) {
+			return true;
+		}
+		if (vocabulary != null) {
+			const maybeVocabularyPermission =
+				permissionsLookup[vocabulary + '.' + permissionCheck];
+			if (maybeVocabularyPermission === true) {
 				return true;
 			}
-			if (vocabulary != null) {
-				const maybeVocabularyPermission =
-					permissionsLookup[vocabulary + '.' + permissionCheck];
-				if (maybeVocabularyPermission === true) {
+			vocabularyPermission = maybeVocabularyPermission;
+			if (resourceName != null) {
+				const maybeVocabularyResourcePermission =
+					permissionsLookup[
+						vocabulary + '.' + resourceName + '.' + permissionCheck
+					];
+				if (maybeVocabularyResourcePermission === true) {
 					return true;
 				}
-				vocabularyPermission = maybeVocabularyPermission;
-				if (resourceName != null) {
-					const maybeVocabularyResourcePermission =
-						permissionsLookup[
-							vocabulary + '.' + resourceName + '.' + permissionCheck
-						];
-					if (maybeVocabularyResourcePermission === true) {
-						return true;
-					}
-					vocabularyResourcePermission = maybeVocabularyResourcePermission;
-				}
+				vocabularyResourcePermission = maybeVocabularyResourcePermission;
 			}
+		}
 
-			// Get the unique permission set, ignoring undefined sets.
-			const conditionalPermissions = _.union(
-				resourcePermission,
-				vocabularyPermission,
-				vocabularyResourcePermission,
-			);
+		// Get the unique permission set, ignoring undefined sets.
+		const conditionalPermissions = _.union(
+			resourcePermission,
+			vocabularyPermission,
+			vocabularyResourcePermission,
+		);
 
-			if (conditionalPermissions.length === 1) {
-				return conditionalPermissions[0];
-			}
-			if (conditionalPermissions.length > 1) {
-				return {
-					or: conditionalPermissions,
-				};
-			}
-			return false;
-		},
-	);
+		if (conditionalPermissions.length === 1) {
+			return conditionalPermissions[0];
+		}
+		if (conditionalPermissions.length > 1) {
+			return {
+				or: conditionalPermissions,
+			};
+		}
+		return false;
+	});
 };
 
 const generateConstrainedAbstractSql = (
@@ -803,9 +800,8 @@ export const getUserPermissions = (
 		);
 	}
 	return getUserPermissionsQuery()({ userId })
-		.then(
-			(permissions: AnyObject[]): string[] =>
-				permissions.map(permission => permission.name),
+		.then((permissions: AnyObject[]): string[] =>
+			permissions.map(permission => permission.name),
 		)
 		.tapCatch(err => {
 			sbvrUtils.api.Auth.logger.error('Error loading user permissions', err);
@@ -887,9 +883,8 @@ const getApiKeyPermissionsQuery = _.once(() =>
 const $getApiKeyPermissions = memoize(
 	(apiKey: string) =>
 		getApiKeyPermissionsQuery()({ apiKey })
-			.then(
-				(permissions: AnyObject[]): string[] =>
-					permissions.map(permission => permission.name),
+			.then((permissions: AnyObject[]): string[] =>
+				permissions.map(permission => permission.name),
 			)
 			.tapCatch(err => {
 				sbvrUtils.api.Auth.logger.error(

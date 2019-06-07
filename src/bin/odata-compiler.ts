@@ -57,9 +57,7 @@ const generateAbstractSqlModel = (modelFile: string): AbstractSqlModel => {
 		lfModel = generateLfModel(seModel);
 	} catch (e) {
 		throw new Error(
-			`Got '${
-				e.message
-			}' whilst trying to parse the model file as sbvr, if you're using a transpiled language for the model file you will need to either transpile in advance or run via its loader`,
+			`Got '${e.message}' whilst trying to parse the model file as sbvr, if you're using a transpiled language for the model file you will need to either transpile in advance or run via its loader`,
 		);
 	}
 	return generateAbstractSqlModel(lfModel);

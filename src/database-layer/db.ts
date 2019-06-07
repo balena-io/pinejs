@@ -115,9 +115,7 @@ if (process.env.TRANSACTION_TIMEOUT_MS) {
 	timeoutMS = _.parseInt(process.env.TRANSACTION_TIMEOUT_MS);
 	if (_.isNaN(timeoutMS) || timeoutMS <= 0) {
 		throw new Error(
-			`Invalid valid for TRANSACTION_TIMEOUT_MS: ${
-				process.env.TRANSACTION_TIMEOUT_MS
-			}`,
+			`Invalid valid for TRANSACTION_TIMEOUT_MS: ${process.env.TRANSACTION_TIMEOUT_MS}`,
 		);
 	}
 } else {
@@ -604,7 +602,7 @@ if (typeof window !== 'undefined' && window.openDatabase != null) {
 		Sql,
 		Bindings,
 		SQLStatementCallback,
-		SQLStatementErrorCallback
+		SQLStatementErrorCallback,
 	];
 	engines.websql = (databaseName: string): Database => {
 		const WEBSQL_CONSTRAINT_ERR = 6;

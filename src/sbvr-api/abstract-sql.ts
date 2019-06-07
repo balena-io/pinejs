@@ -175,9 +175,7 @@ export const isRuleAffected = (
 	// If we can't get any modified fields we assume the rule may have been modified
 	if (modifiedFields == null) {
 		console.warn(
-			`Could not determine the modified table/fields info for '${
-				request.method
-			}' to ${request.vocabulary}`,
+			`Could not determine the modified table/fields info for '${request.method}' to ${request.vocabulary}`,
 			request.abstractSqlQuery,
 		);
 		return true;

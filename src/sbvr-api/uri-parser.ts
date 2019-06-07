@@ -2,13 +2,9 @@ import * as _AbstractSQLCompiler from '@resin/abstract-sql-compiler';
 
 import * as Promise from 'bluebird';
 import * as ODataParser from '@resin/odata-parser';
+import { ODataBinds, ODataQuery, SupportedMethod } from '@resin/odata-parser';
 export const SyntaxError = ODataParser.SyntaxError;
-import {
-	OData2AbstractSQL,
-	ODataQuery,
-	ODataBinds,
-	SupportedMethod,
-} from '@resin/odata-to-abstract-sql';
+import { OData2AbstractSQL } from '@resin/odata-to-abstract-sql';
 import * as memoize from 'memoizee';
 import memoizeWeak = require('memoizee/weak');
 import * as _ from 'lodash';
@@ -149,7 +145,7 @@ const memoizedOdata2AbstractSQL = (() => {
 					ODataQuery,
 					SupportedMethod,
 					string[],
-					number
+					number,
 				],
 			) => {
 				return (
