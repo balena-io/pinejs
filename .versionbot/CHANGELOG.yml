@@ -1,4 +1,14 @@
 - commits:
+    - subject: Remove unused odata options to improve cache hits
+      hash: 735855831216367f29003b45d5f625fd16981f32
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+  version: 10.15.7
+  date: 2019-06-10T11:17:29.373Z
+- commits:
     - subject: Update odata-parser to make use of its types
       hash: 8a2537e3cac1736e940145b1a17fe057aea23a93
       body: |
