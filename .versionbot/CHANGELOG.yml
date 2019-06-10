@@ -1,4 +1,129 @@
 - commits:
+    - subject: Update odata-parser to make use of its types
+      hash: 8a2537e3cac1736e940145b1a17fe057aea23a93
+      body: |
+        Update odata-parser from 1.0.4 to 1.2.0
+        Update odata-to-abstract-sql from 3.2.0 to 3.3.0
+        Update sbvr-parser from 0.2.2 to 0.2.3
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Make use of odata-parser types
+              hash: b8ca21dd56d9b0d38b989dfdc5334d35247ac536
+              body: |
+                Update abstract-sql-compiler from 6.5.0 to 6.6.0
+                Update odata-parser from 1.0.4 to 1.1.1
+                Update sbvr-parser from 0.2.2 to 0.2.3
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+              nested:
+                - commits:
+                    - subject: Improve typings
+                      hash: 11ace6373275b227497acbf2e40c2a33884adf7e
+                      body: ''
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                  version: odata-parser-1.1.1
+                  date: 2019-06-07T12:56:16.974Z
+                - commits:
+                    - subject: Add typings
+                      hash: a2c4bfe660bbe8d5de554f15cd89ef5a9c30de74
+                      body: ''
+                      footer:
+                        Change-type: minor
+                        change-type: minor
+                      author: Pagan Gazzard
+                  version: odata-parser-1.1.0
+                  date: 2019-06-06T12:47:33.222Z
+                - commits:
+                    - subject: Improve aliased from handling in `getReferencedFields`
+                      hash: dcfff55b813d38434208a9e07c818d1d32f521ef
+                      body: >
+                        We do this by using basic scope info to prune aliased
+                        table references
+
+                        which also allows us to handle aliased select queries in
+                        the from
+                      footer:
+                        Change-type: minor
+                        change-type: minor
+                      author: Pagan Gazzard
+                  version: abstract-sql-compiler-6.6.0
+                  date: 2019-06-03T12:33:58.507Z
+                - commits:
+                    - subject: >-
+                        Use an abstract-sql-optimiser prepass to simplify
+                        getReferencedFields
+                      hash: 6fc850fc820d691c823ad698d8d499cf55126cf4
+                      body: ''
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                  version: abstract-sql-compiler-6.5.1
+                  date: 2019-06-03T12:14:07.176Z
+                - commits:
+                    - subject: Optimise exactly 0 to not exists
+                      hash: dcb0cd00b8b4b08486e49d18e2b69e61162ae952
+                      body: ''
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                  version: sbvr-parser-0.2.3
+                  date: 2019-06-04T21:07:20.967Z
+          version: odata-to-abstract-sql-3.3.0
+          date: 2019-06-07T13:08:08.073Z
+        - commits:
+            - subject: Optimise exactly 0 to not exists
+              hash: dcb0cd00b8b4b08486e49d18e2b69e61162ae952
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: sbvr-parser-0.2.3
+          date: 2019-06-04T21:07:20.967Z
+        - commits:
+            - subject: Support `;` for separating expand options
+              hash: 3af2ad056411015b25f7479550e5c194dfbaa4db
+              body: ''
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+          version: odata-parser-1.2.0
+          date: 2019-06-07T14:49:44.320Z
+        - commits:
+            - subject: Improve typings
+              hash: 11ace6373275b227497acbf2e40c2a33884adf7e
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: odata-parser-1.1.1
+          date: 2019-06-07T12:56:16.974Z
+        - commits:
+            - subject: Add typings
+              hash: a2c4bfe660bbe8d5de554f15cd89ef5a9c30de74
+              body: ''
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+          version: odata-parser-1.1.0
+          date: 2019-06-06T12:47:33.222Z
+  version: 10.15.6
+  date: 2019-06-10T10:42:25.232Z
+- commits:
     - subject: Remove unnecessary `process.env` accesses
       hash: 239a4e9a32882bfac5b62957d505d61d7261af75
       body: ''
