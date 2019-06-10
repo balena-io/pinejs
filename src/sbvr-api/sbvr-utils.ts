@@ -779,7 +779,7 @@ export const runRule = (() => {
 			}
 			let ruleBody = _.find(ruleAbs, node => node[0] === 'Body') as [
 				'Body',
-				...any[]
+				...any[],
 			];
 			if (
 				ruleBody[1][0] === 'Not' &&
@@ -1067,9 +1067,12 @@ export const getAffectedIds = Promise.method(
 				}
 				const { idField } = resourceTable;
 
-				_.set(request.odataQuery, ['options', '$select'], {
+				if (request.odataQuery.options == null) {
+					request.odataQuery.options = {};
+				}
+				request.odataQuery.options.$select = {
 					properties: [{ name: idField }],
-				});
+				};
 
 				// Delete any $expand that might exist as they're ignored on non-GETs but we're converting this request to a GET
 				delete request.odataQuery.options.$expand;
