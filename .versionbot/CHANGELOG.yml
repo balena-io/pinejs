@@ -1,4 +1,45 @@
 - commits:
+    - subject: Fix handling of odata eq/ne when fields contain null
+      hash: 21a1cd0c885b2228ed7d8a1afeba6ec003d6bb95
+      body: |
+        Update abstract-sql-compiler from 6.6.0 to 6.7.0
+        Update odata-to-abstract-sql from 3.3.0 to 4.0.0
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Update tsconfig target to es2018
+              hash: 11305a9db04d1c63df1c71ecf521b076658bad15
+              body: ''
+              footer:
+                Change-type: major
+                change-type: major
+              author: Pagan Gazzard
+            - subject: Use `IsDistinctFrom`/`IsNotDistinctFrom` for odata `eq`/`ne`
+              hash: 96d697be6e9b190d4bf34d715b13bfa641a37091
+              body: |
+                This fixes comparing fields that contain null values
+              footer:
+                Change-type: major
+                change-type: major
+              author: Pagan Gazzard
+          version: odata-to-abstract-sql-4.0.0
+          date: 2019-06-14T14:48:18.262Z
+        - commits:
+            - subject: Add support for `IsDistinctFrom`/`IsNotDistinctFrom`
+              hash: 5ba68820fc21f2a4bd622677d3abdc122bb78af2
+              body: ''
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+          version: abstract-sql-compiler-6.7.0
+          date: 2019-06-14T14:12:55.045Z
+  version: 10.16.0
+  date: 2019-06-14T15:02:44.632Z
+- commits:
     - subject: Remove unused odata options to improve cache hits
       hash: 735855831216367f29003b45d5f625fd16981f32
       body: ''
