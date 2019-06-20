@@ -1,4 +1,76 @@
 - commits:
+    - subject: 'Fix missing `promise: true` option for memoized `$getApiKeyPermissions`'
+      hash: 71c758ac498efb8c638fb50212fcabdb3196c6aa
+      body: |
+        Update abstract-sql-compiler from 6.7.0 to 6.7.1
+        Update pinejs-client-core from 5.5.1 to 5.5.4
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: >-
+                Remove unnecessary `string` type that is handled by the `Params`
+                type
+              hash: 0ab1242860aa8b3ed4162a5ee25081c640297676
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: pinejs-client-js-5.5.4
+          date: 2019-06-18T14:46:38.983Z
+        - commits:
+            - subject: Use an .npmrc to prevent creating a package-lock on each install
+              hash: 993c4ae09c3ba50e1d48e4156e86a7c890e54749
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+                Signed-off-by: Thodoris Greasidis <thodoris@balena.io>
+                signed-off-by: Thodoris Greasidis <thodoris@balena.io>
+              author: Thodoris Greasidis
+          version: pinejs-client-js-5.5.3
+          date: 2019-06-18T10:24:38.995Z
+        - commits:
+            - subject: Add some type casting so that it compiles on TypeScript 3.5
+              hash: 695c053ceab9b146a8b755f9b041eb03e70b5914
+              body: ''
+              footer:
+                Resolves: '#79'
+                resolves: '#79'
+                Change-type: patch
+                change-type: patch
+                Signed-off-by: Thodoris Greasidis <thodoris@balena.io>
+                signed-off-by: Thodoris Greasidis <thodoris@balena.io>
+              author: Thodoris Greasidis
+          version: pinejs-client-js-5.5.2
+          date: 2019-06-10T10:48:07.772Z
+        - commits:
+            - subject: >-
+                Change `IsDistinctFrom` for postgres to a version that can use
+                indexes
+              hash: 5046d5eb8127811eaced5308ea06d4ba092ed5f2
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+            - subject: >-
+                Optimise `IsDistinctFrom`/`IsNotDistinctFrom` when either arg is
+                `Null`
+              hash: 664385a73a8ab881d388141692a9cfad7d7b2358
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: abstract-sql-compiler-6.7.1
+          date: 2019-06-17T16:02:58.721Z
+  version: 10.16.1
+  date: 2019-06-20T12:52:07.788Z
+- commits:
     - subject: Fix handling of odata eq/ne when fields contain null
       hash: 21a1cd0c885b2228ed7d8a1afeba6ec003d6bb95
       body: |
