@@ -894,6 +894,7 @@ const $getApiKeyPermissions = memoize(
 			}),
 	{
 		primitive: true,
+		promise: true,
 		max: env.cache.apiKeys.max,
 		maxAge: env.cache.apiKeys.maxAge,
 	},
