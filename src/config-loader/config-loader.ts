@@ -338,6 +338,7 @@ export const setup = (app: _express.Application) => {
 
 										switch (path.extname(filename)) {
 											case '.coffee':
+											case '.ts':
 											case '.js':
 												migrations[migrationKey] = nodeRequire(filePath);
 												break;
