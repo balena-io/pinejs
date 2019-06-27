@@ -1,4 +1,16 @@
 - commits:
+    - subject: '✨: Support TS migrations'
+      hash: 2f763ce9ca22298b7f6f51f1f60f95337ff61be3
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+        Signed-off-by: Andreas Fitzek <andreas@balena.io>
+        signed-off-by: Andreas Fitzek <andreas@balena.io>
+      author: Andreas Fitzek
+  version: 10.17.0
+  date: 2019-06-25T18:35:24.398Z
+- commits:
     - subject: 'Fix missing `promise: true` option for memoized `$getApiKeyPermissions`'
       hash: 71c758ac498efb8c638fb50212fcabdb3196c6aa
       body: |
