@@ -143,7 +143,6 @@ export const process = (
 	const instances = rows.map(instance => {
 		instance.__metadata = {
 			uri: resourceURI(vocab, resourceName, instance[odataIdField]),
-			type: '',
 		};
 		return instance;
 	});
