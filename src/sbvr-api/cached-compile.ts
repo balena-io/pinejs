@@ -22,6 +22,11 @@ const saveCache = _.debounce(() => {
 				console.warn('Error saving pinejs cache:', err);
 			}
 		});
+		// Clear the cache once we trigger the save as it usually means we're
+		// done with it and it allows us to free up the memory - if it does end
+		// up being requested again it will just trigger a reload of the cache
+		// but that should be a rare case
+		cache = null;
 	}
 }, 5000);
 
