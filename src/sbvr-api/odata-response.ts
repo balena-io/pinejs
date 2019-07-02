@@ -78,7 +78,10 @@ export const resourceURI = (
 	vocab: string,
 	resourceName: string,
 	id: string | number,
-) => {
+): string | undefined => {
+	if (id == null) {
+		return;
+	}
 	if (_.isString(id)) {
 		id = "'" + encodeURIComponent(id) + "'";
 	}
