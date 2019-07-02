@@ -1,4 +1,14 @@
 - commits:
+    - subject: Clear the cache upon persisting it to disk
+      hash: 6f6c9a6c37e46e02cbcc618a3ee2a357fc0c7469
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+  version: 10.17.1
+  date: 2019-07-02T14:53:01.633Z
+- commits:
     - subject: '✨: Support TS migrations'
       hash: 2f763ce9ca22298b7f6f51f1f60f95337ff61be3
       body: ''
