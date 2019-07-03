@@ -1,4 +1,16 @@
 - commits:
+    - subject: Stop sending `type` in the response as it's always an empty string
+      hash: 114596be881e90b801c2ca996a74698dc67c594b
+      body: |
+        It provides no useful info and just increases gc, JSON.stringify, and
+        bandwidth costs
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+  version: 10.17.2
+  date: 2019-07-02T20:59:27.988Z
+- commits:
     - subject: Clear the cache upon persisting it to disk
       hash: 6f6c9a6c37e46e02cbcc618a3ee2a357fc0c7469
       body: ''
