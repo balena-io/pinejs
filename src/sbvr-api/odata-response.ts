@@ -85,7 +85,7 @@ export const resourceURI = (
 	if (_.isString(id)) {
 		id = "'" + encodeURIComponent(id) + "'";
 	}
-	return '/' + vocab + '/' + resourceName + '(' + id + ')';
+	return `/${vocab}/${resourceName}(@id)?@id=${id}`;
 };
 
 const getLocalFields = (table: AbstractSqlTable) => {

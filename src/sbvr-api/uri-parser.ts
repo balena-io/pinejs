@@ -90,7 +90,44 @@ export const memoizedParseOdata = (() => {
 		max: env.cache.parseOData.max,
 	});
 	return (url: string) => {
-		if (_.includes(url, '?')) {
+		const queryParamsIndex = url.indexOf('?');
+		if (queryParamsIndex !== -1) {
+			if (/[?&(]@/.test(url)) {
+				// Try to cache based on parameter aliases if there might be some
+				const parameterAliases = new URLSearchParams();
+				const queryParams = new URLSearchParams(url.slice(queryParamsIndex));
+				Array.from(queryParams.entries()).forEach(([key, value]) => {
+					if (key.startsWith('@')) {
+						parameterAliases.append(key, value);
+						queryParams.delete(key);
+					}
+				});
+				const parameterAliasesString = parameterAliases.toString();
+				if (parameterAliasesString !== '') {
+					const parsed = _.cloneDeep(
+						_memoizedParseOdata(
+							url.slice(0, queryParamsIndex) +
+								'?' +
+								decodeURIComponent(queryParams.toString()),
+						),
+					);
+					const parsedParams = ODataParser.parse(
+						decodeURIComponent(parameterAliasesString),
+						{
+							startRule: 'ProcessRule',
+							rule: 'QueryOptions',
+						},
+					);
+					if (parsed.tree.options == null) {
+						parsed.tree.options = {};
+					}
+					for (const key in parsedParams.tree) {
+						parsed.tree.options[key] = parsedParams.tree[key];
+						parsed.binds[key] = parsedParams.binds[key];
+					}
+					return parsed;
+				}
+			}
 			// If we're doing a complex url then skip caching due to # of permutations
 			return parseOdata(url);
 		} else {
