@@ -1,4 +1,14 @@
 - commits:
+    - subject: Don't generate a `resourceURI` if there is no resource id
+      hash: ddbf4cdcf595255e03effe1f8afbf46f5a80f5b6
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+  version: 10.17.3
+  date: 2019-07-04T14:56:46.685Z
+- commits:
     - subject: Stop sending `type` in the response as it's always an empty string
       hash: 114596be881e90b801c2ca996a74698dc67c594b
       body: |
