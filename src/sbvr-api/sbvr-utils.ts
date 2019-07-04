@@ -1559,6 +1559,7 @@ const respondPost = (
 	return Promise.try(() => {
 		const onlyId = { d: [{ id }] };
 		if (
+			location == null ||
 			_.includes(
 				['0', 'false'],
 				_.get(request, ['odataQuery', 'options', 'returnResource']),
