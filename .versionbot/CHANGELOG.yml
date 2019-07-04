@@ -1,4 +1,14 @@
 - commits:
+    - subject: Add caching of odata that uses parameter aliases
+      hash: 5d5478c276ccfb16ddbea1b5a70eb2ceabd9dd33
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+  version: 10.18.0
+  date: 2019-07-04T15:08:17.687Z
+- commits:
     - subject: Don't generate a `resourceURI` if there is no resource id
       hash: ddbf4cdcf595255e03effe1f8afbf46f5a80f5b6
       body: ''
