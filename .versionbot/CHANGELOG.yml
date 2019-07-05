@@ -1,4 +1,14 @@
 - commits:
+    - subject: Return a more accurate 409 status for constraint errors
+      hash: 5d6ebc0ee505f075504a7e8f8d0ec40b45b8f64f
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+  version: 10.19.0
+  date: 2019-07-05T18:25:25.299Z
+- commits:
     - subject: Schedule clearing compile cache on any use
       hash: e39372ca836fb2a531cc11897d15feac9e9feb91
       body: |
