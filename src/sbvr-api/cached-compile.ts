@@ -15,6 +15,8 @@ try {
 	fs = require('fs');
 } catch (e) {}
 
+const SAVE_DEBOUNCE_TIME = 5000;
+
 const saveCache = _.debounce(() => {
 	if (fs != null) {
 		fs.writeFile(cacheFile, JSON.stringify(cache), 'utf8', err => {
@@ -22,13 +24,12 @@ const saveCache = _.debounce(() => {
 				console.warn('Error saving pinejs cache:', err);
 			}
 		});
-		// Clear the cache once we trigger the save as it usually means we're
-		// done with it and it allows us to free up the memory - if it does end
-		// up being requested again it will just trigger a reload of the cache
-		// but that should be a rare case
-		cache = null;
 	}
-}, 5000);
+}, SAVE_DEBOUNCE_TIME);
+
+const clearCache = _.debounce(() => {
+	cache = null;
+}, SAVE_DEBOUNCE_TIME * 2);
 
 export const cachedCompile = <T>(
 	name: string,
@@ -53,5 +54,10 @@ export const cachedCompile = <T>(
 		_.set(cache, key, result);
 		saveCache();
 	}
+	// Schedule clearing the cache once we have made use of it since it usually means we're
+	// done with it and it allows us to free up the memory - if it does end up being
+	// requested again after being cleared then it will just trigger a reload of the cache
+	// but that should be a rare case, as long as the clear timeout is a reasonable length
+	clearCache();
 	return _.cloneDeep(result);
 };
