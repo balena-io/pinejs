@@ -1264,7 +1264,7 @@ const constructError = (
 	} else if (err instanceof HttpError) {
 		return { status: err.status, body: err.getResponseBody() };
 	} else if (err instanceof db.ConstraintError) {
-		return { status: 409, body: err };
+		return { status: 409, body: err.message };
 	} else {
 		console.error(err);
 		// If the err is an error object then use its message instead - it should be more readable!
