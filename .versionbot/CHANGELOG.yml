@@ -1,4 +1,14 @@
 - commits:
+    - subject: Only send the error message as the response body for constraint errors
+      hash: b2d03a17a9481283a59b8db847733794df7fd9e4
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+  version: 10.19.1
+  date: 2019-07-08T09:30:12.360Z
+- commits:
     - subject: Return a more accurate 409 status for constraint errors
       hash: 5d6ebc0ee505f075504a7e8f8d0ec40b45b8f64f
       body: ''
