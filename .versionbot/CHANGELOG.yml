@@ -1,4 +1,14 @@
 - commits:
+    - subject: Correctly use the database table name for prettifying constraint errors
+      hash: a404968634727e7b7a487a9e92cfaf5b0651f1bf
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+  version: 10.19.2
+  date: 2019-07-26T16:11:36.386Z
+- commits:
     - subject: Only send the error message as the response body for constraint errors
       hash: b2d03a17a9481283a59b8db847733794df7fd9e4
       body: ''
