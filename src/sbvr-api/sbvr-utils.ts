@@ -277,7 +277,7 @@ export const resolveNavigationResource = (
 // TODO: Clean this up and move it into the db module.
 const prettifyConstraintError = (
 	err: Error | TypedError,
-	resourceName: string,
+	request: uriParser.ODataRequest,
 ) => {
 	if (err instanceof db.ConstraintError) {
 		let matches: RegExpExecArray | null = null;
@@ -289,10 +289,11 @@ const prettifyConstraintError = (
 					);
 					break;
 				case 'postgres':
-					const tableName = odataNameToSqlName(resourceName);
-					matches = new RegExp('"' + tableName + '_(.*?)_key"').exec(
-						err.message,
-					);
+					const resourceName = resolveSynonym(request);
+					const abstractSqlModel = getAbstractSqlModel(request);
+					matches = new RegExp(
+						'"' + abstractSqlModel.tables[resourceName].name + '_(.*?)_key"',
+					).exec(err.message);
 					break;
 			}
 			// We know it's the right error type, so if matches exists just throw a generic error message, since we have failed to get the info for a more specific one.
@@ -315,7 +316,9 @@ const prettifyConstraintError = (
 					);
 					break;
 				case 'postgres':
-					const tableName = odataNameToSqlName(resourceName);
+					const resourceName = resolveSynonym(request);
+					const abstractSqlModel = getAbstractSqlModel(request);
+					const tableName = abstractSqlModel.tables[resourceName].name;
 					matches = new RegExp(
 						'"' +
 							tableName +
@@ -1308,7 +1311,7 @@ const runRequest = (
 			if (err instanceof db.DatabaseError) {
 				// This cannot be a `.tapCatch` because for some reason throwing a db.UniqueConstraintError doesn't override
 				// the error, when usually throwing an error does.
-				prettifyConstraintError(err, request.resourceName);
+				prettifyConstraintError(err, request);
 				logger.error(err);
 				// Override the error message so we don't leak any internal db info
 				err.message = 'Database error';
