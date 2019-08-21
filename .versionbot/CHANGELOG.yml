@@ -1,4 +1,35 @@
 - commits:
+    - subject: Update dependencies
+      hash: 8c9923b5a0751059c98d4bdfa91edb07676aaabe
+      body: |
+        Update pinejs-client-core from 5.5.4 to 5.6.0
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: >-
+                Add 'upsert' method supporting natural keys, requires Pinejs
+                ^10.19.1
+              hash: c8ebfceec3ecc1cc57ee6942db35730c6d993192
+              body: |
+                Detects unique constrain errors by 409 statusCodes.
+                Because of this, the upsert() method is only
+                supported when Pinejs ^10.19.0 is used.
+              footer:
+                Resolves: '#77'
+                resolves: '#77'
+                Change-type: minor
+                change-type: minor
+                Signed-off-by: Thodoris Greasidis <thodoris@balena.io>
+                signed-off-by: Thodoris Greasidis <thodoris@balena.io>
+              author: Thodoris Greasidis
+          version: pinejs-client-js-5.6.0
+          date: 2019-07-12T20:46:17.091Z
+  version: 10.19.3
+  date: 2019-08-20T17:23:34.414Z
+- commits:
     - subject: Correctly use the database table name for prettifying constraint errors
       hash: a404968634727e7b7a487a9e92cfaf5b0651f1bf
       body: ''
