@@ -78,7 +78,7 @@
     "lint-staged": "^9.5.0",
     "load-grunt-tasks": "^4.0.0",
     "prettier": "^1.19.1",
-    "raw-loader": "^2.0.0",
+    "raw-loader": "^4.0.0",
     "require-npm4-to-publish": "^1.0.0",
     "resin-lint": "^2.0.1",
     "terser-webpack-plugin": "^1.4.3",
