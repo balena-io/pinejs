@@ -32,7 +32,7 @@ export const settleMapSeries: MappingFunction = (a, fn) => {
 
 // This is used to guarantee that we convert a `.catch` result into an error, so that later code checking `_.isError` will work as expected
 const ensureError = (err: any): Error => {
-	if (_.isError(err)) {
+	if (err instanceof Error || _.isError(err)) {
 		return err;
 	}
 	return new Error(err);
