@@ -1,4 +1,15 @@
 - commits:
+    - subject: Accept `instanceof Error` as valid errors
+      hash: 73f534136e663677b8bdc0aac9e8e6d25738b318
+      body: |
+        This fixes issues where `err.message` is not a string
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+  version: 10.19.4
+  date: 2019-08-23T19:00:20.421Z
+- commits:
     - subject: Update dependencies
       hash: 8c9923b5a0751059c98d4bdfa91edb07676aaabe
       body: |
