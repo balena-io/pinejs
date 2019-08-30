@@ -1,4 +1,66 @@
 - commits:
+    - subject: Update dependencies
+      hash: ac7ace8d823106ee7ff83fcb3ef77a4f915343df
+      body: |
+        Update abstract-sql-compiler from 6.7.1 to 6.8.0
+        Update odata-to-abstract-sql from 4.0.0 to 4.1.0
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Add support for `TableNode` definitions
+              hash: 3e13d631b82bc9e8cb2adc55176670348662829f
+              body: ''
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+            - subject: Add typings support for `ResourceNode`s in join nodes
+              hash: 01dbff7e16ce58b90a4055b0ec23cd9cbeeee22d
+              body: |
+                Update abstract-sql-compiler from 6.7.1 to 6.8.0
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+              nested:
+                - commits:
+                    - subject: Add support for inner/left/right/full joins
+                      hash: d2af541da7d0f7f2b6c25adb4929a410374e5887
+                      body: ''
+                      footer:
+                        Change-type: minor
+                        change-type: minor
+                      author: Pagan Gazzard
+                  version: abstract-sql-compiler-6.8.0
+                  date: 2019-08-29T16:44:13.607Z
+          version: odata-to-abstract-sql-4.1.0
+          date: 2019-08-29T17:45:27.127Z
+        - commits:
+            - subject: Update dependencies
+              hash: 10baad559daafbf22b5c94cd26ad6db2d89b77f9
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: odata-to-abstract-sql-4.0.1
+          date: 2019-08-22T17:15:23.248Z
+        - commits:
+            - subject: Add support for inner/left/right/full joins
+              hash: d2af541da7d0f7f2b6c25adb4929a410374e5887
+              body: ''
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+          version: abstract-sql-compiler-6.8.0
+          date: 2019-08-29T16:44:13.607Z
+  version: 10.19.5
+  date: 2019-08-29T18:15:19.135Z
+- commits:
     - subject: Accept `instanceof Error` as valid errors
       hash: 73f534136e663677b8bdc0aac9e8e6d25738b318
       body: |
