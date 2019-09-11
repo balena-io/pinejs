@@ -1,5 +1,27 @@
 - commits:
     - subject: Update dependencies
+      hash: ec70b8b17ebc575dd6c43c1c3682aa1c5844c8e6
+      body: |
+        Update abstract-sql-compiler from 6.8.0 to 6.8.1
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Optimise finding of existing binds when adding a bind variable
+              hash: 7f45a56eacc2a9fa69734a9f22778a83c4d4edf8
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: abstract-sql-compiler-6.8.1
+          date: 2019-09-10T17:45:47.587Z
+  version: 10.19.6
+  date: 2019-09-11T12:05:41.857Z
+- commits:
+    - subject: Update dependencies
       hash: ac7ace8d823106ee7ff83fcb3ef77a4f915343df
       body: |
         Update abstract-sql-compiler from 6.7.1 to 6.8.0
