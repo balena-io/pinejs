@@ -956,18 +956,20 @@ const checkApiKey = Promise.method((req: PermissionReq, apiKey: string) => {
 	if (apiKey == null || req.apiKey != null) {
 		return;
 	}
-	return getApiKeyPermissions(apiKey)
-		.catch(err => {
-			console.warn('Error with API key:', err);
-			// Ignore errors getting the api key and just use an empty permissions object
-			return [];
-		})
-		.then(permissions => {
+	return Promise.join(
+		getApiKeyPermissions(apiKey),
+		getApiKeyActorId(apiKey),
+		(permissions, actor) => {
 			req.apiKey = {
 				key: apiKey,
 				permissions: permissions,
+				actor,
 			};
-		});
+		},
+	).catch(err => {
+		console.warn('Error with API key:', err);
+		// Ignore errors getting the api key.
+	});
 });
 
 export const customAuthorizationMiddleware = (expectedScheme = 'Bearer') => {
@@ -1092,53 +1094,41 @@ const getGuestPermissions = memoize(
 );
 
 const getReqPermissions = (req: PermissionReq, odataBinds: ODataBinds = []) =>
-	Promise.join(
-		getGuestPermissions(),
-		Promise.try(() => {
-			if (
-				req.apiKey != null &&
-				req.apiKey.permissions != null &&
-				req.apiKey.permissions.length > 0
-			) {
-				return getApiKeyActorId(req.apiKey.key);
+	getGuestPermissions().then(guestPermissions => {
+		if (_.some(guestPermissions, p => DEFAULT_ACTOR_BIND_REGEX.test(p))) {
+			throw new Error('Guest permissions cannot reference actors');
+		}
+
+		let permissions = guestPermissions;
+
+		let actorIndex = 0;
+		const addActorPermissions = (
+			actorId: number,
+			actorPermissions: string[],
+		) => {
+			let actorBind = DEFAULT_ACTOR_BIND;
+			if (actorIndex > 0) {
+				actorBind += actorIndex;
+				actorPermissions = _.map(actorPermissions, actorPermission =>
+					actorPermission.replace(DEFAULT_ACTOR_BIND_REGEX, actorBind),
+				);
 			}
-		}),
-		(guestPermissions, apiKeyActorID) => {
-			if (_.some(guestPermissions, p => DEFAULT_ACTOR_BIND_REGEX.test(p))) {
-				throw new Error('Guest permissions cannot reference actors');
-			}
+			odataBinds[actorBind] = ['Real', actorId];
+			actorIndex++;
+			permissions = permissions.concat(actorPermissions);
+		};
 
-			let permissions = guestPermissions;
+		if (req.user != null && req.user.permissions != null) {
+			addActorPermissions(req.user.actor, req.user.permissions);
+		}
+		if (req.apiKey != null && req.apiKey.permissions != null) {
+			addActorPermissions(req.apiKey.actor, req.apiKey.permissions);
+		}
 
-			let actorIndex = 0;
-			const addActorPermissions = (
-				actorId: number,
-				actorPermissions: string[],
-			) => {
-				let actorBind = DEFAULT_ACTOR_BIND;
-				if (actorIndex > 0) {
-					actorBind += actorIndex;
-					actorPermissions = _.map(actorPermissions, actorPermission =>
-						actorPermission.replace(DEFAULT_ACTOR_BIND_REGEX, actorBind),
-					);
-				}
-				odataBinds[actorBind] = ['Real', actorId];
-				actorIndex++;
-				permissions = permissions.concat(actorPermissions);
-			};
+		permissions = _.uniq(permissions);
 
-			if (req.user != null && req.user.permissions != null) {
-				addActorPermissions(req.user.actor, req.user.permissions);
-			}
-			if (req.apiKey != null && req.apiKey.permissions != null) {
-				addActorPermissions(apiKeyActorID, req.apiKey.permissions);
-			}
-
-			permissions = _.uniq(permissions);
-
-			return getPermissionsLookup(permissions);
-		},
-	);
+		return getPermissionsLookup(permissions);
+	});
 
 export const addPermissions = Promise.method(
 	(
