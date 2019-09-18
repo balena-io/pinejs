@@ -1,4 +1,16 @@
 - commits:
+    - subject: Avoid caching odata urls with a hardcoded key parameter
+      hash: d6956046af7941f66b491c520241fcc5efb83140
+      body: |
+        These have enough potential permutations to use up the cache space
+        for marginal benefit
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+  version: 10.19.7
+  date: 2019-09-18T12:43:38.203Z
+- commits:
     - subject: Update dependencies
       hash: ec70b8b17ebc575dd6c43c1c3682aa1c5844c8e6
       body: |
