@@ -130,6 +130,10 @@ export const memoizedParseOdata = (() => {
 			}
 			// If we're doing a complex url then skip caching due to # of permutations
 			return parseOdata(url);
+		} else if (url.includes('(')) {
+			// We're parsing a url like `/pilot(1)` so whilst there are no query options
+			// there are still enough permutations to ruin the hit %
+			return parseOdata(url);
 		} else {
 			// Else if it's simple we can easily skip the parsing as we know we'll get a high % hit rate
 			// We deep clone to avoid mutations polluting the cache
