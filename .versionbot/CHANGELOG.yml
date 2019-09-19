@@ -1,4 +1,28 @@
 - commits:
+    - subject: Update dependencies
+      hash: 3a0efa4ff88ac798d83e061177b440f3c20effaf
+      body: |
+        Update abstract-sql-compiler from 6.8.1 to 6.9.0
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: >-
+                Add support for resolving directly circular dependencies on
+                postgres
+              hash: 0912d3d9d51af3b03f4fe253eb3c8ff341a66886
+              body: ''
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+          version: abstract-sql-compiler-6.9.0
+          date: 2019-09-16T12:57:07.546Z
+  version: 10.20.0
+  date: 2019-09-19T13:02:54.586Z
+- commits:
     - subject: Avoid caching odata urls with a hardcoded key parameter
       hash: d6956046af7941f66b491c520241fcc5efb83140
       body: |
