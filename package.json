@@ -22,7 +22,7 @@
     "prettify": "prettier --config ./node_modules/resin-lint/config/.prettierrc --write \"{build,src,test,typings}/**/*.ts\" Gruntfile.ts"
   },
   "dependencies": {
-    "@resin/abstract-sql-compiler": "^6.8.1",
+    "@resin/abstract-sql-compiler": "^6.9.0",
     "@resin/lf-to-abstract-sql": "^2.1.0",
     "@resin/odata-parser": "^1.2.2",
     "@resin/odata-to-abstract-sql": "^4.1.0",
@@ -85,8 +85,8 @@
     "ts-loader": "^5.4.5",
     "typescript": "^3.6.3",
     "umd-require-webpack-plugin": "0.0.1",
-    "webpack": "^4.39.3",
-    "webpack-dev-server": "^3.8.0"
+    "webpack": "^4.40.2",
+    "webpack-dev-server": "^3.8.1"
   },
   "optionalDependencies": {
     "bcrypt": "^3.0.1",
