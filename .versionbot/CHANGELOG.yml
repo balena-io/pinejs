@@ -1,5 +1,72 @@
 - commits:
     - subject: Update dependencies
+      hash: ed0de6ff1471965d59b169caacca69395214a28d
+      body: |
+        Update abstract-sql-compiler from 6.9.0 to 6.9.1
+        Update odata-parser from 1.2.2 to 1.2.3
+        Update odata-to-abstract-sql from 4.1.0 to 4.1.2
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Switch to a lookup table for finding existing bind var entries
+              hash: cf7efe77c9d9ee64aeda09c94968cf3c9dcc8cc4
+              body: |
+                This helps massively as the number of bind vars increases
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: abstract-sql-compiler-6.9.1
+          date: 2019-09-20T22:16:57.070Z
+        - commits:
+            - subject: Optimise merging of operands in `FilterByExpressionLoop`
+              hash: 1f094ccea303ecf8b8e713bf897af55126358e5a
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: odata-parser-1.2.3
+          date: 2019-09-20T16:40:26.961Z
+        - commits:
+            - subject: Optimise generating resource mappings
+              hash: 6e18706b50d44c54de7f68081c0544d2e6187114
+              body: |
+                Update odata-parser from 1.2.2 to 1.2.3
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested:
+                - commits:
+                    - subject: Optimise merging of operands in `FilterByExpressionLoop`
+                      hash: 1f094ccea303ecf8b8e713bf897af55126358e5a
+                      body: ''
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                  version: odata-parser-1.2.3
+                  date: 2019-09-20T16:40:26.961Z
+          version: odata-to-abstract-sql-4.1.2
+          date: 2019-09-23T11:00:07.519Z
+        - commits:
+            - subject: Improve error messages on failing to resolve relationships
+              hash: 8362bf12f0ad5bf9c88eab9cbfad778331e4582b
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: odata-to-abstract-sql-4.1.1
+          date: 2019-09-19T15:50:37.453Z
+  version: 10.20.1
+  date: 2019-09-23T11:37:13.509Z
+- commits:
+    - subject: Update dependencies
       hash: 3a0efa4ff88ac798d83e061177b440f3c20effaf
       body: |
         Update abstract-sql-compiler from 6.8.1 to 6.9.0
