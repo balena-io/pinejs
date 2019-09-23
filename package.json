@@ -22,10 +22,10 @@
     "prettify": "prettier --config ./node_modules/resin-lint/config/.prettierrc --write \"{build,src,test,typings}/**/*.ts\" Gruntfile.ts"
   },
   "dependencies": {
-    "@resin/abstract-sql-compiler": "^6.9.0",
+    "@resin/abstract-sql-compiler": "^6.9.1",
     "@resin/lf-to-abstract-sql": "^2.1.0",
-    "@resin/odata-parser": "^1.2.2",
-    "@resin/odata-to-abstract-sql": "^4.1.0",
+    "@resin/odata-parser": "^1.2.3",
+    "@resin/odata-to-abstract-sql": "^4.1.2",
     "@resin/sbvr-parser": "^0.2.3",
     "@resin/sbvr-types": "^2.0.3",
     "@types/bluebird": "^3.5.27",
