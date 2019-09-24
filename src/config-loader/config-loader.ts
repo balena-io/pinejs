@@ -334,7 +334,7 @@ export const setup = (app: _express.Application) => {
 								return readdirAsync(migrationsPath)
 									.map(filename => {
 										const filePath = path.join(migrationsPath, filename);
-										const migrationKey = filename.split('-')[0];
+										const [migrationKey] = filename.split('-', 1);
 
 										switch (path.extname(filename)) {
 											case '.coffee':

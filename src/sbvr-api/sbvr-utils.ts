@@ -1099,7 +1099,7 @@ export const getAffectedIds = Promise.method(
 );
 
 export const handleODataRequest: _express.Handler = (req, res, next) => {
-	const [, apiRoot] = req.url.split('/');
+	const [, apiRoot] = req.url.split('/', 2);
 	if (apiRoot == null || models[apiRoot] == null) {
 		return next('route');
 	}

@@ -230,7 +230,7 @@ export abstract class Tx {
 					// Grab the first word of the query and regard that as the
 					// "query type" (to be improved in line with the above
 					// TODO's)
-					queryType: sql.substr(0, sql.indexOf(' ')),
+					queryType: sql.split(' ', 1)[0],
 				});
 			})
 			.catch(wrapDatabaseError);
