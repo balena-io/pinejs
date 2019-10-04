@@ -175,15 +175,16 @@ apiHooks.MERGE = apiHooks.PATCH;
 
 export interface Actor {
 	permissions?: string[];
-	actor: number;
 }
 
 export interface User extends Actor {
 	id: number;
+	actor: number;
 }
 
 export interface ApiKey extends Actor {
 	key: string;
+	actor?: number;
 }
 
 interface Response {
