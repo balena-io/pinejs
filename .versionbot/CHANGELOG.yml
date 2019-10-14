@@ -1,4 +1,23 @@
 - commits:
+    - subject: Reuse a single permission error for `getApiKeyActorId`
+      hash: 14268f790ceb468c6a73302fff9441eec2e052b7
+      body: |
+        This helps to reduce cached size
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+    - subject: Reuse a single permission error for `generateConstrainedAbstractSql`
+      hash: 09b01310deaa86143ab0ccfa0e205710d25bf5aa
+      body: |
+        This helps to reduce cached size
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+  version: 10.20.3
+  date: 2019-10-14T16:07:24.813Z
+- commits:
     - subject: Use string.split with a limit where relevant
       hash: 2dce39d9d1796626a2377c071f538af7b46e7f2e
       body: ''
