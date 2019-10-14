@@ -928,13 +928,16 @@ const getApiKeyActorIdQuery = _.once(() =>
 		},
 	}),
 );
+const apiActorPermissionError = new PermissionError();
 const getApiKeyActorId = memoize(
 	(apiKey: string) =>
 		getApiKeyActorIdQuery()({
 			apiKey,
 		}).then((apiKeys: AnyObject[]) => {
 			if (apiKeys.length === 0) {
-				throw new PermissionError();
+				// We reuse a constant permission error here as it will be cached, and
+				// using a single error instance can drastically reduce the memory used
+				throw apiActorPermissionError;
 			}
 			const apiKeyActorID = apiKeys[0].is_of__actor.__id;
 			if (apiKeyActorID == null) {
