@@ -387,6 +387,7 @@ const $checkPermissions = (
 	});
 };
 
+const constrainedPermissionError = new PermissionError();
 const generateConstrainedAbstractSql = (
 	permissionsLookup: PermissionLookup,
 	actionList: PermissionCheck,
@@ -400,7 +401,9 @@ const generateConstrainedAbstractSql = (
 		resourceName,
 	);
 	if (conditionalPerms === false) {
-		throw new PermissionError();
+		// We reuse a constant permission error here as it will be cached, and
+		// using a single error instance can drastically reduce the memory used
+		throw constrainedPermissionError;
 	}
 	if (conditionalPerms === true) {
 		// If we have full access then no need to provide a constrained definition
