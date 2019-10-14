@@ -1,4 +1,55 @@
 - commits:
+    - subject: Update dependencies
+      hash: 83fffd0a3be4c086972c84dff2e75cf2bed626a5
+      body: |
+        Update abstract-sql-compiler from 6.9.1 to 6.9.2
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Allow combining/adding to existing NOT IN statements
+              hash: e7010af9667c48db526d65d1286dd3c88f2bf831
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+            - subject: Allow combining/adding to existing IN statements
+              hash: 67d6b057ffb509daaeaba1212de5ec1cace6783a
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+            - subject: >-
+                Prioritise collapsing nested ANDs over converting them to an NOT
+                IN
+              hash: 4791d63ed6124a340b8a1df3301f95600f2768a6
+              body: >
+                This means the NOT IN conversion can include the nested ANDs
+                when
+
+                possible
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+            - subject: Prioritise collapsing nested ORs over converting them to an IN
+              hash: 50ee760cc6d82a7a0db8a25e77a5897c120abcef
+              body: >
+                This means the IN conversion can include the nested ORs when
+                possible
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: abstract-sql-compiler-6.9.2
+          date: 2019-10-11T17:17:28.737Z
+  version: 10.20.4
+  date: 2019-10-14T17:26:39.369Z
+- commits:
     - subject: Reuse a single permission error for `getApiKeyActorId`
       hash: 14268f790ceb468c6a73302fff9441eec2e052b7
       body: |
