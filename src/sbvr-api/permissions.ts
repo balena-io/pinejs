@@ -1,38 +1,38 @@
-import * as _ from 'lodash';
-import * as Promise from 'bluebird';
-import * as env from '../config-loader/env';
-// tslint:disable-next-line:no-var-requires
-const userModel: string = require('./user.sbvr');
 import {
-	metadataEndpoints,
-	memoizedParseOdata,
-	ODataRequest,
-} from './uri-parser';
+	AbstractSqlModel,
+	AbstractSqlType,
+	AliasNode,
+	Relationship,
+	SelectNode,
+} from '@resin/abstract-sql-compiler';
+import * as ODataParser from '@resin/odata-parser';
+import { ODataBinds, ODataQuery, SupportedMethod } from '@resin/odata-parser';
+import {
+	Definition,
+	odataNameToSqlName,
+	sqlNameToODataName,
+} from '@resin/odata-to-abstract-sql';
+import * as Promise from 'bluebird';
+import * as express from 'express';
+import * as _ from 'lodash';
+import * as memoize from 'memoizee';
+import * as env from '../config-loader/env';
+import * as sbvrUtils from '../sbvr-api/sbvr-utils';
 import {
 	BadRequestError,
 	PermissionError,
 	PermissionParsingError,
 } from './errors';
-import * as ODataParser from '@resin/odata-parser';
-import { ODataBinds, ODataQuery, SupportedMethod } from '@resin/odata-parser';
-import * as memoize from 'memoizee';
-import memoizeWeak = require('memoizee/weak');
-import {
-	sqlNameToODataName,
-	Definition,
-	odataNameToSqlName,
-} from '@resin/odata-to-abstract-sql';
-import * as express from 'express';
-import {
-	AbstractSqlModel,
-	Relationship,
-	SelectNode,
-	AbstractSqlType,
-	AliasNode,
-} from '@resin/abstract-sql-compiler';
-import { HookReq, User, ApiKey, AnyObject } from './sbvr-utils';
-import * as sbvrUtils from '../sbvr-api/sbvr-utils';
+import { AnyObject, ApiKey, HookReq, User } from './sbvr-utils';
 import * as uriParser from './uri-parser';
+import {
+	memoizedParseOdata,
+	metadataEndpoints,
+	ODataRequest,
+} from './uri-parser';
+// tslint:disable-next-line:no-var-requires
+const userModel: string = require('./user.sbvr');
+import memoizeWeak = require('memoizee/weak');
 
 const DEFAULT_ACTOR_BIND = '@__ACTOR_ID';
 const DEFAULT_ACTOR_BIND_REGEX = new RegExp(
@@ -943,7 +943,7 @@ const getApiKeyActorId = memoize(
 			if (apiKeyActorID == null) {
 				throw new Error('API key is not linked to a actor?!');
 			}
-			return apiKeyActorID;
+			return apiKeyActorID as number;
 		}),
 	{
 		primitive: true,
@@ -959,15 +959,25 @@ const checkApiKey = Promise.method((req: PermissionReq, apiKey: string) => {
 	return getApiKeyPermissions(apiKey)
 		.catch(err => {
 			console.warn('Error with API key:', err);
-			// Ignore errors getting the api key and just use an empty permissions object
+			// Ignore errors getting the api key and just use an empty permissions object.
 			return [];
 		})
-		.then(permissions => {
-			req.apiKey = {
-				key: apiKey,
-				permissions: permissions,
-			};
-		});
+		.then(permissions =>
+			Promise.try(() => {
+				if (permissions.length > 0) {
+					return getApiKeyActorId(apiKey);
+				}
+				return null;
+			}).then(actor => {
+				req.apiKey = {
+					key: apiKey,
+					permissions: permissions,
+				};
+				if (actor != null) {
+					req.apiKey.actor = actor;
+				}
+			}),
+		);
 });
 
 export const customAuthorizationMiddleware = (expectedScheme = 'Bearer') => {
@@ -1095,15 +1105,19 @@ const getReqPermissions = (req: PermissionReq, odataBinds: ODataBinds = []) =>
 	Promise.join(
 		getGuestPermissions(),
 		Promise.try(() => {
+			// TODO: Remove this extra actor ID lookup making actor non-optional and updating open-balena-api.
 			if (
 				req.apiKey != null &&
+				req.apiKey.actor == null &&
 				req.apiKey.permissions != null &&
 				req.apiKey.permissions.length > 0
 			) {
-				return getApiKeyActorId(req.apiKey.key);
+				return getApiKeyActorId(req.apiKey.key).then(actorId => {
+					req.apiKey!.actor = actorId;
+				});
 			}
 		}),
-		(guestPermissions, apiKeyActorID) => {
+		guestPermissions => {
 			if (_.some(guestPermissions, p => DEFAULT_ACTOR_BIND_REGEX.test(p))) {
 				throw new Error('Guest permissions cannot reference actors');
 			}
@@ -1131,7 +1145,7 @@ const getReqPermissions = (req: PermissionReq, odataBinds: ODataBinds = []) =>
 				addActorPermissions(req.user.actor, req.user.permissions);
 			}
 			if (req.apiKey != null && req.apiKey.permissions != null) {
-				addActorPermissions(apiKeyActorID, req.apiKey.permissions);
+				addActorPermissions(req.apiKey.actor!, req.apiKey.permissions);
 			}
 
 			permissions = _.uniq(permissions);

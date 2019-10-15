@@ -184,6 +184,7 @@ export interface User extends Actor {
 
 export interface ApiKey extends Actor {
 	key: string;
+	actor?: number;
 }
 
 interface Response {
