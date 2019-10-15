@@ -1,6 +1,6 @@
 {
   "name": "@resin/pinejs",
-  "version": "10.20.4",
+  "version": "10.21.0",
   "main": "out/server-glue/module",
   "repository": "git@github.com:resin-io/pinejs.git",
   "license": "Apache-2.0",

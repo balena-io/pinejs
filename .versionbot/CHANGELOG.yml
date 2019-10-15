@@ -1,4 +1,21 @@
 - commits:
+    - subject: 'permissions: Set actor on api key'
+      hash: 6385f64a59bde65d543f0dd5201f689218bb01b7
+      body: |
+        Invocation of actor ID lookup by api key is moved upstream,
+        so it can be stored on the apiKey object and reused.
+
+        This way, we can use actor ID in both session tokek and api key
+        authentication cases without extra DB query.
+      footer:
+        Change-type: minor
+        change-type: minor
+        Signed-off-by: Roman Mazur <roman@balena.io>
+        signed-off-by: Roman Mazur <roman@balena.io>
+      author: Roman Mazur
+  version: 10.21.0
+  date: 2019-10-15T13:28:19.637Z
+- commits:
     - subject: Update dependencies
       hash: 83fffd0a3be4c086972c84dff2e75cf2bed626a5
       body: |
