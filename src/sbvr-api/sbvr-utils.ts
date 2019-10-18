@@ -1017,6 +1017,13 @@ export const getAbstractSqlModel = (
 	return request.abstractSqlModel;
 };
 
+const getIdField = (
+	request: Pick<
+		uriParser.ODataRequest,
+		'vocabulary' | 'abstractSqlModel' | 'resourceName'
+	>,
+) => getAbstractSqlModel(request).tables[resolveSynonym(request)].idField;
+
 export const getAffectedIds = async ({
 	req,
 	request,
@@ -1029,6 +1036,9 @@ export const getAffectedIds = async ({
 	if (request.method === 'GET') {
 		// GET requests don't affect anything so passing one to this method is a mistake
 		throw new Error('Cannot call `getAffectedIds` with a GET request');
+	}
+	if (request.affectedIds) {
+		return request.affectedIds;
 	}
 	// We reparse to make sure we get a clean odataQuery, without permissions already added
 	// And we use the request's url rather than the req for things like batch where the req url is ../$batch
@@ -1069,7 +1079,8 @@ export const getAffectedIds = async ({
 	} else {
 		result = await runTransaction(req, (newTx) => runQuery(newTx, request));
 	}
-	return result.rows.map((row) => row[idField]);
+	request.affectedIds = result.rows.map((row) => row[idField]);
+	return request.affectedIds;
 };
 
 export const handleODataRequest: Express.Handler = async (req, res, next) => {
@@ -1440,7 +1451,7 @@ const runQuery = async (
 	tx: Db.Tx,
 	request: uriParser.ODataRequest,
 	queryIndex?: number,
-	addReturning?: string,
+	returningIdField?: string,
 ): Promise<Db.Result> => {
 	const { vocabulary } = request;
 	let { sqlQuery } = request;
@@ -1469,7 +1480,13 @@ const runQuery = async (
 		api[vocabulary].logger.log(query, values);
 	}
 
-	return tx.executeSql(query, values, addReturning);
+	const sqlResult = await tx.executeSql(query, values, returningIdField);
+
+	if (returningIdField) {
+		request.affectedIds = sqlResult.rows.map((row) => row[returningIdField]);
+	}
+
+	return sqlResult;
 };
 
 const runGet = (
@@ -1529,22 +1546,16 @@ const runPost = async (
 	request: uriParser.ODataRequest,
 	tx: Db.Tx,
 ): Promise<number | undefined> => {
-	const vocab = request.vocabulary;
-
-	const { idField } = getAbstractSqlModel(request).tables[
-		resolveSynonym(request)
-	];
-
 	const { rowsAffected, insertId } = await runQuery(
 		tx,
 		request,
 		undefined,
-		idField,
+		getIdField(request),
 	);
 	if (rowsAffected === 0) {
 		throw new PermissionError();
 	}
-	await validateModel(tx, vocab, request);
+	await validateModel(tx, request.vocabulary, request);
 
 	return insertId;
 };
@@ -1600,22 +1611,22 @@ const runPut = async (
 	request: uriParser.ODataRequest,
 	tx: Db.Tx,
 ): Promise<undefined> => {
-	const vocab = request.vocabulary;
+	const idField = getIdField(request);
 
 	let rowsAffected: number;
 	// If request.sqlQuery is an array it means it's an UPSERT, ie two queries: [InsertQuery, UpdateQuery]
 	if (Array.isArray(request.sqlQuery)) {
 		// Run the update query first
-		({ rowsAffected } = await runQuery(tx, request, 1));
+		({ rowsAffected } = await runQuery(tx, request, 1, idField));
 		if (rowsAffected === 0) {
 			// Then run the insert query if nothing was updated
-			({ rowsAffected } = await runQuery(tx, request, 0));
+			({ rowsAffected } = await runQuery(tx, request, 0, idField));
 		}
 	} else {
-		({ rowsAffected } = await runQuery(tx, request));
+		({ rowsAffected } = await runQuery(tx, request, undefined, idField));
 	}
 	if (rowsAffected > 0) {
-		await validateModel(tx, vocab, request);
+		await validateModel(tx, request.vocabulary, request);
 	}
 	return undefined;
 };
@@ -1647,11 +1658,14 @@ const runDelete = async (
 	request: uriParser.ODataRequest,
 	tx: Db.Tx,
 ): Promise<undefined> => {
-	const vocab = request.vocabulary;
-
-	const { rowsAffected } = await runQuery(tx, request);
+	const { rowsAffected } = await runQuery(
+		tx,
+		request,
+		undefined,
+		getIdField(request),
+	);
 	if (rowsAffected > 0) {
-		await validateModel(tx, vocab, request);
+		await validateModel(tx, request.vocabulary, request);
 	}
 
 	return undefined;

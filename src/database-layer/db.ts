@@ -416,7 +416,7 @@ if (maybePg != null) {
 				bindings: Bindings,
 				addReturning: false | string = false,
 			) {
-				if (addReturning && /^\s*INSERT\s+INTO/i.test(sql)) {
+				if (addReturning && /^\s*(?:INSERT\s+INTO|UPDATE|DELETE)/i.test(sql)) {
 					sql = sql.replace(/;?$/, ' RETURNING "' + addReturning + '";');
 				}
 
