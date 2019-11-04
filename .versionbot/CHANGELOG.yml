@@ -1,4 +1,37 @@
 - commits:
+    - subject: Update dependencies to enable enum definitions to check constraint
+      hash: ab510a2658df551eb697189bb183ea3e454852d1
+      body: |
+        Update abstract-sql-compiler from 6.9.2 to 6.10.1
+        Update lf-to-abstract-sql from 2.1.0 to 2.2.0
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Fix `compileRule` typings
+              hash: c59026e90d600b90a68616e8629f201cf4646ada
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: abstract-sql-compiler-6.10.1
+          date: 2019-11-04T14:03:29.039Z
+        - commits:
+            - subject: Add support for basic check constraints
+              hash: 3c85919ddc7d35ada6e2788d28580f4ceb9a8170
+              body: ''
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+          version: abstract-sql-compiler-6.10.0
+          date: 2019-11-04T12:28:46.703Z
+  version: 10.22.0
+  date: 2019-11-04T14:23:59.107Z
+- commits:
     - subject: 'permissions: Set actor on api key'
       hash: 6385f64a59bde65d543f0dd5201f689218bb01b7
       body: |
