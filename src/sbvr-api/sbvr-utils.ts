@@ -749,7 +749,7 @@ export const runRule = (() => {
 			try {
 				lfModel = SBVRParser.matchAll(seModel + '\nRule: ' + rule, 'Process');
 			} catch (e) {
-				logger.error('Error parsing rule', rule, e, e.stack);
+				logger.error('Error parsing rule', rule, e);
 				throw new Error(`Error parsing rule'${rule}': ${e}`);
 			}
 
@@ -763,7 +763,7 @@ export const runRule = (() => {
 				translator.reset();
 				abstractSqlModel = translator.match(slfModel, 'Process');
 			} catch (e) {
-				logger.error('Error compiling rule', rule, e, e.stack);
+				logger.error('Error compiling rule', rule, e);
 				throw new Error(`Error compiling rule '${rule}': ${e}`);
 			}
 
@@ -1237,11 +1237,7 @@ export const handleODataRequest: _express.Handler = (req, res, next) => {
 		.catch((e: Error) => {
 			// If an error bubbles here it must have happened in the last then block
 			// We just respond with 500 as there is probably not much we can do to recover
-			console.error(
-				'An error occurred while constructing the response',
-				e,
-				e.stack,
-			);
+			console.error('An error occurred while constructing the response', e);
 			res.sendStatus(500);
 		});
 	return handlePromise;
