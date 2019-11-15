@@ -1,4 +1,14 @@
 - commits:
+    - subject: Remove duplicated stack trace printing
+      hash: c7d41285124c6d93c618377765789c82514e1a60
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+  version: 10.22.2
+  date: 2019-11-15T11:45:59.025Z
+- commits:
     - subject: Update dependencies
       hash: 76089b237b36f9fd7357c9a48536e3f61a0c277b
       body: |
