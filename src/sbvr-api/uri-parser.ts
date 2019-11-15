@@ -179,7 +179,6 @@ const memoizedOdata2AbstractSQL = (() => {
 					JSON.stringify(odataQuery, null, '\t'),
 					method,
 					e,
-					e.stack,
 				);
 				throw new TranslationError('Failed to translate url');
 			}
