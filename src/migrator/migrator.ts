@@ -70,12 +70,14 @@ export const run = (tx: Tx, model: ApiRootModel): Promise<void> => {
 					return;
 				}
 
-				return executeMigrations(tx, pendingMigrations).then(
-					newlyExecutedMigrations =>
-						setExecutedMigrations(tx, modelName, [
-							...executedMigrations,
-							...newlyExecutedMigrations,
-						]),
+				return executeMigrations(
+					tx,
+					pendingMigrations,
+				).then(newlyExecutedMigrations =>
+					setExecutedMigrations(tx, modelName, [
+						...executedMigrations,
+						...newlyExecutedMigrations,
+					]),
 				);
 			});
 		}),

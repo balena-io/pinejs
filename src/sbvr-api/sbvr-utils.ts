@@ -626,10 +626,9 @@ const getHooks = (
 ): InstantiatedHooks<Hooks> => {
 	let { resourceName } = request;
 	if (resourceName != null) {
-		resourceName = resolveSynonym(request as Pick<
-			HookRequest,
-			'resourceName' | 'method' | 'vocabulary'
-		>);
+		resourceName = resolveSynonym(
+			request as Pick<HookRequest, 'resourceName' | 'method' | 'vocabulary'>,
+		);
 	}
 	return instantiateHooks(
 		getMethodHooks(request.method, request.vocabulary, resourceName),

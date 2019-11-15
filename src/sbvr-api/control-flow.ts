@@ -21,13 +21,7 @@ export interface MappingFunction {
 // The settle version of `Promise.mapSeries`
 export const settleMapSeries: MappingFunction = (a, fn) => {
 	const runF = Promise.method(fn);
-	return Promise.mapSeries(
-		a,
-		_.flow(
-			runF,
-			wrap,
-		),
-	);
+	return Promise.mapSeries(a, _.flow(runF, wrap));
 };
 
 // This is used to guarantee that we convert a `.catch` result into an error, so that later code checking `_.isError` will work as expected
