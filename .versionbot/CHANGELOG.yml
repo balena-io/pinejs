@@ -1,4 +1,26 @@
 - commits:
+    - subject: Update dependencies
+      hash: 76089b237b36f9fd7357c9a48536e3f61a0c277b
+      body: |
+        Update abstract-sql-compiler from 6.10.1 to 6.10.2
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Fix CHECK syntax
+              hash: 4b3f6f301b0b3b57dbab10eaee44e1a7363bffaf
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: abstract-sql-compiler-6.10.2
+          date: 2019-11-04T14:47:08.434Z
+  version: 10.22.1
+  date: 2019-11-14T16:07:57.077Z
+- commits:
     - subject: Update dependencies to enable enum definitions to check constraint
       hash: ab510a2658df551eb697189bb183ea3e454852d1
       body: |
