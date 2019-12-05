@@ -19,7 +19,8 @@
     "webpack-build": "npm run webpack-browser && npm run webpack-module && npm run webpack-server",
     "lint": "resin-lint src && resin-lint --typescript src build typings Gruntfile.ts",
     "test": "npm run lint && npm run build && npm run webpack-build",
-    "prettify": "prettier --config ./node_modules/resin-lint/config/.prettierrc --write \"{build,src,test,typings}/**/*.ts\" Gruntfile.ts"
+    "prettify": "prettier --config ./node_modules/resin-lint/config/.prettierrc --write \"{build,src,test,typings}/**/*.ts\" Gruntfile.ts",
+    "doc": "npx typedoc --name Pine.js --module commonjs --target ES6 --excludeExternals --gitRevision master --out docs/api src/ typings/"
   },
   "dependencies": {
     "@resin/abstract-sql-compiler": "^6.11.0",
@@ -83,6 +84,7 @@
     "resin-lint": "^2.0.1",
     "terser-webpack-plugin": "^1.4.1",
     "ts-loader": "^5.4.5",
+    "typedoc": "^0.15.3",
     "typescript": "^3.7.2",
     "umd-require-webpack-plugin": "0.0.1",
     "webpack": "^4.41.2",
