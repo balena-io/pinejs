@@ -1,5 +1,58 @@
 - commits:
     - subject: Update dependencies
+      hash: 705d582fbf0811fc8d789a6f4765e41bbb9c180b
+      body: |
+        Update abstract-sql-compiler from 6.11.0 to 6.11.1
+        Update sbvr-parser from 0.2.3 to 0.2.6
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Add support for using `of` instead of `that is of`
+              hash: 15466b993e738e16bb20d597460f673c438c6c93
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: sbvr-parser-0.2.6
+          date: 2019-12-30T18:37:48.690Z
+        - commits:
+            - subject: Add support for `a given` as a universal quantification
+              hash: 2946841869fd9424786ae70c6c2d28948f624179
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: sbvr-parser-0.2.5
+          date: 2019-12-30T17:43:37.528Z
+        - commits:
+            - subject: 'Allow including terms as part of a verb by using `[]` brackets'
+              hash: 40129b411ba8b2357c03ac2815e0182f806c3531
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: sbvr-parser-0.2.4
+          date: 2019-12-27T16:53:42.051Z
+        - commits:
+            - subject: Update dev dependencies
+              hash: 0994bf0a71631391752c04d54e7ce566286a71e4
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: abstract-sql-compiler-6.11.1
+          date: 2019-11-22T12:47:51.880Z
+  version: 10.23.0
+  date: 2019-12-31T14:04:59.771Z
+- commits:
+    - subject: Update dependencies
       hash: ce108840bddbec97bb80784482ad2f74e996030f
       body: |
         Update abstract-sql-compiler from 6.10.2 to 6.11.0
