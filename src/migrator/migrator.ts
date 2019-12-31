@@ -6,8 +6,9 @@ const modelText: string = require('./migrations.sbvr');
 import { Tx } from '../database-layer/db';
 import * as sbvrUtils from '../sbvr-api/sbvr-utils';
 import { migrator as migratorEnv } from '../config-loader/env';
-import { Model } from '../config-loader/config-loader';
+import { Model, Config } from '../config-loader/config-loader';
 import { Resolvable } from '../sbvr-api/common-types';
+import { Engines } from '@resin/abstract-sql-compiler';
 
 type ApiRootModel = Model & { apiRoot: string };
 
@@ -21,6 +22,24 @@ export type Migration = string | MigrationFn;
 
 export class MigrationError extends TypedError {}
 
+// Tagged template to convert binds from `?` format to the necessary output format,
+// eg `$1`/`$2`/etc for postgres
+const binds = (strings: TemplateStringsArray, ...binds: number[]) =>
+	strings
+		.map((str, i) => {
+			if (i === binds.length) {
+				return str;
+			}
+			if (i + 1 !== binds[i]) {
+				throw new SyntaxError('Migration sql binds must be sequential');
+			}
+			if (sbvrUtils.db.engine === Engines.postgres) {
+				return str + `$${binds[i]}`;
+			}
+			return str + `?`;
+		})
+		.join('');
+
 export const postRun = (tx: Tx, model: ApiRootModel): Promise<void> => {
 	const { initSql } = model;
 	if (initSql == null) {
@@ -29,16 +48,16 @@ export const postRun = (tx: Tx, model: ApiRootModel): Promise<void> => {
 
 	const modelName = model.apiRoot;
 
-	return Promise.using(lockMigrations(tx, modelName), () =>
-		checkModelAlreadyExists(tx, modelName).then(exists => {
-			if (!exists) {
-				sbvrUtils.api.migrations.logger.info(
-					'First time executing, running init script',
-				);
-				return tx.executeSql(initSql).return();
-			}
-		}),
-	);
+	return checkModelAlreadyExists(tx, modelName).then(exists => {
+		if (!exists) {
+			(sbvrUtils.api.migrations?.logger.info ?? console.info)(
+				'First time executing, running init script',
+			);
+			return Promise.using(lockMigrations(tx, modelName), () =>
+				tx.executeSql(initSql).return(),
+			);
+		}
+	});
 };
 
 export const run = (tx: Tx, model: ApiRootModel): Promise<void> => {
@@ -51,17 +70,16 @@ export const run = (tx: Tx, model: ApiRootModel): Promise<void> => {
 
 	// migrations only run if the model has been executed before,
 	// to make changes that can't be automatically applied
-	return Promise.using(lockMigrations(tx, modelName), () =>
-		checkModelAlreadyExists(tx, modelName).then(exists => {
-			if (!exists) {
-				sbvrUtils.api.migrations.logger.info(
-					'First time model has executed, skipping migrations',
-				);
+	return checkModelAlreadyExists(tx, modelName).then(exists => {
+		if (!exists) {
+			(sbvrUtils.api.migrations?.logger.info ?? console.info)(
+				'First time model has executed, skipping migrations',
+			);
 
-				return setExecutedMigrations(tx, modelName, _.keys(migrations));
-			}
-
-			return getExecutedMigrations(tx, modelName).then(executedMigrations => {
+			return setExecutedMigrations(tx, modelName, _.keys(migrations));
+		}
+		return Promise.using(lockMigrations(tx, modelName), () =>
+			getExecutedMigrations(tx, modelName).then(executedMigrations => {
 				const pendingMigrations = filterAndSortPendingMigrations(
 					migrations,
 					executedMigrations,
@@ -79,79 +97,80 @@ export const run = (tx: Tx, model: ApiRootModel): Promise<void> => {
 						...newlyExecutedMigrations,
 					]),
 				);
-			});
-		}),
-	);
+			}),
+		);
+	});
 };
 
-export const checkModelAlreadyExists = (
-	tx: Tx,
-	modelName: string,
-): Promise<boolean> =>
-	sbvrUtils.api.dev
-		.get({
-			resource: 'model',
-			passthrough: {
-				tx,
-				req: sbvrUtils.rootRead,
-			},
-			options: {
-				$select: 'is_of__vocabulary',
-				$top: 1,
-				$filter: {
-					is_of__vocabulary: modelName,
-				},
-			},
-		})
-		.then(_.some);
+const checkModelAlreadyExists = (tx: Tx, modelName: string): Promise<boolean> =>
+	tx
+		.executeSql(
+			binds`
+SELECT 1
+FROM "model"
+WHERE "model"."is of-vocabulary" = ${1}
+LIMIT 1`,
+			[modelName],
+		)
+		.then(({ rows }) => {
+			return rows.length > 0;
+		});
 
-export const getExecutedMigrations = (
-	tx: Tx,
-	modelName: string,
-): Promise<string[]> =>
-	sbvrUtils.api.migrations
-		.get({
-			resource: 'migration',
-			id: modelName,
-			passthrough: {
-				tx,
-				req: sbvrUtils.rootRead,
-			},
-			options: {
-				$select: 'executed_migrations',
-			},
-		})
-		.then((data: sbvrUtils.AnyObject) => {
+const getExecutedMigrations = (tx: Tx, modelName: string): Promise<string[]> =>
+	tx
+		.executeSql(
+			binds`
+SELECT "migration"."executed migrations" AS "executed_migrations"
+FROM "migration"
+WHERE "migration"."model name" = ${1}`,
+			[modelName],
+		)
+		.then(({ rows }) => {
+			const data = rows[0];
 			if (data == null) {
 				return [];
 			}
-			return data.executed_migrations as string[];
+
+			return JSON.parse(data.executed_migrations) as string[];
 		});
 
-export const setExecutedMigrations = (
+const setExecutedMigrations = (
 	tx: Tx,
 	modelName: string,
 	executedMigrations: string[],
-): Promise<void> =>
-	sbvrUtils.api.migrations
-		.put({
-			resource: 'migration',
-			id: modelName,
-			passthrough: {
-				tx,
-				req: sbvrUtils.root,
-			},
-			options: { returnResult: false },
-			body: {
-				model_name: modelName,
-				executed_migrations: executedMigrations,
-			},
-		})
-		.return();
+): Promise<void> => {
+	const stringifiedMigrations = JSON.stringify(executedMigrations);
+
+	return tx.tableList("name = 'migration'").then(result => {
+		if (result.rows.length === 0) {
+			return;
+		}
+		return tx
+			.executeSql(
+				binds`
+UPDATE "migration"
+SET "model name" = ${1},
+	"executed migrations" = ${2}
+WHERE "migration"."model name" = ${3}`,
+				[modelName, stringifiedMigrations, modelName],
+			)
+			.then(({ rowsAffected }) => {
+				if (rowsAffected === 0) {
+					tx.executeSql(
+						binds`
+INSERT INTO "migration" ("model name", "executed migrations")
+VALUES (${1}, ${2})`,
+						[modelName, stringifiedMigrations],
+					);
+				}
+			})
+			.return();
+	});
+};
 
 // turns {"key1": migration, "key3": migration, "key2": migration}
 // into  [["key1", migration], ["key2", migration], ["key3", migration]]
-export const filterAndSortPendingMigrations = (
+const filterAndSortPendingMigrations = (
 	migrations: NonNullable<Model['migrations']>,
 	executedMigrations: string[],
 ): Array<MigrationTuple> =>
@@ -161,68 +180,53 @@ export const filterAndSortPendingMigrations = (
 		.value();
 
 const lockMigrations = (tx: Tx, modelName: string): Promise.Disposer<void> =>
-	sbvrUtils.api.migrations
-		.delete({
-			resource: 'migration_lock',
-			id: modelName,
-			passthrough: {
-				tx,
-				req: sbvrUtils.root,
-			},
-			options: {
-				$filter: {
-					created_at: {
-						$lt: new Date(Date.now() - migratorEnv.lockTimeout),
-					},
-				},
-			},
-		})
+	tx
+		.executeSql(
+			binds`
+DELETE FROM "migration lock"
+WHERE "model name" = ${1}
+AND "created at" < ${2}`,
+			[modelName, new Date(Date.now() - migratorEnv.lockTimeout)],
+		)
 		.then(() =>
-			sbvrUtils.api.migrations.post({
-				resource: 'migration_lock',
-				passthrough: {
-					tx,
-					req: sbvrUtils.root,
-				},
-				options: { returnResult: false },
-				body: {
-					model_name: modelName,
-				},
-			}),
+			tx.executeSql(
+				binds`
+INSERT INTO "migration lock" ("model name")
+VALUES (${1})`,
+				[modelName],
+			),
 		)
 		.tapCatch(() => Promise.delay(migratorEnv.lockFailDelay))
 		.return()
 		.disposer(() => {
-			return sbvrUtils.api.migrations
-				.delete({
-					resource: 'migration_lock',
-					id: modelName,
-					passthrough: {
-						tx,
-						req: sbvrUtils.root,
-					},
-				})
+			return tx
+				.executeSql(
+					binds`
+DELETE FROM "migration lock"
+WHERE "model name" = ${1}`,
+					[modelName],
+				)
 				.return();
 		});
 
-export const executeMigrations = (
+const executeMigrations = (
 	tx: Tx,
 	migrations: Array<MigrationTuple> = [],
 ): Promise<string[]> =>
 	Promise.mapSeries(migrations, executeMigration.bind(null, tx))
 		.catch(err => {
-			sbvrUtils.api.migrations.logger.error(
+			(sbvrUtils.api.migrations?.logger.error ?? console.error)(
 				'Error while executing migrations, rolled back',
 			);
 			throw new MigrationError(err);
 		})
-		.return(_.map(migrations, ([migrationKey]) => migrationKey)); // return migration keys
+		.return(migrations.map(([migrationKey]) => migrationKey)); // return migration keys
 
-export const executeMigration = (
+const executeMigration = (
 	tx: Tx,
 	[key, migration]: MigrationTuple,
 ): Promise<void> => {
-	sbvrUtils.api.migrations.logger.info(
+	(sbvrUtils.api.migrations?.logger.info ?? console.info)(
 		`Running migration ${JSON.stringify(key)}`,
 	);
 
@@ -235,7 +239,7 @@ export const executeMigration = (
 	throw new MigrationError(`Invalid migration type: ${typeof migration}`);
 };
 
-export const config = {
+export const config: Config = {
 	models: [
 		{
 			modelName: 'migrations',
