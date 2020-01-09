@@ -33,7 +33,7 @@ import {
 } from '@resin/odata-to-abstract-sql';
 import deepFreeze = require('deep-freeze');
 
-import SBVRParser = require('../extended-sbvr-parser/extended-sbvr-parser');
+import { ExtendedSBVRParser } from '../extended-sbvr-parser/extended-sbvr-parser';
 
 import * as migrator from '../migrator/migrator';
 import { generateODataMetadata } from '../odata-metadata/odata-metadata-generator';
@@ -386,8 +386,8 @@ export const validateModel = (
 };
 
 export const generateLfModel = (seModel: string): LFModel =>
-	cachedCompile('lfModel', SBVRParser.version, seModel, () =>
-		SBVRParser.matchAll(seModel, 'Process'),
+	cachedCompile('lfModel', ExtendedSBVRParser.version, seModel, () =>
+		ExtendedSBVRParser.matchAll(seModel, 'Process'),
 	);
 
 export const generateAbstractSqlModel = (
@@ -743,7 +743,10 @@ export const runRule = (() => {
 			let abstractSqlModel: AbstractSQLCompiler.AbstractSqlModel;
 
 			try {
-				lfModel = SBVRParser.matchAll(seModel + '\nRule: ' + rule, 'Process');
+				lfModel = ExtendedSBVRParser.matchAll(
+					seModel + '\nRule: ' + rule,
+					'Process',
+				);
 			} catch (e) {
 				logger.error('Error parsing rule', rule, e);
 				throw new Error(`Error parsing rule'${rule}': ${e}`);
