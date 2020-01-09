@@ -31,7 +31,7 @@ const forEachUniqueTable = <T>(
 	return result;
 };
 
-const odataMetadataGenerator = (
+export const generateODataMetadata = (
 	vocabulary: string,
 	abstractSqlModel: AbstractSqlModel,
 ) => {
@@ -175,5 +175,4 @@ const odataMetadataGenerator = (
 	);
 };
 
-odataMetadataGenerator.version = version;
-export = odataMetadataGenerator;
+generateODataMetadata.version = version;

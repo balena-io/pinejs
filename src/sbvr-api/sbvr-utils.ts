@@ -36,7 +36,7 @@ import deepFreeze = require('deep-freeze');
 import SBVRParser = require('../extended-sbvr-parser/extended-sbvr-parser');
 
 import * as migrator from '../migrator/migrator';
-import ODataMetadataGenerator = require('../odata-metadata/odata-metadata-generator');
+import { generateODataMetadata } from '../odata-metadata/odata-metadata-generator';
 
 // tslint:disable-next-line:no-var-requires
 const devModel = require('./dev.sbvr');
@@ -103,7 +103,7 @@ interface CompiledModel {
 	lf?: LFModel;
 	abstractSql: AbstractSQLCompiler.AbstractSqlModel;
 	sql: AbstractSQLCompiler.SqlModel;
-	odataMetadata: ReturnType<typeof ODataMetadataGenerator>;
+	odataMetadata: ReturnType<typeof generateODataMetadata>;
 }
 const models: {
 	[vocabulary: string]: CompiledModel;
@@ -427,9 +427,9 @@ export const generateModels = (
 
 	const odataMetadata = cachedCompile(
 		'metadata',
-		ODataMetadataGenerator.version,
+		generateODataMetadata.version,
 		{ vocab: vocab, abstractSqlModel: abstractSql },
-		() => ODataMetadataGenerator(vocab, abstractSql),
+		() => generateODataMetadata(vocab, abstractSql),
 	);
 
 	let sql: ReturnType<AbstractSQLCompiler.EngineInstance['compileSchema']>;
