@@ -4,14 +4,6 @@ import * as _ from 'lodash';
 import * as Promise from 'bluebird';
 import * as path from 'path';
 import * as fs from 'fs';
-// We force the type to match the specific overloaded version we want, as promisify can only choose one :(
-const readFileAsync = (Promise.promisify(fs.readFile) as any) as (
-	filename: string,
-	encoding: string,
-) => Promise<string>;
-const readdirAsync = Promise.promisify(fs.readdir) as (
-	path: string,
-) => Promise<string[]>;
 
 import { Database } from '../database-layer/db';
 import * as sbvrUtils from '../sbvr-api/sbvr-utils';
@@ -283,7 +275,7 @@ export const setup = (app: _express.Application) => {
 				Promise.map(configObj.models, model =>
 					Promise.try<string | undefined>(() => {
 						if (model.modelFile != null) {
-							return readFileAsync(resolvePath(model.modelFile), 'utf8');
+							return fs.promises.readFile(resolvePath(model.modelFile), 'utf8');
 						}
 						return model.modelText;
 					})
@@ -303,7 +295,7 @@ export const setup = (app: _express.Application) => {
 								const migrationsPath = resolvePath(model.migrationsPath);
 								delete model.migrationsPath;
 
-								return readdirAsync(migrationsPath)
+								return Promise.resolve(fs.promises.readdir(migrationsPath))
 									.map(filename => {
 										const filePath = path.join(migrationsPath, filename);
 										const [migrationKey] = filename.split('-', 1);
@@ -315,9 +307,11 @@ export const setup = (app: _express.Application) => {
 												migrations[migrationKey] = nodeRequire(filePath);
 												break;
 											case '.sql':
-												return readFileAsync(filePath, 'utf8').then(sql => {
-													migrations[migrationKey] = sql;
-												});
+												return fs.promises
+													.readFile(filePath, 'utf8')
+													.then(sql => {
+														migrations[migrationKey] = sql;
+													});
 											default:
 												console.error(
 													`Unrecognised migration file extension, skipping: ${path.extname(
@@ -332,9 +326,11 @@ export const setup = (app: _express.Application) => {
 						.then(() => {
 							if (model.initSqlPath) {
 								const initSqlPath = resolvePath(model.initSqlPath);
-								return readFileAsync(initSqlPath, 'utf8').then(initSql => {
-									model.initSql = initSql;
-								});
+								return fs.promises
+									.readFile(initSqlPath, 'utf8')
+									.then(initSql => {
+										model.initSql = initSql;
+									});
 							}
 						}),
 				).then(() => loadConfig(configObj)),
