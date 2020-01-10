@@ -68,5 +68,4 @@ export const init = (
 		.catch(err => {
 			console.error('Error initialising server', err, err.stack);
 			process.exit(1);
-			throw new Error('Unreachable');
 		});

@@ -338,7 +338,6 @@ export const setup = (app: _express.Application) => {
 			.catch(err => {
 				console.error('Error loading application config', err, err.stack);
 				process.exit(1);
-				throw new Error('Unreachable');
 			});
 	};
 
