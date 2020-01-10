@@ -1,4 +1,14 @@
 - commits:
+    - subject: Remove unnecessary Promise.method
+      hash: 9870ad5eae3da95579e00ecbc3c0ba77d7d26386
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+  version: 10.23.1
+  date: 2020-01-10T12:24:54.891Z
+- commits:
     - subject: Update dependencies
       hash: 705d582fbf0811fc8d789a6f4765e41bbb9c180b
       body: |
