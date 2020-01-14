@@ -106,8 +106,8 @@ const atomicExecuteSql: Database['executeSql'] = function(sql, bindings) {
 	return this.transaction(tx => tx.executeSql(sql, bindings));
 };
 
-const tryFn = (fn: () => any) => {
-	Promise.try(fn);
+const asyncTryFn = (fn: () => any) => {
+	Promise.resolve().then(fn);
 };
 
 let timeoutMS: number;
@@ -237,7 +237,7 @@ export abstract class Tx {
 	}
 	public rollback(): Promise<void> {
 		const promise = this._rollback().finally(() => {
-			this.listeners.rollback.forEach(tryFn);
+			this.listeners.rollback.forEach(asyncTryFn);
 			return null;
 		});
 		this.closeTransaction('Transaction has been rolled back.');
@@ -246,7 +246,7 @@ export abstract class Tx {
 	}
 	public end(): Promise<void> {
 		const promise = this._commit().tap(() => {
-			this.listeners.end.forEach(tryFn);
+			this.listeners.end.forEach(asyncTryFn);
 			return null;
 		});
 		this.closeTransaction('Transaction has been ended.');
