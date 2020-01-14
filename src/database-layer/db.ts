@@ -149,6 +149,17 @@ const getRejectedFunctions: RejectedFunctions = DEBUG
 			};
 	  };
 
+const onEnd: Tx['on'] = (name: string, fn: () => void) => {
+	if (name === 'end') {
+		asyncTryFn(fn);
+	}
+};
+const onRollback: Tx['on'] = (name: string, fn: () => void) => {
+	if (name === 'rollback') {
+		asyncTryFn(fn);
+	}
+};
+
 export abstract class Tx {
 	private automaticCloseTimeout: ReturnType<typeof setTimeout>;
 	private automaticClose: () => void;
@@ -238,6 +249,7 @@ export abstract class Tx {
 	public rollback(): Promise<void> {
 		const promise = this._rollback().finally(() => {
 			this.listeners.rollback.forEach(asyncTryFn);
+			this.on = onRollback;
 			this.listeners = { end: [], rollback: [] };
 			return null;
 		});
@@ -248,6 +260,7 @@ export abstract class Tx {
 	public end(): Promise<void> {
 		const promise = this._commit().tap(() => {
 			this.listeners.end.forEach(asyncTryFn);
+			this.on = onEnd;
 			this.listeners = { end: [], rollback: [] };
 			return null;
 		});
