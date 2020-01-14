@@ -238,6 +238,7 @@ export abstract class Tx {
 	public rollback(): Promise<void> {
 		const promise = this._rollback().finally(() => {
 			this.listeners.rollback.forEach(asyncTryFn);
+			this.listeners = { end: [], rollback: [] };
 			return null;
 		});
 		this.closeTransaction('Transaction has been rolled back.');
@@ -247,6 +248,7 @@ export abstract class Tx {
 	public end(): Promise<void> {
 		const promise = this._commit().tap(() => {
 			this.listeners.end.forEach(asyncTryFn);
+			this.listeners = { end: [], rollback: [] };
 			return null;
 		});
 		this.closeTransaction('Transaction has been ended.');
