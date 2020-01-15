@@ -1,4 +1,28 @@
 - commits:
+    - subject: Immediately run tx event handlers if the tx event has already triggered
+      hash: df739ea82f9ce9a1050830b129ce8f3c9eb1142d
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+    - subject: Clear queued tx event handlers once they've been scheduled to run
+      hash: 85bbd1a9f982bac81e0142db6f91b28b7c872997
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+    - subject: Run tx event handlers asynchronously
+      hash: 5de7442eb37b4713068b5712bdc6a98fab26eee1
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+  version: 10.24.0
+  date: 2020-01-14T17:39:35.101Z
+- commits:
     - subject: Remove unnecessary Promise.method
       hash: 9870ad5eae3da95579e00ecbc3c0ba77d7d26386
       body: ''
