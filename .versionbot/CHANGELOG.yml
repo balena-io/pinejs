@@ -1,4 +1,14 @@
 - commits:
+    - subject: Switch to SQL migrations to enable migrating internal models
+      hash: f39d0774f43e2162ca09dd9798e3902eb540fc05
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+  version: 10.25.0
+  date: 2020-01-16T12:15:14.425Z
+- commits:
     - subject: Immediately run tx event handlers if the tx event has already triggered
       hash: df739ea82f9ce9a1050830b129ce8f3c9eb1142d
       body: ''
