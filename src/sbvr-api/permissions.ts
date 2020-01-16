@@ -1,4 +1,12 @@
 import {
+	Definition,
+	OData2AbstractSQL,
+	odataNameToSqlName,
+	ResourceFunction,
+	sqlNameToODataName,
+} from '@resin/odata-to-abstract-sql';
+
+import {
 	AbstractSqlModel,
 	AbstractSqlType,
 	AliasNode,
@@ -7,15 +15,13 @@ import {
 } from '@resin/abstract-sql-compiler';
 import * as ODataParser from '@resin/odata-parser';
 import { ODataBinds, ODataQuery, SupportedMethod } from '@resin/odata-parser';
-import {
-	Definition,
-	odataNameToSqlName,
-	sqlNameToODataName,
-} from '@resin/odata-to-abstract-sql';
+
 import * as Bluebird from 'bluebird';
+
 import * as express from 'express';
 import * as _ from 'lodash';
 import * as memoize from 'memoizee';
+import * as randomstring from 'randomstring';
 import * as env from '../config-loader/env';
 import * as sbvrUtils from '../sbvr-api/sbvr-utils';
 import {
@@ -24,7 +30,6 @@ import {
 	PermissionParsingError,
 } from './errors';
 import { AnyObject, ApiKey, HookReq, User } from './sbvr-utils';
-import * as uriParser from './uri-parser';
 import {
 	memoizedParseOdata,
 	metadataEndpoints,
@@ -387,12 +392,60 @@ const $checkPermissions = (
 	});
 };
 
-const constrainedPermissionError = new PermissionError();
-const generateConstrainedAbstractSql = (
+const convertToLambda = (filter: AnyObject, identifier: string) => {
+	// We need to inject all occurences of properties for the new lambda function
+	// for example if there is an `or` operator, where different properties of
+	// the target resource are used, we need to change all occurences of these.
+	// We do this in a recursive way to also cover all nested cases like or [ and, and ]
+	const replaceObject = (object: AnyObject) => {
+		if (typeof object === 'string') {
+			return;
+		}
+		if (Array.isArray(object)) {
+			object.forEach(element => {
+				replaceObject(element);
+			});
+		}
+
+		if (object.hasOwnProperty('name')) {
+			object.property = _.clone(object);
+			object.name = identifier;
+			delete object.lambda;
+		}
+	};
+
+	replaceObject(filter);
+};
+
+const rewriteSubPermissionBindings = (filter: AnyObject, counter: number) => {
+	const rewrite = (object: AnyObject) => {
+		if (object == null) {
+			return;
+		}
+
+		if (typeof object.bind === 'number') {
+			object.bind = counter + object.bind;
+		}
+
+		if (Array.isArray(object) || _.isObject(object)) {
+			_.forEach(object, v => {
+				rewrite(v);
+			});
+		}
+	};
+
+	rewrite(filter);
+};
+
+const buildODataPermission = (
 	permissionsLookup: PermissionLookup,
 	actionList: PermissionCheck,
 	vocabulary: string,
 	resourceName: string,
+	odata: {
+		tree: ODataParser.ODataQuery;
+		binds: ODataParser.ODataBinds;
+	},
 ) => {
 	const conditionalPerms = $checkPermissions(
 		permissionsLookup,
@@ -409,8 +462,6 @@ const generateConstrainedAbstractSql = (
 		// If we have full access then no need to provide a constrained definition
 		return false;
 	}
-
-	const odata = memoizedParseOdata(`/${resourceName}`);
 
 	const permissionFilters = nestedCheck(conditionalPerms, permissionCheck => {
 		try {
@@ -430,17 +481,112 @@ const generateConstrainedAbstractSql = (
 	const collapsedPermissionFilters = collapsePermissionFilters(
 		permissionFilters,
 	);
+
+	return collapsedPermissionFilters;
+};
+
+const constrainedPermissionError = new PermissionError();
+const generateConstrainedAbstractSql = (
+	permissionsLookup: PermissionLookup,
+	actionList: PermissionCheck,
+	vocabulary: string,
+	resourceName: string,
+) => {
+	const abstractSQLModel = sbvrUtils.getAbstractSqlModel({
+		vocabulary,
+	});
+	const odata = memoizedParseOdata(`/${resourceName}`);
+
+	const collapsedPermissionFilters = buildODataPermission(
+		permissionsLookup,
+		actionList,
+		vocabulary,
+		resourceName,
+		odata,
+	);
+
 	_.set(odata, ['tree', 'options', '$filter'], collapsedPermissionFilters);
 
-	const translated = uriParser.translateUri({
-		method: 'GET',
-		resourceName,
-		vocabulary,
-		odataBinds: odata.binds,
-		odataQuery: odata.tree,
-		values: {},
+	const lambdaAlias = randomstring.generate(20);
+	let inc = 0;
+
+	// We need to trace the processed resources, to be able to break
+	// permissions circles.
+	const canAccessTrace: string[] = [resourceName];
+
+	const canAccessFunction: ResourceFunction = function(property: AnyObject) {
+		// remove method property so that we won't loop back here again at this point
+		delete property.method;
+
+		if (!this.defaultResource) {
+			throw new Error(`No resource selected in AST.`);
+		}
+
+		const targetResource = this.NavigateResources(
+			this.defaultResource,
+			property.name,
+		);
+
+		const targetResourceName = sqlNameToODataName(targetResource.resource.name);
+
+		if (canAccessTrace.includes(targetResourceName)) {
+			// return a boolen subquery
+			return ['Equals', ['Boolean', true], ['Boolean', false]];
+		}
+
+		const parentOdata = memoizedParseOdata(`/${targetResourceName}`);
+
+		const collapsedParentPermissionFilters = buildODataPermission(
+			permissionsLookup,
+			actionList,
+			vocabulary,
+			targetResourceName,
+			parentOdata,
+		);
+
+		if (collapsedParentPermissionFilters === false) {
+			// We reuse a constant permission error here as it will be cached, and
+			// using a single error instance can drastically reduce the memory used
+			throw constrainedPermissionError;
+		}
+
+		const lambdaId = `${lambdaAlias}+${inc}`;
+		inc = inc + 1;
+		rewriteSubPermissionBindings(
+			collapsedParentPermissionFilters,
+			this.bindVarsLength + this.extraBindVars.length,
+		);
+		convertToLambda(collapsedParentPermissionFilters, lambdaId);
+		property.lambda = {
+			method: 'any',
+			identifier: lambdaId,
+			expression: collapsedParentPermissionFilters,
+		};
+
+		this.extraBindVars.push(...parentOdata.binds);
+
+		canAccessTrace.push(targetResourceName);
+		try {
+			return this.Property(property);
+		} finally {
+			canAccessTrace.pop();
+		}
+	};
+
+	const odata2AbstractSQL = new OData2AbstractSQL(abstractSQLModel, {
+		canAccess: canAccessFunction,
 	});
-	const abstractSqlQuery = _.clone(translated.abstractSqlQuery!);
+	const { tree, extraBindVars } = odata2AbstractSQL.match(
+		odata.tree,
+		'GET',
+		[],
+		odata.binds.length,
+	);
+
+	odata.binds.push(...extraBindVars);
+	const odataBinds = odata.binds;
+
+	const abstractSqlQuery = _.clone(tree!);
 	// Remove aliases from the top level select
 	const selectIndex = _.findIndex(abstractSqlQuery, v => v[0] === 'Select');
 	const select = (abstractSqlQuery[selectIndex] = _.clone(
@@ -468,7 +614,7 @@ const generateConstrainedAbstractSql = (
 		},
 	);
 
-	return { extraBinds: translated.odataBinds, abstractSqlQuery };
+	return { extraBinds: odataBinds, abstractSqlQuery };
 };
 
 // Call the function once and either return the same result or throw the same error on subsequent calls
