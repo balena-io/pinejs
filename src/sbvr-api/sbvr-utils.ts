@@ -16,7 +16,7 @@ Promise.config({
 	cancellation: true,
 });
 
-import TypedError = require('typed-error');
+import { TypedError } from 'typed-error';
 import { cachedCompile } from './cached-compile';
 
 type LFModel = any[];
@@ -33,10 +33,10 @@ import {
 } from '@resin/odata-to-abstract-sql';
 import deepFreeze = require('deep-freeze');
 
-import SBVRParser = require('../extended-sbvr-parser/extended-sbvr-parser');
+import { ExtendedSBVRParser } from '../extended-sbvr-parser/extended-sbvr-parser';
 
 import * as migrator from '../migrator/migrator';
-import ODataMetadataGenerator = require('../odata-metadata/odata-metadata-generator');
+import { generateODataMetadata } from '../odata-metadata/odata-metadata-generator';
 
 // tslint:disable-next-line:no-var-requires
 const devModel = require('./dev.sbvr');
@@ -52,9 +52,12 @@ import {
 	SbvrValidationError,
 	SqlCompilationError,
 	TranslationError,
-	UnsupportedMethodError,
+	MethodNotAllowedError,
 	BadRequestError,
 	HttpError,
+	UnauthorizedError,
+	NotFoundError,
+	ConflictError,
 } from './errors';
 export * from './errors';
 import {
@@ -100,7 +103,7 @@ interface CompiledModel {
 	lf?: LFModel;
 	abstractSql: AbstractSQLCompiler.AbstractSqlModel;
 	sql: AbstractSQLCompiler.SqlModel;
-	odataMetadata: ReturnType<typeof ODataMetadataGenerator>;
+	odataMetadata: ReturnType<typeof generateODataMetadata>;
 }
 const models: {
 	[vocabulary: string]: CompiledModel;
@@ -383,8 +386,8 @@ export const validateModel = (
 };
 
 export const generateLfModel = (seModel: string): LFModel =>
-	cachedCompile('lfModel', SBVRParser.version, seModel, () =>
-		SBVRParser.matchAll(seModel, 'Process'),
+	cachedCompile('lfModel', ExtendedSBVRParser.version, seModel, () =>
+		ExtendedSBVRParser.matchAll(seModel, 'Process'),
 	);
 
 export const generateAbstractSqlModel = (
@@ -424,9 +427,9 @@ export const generateModels = (
 
 	const odataMetadata = cachedCompile(
 		'metadata',
-		ODataMetadataGenerator.version,
+		generateODataMetadata.version,
 		{ vocab: vocab, abstractSqlModel: abstractSql },
-		() => ODataMetadataGenerator(vocab, abstractSql),
+		() => generateODataMetadata(vocab, abstractSql),
 	);
 
 	let sql: ReturnType<AbstractSQLCompiler.EngineInstance['compileSchema']>;
@@ -449,13 +452,11 @@ export const generateModels = (
 export const executeModel = (
 	tx: _db.Tx,
 	model: ExecutableModel,
-	callback?: (err?: Error) => void,
-): Promise<void> => executeModels(tx, [model], callback);
+): Promise<void> => executeModels(tx, [model]);
 
 export const executeModels = (
 	tx: _db.Tx,
 	execModels: ExecutableModel[],
-	callback?: (err?: Error) => void,
 ): Promise<void> =>
 	Promise.map(execModels, model => {
 		const { apiRoot } = model;
@@ -570,8 +571,7 @@ export const executeModels = (
 		.tapCatch(() =>
 			Promise.map(execModels, ({ apiRoot }) => cleanupModel(apiRoot)),
 		)
-		.return()
-		.asCallback(callback);
+		.return();
 
 const cleanupModel = (vocab: string) => {
 	delete models[vocab];
@@ -671,10 +671,7 @@ const runHooks = Promise.method(
 	},
 );
 
-export const deleteModel = (
-	vocabulary: string,
-	callback?: (err?: Error) => void,
-) => {
+export const deleteModel = (vocabulary: string) => {
 	return db
 		.transaction(tx => {
 			const dropStatements: Array<Promise<any>> = _.map(
@@ -698,8 +695,7 @@ export const deleteModel = (
 				]),
 			);
 		})
-		.then(() => cleanupModel(vocabulary))
-		.asCallback(callback);
+		.then(() => cleanupModel(vocabulary));
 };
 
 const isWhereNode = (
@@ -738,7 +734,7 @@ export const runRule = (() => {
 	});
 	const translator = LF2AbstractSQL.LF2AbstractSQL.createInstance();
 	translator.addTypes(sbvrTypes);
-	return (vocab: string, rule: string, callback?: (err?: Error) => void) => {
+	return (vocab: string, rule: string) => {
 		return Promise.try(() => {
 			const seModel = models[vocab].se;
 			const { logger } = api[vocab];
@@ -747,7 +743,10 @@ export const runRule = (() => {
 			let abstractSqlModel: AbstractSQLCompiler.AbstractSqlModel;
 
 			try {
-				lfModel = SBVRParser.matchAll(seModel + '\nRule: ' + rule, 'Process');
+				lfModel = ExtendedSBVRParser.matchAll(
+					seModel + '\nRule: ' + rule,
+					'Process',
+				);
 			} catch (e) {
 				logger.error('Error parsing rule', rule, e);
 				throw new Error(`Error parsing rule'${rule}': ${e}`);
@@ -870,7 +869,7 @@ export const runRule = (() => {
 						return result;
 					});
 				});
-		}).asCallback(callback);
+		});
 	};
 })();
 
@@ -921,20 +920,7 @@ export const runURI = (
 	tx?: _db.Tx,
 	req?: permissions.PermissionReq,
 	custom?: AnyObject,
-	callback?: (
-		err?: Error,
-		result?: PinejsClientCoreFactory.PromiseResultTypes,
-	) => void,
 ): Promise<PinejsClientCoreFactory.PromiseResultTypes> => {
-	if (body == null) {
-		body = {};
-	}
-	if (callback != null && !_.isFunction(callback)) {
-		const message = 'Called runURI with a non-function callback?!';
-		console.trace(message);
-		return Promise.reject(message);
-	}
-
 	let user: User | undefined;
 	let apiKey: ApiKey | undefined;
 
@@ -975,6 +961,7 @@ export const runURI = (
 	return new Promise<PinejsClientCoreFactory.PromiseResultTypes>(
 		(resolve, reject) => {
 			const res: _express.Response = {
+				__internalPinejs: true,
 				on: _.noop,
 				statusCode: 200,
 				status(statusCode: number) {
@@ -1001,6 +988,10 @@ export const runURI = (
 					this.sendStatus(statusCode);
 				},
 				json(data: any, statusCode: number) {
+					if (_.isError(data)) {
+						reject(data);
+						return;
+					}
 					if (statusCode == null) {
 						statusCode = this.statusCode;
 					}
@@ -1027,7 +1018,7 @@ export const runURI = (
 
 			handleODataRequest(emulatedReq, res, next);
 		},
-	).asCallback(callback);
+	);
 };
 
 export const getAbstractSqlModel = (
@@ -1195,9 +1186,9 @@ export const handleODataRequest: _express.Handler = (req, res, next) => {
 			);
 		})
 		.then(results =>
-			mapSeries(results, result => {
+			results.map(result => {
 				if (_.isError(result)) {
-					return constructError(result);
+					return convertToHttpError(result);
 				} else {
 					return result;
 				}
@@ -1207,7 +1198,18 @@ export const handleODataRequest: _express.Handler = (req, res, next) => {
 			res.set('Cache-Control', 'no-cache');
 			// If we are dealing with a single request unpack the response and respond normally
 			if (req.batch == null || req.batch.length === 0) {
-				const [{ body, headers, status }] = responses as Response[];
+				let [response] = responses;
+				if (_.isError(response)) {
+					if ((res as AnyObject).__internalPinejs === true) {
+						return res.json(response);
+					} else {
+						response = {
+							status: response.status,
+							body: response.getResponseBody(),
+						};
+					}
+				}
+				const { body, headers, status } = response as Response;
 				if (status) {
 					res.status(status);
 				}
@@ -1231,7 +1233,18 @@ export const handleODataRequest: _express.Handler = (req, res, next) => {
 
 				// Otherwise its a multipart request and we reply with the appropriate multipart response
 			} else {
-				(res.status(200) as any).sendMulti(responses);
+				(res.status(200) as any).sendMulti(
+					responses.map(response => {
+						if (_.isError(response)) {
+							return {
+								status: response.status,
+								body: response.getResponseBody(),
+							};
+						} else {
+							return response;
+						}
+					}),
+				);
 			}
 		})
 		.catch((e: Error) => {
@@ -1244,34 +1257,30 @@ export const handleODataRequest: _express.Handler = (req, res, next) => {
 };
 
 // Reject the error to use the nice catch syntax
-const constructError = (
-	err: any,
-): { status: number; body?: string | AnyObject } => {
+const convertToHttpError = (err: any): HttpError => {
+	if (err instanceof HttpError) {
+		return err;
+	}
 	if (err instanceof SbvrValidationError) {
-		return { status: 400, body: err.message };
-	} else if (err instanceof PermissionError)
-		return { status: 401, body: err.message };
-	else if (
+		return new BadRequestError(err);
+	}
+	if (err instanceof PermissionError) {
+		return new UnauthorizedError(err);
+	}
+	if (err instanceof db.ConstraintError) {
+		return new ConflictError(err);
+	}
+	if (
 		err instanceof SqlCompilationError ||
 		err instanceof TranslationError ||
 		err instanceof ParsingError ||
 		err instanceof PermissionParsingError
 	) {
-		return { status: 500 };
-	} else if (err instanceof UnsupportedMethodError) {
-		return { status: 405, body: err.message };
-	} else if (err instanceof HttpError) {
-		return { status: err.status, body: err.getResponseBody() };
-	} else if (err instanceof db.ConstraintError) {
-		return { status: 409, body: err.message };
-	} else {
-		console.error(err);
-		// If the err is an error object then use its message instead - it should be more readable!
-		if (_.isError(err)) {
-			err = err.message;
-		}
-		return { status: 404, body: err };
+		return new InternalRequestError();
 	}
+
+	console.error('Unexpected response error type', err);
+	return new NotFoundError(err);
 };
 
 const runRequest = (
@@ -1408,7 +1417,7 @@ const prepareResponse = (
 		case 'OPTIONS':
 			return respondOptions(req, res, request, result, tx);
 		default:
-			return Promise.reject(new UnsupportedMethodError());
+			return Promise.reject(new MethodNotAllowedError());
 	}
 };
 
@@ -1659,16 +1668,19 @@ const runDelete = (
 		.return(undefined);
 };
 
-export const executeStandardModels = (
-	tx: _db.Tx,
-	callback?: (err?: Error) => void,
-): Promise<void> => {
+export const executeStandardModels = (tx: _db.Tx): Promise<void> => {
 	// dev model must run first
 	return executeModel(tx, {
 		apiRoot: 'dev',
 		modelText: devModel,
 		logging: {
 			log: false,
+		},
+		migrations: {
+			'11.0.0-modified-at': `
+				ALTER TABLE "model"
+				ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
+			`,
 		},
 	})
 		.then(() => {
@@ -1679,8 +1691,7 @@ export const executeStandardModels = (
 		})
 		.tapCatch((err: Error) => {
 			console.error('Failed to execute standard models.', err);
-		})
-		.asCallback(callback);
+		});
 };
 
 export const addSideEffectHook = (
@@ -1768,10 +1779,9 @@ const addHook = (
 
 export const setup = (
 	_app: _express.Application,
-	_db: _db.Database,
-	callback?: (err?: Error) => void,
+	$db: _db.Database,
 ): Promise<void> => {
-	exports.db = db = _db;
+	exports.db = db = $db;
 	return db
 		.transaction(tx =>
 			executeStandardModels(tx).then(() => {
@@ -1790,6 +1800,5 @@ export const setup = (
 					)
 					.catch(_.noop), // we can't use IF NOT EXISTS on all dbs, so we have to ignore the error raised if this index already exists
 		)
-		.return()
-		.asCallback(callback);
+		.return();
 };

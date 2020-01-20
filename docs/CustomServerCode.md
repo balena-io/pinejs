@@ -12,7 +12,7 @@ This is an [express.js](http://expressjs.com/) app instance, and can be used to 
 ### sbvrUtils
 An entry point to the API internally to the server.
 
-#### runURI(method, uri, body = {}[, tx, req, callback])
+#### runURI(method, uri, body = {}[, tx, req])
 This allows making an API request internally that should match the result of making an equivalent http request to the API, and returns a promise.The request will be run with full privileges unless the `req` object is provided to instruct using a specified user.
 
 ##### tx
@@ -28,10 +28,10 @@ This is a subclass of the resin-platform-api class, which supports the additiona
 #### api
 This is an object containing keys of the api root and values that are an instance of PinejsClient for that api.  The PinejsClient instance also contains an additional `logger` property, which matches the interface of `console`, but which understands provided logging levels.
 
-#### executeModel(tx, model[, callback])
+#### executeModel(tx, model)
 This is an alias for executeModels for the case of a single model.
 
-#### executeModels(tx, models[, callback])
+#### executeModels(tx, models)
 Executes the given models and returns a promise.
 
 ##### tx
@@ -40,19 +40,13 @@ This should be an open transaction created with db.transaction
 ##### models
 This is an array which contains model objects, matching the model object of the config.json file.
 
-##### callback
-This is an (err, result) callback.
-
-#### deleteModel(vocabulary[, callback])
+#### deleteModel(vocabulary)
 Deletes the given vocabulary and returns a promise.
 
 ##### vocabulary
 The name of the vocabulary to delete.
 
-##### callback
-This is an (err, result) callback.
-
-#### runRule(vocab, rule[, callback])
+#### runRule(vocab, rule)
 Runs the given rule text against the vocabulary and returns a promise that resolves to any violators.
 
 ##### vocab
@@ -61,14 +55,11 @@ The vocabulary to run the rule against
 ##### rule
 This is a rule text, eg. Each pilot can fly at least 1 plane
 
-##### callback
-This is an (err, result) callback.
 
-
-#### getUserPermissions(userId[, callback])
+#### getUserPermissions(userId)
 This returns a promise that resolves to the user permissions for the given userId
 
-#### getApiKeyPermissions(apiKey[, callback])
+#### getApiKeyPermissions(apiKey)
 This returns a promise that resolves to the api key permissions for the given apiKey
 
 #### apiKeyMiddleware(req, res, next)
@@ -83,7 +74,7 @@ This is a default `customAuthorizationMiddleware`, which is useful to avoid havi
 #### customAuthorizationMiddleware(expectedScheme = 'Bearer')
 This is a function that will return a middleware that checks the `Authorization` header for a `scheme` that matches the `expectedScheme` and a token matching a valid api key and adds a `req.apiKey` entry `{ key, permissions }`. The middleware can also be called directly and will return a Promise that signifies completion.
 
-#### checkPermissions(req, permissionCheck, request[, callback])
+#### checkPermissions(req, permissionCheck, request)
 This checks that the currently logged in (or guest) user has the required permissions
 
 #### checkPermissionsMiddleware(permissionCheck)
@@ -92,7 +83,7 @@ This generates a middleware that will run the given permissionCheck
 #### handleODataRequest
 This is a middleware that will handle an OData request for `GET`/`PUT`/`POST`/`PATCH`/`MERGE`/`DELETE`
 
-#### executeStandardModels(tx[, callback])
+#### executeStandardModels(tx)
 This executes the built in models (dev, transaction, Auth) and returns a promise that resolves upon completion.
 
 #### addHook(method, apiRoot, resourceName, callbacks)
@@ -110,7 +101,7 @@ The name of the resource under the apiRoot to hook into, eg user
 ##### callbacks
 An object containing a key of the hook point and a value of the callback to call. See [Hooks documentation](./Hooks.md) for more
 
-#### setup(app, db[, callback])
+#### setup(app, db)
 This is called by the server, you should never need to use this.
 
 ### db
@@ -119,11 +110,8 @@ An object that allows direct connection to the database, which is similar to the
 #### engine
 A lowercase string that denotes the current database engine in use (possible values are currently: postgres, mysql, websql, and sqlite)
 
-#### executeSql(sql, bindings[, callback])
+#### executeSql(sql, bindings)
 This runs the given SQL statement in a transaction of it's own, with ? bindings replaced by the values in the bindings array and returns a promise.
-
-#### callback
-This has a signature of (err, result)
 
 #### transaction([callback])
 Returns a promise that will provide a `tx` object.
@@ -134,11 +122,8 @@ This callback is called with a `tx` object.
 ### tx
 This is created by a succesful call to `db.transaction`.
 
-#### executeSql(sql, bindings[, callback])
+#### executeSql(sql, bindings)
 This runs the given SQL statement in the context of the transaction it is called on, with ? bindings replaced by the values in the bindings array and returns a promise.
-
-#### callback
-This has a signature of (err, result)
 
 #### end()
 This ends/commits a transaction.
@@ -146,13 +131,10 @@ This ends/commits a transaction.
 #### rollback()
 This rolls back a transaction.
 
-#### tableList(extraWhereClause = ''[, callback])
+#### tableList(extraWhereClause = '')
 This returns a promise that resolves to a list of tables, the extraWhereClause can reference a "name" which will be the table's name.
 
-#### callback
-This has a signature of (err, result)
-
-#### dropTable(tableName, ifExists = true[, callback])
+#### dropTable(tableName, ifExists = true)
 This will drop the given table, returning a promise.
 
 #### tableName
@@ -160,9 +142,6 @@ The name of the table to drop.
 
 #### ifExists
 Whether to use an "IF EXISTS" clause or not.
-
-#### callback
-This has a signature of (err, result)
 
 ### result
 #### rows

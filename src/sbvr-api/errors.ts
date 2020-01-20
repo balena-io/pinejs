@@ -1,9 +1,8 @@
-import TypedError = require('typed-error');
+import { TypedError } from 'typed-error';
 
 export class PermissionError extends TypedError {}
 export class PermissionParsingError extends TypedError {}
 
-export class UnsupportedMethodError extends TypedError {}
 export class SqlCompilationError extends TypedError {}
 export class SbvrValidationError extends TypedError {}
 

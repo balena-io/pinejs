@@ -9,7 +9,7 @@ import * as configLoader from '../config-loader/config-loader';
 import * as migrator from '../migrator/migrator';
 
 import * as sbvrUtils from '../sbvr-api/sbvr-utils';
-import PinejsSessionStore = require('../pinejs-session-store/pinejs-session-store');
+import { PinejsSessionStore } from '../pinejs-session-store/pinejs-session-store';
 export { sbvrUtils, PinejsSessionStore };
 
 let databaseOptions: {
@@ -68,5 +68,4 @@ export const init = (
 		.catch(err => {
 			console.error('Error initialising server', err, err.stack);
 			process.exit(1);
-			throw new Error('Unreachable');
 		});

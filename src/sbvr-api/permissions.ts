@@ -684,7 +684,6 @@ const getCheckPasswordQuery = _.once(() =>
 export const checkPassword = (
 	username: string,
 	password: string,
-	callback?: (err?: Error, permissions?: string[]) => void,
 ): Promise<{
 	id: number;
 	actor: number;
@@ -693,29 +692,27 @@ export const checkPassword = (
 }> =>
 	getCheckPasswordQuery()({
 		username,
-	})
-		.then((result: AnyObject[]) => {
-			if (result.length === 0) {
-				throw new Error('User not found');
+	}).then((result: AnyObject[]) => {
+		if (result.length === 0) {
+			throw new Error('User not found');
+		}
+		const hash = result[0].password;
+		const userId = result[0].id;
+		const actorId = result[0].actor;
+		return sbvrUtils.sbvrTypes.Hashed.compare(password, hash).then(res => {
+			if (!res) {
+				throw new Error('Passwords do not match');
 			}
-			const hash = result[0].password;
-			const userId = result[0].id;
-			const actorId = result[0].actor;
-			return sbvrUtils.sbvrTypes.Hashed.compare(password, hash).then(res => {
-				if (!res) {
-					throw new Error('Passwords do not match');
-				}
-				return getUserPermissions(userId).then(permissions => {
-					return {
-						id: userId,
-						actor: actorId,
-						username,
-						permissions,
-					};
-				});
+			return getUserPermissions(userId).then(permissions => {
+				return {
+					id: userId,
+					actor: actorId,
+					username,
+					permissions,
+				};
 			});
-		})
-		.asCallback(callback);
+		});
+	});
 
 const getUserPermissionsQuery = _.once(() =>
 	sbvrUtils.api.Auth.prepare<{ userId: number }>({
@@ -790,10 +787,7 @@ const getUserPermissionsQuery = _.once(() =>
 		},
 	}),
 );
-export const getUserPermissions = (
-	userId: number,
-	callback?: (err: Error | undefined, permissions: string[]) => void,
-): Promise<string[]> => {
+export const getUserPermissions = (userId: number): Promise<string[]> => {
 	if (_.isString(userId)) {
 		userId = _.parseInt(userId);
 	}
@@ -808,8 +802,7 @@ export const getUserPermissions = (
 		)
 		.tapCatch(err => {
 			sbvrUtils.api.Auth.logger.error('Error loading user permissions', err);
-		})
-		.asCallback(callback);
+		});
 };
 
 const getApiKeyPermissionsQuery = _.once(() =>
@@ -903,16 +896,13 @@ const $getApiKeyPermissions = memoize(
 	},
 );
 
-export const getApiKeyPermissions = (
-	apiKey: string,
-	callback?: (err: Error | undefined, permissions: string[]) => void,
-): Promise<string[]> =>
+export const getApiKeyPermissions = (apiKey: string): Promise<string[]> =>
 	Promise.try(() => {
 		if (!_.isString(apiKey)) {
 			throw new Error('API key has to be a string, got: ' + typeof apiKey);
 		}
 		return $getApiKeyPermissions(apiKey);
-	}).asCallback(callback);
+	});
 
 const getApiKeyActorIdQuery = _.once(() =>
 	sbvrUtils.api.Auth.prepare<{ apiKey: string }>({
@@ -981,9 +971,6 @@ const checkApiKey = Promise.method((req: PermissionReq, apiKey: string) => {
 });
 
 export const customAuthorizationMiddleware = (expectedScheme = 'Bearer') => {
-	if (expectedScheme == null) {
-		expectedScheme = 'Bearer';
-	}
 	expectedScheme = expectedScheme.toLowerCase();
 	return (
 		req: express.Request,
@@ -1221,8 +1208,34 @@ export const config = {
 			apiRoot: 'Auth',
 			modelText: userModel,
 			customServerCode: exports,
+			migrations: {
+				'11.0.0-modified-at': `
+					ALTER TABLE "actor"
+					ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
+
+					ALTER TABLE "api key"
+					ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
+					ALTER TABLE "api key-has-permission"
+					ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
+					ALTER TABLE "api key-has-role"
+					ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
+
+					ALTER TABLE "permission"
+					ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
+
+					ALTER TABLE "role"
+					ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
+
+					ALTER TABLE "user"
+					ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
+					ALTER TABLE "user-has-role"
+					ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
+					ALTER TABLE "user-has-permission"
+					ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
+				`,
+			},
 		},
-	],
+	] as sbvrUtils.ExecutableModel[],
 };
 export const setup = () => {
 	sbvrUtils.addPureHook('all', 'all', 'all', {

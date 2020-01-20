@@ -4,12 +4,6 @@ import * as _ from 'lodash';
 import * as Promise from 'bluebird';
 import * as path from 'path';
 import * as fs from 'fs';
-// We force the type to match the specific overloaded version we want, as promisify can only choose one :(
-const readFileAsync = (Promise.promisify(fs.readFile) as any) as (
-	filename: string,
-	encoding: string,
-) => Promise<string>;
-const readdirAsync = Promise.promisify(fs.readdir);
 
 import { Database } from '../database-layer/db';
 import * as sbvrUtils from '../sbvr-api/sbvr-utils';
@@ -23,19 +17,6 @@ export interface SetupFunction {
 		app: _express.Application,
 		sbvrUtilsInstance: typeof sbvrUtils,
 		db: Database,
-		done?: (err?: any) => void,
-	): PromiseLike<void>;
-	(
-		app: _express.Application,
-		sbvrUtilsInstance: typeof sbvrUtils,
-		db: Database,
-		done: (err?: any) => void,
-	): void;
-	(
-		app: _express.Application,
-		sbvrUtilsInstance: typeof sbvrUtils,
-		db: Database,
-		done?: (err?: any) => void,
 	): Resolvable<void>;
 }
 
@@ -239,24 +220,7 @@ export const setup = (app: _express.Application) => {
 									return;
 								}
 
-								return new Promise<void>((resolve, reject) => {
-									const promise = customCode(
-										app,
-										sbvrUtils,
-										sbvrUtils.db,
-										err => {
-											if (err) {
-												reject(err);
-											} else {
-												resolve();
-											}
-										},
-									);
-
-									if (Promise.is(promise)) {
-										resolve(promise);
-									}
-								});
+								return customCode(app, sbvrUtils, sbvrUtils.db);
 							}
 						}),
 					),
@@ -311,7 +275,7 @@ export const setup = (app: _express.Application) => {
 				Promise.map(configObj.models, model =>
 					Promise.try<string | undefined>(() => {
 						if (model.modelFile != null) {
-							return readFileAsync(resolvePath(model.modelFile), 'utf8');
+							return fs.promises.readFile(resolvePath(model.modelFile), 'utf8');
 						}
 						return model.modelText;
 					})
@@ -331,7 +295,7 @@ export const setup = (app: _express.Application) => {
 								const migrationsPath = resolvePath(model.migrationsPath);
 								delete model.migrationsPath;
 
-								return readdirAsync(migrationsPath)
+								return Promise.resolve(fs.promises.readdir(migrationsPath))
 									.map(filename => {
 										const filePath = path.join(migrationsPath, filename);
 										const [migrationKey] = filename.split('-', 1);
@@ -343,9 +307,11 @@ export const setup = (app: _express.Application) => {
 												migrations[migrationKey] = nodeRequire(filePath);
 												break;
 											case '.sql':
-												return readFileAsync(filePath, 'utf8').then(sql => {
-													migrations[migrationKey] = sql;
-												});
+												return fs.promises
+													.readFile(filePath, 'utf8')
+													.then(sql => {
+														migrations[migrationKey] = sql;
+													});
 											default:
 												console.error(
 													`Unrecognised migration file extension, skipping: ${path.extname(
@@ -360,9 +326,11 @@ export const setup = (app: _express.Application) => {
 						.then(() => {
 							if (model.initSqlPath) {
 								const initSqlPath = resolvePath(model.initSqlPath);
-								return readFileAsync(initSqlPath, 'utf8').then(initSql => {
-									model.initSql = initSql;
-								});
+								return fs.promises
+									.readFile(initSqlPath, 'utf8')
+									.then(initSql => {
+										model.initSql = initSql;
+									});
 							}
 						}),
 				).then(() => loadConfig(configObj)),
@@ -370,7 +338,6 @@ export const setup = (app: _express.Application) => {
 			.catch(err => {
 				console.error('Error loading application config', err, err.stack);
 				process.exit(1);
-				throw new Error('Unreachable');
 			});
 	};
 

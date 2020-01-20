@@ -4,6 +4,8 @@ import * as permissions from '../sbvr-api/permissions';
 import { api, AnyObject } from '../sbvr-api/sbvr-utils';
 import { Config } from '../config-loader/config-loader';
 
+export { Store };
+
 const sessionModel = `
 	Vocabulary: session
 
@@ -27,7 +29,7 @@ const sessionModel = `
 		Necessity: Each session has at most 1 expiry time
 `;
 
-export = class PinejsSessionStore extends Store {
+export class PinejsSessionStore extends Store {
 	get = ((sid, callback) => {
 		api.session
 			.get({
@@ -137,7 +139,13 @@ export = class PinejsSessionStore extends Store {
 					default: false,
 					error: true,
 				},
+				migrations: {
+					'11.0.0-modified-at': `
+						ALTER TABLE "session"
+						ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
+					`,
+				},
 			},
 		],
 	};
-};
+}

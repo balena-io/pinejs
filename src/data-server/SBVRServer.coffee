@@ -46,6 +46,12 @@ exports.config =
 		modelText: uiModel
 		apiRoot: 'ui'
 		customServerCode: exports
+		migrations: {
+			'11.0.0-modified-at': '''
+				ALTER TABLE "textarea"
+				ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
+			'''
+		}
 	]
 exports.setup = (app, sbvrUtils, db) ->
 	uiApi = sbvrUtils.api.ui

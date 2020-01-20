@@ -14,7 +14,7 @@ import * as Promise from 'bluebird';
 import * as passportPinejs from '../passport-pinejs/passport-pinejs';
 
 import * as sbvrUtils from '../sbvr-api/sbvr-utils';
-import PinejsSessionStore = require('../pinejs-session-store/pinejs-session-store');
+import { PinejsSessionStore } from '../pinejs-session-store/pinejs-session-store';
 export { sbvrUtils, PinejsSessionStore };
 
 import * as express from 'express';

@@ -10,7 +10,7 @@
 		"rootDir": "src",
 		"sourceMap": true,
 		"strictNullChecks": true,
-		"target": "es2015",
+		"target": "es2018",
 		"declaration": true,
 		"skipLibCheck": true,
 		"resolveJsonModule": true
