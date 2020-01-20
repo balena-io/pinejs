@@ -1233,6 +1233,10 @@ export const config = {
 					ALTER TABLE "user-has-permission"
 					ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
 				`,
+				'11.0.1-modified-at': `
+					ALTER TABLE "role-has-permission"
+					ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
+				`,
 			},
 		},
 	] as sbvrUtils.ExecutableModel[],
