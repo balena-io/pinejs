@@ -255,6 +255,10 @@ export const config: Config = {
 					ALTER TABLE "migration"
 					ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
 				`,
+				'11.0.1-modified-at': `
+					ALTER TABLE "migration lock"
+					ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
+				`,
 			},
 		},
 	],
