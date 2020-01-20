@@ -1,4 +1,14 @@
 - commits:
+    - subject: Add missing "modified at" migrations
+      hash: 72c1ed16415dcb69d4a2870e5031b1c4f5c7d3b4
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+  version: 11.0.1
+  date: 2020-01-20T13:36:30.277Z
+- commits:
     - subject: Update lint-staged to 10.x
       hash: 7c247625a5fe571c22e7fd40e703ded922f028e9
       body: ''
