@@ -250,7 +250,7 @@ export abstract class Tx {
 		const promise = this._rollback().finally(() => {
 			this.listeners.rollback.forEach(asyncTryFn);
 			this.on = onRollback;
-			this.listeners = { end: [], rollback: [] };
+			this.clearListeners();
 			return null;
 		});
 		this.closeTransaction('Transaction has been rolled back.');
@@ -261,7 +261,7 @@ export abstract class Tx {
 		const promise = this._commit().tap(() => {
 			this.listeners.end.forEach(asyncTryFn);
 			this.on = onEnd;
-			this.listeners = { end: [], rollback: [] };
+			this.clearListeners();
 			return null;
 		});
 		this.closeTransaction('Transaction has been ended.');
@@ -280,6 +280,11 @@ export abstract class Tx {
 	public on(name: 'rollback', fn: () => void): void;
 	public on(name: keyof Tx['listeners'], fn: () => void): void {
 		this.listeners[name].push(fn);
+	}
+
+	private clearListeners() {
+		this.listeners.end.length = 0;
+		this.listeners.rollback.length = 0;
 	}
 
 	protected abstract _executeSql(
