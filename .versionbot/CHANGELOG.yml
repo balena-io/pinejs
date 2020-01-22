@@ -1,4 +1,14 @@
 - commits:
+    - subject: Add CODEOWNERS
+      hash: 836c5c7820761941f37b1d131c980b164c7df2a1
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+  version: 11.0.3
+  date: 2020-01-22T16:43:23.276Z
+- commits:
     - subject: Avoid allocations when clearing tx listeners
       hash: 89b9805fe88c995ec99a294acd8a7fd81b33e9ca
       body: ''
