@@ -1,4 +1,14 @@
 - commits:
+    - subject: Avoid allocations when clearing tx listeners
+      hash: 89b9805fe88c995ec99a294acd8a7fd81b33e9ca
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+  version: 11.0.2
+  date: 2020-01-22T15:17:53.209Z
+- commits:
     - subject: Add missing "modified at" migrations
       hash: 72c1ed16415dcb69d4a2870e5031b1c4f5c7d3b4
       body: ''
