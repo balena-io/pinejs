@@ -2,7 +2,7 @@ import * as _express from 'express';
 
 import './sbvr-loader';
 
-import * as Promise from 'bluebird';
+import * as Bluebird from 'bluebird';
 import * as dbModule from '../database-layer/db';
 export { dbModule };
 import * as configLoader from '../config-loader/config-loader';
@@ -43,13 +43,13 @@ const db = dbModule.connect(databaseOptions);
 export const init = (
 	app: _express.Application,
 	config?: string | configLoader.Config,
-): Promise<ReturnType<typeof configLoader.setup>> =>
+): Bluebird<ReturnType<typeof configLoader.setup>> =>
 	sbvrUtils
 		.setup(app, db)
 		.then(() => configLoader.setup(app))
 		.tap(cfgLoader => cfgLoader.loadConfig(migrator.config))
 		.tap(cfgLoader => {
-			const promises: Promise<void>[] = [];
+			const promises: Bluebird<void>[] = [];
 			if (process.env.SBVR_SERVER_ENABLED) {
 				const sbvrServer = require('../data-server/SBVRServer');
 				const transactions = require('../http-transactions/transactions');
@@ -63,7 +63,7 @@ export const init = (
 			if (!process.env.CONFIG_LOADER_DISABLED) {
 				promises.push(cfgLoader.loadApplicationConfig(config));
 			}
-			return Promise.all(promises);
+			return Bluebird.all(promises);
 		})
 		.catch(err => {
 			console.error('Error initialising server', err, err.stack);

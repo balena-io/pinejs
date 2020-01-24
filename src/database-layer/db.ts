@@ -5,7 +5,7 @@ import * as _pg from 'pg';
 import * as _pgConnectionString from 'pg-connection-string';
 import * as EventEmitter from 'eventemitter3';
 import * as _ from 'lodash';
-import * as Promise from 'bluebird';
+import * as Bluebird from 'bluebird';
 import { TypedError } from 'typed-error';
 import * as env from '../config-loader/env';
 import { Engines } from '@resin/abstract-sql-compiler';
@@ -20,7 +20,7 @@ export interface CodedError extends Error {
 	constructor: Function;
 }
 
-type CreateTransactionFn = (stackTraceErr?: Error) => Promise<Tx>;
+type CreateTransactionFn = (stackTraceErr?: Error) => Bluebird<Tx>;
 type CloseTransactionFn = () => void;
 export interface Row {
 	[fieldName: string]: any;
@@ -79,8 +79,8 @@ const alwaysExport = {
 };
 
 interface TransactionFn {
-	<T>(fn: (tx: Tx) => Resolvable<T>): Promise<T>;
-	(): Promise<Tx>;
+	<T>(fn: (tx: Tx) => Resolvable<T>): Bluebird<T>;
+	(): Bluebird<Tx>;
 }
 
 export type Database = {
@@ -93,7 +93,7 @@ export type Database = {
 		this: Database,
 		sql: Sql,
 		bindings?: Bindings,
-	) => Promise<Result>;
+	) => Bluebird<Result>;
 	transaction: TransactionFn;
 	readTransaction?: TransactionFn;
 };
@@ -107,7 +107,7 @@ const atomicExecuteSql: Database['executeSql'] = function(sql, bindings) {
 };
 
 const asyncTryFn = (fn: () => any) => {
-	Promise.resolve().then(fn);
+	Bluebird.resolve().then(fn);
 };
 
 let timeoutMS: number;
@@ -137,12 +137,12 @@ const getRejectedFunctions: RejectedFunctions = DEBUG
 				executeSql: () =>
 					// We return a new rejected promise on each call so that bluebird can handle
 					// logging errors if the rejection is not handled (but only if it is not handled)
-					Promise.reject(rejectionValue),
-				rollback: () => Promise.reject(rejectionValue),
+					Bluebird.reject(rejectionValue),
+				rollback: () => Bluebird.reject(rejectionValue),
 			};
 	  }
 	: message => {
-			const rejectFn = () => Promise.reject(new Error(message));
+			const rejectFn = () => Bluebird.reject(new Error(message));
 			return {
 				executeSql: rejectFn,
 				rollback: rejectFn,
@@ -215,7 +215,7 @@ export abstract class Tx {
 		sql: Sql,
 		bindings: Bindings = [],
 		...args: any[]
-	): Promise<Result> {
+	): Bluebird<Result> {
 		this.incrementPending();
 
 		let t0 = Date.now();
@@ -246,7 +246,7 @@ export abstract class Tx {
 			})
 			.catch(wrapDatabaseError);
 	}
-	public rollback(): Promise<void> {
+	public rollback(): Bluebird<void> {
 		const promise = this._rollback().finally(() => {
 			this.listeners.rollback.forEach(asyncTryFn);
 			this.on = onRollback;
@@ -257,7 +257,7 @@ export abstract class Tx {
 
 		return promise;
 	}
-	public end(): Promise<void> {
+	public end(): Bluebird<void> {
 		const promise = this._commit().tap(() => {
 			this.listeners.end.forEach(asyncTryFn);
 			this.on = onEnd;
@@ -291,17 +291,17 @@ export abstract class Tx {
 		sql: Sql,
 		bindings: Bindings,
 		addReturning?: false | string,
-	): Promise<Result>;
-	protected abstract _rollback(): Promise<void>;
-	protected abstract _commit(): Promise<void>;
+	): Bluebird<Result>;
+	protected abstract _rollback(): Bluebird<void>;
+	protected abstract _commit(): Bluebird<void>;
 
-	public abstract tableList(extraWhereClause?: string): Promise<Result>;
+	public abstract tableList(extraWhereClause?: string): Bluebird<Result>;
 	public dropTable(tableName: string, ifExists = true) {
 		if (!_.isString(tableName)) {
-			return Promise.reject(new TypeError('"tableName" must be a string'));
+			return Bluebird.reject(new TypeError('"tableName" must be a string'));
 		}
 		if (_.includes(tableName, '"')) {
-			return Promise.reject(
+			return Bluebird.reject(
 				new TypeError('"tableName" cannot include double quotes'),
 			);
 		}
@@ -315,11 +315,11 @@ const getStackTraceErr: () => Error | undefined = DEBUG
 	: (_.noop as () => undefined);
 
 const createTransaction = (createFunc: CreateTransactionFn): TransactionFn => {
-	return <T>(fn?: (tx: Tx) => Resolvable<T>): Promise<T> | Promise<Tx> => {
+	return <T>(fn?: (tx: Tx) => Resolvable<T>): Bluebird<T> | Bluebird<Tx> => {
 		const stackTraceErr = getStackTraceErr();
 		// Create a new promise in order to be able to get access to cancellation, to let us
 		// return the client to the pool if the promise was cancelled whilst we were waiting
-		return new Promise<Tx | T>((resolve, reject, onCancel) => {
+		return new Bluebird<Tx | T>((resolve, reject, onCancel) => {
 			if (onCancel) {
 				onCancel(() => {
 					// Rollback the promise on cancel
@@ -330,7 +330,7 @@ const createTransaction = (createFunc: CreateTransactionFn): TransactionFn => {
 			if (fn) {
 				promise
 					.tap(tx =>
-						Promise.try<T>(() => fn(tx))
+						Bluebird.try<T>(() => fn(tx))
 							.tap(() => tx.end())
 							.tapCatch(() => tx.rollback())
 							.then(resolve),
@@ -339,7 +339,7 @@ const createTransaction = (createFunc: CreateTransactionFn): TransactionFn => {
 			} else {
 				promise.then(resolve).catch(reject);
 			}
-		}) as Promise<Tx> | Promise<T>;
+		}) as Bluebird<Tx> | Bluebird<T>;
 	};
 };
 
@@ -352,15 +352,15 @@ if (maybePg != null) {
 	// We have these custom pg types because we pass bluebird as the promise provider
 	// so the returned promises are bluebird promises and we rely on that
 	interface BluebirdPoolClient extends _events.EventEmitter {
-		query(queryConfig: _pg.QueryConfig): Promise<_pg.QueryResult>;
+		query(queryConfig: _pg.QueryConfig): Bluebird<_pg.QueryResult>;
 		query(
 			queryTextOrConfig: _pg.QueryConfig,
 			values?: any[],
-		): Promise<_pg.QueryResult>;
+		): Bluebird<_pg.QueryResult>;
 		release(err?: Error): void;
 	}
 	interface BluebirdPool extends _events.EventEmitter {
-		connect(): Promise<BluebirdPoolClient>;
+		connect(): Bluebird<BluebirdPoolClient>;
 
 		on(
 			event: 'error',
@@ -386,7 +386,7 @@ if (maybePg != null) {
 			config = connectString;
 		}
 		// Use bluebird for our pool promises
-		config.Promise = Promise;
+		config.Promise = Bluebird;
 		config.max = env.db.poolSize;
 		config.idleTimeoutMillis = env.db.idleTimeoutMillis;
 		config.connectionTimeoutMillis = env.db.connectionTimeoutMillis;
@@ -518,7 +518,7 @@ if (maybeMysql != null) {
 		pool.on('connection', db => {
 			db.query("SET sql_mode='ANSI_QUOTES';");
 		});
-		const connect = Promise.promisify(pool.getConnection, { context: pool });
+		const connect = Bluebird.promisify(pool.getConnection, { context: pool });
 
 		interface MysqlRowArray extends Array<Row> {
 			affectedRows: number;
@@ -541,7 +541,7 @@ if (maybeMysql != null) {
 			}
 
 			protected _executeSql(sql: Sql, bindings: Bindings) {
-				return Promise.fromCallback(callback => {
+				return Bluebird.fromCallback(callback => {
 					this.db.query(sql, bindings, callback);
 				})
 					.catch({ code: MYSQL_UNIQUE_VIOLATION }, err => {
@@ -674,7 +674,7 @@ if (typeof window !== 'undefined' && window.openDatabase != null) {
 			};
 
 			protected _executeSql(sql: Sql, bindings: Bindings) {
-				return new Promise((resolve, reject) => {
+				return new Bluebird((resolve, reject) => {
 					const successCallback: SQLStatementCallback = (_tx, results) => {
 						resolve(results);
 					};
@@ -691,8 +691,8 @@ if (typeof window !== 'undefined' && window.openDatabase != null) {
 					.then(createResult);
 			}
 
-			protected _rollback(): Promise<void> {
-				return new Promise(resolve => {
+			protected _rollback(): Bluebird<void> {
+				return new Bluebird(resolve => {
 					const successCallback: SQLStatementCallback = () => {
 						resolve();
 						throw new Error('Rollback');
@@ -715,7 +715,7 @@ if (typeof window !== 'undefined' && window.openDatabase != null) {
 
 			protected _commit() {
 				this.running = false;
-				return Promise.resolve();
+				return Bluebird.resolve();
 			}
 
 			public tableList(extraWhereClause: string = '') {
@@ -740,7 +740,7 @@ if (typeof window !== 'undefined' && window.openDatabase != null) {
 			executeSql: atomicExecuteSql,
 			transaction: createTransaction(
 				stackTraceErr =>
-					new Promise(resolve => {
+					new Bluebird(resolve => {
 						db.transaction(tx => {
 							resolve(new WebSqlTx(tx, stackTraceErr));
 						});

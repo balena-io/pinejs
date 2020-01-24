@@ -1,7 +1,7 @@
 declare module '@resin/abstract-sql-compiler' {
 	interface AbstractSqlTable {
 		fetchProcessingFields?: {
-			[field: string]: (field: any) => Promise<any>;
+			[field: string]: (field: any) => Bluebird<any>;
 		};
 		localFields?: {
 			[odataName: string]: true;
@@ -10,7 +10,7 @@ declare module '@resin/abstract-sql-compiler' {
 }
 
 import * as _ from 'lodash';
-import * as Promise from 'bluebird';
+import * as Bluebird from 'bluebird';
 import { Row, Result } from '../database-layer/db';
 import { resolveNavigationResource, resolveSynonym } from './sbvr-utils';
 import { sqlNameToODataName } from '@resin/odata-to-abstract-sql';
@@ -20,7 +20,7 @@ import {
 	AbstractSqlTable,
 } from '@resin/abstract-sql-compiler';
 
-const checkForExpansion = Promise.method(
+const checkForExpansion = Bluebird.method(
 	(
 		vocab: string,
 		abstractSqlModel: AbstractSqlModel,
@@ -123,15 +123,15 @@ export const process = (
 	abstractSqlModel: AbstractSqlModel,
 	resourceName: string,
 	rows: Result['rows'],
-): Promise<number | Row[]> => {
+): Bluebird<number | Row[]> => {
 	if (rows.length === 0) {
-		return Promise.resolve([]);
+		return Bluebird.resolve([]);
 	}
 
 	if (rows.length === 1) {
 		if (rows[0].$count != null) {
 			const count = parseInt(rows[0].$count, 10);
-			return Promise.resolve(count);
+			return Bluebird.resolve(count);
 		}
 	}
 
@@ -150,7 +150,7 @@ export const process = (
 		return instance;
 	});
 
-	let instancesPromise = Promise.resolve();
+	let instancesPromise = Bluebird.resolve();
 
 	const localFields = getLocalFields(table);
 	// We check that it's not a local field, rather than that it is a foreign key because of the case where the foreign key is on the other resource
@@ -161,8 +161,8 @@ export const process = (
 			!_.startsWith(fieldName, '__') && !localFields.hasOwnProperty(fieldName),
 	);
 	if (expandableFields.length > 0) {
-		instancesPromise = Promise.map(instances, instance =>
-			Promise.map(expandableFields, fieldName =>
+		instancesPromise = Bluebird.map(instances, instance =>
+			Bluebird.map(expandableFields, fieldName =>
 				checkForExpansion(
 					vocab,
 					abstractSqlModel,
@@ -184,8 +184,8 @@ export const process = (
 	if (processedFields.length > 0) {
 		instancesPromise = instancesPromise
 			.then(() =>
-				Promise.map(instances, instance =>
-					Promise.map(processedFields, resourceName =>
+				Bluebird.map(instances, instance =>
+					Bluebird.map(processedFields, resourceName =>
 						fetchProcessingFields[resourceName](instance[resourceName]).then(
 							result => {
 								instance[resourceName] = result;

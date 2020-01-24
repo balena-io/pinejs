@@ -1,6 +1,6 @@
 import * as _AbstractSQLCompiler from '@resin/abstract-sql-compiler';
 
-import * as Promise from 'bluebird';
+import * as Bluebird from 'bluebird';
 import * as ODataParser from '@resin/odata-parser';
 import {
 	ODataBinds,
@@ -255,24 +255,24 @@ export const metadataEndpoints = ['$metadata', '$serviceroot'];
 
 export function parseOData(
 	b: UnparsedRequest & { _isChangeSet?: false },
-): Promise<ODataRequest>;
+): Bluebird<ODataRequest>;
 export function parseOData(
 	b: UnparsedRequest & { _isChangeSet: true },
-): Promise<ODataRequest[]>;
+): Bluebird<ODataRequest[]>;
 export function parseOData(
 	b: UnparsedRequest,
-): Promise<ODataRequest | ODataRequest[]>;
+): Bluebird<ODataRequest | ODataRequest[]>;
 export function parseOData(
 	b: UnparsedRequest,
-): Promise<ODataRequest | ODataRequest[]> {
-	return Promise.try<ODataRequest | ODataRequest[]>(() => {
+): Bluebird<ODataRequest | ODataRequest[]> {
+	return Bluebird.try<ODataRequest | ODataRequest[]>(() => {
 		if (b._isChangeSet && b.changeSet != null) {
 			const csReferences = new Map<ODataRequest['id'], ODataRequest>();
 			// We sort the CS set once, we must assure that requests which reference
 			// other requests in the changeset are placed last. Once they are sorted
 			// Map will guarantee retrival of results in insertion order
 			const sortedCS = _.sortBy(b.changeSet, el => el.url[0] !== '/');
-			return Promise.reduce(sortedCS, parseODataChangeset, csReferences).then(
+			return Bluebird.reduce(sortedCS, parseODataChangeset, csReferences).then(
 				csReferences => Array.from(csReferences.values()) as ODataRequest[],
 			);
 		} else {

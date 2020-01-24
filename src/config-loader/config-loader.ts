@@ -1,7 +1,7 @@
 import * as _express from 'express';
 
 import * as _ from 'lodash';
-import * as Promise from 'bluebird';
+import * as Bluebird from 'bluebird';
 import * as path from 'path';
 import * as fs from 'fs';
 
@@ -51,10 +51,10 @@ export interface Config {
 
 // Setup function
 export const setup = (app: _express.Application) => {
-	const loadConfig = (data: Config): Promise<void> =>
+	const loadConfig = (data: Config): Bluebird<void> =>
 		sbvrUtils.db
 			.transaction(tx =>
-				Promise.try(() => {
+				Bluebird.try(() => {
 					const authApiTx = sbvrUtils.api.Auth.clone({
 						passthrough: {
 							tx,
@@ -64,7 +64,7 @@ export const setup = (app: _express.Application) => {
 
 					if (data.users != null) {
 						const permissionsCache: {
-							[index: string]: Promise<number>;
+							[index: string]: Bluebird<number>;
 						} = {};
 						_.each(data.users, user => {
 							if (user.permissions == null) {
@@ -105,7 +105,7 @@ export const setup = (app: _express.Application) => {
 							});
 						});
 
-						return Promise.map(data.users, user => {
+						return Bluebird.map(data.users, user => {
 							return authApiTx
 								.get({
 									resource: 'user',
@@ -134,7 +134,7 @@ export const setup = (app: _express.Application) => {
 								})
 								.then(userID => {
 									if (user.permissions != null) {
-										return Promise.map(user.permissions, permissionName =>
+										return Bluebird.map(user.permissions, permissionName =>
 											permissionsCache[permissionName].then(permissionID =>
 												authApiTx
 													.get({
@@ -173,7 +173,7 @@ export const setup = (app: _express.Application) => {
 				})
 					.return(data.models)
 					.map(model =>
-						Promise.try(() => {
+						Bluebird.try(() => {
 							if (
 								(model.abstractSql != null || model.modelText != null) &&
 								model.apiRoot != null
@@ -227,9 +227,9 @@ export const setup = (app: _express.Application) => {
 			)
 			.return();
 
-	const loadConfigFile = (path: string): Promise<Config> => {
+	const loadConfigFile = (path: string): Bluebird<Config> => {
 		console.info('Loading config:', path);
-		return Promise.resolve(import(path));
+		return Bluebird.resolve(import(path));
 	};
 
 	const loadApplicationConfig = (config?: string | Config) => {
@@ -259,7 +259,7 @@ export const setup = (app: _express.Application) => {
 			root = process.cwd();
 			configPromise = config;
 		} else {
-			return Promise.reject(
+			return Bluebird.reject(
 				new Error(`Invalid type for config '${typeof config}'`),
 			);
 		}
@@ -270,10 +270,10 @@ export const setup = (app: _express.Application) => {
 			return path.join(root, s);
 		};
 
-		return Promise.resolve(configPromise)
+		return Bluebird.resolve(configPromise)
 			.then(configObj =>
-				Promise.map(configObj.models, model =>
-					Promise.try<string | undefined>(() => {
+				Bluebird.map(configObj.models, model =>
+					Bluebird.try<string | undefined>(() => {
 						if (model.modelFile != null) {
 							return fs.promises.readFile(resolvePath(model.modelFile), 'utf8');
 						}
@@ -295,7 +295,7 @@ export const setup = (app: _express.Application) => {
 								const migrationsPath = resolvePath(model.migrationsPath);
 								delete model.migrationsPath;
 
-								return Promise.resolve(fs.promises.readdir(migrationsPath))
+								return Bluebird.resolve(fs.promises.readdir(migrationsPath))
 									.map(filename => {
 										const filePath = path.join(migrationsPath, filename);
 										const [migrationKey] = filename.split('-', 1);

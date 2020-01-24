@@ -1,4 +1,4 @@
-import * as Promise from 'bluebird';
+import * as Bluebird from 'bluebird';
 import * as _ from 'lodash';
 
 import * as env from '../config-loader/env';
@@ -73,7 +73,7 @@ export const getAndCheckBindValues = (
 ) => {
 	const { odataBinds, values, engine } = request;
 	const sqlModelTables = sbvrUtils.getAbstractSqlModel(request).tables;
-	return Promise.map(bindings, binding => {
+	return Bluebird.map(bindings, binding => {
 		let fieldName: string;
 		let field: { dataType: string };
 		let value: any;

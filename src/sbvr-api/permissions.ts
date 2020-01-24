@@ -12,7 +12,7 @@ import {
 	odataNameToSqlName,
 	sqlNameToODataName,
 } from '@resin/odata-to-abstract-sql';
-import * as Promise from 'bluebird';
+import * as Bluebird from 'bluebird';
 import * as express from 'express';
 import * as _ from 'lodash';
 import * as memoize from 'memoizee';
@@ -684,7 +684,7 @@ const getCheckPasswordQuery = _.once(() =>
 export const checkPassword = (
 	username: string,
 	password: string,
-): Promise<{
+): Bluebird<{
 	id: number;
 	actor: number;
 	username: string;
@@ -787,12 +787,12 @@ const getUserPermissionsQuery = _.once(() =>
 		},
 	}),
 );
-export const getUserPermissions = (userId: number): Promise<string[]> => {
+export const getUserPermissions = (userId: number): Bluebird<string[]> => {
 	if (_.isString(userId)) {
 		userId = _.parseInt(userId);
 	}
 	if (!_.isFinite(userId)) {
-		return Promise.reject(
+		return Bluebird.reject(
 			new Error('User ID has to be numeric, got: ' + typeof userId),
 		);
 	}
@@ -896,8 +896,8 @@ const $getApiKeyPermissions = memoize(
 	},
 );
 
-export const getApiKeyPermissions = (apiKey: string): Promise<string[]> =>
-	Promise.try(() => {
+export const getApiKeyPermissions = (apiKey: string): Bluebird<string[]> =>
+	Bluebird.try(() => {
 		if (!_.isString(apiKey)) {
 			throw new Error('API key has to be a string, got: ' + typeof apiKey);
 		}
@@ -942,7 +942,7 @@ const getApiKeyActorId = memoize(
 	},
 );
 
-const checkApiKey = Promise.method((req: PermissionReq, apiKey: string) => {
+const checkApiKey = Bluebird.method((req: PermissionReq, apiKey: string) => {
 	if (apiKey == null || req.apiKey != null) {
 		return;
 	}
@@ -953,7 +953,7 @@ const checkApiKey = Promise.method((req: PermissionReq, apiKey: string) => {
 			return [];
 		})
 		.then(permissions =>
-			Promise.try(() => {
+			Bluebird.try(() => {
 				if (permissions.length > 0) {
 					return getApiKeyActorId(apiKey);
 				}
@@ -976,8 +976,8 @@ export const customAuthorizationMiddleware = (expectedScheme = 'Bearer') => {
 		req: express.Request,
 		_res?: express.Response,
 		next?: express.NextFunction,
-	): Promise<void> =>
-		Promise.try(() => {
+	): Bluebird<void> =>
+		Bluebird.try(() => {
 			const auth = req.header('Authorization');
 			if (!auth) {
 				return;
@@ -1010,7 +1010,7 @@ export const customApiKeyMiddleware = (paramName = 'apikey') => {
 		req: HookReq | express.Request,
 		_res?: express.Response,
 		next?: express.NextFunction,
-	): Promise<void> => {
+	): Bluebird<void> => {
 		const apiKey =
 			req.params[paramName] != null
 				? req.params[paramName]
@@ -1089,9 +1089,9 @@ const getGuestPermissions = memoize(
 );
 
 const getReqPermissions = (req: PermissionReq, odataBinds: ODataBinds = []) =>
-	Promise.join(
+	Bluebird.join(
 		getGuestPermissions(),
-		Promise.try(() => {
+		Bluebird.try(() => {
 			// TODO: Remove this extra actor ID lookup making actor non-optional and updating open-balena-api.
 			if (
 				req.apiKey != null &&
@@ -1141,11 +1141,11 @@ const getReqPermissions = (req: PermissionReq, odataBinds: ODataBinds = []) =>
 		},
 	);
 
-export const addPermissions = Promise.method(
+export const addPermissions = Bluebird.method(
 	(
 		req: PermissionReq,
 		request: ODataRequest & { permissionType?: PermissionCheck },
-	): Promise<void> => {
+	): Bluebird<void> => {
 		const { vocabulary, resourceName, odataQuery, odataBinds } = request;
 		let { method, permissionType: maybePermissionType } = request;
 		let abstractSqlModel = sbvrUtils.getAbstractSqlModel(request);
@@ -1182,7 +1182,7 @@ export const addPermissions = Promise.method(
 			) === true
 		) {
 			// We have unconditional permission to access the vocab so there's no need to intercept anything
-			return Promise.resolve();
+			return Bluebird.resolve();
 		}
 		return getReqPermissions(req, odataBinds).then(permissionsLookup => {
 			// Update the request's abstract sql model to use the constrained version
