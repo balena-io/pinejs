@@ -78,27 +78,25 @@ export const run = (tx: Tx, model: ApiRootModel): Bluebird<void> => {
 
 			return setExecutedMigrations(tx, modelName, _.keys(migrations));
 		}
-		return Bluebird.using(lockMigrations(tx, modelName), () =>
-			getExecutedMigrations(tx, modelName).then(executedMigrations => {
-				const pendingMigrations = filterAndSortPendingMigrations(
-					migrations,
-					executedMigrations,
-				);
-				if (!_.some(pendingMigrations)) {
-					return;
-				}
+		return Bluebird.using(lockMigrations(tx, modelName), async () => {
+			const executedMigrations = await getExecutedMigrations(tx, modelName);
+			const pendingMigrations = filterAndSortPendingMigrations(
+				migrations,
+				executedMigrations,
+			);
+			if (!_.some(pendingMigrations)) {
+				return;
+			}
 
-				return executeMigrations(
-					tx,
-					pendingMigrations,
-				).then(newlyExecutedMigrations =>
-					setExecutedMigrations(tx, modelName, [
-						...executedMigrations,
-						...newlyExecutedMigrations,
-					]),
-				);
-			}),
-		);
+			const newlyExecutedMigrations = await executeMigrations(
+				tx,
+				pendingMigrations,
+			);
+			return setExecutedMigrations(tx, modelName, [
+				...executedMigrations,
+				...newlyExecutedMigrations,
+			]);
+		});
 	});
 };
 
@@ -124,56 +122,55 @@ LIMIT 1`,
 			});
 	});
 
-const getExecutedMigrations = (tx: Tx, modelName: string): Bluebird<string[]> =>
-	tx
-		.executeSql(
-			binds`
+const getExecutedMigrations = async (
+	tx: Tx,
+	modelName: string,
+): Promise<string[]> => {
+	const { rows } = await tx.executeSql(
+		binds`
 SELECT "migration"."executed migrations" AS "executed_migrations"
 FROM "migration"
 WHERE "migration"."model name" = ${1}`,
-			[modelName],
-		)
-		.then(({ rows }) => {
-			const data = rows[0];
-			if (data == null) {
-				return [];
-			}
+		[modelName],
+	);
 
-			return JSON.parse(data.executed_migrations) as string[];
-		});
+	const data = rows[0];
+	if (data == null) {
+		return [];
+	}
 
-const setExecutedMigrations = (
+	return JSON.parse(data.executed_migrations) as string[];
+};
+
+const setExecutedMigrations = async (
 	tx: Tx,
 	modelName: string,
 	executedMigrations: string[],
-): Bluebird<void> => {
+): Promise<void> => {
 	const stringifiedMigrations = JSON.stringify(executedMigrations);
 
-	return tx.tableList("name = 'migration'").then(result => {
-		if (result.rows.length === 0) {
-			return;
-		}
-		return tx
-			.executeSql(
-				binds`
+	const result = await tx.tableList("name = 'migration'");
+	if (result.rows.length === 0) {
+		return;
+	}
+
+	const { rowsAffected } = await tx.executeSql(
+		binds`
 UPDATE "migration"
 SET "model name" = ${1},
-	"executed migrations" = ${2}
+"executed migrations" = ${2}
 WHERE "migration"."model name" = ${3}`,
-				[modelName, stringifiedMigrations, modelName],
-			)
-			.then(({ rowsAffected }) => {
-				if (rowsAffected === 0) {
-					tx.executeSql(
-						binds`
+		[modelName, stringifiedMigrations, modelName],
+	);
+
+	if (rowsAffected === 0) {
+		tx.executeSql(
+			binds`
 INSERT INTO "migration" ("model name", "executed migrations")
 VALUES (${1}, ${2})`,
-						[modelName, stringifiedMigrations],
-					);
-				}
-			})
-			.return();
-	});
+			[modelName, stringifiedMigrations],
+		);
+	}
 };
 
 // turns {"key1": migration, "key3": migration, "key2": migration}
@@ -217,34 +214,38 @@ WHERE "model name" = ${1}`,
 				.return();
 		});
 
-const executeMigrations = (
+const executeMigrations = async (
 	tx: Tx,
 	migrations: Array<MigrationTuple> = [],
-): Bluebird<string[]> =>
-	Bluebird.mapSeries(migrations, executeMigration.bind(null, tx))
-		.catch(err => {
-			(sbvrUtils.api.migrations?.logger.error ?? console.error)(
-				'Error while executing migrations, rolled back',
-			);
-			throw new MigrationError(err);
-		})
-		.return(migrations.map(([migrationKey]) => migrationKey)); // return migration keys
+): Promise<string[]> => {
+	try {
+		for (const migration of migrations) {
+			await executeMigration(tx, migration);
+		}
+	} catch (err) {
+		(sbvrUtils.api.migrations?.logger.error ?? console.error)(
+			'Error while executing migrations, rolled back',
+		);
+		throw new MigrationError(err);
+	}
+	return migrations.map(([migrationKey]) => migrationKey); // return migration keys
+};
 
-const executeMigration = (
+const executeMigration = async (
 	tx: Tx,
 	[key, migration]: MigrationTuple,
-): Bluebird<void> => {
+): Promise<void> => {
 	(sbvrUtils.api.migrations?.logger.info ?? console.info)(
 		`Running migration ${JSON.stringify(key)}`,
 	);
 
 	if (_.isFunction(migration)) {
-		return Bluebird.resolve(migration(tx, sbvrUtils));
+		await migration(tx, sbvrUtils);
+	} else if (_.isString(migration)) {
+		await tx.executeSql(migration);
+	} else {
+		throw new MigrationError(`Invalid migration type: ${typeof migration}`);
 	}
-	if (_.isString(migration)) {
-		return tx.executeSql(migration).return();
-	}
-	throw new MigrationError(`Invalid migration type: ${typeof migration}`);
 };
 
 export const config: Config = {
