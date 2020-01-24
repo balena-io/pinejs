@@ -81,7 +81,7 @@ import { version as LF2AbstractSQLVersion } from '@resin/lf-to-abstract-sql/pack
 import { version as sbvrTypesVersion } from '@resin/lf-to-abstract-sql/package.json';
 import { AnyObject } from './sbvr-utils';
 import { Model } from '../config-loader/config-loader';
-import { RequiredField, OptionalField, Resolvable } from './common-types';
+import { RequiredField, OptionalField } from './common-types';
 import {
 	getAndCheckBindValues,
 	compileRequest,
@@ -360,13 +360,13 @@ export const validateModel = (
 	modelName: string,
 	request?: uriParser.ODataRequest,
 ): Bluebird<void> => {
-	return Bluebird.map(models[modelName].sql.rules, rule => {
+	return Bluebird.map(models[modelName].sql.rules, async rule => {
 		if (!isRuleAffected(rule, request)) {
 			// If none of the fields intersect we don't need to run the rule! :D
 			return;
 		}
 
-		return getAndCheckBindValues(
+		const values = await getAndCheckBindValues(
 			{
 				vocabulary: modelName,
 				odataBinds: [],
@@ -374,14 +374,13 @@ export const validateModel = (
 				engine: db.engine,
 			},
 			rule.bindings,
-		)
-			.then(values => tx.executeSql(rule.sql, values))
-			.then(result => {
-				const v = result.rows[0].result;
-				if (v === false || v === 0 || v === '0') {
-					throw new SbvrValidationError(rule.structuredEnglish);
-				}
-			});
+		);
+		const result = await tx.executeSql(rule.sql, values);
+
+		const v = result.rows[0].result;
+		if (v === false || v === 0 || v === '0') {
+			throw new SbvrValidationError(rule.structuredEnglish);
+		}
 	}).return();
 };
 
@@ -458,60 +457,57 @@ export const executeModels = (
 	tx: _db.Tx,
 	execModels: ExecutableModel[],
 ): Bluebird<void> =>
-	Bluebird.map(execModels, model => {
+	Bluebird.map(execModels, async model => {
 		const { apiRoot } = model;
 
-		return migrator.run(tx, model).then(() => {
-			const compiledModel = generateModels(model, db.engine);
+		await migrator.run(tx, model);
+		const compiledModel = generateModels(model, db.engine);
 
-			// Create tables related to terms and fact types
-			// Use `Promise.each` to run statements sequentially, as the order of the CREATE TABLE statements matters (eg. for foreign keys).
-			return Bluebird.each(compiledModel.sql.createSchema, createStatement => {
-				const promise = tx.executeSql(createStatement);
-				if (db.engine === 'websql') {
-					promise.catch(err => {
-						console.warn(
-							"Ignoring errors in the create table statements for websql as it doesn't support CREATE IF NOT EXISTS",
-							err,
-						);
-					});
+		// Create tables related to terms and fact types
+		// Run statements sequentially, as the order of the CREATE TABLE statements matters (eg. for foreign keys).
+		for (const createStatement of compiledModel.sql.createSchema) {
+			const promise = tx.executeSql(createStatement);
+			if (db.engine === 'websql') {
+				promise.catch(err => {
+					console.warn(
+						"Ignoring errors in the create table statements for websql as it doesn't support CREATE IF NOT EXISTS",
+						err,
+					);
+				});
+			}
+			await promise;
+		}
+		await migrator.postRun(tx, model);
+
+		odataResponse.prepareModel(compiledModel.abstractSql);
+		deepFreeze(compiledModel.abstractSql);
+		models[apiRoot] = compiledModel;
+
+		// Validate the [empty] model according to the rules.
+		// This may eventually lead to entering obligatory data.
+		// For the moment it blocks such models from execution.
+		await validateModel(tx, apiRoot);
+
+		// TODO: Can we do this without the cast?
+		api[apiRoot] = new PinejsClient('/' + apiRoot + '/') as LoggingClient;
+		api[apiRoot].logger = _.cloneDeep(console);
+		if (model.logging != null) {
+			const defaultSetting = _.get(model.logging, 'default', true);
+			for (const k in model.logging) {
+				const key = k as keyof Console;
+				if (
+					_.isFunction(api[apiRoot].logger[key]) &&
+					!_.get(model.logging, [key], defaultSetting)
+				) {
+					api[apiRoot].logger[key] = _.noop;
 				}
-				return promise;
-			})
-				.then(() => migrator.postRun(tx, model))
-				.then(() => {
-					odataResponse.prepareModel(compiledModel.abstractSql);
-					deepFreeze(compiledModel.abstractSql);
-					models[apiRoot] = compiledModel;
-
-					// Validate the [empty] model according to the rules.
-					// This may eventually lead to entering obligatory data.
-					// For the moment it blocks such models from execution.
-					return validateModel(tx, apiRoot);
-				})
-				.then(() => {
-					// TODO: Can we do this without the cast?
-					api[apiRoot] = new PinejsClient('/' + apiRoot + '/') as LoggingClient;
-					api[apiRoot].logger = _.cloneDeep(console);
-					if (model.logging != null) {
-						const defaultSetting = _.get(model.logging, 'default', true);
-						for (const k in model.logging) {
-							const key = k as keyof Console;
-							if (
-								_.isFunction(api[apiRoot].logger[key]) &&
-								!_.get(model.logging, [key], defaultSetting)
-							) {
-								api[apiRoot].logger[key] = _.noop;
-							}
-						}
-					}
-				})
-				.return(compiledModel);
-		});
+			}
+		}
+		return compiledModel;
 		// Only update the dev models once all models have finished executing.
 	})
 		.map((model: CompiledModel) => {
-			const updateModel = (modelType: keyof CompiledModel) => {
+			const updateModel = async (modelType: keyof CompiledModel) => {
 				if (model[modelType] == null) {
 					return api.dev.delete({
 						resource: 'model',
@@ -527,40 +523,38 @@ export const executeModels = (
 						},
 					});
 				}
-				return api.dev
-					.get({
-						resource: 'model',
-						passthrough: {
-							tx,
-							req: permissions.rootRead,
-						},
-						options: {
-							$select: 'id',
-							$filter: {
-								is_of__vocabulary: model.vocab,
-								model_type: modelType,
-							},
-						},
-					})
-					.then(result => {
-						let method: SupportedMethod = 'POST';
-						let uri = '/dev/model';
-						const body: AnyObject = {
+				const result = await api.dev.get({
+					resource: 'model',
+					passthrough: {
+						tx,
+						req: permissions.rootRead,
+					},
+					options: {
+						$select: 'id',
+						$filter: {
 							is_of__vocabulary: model.vocab,
-							model_value: model[modelType],
 							model_type: modelType,
-						};
-						const id = _.get(result, ['0', 'id']);
-						if (id != null) {
-							uri += '(' + id + ')';
-							method = 'PATCH';
-							body.id = id;
-						} else {
-							uri += '?returnResource=false';
-						}
+						},
+					},
+				});
 
-						return runURI(method, uri, body, tx, permissions.root);
-					});
+				let method: SupportedMethod = 'POST';
+				let uri = '/dev/model';
+				const body: AnyObject = {
+					is_of__vocabulary: model.vocab,
+					model_value: model[modelType],
+					model_type: modelType,
+				};
+				const id = _.get(result, ['0', 'id']);
+				if (id != null) {
+					uri += '(' + id + ')';
+					method = 'PATCH';
+					body.id = id;
+				} else {
+					uri += '?returnResource=false';
+				}
+
+				return runURI(method, uri, body, tx, permissions.root);
 			};
 
 			return Bluebird.map(
@@ -734,143 +728,138 @@ export const runRule = (() => {
 	});
 	const translator = LF2AbstractSQL.LF2AbstractSQL.createInstance();
 	translator.addTypes(sbvrTypes);
-	return (vocab: string, rule: string) => {
-		return Bluebird.try(() => {
-			const seModel = models[vocab].se;
-			const { logger } = api[vocab];
-			let lfModel: LFModel;
-			let slfModel: LFModel;
-			let abstractSqlModel: AbstractSQLCompiler.AbstractSqlModel;
+	return Bluebird.method(async (vocab: string, rule: string) => {
+		const seModel = models[vocab].se;
+		const { logger } = api[vocab];
+		let lfModel: LFModel;
+		let slfModel: LFModel;
+		let abstractSqlModel: AbstractSQLCompiler.AbstractSqlModel;
 
-			try {
-				lfModel = ExtendedSBVRParser.matchAll(
-					seModel + '\nRule: ' + rule,
-					'Process',
-				);
-			} catch (e) {
-				logger.error('Error parsing rule', rule, e);
-				throw new Error(`Error parsing rule'${rule}': ${e}`);
-			}
+		try {
+			lfModel = ExtendedSBVRParser.matchAll(
+				seModel + '\nRule: ' + rule,
+				'Process',
+			);
+		} catch (e) {
+			logger.error('Error parsing rule', rule, e);
+			throw new Error(`Error parsing rule'${rule}': ${e}`);
+		}
 
-			const ruleLF = lfModel.pop();
+		const ruleLF = lfModel.pop();
 
-			try {
-				slfModel = LF2AbstractSQL.LF2AbstractSQLPrep.match(lfModel, 'Process');
-				slfModel.push(ruleLF);
-				slfModel = LF2AbstractSQLPrepHack.match(slfModel, 'Process');
+		try {
+			slfModel = LF2AbstractSQL.LF2AbstractSQLPrep.match(lfModel, 'Process');
+			slfModel.push(ruleLF);
+			slfModel = LF2AbstractSQLPrepHack.match(slfModel, 'Process');
 
-				translator.reset();
-				abstractSqlModel = translator.match(slfModel, 'Process');
-			} catch (e) {
-				logger.error('Error compiling rule', rule, e);
-				throw new Error(`Error compiling rule '${rule}': ${e}`);
-			}
+			translator.reset();
+			abstractSqlModel = translator.match(slfModel, 'Process');
+		} catch (e) {
+			logger.error('Error compiling rule', rule, e);
+			throw new Error(`Error compiling rule '${rule}': ${e}`);
+		}
 
-			const formulationType = ruleLF[1][0];
-			let resourceName: string;
-			if (ruleLF[1][1][0] === 'LogicalNegation') {
-				resourceName = ruleLF[1][1][1][1][2][1];
-			} else {
-				resourceName = ruleLF[1][1][1][2][1];
-			}
+		const formulationType = ruleLF[1][0];
+		let resourceName: string;
+		if (ruleLF[1][1][0] === 'LogicalNegation') {
+			resourceName = ruleLF[1][1][1][1][2][1];
+		} else {
+			resourceName = ruleLF[1][1][1][2][1];
+		}
 
-			let fetchingViolators = false;
-			const ruleAbs = _.last(abstractSqlModel.rules);
-			if (ruleAbs == null) {
-				throw new Error('Unable to generate rule');
-			}
-			let ruleBody = _.find(ruleAbs, node => node[0] === 'Body') as [
-				'Body',
-				...any[],
-			];
-			if (
-				ruleBody[1][0] === 'Not' &&
-				ruleBody[1][1][0] === 'Exists' &&
-				ruleBody[1][1][1][0] === 'SelectQuery'
-			) {
-				// Remove the not exists
-				ruleBody[1] = ruleBody[1][1][1];
-				fetchingViolators = true;
-			} else if (
-				ruleBody[1][0] === 'Exists' &&
-				ruleBody[1][1][0] === 'SelectQuery'
-			) {
-				// Remove the exists
-				ruleBody[1] = ruleBody[1][1];
-			} else {
-				throw new Error('Unsupported rule formulation');
-			}
+		let fetchingViolators = false;
+		const ruleAbs = _.last(abstractSqlModel.rules);
+		if (ruleAbs == null) {
+			throw new Error('Unable to generate rule');
+		}
+		let ruleBody = _.find(ruleAbs, node => node[0] === 'Body') as [
+			'Body',
+			...any[],
+		];
+		if (
+			ruleBody[1][0] === 'Not' &&
+			ruleBody[1][1][0] === 'Exists' &&
+			ruleBody[1][1][1][0] === 'SelectQuery'
+		) {
+			// Remove the not exists
+			ruleBody[1] = ruleBody[1][1][1];
+			fetchingViolators = true;
+		} else if (
+			ruleBody[1][0] === 'Exists' &&
+			ruleBody[1][1][0] === 'SelectQuery'
+		) {
+			// Remove the exists
+			ruleBody[1] = ruleBody[1][1];
+		} else {
+			throw new Error('Unsupported rule formulation');
+		}
 
-			const wantNonViolators =
-				formulationType in
-				['PossibilityFormulation', 'PermissibilityFormulation'];
-			if (wantNonViolators === fetchingViolators) {
-				// What we want is the opposite of what we're getting, so add a not to the where clauses
-				ruleBody[1] = _.map(ruleBody[1], queryPart => {
-					if (queryPart[0] !== 'Where') {
-						return queryPart;
-					}
-					if (queryPart.length > 2) {
-						throw new Error('Unsupported rule formulation');
-					}
-					return ['Where', ['Not', queryPart[1]]];
-				});
-			}
-
-			// Select all
+		const wantNonViolators =
+			formulationType in
+			['PossibilityFormulation', 'PermissibilityFormulation'];
+		if (wantNonViolators === fetchingViolators) {
+			// What we want is the opposite of what we're getting, so add a not to the where clauses
 			ruleBody[1] = _.map(ruleBody[1], queryPart => {
-				if (queryPart[0] !== 'Select') {
+				if (queryPart[0] !== 'Where') {
 					return queryPart;
 				}
-				return ['Select', '*'];
+				if (queryPart.length > 2) {
+					throw new Error('Unsupported rule formulation');
+				}
+				return ['Where', ['Not', queryPart[1]]];
 			});
-			const compiledRule = AbstractSQLCompiler[db.engine].compileRule(ruleBody);
-			if (_.isArray(compiledRule)) {
-				throw new Error('Unexpected query generated');
+		}
+
+		// Select all
+		ruleBody[1] = _.map(ruleBody[1], queryPart => {
+			if (queryPart[0] !== 'Select') {
+				return queryPart;
 			}
-			return getAndCheckBindValues(
-				{
-					vocabulary: vocab,
-					odataBinds: [],
-					values: {},
-					engine: db.engine,
-				},
-				compiledRule.bindings,
-			)
-				.then(values => {
-					return db.executeSql(compiledRule.query, values);
-				})
-				.then(result => {
-					const table = models[vocab].abstractSql.tables[resourceName];
-					const odataIdField = sqlNameToODataName(table.idField);
-					let ids = result.rows.map(row => row[table.idField]);
-					ids = _.uniq(ids);
-					ids = _.map(ids, id => odataIdField + ' eq ' + id);
-					let filter: string;
-					if (ids.length > 0) {
-						filter = ids.join(' or ');
-					} else {
-						filter = '0 eq 1';
-					}
-					return runURI(
-						'GET',
-						'/' +
-							vocab +
-							'/' +
-							sqlNameToODataName(table.resourceName) +
-							'?$filter=' +
-							filter,
-						undefined,
-						undefined,
-						permissions.rootRead,
-					).then((result: AnyObject) => {
-						result.__formulationType = formulationType;
-						result.__resourceName = resourceName;
-						return result;
-					});
-				});
+			return ['Select', '*'];
 		});
-	};
+		const compiledRule = AbstractSQLCompiler[db.engine].compileRule(ruleBody);
+		if (_.isArray(compiledRule)) {
+			throw new Error('Unexpected query generated');
+		}
+		const values = await getAndCheckBindValues(
+			{
+				vocabulary: vocab,
+				odataBinds: [],
+				values: {},
+				engine: db.engine,
+			},
+			compiledRule.bindings,
+		);
+		const result = await db.executeSql(compiledRule.query, values);
+
+		const table = models[vocab].abstractSql.tables[resourceName];
+		const odataIdField = sqlNameToODataName(table.idField);
+		let ids = result.rows.map(row => row[table.idField]);
+		ids = _.uniq(ids);
+		ids = _.map(ids, id => odataIdField + ' eq ' + id);
+		let filter: string;
+		if (ids.length > 0) {
+			filter = ids.join(' or ');
+		} else {
+			filter = '0 eq 1';
+		}
+		const odataResult = (await runURI(
+			'GET',
+			'/' +
+				vocab +
+				'/' +
+				sqlNameToODataName(table.resourceName) +
+				'?$filter=' +
+				filter,
+			undefined,
+			undefined,
+			permissions.rootRead,
+		)) as AnyObject;
+
+		odataResult.__formulationType = formulationType;
+		odataResult.__resourceName = resourceName;
+		return odataResult;
+	});
 })();
 
 export type Passthrough = AnyObject & {
@@ -1031,7 +1020,7 @@ export const getAbstractSqlModel = (
 };
 
 export const getAffectedIds = Bluebird.method(
-	({
+	async ({
 		req,
 		request,
 		tx,
@@ -1039,53 +1028,51 @@ export const getAffectedIds = Bluebird.method(
 		req: HookReq;
 		request: HookRequest;
 		tx: _db.Tx;
-	}): Bluebird<number[]> => {
+	}): Promise<number[]> => {
 		if (request.method === 'GET') {
 			// GET requests don't affect anything so passing one to this method is a mistake
 			throw new Error('Cannot call `getAffectedIds` with a GET request');
 		}
 		// We reparse to make sure we get a clean odataQuery, without permissions already added
 		// And we use the request's url rather than the req for things like batch where the req url is ../$batch
-		return uriParser
-			.parseOData({
-				method: request.method,
-				url: `/${request.vocabulary}${request.url}`,
-			})
-			.then(request => {
-				request.engine = db.engine;
-				const abstractSqlModel = getAbstractSqlModel(request);
-				const resourceName = resolveSynonym(request);
-				const resourceTable = abstractSqlModel.tables[resourceName];
-				if (resourceTable == null) {
-					throw new Error('Unknown resource: ' + request.resourceName);
-				}
-				const { idField } = resourceTable;
+		request = await uriParser.parseOData({
+			method: request.method,
+			url: `/${request.vocabulary}${request.url}`,
+		});
 
-				if (request.odataQuery.options == null) {
-					request.odataQuery.options = {};
-				}
-				request.odataQuery.options.$select = {
-					properties: [{ name: idField }],
-				};
+		request.engine = db.engine;
+		const abstractSqlModel = getAbstractSqlModel(request);
+		const resourceName = resolveSynonym(request);
+		const resourceTable = abstractSqlModel.tables[resourceName];
+		if (resourceTable == null) {
+			throw new Error('Unknown resource: ' + request.resourceName);
+		}
+		const { idField } = resourceTable;
 
-				// Delete any $expand that might exist as they're ignored on non-GETs but we're converting this request to a GET
-				delete request.odataQuery.options.$expand;
+		if (request.odataQuery.options == null) {
+			request.odataQuery.options = {};
+		}
+		request.odataQuery.options.$select = {
+			properties: [{ name: idField }],
+		};
 
-				return permissions.addPermissions(req, request).then(() => {
-					request.method = 'GET';
+		// Delete any $expand that might exist as they're ignored on non-GETs but we're converting this request to a GET
+		delete request.odataQuery.options.$expand;
 
-					request = uriParser.translateUri(request);
-					request = compileRequest(request);
+		await permissions.addPermissions(req, request);
 
-					const doRunQuery = (tx: _db.Tx) =>
-						runQuery(tx, request).then(result => _.map(result.rows, idField));
-					if (tx != null) {
-						return doRunQuery(tx);
-					} else {
-						return runTransaction(req, doRunQuery);
-					}
-				});
-			});
+		request.method = 'GET';
+
+		request = uriParser.translateUri(request);
+		request = compileRequest(request);
+
+		let result;
+		if (tx != null) {
+			result = await runQuery(tx, request);
+		} else {
+			result = await runTransaction(req, tx => runQuery(tx, request));
+		}
+		return _.map(result.rows, idField);
 	},
 );
 
@@ -1139,23 +1126,24 @@ export const handleODataRequest: _express.Handler = (req, res, next) => {
 				uriParser
 					.parseOData(requestPart)
 					.then(
-						controlFlow.liftP(request => {
+						controlFlow.liftP(async request => {
 							request.engine = db.engine;
 							// Get the full hooks list now that we can.
 							request.hooks = getHooks(request);
 							// Add/check the relevant permissions
-							return runHooks('POSTPARSE', request.hooks, {
-								req,
-								request,
-								tx: req.tx,
-							})
-								.return(request)
-								.then(uriParser.translateUri)
-								.then(compileRequest)
-								.tapCatch(() => {
-									rollbackRequestHooks(reqHooks);
-									rollbackRequestHooks(request.hooks);
+							try {
+								await runHooks('POSTPARSE', request.hooks, {
+									req,
+									request,
+									tx: req.tx,
 								});
+								const translatedRequest = await uriParser.translateUri(request);
+								return await compileRequest(translatedRequest);
+							} catch (err) {
+								rollbackRequestHooks(reqHooks);
+								rollbackRequestHooks(request.hooks);
+								throw err;
+							}
 						}),
 					)
 					.then(request =>
@@ -1185,16 +1173,15 @@ export const handleODataRequest: _express.Handler = (req, res, next) => {
 					),
 			);
 		})
-		.then(results =>
-			results.map(result => {
+		.then(results => {
+			const responses = results.map(result => {
 				if (_.isError(result)) {
 					return convertToHttpError(result);
 				} else {
 					return result;
 				}
-			}),
-		)
-		.then(responses => {
+			});
+
 			res.set('Cache-Control', 'no-cache');
 			// If we are dealing with a single request unpack the response and respond normally
 			if (req.batch == null || req.batch.length === 0) {
@@ -1283,87 +1270,85 @@ const convertToHttpError = (err: any): HttpError => {
 	return new NotFoundError(err);
 };
 
-const runRequest = (
+const runRequest = async (
 	req: _express.Request,
 	res: _express.Response,
 	tx: _db.Tx,
 	request: uriParser.ODataRequest,
-): Bluebird<Response> => {
+): Promise<Response> => {
 	const { logger } = api[request.vocabulary];
 
 	if (DEBUG) {
 		logger.log('Running', req.method, req.url);
 	}
-	// Forward each request to the correct method handler
-	return runHooks('PRERUN', request.hooks, { req, request, tx })
-		.then(
-			(): Resolvable<_db.Result | number | undefined> => {
-				switch (request.method) {
-					case 'GET':
-						return runGet(req, res, request, tx);
-					case 'POST':
-						return runPost(req, res, request, tx);
-					case 'PUT':
-					case 'PATCH':
-					case 'MERGE':
-						return runPut(req, res, request, tx);
-					case 'DELETE':
-						return runDelete(req, res, request, tx);
-				}
-			},
-		)
-		.catch(err => {
-			if (err instanceof db.DatabaseError) {
-				// This cannot be a `.tapCatch` because for some reason throwing a db.UniqueConstraintError doesn't override
-				// the error, when usually throwing an error does.
-				prettifyConstraintError(err, request);
-				logger.error(err);
-				// Override the error message so we don't leak any internal db info
-				err.message = 'Database error';
-				throw err;
-			}
-			if (
-				err instanceof uriParser.SyntaxError ||
-				err instanceof EvalError ||
-				err instanceof RangeError ||
-				err instanceof ReferenceError ||
-				err instanceof SyntaxError ||
-				err instanceof TypeError ||
-				err instanceof URIError
-			) {
-				logger.error(err);
-				throw new InternalRequestError();
-			}
+	let result: _db.Result | number | undefined;
+	try {
+		// Forward each request to the correct method handler
+		await runHooks('PRERUN', request.hooks, { req, request, tx });
+
+		switch (request.method) {
+			case 'GET':
+				result = await runGet(req, res, request, tx);
+				break;
+			case 'POST':
+				result = await runPost(req, res, request, tx);
+				break;
+			case 'PUT':
+			case 'PATCH':
+			case 'MERGE':
+				result = await runPut(req, res, request, tx);
+				break;
+			case 'DELETE':
+				result = await runDelete(req, res, request, tx);
+				break;
+		}
+	} catch (err) {
+		if (err instanceof db.DatabaseError) {
+			prettifyConstraintError(err, request);
+			logger.error(err);
+			// Override the error message so we don't leak any internal db info
+			err.message = 'Database error';
 			throw err;
-		})
-		.tap(result => {
-			return runHooks('POSTRUN', request.hooks, { req, request, result, tx });
-		})
-		.then(result => {
-			return prepareResponse(req, res, request, result, tx);
-		});
+		}
+		if (
+			err instanceof uriParser.SyntaxError ||
+			err instanceof EvalError ||
+			err instanceof RangeError ||
+			err instanceof ReferenceError ||
+			err instanceof SyntaxError ||
+			err instanceof TypeError ||
+			err instanceof URIError
+		) {
+			logger.error(err);
+			throw new InternalRequestError();
+		}
+		throw err;
+	}
+
+	await runHooks('POSTRUN', request.hooks, { req, request, result, tx });
+
+	return prepareResponse(req, res, request, result, tx);
 };
 
 const runChangeSet = (
 	req: _express.Request,
 	res: _express.Response,
 	tx: _db.Tx,
-) => (
+) => async (
 	env: Map<number, Response>,
 	request: uriParser.ODataRequest,
-): Bluebird<Map<number, Response>> => {
+): Promise<Map<number, Response>> => {
 	request = updateBinds(env, request);
-	return runRequest(req, res, tx, request).then(result => {
-		if (request.id == null) {
-			throw new Error('No request id');
-		}
-		if (result.headers == null) {
-			result.headers = {};
-		}
-		result.headers['Content-Id'] = request.id;
-		env.set(request.id, result);
-		return env;
-	});
+	const result = await runRequest(req, res, tx, request);
+	if (request.id == null) {
+		throw new Error('No request id');
+	}
+	if (result.headers == null) {
+		result.headers = {};
+	}
+	result.headers['Content-Id'] = request.id;
+	env.set(request.id, result);
+	return env;
 };
 
 // Requests inside a changeset may refer to resources created inside the
@@ -1424,8 +1409,8 @@ const prepareResponse = (
 // This is a helper method to handle using a passed in req.tx when available, or otherwise creating a new tx and cleaning up after we're done.
 const runTransaction = <T>(
 	req: HookReq,
-	callback: (tx: _db.Tx) => Bluebird<T>,
-): Bluebird<T> => {
+	callback: (tx: _db.Tx) => Promise<T>,
+): Promise<T> => {
 	if (req.tx != null) {
 		// If an existing tx was passed in then use it.
 		return callback(req.tx);
@@ -1436,46 +1421,40 @@ const runTransaction = <T>(
 };
 
 // This is a helper function that will check and add the bind values to the SQL query and then run it.
-const runQuery = (
+const runQuery = async (
 	tx: _db.Tx,
 	request: uriParser.ODataRequest,
 	queryIndex?: number,
 	addReturning?: string,
-): Bluebird<_db.Result> => {
+): Promise<_db.Result> => {
 	const { vocabulary } = request;
 	let { sqlQuery } = request;
 	if (sqlQuery == null) {
-		return Bluebird.reject(
-			new InternalRequestError('No SQL query available to run'),
-		);
+		throw new InternalRequestError('No SQL query available to run');
 	}
 	if (request.engine == null) {
-		return Bluebird.reject(
-			new InternalRequestError('No database engine specified'),
-		);
+		throw new InternalRequestError('No database engine specified');
 	}
 	if (_.isArray(sqlQuery)) {
 		if (queryIndex == null) {
-			return Bluebird.reject(
-				new InternalRequestError(
-					'Received a query index to run but the query is not an array',
-				),
+			throw new InternalRequestError(
+				'Received a query index to run but the query is not an array',
 			);
 		}
 		sqlQuery = sqlQuery[queryIndex];
 	}
 
 	const { query, bindings } = sqlQuery;
-	return getAndCheckBindValues(
+	const values = await getAndCheckBindValues(
 		request as RequiredField<typeof request, 'engine'>,
 		bindings,
-	).then(values => {
-		if (DEBUG) {
-			api[vocabulary].logger.log(query, values);
-		}
+	);
 
-		return tx.executeSql(query, values, addReturning);
-	});
+	if (DEBUG) {
+		api[vocabulary].logger.log(query, values);
+	}
+
+	return tx.executeSql(query, values, addReturning);
 };
 
 const runGet = (
@@ -1489,7 +1468,7 @@ const runGet = (
 	}
 };
 
-const respondGet = (
+const respondGet = async (
 	req: _express.Request,
 	res: _express.Response,
 	request: uriParser.ODataRequest,
@@ -1498,174 +1477,170 @@ const respondGet = (
 ): Promise<Response> => {
 	const vocab = request.vocabulary;
 	if (request.sqlQuery != null) {
-		return odataResponse
-			.process(
-				vocab,
-				getAbstractSqlModel(request),
-				request.resourceName,
-				result.rows,
-			)
-			.then(d => {
-				return runHooks('PRERESPOND', request.hooks, {
-					req,
-					res,
-					request,
-					result,
-					data: d,
-					tx: tx,
-				}).then(() => {
-					return { body: { d }, headers: { contentType: 'application/json' } };
-				});
-			});
+		const d = await odataResponse.process(
+			vocab,
+			getAbstractSqlModel(request),
+			request.resourceName,
+			result.rows,
+		);
+
+		await runHooks('PRERESPOND', request.hooks, {
+			req,
+			res,
+			request,
+			result,
+			data: d,
+			tx: tx,
+		});
+		return { body: { d }, headers: { contentType: 'application/json' } };
 	} else {
 		if (request.resourceName === '$metadata') {
-			return Bluebird.resolve({
+			return {
 				body: models[vocab].odataMetadata,
 				headers: { contentType: 'xml' },
-			});
+			};
 		} else {
 			// TODO: request.resourceName can be '$serviceroot' or a resource and we should return an odata xml document based on that
-			return Bluebird.resolve({
+			return {
 				status: 404,
-			});
+			};
 		}
 	}
 };
 
-const runPost = (
+const runPost = async (
 	_req: _express.Request,
 	_res: _express.Response,
 	request: uriParser.ODataRequest,
 	tx: _db.Tx,
-) => {
+): Promise<number | undefined> => {
 	const vocab = request.vocabulary;
 
 	const { idField } = getAbstractSqlModel(request).tables[
 		resolveSynonym(request)
 	];
 
-	return runQuery(tx, request, undefined, idField)
-		.tap(sqlResult => {
-			if (sqlResult.rowsAffected === 0) {
-				throw new PermissionError();
-			}
-			return validateModel(tx, vocab, request);
-		})
-		.then(({ insertId }) => insertId);
+	const { rowsAffected, insertId } = await runQuery(
+		tx,
+		request,
+		undefined,
+		idField,
+	);
+	if (rowsAffected === 0) {
+		throw new PermissionError();
+	}
+	await validateModel(tx, vocab, request);
+
+	return insertId;
 };
 
-const respondPost = (
+const respondPost = async (
 	req: _express.Request,
 	res: _express.Response,
 	request: uriParser.ODataRequest,
 	id: number,
 	tx: _db.Tx,
-): Bluebird<Response> => {
+): Promise<Response> => {
 	const vocab = request.vocabulary;
 	const location = odataResponse.resourceURI(vocab, request.resourceName, id);
 	if (DEBUG) {
 		api[vocab].logger.log('Insert ID: ', request.resourceName, id);
 	}
-	return Bluebird.try(() => {
-		const onlyId = { d: [{ id }] };
-		if (
-			location == null ||
-			_.includes(
-				['0', 'false'],
-				_.get(request, ['odataQuery', 'options', 'returnResource']),
-			)
-		) {
-			return onlyId;
+
+	let result: AnyObject = { d: [{ id }] };
+	if (
+		location != null &&
+		!_.includes(
+			['0', 'false'],
+			_.get(request, ['odataQuery', 'options', 'returnResource']),
+		)
+	) {
+		try {
+			result = (await runURI('GET', location, undefined, tx, req)) as AnyObject;
+		} catch {
+			// If we failed to fetch the created resource then we use just the id as default.
 		}
-		return (
-			runURI('GET', location, undefined, tx, req)
-				// If we failed to fetch the created resource then just return the id.
-				.catchReturn(onlyId)
-		);
-	}).then((result: AnyObject) => {
-		return runHooks('PRERESPOND', request.hooks, {
-			req,
-			res,
-			request,
-			result,
-			tx,
-		}).return({
-			status: 201,
-			body: result.d[0],
-			headers: {
-				contentType: 'application/json',
-				Location: location,
-			},
-		});
+	}
+
+	await runHooks('PRERESPOND', request.hooks, {
+		req,
+		res,
+		request,
+		result,
+		tx,
 	});
+
+	return {
+		status: 201,
+		body: result.d[0],
+		headers: {
+			contentType: 'application/json',
+			Location: location,
+		},
+	};
 };
 
-const runPut = (
+const runPut = async (
 	_req: _express.Request,
 	_res: _express.Response,
 	request: uriParser.ODataRequest,
 	tx: _db.Tx,
-): Bluebird<undefined> => {
+): Promise<undefined> => {
 	const vocab = request.vocabulary;
 
-	return Bluebird.try(() => {
-		// If request.sqlQuery is an array it means it's an UPSERT, ie two queries: [InsertQuery, UpdateQuery]
-		if (_.isArray(request.sqlQuery)) {
-			// Run the update query first
-			return runQuery(tx, request, 1).then(result => {
-				if (result.rowsAffected === 0) {
-					// Then run the insert query if nothing was updated
-					return runQuery(tx, request, 0);
-				}
-				return result;
-			});
-		} else {
-			return runQuery(tx, request);
+	let rowsAffected: number;
+	// If request.sqlQuery is an array it means it's an UPSERT, ie two queries: [InsertQuery, UpdateQuery]
+	if (_.isArray(request.sqlQuery)) {
+		// Run the update query first
+		({ rowsAffected } = await runQuery(tx, request, 1));
+		if (rowsAffected === 0) {
+			// Then run the insert query if nothing was updated
+			({ rowsAffected } = await runQuery(tx, request, 0));
 		}
-	})
-		.then(({ rowsAffected }) => {
-			if (rowsAffected > 0) {
-				return validateModel(tx, vocab, request);
-			}
-		})
-		.return(undefined);
+	} else {
+		({ rowsAffected } = await runQuery(tx, request));
+	}
+	if (rowsAffected > 0) {
+		await validateModel(tx, vocab, request);
+	}
+	return undefined;
 };
 
-const respondPut = (
+const respondPut = async (
 	req: _express.Request,
 	res: _express.Response,
 	request: uriParser.ODataRequest,
 	_result: any,
 	tx: _db.Tx,
-): Bluebird<Response> => {
-	return runHooks('PRERESPOND', request.hooks, {
+): Promise<Response> => {
+	await runHooks('PRERESPOND', request.hooks, {
 		req,
 		res,
 		request,
 		tx: tx,
-	}).return({
+	});
+	return {
 		status: 200,
 		headers: {},
-	});
+	};
 };
 const respondDelete = respondPut;
 const respondOptions = respondPut;
 
-const runDelete = (
+const runDelete = async (
 	_req: _express.Request,
 	_res: _express.Response,
 	request: uriParser.ODataRequest,
 	tx: _db.Tx,
-) => {
+): Promise<undefined> => {
 	const vocab = request.vocabulary;
 
-	return runQuery(tx, request)
-		.then(({ rowsAffected }) => {
-			if (rowsAffected > 0) {
-				return validateModel(tx, vocab, request);
-			}
-		})
-		.return(undefined);
+	const { rowsAffected } = await runQuery(tx, request);
+	if (rowsAffected > 0) {
+		await validateModel(tx, vocab, request);
+	}
+
+	return undefined;
 };
 
 export const executeStandardModels = (tx: _db.Tx): Bluebird<void> => {
@@ -1783,11 +1758,10 @@ export const setup = (
 ): Bluebird<void> => {
 	exports.db = db = $db;
 	return db
-		.transaction(tx =>
-			executeStandardModels(tx).then(() => {
-				permissions.setup();
-			}),
-		)
+		.transaction(async tx => {
+			await executeStandardModels(tx);
+			await permissions.setup();
+		})
 		.catch(err => {
 			console.error('Could not execute standard models', err);
 			process.exit(1);
