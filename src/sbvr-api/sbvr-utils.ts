@@ -1402,7 +1402,7 @@ const prepareResponse = (
 	request: uriParser.ODataRequest,
 	result: any,
 	tx: _db.Tx,
-): Bluebird<Response> => {
+): Promise<Response> => {
 	switch (request.method) {
 		case 'GET':
 			return respondGet(req, res, request, result, tx);
@@ -1495,7 +1495,7 @@ const respondGet = (
 	request: uriParser.ODataRequest,
 	result: any,
 	tx: _db.Tx,
-): Bluebird<Response> => {
+): Promise<Response> => {
 	const vocab = request.vocabulary;
 	if (request.sqlQuery != null) {
 		return odataResponse

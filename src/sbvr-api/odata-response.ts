@@ -20,59 +20,59 @@ import {
 	AbstractSqlTable,
 } from '@resin/abstract-sql-compiler';
 
-const checkForExpansion = Bluebird.method(
-	(
-		vocab: string,
-		abstractSqlModel: AbstractSqlModel,
-		parentResourceName: string,
-		fieldName: string,
-		instance: Row,
-	) => {
-		let field = instance[fieldName];
-		if (field == null) {
-			return;
-		}
+const checkForExpansion = async (
+	vocab: string,
+	abstractSqlModel: AbstractSqlModel,
+	parentResourceName: string,
+	fieldName: string,
+	instance: Row,
+) => {
+	let field = instance[fieldName];
+	if (field == null) {
+		return;
+	}
 
-		if (_.isString(field)) {
-			try {
-				field = JSON.parse(field);
-			} catch (_e) {
-				// If we can't JSON.parse the field then we use it directly.
-			}
+	if (_.isString(field)) {
+		try {
+			field = JSON.parse(field);
+		} catch (_e) {
+			// If we can't JSON.parse the field then we use it directly.
 		}
+	}
 
-		if (_.isArray(field)) {
-			const mappingResourceName = resolveNavigationResource(
-				{
-					abstractSqlModel,
-					vocabulary: vocab,
-					resourceName: parentResourceName,
-				},
-				fieldName,
-			);
-			return process(vocab, abstractSqlModel, mappingResourceName, field).then(
-				expandedField => {
-					instance[fieldName] = expandedField;
-				},
-			);
-		} else {
-			const mappingResourceName = resolveNavigationResource(
-				{
-					abstractSqlModel,
-					vocabulary: vocab,
-					resourceName: parentResourceName,
-				},
-				fieldName,
-			);
-			instance[fieldName] = {
-				__deferred: {
-					uri: '/' + vocab + '/' + mappingResourceName + '(' + field + ')',
-				},
-				__id: field,
-			};
-		}
-	},
-);
+	if (_.isArray(field)) {
+		const mappingResourceName = resolveNavigationResource(
+			{
+				abstractSqlModel,
+				vocabulary: vocab,
+				resourceName: parentResourceName,
+			},
+			fieldName,
+		);
+		const expandedField = await process(
+			vocab,
+			abstractSqlModel,
+			mappingResourceName,
+			field,
+		);
+		instance[fieldName] = expandedField;
+	} else {
+		const mappingResourceName = resolveNavigationResource(
+			{
+				abstractSqlModel,
+				vocabulary: vocab,
+				resourceName: parentResourceName,
+			},
+			fieldName,
+		);
+		instance[fieldName] = {
+			__deferred: {
+				uri: '/' + vocab + '/' + mappingResourceName + '(' + field + ')',
+			},
+			__id: field,
+		};
+	}
+};
 
 export const resourceURI = (
 	vocab: string,
@@ -118,20 +118,20 @@ const getFetchProcessingFields = (table: AbstractSqlTable) => {
 	return table.fetchProcessingFields!;
 };
 
-export const process = (
+export const process = async (
 	vocab: string,
 	abstractSqlModel: AbstractSqlModel,
 	resourceName: string,
 	rows: Result['rows'],
-): Bluebird<number | Row[]> => {
+): Promise<number | Row[]> => {
 	if (rows.length === 0) {
-		return Bluebird.resolve([]);
+		return [];
 	}
 
 	if (rows.length === 1) {
 		if (rows[0].$count != null) {
 			const count = parseInt(rows[0].$count, 10);
-			return Bluebird.resolve(count);
+			return count;
 		}
 	}
 
@@ -150,8 +150,6 @@ export const process = (
 		return instance;
 	});
 
-	let instancesPromise = Bluebird.resolve();
-
 	const localFields = getLocalFields(table);
 	// We check that it's not a local field, rather than that it is a foreign key because of the case where the foreign key is on the other resource
 	// and hence not known to this resource
@@ -161,7 +159,7 @@ export const process = (
 			!_.startsWith(fieldName, '__') && !localFields.hasOwnProperty(fieldName),
 	);
 	if (expandableFields.length > 0) {
-		instancesPromise = Bluebird.map(instances, instance =>
+		await Bluebird.map(instances, instance =>
 			Bluebird.map(expandableFields, fieldName =>
 				checkForExpansion(
 					vocab,
@@ -171,7 +169,7 @@ export const process = (
 					instance,
 				),
 			),
-		).return();
+		);
 	}
 
 	const fetchProcessingFields = getFetchProcessingFields(table);
@@ -182,22 +180,17 @@ export const process = (
 			fetchProcessingFields.hasOwnProperty(fieldName),
 	);
 	if (processedFields.length > 0) {
-		instancesPromise = instancesPromise
-			.then(() =>
-				Bluebird.map(instances, instance =>
-					Bluebird.map(processedFields, resourceName =>
-						fetchProcessingFields[resourceName](instance[resourceName]).then(
-							result => {
-								instance[resourceName] = result;
-							},
-						),
-					),
-				),
-			)
-			.return();
+		await Bluebird.map(instances, instance =>
+			Bluebird.map(processedFields, async resourceName => {
+				const result = fetchProcessingFields[resourceName](
+					instance[resourceName],
+				);
+				instance[resourceName] = result;
+			}),
+		);
 	}
 
-	return instancesPromise.return(instances);
+	return instances;
 };
 
 export const prepareModel = (abstractSqlModel: AbstractSqlModel) => {
