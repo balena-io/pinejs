@@ -1,10 +1,10 @@
-define ['bluebird', 'lodash'], (Promise, _) ->
+define ['bluebird', 'lodash'], (Bluebird, _) ->
 	window?.GLOBAL_PERMISSIONS = [
 		'resource.all'
 	]
 	app = do ->
 		enabled = {}
-		enabled.promise = new Promise (resolve) ->
+		enabled.promise = new Bluebird (resolve) ->
 			enabled.resolve = resolve
 		appVars =
 			env: 'development'
@@ -37,7 +37,7 @@ define ['bluebird', 'lodash'], (Promise, _) ->
 		process = (method, uri, headers, body) ->
 			body ?= ''
 			if !handlers[method]
-				return Promise.rejected(404)
+				return Bluebird.rejected(404)
 			req =
 				# Have a default user for in-browser with all permissions
 				user:
@@ -53,7 +53,7 @@ define ['bluebird', 'lodash'], (Promise, _) ->
 			if uri[-1..] == '/'
 				uri = uri[0...uri.length - 1]
 			uri = uri.toLowerCase()
-			new Promise (resolve, reject) ->
+			new Bluebird (resolve, reject) ->
 				res =
 					statusCode: 200
 					status: (@statusCode) ->

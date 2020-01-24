@@ -1,5 +1,5 @@
 import * as _ from 'lodash';
-import * as Promise from 'bluebird';
+import * as Bluebird from 'bluebird';
 import { settleMapSeries } from './control-flow';
 import { Resolvable } from './common-types';
 
@@ -15,7 +15,7 @@ export class Hook {
 	constructor(private hookFn: HookFn) {}
 
 	run(...args: any[]) {
-		return Promise.try(() => {
+		return Bluebird.try(() => {
 			return this.hookFn(...args);
 		});
 	}
@@ -31,7 +31,7 @@ export class SideEffectHook extends Hook {
 
 	registerRollback(fn: RollbackAction) {
 		if (this.rolledBack) {
-			Promise.try(fn);
+			Bluebird.try(fn);
 		} else {
 			this.rollbackFns.push(fn);
 		}

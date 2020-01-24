@@ -10,7 +10,7 @@ import * as _serveStatic from 'serve-static';
 
 import * as Pinejs from './module';
 
-import * as Promise from 'bluebird';
+import * as Bluebird from 'bluebird';
 import * as passportPinejs from '../passport-pinejs/passport-pinejs';
 
 import * as sbvrUtils from '../sbvr-api/sbvr-utils';
@@ -26,7 +26,7 @@ switch (app.get('env')) {
 		console.log = () => {};
 		break;
 	case 'development':
-		Promise.longStackTraces();
+		Bluebird.longStackTraces();
 }
 
 if (!process.browser) {
@@ -83,7 +83,7 @@ if (!process.browser) {
 
 export const initialised = Pinejs.init(app)
 	.then(configLoader =>
-		Promise.all([
+		Bluebird.all([
 			configLoader.loadConfig(passportPinejs.config),
 			configLoader.loadConfig(PinejsSessionStore.config),
 		]),

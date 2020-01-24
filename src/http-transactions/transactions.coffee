@@ -1,5 +1,5 @@
 _ = require 'lodash'
-Promise = require 'bluebird'
+Bluebird = require 'bluebird'
 transactionModel = require './transaction.sbvr'
 
 exports.config =
@@ -64,7 +64,7 @@ exports.setup = (app, sbvrUtils) ->
 									WHERE "conditional field"."conditional resource" = ?;''', [conditionalResourceID])
 					.then (fields) ->
 						fieldsObject = {}
-						Promise.all fields.rows.map (field) ->
+						Bluebird.all fields.rows.map (field) ->
 							fieldName = field.field_name.replace(clientModel.resourceName + '.', '')
 							fieldValue = field.field_value
 							modelField = _.find(clientModel.fields, { fieldName })
@@ -94,16 +94,16 @@ exports.setup = (app, sbvrUtils) ->
 						placeholder = conditionalResource.placeholder
 						if placeholder? and placeholder.length > 0
 							placeholders[placeholder] = {}
-							placeholders[placeholder].promise = new Promise (resolve, reject) ->
+							placeholders[placeholder].promise = new Bluebird (resolve, reject) ->
 								placeholders[placeholder].resolve = resolve
 								placeholders[placeholder].reject = reject
 
 					# get conditional resources (if exist)
-					Promise.all conditionalResources.rows.map (conditionalResource) ->
+					Bluebird.all conditionalResources.rows.map (conditionalResource) ->
 						placeholder = conditionalResource.placeholder
 						lockID = conditionalResource.lock
 						doCleanup = ->
-							Promise.all([
+							Bluebird.all([
 								tx.executeSql('DELETE FROM "conditional field" WHERE "conditional resource" = ?;', [conditionalResource.id])
 								tx.executeSql('DELETE FROM "conditional resource" WHERE "lock" = ?;', [lockID])
 								tx.executeSql('DELETE FROM "resource-is under-lock" WHERE "lock" = ?;', [lockID])

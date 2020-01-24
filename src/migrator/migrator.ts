@@ -1,5 +1,5 @@
 import * as _ from 'lodash';
-import * as Promise from 'bluebird';
+import * as Bluebird from 'bluebird';
 import { TypedError } from 'typed-error';
 // tslint:disable-next-line:no-var-requires
 const modelText: string = require('./migrations.sbvr');
@@ -40,10 +40,10 @@ const binds = (strings: TemplateStringsArray, ...binds: number[]) =>
 		})
 		.join('');
 
-export const postRun = (tx: Tx, model: ApiRootModel): Promise<void> => {
+export const postRun = (tx: Tx, model: ApiRootModel): Bluebird<void> => {
 	const { initSql } = model;
 	if (initSql == null) {
-		return Promise.resolve();
+		return Bluebird.resolve();
 	}
 
 	const modelName = model.apiRoot;
@@ -53,17 +53,17 @@ export const postRun = (tx: Tx, model: ApiRootModel): Promise<void> => {
 			(sbvrUtils.api.migrations?.logger.info ?? console.info)(
 				'First time executing, running init script',
 			);
-			return Promise.using(lockMigrations(tx, modelName), () =>
+			return Bluebird.using(lockMigrations(tx, modelName), () =>
 				tx.executeSql(initSql).return(),
 			);
 		}
 	});
 };
 
-export const run = (tx: Tx, model: ApiRootModel): Promise<void> => {
+export const run = (tx: Tx, model: ApiRootModel): Bluebird<void> => {
 	const { migrations } = model;
 	if (migrations == null || !_.some(migrations)) {
-		return Promise.resolve();
+		return Bluebird.resolve();
 	}
 
 	const modelName = model.apiRoot;
@@ -78,7 +78,7 @@ export const run = (tx: Tx, model: ApiRootModel): Promise<void> => {
 
 			return setExecutedMigrations(tx, modelName, _.keys(migrations));
 		}
-		return Promise.using(lockMigrations(tx, modelName), () =>
+		return Bluebird.using(lockMigrations(tx, modelName), () =>
 			getExecutedMigrations(tx, modelName).then(executedMigrations => {
 				const pendingMigrations = filterAndSortPendingMigrations(
 					migrations,
@@ -102,7 +102,10 @@ export const run = (tx: Tx, model: ApiRootModel): Promise<void> => {
 	});
 };
 
-const checkModelAlreadyExists = (tx: Tx, modelName: string): Promise<boolean> =>
+const checkModelAlreadyExists = (
+	tx: Tx,
+	modelName: string,
+): Bluebird<boolean> =>
 	tx.tableList("name = 'migration'").then(result => {
 		if (result.rows.length === 0) {
 			return false;
@@ -121,7 +124,7 @@ LIMIT 1`,
 			});
 	});
 
-const getExecutedMigrations = (tx: Tx, modelName: string): Promise<string[]> =>
+const getExecutedMigrations = (tx: Tx, modelName: string): Bluebird<string[]> =>
 	tx
 		.executeSql(
 			binds`
@@ -143,7 +146,7 @@ const setExecutedMigrations = (
 	tx: Tx,
 	modelName: string,
 	executedMigrations: string[],
-): Promise<void> => {
+): Bluebird<void> => {
 	const stringifiedMigrations = JSON.stringify(executedMigrations);
 
 	return tx.tableList("name = 'migration'").then(result => {
@@ -184,7 +187,7 @@ const filterAndSortPendingMigrations = (
 		.sortBy(([migrationKey]) => migrationKey)
 		.value();
 
-const lockMigrations = (tx: Tx, modelName: string): Promise.Disposer<void> =>
+const lockMigrations = (tx: Tx, modelName: string): Bluebird.Disposer<void> =>
 	tx
 		.executeSql(
 			binds`
@@ -201,7 +204,7 @@ VALUES (${1})`,
 				[modelName],
 			),
 		)
-		.tapCatch(() => Promise.delay(migratorEnv.lockFailDelay))
+		.tapCatch(() => Bluebird.delay(migratorEnv.lockFailDelay))
 		.return()
 		.disposer(() => {
 			return tx
@@ -217,8 +220,8 @@ WHERE "model name" = ${1}`,
 const executeMigrations = (
 	tx: Tx,
 	migrations: Array<MigrationTuple> = [],
-): Promise<string[]> =>
-	Promise.mapSeries(migrations, executeMigration.bind(null, tx))
+): Bluebird<string[]> =>
+	Bluebird.mapSeries(migrations, executeMigration.bind(null, tx))
 		.catch(err => {
 			(sbvrUtils.api.migrations?.logger.error ?? console.error)(
 				'Error while executing migrations, rolled back',
@@ -230,13 +233,13 @@ const executeMigrations = (
 const executeMigration = (
 	tx: Tx,
 	[key, migration]: MigrationTuple,
-): Promise<void> => {
+): Bluebird<void> => {
 	(sbvrUtils.api.migrations?.logger.info ?? console.info)(
 		`Running migration ${JSON.stringify(key)}`,
 	);
 
 	if (_.isFunction(migration)) {
-		return Promise.resolve(migration(tx, sbvrUtils));
+		return Bluebird.resolve(migration(tx, sbvrUtils));
 	}
 	if (_.isString(migration)) {
 		return tx.executeSql(migration).return();

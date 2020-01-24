@@ -11,8 +11,8 @@ declare global {
 }
 
 import * as _ from 'lodash';
-import * as Promise from 'bluebird';
-Promise.config({
+import * as Bluebird from 'bluebird';
+Bluebird.config({
 	cancellation: true,
 });
 
@@ -359,8 +359,8 @@ export const validateModel = (
 	tx: _db.Tx,
 	modelName: string,
 	request?: uriParser.ODataRequest,
-): Promise<void> => {
-	return Promise.map(models[modelName].sql.rules, rule => {
+): Bluebird<void> => {
+	return Bluebird.map(models[modelName].sql.rules, rule => {
 		if (!isRuleAffected(rule, request)) {
 			// If none of the fields intersect we don't need to run the rule! :D
 			return;
@@ -452,13 +452,13 @@ export const generateModels = (
 export const executeModel = (
 	tx: _db.Tx,
 	model: ExecutableModel,
-): Promise<void> => executeModels(tx, [model]);
+): Bluebird<void> => executeModels(tx, [model]);
 
 export const executeModels = (
 	tx: _db.Tx,
 	execModels: ExecutableModel[],
-): Promise<void> =>
-	Promise.map(execModels, model => {
+): Bluebird<void> =>
+	Bluebird.map(execModels, model => {
 		const { apiRoot } = model;
 
 		return migrator.run(tx, model).then(() => {
@@ -466,7 +466,7 @@ export const executeModels = (
 
 			// Create tables related to terms and fact types
 			// Use `Promise.each` to run statements sequentially, as the order of the CREATE TABLE statements matters (eg. for foreign keys).
-			return Promise.each(compiledModel.sql.createSchema, createStatement => {
+			return Bluebird.each(compiledModel.sql.createSchema, createStatement => {
 				const promise = tx.executeSql(createStatement);
 				if (db.engine === 'websql') {
 					promise.catch(err => {
@@ -563,13 +563,13 @@ export const executeModels = (
 					});
 			};
 
-			return Promise.map(
+			return Bluebird.map(
 				['se', 'lf', 'abstractSql', 'sql', 'odataMetadata'],
 				updateModel,
 			);
 		})
 		.tapCatch(() =>
-			Promise.map(execModels, ({ apiRoot }) => cleanupModel(apiRoot)),
+			Bluebird.map(execModels, ({ apiRoot }) => cleanupModel(apiRoot)),
 		)
 		.return();
 
@@ -636,7 +636,7 @@ const getHooks = (
 };
 getHooks.clear = () => getMethodHooks.clear();
 
-const runHooks = Promise.method(
+const runHooks = Bluebird.method(
 	(
 		hookName: keyof Hooks,
 		hooksList: InstantiatedHooks<Hooks> | undefined,
@@ -667,18 +667,18 @@ const runHooks = Promise.method(
 				),
 			});
 		}
-		return Promise.map(hooks, hook => hook.run(args)).return();
+		return Bluebird.map(hooks, hook => hook.run(args)).return();
 	},
 );
 
 export const deleteModel = (vocabulary: string) => {
 	return db
 		.transaction(tx => {
-			const dropStatements: Array<Promise<any>> = _.map(
+			const dropStatements: Array<Bluebird<any>> = _.map(
 				models[vocabulary].sql.dropSchema,
 				(dropStatement: string) => tx.executeSql(dropStatement),
 			);
-			return Promise.all(
+			return Bluebird.all(
 				dropStatements.concat([
 					api.dev.delete({
 						resource: 'model',
@@ -735,7 +735,7 @@ export const runRule = (() => {
 	const translator = LF2AbstractSQL.LF2AbstractSQL.createInstance();
 	translator.addTypes(sbvrTypes);
 	return (vocab: string, rule: string) => {
-		return Promise.try(() => {
+		return Bluebird.try(() => {
 			const seModel = models[vocab].se;
 			const { logger } = api[vocab];
 			let lfModel: LFModel;
@@ -880,10 +880,10 @@ export type Passthrough = AnyObject & {
 	tx?: _db.Tx;
 };
 
-export class PinejsClient extends PinejsClientCoreFactory(Promise)<
+export class PinejsClient extends PinejsClientCoreFactory(Bluebird)<
 	PinejsClient,
-	Promise<{}>,
-	Promise<PinejsClientCoreFactory.PromiseResultTypes>
+	Bluebird<{}>,
+	Bluebird<PinejsClientCoreFactory.PromiseResultTypes>
 > {
 	passthrough: Passthrough;
 	_request({
@@ -920,7 +920,7 @@ export const runURI = (
 	tx?: _db.Tx,
 	req?: permissions.PermissionReq,
 	custom?: AnyObject,
-): Promise<PinejsClientCoreFactory.PromiseResultTypes> => {
+): Bluebird<PinejsClientCoreFactory.PromiseResultTypes> => {
 	let user: User | undefined;
 	let apiKey: ApiKey | undefined;
 
@@ -958,7 +958,7 @@ export const runURI = (
 		tx,
 	} as any;
 
-	return new Promise<PinejsClientCoreFactory.PromiseResultTypes>(
+	return new Bluebird<PinejsClientCoreFactory.PromiseResultTypes>(
 		(resolve, reject) => {
 			const res: _express.Response = {
 				__internalPinejs: true,
@@ -1030,7 +1030,7 @@ export const getAbstractSqlModel = (
 	return request.abstractSqlModel;
 };
 
-export const getAffectedIds = Promise.method(
+export const getAffectedIds = Bluebird.method(
 	({
 		req,
 		request,
@@ -1039,7 +1039,7 @@ export const getAffectedIds = Promise.method(
 		req: HookReq;
 		request: HookRequest;
 		tx: _db.Tx;
-	}): Promise<number[]> => {
+	}): Bluebird<number[]> => {
 		if (request.method === 'GET') {
 			// GET requests don't affect anything so passing one to this method is a mistake
 			throw new Error('Cannot call `getAffectedIds` with a GET request');
@@ -1173,7 +1173,7 @@ export const handleODataRequest: _express.Handler = (req, res, next) => {
 							});
 							if (_.isArray(request)) {
 								const env = new Map<number, Response>();
-								return Promise.reduce(
+								return Bluebird.reduce(
 									request,
 									runChangeSet(req, res, tx),
 									env,
@@ -1288,7 +1288,7 @@ const runRequest = (
 	res: _express.Response,
 	tx: _db.Tx,
 	request: uriParser.ODataRequest,
-): Promise<Response> => {
+): Bluebird<Response> => {
 	const { logger } = api[request.vocabulary];
 
 	if (DEBUG) {
@@ -1351,7 +1351,7 @@ const runChangeSet = (
 ) => (
 	env: Map<number, Response>,
 	request: uriParser.ODataRequest,
-): Promise<Map<number, Response>> => {
+): Bluebird<Map<number, Response>> => {
 	request = updateBinds(env, request);
 	return runRequest(req, res, tx, request).then(result => {
 		if (request.id == null) {
@@ -1402,7 +1402,7 @@ const prepareResponse = (
 	request: uriParser.ODataRequest,
 	result: any,
 	tx: _db.Tx,
-): Promise<Response> => {
+): Bluebird<Response> => {
 	switch (request.method) {
 		case 'GET':
 			return respondGet(req, res, request, result, tx);
@@ -1417,15 +1417,15 @@ const prepareResponse = (
 		case 'OPTIONS':
 			return respondOptions(req, res, request, result, tx);
 		default:
-			return Promise.reject(new MethodNotAllowedError());
+			return Bluebird.reject(new MethodNotAllowedError());
 	}
 };
 
 // This is a helper method to handle using a passed in req.tx when available, or otherwise creating a new tx and cleaning up after we're done.
 const runTransaction = <T>(
 	req: HookReq,
-	callback: (tx: _db.Tx) => Promise<T>,
-): Promise<T> => {
+	callback: (tx: _db.Tx) => Bluebird<T>,
+): Bluebird<T> => {
 	if (req.tx != null) {
 		// If an existing tx was passed in then use it.
 		return callback(req.tx);
@@ -1441,22 +1441,22 @@ const runQuery = (
 	request: uriParser.ODataRequest,
 	queryIndex?: number,
 	addReturning?: string,
-): Promise<_db.Result> => {
+): Bluebird<_db.Result> => {
 	const { vocabulary } = request;
 	let { sqlQuery } = request;
 	if (sqlQuery == null) {
-		return Promise.reject(
+		return Bluebird.reject(
 			new InternalRequestError('No SQL query available to run'),
 		);
 	}
 	if (request.engine == null) {
-		return Promise.reject(
+		return Bluebird.reject(
 			new InternalRequestError('No database engine specified'),
 		);
 	}
 	if (_.isArray(sqlQuery)) {
 		if (queryIndex == null) {
-			return Promise.reject(
+			return Bluebird.reject(
 				new InternalRequestError(
 					'Received a query index to run but the query is not an array',
 				),
@@ -1495,7 +1495,7 @@ const respondGet = (
 	request: uriParser.ODataRequest,
 	result: any,
 	tx: _db.Tx,
-): Promise<Response> => {
+): Bluebird<Response> => {
 	const vocab = request.vocabulary;
 	if (request.sqlQuery != null) {
 		return odataResponse
@@ -1519,13 +1519,13 @@ const respondGet = (
 			});
 	} else {
 		if (request.resourceName === '$metadata') {
-			return Promise.resolve({
+			return Bluebird.resolve({
 				body: models[vocab].odataMetadata,
 				headers: { contentType: 'xml' },
 			});
 		} else {
 			// TODO: request.resourceName can be '$serviceroot' or a resource and we should return an odata xml document based on that
-			return Promise.resolve({
+			return Bluebird.resolve({
 				status: 404,
 			});
 		}
@@ -1560,13 +1560,13 @@ const respondPost = (
 	request: uriParser.ODataRequest,
 	id: number,
 	tx: _db.Tx,
-): Promise<Response> => {
+): Bluebird<Response> => {
 	const vocab = request.vocabulary;
 	const location = odataResponse.resourceURI(vocab, request.resourceName, id);
 	if (DEBUG) {
 		api[vocab].logger.log('Insert ID: ', request.resourceName, id);
 	}
-	return Promise.try(() => {
+	return Bluebird.try(() => {
 		const onlyId = { d: [{ id }] };
 		if (
 			location == null ||
@@ -1605,10 +1605,10 @@ const runPut = (
 	_res: _express.Response,
 	request: uriParser.ODataRequest,
 	tx: _db.Tx,
-): Promise<undefined> => {
+): Bluebird<undefined> => {
 	const vocab = request.vocabulary;
 
-	return Promise.try(() => {
+	return Bluebird.try(() => {
 		// If request.sqlQuery is an array it means it's an UPSERT, ie two queries: [InsertQuery, UpdateQuery]
 		if (_.isArray(request.sqlQuery)) {
 			// Run the update query first
@@ -1637,7 +1637,7 @@ const respondPut = (
 	request: uriParser.ODataRequest,
 	_result: any,
 	tx: _db.Tx,
-): Promise<Response> => {
+): Bluebird<Response> => {
 	return runHooks('PRERESPOND', request.hooks, {
 		req,
 		res,
@@ -1668,7 +1668,7 @@ const runDelete = (
 		.return(undefined);
 };
 
-export const executeStandardModels = (tx: _db.Tx): Promise<void> => {
+export const executeStandardModels = (tx: _db.Tx): Bluebird<void> => {
 	// dev model must run first
 	return executeModel(tx, {
 		apiRoot: 'dev',
@@ -1780,7 +1780,7 @@ const addHook = (
 export const setup = (
 	_app: _express.Application,
 	$db: _db.Database,
-): Promise<void> => {
+): Bluebird<void> => {
 	exports.db = db = $db;
 	return db
 		.transaction(tx =>

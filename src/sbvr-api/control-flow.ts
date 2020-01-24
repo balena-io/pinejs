@@ -1,27 +1,27 @@
 import * as _ from 'lodash';
-import * as Promise from 'bluebird';
+import * as Bluebird from 'bluebird';
 import { Resolvable } from './common-types';
 
 export const liftP = <T, U>(fn: (v: T) => Resolvable<U>) => {
-	return (a: T | T[]): Promise<U[] | U> => {
+	return (a: T | T[]): Bluebird<U[] | U> => {
 		if (_.isArray(a)) {
 			// This must not be a settle as if any operation fails in a changeset
 			// we want to discard the whole
-			return Promise.mapSeries(a, fn);
+			return Bluebird.mapSeries(a, fn);
 		} else {
-			return Promise.resolve(a).then(fn);
+			return Bluebird.resolve(a).then(fn);
 		}
 	};
 };
 
 export interface MappingFunction {
-	<T, U>(a: T[], fn: (v: T) => Resolvable<U>): Promise<Array<U | Error>>;
+	<T, U>(a: T[], fn: (v: T) => Resolvable<U>): Bluebird<Array<U | Error>>;
 }
 
 // The settle version of `Promise.mapSeries`
 export const settleMapSeries: MappingFunction = (a, fn) => {
-	const runF = Promise.method(fn);
-	return Promise.mapSeries(a, _.flow(runF, wrap));
+	const runF = Bluebird.method(fn);
+	return Bluebird.mapSeries(a, _.flow(runF, wrap));
 };
 
 // This is used to guarantee that we convert a `.catch` result into an error, so that later code checking `_.isError` will work as expected
@@ -34,7 +34,7 @@ const ensureError = (err: any): Error => {
 
 // Wrap a promise with reflection. This promise will always succeed, either
 // with the value or the error of the promise it is wrapping
-const wrap = <T>(p: Promise<T>) => {
+const wrap = <T>(p: Bluebird<T>) => {
 	return p.then(_.identity as (value: T) => T, ensureError);
 };
 
@@ -45,9 +45,9 @@ const mapTill: MappingFunction = <T, U>(
 	a: T[],
 	fn: (v: T) => Resolvable<U>,
 ) => {
-	const runF = Promise.method(fn);
+	const runF = Bluebird.method(fn);
 	const results: Array<U | Error> = [];
-	return Promise.each(a, p => {
+	return Bluebird.each(a, p => {
 		return runF(p)
 			.then(result => {
 				results.push(result);

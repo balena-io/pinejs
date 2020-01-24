@@ -3,7 +3,7 @@ import * as _passport from 'passport';
 import * as _passportLocal from 'passport-local';
 import * as _configLoader from '../config-loader/config-loader';
 
-import * as Promise from 'bluebird';
+import * as Bluebird from 'bluebird';
 import * as permissions from '../sbvr-api/permissions';
 
 // Returns a middleware that will handle logging in using `username` and `password` body properties
@@ -91,7 +91,7 @@ const setup: _configLoader.SetupFunction = (app: _express.Application) => {
 			next();
 		};
 	}
-	return Promise.resolve();
+	return Bluebird.resolve();
 };
 
 export const config: _configLoader.Config = {

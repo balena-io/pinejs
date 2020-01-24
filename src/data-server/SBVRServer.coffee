@@ -1,4 +1,4 @@
-Promise = require 'bluebird'
+Bluebird = require 'bluebird'
 permissions = require '../sbvr-api/permissions'
 
 uiModel = '''
@@ -21,7 +21,7 @@ uiModel = '''
 # Middleware
 isServerOnAir = do ->
 	resolve = null
-	promise = new Promise (_resolve) ->
+	promise = new Bluebird (_resolve) ->
 		resolve = _resolve
 	(value) ->
 		if value?
@@ -29,7 +29,7 @@ isServerOnAir = do ->
 				resolve(value)
 				resolve = null
 			else
-				promise = Promise.fulfilled(value)
+				promise = Bluebird.fulfilled(value)
 		return promise
 
 serverIsOnAir = (req, res, next) ->
@@ -152,7 +152,7 @@ exports.setup = (app, sbvrUtils, db) ->
 		db.transaction (tx) ->
 			tx.tableList()
 			.then (result) ->
-				Promise.all result.rows.map (table) ->
+				Bluebird.all result.rows.map (table) ->
 					tx.dropTable(table.name)
 			.then ->
 				sbvrUtils.executeStandardModels(tx)
@@ -171,7 +171,7 @@ exports.setup = (app, sbvrUtils, db) ->
 	app.put '/importdb', permissions.checkPermissionsMiddleware('set'), (req, res, next) ->
 		queries = req.body.split(';')
 		db.transaction (tx) ->
-			Promise.reduce(
+			Bluebird.reduce(
 				queries
 				(result, query) ->
 					query = query.trim()
@@ -191,7 +191,7 @@ exports.setup = (app, sbvrUtils, db) ->
 			tx.tableList("name NOT LIKE '%_buk'")
 			.then (result) ->
 				exported = ''
-				Promise.all result.rows.map (table) ->
+				Bluebird.all result.rows.map (table) ->
 					tableName = table.name
 					exported += 'DROP TABLE IF EXISTS "' + tableName + '";\n'
 					exported += table.sql + ';\n'
@@ -222,7 +222,7 @@ exports.setup = (app, sbvrUtils, db) ->
 		db.transaction (tx) ->
 			tx.tableList("name NOT LIKE '%_buk'")
 			.then (result) ->
-				Promise.all result.rows.map (currRow) ->
+				Bluebird.all result.rows.map (currRow) ->
 					tableName = currRow.name
 					tx.dropTable(tableName + '_buk', true)
 					.then ->
@@ -236,7 +236,7 @@ exports.setup = (app, sbvrUtils, db) ->
 		db.transaction (tx) ->
 			tx.tableList("name LIKE '%_buk'")
 			.then (result) ->
-				Promise.all result.rows.map (currRow) ->
+				Bluebird.all result.rows.map (currRow) ->
 					tableName = currRow.name
 					tx.dropTable(tableName[0...-4], true)
 					.then ->
@@ -254,7 +254,7 @@ exports.setup = (app, sbvrUtils, db) ->
 
 
 	app.delete '/', serverIsOnAir, (req, res, next) ->
-		Promise.all([
+		Bluebird.all([
 			uiApi.patch
 				resource: 'textarea'
 				passthrough: req: permissions.root
