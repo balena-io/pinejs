@@ -1,4 +1,42 @@
 - commits:
+    - subject: Convert internal sbvr-utils functions to async/await
+      hash: 68b98ecd4c299029b8157da5be5cce4cf4de2c01
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+    - subject: Convert internal migrator functions to async/await
+      hash: 73635db4c7c44fb94a0984135a246af7ea7bc049
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+    - subject: Convert sbvr-api/hooks to async/await
+      hash: 2c4fd4dfa8b1c636c3767f71b1bbd319a9f56d9b
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+    - subject: Convert sbvr-api/odata-response to async/await
+      hash: e84e5458c6cda2e9aaec78c318814624f6804e60
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+    - subject: Import bluebird as Bluebird instead of Promise
+      hash: cfb9705159be123894643776649d6fccd752f782
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+  version: 11.0.4
+  date: 2020-01-24T23:18:43.038Z
+- commits:
     - subject: Add CODEOWNERS
       hash: 836c5c7820761941f37b1d131c980b164c7df2a1
       body: ''
