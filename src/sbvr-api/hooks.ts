@@ -14,10 +14,8 @@ export type InstantiatedHooks<T extends object> = { [key in keyof T]: Hook[] };
 export class Hook {
 	constructor(private hookFn: HookFn) {}
 
-	run(...args: any[]) {
-		return Bluebird.try(() => {
-			return this.hookFn(...args);
-		});
+	async run(...args: any[]) {
+		return this.hookFn(...args);
 	}
 }
 
@@ -29,7 +27,7 @@ export class SideEffectHook extends Hook {
 		super(hookFn);
 	}
 
-	registerRollback(fn: RollbackAction) {
+	registerRollback(fn: RollbackAction): void {
 		if (this.rolledBack) {
 			Bluebird.try(fn);
 		} else {
