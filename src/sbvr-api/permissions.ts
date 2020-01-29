@@ -692,26 +692,24 @@ export const checkPassword = (
 }> =>
 	getCheckPasswordQuery()({
 		username,
-	}).then((result: AnyObject[]) => {
+	}).then(async (result: AnyObject[]) => {
 		if (result.length === 0) {
 			throw new Error('User not found');
 		}
 		const hash = result[0].password;
 		const userId = result[0].id;
 		const actorId = result[0].actor;
-		return sbvrUtils.sbvrTypes.Hashed.compare(password, hash).then(res => {
-			if (!res) {
-				throw new Error('Passwords do not match');
-			}
-			return getUserPermissions(userId).then(permissions => {
-				return {
-					id: userId,
-					actor: actorId,
-					username,
-					permissions,
-				};
-			});
-		});
+		const res = await sbvrUtils.sbvrTypes.Hashed.compare(password, hash);
+		if (!res) {
+			throw new Error('Passwords do not match');
+		}
+		const permissions = await getUserPermissions(userId);
+		return {
+			id: userId,
+			actor: actorId,
+			username,
+			permissions,
+		};
 	});
 
 const getUserPermissionsQuery = _.once(() =>
@@ -877,17 +875,17 @@ const getApiKeyPermissionsQuery = _.once(() =>
 	}),
 );
 const $getApiKeyPermissions = memoize(
-	(apiKey: string) =>
-		getApiKeyPermissionsQuery()({ apiKey })
-			.then((permissions: AnyObject[]): string[] =>
-				permissions.map(permission => permission.name),
-			)
-			.tapCatch(err => {
-				sbvrUtils.api.Auth.logger.error(
-					'Error loading api key permissions',
-					err,
-				);
-			}),
+	async (apiKey: string) => {
+		try {
+			const permissions = (await getApiKeyPermissionsQuery()({
+				apiKey,
+			})) as Array<{ name: string }>;
+			return permissions.map(permission => permission.name);
+		} catch (err) {
+			sbvrUtils.api.Auth.logger.error('Error loading api key permissions', err);
+			throw err;
+		}
+	},
 	{
 		primitive: true,
 		promise: true,
@@ -896,13 +894,14 @@ const $getApiKeyPermissions = memoize(
 	},
 );
 
-export const getApiKeyPermissions = (apiKey: string): Bluebird<string[]> =>
-	Bluebird.try(() => {
+export const getApiKeyPermissions = Bluebird.method(
+	(apiKey: string): Promise<string[]> => {
 		if (!_.isString(apiKey)) {
 			throw new Error('API key has to be a string, got: ' + typeof apiKey);
 		}
 		return $getApiKeyPermissions(apiKey);
-	});
+	},
+);
 
 const getApiKeyActorIdQuery = _.once(() =>
 	sbvrUtils.api.Auth.prepare<{ apiKey: string }>({
@@ -920,21 +919,21 @@ const getApiKeyActorIdQuery = _.once(() =>
 );
 const apiActorPermissionError = new PermissionError();
 const getApiKeyActorId = memoize(
-	(apiKey: string) =>
-		getApiKeyActorIdQuery()({
+	async (apiKey: string) => {
+		const apiKeys = (await getApiKeyActorIdQuery()({
 			apiKey,
-		}).then((apiKeys: AnyObject[]) => {
-			if (apiKeys.length === 0) {
-				// We reuse a constant permission error here as it will be cached, and
-				// using a single error instance can drastically reduce the memory used
-				throw apiActorPermissionError;
-			}
-			const apiKeyActorID = apiKeys[0].is_of__actor.__id;
-			if (apiKeyActorID == null) {
-				throw new Error('API key is not linked to a actor?!');
-			}
-			return apiKeyActorID as number;
-		}),
+		})) as AnyObject[];
+		if (apiKeys.length === 0) {
+			// We reuse a constant permission error here as it will be cached, and
+			// using a single error instance can drastically reduce the memory used
+			throw apiActorPermissionError;
+		}
+		const apiKeyActorID = apiKeys[0].is_of__actor.__id;
+		if (apiKeyActorID == null) {
+			throw new Error('API key is not linked to a actor?!');
+		}
+		return apiKeyActorID as number;
+	},
 	{
 		primitive: true,
 		promise: true,
@@ -942,33 +941,32 @@ const getApiKeyActorId = memoize(
 	},
 );
 
-const checkApiKey = Bluebird.method((req: PermissionReq, apiKey: string) => {
-	if (apiKey == null || req.apiKey != null) {
-		return;
-	}
-	return getApiKeyPermissions(apiKey)
-		.catch(err => {
+const checkApiKey = Bluebird.method(
+	async (req: PermissionReq, apiKey: string) => {
+		if (apiKey == null || req.apiKey != null) {
+			return;
+		}
+		let permissions;
+		try {
+			permissions = await getApiKeyPermissions(apiKey);
+		} catch (err) {
 			console.warn('Error with API key:', err);
 			// Ignore errors getting the api key and just use an empty permissions object.
 			return [];
-		})
-		.then(permissions =>
-			Bluebird.try(() => {
-				if (permissions.length > 0) {
-					return getApiKeyActorId(apiKey);
-				}
-				return null;
-			}).then(actor => {
-				req.apiKey = {
-					key: apiKey,
-					permissions: permissions,
-				};
-				if (actor != null) {
-					req.apiKey.actor = actor;
-				}
-			}),
-		);
-});
+		}
+		let actor;
+		if (permissions.length > 0) {
+			actor = await getApiKeyActorId(apiKey);
+		}
+		req.apiKey = {
+			key: apiKey,
+			permissions: permissions,
+		};
+		if (actor != null) {
+			req.apiKey.actor = actor;
+		}
+	},
+);
 
 export const customAuthorizationMiddleware = (expectedScheme = 'Bearer') => {
 	expectedScheme = expectedScheme.toLowerCase();
@@ -1064,9 +1062,9 @@ export const checkPermissionsMiddleware = (
 		});
 
 const getGuestPermissions = memoize(
-	() =>
+	async () => {
 		// Get guest user
-		sbvrUtils.api.Auth.get({
+		const result = (await sbvrUtils.api.Auth.get({
 			resource: 'user',
 			passthrough: {
 				req: rootRead,
@@ -1077,21 +1075,19 @@ const getGuestPermissions = memoize(
 					username: 'guest',
 				},
 			},
-		})
-			.then((result: AnyObject[]) => {
-				if (result.length === 0) {
-					throw new Error('No guest user');
-				}
-				return getUserPermissions(result[0].id);
-			})
-			.then(_.uniq),
+		})) as AnyObject[];
+		if (result.length === 0) {
+			throw new Error('No guest user');
+		}
+		return _.uniq(await getUserPermissions(result[0].id));
+	},
 	{ promise: true },
 );
 
 const getReqPermissions = (req: PermissionReq, odataBinds: ODataBinds = []) =>
 	Bluebird.join(
 		getGuestPermissions(),
-		Bluebird.try(() => {
+		(async () => {
 			// TODO: Remove this extra actor ID lookup making actor non-optional and updating open-balena-api.
 			if (
 				req.apiKey != null &&
@@ -1099,11 +1095,10 @@ const getReqPermissions = (req: PermissionReq, odataBinds: ODataBinds = []) =>
 				req.apiKey.permissions != null &&
 				req.apiKey.permissions.length > 0
 			) {
-				return getApiKeyActorId(req.apiKey.key).then(actorId => {
-					req.apiKey!.actor = actorId;
-				});
+				const actorId = await getApiKeyActorId(req.apiKey.key);
+				req.apiKey!.actor = actorId;
 			}
-		}),
+		})(),
 		guestPermissions => {
 			if (_.some(guestPermissions, p => DEFAULT_ACTOR_BIND_REGEX.test(p))) {
 				throw new Error('Guest permissions cannot reference actors');
@@ -1142,10 +1137,10 @@ const getReqPermissions = (req: PermissionReq, odataBinds: ODataBinds = []) =>
 	);
 
 export const addPermissions = Bluebird.method(
-	(
+	async (
 		req: PermissionReq,
 		request: ODataRequest & { permissionType?: PermissionCheck },
-	): Bluebird<void> => {
+	): Promise<void> => {
 		const { vocabulary, resourceName, odataQuery, odataBinds } = request;
 		let { method, permissionType: maybePermissionType } = request;
 		let abstractSqlModel = sbvrUtils.getAbstractSqlModel(request);
@@ -1182,23 +1177,22 @@ export const addPermissions = Bluebird.method(
 			) === true
 		) {
 			// We have unconditional permission to access the vocab so there's no need to intercept anything
-			return Bluebird.resolve();
+			return;
 		}
-		return getReqPermissions(req, odataBinds).then(permissionsLookup => {
-			// Update the request's abstract sql model to use the constrained version
-			request.abstractSqlModel = abstractSqlModel = memoizedGetConstrainedModel(
-				abstractSqlModel,
-				permissionsLookup,
-				vocabulary,
-			);
+		const permissionsLookup = await getReqPermissions(req, odataBinds);
+		// Update the request's abstract sql model to use the constrained version
+		request.abstractSqlModel = abstractSqlModel = memoizedGetConstrainedModel(
+			abstractSqlModel,
+			permissionsLookup,
+			vocabulary,
+		);
 
-			if (!_.isEqual(permissionType, methodPermissions.GET)) {
-				const sqlName = sbvrUtils.resolveSynonym(request);
-				odataQuery.resource = `${sqlName}$permissions${JSON.stringify(
-					permissionType,
-				)}`;
-			}
-		});
+		if (!_.isEqual(permissionType, methodPermissions.GET)) {
+			const sqlName = sbvrUtils.resolveSynonym(request);
+			odataQuery.resource = `${sqlName}$permissions${JSON.stringify(
+				permissionType,
+			)}`;
+		}
 	},
 );
 
@@ -1301,29 +1295,25 @@ export const setup = () => {
 			return addPermissions(req, request);
 		},
 		PRERESPOND: ({ request, data }) => {
-			if (request.custom.isAction === 'canAccess') {
-				if (_.isEmpty(data)) {
-					// If the caller does not have any permissions to access the
-					// resource pine will throw a PermissionError. To have the
-					// same behavior for the case that the user has permissions
-					// to access the resource, but not this instance we also
-					// throw a PermissionError if the result is empty.
-					throw new PermissionError();
-				}
+			if (request.custom.isAction === 'canAccess' && _.isEmpty(data)) {
+				// If the caller does not have any permissions to access the
+				// resource pine will throw a PermissionError. To have the
+				// same behavior for the case that the user has permissions
+				// to access the resource, but not this instance we also
+				// throw a PermissionError if the result is empty.
+				throw new PermissionError();
 			}
 		},
 	});
 
 	sbvrUtils.addPureHook('POST', 'Auth', 'user', {
-		POSTPARSE: ({ request, api }) =>
-			api
-				.post({
-					resource: 'actor',
-					options: { returnResource: false },
-				})
-				.then((result: AnyObject) => {
-					request.values.actor = result.id;
-				}),
+		POSTPARSE: async ({ request, api }) => {
+			const result = (await api.post({
+				resource: 'actor',
+				options: { returnResource: false },
+			})) as AnyObject;
+			request.values.actor = result.id;
+		},
 	});
 
 	sbvrUtils.addPureHook('DELETE', 'Auth', 'user', {
