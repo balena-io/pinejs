@@ -182,7 +182,7 @@ export const process = async (
 	if (processedFields.length > 0) {
 		await Bluebird.map(instances, instance =>
 			Bluebird.map(processedFields, async resourceName => {
-				const result = fetchProcessingFields[resourceName](
+				const result = await fetchProcessingFields[resourceName](
 					instance[resourceName],
 				);
 				instance[resourceName] = result;
