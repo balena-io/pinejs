@@ -75,7 +75,7 @@ export const setup = (app: _express.Application) => {
 						}
 						permissionsCache[permissionName] = (async () => {
 							try {
-								const result = (await authApiTx.get({
+								const [result] = (await authApiTx.get({
 									resource: 'permission',
 									options: {
 										$select: 'id',
@@ -84,18 +84,17 @@ export const setup = (app: _express.Application) => {
 										},
 									},
 								})) as Array<{ id: number }>;
-								if (result.length === 0) {
-									const { id } = (await authApiTx.post({
-										resource: 'permission',
-										body: {
-											name: permissionName,
-										},
-										options: { returnResource: false },
-									})) as { id: number };
-									return id;
-								} else {
-									return result[0].id;
+								if (result != null) {
+									return result.id;
 								}
+								const { id } = (await authApiTx.post({
+									resource: 'permission',
+									body: {
+										name: permissionName,
+									},
+									options: { returnResource: false },
+								})) as { id: number };
+								return id;
 							} catch (e) {
 								e.message = `Could not create or find permission "${permissionName}": ${e.message}`;
 								throw e;
@@ -115,7 +114,7 @@ export const setup = (app: _express.Application) => {
 								},
 							},
 						})) as Array<{ id: number }>;
-						let userID: number = result[0].id;
+						let userID: number;
 						if (result.length === 0) {
 							({ id: userID } = (await authApiTx.post({
 								resource: 'user',
@@ -125,6 +124,8 @@ export const setup = (app: _express.Application) => {
 								},
 								options: { returnResource: false },
 							})) as { id: number });
+						} else {
+							userID = result[0].id;
 						}
 						if (user.permissions != null) {
 							await Bluebird.map(user.permissions, async permissionName => {
@@ -138,7 +139,7 @@ export const setup = (app: _express.Application) => {
 											permission: permissionID,
 										},
 									},
-								})) as sbvrUtils.AnyObject[];
+								})) as Array<{ id: number }>;
 
 								if (result.length === 0) {
 									await authApiTx.post({
@@ -218,7 +219,7 @@ export const setup = (app: _express.Application) => {
 	};
 
 	const loadApplicationConfig = Bluebird.method(
-		async (config?: string | Config) => {
+		async (config: string | Config | undefined) => {
 			try {
 				if (require.extensions['.coffee'] == null) {
 					try {
@@ -274,7 +275,8 @@ export const setup = (app: _express.Application) => {
 						const migrationsPath = resolvePath(model.migrationsPath);
 						delete model.migrationsPath;
 
-						await Bluebird.resolve(fs.promises.readdir(migrationsPath)).map(
+						await Bluebird.map(
+							fs.promises.readdir(migrationsPath),
 							async filename => {
 								const filePath = path.join(migrationsPath, filename);
 								const [migrationKey] = filename.split('-', 1);
