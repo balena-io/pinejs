@@ -49,6 +49,42 @@ export interface Config {
 	users?: User[];
 }
 
+const getOrCreate = async (
+	authApiTx: sbvrUtils.PinejsClient,
+	resource: string,
+	uniqueFields: sbvrUtils.AnyObject,
+	extraFields?: sbvrUtils.AnyObject,
+) => {
+	const [result] = (await authApiTx.get({
+		resource,
+		options: {
+			$select: 'id',
+			$filter: uniqueFields,
+		},
+	})) as Array<{ id: number }>;
+	if (result != null) {
+		return result.id;
+	}
+	const { id } = (await authApiTx.post({
+		resource,
+		body: { ...uniqueFields, ...extraFields },
+		options: { returnResource: false },
+	})) as { id: number };
+	return id;
+};
+
+const getOrCreatePermission = async (
+	authApiTx: sbvrUtils.PinejsClient,
+	permissionName: string,
+) => {
+	try {
+		return getOrCreate(authApiTx, 'permission', { name: permissionName });
+	} catch (e) {
+		e.message = `Could not create or find permission "${permissionName}": ${e.message}`;
+		throw e;
+	}
+};
+
 // Setup function
 export const setup = (app: _express.Application) => {
 	const loadConfig = (data: Config): Bluebird<void> =>
@@ -73,84 +109,32 @@ export const setup = (app: _express.Application) => {
 						if (permissionsCache[permissionName] != null) {
 							return;
 						}
-						permissionsCache[permissionName] = (async () => {
-							try {
-								const [result] = (await authApiTx.get({
-									resource: 'permission',
-									options: {
-										$select: 'id',
-										$filter: {
-											name: permissionName,
-										},
-									},
-								})) as Array<{ id: number }>;
-								if (result != null) {
-									return result.id;
-								}
-								const { id } = (await authApiTx.post({
-									resource: 'permission',
-									body: {
-										name: permissionName,
-									},
-									options: { returnResource: false },
-								})) as { id: number };
-								return id;
-							} catch (e) {
-								e.message = `Could not create or find permission "${permissionName}": ${e.message}`;
-								throw e;
-							}
-						})();
+						permissionsCache[permissionName] = getOrCreatePermission(
+							authApiTx,
+							permissionName,
+						);
 					});
 				});
 
 				await Bluebird.map(users, async user => {
 					try {
-						const result = (await authApiTx.get({
-							resource: 'user',
-							options: {
-								$select: 'id',
-								$filter: {
-									username: user.username,
-								},
+						const userID = await getOrCreate(
+							authApiTx,
+							'user',
+							{
+								username: user.username,
 							},
-						})) as Array<{ id: number }>;
-						let userID: number;
-						if (result.length === 0) {
-							({ id: userID } = (await authApiTx.post({
-								resource: 'user',
-								body: {
-									username: user.username,
-									password: user.password,
-								},
-								options: { returnResource: false },
-							})) as { id: number });
-						} else {
-							userID = result[0].id;
-						}
+							{
+								password: user.password,
+							},
+						);
 						if (user.permissions != null) {
 							await Bluebird.map(user.permissions, async permissionName => {
 								const permissionID = await permissionsCache[permissionName];
-								const result = (await authApiTx.get({
-									resource: 'user__has__permission',
-									options: {
-										$select: 'id',
-										$filter: {
-											user: userID,
-											permission: permissionID,
-										},
-									},
-								})) as Array<{ id: number }>;
-
-								if (result.length === 0) {
-									await authApiTx.post({
-										resource: 'user__has__permission',
-										body: {
-											user: userID,
-											permission: permissionID,
-										},
-										options: { returnResource: false },
-									});
-								}
+								await getOrCreate(authApiTx, 'user__has__permission', {
+									user: userID,
+									permission: permissionID,
+								});
 							});
 						}
 					} catch (e) {
