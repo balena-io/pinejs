@@ -692,13 +692,13 @@ export const checkPassword = (
 }> =>
 	getCheckPasswordQuery()({
 		username,
-	}).then(async (result: AnyObject[]) => {
-		if (result.length === 0) {
+	}).then(async ([user]: AnyObject[]) => {
+		if (user == null) {
 			throw new Error('User not found');
 		}
-		const hash = result[0].password;
-		const userId = result[0].id;
-		const actorId = result[0].actor;
+		const hash = user.password;
+		const userId = user.id;
+		const actorId = user.actor;
 		const res = await sbvrUtils.sbvrTypes.Hashed.compare(password, hash);
 		if (!res) {
 			throw new Error('Passwords do not match');
@@ -946,13 +946,13 @@ const checkApiKey = Bluebird.method(
 		if (apiKey == null || req.apiKey != null) {
 			return;
 		}
-		let permissions;
+		let permissions: string[];
 		try {
 			permissions = await getApiKeyPermissions(apiKey);
 		} catch (err) {
 			console.warn('Error with API key:', err);
 			// Ignore errors getting the api key and just use an empty permissions object.
-			return [];
+			permissions = [];
 		}
 		let actor;
 		if (permissions.length > 0) {
@@ -1075,7 +1075,7 @@ const getGuestPermissions = memoize(
 					username: 'guest',
 				},
 			},
-		})) as AnyObject[];
+		})) as Array<{ id: number }>;
 		if (result.length === 0) {
 			throw new Error('No guest user');
 		}
