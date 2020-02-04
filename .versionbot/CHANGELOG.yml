@@ -1,4 +1,28 @@
 - commits:
+    - subject: Deduplicate get or create functionality in config-loader
+      hash: d71e5bcb106aef78cb559222de746f4d3a653d3b
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+    - subject: Convert internal config-loader functions to async/await
+      hash: 9d653fed3a9daa91747c53503f3027c67b3dceb1
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+    - subject: Convert internal permissions functions to async/await
+      hash: d7bebf4bd249971f037be35c3c56d7a88c1d9aa3
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+  version: 11.0.6
+  date: 2020-02-03T17:22:53.902Z
+- commits:
     - subject: Fix missing `await`
       hash: 3ab9d79f80a31f5346cecd6ca03c50d607569cc3
       body: ''
