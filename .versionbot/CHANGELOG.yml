@@ -1,4 +1,156 @@
 - commits:
+    - subject: Update dependencies
+      hash: 3ca77681921503eca2f8c40438e2a644ac43ea09
+      body: |
+        Update abstract-sql-compiler from 6.11.2 to 6.11.4
+        Update lf-to-abstract-sql from 3.1.0 to 3.1.1
+        Update odata-parser from 1.3.0 to 1.3.1
+        Update odata-to-abstract-sql from 4.2.0 to 4.2.1
+        Update pinejs-client-core from 5.6.0 to 5.6.5
+        Update sbvr-parser from 0.2.6 to 0.2.7
+        Update sbvr-types from 2.0.3 to 2.0.4
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Fix query type check
+              hash: e72755b88856c133ba54f3115abdd07ae6e4d9f6
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: abstract-sql-compiler-6.11.4
+          date: 2020-02-06T12:55:42.156Z
+        - commits:
+            - subject: Add CODEOWNERS
+              hash: 660c9caa7621f6a0d8e161b6f2fade5e3df88f0e
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: abstract-sql-compiler-6.11.3
+          date: 2020-01-22T15:37:52.435Z
+        - commits:
+            - subject: Add CODEOWNERS
+              hash: 84138a590beefb6a5efeb67e271fe26ec8706d4c
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: lf-to-abstract-sql-3.1.1
+          date: 2020-01-22T15:41:30.465Z
+        - commits:
+            - subject: Add CODEOWNERS
+              hash: 35fbb37a9db0d21c9c26ddef90e1aa2f34f8ac13
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: odata-parser-1.3.1
+          date: 2020-01-22T16:12:13.357Z
+        - commits:
+            - subject: Add CODEOWNERS
+              hash: e9931f0bad2fc7b74366fcf1359642714e3d8cbe
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: sbvr-parser-0.2.7
+          date: 2020-01-22T16:32:02.436Z
+        - commits:
+            - subject: Add CODEOWNERS
+              hash: 802f99c32934b4eac31de4e3a14eaa6810d9d854
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: odata-to-abstract-sql-4.2.1
+          date: 2020-01-22T16:31:49.750Z
+        - commits:
+            - subject: Remove `defaults` helper in favour of `??`
+              hash: 806852bceb07a858572511609dc88ea0b748038e
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: pinejs-client-js-5.6.5
+          date: 2020-01-30T17:09:03.006Z
+        - commits:
+            - subject: Avoid allocations when destroying a poll
+              hash: 8f397a83803ae43d19331f4c32952384ba9e7fe6
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: pinejs-client-js-5.6.4
+          date: 2020-01-30T16:25:12.292Z
+        - commits:
+            - subject: Improve `RawFilter` typing
+              hash: 2006d4e7f0fecbb99357b82215da28978194db41
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: pinejs-client-js-5.6.3
+          date: 2020-01-30T12:59:22.535Z
+        - commits:
+            - subject: Update dependencies
+              hash: e7314acbdd029ece267a4568bf15cb5dc333eec1
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: pinejs-client-js-5.6.2
+          date: 2020-01-29T21:12:32.246Z
+        - commits:
+            - subject: Switch most CODEOWNERS entries to a team
+              hash: 3ef7e0db285ae54f96aee3f52319ac8d8c4d61e8
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: pinejs-client-js-5.6.1
+          date: 2020-01-22T16:38:22.045Z
+        - commits:
+            - subject: Add node 12 to the test matrix
+              hash: ecd938076fa0b473e0149940e71ac909a5f2cdfd
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+            - subject: Update dependencies
+              hash: 3aacccdbb1962f5cb7eeec8ca5fa62c5f42145e3
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+            - subject: Add CODEOWNERS
+              hash: d04a524767359dca21b7dfefc07e7e05a5607934
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: sbvr-types-2.0.4
+          date: 2020-01-22T17:34:25.485Z
+  version: 11.0.7
+  date: 2020-02-06T13:59:23.314Z
+- commits:
     - subject: Deduplicate get or create functionality in config-loader
       hash: d71e5bcb106aef78cb559222de746f4d3a653d3b
       body: ''
