@@ -22,7 +22,7 @@
     "prettify": "resin-lint --typescript --fix src build typings Gruntfile.ts"
   },
   "dependencies": {
-    "@resin/abstract-sql-compiler": "^6.13.1",
+    "@resin/abstract-sql-compiler": "^6.13.2",
     "@resin/lf-to-abstract-sql": "^3.1.2",
     "@resin/odata-parser": "^1.4.0",
     "@resin/odata-to-abstract-sql": "^4.4.0",
