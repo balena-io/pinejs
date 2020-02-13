@@ -41,10 +41,10 @@ const DEFAULT_ACTOR_BIND_REGEX = new RegExp(
 );
 
 export { PermissionError, PermissionParsingError };
-export type PermissionReq = {
+export interface PermissionReq {
 	user?: User;
 	apiKey?: ApiKey;
-};
+}
 export const root: PermissionReq = {
 	user: {
 		id: 0,
@@ -476,7 +476,7 @@ const onceGetter = (obj: AnyObject, propName: string, fn: () => any) => {
 	// We have `nullableFn` to keep fn required but still allow us to clear the fn reference
 	// after we have called fn
 	let nullableFn: undefined | typeof fn = fn;
-	let thrownErr: Error | undefined = undefined;
+	let thrownErr: Error | undefined;
 	Object.defineProperty(obj, propName, {
 		enumerable: true,
 		configurable: true,
@@ -960,7 +960,7 @@ const checkApiKey = Bluebird.method(
 		}
 		req.apiKey = {
 			key: apiKey,
-			permissions: permissions,
+			permissions,
 		};
 		if (actor != null) {
 			req.apiKey.actor = actor;
@@ -993,7 +993,7 @@ export const customAuthorizationMiddleware = (expectedScheme = 'Bearer') => {
 
 			return checkApiKey(req, apiKey);
 		}).then(() => {
-			next && next();
+			next?.();
 		});
 };
 
@@ -1016,7 +1016,7 @@ export const customApiKeyMiddleware = (paramName = 'apikey') => {
 				? req.body[paramName]
 				: req.query[paramName];
 		return checkApiKey(req, apiKey).then(() => {
-			next && next();
+			next?.();
 		});
 	};
 };

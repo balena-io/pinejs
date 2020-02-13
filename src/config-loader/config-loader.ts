@@ -1,24 +1,22 @@
 import * as _express from 'express';
 
-import * as _ from 'lodash';
 import * as Bluebird from 'bluebird';
-import * as path from 'path';
 import * as fs from 'fs';
+import * as _ from 'lodash';
+import * as path from 'path';
 
-import { Database } from '../database-layer/db';
-import * as sbvrUtils from '../sbvr-api/sbvr-utils';
-import * as permissions from '../sbvr-api/permissions';
-import { Resolvable } from '../sbvr-api/common-types';
 import { AbstractSqlModel } from '@resin/abstract-sql-compiler';
+import { Database } from '../database-layer/db';
 import { Migration } from '../migrator/migrator';
+import { Resolvable } from '../sbvr-api/common-types';
+import * as permissions from '../sbvr-api/permissions';
+import * as sbvrUtils from '../sbvr-api/sbvr-utils';
 
-export interface SetupFunction {
-	(
-		app: _express.Application,
-		sbvrUtilsInstance: typeof sbvrUtils,
-		db: Database,
-	): Resolvable<void>;
-}
+export type SetupFunction = (
+	app: _express.Application,
+	sbvrUtilsInstance: typeof sbvrUtils,
+	db: Database,
+) => Resolvable<void>;
 
 export interface Model {
 	apiRoot?: string;
@@ -197,9 +195,9 @@ export const setup = (app: _express.Application) => {
 			});
 		});
 
-	const loadConfigFile = (path: string): Bluebird<Config> => {
-		console.info('Loading config:', path);
-		return Bluebird.resolve(import(path));
+	const loadConfigFile = (configPath: string): Bluebird<Config> => {
+		console.info('Loading config:', configPath);
+		return Bluebird.resolve(import(configPath));
 	};
 
 	const loadApplicationConfig = Bluebird.method(
@@ -210,12 +208,16 @@ export const setup = (app: _express.Application) => {
 						// Try to register the coffeescript loader if it doesn't exist
 						// We ignore if it fails though, since that probably just means it is not available/needed.
 						require('coffeescript/register');
-					} catch (e) {}
+					} catch (e) {
+						// Ignore errors
+					}
 				}
 				if (require.extensions['.ts'] == null) {
 					try {
 						require('ts-node/register/transpile-only');
-					} catch (e) {}
+					} catch (e) {
+						// Ignore errors
+					}
 				}
 
 				console.info('Loading application config');

@@ -8,8 +8,8 @@ export { dbModule };
 import * as configLoader from '../config-loader/config-loader';
 import * as migrator from '../migrator/migrator';
 
-import * as sbvrUtils from '../sbvr-api/sbvr-utils';
 import { PinejsSessionStore } from '../pinejs-session-store/pinejs-session-store';
+import * as sbvrUtils from '../sbvr-api/sbvr-utils';
 export { sbvrUtils, PinejsSessionStore };
 
 let databaseOptions: {
@@ -49,7 +49,7 @@ export const init = (
 		.then(() => configLoader.setup(app))
 		.tap(cfgLoader => cfgLoader.loadConfig(migrator.config))
 		.tap(cfgLoader => {
-			const promises: Bluebird<void>[] = [];
+			const promises: Array<Bluebird<void>> = [];
 			if (process.env.SBVR_SERVER_ENABLED) {
 				const sbvrServer = require('../data-server/SBVRServer');
 				const transactions = require('../http-transactions/transactions');

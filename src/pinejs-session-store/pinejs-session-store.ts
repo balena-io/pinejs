@@ -1,8 +1,8 @@
-import * as _ from 'lodash';
 import { Store } from 'express-session';
-import * as permissions from '../sbvr-api/permissions';
-import { api, AnyObject } from '../sbvr-api/sbvr-utils';
+import * as _ from 'lodash';
 import { Config } from '../config-loader/config-loader';
+import * as permissions from '../sbvr-api/permissions';
+import { AnyObject, api } from '../sbvr-api/sbvr-utils';
 
 export { Store };
 
@@ -30,7 +30,7 @@ const sessionModel = `
 `;
 
 export class PinejsSessionStore extends Store {
-	get = ((sid, callback) => {
+	public get = ((sid, callback) => {
 		api.session
 			.get({
 				resource: 'session',
@@ -50,10 +50,10 @@ export class PinejsSessionStore extends Store {
 			.asCallback(callback);
 	}) as Store['get'];
 
-	set = ((sid, data, callback) => {
+	public set = ((sid, data, callback) => {
 		const body = {
 			session_id: sid,
-			data: data,
+			data,
 			expiry_time: _.get(data, ['cookie', 'expires'], null),
 		};
 		api.session
@@ -68,7 +68,7 @@ export class PinejsSessionStore extends Store {
 			.asCallback(callback);
 	}) as Store['set'];
 
-	destroy = ((sid, callback) => {
+	public destroy = ((sid, callback) => {
 		api.session
 			.delete({
 				resource: 'session',
@@ -80,7 +80,7 @@ export class PinejsSessionStore extends Store {
 			.asCallback(callback);
 	}) as Store['destroy'];
 
-	all = (callback => {
+	public all = (callback => {
 		api.session
 			.get({
 				resource: 'session',
@@ -98,7 +98,7 @@ export class PinejsSessionStore extends Store {
 			.asCallback(callback);
 	}) as Store['all'];
 
-	clear = (callback => {
+	public clear = (callback => {
 		// TODO: Use a truncate
 		api.session
 			.delete({
@@ -110,7 +110,7 @@ export class PinejsSessionStore extends Store {
 			.asCallback(callback);
 	}) as Store['clear'];
 
-	length = (callback => {
+	public length = (callback => {
 		api.session
 			.get({
 				resource: 'session/$count',
@@ -129,7 +129,7 @@ export class PinejsSessionStore extends Store {
 			.asCallback(callback);
 	}) as Store['length'];
 
-	static config: Config = {
+	public static config: Config = {
 		models: [
 			{
 				modelName: 'session',

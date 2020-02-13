@@ -1,31 +1,31 @@
 import * as _AbstractSQLCompiler from '@resin/abstract-sql-compiler';
 
-import * as Bluebird from 'bluebird';
 import * as ODataParser from '@resin/odata-parser';
 import {
 	ODataBinds,
+	ODataOptions,
 	ODataQuery,
 	SupportedMethod,
-	ODataOptions,
 } from '@resin/odata-parser';
+import * as Bluebird from 'bluebird';
 export const SyntaxError = ODataParser.SyntaxError;
 import { OData2AbstractSQL } from '@resin/odata-to-abstract-sql';
+import * as _ from 'lodash';
 import * as memoize from 'memoizee';
 import memoizeWeak = require('memoizee/weak');
-import * as _ from 'lodash';
 
 export { BadRequestError, ParsingError, TranslationError } from './errors';
+import * as deepFreeze from 'deep-freeze';
+import * as env from '../config-loader/env';
+import { Tx } from '../database-layer/db';
 import {
 	BadRequestError,
 	ParsingError,
-	TranslationError,
 	PermissionError,
+	TranslationError,
 } from './errors';
-import * as deepFreeze from 'deep-freeze';
-import * as env from '../config-loader/env';
-import * as sbvrUtils from './sbvr-utils';
-import { Tx } from '../database-layer/db';
 import { InstantiatedHooks } from './hooks';
+import * as sbvrUtils from './sbvr-utils';
 
 export type OdataBinds = ODataBinds;
 
@@ -77,7 +77,7 @@ export const memoizedParseOdata = (() => {
 		// do not run the resource hooks
 		if (
 			odata.tree.property != null &&
-			odata.tree.property.resource == 'canAccess'
+			odata.tree.property.resource === 'canAccess'
 		) {
 			odata.tree.resource =
 				odata.tree.resource + '#' + odata.tree.property.resource;
@@ -355,13 +355,13 @@ const parseODataChangeset = (
 };
 
 const splitApiRoot = (url: string) => {
-	let urlParts = url.split('/');
+	const urlParts = url.split('/');
 	const apiRoot = urlParts[1];
 	if (apiRoot == null) {
 		throw new ParsingError(`No such api root: ${apiRoot}`);
 	}
 	url = '/' + urlParts.slice(2).join('/');
-	return { url: url, apiRoot: apiRoot };
+	return { url, apiRoot };
 };
 
 const mustExtractHeader = (

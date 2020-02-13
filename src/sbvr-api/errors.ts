@@ -22,7 +22,7 @@ export class HttpError extends TypedError {
 		super(error);
 	}
 
-	getResponseBody() {
+	public getResponseBody() {
 		return this.body !== undefined ? this.body : this.message;
 	}
 }

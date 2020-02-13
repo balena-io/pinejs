@@ -1,5 +1,5 @@
-import * as _db from '../database-layer/db';
 import * as _express from 'express';
+import * as _db from '../database-layer/db';
 
 declare global {
 	namespace Express {
@@ -10,8 +10,8 @@ declare global {
 	}
 }
 
-import * as _ from 'lodash';
 import * as Bluebird from 'bluebird';
+import * as _ from 'lodash';
 Bluebird.config({
 	cancellation: true,
 });
@@ -20,18 +20,18 @@ import { TypedError } from 'typed-error';
 import { cachedCompile } from './cached-compile';
 
 type LFModel = any[];
-import * as LF2AbstractSQL from '@resin/lf-to-abstract-sql';
 import * as AbstractSQLCompiler from '@resin/abstract-sql-compiler';
 import { version as AbstractSQLCompilerVersion } from '@resin/abstract-sql-compiler/package.json';
+import * as LF2AbstractSQL from '@resin/lf-to-abstract-sql';
 
-import { PinejsClientCoreFactory } from 'pinejs-client-core';
-import * as sbvrTypes from '@resin/sbvr-types';
 import {
-	sqlNameToODataName,
 	odataNameToSqlName,
+	sqlNameToODataName,
 	SupportedMethod,
 } from '@resin/odata-to-abstract-sql';
+import * as sbvrTypes from '@resin/sbvr-types';
 import deepFreeze = require('deep-freeze');
+import { PinejsClientCoreFactory } from 'pinejs-client-core';
 
 import { ExtendedSBVRParser } from '../extended-sbvr-parser/extended-sbvr-parser';
 
@@ -42,34 +42,34 @@ import { generateODataMetadata } from '../odata-metadata/odata-metadata-generato
 const devModel = require('./dev.sbvr');
 import * as permissions from './permissions';
 export * from './permissions';
-import * as uriParser from './uri-parser';
 import {
-	statusCodeToError,
+	BadRequestError,
+	ConflictError,
+	HttpError,
 	InternalRequestError,
+	MethodNotAllowedError,
+	NotFoundError,
 	ParsingError,
 	PermissionError,
 	PermissionParsingError,
 	SbvrValidationError,
 	SqlCompilationError,
+	statusCodeToError,
 	TranslationError,
-	MethodNotAllowedError,
-	BadRequestError,
-	HttpError,
 	UnauthorizedError,
-	NotFoundError,
-	ConflictError,
 } from './errors';
+import * as uriParser from './uri-parser';
 export * from './errors';
 import {
-	rollbackRequestHooks,
-	instantiateHooks,
 	HookBlueprint,
 	InstantiatedHooks,
+	instantiateHooks,
+	rollbackRequestHooks,
 } from './hooks';
 
-import * as controlFlow from './control-flow';
 import * as memoize from 'memoizee';
 import memoizeWeak = require('memoizee/weak');
+import * as controlFlow from './control-flow';
 
 const { DEBUG } = process.env;
 
@@ -79,14 +79,14 @@ export { sbvrTypes };
 
 import { version as LF2AbstractSQLVersion } from '@resin/lf-to-abstract-sql/package.json';
 import { version as sbvrTypesVersion } from '@resin/lf-to-abstract-sql/package.json';
-import { AnyObject } from './sbvr-utils';
 import { Model } from '../config-loader/config-loader';
-import { RequiredField, OptionalField } from './common-types';
 import {
-	getAndCheckBindValues,
 	compileRequest,
+	getAndCheckBindValues,
 	isRuleAffected,
 } from './abstract-sql';
+import { OptionalField, RequiredField } from './common-types';
+import { AnyObject } from './sbvr-utils';
 export { resolveOdataBind } from './abstract-sql';
 import * as odataResponse from './odata-response';
 
@@ -122,12 +122,12 @@ export interface HookReq {
 	hooks?: InstantiatedHooks<Hooks>;
 }
 
-export type HookArgs = {
+export interface HookArgs {
 	req: HookReq;
 	request: HookRequest;
 	api: PinejsClient;
 	tx?: _db.Tx;
-};
+}
 export type HookResponse = PromiseLike<any> | null | void;
 export type HookRequest = uriParser.ODataRequest;
 
@@ -206,12 +206,12 @@ const memoizedResolvedSynonym = memoizeWeak(
 		const sqlName = odataNameToSqlName(resourceName);
 		return _(sqlName)
 			.split('-')
-			.map(resourceName => {
-				const synonym = abstractSqlModel.synonyms[resourceName];
+			.map(namePart => {
+				const synonym = abstractSqlModel.synonyms[namePart];
 				if (synonym != null) {
 					return synonym;
 				}
-				return resourceName;
+				return namePart;
 			})
 			.join('-');
 	},
@@ -236,8 +236,8 @@ const memoizedResolveNavigationResource = memoizeWeak(
 	): string => {
 		const navigation = _(odataNameToSqlName(navigationName))
 			.split('-')
-			.flatMap(resourceName =>
-				memoizedResolvedSynonym(abstractSqlModel, resourceName).split('-'),
+			.flatMap(namePart =>
+				memoizedResolvedSynonym(abstractSqlModel, namePart).split('-'),
 			)
 			.concat('$')
 			.value();
@@ -427,7 +427,7 @@ export const generateModels = (
 	const odataMetadata = cachedCompile(
 		'metadata',
 		generateODataMetadata.version,
-		{ vocab: vocab, abstractSqlModel: abstractSql },
+		{ vocab, abstractSqlModel: abstractSql },
 		() => generateODataMetadata(vocab, abstractSql),
 	);
 
@@ -573,9 +573,9 @@ const cleanupModel = (vocab: string) => {
 };
 
 const mergeHooks = (a: HookBlueprints, b: HookBlueprints): HookBlueprints => {
-	return _.mergeWith({}, a, b, (a, b) => {
-		if (_.isArray(a)) {
-			return a.concat(b);
+	return _.mergeWith({}, a, b, (x, y) => {
+		if (_.isArray(x)) {
+			return x.concat(y);
 		}
 	});
 };
@@ -722,7 +722,7 @@ export const getID = (vocab: string, request: uriParser.ODataRequest) => {
 
 export const runRule = (() => {
 	const LF2AbstractSQLPrepHack = LF2AbstractSQL.LF2AbstractSQLPrep._extend({
-		CardinalityOptimisation: function() {
+		CardinalityOptimisation() {
 			this._pred(false);
 		},
 	});
@@ -772,7 +772,7 @@ export const runRule = (() => {
 		if (ruleAbs == null) {
 			throw new Error('Unable to generate rule');
 		}
-		let ruleBody = _.find(ruleAbs, node => node[0] === 'Body') as [
+		const ruleBody = _.find(ruleAbs, node => node[0] === 'Body') as [
 			'Body',
 			...any[],
 		];
@@ -874,8 +874,8 @@ export class PinejsClient extends PinejsClientCoreFactory(Bluebird)<
 	Bluebird<{}>,
 	Bluebird<PinejsClientCoreFactory.PromiseResultTypes>
 > {
-	passthrough: Passthrough;
-	_request({
+	public passthrough: Passthrough;
+	public _request({
 		method,
 		url,
 		body,
@@ -1361,7 +1361,7 @@ const updateBinds = (
 ) => {
 	if (request._defer) {
 		request.odataBinds = _.map(request.odataBinds, ([tag, id]) => {
-			if (tag == 'ContentReference') {
+			if (tag === 'ContentReference') {
 				const ref = env.get(id);
 				if (
 					ref == null ||
@@ -1490,7 +1490,7 @@ const respondGet = async (
 			request,
 			result,
 			data: d,
-			tx: tx,
+			tx,
 		});
 		return { body: { d }, headers: { contentType: 'application/json' } };
 	} else {
@@ -1617,7 +1617,7 @@ const respondPut = async (
 		req,
 		res,
 		request,
-		tx: tx,
+		tx,
 	});
 	return {
 		status: 200,

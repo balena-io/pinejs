@@ -56,8 +56,8 @@ const setup: _configLoader.SetupFunction = (app: _express.Application) => {
 					fn(err, user, req, res, next);
 					return;
 				}
-				req.login(user, err => {
-					fn(err, user, req, res, next);
+				req.login(user, error => {
+					fn(error, user, req, res, next);
 				});
 			})(req, res, next);
 

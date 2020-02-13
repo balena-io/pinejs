@@ -13,7 +13,9 @@ let fs: undefined | typeof _fs;
 try {
 	// tslint:disable-next-line:no-var-requires
 	fs = require('fs');
-} catch (e) {}
+} catch (e) {
+	// Ignore error
+}
 
 const SAVE_DEBOUNCE_TIME = 5000;
 
@@ -41,7 +43,9 @@ export const cachedCompile = <T>(
 		if (fs != null) {
 			try {
 				cache = JSON.parse(fs.readFileSync(cacheFile, 'utf8'));
-			} catch (e) {}
+			} catch (e) {
+				// Ignore error
+			}
 		}
 		if (cache == null) {
 			cache = {};

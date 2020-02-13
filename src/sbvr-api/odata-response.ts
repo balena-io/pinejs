@@ -9,16 +9,16 @@ declare module '@resin/abstract-sql-compiler' {
 	}
 }
 
-import * as _ from 'lodash';
-import * as Bluebird from 'bluebird';
-import { Row, Result } from '../database-layer/db';
-import { resolveNavigationResource, resolveSynonym } from './sbvr-utils';
-import { sqlNameToODataName } from '@resin/odata-to-abstract-sql';
-import * as sbvrTypes from '@resin/sbvr-types';
 import {
 	AbstractSqlModel,
 	AbstractSqlTable,
 } from '@resin/abstract-sql-compiler';
+import { sqlNameToODataName } from '@resin/odata-to-abstract-sql';
+import * as sbvrTypes from '@resin/sbvr-types';
+import * as Bluebird from 'bluebird';
+import * as _ from 'lodash';
+import { Result, Row } from '../database-layer/db';
+import { resolveNavigationResource, resolveSynonym } from './sbvr-utils';
 
 const checkForExpansion = async (
 	vocab: string,
@@ -181,11 +181,11 @@ export const process = async (
 	);
 	if (processedFields.length > 0) {
 		await Bluebird.map(instances, instance =>
-			Bluebird.map(processedFields, async resourceName => {
-				const result = await fetchProcessingFields[resourceName](
-					instance[resourceName],
+			Bluebird.map(processedFields, async fieldName => {
+				const result = await fetchProcessingFields[fieldName](
+					instance[fieldName],
 				);
-				instance[resourceName] = result;
+				instance[fieldName] = result;
 			}),
 		);
 	}

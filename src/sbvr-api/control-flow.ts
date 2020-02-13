@@ -1,5 +1,5 @@
-import * as _ from 'lodash';
 import * as Bluebird from 'bluebird';
+import * as _ from 'lodash';
 import { Resolvable } from './common-types';
 
 export const liftP = <T, U>(fn: (v: T) => Resolvable<U>) => {
@@ -14,9 +14,10 @@ export const liftP = <T, U>(fn: (v: T) => Resolvable<U>) => {
 	};
 };
 
-export interface MappingFunction {
-	<T, U>(a: T[], fn: (v: T) => Resolvable<U>): Bluebird<Array<U | Error>>;
-}
+export type MappingFunction = <T, U>(
+	a: T[],
+	fn: (v: T) => Resolvable<U>,
+) => Bluebird<Array<U | Error>>;
 
 // The settle version of `Promise.mapSeries`
 export const settleMapSeries: MappingFunction = (a, fn) => {
@@ -66,7 +67,7 @@ export const getMappingFn = (headers?: {
 	prefer?: string | string[];
 	[key: string]: string | string[] | undefined;
 }): MappingFunction => {
-	if (headers != null && headers.prefer == 'odata.continue-on-error') {
+	if (headers != null && headers.prefer === 'odata.continue-on-error') {
 		return settleMapSeries;
 	} else {
 		return mapTill;
