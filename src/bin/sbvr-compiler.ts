@@ -14,7 +14,7 @@ const { version } = JSON.parse(
 
 const getSE = (inputFile: string) => fs.readFileSync(inputFile, 'utf8');
 
-const generateLfModel = (inputFile: string, outputFile?: string) => {
+const parse = (inputFile: string, outputFile?: string) => {
 	const {
 		generateLfModel,
 	} = require('../sbvr-api/sbvr-utils') as typeof _sbvrUtils;
@@ -28,7 +28,7 @@ const generateLfModel = (inputFile: string, outputFile?: string) => {
 	}
 };
 
-const generateAbstractSqlModel = (inputFile: string, outputFile?: string) => {
+const transform = (inputFile: string, outputFile?: string) => {
 	const {
 		generateLfModel,
 		generateAbstractSqlModel,
@@ -96,12 +96,12 @@ program
 program
 	.command('parse <input-file> [output-file]')
 	.description('parse the input SBVR file into LF')
-	.action(generateLfModel);
+	.action(parse);
 
 program
 	.command('transform <input-file> [output-file]')
 	.description('transform the input SBVR file into abstract SQL')
-	.action(generateAbstractSqlModel);
+	.action(transform);
 
 program
 	.command('compile <input-file> [output-file]')

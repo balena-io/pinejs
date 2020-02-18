@@ -1,20 +1,20 @@
-import * as _ from 'lodash';
 import * as Bluebird from 'bluebird';
-import { settleMapSeries } from './control-flow';
+import * as _ from 'lodash';
 import { Resolvable } from './common-types';
+import { settleMapSeries } from './control-flow';
 
 export type RollbackAction = () => Resolvable<void>;
 export type HookFn = (...args: any[]) => any;
-export type HookBlueprint = {
+export interface HookBlueprint {
 	HOOK: HookFn;
 	effects: boolean;
-};
+}
 export type InstantiatedHooks<T extends object> = { [key in keyof T]: Hook[] };
 
 export class Hook {
 	constructor(private hookFn: HookFn) {}
 
-	async run(...args: any[]) {
+	public async run(...args: any[]) {
 		return this.hookFn(...args);
 	}
 }
@@ -27,7 +27,7 @@ export class SideEffectHook extends Hook {
 		super(hookFn);
 	}
 
-	registerRollback(fn: RollbackAction): void {
+	public registerRollback(fn: RollbackAction): void {
 		if (this.rolledBack) {
 			Bluebird.try(fn);
 		} else {
@@ -35,7 +35,7 @@ export class SideEffectHook extends Hook {
 		}
 	}
 
-	rollback() {
+	public rollback() {
 		// Don't try to call the rollback functions twice
 		if (this.rolledBack) {
 			return;

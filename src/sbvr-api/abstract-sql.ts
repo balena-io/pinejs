@@ -1,15 +1,15 @@
 import * as Bluebird from 'bluebird';
 import * as _ from 'lodash';
 
-import * as env from '../config-loader/env';
+import * as AbstractSQLCompiler from '@resin/abstract-sql-compiler';
+import { ODataBinds, odataNameToSqlName } from '@resin/odata-to-abstract-sql';
+import deepFreeze = require('deep-freeze');
 import * as memoize from 'memoizee';
 import memoizeWeak = require('memoizee/weak');
-import { ODataBinds, odataNameToSqlName } from '@resin/odata-to-abstract-sql';
+import * as env from '../config-loader/env';
 import { SqlCompilationError } from './errors';
-import deepFreeze = require('deep-freeze');
-import { ODataRequest } from './uri-parser';
 import * as sbvrUtils from './sbvr-utils';
-import * as AbstractSQLCompiler from '@resin/abstract-sql-compiler';
+import { ODataRequest } from './uri-parser';
 
 const getMemoizedCompileRule = memoize(
 	(engine: AbstractSQLCompiler.Engines) =>
@@ -93,7 +93,7 @@ export const getAndCheckBindValues = (
 
 				const sqlTableName = odataNameToSqlName(tableName);
 				const sqlFieldName = odataNameToSqlName(fieldName);
-				let maybeField = _.find(sqlModelTables[sqlTableName].fields, {
+				const maybeField = _.find(sqlModelTables[sqlTableName].fields, {
 					fieldName: sqlFieldName,
 				});
 				if (maybeField == null) {

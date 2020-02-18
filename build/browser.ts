@@ -1,5 +1,5 @@
-import * as webpack from 'webpack';
 import * as _ from 'lodash';
+import * as webpack from 'webpack';
 import sharedConfig = require('./config');
 const config = _.clone(sharedConfig);
 

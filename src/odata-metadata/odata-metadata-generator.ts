@@ -1,9 +1,9 @@
-import * as _ from 'lodash';
-import * as sbvrTypes from '@resin/sbvr-types';
 import {
-	AbstractSqlTable,
 	AbstractSqlModel,
+	AbstractSqlTable,
 } from '@resin/abstract-sql-compiler';
+import * as sbvrTypes from '@resin/sbvr-types';
+import * as _ from 'lodash';
 
 // tslint:disable-next-line:no-var-requires
 const { version }: { version: string } = require('../../package.json');
@@ -22,10 +22,16 @@ const forEachUniqueTable = <T>(
 
 	const result = [];
 	for (const key in model) {
-		const table = model[key];
-		if (!_.isString(table) && !table.primitive && !usedTableNames[table.name]) {
-			usedTableNames[table.name] = true;
-			result.push(callback(key, table));
+		if (model.hasOwnProperty(key)) {
+			const table = model[key];
+			if (
+				!_.isString(table) &&
+				!table.primitive &&
+				!usedTableNames[table.name]
+			) {
+				usedTableNames[table.name] = true;
+				result.push(callback(key, table));
+			}
 		}
 	}
 	return result;

@@ -5,19 +5,21 @@ import * as _abstractSql from '../sbvr-api/abstract-sql';
 import * as _sbvrUtils from '../sbvr-api/sbvr-utils';
 import * as _uriParser from '../sbvr-api/uri-parser';
 
+import { AbstractSqlModel, SqlResult } from '@resin/abstract-sql-compiler';
 import * as program from 'commander';
 import * as fs from 'fs';
 import * as path from 'path';
-import '../server-glue/sbvr-loader';
-import { SqlResult, AbstractSqlModel } from '@resin/abstract-sql-compiler';
 import { Model } from '../config-loader/config-loader';
+import '../server-glue/sbvr-loader';
 
 // tslint:disable:no-var-requires
 const { version } = JSON.parse(
 	fs.readFileSync(require.resolve('../../package.json'), 'utf8'),
 );
 
-const generateAbstractSqlModel = (modelFile: string): AbstractSqlModel => {
+const generateAbstractSqlModelFromFile = (
+	modelFile: string,
+): AbstractSqlModel => {
 	let fileContents: string | Model | AbstractSqlModel;
 	try {
 		fileContents = require(path.resolve(modelFile));
@@ -78,7 +80,7 @@ const generateAbstractSqlQuery = (modelFile: string, odata: string) => {
 		odataBinds: odataAST.binds,
 		values: {},
 		vocabulary: '',
-		abstractSqlModel: generateAbstractSqlModel(modelFile),
+		abstractSqlModel: generateAbstractSqlModelFromFile(modelFile),
 		custom: {},
 	});
 };

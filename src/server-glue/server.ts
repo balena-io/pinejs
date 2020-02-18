@@ -13,8 +13,8 @@ import * as Pinejs from './module';
 import * as Bluebird from 'bluebird';
 import * as passportPinejs from '../passport-pinejs/passport-pinejs';
 
-import * as sbvrUtils from '../sbvr-api/sbvr-utils';
 import { PinejsSessionStore } from '../pinejs-session-store/pinejs-session-store';
+import * as sbvrUtils from '../sbvr-api/sbvr-utils';
 export { sbvrUtils, PinejsSessionStore };
 
 import * as express from 'express';
@@ -23,7 +23,9 @@ const app = express();
 
 switch (app.get('env')) {
 	case 'production':
-		console.log = () => {};
+		console.log = () => {
+			// noop
+		};
 		break;
 	case 'development':
 		Bluebird.longStackTraces();

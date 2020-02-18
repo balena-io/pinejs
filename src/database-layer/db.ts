@@ -1,14 +1,14 @@
 /// <references types="websql"/>
+import { Engines } from '@resin/abstract-sql-compiler';
+import * as Bluebird from 'bluebird';
+import * as EventEmitter from 'eventemitter3';
 import * as _events from 'events';
+import * as _ from 'lodash';
 import * as _mysql from 'mysql';
 import * as _pg from 'pg';
 import * as _pgConnectionString from 'pg-connection-string';
-import * as EventEmitter from 'eventemitter3';
-import * as _ from 'lodash';
-import * as Bluebird from 'bluebird';
 import { TypedError } from 'typed-error';
 import * as env from '../config-loader/env';
-import { Engines } from '@resin/abstract-sql-compiler';
 import { Resolvable } from '../sbvr-api/common-types';
 
 export const metrics = new EventEmitter();
@@ -26,7 +26,7 @@ export interface Row {
 	[fieldName: string]: any;
 }
 export interface Result {
-	rows: Array<Row>;
+	rows: Row[];
 	rowsAffected: number;
 	insertId?: number;
 }
@@ -83,7 +83,7 @@ interface TransactionFn {
 	(): Bluebird<Tx>;
 }
 
-export type Database = {
+export interface Database {
 	DatabaseError: typeof DatabaseError;
 	ConstraintError: typeof ConstraintError;
 	UniqueConstraintError: typeof UniqueConstraintError;
@@ -96,7 +96,7 @@ export type Database = {
 	) => Bluebird<Result>;
 	transaction: TransactionFn;
 	readTransaction?: TransactionFn;
-};
+}
 
 export const engines: {
 	[engine: string]: (connectString: string | object) => Database;
@@ -199,7 +199,7 @@ export abstract class Tx {
 			this.pending = 0;
 		}
 	}
-	cancelPending() {
+	public cancelPending() {
 		// Set pending to false to cancel all pending.
 		this.pending = false;
 		clearTimeout(this.automaticCloseTimeout);
@@ -218,13 +218,13 @@ export abstract class Tx {
 	): Bluebird<Result> {
 		this.incrementPending();
 
-		let t0 = Date.now();
+		const t0 = Date.now();
 		return this._executeSql(sql, bindings, ...args)
 			.finally(() => {
 				this.decrementPending();
 				const queryTime = Date.now() - t0;
 				metrics.emit('db_query_time', {
-					queryTime: queryTime,
+					queryTime,
 					// metrics-TODO: statistics on query types (SELECT, INSERT)
 					// themselves should be gathered by postgres, while at this
 					// scope in pine, we should report the overall query time as
@@ -276,8 +276,6 @@ export abstract class Tx {
 		end: [],
 		rollback: [],
 	};
-	public on(name: 'end', fn: () => void): void;
-	public on(name: 'rollback', fn: () => void): void;
 	public on(name: keyof Tx['listeners'], fn: () => void): void {
 		this.listeners[name].push(fn);
 	}
@@ -347,14 +345,15 @@ let maybePg: typeof _pg | undefined;
 try {
 	// tslint:disable-next-line:no-var-requires
 	maybePg = require('pg');
-} catch (e) {}
+} catch (e) {
+	// Ignore errors
+}
 if (maybePg != null) {
 	// We have these custom pg types because we pass bluebird as the promise provider
 	// so the returned promises are bluebird promises and we rely on that
 	interface BluebirdPoolClient extends _events.EventEmitter {
-		query(queryConfig: _pg.QueryConfig): Bluebird<_pg.QueryResult>;
 		query(
-			queryTextOrConfig: _pg.QueryConfig,
+			queryConfig: _pg.QueryConfig,
 			values?: any[],
 		): Bluebird<_pg.QueryResult>;
 		release(err?: Error): void;
@@ -416,7 +415,7 @@ if (maybePg != null) {
 			rows,
 		}: {
 			rowCount: number;
-			rows: Array<Row>;
+			rows: Row[];
 		}): Result => {
 			return {
 				rows,
@@ -508,7 +507,9 @@ let maybeMysql: typeof _mysql | undefined;
 try {
 	// tslint:disable-next-line:no-var-requires
 	maybeMysql = require('mysql');
-} catch (e) {}
+} catch (e) {
+	// Ignore errors
+}
 if (maybeMysql != null) {
 	const mysql = maybeMysql;
 	engines.mysql = (options: _mysql.IPoolConfig): Database => {
@@ -518,7 +519,9 @@ if (maybeMysql != null) {
 		pool.on('connection', db => {
 			db.query("SET sql_mode='ANSI_QUOTES';");
 		});
-		const connect = Bluebird.promisify(pool.getConnection, { context: pool });
+		const getConnectionAsync = Bluebird.promisify(pool.getConnection, {
+			context: pool,
+		});
 
 		interface MysqlRowArray extends Array<Row> {
 			affectedRows: number;
@@ -588,7 +591,7 @@ if (maybeMysql != null) {
 			engine: Engines.mysql,
 			executeSql: atomicExecuteSql,
 			transaction: createTransaction(stackTraceErr =>
-				connect().then(client => {
+				getConnectionAsync().then(client => {
 					const close = () => client.release();
 					const tx = new MySqlTx(client, close, stackTraceErr);
 					tx.executeSql('START TRANSACTION;');
@@ -596,7 +599,7 @@ if (maybeMysql != null) {
 				}),
 			),
 			readTransaction: createTransaction(stackTraceErr =>
-				connect().then(client => {
+				getConnectionAsync().then(client => {
 					const close = () => client.release();
 					const tx = new MySqlTx(client, close, stackTraceErr);
 					tx.executeSql('SET TRANSACTION READ ONLY;');
@@ -634,17 +637,18 @@ if (typeof window !== 'undefined' && window.openDatabase != null) {
 			2 * 1024 * 1024,
 		);
 		const getInsertId = (result: WebSqlResult) => {
-			// Ignore the potential DOM exception.
 			try {
 				return result.insertId;
-			} catch (e) {}
+			} catch (e) {
+				// Ignore the potential DOM exception.
+			}
 		};
 		const createResult = (result: WebSqlResult): Result => {
 			const rows = _.times(result.rows.length, i => {
 				return result.rows.item(i);
 			});
 			return {
-				rows: rows,
+				rows,
 				rowsAffected: result.rowsAffected,
 				insertId: getInsertId(result),
 			};

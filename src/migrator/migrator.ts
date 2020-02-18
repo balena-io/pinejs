@@ -1,14 +1,14 @@
-import * as _ from 'lodash';
 import * as Bluebird from 'bluebird';
+import * as _ from 'lodash';
 import { TypedError } from 'typed-error';
 // tslint:disable-next-line:no-var-requires
 const modelText: string = require('./migrations.sbvr');
-import { Tx } from '../database-layer/db';
-import * as sbvrUtils from '../sbvr-api/sbvr-utils';
-import { migrator as migratorEnv } from '../config-loader/env';
-import { Model, Config } from '../config-loader/config-loader';
-import { Resolvable } from '../sbvr-api/common-types';
 import { Engines } from '@resin/abstract-sql-compiler';
+import { Config, Model } from '../config-loader/config-loader';
+import { migrator as migratorEnv } from '../config-loader/env';
+import { Tx } from '../database-layer/db';
+import { Resolvable } from '../sbvr-api/common-types';
+import * as sbvrUtils from '../sbvr-api/sbvr-utils';
 
 type ApiRootModel = Model & { apiRoot: string };
 
@@ -24,17 +24,17 @@ export class MigrationError extends TypedError {}
 
 // Tagged template to convert binds from `?` format to the necessary output format,
 // eg `$1`/`$2`/etc for postgres
-const binds = (strings: TemplateStringsArray, ...binds: number[]) =>
+const binds = (strings: TemplateStringsArray, ...bindNums: number[]) =>
 	strings
 		.map((str, i) => {
-			if (i === binds.length) {
+			if (i === bindNums.length) {
 				return str;
 			}
-			if (i + 1 !== binds[i]) {
+			if (i + 1 !== bindNums[i]) {
 				throw new SyntaxError('Migration sql binds must be sequential');
 			}
 			if (sbvrUtils.db.engine === Engines.postgres) {
-				return str + `$${binds[i]}`;
+				return str + `$${bindNums[i]}`;
 			}
 			return str + `?`;
 		})
@@ -178,7 +178,7 @@ VALUES (${1}, ${2})`,
 const filterAndSortPendingMigrations = (
 	migrations: NonNullable<Model['migrations']>,
 	executedMigrations: string[],
-): Array<MigrationTuple> =>
+): MigrationTuple[] =>
 	(_(migrations).omit(executedMigrations) as _.Object<typeof migrations>)
 		.toPairs()
 		.sortBy(([migrationKey]) => migrationKey)
@@ -216,7 +216,7 @@ WHERE "model name" = ${1}`,
 
 const executeMigrations = async (
 	tx: Tx,
-	migrations: Array<MigrationTuple> = [],
+	migrations: MigrationTuple[] = [],
 ): Promise<string[]> => {
 	try {
 		for (const migration of migrations) {
@@ -253,7 +253,7 @@ export const config: Config = {
 		{
 			modelName: 'migrations',
 			apiRoot: 'migrations',
-			modelText: modelText,
+			modelText,
 			migrations: {
 				'11.0.0-modified-at': `
 					ALTER TABLE "migration"
