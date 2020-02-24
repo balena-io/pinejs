@@ -17,7 +17,6 @@ const { DEBUG } = process.env;
 
 export interface CodedError extends Error {
 	code: number | string;
-	constructor: Function;
 }
 
 type CreateTransactionFn = (stackTraceErr?: Error) => Bluebird<Tx>;
@@ -667,6 +666,7 @@ if (typeof window !== 'undefined' && window.openDatabase != null) {
 			// allowing us to use async calls within the API.
 			private asyncRecurse = () => {
 				let args: AsyncQuery | undefined;
+				// tslint:disable-next-line no-conditional-assignment
 				while ((args = this.queue.pop())) {
 					console.debug('Running', args[0]);
 					this.tx.executeSql(args[0], args[1], args[2], args[3]);

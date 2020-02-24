@@ -432,7 +432,7 @@ const generateConstrainedAbstractSql = (
 	);
 	_.set(odata, ['tree', 'options', '$filter'], collapsedPermissionFilters);
 
-	let { odataBinds, abstractSqlQuery } = uriParser.translateUri({
+	const translated = uriParser.translateUri({
 		method: 'GET',
 		resourceName,
 		vocabulary,
@@ -440,7 +440,7 @@ const generateConstrainedAbstractSql = (
 		odataQuery: odata.tree,
 		values: {},
 	});
-	abstractSqlQuery = _.clone(abstractSqlQuery!);
+	const abstractSqlQuery = _.clone(translated.abstractSqlQuery!);
 	// Remove aliases from the top level select
 	const selectIndex = _.findIndex(abstractSqlQuery, v => v[0] === 'Select');
 	const select = (abstractSqlQuery[selectIndex] = _.clone(
@@ -468,7 +468,7 @@ const generateConstrainedAbstractSql = (
 		},
 	);
 
-	return { extraBinds: odataBinds, abstractSqlQuery };
+	return { extraBinds: translated.odataBinds, abstractSqlQuery };
 };
 
 // Call the function once and either return the same result or throw the same error on subsequent calls
@@ -1142,15 +1142,15 @@ export const addPermissions = Bluebird.method(
 		request: ODataRequest & { permissionType?: PermissionCheck },
 	): Promise<void> => {
 		const { vocabulary, resourceName, odataQuery, odataBinds } = request;
-		let { method, permissionType: maybePermissionType } = request;
+		let { method } = request;
 		let abstractSqlModel = sbvrUtils.getAbstractSqlModel(request);
 		method = method.toUpperCase() as SupportedMethod;
 		const isMetadataEndpoint =
 			_.includes(metadataEndpoints, resourceName) || method === 'OPTIONS';
 
 		let permissionType: PermissionCheck;
-		if (maybePermissionType != null) {
-			permissionType = maybePermissionType;
+		if (request.permissionType != null) {
+			permissionType = request.permissionType;
 		} else if (isMetadataEndpoint) {
 			permissionType = 'model';
 		} else {
