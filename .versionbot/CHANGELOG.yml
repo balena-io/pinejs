@@ -1,4 +1,14 @@
 - commits:
+    - subject: Move permissions back to being imported after sbvr-utils
+      hash: 0cdd2d11ef508441b50eb9a899554a0498dd3fe2
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+  version: 11.1.1
+  date: 2020-02-24T15:57:13.541Z
+- commits:
     - subject: Fixes for resin-lint 3.x
       hash: c09cdda18fd1eda81cb01187357d4a8a2b3712d9
       body: ''
