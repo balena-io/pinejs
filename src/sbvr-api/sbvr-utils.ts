@@ -493,7 +493,7 @@ export const executeModels = (
 		api[apiRoot].logger = _.cloneDeep(console);
 		if (model.logging != null) {
 			const defaultSetting = _.get(model.logging, 'default', true);
-			for (const k in model.logging) {
+			for (const k of Object.keys(model.logging)) {
 				const key = k as keyof Console;
 				if (
 					_.isFunction(api[apiRoot].logger[key]) &&
@@ -1070,7 +1070,7 @@ export const getAffectedIds = Bluebird.method(
 		if (tx != null) {
 			result = await runQuery(tx, request);
 		} else {
-			result = await runTransaction(req, tx => runQuery(tx, request));
+			result = await runTransaction(req, newTx => runQuery(newTx, request));
 		}
 		return _.map(result.rows, idField);
 	},
@@ -1160,11 +1160,10 @@ export const handleODataRequest: _express.Handler = (req, res, next) => {
 								}
 							});
 							if (_.isArray(request)) {
-								const env = new Map<number, Response>();
 								return Bluebird.reduce(
 									request,
 									runChangeSet(req, res, tx),
-									env,
+									new Map<number, Response>(),
 								).then(env => Array.from(env.values()));
 							} else {
 								return runRequest(req, res, tx, request);
@@ -1736,7 +1735,7 @@ const addHook = (
 
 	const resourceHooks = apiRootHooks[resourceName];
 
-	for (const hookType in hooks) {
+	for (const hookType of Object.keys(hooks)) {
 		if (!isValidHook(hookType)) {
 			throw new Error('Unknown callback type: ' + hookType);
 		}

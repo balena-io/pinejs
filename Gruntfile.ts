@@ -175,7 +175,7 @@ export = (grunt: typeof _grunt) => {
 		grunt.option('version', grunt.config.get('gitinfo.describe'));
 	});
 
-	for (const task in serverConfigs) {
+	for (const task of Object.keys(serverConfigs)) {
 		grunt.registerTask(task, [
 			'checkDependencies',
 			'webpack:' + task,

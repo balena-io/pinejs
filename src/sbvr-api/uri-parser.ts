@@ -121,7 +121,7 @@ export const memoizedParseOdata = (() => {
 					if (parsed.tree.options == null) {
 						parsed.tree.options = {};
 					}
-					for (const key in parsedParams.tree) {
+					for (const key of Object.keys(parsedParams.tree)) {
 						parsed.tree.options[key] = parsedParams.tree[key];
 						parsed.binds[key] = parsedParams.binds[key];
 					}
@@ -149,7 +149,7 @@ const memoizedGetOData2AbstractSQL = memoizeWeak(
 );
 
 const memoizedOdata2AbstractSQL = (() => {
-	const memoizedOdata2AbstractSQL = memoizeWeak(
+	const $memoizedOdata2AbstractSQL = memoizeWeak(
 		(
 			abstractSqlModel: _AbstractSQLCompiler.AbstractSqlModel,
 			odataQuery: ODataQuery,
@@ -238,7 +238,7 @@ const memoizedOdata2AbstractSQL = (() => {
 				) as ODataOptions,
 			};
 		}
-		const { tree, extraBodyVars, extraBindVars } = memoizedOdata2AbstractSQL(
+		const { tree, extraBodyVars, extraBindVars } = $memoizedOdata2AbstractSQL(
 			abstractSqlModel,
 			odataQuery,
 			method,
@@ -267,12 +267,15 @@ export function parseOData(
 ): Bluebird<ODataRequest | ODataRequest[]> {
 	return Bluebird.try<ODataRequest | ODataRequest[]>(() => {
 		if (b._isChangeSet && b.changeSet != null) {
-			const csReferences = new Map<ODataRequest['id'], ODataRequest>();
 			// We sort the CS set once, we must assure that requests which reference
 			// other requests in the changeset are placed last. Once they are sorted
 			// Map will guarantee retrival of results in insertion order
 			const sortedCS = _.sortBy(b.changeSet, el => el.url[0] !== '/');
-			return Bluebird.reduce(sortedCS, parseODataChangeset, csReferences).then(
+			return Bluebird.reduce(
+				sortedCS,
+				parseODataChangeset,
+				new Map<ODataRequest['id'], ODataRequest>(),
+			).then(
 				csReferences => Array.from(csReferences.values()) as ODataRequest[],
 			);
 		} else {

@@ -4,6 +4,7 @@ declare module 'memoizee/weak' {
 	type FirstArg<T> = T extends (arg1: infer U) => any ? U : any;
 	type RestArgs<T> = T extends (arg1: any, ...args: infer U) => any ? U : any[];
 
+	// tslint:disable-next-line ban-types
 	interface MemoizeWeakOptions<F extends Function> {
 		length?: number | false;
 		maxAge?: number;
@@ -16,6 +17,7 @@ declare module 'memoizee/weak' {
 		normalizer?(firstArg: FirstArg<F>, restArgs: RestArgs<F>): any;
 		resolvers?: Array<(arg: any) => any>;
 	}
+	// tslint:disable-next-line ban-types
 	function memoizeWeak<F extends Function>(
 		f: F,
 		options?: MemoizeWeakOptions<F>,
