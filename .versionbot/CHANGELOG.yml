@@ -1,4 +1,205 @@
 - commits:
+    - subject: Fixes for resin-lint 3.x
+      hash: c09cdda18fd1eda81cb01187357d4a8a2b3712d9
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+    - subject: Update dependencies
+      hash: be5cd297d78e695fd685b5e11bf997df724903ba
+      body: |
+        Update abstract-sql-compiler from 6.11.4 to 6.13.0
+        Update odata-to-abstract-sql from 4.2.1 to 4.3.0
+        Update pinejs-client-core from 5.6.5 to 5.6.11
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Remove unsupported node 6 from the test matrix
+              hash: 2cd70f619ccaa8c985d98a48e1510fd2c05146e5
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+            - subject: >-
+                Add support for computed field when selecting from a resource
+                alias
+              hash: 6580973773c35c596a84cdbd9a87e872d8029a25
+              body: ''
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+          version: odata-to-abstract-sql-4.3.0
+          date: 2020-02-11T11:30:52.462Z
+        - commits:
+            - subject: "\U0001F41B: Fix missing `deprecated.getStringParams` function"
+              hash: 53edb7e7485acd4310e9b04291894f6ab746285a
+              body: |
+                The function `deprecated.getStringParams` was used, but
+                not defined.
+              footer:
+                Change-type: patch
+                change-type: patch
+                Signed-off-by: Andreas Fitzek <andreas@balena.io>
+                signed-off-by: Andreas Fitzek <andreas@balena.io>
+              author: Andreas Fitzek
+          version: pinejs-client-js-5.6.11
+          date: 2020-02-21T13:35:51.993Z
+        - commits:
+            - subject: Update to resin-lint 3.x
+              hash: f1b415154cc21b9880ad8ee1134ea9340220aba2
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: pinejs-client-js-5.6.10
+          date: 2020-02-14T15:37:12.741Z
+        - commits:
+            - subject: 'CircleCI: Remove deploy job as it''s handled by balenaCI'
+              hash: d6c9a485e0da5f6aa600597b6d076a8dce411df7
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: pinejs-client-js-5.6.9
+          date: 2020-02-14T15:27:02.200Z
+        - commits:
+            - subject: Add the missing `method` on the post method
+              hash: 2f649c3157a50277f6e168a64abb1593ac9d7a4f
+              body: |
+                Fixes a regression of v5.6.7.
+              footer:
+                Change-type: patch
+                change-type: patch
+                Signed-off-by: Thodoris Greasidis <thodoris@balena.io>
+                signed-off-by: Thodoris Greasidis <thodoris@balena.io>
+              author: Thodoris Greasidis
+          version: pinejs-client-js-5.6.8
+          date: 2020-02-14T14:59:02.633Z
+        - commits:
+            - subject: Deprecate request overrides
+              hash: 84fa00ab60a98bbe56885ee5fabcccfc876a86d6
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+            - subject: Deprecate queries using a string url
+              hash: 8cd9be6b0642ff5b1cba0596f827a74fd76bbff5
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+            - subject: Deprecate `query` in favor of `get`
+              hash: ab77d10cad0a57914018b76c9755deddb3e078ef
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: pinejs-client-js-5.6.7
+          date: 2020-02-14T12:52:12.207Z
+        - commits:
+            - subject: Allow resource/$count in $filter
+              hash: 7eac38f1ed6a3bcdf1e6c4be5dde50aca953359e
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: pinejs-client-js-5.6.6
+          date: 2020-02-14T12:35:22.507Z
+        - commits:
+            - subject: Add support for sum
+              hash: 2b2a7dba023994be6bf3d1db80ca2699390250c1
+              body: ''
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+            - subject: Add support for average
+              hash: 7cd03b2dcd6d15549f158b5a9970a59b93b23142
+              body: ''
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+            - subject: Add tests for count
+              hash: 439e409c9b23bc6cb00bbdcc670a86f068f9fe3d
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: abstract-sql-compiler-6.13.0
+          date: 2020-02-21T18:56:02.870Z
+        - commits:
+            - subject: Add support for coalesce
+              hash: 4fa84d101ac97b32677bd6438e183a1883a28327
+              body: ''
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+          version: abstract-sql-compiler-6.12.0
+          date: 2020-02-21T18:27:32.771Z
+        - commits:
+            - subject: Update dependencies
+              hash: 47c6427ed2722aa3d6dfb3dee42c491203750913
+              body: |
+                Update sbvr-types from 2.0.3 to 2.0.4
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested:
+                - commits:
+                    - subject: Add node 12 to the test matrix
+                      hash: ecd938076fa0b473e0149940e71ac909a5f2cdfd
+                      body: ''
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                    - subject: Update dependencies
+                      hash: 3aacccdbb1962f5cb7eeec8ca5fa62c5f42145e3
+                      body: ''
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                    - subject: Add CODEOWNERS
+                      hash: d04a524767359dca21b7dfefc07e7e05a5607934
+                      body: ''
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                  version: sbvr-types-2.0.4
+                  date: 2020-01-22T17:34:25.485Z
+          version: abstract-sql-compiler-6.11.6
+          date: 2020-02-21T18:15:42.469Z
+        - commits:
+            - subject: Update resin-lint to 3.x and use it for auto-linting
+              hash: bd82923590b10227dde854ac782f2f9f0417ef2f
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: abstract-sql-compiler-6.11.5
+          date: 2020-02-06T13:31:42.463Z
+  version: 11.1.0
+  date: 2020-02-24T13:01:23.297Z
+- commits:
     - subject: Update dependencies
       hash: 3ca77681921503eca2f8c40438e2a644ac43ea09
       body: |
