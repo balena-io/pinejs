@@ -9,8 +9,9 @@ import { AbstractSqlModel } from '@resin/abstract-sql-compiler';
 import { Database } from '../database-layer/db';
 import { Migration } from '../migrator/migrator';
 import { Resolvable } from '../sbvr-api/common-types';
-import * as permissions from '../sbvr-api/permissions';
 import * as sbvrUtils from '../sbvr-api/sbvr-utils';
+
+import * as permissions from '../sbvr-api/permissions';
 
 export type SetupFunction = (
 	app: _express.Application,
