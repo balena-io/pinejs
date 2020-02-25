@@ -144,6 +144,9 @@ export interface Hooks {
 			data?: any;
 		},
 	) => HookResponse;
+	'POSTRUN-ERROR'?: (
+		options: HookArgs & { error: TypedError | any },
+	) => HookResponse;
 }
 type HookBlueprints = { [key in keyof Hooks]: HookBlueprint[] };
 const hookNames: Array<keyof Hooks> = [
@@ -152,6 +155,7 @@ const hookNames: Array<keyof Hooks> = [
 	'PRERUN',
 	'POSTRUN',
 	'PRERESPOND',
+	'POSTRUN-ERROR',
 ];
 const isValidHook = (x: any): x is keyof Hooks => _.includes(hookNames, x);
 
@@ -641,6 +645,7 @@ const runHooks = Bluebird.method(
 			tx?: _db.Tx;
 			result?: any;
 			data?: number | any[];
+			error?: TypedError | any;
 		},
 	) => {
 		if (hooksList == null) {
@@ -1281,51 +1286,61 @@ const runRequest = async (
 		logger.log('Running', req.method, req.url);
 	}
 	let result: _db.Result | number | undefined;
-	try {
-		// Forward each request to the correct method handler
-		await runHooks('PRERUN', request.hooks, { req, request, tx });
 
-		switch (request.method) {
-			case 'GET':
-				result = await runGet(req, res, request, tx);
-				break;
-			case 'POST':
-				result = await runPost(req, res, request, tx);
-				break;
-			case 'PUT':
-			case 'PATCH':
-			case 'MERGE':
-				result = await runPut(req, res, request, tx);
-				break;
-			case 'DELETE':
-				result = await runDelete(req, res, request, tx);
-				break;
-		}
-	} catch (err) {
-		if (err instanceof db.DatabaseError) {
-			prettifyConstraintError(err, request);
-			logger.error(err);
-			// Override the error message so we don't leak any internal db info
-			err.message = 'Database error';
+	try {
+		try {
+			// Forward each request to the correct method handler
+			await runHooks('PRERUN', request.hooks, { req, request, tx });
+
+			switch (request.method) {
+				case 'GET':
+					result = await runGet(req, res, request, tx);
+					break;
+				case 'POST':
+					result = await runPost(req, res, request, tx);
+					break;
+				case 'PUT':
+				case 'PATCH':
+				case 'MERGE':
+					result = await runPut(req, res, request, tx);
+					break;
+				case 'DELETE':
+					result = await runDelete(req, res, request, tx);
+					break;
+			}
+		} catch (err) {
+			if (err instanceof db.DatabaseError) {
+				prettifyConstraintError(err, request);
+				logger.error(err);
+				// Override the error message so we don't leak any internal db info
+				err.message = 'Database error';
+				throw err;
+			}
+			if (
+				err instanceof uriParser.SyntaxError ||
+				err instanceof EvalError ||
+				err instanceof RangeError ||
+				err instanceof ReferenceError ||
+				err instanceof SyntaxError ||
+				err instanceof TypeError ||
+				err instanceof URIError
+			) {
+				logger.error(err);
+				throw new InternalRequestError();
+			}
 			throw err;
 		}
-		if (
-			err instanceof uriParser.SyntaxError ||
-			err instanceof EvalError ||
-			err instanceof RangeError ||
-			err instanceof ReferenceError ||
-			err instanceof SyntaxError ||
-			err instanceof TypeError ||
-			err instanceof URIError
-		) {
-			logger.error(err);
-			throw new InternalRequestError();
-		}
+
+		await runHooks('POSTRUN', request.hooks, { req, request, result, tx });
+	} catch (err) {
+		await runHooks('POSTRUN-ERROR', request.hooks, {
+			req,
+			request,
+			tx,
+			error: err,
+		});
 		throw err;
 	}
-
-	await runHooks('POSTRUN', request.hooks, { req, request, result, tx });
-
 	return prepareResponse(req, res, request, result, tx);
 };
 
