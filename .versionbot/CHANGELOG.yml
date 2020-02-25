@@ -1,4 +1,16 @@
 - commits:
+    - subject: '✨: Add an `POSTRUN-ERROR` handler in resource hooks'
+      hash: 48edae167caa05cbd3cf580b8aaf6e910da3fe2d
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+        Signed-off-by: Andreas Fitzek <andreas@balena.io>
+        signed-off-by: Andreas Fitzek <andreas@balena.io>
+      author: Andreas Fitzek
+  version: 11.2.0
+  date: 2020-02-24T20:10:10.196Z
+- commits:
     - subject: Move permissions back to being imported after sbvr-utils
       hash: 0cdd2d11ef508441b50eb9a899554a0498dd3fe2
       body: ''
