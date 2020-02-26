@@ -1,4 +1,46 @@
 - commits:
+    - subject: '✨: Add an `POSTRUN-ERROR` handler in resource hooks'
+      hash: 48edae167caa05cbd3cf580b8aaf6e910da3fe2d
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+        Signed-off-by: Andreas Fitzek <andreas@balena.io>
+        signed-off-by: Andreas Fitzek <andreas@balena.io>
+      author: Andreas Fitzek
+    - subject: 'CI: Remove circleci publish in favor of balenaCI'
+      hash: d87c5cd666787b4ffb3079a37a74cbbfda2b1fa5
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+    - subject: Update dependencies
+      hash: 39439713fbeaa03b8a6e4654c6243fdbf6304f03
+      body: |
+        Update abstract-sql-compiler from 6.13.0 to 6.13.1
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Only create functions if they don't already exist
+              hash: 6d828438a0d54ab7a611d4620ade9bac8ec3fc3e
+              body: >
+                This matches how we handle table/trigger creation and avoids
+                issues
+
+                with running create schema statements concurrently
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: abstract-sql-compiler-6.13.1
+          date: 2020-02-26T14:10:42.401Z
+  version: 11.2.0
+  date: 2020-02-26T14:33:33.050Z
+- commits:
     - subject: 'CI: Remove circleci publish in favor of balenaCI'
       hash: d87c5cd666787b4ffb3079a37a74cbbfda2b1fa5
       body: ''
