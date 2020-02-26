@@ -1,25 +1,13 @@
 - commits:
-    - subject: '✨: Add an `POSTRUN-ERROR` handler in resource hooks'
-      hash: 48edae167caa05cbd3cf580b8aaf6e910da3fe2d
-      body: ''
-      footer:
-        Change-type: minor
-        change-type: minor
-        Signed-off-by: Andreas Fitzek <andreas@balena.io>
-        signed-off-by: Andreas Fitzek <andreas@balena.io>
-      author: Andreas Fitzek
-  version: 11.2.0
-  date: 2020-02-24T20:10:10.196Z
-- commits:
-    - subject: Move permissions back to being imported after sbvr-utils
-      hash: 0cdd2d11ef508441b50eb9a899554a0498dd3fe2
+    - subject: 'CI: Remove circleci publish in favor of balenaCI'
+      hash: d87c5cd666787b4ffb3079a37a74cbbfda2b1fa5
       body: ''
       footer:
         Change-type: patch
         change-type: patch
       author: Pagan Gazzard
   version: 11.1.1
-  date: 2020-02-24T15:57:13.541Z
+  date: 2020-02-24T19:18:43.147Z
 - commits:
     - subject: Fixes for resin-lint 3.x
       hash: c09cdda18fd1eda81cb01187357d4a8a2b3712d9
