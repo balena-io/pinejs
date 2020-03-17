@@ -1,4 +1,77 @@
 - commits:
+    - subject: 'CI: Remove circleci publish in favor of balenaCI'
+      hash: d87c5cd666787b4ffb3079a37a74cbbfda2b1fa5
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+    - subject: '✨: Add support for `canAccess()` function in permission.'
+      hash: 397bcdbcc5ec30da200b9d54af262627eba5eb2f
+      body: |
+        This will allow to write simpler permissions, which point
+        to access depending on other resources access.
+
+        Update odata-parser from 1.3.1 to 1.4.0
+        Update odata-to-abstract-sql from 4.3.0 to 4.4.0
+      footer:
+        Change-type: minor
+        change-type: minor
+        Signed-off-by: Andreas Fitzek <andreas@balena.io>
+        signed-off-by: Andreas Fitzek <andreas@balena.io>
+      author: Andreas Fitzek
+      nested:
+        - commits:
+            - subject: '✨: Add support for canAccess method call on resource'
+              hash: bf99443b20616fef6344e3262832002d0d3909fd
+              body: |
+                Add support for `canAccess` method call on resource
+              footer:
+                Change-type: minor
+                change-type: minor
+                Signed-off-by: Andreas Fitzek <andreas@balena.io>
+                signed-off-by: Andreas Fitzek <andreas@balena.io>
+              author: Andreas Fitzek
+          version: odata-parser-1.4.0
+          date: 2020-03-02T13:31:22.416Z
+        - commits:
+            - subject: '✨: Add custom resource functions'
+              hash: e65ade6c3bc46a7130f6f3e0442b846140e220c0
+              body: ''
+              footer:
+                Change-type: minor
+                change-type: minor
+                Signed-off-by: Andreas Fitzek <andreas@balena.io>
+                signed-off-by: Andreas Fitzek <andreas@balena.io>
+              author: Andreas Fitzek
+          version: odata-to-abstract-sql-4.4.0
+          date: 2020-03-02T13:57:20.504Z
+    - subject: Update dependencies
+      hash: 39439713fbeaa03b8a6e4654c6243fdbf6304f03
+      body: |
+        Update abstract-sql-compiler from 6.13.0 to 6.13.1
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Only create functions if they don't already exist
+              hash: 6d828438a0d54ab7a611d4620ade9bac8ec3fc3e
+              body: >
+                This matches how we handle table/trigger creation and avoids
+                issues
+
+                with running create schema statements concurrently
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: abstract-sql-compiler-6.13.1
+          date: 2020-02-26T14:10:42.401Z
+  version: 11.3.0
+  date: 2020-03-13T12:00:13.697Z
+- commits:
     - subject: '✨: Add an `POSTRUN-ERROR` handler in resource hooks'
       hash: 48edae167caa05cbd3cf580b8aaf6e910da3fe2d
       body: ''
