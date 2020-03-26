@@ -530,8 +530,15 @@ const generateConstrainedAbstractSql = (
 		const targetResourceName = sqlNameToODataName(targetResource.resource.name);
 
 		if (canAccessTrace.includes(targetResourceName)) {
-			// return a boolen subquery
-			return ['Equals', ['Boolean', true], ['Boolean', false]];
+			// we don't want to allow permission loops for now, therefore we are
+			// throwing the exception here. If we ever want to allow permission
+			// loops return a false AST statement here (like true eq false), to
+			// not recursivley follow query branches in a deep first search.
+			throw new PermissionError(
+				`Permissions for ${resourceName} form a circle by the following path: ${canAccessTrace.join(
+					' -> ',
+				)} -> ${targetResourceName}`,
+			);
 		}
 
 		const parentOdata = memoizedParseOdata(`/${targetResourceName}`);
