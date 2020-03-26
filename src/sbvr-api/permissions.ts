@@ -298,7 +298,7 @@ const namespaceRelationships = (
 		let mapping = relationship.$;
 		if (mapping != null && mapping.length === 2) {
 			mapping = _.cloneDeep(mapping);
-			mapping[1][0] = `${mapping[1][0]}$${alias}`;
+			mapping[1]![0] = `${mapping[1]![0]}$${alias}`;
 			relationships[`${key}$${alias}`] = {
 				$: mapping,
 			};
@@ -1271,8 +1271,7 @@ const getReqPermissions = (req: PermissionReq, odataBinds: ODataBinds = []) =>
 
 			if (req.user != null && req.user.permissions != null) {
 				addActorPermissions(req.user.actor, req.user.permissions);
-			}
-			if (req.apiKey != null && req.apiKey.permissions != null) {
+			} else if (req.apiKey != null && req.apiKey.permissions != null) {
 				addActorPermissions(req.apiKey.actor!, req.apiKey.permissions);
 			}
 

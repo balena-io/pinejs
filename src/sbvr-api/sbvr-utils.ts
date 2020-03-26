@@ -263,7 +263,7 @@ const memoizedResolveNavigationResource = memoizeWeak(
 				`'${resourceName}' to '${navigationName}' is a field not a navigation`,
 			);
 		}
-		return sqlNameToODataName(abstractSqlModel.tables[mapping[1][0]].name);
+		return sqlNameToODataName(abstractSqlModel.tables[mapping[1]![0]].name);
 	},
 	{ primitive: true },
 );
