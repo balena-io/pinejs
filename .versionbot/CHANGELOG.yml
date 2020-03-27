@@ -1,4 +1,16 @@
 - commits:
+    - subject: "\U0001F512: Only allow one credential to provide permissions for the request"
+      hash: de7daea96c844a989e1f2b127ec1cd39c273ad8d
+      body: ''
+      footer:
+        Change-type: major
+        change-type: major
+        Signed-off-by: Andreas Fitzek <andreas@balena.io>
+        signed-off-by: Andreas Fitzek <andreas@balena.io>
+      author: Andreas Fitzek
+  version: 12.0.0
+  date: 2020-03-27T09:09:53.010Z
+- commits:
     - subject: Update dependencies
       hash: 6d807828c708226e95c97a95b580e1077cdae416
       body: |
