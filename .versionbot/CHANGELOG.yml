@@ -1,4 +1,18 @@
 - commits:
+    - subject: '♻️ : Dissallow circle permissions with `canAccess()`'
+      hash: be08f66a6be8ea0b917f6f34fac7af05f476db41
+      body: >
+        We don't want to allow circle permissions using the `canAccess()`
+        marker.
+      footer:
+        Change-type: minor
+        change-type: minor
+        Signed-off-by: Andreas Fitzek <andreas@balena.io>
+        signed-off-by: Andreas Fitzek <andreas@balena.io>
+      author: Andreas Fitzek
+  version: 12.1.0
+  date: 2020-03-27T11:49:27.636Z
+- commits:
     - subject: "\U0001F512: Only allow one credential to provide permissions for the request"
       hash: de7daea96c844a989e1f2b127ec1cd39c273ad8d
       body: ''
