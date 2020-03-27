@@ -11,6 +11,7 @@ import {
 	AbstractSqlType,
 	AliasNode,
 	Relationship,
+	RelationshipMapping,
 	SelectNode,
 } from '@resin/abstract-sql-compiler';
 import * as ODataParser from '@resin/odata-parser';
@@ -298,6 +299,8 @@ const namespaceRelationships = (
 		let mapping = relationship.$;
 		if (mapping != null && mapping.length === 2) {
 			mapping = _.cloneDeep(mapping);
+			// we do check the length above, but typescript thinks the second
+			// element could be undefined
 			mapping[1]![0] = `${mapping[1]![0]}$${alias}`;
 			relationships[`${key}$${alias}`] = {
 				$: mapping,
@@ -691,6 +694,202 @@ const getAlias = (name: string) => {
 	}
 	return `permissions${permissionsJSON}`;
 };
+
+const rewriteRelationship = memoizeWeak(
+	(
+		value: Relationship,
+		name: string,
+		abstractSqlModel: AbstractSqlModel,
+		permissionsLookup: PermissionLookup,
+		vocabulary: string,
+	) => {
+		let escapedName = sqlNameToODataName(name);
+		if (abstractSqlModel.tables[name]) {
+			escapedName = sqlNameToODataName(abstractSqlModel.tables[name].name);
+		}
+
+		const originalAbstractSQLModel = sbvrUtils.getAbstractSqlModel({
+			vocabulary,
+		});
+
+		const rewrite = (object: Relationship | RelationshipMapping) => {
+			if ('$' in object && Array.isArray(object.$)) {
+				// object is in the form of
+				// { "$": ["actor", ["actor", "id"]] } or { "$": ["device type"] }
+				// we are only interested in the first case, since this is a relationship
+				// to a different resource
+				const mapping = object.$;
+				if (
+					mapping.length === 2 &&
+					Array.isArray(mapping[1]) &&
+					mapping[1].length === 2 &&
+					typeof mapping[1][0] === 'string'
+				) {
+					// now have ensured that mapping looks like ["actor", ["actor", "id"]]
+					// this relations ship means that:
+					//   mapping[0] is the local field
+					//   mapping[1] is the reference to the other resource, that joins this resource
+					//   mapping[1][0] is the name of the other resource (actor in the example)
+					//   mapping[1][1] is the name of the field on the other resource
+					//
+					// this therefore defines that the local field `actor` needs
+					// to match the `id` of the `actor` resources for the join
+
+					const possibleTargetResourceName = mapping[1][0];
+
+					// Skip this if we already shortcut this connection
+					if (possibleTargetResourceName.endsWith('$bypass')) {
+						return;
+					}
+
+					const targetResourceEscaped = sqlNameToODataName(
+						abstractSqlModel.tables[possibleTargetResourceName]?.name ??
+							possibleTargetResourceName,
+					);
+
+					// This is either a translated or bypassed resource we don't
+					// mess with these
+					if (targetResourceEscaped.includes('$')) {
+						return;
+					}
+
+					let foundCanAccessLink = false;
+
+					try {
+						const odata = memoizedParseOdata(`/${targetResourceEscaped}`);
+
+						const collapsedPermissionFilters = buildODataPermission(
+							permissionsLookup,
+							methodPermissions.GET,
+							vocabulary,
+							targetResourceEscaped,
+							odata,
+						);
+
+						_.set(
+							odata,
+							['tree', 'options', '$filter'],
+							collapsedPermissionFilters,
+						);
+
+						const canAccessFunction: ResourceFunction = function(
+							property: AnyObject,
+						) {
+							// remove method property so that we won't loop back here again at this point
+							delete property.method;
+
+							if (!this.defaultResource) {
+								throw new Error(`No resource selected in AST.`);
+							}
+
+							const targetResourceAST = this.NavigateResources(
+								this.defaultResource,
+								property.name,
+							);
+
+							const targetResourceName = sqlNameToODataName(
+								targetResourceAST.resource.name,
+							);
+							const currentResourceName = sqlNameToODataName(
+								this.defaultResource.name,
+							);
+
+							if (
+								currentResourceName === targetResourceEscaped &&
+								targetResourceName === escapedName
+							) {
+								foundCanAccessLink = true;
+							}
+							// return a true expression to not select the relationship, which might be virtual
+							// this should be a boolean expression, but needs to be a subquery in case it
+							// is wrapped in an `or` or `and`
+							return ['Equals', ['Boolean', true], ['Boolean', true]];
+						};
+
+						// We need execute the abstract SQL compiler to traverse
+						// through the permissions for that resource, using a
+						// special canAccess callback.
+						const odata2AbstractSQL = new OData2AbstractSQL(
+							originalAbstractSQLModel,
+							{
+								canAccess: canAccessFunction,
+							},
+						);
+
+						try {
+							odata2AbstractSQL.match(
+								odata.tree,
+								'GET',
+								[],
+								odata.binds.length,
+							);
+						} catch (e) {
+							throw new ODataParser.SyntaxError(e);
+						}
+						if (foundCanAccessLink) {
+							// store the resource name as it was with a $bypass
+							// suffix in this relationship, this means that the
+							// query generator will use the plain resource instead
+							// of the filtered resource.
+							mapping[1][0] = `${possibleTargetResourceName}$bypass`;
+						}
+					} catch (e) {
+						if (e === constrainedPermissionError) {
+							// ignore
+							return;
+						}
+
+						// TODO: We should investigate in detail why this error
+						// occurse. It might be able to get rid of this.
+						if (e instanceof ODataParser.SyntaxError) {
+							// ignore
+							return;
+						}
+
+						throw e;
+					}
+				}
+			}
+
+			if (Array.isArray(object) || _.isObject(object)) {
+				_.forEach(object, v => {
+					// we want to recurse into the relationship path, but
+					// in case we hit a plain string, we don't need to bother
+					// checking it. This can happen since plain terms also have
+					// relationships to sbvr-types.
+					if (typeof v !== 'string') {
+						rewrite(v as Relationship | RelationshipMapping);
+					}
+				});
+			}
+		};
+
+		rewrite(value);
+	},
+);
+
+const rewriteRelationships = (
+	abstractSqlModel: AbstractSqlModel,
+	relationships: {
+		[resourceName: string]: Relationship;
+	},
+	permissionsLookup: PermissionLookup,
+	vocabulary: string,
+) => {
+	const newRelationships = _.cloneDeep(relationships);
+	_.forOwn(newRelationships, (value, name) =>
+		rewriteRelationship(
+			value,
+			name,
+			abstractSqlModel,
+			permissionsLookup,
+			vocabulary,
+		),
+	);
+
+	return newRelationships;
+};
+
 const stringifiedGetPermissions = JSON.stringify(methodPermissions.GET);
 const getBoundConstrainedMemoizer = memoizeWeak(
 	(abstractSqlModel: AbstractSqlModel) =>
@@ -720,26 +919,6 @@ const getBoundConstrainedMemoizer = memoizeWeak(
 
 				const origRelationships = Object.keys(
 					constrainedAbstractSqlModel.relationships,
-				);
-				constrainedAbstractSqlModel.relationships = new Proxy(
-					constrainedAbstractSqlModel.relationships,
-					{
-						get: (relationships, permissionResourceName: string) => {
-							if (relationships[permissionResourceName]) {
-								return relationships[permissionResourceName];
-							}
-							const alias = getAlias(permissionResourceName);
-							if (!alias) {
-								return;
-							}
-							for (const relationship of origRelationships) {
-								relationships[`${relationship}$${alias}`] =
-									relationships[relationship];
-								namespaceRelationships(relationships[relationship], alias);
-							}
-							return relationships[permissionResourceName];
-						},
-					},
 				);
 
 				_.each(constrainedAbstractSqlModel.tables, (table, resourceName) => {
@@ -802,6 +981,37 @@ const getBoundConstrainedMemoizer = memoizeWeak(
 								),
 							);
 							return permissionsTable;
+						},
+					},
+				);
+
+				// rewrite the relationships of the constraint model
+				// we check if given the current permissions we can direct
+				// expands and filters to unconstraint resources
+				constrainedAbstractSqlModel.relationships = rewriteRelationships(
+					constrainedAbstractSqlModel,
+					constrainedAbstractSqlModel.relationships,
+					permissionsLookup,
+					vocabulary,
+				);
+
+				constrainedAbstractSqlModel.relationships = new Proxy(
+					constrainedAbstractSqlModel.relationships,
+					{
+						get: (relationships, permissionResourceName: string) => {
+							if (relationships[permissionResourceName]) {
+								return relationships[permissionResourceName];
+							}
+							const alias = getAlias(permissionResourceName);
+							if (!alias) {
+								return;
+							}
+							for (const relationship of origRelationships) {
+								relationships[`${relationship}$${alias}`] =
+									relationships[relationship];
+								namespaceRelationships(relationships[relationship], alias);
+							}
+							return relationships[permissionResourceName];
 						},
 					},
 				);

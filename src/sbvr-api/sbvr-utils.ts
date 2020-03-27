@@ -263,6 +263,8 @@ const memoizedResolveNavigationResource = memoizeWeak(
 				`'${resourceName}' to '${navigationName}' is a field not a navigation`,
 			);
 		}
+		// we do check the length above, but typescript thinks the second
+		// element could be undefined
 		return sqlNameToODataName(abstractSqlModel.tables[mapping[1]![0]].name);
 	},
 	{ primitive: true },
