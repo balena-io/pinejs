@@ -1,4 +1,159 @@
 - commits:
+    - subject: '✨: Optimize database queries for `canAccess()` permissions'
+      hash: 263d40d3d2fedc03ab639a94255b8b013f86ab7f
+      body: >
+        When a permission uses the `canAccess()` function to derive access,
+
+        to another resource, we can optimize the generated SQL queries to not,
+
+        reapply the full permission for resources, that are reached by
+
+        expanding or filtering paths. We achieve this by, applying shortcuts
+
+        in the relationships of the abstract sql model, if we find usages of
+
+        an `canAccess()` function in the relevant permissions, that link the
+
+        resources in the correct direction.
+
+
+        An example:
+
+
+        Let's imagine a model where a `device` belongs to an `application`.
+
+
+        We have the following permissions:
+
+
+        ```
+
+        example.application.get?belongs_to__user/any(u:u/actor eq @__ACTOR_ID)
+
+        example.device.get?belongs_to__application/canAccess()
+
+        ```
+
+
+        Given the following odata query:
+
+        ```
+
+        GET
+        /example/application?$select=id,name&$filter=(owns__device/any(d:d/name
+        eq 'test'))&$expand=owns__device($select=id,name)
+
+        ```
+
+
+        Will not yield the following SQL statement anymore:
+
+        ```
+
+        SELECT (
+                SELECT coalesce(array_to_json(array_agg("application.owns-device".*)), '[]') AS "owns__device"
+                FROM (
+                        SELECT "application.owns-device"."id", "application.owns-device"."name"
+                        FROM (
+                                SELECT "device"."created at", "device"."id", "device"."belongs to-application", "device"."name"
+                                FROM "device"
+                                WHERE EXISTS (
+                                        SELECT 1
+                                        FROM "application" AS "device.belongs to-application"
+                                        WHERE "device"."belongs to-application" = "device.belongs to-application"."id"
+                                        AND EXISTS (
+                                                SELECT 1
+                                                FROM "user" AS "device.belongs to-application.belongs to-user"
+                                                WHERE "device.belongs to-application"."belongs to-user" = "device.belongs to-application.belongs to-user"."id"
+                                                AND ("device.belongs to-application.belongs to-user"."actor") IS NOT NULL AND ("device.belongs to-application.belongs to-user"."actor") = ($1)
+                                        )
+                                )
+                        ) AS "application.owns-device"
+                        WHERE "application"."id" = "application.owns-device"."belongs to-application"
+                ) AS "application.owns-device"
+        ) AS "owns__device", "application"."id", "application"."name"
+
+        FROM (
+                SELECT "application"."created at", "application"."id", "application"."name", "application"."belongs to-user"
+                FROM "application"
+                WHERE EXISTS (
+                        SELECT 1
+                        FROM "user" AS "application.belongs to-user"
+                        WHERE "application"."belongs to-user" = "application.belongs to-user"."id"
+                        AND ("application.belongs to-user"."actor") IS NOT NULL AND ("application.belongs to-user"."actor") = ($1)
+                )
+        ) AS "application"
+
+        WHERE EXISTS (
+                SELECT 1
+                FROM (
+                        SELECT "device"."created at", "device"."id", "device"."belongs to-application", "device"."name"
+                        FROM "device"
+                        WHERE EXISTS (
+                                SELECT 1
+                                FROM "application" AS "device.belongs to-application"
+                                WHERE "device"."belongs to-application" = "device.belongs to-application"."id"
+                                AND EXISTS (
+                                        SELECT 1
+                                        FROM "user" AS "device.belongs to-application.belongs to-user"
+                                        WHERE "device.belongs to-application"."belongs to-user" = "device.belongs to-application.belongs to-user"."id"
+                                        AND ("device.belongs to-application.belongs to-user"."actor") IS NOT NULL AND ("device.belongs to-application.belongs to-user"."actor") = ($1)
+                                )
+                        )
+                ) AS "application.owns-device"
+                WHERE "application"."id" = "application.owns-device"."belongs to-application"
+                AND ("application.owns-device"."name") IS NOT NULL AND ("application.owns-device"."name") = ($3)
+        )
+
+        ```
+
+
+        but this optimized version:
+
+
+        ```
+
+        SELECT (
+                SELECT coalesce(array_to_json(array_agg("application.owns-device".*)), '[]') AS "owns__device"
+                FROM (
+                        SELECT "application.owns-device"."id", "application.owns-device"."name"
+                        FROM "device" AS "application.owns-device"
+                        WHERE "application"."id" = "application.owns-device"."belongs to-application"
+                ) AS "application.owns-device"
+        ) AS "owns__device", "application"."id", "application"."name"
+
+        FROM (
+                SELECT "application"."created at", "application"."id", "application"."name", "application"."belongs to-user"
+                FROM "application"
+                WHERE EXISTS (
+                        SELECT 1
+                        FROM "user" AS "application.belongs to-user"
+                        WHERE "application"."belongs to-user" = "application.belongs to-user"."id"
+                        AND ("application.belongs to-user"."actor") IS NOT NULL AND ("application.belongs to-user"."actor") = ($1)
+                )
+        ) AS "application"
+
+        WHERE EXISTS (
+                SELECT 1
+                FROM "device" AS "application.owns-device"
+                WHERE "application"."id" = "application.owns-device"."belongs to-application"
+                AND ("application.owns-device"."name") IS NOT NULL AND ("application.owns-device"."name") = ($3)
+        )
+
+        ```
+
+
+        As one can see we don't apply the device access permission anymore in
+        the select and where subqueries.
+      footer:
+        Change-type: minor
+        change-type: minor
+        Signed-off-by: Andreas Fitzek <andreas@balena.io>
+        signed-off-by: Andreas Fitzek <andreas@balena.io>
+      author: Andreas Fitzek
+  version: 12.2.0
+  date: 2020-03-27T12:18:03.729Z
+- commits:
     - subject: '♻️ : Dissallow circle permissions with `canAccess()`'
       hash: be08f66a6be8ea0b917f6f34fac7af05f476db41
       body: >
