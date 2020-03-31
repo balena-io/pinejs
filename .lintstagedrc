@@ -1,5 +1,5 @@
 {
 	"*.ts": [
-		"resin-lint --typescript --fix"
+		"balena-lint --typescript --fix"
 	],
 }
