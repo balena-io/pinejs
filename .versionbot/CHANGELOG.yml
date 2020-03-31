@@ -1,4 +1,47 @@
 - commits:
+    - subject: Update dependencies
+      hash: d35c14720835bb3a5aa3b1a075df97c140308b4a
+      body: |
+        Update sbvr-types from 2.0.4 to 2.0.5
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: 'CI: Remove circleci deploy in favor of balenaCI'
+              hash: 9e1137a305c6ded5c11209d292dab1c5cbabd0ee
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+            - subject: 'CI: Add node 12 to the test matrix'
+              hash: ccad733c04197834893804a6f8ccb8c76a1bf562
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+            - subject: 'CI: Remove node 6 from the test matrix'
+              hash: 5dd121cd02ffd37962ecefbfe0c1f9ab76168285
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+            - subject: Update dependencies and use resin-lint for automatic lint fixes
+              hash: caab18277ab22f8d60c6feca21d731b69239f963
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: sbvr-types-2.0.5
+          date: 2020-03-17T16:10:52.892Z
+  version: 12.2.1
+  date: 2020-03-31T15:16:13.130Z
+- commits:
     - subject: '✨: Optimize database queries for `canAccess()` permissions'
       hash: 263d40d3d2fedc03ab639a94255b8b013f86ab7f
       body: >
