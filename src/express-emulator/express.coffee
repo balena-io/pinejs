@@ -116,7 +116,7 @@ define ['bluebird', 'lodash'], (Bluebird, _) ->
 			use: _.partial(addHandler, 'USE', '/*')
 			get: (name) ->
 				callback = arguments[arguments.length - 1]
-				if _.isFunction(callback)
+				if typeof callback == 'function'
 					addHandler('GET', arguments...)
 				else
 					return appVars[name]
@@ -139,7 +139,7 @@ define ['bluebird', 'lodash'], (Bluebird, _) ->
 			listen: ->
 				callback = arguments[arguments.length - 1]
 				enabled.resolve()
-				if _.isFunction(callback)
+				if typeof callback == 'function'
 					enabled.promise.then(callback)
 			set: (name, value) ->
 				appVars[name] = value

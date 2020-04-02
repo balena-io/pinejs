@@ -32,7 +32,7 @@ const checkForExpansion = async (
 		return;
 	}
 
-	if (_.isString(field)) {
+	if (typeof field === 'string') {
 		try {
 			field = JSON.parse(field);
 		} catch (_e) {
@@ -40,7 +40,7 @@ const checkForExpansion = async (
 		}
 	}
 
-	if (_.isArray(field)) {
+	if (Array.isArray(field)) {
 		const mappingResourceName = resolveNavigationResource(
 			{
 				abstractSqlModel,
@@ -82,7 +82,7 @@ export const resourceURI = (
 	if (id == null) {
 		return;
 	}
-	if (_.isString(id)) {
+	if (typeof id === 'string') {
 		id = "'" + encodeURIComponent(id) + "'";
 	}
 	return `/${vocab}/${resourceName}(@id)?@id=${id}`;

@@ -53,13 +53,13 @@ An example of validating a `Color` type, we accept either a number that specifie
 validate: (value, required, callback) ->
 	if !_.isObject(value)
 		processedValue = parseInt(value, 10)
-		if _.isNaN(processedValue)
+		if Number.isNaN(processedValue)
 			callback('is neither an integer or color object: ' + value)
 			return
 	else
 		processedValue = 0
 		for own component, componentValue of value
-			if _.isNaN(componentValue) or componentValue > 255
+			if Number.isNaN(componentValue) or componentValue > 255
 				callback('has invalid component value of ' + componentValue + ' for component ' + component)
 				return
 			switch component.toLowerCase()

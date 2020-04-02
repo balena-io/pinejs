@@ -239,9 +239,9 @@ const executeMigration = async (
 		`Running migration ${JSON.stringify(key)}`,
 	);
 
-	if (_.isFunction(migration)) {
+	if (typeof migration === 'function') {
 		await migration(tx, sbvrUtils);
-	} else if (_.isString(migration)) {
+	} else if (typeof migration === 'string') {
 		await tx.executeSql(migration);
 	} else {
 		throw new MigrationError(`Invalid migration type: ${typeof migration}`);

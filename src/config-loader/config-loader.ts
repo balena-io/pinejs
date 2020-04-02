@@ -172,7 +172,7 @@ export const setup = (app: _express.Application) => {
 				}
 				if (model.customServerCode != null) {
 					let customCode: SetupFunction;
-					if (_.isString(model.customServerCode)) {
+					if (typeof model.customServerCode === 'string') {
 						try {
 							customCode = nodeRequire(model.customServerCode).setup;
 						} catch (e) {
@@ -187,7 +187,7 @@ export const setup = (app: _express.Application) => {
 						);
 					}
 
-					if (!_.isFunction(customCode)) {
+					if (typeof customCode !== 'function') {
 						return;
 					}
 
@@ -227,7 +227,7 @@ export const setup = (app: _express.Application) => {
 				if (config == null) {
 					root = path.resolve(process.argv[2]) || __dirname;
 					configObj = await loadConfigFile(path.join(root, 'config.json'));
-				} else if (_.isString(config)) {
+				} else if (typeof config === 'string') {
 					root = path.dirname(config);
 					configObj = await loadConfigFile(config);
 				} else if (_.isObject(config)) {
@@ -250,7 +250,7 @@ export const setup = (app: _express.Application) => {
 							'utf8',
 						);
 					}
-					if (_.isString(model.customServerCode)) {
+					if (typeof model.customServerCode === 'string') {
 						model.customServerCode = resolvePath(model.customServerCode);
 					}
 					if (model.migrations == null) {

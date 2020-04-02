@@ -25,7 +25,7 @@ const forEachUniqueTable = <T>(
 		if (model.hasOwnProperty(key)) {
 			const table = model[key];
 			if (
-				!_.isString(table) &&
+				typeof table !== 'string' &&
 				!table.primitive &&
 				!usedTableNames[table.name]
 			) {

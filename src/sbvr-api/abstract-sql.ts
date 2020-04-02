@@ -79,7 +79,7 @@ export const getAndCheckBindValues = (
 		let value: any;
 		if (binding[0] === 'Bind') {
 			const bindValue = binding[1];
-			if (_.isArray(bindValue)) {
+			if (Array.isArray(bindValue)) {
 				let tableName;
 				[tableName, fieldName] = bindValue;
 
@@ -100,7 +100,7 @@ export const getAndCheckBindValues = (
 					throw new Error(`Could not find field '${fieldName}'`);
 				}
 				field = maybeField;
-			} else if (_.isInteger(bindValue)) {
+			} else if (Number.isInteger(bindValue)) {
 				if (bindValue >= odataBinds.length) {
 					console.error(
 						`Invalid binding number '${bindValue}' for binds: `,
@@ -111,7 +111,7 @@ export const getAndCheckBindValues = (
 				let dataType;
 				[dataType, value] = odataBinds[bindValue];
 				field = { dataType };
-			} else if (_.isString(bindValue)) {
+			} else if (typeof bindValue === 'string') {
 				if (!odataBinds.hasOwnProperty(bindValue)) {
 					console.error(
 						`Invalid binding '${bindValue}' for binds: `,
@@ -180,7 +180,7 @@ export const isRuleAffected = (
 		);
 		return true;
 	}
-	if (_.isArray(modifiedFields)) {
+	if (Array.isArray(modifiedFields)) {
 		return _.some(
 			modifiedFields,
 			_.partial(checkModifiedFields, rule.referencedFields),

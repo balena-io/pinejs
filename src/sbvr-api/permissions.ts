@@ -149,7 +149,7 @@ const rewriteBinds = (
 	return _.cloneDeepWith(tree, value => {
 		if (value != null) {
 			const bind = value.bind;
-			if (_.isInteger(bind)) {
+			if (Number.isInteger(bind)) {
 				return { bind: value.bind + bindsLength };
 			}
 		}
@@ -189,17 +189,17 @@ export function nestedCheck<I, O>(
 	check: NestedCheck<I>,
 	stringCallback: (s: string) => O,
 ): boolean | Exclude<I, string> | O | MappedNestedCheck<typeof check, I, O> {
-	if (_.isString(check)) {
+	if (typeof check === 'string') {
 		return stringCallback(check);
 	}
-	if (_.isBoolean(check)) {
+	if (typeof check === 'boolean') {
 		return check;
 	}
-	if (_.isArray(check)) {
+	if (Array.isArray(check)) {
 		let results: any[] = [];
 		for (const subcheck of check) {
 			const result = nestedCheck(subcheck, stringCallback);
-			if (_.isBoolean(result)) {
+			if (typeof result === 'boolean') {
 				if (result === false) {
 					return false;
 				}
@@ -234,7 +234,7 @@ export function nestedCheck<I, O>(
 				let results: any[] = [];
 				for (const subcheck of or) {
 					const result = nestedCheck(subcheck, stringCallback);
-					if (_.isBoolean(result)) {
+					if (typeof result === 'boolean') {
 						if (result === true) {
 							return true;
 						}
@@ -267,7 +267,7 @@ interface CollapsedFilter<T> extends Array<string | T | CollapsedFilter<T>> {
 const collapsePermissionFilters = <T>(
 	v: NestedCheck<{ filter: T }>,
 ): T | CollapsedFilter<T> => {
-	if (_.isArray(v)) {
+	if (Array.isArray(v)) {
 		return collapsePermissionFilters({ or: v });
 	}
 	if (typeof v === 'object') {
@@ -617,7 +617,7 @@ const generateConstrainedAbstractSql = (
 					odataNameToSqlName((selectField as AliasNode<any>)[2]),
 				];
 			}
-			if (selectField.length === 2 && _.isArray(selectField[0])) {
+			if (selectField.length === 2 && Array.isArray(selectField[0])) {
 				return selectField[0];
 			}
 			return selectField;
@@ -675,7 +675,7 @@ const deepFreezeExceptDefinition = (obj: AnyObject) => {
 const createBypassDefinition = (definition: Definition) =>
 	_.cloneDeepWith(definition, abstractSql => {
 		if (
-			_.isArray(abstractSql) &&
+			Array.isArray(abstractSql) &&
 			abstractSql[0] === 'Resource' &&
 			!abstractSql[1].endsWith('$bypass')
 		) {
@@ -1149,10 +1149,10 @@ const getUserPermissionsQuery = _.once(() =>
 	}),
 );
 export const getUserPermissions = (userId: number): Bluebird<string[]> => {
-	if (_.isString(userId)) {
+	if (typeof userId === 'string') {
 		userId = _.parseInt(userId);
 	}
-	if (!_.isFinite(userId)) {
+	if (!Number.isFinite(userId)) {
 		return Bluebird.reject(
 			new Error('User ID has to be numeric, got: ' + typeof userId),
 		);
@@ -1259,7 +1259,7 @@ const $getApiKeyPermissions = memoize(
 
 export const getApiKeyPermissions = Bluebird.method(
 	(apiKey: string): Promise<string[]> => {
-		if (!_.isString(apiKey)) {
+		if (typeof apiKey !== 'string') {
 			throw new Error('API key has to be a string, got: ' + typeof apiKey);
 		}
 		return $getApiKeyPermissions(apiKey);

@@ -50,7 +50,11 @@ export class DatabaseError extends TypedError {
 		} else {
 			super(message);
 		}
-		if (message != null && !_.isString(message) && message.code != null) {
+		if (
+			message != null &&
+			typeof message !== 'string' &&
+			message.code != null
+		) {
 			// If the message has a code then use that as our code.
 			this.code = message.code;
 		}
@@ -112,7 +116,7 @@ const asyncTryFn = (fn: () => any) => {
 let timeoutMS: number;
 if (process.env.TRANSACTION_TIMEOUT_MS) {
 	timeoutMS = _.parseInt(process.env.TRANSACTION_TIMEOUT_MS);
-	if (_.isNaN(timeoutMS) || timeoutMS <= 0) {
+	if (Number.isNaN(timeoutMS) || timeoutMS <= 0) {
 		throw new Error(
 			`Invalid valid for TRANSACTION_TIMEOUT_MS: ${process.env.TRANSACTION_TIMEOUT_MS}`,
 		);
@@ -294,7 +298,7 @@ export abstract class Tx {
 
 	public abstract tableList(extraWhereClause?: string): Bluebird<Result>;
 	public dropTable(tableName: string, ifExists = true) {
-		if (!_.isString(tableName)) {
+		if (typeof tableName !== 'string') {
 			return Bluebird.reject(new TypeError('"tableName" must be a string'));
 		}
 		if (_.includes(tableName, '"')) {
@@ -376,7 +380,7 @@ if (maybePg != null) {
 		const PG_FOREIGN_KEY_VIOLATION = '23503';
 
 		let config: _pg.PoolConfig;
-		if (_.isString(connectString)) {
+		if (typeof connectString === 'string') {
 			const pgConnectionString: typeof _pgConnectionString = require('pg-connection-string');
 			// We have to cast because of the use of null vs undefined
 			config = pgConnectionString.parse(connectString) as _pg.PoolConfig;
