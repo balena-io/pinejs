@@ -192,14 +192,14 @@ export function nestedCheck<I, O>(
 	if (typeof check === 'string') {
 		return stringCallback(check);
 	}
-	if (_.isBoolean(check)) {
+	if (typeof check === 'boolean') {
 		return check;
 	}
 	if (_.isArray(check)) {
 		let results: any[] = [];
 		for (const subcheck of check) {
 			const result = nestedCheck(subcheck, stringCallback);
-			if (_.isBoolean(result)) {
+			if (typeof result === 'boolean') {
 				if (result === false) {
 					return false;
 				}
@@ -234,7 +234,7 @@ export function nestedCheck<I, O>(
 				let results: any[] = [];
 				for (const subcheck of or) {
 					const result = nestedCheck(subcheck, stringCallback);
-					if (_.isBoolean(result)) {
+					if (typeof result === 'boolean') {
 						if (result === true) {
 							return true;
 						}
