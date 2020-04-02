@@ -1152,7 +1152,7 @@ export const getUserPermissions = (userId: number): Bluebird<string[]> => {
 	if (typeof userId === 'string') {
 		userId = _.parseInt(userId);
 	}
-	if (!_.isFinite(userId)) {
+	if (!Number.isFinite(userId)) {
 		return Bluebird.reject(
 			new Error('User ID has to be numeric, got: ' + typeof userId),
 		);
