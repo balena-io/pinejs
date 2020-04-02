@@ -17,9 +17,9 @@
     "webpack-module": "grunt module",
     "webpack-server": "grunt server",
     "webpack-build": "npm run webpack-browser && npm run webpack-module && npm run webpack-server",
-    "lint": "balena-lint src && balena-lint --typescript src build typings Gruntfile.ts",
+    "lint": "balena-lint src && balena-lint -e js -e ts --typescript src build typings Gruntfile.ts && npx tsc --project tsconfig.dev.json --noEmit",
     "test": "npm run lint && npm run build && npm run webpack-build",
-    "prettify": "balena-lint --typescript --fix src build typings Gruntfile.ts"
+    "prettify": "balena-lint -e js -e ts --typescript --fix src build typings Gruntfile.ts"
   },
   "dependencies": {
     "@resin/abstract-sql-compiler": "^6.13.2",

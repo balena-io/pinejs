@@ -13,10 +13,12 @@
 		"target": "es2018",
 		"declaration": true,
 		"skipLibCheck": true,
-		"resolveJsonModule": true
+		"resolveJsonModule": true,
+		"allowJs": true,
+		"checkJs": true
 	},
 	"include": [
-		"src/**/*.ts",
+		"src/**/*",
 		"typings/**/*.d.ts"
 	]
 }
