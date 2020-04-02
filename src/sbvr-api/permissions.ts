@@ -189,7 +189,7 @@ export function nestedCheck<I, O>(
 	check: NestedCheck<I>,
 	stringCallback: (s: string) => O,
 ): boolean | Exclude<I, string> | O | MappedNestedCheck<typeof check, I, O> {
-	if (_.isString(check)) {
+	if (typeof check === 'string') {
 		return stringCallback(check);
 	}
 	if (_.isBoolean(check)) {
@@ -1149,7 +1149,7 @@ const getUserPermissionsQuery = _.once(() =>
 	}),
 );
 export const getUserPermissions = (userId: number): Bluebird<string[]> => {
-	if (_.isString(userId)) {
+	if (typeof userId === 'string') {
 		userId = _.parseInt(userId);
 	}
 	if (!_.isFinite(userId)) {
@@ -1259,7 +1259,7 @@ const $getApiKeyPermissions = memoize(
 
 export const getApiKeyPermissions = Bluebird.method(
 	(apiKey: string): Promise<string[]> => {
-		if (!_.isString(apiKey)) {
+		if (typeof apiKey !== 'string') {
 			throw new Error('API key has to be a string, got: ' + typeof apiKey);
 		}
 		return $getApiKeyPermissions(apiKey);

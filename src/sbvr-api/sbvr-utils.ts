@@ -1382,7 +1382,7 @@ const updateBinds = (
 				if (
 					ref == null ||
 					ref.body == null ||
-					_.isString(ref.body) ||
+					typeof ref.body === 'string' ||
 					ref.body.id === undefined
 				) {
 					throw new BadRequestError(

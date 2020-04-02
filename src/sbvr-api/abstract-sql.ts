@@ -111,7 +111,7 @@ export const getAndCheckBindValues = (
 				let dataType;
 				[dataType, value] = odataBinds[bindValue];
 				field = { dataType };
-			} else if (_.isString(bindValue)) {
+			} else if (typeof bindValue === 'string') {
 				if (!odataBinds.hasOwnProperty(bindValue)) {
 					console.error(
 						`Invalid binding '${bindValue}' for binds: `,

@@ -241,7 +241,7 @@ const executeMigration = async (
 
 	if (_.isFunction(migration)) {
 		await migration(tx, sbvrUtils);
-	} else if (_.isString(migration)) {
+	} else if (typeof migration === 'string') {
 		await tx.executeSql(migration);
 	} else {
 		throw new MigrationError(`Invalid migration type: ${typeof migration}`);
