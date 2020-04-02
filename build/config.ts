@@ -46,14 +46,17 @@ export = {
 		'typed-error': true,
 	},
 	resolve: {
-		extensions: ['.js', '.coffee', '.ts'],
+		extensions: ['.js', '.ts'],
 	},
 	plugins: [new webpack.optimize.LimitChunkCountPlugin({ maxChunks: 1 })],
 	module: {
 		rules: [
 			{ test: /\.sbvr$/, use: 'raw-loader' },
-			{ test: /\.coffee$/, use: 'coffee-loader' },
-			{ test: /\.ts$/, use: 'ts-loader' },
+			{
+				test: /\.ts$|\.js$/,
+				exclude: /node_modules/,
+				use: 'ts-loader',
+			},
 		],
 	},
 } as RequiredField<
