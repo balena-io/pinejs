@@ -149,7 +149,7 @@ const rewriteBinds = (
 	return _.cloneDeepWith(tree, value => {
 		if (value != null) {
 			const bind = value.bind;
-			if (_.isInteger(bind)) {
+			if (Number.isInteger(bind)) {
 				return { bind: value.bind + bindsLength };
 			}
 		}

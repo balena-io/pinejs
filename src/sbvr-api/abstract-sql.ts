@@ -100,7 +100,7 @@ export const getAndCheckBindValues = (
 					throw new Error(`Could not find field '${fieldName}'`);
 				}
 				field = maybeField;
-			} else if (_.isInteger(bindValue)) {
+			} else if (Number.isInteger(bindValue)) {
 				if (bindValue >= odataBinds.length) {
 					console.error(
 						`Invalid binding number '${bindValue}' for binds: `,
