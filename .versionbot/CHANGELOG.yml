@@ -1,4 +1,63 @@
 - commits:
+    - subject: Use native Number.isNaN type check
+      hash: f45cef76fc32518a01ce9224438253dabd50121b
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+    - subject: Use native function type check
+      hash: 90eb9170a2631a0b73ed6b1f81558d3d1ed36f97
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+    - subject: Use native finite type check
+      hash: ce47a98499d2990fa28a4f6dc66acee020477f52
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+    - subject: Use native integer type check
+      hash: c0185efd9709bd6a15a0581074fda00ede2048a4
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+    - subject: Use native undefined type check
+      hash: 1eecbf0009f0f6430d158232eaa5fd0801551339
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+    - subject: Use native array type check
+      hash: 63f684c58e95c57b0a4705fda1b267a404db5ee1
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+    - subject: Use native boolean type check
+      hash: c7aa40ad81f35994a3f672567d98c3ca73f49b4a
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+    - subject: Use native string type check
+      hash: 0f4b5d2a7884ddfcc3069e9352f500e65e781316
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+  version: 12.2.2
+  date: 2020-04-02T14:10:43.193Z
+- commits:
     - subject: Update dependencies
       hash: d35c14720835bb3a5aa3b1a075df97c140308b4a
       body: |
