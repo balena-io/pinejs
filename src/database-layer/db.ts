@@ -116,7 +116,7 @@ const asyncTryFn = (fn: () => any) => {
 let timeoutMS: number;
 if (process.env.TRANSACTION_TIMEOUT_MS) {
 	timeoutMS = _.parseInt(process.env.TRANSACTION_TIMEOUT_MS);
-	if (_.isNaN(timeoutMS) || timeoutMS <= 0) {
+	if (Number.isNaN(timeoutMS) || timeoutMS <= 0) {
 		throw new Error(
 			`Invalid valid for TRANSACTION_TIMEOUT_MS: ${process.env.TRANSACTION_TIMEOUT_MS}`,
 		);

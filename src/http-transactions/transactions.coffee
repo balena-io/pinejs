@@ -68,7 +68,7 @@ exports.setup = (app, sbvrUtils) ->
 							fieldName = field.field_name.replace(clientModel.resourceName + '.', '')
 							fieldValue = field.field_value
 							modelField = _.find(clientModel.fields, { fieldName })
-							if modelField.dataType == 'ForeignKey' and _.isNaN(Number(fieldValue))
+							if modelField.dataType == 'ForeignKey' and Number.isNaN(Number(fieldValue))
 								if !placeholders.hasOwnProperty(fieldValue)
 									throw new Error('Cannot resolve placeholder' + fieldValue)
 								else
@@ -149,7 +149,7 @@ exports.setup = (app, sbvrUtils) ->
 		# TODO: these really should be specific to the model - currently they will only work for the first model added
 		app.post '/transaction/execute', (req, res, next) ->
 			id = Number(req.body.id)
-			if _.isNaN(id)
+			if Number.isNaN(id)
 				res.sendStatus(404)
 			else
 				endTransaction(id)
