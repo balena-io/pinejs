@@ -580,7 +580,7 @@ const cleanupModel = (vocab: string) => {
 
 const mergeHooks = (a: HookBlueprints, b: HookBlueprints): HookBlueprints => {
 	return _.mergeWith({}, a, b, (x, y) => {
-		if (_.isArray(x)) {
+		if (Array.isArray(x)) {
 			return x.concat(y);
 		}
 	});
@@ -825,7 +825,7 @@ export const runRule = (() => {
 			return ['Select', '*'];
 		});
 		const compiledRule = AbstractSQLCompiler[db.engine].compileRule(ruleBody);
-		if (_.isArray(compiledRule)) {
+		if (Array.isArray(compiledRule)) {
 			throw new Error('Unexpected query generated');
 		}
 		const values = await getAndCheckBindValues(
@@ -1158,7 +1158,7 @@ export const handleODataRequest: _express.Handler = (req, res, next) => {
 						runTransaction<Response | Response[]>(req, tx => {
 							tx.on('rollback', () => {
 								rollbackRequestHooks(reqHooks);
-								if (_.isArray(request)) {
+								if (Array.isArray(request)) {
 									request.forEach(({ hooks }) => {
 										rollbackRequestHooks(hooks);
 									});
@@ -1166,7 +1166,7 @@ export const handleODataRequest: _express.Handler = (req, res, next) => {
 									rollbackRequestHooks(request.hooks);
 								}
 							});
-							if (_.isArray(request)) {
+							if (Array.isArray(request)) {
 								return Bluebird.reduce(
 									request,
 									runChangeSet(req, res, tx),
@@ -1451,7 +1451,7 @@ const runQuery = async (
 	if (request.engine == null) {
 		throw new InternalRequestError('No database engine specified');
 	}
-	if (_.isArray(sqlQuery)) {
+	if (Array.isArray(sqlQuery)) {
 		if (queryIndex == null) {
 			throw new InternalRequestError(
 				'Received a query index to run but the query is not an array',
@@ -1606,7 +1606,7 @@ const runPut = async (
 
 	let rowsAffected: number;
 	// If request.sqlQuery is an array it means it's an UPSERT, ie two queries: [InsertQuery, UpdateQuery]
-	if (_.isArray(request.sqlQuery)) {
+	if (Array.isArray(request.sqlQuery)) {
 		// Run the update query first
 		({ rowsAffected } = await runQuery(tx, request, 1));
 		if (rowsAffected === 0) {

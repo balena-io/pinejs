@@ -79,7 +79,7 @@ export const getAndCheckBindValues = (
 		let value: any;
 		if (binding[0] === 'Bind') {
 			const bindValue = binding[1];
-			if (_.isArray(bindValue)) {
+			if (Array.isArray(bindValue)) {
 				let tableName;
 				[tableName, fieldName] = bindValue;
 
@@ -180,7 +180,7 @@ export const isRuleAffected = (
 		);
 		return true;
 	}
-	if (_.isArray(modifiedFields)) {
+	if (Array.isArray(modifiedFields)) {
 		return _.some(
 			modifiedFields,
 			_.partial(checkModifiedFields, rule.referencedFields),

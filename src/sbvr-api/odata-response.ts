@@ -40,7 +40,7 @@ const checkForExpansion = async (
 		}
 	}
 
-	if (_.isArray(field)) {
+	if (Array.isArray(field)) {
 		const mappingResourceName = resolveNavigationResource(
 			{
 				abstractSqlModel,

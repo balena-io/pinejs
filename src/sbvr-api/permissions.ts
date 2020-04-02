@@ -195,7 +195,7 @@ export function nestedCheck<I, O>(
 	if (typeof check === 'boolean') {
 		return check;
 	}
-	if (_.isArray(check)) {
+	if (Array.isArray(check)) {
 		let results: any[] = [];
 		for (const subcheck of check) {
 			const result = nestedCheck(subcheck, stringCallback);
@@ -267,7 +267,7 @@ interface CollapsedFilter<T> extends Array<string | T | CollapsedFilter<T>> {
 const collapsePermissionFilters = <T>(
 	v: NestedCheck<{ filter: T }>,
 ): T | CollapsedFilter<T> => {
-	if (_.isArray(v)) {
+	if (Array.isArray(v)) {
 		return collapsePermissionFilters({ or: v });
 	}
 	if (typeof v === 'object') {
@@ -617,7 +617,7 @@ const generateConstrainedAbstractSql = (
 					odataNameToSqlName((selectField as AliasNode<any>)[2]),
 				];
 			}
-			if (selectField.length === 2 && _.isArray(selectField[0])) {
+			if (selectField.length === 2 && Array.isArray(selectField[0])) {
 				return selectField[0];
 			}
 			return selectField;
@@ -675,7 +675,7 @@ const deepFreezeExceptDefinition = (obj: AnyObject) => {
 const createBypassDefinition = (definition: Definition) =>
 	_.cloneDeepWith(definition, abstractSql => {
 		if (
-			_.isArray(abstractSql) &&
+			Array.isArray(abstractSql) &&
 			abstractSql[0] === 'Resource' &&
 			!abstractSql[1].endsWith('$bypass')
 		) {
