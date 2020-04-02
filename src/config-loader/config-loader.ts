@@ -187,7 +187,7 @@ export const setup = (app: _express.Application) => {
 						);
 					}
 
-					if (!_.isFunction(customCode)) {
+					if (typeof customCode !== 'function') {
 						return;
 					}
 

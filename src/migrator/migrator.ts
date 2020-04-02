@@ -239,7 +239,7 @@ const executeMigration = async (
 		`Running migration ${JSON.stringify(key)}`,
 	);
 
-	if (_.isFunction(migration)) {
+	if (typeof migration === 'function') {
 		await migration(tx, sbvrUtils);
 	} else if (typeof migration === 'string') {
 		await tx.executeSql(migration);

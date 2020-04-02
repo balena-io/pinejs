@@ -502,7 +502,7 @@ export const executeModels = (
 			for (const k of Object.keys(model.logging)) {
 				const key = k as keyof Console;
 				if (
-					_.isFunction(api[apiRoot].logger[key]) &&
+					typeof api[apiRoot].logger[key] === 'function' &&
 					!_.get(model.logging, [key], defaultSetting)
 				) {
 					api[apiRoot].logger[key] = _.noop;
