@@ -332,7 +332,7 @@ const parseODataChangeset = (
 		const [, id] = odata.binds[bind];
 		// Use reference to collect information
 		const ref = csReferences.get(id);
-		if (_.isUndefined(ref)) {
+		if (ref === undefined) {
 			throw new BadRequestError('Content-Id refers to a non existent resource');
 		}
 		apiRoot = ref.vocabulary;
