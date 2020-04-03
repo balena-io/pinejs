@@ -84,8 +84,7 @@ export = (grunt: typeof _grunt) => {
 						src: ['**'],
 						dest: `<%= grunt.option('target') %>`,
 						filter: (filename: string) =>
-							filename.endsWith('.d.ts') ||
-							(!filename.endsWith('.coffee') && !filename.endsWith('.ts')),
+							filename.endsWith('.d.ts') || !filename.endsWith('.ts'),
 					},
 				],
 			},
@@ -139,20 +138,6 @@ export = (grunt: typeof _grunt) => {
 
 		webpack: serverConfigs,
 
-		coffee: {
-			default: {
-				options: {
-					sourceMap: true,
-					header: true,
-				},
-				expand: true,
-				cwd: 'src',
-				src: ['**/*.coffee'],
-				dest: `<%= grunt.option('target') %>`,
-				ext: '.js',
-			},
-		},
-
 		ts: {
 			default: {
 				tsconfig: true,
@@ -188,11 +173,5 @@ export = (grunt: typeof _grunt) => {
 		]);
 	}
 
-	grunt.registerTask('build', [
-		'clean',
-		'checkDependencies',
-		'coffee',
-		'ts',
-		'copy',
-	]);
+	grunt.registerTask('build', ['clean', 'checkDependencies', 'ts', 'copy']);
 };

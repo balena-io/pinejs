@@ -17,9 +17,9 @@
     "webpack-module": "grunt module",
     "webpack-server": "grunt server",
     "webpack-build": "npm run webpack-browser && npm run webpack-module && npm run webpack-server",
-    "lint": "balena-lint src && balena-lint --typescript src build typings Gruntfile.ts",
+    "lint": "balena-lint -e js -e ts --typescript src build typings Gruntfile.ts && npx tsc --project tsconfig.dev.json --noEmit",
     "test": "npm run lint && npm run build && npm run webpack-build",
-    "prettify": "balena-lint --typescript --fix src build typings Gruntfile.ts"
+    "prettify": "balena-lint -e js -e ts --typescript --fix src build typings Gruntfile.ts"
   },
   "dependencies": {
     "@resin/abstract-sql-compiler": "^6.13.2",
@@ -62,12 +62,10 @@
     "@types/grunt": "^0.4.24",
     "@types/terser-webpack-plugin": "^2.2.0",
     "@types/webpack": "^4.41.10",
-    "coffee-loader": "^0.9.0",
     "grunt": "^1.1.0",
     "grunt-check-dependencies": "^1.0.0",
     "grunt-cli": "^1.3.2",
     "grunt-contrib-clean": "^2.0.0",
-    "grunt-contrib-coffee": "^2.1.0",
     "grunt-contrib-concat": "^1.0.1",
     "grunt-contrib-copy": "^1.0.0",
     "grunt-gitinfo": "^0.1.9",

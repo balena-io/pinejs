@@ -48,10 +48,10 @@ export const init = (
 		.setup(app, db)
 		.then(() => configLoader.setup(app))
 		.tap(cfgLoader => cfgLoader.loadConfig(migrator.config))
-		.tap(cfgLoader => {
+		.tap(async cfgLoader => {
 			const promises: Array<Bluebird<void>> = [];
 			if (process.env.SBVR_SERVER_ENABLED) {
-				const sbvrServer = require('../data-server/SBVRServer');
+				const sbvrServer = await import('../data-server/sbvr-server');
 				const transactions = require('../http-transactions/transactions');
 				promises.push(cfgLoader.loadConfig(sbvrServer.config));
 				promises.push(
