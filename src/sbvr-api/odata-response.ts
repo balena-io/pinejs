@@ -156,7 +156,7 @@ export const process = async (
 	const expandableFields = _.filter(
 		_.keys(instances[0]),
 		fieldName =>
-			!_.startsWith(fieldName, '__') && !localFields.hasOwnProperty(fieldName),
+			!fieldName.startsWith('__') && !localFields.hasOwnProperty(fieldName),
 	);
 	if (expandableFields.length > 0) {
 		await Bluebird.map(instances, instance =>
@@ -176,7 +176,7 @@ export const process = async (
 	const processedFields = _.filter(
 		_.keys(instances[0]),
 		fieldName =>
-			!_.startsWith(fieldName, '__') &&
+			!fieldName.startsWith('__') &&
 			fetchProcessingFields.hasOwnProperty(fieldName),
 	);
 	if (processedFields.length > 0) {
