@@ -371,7 +371,7 @@ const mustExtractHeader = (
 	body: { headers?: { [header: string]: string } },
 	header: string,
 ) => {
-	const h: any = _.get(body.headers, [header, 0]);
+	const h: any = body.headers?.[header]?.[0];
 	if (_.isEmpty(h)) {
 		throw new BadRequestError(`${header} must be specified`);
 	}

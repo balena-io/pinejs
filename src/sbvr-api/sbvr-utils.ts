@@ -498,12 +498,12 @@ export const executeModels = (
 		api[apiRoot] = new PinejsClient('/' + apiRoot + '/') as LoggingClient;
 		api[apiRoot].logger = _.cloneDeep(console);
 		if (model.logging != null) {
-			const defaultSetting = _.get(model.logging, 'default', true);
+			const defaultSetting = model.logging?.default ?? true;
 			for (const k of Object.keys(model.logging)) {
 				const key = k as keyof Console;
 				if (
 					typeof api[apiRoot].logger[key] === 'function' &&
-					!_.get(model.logging, [key], defaultSetting)
+					!(model.logging?.[key] ?? defaultSetting)
 				) {
 					api[apiRoot].logger[key] = _.noop;
 				}
@@ -529,7 +529,7 @@ export const executeModels = (
 						},
 					});
 				}
-				const result = await api.dev.get({
+				const result = (await api.dev.get({
 					resource: 'model',
 					passthrough: {
 						tx,
@@ -542,7 +542,7 @@ export const executeModels = (
 							model_type: modelType,
 						},
 					},
-				});
+				})) as Array<{ id: number }>;
 
 				let method: SupportedMethod = 'POST';
 				let uri = '/dev/model';
@@ -551,7 +551,7 @@ export const executeModels = (
 					model_value: model[modelType],
 					model_type: modelType,
 				};
-				const id = _.get(result, ['0', 'id']);
+				const id = result?.[0]?.id;
 				if (id != null) {
 					uri += '(' + id + ')';
 					method = 'PATCH';
@@ -1567,7 +1567,7 @@ const respondPost = async (
 	if (
 		location != null &&
 		!['0', 'false'].includes(
-			_.get(request, ['odataQuery', 'options', 'returnResource']),
+			request?.odataQuery?.options?.returnResource as string,
 		)
 	) {
 		try {

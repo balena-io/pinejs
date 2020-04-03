@@ -423,7 +423,7 @@ if (maybePg != null) {
 			return {
 				rows,
 				rowsAffected: rowCount,
-				insertId: _.get(rows, [0, 'id']),
+				insertId: rows?.[0]?.id,
 			};
 		};
 		class PostgresTx extends Tx {

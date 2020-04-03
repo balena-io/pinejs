@@ -54,7 +54,7 @@ export class PinejsSessionStore extends Store {
 		const body = {
 			session_id: sid,
 			data,
-			expiry_time: _.get(data, ['cookie', 'expires'], null),
+			expiry_time: data?.cookie?.expires ?? null,
 		};
 		api.session
 			.put({
