@@ -76,7 +76,7 @@ export const run = (tx: Tx, model: ApiRootModel): Bluebird<void> => {
 				'First time model has executed, skipping migrations',
 			);
 
-			return setExecutedMigrations(tx, modelName, _.keys(migrations));
+			return setExecutedMigrations(tx, modelName, Object.keys(migrations));
 		}
 		return Bluebird.using(lockMigrations(tx, modelName), async () => {
 			const executedMigrations = await getExecutedMigrations(tx, modelName);

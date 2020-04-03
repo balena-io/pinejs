@@ -219,7 +219,7 @@ const memoizedOdata2AbstractSQL = (() => {
 		let { odataQuery } = request;
 		const abstractSqlModel = sbvrUtils.getAbstractSqlModel(request);
 		// Sort the body keys to improve cache hits
-		const sortedBody = _.keys(values).sort();
+		const sortedBody = Object.keys(values).sort();
 		// Remove unused options for odata-to-abstract-sql to improve cache hits
 		if (odataQuery.options) {
 			odataQuery = {

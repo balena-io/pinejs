@@ -220,7 +220,7 @@ export function nestedCheck<I, O>(
 		return true;
 	}
 	if (typeof check === 'object') {
-		const checkTypes = _.keys(check);
+		const checkTypes = Object.keys(check);
 		if (checkTypes.length > 1) {
 			throw new Error('More than one check type: ' + checkTypes);
 		}
