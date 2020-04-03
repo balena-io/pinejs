@@ -620,7 +620,7 @@ if (typeof window !== 'undefined' && window.openDatabase != null) {
 		insertId?: number;
 		rowsAffected: number;
 		rows: {
-			item: (i: number) => {};
+			item: (i: number) => Row;
 			length: number;
 		};
 	}
@@ -647,9 +647,12 @@ if (typeof window !== 'undefined' && window.openDatabase != null) {
 			}
 		};
 		const createResult = (result: WebSqlResult): Result => {
-			const rows = _.times(result.rows.length, i => {
-				return result.rows.item(i);
-			});
+			const { length } = result.rows;
+			// We convert `result.rows` to a real array to make it easier to work with
+			const rows: Row[] = Array(length);
+			for (let i = 0; i < length; i++) {
+				rows[i] = result.rows.item(i);
+			}
 			return {
 				rows,
 				rowsAffected: result.rowsAffected,
