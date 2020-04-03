@@ -245,7 +245,7 @@ const memoizedOdata2AbstractSQL = (() => {
 			sortedBody,
 			odataBinds.length,
 		);
-		_.assign(values, extraBodyVars);
+		Object.assign(values, extraBodyVars);
 		odataBinds.push(...extraBindVars);
 		return tree;
 	};
