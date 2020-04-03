@@ -398,7 +398,7 @@ export const translateUri = <
 		return request;
 	}
 	const isMetadataEndpoint =
-		_.includes(metadataEndpoints, request.resourceName) ||
+		metadataEndpoints.includes(request.resourceName) ||
 		request.method === 'OPTIONS';
 	if (!isMetadataEndpoint) {
 		const abstractSqlQuery = memoizedOdata2AbstractSQL(request);

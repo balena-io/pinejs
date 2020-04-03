@@ -301,7 +301,7 @@ export abstract class Tx {
 		if (typeof tableName !== 'string') {
 			return Bluebird.reject(new TypeError('"tableName" must be a string'));
 		}
-		if (_.includes(tableName, '"')) {
+		if (tableName.includes('"')) {
 			return Bluebird.reject(
 				new TypeError('"tableName" cannot include double quotes'),
 			);

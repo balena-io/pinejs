@@ -665,7 +665,7 @@ const deepFreezeExceptDefinition = (obj: AnyObject) => {
 			prop !== 'definition' &&
 			obj.hasOwnProperty(prop) &&
 			obj[prop] !== null &&
-			!_.includes(['object', 'function'], typeof obj[prop])
+			!['object', 'function'].includes(typeof obj[prop])
 		) {
 			deepFreezeExceptDefinition(obj);
 		}
@@ -1508,7 +1508,7 @@ export const addPermissions = Bluebird.method(
 		let abstractSqlModel = sbvrUtils.getAbstractSqlModel(request);
 		method = method.toUpperCase() as SupportedMethod;
 		const isMetadataEndpoint =
-			_.includes(metadataEndpoints, resourceName) || method === 'OPTIONS';
+			metadataEndpoints.includes(resourceName) || method === 'OPTIONS';
 
 		let permissionType: PermissionCheck;
 		if (request.permissionType != null) {

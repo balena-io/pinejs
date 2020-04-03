@@ -157,7 +157,7 @@ const hookNames: Array<keyof Hooks> = [
 	'PRERESPOND',
 	'POSTRUN-ERROR',
 ];
-const isValidHook = (x: any): x is keyof Hooks => _.includes(hookNames, x);
+const isValidHook = (x: any): x is keyof Hooks => hookNames.includes(x);
 
 interface VocabHooks {
 	[resourceName: string]: HookBlueprints;
@@ -1566,8 +1566,7 @@ const respondPost = async (
 	let result: AnyObject = { d: [{ id }] };
 	if (
 		location != null &&
-		!_.includes(
-			['0', 'false'],
+		!['0', 'false'].includes(
 			_.get(request, ['odataQuery', 'options', 'returnResource']),
 		)
 	) {
