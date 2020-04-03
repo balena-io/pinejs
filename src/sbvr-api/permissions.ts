@@ -411,7 +411,7 @@ const convertToLambda = (filter: AnyObject, identifier: string) => {
 		}
 
 		if (object.hasOwnProperty('name')) {
-			object.property = _.clone(object);
+			object.property = { ...object };
 			object.name = identifier;
 			delete object.lambda;
 		}
@@ -596,12 +596,12 @@ const generateConstrainedAbstractSql = (
 	odata.binds.push(...extraBindVars);
 	const odataBinds = odata.binds;
 
-	const abstractSqlQuery = _.clone(tree!);
+	const abstractSqlQuery = [...tree];
 	// Remove aliases from the top level select
 	const selectIndex = _.findIndex(abstractSqlQuery, v => v[0] === 'Select');
-	const select = (abstractSqlQuery[selectIndex] = _.clone(
-		abstractSqlQuery[selectIndex],
-	)) as SelectNode;
+	const select = (abstractSqlQuery[selectIndex] = [
+		...abstractSqlQuery[selectIndex],
+	] as SelectNode);
 	select[1] = _.map(
 		select[1],
 		(selectField): AbstractSqlType => {
@@ -923,9 +923,9 @@ const getBoundConstrainedMemoizer = memoizeWeak(
 
 				_.each(constrainedAbstractSqlModel.tables, (table, resourceName) => {
 					const bypassResourceName = `${resourceName}$bypass`;
-					constrainedAbstractSqlModel.tables[bypassResourceName] = _.clone(
-						table,
-					);
+					constrainedAbstractSqlModel.tables[bypassResourceName] = {
+						...table,
+					};
 					constrainedAbstractSqlModel.tables[
 						bypassResourceName
 					].resourceName = bypassResourceName;
@@ -966,9 +966,9 @@ const getBoundConstrainedMemoizer = memoizeWeak(
 
 							const table = tables[`${resourceName}$bypass`];
 
-							const permissionsTable = (tables[
-								permissionResourceName
-							] = _.clone(table));
+							const permissionsTable = (tables[permissionResourceName] = {
+								...table,
+							});
 							permissionsTable.resourceName = permissionResourceName;
 							onceGetter(permissionsTable, 'definition', () =>
 								// For $filter on eg a DELETE you need read permissions on the sub-resources,

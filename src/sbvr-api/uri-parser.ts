@@ -402,7 +402,7 @@ export const translateUri = <
 		request.method === 'OPTIONS';
 	if (!isMetadataEndpoint) {
 		const abstractSqlQuery = memoizedOdata2AbstractSQL(request);
-		request = _.clone(request);
+		request = { ...request };
 		request.abstractSqlQuery = abstractSqlQuery;
 		return request;
 	}

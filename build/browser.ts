@@ -1,7 +1,6 @@
-import * as _ from 'lodash';
 import * as webpack from 'webpack';
 import sharedConfig = require('./config');
-const config = _.clone(sharedConfig);
+const config = { ...sharedConfig };
 
 const root = config.entry;
 config.entry = root + '/src/server-glue/server';
