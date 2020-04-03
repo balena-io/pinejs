@@ -150,11 +150,12 @@ export const process = async (
 		return instance;
 	});
 
+	const instanceKeys = Object.keys(instances[0]);
+
 	const localFields = getLocalFields(table);
 	// We check that it's not a local field, rather than that it is a foreign key because of the case where the foreign key is on the other resource
 	// and hence not known to this resource
-	const expandableFields = _.filter(
-		_.keys(instances[0]),
+	const expandableFields = instanceKeys.filter(
 		fieldName =>
 			!fieldName.startsWith('__') && !localFields.hasOwnProperty(fieldName),
 	);
@@ -173,8 +174,7 @@ export const process = async (
 	}
 
 	const fetchProcessingFields = getFetchProcessingFields(table);
-	const processedFields = _.filter(
-		_.keys(instances[0]),
+	const processedFields = instanceKeys.filter(
 		fieldName =>
 			!fieldName.startsWith('__') &&
 			fetchProcessingFields.hasOwnProperty(fieldName),
