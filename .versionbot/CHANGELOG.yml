@@ -1,4 +1,28 @@
 - commits:
+    - subject: Convert express-emulator/express.coffee to javascript
+      hash: 7d021787e0a4a8df46c862ca0c90636bf61b4bef
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+    - subject: Convert transactions.coffee to javascript
+      hash: 3e1bc748970bd3c3973892977989657d6ff858a7
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+    - subject: Convert SBVRServer.coffee to javascript
+      hash: 62e4b2732e8ce4ccdf1a95aec105094f9cdc23a1
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+  version: 12.3.0
+  date: 2020-04-03T15:57:12.841Z
+- commits:
     - subject: Switch to using native forEach where possible
       hash: 945363236892e8d7af4cd784a68afbd57a076e47
       body: ''
