@@ -181,8 +181,7 @@ export const isRuleAffected = (
 		return true;
 	}
 	if (Array.isArray(modifiedFields)) {
-		return _.some(
-			modifiedFields,
+		return modifiedFields.some(
 			_.partial(checkModifiedFields, rule.referencedFields),
 		);
 	}

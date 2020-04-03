@@ -1462,7 +1462,7 @@ const getReqPermissions = (req: PermissionReq, odataBinds: ODataBinds = []) =>
 			}
 		})(),
 		guestPermissions => {
-			if (_.some(guestPermissions, p => DEFAULT_ACTOR_BIND_REGEX.test(p))) {
+			if (guestPermissions.some(p => DEFAULT_ACTOR_BIND_REGEX.test(p))) {
 				throw new Error('Guest permissions cannot reference actors');
 			}
 

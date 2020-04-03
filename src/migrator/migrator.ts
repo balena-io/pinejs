@@ -62,7 +62,7 @@ export const postRun = (tx: Tx, model: ApiRootModel): Bluebird<void> => {
 
 export const run = (tx: Tx, model: ApiRootModel): Bluebird<void> => {
 	const { migrations } = model;
-	if (migrations == null || !_.some(migrations)) {
+	if (migrations == null || _.isEmpty(migrations)) {
 		return Bluebird.resolve();
 	}
 
@@ -84,7 +84,7 @@ export const run = (tx: Tx, model: ApiRootModel): Bluebird<void> => {
 				migrations,
 				executedMigrations,
 			);
-			if (!_.some(pendingMigrations)) {
+			if (pendingMigrations.length === 0) {
 				return;
 			}
 
