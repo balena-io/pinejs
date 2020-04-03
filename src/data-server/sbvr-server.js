@@ -230,7 +230,7 @@ export function setup(app, sbvrUtils, db) {
 				tx
 					.tableList()
 					.then(result =>
-						Bluebird.all(result.rows.map(table => tx.dropTable(table.name))),
+						Bluebird.map(result.rows, table => tx.dropTable(table.name)),
 					)
 					.then(() => sbvrUtils.executeStandardModels(tx))
 					.then(() => {
@@ -284,35 +284,33 @@ export function setup(app, sbvrUtils, db) {
 			db.transaction(tx =>
 				tx.tableList("name NOT LIKE '%_buk'").then(tables => {
 					let exported = '';
-					return Bluebird.all(
-						tables.rows.map(table => {
-							const tableName = table.name;
-							exported += 'DROP TABLE IF EXISTS "' + tableName + '";\n';
-							exported += table.sql + ';\n';
-							return tx
-								.executeSql('SELECT * FROM "' + tableName + '";')
-								.then(result => {
-									let insQuery = '';
-									result.rows.forEach(currRow => {
-										let notFirst = false;
-										insQuery += 'INSERT INTO "' + tableName + '" (';
-										let valQuery = '';
-										for (let propName of Object.keys(currRow || {})) {
-											if (notFirst) {
-												insQuery += ',';
-												valQuery += ',';
-											} else {
-												notFirst = true;
-											}
-											insQuery += '"' + propName + '"';
-											valQuery += "'" + currRow[propName] + "'";
+					return Bluebird.map(tables.rows, table => {
+						const tableName = table.name;
+						exported += 'DROP TABLE IF EXISTS "' + tableName + '";\n';
+						exported += table.sql + ';\n';
+						return tx
+							.executeSql('SELECT * FROM "' + tableName + '";')
+							.then(result => {
+								let insQuery = '';
+								result.rows.forEach(currRow => {
+									let notFirst = false;
+									insQuery += 'INSERT INTO "' + tableName + '" (';
+									let valQuery = '';
+									for (let propName of Object.keys(currRow || {})) {
+										if (notFirst) {
+											insQuery += ',';
+											valQuery += ',';
+										} else {
+											notFirst = true;
 										}
-										insQuery += ') values (' + valQuery + ');\n';
-									});
-									exported += insQuery;
+										insQuery += '"' + propName + '"';
+										valQuery += "'" + currRow[propName] + "'";
+									}
+									insQuery += ') values (' + valQuery + ');\n';
 								});
-						}),
-					).return(exported);
+								exported += insQuery;
+							});
+					}).return(exported);
 				}),
 			)
 				.then(exported => {
@@ -331,22 +329,20 @@ export function setup(app, sbvrUtils, db) {
 		(_req, res) => {
 			db.transaction(tx =>
 				tx.tableList("name NOT LIKE '%_buk'").then(result =>
-					Bluebird.all(
-						result.rows.map(currRow => {
-							const tableName = currRow.name;
-							return tx
-								.dropTable(tableName + '_buk', true)
-								.then(() =>
-									tx.executeSql(
-										'ALTER TABLE "' +
-											tableName +
-											'" RENAME TO "' +
-											tableName +
-											'_buk";',
-									),
-								);
-						}),
-					),
+					Bluebird.map(result.rows, currRow => {
+						const tableName = currRow.name;
+						return tx
+							.dropTable(tableName + '_buk', true)
+							.then(() =>
+								tx.executeSql(
+									'ALTER TABLE "' +
+										tableName +
+										'" RENAME TO "' +
+										tableName +
+										'_buk";',
+								),
+							);
+					}),
 				),
 			)
 				.then(() => res.sendStatus(200))
@@ -363,22 +359,20 @@ export function setup(app, sbvrUtils, db) {
 		(_req, res) => {
 			db.transaction(tx =>
 				tx.tableList("name LIKE '%_buk'").then(result =>
-					Bluebird.all(
-						result.rows.map(currRow => {
-							const tableName = currRow.name;
-							return tx
-								.dropTable(tableName.slice(0, -4), true)
-								.then(() =>
-									tx.executeSql(
-										'ALTER TABLE "' +
-											tableName +
-											'" RENAME TO "' +
-											tableName.slice(0, -4) +
-											'";',
-									),
-								);
-						}),
-					),
+					Bluebird.map(result.rows, currRow => {
+						const tableName = currRow.name;
+						return tx
+							.dropTable(tableName.slice(0, -4), true)
+							.then(() =>
+								tx.executeSql(
+									'ALTER TABLE "' +
+										tableName +
+										'" RENAME TO "' +
+										tableName.slice(0, -4) +
+										'";',
+								),
+							);
+					}),
 				),
 			)
 				.then(() => {

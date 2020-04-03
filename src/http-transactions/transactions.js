@@ -95,41 +95,37 @@ WHERE "conditional field"."conditional resource" = ?;`,
 						.then(fields => {
 							/** @type {{[key: string]: any}} */
 							const fieldsObject = {};
-							return Bluebird.all(
-								fields.rows.map(field => {
-									const fieldName = field.field_name.replace(
-										clientModel.resourceName + '.',
-										'',
-									);
-									const fieldValue = field.field_value;
-									const modelField = clientModel.fields.find(
-										f => f.fieldName === fieldName,
-									);
-									if (modelField == null) {
-										throw new Error(`Invalid field: ${fieldName}`);
-									}
-									if (
-										modelField.dataType === 'ForeignKey' &&
-										Number.isNaN(Number(fieldValue))
-									) {
-										if (!placeholders.hasOwnProperty(fieldValue)) {
-											throw new Error(
-												'Cannot resolve placeholder' + fieldValue,
-											);
-										} else {
-											return placeholders[fieldValue].promise
-												.then(resolvedID => {
-													fieldsObject[fieldName] = resolvedID;
-												})
-												.catch(() => {
-													throw new Error('Placeholder failed' + fieldValue);
-												});
-										}
+							return Bluebird.map(fields.rows, field => {
+								const fieldName = field.field_name.replace(
+									clientModel.resourceName + '.',
+									'',
+								);
+								const fieldValue = field.field_value;
+								const modelField = clientModel.fields.find(
+									f => f.fieldName === fieldName,
+								);
+								if (modelField == null) {
+									throw new Error(`Invalid field: ${fieldName}`);
+								}
+								if (
+									modelField.dataType === 'ForeignKey' &&
+									Number.isNaN(Number(fieldValue))
+								) {
+									if (!placeholders.hasOwnProperty(fieldValue)) {
+										throw new Error('Cannot resolve placeholder' + fieldValue);
 									} else {
-										fieldsObject[fieldName] = fieldValue;
+										return placeholders[fieldValue].promise
+											.then(resolvedID => {
+												fieldsObject[fieldName] = resolvedID;
+											})
+											.catch(() => {
+												throw new Error('Placeholder failed' + fieldValue);
+											});
 									}
-								}),
-							).then(() => fieldsObject);
+								} else {
+									fieldsObject[fieldName] = fieldValue;
+								}
+							}).then(() => fieldsObject);
 						});
 
 				// 'GET', '/transaction/conditional_resource?$select=id,lock,resource_type,conditional_type,placeholder&$filter=transaction eq ?'
@@ -161,8 +157,9 @@ WHERE "conditional resource"."transaction" = ?;\
 						});
 
 						// get conditional resources (if exist)
-						return Bluebird.all(
-							conditionalResources.rows.map(conditionalResource => {
+						return Bluebird.map(
+							conditionalResources.rows,
+							conditionalResource => {
 								const { placeholder } = conditionalResource;
 								const lockID = conditionalResource.lock;
 								const doCleanup = () =>
@@ -245,7 +242,7 @@ WHERE "conditional resource"."transaction" = ?;\
 												placeholders[placeholder].reject(err);
 											});
 								}
-							}),
+							},
 						);
 					})
 					.then(() =>
