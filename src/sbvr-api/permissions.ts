@@ -291,7 +291,7 @@ const namespaceRelationships = (
 	relationships: Relationship,
 	alias: string,
 ): void => {
-	_.each(relationships, (relationship: Relationship, key) => {
+	_.forEach(relationships, (relationship: Relationship, key) => {
 		if (key === '$') {
 			return;
 		}
@@ -920,7 +920,7 @@ const getBoundConstrainedMemoizer = memoizeWeak(
 					constrainedAbstractSqlModel.relationships,
 				);
 
-				_.each(constrainedAbstractSqlModel.tables, (table, resourceName) => {
+				_.forEach(constrainedAbstractSqlModel.tables, (table, resourceName) => {
 					const bypassResourceName = `${resourceName}$bypass`;
 					constrainedAbstractSqlModel.tables[bypassResourceName] = {
 						...table,

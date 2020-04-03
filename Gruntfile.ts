@@ -13,7 +13,7 @@ const serverConfigs = {
 	server: serverConfig,
 };
 
-_.each(serverConfigs, config => {
+_.forEach(serverConfigs, config => {
 	config.optimization = {
 		minimizer: [
 			new TerserPlugin({
@@ -99,7 +99,7 @@ export = (grunt: typeof _grunt) => {
 
 		rename: (() => {
 			const renames: _.Dictionary<{ src: string; dest: string }> = {};
-			_.each(serverConfigs, (_config, task) => {
+			_.forEach(serverConfigs, (_config, task) => {
 				renames[task] = {
 					src: 'out/pine.js',
 					dest: `out/pine-${task}-<%= grunt.option('version') %>.js`,

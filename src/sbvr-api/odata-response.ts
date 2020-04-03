@@ -194,7 +194,7 @@ export const process = async (
 };
 
 export const prepareModel = (abstractSqlModel: AbstractSqlModel) => {
-	_.each(abstractSqlModel.tables, table => {
+	_.forEach(abstractSqlModel.tables, table => {
 		getLocalFields(table);
 		getFetchProcessingFields(table);
 	});

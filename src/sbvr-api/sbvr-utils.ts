@@ -938,7 +938,7 @@ export const runURI = (
 	}
 
 	// Remove undefined values from the body, as normally they would be removed by the JSON conversion
-	_.each(body, (v, k) => {
+	_.forEach(body, (v, k) => {
 		if (v === undefined) {
 			delete body[k];
 		}
