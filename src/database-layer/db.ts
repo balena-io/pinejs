@@ -115,7 +115,7 @@ const asyncTryFn = (fn: () => any) => {
 
 let timeoutMS: number;
 if (process.env.TRANSACTION_TIMEOUT_MS) {
-	timeoutMS = _.parseInt(process.env.TRANSACTION_TIMEOUT_MS);
+	timeoutMS = parseInt(process.env.TRANSACTION_TIMEOUT_MS, 10);
 	if (Number.isNaN(timeoutMS) || timeoutMS <= 0) {
 		throw new Error(
 			`Invalid valid for TRANSACTION_TIMEOUT_MS: ${process.env.TRANSACTION_TIMEOUT_MS}`,
@@ -301,7 +301,7 @@ export abstract class Tx {
 		if (typeof tableName !== 'string') {
 			return Bluebird.reject(new TypeError('"tableName" must be a string'));
 		}
-		if (_.includes(tableName, '"')) {
+		if (tableName.includes('"')) {
 			return Bluebird.reject(
 				new TypeError('"tableName" cannot include double quotes'),
 			);
@@ -423,7 +423,7 @@ if (maybePg != null) {
 			return {
 				rows,
 				rowsAffected: rowCount,
-				insertId: _.get(rows, [0, 'id']),
+				insertId: rows?.[0]?.id,
 			};
 		};
 		class PostgresTx extends Tx {
@@ -620,7 +620,7 @@ if (typeof window !== 'undefined' && window.openDatabase != null) {
 		insertId?: number;
 		rowsAffected: number;
 		rows: {
-			item: (i: number) => {};
+			item: (i: number) => Row;
 			length: number;
 		};
 	}
@@ -647,9 +647,12 @@ if (typeof window !== 'undefined' && window.openDatabase != null) {
 			}
 		};
 		const createResult = (result: WebSqlResult): Result => {
-			const rows = _.times(result.rows.length, i => {
-				return result.rows.item(i);
-			});
+			const { length } = result.rows;
+			// We convert `result.rows` to a real array to make it easier to work with
+			const rows: Row[] = Array(length);
+			for (let i = 0; i < length; i++) {
+				rows[i] = result.rows.item(i);
+			}
 			return {
 				rows,
 				rowsAffected: result.rowsAffected,

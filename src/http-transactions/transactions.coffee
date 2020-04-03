@@ -1,4 +1,3 @@
-_ = require 'lodash'
 Bluebird = require 'bluebird'
 transactionModel = require './transaction.sbvr'
 
@@ -67,7 +66,7 @@ exports.setup = (app, sbvrUtils) ->
 						Bluebird.all fields.rows.map (field) ->
 							fieldName = field.field_name.replace(clientModel.resourceName + '.', '')
 							fieldValue = field.field_value
-							modelField = _.find(clientModel.fields, { fieldName })
+							modelField = clientModel.fields.find((field) -> field.fieldName == fieldName)
 							if modelField.dataType == 'ForeignKey' and Number.isNaN(Number(fieldValue))
 								if !placeholders.hasOwnProperty(fieldValue)
 									throw new Error('Cannot resolve placeholder' + fieldValue)

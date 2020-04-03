@@ -219,7 +219,7 @@ const memoizedOdata2AbstractSQL = (() => {
 		let { odataQuery } = request;
 		const abstractSqlModel = sbvrUtils.getAbstractSqlModel(request);
 		// Sort the body keys to improve cache hits
-		const sortedBody = _.keys(values).sort();
+		const sortedBody = Object.keys(values).sort();
 		// Remove unused options for odata-to-abstract-sql to improve cache hits
 		if (odataQuery.options) {
 			odataQuery = {
@@ -245,7 +245,7 @@ const memoizedOdata2AbstractSQL = (() => {
 			sortedBody,
 			odataBinds.length,
 		);
-		_.assign(values, extraBodyVars);
+		Object.assign(values, extraBodyVars);
 		odataBinds.push(...extraBindVars);
 		return tree;
 	};
@@ -371,7 +371,7 @@ const mustExtractHeader = (
 	body: { headers?: { [header: string]: string } },
 	header: string,
 ) => {
-	const h: any = _.get(body.headers, [header, 0]);
+	const h: any = body.headers?.[header]?.[0];
 	if (_.isEmpty(h)) {
 		throw new BadRequestError(`${header} must be specified`);
 	}
@@ -398,11 +398,11 @@ export const translateUri = <
 		return request;
 	}
 	const isMetadataEndpoint =
-		_.includes(metadataEndpoints, request.resourceName) ||
+		metadataEndpoints.includes(request.resourceName) ||
 		request.method === 'OPTIONS';
 	if (!isMetadataEndpoint) {
 		const abstractSqlQuery = memoizedOdata2AbstractSQL(request);
-		request = _.clone(request);
+		request = { ...request };
 		request.abstractSqlQuery = abstractSqlQuery;
 		return request;
 	}

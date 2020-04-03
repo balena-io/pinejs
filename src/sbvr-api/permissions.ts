@@ -220,7 +220,7 @@ export function nestedCheck<I, O>(
 		return true;
 	}
 	if (typeof check === 'object') {
-		const checkTypes = _.keys(check);
+		const checkTypes = Object.keys(check);
 		if (checkTypes.length > 1) {
 			throw new Error('More than one check type: ' + checkTypes);
 		}
@@ -291,7 +291,7 @@ const namespaceRelationships = (
 	relationships: Relationship,
 	alias: string,
 ): void => {
-	_.each(relationships, (relationship: Relationship, key) => {
+	_.forEach(relationships, (relationship: Relationship, key) => {
 		if (key === '$') {
 			return;
 		}
@@ -411,7 +411,7 @@ const convertToLambda = (filter: AnyObject, identifier: string) => {
 		}
 
 		if (object.hasOwnProperty('name')) {
-			object.property = _.clone(object);
+			object.property = { ...object };
 			object.name = identifier;
 			delete object.lambda;
 		}
@@ -596,14 +596,13 @@ const generateConstrainedAbstractSql = (
 	odata.binds.push(...extraBindVars);
 	const odataBinds = odata.binds;
 
-	const abstractSqlQuery = _.clone(tree!);
+	const abstractSqlQuery = [...tree];
 	// Remove aliases from the top level select
-	const selectIndex = _.findIndex(abstractSqlQuery, v => v[0] === 'Select');
-	const select = (abstractSqlQuery[selectIndex] = _.clone(
-		abstractSqlQuery[selectIndex],
-	)) as SelectNode;
-	select[1] = _.map(
-		select[1],
+	const selectIndex = abstractSqlQuery.findIndex(v => v[0] === 'Select');
+	const select = (abstractSqlQuery[selectIndex] = [
+		...abstractSqlQuery[selectIndex],
+	] as SelectNode);
+	select[1] = select[1].map(
 		(selectField): AbstractSqlType => {
 			if (selectField[0] === 'Alias') {
 				const maybeField = (selectField as AliasNode<any>)[1];
@@ -665,7 +664,7 @@ const deepFreezeExceptDefinition = (obj: AnyObject) => {
 			prop !== 'definition' &&
 			obj.hasOwnProperty(prop) &&
 			obj[prop] !== null &&
-			!_.includes(['object', 'function'], typeof obj[prop])
+			!['object', 'function'].includes(typeof obj[prop])
 		) {
 			deepFreezeExceptDefinition(obj);
 		}
@@ -921,11 +920,11 @@ const getBoundConstrainedMemoizer = memoizeWeak(
 					constrainedAbstractSqlModel.relationships,
 				);
 
-				_.each(constrainedAbstractSqlModel.tables, (table, resourceName) => {
+				_.forEach(constrainedAbstractSqlModel.tables, (table, resourceName) => {
 					const bypassResourceName = `${resourceName}$bypass`;
-					constrainedAbstractSqlModel.tables[bypassResourceName] = _.clone(
-						table,
-					);
+					constrainedAbstractSqlModel.tables[bypassResourceName] = {
+						...table,
+					};
 					constrainedAbstractSqlModel.tables[
 						bypassResourceName
 					].resourceName = bypassResourceName;
@@ -966,9 +965,9 @@ const getBoundConstrainedMemoizer = memoizeWeak(
 
 							const table = tables[`${resourceName}$bypass`];
 
-							const permissionsTable = (tables[
-								permissionResourceName
-							] = _.clone(table));
+							const permissionsTable = (tables[permissionResourceName] = {
+								...table,
+							});
 							permissionsTable.resourceName = permissionResourceName;
 							onceGetter(permissionsTable, 'definition', () =>
 								// For $filter on eg a DELETE you need read permissions on the sub-resources,
@@ -1150,7 +1149,7 @@ const getUserPermissionsQuery = _.once(() =>
 );
 export const getUserPermissions = (userId: number): Bluebird<string[]> => {
 	if (typeof userId === 'string') {
-		userId = _.parseInt(userId);
+		userId = parseInt(userId, 10);
 	}
 	if (!Number.isFinite(userId)) {
 		return Bluebird.reject(
@@ -1463,7 +1462,7 @@ const getReqPermissions = (req: PermissionReq, odataBinds: ODataBinds = []) =>
 			}
 		})(),
 		guestPermissions => {
-			if (_.some(guestPermissions, p => DEFAULT_ACTOR_BIND_REGEX.test(p))) {
+			if (guestPermissions.some(p => DEFAULT_ACTOR_BIND_REGEX.test(p))) {
 				throw new Error('Guest permissions cannot reference actors');
 			}
 
@@ -1477,7 +1476,7 @@ const getReqPermissions = (req: PermissionReq, odataBinds: ODataBinds = []) =>
 				let actorBind = DEFAULT_ACTOR_BIND;
 				if (actorIndex > 0) {
 					actorBind += actorIndex;
-					actorPermissions = _.map(actorPermissions, actorPermission =>
+					actorPermissions = actorPermissions.map(actorPermission =>
 						actorPermission.replace(DEFAULT_ACTOR_BIND_REGEX, actorBind),
 					);
 				}
@@ -1508,7 +1507,7 @@ export const addPermissions = Bluebird.method(
 		let abstractSqlModel = sbvrUtils.getAbstractSqlModel(request);
 		method = method.toUpperCase() as SupportedMethod;
 		const isMetadataEndpoint =
-			_.includes(metadataEndpoints, resourceName) || method === 'OPTIONS';
+			metadataEndpoints.includes(resourceName) || method === 'OPTIONS';
 
 		let permissionType: PermissionCheck;
 		if (request.permissionType != null) {

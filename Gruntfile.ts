@@ -2,6 +2,7 @@ import * as _grunt from 'grunt';
 
 import * as _ from 'lodash';
 import * as TerserPlugin from 'terser-webpack-plugin';
+import { Plugin } from 'webpack';
 import * as browserConfig from './build/browser';
 import * as moduleConfig from './build/module';
 import * as serverConfig from './build/server';
@@ -12,7 +13,7 @@ const serverConfigs = {
 	server: serverConfig,
 };
 
-_.each(serverConfigs, config => {
+_.forEach(serverConfigs, config => {
 	config.optimization = {
 		minimizer: [
 			new TerserPlugin({
@@ -58,10 +59,9 @@ export = (grunt: typeof _grunt) => {
 		},
 
 		concat: _.mapValues(serverConfigs, (config, task) => {
-			const defines = _.find(
-				config.plugins,
-				(plugin: any) => plugin.definitions != null,
-			).definitions;
+			const defines = (config.plugins as Array<
+				Plugin & { definitions?: {} }
+			>).find(plugin => plugin.definitions != null)!.definitions;
 			return {
 				options: {
 					banner: `
@@ -84,9 +84,8 @@ export = (grunt: typeof _grunt) => {
 						src: ['**'],
 						dest: `<%= grunt.option('target') %>`,
 						filter: (filename: string) =>
-							_.endsWith(filename, '.d.ts') ||
-							(!_.endsWith(filename, '.coffee') &&
-								!_.endsWith(filename, '.ts')),
+							filename.endsWith('.d.ts') ||
+							(!filename.endsWith('.coffee') && !filename.endsWith('.ts')),
 					},
 				],
 			},
@@ -100,7 +99,7 @@ export = (grunt: typeof _grunt) => {
 
 		rename: (() => {
 			const renames: _.Dictionary<{ src: string; dest: string }> = {};
-			_.each(serverConfigs, (_config, task) => {
+			_.forEach(serverConfigs, (_config, task) => {
 				renames[task] = {
 					src: 'out/pine.js',
 					dest: `out/pine-${task}-<%= grunt.option('version') %>.js`,

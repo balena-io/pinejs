@@ -93,9 +93,9 @@ export const getAndCheckBindValues = (
 
 				const sqlTableName = odataNameToSqlName(tableName);
 				const sqlFieldName = odataNameToSqlName(fieldName);
-				const maybeField = _.find(sqlModelTables[sqlTableName].fields, {
-					fieldName: sqlFieldName,
-				});
+				const maybeField = sqlModelTables[sqlTableName].fields.find(
+					f => f.fieldName === sqlFieldName,
+				);
 				if (maybeField == null) {
 					throw new Error(`Could not find field '${fieldName}'`);
 				}
@@ -181,8 +181,7 @@ export const isRuleAffected = (
 		return true;
 	}
 	if (Array.isArray(modifiedFields)) {
-		return _.some(
-			modifiedFields,
+		return modifiedFields.some(
 			_.partial(checkModifiedFields, rule.referencedFields),
 		);
 	}

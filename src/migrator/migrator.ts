@@ -62,7 +62,7 @@ export const postRun = (tx: Tx, model: ApiRootModel): Bluebird<void> => {
 
 export const run = (tx: Tx, model: ApiRootModel): Bluebird<void> => {
 	const { migrations } = model;
-	if (migrations == null || !_.some(migrations)) {
+	if (migrations == null || _.isEmpty(migrations)) {
 		return Bluebird.resolve();
 	}
 
@@ -76,7 +76,7 @@ export const run = (tx: Tx, model: ApiRootModel): Bluebird<void> => {
 				'First time model has executed, skipping migrations',
 			);
 
-			return setExecutedMigrations(tx, modelName, _.keys(migrations));
+			return setExecutedMigrations(tx, modelName, Object.keys(migrations));
 		}
 		return Bluebird.using(lockMigrations(tx, modelName), async () => {
 			const executedMigrations = await getExecutedMigrations(tx, modelName);
@@ -84,7 +84,7 @@ export const run = (tx: Tx, model: ApiRootModel): Bluebird<void> => {
 				migrations,
 				executedMigrations,
 			);
-			if (!_.some(pendingMigrations)) {
+			if (pendingMigrations.length === 0) {
 				return;
 			}
 

@@ -1,5 +1,4 @@
 import { Store } from 'express-session';
-import * as _ from 'lodash';
 import { Config } from '../config-loader/config-loader';
 import * as permissions from '../sbvr-api/permissions';
 import { AnyObject, api } from '../sbvr-api/sbvr-utils';
@@ -54,7 +53,7 @@ export class PinejsSessionStore extends Store {
 		const body = {
 			session_id: sid,
 			data,
-			expiry_time: _.get(data, ['cookie', 'expires'], null),
+			expiry_time: data?.cookie?.expires ?? null,
 		};
 		api.session
 			.put({
@@ -94,7 +93,7 @@ export class PinejsSessionStore extends Store {
 					},
 				},
 			})
-			.then((sessions: AnyObject[]) => _.map(sessions, 'session_id'))
+			.then((sessions: AnyObject[]) => sessions.map(s => s.session_id))
 			.asCallback(callback);
 	}) as Store['all'];
 

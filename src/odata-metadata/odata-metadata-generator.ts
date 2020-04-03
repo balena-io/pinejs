@@ -3,7 +3,6 @@ import {
 	AbstractSqlTable,
 } from '@resin/abstract-sql-compiler';
 import * as sbvrTypes from '@resin/sbvr-types';
-import * as _ from 'lodash';
 
 // tslint:disable-next-line:no-var-requires
 const { version }: { version: string } = require('../../package.json');
@@ -18,7 +17,7 @@ const forEachUniqueTable = <T>(
 	model: AbstractSqlModel['tables'],
 	callback: (tableName: string, table: AbstractSqlTable) => T,
 ): T[] => {
-	const usedTableNames: _.Dictionary<true> = {};
+	const usedTableNames: { [tableName: string]: true } = {};
 
 	const result = [];
 	for (const key in model) {
@@ -41,7 +40,7 @@ export const generateODataMetadata = (
 	vocabulary: string,
 	abstractSqlModel: AbstractSqlModel,
 ) => {
-	const complexTypes: _.Dictionary<string> = {};
+	const complexTypes: { [fieldType: string]: string } = {};
 	const resolveDataType = (fieldType: string): string => {
 		if (sbvrTypes[fieldType] == null) {
 			console.error('Could not resolve type', fieldType);
@@ -173,7 +172,7 @@ export const generateODataMetadata = (
 			.join('\n') +
 		`
 					</EntityContainer>` +
-		_.values(complexTypes).join('\n') +
+		Object.values(complexTypes).join('\n') +
 		`
 				</Schema>
 			</edmx:DataServices>

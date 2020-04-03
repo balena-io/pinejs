@@ -150,13 +150,14 @@ export const process = async (
 		return instance;
 	});
 
+	const instanceKeys = Object.keys(instances[0]);
+
 	const localFields = getLocalFields(table);
 	// We check that it's not a local field, rather than that it is a foreign key because of the case where the foreign key is on the other resource
 	// and hence not known to this resource
-	const expandableFields = _.filter(
-		_.keys(instances[0]),
+	const expandableFields = instanceKeys.filter(
 		fieldName =>
-			!_.startsWith(fieldName, '__') && !localFields.hasOwnProperty(fieldName),
+			!fieldName.startsWith('__') && !localFields.hasOwnProperty(fieldName),
 	);
 	if (expandableFields.length > 0) {
 		await Bluebird.map(instances, instance =>
@@ -173,10 +174,9 @@ export const process = async (
 	}
 
 	const fetchProcessingFields = getFetchProcessingFields(table);
-	const processedFields = _.filter(
-		_.keys(instances[0]),
+	const processedFields = instanceKeys.filter(
 		fieldName =>
-			!_.startsWith(fieldName, '__') &&
+			!fieldName.startsWith('__') &&
 			fetchProcessingFields.hasOwnProperty(fieldName),
 	);
 	if (processedFields.length > 0) {
@@ -194,7 +194,7 @@ export const process = async (
 };
 
 export const prepareModel = (abstractSqlModel: AbstractSqlModel) => {
-	_.each(abstractSqlModel.tables, table => {
+	_.forEach(abstractSqlModel.tables, table => {
 		getLocalFields(table);
 		getFetchProcessingFields(table);
 	});

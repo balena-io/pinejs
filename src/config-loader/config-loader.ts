@@ -100,11 +100,11 @@ export const setup = (app: _express.Application) => {
 				const permissionsCache: {
 					[index: string]: Promise<number>;
 				} = {};
-				_.each(users, user => {
+				users.forEach(user => {
 					if (user.permissions == null) {
 						return;
 					}
-					_.each(user.permissions, permissionName => {
+					user.permissions.forEach(permissionName => {
 						if (permissionsCache[permissionName] != null) {
 							return;
 						}

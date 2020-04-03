@@ -72,8 +72,8 @@ export const instantiateHooks = <
 >(
 	hooks: T,
 ) =>
-	_.mapValues(hooks, (typeHooks: HookBlueprint[]) => {
-		return _.map(typeHooks, (hook: HookBlueprint) => {
+	_.mapValues(hooks, typeHooks => {
+		return typeHooks.map(hook => {
 			if (hook.effects) {
 				return new SideEffectHook(hook.HOOK);
 			} else {
