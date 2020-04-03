@@ -84,9 +84,8 @@ export = (grunt: typeof _grunt) => {
 						src: ['**'],
 						dest: `<%= grunt.option('target') %>`,
 						filter: (filename: string) =>
-							_.endsWith(filename, '.d.ts') ||
-							(!_.endsWith(filename, '.coffee') &&
-								!_.endsWith(filename, '.ts')),
+							filename.endsWith('.d.ts') ||
+							(!filename.endsWith('.coffee') && !filename.endsWith('.ts')),
 					},
 				],
 			},
