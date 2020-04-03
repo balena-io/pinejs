@@ -1150,7 +1150,7 @@ const getUserPermissionsQuery = _.once(() =>
 );
 export const getUserPermissions = (userId: number): Bluebird<string[]> => {
 	if (typeof userId === 'string') {
-		userId = _.parseInt(userId);
+		userId = parseInt(userId, 10);
 	}
 	if (!Number.isFinite(userId)) {
 		return Bluebird.reject(
