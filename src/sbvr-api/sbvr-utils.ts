@@ -779,7 +779,7 @@ export const runRule = (() => {
 		if (ruleAbs == null) {
 			throw new Error('Unable to generate rule');
 		}
-		const ruleBody = _.find(ruleAbs, node => node[0] === 'Body') as [
+		const ruleBody = ruleAbs.find(node => node[0] === 'Body') as [
 			'Body',
 			...any[],
 		];

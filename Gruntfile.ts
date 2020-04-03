@@ -2,6 +2,7 @@ import * as _grunt from 'grunt';
 
 import * as _ from 'lodash';
 import * as TerserPlugin from 'terser-webpack-plugin';
+import { Plugin } from 'webpack';
 import * as browserConfig from './build/browser';
 import * as moduleConfig from './build/module';
 import * as serverConfig from './build/server';
@@ -58,10 +59,9 @@ export = (grunt: typeof _grunt) => {
 		},
 
 		concat: _.mapValues(serverConfigs, (config, task) => {
-			const defines = _.find(
-				config.plugins,
-				(plugin: any) => plugin.definitions != null,
-			).definitions;
+			const defines = (config.plugins as Array<
+				Plugin & { definitions?: {} }
+			>).find(plugin => plugin.definitions != null)!.definitions;
 			return {
 				options: {
 					banner: `
