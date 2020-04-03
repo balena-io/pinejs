@@ -675,10 +675,9 @@ const runHooks = Bluebird.method(
 export const deleteModel = (vocabulary: string) => {
 	return db
 		.transaction(tx => {
-			const dropStatements: Array<Bluebird<any>> = _.map(
-				models[vocabulary].sql.dropSchema,
-				(dropStatement: string) => tx.executeSql(dropStatement),
-			);
+			const dropStatements: Array<Bluebird<any>> = models[
+				vocabulary
+			].sql.dropSchema.map(dropStatement => tx.executeSql(dropStatement));
 			return Bluebird.all(
 				dropStatements.concat([
 					api.dev.delete({
@@ -806,24 +805,28 @@ export const runRule = (() => {
 			['PossibilityFormulation', 'PermissibilityFormulation'];
 		if (wantNonViolators === fetchingViolators) {
 			// What we want is the opposite of what we're getting, so add a not to the where clauses
-			ruleBody[1] = _.map(ruleBody[1], queryPart => {
-				if (queryPart[0] !== 'Where') {
-					return queryPart;
-				}
-				if (queryPart.length > 2) {
-					throw new Error('Unsupported rule formulation');
-				}
-				return ['Where', ['Not', queryPart[1]]];
-			});
+			ruleBody[1] = ruleBody[1].map(
+				(queryPart: AbstractSQLCompiler.AbstractSqlQuery) => {
+					if (queryPart[0] !== 'Where') {
+						return queryPart;
+					}
+					if (queryPart.length > 2) {
+						throw new Error('Unsupported rule formulation');
+					}
+					return ['Where', ['Not', queryPart[1]]];
+				},
+			);
 		}
 
 		// Select all
-		ruleBody[1] = _.map(ruleBody[1], queryPart => {
-			if (queryPart[0] !== 'Select') {
-				return queryPart;
-			}
-			return ['Select', '*'];
-		});
+		ruleBody[1] = ruleBody[1].map(
+			(queryPart: AbstractSQLCompiler.AbstractSqlQuery) => {
+				if (queryPart[0] !== 'Select') {
+					return queryPart;
+				}
+				return ['Select', '*'];
+			},
+		);
 		const compiledRule = AbstractSQLCompiler[db.engine].compileRule(ruleBody);
 		if (Array.isArray(compiledRule)) {
 			throw new Error('Unexpected query generated');
@@ -843,7 +846,7 @@ export const runRule = (() => {
 		const odataIdField = sqlNameToODataName(table.idField);
 		let ids = result.rows.map(row => row[table.idField]);
 		ids = _.uniq(ids);
-		ids = _.map(ids, id => odataIdField + ' eq ' + id);
+		ids = ids.map(id => odataIdField + ' eq ' + id);
 		let filter: string;
 		if (ids.length > 0) {
 			filter = ids.join(' or ');
@@ -1079,7 +1082,7 @@ export const getAffectedIds = Bluebird.method(
 		} else {
 			result = await runTransaction(req, newTx => runQuery(newTx, request));
 		}
-		return _.map(result.rows, idField);
+		return result.rows.map(row => row[idField]);
 	},
 );
 
@@ -1376,7 +1379,7 @@ const updateBinds = (
 	request: uriParser.ODataRequest,
 ) => {
 	if (request._defer) {
-		request.odataBinds = _.map(request.odataBinds, ([tag, id]) => {
+		request.odataBinds = request.odataBinds.map(([tag, id]) => {
 			if (tag === 'ContentReference') {
 				const ref = env.get(id);
 				if (

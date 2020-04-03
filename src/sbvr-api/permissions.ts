@@ -602,8 +602,7 @@ const generateConstrainedAbstractSql = (
 	const select = (abstractSqlQuery[selectIndex] = [
 		...abstractSqlQuery[selectIndex],
 	] as SelectNode);
-	select[1] = _.map(
-		select[1],
+	select[1] = select[1].map(
 		(selectField): AbstractSqlType => {
 			if (selectField[0] === 'Alias') {
 				const maybeField = (selectField as AliasNode<any>)[1];
@@ -1477,7 +1476,7 @@ const getReqPermissions = (req: PermissionReq, odataBinds: ODataBinds = []) =>
 				let actorBind = DEFAULT_ACTOR_BIND;
 				if (actorIndex > 0) {
 					actorBind += actorIndex;
-					actorPermissions = _.map(actorPermissions, actorPermission =>
+					actorPermissions = actorPermissions.map(actorPermission =>
 						actorPermission.replace(DEFAULT_ACTOR_BIND_REGEX, actorBind),
 					);
 				}
