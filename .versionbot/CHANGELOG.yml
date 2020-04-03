@@ -1,4 +1,112 @@
 - commits:
+    - subject: Switch to using native forEach where possible
+      hash: 945363236892e8d7af4cd784a68afbd57a076e47
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+    - subject: Switch to using native some
+      hash: b7925698472f43c7cee1ae5db5f400d238639484
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+    - subject: Switch to using native map
+      hash: b01d25e641e1261b4dfeee0e24c167a8ccae55f7
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+    - subject: Use nullish coalescing in favor of _.get where sensible
+      hash: 140688b9eb46ae8f2bb45af95039bd4542d9dc6e
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+    - subject: Switch to using native findIndex
+      hash: 206db2de099cd22e318d61d7b4d80a14013efedd
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+    - subject: Switch to using native find
+      hash: d6d021cb056910b662247eeec92ffd1c9fe7ea56
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+    - subject: Switch to using native cloning
+      hash: 0b43aa6d24b9262657d51568f44f9c2264012744
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+    - subject: Switch to using native parseInt
+      hash: 4d80df1a9157eb65b3a6c9d376c274477c76a5f8
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+    - subject: Switch to using native filter
+      hash: ce5330bc980fde0ae57880c4b6fc1f6f4dbb7d65
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+    - subject: Switch to using native Object.keys
+      hash: ebacf9ad163383550bf37c670497663968483c43
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+    - subject: Switch to using native Object.values
+      hash: 998c00d4d422208d9ea4fc82f01fae826c9ee197
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+    - subject: Switch to using native Object.assign
+      hash: 3ba1ef1e76ab5145ce329f9ef8c48e9bb401c0a4
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+    - subject: Switch to using native startsWith
+      hash: 818d97e1a61d86ae68b3259b9113fbe2ab6f0022
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+    - subject: Switch to using native endsWith
+      hash: 87314a7c0c1c68c3edc6bc70a6834ff6a4fe67a3
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+    - subject: Switch to using native includes
+      hash: 47556a1cc88ead575a935f767c7053dc40bb5c31
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+  version: 12.2.3
+  date: 2020-04-03T09:31:43.604Z
+- commits:
     - subject: Use native Number.isNaN type check
       hash: f45cef76fc32518a01ce9224438253dabd50121b
       body: ''
