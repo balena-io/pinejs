@@ -598,7 +598,7 @@ const generateConstrainedAbstractSql = (
 
 	const abstractSqlQuery = [...tree];
 	// Remove aliases from the top level select
-	const selectIndex = _.findIndex(abstractSqlQuery, v => v[0] === 'Select');
+	const selectIndex = abstractSqlQuery.findIndex(v => v[0] === 'Select');
 	const select = (abstractSqlQuery[selectIndex] = [
 		...abstractSqlQuery[selectIndex],
 	] as SelectNode);
