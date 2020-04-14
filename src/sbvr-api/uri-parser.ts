@@ -289,7 +289,7 @@ export function parseOData(
 				resourceName: odata.tree.resource,
 				odataBinds: odata.binds,
 				odataQuery: odata.tree,
-				values: b.data,
+				values: b.data ?? {},
 				custom: {},
 				_defer: false,
 			};
@@ -348,7 +348,7 @@ const parseODataChangeset = (
 		resourceName: odata.tree.resource,
 		odataBinds: odata.binds,
 		odataQuery: odata.tree,
-		values: b.data,
+		values: b.data ?? {},
 		custom: {},
 		id: contentId,
 		_defer: defer,
