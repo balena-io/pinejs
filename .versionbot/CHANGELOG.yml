@@ -1,4 +1,14 @@
 - commits:
+    - subject: Ensure request.values is an object rather than nullish
+      hash: c62a229a2954e10e7d3661c6a401cdb96e73b9b6
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+  version: 12.3.2
+  date: 2020-04-14T16:00:13.912Z
+- commits:
     - subject: Update dependencies
       hash: 73cfc96d0399040c1e7238a595d603237aa6ebfc
       body: |
