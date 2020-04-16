@@ -1,4 +1,41 @@
 - commits:
+    - subject: Update dependencies
+      hash: c73c975b6c9fc0bd500defd59c3168248f1b04da
+      body: |
+        Update lf-to-abstract-sql from 3.2.1 to 3.2.2
+        Update pinejs-client-core from 5.6.11 to 5.7.0
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Always treat numbered terms as if they're used
+              hash: 78cf69b82166d736865e73f5b01bc403da468569
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: lf-to-abstract-sql-3.2.2
+          date: 2020-04-16T10:35:48.200Z
+        - commits:
+            - subject: >-
+                Make transformGetResult a method , to ease overriding the get
+                method
+              hash: f267d4bfc006d1aabfb0ed1f79c9234ecb5c7d5f
+              body: ''
+              footer:
+                Change-type: minor
+                change-type: minor
+                See: 'https://github.com/balena-io/balena-api/pull/2532'
+                see: 'https://github.com/balena-io/balena-api/pull/2532'
+              author: Thodoris Greasidis
+          version: pinejs-client-js-5.7.0
+          date: 2020-04-15T13:13:28.186Z
+  version: 12.3.3
+  date: 2020-04-16T11:02:38.166Z
+- commits:
     - subject: Ensure request.values is an object rather than nullish
       hash: c62a229a2954e10e7d3661c6a401cdb96e73b9b6
       body: ''
