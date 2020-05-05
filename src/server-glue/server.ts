@@ -84,7 +84,7 @@ if (!process.browser) {
 }
 
 export const initialised = Pinejs.init(app)
-	.then(configLoader =>
+	.then((configLoader) =>
 		Bluebird.all([
 			configLoader.loadConfig(passportPinejs.config),
 			configLoader.loadConfig(PinejsSessionStore.config),
@@ -128,7 +128,7 @@ export const initialised = Pinejs.init(app)
 			console.info('Server started');
 		});
 	})
-	.catch(err => {
+	.catch((err) => {
 		console.error('Error initialising server', err, err.stack);
 		process.exit(1);
 	});

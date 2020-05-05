@@ -13,7 +13,7 @@ const serverConfigs = {
 	server: serverConfig,
 };
 
-_.forEach(serverConfigs, config => {
+_.forEach(serverConfigs, (config) => {
 	config.optimization = {
 		minimizer: [
 			new TerserPlugin({
@@ -61,7 +61,7 @@ export = (grunt: typeof _grunt) => {
 		concat: _.mapValues(serverConfigs, (config, task) => {
 			const defines = (config.plugins as Array<
 				Plugin & { definitions?: {} }
-			>).find(plugin => plugin.definitions != null)!.definitions;
+			>).find((plugin) => plugin.definitions != null)!.definitions;
 			return {
 				options: {
 					banner: `
@@ -154,7 +154,7 @@ export = (grunt: typeof _grunt) => {
 		grunt.option('target', 'out/');
 	}
 
-	grunt.registerTask('version', function() {
+	grunt.registerTask('version', function () {
 		this.requires('gitinfo:describe');
 		grunt.option('version', grunt.config.get('gitinfo.describe'));
 	});

@@ -73,7 +73,7 @@ export const getAndCheckBindValues = (
 ) => {
 	const { odataBinds, values, engine } = request;
 	const sqlModelTables = sbvrUtils.getAbstractSqlModel(request).tables;
-	return Bluebird.map(bindings, binding => {
+	return Bluebird.map(bindings, (binding) => {
 		let fieldName: string;
 		let field: { dataType: string };
 		let value: any;
@@ -94,7 +94,7 @@ export const getAndCheckBindValues = (
 				const sqlTableName = odataNameToSqlName(tableName);
 				const sqlFieldName = odataNameToSqlName(fieldName);
 				const maybeField = sqlModelTables[sqlTableName].fields.find(
-					f => f.fieldName === sqlFieldName,
+					(f) => f.fieldName === sqlFieldName,
 				);
 				if (maybeField == null) {
 					throw new Error(`Could not find field '${fieldName}'`);

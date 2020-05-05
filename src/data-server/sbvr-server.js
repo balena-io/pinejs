@@ -29,7 +29,7 @@ Fact type:  textarea has text
 const isServerOnAir = (() => {
 	/** @type { ((thenableOrResult?: import('../sbvr-api/common-types').Resolvable<boolean>) => void) | undefined } */
 	let resolve;
-	let promise = new Bluebird($resolve => {
+	let promise = new Bluebird(($resolve) => {
 		resolve = $resolve;
 	});
 	return (/** @type {boolean} */ value) => {
@@ -47,7 +47,7 @@ const isServerOnAir = (() => {
 
 /** @type { import('express').Handler } */
 const serverIsOnAir = (_req, _res, next) =>
-	isServerOnAir().then(onAir => {
+	isServerOnAir().then((onAir) => {
 		if (onAir) {
 			next();
 		} else {
@@ -138,7 +138,7 @@ export function setup(app, sbvrUtils, db) {
 	};
 
 	app.get('/onAir', (_req, res) => {
-		isServerOnAir().then(onAir => {
+		isServerOnAir().then((onAir) => {
 			res.json(onAir);
 		});
 	});
@@ -172,7 +172,7 @@ export function setup(app, sbvrUtils, db) {
 						throw new Error('Could not find the model to execute');
 					}
 					const modelText = result[0].text;
-					return db.transaction(tx =>
+					return db.transaction((tx) =>
 						sbvrUtils
 							.executeModel(tx, {
 								apiRoot: 'data',
@@ -201,7 +201,7 @@ export function setup(app, sbvrUtils, db) {
 					isServerOnAir(true);
 					res.sendStatus(200);
 				})
-				.catch(err => {
+				.catch((err) => {
 					isServerOnAir(false);
 					res.status(404).json(err);
 				});
@@ -213,10 +213,10 @@ export function setup(app, sbvrUtils, db) {
 		(req, res) => {
 			sbvrUtils
 				.runRule('data', req.body.rule)
-				.then(results => {
+				.then((results) => {
 					res.json(results);
 				})
-				.catch(err => {
+				.catch((err) => {
 					console.log('Error validating', err);
 					res.sendStatus(404);
 				});
@@ -226,11 +226,11 @@ export function setup(app, sbvrUtils, db) {
 		'/cleardb',
 		permissions.checkPermissionsMiddleware('delete'),
 		(_req, res) => {
-			db.transaction(tx =>
+			db.transaction((tx) =>
 				tx
 					.tableList()
-					.then(result =>
-						Bluebird.map(result.rows, table => tx.dropTable(table.name)),
+					.then((result) =>
+						Bluebird.map(result.rows, (table) => tx.dropTable(table.name)),
 					)
 					.then(() => sbvrUtils.executeStandardModels(tx))
 					.then(() => {
@@ -246,7 +246,7 @@ export function setup(app, sbvrUtils, db) {
 				.then(() => {
 					res.sendStatus(200);
 				})
-				.catch(err => {
+				.catch((err) => {
 					console.error('Error clearing db', err, err.stack);
 					res.sendStatus(503);
 				});
@@ -258,11 +258,11 @@ export function setup(app, sbvrUtils, db) {
 		(req, res) => {
 			const queries = req.body.split(';');
 			return db
-				.transaction(tx =>
-					Bluebird.each(queries, query => {
+				.transaction((tx) =>
+					Bluebird.each(queries, (query) => {
 						query = query.trim();
 						if (query.length > 0) {
-							return tx.executeSql(query).catch(err => {
+							return tx.executeSql(query).catch((err) => {
 								throw [query, err];
 							});
 						}
@@ -271,7 +271,7 @@ export function setup(app, sbvrUtils, db) {
 				.then(() => {
 					res.sendStatus(200);
 				})
-				.catch(err => {
+				.catch((err) => {
 					console.error('Error importing db', err, err.stack);
 					res.sendStatus(404);
 				});
@@ -281,18 +281,18 @@ export function setup(app, sbvrUtils, db) {
 		'/exportdb',
 		permissions.checkPermissionsMiddleware('get'),
 		(_req, res) => {
-			db.transaction(tx =>
-				tx.tableList("name NOT LIKE '%_buk'").then(tables => {
+			db.transaction((tx) =>
+				tx.tableList("name NOT LIKE '%_buk'").then((tables) => {
 					let exported = '';
-					return Bluebird.map(tables.rows, table => {
+					return Bluebird.map(tables.rows, (table) => {
 						const tableName = table.name;
 						exported += 'DROP TABLE IF EXISTS "' + tableName + '";\n';
 						exported += table.sql + ';\n';
 						return tx
 							.executeSql('SELECT * FROM "' + tableName + '";')
-							.then(result => {
+							.then((result) => {
 								let insQuery = '';
-								result.rows.forEach(currRow => {
+								result.rows.forEach((currRow) => {
 									let notFirst = false;
 									insQuery += 'INSERT INTO "' + tableName + '" (';
 									let valQuery = '';
@@ -313,10 +313,10 @@ export function setup(app, sbvrUtils, db) {
 					}).return(exported);
 				}),
 			)
-				.then(exported => {
+				.then((exported) => {
 					res.json(exported);
 				})
-				.catch(err => {
+				.catch((err) => {
 					console.error('Error exporting db', err, err.stack);
 					res.sendStatus(503);
 				});
@@ -327,9 +327,9 @@ export function setup(app, sbvrUtils, db) {
 		permissions.checkPermissionsMiddleware('all'),
 		serverIsOnAir,
 		(_req, res) => {
-			db.transaction(tx =>
-				tx.tableList("name NOT LIKE '%_buk'").then(result =>
-					Bluebird.map(result.rows, currRow => {
+			db.transaction((tx) =>
+				tx.tableList("name NOT LIKE '%_buk'").then((result) =>
+					Bluebird.map(result.rows, (currRow) => {
 						const tableName = currRow.name;
 						return tx
 							.dropTable(tableName + '_buk', true)
@@ -346,7 +346,7 @@ export function setup(app, sbvrUtils, db) {
 				),
 			)
 				.then(() => res.sendStatus(200))
-				.catch(err => {
+				.catch((err) => {
 					console.error('Error backing up db', err, err.stack);
 					res.sendStatus(404);
 				});
@@ -357,9 +357,9 @@ export function setup(app, sbvrUtils, db) {
 		permissions.checkPermissionsMiddleware('all'),
 		serverIsOnAir,
 		(_req, res) => {
-			db.transaction(tx =>
-				tx.tableList("name LIKE '%_buk'").then(result =>
-					Bluebird.map(result.rows, currRow => {
+			db.transaction((tx) =>
+				tx.tableList("name LIKE '%_buk'").then((result) =>
+					Bluebird.map(result.rows, (currRow) => {
 						const tableName = currRow.name;
 						return tx
 							.dropTable(tableName.slice(0, -4), true)
@@ -378,7 +378,7 @@ export function setup(app, sbvrUtils, db) {
 				.then(() => {
 					res.sendStatus(200);
 				})
-				.catch(err => {
+				.catch((err) => {
 					console.error('Error restoring db', err, err.stack);
 					res.sendStatus(404);
 				});

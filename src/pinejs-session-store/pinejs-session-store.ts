@@ -79,7 +79,7 @@ export class PinejsSessionStore extends Store {
 			.asCallback(callback);
 	}) as Store['destroy'];
 
-	public all = (callback => {
+	public all = ((callback) => {
 		api.session
 			.get({
 				resource: 'session',
@@ -93,11 +93,11 @@ export class PinejsSessionStore extends Store {
 					},
 				},
 			})
-			.then((sessions: AnyObject[]) => sessions.map(s => s.session_id))
+			.then((sessions: AnyObject[]) => sessions.map((s) => s.session_id))
 			.asCallback(callback);
 	}) as Store['all'];
 
-	public clear = (callback => {
+	public clear = ((callback) => {
 		// TODO: Use a truncate
 		api.session
 			.delete({
@@ -109,7 +109,7 @@ export class PinejsSessionStore extends Store {
 			.asCallback(callback);
 	}) as Store['clear'];
 
-	public length = (callback => {
+	public length = ((callback) => {
 		api.session
 			.get({
 				resource: 'session/$count',

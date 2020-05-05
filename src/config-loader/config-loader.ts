@@ -87,7 +87,7 @@ const getOrCreatePermission = async (
 // Setup function
 export const setup = (app: _express.Application) => {
 	const loadConfig = (data: Config): Bluebird<void> =>
-		sbvrUtils.db.transaction(async tx => {
+		sbvrUtils.db.transaction(async (tx) => {
 			const authApiTx = sbvrUtils.api.Auth.clone({
 				passthrough: {
 					tx,
@@ -100,11 +100,11 @@ export const setup = (app: _express.Application) => {
 				const permissionsCache: {
 					[index: string]: Promise<number>;
 				} = {};
-				users.forEach(user => {
+				users.forEach((user) => {
 					if (user.permissions == null) {
 						return;
 					}
-					user.permissions.forEach(permissionName => {
+					user.permissions.forEach((permissionName) => {
 						if (permissionsCache[permissionName] != null) {
 							return;
 						}
@@ -115,7 +115,7 @@ export const setup = (app: _express.Application) => {
 					});
 				});
 
-				await Bluebird.map(users, async user => {
+				await Bluebird.map(users, async (user) => {
 					try {
 						const userID = await getOrCreate(
 							authApiTx,
@@ -128,7 +128,7 @@ export const setup = (app: _express.Application) => {
 							},
 						);
 						if (user.permissions != null) {
-							await Bluebird.map(user.permissions, async permissionName => {
+							await Bluebird.map(user.permissions, async (permissionName) => {
 								const permissionID = await permissionsCache[permissionName];
 								await getOrCreate(authApiTx, 'user__has__permission', {
 									user: userID,
@@ -143,7 +143,7 @@ export const setup = (app: _express.Application) => {
 				});
 			}
 
-			await Bluebird.map(data.models, async model => {
+			await Bluebird.map(data.models, async (model) => {
 				if (
 					(model.abstractSql != null || model.modelText != null) &&
 					model.apiRoot != null
@@ -243,7 +243,7 @@ export const setup = (app: _express.Application) => {
 					return path.join(root, s);
 				};
 
-				await Bluebird.map(configObj.models, async model => {
+				await Bluebird.map(configObj.models, async (model) => {
 					if (model.modelFile != null) {
 						model.modelText = await fs.promises.readFile(
 							resolvePath(model.modelFile),
@@ -264,7 +264,7 @@ export const setup = (app: _express.Application) => {
 
 						await Bluebird.map(
 							fs.promises.readdir(migrationsPath),
-							async filename => {
+							async (filename) => {
 								const filePath = path.join(migrationsPath, filename);
 								const [migrationKey] = filename.split('-', 1);
 
