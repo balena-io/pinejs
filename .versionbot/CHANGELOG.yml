@@ -1,5 +1,369 @@
 - commits:
     - subject: Update dependencies
+      hash: f5be31dc8e1ca181cff0eb17b39a20e4318bf013
+      body: |
+        Update abstract-sql-compiler from 6.13.2 to 6.13.4
+        Update lf-to-abstract-sql from 3.2.2 to 3.2.3
+        Update odata-to-abstract-sql from 4.4.1 to 4.4.5
+        Update sbvr-parser from 0.2.7 to 0.2.8
+        Update sbvr-types from 2.0.5 to 2.0.7
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Reduce lodash usage
+              hash: ed5c57cca3e703081feb04064fd8520558a54cd7
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: abstract-sql-compiler-6.13.4
+          date: 2020-04-30T09:10:27.512Z
+        - commits:
+            - subject: Update dependencies
+              hash: 23bbe47fbd663bb0d3642d22b752226d2c85ce91
+              body: |
+                Update odata-parser from 1.3.1 to 1.4.1
+                Update sbvr-types from 2.0.4 to 2.0.5
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested:
+                - commits:
+                    - subject: 'CI: Remove circleci deploy in favor of balenaCI'
+                      hash: 9e1137a305c6ded5c11209d292dab1c5cbabd0ee
+                      body: ''
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                    - subject: 'CI: Add node 12 to the test matrix'
+                      hash: ccad733c04197834893804a6f8ccb8c76a1bf562
+                      body: ''
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                    - subject: 'CI: Remove node 6 from the test matrix'
+                      hash: 5dd121cd02ffd37962ecefbfe0c1f9ab76168285
+                      body: ''
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                    - subject: >-
+                        Update dependencies and use resin-lint for automatic
+                        lint fixes
+                      hash: caab18277ab22f8d60c6feca21d731b69239f963
+                      body: ''
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                  version: sbvr-types-2.0.5
+                  date: 2020-03-17T16:10:52.892Z
+                - commits:
+                    - subject: Update dependencies
+                      hash: d991b20f6c90221c9a3734d0461540ec501576ad
+                      body: ''
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                  version: odata-parser-1.4.1
+                  date: 2020-04-10T14:30:05.458Z
+                - commits:
+                    - subject: '✨: Add support for canAccess method call on resource'
+                      hash: bf99443b20616fef6344e3262832002d0d3909fd
+                      body: |
+                        Add support for `canAccess` method call on resource
+                      footer:
+                        Change-type: minor
+                        change-type: minor
+                        Signed-off-by: Andreas Fitzek <andreas@balena.io>
+                        signed-off-by: Andreas Fitzek <andreas@balena.io>
+                      author: Andreas Fitzek
+                  version: odata-parser-1.4.0
+                  date: 2020-03-02T13:31:22.416Z
+          version: abstract-sql-compiler-6.13.3
+          date: 2020-04-14T12:07:43.079Z
+        - commits:
+            - subject: Reduce lodash usage
+              hash: 275276c0c0a49a2ce638666c404d4a23495a01ff
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: sbvr-parser-0.2.8
+          date: 2020-04-27T15:12:07.898Z
+        - commits:
+            - subject: Remove unused imports
+              hash: f4f8d1a55903e352db46efaace69d3b91da9016b
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: sbvr-types-2.0.7
+          date: 2020-04-30T09:14:06.918Z
+        - commits:
+            - subject: Remove production lodash dependency
+              hash: b819dc89d6cc55957b6c870c0fa44411d1d37bd0
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: sbvr-types-2.0.6
+          date: 2020-04-27T14:35:57.655Z
+        - commits:
+            - subject: Switch to native some
+              hash: 9db59aa4e6d5bd2447671cdf048dcac41ce3229a
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+            - subject: Switch to native findIndex
+              hash: 41edb97a980d1e206a15d57d4f07a5707b767201
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+            - subject: Switch to native every
+              hash: 22e9532c671d8b5db90f6907bef9adba9159d2fe
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+            - subject: Switch to native find
+              hash: baf6ef67ddc40096d55999df05cfe0781616b4e3
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+            - subject: Switch to native forEach where possible
+              hash: e417e3b6decaad51c6a24053ba3a734b43cd7de4
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+            - subject: Switch to native includes
+              hash: 5768d76d2ebc2a457c890a181a39aa8879552dee
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+            - subject: Switch to native array type checking
+              hash: 3f3ecfbc69ab6b1f9606d8183354cea3111111bf
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+            - subject: Switch to native string type checking
+              hash: 93b0ee63ecc4740a2de9c5b01a703ddca94533fb
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+            - subject: Switch to native Object.assign
+              hash: bf1f7a2564bbd8fb01b0b298b872d79e676f7a18
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: lf-to-abstract-sql-3.2.3
+          date: 2020-04-20T13:06:37.433Z
+        - commits:
+            - subject: Optimize `getRelationships`
+              hash: 4462f06baa9e5e3b2642640f4effc21f002b92f2
+              body: |
+                Update abstract-sql-compiler from 6.13.2 to 6.13.4
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested:
+                - commits:
+                    - subject: Reduce lodash usage
+                      hash: ed5c57cca3e703081feb04064fd8520558a54cd7
+                      body: ''
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                  version: abstract-sql-compiler-6.13.4
+                  date: 2020-04-30T09:10:27.512Z
+                - commits:
+                    - subject: Update dependencies
+                      hash: 23bbe47fbd663bb0d3642d22b752226d2c85ce91
+                      body: |
+                        Update odata-parser from 1.3.1 to 1.4.1
+                        Update sbvr-types from 2.0.4 to 2.0.5
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                      nested:
+                        - commits:
+                            - subject: 'CI: Remove circleci deploy in favor of balenaCI'
+                              hash: 9e1137a305c6ded5c11209d292dab1c5cbabd0ee
+                              body: ''
+                              footer:
+                                Change-type: patch
+                                change-type: patch
+                              author: Pagan Gazzard
+                            - subject: 'CI: Add node 12 to the test matrix'
+                              hash: ccad733c04197834893804a6f8ccb8c76a1bf562
+                              body: ''
+                              footer:
+                                Change-type: patch
+                                change-type: patch
+                              author: Pagan Gazzard
+                            - subject: 'CI: Remove node 6 from the test matrix'
+                              hash: 5dd121cd02ffd37962ecefbfe0c1f9ab76168285
+                              body: ''
+                              footer:
+                                Change-type: patch
+                                change-type: patch
+                              author: Pagan Gazzard
+                            - subject: >-
+                                Update dependencies and use resin-lint for
+                                automatic lint fixes
+                              hash: caab18277ab22f8d60c6feca21d731b69239f963
+                              body: ''
+                              footer:
+                                Change-type: patch
+                                change-type: patch
+                              author: Pagan Gazzard
+                          version: sbvr-types-2.0.5
+                          date: 2020-03-17T16:10:52.892Z
+                        - commits:
+                            - subject: Update dependencies
+                              hash: d991b20f6c90221c9a3734d0461540ec501576ad
+                              body: ''
+                              footer:
+                                Change-type: patch
+                                change-type: patch
+                              author: Pagan Gazzard
+                          version: odata-parser-1.4.1
+                          date: 2020-04-10T14:30:05.458Z
+                        - commits:
+                            - subject: >-
+                                ✨: Add support for canAccess method call on
+                                resource
+                              hash: bf99443b20616fef6344e3262832002d0d3909fd
+                              body: >
+                                Add support for `canAccess` method call on
+                                resource
+                              footer:
+                                Change-type: minor
+                                change-type: minor
+                                Signed-off-by: Andreas Fitzek <andreas@balena.io>
+                                signed-off-by: Andreas Fitzek <andreas@balena.io>
+                              author: Andreas Fitzek
+                          version: odata-parser-1.4.0
+                          date: 2020-03-02T13:31:22.416Z
+                  version: abstract-sql-compiler-6.13.3
+                  date: 2020-04-14T12:07:43.079Z
+          version: odata-to-abstract-sql-4.4.5
+          date: 2020-05-05T13:33:05.813Z
+        - commits:
+            - subject: Reduce lodash usage
+              hash: 0eaf4a66aad3fc69ec08ffced3958466413267ee
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: odata-to-abstract-sql-4.4.4
+          date: 2020-04-27T14:50:55.972Z
+        - commits:
+            - subject: Switch to native forEach where possible
+              hash: f949a8e508088382d4ed583bc9903838bc3f73d8
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+            - subject: Switch to native map
+              hash: 8fe89643626015a910d3179309a1f26885cb90e2
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+            - subject: Switch to native find
+              hash: 5ed9566d1a893b72348d45735883e2b85ab3a129
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+            - subject: Switch to native some
+              hash: a5270866b82190593d339b40b8db17caba70c733
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+            - subject: Switch to native includes
+              hash: d9c92a8fdf4fadbd476c0ad531ddb937135c6218
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+            - subject: Switch to native string type check
+              hash: d42381f766a8e0425d2b0bba13b13d381ddbe2ef
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+            - subject: Switch to native number type check
+              hash: 03562d834a4d356af1e09510ecffafd0f22d0010
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+            - subject: Switch to native array type check
+              hash: 6c26416f8a51ad2dbc7b455d00938fdd4e478bb1
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: odata-to-abstract-sql-4.4.3
+          date: 2020-04-20T13:34:12.510Z
+        - commits:
+            - subject: Fix linting and make use of import type
+              hash: 0145269cfeecc4be63f66efb114d4251a57fd651
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: odata-to-abstract-sql-4.4.2
+          date: 2020-04-14T12:08:13.044Z
+  version: 12.3.4
+  date: 2020-05-05T14:56:18.658Z
+- commits:
+    - subject: Update dependencies
       hash: c73c975b6c9fc0bd500defd59c3168248f1b04da
       body: |
         Update lf-to-abstract-sql from 3.2.1 to 3.2.2
