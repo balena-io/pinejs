@@ -48,7 +48,7 @@ export const postRun = (tx: Tx, model: ApiRootModel): Bluebird<void> => {
 
 	const modelName = model.apiRoot;
 
-	return checkModelAlreadyExists(tx, modelName).then(exists => {
+	return checkModelAlreadyExists(tx, modelName).then((exists) => {
 		if (!exists) {
 			(sbvrUtils.api.migrations?.logger.info ?? console.info)(
 				'First time executing, running init script',
@@ -70,7 +70,7 @@ export const run = (tx: Tx, model: ApiRootModel): Bluebird<void> => {
 
 	// migrations only run if the model has been executed before,
 	// to make changes that can't be automatically applied
-	return checkModelAlreadyExists(tx, modelName).then(exists => {
+	return checkModelAlreadyExists(tx, modelName).then((exists) => {
 		if (!exists) {
 			(sbvrUtils.api.migrations?.logger.info ?? console.info)(
 				'First time model has executed, skipping migrations',
@@ -104,7 +104,7 @@ const checkModelAlreadyExists = (
 	tx: Tx,
 	modelName: string,
 ): Bluebird<boolean> =>
-	tx.tableList("name = 'migration'").then(result => {
+	tx.tableList("name = 'migration'").then((result) => {
 		if (result.rows.length === 0) {
 			return false;
 		}

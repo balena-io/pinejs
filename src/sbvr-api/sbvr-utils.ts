@@ -210,7 +210,7 @@ const memoizedResolvedSynonym = memoizeWeak(
 		const sqlName = odataNameToSqlName(resourceName);
 		return _(sqlName)
 			.split('-')
-			.map(namePart => {
+			.map((namePart) => {
 				const synonym = abstractSqlModel.synonyms[namePart];
 				if (synonym != null) {
 					return synonym;
@@ -240,7 +240,7 @@ const memoizedResolveNavigationResource = memoizeWeak(
 	): string => {
 		const navigation = _(odataNameToSqlName(navigationName))
 			.split('-')
-			.flatMap(namePart =>
+			.flatMap((namePart) =>
 				memoizedResolvedSynonym(abstractSqlModel, namePart).split('-'),
 			)
 			.concat('$')
@@ -366,7 +366,7 @@ export const validateModel = (
 	modelName: string,
 	request?: uriParser.ODataRequest,
 ): Bluebird<void> => {
-	return Bluebird.map(models[modelName].sql.rules, async rule => {
+	return Bluebird.map(models[modelName].sql.rules, async (rule) => {
 		if (!isRuleAffected(rule, request)) {
 			// If none of the fields intersect we don't need to run the rule! :D
 			return;
@@ -463,7 +463,7 @@ export const executeModels = (
 	tx: _db.Tx,
 	execModels: ExecutableModel[],
 ): Bluebird<void> =>
-	Bluebird.map(execModels, async model => {
+	Bluebird.map(execModels, async (model) => {
 		const { apiRoot } = model;
 
 		await migrator.run(tx, model);
@@ -474,7 +474,7 @@ export const executeModels = (
 		for (const createStatement of compiledModel.sql.createSchema) {
 			const promise = tx.executeSql(createStatement);
 			if (db.engine === 'websql') {
-				promise.catch(err => {
+				promise.catch((err) => {
 					console.warn(
 						"Ignoring errors in the create table statements for websql as it doesn't support CREATE IF NOT EXISTS",
 						err,
@@ -668,16 +668,16 @@ const runHooks = Bluebird.method(
 				),
 			});
 		}
-		return Bluebird.map(hooks, hook => hook.run(args)).return();
+		return Bluebird.map(hooks, (hook) => hook.run(args)).return();
 	},
 );
 
 export const deleteModel = (vocabulary: string) => {
 	return db
-		.transaction(tx => {
+		.transaction((tx) => {
 			const dropStatements: Array<Bluebird<any>> = models[
 				vocabulary
-			].sql.dropSchema.map(dropStatement => tx.executeSql(dropStatement));
+			].sql.dropSchema.map((dropStatement) => tx.executeSql(dropStatement));
 			return Bluebird.all(
 				dropStatements.concat([
 					api.dev.delete({
@@ -778,9 +778,9 @@ export const runRule = (() => {
 		if (ruleAbs == null) {
 			throw new Error('Unable to generate rule');
 		}
-		const ruleBody = ruleAbs.find(node => node[0] === 'Body') as [
+		const ruleBody = ruleAbs.find((node) => node[0] === 'Body') as [
 			'Body',
-			...any[],
+			...any[]
 		];
 		if (
 			ruleBody[1][0] === 'Not' &&
@@ -844,9 +844,9 @@ export const runRule = (() => {
 
 		const table = models[vocab].abstractSql.tables[resourceName];
 		const odataIdField = sqlNameToODataName(table.idField);
-		let ids = result.rows.map(row => row[table.idField]);
+		let ids = result.rows.map((row) => row[table.idField]);
 		ids = _.uniq(ids);
-		ids = ids.map(id => odataIdField + ' eq ' + id);
+		ids = ids.map((id) => odataIdField + ' eq ' + id);
 		let filter: string;
 		if (ids.length > 0) {
 			filter = ids.join(' or ');
@@ -1080,9 +1080,9 @@ export const getAffectedIds = Bluebird.method(
 		if (tx != null) {
 			result = await runQuery(tx, request);
 		} else {
-			result = await runTransaction(req, newTx => runQuery(newTx, request));
+			result = await runTransaction(req, (newTx) => runQuery(newTx, request));
 		}
-		return result.rows.map(row => row[idField]);
+		return result.rows.map((row) => row[idField]);
 	},
 );
 
@@ -1132,11 +1132,11 @@ export const handleODataRequest: _express.Handler = (req, res, next) => {
 			}
 
 			// Parse the OData requests
-			return mapSeries(requests, requestPart =>
+			return mapSeries(requests, (requestPart) =>
 				uriParser
 					.parseOData(requestPart)
 					.then(
-						controlFlow.liftP(async request => {
+						controlFlow.liftP(async (request) => {
 							request.engine = db.engine;
 							// Get the full hooks list now that we can.
 							request.hooks = getHooks(request);
@@ -1156,9 +1156,9 @@ export const handleODataRequest: _express.Handler = (req, res, next) => {
 							}
 						}),
 					)
-					.then(request =>
+					.then((request) =>
 						// Run the request in its own transaction
-						runTransaction<Response | Response[]>(req, tx => {
+						runTransaction<Response | Response[]>(req, (tx) => {
 							tx.on('rollback', () => {
 								rollbackRequestHooks(reqHooks);
 								if (Array.isArray(request)) {
@@ -1174,7 +1174,7 @@ export const handleODataRequest: _express.Handler = (req, res, next) => {
 									request,
 									runChangeSet(req, res, tx),
 									new Map<number, Response>(),
-								).then(env => Array.from(env.values()));
+								).then((env) => Array.from(env.values()));
 							} else {
 								return runRequest(req, res, tx, request);
 							}
@@ -1182,8 +1182,8 @@ export const handleODataRequest: _express.Handler = (req, res, next) => {
 					),
 			);
 		})
-		.then(results => {
-			const responses = results.map(result => {
+		.then((results) => {
+			const responses = results.map((result) => {
 				if (_.isError(result)) {
 					return convertToHttpError(result);
 				} else {
@@ -1230,7 +1230,7 @@ export const handleODataRequest: _express.Handler = (req, res, next) => {
 				// Otherwise its a multipart request and we reply with the appropriate multipart response
 			} else {
 				(res.status(200) as any).sendMulti(
-					responses.map(response => {
+					responses.map((response) => {
 						if (_.isError(response)) {
 							return {
 								status: response.status,
@@ -1693,7 +1693,7 @@ export const addSideEffectHook = (
 	resourceName: string,
 	hooks: Hooks,
 ): void => {
-	const sideEffectHook = _.mapValues(hooks, hook => {
+	const sideEffectHook = _.mapValues(hooks, (hook) => {
 		if (hook != null) {
 			return {
 				HOOK: hook,
@@ -1710,7 +1710,7 @@ export const addPureHook = (
 	resourceName: string,
 	hooks: Hooks,
 ): void => {
-	const pureHooks = _.mapValues(hooks, hook => {
+	const pureHooks = _.mapValues(hooks, (hook) => {
 		if (hook != null) {
 			return {
 				HOOK: hook,
@@ -1776,11 +1776,11 @@ export const setup = (
 ): Bluebird<void> => {
 	exports.db = db = $db;
 	return db
-		.transaction(async tx => {
+		.transaction(async (tx) => {
 			await executeStandardModels(tx);
 			await permissions.setup();
 		})
-		.catch(err => {
+		.catch((err) => {
 			console.error('Could not execute standard models', err);
 			process.exit(1);
 		})

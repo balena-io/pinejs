@@ -270,13 +270,13 @@ export function parseOData(
 			// We sort the CS set once, we must assure that requests which reference
 			// other requests in the changeset are placed last. Once they are sorted
 			// Map will guarantee retrival of results in insertion order
-			const sortedCS = _.sortBy(b.changeSet, el => el.url[0] !== '/');
+			const sortedCS = _.sortBy(b.changeSet, (el) => el.url[0] !== '/');
 			return Bluebird.reduce(
 				sortedCS,
 				parseODataChangeset,
 				new Map<ODataRequest['id'], ODataRequest>(),
 			).then(
-				csReferences => Array.from(csReferences.values()) as ODataRequest[],
+				(csReferences) => Array.from(csReferences.values()) as ODataRequest[],
 			);
 		} else {
 			const { url, apiRoot } = splitApiRoot(b.url);
@@ -294,7 +294,7 @@ export function parseOData(
 				_defer: false,
 			};
 		}
-	}).catch(err => {
+	}).catch((err) => {
 		if (err instanceof ODataParser.SyntaxError) {
 			throw new BadRequestError(`Malformed url: '${b.url}'`);
 		}

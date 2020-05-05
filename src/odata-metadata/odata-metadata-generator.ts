@@ -10,7 +10,7 @@ const { version }: { version: string } = require('../../package.json');
 const getResourceName = (resourceName: string): string =>
 	resourceName
 		.split('-')
-		.map(namePart => namePart.split(' ').join('_'))
+		.map((namePart) => namePart.split(' ').join('_'))
 		.join('__');
 
 const forEachUniqueTable = <T>(
@@ -117,8 +117,9 @@ export const generateODataMetadata = (
 						.map(({ fieldName, references }) => {
 							const { resourceName: referencedResource } = references!;
 							fieldName = getResourceName(fieldName);
-							return `<NavigationProperty Name="${fieldName}" Relationship="${vocabulary}.${resourceName +
-								referencedResource}" FromRole="${resourceName}" ToRole="${referencedResource}" />`;
+							return `<NavigationProperty Name="${fieldName}" Relationship="${vocabulary}.${
+								resourceName + referencedResource
+							}" FromRole="${resourceName}" ToRole="${referencedResource}" />`;
 						})
 						.join('\n') +
 					'\n' +

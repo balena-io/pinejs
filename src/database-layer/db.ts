@@ -105,8 +105,8 @@ export const engines: {
 	[engine: string]: (connectString: string | object) => Database;
 } = {};
 
-const atomicExecuteSql: Database['executeSql'] = function(sql, bindings) {
-	return this.transaction(tx => tx.executeSql(sql, bindings));
+const atomicExecuteSql: Database['executeSql'] = function (sql, bindings) {
+	return this.transaction((tx) => tx.executeSql(sql, bindings));
 };
 
 const asyncTryFn = (fn: () => any) => {
@@ -132,7 +132,7 @@ type RejectedFunctions = (
 	rollback: Tx['rollback'];
 };
 const getRejectedFunctions: RejectedFunctions = DEBUG
-	? message => {
+	? (message) => {
 			// In debug mode we create the error here to give the stack trace of where we first closed the transaction,
 			// but it adds significant overhead for a production environment
 			const rejectionValue = new Error(message);
@@ -144,7 +144,7 @@ const getRejectedFunctions: RejectedFunctions = DEBUG
 				rollback: () => Bluebird.reject(rejectionValue),
 			};
 	  }
-	: message => {
+	: (message) => {
 			const rejectFn = () => Bluebird.reject(new Error(message));
 			return {
 				executeSql: rejectFn,
@@ -330,7 +330,7 @@ const createTransaction = (createFunc: CreateTransactionFn): TransactionFn => {
 			const promise = createFunc(stackTraceErr);
 			if (fn) {
 				promise
-					.tap(tx =>
+					.tap((tx) =>
 						Bluebird.try<T>(() => fn(tx))
 							.tap(() => tx.end())
 							.tapCatch(() => tx.rollback())
@@ -395,10 +395,10 @@ if (maybePg != null) {
 		const pool = (new pg.Pool(config) as any) as BluebirdPool;
 		const { PG_SCHEMA } = process.env;
 		if (PG_SCHEMA != null) {
-			pool.on('connect', client => {
+			pool.on('connect', (client) => {
 				client.query({ text: `SET search_path TO "${PG_SCHEMA}"` });
 			});
-			pool.on('error', err => {
+			pool.on('error', (err) => {
 				console.error('Pool error:', err.message);
 			});
 		}
@@ -454,7 +454,7 @@ if (maybePg != null) {
 					.then(() => {
 						this.db.release();
 					})
-					.tapCatch(err => {
+					.tapCatch((err) => {
 						this.db.release(err);
 					});
 			}
@@ -464,7 +464,7 @@ if (maybePg != null) {
 					.then(() => {
 						this.db.release();
 					})
-					.tapCatch(err => {
+					.tapCatch((err) => {
 						this.db.release(err);
 					});
 			}
@@ -486,15 +486,15 @@ if (maybePg != null) {
 		return {
 			engine: Engines.postgres,
 			executeSql: atomicExecuteSql,
-			transaction: createTransaction(stackTraceErr =>
-				pool.connect().then(client => {
+			transaction: createTransaction((stackTraceErr) =>
+				pool.connect().then((client) => {
 					const tx = new PostgresTx(client, stackTraceErr);
 					tx.executeSql('START TRANSACTION;');
 					return tx;
 				}),
 			),
-			readTransaction: createTransaction(stackTraceErr =>
-				pool.connect().then(client => {
+			readTransaction: createTransaction((stackTraceErr) =>
+				pool.connect().then((client) => {
 					const tx = new PostgresTx(client, stackTraceErr);
 					tx.executeSql('START TRANSACTION;');
 					tx.executeSql('SET TRANSACTION READ ONLY;');
@@ -519,7 +519,7 @@ if (maybeMysql != null) {
 		const MYSQL_UNIQUE_VIOLATION = 'ER_DUP_ENTRY';
 		const MYSQL_FOREIGN_KEY_VIOLATION = 'ER_ROW_IS_REFERENCED';
 		const pool = mysql.createPool(options);
-		pool.on('connection', db => {
+		pool.on('connection', (db) => {
 			db.query("SET sql_mode='ANSI_QUOTES';");
 		});
 		const getConnectionAsync = Bluebird.promisify(pool.getConnection, {
@@ -547,14 +547,14 @@ if (maybeMysql != null) {
 			}
 
 			protected _executeSql(sql: Sql, bindings: Bindings) {
-				return Bluebird.fromCallback(callback => {
+				return Bluebird.fromCallback((callback) => {
 					this.db.query(sql, bindings, callback);
 				})
-					.catch({ code: MYSQL_UNIQUE_VIOLATION }, err => {
+					.catch({ code: MYSQL_UNIQUE_VIOLATION }, (err) => {
 						// We know that the type is an IError for mysql, but typescript doesn't like the catch obj sugar
 						throw new UniqueConstraintError(err as _mysql.IError);
 					})
-					.catch({ code: MYSQL_FOREIGN_KEY_VIOLATION }, err => {
+					.catch({ code: MYSQL_FOREIGN_KEY_VIOLATION }, (err) => {
 						throw new ForeignKeyConstraintError(err as _mysql.IError);
 					})
 					.then(createResult);
@@ -593,16 +593,16 @@ if (maybeMysql != null) {
 		return {
 			engine: Engines.mysql,
 			executeSql: atomicExecuteSql,
-			transaction: createTransaction(stackTraceErr =>
-				getConnectionAsync().then(client => {
+			transaction: createTransaction((stackTraceErr) =>
+				getConnectionAsync().then((client) => {
 					const close = () => client.release();
 					const tx = new MySqlTx(client, close, stackTraceErr);
 					tx.executeSql('START TRANSACTION;');
 					return tx;
 				}),
 			),
-			readTransaction: createTransaction(stackTraceErr =>
-				getConnectionAsync().then(client => {
+			readTransaction: createTransaction((stackTraceErr) =>
+				getConnectionAsync().then((client) => {
 					const close = () => client.release();
 					const tx = new MySqlTx(client, close, stackTraceErr);
 					tx.executeSql('SET TRANSACTION READ ONLY;');
@@ -703,7 +703,7 @@ if (typeof window !== 'undefined' && window.openDatabase != null) {
 			}
 
 			protected _rollback(): Bluebird<void> {
-				return new Bluebird(resolve => {
+				return new Bluebird((resolve) => {
 					const successCallback: SQLStatementCallback = () => {
 						resolve();
 						throw new Error('Rollback');
@@ -750,9 +750,9 @@ if (typeof window !== 'undefined' && window.openDatabase != null) {
 			engine: Engines.websql,
 			executeSql: atomicExecuteSql,
 			transaction: createTransaction(
-				stackTraceErr =>
-					new Bluebird(resolve => {
-						db.transaction(tx => {
+				(stackTraceErr) =>
+					new Bluebird((resolve) => {
+						db.transaction((tx) => {
 							resolve(new WebSqlTx(tx, stackTraceErr));
 						});
 					}),

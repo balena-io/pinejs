@@ -35,7 +35,7 @@ export let addModelHooks;
 
 /** @type { import('../config-loader/config-loader').SetupFunction } */
 export function setup(app, sbvrUtils) {
-	addModelHooks = modelName => {
+	addModelHooks = (modelName) => {
 		// TODO: Add checks on POST/PATCH requests as well.
 		sbvrUtils.addPureHook('PUT', modelName, 'all', {
 			PRERUN({ tx, request }) {
@@ -54,11 +54,11 @@ SELECT NOT EXISTS(
 ) AS result;`,
 						[request.resourceName, id],
 					)
-					.catch(err => {
+					.catch((err) => {
 						logger.error('Unable to check resource locks', err, err.stack);
 						throw new Error('Unable to check resource locks');
 					})
-					.then(result => {
+					.then((result) => {
 						if ([false, 0, '0'].includes(result.rows[0].result)) {
 							throw new Error('The resource is locked and cannot be edited');
 						}
@@ -67,7 +67,7 @@ SELECT NOT EXISTS(
 		});
 
 		const endTransaction = (/** @type {number} */ transactionID) =>
-			sbvrUtils.db.transaction(tx => {
+			sbvrUtils.db.transaction((tx) => {
 				/** @type {{[key: string]: { promise: Bluebird<any>, resolve: Function, reject: Function }}} */
 				const placeholders = {};
 				const getLockedRow = (
@@ -92,17 +92,17 @@ FROM "conditional field"
 WHERE "conditional field"."conditional resource" = ?;`,
 							[conditionalResourceID],
 						)
-						.then(fields => {
+						.then((fields) => {
 							/** @type {{[key: string]: any}} */
 							const fieldsObject = {};
-							return Bluebird.map(fields.rows, field => {
+							return Bluebird.map(fields.rows, (field) => {
 								const fieldName = field.field_name.replace(
 									clientModel.resourceName + '.',
 									'',
 								);
 								const fieldValue = field.field_value;
 								const modelField = clientModel.fields.find(
-									f => f.fieldName === fieldName,
+									(f) => f.fieldName === fieldName,
 								);
 								if (modelField == null) {
 									throw new Error(`Invalid field: ${fieldName}`);
@@ -115,7 +115,7 @@ WHERE "conditional field"."conditional resource" = ?;`,
 										throw new Error('Cannot resolve placeholder' + fieldValue);
 									} else {
 										return placeholders[fieldValue].promise
-											.then(resolvedID => {
+											.then((resolvedID) => {
 												fieldsObject[fieldName] = resolvedID;
 											})
 											.catch(() => {
@@ -139,8 +139,8 @@ WHERE "conditional resource"."transaction" = ?;\
 `,
 						[transactionID],
 					)
-					.then(conditionalResources => {
-						conditionalResources.rows.forEach(conditionalResource => {
+					.then((conditionalResources) => {
+						conditionalResources.rows.forEach((conditionalResource) => {
 							const { placeholder } = conditionalResource;
 							if (placeholder != null && placeholder.length > 0) {
 								/** @type {Function} */
@@ -159,7 +159,7 @@ WHERE "conditional resource"."transaction" = ?;\
 						// get conditional resources (if exist)
 						return Bluebird.map(
 							conditionalResources.rows,
-							conditionalResource => {
+							(conditionalResource) => {
 								const { placeholder } = conditionalResource;
 								const lockID = conditionalResource.lock;
 								const doCleanup = () =>
@@ -192,7 +192,7 @@ WHERE "conditional resource"."transaction" = ?;\
 								switch (conditionalResource.conditional_type) {
 									case 'DELETE':
 										return getLockedRow(lockID)
-											.then(lockedResult => {
+											.then((lockedResult) => {
 												const lockedRow = lockedResult.rows[0];
 												url =
 													url +
@@ -208,12 +208,12 @@ WHERE "conditional resource"."transaction" = ?;\
 											.then(doCleanup);
 									case 'EDIT':
 										return getLockedRow(lockID)
-											.then(lockedResult => {
+											.then((lockedResult) => {
 												const lockedRow = lockedResult.rows[0];
 												return getFieldsObject(
 													conditionalResource.id,
 													clientModel,
-												).then(body => {
+												).then((body) => {
 													body[clientModel.idField] = lockedRow.resource_id;
 													return sbvrUtils.PinejsClient.prototype.put({
 														url,
@@ -225,7 +225,7 @@ WHERE "conditional resource"."transaction" = ?;\
 											.then(doCleanup);
 									case 'ADD':
 										return getFieldsObject(conditionalResource.id, clientModel)
-											.then(body =>
+											.then((body) =>
 												sbvrUtils.PinejsClient.prototype.post({
 													url,
 													body,
@@ -238,7 +238,7 @@ WHERE "conditional resource"."transaction" = ?;\
 												);
 											})
 											.then(doCleanup)
-											.tapCatch(err => {
+											.tapCatch((err) => {
 												placeholders[placeholder].reject(err);
 											});
 								}
@@ -263,7 +263,7 @@ WHERE "conditional resource"."transaction" = ?;\
 					.then(() => {
 						res.sendStatus(200);
 					})
-					.catch(err => {
+					.catch((err) => {
 						console.error('Error ending transaction', err, err.stack);
 						res.status(404).json(err);
 					});

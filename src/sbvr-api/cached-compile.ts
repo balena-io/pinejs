@@ -21,7 +21,7 @@ const SAVE_DEBOUNCE_TIME = 5000;
 
 const saveCache = _.debounce(() => {
 	if (fs != null) {
-		fs.writeFile(cacheFile, JSON.stringify(cache), 'utf8', err => {
+		fs.writeFile(cacheFile, JSON.stringify(cache), 'utf8', (err) => {
 			if (err) {
 				console.warn('Error saving pinejs cache:', err);
 			}

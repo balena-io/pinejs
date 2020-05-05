@@ -50,13 +50,13 @@ const setup: _configLoader.SetupFunction = (app: _express.Application) => {
 
 		passport.use(new LocalStrategy(checkPassword));
 
-		login = fn => (req, res, next) =>
+		login = (fn) => (req, res, next) =>
 			passport.authenticate('local', (err: any, user?: {}) => {
 				if (err || user == null) {
 					fn(err, user, req, res, next);
 					return;
 				}
-				req.login(user, error => {
+				req.login(user, (error) => {
 					fn(error, user, req, res, next);
 				});
 			})(req, res, next);
@@ -75,7 +75,7 @@ const setup: _configLoader.SetupFunction = (app: _express.Application) => {
 			next();
 		});
 
-		login = fn => (req, res, next) =>
+		login = (fn) => (req, res, next) =>
 			checkPassword(req.body.username, req.body.password, (err, user) => {
 				if (user) {
 					loggedIn = true;

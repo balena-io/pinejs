@@ -10,10 +10,10 @@ const w = typeof window !== 'undefined' && window !== null ? window : {};
 
 w.GLOBAL_PERMISSIONS = ['resource.all'];
 
-const app = (function() {
+const app = (function () {
 	/** @type Function */
 	let ready;
-	const enabled = new Bluebird(resolve => {
+	const enabled = new Bluebird((resolve) => {
 		ready = resolve;
 	});
 	/** @type {{[key: string]: any}} */
@@ -30,7 +30,7 @@ const app = (function() {
 		MERGE: [],
 		OPTIONS: [],
 	};
-	const addHandler = function(
+	const addHandler = function (
 		/** @type string */ handlerName,
 		/** @type {string} */ match,
 		/** @type import('express').Handler[] */ ...middleware
@@ -53,7 +53,7 @@ const app = (function() {
 			middleware: _.flattenDeep(middleware),
 		});
 	};
-	const process = function(
+	const process = function (
 		/** @type string */ method,
 		/** @type string */ uri,
 		/** @type {{[key: string]: any}} */ headers,
@@ -86,7 +86,7 @@ const app = (function() {
 			uri = uri.slice(0, uri.length - 1);
 		}
 		uri = uri.toLowerCase();
-		return new Bluebird(function(resolve, reject) {
+		return new Bluebird(function (resolve, reject) {
 			const res = {
 				statusCode: 200,
 				status(/** @type number */ statusCode) {
@@ -135,7 +135,7 @@ const app = (function() {
 			let i = -1;
 			let j = -1;
 
-			const next = function(/** @type {undefined | 'route'} */ route) {
+			const next = function (/** @type {undefined | 'route'} */ route) {
 				j++;
 				if (route === 'route' || j >= methodHandlers[i].middleware.length) {
 					checkMethodHandlers();

@@ -48,12 +48,12 @@ const mapTill: MappingFunction = <T, U>(
 ) => {
 	const runF = Bluebird.method(fn);
 	const results: Array<U | Error> = [];
-	return Bluebird.each(a, p => {
+	return Bluebird.each(a, (p) => {
 		return runF(p)
-			.then(result => {
+			.then((result) => {
 				results.push(result);
 			})
-			.tapCatch(err => {
+			.tapCatch((err) => {
 				results.push(ensureError(err));
 			});
 	})

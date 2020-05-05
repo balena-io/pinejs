@@ -146,7 +146,7 @@ const rewriteBinds = (
 	const bindsLength = odataBinds.length;
 	odataBinds.push(...extraBinds);
 	// Clone the tree so the cached version can't be mutated and at the same time fix the bind numbers
-	return _.cloneDeepWith(tree, value => {
+	return _.cloneDeepWith(tree, (value) => {
 		if (value != null) {
 			const bind = value.bind;
 			if (Number.isInteger(bind)) {
@@ -405,7 +405,7 @@ const convertToLambda = (filter: AnyObject, identifier: string) => {
 			return;
 		}
 		if (Array.isArray(object)) {
-			object.forEach(element => {
+			object.forEach((element) => {
 				replaceObject(element);
 			});
 		}
@@ -431,7 +431,7 @@ const rewriteSubPermissionBindings = (filter: AnyObject, counter: number) => {
 		}
 
 		if (Array.isArray(object) || _.isObject(object)) {
-			_.forEach(object, v => {
+			_.forEach(object, (v) => {
 				rewrite(v);
 			});
 		}
@@ -466,7 +466,7 @@ const buildODataPermission = (
 		return false;
 	}
 
-	const permissionFilters = nestedCheck(conditionalPerms, permissionCheck => {
+	const permissionFilters = nestedCheck(conditionalPerms, (permissionCheck) => {
 		try {
 			// We use an object with filter key to avoid collapsing our filters later.
 			return {
@@ -517,7 +517,7 @@ const generateConstrainedAbstractSql = (
 	// permissions circles.
 	const canAccessTrace: string[] = [resourceName];
 
-	const canAccessFunction: ResourceFunction = function(property: AnyObject) {
+	const canAccessFunction: ResourceFunction = function (property: AnyObject) {
 		// remove method property so that we won't loop back here again at this point
 		delete property.method;
 
@@ -598,7 +598,7 @@ const generateConstrainedAbstractSql = (
 
 	const abstractSqlQuery = [...tree];
 	// Remove aliases from the top level select
-	const selectIndex = abstractSqlQuery.findIndex(v => v[0] === 'Select');
+	const selectIndex = abstractSqlQuery.findIndex((v) => v[0] === 'Select');
 	const select = (abstractSqlQuery[selectIndex] = [
 		...abstractSqlQuery[selectIndex],
 	] as SelectNode);
@@ -658,7 +658,7 @@ const onceGetter = (obj: AnyObject, propName: string, fn: () => any) => {
 const deepFreezeExceptDefinition = (obj: AnyObject) => {
 	Object.freeze(obj);
 
-	Object.getOwnPropertyNames(obj).forEach(prop => {
+	Object.getOwnPropertyNames(obj).forEach((prop) => {
 		// We skip the definition because we know it's a property we've defined that will throw an error in some cases
 		if (
 			prop !== 'definition' &&
@@ -672,7 +672,7 @@ const deepFreezeExceptDefinition = (obj: AnyObject) => {
 };
 
 const createBypassDefinition = (definition: Definition) =>
-	_.cloneDeepWith(definition, abstractSql => {
+	_.cloneDeepWith(definition, (abstractSql) => {
 		if (
 			Array.isArray(abstractSql) &&
 			abstractSql[0] === 'Resource' &&
@@ -771,7 +771,7 @@ const rewriteRelationship = memoizeWeak(
 							collapsedPermissionFilters,
 						);
 
-						const canAccessFunction: ResourceFunction = function(
+						const canAccessFunction: ResourceFunction = function (
 							property: AnyObject,
 						) {
 							// remove method property so that we won't loop back here again at this point
@@ -851,7 +851,7 @@ const rewriteRelationship = memoizeWeak(
 			}
 
 			if (Array.isArray(object) || _.isObject(object)) {
-				_.forEach(object, v => {
+				_.forEach(object, (v) => {
 					// we want to recurse into the relationship path, but
 					// in case we hit a plain string, we don't need to bother
 					// checking it. This can happen since plain terms also have
@@ -1158,9 +1158,9 @@ export const getUserPermissions = (userId: number): Bluebird<string[]> => {
 	}
 	return getUserPermissionsQuery()({ userId })
 		.then((permissions: AnyObject[]): string[] =>
-			permissions.map(permission => permission.name),
+			permissions.map((permission) => permission.name),
 		)
-		.tapCatch(err => {
+		.tapCatch((err) => {
 			sbvrUtils.api.Auth.logger.error('Error loading user permissions', err);
 		});
 };
@@ -1242,7 +1242,7 @@ const $getApiKeyPermissions = memoize(
 			const permissions = (await getApiKeyPermissionsQuery()({
 				apiKey,
 			})) as Array<{ name: string }>;
-			return permissions.map(permission => permission.name);
+			return permissions.map((permission) => permission.name);
 		} catch (err) {
 			sbvrUtils.api.Auth.logger.error('Error loading api key permissions', err);
 			throw err;
@@ -1392,7 +1392,7 @@ export const checkPermissions = (
 	resourceName?: string,
 	vocabulary?: string,
 ) =>
-	getReqPermissions(req).then(permissionsLookup =>
+	getReqPermissions(req).then((permissionsLookup) =>
 		$checkPermissions(permissionsLookup, actionList, vocabulary, resourceName),
 	);
 
@@ -1400,7 +1400,7 @@ export const checkPermissionsMiddleware = (
 	action: PermissionCheck,
 ): express.RequestHandler => (req, res, next) =>
 	checkPermissions(req, action)
-		.then(allowed => {
+		.then((allowed) => {
 			switch (allowed) {
 				case false:
 					res.sendStatus(401);
@@ -1414,7 +1414,7 @@ export const checkPermissionsMiddleware = (
 					);
 			}
 		})
-		.catch(err => {
+		.catch((err) => {
 			sbvrUtils.api.Auth.logger.error(
 				'Error checking permissions',
 				err,
@@ -1461,8 +1461,8 @@ const getReqPermissions = (req: PermissionReq, odataBinds: ODataBinds = []) =>
 				req.apiKey!.actor = actorId;
 			}
 		})(),
-		guestPermissions => {
-			if (guestPermissions.some(p => DEFAULT_ACTOR_BIND_REGEX.test(p))) {
+		(guestPermissions) => {
+			if (guestPermissions.some((p) => DEFAULT_ACTOR_BIND_REGEX.test(p))) {
 				throw new Error('Guest permissions cannot reference actors');
 			}
 
@@ -1476,7 +1476,7 @@ const getReqPermissions = (req: PermissionReq, odataBinds: ODataBinds = []) =>
 				let actorBind = DEFAULT_ACTOR_BIND;
 				if (actorIndex > 0) {
 					actorBind += actorIndex;
-					actorPermissions = actorPermissions.map(actorPermission =>
+					actorPermissions = actorPermissions.map((actorPermission) =>
 						actorPermission.replace(DEFAULT_ACTOR_BIND_REGEX, actorBind),
 					);
 				}

@@ -43,7 +43,7 @@ export class SideEffectHook extends Hook {
 		// set rolledBack to true straight away, so that if any rollback action
 		// is registered after the rollback call, we will immediately execute it
 		this.rolledBack = true;
-		return settleMapSeries(this.rollbackFns, fn => fn()).return();
+		return settleMapSeries(this.rollbackFns, (fn) => fn()).return();
 	}
 }
 
@@ -54,17 +54,11 @@ export const rollbackRequestHooks = <T extends InstantiatedHooks<any>>(
 	if (hooks == null) {
 		return;
 	}
-	settleMapSeries(
-		_(hooks)
-			.flatMap()
-			.compact()
-			.value(),
-		hook => {
-			if (hook instanceof SideEffectHook) {
-				return hook.rollback();
-			}
-		},
-	);
+	settleMapSeries(_(hooks).flatMap().compact().value(), (hook) => {
+		if (hook instanceof SideEffectHook) {
+			return hook.rollback();
+		}
+	});
 };
 
 export const instantiateHooks = <
@@ -72,8 +66,8 @@ export const instantiateHooks = <
 >(
 	hooks: T,
 ) =>
-	_.mapValues(hooks, typeHooks => {
-		return typeHooks.map(hook => {
+	_.mapValues(hooks, (typeHooks) => {
+		return typeHooks.map((hook) => {
 			if (hook.effects) {
 				return new SideEffectHook(hook.HOOK);
 			} else {
