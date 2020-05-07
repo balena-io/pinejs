@@ -515,7 +515,7 @@ try {
 }
 if (maybeMysql != null) {
 	const mysql = maybeMysql;
-	engines.mysql = (options: _mysql.IPoolConfig): Database => {
+	engines.mysql = (options: _mysql.PoolConfig): Database => {
 		const MYSQL_UNIQUE_VIOLATION = 'ER_DUP_ENTRY';
 		const MYSQL_FOREIGN_KEY_VIOLATION = 'ER_ROW_IS_REFERENCED';
 		const pool = mysql.createPool(options);
@@ -539,7 +539,7 @@ if (maybeMysql != null) {
 		};
 		class MySqlTx extends Tx {
 			constructor(
-				private db: _mysql.IConnection,
+				private db: _mysql.Connection,
 				private close: CloseTransactionFn,
 				stackTraceErr?: Error,
 			) {
@@ -552,10 +552,10 @@ if (maybeMysql != null) {
 				})
 					.catch({ code: MYSQL_UNIQUE_VIOLATION }, (err) => {
 						// We know that the type is an IError for mysql, but typescript doesn't like the catch obj sugar
-						throw new UniqueConstraintError(err as _mysql.IError);
+						throw new UniqueConstraintError(err as _mysql.MysqlError);
 					})
 					.catch({ code: MYSQL_FOREIGN_KEY_VIOLATION }, (err) => {
-						throw new ForeignKeyConstraintError(err as _mysql.IError);
+						throw new ForeignKeyConstraintError(err as _mysql.MysqlError);
 					})
 					.then(createResult);
 			}
