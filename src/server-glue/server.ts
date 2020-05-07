@@ -1,12 +1,12 @@
-import * as _bodyParser from 'body-parser';
-import * as _compression from 'compression';
-import * as _cookieParser from 'cookie-parser';
-import * as _expressSession from 'express-session';
-import * as _methodOverride from 'method-override';
-import * as _multer from 'multer';
-import * as _passport from 'passport';
-import * as _path from 'path';
-import * as _serveStatic from 'serve-static';
+import type * as BodyParser from 'body-parser';
+import type * as Compression from 'compression';
+import type * as CookieParser from 'cookie-parser';
+import type * as ExpressSession from 'express-session';
+import type * as MethodOverride from 'method-override';
+import type * as Multer from 'multer';
+import type * as Passport from 'passport';
+import type * as Path from 'path';
+import type * as ServeStatic from 'serve-static';
 
 import * as Pinejs from './module';
 
@@ -33,15 +33,15 @@ switch (app.get('env')) {
 
 if (!process.browser) {
 	// tslint:disable:no-var-requires
-	const passport: typeof _passport = require('passport');
-	const path: typeof _path = require('path');
-	const compression: typeof _compression = require('compression');
-	const serveStatic: typeof _serveStatic = require('serve-static');
-	const cookieParser: typeof _cookieParser = require('cookie-parser');
-	const bodyParser: typeof _bodyParser = require('body-parser');
-	const multer: typeof _multer = require('multer');
-	const methodOverride: typeof _methodOverride = require('method-override');
-	const expressSession: typeof _expressSession = require('express-session');
+	const passport: typeof Passport = require('passport');
+	const path: typeof Path = require('path');
+	const compression: typeof Compression = require('compression');
+	const serveStatic: typeof ServeStatic = require('serve-static');
+	const cookieParser: typeof CookieParser = require('cookie-parser');
+	const bodyParser: typeof BodyParser = require('body-parser');
+	const multer: typeof Multer = require('multer');
+	const methodOverride: typeof MethodOverride = require('method-override');
+	const expressSession: typeof ExpressSession = require('express-session');
 	// tslint:enable:no-var-requires
 
 	app.use(compression());

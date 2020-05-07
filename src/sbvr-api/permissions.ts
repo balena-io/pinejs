@@ -1,12 +1,4 @@
-import {
-	Definition,
-	OData2AbstractSQL,
-	odataNameToSqlName,
-	ResourceFunction,
-	sqlNameToODataName,
-} from '@resin/odata-to-abstract-sql';
-
-import {
+import type {
 	AbstractSqlModel,
 	AbstractSqlType,
 	AliasNode,
@@ -14,12 +6,24 @@ import {
 	RelationshipMapping,
 	SelectNode,
 } from '@resin/abstract-sql-compiler';
+import type * as Express from 'express';
+import type {
+	ODataBinds,
+	ODataQuery,
+	SupportedMethod,
+} from '@resin/odata-parser';
+import type { AnyObject, ApiKey, HookReq, User } from '../sbvr-api/sbvr-utils';
+
+import {
+	Definition,
+	OData2AbstractSQL,
+	odataNameToSqlName,
+	ResourceFunction,
+	sqlNameToODataName,
+} from '@resin/odata-to-abstract-sql';
 import * as ODataParser from '@resin/odata-parser';
-import { ODataBinds, ODataQuery, SupportedMethod } from '@resin/odata-parser';
 
 import * as Bluebird from 'bluebird';
-
-import * as express from 'express';
 import * as _ from 'lodash';
 import * as memoize from 'memoizee';
 import * as randomstring from 'randomstring';
@@ -30,15 +34,15 @@ import {
 	PermissionError,
 	PermissionParsingError,
 } from './errors';
-import { AnyObject, ApiKey, HookReq, User } from './sbvr-utils';
 import {
 	memoizedParseOdata,
 	metadataEndpoints,
 	ODataRequest,
 } from './uri-parser';
+import memoizeWeak = require('memoizee/weak');
+
 // tslint:disable-next-line:no-var-requires
 const userModel: string = require('./user.sbvr');
-import memoizeWeak = require('memoizee/weak');
 
 const DEFAULT_ACTOR_BIND = '@__ACTOR_ID';
 const DEFAULT_ACTOR_BIND_REGEX = new RegExp(
@@ -1333,9 +1337,9 @@ const checkApiKey = Bluebird.method(
 export const customAuthorizationMiddleware = (expectedScheme = 'Bearer') => {
 	expectedScheme = expectedScheme.toLowerCase();
 	return (
-		req: express.Request,
-		_res?: express.Response,
-		next?: express.NextFunction,
+		req: Express.Request,
+		_res?: Express.Response,
+		next?: Express.NextFunction,
 	): Bluebird<void> =>
 		Bluebird.try(() => {
 			const auth = req.header('Authorization');
@@ -1367,9 +1371,9 @@ export const customApiKeyMiddleware = (paramName = 'apikey') => {
 		paramName = 'apikey';
 	}
 	return (
-		req: HookReq | express.Request,
-		_res?: express.Response,
-		next?: express.NextFunction,
+		req: HookReq | Express.Request,
+		_res?: Express.Response,
+		next?: Express.NextFunction,
 	): Bluebird<void> => {
 		const apiKey =
 			req.params[paramName] != null
@@ -1398,7 +1402,7 @@ export const checkPermissions = (
 
 export const checkPermissionsMiddleware = (
 	action: PermissionCheck,
-): express.RequestHandler => (req, res, next) =>
+): Express.RequestHandler => (req, res, next) =>
 	checkPermissions(req, action)
 		.then((allowed) => {
 			switch (allowed) {

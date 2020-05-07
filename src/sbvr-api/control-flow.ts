@@ -1,6 +1,7 @@
+import type { Resolvable } from './common-types';
+
 import * as Bluebird from 'bluebird';
 import * as _ from 'lodash';
-import { Resolvable } from './common-types';
 
 export const liftP = <T, U>(fn: (v: T) => Resolvable<U>) => {
 	return (a: T | T[]): Bluebird<U[] | U> => {

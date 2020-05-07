@@ -1,7 +1,7 @@
-import * as _express from 'express';
-import * as _passport from 'passport';
-import * as _passportLocal from 'passport-local';
-import * as _configLoader from '../config-loader/config-loader';
+import type * as Express from 'express';
+import type * as Passport from 'passport';
+import type * as PassportLocal from 'passport-local';
+import type * as ConfigLoader from '../config-loader/config-loader';
 
 import * as Bluebird from 'bluebird';
 import * as permissions from '../sbvr-api/permissions';
@@ -11,16 +11,16 @@ export let login: (
 	fn: (
 		err: any,
 		user: {} | undefined,
-		req: _express.Request,
-		res: _express.Response,
-		next: _express.NextFunction,
+		req: Express.Request,
+		res: Express.Response,
+		next: Express.NextFunction,
 	) => void,
-) => _express.RequestHandler;
+) => Express.RequestHandler;
 
 // Returns a middleware that logs the user out and then calls next()
-export let logout: _express.RequestHandler;
+export let logout: Express.RequestHandler;
 
-export const checkPassword: _passportLocal.VerifyFunction = (
+export const checkPassword: PassportLocal.VerifyFunction = (
 	username,
 	password,
 	done: (error: undefined, user?: any) => void,
@@ -30,15 +30,15 @@ export const checkPassword: _passportLocal.VerifyFunction = (
 		.catchReturn(false)
 		.asCallback(done);
 
-const setup: _configLoader.SetupFunction = (app: _express.Application) => {
+const setup: ConfigLoader.SetupFunction = (app: Express.Application) => {
 	if (!process.browser) {
-		const passport: typeof _passport = require('passport');
+		const passport: typeof Passport = require('passport');
 		app.use(passport.initialize());
 		app.use(passport.session());
 
 		const {
 			Strategy: LocalStrategy,
-		}: typeof _passportLocal = require('passport-local');
+		}: typeof PassportLocal = require('passport-local');
 
 		passport.serializeUser((user, done) => {
 			done(null, user);
@@ -94,7 +94,7 @@ const setup: _configLoader.SetupFunction = (app: _express.Application) => {
 	return Bluebird.resolve();
 };
 
-export const config: _configLoader.Config = {
+export const config: ConfigLoader.Config = {
 	models: [
 		{
 			customServerCode: { setup },

@@ -1,6 +1,7 @@
+import type { Resolvable } from './common-types';
+
 import * as Bluebird from 'bluebird';
 import * as _ from 'lodash';
-import { Resolvable } from './common-types';
 import { settleMapSeries } from './control-flow';
 
 export type RollbackAction = () => Resolvable<void>;

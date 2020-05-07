@@ -9,15 +9,16 @@ declare module '@resin/abstract-sql-compiler' {
 	}
 }
 
-import {
+import type {
 	AbstractSqlModel,
 	AbstractSqlTable,
 } from '@resin/abstract-sql-compiler';
+import type { Result, Row } from '../database-layer/db';
+
 import { sqlNameToODataName } from '@resin/odata-to-abstract-sql';
 import * as sbvrTypes from '@resin/sbvr-types';
 import * as Bluebird from 'bluebird';
 import * as _ from 'lodash';
-import { Result, Row } from '../database-layer/db';
 import { resolveNavigationResource, resolveSynonym } from './sbvr-utils';
 
 const checkForExpansion = async (
