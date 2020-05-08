@@ -1,5 +1,90 @@
 - commits:
     - subject: Update dependencies
+      hash: de117eba065831e12d6bc658becc6b61ea06b5da
+      body: |
+        Update abstract-sql-compiler from 6.13.4 to 6.13.5
+        Update sbvr-types from 2.0.7 to 2.0.9
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Improve typing of `dataTypeValidate` and sbvr-types
+              hash: 59e61dbb7d5499a626bd9c87ef146a3bc336bc3e
+              body: |
+                Update sbvr-types from 2.0.5 to 2.0.9
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested:
+                - commits:
+                    - subject: Switch to balena-lint
+                      hash: ab0228a798c1babb11891a469f8385b50c5426ef
+                      body: ''
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                  version: sbvr-types-2.0.9
+                  date: 2020-05-07T10:07:37.608Z
+                - commits:
+                    - subject: Improve typings
+                      hash: 82dfb240b97128267d26d44b12ed4ac2ddcfc8b7
+                      body: ''
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                  version: sbvr-types-2.0.8
+                  date: 2020-05-05T16:13:07.744Z
+                - commits:
+                    - subject: Remove unused imports
+                      hash: f4f8d1a55903e352db46efaace69d3b91da9016b
+                      body: ''
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                  version: sbvr-types-2.0.7
+                  date: 2020-04-30T09:14:06.918Z
+                - commits:
+                    - subject: Remove production lodash dependency
+                      hash: b819dc89d6cc55957b6c870c0fa44411d1d37bd0
+                      body: ''
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                  version: sbvr-types-2.0.6
+                  date: 2020-04-27T14:35:57.655Z
+          version: abstract-sql-compiler-6.13.5
+          date: 2020-05-07T10:36:07.503Z
+        - commits:
+            - subject: Switch to balena-lint
+              hash: ab0228a798c1babb11891a469f8385b50c5426ef
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: sbvr-types-2.0.9
+          date: 2020-05-07T10:07:37.608Z
+        - commits:
+            - subject: Improve typings
+              hash: 82dfb240b97128267d26d44b12ed4ac2ddcfc8b7
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: sbvr-types-2.0.8
+          date: 2020-05-05T16:13:07.744Z
+  version: 12.3.5
+  date: 2020-05-07T17:01:42.265Z
+- commits:
+    - subject: Update dependencies
       hash: f5be31dc8e1ca181cff0eb17b39a20e4318bf013
       body: |
         Update abstract-sql-compiler from 6.13.2 to 6.13.4
