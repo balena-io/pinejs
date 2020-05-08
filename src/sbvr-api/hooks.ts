@@ -43,7 +43,9 @@ export class SideEffectHook extends Hook {
 		// set rolledBack to true straight away, so that if any rollback action
 		// is registered after the rollback call, we will immediately execute it
 		this.rolledBack = true;
-		return settleMapSeries(this.rollbackFns, (fn) => fn()).return();
+		return Bluebird.resolve(
+			settleMapSeries(this.rollbackFns, (fn) => fn()),
+		).return();
 	}
 }
 

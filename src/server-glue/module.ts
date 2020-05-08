@@ -46,9 +46,10 @@ export const init = (
 ): Bluebird<ReturnType<typeof configLoader.setup>> =>
 	sbvrUtils
 		.setup(app, db)
-		.then(() => configLoader.setup(app))
-		.tap((cfgLoader) => cfgLoader.loadConfig(migrator.config))
-		.tap(async (cfgLoader) => {
+		.then(async () => {
+			const cfgLoader = await configLoader.setup(app);
+			await cfgLoader.loadConfig(migrator.config);
+
 			const promises: Array<Bluebird<void>> = [];
 			if (process.env.SBVR_SERVER_ENABLED) {
 				const sbvrServer = await import('../data-server/sbvr-server');
@@ -63,7 +64,9 @@ export const init = (
 			if (!process.env.CONFIG_LOADER_DISABLED) {
 				promises.push(cfgLoader.loadApplicationConfig(config));
 			}
-			return Bluebird.all(promises);
+			await Bluebird.all(promises);
+
+			return cfgLoader;
 		})
 		.catch((err) => {
 			console.error('Error initialising server', err, err.stack);

@@ -1120,69 +1120,64 @@ export const handleODataRequest: _express.Handler = (req, res, next) => {
 	}
 
 	const handlePromise = runHooks('PREPARSE', reqHooks, { req, tx: req.tx })
-		.then(() => {
-			const { method, url, body } = req;
-
+		.then(async () => {
 			let requests: uriParser.UnparsedRequest[];
 			// Check if it is a single request or a batch
 			if (req.batch != null && req.batch.length > 0) {
 				requests = req.batch;
 			} else {
+				const { method, url, body } = req;
 				requests = [{ method, url, data: body }];
 			}
 
 			// Parse the OData requests
-			return mapSeries(requests, (requestPart) =>
-				uriParser
-					.parseOData(requestPart)
-					.then(
-						controlFlow.liftP(async (request) => {
-							request.engine = db.engine;
-							// Get the full hooks list now that we can.
-							request.hooks = getHooks(request);
-							// Add/check the relevant permissions
-							try {
-								await runHooks('POSTPARSE', request.hooks, {
-									req,
-									request,
-									tx: req.tx,
-								});
-								const translatedRequest = await uriParser.translateUri(request);
-								return await compileRequest(translatedRequest);
-							} catch (err) {
-								rollbackRequestHooks(reqHooks);
-								rollbackRequestHooks(request.hooks);
-								throw err;
-							}
-						}),
-					)
-					.then((request) =>
-						// Run the request in its own transaction
-						runTransaction<Response | Response[]>(req, (tx) => {
-							tx.on('rollback', () => {
-								rollbackRequestHooks(reqHooks);
-								if (Array.isArray(request)) {
-									request.forEach(({ hooks }) => {
-										rollbackRequestHooks(hooks);
-									});
-								} else {
-									rollbackRequestHooks(request.hooks);
-								}
+			const results = await mapSeries(requests, async (requestPart) => {
+				const request = await uriParser.parseOData(requestPart).then(
+					controlFlow.liftP(async ($request) => {
+						$request.engine = db.engine;
+						// Get the full hooks list now that we can.
+						$request.hooks = getHooks($request);
+						// Add/check the relevant permissions
+						try {
+							await runHooks('POSTPARSE', $request.hooks, {
+								req,
+								request: $request,
+								tx: req.tx,
 							});
-							if (Array.isArray(request)) {
-								return Bluebird.reduce(
-									request,
-									runChangeSet(req, res, tx),
-									new Map<number, Response>(),
-								).then((env) => Array.from(env.values()));
-							} else {
-								return runRequest(req, res, tx, request);
-							}
-						}),
-					),
-			);
-		})
-		.then((results) => {
+							const translatedRequest = await uriParser.translateUri($request);
+							return await compileRequest(translatedRequest);
+						} catch (err) {
+							rollbackRequestHooks(reqHooks);
+							rollbackRequestHooks($request.hooks);
+							throw err;
+						}
+					}),
+				);
+				// Run the request in its own transaction
+				return runTransaction<Response | Response[]>(req, async (tx) => {
+					tx.on('rollback', () => {
+						rollbackRequestHooks(reqHooks);
+						if (Array.isArray(request)) {
+							request.forEach(({ hooks }) => {
+								rollbackRequestHooks(hooks);
+							});
+						} else {
+							rollbackRequestHooks(request.hooks);
+						}
+					});
+					if (Array.isArray(request)) {
+						const env = await Bluebird.reduce(
+							request,
+							runChangeSet(req, res, tx),
+							new Map<number, Response>(),
+						);
+						return Array.from(env.values());
+					} else {
+						return runRequest(req, res, tx, request);
+					}
+				});
+			});
+
 			const responses = results.map((result) => {
 				if (_.isError(result)) {
 					return convertToHttpError(result);
@@ -1676,10 +1671,8 @@ export const executeStandardModels = (tx: _db.Tx): Bluebird<void> => {
 			`,
 		},
 	})
-		.then(() => {
-			return executeModels(tx, permissions.config.models);
-		})
-		.then(() => {
+		.then(async () => {
+			await executeModels(tx, permissions.config.models);
 			console.info('Successfully executed standard models.');
 		})
 		.tapCatch((err: Error) => {

@@ -17,12 +17,23 @@ export const liftP = <T, U>(fn: (v: T) => Resolvable<U>) => {
 export type MappingFunction = <T, U>(
 	a: T[],
 	fn: (v: T) => Resolvable<U>,
-) => Bluebird<Array<U | Error>>;
+) => Promise<Array<U | Error>>;
 
 // The settle version of `Promise.mapSeries`
-export const settleMapSeries: MappingFunction = (a, fn) => {
-	const runF = Bluebird.method(fn);
-	return Bluebird.mapSeries(a, _.flow(runF, wrap));
+export const settleMapSeries: MappingFunction = async <T, U>(
+	a: T[],
+	fn: (v: T) => Resolvable<U>,
+) => {
+	const results: Array<U | Error> = [];
+	for (const p of a) {
+		try {
+			const result = await fn(p);
+			results.push(result);
+		} catch (err) {
+			results.push(ensureError(err));
+		}
+	}
+	return results;
 };
 
 // This is used to guarantee that we convert a `.catch` result into an error, so that later code checking `_.isError` will work as expected
@@ -33,32 +44,24 @@ const ensureError = (err: any): Error => {
 	return new Error(err);
 };
 
-// Wrap a promise with reflection. This promise will always succeed, either
-// with the value or the error of the promise it is wrapping
-const wrap = <T>(p: Bluebird<T>) => {
-	return p.then(_.identity as (value: T) => T, ensureError);
-};
-
 // Maps fn over collection and returns an array of Promises. If any promise in the
 // collection is rejected it returns an array with the error, along with all the
 // promises that were fulfilled up to that point
-const mapTill: MappingFunction = <T, U>(
+const mapTill: MappingFunction = async <T, U>(
 	a: T[],
 	fn: (v: T) => Resolvable<U>,
 ) => {
-	const runF = Bluebird.method(fn);
 	const results: Array<U | Error> = [];
-	return Bluebird.each(a, (p) => {
-		return runF(p)
-			.then((result) => {
-				results.push(result);
-			})
-			.tapCatch((err) => {
-				results.push(ensureError(err));
-			});
-	})
-		.return(results)
-		.catchReturn(results);
+	for (const p of a) {
+		try {
+			const result = await fn(p);
+			results.push(result);
+		} catch (err) {
+			results.push(ensureError(err));
+			break;
+		}
+	}
+	return results;
 };
 
 // Used to obtain the appropriate mapping function depending on the

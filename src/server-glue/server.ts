@@ -84,13 +84,12 @@ if (!process.browser) {
 }
 
 export const initialised = Pinejs.init(app)
-	.then((configLoader) =>
-		Bluebird.all([
+	.then(async (configLoader) => {
+		await Promise.all([
 			configLoader.loadConfig(passportPinejs.config),
 			configLoader.loadConfig(PinejsSessionStore.config),
-		]),
-	)
-	.then(() => {
+		]);
+
 		if (
 			typeof process === 'undefined' ||
 			process == null ||
@@ -122,8 +121,7 @@ export const initialised = Pinejs.init(app)
 				res.redirect('/');
 			});
 		}
-	})
-	.then(() => {
+
 		app.listen(process.env.PORT || 1337, () => {
 			console.info('Server started');
 		});
