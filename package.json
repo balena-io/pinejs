@@ -22,11 +22,11 @@
     "prettify": "balena-lint -e js -e ts --typescript --fix src build typings Gruntfile.ts"
   },
   "dependencies": {
+    "@balena/sbvr-parser": "^1.0.1",
     "@resin/abstract-sql-compiler": "^6.13.5",
-    "@resin/lf-to-abstract-sql": "^3.2.3",
+    "@resin/lf-to-abstract-sql": "^3.2.6",
     "@resin/odata-parser": "^1.4.1",
-    "@resin/odata-to-abstract-sql": "^4.4.5",
-    "@resin/sbvr-parser": "^0.2.8",
+    "@resin/odata-to-abstract-sql": "^4.4.6",
     "@resin/sbvr-types": "^2.0.9",
     "@types/bluebird": "^3.5.30",
     "@types/body-parser": "^1.19.0",
@@ -50,7 +50,7 @@
     "coffeescript": "^2.5.1",
     "commander": "^5.1.0",
     "deep-freeze": "0.0.1",
-    "eventemitter3": "^4.0.0",
+    "eventemitter3": "^4.0.3",
     "express-session": "^1.17.1",
     "lodash": "^4.17.15",
     "memoizee": "^0.4.14",
@@ -83,7 +83,7 @@
     "typescript": "^3.8.3",
     "umd-require-webpack-plugin": "0.0.1",
     "webpack": "^4.43.0",
-    "webpack-dev-server": "^3.10.3"
+    "webpack-dev-server": "^3.11.0"
   },
   "optionalDependencies": {
     "bcrypt": "^3.0.1",

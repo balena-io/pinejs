@@ -1,8 +1,8 @@
-import { SBVRParser } from '@resin/sbvr-parser';
+import { SBVRParser } from '@balena/sbvr-parser';
 // tslint:disable-next-line:no-var-requires
 const Types: string = require('@resin/sbvr-types/Type.sbvr');
-import { version as sbvrParserVersion } from '@resin/sbvr-parser/package.json';
-import { version } from '@resin/sbvr-parser/package.json';
+import { version as sbvrParserVersion } from '@balena/sbvr-parser/package.json';
+import { version } from '@balena/sbvr-parser/package.json';
 
 export const ExtendedSBVRParser = SBVRParser._extend({
 	initialize() {
