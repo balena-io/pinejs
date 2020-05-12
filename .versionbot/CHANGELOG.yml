@@ -1,4 +1,412 @@
 - commits:
+    - subject: Update to @balena/sbvr-parser 1.x
+      hash: 9652c652e599028262f9f958d1b8ee151a8b37f1
+      body: |
+        Update lf-to-abstract-sql from 3.2.3 to 3.2.6
+        Update odata-to-abstract-sql from 4.4.5 to 4.4.6
+        Update sbvr-parser from 0.2.8 to 1.0.1
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Update to @balena/sbvr-parser
+              hash: 6b504869a3ecb387961781dfe6b757f3a6e62de2
+              body: |
+                Update sbvr-parser from 0.2.7 to 1.0.1
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested:
+                - commits:
+                    - subject: Update to mocha 7.x
+                      hash: f9b2009c28f50a0635738a2c49d1be17491a05b3
+                      body: ''
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                  version: sbvr-parser-1.0.1
+                  date: 2020-05-11T14:06:40.102Z
+                - commits:
+                    - subject: Convert coffeescript tests to javascript
+                      hash: 4e4a14476fb29242dbcd278cf079738900fdb0c8
+                      body: ''
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                    - subject: Drop support for node 6/8
+                      hash: fc61a212d5918a552ef6bbf8698413d096953429
+                      body: ''
+                      footer:
+                        Change-type: major
+                        change-type: major
+                      author: Pagan Gazzard
+                    - subject: Rename to @balena/sbvr-parser
+                      hash: f7c3e6b15c907a25661f02ab54046f9f7faa64b5
+                      body: ''
+                      footer:
+                        Change-type: major
+                        change-type: major
+                      author: Pagan Gazzard
+                  version: sbvr-parser-1.0.0
+                  date: 2020-05-08T18:44:57.766Z
+                - commits:
+                    - subject: 'CI: Add nodejs 14 to the test matrix'
+                      hash: b532a53263ba8c853851ba524d62d2c2862e976f
+                      body: ''
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                    - subject: 'CI: Remove circleci publishing in favor of balenaCI'
+                      hash: 899c978e14b686681a40ff46ce992b432974d257
+                      body: ''
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                  version: sbvr-parser-0.2.11
+                  date: 2020-05-08T12:59:18.046Z
+                - commits:
+                    - subject: Update to to @balena/sbvr-types
+                      hash: 5092a2ed3c12c286661ec75dc7901adc5e5debba
+                      body: ''
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                  version: sbvr-parser-0.2.10
+                  date: 2020-05-08T12:40:48.095Z
+                - commits:
+                    - subject: Update to @balena/lint 5.x
+                      hash: 7df67c7d823941cb513227b18a06af273fb71e64
+                      body: ''
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                  version: sbvr-parser-0.2.9
+                  date: 2020-05-08T11:03:41.450Z
+                - commits:
+                    - subject: Reduce lodash usage
+                      hash: 275276c0c0a49a2ce638666c404d4a23495a01ff
+                      body: ''
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                  version: sbvr-parser-0.2.8
+                  date: 2020-04-27T15:12:07.898Z
+          version: lf-to-abstract-sql-3.2.6
+          date: 2020-05-11T14:25:47.833Z
+        - commits:
+            - subject: 'CI: Add nodejs 14 to the test matrix'
+              hash: ed093ef0606bfac0c5af3dbfdd718f2d8fed8a08
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: lf-to-abstract-sql-3.2.5
+          date: 2020-05-08T12:58:37.760Z
+        - commits:
+            - subject: Update to @balena/sbvr-types 3.0.0
+              hash: 7c0691eec12504387b8ad3616cf3e4fa6d796779
+              body: |
+                Update sbvr-types from 2.0.5 to 3.0.0
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested:
+                - commits:
+                    - subject: Convert `fetchProcessing` to synchronous functions
+                      hash: a7cb7833d852dfec2b5bd02c3aad785266cd1c5c
+                      body: ''
+                      footer:
+                        Change-type: major
+                        change-type: major
+                      author: Pagan Gazzard
+                    - subject: Update to bcrypt 4.x
+                      hash: aadd9f09db11f39a706118bf0d605b9476f6bfb5
+                      body: ''
+                      footer:
+                        Change-type: major
+                        change-type: major
+                      author: Pagan Gazzard
+                    - subject: Enable strict tsconfig
+                      hash: 5690af1c28d8f42677f1f12960a8a6f346aea2fe
+                      body: ''
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                    - subject: Make use of `import type` where relevant
+                      hash: d19c7b52ecf7d1269812852faae5797a77f06290
+                      body: ''
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                    - subject: Update to balena-lint 5.x
+                      hash: 5d402bcbaa1ab496013f83de61d15ae87df22af6
+                      body: ''
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                    - subject: Rename to @balena/sbvr-types
+                      hash: 3748302289afab7ae713995b56c694b477c29228
+                      body: ''
+                      footer:
+                        Change-type: major
+                        change-type: major
+                      author: Pagan Gazzard
+                    - subject: Drop node 8 support
+                      hash: 00ef44e2cea050c977150faaf9b5db8fb74d0116
+                      body: ''
+                      footer:
+                        Change-type: major
+                        change-type: major
+                      author: Pagan Gazzard
+                    - subject: Update tsconfig target to es2018
+                      hash: 6119c1595882069982d6021d3444513ddfa04aa4
+                      body: ''
+                      footer:
+                        Change-type: major
+                        change-type: major
+                      author: Pagan Gazzard
+                    - subject: >-
+                        Convert all returned promises to native promises instead
+                        of bluebird
+                      hash: 1ae01b42d101d9764658a8553560477f0e7d7a86
+                      body: ''
+                      footer:
+                        Change-type: major
+                        change-type: major
+                      author: Pagan Gazzard
+                  version: sbvr-types-3.0.0
+                  date: 2020-05-08T12:28:37.686Z
+                - commits:
+                    - subject: Switch to balena-lint
+                      hash: ab0228a798c1babb11891a469f8385b50c5426ef
+                      body: ''
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                  version: sbvr-types-2.0.9
+                  date: 2020-05-07T10:07:37.608Z
+                - commits:
+                    - subject: Improve typings
+                      hash: 82dfb240b97128267d26d44b12ed4ac2ddcfc8b7
+                      body: ''
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                  version: sbvr-types-2.0.8
+                  date: 2020-05-05T16:13:07.744Z
+                - commits:
+                    - subject: Remove unused imports
+                      hash: f4f8d1a55903e352db46efaace69d3b91da9016b
+                      body: ''
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                  version: sbvr-types-2.0.7
+                  date: 2020-04-30T09:14:06.918Z
+                - commits:
+                    - subject: Remove production lodash dependency
+                      hash: b819dc89d6cc55957b6c870c0fa44411d1d37bd0
+                      body: ''
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                  version: sbvr-types-2.0.6
+                  date: 2020-04-27T14:35:57.655Z
+          version: lf-to-abstract-sql-3.2.4
+          date: 2020-05-08T12:41:28.187Z
+        - commits:
+            - subject: Update to mocha 7.x
+              hash: f9b2009c28f50a0635738a2c49d1be17491a05b3
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: sbvr-parser-1.0.1
+          date: 2020-05-11T14:06:40.102Z
+        - commits:
+            - subject: Convert coffeescript tests to javascript
+              hash: 4e4a14476fb29242dbcd278cf079738900fdb0c8
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+            - subject: Drop support for node 6/8
+              hash: fc61a212d5918a552ef6bbf8698413d096953429
+              body: ''
+              footer:
+                Change-type: major
+                change-type: major
+              author: Pagan Gazzard
+            - subject: Rename to @balena/sbvr-parser
+              hash: f7c3e6b15c907a25661f02ab54046f9f7faa64b5
+              body: ''
+              footer:
+                Change-type: major
+                change-type: major
+              author: Pagan Gazzard
+          version: sbvr-parser-1.0.0
+          date: 2020-05-08T18:44:57.766Z
+        - commits:
+            - subject: 'CI: Add nodejs 14 to the test matrix'
+              hash: b532a53263ba8c853851ba524d62d2c2862e976f
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+            - subject: 'CI: Remove circleci publishing in favor of balenaCI'
+              hash: 899c978e14b686681a40ff46ce992b432974d257
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: sbvr-parser-0.2.11
+          date: 2020-05-08T12:59:18.046Z
+        - commits:
+            - subject: Update to to @balena/sbvr-types
+              hash: 5092a2ed3c12c286661ec75dc7901adc5e5debba
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: sbvr-parser-0.2.10
+          date: 2020-05-08T12:40:48.095Z
+        - commits:
+            - subject: Update to @balena/lint 5.x
+              hash: 7df67c7d823941cb513227b18a06af273fb71e64
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: sbvr-parser-0.2.9
+          date: 2020-05-08T11:03:41.450Z
+        - commits:
+            - subject: Update to @balena/sbvr-types 3.0.0
+              hash: 8dce7d0f7982246290c7d00965c1a8366d9b1425
+              body: |
+                Update sbvr-types from 2.0.7 to 3.0.0
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested:
+                - commits:
+                    - subject: Convert `fetchProcessing` to synchronous functions
+                      hash: a7cb7833d852dfec2b5bd02c3aad785266cd1c5c
+                      body: ''
+                      footer:
+                        Change-type: major
+                        change-type: major
+                      author: Pagan Gazzard
+                    - subject: Update to bcrypt 4.x
+                      hash: aadd9f09db11f39a706118bf0d605b9476f6bfb5
+                      body: ''
+                      footer:
+                        Change-type: major
+                        change-type: major
+                      author: Pagan Gazzard
+                    - subject: Enable strict tsconfig
+                      hash: 5690af1c28d8f42677f1f12960a8a6f346aea2fe
+                      body: ''
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                    - subject: Make use of `import type` where relevant
+                      hash: d19c7b52ecf7d1269812852faae5797a77f06290
+                      body: ''
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                    - subject: Update to balena-lint 5.x
+                      hash: 5d402bcbaa1ab496013f83de61d15ae87df22af6
+                      body: ''
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                    - subject: Rename to @balena/sbvr-types
+                      hash: 3748302289afab7ae713995b56c694b477c29228
+                      body: ''
+                      footer:
+                        Change-type: major
+                        change-type: major
+                      author: Pagan Gazzard
+                    - subject: Drop node 8 support
+                      hash: 00ef44e2cea050c977150faaf9b5db8fb74d0116
+                      body: ''
+                      footer:
+                        Change-type: major
+                        change-type: major
+                      author: Pagan Gazzard
+                    - subject: Update tsconfig target to es2018
+                      hash: 6119c1595882069982d6021d3444513ddfa04aa4
+                      body: ''
+                      footer:
+                        Change-type: major
+                        change-type: major
+                      author: Pagan Gazzard
+                    - subject: >-
+                        Convert all returned promises to native promises instead
+                        of bluebird
+                      hash: 1ae01b42d101d9764658a8553560477f0e7d7a86
+                      body: ''
+                      footer:
+                        Change-type: major
+                        change-type: major
+                      author: Pagan Gazzard
+                  version: sbvr-types-3.0.0
+                  date: 2020-05-08T12:28:37.686Z
+                - commits:
+                    - subject: Switch to balena-lint
+                      hash: ab0228a798c1babb11891a469f8385b50c5426ef
+                      body: ''
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                  version: sbvr-types-2.0.9
+                  date: 2020-05-07T10:07:37.608Z
+                - commits:
+                    - subject: Improve typings
+                      hash: 82dfb240b97128267d26d44b12ed4ac2ddcfc8b7
+                      body: ''
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                  version: sbvr-types-2.0.8
+                  date: 2020-05-05T16:13:07.744Z
+          version: odata-to-abstract-sql-4.4.6
+          date: 2020-05-08T13:15:21.863Z
+  version: 12.3.8
+  date: 2020-05-12T12:16:53.910Z
+- commits:
     - subject: Fix fetching sbvr-types version
       hash: 234c941919d6f2da0f3242ae5f409a027d670503
       body: ''
