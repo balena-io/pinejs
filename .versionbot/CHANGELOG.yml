@@ -1,4 +1,14 @@
 - commits:
+    - subject: Make use of `import type`
+      hash: 5355c88cf45c469f1298f0a5f7c1ddb55af7952d
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+  version: 12.3.9
+  date: 2020-05-12T12:42:14.410Z
+- commits:
     - subject: Update to @balena/sbvr-parser 1.x
       hash: 9652c652e599028262f9f958d1b8ee151a8b37f1
       body: |
