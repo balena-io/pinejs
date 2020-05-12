@@ -1,4 +1,14 @@
 - commits:
+    - subject: Make wider use of async/await
+      hash: 5316cbfc54da723426c1ab173c53fd15ce41a871
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+  version: 12.3.6
+  date: 2020-05-12T09:28:22.995Z
+- commits:
     - subject: Update dependencies
       hash: de117eba065831e12d6bc658becc6b61ea06b5da
       body: |
