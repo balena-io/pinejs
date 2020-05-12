@@ -1,8 +1,8 @@
-import * as _grunt from 'grunt';
+import type * as Grunt from 'grunt';
+import type { Plugin } from 'webpack';
 
 import * as _ from 'lodash';
 import * as TerserPlugin from 'terser-webpack-plugin';
-import { Plugin } from 'webpack';
 import * as browserConfig from './build/browser';
 import * as moduleConfig from './build/module';
 import * as serverConfig from './build/server';
@@ -37,7 +37,7 @@ _.forEach(serverConfigs, (config) => {
 	};
 });
 
-export = (grunt: typeof _grunt) => {
+export = (grunt: typeof Grunt) => {
 	grunt.initConfig({
 		clean: {
 			default: {

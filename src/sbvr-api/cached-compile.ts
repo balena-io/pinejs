@@ -1,4 +1,5 @@
-import * as _fs from 'fs';
+import type * as Fs from 'fs';
+
 import * as _ from 'lodash';
 
 const cacheFile = process.env.PINEJS_CACHE_FILE || '.pinejs-cache.json';
@@ -9,7 +10,7 @@ let cache: null | {
 		};
 	};
 } = null;
-let fs: undefined | typeof _fs;
+let fs: undefined | typeof Fs;
 try {
 	// tslint:disable-next-line:no-var-requires
 	fs = require('fs');

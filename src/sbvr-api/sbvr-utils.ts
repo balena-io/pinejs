@@ -1,10 +1,12 @@
-import * as _express from 'express';
-import * as _db from '../database-layer/db';
+import type * as Express from 'express';
+import type * as Db from '../database-layer/db';
+import type { Model } from '../config-loader/config-loader';
+import type { OptionalField, RequiredField } from './common-types';
 
 declare global {
 	namespace Express {
 		export interface Request {
-			tx?: _db.Tx;
+			tx?: Db.Tx;
 			batch?: uriParser.UnparsedRequest[];
 		}
 	}
@@ -57,6 +59,7 @@ import {
 	statusCodeToError,
 	TranslationError,
 	UnauthorizedError,
+	AnyObject,
 } from './errors';
 import * as uriParser from './uri-parser';
 export * from './errors';
@@ -73,20 +76,17 @@ import * as controlFlow from './control-flow';
 
 const { DEBUG } = process.env;
 
-export let db = (undefined as any) as _db.Database;
+export let db = (undefined as any) as Db.Database;
 
 export { sbvrTypes };
 
 import { version as LF2AbstractSQLVersion } from '@resin/lf-to-abstract-sql/package.json';
 import { version as sbvrTypesVersion } from '@resin/sbvr-types/package.json';
-import { Model } from '../config-loader/config-loader';
 import {
 	compileRequest,
 	getAndCheckBindValues,
 	isRuleAffected,
 } from './abstract-sql';
-import { OptionalField, RequiredField } from './common-types';
-import { AnyObject } from './sbvr-utils';
 export { resolveOdataBind } from './abstract-sql';
 import * as odataResponse from './odata-response';
 
@@ -118,7 +118,7 @@ export interface HookReq {
 	params: AnyObject;
 	body: AnyObject;
 	custom?: AnyObject;
-	tx?: _db.Tx;
+	tx?: Db.Tx;
 	hooks?: InstantiatedHooks<Hooks>;
 }
 
@@ -126,7 +126,7 @@ export interface HookArgs {
 	req: HookReq;
 	request: HookRequest;
 	api: PinejsClient;
-	tx?: _db.Tx;
+	tx?: Db.Tx;
 }
 export type HookResponse = PromiseLike<any> | null | void;
 export type HookRequest = uriParser.ODataRequest;
@@ -134,11 +134,11 @@ export type HookRequest = uriParser.ODataRequest;
 export interface Hooks {
 	PREPARSE?: (options: HookArgs) => HookResponse;
 	POSTPARSE?: (options: HookArgs) => HookResponse;
-	PRERUN?: (options: HookArgs & { tx: _db.Tx }) => HookResponse;
-	POSTRUN?: (options: HookArgs & { tx: _db.Tx; result: any }) => HookResponse;
+	PRERUN?: (options: HookArgs & { tx: Db.Tx }) => HookResponse;
+	POSTRUN?: (options: HookArgs & { tx: Db.Tx; result: any }) => HookResponse;
 	PRERESPOND?: (
 		options: HookArgs & {
-			tx: _db.Tx;
+			tx: Db.Tx;
 			result: any;
 			res: any;
 			data?: any;
@@ -362,7 +362,7 @@ const prettifyConstraintError = (
 };
 
 export const validateModel = (
-	tx: _db.Tx,
+	tx: Db.Tx,
 	modelName: string,
 	request?: uriParser.ODataRequest,
 ): Bluebird<void> => {
@@ -455,12 +455,12 @@ export const generateModels = (
 };
 
 export const executeModel = (
-	tx: _db.Tx,
+	tx: Db.Tx,
 	model: ExecutableModel,
 ): Bluebird<void> => executeModels(tx, [model]);
 
 export const executeModels = (
-	tx: _db.Tx,
+	tx: Db.Tx,
 	execModels: ExecutableModel[],
 ): Bluebird<void> =>
 	Bluebird.map(execModels, async (model) => {
@@ -642,9 +642,9 @@ const runHooks = Bluebird.method(
 		hooksList: InstantiatedHooks<Hooks> | undefined,
 		args: {
 			request?: uriParser.ODataRequest;
-			req: _express.Request;
-			res?: _express.Response;
-			tx?: _db.Tx;
+			req: Express.Request;
+			res?: Express.Response;
+			tx?: Db.Tx;
 			result?: any;
 			data?: number | any[];
 			error?: TypedError | any;
@@ -876,7 +876,7 @@ export type Passthrough = AnyObject & {
 	req?: {
 		user?: User;
 	};
-	tx?: _db.Tx;
+	tx?: Db.Tx;
 };
 
 export class PinejsClient extends PinejsClientCoreFactory(Bluebird)<
@@ -896,7 +896,7 @@ export class PinejsClient extends PinejsClientCoreFactory(Bluebird)<
 		method: string;
 		url: string;
 		body?: AnyObject;
-		tx?: _db.Tx;
+		tx?: Db.Tx;
 		req?: permissions.PermissionReq;
 		custom?: AnyObject;
 	}) {
@@ -916,7 +916,7 @@ export const runURI = (
 	method: string,
 	uri: string,
 	body: AnyObject = {},
-	tx?: _db.Tx,
+	tx?: Db.Tx,
 	req?: permissions.PermissionReq,
 	custom?: AnyObject,
 ): Bluebird<PinejsClientCoreFactory.PromiseResultTypes> => {
@@ -944,7 +944,7 @@ export const runURI = (
 		}
 	});
 
-	const emulatedReq: _express.Request = {
+	const emulatedReq: Express.Request = {
 		on: _.noop,
 		custom,
 		user,
@@ -959,7 +959,7 @@ export const runURI = (
 
 	return new Bluebird<PinejsClientCoreFactory.PromiseResultTypes>(
 		(resolve, reject) => {
-			const res: _express.Response = {
+			const res: Express.Response = {
 				__internalPinejs: true,
 				on: _.noop,
 				statusCode: 200,
@@ -1037,7 +1037,7 @@ export const getAffectedIds = Bluebird.method(
 	}: {
 		req: HookReq;
 		request: HookRequest;
-		tx: _db.Tx;
+		tx: Db.Tx;
 	}): Promise<number[]> => {
 		if (request.method === 'GET') {
 			// GET requests don't affect anything so passing one to this method is a mistake
@@ -1086,7 +1086,7 @@ export const getAffectedIds = Bluebird.method(
 	},
 );
 
-export const handleODataRequest: _express.Handler = (req, res, next) => {
+export const handleODataRequest: Express.Handler = (req, res, next) => {
 	const [, apiRoot] = req.url.split('/', 2);
 	if (apiRoot == null || models[apiRoot] == null) {
 		return next('route');
@@ -1275,9 +1275,9 @@ const convertToHttpError = (err: any): HttpError => {
 };
 
 const runRequest = async (
-	req: _express.Request,
-	res: _express.Response,
-	tx: _db.Tx,
+	req: Express.Request,
+	res: Express.Response,
+	tx: Db.Tx,
 	request: uriParser.ODataRequest,
 ): Promise<Response> => {
 	const { logger } = api[request.vocabulary];
@@ -1285,7 +1285,7 @@ const runRequest = async (
 	if (DEBUG) {
 		logger.log('Running', req.method, req.url);
 	}
-	let result: _db.Result | number | undefined;
+	let result: Db.Result | number | undefined;
 
 	try {
 		try {
@@ -1345,9 +1345,9 @@ const runRequest = async (
 };
 
 const runChangeSet = (
-	req: _express.Request,
-	res: _express.Response,
-	tx: _db.Tx,
+	req: Express.Request,
+	res: Express.Response,
+	tx: Db.Tx,
 ) => async (
 	env: Map<number, Response>,
 	request: uriParser.ODataRequest,
@@ -1396,11 +1396,11 @@ const updateBinds = (
 };
 
 const prepareResponse = (
-	req: _express.Request,
-	res: _express.Response,
+	req: Express.Request,
+	res: Express.Response,
 	request: uriParser.ODataRequest,
 	result: any,
-	tx: _db.Tx,
+	tx: Db.Tx,
 ): Promise<Response> => {
 	switch (request.method) {
 		case 'GET':
@@ -1423,7 +1423,7 @@ const prepareResponse = (
 // This is a helper method to handle using a passed in req.tx when available, or otherwise creating a new tx and cleaning up after we're done.
 const runTransaction = <T>(
 	req: HookReq,
-	callback: (tx: _db.Tx) => Promise<T>,
+	callback: (tx: Db.Tx) => Promise<T>,
 ): Promise<T> => {
 	if (req.tx != null) {
 		// If an existing tx was passed in then use it.
@@ -1436,11 +1436,11 @@ const runTransaction = <T>(
 
 // This is a helper function that will check and add the bind values to the SQL query and then run it.
 const runQuery = async (
-	tx: _db.Tx,
+	tx: Db.Tx,
 	request: uriParser.ODataRequest,
 	queryIndex?: number,
 	addReturning?: string,
-): Promise<_db.Result> => {
+): Promise<Db.Result> => {
 	const { vocabulary } = request;
 	let { sqlQuery } = request;
 	if (sqlQuery == null) {
@@ -1472,10 +1472,10 @@ const runQuery = async (
 };
 
 const runGet = (
-	_req: _express.Request,
-	_res: _express.Response,
+	_req: Express.Request,
+	_res: Express.Response,
 	request: uriParser.ODataRequest,
-	tx: _db.Tx,
+	tx: Db.Tx,
 ) => {
 	if (request.sqlQuery != null) {
 		return runQuery(tx, request);
@@ -1483,11 +1483,11 @@ const runGet = (
 };
 
 const respondGet = async (
-	req: _express.Request,
-	res: _express.Response,
+	req: Express.Request,
+	res: Express.Response,
 	request: uriParser.ODataRequest,
 	result: any,
-	tx: _db.Tx,
+	tx: Db.Tx,
 ): Promise<Response> => {
 	const vocab = request.vocabulary;
 	if (request.sqlQuery != null) {
@@ -1523,10 +1523,10 @@ const respondGet = async (
 };
 
 const runPost = async (
-	_req: _express.Request,
-	_res: _express.Response,
+	_req: Express.Request,
+	_res: Express.Response,
 	request: uriParser.ODataRequest,
-	tx: _db.Tx,
+	tx: Db.Tx,
 ): Promise<number | undefined> => {
 	const vocab = request.vocabulary;
 
@@ -1549,11 +1549,11 @@ const runPost = async (
 };
 
 const respondPost = async (
-	req: _express.Request,
-	res: _express.Response,
+	req: Express.Request,
+	res: Express.Response,
 	request: uriParser.ODataRequest,
 	id: number,
-	tx: _db.Tx,
+	tx: Db.Tx,
 ): Promise<Response> => {
 	const vocab = request.vocabulary;
 	const location = odataResponse.resourceURI(vocab, request.resourceName, id);
@@ -1594,10 +1594,10 @@ const respondPost = async (
 };
 
 const runPut = async (
-	_req: _express.Request,
-	_res: _express.Response,
+	_req: Express.Request,
+	_res: Express.Response,
 	request: uriParser.ODataRequest,
-	tx: _db.Tx,
+	tx: Db.Tx,
 ): Promise<undefined> => {
 	const vocab = request.vocabulary;
 
@@ -1620,11 +1620,11 @@ const runPut = async (
 };
 
 const respondPut = async (
-	req: _express.Request,
-	res: _express.Response,
+	req: Express.Request,
+	res: Express.Response,
 	request: uriParser.ODataRequest,
 	_result: any,
-	tx: _db.Tx,
+	tx: Db.Tx,
 ): Promise<Response> => {
 	await runHooks('PRERESPOND', request.hooks, {
 		req,
@@ -1641,10 +1641,10 @@ const respondDelete = respondPut;
 const respondOptions = respondPut;
 
 const runDelete = async (
-	_req: _express.Request,
-	_res: _express.Response,
+	_req: Express.Request,
+	_res: Express.Response,
 	request: uriParser.ODataRequest,
-	tx: _db.Tx,
+	tx: Db.Tx,
 ): Promise<undefined> => {
 	const vocab = request.vocabulary;
 
@@ -1656,7 +1656,7 @@ const runDelete = async (
 	return undefined;
 };
 
-export const executeStandardModels = (tx: _db.Tx): Bluebird<void> => {
+export const executeStandardModels = (tx: Db.Tx): Bluebird<void> => {
 	// dev model must run first
 	return executeModel(tx, {
 		apiRoot: 'dev',
@@ -1764,8 +1764,8 @@ const addHook = (
 };
 
 export const setup = (
-	_app: _express.Application,
-	$db: _db.Database,
+	_app: Express.Application,
+	$db: Db.Database,
 ): Bluebird<void> => {
 	exports.db = db = $db;
 	return db

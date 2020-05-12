@@ -1,14 +1,16 @@
+import type { Tx } from '../database-layer/db';
+import type { Resolvable } from '../sbvr-api/common-types';
+import type { Config, Model } from '../config-loader/config-loader';
+
+import { Engines } from '@resin/abstract-sql-compiler';
 import * as Bluebird from 'bluebird';
 import * as _ from 'lodash';
 import { TypedError } from 'typed-error';
+import { migrator as migratorEnv } from '../config-loader/env';
+import * as sbvrUtils from '../sbvr-api/sbvr-utils';
+
 // tslint:disable-next-line:no-var-requires
 const modelText: string = require('./migrations.sbvr');
-import { Engines } from '@resin/abstract-sql-compiler';
-import { Config, Model } from '../config-loader/config-loader';
-import { migrator as migratorEnv } from '../config-loader/env';
-import { Tx } from '../database-layer/db';
-import { Resolvable } from '../sbvr-api/common-types';
-import * as sbvrUtils from '../sbvr-api/sbvr-utils';
 
 type ApiRootModel = Model & { apiRoot: string };
 

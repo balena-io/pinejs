@@ -1,5 +1,5 @@
 declare module 'memoizee/weak' {
-	import * as _memoize from 'memoizee';
+	import type * as Memoize from 'memoizee';
 
 	type FirstArg<T> = T extends (arg1: infer U) => any ? U : any;
 	type RestArgs<T> = T extends (arg1: any, ...args: infer U) => any ? U : any[];
@@ -21,6 +21,6 @@ declare module 'memoizee/weak' {
 	function memoizeWeak<F extends Function>(
 		f: F,
 		options?: MemoizeWeakOptions<F>,
-	): F & _memoize.Memoized<F>;
+	): F & Memoize.Memoized<F>;
 	export = memoizeWeak;
 }

@@ -1,15 +1,15 @@
 process.env.PINEJS_CACHE_FILE =
 	process.env.PINEJS_CACHE_FILE || __dirname + '/.pinejs-cache.json';
 
-import * as _abstractSql from '../sbvr-api/abstract-sql';
-import * as _sbvrUtils from '../sbvr-api/sbvr-utils';
-import * as _uriParser from '../sbvr-api/uri-parser';
+import type * as AbstractSql from '../sbvr-api/abstract-sql';
+import type * as SbvrUtils from '../sbvr-api/sbvr-utils';
+import type * as UriParser from '../sbvr-api/uri-parser';
+import type { AbstractSqlModel, SqlResult } from '@resin/abstract-sql-compiler';
+import type { Model } from '../config-loader/config-loader';
 
-import { AbstractSqlModel, SqlResult } from '@resin/abstract-sql-compiler';
 import * as program from 'commander';
 import * as fs from 'fs';
 import * as path from 'path';
-import { Model } from '../config-loader/config-loader';
 import '../server-glue/sbvr-loader';
 
 // tslint:disable:no-var-requires
@@ -53,7 +53,7 @@ const generateAbstractSqlModelFromFile = (
 	const {
 		generateLfModel,
 		generateAbstractSqlModel,
-	} = require('../sbvr-api/sbvr-utils') as typeof _sbvrUtils;
+	} = require('../sbvr-api/sbvr-utils') as typeof SbvrUtils;
 	let lfModel;
 	try {
 		lfModel = generateLfModel(seModel);
@@ -69,7 +69,7 @@ const generateAbstractSqlQuery = (modelFile: string, odata: string) => {
 	const {
 		memoizedParseOdata,
 		translateUri,
-	} = require('../sbvr-api/uri-parser') as typeof _uriParser;
+	} = require('../sbvr-api/uri-parser') as typeof UriParser;
 	const odataAST = memoizedParseOdata(odata);
 	return translateUri({
 		engine: program.engine,
@@ -88,7 +88,7 @@ const generateAbstractSqlQuery = (modelFile: string, odata: string) => {
 const parseOData = (odata: string, outputFile?: string) => {
 	const {
 		memoizedParseOdata,
-	} = require('../sbvr-api/uri-parser') as typeof _uriParser;
+	} = require('../sbvr-api/uri-parser') as typeof UriParser;
 	const result = memoizedParseOdata(odata);
 	const json = JSON.stringify(result, null, 2);
 	if (outputFile) {
@@ -131,7 +131,7 @@ const compileOData = (
 	const translatedRequest = generateAbstractSqlQuery(modelFile, odata);
 	const {
 		compileRequest,
-	} = require('../sbvr-api/abstract-sql') as typeof _abstractSql;
+	} = require('../sbvr-api/abstract-sql') as typeof AbstractSql;
 	const compiledRequest = compileRequest(translatedRequest);
 	let output;
 	if (program.json) {

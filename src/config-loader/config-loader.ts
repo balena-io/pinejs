@@ -1,20 +1,20 @@
-import * as _express from 'express';
+import type * as Express from 'express';
+import type { AbstractSqlModel } from '@resin/abstract-sql-compiler';
+import type { Database } from '../database-layer/db';
+import type { Migration } from '../migrator/migrator';
+import type { Resolvable } from '../sbvr-api/common-types';
 
 import * as Bluebird from 'bluebird';
 import * as fs from 'fs';
 import * as _ from 'lodash';
 import * as path from 'path';
 
-import { AbstractSqlModel } from '@resin/abstract-sql-compiler';
-import { Database } from '../database-layer/db';
-import { Migration } from '../migrator/migrator';
-import { Resolvable } from '../sbvr-api/common-types';
 import * as sbvrUtils from '../sbvr-api/sbvr-utils';
 
 import * as permissions from '../sbvr-api/permissions';
 
 export type SetupFunction = (
-	app: _express.Application,
+	app: Express.Application,
 	sbvrUtilsInstance: typeof sbvrUtils,
 	db: Database,
 ) => Resolvable<void>;
@@ -85,7 +85,7 @@ const getOrCreatePermission = async (
 };
 
 // Setup function
-export const setup = (app: _express.Application) => {
+export const setup = (app: Express.Application) => {
 	const loadConfig = (data: Config): Bluebird<void> =>
 		sbvrUtils.db.transaction(async (tx) => {
 			const authApiTx = sbvrUtils.api.Auth.clone({

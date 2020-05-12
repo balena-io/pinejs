@@ -1,7 +1,8 @@
-import {
+import type {
 	AbstractSqlModel,
 	AbstractSqlTable,
 } from '@resin/abstract-sql-compiler';
+
 import * as sbvrTypes from '@resin/sbvr-types';
 
 // tslint:disable-next-line:no-var-requires

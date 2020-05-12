@@ -1,15 +1,16 @@
 /// <references types="websql"/>
+import type * as Events from 'events';
+import type * as Mysql from 'mysql';
+import type * as Pg from 'pg';
+import type * as PgConnectionString from 'pg-connection-string';
+import type { Resolvable } from '../sbvr-api/common-types';
+
 import { Engines } from '@resin/abstract-sql-compiler';
 import * as Bluebird from 'bluebird';
 import * as EventEmitter from 'eventemitter3';
-import * as _events from 'events';
 import * as _ from 'lodash';
-import * as _mysql from 'mysql';
-import * as _pg from 'pg';
-import * as _pgConnectionString from 'pg-connection-string';
 import { TypedError } from 'typed-error';
 import * as env from '../config-loader/env';
-import { Resolvable } from '../sbvr-api/common-types';
 
 export const metrics = new EventEmitter();
 
@@ -344,7 +345,7 @@ const createTransaction = (createFunc: CreateTransactionFn): TransactionFn => {
 	};
 };
 
-let maybePg: typeof _pg | undefined;
+let maybePg: typeof Pg | undefined;
 try {
 	// tslint:disable-next-line:no-var-requires
 	maybePg = require('pg');
@@ -354,14 +355,14 @@ try {
 if (maybePg != null) {
 	// We have these custom pg types because we pass bluebird as the promise provider
 	// so the returned promises are bluebird promises and we rely on that
-	interface BluebirdPoolClient extends _events.EventEmitter {
+	interface BluebirdPoolClient extends Events.EventEmitter {
 		query(
-			queryConfig: _pg.QueryConfig,
+			queryConfig: Pg.QueryConfig,
 			values?: any[],
-		): Bluebird<_pg.QueryResult>;
+		): Bluebird<Pg.QueryResult>;
 		release(err?: Error): void;
 	}
-	interface BluebirdPool extends _events.EventEmitter {
+	interface BluebirdPool extends Events.EventEmitter {
 		connect(): Bluebird<BluebirdPoolClient>;
 
 		on(
@@ -379,11 +380,11 @@ if (maybePg != null) {
 		const PG_UNIQUE_VIOLATION = '23505';
 		const PG_FOREIGN_KEY_VIOLATION = '23503';
 
-		let config: _pg.PoolConfig;
+		let config: Pg.PoolConfig;
 		if (typeof connectString === 'string') {
-			const pgConnectionString: typeof _pgConnectionString = require('pg-connection-string');
+			const pgConnectionString: typeof PgConnectionString = require('pg-connection-string');
 			// We have to cast because of the use of null vs undefined
-			config = pgConnectionString.parse(connectString) as _pg.PoolConfig;
+			config = pgConnectionString.parse(connectString) as Pg.PoolConfig;
 		} else {
 			config = connectString;
 		}
@@ -506,7 +507,7 @@ if (maybePg != null) {
 	};
 }
 
-let maybeMysql: typeof _mysql | undefined;
+let maybeMysql: typeof Mysql | undefined;
 try {
 	// tslint:disable-next-line:no-var-requires
 	maybeMysql = require('mysql');
@@ -515,7 +516,7 @@ try {
 }
 if (maybeMysql != null) {
 	const mysql = maybeMysql;
-	engines.mysql = (options: _mysql.PoolConfig): Database => {
+	engines.mysql = (options: Mysql.PoolConfig): Database => {
 		const MYSQL_UNIQUE_VIOLATION = 'ER_DUP_ENTRY';
 		const MYSQL_FOREIGN_KEY_VIOLATION = 'ER_ROW_IS_REFERENCED';
 		const pool = mysql.createPool(options);
@@ -539,7 +540,7 @@ if (maybeMysql != null) {
 		};
 		class MySqlTx extends Tx {
 			constructor(
-				private db: _mysql.Connection,
+				private db: Mysql.Connection,
 				private close: CloseTransactionFn,
 				stackTraceErr?: Error,
 			) {
@@ -552,10 +553,10 @@ if (maybeMysql != null) {
 				})
 					.catch({ code: MYSQL_UNIQUE_VIOLATION }, (err) => {
 						// We know that the type is an IError for mysql, but typescript doesn't like the catch obj sugar
-						throw new UniqueConstraintError(err as _mysql.MysqlError);
+						throw new UniqueConstraintError(err as Mysql.MysqlError);
 					})
 					.catch({ code: MYSQL_FOREIGN_KEY_VIOLATION }, (err) => {
-						throw new ForeignKeyConstraintError(err as _mysql.MysqlError);
+						throw new ForeignKeyConstraintError(err as Mysql.MysqlError);
 					})
 					.then(createResult);
 			}

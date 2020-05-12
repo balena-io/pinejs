@@ -1,7 +1,7 @@
 process.env.PINEJS_CACHE_FILE =
 	process.env.PINEJS_CACHE_FILE || __dirname + '/.pinejs-cache.json';
 
-import * as _sbvrUtils from '../sbvr-api/sbvr-utils';
+import type * as SbvrUtils from '../sbvr-api/sbvr-utils';
 
 import * as program from 'commander';
 import * as fs from 'fs';
@@ -17,7 +17,7 @@ const getSE = (inputFile: string) => fs.readFileSync(inputFile, 'utf8');
 const parse = (inputFile: string, outputFile?: string) => {
 	const {
 		generateLfModel,
-	} = require('../sbvr-api/sbvr-utils') as typeof _sbvrUtils;
+	} = require('../sbvr-api/sbvr-utils') as typeof SbvrUtils;
 	const seModel = getSE(inputFile);
 	const result = generateLfModel(seModel);
 	const json = JSON.stringify(result, null, 2);
@@ -32,7 +32,7 @@ const transform = (inputFile: string, outputFile?: string) => {
 	const {
 		generateLfModel,
 		generateAbstractSqlModel,
-	} = require('../sbvr-api/sbvr-utils') as typeof _sbvrUtils;
+	} = require('../sbvr-api/sbvr-utils') as typeof SbvrUtils;
 	const seModel = getSE(inputFile);
 	const lfModel = generateLfModel(seModel);
 	const result = generateAbstractSqlModel(lfModel);
@@ -47,7 +47,7 @@ const transform = (inputFile: string, outputFile?: string) => {
 const runCompile = (inputFile: string, outputFile?: string) => {
 	const {
 		generateModels,
-	} = require('../sbvr-api/sbvr-utils') as typeof _sbvrUtils;
+	} = require('../sbvr-api/sbvr-utils') as typeof SbvrUtils;
 	const seModel = getSE(inputFile);
 	const models = generateModels(
 		{ apiRoot: 'sbvr-compiler', modelText: seModel },

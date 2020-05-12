@@ -1,5 +1,6 @@
+import type { Config } from '../config-loader/config-loader';
+
 import { Store } from 'express-session';
-import { Config } from '../config-loader/config-loader';
 import * as permissions from '../sbvr-api/permissions';
 import { AnyObject, api } from '../sbvr-api/sbvr-utils';
 

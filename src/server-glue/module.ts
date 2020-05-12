@@ -1,4 +1,4 @@
-import * as _express from 'express';
+import type * as Express from 'express';
 
 import './sbvr-loader';
 
@@ -41,7 +41,7 @@ if (dbModule.engines.websql != null) {
 const db = dbModule.connect(databaseOptions);
 
 export const init = (
-	app: _express.Application,
+	app: Express.Application,
 	config?: string | configLoader.Config,
 ): Bluebird<ReturnType<typeof configLoader.setup>> =>
 	sbvrUtils

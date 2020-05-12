@@ -1,4 +1,4 @@
-import * as _fs from 'fs';
+import type * as Fs from 'fs';
 
 if (!process.browser) {
 	if (typeof nodeRequire === 'undefined' || nodeRequire == null) {
@@ -16,7 +16,7 @@ if (!process.browser) {
 	}
 	// Register a .sbvr loader
 	// tslint:disable-next-line:no-var-requires
-	const fs: typeof _fs = require('fs');
+	const fs: typeof Fs = require('fs');
 	nodeRequire.extensions['.sbvr'] = (module: NodeModule, filename: string) =>
 		(module.exports = fs.readFileSync(filename, 'utf8'));
 }

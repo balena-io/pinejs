@@ -1,6 +1,7 @@
+import type { RequiredField } from '../src/sbvr-api/common-types';
+
 import * as path from 'path';
 import * as webpack from 'webpack';
-import { RequiredField } from '../src/sbvr-api/common-types';
 const root = path.dirname(__dirname);
 
 export = {

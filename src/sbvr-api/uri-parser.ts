@@ -1,12 +1,14 @@
-import * as _AbstractSQLCompiler from '@resin/abstract-sql-compiler';
-
-import * as ODataParser from '@resin/odata-parser';
-import {
+import type * as AbstractSQLCompiler from '@resin/abstract-sql-compiler';
+import type {
 	ODataBinds,
 	ODataOptions,
 	ODataQuery,
 	SupportedMethod,
 } from '@resin/odata-parser';
+import type { Tx } from '../database-layer/db';
+import type { InstantiatedHooks } from './hooks';
+
+import * as ODataParser from '@resin/odata-parser';
 import * as Bluebird from 'bluebird';
 export const SyntaxError = ODataParser.SyntaxError;
 import { OData2AbstractSQL } from '@resin/odata-to-abstract-sql';
@@ -17,14 +19,12 @@ import memoizeWeak = require('memoizee/weak');
 export { BadRequestError, ParsingError, TranslationError } from './errors';
 import * as deepFreeze from 'deep-freeze';
 import * as env from '../config-loader/env';
-import { Tx } from '../database-layer/db';
 import {
 	BadRequestError,
 	ParsingError,
 	PermissionError,
 	TranslationError,
 } from './errors';
-import { InstantiatedHooks } from './hooks';
 import * as sbvrUtils from './sbvr-utils';
 
 export type OdataBinds = ODataBinds;
@@ -44,9 +44,9 @@ export interface ODataRequest {
 	odataQuery: ODataQuery;
 	odataBinds: OdataBinds;
 	values: sbvrUtils.AnyObject;
-	abstractSqlModel?: _AbstractSQLCompiler.AbstractSqlModel;
-	abstractSqlQuery?: _AbstractSQLCompiler.AbstractSqlQuery;
-	sqlQuery?: _AbstractSQLCompiler.SqlResult | _AbstractSQLCompiler.SqlResult[];
+	abstractSqlModel?: AbstractSQLCompiler.AbstractSqlModel;
+	abstractSqlQuery?: AbstractSQLCompiler.AbstractSqlQuery;
+	sqlQuery?: AbstractSQLCompiler.SqlResult | AbstractSQLCompiler.SqlResult[];
 	resourceName: string;
 	vocabulary: string;
 	_defer?: boolean;
@@ -54,10 +54,10 @@ export interface ODataRequest {
 	custom: sbvrUtils.AnyObject;
 	tx?: Tx;
 	modifiedFields?: ReturnType<
-		_AbstractSQLCompiler.EngineInstance['getModifiedFields']
+		AbstractSQLCompiler.EngineInstance['getModifiedFields']
 	>;
 	hooks?: InstantiatedHooks<sbvrUtils.Hooks>;
-	engine?: _AbstractSQLCompiler.Engines;
+	engine?: AbstractSQLCompiler.Engines;
 }
 
 // Converts a value to its string representation and tries to parse is as an
@@ -143,7 +143,7 @@ export const memoizedParseOdata = (() => {
 })();
 
 const memoizedGetOData2AbstractSQL = memoizeWeak(
-	(abstractSqlModel: _AbstractSQLCompiler.AbstractSqlModel) => {
+	(abstractSqlModel: AbstractSQLCompiler.AbstractSqlModel) => {
 		return new OData2AbstractSQL(abstractSqlModel);
 	},
 );
@@ -151,7 +151,7 @@ const memoizedGetOData2AbstractSQL = memoizeWeak(
 const memoizedOdata2AbstractSQL = (() => {
 	const $memoizedOdata2AbstractSQL = memoizeWeak(
 		(
-			abstractSqlModel: _AbstractSQLCompiler.AbstractSqlModel,
+			abstractSqlModel: AbstractSQLCompiler.AbstractSqlModel,
 			odataQuery: ODataQuery,
 			method: SupportedMethod,
 			bodyKeys: string[],
@@ -185,7 +185,7 @@ const memoizedOdata2AbstractSQL = (() => {
 		},
 		{
 			normalizer: (
-				_abstractSqlModel: _AbstractSQLCompiler.AbstractSqlModel,
+				_abstractSqlModel: AbstractSQLCompiler.AbstractSqlModel,
 				[odataQuery, method, bodyKeys, existingBindVarsLength]: [
 					ODataQuery,
 					SupportedMethod,
