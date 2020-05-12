@@ -1,4 +1,4 @@
-declare module '@resin/lf-to-abstract-sql' {
+declare module '@balena/lf-to-abstract-sql' {
 	export const LF2AbstractSQL: {
 		createInstance: () => {
 			match: (

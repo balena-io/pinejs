@@ -24,8 +24,8 @@
   "dependencies": {
     "@balena/sbvr-parser": "^1.0.1",
     "@balena/odata-parser": "^2.0.0",
+    "@balena/lf-to-abstract-sql": "^4.0.0",
     "@resin/abstract-sql-compiler": "^6.13.5",
-    "@resin/lf-to-abstract-sql": "^3.2.6",
     "@resin/odata-to-abstract-sql": "^4.4.6",
     "@resin/sbvr-types": "^2.0.9",
     "@types/bluebird": "^3.5.30",
