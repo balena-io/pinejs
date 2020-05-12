@@ -1,4 +1,14 @@
 - commits:
+    - subject: Fix fetching sbvr-types version
+      hash: 234c941919d6f2da0f3242ae5f409a027d670503
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+  version: 12.3.7
+  date: 2020-05-12T11:58:04.337Z
+- commits:
     - subject: Make wider use of async/await
       hash: 5316cbfc54da723426c1ab173c53fd15ce41a871
       body: ''
