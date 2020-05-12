@@ -78,7 +78,7 @@ export let db = (undefined as any) as _db.Database;
 export { sbvrTypes };
 
 import { version as LF2AbstractSQLVersion } from '@resin/lf-to-abstract-sql/package.json';
-import { version as sbvrTypesVersion } from '@resin/lf-to-abstract-sql/package.json';
+import { version as sbvrTypesVersion } from '@resin/sbvr-types/package.json';
 import { Model } from '../config-loader/config-loader';
 import {
 	compileRequest,
