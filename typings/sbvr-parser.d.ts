@@ -1,4 +1,4 @@
-declare module '@resin/sbvr-parser' {
+declare module '@balena/sbvr-parser' {
 	export type LFModel = Array<LFModel | string>;
 	export const SBVRParser: {
 		matchAll: (seModel: string, rule: string) => LFModel;
