@@ -265,19 +265,18 @@ export function parseOData(
 export function parseOData(
 	b: UnparsedRequest,
 ): Bluebird<ODataRequest | ODataRequest[]> {
-	return Bluebird.try<ODataRequest | ODataRequest[]>(() => {
+	return Bluebird.try<ODataRequest | ODataRequest[]>(async () => {
 		if (b._isChangeSet && b.changeSet != null) {
 			// We sort the CS set once, we must assure that requests which reference
 			// other requests in the changeset are placed last. Once they are sorted
 			// Map will guarantee retrival of results in insertion order
 			const sortedCS = _.sortBy(b.changeSet, (el) => el.url[0] !== '/');
-			return Bluebird.reduce(
+			const csReferences = await Bluebird.reduce(
 				sortedCS,
 				parseODataChangeset,
 				new Map<ODataRequest['id'], ODataRequest>(),
-			).then(
-				(csReferences) => Array.from(csReferences.values()) as ODataRequest[],
 			);
+			return Array.from(csReferences.values()) as ODataRequest[];
 		} else {
 			const { url, apiRoot } = splitApiRoot(b.url);
 			const odata = memoizedParseOdata(url);

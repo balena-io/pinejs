@@ -104,22 +104,20 @@ const checkModelAlreadyExists = (
 	tx: Tx,
 	modelName: string,
 ): Bluebird<boolean> =>
-	tx.tableList("name = 'migration'").then((result) => {
+	tx.tableList("name = 'migration'").then(async (result) => {
 		if (result.rows.length === 0) {
 			return false;
 		}
-		return tx
-			.executeSql(
-				binds`
+		const { rows } = await tx.executeSql(
+			binds`
 SELECT 1
 FROM "model"
 WHERE "model"."is of-vocabulary" = ${1}
 LIMIT 1`,
-				[modelName],
-			)
-			.then(({ rows }) => {
-				return rows.length > 0;
-			});
+			[modelName],
+		);
+
+		return rows.length > 0;
 	});
 
 const getExecutedMigrations = async (
