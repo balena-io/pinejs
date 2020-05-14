@@ -1,4 +1,54 @@
 - commits:
+    - subject: Update to @balena/odata-parser 2.x
+      hash: c785274cd1f24f7d823e5b1e694b0960dcb2e7ba
+      body: |
+        Update odata-parser from 1.4.1 to 2.0.0
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Rename to @balena/odata-parser
+              hash: 9c835596afc1abfc4b5a260fddcd3ee2f987e63f
+              body: ''
+              footer:
+                Change-type: major
+                change-type: major
+              author: Pagan Gazzard
+            - subject: Update to @balena/lint 5.x
+              hash: 8f80b624e83b2045f9c84ed813fb7399874fe684
+              body: ''
+              footer:
+                Change-type: major
+                change-type: major
+              author: Pagan Gazzard
+            - subject: Drop support for nodejs 8
+              hash: e5a1507c373decd51d5e1d8781ae667b817c1bc7
+              body: ''
+              footer:
+                Change-type: major
+                change-type: major
+              author: Pagan Gazzard
+            - subject: 'CI: Add nodejs 14 to the test matrix'
+              hash: 86c69609cad382db78014894d46e039898ceee62
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+            - subject: 'CI: Remove circleci publishing in favor of balenaCI'
+              hash: 39515ff69eb0e6bc3137db79b351e5a9512f9b85
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: odata-parser-2.0.0
+          date: 2020-05-11T19:40:04.463Z
+  version: 12.3.10
+  date: 2020-05-14T11:23:04.868Z
+- commits:
     - subject: Make use of `import type`
       hash: 5355c88cf45c469f1298f0a5f7c1ddb55af7952d
       body: ''
