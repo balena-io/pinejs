@@ -11,7 +11,7 @@ import type {
 	ODataBinds,
 	ODataQuery,
 	SupportedMethod,
-} from '@resin/odata-parser';
+} from '@balena/odata-parser';
 import type { AnyObject, ApiKey, HookReq, User } from '../sbvr-api/sbvr-utils';
 
 import {
@@ -21,7 +21,7 @@ import {
 	ResourceFunction,
 	sqlNameToODataName,
 } from '@resin/odata-to-abstract-sql';
-import * as ODataParser from '@resin/odata-parser';
+import * as ODataParser from '@balena/odata-parser';
 
 import * as Bluebird from 'bluebird';
 import * as _ from 'lodash';

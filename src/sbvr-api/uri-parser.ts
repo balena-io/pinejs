@@ -4,11 +4,11 @@ import type {
 	ODataOptions,
 	ODataQuery,
 	SupportedMethod,
-} from '@resin/odata-parser';
+} from '@balena/odata-parser';
 import type { Tx } from '../database-layer/db';
 import type { InstantiatedHooks } from './hooks';
 
-import * as ODataParser from '@resin/odata-parser';
+import * as ODataParser from '@balena/odata-parser';
 import * as Bluebird from 'bluebird';
 export const SyntaxError = ODataParser.SyntaxError;
 import { OData2AbstractSQL } from '@resin/odata-to-abstract-sql';
