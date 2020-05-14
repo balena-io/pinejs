@@ -24,7 +24,7 @@ import { cachedCompile } from './cached-compile';
 type LFModel = any[];
 import * as AbstractSQLCompiler from '@resin/abstract-sql-compiler';
 import { version as AbstractSQLCompilerVersion } from '@resin/abstract-sql-compiler/package.json';
-import * as LF2AbstractSQL from '@resin/lf-to-abstract-sql';
+import * as LF2AbstractSQL from '@balena/lf-to-abstract-sql';
 
 import {
 	odataNameToSqlName,
@@ -80,7 +80,7 @@ export let db = (undefined as any) as Db.Database;
 
 export { sbvrTypes };
 
-import { version as LF2AbstractSQLVersion } from '@resin/lf-to-abstract-sql/package.json';
+import { version as LF2AbstractSQLVersion } from '@balena/lf-to-abstract-sql/package.json';
 import { version as sbvrTypesVersion } from '@resin/sbvr-types/package.json';
 import {
 	compileRequest,
