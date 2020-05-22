@@ -42,37 +42,39 @@ const binds = (strings: TemplateStringsArray, ...bindNums: number[]) =>
 		})
 		.join('');
 
-export const postRun = (tx: Tx, model: ApiRootModel): Bluebird<void> => {
-	const { initSql } = model;
-	if (initSql == null) {
-		return Bluebird.resolve();
-	}
+export const postRun = Bluebird.method(
+	async (tx: Tx, model: ApiRootModel): Promise<void> => {
+		const { initSql } = model;
+		if (initSql == null) {
+			return;
+		}
 
-	const modelName = model.apiRoot;
+		const modelName = model.apiRoot;
 
-	return checkModelAlreadyExists(tx, modelName).then((exists) => {
+		const exists = await checkModelAlreadyExists(tx, modelName);
 		if (!exists) {
 			(sbvrUtils.api.migrations?.logger.info ?? console.info)(
 				'First time executing, running init script',
 			);
-			return Bluebird.using(lockMigrations(tx, modelName), () =>
-				tx.executeSql(initSql).return(),
-			);
+			await Bluebird.using(lockMigrations(tx, modelName), async () => {
+				await tx.executeSql(initSql);
+			});
 		}
-	});
-};
+	},
+);
 
-export const run = (tx: Tx, model: ApiRootModel): Bluebird<void> => {
-	const { migrations } = model;
-	if (migrations == null || _.isEmpty(migrations)) {
-		return Bluebird.resolve();
-	}
+export const run = Bluebird.method(
+	async (tx: Tx, model: ApiRootModel): Promise<void> => {
+		const { migrations } = model;
+		if (migrations == null || _.isEmpty(migrations)) {
+			return;
+		}
 
-	const modelName = model.apiRoot;
+		const modelName = model.apiRoot;
 
-	// migrations only run if the model has been executed before,
-	// to make changes that can't be automatically applied
-	return checkModelAlreadyExists(tx, modelName).then((exists) => {
+		// migrations only run if the model has been executed before,
+		// to make changes that can't be automatically applied
+		const exists = await checkModelAlreadyExists(tx, modelName);
 		if (!exists) {
 			(sbvrUtils.api.migrations?.logger.info ?? console.info)(
 				'First time model has executed, skipping migrations',
@@ -80,7 +82,7 @@ export const run = (tx: Tx, model: ApiRootModel): Bluebird<void> => {
 
 			return setExecutedMigrations(tx, modelName, Object.keys(migrations));
 		}
-		return Bluebird.using(lockMigrations(tx, modelName), async () => {
+		await Bluebird.using(lockMigrations(tx, modelName), async () => {
 			const executedMigrations = await getExecutedMigrations(tx, modelName);
 			const pendingMigrations = filterAndSortPendingMigrations(
 				migrations,
@@ -99,14 +101,12 @@ export const run = (tx: Tx, model: ApiRootModel): Bluebird<void> => {
 				...newlyExecutedMigrations,
 			]);
 		});
-	});
-};
+	},
+);
 
-const checkModelAlreadyExists = (
-	tx: Tx,
-	modelName: string,
-): Bluebird<boolean> =>
-	tx.tableList("name = 'migration'").then(async (result) => {
+const checkModelAlreadyExists = Bluebird.method(
+	async (tx: Tx, modelName: string): Promise<boolean> => {
+		const result = await tx.tableList("name = 'migration'");
 		if (result.rows.length === 0) {
 			return false;
 		}
@@ -120,7 +120,8 @@ LIMIT 1`,
 		);
 
 		return rows.length > 0;
-	});
+	},
+);
 
 const getExecutedMigrations = async (
 	tx: Tx,
@@ -185,34 +186,33 @@ const filterAndSortPendingMigrations = (
 		.value();
 
 const lockMigrations = (tx: Tx, modelName: string): Bluebird.Disposer<void> =>
-	tx
-		.executeSql(
-			binds`
+	Bluebird.try(async () => {
+		try {
+			await tx.executeSql(
+				binds`
 DELETE FROM "migration lock"
 WHERE "model name" = ${1}
 AND "created at" < ${2}`,
-			[modelName, new Date(Date.now() - migratorEnv.lockTimeout)],
-		)
-		.then(() =>
-			tx.executeSql(
+				[modelName, new Date(Date.now() - migratorEnv.lockTimeout)],
+			);
+			await tx.executeSql(
 				binds`
 INSERT INTO "migration lock" ("model name")
 VALUES (${1})`,
 				[modelName],
-			),
-		)
-		.tapCatch(() => Bluebird.delay(migratorEnv.lockFailDelay))
-		.return()
-		.disposer(() => {
-			return tx
-				.executeSql(
-					binds`
+			);
+		} catch (err) {
+			await Bluebird.delay(migratorEnv.lockFailDelay);
+			throw err;
+		}
+	}).disposer(async () => {
+		await tx.executeSql(
+			binds`
 DELETE FROM "migration lock"
 WHERE "model name" = ${1}`,
-					[modelName],
-				)
-				.return();
-		});
+			[modelName],
+		);
+	});
 
 const executeMigrations = async (
 	tx: Tx,

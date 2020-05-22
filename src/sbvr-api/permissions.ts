@@ -1047,18 +1047,19 @@ const getCheckPasswordQuery = _.once(() =>
 		},
 	}),
 );
-export const checkPassword = (
-	username: string,
-	password: string,
-): Bluebird<{
-	id: number;
-	actor: number;
-	username: string;
-	permissions: string[];
-}> =>
-	getCheckPasswordQuery()({
-		username,
-	}).then(async ([user]: AnyObject[]) => {
+export const checkPassword = Bluebird.method(
+	async (
+		username: string,
+		password: string,
+	): Promise<{
+		id: number;
+		actor: number;
+		username: string;
+		permissions: string[];
+	}> => {
+		const [user] = (await getCheckPasswordQuery()({
+			username,
+		})) as AnyObject[];
 		if (user == null) {
 			throw new Error('User not found');
 		}
@@ -1076,7 +1077,8 @@ export const checkPassword = (
 			username,
 			permissions,
 		};
-	});
+	},
+);
 
 const getUserPermissionsQuery = _.once(() =>
 	sbvrUtils.api.Auth.prepare<{ userId: number }>({
@@ -1151,23 +1153,25 @@ const getUserPermissionsQuery = _.once(() =>
 		},
 	}),
 );
-export const getUserPermissions = (userId: number): Bluebird<string[]> => {
-	if (typeof userId === 'string') {
-		userId = parseInt(userId, 10);
-	}
-	if (!Number.isFinite(userId)) {
-		return Bluebird.reject(
-			new Error('User ID has to be numeric, got: ' + typeof userId),
-		);
-	}
-	return getUserPermissionsQuery()({ userId })
-		.then((permissions: AnyObject[]): string[] =>
-			permissions.map((permission) => permission.name),
-		)
-		.tapCatch((err) => {
+export const getUserPermissions = Bluebird.method(
+	async (userId: number): Promise<string[]> => {
+		if (typeof userId === 'string') {
+			userId = parseInt(userId, 10);
+		}
+		if (!Number.isFinite(userId)) {
+			throw new Error(`User ID has to be numeric, got: ${typeof userId}`);
+		}
+		try {
+			const permissions = (await getUserPermissionsQuery()({
+				userId,
+			})) as Array<{ name: string }>;
+			return permissions.map((permission) => permission.name);
+		} catch (err) {
 			sbvrUtils.api.Auth.logger.error('Error loading user permissions', err);
-		});
-};
+			throw err;
+		}
+	},
+);
 
 const getApiKeyPermissionsQuery = _.once(() =>
 	sbvrUtils.api.Auth.prepare<{ apiKey: string }>({
@@ -1336,31 +1340,34 @@ const checkApiKey = Bluebird.method(
 
 export const customAuthorizationMiddleware = (expectedScheme = 'Bearer') => {
 	expectedScheme = expectedScheme.toLowerCase();
-	return (
-		req: Express.Request,
-		_res?: Express.Response,
-		next?: Express.NextFunction,
-	): Bluebird<void> =>
-		Bluebird.try(() => {
-			const auth = req.header('Authorization');
-			if (!auth) {
-				return;
-			}
+	return Bluebird.method(
+		async (
+			req: Express.Request,
+			_res?: Express.Response,
+			next?: Express.NextFunction,
+		): Promise<void> => {
+			try {
+				const auth = req.header('Authorization');
+				if (!auth) {
+					return;
+				}
 
-			const parts = auth.split(' ');
-			if (parts.length !== 2) {
-				return;
-			}
+				const parts = auth.split(' ');
+				if (parts.length !== 2) {
+					return;
+				}
 
-			const [scheme, apiKey] = parts;
-			if (scheme.toLowerCase() !== expectedScheme) {
-				return;
-			}
+				const [scheme, apiKey] = parts;
+				if (scheme.toLowerCase() !== expectedScheme) {
+					return;
+				}
 
-			return checkApiKey(req, apiKey);
-		}).then(() => {
-			next?.();
-		});
+				await checkApiKey(req, apiKey);
+			} finally {
+				next?.();
+			}
+		},
+	);
 };
 
 // A default bearer middleware for convenience
@@ -1370,41 +1377,53 @@ export const customApiKeyMiddleware = (paramName = 'apikey') => {
 	if (paramName == null) {
 		paramName = 'apikey';
 	}
-	return (
-		req: HookReq | Express.Request,
-		_res?: Express.Response,
-		next?: Express.NextFunction,
-	): Bluebird<void> => {
-		const apiKey =
-			req.params[paramName] != null
-				? req.params[paramName]
-				: req.body[paramName] != null
-				? req.body[paramName]
-				: req.query[paramName];
-		return checkApiKey(req, apiKey).then(() => {
-			next?.();
-		});
-	};
+	return Bluebird.method(
+		async (
+			req: HookReq | Express.Request,
+			_res?: Express.Response,
+			next?: Express.NextFunction,
+		): Promise<void> => {
+			try {
+				const apiKey =
+					req.params[paramName] != null
+						? req.params[paramName]
+						: req.body[paramName] != null
+						? req.body[paramName]
+						: req.query[paramName];
+				await checkApiKey(req, apiKey);
+			} finally {
+				next?.();
+			}
+		},
+	);
 };
 
 // A default api key middleware for convenience
 export const apiKeyMiddleware = customApiKeyMiddleware();
 
-export const checkPermissions = (
-	req: PermissionReq,
-	actionList: PermissionCheck,
-	resourceName?: string,
-	vocabulary?: string,
-) =>
-	getReqPermissions(req).then((permissionsLookup) =>
-		$checkPermissions(permissionsLookup, actionList, vocabulary, resourceName),
-	);
+export const checkPermissions = Bluebird.method(
+	async (
+		req: PermissionReq,
+		actionList: PermissionCheck,
+		resourceName?: string,
+		vocabulary?: string,
+	) => {
+		const permissionsLookup = await getReqPermissions(req);
+		return $checkPermissions(
+			permissionsLookup,
+			actionList,
+			vocabulary,
+			resourceName,
+		);
+	},
+);
 
 export const checkPermissionsMiddleware = (
 	action: PermissionCheck,
-): Express.RequestHandler => (req, res, next) =>
-	checkPermissions(req, action)
-		.then((allowed) => {
+): Express.RequestHandler =>
+	Bluebird.method((async (req, res, next) => {
+		try {
+			const allowed = await checkPermissions(req, action);
 			switch (allowed) {
 				case false:
 					res.sendStatus(401);
@@ -1417,15 +1436,15 @@ export const checkPermissionsMiddleware = (
 						'checkPermissionsMiddleware returned a conditional permission',
 					);
 			}
-		})
-		.catch((err) => {
+		} catch (err) {
 			sbvrUtils.api.Auth.logger.error(
 				'Error checking permissions',
 				err,
 				err.stack,
 			);
 			res.sendStatus(503);
-		});
+		}
+	}) as Express.RequestHandler);
 
 const getGuestPermissions = memoize(
 	async () => {
@@ -1450,8 +1469,11 @@ const getGuestPermissions = memoize(
 	{ promise: true },
 );
 
-const getReqPermissions = (req: PermissionReq, odataBinds: ODataBinds = []) =>
-	Bluebird.join(
+const getReqPermissions = async (
+	req: PermissionReq,
+	odataBinds: ODataBinds = [],
+) => {
+	const [guestPermissions] = await Promise.all([
 		getGuestPermissions(),
 		(async () => {
 			// TODO: Remove this extra actor ID lookup making actor non-optional and updating open-balena-api.
@@ -1465,41 +1487,38 @@ const getReqPermissions = (req: PermissionReq, odataBinds: ODataBinds = []) =>
 				req.apiKey!.actor = actorId;
 			}
 		})(),
-		(guestPermissions) => {
-			if (guestPermissions.some((p) => DEFAULT_ACTOR_BIND_REGEX.test(p))) {
-				throw new Error('Guest permissions cannot reference actors');
-			}
+	]);
 
-			let permissions = guestPermissions;
+	if (guestPermissions.some((p) => DEFAULT_ACTOR_BIND_REGEX.test(p))) {
+		throw new Error('Guest permissions cannot reference actors');
+	}
 
-			let actorIndex = 0;
-			const addActorPermissions = (
-				actorId: number,
-				actorPermissions: string[],
-			) => {
-				let actorBind = DEFAULT_ACTOR_BIND;
-				if (actorIndex > 0) {
-					actorBind += actorIndex;
-					actorPermissions = actorPermissions.map((actorPermission) =>
-						actorPermission.replace(DEFAULT_ACTOR_BIND_REGEX, actorBind),
-					);
-				}
-				odataBinds[actorBind] = ['Real', actorId];
-				actorIndex++;
-				permissions = permissions.concat(actorPermissions);
-			};
+	let permissions = guestPermissions;
 
-			if (req.user != null && req.user.permissions != null) {
-				addActorPermissions(req.user.actor, req.user.permissions);
-			} else if (req.apiKey != null && req.apiKey.permissions != null) {
-				addActorPermissions(req.apiKey.actor!, req.apiKey.permissions);
-			}
+	let actorIndex = 0;
+	const addActorPermissions = (actorId: number, actorPermissions: string[]) => {
+		let actorBind = DEFAULT_ACTOR_BIND;
+		if (actorIndex > 0) {
+			actorBind += actorIndex;
+			actorPermissions = actorPermissions.map((actorPermission) =>
+				actorPermission.replace(DEFAULT_ACTOR_BIND_REGEX, actorBind),
+			);
+		}
+		odataBinds[actorBind] = ['Real', actorId];
+		actorIndex++;
+		permissions = permissions.concat(actorPermissions);
+	};
 
-			permissions = _.uniq(permissions);
+	if (req.user != null && req.user.permissions != null) {
+		addActorPermissions(req.user.actor, req.user.permissions);
+	} else if (req.apiKey != null && req.apiKey.permissions != null) {
+		addActorPermissions(req.apiKey.actor!, req.apiKey.permissions);
+	}
 
-			return getPermissionsLookup(permissions);
-		},
-	);
+	permissions = _.uniq(permissions);
+
+	return getPermissionsLookup(permissions);
+};
 
 export const addPermissions = Bluebird.method(
 	async (

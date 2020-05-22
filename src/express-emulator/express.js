@@ -63,7 +63,7 @@ const app = (function () {
 			body = '';
 		}
 		if (!handlers[method]) {
-			return Bluebird.reject(404);
+			return Bluebird.reject([404, null, null]);
 		}
 		const req = {
 			// Have a default user for in-browser with all permissions
