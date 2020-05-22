@@ -2,7 +2,7 @@ import type { Tx } from '../database-layer/db';
 import type { Resolvable } from '../sbvr-api/common-types';
 import type { Config, Model } from '../config-loader/config-loader';
 
-import { Engines } from '@resin/abstract-sql-compiler';
+import { Engines } from '@balena/abstract-sql-compiler';
 import * as Bluebird from 'bluebird';
 import * as _ from 'lodash';
 import { TypedError } from 'typed-error';

@@ -1,4 +1,4 @@
-import type * as AbstractSQLCompiler from '@resin/abstract-sql-compiler';
+import type * as AbstractSQLCompiler from '@balena/abstract-sql-compiler';
 import type {
 	ODataBinds,
 	ODataOptions,

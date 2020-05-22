@@ -1,5 +1,5 @@
 import type * as Express from 'express';
-import type { AbstractSqlModel } from '@resin/abstract-sql-compiler';
+import type { AbstractSqlModel } from '@balena/abstract-sql-compiler';
 import type { Database } from '../database-layer/db';
 import type { Migration } from '../migrator/migrator';
 import type { AnyObject, Resolvable } from '../sbvr-api/common-types';

@@ -82,7 +82,7 @@ AND "resource-is under-lock"."lock" = ?;`,
 					);
 				const getFieldsObject = async (
 					/** @type {number} */ conditionalResourceID,
-					/** @type {import('@resin/abstract-sql-compiler').AbstractSqlTable} */ clientModel, // 'GET', '/transaction/conditional_field?$select=field_name,field_value&$filter=conditional_resource eq ?'
+					/** @type {import('@balena/abstract-sql-compiler').AbstractSqlTable} */ clientModel, // 'GET', '/transaction/conditional_field?$select=field_name,field_value&$filter=conditional_resource eq ?'
 				) => {
 					const fields = await tx.executeSql(
 						`SELECT "conditional field"."field name" AS "field_name", "conditional field"."field value" AS "field_value"

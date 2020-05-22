@@ -22,8 +22,8 @@ import { TypedError } from 'typed-error';
 import { cachedCompile } from './cached-compile';
 
 type LFModel = any[];
-import * as AbstractSQLCompiler from '@resin/abstract-sql-compiler';
-import { version as AbstractSQLCompilerVersion } from '@resin/abstract-sql-compiler/package.json';
+import * as AbstractSQLCompiler from '@balena/abstract-sql-compiler';
+import { version as AbstractSQLCompilerVersion } from '@balena/abstract-sql-compiler/package.json';
 import * as LF2AbstractSQL from '@balena/lf-to-abstract-sql';
 
 import {

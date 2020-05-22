@@ -5,7 +5,7 @@ import type {
 	Relationship,
 	RelationshipMapping,
 	SelectNode,
-} from '@resin/abstract-sql-compiler';
+} from '@balena/abstract-sql-compiler';
 import type * as Express from 'express';
 import type {
 	ODataBinds,

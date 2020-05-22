@@ -1,7 +1,7 @@
 import type {
 	AbstractSqlModel,
 	AbstractSqlTable,
-} from '@resin/abstract-sql-compiler';
+} from '@balena/abstract-sql-compiler';
 
 import * as sbvrTypes from '@resin/sbvr-types';
 

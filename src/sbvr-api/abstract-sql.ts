@@ -1,7 +1,7 @@
 import * as Bluebird from 'bluebird';
 import * as _ from 'lodash';
 
-import * as AbstractSQLCompiler from '@resin/abstract-sql-compiler';
+import * as AbstractSQLCompiler from '@balena/abstract-sql-compiler';
 import { ODataBinds, odataNameToSqlName } from '@resin/odata-to-abstract-sql';
 import deepFreeze = require('deep-freeze');
 import * as memoize from 'memoizee';

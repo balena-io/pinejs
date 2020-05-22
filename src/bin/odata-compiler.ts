@@ -4,7 +4,10 @@ process.env.PINEJS_CACHE_FILE =
 import type * as AbstractSql from '../sbvr-api/abstract-sql';
 import type * as SbvrUtils from '../sbvr-api/sbvr-utils';
 import type * as UriParser from '../sbvr-api/uri-parser';
-import type { AbstractSqlModel, SqlResult } from '@resin/abstract-sql-compiler';
+import type {
+	AbstractSqlModel,
+	SqlResult,
+} from '@balena/abstract-sql-compiler';
 import type { Model } from '../config-loader/config-loader';
 
 import * as program from 'commander';

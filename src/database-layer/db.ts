@@ -5,7 +5,7 @@ import type * as Pg from 'pg';
 import type * as PgConnectionString from 'pg-connection-string';
 import type { Resolvable } from '../sbvr-api/common-types';
 
-import { Engines } from '@resin/abstract-sql-compiler';
+import { Engines } from '@balena/abstract-sql-compiler';
 import * as Bluebird from 'bluebird';
 import * as EventEmitter from 'eventemitter3';
 import * as _ from 'lodash';

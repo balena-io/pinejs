@@ -1,4 +1,4 @@
-declare module '@resin/abstract-sql-compiler' {
+declare module '@balena/abstract-sql-compiler' {
 	interface AbstractSqlTable {
 		fetchProcessingFields?: {
 			[field: string]: (field: any) => Bluebird<any>;
@@ -12,7 +12,7 @@ declare module '@resin/abstract-sql-compiler' {
 import type {
 	AbstractSqlModel,
 	AbstractSqlTable,
-} from '@resin/abstract-sql-compiler';
+} from '@balena/abstract-sql-compiler';
 import type { Result, Row } from '../database-layer/db';
 
 import { sqlNameToODataName } from '@resin/odata-to-abstract-sql';
