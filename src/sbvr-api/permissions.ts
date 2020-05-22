@@ -21,7 +21,7 @@ import {
 	odataNameToSqlName,
 	ResourceFunction,
 	sqlNameToODataName,
-} from '@resin/odata-to-abstract-sql';
+} from '@balena/odata-to-abstract-sql';
 import * as ODataParser from '@balena/odata-parser';
 
 import * as Bluebird from 'bluebird';

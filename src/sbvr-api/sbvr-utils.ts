@@ -30,7 +30,7 @@ import {
 	odataNameToSqlName,
 	sqlNameToODataName,
 	SupportedMethod,
-} from '@resin/odata-to-abstract-sql';
+} from '@balena/odata-to-abstract-sql';
 import * as sbvrTypes from '@balena/sbvr-types';
 import deepFreeze = require('deep-freeze');
 import { PinejsClientCoreFactory } from 'pinejs-client-core';

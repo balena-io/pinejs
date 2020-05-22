@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 import * as Bluebird from 'bluebird';
-import { odataNameToSqlName } from '@resin/odata-to-abstract-sql';
+import { odataNameToSqlName } from '@balena/odata-to-abstract-sql';
 // @ts-ignore
 const transactionModel = require('./transaction.sbvr');
 

@@ -12,7 +12,7 @@ import type { AnyObject } from './common-types';
 import * as ODataParser from '@balena/odata-parser';
 import * as Bluebird from 'bluebird';
 export const SyntaxError = ODataParser.SyntaxError;
-import { OData2AbstractSQL } from '@resin/odata-to-abstract-sql';
+import { OData2AbstractSQL } from '@balena/odata-to-abstract-sql';
 import * as _ from 'lodash';
 import * as memoize from 'memoizee';
 import memoizeWeak = require('memoizee/weak');

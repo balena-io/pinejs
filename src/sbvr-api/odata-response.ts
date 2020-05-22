@@ -15,7 +15,7 @@ import type {
 } from '@balena/abstract-sql-compiler';
 import type { Result, Row } from '../database-layer/db';
 
-import { sqlNameToODataName } from '@resin/odata-to-abstract-sql';
+import { sqlNameToODataName } from '@balena/odata-to-abstract-sql';
 import * as sbvrTypes from '@balena/sbvr-types';
 import * as Bluebird from 'bluebird';
 import * as _ from 'lodash';
