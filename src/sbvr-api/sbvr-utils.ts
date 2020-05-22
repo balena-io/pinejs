@@ -31,7 +31,7 @@ import {
 	sqlNameToODataName,
 	SupportedMethod,
 } from '@resin/odata-to-abstract-sql';
-import * as sbvrTypes from '@resin/sbvr-types';
+import * as sbvrTypes from '@balena/sbvr-types';
 import deepFreeze = require('deep-freeze');
 import { PinejsClientCoreFactory } from 'pinejs-client-core';
 
@@ -80,7 +80,7 @@ export let db = (undefined as any) as Db.Database;
 export { sbvrTypes };
 
 import { version as LF2AbstractSQLVersion } from '@balena/lf-to-abstract-sql/package.json';
-import { version as sbvrTypesVersion } from '@resin/sbvr-types/package.json';
+import { version as sbvrTypesVersion } from '@balena/sbvr-types/package.json';
 import {
 	compileRequest,
 	getAndCheckBindValues,
