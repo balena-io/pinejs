@@ -36,7 +36,7 @@ export class SideEffectHook extends Hook {
 		}
 	}
 
-	public rollback() {
+	public async rollback() {
 		// Don't try to call the rollback functions twice
 		if (this.rolledBack) {
 			return;
@@ -44,9 +44,7 @@ export class SideEffectHook extends Hook {
 		// set rolledBack to true straight away, so that if any rollback action
 		// is registered after the rollback call, we will immediately execute it
 		this.rolledBack = true;
-		return Bluebird.resolve(
-			settleMapSeries(this.rollbackFns, (fn) => fn()),
-		).return();
+		await settleMapSeries(this.rollbackFns, (fn) => fn());
 	}
 }
 

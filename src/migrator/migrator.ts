@@ -42,86 +42,83 @@ const binds = (strings: TemplateStringsArray, ...bindNums: number[]) =>
 		})
 		.join('');
 
-export const postRun = Bluebird.method(
-	async (tx: Tx, model: ApiRootModel): Promise<void> => {
-		const { initSql } = model;
-		if (initSql == null) {
-			return;
-		}
+export const postRun = async (tx: Tx, model: ApiRootModel): Promise<void> => {
+	const { initSql } = model;
+	if (initSql == null) {
+		return;
+	}
 
-		const modelName = model.apiRoot;
+	const modelName = model.apiRoot;
 
-		const exists = await checkModelAlreadyExists(tx, modelName);
-		if (!exists) {
-			(sbvrUtils.api.migrations?.logger.info ?? console.info)(
-				'First time executing, running init script',
-			);
-			await Bluebird.using(lockMigrations(tx, modelName), async () => {
-				await tx.executeSql(initSql);
-			});
-		}
-	},
-);
-
-export const run = Bluebird.method(
-	async (tx: Tx, model: ApiRootModel): Promise<void> => {
-		const { migrations } = model;
-		if (migrations == null || _.isEmpty(migrations)) {
-			return;
-		}
-
-		const modelName = model.apiRoot;
-
-		// migrations only run if the model has been executed before,
-		// to make changes that can't be automatically applied
-		const exists = await checkModelAlreadyExists(tx, modelName);
-		if (!exists) {
-			(sbvrUtils.api.migrations?.logger.info ?? console.info)(
-				'First time model has executed, skipping migrations',
-			);
-
-			return setExecutedMigrations(tx, modelName, Object.keys(migrations));
-		}
+	const exists = await checkModelAlreadyExists(tx, modelName);
+	if (!exists) {
+		(sbvrUtils.api.migrations?.logger.info ?? console.info)(
+			'First time executing, running init script',
+		);
 		await Bluebird.using(lockMigrations(tx, modelName), async () => {
-			const executedMigrations = await getExecutedMigrations(tx, modelName);
-			const pendingMigrations = filterAndSortPendingMigrations(
-				migrations,
-				executedMigrations,
-			);
-			if (pendingMigrations.length === 0) {
-				return;
-			}
-
-			const newlyExecutedMigrations = await executeMigrations(
-				tx,
-				pendingMigrations,
-			);
-			return setExecutedMigrations(tx, modelName, [
-				...executedMigrations,
-				...newlyExecutedMigrations,
-			]);
+			await tx.executeSql(initSql);
 		});
-	},
-);
+	}
+};
 
-const checkModelAlreadyExists = Bluebird.method(
-	async (tx: Tx, modelName: string): Promise<boolean> => {
-		const result = await tx.tableList("name = 'migration'");
-		if (result.rows.length === 0) {
-			return false;
+export const run = async (tx: Tx, model: ApiRootModel): Promise<void> => {
+	const { migrations } = model;
+	if (migrations == null || _.isEmpty(migrations)) {
+		return;
+	}
+
+	const modelName = model.apiRoot;
+
+	// migrations only run if the model has been executed before,
+	// to make changes that can't be automatically applied
+	const exists = await checkModelAlreadyExists(tx, modelName);
+	if (!exists) {
+		(sbvrUtils.api.migrations?.logger.info ?? console.info)(
+			'First time model has executed, skipping migrations',
+		);
+
+		return setExecutedMigrations(tx, modelName, Object.keys(migrations));
+	}
+	await Bluebird.using(lockMigrations(tx, modelName), async () => {
+		const executedMigrations = await getExecutedMigrations(tx, modelName);
+		const pendingMigrations = filterAndSortPendingMigrations(
+			migrations,
+			executedMigrations,
+		);
+		if (pendingMigrations.length === 0) {
+			return;
 		}
-		const { rows } = await tx.executeSql(
-			binds`
+
+		const newlyExecutedMigrations = await executeMigrations(
+			tx,
+			pendingMigrations,
+		);
+		return setExecutedMigrations(tx, modelName, [
+			...executedMigrations,
+			...newlyExecutedMigrations,
+		]);
+	});
+};
+
+const checkModelAlreadyExists = async (
+	tx: Tx,
+	modelName: string,
+): Promise<boolean> => {
+	const result = await tx.tableList("name = 'migration'");
+	if (result.rows.length === 0) {
+		return false;
+	}
+	const { rows } = await tx.executeSql(
+		binds`
 SELECT 1
 FROM "model"
 WHERE "model"."is of-vocabulary" = ${1}
 LIMIT 1`,
-			[modelName],
-		);
+		[modelName],
+	);
 
-		return rows.length > 0;
-	},
-);
+	return rows.length > 0;
+};
 
 const getExecutedMigrations = async (
 	tx: Tx,

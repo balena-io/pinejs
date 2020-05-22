@@ -2,7 +2,6 @@ import type * as Express from 'express';
 
 import './sbvr-loader';
 
-import * as Bluebird from 'bluebird';
 import * as dbModule from '../database-layer/db';
 import * as configLoader from '../config-loader/config-loader';
 import * as migrator from '../migrator/migrator';
@@ -47,35 +46,34 @@ if (dbModule.engines.websql != null) {
 
 const db = dbModule.connect(databaseOptions);
 
-export const init = (
+export const init = async (
 	app: Express.Application,
 	config?: string | configLoader.Config,
-): Bluebird<ReturnType<typeof configLoader.setup>> =>
-	Bluebird.try(async () => {
-		try {
-			await sbvrUtils.setup(app, db);
-			const cfgLoader = await configLoader.setup(app);
-			await cfgLoader.loadConfig(migrator.config);
+): Promise<ReturnType<typeof configLoader.setup>> => {
+	try {
+		await sbvrUtils.setup(app, db);
+		const cfgLoader = await configLoader.setup(app);
+		await cfgLoader.loadConfig(migrator.config);
 
-			const promises: Array<Promise<void>> = [];
-			if (process.env.SBVR_SERVER_ENABLED) {
-				const sbvrServer = await import('../data-server/sbvr-server');
-				const transactions = require('../http-transactions/transactions');
-				promises.push(cfgLoader.loadConfig(sbvrServer.config));
-				promises.push(
-					cfgLoader
-						.loadConfig(transactions.config)
-						.then(() => transactions.addModelHooks('data')),
-				);
-			}
-			if (!process.env.CONFIG_LOADER_DISABLED) {
-				promises.push(cfgLoader.loadApplicationConfig(config));
-			}
-			await Promise.all(promises);
-
-			return cfgLoader;
-		} catch (err) {
-			console.error('Error initialising server', err, err.stack);
-			process.exit(1);
+		const promises: Array<Promise<void>> = [];
+		if (process.env.SBVR_SERVER_ENABLED) {
+			const sbvrServer = await import('../data-server/sbvr-server');
+			const transactions = require('../http-transactions/transactions');
+			promises.push(cfgLoader.loadConfig(sbvrServer.config));
+			promises.push(
+				cfgLoader
+					.loadConfig(transactions.config)
+					.then(() => transactions.addModelHooks('data')),
+			);
 		}
-	});
+		if (!process.env.CONFIG_LOADER_DISABLED) {
+			promises.push(cfgLoader.loadApplicationConfig(config));
+		}
+		await Promise.all(promises);
+
+		return cfgLoader;
+	} catch (err) {
+		console.error('Error initialising server', err, err.stack);
+		process.exit(1);
+	}
+};

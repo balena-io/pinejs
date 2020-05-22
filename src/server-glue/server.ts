@@ -10,7 +10,6 @@ import type * as ServeStatic from 'serve-static';
 
 import * as Pinejs from './module';
 
-import * as Bluebird from 'bluebird';
 import * as passportPinejs from '../passport-pinejs/passport-pinejs';
 
 import { PinejsSessionStore } from '../pinejs-session-store/pinejs-session-store';
@@ -27,8 +26,6 @@ switch (app.get('env')) {
 			// noop
 		};
 		break;
-	case 'development':
-		Bluebird.longStackTraces();
 }
 
 if (!process.browser) {

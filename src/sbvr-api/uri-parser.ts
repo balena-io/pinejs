@@ -254,58 +254,56 @@ const memoizedOdata2AbstractSQL = (() => {
 
 export const metadataEndpoints = ['$metadata', '$serviceroot'];
 
-export function parseOData(
+export async function parseOData(
 	b: UnparsedRequest & { _isChangeSet?: false },
-): Bluebird<ODataRequest>;
-export function parseOData(
+): Promise<ODataRequest>;
+export async function parseOData(
 	b: UnparsedRequest & { _isChangeSet: true },
-): Bluebird<ODataRequest[]>;
-export function parseOData(
+): Promise<ODataRequest[]>;
+export async function parseOData(
 	b: UnparsedRequest,
-): Bluebird<ODataRequest | ODataRequest[]>;
-export function parseOData(
+): Promise<ODataRequest | ODataRequest[]>;
+export async function parseOData(
 	b: UnparsedRequest,
-): Bluebird<ODataRequest | ODataRequest[]> {
-	return Bluebird.try<ODataRequest | ODataRequest[]>(async () => {
-		try {
-			if (b._isChangeSet && b.changeSet != null) {
-				// We sort the CS set once, we must assure that requests which reference
-				// other requests in the changeset are placed last. Once they are sorted
-				// Map will guarantee retrival of results in insertion order
-				const sortedCS = _.sortBy(b.changeSet, (el) => el.url[0] !== '/');
-				const csReferences = await Bluebird.reduce(
-					sortedCS,
-					parseODataChangeset,
-					new Map<ODataRequest['id'], ODataRequest>(),
-				);
-				return Array.from(csReferences.values()) as ODataRequest[];
-			} else {
-				const { url, apiRoot } = splitApiRoot(b.url);
-				const odata = memoizedParseOdata(url);
+): Promise<ODataRequest | ODataRequest[]> {
+	try {
+		if (b._isChangeSet && b.changeSet != null) {
+			// We sort the CS set once, we must assure that requests which reference
+			// other requests in the changeset are placed last. Once they are sorted
+			// Map will guarantee retrival of results in insertion order
+			const sortedCS = _.sortBy(b.changeSet, (el) => el.url[0] !== '/');
+			const csReferences = await Bluebird.reduce(
+				sortedCS,
+				parseODataChangeset,
+				new Map<ODataRequest['id'], ODataRequest>(),
+			);
+			return Array.from(csReferences.values()) as ODataRequest[];
+		} else {
+			const { url, apiRoot } = splitApiRoot(b.url);
+			const odata = memoizedParseOdata(url);
 
-				return {
-					method: b.method as SupportedMethod,
-					url,
-					vocabulary: apiRoot,
-					resourceName: odata.tree.resource,
-					odataBinds: odata.binds,
-					odataQuery: odata.tree,
-					values: b.data ?? {},
-					custom: {},
-					_defer: false,
-				};
-			}
-		} catch (err) {
-			if (err instanceof ODataParser.SyntaxError) {
-				throw new BadRequestError(`Malformed url: '${b.url}'`);
-			}
-			if (!(err instanceof BadRequestError || err instanceof ParsingError)) {
-				console.error('Failed to parse url: ', b.method, b.url, err);
-				throw new ParsingError(`Failed to parse url: '${b.url}'`);
-			}
-			throw err;
+			return {
+				method: b.method as SupportedMethod,
+				url,
+				vocabulary: apiRoot,
+				resourceName: odata.tree.resource,
+				odataBinds: odata.binds,
+				odataQuery: odata.tree,
+				values: b.data ?? {},
+				custom: {},
+				_defer: false,
+			};
 		}
-	});
+	} catch (err) {
+		if (err instanceof ODataParser.SyntaxError) {
+			throw new BadRequestError(`Malformed url: '${b.url}'`);
+		}
+		if (!(err instanceof BadRequestError || err instanceof ParsingError)) {
+			console.error('Failed to parse url: ', b.method, b.url, err);
+			throw new ParsingError(`Failed to parse url: '${b.url}'`);
+		}
+		throw err;
+	}
 }
 
 const parseODataChangeset = (

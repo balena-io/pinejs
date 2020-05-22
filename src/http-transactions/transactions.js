@@ -67,7 +67,7 @@ SELECT NOT EXISTS(
 
 		const endTransaction = (/** @type {number} */ transactionID) =>
 			sbvrUtils.db.transaction(async (tx) => {
-				/** @type {{[key: string]: { promise: Bluebird<any>, resolve: Function, reject: Function }}} */
+				/** @type {{[key: string]: { promise: Promise<any>, resolve: Function, reject: Function }}} */
 				const placeholders = {};
 				const getLockedRow = (
 					/** @type {number} */ lockID, // 'GET', '/transaction/resource?$select=resource_id&$filter=resource__is_under__lock/lock eq ?'

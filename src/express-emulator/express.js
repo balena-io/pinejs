@@ -1,4 +1,3 @@
-import * as Bluebird from 'bluebird';
 import * as _ from 'lodash';
 
 /**
@@ -13,7 +12,7 @@ w.GLOBAL_PERMISSIONS = ['resource.all'];
 const app = (function () {
 	/** @type Function */
 	let ready;
-	const enabled = new Bluebird((resolve) => {
+	const enabled = new Promise((resolve) => {
 		ready = resolve;
 	});
 	/** @type {{[key: string]: any}} */
@@ -53,7 +52,7 @@ const app = (function () {
 			middleware: _.flattenDeep(middleware),
 		});
 	};
-	const process = function (
+	const process = async function (
 		/** @type string */ method,
 		/** @type string */ uri,
 		/** @type {{[key: string]: any}} */ headers,
@@ -63,7 +62,7 @@ const app = (function () {
 			body = '';
 		}
 		if (!handlers[method]) {
-			return Bluebird.reject([404, null, null]);
+			return Promise.reject([404, null, null]);
 		}
 		const req = {
 			// Have a default user for in-browser with all permissions
@@ -86,7 +85,7 @@ const app = (function () {
 			uri = uri.slice(0, uri.length - 1);
 		}
 		uri = uri.toLowerCase();
-		return new Bluebird(function (resolve, reject) {
+		return new Promise(function (resolve, reject) {
 			const res = {
 				statusCode: 200,
 				status(/** @type number */ statusCode) {
