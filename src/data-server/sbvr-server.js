@@ -46,14 +46,14 @@ const isServerOnAir = (() => {
 })();
 
 /** @type { import('express').Handler } */
-const serverIsOnAir = (_req, _res, next) =>
-	isServerOnAir().then((onAir) => {
-		if (onAir) {
-			next();
-		} else {
-			next('route');
-		}
-	});
+const serverIsOnAir = async (_req, _res, next) => {
+	const onAir = await isServerOnAir();
+	if (onAir) {
+		next();
+	} else {
+		next('route');
+	}
+};
 
 export let config = {
 	models: [
@@ -76,39 +76,40 @@ ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT N
 export function setup(app, sbvrUtils, db) {
 	const uiApi = sbvrUtils.api.ui;
 	const devApi = sbvrUtils.api.dev;
-	const setupModels = (
+	const setupModels = async (
 		/** @type { import('../database-layer/db').Tx } */ tx,
 	) => {
-		const uiApiTx = uiApi.clone({
-			passthrough: {
-				tx,
-				req: permissions.root,
-			},
-		});
-		return uiApiTx
-			.get({
-				resource: 'textarea',
-				options: {
-					$select: 'id',
-					$filter: {
-						name: 'model_area',
-					},
+		try {
+			const uiApiTx = uiApi.clone({
+				passthrough: {
+					tx,
+					req: permissions.root,
 				},
-			})
-			.then((/** @type { Array<{ [key: string]: any }> } */ result) => {
-				if (result.length === 0) {
-					// Add a model_area entry if it doesn't already exist.
-					return uiApiTx.post({
-						resource: 'textarea',
-						body: {
+			});
+			await uiApiTx
+				.get({
+					resource: 'textarea',
+					options: {
+						$select: 'id',
+						$filter: {
 							name: 'model_area',
-							text: ' ',
 						},
-					});
-				}
-			})
-			.then(() =>
-				devApi.get({
+					},
+				})
+				.then((/** @type { Array<{ [key: string]: any }> } */ result) => {
+					if (result.length === 0) {
+						// Add a model_area entry if it doesn't already exist.
+						return uiApiTx.post({
+							resource: 'textarea',
+							body: {
+								name: 'model_area',
+								text: ' ',
+							},
+						});
+					}
+				});
+			await devApi
+				.get({
 					resource: 'model',
 					passthrough: {
 						tx,
@@ -121,26 +122,26 @@ export function setup(app, sbvrUtils, db) {
 							is_of__vocabulary: 'data',
 						},
 					},
-				}),
-			)
-			.then((/** @type { Array<{ [key: string]: any }> } */ result) => {
-				if (result.length === 0) {
-					throw new Error('No SE data model found');
-				}
-				const instance = result[0];
-				return sbvrUtils.executeModel(tx, {
-					apiRoot: instance.is_of__vocabulary,
-					modelText: instance.model_value,
+				})
+				.then((/** @type { Array<{ [key: string]: any }> } */ result) => {
+					if (result.length === 0) {
+						throw new Error('No SE data model found');
+					}
+					const instance = result[0];
+					return sbvrUtils.executeModel(tx, {
+						apiRoot: instance.is_of__vocabulary,
+						modelText: instance.model_value,
+					});
 				});
-			})
-			.then(() => isServerOnAir(true))
-			.catch(() => isServerOnAir(false));
+			await isServerOnAir(true);
+		} catch {
+			await isServerOnAir(false);
+		}
 	};
 
-	app.get('/onAir', (_req, res) => {
-		isServerOnAir().then((onAir) => {
-			res.json(onAir);
-		});
+	app.get('/onAir', async (_req, res) => {
+		const onAir = await isServerOnAir();
+		res.json(onAir);
 	});
 
 	app.post(
@@ -155,233 +156,214 @@ export function setup(app, sbvrUtils, db) {
 	app.post(
 		'/execute',
 		permissions.checkPermissionsMiddleware('all'),
-		(_req, res) => {
-			uiApi
-				.get({
-					resource: 'textarea',
-					passthrough: { req: permissions.rootRead },
-					options: {
-						$select: 'text',
-						$filter: {
-							name: 'model_area',
+		async (_req, res) => {
+			try {
+				await uiApi
+					.get({
+						resource: 'textarea',
+						passthrough: { req: permissions.rootRead },
+						options: {
+							$select: 'text',
+							$filter: {
+								name: 'model_area',
+							},
 						},
-					},
-				})
-				.then((/** @type { Array<{ [key: string]: any }> } */ result) => {
-					if (result.length === 0) {
-						throw new Error('Could not find the model to execute');
-					}
-					const modelText = result[0].text;
-					return db.transaction((tx) =>
-						sbvrUtils
-							.executeModel(tx, {
+					})
+					.then(async (
+						/** @type { Array<{ [key: string]: any }> } */ result,
+					) => {
+						if (result.length === 0) {
+							throw new Error('Could not find the model to execute');
+						}
+						const modelText = result[0].text;
+						await db.transaction(async (tx) => {
+							await sbvrUtils.executeModel(tx, {
 								apiRoot: 'data',
 								modelText,
-							})
-							.then(() =>
-								uiApi.patch({
-									resource: 'textarea',
-									passthrough: {
-										tx,
-										req: permissions.root,
+							});
+							await uiApi.patch({
+								resource: 'textarea',
+								passthrough: {
+									tx,
+									req: permissions.root,
+								},
+								options: {
+									$filter: {
+										name: 'model_area',
 									},
-									options: {
-										$filter: {
-											name: 'model_area',
-										},
-									},
-									body: {
-										is_disabled: true,
-									},
-								}),
-							),
-					);
-				})
-				.then(() => {
-					isServerOnAir(true);
-					res.sendStatus(200);
-				})
-				.catch((err) => {
-					isServerOnAir(false);
-					res.status(404).json(err);
-				});
+								},
+								body: {
+									is_disabled: true,
+								},
+							});
+						});
+					});
+				await isServerOnAir(true);
+				res.sendStatus(200);
+			} catch (err) {
+				await isServerOnAir(false);
+				res.status(404).json(err);
+			}
 		},
 	);
 	app.post(
 		'/validate',
 		permissions.checkPermissionsMiddleware('get'),
-		(req, res) => {
-			sbvrUtils
-				.runRule('data', req.body.rule)
-				.then((results) => {
-					res.json(results);
-				})
-				.catch((err) => {
-					console.log('Error validating', err);
-					res.sendStatus(404);
-				});
+		async (req, res) => {
+			try {
+				const results = await sbvrUtils.runRule('data', req.body.rule);
+				res.json(results);
+			} catch (err) {
+				console.log('Error validating', err);
+				res.sendStatus(404);
+			}
 		},
 	);
 	app.delete(
 		'/cleardb',
 		permissions.checkPermissionsMiddleware('delete'),
-		(_req, res) => {
-			db.transaction((tx) =>
-				tx
-					.tableList()
-					.then((result) =>
-						Bluebird.map(result.rows, (table) => tx.dropTable(table.name)),
-					)
-					.then(() => sbvrUtils.executeStandardModels(tx))
-					.then(() => {
-						// TODO: HACK: This is usually done by config-loader and should be done there
-						// In general cleardb is very destructive and should really go through a full "reboot" procedure to set everything up again.
-						console.warn(
-							'DEL /cleardb is very destructive and should really be followed by a full restart/reload.',
-						);
-						return sbvrUtils.executeModels(tx, exports.config.models);
-					})
-					.then(() => setupModels(tx)),
-			)
-				.then(() => {
-					res.sendStatus(200);
-				})
-				.catch((err) => {
-					console.error('Error clearing db', err, err.stack);
-					res.sendStatus(503);
+		async (_req, res) => {
+			try {
+				await db.transaction(async (tx) => {
+					const result = await tx.tableList();
+
+					await Bluebird.map(result.rows, (table) => tx.dropTable(table.name));
+					await sbvrUtils.executeStandardModels(tx);
+					// TODO: HACK: This is usually done by config-loader and should be done there
+					// In general cleardb is very destructive and should really go through a full "reboot" procedure to set everything up again.
+					console.warn(
+						'DEL /cleardb is very destructive and should really be followed by a full restart/reload.',
+					);
+					await sbvrUtils.executeModels(tx, exports.config.models);
+					await setupModels(tx);
 				});
+				res.sendStatus(200);
+			} catch (err) {
+				console.error('Error clearing db', err, err.stack);
+				res.sendStatus(503);
+			}
 		},
 	);
 	app.put(
 		'/importdb',
 		permissions.checkPermissionsMiddleware('set'),
-		(req, res) => {
-			const queries = req.body.split(';');
-			return db
-				.transaction((tx) =>
-					Bluebird.each(queries, (query) => {
+		async (req, res) => {
+			try {
+				const queries = req.body.split(';');
+				await db.transaction((tx) =>
+					Bluebird.each(queries, async (query) => {
 						query = query.trim();
 						if (query.length > 0) {
-							return tx.executeSql(query).catch((err) => {
+							try {
+								await tx.executeSql(query);
+							} catch (err) {
 								throw [query, err];
-							});
+							}
 						}
 					}),
-				)
-				.then(() => {
-					res.sendStatus(200);
-				})
-				.catch((err) => {
-					console.error('Error importing db', err, err.stack);
-					res.sendStatus(404);
-				});
+				);
+				res.sendStatus(200);
+			} catch (err) {
+				console.error('Error importing db', err, err.stack);
+				res.sendStatus(404);
+			}
 		},
 	);
 	app.get(
 		'/exportdb',
 		permissions.checkPermissionsMiddleware('get'),
-		(_req, res) => {
-			db.transaction((tx) =>
-				tx.tableList("name NOT LIKE '%_buk'").then((tables) => {
-					let exported = '';
-					return Bluebird.map(tables.rows, (table) => {
+		async (_req, res) => {
+			try {
+				let exported = '';
+				await db.transaction(async (tx) => {
+					const tables = await tx.tableList("name NOT LIKE '%_buk'");
+					await Bluebird.map(tables.rows, async (table) => {
 						const tableName = table.name;
 						exported += 'DROP TABLE IF EXISTS "' + tableName + '";\n';
 						exported += table.sql + ';\n';
-						return tx
-							.executeSql('SELECT * FROM "' + tableName + '";')
-							.then((result) => {
-								let insQuery = '';
-								result.rows.forEach((currRow) => {
-									let notFirst = false;
-									insQuery += 'INSERT INTO "' + tableName + '" (';
-									let valQuery = '';
-									for (let propName of Object.keys(currRow || {})) {
-										if (notFirst) {
-											insQuery += ',';
-											valQuery += ',';
-										} else {
-											notFirst = true;
-										}
-										insQuery += '"' + propName + '"';
-										valQuery += "'" + currRow[propName] + "'";
-									}
-									insQuery += ') values (' + valQuery + ');\n';
-								});
-								exported += insQuery;
-							});
-					}).return(exported);
-				}),
-			)
-				.then((exported) => {
-					res.json(exported);
-				})
-				.catch((err) => {
-					console.error('Error exporting db', err, err.stack);
-					res.sendStatus(503);
+						const result = await tx.executeSql(
+							'SELECT * FROM "' + tableName + '";',
+						);
+						let insQuery = '';
+						result.rows.forEach((currRow) => {
+							let notFirst = false;
+							insQuery += 'INSERT INTO "' + tableName + '" (';
+							let valQuery = '';
+							for (let propName of Object.keys(currRow || {})) {
+								if (notFirst) {
+									insQuery += ',';
+									valQuery += ',';
+								} else {
+									notFirst = true;
+								}
+								insQuery += '"' + propName + '"';
+								valQuery += "'" + currRow[propName] + "'";
+							}
+							insQuery += ') values (' + valQuery + ');\n';
+						});
+						exported += insQuery;
+					});
 				});
+				res.json(exported);
+			} catch (err) {
+				console.error('Error exporting db', err, err.stack);
+				res.sendStatus(503);
+			}
 		},
 	);
 	app.post(
 		'/backupdb',
 		permissions.checkPermissionsMiddleware('all'),
 		serverIsOnAir,
-		(_req, res) => {
-			db.transaction((tx) =>
-				tx.tableList("name NOT LIKE '%_buk'").then((result) =>
-					Bluebird.map(result.rows, (currRow) => {
+		async (_req, res) => {
+			try {
+				await db.transaction(async (tx) => {
+					const result = await tx.tableList("name NOT LIKE '%_buk'");
+					await Bluebird.map(result.rows, async (currRow) => {
 						const tableName = currRow.name;
-						return tx
-							.dropTable(tableName + '_buk', true)
-							.then(() =>
-								tx.executeSql(
-									'ALTER TABLE "' +
-										tableName +
-										'" RENAME TO "' +
-										tableName +
-										'_buk";',
-								),
-							);
-					}),
-				),
-			)
-				.then(() => res.sendStatus(200))
-				.catch((err) => {
-					console.error('Error backing up db', err, err.stack);
-					res.sendStatus(404);
+						await tx.dropTable(tableName + '_buk', true);
+
+						await tx.executeSql(
+							'ALTER TABLE "' +
+								tableName +
+								'" RENAME TO "' +
+								tableName +
+								'_buk";',
+						);
+					});
 				});
+				res.sendStatus(200);
+			} catch (err) {
+				console.error('Error backing up db', err, err.stack);
+				res.sendStatus(404);
+			}
 		},
 	);
 	app.post(
 		'/restoredb',
 		permissions.checkPermissionsMiddleware('all'),
 		serverIsOnAir,
-		(_req, res) => {
-			db.transaction((tx) =>
-				tx.tableList("name LIKE '%_buk'").then((result) =>
-					Bluebird.map(result.rows, (currRow) => {
+		async (_req, res) => {
+			try {
+				await db.transaction(async (tx) => {
+					const result = await tx.tableList("name LIKE '%_buk'");
+					await Bluebird.map(result.rows, async (currRow) => {
 						const tableName = currRow.name;
-						return tx
-							.dropTable(tableName.slice(0, -4), true)
-							.then(() =>
-								tx.executeSql(
-									'ALTER TABLE "' +
-										tableName +
-										'" RENAME TO "' +
-										tableName.slice(0, -4) +
-										'";',
-								),
-							);
-					}),
-				),
-			)
-				.then(() => {
-					res.sendStatus(200);
-				})
-				.catch((err) => {
-					console.error('Error restoring db', err, err.stack);
-					res.sendStatus(404);
+						await tx.dropTable(tableName.slice(0, -4), true);
+						await tx.executeSql(
+							'ALTER TABLE "' +
+								tableName +
+								'" RENAME TO "' +
+								tableName.slice(0, -4) +
+								'";',
+						);
+					});
 				});
+				res.sendStatus(200);
+			} catch (err) {
+				console.error('Error restoring db', err, err.stack);
+				res.sendStatus(404);
+			}
 		},
 	);
 
@@ -390,8 +372,8 @@ export function setup(app, sbvrUtils, db) {
 	app.merge('/ui/*', sbvrUtils.handleODataRequest);
 	app.patch('/ui/*', sbvrUtils.handleODataRequest);
 
-	app.delete('/', serverIsOnAir, (_req, res) => {
-		Bluebird.all([
+	app.delete('/', serverIsOnAir, async (_req, res) => {
+		await Promise.all([
 			uiApi.patch({
 				resource: 'textarea',
 				passthrough: { req: permissions.root },
@@ -407,10 +389,9 @@ export function setup(app, sbvrUtils, db) {
 				},
 			}),
 			sbvrUtils.deleteModel('data'),
-		]).then(() => {
-			isServerOnAir(false);
-			res.sendStatus(200);
-		});
+		]);
+		await isServerOnAir(false);
+		res.sendStatus(200);
 	});
 
 	return db.transaction(setupModels);

@@ -38,12 +38,13 @@ export function setup(app, sbvrUtils) {
 	addModelHooks = (modelName) => {
 		// TODO: Add checks on POST/PATCH requests as well.
 		sbvrUtils.addPureHook('PUT', modelName, 'all', {
-			PRERUN({ tx, request }) {
+			async PRERUN({ tx, request }) {
 				const vocab = request.vocabulary;
 				const { logger } = sbvrUtils.api[vocab];
 				const id = sbvrUtils.getID(vocab, request);
-				return tx
-					.executeSql(
+				let result;
+				try {
+					result = await tx.executeSql(
 						`\
 SELECT NOT EXISTS(
 	SELECT 1
@@ -53,21 +54,19 @@ SELECT NOT EXISTS(
 	AND r."resource id" = ?
 ) AS result;`,
 						[request.resourceName, id],
-					)
-					.catch((err) => {
-						logger.error('Unable to check resource locks', err, err.stack);
-						throw new Error('Unable to check resource locks');
-					})
-					.then((result) => {
-						if ([false, 0, '0'].includes(result.rows[0].result)) {
-							throw new Error('The resource is locked and cannot be edited');
-						}
-					});
+					);
+				} catch (err) {
+					logger.error('Unable to check resource locks', err, err.stack);
+					throw new Error('Unable to check resource locks');
+				}
+				if ([false, 0, '0'].includes(result.rows[0].result)) {
+					throw new Error('The resource is locked and cannot be edited');
+				}
 			},
 		});
 
 		const endTransaction = (/** @type {number} */ transactionID) =>
-			sbvrUtils.db.transaction((tx) => {
+			sbvrUtils.db.transaction(async (tx) => {
 				/** @type {{[key: string]: { promise: Bluebird<any>, resolve: Function, reject: Function }}} */
 				const placeholders = {};
 				const getLockedRow = (
@@ -81,192 +80,185 @@ WHERE "resource"."id" = "resource-is under-lock"."resource"
 AND "resource-is under-lock"."lock" = ?;`,
 						[lockID],
 					);
-				const getFieldsObject = (
+				const getFieldsObject = async (
 					/** @type {number} */ conditionalResourceID,
 					/** @type {import('@resin/abstract-sql-compiler').AbstractSqlTable} */ clientModel, // 'GET', '/transaction/conditional_field?$select=field_name,field_value&$filter=conditional_resource eq ?'
-				) =>
-					tx
-						.executeSql(
-							`SELECT "conditional field"."field name" AS "field_name", "conditional field"."field value" AS "field_value"
+				) => {
+					const fields = await tx.executeSql(
+						`SELECT "conditional field"."field name" AS "field_name", "conditional field"."field value" AS "field_value"
 FROM "conditional field"
 WHERE "conditional field"."conditional resource" = ?;`,
-							[conditionalResourceID],
-						)
-						.then((fields) => {
-							/** @type {{[key: string]: any}} */
-							const fieldsObject = {};
-							return Bluebird.map(fields.rows, (field) => {
-								const fieldName = field.field_name.replace(
-									clientModel.resourceName + '.',
-									'',
-								);
-								const fieldValue = field.field_value;
-								const modelField = clientModel.fields.find(
-									(f) => f.fieldName === fieldName,
-								);
-								if (modelField == null) {
-									throw new Error(`Invalid field: ${fieldName}`);
+						[conditionalResourceID],
+					);
+					/** @type {{[key: string]: any}} */
+					const fieldsObject = {};
+					await Bluebird.map(fields.rows, async (field) => {
+						const fieldName = field.field_name.replace(
+							clientModel.resourceName + '.',
+							'',
+						);
+						const fieldValue = field.field_value;
+						const modelField = clientModel.fields.find(
+							(f) => f.fieldName === fieldName,
+						);
+						if (modelField == null) {
+							throw new Error(`Invalid field: ${fieldName}`);
+						}
+						if (
+							modelField.dataType === 'ForeignKey' &&
+							Number.isNaN(Number(fieldValue))
+						) {
+							if (!placeholders.hasOwnProperty(fieldValue)) {
+								throw new Error('Cannot resolve placeholder' + fieldValue);
+							} else {
+								try {
+									const resolvedID = await placeholders[fieldValue].promise;
+									fieldsObject[fieldName] = resolvedID;
+								} catch {
+									throw new Error('Placeholder failed' + fieldValue);
 								}
-								if (
-									modelField.dataType === 'ForeignKey' &&
-									Number.isNaN(Number(fieldValue))
-								) {
-									if (!placeholders.hasOwnProperty(fieldValue)) {
-										throw new Error('Cannot resolve placeholder' + fieldValue);
-									} else {
-										return placeholders[fieldValue].promise
-											.then((resolvedID) => {
-												fieldsObject[fieldName] = resolvedID;
-											})
-											.catch(() => {
-												throw new Error('Placeholder failed' + fieldValue);
-											});
-									}
-								} else {
-									fieldsObject[fieldName] = fieldValue;
-								}
-							}).then(() => fieldsObject);
-						});
+							}
+						} else {
+							fieldsObject[fieldName] = fieldValue;
+						}
+					});
+					return fieldsObject;
+				};
 
 				// 'GET', '/transaction/conditional_resource?$select=id,lock,resource_type,conditional_type,placeholder&$filter=transaction eq ?'
-				return tx
-					.executeSql(
-						`\
+				const conditionalResources = await tx.executeSql(
+					`\
 SELECT "conditional resource"."id", "conditional resource"."lock", "conditional resource"."resource type" AS "resource_type",
 "conditional resource"."conditional type" AS "conditional_type", "conditional resource"."placeholder"
 FROM "conditional resource"
 WHERE "conditional resource"."transaction" = ?;\
 `,
-						[transactionID],
-					)
-					.then((conditionalResources) => {
-						conditionalResources.rows.forEach((conditionalResource) => {
-							const { placeholder } = conditionalResource;
-							if (placeholder != null && placeholder.length > 0) {
-								/** @type {Function} */
-								let resolve;
-								/** @type {Function} */
-								let reject;
-								const promise = new Bluebird(($resolve, $reject) => {
-									resolve = $resolve;
-									reject = $reject;
-								});
-								// @ts-ignore
-								placeholders[placeholder] = { promise, resolve, reject };
-							}
+					[transactionID],
+				);
+
+				conditionalResources.rows.forEach((conditionalResource) => {
+					const { placeholder } = conditionalResource;
+					if (placeholder != null && placeholder.length > 0) {
+						/** @type {Function} */
+						let resolve;
+						/** @type {Function} */
+						let reject;
+						const promise = new Bluebird(($resolve, $reject) => {
+							resolve = $resolve;
+							reject = $reject;
 						});
+						// @ts-ignore
+						placeholders[placeholder] = { promise, resolve, reject };
+					}
+				});
 
-						// get conditional resources (if exist)
-						return Bluebird.map(
-							conditionalResources.rows,
-							(conditionalResource) => {
-								const { placeholder } = conditionalResource;
-								const lockID = conditionalResource.lock;
-								const doCleanup = () =>
-									Bluebird.all([
-										tx.executeSql(
-											'DELETE FROM "conditional field" WHERE "conditional resource" = ?;',
-											[conditionalResource.id],
-										),
-										tx.executeSql(
-											'DELETE FROM "conditional resource" WHERE "lock" = ?;',
-											[lockID],
-										),
-										tx.executeSql(
-											'DELETE FROM "resource-is under-lock" WHERE "lock" = ?;',
-											[lockID],
-										),
-										tx.executeSql('DELETE FROM "lock" WHERE "id" = ?;', [
-											lockID,
-										]),
-									]);
+				// get conditional resources (if exist)
+				await Bluebird.map(
+					conditionalResources.rows,
+					async (conditionalResource) => {
+						const { placeholder } = conditionalResource;
+						const lockID = conditionalResource.lock;
+						const doCleanup = () =>
+							Promise.all([
+								tx.executeSql(
+									'DELETE FROM "conditional field" WHERE "conditional resource" = ?;',
+									[conditionalResource.id],
+								),
+								tx.executeSql(
+									'DELETE FROM "conditional resource" WHERE "lock" = ?;',
+									[lockID],
+								),
+								tx.executeSql(
+									'DELETE FROM "resource-is under-lock" WHERE "lock" = ?;',
+									[lockID],
+								),
+								tx.executeSql('DELETE FROM "lock" WHERE "id" = ?;', [lockID]),
+							]);
 
-								const passthrough = { tx };
+						const passthrough = { tx };
 
-								const clientModel = sbvrUtils.getAbstractSqlModel({
-									vocabulary: modelName,
-								}).tables[
-									odataNameToSqlName(conditionalResource.resource_type)
-								];
-								let url = modelName + '/' + conditionalResource.resource_type;
-								switch (conditionalResource.conditional_type) {
-									case 'DELETE':
-										return getLockedRow(lockID)
-											.then((lockedResult) => {
-												const lockedRow = lockedResult.rows[0];
-												url =
-													url +
-													'?$filter=' +
-													clientModel.idField +
-													' eq ' +
-													lockedRow.resource_id;
-												return sbvrUtils.PinejsClient.prototype.delete({
-													url,
-													passthrough,
-												});
-											})
-											.then(doCleanup);
-									case 'EDIT':
-										return getLockedRow(lockID)
-											.then((lockedResult) => {
-												const lockedRow = lockedResult.rows[0];
-												return getFieldsObject(
-													conditionalResource.id,
-													clientModel,
-												).then((body) => {
-													body[clientModel.idField] = lockedRow.resource_id;
-													return sbvrUtils.PinejsClient.prototype.put({
-														url,
-														body,
-														passthrough,
-													});
-												});
-											})
-											.then(doCleanup);
-									case 'ADD':
-										return getFieldsObject(conditionalResource.id, clientModel)
-											.then((body) =>
-												sbvrUtils.PinejsClient.prototype.post({
-													url,
-													body,
-													passthrough,
-												}),
-											)
-											.then((/** @type { {[key: string]: any} } */ result) => {
-												placeholders[placeholder].resolve(
-													result[clientModel.idField],
-												);
-											})
-											.then(doCleanup)
-											.tapCatch((err) => {
-												placeholders[placeholder].reject(err);
-											});
+						const clientModel = sbvrUtils.getAbstractSqlModel({
+							vocabulary: modelName,
+						}).tables[odataNameToSqlName(conditionalResource.resource_type)];
+						let url = modelName + '/' + conditionalResource.resource_type;
+						switch (conditionalResource.conditional_type) {
+							case 'DELETE': {
+								const lockedResult = await getLockedRow(lockID);
+								const lockedRow = lockedResult.rows[0];
+								url =
+									url +
+									'?$filter=' +
+									clientModel.idField +
+									' eq ' +
+									lockedRow.resource_id;
+								await sbvrUtils.PinejsClient.prototype.delete({
+									url,
+									passthrough,
+								});
+								await doCleanup();
+								return;
+							}
+							case 'EDIT': {
+								const lockedResult = await getLockedRow(lockID);
+								const lockedRow = lockedResult.rows[0];
+								const body = await getFieldsObject(
+									conditionalResource.id,
+									clientModel,
+								);
+								body[clientModel.idField] = lockedRow.resource_id;
+								await sbvrUtils.PinejsClient.prototype.put({
+									url,
+									body,
+									passthrough,
+								});
+								await doCleanup();
+								return;
+							}
+							case 'ADD': {
+								try {
+									const body = await getFieldsObject(
+										conditionalResource.id,
+										clientModel,
+									);
+									/** @type { {[key: string]: any} } */
+									const result = await sbvrUtils.PinejsClient.prototype.post({
+										url,
+										body,
+										passthrough,
+									});
+									placeholders[placeholder].resolve(
+										result[clientModel.idField],
+									);
+									await doCleanup();
+								} catch (err) {
+									placeholders[placeholder].reject(err);
+									throw err;
 								}
-							},
-						);
-					})
-					.then(() =>
-						tx.executeSql('DELETE FROM "transaction" WHERE "id" = ?;', [
-							transactionID,
-						]),
-					)
-					.then(() => sbvrUtils.validateModel(tx, modelName));
+								return;
+							}
+						}
+					},
+				);
+				await tx.executeSql('DELETE FROM "transaction" WHERE "id" = ?;', [
+					transactionID,
+				]);
+				await sbvrUtils.validateModel(tx, modelName);
 			});
 
 		// TODO: these really should be specific to the model - currently they will only work for the first model added
-		app.post('/transaction/execute', (req, res) => {
+		app.post('/transaction/execute', async (req, res) => {
 			const id = Number(req.body.id);
 			if (Number.isNaN(id)) {
 				res.sendStatus(404);
 			} else {
-				endTransaction(id)
-					.then(() => {
-						res.sendStatus(200);
-					})
-					.catch((err) => {
-						console.error('Error ending transaction', err, err.stack);
-						res.status(404).json(err);
-					});
+				try {
+					await endTransaction(id);
+
+					res.sendStatus(200);
+				} catch (err) {
+					console.error('Error ending transaction', err, err.stack);
+					res.status(404).json(err);
+				}
 			}
 		});
 		app.get('/transaction', (_req, res) => {
