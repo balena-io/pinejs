@@ -30,25 +30,45 @@ const sessionModel = `
 		Necessity: Each session has at most 1 expiry time
 `;
 
+const asCallback = async <T>(
+	callback: undefined | ((err: any, result?: T) => void),
+	promise: Promise<T>,
+) => {
+	let err;
+	let result;
+	try {
+		result = await promise;
+	} catch ($err) {
+		err = $err;
+	}
+	try {
+		callback?.(err, result);
+	} catch {
+		// ignore errors in the callback
+	}
+};
+
 export class PinejsSessionStore extends Store {
 	public get = ((sid, callback) => {
-		api.session
-			.get({
-				resource: 'session',
-				id: sid,
-				passthrough: {
-					req: permissions.rootRead,
-				},
-				options: {
-					$select: 'data',
-				},
-			})
-			.then((session: AnyObject) => {
-				if (session != null) {
-					return session.data;
-				}
-			})
-			.asCallback(callback);
+		asCallback(
+			callback,
+			api.session
+				.get({
+					resource: 'session',
+					id: sid,
+					passthrough: {
+						req: permissions.rootRead,
+					},
+					options: {
+						$select: 'data',
+					},
+				})
+				.then((session: AnyObject) => {
+					if (session != null) {
+						return session.data;
+					}
+				}),
+		);
 	}) as Store['get'];
 
 	public set = ((sid, data, callback) => {
@@ -57,63 +77,69 @@ export class PinejsSessionStore extends Store {
 			data,
 			expiry_time: data?.cookie?.expires ?? null,
 		};
-		api.session
-			.put({
+		asCallback(
+			callback,
+			api.session.put({
 				resource: 'session',
 				id: sid,
 				passthrough: {
 					req: permissions.root,
 				},
 				body,
-			})
-			.asCallback(callback);
+			}),
+		);
 	}) as Store['set'];
 
 	public destroy = ((sid, callback) => {
-		api.session
-			.delete({
+		asCallback(
+			callback,
+			api.session.delete({
 				resource: 'session',
 				id: sid,
 				passthrough: {
 					req: permissions.root,
 				},
-			})
-			.asCallback(callback);
+			}),
+		);
 	}) as Store['destroy'];
 
 	public all = ((callback) => {
-		api.session
-			.get({
-				resource: 'session',
-				passthrough: {
-					req: permissions.root,
-				},
-				options: {
-					$select: 'session_id',
-					$filter: {
-						expiry_time: { $ge: Date.now() },
+		asCallback(
+			callback,
+			api.session
+				.get({
+					resource: 'session',
+					passthrough: {
+						req: permissions.root,
 					},
-				},
-			})
-			.then((sessions: AnyObject[]) => sessions.map((s) => s.session_id))
-			.asCallback(callback);
+					options: {
+						$select: 'session_id',
+						$filter: {
+							expiry_time: { $ge: Date.now() },
+						},
+					},
+				})
+				.then((sessions: AnyObject[]) => sessions.map((s) => s.session_id)),
+		);
 	}) as Store['all'];
 
 	public clear = ((callback) => {
-		// TODO: Use a truncate
-		api.session
-			.delete({
+		asCallback(
+			callback,
+			// TODO: Use a truncate
+			api.session.delete({
 				resource: 'session',
 				passthrough: {
 					req: permissions.root,
 				},
-			})
-			.asCallback(callback);
+			}),
+		);
 	}) as Store['clear'];
 
 	public length = ((callback) => {
-		api.session
-			.get({
+		asCallback(
+			callback,
+			api.session.get({
 				resource: 'session/$count',
 				passthrough: {
 					req: permissions.rootRead,
@@ -126,8 +152,8 @@ export class PinejsSessionStore extends Store {
 						},
 					},
 				},
-			})
-			.asCallback(callback);
+			}) as Promise<number>,
+		);
 	}) as Store['length'];
 
 	public static config: Config = {

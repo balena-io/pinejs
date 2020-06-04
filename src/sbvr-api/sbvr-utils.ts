@@ -33,7 +33,7 @@ import {
 } from '@balena/odata-to-abstract-sql';
 import * as sbvrTypes from '@balena/sbvr-types';
 import deepFreeze = require('deep-freeze');
-import { PinejsClientCoreFactory } from 'pinejs-client-core';
+import { PinejsClientCore, PromiseResultTypes } from 'pinejs-client-core';
 
 import { ExtendedSBVRParser } from '../extended-sbvr-parser/extended-sbvr-parser';
 
@@ -675,7 +675,7 @@ const runHooks = Bluebird.method(
 
 export const deleteModel = Bluebird.method(async (vocabulary: string) => {
 	await db.transaction((tx) => {
-		const dropStatements: Array<Bluebird<any>> = models[
+		const dropStatements: Array<Promise<any>> = models[
 			vocabulary
 		].sql.dropSchema.map((dropStatement) => tx.executeSql(dropStatement));
 		return Promise.all(
@@ -879,11 +879,7 @@ export type Passthrough = AnyObject & {
 	tx?: Db.Tx;
 };
 
-export class PinejsClient extends PinejsClientCoreFactory(Bluebird)<
-	PinejsClient,
-	Bluebird<{}>,
-	Bluebird<PinejsClientCoreFactory.PromiseResultTypes>
-> {
+export class PinejsClient extends PinejsClientCore<PinejsClient> {
 	public passthrough: Passthrough;
 	public _request({
 		method,
@@ -919,7 +915,7 @@ export const runURI = (
 	tx?: Db.Tx,
 	req?: permissions.PermissionReq,
 	custom?: AnyObject,
-): Bluebird<PinejsClientCoreFactory.PromiseResultTypes> => {
+): Bluebird<PromiseResultTypes> => {
 	let user: User | undefined;
 	let apiKey: ApiKey | undefined;
 
@@ -957,67 +953,65 @@ export const runURI = (
 		tx,
 	} as any;
 
-	return new Bluebird<PinejsClientCoreFactory.PromiseResultTypes>(
-		(resolve, reject) => {
-			const res: Express.Response = {
-				__internalPinejs: true,
-				on: _.noop,
-				statusCode: 200,
-				status(statusCode: number) {
-					this.statusCode = statusCode;
-					return this;
-				},
-				sendStatus: (statusCode: number) => {
-					if (statusCode >= 400) {
-						const ErrorClass =
-							statusCodeToError[statusCode as keyof typeof statusCodeToError];
-						if (ErrorClass != null) {
-							reject(new ErrorClass());
-						} else {
-							reject(new HttpError(statusCode));
-						}
+	return new Bluebird<PromiseResultTypes>((resolve, reject) => {
+		const res: Express.Response = {
+			__internalPinejs: true,
+			on: _.noop,
+			statusCode: 200,
+			status(statusCode: number) {
+				this.statusCode = statusCode;
+				return this;
+			},
+			sendStatus: (statusCode: number) => {
+				if (statusCode >= 400) {
+					const ErrorClass =
+						statusCodeToError[statusCode as keyof typeof statusCodeToError];
+					if (ErrorClass != null) {
+						reject(new ErrorClass());
 					} else {
-						resolve();
+						reject(new HttpError(statusCode));
 					}
-				},
-				send(statusCode: number) {
-					if (statusCode == null) {
-						statusCode = this.statusCode;
-					}
-					this.sendStatus(statusCode);
-				},
-				json(data: any, statusCode: number) {
-					if (_.isError(data)) {
-						reject(data);
-						return;
-					}
-					if (statusCode == null) {
-						statusCode = this.statusCode;
-					}
-					if (statusCode >= 400) {
-						const ErrorClass =
-							statusCodeToError[statusCode as keyof typeof statusCodeToError];
-						if (ErrorClass != null) {
-							reject(new ErrorClass(data));
-						} else {
-							reject(new HttpError(statusCode, data));
-						}
+				} else {
+					resolve();
+				}
+			},
+			send(statusCode: number) {
+				if (statusCode == null) {
+					statusCode = this.statusCode;
+				}
+				this.sendStatus(statusCode);
+			},
+			json(data: any, statusCode: number) {
+				if (_.isError(data)) {
+					reject(data);
+					return;
+				}
+				if (statusCode == null) {
+					statusCode = this.statusCode;
+				}
+				if (statusCode >= 400) {
+					const ErrorClass =
+						statusCodeToError[statusCode as keyof typeof statusCodeToError];
+					if (ErrorClass != null) {
+						reject(new ErrorClass(data));
 					} else {
-						resolve(data);
+						reject(new HttpError(statusCode, data));
 					}
-				},
-				set: _.noop,
-				type: _.noop,
-			} as any;
+				} else {
+					resolve(data);
+				}
+			},
+			set: _.noop,
+			type: _.noop,
+		} as any;
 
-			const next = (route?: string) => {
-				console.warn('Next called on a runURI?!', method, uri, route);
-				res.sendStatus(500);
-			};
+		const next = (route?: string) => {
+			console.warn('Next called on a runURI?!', method, uri, route);
+			res.sendStatus(500);
+		};
 
-			handleODataRequest(emulatedReq, res, next);
-		},
-	);
+		handleODataRequest(emulatedReq, res, next);
+	});
 };
 
 export const getAbstractSqlModel = (
