@@ -1,8 +1,8 @@
 {
-  "name": "@resin/pinejs",
+  "name": "@balena/pinejs",
   "version": "12.4.1",
   "main": "out/server-glue/module",
-  "repository": "git@github.com:resin-io/pinejs.git",
+  "repository": "git@github.com:balena-io/pinejs.git",
   "license": "Apache-2.0",
   "bin": {
     "odata-compiler": "./bin/odata-compiler.js",

@@ -13,8 +13,8 @@ In order to get an idea of how SBVR works, visit the [sbvr lab](http://www.sbvr.
 
 The following tools demonstrate the way to use the compile chain from a SBVR file to SQL and from an OData URL to SQL: 
 
-* [https://github.com/resin-io-modules/sbvr-compiler](https://github.com/resin-io-modules/sbvr-compiler)
-* [https://github.com/resin-io-modules/odata-compiler](https://github.com/resin-io-modules/odata-compiler)
+* [https://github.com/balena-io-modules/sbvr-compiler](https://github.com/balena-io-modules/sbvr-compiler)
+* [https://github.com/balena-io-modules/odata-compiler](https://github.com/balena-io-modules/odata-compiler)
 
 Both tools use some of the main dependencies of Pine.js:
 
@@ -45,9 +45,8 @@ The documentation inside /docs folder also provide a great overview of the main 
 * [docs/Types.md](docs/Types.md): types definitions and declarations in various systems.
 * [docs/sequence-diagrams/](docs/sequence-diagrams): provide a great overview of how the main processes are executed, including OData request parsing, response processing, etc. (The sequence diagrams can be depicted in [websequencediagrams.com](https://www.websequencediagrams.com))
 
-One can experiment with Pine.js, its main dependencies and the above tools inside the development environment of resin.
+One can experiment with Pine.js, its main dependencies and the above tools inside the development environment of balena.
 
 
 ### Where to go from here:
-Start by creating your very first application with Pine.js. Jump to the [Getting Started guide](https://github.com/resin-io/pinejs/blob/master/docs/GettingStarted.md).
-
+Start by creating your very first application with Pine.js. Jump to the [Getting Started guide](https://github.com/balena-io/pinejs/blob/master/docs/GettingStarted.md).
