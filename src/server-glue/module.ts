@@ -44,13 +44,13 @@ export const init = (
 	app: Express.Application,
 	config?: string | configLoader.Config,
 ): Bluebird<ReturnType<typeof configLoader.setup>> =>
-	sbvrUtils
-		.setup(app, db)
-		.then(async () => {
+	Bluebird.try(async () => {
+		try {
+			await sbvrUtils.setup(app, db);
 			const cfgLoader = await configLoader.setup(app);
 			await cfgLoader.loadConfig(migrator.config);
 
-			const promises: Array<Bluebird<void>> = [];
+			const promises: Array<Promise<void>> = [];
 			if (process.env.SBVR_SERVER_ENABLED) {
 				const sbvrServer = await import('../data-server/sbvr-server');
 				const transactions = require('../http-transactions/transactions');
@@ -64,11 +64,11 @@ export const init = (
 			if (!process.env.CONFIG_LOADER_DISABLED) {
 				promises.push(cfgLoader.loadApplicationConfig(config));
 			}
-			await Bluebird.all(promises);
+			await Promise.all(promises);
 
 			return cfgLoader;
-		})
-		.catch((err) => {
+		} catch (err) {
 			console.error('Error initialising server', err, err.stack);
 			process.exit(1);
-		});
+		}
+	});

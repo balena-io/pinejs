@@ -73,8 +73,8 @@ export const getAndCheckBindValues = (
 ) => {
 	const { odataBinds, values, engine } = request;
 	const sqlModelTables = sbvrUtils.getAbstractSqlModel(request).tables;
-	return Bluebird.map(bindings, (binding) => {
-		let fieldName: string;
+	return Bluebird.map(bindings, async (binding) => {
+		let fieldName: string = '';
 		let field: { dataType: string };
 		let value: any;
 		if (binding[0] === 'Bind') {
@@ -135,11 +135,12 @@ export const getAndCheckBindValues = (
 			throw new Error(`Bind value cannot be undefined: ${binding}`);
 		}
 
-		return AbstractSQLCompiler[engine]
-			.dataTypeValidate(value, field)
-			.tapCatch((e: Error) => {
-				e.message = '"' + fieldName + '" ' + e.message;
-			});
+		try {
+			return await AbstractSQLCompiler[engine].dataTypeValidate(value, field);
+		} catch (err) {
+			err.message = `"${fieldName}" ${err.message}`;
+			throw err;
+		}
 	});
 };
 

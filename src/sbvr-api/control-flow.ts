@@ -1,19 +1,6 @@
 import type { Resolvable } from './common-types';
 
-import * as Bluebird from 'bluebird';
 import * as _ from 'lodash';
-
-export const liftP = <T, U>(fn: (v: T) => Resolvable<U>) => {
-	return (a: T | T[]): Bluebird<U[] | U> => {
-		if (Array.isArray(a)) {
-			// This must not be a settle as if any operation fails in a changeset
-			// we want to discard the whole
-			return Bluebird.mapSeries(a, fn);
-		} else {
-			return Bluebird.resolve(a).then(fn);
-		}
-	};
-};
 
 export type MappingFunction = <T, U>(
 	a: T[],

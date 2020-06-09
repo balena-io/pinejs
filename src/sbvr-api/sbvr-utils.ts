@@ -459,119 +459,119 @@ export const executeModel = (
 	model: ExecutableModel,
 ): Bluebird<void> => executeModels(tx, [model]);
 
-export const executeModels = (
-	tx: Db.Tx,
-	execModels: ExecutableModel[],
-): Bluebird<void> =>
-	Bluebird.map(execModels, async (model) => {
-		const { apiRoot } = model;
+export const executeModels = Bluebird.method(
+	async (tx: Db.Tx, execModels: ExecutableModel[]): Promise<void> => {
+		try {
+			await Bluebird.map(execModels, async (model) => {
+				const { apiRoot } = model;
 
-		await migrator.run(tx, model);
-		const compiledModel = generateModels(model, db.engine);
+				await migrator.run(tx, model);
+				const compiledModel = generateModels(model, db.engine);
 
-		// Create tables related to terms and fact types
-		// Run statements sequentially, as the order of the CREATE TABLE statements matters (eg. for foreign keys).
-		for (const createStatement of compiledModel.sql.createSchema) {
-			const promise = tx.executeSql(createStatement);
-			if (db.engine === 'websql') {
-				promise.catch((err) => {
-					console.warn(
-						"Ignoring errors in the create table statements for websql as it doesn't support CREATE IF NOT EXISTS",
-						err,
-					);
-				});
-			}
-			await promise;
-		}
-		await migrator.postRun(tx, model);
-
-		odataResponse.prepareModel(compiledModel.abstractSql);
-		deepFreeze(compiledModel.abstractSql);
-		models[apiRoot] = compiledModel;
-
-		// Validate the [empty] model according to the rules.
-		// This may eventually lead to entering obligatory data.
-		// For the moment it blocks such models from execution.
-		await validateModel(tx, apiRoot);
-
-		// TODO: Can we do this without the cast?
-		api[apiRoot] = new PinejsClient('/' + apiRoot + '/') as LoggingClient;
-		api[apiRoot].logger = _.cloneDeep(console);
-		if (model.logging != null) {
-			const defaultSetting = model.logging?.default ?? true;
-			for (const k of Object.keys(model.logging)) {
-				const key = k as keyof Console;
-				if (
-					typeof api[apiRoot].logger[key] === 'function' &&
-					!(model.logging?.[key] ?? defaultSetting)
-				) {
-					api[apiRoot].logger[key] = _.noop;
+				// Create tables related to terms and fact types
+				// Run statements sequentially, as the order of the CREATE TABLE statements matters (eg. for foreign keys).
+				for (const createStatement of compiledModel.sql.createSchema) {
+					const promise = tx.executeSql(createStatement);
+					if (db.engine === 'websql') {
+						promise.catch((err) => {
+							console.warn(
+								"Ignoring errors in the create table statements for websql as it doesn't support CREATE IF NOT EXISTS",
+								err,
+							);
+						});
+					}
+					await promise;
 				}
-			}
-		}
-		return compiledModel;
-		// Only update the dev models once all models have finished executing.
-	})
-		.map((model: CompiledModel) => {
-			const updateModel = async (modelType: keyof CompiledModel) => {
-				if (model[modelType] == null) {
-					return api.dev.delete({
+				await migrator.postRun(tx, model);
+
+				odataResponse.prepareModel(compiledModel.abstractSql);
+				deepFreeze(compiledModel.abstractSql);
+				models[apiRoot] = compiledModel;
+
+				// Validate the [empty] model according to the rules.
+				// This may eventually lead to entering obligatory data.
+				// For the moment it blocks such models from execution.
+				await validateModel(tx, apiRoot);
+
+				// TODO: Can we do this without the cast?
+				api[apiRoot] = new PinejsClient('/' + apiRoot + '/') as LoggingClient;
+				api[apiRoot].logger = _.cloneDeep(console);
+				if (model.logging != null) {
+					const defaultSetting = model.logging?.default ?? true;
+					for (const k of Object.keys(model.logging)) {
+						const key = k as keyof Console;
+						if (
+							typeof api[apiRoot].logger[key] === 'function' &&
+							!(model.logging?.[key] ?? defaultSetting)
+						) {
+							api[apiRoot].logger[key] = _.noop;
+						}
+					}
+				}
+				return compiledModel;
+				// Only update the dev models once all models have finished executing.
+			}).map((model: CompiledModel) => {
+				const updateModel = async (modelType: keyof CompiledModel) => {
+					if (model[modelType] == null) {
+						return api.dev.delete({
+							resource: 'model',
+							passthrough: {
+								tx,
+								req: permissions.root,
+							},
+							options: {
+								$filter: {
+									is_of__vocabulary: model.vocab,
+									model_type: modelType,
+								},
+							},
+						});
+					}
+					const result = (await api.dev.get({
 						resource: 'model',
 						passthrough: {
 							tx,
-							req: permissions.root,
+							req: permissions.rootRead,
 						},
 						options: {
+							$select: 'id',
 							$filter: {
 								is_of__vocabulary: model.vocab,
 								model_type: modelType,
 							},
 						},
-					});
-				}
-				const result = (await api.dev.get({
-					resource: 'model',
-					passthrough: {
-						tx,
-						req: permissions.rootRead,
-					},
-					options: {
-						$select: 'id',
-						$filter: {
-							is_of__vocabulary: model.vocab,
-							model_type: modelType,
-						},
-					},
-				})) as Array<{ id: number }>;
+					})) as Array<{ id: number }>;
 
-				let method: SupportedMethod = 'POST';
-				let uri = '/dev/model';
-				const body: AnyObject = {
-					is_of__vocabulary: model.vocab,
-					model_value: model[modelType],
-					model_type: modelType,
+					let method: SupportedMethod = 'POST';
+					let uri = '/dev/model';
+					const body: AnyObject = {
+						is_of__vocabulary: model.vocab,
+						model_value: model[modelType],
+						model_type: modelType,
+					};
+					const id = result?.[0]?.id;
+					if (id != null) {
+						uri += '(' + id + ')';
+						method = 'PATCH';
+						body.id = id;
+					} else {
+						uri += '?returnResource=false';
+					}
+
+					return runURI(method, uri, body, tx, permissions.root);
 				};
-				const id = result?.[0]?.id;
-				if (id != null) {
-					uri += '(' + id + ')';
-					method = 'PATCH';
-					body.id = id;
-				} else {
-					uri += '?returnResource=false';
-				}
 
-				return runURI(method, uri, body, tx, permissions.root);
-			};
-
-			return Bluebird.map(
-				['se', 'lf', 'abstractSql', 'sql', 'odataMetadata'],
-				updateModel,
-			);
-		})
-		.tapCatch(() =>
-			Bluebird.map(execModels, ({ apiRoot }) => cleanupModel(apiRoot)),
-		)
-		.return();
+				return Bluebird.map(
+					['se', 'lf', 'abstractSql', 'sql', 'odataMetadata'],
+					updateModel,
+				);
+			});
+		} catch (err) {
+			await Bluebird.map(execModels, ({ apiRoot }) => cleanupModel(apiRoot));
+			throw err;
+		}
+	},
+);
 
 const cleanupModel = (vocab: string) => {
 	delete models[vocab];
@@ -637,7 +637,7 @@ const getHooks = (
 getHooks.clear = () => getMethodHooks.clear();
 
 const runHooks = Bluebird.method(
-	(
+	async (
 		hookName: keyof Hooks,
 		hooksList: InstantiatedHooks<Hooks> | undefined,
 		args: {
@@ -668,35 +668,36 @@ const runHooks = Bluebird.method(
 				),
 			});
 		}
-		return Bluebird.map(hooks, (hook) => hook.run(args)).return();
+		await Bluebird.map(hooks, async (hook) => {
+			await hook.run(args);
+		});
 	},
 );
 
-export const deleteModel = (vocabulary: string) => {
-	return db
-		.transaction((tx) => {
-			const dropStatements: Array<Bluebird<any>> = models[
-				vocabulary
-			].sql.dropSchema.map((dropStatement) => tx.executeSql(dropStatement));
-			return Bluebird.all(
-				dropStatements.concat([
-					api.dev.delete({
-						resource: 'model',
-						passthrough: {
-							tx,
-							req: permissions.root,
+export const deleteModel = Bluebird.method(async (vocabulary: string) => {
+	await db.transaction((tx) => {
+		const dropStatements: Array<Bluebird<any>> = models[
+			vocabulary
+		].sql.dropSchema.map((dropStatement) => tx.executeSql(dropStatement));
+		return Promise.all(
+			dropStatements.concat([
+				api.dev.delete({
+					resource: 'model',
+					passthrough: {
+						tx,
+						req: permissions.root,
+					},
+					options: {
+						$filter: {
+							is_of__vocabulary: vocabulary,
 						},
-						options: {
-							$filter: {
-								is_of__vocabulary: vocabulary,
-							},
-						},
-					}),
-				]),
-			);
-		})
-		.then(() => cleanupModel(vocabulary));
-};
+					},
+				}),
+			]),
+		);
+	});
+	await cleanupModel(vocabulary);
+});
 
 const isWhereNode = (
 	x: AbstractSQLCompiler.AbstractSqlType,
@@ -1130,29 +1131,35 @@ export const handleODataRequest: Express.Handler = (req, res, next) => {
 				requests = [{ method, url, data: body }];
 			}
 
+			const prepareRequest = async ($request: uriParser.ODataRequest) => {
+				$request.engine = db.engine;
+				// Get the full hooks list now that we can.
+				$request.hooks = getHooks($request);
+				// Add/check the relevant permissions
+				try {
+					await runHooks('POSTPARSE', $request.hooks, {
+						req,
+						request: $request,
+						tx: req.tx,
+					});
+					const translatedRequest = await uriParser.translateUri($request);
+					return await compileRequest(translatedRequest);
+				} catch (err) {
+					rollbackRequestHooks(reqHooks);
+					rollbackRequestHooks($request.hooks);
+					throw err;
+				}
+			};
+
 			// Parse the OData requests
 			const results = await mapSeries(requests, async (requestPart) => {
-				const request = await uriParser.parseOData(requestPart).then(
-					controlFlow.liftP(async ($request) => {
-						$request.engine = db.engine;
-						// Get the full hooks list now that we can.
-						$request.hooks = getHooks($request);
-						// Add/check the relevant permissions
-						try {
-							await runHooks('POSTPARSE', $request.hooks, {
-								req,
-								request: $request,
-								tx: req.tx,
-							});
-							const translatedRequest = await uriParser.translateUri($request);
-							return await compileRequest(translatedRequest);
-						} catch (err) {
-							rollbackRequestHooks(reqHooks);
-							rollbackRequestHooks($request.hooks);
-							throw err;
-						}
-					}),
-				);
+				let request = await uriParser.parseOData(requestPart);
+
+				if (Array.isArray(request)) {
+					request = await Bluebird.mapSeries(request, prepareRequest);
+				} else {
+					request = await prepareRequest(request);
+				}
 				// Run the request in its own transaction
 				return runTransaction<Response | Response[]>(req, async (tx) => {
 					tx.on('rollback', () => {
@@ -1395,7 +1402,7 @@ const updateBinds = (
 	return request;
 };
 
-const prepareResponse = (
+const prepareResponse = async (
 	req: Express.Request,
 	res: Express.Response,
 	request: uriParser.ODataRequest,
@@ -1416,7 +1423,7 @@ const prepareResponse = (
 		case 'OPTIONS':
 			return respondOptions(req, res, request, result, tx);
 		default:
-			return Bluebird.reject(new MethodNotAllowedError());
+			throw new MethodNotAllowedError();
 	}
 };
 
@@ -1656,29 +1663,31 @@ const runDelete = async (
 	return undefined;
 };
 
-export const executeStandardModels = (tx: Db.Tx): Bluebird<void> => {
-	// dev model must run first
-	return executeModel(tx, {
-		apiRoot: 'dev',
-		modelText: devModel,
-		logging: {
-			log: false,
-		},
-		migrations: {
-			'11.0.0-modified-at': `
+export const executeStandardModels = Bluebird.method(
+	async (tx: Db.Tx): Promise<void> => {
+		try {
+			// dev model must run first
+			await executeModel(tx, {
+				apiRoot: 'dev',
+				modelText: devModel,
+				logging: {
+					log: false,
+				},
+				migrations: {
+					'11.0.0-modified-at': `
 				ALTER TABLE "model"
 				ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
 			`,
-		},
-	})
-		.then(async () => {
+				},
+			});
 			await executeModels(tx, permissions.config.models);
 			console.info('Successfully executed standard models.');
-		})
-		.tapCatch((err: Error) => {
+		} catch (err) {
 			console.error('Failed to execute standard models.', err);
-		});
-};
+			throw err;
+		}
+	},
+);
 
 export const addSideEffectHook = (
 	method: HookMethod,
@@ -1763,27 +1772,24 @@ const addHook = (
 	getHooks.clear();
 };
 
-export const setup = (
-	_app: Express.Application,
-	$db: Db.Database,
-): Bluebird<void> => {
-	exports.db = db = $db;
-	return db
-		.transaction(async (tx) => {
-			await executeStandardModels(tx);
-			await permissions.setup();
-		})
-		.catch((err) => {
+export const setup = Bluebird.method(
+	async (_app: Express.Application, $db: Db.Database): Promise<void> => {
+		exports.db = db = $db;
+		try {
+			await db.transaction(async (tx) => {
+				await executeStandardModels(tx);
+				await permissions.setup();
+			});
+		} catch (err) {
 			console.error('Could not execute standard models', err);
 			process.exit(1);
-		})
-		.then(
-			() =>
-				db
-					.executeSql(
-						'CREATE UNIQUE INDEX "uniq_model_model_type_vocab" ON "model" ("is of-vocabulary", "model type");',
-					)
-					.catch(_.noop), // we can't use IF NOT EXISTS on all dbs, so we have to ignore the error raised if this index already exists
-		)
-		.return();
-};
+		}
+		try {
+			await db.executeSql(
+				'CREATE UNIQUE INDEX "uniq_model_model_type_vocab" ON "model" ("is of-vocabulary", "model type");',
+			);
+		} catch {
+			// we can't use IF NOT EXISTS on all dbs, so we have to ignore the error raised if this index already exists
+		}
+	},
+);
