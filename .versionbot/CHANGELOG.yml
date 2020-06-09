@@ -1,4 +1,14 @@
 - commits:
+    - subject: More async/await conversion
+      hash: 4ee2173f450e869fdecc60876fbcdf7fc39b4428
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+  version: 12.3.13
+  date: 2020-06-04T17:03:36.633Z
+- commits:
     - subject: Convert javascript files to async/await
       hash: 29bff8a21a27a7d73f31b7519898c3e6d5cc48da
       body: ''
