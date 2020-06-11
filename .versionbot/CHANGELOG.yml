@@ -1,4 +1,14 @@
 - commits:
+    - subject: Add missing and remove unused dependencies
+      hash: c4499120c374d654831fa76b246782b3b1cec92f
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+  version: 12.3.14
+  date: 2020-06-11T14:46:39.046Z
+- commits:
     - subject: More async/await conversion
       hash: 4ee2173f450e869fdecc60876fbcdf7fc39b4428
       body: ''
