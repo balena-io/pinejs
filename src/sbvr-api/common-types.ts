@@ -1,3 +1,7 @@
+import type { PinejsClientCoreFactory } from 'pinejs-client-core';
+
+export type AnyObject = PinejsClientCoreFactory.AnyObject;
+
 type Overwrite<T, U> = Pick<T, Exclude<keyof T, keyof U>> & U;
 export type RequiredField<T, F extends keyof T> = Overwrite<
 	T,

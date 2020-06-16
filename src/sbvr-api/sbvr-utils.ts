@@ -1,7 +1,7 @@
 import type * as Express from 'express';
 import type * as Db from '../database-layer/db';
 import type { Model } from '../config-loader/config-loader';
-import type { OptionalField, RequiredField } from './common-types';
+import type { AnyObject, OptionalField, RequiredField } from './common-types';
 
 declare global {
 	namespace Express {
@@ -59,7 +59,6 @@ import {
 	statusCodeToError,
 	TranslationError,
 	UnauthorizedError,
-	AnyObject,
 } from './errors';
 import * as uriParser from './uri-parser';
 export * from './errors';

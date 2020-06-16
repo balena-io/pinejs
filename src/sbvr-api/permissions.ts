@@ -12,7 +12,8 @@ import type {
 	ODataQuery,
 	SupportedMethod,
 } from '@balena/odata-parser';
-import type { AnyObject, ApiKey, HookReq, User } from '../sbvr-api/sbvr-utils';
+import type { ApiKey, HookReq, User } from '../sbvr-api/sbvr-utils';
+import type { AnyObject } from './common-types';
 
 import {
 	Definition,
