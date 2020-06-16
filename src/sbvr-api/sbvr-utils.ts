@@ -57,7 +57,6 @@ import {
 	UnauthorizedError,
 } from './errors';
 import * as uriParser from './uri-parser';
-export * from './errors';
 import {
 	HookBlueprint,
 	InstantiatedHooks,
