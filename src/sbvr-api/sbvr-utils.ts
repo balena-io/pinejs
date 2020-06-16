@@ -40,7 +40,6 @@ import { generateODataMetadata } from '../odata-metadata/odata-metadata-generato
 // tslint:disable-next-line:no-var-requires
 const devModel = require('./dev.sbvr');
 import * as permissions from './permissions';
-export * from './permissions';
 import {
 	BadRequestError,
 	ConflictError,
