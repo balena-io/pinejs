@@ -13,6 +13,7 @@ export * as dbModule from '../database-layer/db';
 export { PinejsSessionStore } from '../pinejs-session-store/pinejs-session-store';
 export * as sbvrUtils from '../sbvr-api/sbvr-utils';
 export * as permissions from '../sbvr-api/permissions';
+export * as errors from '../sbvr-api/errors';
 
 let databaseOptions: {
 	engine: string;
