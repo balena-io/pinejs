@@ -1,4 +1,56 @@
 - commits:
+    - subject: Export migrator types
+      hash: f57d5172b6845b41ed0997ef38701c46c0e98d10
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+    - subject: Export common-types types
+      hash: 7f5224aab66e401d8ff79e32a12ff9e490041e60
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+    - subject: Export config-loader types
+      hash: 94ef88141aa88771f8cfa4bdb91a889f1d7735a6
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+    - subject: Export env as a standalone
+      hash: 8791cdfd90c7e5b28b094356786b1c52cb638875
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+    - subject: Export errors as a standalone
+      hash: b70b32874fbbaefdf2ae8fb84ef7384b4f8405ff
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+    - subject: Export permissions as a standalone
+      hash: 17abbec59c1f11b1a5ae913434951f2a7fe2fd2f
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+    - subject: Move `AnyObject` type to common-types
+      hash: 102c97ee00211256d45aaff3fef357ff59296806
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+  version: 12.4.0
+  date: 2020-06-17T14:12:23.226Z
+- commits:
     - subject: Add missing and remove unused dependencies
       hash: c4499120c374d654831fa76b246782b3b1cec92f
       body: ''
