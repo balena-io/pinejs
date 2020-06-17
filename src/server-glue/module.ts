@@ -15,6 +15,7 @@ export * as sbvrUtils from '../sbvr-api/sbvr-utils';
 export * as permissions from '../sbvr-api/permissions';
 export * as errors from '../sbvr-api/errors';
 export * as env from '../config-loader/env';
+export * as types from '../sbvr-api/common-types';
 export type { configLoader as ConfigLoader };
 
 let databaseOptions: {
