@@ -1,3 +1,5 @@
+import type { AnyObject } from './common-types';
+
 import { TypedError } from 'typed-error';
 
 export class PermissionError extends TypedError {}
@@ -8,10 +10,7 @@ export class SbvrValidationError extends TypedError {}
 
 export class TranslationError extends TypedError {}
 export class ParsingError extends TypedError {}
-
-export interface AnyObject {
-	[index: string]: any;
-}
+export { AnyObject };
 
 export class HttpError extends TypedError {
 	constructor(

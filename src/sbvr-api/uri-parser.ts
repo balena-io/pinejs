@@ -7,6 +7,7 @@ import type {
 } from '@balena/odata-parser';
 import type { Tx } from '../database-layer/db';
 import type { InstantiatedHooks } from './hooks';
+import type { AnyObject } from './common-types';
 
 import * as ODataParser from '@balena/odata-parser';
 import * as Bluebird from 'bluebird';
@@ -43,7 +44,7 @@ export interface ODataRequest {
 	url: string;
 	odataQuery: ODataQuery;
 	odataBinds: OdataBinds;
-	values: sbvrUtils.AnyObject;
+	values: AnyObject;
 	abstractSqlModel?: AbstractSQLCompiler.AbstractSqlModel;
 	abstractSqlQuery?: AbstractSQLCompiler.AbstractSqlQuery;
 	sqlQuery?: AbstractSQLCompiler.SqlResult | AbstractSQLCompiler.SqlResult[];
@@ -51,7 +52,7 @@ export interface ODataRequest {
 	vocabulary: string;
 	_defer?: boolean;
 	id?: number;
-	custom: sbvrUtils.AnyObject;
+	custom: AnyObject;
 	tx?: Tx;
 	modifiedFields?: ReturnType<
 		AbstractSQLCompiler.EngineInstance['getModifiedFields']

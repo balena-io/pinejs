@@ -4,13 +4,20 @@ import './sbvr-loader';
 
 import * as Bluebird from 'bluebird';
 import * as dbModule from '../database-layer/db';
-export { dbModule };
 import * as configLoader from '../config-loader/config-loader';
 import * as migrator from '../migrator/migrator';
 
-import { PinejsSessionStore } from '../pinejs-session-store/pinejs-session-store';
 import * as sbvrUtils from '../sbvr-api/sbvr-utils';
-export { sbvrUtils, PinejsSessionStore };
+
+export * as dbModule from '../database-layer/db';
+export { PinejsSessionStore } from '../pinejs-session-store/pinejs-session-store';
+export * as sbvrUtils from '../sbvr-api/sbvr-utils';
+export * as permissions from '../sbvr-api/permissions';
+export * as errors from '../sbvr-api/errors';
+export * as env from '../config-loader/env';
+export * as types from '../sbvr-api/common-types';
+export type { configLoader as ConfigLoader };
+export type { migrator as Migrator };
 
 let databaseOptions: {
 	engine: string;

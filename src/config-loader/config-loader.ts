@@ -2,7 +2,7 @@ import type * as Express from 'express';
 import type { AbstractSqlModel } from '@resin/abstract-sql-compiler';
 import type { Database } from '../database-layer/db';
 import type { Migration } from '../migrator/migrator';
-import type { Resolvable } from '../sbvr-api/common-types';
+import type { AnyObject, Resolvable } from '../sbvr-api/common-types';
 
 import * as Bluebird from 'bluebird';
 import * as fs from 'fs';
@@ -51,8 +51,8 @@ export interface Config {
 const getOrCreate = async (
 	authApiTx: sbvrUtils.PinejsClient,
 	resource: string,
-	uniqueFields: sbvrUtils.AnyObject,
-	extraFields?: sbvrUtils.AnyObject,
+	uniqueFields: AnyObject,
+	extraFields?: AnyObject,
 ) => {
 	const [result] = (await authApiTx.get({
 		resource,
