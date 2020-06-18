@@ -40,7 +40,7 @@
     "@types/method-override": "0.0.31",
     "@types/multer": "^1.4.3",
     "@types/mysql": "^2.15.13",
-    "@types/node": "^10.17.26",
+    "@types/node": "^12.12.47",
     "@types/passport": "^0.4.7",
     "@types/passport-local": "1.0.33",
     "@types/passport-strategy": "^0.2.35",
