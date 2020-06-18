@@ -19,7 +19,7 @@ Pine.js used to be copied to other projects as a single built file. This is no l
 
 ```
 "dependencies": {
-    "@resin/pinejs": "^2.0.0",
+    "@balena/pinejs": "^13.0.0",
 ```
 
 
@@ -37,5 +37,5 @@ You can also specify a different target folder in which to build Pine.js via the
 
 [docs]:.
 [pine-example]:https://github.com/resin-io/pine-example
-[pinejs-client-js]:https://github.com/resin-io/pinejs-client-js
+[pinejs-client-js]:https://github.com/balena-io/pinejs-client-js
 [project-config]:ProjectConfig.md

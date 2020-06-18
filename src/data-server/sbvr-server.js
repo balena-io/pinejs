@@ -29,7 +29,7 @@ Fact type:  textarea has text
 const isServerOnAir = (() => {
 	/** @type { ((thenableOrResult?: import('../sbvr-api/common-types').Resolvable<boolean>) => void) | undefined } */
 	let resolve;
-	let promise = new Bluebird(($resolve) => {
+	let promise = new Promise(($resolve) => {
 		resolve = $resolve;
 	});
 	return (/** @type {boolean} */ value) => {
@@ -38,7 +38,7 @@ const isServerOnAir = (() => {
 				resolve(value);
 				resolve = undefined;
 			} else {
-				promise = Bluebird.resolve(value);
+				promise = Promise.resolve(value);
 			}
 		}
 		return promise;

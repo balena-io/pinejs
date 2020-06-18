@@ -17,8 +17,8 @@ This is a non-exhaustive list of the technologies used in Pinejs
 ### Config Loader
 
 This module exports a function to load configuration files into Pinejs. This module exports a ```setup``` function which must be called with the express app object as argument. It will return an object that can be used to load internal and external configuration files when starting up Pinejs.
-Refer to [ProjectConfig](https://github.com/resin-io/pinejs/blob/master/docs/ProjectConfig.md) for more information about the structure of configuration files.
-Most of the following internal modules define an SBVR model that is loaded through the config loader, the config loader allows the user to specify some ```customServerCode``` that is executed right after loading the model. You can refer to [CustomServerCode](https://github.com/resin-io/pinejs/blob/master/docs/CustomServerCode.md) for more information on how this can be done.
+Refer to [ProjectConfig](https://github.com/balena-io/pinejs/blob/master/docs/ProjectConfig.md) for more information about the structure of configuration files.
+Most of the following internal modules define an SBVR model that is loaded through the config loader, the config loader allows the user to specify some ```customServerCode``` that is executed right after loading the model. You can refer to [CustomServerCode](https://github.com/balena-io/pinejs/blob/master/docs/CustomServerCode.md) for more information on how this can be done.
 
 ### Database Layer
 

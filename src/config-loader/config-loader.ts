@@ -1,5 +1,5 @@
 import type * as Express from 'express';
-import type { AbstractSqlModel } from '@resin/abstract-sql-compiler';
+import type { AbstractSqlModel } from '@balena/abstract-sql-compiler';
 import type { Database } from '../database-layer/db';
 import type { Migration } from '../migrator/migrator';
 import type { AnyObject, Resolvable } from '../sbvr-api/common-types';
@@ -86,7 +86,7 @@ const getOrCreatePermission = async (
 
 // Setup function
 export const setup = (app: Express.Application) => {
-	const loadConfig = (data: Config): Bluebird<void> =>
+	const loadConfig = (data: Config): Promise<void> =>
 		sbvrUtils.db.transaction(async (tx) => {
 			const authApiTx = sbvrUtils.api.Auth.clone({
 				passthrough: {
@@ -196,112 +196,110 @@ export const setup = (app: Express.Application) => {
 			});
 		});
 
-	const loadConfigFile = (configPath: string): Bluebird<Config> => {
+	const loadConfigFile = (configPath: string): Promise<Config> => {
 		console.info('Loading config:', configPath);
-		return Bluebird.resolve(import(configPath));
+		return import(configPath);
 	};
 
-	const loadApplicationConfig = Bluebird.method(
-		async (config: string | Config | undefined) => {
-			try {
-				if (require.extensions['.coffee'] == null) {
-					try {
-						// Try to register the coffeescript loader if it doesn't exist
-						// We ignore if it fails though, since that probably just means it is not available/needed.
-						require('coffeescript/register');
-					} catch (e) {
-						// Ignore errors
-					}
+	const loadApplicationConfig = async (config: string | Config | undefined) => {
+		try {
+			if (require.extensions['.coffee'] == null) {
+				try {
+					// Try to register the coffeescript loader if it doesn't exist
+					// We ignore if it fails though, since that probably just means it is not available/needed.
+					require('coffeescript/register');
+				} catch (e) {
+					// Ignore errors
 				}
-				if (require.extensions['.ts'] == null) {
-					try {
-						require('ts-node/register/transpile-only');
-					} catch (e) {
-						// Ignore errors
-					}
-				}
-
-				console.info('Loading application config');
-				let root: string;
-				let configObj: Config;
-				if (config == null) {
-					root = path.resolve(process.argv[2]) || __dirname;
-					configObj = await loadConfigFile(path.join(root, 'config.json'));
-				} else if (typeof config === 'string') {
-					root = path.dirname(config);
-					configObj = await loadConfigFile(config);
-				} else if (_.isObject(config)) {
-					root = process.cwd();
-					configObj = config;
-				} else {
-					throw new Error(`Invalid type for config '${typeof config}'`);
-				}
-				const resolvePath = (s: string): string => {
-					if (path.isAbsolute(s)) {
-						return s;
-					}
-					return path.join(root, s);
-				};
-
-				await Bluebird.map(configObj.models, async (model) => {
-					if (model.modelFile != null) {
-						model.modelText = await fs.promises.readFile(
-							resolvePath(model.modelFile),
-							'utf8',
-						);
-					}
-					if (typeof model.customServerCode === 'string') {
-						model.customServerCode = resolvePath(model.customServerCode);
-					}
-					if (model.migrations == null) {
-						model.migrations = {};
-					}
-					const migrations = model.migrations;
-
-					if (model.migrationsPath) {
-						const migrationsPath = resolvePath(model.migrationsPath);
-						delete model.migrationsPath;
-
-						await Bluebird.map(
-							fs.promises.readdir(migrationsPath),
-							async (filename) => {
-								const filePath = path.join(migrationsPath, filename);
-								const [migrationKey] = filename.split('-', 1);
-
-								switch (path.extname(filename)) {
-									case '.coffee':
-									case '.ts':
-									case '.js':
-										migrations[migrationKey] = nodeRequire(filePath);
-										break;
-									case '.sql':
-										migrations[migrationKey] = await fs.promises.readFile(
-											filePath,
-											'utf8',
-										);
-										break;
-									default:
-										console.error(
-											`Unrecognised migration file extension, skipping: ${path.extname(
-												filename,
-											)}`,
-										);
-								}
-							},
-						);
-					}
-					if (model.initSqlPath) {
-						const initSqlPath = resolvePath(model.initSqlPath);
-						model.initSql = await fs.promises.readFile(initSqlPath, 'utf8');
-					}
-				});
-				await loadConfig(configObj);
-			} catch (err) {
-				console.error('Error loading application config', err, err.stack);
-				process.exit(1);
 			}
-		},
-	);
+			if (require.extensions['.ts'] == null) {
+				try {
+					require('ts-node/register/transpile-only');
+				} catch (e) {
+					// Ignore errors
+				}
+			}
+
+			console.info('Loading application config');
+			let root: string;
+			let configObj: Config;
+			if (config == null) {
+				root = path.resolve(process.argv[2]) || __dirname;
+				configObj = await loadConfigFile(path.join(root, 'config.json'));
+			} else if (typeof config === 'string') {
+				root = path.dirname(config);
+				configObj = await loadConfigFile(config);
+			} else if (_.isObject(config)) {
+				root = process.cwd();
+				configObj = config;
+			} else {
+				throw new Error(`Invalid type for config '${typeof config}'`);
+			}
+			const resolvePath = (s: string): string => {
+				if (path.isAbsolute(s)) {
+					return s;
+				}
+				return path.join(root, s);
+			};
+
+			await Bluebird.map(configObj.models, async (model) => {
+				if (model.modelFile != null) {
+					model.modelText = await fs.promises.readFile(
+						resolvePath(model.modelFile),
+						'utf8',
+					);
+				}
+				if (typeof model.customServerCode === 'string') {
+					model.customServerCode = resolvePath(model.customServerCode);
+				}
+				if (model.migrations == null) {
+					model.migrations = {};
+				}
+				const migrations = model.migrations;
+
+				if (model.migrationsPath) {
+					const migrationsPath = resolvePath(model.migrationsPath);
+					delete model.migrationsPath;
+
+					await Bluebird.map(
+						fs.promises.readdir(migrationsPath),
+						async (filename) => {
+							const filePath = path.join(migrationsPath, filename);
+							const [migrationKey] = filename.split('-', 1);
+
+							switch (path.extname(filename)) {
+								case '.coffee':
+								case '.ts':
+								case '.js':
+									migrations[migrationKey] = nodeRequire(filePath);
+									break;
+								case '.sql':
+									migrations[migrationKey] = await fs.promises.readFile(
+										filePath,
+										'utf8',
+									);
+									break;
+								default:
+									console.error(
+										`Unrecognised migration file extension, skipping: ${path.extname(
+											filename,
+										)}`,
+									);
+							}
+						},
+					);
+				}
+				if (model.initSqlPath) {
+					const initSqlPath = resolvePath(model.initSqlPath);
+					model.initSql = await fs.promises.readFile(initSqlPath, 'utf8');
+				}
+			});
+			await loadConfig(configObj);
+		} catch (err) {
+			console.error('Error loading application config', err, err.stack);
+			process.exit(1);
+		}
+	};
 
 	return {
 		loadConfig,

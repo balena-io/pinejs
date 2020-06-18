@@ -23,7 +23,7 @@ If provided, this should be an an object. When provided the `users` and `apiKey`
 
 
 #### class PinejsClient
-This is a subclass of the resin-platform-api class, which supports the additional special `req` and `tx` properties on the query objects.  The functionality of these properties match their counterparts on runURI.
+This is a subclass of the PinejsClientCore class, which supports the additional special `req` and `tx` properties on the query objects.  The functionality of these properties match their counterparts on runURI.
 
 #### api
 This is an object containing keys of the api root and values that are an instance of PinejsClient for that api.  The PinejsClient instance also contains an additional `logger` property, which matches the interface of `console`, but which understands provided logging levels.

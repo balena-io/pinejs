@@ -14,26 +14,23 @@ declare global {
 
 import * as Bluebird from 'bluebird';
 import * as _ from 'lodash';
-Bluebird.config({
-	cancellation: true,
-});
 
 import { TypedError } from 'typed-error';
 import { cachedCompile } from './cached-compile';
 
 type LFModel = any[];
-import * as AbstractSQLCompiler from '@resin/abstract-sql-compiler';
-import { version as AbstractSQLCompilerVersion } from '@resin/abstract-sql-compiler/package.json';
+import * as AbstractSQLCompiler from '@balena/abstract-sql-compiler';
+import { version as AbstractSQLCompilerVersion } from '@balena/abstract-sql-compiler/package.json';
 import * as LF2AbstractSQL from '@balena/lf-to-abstract-sql';
 
 import {
 	odataNameToSqlName,
 	sqlNameToODataName,
 	SupportedMethod,
-} from '@resin/odata-to-abstract-sql';
-import * as sbvrTypes from '@resin/sbvr-types';
+} from '@balena/odata-to-abstract-sql';
+import * as sbvrTypes from '@balena/sbvr-types';
 import deepFreeze = require('deep-freeze');
-import { PinejsClientCoreFactory } from 'pinejs-client-core';
+import { PinejsClientCore, PromiseResultTypes } from 'pinejs-client-core';
 
 import { ExtendedSBVRParser } from '../extended-sbvr-parser/extended-sbvr-parser';
 
@@ -43,7 +40,6 @@ import { generateODataMetadata } from '../odata-metadata/odata-metadata-generato
 // tslint:disable-next-line:no-var-requires
 const devModel = require('./dev.sbvr');
 import * as permissions from './permissions';
-export * from './permissions';
 import {
 	BadRequestError,
 	ConflictError,
@@ -61,7 +57,6 @@ import {
 	UnauthorizedError,
 } from './errors';
 import * as uriParser from './uri-parser';
-export * from './errors';
 import {
 	HookBlueprint,
 	InstantiatedHooks,
@@ -80,7 +75,7 @@ export let db = (undefined as any) as Db.Database;
 export { sbvrTypes };
 
 import { version as LF2AbstractSQLVersion } from '@balena/lf-to-abstract-sql/package.json';
-import { version as sbvrTypesVersion } from '@resin/sbvr-types/package.json';
+import { version as sbvrTypesVersion } from '@balena/sbvr-types/package.json';
 import {
 	compileRequest,
 	getAndCheckBindValues,
@@ -360,12 +355,12 @@ const prettifyConstraintError = (
 	}
 };
 
-export const validateModel = (
+export const validateModel = async (
 	tx: Db.Tx,
 	modelName: string,
 	request?: uriParser.ODataRequest,
-): Bluebird<void> => {
-	return Bluebird.map(models[modelName].sql.rules, async (rule) => {
+): Promise<void> => {
+	await Bluebird.map(models[modelName].sql.rules, async (rule) => {
 		if (!isRuleAffected(rule, request)) {
 			// If none of the fields intersect we don't need to run the rule! :D
 			return;
@@ -386,7 +381,7 @@ export const validateModel = (
 		if (v === false || v === 0 || v === '0') {
 			throw new SbvrValidationError(rule.structuredEnglish);
 		}
-	}).return();
+	});
 };
 
 export const generateLfModel = (seModel: string): LFModel =>
@@ -456,121 +451,122 @@ export const generateModels = (
 export const executeModel = (
 	tx: Db.Tx,
 	model: ExecutableModel,
-): Bluebird<void> => executeModels(tx, [model]);
+): Promise<void> => executeModels(tx, [model]);
 
-export const executeModels = Bluebird.method(
-	async (tx: Db.Tx, execModels: ExecutableModel[]): Promise<void> => {
-		try {
-			await Bluebird.map(execModels, async (model) => {
-				const { apiRoot } = model;
+export const executeModels = async (
+	tx: Db.Tx,
+	execModels: ExecutableModel[],
+): Promise<void> => {
+	try {
+		await Bluebird.map(execModels, async (model) => {
+			const { apiRoot } = model;
 
-				await migrator.run(tx, model);
-				const compiledModel = generateModels(model, db.engine);
+			await migrator.run(tx, model);
+			const compiledModel = generateModels(model, db.engine);
 
-				// Create tables related to terms and fact types
-				// Run statements sequentially, as the order of the CREATE TABLE statements matters (eg. for foreign keys).
-				for (const createStatement of compiledModel.sql.createSchema) {
-					const promise = tx.executeSql(createStatement);
-					if (db.engine === 'websql') {
-						promise.catch((err) => {
-							console.warn(
-								"Ignoring errors in the create table statements for websql as it doesn't support CREATE IF NOT EXISTS",
-								err,
-							);
-						});
-					}
-					await promise;
+			// Create tables related to terms and fact types
+			// Run statements sequentially, as the order of the CREATE TABLE statements matters (eg. for foreign keys).
+			for (const createStatement of compiledModel.sql.createSchema) {
+				const promise = tx.executeSql(createStatement);
+				if (db.engine === 'websql') {
+					promise.catch((err) => {
+						console.warn(
+							"Ignoring errors in the create table statements for websql as it doesn't support CREATE IF NOT EXISTS",
+							err,
+						);
+					});
 				}
-				await migrator.postRun(tx, model);
+				await promise;
+			}
+			await migrator.postRun(tx, model);
 
-				odataResponse.prepareModel(compiledModel.abstractSql);
-				deepFreeze(compiledModel.abstractSql);
-				models[apiRoot] = compiledModel;
+			odataResponse.prepareModel(compiledModel.abstractSql);
+			deepFreeze(compiledModel.abstractSql);
+			models[apiRoot] = compiledModel;
 
-				// Validate the [empty] model according to the rules.
-				// This may eventually lead to entering obligatory data.
-				// For the moment it blocks such models from execution.
-				await validateModel(tx, apiRoot);
+			// Validate the [empty] model according to the rules.
+			// This may eventually lead to entering obligatory data.
+			// For the moment it blocks such models from execution.
+			await validateModel(tx, apiRoot);
 
-				// TODO: Can we do this without the cast?
-				api[apiRoot] = new PinejsClient('/' + apiRoot + '/') as LoggingClient;
-				api[apiRoot].logger = _.cloneDeep(console);
-				if (model.logging != null) {
-					const defaultSetting = model.logging?.default ?? true;
-					for (const k of Object.keys(model.logging)) {
-						const key = k as keyof Console;
-						if (
-							typeof api[apiRoot].logger[key] === 'function' &&
-							!(model.logging?.[key] ?? defaultSetting)
-						) {
-							api[apiRoot].logger[key] = _.noop;
-						}
+			// TODO: Can we do this without the cast?
+			api[apiRoot] = new PinejsClient('/' + apiRoot + '/') as LoggingClient;
+			api[apiRoot].logger = _.cloneDeep(console);
+			if (model.logging != null) {
+				const defaultSetting = model.logging?.default ?? true;
+				for (const k of Object.keys(model.logging)) {
+					const key = k as keyof Console;
+					if (
+						typeof api[apiRoot].logger[key] === 'function' &&
+						!(model.logging?.[key] ?? defaultSetting)
+					) {
+						api[apiRoot].logger[key] = _.noop;
 					}
 				}
-				return compiledModel;
-				// Only update the dev models once all models have finished executing.
-			}).map((model: CompiledModel) => {
-				const updateModel = async (modelType: keyof CompiledModel) => {
-					if (model[modelType] == null) {
-						return api.dev.delete({
-							resource: 'model',
-							passthrough: {
-								tx,
-								req: permissions.root,
-							},
-							options: {
-								$filter: {
-									is_of__vocabulary: model.vocab,
-									model_type: modelType,
-								},
-							},
-						});
-					}
-					const result = (await api.dev.get({
+			}
+			return compiledModel;
+			// Only update the dev models once all models have finished executing.
+		}).map((model: CompiledModel) => {
+			const updateModel = async (modelType: keyof CompiledModel) => {
+				if (model[modelType] == null) {
+					return api.dev.delete({
 						resource: 'model',
 						passthrough: {
 							tx,
-							req: permissions.rootRead,
+							req: permissions.root,
 						},
 						options: {
-							$select: 'id',
 							$filter: {
 								is_of__vocabulary: model.vocab,
 								model_type: modelType,
 							},
 						},
-					})) as Array<{ id: number }>;
+					});
+				}
+				const result = (await api.dev.get({
+					resource: 'model',
+					passthrough: {
+						tx,
+						req: permissions.rootRead,
+					},
+					options: {
+						$select: 'id',
+						$filter: {
+							is_of__vocabulary: model.vocab,
+							model_type: modelType,
+						},
+					},
+				})) as Array<{ id: number }>;
 
-					let method: SupportedMethod = 'POST';
-					let uri = '/dev/model';
-					const body: AnyObject = {
-						is_of__vocabulary: model.vocab,
-						model_value: model[modelType],
-						model_type: modelType,
-					};
-					const id = result?.[0]?.id;
-					if (id != null) {
-						uri += '(' + id + ')';
-						method = 'PATCH';
-						body.id = id;
-					} else {
-						uri += '?returnResource=false';
-					}
-
-					return runURI(method, uri, body, tx, permissions.root);
+				let method: SupportedMethod = 'POST';
+				let uri = '/dev/model';
+				const body: AnyObject = {
+					is_of__vocabulary: model.vocab,
+					model_value: model[modelType],
+					model_type: modelType,
 				};
+				const id = result?.[0]?.id;
+				if (id != null) {
+					uri += '(' + id + ')';
+					method = 'PATCH';
+					body.id = id;
+				} else {
+					uri += '?returnResource=false';
+				}
 
-				return Bluebird.map(
-					['se', 'lf', 'abstractSql', 'sql', 'odataMetadata'],
-					updateModel,
-				);
-			});
-		} catch (err) {
-			await Bluebird.map(execModels, ({ apiRoot }) => cleanupModel(apiRoot));
-			throw err;
-		}
-	},
-);
+				return runURI(method, uri, body, tx, permissions.root);
+			};
+
+			return Bluebird.map(
+				['se', 'lf', 'abstractSql', 'sql', 'odataMetadata'],
+				updateModel,
+			);
+		});
+	} catch (err) {
+		await Bluebird.map(execModels, ({ apiRoot }) => cleanupModel(apiRoot));
+		throw err;
+	}
+};
 
 const cleanupModel = (vocab: string) => {
 	delete models[vocab];
@@ -635,47 +631,45 @@ const getHooks = (
 };
 getHooks.clear = () => getMethodHooks.clear();
 
-const runHooks = Bluebird.method(
-	async (
-		hookName: keyof Hooks,
-		hooksList: InstantiatedHooks<Hooks> | undefined,
-		args: {
-			request?: uriParser.ODataRequest;
-			req: Express.Request;
-			res?: Express.Response;
-			tx?: Db.Tx;
-			result?: any;
-			data?: number | any[];
-			error?: TypedError | any;
-		},
-	) => {
-		if (hooksList == null) {
-			return;
-		}
-		const hooks = hooksList[hookName];
-		if (hooks == null || hooks.length === 0) {
-			return;
-		}
-		const { request, req, tx } = args;
-		if (request != null) {
-			const { vocabulary } = request;
-			Object.defineProperty(args, 'api', {
-				get: _.once(() =>
-					api[vocabulary].clone({
-						passthrough: { req, tx },
-					}),
-				),
-			});
-		}
-		await Bluebird.map(hooks, async (hook) => {
-			await hook.run(args);
-		});
+const runHooks = async (
+	hookName: keyof Hooks,
+	hooksList: InstantiatedHooks<Hooks> | undefined,
+	args: {
+		request?: uriParser.ODataRequest;
+		req: Express.Request;
+		res?: Express.Response;
+		tx?: Db.Tx;
+		result?: any;
+		data?: number | any[];
+		error?: TypedError | any;
 	},
-);
+) => {
+	if (hooksList == null) {
+		return;
+	}
+	const hooks = hooksList[hookName];
+	if (hooks == null || hooks.length === 0) {
+		return;
+	}
+	const { request, req, tx } = args;
+	if (request != null) {
+		const { vocabulary } = request;
+		Object.defineProperty(args, 'api', {
+			get: _.once(() =>
+				api[vocabulary].clone({
+					passthrough: { req, tx },
+				}),
+			),
+		});
+	}
+	await Bluebird.map(hooks, async (hook) => {
+		await hook.run(args);
+	});
+};
 
-export const deleteModel = Bluebird.method(async (vocabulary: string) => {
+export const deleteModel = async (vocabulary: string) => {
 	await db.transaction((tx) => {
-		const dropStatements: Array<Bluebird<any>> = models[
+		const dropStatements: Array<Promise<any>> = models[
 			vocabulary
 		].sql.dropSchema.map((dropStatement) => tx.executeSql(dropStatement));
 		return Promise.all(
@@ -696,7 +690,7 @@ export const deleteModel = Bluebird.method(async (vocabulary: string) => {
 		);
 	});
 	await cleanupModel(vocabulary);
-});
+};
 
 const isWhereNode = (
 	x: AbstractSQLCompiler.AbstractSqlType,
@@ -734,7 +728,7 @@ export const runRule = (() => {
 	});
 	const translator = LF2AbstractSQL.LF2AbstractSQL.createInstance();
 	translator.addTypes(sbvrTypes);
-	return Bluebird.method(async (vocab: string, rule: string) => {
+	return async (vocab: string, rule: string) => {
 		const seModel = models[vocab].se;
 		const { logger } = api[vocab];
 		let lfModel: LFModel;
@@ -869,7 +863,7 @@ export const runRule = (() => {
 		odataResult.__formulationType = formulationType;
 		odataResult.__resourceName = resourceName;
 		return odataResult;
-	});
+	};
 })();
 
 export type Passthrough = AnyObject & {
@@ -879,11 +873,7 @@ export type Passthrough = AnyObject & {
 	tx?: Db.Tx;
 };
 
-export class PinejsClient extends PinejsClientCoreFactory(Bluebird)<
-	PinejsClient,
-	Bluebird<{}>,
-	Bluebird<PinejsClientCoreFactory.PromiseResultTypes>
-> {
+export class PinejsClient extends PinejsClientCore<PinejsClient> {
 	public passthrough: Passthrough;
 	public _request({
 		method,
@@ -919,7 +909,7 @@ export const runURI = (
 	tx?: Db.Tx,
 	req?: permissions.PermissionReq,
 	custom?: AnyObject,
-): Bluebird<PinejsClientCoreFactory.PromiseResultTypes> => {
+): Promise<PromiseResultTypes> => {
 	let user: User | undefined;
 	let apiKey: ApiKey | undefined;
 
@@ -957,67 +947,65 @@ export const runURI = (
 		tx,
 	} as any;
 
-	return new Bluebird<PinejsClientCoreFactory.PromiseResultTypes>(
-		(resolve, reject) => {
-			const res: Express.Response = {
-				__internalPinejs: true,
-				on: _.noop,
-				statusCode: 200,
-				status(statusCode: number) {
-					this.statusCode = statusCode;
-					return this;
-				},
-				sendStatus: (statusCode: number) => {
-					if (statusCode >= 400) {
-						const ErrorClass =
-							statusCodeToError[statusCode as keyof typeof statusCodeToError];
-						if (ErrorClass != null) {
-							reject(new ErrorClass());
-						} else {
-							reject(new HttpError(statusCode));
-						}
+	return new Promise<PromiseResultTypes>((resolve, reject) => {
+		const res: Express.Response = {
+			__internalPinejs: true,
+			on: _.noop,
+			statusCode: 200,
+			status(statusCode: number) {
+				this.statusCode = statusCode;
+				return this;
+			},
+			sendStatus: (statusCode: number) => {
+				if (statusCode >= 400) {
+					const ErrorClass =
+						statusCodeToError[statusCode as keyof typeof statusCodeToError];
+					if (ErrorClass != null) {
+						reject(new ErrorClass());
 					} else {
-						resolve();
+						reject(new HttpError(statusCode));
 					}
-				},
-				send(statusCode: number) {
-					if (statusCode == null) {
-						statusCode = this.statusCode;
-					}
-					this.sendStatus(statusCode);
-				},
-				json(data: any, statusCode: number) {
-					if (_.isError(data)) {
-						reject(data);
-						return;
-					}
-					if (statusCode == null) {
-						statusCode = this.statusCode;
-					}
-					if (statusCode >= 400) {
-						const ErrorClass =
-							statusCodeToError[statusCode as keyof typeof statusCodeToError];
-						if (ErrorClass != null) {
-							reject(new ErrorClass(data));
-						} else {
-							reject(new HttpError(statusCode, data));
-						}
+				} else {
+					resolve();
+				}
+			},
+			send(statusCode: number) {
+				if (statusCode == null) {
+					statusCode = this.statusCode;
+				}
+				this.sendStatus(statusCode);
+			},
+			json(data: any, statusCode: number) {
+				if (_.isError(data)) {
+					reject(data);
+					return;
+				}
+				if (statusCode == null) {
+					statusCode = this.statusCode;
+				}
+				if (statusCode >= 400) {
+					const ErrorClass =
+						statusCodeToError[statusCode as keyof typeof statusCodeToError];
+					if (ErrorClass != null) {
+						reject(new ErrorClass(data));
 					} else {
-						resolve(data);
+						reject(new HttpError(statusCode, data));
 					}
-				},
-				set: _.noop,
-				type: _.noop,
-			} as any;
+				} else {
+					resolve(data);
+				}
+			},
+			set: _.noop,
+			type: _.noop,
+		} as any;
 
-			const next = (route?: string) => {
-				console.warn('Next called on a runURI?!', method, uri, route);
-				res.sendStatus(500);
-			};
+		const next = (route?: string) => {
+			console.warn('Next called on a runURI?!', method, uri, route);
+			res.sendStatus(500);
+		};
 
-			handleODataRequest(emulatedReq, res, next);
-		},
-	);
+		handleODataRequest(emulatedReq, res, next);
+	});
 };
 
 export const getAbstractSqlModel = (
@@ -1029,64 +1017,62 @@ export const getAbstractSqlModel = (
 	return request.abstractSqlModel;
 };
 
-export const getAffectedIds = Bluebird.method(
-	async ({
-		req,
-		request,
-		tx,
-	}: {
-		req: HookReq;
-		request: HookRequest;
-		tx: Db.Tx;
-	}): Promise<number[]> => {
-		if (request.method === 'GET') {
-			// GET requests don't affect anything so passing one to this method is a mistake
-			throw new Error('Cannot call `getAffectedIds` with a GET request');
-		}
-		// We reparse to make sure we get a clean odataQuery, without permissions already added
-		// And we use the request's url rather than the req for things like batch where the req url is ../$batch
-		request = await uriParser.parseOData({
-			method: request.method,
-			url: `/${request.vocabulary}${request.url}`,
-		});
+export const getAffectedIds = async ({
+	req,
+	request,
+	tx,
+}: {
+	req: HookReq;
+	request: HookRequest;
+	tx: Db.Tx;
+}): Promise<number[]> => {
+	if (request.method === 'GET') {
+		// GET requests don't affect anything so passing one to this method is a mistake
+		throw new Error('Cannot call `getAffectedIds` with a GET request');
+	}
+	// We reparse to make sure we get a clean odataQuery, without permissions already added
+	// And we use the request's url rather than the req for things like batch where the req url is ../$batch
+	request = await uriParser.parseOData({
+		method: request.method,
+		url: `/${request.vocabulary}${request.url}`,
+	});
 
-		request.engine = db.engine;
-		const abstractSqlModel = getAbstractSqlModel(request);
-		const resourceName = resolveSynonym(request);
-		const resourceTable = abstractSqlModel.tables[resourceName];
-		if (resourceTable == null) {
-			throw new Error('Unknown resource: ' + request.resourceName);
-		}
-		const { idField } = resourceTable;
+	request.engine = db.engine;
+	const abstractSqlModel = getAbstractSqlModel(request);
+	const resourceName = resolveSynonym(request);
+	const resourceTable = abstractSqlModel.tables[resourceName];
+	if (resourceTable == null) {
+		throw new Error('Unknown resource: ' + request.resourceName);
+	}
+	const { idField } = resourceTable;
 
-		if (request.odataQuery.options == null) {
-			request.odataQuery.options = {};
-		}
-		request.odataQuery.options.$select = {
-			properties: [{ name: idField }],
-		};
+	if (request.odataQuery.options == null) {
+		request.odataQuery.options = {};
+	}
+	request.odataQuery.options.$select = {
+		properties: [{ name: idField }],
+	};
 
-		// Delete any $expand that might exist as they're ignored on non-GETs but we're converting this request to a GET
-		delete request.odataQuery.options.$expand;
+	// Delete any $expand that might exist as they're ignored on non-GETs but we're converting this request to a GET
+	delete request.odataQuery.options.$expand;
 
-		await permissions.addPermissions(req, request);
+	await permissions.addPermissions(req, request);
 
-		request.method = 'GET';
+	request.method = 'GET';
 
-		request = uriParser.translateUri(request);
-		request = compileRequest(request);
+	request = uriParser.translateUri(request);
+	request = compileRequest(request);
 
-		let result;
-		if (tx != null) {
-			result = await runQuery(tx, request);
-		} else {
-			result = await runTransaction(req, (newTx) => runQuery(newTx, request));
-		}
-		return result.rows.map((row) => row[idField]);
-	},
-);
+	let result;
+	if (tx != null) {
+		result = await runQuery(tx, request);
+	} else {
+		result = await runTransaction(req, (newTx) => runQuery(newTx, request));
+	}
+	return result.rows.map((row) => row[idField]);
+};
 
-export const handleODataRequest: Express.Handler = (req, res, next) => {
+export const handleODataRequest: Express.Handler = async (req, res, next) => {
 	const [, apiRoot] = req.url.split('/', 2);
 	if (apiRoot == null || models[apiRoot] == null) {
 		return next('route');
@@ -1104,153 +1090,162 @@ export const handleODataRequest: Express.Handler = (req, res, next) => {
 		vocabulary: apiRoot,
 	});
 
-	req.on('close', () => {
-		handlePromise.cancel();
+	const tryCancelRequest = () => {
+		transactions.forEach(async (tx) => {
+			if (tx.isClosed()) {
+				return;
+			}
+			try {
+				await tx.rollback();
+			} catch {
+				// Ignore issues rolling back/cancelling transactions
+			}
+		});
+		// Clear the list
+		transactions.length = 0;
 		rollbackRequestHooks(reqHooks);
-	});
-	res.on('close', () => {
-		handlePromise.cancel();
-		rollbackRequestHooks(reqHooks);
-	});
+	};
+	req.on('close', tryCancelRequest);
+	res.on('close', tryCancelRequest);
+
+	const transactions: Db.Tx[] = [];
 
 	if (req.tx != null) {
-		req.tx.on('rollback', () => {
-			rollbackRequestHooks(reqHooks);
-		});
+		transactions.push(req.tx);
+		req.tx.on('rollback', tryCancelRequest);
 	}
 
-	const handlePromise = runHooks('PREPARSE', reqHooks, { req, tx: req.tx })
-		.then(async () => {
-			let requests: uriParser.UnparsedRequest[];
-			// Check if it is a single request or a batch
-			if (req.batch != null && req.batch.length > 0) {
-				requests = req.batch;
-			} else {
-				const { method, url, body } = req;
-				requests = [{ method, url, data: body }];
+	try {
+		await runHooks('PREPARSE', reqHooks, { req, tx: req.tx });
+		let requests: uriParser.UnparsedRequest[];
+		// Check if it is a single request or a batch
+		if (req.batch != null && req.batch.length > 0) {
+			requests = req.batch;
+		} else {
+			const { method, url, body } = req;
+			requests = [{ method, url, data: body }];
+		}
+
+		const prepareRequest = async ($request: uriParser.ODataRequest) => {
+			$request.engine = db.engine;
+			// Get the full hooks list now that we can.
+			$request.hooks = getHooks($request);
+			// Add/check the relevant permissions
+			try {
+				await runHooks('POSTPARSE', $request.hooks, {
+					req,
+					request: $request,
+					tx: req.tx,
+				});
+				const translatedRequest = await uriParser.translateUri($request);
+				return await compileRequest(translatedRequest);
+			} catch (err) {
+				rollbackRequestHooks(reqHooks);
+				rollbackRequestHooks($request.hooks);
+				throw err;
 			}
+		};
 
-			const prepareRequest = async ($request: uriParser.ODataRequest) => {
-				$request.engine = db.engine;
-				// Get the full hooks list now that we can.
-				$request.hooks = getHooks($request);
-				// Add/check the relevant permissions
-				try {
-					await runHooks('POSTPARSE', $request.hooks, {
-						req,
-						request: $request,
-						tx: req.tx,
-					});
-					const translatedRequest = await uriParser.translateUri($request);
-					return await compileRequest(translatedRequest);
-				} catch (err) {
+		// Parse the OData requests
+		const results = await mapSeries(requests, async (requestPart) => {
+			let request = await uriParser.parseOData(requestPart);
+
+			if (Array.isArray(request)) {
+				request = await Bluebird.mapSeries(request, prepareRequest);
+			} else {
+				request = await prepareRequest(request);
+			}
+			// Run the request in its own transaction
+			return runTransaction<Response | Response[]>(req, async (tx) => {
+				transactions.push(tx);
+				tx.on('rollback', () => {
 					rollbackRequestHooks(reqHooks);
-					rollbackRequestHooks($request.hooks);
-					throw err;
-				}
-			};
-
-			// Parse the OData requests
-			const results = await mapSeries(requests, async (requestPart) => {
-				let request = await uriParser.parseOData(requestPart);
-
-				if (Array.isArray(request)) {
-					request = await Bluebird.mapSeries(request, prepareRequest);
-				} else {
-					request = await prepareRequest(request);
-				}
-				// Run the request in its own transaction
-				return runTransaction<Response | Response[]>(req, async (tx) => {
-					tx.on('rollback', () => {
-						rollbackRequestHooks(reqHooks);
-						if (Array.isArray(request)) {
-							request.forEach(({ hooks }) => {
-								rollbackRequestHooks(hooks);
-							});
-						} else {
-							rollbackRequestHooks(request.hooks);
-						}
-					});
 					if (Array.isArray(request)) {
-						const env = await Bluebird.reduce(
-							request,
-							runChangeSet(req, res, tx),
-							new Map<number, Response>(),
-						);
-						return Array.from(env.values());
+						request.forEach(({ hooks }) => {
+							rollbackRequestHooks(hooks);
+						});
 					} else {
-						return runRequest(req, res, tx, request);
+						rollbackRequestHooks(request.hooks);
 					}
 				});
-			});
-
-			const responses = results.map((result) => {
-				if (_.isError(result)) {
-					return convertToHttpError(result);
+				if (Array.isArray(request)) {
+					const env = await Bluebird.reduce(
+						request,
+						runChangeSet(req, res, tx),
+						new Map<number, Response>(),
+					);
+					return Array.from(env.values());
 				} else {
-					return result;
+					return runRequest(req, res, tx, request);
 				}
 			});
+		});
 
-			res.set('Cache-Control', 'no-cache');
-			// If we are dealing with a single request unpack the response and respond normally
-			if (req.batch == null || req.batch.length === 0) {
-				let [response] = responses;
-				if (_.isError(response)) {
-					if ((res as AnyObject).__internalPinejs === true) {
-						return res.json(response);
-					} else {
-						response = {
+		const responses = results.map((result) => {
+			if (_.isError(result)) {
+				return convertToHttpError(result);
+			} else {
+				return result;
+			}
+		});
+
+		res.set('Cache-Control', 'no-cache');
+		// If we are dealing with a single request unpack the response and respond normally
+		if (req.batch == null || req.batch.length === 0) {
+			let [response] = responses;
+			if (_.isError(response)) {
+				if ((res as AnyObject).__internalPinejs === true) {
+					return res.json(response);
+				} else {
+					response = {
+						status: response.status,
+						body: response.getResponseBody(),
+					};
+				}
+			}
+			const { body, headers, status } = response as Response;
+			if (status) {
+				res.status(status);
+			}
+			_.forEach(headers, (headerValue, headerName) => {
+				res.set(headerName, headerValue);
+			});
+
+			if (!body) {
+				if (status != null) {
+					res.sendStatus(status);
+				} else {
+					console.error('No status or body set', req.url, responses);
+					res.sendStatus(500);
+				}
+			} else {
+				if (status != null) {
+					res.status(status);
+				}
+				res.json(body);
+			}
+
+			// Otherwise its a multipart request and we reply with the appropriate multipart response
+		} else {
+			(res.status(200) as any).sendMulti(
+				responses.map((response) => {
+					if (_.isError(response)) {
+						return {
 							status: response.status,
 							body: response.getResponseBody(),
 						};
-					}
-				}
-				const { body, headers, status } = response as Response;
-				if (status) {
-					res.status(status);
-				}
-				_.forEach(headers, (headerValue, headerName) => {
-					res.set(headerName, headerValue);
-				});
-
-				if (!body) {
-					if (status != null) {
-						res.sendStatus(status);
 					} else {
-						console.error('No status or body set', req.url, responses);
-						res.sendStatus(500);
+						return response;
 					}
-				} else {
-					if (status != null) {
-						res.status(status);
-					}
-					res.json(body);
-				}
-
-				// Otherwise its a multipart request and we reply with the appropriate multipart response
-			} else {
-				(res.status(200) as any).sendMulti(
-					responses.map((response) => {
-						if (_.isError(response)) {
-							return {
-								status: response.status,
-								body: response.getResponseBody(),
-							};
-						} else {
-							return response;
-						}
-					}),
-				);
-			}
-		})
-		.catch((e: Error) => {
-			// If an error bubbles here it must have happened in the last then block
-			// We just respond with 500 as there is probably not much we can do to recover
-			console.error('An error occurred while constructing the response', e);
-			res.sendStatus(500);
-		});
-	return handlePromise;
+				}),
+			);
+		}
+	} catch (e) {
+		// If an error bubbles here it must have happened in the last then block
+		// We just respond with 500 as there is probably not much we can do to recover
+		console.error('An error occurred while constructing the response', e);
+		res.sendStatus(500);
+	}
 };
 
 // Reject the error to use the nice catch syntax
@@ -1662,31 +1657,29 @@ const runDelete = async (
 	return undefined;
 };
 
-export const executeStandardModels = Bluebird.method(
-	async (tx: Db.Tx): Promise<void> => {
-		try {
-			// dev model must run first
-			await executeModel(tx, {
-				apiRoot: 'dev',
-				modelText: devModel,
-				logging: {
-					log: false,
-				},
-				migrations: {
-					'11.0.0-modified-at': `
-				ALTER TABLE "model"
-				ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
-			`,
-				},
-			});
-			await executeModels(tx, permissions.config.models);
-			console.info('Successfully executed standard models.');
-		} catch (err) {
-			console.error('Failed to execute standard models.', err);
-			throw err;
-		}
-	},
-);
+export const executeStandardModels = async (tx: Db.Tx): Promise<void> => {
+	try {
+		// dev model must run first
+		await executeModel(tx, {
+			apiRoot: 'dev',
+			modelText: devModel,
+			logging: {
+				log: false,
+			},
+			migrations: {
+				'11.0.0-modified-at': `
+					ALTER TABLE "model"
+					ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
+				`,
+			},
+		});
+		await executeModels(tx, permissions.config.models);
+		console.info('Successfully executed standard models.');
+	} catch (err) {
+		console.error('Failed to execute standard models.', err);
+		throw err;
+	}
+};
 
 export const addSideEffectHook = (
 	method: HookMethod,
@@ -1771,24 +1764,25 @@ const addHook = (
 	getHooks.clear();
 };
 
-export const setup = Bluebird.method(
-	async (_app: Express.Application, $db: Db.Database): Promise<void> => {
-		exports.db = db = $db;
-		try {
-			await db.transaction(async (tx) => {
-				await executeStandardModels(tx);
-				await permissions.setup();
-			});
-		} catch (err) {
-			console.error('Could not execute standard models', err);
-			process.exit(1);
-		}
-		try {
-			await db.executeSql(
-				'CREATE UNIQUE INDEX "uniq_model_model_type_vocab" ON "model" ("is of-vocabulary", "model type");',
-			);
-		} catch {
-			// we can't use IF NOT EXISTS on all dbs, so we have to ignore the error raised if this index already exists
-		}
-	},
-);
+export const setup = async (
+	_app: Express.Application,
+	$db: Db.Database,
+): Promise<void> => {
+	exports.db = db = $db;
+	try {
+		await db.transaction(async (tx) => {
+			await executeStandardModels(tx);
+			await permissions.setup();
+		});
+	} catch (err) {
+		console.error('Could not execute standard models', err);
+		process.exit(1);
+	}
+	try {
+		await db.executeSql(
+			'CREATE UNIQUE INDEX "uniq_model_model_type_vocab" ON "model" ("is of-vocabulary", "model type");',
+		);
+	} catch {
+		// we can't use IF NOT EXISTS on all dbs, so we have to ignore the error raised if this index already exists
+	}
+};

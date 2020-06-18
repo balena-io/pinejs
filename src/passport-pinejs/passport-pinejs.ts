@@ -3,7 +3,6 @@ import type * as Passport from 'passport';
 import type * as PassportLocal from 'passport-local';
 import type * as ConfigLoader from '../config-loader/config-loader';
 
-import * as Bluebird from 'bluebird';
 import * as permissions from '../sbvr-api/permissions';
 
 // Returns a middleware that will handle logging in using `username` and `password` body properties
@@ -20,17 +19,20 @@ export let login: (
 // Returns a middleware that logs the user out and then calls next()
 export let logout: Express.RequestHandler;
 
-export const checkPassword: PassportLocal.VerifyFunction = (
+export const checkPassword: PassportLocal.VerifyFunction = async (
 	username,
 	password,
 	done: (error: undefined, user?: any) => void,
-) =>
-	permissions
-		.checkPassword(username, password)
-		.catchReturn(false)
-		.asCallback(done);
+) => {
+	try {
+		const result = await permissions.checkPassword(username, password);
+		done(undefined, result);
+	} catch {
+		done(undefined, false);
+	}
+};
 
-const setup: ConfigLoader.SetupFunction = (app: Express.Application) => {
+const setup: ConfigLoader.SetupFunction = async (app: Express.Application) => {
 	if (!process.browser) {
 		const passport: typeof Passport = require('passport');
 		app.use(passport.initialize());
@@ -91,7 +93,6 @@ const setup: ConfigLoader.SetupFunction = (app: Express.Application) => {
 			next();
 		};
 	}
-	return Bluebird.resolve();
 };
 
 export const config: ConfigLoader.Config = {

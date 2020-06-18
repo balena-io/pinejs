@@ -1,6 +1,6 @@
 # Getting Started with Pine.js
 
-This guide assumes that you have already read the main [README](https://github.com/resin-io/pinejs/blob/master/README.md) file of this repo and you have understood the main concepts of Pine.js.
+This guide assumes that you have already read the main [README](https://github.com/balena-io/pinejs/blob/master/README.md) file of this repo and you have understood the main concepts of Pine.js.
 
 ## Initialize an example application
 
@@ -24,7 +24,7 @@ $ npm init
 Feel free to enter any information you like for your application when prompted, like application name, version, description, etc. The above command will initialize your application by creating the `package.json` file.
 
 ```
-$ npm install --save @resin/pinejs
+$ npm install --save @balena/pinejs
 ```
 
 The above commands will install pinejs as a dependency for your application, i.e. it will create the node_modules directory that amongst others will contain Pine.js, and will update the corresponding record in your `package.json` file.
@@ -35,7 +35,7 @@ Let's see what your directory looks like now:
 $ tree -L 3
 .
 ├── node_modules
-│   └── @resin
+│   └── @balena
 │       └── pinejs
 └── package.json
 ```
@@ -59,7 +59,7 @@ First, we have to create a configuration file, `config.json` that will provide t
 }
 ```
 
-The above file states that Pine.js has to use the file `example.sbvr` to find the model definitions, and `/example` as the root path to access the model's API. You can read more about project configuration in [ProjectConfig](https://github.com/resin-io/pinejs/blob/master/docs/ProjectConfig.md).
+The above file states that Pine.js has to use the file `example.sbvr` to find the model definitions, and `/example` as the root path to access the model's API. You can read more about project configuration in [ProjectConfig](https://github.com/balena-io/pinejs/blob/master/docs/ProjectConfig.md).
 
 Now, let's create the models. Again in your favorite editor, type the following in the `example.sbvr` file and save it under `src` folder.
 
@@ -100,7 +100,7 @@ $ npm install --save body-parser
 And inside your `src` folder, create a file `app.coffee` with the following content:
 
 ```
-pinejs = require '@resin/pinejs'
+pinejs = require '@balena/pinejs'
 express = require 'express'
 app = express()
 
@@ -131,7 +131,7 @@ Let's see what our application directory looks like now:
 $ tree -L 3
 .
 ├── node_modules
-│   ├── @resin
+│   ├── @balena
 │   │   └── pinejs
 │   ├── body-parser
 │   │   ├── HISTORY.md
@@ -235,5 +235,5 @@ You can now try to delete this entity to restore the database to it’s initial 
 
 ### Where to go from here:
 * Follow the [advanced usage guide](./AdvancedUsage.md) that builds on top of this example to add some custom validation via hooks
-* Learn about migrations that you can execute prior to Pine.js executing a given sbvr model: [Migrations.md](https://github.com/resin-io/pinejs/blob/master/docs/Migrations.md)
-* Learn about [Hooks](https://github.com/resin-io/pinejs/blob/master/docs/Hooks.md) that you can implement in order to execute custom code when API calls are requested.
+* Learn about migrations that you can execute prior to Pine.js executing a given sbvr model: [Migrations.md](https://github.com/balena-io/pinejs/blob/master/docs/Migrations.md)
+* Learn about [Hooks](https://github.com/balena-io/pinejs/blob/master/docs/Hooks.md) that you can implement in order to execute custom code when API calls are requested.

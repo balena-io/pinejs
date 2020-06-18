@@ -1,8 +1,8 @@
 {
-  "name": "@resin/pinejs",
+  "name": "@balena/pinejs",
   "version": "12.4.1",
   "main": "out/server-glue/module",
-  "repository": "git@github.com:resin-io/pinejs.git",
+  "repository": "git@github.com:balena-io/pinejs.git",
   "license": "Apache-2.0",
   "bin": {
     "odata-compiler": "./bin/odata-compiler.js",
@@ -22,12 +22,12 @@
     "prettify": "balena-lint -e js -e ts --typescript --fix src build typings Gruntfile.ts"
   },
   "dependencies": {
+    "@balena/abstract-sql-compiler": "^7.0.0",
     "@balena/lf-to-abstract-sql": "^4.0.0",
     "@balena/odata-parser": "^2.0.0",
+    "@balena/odata-to-abstract-sql": "^5.0.0",
     "@balena/sbvr-parser": "^1.0.1",
-    "@resin/abstract-sql-compiler": "^6.13.6",
-    "@resin/odata-to-abstract-sql": "^4.5.3",
-    "@resin/sbvr-types": "^2.0.9",
+    "@balena/sbvr-types": "^3.1.0",
     "@types/bluebird": "^3.5.32",
     "@types/body-parser": "^1.19.0",
     "@types/compression": "^1.7.0",
@@ -40,7 +40,7 @@
     "@types/method-override": "0.0.31",
     "@types/multer": "^1.4.3",
     "@types/mysql": "^2.15.13",
-    "@types/node": "^10.17.26",
+    "@types/node": "^12.12.47",
     "@types/passport": "^0.4.7",
     "@types/passport-local": "1.0.33",
     "@types/passport-strategy": "^0.2.35",
@@ -55,7 +55,7 @@
     "express-session": "^1.17.1",
     "lodash": "^4.17.15",
     "memoizee": "^0.4.14",
-    "pinejs-client-core": "^5.7.0",
+    "pinejs-client-core": "^6.0.0",
     "randomstring": "^1.1.5",
     "typed-error": "^3.2.0"
   },
@@ -87,7 +87,7 @@
     "webpack-dev-server": "^3.11.0"
   },
   "optionalDependencies": {
-    "bcrypt": "^3.0.8",
+    "bcrypt": "^5.0.0",
     "body-parser": "^1.19.0",
     "compression": "^1.7.4",
     "cookie-parser": "^1.4.5",
@@ -97,7 +97,7 @@
     "mysql": "^2.18.1",
     "passport": "^0.3.2",
     "passport-local": "^1.0.0",
-    "pg": "^7.8.1",
+    "pg": "^8.2.1",
     "pg-connection-string": "^2.2.3",
     "serve-static": "^1.14.1",
     "ts-node": "^8.10.2"

@@ -1,11 +1,10 @@
 /// <references types="websql"/>
-import type * as Events from 'events';
 import type * as Mysql from 'mysql';
 import type * as Pg from 'pg';
 import type * as PgConnectionString from 'pg-connection-string';
 import type { Resolvable } from '../sbvr-api/common-types';
 
-import { Engines } from '@resin/abstract-sql-compiler';
+import { Engines } from '@balena/abstract-sql-compiler';
 import * as Bluebird from 'bluebird';
 import * as EventEmitter from 'eventemitter3';
 import * as _ from 'lodash';
@@ -20,7 +19,7 @@ export interface CodedError extends Error {
 	code: number | string;
 }
 
-type CreateTransactionFn = (stackTraceErr?: Error) => Bluebird<Tx>;
+type CreateTransactionFn = (stackTraceErr?: Error) => Promise<Tx>;
 type CloseTransactionFn = () => void;
 export interface Row {
 	[fieldName: string]: any;
@@ -83,8 +82,8 @@ const alwaysExport = {
 };
 
 interface TransactionFn {
-	<T>(fn: (tx: Tx) => Resolvable<T>): Bluebird<T>;
-	(): Bluebird<Tx>;
+	<T>(fn: (tx: Tx) => Resolvable<T>): Promise<T>;
+	(): Promise<Tx>;
 }
 
 export interface Database {
@@ -97,7 +96,7 @@ export interface Database {
 		this: Database,
 		sql: Sql,
 		bindings?: Bindings,
-	) => Bluebird<Result>;
+	) => Promise<Result>;
 	transaction: TransactionFn;
 	readTransaction?: TransactionFn;
 }
@@ -111,7 +110,7 @@ const atomicExecuteSql: Database['executeSql'] = function (sql, bindings) {
 };
 
 const asyncTryFn = (fn: () => any) => {
-	Bluebird.resolve().then(fn);
+	Promise.resolve().then(fn);
 };
 
 let timeoutMS: number;
@@ -137,16 +136,20 @@ const getRejectedFunctions: RejectedFunctions = DEBUG
 			// In debug mode we create the error here to give the stack trace of where we first closed the transaction,
 			// but it adds significant overhead for a production environment
 			const rejectionValue = new Error(message);
+			const rejectFn = async () => {
+				// We return a new rejected promise on each call so that errors are automatically logged if the
+				// rejection is not handled (but only if it is not handled)
+				throw rejectionValue;
+			};
 			return {
-				executeSql: () =>
-					// We return a new rejected promise on each call so that bluebird can handle
-					// logging errors if the rejection is not handled (but only if it is not handled)
-					Bluebird.reject(rejectionValue),
-				rollback: () => Bluebird.reject(rejectionValue),
+				executeSql: rejectFn,
+				rollback: rejectFn,
 			};
 	  }
 	: (message) => {
-			const rejectFn = () => Bluebird.reject(new Error(message));
+			const rejectFn = async () => {
+				throw new Error(message);
+			};
 			return {
 				executeSql: rejectFn,
 				rollback: rejectFn,
@@ -167,6 +170,7 @@ const onRollback: Tx['on'] = (name: string, fn: () => void) => {
 export abstract class Tx {
 	private automaticCloseTimeout: ReturnType<typeof setTimeout>;
 	private automaticClose: () => void;
+	private closed = false;
 
 	constructor(stackTraceErr?: Error) {
 		this.automaticClose = () => {
@@ -214,63 +218,70 @@ export abstract class Tx {
 		const { executeSql, rollback } = getRejectedFunctions(message);
 		this.executeSql = executeSql;
 		this.rollback = this.end = rollback;
+		this.closed = true;
 	}
-	public executeSql(
+	public isClosed() {
+		return this.closed;
+	}
+
+	public async executeSql(
 		sql: Sql,
 		bindings: Bindings = [],
 		...args: any[]
-	): Bluebird<Result> {
+	): Promise<Result> {
 		this.incrementPending();
 
 		const t0 = Date.now();
-		return this._executeSql(sql, bindings, ...args)
-			.finally(() => {
-				this.decrementPending();
-				const queryTime = Date.now() - t0;
-				metrics.emit('db_query_time', {
-					queryTime,
-					// metrics-TODO: statistics on query types (SELECT, INSERT)
-					// themselves should be gathered by postgres, while at this
-					// scope in pine, we should report the overall query time as
-					// being associated with an HTTP method on the given model
-					// (eg. [PUT, Device])
-					//
-					// metrics-TODO: evaluate whether a request to a model can,
-					// with hooks, make multiple DB queries in such a way that
-					// it would be a statistically significant difference in the
-					// "query time" metric if we were to report them individually
-					// by attaching here, vs. aggregating all query times for a
-					// given request as one figure.
-					//
-					// Grab the first word of the query and regard that as the
-					// "query type" (to be improved in line with the above
-					// TODO's)
-					queryType: sql.split(' ', 1)[0],
-				});
-			})
-			.catch(wrapDatabaseError);
+		try {
+			return await this._executeSql(sql, bindings, ...args);
+		} catch (err) {
+			return wrapDatabaseError(err);
+		} finally {
+			this.decrementPending();
+			const queryTime = Date.now() - t0;
+			metrics.emit('db_query_time', {
+				queryTime,
+				// metrics-TODO: statistics on query types (SELECT, INSERT)
+				// themselves should be gathered by postgres, while at this
+				// scope in pine, we should report the overall query time as
+				// being associated with an HTTP method on the given model
+				// (eg. [PUT, Device])
+				//
+				// metrics-TODO: evaluate whether a request to a model can,
+				// with hooks, make multiple DB queries in such a way that
+				// it would be a statistically significant difference in the
+				// "query time" metric if we were to report them individually
+				// by attaching here, vs. aggregating all query times for a
+				// given request as one figure.
+				//
+				// Grab the first word of the query and regard that as the
+				// "query type" (to be improved in line with the above
+				// TODO's)
+				queryType: sql.split(' ', 1)[0],
+			});
+		}
 	}
-	public rollback(): Bluebird<void> {
-		const promise = this._rollback().finally(() => {
+	public async rollback(): Promise<void> {
+		try {
+			const promise = this._rollback();
+			this.closeTransaction('Transaction has been rolled back.');
+
+			await promise;
+		} finally {
 			this.listeners.rollback.forEach(asyncTryFn);
 			this.on = onRollback;
 			this.clearListeners();
-			return null;
-		});
-		this.closeTransaction('Transaction has been rolled back.');
-
-		return promise;
+		}
 	}
-	public end(): Bluebird<void> {
-		const promise = this._commit().tap(() => {
-			this.listeners.end.forEach(asyncTryFn);
-			this.on = onEnd;
-			this.clearListeners();
-			return null;
-		});
+	public async end(): Promise<void> {
+		const promise = this._commit();
 		this.closeTransaction('Transaction has been ended.');
 
-		return promise;
+		await promise;
+
+		this.listeners.end.forEach(asyncTryFn);
+		this.on = onEnd;
+		this.clearListeners();
 	}
 
 	private listeners: {
@@ -293,19 +304,17 @@ export abstract class Tx {
 		sql: Sql,
 		bindings: Bindings,
 		addReturning?: false | string,
-	): Bluebird<Result>;
-	protected abstract _rollback(): Bluebird<void>;
-	protected abstract _commit(): Bluebird<void>;
+	): Promise<Result>;
+	protected abstract _rollback(): Promise<void>;
+	protected abstract _commit(): Promise<void>;
 
-	public abstract tableList(extraWhereClause?: string): Bluebird<Result>;
-	public dropTable(tableName: string, ifExists = true) {
+	public abstract tableList(extraWhereClause?: string): Promise<Result>;
+	public async dropTable(tableName: string, ifExists = true) {
 		if (typeof tableName !== 'string') {
-			return Bluebird.reject(new TypeError('"tableName" must be a string'));
+			throw new TypeError('"tableName" must be a string');
 		}
 		if (tableName.includes('"')) {
-			return Bluebird.reject(
-				new TypeError('"tableName" cannot include double quotes'),
-			);
+			throw new TypeError('"tableName" cannot include double quotes');
 		}
 		const ifExistsStr = ifExists === true ? ' IF EXISTS' : '';
 		return this.executeSql(`DROP TABLE${ifExistsStr} "${tableName}";`);
@@ -317,31 +326,25 @@ const getStackTraceErr: () => Error | undefined = DEBUG
 	: (_.noop as () => undefined);
 
 const createTransaction = (createFunc: CreateTransactionFn): TransactionFn => {
-	return <T>(fn?: (tx: Tx) => Resolvable<T>): Bluebird<T> | Bluebird<Tx> => {
+	return async <T>(fn?: (tx: Tx) => Resolvable<T>): Promise<T | Tx> => {
 		const stackTraceErr = getStackTraceErr();
-		// Create a new promise in order to be able to get access to cancellation, to let us
-		// return the client to the pool if the promise was cancelled whilst we were waiting
-		return new Bluebird<Tx | T>((resolve, reject, onCancel) => {
-			if (onCancel) {
-				onCancel(() => {
-					// Rollback the promise on cancel
-					promise.call('rollback');
-				});
+		const tx = await createFunc(stackTraceErr);
+		if (fn) {
+			try {
+				const result = await fn(tx);
+				await tx.end();
+				return result;
+			} catch (err) {
+				try {
+					await tx.rollback();
+				} catch {
+					// Ignore rollback errors as we want to throw the original error
+				}
+				throw err;
 			}
-			const promise = createFunc(stackTraceErr);
-			if (fn) {
-				promise
-					.tap((tx) =>
-						Bluebird.try<T>(() => fn(tx))
-							.tap(() => tx.end())
-							.tapCatch(() => tx.rollback())
-							.then(resolve),
-					)
-					.catch(reject);
-			} else {
-				promise.then(resolve).catch(reject);
-			}
-		}) as Bluebird<Tx> | Bluebird<T>;
+		} else {
+			return tx;
+		}
 	};
 };
 
@@ -353,28 +356,6 @@ try {
 	// Ignore errors
 }
 if (maybePg != null) {
-	// We have these custom pg types because we pass bluebird as the promise provider
-	// so the returned promises are bluebird promises and we rely on that
-	interface BluebirdPoolClient extends Events.EventEmitter {
-		query(
-			queryConfig: Pg.QueryConfig,
-			values?: any[],
-		): Bluebird<Pg.QueryResult>;
-		release(err?: Error): void;
-	}
-	interface BluebirdPool extends Events.EventEmitter {
-		connect(): Bluebird<BluebirdPoolClient>;
-
-		on(
-			event: 'error',
-			listener: (err: Error, client: BluebirdPoolClient) => void,
-		): this;
-		on(
-			event: 'connect' | 'acquire' | 'remove',
-			listener: (client: BluebirdPoolClient) => void,
-		): this;
-	}
-
 	const pg = maybePg;
 	engines.postgres = (connectString: string | object): Database => {
 		const PG_UNIQUE_VIOLATION = '23505';
@@ -388,12 +369,10 @@ if (maybePg != null) {
 		} else {
 			config = connectString;
 		}
-		// Use bluebird for our pool promises
-		config.Promise = Bluebird;
 		config.max = env.db.poolSize;
 		config.idleTimeoutMillis = env.db.idleTimeoutMillis;
 		config.connectionTimeoutMillis = env.db.connectionTimeoutMillis;
-		const pool = (new pg.Pool(config) as any) as BluebirdPool;
+		const pool = new pg.Pool(config);
 		const { PG_SCHEMA } = process.env;
 		if (PG_SCHEMA != null) {
 			pool.on('connect', (client) => {
@@ -428,7 +407,7 @@ if (maybePg != null) {
 			};
 		};
 		class PostgresTx extends Tx {
-			constructor(private db: BluebirdPoolClient, stackTraceErr?: Error) {
+			constructor(private db: Pg.PoolClient, stackTraceErr?: Error) {
 				super(stackTraceErr);
 			}
 
@@ -450,24 +429,24 @@ if (maybePg != null) {
 					.then(createResult);
 			}
 
-			protected _rollback() {
-				return this.executeSql('ROLLBACK;')
-					.then(() => {
-						this.db.release();
-					})
-					.tapCatch((err) => {
-						this.db.release(err);
-					});
+			protected async _rollback() {
+				try {
+					await this.executeSql('ROLLBACK;');
+					this.db.release();
+				} catch (err) {
+					this.db.release(err);
+					throw err;
+				}
 			}
 
-			protected _commit() {
-				return this.executeSql('COMMIT;')
-					.then(() => {
-						this.db.release();
-					})
-					.tapCatch((err) => {
-						this.db.release(err);
-					});
+			protected async _commit() {
+				try {
+					await this.executeSql('COMMIT;');
+					this.db.release();
+				} catch (err) {
+					this.db.release(err);
+					throw err;
+				}
 			}
 
 			public tableList(extraWhereClause: string = '') {
@@ -561,16 +540,16 @@ if (maybeMysql != null) {
 					.then(createResult);
 			}
 
-			protected _rollback() {
+			protected async _rollback() {
 				const promise = this.executeSql('ROLLBACK;');
 				this.close();
-				return promise.return();
+				await promise;
 			}
 
-			protected _commit() {
+			protected async _commit() {
 				const promise = this.executeSql('COMMIT;');
 				this.close();
-				return promise.return();
+				await promise;
 			}
 
 			public tableList(extraWhereClause: string = '') {
@@ -685,26 +664,31 @@ if (typeof window !== 'undefined' && window.openDatabase != null) {
 				}
 			};
 
-			protected _executeSql(sql: Sql, bindings: Bindings) {
-				return new Bluebird((resolve, reject) => {
-					const successCallback: SQLStatementCallback = (_tx, results) => {
-						resolve(results);
-					};
-					const errorCallback: SQLStatementErrorCallback = (_tx, err) => {
-						reject(err);
-						return false;
-					};
+			protected async _executeSql(sql: Sql, bindings: Bindings) {
+				let result;
+				try {
+					result = await new Promise<SQLResultSet>((resolve, reject) => {
+						const successCallback: SQLStatementCallback = (_tx, results) => {
+							resolve(results);
+						};
+						const errorCallback: SQLStatementErrorCallback = (_tx, err) => {
+							reject(err);
+							return false;
+						};
 
-					this.queue.push([sql, bindings, successCallback, errorCallback]);
-				})
-					.catch({ code: WEBSQL_CONSTRAINT_ERR }, () => {
+						this.queue.push([sql, bindings, successCallback, errorCallback]);
+					});
+				} catch (err) {
+					if (err.code === WEBSQL_CONSTRAINT_ERR) {
 						throw new ConstraintError('Constraint failed.');
-					})
-					.then(createResult);
+					}
+					throw err;
+				}
+				return createResult(result);
 			}
 
-			protected _rollback(): Bluebird<void> {
-				return new Bluebird((resolve) => {
+			protected _rollback(): Promise<void> {
+				return new Promise((resolve) => {
 					const successCallback: SQLStatementCallback = () => {
 						resolve();
 						throw new Error('Rollback');
@@ -725,9 +709,8 @@ if (typeof window !== 'undefined' && window.openDatabase != null) {
 				});
 			}
 
-			protected _commit() {
+			protected async _commit() {
 				this.running = false;
-				return Bluebird.resolve();
 			}
 
 			public tableList(extraWhereClause: string = '') {
@@ -752,7 +735,7 @@ if (typeof window !== 'undefined' && window.openDatabase != null) {
 			executeSql: atomicExecuteSql,
 			transaction: createTransaction(
 				(stackTraceErr) =>
-					new Bluebird((resolve) => {
+					new Promise((resolve) => {
 						db.transaction((tx) => {
 							resolve(new WebSqlTx(tx, stackTraceErr));
 						});

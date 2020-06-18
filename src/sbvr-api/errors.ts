@@ -10,7 +10,6 @@ export class SbvrValidationError extends TypedError {}
 
 export class TranslationError extends TypedError {}
 export class ParsingError extends TypedError {}
-export { AnyObject };
 
 export class HttpError extends TypedError {
 	constructor(

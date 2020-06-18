@@ -1,7 +1,7 @@
-declare module '@resin/abstract-sql-compiler' {
+declare module '@balena/abstract-sql-compiler' {
 	interface AbstractSqlTable {
 		fetchProcessingFields?: {
-			[field: string]: (field: any) => Bluebird<any>;
+			[field: string]: NonNullable<typeof sbvrTypes[string]['fetchProcessing']>;
 		};
 		localFields?: {
 			[odataName: string]: true;
@@ -12,11 +12,11 @@ declare module '@resin/abstract-sql-compiler' {
 import type {
 	AbstractSqlModel,
 	AbstractSqlTable,
-} from '@resin/abstract-sql-compiler';
+} from '@balena/abstract-sql-compiler';
 import type { Result, Row } from '../database-layer/db';
 
-import { sqlNameToODataName } from '@resin/odata-to-abstract-sql';
-import * as sbvrTypes from '@resin/sbvr-types';
+import { sqlNameToODataName } from '@balena/odata-to-abstract-sql';
+import * as sbvrTypes from '@balena/sbvr-types';
 import * as Bluebird from 'bluebird';
 import * as _ from 'lodash';
 import { resolveNavigationResource, resolveSynonym } from './sbvr-utils';
@@ -181,14 +181,13 @@ export const process = async (
 			fetchProcessingFields.hasOwnProperty(fieldName),
 	);
 	if (processedFields.length > 0) {
-		await Bluebird.map(instances, (instance) =>
-			Bluebird.map(processedFields, async (fieldName) => {
-				const result = await fetchProcessingFields[fieldName](
+		instances.forEach((instance) => {
+			processedFields.forEach((fieldName) => {
+				instance[fieldName] = fetchProcessingFields[fieldName](
 					instance[fieldName],
 				);
-				instance[fieldName] = result;
-			}),
-		);
+			});
+		});
 	}
 
 	return instances;

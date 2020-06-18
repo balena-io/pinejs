@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 import * as Bluebird from 'bluebird';
-import { odataNameToSqlName } from '@resin/odata-to-abstract-sql';
+import { odataNameToSqlName } from '@balena/odata-to-abstract-sql';
 // @ts-ignore
 const transactionModel = require('./transaction.sbvr');
 
@@ -67,7 +67,7 @@ SELECT NOT EXISTS(
 
 		const endTransaction = (/** @type {number} */ transactionID) =>
 			sbvrUtils.db.transaction(async (tx) => {
-				/** @type {{[key: string]: { promise: Bluebird<any>, resolve: Function, reject: Function }}} */
+				/** @type {{[key: string]: { promise: Promise<any>, resolve: Function, reject: Function }}} */
 				const placeholders = {};
 				const getLockedRow = (
 					/** @type {number} */ lockID, // 'GET', '/transaction/resource?$select=resource_id&$filter=resource__is_under__lock/lock eq ?'
@@ -82,7 +82,7 @@ AND "resource-is under-lock"."lock" = ?;`,
 					);
 				const getFieldsObject = async (
 					/** @type {number} */ conditionalResourceID,
-					/** @type {import('@resin/abstract-sql-compiler').AbstractSqlTable} */ clientModel, // 'GET', '/transaction/conditional_field?$select=field_name,field_value&$filter=conditional_resource eq ?'
+					/** @type {import('@balena/abstract-sql-compiler').AbstractSqlTable} */ clientModel, // 'GET', '/transaction/conditional_field?$select=field_name,field_value&$filter=conditional_resource eq ?'
 				) => {
 					const fields = await tx.executeSql(
 						`SELECT "conditional field"."field name" AS "field_name", "conditional field"."field value" AS "field_value"
