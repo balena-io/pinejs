@@ -35,6 +35,7 @@ import {
 	PermissionParsingError,
 } from './errors';
 import {
+	memoizedGetOData2AbstractSQL,
 	memoizedParseOdata,
 	metadataEndpoints,
 	ODataRequest,
@@ -705,15 +706,12 @@ const rewriteRelationship = memoizeWeak(
 		abstractSqlModel: AbstractSqlModel,
 		permissionsLookup: PermissionLookup,
 		vocabulary: string,
+		odata2AbstractSQL: OData2AbstractSQL,
 	) => {
 		let escapedName = sqlNameToODataName(name);
 		if (abstractSqlModel.tables[name]) {
 			escapedName = sqlNameToODataName(abstractSqlModel.tables[name].name);
 		}
-
-		const originalAbstractSQLModel = sbvrUtils.getAbstractSqlModel({
-			vocabulary,
-		});
 
 		const rewrite = (object: Relationship | RelationshipMapping) => {
 			if ('$' in object && Array.isArray(object.$)) {
@@ -809,22 +807,18 @@ const rewriteRelationship = memoizeWeak(
 							return ['Equals', ['Boolean', true], ['Boolean', true]];
 						};
 
-						// We need execute the abstract SQL compiler to traverse
-						// through the permissions for that resource, using a
-						// special canAccess callback.
-						const odata2AbstractSQL = new OData2AbstractSQL(
-							originalAbstractSQLModel,
-							{
-								canAccess: canAccessFunction,
-							},
-						);
-
 						try {
+							// We need execute the abstract SQL compiler to traverse
+							// through the permissions for that resource, using a
+							// special canAccess callback.
 							odata2AbstractSQL.match(
 								odata.tree,
 								'GET',
 								[],
 								odata.binds.length,
+								{
+									canAccess: canAccessFunction,
+								},
 							);
 						} catch (e) {
 							throw new ODataParser.SyntaxError(e);
@@ -879,6 +873,14 @@ const rewriteRelationships = (
 	permissionsLookup: PermissionLookup,
 	vocabulary: string,
 ) => {
+	const originalAbstractSQLModel = sbvrUtils.getAbstractSqlModel({
+		vocabulary,
+	});
+
+	const odata2AbstractSQL = memoizedGetOData2AbstractSQL(
+		originalAbstractSQLModel,
+	);
+
 	const newRelationships = _.cloneDeep(relationships);
 	_.forOwn(newRelationships, (value, name) =>
 		rewriteRelationship(
@@ -887,6 +889,7 @@ const rewriteRelationships = (
 			abstractSqlModel,
 			permissionsLookup,
 			vocabulary,
+			odata2AbstractSQL,
 		),
 	);
 

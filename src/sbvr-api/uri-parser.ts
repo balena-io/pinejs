@@ -143,7 +143,7 @@ export const memoizedParseOdata = (() => {
 	};
 })();
 
-const memoizedGetOData2AbstractSQL = memoizeWeak(
+export const memoizedGetOData2AbstractSQL = memoizeWeak(
 	(abstractSqlModel: AbstractSQLCompiler.AbstractSqlModel) => {
 		return new OData2AbstractSQL(abstractSqlModel);
 	},
