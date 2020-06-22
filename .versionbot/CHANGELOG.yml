@@ -1,4 +1,26 @@
 - commits:
+    - subject: Optimize rewriting relationships for the canAccess optimization
+      hash: 549f90871c1fc7c5d349266207a258f6efa1a4f2
+      body: |
+        Update odata-to-abstract-sql from 5.0.0 to 5.1.0
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Allow specifying valid methods for a specific match call
+              hash: 64a9a4e6b9e287196b02682b08cb1a7c6fc169ef
+              body: ''
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+          version: odata-to-abstract-sql-5.1.0
+          date: 2020-06-19T17:09:05.803Z
+  version: 13.0.1
+  date: 2020-06-22T13:09:07.272Z
+- commits:
     - subject: Update @types/node to 12.x
       hash: 22cbaa9567940c52c4ec68422e6d475990377faa
       body: ''
