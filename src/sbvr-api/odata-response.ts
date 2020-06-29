@@ -143,6 +143,20 @@ export const process = async (
 	});
 	const table = abstractSqlModel.tables[sqlResourceName];
 
+	const fieldNames = Object.keys(rows[0]);
+
+	const fetchProcessingFields = getFetchProcessingFields(table);
+	const processedFields = fieldNames.filter((fieldName) =>
+		fetchProcessingFields.hasOwnProperty(fieldName),
+	);
+
+	const localFields = getLocalFields(table);
+	// We check that it's not a local field, rather than that it is a foreign key because of the case where the foreign key is on the other resource
+	// and hence not known to this resource
+	const expandableFields = fieldNames.filter(
+		(fieldName) => !localFields.hasOwnProperty(fieldName),
+	);
+
 	const odataIdField = sqlNameToODataName(table.idField);
 	rows.forEach((row) => {
 		row.__metadata = {
@@ -150,15 +164,6 @@ export const process = async (
 		};
 	});
 
-	const fieldNames = Object.keys(rows[0]);
-
-	const localFields = getLocalFields(table);
-	// We check that it's not a local field, rather than that it is a foreign key because of the case where the foreign key is on the other resource
-	// and hence not known to this resource
-	const expandableFields = fieldNames.filter(
-		(fieldName) =>
-			!fieldName.startsWith('__') && !localFields.hasOwnProperty(fieldName),
-	);
 	if (expandableFields.length > 0) {
 		await Bluebird.map(rows, (row) =>
 			Bluebird.map(expandableFields, (fieldName) =>
@@ -173,12 +178,6 @@ export const process = async (
 		);
 	}
 
-	const fetchProcessingFields = getFetchProcessingFields(table);
-	const processedFields = fieldNames.filter(
-		(fieldName) =>
-			!fieldName.startsWith('__') &&
-			fetchProcessingFields.hasOwnProperty(fieldName),
-	);
 	if (processedFields.length > 0) {
 		rows.forEach((row) => {
 			processedFields.forEach((fieldName) => {
