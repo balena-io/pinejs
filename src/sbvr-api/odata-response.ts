@@ -159,6 +159,9 @@ export const process = async (
 
 	const odataIdField = sqlNameToODataName(table.idField);
 	rows.forEach((row) => {
+		processedFields.forEach((fieldName) => {
+			row[fieldName] = fetchProcessingFields[fieldName](row[fieldName]);
+		});
 		row.__metadata = {
 			uri: resourceURI(vocab, resourceName, row[odataIdField]),
 		};
@@ -176,14 +179,6 @@ export const process = async (
 				),
 			),
 		);
-	}
-
-	if (processedFields.length > 0) {
-		rows.forEach((row) => {
-			processedFields.forEach((fieldName) => {
-				row[fieldName] = fetchProcessingFields[fieldName](row[fieldName]);
-			});
-		});
 	}
 
 	return rows;
