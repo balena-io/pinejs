@@ -68,7 +68,7 @@ const checkForExpansion = async (
 		);
 		row[fieldName] = {
 			__deferred: {
-				uri: '/' + vocab + '/' + mappingResourceName + '(' + field + ')',
+				uri: resourceURI(vocab, mappingResourceName, field),
 			},
 			__id: field,
 		};
