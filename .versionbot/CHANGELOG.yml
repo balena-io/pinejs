@@ -1,4 +1,35 @@
 - commits:
+    - subject: Use the `resourceURI` for generating the deferred uri
+      hash: 63c0c16763c2c6196797f61321cbe2ef678c6064
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+    - subject: Handle fetch processing and adding of metadata in a single pass
+      hash: adf3e79d5c6768f0eea6f8d66dcd797b99b57d76
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+    - subject: Check for processed/expandable fields before adding the metadata field
+      hash: 86c688b870df38513de31a1acbe2ba885d4c44bc
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+    - subject: Avoid unnecessary array creation via `map` in odata-response processing
+      hash: d91aebf6b0c52ef0c9b07b45d6b2e0bec89d5418
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+  version: 13.0.2
+  date: 2020-06-29T11:38:21.735Z
+- commits:
     - subject: Optimize rewriting relationships for the canAccess optimization
       hash: 549f90871c1fc7c5d349266207a258f6efa1a4f2
       body: |
