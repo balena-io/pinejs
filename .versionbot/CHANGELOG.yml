@@ -1,4 +1,14 @@
 - commits:
+    - subject: Automatically fetch affected ids when possible (postgres only)
+      hash: c70cf7a69da785738734a0ad360b358d2499bfa4
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+  version: 13.1.0
+  date: 2020-06-30T15:24:23.223Z
+- commits:
     - subject: Use the `resourceURI` for generating the deferred uri
       hash: 63c0c16763c2c6196797f61321cbe2ef678c6064
       body: ''
