@@ -26,9 +26,9 @@ const checkForExpansion = async (
 	abstractSqlModel: AbstractSqlModel,
 	parentResourceName: string,
 	fieldName: string,
-	instance: Row,
+	row: Row,
 ) => {
-	let field = instance[fieldName];
+	let field = row[fieldName];
 	if (field == null) {
 		return;
 	}
@@ -56,7 +56,7 @@ const checkForExpansion = async (
 			mappingResourceName,
 			field,
 		);
-		instance[fieldName] = expandedField;
+		row[fieldName] = expandedField;
 	} else {
 		const mappingResourceName = resolveNavigationResource(
 			{
@@ -66,9 +66,9 @@ const checkForExpansion = async (
 			},
 			fieldName,
 		);
-		instance[fieldName] = {
+		row[fieldName] = {
 			__deferred: {
-				uri: '/' + vocab + '/' + mappingResourceName + '(' + field + ')',
+				uri: resourceURI(vocab, mappingResourceName, field),
 			},
 			__id: field,
 		};
@@ -143,54 +143,45 @@ export const process = async (
 	});
 	const table = abstractSqlModel.tables[sqlResourceName];
 
-	const odataIdField = sqlNameToODataName(table.idField);
-	const instances = rows.map((instance) => {
-		instance.__metadata = {
-			uri: resourceURI(vocab, resourceName, instance[odataIdField]),
-		};
-		return instance;
-	});
+	const fieldNames = Object.keys(rows[0]);
 
-	const instanceKeys = Object.keys(instances[0]);
+	const fetchProcessingFields = getFetchProcessingFields(table);
+	const processedFields = fieldNames.filter((fieldName) =>
+		fetchProcessingFields.hasOwnProperty(fieldName),
+	);
 
 	const localFields = getLocalFields(table);
 	// We check that it's not a local field, rather than that it is a foreign key because of the case where the foreign key is on the other resource
 	// and hence not known to this resource
-	const expandableFields = instanceKeys.filter(
-		(fieldName) =>
-			!fieldName.startsWith('__') && !localFields.hasOwnProperty(fieldName),
+	const expandableFields = fieldNames.filter(
+		(fieldName) => !localFields.hasOwnProperty(fieldName),
 	);
+
+	const odataIdField = sqlNameToODataName(table.idField);
+	rows.forEach((row) => {
+		processedFields.forEach((fieldName) => {
+			row[fieldName] = fetchProcessingFields[fieldName](row[fieldName]);
+		});
+		row.__metadata = {
+			uri: resourceURI(vocab, resourceName, row[odataIdField]),
+		};
+	});
+
 	if (expandableFields.length > 0) {
-		await Bluebird.map(instances, (instance) =>
+		await Bluebird.map(rows, (row) =>
 			Bluebird.map(expandableFields, (fieldName) =>
 				checkForExpansion(
 					vocab,
 					abstractSqlModel,
 					sqlResourceName,
 					fieldName,
-					instance,
+					row,
 				),
 			),
 		);
 	}
 
-	const fetchProcessingFields = getFetchProcessingFields(table);
-	const processedFields = instanceKeys.filter(
-		(fieldName) =>
-			!fieldName.startsWith('__') &&
-			fetchProcessingFields.hasOwnProperty(fieldName),
-	);
-	if (processedFields.length > 0) {
-		instances.forEach((instance) => {
-			processedFields.forEach((fieldName) => {
-				instance[fieldName] = fetchProcessingFields[fieldName](
-					instance[fieldName],
-				);
-			});
-		});
-	}
-
-	return instances;
+	return rows;
 };
 
 export const prepareModel = (abstractSqlModel: AbstractSqlModel) => {
