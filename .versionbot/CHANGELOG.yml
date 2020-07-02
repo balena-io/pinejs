@@ -1,4 +1,20 @@
 - commits:
+    - subject: Fetch affected ids only once per request
+      hash: 47f1b5e261c9956c6a37cca5cfb22ba4e5915120
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+        See: >-
+          https://www.flowdock.com/app/rulemotion/resin-tech/threads/CJ0OxldLkgX3R0raiP-Zht4yk-a
+        see: >-
+          https://www.flowdock.com/app/rulemotion/resin-tech/threads/CJ0OxldLkgX3R0raiP-Zht4yk-a
+        Signed-off-by: Thodoris Greasidis <thodoris@balena.io>
+        signed-off-by: Thodoris Greasidis <thodoris@balena.io>
+      author: Thodoris Greasidis
+  version: 13.2.0
+  date: 2020-07-01T19:13:36.771Z
+- commits:
     - subject: Automatically fetch affected ids when possible (postgres only)
       hash: c70cf7a69da785738734a0ad360b358d2499bfa4
       body: ''
