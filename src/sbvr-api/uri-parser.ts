@@ -58,6 +58,7 @@ export interface ODataRequest {
 		AbstractSQLCompiler.EngineInstance['getModifiedFields']
 	>;
 	affectedIds?: number[];
+	pendingAffectedIds?: Promise<number[]>;
 	hooks?: InstantiatedHooks<sbvrUtils.Hooks>;
 	engine?: AbstractSQLCompiler.Engines;
 }

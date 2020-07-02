@@ -1024,7 +1024,30 @@ const getIdField = (
 	>,
 ) => getAbstractSqlModel(request).tables[resolveSynonym(request)].idField;
 
-export const getAffectedIds = async ({
+export const getAffectedIds = async (args: {
+	req: HookReq;
+	request: HookRequest;
+	tx: Db.Tx;
+}): Promise<number[]> => {
+	const { request } = args;
+	if (request.affectedIds) {
+		return request.affectedIds;
+	}
+
+	// We keep the affected ids promise so we only have to fetch them once per request
+	if (request.pendingAffectedIds != null) {
+		return request.pendingAffectedIds;
+	}
+	request.pendingAffectedIds = $getAffectedIds(args);
+
+	// Keep the affected ids and let the promise to be GCed sooner.
+	request.affectedIds = await request.pendingAffectedIds;
+	delete request.pendingAffectedIds;
+
+	return request.affectedIds;
+};
+
+const $getAffectedIds = async ({
 	req,
 	request,
 	tx,
@@ -1036,9 +1059,6 @@ export const getAffectedIds = async ({
 	if (request.method === 'GET') {
 		// GET requests don't affect anything so passing one to this method is a mistake
 		throw new Error('Cannot call `getAffectedIds` with a GET request');
-	}
-	if (request.affectedIds) {
-		return request.affectedIds;
 	}
 	// We reparse to make sure we get a clean odataQuery, without permissions already added
 	// And we use the request's url rather than the req for things like batch where the req url is ../$batch
@@ -1079,8 +1099,7 @@ export const getAffectedIds = async ({
 	} else {
 		result = await runTransaction(req, (newTx) => runQuery(newTx, request));
 	}
-	request.affectedIds = result.rows.map((row) => row[idField]);
-	return request.affectedIds;
+	return result.rows.map((row) => row[idField]);
 };
 
 export const handleODataRequest: Express.Handler = async (req, res, next) => {
