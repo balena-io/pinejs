@@ -1,4 +1,14 @@
 - commits:
+    - subject: Clean up sbvr-server
+      hash: b43cfd611f1dadc1a0ee0ebcd563a7ad4d1e1d5e
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+  version: 13.2.1
+  date: 2020-07-06T23:12:26.996Z
+- commits:
     - subject: Fetch affected ids only once per request
       hash: 47f1b5e261c9956c6a37cca5cfb22ba4e5915120
       body: ''
