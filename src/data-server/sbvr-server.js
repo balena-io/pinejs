@@ -1,10 +1,3 @@
-/*
- * decaffeinate suggestions:
- * DS102: Remove unnecessary code created because of implicit returns
- * DS203: Remove `|| {}` from converted for-own loops
- * DS207: Consider shorter variations of null checks
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
- */
 import * as Bluebird from 'bluebird';
 import * as permissions from '../sbvr-api/permissions';
 
@@ -289,7 +282,7 @@ export function setup(app, sbvrUtils, db) {
 							let notFirst = false;
 							insQuery += 'INSERT INTO "' + tableName + '" (';
 							let valQuery = '';
-							for (let propName of Object.keys(currRow || {})) {
+							for (let propName of Object.keys(currRow)) {
 								if (notFirst) {
 									insQuery += ',';
 									valQuery += ',';
