@@ -1,4 +1,149 @@
 - commits:
+    - subject: 'Update dependencies, adding support for odata alternate keys'
+      hash: 9a4118c80091d81991f2fb9c1d16a0a8657fed4d
+      body: |
+        Update abstract-sql-compiler from 7.0.0 to 7.0.2
+        Update odata-parser from 2.0.0 to 2.1.0
+        Update odata-to-abstract-sql from 5.1.0 to 5.2.0
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Update dependencies
+              hash: 1d1ed656fca1f408b7250cc7144bf01ffdb8a9db
+              body: |
+                Update sbvr-types from 3.0.0 to 3.1.0
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested:
+                - commits:
+                    - subject: Update dependencies
+                      hash: 33be8837bde82d29f182506f4b93e33157bea185
+                      body: ''
+                      footer:
+                        Change-type: minor
+                        change-type: minor
+                      author: Pagan Gazzard
+                  version: sbvr-types-3.1.0
+                  date: 2020-06-17T21:13:53.393Z
+          version: abstract-sql-compiler-7.0.2
+          date: 2020-07-10T16:36:21.487Z
+        - commits:
+            - subject: Improve `BindNode` typing
+              hash: 66723aba86dba67d25e3d79f28f38e258c2658c6
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-7.0.1
+          date: 2020-07-10T16:16:25.953Z
+        - commits:
+            - subject: Add support for specifying named keys
+              hash: 926615afa77b3c67db8429a03ac5437838fbf939
+              body: ''
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+          version: odata-parser-2.1.0
+          date: 2020-07-10T16:53:25.846Z
+        - commits:
+            - subject: Improve typings
+              hash: bb94134f7231ef71ce5b1ce52d255902b8e7e1a6
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: odata-parser-2.0.1
+          date: 2020-07-10T16:33:59.426Z
+        - commits:
+            - subject: Add support for specifying named keys
+              hash: 75ed00ddaef0f032fa1ffe5003d1858e1540df26
+              body: |
+                Update odata-parser from 2.0.1 to 2.1.0
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+              nested:
+                - commits:
+                    - subject: Add support for specifying named keys
+                      hash: 926615afa77b3c67db8429a03ac5437838fbf939
+                      body: ''
+                      footer:
+                        Change-type: minor
+                        change-type: minor
+                      author: Pagan Gazzard
+                  version: odata-parser-2.1.0
+                  date: 2020-07-10T16:53:25.846Z
+          version: odata-to-abstract-sql-5.2.0
+          date: 2020-07-20T17:20:36.347Z
+        - commits:
+            - subject: Improve typings
+              hash: 4f95a8c2a53289fd7e9f1f893c94716baa4a18a6
+              body: |
+                Update abstract-sql-compiler from 7.0.0 to 7.0.2
+                Update odata-parser from 2.0.0 to 2.0.1
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested:
+                - commits:
+                    - subject: Update dependencies
+                      hash: 1d1ed656fca1f408b7250cc7144bf01ffdb8a9db
+                      body: |
+                        Update sbvr-types from 3.0.0 to 3.1.0
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                      nested:
+                        - commits:
+                            - subject: Update dependencies
+                              hash: 33be8837bde82d29f182506f4b93e33157bea185
+                              body: ''
+                              footer:
+                                Change-type: minor
+                                change-type: minor
+                              author: Pagan Gazzard
+                          version: sbvr-types-3.1.0
+                          date: 2020-06-17T21:13:53.393Z
+                  version: abstract-sql-compiler-7.0.2
+                  date: 2020-07-10T16:36:21.487Z
+                - commits:
+                    - subject: Improve `BindNode` typing
+                      hash: 66723aba86dba67d25e3d79f28f38e258c2658c6
+                      body: ''
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                      nested: []
+                  version: abstract-sql-compiler-7.0.1
+                  date: 2020-07-10T16:16:25.953Z
+                - commits:
+                    - subject: Improve typings
+                      hash: bb94134f7231ef71ce5b1ce52d255902b8e7e1a6
+                      body: ''
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                  version: odata-parser-2.0.1
+                  date: 2020-07-10T16:33:59.426Z
+          version: odata-to-abstract-sql-5.1.1
+          date: 2020-07-10T16:56:05.868Z
+  version: 13.3.0
+  date: 2020-07-20T17:32:49.698Z
+- commits:
     - subject: Clean up sbvr-server
       hash: b43cfd611f1dadc1a0ee0ebcd563a7ad4d1e1d5e
       body: ''
