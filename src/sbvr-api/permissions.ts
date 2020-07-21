@@ -1042,11 +1042,11 @@ const getCheckPasswordQuery = _.once(() =>
 		passthrough: {
 			req: rootRead,
 		},
+		id: {
+			username: { '@': 'username' },
+		},
 		options: {
 			$select: ['id', 'actor', 'password'],
-			$filter: {
-				username: { '@': 'username' },
-			},
 		},
 	}),
 );
@@ -1059,9 +1059,9 @@ export const checkPassword = async (
 	username: string;
 	permissions: string[];
 }> => {
-	const [user] = (await getCheckPasswordQuery()({
+	const user = (await getCheckPasswordQuery()({
 		username,
-	})) as AnyObject[];
+	})) as AnyObject;
 	if (user == null) {
 		throw new Error('User not found');
 	}
@@ -1278,26 +1278,26 @@ const getApiKeyActorIdQuery = _.once(() =>
 		passthrough: {
 			req: rootRead,
 		},
+		id: {
+			key: { '@': 'apiKey' },
+		},
 		options: {
 			$select: 'is_of__actor',
-			$filter: {
-				key: { '@': 'apiKey' },
-			},
 		},
 	}),
 );
 const apiActorPermissionError = new PermissionError();
 const getApiKeyActorId = memoize(
 	async (apiKey: string) => {
-		const apiKeys = (await getApiKeyActorIdQuery()({
+		const apiKeyResult = (await getApiKeyActorIdQuery()({
 			apiKey,
-		})) as AnyObject[];
-		if (apiKeys.length === 0) {
+		})) as AnyObject;
+		if (apiKeyResult == null) {
 			// We reuse a constant permission error here as it will be cached, and
 			// using a single error instance can drastically reduce the memory used
 			throw apiActorPermissionError;
 		}
-		const apiKeyActorID = apiKeys[0].is_of__actor.__id;
+		const apiKeyActorID = apiKeyResult.is_of__actor.__id;
 		if (apiKeyActorID == null) {
 			throw new Error('API key is not linked to a actor?!');
 		}
@@ -1444,17 +1444,17 @@ const getGuestPermissions = memoize(
 			passthrough: {
 				req: rootRead,
 			},
+			id: {
+				username: 'guest',
+			},
 			options: {
 				$select: 'id',
-				$filter: {
-					username: 'guest',
-				},
 			},
-		})) as Array<{ id: number }>;
-		if (result.length === 0) {
+		})) as { id: number };
+		if (result == null) {
 			throw new Error('No guest user');
 		}
-		return _.uniq(await getUserPermissions(result[0].id));
+		return _.uniq(await getUserPermissions(result.id));
 	},
 	{ promise: true },
 );

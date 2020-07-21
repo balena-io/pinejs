@@ -54,13 +54,13 @@ const getOrCreate = async (
 	uniqueFields: AnyObject,
 	extraFields?: AnyObject,
 ) => {
-	const [result] = (await authApiTx.get({
+	const result = (await authApiTx.get({
 		resource,
+		id: uniqueFields,
 		options: {
 			$select: 'id',
-			$filter: uniqueFields,
 		},
-	})) as Array<{ id: number }>;
+	})) as { id: number };
 	if (result != null) {
 		return result.id;
 	}
