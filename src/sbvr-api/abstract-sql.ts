@@ -2,7 +2,11 @@ import * as Bluebird from 'bluebird';
 import * as _ from 'lodash';
 
 import * as AbstractSQLCompiler from '@balena/abstract-sql-compiler';
-import { ODataBinds, odataNameToSqlName } from '@balena/odata-to-abstract-sql';
+import {
+	ODataBinds,
+	odataNameToSqlName,
+	isBindReference,
+} from '@balena/odata-to-abstract-sql';
 import deepFreeze = require('deep-freeze');
 import * as memoize from 'memoizee';
 import memoizeWeak = require('memoizee/weak');
@@ -59,7 +63,7 @@ export const compileRequest = (request: ODataRequest) => {
 };
 
 export const resolveOdataBind = (odataBinds: ODataBinds, value: any) => {
-	if (typeof value === 'object' && value != null && value.bind != null) {
+	if (value != null && isBindReference(value)) {
 		[, value] = odataBinds[value.bind];
 	}
 	return value;
