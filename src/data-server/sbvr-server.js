@@ -82,15 +82,15 @@ export function setup(app, sbvrUtils, db) {
 			await uiApiTx
 				.get({
 					resource: 'textarea',
+					id: {
+						name: 'model_area',
+					},
 					options: {
 						$select: 'id',
-						$filter: {
-							name: 'model_area',
-						},
 					},
 				})
-				.then((/** @type { Array<{ [key: string]: any }> } */ result) => {
-					if (result.length === 0) {
+				.then((/** @type { { [key: string]: any } } */ result) => {
+					if (result == null) {
 						// Add a model_area entry if it doesn't already exist.
 						return uiApiTx.post({
 							resource: 'textarea',
@@ -155,20 +155,18 @@ export function setup(app, sbvrUtils, db) {
 					.get({
 						resource: 'textarea',
 						passthrough: { req: permissions.rootRead },
+						id: {
+							name: 'model_area',
+						},
 						options: {
 							$select: 'text',
-							$filter: {
-								name: 'model_area',
-							},
 						},
 					})
-					.then(async (
-						/** @type { Array<{ [key: string]: any }> } */ result,
-					) => {
-						if (result.length === 0) {
+					.then(async (/** @type { { [key: string]: any } } */ result) => {
+						if (result == null) {
 							throw new Error('Could not find the model to execute');
 						}
-						const modelText = result[0].text;
+						const modelText = result.text;
 						await db.transaction(async (tx) => {
 							await sbvrUtils.executeModel(tx, {
 								apiRoot: 'data',
@@ -180,10 +178,8 @@ export function setup(app, sbvrUtils, db) {
 									tx,
 									req: permissions.root,
 								},
-								options: {
-									$filter: {
-										name: 'model_area',
-									},
+								id: {
+									name: 'model_area',
 								},
 								body: {
 									is_disabled: true,
@@ -370,14 +366,11 @@ export function setup(app, sbvrUtils, db) {
 			uiApi.patch({
 				resource: 'textarea',
 				passthrough: { req: permissions.root },
-				options: {
-					$filter: {
-						name: 'model_area',
-					},
+				id: {
+					name: 'model_area',
 				},
 				body: {
 					text: '',
-					name: 'model_area',
 					is_disabled: false,
 				},
 			}),
