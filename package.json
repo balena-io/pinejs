@@ -25,7 +25,7 @@
     "@balena/abstract-sql-compiler": "^7.0.2",
     "@balena/lf-to-abstract-sql": "^4.0.0",
     "@balena/odata-parser": "^2.1.0",
-    "@balena/odata-to-abstract-sql": "^5.2.0",
+    "@balena/odata-to-abstract-sql": "^5.3.0",
     "@balena/sbvr-parser": "^1.0.1",
     "@balena/sbvr-types": "^3.1.0",
     "@types/bluebird": "^3.5.32",
