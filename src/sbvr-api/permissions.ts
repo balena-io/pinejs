@@ -1610,7 +1610,7 @@ export const config = {
 export const setup = () => {
 	sbvrUtils.addPureHook('all', 'all', 'all', {
 		PREPARSE: ({ req }) => apiKeyMiddleware(req),
-		POSTPARSE: ({
+		POSTPARSE: async ({
 			req,
 			request,
 		}: {
@@ -1664,7 +1664,7 @@ export const setup = () => {
 				request.method = 'GET';
 				request.custom.isAction = 'canAccess';
 			}
-			return addPermissions(req, request);
+			await addPermissions(req, request);
 		},
 		PRERESPOND: ({ request, data }) => {
 			if (request.custom.isAction === 'canAccess' && _.isEmpty(data)) {

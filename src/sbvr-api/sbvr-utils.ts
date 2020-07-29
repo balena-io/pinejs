@@ -360,28 +360,30 @@ export const validateModel = async (
 	modelName: string,
 	request?: uriParser.ODataRequest,
 ): Promise<void> => {
-	await Bluebird.map(models[modelName].sql.rules, async (rule) => {
-		if (!isRuleAffected(rule, request)) {
-			// If none of the fields intersect we don't need to run the rule! :D
-			return;
-		}
+	await Promise.all(
+		models[modelName].sql.rules.map(async (rule) => {
+			if (!isRuleAffected(rule, request)) {
+				// If none of the fields intersect we don't need to run the rule! :D
+				return;
+			}
 
-		const values = await getAndCheckBindValues(
-			{
-				vocabulary: modelName,
-				odataBinds: [],
-				values: {},
-				engine: db.engine,
-			},
-			rule.bindings,
-		);
-		const result = await tx.executeSql(rule.sql, values);
+			const values = await getAndCheckBindValues(
+				{
+					vocabulary: modelName,
+					odataBinds: [],
+					values: {},
+					engine: db.engine,
+				},
+				rule.bindings,
+			);
+			const result = await tx.executeSql(rule.sql, values);
 
-		const v = result.rows[0].result;
-		if (v === false || v === 0 || v === '0') {
-			throw new SbvrValidationError(rule.structuredEnglish);
-		}
-	});
+			const v = result.rows[0].result;
+			if (v === false || v === 0 || v === '0') {
+				throw new SbvrValidationError(rule.structuredEnglish);
+			}
+		}),
+	);
 };
 
 export const generateLfModel = (seModel: string): LFModel =>
@@ -458,112 +460,120 @@ export const executeModels = async (
 	execModels: ExecutableModel[],
 ): Promise<void> => {
 	try {
-		await Bluebird.map(execModels, async (model) => {
-			const { apiRoot } = model;
+		const compiledModels = await Promise.all(
+			execModels.map(async (model) => {
+				const { apiRoot } = model;
 
-			await migrator.run(tx, model);
-			const compiledModel = generateModels(model, db.engine);
+				await migrator.run(tx, model);
+				const compiledModel = generateModels(model, db.engine);
 
-			// Create tables related to terms and fact types
-			// Run statements sequentially, as the order of the CREATE TABLE statements matters (eg. for foreign keys).
-			for (const createStatement of compiledModel.sql.createSchema) {
-				const promise = tx.executeSql(createStatement);
-				if (db.engine === 'websql') {
-					promise.catch((err) => {
-						console.warn(
-							"Ignoring errors in the create table statements for websql as it doesn't support CREATE IF NOT EXISTS",
-							err,
-						);
-					});
+				// Create tables related to terms and fact types
+				// Run statements sequentially, as the order of the CREATE TABLE statements matters (eg. for foreign keys).
+				for (const createStatement of compiledModel.sql.createSchema) {
+					const promise = tx.executeSql(createStatement);
+					if (db.engine === 'websql') {
+						promise.catch((err) => {
+							console.warn(
+								"Ignoring errors in the create table statements for websql as it doesn't support CREATE IF NOT EXISTS",
+								err,
+							);
+						});
+					}
+					await promise;
 				}
-				await promise;
-			}
-			await migrator.postRun(tx, model);
+				await migrator.postRun(tx, model);
 
-			odataResponse.prepareModel(compiledModel.abstractSql);
-			deepFreeze(compiledModel.abstractSql);
-			models[apiRoot] = compiledModel;
+				odataResponse.prepareModel(compiledModel.abstractSql);
+				deepFreeze(compiledModel.abstractSql);
+				models[apiRoot] = compiledModel;
 
-			// Validate the [empty] model according to the rules.
-			// This may eventually lead to entering obligatory data.
-			// For the moment it blocks such models from execution.
-			await validateModel(tx, apiRoot);
+				// Validate the [empty] model according to the rules.
+				// This may eventually lead to entering obligatory data.
+				// For the moment it blocks such models from execution.
+				await validateModel(tx, apiRoot);
 
-			// TODO: Can we do this without the cast?
-			api[apiRoot] = new PinejsClient('/' + apiRoot + '/') as LoggingClient;
-			api[apiRoot].logger = _.cloneDeep(console);
-			if (model.logging != null) {
-				const defaultSetting = model.logging?.default ?? true;
-				for (const k of Object.keys(model.logging)) {
-					const key = k as keyof Console;
-					if (
-						typeof api[apiRoot].logger[key] === 'function' &&
-						!(model.logging?.[key] ?? defaultSetting)
-					) {
-						api[apiRoot].logger[key] = _.noop;
+				// TODO: Can we do this without the cast?
+				api[apiRoot] = new PinejsClient('/' + apiRoot + '/') as LoggingClient;
+				api[apiRoot].logger = _.cloneDeep(console);
+				if (model.logging != null) {
+					const defaultSetting = model.logging?.default ?? true;
+					for (const k of Object.keys(model.logging)) {
+						const key = k as keyof Console;
+						if (
+							typeof api[apiRoot].logger[key] === 'function' &&
+							!(model.logging?.[key] ?? defaultSetting)
+						) {
+							api[apiRoot].logger[key] = _.noop;
+						}
 					}
 				}
-			}
-			return compiledModel;
-			// Only update the dev models once all models have finished executing.
-		}).map((model: CompiledModel) => {
-			const updateModel = async (modelType: keyof CompiledModel) => {
-				if (model[modelType] == null) {
-					return api.dev.delete({
+				return compiledModel;
+				// Only update the dev models once all models have finished executing.
+			}),
+		);
+		await Promise.all(
+			compiledModels.map(async (model: CompiledModel) => {
+				const updateModel = async (modelType: keyof CompiledModel) => {
+					if (model[modelType] == null) {
+						return await api.dev.delete({
+							resource: 'model',
+							passthrough: {
+								tx,
+								req: permissions.root,
+							},
+							options: {
+								$filter: {
+									is_of__vocabulary: model.vocab,
+									model_type: modelType,
+								},
+							},
+						});
+					}
+					const result = (await api.dev.get({
 						resource: 'model',
 						passthrough: {
 							tx,
-							req: permissions.root,
+							req: permissions.rootRead,
 						},
 						options: {
+							$select: 'id',
 							$filter: {
 								is_of__vocabulary: model.vocab,
 								model_type: modelType,
 							},
 						},
-					});
-				}
-				const result = (await api.dev.get({
-					resource: 'model',
-					passthrough: {
-						tx,
-						req: permissions.rootRead,
-					},
-					options: {
-						$select: 'id',
-						$filter: {
-							is_of__vocabulary: model.vocab,
-							model_type: modelType,
-						},
-					},
-				})) as Array<{ id: number }>;
+					})) as Array<{ id: number }>;
 
-				let method: SupportedMethod = 'POST';
-				let uri = '/dev/model';
-				const body: AnyObject = {
-					is_of__vocabulary: model.vocab,
-					model_value: model[modelType],
-					model_type: modelType,
+					let method: SupportedMethod = 'POST';
+					let uri = '/dev/model';
+					const body: AnyObject = {
+						is_of__vocabulary: model.vocab,
+						model_value: model[modelType],
+						model_type: modelType,
+					};
+					const id = result?.[0]?.id;
+					if (id != null) {
+						uri += '(' + id + ')';
+						method = 'PATCH';
+						body.id = id;
+					} else {
+						uri += '?returnResource=false';
+					}
+
+					return await runURI(method, uri, body, tx, permissions.root);
 				};
-				const id = result?.[0]?.id;
-				if (id != null) {
-					uri += '(' + id + ')';
-					method = 'PATCH';
-					body.id = id;
-				} else {
-					uri += '?returnResource=false';
-				}
 
-				return runURI(method, uri, body, tx, permissions.root);
-			};
-
-			return Bluebird.map(
-				['se', 'lf', 'abstractSql', 'sql', 'odataMetadata'],
-				updateModel,
-			);
-		});
+				await Promise.all(
+					['se', 'lf', 'abstractSql', 'sql', 'odataMetadata'].map(updateModel),
+				);
+			}),
+		);
 	} catch (err) {
-		await Bluebird.map(execModels, ({ apiRoot }) => cleanupModel(apiRoot));
+		await Promise.all(
+			execModels.map(async ({ apiRoot }) => {
+				await cleanupModel(apiRoot);
+			}),
+		);
 		throw err;
 	}
 };
@@ -662,17 +672,19 @@ const runHooks = async (
 			),
 		});
 	}
-	await Bluebird.map(hooks, async (hook) => {
-		await hook.run(args);
-	});
+	await Promise.all(
+		hooks.map(async (hook) => {
+			await hook.run(args);
+		}),
+	);
 };
 
 export const deleteModel = async (vocabulary: string) => {
-	await db.transaction((tx) => {
+	await db.transaction(async (tx) => {
 		const dropStatements: Array<Promise<any>> = models[
 			vocabulary
 		].sql.dropSchema.map((dropStatement) => tx.executeSql(dropStatement));
-		return Promise.all(
+		await Promise.all(
 			dropStatements.concat([
 				api.dev.delete({
 					resource: 'model',
@@ -875,7 +887,7 @@ export type Passthrough = AnyObject & {
 
 export class PinejsClient extends PinejsClientCore<PinejsClient> {
 	public passthrough: Passthrough;
-	public _request({
+	public async _request({
 		method,
 		url,
 		body,
@@ -890,7 +902,7 @@ export class PinejsClient extends PinejsClientCore<PinejsClient> {
 		req?: permissions.PermissionReq;
 		custom?: AnyObject;
 	}) {
-		return runURI(method, url, body, tx, req, custom);
+		return await runURI(method, url, body, tx, req, custom);
 	}
 }
 
@@ -902,7 +914,7 @@ export const api: {
 } = {};
 
 // We default to guest only permissions if no req object is passed in
-export const runURI = (
+export const runURI = async (
 	method: string,
 	uri: string,
 	body: AnyObject = {},
@@ -947,7 +959,7 @@ export const runURI = (
 		tx,
 	} as any;
 
-	return new Promise<PromiseResultTypes>((resolve, reject) => {
+	return await new Promise<PromiseResultTypes>((resolve, reject) => {
 		const res: Express.Response = {
 			__internalPinejs: true,
 			on: _.noop,
@@ -1186,7 +1198,7 @@ export const handleODataRequest: Express.Handler = async (req, res, next) => {
 				request = await prepareRequest(request);
 			}
 			// Run the request in its own transaction
-			return runTransaction<Response | Response[]>(req, async (tx) => {
+			return await runTransaction<Response | Response[]>(req, async (tx) => {
 				transactions.push(tx);
 				tx.on('rollback', () => {
 					rollbackRequestHooks(reqHooks);
@@ -1206,7 +1218,7 @@ export const handleODataRequest: Express.Handler = async (req, res, next) => {
 					);
 					return Array.from(env.values());
 				} else {
-					return runRequest(req, res, tx, request);
+					return await runRequest(req, res, tx, request);
 				}
 			});
 		});
@@ -1372,7 +1384,7 @@ const runRequest = async (
 		});
 		throw err;
 	}
-	return prepareResponse(req, res, request, result, tx);
+	return await prepareResponse(req, res, request, result, tx);
 };
 
 const runChangeSet = (
@@ -1435,33 +1447,33 @@ const prepareResponse = async (
 ): Promise<Response> => {
 	switch (request.method) {
 		case 'GET':
-			return respondGet(req, res, request, result, tx);
+			return await respondGet(req, res, request, result, tx);
 		case 'POST':
-			return respondPost(req, res, request, result, tx);
+			return await respondPost(req, res, request, result, tx);
 		case 'PUT':
 		case 'PATCH':
 		case 'MERGE':
-			return respondPut(req, res, request, result, tx);
+			return await respondPut(req, res, request, result, tx);
 		case 'DELETE':
-			return respondDelete(req, res, request, result, tx);
+			return await respondDelete(req, res, request, result, tx);
 		case 'OPTIONS':
-			return respondOptions(req, res, request, result, tx);
+			return await respondOptions(req, res, request, result, tx);
 		default:
 			throw new MethodNotAllowedError();
 	}
 };
 
 // This is a helper method to handle using a passed in req.tx when available, or otherwise creating a new tx and cleaning up after we're done.
-const runTransaction = <T>(
+const runTransaction = async <T>(
 	req: HookReq,
 	callback: (tx: Db.Tx) => Promise<T>,
 ): Promise<T> => {
 	if (req.tx != null) {
 		// If an existing tx was passed in then use it.
-		return callback(req.tx);
+		return await callback(req.tx);
 	} else {
 		// Otherwise create a new transaction and handle tidying it up.
-		return db.transaction(callback);
+		return await db.transaction(callback);
 	}
 };
 
@@ -1508,14 +1520,14 @@ const runQuery = async (
 	return sqlResult;
 };
 
-const runGet = (
+const runGet = async (
 	_req: Express.Request,
 	_res: Express.Response,
 	request: uriParser.ODataRequest,
 	tx: Db.Tx,
 ) => {
 	if (request.sqlQuery != null) {
-		return runQuery(tx, request);
+		return await runQuery(tx, request);
 	}
 };
 

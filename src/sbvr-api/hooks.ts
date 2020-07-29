@@ -16,7 +16,7 @@ export class Hook {
 	constructor(private hookFn: HookFn) {}
 
 	public async run(...args: any[]) {
-		return this.hookFn(...args);
+		await this.hookFn(...args);
 	}
 }
 
@@ -55,9 +55,9 @@ export const rollbackRequestHooks = <T extends InstantiatedHooks<any>>(
 	if (hooks == null) {
 		return;
 	}
-	settleMapSeries(_(hooks).flatMap().compact().value(), (hook) => {
+	settleMapSeries(_(hooks).flatMap().compact().value(), async (hook) => {
 		if (hook instanceof SideEffectHook) {
-			return hook.rollback();
+			await hook.rollback();
 		}
 	});
 };

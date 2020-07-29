@@ -62,7 +62,7 @@ const app = (function () {
 			body = '';
 		}
 		if (!handlers[method]) {
-			return Promise.reject([404, null, null]);
+			throw [404, null, null];
 		}
 		const req = {
 			// Have a default user for in-browser with all permissions
@@ -85,7 +85,7 @@ const app = (function () {
 			uri = uri.slice(0, uri.length - 1);
 		}
 		uri = uri.toLowerCase();
-		return new Promise(function (resolve, reject) {
+		return await new Promise(function (resolve, reject) {
 			const res = {
 				statusCode: 200,
 				status(/** @type number */ statusCode) {

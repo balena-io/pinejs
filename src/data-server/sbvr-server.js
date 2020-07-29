@@ -66,7 +66,7 @@ ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT N
 };
 
 /** @type { import('../config-loader/config-loader').SetupFunction } */
-export function setup(app, sbvrUtils, db) {
+export async function setup(app, sbvrUtils, db) {
 	const uiApi = sbvrUtils.api.ui;
 	const devApi = sbvrUtils.api.dev;
 	const setupModels = async (
@@ -89,10 +89,10 @@ export function setup(app, sbvrUtils, db) {
 						$select: 'id',
 					},
 				})
-				.then((/** @type { { [key: string]: any } } */ result) => {
+				.then(async (/** @type { { [key: string]: any } } */ result) => {
 					if (result == null) {
 						// Add a model_area entry if it doesn't already exist.
-						return uiApiTx.post({
+						return await uiApiTx.post({
 							resource: 'textarea',
 							body: {
 								name: 'model_area',
@@ -116,12 +116,12 @@ export function setup(app, sbvrUtils, db) {
 						},
 					},
 				})
-				.then((/** @type { Array<{ [key: string]: any }> } */ result) => {
+				.then(async (/** @type { Array<{ [key: string]: any }> } */ result) => {
 					if (result.length === 0) {
 						throw new Error('No SE data model found');
 					}
 					const instance = result[0];
-					return sbvrUtils.executeModel(tx, {
+					await sbvrUtils.executeModel(tx, {
 						apiRoot: instance.is_of__vocabulary,
 						modelText: instance.model_value,
 					});
@@ -380,5 +380,5 @@ export function setup(app, sbvrUtils, db) {
 		res.sendStatus(200);
 	});
 
-	return db.transaction(setupModels);
+	await db.transaction(setupModels);
 }

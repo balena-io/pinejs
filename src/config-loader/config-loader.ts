@@ -4,7 +4,6 @@ import type { Database } from '../database-layer/db';
 import type { Migration } from '../migrator/migrator';
 import type { AnyObject, Resolvable } from '../sbvr-api/common-types';
 
-import * as Bluebird from 'bluebird';
 import * as fs from 'fs';
 import * as _ from 'lodash';
 import * as path from 'path';
@@ -77,7 +76,7 @@ const getOrCreatePermission = async (
 	permissionName: string,
 ) => {
 	try {
-		return getOrCreate(authApiTx, 'permission', { name: permissionName });
+		return await getOrCreate(authApiTx, 'permission', { name: permissionName });
 	} catch (e) {
 		e.message = `Could not create or find permission "${permissionName}": ${e.message}`;
 		throw e;
@@ -115,90 +114,96 @@ export const setup = (app: Express.Application) => {
 					});
 				});
 
-				await Bluebird.map(users, async (user) => {
-					try {
-						const userID = await getOrCreate(
-							authApiTx,
-							'user',
-							{
-								username: user.username,
-							},
-							{
-								password: user.password,
-							},
-						);
-						if (user.permissions != null) {
-							await Bluebird.map(user.permissions, async (permissionName) => {
-								const permissionID = await permissionsCache[permissionName];
-								await getOrCreate(authApiTx, 'user__has__permission', {
-									user: userID,
-									permission: permissionID,
-								});
-							});
-						}
-					} catch (e) {
-						e.message = `Could not create or find user "${user.username}": ${e.message}`;
-						throw e;
-					}
-				});
-			}
-
-			await Bluebird.map(data.models, async (model) => {
-				if (
-					(model.abstractSql != null || model.modelText != null) &&
-					model.apiRoot != null
-				) {
-					try {
-						await sbvrUtils.executeModel(
-							tx,
-							model as sbvrUtils.ExecutableModel,
-						);
-
-						const apiRoute = `/${model.apiRoot}/*`;
-						app.options(apiRoute, (_req, res) => res.sendStatus(200));
-						app.all(apiRoute, sbvrUtils.handleODataRequest);
-
-						console.info(
-							'Successfully executed ' + model.modelName + ' model.',
-						);
-					} catch (err) {
-						const message = `Failed to execute ${model.modelName} model from ${model.modelFile}`;
-						if (_.isError(err)) {
-							err.message = message;
-							throw err;
-						}
-						throw new Error(message);
-					}
-				}
-				if (model.customServerCode != null) {
-					let customCode: SetupFunction;
-					if (typeof model.customServerCode === 'string') {
+				await Promise.all(
+					users.map(async (user) => {
 						try {
-							customCode = nodeRequire(model.customServerCode).setup;
+							const userID = await getOrCreate(
+								authApiTx,
+								'user',
+								{
+									username: user.username,
+								},
+								{
+									password: user.password,
+								},
+							);
+							if (user.permissions != null) {
+								await Promise.all(
+									user.permissions.map(async (permissionName) => {
+										const permissionID = await permissionsCache[permissionName];
+										await getOrCreate(authApiTx, 'user__has__permission', {
+											user: userID,
+											permission: permissionID,
+										});
+									}),
+								);
+							}
 						} catch (e) {
-							e.message = `Error loading custom server code: '${e.message}'`;
+							e.message = `Could not create or find user "${user.username}": ${e.message}`;
 							throw e;
 						}
-					} else if (_.isObject(model.customServerCode)) {
-						customCode = model.customServerCode.setup;
-					} else {
-						throw new Error(
-							`Invalid type for customServerCode '${typeof model.customServerCode}'`,
-						);
-					}
+					}),
+				);
+			}
 
-					if (typeof customCode !== 'function') {
-						return;
-					}
+			await Promise.all(
+				data.models.map(async (model) => {
+					if (
+						(model.abstractSql != null || model.modelText != null) &&
+						model.apiRoot != null
+					) {
+						try {
+							await sbvrUtils.executeModel(
+								tx,
+								model as sbvrUtils.ExecutableModel,
+							);
 
-					return customCode(app, sbvrUtils, sbvrUtils.db);
-				}
-			});
+							const apiRoute = `/${model.apiRoot}/*`;
+							app.options(apiRoute, (_req, res) => res.sendStatus(200));
+							app.all(apiRoute, sbvrUtils.handleODataRequest);
+
+							console.info(
+								'Successfully executed ' + model.modelName + ' model.',
+							);
+						} catch (err) {
+							const message = `Failed to execute ${model.modelName} model from ${model.modelFile}`;
+							if (_.isError(err)) {
+								err.message = message;
+								throw err;
+							}
+							throw new Error(message);
+						}
+					}
+					if (model.customServerCode != null) {
+						let customCode: SetupFunction;
+						if (typeof model.customServerCode === 'string') {
+							try {
+								customCode = nodeRequire(model.customServerCode).setup;
+							} catch (e) {
+								e.message = `Error loading custom server code: '${e.message}'`;
+								throw e;
+							}
+						} else if (_.isObject(model.customServerCode)) {
+							customCode = model.customServerCode.setup;
+						} else {
+							throw new Error(
+								`Invalid type for customServerCode '${typeof model.customServerCode}'`,
+							);
+						}
+
+						if (typeof customCode !== 'function') {
+							return;
+						}
+
+						await customCode(app, sbvrUtils, sbvrUtils.db);
+					}
+				}),
+			);
 		});
 
-	const loadConfigFile = (configPath: string): Promise<Config> => {
+	const loadConfigFile = async (configPath: string): Promise<Config> => {
 		console.info('Loading config:', configPath);
-		return import(configPath);
+		return await import(configPath);
 	};
 
 	const loadApplicationConfig = async (config: string | Config | undefined) => {
@@ -242,58 +247,60 @@ export const setup = (app: Express.Application) => {
 				return path.join(root, s);
 			};
 
-			await Bluebird.map(configObj.models, async (model) => {
-				if (model.modelFile != null) {
-					model.modelText = await fs.promises.readFile(
-						resolvePath(model.modelFile),
-						'utf8',
-					);
-				}
-				if (typeof model.customServerCode === 'string') {
-					model.customServerCode = resolvePath(model.customServerCode);
-				}
-				if (model.migrations == null) {
-					model.migrations = {};
-				}
-				const migrations = model.migrations;
+			await Promise.all(
+				configObj.models.map(async (model) => {
+					if (model.modelFile != null) {
+						model.modelText = await fs.promises.readFile(
+							resolvePath(model.modelFile),
+							'utf8',
+						);
+					}
+					if (typeof model.customServerCode === 'string') {
+						model.customServerCode = resolvePath(model.customServerCode);
+					}
+					if (model.migrations == null) {
+						model.migrations = {};
+					}
+					const migrations = model.migrations;
 
-				if (model.migrationsPath) {
-					const migrationsPath = resolvePath(model.migrationsPath);
-					delete model.migrationsPath;
+					if (model.migrationsPath) {
+						const migrationsPath = resolvePath(model.migrationsPath);
+						delete model.migrationsPath;
 
-					await Bluebird.map(
-						fs.promises.readdir(migrationsPath),
-						async (filename) => {
-							const filePath = path.join(migrationsPath, filename);
-							const [migrationKey] = filename.split('-', 1);
+						const fileNames = await fs.promises.readdir(migrationsPath);
+						await Promise.all(
+							fileNames.map(async (filename) => {
+								const filePath = path.join(migrationsPath, filename);
+								const [migrationKey] = filename.split('-', 1);
 
-							switch (path.extname(filename)) {
-								case '.coffee':
-								case '.ts':
-								case '.js':
-									migrations[migrationKey] = nodeRequire(filePath);
-									break;
-								case '.sql':
-									migrations[migrationKey] = await fs.promises.readFile(
-										filePath,
-										'utf8',
-									);
-									break;
-								default:
-									console.error(
-										`Unrecognised migration file extension, skipping: ${path.extname(
-											filename,
-										)}`,
-									);
-							}
-						},
-					);
-				}
-				if (model.initSqlPath) {
-					const initSqlPath = resolvePath(model.initSqlPath);
-					model.initSql = await fs.promises.readFile(initSqlPath, 'utf8');
-				}
-			});
+								switch (path.extname(filename)) {
+									case '.coffee':
+									case '.ts':
+									case '.js':
+										migrations[migrationKey] = nodeRequire(filePath);
+										break;
+									case '.sql':
+										migrations[migrationKey] = await fs.promises.readFile(
+											filePath,
+											'utf8',
+										);
+										break;
+									default:
+										console.error(
+											`Unrecognised migration file extension, skipping: ${path.extname(
+												filename,
+											)}`,
+										);
+								}
+							}),
+						);
+					}
+					if (model.initSqlPath) {
+						const initSqlPath = resolvePath(model.initSqlPath);
+						model.initSql = await fs.promises.readFile(initSqlPath, 'utf8');
+					}
+				}),
+			);
 			await loadConfig(configObj);
 		} catch (err) {
 			console.error('Error loading application config', err, err.stack);

@@ -105,8 +105,13 @@ export const engines: {
 	[engine: string]: (connectString: string | object) => Database;
 } = {};
 
-const atomicExecuteSql: Database['executeSql'] = function (sql, bindings) {
-	return this.transaction((tx) => tx.executeSql(sql, bindings));
+const atomicExecuteSql: Database['executeSql'] = async function (
+	sql,
+	bindings,
+) {
+	return await this.transaction(
+		async (tx) => await tx.executeSql(sql, bindings),
+	);
 };
 
 const asyncTryFn = (fn: () => any) => {
@@ -317,7 +322,7 @@ export abstract class Tx {
 			throw new TypeError('"tableName" cannot include double quotes');
 		}
 		const ifExistsStr = ifExists === true ? ' IF EXISTS' : '';
-		return this.executeSql(`DROP TABLE${ifExistsStr} "${tableName}";`);
+		return await this.executeSql(`DROP TABLE${ifExistsStr} "${tableName}";`);
 	}
 }
 
@@ -449,11 +454,11 @@ if (maybePg != null) {
 				}
 			}
 
-			public tableList(extraWhereClause: string = '') {
+			public async tableList(extraWhereClause: string = '') {
 				if (extraWhereClause !== '') {
 					extraWhereClause = 'WHERE ' + extraWhereClause;
 				}
-				return this.executeSql(`
+				return await this.executeSql(`
 					SELECT *
 					FROM (
 						SELECT tablename as name
@@ -526,8 +531,8 @@ if (maybeMysql != null) {
 				super(stackTraceErr);
 			}
 
-			protected _executeSql(sql: Sql, bindings: Bindings) {
-				return Bluebird.fromCallback((callback) => {
+			protected async _executeSql(sql: Sql, bindings: Bindings) {
+				return await Bluebird.fromCallback((callback) => {
 					this.db.query(sql, bindings, callback);
 				})
 					.catch({ code: MYSQL_UNIQUE_VIOLATION }, (err) => {
@@ -552,11 +557,11 @@ if (maybeMysql != null) {
 				await promise;
 			}
 
-			public tableList(extraWhereClause: string = '') {
+			public async tableList(extraWhereClause: string = '') {
 				if (extraWhereClause !== '') {
 					extraWhereClause = ' WHERE ' + extraWhereClause;
 				}
-				return this.executeSql(
+				return await this.executeSql(
 					`
 					SELECT name
 					FROM (
@@ -687,8 +692,8 @@ if (typeof window !== 'undefined' && window.openDatabase != null) {
 				return createResult(result);
 			}
 
-			protected _rollback(): Promise<void> {
-				return new Promise((resolve) => {
+			protected async _rollback(): Promise<void> {
+				return await new Promise((resolve) => {
 					const successCallback: SQLStatementCallback = () => {
 						resolve();
 						throw new Error('Rollback');
@@ -713,11 +718,11 @@ if (typeof window !== 'undefined' && window.openDatabase != null) {
 				this.running = false;
 			}
 
-			public tableList(extraWhereClause: string = '') {
+			public async tableList(extraWhereClause: string = '') {
 				if (extraWhereClause !== '') {
 					extraWhereClause = ' AND ' + extraWhereClause;
 				}
-				return this.executeSql(`
+				return await this.executeSql(`
 					SELECT name, sql
 					FROM sqlite_master
 					WHERE type='table'

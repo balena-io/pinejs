@@ -1,4 +1,3 @@
-import * as Bluebird from 'bluebird';
 import * as _ from 'lodash';
 
 import * as AbstractSQLCompiler from '@balena/abstract-sql-compiler';
@@ -69,7 +68,7 @@ export const resolveOdataBind = (odataBinds: ODataBinds, value: any) => {
 	return value;
 };
 
-export const getAndCheckBindValues = (
+export const getAndCheckBindValues = async (
 	request: Required<
 		Pick<ODataRequest, 'vocabulary' | 'odataBinds' | 'values' | 'engine'>
 	>,
@@ -77,75 +76,77 @@ export const getAndCheckBindValues = (
 ) => {
 	const { odataBinds, values, engine } = request;
 	const sqlModelTables = sbvrUtils.getAbstractSqlModel(request).tables;
-	return Bluebird.map(bindings, async (binding) => {
-		let fieldName: string = '';
-		let field: { dataType: string };
-		let value: any;
-		if (binding[0] === 'Bind') {
-			const bindValue = binding[1];
-			if (Array.isArray(bindValue)) {
-				let tableName;
-				[tableName, fieldName] = bindValue;
+	return await Promise.all(
+		bindings.map(async (binding) => {
+			let fieldName: string = '';
+			let field: { dataType: string };
+			let value: any;
+			if (binding[0] === 'Bind') {
+				const bindValue = binding[1];
+				if (Array.isArray(bindValue)) {
+					let tableName;
+					[tableName, fieldName] = bindValue;
 
-				const referencedName = tableName + '.' + fieldName;
-				value = values[referencedName];
-				if (value === undefined) {
-					value = values[fieldName];
-				}
+					const referencedName = tableName + '.' + fieldName;
+					value = values[referencedName];
+					if (value === undefined) {
+						value = values[fieldName];
+					}
 
-				value = resolveOdataBind(odataBinds, value);
+					value = resolveOdataBind(odataBinds, value);
 
-				const sqlTableName = odataNameToSqlName(tableName);
-				const sqlFieldName = odataNameToSqlName(fieldName);
-				const maybeField = sqlModelTables[sqlTableName].fields.find(
-					(f) => f.fieldName === sqlFieldName,
-				);
-				if (maybeField == null) {
-					throw new Error(`Could not find field '${fieldName}'`);
-				}
-				field = maybeField;
-			} else if (Number.isInteger(bindValue)) {
-				if (bindValue >= odataBinds.length) {
-					console.error(
-						`Invalid binding number '${bindValue}' for binds: `,
-						odataBinds,
+					const sqlTableName = odataNameToSqlName(tableName);
+					const sqlFieldName = odataNameToSqlName(fieldName);
+					const maybeField = sqlModelTables[sqlTableName].fields.find(
+						(f) => f.fieldName === sqlFieldName,
 					);
-					throw new Error('Invalid binding');
+					if (maybeField == null) {
+						throw new Error(`Could not find field '${fieldName}'`);
+					}
+					field = maybeField;
+				} else if (Number.isInteger(bindValue)) {
+					if (bindValue >= odataBinds.length) {
+						console.error(
+							`Invalid binding number '${bindValue}' for binds: `,
+							odataBinds,
+						);
+						throw new Error('Invalid binding');
+					}
+					let dataType;
+					[dataType, value] = odataBinds[bindValue];
+					field = { dataType };
+				} else if (typeof bindValue === 'string') {
+					if (!odataBinds.hasOwnProperty(bindValue)) {
+						console.error(
+							`Invalid binding '${bindValue}' for binds: `,
+							odataBinds,
+						);
+						throw new Error('Invalid binding');
+					}
+					let dataType;
+					[dataType, value] = odataBinds[bindValue];
+					field = { dataType };
+				} else {
+					throw new Error(`Unknown binding: ${binding}`);
 				}
-				let dataType;
-				[dataType, value] = odataBinds[bindValue];
-				field = { dataType };
-			} else if (typeof bindValue === 'string') {
-				if (!odataBinds.hasOwnProperty(bindValue)) {
-					console.error(
-						`Invalid binding '${bindValue}' for binds: `,
-						odataBinds,
-					);
-					throw new Error('Invalid binding');
-				}
-				let dataType;
-				[dataType, value] = odataBinds[bindValue];
-				field = { dataType };
 			} else {
-				throw new Error(`Unknown binding: ${binding}`);
+				let dataType;
+				[dataType, value] = binding;
+				field = { dataType };
 			}
-		} else {
-			let dataType;
-			[dataType, value] = binding;
-			field = { dataType };
-		}
 
-		if (value === undefined) {
-			throw new Error(`Bind value cannot be undefined: ${binding}`);
-		}
+			if (value === undefined) {
+				throw new Error(`Bind value cannot be undefined: ${binding}`);
+			}
 
-		try {
-			return await AbstractSQLCompiler[engine].dataTypeValidate(value, field);
-		} catch (err) {
-			err.message = `"${fieldName}" ${err.message}`;
-			throw err;
-		}
-	});
+			try {
+				return await AbstractSQLCompiler[engine].dataTypeValidate(value, field);
+			} catch (err) {
+				err.message = `"${fieldName}" ${err.message}`;
+				throw err;
+			}
+		}),
+	);
 };
 
 const checkModifiedFields = (
