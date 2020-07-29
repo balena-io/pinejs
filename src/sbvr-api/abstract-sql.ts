@@ -62,7 +62,7 @@ export const compileRequest = (request: ODataRequest) => {
 };
 
 export const resolveOdataBind = (odataBinds: ODataBinds, value: any) => {
-	if (value != null && isBindReference(value)) {
+	if (value != null && typeof value === 'object' && isBindReference(value)) {
 		[, value] = odataBinds[value.bind];
 	}
 	return value;
