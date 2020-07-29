@@ -1,4 +1,15 @@
 - commits:
+    - subject: Fix `resolveOdataBind`
+      hash: e85212a6bdf1d4d62e450e7bddf25477b1f448d7
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 13.4.2
+  date: 2020-07-29T13:19:49.675Z
+- commits:
     - subject: Improve compatibility with async/await stack traces
       hash: f541f92abd2474fa29df5e407a27902d47ae1607
       body: ''
