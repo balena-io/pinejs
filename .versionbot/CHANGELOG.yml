@@ -1,4 +1,35 @@
 - commits:
+    - subject: Improve compatibility with async/await stack traces
+      hash: f541f92abd2474fa29df5e407a27902d47ae1607
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+    - subject: Update odata-to-abstract-sql
+      hash: 0db79361f3949c046b797264738672dbacfd4018
+      body: |
+        Update odata-to-abstract-sql from 5.2.0 to 5.3.0
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Export `isBindReference`
+              hash: 4aa9b4f62f0ae20c250425f30c41f1c4c5117892
+              body: ''
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+              nested: []
+          version: odata-to-abstract-sql-5.3.0
+          date: 2020-07-21T10:38:29.472Z
+  version: 13.4.1
+  date: 2020-07-29T11:32:50.826Z
+- commits:
     - subject: Update pinejs-client-core and use named keys when querying
       hash: 55b67d3ce0295f08728784277825e6e20bbe0472
       body: |
