@@ -17,7 +17,6 @@ import type { Result, Row } from '../database-layer/db';
 
 import { sqlNameToODataName } from '@balena/odata-to-abstract-sql';
 import * as sbvrTypes from '@balena/sbvr-types';
-import * as Bluebird from 'bluebird';
 import * as _ from 'lodash';
 import { resolveNavigationResource, resolveSynonym } from './sbvr-utils';
 
@@ -168,16 +167,20 @@ export const process = async (
 	});
 
 	if (expandableFields.length > 0) {
-		await Bluebird.map(rows, (row) =>
-			Bluebird.map(expandableFields, (fieldName) =>
-				checkForExpansion(
-					vocab,
-					abstractSqlModel,
-					sqlResourceName,
-					fieldName,
-					row,
-				),
-			),
+		await Promise.all(
+			rows.map(async (row) => {
+				await Promise.all(
+					expandableFields.map(async (fieldName) => {
+						await checkForExpansion(
+							vocab,
+							abstractSqlModel,
+							sqlResourceName,
+							fieldName,
+							row,
+						);
+					}),
+				);
+			}),
 		);
 	}
 

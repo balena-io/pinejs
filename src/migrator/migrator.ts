@@ -77,7 +77,7 @@ export const run = async (tx: Tx, model: ApiRootModel): Promise<void> => {
 			'First time model has executed, skipping migrations',
 		);
 
-		return setExecutedMigrations(tx, modelName, Object.keys(migrations));
+		return await setExecutedMigrations(tx, modelName, Object.keys(migrations));
 	}
 	await Bluebird.using(lockMigrations(tx, modelName), async () => {
 		const executedMigrations = await getExecutedMigrations(tx, modelName);
@@ -93,7 +93,7 @@ export const run = async (tx: Tx, model: ApiRootModel): Promise<void> => {
 			tx,
 			pendingMigrations,
 		);
-		return setExecutedMigrations(tx, modelName, [
+		await setExecutedMigrations(tx, modelName, [
 			...executedMigrations,
 			...newlyExecutedMigrations,
 		]);
