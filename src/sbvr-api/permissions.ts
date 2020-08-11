@@ -1059,9 +1059,9 @@ export const checkPassword = async (
 	username: string;
 	permissions: string[];
 }> => {
-	const user = (await getCheckPasswordQuery()({
+	const user = await getCheckPasswordQuery()({
 		username,
-	})) as AnyObject;
+	});
 	if (user == null) {
 		throw new Error('User not found');
 	}
@@ -1289,9 +1289,9 @@ const getApiKeyActorIdQuery = _.once(() =>
 const apiActorPermissionError = new PermissionError();
 const getApiKeyActorId = memoize(
 	async (apiKey: string) => {
-		const apiKeyResult = (await getApiKeyActorIdQuery()({
+		const apiKeyResult = await getApiKeyActorIdQuery()({
 			apiKey,
-		})) as AnyObject;
+		});
 		if (apiKeyResult == null) {
 			// We reuse a constant permission error here as it will be cached, and
 			// using a single error instance can drastically reduce the memory used
