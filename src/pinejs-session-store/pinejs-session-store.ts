@@ -140,15 +140,17 @@ export class PinejsSessionStore extends Store {
 		asCallback(
 			callback,
 			api.session.get({
-				resource: 'session/$count',
+				resource: 'session/',
 				passthrough: {
 					req: permissions.rootRead,
 				},
 				options: {
-					$select: 'session_id',
-					$filter: {
-						expiry_time: {
-							$ge: Date.now(),
+					$count: {
+						$select: 'session_id',
+						$filter: {
+							expiry_time: {
+								$ge: Date.now(),
+							},
 						},
 					},
 				},
