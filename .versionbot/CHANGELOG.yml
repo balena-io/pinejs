@@ -1,4 +1,35 @@
 - commits:
+    - subject: Update pinejs-client-core and make use of improved typings
+      hash: c18d24e7b648d3caf866c1882e1bfe90f778e334
+      body: |
+        Update pinejs-client-core from 6.5.0 to 6.6.0
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: 'Deprecate `$expand: { ''a/$count'': {...} }`'
+              hash: 8be33ad064905476e3f21978b7e1d760f5e27f4e
+              body: ''
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+            - subject: >-
+                Deprecate `resource: 'a/$count'` and update typings to reflect
+                it
+              hash: 779cc424cb6d2562aa9a98a3ff083b68308d9797
+              body: ''
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+          version: pinejs-client-js-6.6.0
+          date: 2020-08-11T16:18:59.088Z
+  version: 13.6.0
+  date: 2020-08-11T16:32:17.614Z
+- commits:
     - subject: Update pinejs-client-core to add support for $count sugar
       hash: 17e026f9999216b8ea9e47e8d10442166ea77d0b
       body: |
