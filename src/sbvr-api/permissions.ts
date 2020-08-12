@@ -1450,7 +1450,7 @@ const getGuestPermissions = memoize(
 			options: {
 				$select: 'id',
 			},
-		})) as { id: number };
+		})) as { id: number } | undefined;
 		if (result == null) {
 			throw new Error('No guest user');
 		}
