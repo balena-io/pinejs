@@ -1680,10 +1680,10 @@ export const setup = () => {
 
 	sbvrUtils.addPureHook('POST', 'Auth', 'user', {
 		POSTPARSE: async ({ request, api }) => {
-			const result = (await api.post({
+			const result = await api.post({
 				resource: 'actor',
 				options: { returnResource: false },
-			})) as AnyObject;
+			});
 			request.values.actor = result.id;
 		},
 	});
