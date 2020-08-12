@@ -1,4 +1,26 @@
 - commits:
+    - subject: Update pinejs-client-core to 6.6.1
+      hash: 7137b89117c731ec1336c7fb2684c12123445982
+      body: |
+        Update pinejs-client-core from 6.6.0 to 6.6.1
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Fix typing when id is specified to be `AnyObject | undefined`
+              hash: c4802cb748b1552345f036120c3aa6254e6cc946
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: pinejs-client-js-6.6.1
+          date: 2020-08-11T17:10:09.498Z
+  version: 13.6.1
+  date: 2020-08-12T06:53:07.679Z
+- commits:
     - subject: Update pinejs-client-core and make use of improved typings
       hash: c18d24e7b648d3caf866c1882e1bfe90f778e334
       body: |
