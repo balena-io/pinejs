@@ -902,7 +902,7 @@ export class PinejsClient extends PinejsClientCore<PinejsClient> {
 		req?: permissions.PermissionReq;
 		custom?: AnyObject;
 	}) {
-		return await runURI(method, url, body, tx, req, custom);
+		return (await runURI(method, url, body, tx, req, custom)) as {};
 	}
 }
 

@@ -59,7 +59,7 @@ const getOrCreate = async (
 		options: {
 			$select: 'id',
 		},
-	})) as { id: number };
+	})) as { id: number } | undefined;
 	if (result != null) {
 		return result.id;
 	}
