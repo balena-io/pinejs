@@ -1308,7 +1308,8 @@ const convertToHttpError = (err: any): HttpError => {
 		err instanceof SqlCompilationError ||
 		err instanceof TranslationError ||
 		err instanceof ParsingError ||
-		err instanceof PermissionParsingError
+		err instanceof PermissionParsingError ||
+		err instanceof db.TransactionClosedError
 	) {
 		return new InternalRequestError();
 	}
