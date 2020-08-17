@@ -64,6 +64,7 @@ export class DatabaseError extends TypedError {
 export class ConstraintError extends DatabaseError {}
 export class UniqueConstraintError extends ConstraintError {}
 export class ForeignKeyConstraintError extends ConstraintError {}
+export class TransactionClosedError extends ConstraintError {}
 
 const wrapDatabaseError = (err: CodedError) => {
 	metrics.emit('db_error', err);
@@ -79,18 +80,16 @@ const alwaysExport = {
 	ConstraintError,
 	UniqueConstraintError,
 	ForeignKeyConstraintError,
+	TransactionClosedError,
 };
+type BaseDatabase = typeof alwaysExport;
 
 interface TransactionFn {
 	<T>(fn: (tx: Tx) => Resolvable<T>): Promise<T>;
 	(): Promise<Tx>;
 }
 
-export interface Database {
-	DatabaseError: typeof DatabaseError;
-	ConstraintError: typeof ConstraintError;
-	UniqueConstraintError: typeof UniqueConstraintError;
-	ForeignKeyConstraintError: typeof ForeignKeyConstraintError;
+export interface Database extends BaseDatabase {
 	engine: Engines;
 	executeSql: (
 		this: Database,
@@ -140,7 +139,7 @@ const getRejectedFunctions: RejectedFunctions = DEBUG
 	? (message) => {
 			// In debug mode we create the error here to give the stack trace of where we first closed the transaction,
 			// but it adds significant overhead for a production environment
-			const rejectionValue = new Error(message);
+			const rejectionValue = new TransactionClosedError(message);
 			const rejectFn = async () => {
 				// We return a new rejected promise on each call so that errors are automatically logged if the
 				// rejection is not handled (but only if it is not handled)
@@ -153,7 +152,7 @@ const getRejectedFunctions: RejectedFunctions = DEBUG
 	  }
 	: (message) => {
 			const rejectFn = async () => {
-				throw new Error(message);
+				throw new TransactionClosedError(message);
 			};
 			return {
 				executeSql: rejectFn,
