@@ -1,4 +1,15 @@
 - commits:
+    - subject: Add a specific error type for transaction closed errors and handle them
+      hash: fe90510321af0d18e45b61b73e0f78bde4bda79b
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+      nested: []
+  version: 13.8.0
+  date: 2020-08-17T09:44:38.524Z
+- commits:
     - subject: Update pinejs-client-core to 6.7.0
       hash: e885164a882c9ebae59f70a15424598d9cd6949f
       body: |
