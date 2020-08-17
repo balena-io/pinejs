@@ -1,4 +1,18 @@
 - commits:
+    - subject: Separate running the odata request from the expressjs handler
+      hash: 0be16531a0d2898cf70b48a088c7106ce071e434
+      body: |
+        This simplifies the implementation of internal api calls via `runURI`
+        and will allow async stack traces across internal calls with a future
+        major bump
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 13.8.1
+  date: 2020-08-17T11:35:48.526Z
+- commits:
     - subject: Add a specific error type for transaction closed errors and handle them
       hash: fe90510321af0d18e45b61b73e0f78bde4bda79b
       body: ''
