@@ -922,6 +922,11 @@ export const runURI = async (
 	req?: permissions.PermissionReq,
 	custom?: AnyObject,
 ): Promise<PromiseResultTypes> => {
+	const [, apiRoot] = uri.split('/', 2);
+	if (apiRoot == null || models[apiRoot] == null) {
+		throw new InternalRequestError();
+	}
+
 	let user: User | undefined;
 	let apiKey: ApiKey | undefined;
 
@@ -959,7 +964,8 @@ export const runURI = async (
 		tx,
 	} as any;
 
-	return await new Promise<PromiseResultTypes>((resolve, reject) => {
+	return await new Promise<PromiseResultTypes>(async (resolve, reject) => {
+		// TODO-MAJOR: Remove the emulated res object
 		const res: Express.Response = {
 			__internalPinejs: true,
 			on: _.noop,
@@ -1011,12 +1017,30 @@ export const runURI = async (
 			type: _.noop,
 		} as any;
 
-		const next = (route?: string) => {
-			console.warn('Next called on a runURI?!', method, uri, route);
-			res.sendStatus(500);
-		};
+		try {
+			const { promise } = runODataRequest(emulatedReq, res, apiRoot);
 
-		handleODataRequest(emulatedReq, res, next);
+			const [response] = await promise;
+
+			if (_.isError(response)) {
+				throw response;
+			}
+
+			const { body: responseBody, status } = response as Response;
+
+			if (status != null && status >= 400) {
+				const ErrorClass =
+					statusCodeToError[status as keyof typeof statusCodeToError];
+				if (ErrorClass != null) {
+					throw new ErrorClass(undefined, responseBody);
+				}
+				throw new HttpError(status, undefined, responseBody);
+			}
+
+			resolve(responseBody as AnyObject | undefined);
+		} catch (err) {
+			reject(err);
+		}
 	});
 };
 
@@ -1114,24 +1138,23 @@ const $getAffectedIds = async ({
 	return result.rows.map((row) => row[idField]);
 };
 
-export const handleODataRequest: Express.Handler = async (req, res, next) => {
-	const [, apiRoot] = req.url.split('/', 2);
-	if (apiRoot == null || models[apiRoot] == null) {
-		return next('route');
-	}
-
+const runODataRequest = (
+	req: Express.Request,
+	res: Express.Response,
+	vocabulary: string,
+) => {
 	if (DEBUG) {
-		api[apiRoot].logger.log('Parsing', req.method, req.url);
+		api[vocabulary].logger.log('Parsing', req.method, req.url);
 	}
 
-	const mapSeries = controlFlow.getMappingFn(req.headers);
 	// Get the hooks for the current method/vocabulary as we know it,
 	// in order to run PREPARSE hooks, before parsing gets us more info
 	const reqHooks = getHooks({
 		method: req.method as SupportedMethod,
-		vocabulary: apiRoot,
+		vocabulary,
 	});
 
+	const transactions: Db.Tx[] = [];
 	const tryCancelRequest = () => {
 		transactions.forEach(async (tx) => {
 			if (tx.isClosed()) {
@@ -1147,103 +1170,126 @@ export const handleODataRequest: Express.Handler = async (req, res, next) => {
 		transactions.length = 0;
 		rollbackRequestHooks(reqHooks);
 	};
-	req.on('close', tryCancelRequest);
-	res.on('close', tryCancelRequest);
 
-	const transactions: Db.Tx[] = [];
+	req.on('close', tryCancelRequest);
 
 	if (req.tx != null) {
 		transactions.push(req.tx);
 		req.tx.on('rollback', tryCancelRequest);
 	}
 
-	try {
-		await runHooks('PREPARSE', reqHooks, { req, tx: req.tx });
-		let requests: uriParser.UnparsedRequest[];
-		// Check if it is a single request or a batch
-		if (req.batch != null && req.batch.length > 0) {
-			requests = req.batch;
-		} else {
-			const { method, url, body } = req;
-			requests = [{ method, url, data: body }];
-		}
+	const mapSeries = controlFlow.getMappingFn(req.headers);
 
-		const prepareRequest = async ($request: uriParser.ODataRequest) => {
-			$request.engine = db.engine;
-			// Get the full hooks list now that we can.
-			$request.hooks = getHooks($request);
-			// Add/check the relevant permissions
-			try {
-				await runHooks('POSTPARSE', $request.hooks, {
-					req,
-					request: $request,
-					tx: req.tx,
-				});
-				const translatedRequest = await uriParser.translateUri($request);
-				return await compileRequest(translatedRequest);
-			} catch (err) {
-				rollbackRequestHooks(reqHooks);
-				rollbackRequestHooks($request.hooks);
-				throw err;
-			}
-		};
-
-		// Parse the OData requests
-		const results = await mapSeries(requests, async (requestPart) => {
-			let request = await uriParser.parseOData(requestPart);
-
-			if (Array.isArray(request)) {
-				request = await Bluebird.mapSeries(request, prepareRequest);
+	return {
+		tryCancelRequest,
+		promise: (async () => {
+			await runHooks('PREPARSE', reqHooks, { req, tx: req.tx });
+			let requests: uriParser.UnparsedRequest[];
+			// Check if it is a single request or a batch
+			if (req.batch != null && req.batch.length > 0) {
+				requests = req.batch;
 			} else {
-				request = await prepareRequest(request);
+				const { method, url, body } = req;
+				requests = [{ method, url, data: body }];
 			}
-			// Run the request in its own transaction
-			return await runTransaction<Response | Response[]>(req, async (tx) => {
-				transactions.push(tx);
-				tx.on('rollback', () => {
+
+			const prepareRequest = async ($request: uriParser.ODataRequest) => {
+				$request.engine = db.engine;
+				// Get the full hooks list now that we can.
+				$request.hooks = getHooks($request);
+				// Add/check the relevant permissions
+				try {
+					await runHooks('POSTPARSE', $request.hooks, {
+						req,
+						request: $request,
+						tx: req.tx,
+					});
+					const translatedRequest = await uriParser.translateUri($request);
+					return await compileRequest(translatedRequest);
+				} catch (err) {
 					rollbackRequestHooks(reqHooks);
+					rollbackRequestHooks($request.hooks);
+					throw err;
+				}
+			};
+
+			// Parse the OData requests
+			const results = await mapSeries(requests, async (requestPart) => {
+				let request = await uriParser.parseOData(requestPart);
+
+				if (Array.isArray(request)) {
+					request = await Bluebird.mapSeries(request, prepareRequest);
+				} else {
+					request = await prepareRequest(request);
+				}
+				// Run the request in its own transaction
+				return await runTransaction<Response | Response[]>(req, async (tx) => {
+					transactions.push(tx);
+					tx.on('rollback', () => {
+						rollbackRequestHooks(reqHooks);
+						if (Array.isArray(request)) {
+							request.forEach(({ hooks }) => {
+								rollbackRequestHooks(hooks);
+							});
+						} else {
+							rollbackRequestHooks(request.hooks);
+						}
+					});
 					if (Array.isArray(request)) {
-						request.forEach(({ hooks }) => {
-							rollbackRequestHooks(hooks);
-						});
+						const env = await Bluebird.reduce(
+							request,
+							runChangeSet(req, res, tx),
+							new Map<number, Response>(),
+						);
+						return Array.from(env.values());
 					} else {
-						rollbackRequestHooks(request.hooks);
+						return await runRequest(req, res, tx, request);
 					}
 				});
-				if (Array.isArray(request)) {
-					const env = await Bluebird.reduce(
-						request,
-						runChangeSet(req, res, tx),
-						new Map<number, Response>(),
-					);
-					return Array.from(env.values());
+			});
+
+			const responses = results.map((result) => {
+				if (_.isError(result)) {
+					return convertToHttpError(result);
 				} else {
-					return await runRequest(req, res, tx, request);
+					if (
+						!Array.isArray(result) &&
+						result.body == null &&
+						result.status == null
+					) {
+						console.error('No status or body set', req.url, responses);
+						return new InternalRequestError();
+					}
+					return result;
 				}
 			});
-		});
+			return responses;
+		})(),
+	};
+};
 
-		const responses = results.map((result) => {
-			if (_.isError(result)) {
-				return convertToHttpError(result);
-			} else {
-				return result;
-			}
-		});
+export const handleODataRequest: Express.Handler = async (req, res, next) => {
+	const [, apiRoot] = req.url.split('/', 2);
+	if (apiRoot == null || models[apiRoot] == null) {
+		return next('route');
+	}
+
+	try {
+		const { tryCancelRequest, promise } = runODataRequest(req, res, apiRoot);
+
+		res.on('close', tryCancelRequest);
+
+		const responses = await promise;
 
 		res.set('Cache-Control', 'no-cache');
 		// If we are dealing with a single request unpack the response and respond normally
 		if (req.batch == null || req.batch.length === 0) {
 			let [response] = responses;
 			if (_.isError(response)) {
-				if ((res as AnyObject).__internalPinejs === true) {
-					return res.json(response);
-				} else {
-					response = {
-						status: response.status,
-						body: response.getResponseBody(),
-					};
-				}
+				response = {
+					status: response.status,
+					body: response.getResponseBody(),
+				};
 			}
 			const { body, headers, status } = response as Response;
 			if (status) {
@@ -1254,12 +1300,7 @@ export const handleODataRequest: Express.Handler = async (req, res, next) => {
 			});
 
 			if (!body) {
-				if (status != null) {
-					res.sendStatus(status);
-				} else {
-					console.error('No status or body set', req.url, responses);
-					res.sendStatus(500);
-				}
+				res.sendStatus(status!);
 			} else {
 				if (status != null) {
 					res.status(status);
@@ -1338,18 +1379,18 @@ const runRequest = async (
 
 			switch (request.method) {
 				case 'GET':
-					result = await runGet(req, res, request, tx);
+					result = await runGet(req, request, tx);
 					break;
 				case 'POST':
-					result = await runPost(req, res, request, tx);
+					result = await runPost(req, request, tx);
 					break;
 				case 'PUT':
 				case 'PATCH':
 				case 'MERGE':
-					result = await runPut(req, res, request, tx);
+					result = await runPut(req, request, tx);
 					break;
 				case 'DELETE':
-					result = await runDelete(req, res, request, tx);
+					result = await runDelete(req, request, tx);
 					break;
 			}
 		} catch (err) {
@@ -1523,7 +1564,6 @@ const runQuery = async (
 
 const runGet = async (
 	_req: Express.Request,
-	_res: Express.Response,
 	request: uriParser.ODataRequest,
 	tx: Db.Tx,
 ) => {
@@ -1574,7 +1614,6 @@ const respondGet = async (
 
 const runPost = async (
 	_req: Express.Request,
-	_res: Express.Response,
 	request: uriParser.ODataRequest,
 	tx: Db.Tx,
 ): Promise<number | undefined> => {
@@ -1639,7 +1678,6 @@ const respondPost = async (
 
 const runPut = async (
 	_req: Express.Request,
-	_res: Express.Response,
 	request: uriParser.ODataRequest,
 	tx: Db.Tx,
 ): Promise<undefined> => {
@@ -1686,7 +1724,6 @@ const respondOptions = respondPut;
 
 const runDelete = async (
 	_req: Express.Request,
-	_res: Express.Response,
 	request: uriParser.ODataRequest,
 	tx: Db.Tx,
 ): Promise<undefined> => {
