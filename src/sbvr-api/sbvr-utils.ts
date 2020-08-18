@@ -1532,11 +1532,17 @@ const respondGet = async (
 ): Promise<Response> => {
 	const vocab = request.vocabulary;
 	if (request.sqlQuery != null) {
+		const format = request.odataQuery.options?.$format;
+		const metadata =
+			format != null && typeof format === 'object'
+				? format.metadata
+				: undefined;
 		const d = await odataResponse.process(
 			vocab,
 			getAbstractSqlModel(request),
 			request.resourceName,
 			result.rows,
+			{ includeMetadata: metadata !== 'none' },
 		);
 
 		await runHooks('PRERESPOND', request.hooks, {

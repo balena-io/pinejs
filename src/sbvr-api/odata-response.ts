@@ -26,6 +26,7 @@ const checkForExpansion = async (
 	parentResourceName: string,
 	fieldName: string,
 	row: Row,
+	opts: { includeMetadata: boolean },
 ) => {
 	let field = row[fieldName];
 	if (field == null) {
@@ -54,6 +55,7 @@ const checkForExpansion = async (
 			abstractSqlModel,
 			mappingResourceName,
 			field,
+			opts,
 		);
 		row[fieldName] = expandedField;
 	} else {
@@ -123,6 +125,7 @@ export const process = async (
 	abstractSqlModel: AbstractSqlModel,
 	resourceName: string,
 	rows: Result['rows'],
+	{ includeMetadata }: { includeMetadata: boolean },
 ): Promise<number | Row[]> => {
 	if (rows.length === 0) {
 		return [];
@@ -161,9 +164,11 @@ export const process = async (
 		processedFields.forEach((fieldName) => {
 			row[fieldName] = fetchProcessingFields[fieldName](row[fieldName]);
 		});
-		row.__metadata = {
-			uri: resourceURI(vocab, resourceName, row[odataIdField]),
-		};
+		if (includeMetadata) {
+			row.__metadata = {
+				uri: resourceURI(vocab, resourceName, row[odataIdField]),
+			};
+		}
 	});
 
 	if (expandableFields.length > 0) {
@@ -177,6 +182,7 @@ export const process = async (
 							sqlResourceName,
 							fieldName,
 							row,
+							{ includeMetadata },
 						);
 					}),
 				);
