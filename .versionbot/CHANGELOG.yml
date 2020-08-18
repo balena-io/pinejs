@@ -1,4 +1,15 @@
 - commits:
+    - subject: Improve typing of getAffectedIds
+      hash: 8a202a43a25d6955d60676d75057eba5efb1f874
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 13.9.1
+  date: 2020-08-18T14:52:08.680Z
+- commits:
     - subject: Improve typing of hook args
       hash: 241b1e1d4dac023ff616737eef746bd9bf0f6a44
       body: ''
