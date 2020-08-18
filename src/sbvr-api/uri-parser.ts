@@ -59,7 +59,7 @@ export interface ODataRequest {
 	>;
 	affectedIds?: number[];
 	pendingAffectedIds?: Promise<number[]>;
-	hooks?: InstantiatedHooks<sbvrUtils.Hooks>;
+	hooks?: InstantiatedHooks;
 	engine?: AbstractSQLCompiler.Engines;
 }
 

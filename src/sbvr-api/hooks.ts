@@ -1,8 +1,61 @@
 import type { Resolvable } from './common-types';
+import type { Tx } from '../database-layer/db';
+import type { PinejsClient, User, ApiKey } from './sbvr-utils';
+import type { ODataRequest } from './uri-parser';
+import type { AnyObject } from 'pinejs-client-core';
+import type { TypedError } from 'typed-error';
 
 import * as Bluebird from 'bluebird';
 import * as _ from 'lodash';
 import { settleMapSeries } from './control-flow';
+
+export interface HookReq {
+	user?: User;
+	apiKey?: ApiKey;
+	method: string;
+	url: string;
+	query: AnyObject;
+	params: AnyObject;
+	body: AnyObject;
+	custom?: AnyObject;
+	tx?: Tx;
+	hooks?: InstantiatedHooks;
+}
+export interface HookArgs {
+	req: HookReq;
+	request: ODataRequest;
+	api: PinejsClient;
+	tx?: Tx;
+}
+export type HookResponse = PromiseLike<any> | null | void;
+
+export interface Hooks {
+	PREPARSE?: (options: Omit<HookArgs, 'request' | 'api'>) => HookResponse;
+	POSTPARSE?: (options: HookArgs) => HookResponse;
+	PRERUN?: (options: HookArgs & { tx: Tx }) => HookResponse;
+	POSTRUN?: (options: HookArgs & { tx: Tx; result: any }) => HookResponse;
+	PRERESPOND?: (
+		options: HookArgs & {
+			tx: Tx;
+			result: any;
+			res: any;
+			data?: any;
+		},
+	) => HookResponse;
+	'POSTRUN-ERROR'?: (
+		options: HookArgs & { error: TypedError | any },
+	) => HookResponse;
+}
+export type HookBlueprints = { [key in keyof Hooks]: HookBlueprint[] };
+const hookNames: Array<keyof Hooks> = [
+	'PREPARSE',
+	'POSTPARSE',
+	'PRERUN',
+	'POSTRUN',
+	'PRERESPOND',
+	'POSTRUN-ERROR',
+];
+export const isValidHook = (x: any): x is keyof Hooks => hookNames.includes(x);
 
 export type RollbackAction = () => Resolvable<void>;
 export type HookFn = (...args: any[]) => any;
@@ -10,7 +63,7 @@ export interface HookBlueprint {
 	HOOK: HookFn;
 	effects: boolean;
 }
-export type InstantiatedHooks<T extends object> = { [key in keyof T]: Hook[] };
+export type InstantiatedHooks = { [key in keyof Hooks]: Hook[] };
 
 export class Hook {
 	constructor(private hookFn: HookFn) {}
@@ -49,7 +102,7 @@ export class SideEffectHook extends Hook {
 }
 
 // The execution order of rollback actions is unspecified
-export const rollbackRequestHooks = <T extends InstantiatedHooks<any>>(
+export const rollbackRequestHooks = <T extends InstantiatedHooks>(
 	hooks: T | undefined,
 ): void => {
 	if (hooks == null) {
@@ -75,4 +128,4 @@ export const instantiateHooks = <
 				return new Hook(hook.HOOK);
 			}
 		});
-	}) as InstantiatedHooks<T>;
+	}) as InstantiatedHooks;
