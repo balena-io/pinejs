@@ -1,4 +1,37 @@
 - commits:
+    - subject: Add the ability to omit metadata from the response
+      hash: 8c230a0c642658eba4300e98f96f2e58c31e36bc
+      body: |
+        Update odata-parser from 2.1.0 to 2.2.0
+        Update pinejs-client-core from 6.7.0 to 6.7.1
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Add support for metadata argument in $format
+              hash: eecb0df57610d3f13bfc6b168790690dc0dce038
+              body: ''
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+          version: odata-parser-2.2.0
+          date: 2020-08-18T16:23:49.447Z
+        - commits:
+            - subject: Fix prepare $count typings
+              hash: fe63b2ba648b0ef545afe9fd18d433faca4af6a2
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: pinejs-client-js-6.7.1
+          date: 2020-08-12T14:30:20.061Z
+  version: 13.10.0
+  date: 2020-08-18T17:00:50.709Z
+- commits:
     - subject: Improve typing of getAffectedIds
       hash: 8a202a43a25d6955d60676d75057eba5efb1f874
       body: ''
