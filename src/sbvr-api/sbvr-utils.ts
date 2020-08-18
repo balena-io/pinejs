@@ -1013,11 +1013,11 @@ const getIdField = (
 	>,
 ) => getAbstractSqlModel(request).tables[resolveSynonym(request)].idField;
 
-export const getAffectedIds = async (args: {
-	req: HookReq;
-	request: uriParser.ODataRequest;
-	tx: Db.Tx;
-}): Promise<number[]> => {
+export const getAffectedIds = async (
+	args: HookArgs & {
+		tx: Db.Tx;
+	},
+): Promise<number[]> => {
 	const { request } = args;
 	if (request.affectedIds) {
 		return request.affectedIds;
@@ -1040,9 +1040,7 @@ const $getAffectedIds = async ({
 	req,
 	request,
 	tx,
-}: {
-	req: HookReq;
-	request: uriParser.ODataRequest;
+}: HookArgs & {
 	tx: Db.Tx;
 }): Promise<number[]> => {
 	if (request.method === 'GET') {
