@@ -1,4 +1,15 @@
 - commits:
+    - subject: Improve typing of hook args
+      hash: 241b1e1d4dac023ff616737eef746bd9bf0f6a44
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+      nested: []
+  version: 13.9.0
+  date: 2020-08-18T14:09:15.588Z
+- commits:
     - subject: Separate running the odata request from the expressjs handler
       hash: 0be16531a0d2898cf70b48a088c7106ce071e434
       body: |
