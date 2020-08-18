@@ -59,10 +59,17 @@ import {
 import * as uriParser from './uri-parser';
 import {
 	HookBlueprint,
+	HookBlueprints,
+	HookReq,
+	Hooks,
 	InstantiatedHooks,
 	instantiateHooks,
+	isValidHook,
 	rollbackRequestHooks,
 } from './hooks';
+export { HookReq, HookArgs, HookResponse, Hooks } from './hooks';
+// TODO-MAJOR: Remove
+export type HookRequest = uriParser.ODataRequest;
 
 import * as memoize from 'memoizee';
 import memoizeWeak = require('memoizee/weak');
@@ -102,56 +109,6 @@ interface CompiledModel {
 const models: {
 	[vocabulary: string]: CompiledModel;
 } = {};
-
-export interface HookReq {
-	user?: User;
-	apiKey?: ApiKey;
-	method: string;
-	url: string;
-	query: AnyObject;
-	params: AnyObject;
-	body: AnyObject;
-	custom?: AnyObject;
-	tx?: Db.Tx;
-	hooks?: InstantiatedHooks<Hooks>;
-}
-
-export interface HookArgs {
-	req: HookReq;
-	request: HookRequest;
-	api: PinejsClient;
-	tx?: Db.Tx;
-}
-export type HookResponse = PromiseLike<any> | null | void;
-export type HookRequest = uriParser.ODataRequest;
-
-export interface Hooks {
-	PREPARSE?: (options: HookArgs) => HookResponse;
-	POSTPARSE?: (options: HookArgs) => HookResponse;
-	PRERUN?: (options: HookArgs & { tx: Db.Tx }) => HookResponse;
-	POSTRUN?: (options: HookArgs & { tx: Db.Tx; result: any }) => HookResponse;
-	PRERESPOND?: (
-		options: HookArgs & {
-			tx: Db.Tx;
-			result: any;
-			res: any;
-			data?: any;
-		},
-	) => HookResponse;
-	'POSTRUN-ERROR'?: (
-		options: HookArgs & { error: TypedError | any },
-	) => HookResponse;
-}
-type HookBlueprints = { [key in keyof Hooks]: HookBlueprint[] };
-const hookNames: Array<keyof Hooks> = [
-	'PREPARSE',
-	'POSTPARSE',
-	'PRERUN',
-	'POSTRUN',
-	'PRERESPOND',
-	'POSTRUN-ERROR',
-];
-const isValidHook = (x: any): x is keyof Hooks => hookNames.includes(x);
 
 interface VocabHooks {
 	[resourceName: string]: HookBlueprints;
@@ -625,14 +582,17 @@ const getMethodHooks = memoize(
 );
 const getHooks = (
 	request: Pick<
-		OptionalField<HookRequest, 'resourceName'>,
+		OptionalField<uriParser.ODataRequest, 'resourceName'>,
 		'resourceName' | 'method' | 'vocabulary'
 	>,
-): InstantiatedHooks<Hooks> => {
+): InstantiatedHooks => {
 	let { resourceName } = request;
 	if (resourceName != null) {
 		resourceName = resolveSynonym(
-			request as Pick<HookRequest, 'resourceName' | 'method' | 'vocabulary'>,
+			request as Pick<
+				uriParser.ODataRequest,
+				'resourceName' | 'method' | 'vocabulary'
+			>,
 		);
 	}
 	return instantiateHooks(
@@ -643,7 +603,7 @@ getHooks.clear = () => getMethodHooks.clear();
 
 const runHooks = async (
 	hookName: keyof Hooks,
-	hooksList: InstantiatedHooks<Hooks> | undefined,
+	hooksList: InstantiatedHooks | undefined,
 	args: {
 		request?: uriParser.ODataRequest;
 		req: Express.Request;
@@ -1062,7 +1022,7 @@ const getIdField = (
 
 export const getAffectedIds = async (args: {
 	req: HookReq;
-	request: HookRequest;
+	request: uriParser.ODataRequest;
 	tx: Db.Tx;
 }): Promise<number[]> => {
 	const { request } = args;
@@ -1089,7 +1049,7 @@ const $getAffectedIds = async ({
 	tx,
 }: {
 	req: HookReq;
-	request: HookRequest;
+	request: uriParser.ODataRequest;
 	tx: Db.Tx;
 }): Promise<number[]> => {
 	if (request.method === 'GET') {
