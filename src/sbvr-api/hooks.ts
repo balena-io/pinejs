@@ -30,7 +30,7 @@ export interface HookArgs {
 export type HookResponse = PromiseLike<any> | null | void;
 
 export interface Hooks {
-	PREPARSE?: (options: HookArgs) => HookResponse;
+	PREPARSE?: (options: Omit<HookArgs, 'request' | 'api'>) => HookResponse;
 	POSTPARSE?: (options: HookArgs) => HookResponse;
 	PRERUN?: (options: HookArgs & { tx: Tx }) => HookResponse;
 	POSTRUN?: (options: HookArgs & { tx: Tx; result: any }) => HookResponse;

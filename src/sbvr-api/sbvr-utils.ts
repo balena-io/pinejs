@@ -62,6 +62,7 @@ import {
 	HookBlueprints,
 	HookReq,
 	Hooks,
+	HookArgs,
 	InstantiatedHooks,
 	instantiateHooks,
 	isValidHook,
@@ -601,18 +602,10 @@ const getHooks = (
 };
 getHooks.clear = () => getMethodHooks.clear();
 
-const runHooks = async (
-	hookName: keyof Hooks,
+const runHooks = async <T extends keyof Hooks>(
+	hookName: T,
 	hooksList: InstantiatedHooks | undefined,
-	args: {
-		request?: uriParser.ODataRequest;
-		req: Express.Request;
-		res?: Express.Response;
-		tx?: Db.Tx;
-		result?: any;
-		data?: number | any[];
-		error?: TypedError | any;
-	},
+	args: Omit<Parameters<NonNullable<Hooks[T]>>[0], 'api'>,
 ) => {
 	if (hooksList == null) {
 		return;
@@ -621,7 +614,7 @@ const runHooks = async (
 	if (hooks == null || hooks.length === 0) {
 		return;
 	}
-	const { request, req, tx } = args;
+	const { request, req, tx } = args as HookArgs;
 	if (request != null) {
 		const { vocabulary } = request;
 		Object.defineProperty(args, 'api', {
@@ -1665,13 +1658,14 @@ const respondPut = async (
 	req: Express.Request,
 	res: Express.Response,
 	request: uriParser.ODataRequest,
-	_result: any,
+	result: any,
 	tx: Db.Tx,
 ): Promise<Response> => {
 	await runHooks('PRERESPOND', request.hooks, {
 		req,
 		res,
 		request,
+		result,
 		tx,
 	});
 	return {
