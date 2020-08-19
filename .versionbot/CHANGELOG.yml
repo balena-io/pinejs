@@ -1,4 +1,15 @@
 - commits:
+    - subject: Convert some bluebird usage to native promises
+      hash: 98c2f944c1d48691bd6056e06c4b74cadb5ca939
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 13.10.1
+  date: 2020-08-19T09:21:20.016Z
+- commits:
     - subject: Add the ability to omit metadata from the response
       hash: 8c230a0c642658eba4300e98f96f2e58c31e36bc
       body: |
