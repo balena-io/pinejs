@@ -15,6 +15,7 @@ import {
 	ApiKey,
 	resolveSynonym,
 	getAbstractSqlModel,
+	api,
 } from './sbvr-utils';
 
 export interface HookReq {
@@ -54,7 +55,9 @@ export interface Hooks {
 		options: HookArgs & { error: TypedError | any },
 	) => HookResponse;
 }
-export type HookBlueprints = { [key in keyof Hooks]: HookBlueprint[] };
+export type HookBlueprints = {
+	[key in keyof Hooks]: Array<HookBlueprint<NonNullable<Hooks[key]>>>;
+};
 const hookNames: Array<keyof Hooks> = [
 	'PREPARSE',
 	'POSTPARSE',
@@ -67,8 +70,8 @@ const isValidHook = (x: any): x is keyof Hooks => hookNames.includes(x);
 
 export type RollbackAction = () => Resolvable<void>;
 export type HookFn = (...args: any[]) => any;
-export interface HookBlueprint {
-	HOOK: HookFn;
+export interface HookBlueprint<T extends HookFn> {
+	HOOK: T;
 	effects: boolean;
 }
 export type InstantiatedHooks = { [key in keyof Hooks]: Hook[] };
@@ -123,10 +126,8 @@ export const rollbackRequestHooks = <T extends InstantiatedHooks>(
 	});
 };
 
-const instantiateHooks = <T extends { [key in keyof T]: HookBlueprint[] }>(
-	hooks: T,
-) =>
-	_.mapValues(hooks, (typeHooks) => {
+const instantiateHooks = (hooks: HookBlueprints) =>
+	_.mapValues(hooks, (typeHooks: Array<HookBlueprint<HookFn>>) => {
 		return typeHooks.map((hook) => {
 			if (hook.effects) {
 				return new SideEffectHook(hook.HOOK);
@@ -218,7 +219,7 @@ const addHook = (
 	method: keyof typeof apiHooks,
 	vocabulary: string,
 	resourceName: string,
-	hooks: { [key in keyof Hooks]: HookBlueprint },
+	hooks: { [key in keyof Hooks]: HookBlueprint<NonNullable<Hooks[key]>> },
 ) => {
 	const methodHooks = apiHooks[method];
 	if (methodHooks == null) {
@@ -283,7 +284,9 @@ export const addSideEffectHook = (
 	resourceName: string,
 	hooks: Hooks,
 ): void => {
-	const sideEffectHook = _.mapValues(hooks, (hook) => {
+	const sideEffectHook = _.mapValues(hooks, (hook):
+		| HookBlueprint<HookFn>
+		| undefined => {
 		if (hook != null) {
 			return {
 				HOOK: hook,
@@ -300,7 +303,9 @@ export const addPureHook = (
 	resourceName: string,
 	hooks: Hooks,
 ): void => {
-	const pureHooks = _.mapValues(hooks, (hook) => {
+	const pureHooks = _.mapValues(hooks, (hook):
+		| HookBlueprint<HookFn>
+		| undefined => {
 		if (hook != null) {
 			return {
 				HOOK: hook,
@@ -309,4 +314,34 @@ export const addPureHook = (
 		}
 	});
 	addHook(method, apiRoot, resourceName, pureHooks);
+};
+
+export const runHooks = async <T extends keyof Hooks>(
+	hookName: T,
+	hooksList: InstantiatedHooks | undefined,
+	args: Omit<Parameters<NonNullable<Hooks[T]>>[0], 'api'>,
+) => {
+	if (hooksList == null) {
+		return;
+	}
+	const hooks = hooksList[hookName];
+	if (hooks == null || hooks.length === 0) {
+		return;
+	}
+	const { request, req, tx } = args as HookArgs;
+	if (request != null) {
+		const { vocabulary } = request;
+		Object.defineProperty(args, 'api', {
+			get: _.once(() =>
+				api[vocabulary].clone({
+					passthrough: { req, tx },
+				}),
+			),
+		});
+	}
+	await Promise.all(
+		hooks.map(async (hook) => {
+			await hook.run(args);
+		}),
+	);
 };

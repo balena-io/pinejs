@@ -59,11 +59,10 @@ import {
 import * as uriParser from './uri-parser';
 import {
 	HookReq,
-	Hooks,
 	HookArgs,
-	InstantiatedHooks,
 	rollbackRequestHooks,
 	getHooks,
+	runHooks,
 } from './hooks';
 export {
 	HookReq,
@@ -521,36 +520,6 @@ export const executeModels = async (
 const cleanupModel = (vocab: string) => {
 	delete models[vocab];
 	delete api[vocab];
-};
-
-const runHooks = async <T extends keyof Hooks>(
-	hookName: T,
-	hooksList: InstantiatedHooks | undefined,
-	args: Omit<Parameters<NonNullable<Hooks[T]>>[0], 'api'>,
-) => {
-	if (hooksList == null) {
-		return;
-	}
-	const hooks = hooksList[hookName];
-	if (hooks == null || hooks.length === 0) {
-		return;
-	}
-	const { request, req, tx } = args as HookArgs;
-	if (request != null) {
-		const { vocabulary } = request;
-		Object.defineProperty(args, 'api', {
-			get: _.once(() =>
-				api[vocabulary].clone({
-					passthrough: { req, tx },
-				}),
-			),
-		});
-	}
-	await Promise.all(
-		hooks.map(async (hook) => {
-			await hook.run(args);
-		}),
-	);
 };
 
 export const deleteModel = async (vocabulary: string) => {
