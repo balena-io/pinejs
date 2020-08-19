@@ -180,9 +180,7 @@ export abstract class Tx {
 	constructor(protected readOnly: boolean, protected stackTraceErr?: Error) {
 		this.automaticClose = () => {
 			console.error(
-				'Transaction still open after ' +
-					timeoutMS +
-					'ms without an execute call.',
+				`Transaction still open after ${timeoutMS}ms without an execute call.`,
 			);
 			if (this.stackTraceErr) {
 				console.error(this.stackTraceErr.stack);
@@ -240,7 +238,7 @@ export abstract class Tx {
 		return this.readOnly;
 	}
 
-	public async executeSql(
+	public executeSql(
 		sql: Sql,
 		bindings: Bindings = [],
 		...args: any[]
@@ -250,7 +248,13 @@ export abstract class Tx {
 				`Attempted to run a non-SELECT statement in a read-only tx: ${sql}`,
 			);
 		}
-
+		return this.$executeSql(sql, bindings, ...args);
+	}
+	protected async $executeSql(
+		sql: Sql,
+		bindings: Bindings = [],
+		...args: any[]
+	): Promise<Result> {
 		this.incrementPending();
 
 		const t0 = Date.now();
@@ -338,8 +342,13 @@ export abstract class Tx {
 		if (tableName.includes('"')) {
 			throw new TypeError('"tableName" cannot include double quotes');
 		}
+		if (this.readOnly) {
+			throw new ReadOnlyViolationError(
+				'Cannot drop tables in a read-only transaction',
+			);
+		}
 		const ifExistsStr = ifExists === true ? ' IF EXISTS' : '';
-		return await this.executeSql(`DROP TABLE${ifExistsStr} "${tableName}";`);
+		return await this.$executeSql(`DROP TABLE${ifExistsStr} "${tableName}";`);
 	}
 }
 
@@ -461,7 +470,7 @@ if (maybePg != null) {
 
 			protected async _rollback() {
 				try {
-					await this.executeSql('ROLLBACK;');
+					await this.$executeSql('ROLLBACK;');
 					this.db.release();
 				} catch (err) {
 					this.db.release(err);
@@ -471,7 +480,7 @@ if (maybePg != null) {
 
 			protected async _commit() {
 				try {
-					await this.executeSql('COMMIT;');
+					await this.$executeSql('COMMIT;');
 					this.db.release();
 				} catch (err) {
 					this.db.release(err);
@@ -505,10 +514,10 @@ if (maybePg != null) {
 			),
 			readTransaction: createTransaction((stackTraceErr) =>
 				pool.connect().then((client) => {
-					const tx = new PostgresTx(client, true, stackTraceErr);
+					const tx = new PostgresTx(client, false, stackTraceErr);
 					tx.executeSql('START TRANSACTION;');
 					tx.executeSql('SET TRANSACTION READ ONLY;');
-					return tx;
+					return tx.asReadOnly();
 				}),
 			),
 			...alwaysExport,
@@ -576,13 +585,13 @@ if (maybeMysql != null) {
 			}
 
 			protected async _rollback() {
-				const promise = this.executeSql('ROLLBACK;');
+				const promise = this.$executeSql('ROLLBACK;');
 				this.close();
 				await promise;
 			}
 
 			protected async _commit() {
-				const promise = this.executeSql('COMMIT;');
+				const promise = this.$executeSql('COMMIT;');
 				this.close();
 				await promise;
 			}
@@ -619,10 +628,10 @@ if (maybeMysql != null) {
 			readTransaction: createTransaction((stackTraceErr) =>
 				getConnectionAsync().then((client) => {
 					const close = () => client.release();
-					const tx = new MySqlTx(client, close, true, stackTraceErr);
+					const tx = new MySqlTx(client, close, false, stackTraceErr);
 					tx.executeSql('SET TRANSACTION READ ONLY;');
 					tx.executeSql('START TRANSACTION;');
-					return tx;
+					return tx.asReadOnly();
 				}),
 			),
 			...alwaysExport,
