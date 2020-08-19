@@ -71,26 +71,30 @@ const isValidHook = (x: any): x is keyof Hooks => hookNames.includes(x);
 export type RollbackAction = () => Resolvable<void>;
 export type HookFn = (...args: any[]) => any;
 export interface HookBlueprint<T extends HookFn> {
-	HOOK: T;
-	effects: boolean;
+	hookFn: T;
+	sideEffects: boolean;
+	readOnlyTx: boolean;
 }
-export type InstantiatedHooks = { [key in keyof Hooks]: Hook[] };
+export type InstantiatedHooks = {
+	[key in keyof Hooks]: Array<Hook<NonNullable<Hooks[key]>>>;
+};
 
-export class Hook {
-	constructor(private hookFn: HookFn) {}
+class Hook<T extends HookFn> {
+	private hookFn: HookBlueprint<T>['hookFn'];
+	public readOnlyTx: HookBlueprint<T>['readOnlyTx'];
+	constructor(hook: HookBlueprint<T>) {
+		this.hookFn = hook.hookFn;
+		this.readOnlyTx = hook.readOnlyTx;
+	}
 
 	public async run(...args: any[]) {
 		await this.hookFn(...args);
 	}
 }
 
-export class SideEffectHook extends Hook {
+class SideEffectHook<T extends HookFn> extends Hook<T> {
 	private rollbackFns: RollbackAction[] = [];
 	private rolledBack: boolean = false;
-
-	constructor(hookFn: HookFn) {
-		super(hookFn);
-	}
 
 	public registerRollback(fn: RollbackAction): void {
 		if (this.rolledBack) {
@@ -129,10 +133,10 @@ export const rollbackRequestHooks = <T extends InstantiatedHooks>(
 const instantiateHooks = (hooks: HookBlueprints) =>
 	_.mapValues(hooks, (typeHooks: Array<HookBlueprint<HookFn>>) => {
 		return typeHooks.map((hook) => {
-			if (hook.effects) {
-				return new SideEffectHook(hook.HOOK);
+			if (hook.sideEffects) {
+				return new SideEffectHook(hook);
 			} else {
-				return new Hook(hook.HOOK);
+				return new Hook(hook);
 			}
 		});
 	}) as InstantiatedHooks;
@@ -215,7 +219,7 @@ const apiHooks = {
 // Share hooks between merge and patch since they are the same operation,
 // just MERGE was the OData intermediary until the HTTP spec added PATCH.
 apiHooks.MERGE = apiHooks.PATCH;
-const addHook = (
+export const addHook = (
 	method: keyof typeof apiHooks,
 	vocabulary: string,
 	resourceName: string,
@@ -289,8 +293,9 @@ export const addSideEffectHook = (
 		| undefined => {
 		if (hook != null) {
 			return {
-				HOOK: hook,
-				effects: true,
+				hookFn: hook,
+				sideEffects: true,
+				readOnlyTx: false,
 			};
 		}
 	});
@@ -308,12 +313,25 @@ export const addPureHook = (
 		| undefined => {
 		if (hook != null) {
 			return {
-				HOOK: hook,
-				effects: false,
+				hookFn: hook,
+				sideEffects: false,
+				readOnlyTx: false,
 			};
 		}
 	});
 	addHook(method, apiRoot, resourceName, pureHooks);
+};
+
+const defineApi = (args: HookArgs) => {
+	const { request, req, tx } = args;
+	const { vocabulary } = request;
+	Object.defineProperty(args, 'api', {
+		get: _.once(() =>
+			api[vocabulary].clone({
+				passthrough: { req, tx },
+			}),
+		),
+	});
 };
 
 export const runHooks = async <T extends keyof Hooks>(
@@ -328,20 +346,30 @@ export const runHooks = async <T extends keyof Hooks>(
 	if (hooks == null || hooks.length === 0) {
 		return;
 	}
-	const { request, req, tx } = args as HookArgs;
-	if (request != null) {
-		const { vocabulary } = request;
-		Object.defineProperty(args, 'api', {
-			get: _.once(() =>
-				api[vocabulary].clone({
-					passthrough: { req, tx },
-				}),
-			),
-		});
+
+	let readOnlyArgs: typeof args;
+	if (args.tx != null) {
+		readOnlyArgs = { ...args, tx: args.tx.asReadOnly() };
+	} else {
+		// If we don't have a tx then read-only/writable is irrelevant
+		readOnlyArgs = args;
 	}
+
+	if ((args as HookArgs).request != null) {
+		defineApi(args as HookArgs);
+		if (args !== readOnlyArgs) {
+			// Only try to define a separate read-only api if it's different
+			defineApi(readOnlyArgs as HookArgs);
+		}
+	}
+
 	await Promise.all(
-		hooks.map(async (hook) => {
-			await hook.run(args);
+		(hooks as Array<Hook<HookFn>>).map(async (hook) => {
+			if (hook.readOnlyTx) {
+				await hook.run(readOnlyArgs);
+			} else {
+				await hook.run(args);
+			}
 		}),
 	);
 };
