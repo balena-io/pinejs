@@ -1,4 +1,3 @@
-import * as Bluebird from 'bluebird';
 import * as permissions from '../sbvr-api/permissions';
 
 const uiModel = `\
@@ -216,7 +215,9 @@ export async function setup(app, sbvrUtils, db) {
 				await db.transaction(async (tx) => {
 					const result = await tx.tableList();
 
-					await Bluebird.map(result.rows, (table) => tx.dropTable(table.name));
+					await Promise.all(
+						result.rows.map((table) => tx.dropTable(table.name)),
+					);
 					await sbvrUtils.executeStandardModels(tx);
 					// TODO: HACK: This is usually done by config-loader and should be done there
 					// In general cleardb is very destructive and should really go through a full "reboot" procedure to set everything up again.
@@ -239,8 +240,8 @@ export async function setup(app, sbvrUtils, db) {
 		async (req, res) => {
 			try {
 				const queries = req.body.split(';');
-				await db.transaction((tx) =>
-					Bluebird.each(queries, async (query) => {
+				await db.transaction(async (tx) => {
+					for (let query of queries) {
 						query = query.trim();
 						if (query.length > 0) {
 							try {
@@ -249,8 +250,8 @@ export async function setup(app, sbvrUtils, db) {
 								throw [query, err];
 							}
 						}
-					}),
-				);
+					}
+				});
 				res.sendStatus(200);
 			} catch (err) {
 				console.error('Error importing db', err, err.stack);
@@ -266,32 +267,34 @@ export async function setup(app, sbvrUtils, db) {
 				let exported = '';
 				await db.transaction(async (tx) => {
 					const tables = await tx.tableList("name NOT LIKE '%_buk'");
-					await Bluebird.map(tables.rows, async (table) => {
-						const tableName = table.name;
-						exported += 'DROP TABLE IF EXISTS "' + tableName + '";\n';
-						exported += table.sql + ';\n';
-						const result = await tx.executeSql(
-							'SELECT * FROM "' + tableName + '";',
-						);
-						let insQuery = '';
-						result.rows.forEach((currRow) => {
-							let notFirst = false;
-							insQuery += 'INSERT INTO "' + tableName + '" (';
-							let valQuery = '';
-							for (let propName of Object.keys(currRow)) {
-								if (notFirst) {
-									insQuery += ',';
-									valQuery += ',';
-								} else {
-									notFirst = true;
+					await Promise.all(
+						tables.rows.map(async (table) => {
+							const tableName = table.name;
+							exported += 'DROP TABLE IF EXISTS "' + tableName + '";\n';
+							exported += table.sql + ';\n';
+							const result = await tx.executeSql(
+								'SELECT * FROM "' + tableName + '";',
+							);
+							let insQuery = '';
+							result.rows.forEach((currRow) => {
+								let notFirst = false;
+								insQuery += 'INSERT INTO "' + tableName + '" (';
+								let valQuery = '';
+								for (let propName of Object.keys(currRow)) {
+									if (notFirst) {
+										insQuery += ',';
+										valQuery += ',';
+									} else {
+										notFirst = true;
+									}
+									insQuery += '"' + propName + '"';
+									valQuery += "'" + currRow[propName] + "'";
 								}
-								insQuery += '"' + propName + '"';
-								valQuery += "'" + currRow[propName] + "'";
-							}
-							insQuery += ') values (' + valQuery + ');\n';
-						});
-						exported += insQuery;
-					});
+								insQuery += ') values (' + valQuery + ');\n';
+							});
+							exported += insQuery;
+						}),
+					);
 				});
 				res.json(exported);
 			} catch (err) {
@@ -308,18 +311,20 @@ export async function setup(app, sbvrUtils, db) {
 			try {
 				await db.transaction(async (tx) => {
 					const result = await tx.tableList("name NOT LIKE '%_buk'");
-					await Bluebird.map(result.rows, async (currRow) => {
-						const tableName = currRow.name;
-						await tx.dropTable(tableName + '_buk', true);
+					await Promise.all(
+						result.rows.map(async (currRow) => {
+							const tableName = currRow.name;
+							await tx.dropTable(tableName + '_buk', true);
 
-						await tx.executeSql(
-							'ALTER TABLE "' +
-								tableName +
-								'" RENAME TO "' +
-								tableName +
-								'_buk";',
-						);
-					});
+							await tx.executeSql(
+								'ALTER TABLE "' +
+									tableName +
+									'" RENAME TO "' +
+									tableName +
+									'_buk";',
+							);
+						}),
+					);
 				});
 				res.sendStatus(200);
 			} catch (err) {
@@ -336,17 +341,19 @@ export async function setup(app, sbvrUtils, db) {
 			try {
 				await db.transaction(async (tx) => {
 					const result = await tx.tableList("name LIKE '%_buk'");
-					await Bluebird.map(result.rows, async (currRow) => {
-						const tableName = currRow.name;
-						await tx.dropTable(tableName.slice(0, -4), true);
-						await tx.executeSql(
-							'ALTER TABLE "' +
-								tableName +
-								'" RENAME TO "' +
-								tableName.slice(0, -4) +
-								'";',
-						);
-					});
+					await Promise.all(
+						result.rows.map(async (currRow) => {
+							const tableName = currRow.name;
+							await tx.dropTable(tableName.slice(0, -4), true);
+							await tx.executeSql(
+								'ALTER TABLE "' +
+									tableName +
+									'" RENAME TO "' +
+									tableName.slice(0, -4) +
+									'";',
+							);
+						}),
+					);
 				});
 				res.sendStatus(200);
 			} catch (err) {
