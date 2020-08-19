@@ -64,7 +64,7 @@ export class DatabaseError extends TypedError {
 export class ConstraintError extends DatabaseError {}
 export class UniqueConstraintError extends ConstraintError {}
 export class ForeignKeyConstraintError extends ConstraintError {}
-export class TransactionClosedError extends ConstraintError {}
+export class TransactionClosedError extends DatabaseError {}
 
 const wrapDatabaseError = (err: CodedError) => {
 	metrics.emit('db_error', err);
