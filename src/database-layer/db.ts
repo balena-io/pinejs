@@ -645,11 +645,53 @@ if (typeof window !== 'undefined' && window.openDatabase != null) {
 		};
 
 		class WebSqlTx extends Tx {
+			constructor(private tx: WebSqlWrapper, stackTraceErr?: Error) {
+				super(stackTraceErr);
+			}
+
+			protected async _executeSql(sql: Sql, bindings: Bindings) {
+				let result;
+				try {
+					result = await this.tx.executeSql(sql, bindings);
+				} catch (err) {
+					if (err.code === WEBSQL_CONSTRAINT_ERR) {
+						throw new ConstraintError('Constraint failed.');
+					}
+					throw err;
+				}
+				return createResult(result);
+			}
+
+			protected async _rollback(): Promise<void> {
+				return this.tx.rollback();
+			}
+
+			protected async _commit() {
+				this.tx.commit();
+			}
+
+			public async tableList(extraWhereClause: string = '') {
+				if (extraWhereClause !== '') {
+					extraWhereClause = ' AND ' + extraWhereClause;
+				}
+				return await this.executeSql(`
+					SELECT name, sql
+					FROM sqlite_master
+					WHERE type='table'
+					AND name NOT IN (
+						'__WebKitDatabaseInfoTable__',
+						'sqlite_sequence'
+					)
+					${extraWhereClause};
+				`);
+			}
+		}
+
+		class WebSqlWrapper {
 			private running = true;
 			private queue: AsyncQuery[] = [];
-			constructor(private tx: SQLTransaction, stackTraceErr?: Error) {
-				super(stackTraceErr);
 
+			constructor(private tx: SQLTransaction) {
 				this.asyncRecurse();
 			}
 
@@ -668,30 +710,21 @@ if (typeof window !== 'undefined' && window.openDatabase != null) {
 				}
 			};
 
-			protected async _executeSql(sql: Sql, bindings: Bindings) {
-				let result;
-				try {
-					result = await new Promise<SQLResultSet>((resolve, reject) => {
-						const successCallback: SQLStatementCallback = (_tx, results) => {
-							resolve(results);
-						};
-						const errorCallback: SQLStatementErrorCallback = (_tx, err) => {
-							reject(err);
-							return false;
-						};
+			public executeSql(sql: Sql, bindings: Bindings) {
+				return new Promise<SQLResultSet>((resolve, reject) => {
+					const successCallback: SQLStatementCallback = (_tx, results) => {
+						resolve(results);
+					};
+					const errorCallback: SQLStatementErrorCallback = (_tx, err) => {
+						reject(err);
+						return false;
+					};
 
-						this.queue.push([sql, bindings, successCallback, errorCallback]);
-					});
-				} catch (err) {
-					if (err.code === WEBSQL_CONSTRAINT_ERR) {
-						throw new ConstraintError('Constraint failed.');
-					}
-					throw err;
-				}
-				return createResult(result);
+					this.queue.push([sql, bindings, successCallback, errorCallback]);
+				});
 			}
 
-			protected async _rollback(): Promise<void> {
+			public async rollback(): Promise<void> {
 				return await new Promise((resolve) => {
 					const successCallback: SQLStatementCallback = () => {
 						resolve();
@@ -713,24 +746,8 @@ if (typeof window !== 'undefined' && window.openDatabase != null) {
 				});
 			}
 
-			protected async _commit() {
+			public commit() {
 				this.running = false;
-			}
-
-			public async tableList(extraWhereClause: string = '') {
-				if (extraWhereClause !== '') {
-					extraWhereClause = ' AND ' + extraWhereClause;
-				}
-				return await this.executeSql(`
-					SELECT name, sql
-					FROM sqlite_master
-					WHERE type='table'
-					AND name NOT IN (
-						'__WebKitDatabaseInfoTable__',
-						'sqlite_sequence'
-					)
-					${extraWhereClause};
-				`);
 			}
 		}
 
@@ -741,7 +758,7 @@ if (typeof window !== 'undefined' && window.openDatabase != null) {
 				(stackTraceErr) =>
 					new Promise((resolve) => {
 						db.transaction((tx) => {
-							resolve(new WebSqlTx(tx, stackTraceErr));
+							resolve(new WebSqlTx(new WebSqlWrapper(tx), stackTraceErr));
 						});
 					}),
 			),
