@@ -172,12 +172,11 @@ const onRollback: Tx['on'] = (name: string, fn: () => void) => {
 	}
 };
 
-export abstract class Tx {
+class AutomaticClose {
 	private automaticCloseTimeout: ReturnType<typeof setTimeout>;
 	private automaticClose: () => void;
-	private closed = false;
-
-	constructor(protected readOnly: boolean, protected stackTraceErr?: Error) {
+	private pending: false | number = 0;
+	constructor(tx: Tx, private stackTraceErr?: Error) {
 		this.automaticClose = () => {
 			console.error(
 				`Transaction still open after ${timeoutMS}ms without an execute call.`,
@@ -185,19 +184,18 @@ export abstract class Tx {
 			if (this.stackTraceErr) {
 				console.error(this.stackTraceErr.stack);
 			}
-			this.rollback();
+			tx.rollback();
 		};
 		this.automaticCloseTimeout = setTimeout(this.automaticClose, timeoutMS);
 	}
-	private pending: false | number = 0;
-	private incrementPending() {
+	public incrementPending() {
 		if (this.pending === false) {
 			return;
 		}
 		this.pending++;
 		clearTimeout(this.automaticCloseTimeout);
 	}
-	private decrementPending() {
+	public decrementPending() {
 		if (this.pending === false) {
 			return;
 		}
@@ -215,9 +213,25 @@ export abstract class Tx {
 		this.pending = false;
 		clearTimeout(this.automaticCloseTimeout);
 	}
+}
+
+export abstract class Tx {
+	private closed = false;
+	protected automaticClose: AutomaticClose;
+
+	constructor(
+		protected readOnly: boolean,
+		stackTraceErr?: Error | AutomaticClose,
+	) {
+		if (stackTraceErr instanceof AutomaticClose) {
+			this.automaticClose = stackTraceErr;
+		} else {
+			this.automaticClose = new AutomaticClose(this, stackTraceErr);
+		}
+	}
 
 	private closeTransaction(message: string): void {
-		this.cancelPending();
+		this.automaticClose.cancelPending();
 		const { executeSql, rollback } = getRejectedFunctions(message);
 		this.executeSql = executeSql;
 		this.rollback = this.end = rollback;
@@ -255,7 +269,7 @@ export abstract class Tx {
 		bindings: Bindings = [],
 		...args: any[]
 	): Promise<Result> {
-		this.incrementPending();
+		this.automaticClose.incrementPending();
 
 		const t0 = Date.now();
 		try {
@@ -263,7 +277,7 @@ export abstract class Tx {
 		} catch (err) {
 			return wrapDatabaseError(err);
 		} finally {
-			this.decrementPending();
+			this.automaticClose.decrementPending();
 			const queryTime = Date.now() - t0;
 			metrics.emit('db_query_time', {
 				queryTime,
@@ -441,13 +455,13 @@ if (maybePg != null) {
 			constructor(
 				private db: Pg.PoolClient,
 				readOnly: boolean,
-				stackTraceErr?: Error,
+				stackTraceErr?: Error | AutomaticClose,
 			) {
 				super(readOnly, stackTraceErr);
 			}
 
 			protected clone(readOnly = this.readOnly) {
-				return new PostgresTx(this.db, readOnly, this.stackTraceErr);
+				return new PostgresTx(this.db, readOnly, this.automaticClose);
 			}
 
 			protected _executeSql(
@@ -561,13 +575,13 @@ if (maybeMysql != null) {
 				private db: Mysql.Connection,
 				private close: CloseTransactionFn,
 				readOnly: boolean,
-				stackTraceErr?: Error,
+				stackTraceErr?: Error | AutomaticClose,
 			) {
 				super(readOnly, stackTraceErr);
 			}
 
 			protected clone(readOnly = this.readOnly) {
-				return new MySqlTx(this.db, this.close, readOnly, this.stackTraceErr);
+				return new MySqlTx(this.db, this.close, readOnly, this.automaticClose);
 			}
 
 			protected async _executeSql(sql: Sql, bindings: Bindings) {
@@ -688,13 +702,13 @@ if (typeof window !== 'undefined' && window.openDatabase != null) {
 			constructor(
 				private tx: WebSqlWrapper,
 				readOnly: boolean,
-				stackTraceErr?: Error,
+				stackTraceErr?: Error | AutomaticClose,
 			) {
 				super(readOnly, stackTraceErr);
 			}
 
 			protected clone(readOnly = this.readOnly) {
-				return new WebSqlTx(this.tx, readOnly, this.stackTraceErr);
+				return new WebSqlTx(this.tx, readOnly, this.automaticClose);
 			}
 
 			protected async _executeSql(sql: Sql, bindings: Bindings) {
