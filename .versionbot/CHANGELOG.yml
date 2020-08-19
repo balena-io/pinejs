@@ -1,4 +1,15 @@
 - commits:
+    - subject: Share automatic transaction closing between transaction clones
+      hash: 47dea57b40e5060d8a4e99d71469bf7023b694b9
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 13.12.2
+  date: 2020-08-19T16:47:50.125Z
+- commits:
     - subject: Fix certain internal transaction calls triggering read-only violations
       hash: ff306971300737ccbad0b78c8a6d863942b1833e
       body: ''
