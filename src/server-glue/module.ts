@@ -15,6 +15,7 @@ export * as permissions from '../sbvr-api/permissions';
 export * as errors from '../sbvr-api/errors';
 export * as env from '../config-loader/env';
 export * as types from '../sbvr-api/common-types';
+export * as hooks from '../sbvr-api/hooks';
 export type { configLoader as ConfigLoader };
 export type { migrator as Migrator };
 
