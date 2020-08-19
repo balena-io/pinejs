@@ -1,4 +1,23 @@
 - commits:
+    - subject: Export hooks at the top level
+      hash: 80386fcd9e98c041e6509dcff289ea0596eb4cf7
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+      nested: []
+    - subject: Separate more hooks code from sbvr-utils into hooks
+      hash: 7804df10961428cf597f66cc638fca6a815d476d
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 13.11.0
+  date: 2020-08-19T09:56:35.839Z
+- commits:
     - subject: Convert some bluebird usage to native promises
       hash: 98c2f944c1d48691bd6056e06c4b74cadb5ca939
       body: ''
