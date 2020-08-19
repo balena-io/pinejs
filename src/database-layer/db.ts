@@ -65,6 +65,7 @@ export class ConstraintError extends DatabaseError {}
 export class UniqueConstraintError extends ConstraintError {}
 export class ForeignKeyConstraintError extends ConstraintError {}
 export class TransactionClosedError extends DatabaseError {}
+export class ReadOnlyViolationError extends DatabaseError {}
 
 const wrapDatabaseError = (err: CodedError) => {
 	metrics.emit('db_error', err);
@@ -97,7 +98,7 @@ export interface Database extends BaseDatabase {
 		bindings?: Bindings,
 	) => Promise<Result>;
 	transaction: TransactionFn;
-	readTransaction?: TransactionFn;
+	readTransaction: TransactionFn;
 }
 
 export const engines: {
@@ -176,15 +177,15 @@ export abstract class Tx {
 	private automaticClose: () => void;
 	private closed = false;
 
-	constructor(stackTraceErr?: Error) {
+	constructor(protected readOnly: boolean, protected stackTraceErr?: Error) {
 		this.automaticClose = () => {
 			console.error(
 				'Transaction still open after ' +
 					timeoutMS +
 					'ms without an execute call.',
 			);
-			if (stackTraceErr) {
-				console.error(stackTraceErr.stack);
+			if (this.stackTraceErr) {
+				console.error(this.stackTraceErr.stack);
 			}
 			this.rollback();
 		};
@@ -228,11 +229,28 @@ export abstract class Tx {
 		return this.closed;
 	}
 
+	protected abstract clone(readOnly?: boolean): Tx;
+	public asReadOnly() {
+		if (this.readOnly) {
+			return this;
+		}
+		return this.clone(true);
+	}
+	public isReadOnly() {
+		return this.readOnly;
+	}
+
 	public async executeSql(
 		sql: Sql,
 		bindings: Bindings = [],
 		...args: any[]
 	): Promise<Result> {
+		if (this.readOnly && !/^\s*SELECT\s(?:[^;]|;\s*SELECT\s)*$/.test(sql)) {
+			throw new ReadOnlyViolationError(
+				`Attempted to run a non-SELECT statement in a read-only tx: ${sql}`,
+			);
+		}
+
 		this.incrementPending();
 
 		const t0 = Date.now();
@@ -411,8 +429,16 @@ if (maybePg != null) {
 			};
 		};
 		class PostgresTx extends Tx {
-			constructor(private db: Pg.PoolClient, stackTraceErr?: Error) {
-				super(stackTraceErr);
+			constructor(
+				private db: Pg.PoolClient,
+				readOnly: boolean,
+				stackTraceErr?: Error,
+			) {
+				super(readOnly, stackTraceErr);
+			}
+
+			protected clone(readOnly = this.readOnly) {
+				return new PostgresTx(this.db, readOnly, this.stackTraceErr);
 			}
 
 			protected _executeSql(
@@ -472,14 +498,14 @@ if (maybePg != null) {
 			executeSql: atomicExecuteSql,
 			transaction: createTransaction((stackTraceErr) =>
 				pool.connect().then((client) => {
-					const tx = new PostgresTx(client, stackTraceErr);
+					const tx = new PostgresTx(client, false, stackTraceErr);
 					tx.executeSql('START TRANSACTION;');
 					return tx;
 				}),
 			),
 			readTransaction: createTransaction((stackTraceErr) =>
 				pool.connect().then((client) => {
-					const tx = new PostgresTx(client, stackTraceErr);
+					const tx = new PostgresTx(client, true, stackTraceErr);
 					tx.executeSql('START TRANSACTION;');
 					tx.executeSql('SET TRANSACTION READ ONLY;');
 					return tx;
@@ -525,9 +551,14 @@ if (maybeMysql != null) {
 			constructor(
 				private db: Mysql.Connection,
 				private close: CloseTransactionFn,
+				readOnly: boolean,
 				stackTraceErr?: Error,
 			) {
-				super(stackTraceErr);
+				super(readOnly, stackTraceErr);
+			}
+
+			protected clone(readOnly = this.readOnly) {
+				return new MySqlTx(this.db, this.close, readOnly, this.stackTraceErr);
 			}
 
 			protected async _executeSql(sql: Sql, bindings: Bindings) {
@@ -580,7 +611,7 @@ if (maybeMysql != null) {
 			transaction: createTransaction((stackTraceErr) =>
 				getConnectionAsync().then((client) => {
 					const close = () => client.release();
-					const tx = new MySqlTx(client, close, stackTraceErr);
+					const tx = new MySqlTx(client, close, false, stackTraceErr);
 					tx.executeSql('START TRANSACTION;');
 					return tx;
 				}),
@@ -588,7 +619,7 @@ if (maybeMysql != null) {
 			readTransaction: createTransaction((stackTraceErr) =>
 				getConnectionAsync().then((client) => {
 					const close = () => client.release();
-					const tx = new MySqlTx(client, close, stackTraceErr);
+					const tx = new MySqlTx(client, close, true, stackTraceErr);
 					tx.executeSql('SET TRANSACTION READ ONLY;');
 					tx.executeSql('START TRANSACTION;');
 					return tx;
@@ -645,8 +676,16 @@ if (typeof window !== 'undefined' && window.openDatabase != null) {
 		};
 
 		class WebSqlTx extends Tx {
-			constructor(private tx: WebSqlWrapper, stackTraceErr?: Error) {
-				super(stackTraceErr);
+			constructor(
+				private tx: WebSqlWrapper,
+				readOnly: boolean,
+				stackTraceErr?: Error,
+			) {
+				super(readOnly, stackTraceErr);
+			}
+
+			protected clone(readOnly = this.readOnly) {
+				return new WebSqlTx(this.tx, readOnly, this.stackTraceErr);
 			}
 
 			protected async _executeSql(sql: Sql, bindings: Bindings) {
@@ -758,7 +797,17 @@ if (typeof window !== 'undefined' && window.openDatabase != null) {
 				(stackTraceErr) =>
 					new Promise((resolve) => {
 						db.transaction((tx) => {
-							resolve(new WebSqlTx(new WebSqlWrapper(tx), stackTraceErr));
+							resolve(
+								new WebSqlTx(new WebSqlWrapper(tx), false, stackTraceErr),
+							);
+						});
+					}),
+			),
+			readTransaction: createTransaction(
+				(stackTraceErr) =>
+					new Promise((resolve) => {
+						db.transaction((tx) => {
+							resolve(new WebSqlTx(new WebSqlWrapper(tx), true, stackTraceErr));
 						});
 					}),
 			),
