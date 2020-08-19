@@ -1,4 +1,23 @@
 - commits:
+    - subject: Move runHooks into the hooks module
+      hash: f1028509e95f97d9e301ee3c586d397827dc7828
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+    - subject: Improve hooks typings
+      hash: c63c1738ad09b1dc808a90b2739e25a2e7a8ce48
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 13.11.1
+  date: 2020-08-19T12:42:37.176Z
+- commits:
     - subject: Export hooks at the top level
       hash: 80386fcd9e98c041e6509dcff289ea0596eb4cf7
       body: ''
