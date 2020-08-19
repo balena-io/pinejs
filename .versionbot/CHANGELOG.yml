@@ -1,4 +1,15 @@
 - commits:
+    - subject: Fix certain internal transaction calls triggering read-only violations
+      hash: ff306971300737ccbad0b78c8a6d863942b1833e
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 13.12.1
+  date: 2020-08-19T16:37:03.469Z
+- commits:
     - subject: Add the ability to mark an existing tx as read-only
       hash: 436d544d13429b2f3a5255124d342d4de033557f
       body: |
