@@ -1,5 +1,4 @@
 import * as _ from 'lodash';
-import * as Bluebird from 'bluebird';
 import { odataNameToSqlName } from '@balena/odata-to-abstract-sql';
 // @ts-ignore
 const transactionModel = require('./transaction.sbvr');
@@ -92,36 +91,38 @@ WHERE "conditional field"."conditional resource" = ?;`,
 					);
 					/** @type {{[key: string]: any}} */
 					const fieldsObject = {};
-					await Bluebird.map(fields.rows, async (field) => {
-						const fieldName = field.field_name.replace(
-							clientModel.resourceName + '.',
-							'',
-						);
-						const fieldValue = field.field_value;
-						const modelField = clientModel.fields.find(
-							(f) => f.fieldName === fieldName,
-						);
-						if (modelField == null) {
-							throw new Error(`Invalid field: ${fieldName}`);
-						}
-						if (
-							modelField.dataType === 'ForeignKey' &&
-							Number.isNaN(Number(fieldValue))
-						) {
-							if (!placeholders.hasOwnProperty(fieldValue)) {
-								throw new Error('Cannot resolve placeholder' + fieldValue);
-							} else {
-								try {
-									const resolvedID = await placeholders[fieldValue].promise;
-									fieldsObject[fieldName] = resolvedID;
-								} catch {
-									throw new Error('Placeholder failed' + fieldValue);
-								}
+					await Promise.all(
+						fields.rows.map(async (field) => {
+							const fieldName = field.field_name.replace(
+								clientModel.resourceName + '.',
+								'',
+							);
+							const fieldValue = field.field_value;
+							const modelField = clientModel.fields.find(
+								(f) => f.fieldName === fieldName,
+							);
+							if (modelField == null) {
+								throw new Error(`Invalid field: ${fieldName}`);
 							}
-						} else {
-							fieldsObject[fieldName] = fieldValue;
-						}
-					});
+							if (
+								modelField.dataType === 'ForeignKey' &&
+								Number.isNaN(Number(fieldValue))
+							) {
+								if (!placeholders.hasOwnProperty(fieldValue)) {
+									throw new Error('Cannot resolve placeholder' + fieldValue);
+								} else {
+									try {
+										const resolvedID = await placeholders[fieldValue].promise;
+										fieldsObject[fieldName] = resolvedID;
+									} catch {
+										throw new Error('Placeholder failed' + fieldValue);
+									}
+								}
+							} else {
+								fieldsObject[fieldName] = fieldValue;
+							}
+						}),
+					);
 					return fieldsObject;
 				};
 
@@ -143,7 +144,7 @@ WHERE "conditional resource"."transaction" = ?;\
 						let resolve;
 						/** @type {Function} */
 						let reject;
-						const promise = new Bluebird(($resolve, $reject) => {
+						const promise = new Promise(($resolve, $reject) => {
 							resolve = $resolve;
 							reject = $reject;
 						});
@@ -153,9 +154,8 @@ WHERE "conditional resource"."transaction" = ?;\
 				});
 
 				// get conditional resources (if exist)
-				await Bluebird.map(
-					conditionalResources.rows,
-					async (conditionalResource) => {
+				await Promise.all(
+					conditionalResources.rows.map(async (conditionalResource) => {
 						const { placeholder } = conditionalResource;
 						const lockID = conditionalResource.lock;
 						const doCleanup = () =>
@@ -237,7 +237,7 @@ WHERE "conditional resource"."transaction" = ?;\
 								return;
 							}
 						}
-					},
+					}),
 				);
 				await tx.executeSql('DELETE FROM "transaction" WHERE "id" = ?;', [
 					transactionID,
