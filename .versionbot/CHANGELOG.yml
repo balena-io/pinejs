@@ -1,4 +1,18 @@
 - commits:
+    - subject: Add the ability to mark an existing tx as read-only
+      hash: 436d544d13429b2f3a5255124d342d4de033557f
+      body: |
+        This is only handled locally by requiring any statements to be
+        read-only but it's useful for websql and also as a level of
+        protection against accidental writes
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+      nested: []
+  version: 13.12.0
+  date: 2020-08-19T14:25:17.444Z
+- commits:
     - subject: Fix `TransactionClosedError` extends type
       hash: bf9491f7923e2f0f9533cf315c8e1f0bdfd031d1
       body: ''
