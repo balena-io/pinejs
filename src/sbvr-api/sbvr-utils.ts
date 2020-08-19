@@ -1,7 +1,7 @@
 import type * as Express from 'express';
 import type * as Db from '../database-layer/db';
 import type { Model } from '../config-loader/config-loader';
-import type { AnyObject, OptionalField, RequiredField } from './common-types';
+import type { AnyObject, RequiredField } from './common-types';
 
 declare global {
 	namespace Express {
@@ -58,21 +58,24 @@ import {
 } from './errors';
 import * as uriParser from './uri-parser';
 import {
-	HookBlueprint,
-	HookBlueprints,
 	HookReq,
 	Hooks,
 	HookArgs,
 	InstantiatedHooks,
-	instantiateHooks,
-	isValidHook,
 	rollbackRequestHooks,
+	getHooks,
 } from './hooks';
-export { HookReq, HookArgs, HookResponse, Hooks } from './hooks';
+export {
+	HookReq,
+	HookArgs,
+	HookResponse,
+	Hooks,
+	addPureHook,
+	addSideEffectHook,
+} from './hooks';
 // TODO-MAJOR: Remove
 export type HookRequest = uriParser.ODataRequest;
 
-import * as memoize from 'memoizee';
 import memoizeWeak = require('memoizee/weak');
 import * as controlFlow from './control-flow';
 
@@ -110,27 +113,6 @@ interface CompiledModel {
 const models: {
 	[vocabulary: string]: CompiledModel;
 } = {};
-
-interface VocabHooks {
-	[resourceName: string]: HookBlueprints;
-}
-interface MethodHooks {
-	[vocab: string]: VocabHooks;
-}
-const apiHooks = {
-	all: {} as MethodHooks,
-	GET: {} as MethodHooks,
-	PUT: {} as MethodHooks,
-	POST: {} as MethodHooks,
-	PATCH: {} as MethodHooks,
-	MERGE: {} as MethodHooks,
-	DELETE: {} as MethodHooks,
-	OPTIONS: {} as MethodHooks,
-};
-
-// Share hooks between merge and patch since they are the same operation,
-// just MERGE was the OData intermediary until the HTTP spec added PATCH.
-apiHooks.MERGE = apiHooks.PATCH;
 
 export interface Actor {
 	permissions?: string[];
@@ -540,67 +522,6 @@ const cleanupModel = (vocab: string) => {
 	delete models[vocab];
 	delete api[vocab];
 };
-
-const mergeHooks = (a: HookBlueprints, b: HookBlueprints): HookBlueprints => {
-	return _.mergeWith({}, a, b, (x, y) => {
-		if (Array.isArray(x)) {
-			return x.concat(y);
-		}
-	});
-};
-type HookMethod = keyof typeof apiHooks;
-const getResourceHooks = (vocabHooks: VocabHooks, resourceName?: string) => {
-	if (vocabHooks == null) {
-		return {};
-	}
-	// When getting the hooks list for the sake of PREPARSE hooks
-	// we don't know the resourceName we'll be acting on yet
-	if (resourceName == null) {
-		return vocabHooks['all'];
-	}
-	return mergeHooks(vocabHooks[resourceName], vocabHooks['all']);
-};
-const getVocabHooks = (
-	methodHooks: MethodHooks,
-	vocabulary: string,
-	resourceName?: string,
-) => {
-	if (methodHooks == null) {
-		return {};
-	}
-	return mergeHooks(
-		getResourceHooks(methodHooks[vocabulary], resourceName),
-		getResourceHooks(methodHooks['all'], resourceName),
-	);
-};
-const getMethodHooks = memoize(
-	(method: SupportedMethod, vocabulary: string, resourceName?: string) =>
-		mergeHooks(
-			getVocabHooks(apiHooks[method], vocabulary, resourceName),
-			getVocabHooks(apiHooks['all'], vocabulary, resourceName),
-		),
-	{ primitive: true },
-);
-const getHooks = (
-	request: Pick<
-		OptionalField<uriParser.ODataRequest, 'resourceName'>,
-		'resourceName' | 'method' | 'vocabulary'
-	>,
-): InstantiatedHooks => {
-	let { resourceName } = request;
-	if (resourceName != null) {
-		resourceName = resolveSynonym(
-			request as Pick<
-				uriParser.ODataRequest,
-				'resourceName' | 'method' | 'vocabulary'
-			>,
-		);
-	}
-	return instantiateHooks(
-		getMethodHooks(request.method, request.vocabulary, resourceName),
-	);
-};
-getHooks.clear = () => getMethodHooks.clear();
 
 const runHooks = async <T extends keyof Hooks>(
 	hookName: T,
@@ -1720,89 +1641,6 @@ export const executeStandardModels = async (tx: Db.Tx): Promise<void> => {
 		console.error('Failed to execute standard models.', err);
 		throw err;
 	}
-};
-
-export const addSideEffectHook = (
-	method: HookMethod,
-	apiRoot: string,
-	resourceName: string,
-	hooks: Hooks,
-): void => {
-	const sideEffectHook = _.mapValues(hooks, (hook) => {
-		if (hook != null) {
-			return {
-				HOOK: hook,
-				effects: true,
-			};
-		}
-	});
-	addHook(method, apiRoot, resourceName, sideEffectHook);
-};
-
-export const addPureHook = (
-	method: HookMethod,
-	apiRoot: string,
-	resourceName: string,
-	hooks: Hooks,
-): void => {
-	const pureHooks = _.mapValues(hooks, (hook) => {
-		if (hook != null) {
-			return {
-				HOOK: hook,
-				effects: false,
-			};
-		}
-	});
-	addHook(method, apiRoot, resourceName, pureHooks);
-};
-
-const addHook = (
-	method: keyof typeof apiHooks,
-	apiRoot: string,
-	resourceName: string,
-	hooks: { [key in keyof Hooks]: HookBlueprint },
-) => {
-	const methodHooks = apiHooks[method];
-	if (methodHooks == null) {
-		throw new Error('Unsupported method: ' + method);
-	}
-	if (apiRoot !== 'all' && models[apiRoot] == null) {
-		throw new Error('Unknown api root: ' + apiRoot);
-	}
-	if (resourceName !== 'all') {
-		const origResourceName = resourceName;
-		resourceName = resolveSynonym({ vocabulary: apiRoot, resourceName });
-		if (models[apiRoot].abstractSql.tables[resourceName] == null) {
-			throw new Error(
-				'Unknown resource for api root: ' + origResourceName + ', ' + apiRoot,
-			);
-		}
-	}
-
-	if (methodHooks[apiRoot] == null) {
-		methodHooks[apiRoot] = {};
-	}
-	const apiRootHooks = methodHooks[apiRoot];
-	if (apiRootHooks[resourceName] == null) {
-		apiRootHooks[resourceName] = {};
-	}
-
-	const resourceHooks = apiRootHooks[resourceName];
-
-	for (const hookType of Object.keys(hooks)) {
-		if (!isValidHook(hookType)) {
-			throw new Error('Unknown callback type: ' + hookType);
-		}
-		const hook = hooks[hookType];
-		if (resourceHooks[hookType] == null) {
-			resourceHooks[hookType] = [];
-		}
-		if (hook != null) {
-			resourceHooks[hookType]!.push(hook);
-		}
-	}
-
-	getHooks.clear();
 };
 
 export const setup = async (
