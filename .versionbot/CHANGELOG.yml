@@ -1,4 +1,15 @@
 - commits:
+    - subject: Separate the web sql wrapper for async support from the WebSqlTx class
+      hash: d186ae1c40e09409da7bfe2377b6af8d82023c53
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 13.11.2
+  date: 2020-08-19T13:30:10.368Z
+- commits:
     - subject: Move runHooks into the hooks module
       hash: f1028509e95f97d9e301ee3c586d397827dc7828
       body: ''
