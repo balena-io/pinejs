@@ -15,6 +15,7 @@ import {
 	ApiKey,
 	resolveSynonym,
 	getAbstractSqlModel,
+	api,
 } from './sbvr-utils';
 
 export interface HookReq {
@@ -313,4 +314,34 @@ export const addPureHook = (
 		}
 	});
 	addHook(method, apiRoot, resourceName, pureHooks);
+};
+
+export const runHooks = async <T extends keyof Hooks>(
+	hookName: T,
+	hooksList: InstantiatedHooks | undefined,
+	args: Omit<Parameters<NonNullable<Hooks[T]>>[0], 'api'>,
+) => {
+	if (hooksList == null) {
+		return;
+	}
+	const hooks = hooksList[hookName];
+	if (hooks == null || hooks.length === 0) {
+		return;
+	}
+	const { request, req, tx } = args as HookArgs;
+	if (request != null) {
+		const { vocabulary } = request;
+		Object.defineProperty(args, 'api', {
+			get: _.once(() =>
+				api[vocabulary].clone({
+					passthrough: { req, tx },
+				}),
+			),
+		});
+	}
+	await Promise.all(
+		hooks.map(async (hook) => {
+			await hook.run(args);
+		}),
+	);
 };
