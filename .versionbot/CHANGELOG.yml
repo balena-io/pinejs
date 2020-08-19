@@ -1,4 +1,15 @@
 - commits:
+    - subject: Fix `TransactionClosedError` extends type
+      hash: bf9491f7923e2f0f9533cf315c8e1f0bdfd031d1
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 13.11.3
+  date: 2020-08-19T14:15:40.318Z
+- commits:
     - subject: Separate the web sql wrapper for async support from the WebSqlTx class
       hash: d186ae1c40e09409da7bfe2377b6af8d82023c53
       body: ''
