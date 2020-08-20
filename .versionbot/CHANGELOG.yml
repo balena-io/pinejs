@@ -1,4 +1,15 @@
 - commits:
+    - subject: Add the ability to set sideEffects/readOnlyTx for a set of hooks
+      hash: 9cced04f9646b6d08237dd166e56996d3ebd8593
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 13.13.1
+  date: 2020-08-20T11:09:08.980Z
+- commits:
     - subject: Add support for marking hooks as read-only
       hash: 8e96ec54e7e5927d519fe4a1436155f7ee314849
       body: ''
