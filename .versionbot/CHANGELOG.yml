@@ -1,4 +1,15 @@
 - commits:
+    - subject: Update typescript to 4.x
+      hash: 0a128151be56a13ab246e43646287d1f88dc24c0
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 13.13.3
+  date: 2020-08-20T16:39:50.575Z
+- commits:
     - subject: Mark permissions hook as read-only
       hash: 543071f31c20c2384157fef8366373f3e6c59d23
       body: ''
