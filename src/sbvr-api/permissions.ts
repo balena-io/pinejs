@@ -1538,10 +1538,8 @@ export const addPermissions = async (
 	}
 
 	// This bypasses in the root cases, needed for fetching guest permissions to work, it can almost certainly be done better though
-	let permissions = req.user == null ? [] : req.user.permissions || [];
-	permissions = permissions.concat(
-		req.apiKey == null ? [] : req.apiKey.permissions || [],
-	);
+	let permissions = req.user?.permissions ?? [];
+	permissions = permissions.concat(req.apiKey?.permissions ?? []);
 	if (
 		permissions.length > 0 &&
 		$checkPermissions(

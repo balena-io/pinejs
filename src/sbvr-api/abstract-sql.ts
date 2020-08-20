@@ -170,7 +170,7 @@ export const isRuleAffected = (
 	request?: ODataRequest,
 ) => {
 	// If there is no abstract sql query then nothing was modified
-	if (request == null || request.abstractSqlQuery == null) {
+	if (request?.abstractSqlQuery == null) {
 		return false;
 	}
 	// If for some reason there are no referenced fields known for the rule then we just assume it may have been modified

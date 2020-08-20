@@ -130,7 +130,7 @@ export const rollbackRequestHooks = <T extends InstantiatedHooks>(
 	});
 };
 
-const instantiateHooks = (hooks: HookBlueprints) =>
+const instantiateHooks = (hooks: HookBlueprints): InstantiatedHooks =>
 	_.mapValues(hooks, (typeHooks: Array<HookBlueprint<HookFn>>) => {
 		return typeHooks.map((hook) => {
 			if (hook.sideEffects) {
@@ -139,7 +139,7 @@ const instantiateHooks = (hooks: HookBlueprints) =>
 				return new Hook(hook);
 			}
 		});
-	}) as InstantiatedHooks;
+	});
 
 const mergeHooks = (a: HookBlueprints, b: HookBlueprints): HookBlueprints => {
 	return _.mergeWith({}, a, b, (x, y) => {
@@ -288,10 +288,6 @@ export const addHook = (
 		}
 		hooks = blueprintedHooks;
 	}
-	// TODO: This can be removed in typescript 4
-	hooks = hooks as {
-		[key in keyof Hooks]: HookBlueprint<NonNullable<Hooks[key]>>;
-	};
 
 	for (const hookType of Object.keys(hooks)) {
 		if (!isValidHook(hookType)) {
