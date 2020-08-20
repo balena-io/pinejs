@@ -14,7 +14,6 @@ import type {
 } from '@balena/odata-parser';
 import type { ApiKey, User } from '../sbvr-api/sbvr-utils';
 import type { AnyObject } from './common-types';
-import type { HookReq } from './hooks';
 
 import {
 	Definition,
@@ -30,6 +29,7 @@ import * as memoize from 'memoizee';
 import * as randomstring from 'randomstring';
 import * as env from '../config-loader/env';
 import * as sbvrUtils from '../sbvr-api/sbvr-utils';
+import { HookReq, addPureHook, addHook } from './hooks';
 import {
 	BadRequestError,
 	PermissionError,
@@ -1609,7 +1609,9 @@ export const config = {
 	] as sbvrUtils.ExecutableModel[],
 };
 export const setup = () => {
-	sbvrUtils.addPureHook('all', 'all', 'all', {
+	addHook('all', 'all', 'all', {
+		sideEffects: false,
+		readOnlyTx: true,
 		PREPARSE: ({ req }) => apiKeyMiddleware(req),
 		POSTPARSE: async ({
 			req,
@@ -1679,7 +1681,7 @@ export const setup = () => {
 		},
 	});
 
-	sbvrUtils.addPureHook('POST', 'Auth', 'user', {
+	addPureHook('POST', 'Auth', 'user', {
 		POSTPARSE: async ({ request, api }) => {
 			const result = await api.post({
 				resource: 'actor',
@@ -1689,7 +1691,7 @@ export const setup = () => {
 		},
 	});
 
-	sbvrUtils.addPureHook('DELETE', 'Auth', 'user', {
+	addPureHook('DELETE', 'Auth', 'user', {
 		POSTRUN: ({ request, api }) =>
 			api.delete({
 				resource: 'actor',
