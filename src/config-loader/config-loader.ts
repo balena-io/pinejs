@@ -258,10 +258,8 @@ export const setup = (app: Express.Application) => {
 					if (typeof model.customServerCode === 'string') {
 						model.customServerCode = resolvePath(model.customServerCode);
 					}
-					if (model.migrations == null) {
-						model.migrations = {};
-					}
-					const migrations = model.migrations;
+					model.migrations ??= {};
+					const { migrations } = model;
 
 					if (model.migrationsPath) {
 						const migrationsPath = resolvePath(model.migrationsPath);

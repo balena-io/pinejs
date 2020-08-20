@@ -121,9 +121,7 @@ export const memoizedParseOdata = (() => {
 							rule: 'QueryOptions',
 						},
 					);
-					if (parsed.tree.options == null) {
-						parsed.tree.options = {};
-					}
+					parsed.tree.options ??= {};
 					for (const key of Object.keys(parsedParams.tree)) {
 						parsed.tree.options[key] = parsedParams.tree[key];
 						parsed.binds[key] = parsedParams.binds[key];

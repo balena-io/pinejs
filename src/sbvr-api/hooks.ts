@@ -261,13 +261,10 @@ export const addHook = (
 		}
 	}
 
-	if (methodHooks[vocabulary] == null) {
-		methodHooks[vocabulary] = {};
-	}
+	methodHooks[vocabulary] ??= {};
+
 	const apiRootHooks = methodHooks[vocabulary];
-	if (apiRootHooks[resourceName] == null) {
-		apiRootHooks[resourceName] = {};
-	}
+	apiRootHooks[resourceName] ??= {};
 
 	const resourceHooks = apiRootHooks[resourceName];
 
@@ -294,9 +291,7 @@ export const addHook = (
 			throw new Error('Unknown callback type: ' + hookType);
 		}
 		const hook = hooks[hookType];
-		if (resourceHooks[hookType] == null) {
-			resourceHooks[hookType] = [];
-		}
+		resourceHooks[hookType] ??= [];
 		if (hook != null) {
 			resourceHooks[hookType]!.push(hook);
 		}

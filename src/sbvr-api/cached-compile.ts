@@ -48,9 +48,7 @@ export const cachedCompile = <T>(
 				// Ignore error
 			}
 		}
-		if (cache == null) {
-			cache = {};
-		}
+		cache ??= {};
 	}
 	const key = [name, version, JSON.stringify(src)];
 	let result = _.get(cache, key);

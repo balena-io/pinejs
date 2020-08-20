@@ -51,16 +51,16 @@
     "coffeescript": "^2.5.1",
     "commander": "^6.0.0",
     "deep-freeze": "0.0.1",
-    "eventemitter3": "^4.0.4",
+    "eventemitter3": "^4.0.5",
     "express-session": "^1.17.1",
     "lodash": "^4.17.20",
     "memoizee": "^0.4.14",
-    "pinejs-client-core": "^6.7.1",
+    "pinejs-client-core": "^6.7.2",
     "randomstring": "^1.1.5",
     "typed-error": "^3.2.1"
   },
   "devDependencies": {
-    "@balena/lint": "^5.1.0",
+    "@balena/lint": "^5.2.0",
     "@types/grunt": "^0.4.24",
     "@types/terser-webpack-plugin": "^4.1.0",
     "@types/webpack": "^4.41.21",
@@ -81,7 +81,7 @@
     "raw-loader": "^4.0.1",
     "require-npm4-to-publish": "^1.0.0",
     "terser-webpack-plugin": "^4.1.0",
-    "ts-loader": "^8.0.2",
+    "ts-loader": "^8.0.3",
     "typescript": "^4.0.2",
     "webpack": "^4.44.1",
     "webpack-dev-server": "^3.11.0"
