@@ -1,4 +1,15 @@
 - commits:
+    - subject: Mark permissions hook as read-only
+      hash: 543071f31c20c2384157fef8366373f3e6c59d23
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 13.13.2
+  date: 2020-08-20T11:55:35.132Z
+- commits:
     - subject: Add the ability to set sideEffects/readOnlyTx for a set of hooks
       hash: 9cced04f9646b6d08237dd166e56996d3ebd8593
       body: ''
