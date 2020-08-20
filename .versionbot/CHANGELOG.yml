@@ -1,4 +1,15 @@
 - commits:
+    - subject: Add support for marking hooks as read-only
+      hash: 8e96ec54e7e5927d519fe4a1436155f7ee314849
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+      nested: []
+  version: 13.13.0
+  date: 2020-08-19T16:57:10.490Z
+- commits:
     - subject: Share automatic transaction closing between transaction clones
       hash: 47dea57b40e5060d8a4e99d71469bf7023b694b9
       body: ''
