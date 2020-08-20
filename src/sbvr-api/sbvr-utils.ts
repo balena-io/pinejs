@@ -1304,8 +1304,7 @@ const updateBinds = (
 			if (tag === 'ContentReference') {
 				const ref = env.get(id);
 				if (
-					ref == null ||
-					ref.body == null ||
+					ref?.body == null ||
 					typeof ref.body === 'string' ||
 					ref.body.id === undefined
 				) {
