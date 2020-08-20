@@ -223,7 +223,12 @@ export const addHook = (
 	method: keyof typeof apiHooks,
 	vocabulary: string,
 	resourceName: string,
-	hooks: { [key in keyof Hooks]: HookBlueprint<NonNullable<Hooks[key]>> },
+	hooks:
+		| { [key in keyof Hooks]: HookBlueprint<NonNullable<Hooks[key]>> }
+		| ({ [key in keyof Hooks]: NonNullable<Hooks[key]> } & {
+				sideEffects: HookBlueprint<HookFn>['sideEffects'];
+				readOnlyTx: HookBlueprint<HookFn>['readOnlyTx'];
+		  }),
 ) => {
 	const methodHooks = apiHooks[method];
 	if (methodHooks == null) {
@@ -266,6 +271,28 @@ export const addHook = (
 
 	const resourceHooks = apiRootHooks[resourceName];
 
+	if ('sideEffects' in hooks && 'readOnlyTx' in hooks) {
+		const { sideEffects, readOnlyTx } = hooks;
+		const blueprintedHooks: {
+			[key in keyof Hooks]: HookBlueprint<NonNullable<Hooks[key]>>;
+		} = {};
+		for (const hookName of hookNames) {
+			const hookFn: HookFn | undefined = hooks[hookName];
+			if (hookFn != null) {
+				blueprintedHooks[hookName] = {
+					hookFn,
+					sideEffects,
+					readOnlyTx,
+				};
+			}
+		}
+		hooks = blueprintedHooks;
+	}
+	// TODO: This can be removed in typescript 4
+	hooks = hooks as {
+		[key in keyof Hooks]: HookBlueprint<NonNullable<Hooks[key]>>;
+	};
+
 	for (const hookType of Object.keys(hooks)) {
 		if (!isValidHook(hookType)) {
 			throw new Error('Unknown callback type: ' + hookType);
@@ -288,18 +315,11 @@ export const addSideEffectHook = (
 	resourceName: string,
 	hooks: Hooks,
 ): void => {
-	const sideEffectHook = _.mapValues(hooks, (hook):
-		| HookBlueprint<HookFn>
-		| undefined => {
-		if (hook != null) {
-			return {
-				hookFn: hook,
-				sideEffects: true,
-				readOnlyTx: false,
-			};
-		}
+	addHook(method, apiRoot, resourceName, {
+		...hooks,
+		sideEffects: true,
+		readOnlyTx: false,
 	});
-	addHook(method, apiRoot, resourceName, sideEffectHook);
 };
 
 export const addPureHook = (
@@ -308,18 +328,11 @@ export const addPureHook = (
 	resourceName: string,
 	hooks: Hooks,
 ): void => {
-	const pureHooks = _.mapValues(hooks, (hook):
-		| HookBlueprint<HookFn>
-		| undefined => {
-		if (hook != null) {
-			return {
-				hookFn: hook,
-				sideEffects: false,
-				readOnlyTx: false,
-			};
-		}
+	addHook(method, apiRoot, resourceName, {
+		...hooks,
+		sideEffects: false,
+		readOnlyTx: false,
 	});
-	addHook(method, apiRoot, resourceName, pureHooks);
 };
 
 const defineApi = (args: HookArgs) => {
