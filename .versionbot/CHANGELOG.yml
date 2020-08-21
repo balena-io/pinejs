@@ -1,4 +1,15 @@
 - commits:
+    - subject: Update pg deps
+      hash: 567389857d1341eaf10a44a15b5a46d8f63197ba
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 13.13.4
+  date: 2020-08-21T12:08:10.193Z
+- commits:
     - subject: Update typescript to 4.x
       hash: 0a128151be56a13ab246e43646287d1f88dc24c0
       body: ''
