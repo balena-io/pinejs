@@ -1,4 +1,15 @@
 - commits:
+    - subject: Convert db module to async/await
+      hash: f19917de235c509e9923be809e4a8e96d9431627
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 13.13.5
+  date: 2020-08-21T12:36:50.337Z
+- commits:
     - subject: Update pg deps
       hash: 567389857d1341eaf10a44a15b5a46d8f63197ba
       body: ''
