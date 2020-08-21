@@ -428,16 +428,6 @@ if (maybePg != null) {
 			});
 		}
 
-		const checkPgErrCode = (err: CodedError) => {
-			if (err.code === PG_UNIQUE_VIOLATION) {
-				throw new UniqueConstraintError(err);
-			}
-			if (err.code === PG_FOREIGN_KEY_VIOLATION) {
-				throw new ForeignKeyConstraintError(err);
-			}
-			throw err;
-		};
-
 		const createResult = ({
 			rowCount,
 			rows,
@@ -464,7 +454,7 @@ if (maybePg != null) {
 				return new PostgresTx(this.db, readOnly, this.automaticClose);
 			}
 
-			protected _executeSql(
+			protected async _executeSql(
 				sql: Sql,
 				bindings: Bindings,
 				addReturning: false | string = false,
@@ -473,13 +463,22 @@ if (maybePg != null) {
 					sql = sql.replace(/;?$/, ' RETURNING "' + addReturning + '";');
 				}
 
-				return this.db
-					.query({
+				let result;
+				try {
+					result = await this.db.query({
 						text: sql,
 						values: bindings,
-					})
-					.catch(checkPgErrCode)
-					.then(createResult);
+					});
+				} catch (err) {
+					if (err.code === PG_UNIQUE_VIOLATION) {
+						throw new UniqueConstraintError(err);
+					}
+					if (err.code === PG_FOREIGN_KEY_VIOLATION) {
+						throw new ForeignKeyConstraintError(err);
+					}
+					throw err;
+				}
+				return createResult(result);
 			}
 
 			protected async _rollback() {
@@ -519,21 +518,19 @@ if (maybePg != null) {
 		return {
 			engine: Engines.postgres,
 			executeSql: atomicExecuteSql,
-			transaction: createTransaction((stackTraceErr) =>
-				pool.connect().then((client) => {
-					const tx = new PostgresTx(client, false, stackTraceErr);
-					tx.executeSql('START TRANSACTION;');
-					return tx;
-				}),
-			),
-			readTransaction: createTransaction((stackTraceErr) =>
-				pool.connect().then((client) => {
-					const tx = new PostgresTx(client, false, stackTraceErr);
-					tx.executeSql('START TRANSACTION;');
-					tx.executeSql('SET TRANSACTION READ ONLY;');
-					return tx.asReadOnly();
-				}),
-			),
+			transaction: createTransaction(async (stackTraceErr) => {
+				const client = await pool.connect();
+				const tx = new PostgresTx(client, false, stackTraceErr);
+				tx.executeSql('START TRANSACTION;');
+				return tx;
+			}),
+			readTransaction: createTransaction(async (stackTraceErr) => {
+				const client = await pool.connect();
+				const tx = new PostgresTx(client, false, stackTraceErr);
+				tx.executeSql('START TRANSACTION;');
+				tx.executeSql('SET TRANSACTION READ ONLY;');
+				return tx.asReadOnly();
+			}),
 			...alwaysExport,
 		};
 	};
@@ -585,17 +582,22 @@ if (maybeMysql != null) {
 			}
 
 			protected async _executeSql(sql: Sql, bindings: Bindings) {
-				return await Bluebird.fromCallback((callback) => {
-					this.db.query(sql, bindings, callback);
-				})
-					.catch({ code: MYSQL_UNIQUE_VIOLATION }, (err) => {
+				let result;
+				try {
+					result = await Bluebird.fromCallback<MysqlRowArray>((callback) => {
+						this.db.query(sql, bindings, callback);
+					});
+				} catch (err) {
+					if (err.code === MYSQL_UNIQUE_VIOLATION) {
 						// We know that the type is an IError for mysql, but typescript doesn't like the catch obj sugar
 						throw new UniqueConstraintError(err as Mysql.MysqlError);
-					})
-					.catch({ code: MYSQL_FOREIGN_KEY_VIOLATION }, (err) => {
+					}
+					if (err.code === MYSQL_FOREIGN_KEY_VIOLATION) {
 						throw new ForeignKeyConstraintError(err as Mysql.MysqlError);
-					})
-					.then(createResult);
+					}
+					throw err;
+				}
+				return createResult(result);
 			}
 
 			protected async _rollback() {
@@ -631,23 +633,21 @@ if (maybeMysql != null) {
 		return {
 			engine: Engines.mysql,
 			executeSql: atomicExecuteSql,
-			transaction: createTransaction((stackTraceErr) =>
-				getConnectionAsync().then((client) => {
-					const close = () => client.release();
-					const tx = new MySqlTx(client, close, false, stackTraceErr);
-					tx.executeSql('START TRANSACTION;');
-					return tx;
-				}),
-			),
-			readTransaction: createTransaction((stackTraceErr) =>
-				getConnectionAsync().then((client) => {
-					const close = () => client.release();
-					const tx = new MySqlTx(client, close, false, stackTraceErr);
-					tx.executeSql('SET TRANSACTION READ ONLY;');
-					tx.executeSql('START TRANSACTION;');
-					return tx.asReadOnly();
-				}),
-			),
+			transaction: createTransaction(async (stackTraceErr) => {
+				const client = await getConnectionAsync();
+				const close = () => client.release();
+				const tx = new MySqlTx(client, close, false, stackTraceErr);
+				tx.executeSql('START TRANSACTION;');
+				return tx;
+			}),
+			readTransaction: createTransaction(async (stackTraceErr) => {
+				const client = await getConnectionAsync();
+				const close = () => client.release();
+				const tx = new MySqlTx(client, close, false, stackTraceErr);
+				tx.executeSql('SET TRANSACTION READ ONLY;');
+				tx.executeSql('START TRANSACTION;');
+				return tx.asReadOnly();
+			}),
 			...alwaysExport,
 		};
 	};
