@@ -252,7 +252,7 @@ export abstract class Tx {
 		return this.readOnly;
 	}
 
-	public executeSql(
+	public async executeSql(
 		sql: Sql,
 		bindings: Bindings = [],
 		...args: any[]
@@ -262,7 +262,7 @@ export abstract class Tx {
 				`Attempted to run a non-SELECT statement in a read-only tx: ${sql}`,
 			);
 		}
-		return this.$executeSql(sql, bindings, ...args);
+		return await this.$executeSql(sql, bindings, ...args);
 	}
 	protected async $executeSql(
 		sql: Sql,
@@ -725,7 +725,7 @@ if (typeof window !== 'undefined' && window.openDatabase != null) {
 			}
 
 			protected async _rollback(): Promise<void> {
-				return this.tx.rollback();
+				return await this.tx.rollback();
 			}
 
 			protected async _commit() {
@@ -772,8 +772,8 @@ if (typeof window !== 'undefined' && window.openDatabase != null) {
 				}
 			};
 
-			public executeSql(sql: Sql, bindings: Bindings) {
-				return new Promise<SQLResultSet>((resolve, reject) => {
+			public async executeSql(sql: Sql, bindings: Bindings) {
+				return await new Promise<SQLResultSet>((resolve, reject) => {
 					const successCallback: SQLStatementCallback = (_tx, results) => {
 						resolve(results);
 					};
