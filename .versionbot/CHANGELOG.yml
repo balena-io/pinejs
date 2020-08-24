@@ -1,4 +1,15 @@
 - commits:
+    - subject: Improve async stack traces
+      hash: aa74e0de7b60d588f9ba3be0d91a9b6cde05555a
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 13.13.6
+  date: 2020-08-24T10:53:40.329Z
+- commits:
     - subject: Convert db module to async/await
       hash: f19917de235c509e9923be809e4a8e96d9431627
       body: ''

@@ -1,6 +1,6 @@
 {
   "name": "@balena/pinejs",
-  "version": "13.13.5",
+  "version": "13.13.6",
   "main": "out/server-glue/module",
   "repository": "git@github.com:balena-io/pinejs.git",
   "license": "Apache-2.0",
