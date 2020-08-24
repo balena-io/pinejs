@@ -1270,7 +1270,7 @@ export const getApiKeyPermissions = async (
 	if (typeof apiKey !== 'string') {
 		throw new Error('API key has to be a string, got: ' + typeof apiKey);
 	}
-	return $getApiKeyPermissions(apiKey);
+	return await $getApiKeyPermissions(apiKey);
 };
 
 const getApiKeyActorIdQuery = _.once(() =>
