@@ -831,9 +831,7 @@ export const runURI = async (
 				}
 			},
 			send(statusCode: number) {
-				if (statusCode == null) {
-					statusCode = this.statusCode;
-				}
+				statusCode ??= this.statusCode;
 				this.sendStatus(statusCode);
 			},
 			json(data: any, statusCode: number) {
@@ -841,9 +839,7 @@ export const runURI = async (
 					reject(data);
 					return;
 				}
-				if (statusCode == null) {
-					statusCode = this.statusCode;
-				}
+				statusCode ??= this.statusCode;
 				if (statusCode >= 400) {
 					const ErrorClass =
 						statusCodeToError[statusCode as keyof typeof statusCodeToError];
@@ -890,10 +886,7 @@ export const runURI = async (
 export const getAbstractSqlModel = (
 	request: Pick<uriParser.ODataRequest, 'vocabulary' | 'abstractSqlModel'>,
 ): AbstractSQLCompiler.AbstractSqlModel => {
-	if (request.abstractSqlModel == null) {
-		request.abstractSqlModel = models[request.vocabulary].abstractSql;
-	}
-	return request.abstractSqlModel;
+	return (request.abstractSqlModel ??= models[request.vocabulary].abstractSql);
 };
 
 const getIdField = (
@@ -953,9 +946,7 @@ const $getAffectedIds = async ({
 	}
 	const { idField } = resourceTable;
 
-	if (request.odataQuery.options == null) {
-		request.odataQuery.options = {};
-	}
+	request.odataQuery.options ??= {};
 	request.odataQuery.options.$select = {
 		properties: [{ name: idField }],
 	};
@@ -1283,9 +1274,7 @@ const runChangeSet = (
 	if (request.id == null) {
 		throw new Error('No request id');
 	}
-	if (result.headers == null) {
-		result.headers = {};
-	}
+	result.headers ??= {};
 	result.headers['Content-Id'] = request.id;
 	env.set(request.id, result);
 	return env;

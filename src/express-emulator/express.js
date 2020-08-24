@@ -58,9 +58,7 @@ const app = (function () {
 		/** @type {{[key: string]: any}} */ headers,
 		/** @type any */ body,
 	) {
-		if (body == null) {
-			body = '';
-		}
+		body ??= '';
 		if (!handlers[method]) {
 			throw [404, null, null];
 		}
@@ -110,9 +108,7 @@ const app = (function () {
 					}
 				},
 				sendStatus(/** @type undefined | number */ statusCode) {
-					if (statusCode == null) {
-						({ statusCode } = this);
-					}
+					statusCode ??= this.statusCode;
 					if (statusCode >= 400) {
 						reject([statusCode, null, null]);
 					} else {

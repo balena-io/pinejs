@@ -103,21 +103,18 @@ const getLocalFields = (table: AbstractSqlTable) => {
 	return table.localFields;
 };
 const getFetchProcessingFields = (table: AbstractSqlTable) => {
-	if (table.fetchProcessingFields == null) {
-		table.fetchProcessingFields = _(table.fields)
-			.filter(
-				({ dataType }) =>
-					sbvrTypes[dataType] != null &&
-					sbvrTypes[dataType].fetchProcessing != null,
-			)
-			.map(({ fieldName, dataType }) => {
-				const odataName = sqlNameToODataName(fieldName);
-				return [odataName, sbvrTypes[dataType].fetchProcessing];
-			})
-			.fromPairs()
-			.value();
-	}
-	return table.fetchProcessingFields!;
+	return (table.fetchProcessingFields ??= _(table.fields)
+		.filter(
+			({ dataType }) =>
+				sbvrTypes[dataType] != null &&
+				sbvrTypes[dataType].fetchProcessing != null,
+		)
+		.map(({ fieldName, dataType }) => {
+			const odataName = sqlNameToODataName(fieldName);
+			return [odataName, sbvrTypes[dataType].fetchProcessing];
+		})
+		.fromPairs()
+		.value());
 };
 
 export const process = async (
