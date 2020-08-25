@@ -203,12 +203,18 @@ VALUES (${1})`,
 			throw err;
 		}
 	}).disposer(async () => {
-		await tx.executeSql(
-			binds`
+		try {
+			await tx.executeSql(
+				binds`
 DELETE FROM "migration lock"
 WHERE "model name" = ${1}`,
-			[modelName],
-		);
+				[modelName],
+			);
+		} catch {
+			// We ignore errors here as it's mostly likely caused by the migration failing and
+			// rolling back the transaction, and if we rethrow here we'll overwrite the real error
+			// making it much harder for users to see what went wrong and fix it
+		}
 	});
 
 const executeMigrations = async (
