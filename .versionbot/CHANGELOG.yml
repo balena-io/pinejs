@@ -1,4 +1,15 @@
 - commits:
+    - subject: Fix overwriting error messages in migrations failures
+      hash: 4cc96a472da1e12833d1ff9495d542bf15bb1aff
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 13.13.8
+  date: 2020-08-25T11:29:03.139Z
+- commits:
     - subject: Make use of optional assignment syntax
       hash: 5c5a7309790a38a7f1cb3f1119b485e0b9f4796f
       body: ''
