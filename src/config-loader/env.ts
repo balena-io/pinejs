@@ -14,10 +14,6 @@ export const cache = {
 	abstractSqlCompiler: {
 		max: 10000,
 	},
-	apiKeys: {
-		max: 10000,
-		maxAge: 5 * 60 * 1000,
-	},
 };
 
 export const db = {

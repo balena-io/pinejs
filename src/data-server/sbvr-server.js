@@ -196,7 +196,7 @@ export async function setup(app, sbvrUtils, db) {
 	);
 	app.post(
 		'/validate',
-		permissions.checkPermissionsMiddleware('get'),
+		permissions.checkPermissionsMiddleware('read'),
 		async (req, res) => {
 			try {
 				const results = await sbvrUtils.runRule('data', req.body.rule);
@@ -236,7 +236,9 @@ export async function setup(app, sbvrUtils, db) {
 	);
 	app.put(
 		'/importdb',
-		permissions.checkPermissionsMiddleware('set'),
+		permissions.checkPermissionsMiddleware({
+			and: ['create', 'update', 'delete'],
+		}),
 		async (req, res) => {
 			try {
 				const queries = req.body.split(';');
@@ -261,7 +263,7 @@ export async function setup(app, sbvrUtils, db) {
 	);
 	app.get(
 		'/exportdb',
-		permissions.checkPermissionsMiddleware('get'),
+		permissions.checkPermissionsMiddleware('read'),
 		async (_req, res) => {
 			try {
 				let exported = '';

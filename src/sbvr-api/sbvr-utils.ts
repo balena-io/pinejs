@@ -807,80 +807,26 @@ export const runURI = async (
 		tx,
 	} as any;
 
-	return await new Promise<PromiseResultTypes>(async (resolve, reject) => {
-		// TODO-MAJOR: Remove the emulated res object
-		const res: Express.Response = {
-			__internalPinejs: true,
-			on: _.noop,
-			statusCode: 200,
-			status(statusCode: number) {
-				this.statusCode = statusCode;
-				return this;
-			},
-			sendStatus: (statusCode: number) => {
-				if (statusCode >= 400) {
-					const ErrorClass =
-						statusCodeToError[statusCode as keyof typeof statusCodeToError];
-					if (ErrorClass != null) {
-						reject(new ErrorClass());
-					} else {
-						reject(new HttpError(statusCode));
-					}
-				} else {
-					resolve();
-				}
-			},
-			send(statusCode: number) {
-				statusCode ??= this.statusCode;
-				this.sendStatus(statusCode);
-			},
-			json(data: any, statusCode: number) {
-				if (_.isError(data)) {
-					reject(data);
-					return;
-				}
-				statusCode ??= this.statusCode;
-				if (statusCode >= 400) {
-					const ErrorClass =
-						statusCodeToError[statusCode as keyof typeof statusCodeToError];
-					if (ErrorClass != null) {
-						reject(new ErrorClass(data));
-					} else {
-						reject(new HttpError(statusCode, data));
-					}
-				} else {
-					resolve(data);
-				}
-			},
-			set: _.noop,
-			type: _.noop,
-		} as any;
+	const { promise } = runODataRequest(emulatedReq, apiRoot);
 
-		try {
-			const { promise } = runODataRequest(emulatedReq, res, apiRoot);
+	const [response] = await promise;
 
-			const [response] = await promise;
+	if (_.isError(response)) {
+		throw response;
+	}
 
-			if (_.isError(response)) {
-				throw response;
-			}
+	const { body: responseBody, status } = response as Response;
 
-			const { body: responseBody, status } = response as Response;
-
-			if (status != null && status >= 400) {
-				const ErrorClass =
-					statusCodeToError[status as keyof typeof statusCodeToError];
-				if (ErrorClass != null) {
-					throw new ErrorClass(undefined, responseBody);
-				}
-				throw new HttpError(status, undefined, responseBody);
-			}
-
-			resolve(responseBody as AnyObject | undefined);
-		} catch (err) {
-			reject(err);
+	if (status != null && status >= 400) {
+		const ErrorClass =
+			statusCodeToError[status as keyof typeof statusCodeToError];
+		if (ErrorClass != null) {
+			throw new ErrorClass(undefined, responseBody);
 		}
-	});
+		throw new HttpError(status, undefined, responseBody);
+	}
+
+	return responseBody as AnyObject | undefined;
 };
 
 export const getAbstractSqlModel = (
@@ -970,11 +916,7 @@ const $getAffectedIds = async ({
 	return result.rows.map((row) => row[idField]);
 };
 
-const runODataRequest = (
-	req: Express.Request,
-	res: Express.Response,
-	vocabulary: string,
-) => {
+const runODataRequest = (req: Express.Request, vocabulary: string) => {
 	if (DEBUG) {
 		api[vocabulary].logger.log('Parsing', req.method, req.url);
 	}
@@ -1070,12 +1012,12 @@ const runODataRequest = (
 					if (Array.isArray(request)) {
 						const env = await Bluebird.reduce(
 							request,
-							runChangeSet(req, res, tx),
+							runChangeSet(req, tx),
 							new Map<number, Response>(),
 						);
 						return Array.from(env.values());
 					} else {
-						return await runRequest(req, res, tx, request);
+						return await runRequest(req, tx, request);
 					}
 				});
 			});
@@ -1107,7 +1049,7 @@ export const handleODataRequest: Express.Handler = async (req, res, next) => {
 	}
 
 	try {
-		const { tryCancelRequest, promise } = runODataRequest(req, res, apiRoot);
+		const { tryCancelRequest, promise } = runODataRequest(req, apiRoot);
 
 		res.on('close', tryCancelRequest);
 
@@ -1193,7 +1135,6 @@ const convertToHttpError = (err: any): HttpError => {
 
 const runRequest = async (
 	req: Express.Request,
-	res: Express.Response,
 	tx: Db.Tx,
 	request: uriParser.ODataRequest,
 ): Promise<Response> => {
@@ -1258,19 +1199,15 @@ const runRequest = async (
 		});
 		throw err;
 	}
-	return await prepareResponse(req, res, request, result, tx);
+	return await prepareResponse(req, request, result, tx);
 };
 
-const runChangeSet = (
-	req: Express.Request,
-	res: Express.Response,
-	tx: Db.Tx,
-) => async (
+const runChangeSet = (req: Express.Request, tx: Db.Tx) => async (
 	env: Map<number, Response>,
 	request: uriParser.ODataRequest,
 ): Promise<Map<number, Response>> => {
 	request = updateBinds(env, request);
-	const result = await runRequest(req, res, tx, request);
+	const result = await runRequest(req, tx, request);
 	if (request.id == null) {
 		throw new Error('No request id');
 	}
@@ -1311,24 +1248,23 @@ const updateBinds = (
 
 const prepareResponse = async (
 	req: Express.Request,
-	res: Express.Response,
 	request: uriParser.ODataRequest,
 	result: any,
 	tx: Db.Tx,
 ): Promise<Response> => {
 	switch (request.method) {
 		case 'GET':
-			return await respondGet(req, res, request, result, tx);
+			return await respondGet(req, request, result, tx);
 		case 'POST':
-			return await respondPost(req, res, request, result, tx);
+			return await respondPost(req, request, result, tx);
 		case 'PUT':
 		case 'PATCH':
 		case 'MERGE':
-			return await respondPut(req, res, request, result, tx);
+			return await respondPut(req, request, result, tx);
 		case 'DELETE':
-			return await respondDelete(req, res, request, result, tx);
+			return await respondDelete(req, request, result, tx);
 		case 'OPTIONS':
-			return await respondOptions(req, res, request, result, tx);
+			return await respondOptions(req, request, result, tx);
 		default:
 			throw new MethodNotAllowedError();
 	}
@@ -1403,7 +1339,6 @@ const runGet = async (
 
 const respondGet = async (
 	req: Express.Request,
-	res: Express.Response,
 	request: uriParser.ODataRequest,
 	result: any,
 	tx: Db.Tx,
@@ -1420,12 +1355,11 @@ const respondGet = async (
 			getAbstractSqlModel(request),
 			request.resourceName,
 			result.rows,
-			{ includeMetadata: metadata !== 'none' },
+			{ includeMetadata: metadata === 'full' },
 		);
 
 		await runHooks('PRERESPOND', request.hooks, {
 			req,
-			res,
 			request,
 			result,
 			data: d,
@@ -1468,7 +1402,6 @@ const runPost = async (
 
 const respondPost = async (
 	req: Express.Request,
-	res: Express.Response,
 	request: uriParser.ODataRequest,
 	id: number,
 	tx: Db.Tx,
@@ -1495,7 +1428,6 @@ const respondPost = async (
 
 	await runHooks('PRERESPOND', request.hooks, {
 		req,
-		res,
 		request,
 		result,
 		tx,
@@ -1538,14 +1470,12 @@ const runPut = async (
 
 const respondPut = async (
 	req: Express.Request,
-	res: Express.Response,
 	request: uriParser.ODataRequest,
 	result: any,
 	tx: Db.Tx,
 ): Promise<Response> => {
 	await runHooks('PRERESPOND', request.hooks, {
 		req,
-		res,
 		request,
 		result,
 		tx,

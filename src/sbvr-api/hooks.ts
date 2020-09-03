@@ -47,7 +47,6 @@ export interface Hooks {
 		options: HookArgs & {
 			tx: Tx;
 			result: any;
-			res: any;
 			data?: any;
 		},
 	) => HookResponse;
