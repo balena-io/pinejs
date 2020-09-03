@@ -1,4 +1,26 @@
 - commits:
+    - subject: Update deps
+      hash: 287e21e756814ccdedf373da33b6ce8c6f9ffaa8
+      body: |
+        Update pinejs-client-core from 6.7.2 to 6.7.3
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: 'Improve $orderby typing to allow `[{a: ''desc''}, {b: ''asc''}]`'
+              hash: 3f66006790c0ace813dd902125b22cf79f2a3095
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: pinejs-client-js-6.7.3
+          date: 2020-08-26T15:41:19.488Z
+  version: 13.13.9
+  date: 2020-09-03T09:56:20.457Z
+- commits:
     - subject: Fix overwriting error messages in migrations failures
       hash: 4cc96a472da1e12833d1ff9495d542bf15bb1aff
       body: ''
