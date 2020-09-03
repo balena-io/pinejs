@@ -236,7 +236,9 @@ export async function setup(app, sbvrUtils, db) {
 	);
 	app.put(
 		'/importdb',
-		permissions.checkPermissionsMiddleware('set'),
+		permissions.checkPermissionsMiddleware({
+			and: ['create', 'update', 'delete'],
+		}),
 		async (req, res) => {
 			try {
 				const queries = req.body.split(';');

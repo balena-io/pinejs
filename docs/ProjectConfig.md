@@ -47,7 +47,6 @@ Permissions currently work by having a name which defines what the permission co
 * `read` - Used for reading records of a resource (model is included when fetching records)
 * `create` - Used for creating records of a resource
 * `update` - Used for updating records of a resource
-* `set` - Used for setting records of a resource. Action `set` is actually `create` + `update`
 * `delete` - Used to deleting records of a resource
 
 ### Special Variables

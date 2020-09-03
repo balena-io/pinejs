@@ -106,22 +106,11 @@ const methodPermissions: {
 } & { OPTIONS?: PermissionCheck } = {
 	GET: 'read',
 	PUT: {
-		or: [
-			'set',
-			{
-				and: ['create', 'update'],
-			},
-		],
+		and: ['create', 'update'],
 	},
-	POST: {
-		or: ['set', 'create'],
-	},
-	PATCH: {
-		or: ['set', 'update'],
-	},
-	MERGE: {
-		or: ['set', 'update'],
-	},
+	POST: 'create',
+	PATCH: 'update',
+	MERGE: 'update',
 	DELETE: 'delete',
 };
 
