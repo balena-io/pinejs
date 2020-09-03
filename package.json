@@ -48,7 +48,6 @@
     "@types/randomstring": "^1.1.6",
     "@types/websql": "0.0.27",
     "bluebird": "^3.7.2",
-    "coffeescript": "^2.5.1",
     "commander": "^6.1.0",
     "deep-freeze": "0.0.1",
     "eventemitter3": "^4.0.7",

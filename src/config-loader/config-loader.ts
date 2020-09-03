@@ -208,15 +208,6 @@ export const setup = (app: Express.Application) => {
 
 	const loadApplicationConfig = async (config: string | Config | undefined) => {
 		try {
-			if (require.extensions['.coffee'] == null) {
-				try {
-					// Try to register the coffeescript loader if it doesn't exist
-					// We ignore if it fails though, since that probably just means it is not available/needed.
-					require('coffeescript/register');
-				} catch (e) {
-					// Ignore errors
-				}
-			}
 			if (require.extensions['.ts'] == null) {
 				try {
 					require('ts-node/register/transpile-only');
