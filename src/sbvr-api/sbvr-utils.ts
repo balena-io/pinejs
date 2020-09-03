@@ -1420,7 +1420,7 @@ const respondGet = async (
 			getAbstractSqlModel(request),
 			request.resourceName,
 			result.rows,
-			{ includeMetadata: metadata !== 'none' },
+			{ includeMetadata: metadata === 'full' },
 		);
 
 		await runHooks('PRERESPOND', request.hooks, {
