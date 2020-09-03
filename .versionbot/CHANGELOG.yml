@@ -1,4 +1,67 @@
 - commits:
+    - subject: Remove api keys permission caching
+      hash: 951077508528a71779958cb5af6f63a62a323541
+      body: ''
+      footer:
+        Change-type: major
+        change-type: major
+      author: Pagan Gazzard
+      nested: []
+    - subject: Remove `res` from `PRERESPOND` hooks
+      hash: 2bbffe9b360a3208c2b79da7c23b6f24059d7f7b
+      body: |
+        This allows simplifying internal code and to improve async stack traces
+        for internal api calls
+      footer:
+        Change-type: major
+        change-type: major
+      author: Pagan Gazzard
+      nested: []
+    - subject: Remove `set` as a permission alias in favor of `create` and `update`
+      hash: 6615d089cb3f684b212b7956dbf4c3c3c9978592
+      body: ''
+      footer:
+        Change-type: major
+        change-type: major
+      author: Pagan Gazzard
+      nested: []
+    - subject: Remove `get` as a permission alias in favor of `read`
+      hash: ae7c6a8a679a40f4909d56013326338329343adb
+      body: ''
+      footer:
+        Change-type: major
+        change-type: major
+      author: Pagan Gazzard
+      nested: []
+    - subject: Remove automatic loading of typescript transpiler from config-loader
+      hash: b037001c5c9fd1b2427e4b1a351be57fb1f8175c
+      body: ''
+      footer:
+        Change-type: major
+        change-type: major
+      author: Pagan Gazzard
+      nested: []
+    - subject: Remove automatic loading of coffeescript transpiler from config-loader
+      hash: c7d60771b91b773221725fbc4b7a4ebb43024ea0
+      body: ''
+      footer:
+        Change-type: major
+        change-type: major
+      author: Pagan Gazzard
+      nested: []
+    - subject: Default to omitting metadata in odata responses
+      hash: 74ff70fc098e571d04d036094b4831c265248a3e
+      body: |
+        The metadata can still be included by specifying
+        `$format=json;metadata=full`
+      footer:
+        Change-type: major
+        change-type: major
+      author: Pagan Gazzard
+      nested: []
+  version: 14.0.0
+  date: 2020-09-03T13:20:50.282Z
+- commits:
     - subject: Update deps
       hash: 287e21e756814ccdedf373da33b6ce8c6f9ffaa8
       body: |
