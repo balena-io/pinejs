@@ -208,14 +208,6 @@ export const setup = (app: Express.Application) => {
 
 	const loadApplicationConfig = async (config: string | Config | undefined) => {
 		try {
-			if (require.extensions['.ts'] == null) {
-				try {
-					require('ts-node/register/transpile-only');
-				} catch (e) {
-					// Ignore errors
-				}
-			}
-
 			console.info('Loading application config');
 			let root: string;
 			let configObj: Config;

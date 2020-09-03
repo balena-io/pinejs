@@ -27,7 +27,6 @@ export = {
 		bluebird: true,
 		'body-parser': true,
 		child_process: true,
-		'ts-node/register': true,
 		compression: true,
 		'cookie-parser': true,
 		express: true,
