@@ -1231,33 +1231,21 @@ const getApiKeyPermissionsQuery = _.once(() =>
 		},
 	}),
 );
-const $getApiKeyPermissions = memoize(
-	async (apiKey: string) => {
-		try {
-			const permissions = (await getApiKeyPermissionsQuery()({
-				apiKey,
-			})) as Array<{ name: string }>;
-			return permissions.map((permission) => permission.name);
-		} catch (err) {
-			sbvrUtils.api.Auth.logger.error('Error loading api key permissions', err);
-			throw err;
-		}
-	},
-	{
-		primitive: true,
-		promise: true,
-		max: env.cache.apiKeys.max,
-		maxAge: env.cache.apiKeys.maxAge,
-	},
-);
-
 export const getApiKeyPermissions = async (
 	apiKey: string,
 ): Promise<string[]> => {
 	if (typeof apiKey !== 'string') {
 		throw new Error('API key has to be a string, got: ' + typeof apiKey);
 	}
-	return await $getApiKeyPermissions(apiKey);
+	try {
+		const permissions = (await getApiKeyPermissionsQuery()({
+			apiKey,
+		})) as Array<{ name: string }>;
+		return permissions.map((permission) => permission.name);
+	} catch (err) {
+		sbvrUtils.api.Auth.logger.error('Error loading api key permissions', err);
+		throw err;
+	}
 };
 
 const getApiKeyActorIdQuery = _.once(() =>
@@ -1275,28 +1263,21 @@ const getApiKeyActorIdQuery = _.once(() =>
 	}),
 );
 const apiActorPermissionError = new PermissionError();
-const getApiKeyActorId = memoize(
-	async (apiKey: string) => {
-		const apiKeyResult = await getApiKeyActorIdQuery()({
-			apiKey,
-		});
-		if (apiKeyResult == null) {
-			// We reuse a constant permission error here as it will be cached, and
-			// using a single error instance can drastically reduce the memory used
-			throw apiActorPermissionError;
-		}
-		const apiKeyActorID = apiKeyResult.is_of__actor.__id;
-		if (apiKeyActorID == null) {
-			throw new Error('API key is not linked to a actor?!');
-		}
-		return apiKeyActorID as number;
-	},
-	{
-		primitive: true,
-		promise: true,
-		maxAge: env.cache.apiKeys.maxAge,
-	},
-);
+const getApiKeyActorId = async (apiKey: string) => {
+	const apiKeyResult = await getApiKeyActorIdQuery()({
+		apiKey,
+	});
+	if (apiKeyResult == null) {
+		// We reuse a constant permission error here as it will be cached, and
+		// using a single error instance can drastically reduce the memory used
+		throw apiActorPermissionError;
+	}
+	const apiKeyActorID = apiKeyResult.is_of__actor.__id;
+	if (apiKeyActorID == null) {
+		throw new Error('API key is not linked to a actor?!');
+	}
+	return apiKeyActorID as number;
+};
 
 const checkApiKey = async (req: PermissionReq, apiKey: string) => {
 	if (apiKey == null || req.apiKey != null) {
