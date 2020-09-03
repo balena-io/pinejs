@@ -68,7 +68,7 @@ export const rootRead: PermissionReq = {
 	user: {
 		id: 0,
 		actor: 0,
-		permissions: ['resource.get'],
+		permissions: ['resource.read'],
 	},
 };
 
@@ -104,9 +104,7 @@ type MappedNestedCheck<
 const methodPermissions: {
 	[method in Exclude<SupportedMethod, 'OPTIONS'>]: PermissionCheck;
 } & { OPTIONS?: PermissionCheck } = {
-	GET: {
-		or: ['get', 'read'],
-	},
+	GET: 'read',
 	PUT: {
 		or: [
 			'set',
