@@ -63,6 +63,7 @@ import {
 	rollbackRequestHooks,
 	getHooks,
 	runHooks,
+	InstantiatedHooks,
 } from './hooks';
 export {
 	HookReq,
@@ -965,7 +966,9 @@ const $getAffectedIds = async ({
 	if (tx != null) {
 		result = await runQuery(tx, request);
 	} else {
-		result = await runTransaction(req, (newTx) => runQuery(newTx, request));
+		result = await runTransaction(req, request, (newTx) =>
+			runQuery(newTx, request),
+		);
 	}
 	return result.rows.map((row) => row[idField]);
 };
@@ -1055,29 +1058,33 @@ const runODataRequest = (
 					request = await prepareRequest(request);
 				}
 				// Run the request in its own transaction
-				return await runTransaction<Response | Response[]>(req, async (tx) => {
-					transactions.push(tx);
-					tx.on('rollback', () => {
-						rollbackRequestHooks(reqHooks);
+				return await runTransaction<Response | Response[]>(
+					req,
+					request,
+					async (tx) => {
+						transactions.push(tx);
+						tx.on('rollback', () => {
+							rollbackRequestHooks(reqHooks);
+							if (Array.isArray(request)) {
+								request.forEach(({ hooks }) => {
+									rollbackRequestHooks(hooks);
+								});
+							} else {
+								rollbackRequestHooks(request.hooks);
+							}
+						});
 						if (Array.isArray(request)) {
-							request.forEach(({ hooks }) => {
-								rollbackRequestHooks(hooks);
-							});
+							const env = await Bluebird.reduce(
+								request,
+								runChangeSet(req, res, tx),
+								new Map<number, Response>(),
+							);
+							return Array.from(env.values());
 						} else {
-							rollbackRequestHooks(request.hooks);
+							return await runRequest(req, res, tx, request);
 						}
-					});
-					if (Array.isArray(request)) {
-						const env = await Bluebird.reduce(
-							request,
-							runChangeSet(req, res, tx),
-							new Map<number, Response>(),
-						);
-						return Array.from(env.values());
-					} else {
-						return await runRequest(req, res, tx, request);
-					}
-				});
+					},
+				);
 			});
 
 			const responses = results.map((result) => {
@@ -1334,18 +1341,44 @@ const prepareResponse = async (
 	}
 };
 
+const checkReadOnlyRequests = (request: uriParser.ODataRequest) => {
+	if (request.method !== 'GET') {
+		// Only GET requests can be read-only
+		return false;
+	}
+	const { hooks } = request;
+	if (hooks == null) {
+		// If there are no hooks then it's definitely read-only
+		return true;
+	}
+	// If there are hooks then check that they're all read-only
+	return Object.keys(hooks).every((hookType: keyof InstantiatedHooks) => {
+		const hookTypeHooks = hooks[hookType];
+		return (
+			hookTypeHooks == null || hookTypeHooks.every((hook) => hook.readOnlyTx)
+		);
+	});
+};
+
 // This is a helper method to handle using a passed in req.tx when available, or otherwise creating a new tx and cleaning up after we're done.
 const runTransaction = async <T>(
 	req: HookReq,
+	request: uriParser.ODataRequest | uriParser.ODataRequest[],
 	callback: (tx: Db.Tx) => Promise<T>,
 ): Promise<T> => {
 	if (req.tx != null) {
 		// If an existing tx was passed in then use it.
 		return await callback(req.tx);
-	} else {
-		// Otherwise create a new transaction and handle tidying it up.
-		return await db.transaction(callback);
 	}
+	if (Array.isArray(request)) {
+		if (request.every(checkReadOnlyRequests)) {
+			return await db.readTransaction(callback);
+		}
+	} else if (checkReadOnlyRequests(request)) {
+		return await db.readTransaction(callback);
+	}
+	// Otherwise create a new write transaction and handle tidying it up.
+	return await db.transaction(callback);
 };
 
 // This is a helper function that will check and add the bind values to the SQL query and then run it.
