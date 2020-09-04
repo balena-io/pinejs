@@ -68,11 +68,13 @@ const checkForExpansion = async (
 			fieldName,
 		);
 		row[fieldName] = {
-			__deferred: {
-				uri: resourceURI(vocab, mappingResourceName, field),
-			},
 			__id: field,
 		};
+		if (opts.includeMetadata) {
+			row[fieldName].__deferred = {
+				uri: resourceURI(vocab, mappingResourceName, field),
+			};
+		}
 	}
 };
 
