@@ -1,4 +1,15 @@
 - commits:
+    - subject: Treat deferred foreign key uris as metadata
+      hash: 67306a83ea2d375faaf32292c9cc4cd9d91f1f05
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+      nested: []
+  version: 14.1.0
+  date: 2020-09-04T11:15:30.056Z
+- commits:
     - subject: Remove api keys permission caching
       hash: 951077508528a71779958cb5af6f63a62a323541
       body: ''
