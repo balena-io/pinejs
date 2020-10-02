@@ -1,4 +1,82 @@
 - commits:
+    - subject: Update dependencies
+      hash: cbd834dbb9e37def16978c75b772856cacd69ca1
+      body: |
+        Update abstract-sql-compiler from 7.0.2 to 7.0.3
+        Update lf-to-abstract-sql from 4.0.0 to 4.1.0
+        Update pinejs-client-core from 6.7.3 to 6.9.1
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Remove accidental `necessity` from the `AbstractSqlField` types
+              hash: f9583ff668efb8e74480b0458b14d6caa3821550
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-7.0.3
+          date: 2020-10-02T13:25:39.199Z
+        - commits:
+            - subject: >-
+                Omit AbstractSqlField props when null to match the expected
+                types
+              hash: e3875ffb74fb362a2e9535e82d35fdaa26eb4b68
+              body: ''
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+              nested: []
+            - subject: Convert tests from coffeescript to javascript
+              hash: b3fd9a0b212ae9684f98c6977f82d354f5352bcb
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: lf-to-abstract-sql-4.1.0
+          date: 2020-10-02T13:22:19.194Z
+        - commits:
+            - subject: Improve typings
+              hash: c8cd644f5e9d8eb43895086cd9ca453b9d651fd6
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: pinejs-client-js-6.9.1
+          date: 2020-09-17T18:15:44.916Z
+        - commits:
+            - subject: Add 'getOrCreate' method supporting natural keys
+              hash: 5aa39b34fef7c7a4bbb27c2c81bb1c8ee4ee2c94
+              body: ''
+              footer:
+                Change-type: minor
+                change-type: minor
+                Signed-off-by: Thodoris Greasidis <thodoris@balena.io>
+                signed-off-by: Thodoris Greasidis <thodoris@balena.io>
+              author: Thodoris Greasidis
+          version: pinejs-client-js-6.9.0
+          date: 2020-09-07T10:54:14.786Z
+        - commits:
+            - subject: Add support for $format
+              hash: aa85327cb7910c74b1bed5323f7ae708aeb2d2b9
+              body: ''
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+          version: pinejs-client-js-6.8.0
+          date: 2020-09-03T15:46:49.095Z
+  version: 14.1.1
+  date: 2020-10-02T13:38:09.920Z
+- commits:
     - subject: Treat deferred foreign key uris as metadata
       hash: 67306a83ea2d375faaf32292c9cc4cd9d91f1f05
       body: ''
