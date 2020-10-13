@@ -1,4 +1,36 @@
 - commits:
+    - subject: 'Update dependencies, adding support for negative constants in sbvr'
+      hash: e82a9aeb51d17812d9969146323d747794e47d89
+      body: |
+        Update sbvr-parser from 1.0.1 to 1.1.1
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Update dependencies
+              hash: 5739ec4e6a5da71bfcfe1cb6a9b5c3e13dc1f56e
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: sbvr-parser-1.1.1
+          date: 2020-10-07T12:54:19.137Z
+        - commits:
+            - subject: Add support for negative numbers for embedded data
+              hash: a5d4f168e66ee209b673f7b20bfc4eb7e2ad657a
+              body: ''
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+          version: sbvr-parser-1.1.0
+          date: 2020-10-07T12:26:21.195Z
+  version: 14.2.0
+  date: 2020-10-13T11:32:30.079Z
+- commits:
     - subject: Update dependencies
       hash: cbd834dbb9e37def16978c75b772856cacd69ca1
       body: |
