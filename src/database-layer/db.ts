@@ -527,8 +527,7 @@ if (maybePg != null) {
 			readTransaction: createTransaction(async (stackTraceErr) => {
 				const client = await pool.connect();
 				const tx = new PostgresTx(client, false, stackTraceErr);
-				tx.executeSql('START TRANSACTION;');
-				tx.executeSql('SET TRANSACTION READ ONLY;');
+				tx.executeSql('START TRANSACTION READ ONLY;');
 				return tx.asReadOnly();
 			}),
 			...alwaysExport,
@@ -644,8 +643,7 @@ if (maybeMysql != null) {
 				const client = await getConnectionAsync();
 				const close = () => client.release();
 				const tx = new MySqlTx(client, close, false, stackTraceErr);
-				tx.executeSql('SET TRANSACTION READ ONLY;');
-				tx.executeSql('START TRANSACTION;');
+				tx.executeSql('START TRANSACTION READ ONLY;');
 				return tx.asReadOnly();
 			}),
 			...alwaysExport,
