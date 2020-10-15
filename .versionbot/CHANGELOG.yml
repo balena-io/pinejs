@@ -1,4 +1,15 @@
 - commits:
+    - subject: Condense starting a read only transaction to a single statement
+      hash: bdde855cccbff6e1de706355cda1b973b3eb7e9e
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 14.2.2
+  date: 2020-10-15T12:17:20.476Z
+- commits:
     - subject: Update README now that sbvr-compiler/odata-compiler are included
       hash: 62f2846dbc0b950eeea6401e7d0782e639a7a018
       body: ''
