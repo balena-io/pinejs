@@ -11,10 +11,10 @@ The basic components of SBVR are as follows:
 
 In order to get an idea of how SBVR works, visit the [sbvr lab](http://www.sbvr.co/), and for more details, check out the [SBVR spec](http://www.omg.org/spec/SBVR/).
 
-The following tools demonstrate the way to use the compile chain from a SBVR file to SQL and from an OData URL to SQL: 
+As part of the @balena/pinejs package the following tools are installed:
 
-* [https://github.com/balena-io-modules/sbvr-compiler](https://github.com/balena-io-modules/sbvr-compiler)
-* [https://github.com/balena-io-modules/odata-compiler](https://github.com/balena-io-modules/odata-compiler)
+* sbvr-compiler: Can be used to compile SBVR via the SBVR chain into SQL, eg `npx sbvr-compiler test.sbvr`
+* odata-compiler: Can be used to compile an OData URL via the OData chain from to SQL, eg `npx odata-compiler test.sbvr /test`
 
 Both tools use some of the main dependencies of Pine.js:
 
