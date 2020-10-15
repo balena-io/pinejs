@@ -1,4 +1,15 @@
 - commits:
+    - subject: Update README now that sbvr-compiler/odata-compiler are included
+      hash: 62f2846dbc0b950eeea6401e7d0782e639a7a018
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 14.2.1
+  date: 2020-10-13T12:00:30.220Z
+- commits:
     - subject: 'Update dependencies, adding support for negative constants in sbvr'
       hash: e82a9aeb51d17812d9969146323d747794e47d89
       body: |
