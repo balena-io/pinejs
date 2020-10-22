@@ -433,7 +433,7 @@ export const executeModels = async (
 
 				// TODO: Can we do this without the cast?
 				api[apiRoot] = new PinejsClient('/' + apiRoot + '/') as LoggingClient;
-				api[apiRoot].logger = _.cloneDeep(console);
+				api[apiRoot].logger = { ...console };
 				if (model.logging != null) {
 					const defaultSetting = model.logging?.default ?? true;
 					for (const k of Object.keys(model.logging)) {
