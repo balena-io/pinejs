@@ -1,4 +1,15 @@
 - commits:
+    - subject: Fix logger creation for nodejs 14
+      hash: 599ccf40d3ae6b7c1c0a7fba148385de5e6f721e
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 14.2.3
+  date: 2020-10-22T09:29:51.229Z
+- commits:
     - subject: Condense starting a read only transaction to a single statement
       hash: bdde855cccbff6e1de706355cda1b973b3eb7e9e
       body: ''
