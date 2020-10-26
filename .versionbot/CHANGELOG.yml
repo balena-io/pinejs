@@ -1,4 +1,15 @@
 - commits:
+    - subject: Leave the migrationsPath intact when loading a model
+      hash: 0f6081548868d641265e409d0262fc9e9810cb4f
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 14.2.4
+  date: 2020-10-26T17:44:30.841Z
+- commits:
     - subject: Fix logger creation for nodejs 14
       hash: 599ccf40d3ae6b7c1c0a7fba148385de5e6f721e
       body: ''
