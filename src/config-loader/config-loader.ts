@@ -246,7 +246,6 @@ export const setup = (app: Express.Application) => {
 
 					if (model.migrationsPath) {
 						const migrationsPath = resolvePath(model.migrationsPath);
-						delete model.migrationsPath;
 
 						const fileNames = await fs.promises.readdir(migrationsPath);
 						await Promise.all(
