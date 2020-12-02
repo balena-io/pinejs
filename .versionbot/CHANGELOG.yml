@@ -1,4 +1,15 @@
 - commits:
+    - subject: Improve compatibility with webpack 5
+      hash: 92ab13edaff5f1e11f94b57651e77a32a8d000bc
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 14.2.6
+  date: 2020-12-02T17:59:35.984Z
+- commits:
     - subject: Update dependencies
       hash: 1027ba938360f3c8dd7c017c75d74407fdb684bc
       body: |
