@@ -11,7 +11,10 @@ config.plugins = config.plugins.concat(
 		'process.env.SBVR_SERVER_ENABLED': false,
 	}),
 	// When we're compiling the module build we want to always ignore the server build file
-	new webpack.IgnorePlugin(/server/, /server-glue/),
+	new webpack.IgnorePlugin({
+		resourceRegExp: /server/,
+		contextRegExp: /server-glue/,
+	}),
 );
 
 export = config;

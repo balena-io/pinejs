@@ -14,13 +14,7 @@ export = {
 		filename: 'out/pine.js',
 	},
 	target: 'node',
-	node: {
-		process: false,
-		global: false,
-		Buffer: false,
-		__dirname: false,
-		__filename: false,
-	},
+	node: false,
 	externals: {
 		bcrypt: true,
 		bcryptjs: true,
@@ -60,4 +54,8 @@ export = {
 } as RequiredField<
 	webpack.Configuration,
 	'plugins' | 'resolve' | 'externals'
-> & { externals: webpack.ExternalsObjectElement };
+> & {
+	externals: {
+		[index: string]: string | boolean | string[] | { [index: string]: any };
+	};
+};

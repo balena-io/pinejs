@@ -1,5 +1,5 @@
 import type * as Grunt from 'grunt';
-import type { Plugin } from 'webpack';
+import type { WebpackPluginInstance } from 'webpack';
 
 import * as _ from 'lodash';
 import * as TerserPlugin from 'terser-webpack-plugin';
@@ -60,7 +60,7 @@ export = (grunt: typeof Grunt) => {
 
 		concat: _.mapValues(serverConfigs, (config, task) => {
 			const defines = (config.plugins as Array<
-				Plugin & { definitions?: {} }
+				WebpackPluginInstance & { definitions?: {} }
 			>).find((plugin) => plugin.definitions != null)!.definitions;
 			return {
 				options: {
