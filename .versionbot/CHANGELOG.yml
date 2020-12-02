@@ -1,4 +1,294 @@
 - commits:
+    - subject: Update dependencies
+      hash: 1027ba938360f3c8dd7c017c75d74407fdb684bc
+      body: |
+        Update abstract-sql-compiler from 7.0.3 to 7.0.6
+        Update lf-to-abstract-sql from 4.1.0 to 4.1.1
+        Update odata-parser from 2.2.0 to 2.2.1
+        Update odata-to-abstract-sql from 5.3.0 to 5.3.1
+        Update sbvr-types from 3.1.0 to 3.1.2
+        Update pinejs-client-core from 6.9.1 to 6.9.3
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Fix the `NOT(NOT(...))` optimization
+              hash: dd8c6f3b63dd0b781f9768332416fb5371a8c809
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-7.0.6
+          date: 2020-11-30T18:18:15.073Z
+        - commits:
+            - subject: Remove some type casts
+              hash: c8e61c426077b2fe8f697f12c0f8ecb30a082d8b
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-7.0.5
+          date: 2020-11-30T15:24:49.372Z
+        - commits:
+            - subject: Update sbvr-types and make use of `castType`
+              hash: 9613dfff39b35e6b33f7fd6eb042ab5c98d8414e
+              body: |
+                Update sbvr-types from 3.1.0 to 3.1.2
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested:
+                - commits:
+                    - subject: Add a `castType` property to type functions
+                      hash: 409077eb9d6c0315779ddd877220280c251b4eb5
+                      body: >
+                        This allows specifying the correct type to cast to when
+                        necessary
+
+                        rather than relying on the fact the currently all type
+                        functions happen
+
+                        to be integers
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                  version: sbvr-types-3.1.2
+                  date: 2020-11-25T14:49:48.878Z
+                - commits:
+                    - subject: Update dependencies
+                      hash: 394b8c4d10ef16da163e05734ffb65a84717e204
+                      body: ''
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                  version: sbvr-types-3.1.1
+                  date: 2020-11-25T14:34:09.586Z
+          version: abstract-sql-compiler-7.0.4
+          date: 2020-11-25T16:29:36.439Z
+        - commits:
+            - subject: Update dependencies
+              hash: c43d7a4beb0643938bb5e09f137caa1bee079f92
+              body: |
+                Update sbvr-parser from 1.0.1 to 1.1.1
+                Update sbvr-types from 3.0.0 to 3.1.2
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested:
+                - commits:
+                    - subject: Update dependencies
+                      hash: 5739ec4e6a5da71bfcfe1cb6a9b5c3e13dc1f56e
+                      body: ''
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                  version: sbvr-parser-1.1.1
+                  date: 2020-10-07T12:54:19.137Z
+                - commits:
+                    - subject: Add support for negative numbers for embedded data
+                      hash: a5d4f168e66ee209b673f7b20bfc4eb7e2ad657a
+                      body: ''
+                      footer:
+                        Change-type: minor
+                        change-type: minor
+                      author: Pagan Gazzard
+                  version: sbvr-parser-1.1.0
+                  date: 2020-10-07T12:26:21.195Z
+                - commits:
+                    - subject: Add a `castType` property to type functions
+                      hash: 409077eb9d6c0315779ddd877220280c251b4eb5
+                      body: >
+                        This allows specifying the correct type to cast to when
+                        necessary
+
+                        rather than relying on the fact the currently all type
+                        functions happen
+
+                        to be integers
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                  version: sbvr-types-3.1.2
+                  date: 2020-11-25T14:49:48.878Z
+                - commits:
+                    - subject: Update dependencies
+                      hash: 394b8c4d10ef16da163e05734ffb65a84717e204
+                      body: ''
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                  version: sbvr-types-3.1.1
+                  date: 2020-11-25T14:34:09.586Z
+                - commits:
+                    - subject: Update dependencies
+                      hash: 33be8837bde82d29f182506f4b93e33157bea185
+                      body: ''
+                      footer:
+                        Change-type: minor
+                        change-type: minor
+                      author: Pagan Gazzard
+                  version: sbvr-types-3.1.0
+                  date: 2020-06-17T21:13:53.393Z
+          version: lf-to-abstract-sql-4.1.1
+          date: 2020-11-25T15:56:29.282Z
+        - commits:
+            - subject: Update dependencies
+              hash: a1906bf3447b6c8ab30ae9951883a738050d69aa
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: odata-parser-2.2.1
+          date: 2020-11-25T16:09:50.140Z
+        - commits:
+            - subject: Update dependencies
+              hash: 7ac6abdbe98e08b361721841d0f67c6ed83ed3a1
+              body: |
+                Update abstract-sql-compiler from 7.0.2 to 7.0.4
+                Update odata-parser from 2.1.0 to 2.2.1
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested:
+                - commits:
+                    - subject: Update sbvr-types and make use of `castType`
+                      hash: 9613dfff39b35e6b33f7fd6eb042ab5c98d8414e
+                      body: |
+                        Update sbvr-types from 3.1.0 to 3.1.2
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                      nested:
+                        - commits:
+                            - subject: Add a `castType` property to type functions
+                              hash: 409077eb9d6c0315779ddd877220280c251b4eb5
+                              body: >
+                                This allows specifying the correct type to cast
+                                to when necessary
+
+                                rather than relying on the fact the currently
+                                all type functions happen
+
+                                to be integers
+                              footer:
+                                Change-type: patch
+                                change-type: patch
+                              author: Pagan Gazzard
+                          version: sbvr-types-3.1.2
+                          date: 2020-11-25T14:49:48.878Z
+                        - commits:
+                            - subject: Update dependencies
+                              hash: 394b8c4d10ef16da163e05734ffb65a84717e204
+                              body: ''
+                              footer:
+                                Change-type: patch
+                                change-type: patch
+                              author: Pagan Gazzard
+                          version: sbvr-types-3.1.1
+                          date: 2020-11-25T14:34:09.586Z
+                  version: abstract-sql-compiler-7.0.4
+                  date: 2020-11-25T16:29:36.439Z
+                - commits:
+                    - subject: >-
+                        Remove accidental `necessity` from the
+                        `AbstractSqlField` types
+                      hash: f9583ff668efb8e74480b0458b14d6caa3821550
+                      body: ''
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                      nested: []
+                  version: abstract-sql-compiler-7.0.3
+                  date: 2020-10-02T13:25:39.199Z
+                - commits:
+                    - subject: Update dependencies
+                      hash: a1906bf3447b6c8ab30ae9951883a738050d69aa
+                      body: ''
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                  version: odata-parser-2.2.1
+                  date: 2020-11-25T16:09:50.140Z
+                - commits:
+                    - subject: Add support for metadata argument in $format
+                      hash: eecb0df57610d3f13bfc6b168790690dc0dce038
+                      body: ''
+                      footer:
+                        Change-type: minor
+                        change-type: minor
+                      author: Pagan Gazzard
+                  version: odata-parser-2.2.0
+                  date: 2020-08-18T16:23:49.447Z
+          version: odata-to-abstract-sql-5.3.1
+          date: 2020-11-25T16:58:50.449Z
+        - commits:
+            - subject: Explicitly specify return types for all functions
+              hash: d53b6cef4ba00527b889d49a6567b8964457025e
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: pinejs-client-js-6.9.3
+          date: 2020-11-20T14:26:20.412Z
+        - commits:
+            - subject: Update dev dependencies
+              hash: 0af301426da52e51d50789394b19d7af205fc735
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: pinejs-client-js-6.9.2
+          date: 2020-10-23T12:21:29.017Z
+        - commits:
+            - subject: Add a `castType` property to type functions
+              hash: 409077eb9d6c0315779ddd877220280c251b4eb5
+              body: >
+                This allows specifying the correct type to cast to when
+                necessary
+
+                rather than relying on the fact the currently all type functions
+                happen
+
+                to be integers
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: sbvr-types-3.1.2
+          date: 2020-11-25T14:49:48.878Z
+        - commits:
+            - subject: Update dependencies
+              hash: 394b8c4d10ef16da163e05734ffb65a84717e204
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: sbvr-types-3.1.1
+          date: 2020-11-25T14:34:09.586Z
+  version: 14.2.5
+  date: 2020-12-02T17:15:55.965Z
+- commits:
     - subject: Leave the migrationsPath intact when loading a model
       hash: 0f6081548868d641265e409d0262fc9e9810cb4f
       body: ''
