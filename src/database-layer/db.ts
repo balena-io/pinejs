@@ -64,10 +64,11 @@ export class DatabaseError extends TypedError {
 export class ConstraintError extends DatabaseError {}
 export class UniqueConstraintError extends ConstraintError {}
 export class ForeignKeyConstraintError extends ConstraintError {}
+export class CheckConstraintError extends ConstraintError {}
 export class TransactionClosedError extends DatabaseError {}
 export class ReadOnlyViolationError extends DatabaseError {}
 
-const wrapDatabaseError = (err: CodedError) => {
+const wrapDatabaseError = (err: CodedError): never => {
 	metrics.emit('db_error', err);
 	if (!(err instanceof DatabaseError)) {
 		// Wrap the error so we can catch it easier later
@@ -405,6 +406,7 @@ if (maybePg != null) {
 	engines.postgres = (connectString: string | object): Database => {
 		const PG_UNIQUE_VIOLATION = '23505';
 		const PG_FOREIGN_KEY_VIOLATION = '23503';
+		const PG_CHECK_CONSTRAINT_VIOLATION = '23514';
 
 		let config: Pg.PoolConfig;
 		if (typeof connectString === 'string') {
@@ -475,6 +477,9 @@ if (maybePg != null) {
 					}
 					if (err.code === PG_FOREIGN_KEY_VIOLATION) {
 						throw new ForeignKeyConstraintError(err);
+					}
+					if (err.code === PG_CHECK_CONSTRAINT_VIOLATION) {
+						throw new CheckConstraintError(err);
 					}
 					throw err;
 				}
@@ -547,6 +552,7 @@ if (maybeMysql != null) {
 	engines.mysql = (options: Mysql.PoolConfig): Database => {
 		const MYSQL_UNIQUE_VIOLATION = 'ER_DUP_ENTRY';
 		const MYSQL_FOREIGN_KEY_VIOLATION = 'ER_ROW_IS_REFERENCED';
+		const MYSQL_CHECK_CONSTRAINT_VIOLATION = 'ER_CHECK_CONSTRAINT_VIOLATED';
 		const pool = mysql.createPool(options);
 		pool.on('connection', (db) => {
 			db.query("SET sql_mode='ANSI_QUOTES';");
@@ -593,6 +599,9 @@ if (maybeMysql != null) {
 					}
 					if (err.code === MYSQL_FOREIGN_KEY_VIOLATION) {
 						throw new ForeignKeyConstraintError(err as Mysql.MysqlError);
+					}
+					if (err.code === MYSQL_CHECK_CONSTRAINT_VIOLATION) {
+						throw new CheckConstraintError(err as Mysql.MysqlError);
 					}
 					throw err;
 				}
