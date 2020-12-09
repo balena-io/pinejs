@@ -1,4 +1,15 @@
 - commits:
+    - subject: Add support for differentiating check constraint errors
+      hash: 638b76813d21dadca515cf579acc95189e0ca0c5
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+      nested: []
+  version: 14.3.0
+  date: 2020-12-09T16:42:20.322Z
+- commits:
     - subject: Improve compatibility with webpack 5
       hash: 92ab13edaff5f1e11f94b57651e77a32a8d000bc
       body: ''
