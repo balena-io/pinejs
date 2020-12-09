@@ -290,6 +290,8 @@ const prettifyConstraintError = (
 			);
 		}
 
+		// Override the error message so we don't leak any internal db info
+		err.message = 'Constraint failed';
 		throw err;
 	}
 };
