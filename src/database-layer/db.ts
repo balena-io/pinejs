@@ -82,7 +82,9 @@ const alwaysExport = {
 	ConstraintError,
 	UniqueConstraintError,
 	ForeignKeyConstraintError,
+	CheckConstraintError,
 	TransactionClosedError,
+	ReadOnlyViolationError,
 };
 type BaseDatabase = typeof alwaysExport;
 
