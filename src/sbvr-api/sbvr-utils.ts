@@ -290,6 +290,33 @@ const prettifyConstraintError = (
 			);
 		}
 
+		if (err instanceof db.CheckConstraintError) {
+			const resourceName = resolveSynonym(request);
+			const abstractSqlModel = getAbstractSqlModel(request);
+			const table = abstractSqlModel.tables[resourceName];
+			if (table.checks) {
+				switch (db.engine) {
+					case 'postgres':
+						matches = new RegExp(
+							'new row for relation "' +
+								table.name +
+								'" violates check constraint "(.*?)"',
+						).exec(err.message);
+						break;
+				}
+			}
+			if (matches != null) {
+				const checkName = matches[1];
+				const check = table.checks!.find((c) => c.name === checkName);
+				if (check?.description != null) {
+					throw new BadRequestError(check.description);
+				}
+			}
+			// We know it's the right error type, so just throw a generic error message
+			// if we have failed to get the info for a more specific one.
+			throw new BadRequestError('Check constraint violated');
+		}
+
 		// Override the error message so we don't leak any internal db info
 		err.message = 'Constraint failed';
 		throw err;
