@@ -5,6 +5,7 @@
   "repository": "git@github.com:balena-io/pinejs.git",
   "license": "Apache-2.0",
   "bin": {
+    "abstract-sql-compiler": "./bin/abstract-sql-compiler.js",
     "odata-compiler": "./bin/odata-compiler.js",
     "sbvr-compiler": "./bin/sbvr-compiler.js"
   },
