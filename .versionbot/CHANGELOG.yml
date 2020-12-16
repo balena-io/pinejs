@@ -1,4 +1,61 @@
 - commits:
+    - subject: Update dependencies
+      hash: 256e8874f9ef4336c8de1f43c4eec5121ce7878c
+      body: |
+        Update abstract-sql-compiler from 7.0.6 to 7.2.0
+        Update sbvr-types from 3.1.2 to 3.1.3
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Add an `optimizeSchema` function
+              hash: 43a3c0eac0ed0c57a79fbc62d025c058ab8dbb1c
+              body: |
+                Currently this can optimize certain rules into check constraints
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-7.2.0
+          date: 2020-12-16T16:59:18.573Z
+        - commits:
+            - subject: Add check constraint support at the table level
+              hash: 2ac556f3bdc6143a9a4be37c47079659ee20a866
+              body: ''
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-7.1.0
+          date: 2020-12-09T22:44:11.220Z
+        - commits:
+            - subject: Convert tests from coffeescript to type-checked javascript
+              hash: ec898159bee4cff9300c5d8b655eb02327a9f636
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-7.0.7
+          date: 2020-12-09T22:08:07.007Z
+        - commits:
+            - subject: Improve types for `SHA`
+              hash: e7e86f33f8e8c420dd634fd1310bc8104c9651c7
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: sbvr-types-3.1.3
+          date: 2020-12-11T15:54:24.200Z
+  version: 14.6.0
+  date: 2020-12-16T18:28:20.216Z
+- commits:
     - subject: Add an abstract-sql-compiler bin helper
       hash: 10d084e12c173882f15a441315593ac652388545
       body: ''
