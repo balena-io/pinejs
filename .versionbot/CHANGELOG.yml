@@ -1,4 +1,15 @@
 - commits:
+    - subject: Add an abstract-sql-compiler bin helper
+      hash: 10d084e12c173882f15a441315593ac652388545
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+      nested: []
+  version: 14.5.0
+  date: 2020-12-16T18:08:50.023Z
+- commits:
     - subject: Add support for prettifying check constraints with their description
       hash: 8c231c779c7198c8442e11fa46c913f48d44cb20
       body: ''
