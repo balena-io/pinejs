@@ -369,6 +369,17 @@ export const generateAbstractSqlModel = (
 		() => LF2AbstractSQLTranslator(lfModel, 'Process'),
 	);
 
+export const generateSqlModel = (
+	abstractSql: AbstractSQLCompiler.AbstractSqlModel,
+	targetDatabaseEngine: AbstractSQLCompiler.Engines,
+): AbstractSQLCompiler.SqlModel =>
+	cachedCompile(
+		'sqlModel',
+		AbstractSQLCompilerVersion + '+' + targetDatabaseEngine,
+		abstractSql,
+		() => AbstractSQLCompiler[targetDatabaseEngine].compileSchema(abstractSql),
+	);
+
 export const generateModels = (
 	model: ExecutableModel,
 	targetDatabaseEngine: AbstractSQLCompiler.Engines,
@@ -403,13 +414,7 @@ export const generateModels = (
 
 	let sql: ReturnType<AbstractSQLCompiler.EngineInstance['compileSchema']>;
 	try {
-		sql = cachedCompile(
-			'sqlModel',
-			AbstractSQLCompilerVersion + '+' + targetDatabaseEngine,
-			abstractSql,
-			() =>
-				AbstractSQLCompiler[targetDatabaseEngine].compileSchema(abstractSql),
-		);
+		sql = generateSqlModel(abstractSql, targetDatabaseEngine);
 	} catch (e) {
 		console.error(`Error compiling model '${vocab}':`, e);
 		throw new Error(`Error compiling model '${vocab}': ` + e);
