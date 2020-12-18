@@ -1,5 +1,187 @@
 - commits:
     - subject: Update dependencies
+      hash: 1f96ee42e4502cdcc00409bfb80b59cab1915930
+      body: |
+        Update abstract-sql-compiler from 7.2.0 to 7.4.1
+        Update odata-to-abstract-sql from 5.3.1 to 5.4.0
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Fix `containsNode` when that node type is at the top level
+              hash: 888791a9b281d5fc91ddeb8876f024b1397718e7
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-7.4.1
+          date: 2020-12-18T20:17:51.469Z
+        - commits:
+            - subject: Add support for table definitions
+              hash: 2939656834c374e35af8867d6337b119b58cd198
+              body: >
+                Static definitions will be converted to views and dynamic
+                definitions
+
+                will be ignored
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-7.4.0
+          date: 2020-12-18T18:35:31.430Z
+        - commits:
+            - subject: Allow compiling `*QueryNode`s to direct strings without binds
+              hash: 7f1880eab543da17ba99ea3940ac52f266d2b07d
+              body: ''
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-7.3.0
+          date: 2020-12-18T17:29:10.301Z
+        - commits:
+            - subject: Improve typings for compilation results
+              hash: 22764a4675ef385a1ef8ce10e633364449ae22b5
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-7.2.1
+          date: 2020-12-18T17:13:41.288Z
+        - commits:
+            - subject: Add support for official abstract-sql table definitions
+              hash: 54aeac9955a23bba0df8df203dcb4ab8889f5612
+              body: |
+                Update abstract-sql-compiler from 7.0.4 to 7.4.0
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+              nested:
+                - commits:
+                    - subject: Add support for table definitions
+                      hash: 2939656834c374e35af8867d6337b119b58cd198
+                      body: >
+                        Static definitions will be converted to views and
+                        dynamic definitions
+
+                        will be ignored
+                      footer:
+                        Change-type: minor
+                        change-type: minor
+                      author: Pagan Gazzard
+                      nested: []
+                  version: abstract-sql-compiler-7.4.0
+                  date: 2020-12-18T18:35:31.430Z
+                - commits:
+                    - subject: >-
+                        Allow compiling `*QueryNode`s to direct strings without
+                        binds
+                      hash: 7f1880eab543da17ba99ea3940ac52f266d2b07d
+                      body: ''
+                      footer:
+                        Change-type: minor
+                        change-type: minor
+                      author: Pagan Gazzard
+                      nested: []
+                  version: abstract-sql-compiler-7.3.0
+                  date: 2020-12-18T17:29:10.301Z
+                - commits:
+                    - subject: Improve typings for compilation results
+                      hash: 22764a4675ef385a1ef8ce10e633364449ae22b5
+                      body: ''
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                      nested: []
+                  version: abstract-sql-compiler-7.2.1
+                  date: 2020-12-18T17:13:41.288Z
+                - commits:
+                    - subject: Add an `optimizeSchema` function
+                      hash: 43a3c0eac0ed0c57a79fbc62d025c058ab8dbb1c
+                      body: >
+                        Currently this can optimize certain rules into check
+                        constraints
+                      footer:
+                        Change-type: minor
+                        change-type: minor
+                      author: Pagan Gazzard
+                      nested: []
+                  version: abstract-sql-compiler-7.2.0
+                  date: 2020-12-16T16:59:18.573Z
+                - commits:
+                    - subject: Add check constraint support at the table level
+                      hash: 2ac556f3bdc6143a9a4be37c47079659ee20a866
+                      body: ''
+                      footer:
+                        Change-type: minor
+                        change-type: minor
+                      author: Pagan Gazzard
+                      nested: []
+                  version: abstract-sql-compiler-7.1.0
+                  date: 2020-12-09T22:44:11.220Z
+                - commits:
+                    - subject: >-
+                        Convert tests from coffeescript to type-checked
+                        javascript
+                      hash: ec898159bee4cff9300c5d8b655eb02327a9f636
+                      body: ''
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                      nested: []
+                  version: abstract-sql-compiler-7.0.7
+                  date: 2020-12-09T22:08:07.007Z
+                - commits:
+                    - subject: Fix the `NOT(NOT(...))` optimization
+                      hash: dd8c6f3b63dd0b781f9768332416fb5371a8c809
+                      body: ''
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                      nested: []
+                  version: abstract-sql-compiler-7.0.6
+                  date: 2020-11-30T18:18:15.073Z
+                - commits:
+                    - subject: Remove some type casts
+                      hash: c8e61c426077b2fe8f697f12c0f8ecb30a082d8b
+                      body: ''
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                      nested: []
+                  version: abstract-sql-compiler-7.0.5
+                  date: 2020-11-30T15:24:49.372Z
+          version: odata-to-abstract-sql-5.4.0
+          date: 2020-12-18T19:51:57.067Z
+        - commits:
+            - subject: Avoid trying to rewrite binds if there are none to rewrite
+              hash: a635bfeedc973daf93b3386b36bcd785ff6d052e
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: odata-to-abstract-sql-5.3.2
+          date: 2020-12-18T18:41:41.474Z
+  version: 14.7.0
+  date: 2020-12-18T22:35:22.726Z
+- commits:
+    - subject: Update dependencies
       hash: 256e8874f9ef4336c8de1f43c4eec5121ce7878c
       body: |
         Update abstract-sql-compiler from 7.0.6 to 7.2.0
