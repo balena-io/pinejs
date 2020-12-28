@@ -1,5 +1,4 @@
-process.env.PINEJS_CACHE_FILE =
-	process.env.PINEJS_CACHE_FILE || __dirname + '/.pinejs-cache.json';
+import { version, writeAll } from './utils';
 
 import type * as AbstractSql from '../sbvr-api/abstract-sql';
 import type * as SbvrUtils from '../sbvr-api/sbvr-utils';
@@ -13,12 +12,6 @@ import type { Model } from '../config-loader/config-loader';
 import * as program from 'commander';
 import * as fs from 'fs';
 import * as path from 'path';
-import '../server-glue/sbvr-loader';
-
-// tslint:disable:no-var-requires
-const { version } = JSON.parse(
-	fs.readFileSync(require.resolve('../../package.json'), 'utf8'),
-);
 
 const generateAbstractSqlModelFromFile = (
 	modelFile: string,
@@ -94,11 +87,7 @@ const parseOData = (odata: string, outputFile?: string) => {
 	} = require('../sbvr-api/uri-parser') as typeof UriParser;
 	const result = memoizedParseOdata(odata);
 	const json = JSON.stringify(result, null, 2);
-	if (outputFile) {
-		fs.writeFileSync(outputFile, json);
-	} else {
-		console.log(json);
-	}
+	writeAll(json, outputFile);
 };
 
 const translateOData = (
@@ -108,11 +97,7 @@ const translateOData = (
 ) => {
 	const request = generateAbstractSqlQuery(modelFile, odata);
 	const json = JSON.stringify(request.abstractSqlQuery, null, 2);
-	if (outputFile) {
-		fs.writeFileSync(outputFile, json);
-	} else {
-		console.log(json);
-	}
+	writeAll(json, outputFile);
 };
 
 const formatSqlQuery = (sqlQuery: SqlResult | SqlResult[]): string => {
@@ -142,11 +127,7 @@ const compileOData = (
 	} else {
 		output = formatSqlQuery(compiledRequest.sqlQuery!);
 	}
-	if (outputFile) {
-		fs.writeFileSync(outputFile, output);
-	} else {
-		console.log(output);
-	}
+	writeAll(output, outputFile);
 };
 
 program

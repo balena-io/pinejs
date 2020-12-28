@@ -1,16 +1,9 @@
-process.env.PINEJS_CACHE_FILE =
-	process.env.PINEJS_CACHE_FILE || __dirname + '/.pinejs-cache.json';
+import { version, writeAll, writeSqlModel } from './utils';
 
 import type * as SbvrUtils from '../sbvr-api/sbvr-utils';
 
 import * as program from 'commander';
 import * as fs from 'fs';
-import '../server-glue/sbvr-loader';
-
-// tslint:disable:no-var-requires
-const { version } = JSON.parse(
-	fs.readFileSync(require.resolve('../../package.json'), 'utf8'),
-);
 
 const getSE = (inputFile: string) => fs.readFileSync(inputFile, 'utf8');
 
@@ -21,11 +14,7 @@ const parse = (inputFile: string, outputFile?: string) => {
 	const seModel = getSE(inputFile);
 	const result = generateLfModel(seModel);
 	const json = JSON.stringify(result, null, 2);
-	if (outputFile) {
-		fs.writeFileSync(outputFile, json);
-	} else {
-		console.log(json);
-	}
+	writeAll(json, outputFile);
 };
 
 const transform = (inputFile: string, outputFile?: string) => {
@@ -37,11 +26,7 @@ const transform = (inputFile: string, outputFile?: string) => {
 	const lfModel = generateLfModel(seModel);
 	const result = generateAbstractSqlModel(lfModel);
 	const json = JSON.stringify(result, null, 2);
-	if (outputFile) {
-		fs.writeFileSync(outputFile, json);
-	} else {
-		console.log(json);
-	}
+	writeAll(json, outputFile);
 };
 
 const runCompile = (inputFile: string, outputFile?: string) => {
@@ -54,34 +39,7 @@ const runCompile = (inputFile: string, outputFile?: string) => {
 		program.engine,
 	);
 
-	let writeLn: (...args: string[]) => void = console.log;
-	if (outputFile) {
-		fs.writeFileSync(outputFile, '');
-		writeLn = (...args: string[]) =>
-			fs.writeFileSync(outputFile, args.join(' ') + '\n', { flag: 'a' });
-	}
-
-	writeLn(`
-		--
-		-- Create table statements
-		--
-	`);
-	for (const createSql of models.sql.createSchema) {
-		writeLn(createSql);
-		writeLn();
-	}
-	writeLn(`
-
-		--
-		-- Rule validation queries
-		--
-
-	`);
-	for (const rule of models.sql.rules) {
-		writeLn(`-- ${rule.structuredEnglish}`);
-		writeLn(rule.sql);
-		writeLn();
-	}
+	writeSqlModel(models.sql, outputFile);
 };
 
 program
