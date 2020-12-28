@@ -1,4 +1,80 @@
 - commits:
+    - subject: Update abstract-sql-compiler to 7.4.2
+      hash: df8305ad2098b68be9fb5cd64685c8df17756a8a
+      body: |
+        Update abstract-sql-compiler from 7.4.1 to 7.4.2
+        Update odata-to-abstract-sql from 5.4.0 to 5.4.1
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Thodoris Greasidis <thodoris@balena.io>
+        signed-off-by: Thodoris Greasidis <thodoris@balena.io>
+      author: Thodoris Greasidis
+      nested:
+        - commits:
+            - subject: Improve Relationship typings
+              hash: 91465f7c65bc43ee2eba1c9db7dbce424a1b18d4
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+                See: >-
+                  https://github.com/balena-io/open-balena-api/pull/510#discussion_r546872607
+                see: >-
+                  https://github.com/balena-io/open-balena-api/pull/510#discussion_r546872607
+                Signed-off-by: Thodoris Greasidis <thodoris@balena.io>
+                signed-off-by: Thodoris Greasidis <thodoris@balena.io>
+              author: Thodoris Greasidis
+              nested: []
+          version: abstract-sql-compiler-7.4.2
+          date: 2020-12-21T23:58:09.407Z
+        - commits:
+            - subject: Update abstract-sql-compiler to 7.4.2
+              hash: 4fc1c0cb35edb423a98e66f2c10347290ae25e0c
+              body: |
+                Update abstract-sql-compiler from 7.4.0 to 7.4.2
+              footer:
+                Change-type: patch
+                change-type: patch
+                Signed-off-by: Thodoris Greasidis <thodoris@balena.io>
+                signed-off-by: Thodoris Greasidis <thodoris@balena.io>
+              author: Thodoris Greasidis
+              nested:
+                - commits:
+                    - subject: Improve Relationship typings
+                      hash: 91465f7c65bc43ee2eba1c9db7dbce424a1b18d4
+                      body: ''
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                        See: >-
+                          https://github.com/balena-io/open-balena-api/pull/510#discussion_r546872607
+                        see: >-
+                          https://github.com/balena-io/open-balena-api/pull/510#discussion_r546872607
+                        Signed-off-by: Thodoris Greasidis <thodoris@balena.io>
+                        signed-off-by: Thodoris Greasidis <thodoris@balena.io>
+                      author: Thodoris Greasidis
+                      nested: []
+                  version: abstract-sql-compiler-7.4.2
+                  date: 2020-12-21T23:58:09.407Z
+                - commits:
+                    - subject: >-
+                        Fix `containsNode` when that node type is at the top
+                        level
+                      hash: 888791a9b281d5fc91ddeb8876f024b1397718e7
+                      body: ''
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                      nested: []
+                  version: abstract-sql-compiler-7.4.1
+                  date: 2020-12-18T20:17:51.469Z
+          version: odata-to-abstract-sql-5.4.1
+          date: 2020-12-26T20:45:55.372Z
+  version: 14.7.1
+  date: 2020-12-28T18:37:36.032Z
+- commits:
     - subject: Update dependencies
       hash: 1f96ee42e4502cdcc00409bfb80b59cab1915930
       body: |
