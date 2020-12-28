@@ -2,7 +2,7 @@ process.env.PINEJS_CACHE_FILE =
 	process.env.PINEJS_CACHE_FILE || __dirname + '/.pinejs-cache.json';
 
 import type { SqlModel } from '@balena/abstract-sql-compiler';
-import type { Model } from '../config-loader/config-loader';
+import type { Config, Model } from '../config-loader/config-loader';
 import type * as SbvrUtils from '../sbvr-api/sbvr-utils';
 import type { AbstractSqlModel } from '@balena/abstract-sql-compiler';
 
@@ -52,7 +52,7 @@ ${rule.sql}`,
 export const getAbstractSqlModelFromFile = (
 	modelFile: string,
 ): AbstractSqlModel => {
-	let fileContents: string | Model | AbstractSqlModel;
+	let fileContents: string | Model | AbstractSqlModel | Config;
 	try {
 		fileContents = require(path.resolve(modelFile));
 	} catch {
@@ -65,17 +65,17 @@ export const getAbstractSqlModelFromFile = (
 	if (typeof fileContents === 'string') {
 		seModel = fileContents;
 	} else if (typeof fileContents === 'object') {
-		if ('abstractSql' in fileContents && fileContents.abstractSql != null) {
-			return fileContents.abstractSql as AbstractSqlModel;
-		} else if ('modelText' in fileContents && fileContents.modelText != null) {
-			seModel = fileContents.modelText;
-		} else if ('modelFile' in fileContents && fileContents.modelFile != null) {
-			seModel = fs.readFileSync(
-				require.resolve(fileContents.modelFile),
-				'utf8',
-			);
-		} else if ('tables' in fileContents && fileContents.tables != null) {
-			return fileContents as AbstractSqlModel;
+		if ('tables' in fileContents) {
+			return fileContents;
+		}
+		const configModel =
+			'models' in fileContents ? fileContents.models[0] : fileContents;
+		if ('abstractSql' in configModel && configModel.abstractSql != null) {
+			return configModel.abstractSql as AbstractSqlModel;
+		} else if ('modelText' in configModel && configModel.modelText != null) {
+			seModel = configModel.modelText;
+		} else if ('modelFile' in configModel && configModel.modelFile != null) {
+			seModel = fs.readFileSync(require.resolve(configModel.modelFile), 'utf8');
 		} else {
 			throw new Error('Unrecognised config file');
 		}
