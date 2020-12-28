@@ -2,6 +2,8 @@ type: 'node'
 upstream:
   - repo: 'abstract-sql-compiler'
     url: 'https://github.com/balena-io-modules/abstract-sql-compiler'
+  - repo: 'abstract-sql-to-typescript'
+    url: 'https://github.com/balena-io-modules/abstract-sql-to-typescript'
   - repo: 'lf-to-abstract-sql'
     url: 'https://github.com/balena-io-modules/lf-to-abstract-sql'
   - repo: 'odata-parser'
