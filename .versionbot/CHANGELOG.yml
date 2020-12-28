@@ -1,4 +1,26 @@
 - commits:
+    - subject: Add support for config file inputs to abstract-sql/odata-compiler
+      hash: 6b7b825bc478d7931340f8aeb760bb5e569bbff3
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+      nested: []
+    - subject: Add support for more input types to abstract-sql-compiler
+      hash: 431f3dbcb2177c602042e01c46eac45b185c555c
+      body: |
+        We now support support passing an SBVR file or a model specification
+        as well as an abstract sql model, and we also accept any file type that
+        is acceptable to nodejs `require` rather than just a JSON file
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+      nested: []
+  version: 14.9.0
+  date: 2020-12-28T19:36:16.000Z
+- commits:
     - subject: Add typescript type generation to sbvr/abstract-sql-compiler
       hash: d73e2d48f95771a1fd0d737701b7d0d4dac4cefb
       body: ''
