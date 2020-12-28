@@ -1,4 +1,15 @@
 - commits:
+    - subject: Share code between the cli tools
+      hash: 26e2aa66057336338cc6497b1dbf655c22b67d53
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 14.7.2
+  date: 2020-12-28T18:50:15.152Z
+- commits:
     - subject: Update abstract-sql-compiler to 7.4.2
       hash: df8305ad2098b68be9fb5cd64685c8df17756a8a
       body: |
