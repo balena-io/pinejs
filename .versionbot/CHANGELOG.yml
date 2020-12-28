@@ -1,4 +1,27 @@
 - commits:
+    - subject: Update abstract-sql-to-typescript to 1.0.1
+      hash: fa2d67e6e0770141ef160218f2e83252b05a0a26
+      body: |
+        Update abstract-sql-to-typescript from 1.0.0 to 1.0.1
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Fix types for ConceptType fields
+              hash: b718096c1ead1c276e687e444e09b388d6e4f966
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-to-typescript-1.0.1
+          date: 2020-12-28T20:00:06.230Z
+  version: 14.9.1
+  date: 2020-12-28T20:15:05.545Z
+- commits:
     - subject: Add support for config file inputs to abstract-sql/odata-compiler
       hash: 6b7b825bc478d7931340f8aeb760bb5e569bbff3
       body: ''
