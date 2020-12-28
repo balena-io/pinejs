@@ -3,6 +3,8 @@ import type {
 	AbstractSqlType,
 	AliasNode,
 	Relationship,
+	RelationshipInternalNode,
+	RelationshipLeafNode,
 	RelationshipMapping,
 	SelectNode,
 } from '@balena/abstract-sql-compiler';
@@ -289,13 +291,13 @@ const namespaceRelationships = (
 			return;
 		}
 
-		let mapping = relationship.$;
+		let mapping = (relationship as RelationshipLeafNode).$;
 		if (mapping != null && mapping.length === 2) {
 			mapping = _.cloneDeep(mapping);
 			// we do check the length above, but typescript thinks the second
 			// element could be undefined
 			mapping[1]![0] = `${mapping[1]![0]}$${alias}`;
-			relationships[`${key}$${alias}`] = {
+			(relationships as RelationshipInternalNode)[`${key}$${alias}`] = {
 				$: mapping,
 			};
 		}
@@ -856,11 +858,11 @@ const rewriteRelationship = memoizeWeak(
 const rewriteRelationships = (
 	abstractSqlModel: AbstractSqlModel,
 	relationships: {
-		[resourceName: string]: Relationship;
+		[resourceName: string]: RelationshipInternalNode;
 	},
 	permissionsLookup: PermissionLookup,
 	vocabulary: string,
-) => {
+): typeof relationships => {
 	const originalAbstractSQLModel = sbvrUtils.getAbstractSqlModel({
 		vocabulary,
 	});
