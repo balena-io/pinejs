@@ -96,6 +96,7 @@ const getLocalFields = (table: AbstractSqlTable) => {
 	if (table.localFields == null) {
 		table.localFields = {};
 		for (const { fieldName, dataType } of table.fields) {
+			// TODO-MAJOR: This should also include ConceptType fields
 			if (dataType !== 'ForeignKey') {
 				const odataName = sqlNameToODataName(fieldName);
 				table.localFields[odataName] = true;
