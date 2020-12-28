@@ -1,4 +1,15 @@
 - commits:
+    - subject: Add typescript type generation to sbvr/abstract-sql-compiler
+      hash: d73e2d48f95771a1fd0d737701b7d0d4dac4cefb
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+      nested: []
+  version: 14.8.0
+  date: 2020-12-28T19:02:51.939Z
+- commits:
     - subject: Share code between the cli tools
       hash: 26e2aa66057336338cc6497b1dbf655c22b67d53
       body: ''
