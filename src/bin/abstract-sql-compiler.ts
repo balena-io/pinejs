@@ -1,16 +1,9 @@
-process.env.PINEJS_CACHE_FILE =
-	process.env.PINEJS_CACHE_FILE || __dirname + '/.pinejs-cache.json';
+import { version, writeSqlModel } from './utils';
 
 import type * as SbvrUtils from '../sbvr-api/sbvr-utils';
 
 import * as program from 'commander';
 import * as fs from 'fs';
-import '../server-glue/sbvr-loader';
-
-// tslint:disable:no-var-requires
-const { version } = JSON.parse(
-	fs.readFileSync(require.resolve('../../package.json'), 'utf8'),
-);
 
 const getAbstractSql = (inputFile: string) => {
 	return JSON.parse(fs.readFileSync(inputFile, 'utf8'));
@@ -23,34 +16,7 @@ const runCompile = (inputFile: string, outputFile?: string) => {
 	const abstractSql = getAbstractSql(inputFile);
 	const sqlModel = generateSqlModel(abstractSql, program.engine);
 
-	let writeLn: (...args: string[]) => void = console.log;
-	if (outputFile) {
-		fs.writeFileSync(outputFile, '');
-		writeLn = (...args: string[]) =>
-			fs.writeFileSync(outputFile, args.join(' ') + '\n', { flag: 'a' });
-	}
-
-	writeLn(`
-		--
-		-- Create table statements
-		--
-	`);
-	for (const createSql of sqlModel.createSchema) {
-		writeLn(createSql);
-		writeLn();
-	}
-	writeLn(`
-
-		--
-		-- Rule validation queries
-		--
-
-	`);
-	for (const rule of sqlModel.rules) {
-		writeLn(`-- ${rule.structuredEnglish}`);
-		writeLn(rule.sql);
-		writeLn();
-	}
+	writeSqlModel(sqlModel, outputFile);
 };
 
 program
