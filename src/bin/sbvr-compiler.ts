@@ -42,6 +42,23 @@ const runCompile = (inputFile: string, outputFile?: string) => {
 	writeSqlModel(models.sql, outputFile);
 };
 
+const generateTypes = (inputFile: string, outputFile?: string) => {
+	const {
+		generateModels,
+	} = require('../sbvr-api/sbvr-utils') as typeof SbvrUtils;
+	const seModel = getSE(inputFile);
+	const models = generateModels(
+		{ apiRoot: 'sbvr-compiler', modelText: seModel },
+		program.engine,
+	);
+	const {
+		abstractSqlToTypescriptTypes,
+	} = require('@balena/abstract-sql-to-typescript') as typeof import('@balena/abstract-sql-to-typescript');
+	const types = abstractSqlToTypescriptTypes(models.abstractSql);
+
+	writeAll(types, outputFile);
+};
+
 program
 	.version(version)
 	.option(
@@ -65,6 +82,11 @@ program
 	.command('compile <input-file> [output-file]')
 	.description('compile the input SBVR file into SQL')
 	.action(runCompile);
+
+program
+	.command('generate-types <input-file> [output-file]')
+	.description('generate typescript types from the input SBVR')
+	.action(generateTypes);
 
 program
 	.command('help')

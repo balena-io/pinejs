@@ -1,4 +1,4 @@
-import { version, writeSqlModel } from './utils';
+import { version, writeAll, writeSqlModel } from './utils';
 
 import type * as SbvrUtils from '../sbvr-api/sbvr-utils';
 
@@ -19,6 +19,16 @@ const runCompile = (inputFile: string, outputFile?: string) => {
 	writeSqlModel(sqlModel, outputFile);
 };
 
+const generateTypes = (inputFile: string, outputFile?: string) => {
+	const {
+		abstractSqlToTypescriptTypes,
+	} = require('@balena/abstract-sql-to-typescript') as typeof import('@balena/abstract-sql-to-typescript');
+	const abstractSql = getAbstractSql(inputFile);
+	const types = abstractSqlToTypescriptTypes(abstractSql);
+
+	writeAll(types, outputFile);
+};
+
 program
 	.version(version)
 	.option(
@@ -37,6 +47,11 @@ program
 	.command('compile-schema <input-file> [output-file]')
 	.description('compile the input AbstractSql model into SQL')
 	.action(runCompile);
+
+program
+	.command('generate-types <input-file> [output-file]')
+	.description('generate typescript types from the input AbstractSql')
+	.action(generateTypes);
 
 program
 	.command('help')
