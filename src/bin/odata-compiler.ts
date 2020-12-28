@@ -1,65 +1,10 @@
-import { version, writeAll } from './utils';
+import { getAbstractSqlModelFromFile, version, writeAll } from './utils';
 
 import type * as AbstractSql from '../sbvr-api/abstract-sql';
-import type * as SbvrUtils from '../sbvr-api/sbvr-utils';
 import type * as UriParser from '../sbvr-api/uri-parser';
-import type {
-	AbstractSqlModel,
-	SqlResult,
-} from '@balena/abstract-sql-compiler';
-import type { Model } from '../config-loader/config-loader';
+import type { SqlResult } from '@balena/abstract-sql-compiler';
 
 import * as program from 'commander';
-import * as fs from 'fs';
-import * as path from 'path';
-
-const generateAbstractSqlModelFromFile = (
-	modelFile: string,
-): AbstractSqlModel => {
-	let fileContents: string | Model | AbstractSqlModel;
-	try {
-		fileContents = require(path.resolve(modelFile));
-	} catch {
-		fileContents = fs.readFileSync(require.resolve(modelFile), 'utf8');
-	}
-	let seModel: string;
-	if (fileContents == null) {
-		throw new Error('Invalid model file');
-	}
-	if (typeof fileContents === 'string') {
-		seModel = fileContents;
-	} else if (typeof fileContents === 'object') {
-		if ('abstractSql' in fileContents && fileContents.abstractSql != null) {
-			return fileContents.abstractSql as AbstractSqlModel;
-		} else if ('modelText' in fileContents && fileContents.modelText != null) {
-			seModel = fileContents.modelText;
-		} else if ('modelFile' in fileContents && fileContents.modelFile != null) {
-			seModel = fs.readFileSync(
-				require.resolve(fileContents.modelFile),
-				'utf8',
-			);
-		} else if ('tables' in fileContents && fileContents.tables != null) {
-			return fileContents as AbstractSqlModel;
-		} else {
-			throw new Error('Unrecognised config file');
-		}
-	} else {
-		throw new Error('Unrecognised config file');
-	}
-	const {
-		generateLfModel,
-		generateAbstractSqlModel,
-	} = require('../sbvr-api/sbvr-utils') as typeof SbvrUtils;
-	let lfModel;
-	try {
-		lfModel = generateLfModel(seModel);
-	} catch (e) {
-		throw new Error(
-			`Got '${e.message}' whilst trying to parse the model file as sbvr, if you're using a transpiled language for the model file you will need to either transpile in advance or run via its loader`,
-		);
-	}
-	return generateAbstractSqlModel(lfModel);
-};
 
 const generateAbstractSqlQuery = (modelFile: string, odata: string) => {
 	const {
@@ -76,7 +21,7 @@ const generateAbstractSqlQuery = (modelFile: string, odata: string) => {
 		odataBinds: odataAST.binds,
 		values: {},
 		vocabulary: '',
-		abstractSqlModel: generateAbstractSqlModelFromFile(modelFile),
+		abstractSqlModel: getAbstractSqlModelFromFile(modelFile),
 		custom: {},
 	});
 };
