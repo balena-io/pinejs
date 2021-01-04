@@ -1,4 +1,107 @@
 - commits:
+    - subject: Update dependencies
+      hash: 4e8560b15a7b601750c132f0c38f8f3fc3da5d4e
+      body: |
+        Update abstract-sql-compiler from 7.4.2 to 7.8.1
+        Update abstract-sql-to-typescript from 1.0.1 to 1.1.0
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Convert some lodash usage to native equivalents
+              hash: 400937fd3b220dccd557d67ff33d83d51ff0b939
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-7.8.1
+          date: 2021-01-04T13:04:45.938Z
+        - commits:
+            - subject: 'Optimize Is[Not]DistinctFrom and [Not]Exists for non-null values'
+              hash: 682e84dea2088fb0c336b05be83183e627c20d4f
+              body: ''
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-7.8.0
+          date: 2021-01-01T20:22:14.871Z
+        - commits:
+            - subject: Optimize EXISTS/NOT EXISTS for empty queries
+              hash: 39431de07eeb98d731a114c1717575d364ddc06f
+              body: ''
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-7.7.0
+          date: 2021-01-01T17:47:15.206Z
+        - commits:
+            - subject: Optimize away AND/ORs with false/true respectively
+              hash: f0249d98032b0306f7d216b5ad8e8d2c96c466fc
+              body: ''
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-7.6.0
+          date: 2021-01-01T16:18:03.545Z
+        - commits:
+            - subject: Optimize out booleans from AND/OR where possible
+              hash: d3d9a86ebc231dc4b11b20311e6d007a19202b18
+              body: ''
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-7.5.0
+          date: 2021-01-01T14:03:49.386Z
+        - commits:
+            - subject: Add type helpers for dealing with expanded/deferred read types
+              hash: 8267272e729853cb8e16467f1d345074d1a331fe
+              body: ''
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-to-typescript-1.1.0
+          date: 2020-12-30T18:06:04.613Z
+        - commits:
+            - subject: >-
+                Use the referenced field's data type for foreign keys/concept
+                types
+              hash: eb768404e75c538d3b694c393e30e43abd30f020
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-to-typescript-1.0.3
+          date: 2020-12-30T15:42:05.820Z
+        - commits:
+            - subject: Fix defaulting mode to `read`
+              hash: 377ed4c9c2bc65d94f4ade0fe667c3f91bd3baca
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-to-typescript-1.0.2
+          date: 2020-12-30T13:42:23.242Z
+  version: 14.9.2
+  date: 2021-01-04T13:21:50.515Z
+- commits:
     - subject: Update abstract-sql-to-typescript to 1.0.1
       hash: fa2d67e6e0770141ef160218f2e83252b05a0a26
       body: |
