@@ -1,4 +1,17 @@
 - commits:
+    - subject: Use an .npmrc to prevent creating a package-lock on each install
+      hash: cdaccaf22a81e79c63bde0785ae32bd94decc866
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Thodoris Greasidis <thodoris@balena.io>
+        signed-off-by: Thodoris Greasidis <thodoris@balena.io>
+      author: Thodoris Greasidis
+      nested: []
+  version: 14.9.3
+  date: 2021-01-05T11:43:29.118Z
+- commits:
     - subject: Update dependencies
       hash: 4e8560b15a7b601750c132f0c38f8f3fc3da5d4e
       body: |
