@@ -1,4 +1,15 @@
 - commits:
+    - subject: Enable keepAlive for postgres by default with the ability to disable
+      hash: 17f87b11c7a90d2854e43e026310ffacc30f34dd
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+      nested: []
+  version: 14.10.0
+  date: 2021-01-06T17:25:06.369Z
+- commits:
     - subject: Ensure database connection errors are wrapped as `DatabaseError`s
       hash: 9e38c17841635a15ccbded69f1518db65f3ba3c2
       body: ''
