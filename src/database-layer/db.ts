@@ -376,7 +376,12 @@ const getStackTraceErr: () => Error | undefined = DEBUG
 const createTransaction = (createFunc: CreateTransactionFn): TransactionFn => {
 	return async <T>(fn?: (tx: Tx) => Resolvable<T>): Promise<T | Tx> => {
 		const stackTraceErr = getStackTraceErr();
-		const tx = await createFunc(stackTraceErr);
+		let tx;
+		try {
+			tx = await createFunc(stackTraceErr);
+		} catch (err) {
+			return wrapDatabaseError(err);
+		}
 		if (fn) {
 			try {
 				const result = await fn(tx);
