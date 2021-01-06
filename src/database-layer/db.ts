@@ -426,6 +426,7 @@ if (maybePg != null) {
 		config.max = env.db.poolSize;
 		config.idleTimeoutMillis = env.db.idleTimeoutMillis;
 		config.connectionTimeoutMillis = env.db.connectionTimeoutMillis;
+		config.keepAlive = env.db.keepAlive;
 		const pool = new pg.Pool(config);
 		const { PG_SCHEMA } = process.env;
 		if (PG_SCHEMA != null) {
