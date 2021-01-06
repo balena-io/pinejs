@@ -1,4 +1,15 @@
 - commits:
+    - subject: 'Dev: switch from grunt-replace to grunt-contrib-replace'
+      hash: 11af8aedcf7c433ef10a256cf84fae6042e8ddef
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 14.9.4
+  date: 2021-01-06T11:12:15.791Z
+- commits:
     - subject: Use an .npmrc to prevent creating a package-lock on each install
       hash: cdaccaf22a81e79c63bde0785ae32bd94decc866
       body: ''
