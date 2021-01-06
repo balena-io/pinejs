@@ -1,4 +1,15 @@
 - commits:
+    - subject: Ensure database connection errors are wrapped as `DatabaseError`s
+      hash: 9e38c17841635a15ccbded69f1518db65f3ba3c2
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 14.9.5
+  date: 2021-01-06T13:32:20.239Z
+- commits:
     - subject: 'Dev: switch from grunt-replace to grunt-contrib-replace'
       hash: 11af8aedcf7c433ef10a256cf84fae6042e8ddef
       body: ''
