@@ -14,7 +14,7 @@ const runCompile = (inputFile: string, outputFile?: string) => {
 		generateSqlModel,
 	} = require('../sbvr-api/sbvr-utils') as typeof SbvrUtils;
 	const abstractSql = getAbstractSqlModelFromFile(inputFile);
-	const sqlModel = generateSqlModel(abstractSql, program.engine);
+	const sqlModel = generateSqlModel(abstractSql, program.opts().engine);
 
 	writeSqlModel(sqlModel, outputFile);
 };

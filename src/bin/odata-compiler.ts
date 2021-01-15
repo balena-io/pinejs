@@ -13,7 +13,7 @@ const generateAbstractSqlQuery = (modelFile: string, odata: string) => {
 	} = require('../sbvr-api/uri-parser') as typeof UriParser;
 	const odataAST = memoizedParseOdata(odata);
 	return translateUri({
-		engine: program.engine,
+		engine: program.opts().engine,
 		method: 'GET',
 		url: odata,
 		resourceName: odataAST.tree.resource,
@@ -67,7 +67,7 @@ const compileOData = (
 	} = require('../sbvr-api/abstract-sql') as typeof AbstractSql;
 	const compiledRequest = compileRequest(translatedRequest);
 	let output;
-	if (program.json) {
+	if (program.opts().json) {
 		output = JSON.stringify(compiledRequest.sqlQuery, null, 2);
 	} else {
 		output = formatSqlQuery(compiledRequest.sqlQuery!);
