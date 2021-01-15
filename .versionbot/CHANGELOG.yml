@@ -1,4 +1,41 @@
 - commits:
+    - subject: Update dependencies
+      hash: bd869af9c98efac5524350c88ee1f9db19747e9c
+      body: |
+        Update abstract-sql-compiler from 7.8.1 to 7.8.2
+        Update abstract-sql-to-typescript from 1.1.0 to 1.1.1
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: >-
+                Fix schema optimizations when table and resource names are
+                different
+              hash: 46704031fbde45fd0e36b0963f8cf524df53398b
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-7.8.2
+          date: 2021-01-15T20:38:59.313Z
+        - commits:
+            - subject: Fix PickExpanded/PickDeferred type helpers
+              hash: ab7a898e7d55c50f0702560d4df1f2b29a775b90
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-to-typescript-1.1.1
+          date: 2021-01-04T15:25:29.186Z
+  version: 14.10.1
+  date: 2021-01-15T21:03:14.810Z
+- commits:
     - subject: Enable keepAlive for postgres by default with the ability to disable
       hash: 17f87b11c7a90d2854e43e026310ffacc30f34dd
       body: ''
