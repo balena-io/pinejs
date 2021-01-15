@@ -36,7 +36,7 @@ const runCompile = (inputFile: string, outputFile?: string) => {
 	const seModel = getSE(inputFile);
 	const models = generateModels(
 		{ apiRoot: 'sbvr-compiler', modelText: seModel },
-		program.engine,
+		program.opts().engine,
 	);
 
 	writeSqlModel(models.sql, outputFile);
@@ -49,7 +49,7 @@ const generateTypes = (inputFile: string, outputFile?: string) => {
 	const seModel = getSE(inputFile);
 	const models = generateModels(
 		{ apiRoot: 'sbvr-compiler', modelText: seModel },
-		program.engine,
+		program.opts().engine,
 	);
 	const {
 		abstractSqlToTypescriptTypes,
