@@ -578,15 +578,11 @@ const generateConstrainedAbstractSql = (
 		}
 	};
 
-	const odata2AbstractSQL = new OData2AbstractSQL(abstractSQLModel, {
+	const { tree, extraBindVars } = memoizedGetOData2AbstractSQL(
+		abstractSQLModel,
+	).match(odata.tree, 'GET', [], odata.binds.length, {
 		canAccess: canAccessFunction,
 	});
-	const { tree, extraBindVars } = odata2AbstractSQL.match(
-		odata.tree,
-		'GET',
-		[],
-		odata.binds.length,
-	);
 
 	odata.binds.push(...extraBindVars);
 	const odataBinds = odata.binds;
