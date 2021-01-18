@@ -1,4 +1,18 @@
 - commits:
+    - subject: Optimize generating constrained abstract sql model
+      hash: b176abf77bf4f550ea7728fee52b5d6746ec7d22
+      body: |
+        Instantiating an `OData2AbstractSQL` instance can be relatively costly
+        and as such reusing a memoized instance can provide a reasonable
+        performance improvement
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 14.10.2
+  date: 2021-01-18T21:14:38.233Z
+- commits:
     - subject: Update dependencies
       hash: bd869af9c98efac5524350c88ee1f9db19747e9c
       body: |
