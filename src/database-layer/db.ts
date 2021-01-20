@@ -68,13 +68,13 @@ export class CheckConstraintError extends ConstraintError {}
 export class TransactionClosedError extends DatabaseError {}
 export class ReadOnlyViolationError extends DatabaseError {}
 
-const wrapDatabaseError = (err: CodedError): never => {
+const wrapDatabaseError = (err: CodedError): DatabaseError => {
 	metrics.emit('db_error', err);
 	if (!(err instanceof DatabaseError)) {
 		// Wrap the error so we can catch it easier later
-		throw new DatabaseError(err);
+		return new DatabaseError(err);
 	}
-	throw err;
+	return err;
 };
 
 const alwaysExport = {
@@ -278,7 +278,7 @@ export abstract class Tx {
 		try {
 			return await this._executeSql(sql, bindings, ...args);
 		} catch (err) {
-			return wrapDatabaseError(err);
+			throw wrapDatabaseError(err);
 		} finally {
 			this.automaticClose.decrementPending();
 			const queryTime = Date.now() - t0;
@@ -380,7 +380,7 @@ const createTransaction = (createFunc: CreateTransactionFn): TransactionFn => {
 		try {
 			tx = await createFunc(stackTraceErr);
 		} catch (err) {
-			return wrapDatabaseError(err);
+			throw wrapDatabaseError(err);
 		}
 		if (fn) {
 			try {
@@ -496,9 +496,13 @@ if (maybePg != null) {
 
 			protected async _rollback() {
 				try {
-					await this.$executeSql('ROLLBACK;');
+					await Bluebird.resolve(this.$executeSql('ROLLBACK;')).timeout(
+						env.db.rollbackTimeout,
+						'Rolling back transaction timed out',
+					);
 					this.db.release();
 				} catch (err) {
+					err = wrapDatabaseError(err);
 					this.db.release(err);
 					throw err;
 				}

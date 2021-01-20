@@ -21,6 +21,7 @@ export const db = {
 	idleTimeoutMillis: 30000,
 	connectionTimeoutMillis: 30000,
 	keepAlive: true,
+	rollbackTimeout: 30000,
 };
 
 export const migrator = {
