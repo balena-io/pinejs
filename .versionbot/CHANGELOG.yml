@@ -1,4 +1,17 @@
 - commits:
+    - subject: Add a timeout for pg rollbacks after which the connection is terminated
+      hash: e67830dc6f3a9b6c73f20e6c71f14dcbacadca21
+      body: |
+        This avoids issues where a postgres connection can hang and the
+        rollback never finishes and the client is never released from the pool
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+      nested: []
+  version: 14.11.0
+  date: 2021-01-20T18:06:20.156Z
+- commits:
     - subject: Optimize generating constrained abstract sql model
       hash: b176abf77bf4f550ea7728fee52b5d6746ec7d22
       body: |
