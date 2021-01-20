@@ -1,4 +1,15 @@
 - commits:
+    - subject: Error/dequeue all queued up queries when rolling back a pg transaction
+      hash: 7b289fa319b8ae7e7a87712d80a197fb05f89687
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+      nested: []
+  version: 14.12.0
+  date: 2021-01-20T18:52:36.093Z
+- commits:
     - subject: Add a timeout for pg rollbacks after which the connection is terminated
       hash: e67830dc6f3a9b6c73f20e6c71f14dcbacadca21
       body: |
