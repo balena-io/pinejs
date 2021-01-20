@@ -496,6 +496,19 @@ if (maybePg != null) {
 
 			protected async _rollback() {
 				try {
+					// Error/dequeue all queued up queries on a rollback, this will not cancel an in-progress query however
+					// @ts-expect-error typings do not include this queryQueue
+					const queryQueue = this.db.queryQueue as Pg.Query[];
+					if (queryQueue.length > 0) {
+						const err = new DatabaseError('Rolling back transaction');
+						queryQueue.forEach((query) => {
+							process.nextTick(() => {
+								// @ts-expect-error typings do not include this function
+								query.handleError(err, this.db.connection);
+							});
+						});
+						queryQueue.length = 0;
+					}
 					await Bluebird.resolve(this.$executeSql('ROLLBACK;')).timeout(
 						env.db.rollbackTimeout,
 						'Rolling back transaction timed out',
