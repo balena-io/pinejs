@@ -1,4 +1,15 @@
 - commits:
+    - subject: Handle `TRANSACTION_TIMEOUT_MS` in the env module
+      hash: b0257583f6fc634a12986ff5890c01c3fe6b4203
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 14.12.1
+  date: 2021-01-22T12:36:49.766Z
+- commits:
     - subject: Error/dequeue all queued up queries when rolling back a pg transaction
       hash: 7b289fa319b8ae7e7a87712d80a197fb05f89687
       body: ''
