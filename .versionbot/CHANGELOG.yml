@@ -1,4 +1,15 @@
 - commits:
+    - subject: Add the ability to specify query/statement timeouts for pg backend
+      hash: 59e65485c4c7bc40c449b19cfabe4d1148352b92
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+      nested: []
+  version: 14.14.0
+  date: 2021-01-22T14:13:31.230Z
+- commits:
     - subject: Allow specifying database options on init instead of via env vars
       hash: c61a6a5a89130aa2d70e1693ecca76c8846fbcbe
       body: ''
