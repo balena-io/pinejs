@@ -121,18 +121,6 @@ const asyncTryFn = (fn: () => any) => {
 	Promise.resolve().then(fn);
 };
 
-let timeoutMS: number;
-if (process.env.TRANSACTION_TIMEOUT_MS) {
-	timeoutMS = parseInt(process.env.TRANSACTION_TIMEOUT_MS, 10);
-	if (Number.isNaN(timeoutMS) || timeoutMS <= 0) {
-		throw new Error(
-			`Invalid valid for TRANSACTION_TIMEOUT_MS: ${process.env.TRANSACTION_TIMEOUT_MS}`,
-		);
-	}
-} else {
-	timeoutMS = 10000;
-}
-
 type RejectedFunctions = (
 	message: string,
 ) => {
@@ -182,14 +170,17 @@ class AutomaticClose {
 	constructor(tx: Tx, private stackTraceErr?: Error) {
 		this.automaticClose = () => {
 			console.error(
-				`Transaction still open after ${timeoutMS}ms without an execute call.`,
+				`Transaction still open after ${env.db.timeoutMS}ms without an execute call.`,
 			);
 			if (this.stackTraceErr) {
 				console.error(this.stackTraceErr.stack);
 			}
 			tx.rollback();
 		};
-		this.automaticCloseTimeout = setTimeout(this.automaticClose, timeoutMS);
+		this.automaticCloseTimeout = setTimeout(
+			this.automaticClose,
+			env.db.timeoutMS,
+		);
 	}
 	public incrementPending() {
 		if (this.pending === false) {
@@ -205,7 +196,10 @@ class AutomaticClose {
 		this.pending--;
 		// We only ever want one timeout running at a time, hence not using <=
 		if (this.pending === 0) {
-			this.automaticCloseTimeout = setTimeout(this.automaticClose, timeoutMS);
+			this.automaticCloseTimeout = setTimeout(
+				this.automaticClose,
+				env.db.timeoutMS,
+			);
 		} else if (this.pending < 0) {
 			console.error('Pending transactions is less than 0, wtf?');
 			this.pending = 0;
