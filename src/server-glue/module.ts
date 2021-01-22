@@ -45,13 +45,12 @@ if (dbModule.engines.websql != null) {
 	};
 }
 
-const db = dbModule.connect(databaseOptions);
-
 export const init = async (
 	app: Express.Application,
 	config?: string | configLoader.Config,
 ): Promise<ReturnType<typeof configLoader.setup>> => {
 	try {
+		const db = dbModule.connect(databaseOptions);
 		await sbvrUtils.setup(app, db);
 		const cfgLoader = await configLoader.setup(app);
 		await cfgLoader.loadConfig(migrator.config);
