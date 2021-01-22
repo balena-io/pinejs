@@ -32,9 +32,11 @@ if (process.env.TRANSACTION_TIMEOUT_MS) {
 
 export const db = {
 	poolSize: 50,
-	idleTimeoutMillis: 30000,
-	connectionTimeoutMillis: 30000,
-	keepAlive: true,
+	idleTimeoutMillis: 30000 as number | undefined,
+	statementTimeout: undefined as number | undefined,
+	queryTimeout: undefined as number | undefined,
+	connectionTimeoutMillis: 30000 as number | undefined,
+	keepAlive: true as boolean | undefined,
 	rollbackTimeout: 30000,
 	timeoutMS,
 };
