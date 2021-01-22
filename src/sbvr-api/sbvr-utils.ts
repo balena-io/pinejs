@@ -78,8 +78,6 @@ export type HookRequest = uriParser.ODataRequest;
 import memoizeWeak = require('memoizee/weak');
 import * as controlFlow from './control-flow';
 
-const { DEBUG } = process.env;
-
 export let db = (undefined as any) as Db.Database;
 
 export { sbvrTypes };
@@ -93,6 +91,7 @@ import {
 } from './abstract-sql';
 export { resolveOdataBind } from './abstract-sql';
 import * as odataResponse from './odata-response';
+import { env } from '../server-glue/module';
 
 const LF2AbstractSQLTranslator = LF2AbstractSQL.createTranslator(sbvrTypes);
 const LF2AbstractSQLTranslatorVersion = `${LF2AbstractSQLVersion}+${sbvrTypesVersion}`;
@@ -951,7 +950,7 @@ const $getAffectedIds = async ({
 };
 
 const runODataRequest = (req: Express.Request, vocabulary: string) => {
-	if (DEBUG) {
+	if (env.DEBUG) {
 		api[vocabulary].logger.log('Parsing', req.method, req.url);
 	}
 
@@ -1044,12 +1043,12 @@ const runODataRequest = (req: Express.Request, vocabulary: string) => {
 						}
 					});
 					if (Array.isArray(request)) {
-						const env = await Bluebird.reduce(
+						const changeSetResults = await Bluebird.reduce(
 							request,
 							runChangeSet(req, tx),
 							new Map<number, Response>(),
 						);
-						return Array.from(env.values());
+						return Array.from(changeSetResults.values());
 					} else {
 						return await runRequest(req, tx, request);
 					}
@@ -1174,7 +1173,7 @@ const runRequest = async (
 ): Promise<Response> => {
 	const { logger } = api[request.vocabulary];
 
-	if (DEBUG) {
+	if (env.DEBUG) {
 		logger.log('Running', req.method, req.url);
 	}
 	let result: Db.Result | number | undefined;
@@ -1237,18 +1236,18 @@ const runRequest = async (
 };
 
 const runChangeSet = (req: Express.Request, tx: Db.Tx) => async (
-	env: Map<number, Response>,
+	changeSetResults: Map<number, Response>,
 	request: uriParser.ODataRequest,
 ): Promise<Map<number, Response>> => {
-	request = updateBinds(env, request);
+	request = updateBinds(changeSetResults, request);
 	const result = await runRequest(req, tx, request);
 	if (request.id == null) {
 		throw new Error('No request id');
 	}
 	result.headers ??= {};
 	result.headers['Content-Id'] = request.id;
-	env.set(request.id, result);
-	return env;
+	changeSetResults.set(request.id, result);
+	return changeSetResults;
 };
 
 // Requests inside a changeset may refer to resources created inside the
@@ -1256,13 +1255,13 @@ const runChangeSet = (req: Express.Request, tx: Db.Tx) => async (
 // deferred untill the request they reference is run and returns an insert ID.
 // This function compiles the sql query of a request which has been deferred
 const updateBinds = (
-	env: Map<number, Response>,
+	changeSetResults: Map<number, Response>,
 	request: uriParser.ODataRequest,
 ) => {
 	if (request._defer) {
 		request.odataBinds = request.odataBinds.map(([tag, id]) => {
 			if (tag === 'ContentReference') {
-				const ref = env.get(id);
+				const ref = changeSetResults.get(id);
 				if (
 					ref?.body == null ||
 					typeof ref.body === 'string' ||
@@ -1348,7 +1347,7 @@ const runQuery = async (
 		bindings,
 	);
 
-	if (DEBUG) {
+	if (env.DEBUG) {
 		api[vocabulary].logger.log(query, values);
 	}
 
@@ -1442,7 +1441,7 @@ const respondPost = async (
 ): Promise<Response> => {
 	const vocab = request.vocabulary;
 	const location = odataResponse.resourceURI(vocab, request.resourceName, id);
-	if (DEBUG) {
+	if (env.DEBUG) {
 		api[vocab].logger.log('Insert ID: ', request.resourceName, id);
 	}
 

@@ -13,8 +13,6 @@ import * as env from '../config-loader/env';
 
 export const metrics = new EventEmitter();
 
-const { DEBUG } = process.env;
-
 export interface CodedError extends Error {
 	code: number | string;
 }
@@ -127,7 +125,7 @@ type RejectedFunctions = (
 	executeSql: Tx['executeSql'];
 	rollback: Tx['rollback'];
 };
-const getRejectedFunctions: RejectedFunctions = DEBUG
+const getRejectedFunctions: RejectedFunctions = env.DEBUG
 	? (message) => {
 			// In debug mode we create the error here to give the stack trace of where we first closed the transaction,
 			// but it adds significant overhead for a production environment
@@ -363,7 +361,7 @@ export abstract class Tx {
 	}
 }
 
-const getStackTraceErr: () => Error | undefined = DEBUG
+const getStackTraceErr: () => Error | undefined = env.DEBUG
 	? () => new Error()
 	: (_.noop as () => undefined);
 

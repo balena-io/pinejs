@@ -1,3 +1,5 @@
+export const { DEBUG } = process.env;
+
 export const cache = {
 	permissionsLookup: {
 		max: 5000,
