@@ -19,12 +19,12 @@ export * as hooks from '../sbvr-api/hooks';
 export type { configLoader as ConfigLoader };
 export type { migrator as Migrator };
 
-let databaseOptions: {
+let envDatabaseOptions: {
 	engine: string;
 	params: string;
 };
 if (dbModule.engines.websql != null) {
-	databaseOptions = {
+	envDatabaseOptions = {
 		engine: 'websql',
 		params: 'rulemotion',
 	};
@@ -39,19 +39,19 @@ if (dbModule.engines.websql != null) {
 	} else {
 		throw new Error('No supported database options available');
 	}
-	databaseOptions = {
+	envDatabaseOptions = {
 		engine: databaseURL.slice(0, databaseURL.indexOf(':')),
 		params: databaseURL,
 	};
 }
 
-const db = dbModule.connect(databaseOptions);
-
 export const init = async (
 	app: Express.Application,
 	config?: string | configLoader.Config,
+	databaseOptions = envDatabaseOptions,
 ): Promise<ReturnType<typeof configLoader.setup>> => {
 	try {
+		const db = dbModule.connect(databaseOptions);
 		await sbvrUtils.setup(app, db);
 		const cfgLoader = await configLoader.setup(app);
 		await cfgLoader.loadConfig(migrator.config);
