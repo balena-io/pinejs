@@ -1,4 +1,23 @@
 - commits:
+    - subject: Allow specifying database options on init instead of via env vars
+      hash: c61a6a5a89130aa2d70e1693ecca76c8846fbcbe
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+      nested: []
+    - subject: Only connect to the database once `init` has been called
+      hash: 3c0602e30e74174e875e8c9ae26e9c7dbd8c34bf
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+      nested: []
+  version: 14.13.0
+  date: 2021-01-22T13:11:50.823Z
+- commits:
     - subject: Handle `DEBUG` in the env module
       hash: 74ecf0a94511a8c232ce25205f3d138e3920793e
       body: ''
