@@ -42,19 +42,19 @@ $ tree -L 3
 
 Now, create a directory for our source files, `src` and enter that directory.
 
-First, we have to create a configuration file, `config.json` that will provide to Pine.js the necessary configuration regarding the resource model and the user permissions. Open your favorite editor and type the following into the `config.json` file:
+First, we have to create a configuration file, `config.ts` that will provide to Pine.js the necessary configuration regarding the resource model and the user permissions. Open your favorite editor and type the following into the `config.ts` file:
 
 ```
-{
-	"models": [{
-			  "modelName": "Example",
-			  "modelFile": "example.sbvr",
-			  "apiRoot": "example"
+export = {
+	models: [{
+		modelName: "Example",
+		modelFile: "src/example.sbvr",
+		apiRoot: "example"
 	}],
-	"users": [{
-			 "username": "guest",
-			 "password": " ",
-			 "permissions": [ "resource.all" ]
+	users: [{
+		username: "guest",
+		password: " ",
+		permissions: [ "resource.all" ]
 	}]
 }
 ```
@@ -92,87 +92,75 @@ In this model we are defining an entity called `device`, this entity has some at
 Now, let's create a small main file for our application that will call the Pine.js server. Let's install some basic dependencies:
 
 ```
-$ npm install --save coffeescript
-$ npm install --save express
-$ npm install --save body-parser
+$ npm install --save-dev ts-node-dev typescript
+$ npm install --save express dotenv
 ```
 
-And inside your `src` folder, create a file `app.coffee` with the following content:
+And inside your `src` folder, create a file `app.ts` with the following content:
 
-```
-pinejs = require '@balena/pinejs'
-express = require 'express'
-app = express()
+```ts
+import express from 'express'
+import dotenv from 'dotenv'
+dotenv.config()
+import * as pinejs from '@balena/pinejs'
+import config from './config'
 
-bodyParser = require 'body-parser'
-app.use(bodyParser())
+const app = express()
 
+app.use(express.json())
 
-app.use (req, res, next) ->
-	console.log('%s %s', req.method, req.url)
-	next()
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.url}`)
+  next()
+})
 
-pinejs.init(app)
-.then ->
-	app.listen process.env.PORT or 1337, ->
-		console.info('Server started')
+const main = async () => {
+  await pinejs.init(app, config)
+  const port = process.env.PORT || 1337
+  app.listen(port, () => {
+    console.log(`Listening on port ${port}`)
+  })
+}
+
+main()
 ```
 
 
 Finally, inside your `package.json` file enter the following line inside the section `scripts`:
 
 ```
-"start": "./node_modules/.bin/coffee src/app.coffee src"
+"start": "./node_modules/.bin/ts-node-dev src/app.ts"
 ```
 
-Let's see what our application directory looks like now:
+Finally, you can create a configuration file in the root of your project directory with the name `.env`, through which we can set process environment variables.
+
+```
+DATABASE_URL=postgres://exampler:[your_password]@localhost:5432/example
+```
+
+We set the `DATABASE_URL` to our postgres database configuration. Replace `[your_password]` with the password you set for the user `exampler`.
+
+Let's see what our application directory looks like now, omitting node_modules:
 
 ```
 $ tree -L 3
 .
-├── node_modules
-│   ├── @balena
-│   │   └── pinejs
-│   ├── body-parser
-│   │   ├── HISTORY.md
-│   │   ├── LICENSE
-│   │   ├── README.md
-│   │   ├── index.js
-│   │   ├── lib
-│   │   ├── node_modules
-│   │   └── package.json
-│   ├── coffeescript
-│   │   ├── CNAME
-│   │   ├── CONTRIBUTING.md
-│   │   ├── LICENSE
-│   │   ├── README.md
-│   │   ├── bin
-│   │   ├── bower.json
-│   │   ├── lib
-│   │   ├── package.json
-│   │   ├── register.js
-│   │   └── repl.js
-│   ├── express
-│   │   ├── History.md
-│   │   ├── LICENSE
-│   │   ├── Readme.md
-│   │   ├── index.js
-│   │   ├── lib
-│   │   ├── node_modules
-│   │   └── package.json
 ├── package.json
-└── src
-    ├── app.coffee
-    ├── config.json
-    └── example.sbvr
+├── README.md
+├── src
+│   ├── app.ts
+│   ├── config.ts
+│   └── example.sbvr
+├── tsconfig.json
 ```
+
 
 ### Start the server
 
-Assuming postgreSQL is running, execute the following command, replacing `[your_password]` with the password you set for the user `exampler`.
+Assuming postgreSQL is running, execute the following command:
 
 ```
-$ DATABASE_URL=postgres://exampler:[your_password]@localhost:5432/example npm start
+$ npm start
 ```
 
 Pine.js will connect to the `example` database and it will create the database schema and the associated API endpoints. Once the server is up, use your favourite tool, such as pgAdmin, to connect to the database and take a look inside. Among the other things, you will find that Pine.js has created a table called `device`, which will contain the devices we earlier specified in the model. By inspecting the structure of this table, you can see that the constraints specified in sbvr model get directly translated to constraints in the underlying database.
@@ -188,7 +176,9 @@ We will use cURL to make these requests, so open up another terminal window and 
 First of all we need to create a device. To do so type the following in the new window:
 
 ```
-$ curl -X POST -d name=testdevice -d note=testnote -d type=raspberry http://localhost:1337/example/device
+curl -X POST -H "Content-Type: application/json" \
+    -d '{"name": "testdevice", "note": "testnote", "type": "raspberry"}' \
+    http://localhost:1337/example/device
 ```
 
 If the creation succeeds the server will respond with an object representing the new entity, in this case it will look something like this:
@@ -217,7 +207,9 @@ To modify the device we just created: the OData specification tells us that to d
 Lets try this:
 
 ```
-$ curl -X PUT -d name=testdevice -d note=updatednote http://localhost:1337/example/device(1)
+$ curl -X PUT -H "Content-Type: application/json" \
+    -d '{"name": "testdevice", "note": "updatednote"}' \
+    http://localhost:1337/example/device\(1\)
 
 ***
 Internal Server Error
@@ -228,7 +220,9 @@ What went wrong here? Pine.js is simply preventing us from violating the constra
 To correctly modify the device we can try:
 
 ```
-$ curl -X PUT -d name=testdevice -d note=updatednote -d type=raspberry http://localhost:1337/example/device(1)
+$ curl -X PUT -H "Content-Type: application/json" \
+    -d '{"name": "testdevice", "note": "updatednote", "type": "raspberry"}' \
+    http://localhost:1337/example/device\(1\)
 ```
 
 You can now try to delete this entity to restore the database to it’s initial state. Recall from the OData specification that this can be done by performing a DELETE request at the endpoint represented by the entity we intend to delete.
@@ -237,3 +231,4 @@ You can now try to delete this entity to restore the database to it’s initial 
 * Follow the [advanced usage guide](./AdvancedUsage.md) that builds on top of this example to add some custom validation via hooks
 * Learn about migrations that you can execute prior to Pine.js executing a given sbvr model: [Migrations.md](https://github.com/balena-io/pinejs/blob/master/docs/Migrations.md)
 * Learn about [Hooks](https://github.com/balena-io/pinejs/blob/master/docs/Hooks.md) that you can implement in order to execute custom code when API calls are requested.
+
