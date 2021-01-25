@@ -10,7 +10,7 @@ import deepFreeze = require('deep-freeze');
 import * as memoize from 'memoizee';
 import memoizeWeak = require('memoizee/weak');
 import * as env from '../config-loader/env';
-import { SqlCompilationError } from './errors';
+import { BadRequestError, SqlCompilationError } from './errors';
 import * as sbvrUtils from './sbvr-utils';
 import { ODataRequest } from './uri-parser';
 
@@ -142,8 +142,7 @@ export const getAndCheckBindValues = async (
 			try {
 				return await AbstractSQLCompiler[engine].dataTypeValidate(value, field);
 			} catch (err) {
-				err.message = `"${fieldName}" ${err.message}`;
-				throw err;
+				throw new BadRequestError(`"${fieldName}" ${err.message}`);
 			}
 		}),
 	);
