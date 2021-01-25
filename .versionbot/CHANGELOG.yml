@@ -1,4 +1,15 @@
 - commits:
+    - subject: Use 400s for data type validation errors
+      hash: accb2af358db0da17c441e8e0e2c5b4978660d88
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 14.14.2
+  date: 2021-01-25T12:11:29.450Z
+- commits:
     - subject: Use 500s for any database errors that are not explicitly handled
       hash: b23493871a05b0f3e94eec9df660346910cc53da
       body: ''
