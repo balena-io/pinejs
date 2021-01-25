@@ -1,4 +1,15 @@
 - commits:
+    - subject: Use 500s for any database errors that are not explicitly handled
+      hash: b23493871a05b0f3e94eec9df660346910cc53da
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 14.14.1
+  date: 2021-01-25T11:59:49.995Z
+- commits:
     - subject: Add the ability to specify query/statement timeouts for pg backend
       hash: 59e65485c4c7bc40c449b19cfabe4d1148352b92
       body: ''
