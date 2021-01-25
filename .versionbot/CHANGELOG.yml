@@ -1,4 +1,26 @@
 - commits:
+    - subject: Update odata-parser to 2.2.2 for optimized number parsing
+      hash: bc1ebfa88818d767f71c3f4a74f84ff5172cef89
+      body: |
+        Update odata-parser from 2.2.1 to 2.2.2
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Optimize number parsing
+              hash: e443ad68f1e3b68ae9aee771160b81da5f319e9c
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: odata-parser-2.2.2
+          date: 2021-01-25T13:00:50.460Z
+  version: 14.14.3
+  date: 2021-01-25T13:32:51.513Z
+- commits:
     - subject: Use 400s for data type validation errors
       hash: accb2af358db0da17c441e8e0e2c5b4978660d88
       body: ''
