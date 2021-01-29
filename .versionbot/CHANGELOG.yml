@@ -1,4 +1,74 @@
 - commits:
+    - subject: Make use of rule specific referenced fields to run rules in less cases
+      hash: 652aadc293ca6b946babfbffde95920a9d0d024c
+      body: |
+        Update abstract-sql-compiler from 7.8.2 to 7.10.0
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: >-
+                Add an `action` property to modified fields of
+                create/update/delete
+              hash: 8f071b8724bdae5574d5fea6c9f20e6e77daf3e6
+              body: ''
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+              nested: []
+            - subject: Automatically add `ruleReferencedFields` to `SqlRule`s
+              hash: f49548828fd75957290b6fdec166abf7bb0a53bf
+              body: ''
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+              nested: []
+            - subject: Add a `getRuleReferencedFields` which is tailored for rules
+              hash: 256c36de4a1efb7a46eb9833e1c3228d17194015
+              body: >
+                This works on the assumption that it is a rule query that should
+                always
+
+                return true and allows ignoring more modification cases where
+                they
+
+                cannot change the result from true to false
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-7.10.0
+          date: 2021-01-29T16:30:19.410Z
+        - commits:
+            - subject: Add test for optimizeSchema optimizing rules
+              hash: 4e94ee4961e98305c927734ce85067d409f90e18
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-7.9.1
+          date: 2021-01-29T13:01:10.504Z
+        - commits:
+            - subject: Optimize the abstract sql of rules when running `optimizeSchema`
+              hash: 2ed97849674acb76f498c346b28d2861d1827ba5
+              body: ''
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-7.9.0
+          date: 2021-01-25T17:48:56.215Z
+  version: 14.15.0
+  date: 2021-01-29T18:03:50.494Z
+- commits:
     - subject: Update odata-parser to 2.2.2 for optimized number parsing
       hash: bc1ebfa88818d767f71c3f4a74f84ff5172cef89
       body: |
