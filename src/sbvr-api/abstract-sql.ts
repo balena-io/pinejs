@@ -149,20 +149,29 @@ export const getAndCheckBindValues = async (
 };
 
 const checkModifiedFields = (
-	referencedFields: AbstractSQLCompiler.ReferencedFields,
+	ruleReferencedFields: AbstractSQLCompiler.RuleReferencedFields,
 	modifiedFields: AbstractSQLCompiler.ModifiedFields,
 ) => {
-	const refs = referencedFields[modifiedFields.table];
+	const refs = ruleReferencedFields[modifiedFields.table];
 	// If there are no referenced fields of the modified table then the rule is not affected
 	if (refs == null) {
 		return false;
 	}
+	// If there are no referenced fields for the given action type then the rule is not affected
+	if (refs[modifiedFields.action].length === 0) {
+		return false;
+	}
+
 	// If there are no specific fields listed then that means they were all modified (ie insert/delete) and so the rule can be affected
 	if (modifiedFields.fields == null) {
 		return true;
 	}
+
 	// Otherwise check if there are any matching fields to see if the rule is affected
-	return _.intersection(refs, modifiedFields.fields).length > 0;
+	return (
+		_.intersection(refs[modifiedFields.action], modifiedFields.fields).length >
+		0
+	);
 };
 export const isRuleAffected = (
 	rule: AbstractSQLCompiler.SqlRule,
@@ -173,7 +182,7 @@ export const isRuleAffected = (
 		return false;
 	}
 	// If for some reason there are no referenced fields known for the rule then we just assume it may have been modified
-	if (rule.referencedFields == null) {
+	if (rule.ruleReferencedFields == null) {
 		return true;
 	}
 	const { modifiedFields } = request;
@@ -187,8 +196,8 @@ export const isRuleAffected = (
 	}
 	if (Array.isArray(modifiedFields)) {
 		return modifiedFields.some(
-			_.partial(checkModifiedFields, rule.referencedFields),
+			_.partial(checkModifiedFields, rule.ruleReferencedFields),
 		);
 	}
-	return checkModifiedFields(rule.referencedFields, modifiedFields);
+	return checkModifiedFields(rule.ruleReferencedFields, modifiedFields);
 };
