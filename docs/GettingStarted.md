@@ -1,6 +1,6 @@
 # Getting Started with Pine.js
 
-This guide assumes that you have already read the main [README](https://github.com/balena-io/pinejs/blob/master/README.md) file of this repo and you have understood the main concepts of Pine.js.
+This guide assumes that you have already read the main [README](https://github.com/balena-io/pinejs/blob/master/README.md) file of this repo and you have understood the main concepts of Pine.js. You can find a working examples of this tutorial in the [examples directory](/examples/getting-started).
 
 ## Initialize an example application
 
