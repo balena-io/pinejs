@@ -9,12 +9,9 @@ import type * as Path from 'path';
 import type * as ServeStatic from 'serve-static';
 
 import * as Pinejs from './module';
+export { sbvrUtils, PinejsSessionStore } from './module';
 
 import * as passportPinejs from '../passport-pinejs/passport-pinejs';
-
-import { PinejsSessionStore } from '../pinejs-session-store/pinejs-session-store';
-import * as sbvrUtils from '../sbvr-api/sbvr-utils';
-export { sbvrUtils, PinejsSessionStore };
 
 import * as express from 'express';
 
@@ -53,7 +50,7 @@ if (!process.browser) {
 	app.use(
 		expressSession({
 			secret: 'A pink cat jumped over a rainbow',
-			store: new PinejsSessionStore(),
+			store: new Pinejs.PinejsSessionStore(),
 		}),
 	);
 	app.use(passport.initialize());
@@ -84,7 +81,7 @@ export const initialised = Pinejs.init(app)
 	.then(async (configLoader) => {
 		await Promise.all([
 			configLoader.loadConfig(passportPinejs.config),
-			configLoader.loadConfig(PinejsSessionStore.config),
+			configLoader.loadConfig(Pinejs.PinejsSessionStore.config),
 		]);
 
 		if (
