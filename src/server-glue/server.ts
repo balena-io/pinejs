@@ -11,6 +11,8 @@ import type * as ServeStatic from 'serve-static';
 import * as Pinejs from './module';
 export { sbvrUtils, PinejsSessionStore } from './module';
 
+export * as ExtendedSBVRParser from '../extended-sbvr-parser/extended-sbvr-parser';
+
 import * as passportPinejs from '../passport-pinejs/passport-pinejs';
 
 import * as express from 'express';
