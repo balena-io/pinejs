@@ -43,7 +43,15 @@ export = {
 	plugins: [new webpack.optimize.LimitChunkCountPlugin({ maxChunks: 1 })],
 	module: {
 		rules: [
-			{ test: /\.sbvr$/, use: 'raw-loader' },
+			{
+				test: /\.sbvr$/,
+				use: {
+					loader: 'raw-loader',
+					options: {
+						esModule: false,
+					},
+				},
+			},
 			{
 				test: /\.ts$|\.js$/,
 				exclude: /node_modules/,
