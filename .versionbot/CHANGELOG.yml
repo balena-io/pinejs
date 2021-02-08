@@ -1,4 +1,23 @@
 - commits:
+    - subject: Fix .sbvr bundling in webpack
+      hash: ad8558afdbb24a7ee5cb900321d6e6e25901f87d
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+    - subject: Fix extended-sbvr-parser export
+      hash: 23c3c429b68e4dbfe0f10716fe931d30d62798b9
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 14.17.1
+  date: 2021-02-08T15:30:40.032Z
+- commits:
     - subject: Export extended-sbvr-parser from server-glue/server
       hash: 5f6adc0bbc9315e79637a49a08a941a981255865
       body: ''
