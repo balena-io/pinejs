@@ -1,4 +1,15 @@
 - commits:
+    - subject: Simplify server-glue/server exports
+      hash: e39ad5b22fa6cd145e04167746e0f5c2015b6813
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 14.16.1
+  date: 2021-02-08T13:55:30.305Z
+- commits:
     - subject: 'Update sbvr-types to 3.2.0, adding support for more `Text (Type)` verbs'
       hash: 0dfaca632831caa6545d0b81f299b5c723f675a1
       body: |
