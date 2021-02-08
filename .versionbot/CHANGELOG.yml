@@ -1,4 +1,112 @@
 - commits:
+    - subject: Add support for sbvr date comparison and allow referencing current time
+      hash: f011242d85dd5016947e881da27dec8705c233c0
+      body: |
+        Update lf-to-abstract-sql from 4.1.1 to 4.2.0
+        Update sbvr-parser from 1.1.1 to 1.2.2
+        Update sbvr-types from 3.2.0 to 3.4.0
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Add support for native `Name`s from sbvr-types
+              hash: 542bfaa5bfce17b01817cee3930c5da4d087a6ab
+              body: |
+                Update sbvr-parser from 1.1.1 to 1.2.0
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+              nested:
+                - commits:
+                    - subject: >-
+                        Add support for a `Name` role binding in the lf
+                        validator
+                      hash: 5d84fe2abf2b6a34fa35e9d985443eb71f87a1d9
+                      body: ''
+                      footer:
+                        Change-type: minor
+                        change-type: minor
+                      author: Pagan Gazzard
+                  version: sbvr-parser-1.2.0
+                  date: 2021-02-05T20:28:39.791Z
+          version: lf-to-abstract-sql-4.2.0
+          date: 2021-02-05T20:42:19.505Z
+        - commits:
+            - subject: Optimize `StartX` rules
+              hash: df251a17063d038e142dc7013c24a84158f33efa
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+            - subject: >-
+                Optimize `Identifier` when branch tracking is disabled (the
+                default)
+              hash: f32e75c391fc060d6cd6396667e0ed1714a4c105
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+            - subject: Optimize `IdentifierPart` rule
+              hash: 5f390ce4b4317a824acfa13fee7c114ac69ca1ac
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: sbvr-parser-1.2.2
+          date: 2021-02-08T21:21:29.705Z
+        - commits:
+            - subject: Update dependencies
+              hash: 7b79ecf9de0fac908a4063c90050e8a9879241f9
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: sbvr-parser-1.2.1
+          date: 2021-02-08T19:44:38.524Z
+        - commits:
+            - subject: Add support for a `Name` role binding in the lf validator
+              hash: 5d84fe2abf2b6a34fa35e9d985443eb71f87a1d9
+              body: ''
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+          version: sbvr-parser-1.2.0
+          date: 2021-02-05T20:28:39.791Z
+        - commits:
+            - subject: >-
+                Add a `Current Time` name that can be used to refer to the
+                current time
+              hash: 83d20325939d0e5f9922f57a36e0932ba71ebad4
+              body: ''
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+          version: sbvr-types-3.4.0
+          date: 2021-02-08T13:54:15.848Z
+        - commits:
+            - subject: Add `is before` & `is after` verbs to the Date & DateTime types
+              hash: 9d4414558d16821e485e08fc4a0504ef1d6c617f
+              body: ''
+              footer:
+                Change-type: minor
+                change-type: minor
+                Signed-off-by: Thodoris Greasidis <thodoris@balena.io>
+                signed-off-by: Thodoris Greasidis <thodoris@balena.io>
+              author: Thodoris Greasidis
+          version: sbvr-types-3.3.0
+          date: 2021-02-05T20:43:59.350Z
+  version: 14.18.0
+  date: 2021-02-08T21:42:46.201Z
+- commits:
     - subject: Fix .sbvr bundling in webpack
       hash: ad8558afdbb24a7ee5cb900321d6e6e25901f87d
       body: ''
