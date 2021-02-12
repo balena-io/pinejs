@@ -1,4 +1,38 @@
 - commits:
+    - subject: Update abstract-sql-compiler  fix modified fields for upsert queries
+      hash: 1cf94e975f25cfc1ec394e72a4215db8b8fb132e
+      body: |
+        Update abstract-sql-compiler from 7.10.1 to 7.10.2
+        Update sbvr-types from 3.4.0 to 3.4.1
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Fix `getModifiedFields` for `UpsertQuery`s
+              hash: c19c902f1a6e268952540cd19960f6752a303f65
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-7.10.2
+          date: 2021-02-12T19:36:19.259Z
+        - commits:
+            - subject: Remove unnecessary native fact type entries for synonymous forms
+              hash: 64e889f7bda6f3dcf4c539248e737fef26b5686c
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: sbvr-types-3.4.1
+          date: 2021-02-10T18:13:49.610Z
+  version: 14.18.1
+  date: 2021-02-12T19:54:40.437Z
+- commits:
     - subject: Add support for sbvr date comparison and allow referencing current time
       hash: f011242d85dd5016947e881da27dec8705c233c0
       body: |
