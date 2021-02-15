@@ -1131,6 +1131,15 @@ export const handleODataRequest: Express.Handler = async (req, res, next) => {
 			);
 		}
 	} catch (e) {
+		if (e instanceof HttpError) {
+			const body = e.getResponseBody();
+			if (body) {
+				res.status(e.status).send(body);
+			} else {
+				res.sendStatus(e.status);
+			}
+			return;
+		}
 		// If an error bubbles here it must have happened in the last then block
 		// We just respond with 500 as there is probably not much we can do to recover
 		console.error('An error occurred while constructing the response', e);
