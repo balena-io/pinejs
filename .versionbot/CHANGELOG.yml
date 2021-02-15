@@ -1,4 +1,15 @@
 - commits:
+    - subject: Gracefully handle `HttpError` thrown from PREPARSE hooks
+      hash: 5149b8ed53f66d441a21ce6608e898300384e6ec
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 14.18.2
+  date: 2021-02-15T19:04:51.251Z
+- commits:
     - subject: Update abstract-sql-compiler  fix modified fields for upsert queries
       hash: 1cf94e975f25cfc1ec394e72a4215db8b8fb132e
       body: |
