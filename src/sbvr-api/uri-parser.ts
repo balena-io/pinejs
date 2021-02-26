@@ -403,6 +403,17 @@ export const translateUri = <
 	if (!isMetadataEndpoint) {
 		const abstractSqlQuery = memoizedOdata2AbstractSQL(request);
 		request = { ...request };
+		request.values = new Proxy(request.values, {
+			set: (obj: ODataRequest['values'], prop: string, value) => {
+				if (!obj.hasOwnProperty(prop)) {
+					sbvrUtils.api[request.vocabulary].logger.warn(
+						`Assigning a new request.values property '${prop}' however it will be ignored`,
+					);
+				}
+				obj[prop] = value;
+				return true;
+			},
+		});
 		request.abstractSqlQuery = abstractSqlQuery;
 		return request;
 	}
