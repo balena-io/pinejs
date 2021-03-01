@@ -1,4 +1,30 @@
 - commits:
+    - subject: Update abstract-sql-compiler bring more rules optimizations
+      hash: 47b9459a43daa05b3ce1440144fea222fa628786
+      body: |
+        Update abstract-sql-compiler from 7.10.2 7.11.0
+        Update lf-to-abstract-sql from 4.2.0 to 4.2.1
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: >-
+                Correctly use the native name result in the generated abstract
+                sql
+              hash: 94ec88b994d5e924da272cf473ac59f5e9916bc6
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: lf-to-abstract-sql-4.2.1
+          date: 2021-02-17T13:52:36.025Z
+  version: 14.19.0
+  date: 2021-03-01T19:49:51.320Z
+- commits:
     - subject: Remove some unnecessary bluebird usage
       hash: b204499cd25590f884ed669299e12ac8bd0a742c
       body: ''
