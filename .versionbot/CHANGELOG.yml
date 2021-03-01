@@ -1,4 +1,15 @@
 - commits:
+    - subject: Remove some unnecessary bluebird usage
+      hash: b204499cd25590f884ed669299e12ac8bd0a742c
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 14.18.4
+  date: 2021-03-01T19:40:10.913Z
+- commits:
     - subject: Warn when setting a `request.values` property that will not take effect
       hash: 480a319358f6638b4bb4b243690139a06667627a
       body: ''
