@@ -1,4 +1,15 @@
 - commits:
+    - subject: Warn when setting a `request.values` property that will not take effect
+      hash: 480a319358f6638b4bb4b243690139a06667627a
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 14.18.3
+  date: 2021-02-26T18:55:15.910Z
+- commits:
     - subject: Gracefully handle `HttpError` thrown from PREPARSE hooks
       hash: 5149b8ed53f66d441a21ce6608e898300384e6ec
       body: ''
