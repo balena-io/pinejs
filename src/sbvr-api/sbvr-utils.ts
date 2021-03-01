@@ -1043,11 +1043,11 @@ const runODataRequest = (req: Express.Request, vocabulary: string) => {
 						}
 					});
 					if (Array.isArray(request)) {
-						const changeSetResults = await Bluebird.reduce(
-							request,
-							runChangeSet(req, tx),
-							new Map<number, Response>(),
-						);
+						const changeSetResults = new Map<number, Response>();
+						const changeSetRunner = runChangeSet(req, tx);
+						for (const r of request) {
+							await changeSetRunner(changeSetResults, r);
+						}
 						return Array.from(changeSetResults.values());
 					} else {
 						return await runRequest(req, tx, request);
@@ -1247,7 +1247,7 @@ const runRequest = async (
 const runChangeSet = (req: Express.Request, tx: Db.Tx) => async (
 	changeSetResults: Map<number, Response>,
 	request: uriParser.ODataRequest,
-): Promise<Map<number, Response>> => {
+): Promise<void> => {
 	request = updateBinds(changeSetResults, request);
 	const result = await runRequest(req, tx, request);
 	if (request.id == null) {
@@ -1256,7 +1256,6 @@ const runChangeSet = (req: Express.Request, tx: Db.Tx) => async (
 	result.headers ??= {};
 	result.headers['Content-Id'] = request.id;
 	changeSetResults.set(request.id, result);
-	return changeSetResults;
 };
 
 // Requests inside a changeset may refer to resources created inside the

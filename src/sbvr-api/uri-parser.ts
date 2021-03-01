@@ -10,7 +10,6 @@ import type { InstantiatedHooks } from './hooks';
 import type { AnyObject } from './common-types';
 
 import * as ODataParser from '@balena/odata-parser';
-import * as Bluebird from 'bluebird';
 export const SyntaxError = ODataParser.SyntaxError;
 import { OData2AbstractSQL } from '@balena/odata-to-abstract-sql';
 import * as _ from 'lodash';
@@ -272,12 +271,11 @@ export async function parseOData(
 			// other requests in the changeset are placed last. Once they are sorted
 			// Map will guarantee retrival of results in insertion order
 			const sortedCS = _.sortBy(b.changeSet, (el) => el.url[0] !== '/');
-			const csReferences = await Bluebird.reduce(
-				sortedCS,
-				parseODataChangeset,
-				new Map<ODataRequest['id'], ODataRequest>(),
-			);
-			return Array.from(csReferences.values()) as ODataRequest[];
+			const csReferences = new Map<ODataRequest['id'], ODataRequest>();
+			for (const cs of sortedCS) {
+				parseODataChangeset(csReferences, cs);
+			}
+			return Array.from(csReferences.values());
 		} else {
 			const { url, apiRoot } = splitApiRoot(b.url);
 			const odata = memoizedParseOdata(url);
@@ -309,7 +307,7 @@ export async function parseOData(
 const parseODataChangeset = (
 	csReferences: Map<ODataRequest['id'], ODataRequest>,
 	b: UnparsedRequest,
-) => {
+): void => {
 	const contentId: ODataRequest['id'] = mustExtractHeader(b, 'content-id');
 
 	if (csReferences.has(contentId)) {
@@ -354,7 +352,6 @@ const parseODataChangeset = (
 		_defer: defer,
 	};
 	csReferences.set(contentId, parseResult);
-	return csReferences;
 };
 
 const splitApiRoot = (url: string) => {
