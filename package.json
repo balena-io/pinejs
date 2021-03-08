@@ -23,7 +23,7 @@
     "prettify": "balena-lint -e js -e ts --typescript --fix src build typings Gruntfile.ts"
   },
   "dependencies": {
-    "@balena/abstract-sql-compiler": "^7.11.0",
+    "@balena/abstract-sql-compiler": "^7.12.0",
     "@balena/abstract-sql-to-typescript": "^1.1.1",
     "@balena/lf-to-abstract-sql": "^4.2.1",
     "@balena/odata-parser": "^2.2.2",
@@ -41,12 +41,12 @@
     "@types/memoizee": "^0.4.5",
     "@types/method-override": "0.0.31",
     "@types/multer": "^1.4.5",
-    "@types/mysql": "^2.15.17",
+    "@types/mysql": "^2.15.18",
     "@types/node": "^12.20.4",
     "@types/passport": "^0.4.7",
     "@types/passport-local": "1.0.33",
     "@types/passport-strategy": "^0.2.35",
-    "@types/pg": "^7.14.10",
+    "@types/pg": "^7.14.11",
     "@types/randomstring": "^1.1.6",
     "@types/websql": "0.0.27",
     "bluebird": "^3.7.2",
@@ -84,7 +84,7 @@
     "terser-webpack-plugin": "^4.2.3",
     "ts-loader": "^8.0.17",
     "ts-node": "^9.1.1",
-    "typescript": "^4.2.2",
+    "typescript": "^4.2.3",
     "webpack": "^4.46.0",
     "webpack-dev-server": "^3.11.2"
   },
