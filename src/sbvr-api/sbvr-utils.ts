@@ -250,6 +250,11 @@ const prettifyConstraintError = (
 			);
 		}
 
+		if (err instanceof db.ExclusionConstraintError) {
+			// Rewrite to a generic message as we don't yet have a way to get a more specific error message
+			throw new db.ExclusionConstraintError('Exclusion constraint violated');
+		}
+
 		if (err instanceof db.ForeignKeyConstraintError) {
 			switch (db.engine) {
 				case 'mysql':
