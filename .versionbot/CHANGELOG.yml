@@ -1,4 +1,15 @@
 - commits:
+    - subject: Support postgres exclusion constraints as 409s instead of 500s
+      hash: a9584a4cc17888a59146432430fea4e6467f4d80
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+      nested: []
+  version: 14.21.0
+  date: 2021-03-12T15:51:21.367Z
+- commits:
     - subject: Block eagerly fetching affected ids in cases it is not possible to do
       hash: 413257bd23a32d90678cd9b224529a89e328afe9
       body: |
