@@ -63,6 +63,7 @@ export class ConstraintError extends DatabaseError {}
 export class UniqueConstraintError extends ConstraintError {}
 export class ForeignKeyConstraintError extends ConstraintError {}
 export class CheckConstraintError extends ConstraintError {}
+export class ExclusionConstraintError extends ConstraintError {}
 export class TransactionClosedError extends DatabaseError {}
 export class ReadOnlyViolationError extends DatabaseError {}
 
@@ -81,6 +82,7 @@ const alwaysExport = {
 	UniqueConstraintError,
 	ForeignKeyConstraintError,
 	CheckConstraintError,
+	ExclusionConstraintError,
 	TransactionClosedError,
 	ReadOnlyViolationError,
 };
@@ -406,6 +408,7 @@ if (maybePg != null) {
 		const PG_UNIQUE_VIOLATION = '23505';
 		const PG_FOREIGN_KEY_VIOLATION = '23503';
 		const PG_CHECK_CONSTRAINT_VIOLATION = '23514';
+		const PG_EXCLUSION_CONSTRAINT_VIOLATION = '23P01';
 
 		let config: Pg.PoolConfig;
 		if (typeof connectString === 'string') {
@@ -482,6 +485,9 @@ if (maybePg != null) {
 					}
 					if (err.code === PG_CHECK_CONSTRAINT_VIOLATION) {
 						throw new CheckConstraintError(err);
+					}
+					if (err.code === PG_EXCLUSION_CONSTRAINT_VIOLATION) {
+						throw new ExclusionConstraintError(err);
 					}
 					throw err;
 				}
