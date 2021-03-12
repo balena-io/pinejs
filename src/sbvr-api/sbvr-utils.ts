@@ -891,7 +891,7 @@ export const getAffectedIds = async (
 	}
 	request.pendingAffectedIds = $getAffectedIds(args);
 
-	// Keep the affected ids and let the promise to be GCed sooner.
+	// Store the affected ids and delete the pending promise to allow it to be GCed sooner.
 	request.affectedIds = await request.pendingAffectedIds;
 	delete request.pendingAffectedIds;
 
@@ -905,9 +905,13 @@ const $getAffectedIds = async ({
 }: HookArgs & {
 	tx: Db.Tx;
 }): Promise<number[]> => {
-	if (request.method === 'GET') {
-		// GET requests don't affect anything so passing one to this method is a mistake
-		throw new Error('Cannot call `getAffectedIds` with a GET request');
+	if (!['PATCH', 'DELETE'].includes(request.method)) {
+		// We can only find the affected ids in advance for requests that modify existing records, if they
+		// can insert new records (POST/PUT) then we're unable to find the ids until the request has actually run
+		// and for GETs nothing is affected
+		throw new Error(
+			'Can only call `getAffectedIds` with PATCH/DELETE requests',
+		);
 	}
 	// We reparse to make sure we get a clean odataQuery, without permissions already added
 	// And we use the request's url rather than the req for things like batch where the req url is ../$batch
