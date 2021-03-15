@@ -1,4 +1,37 @@
 - commits:
+    - subject: Update dependencies
+      hash: d60b7ad14b45ce2d351a85336ddbfcdd79d7f22b
+      body: |
+        Update odata-parser from 2.2.2 to 2.2.3
+        Update pinejs-client-core from 6.9.3 to 6.9.4
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Optimize `QuotedText` for the common case of few/no apostrophes
+              hash: d28bd7a207b37f23a43e140ed6f508d93a698b97
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: odata-parser-2.2.3
+          date: 2021-03-15T15:27:31.695Z
+        - commits:
+            - subject: Update dependencies
+              hash: 764a29ab100601362e2018c8867be7e66ea10c71
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: pinejs-client-js-6.9.4
+          date: 2021-03-10T20:28:20.915Z
+  version: 14.21.1
+  date: 2021-03-15T15:39:22.620Z
+- commits:
     - subject: Support postgres exclusion constraints as 409s instead of 500s
       hash: a9584a4cc17888a59146432430fea4e6467f4d80
       body: ''
