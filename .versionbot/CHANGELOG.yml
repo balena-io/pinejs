@@ -1,4 +1,15 @@
 - commits:
+    - subject: Expose methods to resolve api keys without immediately using them
+      hash: 9a0144f881f635568784e3ef9f6c8fdbb40dce77
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+      nested: []
+  version: 14.22.0
+  date: 2021-03-16T15:35:10.795Z
+- commits:
     - subject: Update dependencies
       hash: d60b7ad14b45ce2d351a85336ddbfcdd79d7f22b
       body: |
