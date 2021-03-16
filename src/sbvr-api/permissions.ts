@@ -8,6 +8,7 @@ import type {
 	RelationshipMapping,
 	SelectNode,
 } from '@balena/abstract-sql-compiler';
+import './express-extension';
 import type * as Express from 'express';
 import type {
 	ODataBinds,
@@ -1277,7 +1278,10 @@ const getApiKeyActorId = async (apiKey: string) => {
 	return apiKeyActorID as number;
 };
 
-const checkApiKey = async (req: PermissionReq, apiKey: string) => {
+const checkApiKey = async (
+	req: PermissionReq,
+	apiKey: string,
+): Promise<PermissionReq['apiKey']> => {
 	if (apiKey == null || req.apiKey != null) {
 		return;
 	}
@@ -1293,13 +1297,36 @@ const checkApiKey = async (req: PermissionReq, apiKey: string) => {
 	if (permissions.length > 0) {
 		actor = await getApiKeyActorId(apiKey);
 	}
-	req.apiKey = {
+	const resolvedApiKey: PermissionReq['apiKey'] = {
 		key: apiKey,
 		permissions,
 	};
 	if (actor != null) {
-		req.apiKey.actor = actor;
+		resolvedApiKey.actor = actor;
 	}
+	return resolvedApiKey;
+};
+
+export const resolveAuthHeader = async (
+	req: Express.Request,
+	expectedScheme = 'Bearer',
+): Promise<PermissionReq['apiKey']> => {
+	const auth = req.header('Authorization');
+	if (!auth) {
+		return;
+	}
+
+	const parts = auth.split(' ');
+	if (parts.length !== 2) {
+		return;
+	}
+
+	const [scheme, apiKey] = parts;
+	if (scheme.toLowerCase() !== expectedScheme.toLowerCase()) {
+		return;
+	}
+
+	return await checkApiKey(req, apiKey);
 };
 
 export const customAuthorizationMiddleware = (expectedScheme = 'Bearer') => {
@@ -1310,22 +1337,7 @@ export const customAuthorizationMiddleware = (expectedScheme = 'Bearer') => {
 		next?: Express.NextFunction,
 	): Promise<void> => {
 		try {
-			const auth = req.header('Authorization');
-			if (!auth) {
-				return;
-			}
-
-			const parts = auth.split(' ');
-			if (parts.length !== 2) {
-				return;
-			}
-
-			const [scheme, apiKey] = parts;
-			if (scheme.toLowerCase() !== expectedScheme) {
-				return;
-			}
-
-			await checkApiKey(req, apiKey);
+			req.apiKey = await resolveAuthHeader(req, expectedScheme);
 		} finally {
 			next?.();
 		}
@@ -1334,6 +1346,19 @@ export const customAuthorizationMiddleware = (expectedScheme = 'Bearer') => {
 
 // A default bearer middleware for convenience
 export const authorizationMiddleware = customAuthorizationMiddleware();
+
+export const resolveApiKey = async (
+	req: HookReq | Express.Request,
+	paramName = 'apikey',
+): Promise<PermissionReq['apiKey']> => {
+	const apiKey =
+		req.params[paramName] != null
+			? req.params[paramName]
+			: req.body[paramName] != null
+			? req.body[paramName]
+			: req.query[paramName];
+	return await checkApiKey(req, apiKey);
+};
 
 export const customApiKeyMiddleware = (paramName = 'apikey') => {
 	if (paramName == null) {
@@ -1345,13 +1370,7 @@ export const customApiKeyMiddleware = (paramName = 'apikey') => {
 		next?: Express.NextFunction,
 	): Promise<void> => {
 		try {
-			const apiKey =
-				req.params[paramName] != null
-					? req.params[paramName]
-					: req.body[paramName] != null
-					? req.body[paramName]
-					: req.query[paramName];
-			await checkApiKey(req, apiKey);
+			req.apiKey = await resolveApiKey(req, paramName);
 		} finally {
 			next?.();
 		}

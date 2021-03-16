@@ -87,7 +87,7 @@ const setup: ConfigLoader.SetupFunction = async (app: Express.Application) => {
 			});
 
 		logout = (req, _res, next) => {
-			req.user = null;
+			delete req.user;
 			loggedIn = false;
 			loggedInUser = null;
 			next();
