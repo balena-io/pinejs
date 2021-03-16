@@ -1337,7 +1337,10 @@ export const customAuthorizationMiddleware = (expectedScheme = 'Bearer') => {
 		next?: Express.NextFunction,
 	): Promise<void> => {
 		try {
-			req.apiKey = await resolveAuthHeader(req, expectedScheme);
+			const apiKey = await resolveAuthHeader(req, expectedScheme);
+			if (apiKey) {
+				req.apiKey = apiKey;
+			}
 		} finally {
 			next?.();
 		}
@@ -1370,7 +1373,10 @@ export const customApiKeyMiddleware = (paramName = 'apikey') => {
 		next?: Express.NextFunction,
 	): Promise<void> => {
 		try {
-			req.apiKey = await resolveApiKey(req, paramName);
+			const apiKey = await resolveApiKey(req, paramName);
+			if (apiKey) {
+				req.apiKey = apiKey;
+			}
 		} finally {
 			next?.();
 		}
