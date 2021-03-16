@@ -1,4 +1,15 @@
 - commits:
+    - subject: Only use the api key if we successfully resolved one
+      hash: b95a263781843300e4bd6331951eda5ba686e161
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 14.22.1
+  date: 2021-03-16T16:13:35.275Z
+- commits:
     - subject: Expose methods to resolve api keys without immediately using them
       hash: 9a0144f881f635568784e3ef9f6c8fdbb40dce77
       body: ''
