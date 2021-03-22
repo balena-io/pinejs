@@ -1,7 +1,10 @@
 {
 	"compilerOptions": {
 		"module": "commonjs",
-		"noImplicitAny": true,
+		"strict": true,
+		"strictFunctionTypes": false,
+		"strictPropertyInitialization": false,
+		"noImplicitThis": false,
 		"noUnusedParameters": true,
 		"noUnusedLocals": true,
 		"outDir": "out/",
@@ -9,7 +12,6 @@
 		"removeComments": true,
 		"rootDir": "src",
 		"sourceMap": true,
-		"strictNullChecks": true,
 		"target": "es2018",
 		"declaration": true,
 		"skipLibCheck": true,

@@ -140,9 +140,11 @@ export = (grunt: typeof Grunt) => {
 
 		ts: {
 			default: {
-				tsconfig: true,
+				tsconfig: {
+					passThrough: true,
+				},
 				options: {
-					additionalFlags: `--outDir <%= grunt.option('target') %> --resolveJsonModule`,
+					additionalFlags: `--outDir <%= grunt.option('target') %>`,
 				},
 			},
 		},
