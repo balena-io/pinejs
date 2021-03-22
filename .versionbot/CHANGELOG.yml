@@ -1,4 +1,15 @@
 - commits:
+    - subject: Enable strict options by default and only disable specific ones
+      hash: 748e7459458a8c0aad3f491c96cea47b33195447
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 14.22.2
+  date: 2021-03-22T18:20:22.166Z
+- commits:
     - subject: Only use the api key if we successfully resolved one
       hash: b95a263781843300e4bd6331951eda5ba686e161
       body: ''
