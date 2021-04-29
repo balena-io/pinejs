@@ -97,7 +97,7 @@ program
 
 program
 	.command('compile <model-file> <input-url> [output-file]')
-	.description('translate the input OData URL into abstract SQL')
+	.description('compile the input OData URL into SQL')
 	.action(compileOData);
 
 program
