@@ -1,4 +1,15 @@
 - commits:
+    - subject: Fix typo in odata-compiler help
+      hash: 035aca1681ed399e3e1edd5776396ea23f80843f
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 14.22.3
+  date: 2021-04-29T16:13:21.313Z
+- commits:
     - subject: Enable strict options by default and only disable specific ones
       hash: 748e7459458a8c0aad3f491c96cea47b33195447
       body: ''
