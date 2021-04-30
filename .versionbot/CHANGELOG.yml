@@ -1,4 +1,19 @@
 - commits:
+    - subject: Update request to query by affected ids once they've been resolved
+      hash: d65b0998390cf012ce8d4ae0b1b72227c8e3d7d1
+      body: |
+        This avoids the need to use a potentially costly filter twice, once to
+        get the affected ids in advance and then once when running the actual
+        PATCH/DELETE. This also guarantees there can never be an inconsistency
+        between the two
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+      nested: []
+  version: 14.23.0
+  date: 2021-04-30T11:53:48.742Z
+- commits:
     - subject: Fix typo in odata-compiler help
       hash: 035aca1681ed399e3e1edd5776396ea23f80843f
       body: ''
