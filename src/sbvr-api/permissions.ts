@@ -862,9 +862,7 @@ const rewriteRelationship = memoizeWeak(
 								foundCanAccessLink = true;
 							}
 							// return a true expression to not select the relationship, which might be virtual
-							// this should be a boolean expression, but needs to be a subquery in case it
-							// is wrapped in an `or` or `and`
-							return ['Equals', ['Boolean', true], ['Boolean', true]];
+							return ['Boolean', true];
 						};
 
 						try {

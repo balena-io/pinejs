@@ -3,6 +3,7 @@ import { odataNameToSqlName } from '@balena/odata-to-abstract-sql';
 // @ts-ignore
 const transactionModel = require('./transaction.sbvr');
 
+/** @type {import('../config-loader/config-loader').Config} */
 export let config = {
 	models: [
 		{
@@ -24,6 +25,27 @@ ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT N
 ALTER TABLE "transaction"
 ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;\
 `,
+				'15.0.0-data-types': async (tx, sbvrUtils) => {
+					switch (sbvrUtils.db.engine) {
+						case 'mysql':
+							await tx.executeSql(`\
+								ALTER TABLE "lock"
+								MODIFY "is exclusive" BOOLEAN NOT NULL,
+								MODIFY "is under lock" BOOLEAN NOT NULL;`);
+							break;
+						case 'postgres':
+							await tx.executeSql(`\
+								ALTER TABLE "lock"
+								ALTER COLUMN "is exclusive" DROP DEFAULT,
+								ALTER COLUMN "is exclusive" SET DATA TYPE BOOLEAN USING "is exclusive"::BOOLEAN,
+								ALTER COLUMN "is exclusive" SET DEFAULT FALSE,
+								ALTER COLUMN "is under lock" DROP DEFAULT,
+								ALTER COLUMN "is under lock" SET DATA TYPE BOOLEAN USING "is under lock"::BOOLEAN,
+								ALTER COLUMN "is under lock" SET DEFAULT FALSE;`);
+							break;
+						// No need to migrate for websql
+					}
+				},
 			},
 		},
 	],

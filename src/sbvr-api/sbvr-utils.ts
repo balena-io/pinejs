@@ -1870,6 +1870,21 @@ export const executeStandardModels = async (tx: Db.Tx): Promise<void> => {
 					ALTER TABLE "model"
 					ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
 				`,
+				'15.0.0-data-types': async ($tx, sbvrUtils) => {
+					switch (sbvrUtils.db.engine) {
+						case 'mysql':
+							await $tx.executeSql(`\
+								ALTER TABLE "model"
+								MODIFY "model value" JSON NOT NULL;`);
+							break;
+						case 'postgres':
+							await $tx.executeSql(`\
+								ALTER TABLE "model"
+								ALTER COLUMN "model value" SET DATA TYPE JSONB USING "model value"::JSONB;`);
+							break;
+						// No need to migrate for websql
+					}
+				},
 			},
 		});
 		await executeModels(tx, permissions.config.models);
