@@ -253,6 +253,7 @@ class AutomaticClose {
 export abstract class Tx {
 	private closed = false;
 	protected automaticClose: AutomaticClose;
+	public abstract readonly engine: Engines;
 
 	constructor(
 		protected readOnly: boolean,
@@ -536,6 +537,8 @@ if (maybePg != null) {
 			};
 		};
 		class PostgresTx extends Tx {
+			engine = Engines.postgres;
+
 			constructor(
 				private db: Pg.PoolClient,
 				readOnly: boolean,
@@ -704,6 +707,8 @@ if (maybeMysql != null) {
 			};
 		};
 		class MySqlTx extends Tx {
+			engine = Engines.mysql;
+
 			constructor(
 				private db: Mysql.Connection,
 				private close: CloseTransactionFn,
@@ -840,6 +845,8 @@ if (typeof window !== 'undefined' && window.openDatabase != null) {
 		};
 
 		class WebSqlTx extends Tx {
+			engine = Engines.websql;
+
 			constructor(
 				private tx: WebSqlWrapper,
 				readOnly: boolean,

@@ -47,6 +47,7 @@ const serverIsOnAir = async (_req, _res, next) => {
 	}
 };
 
+/** @type {import('../config-loader/config-loader').Config} */
 export let config = {
 	models: [
 		{
@@ -59,6 +60,21 @@ export let config = {
 ALTER TABLE "textarea"
 ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;\
 `,
+				'15.0.0-true-boolean': async (tx) => {
+					switch (tx.engine) {
+						case 'mysql':
+							await tx.executeSql(`\
+								ALTER TABLE "textarea"
+								MODIFY "is disabled" BOOLEAN NOT NULL;`);
+							break;
+						case 'postgres':
+							await tx.executeSql(`\
+								ALTER TABLE "textarea"
+								ALTER COLUMN "is disabled" SET DATA TYPE BOOLEAN USING b::BOOLEAN;`);
+							break;
+						// No need to migrate for websql
+					}
+				},
 			},
 		},
 	],
