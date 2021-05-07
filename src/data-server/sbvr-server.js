@@ -59,6 +59,18 @@ export let config = {
 ALTER TABLE "textarea"
 ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;\
 `,
+				'15.0.0-true-boolean': {
+					mysql: `\
+ALTER TABLE "textarea"
+MODIFY "is disabled" BOOLEAN NOT NULL;\
+`,
+					postgres: `\
+ALTER TABLE "textarea"
+ALTER COLUMN "is disabled" SET DATA TYPE BOOLEAN USING b::BOOLEAN;\
+`,
+					// No need to migrate for websql
+					websql: '',
+				},
 			},
 		},
 	],

@@ -20,7 +20,12 @@ type MigrationTuple = [string, Migration];
 
 export type MigrationFn = (tx: Tx, sbvrUtils: SbvrUtils) => Resolvable<void>;
 
-export type Migration = string | MigrationFn;
+export type Migration =
+	| string
+	| MigrationFn
+	| {
+			[dbEngine in Engines]?: string | MigrationFn;
+	  };
 
 export class MigrationError extends TypedError {}
 
@@ -241,6 +246,15 @@ const executeMigration = async (
 	(sbvrUtils.api.migrations?.logger.info ?? console.info)(
 		`Running migration ${JSON.stringify(key)}`,
 	);
+	if (migration != null && typeof migration === 'object') {
+		const m = migration[tx.engine];
+		if (m == null) {
+			throw new MigrationError(
+				`Missing migration entry for '${key}' on db engine '${tx.engine}'`,
+			);
+		}
+		migration = m;
+	}
 
 	if (typeof migration === 'function') {
 		await migration(tx, sbvrUtils);
