@@ -158,9 +158,8 @@ const memoizedOdata2AbstractSQL = (() => {
 			existingBindVarsLength: number,
 		) => {
 			try {
-				const odata2AbstractSQL = memoizedGetOData2AbstractSQL(
-					abstractSqlModel,
-				);
+				const odata2AbstractSQL =
+					memoizedGetOData2AbstractSQL(abstractSqlModel);
 				const abstractSql = odata2AbstractSQL.match(
 					odataQuery,
 					method,
@@ -385,7 +384,7 @@ export const translateUri = <
 		| 'vocabulary'
 		| 'resourceName'
 		| 'abstractSqlModel'
-	>
+	>,
 >(
 	request: T & {
 		abstractSqlQuery?: ODataRequest['abstractSqlQuery'];

@@ -121,9 +121,7 @@ const asyncTryFn = (fn: () => any) => {
 	Promise.resolve().then(fn);
 };
 
-type RejectedFunctions = (
-	message: string,
-) => {
+type RejectedFunctions = (message: string) => {
 	executeSql: Tx['executeSql'];
 	rollback: Tx['rollback'];
 };

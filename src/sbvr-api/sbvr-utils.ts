@@ -78,7 +78,7 @@ export type HookRequest = uriParser.ODataRequest;
 import memoizeWeak = require('memoizee/weak');
 import * as controlFlow from './control-flow';
 
-export let db = (undefined as any) as Db.Database;
+export let db = undefined as any as Db.Database;
 
 export { sbvrTypes };
 
@@ -226,9 +226,10 @@ const prettifyConstraintError = (
 		if (err instanceof db.UniqueConstraintError) {
 			switch (db.engine) {
 				case 'mysql':
-					matches = /ER_DUP_ENTRY: Duplicate entry '.*?[^\\]' for key '(.*?[^\\])'/.exec(
-						err.message,
-					);
+					matches =
+						/ER_DUP_ENTRY: Duplicate entry '.*?[^\\]' for key '(.*?[^\\])'/.exec(
+							err.message,
+						);
 					break;
 				case 'postgres':
 					const resourceName = resolveSynonym(request);
@@ -258,9 +259,10 @@ const prettifyConstraintError = (
 		if (err instanceof db.ForeignKeyConstraintError) {
 			switch (db.engine) {
 				case 'mysql':
-					matches = /ER_ROW_IS_REFERENCED_: Cannot delete or update a parent row: a foreign key constraint fails \(".*?"\.(".*?").*/.exec(
-						err.message,
-					);
+					matches =
+						/ER_ROW_IS_REFERENCED_: Cannot delete or update a parent row: a foreign key constraint fails \(".*?"\.(".*?").*/.exec(
+							err.message,
+						);
 					break;
 				case 'postgres':
 					const resourceName = resolveSynonym(request);
@@ -1253,19 +1255,21 @@ const runRequest = async (
 	return await prepareResponse(req, request, result, tx);
 };
 
-const runChangeSet = (req: Express.Request, tx: Db.Tx) => async (
-	changeSetResults: Map<number, Response>,
-	request: uriParser.ODataRequest,
-): Promise<void> => {
-	request = updateBinds(changeSetResults, request);
-	const result = await runRequest(req, tx, request);
-	if (request.id == null) {
-		throw new Error('No request id');
-	}
-	result.headers ??= {};
-	result.headers['Content-Id'] = request.id;
-	changeSetResults.set(request.id, result);
-};
+const runChangeSet =
+	(req: Express.Request, tx: Db.Tx) =>
+	async (
+		changeSetResults: Map<number, Response>,
+		request: uriParser.ODataRequest,
+	): Promise<void> => {
+		request = updateBinds(changeSetResults, request);
+		const result = await runRequest(req, tx, request);
+		if (request.id == null) {
+			throw new Error('No request id');
+		}
+		result.headers ??= {};
+		result.headers['Content-Id'] = request.id;
+		changeSetResults.set(request.id, result);
+	};
 
 // Requests inside a changeset may refer to resources created inside the
 // changeset, the generation of the sql query for those requests must be

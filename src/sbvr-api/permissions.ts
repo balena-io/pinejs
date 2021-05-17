@@ -92,17 +92,14 @@ type PermissionCheck = NestedCheck<string>;
 type MappedType<I, O> = O extends NestedCheck<infer T>
 	? Exclude<Exclude<I, string> | T, boolean>
 	: Exclude<Exclude<I, string> | O, boolean>;
-type MappedNestedCheck<
-	T extends NestedCheck<I>,
-	I,
-	O
-> = T extends NestedCheckOr<I>
-	? NestedCheckOr<MappedType<I, O>>
-	: T extends NestedCheckAnd<I>
-	? NestedCheckAnd<MappedType<I, O>>
-	: T extends NestedCheckArray<I>
-	? NestedCheckArray<MappedType<I, O>>
-	: Exclude<I, string> | O;
+type MappedNestedCheck<T extends NestedCheck<I>, I, O> =
+	T extends NestedCheckOr<I>
+		? NestedCheckOr<MappedType<I, O>>
+		: T extends NestedCheckAnd<I>
+		? NestedCheckAnd<MappedType<I, O>>
+		: T extends NestedCheckArray<I>
+		? NestedCheckArray<MappedType<I, O>>
+		: Exclude<I, string> | O;
 
 const methodPermissions: {
 	[method in Exclude<SupportedMethod, 'OPTIONS'>]: PermissionCheck;
@@ -320,10 +317,12 @@ const getPermissionsLookup = memoize(
 				if (permissionsLookup[target] == null) {
 					permissionsLookup[target] = [];
 				}
-				(permissionsLookup[target] as Exclude<
-					PermissionLookup[typeof target],
-					true
-				>).push(condition);
+				(
+					permissionsLookup[target] as Exclude<
+						PermissionLookup[typeof target],
+						true
+					>
+				).push(condition);
 			}
 		}
 		return permissionsLookup;
@@ -477,9 +476,8 @@ const buildODataPermission = (
 		}
 	});
 
-	const collapsedPermissionFilters = collapsePermissionFilters(
-		permissionFilters,
-	);
+	const collapsedPermissionFilters =
+		collapsePermissionFilters(permissionFilters);
 
 	return collapsedPermissionFilters;
 };
@@ -594,26 +592,24 @@ const generateConstrainedAbstractSql = (
 	const select = (abstractSqlQuery[selectIndex] = [
 		...abstractSqlQuery[selectIndex],
 	] as SelectNode);
-	select[1] = select[1].map(
-		(selectField): AbstractSqlType => {
-			if (selectField[0] === 'Alias') {
-				const maybeField = (selectField as AliasNode<any>)[1];
-				const fieldType = maybeField[0];
-				if (fieldType === 'ReferencedField' || fieldType === 'Field') {
-					return maybeField;
-				}
-				return [
-					'Alias',
-					maybeField,
-					odataNameToSqlName((selectField as AliasNode<any>)[2]),
-				];
+	select[1] = select[1].map((selectField): AbstractSqlType => {
+		if (selectField[0] === 'Alias') {
+			const maybeField = (selectField as AliasNode<any>)[1];
+			const fieldType = maybeField[0];
+			if (fieldType === 'ReferencedField' || fieldType === 'Field') {
+				return maybeField;
 			}
-			if (selectField.length === 2 && Array.isArray(selectField[0])) {
-				return selectField[0];
-			}
-			return selectField;
-		},
-	);
+			return [
+				'Alias',
+				maybeField,
+				odataNameToSqlName((selectField as AliasNode<any>)[2]),
+			];
+		}
+		if (selectField.length === 2 && Array.isArray(selectField[0])) {
+			return selectField[0];
+		}
+		return selectField;
+	});
 
 	return { extraBinds: odataBinds, abstractSqlQuery };
 };
@@ -919,14 +915,12 @@ const getBoundConstrainedMemoizer = memoizeWeak(
 					constrainedAbstractSqlModel.tables[bypassResourceName] = {
 						...table,
 					};
-					constrainedAbstractSqlModel.tables[
-						bypassResourceName
-					].resourceName = bypassResourceName;
+					constrainedAbstractSqlModel.tables[bypassResourceName].resourceName =
+						bypassResourceName;
 					if (table.definition) {
 						// If the table is definition based then just make the bypass version match but pointing to the equivalent bypassed resources
-						constrainedAbstractSqlModel.tables[
-							bypassResourceName
-						].definition = createBypassDefinition(table.definition);
+						constrainedAbstractSqlModel.tables[bypassResourceName].definition =
+							createBypassDefinition(table.definition);
 					} else {
 						// Otherwise constrain the non-bypass table
 						onceGetter(
@@ -948,10 +942,8 @@ const getBoundConstrainedMemoizer = memoizeWeak(
 							if (tables[permissionResourceName]) {
 								return tables[permissionResourceName];
 							}
-							const [
-								resourceName,
-								permissionsJSON,
-							] = permissionResourceName.split('$permissions');
+							const [resourceName, permissionsJSON] =
+								permissionResourceName.split('$permissions');
 							if (!permissionsJSON) {
 								return;
 							}
@@ -1401,32 +1393,32 @@ export const checkPermissions = async (
 	);
 };
 
-export const checkPermissionsMiddleware = (
-	action: PermissionCheck,
-): Express.RequestHandler => async (req, res, next) => {
-	try {
-		const allowed = await checkPermissions(req, action);
-		switch (allowed) {
-			case false:
-				res.sendStatus(401);
-				return;
-			case true:
-				next();
-				return;
-			default:
-				throw new Error(
-					'checkPermissionsMiddleware returned a conditional permission',
-				);
+export const checkPermissionsMiddleware =
+	(action: PermissionCheck): Express.RequestHandler =>
+	async (req, res, next) => {
+		try {
+			const allowed = await checkPermissions(req, action);
+			switch (allowed) {
+				case false:
+					res.sendStatus(401);
+					return;
+				case true:
+					next();
+					return;
+				default:
+					throw new Error(
+						'checkPermissionsMiddleware returned a conditional permission',
+					);
+			}
+		} catch (err) {
+			sbvrUtils.api.Auth.logger.error(
+				'Error checking permissions',
+				err,
+				err.stack,
+			);
+			res.sendStatus(503);
 		}
-	} catch (err) {
-		sbvrUtils.api.Auth.logger.error(
-			'Error checking permissions',
-			err,
-			err.stack,
-		);
-		res.sendStatus(503);
-	}
-};
+	};
 
 const getGuestPermissions = memoize(
 	async () => {

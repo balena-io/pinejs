@@ -8,9 +8,8 @@ import * as fs from 'fs';
 const getSE = (inputFile: string) => fs.readFileSync(inputFile, 'utf8');
 
 const parse = (inputFile: string, outputFile?: string) => {
-	const {
-		generateLfModel,
-	} = require('../sbvr-api/sbvr-utils') as typeof SbvrUtils;
+	const { generateLfModel } =
+		require('../sbvr-api/sbvr-utils') as typeof SbvrUtils;
 	const seModel = getSE(inputFile);
 	const result = generateLfModel(seModel);
 	const json = JSON.stringify(result, null, 2);
@@ -18,10 +17,8 @@ const parse = (inputFile: string, outputFile?: string) => {
 };
 
 const transform = (inputFile: string, outputFile?: string) => {
-	const {
-		generateLfModel,
-		generateAbstractSqlModel,
-	} = require('../sbvr-api/sbvr-utils') as typeof SbvrUtils;
+	const { generateLfModel, generateAbstractSqlModel } =
+		require('../sbvr-api/sbvr-utils') as typeof SbvrUtils;
 	const seModel = getSE(inputFile);
 	const lfModel = generateLfModel(seModel);
 	const result = generateAbstractSqlModel(lfModel);
@@ -30,9 +27,8 @@ const transform = (inputFile: string, outputFile?: string) => {
 };
 
 const runCompile = (inputFile: string, outputFile?: string) => {
-	const {
-		generateModels,
-	} = require('../sbvr-api/sbvr-utils') as typeof SbvrUtils;
+	const { generateModels } =
+		require('../sbvr-api/sbvr-utils') as typeof SbvrUtils;
 	const seModel = getSE(inputFile);
 	const models = generateModels(
 		{ apiRoot: 'sbvr-compiler', modelText: seModel },
@@ -43,17 +39,15 @@ const runCompile = (inputFile: string, outputFile?: string) => {
 };
 
 const generateTypes = (inputFile: string, outputFile?: string) => {
-	const {
-		generateModels,
-	} = require('../sbvr-api/sbvr-utils') as typeof SbvrUtils;
+	const { generateModels } =
+		require('../sbvr-api/sbvr-utils') as typeof SbvrUtils;
 	const seModel = getSE(inputFile);
 	const models = generateModels(
 		{ apiRoot: 'sbvr-compiler', modelText: seModel },
 		program.opts().engine,
 	);
-	const {
-		abstractSqlToTypescriptTypes,
-	} = require('@balena/abstract-sql-to-typescript') as typeof import('@balena/abstract-sql-to-typescript');
+	const { abstractSqlToTypescriptTypes } =
+		require('@balena/abstract-sql-to-typescript') as typeof import('@balena/abstract-sql-to-typescript');
 	const types = abstractSqlToTypescriptTypes(models.abstractSql);
 
 	writeAll(types, outputFile);

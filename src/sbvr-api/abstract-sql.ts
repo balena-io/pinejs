@@ -18,12 +18,10 @@ const getMemoizedCompileRule = memoize(
 	(engine: AbstractSQLCompiler.Engines) =>
 		memoizeWeak(
 			(abstractSqlQuery: AbstractSQLCompiler.AbstractSqlQuery) => {
-				const sqlQuery = AbstractSQLCompiler[engine].compileRule(
-					abstractSqlQuery,
-				);
-				const modifiedFields = AbstractSQLCompiler[engine].getModifiedFields(
-					abstractSqlQuery,
-				);
+				const sqlQuery =
+					AbstractSQLCompiler[engine].compileRule(abstractSqlQuery);
+				const modifiedFields =
+					AbstractSQLCompiler[engine].getModifiedFields(abstractSqlQuery);
 				if (modifiedFields != null) {
 					deepFreeze(modifiedFields);
 				}
