@@ -1,4 +1,36 @@
 - commits:
+    - subject: Update sbvr-types to 3.4.3 to support boolean computed terms w/o casting
+      hash: 7c5539fe21c55e950e348a23f14dcbfe19882e6e
+      body: |
+        Update sbvr-types from 3.4.1 to 3.4.3
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Thodoris Greasidis
+      nested:
+        - commits:
+            - subject: Support boolean results from the db as well as integer
+              hash: 337c9af41ca4b17e06e79e574b0c5849928a167b
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: sbvr-types-3.4.3
+          date: 2021-05-11T13:04:19.851Z
+        - commits:
+            - subject: Update dev dependencies
+              hash: b7c817c8246fb95aab917e8ba1196b695103d962
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: sbvr-types-3.4.2
+          date: 2021-03-22T17:11:56.138Z
+  version: 14.23.0
+  date: 2021-05-17T19:10:42.563Z
+- commits:
     - subject: Fix typo in odata-compiler help
       hash: 035aca1681ed399e3e1edd5776396ea23f80843f
       body: ''
