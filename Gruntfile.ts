@@ -59,9 +59,9 @@ export = (grunt: typeof Grunt) => {
 		},
 
 		concat: _.mapValues(serverConfigs, (config, task) => {
-			const defines = (config.plugins as Array<
-				WebpackPluginInstance & { definitions?: {} }
-			>).find((plugin) => plugin.definitions != null)!.definitions;
+			const defines = (
+				config.plugins as Array<WebpackPluginInstance & { definitions?: {} }>
+			).find((plugin) => plugin.definitions != null)!.definitions;
 			return {
 				options: {
 					banner: `

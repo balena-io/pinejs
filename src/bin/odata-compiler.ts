@@ -7,10 +7,8 @@ import type { SqlResult } from '@balena/abstract-sql-compiler';
 import * as program from 'commander';
 
 const generateAbstractSqlQuery = (modelFile: string, odata: string) => {
-	const {
-		memoizedParseOdata,
-		translateUri,
-	} = require('../sbvr-api/uri-parser') as typeof UriParser;
+	const { memoizedParseOdata, translateUri } =
+		require('../sbvr-api/uri-parser') as typeof UriParser;
 	const odataAST = memoizedParseOdata(odata);
 	return translateUri({
 		engine: program.opts().engine,
@@ -27,9 +25,8 @@ const generateAbstractSqlQuery = (modelFile: string, odata: string) => {
 };
 
 const parseOData = (odata: string, outputFile?: string) => {
-	const {
-		memoizedParseOdata,
-	} = require('../sbvr-api/uri-parser') as typeof UriParser;
+	const { memoizedParseOdata } =
+		require('../sbvr-api/uri-parser') as typeof UriParser;
 	const result = memoizedParseOdata(odata);
 	const json = JSON.stringify(result, null, 2);
 	writeAll(json, outputFile);
@@ -62,9 +59,8 @@ const compileOData = (
 	outputFile?: string,
 ) => {
 	const translatedRequest = generateAbstractSqlQuery(modelFile, odata);
-	const {
-		compileRequest,
-	} = require('../sbvr-api/abstract-sql') as typeof AbstractSql;
+	const { compileRequest } =
+		require('../sbvr-api/abstract-sql') as typeof AbstractSql;
 	const compiledRequest = compileRequest(translatedRequest);
 	let output;
 	if (program.opts().json) {

@@ -82,10 +82,8 @@ export const getAbstractSqlModelFromFile = (
 	} else {
 		throw new Error('Unrecognised config file');
 	}
-	const {
-		generateLfModel,
-		generateAbstractSqlModel,
-	} = require('../sbvr-api/sbvr-utils') as typeof SbvrUtils;
+	const { generateLfModel, generateAbstractSqlModel } =
+		require('../sbvr-api/sbvr-utils') as typeof SbvrUtils;
 	let lfModel;
 	try {
 		lfModel = generateLfModel(seModel);
