@@ -1,4 +1,67 @@
 - commits:
+    - subject: Update dependencies
+      hash: d318510e29bda8bec942e06e79d4938e0a2510a3
+      body: |
+        Update odata-parser from 2.2.3 to 2.2.4
+        Update pinejs-client-core from 6.9.4 to 6.9.5
+        Update sbvr-parser from 1.2.2 to 1.2.4
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: >-
+                Ensure boundaries on keywords to fix parsing of eg `note eq
+                'foobar'`
+              hash: a76734e4b4748b6bbd45bdc80b46ad80007f1cb4
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: odata-parser-2.2.4
+          date: 2021-05-18T11:51:40.154Z
+        - commits:
+            - subject: Enable strict tsconfig options by default
+              hash: 8ad51e0af76b9e6c1676a0e4069d851f7b3c5211
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: pinejs-client-js-6.9.5
+          date: 2021-03-22T14:28:40.467Z
+        - commits:
+            - subject: Optimize space matching
+              hash: 59e1232f8da68f98c65739d5c80de11d3f613b55
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+            - subject: Optimize EOL checking
+              hash: 4a10ce589ef23f0c8f0d4b463fafa29ba5a9c372
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: sbvr-parser-1.2.4
+          date: 2021-06-07T19:00:12.236Z
+        - commits:
+            - subject: Update dependencies
+              hash: ff9048144af2c0386b9a88100172c69f756353af
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: sbvr-parser-1.2.3
+          date: 2021-06-07T14:58:20.630Z
+  version: 14.24.1
+  date: 2021-06-07T20:29:29.522Z
+- commits:
     - subject: Update abstract-sql-compiler to 7.13.0 to support CurrentTimestamp/Date
       hash: c0c1d19b60a7edbfef7e09490eb2ba376d9324d7
       body: |
