@@ -92,14 +92,17 @@ type PermissionCheck = NestedCheck<string>;
 type MappedType<I, O> = O extends NestedCheck<infer T>
 	? Exclude<Exclude<I, string> | T, boolean>
 	: Exclude<Exclude<I, string> | O, boolean>;
-type MappedNestedCheck<T extends NestedCheck<I>, I, O> =
-	T extends NestedCheckOr<I>
-		? NestedCheckOr<MappedType<I, O>>
-		: T extends NestedCheckAnd<I>
-		? NestedCheckAnd<MappedType<I, O>>
-		: T extends NestedCheckArray<I>
-		? NestedCheckArray<MappedType<I, O>>
-		: Exclude<I, string> | O;
+type MappedNestedCheck<
+	T extends NestedCheck<I>,
+	I,
+	O,
+> = T extends NestedCheckOr<I>
+	? NestedCheckOr<MappedType<I, O>>
+	: T extends NestedCheckAnd<I>
+	? NestedCheckAnd<MappedType<I, O>>
+	: T extends NestedCheckArray<I>
+	? NestedCheckArray<MappedType<I, O>>
+	: Exclude<I, string> | O;
 
 const methodPermissions: {
 	[method in Exclude<SupportedMethod, 'OPTIONS'>]: PermissionCheck;
@@ -342,52 +345,53 @@ const $checkPermissions = (
 	const checkObject: PermissionCheck = {
 		or: ['all', actionList],
 	};
-	return nestedCheck(checkObject, (permissionCheck):
-		| boolean
-		| string
-		| NestedCheckOr<string> => {
-		const resourcePermission = permissionsLookup['resource.' + permissionCheck];
-		let vocabularyPermission: string[] | undefined;
-		let vocabularyResourcePermission: string[] | undefined;
-		if (resourcePermission === true) {
-			return true;
-		}
-		if (vocabulary != null) {
-			const maybeVocabularyPermission =
-				permissionsLookup[vocabulary + '.' + permissionCheck];
-			if (maybeVocabularyPermission === true) {
+	return nestedCheck(
+		checkObject,
+		(permissionCheck): boolean | string | NestedCheckOr<string> => {
+			const resourcePermission =
+				permissionsLookup['resource.' + permissionCheck];
+			let vocabularyPermission: string[] | undefined;
+			let vocabularyResourcePermission: string[] | undefined;
+			if (resourcePermission === true) {
 				return true;
 			}
-			vocabularyPermission = maybeVocabularyPermission;
-			if (resourceName != null) {
-				const maybeVocabularyResourcePermission =
-					permissionsLookup[
-						vocabulary + '.' + resourceName + '.' + permissionCheck
-					];
-				if (maybeVocabularyResourcePermission === true) {
+			if (vocabulary != null) {
+				const maybeVocabularyPermission =
+					permissionsLookup[vocabulary + '.' + permissionCheck];
+				if (maybeVocabularyPermission === true) {
 					return true;
 				}
-				vocabularyResourcePermission = maybeVocabularyResourcePermission;
+				vocabularyPermission = maybeVocabularyPermission;
+				if (resourceName != null) {
+					const maybeVocabularyResourcePermission =
+						permissionsLookup[
+							vocabulary + '.' + resourceName + '.' + permissionCheck
+						];
+					if (maybeVocabularyResourcePermission === true) {
+						return true;
+					}
+					vocabularyResourcePermission = maybeVocabularyResourcePermission;
+				}
 			}
-		}
 
-		// Get the unique permission set, ignoring undefined sets.
-		const conditionalPermissions = _.union(
-			resourcePermission,
-			vocabularyPermission,
-			vocabularyResourcePermission,
-		);
+			// Get the unique permission set, ignoring undefined sets.
+			const conditionalPermissions = _.union(
+				resourcePermission,
+				vocabularyPermission,
+				vocabularyResourcePermission,
+			);
 
-		if (conditionalPermissions.length === 1) {
-			return conditionalPermissions[0];
-		}
-		if (conditionalPermissions.length > 1) {
-			return {
-				or: conditionalPermissions,
-			};
-		}
-		return false;
-	});
+			if (conditionalPermissions.length === 1) {
+				return conditionalPermissions[0];
+			}
+			if (conditionalPermissions.length > 1) {
+				return {
+					or: conditionalPermissions,
+				};
+			}
+			return false;
+		},
+	);
 };
 
 const convertToLambda = (filter: AnyObject, identifier: string) => {
