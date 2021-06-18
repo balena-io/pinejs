@@ -53,6 +53,9 @@ Fact type:  api key has key
 	Necessity: each key is of exactly one api key
 Fact type:  api key has role
 	Note: An 'api key' will inherit all the 'permissions' that the 'role' has.
+	Term Form: api key role
+	Fact type: api key role has expiry date
+		Necessity: Each api key role has at most one expiry date.
 Fact type:  api key has permission
 Fact type:  api key is of actor
 	Necessity: each api key is of exactly one actor

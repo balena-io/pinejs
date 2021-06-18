@@ -1283,6 +1283,16 @@ const $getApiKeyPermissions = (() => {
 																			},
 																		},
 																	},
+																	$or: [
+																		{
+																			khr: { expiry_date: null },
+																		},
+																		{
+																			khr: {
+																				expiry_date: { $gt: { $now: null } },
+																			},
+																		},
+																	],
 																},
 															},
 														},
@@ -1669,6 +1679,9 @@ export const config = {
 				'11.0.1-modified-at': `
 					ALTER TABLE "role-has-permission"
 					ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
+				`,
+				'14.42.0-modified-at': `
+					ALTER TABLE "api key-has-role" ADD COLUMN "expiry date" TIMESTAMP NULL;
 				`,
 			},
 		},
