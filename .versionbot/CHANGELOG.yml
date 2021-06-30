@@ -1,4 +1,19 @@
 - commits:
+    - subject: Delete CODEOWNERS
+      hash: d96ec3b30023a50be44e18c5a046a9c9af4fa894
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+        See: >-
+          https://www.flowdock.com/app/rulemotion/pub/threads/trLcZFnSX9fLZn4LiaIv4xuBbah
+        see: >-
+          https://www.flowdock.com/app/rulemotion/pub/threads/trLcZFnSX9fLZn4LiaIv4xuBbah
+      author: Thodoris Greasidis
+      nested: []
+  version: 14.24.2
+  date: 2021-06-30T21:16:07.970Z
+- commits:
     - subject: Update dependencies
       hash: d318510e29bda8bec942e06e79d4938e0a2510a3
       body: |
