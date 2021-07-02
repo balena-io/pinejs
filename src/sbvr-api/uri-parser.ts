@@ -202,6 +202,17 @@ const memoizedOdata2AbstractSQL = (() => {
 			max: env.cache.odataToAbstractSql.max,
 		},
 	);
+	const cachedProps = [
+		'$select',
+		'$filter',
+		'$expand',
+		'$orderby',
+		'$top',
+		'$skip',
+		'$count',
+		'$inlinecount',
+		'$format',
+	].map(_.toPath);
 
 	return (
 		request: Pick<
@@ -225,15 +236,8 @@ const memoizedOdata2AbstractSQL = (() => {
 				...odataQuery,
 				options: _.pick(
 					odataQuery.options,
-					'$select',
-					'$filter',
-					'$expand',
-					'$orderby',
-					'$top',
-					'$skip',
-					'$count',
-					'$inlinecount',
-					'$format',
+					// @ts-expect-error: lodash typings do not allow a single array of property paths arrays but lodash itself does and it has better performance than property path strings
+					cachedProps,
 				) as ODataOptions,
 			};
 		}
