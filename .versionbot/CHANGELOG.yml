@@ -1,4 +1,15 @@
 - commits:
+    - subject: Optimize pre-processing of odata2AbstractSQL for improving cache hits
+      hash: 85b816e6ce9e9f7137abda74b7df04d9aa3acd93
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 14.24.3
+  date: 2021-07-02T14:17:11.450Z
+- commits:
     - subject: Delete CODEOWNERS
       hash: d96ec3b30023a50be44e18c5a046a9c9af4fa894
       body: ''
