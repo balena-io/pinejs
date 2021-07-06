@@ -1,7 +1,7 @@
 # Advanced Pinejs use
 
 This guide assumes you have already read through the [getting started guide](./GettingStarted.md) and the [project configuration guide](./ProjectConfig.md). In this tutorial we will iterate on the previous model to add a custom validation step when creating a new device.
-To achieve this we can use (Hooks)[./Hooks.md], they allow us to execute custom server code whenever an API call is made.
+To achieve this we can use [Hooks](./Hooks.md), they allow us to execute custom server code whenever an API call is made.
 
 ## Custom Sever Code
 To add custom functionality to our module we will have to provide a setup function, this will be called during server startup, and will take care of initializing everything as we need it.
