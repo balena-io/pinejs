@@ -57,7 +57,7 @@ Permissions currently work by having a name which defines what the permission co
 All users (including ones who are not logged in) automatically gain any permissions assigned to the account named "guest". You can create this user in the `config.json` as shown in the example above.
 
 ### Model
-The SBVR model for users can be found at [/src/server/src/sbvr-api/user.sbvr](https://github.com/balena-io/pinejs/blob/master/src/server/src/sbvr-api/user.sbvr)
+The SBVR model for users can be found at [/src/sbvr-api/user.sbvr](https://github.com/balena-io/pinejs/blob/master/src/sbvr-api/user.sbvr)
 
 ### Exposing the OData API
 To expose the user model over the OData API, use the following in your custom server code:
