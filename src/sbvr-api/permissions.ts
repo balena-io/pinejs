@@ -309,7 +309,10 @@ const namespaceRelationships = (
 type PermissionLookup = _.Dictionary<true | string[]>;
 
 const getPermissionsLookup = memoize(
-	(permissions: string[]): PermissionLookup => {
+	(permissions: string[], guestPermissions?: string[]): PermissionLookup => {
+		if (guestPermissions != null) {
+			permissions = [...guestPermissions, ...permissions];
+		}
 		const permissionsLookup: PermissionLookup = {};
 		for (const permission of permissions) {
 			const [target, condition] = permission.split('?');
@@ -317,9 +320,7 @@ const getPermissionsLookup = memoize(
 				// We have unconditional permission
 				permissionsLookup[target] = true;
 			} else if (permissionsLookup[target] !== true) {
-				if (permissionsLookup[target] == null) {
-					permissionsLookup[target] = [];
-				}
+				permissionsLookup[target] ??= [];
 				(
 					permissionsLookup[target] as Exclude<
 						PermissionLookup[typeof target],
@@ -328,10 +329,19 @@ const getPermissionsLookup = memoize(
 				).push(condition);
 			}
 		}
+		// Ensure there are no duplicate conditions as applying both would be wasteful
+		for (const target of Object.keys(permissionsLookup)) {
+			const conditions = permissionsLookup[target];
+			if (conditions !== true) {
+				permissionsLookup[target] = _.uniq(conditions);
+			}
+		}
 		return permissionsLookup;
 	},
 	{
-		primitive: true,
+		normalizer: ([permissions, guestPermissions]) =>
+			// When guestPermissions is present it should always be the same, so we can key by presence not content
+			`${permissions}${guestPermissions == null}`,
 		max: env.cache.permissionsLookup.max,
 	},
 );
@@ -1442,7 +1452,12 @@ const getGuestPermissions = memoize(
 		if (result == null) {
 			throw new Error('No guest user');
 		}
-		return _.uniq(await getUserPermissions(result.id));
+		const guestPermissions = _.uniq(await getUserPermissions(result.id));
+
+		if (guestPermissions.some((p) => DEFAULT_ACTOR_BIND_REGEX.test(p))) {
+			throw new Error('Guest permissions cannot reference actors');
+		}
+		return guestPermissions;
 	},
 	{ promise: true },
 );
@@ -1467,24 +1482,10 @@ const getReqPermissions = async (
 		})(),
 	]);
 
-	if (guestPermissions.some((p) => DEFAULT_ACTOR_BIND_REGEX.test(p))) {
-		throw new Error('Guest permissions cannot reference actors');
-	}
-
-	let permissions = guestPermissions;
-
-	let actorIndex = 0;
-	const addActorPermissions = (actorId: number, actorPermissions: string[]) => {
-		let actorBind = DEFAULT_ACTOR_BIND;
-		if (actorIndex > 0) {
-			actorBind += actorIndex;
-			actorPermissions = actorPermissions.map((actorPermission) =>
-				actorPermission.replace(DEFAULT_ACTOR_BIND_REGEX, actorBind),
-			);
-		}
-		odataBinds[actorBind] = ['Real', actorId];
-		actorIndex++;
-		permissions = permissions.concat(actorPermissions);
+	let actorPermissions: string[] = [];
+	const addActorPermissions = (actorId: number, perms: string[]) => {
+		odataBinds[DEFAULT_ACTOR_BIND] = ['Real', actorId];
+		actorPermissions = perms;
 	};
 
 	if (req.user != null && req.user.permissions != null) {
@@ -1493,9 +1494,7 @@ const getReqPermissions = async (
 		addActorPermissions(req.apiKey.actor!, req.apiKey.permissions);
 	}
 
-	permissions = _.uniq(permissions);
-
-	return getPermissionsLookup(permissions);
+	return getPermissionsLookup(actorPermissions, guestPermissions);
 };
 
 export const addPermissions = async (
