@@ -1473,17 +1473,8 @@ const getReqPermissions = async (
 
 	let permissions = guestPermissions;
 
-	let actorIndex = 0;
 	const addActorPermissions = (actorId: number, actorPermissions: string[]) => {
-		let actorBind = DEFAULT_ACTOR_BIND;
-		if (actorIndex > 0) {
-			actorBind += actorIndex;
-			actorPermissions = actorPermissions.map((actorPermission) =>
-				actorPermission.replace(DEFAULT_ACTOR_BIND_REGEX, actorBind),
-			);
-		}
-		odataBinds[actorBind] = ['Real', actorId];
-		actorIndex++;
+		odataBinds[DEFAULT_ACTOR_BIND] = ['Real', actorId];
 		permissions = permissions.concat(actorPermissions);
 	};
 
