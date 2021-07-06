@@ -1,4 +1,32 @@
 - commits:
+    - subject: Avoid concat/_.uniq calls in getReqPermissions
+      hash: 9cd074a5c810ba66130695758ccbf9cc6d7b46d1
+      body: |
+        These are relatively expensive considering it is a fairly hot function
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+    - subject: Validate the guest permissions when caching rather than on each use
+      hash: adb225303a7d9a008e8a1ae00a7a8b2ac8bf4d6f
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+    - subject: Remove unnecessary code now that a request can only use a single actor
+      hash: 2371a120c05ceeebe2ec249fd4f9afb0f23d6c83
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 14.24.4
+  date: 2021-07-06T14:12:28.605Z
+- commits:
     - subject: Optimize pre-processing of odata2AbstractSQL for improving cache hits
       hash: 85b816e6ce9e9f7137abda74b7df04d9aa3acd93
       body: ''
