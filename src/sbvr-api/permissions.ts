@@ -1442,7 +1442,12 @@ const getGuestPermissions = memoize(
 		if (result == null) {
 			throw new Error('No guest user');
 		}
-		return _.uniq(await getUserPermissions(result.id));
+		const guestPermissions = _.uniq(await getUserPermissions(result.id));
+
+		if (guestPermissions.some((p) => DEFAULT_ACTOR_BIND_REGEX.test(p))) {
+			throw new Error('Guest permissions cannot reference actors');
+		}
+		return guestPermissions;
 	},
 	{ promise: true },
 );
@@ -1466,10 +1471,6 @@ const getReqPermissions = async (
 			}
 		})(),
 	]);
-
-	if (guestPermissions.some((p) => DEFAULT_ACTOR_BIND_REGEX.test(p))) {
-		throw new Error('Guest permissions cannot reference actors');
-	}
 
 	let permissions = guestPermissions;
 
