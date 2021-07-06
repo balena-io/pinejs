@@ -1,4 +1,18 @@
 - commits:
+    - subject: Fix Hooks URL
+      hash: d39ef2080f820a482cd5ac71e2f5119b6777b87d
+      body: |
+        Fix Hooks URL
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Matthew Yarmolinsky <matthew-timothy@balena.io>
+        signed-off-by: Matthew Yarmolinsky <matthew-timothy@balena.io>
+      author: Matthew Yarmolinsky
+      nested: []
+  version: 14.24.6
+  date: 2021-07-06T19:23:42.739Z
+- commits:
     - subject: Update user SBVR model URL
       hash: 6be1602acdb4dfcfe6abd86e206fd95fde8fe898
       body: ''
