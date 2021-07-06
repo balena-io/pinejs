@@ -309,7 +309,10 @@ const namespaceRelationships = (
 type PermissionLookup = _.Dictionary<true | string[]>;
 
 const getPermissionsLookup = memoize(
-	(permissions: string[]): PermissionLookup => {
+	(permissions: string[], guestPermissions?: string[]): PermissionLookup => {
+		if (guestPermissions != null) {
+			permissions = [...guestPermissions, ...permissions];
+		}
 		const permissionsLookup: PermissionLookup = {};
 		for (const permission of permissions) {
 			const [target, condition] = permission.split('?');
@@ -317,9 +320,7 @@ const getPermissionsLookup = memoize(
 				// We have unconditional permission
 				permissionsLookup[target] = true;
 			} else if (permissionsLookup[target] !== true) {
-				if (permissionsLookup[target] == null) {
-					permissionsLookup[target] = [];
-				}
+				permissionsLookup[target] ??= [];
 				(
 					permissionsLookup[target] as Exclude<
 						PermissionLookup[typeof target],
@@ -328,10 +329,19 @@ const getPermissionsLookup = memoize(
 				).push(condition);
 			}
 		}
+		// Ensure there are no duplicate conditions as applying both would be wasteful
+		for (const target of Object.keys(permissionsLookup)) {
+			const conditions = permissionsLookup[target];
+			if (conditions !== true) {
+				permissionsLookup[target] = _.uniq(conditions);
+			}
+		}
 		return permissionsLookup;
 	},
 	{
-		primitive: true,
+		normalizer: ([permissions, guestPermissions]) =>
+			// When guestPermissions is present it should always be the same, so we can key by presence not content
+			`${permissions}${guestPermissions == null}`,
 		max: env.cache.permissionsLookup.max,
 	},
 );
@@ -1472,11 +1482,10 @@ const getReqPermissions = async (
 		})(),
 	]);
 
-	let permissions = guestPermissions;
-
-	const addActorPermissions = (actorId: number, actorPermissions: string[]) => {
+	let actorPermissions: string[] = [];
+	const addActorPermissions = (actorId: number, perms: string[]) => {
 		odataBinds[DEFAULT_ACTOR_BIND] = ['Real', actorId];
-		permissions = permissions.concat(actorPermissions);
+		actorPermissions = perms;
 	};
 
 	if (req.user != null && req.user.permissions != null) {
@@ -1485,9 +1494,7 @@ const getReqPermissions = async (
 		addActorPermissions(req.apiKey.actor!, req.apiKey.permissions);
 	}
 
-	permissions = _.uniq(permissions);
-
-	return getPermissionsLookup(permissions);
+	return getPermissionsLookup(actorPermissions, guestPermissions);
 };
 
 export const addPermissions = async (
