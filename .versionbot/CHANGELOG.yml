@@ -1,4 +1,17 @@
 - commits:
+    - subject: Update user SBVR model URL
+      hash: 6be1602acdb4dfcfe6abd86e206fd95fde8fe898
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Matthew Yarmolinsky <matthew-timothy@balena.io>
+        signed-off-by: Matthew Yarmolinsky <matthew-timothy@balena.io>
+      author: Matthew Yarmolinsky
+      nested: []
+  version: 14.24.5
+  date: 2021-07-06T17:56:51.871Z
+- commits:
     - subject: Avoid concat/_.uniq calls in getReqPermissions
       hash: 9cd074a5c810ba66130695758ccbf9cc6d7b46d1
       body: |
