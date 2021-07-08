@@ -1,4 +1,29 @@
 - commits:
+    - subject: Bump dependencies to add `is of` reverse relationship for concept types
+      hash: acc42801ef9f10451150ef951309482bcf73ef11
+      body: |
+        Update lf-to-abstract-sql from 4.2.2 to 4.3.0
+      footer:
+        Change-type: minor
+        change-type: minor
+        Signed-off-by: Thodoris Greasidis <thodoris@balena.io>
+        signed-off-by: Thodoris Greasidis <thodoris@balena.io>
+      author: Thodoris Greasidis
+      nested:
+        - commits:
+            - subject: Add an automatic `is of` reverse relationship for concept types
+              hash: f84a80730b68b34203bfec29f97e5dac6b464857
+              body: ''
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+              nested: []
+          version: lf-to-abstract-sql-4.3.0
+          date: 2021-07-06T16:36:07.964Z
+  version: 14.25.0
+  date: 2021-07-08T15:02:26.358Z
+- commits:
     - subject: Fix Hooks URL
       hash: d39ef2080f820a482cd5ac71e2f5119b6777b87d
       body: |
