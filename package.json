@@ -25,7 +25,7 @@
   "dependencies": {
     "@balena/abstract-sql-compiler": "^7.13.1",
     "@balena/abstract-sql-to-typescript": "^1.1.1",
-    "@balena/lf-to-abstract-sql": "^4.2.2",
+    "@balena/lf-to-abstract-sql": "^4.3.0",
     "@balena/odata-parser": "^2.2.5",
     "@balena/odata-to-abstract-sql": "^5.4.2",
     "@balena/sbvr-parser": "^1.2.5",
