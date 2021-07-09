@@ -1,4 +1,26 @@
 - commits:
+    - subject: Update dependencies
+      hash: d7065d79a37bccb465c3541b7290881af0f27801
+      body: |
+        Update odata-parser from 2.2.5 to 2.2.6
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Switch to peggy for compiling the grammar
+              hash: 57330ff50fda619d56d3bc32ebef6cf7cebfa395
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: odata-parser-2.2.6
+          date: 2021-07-09T12:31:51.225Z
+  version: 14.25.1
+  date: 2021-07-09T13:00:27.876Z
+- commits:
     - subject: Bump dependencies to add `is of` reverse relationship for concept types
       hash: acc42801ef9f10451150ef951309482bcf73ef11
       body: |
