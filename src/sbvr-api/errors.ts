@@ -16,6 +16,9 @@ export class HttpError extends TypedError {
 		public status: number,
 		error: string | Error = '',
 		public body?: string | AnyObject,
+		public headers?: {
+			[headerName: string]: any;
+		},
 	) {
 		super(error);
 	}

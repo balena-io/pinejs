@@ -855,15 +855,15 @@ export const runURI = async (
 		throw response;
 	}
 
-	const { body: responseBody, status } = response as Response;
+	const { body: responseBody, status, headers } = response as Response;
 
 	if (status != null && status >= 400) {
 		const ErrorClass =
 			statusCodeToError[status as keyof typeof statusCodeToError];
 		if (ErrorClass != null) {
-			throw new ErrorClass(undefined, responseBody);
+			throw new ErrorClass(undefined, responseBody, headers);
 		}
-		throw new HttpError(status, undefined, responseBody);
+		throw new HttpError(status, undefined, responseBody, headers);
 	}
 
 	return responseBody as AnyObject | undefined;
@@ -1066,21 +1066,23 @@ const runODataRequest = (req: Express.Request, vocabulary: string) => {
 				});
 			});
 
-			const responses = results.map((result) => {
-				if (_.isError(result)) {
-					return convertToHttpError(result);
-				} else {
-					if (
-						!Array.isArray(result) &&
-						result.body == null &&
-						result.status == null
-					) {
-						console.error('No status or body set', req.url, responses);
-						return new InternalRequestError();
+			const responses = results.map(
+				(result): Response | Response[] | HttpError => {
+					if (_.isError(result)) {
+						return convertToHttpError(result);
+					} else {
+						if (
+							!Array.isArray(result) &&
+							result.body == null &&
+							result.status == null
+						) {
+							console.error('No status or body set', req.url, responses);
+							return new InternalRequestError();
+						}
+						return result;
 					}
-					return result;
-				}
-			});
+				},
+			);
 			return responses;
 		})(),
 	};
@@ -1107,15 +1109,14 @@ export const handleODataRequest: Express.Handler = async (req, res, next) => {
 				response = {
 					status: response.status,
 					body: response.getResponseBody(),
+					headers: response.headers,
 				};
 			}
 			const { body, headers, status } = response as Response;
 			if (status) {
 				res.status(status);
 			}
-			_.forEach(headers, (headerValue, headerName) => {
-				res.set(headerName, headerValue);
-			});
+			res.set(headers);
 
 			if (!body) {
 				res.sendStatus(status!);
@@ -1134,6 +1135,7 @@ export const handleODataRequest: Express.Handler = async (req, res, next) => {
 						return {
 							status: response.status,
 							body: response.getResponseBody(),
+							headers: response.headers,
 						};
 					} else {
 						return response;
@@ -1144,6 +1146,7 @@ export const handleODataRequest: Express.Handler = async (req, res, next) => {
 	} catch (e) {
 		if (e instanceof HttpError) {
 			const body = e.getResponseBody();
+			res.set(e.headers);
 			if (body) {
 				res.status(e.status).send(body);
 			} else {
