@@ -1,4 +1,15 @@
 - commits:
+    - subject: Add the ability to include headers with http errors
+      hash: 2a0733c8b49969a4593a9852598a175dd02ab66c
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+      nested: []
+  version: 14.26.0
+  date: 2021-07-13T15:24:36.114Z
+- commits:
     - subject: Reduce duplication for http error constructors
       hash: 2ab6037174e2018819eadb9245db1e7f8a9fa06c
       body: ''
