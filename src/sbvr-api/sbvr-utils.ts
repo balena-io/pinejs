@@ -1000,7 +1000,7 @@ const runODataRequest = (req: Express.Request, vocabulary: string) => {
 
 	return {
 		tryCancelRequest,
-		promise: (async () => {
+		promise: (async (): Promise<Array<Response | Response[] | HttpError>> => {
 			await runHooks('PREPARSE', reqHooks, { req, tx: req.tx });
 			let requests: uriParser.UnparsedRequest[];
 			// Check if it is a single request or a batch
@@ -1105,38 +1105,17 @@ export const handleODataRequest: Express.Handler = async (req, res, next) => {
 		// If we are dealing with a single request unpack the response and respond normally
 		if (req.batch == null || req.batch.length === 0) {
 			let [response] = responses;
-			if (_.isError(response)) {
-				response = {
-					status: response.status,
-					body: response.getResponseBody(),
-					headers: response.headers,
-				};
+			if (response instanceof HttpError) {
+				response = httpErrorToResponse(response);
 			}
-			const { body, headers, status } = response as Response;
-			if (status) {
-				res.status(status);
-			}
-			res.set(headers);
-
-			if (!body) {
-				res.sendStatus(status!);
-			} else {
-				if (status != null) {
-					res.status(status);
-				}
-				res.json(body);
-			}
+			handleResponse(res, response as Response);
 
 			// Otherwise its a multipart request and we reply with the appropriate multipart response
 		} else {
 			(res.status(200) as any).sendMulti(
 				responses.map((response) => {
-					if (_.isError(response)) {
-						return {
-							status: response.status,
-							body: response.getResponseBody(),
-							headers: response.headers,
-						};
+					if (response instanceof HttpError) {
+						response = httpErrorToResponse(response);
 					} else {
 						return response;
 					}
@@ -1145,13 +1124,8 @@ export const handleODataRequest: Express.Handler = async (req, res, next) => {
 		}
 	} catch (e) {
 		if (e instanceof HttpError) {
-			const body = e.getResponseBody();
-			res.set(e.headers);
-			if (body) {
-				res.status(e.status).send(body);
-			} else {
-				res.sendStatus(e.status);
-			}
+			const response = httpErrorToResponse(e);
+			handleResponse(res, response);
 			return;
 		}
 		// If an error bubbles here it must have happened in the last then block
@@ -1159,6 +1133,30 @@ export const handleODataRequest: Express.Handler = async (req, res, next) => {
 		console.error('An error occurred while constructing the response', e);
 		res.sendStatus(500);
 	}
+};
+
+const handleResponse = (res: Express.Response, response: Response): void => {
+	const { body, headers, status } = response as Response;
+	res.set(headers);
+
+	if (!body) {
+		res.sendStatus(status!);
+	} else {
+		if (status != null) {
+			res.status(status);
+		}
+		res.json(body);
+	}
+};
+
+const httpErrorToResponse = (
+	err: HttpError,
+): RequiredField<Response, 'status'> => {
+	return {
+		status: err.status,
+		body: err.getResponseBody(),
+		headers: err.headers,
+	};
 };
 
 // Reject the error to use the nice catch syntax
