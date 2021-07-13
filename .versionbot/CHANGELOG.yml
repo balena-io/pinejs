@@ -1,4 +1,15 @@
 - commits:
+    - subject: Reduce duplication for http error constructors
+      hash: 2ab6037174e2018819eadb9245db1e7f8a9fa06c
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 14.25.2
+  date: 2021-07-13T14:42:04.603Z
+- commits:
     - subject: Update dependencies
       hash: d7065d79a37bccb465c3541b7290881af0f27801
       body: |
