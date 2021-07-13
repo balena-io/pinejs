@@ -1,4 +1,15 @@
 - commits:
+    - subject: Standardize http error to response conversion and response sending
+      hash: 5243cdff5b2c259de1b8fc2cf00408b565b33cda
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 14.26.1
+  date: 2021-07-13T16:39:51.679Z
+- commits:
     - subject: Add the ability to include headers with http errors
       hash: 2a0733c8b49969a4593a9852598a175dd02ab66c
       body: ''
