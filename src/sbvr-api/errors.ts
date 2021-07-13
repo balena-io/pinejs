@@ -1,4 +1,4 @@
-import type { AnyObject } from './common-types';
+import type { AnyObject, Tail } from './common-types';
 
 import { TypedError } from 'typed-error';
 
@@ -25,231 +25,233 @@ export class HttpError extends TypedError {
 	}
 }
 
+type HttpErrorTailArgs = Tail<ConstructorParameters<typeof HttpError>>;
+
 export class BadRequestError extends HttpError {
-	constructor(error?: string | Error, body?: string | AnyObject) {
-		super(400, error, body);
+	constructor(...args: HttpErrorTailArgs) {
+		super(400, ...args);
 	}
 }
 
 export class UnauthorizedError extends HttpError {
-	constructor(error?: string | Error, body?: string | AnyObject) {
-		super(401, error, body);
+	constructor(...args: HttpErrorTailArgs) {
+		super(401, ...args);
 	}
 }
 
 export class PaymentRequired extends HttpError {
-	constructor(error?: string | Error, body?: string | AnyObject) {
-		super(402, error, body);
+	constructor(...args: HttpErrorTailArgs) {
+		super(402, ...args);
 	}
 }
 
 export class ForbiddenError extends HttpError {
-	constructor(error?: string | Error, body?: string | AnyObject) {
-		super(403, error, body);
+	constructor(...args: HttpErrorTailArgs) {
+		super(403, ...args);
 	}
 }
 
 export class NotFoundError extends HttpError {
-	constructor(error?: string | Error, body?: string | AnyObject) {
-		super(404, error, body);
+	constructor(...args: HttpErrorTailArgs) {
+		super(404, ...args);
 	}
 }
 
 export class MethodNotAllowedError extends HttpError {
-	constructor(error?: string | Error, body?: string | AnyObject) {
-		super(405, error, body);
+	constructor(...args: HttpErrorTailArgs) {
+		super(405, ...args);
 	}
 }
 
 export class NotAcceptableError extends HttpError {
-	constructor(error?: string | Error, body?: string | AnyObject) {
-		super(406, error, body);
+	constructor(...args: HttpErrorTailArgs) {
+		super(406, ...args);
 	}
 }
 
 export class ProxyAuthenticationRequiredError extends HttpError {
-	constructor(error?: string | Error, body?: string | AnyObject) {
-		super(407, error, body);
+	constructor(...args: HttpErrorTailArgs) {
+		super(407, ...args);
 	}
 }
 
 export class RequestTimeoutError extends HttpError {
-	constructor(error?: string | Error, body?: string | AnyObject) {
-		super(408, error, body);
+	constructor(...args: HttpErrorTailArgs) {
+		super(408, ...args);
 	}
 }
 
 export class ConflictError extends HttpError {
-	constructor(error?: string | Error, body?: string | AnyObject) {
-		super(409, error, body);
+	constructor(...args: HttpErrorTailArgs) {
+		super(409, ...args);
 	}
 }
 
 export class GoneError extends HttpError {
-	constructor(error?: string | Error, body?: string | AnyObject) {
-		super(410, error, body);
+	constructor(...args: HttpErrorTailArgs) {
+		super(410, ...args);
 	}
 }
 
 export class LengthRequiredError extends HttpError {
-	constructor(error?: string | Error, body?: string | AnyObject) {
-		super(411, error, body);
+	constructor(...args: HttpErrorTailArgs) {
+		super(411, ...args);
 	}
 }
 
 export class PreconditionFailedError extends HttpError {
-	constructor(error?: string | Error, body?: string | AnyObject) {
-		super(412, error, body);
+	constructor(...args: HttpErrorTailArgs) {
+		super(412, ...args);
 	}
 }
 
 export class PayloadTooLargeError extends HttpError {
-	constructor(error?: string | Error, body?: string | AnyObject) {
-		super(413, error, body);
+	constructor(...args: HttpErrorTailArgs) {
+		super(413, ...args);
 	}
 }
 
 export class URITooLongError extends HttpError {
-	constructor(error?: string | Error, body?: string | AnyObject) {
-		super(414, error, body);
+	constructor(...args: HttpErrorTailArgs) {
+		super(414, ...args);
 	}
 }
 
 export class UnsupportedMediaTypeError extends HttpError {
-	constructor(error?: string | Error, body?: string | AnyObject) {
-		super(415, error, body);
+	constructor(...args: HttpErrorTailArgs) {
+		super(415, ...args);
 	}
 }
 
 export class RequestedRangeNotSatisfiableError extends HttpError {
-	constructor(error?: string | Error, body?: string | AnyObject) {
-		super(416, error, body);
+	constructor(...args: HttpErrorTailArgs) {
+		super(416, ...args);
 	}
 }
 
 export class ExpectationFailedError extends HttpError {
-	constructor(error?: string | Error, body?: string | AnyObject) {
-		super(417, error, body);
+	constructor(...args: HttpErrorTailArgs) {
+		super(417, ...args);
 	}
 }
 
 export class MisdirectedRequestError extends HttpError {
-	constructor(error?: string | Error, body?: string | AnyObject) {
-		super(421, error, body);
+	constructor(...args: HttpErrorTailArgs) {
+		super(421, ...args);
 	}
 }
 
 export class UnprocessableEntityError extends HttpError {
-	constructor(error?: string | Error, body?: string | AnyObject) {
-		super(422, error, body);
+	constructor(...args: HttpErrorTailArgs) {
+		super(422, ...args);
 	}
 }
 
 export class LockedError extends HttpError {
-	constructor(error?: string | Error, body?: string | AnyObject) {
-		super(423, error, body);
+	constructor(...args: HttpErrorTailArgs) {
+		super(423, ...args);
 	}
 }
 
 export class FailedDependencyError extends HttpError {
-	constructor(error?: string | Error, body?: string | AnyObject) {
-		super(424, error, body);
+	constructor(...args: HttpErrorTailArgs) {
+		super(424, ...args);
 	}
 }
 
 export class UpgradeRequiredError extends HttpError {
-	constructor(error?: string | Error, body?: string | AnyObject) {
-		super(426, error, body);
+	constructor(...args: HttpErrorTailArgs) {
+		super(426, ...args);
 	}
 }
 
 export class PreconditionRequiredError extends HttpError {
-	constructor(error?: string | Error, body?: string | AnyObject) {
-		super(428, error, body);
+	constructor(...args: HttpErrorTailArgs) {
+		super(428, ...args);
 	}
 }
 
 export class TooManyRequestsError extends HttpError {
-	constructor(error?: string | Error, body?: string | AnyObject) {
-		super(429, error, body);
+	constructor(...args: HttpErrorTailArgs) {
+		super(429, ...args);
 	}
 }
 
 export class RequestHeaderFieldsTooLargeError extends HttpError {
-	constructor(error?: string | Error, body?: string | AnyObject) {
-		super(431, error, body);
+	constructor(...args: HttpErrorTailArgs) {
+		super(431, ...args);
 	}
 }
 
 export class UnavailableForLegalReasonsError extends HttpError {
-	constructor(error?: string | Error, body?: string | AnyObject) {
-		super(451, error, body);
+	constructor(...args: HttpErrorTailArgs) {
+		super(451, ...args);
 	}
 }
 
 export class InternalRequestError extends HttpError {
-	constructor(error?: string | Error, body?: string | AnyObject) {
-		super(500, error, body);
+	constructor(...args: HttpErrorTailArgs) {
+		super(500, ...args);
 	}
 }
 
 export class NotImplementedError extends HttpError {
-	constructor(error?: string | Error, body?: string | AnyObject) {
-		super(501, error, body);
+	constructor(...args: HttpErrorTailArgs) {
+		super(501, ...args);
 	}
 }
 
 export class BadGatewayError extends HttpError {
-	constructor(error?: string | Error, body?: string | AnyObject) {
-		super(502, error, body);
+	constructor(...args: HttpErrorTailArgs) {
+		super(502, ...args);
 	}
 }
 
 export class ServiceUnavailableError extends HttpError {
-	constructor(error?: string | Error, body?: string | AnyObject) {
-		super(503, error, body);
+	constructor(...args: HttpErrorTailArgs) {
+		super(503, ...args);
 	}
 }
 
 export class GatewayTimeoutError extends HttpError {
-	constructor(error?: string | Error, body?: string | AnyObject) {
-		super(504, error, body);
+	constructor(...args: HttpErrorTailArgs) {
+		super(504, ...args);
 	}
 }
 
 export class HTTPVersionNotSupportedError extends HttpError {
-	constructor(error?: string | Error, body?: string | AnyObject) {
-		super(505, error, body);
+	constructor(...args: HttpErrorTailArgs) {
+		super(505, ...args);
 	}
 }
 
 export class VariantAlsoNegotiatesError extends HttpError {
-	constructor(error?: string | Error, body?: string | AnyObject) {
-		super(506, error, body);
+	constructor(...args: HttpErrorTailArgs) {
+		super(506, ...args);
 	}
 }
 
 export class InsufficientStorageError extends HttpError {
-	constructor(error?: string | Error, body?: string | AnyObject) {
-		super(507, error, body);
+	constructor(...args: HttpErrorTailArgs) {
+		super(507, ...args);
 	}
 }
 
 export class LoopDetectedError extends HttpError {
-	constructor(error?: string | Error, body?: string | AnyObject) {
-		super(508, error, body);
+	constructor(...args: HttpErrorTailArgs) {
+		super(508, ...args);
 	}
 }
 
 export class NotExtendedError extends HttpError {
-	constructor(error?: string | Error, body?: string | AnyObject) {
-		super(510, error, body);
+	constructor(...args: HttpErrorTailArgs) {
+		super(510, ...args);
 	}
 }
 
 export class NetworkAuthenticationRequiredError extends HttpError {
-	constructor(error?: string | Error, body?: string | AnyObject) {
-		super(511, error, body);
+	constructor(...args: HttpErrorTailArgs) {
+		super(511, ...args);
 	}
 }
 

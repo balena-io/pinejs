@@ -10,3 +10,4 @@ export type OptionalField<T, F extends keyof T> = Overwrite<
 	Partial<Pick<T, F>>
 >;
 export type Resolvable<R> = R | PromiseLike<R>;
+export type Tail<T extends any[]> = T extends [any, ...infer U] ? U : never;
