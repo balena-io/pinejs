@@ -1,4 +1,18 @@
 - commits:
+    - subject: Fix Minor Typo in GettingStarted.md
+      hash: ee2ae52653075831c09a74e0c2ad3deaf56a32bf
+      body: |
+        Fix Minor Typo in GettingStarted.md
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Matthew Yarmolinsky <matthew-timothy@balena.io>
+        signed-off-by: Matthew Yarmolinsky <matthew-timothy@balena.io>
+      author: Matthew Yarmolinsky
+      nested: []
+  version: 14.26.2
+  date: 2021-07-15T13:42:10.963Z
+- commits:
     - subject: Standardize http error to response conversion and response sending
       hash: 5243cdff5b2c259de1b8fc2cf00408b565b33cda
       body: ''
