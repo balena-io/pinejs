@@ -223,7 +223,7 @@ $ curl -X PUT -d name=testdevice -d note=updatednote http://localhost:1337/examp
 Internal Server Error
 ```
 
-What went wrong here? Pine.js is simply preventing us from violating the constraints we had previously defined. One of these was that each device has exactly one type, but in the request we are forgot about this; luckily Pine.js can catch this kind of mistakes and will reject the update.
+What went wrong here? Pine.js is simply preventing us from violating the constraints we had previously defined. One of these was that each device has exactly one type, but in the request we forgot about this; luckily Pine.js can catch these kind of mistakes and will reject the update.
 
 To correctly modify the device we can try:
 
