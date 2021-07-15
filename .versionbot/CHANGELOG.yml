@@ -1,4 +1,19 @@
 - commits:
+    - subject: 'patch: Add single quotes for single entity curl requests'
+      hash: 72890ec735bb028714e9c73a5792976f65bdc91e
+      body: ''
+      footer: {}
+      author: Muizudeen Kusimo
+      nested: []
+    - subject: 'patch: Add quotes for single entity curl requests'
+      hash: e502af0737daf75ad3c4f8ef0a2a66be6b843ec7
+      body: ''
+      footer: {}
+      author: Muizudeen Kusimo
+      nested: []
+  version: 14.26.3
+  date: 2021-07-15T14:38:24.289Z
+- commits:
     - subject: Fix Minor Typo in GettingStarted.md
       hash: ee2ae52653075831c09a74e0c2ad3deaf56a32bf
       body: |
