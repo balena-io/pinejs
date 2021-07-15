@@ -208,7 +208,7 @@ $ curl -X GET http://localhost:1337/example/device
 The server will respond with an array containing all the devices, if we want to access a specific one, it is sufficient to add the id at the end of the URL we pass.
 
 ```
-$ curl -X GET "http://localhost:1337/example/device(1)"
+$ curl -X GET 'http://localhost:1337/example/device(1)'
 ```
 
 The above cURL request will return the single entity with `id=1`.
@@ -217,7 +217,7 @@ To modify the device we just created: the OData specification tells us that to d
 Lets try this:
 
 ```
-$ curl -X PUT -d name=testdevice -d note=updatednote "http://localhost:1337/example/device(1)"
+$ curl -X PUT -d name=testdevice -d note=updatednote 'http://localhost:1337/example/device(1)'
 
 ***
 Internal Server Error
@@ -228,7 +228,7 @@ What went wrong here? Pine.js is simply preventing us from violating the constra
 To correctly modify the device we can try:
 
 ```
-$ curl -X PUT -d name=testdevice -d note=updatednote -d type=raspberry "http://localhost:1337/example/device(1)"
+$ curl -X PUT -d name=testdevice -d note=updatednote -d type=raspberry 'http://localhost:1337/example/device(1)'
 ```
 
 You can now try to delete this entity to restore the database to it’s initial state. Recall from the OData specification that this can be done by performing a DELETE request at the endpoint represented by the entity we intend to delete.
