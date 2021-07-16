@@ -1414,7 +1414,7 @@ export const checkPermissionsMiddleware =
 			const allowed = await checkPermissions(req, action);
 			switch (allowed) {
 				case false:
-					res.sendStatus(401);
+					res.status(401).end();
 					return;
 				case true:
 					next();
@@ -1430,7 +1430,7 @@ export const checkPermissionsMiddleware =
 				err,
 				err.stack,
 			);
-			res.sendStatus(503);
+			res.status(503).end();
 		}
 	};
 
