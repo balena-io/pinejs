@@ -36,20 +36,20 @@ const checkForExpansion = async (
 	if (typeof field === 'string') {
 		try {
 			field = JSON.parse(field);
-		} catch (_e) {
+		} catch {
 			// If we can't JSON.parse the field then we use it directly.
 		}
 	}
 
+	const mappingResourceName = resolveNavigationResource(
+		{
+			abstractSqlModel,
+			vocabulary: vocab,
+			resourceName: parentResourceName,
+		},
+		fieldName,
+	);
 	if (Array.isArray(field)) {
-		const mappingResourceName = resolveNavigationResource(
-			{
-				abstractSqlModel,
-				vocabulary: vocab,
-				resourceName: parentResourceName,
-			},
-			fieldName,
-		);
 		const expandedField = await process(
 			vocab,
 			abstractSqlModel,
@@ -59,14 +59,6 @@ const checkForExpansion = async (
 		);
 		row[fieldName] = expandedField;
 	} else {
-		const mappingResourceName = resolveNavigationResource(
-			{
-				abstractSqlModel,
-				vocabulary: vocab,
-				resourceName: parentResourceName,
-			},
-			fieldName,
-		);
 		row[fieldName] = {
 			__id: field,
 		};
