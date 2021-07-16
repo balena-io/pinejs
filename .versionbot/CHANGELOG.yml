@@ -1,4 +1,23 @@
 - commits:
+    - subject: Simplify `splitApiRoot`
+      hash: 044c0c01e06f3c7b1305a592593c123eee3ca7c8
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+    - subject: Deduplicate code when processing an expanded response
+      hash: a21e011343f026c6da5d20e8c726d0267494788f
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 14.27.1
+  date: 2021-07-16T15:24:18.087Z
+- commits:
     - subject: Use `res.status(...).end()` in preference to `res.sendStatus()`
       hash: d98f9a416393a46c0e8db823317f22598f12ee86
       body: ''
