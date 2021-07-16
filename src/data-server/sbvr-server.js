@@ -141,7 +141,7 @@ export async function setup(app, sbvrUtils, db) {
 		permissions.checkPermissionsMiddleware('all'),
 		serverIsOnAir,
 		(_req, res) => {
-			res.sendStatus(404);
+			res.status(404).end();
 		},
 	);
 
@@ -187,7 +187,7 @@ export async function setup(app, sbvrUtils, db) {
 						});
 					});
 				await isServerOnAir(true);
-				res.sendStatus(200);
+				res.status(200).end();
 			} catch (err) {
 				await isServerOnAir(false);
 				res.status(404).json(err);
@@ -203,7 +203,7 @@ export async function setup(app, sbvrUtils, db) {
 				res.json(results);
 			} catch (err) {
 				console.log('Error validating', err);
-				res.sendStatus(404);
+				res.status(404).end();
 			}
 		},
 	);
@@ -227,10 +227,10 @@ export async function setup(app, sbvrUtils, db) {
 					await sbvrUtils.executeModels(tx, exports.config.models);
 					await setupModels(tx);
 				});
-				res.sendStatus(200);
+				res.status(200).end();
 			} catch (err) {
 				console.error('Error clearing db', err, err.stack);
-				res.sendStatus(503);
+				res.status(503).end();
 			}
 		},
 	);
@@ -254,10 +254,10 @@ export async function setup(app, sbvrUtils, db) {
 						}
 					}
 				});
-				res.sendStatus(200);
+				res.status(200).end();
 			} catch (err) {
 				console.error('Error importing db', err, err.stack);
-				res.sendStatus(404);
+				res.status(404).end();
 			}
 		},
 	);
@@ -301,7 +301,7 @@ export async function setup(app, sbvrUtils, db) {
 				res.json(exported);
 			} catch (err) {
 				console.error('Error exporting db', err, err.stack);
-				res.sendStatus(503);
+				res.status(503).end();
 			}
 		},
 	);
@@ -328,10 +328,10 @@ export async function setup(app, sbvrUtils, db) {
 						}),
 					);
 				});
-				res.sendStatus(200);
+				res.status(200).end();
 			} catch (err) {
 				console.error('Error backing up db', err, err.stack);
-				res.sendStatus(404);
+				res.status(404).end();
 			}
 		},
 	);
@@ -357,10 +357,10 @@ export async function setup(app, sbvrUtils, db) {
 						}),
 					);
 				});
-				res.sendStatus(200);
+				res.status(200).end();
 			} catch (err) {
 				console.error('Error restoring db', err, err.stack);
-				res.sendStatus(404);
+				res.status(404).end();
 			}
 		},
 	);
@@ -386,7 +386,7 @@ export async function setup(app, sbvrUtils, db) {
 			sbvrUtils.deleteModel('data'),
 		]);
 		await isServerOnAir(false);
-		res.sendStatus(200);
+		res.status(200).end();
 	});
 
 	await db.transaction(setupModels);

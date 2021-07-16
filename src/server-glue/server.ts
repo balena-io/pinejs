@@ -96,16 +96,16 @@ export const initialised = Pinejs.init(app)
 				passportPinejs.login((err, user, req, res) => {
 					if (err) {
 						console.error('Error logging in', err, err.stack);
-						res.sendStatus(500);
+						res.status(500).end();
 					} else if (user === false) {
 						if (req.xhr === true) {
-							res.sendStatus(401);
+							res.status(401).end();
 						} else {
 							res.redirect('/login.html');
 						}
 					} else {
 						if (req.xhr === true) {
-							res.sendStatus(200);
+							res.status(200).end();
 						} else {
 							res.redirect('/');
 						}

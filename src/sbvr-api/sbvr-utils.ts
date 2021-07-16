@@ -1131,20 +1131,19 @@ export const handleODataRequest: Express.Handler = async (req, res, next) => {
 		// If an error bubbles here it must have happened in the last then block
 		// We just respond with 500 as there is probably not much we can do to recover
 		console.error('An error occurred while constructing the response', e);
-		res.sendStatus(500);
+		res.status(500).end();
 	}
 };
 
 const handleResponse = (res: Express.Response, response: Response): void => {
 	const { body, headers, status } = response as Response;
 	res.set(headers);
-
+	if (status != null) {
+		res.status(status);
+	}
 	if (!body) {
-		res.sendStatus(status!);
+		res.end();
 	} else {
-		if (status != null) {
-			res.status(status);
-		}
 		res.json(body);
 	}
 };

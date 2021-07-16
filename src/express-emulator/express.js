@@ -93,14 +93,13 @@ const app = (function () {
 				json(/** @type any */ obj) {
 					// Stringify and parse to emulate passing over network.
 					obj = JSON.parse(JSON.stringify(obj));
-					if (this.statusCode >= 400) {
-						reject([this.statusCode, obj, null]);
-					} else {
-						resolve([this.statusCode, obj, null]);
-					}
+					this.end(obj);
 				},
 				send(/** @type any */ data) {
 					data = _.cloneDeep(data);
+					this.end(data);
+				},
+				end(/** @type any */ data) {
 					if (this.statusCode >= 400) {
 						reject([this.statusCode, data, null]);
 					} else {
@@ -163,7 +162,7 @@ const app = (function () {
 						checkMethodHandlers();
 					}
 				} else {
-					res.sendStatus(404);
+					res.status(404).end();
 				}
 			};
 			checkMethodHandlers();

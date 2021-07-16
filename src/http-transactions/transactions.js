@@ -249,12 +249,12 @@ WHERE "conditional resource"."transaction" = ?;\
 		app.post('/transaction/execute', async (req, res) => {
 			const id = Number(req.body.id);
 			if (Number.isNaN(id)) {
-				res.sendStatus(404);
+				res.status(404).end();
 			} else {
 				try {
 					await endTransaction(id);
 
-					res.sendStatus(200);
+					res.status(200).end();
 				} catch (err) {
 					console.error('Error ending transaction', err, err.stack);
 					res.status(404).json(err);
