@@ -358,13 +358,11 @@ const parseODataChangeset = (
 };
 
 const splitApiRoot = (url: string) => {
-	const urlParts = url.split('/');
-	const apiRoot = urlParts[1];
+	const [, apiRoot, ...urlParts] = url.split('/');
 	if (apiRoot == null) {
 		throw new ParsingError(`No such api root: ${apiRoot}`);
 	}
-	url = '/' + urlParts.slice(2).join('/');
-	return { url, apiRoot };
+	return { url: '/' + urlParts.join('/'), apiRoot };
 };
 
 const mustExtractHeader = (
