@@ -1,4 +1,15 @@
 - commits:
+    - subject: Use `res.status(...).end()` in preference to `res.sendStatus()`
+      hash: d98f9a416393a46c0e8db823317f22598f12ee86
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+      nested: []
+  version: 14.27.0
+  date: 2021-07-16T15:13:41.240Z
+- commits:
     - subject: 'patch: Add single quotes for single entity curl requests'
       hash: 72890ec735bb028714e9c73a5792976f65bdc91e
       body: ''
