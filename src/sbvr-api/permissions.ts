@@ -1502,24 +1502,23 @@ export const addPermissions = async (
 	request: ODataRequest & { permissionType?: PermissionCheck },
 ): Promise<void> => {
 	const { vocabulary, resourceName, odataQuery, odataBinds } = request;
-	let { method } = request;
 	let abstractSqlModel = sbvrUtils.getAbstractSqlModel(request);
-	method = method.toUpperCase() as SupportedMethod;
-	const isMetadataEndpoint =
-		metadataEndpoints.includes(resourceName) || method === 'OPTIONS';
 
-	let permissionType: PermissionCheck;
-	if (request.permissionType != null) {
-		permissionType = request.permissionType;
-	} else if (isMetadataEndpoint) {
-		permissionType = 'model';
-	} else {
-		const methodPermission = methodPermissions[method];
-		if (methodPermission != null) {
-			permissionType = methodPermission;
+	let { permissionType } = request;
+	if (permissionType == null) {
+		const method = request.method.toUpperCase() as SupportedMethod;
+		const isMetadataEndpoint =
+			method === 'OPTIONS' || metadataEndpoints.includes(resourceName);
+		if (isMetadataEndpoint) {
+			permissionType = 'model';
 		} else {
-			console.warn('Unknown method for permissions type check: ', method);
-			permissionType = 'all';
+			const methodPermission = methodPermissions[method];
+			if (methodPermission != null) {
+				permissionType = methodPermission;
+			} else {
+				console.warn('Unknown method for permissions type check: ', method);
+				permissionType = 'all';
+			}
 		}
 	}
 
