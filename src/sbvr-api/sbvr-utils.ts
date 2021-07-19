@@ -1123,9 +1123,7 @@ export const handleODataRequest: Express.Handler = async (req, res, next) => {
 			);
 		}
 	} catch (e) {
-		if (e instanceof HttpError) {
-			const response = httpErrorToResponse(e);
-			handleResponse(res, response);
+		if (handleHttpErrors(req, res, e)) {
 			return;
 		}
 		// If an error bubbles here it must have happened in the last then block
@@ -1135,6 +1133,26 @@ export const handleODataRequest: Express.Handler = async (req, res, next) => {
 	}
 };
 
+const handleErrorFns: Array<(req: Express.Request, err: HttpError) => void> =
+	[];
+export const onHandleHttpError = (fn: typeof handleErrorFns[number]) => {
+	handleErrorFns.push(fn);
+};
+export const handleHttpErrors = (
+	req: Express.Request,
+	res: Express.Response,
+	err: Error,
+): boolean => {
+	if (err instanceof HttpError) {
+		for (const handleErrorFn of handleErrorFns) {
+			handleErrorFn(req, err);
+		}
+		const response = httpErrorToResponse(err);
+		handleResponse(res, response);
+		return true;
+	}
+	return false;
+};
 const handleResponse = (res: Express.Response, response: Response): void => {
 	const { body, headers, status } = response as Response;
 	res.set(headers);
