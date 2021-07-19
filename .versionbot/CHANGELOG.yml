@@ -1,4 +1,15 @@
 - commits:
+    - subject: Export a `handleHttpErrors` function to handle HttpError/subclasses
+      hash: cec95b0f48e13280c7307b19c393054416224715
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+      nested: []
+  version: 14.28.0
+  date: 2021-07-19T15:28:31.131Z
+- commits:
     - subject: Avoid unnecessary work when a request's permission type is specified
       hash: a0d4c136ad13ff4c098e5005e625fdaacb5e104d
       body: ''
