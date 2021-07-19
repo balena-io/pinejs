@@ -1,4 +1,15 @@
 - commits:
+    - subject: Avoid unnecessary work when a request's permission type is specified
+      hash: a0d4c136ad13ff4c098e5005e625fdaacb5e104d
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 14.27.2
+  date: 2021-07-19T12:40:55.462Z
+- commits:
     - subject: Simplify `splitApiRoot`
       hash: 044c0c01e06f3c7b1305a592593c123eee3ca7c8
       body: ''
