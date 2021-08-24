@@ -1,4 +1,15 @@
 - commits:
+    - subject: Use readTransaction for read-only requests
+      hash: 231b5d99f8b8f0e6d83676928c8a2b5daa88a550
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+      nested: []
+  version: 14.29.0
+  date: 2021-08-24T14:41:20.962Z
+- commits:
     - subject: Export a `handleHttpErrors` function to handle HttpError/subclasses
       hash: cec95b0f48e13280c7307b19c393054416224715
       body: ''
