@@ -1,4 +1,17 @@
 - commits:
+    - subject: Update typescript to 4.4
+      hash: be625a7a8b8ac10fb95bfaaecd91ac6d5e27d7ca
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Thodoris Greasidis <thodoris@balena.io>
+        signed-off-by: Thodoris Greasidis <thodoris@balena.io>
+      author: Thodoris Greasidis
+      nested: []
+  version: 14.29.1
+  date: 2021-09-07T11:00:20.611Z
+- commits:
     - subject: Use readTransaction for read-only requests
       hash: 231b5d99f8b8f0e6d83676928c8a2b5daa88a550
       body: ''
