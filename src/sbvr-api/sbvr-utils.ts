@@ -477,13 +477,15 @@ export const executeModels = async (
 				api[apiRoot].logger = { ...console };
 				if (model.logging != null) {
 					const defaultSetting = model.logging?.default ?? true;
+					const { logger } = api[apiRoot];
 					for (const k of Object.keys(model.logging)) {
 						const key = k as keyof Console;
 						if (
-							typeof api[apiRoot].logger[key] === 'function' &&
+							key !== 'Console' &&
+							typeof logger[key] === 'function' &&
 							!(model.logging?.[key] ?? defaultSetting)
 						) {
-							api[apiRoot].logger[key] = _.noop;
+							logger[key] = _.noop;
 						}
 					}
 				}
