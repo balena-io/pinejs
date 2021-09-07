@@ -2,7 +2,7 @@
 import type * as Mysql from 'mysql';
 import type * as Pg from 'pg';
 import type * as PgConnectionString from 'pg-connection-string';
-import type { Resolvable } from '../sbvr-api/common-types';
+import type { Dictionary, Resolvable } from '../sbvr-api/common-types';
 
 import { Engines } from '@balena/abstract-sql-compiler';
 import * as Bluebird from 'bluebird';
@@ -107,6 +107,49 @@ export interface Database extends BaseDatabase {
 export const engines: {
 	[engine: string]: (connectString: string | object) => Database;
 } = {};
+
+const types = {
+	integer: {
+		min: -2147483648,
+		max: 2147483647,
+	},
+};
+
+const validateTransactionLockParameter = (
+	value: number,
+	parameterName: string,
+) => {
+	// PG also support negative values, but we initially restrict this to non-negative only.
+	if (!Number.isInteger(value) || value < 0 || types.integer.max < value) {
+		throw new TypeError(
+			`Invalid parameter '${parameterName}' provided for transaction lock`,
+		);
+	}
+};
+
+const transactionLockNamespaceMap: Dictionary<number> = {};
+
+export function registerTransactionLockNamespace(
+	namespaceKey: string,
+	namespaceId: number,
+) {
+	validateTransactionLockParameter(namespaceId, 'namespaceId');
+	if (transactionLockNamespaceMap[namespaceKey] != null) {
+		throw new Error(
+			`Error while registering transaction lock namespace '${namespaceKey}'. Namespace key is already registered.`,
+		);
+	}
+	const existingNamespaceEntry = Object.entries(
+		transactionLockNamespaceMap,
+	).find(([, id]) => id === namespaceId);
+	if (existingNamespaceEntry != null) {
+		throw new Error(
+			`Error while registering transaction lock namespace '${namespaceKey}'. Transaction lock namespace id '${namespaceId}' already registered for namespace ${existingNamespaceEntry[0]}.`,
+		);
+	}
+
+	transactionLockNamespaceMap[namespaceKey] = namespaceId;
+}
 
 const atomicExecuteSql: Database['executeSql'] = async function (
 	sql,
@@ -343,6 +386,15 @@ export abstract class Tx {
 	protected abstract _rollback(): Promise<void>;
 	protected abstract _commit(): Promise<void>;
 
+	public async getTxLevelLock(
+		_namespaceKey: string,
+		_key: number,
+	): Promise<void> {
+		throw new Error(
+			'The getTxLevelLock method is not implemented for the current engine.',
+		);
+	}
+
 	public abstract tableList(extraWhereClause?: string): Promise<Result>;
 	public async dropTable(tableName: string, ifExists = true) {
 		if (typeof tableName !== 'string') {
@@ -527,6 +579,20 @@ if (maybePg != null) {
 					this.db.release(err);
 					throw err;
 				}
+			}
+
+			public override async getTxLevelLock(namespaceKey: string, key: number) {
+				validateTransactionLockParameter(key, 'key');
+				const namespaceId = transactionLockNamespaceMap[namespaceKey];
+				if (namespaceId == null) {
+					throw new Error(
+						`Transaction lock namespace ${namespaceKey} not registered.`,
+					);
+				}
+				await this.executeSql(`SELECT pg_advisory_xact_lock($1, $2);`, [
+					namespaceId,
+					key,
+				]);
 			}
 
 			public async tableList(extraWhereClause: string = '') {
