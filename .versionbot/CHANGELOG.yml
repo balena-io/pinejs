@@ -1,4 +1,17 @@
 - commits:
+    - subject: Add method for getting transaction level advisory locks in Postgresql
+      hash: f1b14b73cccd50fdc0546a1b53696065b39c6e4f
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+        Signed-off-by: Thodoris Greasidis <thodoris@balena.io>
+        signed-off-by: Thodoris Greasidis <thodoris@balena.io>
+      author: Thodoris Greasidis
+      nested: []
+  version: 14.30.0
+  date: 2021-09-07T12:37:18.173Z
+- commits:
     - subject: Update typescript to 4.4
       hash: be625a7a8b8ac10fb95bfaaecd91ac6d5e27d7ca
       body: ''
