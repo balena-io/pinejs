@@ -1427,10 +1427,11 @@ const runQuery = async (
 		api[vocabulary].logger.log(query, values);
 	}
 
+	// TODO-MAJOR: Omit the returning clause altogether if `affectedIds` has already been populated
 	const sqlResult = await tx.executeSql(query, values, returningIdField);
 
 	if (returningIdField) {
-		request.affectedIds = sqlResult.rows.map((row) => row[returningIdField]);
+		request.affectedIds ??= sqlResult.rows.map((row) => row[returningIdField]);
 	}
 
 	return sqlResult;
