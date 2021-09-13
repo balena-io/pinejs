@@ -25,7 +25,7 @@ export interface Row {
 export interface Result {
 	rows: Row[];
 	rowsAffected: number;
-	insertId?: number;
+	insertId?: number | undefined;
 }
 
 export type Sql = string;

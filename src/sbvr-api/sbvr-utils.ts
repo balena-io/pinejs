@@ -103,8 +103,8 @@ export type ExecutableModel =
 
 interface CompiledModel {
 	vocab: string;
-	se?: string;
-	lf?: LFModel;
+	se?: string | undefined;
+	lf?: LFModel | undefined;
 	abstractSql: AbstractSQLCompiler.AbstractSqlModel;
 	sql: AbstractSQLCompiler.SqlModel;
 	odataMetadata: ReturnType<typeof generateODataMetadata>;
@@ -129,9 +129,11 @@ export interface ApiKey extends Actor {
 
 interface Response {
 	status?: number;
-	headers?: {
-		[headerName: string]: any;
-	};
+	headers?:
+		| {
+				[headerName: string]: any;
+		  }
+		| undefined;
 	body?: AnyObject | string;
 }
 
