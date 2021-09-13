@@ -1,4 +1,15 @@
 - commits:
+    - subject: Avoid iterating the sql result if affectedIds is already populated
+      hash: 6272c045c23b4cef0d369e8956f5888d9b84bb72
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 14.30.2
+  date: 2021-09-13T16:46:09.055Z
+- commits:
     - subject: Update dependencies
       hash: d3817a58af377307e839854477764f270da19b22
       body: |
