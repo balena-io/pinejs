@@ -50,7 +50,7 @@ export interface ODataRequest {
 	resourceName: string;
 	vocabulary: string;
 	_defer?: boolean;
-	id?: number;
+	id?: number | undefined;
 	custom: AnyObject;
 	tx?: Tx;
 	modifiedFields?: ReturnType<

@@ -34,7 +34,7 @@ export interface HookArgs {
 	req: HookReq;
 	request: ODataRequest;
 	api: PinejsClient;
-	tx?: Tx;
+	tx?: Tx | undefined;
 }
 export type HookResponse = PromiseLike<any> | null | void;
 
