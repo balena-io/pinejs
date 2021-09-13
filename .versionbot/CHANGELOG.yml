@@ -1,4 +1,29 @@
 - commits:
+    - subject: Update abstract-sql-compiler to 7.14.0
+      hash: ca63647fec92eaf0ebd3df65a320b6db71765e4b
+      body: |
+        Update abstract-sql-compiler from 7.13.5 to 7.14.0
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: >-
+                Relax the restrictions on `ORDER BY` as it doesn't just allow
+                fields
+              hash: a56b88a64af23c65eb2c09a81414e5e6daab42f0
+              body: ''
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-7.14.0
+          date: 2021-09-13T16:54:05.934Z
+  version: 14.30.3
+  date: 2021-09-13T21:57:50.752Z
+- commits:
     - subject: Avoid iterating the sql result if affectedIds is already populated
       hash: 6272c045c23b4cef0d369e8956f5888d9b84bb72
       body: ''
