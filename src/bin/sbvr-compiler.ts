@@ -43,14 +43,16 @@ const generateTypes = (inputFile: string, outputFile?: string) => {
 		require('../sbvr-api/sbvr-utils') as typeof SbvrUtils;
 	const seModel = getSE(inputFile);
 	const models = generateModels(
-		{ apiRoot: 'sbvr-compiler', modelText: seModel },
+		{ apiRoot: 'balena', modelText: seModel },
 		program.opts().engine,
 	);
-	const { abstractSqlToTypescriptTypes } =
-		require('@balena/abstract-sql-to-typescript') as typeof import('@balena/abstract-sql-to-typescript');
-	const types = abstractSqlToTypescriptTypes(models.abstractSql);
 
-	writeAll(types, outputFile);
+	// const { abstractSqlToTypescriptTypes } =
+	// require('@balena/abstract-sql-to-typescript') as typeof import('@balena/abstract-sql-to-typescript');
+	// const types = abstractSqlToTypescriptTypes(models.abstractSql);
+
+	// writeAll(types, outputFile);
+	writeAll(models.odataMetadata, outputFile);
 };
 
 program

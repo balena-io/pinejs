@@ -5,6 +5,28 @@ import type {
 
 import * as sbvrTypes from '@balena/sbvr-types';
 
+type dict = { [key: string]: any };
+interface OdataCsdl {
+	$Version: string;
+	$EntityContainer: string;
+	[key: string]: any;
+}
+
+interface ODataNameSpaceType {
+	$Alias: string;
+	'@Core.DefaultNamespace': boolean;
+	[key: string]: any;
+}
+interface ODataEntityContainerType {
+	$Kind: 'EntityContainer';
+	[key: string]: any;
+}
+
+interface ODataEntityContainerEntryType {
+	$Kind: 'EntityType' | 'ComplexType' | 'NavigationProperty';
+	[key: string]: any;
+}
+
 // tslint:disable-next-line:no-var-requires
 const { version }: { version: string } = require('../../package.json');
 
@@ -21,6 +43,7 @@ const forEachUniqueTable = <T>(
 	const usedTableNames: { [tableName: string]: true } = {};
 
 	const result = [];
+
 	for (const key in model) {
 		if (model.hasOwnProperty(key)) {
 			const table = model[key];
@@ -78,108 +101,124 @@ export const generateODataMetadata = (
 		}
 	});
 
-	return (
-		`
-		<?xml version="1.0" encoding="iso-8859-1" standalone="yes"?>
-		<edmx:Edmx Version="1.0" xmlns:edmx="http://schemas.microsoft.com/ado/2007/06/edmx">
-			<edmx:DataServices xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata" m:DataServiceVersion="2.0">
-				<Schema Namespace="${vocabulary}"
-					xmlns:d="http://schemas.microsoft.com/ado/2007/08/dataservices"
-					xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata"
-					xmlns="http://schemas.microsoft.com/ado/2008/09/edm">
+	const odataCsdl: OdataCsdl = {
+		$Version: '4.0',
+		$EntityContainer: vocabulary + '.ODataApi',
+		$Reference: {
+			'https://oasis-tcs.github.io/odata-vocabularies/vocabularies/Org.OData.Core.V1.json':
+				{
+					$Include: [
+						{
+							$Namespace: 'Org.OData.Core.V1',
+							$Alias: 'Core',
+							'@Core.DefaultNamespace': true,
+						},
+					],
+				},
+			'https://oasis-tcs.github.io/odata-vocabularies/vocabularies/Org.OData.Measures.V1.json':
+				{
+					$Include: [
+						{
+							$Namespace: 'Org.OData.Measures.V1',
+							$Alias: 'Measures',
+						},
+					],
+				},
+			'https://oasis-tcs.github.io/odata-vocabularies/vocabularies/Org.OData.Aggregation.V1.json':
+				{
+					$Include: [
+						{
+							$Namespace: 'Org.OData.Aggregation.V1.json',
+							$Alias: 'Aggregation',
+						},
+					],
+				},
+			'https://oasis-tcs.github.io/odata-vocabularies/vocabularies/Org.OData.Capabilities.V1.json':
+				{
+					$Include: [
+						{
+							$Namespace: 'Org.OData.Capabilities.V1.json',
+							$Alias: 'Capabilities',
+						},
+					],
+				},
+		},
+	};
 
-				` +
-		forEachUniqueTable(
-			model,
-			(_key, { idField, name: resourceName, fields }) => {
-				resourceName = getResourceName(resourceName);
-				return (
-					`
-					<EntityType Name="${resourceName}">
-						<Key>
-							<PropertyRef Name="${idField}" />
-						</Key>
+	let metaBalena: ODataNameSpaceType = {
+		$Alias: vocabulary,
+		'@Core.DefaultNamespace': true,
+	};
 
-						` +
-					fields
-						.filter(({ dataType }) => dataType !== 'ForeignKey')
-						.map(({ dataType, fieldName, required }) => {
-							dataType = resolveDataType(dataType);
-							fieldName = getResourceName(fieldName);
-							return `<Property Name="${fieldName}" Type="${dataType}" Nullable="${!required}" />`;
-						})
-						.join('\n') +
-					'\n' +
-					fields
-						.filter(
-							({ dataType, references }) =>
-								dataType === 'ForeignKey' && references != null,
-						)
-						.map(({ fieldName, references }) => {
-							const { resourceName: referencedResource } = references!;
-							fieldName = getResourceName(fieldName);
-							return `<NavigationProperty Name="${fieldName}" Relationship="${vocabulary}.${
-								resourceName + referencedResource
-							}" FromRole="${resourceName}" ToRole="${referencedResource}" />`;
-						})
-						.join('\n') +
-					'\n' +
-					`
-					</EntityType>`
-				);
-			},
-		).join('\n\n') +
-		associations
-			.map(({ name, ends }) => {
-				name = getResourceName(name);
-				return (
-					`<Association Name="${name}">` +
-					'\n\t' +
-					ends
-						.map(
-							({ resourceName, cardinality }) =>
-								`<End Role="${resourceName}" Type="${vocabulary}.${resourceName}" Multiplicity="${cardinality}" />`,
-						)
-						.join('\n\t') +
-					'\n' +
-					`</Association>`
-				);
-			})
-			.join('\n') +
-		`
-					<EntityContainer Name="${vocabulary}Service" m:IsDefaultEntityContainer="true">
+	let metaBalenaEntries: dict = {};
+	forEachUniqueTable(model, (_key, { idField, name: resourceName, fields }) => {
+		resourceName = getResourceName(resourceName);
 
-					` +
-		forEachUniqueTable(model, (_key, { name: resourceName }) => {
-			resourceName = getResourceName(resourceName);
-			return `<EntitySet Name="${resourceName}" EntityType="${vocabulary}.${resourceName}" />`;
-		}).join('\n') +
-		'\n' +
-		associations
-			.map(({ name, ends }) => {
-				name = getResourceName(name);
-				return (
-					`<AssociationSet Name="${name}" Association="${vocabulary}.${name}">` +
-					'\n\t' +
-					ends
-						.map(
-							({ resourceName }) =>
-								`<End Role="${resourceName}" EntitySet="${vocabulary}.${resourceName}" />`,
-						)
-						.join('\n\t') +
-					`
-								</AssociationSet>`
-				);
-			})
-			.join('\n') +
-		`
-					</EntityContainer>` +
-		Object.values(complexTypes).join('\n') +
-		`
-				</Schema>
-			</edmx:DataServices>
-		</edmx:Edmx>`
-	);
+		const uniqueTable: ODataEntityContainerEntryType = {
+			$Kind: 'EntityType',
+			$Key: [idField],
+		};
+
+		fields
+			.filter(({ dataType }) => dataType !== 'ForeignKey')
+			.map(({ dataType, fieldName, required }) => {
+				dataType = resolveDataType(dataType);
+				fieldName = getResourceName(fieldName);
+				uniqueTable[fieldName] = {
+					$Type: dataType,
+					$Nullable: !required,
+				};
+			});
+
+		fields
+			.filter(
+				({ dataType, references }) =>
+					dataType === 'ForeignKey' && references != null,
+			)
+			.map(({ fieldName, references, required }) => {
+				const { resourceName: referencedResource } = references!;
+				fieldName = getResourceName(fieldName);
+				uniqueTable[fieldName] = {
+					$Kind: 'NavigationProperty',
+					$Partner: resourceName,
+					$Nullable: !required,
+					$Type: vocabulary + '.' + getResourceName(referencedResource),
+				};
+			});
+
+		metaBalenaEntries[resourceName] = uniqueTable;
+	});
+
+	metaBalenaEntries = Object.keys(metaBalenaEntries)
+		.sort()
+		.reduce((r, k) => ((r[k] = metaBalenaEntries[k]), r), {} as dict);
+
+	metaBalena = { ...metaBalena, ...metaBalenaEntries };
+
+	let oDataApi: ODataEntityContainerType = {
+		$Kind: 'EntityContainer',
+	};
+
+	let entityContainerEntries: dict = {};
+	forEachUniqueTable(model, (_key, { name: resourceName }) => {
+		resourceName = getResourceName(resourceName);
+
+		entityContainerEntries[resourceName] = {
+			$Collection: true,
+			$Type: vocabulary + '.' + resourceName,
+		};
+	});
+
+	entityContainerEntries = Object.keys(entityContainerEntries)
+		.sort()
+		.reduce((r, k) => ((r[k] = entityContainerEntries[k]), r), {} as dict);
+	oDataApi = { ...oDataApi, ...entityContainerEntries };
+
+	metaBalena['ODataApi'] = oDataApi;
+
+	odataCsdl[vocabulary] = metaBalena;
+
+	return JSON.stringify(odataCsdl, null, 2);
 };
 
 generateODataMetadata.version = version;
