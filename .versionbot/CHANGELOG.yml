@@ -1,4 +1,15 @@
 - commits:
+    - subject: Avoid creating a new readOnlyArgs object when args is already read-only
+      hash: e0eed7914ac621a58dc0a78a9a63b00b69076753
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 14.30.4
+  date: 2021-09-29T14:58:29.987Z
+- commits:
     - subject: Update abstract-sql-compiler to 7.14.0
       hash: ca63647fec92eaf0ebd3df65a320b6db71765e4b
       body: |
