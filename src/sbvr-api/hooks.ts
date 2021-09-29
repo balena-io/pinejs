@@ -351,7 +351,7 @@ export const runHooks = async <T extends keyof Hooks>(
 	}
 
 	let readOnlyArgs: typeof args;
-	if (args.tx != null) {
+	if (args.tx != null && !args.tx.isReadOnly()) {
 		readOnlyArgs = { ...args, tx: args.tx.asReadOnly() };
 	} else {
 		// If we don't have a tx then read-only/writable is irrelevant
