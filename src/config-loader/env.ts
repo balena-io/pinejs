@@ -1,4 +1,12 @@
-export const { DEBUG } = process.env;
+// TODO-MAJOR: Drop the support for the global `DEBUG` env var
+const { DEBUG: globalDebug, PINEJS_DEBUG } = process.env;
+if (![undefined, '', '0', '1'].includes(PINEJS_DEBUG)) {
+	// TODO-MAJOR: Throw on invalid value
+	console.warn(`Invalid value for PINE_DEBUG '${PINEJS_DEBUG}'`);
+}
+// Setting PINEJS_DEBUG to explicitly '0' will disable debug even if global debug is truthy
+export const DEBUG =
+	PINEJS_DEBUG === '1' || (PINEJS_DEBUG !== '0' && !!globalDebug);
 
 export const cache = {
 	permissionsLookup: {

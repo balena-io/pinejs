@@ -19,6 +19,7 @@ config.plugins = config.plugins.concat(
 		'process.browser': true,
 		'process.env.CONFIG_LOADER_DISABLED': true,
 		'process.env.DEBUG': true,
+		'process.env.PINEJS_DEBUG': true,
 		'process.env.SBVR_SERVER_ENABLED': true,
 	}),
 );
