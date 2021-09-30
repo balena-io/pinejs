@@ -32,11 +32,7 @@ export type Sql = string;
 export type Bindings = any[];
 
 const isSqlError = (value: any): value is SQLError => {
-	return (
-		value != null &&
-		value.constructor != null &&
-		value.constructor.name === 'SQLError'
-	);
+	return value?.constructor?.name === 'SQLError';
 };
 
 export class DatabaseError extends TypedError {
