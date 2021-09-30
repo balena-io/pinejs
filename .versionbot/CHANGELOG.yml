@@ -1,4 +1,17 @@
 - commits:
+    - subject: Add support for a `PINEJS_DEBUG` env var that is more strictly checked
+      hash: 4b591eefae812a10f43d98e440d11bbfdded69c0
+      body: |
+        This means we can warn on/ignore invalid values rather than giving a
+        potentially surprising result, eg `'0'` being truthy
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+      nested: []
+  version: 14.31.0
+  date: 2021-09-29T17:05:19.795Z
+- commits:
     - subject: Avoid creating a new readOnlyArgs object when args is already read-only
       hash: e0eed7914ac621a58dc0a78a9a63b00b69076753
       body: ''
