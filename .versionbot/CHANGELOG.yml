@@ -1,4 +1,15 @@
 - commits:
+    - subject: More usage of nullish coalescing
+      hash: ef543e12309224e97b126b33d4c78521b2a883a9
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 14.31.1
+  date: 2021-09-30T15:03:08.673Z
+- commits:
     - subject: Add support for a `PINEJS_DEBUG` env var that is more strictly checked
       hash: 4b591eefae812a10f43d98e440d11bbfdded69c0
       body: |
