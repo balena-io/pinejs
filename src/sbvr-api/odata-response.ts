@@ -99,11 +99,7 @@ const getLocalFields = (table: AbstractSqlTable) => {
 };
 const getFetchProcessingFields = (table: AbstractSqlTable) => {
 	return (table.fetchProcessingFields ??= _(table.fields)
-		.filter(
-			({ dataType }) =>
-				sbvrTypes[dataType] != null &&
-				sbvrTypes[dataType].fetchProcessing != null,
-		)
+		.filter(({ dataType }) => sbvrTypes[dataType]?.fetchProcessing != null)
 		.map(({ fieldName, dataType }) => {
 			const odataName = sqlNameToODataName(fieldName);
 			return [odataName, sbvrTypes[dataType].fetchProcessing];

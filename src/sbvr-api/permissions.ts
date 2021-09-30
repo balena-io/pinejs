@@ -1361,11 +1361,7 @@ export const resolveApiKey = async (
 	paramName = 'apikey',
 ): Promise<PermissionReq['apiKey']> => {
 	const apiKey =
-		req.params[paramName] != null
-			? req.params[paramName]
-			: req.body[paramName] != null
-			? req.body[paramName]
-			: req.query[paramName];
+		req.params[paramName] ?? req.body[paramName] ?? req.query[paramName];
 	return await checkApiKey(req, apiKey);
 };
 
@@ -1488,9 +1484,9 @@ const getReqPermissions = async (
 		actorPermissions = perms;
 	};
 
-	if (req.user != null && req.user.permissions != null) {
+	if (req.user?.permissions != null) {
 		addActorPermissions(req.user.actor, req.user.permissions);
-	} else if (req.apiKey != null && req.apiKey.permissions != null) {
+	} else if (req.apiKey?.permissions != null) {
 		addActorPermissions(req.apiKey.actor!, req.apiKey.permissions);
 	}
 
@@ -1609,8 +1605,7 @@ export const setup = () => {
 			}
 			if (
 				request.method === 'POST' &&
-				request.odataQuery.property != null &&
-				request.odataQuery.property.resource === 'canAccess'
+				request.odataQuery.property?.resource === 'canAccess'
 			) {
 				if (request.odataQuery.key == null) {
 					throw new BadRequestError();
