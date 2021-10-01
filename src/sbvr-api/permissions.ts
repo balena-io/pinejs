@@ -32,7 +32,7 @@ import * as memoize from 'memoizee';
 import * as randomstring from 'randomstring';
 import * as env from '../config-loader/env';
 import * as sbvrUtils from '../sbvr-api/sbvr-utils';
-import { HookReq, addPureHook, addHook } from './hooks';
+import { HookReq, addPureHook, addHook, HookArgs } from './hooks';
 import {
 	BadRequestError,
 	PermissionError,
@@ -1595,9 +1595,8 @@ export const setup = () => {
 		POSTPARSE: async ({
 			req,
 			request,
-		}: {
-			req: HookReq;
-			request: ODataRequest & { permissionType?: PermissionCheck };
+		}: HookArgs & {
+			request: { permissionType?: PermissionCheck };
 		}) => {
 			// If the abstract sql query is already generated then adding permissions will do nothing
 			if (request.abstractSqlQuery != null) {
@@ -1607,7 +1606,10 @@ export const setup = () => {
 				request.method === 'POST' &&
 				request.odataQuery.property?.resource === 'canAccess'
 			) {
-				if (request.odataQuery.key == null) {
+				const { key } = request.odataQuery;
+				const $filter = request.odataQuery.options?.$filter;
+				if ((key == null) === ($filter == null)) {
+					// Exactly one of key or $filter are allowed
 					throw new BadRequestError();
 				}
 				const { action, method } = request.values;
@@ -1638,7 +1640,12 @@ export const setup = () => {
 				const idField = resourceTable.idField;
 				request.odataQuery.options = {
 					$select: { properties: [{ name: idField }] },
-					$top: 1,
+					...(key != null
+						? { $top: 1 }
+						: {
+								$filter,
+								$orderby: { properties: [{ name: idField, order: 'asc' }] },
+						  }),
 				};
 				request.odataQuery.resource = request.resourceName;
 				delete request.odataQuery.property;
