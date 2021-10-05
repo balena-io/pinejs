@@ -1,4 +1,15 @@
 - commits:
+    - subject: Add the postgres pool error handler even when no PG_SCHEMA is specified
+      hash: 6d4a75e69910ab27cb1a8096a30776da4173d6ca
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 14.31.2
+  date: 2021-10-05T15:23:45.569Z
+- commits:
     - subject: More usage of nullish coalescing
       hash: ef543e12309224e97b126b33d4c78521b2a883a9
       body: ''
