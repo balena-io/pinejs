@@ -1,4 +1,23 @@
 - commits:
+    - subject: Add the ability to enable caching of api key permissions
+      hash: a2fe4c9061aa20c2bf53693e27876ea5ab897254
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+      nested: []
+    - subject: Add the ability to enable caching of user permissions
+      hash: 3e7991469eecbc627defce4664e8c0a34f139fa0
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+      nested: []
+  version: 14.33.0
+  date: 2021-10-14T16:30:28.431Z
+- commits:
     - subject: Allow passing a function as the cache params to enable custom caching
       hash: 3e790d9961a0d7f666021248668241264b453743
       body: |
