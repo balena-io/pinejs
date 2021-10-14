@@ -13,7 +13,6 @@ import * as ODataParser from '@balena/odata-parser';
 export const SyntaxError = ODataParser.SyntaxError;
 import { OData2AbstractSQL } from '@balena/odata-to-abstract-sql';
 import * as _ from 'lodash';
-import * as memoize from 'memoizee';
 import memoizeWeak = require('memoizee/weak');
 
 export { BadRequestError, ParsingError, TranslationError } from './errors';
@@ -87,9 +86,8 @@ export const memoizedParseOdata = (() => {
 		return odata;
 	};
 
-	const _memoizedParseOdata = memoize(parseOdata, {
+	const _memoizedParseOdata = env.createCache('parseOData', parseOdata, {
 		primitive: true,
-		max: env.cache.parseOData.max,
 	});
 	return (url: string) => {
 		const queryParamsIndex = url.indexOf('?');
@@ -149,7 +147,8 @@ export const memoizedGetOData2AbstractSQL = memoizeWeak(
 );
 
 const memoizedOdata2AbstractSQL = (() => {
-	const $memoizedOdata2AbstractSQL = memoizeWeak(
+	const $memoizedOdata2AbstractSQL = env.createCache(
+		'odataToAbstractSql',
 		(
 			abstractSqlModel: AbstractSQLCompiler.AbstractSqlModel,
 			odataQuery: ODataQuery,
@@ -199,7 +198,7 @@ const memoizedOdata2AbstractSQL = (() => {
 					existingBindVarsLength
 				);
 			},
-			max: env.cache.odataToAbstractSql.max,
+			weak: true,
 		},
 	);
 	const cachedProps = [

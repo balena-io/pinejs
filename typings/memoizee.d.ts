@@ -5,7 +5,7 @@ declare module 'memoizee/weak' {
 	type RestArgs<T> = T extends (arg1: any, ...args: infer U) => any ? U : any[];
 
 	// tslint:disable-next-line ban-types
-	interface MemoizeWeakOptions<F extends Function> {
+	export interface MemoizeWeakOptions<F extends Function> {
 		length?: number | false;
 		maxAge?: number;
 		max?: number;

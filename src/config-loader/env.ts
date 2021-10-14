@@ -8,22 +8,68 @@ if (![undefined, '', '0', '1'].includes(PINEJS_DEBUG)) {
 export const DEBUG =
 	PINEJS_DEBUG === '1' || (PINEJS_DEBUG !== '0' && !!globalDebug);
 
+type CacheFnOpts<T extends (...args: any[]) => any> =
+	| {
+			primitive?: true;
+			promise?: true;
+			normalizer?: memoizeWeak.MemoizeWeakOptions<T>['normalizer'];
+			weak: true;
+	  }
+	| {
+			primitive?: true;
+			promise?: true;
+			normalizer?: memoize.Options<T>['normalizer'];
+			weak?: undefined;
+	  };
+export type CacheFn = <T extends (...args: any[]) => any>(
+	fn: T,
+	opts?: CacheFnOpts<T>,
+) => T;
+export type CacheOpts =
+	| {
+			max?: number;
+	  }
+	| CacheFn;
+
 export const cache = {
 	permissionsLookup: {
 		max: 5000,
-	},
+	} as CacheOpts,
 	parsePermissions: {
 		max: 100000,
-	},
+	} as CacheOpts,
 	parseOData: {
 		max: 100000,
-	},
+	} as CacheOpts,
 	odataToAbstractSql: {
 		max: 10000,
-	},
+	} as CacheOpts,
 	abstractSqlCompiler: {
 		max: 10000,
-	},
+	} as CacheOpts,
+};
+
+import * as memoize from 'memoizee';
+import memoizeWeak = require('memoizee/weak');
+export const createCache = <T extends (...args: any[]) => any>(
+	cacheName: keyof typeof cache,
+	fn: T,
+	opts?: CacheFnOpts<T>,
+) => {
+	const cacheOpts = cache[cacheName];
+	if (typeof cacheOpts === 'function') {
+		return cacheOpts(fn, opts);
+	}
+	if (opts?.weak === true) {
+		return memoizeWeak(fn, {
+			...cacheOpts,
+			...opts,
+		});
+	}
+	return memoize(fn, {
+		...cacheOpts,
+		...opts,
+	});
 };
 
 let timeoutMS: number;

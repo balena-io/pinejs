@@ -117,7 +117,8 @@ const methodPermissions: {
 	DELETE: 'delete',
 };
 
-const $parsePermissions = memoize(
+const $parsePermissions = env.createCache(
+	'parsePermissions',
 	(filter: string) => {
 		const { tree, binds } = ODataParser.parse(filter, {
 			startRule: 'ProcessRule',
@@ -130,7 +131,6 @@ const $parsePermissions = memoize(
 	},
 	{
 		primitive: true,
-		max: env.cache.parsePermissions.max,
 	},
 );
 
@@ -308,7 +308,8 @@ const namespaceRelationships = (
 
 type PermissionLookup = _.Dictionary<true | string[]>;
 
-const getPermissionsLookup = memoize(
+const getPermissionsLookup = env.createCache(
+	'permissionsLookup',
 	(permissions: string[], guestPermissions?: string[]): PermissionLookup => {
 		if (guestPermissions != null) {
 			permissions = [...guestPermissions, ...permissions];
@@ -339,10 +340,10 @@ const getPermissionsLookup = memoize(
 		return permissionsLookup;
 	},
 	{
+		weak: undefined,
 		normalizer: ([permissions, guestPermissions]) =>
 			// When guestPermissions is present it should always be the same, so we can key by presence not content
 			`${permissions}${guestPermissions == null}`,
-		max: env.cache.permissionsLookup.max,
 	},
 );
 
