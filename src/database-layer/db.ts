@@ -477,6 +477,16 @@ if (maybePg != null) {
 				client.query({ text: `SET search_path TO "${PG_SCHEMA}"` });
 			});
 		}
+		pool.on('connect', (client) => {
+			client.on('error', (err) => {
+				try {
+					console.error('Releasing client on error:', err);
+					client.release(err);
+				} catch (e) {
+					console.error('Error releasing client on error:', e);
+				}
+			});
+		});
 		pool.on('error', (err) => {
 			console.error('Pool error:', err.message);
 		});
