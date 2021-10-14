@@ -8,7 +8,6 @@ import {
 } from '@balena/odata-to-abstract-sql';
 import deepFreeze = require('deep-freeze');
 import * as memoize from 'memoizee';
-import memoizeWeak = require('memoizee/weak');
 import * as env from '../config-loader/env';
 import { BadRequestError, SqlCompilationError } from './errors';
 import * as sbvrUtils from './sbvr-utils';
@@ -16,7 +15,8 @@ import { ODataRequest } from './uri-parser';
 
 const getMemoizedCompileRule = memoize(
 	(engine: AbstractSQLCompiler.Engines) =>
-		memoizeWeak(
+		env.createCache(
+			'abstractSqlCompiler',
 			(abstractSqlQuery: AbstractSQLCompiler.AbstractSqlQuery) => {
 				const sqlQuery =
 					AbstractSQLCompiler[engine].compileRule(abstractSqlQuery);
@@ -30,7 +30,7 @@ const getMemoizedCompileRule = memoize(
 					modifiedFields,
 				};
 			},
-			{ max: env.cache.abstractSqlCompiler.max },
+			{ weak: true },
 		),
 	{ primitive: true },
 );
